@@ -163,7 +163,7 @@ class ControlledGate(raw_types.Gate):
                 return dg.DiagonalGate(diag_angles_radians=[*rads.flatten()]).on(*qubits)
             # Case 2: Multi-controlled single-qubit gate decomposition
             if n_qubits == 1 and isinstance(self.control_values, cv.ProductOfSums):
-                invert_ops: List[cirq.Operation] = []
+                invert_ops: list[cirq.Operation] = []
                 for cvals, cqbit in zip(self.control_values, qubits[: self.num_controls()]):
                     if set(cvals) == {0}:
                         invert_ops.append(common_gates.X(cqbit))
