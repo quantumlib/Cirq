@@ -254,7 +254,7 @@ def run_shuffled_with_readout_benchmarking(
     num_random_bitstrings: int = 100,
     readout_repetitions: int = 1000,
     qubits: Optional[Union[Sequence[ops.Qid], Sequence[Sequence[ops.Qid]]]] = None,
-) -> tuple[list[ResultDict], Dict[Tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult]]:
+) -> tuple[Sequence[ResultDict], Dict[Tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult]]:
     """Run the circuits in a shuffled order with readout error benchmarking.
 
     Args:
@@ -342,7 +342,7 @@ def run_sweep_with_readout_benchmarking(
     readout_repetitions: int = 1000,
     qubits: Optional[Union[Sequence[ops.Qid], Sequence[Sequence[ops.Qid]]]] = None,
 ) -> tuple[
-    list[list[study.Result]], Dict[Tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult]
+    Sequence[Sequence[study.Result]], Dict[Tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult]
 ]:
     """Run the sweep circuits with readout error benchmarking (no shuffling).
     Args:
@@ -405,7 +405,7 @@ def run_sweep_with_readout_benchmarking(
 
     timestamp = time.time()
 
-    input_circuits_measiurements = results[: len(input_circuits)]
+    input_circuits_measurement = results[: len(input_circuits)]
     readout_measurements = results[len(input_circuits) :]
 
     # Analyze results
@@ -420,4 +420,4 @@ def run_sweep_with_readout_benchmarking(
         )
         readout_calibration_results[tuple(qubit_group)] = calibration_result
 
-    return input_circuits_measiurements, readout_calibration_results
+    return input_circuits_measurement, readout_calibration_results

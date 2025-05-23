@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import itertools
 import time
-from typing import cast, Sequence, Union, TYPE_CHECKING
+from typing import cast, Sequence, TYPE_CHECKING, Union
 
 import attrs
 import numpy as np
@@ -240,7 +240,7 @@ def _pauli_strings_to_basis_change_ops(
 
 def _pauli_strings_to_basis_change_with_sweep(
     pauli_strings: list[ops.PauliString], qid_list: list[ops.Qid]
-) -> list[dict[str, float]]:
+) -> dict[str, float]:
     """Decide single-qubit rotation sweep parameters for basis change."""
     params_dict = {}
 
@@ -357,7 +357,7 @@ def _build_many_one_qubits_empty_confusion_matrix(qubits_length: int) -> list[np
 def _process_pauli_measurement_results(
     qubits: list[ops.Qid],
     pauli_string_groups: list[list[ops.PauliString]],
-    circuit_results: list[ResultDict],
+    circuit_results: Sequence[ResultDict],
     calibration_results: dict[tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult],
     pauli_repetitions: int,
     timestamp: float,
@@ -516,7 +516,7 @@ def measure_pauli_strings(
     # Build the basis-change circuits for each Pauli string group
     pauli_measurement_circuits = list[circuits.Circuit]()
     sweep_params = list[study.Sweepable]()
-    circuits_results: Union[list[ResultDict], list[list[ResultDict]]] = []
+    circuits_results: Union[Sequence[ResultDict], Sequence[Sequence[study.Result]]] = []
     # calibration_results = list[Dict[Tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult]]()
 
     if use_sweep:
@@ -559,7 +559,7 @@ def measure_pauli_strings(
 
         disable_readout_mitigation = False if num_random_bitstrings != 0 else True
 
-        circuits_results_for_group = []
+        circuits_results_for_group: Union[ResultDict, Sequence[study.Result]] = []
         if use_sweep:
             circuits_results_for_group = circuits_results[i]
         else:

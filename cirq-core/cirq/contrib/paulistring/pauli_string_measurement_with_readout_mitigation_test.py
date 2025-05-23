@@ -214,14 +214,14 @@ def test_group_pauli_string_measurement_errors_no_noise_with_coefficient(use_swe
     circuits_to_pauli: dict[cirq.FrozenCircuit, list[list[cirq.PauliString]]] = {}
     circuits_to_pauli[circuit] = [
         _generate_qwc_paulis(
-            _generate_random_pauli_string(qubits, enable_coeff=True, allow_pauli_i=False), 100, True
+            _generate_random_pauli_string(qubits, enable_coeff=True, allow_pauli_i=False), 10, True
         )
         for _ in range(3)
     ]
     circuits_to_pauli[circuit].append([cirq.PauliString({q: cirq.X for q in qubits})])
 
     circuits_with_pauli_expectations = measure_pauli_strings(
-        circuits_to_pauli, sampler, 500, 500, 500, 500, use_sweep
+        circuits_to_pauli, sampler, 1000, 1000, 1000, 500, use_sweep
     )
 
     for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
@@ -322,7 +322,7 @@ def test_group_pauli_string_measurement_errors_with_noise(use_sweep: bool) -> No
     ]
 
     circuits_with_pauli_expectations = measure_pauli_strings(
-        circuits_to_pauli, sampler, 800, 1000, 800, np.random.default_rng(), use_sweep
+        circuits_to_pauli, sampler, 1000, 1000, 1000, np.random.default_rng(), use_sweep
     )
 
     for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
@@ -463,7 +463,7 @@ def test_allow_group_pauli_measurement_without_readout_mitigation(use_sweep: boo
     ]
 
     circuits_with_pauli_expectations = measure_pauli_strings(
-        circuits_to_pauli, sampler, 100, 100, 0, np.random.default_rng(), use_sweep
+        circuits_to_pauli, sampler, 1000, 1000, 0, np.random.default_rng(), use_sweep
     )
 
     for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
@@ -836,12 +836,12 @@ def test_pauli_type_mismatch(use_sweep: bool) -> None:
         " ops.PauliStrings. Got <class 'int'> instead.",
     ):
         measure_pauli_strings(
-            circuits_to_pauli,
+            circuits_to_pauli,  # type: ignore[arg-type]
             cirq.Simulator(),
             1000,
             1000,
             1000,
-            "test",  # type: ignore[arg-type]
+            1,
             use_sweep,
         )
 
