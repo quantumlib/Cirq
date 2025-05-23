@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import FrozenSet, Iterator, Sequence, Set, TYPE_CHECKING
+from typing import Iterator, Sequence, TYPE_CHECKING
 
 from cirq import devices
 from cirq.contrib import circuitdag
@@ -66,7 +66,7 @@ def get_acquaintance_dag(strategy: cirq.Circuit, initial_mapping: LogicalMapping
 
 def get_logical_acquaintance_opportunities(
     strategy: cirq.Circuit, initial_mapping: LogicalMapping
-) -> Set[FrozenSet[LogicalIndex]]:
+) -> set[frozenset[LogicalIndex]]:
     acquaintance_dag = get_acquaintance_dag(strategy, initial_mapping)
     logical_acquaintance_opportunities = set()
     for op in acquaintance_dag.all_operations():

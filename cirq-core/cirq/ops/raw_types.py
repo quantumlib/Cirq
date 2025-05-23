@@ -449,7 +449,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
     @value.alternative(requires='_num_qubits_', implementation=_default_shape_from_num_qubits)
     def _qid_shape_(self) -> tuple[int, ...]:
-        """Returns a Tuple containing the number of quantum levels of each qid
+        """Returns a tuple containing the number of quantum levels of each qid
         the gate acts on.  E.g. (2, 2, 2) for the three-qubit CCZ gate and
         (3, 3) for a 2-qutrit ternary gate.
         """

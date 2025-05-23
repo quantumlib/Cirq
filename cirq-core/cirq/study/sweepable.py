@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import cast, Iterable, Iterator, Sequence, Union
+from typing import cast, Iterable, Iterator, Sequence
 
 from typing_extensions import Protocol
 
@@ -33,7 +33,7 @@ class _Sweepable(Protocol):
     """An intermediate class allowing for recursive definition of Sweepable,
     since recursive union definitions are not yet supported in mypy."""
 
-    def __iter__(self) -> Iterator[Union[SweepLike, _Sweepable]]:
+    def __iter__(self) -> Iterator[SweepLike | _Sweepable]:
         pass
 
 
@@ -73,9 +73,9 @@ def to_sweeps(sweepable: Sweepable, metadata: dict | None = None) -> list[Sweep]
 
 
 def to_sweep(
-    sweep_or_resolver_list: Union[
-        Sweep, ParamResolverOrSimilarType, Iterable[ParamResolverOrSimilarType]
-    ],
+    sweep_or_resolver_list: (
+        Sweep | ParamResolverOrSimilarType | Iterable[ParamResolverOrSimilarType]
+    ),
 ) -> Sweep:
     """Converts the argument into a ``cirq.Sweep``.
 

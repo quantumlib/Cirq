@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Optional, overload, TYPE_CHECKING, TypeVar, Union
+from typing import Any, Callable, overload, TYPE_CHECKING, TypeVar
 
 if TYPE_CHECKING:
     import cirq
@@ -38,17 +38,17 @@ def pow(val: cirq.Operation, exponent: Any) -> cirq.Operation:
 
 
 @overload
-def pow(val: cirq.Gate, exponent: Any, default: TDefault) -> Union[TDefault, cirq.Gate]:
+def pow(val: cirq.Gate, exponent: Any, default: TDefault) -> TDefault | cirq.Gate:
     pass
 
 
 @overload
-def pow(val: cirq.Operation, exponent: Any, default: TDefault) -> Union[TDefault, cirq.Operation]:
+def pow(val: cirq.Operation, exponent: Any, default: TDefault) -> TDefault | cirq.Operation:
     pass
 
 
 @overload
-def pow(val: cirq.Circuit, exponent: int, default: TDefault) -> Union[TDefault, cirq.Circuit]:
+def pow(val: cirq.Circuit, exponent: int, default: TDefault) -> TDefault | cirq.Circuit:
     pass
 
 
@@ -84,7 +84,7 @@ def pow(val: Any, exponent: Any, default: Any = RaiseTypeErrorIfNotProvided) -> 
         TypeError: `val` doesn't have a __pow__ method (or that method returned
             NotImplemented) and no `default` value was specified.
     """
-    raiser: Optional[Callable] = getattr(val, '__pow__', None)
+    raiser: Callable | None = getattr(val, '__pow__', None)
     result = NotImplemented if raiser is None else raiser(exponent)
     if result is not NotImplemented:
         return result

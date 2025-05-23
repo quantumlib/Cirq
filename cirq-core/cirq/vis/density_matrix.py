@@ -16,8 +16,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import lines, patches
@@ -81,10 +79,10 @@ def _plot_element_of_density_matrix(ax, x, y, r, phase, show_rect=False, show_te
 
 def plot_density_matrix(
     matrix: np.ndarray,
-    ax: Optional[plt.Axes] = None,
+    ax: plt.Axes | None = None,
     *,
     show_text: bool = False,
-    title: Optional[str] = None,
+    title: str | None = None,
 ) -> plt.Axes:
     """Generates a plot for a given density matrix.
 

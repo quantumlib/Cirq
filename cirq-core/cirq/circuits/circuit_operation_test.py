@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 import unittest.mock as mock
-from typing import Optional
 
 import numpy as np
 import pytest
@@ -294,7 +293,7 @@ def test_repeat(add_measurements: bool, use_default_ids_for_initial_rep: bool) -
             _ = op_base.repeat(initial_repetitions)
         initial_repetitions = abs(initial_repetitions)
 
-    op_with_reps: Optional[cirq.CircuitOperation] = None
+    op_with_reps: cirq.CircuitOperation | None = None
     rep_ids = []
     if use_default_ids_for_initial_rep:
         rep_ids = ['0', '1', '2']

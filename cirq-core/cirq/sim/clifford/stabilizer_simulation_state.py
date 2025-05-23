@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import abc
 from types import NotImplementedType
-from typing import Any, cast, Generic, Optional, Sequence, TYPE_CHECKING, TypeVar, Union
+from typing import Any, cast, Generic, Sequence, TYPE_CHECKING, TypeVar
 
 import sympy
 
@@ -44,9 +44,9 @@ class StabilizerSimulationState(
         self,
         *,
         state: TStabilizerState,
-        prng: Optional[np.random.RandomState] = None,
-        qubits: Optional[Sequence[cirq.Qid]] = None,
-        classical_data: Optional[cirq.ClassicalDataStore] = None,
+        prng: np.random.RandomState | None = None,
+        qubits: Sequence[cirq.Qid] | None = None,
+        classical_data: cirq.ClassicalDataStore | None = None,
     ):
         """Initializes the StabilizerSimulationState.
 
@@ -69,7 +69,7 @@ class StabilizerSimulationState(
 
     def _act_on_fallback_(
         self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool = True
-    ) -> Union[bool, NotImplementedType]:
+    ) -> bool | NotImplementedType:
         strats = [self._strat_apply_gate, self._strat_apply_mixture]
         if allow_decompose:
             strats.append(self._strat_decompose)

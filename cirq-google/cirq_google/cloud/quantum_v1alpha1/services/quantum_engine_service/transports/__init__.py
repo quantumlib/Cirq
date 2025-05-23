@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 from collections import OrderedDict
-from typing import Dict, Type
 
 from .base import QuantumEngineServiceTransport
 from .grpc import QuantumEngineServiceGrpcTransport
@@ -22,7 +21,7 @@ from .grpc_asyncio import QuantumEngineServiceGrpcAsyncIOTransport
 
 
 # Compile a registry of transports.
-_transport_registry = OrderedDict()  # type: Dict[str, Type[QuantumEngineServiceTransport]]
+_transport_registry = OrderedDict()  # type: dict[str, type[QuantumEngineServiceTransport]]
 _transport_registry['grpc'] = QuantumEngineServiceGrpcTransport
 _transport_registry['grpc_asyncio'] = QuantumEngineServiceGrpcAsyncIOTransport
 

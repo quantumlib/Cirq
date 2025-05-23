@@ -918,7 +918,7 @@ class AbstractCircuit(abc.ABC):
     def all_qubits(self) -> frozenset[cirq.Qid]:
         """Returns the qubits acted upon by Operations in this circuit.
 
-        Returns: FrozenSet of `cirq.Qid` objects acted on by all operations
+        Returns: frozenset of `cirq.Qid` objects acted on by all operations
             in this circuit.
         """
         return frozenset(q for m in self.moments for q in m.qubits)
@@ -966,7 +966,7 @@ class AbstractCircuit(abc.ABC):
     def _measurement_key_objs_(self) -> frozenset[cirq.MeasurementKey]:
         """Returns the set of all measurement keys in this circuit.
 
-        Returns: FrozenSet of `cirq.MeasurementKey` objects that are
+        Returns: frozenset of `cirq.MeasurementKey` objects that are
             in this circuit.
         """
         return self.all_measurement_key_objs()
@@ -974,7 +974,7 @@ class AbstractCircuit(abc.ABC):
     def all_measurement_key_names(self) -> frozenset[str]:
         """Returns the set of all measurement key names in this circuit.
 
-        Returns: FrozenSet of strings that are the measurement key
+        Returns: frozenset of strings that are the measurement key
             names in this circuit.
         """
         return frozenset(
