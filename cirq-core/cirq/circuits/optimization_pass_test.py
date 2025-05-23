@@ -14,8 +14,6 @@
 
 from __future__ import annotations
 
-from typing import List, Optional, Set
-
 import pytest
 
 import cirq
@@ -64,7 +62,7 @@ class ReplaceWithXGates(PointOptimizer):
 
     def optimization_at(
         self, circuit: cirq.Circuit, index: int, op: cirq.Operation
-    ) -> Optional[cirq.PointOptimizationSummary]:
+    ) -> cirq.PointOptimizationSummary | None:
         end = index + 1
         new_ops = [cirq.X(q) for q in op.qubits]
         done = False
@@ -72,8 +70,8 @@ class ReplaceWithXGates(PointOptimizer):
             n = circuit.next_moment_operating_on(op.qubits, end)
             if n is None:
                 break
-            next_ops: Set[Optional[Operation]] = {circuit.operation_at(q, n) for q in op.qubits}
-            next_ops_list: List[Operation] = [e for e in next_ops if e]
+            next_ops: set[Operation | None] = {circuit.operation_at(q, n) for q in op.qubits}
+            next_ops_list: list[Operation] = [e for e in next_ops if e]
             next_ops_sorted = sorted(next_ops_list, key=lambda e: str(e.qubits))
             for next_op in next_ops_sorted:
                 if next_op:
@@ -158,7 +156,7 @@ def test_point_optimizer_raises_on_gates_changing_qubits() -> None:
 
         def optimization_at(
             self, circuit: cirq.Circuit, index: int, op: cirq.Operation
-        ) -> Optional[cirq.PointOptimizationSummary]:
+        ) -> cirq.PointOptimizationSummary | None:
             new_op = op
             if len(op.qubits) == 1 and isinstance(op, cirq.GateOperation):
                 new_op = op.gate(cirq.LineQubit(42))

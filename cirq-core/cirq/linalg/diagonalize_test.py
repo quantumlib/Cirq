@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import random
-from typing import Optional, Tuple
 
 import numpy as np
 import pytest
@@ -29,7 +30,7 @@ CNOT = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]])
 QFT = np.array([[1, 1, 1, 1], [1, 1j, -1, -1j], [1, -1, 1, -1], [1, -1j, -1, 1j]]) * 0.5
 
 
-def random_real_diagonal_matrix(n: int, d: Optional[int] = None) -> np.ndarray:
+def random_real_diagonal_matrix(n: int, d: int | None = None) -> np.ndarray:
     return np.diag([random.random() if d is None or k < d else 0 for k in range(n)])
 
 
@@ -48,8 +49,8 @@ def random_block_diagonal_symmetric_matrix(*ns: int) -> np.ndarray:
 
 
 def random_bi_diagonalizable_pair(
-    n: int, d1: Optional[int] = None, d2: Optional[int] = None
-) -> Tuple[np.ndarray, np.ndarray]:
+    n: int, d1: int | None = None, d2: int | None = None
+) -> tuple[np.ndarray, np.ndarray]:
     u = cirq.testing.random_orthogonal(n)
     s = random_real_diagonal_matrix(n, d1)
     z = random_real_diagonal_matrix(n, d2)

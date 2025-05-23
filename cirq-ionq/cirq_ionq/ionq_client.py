@@ -13,13 +13,15 @@
 # limitations under the License.
 """Client for making requests to IonQ's API."""
 
+from __future__ import annotations
+
 import datetime
 import json.decoder as jd
 import platform
 import sys
 import time
 import urllib
-from typing import Any, Callable, cast, Dict, List, Optional
+from typing import Any, Callable, cast
 
 import requests
 
@@ -60,7 +62,7 @@ class _IonQClient:
         self,
         remote_host: str,
         api_key: str,
-        default_target: Optional[str] = None,
+        default_target: str | None = None,
         api_version: str = 'v0.3',
         max_retry_seconds: int = 3600,  # 1 hour
         verbose: bool = False,
@@ -106,10 +108,10 @@ class _IonQClient:
     def create_job(
         self,
         serialized_program: cirq_ionq.SerializedProgram,
-        repetitions: Optional[int] = None,
-        target: Optional[str] = None,
-        name: Optional[str] = None,
-        extra_query_params: Optional[dict] = None,
+        repetitions: int | None = None,
+        target: str | None = None,
+        name: str | None = None,
+        extra_query_params: dict | None = None,
     ) -> dict:
         """Create a job.
 
@@ -133,7 +135,7 @@ class _IonQClient:
         """
         actual_target = self._target(target)
 
-        json: Dict[str, Any] = {
+        json: dict[str, Any] = {
             'target': actual_target,
             'lang': 'json',
             'body': serialized_program.body,
@@ -181,7 +183,7 @@ class _IonQClient:
         return self._make_request(request, {}).json()
 
     def get_results(
-        self, job_id: str, sharpen: Optional[bool] = None, extra_query_params: Optional[dict] = None
+        self, job_id: str, sharpen: bool | None = None, extra_query_params: dict | None = None
     ):
         """Get job results from IonQ API.
 
@@ -215,8 +217,8 @@ class _IonQClient:
         return self._make_request(request, {}).json()
 
     def list_jobs(
-        self, status: Optional[str] = None, limit: int = 100, batch_size: int = 1000
-    ) -> List[Dict[str, Any]]:
+        self, status: str | None = None, limit: int = 100, batch_size: int = 1000
+    ) -> list[dict[str, Any]]:
         """Lists jobs from the IonQ API.
 
         Args:
@@ -281,11 +283,11 @@ class _IonQClient:
 
     def list_calibrations(
         self,
-        start: Optional[datetime.datetime] = None,
-        end: Optional[datetime.datetime] = None,
+        start: datetime.datetime | None = None,
+        end: datetime.datetime | None = None,
         limit: int = 100,
         batch_size: int = 1000,
-    ) -> List[dict]:
+    ) -> list[dict]:
         """Lists calibrations from the IonQ API.
 
         Args:
@@ -337,7 +339,7 @@ class _IonQClient:
         python_version_string = f'python/{platform.python_version()}'
         return f'{cirq_version_string} ({python_version_string})'
 
-    def _target(self, target: Optional[str]) -> str:
+    def _target(self, target: str | None) -> str:
         """Returns the target if not None or the default target.
 
         Raises:
@@ -415,7 +417,7 @@ class _IonQClient:
 
     def _list(
         self, resource_path: str, params: dict, response_key: str, limit: int, batch_size: int
-    ) -> List[Dict]:
+    ) -> list[dict]:
         """Helper method for list calls.
 
         Args:
@@ -430,8 +432,8 @@ class _IonQClient:
             A sequence of dictionaries corresponding to the objects listed.
         """
         json = {'limit': batch_size}
-        token: Optional[str] = None
-        results: List[Dict[str, Any]] = []
+        token: str | None = None
+        results: list[dict[str, Any]] = []
         while len(results) < limit:
             full_params = params.copy()
             if token:

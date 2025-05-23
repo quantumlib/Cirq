@@ -14,11 +14,12 @@
 
 from __future__ import annotations
 
-from typing import Iterator
-
-import networkx as nx
+from typing import Iterator, TYPE_CHECKING
 
 import cirq
+
+if TYPE_CHECKING:
+    import networkx as nx
 
 
 def get_grid_moments(

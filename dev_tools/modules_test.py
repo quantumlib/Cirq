@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import contextlib
 import os
 import shutil
@@ -19,7 +22,7 @@ import sys
 import tempfile
 from io import StringIO
 from pathlib import Path
-from typing import Iterator, Optional
+from typing import Iterator
 from unittest import mock
 
 import pytest
@@ -83,7 +86,7 @@ def test_cli():
 
 
 @contextlib.contextmanager
-def chdir(*, target_dir: Optional[str] = None, clone_dir: Optional[str] = None) -> Iterator[None]:
+def chdir(*, target_dir: str | None = None, clone_dir: str | None = None) -> Iterator[None]:
     """Changes for the duration of the test the working directory.
 
     Args:

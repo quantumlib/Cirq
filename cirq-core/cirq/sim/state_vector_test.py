@@ -11,10 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Tests for state_vector.py"""
 
+from __future__ import annotations
+
 import itertools
-from typing import Iterator, Optional
+from typing import Iterator
 from unittest import mock
 
 import numpy as np
@@ -34,7 +37,7 @@ def use_np_transpose(request) -> Iterator[bool]:
 
 def test_state_mixin():
     class TestClass(cirq.StateVectorMixin):
-        def state_vector(self, copy: Optional[bool] = None) -> np.ndarray:
+        def state_vector(self, copy: bool | None = None) -> np.ndarray:
             return np.array([0, 0, 1, 0])
 
     qubits = cirq.LineQubit.range(2)
@@ -357,7 +360,7 @@ def test_measure_state_empty_state(use_np_transpose: bool):
 
 
 class BasicStateVector(cirq.StateVectorMixin):
-    def state_vector(self, copy: Optional[bool] = None) -> np.ndarray:
+    def state_vector(self, copy: bool | None = None) -> np.ndarray:
         return np.array([0, 1, 0, 0])
 
 

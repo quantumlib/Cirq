@@ -18,27 +18,17 @@ from __future__ import annotations
 
 import dataclasses
 import json
-from typing import (
-    Any,
-    Callable,
-    cast,
-    Collection,
-    Dict,
-    Iterator,
-    List,
-    Optional,
-    Sequence,
-    Type,
-    Union,
-)
+from typing import Any, Callable, cast, Collection, Iterator, Sequence, TYPE_CHECKING
 
 import numpy as np
-import sympy
 
 import cirq
 from cirq.devices import line_qubit
 from cirq_ionq.ionq_exceptions import IonQSerializerMixedGatesetsException
 from cirq_ionq.ionq_native_gates import GPI2Gate, GPIGate, MSGate, ZZGate
+
+if TYPE_CHECKING:
+    import sympy
 
 _NATIVE_GATES = cirq.Gateset(
     GPIGate, GPI2Gate, MSGate, ZZGate, cirq.MeasurementGate, unroll_circuit_op=False
@@ -60,7 +50,7 @@ class SerializedProgram:
     body: dict
     settings: dict
     metadata: dict
-    error_mitigation: Optional[dict] = None
+    error_mitigation: dict | None = None
 
 
 class Serializer:
@@ -78,7 +68,7 @@ class Serializer:
                 should be serialized as a gate rounded to that parameter. Defaults to 1e-8.
         """
         self.atol = atol
-        self._dispatch: Dict[Type[cirq.Gate], Callable] = {
+        self._dispatch: dict[type[cirq.Gate], Callable] = {
             cirq.XPowGate: self._serialize_x_pow_gate,
             cirq.YPowGate: self._serialize_y_pow_gate,
             cirq.ZPowGate: self._serialize_z_pow_gate,
@@ -100,8 +90,8 @@ class Serializer:
     def serialize_single_circuit(
         self,
         circuit: cirq.AbstractCircuit,
-        job_settings: Optional[dict] = None,
-        error_mitigation: Optional[dict] = None,
+        job_settings: dict | None = None,
+        error_mitigation: dict | None = None,
     ) -> SerializedProgram:
         """Serialize the given circuit.
 
@@ -134,9 +124,9 @@ class Serializer:
 
     def serialize_many_circuits(
         self,
-        circuits: List[cirq.AbstractCircuit],
-        job_settings: Optional[dict] = None,
-        error_mitigation: Optional[dict] = None,
+        circuits: list[cirq.AbstractCircuit],
+        job_settings: dict | None = None,
+        error_mitigation: dict | None = None,
     ) -> SerializedProgram:
         """Serialize the given array of circuits.
 
@@ -277,34 +267,32 @@ class Serializer:
     ) -> dict:
         return {'gate': name, 'targets': targets, 'rotation': gate.exponent * np.pi}
 
-    def _serialize_swap_gate(
-        self, gate: cirq.SwapPowGate, targets: Sequence[int]
-    ) -> Optional[dict]:
+    def _serialize_swap_gate(self, gate: cirq.SwapPowGate, targets: Sequence[int]) -> dict | None:
         if self._near_mod_n(gate.exponent, 1, 2):
             return {'gate': 'swap', 'targets': targets}
         return None
 
-    def _serialize_h_pow_gate(self, gate: cirq.HPowGate, targets: Sequence[int]) -> Optional[dict]:
+    def _serialize_h_pow_gate(self, gate: cirq.HPowGate, targets: Sequence[int]) -> dict | None:
         if self._near_mod_n(gate.exponent, 1, 2):
             return {'gate': 'h', 'targets': targets}
         return None
 
     # These could potentially be using serialize functions on the gates themselves.
-    def _serialize_gpi_gate(self, gate: GPIGate, targets: Sequence[int]) -> Optional[dict]:
+    def _serialize_gpi_gate(self, gate: GPIGate, targets: Sequence[int]) -> dict | None:
         return {'gate': 'gpi', 'target': targets[0], 'phase': gate.phase}
 
-    def _serialize_gpi2_gate(self, gate: GPI2Gate, targets: Sequence[int]) -> Optional[dict]:
+    def _serialize_gpi2_gate(self, gate: GPI2Gate, targets: Sequence[int]) -> dict | None:
         return {'gate': 'gpi2', 'target': targets[0], 'phase': gate.phase}
 
-    def _serialize_ms_gate(self, gate: MSGate, targets: Sequence[int]) -> Optional[dict]:
+    def _serialize_ms_gate(self, gate: MSGate, targets: Sequence[int]) -> dict | None:
         return {'gate': 'ms', 'targets': targets, 'phases': gate.phases, 'angle': gate.theta}
 
-    def _serialize_zz_gate(self, gate: ZZGate, targets: Sequence[int]) -> Optional[dict]:
+    def _serialize_zz_gate(self, gate: ZZGate, targets: Sequence[int]) -> dict | None:
         return {'gate': 'zz', 'targets': targets, 'phase': gate.phase}
 
     def _serialize_cnot_pow_gate(
         self, gate: cirq.CNotPowGate, targets: Sequence[int]
-    ) -> Optional[dict]:
+    ) -> dict | None:
         if self._near_mod_n(gate.exponent, 1, 2):
             return {'gate': 'cnot', 'control': targets[0], 'target': targets[1]}
         return None
@@ -320,7 +308,7 @@ class Serializer:
             )
         return {'gate': 'meas', 'key': key, 'targets': ','.join(str(t) for t in targets)}
 
-    def _near_mod_n(self, e: Union[float, sympy.Expr], t: float, n: float) -> bool:
+    def _near_mod_n(self, e: float | sympy.Expr, t: float, n: float) -> bool:
         """Returns whether a value, e, translated by t, is equal to 0 mod n.
 
         Note that, despite the typing, e should actually always be a float
@@ -328,7 +316,7 @@ class Serializer:
         """
         return abs((cast(float, e) - t + 1) % n - 1) <= self.atol
 
-    def _serialize_measurements(self, meas_ops: Iterator) -> Dict[str, str]:
+    def _serialize_measurements(self, meas_ops: Iterator) -> dict[str, str]:
         """Serializes measurement ops into a form suitable to be passed via metadata.
 
         IonQ API does not contain measurement gates, so we serialize measurement gate keys

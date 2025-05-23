@@ -17,24 +17,12 @@ from __future__ import annotations
 import dataclasses
 import functools
 import itertools
-from typing import (
-    Any,
-    cast,
-    Dict,
-    Iterator,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-)
+from typing import Any, cast, Iterator, Mapping, Sequence, TYPE_CHECKING
 
 import numpy as np
 from matplotlib import pyplot as plt
 
 # this is for older systems with matplotlib <3.2 otherwise 3d projections fail
-from mpl_toolkits import mplot3d
 from scipy.optimize import curve_fit
 
 import cirq.vis.heatmap as cirq_heatmap
@@ -43,6 +31,8 @@ from cirq import circuits, ops, protocols
 from cirq.devices import grid_qubit
 
 if TYPE_CHECKING:
+    from mpl_toolkits import mplot3d
+
     import cirq
 
 
@@ -64,11 +54,11 @@ class Cliffords:
         s1_y
     """
 
-    c1_in_xy: List[List[ops.SingleQubitCliffordGate]]
-    c1_in_xz: List[List[ops.SingleQubitCliffordGate]]
-    s1: List[List[ops.SingleQubitCliffordGate]]
-    s1_x: List[List[ops.SingleQubitCliffordGate]]
-    s1_y: List[List[ops.SingleQubitCliffordGate]]
+    c1_in_xy: list[list[ops.SingleQubitCliffordGate]]
+    c1_in_xz: list[list[ops.SingleQubitCliffordGate]]
+    s1: list[list[ops.SingleQubitCliffordGate]]
+    s1_x: list[list[ops.SingleQubitCliffordGate]]
+    s1_y: list[list[ops.SingleQubitCliffordGate]]
 
 
 class RandomizedBenchMarkResult:
@@ -87,14 +77,14 @@ class RandomizedBenchMarkResult:
         self._gnd_state_probs = ground_state_probabilities
 
     @property
-    def data(self) -> Sequence[Tuple[int, float]]:
+    def data(self) -> Sequence[tuple[int, float]]:
         """Returns a sequence of tuple pairs with the first item being a
         number of Cliffords and the second item being the corresponding average
         ground state probability.
         """
         return [(num, prob) for num, prob in zip(self._num_cfds_seq, self._gnd_state_probs)]
 
-    def plot(self, ax: Optional[plt.Axes] = None, **plot_kwargs: Any) -> plt.Axes:
+    def plot(self, ax: plt.Axes | None = None, **plot_kwargs: Any) -> plt.Axes:
         """Plots the average ground state probability vs the number of
         Cliffords in the RB study.
 
@@ -137,7 +127,7 @@ class RandomizedBenchMarkResult:
         p = opt_params[2]
         return (1.0 - 1.0 / 4.0) * (1.0 - p)
 
-    def _fit_exponential(self) -> Tuple[np.ndarray, np.ndarray]:
+    def _fit_exponential(self) -> tuple[np.ndarray, np.ndarray]:
         exp_fit = lambda x, A, B, p: A * p**x + B
         return curve_fit(
             f=exp_fit,
@@ -155,7 +145,7 @@ class ParallelRandomizedBenchmarkingResult:
     results_dictionary: Mapping[cirq.Qid, RandomizedBenchMarkResult]
 
     def plot_single_qubit(
-        self, qubit: cirq.Qid, ax: Optional[plt.Axes] = None, **plot_kwargs: Any
+        self, qubit: cirq.Qid, ax: plt.Axes | None = None, **plot_kwargs: Any
     ) -> plt.Axes:
         """Plot the raw data for the specified qubit.
 
@@ -182,7 +172,7 @@ class ParallelRandomizedBenchmarkingResult:
 
     def plot_heatmap(
         self,
-        ax: Optional[plt.Axes] = None,
+        ax: plt.Axes | None = None,
         annotation_format: str = '0.1%',
         title: str = 'Single-qubit Pauli error',
         **plot_kwargs: Any,
@@ -215,16 +205,16 @@ class ParallelRandomizedBenchmarkingResult:
 
     def plot_integrated_histogram(
         self,
-        ax: Optional[plt.Axes] = None,
+        ax: plt.Axes | None = None,
         cdf_on_x: bool = False,
         axis_label: str = 'Pauli error',
         semilog: bool = True,
         median_line: bool = True,
-        median_label: Optional[str] = 'median',
+        median_label: str | None = 'median',
         mean_line: bool = False,
-        mean_label: Optional[str] = 'mean',
+        mean_label: str | None = 'mean',
         show_zero: bool = False,
-        title: Optional[str] = None,
+        title: str | None = None,
         **kwargs,
     ) -> plt.Axes:
         """Plot the Pauli errors using cirq.integrated_histogram().
@@ -288,8 +278,8 @@ class TomographyResult:
         return self._density_matrix
 
     def plot(
-        self, axes: Optional[List[plt.Axes]] = None, **plot_kwargs: Any
-    ) -> List[plt.Axes]:  # pragma: no cover
+        self, axes: list[plt.Axes] | None = None, **plot_kwargs: Any
+    ) -> list[plt.Axes]:  # pragma: no cover
         """Plots the real and imaginary parts of the density matrix as two 3D bar plots.
 
         Args:
@@ -432,7 +422,7 @@ def parallel_single_qubit_randomized_benchmarking(
     c1 = clifford_group.c1_in_xy if use_xy_basis else clifford_group.c1_in_xz
 
     # create circuits
-    circuits_all: List[cirq.AbstractCircuit] = []
+    circuits_all: list[cirq.AbstractCircuit] = []
     for num_cliffords in num_clifford_range:
         for _ in range(num_circuits):
             circuits_all.append(_create_parallel_rb_circuit(qubits, num_cliffords, c1))
@@ -442,7 +432,7 @@ def parallel_single_qubit_randomized_benchmarking(
     gnd_probs: dict = {q: [] for q in qubits}
     idx = 0
     for num_cliffords in num_clifford_range:
-        excited_probs: Dict[cirq.Qid, List[float]] = {q: [] for q in qubits}
+        excited_probs: dict[cirq.Qid, list[float]] = {q: [] for q in qubits}
         for _ in range(num_circuits):
             result = results[idx][0]
             for qubit in qubits:
@@ -701,7 +691,7 @@ def _create_parallel_rb_circuit(
     return circuits.Circuit.from_moments(*moments, ops.measure_each(*qubits))
 
 
-def _indices_after_basis_rot(i: int, j: int) -> Tuple[int, Sequence[int], Sequence[int]]:
+def _indices_after_basis_rot(i: int, j: int) -> tuple[int, Sequence[int], Sequence[int]]:
     mat_idx = 3 * (3 * i + j)
     q_0_i = 3 - i
     q_1_j = 3 - j
@@ -741,7 +731,7 @@ def _two_qubit_clifford_matrices(q_0: cirq.Qid, q_1: cirq.Qid, cliffords: Cliffo
 
 def _random_single_q_clifford(
     qubit: cirq.Qid, num_cfds: int, cfds: Sequence[Sequence[cirq.ops.SingleQubitCliffordGate]]
-) -> List[cirq.Operation]:
+) -> list[cirq.Operation]:
     clifford_group_size = 24
     operations = [[gate.to_phased_xz_gate()(qubit) for gate in gates] for gates in cfds]
     gate_ids = np.random.choice(clifford_group_size, num_cfds).tolist()
@@ -775,9 +765,9 @@ def _matrix_bar_plot(
     mat: np.ndarray,
     z_label: str,
     ax: mplot3d.axes3d.Axes3D,
-    kets: Optional[Sequence[str]] = None,
-    title: Optional[str] = None,
-    ylim: Tuple[int, int] = (-1, 1),
+    kets: Sequence[str] | None = None,
+    title: str | None = None,
+    ylim: tuple[int, int] = (-1, 1),
     **bar3d_kwargs: Any,
 ) -> None:  # pragma: no cover
     num_rows, num_cols = mat.shape
@@ -926,8 +916,8 @@ def _single_qubit_cliffords() -> Cliffords:
         ops.SingleQubitCliffordGate.Z,
     )
 
-    c1_in_xy: List[List[ops.SingleQubitCliffordGate]] = []
-    c1_in_xz: List[List[ops.SingleQubitCliffordGate]] = []
+    c1_in_xy: list[list[ops.SingleQubitCliffordGate]] = []
+    c1_in_xz: list[list[ops.SingleQubitCliffordGate]] = []
 
     for phi_0, phi_1 in itertools.product([1.0, 0.5, -0.5], [0.0, 0.5, -0.5]):
         c1_in_xy.append([X**phi_0, Y**phi_1])
@@ -950,9 +940,9 @@ def _single_qubit_cliffords() -> Cliffords:
     for z0, x, z1 in phi_xz:
         c1_in_xz.append([Z**z0, X**x, Z**z1])
 
-    s1: List[List[ops.SingleQubitCliffordGate]] = [[X**0.0], [Y**0.5, X**0.5], [X**-0.5, Y**-0.5]]
-    s1_x: List[List[ops.SingleQubitCliffordGate]] = [[X**0.5], [X**0.5, Y**0.5, X**0.5], [Y**-0.5]]
-    s1_y: List[List[ops.SingleQubitCliffordGate]] = [
+    s1: list[list[ops.SingleQubitCliffordGate]] = [[X**0.0], [Y**0.5, X**0.5], [X**-0.5, Y**-0.5]]
+    s1_x: list[list[ops.SingleQubitCliffordGate]] = [[X**0.5], [X**0.5, Y**0.5, X**0.5], [Y**-0.5]]
+    s1_y: list[list[ops.SingleQubitCliffordGate]] = [
         [Y**0.5],
         [X**-0.5, Y**-0.5, X**0.5],
         [Y, X**0.5],

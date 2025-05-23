@@ -14,14 +14,14 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Generic, Sequence, Type, TYPE_CHECKING
-
-import numpy as np
+from typing import Any, Generic, Sequence, TYPE_CHECKING
 
 from cirq import sim
 from cirq.sim.simulation_state import TSimulationState
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq
 
 
@@ -47,7 +47,7 @@ class CustomStateSimulator(
 
     def __init__(
         self,
-        state_type: Type[TSimulationState],
+        state_type: type[TSimulationState],
         *,
         noise: cirq.NOISE_MODEL_LIKE = None,
         split_untangled_states: bool = False,
@@ -66,7 +66,7 @@ class CustomStateSimulator(
     def _create_simulator_trial_result(
         self,
         params: cirq.ParamResolver,
-        measurements: Dict[str, np.ndarray],
+        measurements: dict[str, np.ndarray],
         final_simulator_state: cirq.SimulationStateBase[TSimulationState],
     ) -> CustomStateTrialResult[TSimulationState]:
         return CustomStateTrialResult(

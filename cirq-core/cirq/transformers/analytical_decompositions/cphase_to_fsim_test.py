@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
-from typing import List, Sequence, Tuple
+from typing import Sequence
 
 import numpy as np
 import pytest
@@ -111,9 +113,9 @@ def test_valid_cphase_exponents(theta, phi):
                 assert_decomposition_valid(cphase_gate, fsim_gate=fsim_gate)
 
 
-def complement_intervals(intervals: Sequence[Tuple[float, float]]) -> Sequence[Tuple[float, float]]:
+def complement_intervals(intervals: Sequence[tuple[float, float]]) -> Sequence[tuple[float, float]]:
     """Computes complement of union of intervals in [0, 2]."""
-    complements: List[Tuple[float, float]] = []
+    complements: list[tuple[float, float]] = []
     a = 0.0
     for b, c in intervals:
         complements.append((a, b))
