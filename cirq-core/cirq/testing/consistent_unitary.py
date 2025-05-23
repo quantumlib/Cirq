@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 
 from typing import Any
-import cirq
+
 import numpy as np
+
+import cirq
 
 
 def assert_unitary_is_consistent(val: Any, ignoring_global_phase: bool = False):

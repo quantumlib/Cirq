@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import os
 import sys
 
 from dev_tools import prepared_env, shell_tools
-
 from dev_tools.incremental_coverage import check_for_uncovered_lines
 
 

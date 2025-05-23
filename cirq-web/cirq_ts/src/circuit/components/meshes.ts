@@ -150,16 +150,7 @@ export class X3DSymbol extends Group {
   constructor(color: string) {
     super();
     const material = new MeshBasicMaterial({color: color, side: DoubleSide});
-    const geometry = new CylinderGeometry(
-      0.3,
-      0.3,
-      0.1,
-      32,
-      1,
-      true,
-      0,
-      2 * Math.PI
-    );
+    const geometry = new CylinderGeometry(0.3, 0.3, 0.1, 32, 1, true, 0, 2 * Math.PI);
     const hollowCylinder = new Mesh(geometry, material);
     this.add(hollowCylinder);
 
@@ -241,11 +232,7 @@ export class BoxGate3DSymbol extends Mesh {
 
     const hsl = new Color(color).getHSL({h: 0, s: 0, l: 0});
     context.fillStyle = hsl.l < 0.5 ? 'white' : 'black';
-    context.fillText(
-      label,
-      canvas.width / 2 - textWidth / 2,
-      canvas.height / 2 + fontSize / 2
-    );
+    context.fillText(label, canvas.width / 2 - textWidth / 2, canvas.height / 2 + fontSize / 2);
 
     const map = new Texture(canvas);
     map.needsUpdate = true;

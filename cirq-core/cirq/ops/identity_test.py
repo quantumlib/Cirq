@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import itertools
 from typing import Any
 from unittest import mock
@@ -208,3 +211,27 @@ def test_identity_short_circuits_act_on():
     args = mock.Mock(cirq.SimulationState)
     args._act_on_fallback_.side_effect = mock.Mock(side_effect=Exception('No!'))
     cirq.act_on(cirq.IdentityGate(1)(cirq.LineQubit(0)), args)
+
+
+def test_identity_commutes():
+    assert cirq.commutes(cirq.I, cirq.X)
+    with pytest.raises(TypeError):
+        cirq.commutes(cirq.I, "Gate")
+
+
+def test_identity_diagram():
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(cirq.IdentityGate(3).on_each(cirq.LineQubit.range(3))),
+        """
+0: ───I───
+      │
+1: ───I───
+      │
+2: ───I───
+""",
+    )
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(cirq.IdentityGate(0)()),
+        """
+    I(0)""",
+    )

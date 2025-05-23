@@ -11,10 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import pytest
 
 import cirq
-import cirq_google as cg
 import cirq_google.engine.engine_validator as engine_validator
 
 SERIALIZABLE_GATE_DOMAIN = {cirq.X: 1, cirq.Y: 1, cirq.Z: 1, cirq.S: 1, cirq.T: 1, cirq.CZ: 2}
@@ -35,35 +37,6 @@ def _big_circuit(num_cycles: int) -> cirq.Circuit:
         c.append(moment_1q)
         c.append(moment_2q)
     return c
-
-
-def test_validate_gate_set():
-    circuit = _big_circuit(4)
-
-    engine_validator.validate_program(
-        [circuit] * 5, [{}] * 5, 1000, cg.CIRCUIT_SERIALIZER, max_size=30000
-    )
-
-    with pytest.raises(RuntimeError, match='Program too long'):
-        engine_validator.validate_program(
-            [circuit] * 10, [{}] * 10, 1000, cg.CIRCUIT_SERIALIZER, max_size=30000
-        )
-
-    with pytest.raises(RuntimeError, match='Program too long'):
-        engine_validator.validate_program(
-            [circuit] * 5, [{}] * 5, 1000, cg.CIRCUIT_SERIALIZER, max_size=10000
-        )
-
-
-def test_create_gate_set_validator():
-    circuit = _big_circuit(4)
-
-    smaller_size_validator = engine_validator.create_program_validator(max_size=10000)
-    smaller_size_validator([circuit] * 2, [{}] * 2, 1000, cg.CIRCUIT_SERIALIZER)
-    with pytest.raises(RuntimeError, match='Program too long'):
-        smaller_size_validator([circuit] * 5, [{}] * 5, 1000, cg.CIRCUIT_SERIALIZER)
-    larger_size_validator = engine_validator.create_program_validator(max_size=500000)
-    larger_size_validator([circuit] * 10, [{}] * 10, 1000, cg.CIRCUIT_SERIALIZER)
 
 
 def test_validate_for_engine():

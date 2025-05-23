@@ -13,6 +13,9 @@
 # limitations under the License.
 
 """Tests for clifford tableau."""
+
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
@@ -308,7 +311,7 @@ def test_str_full():
     t = cirq.CliffordTableau(num_qubits=2)
     expected_str = r"""stable | destable
 -------+----------
-+ Z0   | + X0  
++ Z0   | + X0
 +   Z1 | +   X1
 """
     assert t._str_full_() == expected_str

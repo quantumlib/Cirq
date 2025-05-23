@@ -12,16 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Methods for resolving JSON types during serialization."""
+
+from __future__ import annotations
+
 import datetime
 import functools
-from typing import Dict, List, NamedTuple, Optional, Tuple, TYPE_CHECKING
-
-from cirq.protocols.json_serialization import ObjectFactory
+from typing import NamedTuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
     import cirq
-    import cirq.ops.pauli_gates
     import cirq.devices.unconstrained_device
+    import cirq.ops.pauli_gates
+    from cirq.protocols.json_serialization import ObjectFactory
 
 
 # Needed for backwards compatible named tuples of CrossEntropyResult
@@ -30,26 +32,26 @@ SpecklePurityPair = NamedTuple('SpecklePurityPair', [('num_cycle', int), ('purit
 CrossEntropyResult = NamedTuple(
     'CrossEntropyResult',
     [
-        ('data', List[CrossEntropyPair]),
+        ('data', list[CrossEntropyPair]),
         ('repetitions', int),
-        ('purity_data', Optional[List[SpecklePurityPair]]),
+        ('purity_data', list[SpecklePurityPair] | None),
     ],
 )
 CrossEntropyResultDict = NamedTuple(
-    'CrossEntropyResultDict', [('results', Dict[Tuple['cirq.Qid', ...], CrossEntropyResult])]
+    'CrossEntropyResultDict', [('results', dict[tuple['cirq.Qid', ...], CrossEntropyResult])]
 )
 
 
 @functools.lru_cache()
-def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
-    import cirq
-    from cirq.ops import raw_types
-    import pandas as pd
+def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
     import numpy as np
-    from cirq.devices.noise_model import _NoNoiseModel
+    import pandas as pd
+
+    import cirq
     from cirq.devices import InsertionNoiseModel
+    from cirq.devices.noise_model import _NoNoiseModel
     from cirq.experiments import GridInteractionLayer
-    from cirq.experiments.grid_parallel_two_qubit_xeb import GridParallelXEBMetadata
+    from cirq.ops import raw_types
 
     def _boolean_hamiltonian_gate_op(qubit_map, boolean_strs, theta):
         return cirq.BooleanHamiltonianGate(
@@ -80,7 +82,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         )
 
     def _cross_entropy_result_dict(
-        results: List[Tuple[List['cirq.Qid'], CrossEntropyResult]], **kwargs
+        results: list[tuple[list[cirq.Qid], CrossEntropyResult]], **kwargs
     ) -> CrossEntropyResultDict:
         return CrossEntropyResultDict(results={tuple(qubits): result for qubits, result in results})
 
@@ -107,6 +109,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'AnyUnitaryGateFamily': cirq.AnyUnitaryGateFamily,
         'AsymmetricDepolarizingChannel': cirq.AsymmetricDepolarizingChannel,
         'BitFlipChannel': cirq.BitFlipChannel,
+        'BitMaskKeyCondition': cirq.BitMaskKeyCondition,
         'BitstringAccumulator': cirq.work.BitstringAccumulator,
         'BooleanHamiltonianGate': cirq.BooleanHamiltonianGate,
         'CCNotPowGate': cirq.CCNotPowGate,
@@ -120,6 +123,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'CliffordState': cirq.CliffordState,
         'CliffordTableau': cirq.CliffordTableau,
         'CNotPowGate': cirq.CNotPowGate,
+        'Concat': cirq.Concat,
         'ConstantQubitNoiseModel': cirq.ConstantQubitNoiseModel,
         'ControlledGate': cirq.ControlledGate,
         'ControlledOperation': cirq.ControlledOperation,
@@ -141,7 +145,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'GlobalPhaseGate': cirq.GlobalPhaseGate,
         'GridDeviceMetadata': cirq.GridDeviceMetadata,
         'GridInteractionLayer': GridInteractionLayer,
-        'GridParallelXEBMetadata': GridParallelXEBMetadata,
         'GridQid': cirq.GridQid,
         'GridQubit': cirq.GridQubit,
         'HPowGate': cirq.HPowGate,
@@ -149,6 +152,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'IdentityGate': cirq.IdentityGate,
         'InitObsSetting': cirq.work.InitObsSetting,
         'InsertionNoiseModel': InsertionNoiseModel,
+        '_InverseCompositeGate': raw_types._InverseCompositeGate,
         'KeyCondition': cirq.KeyCondition,
         'KrausChannel': cirq.KrausChannel,
         'LinearDict': cirq.LinearDict,
@@ -157,6 +161,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'LineTopology': cirq.LineTopology,
         'Linspace': cirq.Linspace,
         'ListSweep': cirq.ListSweep,
+        'cirq.MSGate': cirq.MSGate,
         'MatrixGate': cirq.MatrixGate,
         'MixedUnitaryChannel': cirq.MixedUnitaryChannel,
         'MeasurementKey': cirq.MeasurementKey,
@@ -246,6 +251,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'ZipLongest': cirq.ZipLongest,
         'ZPowGate': cirq.ZPowGate,
         'ZZPowGate': cirq.ZZPowGate,
+        'UniformSuperpositionGate': cirq.UniformSuperpositionGate,
         # Old types, only supported for backwards-compatibility
         'BooleanHamiltonian': _boolean_hamiltonian_gate_op,  # Removed in v0.15
         'CrossEntropyResult': _cross_entropy_result,  # Removed in v0.16
@@ -270,6 +276,12 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'sympy.StrictLessThan': lambda args: sympy.StrictLessThan(*args),
         'sympy.Equality': lambda args: sympy.Equality(*args),
         'sympy.Unequality': lambda args: sympy.Unequality(*args),
+        'sympy.And': lambda args: sympy.And(*args),
+        'sympy.Or': lambda args: sympy.Or(*args),
+        'sympy.Not': lambda args: sympy.Not(*args),
+        'sympy.Xor': lambda args: sympy.Xor(*args),
+        'sympy.Indexed': lambda args: sympy.Indexed(*args),
+        'sympy.IndexedBase': lambda args: sympy.IndexedBase(*args),
         'sympy.Float': lambda approx: sympy.Float(approx),
         'sympy.Integer': sympy.Integer,
         'sympy.Rational': sympy.Rational,

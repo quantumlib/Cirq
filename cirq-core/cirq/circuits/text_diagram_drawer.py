@@ -12,32 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (
-    Any,
-    Callable,
-    cast,
-    Dict,
-    Iterable,
-    List,
-    Mapping,
-    NamedTuple,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from __future__ import annotations
+
+from typing import Any, Callable, cast, Iterable, Mapping, NamedTuple, Sequence, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import value
 from cirq.circuits._block_diagram_drawer import BlockDiagramDrawer
 from cirq.circuits._box_drawing_character_data import (
-    BoxDrawCharacterSet,
-    NORMAL_BOX_CHARS,
-    BOLD_BOX_CHARS,
     ASCII_BOX_CHARS,
+    BOLD_BOX_CHARS,
+    BoxDrawCharacterSet,
     DOUBLED_BOX_CHARS,
+    NORMAL_BOX_CHARS,
 )
 
 if TYPE_CHECKING:
@@ -45,23 +33,11 @@ if TYPE_CHECKING:
 
 _HorizontalLine = NamedTuple(
     '_HorizontalLine',
-    [
-        ('y', Union[int, float]),
-        ('x1', Union[int, float]),
-        ('x2', Union[int, float]),
-        ('emphasize', bool),
-        ('doubled', bool),
-    ],
+    [('y', float), ('x1', float), ('x2', float), ('emphasize', bool), ('doubled', bool)],
 )
 _VerticalLine = NamedTuple(
     '_VerticalLine',
-    [
-        ('x', Union[int, float]),
-        ('y1', Union[int, float]),
-        ('y2', Union[int, float]),
-        ('emphasize', bool),
-        ('doubled', bool),
-    ],
+    [('x', float), ('y1', float), ('y2', float), ('emphasize', bool), ('doubled', bool)],
 )
 _DiagramText = NamedTuple('_DiagramText', [('text', str), ('transposed_text', str)])
 
@@ -84,25 +60,25 @@ class TextDiagramDrawer:
 
     def __init__(
         self,
-        entries: Optional[Mapping[Tuple[int, int], _DiagramText]] = None,
-        horizontal_lines: Optional[Iterable[_HorizontalLine]] = None,
-        vertical_lines: Optional[Iterable[_VerticalLine]] = None,
-        horizontal_padding: Optional[Mapping[int, int]] = None,
-        vertical_padding: Optional[Mapping[int, int]] = None,
+        entries: Mapping[tuple[int, int], _DiagramText] | None = None,
+        horizontal_lines: Iterable[_HorizontalLine] | None = None,
+        vertical_lines: Iterable[_VerticalLine] | None = None,
+        horizontal_padding: Mapping[int, int] | None = None,
+        vertical_padding: Mapping[int, int] | None = None,
     ) -> None:
-        self.entries: Dict[Tuple[int, int], _DiagramText] = (
+        self.entries: dict[tuple[int, int], _DiagramText] = (
             dict() if entries is None else dict(entries)
         )
-        self.horizontal_lines: List[_HorizontalLine] = (
+        self.horizontal_lines: list[_HorizontalLine] = (
             [] if horizontal_lines is None else list(horizontal_lines)
         )
-        self.vertical_lines: List[_VerticalLine] = (
+        self.vertical_lines: list[_VerticalLine] = (
             [] if vertical_lines is None else list(vertical_lines)
         )
-        self.horizontal_padding: Dict[int, Union[int, float]] = (
+        self.horizontal_padding: dict[int, float] = (
             dict() if horizontal_padding is None else dict(horizontal_padding)
         )
-        self.vertical_padding: Dict[int, Union[int, float]] = (
+        self.vertical_padding: dict[int, float] = (
             dict() if vertical_padding is None else dict(vertical_padding)
         )
 
@@ -119,7 +95,7 @@ class TextDiagramDrawer:
     def __bool__(self):
         return any(self._value_equality_values_())
 
-    def write(self, x: int, y: int, text: str, transposed_text: Optional[str] = None):
+    def write(self, x: int, y: int, text: str, transposed_text: str | None = None):
         """Adds text to the given location.
 
         Args:
@@ -148,7 +124,7 @@ class TextDiagramDrawer:
 
         # Horizontal line?
         if any(line_y == y and x1 < x < x2 for line_y, x1, x2, _, _ in self.horizontal_lines):
-            return True
+            return True  # pragma: no cover
 
         return False
 
@@ -171,30 +147,20 @@ class TextDiagramDrawer:
             raise ValueError("Line is neither horizontal nor vertical")
 
     def vertical_line(
-        self,
-        x: Union[int, float],
-        y1: Union[int, float],
-        y2: Union[int, float],
-        emphasize: bool = False,
-        doubled: bool = False,
+        self, x: float, y1: float, y2: float, emphasize: bool = False, doubled: bool = False
     ) -> None:
         """Adds a line from (x, y1) to (x, y2)."""
         y1, y2 = sorted([y1, y2])
         self.vertical_lines.append(_VerticalLine(x, y1, y2, emphasize, doubled))
 
     def horizontal_line(
-        self,
-        y: Union[int, float],
-        x1: Union[int, float],
-        x2: Union[int, float],
-        emphasize: bool = False,
-        doubled: bool = False,
+        self, y: float, x1: float, x2: float, emphasize: bool = False, doubled: bool = False
     ) -> None:
         """Adds a line from (x1, y) to (x2, y)."""
         x1, x2 = sorted([x1, x2])
         self.horizontal_lines.append(_HorizontalLine(y, x1, x2, emphasize, doubled))
 
-    def transpose(self) -> 'cirq.TextDiagramDrawer':
+    def transpose(self) -> cirq.TextDiagramDrawer:
         """Returns the same diagram, but mirrored across its diagonal."""
         out = TextDiagramDrawer()
         out.entries = {
@@ -228,30 +194,25 @@ class TextDiagramDrawer:
             max_y = max(max_y, v.y1, v.y2)
         return 1 + int(max_y)
 
-    def force_horizontal_padding_after(self, index: int, padding: Union[int, float]) -> None:
+    def force_horizontal_padding_after(self, index: int, padding: float) -> None:
         """Change the padding after the given column."""
         self.horizontal_padding[index] = padding
 
-    def force_vertical_padding_after(self, index: int, padding: Union[int, float]) -> None:
+    def force_vertical_padding_after(self, index: int, padding: float) -> None:
         """Change the padding after the given row."""
         self.vertical_padding[index] = padding
 
-    def _transform_coordinates(
-        self,
-        func: Callable[
-            [Union[int, float], Union[int, float]], Tuple[Union[int, float], Union[int, float]]
-        ],
-    ) -> None:
+    def _transform_coordinates(self, func: Callable[[float, float], tuple[float, float]]) -> None:
         """Helper method to transformer either row or column coordinates."""
 
-        def func_x(x: Union[int, float]) -> Union[int, float]:
+        def func_x(x: float) -> float:
             return func(x, 0)[0]
 
-        def func_y(y: Union[int, float]) -> Union[int, float]:
+        def func_y(y: float) -> float:
             return func(0, y)[1]
 
         self.entries = {
-            cast(Tuple[int, int], func(int(x), int(y))): v for (x, y), v in self.entries.items()
+            cast(tuple[int, int], func(int(x), int(y))): v for (x, y), v in self.entries.items()
         }
         self.vertical_lines = [
             _VerticalLine(func_x(x), func_y(y1), func_y(y2), emph, doubled)
@@ -271,9 +232,7 @@ class TextDiagramDrawer:
     def insert_empty_columns(self, x: int, amount: int = 1) -> None:
         """Insert a number of columns after the given column."""
 
-        def transform_columns(
-            column: Union[int, float], row: Union[int, float]
-        ) -> Tuple[Union[int, float], Union[int, float]]:
+        def transform_columns(column: float, row: float) -> tuple[float, float]:
             return column + (amount if column >= x else 0), row
 
         self._transform_coordinates(transform_columns)
@@ -281,9 +240,7 @@ class TextDiagramDrawer:
     def insert_empty_rows(self, y: int, amount: int = 1) -> None:
         """Insert a number of rows after the given row."""
 
-        def transform_rows(
-            column: Union[int, float], row: Union[int, float]
-        ) -> Tuple[Union[int, float], Union[int, float]]:
+        def transform_rows(column: float, row: float) -> tuple[float, float]:
             return column, row + (amount if row >= y else 0)
 
         self._transform_coordinates(transform_rows)
@@ -292,7 +249,7 @@ class TextDiagramDrawer:
         self,
         horizontal_spacing: int = 1,
         vertical_spacing: int = 1,
-        crossing_char: Optional[str] = None,
+        crossing_char: str | None = None,
         use_unicode_characters: bool = True,
     ) -> str:
         """Outputs text containing the diagram."""
@@ -365,14 +322,14 @@ class TextDiagramDrawer:
             horizontal_padding=self.horizontal_padding,
         )
 
-    def shift(self, dx: int = 0, dy: int = 0) -> 'cirq.TextDiagramDrawer':
+    def shift(self, dx: int = 0, dy: int = 0) -> cirq.TextDiagramDrawer:
         self._transform_coordinates(lambda x, y: (x + dx, y + dy))
         return self
 
-    def shifted(self, dx: int = 0, dy: int = 0) -> 'cirq.TextDiagramDrawer':
+    def shifted(self, dx: int = 0, dy: int = 0) -> cirq.TextDiagramDrawer:
         return self.copy().shift(dx, dy)
 
-    def superimpose(self, other: 'cirq.TextDiagramDrawer') -> 'cirq.TextDiagramDrawer':
+    def superimpose(self, other: cirq.TextDiagramDrawer) -> cirq.TextDiagramDrawer:
         self.entries.update(other.entries)
         self.horizontal_lines += other.horizontal_lines
         self.vertical_lines += other.vertical_lines
@@ -380,14 +337,14 @@ class TextDiagramDrawer:
         self.vertical_padding.update(other.vertical_padding)
         return self
 
-    def superimposed(self, other: 'cirq.TextDiagramDrawer') -> 'cirq.TextDiagramDrawer':
+    def superimposed(self, other: cirq.TextDiagramDrawer) -> cirq.TextDiagramDrawer:
         return self.copy().superimpose(other)
 
     @classmethod
     def vstack(
         cls,
-        diagrams: Sequence['cirq.TextDiagramDrawer'],
-        padding_resolver: Optional[Callable[[Sequence[Optional[int]]], int]] = None,
+        diagrams: Sequence[cirq.TextDiagramDrawer],
+        padding_resolver: Callable[[Sequence[int | None]], int] | None = None,
     ):
         """Vertically stack text diagrams.
 
@@ -416,9 +373,7 @@ class TextDiagramDrawer:
             dy += diagram.height()
         for x in stacked.horizontal_padding:
             resolved_padding = padding_resolver(
-                tuple(
-                    cast(Optional[int], diagram.horizontal_padding.get(x)) for diagram in diagrams
-                )
+                tuple(cast(int | None, diagram.horizontal_padding.get(x)) for diagram in diagrams)
             )
             if resolved_padding is not None:
                 stacked.horizontal_padding[x] = resolved_padding
@@ -427,8 +382,8 @@ class TextDiagramDrawer:
     @classmethod
     def hstack(
         cls,
-        diagrams: Sequence['cirq.TextDiagramDrawer'],
-        padding_resolver: Optional[Callable[[Sequence[Optional[int]]], int]] = None,
+        diagrams: Sequence[cirq.TextDiagramDrawer],
+        padding_resolver: Callable[[Sequence[int | None]], int] | None = None,
     ):
         """Horizontally stack text diagrams.
 
@@ -457,7 +412,7 @@ class TextDiagramDrawer:
             dx += diagram.width()
         for y in stacked.vertical_padding:
             resolved_padding = padding_resolver(
-                tuple(cast(Optional[int], diagram.vertical_padding.get(y)) for diagram in diagrams)
+                tuple(cast(int | None, diagram.vertical_padding.get(y)) for diagram in diagrams)
             )
             if resolved_padding is not None:
                 stacked.vertical_padding[y] = resolved_padding

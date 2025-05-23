@@ -1,15 +1,19 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-from typing import Tuple, List
 from unittest.mock import create_autospec
-import cirq
+
 import numpy as np
-from pyquil.gates import MEASURE, RX, DECLARE, H, CNOT, I
+from pyquil import Program
+from pyquil.gates import CNOT, DECLARE, H, I, MEASURE, RX
 from pyquil.quilbase import Pragma, Reset
+
+import cirq
 from cirq_rigetti import circuit_transformers as transformers
+from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_transform_cirq_circuit_to_pyquil_program(
-    parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace]
+    parametric_circuit_with_params: tuple[cirq.Circuit, cirq.Linspace],
 ) -> None:
     """test that a user can transform a `cirq.Circuit` to a `pyquil.Program`
     functionally.
@@ -28,8 +32,9 @@ def test_transform_cirq_circuit_to_pyquil_program(
     ), "executable should measure the read out bit"
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_transform_cirq_circuit_to_pyquil_program_with_qubit_id_map(
-    bell_circuit_with_qids: Tuple[cirq.Circuit, List[cirq.Qid]]
+    bell_circuit_with_qids: tuple[cirq.Circuit, list[cirq.Qid]],
 ) -> None:
     """test that a user can transform a `cirq.Circuit` to a `pyquil.Program`
     functionally with explicit physical qubit address mapping.
@@ -54,8 +59,9 @@ def test_transform_cirq_circuit_to_pyquil_program_with_qubit_id_map(
     ), "executable should measure the second qubit to the second read out bit"
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_transform_with_post_transformation_hooks(
-    bell_circuit_with_qids: Tuple[cirq.Circuit, List[cirq.Qid]]
+    bell_circuit_with_qids: tuple[cirq.Circuit, list[cirq.Qid]],
 ) -> None:
     """test that a user can transform a `cirq.Circuit` to a `pyquil.Program`
     functionally with explicit physical qubit address mapping.
@@ -63,7 +69,7 @@ def test_transform_with_post_transformation_hooks(
     bell_circuit, qubits = bell_circuit_with_qids
 
     def reset_hook(program, measurement_id_map):
-        program._instructions.insert(0, Reset())
+        program = Program(Reset()) + program
         return program, measurement_id_map
 
     reset_hook_spec = create_autospec(reset_hook, side_effect=reset_hook)
@@ -71,7 +77,7 @@ def test_transform_with_post_transformation_hooks(
     pragma = Pragma('INTIAL_REWIRING', freeform_string='GREEDY')
 
     def rewire_hook(program, measurement_id_map):
-        program._instructions.insert(0, pragma)
+        program = Program(pragma) + program
         return program, measurement_id_map
 
     rewire_hook_spec = create_autospec(rewire_hook, side_effect=rewire_hook)
@@ -99,8 +105,9 @@ def test_transform_with_post_transformation_hooks(
     ), "executable should measure the second qubit to the second read out bit"
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_transform_cirq_circuit_with_explicit_decompose(
-    parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace]
+    parametric_circuit_with_params: tuple[cirq.Circuit, cirq.Linspace],
 ) -> None:
     """test that a user add a custom circuit decomposition function"""
 
@@ -110,7 +117,7 @@ def test_transform_cirq_circuit_with_explicit_decompose(
     parametric_circuit.append(cirq.measure(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), key='m'))
     circuit = cirq.protocols.resolve_parameters(parametric_circuit, param_resolvers[1])
 
-    def decompose_operation(operation: cirq.Operation) -> List[cirq.Operation]:
+    def decompose_operation(operation: cirq.Operation) -> list[cirq.Operation]:
         operations = [operation]
         if isinstance(operation.gate, cirq.MeasurementGate) and operation.gate.num_qubits() == 1:
             operations.append(cirq.I(operation.qubits[0]))

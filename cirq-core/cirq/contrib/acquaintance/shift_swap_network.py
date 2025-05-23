@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import functools
 import itertools
-from typing import Dict, Iterable, Optional, Sequence, Tuple, TYPE_CHECKING
+from typing import Iterable, Iterator, Sequence, TYPE_CHECKING
 
 from cirq import ops
 from cirq.contrib.acquaintance.gates import acquaint
@@ -51,7 +53,7 @@ class ShiftSwapNetworkGate(PermutationGate):
         self,
         left_part_lens: Iterable[int],
         right_part_lens: Iterable[int],
-        swap_gate: 'cirq.Gate' = ops.SWAP,
+        swap_gate: cirq.Gate = ops.SWAP,
     ) -> None:
 
         self.part_lens = {'left': tuple(left_part_lens), 'right': tuple(right_part_lens)}
@@ -65,7 +67,7 @@ class ShiftSwapNetworkGate(PermutationGate):
     def acquaintance_size(self) -> int:
         return sum(max(self.part_lens[side]) for side in ('left', 'right'))
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
         part_lens = list(itertools.chain(*(self.part_lens[side] for side in ('left', 'right'))))
 
         n_qubits = 0
@@ -91,7 +93,7 @@ class ShiftSwapNetworkGate(PermutationGate):
                 parts[k] = parts_qubits[: len(right_part)]
                 parts[k + 1] = parts_qubits[len(right_part) :]
 
-    def qubit_count(self, side: Optional[str] = None) -> int:
+    def qubit_count(self, side: str | None = None) -> int:
         if side is None:
             return sum(self.qubit_count(side) for side in self.part_lens)
         return sum(self.part_lens[side])
@@ -99,7 +101,7 @@ class ShiftSwapNetworkGate(PermutationGate):
     def num_qubits(self) -> int:
         return self.qubit_count()
 
-    def permutation(self) -> Dict[int, int]:
+    def permutation(self) -> dict[int, int]:
         return dict(
             zip(
                 range(self.num_qubits()),
@@ -110,7 +112,7 @@ class ShiftSwapNetworkGate(PermutationGate):
             )
         )
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> tuple[str, ...]:
         qubit_count = self.qubit_count()
         assert args.known_qubit_count in (None, qubit_count)
 

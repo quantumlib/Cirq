@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import collections
 
 import numpy as np
@@ -126,6 +128,12 @@ def test_str():
         },
     )
     assert str(result) == 'ab=13579, 2 4 6 8 10\nc=01234'
+
+    result = cirq.ResultDict(records={'c': np.array([[[True], [True]]])})
+    assert str(result) == 'c=1\nc=1'
+
+    result = cirq.ResultDict(records={'c': np.array([[[True, False], [False, True]]])})
+    assert str(result) == 'c=1, 0\nc=0, 1'
 
 
 def test_df():

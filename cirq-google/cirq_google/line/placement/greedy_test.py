@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import Iterable
 from unittest import mock
+
 import pytest
 
 import cirq
@@ -78,9 +81,10 @@ def test_find_sequence_calls_expand_sequence():
     qubits = [q00, q01, q02]
     start = q01
     search = greedy.GreedySequenceSearch(_create_device(qubits), start)
-    with mock.patch.object(search, '_sequence_search') as sequence_search, mock.patch.object(
-        search, '_expand_sequence'
-    ) as expand_sequence:
+    with (
+        mock.patch.object(search, '_sequence_search') as sequence_search,
+        mock.patch.object(search, '_expand_sequence') as expand_sequence,
+    ):
         head = [q01, q00]
         tail = [q01, q02]
         sequence_search.side_effect = [tail, head]

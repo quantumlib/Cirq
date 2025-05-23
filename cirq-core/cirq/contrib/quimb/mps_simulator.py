@@ -17,9 +17,11 @@ This is based on this paper:
 https://arxiv.org/abs/2002.07730
 """
 
+from __future__ import annotations
+
 import dataclasses
 import math
-from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING, Union
+from typing import Any, Sequence, TYPE_CHECKING
 
 import numpy as np
 import quimb.tensor as qtn
@@ -41,7 +43,7 @@ class MPSOptions:
     # How to split the tensor. Refer to the Quimb documentation for the exact meaning.
     method: str = 'svds'
     # If integer, the maxmimum number of singular values to keep, regardless of ``cutoff``.
-    max_bond: Optional[int] = None
+    max_bond: int | None = None
     # Method with which to apply the cutoff threshold. Refer to the Quimb documentation.
     cutoff_mode: str = 'rsum2'
     # The threshold below which to discard singular values. Refer to the Quimb documentation.
@@ -58,10 +60,10 @@ class MPSSimulator(
 
     def __init__(
         self,
-        noise: 'cirq.NOISE_MODEL_LIKE' = None,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        noise: cirq.NOISE_MODEL_LIKE = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         simulation_options: MPSOptions = MPSOptions(),
-        grouping: Optional[Dict['cirq.Qid', int]] = None,
+        grouping: dict[cirq.Qid, int] | None = None,
     ):
         """Creates instance of `MPSSimulator`.
 
@@ -84,10 +86,10 @@ class MPSSimulator(
 
     def _create_partial_simulation_state(
         self,
-        initial_state: Union[int, 'MPSState'],
-        qubits: Sequence['cirq.Qid'],
-        classical_data: 'cirq.ClassicalDataStore',
-    ) -> 'MPSState':
+        initial_state: int | MPSState,
+        qubits: Sequence[cirq.Qid],
+        classical_data: cirq.ClassicalDataStore,
+    ) -> MPSState:
         """Creates MPSState args for simulating the Circuit.
 
         Args:
@@ -103,7 +105,7 @@ class MPSSimulator(
             MPSState args for simulating the Circuit.
         """
         if isinstance(initial_state, MPSState):
-            return initial_state
+            return initial_state  # pragma: no cover
 
         return MPSState(
             qubits=qubits,
@@ -114,15 +116,15 @@ class MPSSimulator(
             classical_data=classical_data,
         )
 
-    def _create_step_result(self, sim_state: 'cirq.SimulationStateBase[MPSState]'):
+    def _create_step_result(self, sim_state: cirq.SimulationStateBase[MPSState]):
         return MPSSimulatorStepResult(sim_state)
 
     def _create_simulator_trial_result(
         self,
-        params: 'cirq.ParamResolver',
-        measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[MPSState]',
-    ) -> 'MPSTrialResult':
+        params: cirq.ParamResolver,
+        measurements: dict[str, np.ndarray],
+        final_simulator_state: cirq.SimulationStateBase[MPSState],
+    ) -> MPSTrialResult:
         """Creates a single trial results with the measurements.
 
         Args:
@@ -144,16 +146,16 @@ class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState']):
 
     def __init__(
         self,
-        params: 'cirq.ParamResolver',
-        measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[MPSState]',
+        params: cirq.ParamResolver,
+        measurements: dict[str, np.ndarray],
+        final_simulator_state: cirq.SimulationStateBase[MPSState],
     ) -> None:
         super().__init__(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
 
     @property
-    def final_state(self) -> 'MPSState':
+    def final_state(self) -> MPSState:
         return self._get_merged_sim_state()
 
     def __str__(self) -> str:
@@ -173,7 +175,7 @@ class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState']):
 class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState']):
     """A `StepResult` that can perform measurements."""
 
-    def __init__(self, sim_state: 'cirq.SimulationStateBase[MPSState]'):
+    def __init__(self, sim_state: cirq.SimulationStateBase[MPSState]):
         """Results of a step of the simulator.
         Attributes:
             sim_state: The qubit:SimulationState lookup for this step.
@@ -210,11 +212,11 @@ class _MPSHandler(qis.QuantumStateRepresentation):
 
     def __init__(
         self,
-        qid_shape: Tuple[int, ...],
-        grouping: Dict[int, int],
-        M: List[qtn.Tensor],
+        qid_shape: tuple[int, ...],
+        grouping: dict[int, int],
+        M: list[qtn.Tensor],
         format_i: str,
-        estimated_gate_error_list: List[float],
+        estimated_gate_error_list: list[float],
         simulation_options: MPSOptions = MPSOptions(),
     ):
         """Creates an MPSQuantumState
@@ -239,8 +241,8 @@ class _MPSHandler(qis.QuantumStateRepresentation):
     def create(
         cls,
         *,
-        qid_shape: Tuple[int, ...],
-        grouping: Dict[int, int],
+        qid_shape: tuple[int, ...],
+        grouping: dict[int, int],
         initial_state: int = 0,
         simulation_options: MPSOptions = MPSOptions(),
     ):
@@ -309,7 +311,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
     def _value_equality_values_(self) -> Any:
         return self._qid_shape, self._M, self._simulation_options, self._grouping
 
-    def copy(self, deep_copy_buffers: bool = True) -> '_MPSHandler':
+    def copy(self, deep_copy_buffers: bool = True) -> _MPSHandler:
         """Copies the object.
 
         Args:
@@ -340,7 +342,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
         sorted_ind = tuple(sorted(state_vector.inds))
         return state_vector.fuse({'i': sorted_ind}).data
 
-    def partial_trace(self, keep_axes: Set[int]) -> np.ndarray:
+    def partial_trace(self, keep_axes: set[int]) -> np.ndarray:
         """Traces out all qubits except keep_axes.
 
         Args:
@@ -460,7 +462,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
             raise ValueError('Can only handle 1 and 2 qubit operations')
         return True
 
-    def estimation_stats(self):
+    def estimation_stats(self):  # pragma: no cover
         """Returns some statistics about the memory usage and quality of the approximation."""
 
         num_coefs_used = sum([Mi.data.size for Mi in self._M])
@@ -482,8 +484,8 @@ class _MPSHandler(qis.QuantumStateRepresentation):
 
     def _measure(
         self, axes: Sequence[int], prng: np.random.RandomState, collapse_state_vector=True
-    ) -> List[int]:
-        results: List[int] = []
+    ) -> list[int]:
+        results: list[int] = []
 
         if collapse_state_vector:
             state = self
@@ -520,8 +522,8 @@ class _MPSHandler(qis.QuantumStateRepresentation):
         return results
 
     def measure(
-        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
-    ) -> List[int]:
+        self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
+    ) -> list[int]:
         """Measures the MPS.
 
         Args:
@@ -533,10 +535,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
         return self._measure(axes, value.parse_random_state(seed))
 
     def sample(
-        self,
-        axes: Sequence[int],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        self, axes: Sequence[int], repetitions: int = 1, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
     ) -> np.ndarray:
         """Samples the MPS.
 
@@ -548,7 +547,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
             The samples in order.
         """
 
-        measurements: List[List[int]] = []
+        measurements: list[list[int]] = []
         prng = value.parse_random_state(seed)
 
         for _ in range(repetitions):
@@ -564,12 +563,12 @@ class MPSState(SimulationState[_MPSHandler]):
     def __init__(
         self,
         *,
-        qubits: Sequence['cirq.Qid'],
+        qubits: Sequence[cirq.Qid],
         prng: np.random.RandomState,
         simulation_options: MPSOptions = MPSOptions(),
-        grouping: Optional[Dict['cirq.Qid', int]] = None,
+        grouping: dict[cirq.Qid, int] | None = None,
         initial_state: int = 0,
-        classical_data: Optional['cirq.ClassicalDataStore'] = None,
+        classical_data: cirq.ClassicalDataStore | None = None,
     ):
         """Creates and MPSState
 
@@ -623,7 +622,7 @@ class MPSState(SimulationState[_MPSHandler]):
         """
         return self._state.state_vector()
 
-    def partial_trace(self, keep_qubits: Set['cirq.Qid']) -> np.ndarray:
+    def partial_trace(self, keep_qubits: set[cirq.Qid]) -> np.ndarray:
         """Traces out all qubits except keep_qubits.
 
         Args:
@@ -642,7 +641,7 @@ class MPSState(SimulationState[_MPSHandler]):
         return self._state.to_numpy()
 
     def _act_on_fallback_(
-        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
+        self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool = True
     ) -> bool:
         """Delegates the action to self.apply_op"""
         return self._state.apply_op(action, self.get_axes(qubits), self.prng)

@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 from typing import cast
 
 import pytest
@@ -134,6 +137,10 @@ def test_transform_leaves():
 
     # Just an item.
     assert move_tree_left_freeze(operations[0]) == expected[0]
+
+    # Just a moment
+    m = cirq.Moment(cirq.X(cirq.q(1)))
+    assert cirq.transform_op_tree(m, preserve_moments=True) is m
 
     # Flat list.
     assert move_tree_left_freeze(operations) == tuple(expected)

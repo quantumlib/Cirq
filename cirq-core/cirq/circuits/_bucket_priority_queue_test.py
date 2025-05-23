@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 
-from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 import cirq
+from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 
 
 def test_init():

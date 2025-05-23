@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import contextlib
 import dataclasses
 import datetime
@@ -19,11 +22,10 @@ import io
 import json
 import os
 import pathlib
-import sys
 import warnings
-from typing import Dict, List, Optional, Tuple, Type
 from unittest import mock
 
+import attrs
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -33,7 +35,7 @@ import sympy
 import cirq
 from cirq._compat import proper_eq
 from cirq.protocols import json_serialization
-from cirq.testing.json import ModuleJsonTestSpec, spec_for, assert_json_roundtrip_works
+from cirq.testing.json import assert_json_roundtrip_works, ModuleJsonTestSpec, spec_for
 
 REPO_ROOT = pathlib.Path(__file__).parent.parent.parent.parent
 
@@ -45,7 +47,7 @@ class _ModuleDeprecation:
 
 
 # tested modules and their deprecation settings
-TESTED_MODULES: Dict[str, Optional[_ModuleDeprecation]] = {
+TESTED_MODULES: dict[str, _ModuleDeprecation | None] = {
     'cirq_aqt': None,
     'cirq_ionq': None,
     'cirq_google': None,
@@ -55,14 +57,15 @@ TESTED_MODULES: Dict[str, Optional[_ModuleDeprecation]] = {
     'non_existent_should_be_fine': None,
 }
 
+# TODO(#6706) remove after cirq_rigetti supports NumPy 2.0
+if np.__version__.startswith("2."):  # pragma: no cover
+    warnings.warn(
+        "json_serialization_test - ignoring cirq_rigetti due to incompatibility with NumPy 2.0"
+    )
+    del TESTED_MODULES["cirq_rigetti"]
 
-# pyQuil 3.0, necessary for cirq_rigetti module requires
-# python >= 3.9
-if sys.version_info < (3, 9):  # pragma: no cover
-    del TESTED_MODULES['cirq_rigetti']
 
-
-def _get_testspecs_for_modules() -> List[ModuleJsonTestSpec]:
+def _get_testspecs_for_modules() -> list[ModuleJsonTestSpec]:
     modules = []
     for m in TESTED_MODULES.keys():
         try:
@@ -82,20 +85,20 @@ def test_deprecated_cirq_type_in_json_dict():
         __module__ = 'test.noncirq.namespace'
 
         def __eq__(self, other):
-            return isinstance(other, HasOldJsonDict)
+            return isinstance(other, HasOldJsonDict)  # pragma: no cover
 
         def _json_dict_(self):
             return {'cirq_type': 'test.noncirq.namespace.HasOldJsonDict'}
 
         @classmethod
         def _from_json_dict_(cls, **kwargs):
-            return cls()
+            return cls()  # pragma: no cover
 
     with pytest.raises(ValueError, match='not a Cirq type'):
         _ = cirq.json_cirq_type(HasOldJsonDict)
 
     def custom_resolver(name):
-        if name == 'test.noncirq.namespace.HasOldJsonDict':
+        if name == 'test.noncirq.namespace.HasOldJsonDict':  # pragma: no cover
             return HasOldJsonDict
 
     test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
@@ -281,6 +284,7 @@ def test_builtins():
 def test_numpy():
     x = np.ones(1)[0]
 
+    assert_json_roundtrip_works(np.bool_(True))
     assert_json_roundtrip_works(x.astype(np.int8))
     assert_json_roundtrip_works(x.astype(np.int16))
     assert_json_roundtrip_works(x.astype(np.int32))
@@ -354,9 +358,9 @@ class SBKImpl(cirq.SerializableByKey):
     def __init__(
         self,
         name: str,
-        data_list: Optional[List] = None,
-        data_tuple: Optional[Tuple] = None,
-        data_dict: Optional[Dict] = None,
+        data_list: list | None = None,
+        data_tuple: tuple | None = None,
+        data_dict: dict | None = None,
     ):
         self.name = name
         self.data_list = data_list or []
@@ -365,12 +369,17 @@ class SBKImpl(cirq.SerializableByKey):
 
     def __eq__(self, other):
         if not isinstance(other, SBKImpl):
-            return False
+            return False  # pragma: no cover
         return (
             self.name == other.name
             and self.data_list == other.data_list
             and self.data_tuple == other.data_tuple
             and self.data_dict == other.data_dict
+        )
+
+    def __hash__(self):
+        return hash(
+            (self.name, tuple(self.data_list), self.data_tuple, frozenset(self.data_dict.items()))
         )
 
     def _json_dict_(self):
@@ -386,12 +395,12 @@ class SBKImpl(cirq.SerializableByKey):
         return cls(name, data_list, tuple(data_tuple), data_dict)
 
 
-def test_context_serialization():
+def test_serializable_by_key():
     def custom_resolver(name):
         if name == 'SBKImpl':
             return SBKImpl
 
-    test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
+    test_resolvers = [custom_resolver, *cirq.DEFAULT_RESOLVERS]
 
     sbki_empty = SBKImpl('sbki_empty')
     assert_json_roundtrip_works(sbki_empty, resolvers=test_resolvers)
@@ -406,21 +415,10 @@ def test_context_serialization():
     assert_json_roundtrip_works(sbki_dict, resolvers=test_resolvers)
 
     sbki_json = str(cirq.to_json(sbki_dict))
-    # There should be exactly one context item for each previous SBKImpl.
-    assert sbki_json.count('"cirq_type": "_SerializedContext"') == 4
-    # There should be exactly two key items for each of sbki_(empty|list|tuple),
-    # plus one for the top-level sbki_dict.
-    assert sbki_json.count('"cirq_type": "_SerializedKey"') == 7
-    # The final object should be a _SerializedKey for sbki_dict.
-    final_obj_idx = sbki_json.rfind('{')
-    final_obj = sbki_json[final_obj_idx : sbki_json.find('}', final_obj_idx) + 1]
-    assert (
-        final_obj
-        == """{
-      "cirq_type": "_SerializedKey",
-      "key": 4
-    }"""
-    )
+    # There are 4 SBKImpl instances, one each for empty, list, tuple, dict.
+    assert sbki_json.count('"cirq_type": "VAL"') == 4
+    # There are 3 SBKImpl refs, one each for empty, list, and tuple.
+    assert sbki_json.count('"cirq_type": "REF"') == 3
 
     list_sbki = [sbki_dict]
     assert_json_roundtrip_works(list_sbki, resolvers=test_resolvers)
@@ -428,31 +426,9 @@ def test_context_serialization():
     dict_sbki = {'a': sbki_dict}
     assert_json_roundtrip_works(dict_sbki, resolvers=test_resolvers)
 
-    assert sbki_list != json_serialization._SerializedKey(sbki_list)
-
     # Serialization keys have unique suffixes.
     sbki_other_list = SBKImpl('sbki_list', data_list=[sbki_list])
     assert_json_roundtrip_works(sbki_other_list, resolvers=test_resolvers)
-
-
-def test_internal_serializer_types():
-    sbki = SBKImpl('test_key')
-    key = 1
-    test_key = json_serialization._SerializedKey(key)
-    test_context = json_serialization._SerializedContext(sbki, 1)
-    test_serialization = json_serialization._ContextualSerialization(sbki)
-
-    key_json = test_key._json_dict_()
-    with pytest.raises(TypeError, match='_from_json_dict_'):
-        _ = json_serialization._SerializedKey._from_json_dict_(**key_json)
-
-    context_json = test_context._json_dict_()
-    with pytest.raises(TypeError, match='_from_json_dict_'):
-        _ = json_serialization._SerializedContext._from_json_dict_(**context_json)
-
-    serialization_json = test_serialization._json_dict_()
-    with pytest.raises(TypeError, match='_from_json_dict_'):
-        _ = json_serialization._ContextualSerialization._from_json_dict_(**serialization_json)
 
 
 # during test setup deprecated submodules are inspected and trigger the
@@ -549,7 +525,7 @@ def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: st
 
 @dataclasses.dataclass
 class SerializableTypeObject:
-    test_type: Type
+    test_type: type
 
     def _json_dict_(self):
         return {'test_type': json_serialization.json_cirq_type(self.test_type)}
@@ -568,7 +544,7 @@ def test_type_serialization(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cl
         return pytest.xfail(reason="Not serializable (yet)")
 
     if cls is None:
-        pytest.skip(f'No serialization for None-mapped type: {cirq_obj_name}')
+        pytest.skip(f'No serialization for None-mapped type: {cirq_obj_name}')  # pragma: no cover
 
     try:
         typename = cirq.json_cirq_type(cls)
@@ -630,9 +606,9 @@ def test_to_from_json_gzip():
         _ = cirq.read_json_gzip()
 
 
-def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]):
+def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: str | None):
     content = path.read_text()
-    ctx_managers: List[contextlib.AbstractContextManager] = [contextlib.suppress()]
+    ctx_managers: list[contextlib.AbstractContextManager] = [contextlib.suppress()]
     if deprecation_deadline:  # pragma: no cover
         # we ignore coverage here, because sometimes there are no deprecations at all in any of the
         # modules
@@ -640,7 +616,7 @@ def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]
 
     for deprecation in TESTED_MODULES.values():
         if deprecation is not None and deprecation.old_name in content:
-            ctx_managers.append(deprecation.deprecation_assertion)
+            ctx_managers.append(deprecation.deprecation_assertion)  # pragma: no cover
 
     imports = {'cirq': cirq, 'pd': pd, 'sympy': sympy, 'np': np, 'datetime': datetime, 'nx': nx}
 
@@ -662,7 +638,7 @@ def assert_repr_and_json_test_data_agree(
     repr_path: pathlib.Path,
     json_path: pathlib.Path,
     inward_only: bool,
-    deprecation_deadline: Optional[str],
+    deprecation_deadline: str | None,
 ):
     if not repr_path.exists() and not json_path.exists():
         return
@@ -817,3 +793,15 @@ def test_datetime():
     assert re_pst_dt == pst_dt
     assert re_pst_dt == utc_dt
     assert re_pst_dt == re_naive_dt
+
+
+@attrs.frozen
+class _TestAttrsClas:
+    name: str
+    x: int
+
+
+def test_attrs_json_dict():
+    obj = _TestAttrsClas('test', x=123)
+    js = json_serialization.attrs_json_dict(obj)
+    assert js == {'name': 'test', 'x': 123}

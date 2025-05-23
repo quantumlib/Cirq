@@ -12,12 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from fractions import Fraction
+from __future__ import annotations
+
 from decimal import Decimal
+from fractions import Fraction
 from numbers import Number
+
 import numpy as np
 import pytest
 import sympy
+
 import cirq
 
 
@@ -47,11 +51,11 @@ def test_approx_eq_mixed_primitives():
 
 def test_numpy_dtype_compatibility():
     i_a, i_b, i_c = 0, 1, 2
-    i_types = [np.intc, np.intp, np.int0, np.int8, np.int16, np.int32, np.int64]
+    i_types = [np.intc, np.intp, np.int8, np.int16, np.int32, np.int64]
     for i_type in i_types:
         assert cirq.approx_eq(i_type(i_a), i_type(i_b), atol=1)
         assert not cirq.approx_eq(i_type(i_a), i_type(i_c), atol=1)
-    u_types = [np.uint, np.uint0, np.uint8, np.uint16, np.uint32, np.uint64]
+    u_types = [np.uint, np.uintp, np.uint8, np.uint16, np.uint32, np.uint64]
     for u_type in u_types:
         assert cirq.approx_eq(u_type(i_a), u_type(i_b), atol=1)
         assert not cirq.approx_eq(u_type(i_a), u_type(i_c), atol=1)

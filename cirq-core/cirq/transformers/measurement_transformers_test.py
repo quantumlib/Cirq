@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 import sympy
@@ -757,6 +759,41 @@ def test_drop_terminal():
             cirq.CircuitOperation(cirq.FrozenCircuit(cirq.CX(q0, q1), cirq.I(q0), cirq.X(q1)))
         ),
     )
+
+
+def test_drop_terminal_qudit():
+    q0, q1 = cirq.LineQid.range(2, dimension=3)
+    circuit = cirq.Circuit(
+        cirq.CircuitOperation(cirq.FrozenCircuit(cirq.measure(q0, q1, key='m', invert_mask=[0, 1])))
+    )
+    dropped = cirq.drop_terminal_measurements(circuit)
+    expected_inversion_matrix = np.array([[0, 1, 0], [1, 0, 0], [0, 0, 1]])
+    cirq.testing.assert_same_circuits(
+        dropped,
+        cirq.Circuit(
+            cirq.CircuitOperation(
+                cirq.FrozenCircuit(
+                    cirq.IdentityGate(qid_shape=(3,)).on(q0),
+                    cirq.MatrixGate(expected_inversion_matrix, qid_shape=(3,)).on(q1),
+                )
+            )
+        ),
+    )
+    # Verify behavior equivalent to simulator (invert_mask swaps 0,1 but leaves 2 alone)
+    dropped.append(cirq.measure(q0, q1, key='m'))
+    sim = cirq.Simulator()
+    c0 = sim.simulate(circuit, initial_state=[0, 0])
+    d0 = sim.simulate(dropped, initial_state=[0, 0])
+    assert np.all(c0.measurements['m'] == [0, 1])
+    assert np.all(d0.measurements['m'] == [0, 1])
+    c1 = sim.simulate(circuit, initial_state=[1, 1])
+    d1 = sim.simulate(dropped, initial_state=[1, 1])
+    assert np.all(c1.measurements['m'] == [1, 0])
+    assert np.all(d1.measurements['m'] == [1, 0])
+    c2 = sim.simulate(circuit, initial_state=[2, 2])
+    d2 = sim.simulate(dropped, initial_state=[2, 2])
+    assert np.all(c2.measurements['m'] == [2, 2])
+    assert np.all(d2.measurements['m'] == [2, 2])
 
 
 def test_drop_terminal_nonterminal_error():

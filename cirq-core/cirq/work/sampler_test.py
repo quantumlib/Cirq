@@ -11,21 +11,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Tests for cirq.Sampler."""
-from typing import Sequence
 
-import pytest
+"""Tests for cirq.Sampler."""
+
+from __future__ import annotations
+
+from typing import Sequence
 
 import duet
 import numpy as np
 import pandas as pd
+import pytest
 import sympy
 
 import cirq
 
 
 @duet.sync
-async def test_run_async():
+async def test_run_async() -> None:
     sim = cirq.Simulator()
     result = await sim.run_async(
         cirq.Circuit(cirq.measure(cirq.GridQubit(0, 0), key='m')), repetitions=10
@@ -34,7 +37,7 @@ async def test_run_async():
 
 
 @duet.sync
-async def test_run_sweep_async():
+async def test_run_sweep_async() -> None:
     sim = cirq.Simulator()
     results = await sim.run_sweep_async(
         cirq.Circuit(cirq.measure(cirq.GridQubit(0, 0), key='m')),
@@ -47,7 +50,7 @@ async def test_run_sweep_async():
 
 
 @duet.sync
-async def test_sampler_async_fail():
+async def test_sampler_async_fail() -> None:
     class FailingSampler(cirq.Sampler):
         def run_sweep(self, program, params, repetitions: int = 1):
             raise ValueError('test')
@@ -59,7 +62,7 @@ async def test_sampler_async_fail():
         await FailingSampler().run_sweep_async(cirq.Circuit(), repetitions=1, params=None)
 
 
-def test_run_sweep_impl():
+def test_run_sweep_impl() -> None:
     """Test run_sweep implemented in terms of run_sweep_async."""
 
     class AsyncSampler(cirq.Sampler):
@@ -78,7 +81,7 @@ def test_run_sweep_impl():
 
 
 @duet.sync
-async def test_run_sweep_async_impl():
+async def test_run_sweep_async_impl() -> None:
     """Test run_sweep_async implemented in terms of run_sweep."""
 
     class SyncSampler(cirq.Sampler):
@@ -95,7 +98,7 @@ async def test_run_sweep_async_impl():
         np.testing.assert_equal(result.records['m'], np.zeros((10, 1, 1)))
 
 
-def test_sampler_sample_multiple_params():
+def test_sampler_sample_multiple_params() -> None:
     a, b = cirq.LineQubit.range(2)
     s = sympy.Symbol('s')
     t = sympy.Symbol('t')
@@ -129,7 +132,7 @@ def test_sampler_sample_multiple_params():
     )
 
 
-def test_sampler_sample_sweep():
+def test_sampler_sample_sweep() -> None:
     a = cirq.LineQubit(0)
     t = sympy.Symbol('t')
     sampler = cirq.Simulator()
@@ -155,7 +158,7 @@ def test_sampler_sample_sweep():
     )
 
 
-def test_sampler_sample_no_params():
+def test_sampler_sample_no_params() -> None:
     a, b = cirq.LineQubit.range(2)
     sampler = cirq.Simulator()
     circuit = cirq.Circuit(cirq.X(a), cirq.measure(a, b, key='out'))
@@ -165,7 +168,7 @@ def test_sampler_sample_no_params():
     )
 
 
-def test_sampler_sample_inconsistent_keys():
+def test_sampler_sample_inconsistent_keys() -> None:
     q = cirq.LineQubit(0)
     sampler = cirq.Simulator()
     circuit = cirq.Circuit(cirq.measure(q, key='out'))
@@ -174,7 +177,7 @@ def test_sampler_sample_inconsistent_keys():
 
 
 @duet.sync
-async def test_sampler_async_not_run_inline():
+async def test_sampler_async_not_run_inline() -> None:
     ran = False
 
     class S(cirq.Sampler):
@@ -189,7 +192,7 @@ async def test_sampler_async_not_run_inline():
     assert ran
 
 
-def test_sampler_run_batch():
+def test_sampler_run_batch() -> None:
     sampler = cirq.ZerosSampler()
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a) ** sympy.Symbol('t'), cirq.measure(a, key='m'))
@@ -212,7 +215,7 @@ def test_sampler_run_batch():
 
 
 @duet.sync
-async def test_run_batch_async_calls_run_sweep_asynchronously():
+async def test_run_batch_async_calls_run_sweep_asynchronously() -> None:
     """Test run_batch_async calls run_sweep_async without waiting."""
     finished = []
     a = cirq.LineQubit(0)
@@ -223,7 +226,9 @@ async def test_run_batch_async_calls_run_sweep_asynchronously():
     params_list = [params1, params2]
 
     class AsyncSampler(cirq.Sampler):
-        async def run_sweep_async(self, program, params, repetitions: int = 1):
+        async def run_sweep_async(
+            self, program, params, repetitions: int = 1, unused: duet.Limiter = duet.Limiter(None)
+        ):
             if params == params1:
                 await duet.sleep(0.001)
 
@@ -236,7 +241,7 @@ async def test_run_batch_async_calls_run_sweep_asynchronously():
     assert finished == list(reversed(params_list))
 
 
-def test_sampler_run_batch_default_params_and_repetitions():
+def test_sampler_run_batch_default_params_and_repetitions() -> None:
     sampler = cirq.ZerosSampler()
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a), cirq.measure(a, key='m'))
@@ -251,7 +256,7 @@ def test_sampler_run_batch_default_params_and_repetitions():
         assert result.measurements == {'m': np.array([[0]], dtype='uint8')}
 
 
-def test_sampler_run_batch_bad_input_lengths():
+def test_sampler_run_batch_bad_input_lengths() -> None:
     sampler = cirq.ZerosSampler()
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a) ** sympy.Symbol('t'), cirq.measure(a, key='m'))
@@ -266,7 +271,7 @@ def test_sampler_run_batch_bad_input_lengths():
         )
 
 
-def test_sampler_simple_sample_expectation_values():
+def test_sampler_simple_sample_expectation_values() -> None:
     a = cirq.LineQubit(0)
     sampler = cirq.Simulator()
     circuit = cirq.Circuit(cirq.H(a))
@@ -276,7 +281,7 @@ def test_sampler_simple_sample_expectation_values():
     assert np.allclose(results, [[1]])
 
 
-def test_sampler_sample_expectation_values_calculation():
+def test_sampler_sample_expectation_values_calculation() -> None:
     class DeterministicImbalancedStateSampler(cirq.Sampler):
         """A simple, deterministic mock sampler.
         Pretends to sample from a state vector with a 3:1 balance between the
@@ -284,8 +289,8 @@ def test_sampler_sample_expectation_values_calculation():
         """
 
         def run_sweep(
-            self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
-        ) -> Sequence['cirq.Result']:
+            self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+        ) -> Sequence[cirq.Result]:
             results = np.zeros((repetitions, 1), dtype=bool)
             for idx in range(repetitions // 4):
                 results[idx][0] = 1
@@ -306,7 +311,7 @@ def test_sampler_sample_expectation_values_calculation():
     assert np.allclose(results, [[0.5]])
 
 
-def test_sampler_sample_expectation_values_multi_param():
+def test_sampler_sample_expectation_values_multi_param() -> None:
     a = cirq.LineQubit(0)
     t = sympy.Symbol('t')
     sampler = cirq.Simulator(seed=1)
@@ -319,20 +324,23 @@ def test_sampler_sample_expectation_values_multi_param():
     assert np.allclose(results, [[1], [-1], [1]])
 
 
-def test_sampler_sample_expectation_values_complex_param():
+def test_sampler_sample_expectation_values_complex_param() -> None:
     a = cirq.LineQubit(0)
     t = sympy.Symbol('t')
     sampler = cirq.Simulator(seed=1)
     circuit = cirq.Circuit(cirq.global_phase_operation(t))
     obs = cirq.Z(a)
     results = sampler.sample_expectation_values(
-        circuit, [obs], num_samples=5, params=cirq.Points('t', [1, 1j, (1 + 1j) / np.sqrt(2)])
+        circuit,
+        [obs],
+        num_samples=5,
+        params=cirq.Points('t', [1, 1j, (1 + 1j) / np.sqrt(2)]),  # type: ignore[list-item]
     )
 
     assert np.allclose(results, [[1], [1], [1]])
 
 
-def test_sampler_sample_expectation_values_multi_qubit():
+def test_sampler_sample_expectation_values_multi_qubit() -> None:
     q = cirq.LineQubit.range(3)
     sampler = cirq.Simulator(seed=1)
     circuit = cirq.Circuit(cirq.X(q[0]), cirq.X(q[1]), cirq.X(q[2]))
@@ -342,7 +350,7 @@ def test_sampler_sample_expectation_values_multi_qubit():
     assert np.allclose(results, [[-3]])
 
 
-def test_sampler_sample_expectation_values_composite():
+def test_sampler_sample_expectation_values_composite() -> None:
     # Tests multi-{param,qubit} sampling together in one circuit.
     q = cirq.LineQubit.range(3)
     t = [sympy.Symbol(f't{x}') for x in range(3)]
@@ -371,7 +379,7 @@ def test_sampler_sample_expectation_values_composite():
     )
 
 
-def test_sampler_simple_sample_expectation_requirements():
+def test_sampler_simple_sample_expectation_requirements() -> None:
     a = cirq.LineQubit(0)
     sampler = cirq.Simulator(seed=1)
     circuit = cirq.Circuit(cirq.H(a))

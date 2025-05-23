@@ -12,16 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, overload
+from __future__ import annotations
+
+from typing import overload, TYPE_CHECKING
+
 import numpy as np
 import sympy
-from cirq.value import type_alias
+
+if TYPE_CHECKING:
+    from cirq.value import type_alias
 
 
 def chosen_angle_to_half_turns(
-    half_turns: Optional[type_alias.TParamVal] = None,
-    rads: Optional[float] = None,
-    degs: Optional[float] = None,
+    half_turns: type_alias.TParamVal | None = None,
+    rads: float | None = None,
+    degs: float | None = None,
     default: float = 1.0,
 ) -> type_alias.TParamVal:
     """Returns a half_turns value based on the given arguments.
@@ -58,9 +63,9 @@ def chosen_angle_to_half_turns(
 
 
 def chosen_angle_to_canonical_half_turns(
-    half_turns: Optional[type_alias.TParamVal] = None,
-    rads: Optional[float] = None,
-    degs: Optional[float] = None,
+    half_turns: type_alias.TParamVal | None = None,
+    rads: float | None = None,
+    degs: float | None = None,
     default: float = 1.0,
 ) -> type_alias.TParamVal:
     """Returns a canonicalized half_turns based on the given arguments.

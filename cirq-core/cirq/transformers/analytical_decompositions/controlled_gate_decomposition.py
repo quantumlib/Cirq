@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Tuple, TYPE_CHECKING
+from __future__ import annotations
+
+import itertools
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from cirq import ops
-from cirq.linalg import is_unitary, is_special_unitary, map_eigenvalues
+from cirq.linalg import is_special_unitary, is_unitary, map_eigenvalues
 from cirq.protocols import unitary
 
 if TYPE_CHECKING:
@@ -34,10 +37,10 @@ def _is_identity(matrix):
 
 
 def _flatten(x):
-    return sum(x, [])
+    return list(itertools.chain.from_iterable(x))
 
 
-def _decompose_abc(matrix: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray, float]:
+def _decompose_abc(matrix: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray, float]:
     """Decomposes 2x2 unitary matrix.
 
     Returns 2x2 special unitary matrices A, B, C and phase delta, such that:
@@ -47,7 +50,9 @@ def _decompose_abc(matrix: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarr
     See [1], chapter 4.
     """
     assert matrix.shape == (2, 2)
-    delta = np.angle(np.linalg.det(matrix)) * 0.5
+    with np.errstate(divide="ignore", invalid="ignore"):
+        # On MacOS, np.linalg.det emits superflous warnings
+        delta = np.angle(np.linalg.det(matrix)) * 0.5
     alpha = np.angle(matrix[0, 0]) + np.angle(matrix[0, 1]) - 2 * delta
     beta = np.angle(matrix[0, 0]) - np.angle(matrix[0, 1])
 
@@ -68,8 +73,8 @@ def _decompose_abc(matrix: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarr
 
 
 def _decompose_single_ctrl(
-    matrix: np.ndarray, control: 'cirq.Qid', target: 'cirq.Qid'
-) -> List['cirq.Operation']:
+    matrix: np.ndarray, control: cirq.Qid, target: cirq.Qid
+) -> list[cirq.Operation]:
     """Decomposes controlled gate with one control.
 
     See [1], chapter 5.1.
@@ -91,7 +96,7 @@ def _decompose_single_ctrl(
     return result
 
 
-def _ccnot_congruent(c0: 'cirq.Qid', c1: 'cirq.Qid', target: 'cirq.Qid') -> List['cirq.Operation']:
+def _ccnot_congruent(c0: cirq.Qid, c1: cirq.Qid, target: cirq.Qid) -> list[cirq.Operation]:
     """Implements 3-qubit gate 'congruent' to CCNOT.
 
     Returns sequence of operations which is equivalent to applying
@@ -109,8 +114,8 @@ def _ccnot_congruent(c0: 'cirq.Qid', c1: 'cirq.Qid', target: 'cirq.Qid') -> List
 
 
 def decompose_multi_controlled_x(
-    controls: List['cirq.Qid'], target: 'cirq.Qid', free_qubits: List['cirq.Qid']
-) -> List['cirq.Operation']:
+    controls: list[cirq.Qid], target: cirq.Qid, free_qubits: list[cirq.Qid]
+) -> list[cirq.Operation]:
     """Implements action of multi-controlled Pauli X gate.
 
     Result is guaranteed to consist exclusively of 1-qubit, CNOT and CCNOT
@@ -162,8 +167,8 @@ def decompose_multi_controlled_x(
 
 
 def _decompose_su(
-    matrix: np.ndarray, controls: List['cirq.Qid'], target: 'cirq.Qid'
-) -> List['cirq.Operation']:
+    matrix: np.ndarray, controls: list[cirq.Qid], target: cirq.Qid
+) -> list[cirq.Operation]:
     """Decomposes controlled special unitary gate into elementary gates.
 
     Result has O(len(controls)) operations.
@@ -188,10 +193,10 @@ def _decompose_su(
 def _decompose_recursive(
     matrix: np.ndarray,
     power: float,
-    controls: List['cirq.Qid'],
-    target: 'cirq.Qid',
-    free_qubits: List['cirq.Qid'],
-) -> List['cirq.Operation']:
+    controls: list[cirq.Qid],
+    target: cirq.Qid,
+    free_qubits: list[cirq.Qid],
+) -> list[cirq.Operation]:
     """Decomposes controlled unitary gate into elementary gates.
 
     Result has O(len(controls)^2) operations.
@@ -213,8 +218,8 @@ def _decompose_recursive(
 
 
 def decompose_multi_controlled_rotation(
-    matrix: np.ndarray, controls: List['cirq.Qid'], target: 'cirq.Qid'
-) -> List['cirq.Operation']:
+    matrix: np.ndarray, controls: list[cirq.Qid], target: cirq.Qid
+) -> list[cirq.Operation]:
     """Implements action of multi-controlled unitary gate.
 
     Returns a sequence of operations, which is equivalent to applying

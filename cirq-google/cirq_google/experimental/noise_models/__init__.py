@@ -15,6 +15,7 @@
 """Noise models for Google devices."""
 
 from cirq_google.experimental.noise_models.noise_models import (
-    PerQubitDepolarizingWithDampedReadoutNoiseModel,
-    simple_noise_from_calibration_metrics,
+    # pylint: disable=line-too-long
+    PerQubitDepolarizingWithDampedReadoutNoiseModel as PerQubitDepolarizingWithDampedReadoutNoiseModel,
+    simple_noise_from_calibration_metrics as simple_noise_from_calibration_metrics,
 )

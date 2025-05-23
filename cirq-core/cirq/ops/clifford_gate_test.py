@@ -12,16 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import functools
 import itertools
-from typing import Tuple, Type
 
 import numpy as np
 import pytest
 
 import cirq
 from cirq.protocols.act_on_protocol_test import ExampleSimulationState
-from cirq.testing import EqualsTester, assert_allclose_up_to_global_phase
+from cirq.testing import assert_allclose_up_to_global_phase, EqualsTester
 
 _bools = (False, True)
 _paulis = (cirq.X, cirq.Y, cirq.Z)
@@ -59,7 +60,7 @@ def _all_rotation_pairs():
 
 
 @functools.lru_cache()
-def _all_clifford_gates() -> Tuple['cirq.SingleQubitCliffordGate', ...]:
+def _all_clifford_gates() -> tuple[cirq.SingleQubitCliffordGate, ...]:
     return tuple(
         cirq.SingleQubitCliffordGate.from_xz_map(trans_x, trans_z)
         for trans_x, trans_z in _all_rotation_pairs()
@@ -219,6 +220,8 @@ def test_pow():
     assert cirq.SingleQubitCliffordGate.Y_nsqrt == cirq.SingleQubitCliffordGate.Y**-0.5
     assert cirq.SingleQubitCliffordGate.Z_nsqrt == cirq.SingleQubitCliffordGate.Z**-0.5
     assert cirq.SingleQubitCliffordGate.X_sqrt**-1 == cirq.SingleQubitCliffordGate.X_nsqrt
+    assert cirq.SingleQubitCliffordGate.X_sqrt**3 == cirq.SingleQubitCliffordGate.X**1.5
+    assert cirq.SingleQubitCliffordGate.Z**2.0 == cirq.SingleQubitCliffordGate.I
     assert cirq.inverse(cirq.SingleQubitCliffordGate.X_nsqrt) == (
         cirq.SingleQubitCliffordGate.X_sqrt
     )
@@ -426,7 +429,7 @@ def test_known_matrix(gate, gate_equiv):
         ('SWAP', cirq.CliffordGate),
     ],
 )
-def test_common_clifford_types(name: str, expected_cls: Type) -> None:
+def test_common_clifford_types(name: str, expected_cls: type) -> None:
     assert isinstance(getattr(cirq.CliffordGate, name), expected_cls)
     assert isinstance(getattr(cirq.SingleQubitCliffordGate, name), expected_cls)
 
@@ -919,3 +922,86 @@ def test_all_single_qubit_clifford_unitaries():
     assert cirq.equal_up_to_global_phase(cs[21], (i - 1j * (-x + y - z)) / 2)
     assert cirq.equal_up_to_global_phase(cs[22], (i - 1j * (-x - y + z)) / 2)
     assert cirq.equal_up_to_global_phase(cs[23], (i - 1j * (-x - y - z)) / 2)
+
+
+def test_clifford_gate_repr():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    assert (
+        repr(cirq.ops.CliffordGate.from_op_list([cirq.ops.X(q0), cirq.CZ(q1, q2)], [q0, q1, q2]))
+        == """Clifford Gate with Tableau:
+stable   | destable
+---------+----------
+- Z0     | + X0
++   Z1   | +   X1Z2
++     Z2 | +   Z1X2
+"""
+    )
+    assert (
+        repr(cirq.ops.CliffordGate.CNOT)
+        == """Clifford Gate with Tableau:
+stable | destable
+-------+----------
++ Z0   | + X0X1
++ Z0Z1 | +   X1
+"""
+    )
+
+
+def test_single_qubit_clifford_gate_repr():
+    # Common gates
+    assert repr(cirq.ops.SingleQubitCliffordGate.X) == (
+        'cirq.ops.SingleQubitCliffordGate(_clifford_tableau=cirq.CliffordTableau(1, '
+        'rs=np.array([False, True]), xs=np.array([[True], [False]]), '
+        'zs=np.array([[False], [True]])))'
+    )
+    assert repr(cirq.ops.SingleQubitCliffordGate.Y) == (
+        'cirq.ops.SingleQubitCliffordGate(_clifford_tableau=cirq.CliffordTableau(1, '
+        'rs=np.array([True, True]), xs=np.array([[True], [False]]), '
+        'zs=np.array([[False], [True]])))'
+    )
+    assert repr(cirq.ops.SingleQubitCliffordGate.Z) == (
+        'cirq.ops.SingleQubitCliffordGate(_clifford_tableau=cirq.CliffordTableau(1, '
+        'rs=np.array([True, False]), xs=np.array([[True], [False]]), '
+        'zs=np.array([[False], [True]])))'
+    )
+    assert repr(cirq.ops.SingleQubitCliffordGate.I) == (
+        'cirq.ops.SingleQubitCliffordGate(_clifford_tableau=cirq.CliffordTableau(1, '
+        'rs=np.array([False, False]), xs=np.array([[True], [False]]), '
+        'zs=np.array([[False], [True]])))'
+    )
+    assert repr(cirq.ops.SingleQubitCliffordGate.X_sqrt) == (
+        'cirq.ops.SingleQubitCliffordGate(_clifford_tableau=cirq.CliffordTableau(1, '
+        'rs=np.array([False, True]), xs=np.array([[True], [True]]), '
+        'zs=np.array([[False], [True]])))'
+    )
+
+    assert repr(cirq.ops.SingleQubitCliffordGate.X) == (
+        'cirq.ops.SingleQubitCliffordGate(_clifford_tableau=cirq.CliffordTableau(1, '
+        'rs=np.array([False, True]), xs=np.array([[True], [False]]), '
+        'zs=np.array([[False], [True]])))'
+    )
+
+    # Other gates
+    qa = cirq.NamedQubit('a')
+    gate = cirq.ops.SingleQubitCliffordGate.from_clifford_tableau(
+        cirq.ops.CliffordGate.from_op_list(
+            [cirq.ops.PhasedXZGate(axis_phase_exponent=0.25, x_exponent=-1, z_exponent=0).on(qa)],
+            [qa],
+        ).clifford_tableau
+    )
+    assert repr(gate) == (
+        'cirq.ops.SingleQubitCliffordGate(_clifford_tableau=cirq.CliffordTableau(1, '
+        'rs=np.array([False, True]), xs=np.array([[True], [False]]), '
+        'zs=np.array([[True], [True]])))'
+    )
+
+
+def test_cxswap_czswap():
+
+    # cirq unitary for CNOT then SWAP (big endian)
+    cxswap_expected = np.asarray([[1, 0, 0, 0], [0, 0, 0, 1], [0, 1, 0, 0], [0, 0, 1, 0]])
+    print(cirq.unitary(cirq.CXSWAP))
+    assert np.allclose(cirq.unitary(cirq.CXSWAP), cxswap_expected)
+
+    czswap_expected = np.asarray([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, -1]])
+    assert np.allclose(cirq.unitary(cirq.CZSWAP), czswap_expected)

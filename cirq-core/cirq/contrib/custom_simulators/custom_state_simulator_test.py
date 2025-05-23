@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Sequence, Tuple
+from __future__ import annotations
+
+from typing import Sequence
 
 import numpy as np
 import sympy
@@ -22,13 +24,13 @@ from cirq.contrib.custom_simulators.custom_state_simulator import CustomStateSim
 
 
 class ComputationalBasisState(cirq.qis.QuantumStateRepresentation):
-    def __init__(self, initial_state: List[int]):
+    def __init__(self, initial_state: list[int]):
         self.basis = initial_state
 
-    def copy(self, deep_copy_buffers: bool = True) -> 'ComputationalBasisState':
-        return ComputationalBasisState(self.basis)
+    def copy(self, deep_copy_buffers: bool = True) -> ComputationalBasisState:
+        return ComputationalBasisState(self.basis)  # pragma: no cover
 
-    def measure(self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
+    def measure(self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None):
         return [self.basis[i] for i in axes]
 
 
@@ -134,28 +136,30 @@ def test_parameterized_repetitions():
 
 
 class ComputationalBasisProductState(cirq.qis.QuantumStateRepresentation):
-    def __init__(self, initial_state: List[int]):
+    def __init__(self, initial_state: list[int]):
         self.basis = initial_state
 
-    def copy(self, deep_copy_buffers: bool = True) -> 'ComputationalBasisProductState':
+    def copy(self, deep_copy_buffers: bool = True) -> ComputationalBasisProductState:
         return ComputationalBasisProductState(self.basis)
 
-    def measure(self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
+    def measure(self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None):
         return [self.basis[i] for i in axes]
 
-    def kron(self, other: 'ComputationalBasisProductState') -> 'ComputationalBasisProductState':
+    def kron(self, other: ComputationalBasisProductState) -> ComputationalBasisProductState:
         return ComputationalBasisProductState(self.basis + other.basis)
 
     def factor(
         self, axes: Sequence[int], *, validate=True, atol=1e-07
-    ) -> Tuple['ComputationalBasisProductState', 'ComputationalBasisProductState']:
-        extracted = ComputationalBasisProductState([self.basis[i] for i in axes])
+    ) -> tuple[ComputationalBasisProductState, ComputationalBasisProductState]:
+        extracted = ComputationalBasisProductState(
+            [self.basis[i] for i in axes]
+        )  # pragma: no cover
         remainder = ComputationalBasisProductState(
             [self.basis[i] for i in range(len(self.basis)) if i not in axes]
-        )
-        return extracted, remainder
+        )  # pragma: no cover
+        return extracted, remainder  # pragma: no cover
 
-    def reindex(self, axes: Sequence[int]) -> 'ComputationalBasisProductState':
+    def reindex(self, axes: Sequence[int]) -> ComputationalBasisProductState:
         return ComputationalBasisProductState([self.basis[i] for i in axes])
 
     @property

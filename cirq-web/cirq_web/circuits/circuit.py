@@ -11,14 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 from typing import Iterable
+
 import cirq
 from cirq_web import widget
 from cirq_web.circuits.symbols import (
-    Operation3DSymbol,
-    SymbolResolver,
-    resolve_operation,
     DEFAULT_SYMBOL_RESOLVERS,
+    Operation3DSymbol,
+    resolve_operation,
+    SymbolResolver,
 )
 
 
@@ -57,7 +61,9 @@ class Circuit3D(widget.Widget):
             <button id="camera-reset">Reset Camera</button>
             <button id="camera-toggle">Toggle Camera Type</button>
             <script>
-            let viz_{stripped_id} = createGridCircuit({self.serialized_circuit}, {moments}, "{self.id}", {self.padding_factor});
+            let viz_{stripped_id} = createGridCircuit(
+                {self.serialized_circuit}, {moments}, "{self.id}", {self.padding_factor}
+            );
 
             document.getElementById("camera-reset").addEventListener('click', ()  => {{
             viz_{stripped_id}.scene.setCameraAndControls(viz_{stripped_id}.circuit);

@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Any
+from __future__ import annotations
+
+from typing import Any, cast
 
 import numpy as np
 

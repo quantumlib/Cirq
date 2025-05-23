@@ -19,6 +19,8 @@
 # main focus and it is executed in a shared virtual environment for the notebooks. Thus, these
 # tests ensure that notebooks are still working with the latest version of cirq.
 
+from __future__ import annotations
+
 import importlib.metadata
 import os
 import tempfile
@@ -26,6 +28,7 @@ import tempfile
 import pytest
 
 from dev_tools import shell_tools
+from dev_tools.modules import list_modules
 from dev_tools.notebooks import filter_notebooks, list_all_notebooks, rewrite_notebook
 from dev_tools.test_utils import only_on_posix
 
@@ -36,24 +39,15 @@ SKIP_NOTEBOOKS = [
     '**/ionq/*.ipynb',
     '**/pasqal/*.ipynb',
     '**/rigetti/*.ipynb',
-    # skipp cirq-ft notebooks since they are included in individual tests
-    'cirq-ft/**',
-    # skipping fidelity estimation due to
-    # https://github.com/quantumlib/Cirq/issues/3502
-    'examples/*fidelity*',
     # skipping quantum utility simulation (too large)
     'examples/advanced/*quantum_utility*',
     # tutorials that use QCS and arent skipped due to one or more cleared output cells
     'docs/tutorials/google/identifying_hardware_changes.ipynb',
     'docs/tutorials/google/echoes.ipynb',
     'docs/noise/qcvv/xeb_calibration_example.ipynb',
-    'docs/noise/calibration_api.ipynb',
-    'docs/noise/floquet_calibration_example.ipynb',
     # temporary: need to fix QVM metrics and device spec
     'docs/tutorials/google/spin_echoes.ipynb',
     'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
-    # shouldn't have outputs generated for style reasons
-    'docs/simulate/qvm_builder_code.ipynb',
 ]
 
 
@@ -63,9 +57,18 @@ def require_packages_not_changed():
 
     Raise AssertionError if the pre-existing set of Python packages changes in any way.
     """
-    packages_before = set((d.name, d.version) for d in importlib.metadata.distributions())
+    cirq_packages = set(m.name for m in list_modules()).union(["cirq"])
+    packages_before = set(
+        (d.name, d.version)
+        for d in importlib.metadata.distributions()
+        if d.name not in cirq_packages
+    )
     yield
-    packages_after = set((d.name, d.version) for d in importlib.metadata.distributions())
+    packages_after = set(
+        (d.name, d.version)
+        for d in importlib.metadata.distributions()
+        if d.name not in cirq_packages
+    )
     assert packages_after == packages_before
 
 
@@ -124,7 +127,7 @@ papermill {rewritten_notebook_path} {out_path} {papermill_flags}"""
         print(result.stderr)
         pytest.fail(
             f"Notebook failure: {notebook_file}, please see {out_path} for the output "
-            f"notebook (in Github Actions, you can download it from the workflow artifact"
+            f"notebook (in GitHub Actions, you can download it from the workflow artifact"
             f" 'notebook-outputs')"
         )
     os.remove(rewritten_notebook_path)

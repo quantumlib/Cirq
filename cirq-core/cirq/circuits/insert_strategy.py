@@ -14,14 +14,26 @@
 
 """Hard-coded options for adding multiple operations to a circuit."""
 
+from __future__ import annotations
+
 
 class InsertStrategy:
     """Indicates preferences on how to add multiple operations to a circuit."""
 
-    NEW: 'InsertStrategy'
-    NEW_THEN_INLINE: 'InsertStrategy'
-    INLINE: 'InsertStrategy'
-    EARLIEST: 'InsertStrategy'
+    NEW: InsertStrategy
+    NEW_THEN_INLINE: InsertStrategy
+    INLINE: InsertStrategy
+    EARLIEST: InsertStrategy
+
+    def __new__(cls, name: str, doc: str) -> InsertStrategy:
+        inst = getattr(cls, name, None)
+        if not inst or not isinstance(inst, cls):
+            inst = super().__new__(cls)
+        return inst
+
+    def __getnewargs__(self):
+        """Returns a tuple of args to pass to __new__ when unpickling."""
+        return (self.name, self.__doc__)
 
     def __init__(self, name: str, doc: str):
         self.name = name

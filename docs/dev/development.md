@@ -1,114 +1,91 @@
 # Contribute
 
-This document is a summary of how to do various tasks one runs into as a developer of Cirq.
-Note that all commands assume a Debian environment, and all commands (except the initial repository cloning command) assume your current working directory is the cirq repo root.
+This document is a summary of how to do various tasks that one might need to do as a developer of Cirq.
+Note that all commands assume a Debian environment, and all commands (except the initial repository cloning command) assume your current working directory is your local Cirq repository root directory.
 
 
 ## Cloning the repository
 
-The simplest way to get a local copy of cirq that you can edit is by cloning Cirq's github repository:
+The simplest way to get a local copy of Cirq that you can edit is by cloning Cirq's GitHub repository:
 
 ```bash
-git clone git@github.com:quantumlib/cirq.git
+git clone https://github.com/quantumlib/Cirq.git
 cd Cirq
 ```
 
 ## Recommended git setup
 
-The following command will setup large refactoring revisions to be ignored, when using git blame.
+The following command will set up large refactoring revisions to be ignored, when using git blame.
 
-```
+```bash
 git config blame.ignoreRevsFile .git-blame-ignore-revs
 ```
 
-Note that if you are using PyCharm, you might have to Restart & Invalidate Caches to have the change being picked up. 
-
-## Docker
- You can build the stable and pre_release docker images with our `Dockerfile`.
-
-```bash
-    docker build -t cirq --target cirq_stable .
-    docker run -it cirq python -c "import cirq_google; print(cirq_google.Sycamore23)"
-```
-
-```bash
-    docker build -t cirq_pre --target cirq_pre_release .
-    docker run -it cirq_pre python -c "import cirq_google; print(cirq_google.Sycamore23)"
-```
-
-If you want to contribute changes to Cirq, you will instead want to fork the repository and submit pull requests from your fork.
-
-
+Note that if you are using PyCharm, you might have to use the command Restart & Invalidate Caches to have the change be picked up.
 
 ## Forking the repository
 
 1. Fork the Cirq repo (Fork button in upper right corner of
 [repo page](https://github.com/quantumlib/Cirq)).
-Forking creates a new github repo at the location
+Forking creates a new GitHub repo at the location
 https://github.com/USERNAME/cirq where `USERNAME` is
-your github id.
+your GitHub id.
 1. Clone the fork you created to your local machine at the directory
 where you would like to store your local copy of the code, and `cd` into the newly created directory.
-    
+
    ```bash
-    git clone git@github.com:USERNAME/cirq.git
+    git clone https://github.com/USERNAME/Cirq.git
     cd Cirq
    ```
    (Alternatively, you can clone the repository using the URL provided on your repo page under the green "Clone or Download" button)
 1. Add a remote called ```upstream``` to git.
-This remote will represent the main git repo for cirq (as opposed to the clone, which you just created, which will be the ```origin``` remote). 
+This remote will represent the main git repo for Cirq (as opposed to the clone, which you just created, which will be the ```origin``` remote).
 This remote can be used to merge changes from Cirq's main repository into your local development copy.
-   
+
     ```shell
-    git remote add upstream https://github.com/quantumlib/cirq.git
+    git remote add upstream https://github.com/quantumlib/Cirq.git
     ```
-   
+
     To verify the remote, run ```git remote -v```. You should see both the ```origin``` and ```upstream``` remotes.
 1. Sync up your local git with the ```upstream``` remote:
-   
+
     ```shell
     git fetch upstream
     ```
-   
+
     You can check the branches that are on the ```upstream``` remote by
-    running ```git remote -va``` or ```git branch -r```.
+    running `git ls-remote --heads upstream` or `git branch -r`.
 Most importantly you should see ```upstream/main``` listed.
 1. Merge the upstream main into your local main so that it is up to date.
-    
+
    ```shell
     git checkout main
     git merge upstream/main
    ```
-    
-At this point your local git main should be synced with the main from the main cirq repo.
+
+At this point your local git main should be synced with the main from the main Cirq repo.
 
 
 ## Setting up an environment
 
-These instructions are primarily for linux-based environments that use the apt
-package manager. 
+These instructions are primarily for Linux-based environments that use the `apt`
+package manager.
 
 0. First clone the repository, if you have not already done so.
-See the previous section for instructions.
-
+   See the previous section for instructions.
 
 1. Install system dependencies.
 
-    Make sure you have python 3.9 or greater.
+    Make sure you have Python 3.11 or greater.
     You can install most other dependencies via `apt-get`:
 
     ```bash
     cat apt-system-requirements.txt dev_tools/conf/apt-list-dev-tools.txt | xargs sudo apt-get install --yes
     ```
-    
-    This installs docker and docker-compose among other things. You may need to restart
-    docker or configure permissions, see 
-    [docker install instructions](https://docs.docker.com/engine/install/ubuntu/).
-    Note that docker is necessary only for cirq_rigetti.
 
-    There are some extra steps if protocol buffers are changed; see the next section.
+    There are some extra steps if Protocol Buffers are changed; see the next section.
 
-2. Prepare a virtual environment including the dev tools (such as mypy).
+2. Prepare a Python virtual environment that includes the Cirq dev tools (such as Mypy).
 
     One of the system dependencies we installed was `virtualenvwrapper`, which makes it easy to create virtual environments.
     If you did not have `virtualenvwrapper` previously, you may need to re-open your terminal or run `source ~/.bashrc` before these commands will work:
@@ -116,11 +93,14 @@ See the previous section for instructions.
     ```bash
     mkvirtualenv cirq-py3 --python=/usr/bin/python3
     workon cirq-py3
-    python -m pip install --upgrade pip    
+    python -m pip install --upgrade pip
     python -m pip install -r dev_tools/requirements/dev.env.txt
     ```
 
     (When you later open another terminal, you can activate the virtualenv with `workon cirq-py3`.)
+
+    **Note**: Some highly managed or customized devices have configurations that interfere with `virtualenv`.
+    In that case, [anaconda](https://www.anaconda.com/) environments may be a better choice.
 
 3. Check that the tests pass.
 
@@ -128,41 +108,41 @@ See the previous section for instructions.
     ./check/pytest .
     ```
 
-4. (**OPTIONAL**) include your development copy of cirq and its subpackages in your python path.
+4. (**OPTIONAL**) include your development copy of Cirq and its subpackages in your Python path.
 
     ```bash
     source dev_tools/pypath
     ```
-    
-    or add it to the python path, but only in the virtualenv by first listing the modules
-    
+
+    or add it to the Python path, but only in the virtualenv by first listing the modules
+
     ```bash
-    python dev_tools/modules.py list 
+    python dev_tools/modules.py list
     ```
     and then adding these to the virtualenv:
     ```bash
     add2virtualenv <paste modules from last command>
     ```
-    (Typically `add2virtualenv` is not executable using xargs, so this two step process is necessary.)
+    (Typically `add2virtualenv` is not executable using `xargs`, so this two step process is necessary.)
 
-## Editable installs 
+## Editable installs
 
-If you want to pip install cirq in an editable fashion, you'll have to install it per module, e.g.: 
+If you want to pip install Cirq in an editable fashion, you'll have to install it per module, e.g.:
 
-```
+```bash
 pip install -e ./cirq-core -e ./cirq-google -e ./cirq-ionq -e ./cirq-aqt
 ```
 
-Note that `pip install -e .` will install the `cirq` metapackage only, and your code changes won't 
-get picked up! 
+Note that `pip install -e .` will install the `cirq` metapackage only, and your code changes won't
+get picked up!
 
 ## Protocol buffers
 
-[Protocol buffers](https://developers.google.com/protocol-buffers) are used in Cirq for converting circuits, gates, and other objects into a standard form that can be written and read by other programs.
+[Protocol buffers](https://developers.google.com/protocol-buffers) ("protobufs") are used in Cirq for converting circuits, gates, and other objects into a standard form that can be written and read by other programs.
 Cirq's protobufs live at [cirq-google/api/v2](https://github.com/quantumlib/Cirq/tree/main/cirq-google/cirq_google/api/v2) and may need to be changed or extended from time to time.
 
 If any protos are updated, their dependents can be rebuilt by calling the script [dev_tools/build-protos.sh](https://github.com/quantumlib/Cirq/tree/main/dev_tools).
-This script uses grpcio-tools and protobuf version 3.8.0 to generate the python proto api.
+This script uses `grpcio-tools` and protobuf version 4.25 to generate the Python proto API.
 
 ## Continuous integration and local testing
 
@@ -254,27 +234,27 @@ A more convenient way to run checks is to via the scripts in the [check/](https:
         just files that were changed (trading accuracy for speed).
 
 In the above, `[BASE_REVISION]` controls what commit is being compared
-against for an incremental check (e.g. in order to determine which files changed.)
+against for an incremental check (e.g., in order to determine which files changed).
 If not specified, it defaults to the `upstream/main` branch if it exists, or
 else the `origin/main` branch if it exists, or else the `main` branch.
 The actual commit used for comparison is the `git merge-base` of the base
 revision and the working directory.
 
-The above scripts may not exactly match the results computed by the continuous integration builds run on Travis.
+The above scripts may not exactly match the results computed by the continuous integration workflows on GitHub.
 For example, you may be running an older version of `pylint` or `numpy`.
 If you need to test against the actual continuous integration check, open up a pull request.
 For this pull request you may want to mark it as `[Testing]` so that it is not reviewed.
 
 ### Writing docstrings and generating documentation
 
-Cirq uses [Google style doc strings](http://google.github.io/styleguide/pyguide.html#381-docstrings) with a markdown flavor and support for latex.
+Cirq uses [Google style doc strings](http://google.github.io/styleguide/pyguide.html#381-docstrings) with a Markdown flavor and support for LaTeX.
 Here is an example docstring:
 
-```
+```python
 def some_method(a: int, b: str) -> float:
     r"""One line summary of method.
 
-    Additional information about the method, perhaps with some sort of latex
+    Additional information about the method, perhaps with some sort of LaTeX
     equation to make it clearer:
 
         $$
@@ -284,12 +264,12 @@ def some_method(a: int, b: str) -> float:
             \end{bmatrix}
         $$
 
-    Notice that this docstring is an r-string, since the latex has backslashes.
+    Notice that this docstring is an r-string, since the LaTeX has backslashes.
     We can also include example code:
 
-        print(cirq_google.Sycamore) 
+        print(cirq_google.Sycamore)
 
-    You can also do inline latex like $y = x^2$ and inline code like
+    You can also do inline LaTeX like $y = x^2$ and inline code like
     `cirq.unitary(cirq.X)`.
 
     And of course there's the standard sections.
@@ -306,37 +286,37 @@ def some_method(a: int, b: str) -> float:
     """
 ```
 
-## Dependencies 
+## Dependencies
 
-### Production dependencies 
+### Production dependencies
 
-Cirq follows a modular design. Each module should specify their dependencies within their folder. See for example cirq-core/requirements.txt and cirq-google/requirements.txt.
-In general we should try to keep dependencies as minimal as possible and if we have to add them, keep them as relaxed as possible instead of pinning to exact versions. If exact versions or constraints are known, those should be documented in form of a comment. 
+Cirq follows a modular design. Each module should specify their dependencies in files within their folder. See, for example, the files `cirq-core/requirements.txt` and `cirq-google/requirements.txt`.
+In general, we should try to keep dependencies as minimal as possible and if we have to add them, keep them as relaxed as possible instead of pinning to exact versions. If exact versions or constraints are known, those should be documented in form of a comment.
 
-### Development dependencies 
+### Development dependencies
 
-For local development: 
+For local development:
 
-For a development environment there is a single file that installs all the module dependencies and all of the dev tools as well: dev_tools/requirements/dev.env.txt.
-If this is too heavy weight for you, you can instead use dev_tools/requirements/deps/dev-tools.txt and the given module dependencies. 
+For a development environment there is a single file that installs all the module dependencies and all of the dev tools as well: `dev_tools/requirements/dev.env.txt`.
+If this is too heavy weight for you, you can instead use `dev_tools/requirements/deps/dev-tools.txt` and the given module dependencies.
 
-For continuous integration: 
+For continuous integration:
 
-Each job might need different set of requirements and it would be inefficient to install a full blown dev env for every tiny job (e.g. mypy check). 
-Instead in dev_tools/requirements create a separate <job>.env.txt and include the necessary tools in there. Requirements files can include each other, which is heavily leveraged in our requirements files in order to remove duplication.   
+Each job might need different set of requirements and it would be inefficient to install a full-blown dev env for every tiny job (e.g. `mypy` check).
+Instead, in the directory `dev_tools/requirements`, create a separate `<job>.env.txt` and include the necessary tools in there. Requirements files can include each other, which is heavily leveraged in our requirements files in order to remove duplication.
 
-You can call the following utility to unroll the content of a file: 
+You can call the following utility to unroll the content of a file:
 
+```bash
+python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt
 ```
-python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt 
-```
 
-## Producing a pypi package
+## Producing a PyPI package
 
-1. Do a dry run with test pypi.
+1. Do a dry run with test PyPI.
 
-    If you're making a release, you should have access to a test pypi account
-    capable of uploading packages to cirq. Put its credentials into the environment
+    If you're making a release, you should have access to a test PyPI account
+    capable of uploading packages to Cirq. Put its credentials into the environment
     variables `TEST_TWINE_USERNAME` and `TEST_TWINE_PASSWORD` then run
 
     ```bash
@@ -346,7 +326,7 @@ python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt
     You must specify the EXPECTED_VERSION argument to match the version in [cirq/_version.py](https://github.com/quantumlib/Cirq/blob/main/cirq-core/cirq/_version.py), and it must contain the string `dev`.
     This is to prevent accidentally uploading the wrong version.
 
-    The script will append the current date and time to the expected version number before uploading to test pypi.
+    The script will append the current date and time to the expected version number before uploading to test PyPI.
     It will print out the full version that it uploaded.
     Take not of this value.
 
@@ -356,12 +336,12 @@ python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt
     ./dev_tools/packaging/verify-published-package.sh FULL_VERSION_REPORTED_BY_PUBLISH_SCRIPT --test
    ```
 
-    The script will create fresh virtual environments, install cirq and its dependencies, check that code importing cirq executes, and run the tests over the installed code. If everything goes smoothly, the script will finish by printing `VERIFIED`.
+    The script will create fresh virtual environments, install Cirq and its dependencies, check that code importing Cirq executes, and run the tests over the installed code. If everything goes smoothly, the script will finish by printing `VERIFIED`.
 
-2. Do a dry run with prod pypi
+2. Do a dry run with prod PyPI
 
-    This step is essentially identical to the test dry run, but with production pypi.
-    You should have access to a production pypi account capable of uploading packages to cirq.
+    This step is essentially identical to the test dry run, but with production PyPI.
+    You should have access to a production PyPI account capable of uploading packages to Cirq.
     Put its credentials into the environment variables `PROD_TWINE_USERNAME` and `PROD_TWINE_PASSWORD` then run
 
     ```bash
@@ -382,7 +362,7 @@ python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt
     For example, `0.0.4.dev500` is a development version of the release version `0.0.4`.
     For a release, create a pull request turning `#.#.#.dev*` into `#.#.#` and a follow up pull request turning `#.#.#` into `(#+1).#.#.dev`.
 
-4. Run [dev_tools/packaging/produce-package.sh](https://github.com/quantumlib/Cirq/blob/main/dev_tools/packaging/produce-package.sh) to produce pypi artifacts.
+4. Run [dev_tools/packaging/produce-package.sh](https://github.com/quantumlib/Cirq/blob/main/dev_tools/packaging/produce-package.sh) to produce PyPI artifacts.
 
     ```bash
     ./dev_tools/packaging/produce-package.sh dist
@@ -390,13 +370,13 @@ python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt
 
     The output files will be placed in the directory `dist/`.
 
-5. Create a github release.
+5. Create a GitHub release.
 
     Describe major changes (especially breaking changes) in the summary.
     Make sure you point the tag being created at the one and only revision with the non-dev version number.
     Attach the package files you produced to the release.
 
-6. Upload to pypi.
+6. Upload to PyPI.
 
     You can use a tool such as `twine` for this.
     For example:

@@ -11,10 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import pytest
+import sympy
+
 import cirq
 import cirq_google.engine.runtime_estimator as runtime_estimator
-import sympy
 
 
 def _assert_about_equal(actual: float, expected: float):

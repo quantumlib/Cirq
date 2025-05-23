@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cirq
 import cirq_google as cg
 from cirq_google.workflow.progress import _PrintLogger

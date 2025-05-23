@@ -12,25 +12,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, cast, Optional, Type
+from __future__ import annotations
+
+from typing import Any, cast, TYPE_CHECKING
 
 import numpy as np
 
+from cirq import protocols
 from cirq.circuits.circuit import Circuit
 from cirq.devices import LineQubit
 from cirq.ops import common_gates
-from cirq.ops.dense_pauli_string import DensePauliString
-from cirq import protocols
 from cirq.qis import clifford_tableau
-from cirq.sim import state_vector_simulation_state, final_state_vector
+from cirq.sim import final_state_vector, state_vector_simulation_state
 from cirq.sim.clifford import (
     clifford_tableau_simulation_state,
-    stabilizer_state_ch_form,
     stabilizer_ch_form_simulation_state,
+    stabilizer_state_ch_form,
 )
 
+if TYPE_CHECKING:
+    import cirq
 
-def state_vector_has_stabilizer(state_vector: np.ndarray, stabilizer: DensePauliString) -> bool:
+
+def state_vector_has_stabilizer(
+    state_vector: np.ndarray, stabilizer: cirq.DensePauliString
+) -> bool:
     """Checks that the state_vector is stabilized by the given stabilizer.
 
     The stabilizer should not modify the value of the state_vector, up to the
@@ -46,9 +52,9 @@ def state_vector_has_stabilizer(state_vector: np.ndarray, stabilizer: DensePauli
     """
 
     qubits = LineQubit.range(protocols.num_qubits(stabilizer))
-    complex_dtype: Type[np.complexfloating] = np.complex64
+    complex_dtype: type[np.complexfloating] = np.complex64
     if np.issubdtype(state_vector.dtype, np.complexfloating):
-        complex_dtype = cast(Type[np.complexfloating], state_vector.dtype)
+        complex_dtype = cast(type[np.complexfloating], state_vector.dtype)
     args = state_vector_simulation_state.StateVectorSimulationState(
         available_buffer=np.empty_like(state_vector),
         qubits=qubits,
@@ -145,9 +151,7 @@ def assert_all_implemented_act_on_effects_match_unitary(
         )
 
 
-def _final_clifford_tableau(
-    circuit: Circuit, qubit_map
-) -> Optional[clifford_tableau.CliffordTableau]:
+def _final_clifford_tableau(circuit: Circuit, qubit_map) -> clifford_tableau.CliffordTableau | None:
     """Evolves a default CliffordTableau through the input circuit.
 
     Initializes a CliffordTableau with default args for the given qubits and
@@ -175,7 +179,7 @@ def _final_clifford_tableau(
 
 def _final_stabilizer_state_ch_form(
     circuit: Circuit, qubit_map
-) -> Optional[stabilizer_state_ch_form.StabilizerStateChForm]:
+) -> stabilizer_state_ch_form.StabilizerStateChForm | None:
     """Evolves a default StabilizerStateChForm through the input circuit.
 
     Initializes a StabilizerStateChForm with default args for the given qubits

@@ -2,6 +2,9 @@ syntax = "proto3";
 
 package cirq.google.api.v2;
 
+import "cirq_google/api/v2/program.proto";
+import "tunits/proto/tunits.proto";
+
 option java_package = "com.google.cirq.google.api.v2";
 option java_outer_classname = "RunContextProto";
 option java_multiple_files = true;
@@ -10,6 +13,13 @@ option java_multiple_files = true;
 message RunContext {
   // The parameters for operations in a program.
   repeated ParameterSweep parameter_sweeps = 1;
+
+  // Optional override of select device parameters before program
+  // execution. Note it is permissible to specify the same device parameter
+  // here and in a parameter_sweeps, as sweep.single_sweep.parameter.
+  // If the same parameter is supplied in both places, the provision here in
+  // device_parameters_override will have no effect.
+  DeviceParametersDiff device_parameters_override = 2;
 }
 
 // Specifies how to repeatedly sample a circuit, with or without sweeping over
@@ -30,7 +40,6 @@ message ParameterSweep {
 
 // A sweep over all of the parameters in a program.
 message Sweep {
-
   // The sweep is either a function of sweeps or an actual assignment of
   // a symbol to a list of values.
   oneof sweep {
@@ -76,6 +85,22 @@ message SweepFunction {
     // "a": 1.0, "b": 3.0
     // Note: if one sweep is shorter, the others will be truncated.
     ZIP = 2;
+
+    // A zip product of parameter sweeps with length as the longest one.
+    //
+    // Suppose we zip_longest([sweep.points(a, [1, 2]), sweep.points(b, [3])]),
+    // the iterator will produce: {a: 1, b: 3} and {a: 2, b: 3}.
+    // The shorter sweeps will be filled by repeating their last value.
+    ZIP_LONGEST = 3;
+
+    // Concatenates multiple sweeps to a new sweep.
+    // All sweeps must share the same descriptors.
+    //
+    // Example of concat:
+    // If one sweep assigns 'a' to the values 0, 1, 2, and another sweep assigns
+    // 'a' to the values 3, 4, 5, the concatenation produces a sweep assigning
+    // 'a' to the values 0, 1, 2, 3, 4, 5 in sequence.
+    CONCAT = 4;
   }
 
   FunctionType function_type = 1;
@@ -85,21 +110,94 @@ message SweepFunction {
 }
 
 message DeviceParameter {
+  // Path to the parameter key
+  repeated string path = 1;
 
-    // Path to the parameter key
-    repeated string path = 1;
+  // If the value is an array, the index of the array to change.
+  optional int64 idx = 2;
 
-    // If the value is an array, the index of the array to change.
-    optional int64 idx = 2;
+  // String representation of the units, if any.
+  // Examples: "GHz", "ns", etc.
+  optional string units = 3;
 
-    // String representation of the units, if any.
-    // Examples: "GHz", "ns", etc.
-    optional string units = 3;
-
-    // Note that the device parameter values will be populated
-    // by the sweep values themselves.
+  // Note that the device parameter values will be populated
+  // by the sweep values themselves.
 }
 
+message Metadata {
+  // Optional arguments for if this is a device parameter.
+  // Note one single_sweep may be associated with multiple device parameters.
+  repeated DeviceParameter device_parameters = 1;
+
+  // If specified, use this label instead of parameter_key as the independent
+  // column name in returned dataset.
+  optional string label = 2;
+
+  // If true, store this sweep as parameters instead of the independent axes.
+  optional bool is_const = 3;
+
+  // A temporary solution that we store the unit information here.
+  optional string unit = 4;
+}
+
+// A bundle of multiple DeviceParameters and their values.
+// The main use case is to set those parameters with the
+// values from this bundle before executing a circuit sweep.
+// Note multiple device parameters may have common ancestor paths
+// and/or share the same parameter names. A DeviceParametersDiff
+// stores the resource groups hierarchy extracted from the DeviceParameters'
+// paths and maintains a table of strings; thereby storing ancestor resource
+// groups only once, and avoiding repeated storage of common parameter names.
+message DeviceParametersDiff {
+  // A resource group a device parameter belongs to.
+  // The identifier of a resource group is DeviceParameter.path without the
+  // last component.
+  message ResourceGroup {
+    // parent resource group, as an index into the groups repeated field.
+    int32 parent = 1;
+    // as index into the strs repeated field.
+    int32 name = 2;
+  }
+
+  // Param value whose type is not among proto field types supported by
+  // ArgValue. In other words, it is the responsibility of the client codes
+  // to enforce the validity and type consistency of this param value.
+  message GenericValue {
+    // Type description of the value representation. Eg. if the following value
+    // bytes field is a JSON string, type_descriptor can be its JSON namespace;
+    // or if the following value field is a protobuf serialization,
+    // type_descriptor can be its protobuf definition URL.
+    string type_descriptor = 1;
+
+    // The value in client's encoding.
+    bytes value = 2;
+  }
+
+  message Param {
+    // the resource group hosting this parameter key, as index into groups
+    // repeated field.
+    int32 resource_group = 1;
+    // name of this param, as index into the strs repeated field.
+    int32 name = 2;
+
+    oneof param_val {
+      // this param's new value, as message ArgValue to allow types of bool,
+      // string, double, float and arrays.
+      ArgValue value = 3;
+
+      // this param's new value, and its type is not among the variants
+      // supported by ArgValue.
+      GenericValue generic_value = 4;
+    }
+  }
+  repeated ResourceGroup groups = 1;
+  repeated Param params = 2;
+
+  // List of all key, dir, and deletion names in these contents.
+  // ResourceGroup.name, Param.name, and Deletion.name are indexes into this
+  // list.
+  repeated string strs = 4;
+}
 
 // A set of values to loop over for a particular parameter.
 message SingleSweep {
@@ -113,17 +211,24 @@ message SingleSweep {
     Points points = 2;
     // Uniformly-spaced sampling over a range.
     Linspace linspace = 3;
+    // A constant value.
+    ConstValue const_value = 5;
   }
 
   // Optional arguments for if this is a device parameter.
   // (as opposed to a circuit symbol)
   DeviceParameter parameter = 4;
+
+  // Optional arguments for storing extra metadata information.
+  Metadata metadata = 6;
 }
 
 // A list of explicit values.
 message Points {
   // The values.
   repeated float points = 1;
+
+  tunits.Value unit = 2;
 }
 
 // A range of evenly-spaced values.
@@ -140,4 +245,20 @@ message Linspace {
   // greater than zero. If it is 1, the first_point and last_point must be
   // the same.
   int64 num_points = 3;
+
+  tunits.Value unit = 4;
+}
+
+// A constant value.
+message ConstValue {
+  // The values.
+  oneof value {
+    // This value should always be true if set, which represents the python None
+    // object.
+    bool is_none = 1;
+    float float_value = 2;
+    int64 int_value = 3;
+    string string_value = 4;
+    tunits.Value with_unit_value = 5;
+  }
 }

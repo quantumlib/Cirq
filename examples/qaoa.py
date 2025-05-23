@@ -49,10 +49,12 @@ The largest possible cut has size 7.
 The approximation ratio achieved is 1.0.
 """
 
+from __future__ import annotations
+
 import itertools
 
-import numpy as np
 import networkx
+import numpy as np
 import scipy.optimize
 
 import cirq

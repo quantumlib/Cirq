@@ -13,8 +13,9 @@
 # limitations under the License.
 """Devices for IonQ hardware."""
 
+from __future__ import annotations
+
 from typing import Sequence
-from typing import Union
 
 import cirq
 from cirq_ionq import ionq_gateset
@@ -37,7 +38,7 @@ class IonQAPIDevice(cirq.Device):
         * `cirq.MeasurementGate`
     """
 
-    def __init__(self, qubits: Union[Sequence[cirq.LineQubit], int], atol=1e-8):
+    def __init__(self, qubits: Sequence[cirq.LineQubit] | int, atol=1e-8):
         """Construct the device.
 
         Args:
@@ -72,34 +73,3 @@ class IonQAPIDevice(cirq.Device):
 
     def is_api_gate(self, operation: cirq.Operation) -> bool:
         return operation in self.gateset
-
-
-@cirq._compat.deprecated(
-    deadline='v0.16',
-    fix='Use cirq.optimize_for_target_gateset(circuit, '
-    'gateset=cirq_ionq.IonQTargetGateset(atol)) '
-    'instead.',
-)
-def decompose_to_device(operation: cirq.Operation, atol: float = 1e-8) -> cirq.OP_TREE:
-    """Decompose operation to ionq native operations.
-
-
-    Merges single qubit operations and decomposes two qubit operations
-    into CZ gates.
-
-    Args:
-        operation: `cirq.Operation` to decompose.
-        atol: absolute error tolerance to use when declaring two unitary
-            operations equal.
-
-    Returns:
-        cirq.OP_TREE containing decomposed operations.
-
-    Raises:
-        ValueError: If supplied operation cannot be decomposed
-            for the ionq device.
-
-    """
-    return cirq.optimize_for_target_gateset(
-        cirq.Circuit(operation), gateset=ionq_gateset.IonQTargetGateset(), ignore_failures=False
-    ).all_operations()

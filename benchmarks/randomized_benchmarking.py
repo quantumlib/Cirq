@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Sequence
 import functools
+from typing import Sequence
+
 import numpy as np
+
 import cirq
-from cirq.experiments.qubit_characterizations import _single_qubit_cliffords, _find_inv_matrix
+from cirq.experiments.qubit_characterizations import _find_inv_matrix, _single_qubit_cliffords
 
 
 def dot(args: Sequence[np.ndarray]) -> np.ndarray:
@@ -44,12 +46,12 @@ class SingleQubitRandomizedBenchmarking:
                 for group in _single_qubit_cliffords().c1_in_xz
             ]
         )
-        self.sq_xz_cliffords: List[cirq.Gate] = [
+        self.sq_xz_cliffords: list[cirq.Gate] = [
             cirq.PhasedXZGate.from_matrix(mat) for mat in self.sq_xz_matrices
         ]
 
-    def _get_op_grid(self, qubits: List[cirq.Qid], depth: int) -> List[List[cirq.Operation]]:
-        op_grid: List[List[cirq.Operation]] = []
+    def _get_op_grid(self, qubits: list[cirq.Qid], depth: int) -> list[list[cirq.Operation]]:
+        op_grid: list[list[cirq.Operation]] = []
         for q in qubits:
             gate_ids = np.random.choice(len(self.sq_xz_cliffords), depth)
             idx = _find_inv_matrix(dot(self.sq_xz_matrices[gate_ids][::-1]), self.sq_xz_matrices)

@@ -8,8 +8,8 @@ Here we recommend the input arguments, return value, and behavior of the
 1. **Convenience to interactive users.** This is the highest priority.
     Compared to being called in a batch script as a library (for composing
     more complicated plots or other purposes), the `plot` method is mainly
-    used in interactive sessions like ipython, jupyter, colab, PyCharm,
-    and python interpreter.
+    used in interactive sessions like iPython, Jupyter, Colab, PyCharm,
+    and the Python interpreter.
 1. **Plot is customizable.** The plot should be customizable by the user after
     `plot` returns. This is important because user may need to change the look
     for presentation, paper, or just the style they prefer. One plot style does
@@ -35,7 +35,7 @@ class Foo:
     ...
     def plot(self, ax: Optional[plt.Axes]=None, **plot_kwargs: Any) -> plt.Axes:
         show_plot = not ax
-        if not ax:
+        if ax is None:
             fig, ax = plt.subplots(1, 1)  # or your favorite figure setup
         # Call methods of the ax instance like ax.plot to plot on it.
         ...
@@ -45,7 +45,7 @@ class Foo:
 ```
 
 This `plot` method works in 2 modes: *memory mode* and *interactive mode*,
-signalled by the presence of the `ax` argument. When present, the method is
+signaled by the presence of the `ax` argument. When present, the method is
 instructed to plot on the provided `ax` instance in memory. No plot is shown
 on the screen. When absent, the code is in *interactive* mode, and it creates
 a figure and shows it.
@@ -81,7 +81,7 @@ class Foo:
     def plot(self, axes: Optional[List[plt.Axes]]=None,
              **plot_kwargs: Any) -> List[plt.Axes]:
         show_plot = not axes
-        if not axes:
+        if axes is None:
             fig, axes = plt.subplots(1, 2)  # or your favorite figure setup
         elif len(axes) != 2:  # your required number of axes
             raise ValueError('your error message')

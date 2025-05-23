@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import abc
 import functools
 import weakref
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING, Union
+from typing import Any, Iterable, Sequence, TYPE_CHECKING
+
 from typing_extensions import Self
 
 from cirq import ops, protocols
@@ -30,11 +33,9 @@ class _BaseLineQid(ops.Qid):
 
     _x: int
     _dimension: int
-    _hash: Optional[int] = None
+    _hash: int
 
     def __hash__(self) -> int:
-        if self._hash is None:
-            self._hash = hash((self._x, self._dimension))
         return self._hash
 
     def __eq__(self, other) -> bool:
@@ -94,10 +95,10 @@ class _BaseLineQid(ops.Qid):
     def dimension(self) -> int:
         return self._dimension
 
-    def with_dimension(self, dimension: int) -> 'LineQid':
+    def with_dimension(self, dimension: int) -> LineQid:
         return LineQid(self._x, dimension)
 
-    def is_adjacent(self, other: 'cirq.Qid') -> bool:
+    def is_adjacent(self, other: cirq.Qid) -> bool:
         """Determines if two qubits are adjacent line qubits.
 
         Args:
@@ -107,7 +108,7 @@ class _BaseLineQid(ops.Qid):
         """
         return isinstance(other, _BaseLineQid) and abs(self._x - other._x) == 1
 
-    def neighbors(self, qids: Optional[Iterable[ops.Qid]] = None) -> Set['_BaseLineQid']:
+    def neighbors(self, qids: Iterable[ops.Qid] | None = None) -> set[_BaseLineQid]:
         """Returns qubits that are potential neighbors to this LineQubit
 
         Args:
@@ -119,7 +120,7 @@ class _BaseLineQid(ops.Qid):
     def _with_x(self, x: int) -> Self:
         """Returns a qubit with the same type but a different value of `x`."""
 
-    def __add__(self, other: Union[int, Self]) -> Self:
+    def __add__(self, other: int | Self) -> Self:
         if isinstance(other, _BaseLineQid):
             if self._dimension != other._dimension:
                 raise TypeError(
@@ -131,7 +132,7 @@ class _BaseLineQid(ops.Qid):
             raise TypeError(f"Can only add ints and {type(self).__name__}. Instead was {other}")
         return self._with_x(self._x + other)
 
-    def __sub__(self, other: Union[int, Self]) -> Self:
+    def __sub__(self, other: int | Self) -> Self:
         if isinstance(other, _BaseLineQid):
             if self._dimension != other._dimension:
                 raise TypeError(
@@ -183,9 +184,9 @@ class LineQid(_BaseLineQid):
 
     # Cache of existing LineQid instances, returned by __new__ if available.
     # Holds weak references so instances can still be garbage collected.
-    _cache = weakref.WeakValueDictionary[Tuple[int, int], 'cirq.LineQid']()
+    _cache = weakref.WeakValueDictionary[tuple[int, int], 'cirq.LineQid']()
 
-    def __new__(cls, x: int, dimension: int) -> 'cirq.LineQid':
+    def __new__(cls, x: int, dimension: int) -> cirq.LineQid:
         """Initializes a line qid at the given x coordinate.
 
         Args:
@@ -193,6 +194,7 @@ class LineQid(_BaseLineQid):
             dimension: The dimension of the qid's Hilbert space, i.e.
                 the number of quantum levels.
         """
+        dimension = int(dimension)
         key = (x, dimension)
         inst = cls._cache.get(key)
         if inst is None:
@@ -200,6 +202,7 @@ class LineQid(_BaseLineQid):
             inst = super().__new__(cls)
             inst._x = x
             inst._dimension = dimension
+            inst._hash = (dimension - 2) * 1_000_003 + hash(x)
             cls._cache[key] = inst
         return inst
 
@@ -207,11 +210,15 @@ class LineQid(_BaseLineQid):
         """Returns a tuple of args to pass to __new__ when unpickling."""
         return (self._x, self._dimension)
 
-    def _with_x(self, x: int) -> 'LineQid':
+    # avoid pickling the _hash value, attributes are already stored with __getnewargs__
+    def __getstate__(self) -> dict[str, Any]:
+        return {}
+
+    def _with_x(self, x: int) -> LineQid:
         return LineQid(x, dimension=self._dimension)
 
     @staticmethod
-    def range(*range_args, dimension: int) -> List['LineQid']:
+    def range(*range_args, dimension: int) -> list[LineQid]:
         """Returns a range of line qids.
 
         Args:
@@ -225,7 +232,7 @@ class LineQid(_BaseLineQid):
         return [LineQid(i, dimension=dimension) for i in range(*range_args)]
 
     @staticmethod
-    def for_qid_shape(qid_shape: Sequence[int], start: int = 0, step: int = 1) -> List['LineQid']:
+    def for_qid_shape(qid_shape: Sequence[int], start: int = 0, step: int = 1) -> list[LineQid]:
         """Returns a range of line qids for each entry in `qid_shape` with
         matching dimension.
 
@@ -239,7 +246,7 @@ class LineQid(_BaseLineQid):
         ]
 
     @staticmethod
-    def for_gate(val: Any, start: int = 0, step: int = 1) -> List['LineQid']:
+    def for_gate(val: Any, start: int = 0, step: int = 1) -> list[LineQid]:
         """Returns a range of line qids with the same qid shape as the gate.
 
         Args:
@@ -259,12 +266,10 @@ class LineQid(_BaseLineQid):
     def __str__(self) -> str:
         return f"q({self._x}) (d={self._dimension})"
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(wire_symbols=(f"{self._x} (d={self._dimension})",))
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['x', 'dimension'])
 
 
@@ -291,7 +296,7 @@ class LineQubit(_BaseLineQid):
     # Holds weak references so instances can still be garbage collected.
     _cache = weakref.WeakValueDictionary[int, 'cirq.LineQubit']()
 
-    def __new__(cls, x: int) -> 'cirq.LineQubit':
+    def __new__(cls, x: int) -> cirq.LineQubit:
         """Initializes a line qid at the given x coordinate.
 
         Args:
@@ -301,6 +306,7 @@ class LineQubit(_BaseLineQid):
         if inst is None:
             inst = super().__new__(cls)
             inst._x = x
+            inst._hash = hash(x)
             cls._cache[x] = inst
         return inst
 
@@ -308,11 +314,15 @@ class LineQubit(_BaseLineQid):
         """Returns a tuple of args to pass to __new__ when unpickling."""
         return (self._x,)
 
-    def _with_x(self, x: int) -> 'LineQubit':
+    # avoid pickling the _hash value, attributes are already stored with __getnewargs__
+    def __getstate__(self) -> dict[str, Any]:
+        return {}
+
+    def _with_x(self, x: int) -> LineQubit:
         return LineQubit(x)
 
     @staticmethod
-    def range(*range_args) -> List['LineQubit']:
+    def range(*range_args) -> list[LineQubit]:
         """Returns a range of line qubits.
 
         Args:
@@ -329,10 +339,8 @@ class LineQubit(_BaseLineQid):
     def __str__(self) -> str:
         return f"q({self._x})"
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(wire_symbols=(f"{self._x}",))
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['x'])

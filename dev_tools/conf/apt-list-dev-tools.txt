@@ -1,4 +1,2 @@
+shellcheck
 virtualenvwrapper
-pandoc
-docker-ce
-docker-compose

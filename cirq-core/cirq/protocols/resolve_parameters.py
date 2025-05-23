@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numbers
 from typing import AbstractSet, Any, cast, TYPE_CHECKING, TypeVar
-from typing_extensions import Self
 
 import sympy
-from typing_extensions import Protocol
+from typing_extensions import Protocol, Self
 
 from cirq import study
 from cirq._doc import doc_private
@@ -49,7 +50,7 @@ class SupportsParameterization(Protocol):
         """
 
     @doc_private
-    def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> Self:
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Self:
         """Resolve the parameters in the effect."""
 
 
@@ -68,7 +69,7 @@ def is_parameterized(val: Any) -> bool:
 
     A value is parameterized when it has an `_is_parameterized_` method and
     that method returns a truthy value, or if the value is an instance of
-    sympy.Basic.
+    sympy.Basic. Note this covers sympy constants such as `sympy.pi`.
 
     Returns:
         True if the gate has any unresolved Symbols
@@ -134,7 +135,7 @@ def parameter_symbols(val: Any) -> AbstractSet[sympy.Symbol]:
 
 
 def resolve_parameters(
-    val: T, param_resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool = True
+    val: T, param_resolver: cirq.ParamResolverOrSimilarType, recursive: bool = True
 ) -> T:
     """Resolves symbol parameters in the effect using the param resolver.
 
@@ -178,8 +179,10 @@ def resolve_parameters(
     if isinstance(val, (list, tuple)):
         return cast(T, type(val)(resolve_parameters(e, param_resolver, recursive) for e in val))
 
-    is_parameterized = getattr(val, '_is_parameterized_', None)
-    if is_parameterized is not None and not is_parameterized():
+    is_parameterized = (
+        val._is_parameterized_() if hasattr(val, '_is_parameterized_') else NotImplemented
+    )
+    if is_parameterized is not NotImplemented and not is_parameterized:
         return val
 
     getter = getattr(val, '_resolve_parameters_', None)
@@ -194,6 +197,6 @@ def resolve_parameters(
         return val
 
 
-def resolve_parameters_once(val: Any, param_resolver: 'cirq.ParamResolverOrSimilarType'):
+def resolve_parameters_once(val: Any, param_resolver: cirq.ParamResolverOrSimilarType):
     """Performs a single parameter resolution step using the param resolver."""
     return resolve_parameters(val, param_resolver, False)

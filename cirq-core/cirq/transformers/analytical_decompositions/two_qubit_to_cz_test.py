@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cmath
 import random
 
@@ -20,12 +22,12 @@ import pytest
 
 import cirq
 from cirq import value
+from cirq.testing import random_two_qubit_circuit_with_czs
 from cirq.transformers.analytical_decompositions.two_qubit_to_cz import (
-    _parity_interaction,
     _is_trivial_angle,
+    _parity_interaction,
     two_qubit_matrix_to_diagonal_and_cz_operations,
 )
-from cirq.testing import random_two_qubit_circuit_with_czs
 
 
 @pytest.mark.parametrize(
@@ -52,7 +54,7 @@ from cirq.testing import random_two_qubit_circuit_with_czs
         ]
     )(1e-8 * 2 / 3, 1e-8 * 4 / 3),
 )
-def test_is_trivial_angle(rad, expected):
+def test_is_trivial_angle(rad, expected) -> None:
     tolerance = 1e-8
     out = _is_trivial_angle(rad, tolerance)
     assert out == expected, f'rad = {rad}'
@@ -149,7 +151,7 @@ def assert_ops_implement_unitary(q0, q1, operations, intended_effect, atol=0.01)
 )
 def test_two_to_ops_equivalent_and_bounded_for_known_and_random(
     max_partial_cz_depth, max_full_cz_depth, effect
-):
+) -> None:
     q0 = cirq.NamedQubit('q0')
     q1 = cirq.NamedQubit('q1')
 
@@ -163,7 +165,7 @@ def test_two_to_ops_equivalent_and_bounded_for_known_and_random(
     assert_cz_depth_below(operations_with_full, max_full_cz_depth, True)
 
 
-def test_trivial_parity_interaction_corner_case():
+def test_trivial_parity_interaction_corner_case() -> None:
     q0 = cirq.NamedQubit('q0')
     q1 = cirq.NamedQubit('q1')
     nearPi4 = np.pi / 4 * 0.99
@@ -172,7 +174,7 @@ def test_trivial_parity_interaction_corner_case():
     assert len(circuit) == 2
 
 
-def test_kak_decomposition_depth_full_cz():
+def test_kak_decomposition_depth_full_cz() -> None:
     a, b = cirq.LineQubit.range(2)
 
     # Random.
@@ -210,7 +212,7 @@ def test_kak_decomposition_depth_full_cz():
     assert len(c) <= 4
 
 
-def test_kak_decomposition_depth_partial_cz():
+def test_kak_decomposition_depth_partial_cz() -> None:
     a, b = cirq.LineQubit.range(2)
 
     # Random.
@@ -250,10 +252,27 @@ def test_kak_decomposition_depth_partial_cz():
         np.diag(np.exp(1j * np.pi * np.random.random(4))),
     ],
 )
-def test_decompose_to_diagonal_and_circuit(v):
+def test_decompose_to_diagonal_and_circuit(v) -> None:
     b, c = cirq.LineQubit.range(2)
     diagonal, ops = two_qubit_matrix_to_diagonal_and_cz_operations(b, c, v, atol=1e-8)
     assert cirq.is_diagonal(diagonal)
     combined_circuit = cirq.Circuit(cirq.MatrixGate(diagonal)(b, c), ops)
     circuit_unitary = combined_circuit.unitary(qubits_that_should_be_present=[b, c])
     cirq.testing.assert_allclose_up_to_global_phase(circuit_unitary, v, atol=2e-6)
+
+
+def test_remove_partial_czs_or_fail() -> None:
+    CZ = cirq.CZ(*cirq.LineQubit.range(2))
+    assert (
+        cirq.transformers.analytical_decompositions.two_qubit_to_cz._remove_partial_czs_or_fail(
+            [CZ**1e-15], atol=1e-9
+        )
+        == []
+    )
+    assert cirq.transformers.analytical_decompositions.two_qubit_to_cz._remove_partial_czs_or_fail(
+        [CZ**-1, CZ], atol=1e-9
+    ) == [CZ, CZ]
+    with pytest.raises(ValueError):
+        _ = cirq.transformers.analytical_decompositions.two_qubit_to_cz._remove_partial_czs_or_fail(
+            [CZ**-0.5], atol=1e-9
+        )

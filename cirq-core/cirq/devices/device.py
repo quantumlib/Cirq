@@ -12,9 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import abc
-from typing import TYPE_CHECKING, Optional, FrozenSet, Iterable
+from typing import Iterable, TYPE_CHECKING
+
 import networkx as nx
+
 from cirq import value
 
 if TYPE_CHECKING:
@@ -55,7 +59,7 @@ class Device(metaclass=abc.ABCMeta):
     """
 
     @property
-    def metadata(self) -> Optional['DeviceMetadata']:
+    def metadata(self) -> DeviceMetadata | None:
         """Returns the associated Metadata with the device if applicable.
 
         Returns:
@@ -63,7 +67,7 @@ class Device(metaclass=abc.ABCMeta):
         """
         return None
 
-    def validate_operation(self, operation: 'cirq.Operation') -> None:
+    def validate_operation(self, operation: cirq.Operation) -> None:
         """Raises an exception if an operation is not valid.
 
         Args:
@@ -73,7 +77,7 @@ class Device(metaclass=abc.ABCMeta):
             ValueError: The operation isn't valid for this device.
         """
 
-    def validate_circuit(self, circuit: 'cirq.AbstractCircuit') -> None:
+    def validate_circuit(self, circuit: cirq.AbstractCircuit) -> None:
         """Raises an exception if a circuit is not valid.
 
         Args:
@@ -85,7 +89,7 @@ class Device(metaclass=abc.ABCMeta):
         for moment in circuit:
             self.validate_moment(moment)
 
-    def validate_moment(self, moment: 'cirq.Moment') -> None:
+    def validate_moment(self, moment: cirq.Moment) -> None:
         """Raises an exception if a moment is not valid.
 
         Args:
@@ -102,7 +106,7 @@ class Device(metaclass=abc.ABCMeta):
 class DeviceMetadata:
     """Parent type for all device specific metadata classes."""
 
-    def __init__(self, qubits: Iterable['cirq.Qid'], nx_graph: 'nx.Graph'):
+    def __init__(self, qubits: Iterable[cirq.Qid], nx_graph: nx.Graph):
         """Construct a DeviceMetadata object.
 
         Args:
@@ -112,11 +116,11 @@ class DeviceMetadata:
                 directional coupling, undirected edges indicate bi-directional
                 coupling.
         """
-        self._qubits_set: FrozenSet['cirq.Qid'] = frozenset(qubits)
+        self._qubits_set: frozenset[cirq.Qid] = frozenset(qubits)
         self._nx_graph = nx_graph
 
     @property
-    def qubit_set(self) -> FrozenSet['cirq.Qid']:
+    def qubit_set(self) -> frozenset[cirq.Qid]:
         """Returns the set of qubits on the device.
 
         Returns:
@@ -125,7 +129,7 @@ class DeviceMetadata:
         return self._qubits_set
 
     @property
-    def nx_graph(self) -> 'nx.Graph':
+    def nx_graph(self) -> nx.Graph:
         """Returns a nx.Graph where nodes are qubits and edges are couple-able qubits.
 
         Returns:
@@ -142,12 +146,12 @@ class DeviceMetadata:
         return self._qubits_set, graph_equality
 
     def _json_dict_(self):
-        graph_payload = nx.readwrite.json_graph.node_link_data(self._nx_graph)
+        graph_payload = nx.readwrite.json_graph.node_link_data(self._nx_graph, edges='links')
         qubits_payload = sorted(list(self._qubits_set))
 
         return {'qubits': qubits_payload, 'nx_graph': graph_payload}
 
     @classmethod
-    def _from_json_dict_(cls, qubits: Iterable['cirq.Qid'], nx_graph: 'nx.Graph', **kwargs):
-        graph_obj = nx.readwrite.json_graph.node_link_graph(nx_graph)
+    def _from_json_dict_(cls, qubits: Iterable[cirq.Qid], nx_graph: nx.Graph, **kwargs):
+        graph_obj = nx.readwrite.json_graph.node_link_graph(nx_graph, edges='links')
         return cls(qubits, graph_obj)

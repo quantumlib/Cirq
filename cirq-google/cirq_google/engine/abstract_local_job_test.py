@@ -11,15 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""A helper for jobs that have been created on the Quantum Engine."""
-from typing import Optional, Sequence, Tuple
-import datetime
-import cirq
 
+"""A helper for jobs that have been created on the Quantum Engine."""
+
+from __future__ import annotations
+
+import datetime
+from typing import Sequence, TYPE_CHECKING
+
+import cirq
 from cirq_google.cloud import quantum
-from cirq_google.engine.calibration_result import CalibrationResult
 from cirq_google.engine.abstract_local_job import AbstractLocalJob
-from cirq_google.engine.engine_result import EngineResult
+
+if TYPE_CHECKING:
+    from cirq_google.engine.engine_result import EngineResult
 
 
 class NothingJob(AbstractLocalJob):
@@ -32,7 +37,7 @@ class NothingJob(AbstractLocalJob):
     def execution_status(self) -> quantum.ExecutionStatus.State:
         return self._status
 
-    def failure(self) -> Optional[Tuple[str, str]]:
+    def failure(self) -> tuple[str, str] | None:
         return ('failed', 'failure code')  # pragma: no cover
 
     def cancel(self) -> None:
@@ -41,13 +46,7 @@ class NothingJob(AbstractLocalJob):
     def delete(self) -> None:
         pass
 
-    async def batched_results_async(self) -> Sequence[Sequence[EngineResult]]:
-        return []  # pragma: no cover
-
     async def results_async(self) -> Sequence[EngineResult]:
-        return []  # pragma: no cover
-
-    async def calibration_results_async(self) -> Sequence[CalibrationResult]:
         return []  # pragma: no cover
 
 

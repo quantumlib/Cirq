@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import abc
-from typing import NoReturn, Optional
+from typing import NoReturn
 
 import pytest
 
@@ -158,11 +160,11 @@ def test_two_alternatives():
             raise NotImplementedError
 
         @abc.abstractmethod
-        def alt1(self) -> Optional[str]:
+        def alt1(self) -> str | None:
             pass
 
         @abc.abstractmethod
-        def alt2(self) -> Optional[str]:
+        def alt2(self) -> str | None:
             pass
 
     class TwoAlternativesChild(TwoAlternatives):

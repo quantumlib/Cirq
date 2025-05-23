@@ -15,8 +15,13 @@
 """Transformers for compiling to Google-specific gates, such as Sycamore."""
 
 from cirq_google.transformers.analytical_decompositions import (
-    known_2q_op_to_sycamore_operations,
-    two_qubit_matrix_to_sycamore_operations,
+    known_2q_op_to_sycamore_operations as known_2q_op_to_sycamore_operations,
+    two_qubit_matrix_to_sycamore_operations as two_qubit_matrix_to_sycamore_operations,
 )
 
-from cirq_google.transformers.target_gatesets import GoogleCZTargetGateset, SycamoreTargetGateset
+from cirq_google.transformers.target_gatesets import (
+    GoogleCZTargetGateset as GoogleCZTargetGateset,
+    SycamoreTargetGateset as SycamoreTargetGateset,
+)
+
+from cirq_google.transformers.sycamore_gauge import SYCGaugeTransformer as SYCGaugeTransformer

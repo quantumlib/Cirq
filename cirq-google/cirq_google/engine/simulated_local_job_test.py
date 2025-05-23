@@ -11,16 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Tests for SimulatedLocalJob."""
-import pytest
+
+from __future__ import annotations
+
 import numpy as np
+import pytest
 import sympy
 
 import cirq
 from cirq_google.cloud import quantum
 from cirq_google.engine.abstract_local_program import AbstractLocalProgram
-from cirq_google.engine.simulated_local_job import SimulatedLocalJob
 from cirq_google.engine.local_simulation_type import LocalSimulationType
+from cirq_google.engine.simulated_local_job import SimulatedLocalJob
 
 Q = cirq.GridQubit(2, 2)
 
@@ -67,52 +71,6 @@ def test_run_sweep():
     assert job.execution_status() == quantum.ExecutionStatus.State.SUCCESS
 
 
-@pytest.mark.parametrize(
-    'simulation_type', [LocalSimulationType.SYNCHRONOUS, LocalSimulationType.ASYNCHRONOUS]
-)
-def test_run_batch(simulation_type):
-    program = ParentProgram(
-        [
-            cirq.Circuit(cirq.X(Q) ** sympy.Symbol('t'), cirq.measure(Q, key='m')),
-            cirq.Circuit(cirq.X(Q) ** sympy.Symbol('x'), cirq.measure(Q, key='m2')),
-        ],
-        None,
-    )
-    job = SimulatedLocalJob(
-        job_id='test_job',
-        processor_id='test1',
-        parent_program=program,
-        simulation_type=simulation_type,
-        repetitions=100,
-        sweeps=[cirq.Points(key='t', points=[1, 0]), cirq.Points(key='x', points=[0, 1])],
-    )
-    if simulation_type == LocalSimulationType.ASYNCHRONOUS:
-        # Note: The simulation could have finished already
-        assert (
-            job.execution_status() == quantum.ExecutionStatus.State.RUNNING
-            or job.execution_status() == quantum.ExecutionStatus.State.SUCCESS
-        )
-    else:
-        assert job.execution_status() == quantum.ExecutionStatus.State.READY
-    results = job.batched_results()
-    assert np.all(results[0][0].measurements['m'] == 1)
-    assert np.all(results[0][1].measurements['m'] == 0)
-    assert np.all(results[1][0].measurements['m2'] == 0)
-    assert np.all(results[1][1].measurements['m2'] == 1)
-    assert job.execution_status() == quantum.ExecutionStatus.State.SUCCESS
-    # Using flattened results
-    results = job.results()
-    assert np.all(results[0].measurements['m'] == 1)
-    assert np.all(results[1].measurements['m'] == 0)
-    assert np.all(results[2].measurements['m2'] == 0)
-    assert np.all(results[3].measurements['m2'] == 1)
-
-    for result in results:
-        assert result.job_id == 'test_job'
-        assert result.job_finished_time is not None
-    assert results == cirq.read_json(json_text=cirq.to_json(results))
-
-
 def test_cancel():
     program = ParentProgram([cirq.Circuit(cirq.X(Q), cirq.measure(Q, key='m'))], None)
     job = SimulatedLocalJob(
@@ -134,34 +92,6 @@ def test_unsupported_types():
     )
     with pytest.raises(ValueError, match='Unsupported simulation type'):
         job.results()
-    with pytest.raises(ValueError, match='Unsupported simulation type'):
-        job.batched_results()
-
-
-def test_failure():
-    program = ParentProgram(
-        [cirq.Circuit(cirq.X(Q) ** sympy.Symbol('t'), cirq.measure(Q, key='m'))], None
-    )
-    job = SimulatedLocalJob(
-        job_id='test_job',
-        processor_id='test1',
-        parent_program=program,
-        repetitions=100,
-        sweeps=[cirq.Points(key='x', points=[1, 0])],
-    )
-    try:
-        _ = job.results()
-    except ValueError:
-        code, message = job.failure()
-        assert code == '500'
-        assert 'Circuit contains ops whose symbols were not specified' in message
-
-    try:
-        _ = job.batched_results()
-    except ValueError:
-        code, message = job.failure()
-        assert code == '500'
-        assert 'Circuit contains ops whose symbols were not specified' in message
 
 
 def test_run_async():
@@ -180,16 +110,3 @@ def test_run_async():
     assert job.execution_status() == quantum.ExecutionStatus.State.RUNNING
     _ = job.results()
     assert job.execution_status() == quantum.ExecutionStatus.State.SUCCESS
-
-
-def test_run_calibration_unsupported():
-    program = ParentProgram([cirq.Circuit()], None)
-    job = SimulatedLocalJob(
-        job_id='test_job',
-        processor_id='test1',
-        parent_program=program,
-        repetitions=100,
-        sweeps=[{}],
-    )
-    with pytest.raises(NotImplementedError):
-        _ = job.calibration_results()

@@ -12,10 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import cirq
-from cirq.protocols.decompose_protocol import DecomposeResult
-from cirq.transformers.optimize_for_target_gateset import _decompose_operations_to_target_gateset
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import pytest
+
+import cirq
+from cirq.transformers.optimize_for_target_gateset import _decompose_operations_to_target_gateset
+
+if TYPE_CHECKING:
+    from cirq.protocols.decompose_protocol import DecomposeResult
 
 
 def test_decompose_operations_raises_on_stuck():
@@ -51,22 +58,22 @@ def test_decompose_operations_to_target_gateset_default():
     cirq.testing.assert_has_diagram(
         c_orig,
         '''
-0: ───T───×───T───×['ignore']───M───────T───×───T───
-          │       │             ║           │
-1: ───────×───────×─────────────╫───X───T───×───T───
-                                ║   ║
-m: ═════════════════════════════@═══^═══════════════''',
+0: ───T───×───T───×[ignore]───M───────T───×───T───
+          │       │           ║           │
+1: ───────×───────×───────────╫───X───T───×───T───
+                              ║   ║
+m: ═══════════════════════════@═══^═══════════════''',
     )
     context = cirq.TransformerContext(tags_to_ignore=("ignore",))
     c_new = _decompose_operations_to_target_gateset(c_orig, context=context)
     cirq.testing.assert_has_diagram(
         c_new,
         '''
-0: ───T────────────@───Y^-0.5───@───Y^0.5────@───────────T───×['ignore']───M───────T────────────@───Y^-0.5───@───Y^0.5────@───────────T───
-                   │            │            │               │             ║                    │            │            │
-1: ───────Y^-0.5───@───Y^0.5────@───Y^-0.5───@───Y^0.5───────×─────────────╫───X───T───Y^-0.5───@───Y^0.5────@───Y^-0.5───@───Y^0.5───T───
-                                                                           ║   ║
-m: ════════════════════════════════════════════════════════════════════════@═══^══════════════════════════════════════════════════════════
+0: ───T────────────@───Y^-0.5───@───Y^0.5────@───────────T───×[ignore]───M───────T────────────@───Y^-0.5───@───Y^0.5────@───────────T───
+                   │            │            │               │           ║                    │            │            │
+1: ───────Y^-0.5───@───Y^0.5────@───Y^-0.5───@───Y^0.5───────×───────────╫───X───T───Y^-0.5───@───Y^0.5────@───Y^-0.5───@───Y^0.5───T───
+                                                                         ║   ║
+m: ══════════════════════════════════════════════════════════════════════@═══^══════════════════════════════════════════════════════════
 ''',
     )
 
@@ -85,8 +92,8 @@ def test_decompose_operations_to_target_gateset():
         cirq.T.on_each(*q),
     )
     gateset = cirq.Gateset(cirq.H, cirq.CNOT)
-    decomposer = (
-        lambda op, _: cirq.H(op.qubits[0])
+    decomposer = lambda op, _: (
+        cirq.H(op.qubits[0])
         if cirq.has_unitary(op) and cirq.num_qubits(op) == 1
         else NotImplemented
     )
@@ -97,11 +104,11 @@ def test_decompose_operations_to_target_gateset():
     cirq.testing.assert_has_diagram(
         c_new,
         '''
-0: ───H───@───X───@───H───×['ignore']───M───────H───@───X───@───H───
-          │   │   │       │             ║           │   │   │
-1: ───────X───@───X───────×─────────────╫───X───H───X───@───X───H───
-                                        ║   ║
-m: ═════════════════════════════════════@═══^═══════════════════════''',
+0: ───H───@───X───@───H───×[ignore]───M───────H───@───X───@───H───
+          │   │   │       │           ║           │   │   │
+1: ───────X───@───X───────×───────────╫───X───H───X───@───X───H───
+                                      ║   ║
+m: ═══════════════════════════════════@═══^═══════════════════════''',
     )
 
     with pytest.raises(ValueError, match="Unable to convert"):
@@ -118,7 +125,7 @@ class MatrixGateTargetGateset(cirq.CompilationTargetGateset):
     def num_qubits(self) -> int:
         return 2
 
-    def decompose_to_target_gateset(self, op: 'cirq.Operation', _) -> DecomposeResult:
+    def decompose_to_target_gateset(self, op: cirq.Operation, _) -> DecomposeResult:
         if cirq.num_qubits(op) != 2 or not cirq.has_unitary(op):
             return NotImplemented
         return cirq.MatrixGate(cirq.unitary(op), name="M").on(*op.qubits)
@@ -134,9 +141,9 @@ def test_optimize_for_target_gateset_default():
     cirq.testing.assert_has_diagram(
         c_new,
         '''
-0: ───T────────────@───Y^-0.5───@───Y^0.5────@───────────T───×['ignore']───
+0: ───T────────────@───Y^-0.5───@───Y^0.5────@───────────T───×[ignore]───
                    │            │            │               │
-1: ───────Y^-0.5───@───Y^0.5────@───Y^-0.5───@───Y^0.5───────×─────────────
+1: ───────Y^-0.5───@───Y^0.5────@───Y^-0.5───@───Y^0.5───────×───────────
 ''',
     )
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(c_orig, c_new, atol=1e-6)
@@ -157,15 +164,15 @@ def test_optimize_for_target_gateset():
     cirq.testing.assert_has_diagram(
         c_orig,
         '''
-0: ───qft───Y['ignore']───M───────qft^-1───
-      │                   ║       │
-1: ───#2────Y['ignore']───M───────#2───────
-      │                   ║       │
-2: ───#3────@['ignore']───╫───@───#3───────
-      │     │             ║   ║   │
-3: ───#4────X─────────────╫───@───#4───────
-                          ║   ║
-m: ═══════════════════════@═══^════════════
+0: ───qft───Y[ignore]───M───────qft^-1───
+      │                 ║       │
+1: ───#2────Y[ignore]───M───────#2───────
+      │                 ║       │
+2: ───#3────@[ignore]───╫───@───#3───────
+      │     │           ║   ║   │
+3: ───#4────X───────────╫───@───#4───────
+                        ║   ║
+m: ═════════════════════@═══^════════════
 ''',
     )
     gateset = MatrixGateTargetGateset()
@@ -174,17 +181,17 @@ m: ═══════════════════════@══�
     cirq.testing.assert_has_diagram(
         c_new,
         '''
-                                         ┌────────┐                         ┌────────┐                 ┌────────┐
-0: ───M[1]──────────M[1]──────────────────────M[1]────Y['ignore']───M────────────M[1]───────────────────M[1]────────M[1]───M[1]───
-      │             │                         │                     ║            │                      │           │      │
-1: ───M[2]───M[1]───┼─────────────M[1]────M[1]┼───────Y['ignore']───M────────M[1]┼──────────────M[1]────┼───M[1]────┼──────M[2]───
-             │      │             │       │   │                     ║        │   │              │       │   │       │
-2: ──────────M[2]───M[2]───M[1]───┼───────M[2]┼───────@['ignore']───╫───@────M[2]┼───────M[1]───┼───────┼───M[2]────M[2]──────────
-                           │      │           │       │             ║   ║        │       │      │       │
-3: ────────────────────────M[2]───M[2]────────M[2]────X─────────────╫───@────────M[2]────M[2]───M[2]────M[2]──────────────────────
-                                                                    ║   ║
-m: ═════════════════════════════════════════════════════════════════@═══^═════════════════════════════════════════════════════════
-                                         └────────┘                         └────────┘                 └────────┘
+                                         ┌────────┐                       ┌────────┐                 ┌────────┐
+0: ───M[1]──────────M[1]──────────────────────M[1]────Y[ignore]───M────────────M[1]───────────────────M[1]────────M[1]───M[1]───
+      │             │                         │                   ║            │                      │           │      │
+1: ───M[2]───M[1]───┼─────────────M[1]────M[1]┼───────Y[ignore]───M────────M[1]┼──────────────M[1]────┼───M[1]────┼──────M[2]───
+             │      │             │       │   │                   ║        │   │              │       │   │       │
+2: ──────────M[2]───M[2]───M[1]───┼───────M[2]┼───────@[ignore]───╫───@────M[2]┼───────M[1]───┼───────┼───M[2]────M[2]──────────
+                           │      │           │       │           ║   ║        │       │      │       │
+3: ────────────────────────M[2]───M[2]────────M[2]────X───────────╫───@────────M[2]────M[2]───M[2]────M[2]──────────────────────
+                                                                  ║   ║
+m: ═══════════════════════════════════════════════════════════════@═══^═════════════════════════════════════════════════════════
+                                         └────────┘                       └────────┘                 └────────┘
        ''',
     )
 
@@ -243,3 +250,151 @@ def test_optimize_for_target_gateset_deep():
 1: ───#2───────────────────────────────────────────────────────────────────────────
 ''',
     )
+
+
+@pytest.mark.parametrize('max_num_passes', [2, None])
+def test_optimize_for_target_gateset_multiple_passes(max_num_passes: int | None):
+    gateset = cirq.CZTargetGateset()
+
+    input_circuit = cirq.Circuit(
+        [
+            cirq.Moment(
+                cirq.X(cirq.LineQubit(1)),
+                cirq.X(cirq.LineQubit(2)),
+                cirq.X(cirq.LineQubit(3)),
+                cirq.X(cirq.LineQubit(6)),
+            ),
+            cirq.Moment(
+                cirq.H(cirq.LineQubit(0)),
+                cirq.H(cirq.LineQubit(1)),
+                cirq.H(cirq.LineQubit(2)),
+                cirq.H(cirq.LineQubit(3)),
+                cirq.H(cirq.LineQubit(4)),
+                cirq.H(cirq.LineQubit(5)),
+                cirq.H(cirq.LineQubit(6)),
+            ),
+            cirq.Moment(
+                cirq.H(cirq.LineQubit(1)), cirq.H(cirq.LineQubit(3)), cirq.H(cirq.LineQubit(5))
+            ),
+            cirq.Moment(
+                cirq.CZ(cirq.LineQubit(0), cirq.LineQubit(1)),
+                cirq.CZ(cirq.LineQubit(2), cirq.LineQubit(3)),
+                cirq.CZ(cirq.LineQubit(4), cirq.LineQubit(5)),
+            ),
+            cirq.Moment(
+                cirq.CZ(cirq.LineQubit(2), cirq.LineQubit(1)),
+                cirq.CZ(cirq.LineQubit(4), cirq.LineQubit(3)),
+                cirq.CZ(cirq.LineQubit(6), cirq.LineQubit(5)),
+            ),
+        ]
+    )
+    desired_circuit = cirq.Circuit.from_moments(
+        cirq.Moment(
+            cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=-0.5, z_exponent=1.0).on(
+                cirq.LineQubit(4)
+            )
+        ),
+        cirq.Moment(cirq.CZ(cirq.LineQubit(4), cirq.LineQubit(5))),
+        cirq.Moment(
+            cirq.PhasedXZGate(axis_phase_exponent=-1.0, x_exponent=1, z_exponent=0).on(
+                cirq.LineQubit(1)
+            ),
+            cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=-0.5, z_exponent=1.0).on(
+                cirq.LineQubit(0)
+            ),
+            cirq.PhasedXZGate(axis_phase_exponent=-1.0, x_exponent=1, z_exponent=0).on(
+                cirq.LineQubit(3)
+            ),
+            cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0.5, z_exponent=0.0).on(
+                cirq.LineQubit(2)
+            ),
+        ),
+        cirq.Moment(
+            cirq.CZ(cirq.LineQubit(0), cirq.LineQubit(1)),
+            cirq.CZ(cirq.LineQubit(2), cirq.LineQubit(3)),
+        ),
+        cirq.Moment(
+            cirq.CZ(cirq.LineQubit(2), cirq.LineQubit(1)),
+            cirq.CZ(cirq.LineQubit(4), cirq.LineQubit(3)),
+        ),
+        cirq.Moment(
+            cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0.5, z_exponent=0.0).on(
+                cirq.LineQubit(6)
+            )
+        ),
+        cirq.Moment(cirq.CZ(cirq.LineQubit(6), cirq.LineQubit(5))),
+    )
+    got = cirq.optimize_for_target_gateset(
+        input_circuit, gateset=gateset, max_num_passes=max_num_passes
+    )
+    cirq.testing.assert_same_circuits(got, desired_circuit)
+
+
+@pytest.mark.parametrize('max_num_passes', [2, None])
+def test_optimize_for_target_gateset_multiple_passes_dont_preserve_moment_structure(
+    max_num_passes: int | None,
+):
+    gateset = cirq.CZTargetGateset(preserve_moment_structure=False)
+
+    input_circuit = cirq.Circuit(
+        [
+            cirq.Moment(
+                cirq.X(cirq.LineQubit(1)),
+                cirq.X(cirq.LineQubit(2)),
+                cirq.X(cirq.LineQubit(3)),
+                cirq.X(cirq.LineQubit(6)),
+            ),
+            cirq.Moment(
+                cirq.H(cirq.LineQubit(0)),
+                cirq.H(cirq.LineQubit(1)),
+                cirq.H(cirq.LineQubit(2)),
+                cirq.H(cirq.LineQubit(3)),
+                cirq.H(cirq.LineQubit(4)),
+                cirq.H(cirq.LineQubit(5)),
+                cirq.H(cirq.LineQubit(6)),
+            ),
+            cirq.Moment(
+                cirq.H(cirq.LineQubit(1)), cirq.H(cirq.LineQubit(3)), cirq.H(cirq.LineQubit(5))
+            ),
+            cirq.Moment(
+                cirq.CZ(cirq.LineQubit(0), cirq.LineQubit(1)),
+                cirq.CZ(cirq.LineQubit(2), cirq.LineQubit(3)),
+                cirq.CZ(cirq.LineQubit(4), cirq.LineQubit(5)),
+            ),
+            cirq.Moment(
+                cirq.CZ(cirq.LineQubit(2), cirq.LineQubit(1)),
+                cirq.CZ(cirq.LineQubit(4), cirq.LineQubit(3)),
+                cirq.CZ(cirq.LineQubit(6), cirq.LineQubit(5)),
+            ),
+        ]
+    )
+    desired_circuit = cirq.Circuit(
+        cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=-0.5, z_exponent=1.0).on(
+            cirq.LineQubit(4)
+        ),
+        cirq.PhasedXZGate(axis_phase_exponent=-1.0, x_exponent=1, z_exponent=0).on(
+            cirq.LineQubit(1)
+        ),
+        cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0.5, z_exponent=0.0).on(
+            cirq.LineQubit(2)
+        ),
+        cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=-0.5, z_exponent=1.0).on(
+            cirq.LineQubit(0)
+        ),
+        cirq.PhasedXZGate(axis_phase_exponent=-1.0, x_exponent=1, z_exponent=0).on(
+            cirq.LineQubit(3)
+        ),
+        cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0.5, z_exponent=0.0).on(
+            cirq.LineQubit(6)
+        ),
+        cirq.CZ(cirq.LineQubit(4), cirq.LineQubit(5)),
+        cirq.CZ(cirq.LineQubit(0), cirq.LineQubit(1)),
+        cirq.CZ(cirq.LineQubit(2), cirq.LineQubit(3)),
+        cirq.CZ(cirq.LineQubit(2), cirq.LineQubit(1)),
+        cirq.CZ(cirq.LineQubit(4), cirq.LineQubit(3)),
+        cirq.CZ(cirq.LineQubit(6), cirq.LineQubit(5)),
+    )
+    got = cirq.optimize_for_target_gateset(
+        input_circuit, gateset=gateset, max_num_passes=max_num_passes
+    )
+    cirq.testing.assert_same_circuits(got, desired_circuit)

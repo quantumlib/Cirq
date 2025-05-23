@@ -14,19 +14,20 @@
 
 """Base class for creating custom target gatesets which can be used for compilation."""
 
-from typing import Optional, List, Hashable, TYPE_CHECKING
+from __future__ import annotations
+
 import abc
+from typing import Hashable, TYPE_CHECKING
 
 from cirq import circuits, ops, protocols, transformers
-from cirq.protocols.decompose_protocol import DecomposeResult
 from cirq.transformers import merge_k_qubit_gates, merge_single_qubit_gates
-
 
 if TYPE_CHECKING:
     import cirq
+    from cirq.protocols.decompose_protocol import DecomposeResult
 
 
-def create_transformer_with_kwargs(transformer: 'cirq.TRANSFORMER', **kwargs) -> 'cirq.TRANSFORMER':
+def create_transformer_with_kwargs(transformer: cirq.TRANSFORMER, **kwargs) -> cirq.TRANSFORMER:
     """Method to capture additional keyword arguments to transformers while preserving mypy type.
 
     Returns a `cirq.TRANSFORMER` which, when called with a circuit and transformer context, is
@@ -34,13 +35,13 @@ def create_transformer_with_kwargs(transformer: 'cirq.TRANSFORMER', **kwargs) ->
     capture keyword arguments of a transformer before passing them as an argument to an API that
     expects `cirq.TRANSFORMER`. For example:
 
-    >>> def run_transformers(transformers: 'List[cirq.TRANSFORMER]'):
+    >>> def run_transformers(transformers: list[cirq.TRANSFORMER]):
     ...     circuit = cirq.Circuit(cirq.X(cirq.q(0)))
     ...     context = cirq.TransformerContext()
     ...     for transformer in transformers:
     ...         transformer(circuit, context=context)
     ...
-    >>> transformers: 'List[cirq.TRANSFORMER]' = []
+    >>> transformers: list[cirq.TRANSFORMER] = []
     >>> transformers.append(
     ...     cirq.create_transformer_with_kwargs(
     ...         cirq.expand_composite, no_decomp=lambda op: cirq.num_qubits(op) <= 2
@@ -66,8 +67,8 @@ def create_transformer_with_kwargs(transformer: 'cirq.TRANSFORMER', **kwargs) ->
         raise SyntaxError('**kwargs to be captured must not contain `context`.')
 
     def transformer_with_kwargs(
-        circuit: 'cirq.AbstractCircuit', *, context: Optional['cirq.TransformerContext'] = None
-    ) -> 'cirq.AbstractCircuit':
+        circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
+    ) -> cirq.AbstractCircuit:
         return transformer(circuit, context=context, **kwargs)
 
     return transformer_with_kwargs
@@ -76,9 +77,40 @@ def create_transformer_with_kwargs(transformer: 'cirq.TRANSFORMER', **kwargs) ->
 class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
     """Abstract base class to create gatesets that can be used as targets for compilation.
 
-    An instance of this type can be passed to transformers like `cirq.convert_to_target_gateset`,
+    An instance of this type can be passed to transformers like `cirq.optimize_for_target_gateset`,
     which can transform any given circuit to contain gates accepted by this gateset.
     """
+
+    def __init__(
+        self,
+        *gates: type[cirq.Gate] | cirq.Gate | cirq.GateFamily,
+        name: str | None = None,
+        unroll_circuit_op: bool = True,
+        preserve_moment_structure: bool = True,
+        reorder_operations: bool = False,
+    ):
+        """Initializes CompilationTargetGateset.
+
+        Args:
+            *gates: A list of `cirq.Gate` subclasses / `cirq.Gate` instances /
+                `cirq.GateFamily` instances to initialize the Gateset.
+            name: (Optional) Name for the Gateset. Useful for description.
+            unroll_circuit_op: If True, `cirq.CircuitOperation` is recursively
+                validated by validating the underlying `cirq.Circuit`.
+            preserve_moment_structure: Whether to preserve the moment structure of the
+                circuit during compilation or not.
+            reorder_operations: Whether to attempt to reorder the operations in order to reduce
+                circuit depth or not (can be True only if preserve_moment_structure=False).
+        Raises:
+            ValueError: If both reorder_operations and preserve_moment_structure are True.
+        """
+        if reorder_operations and preserve_moment_structure:
+            raise ValueError(
+                'reorder_operations and preserve_moment_structure can not both be True'
+            )
+        super().__init__(*gates, name=name, unroll_circuit_op=unroll_circuit_op)
+        self._preserve_moment_structure = preserve_moment_structure
+        self._reorder_operations = reorder_operations
 
     @property
     @abc.abstractmethod
@@ -86,7 +118,7 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
         """Maximum number of qubits on which a gate from this gateset can act upon."""
 
     @abc.abstractmethod
-    def decompose_to_target_gateset(self, op: 'cirq.Operation', moment_idx: int) -> DecomposeResult:
+    def decompose_to_target_gateset(self, op: cirq.Operation, moment_idx: int) -> DecomposeResult:
         """Method to rewrite the given operation using gates from this gateset.
 
         Args:
@@ -98,7 +130,7 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
             - `None` or `NotImplemented` if does not know how to decompose `op`.
         """
 
-    def _validate_operation(self, op: 'cirq.Operation') -> bool:
+    def _validate_operation(self, op: cirq.Operation) -> bool:
         """Validates whether the given `cirq.Operation` is contained in this Gateset.
 
         Overrides the method on the base gateset class to ensure that operations which created
@@ -123,13 +155,17 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
         return "_default_merged_k_qubit_unitaries"
 
     @property
-    def preprocess_transformers(self) -> List['cirq.TRANSFORMER']:
+    def preprocess_transformers(self) -> list[cirq.TRANSFORMER]:
         """List of transformers which should be run before decomposing individual operations."""
+        reorder_transfomers = (
+            [transformers.insertion_sort_transformer] if self._reorder_operations else []
+        )
         return [
             create_transformer_with_kwargs(
                 transformers.expand_composite,
                 no_decomp=lambda op: protocols.num_qubits(op) <= self.num_qubits,
             ),
+            *reorder_transfomers,
             create_transformer_with_kwargs(
                 merge_k_qubit_gates.merge_k_qubit_unitaries,
                 k=self.num_qubits,
@@ -138,13 +174,16 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
         ]
 
     @property
-    def postprocess_transformers(self) -> List['cirq.TRANSFORMER']:
+    def postprocess_transformers(self) -> list[cirq.TRANSFORMER]:
         """List of transformers which should be run after decomposing individual operations."""
-        return [
+        processors: list[cirq.TRANSFORMER] = [
             merge_single_qubit_gates.merge_single_qubit_moments_to_phxz,
             transformers.drop_negligible_operations,
             transformers.drop_empty_moments,
         ]
+        if not self._preserve_moment_structure:
+            processors.append(transformers.stratified_circuit)
+        return processors
 
 
 class TwoQubitCompilationTargetGateset(CompilationTargetGateset):
@@ -184,7 +223,7 @@ class TwoQubitCompilationTargetGateset(CompilationTargetGateset):
     def num_qubits(self) -> int:
         return 2
 
-    def decompose_to_target_gateset(self, op: 'cirq.Operation', moment_idx: int) -> DecomposeResult:
+    def decompose_to_target_gateset(self, op: cirq.Operation, moment_idx: int) -> DecomposeResult:
         if not 1 <= protocols.num_qubits(op) <= 2:
             return self._decompose_multi_qubit_operation(op, moment_idx)
         if protocols.num_qubits(op) == 1:
@@ -211,7 +250,7 @@ class TwoQubitCompilationTargetGateset(CompilationTargetGateset):
         )
         if switch_to_new:
             return new_optree
-        mapped_old_optree: List['cirq.OP_TREE'] = []
+        mapped_old_optree: list[cirq.OP_TREE] = []
         for old_op in ops.flatten_to_ops(old_optree):
             if old_op in self:
                 mapped_old_optree.append(old_op)
@@ -223,7 +262,7 @@ class TwoQubitCompilationTargetGateset(CompilationTargetGateset):
         return mapped_old_optree
 
     def _decompose_single_qubit_operation(
-        self, op: 'cirq.Operation', moment_idx: int
+        self, op: cirq.Operation, moment_idx: int
     ) -> DecomposeResult:
         """Decomposes (connected component of) 1-qubit operations using gates from this gateset.
 
@@ -245,7 +284,7 @@ class TwoQubitCompilationTargetGateset(CompilationTargetGateset):
         )
 
     def _decompose_multi_qubit_operation(
-        self, op: 'cirq.Operation', moment_idx: int
+        self, op: cirq.Operation, moment_idx: int
     ) -> DecomposeResult:
         """Decomposes operations acting on more than 2 qubits using gates from this gateset.
 
@@ -261,7 +300,7 @@ class TwoQubitCompilationTargetGateset(CompilationTargetGateset):
 
     @abc.abstractmethod
     def _decompose_two_qubit_operation(
-        self, op: 'cirq.Operation', moment_idx: int
+        self, op: cirq.Operation, moment_idx: int
     ) -> DecomposeResult:
         """Decomposes (connected component of) 2-qubit operations using gates from this gateset.
 

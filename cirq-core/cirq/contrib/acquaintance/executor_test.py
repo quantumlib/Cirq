@@ -12,16 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from itertools import combinations
 from string import ascii_lowercase
-from typing import Sequence, Dict, Tuple
+from typing import Sequence
 
 import numpy as np
 import pytest
 
 import cirq
-import cirq.testing as ct
 import cirq.contrib.acquaintance as cca
+import cirq.testing as ct
 
 
 class ExampleGate(cirq.Gate):
@@ -48,6 +50,7 @@ def test_executor_explicit():
     }
     initial_mapping = {q: i for i, q in enumerate(sorted(qubits))}
     execution_strategy = cca.GreedyExecutionStrategy(gates, initial_mapping)
+    assert execution_strategy.device == cirq.UNCONSTRAINED_DEVICE
 
     with pytest.raises(ValueError):
         executor = cca.StrategyExecutorTransformer(None)
@@ -84,7 +87,7 @@ def test_executor_explicit():
 
 def random_diagonal_gates(
     num_qubits: int, acquaintance_size: int
-) -> Dict[Tuple[cirq.Qid, ...], cirq.Gate]:
+) -> dict[tuple[cirq.Qid, ...], cirq.Gate]:
 
     return {
         Q: cirq.DiagonalGate(np.random.random(2**acquaintance_size))
@@ -103,7 +106,7 @@ def random_diagonal_gates(
     ],
 )
 def test_executor_random(
-    num_qubits: int, acquaintance_size: int, gates: Dict[Tuple[cirq.Qid, ...], cirq.Gate]
+    num_qubits: int, acquaintance_size: int, gates: dict[tuple[cirq.Qid, ...], cirq.Gate]
 ):
     qubits = cirq.LineQubit.range(num_qubits)
     circuit = cca.complete_acquaintance_strategy(qubits, acquaintance_size)

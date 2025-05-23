@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cirq.testing
 
 
-def test_fake_printer():
+def test_fake_printer() -> None:
     p = cirq.testing.FakePrinter()
     assert p.text_pretty == ""
     p.text("stuff")
@@ -24,7 +26,7 @@ def test_fake_printer():
     assert p.text_pretty == "stuff more"
 
 
-def test_assert_repr_pretty():
+def test_assert_repr_pretty() -> None:
     class TestClass:
         def _repr_pretty_(self, p, cycle):
             p.text("TestClass" if cycle else "I'm so pretty")
@@ -44,7 +46,7 @@ def test_assert_repr_pretty():
     cirq.testing.assert_repr_pretty(TestClassMultipleTexts(), "TestClass", cycle=True)
 
 
-def test_assert_repr_pretty_contains():
+def test_assert_repr_pretty_contains() -> None:
     class TestClass:
         def _repr_pretty_(self, p, cycle):
             p.text("TestClass" if cycle else "I'm so pretty")

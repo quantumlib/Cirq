@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 
 import cirq
-
 import cirq.contrib.graph_device as ccgd
 import cirq.contrib.graph_device.graph_device as ccgdgd
 

@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
+
 import numpy as np
 import pytest
+import sympy
 
 import cirq
-import sympy
 
 
 def random_unitary(seed):

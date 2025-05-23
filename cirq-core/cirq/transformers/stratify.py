@@ -14,10 +14,12 @@
 
 """Transformer pass to repack circuits avoiding simultaneous operations with different classes."""
 
-import itertools
-from typing import TYPE_CHECKING, Type, Callable, Dict, Optional, Union, Iterable, Sequence, List
+from __future__ import annotations
 
-from cirq import ops, circuits, protocols, _import
+import itertools
+from typing import Callable, Iterable, Sequence, TYPE_CHECKING, Union
+
+from cirq import _import, circuits, ops, protocols
 from cirq.transformers import transformer_api
 
 drop_empty_moments = _import.LazyLoader('drop_empty_moments', globals(), 'cirq.transformers')
@@ -31,17 +33,17 @@ Classifier = Callable[['cirq.Operation'], bool]
 
 # Any of the possible operation categories that we can stratify on.
 Category = Union[
-    'cirq.Gate', 'cirq.Operation', Type['cirq.Gate'], Type['cirq.Operation'], Classifier
+    'cirq.Gate', 'cirq.Operation', type['cirq.Gate'], type['cirq.Operation'], Classifier
 ]
 
 
 @transformer_api.transformer(add_deep_support=True)
 def stratified_circuit(
-    circuit: 'cirq.AbstractCircuit',
+    circuit: cirq.AbstractCircuit,
     *,
-    context: Optional['cirq.TransformerContext'] = None,
+    context: cirq.TransformerContext | None = None,
     categories: Iterable[Category] = (),
-) -> 'cirq.Circuit':
+) -> cirq.Circuit:
     """Repacks avoiding simultaneous operations with different classes.
 
     This transforms the given circuit to ensure that no operations of different categories are
@@ -96,9 +98,9 @@ def stratified_circuit(
 def _stratify_circuit(
     circuit: circuits.AbstractCircuit,
     *,
-    context: 'cirq.TransformerContext',
+    context: cirq.TransformerContext,
     classifiers: Sequence[Classifier],
-) -> 'cirq.Circuit':
+) -> cirq.Circuit:
     """Performs the stratification by iterating through the operations in the
     circuit and using the given classifiers to align them.
 
@@ -115,12 +117,12 @@ def _stratify_circuit(
         The stratified circuit.
     """
     num_classes = len(classifiers) + 1  # include one "extra" category for ignored operations
-    new_moments: List[List['cirq.Operation']] = []
+    new_moments: list[list[cirq.Operation]] = []
 
     # Keep track of the latest time index for each qubit, measurement key, and control key.
-    qubit_time_index: Dict['cirq.Qid', int] = {}
-    measurement_time_index: Dict['cirq.MeasurementKey', int] = {}
-    control_time_index: Dict['cirq.MeasurementKey', int] = {}
+    qubit_time_index: dict[cirq.Qid, int] = {}
+    measurement_time_index: dict[cirq.MeasurementKey, int] = {}
+    control_time_index: dict[cirq.MeasurementKey, int] = {}
 
     # The minimum time index for operations with a tag in context.tags_to_ignore.
     last_ignored_ops_time_index = 0
@@ -175,7 +177,7 @@ def _stratify_circuit(
 
 def _get_classifiers(
     circuit: circuits.AbstractCircuit, categories: Iterable[Category]
-) -> List[Classifier]:
+) -> list[Classifier]:
     """Convert a collection of categories into a list of classifiers.
 
     The returned list of classifiers is:
@@ -221,12 +223,12 @@ def _category_to_classifier(category) -> Classifier:
         )
 
 
-def _mock_classifier(op: 'cirq.Operation') -> bool:
+def _mock_classifier(op: cirq.Operation) -> bool:
     """Mock classifier, used to "complete" a collection of classifiers and make it exhaustive."""
     return False  # pragma: no cover
 
 
-def _get_op_class(op: 'cirq.Operation', classifiers: Sequence[Classifier]) -> int:
+def _get_op_class(op: cirq.Operation, classifiers: Sequence[Classifier]) -> int:
     """Get the "class" of an operator, by index."""
     for class_index, classifier in enumerate(classifiers):
         if classifier is _mock_classifier:

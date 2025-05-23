@@ -17,21 +17,20 @@
 In order to publish to our site, devsite runs two jobs for us: stable and nightly.
 The stable one downloads the latest cirq release from pypi and uses that to generate the reference
 API docs.
-The nightly one downloads the latest cirq pre-release (pip install cirq --pre) and uses that to
-generate the "nightly diff".
+The nightly one downloads the latest cirq pre-release (pip install --upgrade cirq~=1.0.dev) and
+uses that to generate the "nightly diff".
 
 This script needs to cater for both of these cases.
 """
+
+from __future__ import annotations
 
 import os
 import types
 
 import networkx
-from absl import app
-from absl import flags
-from tensorflow_docs.api_generator import doc_controls
-from tensorflow_docs.api_generator import generate_lib
-from tensorflow_docs.api_generator import public_api
+from absl import app, flags
+from tensorflow_docs.api_generator import doc_controls, generate_lib, public_api
 
 import cirq
 import cirq_aqt
@@ -40,7 +39,6 @@ import cirq_ionq
 import cirq_pasqal
 import cirq_rigetti
 import cirq_web
-
 from cirq import _doc
 
 flags.DEFINE_string("output_dir", "docs/api_docs", "Where to output the docs")

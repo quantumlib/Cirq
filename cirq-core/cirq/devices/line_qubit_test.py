@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+import numpy as np
 import pytest
 
 import cirq
@@ -284,3 +287,28 @@ def test_numeric():
     assert isinstance(int(cirq.LineQubit(x=5)), int)
     assert isinstance(float(cirq.LineQubit(x=5)), float)
     assert isinstance(complex(cirq.LineQubit(x=5)), complex)
+
+
+@pytest.mark.parametrize('dtype', (np.int8, np.int64, float, np.float64))
+def test_numpy_index(dtype):
+    np5 = dtype(5)
+    q = cirq.LineQubit(np5)
+    assert hash(q) == 5
+    assert q.x == 5
+    assert q.dimension == 2
+    assert isinstance(q.dimension, int)
+
+    q = cirq.LineQid(np5, dtype(3))
+    hash(q)  # doesn't throw
+    assert q.x == 5
+    assert q.dimension == 3
+    assert isinstance(q.dimension, int)
+
+
+@pytest.mark.parametrize('dtype', (float, np.float64))
+def test_non_integer_index(dtype):
+    # Not supported type-wise, but is used in practice, so behavior needs to be preserved.
+    q = cirq.LineQubit(dtype(5.5))
+    assert q.x == 5.5
+    assert q.x == dtype(5.5)
+    assert isinstance(q.x, dtype)

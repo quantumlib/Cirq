@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import contextlib
 import os
 import shutil
@@ -19,7 +22,7 @@ import sys
 import tempfile
 from io import StringIO
 from pathlib import Path
-from typing import Iterator, Optional
+from typing import Iterator
 from unittest import mock
 
 import pytest
@@ -37,7 +40,9 @@ def test_modules():
             'url': 'http://github.com/quantumlib/cirq',
             'author': 'The Cirq Developers',
             'author_email': 'cirq-dev@googlegroups.com',
-            'python_requires': '>=3.9.0',
+            'maintainer': 'The Quantum AI open-source software maintainers',
+            'maintainer_email': 'quantum-oss-maintainers@google.com',
+            'python_requires': '>=3.11.0',
             'install_requires': ['req1', 'req2'],
             'license': 'Apache 2',
             'packages': ['pack1', 'pack1.sub'],
@@ -81,7 +86,7 @@ def test_cli():
 
 
 @contextlib.contextmanager
-def chdir(*, target_dir: Optional[str] = None, clone_dir: Optional[str] = None) -> Iterator[None]:
+def chdir(*, target_dir: str | None = None, clone_dir: str | None = None) -> Iterator[None]:
     """Changes for the duration of the test the working directory.
 
     Args:
@@ -149,6 +154,7 @@ def test_get_version_on_no_modules():
 def test_get_version_on_inconsistent_version_modules():
     modules.replace_version(search_dir=Path("./mod2"), old="1.2.3.dev", new="1.2.4.dev")
     assert modules.get_version(search_dir=Path("./mod2")) == "1.2.4.dev"
+    assert "1.2.4.dev" in Path("./mod2/pack2/_version_test.py").read_text("UTF-8")
     with pytest.raises(ValueError, match="Versions should be the same, instead:"):
         modules.get_version(search_dir=Path("."))
 
@@ -158,6 +164,8 @@ def test_replace_version(tmpdir_factory):
     assert modules.get_version() == "1.2.3.dev"
     modules.replace_version(old="1.2.3.dev", new="1.2.4.dev")
     assert modules.get_version() == "1.2.4.dev"
+    assert "1.2.4.dev" in Path("./mod1/pack1/_version_test.py").read_text("UTF-8")
+    assert "1.2.4.dev" in Path("./mod2/pack2/_version_test.py").read_text("UTF-8")
 
 
 @chdir(target_dir="dev_tools/modules_test_data")

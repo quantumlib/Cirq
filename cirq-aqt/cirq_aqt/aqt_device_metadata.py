@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""DeviceMetadata for ion trap device with mutually linked qubits placed on a line."""
 
-"""DeviceMetadata for ion trap device with mutually linked qubits placed on a line.
-"""
+from __future__ import annotations
 
 from typing import Any, Iterable, Mapping
 
@@ -29,10 +29,10 @@ class AQTDeviceMetadata(cirq.DeviceMetadata):
 
     def __init__(
         self,
-        qubits: Iterable['cirq.LineQubit'],
-        measurement_duration: 'cirq.DURATION_LIKE',
-        twoq_gates_duration: 'cirq.DURATION_LIKE',
-        oneq_gates_duration: 'cirq.DURATION_LIKE',
+        qubits: Iterable[cirq.LineQubit],
+        measurement_duration: cirq.DURATION_LIKE,
+        twoq_gates_duration: cirq.DURATION_LIKE,
+        oneq_gates_duration: cirq.DURATION_LIKE,
     ):
         """Create metadata object for AQTDevice.
 
@@ -53,8 +53,6 @@ class AQTDeviceMetadata(cirq.DeviceMetadata):
         self._gate_durations = {
             cirq.GateFamily(cirq.MeasurementGate): self._measurement_duration,
             cirq.GateFamily(cirq.XXPowGate): self._twoq_gates_duration,
-            cirq.GateFamily(cirq.XPowGate): self._oneq_gates_duration,
-            cirq.GateFamily(cirq.YPowGate): self._oneq_gates_duration,
             cirq.GateFamily(cirq.ZPowGate): self._oneq_gates_duration,
             cirq.GateFamily(cirq.PhasedXPowGate): self._oneq_gates_duration,
         }
@@ -63,12 +61,12 @@ class AQTDeviceMetadata(cirq.DeviceMetadata):
         )
 
     @property
-    def gateset(self) -> 'cirq.Gateset':
+    def gateset(self) -> cirq.Gateset:
         """Returns the `cirq.Gateset` of supported gates on this device."""
         return self._gateset
 
     @property
-    def gate_durations(self) -> Mapping['cirq.GateFamily', 'cirq.Duration']:
+    def gate_durations(self) -> Mapping[cirq.GateFamily, cirq.Duration]:
         """Get a dictionary of supported gate families and their gate operation durations.
 
         Use `duration_of` to obtain duration of a specific `cirq.GateOperation` instance.
@@ -76,21 +74,21 @@ class AQTDeviceMetadata(cirq.DeviceMetadata):
         return self._gate_durations
 
     @property
-    def measurement_duration(self) -> 'cirq.DURATION_LIKE':
+    def measurement_duration(self) -> cirq.DURATION_LIKE:
         """Return the maximum duration of the measurement operation."""
         return self._measurement_duration
 
     @property
-    def oneq_gates_duration(self) -> 'cirq.DURATION_LIKE':
+    def oneq_gates_duration(self) -> cirq.DURATION_LIKE:
         """Return the maximum duration of an operation on one-qubit gates."""
         return self._oneq_gates_duration
 
     @property
-    def twoq_gates_duration(self) -> 'cirq.DURATION_LIKE':
+    def twoq_gates_duration(self) -> cirq.DURATION_LIKE:
         """Return the maximum duration of an operation on two-qubit gates."""
         return self._twoq_gates_duration
 
-    def duration_of(self, operation: 'cirq.Operation') -> 'cirq.DURATION_LIKE':
+    def duration_of(self, operation: cirq.Operation) -> cirq.DURATION_LIKE:
         """Return the maximum duration of the specified gate operation.
 
         Args:

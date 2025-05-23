@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import ABC, abstractmethod
-from pathlib import Path
-from enum import Enum
+from __future__ import annotations
+
 import os
 import uuid
 import webbrowser
+from abc import ABC, abstractmethod
+from enum import Enum
+from pathlib import Path
 
 import cirq_web
 

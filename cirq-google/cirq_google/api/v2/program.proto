@@ -2,6 +2,9 @@ syntax = "proto3";
 
 package cirq.google.api.v2;
 
+import "tunits/proto/tunits.proto";
+import "cirq_google/api/v2/ndarrays.proto";
+
 option java_package = "com.google.cirq.google.api.v2";
 option java_outer_classname = "ProgramProto";
 option java_multiple_files = true;
@@ -9,7 +12,7 @@ option java_multiple_files = true;
 // A quantum program.
 message Program {
   // The language in which the program is written.
-  Language language = 1;
+  Language language = 1 [deprecated = true];
 
   // Programs can be specified by a circuit or a schedule.
   oneof program {
@@ -17,11 +20,10 @@ message Program {
     // moment having a set of gates that act on disjoint qubits. Circuits don't
     // have absolute times for their operations (gates acting on qubits).
     Circuit circuit = 2;
-
-    // Schedules are a list of operations (gates acting on qubits) that specify
-    // absolute start times for the operations.
-    Schedule schedule = 3;
   }
+
+  // Previously deprecated field.  Do not use.
+  reserved 3;
 
   // List to store global constants, such as strings used in many places.
   // constants are referred to their index in this list, starting at zero.
@@ -40,6 +42,15 @@ message Constant {
 
     // Qubits used within the circuit (only populated in v2.5+)
     Qubit qubit = 3;
+
+    // Moments used multiple times in a circuit
+    Moment moment_value = 4;
+
+    // Operations used multiple times in a circuit
+    Operation operation_value = 5;
+
+    // Tags used multiple times in a circuit
+    Tag tag_value = 6;
   }
 }
 
@@ -62,6 +73,13 @@ message Circuit {
   // The moments of the circuit, with the first element corresponding to the
   // first set of operations to apply, etc.
   repeated Moment moments = 2;
+
+  // The index of the moment in the top-level constant table.
+  // In order to preserve ordering, either this field should be populated
+  // or the moments field, but not both.
+  // This field is used to reduce size of circuits that contain many
+  // repeated moments.
+  repeated int32 moment_indices = 3;
 }
 
 // A moment is a collection of operations and circuit operations that operate
@@ -75,25 +93,16 @@ message Moment {
   // All of the circuit operations in the moment. Each operation and circuit
   // operation must act on different qubits.
   repeated CircuitOperation circuit_operations = 2;
-}
 
-// The quantum circuit, specified as a series of operations at specific
-// start times.
-message Schedule {
-  // A list of all the operations and their absolute start times.
-  repeated ScheduledOperation scheduled_operations = 3;
-}
+  // All of the operations in the moment that are stored in the constants
+  // table.  Each operation should be stored in either `operations`
+  // or `operation_indices`.  Putting operations into the symbol
+  // table should be preferred for circuits with repeated operations
+  // for improved serialization size.
+  repeated int32 operation_indices = 4;
 
-// An operation occurring at a specific start time.
-message ScheduledOperation {
-  // Which operation is to be scheduled.
-  Operation operation = 1;
-
-  // The start time of the operation, with zero representing the absolute
-  // start of the circuit.
-  //
-  // This must be consistent with the moment structure and must be positive.
-  int64 start_time_picos = 2;
+  // Deprecated field id, do not use.
+  reserved 3;
 }
 
 // The language in which the program is expressed.
@@ -114,7 +123,7 @@ message Language {
   //
   // Valid names for the arg function language can be found in
   // cirq/google/arg_func_langs.py
-  string arg_function_language = 2;
+  string arg_function_language = 2 [deprecated = true];
 }
 
 // Argument that is constrained to a float or symbolic expression
@@ -167,11 +176,29 @@ message CZPowGate {
 message FSimGate {
   FloatArg theta = 1;
   FloatArg phi = 2;
+
+  // If true, this is equivalent to:
+  // cirq.FSimGate(...).with_tags(cirq_google.FSimViaModelTag()).
+  // This field controls how we translate the gate implementation.
+  bool translate_via_model = 3;
 }
 
 // Representation of cirq.ISwapPowGate
 message ISwapPowGate {
   FloatArg exponent = 1;
+}
+
+// Representation of an iswap-like gate
+// with theta=pi/2 and a non-zero hardware-dependent phi angle
+message ISwapLikeGate {
+  // Original gate, for deserializing faithfully.
+  enum OriginalCirqGate {
+    UNSPECIFIED = 0;
+    SYCAMORE = 1;
+    WILLOW = 2;
+  }
+
+  OriginalCirqGate original_gate = 1;
 }
 
 // Representation of cirq.MeasurementGate
@@ -181,7 +208,7 @@ message MeasurementGate {
   Arg invert_mask = 2;
 }
 
-// Representation of cirq.WAitGate
+// Representation of cirq.WaitGate
 message WaitGate {
   // Duration of the waiting period,
   // serialized to the number of nanoseconds
@@ -189,10 +216,10 @@ message WaitGate {
 }
 
 // An operation acts on a set of qubits.
+// next available id = 27
 message Operation {
-  // Which gate this operation corresponds to.
-  // Populated pre-v2.5+.
-  Gate gate = 1 [deprecated = true];
+  // Previously deprecated fields.  Do not use.
+  reserved 1, 2;
 
   // Each gate should populate one possible gate message
   // depending on the type desired.  Only populated in v2.5+.
@@ -208,11 +235,13 @@ message Operation {
     MeasurementGate measurementgate = 15;
     WaitGate waitgate = 16;
     InternalGate internalgate = 17;
+    CouplerPulseGate couplerpulsegate = 18;
+    IdentityGate identitygate = 19;
+    HPowGate hpowgate = 20;
+    SingleQubitCliffordGate singlequbitcliffordgate = 21;
+    ResetGate resetgate = 24;
+    ISwapLikeGate iswaplikegate = 26;
   }
-
-  // Map from the argument name to the Argument needed to fully specify
-  // the gate. Only populated pre-v2.5+.
-  map<string, Arg> args = 2 [deprecated = true];
 
   // Which qubits the operation acts on.
   // Operations should populate one of the following two
@@ -220,7 +249,7 @@ message Operation {
   // to reference an index in the enclosing Program's
   // constant messages.  Note that qubit_constant_index
   // will only be populated in v2.5+
-  repeated Qubit qubits = 3;
+  repeated Qubit qubits = 3 [deprecated = true];
   repeated int32 qubit_constant_index = 6;
 
   // Token that can be used to specify a version of a gate.
@@ -232,6 +261,105 @@ message Operation {
     string token_value = 4;
     int32 token_constant_index = 5;
   }
+
+  // To be deprecated
+  repeated Tag tags = 22;
+
+  // Indices in the constant table for tags associated with the operation
+  repeated int32 tag_indices = 23;
+
+  // Classical conditions
+  // Note that this condition is not a sympy expression
+  // as it has a relation such as "==", "<" etc
+  repeated Arg conditioned_on = 25;
+}
+
+message DynamicalDecouplingTag {
+  optional string protocol = 1;
+}
+
+// Messages for tags that can modify operations
+// These are often directives to hardware specifying
+// how the operation should be executed.
+message Tag {
+  oneof tag {
+    // Tag to denote a composite dynamical decoupling operation.
+    // Should generally be applied to cirq.I gates.
+    DynamicalDecouplingTag dynamical_decoupling = 1;
+
+    // Directs the hardware to ignore moment-based
+    // synchronization and to instead schedule
+    // operations as soon as possible for these qubits.
+    NoSyncTag no_sync = 2;
+
+    // Operation should do phase matching to match phase
+    // required for subsequent operations
+    PhaseMatchTag phase_match = 3;
+
+    // Only applicable to Z gates and other gates
+    // that have Z gates as part of their internal operation
+    // This indicates that the Z gates could be executed on
+    // hardware rather than be computed virtually as part
+    // of phase matching.
+    PhysicalZTag physical_z = 4;
+
+    // Indicates that the operations are classical states
+    ClassicalStateTag classical_state = 5;
+
+    // Field id 6 Reserved for OverlayTag, will add in a subsequent PR.
+
+    // Uses parameter model to interpolate FSim gate.
+    FSimViaModelTag fsim_via_model = 7;
+
+    // Catch-all for all gates that do not fit into the
+    // above tags.
+    InternalTag internal_tag = 8;
+  }
+}
+
+// Tag for operations that should do phase matching to match phase
+// required for subsequent operations
+message PhaseMatchTag {}
+
+message PhysicalZTag {}
+
+// Tag to indicate that a state prep circuit produces a classical state.
+// This serves as a hint to the compiler that we can ignore virtual Z phases
+message ClassicalStateTag {}
+
+message FSimViaModelTag {}
+
+// Tag to remove moment-based synchronization
+// The reverse and forward arguments control the
+// number of moments to reverse synchronization.
+message NoSyncTag {
+  oneof rev {
+    // Number of synchronizations before the operation to remove
+    int32 reverse = 1;
+
+    // Remove all possible synchronizations
+    bool remove_all_syncs_before = 2;
+  }
+  oneof fwd {
+    // Number of synchronizations after the operation to remove
+    int32 forward = 3;
+
+    // Remove all possible synchronizations
+    bool remove_all_syncs_after = 4;
+  }
+}
+
+// Tag to represent any internal tags or tags not yet
+// implemented in the proto.
+message InternalTag {
+  // Name of the tag
+  string tag_name = 1;
+  // Python package of the Tag
+  string tag_package = 2;
+
+  // Instantiation arguments of the Tag
+  map<string, Arg> tag_args = 3;
+  map<string, CustomArg> custom_args = 4;
 }
 
 // The instruction identifying the action taken on the quantum computer.
@@ -274,6 +402,7 @@ message Arg {
     string symbol = 2;
     ArgFunction func = 3;
     int32 constant_index = 4;
+    MeasurementKey measurement_key = 5;
   }
 }
 
@@ -287,6 +416,12 @@ message ArgValue {
     RepeatedInt64 int64_values = 5;
     RepeatedDouble double_values = 6;
     RepeatedString string_values = 7;
+    tunits.Value value_with_unit = 8;
+    bool bool_value = 9;
+    bytes bytes_value = 10;
+    Complex complex_value = 11;
+    Tuple tuple_value = 12;
+    NDArray ndarray_value = 13;
   }
 }
 
@@ -306,6 +441,46 @@ message RepeatedString {
 message RepeatedBoolean {
   repeated bool values = 1;
 }
+
+// Representation of a mixed tuple of values
+message Tuple {
+
+  // Original (python) type of the data
+  enum SequenceType {
+    UNSPECIFIED = 0;
+    LIST = 1;
+    TUPLE = 2;
+    SET = 3;
+    FROZENSET = 4;
+  }
+
+  SequenceType sequence_type = 1;
+    
+  repeated Arg values = 2;
+}
+
+// Representation of a complex number
+message Complex {
+    double real_value = 1;
+    double imag_value = 2;
+}
+
+message NDArray {
+  oneof arr {
+    Complex128Array complex128_array = 1;
+    Complex64Array complex64_array = 2;
+    Float16Array float16_array = 3;
+    Float32Array float32_array = 4;
+    Float64Array float64_array = 5;
+    Int64Array int64_array = 6;
+    Int32Array int32_array = 7;
+    Int16Array int16_array = 8;
+    Int8Array int8_array = 9;
+    UInt8Array uint8_array = 10;
+    BitArray bit_array = 11;
+  }
+}
+
 
 // A function of arguments. This is an s-expression tree representing
 // mathematically the function being evaluated.
@@ -352,6 +527,15 @@ message CircuitOperation {
   // Map of args in the "inner" circuit (referenced by circuit_constant_index)
   // to args in the "outer" circuit (the one that contains this operation).
   ArgMapping arg_map = 5;
+  
+  // Classical conditions
+  // Condition for repeating the circuit until this condition is true. 
+  optional Arg repeat_until = 6;
+  
+  // Condition for executing the circuit operation only if this condition is true.
+  repeated Arg conditioned_on = 7;
+
+  bool use_repetition_ids = 8;
 }
 
 // A description of the repetitions of a subcircuit. IDs are used as suffixes
@@ -389,6 +573,17 @@ message QubitMapping {
 // A key for matching a measurement event to its results.
 message MeasurementKey {
   string string_key = 1;
+
+  // Used in conditional statements representing the path to the key
+  // in a multi-level circuit (with repeated or nested circuits).
+  // See cirq.MeasurementKey for more details.
+  repeated string path = 2;
+
+  // Used in classical conditions to specify which measurement
+  // should be used if the measurement is repeated.
+  // Specified as a negative number meaning how many measurements ago.
+  // If not specified, default is -1, meaning the last measured value.
+  optional int32 index = 3;
 }
 
 // A mapping of measurement keys from one value to another. All mappings are
@@ -419,9 +614,76 @@ message ArgMapping {
   repeated ArgEntry entries = 1;
 }
 
-message InternalGate{
-  string name = 1;  // Gate name.
-  string module = 2;  // Gate module. 
+message FunctionInterpolation {
+  // The x_values must be sorted in ascending order.
+  // The x_values and y_values must be of the same length.
+  repeated float x_values = 1 [packed = true];  // The independent variable.
+  repeated float y_values = 2 [packed = true];  // The dependent variable.
+
+  // Currently only piecewise linear interpolation (i.e. np.interp) is
+  // supported. That's we connect (x[i], y[i]) to (x[i+1], y[i+1]))
+}
+
+message CustomArg {
+  oneof custom_arg {
+    FunctionInterpolation function_interpolation_data = 1;
+  }
+}
+
+message InternalGate {
+  string name = 1;       // Gate name.
+  string module = 2;     // Gate module.
   int32 num_qubits = 3;  // Number of qubits. Required during deserialization.
   map<string, Arg> gate_args = 4;  // Gate args.
+
+  // Custom args are arguments that require special processing during
+  // deserialization. The `key` is the argument in the internal class's
+  // constructor, the `value` is a representation from which an internal object
+  // can be constructed.
+  map<string, CustomArg> custom_args = 5;
+}
+
+message CouplerPulseGate {
+  optional FloatArg hold_time_ps = 1;     // ps=picoseconds.
+  optional FloatArg rise_time_ps = 2;     // ps=picoseconds.
+  optional FloatArg padding_time_ps = 3;  // ps=picoseconds.
+  optional FloatArg coupling_mhz = 4;
+  optional FloatArg q0_detune_mhz = 5;
+  optional FloatArg q1_detune_mhz = 6;
+}
+
+message CliffordTableau {
+  // Number of qubits the CliffordTableau acts on.
+  optional int32 num_qubits = 1;
+  // The initial state.
+  optional int32 initial_state = 2;
+  // A flattened version of the `rs` array.
+  repeated bool rs = 3;
+  // A flattened version of the `xs` array.
+  repeated bool xs = 4;
+  // A flattened version of the `zs` array.
+  repeated bool zs = 5;
+}
+
+message SingleQubitCliffordGate {
+  CliffordTableau tableau = 1;
+}
+
+message IdentityGate {
+  repeated uint32 qid_shape = 1;
+}
+
+message HPowGate {
+  FloatArg exponent = 1;
+}
+
+message ResetGate {
+  // Type of reset to be executed (hardware dependent)
+  // Internal users should use the name of the class.
+  // (Note that this is not used for public-facing circuits,
+  //  which will default to cirq.ResetChannel)
+  string reset_type = 1;
+
+  // Additional arguments that can be sent to the reset implementation.
+  map<string, Arg> arguments = 2;
 }

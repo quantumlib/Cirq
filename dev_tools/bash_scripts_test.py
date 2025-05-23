@@ -12,14 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import os
 import subprocess
-from typing import Iterable
-
-import pytest
+from typing import Iterable, TYPE_CHECKING
 
 from dev_tools import shell_tools
 from dev_tools.test_utils import only_on_posix
+
+if TYPE_CHECKING:
+    import pytest
 
 
 def run(
@@ -32,7 +35,7 @@ def run(
 ) -> subprocess.CompletedProcess:
     """Invokes the given script within a temporary test environment."""
 
-    with open(script_file) as f:
+    with open(script_file, encoding="utf8") as f:
         script_lines = f.readlines()
 
     # Create a unique temporary directory
@@ -53,7 +56,7 @@ def run(
     for e in intercepted:
         script_lines.insert(1, e + '() {\n  echo INTERCEPTED ' + e + ' $@\n}\n')
 
-    with open(file_path, 'w') as f:
+    with open(file_path, 'w', encoding="utf8") as f:
         f.writelines(script_lines)
 
     cmd = f"""
@@ -344,10 +347,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     )
     assert result.returncode == 0
     assert result.stdout == (
-        'INTERCEPTED check/pytest '
-        '--cov --cov-config=dev_tools/conf/.coveragerc\n'
-        'The annotate command will be removed in a future version.\n'
-        'Get in touch if you still use it: ned@nedbatchelder.com\n'
+        'INTERCEPTED check/pytest --cov\n'
         'No data to report.\n'
         'INTERCEPTED '
         'python dev_tools/check_incremental_coverage_annotations.py HEAD\n'
@@ -370,10 +370,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     )
     assert result.returncode == 0
     assert result.stdout == (
-        'INTERCEPTED check/pytest '
-        '--cov --cov-config=dev_tools/conf/.coveragerc\n'
-        'The annotate command will be removed in a future version.\n'
-        'Get in touch if you still use it: ned@nedbatchelder.com\n'
+        'INTERCEPTED check/pytest --cov\n'
         'No data to report.\n'
         'INTERCEPTED '
         'python dev_tools/check_incremental_coverage_annotations.py main\n'
@@ -388,10 +385,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     )
     assert result.returncode == 0
     assert result.stdout == (
-        'INTERCEPTED check/pytest '
-        '--cov --cov-config=dev_tools/conf/.coveragerc\n'
-        'The annotate command will be removed in a future version.\n'
-        'Get in touch if you still use it: ned@nedbatchelder.com\n'
+        'INTERCEPTED check/pytest --cov\n'
         'No data to report.\n'
         'INTERCEPTED '
         'python dev_tools/check_incremental_coverage_annotations.py origin/main\n'
@@ -406,10 +400,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     )
     assert result.returncode == 0
     assert result.stdout == (
-        'INTERCEPTED check/pytest '
-        '--cov --cov-config=dev_tools/conf/.coveragerc\n'
-        'The annotate command will be removed in a future version.\n'
-        'Get in touch if you still use it: ned@nedbatchelder.com\n'
+        'INTERCEPTED check/pytest --cov\n'
         'No data to report.\n'
         'INTERCEPTED '
         'python dev_tools/check_incremental_coverage_annotations.py upstream/main\n'
@@ -424,10 +415,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     )
     assert result.returncode == 0
     assert result.stdout == (
-        'INTERCEPTED check/pytest '
-        '--cov --cov-config=dev_tools/conf/.coveragerc\n'
-        'The annotate command will be removed in a future version.\n'
-        'Get in touch if you still use it: ned@nedbatchelder.com\n'
+        'INTERCEPTED check/pytest --cov\n'
         'No data to report.\n'
         'INTERCEPTED '
         'python dev_tools/check_incremental_coverage_annotations.py upstream/main\n'
@@ -454,10 +442,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     )
     assert result.returncode == 0
     assert result.stdout == (
-        'INTERCEPTED check/pytest '
-        '--cov --cov-config=dev_tools/conf/.coveragerc\n'
-        'The annotate command will be removed in a future version.\n'
-        'Get in touch if you still use it: ned@nedbatchelder.com\n'
+        'INTERCEPTED check/pytest --cov\n'
         'No data to report.\n'
         'INTERCEPTED '
         'python dev_tools/check_incremental_coverage_annotations.py HEAD\n'
@@ -472,10 +457,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     )
     assert result.returncode == 0
     assert result.stdout == (
-        'INTERCEPTED check/pytest '
-        '--cov --cov-config=dev_tools/conf/.coveragerc\n'
-        'The annotate command will be removed in a future version.\n'
-        'Get in touch if you still use it: ned@nedbatchelder.com\n'
+        'INTERCEPTED check/pytest --cov\n'
         'No data to report.\n'
         'INTERCEPTED '
         'python dev_tools/check_incremental_coverage_annotations.py main\n'
@@ -497,10 +479,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     )
     assert result.returncode == 0
     assert result.stdout.startswith(
-        'INTERCEPTED check/pytest '
-        '--cov --cov-config=dev_tools/conf/.coveragerc\n'
-        'The annotate command will be removed in a future version.\n'
-        'Get in touch if you still use it: ned@nedbatchelder.com\n'
+        'INTERCEPTED check/pytest --cov\n'
         'No data to report.\n'
         'INTERCEPTED '
         'python dev_tools/check_incremental_coverage_annotations.py '
@@ -597,9 +576,12 @@ def test_incremental_format_branch_selection(tmpdir_factory):
         'git checkout -q alt\n'
         'echo " print(1)" > alt.py\n'
         'git add -A\n'
-        'git commit -q -m test3 --no-gpg-sign\n',
+        'git commit -q -m test3 --no-gpg-sign\n'
+        'export CI=true\n',
+        additional_intercepts=['isort'],
     )
     assert result.returncode == 0
+    assert 'INTERCEPTED isort --color --check --diff alt.py' in result.stdout
     assert 'INTERCEPTED black --color --check --diff alt.py' in result.stdout
     assert result.stderr.startswith("Comparing against revision 'main' (merge base ")
 

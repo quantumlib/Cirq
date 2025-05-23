@@ -13,12 +13,19 @@
 # limitations under the License.
 
 """Utilities for manipulating linear operators as elements of vector space."""
-from typing import Dict, Tuple
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
+import sympy
 
 from cirq import value
 from cirq._doc import document
+
+if TYPE_CHECKING:
+    import cirq
 
 PAULI_BASIS = {
     'I': np.eye(2),
@@ -29,7 +36,7 @@ PAULI_BASIS = {
 document(PAULI_BASIS, """The four Pauli matrices (including identity) keyed by character.""")
 
 
-def kron_bases(*bases: Dict[str, np.ndarray], repeat: int = 1) -> Dict[str, np.ndarray]:
+def kron_bases(*bases: dict[str, np.ndarray], repeat: int = 1) -> dict[str, np.ndarray]:
     """Creates tensor product of bases."""
     product_basis = {'': np.array([[1]])}
     for basis in bases * repeat:
@@ -50,7 +57,7 @@ def hilbert_schmidt_inner_product(m1: np.ndarray, m2: np.ndarray) -> complex:
 
 
 def expand_matrix_in_orthogonal_basis(
-    m: np.ndarray, basis: Dict[str, np.ndarray]
+    m: np.ndarray, basis: dict[str, np.ndarray]
 ) -> value.LinearDict[str]:
     """Computes coefficients of expansion of m in basis.
 
@@ -67,19 +74,25 @@ def expand_matrix_in_orthogonal_basis(
 
 
 def matrix_from_basis_coefficients(
-    expansion: value.LinearDict[str], basis: Dict[str, np.ndarray]
+    expansion: value.LinearDict[str], basis: dict[str, np.ndarray]
 ) -> np.ndarray:
     """Computes linear combination of basis vectors with given coefficients."""
     some_element = next(iter(basis.values()))
     result = np.zeros_like(some_element, dtype=np.complex128)
     for name, coefficient in expansion.items():
-        result += coefficient * basis[name]
+        result += complex(coefficient) * basis[name]
     return result
 
 
 def pow_pauli_combination(
-    ai: value.Scalar, ax: value.Scalar, ay: value.Scalar, az: value.Scalar, exponent: int
-) -> Tuple[value.Scalar, value.Scalar, value.Scalar, value.Scalar]:
+    ai: cirq.TParamValComplex,
+    ax: cirq.TParamValComplex,
+    ay: cirq.TParamValComplex,
+    az: cirq.TParamValComplex,
+    exponent: int,
+) -> tuple[
+    cirq.TParamValComplex, cirq.TParamValComplex, cirq.TParamValComplex, cirq.TParamValComplex
+]:
     """Computes non-negative integer power of single-qubit Pauli combination.
 
     Returns scalar coefficients bi, bx, by, bz such that
@@ -96,7 +109,10 @@ def pow_pauli_combination(
     if exponent == 0:
         return 1, 0, 0, 0
 
-    v = np.sqrt(ax * ax + ay * ay + az * az).item()
+    if any(isinstance(a, sympy.Basic) for a in [ax, ay, az]):
+        v = sympy.sqrt(ax * ax + ay * ay + az * az)
+    else:
+        v = np.sqrt(ax * ax + ay * ay + az * az).item()
     s = (ai + v) ** exponent
     t = (ai - v) ** exponent
 

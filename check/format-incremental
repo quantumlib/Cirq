@@ -46,7 +46,7 @@ for arg in "$@"; do
     elif [[ "${arg}" == "--all" ]]; then
         only_changed=0
     elif [ -z "${rev}" ]; then
-        if [ "$(git cat-file -t "${arg}" 2> /dev/null)" != "commit" ]; then
+        if ! git rev-parse --verify --quiet --no-revs "${arg}^{commit}"; then
             echo -e "\033[31mNo revision '${arg}'.\033[0m" >&2
             exit 1
         fi
@@ -57,7 +57,7 @@ for arg in "$@"; do
     fi
 done
 
-typeset -a format_files
+declare -a format_files=()
 if (( only_changed == 1 )); then
     # Figure out which branch to compare against.
     if [ -z "${rev}" ]; then
@@ -82,7 +82,8 @@ if (( only_changed == 1 )); then
 
     # Get the modified, added and moved python files.
     IFS=$'\n' read -r -d '' -a format_files < \
-        <(git diff --name-only --diff-filter=MAR "${rev}" -- '*.py' ':(exclude)cirq-google/cirq_google/cloud/*' ':(exclude)*_pb2.py')
+        <(git diff --name-only --diff-filter=MAR "${rev}" -- \
+        '*.py' ':(exclude)*_pb2.py')
 else
     echo -e "Formatting all python files." >&2
     IFS=$'\n' read -r -d '' -a format_files < \
@@ -90,15 +91,44 @@ else
 fi
 
 if (( ${#format_files[@]} == 0 )); then
-    echo -e "\033[32mNo files to format\033[0m."
+    echo -e "\033[32mNo files to format.\033[0m"
     exit 0
 fi
 
-BLACKVERSION="$(black --version)"
+# Exclude __init__.py files from isort targets
+declare -a isort_files=()
+for f in "${format_files[@]}"; do
+    if [[ "${f##*/}" != __init__.py ]]; then
+        isort_files+=("${f}")
+    fi
+done
+
+# Color the output if it goes to a terminal or GitHub Actions log
+arg_color=()
+if [[ -t 1 || "${CI}" == true ]]; then
+    arg_color=("--color")
+fi
+
+ISORTVERSION="$(isort --version-number)"
+
+echo "Sorting imports with isort... (version: $ISORTVERSION)"
+
+args=("${arg_color[@]}")
+if (( only_print == 1 )); then
+    args+=("--check" "--diff")
+fi
+
+ISORTSTATUS=0
+if (( "${#isort_files[@]}" )); then
+    isort "${args[@]}" "${isort_files[@]}"
+    ISORTSTATUS=$?
+fi
+
+BLACKVERSION="$(black --version | head -1)"
 
 echo "Running the black formatter... (version: $BLACKVERSION)"
 
-args=("--color")
+args=("${arg_color[@]}")
 if (( only_print == 1 )); then
     args+=("--check" "--diff")
 fi
@@ -106,7 +136,7 @@ fi
 black "${args[@]}" "${format_files[@]}"
 BLACKSTATUS=$?
 
-if [[ "$BLACKSTATUS" != "0"  ]]; then
+if (( BLACKSTATUS || ISORTSTATUS )); then
   exit 1
 fi
 exit 0

@@ -11,17 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Abstract classes for simulations which keep track of state vector."""
 
+from __future__ import annotations
+
 import abc
+import warnings
 from functools import cached_property
-from typing import Any, Dict, Iterator, Sequence, Type, TYPE_CHECKING, Generic, TypeVar
+from typing import Any, Generic, Iterator, Sequence, TYPE_CHECKING, TypeVar
 
 import numpy as np
 
-from cirq import _compat, ops, value, qis
-from cirq.sim import simulator, state_vector, simulator_base
+from cirq import _compat, ops, qis, value
 from cirq.protocols import qid_shape
+from cirq.sim import simulator, simulator_base, state_vector
 
 if TYPE_CHECKING:
     import cirq
@@ -46,9 +50,9 @@ class SimulatesIntermediateStateVector(
     def __init__(
         self,
         *,
-        dtype: Type[np.complexfloating] = np.complex64,
-        noise: 'cirq.NOISE_MODEL_LIKE' = None,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        dtype: type[np.complexfloating] = np.complex64,
+        noise: cirq.NOISE_MODEL_LIKE = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         split_untangled_states: bool = False,
     ):
         super().__init__(
@@ -57,20 +61,20 @@ class SimulatesIntermediateStateVector(
 
     def _create_simulator_trial_result(
         self,
-        params: 'cirq.ParamResolver',
-        measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]',
-    ) -> 'cirq.StateVectorTrialResult':
+        params: cirq.ParamResolver,
+        measurements: dict[str, np.ndarray],
+        final_simulator_state: cirq.SimulationStateBase[cirq.StateVectorSimulationState],
+    ) -> cirq.StateVectorTrialResult:
         return StateVectorTrialResult(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
 
     def compute_amplitudes_sweep_iter(
         self,
-        program: 'cirq.AbstractCircuit',
+        program: cirq.AbstractCircuit,
         bitstrings: Sequence[int],
-        params: 'cirq.Sweepable',
-        qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+        params: cirq.Sweepable,
+        qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ) -> Iterator[Sequence[complex]]:
         if isinstance(bitstrings, np.ndarray) and len(bitstrings.shape) > 1:
             raise ValueError(
@@ -111,9 +115,9 @@ class StateVectorTrialResult(
 
     def __init__(
         self,
-        params: 'cirq.ParamResolver',
-        measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]',
+        params: cirq.ParamResolver,
+        measurements: dict[str, np.ndarray],
+        final_simulator_state: cirq.SimulationStateBase[cirq.StateVectorSimulationState],
     ) -> None:
         super().__init__(
             params=params,
@@ -124,7 +128,20 @@ class StateVectorTrialResult(
 
     @cached_property
     def final_state_vector(self) -> np.ndarray:
-        return self._get_merged_sim_state().target_tensor.reshape(-1)
+        ret = self._get_merged_sim_state().target_tensor.reshape(-1)
+        norm = np.linalg.norm(ret)
+        if abs(norm - 1) > np.sqrt(np.finfo(ret.dtype).eps):
+            warnings.warn(
+                f"final state vector's {norm=} is too far from 1,"
+                f" {abs(norm-1)} > {np.sqrt(np.finfo(ret.dtype).eps)}."
+                "skipping renormalization"
+            )
+            return ret
+        # normalize only if doing so improves the round-off on total probability
+        ret_norm = ret / norm
+        round_off_change = abs(np.vdot(ret_norm, ret_norm) - 1) - abs(np.vdot(ret, ret) - 1)
+        result = ret_norm if round_off_change < 0 else ret
+        return result
 
     def state_vector(self, copy: bool = False) -> np.ndarray:
         """Return the state vector at the end of the computation.

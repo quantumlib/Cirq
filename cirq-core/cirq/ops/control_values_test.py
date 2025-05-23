@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import cirq
+from __future__ import annotations
+
 import pytest
+
+import cirq
 
 
 def test_init_sum_of_products_raises():

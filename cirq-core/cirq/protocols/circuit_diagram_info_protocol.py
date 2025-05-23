@@ -12,20 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import re
 from fractions import Fraction
-from typing import (
-    Any,
-    TYPE_CHECKING,
-    Optional,
-    Union,
-    TypeVar,
-    Dict,
-    overload,
-    Iterable,
-    List,
-    Sequence,
-)
+from typing import Any, Iterable, overload, Sequence, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
 import sympy
@@ -50,7 +41,7 @@ class CircuitDiagramInfo:
         wire_symbols: Iterable[str],
         exponent: Any = 1,
         connected: bool = True,
-        exponent_qubit_index: Optional[int] = None,
+        exponent_qubit_index: int | None = None,
         auto_exponent_parens: bool = True,
     ) -> None:
         """Inits CircuitDiagramInfo.
@@ -104,8 +95,8 @@ class CircuitDiagramInfo:
         )
 
     def _wire_symbols_including_formatted_exponent(
-        self, args: 'cirq.CircuitDiagramInfoArgs', *, preferred_exponent_index: Optional[int] = None
-    ) -> List[str]:
+        self, args: cirq.CircuitDiagramInfoArgs, *, preferred_exponent_index: int | None = None
+    ) -> list[str]:
         result = list(self.wire_symbols)
         exponent = self._formatted_exponent(args)
         if exponent is not None:
@@ -122,7 +113,7 @@ class CircuitDiagramInfo:
                 result[k] += f"^{exponent}"
         return result
 
-    def _formatted_exponent(self, args: 'cirq.CircuitDiagramInfoArgs') -> Optional[str]:
+    def _formatted_exponent(self, args: cirq.CircuitDiagramInfoArgs) -> str | None:
         if protocols.is_parameterized(self.exponent):
             name = str(self.exponent)
             return f'({name})' if _is_exposed_formula(name) else name
@@ -195,15 +186,15 @@ class CircuitDiagramInfoArgs:
             right (transpose is False), or from top to bottom.
     """
 
-    UNINFORMED_DEFAULT: 'CircuitDiagramInfoArgs'
+    UNINFORMED_DEFAULT: CircuitDiagramInfoArgs
 
     def __init__(
         self,
-        known_qubits: Optional[Iterable['cirq.Qid']],
-        known_qubit_count: Optional[int],
+        known_qubits: Iterable[cirq.Qid] | None,
+        known_qubit_count: int | None,
         use_unicode_characters: bool,
-        precision: Optional[int],
-        label_map: Optional[Dict['cirq.LabelEntity', int]],
+        precision: int | None,
+        label_map: dict[cirq.LabelEntity, int] | None,
         include_tags: bool = True,
         transpose: bool = False,
     ) -> None:
@@ -221,9 +212,11 @@ class CircuitDiagramInfoArgs:
             self.known_qubit_count,
             self.use_unicode_characters,
             self.precision,
-            None
-            if self.label_map is None
-            else tuple(sorted(self.label_map.items(), key=lambda e: e[0])),
+            (
+                None
+                if self.label_map is None
+                else tuple(sorted(self.label_map.items(), key=lambda e: e[0]))
+            ),
             self.include_tags,
             self.transpose,
         )
@@ -240,7 +233,7 @@ class CircuitDiagramInfoArgs:
             f'transpose={self.transpose!r})'
         )
 
-    def format_real(self, val: Union[sympy.Basic, int, float]) -> str:
+    def format_real(self, val: sympy.Basic | int | float) -> str:
         if isinstance(val, sympy.Basic):
             return str(val)
         if val == int(val):
@@ -249,7 +242,7 @@ class CircuitDiagramInfoArgs:
             return str(val)
         return f'{float(val):.{self.precision}}'
 
-    def format_complex(self, val: Union[sympy.Basic, int, float, 'cirq.TParamValComplex']) -> str:
+    def format_complex(self, val: sympy.Basic | int | float | cirq.TParamValComplex) -> str:
         if isinstance(val, sympy.Basic):
             return str(val)
         c = complex(val)
@@ -261,7 +254,7 @@ class CircuitDiagramInfoArgs:
         imag_str = '' if abs_imag == 1 else self.format_real(abs_imag)
         return f'{self.format_real(c.real)}{joiner}{imag_str}i'
 
-    def format_radians(self, radians: Union[sympy.Basic, int, float]) -> str:
+    def format_radians(self, radians: sympy.Basic | int | float) -> str:
         """Returns angle in radians as a human-readable string."""
         if protocols.is_parameterized(radians):
             return str(radians)
@@ -275,6 +268,8 @@ class CircuitDiagramInfoArgs:
         if self.precision is not None and not isinstance(radians, sympy.Basic):
             quantity = self.format_real(radians / np.pi)
             return quantity + unit
+        if isinstance(radians, np.number):
+            return str(radians)
         return repr(radians)
 
     def copy(self):
@@ -310,7 +305,7 @@ class SupportsCircuitDiagramInfo(Protocol):
     @doc_private
     def _circuit_diagram_info_(
         self, args: CircuitDiagramInfoArgs
-    ) -> Union[str, Iterable[str], CircuitDiagramInfo]:
+    ) -> str | Iterable[str] | CircuitDiagramInfo:
         """Describes how to draw an operation in a circuit diagram.
 
         This method is used by the global `cirq.diagram_info` method. If this
@@ -332,13 +327,13 @@ RaiseTypeErrorIfNotProvided = CircuitDiagramInfo(())
 
 
 def _op_info_with_fallback(
-    op: 'cirq.Operation', args: 'cirq.CircuitDiagramInfoArgs'
-) -> 'cirq.CircuitDiagramInfo':
+    op: cirq.Operation, args: cirq.CircuitDiagramInfoArgs
+) -> cirq.CircuitDiagramInfo:
     info = protocols.circuit_diagram_info(op, args, None)
-    rows: List[LabelEntity] = list(op.qubits)
+    rows: list[LabelEntity] = list(op.qubits)
     if args.label_map is not None:
         rows += protocols.measurement_keys_touched(op) & args.label_map.keys()
-    if info is not None:
+    if info is not None and info.wire_symbols:
         if max(1, len(rows)) != len(info.wire_symbols):
             raise ValueError(f'Wanted diagram info from {op!r} for {rows!r}) but got {info!r}')
         return info
@@ -354,7 +349,7 @@ def _op_info_with_fallback(
 
     # Add tags onto the representation, if they exist
     if op.tags:
-        name += f'{list(op.tags)}'
+        name += f"[{', '.join(map(str, op.tags))}]"
 
     # Include ordering in the qubit labels.
     symbols = (name,) + tuple(f'#{i + 1}' for i in range(1, len(op.qubits)))
@@ -365,25 +360,25 @@ def _op_info_with_fallback(
 # pylint: disable=function-redefined
 @overload
 def circuit_diagram_info(
-    val: Any, args: Optional[CircuitDiagramInfoArgs] = None
+    val: Any, args: CircuitDiagramInfoArgs | None = None
 ) -> CircuitDiagramInfo:
     pass
 
 
 @overload
 def circuit_diagram_info(
-    val: Any, args: Optional[CircuitDiagramInfoArgs], default: TDefault
-) -> Union[CircuitDiagramInfo, TDefault]:
+    val: Any, args: CircuitDiagramInfoArgs | None, default: TDefault
+) -> CircuitDiagramInfo | TDefault:
     pass
 
 
 @overload
-def circuit_diagram_info(val: Any, *, default: TDefault) -> Union[CircuitDiagramInfo, TDefault]:
+def circuit_diagram_info(val: Any, *, default: TDefault) -> CircuitDiagramInfo | TDefault:
     pass
 
 
 def circuit_diagram_info(
-    val: Any, args: Optional[CircuitDiagramInfoArgs] = None, default=RaiseTypeErrorIfNotProvided
+    val: Any, args: CircuitDiagramInfoArgs | None = None, default=RaiseTypeErrorIfNotProvided
 ):
     """Requests information on drawing an operation in a circuit diagram.
 

@@ -14,15 +14,18 @@
 
 """Defines which types are Sweepable."""
 
-from typing import Iterable, Iterator, List, Sequence, Union, cast
+from __future__ import annotations
+
 import warnings
+from typing import cast, Iterable, Iterator, Sequence
+
 from typing_extensions import Protocol
 
 from cirq._doc import document
 from cirq.study.resolver import ParamResolver, ParamResolverOrSimilarType
-from cirq.study.sweeps import ListSweep, Points, Sweep, UnitSweep, Zip, dict_to_product_sweep
+from cirq.study.sweeps import dict_to_product_sweep, ListSweep, Points, Sweep, UnitSweep, Zip
 
-SweepLike = Union[ParamResolverOrSimilarType, Sweep]
+SweepLike = ParamResolverOrSimilarType | Sweep
 document(SweepLike, """An object similar to an iterable of parameter resolvers.""")
 
 
@@ -30,11 +33,11 @@ class _Sweepable(Protocol):
     """An intermediate class allowing for recursive definition of Sweepable,
     since recursive union definitions are not yet supported in mypy."""
 
-    def __iter__(self) -> Iterator[Union[SweepLike, '_Sweepable']]:
+    def __iter__(self) -> Iterator[SweepLike | _Sweepable]:
         pass
 
 
-Sweepable = Union[SweepLike, _Sweepable]
+Sweepable = SweepLike | _Sweepable
 document(Sweepable, """An object or collection of objects representing a parameter sweep.""")
 
 
@@ -44,12 +47,12 @@ def to_resolvers(sweepable: Sweepable) -> Iterator[ParamResolver]:
         yield from sweep
 
 
-def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
+def to_sweeps(sweepable: Sweepable, metadata: dict | None = None) -> list[Sweep]:
     """Converts a Sweepable to a list of Sweeps."""
     if sweepable is None:
         return [UnitSweep]
     if isinstance(sweepable, ParamResolver):
-        return [_resolver_to_sweep(sweepable)]
+        return [_resolver_to_sweep(sweepable, metadata)]
     if isinstance(sweepable, Sweep):
         return [sweepable]
     if isinstance(sweepable, dict):
@@ -63,17 +66,17 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
                 stacklevel=2,
             )
         product_sweep = dict_to_product_sweep(sweepable)
-        return [_resolver_to_sweep(resolver) for resolver in product_sweep]
+        return [_resolver_to_sweep(resolver, metadata) for resolver in product_sweep]
     if isinstance(sweepable, Iterable) and not isinstance(sweepable, str):
-        return [sweep for item in sweepable for sweep in to_sweeps(item)]  # type: ignore[arg-type]
+        return [sweep for item in sweepable for sweep in to_sweeps(item, metadata)]
     raise TypeError(f'Unrecognized sweepable type: {type(sweepable)}.\nsweepable: {sweepable}')
 
 
 def to_sweep(
-    sweep_or_resolver_list: Union[
-        'Sweep', ParamResolverOrSimilarType, Iterable[ParamResolverOrSimilarType]
-    ]
-) -> 'Sweep':
+    sweep_or_resolver_list: (
+        Sweep | ParamResolverOrSimilarType | Iterable[ParamResolverOrSimilarType]
+    ),
+) -> Sweep:
     """Converts the argument into a ``cirq.Sweep``.
 
     Args:
@@ -98,8 +101,13 @@ def to_sweep(
     raise TypeError(f'Unexpected sweep-like value: {sweep_or_resolver_list}')
 
 
-def _resolver_to_sweep(resolver: ParamResolver) -> Sweep:
+def _resolver_to_sweep(resolver: ParamResolver, metadata: dict | None) -> Sweep:
     params = resolver.param_dict
     if not params:
         return UnitSweep
-    return Zip(*[Points(key, [cast(float, value)]) for key, value in params.items()])
+    return Zip(
+        *[
+            Points(key, [cast(float, value)], metadata=metadata.get(key) if metadata else None)
+            for key, value in params.items()
+        ]
+    )

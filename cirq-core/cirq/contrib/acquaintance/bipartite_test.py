@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
 
 import pytest
 
 import cirq
 import cirq.contrib.acquaintance as cca
-
 
 circuit_diagrams = {
     (
@@ -340,3 +341,14 @@ def test_decomposition_permutation_consistency(part_size, subgraph):
     cca.update_mapping(mapping, gate._decompose_(qubits))
     permutation = gate.permutation()
     assert {qubits[i]: j for i, j in permutation.items()} == mapping
+
+
+def test_bad_number_of_qubits():
+    gate = cca.BipartiteSwapNetworkGate(cca.BipartiteGraphType.COMPLETE, 6)
+    qubits = cirq.LineQubit.range(6)
+    mapping = {q: i for i, q in enumerate(qubits)}
+    with pytest.raises(ValueError, match='len'):
+        cca.update_mapping(mapping, gate._decompose_(qubits))
+    gate.part_size = 5
+    with pytest.raises(ValueError, match='qubit_count'):
+        gate.permutation()

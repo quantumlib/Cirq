@@ -13,6 +13,9 @@
 # limitations under the License.
 
 """Workarounds for compatibility issues between versions and libraries."""
+
+from __future__ import annotations
+
 import contextlib
 import contextvars
 import dataclasses
@@ -25,7 +28,7 @@ import sys
 import traceback
 import warnings
 from types import ModuleType
-from typing import Any, Callable, Dict, Iterator, Optional, overload, Set, Tuple, Type, TypeVar
+from typing import Any, Callable, Iterator, overload, TypeVar
 
 import numpy as np
 import pandas as pd
@@ -69,16 +72,14 @@ TFunc = TypeVar('TFunc', bound=Callable)
 
 
 @overload
-def cached_method(__func: TFunc) -> TFunc:
-    ...
+def cached_method(__func: TFunc) -> TFunc: ...
 
 
 @overload
-def cached_method(*, maxsize: int = 128) -> Callable[[TFunc], TFunc]:
-    ...
+def cached_method(*, maxsize: int = 128) -> Callable[[TFunc], TFunc]: ...
 
 
-def cached_method(method: Optional[TFunc] = None, *, maxsize: int = 128) -> Any:
+def cached_method(method: TFunc | None = None, *, maxsize: int = 128) -> Any:
     """Decorator that adds a per-instance LRU cache for a method.
 
     Can be applied with or without parameters to customize the underlying cache:
@@ -153,6 +154,12 @@ def proper_repr(value: Any) -> str:
             'StrictLessThan',
             'Equality',
             'Unequality',
+            'And',
+            'Or',
+            'Not',
+            'Xor',
+            'Indexed',
+            'IndexedBase',
         ]
 
         class Printer(sympy.printing.repr.ReprPrinter):
@@ -188,11 +195,14 @@ def proper_repr(value: Any) -> str:
             f'\n)'
         )
 
-    if isinstance(value, Dict):
+    if isinstance(value, dict):
         return '{' + ','.join(f"{proper_repr(k)}: {proper_repr(v)}" for k, v in value.items()) + '}'
 
     if hasattr(value, "__qualname__"):
         return f"{value.__module__}.{value.__qualname__}"
+
+    if isinstance(value, np.number):
+        return str(value)
 
     return repr(value)
 
@@ -278,7 +288,7 @@ def _validate_deadline(deadline: str):
 
 
 def deprecated(
-    *, deadline: str, fix: str, name: Optional[str] = None
+    *, deadline: str, fix: str, name: str | None = None
 ) -> Callable[[Callable], Callable]:
     """Marks a function as deprecated.
 
@@ -319,9 +329,7 @@ def deprecated(
     return decorator
 
 
-def deprecated_class(
-    *, deadline: str, fix: str, name: Optional[str] = None
-) -> Callable[[Type], Type]:
+def deprecated_class(*, deadline: str, fix: str, name: str | None = None) -> Callable[[type], type]:
     """Marks a class as deprecated.
 
     Args:
@@ -338,7 +346,7 @@ def deprecated_class(
 
     _validate_deadline(deadline)
 
-    def decorator(clazz: Type) -> Type:
+    def decorator(clazz: type) -> type:
         clazz_new = clazz.__new__
 
         def patched_new(cls, *args, **kwargs):
@@ -368,12 +376,12 @@ def deprecated_parameter(
     *,
     deadline: str,
     fix: str,
-    func_name: Optional[str] = None,
+    func_name: str | None = None,
     parameter_desc: str,
-    match: Callable[[Tuple[Any, ...], Dict[str, Any]], bool],
-    rewrite: Optional[
-        Callable[[Tuple[Any, ...], Dict[str, Any]], Tuple[Tuple[Any, ...], Dict[str, Any]]]
-    ] = None,
+    match: Callable[[tuple[Any, ...], dict[str, Any]], bool],
+    rewrite: (
+        Callable[[tuple[Any, ...], dict[str, Any]], tuple[tuple[Any, ...], dict[str, Any]]] | None
+    ) = None,
 ) -> Callable[[Callable], Callable]:
     """Marks a function parameter as deprecated.
 
@@ -437,7 +445,7 @@ def deprecated_parameter(
     return decorator
 
 
-def deprecate_attributes(module_name: str, deprecated_attributes: Dict[str, Tuple[str, str]]):
+def deprecate_attributes(module_name: str, deprecated_attributes: dict[str, tuple[str, str]]):
     """Replace module with a wrapper that gives warnings for deprecated attributes.
 
     Args:
@@ -527,7 +535,7 @@ class DeprecatedModuleLoader(importlib.abc.Loader):
                 sys.modules[self.old_module_name] = sys.modules[self.new_module_name]
                 return sys.modules[self.old_module_name]
             method(self.new_module_name)
-            # https://docs.python.org/3.5/library/importlib.html#importlib.abc.Loader.load_module
+            # https://docs.python.org/3.11/library/importlib.html#importlib.abc.Loader.load_module
             assert self.new_module_name in sys.modules, (
                 f"Wrapped loader {self.loader} was "
                 f"expected to insert "
@@ -576,7 +584,7 @@ def _is_internal(filename: str) -> bool:
     return 'importlib' in filename and '_bootstrap' in filename
 
 
-_warned: Set[str] = set()
+_warned: set[str] = set()
 
 
 def _called_from_test() -> bool:
@@ -625,7 +633,7 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
         new_module_name: str,
         old_module_name: str,
         deadline: str,
-        broken_module_exception: Optional[BaseException],
+        broken_module_exception: BaseException | None,
     ):
         """An aliasing module finder that uses existing module finders to find a python
         module spec and intercept the execution of matching modules.
@@ -753,7 +761,7 @@ def _setup_deprecated_submodule_attribute(
     old_parent: str,
     old_child: str,
     deadline: str,
-    new_module: Optional[ModuleType],
+    new_module: ModuleType | None,
 ):
     parent_module = sys.modules[old_parent]
     setattr(parent_module, old_child, new_module)

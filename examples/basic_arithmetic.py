@@ -86,6 +86,7 @@ Execute Multiplier
 011 * 011 = 001
 """
 
+from __future__ import annotations
 
 import cirq
 

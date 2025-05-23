@@ -1,4 +1,7 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
+from __future__ import annotations
+
 import random
 
 import numpy as np
@@ -32,6 +35,30 @@ def test_eq():
     eq.add_equality_group(cirq.PhasedXPowGate(exponent=0.25, phase_exponent=0.75))
     eq.add_equality_group(cirq.X)
     eq.add_equality_group(cirq.PhasedXZGate(x_exponent=1, z_exponent=0, axis_phase_exponent=0))
+
+
+@pytest.mark.parametrize('z0_rad', [-np.pi / 5, 0, np.pi / 5, np.pi / 4, np.pi / 2, np.pi])
+@pytest.mark.parametrize('y_rad', [0, np.pi / 5, np.pi / 4, np.pi / 2, np.pi])
+@pytest.mark.parametrize('z1_rad', [-np.pi / 5, 0, np.pi / 5, np.pi / 4, np.pi / 2, np.pi])
+def test_from_zyz_angles(z0_rad: float, y_rad: float, z1_rad: float) -> None:
+    q = cirq.q(0)
+    phxz = cirq.PhasedXZGate.from_zyz_angles(z0_rad, y_rad, z1_rad)
+    zyz = cirq.Circuit(cirq.rz(z0_rad).on(q), cirq.ry(y_rad).on(q), cirq.rz(z1_rad).on(q))
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.unitary(phxz), cirq.unitary(zyz), atol=1e-8
+    )
+
+
+@pytest.mark.parametrize('z0', [-0.2, 0, 0.2, 0.25, 0.5, 1])
+@pytest.mark.parametrize('y', [0, 0.2, 0.25, 0.5, 1])
+@pytest.mark.parametrize('z1', [-0.2, 0, 0.2, 0.25, 0.5, 1])
+def test_from_zyz_exponents(z0: float, y: float, z1: float) -> None:
+    q = cirq.q(0)
+    phxz = cirq.PhasedXZGate.from_zyz_exponents(z0, y, z1)
+    zyz = cirq.Circuit(cirq.Z(q) ** z0, cirq.Y(q) ** y, cirq.Z(q) ** z1)
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.unitary(phxz), cirq.unitary(zyz), atol=1e-8
+    )
 
 
 def test_canonicalization():

@@ -12,28 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import overload, TYPE_CHECKING, Union
+from __future__ import annotations
+
+from typing import overload, TYPE_CHECKING
 
 if TYPE_CHECKING:
     import cirq
 
 
 @overload
-def q(__x: int) -> 'cirq.LineQubit':
-    ...
+def q(__x: int) -> cirq.LineQubit: ...
 
 
 @overload
-def q(__row: int, __col: int) -> 'cirq.GridQubit':
-    ...
+def q(__row: int, __col: int) -> cirq.GridQubit: ...
 
 
 @overload
-def q(__name: str) -> 'cirq.NamedQubit':
-    ...
+def q(__name: str) -> cirq.NamedQubit: ...
 
 
-def q(*args: Union[int, str]) -> Union['cirq.LineQubit', 'cirq.GridQubit', 'cirq.NamedQubit']:
+def q(*args: int | str) -> cirq.LineQubit | cirq.GridQubit | cirq.NamedQubit:
     """Constructs a qubit id of the appropriate type based on args.
 
     This is shorthand for constructing qubit ids of common types:
@@ -44,8 +43,7 @@ def q(*args: Union[int, str]) -> Union['cirq.LineQubit', 'cirq.GridQubit', 'cirq
     >>> cirq.q("foo") == cirq.NamedQubit("foo")
     True
 
-    Note that arguments should be treated as positional only, even
-    though this is only enforceable in python 3.8 or later.
+    Note that arguments should be treated as positional only.
 
     Args:
         *args: One or two ints, or a single str, as described above.

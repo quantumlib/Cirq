@@ -11,13 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Utility methods for checking properties of matrices."""
-from typing import cast, List, Optional, Sequence, Union, Tuple
+
+from __future__ import annotations
+
+from types import EllipsisType
+from typing import cast, Sequence
 
 import numpy as np
 
-from cirq.linalg import tolerance, transformations
 from cirq import value
+from cirq.linalg import tolerance, transformations
 
 
 def is_diagonal(matrix: np.ndarray, *, atol: float = 1e-8) -> bool:
@@ -91,9 +96,10 @@ def is_special_orthogonal(matrix: np.ndarray, *, rtol: float = 1e-5, atol: float
     Returns:
         Whether the matrix is special orthogonal within the given tolerance.
     """
-    return is_orthogonal(matrix, rtol=rtol, atol=atol) and (
-        matrix.shape[0] == 0 or np.allclose(np.linalg.det(matrix), 1, rtol=rtol, atol=atol)
-    )
+    with np.errstate(divide="ignore", invalid="ignore"):
+        return is_orthogonal(matrix, rtol=rtol, atol=atol) and (
+            matrix.shape[0] == 0 or np.allclose(np.linalg.det(matrix), 1, rtol=rtol, atol=atol)
+        )
 
 
 def is_unitary(matrix: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8) -> bool:
@@ -128,9 +134,10 @@ def is_special_unitary(matrix: np.ndarray, *, rtol: float = 1e-5, atol: float = 
         Whether the matrix is unitary with unit determinant within the given
         tolerance.
     """
-    return is_unitary(matrix, rtol=rtol, atol=atol) and (
-        matrix.shape[0] == 0 or np.allclose(np.linalg.det(matrix), 1, rtol=rtol, atol=atol)
-    )
+    with np.errstate(divide="ignore", invalid="ignore"):
+        return is_unitary(matrix, rtol=rtol, atol=atol) and (
+            matrix.shape[0] == 0 or np.allclose(np.linalg.det(matrix), 1, rtol=rtol, atol=atol)
+        )
 
 
 def is_normal(matrix: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8) -> bool:
@@ -224,9 +231,9 @@ def slice_for_qubits_equal_to(
     little_endian_qureg_value: int = 0,
     *,  # Forces keyword args.
     big_endian_qureg_value: int = 0,
-    num_qubits: Optional[int] = None,
-    qid_shape: Optional[Tuple[int, ...]] = None,
-) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
+    num_qubits: int | None = None,
+    qid_shape: tuple[int, ...] | None = None,
+) -> tuple[slice | int | EllipsisType, ...]:
     """Returns an index corresponding to a desired subset of an np.ndarray.
 
     It is assumed that the np.ndarray's shape is of the form (2, 2, 2, ..., 2).
@@ -281,10 +288,10 @@ def slice_for_qubits_equal_to(
     qid_shape_specified = qid_shape is not None
     if qid_shape is not None or num_qubits is not None:
         if num_qubits is None:
-            num_qubits = len(cast(Tuple[int, ...], qid_shape))
+            num_qubits = len(cast(tuple[int, ...], qid_shape))
         elif qid_shape is None:
             qid_shape = (2,) * num_qubits
-        if num_qubits != len(cast(Tuple[int, ...], qid_shape)):
+        if num_qubits != len(cast(tuple[int, ...], qid_shape)):
             raise ValueError('len(qid_shape) != num_qubits')
     if little_endian_qureg_value and big_endian_qureg_value:
         raise ValueError(
@@ -295,7 +302,7 @@ def slice_for_qubits_equal_to(
     out_size = (
         cast(int, num_qubits) if out_size_specified else max(target_qubit_axes, default=-1) + 1
     )
-    result = cast(List[Union[slice, int, 'ellipsis']], [slice(None)] * out_size)
+    result = cast(list[slice | int | EllipsisType], [slice(None)] * out_size)
     if not out_size_specified:
         result.append(Ellipsis)
     if qid_shape is None:
@@ -306,7 +313,7 @@ def slice_for_qubits_equal_to(
     else:
         if little_endian_qureg_value < 0 and not qid_shape_specified:
             # Allow negative binary numbers
-            little_endian_qureg_value &= (1 << len(target_shape)) - 1
+            little_endian_qureg_value &= (1 << len(target_shape)) - 1  # pragma: no cover
         digits = value.big_endian_int_to_digits(little_endian_qureg_value, base=target_shape[::-1])[
             ::-1
         ]

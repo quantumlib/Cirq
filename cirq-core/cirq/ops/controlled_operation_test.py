@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
 import re
-from typing import cast, Tuple, Union
+from types import EllipsisType, NotImplementedType
+from typing import cast
 
 import numpy as np
 import pytest
@@ -22,11 +25,10 @@ import sympy
 
 import cirq
 from cirq import protocols
-from cirq.type_workarounds import NotImplementedType
 
 
 class GateUsingWorkspaceForApplyUnitary(cirq.testing.SingleQubitGate):
-    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray | NotImplementedType:
         args.available_buffer[...] = args.target_tensor
         args.target_tensor[...] = 0
         return args.available_buffer
@@ -45,10 +47,10 @@ class GateAllocatingNewSpaceForResult(cirq.testing.SingleQubitGate):
     def __init__(self):
         self._matrix = cirq.testing.random_unitary(2, random_state=1234)
 
-    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray | NotImplementedType:
         assert len(args.axes) == 1
         a = args.axes[0]
-        seed = cast(Tuple[Union[int, slice, 'ellipsis'], ...], (slice(None),))
+        seed = cast(tuple[int | slice | EllipsisType, ...], (slice(None),))
         zero = seed * a + (0, Ellipsis)
         one = seed * a + (1, Ellipsis)
         result = np.zeros(args.target_tensor.shape, args.target_tensor.dtype)
@@ -155,11 +157,11 @@ def test_str():
 
     class SingleQubitOp(cirq.Operation):
         @property
-        def qubits(self) -> Tuple[cirq.Qid, ...]:
+        def qubits(self) -> tuple[cirq.Qid, ...]:
             return ()
 
         def with_qubits(self, *new_qubits: cirq.Qid):
-            pass
+            return self
 
         def __str__(self):
             return "Op(q2)"
@@ -170,7 +172,11 @@ def test_str():
     assert str(cirq.ControlledOperation([c1, c2], SingleQubitOp())) == "CC(c1, c2, Op(q2))"
 
     assert (
-        str(cirq.ControlledOperation([c1, c2.with_dimension(3)], SingleQubitOp()))
+        str(
+            cirq.ControlledOperation(
+                [c1, c2.with_dimension(3)], SingleQubitOp().with_qubits(cirq.q(1))
+            )
+        )
         == "CC(c1, c2 (d=3), Op(q2))"
     )
 

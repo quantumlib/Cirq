@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import warnings
-from typing import Any, List, Sequence, Optional
+from typing import Any, Sequence
 
 import numpy as np
 
@@ -42,18 +44,24 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
     if isinstance(val, ops.Operation):
         qubits: Sequence[ops.Qid] = val.qubits
         op = val
+        gate = val.gate
     elif isinstance(val, ops.Gate):
         qid_shape = protocols.qid_shape(val)
         remaining_shape = list(qid_shape)
         controls = getattr(val, 'control_qubits', None)
-        if controls is not None:
+        if controls is not None:  # pragma: no cover
             for i, q in zip(reversed(range(len(controls))), reversed(controls)):
                 if q is not None:
                     remaining_shape.pop(i)
         qubits = devices.LineQid.for_qid_shape(remaining_shape)
         op = val.on(*qubits)
+        gate = val
     else:
         raise NotImplementedError(f"Don't know how to test {val!r}")
+
+    if isinstance(gate, ops.GlobalPhaseGate):
+        # OpenQASM 2.0 does not support global phase gates.
+        return
 
     args = protocols.QasmArgs(qubit_id_map={q: f'q[{i}]' for i, q in enumerate(qubits)})
     qasm = protocols.qasm(op, args=args, default=None)
@@ -70,19 +78,17 @@ qreg q[{num_qubits}];
 
     qasm_unitary = None
     try:
-        result = qiskit.execute(
-            qiskit.QuantumCircuit.from_qasm_str(qasm),
-            backend=qiskit.Aer.get_backend('unitary_simulator'),
-        )
-        qasm_unitary = result.result().get_unitary()
+        qc = qiskit.QuantumCircuit.from_qasm_str(qasm)
+        qc.remove_final_measurements()
+        qasm_unitary = qiskit.quantum_info.Operator(qc).data
         qasm_unitary = _reorder_indices_of_matrix(qasm_unitary, list(reversed(range(num_qubits))))
 
         lin_alg_utils.assert_allclose_up_to_global_phase(
             qasm_unitary, unitary, rtol=1e-8, atol=1e-8
         )
     except Exception as ex:
-        p_unitary: Optional[np.ndarray]
-        p_qasm_unitary: Optional[np.ndarray]
+        p_unitary: np.ndarray | None
+        p_qasm_unitary: np.ndarray | None
         if qasm_unitary is not None:
             p_unitary, p_qasm_unitary = linalg.match_global_phase(unitary, qasm_unitary)
         else:
@@ -109,11 +115,9 @@ def assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, unitary):  # pragma:
         return
 
     num_qubits = int(np.log2(len(unitary)))
-    result = qiskit.execute(
-        qiskit.QuantumCircuit.from_qasm_str(qasm),
-        backend=qiskit.Aer.get_backend('unitary_simulator'),
-    )
-    qiskit_unitary = result.result().get_unitary()
+    qc = qiskit.QuantumCircuit.from_qasm_str(qasm)
+    qc.remove_final_measurements()  # no measurements allowed
+    qiskit_unitary = qiskit.quantum_info.Operator(qc).data
     qiskit_unitary = _reorder_indices_of_matrix(qiskit_unitary, list(reversed(range(num_qubits))))
 
     lin_alg_utils.assert_allclose_up_to_global_phase(unitary, qiskit_unitary, rtol=1e-8, atol=1e-8)
@@ -123,7 +127,7 @@ def _indent(*content: str) -> str:
     return '    ' + '\n'.join(content).replace('\n', '\n    ')
 
 
-def _reorder_indices_of_matrix(matrix: np.ndarray, new_order: List[int]):
+def _reorder_indices_of_matrix(matrix: np.ndarray, new_order: list[int]):
     num_qubits = matrix.shape[0].bit_length() - 1
     matrix = np.reshape(matrix, (2,) * 2 * num_qubits)
     all_indices = range(2 * num_qubits)

@@ -1,15 +1,50 @@
 [tool.black]
 line-length = 100
-target_version = ['py39', 'py310', 'py311']
+target_version = ['py311', 'py312', 'py313']
 skip-string-normalization = true
 skip-magic-trailing-comma = true
+extend-exclude = ".*_pb2[.]py[i]?"
+
+
+[tool.coverage.run]
+include = [
+    # Omit files outside the current working directory.
+    # Note: this means coverage must be run from the cirq repo root.
+    # Failure to do so will result in false positives.
+    "./*",
+]
+omit = ["benchmarks/*"]
+
+
+[tool.coverage.report]
+exclude_also = [
+    "^ *pass$",
+    "^ *raise NotImplementedError",
+    "if TYPE_CHECKING:",
+]
+
+
+[tool.isort]
+profile = 'black'
+line_length = 100
+order_by_type = false # Sort alphabetically, irrespective of case.
+skip_gitignore = true
+combine_as_imports = true
+known_first_party = ["cirq*"]
+extend_skip = ["__init__.py"]
+extend_skip_glob = ["*_pb2.py"]
+
 
 [tool.pytest.ini_options]
 filterwarnings = [
     "ignore:Matplotlib is currently using agg:UserWarning",
+    "ignore:FigureCanvasAgg is non-interactive.*cannot be shown:UserWarning",
+    "ignore::UserWarning:cotengra.hyperoptimizers.hyper",
 ]
 markers = [
     "rigetti_integration: tests that connect to Quil compiler or QVM.",
     "slow: slow tests that should be skipped by default.",
     "weekly: tests to be run only by weekly CI automation.",
 ]
+# Silence deprecation warnings about option "asyncio_default_fixture_loop_scope"
+asyncio_default_fixture_loop_scope = "function"

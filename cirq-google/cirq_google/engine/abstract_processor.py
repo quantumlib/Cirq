@@ -18,21 +18,23 @@ requests.  Inheritors of this interface should implement all
 methods.
 """
 
+from __future__ import annotations
+
 import abc
 import datetime
-from typing import Dict, List, Optional, Sequence, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 import duet
 
 import cirq
-from cirq_google.api import v2
-from cirq_google.cloud import quantum
-from cirq_google.engine import calibration
 
 if TYPE_CHECKING:
     import cirq_google as cg
+    import cirq_google.api.v2 as v2
+    import cirq_google.cloud.quantum as quantum
     import cirq_google.engine.abstract_engine as abstract_engine
     import cirq_google.engine.abstract_job as abstract_job
+    import cirq_google.engine.calibration as calibration
     import cirq_google.serialization.serializer as serializer
 
 
@@ -56,22 +58,35 @@ class AbstractProcessor(abc.ABC):
     async def run_async(
         self,
         program: cirq.Circuit,
-        program_id: Optional[str] = None,
-        job_id: Optional[str] = None,
-        param_resolver: Optional[cirq.ParamResolver] = None,
-        repetitions: int = 1,
-        program_description: Optional[str] = None,
-        program_labels: Optional[Dict[str, str]] = None,
-        job_description: Optional[str] = None,
-        job_labels: Optional[Dict[str, str]] = None,
+        *,
+        device_config_name: str,
         run_name: str = "",
-        device_config_name: str = "",
+        snapshot_id: str = "",
+        program_id: str | None = None,
+        job_id: str | None = None,
+        param_resolver: cirq.ParamResolver | None = None,
+        repetitions: int = 1,
+        program_description: str | None = None,
+        program_labels: dict[str, str] | None = None,
+        job_description: str | None = None,
+        job_labels: dict[str, str] | None = None,
     ) -> cirq.Result:
         """Runs the supplied Circuit on this processor.
 
         Args:
             program: The Circuit to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
+            run_name: A unique identifier representing an automation run for the
+                processor. An Automation Run contains a collection of device
+                configurations for the processor. `snapshot_id` and `run_name`
+                should not both be set. Choose one.
+            snapshot_id: A unique identifier for an immutable snapshot reference.
+                A snapshot contains a collection of device configurations for the
+                processor. `snapshot_id` and `run_name` should not both be set.
+                Choose one.
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
             program_id: A user-provided identifier for the program. This must
                 be unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
@@ -87,12 +102,7 @@ class AbstractProcessor(abc.ABC):
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
             job_labels: Optional set of labels to set on the job.
-            run_name: A unique identifier representing an automation run for the
-                processor. An Automation Run contains a collection of device
-                configurations for the processor.
-            device_config_name: An identifier used to select the processor configuration
-                utilized to run the job. A configuration identifies the set of
-                available qubits, couplers, and supported gates in the processor.
+
         Returns:
             A single Result for this run.
         """
@@ -107,6 +117,7 @@ class AbstractProcessor(abc.ABC):
             job_description=job_description,
             job_labels=job_labels,
             run_name=run_name,
+            snapshot_id=snapshot_id,
             device_config_name=device_config_name,
         )
         return job.results()[0]
@@ -117,17 +128,19 @@ class AbstractProcessor(abc.ABC):
     async def run_sweep_async(
         self,
         program: cirq.AbstractCircuit,
-        program_id: Optional[str] = None,
-        job_id: Optional[str] = None,
+        *,
+        device_config_name: str,
+        run_name: str = "",
+        snapshot_id: str = "",
+        program_id: str | None = None,
+        job_id: str | None = None,
         params: cirq.Sweepable = None,
         repetitions: int = 1,
-        program_description: Optional[str] = None,
-        program_labels: Optional[Dict[str, str]] = None,
-        job_description: Optional[str] = None,
-        job_labels: Optional[Dict[str, str]] = None,
-        run_name: str = "",
-        device_config_name: str = "",
-    ) -> 'abstract_job.AbstractJob':
+        program_description: str | None = None,
+        program_labels: dict[str, str] | None = None,
+        job_description: str | None = None,
+        job_labels: dict[str, str] | None = None,
+    ) -> abstract_job.AbstractJob:
         """Runs the supplied Circuit on this processor.
 
         In contrast to run, this runs across multiple parameter sweeps, and
@@ -135,6 +148,15 @@ class AbstractProcessor(abc.ABC):
         Args:
             program: The Circuit to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
+            run_name: A unique identifier representing an automation run for the
+                processor. An Automation Run contains a collection of device
+                configurations for the processor.
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
+            snapshot_id: A unique identifier for an immutable snapshot reference.
+                A snapshot contains a collection of device configurations for the
+                processor. Both `snapshot_id` and `run_name` should not be set.
             program_id: A user-provided identifier for the program. This must
                 be unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
@@ -150,12 +172,7 @@ class AbstractProcessor(abc.ABC):
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
             job_labels: Optional set of labels to set on the job.
-            run_name: A unique identifier representing an automation run for the
-                processor. An Automation Run contains a collection of device
-                configurations for the processor.
-            device_config_name: An identifier used to select the processor configuration
-                utilized to run the job. A configuration identifies the set of
-                available qubits, couplers, and supported gates in the processor.
+
         Returns:
             An AbstractJob. If this is iterated over it returns a list of
             `cirq.Result`, one for each parameter sweep.
@@ -164,115 +181,7 @@ class AbstractProcessor(abc.ABC):
     run_sweep = duet.sync(run_sweep_async)
 
     @abc.abstractmethod
-    async def run_batch_async(
-        self,
-        programs: Sequence[cirq.AbstractCircuit],
-        program_id: Optional[str] = None,
-        job_id: Optional[str] = None,
-        params_list: Optional[Sequence[cirq.Sweepable]] = None,
-        repetitions: int = 1,
-        program_description: Optional[str] = None,
-        program_labels: Optional[Dict[str, str]] = None,
-        job_description: Optional[str] = None,
-        job_labels: Optional[Dict[str, str]] = None,
-        run_name: str = "",
-        device_config_name: str = "",
-    ) -> 'abstract_job.AbstractJob':
-        """Runs the supplied Circuits on this processor.
-
-        This will combine each Circuit provided in `programs` into
-        a BatchProgram.  Each circuit will pair with the associated
-        parameter sweep provided in the `params_list`.  The number of
-        programs is required to match the number of sweeps.
-        This method does not block until a result is returned.  However,
-        no results will be available until the entire batch is complete.
-        Args:
-            programs: The Circuits to execute as a batch.
-            program_id: A user-provided identifier for the program. This must
-                be unique within the Google Cloud project being used. If this
-                parameter is not provided, a random id of the format
-                'prog-################YYMMDD' will be generated, where # is
-                alphanumeric and YYMMDD is the current year, month, and day.
-            job_id: Job identifier to use. If this is not provided, a random id
-                of the format 'job-################YYMMDD' will be generated,
-                where # is alphanumeric and YYMMDD is the current year, month,
-                and day.
-            params_list: Parameter sweeps to use with the circuits. The number
-                of sweeps should match the number of circuits and will be
-                paired in order with the circuits. If this is None, it is
-                assumed that the circuits are not parameterized and do not
-                require sweeps.
-            repetitions: Number of circuit repetitions to run.  Each sweep value
-                of each circuit in the batch will run with the same repetitions.
-            program_description: An optional description to set on the program.
-            program_labels: Optional set of labels to set on the program.
-            job_description: An optional description to set on the job.
-            job_labels: Optional set of labels to set on the job.
-            run_name: A unique identifier representing an automation run for the
-                processor. An Automation Run contains a collection of device
-                configurations for the processor.
-            device_config_name: An identifier used to select the processor configuration
-                utilized to run the job. A configuration identifies the set of
-                available qubits, couplers, and supported gates in the processor.
-        Returns:
-            An AbstractJob. If this is iterated over it returns a list of
-            `cirq.Result`. All Results for the first circuit are listed
-            first, then the Results for the second, etc. The Results
-            for a circuit are listed in the order imposed by the associated
-            parameter sweep.
-        """
-
-    run_batch = duet.sync(run_batch_async)
-
-    @abc.abstractmethod
-    async def run_calibration_async(
-        self,
-        layers: List['cg.CalibrationLayer'],
-        program_id: Optional[str] = None,
-        job_id: Optional[str] = None,
-        program_description: Optional[str] = None,
-        program_labels: Optional[Dict[str, str]] = None,
-        job_description: Optional[str] = None,
-        job_labels: Optional[Dict[str, str]] = None,
-    ) -> 'abstract_job.AbstractJob':
-        """Runs the specified calibrations on the processor.
-
-        Each calibration will be specified by a `CalibrationLayer`
-        that contains the type of the calibrations to run, a `Circuit`
-        to optimize, and any arguments needed by the calibration routine.
-        Arguments and circuits needed for each layer will vary based on the
-        calibration type.  However, the typical calibration routine may
-        require a single moment defining the gates to optimize, for example.
-        Note: this is an experimental API and is not yet fully supported
-        for all users.
-        Args:
-            layers: The layers of calibration to execute as a batch.
-            program_id: A user-provided identifier for the program. This must
-                be unique within the Google Cloud project being used. If this
-                parameter is not provided, a random id of the format
-                'calibration-################YYMMDD' will be generated,
-                where # is alphanumeric and YYMMDD is the current year, month,
-                and day.
-            job_id: Job identifier to use. If this is not provided, a random id
-                of the format 'calibration-################YYMMDD' will be
-                generated, where # is alphanumeric and YYMMDD is the current
-                year, month, and day.
-            program_description: An optional description to set on the program.
-            program_labels: Optional set of labels to set on the program.
-            job_description: An optional description to set on the job.
-            job_labels: Optional set of labels to set on the job.  By default,
-                this will add a 'calibration' label to the job.
-        Returns:
-            An AbstractJob whose results can be retrieved by calling
-            calibration_results().
-        """
-
-    run_calibration = duet.sync(run_calibration_async)
-
-    @abc.abstractmethod
-    def get_sampler(
-        self, run_name: str = "", device_config_name: str = ""
-    ) -> 'cg.ProcessorSampler':
+    def get_sampler(self, run_name: str = "", device_config_name: str = "") -> cg.ProcessorSampler:
         """Returns a sampler backed by the processor.
 
         Args:
@@ -285,7 +194,7 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
-    def engine(self) -> Optional['abstract_engine.AbstractEngine']:
+    def engine(self) -> abstract_engine.AbstractEngine | None:
         """Returns the parent Engine object.
 
         Returns:
@@ -297,20 +206,20 @@ class AbstractProcessor(abc.ABC):
         """Returns the current health of processor."""
 
     @abc.abstractmethod
-    def expected_down_time(self) -> 'Optional[datetime.datetime]':
+    def expected_down_time(self) -> datetime.datetime | None:
         """Returns the start of the next expected down time of the processor, if
         set."""
 
     @abc.abstractmethod
-    def expected_recovery_time(self) -> 'Optional[datetime.datetime]':
+    def expected_recovery_time(self) -> datetime.datetime | None:
         """Returns the expected the processor should be available, if set."""
 
     @abc.abstractmethod
-    def supported_languages(self) -> List[str]:
+    def supported_languages(self) -> list[str]:
         """Returns the list of processor supported program languages."""
 
     @abc.abstractmethod
-    def get_device_specification(self) -> Optional[v2.device_pb2.DeviceSpecification]:
+    def get_device_specification(self) -> v2.device_pb2.DeviceSpecification | None:
         """Returns a device specification proto for use in determining
         information about the device.
 
@@ -336,9 +245,9 @@ class AbstractProcessor(abc.ABC):
     @abc.abstractmethod
     def list_calibrations(
         self,
-        earliest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
-        latest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
-    ) -> List[calibration.Calibration]:
+        earliest_timestamp: datetime.datetime | datetime.date | int | None = None,
+        latest_timestamp: datetime.datetime | datetime.date | int | None = None,
+    ) -> list[calibration.Calibration]:
         """Retrieve metadata about a specific calibration run.
 
         Args:
@@ -364,7 +273,7 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_current_calibration(self) -> Optional[calibration.Calibration]:
+    def get_current_calibration(self) -> calibration.Calibration | None:
         """Returns metadata about the current calibration for a processor.
 
         Returns:
@@ -376,7 +285,7 @@ class AbstractProcessor(abc.ABC):
         self,
         start_time: datetime.datetime,
         end_time: datetime.datetime,
-        whitelisted_users: Optional[List[str]] = None,
+        whitelisted_users: list[str] | None = None,
     ) -> quantum.QuantumReservation:
         """Creates a reservation on this processor.
 
@@ -393,16 +302,16 @@ class AbstractProcessor(abc.ABC):
         """Removes a reservation on this processor."""
 
     @abc.abstractmethod
-    def get_reservation(self, reservation_id: str) -> Optional[quantum.QuantumReservation]:
+    def get_reservation(self, reservation_id: str) -> quantum.QuantumReservation | None:
         """Retrieve a reservation given its id."""
 
     @abc.abstractmethod
     def update_reservation(
         self,
         reservation_id: str,
-        start_time: Optional[datetime.datetime] = None,
-        end_time: Optional[datetime.datetime] = None,
-        whitelisted_users: Optional[List[str]] = None,
+        start_time: datetime.datetime | None = None,
+        end_time: datetime.datetime | None = None,
+        whitelisted_users: list[str] | None = None,
     ):
         """Updates a reservation with new information.
 
@@ -414,9 +323,9 @@ class AbstractProcessor(abc.ABC):
     @abc.abstractmethod
     def list_reservations(
         self,
-        from_time: Union[None, datetime.datetime, datetime.timedelta],
-        to_time: Union[None, datetime.datetime, datetime.timedelta],
-    ) -> List[quantum.QuantumReservation]:
+        from_time: None | datetime.datetime | datetime.timedelta,
+        to_time: None | datetime.datetime | datetime.timedelta,
+    ) -> list[quantum.QuantumReservation]:
         """Retrieves the reservations from a processor.
 
         Only reservations from this processor and project will be
@@ -441,10 +350,10 @@ class AbstractProcessor(abc.ABC):
     @abc.abstractmethod
     def get_schedule(
         self,
-        from_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(),
-        to_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(weeks=2),
-        time_slot_type: Optional[quantum.QuantumTimeSlot.TimeSlotType] = None,
-    ) -> List[quantum.QuantumTimeSlot]:
+        from_time: None | datetime.datetime | datetime.timedelta = datetime.timedelta(),
+        to_time: None | datetime.datetime | datetime.timedelta = datetime.timedelta(weeks=2),
+        time_slot_type: quantum.QuantumTimeSlot.TimeSlotType | None = None,
+    ) -> list[quantum.QuantumTimeSlot]:
         """Retrieves the schedule for a processor.
 
         The schedule may be filtered by time.

@@ -14,28 +14,32 @@
 """A collection of `CircuitTransformer` s that the client may pass to `RigettiQCSService` or
 `RigettiQCSSampler` as `transformer`.
 """
-from typing import Dict, cast, Optional, Tuple, List, Callable
+from typing import Callable, cast
+
 from pyquil import Program
-import cirq
-from cirq_rigetti.quil_output import RigettiQCSQuilOutput
 from typing_extensions import Protocol
 
+import cirq
+from cirq_rigetti.deprecation import deprecated_cirq_rigetti_class, deprecated_cirq_rigetti_function
+from cirq_rigetti.quil_output import RigettiQCSQuilOutput
 
+
+@deprecated_cirq_rigetti_class()
 class _PostTransformationHook(Protocol):
     def __call__(
-        self, *, program: Program, measurement_id_map: Dict[str, str]
-    ) -> Tuple[Program, Dict[str, str]]:
+        self, *, program: Program, measurement_id_map: dict[str, str]
+    ) -> tuple[Program, dict[str, str]]:
         pass
 
 
 def _transform_cirq_circuit_to_pyquil_program(
     *,
     circuit: cirq.Circuit,
-    qubits: Optional[Tuple[cirq.Qid, ...]] = None,
-    decompose_operation: Optional[Callable[[cirq.Operation], List[cirq.Operation]]] = None,
-    qubit_id_map: Optional[Dict[cirq.Qid, str]] = None,
-    post_transformation_hooks: Optional[List[_PostTransformationHook]] = None,
-) -> Tuple[Program, Dict[str, str]]:
+    qubits: tuple[cirq.Qid, ...] | None = None,
+    decompose_operation: Callable[[cirq.Operation], list[cirq.Operation]] | None = None,
+    qubit_id_map: dict[cirq.Qid, str] | None = None,
+    post_transformation_hooks: list[_PostTransformationHook] | None = None,
+) -> tuple[Program, dict[str, str]]:
     if qubits is None:
         qubits = cirq.QubitOrder.as_qubit_order(cirq.ops.QubitOrder.DEFAULT).order_for(
             circuit.all_qubits()
@@ -57,10 +61,11 @@ def _transform_cirq_circuit_to_pyquil_program(
     return program, measurement_id_map
 
 
+@deprecated_cirq_rigetti_class()
 class CircuitTransformer(Protocol):
     """A type definition for `cirq.Circuit` to `pyquil.Program` transformer functions."""
 
-    def __call__(self, *, circuit: cirq.Circuit) -> Tuple[Program, Dict[str, str]]:
+    def __call__(self, *, circuit: cirq.Circuit) -> tuple[Program, dict[str, str]]:
         """Transforms a `cirq.Circuit` to a pyquil.Program`.
 
         Args:
@@ -72,12 +77,13 @@ class CircuitTransformer(Protocol):
         """
 
 
+@deprecated_cirq_rigetti_function()
 def build(
     *,
-    qubits: Optional[Tuple[cirq.Qid, ...]] = None,
-    decompose_operation: Optional[Callable[[cirq.Operation], List[cirq.Operation]]] = None,
-    qubit_id_map: Optional[Dict[cirq.Qid, str]] = None,
-    post_transformation_hooks: Optional[List[_PostTransformationHook]] = None,
+    qubits: tuple[cirq.Qid, ...] | None = None,
+    decompose_operation: Callable[[cirq.Operation], list[cirq.Operation]] | None = None,
+    qubit_id_map: dict[cirq.Qid, str] | None = None,
+    post_transformation_hooks: list[_PostTransformationHook] | None = None,
 ) -> CircuitTransformer:
     """This builds a `CircuitTransformer` that the client may use over multiple sweeps of
     `cirq.Sweepable`.
@@ -99,7 +105,7 @@ def build(
         A `CircuitTransformer` transforming the `cirq.Circuit` s as specified above.
     """
 
-    def transformer(*, circuit: cirq.Circuit) -> Tuple[Program, Dict[str, str]]:
+    def transformer(*, circuit: cirq.Circuit) -> tuple[Program, dict[str, str]]:
         return _transform_cirq_circuit_to_pyquil_program(
             circuit=circuit,
             qubits=qubits,
@@ -111,7 +117,8 @@ def build(
     return cast(CircuitTransformer, transformer)
 
 
-def default(*, circuit: cirq.Circuit) -> Tuple[Program, Dict[str, str]]:
+@deprecated_cirq_rigetti_function()
+def default(*, circuit: cirq.Circuit) -> tuple[Program, dict[str, str]]:
     """The default `CircuitTransformer` uses the default behavior of cirq's Quil
     protocol to transform a `cirq.Circuit` into a `pyquil.Program`.
 

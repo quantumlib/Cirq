@@ -11,13 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Defines `@cirq.value_equality`, for easy __eq__/__hash__ methods."""
 
-from typing import Any, Callable, Optional, overload, Union
+from __future__ import annotations
+
+from typing import Any, Callable, overload
 
 from typing_extensions import Protocol
 
-from cirq import protocols, _compat
+from cirq import _compat, protocols
 
 
 class _SupportsValueEquality(Protocol):
@@ -110,6 +113,16 @@ def _value_equality_approx_eq(
     )
 
 
+def _value_equality_getstate(self: _SupportsValueEquality) -> dict[str, Any]:
+    # clear cached hash value when pickling, see #6674
+    state = self.__dict__
+    hash_attr = _compat._method_cache_name(self.__hash__)
+    if hash_attr in state:
+        state = state.copy()
+        del state[hash_attr]
+    return state
+
+
 # pylint: disable=function-redefined
 @overload
 def value_equality(
@@ -135,13 +148,13 @@ def value_equality(
 
 
 def value_equality(
-    cls: Optional[type] = None,
+    cls: type | None = None,
     *,
     unhashable: bool = False,
     distinct_child_types: bool = False,
     manual_cls: bool = False,
     approximate: bool = False,
-) -> Union[Callable[[type], type], type]:
+) -> Callable[[type], type] | type:
     """Implements __eq__/__ne__/__hash__ via a _value_equality_values_ method.
 
     _value_equality_values_ is a method that the decorated class must implement.
@@ -228,6 +241,8 @@ def value_equality(
     cached_values_getter = values_getter if unhashable else _compat.cached_method(values_getter)
     setattr(cls, '_value_equality_values_', cached_values_getter)
     setattr(cls, '__hash__', None if unhashable else _compat.cached_method(_value_equality_hash))
+    if not unhashable:
+        setattr(cls, '__getstate__', _value_equality_getstate)
     setattr(cls, '__eq__', _value_equality_eq)
     setattr(cls, '__ne__', _value_equality_ne)
 

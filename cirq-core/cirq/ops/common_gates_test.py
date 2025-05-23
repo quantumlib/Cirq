@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 import sympy
@@ -87,8 +89,7 @@ def test_cz_unitary():
     )
 
     assert np.allclose(
-        cirq.unitary(cirq.CZ**0),
-        np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]),
+        cirq.unitary(cirq.CZ**0), np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
     )
 
     assert np.allclose(
@@ -108,19 +109,19 @@ def test_z_init():
 
 
 @pytest.mark.parametrize(
-    'input_gate, specialized_output',
+    'input_gate, specialized_output, base_gate',
     [
-        (cirq.Z, cirq.CZ),
-        (cirq.CZ, cirq.CCZ),
-        (cirq.X, cirq.CX),
-        (cirq.CX, cirq.CCX),
-        (cirq.ZPowGate(exponent=0.5), cirq.CZPowGate(exponent=0.5)),
-        (cirq.CZPowGate(exponent=0.5), cirq.CCZPowGate(exponent=0.5)),
-        (cirq.XPowGate(exponent=0.5), cirq.CXPowGate(exponent=0.5)),
-        (cirq.CXPowGate(exponent=0.5), cirq.CCXPowGate(exponent=0.5)),
+        (cirq.Z, cirq.CZ, cirq.Z),
+        (cirq.CZ, cirq.CCZ, cirq.Z),
+        (cirq.X, cirq.CX, cirq.X),
+        (cirq.CX, cirq.CCX, cirq.X),
+        (cirq.ZPowGate(exponent=0.5), cirq.CZPowGate(exponent=0.5), cirq.S),
+        (cirq.CZPowGate(exponent=0.5), cirq.CCZPowGate(exponent=0.5), cirq.S),
+        (cirq.XPowGate(exponent=0.5), cirq.CXPowGate(exponent=0.5), cirq.XPowGate(exponent=0.5)),
+        (cirq.CXPowGate(exponent=0.5), cirq.CCXPowGate(exponent=0.5), cirq.XPowGate(exponent=0.5)),
     ],
 )
-def test_specialized_control(input_gate, specialized_output):
+def test_specialized_control(input_gate, specialized_output, base_gate):
     # Single qubit control on the input gate gives the specialized output
     assert input_gate.controlled() == specialized_output
     assert input_gate.controlled(num_controls=1) == specialized_output
@@ -150,20 +151,24 @@ def test_specialized_control(input_gate, specialized_output):
     )
 
     # When a control_value 1 qubit is not acting first, results in a regular
-    # ControlledGate on the input gate instance.
+    # ControlledGate on the base gate instance, with any extra control layer
+    # of the input gate being absorbed into the ControlledGate.
+    absorbed = 0 if base_gate == input_gate else 1
+    absorbed_values = ((1,),) * absorbed
+    absorbed_shape = (2,) * absorbed
     assert input_gate.controlled(num_controls=1, control_qid_shape=(3,)) == cirq.ControlledGate(
-        input_gate, num_controls=1, control_qid_shape=(3,)
+        base_gate, num_controls=1 + absorbed, control_qid_shape=(3,) + absorbed_shape
     )
     assert input_gate.controlled(control_values=((0,), (1,), (0,))) == cirq.ControlledGate(
-        input_gate, num_controls=3, control_values=((0,), (1,), (0,))
+        base_gate, num_controls=3 + absorbed, control_values=((0,), (1,), (0,)) + absorbed_values
     )
     assert input_gate.controlled(control_qid_shape=(3, 2, 3)) == cirq.ControlledGate(
-        input_gate, num_controls=3, control_qid_shape=(3, 2, 3)
+        base_gate, num_controls=3 + absorbed, control_qid_shape=(3, 2, 3) + absorbed_shape
     )
     assert input_gate.controlled(control_qid_shape=(3,)).controlled(
         control_qid_shape=(2,)
     ).controlled(control_qid_shape=(4,)) != cirq.ControlledGate(
-        input_gate, num_controls=3, control_qid_shape=(3, 2, 4)
+        base_gate, num_controls=3 + absorbed, control_qid_shape=(3, 2, 4) + absorbed_shape
     )
 
 
@@ -246,11 +251,12 @@ def test_rot_gates_eq():
     eq.add_equality_group(cirq.YPowGate(), cirq.YPowGate(exponent=1), cirq.Y)
     eq.add_equality_group(cirq.ZPowGate(), cirq.ZPowGate(exponent=1), cirq.Z)
     eq.add_equality_group(
-        cirq.ZPowGate(exponent=1, global_shift=-0.5), cirq.ZPowGate(exponent=5, global_shift=-0.5)
+        cirq.ZPowGate(exponent=1, global_shift=-0.5),
+        cirq.ZPowGate(exponent=5, global_shift=-0.5),
+        cirq.ZPowGate(exponent=5, global_shift=-0.1),
     )
     eq.add_equality_group(cirq.ZPowGate(exponent=3, global_shift=-0.5))
     eq.add_equality_group(cirq.ZPowGate(exponent=1, global_shift=-0.1))
-    eq.add_equality_group(cirq.ZPowGate(exponent=5, global_shift=-0.1))
     eq.add_equality_group(
         cirq.CNotPowGate(), cirq.CXPowGate(), cirq.CNotPowGate(exponent=1), cirq.CNOT
     )
@@ -306,6 +312,11 @@ def test_h_init():
 def test_h_str():
     assert str(cirq.H) == 'H'
     assert str(cirq.H**0.5) == 'H**0.5'
+
+
+def test_phase_exponent():
+    assert cirq.XPowGate(exponent=0.5).phase_exponent == 0.0
+    assert cirq.YPowGate(exponent=0.5).phase_exponent == 0.5
 
 
 def test_x_act_on_tableau():
@@ -1301,3 +1312,13 @@ def test_wrong_dims():
 
     with pytest.raises(ValueError, match='Wrong shape'):
         _ = cirq.Z.on(cirq.LineQid(0, dimension=3))
+
+
+@pytest.mark.parametrize('gate_type', [cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate])
+@pytest.mark.parametrize('exponent', [sympy.Symbol('s'), sympy.Symbol('s') * 2])
+def test_parameterized_pauli_expansion(gate_type, exponent):
+    gate = gate_type(exponent=exponent)
+    pauli = cirq.pauli_expansion(gate)
+    gate_resolved = cirq.resolve_parameters(gate, {'s': 0.5})
+    pauli_resolved = cirq.resolve_parameters(pauli, {'s': 0.5})
+    assert cirq.approx_eq(pauli_resolved, cirq.pauli_expansion(gate_resolved))

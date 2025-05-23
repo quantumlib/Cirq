@@ -11,8 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import re
+
+from __future__ import annotations
+
 import os
+import re
+
 import numpy as np
 import pytest
 
@@ -50,6 +54,11 @@ def test_qasm_u_qubit_gate_unitary():
     g = QasmUGate.from_matrix(u)
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(g), u, atol=1e-7)
 
+    cirq.testing.assert_implements_consistent_protocols(g)
+
+    u = cirq.unitary(cirq.Y)
+    g = QasmUGate.from_matrix(u)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(g), u, atol=1e-7)
     cirq.testing.assert_implements_consistent_protocols(g)
 
 
@@ -191,6 +200,19 @@ ry(pi*-0.25) q[0];
     )
 
 
+def test_qasm_global_pahse():
+    output = cirq.QasmOutput((cirq.global_phase_operation(np.exp(1j * 5))), ())
+    assert (
+        str(output)
+        == """OPENQASM 2.0;
+include "qelib1.inc";
+
+
+// Qubits: []
+"""
+    )
+
+
 def test_precision():
     (q0,) = _make_qubits(1)
     output = cirq.QasmOutput((cirq.X(q0) ** 0.1234567,), (q0,), precision=3)
@@ -212,7 +234,7 @@ rx(pi*0.123) q[0];
 def test_version():
     (q0,) = _make_qubits(1)
     with pytest.raises(ValueError):
-        output = cirq.QasmOutput((), (q0,), version='3.0')
+        output = cirq.QasmOutput((), (q0,), version='4.0')
         _ = str(output)
 
 
@@ -318,16 +340,18 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurements=True):
         cirq.PhasedXPowGate(phase_exponent=0.333, exponent=0.5).on(q1),
         cirq.PhasedXPowGate(phase_exponent=0.777, exponent=-0.5).on(q1),
         (
-            cirq.measure(q0, key='xX'),
-            cirq.measure(q2, key='x_a'),
-            cirq.measure(q1, key='x?'),
-            cirq.measure(q3, key='X'),
-            cirq.measure(q4, key='_x'),
-            cirq.measure(q2, key='x_a'),
-            cirq.measure(q1, q2, q3, key='multi', invert_mask=(False, True)),
-        )
-        if include_measurements
-        else (),
+            (
+                cirq.measure(q0, key='xX'),
+                cirq.measure(q2, key='x_a'),
+                cirq.measure(q1, key='x?'),
+                cirq.measure(q3, key='X'),
+                cirq.measure(q4, key='_x'),
+                cirq.measure(q2, key='x_a'),
+                cirq.measure(q1, q2, q3, key='multi', invert_mask=(False, True)),
+            )
+            if include_measurements
+            else ()
+        ),
         ExampleOperation(),
         ExampleCompositeOperation(),
     )
@@ -574,4 +598,59 @@ cx q[0],q[1];
 reset q[0];
 reset q[1];
     """.strip()
+    )
+
+
+def test_different_sized_registers():
+    qubits = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.measure(qubits[0], key='c'), cirq.measure(qubits, key='c'))
+    output = cirq.QasmOutput(
+        c.all_operations(), tuple(sorted(c.all_qubits())), header='Generated from Cirq!'
+    )
+    assert (
+        str(output)
+        == """// Generated from Cirq!
+
+OPENQASM 2.0;
+include "qelib1.inc";
+
+
+// Qubits: [q(0), q(1)]
+qreg q[2];
+creg m_c[2];
+
+
+measure q[0] -> m_c[0];
+
+// Gate: cirq.MeasurementGate(2, cirq.MeasurementKey(name='c'), ())
+measure q[0] -> m_c[0];
+measure q[1] -> m_c[1];
+"""
+    )
+    # OPENQASM 3.0
+    output3 = cirq.QasmOutput(
+        c.all_operations(),
+        tuple(sorted(c.all_qubits())),
+        header='Generated from Cirq!',
+        version='3.0',
+    )
+    assert (
+        str(output3)
+        == """// Generated from Cirq!
+
+OPENQASM 3.0;
+include "stdgates.inc";
+
+
+// Qubits: [q(0), q(1)]
+qubit[2] q;
+bit[2] m_c;
+
+
+m_c[0] = measure q[0];
+
+// Gate: cirq.MeasurementGate(2, cirq.MeasurementKey(name='c'), ())
+m_c[0] = measure q[0];
+m_c[1] = measure q[1];
+"""
     )

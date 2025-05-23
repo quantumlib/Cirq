@@ -11,12 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import numpy as np
 
 import cirq
 import cirq.testing as ct
-from cirq.testing import consistent_qasm as cq
 from cirq.contrib.qasm_import import circuit_from_qasm
+from cirq.testing import consistent_qasm as cq
 
 
 def test_consistency_with_qasm_output_and_qiskit():

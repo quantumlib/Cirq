@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pathlib
 
 import cirq
@@ -22,6 +24,7 @@ TestSpec = ModuleJsonTestSpec(
     name="cirq",
     packages=[cirq, cirq.work],
     test_data_path=pathlib.Path(__file__).parent,
+    custom_class_name_to_cirq_type={"MSGate": "cirq.MSGate"},
     resolver_cache=_class_resolver_dictionary(),
     not_yet_serializable=[
         'Alignment',
@@ -108,6 +111,7 @@ TestSpec = ModuleJsonTestSpec(
         'StateVectorStepResult',
         'StepResultBase',
         'UnitSweep',
+        'UNIT_SWEEP',
         'NamedTopology',
         # protocols:
         'HasJSONNamespace',

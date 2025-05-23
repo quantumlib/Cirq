@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
+from __future__ import annotations
 
 import pandas as pd
+import pytest
 import sympy
 
 import cirq

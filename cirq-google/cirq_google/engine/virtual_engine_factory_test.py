@@ -11,9 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import pytest
-import numpy as np
+
+from __future__ import annotations
+
 import google.protobuf.text_format as text_format
+import numpy as np
+import pytest
 
 import cirq
 import cirq_google as cg
@@ -26,18 +29,22 @@ def _test_processor(processor: cg.engine.abstract_processor.AbstractProcessor):
     Also tests the non-Sycamore qubits and gates fail."""
     good_qubit = cirq.GridQubit(5, 4)
     circuit = cirq.Circuit(cirq.X(good_qubit), cirq.measure(good_qubit))
-    results = processor.run(circuit, repetitions=100)
+    results = processor.run(circuit, repetitions=100, run_name="run", device_config_name="config")
     assert np.all(results.measurements[str(good_qubit)] == 1)
     with pytest.raises(RuntimeError, match='requested total repetitions'):
-        _ = processor.run(circuit, repetitions=100_000_000)
+        _ = processor.run(
+            circuit, repetitions=100_000_000, run_name="run", device_config_name="config"
+        )
 
     bad_qubit = cirq.GridQubit(10, 10)
     circuit = cirq.Circuit(cirq.X(bad_qubit), cirq.measure(bad_qubit))
     with pytest.raises(ValueError, match='Qubit not on device'):
-        _ = processor.run(circuit, repetitions=100)
-    circuit = cirq.Circuit(cirq.H(good_qubit), cirq.measure(good_qubit))
+        _ = processor.run(circuit, repetitions=100, run_name="run", device_config_name="config")
+    circuit = cirq.Circuit(
+        cirq.testing.DoesNotSupportSerializationGate()(good_qubit), cirq.measure(good_qubit)
+    )
     with pytest.raises(ValueError, match='Cannot serialize op'):
-        _ = processor.run(circuit, repetitions=100)
+        _ = processor.run(circuit, repetitions=100, run_name="run", device_config_name="config")
 
 
 def test_create_device_from_processor_id():
@@ -122,7 +129,6 @@ def test_device_zphase_bad_processor():
 
 
 def test_create_from_proto():
-
     # Create a minimal gate specification that can handle the test.
     device_spec = text_format.Merge(
         """
@@ -194,12 +200,31 @@ def test_create_default_noisy_quantum_virtual_machine():
         bad_qubit = cirq.GridQubit(10, 10)
         circuit = cirq.Circuit(cirq.X(bad_qubit), cirq.measure(bad_qubit))
         with pytest.raises(ValueError, match='Qubit not on device'):
-            _ = processor.run(circuit, repetitions=100)
+            _ = processor.run(circuit, repetitions=100, run_name="run", device_config_name="config")
         good_qubit = cirq.GridQubit(5, 4)
-        circuit = cirq.Circuit(cirq.H(good_qubit), cirq.measure(good_qubit))
+        circuit = cirq.Circuit(
+            cirq.testing.DoesNotSupportSerializationGate()(good_qubit), cirq.measure(good_qubit)
+        )
         with pytest.raises(ValueError, match='.* contains a gate which is not supported.'):
-            _ = processor.run(circuit, repetitions=100)
+            _ = processor.run(circuit, repetitions=100, run_name="run", device_config_name="config")
         device_specification = processor.get_device_specification()
         expected = factory.create_device_spec_from_processor_id(processor_id)
         assert device_specification is not None
         assert device_specification == expected
+
+
+def test_extract_gate_times_ns_from_device():
+    device = factory.create_device_from_processor_id('rainbow')
+    gate_times_ns = factory.extract_gate_times_ns_from_device(device)
+    assert gate_times_ns[cirq.MeasurementGate] == 4_000_000
+    assert gate_times_ns[cg.SycamoreGate] == 12
+    assert cirq.IdentityGate not in gate_times_ns
+    assert cirq.WaitGate not in gate_times_ns
+
+
+def test_extract_gate_times_ns_from_device_without_durations():
+    metadata_without_durations = cirq.GridDeviceMetadata(
+        qubit_pairs=[tuple(cirq.GridQubit.rect(2, 1))], gateset=cirq.Gateset(cirq.XPowGate)
+    )
+    device_without_durations = cg.GridDevice(metadata_without_durations)
+    assert factory.extract_gate_times_ns_from_device(device_without_durations) == {}

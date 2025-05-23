@@ -11,27 +11,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""A helper for jobs that have been created on the Quantum Engine."""
-import datetime
 
-from typing import Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+"""A helper for jobs that have been created on the Quantum Engine."""
+
+from __future__ import annotations
+
+import datetime
+from typing import Sequence, TYPE_CHECKING
 
 import duet
-from google.protobuf import any_pb2
 
 import cirq
-from cirq_google.engine import abstract_job, calibration, engine_client
-from cirq_google.engine.calibration_result import CalibrationResult
-from cirq_google.cloud import quantum
-from cirq_google.engine.result_type import ResultType
-from cirq_google.engine.engine_result import EngineResult
 from cirq_google.api import v1, v2
+from cirq_google.cloud import quantum
+from cirq_google.engine import abstract_job, calibration, engine_client
+from cirq_google.engine.engine_result import EngineResult
 
 if TYPE_CHECKING:
-    import datetime
+    from google.protobuf import any_pb2
+
     import cirq_google.engine.engine as engine_base
-    from cirq_google.engine.engine import engine_program
-    from cirq_google.engine.engine import engine_processor
+    from cirq_google.engine.calibration_result import CalibrationResult
+    from cirq_google.engine.engine import engine_processor, engine_program
 
 TERMINAL_STATES = [
     quantum.ExecutionStatus.State.SUCCESS,
@@ -40,7 +41,7 @@ TERMINAL_STATES = [
 ]
 
 
-def _flatten(result: Sequence[Sequence[EngineResult]]) -> List[EngineResult]:
+def _flatten(result: Sequence[Sequence[EngineResult]]) -> list[EngineResult]:
     return [res for result_list in result for res in result_list]
 
 
@@ -66,12 +67,11 @@ class EngineJob(abstract_job.AbstractJob):
         project_id: str,
         program_id: str,
         job_id: str,
-        context: 'engine_base.EngineContext',
-        _job: Optional[quantum.QuantumJob] = None,
-        result_type: ResultType = ResultType.Program,
-        job_result_future: Optional[
-            duet.AwaitableFuture[Union[quantum.QuantumResult, quantum.QuantumJob]]
-        ] = None,
+        context: engine_base.EngineContext,
+        _job: quantum.QuantumJob | None = None,
+        job_result_future: (
+            duet.AwaitableFuture[quantum.QuantumResult | quantum.QuantumJob] | None
+        ) = None,
     ) -> None:
         """A job submitted to the engine.
 
@@ -81,8 +81,6 @@ class EngineJob(abstract_job.AbstractJob):
             job_id: Unique ID of the job within the parent program.
             context: Engine configuration and context to use.
             _job: The optional current job state.
-            result_type: What type of results are expected, such as
-                batched results or the result of a focused calibration.
             job_result_future: A future to be completed when the job result is available.
                 If set, EngineJob will await this future when a caller asks for the job result. If
                 the future is completed with a `QuantumJob`, it is assumed that the job has failed.
@@ -92,23 +90,22 @@ class EngineJob(abstract_job.AbstractJob):
         self.job_id = job_id
         self.context = context
         self._job = _job
-        self._results: Optional[Sequence[EngineResult]] = None
-        self._calibration_results: Optional[Sequence[CalibrationResult]] = None
-        self._batched_results: Optional[Sequence[Sequence[EngineResult]]] = None
-        self.result_type = result_type
+        self._results: Sequence[EngineResult] | None = None
+        self._calibration_results: Sequence[CalibrationResult] | None = None
+        self._batched_results: Sequence[Sequence[EngineResult]] | None = None
         self._job_result_future = job_result_future
 
     def id(self) -> str:
         """Returns the job id."""
         return self.job_id
 
-    def engine(self) -> 'engine_base.Engine':
+    def engine(self) -> engine_base.Engine:
         """Returns the parent Engine object."""
         import cirq_google.engine.engine as engine_base
 
         return engine_base.Engine(self.project_id, context=self.context)
 
-    def program(self) -> 'engine_program.EngineProgram':
+    def program(self) -> engine_program.EngineProgram:
         """Returns the parent EngineProgram object."""
         import cirq_google.engine.engine_program as engine_program
 
@@ -133,11 +130,11 @@ class EngineJob(abstract_job.AbstractJob):
 
     _refresh_job = duet.sync(_refresh_job_async)
 
-    def create_time(self) -> 'datetime.datetime':
+    def create_time(self) -> datetime.datetime:
         """Returns when the job was created."""
         return self._inner_job().create_time
 
-    def update_time(self) -> 'datetime.datetime':
+    def update_time(self) -> datetime.datetime:
         """Returns when the job was last updated."""
         job = self._refresh_job()
         return job.update_time
@@ -146,7 +143,7 @@ class EngineJob(abstract_job.AbstractJob):
         """Returns the description of the job."""
         return self._inner_job().description
 
-    def set_description(self, description: str) -> 'EngineJob':
+    def set_description(self, description: str) -> EngineJob:
         """Sets the description of the job.
 
         Params:
@@ -160,11 +157,11 @@ class EngineJob(abstract_job.AbstractJob):
         )
         return self
 
-    def labels(self) -> Dict[str, str]:
+    def labels(self) -> dict[str, str]:
         """Returns the labels of the job."""
         return self._inner_job().labels
 
-    def set_labels(self, labels: Dict[str, str]) -> 'EngineJob':
+    def set_labels(self, labels: dict[str, str]) -> EngineJob:
         """Sets (overwriting) the labels for a previously created quantum job.
 
         Params:
@@ -178,7 +175,7 @@ class EngineJob(abstract_job.AbstractJob):
         )
         return self
 
-    def add_labels(self, labels: Dict[str, str]) -> 'EngineJob':
+    def add_labels(self, labels: dict[str, str]) -> EngineJob:
         """Adds new labels to a previously created quantum job.
 
         Params:
@@ -192,7 +189,7 @@ class EngineJob(abstract_job.AbstractJob):
         )
         return self
 
-    def remove_labels(self, keys: List[str]) -> 'EngineJob':
+    def remove_labels(self, keys: list[str]) -> EngineJob:
         """Removes labels with given keys from the labels of a previously
         created quantum job.
 
@@ -207,7 +204,7 @@ class EngineJob(abstract_job.AbstractJob):
         )
         return self
 
-    def processor_ids(self) -> List[str]:
+    def processor_ids(self) -> list[str]:
         """Returns the processor ids provided when the job was created."""
         return [
             engine_client._ids_from_processor_name(p)[1]
@@ -222,14 +219,14 @@ class EngineJob(abstract_job.AbstractJob):
         """Return the execution status of the job."""
         return self._refresh_job().execution_status.state.name
 
-    def failure(self) -> Optional[Tuple[str, str]]:
+    def failure(self) -> tuple[str, str] | None:
         """Return failure code and message of the job if present."""
         if self._inner_job().execution_status.failure:
             failure = self._inner_job().execution_status.failure
             return (failure.error_code.name, failure.error_message)
         return None
 
-    def get_repetitions_and_sweeps(self) -> Tuple[int, List[cirq.Sweep]]:
+    def get_repetitions_and_sweeps(self) -> tuple[int, list[cirq.Sweep]]:
         """Returns the repetitions and sweeps for the Quantum Engine job.
 
         Returns:
@@ -239,7 +236,7 @@ class EngineJob(abstract_job.AbstractJob):
             self._job = self._get_job(return_run_context=True)
         return _deserialize_run_context(self._job.run_context)
 
-    def get_processor(self) -> 'Optional[engine_processor.EngineProcessor]':
+    def get_processor(self) -> engine_processor.EngineProcessor | None:
         """Returns the EngineProcessor for the processor the job is/was run on,
         if available, else None."""
         status = self._inner_job().execution_status
@@ -250,7 +247,7 @@ class EngineJob(abstract_job.AbstractJob):
         ids = engine_client._ids_from_processor_name(status.processor_name)
         return engine_processor.EngineProcessor(ids[0], ids[1], self.context)
 
-    def get_calibration(self) -> Optional[calibration.Calibration]:
+    def get_calibration(self) -> calibration.Calibration | None:
         """Returns the recorded calibration at the time when the job was run, if
         one was captured, else None."""
         status = self._inner_job().execution_status
@@ -268,18 +265,6 @@ class EngineJob(abstract_job.AbstractJob):
     def delete(self) -> None:
         """Deletes the job and result, if any."""
         self.context.client.delete_job(self.project_id, self.program_id, self.job_id)
-
-    async def batched_results_async(self) -> Sequence[Sequence[EngineResult]]:
-        """Returns the job results, blocking until the job is complete.
-
-        This method is intended for batched jobs.  Instead of flattening
-        results into a single list, this will return a Sequence[Result]
-        for each circuit in the batch.
-        """
-        await self.results_async()
-        if self._batched_results is None:
-            raise ValueError('batched_results called for a non-batch result.')
-        return self._batched_results
 
     async def results_async(self) -> Sequence[EngineResult]:
         """Returns the job results, blocking until the job is complete."""
@@ -301,10 +286,6 @@ class EngineJob(abstract_job.AbstractJob):
             ):
                 v2_parsed_result = v2.result_pb2.Result.FromString(result.value)
                 self._results = self._get_job_results_v2(v2_parsed_result)
-            elif result.Is(v2.batch_pb2.BatchResult.DESCRIPTOR):
-                v2_parsed_result = v2.batch_pb2.BatchResult.FromString(result.value)
-                self._batched_results = self._get_batch_results_v2(v2_parsed_result)
-                self._results = _flatten(self._batched_results)
             else:
                 raise ValueError(f'invalid result proto version: {result_type}')
         return self._results
@@ -327,39 +308,12 @@ class EngineJob(abstract_job.AbstractJob):
                 job = await self._refresh_job_async()
                 if job.execution_status.state in TERMINAL_STATES:
                     break
-                await duet.sleep(0.5)
+                await duet.sleep(1)
         _raise_on_failure(job)
         response = await self.context.client.get_job_results_async(
             self.project_id, self.program_id, self.job_id
         )
         return response
-
-    async def calibration_results_async(self) -> Sequence[CalibrationResult]:
-        """Returns the results of a run_calibration() call.
-
-        This function will fail if any other type of results were returned
-        by the Engine.
-        """
-        import cirq_google.engine.engine as engine_base
-
-        if self._calibration_results is None:
-            result_response = await self._await_result_async()
-            result = result_response.result
-            result_type = result.type_url[len(engine_base.TYPE_PREFIX) :]
-            if result_type != 'cirq.google.api.v2.FocusedCalibrationResult':
-                raise ValueError(f'Did not find calibration results, instead found: {result_type}')
-            parsed_val = v2.calibration_pb2.FocusedCalibrationResult.FromString(result.value)
-            cal_results = []
-            for layer in parsed_val.results:
-                metrics = calibration.Calibration(layer.metrics)
-                message = layer.error_message or None
-                token = layer.token or None
-                ts: Optional[datetime.datetime] = None
-                if layer.valid_until_ms > 0:
-                    ts = datetime.datetime.fromtimestamp(layer.valid_until_ms / 1000)
-                cal_results.append(CalibrationResult(layer.code, message, token, ts, metrics))
-            self._calibration_results = cal_results
-        return self._calibration_results
 
     def _get_job_results_v1(self, result: v1.program_pb2.Result) -> Sequence[EngineResult]:
         job_id = self.id()
@@ -395,11 +349,6 @@ class EngineJob(abstract_job.AbstractJob):
             for result in sweep_result
         ]
 
-    def _get_batch_results_v2(
-        self, results: v2.batch_pb2.BatchResult
-    ) -> Sequence[Sequence[EngineResult]]:
-        return [self._get_job_results_v2(result) for result in results.results]
-
     def __str__(self) -> str:
         return (
             f'EngineJob(project_id=\'{self.project_id}\', '
@@ -407,7 +356,7 @@ class EngineJob(abstract_job.AbstractJob):
         )
 
 
-def _deserialize_run_context(run_context: any_pb2.Any) -> Tuple[int, List[cirq.Sweep]]:
+def _deserialize_run_context(run_context: any_pb2.Any) -> tuple[int, list[cirq.Sweep]]:
     import cirq_google.engine.engine as engine_base
 
     run_context_type = run_context.type_url[len(engine_base.TYPE_PREFIX) :]

@@ -14,12 +14,16 @@
 
 """Utilities to compute readout confusion matrix and use it for readout error mitigation."""
 
+from __future__ import annotations
+
 import time
-from typing import Any, Dict, Union, Sequence, List, Tuple, TYPE_CHECKING, Optional, cast
-import sympy
+from typing import Any, cast, Sequence, TYPE_CHECKING
+
 import numpy as np
 import scipy.optimize
-from cirq import circuits, ops, vis, study
+import sympy
+
+from cirq import circuits, ops, study, vis
 from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
@@ -31,7 +35,7 @@ class TensoredConfusionMatrices:
 
     The confusion matrix (CM) for one qubit is:
 
-        [ Pr(0|0) Pr(1|0) ]
+        [ Pr(0|0) Pr(0|1) ]
         [ Pr(1|0) Pr(1|1) ]
 
     where Pr(i | j) = Probability of observing state "i" given state "j" was prepared.
@@ -57,8 +61,8 @@ class TensoredConfusionMatrices:
 
     def __init__(
         self,
-        confusion_matrices: Union[np.ndarray, Sequence[np.ndarray]],
-        measure_qubits: Union[Sequence['cirq.Qid'], Sequence[Sequence['cirq.Qid']]],
+        confusion_matrices: np.ndarray | Sequence[np.ndarray],
+        measure_qubits: Sequence[cirq.Qid] | Sequence[Sequence[cirq.Qid]],
         *,
         repetitions: int,
         timestamp: float,
@@ -71,7 +75,7 @@ class TensoredConfusionMatrices:
             confusion_matrices: Sequence of confusion matrices, computed for qubit patterns present
                                 in `measure_qubits`. A single confusion matrix is also accepted.
             measure_qubits: Sequence of smaller qubit patterns, for which the confusion matrices
-                            were computed. A single qubit pattern is also accepted. Note that the
+                            were computed. A single qubit pattern is also accepted. Note that
                             each qubit pattern is a sequence of qubits used to label the axes of
                             the corresponding confusion matrix.
             repetitions:    The number of repetitions that were used to estimate the confusion
@@ -110,14 +114,14 @@ class TensoredConfusionMatrices:
         self._measure_qubits = tuple(tuple(q) for q in measure_qubits)
         self._qubits = tuple(sorted(set(q for ql in measure_qubits for q in ql)))
         self._qubits_to_idx = {q: i for i, q in enumerate(self._qubits)}
-        self._cache: Dict[Tuple['cirq.Qid', ...], np.ndarray] = {}
+        self._cache: dict[tuple[cirq.Qid, ...], np.ndarray] = {}
         if sum(len(q) for q in self._measure_qubits) != len(self._qubits):
             raise ValueError(f"Repeated qubits not allowed in measure_qubits: {measure_qubits}.")
 
     @classmethod
     def from_measurement(
-        cls, gate: ops.MeasurementGate, qubits: Sequence['cirq.Qid']
-    ) -> 'TensoredConfusionMatrices':
+        cls, gate: ops.MeasurementGate, qubits: Sequence[cirq.Qid]
+    ) -> TensoredConfusionMatrices:
         """Generates TCM for the confusion map in a MeasurementGate.
 
         This ignores any invert_mask defined for the gate - it only replicates the confusion map.
@@ -153,36 +157,35 @@ class TensoredConfusionMatrices:
         return self._timestamp
 
     @property
-    def confusion_matrices(self) -> Tuple[np.ndarray, ...]:
+    def confusion_matrices(self) -> tuple[np.ndarray, ...]:
         """List of confusion matrices corresponding to `measure_qubits` qubit pattern."""
         return self._confusion_matrices
 
     @property
-    def measure_qubits(self) -> Tuple[Tuple['cirq.Qid', ...], ...]:
+    def measure_qubits(self) -> tuple[tuple[cirq.Qid, ...], ...]:
         """Calibrated qubit pattern for which individual confusion matrices were computed."""
         return self._measure_qubits
 
     @property
-    def qubits(self) -> Tuple['cirq.Qid', ...]:
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         """Sorted list of all calibrated qubits."""
         return self._qubits
 
-    def _get_vars(self, qubit_pattern: Sequence['cirq.Qid']) -> List[int]:
+    def _get_vars(self, qubit_pattern: Sequence[cirq.Qid]) -> list[int]:
         in_vars = [2 * self._qubits_to_idx[q] for q in qubit_pattern]
         out_vars = [2 * self._qubits_to_idx[q] + 1 for q in qubit_pattern]
         return in_vars + out_vars
 
-    def _confusion_matrix(self, qubits: Sequence['cirq.Qid']) -> np.ndarray:
-        ein_input = []
+    def _confusion_matrix(self, qubits: Sequence[cirq.Qid]) -> np.ndarray:
+        ein_input: list[np.ndarray | list[int]] = []
         for qs, cm in zip(self.measure_qubits, self.confusion_matrices):
             ein_input.extend([cm.reshape((2, 2) * len(qs)), self._get_vars(qs)])
         ein_out = self._get_vars(qubits)
 
-        # TODO(#5757): remove type ignore when numpy has proper override signature.
-        ret = np.einsum(*ein_input, ein_out).reshape((2 ** len(qubits),) * 2)  # type: ignore
+        ret = np.einsum(*ein_input, ein_out).reshape((2 ** len(qubits),) * 2)
         return ret / ret.sum(axis=1)
 
-    def confusion_matrix(self, qubits: Optional[Sequence['cirq.Qid']] = None) -> np.ndarray:
+    def confusion_matrix(self, qubits: Sequence[cirq.Qid] | None = None) -> np.ndarray:
         """Returns a single confusion matrix constructed for the given set of qubits.
 
         The single `2 ** len(qubits) x 2 ** len(qubits)` confusion matrix is constructed
@@ -210,7 +213,7 @@ class TensoredConfusionMatrices:
             self._cache[key] = self._confusion_matrix(qubits)
         return self._cache[key]
 
-    def correction_matrix(self, qubits: Optional[Sequence['cirq.Qid']] = None) -> np.ndarray:
+    def correction_matrix(self, qubits: Sequence[cirq.Qid] | None = None) -> np.ndarray:
         """Returns a single correction matrix constructed for the given set of qubits.
 
         A correction matrix is the inverse of confusion matrix and can be used to apply corrections
@@ -239,7 +242,7 @@ class TensoredConfusionMatrices:
     def apply(
         self,
         result: np.ndarray,
-        qubits: Optional[Sequence['cirq.Qid']] = None,
+        qubits: Sequence[cirq.Qid] | None = None,
         *,
         method='least_squares',
     ) -> np.ndarray:
@@ -298,6 +301,70 @@ class TensoredConfusionMatrices:
             )  # pragma: no cover
         return res.x
 
+    def readout_mitigation_pauli_uncorrelated(
+        self, qubits: Sequence[cirq.Qid], measured_bitstrings: np.ndarray
+    ) -> tuple[float, float]:
+        r"""Uncorrelated readout error mitigation for a multi-qubit Pauli operator.
+
+        This function scalably performs readout error mitigation on an arbitrary-length Pauli
+        operator. It is a reimplementation of https://github.com/eliottrosenberg/correlated_SPAM
+        but specialized to the case in which readout is uncorrelated. We require that the confusion
+        matrix is a tensor product of single-qubit confusion matrices. We then invert the confusion
+        matrix by inverting each of the $C^{(q)}$ Then, in a bit-by-bit fashion, we apply the
+        inverses of the single-site confusion matrices to the bits of the measured bitstring,
+        contract them with the single-site Pauli operator, and take the product over all of the
+        bits. This could be generalized to tensor product spaces that are larger than single qubits,
+        but the essential simplification is that each tensor product space is small, so that none of
+        the response matrices is exponentially large.
+
+        This can result in mitigated Pauli operators that are not in the range [-1, 1], but if
+        the readout error is indeed uncorrelated and well-characterized, then it should converge
+        to being within this range. Results are improved both by a more precise characterization
+        of the response matrices (whose statistical uncertainty is not accounted for in the error
+        propagation here) and by increasing the number of measured bitstrings.
+
+        Args:
+            qubits: The qubits on which the Pauli operator acts.
+            measured_bitstrings: The experimentally measured bitstrings in the eigenbasis of the
+                Pauli operator. measured_bitstrings[i,j] is the ith bitstring, qubit j.
+
+        Returns:
+            The error-mitigated expectation value of the Pauli operator and its statistical
+            uncertainty (not including the uncertainty in the confusion matrices for now).
+
+        Raises:
+            NotImplementedError: If the confusion matrix is not a tensor product of single-qubit
+                                 confusion matrices for all of `qubits`.
+        """
+
+        # in case given as an array of bools, convert to an array of ints:
+        measured_bitstrings = measured_bitstrings.astype(int)
+
+        # get all of the confusion matrices
+        cm_all = []
+        for qubit in qubits:
+            try:
+                idx = self.measure_qubits.index((qubit,))
+            except:  # pragma: no cover
+                raise NotImplementedError(
+                    "The response matrix must be a tensor product of single-qu"
+                    + f"bit response matrices, including that of qubit {qubit}."
+                )
+            cm_all.append(self.confusion_matrices[idx])
+
+        # get the correction matrices, assuming uncorrelated readout:
+        cminv_all = [np.linalg.inv(cm) for cm in cm_all]
+
+        # next, contract them with the single-qubit Pauli operators:
+        z = np.array([1, -1])
+        z_cminv_all = np.array([z @ cminv for cminv in cminv_all])
+
+        # finally, mitigate each bitstring:
+        z_mit_all_shots = np.prod(np.einsum("iji->ij", z_cminv_all[:, measured_bitstrings]), axis=0)
+
+        # return mean and statistical uncertainty:
+        return np.mean(z_mit_all_shots), np.std(z_mit_all_shots) / np.sqrt(len(measured_bitstrings))
+
     def __repr__(self) -> str:
         return (
             f"cirq.TensoredConfusionMatrices("
@@ -308,7 +375,7 @@ class TensoredConfusionMatrices:
             f")"
         )
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             'confusion_matrices': self.confusion_matrices,
             'measure_qubits': self.measure_qubits,
@@ -319,7 +386,7 @@ class TensoredConfusionMatrices:
     @classmethod
     def _from_json_dict_(
         cls, confusion_matrices, measure_qubits, repetitions, timestamp, **kwargs
-    ) -> 'TensoredConfusionMatrices':
+    ) -> TensoredConfusionMatrices:
         return cls(
             [np.asarray(cm) for cm in confusion_matrices],
             measure_qubits,
@@ -358,8 +425,8 @@ class TensoredConfusionMatrices:
 
 
 def measure_confusion_matrix(
-    sampler: 'cirq.Sampler',
-    qubits: Union[Sequence['cirq.Qid'], Sequence[Sequence['cirq.Qid']]],
+    sampler: cirq.Sampler,
+    qubits: Sequence[cirq.Qid] | Sequence[Sequence[cirq.Qid]],
     repetitions: int = 1000,
 ) -> TensoredConfusionMatrices:
     """Prepares `TensoredConfusionMatrices` for the n qubits in the input.

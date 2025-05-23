@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cirq
 
 
-def test_drop():
+def test_drop() -> None:
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
     cirq.testing.assert_same_circuits(
@@ -28,7 +30,7 @@ def test_drop():
     )
 
 
-def test_drop_empty_moments():
+def test_drop_empty_moments() -> None:
     q1, q2 = cirq.LineQubit.range(2)
     c_nested = cirq.FrozenCircuit(
         cirq.Moment(), cirq.Moment(), cirq.Moment([cirq.CNOT(q1, q2)]), cirq.Moment()

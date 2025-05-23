@@ -11,22 +11,33 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Tests for state_vector.py"""
 
+from __future__ import annotations
+
 import itertools
-from typing import Optional
-import pytest
+from typing import Iterator
+from unittest import mock
 
 import numpy as np
+import pytest
 
 import cirq
 import cirq.testing
 from cirq import linalg
 
 
+@pytest.fixture
+def use_np_transpose(request) -> Iterator[bool]:
+    value: bool = request.param
+    with mock.patch.object(linalg, 'can_numpy_support_shape', lambda shape: value):
+        yield value
+
+
 def test_state_mixin():
     class TestClass(cirq.StateVectorMixin):
-        def state_vector(self, copy: Optional[bool] = None) -> np.ndarray:
+        def state_vector(self, copy: bool | None = None) -> np.ndarray:
             return np.array([0, 0, 1, 0])
 
     qubits = cirq.LineQubit.range(2)
@@ -173,9 +184,10 @@ def test_sample_no_indices_repetitions():
     )
 
 
-@pytest.mark.parametrize('use_np_transpose', [False, True])
+@pytest.mark.parametrize('use_np_transpose', [False, True], indirect=True)
 def test_measure_state_computational_basis(use_np_transpose: bool):
-    linalg.can_numpy_support_shape = lambda s: use_np_transpose
+    # verify patching of can_numpy_support_shape in the use_np_transpose fixture
+    assert linalg.can_numpy_support_shape([1]) is use_np_transpose
     results = []
     for x in range(8):
         initial_state = cirq.to_valid_state_vector(x, 3)
@@ -186,9 +198,8 @@ def test_measure_state_computational_basis(use_np_transpose: bool):
     assert results == expected
 
 
-@pytest.mark.parametrize('use_np_transpose', [False, True])
+@pytest.mark.parametrize('use_np_transpose', [False, True], indirect=True)
 def test_measure_state_reshape(use_np_transpose: bool):
-    linalg.can_numpy_support_shape = lambda s: use_np_transpose
     results = []
     for x in range(8):
         initial_state = np.reshape(cirq.to_valid_state_vector(x, 3), [2] * 3)
@@ -199,9 +210,8 @@ def test_measure_state_reshape(use_np_transpose: bool):
     assert results == expected
 
 
-@pytest.mark.parametrize('use_np_transpose', [False, True])
+@pytest.mark.parametrize('use_np_transpose', [False, True], indirect=True)
 def test_measure_state_partial_indices(use_np_transpose: bool):
-    linalg.can_numpy_support_shape = lambda s: use_np_transpose
     for index in range(3):
         for x in range(8):
             initial_state = cirq.to_valid_state_vector(x, 3)
@@ -210,9 +220,8 @@ def test_measure_state_partial_indices(use_np_transpose: bool):
             assert bits == [bool(1 & (x >> (2 - index)))]
 
 
-@pytest.mark.parametrize('use_np_transpose', [False, True])
+@pytest.mark.parametrize('use_np_transpose', [False, True], indirect=True)
 def test_measure_state_partial_indices_order(use_np_transpose: bool):
-    linalg.can_numpy_support_shape = lambda s: use_np_transpose
     for x in range(8):
         initial_state = cirq.to_valid_state_vector(x, 3)
         bits, state = cirq.measure_state_vector(initial_state, [2, 1])
@@ -220,9 +229,8 @@ def test_measure_state_partial_indices_order(use_np_transpose: bool):
         assert bits == [bool(1 & (x >> 0)), bool(1 & (x >> 1))]
 
 
-@pytest.mark.parametrize('use_np_transpose', [False, True])
+@pytest.mark.parametrize('use_np_transpose', [False, True], indirect=True)
 def test_measure_state_partial_indices_all_orders(use_np_transpose: bool):
-    linalg.can_numpy_support_shape = lambda s: use_np_transpose
     for perm in itertools.permutations([0, 1, 2]):
         for x in range(8):
             initial_state = cirq.to_valid_state_vector(x, 3)
@@ -231,9 +239,8 @@ def test_measure_state_partial_indices_all_orders(use_np_transpose: bool):
             assert bits == [bool(1 & (x >> (2 - p))) for p in perm]
 
 
-@pytest.mark.parametrize('use_np_transpose', [False, True])
+@pytest.mark.parametrize('use_np_transpose', [False, True], indirect=True)
 def test_measure_state_collapse(use_np_transpose: bool):
-    linalg.can_numpy_support_shape = lambda s: use_np_transpose
     initial_state = np.zeros(8, dtype=np.complex64)
     initial_state[0] = 1 / np.sqrt(2)
     initial_state[2] = 1 / np.sqrt(2)
@@ -256,9 +263,8 @@ def test_measure_state_collapse(use_np_transpose: bool):
         assert bits == [False]
 
 
-@pytest.mark.parametrize('use_np_transpose', [False, True])
+@pytest.mark.parametrize('use_np_transpose', [False, True], indirect=True)
 def test_measure_state_seed(use_np_transpose: bool):
-    linalg.can_numpy_support_shape = lambda s: use_np_transpose
     n = 10
     initial_state = np.ones(2**n) / 2 ** (n / 2)
 
@@ -277,9 +283,8 @@ def test_measure_state_seed(use_np_transpose: bool):
     np.testing.assert_allclose(state1, state2)
 
 
-@pytest.mark.parametrize('use_np_transpose', [False, True])
+@pytest.mark.parametrize('use_np_transpose', [False, True], indirect=True)
 def test_measure_state_out_is_state(use_np_transpose: bool):
-    linalg.can_numpy_support_shape = lambda s: use_np_transpose
     initial_state = np.zeros(8, dtype=np.complex64)
     initial_state[0] = 1 / np.sqrt(2)
     initial_state[2] = 1 / np.sqrt(2)
@@ -290,9 +295,8 @@ def test_measure_state_out_is_state(use_np_transpose: bool):
     assert state is initial_state
 
 
-@pytest.mark.parametrize('use_np_transpose', [False, True])
+@pytest.mark.parametrize('use_np_transpose', [False, True], indirect=True)
 def test_measure_state_out_is_not_state(use_np_transpose: bool):
-    linalg.can_numpy_support_shape = lambda s: use_np_transpose
     initial_state = np.zeros(8, dtype=np.complex64)
     initial_state[0] = 1 / np.sqrt(2)
     initial_state[2] = 1 / np.sqrt(2)
@@ -302,18 +306,16 @@ def test_measure_state_out_is_not_state(use_np_transpose: bool):
     assert out is state
 
 
-@pytest.mark.parametrize('use_np_transpose', [False, True])
+@pytest.mark.parametrize('use_np_transpose', [False, True], indirect=True)
 def test_measure_state_not_power_of_two(use_np_transpose: bool):
-    linalg.can_numpy_support_shape = lambda s: use_np_transpose
     with pytest.raises(ValueError, match='3'):
         _, _ = cirq.measure_state_vector(np.array([1, 0, 0]), [1])
     with pytest.raises(ValueError, match='5'):
         cirq.measure_state_vector(np.array([0, 1, 0, 0, 0]), [1])
 
 
-@pytest.mark.parametrize('use_np_transpose', [False, True])
+@pytest.mark.parametrize('use_np_transpose', [False, True], indirect=True)
 def test_measure_state_index_out_of_range(use_np_transpose: bool):
-    linalg.can_numpy_support_shape = lambda s: use_np_transpose
     state = cirq.to_valid_state_vector(0, 3)
     with pytest.raises(IndexError, match='-2'):
         cirq.measure_state_vector(state, [-2])
@@ -321,18 +323,16 @@ def test_measure_state_index_out_of_range(use_np_transpose: bool):
         cirq.measure_state_vector(state, [3])
 
 
-@pytest.mark.parametrize('use_np_transpose', [False, True])
+@pytest.mark.parametrize('use_np_transpose', [False, True], indirect=True)
 def test_measure_state_no_indices(use_np_transpose: bool):
-    linalg.can_numpy_support_shape = lambda s: use_np_transpose
     initial_state = cirq.to_valid_state_vector(0, 3)
     bits, state = cirq.measure_state_vector(initial_state, [])
     assert [] == bits
     np.testing.assert_almost_equal(state, initial_state)
 
 
-@pytest.mark.parametrize('use_np_transpose', [False, True])
+@pytest.mark.parametrize('use_np_transpose', [False, True], indirect=True)
 def test_measure_state_no_indices_out_is_state(use_np_transpose: bool):
-    linalg.can_numpy_support_shape = lambda s: use_np_transpose
     initial_state = cirq.to_valid_state_vector(0, 3)
     bits, state = cirq.measure_state_vector(initial_state, [], out=initial_state)
     assert [] == bits
@@ -340,9 +340,8 @@ def test_measure_state_no_indices_out_is_state(use_np_transpose: bool):
     assert state is initial_state
 
 
-@pytest.mark.parametrize('use_np_transpose', [False, True])
+@pytest.mark.parametrize('use_np_transpose', [False, True], indirect=True)
 def test_measure_state_no_indices_out_is_not_state(use_np_transpose: bool):
-    linalg.can_numpy_support_shape = lambda s: use_np_transpose
     initial_state = cirq.to_valid_state_vector(0, 3)
     out = np.zeros_like(initial_state)
     bits, state = cirq.measure_state_vector(initial_state, [], out=out)
@@ -352,9 +351,8 @@ def test_measure_state_no_indices_out_is_not_state(use_np_transpose: bool):
     assert out is not initial_state
 
 
-@pytest.mark.parametrize('use_np_transpose', [False, True])
+@pytest.mark.parametrize('use_np_transpose', [False, True], indirect=True)
 def test_measure_state_empty_state(use_np_transpose: bool):
-    linalg.can_numpy_support_shape = lambda s: use_np_transpose
     initial_state = np.array([1.0])
     bits, state = cirq.measure_state_vector(initial_state, [])
     assert [] == bits
@@ -362,7 +360,7 @@ def test_measure_state_empty_state(use_np_transpose: bool):
 
 
 class BasicStateVector(cirq.StateVectorMixin):
-    def state_vector(self, copy: Optional[bool] = None) -> np.ndarray:
+    def state_vector(self, copy: bool | None = None) -> np.ndarray:
         return np.array([0, 1, 0, 0])
 
 

@@ -11,33 +11,30 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import datetime
 
-from typing import Dict, List, Optional, Sequence, Union
+from __future__ import annotations
+
+import datetime
+from typing import TYPE_CHECKING
 
 import cirq
-
-from cirq_google.api import v2
-from cirq_google.engine import calibration, validating_sampler
+from cirq_google.engine import calibration, engine_validator, validating_sampler
 from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
-from cirq_google.engine.abstract_local_program import AbstractLocalProgram
-from cirq_google.engine.abstract_program import AbstractProgram
 from cirq_google.engine.local_simulation_type import LocalSimulationType
+from cirq_google.engine.processor_sampler import ProcessorSampler
 from cirq_google.engine.simulated_local_job import SimulatedLocalJob
 from cirq_google.engine.simulated_local_program import SimulatedLocalProgram
 from cirq_google.serialization.circuit_serializer import CIRCUIT_SERIALIZER
-from cirq_google.engine.processor_sampler import ProcessorSampler
-from cirq_google.engine import engine_validator
 
-VALID_LANGUAGES = [
-    'type.googleapis.com/cirq.google.api.v2.Program',
-    'type.googleapis.com/cirq.google.api.v2.BatchProgram',
-]
+if TYPE_CHECKING:
+    from cirq_google.api import v2
+    from cirq_google.engine.abstract_local_program import AbstractLocalProgram
+    from cirq_google.engine.abstract_program import AbstractProgram
+
+VALID_LANGUAGES = ['type.googleapis.com/cirq.google.api.v2.Program']
 
 
-def _date_to_timestamp(
-    union_time: Optional[Union[datetime.datetime, datetime.date, int]]
-) -> Optional[int]:
+def _date_to_timestamp(union_time: datetime.datetime | datetime.date | int | None) -> int | None:
     if isinstance(union_time, int):
         return union_time
     elif isinstance(union_time, datetime.datetime):
@@ -91,11 +88,11 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         *args,
         sampler: cirq.Sampler = cirq.Simulator(),
         device: cirq.Device = cirq.UNCONSTRAINED_DEVICE,
-        validator: Optional[validating_sampler.VALIDATOR_TYPE] = None,
-        program_validator: Optional[engine_validator.PROGRAM_VALIDATOR_TYPE] = None,
+        validator: validating_sampler.VALIDATOR_TYPE | None = None,
+        program_validator: engine_validator.PROGRAM_VALIDATOR_TYPE | None = None,
         simulation_type: LocalSimulationType = LocalSimulationType.SYNCHRONOUS,
-        calibrations: Optional[Dict[int, calibration.Calibration]] = None,
-        device_specification: Optional[v2.device_pb2.DeviceSpecification] = None,
+        calibrations: dict[int, calibration.Calibration] | None = None,
+        device_specification: v2.device_pb2.DeviceSpecification | None = None,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
@@ -107,7 +104,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         self._sampler = validating_sampler.ValidatingSampler(
             device=self._device, validator=self._validator, sampler=sampler
         )
-        self._programs: Dict[str, AbstractLocalProgram] = {}
+        self._programs: dict[str, AbstractLocalProgram] = {}
         self._device_specification = device_specification
 
     def remove_program(self, program_id: str):
@@ -118,12 +115,12 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
     def get_calibration(self, calibration_timestamp_seconds: int) -> calibration.Calibration:
         return self._calibrations[calibration_timestamp_seconds]
 
-    def get_latest_calibration(self, timestamp: int) -> Optional[calibration.Calibration]:
+    def get_latest_calibration(self, timestamp: int) -> calibration.Calibration | None:
         if not self._calibrations:
             return None
         return self._calibrations[max(self._calibrations)]
 
-    def get_current_calibration(self) -> Optional[calibration.Calibration]:
+    def get_current_calibration(self) -> calibration.Calibration | None:
         return self.get_latest_calibration(int(datetime.datetime.now().timestamp()))
 
     def get_device(self) -> cirq.Device:
@@ -135,7 +132,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         """
         return self._device
 
-    def get_device_specification(self) -> Optional[v2.device_pb2.DeviceSpecification]:
+    def get_device_specification(self) -> v2.device_pb2.DeviceSpecification | None:
         return self._device_specification
 
     def health(self):
@@ -143,10 +140,10 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
 
     def list_calibrations(
         self,
-        earliest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
-        latest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
+        earliest_timestamp: datetime.datetime | datetime.date | int | None = None,
+        latest_timestamp: datetime.datetime | datetime.date | int | None = None,
         **kwargs,
-    ) -> List[calibration.Calibration]:
+    ) -> list[calibration.Calibration]:
         earliest_timestamp_seconds = _date_to_timestamp(earliest_timestamp) or 0
         latest_timestamp_seconds = (
             _date_to_timestamp(latest_timestamp)
@@ -163,15 +160,15 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             processor=self, run_name=run_name, device_config_name=device_config_name
         )
 
-    def supported_languages(self) -> List[str]:
+    def supported_languages(self) -> list[str]:
         return VALID_LANGUAGES
 
     def list_programs(
         self,
-        created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
-        created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[Dict[str, str]] = None,
-    ) -> List[AbstractLocalProgram]:
+        created_before: datetime.datetime | datetime.date | None = None,
+        created_after: datetime.datetime | datetime.date | None = None,
+        has_labels: dict[str, str] | None = None,
+    ) -> list[AbstractLocalProgram]:
         before_limit = created_before or datetime.datetime(datetime.MAXYEAR, 1, 1)
         after_limit = created_after or datetime.datetime(datetime.MINYEAR, 1, 1)
         labels = has_labels or {}
@@ -199,56 +196,20 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         """
         return self._programs[program_id]
 
-    async def run_batch_async(
-        self,
-        programs: Sequence[cirq.AbstractCircuit],
-        program_id: Optional[str] = None,
-        job_id: Optional[str] = None,
-        params_list: Optional[Sequence[cirq.Sweepable]] = None,
-        repetitions: int = 1,
-        program_description: Optional[str] = None,
-        program_labels: Optional[Dict[str, str]] = None,
-        job_description: Optional[str] = None,
-        job_labels: Optional[Dict[str, str]] = None,
-        run_name: str = "",
-        device_config_name: str = "",
-    ) -> SimulatedLocalJob:
-        if program_id is None:
-            program_id = self._create_id(id_type='program')
-        if job_id is None:
-            job_id = self._create_id(id_type='job')
-        self._program_validator(programs, params_list or [{}], repetitions, CIRCUIT_SERIALIZER)
-        self._programs[program_id] = SimulatedLocalProgram(
-            program_id=program_id,
-            simulation_type=self._simulation_type,
-            circuits=programs,
-            engine=self.engine(),
-            processor=self,
-        )
-        job = SimulatedLocalJob(
-            job_id=job_id,
-            processor_id=self.processor_id,
-            parent_program=self._programs[program_id],
-            repetitions=repetitions,
-            sweeps=list(params_list) if params_list is not None else None,
-            sampler=self._sampler,
-            simulation_type=self._simulation_type,
-        )
-        self._programs[program_id].add_job(job_id, job)
-        return job
-
     async def run_sweep_async(
         self,
         program: cirq.AbstractCircuit,
-        program_id: Optional[str] = None,
-        job_id: Optional[str] = None,
+        *,
+        program_id: str | None = None,
+        job_id: str | None = None,
         params: cirq.Sweepable = None,
         repetitions: int = 1,
-        program_description: Optional[str] = None,
-        program_labels: Optional[Dict[str, str]] = None,
-        job_description: Optional[str] = None,
-        job_labels: Optional[Dict[str, str]] = None,
+        program_description: str | None = None,
+        program_labels: dict[str, str] | None = None,
+        job_description: str | None = None,
+        job_labels: dict[str, str] | None = None,
         run_name: str = "",
+        snapshot_id: str = "",
         device_config_name: str = "",
     ) -> SimulatedLocalJob:
         if program_id is None:
@@ -274,6 +235,3 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         )
         self._programs[program_id].add_job(job_id, job)
         return job
-
-    async def run_calibration_async(self, *args, **kwargs):
-        raise NotImplementedError

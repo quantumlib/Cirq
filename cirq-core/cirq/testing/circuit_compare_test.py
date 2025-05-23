@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
+from __future__ import annotations
 
 import numpy as np
+import pytest
 
 import cirq
 from cirq.testing.circuit_compare import _assert_apply_unitary_works_when_axes_transposed
@@ -334,7 +335,7 @@ def test_assert_has_consistent_apply_unitary():
             return args.available_buffer
 
         def _unitary_(self):
-            return np.eye(2)
+            return np.eye(2)  # pragma: no cover
 
         def _num_qubits_(self):
             return 1
@@ -367,7 +368,7 @@ def test_assert_has_consistent_apply_unitary():
             return args.available_buffer
 
         def _unitary_(self):
-            return np.array([[0, 1], [1, 0]])
+            return np.array([[0, 1], [1, 0]])  # pragma: no cover
 
         def _num_qubits_(self):
             return 1
@@ -484,7 +485,7 @@ def test_assert_has_consistent_qid_shape():
 
     class ConsistentOp(cirq.Operation):
         def with_qubits(self, *qubits):
-            raise NotImplementedError  # pragma: no cover
+            raise NotImplementedError
 
         @property
         def qubits(self):
@@ -501,7 +502,7 @@ def test_assert_has_consistent_qid_shape():
     # the three methods before finding an inconsistency and throwing an error.
     class InconsistentOp1(cirq.Operation):
         def with_qubits(self, *qubits):
-            raise NotImplementedError  # pragma: no cover
+            raise NotImplementedError
 
         @property
         def qubits(self):
@@ -515,7 +516,7 @@ def test_assert_has_consistent_qid_shape():
 
     class InconsistentOp2(cirq.Operation):
         def with_qubits(self, *qubits):
-            raise NotImplementedError  # pragma: no cover
+            raise NotImplementedError
 
         @property
         def qubits(self):
@@ -529,7 +530,7 @@ def test_assert_has_consistent_qid_shape():
 
     class InconsistentOp3(cirq.Operation):
         def with_qubits(self, *qubits):
-            raise NotImplementedError  # pragma: no cover
+            raise NotImplementedError
 
         @property
         def qubits(self):

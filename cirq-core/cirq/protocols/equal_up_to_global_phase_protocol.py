@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numbers
 from collections.abc import Iterable
-from typing import Any, Union
+from typing import Any
 
 import numpy as np
 from typing_extensions import Protocol
@@ -28,7 +30,7 @@ class SupportsEqualUpToGlobalPhase(Protocol):
     """Object which can be compared for equality mod global phase."""
 
     @doc_private
-    def _equal_up_to_global_phase_(self, other: Any, *, atol: Union[int, float]) -> bool:
+    def _equal_up_to_global_phase_(self, other: Any, *, atol: float) -> bool:
         """Approximate comparator.
 
         Types implementing this protocol define their own logic for comparison
@@ -46,7 +48,7 @@ class SupportsEqualUpToGlobalPhase(Protocol):
         """
 
 
-def equal_up_to_global_phase(val: Any, other: Any, *, atol: Union[int, float] = 1e-8) -> bool:
+def equal_up_to_global_phase(val: Any, other: Any, *, atol: float = 1e-8) -> bool:
     """Determine whether two objects are equal up to global phase.
 
     If `val` implements a `_equal_up_to_global_phase_` method then it is

@@ -14,18 +14,22 @@
 
 """Module for use in exporting cirq-google objects in JSON."""
 
-import warnings
-import functools
-from typing import Dict
+from __future__ import annotations
 
-from cirq.protocols.json_serialization import ObjectFactory
+import functools
+import warnings
+from typing import TYPE_CHECKING
+
 from cirq.transformers.heuristic_decompositions.two_qubit_gate_tabulation import (
     TwoQubitGateTabulation,
 )
 
+if TYPE_CHECKING:
+    from cirq.protocols.json_serialization import ObjectFactory
+
 
 @functools.lru_cache()
-def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
+def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
     def _old_xmon(*args, **kwargs):
         d_type = kwargs['constant']
         warnings.warn(
@@ -43,23 +47,17 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'Calibration': cirq_google.Calibration,
         'CalibrationTag': cirq_google.CalibrationTag,
         'CalibrationLayer': cirq_google.CalibrationLayer,
-        'CalibrationResult': cirq_google.CalibrationResult,
         'CouplerPulse': cirq_google.experimental.CouplerPulse,
+        'Coupler': cirq_google.Coupler,
         'GoogleNoiseProperties': cirq_google.GoogleNoiseProperties,
         'SycamoreGate': cirq_google.SycamoreGate,
+        'WillowGate': cirq_google.WillowGate,
         # cirq_google.GateTabulation has been removed and replaced by cirq.TwoQubitGateTabulation.
         'GateTabulation': TwoQubitGateTabulation,
         'PhysicalZTag': cirq_google.PhysicalZTag,
         'FSimGateFamily': cirq_google.FSimGateFamily,
-        'FloquetPhasedFSimCalibrationOptions': cirq_google.FloquetPhasedFSimCalibrationOptions,
-        'FloquetPhasedFSimCalibrationRequest': cirq_google.FloquetPhasedFSimCalibrationRequest,
-        'PhasedFSimCalibrationResult': cirq_google.PhasedFSimCalibrationResult,
-        'PhasedFSimCharacterization': cirq_google.PhasedFSimCharacterization,
+        'FSimViaModelTag': cirq_google.FSimViaModelTag,
         'SycamoreTargetGateset': cirq_google.SycamoreTargetGateset,
-        'XEBPhasedFSimCalibrationOptions': cirq_google.XEBPhasedFSimCalibrationOptions,
-        'XEBPhasedFSimCalibrationRequest': cirq_google.XEBPhasedFSimCalibrationRequest,
-        'LocalXEBPhasedFSimCalibrationOptions': cirq_google.LocalXEBPhasedFSimCalibrationOptions,
-        'LocalXEBPhasedFSimCalibrationRequest': cirq_google.LocalXEBPhasedFSimCalibrationRequest,
         'cirq.google.BitstringsMeasurement': cirq_google.BitstringsMeasurement,
         'cirq.google.QuantumExecutable': cirq_google.QuantumExecutable,
         'cirq.google.QuantumExecutableGroup': cirq_google.QuantumExecutableGroup,
@@ -85,5 +83,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'cirq.google.GridDevice': cirq_google.GridDevice,
         'cirq.google.GoogleCZTargetGateset': cirq_google.GoogleCZTargetGateset,
         'cirq.google.DeviceParameter': cirq_google.study.device_parameter.DeviceParameter,
+        'cirq.google.Metadata': cirq_google.study.device_parameter.Metadata,
         'InternalGate': cirq_google.InternalGate,
+        'InternalTag': cirq_google.InternalTag,
     }

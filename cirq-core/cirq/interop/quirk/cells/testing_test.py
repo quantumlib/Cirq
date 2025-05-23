@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
@@ -19,7 +21,7 @@ import cirq
 from cirq.interop.quirk.cells.testing import assert_url_to_circuit_returns
 
 
-def test_assert_url_to_circuit_returns_circuit():
+def test_assert_url_to_circuit_returns_circuit() -> None:
     assert_url_to_circuit_returns(
         '{"cols":[["X"]]}', circuit=cirq.Circuit(cirq.X(cirq.LineQubit(0)))
     )
@@ -30,21 +32,21 @@ def test_assert_url_to_circuit_returns_circuit():
         )
 
 
-def test_assert_url_to_circuit_returns_unitary():
+def test_assert_url_to_circuit_returns_unitary() -> None:
     assert_url_to_circuit_returns('{"cols":[["X"]]}', unitary=cirq.unitary(cirq.X))
 
     with pytest.raises(AssertionError, match='Not equal to tolerance'):
         assert_url_to_circuit_returns('{"cols":[["X"]]}', unitary=np.eye(2))
 
 
-def test_assert_url_to_circuit_returns_diagram():
+def test_assert_url_to_circuit_returns_diagram() -> None:
     assert_url_to_circuit_returns('{"cols":[["X"]]}', diagram='0: ───X───')
 
     with pytest.raises(AssertionError, match='text diagram differs'):
         assert_url_to_circuit_returns('{"cols":[["X"]]}', diagram='not even close')
 
 
-def test_assert_url_to_circuit_returns_maps():
+def test_assert_url_to_circuit_returns_maps() -> None:
     assert_url_to_circuit_returns('{"cols":[["X"]]}', maps={0: 1})
     assert_url_to_circuit_returns('{"cols":[["X"]]}', maps={0: 1, 1: 0})
 
@@ -55,7 +57,7 @@ def test_assert_url_to_circuit_returns_maps():
         assert_url_to_circuit_returns('{"cols":[["H"]]}', maps={0: 0})
 
 
-def test_assert_url_to_circuit_returns_output_amplitudes_from_quirk():
+def test_assert_url_to_circuit_returns_output_amplitudes_from_quirk() -> None:
     assert_url_to_circuit_returns(
         '{"cols":[["X","Z"]]}',
         output_amplitudes_from_quirk=[
@@ -78,7 +80,7 @@ def test_assert_url_to_circuit_returns_output_amplitudes_from_quirk():
         )
 
 
-def test_assert_url_to_circuit_misc():
+def test_assert_url_to_circuit_misc() -> None:
     a, b = cirq.LineQubit.range(2)
 
     assert_url_to_circuit_returns(

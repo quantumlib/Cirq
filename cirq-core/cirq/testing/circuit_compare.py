@@ -12,16 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Union
+from __future__ import annotations
 
-from collections import defaultdict
 import itertools
 import random
+from collections import defaultdict
+from typing import Any, Iterable, Sequence
 
 import numpy as np
 import sympy
 
-from cirq import circuits, ops, linalg, protocols, qis
+from cirq import circuits, linalg, ops, protocols, qis
 from cirq.testing import lin_alg_utils
 
 
@@ -79,7 +80,7 @@ def _measurement_subspaces(
         measurement_mask |= 1 << i
 
     # Keyed by computational basis state with lowest index.
-    measurement_subspaces: Dict[int, List[int]] = defaultdict(list)
+    measurement_subspaces: dict[int, list[int]] = defaultdict(list)
     computational_basis = range(1 << n_qubits)
 
     for basis_state in computational_basis:
@@ -214,7 +215,7 @@ def assert_same_circuits(
 
 def _first_differing_moment_index(
     circuit1: circuits.AbstractCircuit, circuit2: circuits.AbstractCircuit
-) -> Optional[int]:
+) -> int | None:
     for i, (m1, m2) in enumerate(itertools.zip_longest(circuit1, circuit2)):
         if m1 != m2:
             return i
@@ -224,7 +225,7 @@ def _first_differing_moment_index(
 def assert_circuits_have_same_unitary_given_final_permutation(
     actual: circuits.AbstractCircuit,
     expected: circuits.AbstractCircuit,
-    qubit_map: Dict[ops.Qid, ops.Qid],
+    qubit_map: dict[ops.Qid, ops.Qid],
 ) -> None:
     """Asserts two circuits have the same unitary up to a final permutation of qubits.
 
@@ -256,7 +257,7 @@ def assert_circuits_have_same_unitary_given_final_permutation(
 
 
 def assert_has_diagram(
-    actual: Union[circuits.AbstractCircuit, circuits.Moment], desired: str, **kwargs
+    actual: circuits.AbstractCircuit | circuits.Moment, desired: str, **kwargs
 ) -> None:
     """Determines if a given circuit has the desired text diagram.
 

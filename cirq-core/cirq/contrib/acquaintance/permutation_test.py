@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import random
 
 import pytest
 
 import cirq
-import cirq.testing as ct
 import cirq.contrib.acquaintance as cca
+import cirq.testing as ct
 
 
 def test_swap_permutation_gate():

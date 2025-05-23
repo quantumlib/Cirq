@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 
 import cirq
@@ -49,6 +51,4 @@ def test_pow_error():
 
 @pytest.mark.parametrize('val,exponent,out', ((ReturnsExponent(), 2, 2), (1, 2, 1), (2, 3, 8)))
 def test_pow_with_result(val, exponent, out):
-    assert (
-        cirq.pow(val, exponent) == cirq.pow(val, exponent, default=None) == val**exponent == out
-    )
+    assert cirq.pow(val, exponent) == cirq.pow(val, exponent, default=None) == val**exponent == out

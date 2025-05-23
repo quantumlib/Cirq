@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import collections.abc
 import pathlib
 
@@ -454,6 +457,7 @@ def test_is_parameterized():
             return True
 
     q = cirq.LineQubit(0)
+    assert No1().num_qubits() == 1
     assert not cirq.is_parameterized(No1().on(q))
     assert not cirq.is_parameterized(No2().on(q))
     assert cirq.is_parameterized(Yes().on(q))
@@ -490,7 +494,9 @@ def test_gate_to_operation_to_gate_round_trips():
     gate_subclasses = {
         g
         for g in all_subclasses(cirq.Gate)
-        if "cirq." in g.__module__ and "contrib" not in g.__module__ and "test" not in g.__module__
+        if g.__module__.startswith("cirq.")
+        and "contrib" not in g.__module__
+        and "test" not in g.__module__
     }
 
     test_module_spec = cirq.testing.json.spec_for("cirq.protocols")
@@ -506,7 +512,6 @@ def test_gate_to_operation_to_gate_round_trips():
         cirq.transformers.measurement_transformers._ConfusionChannel,
         cirq.transformers.measurement_transformers._ModAdd,
         cirq.transformers.routing.visualize_routed_circuit._SwapPrintGate,
-        cirq.ops.raw_types._InverseCompositeGate,
         cirq.circuits.qasm_output.QasmTwoQubitGate,
         cirq.ops.MSGate,
         # Interop gates

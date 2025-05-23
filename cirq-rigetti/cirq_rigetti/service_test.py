@@ -1,11 +1,14 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-from typing import Optional, Iterator
+from unittest.mock import patch
+
 import pytest
-import httpx
-from cirq_rigetti import get_rigetti_qcs_service, RigettiQCSService
+
+from cirq_rigetti import get_rigetti_qcs_service
+from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 
 
 @pytest.mark.rigetti_integration
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_get_rigetti_qcs_service():
     """test that get_rigetti_qcs_service can initialize a `RigettiQCSService`
     through `pyquil.get_qc`."""
@@ -14,20 +17,12 @@ def test_get_rigetti_qcs_service():
 
 
 @pytest.mark.rigetti_integration
-def test_rigetti_qcs_service_api_call():
-    """test that `RigettiQCSService` will use a custom defined client when the
-    user specifies one to make an API call."""
+@patch('cirq_rigetti.service.QCSClient')
+@patch('cirq_rigetti.service.list_quantum_processors')
+@allow_deprecated_cirq_rigetti_use_in_tests
+def test_list_quantum_processors(mock_list_quantum_processors, MockQCSClient):
+    client = MockQCSClient()
 
-    class Response(httpx.Response):
-        def iter_bytes(self, chunk_size: Optional[int] = None) -> Iterator[bytes]:
-            yield b"{\"quantumProcessors\": [{\"id\": \"Aspen-8\"}]}"  # pragma: no cover
+    get_rigetti_qcs_service('9q-square', as_qvm=True).list_quantum_processors(client=client)
 
-    class Transport(httpx.BaseTransport):
-        def handle_request(self, request: httpx.Request) -> httpx.Response:
-            return Response(200)
-
-    client = httpx.Client(base_url="https://mock.api.qcs.rigetti.com", transport=Transport())
-
-    response = RigettiQCSService.list_quantum_processors(client=client)
-    assert 1 == len(response.quantum_processors)
-    assert 'Aspen-8' == response.quantum_processors[0].id
+    mock_list_quantum_processors.assert_called_with(client=client)

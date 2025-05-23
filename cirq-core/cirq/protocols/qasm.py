@@ -12,14 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import string
-from typing import TYPE_CHECKING, Union, Any, Tuple, TypeVar, Optional, Dict, Iterable
+from types import NotImplementedType
+from typing import Any, Iterable, TYPE_CHECKING, TypeVar
 
 from typing_extensions import Protocol
 
 from cirq import ops
 from cirq._doc import doc_private
-from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -36,8 +38,9 @@ class QasmArgs(string.Formatter):
         self,
         precision: int = 10,
         version: str = '2.0',
-        qubit_id_map: Optional[Dict['cirq.Qid', str]] = None,
-        meas_key_id_map: Optional[Dict[str, str]] = None,
+        qubit_id_map: dict[cirq.Qid, str] | None = None,
+        meas_key_id_map: dict[str, str] | None = None,
+        meas_key_bitcount: dict[str, int] | None = None,
     ) -> None:
         """Inits QasmArgs.
 
@@ -49,11 +52,21 @@ class QasmArgs(string.Formatter):
             qubit_id_map: A dictionary mapping qubits to qreg QASM identifiers.
             meas_key_id_map: A dictionary mapping measurement keys to creg QASM
                 identifiers.
+            meas_key_bitcount: A dictionary with of bits for each measurement
+                key.
         """
         self.precision = precision
         self.version = version
         self.qubit_id_map = {} if qubit_id_map is None else qubit_id_map
         self.meas_key_id_map = {} if meas_key_id_map is None else meas_key_id_map
+        self.meas_key_bitcount = {} if meas_key_bitcount is None else meas_key_bitcount
+
+    def _format_number(self, value) -> str:
+        """OpenQASM 2.0 does not support '1e-5' and wants '1.0e-5'"""
+        s = f'{value}'
+        if 'e' in s and not '.' in s:
+            return s.replace('e', '.0e')
+        return s
 
     def format_field(self, value: Any, spec: str) -> str:
         """Method of string.Formatter that specifies the output of format()."""
@@ -61,8 +74,10 @@ class QasmArgs(string.Formatter):
             if isinstance(value, float):
                 value = round(value, self.precision)
             if spec == 'half_turns':
-                value = f'pi*{value}' if value != 0 else '0'
+                value = f'pi*{self._format_number(value)}' if value != 0 else '0'
                 spec = ''
+            else:
+                value = self._format_number(value)
         elif isinstance(value, ops.Qid):
             value = self.qubit_id_map[value]
         elif isinstance(value, str) and spec == 'meas':
@@ -84,7 +99,7 @@ class SupportsQasm(Protocol):
     """
 
     @doc_private
-    def _qasm_(self) -> Union[None, NotImplementedType, str]:
+    def _qasm_(self) -> None | NotImplementedType | str:
         pass
 
 
@@ -97,7 +112,7 @@ class SupportsQasmWithArgs(Protocol):
     """
 
     @doc_private
-    def _qasm_(self, args: QasmArgs) -> Union[None, NotImplementedType, str]:
+    def _qasm_(self, args: QasmArgs) -> None | NotImplementedType | str:
         pass
 
 
@@ -110,9 +125,7 @@ class SupportsQasmWithArgsAndQubits(Protocol):
     """
 
     @doc_private
-    def _qasm_(
-        self, qubits: Tuple['cirq.Qid'], args: QasmArgs
-    ) -> Union[None, NotImplementedType, str]:
+    def _qasm_(self, qubits: tuple[cirq.Qid], args: QasmArgs) -> None | NotImplementedType | str:
         pass
 
 
@@ -120,10 +133,10 @@ class SupportsQasmWithArgsAndQubits(Protocol):
 def qasm(
     val: Any,
     *,
-    args: Optional[QasmArgs] = None,
-    qubits: Optional[Iterable['cirq.Qid']] = None,
+    args: QasmArgs | None = None,
+    qubits: Iterable[cirq.Qid] | None = None,
     default: TDefault = RaiseTypeErrorIfNotProvided,
-) -> Union[str, TDefault]:
+) -> str | TDefault:
     """Returns QASM code for the given value, if possible.
 
     Different values require different sets of arguments. The general rule of
@@ -138,7 +151,7 @@ def qasm(
             involving qubits that the operation wouldn't otherwise know about.
         qubits: A list of qubits that the value is being applied to. This is
             needed for `cirq.Gate` values, which otherwise wouldn't know what
-            qubits to talk about.
+            qubits to talk about.  It should generally not be specified otherwise.
         default: A default result to use if the value doesn't have a
             `_qasm_` method or that method returns `NotImplemented` or `None`.
             If not specified, non-decomposable values cause a `TypeError`.
@@ -156,13 +169,19 @@ def qasm(
     method = getattr(val, '_qasm_', None)
     result = NotImplemented
     if method is not None:
-        kwargs: Dict[str, Any] = {}
+        kwargs: dict[str, Any] = {}
         if args is not None:
             kwargs['args'] = args
+        # pylint: disable=not-callable
         if qubits is not None:
             kwargs['qubits'] = tuple(qubits)
-        # pylint: disable=not-callable
-        result = method(**kwargs)
+        try:
+            result = method(**kwargs)
+        except TypeError as error:
+            raise TypeError(
+                "cirq.qasm does not expect qubits or args to be specified"
+                f"for the given value of type {type(val)}."
+            ) from error
         # pylint: enable=not-callable
     if result is not None and result is not NotImplemented:
         return result

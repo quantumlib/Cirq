@@ -12,18 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union, Tuple, cast
+from __future__ import annotations
+
+from types import EllipsisType, NotImplementedType
+from typing import Any, cast, Sequence
 
 import numpy as np
 import pytest
 import sympy
 
 import cirq
-from cirq.type_workarounds import NotImplementedType
 
 
 class GateUsingWorkspaceForApplyUnitary(cirq.testing.SingleQubitGate):
-    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray | NotImplementedType:
         args.available_buffer[...] = args.target_tensor
         args.target_tensor[...] = 0
         return args.available_buffer
@@ -42,10 +44,10 @@ class GateAllocatingNewSpaceForResult(cirq.testing.SingleQubitGate):
     def __init__(self):
         self._matrix = cirq.testing.random_unitary(2, random_state=4321)
 
-    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray | NotImplementedType:
         assert len(args.axes) == 1
         a = args.axes[0]
-        seed = cast(Tuple[Union[int, slice, 'ellipsis'], ...], (slice(None),))
+        seed = cast(tuple[int | slice | EllipsisType, ...], (slice(None),))
         zero = seed * a + (0, Ellipsis)
         one = seed * a + (1, Ellipsis)
         result = np.zeros(args.target_tensor.shape, args.target_tensor.dtype)
@@ -408,6 +410,11 @@ def test_unitary():
             ),
             True,
         ),
+        (cirq.GlobalPhaseGate(-1), True),
+        (cirq.GlobalPhaseGate(1j**0.7), True),
+        (cirq.GlobalPhaseGate(sympy.Symbol("s")), False),
+        (cirq.CZPowGate(exponent=1.2, global_shift=0.3), True),
+        (cirq.CZPowGate(exponent=sympy.Symbol("s"), global_shift=0.3), False),
         # Single qudit gate with dimension 4.
         (cirq.MatrixGate(np.kron(*(cirq.unitary(cirq.H),) * 2), qid_shape=(4,)), False),
         (cirq.MatrixGate(cirq.testing.random_unitary(4, random_state=1234)), False),
@@ -420,11 +427,107 @@ def test_unitary():
     ],
 )
 def test_controlled_gate_is_consistent(gate: cirq.Gate, should_decompose_to_target):
-    cgate = cirq.ControlledGate(gate)
+    _test_controlled_gate_is_consistent(gate, should_decompose_to_target)
+
+
+@pytest.mark.parametrize(
+    'gate',
+    [
+        cirq.I,
+        cirq.GlobalPhaseGate(1),
+        cirq.GlobalPhaseGate(-1),
+        cirq.GlobalPhaseGate(1j),
+        cirq.GlobalPhaseGate(1j**0.7),
+        cirq.Z,
+        cirq.ZPowGate(exponent=1.2, global_shift=0.3),
+        cirq.CZ,
+        cirq.CZPowGate(exponent=1.2, global_shift=0.3),
+        cirq.CCZ,
+        cirq.CCZPowGate(exponent=1.2, global_shift=0.3),
+        cirq.X,
+        cirq.XPowGate(exponent=1.2, global_shift=0.3),
+        cirq.CX,
+        cirq.CXPowGate(exponent=1.2, global_shift=0.3),
+        cirq.CCX,
+        cirq.CCXPowGate(exponent=1.2, global_shift=0.3),
+    ],
+)
+@pytest.mark.parametrize(
+    'control_qid_shape, control_values, should_decompose_to_target',
+    [
+        ([2, 2], None, True),
+        ([2, 2], xor_control_values, False),
+        ([3], None, False),
+        ([3, 4], xor_control_values, False),
+    ],
+)
+def test_nontrivial_controlled_gate_is_consistent(
+    gate: cirq.Gate,
+    control_qid_shape: Sequence[int],
+    control_values: Any,
+    should_decompose_to_target: bool,
+):
+    _test_controlled_gate_is_consistent(
+        gate, should_decompose_to_target, control_qid_shape, control_values
+    )
+
+
+def _test_controlled_gate_is_consistent(
+    gate: cirq.Gate,
+    should_decompose_to_target: bool,
+    control_qid_shape: Sequence[int] | None = None,
+    control_values: Any = None,
+):
+    cgate = cirq.ControlledGate(
+        gate, control_qid_shape=control_qid_shape, control_values=control_values
+    )
     cirq.testing.assert_implements_consistent_protocols(cgate)
     cirq.testing.assert_decompose_ends_at_default_gateset(
         cgate, ignore_known_gates=not should_decompose_to_target
     )
+    # The above only decompose once, which doesn't check that the sub-gate's phase is handled.
+    # We need to check full decomposition here.
+    if not cirq.is_parameterized(gate):
+        shape = cirq.qid_shape(cgate)
+        qids = cirq.LineQid.for_qid_shape(shape)
+        decomposed = cirq.decompose(cgate.on(*qids))
+        first_op = cirq.IdentityGate(qid_shape=shape).on(*qids)  # To ensure same qid order
+        circuit = cirq.Circuit(first_op, *decomposed)
+        np.testing.assert_allclose(cirq.unitary(cgate), cirq.unitary(circuit), atol=1e-13)
+
+
+@pytest.mark.parametrize(
+    'sub_gate, expected_decomposition',
+    [
+        (cirq.X, [cirq.CX]),
+        (cirq.CX, [cirq.CCX]),
+        (cirq.XPowGate(), [cirq.CXPowGate()]),
+        (cirq.CXPowGate(), [cirq.CCXPowGate()]),
+        (cirq.Z, [cirq.CZ]),
+        (cirq.CZ, [cirq.CCZ]),
+        (cirq.ZPowGate(), [cirq.CZPowGate()]),
+        (cirq.CZPowGate(), [cirq.CCZPowGate()]),
+    ],
+)
+def test_controlled_gate_decomposition_uses_canonical_version(
+    sub_gate: cirq.Gate, expected_decomposition: list[cirq.Gate]
+):
+    cgate = cirq.ControlledGate(sub_gate, num_controls=1)
+    qubits = cirq.LineQubit.range(1 + sub_gate.num_qubits())
+    dec = cirq.decompose_once(cgate.on(*qubits))
+    assert dec == [gate.on(*qubits) for gate in expected_decomposition]
+
+
+@pytest.mark.parametrize(
+    'sub_gate, expected_decomposition', [(cirq.Z, [cirq.CZ]), (cirq.ZPowGate(), [cirq.CZPowGate()])]
+)
+def test_controlled_gate_full_decomposition(
+    sub_gate: cirq.Gate, expected_decomposition: list[cirq.Gate]
+):
+    cgate = cirq.ControlledGate(sub_gate, num_controls=1)
+    qubits = cirq.LineQubit.range(1 + sub_gate.num_qubits())
+    dec = cirq.decompose(cgate.on(*qubits))
+    assert dec == [gate.on(*qubits) for gate in expected_decomposition]
 
 
 def test_pow_inverse():
@@ -452,9 +555,7 @@ def test_extrapolatable_effect():
 
     assert cirq.ControlledGate(cirq.Z) ** 0.5 == cirq.ControlledGate(cirq.Z**0.5)
 
-    assert cirq.ControlledGate(cirq.Z).on(a, b) ** 0.5 == cirq.ControlledGate(cirq.Z**0.5).on(
-        a, b
-    )
+    assert cirq.ControlledGate(cirq.Z).on(a, b) ** 0.5 == cirq.ControlledGate(cirq.Z**0.5).on(a, b)
 
     assert cirq.ControlledGate(cirq.Z) ** 0.5 == cirq.ControlledGate(cirq.Z**0.5)
 

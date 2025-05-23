@@ -11,10 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import cirq
-import cirq_web
+
+from __future__ import annotations
 
 import pytest
+
+import cirq
+import cirq_web
 
 
 def strip_ws(string):
@@ -51,7 +54,9 @@ def test_circuit_client_code(qubit):
         <button id="camera-reset">Reset Camera</button>
         <button id="camera-toggle">Toggle Camera Type</button>
         <script>
-        let viz_{stripped_id} = createGridCircuit({str(circuit_obj)}, {str(moments)}, "{circuit.id}", {circuit.padding_factor});
+        let viz_{stripped_id} = createGridCircuit(
+            {str(circuit_obj)}, {str(moments)}, "{circuit.id}", {circuit.padding_factor}
+        );
 
         document.getElementById("camera-reset").addEventListener('click', ()  => {{
         viz_{stripped_id}.scene.setCameraAndControls(viz_{stripped_id}.circuit);

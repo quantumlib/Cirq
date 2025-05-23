@@ -12,15 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import AsyncIterable, AsyncIterator, Awaitable, List, Sequence, Union
+from __future__ import annotations
+
 import asyncio
 import concurrent
+from typing import AsyncIterable, AsyncIterator, Awaitable, Sequence
 from unittest import mock
 
 import duet
-import pytest
 import google.api_core.exceptions as google_exceptions
+import pytest
 
+import cirq
+from cirq_google.cloud import quantum
 from cirq_google.engine.asyncio_executor import AsyncioExecutor
 from cirq_google.engine.stream_manager import (
     _get_retry_request_or_raise,
@@ -28,8 +32,6 @@ from cirq_google.engine.stream_manager import (
     StreamError,
     StreamManager,
 )
-from cirq_google.cloud import quantum
-
 
 Code = quantum.StreamError.Code
 
@@ -70,15 +72,15 @@ class FakeQuantumRunStream:
     _REQUEST_STOPPED = 'REQUEST_STOPPED'
 
     def __init__(self) -> None:
-        self.all_stream_requests: List[quantum.QuantumRunStreamRequest] = []
-        self.all_cancel_requests: List[quantum.CancelQuantumJobRequest] = []
+        self.all_stream_requests: list[quantum.QuantumRunStreamRequest] = []
+        self.all_cancel_requests: list[quantum.CancelQuantumJobRequest] = []
         self._executor = AsyncioExecutor.instance()
         self._request_buffer = duet.AsyncCollector[quantum.QuantumRunStreamRequest]()
         self._request_iterator_stopped: duet.AwaitableFuture[None] = duet.AwaitableFuture()
         # asyncio.Queue needs to be initialized inside the asyncio thread because all callers need
         # to use the same event loop.
         self._responses_and_exceptions_future: duet.AwaitableFuture[
-            asyncio.Queue[Union[quantum.QuantumRunStreamResponse, BaseException]]
+            asyncio.Queue[quantum.QuantumRunStreamResponse | BaseException]
         ] = duet.AwaitableFuture()
 
     async def quantum_run_stream(
@@ -96,7 +98,7 @@ class FakeQuantumRunStream:
         This is called from the asyncio thread.
         """
         responses_and_exceptions: asyncio.Queue[
-            Union[quantum.QuantumRunStreamResponse, BaseException]
+            quantum.QuantumRunStreamResponse | BaseException
         ] = asyncio.Queue()
         self._responses_and_exceptions_future.try_set_result(responses_and_exceptions)
 
@@ -141,9 +143,7 @@ class FakeQuantumRunStream:
             requests.append(await self._request_buffer.__anext__())
         return requests
 
-    async def reply(
-        self, response_or_exception: Union[quantum.QuantumRunStreamResponse, BaseException]
-    ):
+    async def reply(self, response_or_exception: quantum.QuantumRunStreamResponse | BaseException):
         """Sends a response or raises an exception to the `quantum_run_stream()` caller.
 
         If input response is missing `message_id`, it is defaulted to the `message_id` of the most
@@ -364,9 +364,11 @@ class TestStreamManager:
         [
             google_exceptions.InternalServerError('server error'),
             google_exceptions.ServiceUnavailable('unavailable'),
+            google_exceptions.Unknown('timeout'),
         ],
     )
     @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+    @cirq.testing.retry_once_after_timeout
     def test_submit_with_retryable_stream_breakage_expects_get_result_request(
         self, client_constructor, error
     ):
@@ -403,10 +405,10 @@ class TestStreamManager:
             google_exceptions.TooManyRequests('too many requests'),
             google_exceptions.Unauthenticated('unauthenticated'),
             google_exceptions.Unauthorized('unauthorized'),
-            google_exceptions.Unknown('unknown'),
         ],
     )
     @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+    @cirq.testing.retry_once_after_timeout
     def test_submit_with_non_retryable_stream_breakage_raises_error(
         self, client_constructor, error
     ):

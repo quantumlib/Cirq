@@ -13,10 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from typing import Any, AsyncIterator, Awaitable, Callable, Sequence, Tuple, Optional, Iterator
 
-from cirq_google.cloud.quantum_v1alpha1.types import engine
-from cirq_google.cloud.quantum_v1alpha1.types import quantum
+from __future__ import annotations
+
+from typing import Any, AsyncIterator, Awaitable, Callable, Iterator, Sequence
+
+from cirq_google.cloud.quantum_v1alpha1.types import engine, quantum
 
 
 class ListQuantumProgramsPager:
@@ -36,12 +38,15 @@ class ListQuantumProgramsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., engine.ListQuantumProgramsResponse],
-            request: engine.ListQuantumProgramsRequest,
-            response: engine.ListQuantumProgramsResponse,
-            *,
-            metadata: Sequence[Tuple[str, str]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., engine.ListQuantumProgramsResponse],
+        request: engine.ListQuantumProgramsRequest,
+        response: engine.ListQuantumProgramsResponse,
+        *,
+        metadata: Sequence[tuple[str, str]] = (),
+    ):
         """Instantiate the pager.
 
         Args:
@@ -51,7 +56,7 @@ class ListQuantumProgramsPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -95,12 +100,15 @@ class ListQuantumProgramsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., Awaitable[engine.ListQuantumProgramsResponse]],
-            request: engine.ListQuantumProgramsRequest,
-            response: engine.ListQuantumProgramsResponse,
-            *,
-            metadata: Sequence[Tuple[str, str]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., Awaitable[engine.ListQuantumProgramsResponse]],
+        request: engine.ListQuantumProgramsRequest,
+        response: engine.ListQuantumProgramsResponse,
+        *,
+        metadata: Sequence[tuple[str, str]] = (),
+    ):
         """Instantiates the pager.
 
         Args:
@@ -110,7 +118,7 @@ class ListQuantumProgramsAsyncPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -128,6 +136,7 @@ class ListQuantumProgramsAsyncPager:
             self._request.page_token = self._response.next_page_token
             self._response = await self._method(self._request, metadata=self._metadata)
             yield self._response
+
     def __aiter__(self) -> AsyncIterator[quantum.QuantumProgram]:
         async def async_generator():
             async for page in self.pages:
@@ -157,12 +166,15 @@ class ListQuantumJobsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., engine.ListQuantumJobsResponse],
-            request: engine.ListQuantumJobsRequest,
-            response: engine.ListQuantumJobsResponse,
-            *,
-            metadata: Sequence[Tuple[str, str]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., engine.ListQuantumJobsResponse],
+        request: engine.ListQuantumJobsRequest,
+        response: engine.ListQuantumJobsResponse,
+        *,
+        metadata: Sequence[tuple[str, str]] = (),
+    ):
         """Instantiate the pager.
 
         Args:
@@ -172,7 +184,7 @@ class ListQuantumJobsPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -216,12 +228,15 @@ class ListQuantumJobsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., Awaitable[engine.ListQuantumJobsResponse]],
-            request: engine.ListQuantumJobsRequest,
-            response: engine.ListQuantumJobsResponse,
-            *,
-            metadata: Sequence[Tuple[str, str]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., Awaitable[engine.ListQuantumJobsResponse]],
+        request: engine.ListQuantumJobsRequest,
+        response: engine.ListQuantumJobsResponse,
+        *,
+        metadata: Sequence[tuple[str, str]] = (),
+    ):
         """Instantiates the pager.
 
         Args:
@@ -231,7 +246,7 @@ class ListQuantumJobsAsyncPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -249,6 +264,7 @@ class ListQuantumJobsAsyncPager:
             self._request.page_token = self._response.next_page_token
             self._response = await self._method(self._request, metadata=self._metadata)
             yield self._response
+
     def __aiter__(self) -> AsyncIterator[quantum.QuantumJob]:
         async def async_generator():
             async for page in self.pages:
@@ -278,12 +294,15 @@ class ListQuantumJobEventsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., engine.ListQuantumJobEventsResponse],
-            request: engine.ListQuantumJobEventsRequest,
-            response: engine.ListQuantumJobEventsResponse,
-            *,
-            metadata: Sequence[Tuple[str, str]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., engine.ListQuantumJobEventsResponse],
+        request: engine.ListQuantumJobEventsRequest,
+        response: engine.ListQuantumJobEventsResponse,
+        *,
+        metadata: Sequence[tuple[str, str]] = (),
+    ):
         """Instantiate the pager.
 
         Args:
@@ -293,7 +312,7 @@ class ListQuantumJobEventsPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -337,12 +356,15 @@ class ListQuantumJobEventsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., Awaitable[engine.ListQuantumJobEventsResponse]],
-            request: engine.ListQuantumJobEventsRequest,
-            response: engine.ListQuantumJobEventsResponse,
-            *,
-            metadata: Sequence[Tuple[str, str]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., Awaitable[engine.ListQuantumJobEventsResponse]],
+        request: engine.ListQuantumJobEventsRequest,
+        response: engine.ListQuantumJobEventsResponse,
+        *,
+        metadata: Sequence[tuple[str, str]] = (),
+    ):
         """Instantiates the pager.
 
         Args:
@@ -352,7 +374,7 @@ class ListQuantumJobEventsAsyncPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -370,6 +392,7 @@ class ListQuantumJobEventsAsyncPager:
             self._request.page_token = self._response.next_page_token
             self._response = await self._method(self._request, metadata=self._metadata)
             yield self._response
+
     def __aiter__(self) -> AsyncIterator[quantum.QuantumJobEvent]:
         async def async_generator():
             async for page in self.pages:
@@ -399,12 +422,15 @@ class ListQuantumProcessorsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., engine.ListQuantumProcessorsResponse],
-            request: engine.ListQuantumProcessorsRequest,
-            response: engine.ListQuantumProcessorsResponse,
-            *,
-            metadata: Sequence[Tuple[str, str]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., engine.ListQuantumProcessorsResponse],
+        request: engine.ListQuantumProcessorsRequest,
+        response: engine.ListQuantumProcessorsResponse,
+        *,
+        metadata: Sequence[tuple[str, str]] = (),
+    ):
         """Instantiate the pager.
 
         Args:
@@ -414,7 +440,7 @@ class ListQuantumProcessorsPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -458,12 +484,15 @@ class ListQuantumProcessorsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., Awaitable[engine.ListQuantumProcessorsResponse]],
-            request: engine.ListQuantumProcessorsRequest,
-            response: engine.ListQuantumProcessorsResponse,
-            *,
-            metadata: Sequence[Tuple[str, str]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., Awaitable[engine.ListQuantumProcessorsResponse]],
+        request: engine.ListQuantumProcessorsRequest,
+        response: engine.ListQuantumProcessorsResponse,
+        *,
+        metadata: Sequence[tuple[str, str]] = (),
+    ):
         """Instantiates the pager.
 
         Args:
@@ -473,7 +502,7 @@ class ListQuantumProcessorsAsyncPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -491,6 +520,7 @@ class ListQuantumProcessorsAsyncPager:
             self._request.page_token = self._response.next_page_token
             self._response = await self._method(self._request, metadata=self._metadata)
             yield self._response
+
     def __aiter__(self) -> AsyncIterator[quantum.QuantumProcessor]:
         async def async_generator():
             async for page in self.pages:
@@ -520,12 +550,15 @@ class ListQuantumCalibrationsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., engine.ListQuantumCalibrationsResponse],
-            request: engine.ListQuantumCalibrationsRequest,
-            response: engine.ListQuantumCalibrationsResponse,
-            *,
-            metadata: Sequence[Tuple[str, str]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., engine.ListQuantumCalibrationsResponse],
+        request: engine.ListQuantumCalibrationsRequest,
+        response: engine.ListQuantumCalibrationsResponse,
+        *,
+        metadata: Sequence[tuple[str, str]] = (),
+    ):
         """Instantiate the pager.
 
         Args:
@@ -535,7 +568,7 @@ class ListQuantumCalibrationsPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -579,12 +612,15 @@ class ListQuantumCalibrationsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., Awaitable[engine.ListQuantumCalibrationsResponse]],
-            request: engine.ListQuantumCalibrationsRequest,
-            response: engine.ListQuantumCalibrationsResponse,
-            *,
-            metadata: Sequence[Tuple[str, str]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., Awaitable[engine.ListQuantumCalibrationsResponse]],
+        request: engine.ListQuantumCalibrationsRequest,
+        response: engine.ListQuantumCalibrationsResponse,
+        *,
+        metadata: Sequence[tuple[str, str]] = (),
+    ):
         """Instantiates the pager.
 
         Args:
@@ -594,7 +630,7 @@ class ListQuantumCalibrationsAsyncPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -612,6 +648,7 @@ class ListQuantumCalibrationsAsyncPager:
             self._request.page_token = self._response.next_page_token
             self._response = await self._method(self._request, metadata=self._metadata)
             yield self._response
+
     def __aiter__(self) -> AsyncIterator[quantum.QuantumCalibration]:
         async def async_generator():
             async for page in self.pages:
@@ -641,12 +678,15 @@ class ListQuantumReservationsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., engine.ListQuantumReservationsResponse],
-            request: engine.ListQuantumReservationsRequest,
-            response: engine.ListQuantumReservationsResponse,
-            *,
-            metadata: Sequence[Tuple[str, str]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., engine.ListQuantumReservationsResponse],
+        request: engine.ListQuantumReservationsRequest,
+        response: engine.ListQuantumReservationsResponse,
+        *,
+        metadata: Sequence[tuple[str, str]] = (),
+    ):
         """Instantiate the pager.
 
         Args:
@@ -656,7 +696,7 @@ class ListQuantumReservationsPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -700,12 +740,15 @@ class ListQuantumReservationsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., Awaitable[engine.ListQuantumReservationsResponse]],
-            request: engine.ListQuantumReservationsRequest,
-            response: engine.ListQuantumReservationsResponse,
-            *,
-            metadata: Sequence[Tuple[str, str]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., Awaitable[engine.ListQuantumReservationsResponse]],
+        request: engine.ListQuantumReservationsRequest,
+        response: engine.ListQuantumReservationsResponse,
+        *,
+        metadata: Sequence[tuple[str, str]] = (),
+    ):
         """Instantiates the pager.
 
         Args:
@@ -715,7 +758,7 @@ class ListQuantumReservationsAsyncPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -733,6 +776,7 @@ class ListQuantumReservationsAsyncPager:
             self._request.page_token = self._response.next_page_token
             self._response = await self._method(self._request, metadata=self._metadata)
             yield self._response
+
     def __aiter__(self) -> AsyncIterator[quantum.QuantumReservation]:
         async def async_generator():
             async for page in self.pages:
@@ -762,12 +806,15 @@ class ListQuantumReservationGrantsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., engine.ListQuantumReservationGrantsResponse],
-            request: engine.ListQuantumReservationGrantsRequest,
-            response: engine.ListQuantumReservationGrantsResponse,
-            *,
-            metadata: Sequence[Tuple[str, str]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., engine.ListQuantumReservationGrantsResponse],
+        request: engine.ListQuantumReservationGrantsRequest,
+        response: engine.ListQuantumReservationGrantsResponse,
+        *,
+        metadata: Sequence[tuple[str, str]] = (),
+    ):
         """Instantiate the pager.
 
         Args:
@@ -777,7 +824,7 @@ class ListQuantumReservationGrantsPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -821,12 +868,15 @@ class ListQuantumReservationGrantsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., Awaitable[engine.ListQuantumReservationGrantsResponse]],
-            request: engine.ListQuantumReservationGrantsRequest,
-            response: engine.ListQuantumReservationGrantsResponse,
-            *,
-            metadata: Sequence[Tuple[str, str]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., Awaitable[engine.ListQuantumReservationGrantsResponse]],
+        request: engine.ListQuantumReservationGrantsRequest,
+        response: engine.ListQuantumReservationGrantsResponse,
+        *,
+        metadata: Sequence[tuple[str, str]] = (),
+    ):
         """Instantiates the pager.
 
         Args:
@@ -836,7 +886,7 @@ class ListQuantumReservationGrantsAsyncPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -854,6 +904,7 @@ class ListQuantumReservationGrantsAsyncPager:
             self._request.page_token = self._response.next_page_token
             self._response = await self._method(self._request, metadata=self._metadata)
             yield self._response
+
     def __aiter__(self) -> AsyncIterator[quantum.QuantumReservationGrant]:
         async def async_generator():
             async for page in self.pages:
@@ -883,12 +934,15 @@ class ListQuantumReservationBudgetsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., engine.ListQuantumReservationBudgetsResponse],
-            request: engine.ListQuantumReservationBudgetsRequest,
-            response: engine.ListQuantumReservationBudgetsResponse,
-            *,
-            metadata: Sequence[Tuple[str, str]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., engine.ListQuantumReservationBudgetsResponse],
+        request: engine.ListQuantumReservationBudgetsRequest,
+        response: engine.ListQuantumReservationBudgetsResponse,
+        *,
+        metadata: Sequence[tuple[str, str]] = (),
+    ):
         """Instantiate the pager.
 
         Args:
@@ -898,7 +952,7 @@ class ListQuantumReservationBudgetsPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -942,12 +996,15 @@ class ListQuantumReservationBudgetsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., Awaitable[engine.ListQuantumReservationBudgetsResponse]],
-            request: engine.ListQuantumReservationBudgetsRequest,
-            response: engine.ListQuantumReservationBudgetsResponse,
-            *,
-            metadata: Sequence[Tuple[str, str]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., Awaitable[engine.ListQuantumReservationBudgetsResponse]],
+        request: engine.ListQuantumReservationBudgetsRequest,
+        response: engine.ListQuantumReservationBudgetsResponse,
+        *,
+        metadata: Sequence[tuple[str, str]] = (),
+    ):
         """Instantiates the pager.
 
         Args:
@@ -957,7 +1014,7 @@ class ListQuantumReservationBudgetsAsyncPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -975,6 +1032,7 @@ class ListQuantumReservationBudgetsAsyncPager:
             self._request.page_token = self._response.next_page_token
             self._response = await self._method(self._request, metadata=self._metadata)
             yield self._response
+
     def __aiter__(self) -> AsyncIterator[quantum.QuantumReservationBudget]:
         async def async_generator():
             async for page in self.pages:
@@ -1004,12 +1062,15 @@ class ListQuantumTimeSlotsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., engine.ListQuantumTimeSlotsResponse],
-            request: engine.ListQuantumTimeSlotsRequest,
-            response: engine.ListQuantumTimeSlotsResponse,
-            *,
-            metadata: Sequence[Tuple[str, str]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., engine.ListQuantumTimeSlotsResponse],
+        request: engine.ListQuantumTimeSlotsRequest,
+        response: engine.ListQuantumTimeSlotsResponse,
+        *,
+        metadata: Sequence[tuple[str, str]] = (),
+    ):
         """Instantiate the pager.
 
         Args:
@@ -1019,7 +1080,7 @@ class ListQuantumTimeSlotsPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -1063,12 +1124,15 @@ class ListQuantumTimeSlotsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., Awaitable[engine.ListQuantumTimeSlotsResponse]],
-            request: engine.ListQuantumTimeSlotsRequest,
-            response: engine.ListQuantumTimeSlotsResponse,
-            *,
-            metadata: Sequence[Tuple[str, str]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., Awaitable[engine.ListQuantumTimeSlotsResponse]],
+        request: engine.ListQuantumTimeSlotsRequest,
+        response: engine.ListQuantumTimeSlotsResponse,
+        *,
+        metadata: Sequence[tuple[str, str]] = (),
+    ):
         """Instantiates the pager.
 
         Args:
@@ -1078,7 +1142,7 @@ class ListQuantumTimeSlotsAsyncPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -1096,6 +1160,7 @@ class ListQuantumTimeSlotsAsyncPager:
             self._request.page_token = self._response.next_page_token
             self._response = await self._method(self._request, metadata=self._metadata)
             yield self._response
+
     def __aiter__(self) -> AsyncIterator[quantum.QuantumTimeSlot]:
         async def async_generator():
             async for page in self.pages:

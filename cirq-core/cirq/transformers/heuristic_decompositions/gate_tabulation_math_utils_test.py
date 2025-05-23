@@ -1,13 +1,16 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
 import cirq
 from cirq import value
 from cirq.transformers.heuristic_decompositions.gate_tabulation_math_utils import (
-    weyl_chamber_mesh,
     kak_vector_infidelity,
     random_qubit_unitary,
+    weyl_chamber_mesh,
 )
 
 

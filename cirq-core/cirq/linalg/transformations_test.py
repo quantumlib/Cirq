@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
@@ -584,7 +586,7 @@ def test_partial_trace_of_state_vector_as_mixture_mixed_result():
         (0.5, np.array([1, 0, 0, 0]).reshape((2, 2))),
         (0.5, np.array([0, 0, 0, 1]).reshape((2, 2))),
     )
-    for (q1, q2) in [(0, 1), (0, 2), (1, 2)]:
+    for q1, q2 in [(0, 1), (0, 2), (1, 2)]:
         mixture = cirq.partial_trace_of_state_vector_as_mixture(state, [q1, q2], atol=1e-8)
         assert mixtures_equal(mixture, truth)
 
@@ -648,3 +650,16 @@ def test_transpose_flattened_array(num_dimensions):
         assert np.array_equal(want, got)
         got = linalg.transpose_flattened_array(A.reshape(shape), shape, axes).reshape(want.shape)
         assert np.array_equal(want, got)
+
+
+@pytest.mark.parametrize('shape, result', [((), True), (30 * (1,), True), ((-3, 1, -1), False)])
+def test_can_numpy_support_shape(shape: tuple[int, ...], result: bool) -> None:
+    assert linalg.can_numpy_support_shape(shape) is result
+
+
+@pytest.mark.parametrize('coeff', [1, 1j, -1, -1j, 1j**0.5, 1j**0.3])
+def test_phase_delta(coeff):
+    u1 = cirq.testing.random_unitary(4)
+    u2 = u1 * coeff
+    np.testing.assert_almost_equal(linalg.phase_delta(u1, u2), coeff)
+    np.testing.assert_almost_equal(u1 * linalg.phase_delta(u1, u2), u2)
