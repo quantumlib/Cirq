@@ -1992,3 +1992,19 @@ def test_resolve(resolve_fn):
     pst = cirq.PauliString({q: 'x'}, coefficient=t)
     ps1 = cirq.PauliString({q: 'x'}, coefficient=1j)
     assert resolve_fn(pst, {'t': 1j}) == ps1
+
+
+def test_pauli_ops_identity_gate_operation():
+    q = cirq.LineQubit(0)
+    paulis = (cirq.I(q), cirq.X(q), cirq.Y(q), cirq.Z(q))
+    for p1 in paulis:
+        for p2 in paulis:
+            # TODO: Issue #7280 - Support addition and subtraction of identity gate operations.
+            if p1 == cirq.I(q) and p2 == cirq.I(q):
+                continue
+            assert isinstance(
+                p1 + p2, (cirq.PauliSum, cirq.PauliString)
+            ), f"Addition failed for {p1} + {p2}"
+            assert isinstance(
+                p1 - p2, (cirq.PauliSum, cirq.PauliString)
+            ), f"Subtraction failed for {p1} - {p2}"
