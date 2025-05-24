@@ -120,7 +120,7 @@ jobs:
           ruff --version
           check/pylint --version
       - name: Lint with ruff
-        run: ruff check
+        run: FORCE_COLOR=1 ruff check
       - name: Lint with pylint
         run: check/pylint -v
   doc_test:
