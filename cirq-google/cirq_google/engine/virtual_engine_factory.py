@@ -108,6 +108,27 @@ def _create_perfect_calibration(device: cirq.Device) -> calibration.Calibration:
     return calibration.Calibration(calibration=snapshot, metrics=all_metrics)
 
 
+def load_device_noise_properties(processor_id: str) -> cirq_google.GoogleNoiseProperties:
+    """Loads NoiseProperties for the given device.
+
+    This combines calibration data for the device with gate times from its specification, and
+    the Z phases data, if available, to construct NoiseProperties for device simulation.
+
+    Args:
+        processor_id: name of the processor to simulate.
+
+    Raises:
+        ValueError: if processor_id is not a supported QCS processor.
+    """
+    device = create_device_from_processor_id(processor_id)
+    calibration = load_median_device_calibration(processor_id)
+    zphase_data = load_sample_device_zphase(processor_id) if processor_id in ZPHASE_DATA else None
+    gate_times_ns = extract_gate_times_ns_from_device(device)
+    return noise_properties_from_calibration(
+        calibration=calibration, zphase_data=zphase_data, gate_times_ns=gate_times_ns
+    )
+
+
 def load_median_device_calibration(processor_id: str) -> calibration.Calibration:
     """Loads a median `cirq_google.Calibration` for the given device.
 

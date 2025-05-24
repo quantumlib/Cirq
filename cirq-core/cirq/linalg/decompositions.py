@@ -116,7 +116,7 @@ def unitary_eig(
             was unitary.
 
     Returns:
-        A Tuple of
+        A tuple of
             eigvals: The eigenvalues of `matrix`.
             V: The unitary matrix with the eigenvectors as columns.
 
