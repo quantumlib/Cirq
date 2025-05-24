@@ -15,4 +15,5 @@
 
 from cirq.contrib.shuffle_circuits.shuffle_circuits_with_readout_benchmarking import (
     run_shuffled_with_readout_benchmarking as run_shuffled_with_readout_benchmarking,
+    run_sweep_with_readout_benchmarking as run_sweep_with_readout_benchmarking,
 )
