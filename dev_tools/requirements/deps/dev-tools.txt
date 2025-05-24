@@ -6,6 +6,7 @@
 -r notebook.txt
 -r tensorflow-docs.txt
 -r packaging.txt
+-r ruff.txt
 
 # For testing and analyzing code.
 asv
