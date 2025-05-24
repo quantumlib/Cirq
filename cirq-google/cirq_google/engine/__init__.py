@@ -87,6 +87,7 @@ from cirq_google.engine.virtual_engine_factory import (
     create_noiseless_virtual_engine_from_proto as create_noiseless_virtual_engine_from_proto,
     create_noiseless_virtual_engine_from_templates as create_noiseless_virtual_engine_from_templates,
     create_noiseless_virtual_engine_from_latest_templates as create_noiseless_virtual_engine_from_latest_templates,
+    load_device_noise_properties as load_device_noise_properties,
     load_median_device_calibration as load_median_device_calibration,
     load_sample_device_zphase as load_sample_device_zphase,
 )

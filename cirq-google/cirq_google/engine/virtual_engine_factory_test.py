@@ -60,6 +60,15 @@ def test_create_from_device():
     _test_processor(engine.get_processor('sycamore'))
 
 
+def test_load_device_noise_properties() -> None:
+    noise_properties = factory.load_device_noise_properties("rainbow")
+    assert noise_properties.readout_errors[cirq.GridQubit(9, 4)] == [0.0124, 0.0464]
+    assert noise_properties.gate_times_ns[cirq.PhasedXZGate] == 25
+    op_id = cirq.OpIdentifier(cirq.ISwapPowGate, cirq.GridQubit(3, 2), cirq.GridQubit(4, 2))
+    assert noise_properties.fsim_errors[op_id].zeta == -0.004952147720840733
+    assert noise_properties.fsim_errors[op_id].gamma == -0.04094895320428251
+
+
 def test_median_rainbow_device():
     q0, q1 = cirq.GridQubit.rect(1, 2, 5, 3)
     cal = factory.load_median_device_calibration('rainbow')
