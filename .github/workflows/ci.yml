@@ -65,6 +65,8 @@ jobs:
           architecture: 'x64'
       - name: Install dependencies
         run: pip install -r dev_tools/requirements/deps/format.txt
+      - name: Set up problem matcher for Black output
+        run: echo '::add-matcher::.github/problem-matchers/black.json'
       - name: Format
         run: check/format-incremental
   mypy:
@@ -81,6 +83,8 @@ jobs:
           architecture: 'x64'
       - name: Install mypy
         run: pip install -r dev_tools/requirements/mypy.env.txt
+      - name: Set up problem matcher for Mypy output
+        run: echo '::add-matcher::.github/problem-matchers/mypy.json'
       - name: Type check
         run: check/mypy
   changed_files:
@@ -99,6 +103,8 @@ jobs:
           architecture: 'x64'
       - name: Install changed files test dependencies
         run: dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
+      - name: Set up problem matcher for Pytest output
+        run: echo '::add-matcher::.github/problem-matchers/pytest.json'
       - name: Changed files test
         run: check/pytest-changed-files -n auto
   lint:
@@ -115,6 +121,8 @@ jobs:
           architecture: 'x64'
       - name: Install pylint
         run: pip install -r dev_tools/requirements/pylint.env.txt
+      - name: Set up problem matcher for Pylint output
+        run: echo '::add-matcher::.github/problem-matchers/pylint.json'
       - name: Display version
         run: check/pylint --version
       - name: Lint
@@ -160,6 +168,8 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           fetch-depth: 0
+      - name: Set up problem matcher for Shellcheck output
+        run: echo '::add-matcher::.github/problem-matchers/shellcheck.json'
       - name: Run shellcheck
         run: check/shellcheck
   isolated-modules:
@@ -176,6 +186,8 @@ jobs:
           architecture: 'x64'
       - name: Install dependencies
         run: pip install -r dev_tools/requirements/isolated-base.env.txt
+      - name: Set up problem matcher for Pytest output
+        run: echo '::add-matcher::.github/problem-matchers/pytest.json'
       - name: Test each module in isolation
         run: pytest -n auto --enable-slow-tests dev_tools/packaging/isolated_packages_test.py
   pytest:
@@ -207,6 +219,8 @@ jobs:
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Run Quil dependencies
         run: docker compose -f cirq-rigetti/docker-compose.test.yaml up -d
+      - name: Set up problem matcher for Pytest output
+        run: echo '::add-matcher::.github/problem-matchers/pytest.json'
       - name: Pytest check
         run: check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib --rigetti-integration
       - name: Stop Quil dependencies
@@ -239,6 +253,8 @@ jobs:
         run: |
           pip install wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev-np2.env.txt
+      - name: Set up problem matcher for Pytest output
+        run: echo '::add-matcher::.github/problem-matchers/pytest.json'
       - name: Pytest check
         run: check/pytest -n auto --durations=20 --ignore=cirq-rigetti
   pip-compile:
@@ -336,6 +352,8 @@ jobs:
         run: |
           pip install --upgrade setuptools wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
+      - name: Set up problem matcher for Pytest output
+        run: echo '::add-matcher::.github/problem-matchers/pytest.json'
       - name: Pytest Windows
         run: |
           source dev_tools/pypath
@@ -364,6 +382,8 @@ jobs:
         run: |
           pip install --upgrade setuptools wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
+      - name: Set up problem matcher for Pytest output
+        run: echo '::add-matcher::.github/problem-matchers/pytest.json'
       - name: Pytest check
         run: check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib
   notebooks-stable:
@@ -388,6 +408,8 @@ jobs:
           architecture: 'x64'
       - name: Install requirements
         run: pip install -r dev_tools/requirements/isolated-base.env.txt
+      - name: Set up problem matcher for Pytest output
+        run: echo '::add-matcher::.github/problem-matchers/pytest.json'
       - name: Notebook tests
         run: check/pytest -n auto -m slow dev_tools/notebooks/isolated_notebook_test.py -k ${{matrix.partition}}
       - name: Persist the outputs
@@ -410,6 +432,8 @@ jobs:
           architecture: 'x64'
       - name: Install requirements
         run: pip install -r dev_tools/requirements/notebooks.env.txt
+      - name: Set up problem matcher for Pytest output
+        run: echo '::add-matcher::.github/problem-matchers/pytest.json'
       - name: Notebook tests
         run: check/pytest -n auto -m slow dev_tools/notebooks/notebook_test.py
       - name: Persist the outputs
