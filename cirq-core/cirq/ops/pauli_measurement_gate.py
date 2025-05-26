@@ -16,6 +16,8 @@ from __future__ import annotations
 
 from typing import Any, cast, Iterable, Iterator, Mapping, Sequence, TYPE_CHECKING
 
+import numpy as np
+
 from cirq import protocols, value
 from cirq.ops import (
     dense_pauli_string as dps,
@@ -42,6 +44,7 @@ class PauliMeasurementGate(raw_types.Gate):
         self,
         observable: cirq.BaseDensePauliString | Iterable[cirq.Pauli],
         key: str | cirq.MeasurementKey = '',
+        confusion_map: dict[tuple[int, ...], np.ndarray] | None = None,
     ) -> None:
         """Inits PauliMeasurementGate.
 
@@ -51,6 +54,9 @@ class PauliMeasurementGate(raw_types.Gate):
                 If you wish to measure pauli observables with coefficient -1,
                 then pass a `cirq.DensePauliString` as observable.
             key: The string key of the measurement.
+            confusion_map: A map of qubit index sets (using indices in the
+                operation generated from this gate) to the 2D confusion matrix
+                for those qubits. Indices not included use the identity.
 
         Raises:
             ValueError: If the observable is empty.
@@ -73,6 +79,9 @@ class PauliMeasurementGate(raw_types.Gate):
         self._mkey = (
             key if isinstance(key, value.MeasurementKey) else value.MeasurementKey(name=key)
         )
+        self._confusion_map = confusion_map or {}
+        if any(x >= len(self._observable) for idx in self._confusion_map for x in idx):
+            raise ValueError('Confusion matrices have index out of bounds.')
 
     @property
     def key(self) -> str:
@@ -81,6 +90,10 @@ class PauliMeasurementGate(raw_types.Gate):
     @property
     def mkey(self) -> cirq.MeasurementKey:
         return self._mkey
+
+    @property
+    def confusion_map(self) -> dict[tuple[int, ...], np.ndarray]:
+        return self._confusion_map
 
     def _qid_shape_(self) -> tuple[int, ...]:
         return (2,) * len(self._observable)
@@ -92,7 +105,7 @@ class PauliMeasurementGate(raw_types.Gate):
         """Creates a pauli measurement gate with a new key but otherwise identical."""
         if key == self.key:
             return self
-        return PauliMeasurementGate(self._observable, key=key)
+        return PauliMeasurementGate(self._observable, key=key, confusion_map=self.confusion_map)
 
     def _with_key_path_(self, path: tuple[str, ...]) -> PauliMeasurementGate:
         return self.with_key(self.mkey._with_key_path_(path))
@@ -118,7 +131,7 @@ class PauliMeasurementGate(raw_types.Gate):
             else dps.DensePauliString(observable)
         ) == self._observable:
             return self
-        return PauliMeasurementGate(observable, key=self.key)
+        return PauliMeasurementGate(observable, key=self.key, confusion_map=self.confusion_map)
 
     def _is_measurement_(self) -> bool:
         return True
