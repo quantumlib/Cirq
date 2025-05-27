@@ -267,3 +267,7 @@ def test_extract_gate_times_ns_from_device_without_durations() -> None:
     )
     device_without_durations = cg.GridDevice(metadata_without_durations)
     assert factory.extract_gate_times_ns_from_device(device_without_durations) == {}
+
+
+def test_list_virtual_processors() -> None:
+    assert factory.list_virtual_processors() == ['rainbow', 'weber', 'willow_pink']
