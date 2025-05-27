@@ -287,16 +287,16 @@ class Serializer:
     ) -> dict | None:
         paulis = {0: "I", 1: "X", 2: "Y", 3: "Z"}
         # Cirq uses big-endian ordering, IonQ uses little-endian ordering.
-        big_endian_terms = [
-            ''.join([paulis[pindex] for pindex in gate.dense_pauli_string.pauli_mask])
-        ]
-        little_endian_terms = big_endian_terms[::-1]
+        big_endian_pauli_string = ''.join(
+            [paulis[pindex] for pindex in gate.dense_pauli_string.pauli_mask]
+        )
+        little_endian_pauli_string = big_endian_pauli_string[::-1]
         coefficients = [gate.dense_pauli_string.coefficient]
         # I don't think this is not right, but will do for now:
         time = gate.exponent_neg - gate.exponent_pos
         return {
             'gate': 'pauliexp',
-            'terms': little_endian_terms,
+            'terms': [little_endian_pauli_string],
             "coefficients": coefficients,
             'targets': targets,
             'time': time,
