@@ -23,9 +23,12 @@ from typing import Any, Callable, cast, Collection, Iterator, Sequence, TYPE_CHE
 import numpy as np
 
 import cirq
+
 from cirq.devices import line_qubit
+from cirq.ops.pauli_string_phasor import PauliStringPhasorGate
 from cirq_ionq.ionq_exceptions import IonQSerializerMixedGatesetsException
 from cirq_ionq.ionq_native_gates import GPI2Gate, GPIGate, MSGate, ZZGate
+
 
 if TYPE_CHECKING:
     import sympy
@@ -79,6 +82,7 @@ class Serializer:
             cirq.HPowGate: self._serialize_h_pow_gate,
             cirq.SwapPowGate: self._serialize_swap_gate,
             cirq.MeasurementGate: self._serialize_measurement_gate,
+            cirq.ops.pauli_string_phasor.PauliStringPhasorGate: self._serialize_pauli_string_phasor_gate,
             # These gates can't be used with any of the non-measurement gates above
             # Rather than validating this here, we rely on the IonQ API to report failure.
             GPIGate: self._serialize_gpi_gate,
@@ -276,6 +280,27 @@ class Serializer:
         if self._near_mod_n(gate.exponent, 1, 2):
             return {'gate': 'h', 'targets': targets}
         return None
+
+    # TODO: controlled gates are not supported by IonQ API, so we don't serialize them
+    def _serialize_pauli_string_phasor_gate(
+        self, gate: PauliStringPhasorGate, targets: Sequence[int]
+    ) -> dict | None:
+        paulis = {0: "I", 1: "X", 2: "Y", 3: "Z"}
+        # Cirq uses big-endian ordering, IonQ uses little-endian ordering.
+        big_endian_terms = [
+            ''.join([paulis[pindex] for pindex in gate.dense_pauli_string.pauli_mask])
+        ]
+        little_endian_terms = big_endian_terms[::-1]
+        coefficients = [gate.dense_pauli_string.coefficient]
+        # I don't think this is not right, but will do for now:
+        time = gate.exponent_neg - gate.exponent_pos
+        return {
+            'gate': 'pauliexp',
+            'terms': little_endian_terms,
+            "coefficients": coefficients,
+            'targets': targets,
+            'time': time,
+        }
 
     # These could potentially be using serialize functions on the gates themselves.
     def _serialize_gpi_gate(self, gate: GPIGate, targets: Sequence[int]) -> dict | None:
