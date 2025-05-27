@@ -773,3 +773,32 @@ def test_controlled_mixture():
     c_yes = cirq.ControlledGate(sub_gate=cirq.phase_flip(0.25), num_controls=1)
     assert cirq.has_mixture(c_yes)
     assert cirq.approx_eq(cirq.mixture(c_yes), [(0.75, np.eye(4)), (0.25, cirq.unitary(cirq.CZ))])
+
+
+@pytest.mark.parametrize(
+    'num_controls, angle, control_values',
+    [
+        (1, np.pi / 4, ((1,),)),
+        (3, -np.pi / 2, ((1,), (1,), (1,))),
+        (2, 0.0, ((1,), (1,))),
+        (2, np.pi / 5, ((0,), (0,))),
+        (3, np.pi, ((1,), (0,), (1,))),
+        (4, -np.pi / 3, ((0,), (1,), (1,), (0,))),
+    ],
+)
+def test_controlled_global_phase_matrix_gate_decomposes(num_controls, angle, control_values):
+    all_qubits = cirq.LineQubit.range(num_controls)
+    control_values = cirq.ops.control_values.ProductOfSums(control_values)
+    control_qid_shape = (2,) * num_controls
+    phase_value = np.exp(1j * angle)
+
+    cg_matrix = cirq.ControlledGate(
+        sub_gate=cirq.MatrixGate(np.array([[phase_value]])),
+        num_controls=num_controls,
+        control_values=control_values,
+        control_qid_shape=control_qid_shape,
+    )
+
+    decomposed = cirq.decompose(cg_matrix(*all_qubits))
+    assert not any(isinstance(op.gate, cirq.MatrixGate) for op in decomposed)
+    np.testing.assert_allclose(cirq.unitary(cirq.Circuit(decomposed)), cirq.unitary(cg_matrix))
