@@ -116,6 +116,7 @@ def load_device_noise_properties(processor_id: str) -> cirq_google.GoogleNoisePr
 
     Args:
         processor_id: name of the processor to simulate.
+            Use `list_virtual_processors` to obtain available names.
 
     Raises:
         ValueError: if processor_id is not a supported QCS processor.
@@ -141,6 +142,7 @@ def load_median_device_calibration(processor_id: str) -> calibration.Calibration
 
     Args:
         processor_id: name of the processor to simulate.
+            Use `list_virtual_processors` to obtain available names.
 
     Raises:
         ValueError: if processor_id is not a supported QCS processor.
@@ -234,9 +236,8 @@ def create_noiseless_virtual_engine_from_device(
     a default validator, and a provided device.
 
     Args:
-        processor_id: name of the processor to simulate.  This is an arbitrary
-            string identifier and does not have to match the processor's name
-            in QCS.
+        processor_id: name of the virtual processor to simulate.
+            Use `list_virtual_processors` to obtain available names.
         device: A `cirq.Device` to validate circuits against.
         device_specification: a` DeviceSpecification` proto that the processor
             should return if `get_device_specification()` is queried.
@@ -255,9 +256,8 @@ def create_noiseless_virtual_processor_from_proto(
     and can be retrieved from a stored "proto.txt" file or from the QCS API.
 
     Args:
-        processor_id: name of the processor to simulate.  This is an arbitrary
-            string identifier and does not have to match the processor's name
-            in QCS.
+        processor_id: name of the processor to simulate.
+            Use `list_virtual_processors` to obtain available names.
         device_specification:  `v2.device_pb2.DeviceSpecification` proto to create
             a validating device from.
         gate_sets: Iterable of serializers to use in the processor.
@@ -283,6 +283,7 @@ def create_noiseless_virtual_engine_from_proto(
         processor_ids: names of the processors to simulate.  These are arbitrary
             string identifiers and do not have to match the processors' names
             in QCS.  This can be a single string or list of strings.
+            Use `list_virtual_processors` to obtain recognized names.
         device_specifications:  `v2.device_pb2.DeviceSpecification` proto to create
             validating devices from.  This can be a single DeviceSpecification
             or a list of them.  There should be one DeviceSpecification for each
@@ -323,6 +324,7 @@ def create_device_spec_from_processor_id(processor_id: str) -> v2.device_pb2.Dev
 
     Args:
         processor_id: name of the processor to simulate.
+            Use `list_virtual_processors` to obtain available names.
 
     Raises:
         ValueError: if processor_id is not a supported QCS processor.
@@ -338,6 +340,7 @@ def create_device_from_processor_id(processor_id: str) -> grid_device.GridDevice
 
     Args:
         processor_id: name of the processor to simulate.
+            Use `list_virtual_processors` to obtain available names.
 
     Raises:
         ValueError: if processor_id is not a supported QCS processor.
@@ -352,9 +355,8 @@ def create_noiseless_virtual_processor_from_template(
     """Creates a simulated local processor from a device specification template.
 
     Args:
-        processor_id: name of the processor to simulate.  This is an arbitrary
-            string identifier and does not have to match the processor's name
-            in QCS.
+        processor_id: name of the processor to simulate.
+            Use `list_virtual_processors` to obtain available names.
         template_name: File name of the device specification template, see
             cirq_google/devices/specifications for valid templates.
         gate_sets: Iterable of serializers to use in the processor.
@@ -373,7 +375,7 @@ def create_noiseless_virtual_engine_from_templates(
         processor_ids: names of the processors to simulate.  These are arbitrary
             string identifiers and do not have to match the processors' names
             in QCS.  There can be a single string or a list of strings for multiple
-            processors.
+            processors.  Use `list_virtual_processors` to obtain recognized names.
         template_names: File names of the device specification templates, see
             cirq_google/devices/specifications for valid templates.  There can
             be a single str for a template name or a list of strings.  Each
@@ -421,6 +423,7 @@ def create_default_noisy_quantum_virtual_machine(
 
     Args:
         processor_id: The string name of a processor that has available noise data.
+            Use `list_virtual_processors` to obtain available names.
         simulator_class: The class of the type of simulator to be initialized. The
             simulator class initializer needs to support the `noise` parameter.
         **kwargs: Other arguments which are passed through to the simulator initializer.
@@ -495,3 +498,11 @@ def extract_gate_times_ns_from_device(
     # cirq.WaitGate has variable duration and should not be included here.
     _ = gate_times_ns.pop(cirq.WaitGate, None)
     return gate_times_ns
+
+
+def list_virtual_processors() -> list[str]:
+    """Return a sorted list of known virtual processor names.
+
+    These are accepted for the ``processor_id`` argument in factory functions.
+    """
+    return sorted(MOST_RECENT_TEMPLATES.keys())
