@@ -33,7 +33,7 @@ import importlib.util
 import sys
 import warnings
 from types import ModuleType
-from typing import Any, Iterable
+from typing import Any, Iterable, Sequence
 
 from dev_tools import shell_tools
 from dev_tools.output_capture import OutputCapture
@@ -131,6 +131,8 @@ def load_tests(
         import cirq_google
 
         base_globals = {
+            'Iterable': Iterable,
+            'Sequence': Sequence,
             'cirq': cirq,
             'cirq_google': cirq_google,
             'np': numpy,
