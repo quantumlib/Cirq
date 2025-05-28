@@ -51,7 +51,7 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     packages=packs,
-    package_data={'cirq_web': ['dist/*', 'dist/*.bundle.js']},
+    package_data={'cirq_web': ['dist/*.bundle.js']},
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
