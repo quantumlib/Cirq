@@ -113,11 +113,15 @@ jobs:
         with:
           python-version: '3.11'
           architecture: 'x64'
-      - name: Install pylint
-        run: pip install -r dev_tools/requirements/pylint.env.txt
-      - name: Display version
-        run: check/pylint --version
-      - name: Lint
+      - name: Install lint tools
+        run: pip install -r dev_tools/requirements/lint.env.txt
+      - name: Display versions
+        run: |
+          ruff --version
+          check/pylint --version
+      - name: Lint with ruff
+        run: FORCE_COLOR=1 ruff check
+      - name: Lint with pylint
         run: check/pylint -v
   doc_test:
     if: github.repository_owner == 'quantumlib'
