@@ -2018,4 +2018,5 @@ def test_pauli_ops_identity_gate_operation(gate1: cirq.Pauli, gate2: cirq.Pauli)
     assert isinstance(addition, cirq.PauliSum)
     assert np.array_equal(addition.matrix(), unitary1 + unitary2)
     subtraction = pauli1 - pauli2
+    assert isinstance(subtraction, cirq.PauliSum)
     assert np.array_equal(subtraction.matrix(), unitary1 - unitary2)
