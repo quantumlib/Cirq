@@ -1322,3 +1322,32 @@ def test_parameterized_pauli_expansion(gate_type, exponent):
     gate_resolved = cirq.resolve_parameters(gate, {'s': 0.5})
     pauli_resolved = cirq.resolve_parameters(pauli, {'s': 0.5})
     assert cirq.approx_eq(pauli_resolved, cirq.pauli_expansion(gate_resolved))
+
+
+@pytest.mark.parametrize('gate_type', [cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate, cirq.CZPowGate])
+@pytest.mark.parametrize('exponent', [0, 0.5, 2, 3, -0.5, -2, -3, sympy.Symbol('s')])
+def test_decompose_with_extracted_phases(gate_type: type, exponent: cirq.TParamVal) -> None:
+    context = cirq.DecompositionContext(cirq.SimpleQubitManager(), extract_global_phases=True)
+    gate = gate_type(exponent=exponent, global_shift=2 / 3)
+    op = gate.on(*cirq.LineQubit.range(cirq.num_qubits(gate)))
+    decomposed = cirq.decompose(op, context=context)
+    gate0 = decomposed[0].gate
+    assert isinstance(gate0, gate_type)
+    assert gate0.global_shift == 0
+    assert gate0.exponent == exponent
+    if exponent * 2 / 3 % 2 != 0:
+        assert len(decomposed) == 2
+        gate1 = decomposed[1].gate
+        assert isinstance(gate1, cirq.GlobalPhaseGate)
+        assert gate1.coefficient == 1j ** (exponent * (4 / 3))
+    else:
+        assert len(decomposed) == 1
+    decomposed_circuit = cirq.Circuit(decomposed)
+    if not cirq.is_parameterized(exponent):
+        np.testing.assert_allclose(cirq.unitary(op), cirq.unitary(decomposed_circuit), atol=1e-10)
+    else:
+        resolver = {'s': -1.234}
+        np.testing.assert_allclose(
+            cirq.final_state_vector(cirq.Circuit(op), param_resolver=resolver),
+            cirq.final_state_vector(decomposed_circuit, param_resolver=resolver),
+        )

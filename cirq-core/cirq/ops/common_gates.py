@@ -1525,12 +1525,13 @@ def _extract_phase(
 
     This is for use within the decompose handlers, and will return `NotImplemented` if there is no
     global phase, implying it is already in its simplest form. It will return a list, with the
-    global phase first, and the original op minus any global phase op second. If the resulting
+    original op minus any global phase first, and the global phase op second. If the resulting
     global phase is empty (can happen for example in `XPowGate(global_phase=2/3)**3`), then it is
     excluded from the return value."""
     if not context.extract_global_phases or gate.global_shift == 0:
         return NotImplemented
+    result = [gate_class(exponent=gate.exponent).on(*qubits)]
     phase_gate = global_phase_op.from_phase_and_exponent(gate.global_shift, gate.exponent)
-    return ([] if phase_gate.is_identity else [phase_gate()]) + [
-        gate_class(exponent=gate.exponent).on(*qubits)
-    ]
+    if not phase_gate.is_identity:
+        result.append(phase_gate())
+    return result

@@ -802,3 +802,19 @@ def test_controlled_global_phase_matrix_gate_decomposes(num_controls, angle, con
     decomposed = cirq.decompose(cg_matrix(*all_qubits))
     assert not any(isinstance(op.gate, cirq.MatrixGate) for op in decomposed)
     np.testing.assert_allclose(cirq.unitary(cirq.Circuit(decomposed)), cirq.unitary(cg_matrix))
+
+
+def test_simplified_controlled_phased_eigengate_decomposition() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+
+    # Z gate
+    op = cirq.ZPowGate(global_shift=0.22).controlled().on(q0, q1)
+    ops = cirq.decompose(op)
+    assert ops == [cirq.CZ(q0, q1), cirq.Z(q0) ** 0.22]
+    np.testing.assert_allclose(cirq.unitary(op), cirq.unitary(cirq.Circuit(ops)))
+
+    # X gate
+    op = cirq.XPowGate(global_shift=0.22).controlled().on(q0, q1)
+    ops = cirq.decompose(op)
+    assert ops == [cirq.Y(q1) ** -0.5, cirq.CZ(q0, q1), cirq.Y(q1) ** 0.5, cirq.Z(q0) ** 0.22]
+    np.testing.assert_allclose(cirq.unitary(op), cirq.unitary(cirq.Circuit(ops)))
