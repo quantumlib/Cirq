@@ -233,13 +233,13 @@ class QasmParser:
             qasm_gate='c3x',
             num_params=0,
             num_args=4,
-            cirq_gate=ops.ControlledGate(sub_gate=ops.X, num_controls=3)
+            cirq_gate=ops.ControlledGate(sub_gate=ops.X, num_controls=3),
         ),
         'c4x': QasmGateStatement(
             qasm_gate='c4x',
             num_params=0,
             num_args=5,
-            cirq_gate=ops.ControlledGate(sub_gate=ops.X, num_controls=4)
+            cirq_gate=ops.ControlledGate(sub_gate=ops.X, num_controls=4),
         ),
         'ch': QasmGateStatement(
             qasm_gate='ch', cirq_gate=ops.ControlledGate(ops.H), num_params=0, num_args=2
@@ -363,7 +363,7 @@ class QasmParser:
             qasm_gate='u0',
             cirq_gate=QasmUGate(0, 0, 0),
             num_params=0,
-            num_args=1,
+            num_args=1
         ),
         'u1': QasmGateStatement(
             qasm_gate='u1',

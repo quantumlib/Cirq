@@ -1009,9 +1009,11 @@ two_qubit_gates = [
 # Mapping of two-qubit gates and `num_params`
 two_qubit_param_gates = {
     ('cu1', cirq.ControlledGate(QasmUGate(0, 0, 0.1 / np.pi))): 1,
-    ('cu2', cirq.ControlledGate(QasmUGate(0.5, 0.1/ np.pi, 0.2 / np.pi))): 2,
+    ('cu2', cirq.ControlledGate(QasmUGate(0.5, 0.1 / np.pi, 0.2 / np.pi))): 2,
     ('cu3', cirq.ControlledGate(QasmUGate(0.1 / np.pi, 0.2 / np.pi, 0.3 / np.pi))): 3,
     ('cu', cirq.ControlledGate(QasmUGate(0.1 / np.pi, 0.2 / np.pi, 0.3 / np.pi))): 3,
+    ('crx', cirq.ControlledGate(cirq.rx(0.1))): 1,
+    ('cry', cirq.ControlledGate(cirq.ry(0.1))): 1,
     ('crz', cirq.ControlledGate(cirq.rz(0.1))): 1,
 }
 
@@ -1063,7 +1065,13 @@ def test_two_qubit_gates(qasm_gate: str, cirq_gate: cirq.testing.TwoQubitGate) -
 def test_two_qubit_param_gates(
     qasm_gate: str, cirq_gate: cirq.testing.TwoQubitGate, num_params: int
 ) -> None:
-    params = '(0.1, 0.2, 0.3)' if num_params == 3 else '(0.1)'
+    if num_params == 1:
+        params = '(0.1)'
+    elif num_params == 2:
+        params = '(0.1, 0.2)'
+    elif num_params == 3:
+        params = '(0.1, 0.2, 0.3)'
+
     qasm = f"""
     OPENQASM 2.0;
     include "qelib1.inc";
@@ -1099,26 +1107,23 @@ def test_two_qubit_param_gates(
     'qasm_gate', [g[0] for g in two_qubit_gates] + [g[0] for g in two_qubit_param_gates.keys()]
 )
 def test_two_qubit_gates_not_enough_qubits(qasm_gate: str) -> None:
-    if qasm_gate in ('cu1', 'crz'):
-        qasm = f"""
+    gate_mapping = {
+        'crx': '(0.1)',
+        'cry': '(0.1)',
+        'crz': '(0.1)',
+        'cu1': '(0.1)',
+        'cu2': '(0.1, 0.2)',
+        'cu3': '(0.1, 0.2, 0.3)',
+        'cu': '(0.1, 0.2, 0.3)',
+    }
+
+    qasm_param = gate_mapping.get(qasm_gate, '')
+
+    qasm = f"""
         OPENQASM 2.0;
         include "qelib1.inc";
         qreg q[2];
-        {qasm_gate}(0.1) q[0];
-    """
-    elif qasm_gate == 'cu3':
-        qasm = f"""
-        OPENQASM 2.0;
-        include "qelib1.inc";
-        qreg q[2];
-        {qasm_gate}(0.1, 0.2, 0.3) q[0];
-    """
-    else:
-        qasm = f"""
-        OPENQASM 2.0;
-        include "qelib1.inc";
-        qreg q[2];
-        {qasm_gate} q[0];
+        {qasm_gate}{qasm_param} q[0];
     """
 
     parser = QasmParser()
@@ -1146,10 +1151,17 @@ def test_two_qubit_gates_not_enough_args(qasm_gate: str) -> None:
     'qasm_gate', [g[0] for g in two_qubit_gates] + [g[0] for g in two_qubit_param_gates.keys()]
 )
 def test_two_qubit_gates_with_too_much_parameters(qasm_gate: str) -> None:
-    if qasm_gate in ('cu1', 'cu3', 'crz'):
-        num_params_needed = 3 if qasm_gate == 'cu3' else 1
-    else:
-        num_params_needed = 0
+    params_mapping = {
+        'crx': 1,
+        'cry': 1,
+        'crz': 1,
+        'cu1': 1,
+        'cu2': 2,
+        'cu3': 3,
+        'cu': 3,
+    }
+
+    num_params_needed = params_mapping.get(qasm_gate, 0)
 
     qasm = f"""
         OPENQASM 2.0;
