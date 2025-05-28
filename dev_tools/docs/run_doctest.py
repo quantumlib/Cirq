@@ -241,7 +241,7 @@ def main():
         'cirq-google/cirq_google/api/',
         'cirq-google/cirq_google/cloud/',
         'cirq-rigetti/',
-        'cirq-web/cirq_ts/node_modules/',
+        'cirq-web/cirq_web/node_modules/',
     ]
     file_names = [
         f
