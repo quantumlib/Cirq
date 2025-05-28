@@ -738,6 +738,27 @@ def test_reset() -> None:
     assert parsed_qasm.qregs == {'q': 1}
     assert parsed_qasm.cregs == {'c': 1}
 
+def test_u0_gate() -> None:
+    qasm = """
+     OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
+     u0 q[0];
+"""
+    parser = QasmParser()
+
+    q0 = cirq.NamedQubit('q_0')
+
+    expected_circuit = Circuit()
+    expected_circuit.append(QasmUGate(0, 0, 0)(q0))
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 1}
 
 def test_u1_gate() -> None:
     qasm = """
@@ -745,6 +766,29 @@ def test_u1_gate() -> None:
      include "qelib1.inc";
      qreg q[1];
      u1(pi / 3.0) q[0];
+"""
+    parser = QasmParser()
+
+    q0 = cirq.NamedQubit('q_0')
+
+    expected_circuit = Circuit()
+    expected_circuit.append(QasmUGate(0, 0, 1.0 / 3.0)(q0))
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 1}
+
+
+def test_p_gate() -> None:
+    qasm = """
+     OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
+     p(pi / 3.0) q[0];
 """
     parser = QasmParser()
 
@@ -817,6 +861,40 @@ def test_u3_gate() -> None:
      qreg q[2];
      u3(pi, 2.3, 3) q[0];
      u3(+3.14, -pi, (8)) q;
+"""
+    parser = QasmParser()
+
+    q0 = cirq.NamedQubit('q_0')
+    q1 = cirq.NamedQubit('q_1')
+
+    expected_circuit = Circuit()
+    expected_circuit.append(
+        cirq.Moment(
+            [
+                QasmUGate(1.0, 2.3 / np.pi, 3 / np.pi)(q0),
+                QasmUGate(3.14 / np.pi, -1.0, 8 / np.pi)(q1),
+            ]
+        )
+    )
+
+    expected_circuit.append(cirq.Moment([QasmUGate(3.14 / np.pi, -1.0, 8 / np.pi)(q0)]))
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 2}
+
+
+def test_u_gate() -> None:
+    qasm = """
+     OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[2];
+     u(pi, 2.3, 3) q[0];
+     u(+3.14, -pi, (8)) q;
 """
     parser = QasmParser()
 
@@ -924,13 +1002,16 @@ two_qubit_gates = [
     ('cy', cirq.ControlledGate(cirq.Y)),
     ('swap', cirq.SWAP),
     ('ch', cirq.ControlledGate(cirq.H)),
+    ('csx', cirq.ControlledGate(cirq.XPowGate(exponent=0.5))),
 ]
 
 
 # Mapping of two-qubit gates and `num_params`
 two_qubit_param_gates = {
     ('cu1', cirq.ControlledGate(QasmUGate(0, 0, 0.1 / np.pi))): 1,
+    ('cu2', cirq.ControlledGate(QasmUGate(0.5, 0.1/ np.pi, 0.2 / np.pi))): 2,
     ('cu3', cirq.ControlledGate(QasmUGate(0.1 / np.pi, 0.2 / np.pi, 0.3 / np.pi))): 3,
+    ('cu', cirq.ControlledGate(QasmUGate(0.1 / np.pi, 0.2 / np.pi, 0.3 / np.pi))): 3,
     ('crz', cirq.ControlledGate(cirq.rz(0.1))): 1,
 }
 
