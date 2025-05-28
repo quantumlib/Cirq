@@ -17,9 +17,8 @@
 from __future__ import annotations
 
 import warnings
-from typing import Callable, Dict, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import Callable, Sequence, TYPE_CHECKING
 
-import google.auth
 import grpc  # type: ignore
 from google.api_core import gapic_v1, grpc_helpers
 from google.auth.transport.grpc import SslCredentials
@@ -46,23 +45,23 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
     top of HTTP/2); the ``grpcio`` package must be installed.
     """
 
-    _stubs: Dict[str, Callable]
+    _stubs: dict[str, Callable]
 
     def __init__(
         self,
         *,
         host: str = 'quantum.googleapis.com',
-        credentials: Optional[ga_credentials.Credentials] = None,
-        credentials_file: Optional[str] = None,
-        scopes: Optional[Sequence[str]] = None,
-        channel: Optional[grpc.Channel] = None,
-        api_mtls_endpoint: Optional[str] = None,
-        client_cert_source: Optional[Callable[[], Tuple[bytes, bytes]]] = None,
-        ssl_channel_credentials: Optional[grpc.ChannelCredentials] = None,
-        client_cert_source_for_mtls: Optional[Callable[[], Tuple[bytes, bytes]]] = None,
-        quota_project_id: Optional[str] = None,
+        credentials: ga_credentials.Credentials | None = None,
+        credentials_file: str | None = None,
+        scopes: Sequence[str] | None = None,
+        channel: grpc.Channel | None = None,
+        api_mtls_endpoint: str | None = None,
+        client_cert_source: Callable[[], tuple[bytes, bytes]] | None = None,
+        ssl_channel_credentials: grpc.ChannelCredentials | None = None,
+        client_cert_source_for_mtls: Callable[[], tuple[bytes, bytes]] | None = None,
+        quota_project_id: str | None = None,
         client_info: gapic_v1.client_info.ClientInfo = DEFAULT_CLIENT_INFO,
-        always_use_jwt_access: Optional[bool] = False,
+        always_use_jwt_access: bool | None = False,
     ) -> None:
         """Instantiate the transport.
 
@@ -86,13 +85,13 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
                 If provided, it overrides the ``host`` argument and tries to create
                 a mutual TLS channel with client SSL credentials from
                 ``client_cert_source`` or application default SSL credentials.
-            client_cert_source (Optional[Callable[[], Tuple[bytes, bytes]]]):
+            client_cert_source (Optional[Callable[[], tuple[bytes, bytes]]]):
                 Deprecated. A callback to provide client SSL certificate bytes and
                 private key bytes, both in PEM format. It is ignored if
                 ``api_mtls_endpoint`` is None.
             ssl_channel_credentials (grpc.ChannelCredentials): SSL credentials
                 for the grpc channel. It is ignored if ``channel`` is provided.
-            client_cert_source_for_mtls (Optional[Callable[[], Tuple[bytes, bytes]]]):
+            client_cert_source_for_mtls (Optional[Callable[[], tuple[bytes, bytes]]]):
                 A callback to provide client certificate bytes and private key bytes,
                 both in PEM format. It is used to configure a mutual TLS channel. It is
                 ignored if ``channel`` or ``ssl_channel_credentials`` is provided.
@@ -114,7 +113,7 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         """
         self._grpc_channel = None
         self._ssl_channel_credentials = ssl_channel_credentials
-        self._stubs: Dict[str, Callable] = {}
+        self._stubs: dict[str, Callable] = {}
 
         if api_mtls_endpoint:
             warnings.warn("api_mtls_endpoint is deprecated", DeprecationWarning)
@@ -185,10 +184,10 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
     def create_channel(
         cls,
         host: str = 'quantum.googleapis.com',
-        credentials: Optional[ga_credentials.Credentials] = None,
-        credentials_file: Optional[str] = None,
-        scopes: Optional[Sequence[str]] = None,
-        quota_project_id: Optional[str] = None,
+        credentials: ga_credentials.Credentials | None = None,
+        credentials_file: str | None = None,
+        scopes: Sequence[str] | None = None,
+        quota_project_id: str | None = None,
         **kwargs,
     ) -> grpc.Channel:
         """Create and return a gRPC channel object.

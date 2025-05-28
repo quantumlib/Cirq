@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Iterator, Optional, overload, Sequence, TYPE_CHECKING
+from typing import Iterator, overload, Sequence, TYPE_CHECKING
 
 import duet
 
@@ -148,12 +148,12 @@ class AbstractJob(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_processor(self) -> Optional[abstract_processor.AbstractProcessor]:
+    def get_processor(self) -> abstract_processor.AbstractProcessor | None:
         """Returns the AbstractProcessor for the processor the job is/was run on,
         if available, else None."""
 
     @abc.abstractmethod
-    def get_calibration(self) -> Optional[calibration.Calibration]:
+    def get_calibration(self) -> calibration.Calibration | None:
         """Returns the recorded calibration at the time when the job was run, if
         one was captured, else None."""
 

@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 from types import EllipsisType
-from typing import cast, Sequence, Union
+from typing import cast, Sequence
 
 import numpy as np
 
@@ -302,7 +302,7 @@ def slice_for_qubits_equal_to(
     out_size = (
         cast(int, num_qubits) if out_size_specified else max(target_qubit_axes, default=-1) + 1
     )
-    result = cast(list[Union[slice, int, EllipsisType]], [slice(None)] * out_size)
+    result = cast(list[slice | int | EllipsisType], [slice(None)] * out_size)
     if not out_size_specified:
         result.append(Ellipsis)
     if qid_shape is None:

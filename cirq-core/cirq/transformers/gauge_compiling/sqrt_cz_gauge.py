@@ -14,7 +14,6 @@
 
 """A Gauge transformer for CZ**0.5 and CZ**-0.5 gates."""
 
-
 from __future__ import annotations
 
 from numbers import Real

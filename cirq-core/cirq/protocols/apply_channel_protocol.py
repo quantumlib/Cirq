@@ -271,7 +271,7 @@ def apply_channel(
     )
 
 
-def _apply_unitary(val: Any, args: 'ApplyChannelArgs') -> np.ndarray | None:
+def _apply_unitary(val: Any, args: ApplyChannelArgs) -> np.ndarray | None:
     """Attempt to use `apply_unitary` and return the result.
 
     If `val` does not support `apply_unitary` returns None.
@@ -294,7 +294,7 @@ def _apply_unitary(val: Any, args: 'ApplyChannelArgs') -> np.ndarray | None:
     return right_result
 
 
-def _apply_kraus(kraus: tuple[np.ndarray] | Sequence[Any], args: 'ApplyChannelArgs') -> np.ndarray:
+def _apply_kraus(kraus: tuple[np.ndarray] | Sequence[Any], args: ApplyChannelArgs) -> np.ndarray:
     """Directly apply the kraus operators to the target tensor."""
     # Initialize output.
     args.out_buffer[:] = 0
@@ -309,7 +309,7 @@ def _apply_kraus(kraus: tuple[np.ndarray] | Sequence[Any], args: 'ApplyChannelAr
 
 
 def _apply_kraus_single_qubit(
-    kraus: tuple[Any] | Sequence[Any], args: 'ApplyChannelArgs'
+    kraus: tuple[Any] | Sequence[Any], args: ApplyChannelArgs
 ) -> np.ndarray:
     """Use slicing to apply single qubit channel.  Only for two-level qubits."""
     zero_left = linalg.slice_for_qubits_equal_to(args.left_axes, 0)
@@ -334,7 +334,7 @@ def _apply_kraus_single_qubit(
 
 
 def _apply_kraus_multi_qubit(
-    kraus: tuple[Any] | Sequence[Any], args: 'ApplyChannelArgs'
+    kraus: tuple[Any] | Sequence[Any], args: ApplyChannelArgs
 ) -> np.ndarray:
     """Use numpy's einsum to apply a multi-qubit channel."""
     qid_shape = tuple(args.target_tensor.shape[i] for i in args.left_axes)

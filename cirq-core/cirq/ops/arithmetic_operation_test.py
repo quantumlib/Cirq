@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Sequence, Union
+from typing import Sequence
 
 import numpy as np
 import pytest
@@ -89,9 +89,7 @@ def test_the_tests() -> None:
 def test_arithmetic_gate_apply_unitary() -> None:
     class Add(cirq.ArithmeticGate):
         def __init__(
-            self,
-            target_register: Union[int, Sequence[int]],
-            input_register: Union[int, Sequence[int]],
+            self, target_register: int | Sequence[int], input_register: int | Sequence[int]
         ):
             self.target_register = target_register
             self.input_register = input_register

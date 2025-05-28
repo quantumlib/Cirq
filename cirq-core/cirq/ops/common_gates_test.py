@@ -109,19 +109,19 @@ def test_z_init():
 
 
 @pytest.mark.parametrize(
-    'input_gate, specialized_output',
+    'input_gate, specialized_output, base_gate',
     [
-        (cirq.Z, cirq.CZ),
-        (cirq.CZ, cirq.CCZ),
-        (cirq.X, cirq.CX),
-        (cirq.CX, cirq.CCX),
-        (cirq.ZPowGate(exponent=0.5), cirq.CZPowGate(exponent=0.5)),
-        (cirq.CZPowGate(exponent=0.5), cirq.CCZPowGate(exponent=0.5)),
-        (cirq.XPowGate(exponent=0.5), cirq.CXPowGate(exponent=0.5)),
-        (cirq.CXPowGate(exponent=0.5), cirq.CCXPowGate(exponent=0.5)),
+        (cirq.Z, cirq.CZ, cirq.Z),
+        (cirq.CZ, cirq.CCZ, cirq.Z),
+        (cirq.X, cirq.CX, cirq.X),
+        (cirq.CX, cirq.CCX, cirq.X),
+        (cirq.ZPowGate(exponent=0.5), cirq.CZPowGate(exponent=0.5), cirq.S),
+        (cirq.CZPowGate(exponent=0.5), cirq.CCZPowGate(exponent=0.5), cirq.S),
+        (cirq.XPowGate(exponent=0.5), cirq.CXPowGate(exponent=0.5), cirq.XPowGate(exponent=0.5)),
+        (cirq.CXPowGate(exponent=0.5), cirq.CCXPowGate(exponent=0.5), cirq.XPowGate(exponent=0.5)),
     ],
 )
-def test_specialized_control(input_gate, specialized_output):
+def test_specialized_control(input_gate, specialized_output, base_gate):
     # Single qubit control on the input gate gives the specialized output
     assert input_gate.controlled() == specialized_output
     assert input_gate.controlled(num_controls=1) == specialized_output
@@ -151,20 +151,24 @@ def test_specialized_control(input_gate, specialized_output):
     )
 
     # When a control_value 1 qubit is not acting first, results in a regular
-    # ControlledGate on the input gate instance.
+    # ControlledGate on the base gate instance, with any extra control layer
+    # of the input gate being absorbed into the ControlledGate.
+    absorbed = 0 if base_gate == input_gate else 1
+    absorbed_values = ((1,),) * absorbed
+    absorbed_shape = (2,) * absorbed
     assert input_gate.controlled(num_controls=1, control_qid_shape=(3,)) == cirq.ControlledGate(
-        input_gate, num_controls=1, control_qid_shape=(3,)
+        base_gate, num_controls=1 + absorbed, control_qid_shape=(3,) + absorbed_shape
     )
     assert input_gate.controlled(control_values=((0,), (1,), (0,))) == cirq.ControlledGate(
-        input_gate, num_controls=3, control_values=((0,), (1,), (0,))
+        base_gate, num_controls=3 + absorbed, control_values=((0,), (1,), (0,)) + absorbed_values
     )
     assert input_gate.controlled(control_qid_shape=(3, 2, 3)) == cirq.ControlledGate(
-        input_gate, num_controls=3, control_qid_shape=(3, 2, 3)
+        base_gate, num_controls=3 + absorbed, control_qid_shape=(3, 2, 3) + absorbed_shape
     )
     assert input_gate.controlled(control_qid_shape=(3,)).controlled(
         control_qid_shape=(2,)
     ).controlled(control_qid_shape=(4,)) != cirq.ControlledGate(
-        input_gate, num_controls=3, control_qid_shape=(3, 2, 4)
+        base_gate, num_controls=3 + absorbed, control_qid_shape=(3, 2, 4) + absorbed_shape
     )
 
 

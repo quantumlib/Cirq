@@ -17,16 +17,7 @@
 from __future__ import annotations
 
 import importlib.metadata
-from typing import (
-    AsyncIterable,
-    AsyncIterator,
-    Awaitable,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import AsyncIterable, AsyncIterator, Awaitable, Sequence, TYPE_CHECKING
 
 from google.api_core import gapic_v1, retry as retries
 
@@ -43,9 +34,9 @@ if TYPE_CHECKING:
     from .transports.base import QuantumEngineServiceTransport
 
 try:
-    OptionalRetry = Union[retries.Retry, gapic_v1.method._MethodDefault]
+    OptionalRetry = retries.Retry | gapic_v1.method._MethodDefault
 except AttributeError:  # pragma: NO COVER
-    OptionalRetry = Union[retries.Retry, object]  # type: ignore
+    OptionalRetry = retries.Retry | object  # type: ignore
 
 
 class QuantumEngineServiceAsyncClient:
@@ -119,7 +110,7 @@ class QuantumEngineServiceAsyncClient:
     from_service_account_json = from_service_account_file
 
     @classmethod
-    def get_mtls_endpoint_and_cert_source(cls, client_options: Optional[ClientOptions] = None):
+    def get_mtls_endpoint_and_cert_source(cls, client_options: ClientOptions | None = None):
         """Return the API endpoint and client cert source for mutual TLS.
 
         The client cert source is determined in the following order:
@@ -144,7 +135,7 @@ class QuantumEngineServiceAsyncClient:
                 in this method.
 
         Returns:
-            Tuple[str, Callable[[], Tuple[bytes, bytes]]]: returns the API endpoint and the
+            tuple[str, Callable[[], tuple[bytes, bytes]]]: returns the API endpoint and the
                 client cert source to use.
 
         Raises:
@@ -166,9 +157,9 @@ class QuantumEngineServiceAsyncClient:
     def __init__(
         self,
         *,
-        credentials: Optional[ga_credentials.Credentials] = None,
-        transport: Union[str, QuantumEngineServiceTransport] = "grpc_asyncio",
-        client_options: Optional[ClientOptions] = None,
+        credentials: ga_credentials.Credentials | None = None,
+        transport: str | QuantumEngineServiceTransport = "grpc_asyncio",
+        client_options: ClientOptions | None = None,
         client_info: gapic_v1.client_info.ClientInfo = DEFAULT_CLIENT_INFO,
     ) -> None:
         """Instantiates the quantum engine service client.
@@ -179,7 +170,7 @@ class QuantumEngineServiceAsyncClient:
                 credentials identify the application to the service; if none
                 are specified, the client will attempt to ascertain the
                 credentials from the environment.
-            transport (Union[str, ~.QuantumEngineServiceTransport]): The
+            transport (str | ~.QuantumEngineServiceTransport): The
                 transport to use. If set to None, a transport is chosen
                 automatically.
             client_options (ClientOptions): Custom options for the client. It
@@ -212,11 +203,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def create_quantum_program(
         self,
-        request: Union[engine.CreateQuantumProgramRequest, dict, None] = None,
+        request: engine.CreateQuantumProgramRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> quantum.QuantumProgram:
         r"""-
 
@@ -239,12 +230,12 @@ class QuantumEngineServiceAsyncClient:
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.CreateQuantumProgramRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.CreateQuantumProgramRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -276,11 +267,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def get_quantum_program(
         self,
-        request: Union[engine.GetQuantumProgramRequest, dict, None] = None,
+        request: engine.GetQuantumProgramRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> quantum.QuantumProgram:
         r"""-
 
@@ -303,12 +294,12 @@ class QuantumEngineServiceAsyncClient:
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.GetQuantumProgramRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.GetQuantumProgramRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -340,11 +331,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def list_quantum_programs(
         self,
-        request: Union[engine.ListQuantumProgramsRequest, dict, None] = None,
+        request: engine.ListQuantumProgramsRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> pagers.ListQuantumProgramsAsyncPager:
         r"""-
 
@@ -368,12 +359,12 @@ class QuantumEngineServiceAsyncClient:
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumProgramsRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.ListQuantumProgramsRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -415,11 +406,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def delete_quantum_program(
         self,
-        request: Union[engine.DeleteQuantumProgramRequest, dict, None] = None,
+        request: engine.DeleteQuantumProgramRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> None:
         r"""-
 
@@ -439,12 +430,12 @@ class QuantumEngineServiceAsyncClient:
                 client.delete_quantum_program(request=request)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.DeleteQuantumProgramRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.DeleteQuantumProgramRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         # Create or coerce a protobuf request object.
@@ -469,11 +460,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def update_quantum_program(
         self,
-        request: Union[engine.UpdateQuantumProgramRequest, dict, None] = None,
+        request: engine.UpdateQuantumProgramRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> quantum.QuantumProgram:
         r"""-
 
@@ -496,12 +487,12 @@ class QuantumEngineServiceAsyncClient:
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.UpdateQuantumProgramRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.UpdateQuantumProgramRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -533,11 +524,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def create_quantum_job(
         self,
-        request: Union[engine.CreateQuantumJobRequest, dict, None] = None,
+        request: engine.CreateQuantumJobRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> quantum.QuantumJob:
         r"""-
 
@@ -560,12 +551,12 @@ class QuantumEngineServiceAsyncClient:
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.CreateQuantumJobRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.CreateQuantumJobRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -597,11 +588,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def get_quantum_job(
         self,
-        request: Union[engine.GetQuantumJobRequest, dict, None] = None,
+        request: engine.GetQuantumJobRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> quantum.QuantumJob:
         r"""-
 
@@ -624,12 +615,12 @@ class QuantumEngineServiceAsyncClient:
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.GetQuantumJobRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.GetQuantumJobRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -661,11 +652,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def list_quantum_jobs(
         self,
-        request: Union[engine.ListQuantumJobsRequest, dict, None] = None,
+        request: engine.ListQuantumJobsRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> pagers.ListQuantumJobsAsyncPager:
         r"""-
 
@@ -689,12 +680,12 @@ class QuantumEngineServiceAsyncClient:
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumJobsRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.ListQuantumJobsRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -736,11 +727,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def delete_quantum_job(
         self,
-        request: Union[engine.DeleteQuantumJobRequest, dict, None] = None,
+        request: engine.DeleteQuantumJobRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> None:
         r"""-
 
@@ -760,12 +751,12 @@ class QuantumEngineServiceAsyncClient:
                 client.delete_quantum_job(request=request)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.DeleteQuantumJobRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.DeleteQuantumJobRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         # Create or coerce a protobuf request object.
@@ -790,11 +781,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def update_quantum_job(
         self,
-        request: Union[engine.UpdateQuantumJobRequest, dict, None] = None,
+        request: engine.UpdateQuantumJobRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> quantum.QuantumJob:
         r"""-
 
@@ -817,12 +808,12 @@ class QuantumEngineServiceAsyncClient:
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.UpdateQuantumJobRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.UpdateQuantumJobRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -854,11 +845,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def cancel_quantum_job(
         self,
-        request: Union[engine.CancelQuantumJobRequest, dict, None] = None,
+        request: engine.CancelQuantumJobRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> None:
         r"""-
 
@@ -878,12 +869,12 @@ class QuantumEngineServiceAsyncClient:
                 client.cancel_quantum_job(request=request)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.CancelQuantumJobRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.CancelQuantumJobRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         # Create or coerce a protobuf request object.
@@ -908,11 +899,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def list_quantum_job_events(
         self,
-        request: Union[engine.ListQuantumJobEventsRequest, dict, None] = None,
+        request: engine.ListQuantumJobEventsRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> pagers.ListQuantumJobEventsAsyncPager:
         r"""-
 
@@ -936,12 +927,12 @@ class QuantumEngineServiceAsyncClient:
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -983,11 +974,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def get_quantum_result(
         self,
-        request: Union[engine.GetQuantumResultRequest, dict, None] = None,
+        request: engine.GetQuantumResultRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> quantum.QuantumResult:
         r"""-
 
@@ -1010,12 +1001,12 @@ class QuantumEngineServiceAsyncClient:
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.GetQuantumResultRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.GetQuantumResultRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1047,11 +1038,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def list_quantum_processors(
         self,
-        request: Union[engine.ListQuantumProcessorsRequest, dict, None] = None,
+        request: engine.ListQuantumProcessorsRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> pagers.ListQuantumProcessorsAsyncPager:
         r"""-
 
@@ -1075,12 +1066,12 @@ class QuantumEngineServiceAsyncClient:
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1122,11 +1113,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def get_quantum_processor(
         self,
-        request: Union[engine.GetQuantumProcessorRequest, dict, None] = None,
+        request: engine.GetQuantumProcessorRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> quantum.QuantumProcessor:
         r"""-
 
@@ -1149,12 +1140,12 @@ class QuantumEngineServiceAsyncClient:
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.GetQuantumProcessorRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.GetQuantumProcessorRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1186,11 +1177,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def list_quantum_calibrations(
         self,
-        request: Union[engine.ListQuantumCalibrationsRequest, dict, None] = None,
+        request: engine.ListQuantumCalibrationsRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> pagers.ListQuantumCalibrationsAsyncPager:
         r"""-
 
@@ -1214,12 +1205,12 @@ class QuantumEngineServiceAsyncClient:
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1261,11 +1252,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def get_quantum_calibration(
         self,
-        request: Union[engine.GetQuantumCalibrationRequest, dict, None] = None,
+        request: engine.GetQuantumCalibrationRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> quantum.QuantumCalibration:
         r"""-
 
@@ -1288,12 +1279,12 @@ class QuantumEngineServiceAsyncClient:
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.GetQuantumCalibrationRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.GetQuantumCalibrationRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1325,11 +1316,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def create_quantum_reservation(
         self,
-        request: Union[engine.CreateQuantumReservationRequest, dict, None] = None,
+        request: engine.CreateQuantumReservationRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> quantum.QuantumReservation:
         r"""-
 
@@ -1352,12 +1343,12 @@ class QuantumEngineServiceAsyncClient:
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.CreateQuantumReservationRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.CreateQuantumReservationRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1389,11 +1380,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def cancel_quantum_reservation(
         self,
-        request: Union[engine.CancelQuantumReservationRequest, dict, None] = None,
+        request: engine.CancelQuantumReservationRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> quantum.QuantumReservation:
         r"""-
 
@@ -1416,12 +1407,12 @@ class QuantumEngineServiceAsyncClient:
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.CancelQuantumReservationRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.CancelQuantumReservationRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1453,11 +1444,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def delete_quantum_reservation(
         self,
-        request: Union[engine.DeleteQuantumReservationRequest, dict, None] = None,
+        request: engine.DeleteQuantumReservationRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> None:
         r"""-
 
@@ -1477,12 +1468,12 @@ class QuantumEngineServiceAsyncClient:
                 client.delete_quantum_reservation(request=request)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.DeleteQuantumReservationRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.DeleteQuantumReservationRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         # Create or coerce a protobuf request object.
@@ -1507,11 +1498,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def get_quantum_reservation(
         self,
-        request: Union[engine.GetQuantumReservationRequest, dict, None] = None,
+        request: engine.GetQuantumReservationRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> quantum.QuantumReservation:
         r"""-
 
@@ -1534,12 +1525,12 @@ class QuantumEngineServiceAsyncClient:
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.GetQuantumReservationRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.GetQuantumReservationRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1571,11 +1562,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def list_quantum_reservations(
         self,
-        request: Union[engine.ListQuantumReservationsRequest, dict, None] = None,
+        request: engine.ListQuantumReservationsRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> pagers.ListQuantumReservationsAsyncPager:
         r"""-
 
@@ -1599,12 +1590,12 @@ class QuantumEngineServiceAsyncClient:
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumReservationsRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.ListQuantumReservationsRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1646,11 +1637,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def update_quantum_reservation(
         self,
-        request: Union[engine.UpdateQuantumReservationRequest, dict, None] = None,
+        request: engine.UpdateQuantumReservationRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> quantum.QuantumReservation:
         r"""-
 
@@ -1673,12 +1664,12 @@ class QuantumEngineServiceAsyncClient:
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.UpdateQuantumReservationRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.UpdateQuantumReservationRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1710,11 +1701,11 @@ class QuantumEngineServiceAsyncClient:
 
     def quantum_run_stream(
         self,
-        requests: Optional[AsyncIterator[engine.QuantumRunStreamRequest]] = None,
+        requests: AsyncIterator[engine.QuantumRunStreamRequest] | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> Awaitable[AsyncIterable[engine.QuantumRunStreamResponse]]:
         r"""-
 
@@ -1753,7 +1744,7 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1777,11 +1768,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def list_quantum_reservation_grants(
         self,
-        request: Union[engine.ListQuantumReservationGrantsRequest, dict, None] = None,
+        request: engine.ListQuantumReservationGrantsRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> pagers.ListQuantumReservationGrantsAsyncPager:
         r"""-
 
@@ -1805,12 +1796,12 @@ class QuantumEngineServiceAsyncClient:
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1852,11 +1843,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def reallocate_quantum_reservation_grant(
         self,
-        request: Union[engine.ReallocateQuantumReservationGrantRequest, dict, None] = None,
+        request: engine.ReallocateQuantumReservationGrantRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> quantum.QuantumReservationGrant:
         r"""-
 
@@ -1879,12 +1870,12 @@ class QuantumEngineServiceAsyncClient:
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ReallocateQuantumReservationGrantRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.ReallocateQuantumReservationGrantRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1916,11 +1907,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def list_quantum_reservation_budgets(
         self,
-        request: Union[engine.ListQuantumReservationBudgetsRequest, dict, None] = None,
+        request: engine.ListQuantumReservationBudgetsRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> pagers.ListQuantumReservationBudgetsAsyncPager:
         r"""-
 
@@ -1944,12 +1935,12 @@ class QuantumEngineServiceAsyncClient:
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1991,11 +1982,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def list_quantum_time_slots(
         self,
-        request: Union[engine.ListQuantumTimeSlotsRequest, dict, None] = None,
+        request: engine.ListQuantumTimeSlotsRequest | dict | None = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Optional[float] = None,
-        metadata: Sequence[Tuple[str, str]] = (),
+        timeout: float | None = None,
+        metadata: Sequence[tuple[str, str]] = (),
     ) -> pagers.ListQuantumTimeSlotsAsyncPager:
         r"""-
 
@@ -2019,12 +2010,12 @@ class QuantumEngineServiceAsyncClient:
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:

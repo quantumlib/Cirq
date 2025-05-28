@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from types import EllipsisType, NotImplementedType
-from typing import Any, cast, Sequence, Union
+from typing import Any, cast, Sequence
 
 import numpy as np
 import pytest
@@ -47,7 +47,7 @@ class GateAllocatingNewSpaceForResult(cirq.testing.SingleQubitGate):
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray | NotImplementedType:
         assert len(args.axes) == 1
         a = args.axes[0]
-        seed = cast(tuple[Union[int, slice, EllipsisType], ...], (slice(None),))
+        seed = cast(tuple[int | slice | EllipsisType, ...], (slice(None),))
         zero = seed * a + (0, Ellipsis)
         one = seed * a + (1, Ellipsis)
         result = np.zeros(args.target_tensor.shape, args.target_tensor.dtype)
@@ -496,6 +496,40 @@ def _test_controlled_gate_is_consistent(
         np.testing.assert_allclose(cirq.unitary(cgate), cirq.unitary(circuit), atol=1e-13)
 
 
+@pytest.mark.parametrize(
+    'sub_gate, expected_decomposition',
+    [
+        (cirq.X, [cirq.CX]),
+        (cirq.CX, [cirq.CCX]),
+        (cirq.XPowGate(), [cirq.CXPowGate()]),
+        (cirq.CXPowGate(), [cirq.CCXPowGate()]),
+        (cirq.Z, [cirq.CZ]),
+        (cirq.CZ, [cirq.CCZ]),
+        (cirq.ZPowGate(), [cirq.CZPowGate()]),
+        (cirq.CZPowGate(), [cirq.CCZPowGate()]),
+    ],
+)
+def test_controlled_gate_decomposition_uses_canonical_version(
+    sub_gate: cirq.Gate, expected_decomposition: list[cirq.Gate]
+):
+    cgate = cirq.ControlledGate(sub_gate, num_controls=1)
+    qubits = cirq.LineQubit.range(1 + sub_gate.num_qubits())
+    dec = cirq.decompose_once(cgate.on(*qubits))
+    assert dec == [gate.on(*qubits) for gate in expected_decomposition]
+
+
+@pytest.mark.parametrize(
+    'sub_gate, expected_decomposition', [(cirq.Z, [cirq.CZ]), (cirq.ZPowGate(), [cirq.CZPowGate()])]
+)
+def test_controlled_gate_full_decomposition(
+    sub_gate: cirq.Gate, expected_decomposition: list[cirq.Gate]
+):
+    cgate = cirq.ControlledGate(sub_gate, num_controls=1)
+    qubits = cirq.LineQubit.range(1 + sub_gate.num_qubits())
+    dec = cirq.decompose(cgate.on(*qubits))
+    assert dec == [gate.on(*qubits) for gate in expected_decomposition]
+
+
 def test_pow_inverse():
     assert cirq.inverse(CRestricted, None) is None
     assert cirq.pow(CRestricted, 1.5, None) is None
@@ -739,3 +773,32 @@ def test_controlled_mixture():
     c_yes = cirq.ControlledGate(sub_gate=cirq.phase_flip(0.25), num_controls=1)
     assert cirq.has_mixture(c_yes)
     assert cirq.approx_eq(cirq.mixture(c_yes), [(0.75, np.eye(4)), (0.25, cirq.unitary(cirq.CZ))])
+
+
+@pytest.mark.parametrize(
+    'num_controls, angle, control_values',
+    [
+        (1, np.pi / 4, ((1,),)),
+        (3, -np.pi / 2, ((1,), (1,), (1,))),
+        (2, 0.0, ((1,), (1,))),
+        (2, np.pi / 5, ((0,), (0,))),
+        (3, np.pi, ((1,), (0,), (1,))),
+        (4, -np.pi / 3, ((0,), (1,), (1,), (0,))),
+    ],
+)
+def test_controlled_global_phase_matrix_gate_decomposes(num_controls, angle, control_values):
+    all_qubits = cirq.LineQubit.range(num_controls)
+    control_values = cirq.ops.control_values.ProductOfSums(control_values)
+    control_qid_shape = (2,) * num_controls
+    phase_value = np.exp(1j * angle)
+
+    cg_matrix = cirq.ControlledGate(
+        sub_gate=cirq.MatrixGate(np.array([[phase_value]])),
+        num_controls=num_controls,
+        control_values=control_values,
+        control_qid_shape=control_qid_shape,
+    )
+
+    decomposed = cirq.decompose(cg_matrix(*all_qubits))
+    assert not any(isinstance(op.gate, cirq.MatrixGate) for op in decomposed)
+    np.testing.assert_allclose(cirq.unitary(cirq.Circuit(decomposed)), cirq.unitary(cg_matrix))
