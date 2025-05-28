@@ -114,7 +114,7 @@ jobs:
           python-version: '3.11'
           architecture: 'x64'
       - name: Install lint tools
-        run: pip install -r dev_tools/requirements/pylint.env.txt
+        run: pip install -r dev_tools/requirements/lint.env.txt
       - name: Display versions
         run: |
           ruff --version
