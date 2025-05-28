@@ -298,7 +298,8 @@ class Serializer:
             )
         coefficients = [pauli_string_coefficient.real]
         # @Code Review: does computing the time for exponential evolution in this fashion is correct?
-        time = gate.exponent_neg - gate.exponent_pos
+        # I am ignoring the global phase of (gate.exponent_neg + gate.exponent_pos)
+        time = (gate.exponent_neg - gate.exponent_pos) / 2
         seralized_gate = {
             'gate': 'pauliexp',
             'terms': [little_endian_pauli_string],
