@@ -263,7 +263,7 @@ to work with integrating Python code into your visualization. There's an
 example notebook `example.ipynb` that provides an example on how to do this.
 
 **NOTE:** In order to access the bundled javascript, you need to include the
-full path to it: `cirq_ts/dist/YOUR_VIZ_NAME.bundle.js`. If you make any
+full path to it: `cirq_web/dist/YOUR_VIZ_NAME.bundle.js`. If you make any
 changes to the directory structure, take into account that the path may change
 as well.
 
