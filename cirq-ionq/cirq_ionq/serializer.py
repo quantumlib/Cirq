@@ -281,26 +281,34 @@ class Serializer:
             return {'gate': 'h', 'targets': targets}
         return None
 
-    # TODO: controlled gates are not supported by IonQ API, so we don't serialize them
     def _serialize_pauli_string_phasor_gate(
         self, gate: PauliStringPhasorGate, targets: Sequence[int]
     ) -> dict | None:
         paulis = {0: "I", 1: "X", 2: "Y", 3: "Z"}
-        # Cirq uses big-endian ordering, IonQ uses little-endian ordering.
+        # Cirq uses big-endian ordering while IonQ API uses little-endian ordering.
         big_endian_pauli_string = ''.join(
             [paulis[pindex] for pindex in gate.dense_pauli_string.pauli_mask]
         )
         little_endian_pauli_string = big_endian_pauli_string[::-1]
-        coefficients = [gate.dense_pauli_string.coefficient]
-        # I don't think this is not right, but will do for now:
+        pauli_string_coefficient = gate.dense_pauli_string.coefficient
+        if pauli_string_coefficient.imag != 0:
+            raise ValueError(
+                'IonQ pauliexp gates does not support complex evolution coefficients. '
+                f'Found in a PauliStringPhasorGate a complex evolution coefficient {pauli_string_coefficient} for the associated DensePauliString.'
+            )
+        coefficients = [pauli_string_coefficient.real]
+        # @Code Review: does computing the time for exponential evolution in this fashion is correct?
         time = gate.exponent_neg - gate.exponent_pos
-        return {
+        seralized_gate = {
             'gate': 'pauliexp',
             'terms': [little_endian_pauli_string],
             "coefficients": coefficients,
             'targets': targets,
             'time': time,
         }
+        # TODO: remove this print statement once the serializer is stable.
+        print(seralized_gate)
+        return seralized_gate
 
     # These could potentially be using serialize functions on the gates themselves.
     def _serialize_gpi_gate(self, gate: GPIGate, targets: Sequence[int]) -> dict | None:
