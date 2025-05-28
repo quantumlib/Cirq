@@ -288,10 +288,10 @@ class StabilizerStateChForm(qis.StabilizerState):
         copy = StabilizerStateChForm(self.n)
         copy.G = self.G[axes][:, axes]
         copy.F = self.F[axes][:, axes]
-        copy.M = self.M[axes][:, axes]  # type: ignore[assignment]
-        copy.gamma = self.gamma[axes]  # type: ignore[assignment]
-        copy.v = self.v[axes]  # type: ignore[assignment]
-        copy.s = self.s[axes]  # type: ignore[assignment]
+        copy.M = self.M[axes][:, axes]
+        copy.gamma = self.gamma[axes]
+        copy.v = self.v[axes]
+        copy.s = self.s[axes]
         copy.omega = self.omega
         return copy
 
