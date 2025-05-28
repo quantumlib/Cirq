@@ -746,6 +746,10 @@ class PauliSum:
             other = PauliSum.from_pauli_strings([PauliString(coefficient=other)])
         elif isinstance(other, PauliString):
             other = PauliSum.from_pauli_strings([other])
+        elif isinstance(other, raw_types.Operation) and isinstance(
+            other.gate, identity.IdentityGate
+        ):
+            other = PauliSum.from_pauli_strings([PauliString()])
 
         if not isinstance(other, PauliSum):
             return NotImplemented
@@ -754,11 +758,8 @@ class PauliSum:
         return self
 
     def __add__(self, other):
-        if not isinstance(other, (numbers.Complex, PauliString, PauliSum)):
-            if hasattr(other, 'gate') and isinstance(other.gate, identity.IdentityGate):
-                other = PauliString(other)
-            else:
-                return NotImplemented
+        if not isinstance(other, (numbers.Complex, PauliString, PauliSum, raw_types.Operation)):
+            return NotImplemented
         result = self.copy()
         result += other
         return result
@@ -772,8 +773,12 @@ class PauliSum:
     def __isub__(self, other):
         if isinstance(other, numbers.Complex):
             other = PauliSum.from_pauli_strings([PauliString(coefficient=other)])
-        if isinstance(other, PauliString):
+        elif isinstance(other, PauliString):
             other = PauliSum.from_pauli_strings([other])
+        elif isinstance(other, raw_types.Operation) and isinstance(
+            other.gate, identity.IdentityGate
+        ):
+            other = PauliSum.from_pauli_strings([PauliString()])
 
         if not isinstance(other, PauliSum):
             return NotImplemented
@@ -782,11 +787,8 @@ class PauliSum:
         return self
 
     def __sub__(self, other):
-        if not isinstance(other, (numbers.Complex, PauliString, PauliSum)):
-            if hasattr(other, 'gate') and isinstance(other.gate, identity.IdentityGate):
-                other = PauliString(other)
-            else:
-                return NotImplemented
+        if not isinstance(other, (numbers.Complex, PauliString, PauliSum, raw_types.Operation)):
+            return NotImplemented
         result = self.copy()
         result -= other
         return result
