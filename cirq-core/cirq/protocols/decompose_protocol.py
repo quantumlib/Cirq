@@ -126,7 +126,7 @@ class SupportsDecompose(Protocol):
         pass
 
     def _decompose_with_context_(
-        self, *, context: DecompositionContext | None = None
+        self, *, context: DecompositionContext
     ) -> DecomposeResult:
         pass
 
@@ -154,7 +154,7 @@ class SupportsDecomposeWithQubits(Protocol):
         pass
 
     def _decompose_with_context_(
-        self, qubits: tuple[cirq.Qid, ...], *, context: DecompositionContext | None = None
+        self, qubits: tuple[cirq.Qid, ...], *, context: DecompositionContext
     ) -> DecomposeResult:
         pass
 

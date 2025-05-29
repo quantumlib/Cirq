@@ -143,7 +143,7 @@ class ControlledGate(raw_types.Gate):
         return self._decompose_with_context_(qubits)
 
     def _decompose_with_context_(
-        self, qubits: tuple[cirq.Qid, ...], context: cirq.DecompositionContext | None = None
+        self, qubits: tuple[cirq.Qid, ...], *, context: cirq.DecompositionContext
     ) -> None | NotImplementedType | cirq.OP_TREE:
         control_qubits = list(qubits[: self.num_controls()])
         controlled_sub_gate = self.sub_gate.controlled(

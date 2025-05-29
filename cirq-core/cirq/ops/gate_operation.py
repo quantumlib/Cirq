@@ -152,7 +152,7 @@ class GateOperation(raw_types.Operation):
         return self._decompose_with_context_()
 
     def _decompose_with_context_(
-        self, context: cirq.DecompositionContext | None = None
+        self, *, context: cirq.DecompositionContext
     ) -> cirq.OP_TREE:
         return protocols.decompose_once_with_qubits(
             self.gate, self.qubits, NotImplemented, flatten=False, context=context

@@ -137,7 +137,7 @@ class ControlledOperation(raw_types.Operation):
     def _decompose_(self):
         return self._decompose_with_context_()
 
-    def _decompose_with_context_(self, context: cirq.DecompositionContext | None = None):
+    def _decompose_with_context_(self, *, context: cirq.DecompositionContext):
         result = protocols.decompose_once_with_qubits(
             self.gate, self.qubits, NotImplemented, flatten=False, context=context
         )

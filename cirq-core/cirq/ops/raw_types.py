@@ -832,7 +832,7 @@ class TaggedOperation(Operation):
         return self._decompose_with_context_()
 
     def _decompose_with_context_(
-        self, context: cirq.DecompositionContext | None = None
+        self, *, context: cirq.DecompositionContext
     ) -> cirq.OP_TREE:
         return protocols.decompose_once(
             self.sub_operation, default=None, flatten=False, context=context
@@ -986,7 +986,7 @@ class _InverseCompositeGate(Gate):
         return self._decompose_with_context_(qubits)
 
     def _decompose_with_context_(
-        self, qubits: Sequence[cirq.Qid], context: cirq.DecompositionContext | None = None
+        self, qubits: Sequence[cirq.Qid], *, context: cirq.DecompositionContext
     ) -> cirq.OP_TREE:
         return protocols.inverse(
             protocols.decompose_once_with_qubits(self._original, qubits, context=context)
