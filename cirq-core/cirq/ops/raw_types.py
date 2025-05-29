@@ -227,7 +227,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         if __cirq_debug__.get():
             _validate_qid_shape(self, qubits)
 
-    def on(self, *qubits: Qid) -> Operation:
+    def on(self, *qubits: Qid) -> cirq.Operation:
         """Returns an application of this gate to the given qubits.
 
         Args:

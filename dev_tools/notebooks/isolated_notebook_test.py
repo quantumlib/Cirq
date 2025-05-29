@@ -180,7 +180,7 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
     "partition, notebook_path",
     _partitioned_test_cases(filter_notebooks(_list_changed_notebooks(), SKIP_NOTEBOOKS)),
 )
-def test_changed_notebooks_against_released_cirq(partition, notebook_path, cloned_env):
+def test_changed_notebooks_against_released_cirq(partition, notebook_path, cloned_env) -> None:
     """Tests changed notebooks in isolated virtual environments.
 
     In order to speed up the execution of these tests an auxiliary file may be supplied which
@@ -200,7 +200,7 @@ def test_changed_notebooks_against_released_cirq(partition, notebook_path, clone
     "partition, notebook_path",
     _partitioned_test_cases(filter_notebooks(list_all_notebooks(), SKIP_NOTEBOOKS)),
 )
-def test_all_notebooks_against_released_cirq(partition, notebook_path, cloned_env):
+def test_all_notebooks_against_released_cirq(partition, notebook_path, cloned_env) -> None:
     """Tests all notebooks in isolated virtual environments.
 
     See `test_changed_notebooks_against_released_cirq` for more details on
@@ -210,7 +210,7 @@ def test_all_notebooks_against_released_cirq(partition, notebook_path, cloned_en
 
 
 @pytest.mark.parametrize("notebook_path", NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES)
-def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path):
+def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path) -> None:
     # utf-8 is important for Windows testing, otherwise characters like ┌──┐ fail on cp1252
     with open(notebook_path, encoding="utf-8") as notebook:
         content = notebook.read()

@@ -22,7 +22,7 @@ from cirq.contrib.qasm_import import circuit_from_qasm
 from cirq.testing import consistent_qasm as cq
 
 
-def test_consistency_with_qasm_output_and_qiskit():
+def test_consistency_with_qasm_output_and_qiskit() -> None:
     qubits = [cirq.NamedQubit(f'q_{i}') for i in range(4)]
     a, b, c, d = qubits
     circuit1 = cirq.Circuit(
@@ -35,9 +35,9 @@ def test_consistency_with_qasm_output_and_qiskit():
         cirq.H.on(d),
         cirq.S.on(a),
         cirq.T.on(b),
-        cirq.S.on(c) ** -1,
-        cirq.T.on(d) ** -1,
-        cirq.X.on(d) ** 0.125,
+        (cirq.S**-1).on(c),
+        (cirq.T**-1).on(d),
+        (cirq.X**0.125).on(d),
         cirq.TOFFOLI.on(a, b, c),
         cirq.CSWAP.on(d, a, b),
         cirq.SWAP.on(c, d),
