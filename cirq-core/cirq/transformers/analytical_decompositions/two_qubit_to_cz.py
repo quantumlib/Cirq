@@ -222,7 +222,7 @@ def _merge_single_qubit_gates(operations: Sequence[ops.Operation]) -> Sequence[o
         new sequence of operations after merging gates
     """
     merged_ops: list[ops.Operation] = []
-    pending_ops: dict[Tuple['cirq.Qid', ...], list[ops.Operation]] = dict()
+    pending_ops: dict[tuple['cirq.Qid', ...], list[ops.Operation]] = dict()
     for op in operations:
         if protocols.num_qubits(op) == 2:
             for _, qubit_ops in pending_ops.items():

@@ -139,7 +139,7 @@ def quantum_shannon_decomposition(
         shannon_decomp[two_qubit_mat[0].location] = operations
     # Yield the final operations in order
     for op in shannon_decomp:
-        if isinstance(op, List):
+        if isinstance(op, list):
             yield from op
         else:
             yield op
