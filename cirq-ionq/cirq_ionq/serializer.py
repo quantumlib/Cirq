@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import dataclasses
 import json
+import math
 from typing import Any, Callable, cast, Collection, Iterator, Sequence, TYPE_CHECKING
 
 import numpy as np
@@ -297,9 +298,8 @@ class Serializer:
                 f'Found in a PauliStringPhasorGate a complex evolution coefficient {pauli_string_coefficient} for the associated DensePauliString.'
             )
         coefficients = [pauli_string_coefficient.real]
-        # @Code Review: does computing the time for exponential evolution in this fashion is correct?
-        # I am ignoring the global phase of (gate.exponent_neg + gate.exponent_pos) / 2
-        time = (gate.exponent_neg - gate.exponent_pos) / 2
+        # I am ignoring here the global phase of i * pi * (gate.exponent_neg + gate.exponent_pos) / 2
+        time = math.pi * (gate.exponent_neg - gate.exponent_pos) / 2
         seralized_gate = {
             'gate': 'pauliexp',
             'terms': [little_endian_pauli_string],

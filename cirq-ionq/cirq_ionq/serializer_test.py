@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import json
-
+import math
 import numpy as np
 import pytest
 import sympy
@@ -525,6 +525,75 @@ def test_serialize_many_circuits_swap_gate():
     with pytest.raises(ValueError, match=r'SWAP\*\*0.5'):
         circuit = cirq.Circuit(cirq.SWAP(q0, q1) ** 0.5)
         _ = serializer.serialize_many_circuits([circuit])
+
+
+def test_serialize_single_circuit_pauli_string_phasor_gate():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    serializer = ionq.Serializer()
+    pauli_string = cirq.Z(q0) * cirq.I(q1) * cirq.Y(q2)
+    exponent_neg = 0.25
+    exponent_pos = -0.5
+    circuit = cirq.Circuit(
+        cirq.PauliStringPhasor(pauli_string, exponent_neg=exponent_neg, exponent_pos=exponent_pos)
+    )
+    result = serializer.serialize_single_circuit(circuit)
+
+    # compare time floating point values with a tolerance
+    expected_time = math.pi * (exponent_neg - exponent_pos) / 2
+    assert result.body['circuit'][0]['time'] == pytest.approx(expected_time, abs=1e-10)
+
+    result.body['circuit'][0].pop('time')
+    assert result == ionq.SerializedProgram(
+        body={
+            'gateset': 'qis',
+            'qubits': 3,
+            'circuit': [
+                {'gate': 'pauliexp', 'terms': ['YZ'], 'coefficients': [1.0], 'targets': [0, 2]}
+            ],
+        },
+        metadata={},
+        settings={},
+    )
+
+
+def test_serialize_many_circuits_pauli_string_phasor_gate():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    serializer = ionq.Serializer()
+    pauli_string = cirq.Z(q0) * cirq.I(q1) * cirq.Y(q2)
+    exponent_neg = 0.25
+    exponent_pos = -0.5
+    circuit = cirq.Circuit(
+        cirq.PauliStringPhasor(pauli_string, exponent_neg=exponent_neg, exponent_pos=exponent_pos)
+    )
+    result = serializer.serialize_many_circuits([circuit])
+
+    # compare time floating point values with a tolerance
+    expected_time = math.pi * (exponent_neg - exponent_pos) / 2
+    assert result.body['circuits'][0]['circuit'][0]['time'] == pytest.approx(
+        expected_time, abs=1e-10
+    )
+
+    result.body['circuits'][0]['circuit'][0].pop('time')
+    assert result == ionq.SerializedProgram(
+        body={
+            'gateset': 'qis',
+            'qubits': 3,
+            'circuits': [
+                {
+                    'circuit': [
+                        {
+                            'gate': 'pauliexp',
+                            'terms': ['YZ'],
+                            'coefficients': [1.0],
+                            'targets': [0, 2],
+                        }
+                    ]
+                }
+            ],
+        },
+        metadata={'measurements': '[{}]', 'qubit_numbers': '[3]'},
+        settings={},
+    )
 
 
 def test_serialize_single_circuit_measurement_gate():
