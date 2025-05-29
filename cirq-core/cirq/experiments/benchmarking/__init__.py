@@ -1,4 +1,4 @@
-# Copyright 2021 The Cirq Developers
+# Copyright 2025 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,3 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+"""Tools for branchmarking NISQ circuits."""
+
+from cirq.experiments.benchmarking.parallel_xeb import parallel_two_qubit_xeb

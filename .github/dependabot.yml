@@ -16,23 +16,23 @@
 
 version: 2
 updates:
-  - package-ecosystem: "docker"
-    # The "docker" ecosystem directive makes Dependabot look for a Dockerfile
-    # in the specified directory.
-    directory: "/"
-    schedule:
-      interval: "monthly"
-    labels:
-      - "area/dependencies"
-      - "area/docker"
-      - "kind/health"
-
   - package-ecosystem: "github-actions"
     # The "github-actions" code explicitly looks in /.github/workflows if the
     # value "/" is given for the directory attribute. Yes, that's confusing.
     directory: "/"
     schedule:
       interval: "monthly"
+    groups:
+      # Ideally, we would group all monthly updates together into 1 group,
+      # but Dependabot does not support that. The best we can do is 2 groups.
+      actions-version-updates:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
+      actions-security-updates:
+        applies-to: "security-updates"
+        patterns:
+          - "*"
     labels:
       - "area/dependencies"
       - "area/github"
@@ -41,7 +41,7 @@ updates:
   - package-ecosystem: "npm"
     # The "npm" ecosystem directive makes Dependabot look for package.json in
     # the specified directory.
-    directory: "/cirq-web/cirq_ts/"
+    directory: "/cirq-web/cirq_web/"
     schedule:
       interval: "monthly"
     versioning-strategy: "widen"

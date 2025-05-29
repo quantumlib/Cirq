@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Optional, Sequence
+
+from typing import Sequence
 
 from pyquil import get_qc
 from pyquil.api import QuantumComputer
@@ -82,8 +83,8 @@ class RigettiQCSSampler(cirq.Sampler):
 def get_rigetti_qcs_sampler(
     quantum_processor_id: str,
     *,
-    as_qvm: Optional[bool] = None,
-    noisy: Optional[bool] = None,
+    as_qvm: bool | None = None,
+    noisy: bool | None = None,
     executor: executors.CircuitSweepExecutor = _default_executor,
     transformer: transformers.CircuitTransformer = transformers.default,
 ) -> RigettiQCSSampler:

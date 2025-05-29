@@ -33,3 +33,5 @@ from cirq_google.ops.internal_tag import InternalTag as InternalTag
 from cirq_google.ops.dynamical_decoupling_tag import (
     DynamicalDecouplingTag as DynamicalDecouplingTag,
 )
+
+from cirq_google.ops.willow_gate import WillowGate as WillowGate, WILLOW as WILLOW

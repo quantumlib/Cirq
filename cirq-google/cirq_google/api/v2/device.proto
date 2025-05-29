@@ -59,6 +59,7 @@ message GateSpecification {
     FSimViaModel fsim_via_model = 12;
     CZPowGate cz_pow_gate = 13;
     InternalGate internal_gate = 14;
+    Reset reset = 15;
   }
 
   // Gate types available to Google devices.
@@ -80,6 +81,8 @@ message GateSpecification {
   // This gate gets mapped to the internal representation corresponding
   // to <gate_module.gate_name>.
   message InternalGate {}
+  // This gate resets qubit to its |0> state.
+  message Reset {}
 }
 
 message GateSet {

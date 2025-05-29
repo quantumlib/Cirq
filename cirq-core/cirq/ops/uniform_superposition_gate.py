@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterator, Sequence, TYPE_CHECKING
+from __future__ import annotations
+
+from typing import Any, Iterator, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -58,7 +60,7 @@ class UniformSuperpositionGate(raw_types.Gate):
         self._m_value = m_value
         self._num_qubits = num_qubits
 
-    def _decompose_(self, qubits: Sequence["cirq.Qid"]) -> Iterator["cirq.OP_TREE"]:
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
         """Decomposes the gate into a sequence of standard gates.
         Implements the construction from https://arxiv.org/pdf/2306.11747.
         """
@@ -113,7 +115,7 @@ class UniformSuperpositionGate(raw_types.Gate):
     def __repr__(self) -> str:
         return f'UniformSuperpositionGate(m_value={self._m_value}, num_qubits={self._num_qubits})'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         d = {}
         d['m_value'] = self._m_value
         d['num_qubits'] = self._num_qubits

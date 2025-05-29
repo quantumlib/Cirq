@@ -11,24 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import abc
 import fractions
 import math
 import numbers
 from types import NotImplementedType
-from typing import (
-    AbstractSet,
-    Any,
-    cast,
-    Dict,
-    Iterable,
-    List,
-    NamedTuple,
-    Optional,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import AbstractSet, Any, cast, Iterable, NamedTuple, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -131,7 +122,7 @@ class EigenGate(raw_types.Gate):
         return self._global_shift
 
     # virtual method
-    def _with_exponent(self, exponent: value.TParamVal) -> 'EigenGate':
+    def _with_exponent(self, exponent: value.TParamVal) -> EigenGate:
         """Return the same kind of gate, but with a different exponent.
 
         Child classes should override this method if they have an __init__
@@ -144,7 +135,7 @@ class EigenGate(raw_types.Gate):
         # pylint: enable=unexpected-keyword-arg
 
     def _diagram_exponent(
-        self, args: 'protocols.CircuitDiagramInfoArgs', *, ignore_global_phase: bool = True
+        self, args: protocols.CircuitDiagramInfoArgs, *, ignore_global_phase: bool = True
     ):
         """The exponent to use in circuit diagrams.
 
@@ -199,7 +190,7 @@ class EigenGate(raw_types.Gate):
         return result
 
     def _format_exponent_as_angle(
-        self, args: 'protocols.CircuitDiagramInfoArgs', order: int = 2
+        self, args: protocols.CircuitDiagramInfoArgs, order: int = 2
     ) -> str:
         """Returns string with exponent expressed as angle in radians.
 
@@ -216,7 +207,7 @@ class EigenGate(raw_types.Gate):
         return args.format_radians(radians=2 * pi * exponent / order)
 
     # virtual method
-    def _eigen_shifts(self) -> List[float]:
+    def _eigen_shifts(self) -> list[float]:
         """Describes the eigenvalues of the gate's matrix.
 
         By default, this just extracts the shifts by calling
@@ -232,7 +223,7 @@ class EigenGate(raw_types.Gate):
         return [e[0] for e in self._eigen_components()]
 
     @abc.abstractmethod
-    def _eigen_components(self) -> List[Union[EigenComponent, Tuple[float, np.ndarray]]]:
+    def _eigen_components(self) -> list[EigenComponent | tuple[float, np.ndarray]]:
         """Describes the eigendecomposition of the gate's matrix.
 
         Returns:
@@ -284,7 +275,7 @@ class EigenGate(raw_types.Gate):
                 ]
         """
 
-    def _period(self) -> Optional[float]:
+    def _period(self) -> float | None:
         """Determines how the exponent parameter is canonicalized when equating.
 
         Returns:
@@ -297,7 +288,7 @@ class EigenGate(raw_types.Gate):
         real_periods = [abs(2 / e) for e in exponents if e != 0]
         return _approximate_common_period(real_periods)
 
-    def __pow__(self, exponent: Union[float, sympy.Symbol]) -> 'EigenGate':
+    def __pow__(self, exponent: float | sympy.Symbol) -> EigenGate:
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             return NotImplemented  # pragma: no cover
@@ -317,7 +308,7 @@ class EigenGate(raw_types.Gate):
         shifts = (f(self._exponent) * f(self._global_shift + e) for e in self._eigen_shifts())
         return tuple(s if symbolic(s) else value.PeriodicValue(f(s), 2) for s in shifts)
 
-    def _trace_distance_bound_(self) -> Optional[float]:
+    def _trace_distance_bound_(self) -> float | None:
         if protocols.is_parameterized(self._exponent):
             return None
         angles = np.pi * (np.array(self._eigen_shifts()) * self._exponent % 2)
@@ -326,7 +317,7 @@ class EigenGate(raw_types.Gate):
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()
 
-    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+    def _unitary_(self) -> np.ndarray | NotImplementedType:
         if self._is_parameterized_():
             return NotImplemented
         e = cast(float, self._exponent)
@@ -344,7 +335,7 @@ class EigenGate(raw_types.Gate):
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self._exponent)
 
-    def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'EigenGate':
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> EigenGate:
         exponent = resolver.value_of(self._exponent, recursive)
         if isinstance(exponent, numbers.Complex):
             if isinstance(exponent, numbers.Real):
@@ -369,7 +360,7 @@ class EigenGate(raw_types.Gate):
         other_without_phase._global_shift = 0
         return protocols.approx_eq(self_without_phase, other_without_phase, atol=atol)
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['exponent', 'global_shift'])
 
     def _measurement_key_objs_(self):
@@ -384,8 +375,8 @@ def _lcm(vals: Iterable[int]) -> int:
 
 
 def _approximate_common_period(
-    periods: List[float], approx_denom: int = 60, reject_atol: float = 1e-8
-) -> Optional[float]:
+    periods: list[float], approx_denom: int = 60, reject_atol: float = 1e-8
+) -> float | None:
     """Finds a value that is nearly an integer multiple of multiple periods.
 
     The returned value should be the smallest non-negative number with this
@@ -429,7 +420,7 @@ def _approximate_common_period(
     return common
 
 
-def _common_rational_period(rational_periods: List[fractions.Fraction]) -> fractions.Fraction:
+def _common_rational_period(rational_periods: list[fractions.Fraction]) -> fractions.Fraction:
     """Finds the least common integer multiple of some fractions.
 
     The solution is the smallest positive integer c such that there

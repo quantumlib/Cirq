@@ -14,9 +14,11 @@
 
 """Transformer pass that adds dynamical decoupling operations to a circuit."""
 
+from __future__ import annotations
+
 from functools import reduce
 from itertools import cycle
-from typing import Dict, Optional, Tuple, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -31,7 +33,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-def _get_dd_sequence_from_schema_name(schema: str) -> Tuple[ops.Gate, ...]:
+def _get_dd_sequence_from_schema_name(schema: str) -> tuple[ops.Gate, ...]:
     """Gets dynamical decoupling sequence from a schema name."""
     match schema:
         case 'DEFAULT':
@@ -48,14 +50,14 @@ def _get_dd_sequence_from_schema_name(schema: str) -> Tuple[ops.Gate, ...]:
             raise ValueError('Invalid schema name.')
 
 
-def _pauli_up_to_global_phase(gate: ops.Gate) -> Union[ops.Pauli, None]:
+def _pauli_up_to_global_phase(gate: ops.Gate) -> ops.Pauli | None:
     for pauli_gate in [ops.X, ops.Y, ops.Z]:
         if protocols.equal_up_to_global_phase(gate, pauli_gate):
             return pauli_gate
     return None
 
 
-def _validate_dd_sequence(dd_sequence: Tuple[ops.Gate, ...]) -> None:
+def _validate_dd_sequence(dd_sequence: tuple[ops.Gate, ...]) -> None:
     """Validates a given dynamical decoupling sequence.
 
     The sequence should only consists of Pauli gates and is essentially an identity gate.
@@ -85,8 +87,8 @@ def _validate_dd_sequence(dd_sequence: Tuple[ops.Gate, ...]) -> None:
 
 
 def _parse_dd_sequence(
-    schema: Union[str, Tuple[ops.Gate, ...]],
-) -> Tuple[Tuple[ops.Gate, ...], Dict[ops.Gate, ops.Pauli]]:
+    schema: str | tuple[ops.Gate, ...],
+) -> tuple[tuple[ops.Gate, ...], dict[ops.Gate, ops.Pauli]]:
     """Parses and returns dynamical decoupling sequence and its associated pauli map from schema."""
     dd_sequence = None
     if isinstance(schema, str):
@@ -96,7 +98,7 @@ def _parse_dd_sequence(
         dd_sequence = schema
 
     # Map gate to Pauli gate. This is necessary as dd sequence might contain gates like X^-1.
-    pauli_map: Dict[ops.Gate, ops.Pauli] = {}
+    pauli_map: dict[ops.Gate, ops.Pauli] = {}
     for gate in dd_sequence:
         pauli_gate = _pauli_up_to_global_phase(gate)
         if pauli_gate is not None:
@@ -121,8 +123,8 @@ def _is_clifford_op(op: ops.Operation) -> bool:
 
 def _calc_busy_moment_range_of_each_qubit(
     circuit: circuits.FrozenCircuit,
-) -> Dict[ops.Qid, list[int]]:
-    busy_moment_range_by_qubit: Dict[ops.Qid, list[int]] = {
+) -> dict[ops.Qid, list[int]]:
+    busy_moment_range_by_qubit: dict[ops.Qid, list[int]] = {
         q: [len(circuit), -1] for q in circuit.all_qubits()
     }
     for moment_id, moment in enumerate(circuit):
@@ -137,7 +139,7 @@ def _is_insertable_moment(moment: circuits.Moment, single_qubit_gate_moments_onl
 
 
 def _merge_single_qubit_ops_to_phxz(
-    q: ops.Qid, operations: Tuple[ops.Operation, ...]
+    q: ops.Qid, operations: tuple[ops.Operation, ...]
 ) -> ops.Operation:
     """Merges [op1, op2, ...] and returns an equivalent op"""
     if len(operations) == 1:
@@ -150,7 +152,7 @@ def _merge_single_qubit_ops_to_phxz(
 
 def _try_merge_single_qubit_ops_of_two_moments(
     m1: circuits.Moment, m2: circuits.Moment
-) -> Tuple[circuits.Moment, ...]:
+) -> tuple[circuits.Moment, ...]:
     """Merge single qubit ops of 2 moments if possible, returns 2 moments otherwise."""
     for q in m1.qubits & m2.qubits:
         op1 = m1.operation_at(q)
@@ -204,12 +206,12 @@ def _need_merge_pulled_through(op_at_q: ops.Operation, is_at_last_busy_moment: b
 
 @transformer_api.transformer
 def add_dynamical_decoupling(
-    circuit: 'cirq.AbstractCircuit',
+    circuit: cirq.AbstractCircuit,
     *,
-    context: Optional['cirq.TransformerContext'] = None,
-    schema: Union[str, Tuple[ops.Gate, ...]] = 'DEFAULT',
+    context: cirq.TransformerContext | None = None,
+    schema: str | tuple[ops.Gate, ...] = 'DEFAULT',
     single_qubit_gate_moments_only: bool = True,
-) -> 'cirq.Circuit':
+) -> cirq.Circuit:
     """Adds dynamical decoupling gate operations to a given circuit.
     This transformer might add new moments thus change structure of the original circuit.
 
@@ -284,7 +286,7 @@ def add_dynamical_decoupling(
             transformed_moments.extend(moments_to_be_appended)
 
         # Step 2, calc updated_moment with insertions / merges.
-        updated_moment_ops: set['cirq.Operation'] = set()
+        updated_moment_ops: set[cirq.Operation] = set()
         for q in orig_circuit.all_qubits():
             op_at_q = moment.operation_at(q)
             remaining_pulled_through_gate = pulled_through.get(q)

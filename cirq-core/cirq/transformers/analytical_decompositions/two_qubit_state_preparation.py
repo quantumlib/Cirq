@@ -14,7 +14,9 @@
 
 """Utility methods for efficiently preparing two qubit states."""
 
-from typing import List, TYPE_CHECKING
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -38,12 +40,8 @@ def _1q_matrices_to_ops(g0, g1, q0, q1, include_identity=False):
 
 
 def prepare_two_qubit_state_using_sqrt_iswap(
-    q0: 'cirq.Qid',
-    q1: 'cirq.Qid',
-    state: 'cirq.STATE_VECTOR_LIKE',
-    *,
-    use_sqrt_iswap_inv: bool = True,
-) -> List['cirq.Operation']:
+    q0: cirq.Qid, q1: cirq.Qid, state: cirq.STATE_VECTOR_LIKE, *, use_sqrt_iswap_inv: bool = True
+) -> list[cirq.Operation]:
     """Prepares the given 2q state from |00> using at-most 1 √iSWAP gate + single qubit rotations.
 
     Entangled states are prepared using exactly 1 √iSWAP gate while product states are prepared
@@ -77,8 +75,8 @@ def prepare_two_qubit_state_using_sqrt_iswap(
 
 
 def prepare_two_qubit_state_using_cz(
-    q0: 'cirq.Qid', q1: 'cirq.Qid', state: 'cirq.STATE_VECTOR_LIKE'
-) -> List['cirq.Operation']:
+    q0: cirq.Qid, q1: cirq.Qid, state: cirq.STATE_VECTOR_LIKE
+) -> list[cirq.Operation]:
     """Prepares the given 2q state from |00> using at-most 1 CZ gate + single qubit rotations.
 
     Entangled states are prepared using exactly 1 CZ gate while product states are prepared
@@ -110,8 +108,8 @@ def prepare_two_qubit_state_using_cz(
 
 
 def prepare_two_qubit_state_using_iswap(
-    q0: 'cirq.Qid', q1: 'cirq.Qid', state: 'cirq.STATE_VECTOR_LIKE', use_iswap_inv: bool = False
-) -> List['cirq.Operation']:
+    q0: cirq.Qid, q1: cirq.Qid, state: cirq.STATE_VECTOR_LIKE, use_iswap_inv: bool = False
+) -> list[cirq.Operation]:
     """Prepares the given 2q state from |00> using at-most 1 ISWAP gate + single qubit rotations.
 
     Entangled states are prepared using exactly 1 ISWAP gate while product states are prepared

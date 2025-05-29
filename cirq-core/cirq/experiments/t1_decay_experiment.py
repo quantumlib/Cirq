@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import warnings
-from typing import Any, cast, Optional, Sequence, TYPE_CHECKING
+from typing import Any, cast, Sequence, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -31,14 +33,14 @@ optimize = _import.LazyLoader("optimize", globals(), "scipy.optimize")
 
 
 def t1_decay(
-    sampler: 'cirq.Sampler',
+    sampler: cirq.Sampler,
     *,
-    qubit: 'cirq.Qid',
+    qubit: cirq.Qid,
     num_points: int,
-    max_delay: 'cirq.DURATION_LIKE',
-    min_delay: 'cirq.DURATION_LIKE' = None,
+    max_delay: cirq.DURATION_LIKE,
+    min_delay: cirq.DURATION_LIKE = None,
     repetitions: int = 1000,
-) -> 'cirq.experiments.T1DecayResult':
+) -> cirq.experiments.T1DecayResult:
     """Runs a t1 decay experiment.
 
     Initializes a qubit into the |1⟩ state, waits for a variable amount of time,
@@ -144,7 +146,7 @@ class T1DecayResult:
             return np.nan
 
     def plot(
-        self, ax: Optional[plt.Axes] = None, include_fit: bool = False, **plot_kwargs: Any
+        self, ax: plt.Axes | None = None, include_fit: bool = False, **plot_kwargs: Any
     ) -> plt.Axes:
         """Plots the excited state probability vs the amount of delay.
 

@@ -119,6 +119,8 @@ from cirq.transformers.transformer_api import (
     transformer as transformer,
 )
 
+from cirq.transformers.tag_transformers import index_tags as index_tags, remove_tags as remove_tags
+
 from cirq.transformers.transformer_primitives import (
     map_moments as map_moments,
     map_operations as map_operations,
@@ -131,6 +133,11 @@ from cirq.transformers.transformer_primitives import (
     unroll_circuit_op as unroll_circuit_op,
     unroll_circuit_op_greedy_earliest as unroll_circuit_op_greedy_earliest,
     unroll_circuit_op_greedy_frontier as unroll_circuit_op_greedy_frontier,
+)
+
+from cirq.transformers.symbolize import (
+    SymbolizeTag as SymbolizeTag,
+    symbolize_single_qubit_gates_by_indexed_tags as symbolize_single_qubit_gates_by_indexed_tags,
 )
 
 from cirq.transformers.gauge_compiling import (

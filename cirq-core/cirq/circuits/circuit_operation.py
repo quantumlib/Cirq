@@ -22,23 +22,8 @@ component operations in order, including any nested CircuitOperations.
 from __future__ import annotations
 
 import math
-import warnings
 from functools import cached_property
-from typing import (
-    Any,
-    Callable,
-    cast,
-    Dict,
-    FrozenSet,
-    Iterator,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import Any, Callable, cast, Iterator, Mapping, Sequence, TYPE_CHECKING, TypeAlias
 
 import numpy as np
 import sympy
@@ -49,13 +34,14 @@ from cirq._compat import proper_repr
 if TYPE_CHECKING:
     import cirq
 
+
 INT_CLASSES = (int, np.integer)
-INT_TYPE = Union[int, np.integer]
-IntParam = Union[INT_TYPE, sympy.Expr]
+INT_TYPE: TypeAlias = int | np.integer
+IntParam: TypeAlias = INT_TYPE | sympy.Expr
 REPETITION_ID_SEPARATOR = '-'
 
 
-def default_repetition_ids(repetitions: IntParam) -> Optional[List[str]]:
+def default_repetition_ids(repetitions: IntParam) -> list[str] | None:
     if isinstance(repetitions, INT_CLASSES) and abs(repetitions) != 1:
         abs_repetitions: int = abs(int(repetitions))
         return [str(i) for i in range(abs_repetitions)]
@@ -63,8 +49,8 @@ def default_repetition_ids(repetitions: IntParam) -> Optional[List[str]]:
 
 
 def _full_join_string_lists(
-    list1: Optional[Sequence[str]], list2: Optional[Sequence[str]]
-) -> Optional[Sequence[str]]:
+    list1: Sequence[str] | None, list2: Sequence[str] | None
+) -> Sequence[str] | None:
     if list1 is None and list2 is None:
         return None  # pragma: no cover
     if list1 is None:
@@ -86,14 +72,14 @@ class CircuitOperation(ops.Operation):
         self,
         circuit: cirq.FrozenCircuit,
         repetitions: INT_TYPE = 1,
-        qubit_map: Optional[Dict[cirq.Qid, cirq.Qid]] = None,
-        measurement_key_map: Optional[Dict[str, str]] = None,
-        param_resolver: Optional[study.ParamResolverOrSimilarType] = None,
-        repetition_ids: Optional[Sequence[str]] = None,
-        parent_path: Tuple[str, ...] = (),
-        extern_keys: FrozenSet[cirq.MeasurementKey] = frozenset(),
-        use_repetition_ids: Optional[bool] = None,
-        repeat_until: Optional[cirq.Condition] = None,
+        qubit_map: dict[cirq.Qid, cirq.Qid] | None = None,
+        measurement_key_map: dict[str, str] | None = None,
+        param_resolver: study.ParamResolverOrSimilarType | None = None,
+        repetition_ids: Sequence[str] | None = None,
+        parent_path: tuple[str, ...] = (),
+        extern_keys: frozenset[cirq.MeasurementKey] = frozenset(),
+        use_repetition_ids: bool | None = None,
+        repeat_until: cirq.Condition | None = None,
     ):
         """Initializes a CircuitOperation.
 
@@ -123,9 +109,8 @@ class CircuitOperation(ops.Operation):
             use_repetition_ids: When True, any measurement key in the subcircuit
                 will have its path prepended with the repetition id for each
                 repetition. When False, this will not happen and the measurement
-                key will be repeated. The default is True, but it will be changed
-                to False in the next release.  Please pass an explicit argument
-                ``use_repetition_ids=True`` to preserve the current behavior.
+                key will be repeated. When None, default to False unless the caller
+                passes `repetition_ids` explicitly.
             repeat_until: A condition that will be tested after each iteration of
                 the subcircuit. The subcircuit will repeat until condition returns
                 True, but will always run at least once, and the measurement key
@@ -162,18 +147,8 @@ class CircuitOperation(ops.Operation):
         self._repetitions = repetitions
         self._repetition_ids = None if repetition_ids is None else list(repetition_ids)
         if use_repetition_ids is None:
-            if repetition_ids is None:
-                msg = (
-                    "In cirq 1.6 the default value of `use_repetition_ids` will change to\n"
-                    "`use_repetition_ids=False`. To make this warning go away, please pass\n"
-                    "explicit `use_repetition_ids`, e.g., to preserve current behavior, use\n"
-                    "\n"
-                    "  CircuitOperations(..., use_repetition_ids=True)"
-                )
-                warnings.warn(msg, FutureWarning)
-            self._use_repetition_ids = True
-        else:
-            self._use_repetition_ids = use_repetition_ids
+            use_repetition_ids = repetition_ids is not None
+        self._use_repetition_ids = use_repetition_ids
         if isinstance(self._repetitions, float):
             if math.isclose(self._repetitions, round(self._repetitions)):
                 self._repetitions = round(self._repetitions)
@@ -236,7 +211,7 @@ class CircuitOperation(ops.Operation):
         return self._repetitions
 
     @property
-    def repetition_ids(self) -> Optional[Sequence[str]]:
+    def repetition_ids(self) -> Sequence[str] | None:
         return self._repetition_ids
 
     @property
@@ -244,7 +219,7 @@ class CircuitOperation(ops.Operation):
         return self._use_repetition_ids
 
     @property
-    def repeat_until(self) -> Optional[cirq.Condition]:
+    def repeat_until(self) -> cirq.Condition | None:
         return self._repeat_until
 
     @property
@@ -260,7 +235,7 @@ class CircuitOperation(ops.Operation):
         return self._param_resolver
 
     @property
-    def parent_path(self) -> Tuple[str, ...]:
+    def parent_path(self) -> tuple[str, ...]:
         return self._parent_path
 
     def base_operation(self) -> cirq.CircuitOperation:
@@ -281,7 +256,9 @@ class CircuitOperation(ops.Operation):
             'repetition_ids': self.repetition_ids,
             'parent_path': self.parent_path,
             'extern_keys': self._extern_keys,
-            'use_repetition_ids': self.use_repetition_ids,
+            'use_repetition_ids': (
+                True if changes.get('repetition_ids') is not None else self.use_repetition_ids
+            ),
             'repeat_until': self.repeat_until,
             **changes,
         }
@@ -305,15 +282,15 @@ class CircuitOperation(ops.Operation):
     # Methods for getting post-mapping properties of the contained circuit.
 
     @property
-    def qubits(self) -> Tuple[cirq.Qid, ...]:
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         """Returns the qubits operated on by this object."""
         ordered_qubits = ops.QubitOrder.DEFAULT.order_for(self.circuit.all_qubits())
         return tuple(self.qubit_map.get(q, q) for q in ordered_qubits)
 
-    def _default_repetition_ids(self) -> Optional[List[str]]:
+    def _default_repetition_ids(self) -> list[str] | None:
         return default_repetition_ids(self.repetitions) if self.use_repetition_ids else None
 
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         return tuple(q.dimension for q in self.qubits)
 
     def _is_measurement_(self) -> bool:
@@ -331,7 +308,7 @@ class CircuitOperation(ops.Operation):
             raise ValueError('Cannot unroll circuit due to nondeterministic repetitions')
 
     @cached_property
-    def _measurement_key_objs(self) -> FrozenSet[cirq.MeasurementKey]:
+    def _measurement_key_objs(self) -> frozenset[cirq.MeasurementKey]:
         circuit_keys = protocols.measurement_key_objs(self.circuit)
         if circuit_keys and self.use_repetition_ids:
             self._ensure_deterministic_loop_count()
@@ -349,14 +326,14 @@ class CircuitOperation(ops.Operation):
             for key in circuit_keys
         )
 
-    def _measurement_key_objs_(self) -> FrozenSet[cirq.MeasurementKey]:
+    def _measurement_key_objs_(self) -> frozenset[cirq.MeasurementKey]:
         return self._measurement_key_objs
 
-    def _measurement_key_names_(self) -> FrozenSet[str]:
+    def _measurement_key_names_(self) -> frozenset[str]:
         return frozenset(str(key) for key in self._measurement_key_objs_())
 
     @cached_property
-    def _control_keys(self) -> FrozenSet[cirq.MeasurementKey]:
+    def _control_keys(self) -> frozenset[cirq.MeasurementKey]:
         keys = (
             frozenset()
             if not protocols.control_keys(self.circuit)
@@ -367,13 +344,13 @@ class CircuitOperation(ops.Operation):
             keys |= frozenset(mapped_repeat_until.keys) - self._measurement_key_objs_()
         return keys
 
-    def _control_keys_(self) -> FrozenSet[cirq.MeasurementKey]:
+    def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
         return self._control_keys
 
     def _is_parameterized_(self) -> bool:
         return any(self._parameter_names_generator())
 
-    def _parameter_names_(self) -> FrozenSet[str]:
+    def _parameter_names_(self) -> frozenset[str]:
         return frozenset(self._parameter_names_generator())
 
     def _parameter_names_generator(self) -> Iterator[str]:
@@ -394,7 +371,7 @@ class CircuitOperation(ops.Operation):
             circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
         return circuit.unfreeze(copy=False)
 
-    def _mapped_single_loop(self, repetition_id: Optional[str] = None) -> cirq.Circuit:
+    def _mapped_single_loop(self, repetition_id: str | None = None) -> cirq.Circuit:
         circuit = self._mapped_any_loop
         if repetition_id:
             circuit = protocols.with_rescoped_keys(circuit, (repetition_id,))
@@ -403,7 +380,7 @@ class CircuitOperation(ops.Operation):
         )
 
     @cached_property
-    def _mapped_repeat_until(self) -> Optional[cirq.Condition]:
+    def _mapped_repeat_until(self) -> cirq.Condition | None:
         """Applies measurement_key_map, param_resolver, and current scope to repeat_until."""
         repeat_until = self.repeat_until
         if not repeat_until:
@@ -485,11 +462,9 @@ class CircuitOperation(ops.Operation):
             args += f'param_resolver={proper_repr(self.param_resolver)},\n'
         if self.parent_path:
             args += f'parent_path={proper_repr(self.parent_path)},\n'
-        if self.repetition_ids != self._default_repetition_ids():
+        if self.use_repetition_ids:
             # Default repetition_ids need not be specified.
             args += f'repetition_ids={proper_repr(self.repetition_ids)},\n'
-        if not self.use_repetition_ids:
-            args += 'use_repetition_ids=False,\n'
         if self.repeat_until:
             args += f'repeat_until={self.repeat_until!r},\n'
         indented_args = args.replace('\n', '\n    ')
@@ -514,14 +489,15 @@ class CircuitOperation(ops.Operation):
             args.append(f'params={self.param_resolver.param_dict}')
         if self.parent_path:
             args.append(f'parent_path={self.parent_path}')
-        if self.repetition_ids != self._default_repetition_ids():
-            # Default repetition_ids need not be specified.
-            args.append(f'repetition_ids={self.repetition_ids}')
+        if self.use_repetition_ids:
+            if self.repetition_ids != self._default_repetition_ids():
+                args.append(f'repetition_ids={self.repetition_ids}')
+            else:
+                # Default repetition_ids need not be specified.
+                args.append(f'loops={self.repetitions}, use_repetition_ids=True')
         elif self.repetitions != 1:
-            # Only add loops if we haven't added repetition_ids.
+            # Add loops if not using repetition_ids.
             args.append(f'loops={self.repetitions}')
-        if not self.use_repetition_ids:
-            args.append('no_rep_ids')
         if self.repeat_until:
             args.append(f'until={self.repeat_until}')
         if not args:
@@ -546,7 +522,7 @@ class CircuitOperation(ops.Operation):
     def __hash__(self) -> int:
         return self._hash
 
-    def __getstate__(self) -> Dict[str, Any]:
+    def __getstate__(self) -> dict[str, Any]:
         # clear cached hash value when pickling, see #6674
         state = self.__dict__
         # cached_property stores value in the property-named attribute
@@ -566,10 +542,9 @@ class CircuitOperation(ops.Operation):
             'measurement_key_map': self.measurement_key_map,
             'param_resolver': self.param_resolver,
             'repetition_ids': self.repetition_ids,
+            'use_repetition_ids': self.use_repetition_ids,
             'parent_path': self.parent_path,
         }
-        if not self.use_repetition_ids:
-            resp['use_repetition_ids'] = False
         if self.repeat_until:
             resp['repeat_until'] = self.repeat_until
         return resp
@@ -603,7 +578,10 @@ class CircuitOperation(ops.Operation):
     # Methods for constructing a similar object with one field modified.
 
     def repeat(
-        self, repetitions: Optional[IntParam] = None, repetition_ids: Optional[Sequence[str]] = None
+        self,
+        repetitions: IntParam | None = None,
+        repetition_ids: Sequence[str] | None = None,
+        use_repetition_ids: bool | None = None,
     ) -> CircuitOperation:
         """Returns a copy of this operation repeated 'repetitions' times.
          Each repetition instance will be identified by a single repetition_id.
@@ -614,6 +592,10 @@ class CircuitOperation(ops.Operation):
                 defaults to the length of `repetition_ids`.
             repetition_ids: List of IDs, one for each repetition. If unset,
                 defaults to `default_repetition_ids(repetitions)`.
+            use_repetition_ids: If given, this specifies the value for `use_repetition_ids`
+                of the resulting circuit operation. If not given, we enable ids if
+                `repetition_ids` is not None, and otherwise fall back to
+                `self.use_repetition_ids`.
 
         Returns:
             A copy of this operation repeated `repetitions` times with the
@@ -628,6 +610,9 @@ class CircuitOperation(ops.Operation):
             ValueError: Unexpected length of `repetition_ids`.
             ValueError: Both `repetitions` and `repetition_ids` are None.
         """
+        if use_repetition_ids is None:
+            use_repetition_ids = True if repetition_ids is not None else self.use_repetition_ids
+
         if repetitions is None:
             if repetition_ids is None:
                 raise ValueError('At least one of repetitions and repetition_ids must be set')
@@ -641,7 +626,7 @@ class CircuitOperation(ops.Operation):
             expected_repetition_id_length: int = np.abs(repetitions)
 
             if repetition_ids is None:
-                if self.use_repetition_ids:
+                if use_repetition_ids:
                     repetition_ids = default_repetition_ids(expected_repetition_id_length)
             elif len(repetition_ids) != expected_repetition_id_length:
                 raise ValueError(
@@ -654,19 +639,23 @@ class CircuitOperation(ops.Operation):
 
         # The eventual number of repetitions of the returned CircuitOperation.
         final_repetitions = protocols.mul(self.repetitions, repetitions)
-        return self.replace(repetitions=final_repetitions, repetition_ids=repetition_ids)
+        return self.replace(
+            repetitions=final_repetitions,
+            repetition_ids=repetition_ids,
+            use_repetition_ids=use_repetition_ids,
+        )
 
     def __pow__(self, power: IntParam) -> cirq.CircuitOperation:
         return self.repeat(power)
 
-    def _with_key_path_(self, path: Tuple[str, ...]):
+    def _with_key_path_(self, path: tuple[str, ...]):
         return self.replace(parent_path=path)
 
-    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+    def _with_key_path_prefix_(self, prefix: tuple[str, ...]):
         return self.replace(parent_path=prefix + self.parent_path)
 
     def _with_rescoped_keys_(
-        self, path: Tuple[str, ...], bindable_keys: FrozenSet[cirq.MeasurementKey]
+        self, path: tuple[str, ...], bindable_keys: frozenset[cirq.MeasurementKey]
     ):
         # The following line prevents binding to measurement keys in previous repeated subcircuits
         # "just because their repetition ids matched". If we eventually decide to change that
@@ -678,7 +667,7 @@ class CircuitOperation(ops.Operation):
         path += self.parent_path
         return self.replace(parent_path=path, extern_keys=bindable_keys)
 
-    def with_key_path(self, path: Tuple[str, ...]):
+    def with_key_path(self, path: tuple[str, ...]):
         """Alias for `cirq.with_key_path(self, path)`.
 
         Args:
@@ -690,7 +679,7 @@ class CircuitOperation(ops.Operation):
         """
         return self._with_key_path_(path)
 
-    def with_repetition_ids(self, repetition_ids: List[str]) -> cirq.CircuitOperation:
+    def with_repetition_ids(self, repetition_ids: list[str]) -> cirq.CircuitOperation:
         """Returns a copy of this `CircuitOperation` with the given repetition IDs.
 
         Args:
@@ -703,7 +692,7 @@ class CircuitOperation(ops.Operation):
         return self.replace(repetition_ids=repetition_ids)
 
     def with_qubit_mapping(
-        self, qubit_map: Union[Mapping[cirq.Qid, cirq.Qid], Callable[[cirq.Qid], cirq.Qid]]
+        self, qubit_map: Mapping[cirq.Qid, cirq.Qid] | Callable[[cirq.Qid], cirq.Qid]
     ) -> cirq.CircuitOperation:
         """Returns a copy of this operation with an updated qubit mapping.
 

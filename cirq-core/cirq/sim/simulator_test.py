@@ -11,9 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Tests for simulator.py"""
+
+from __future__ import annotations
+
 import abc
-from typing import Any, Dict, Generic, List, Sequence, Union
+from typing import Any, Generic, Iterator, Sequence
 from unittest import mock
 
 import duet
@@ -37,10 +41,10 @@ from cirq.sim.simulator import (
 class FakeSimulatesSamples(SimulatesSamples):
     """A SimulatesSamples that returns specified values from _run."""
 
-    def __init__(self, run_output: Dict[str, np.ndarray]):
+    def __init__(self, run_output: dict[str, np.ndarray]):
         self._run_output = run_output
 
-    def _run(self, *args, **kwargs) -> Dict[str, np.ndarray]:
+    def _run(self, *args, **kwargs) -> dict[str, np.ndarray]:
         return self._run_output
 
 
@@ -64,17 +68,22 @@ class FakeStepResult(cirq.StepResult):
 
 class SimulatesIntermediateStateImpl(
     Generic[TStepResult, TSimulationState],
-    SimulatesIntermediateState[TStepResult, 'SimulationTrialResult', TSimulationState],
+    SimulatesIntermediateState[TStepResult, SimulationTrialResult, TSimulationState],
     metaclass=abc.ABCMeta,
 ):
     """A SimulatesIntermediateState that uses the default SimulationTrialResult type."""
 
+    def _base_iterator(
+        self, circuit: cirq.AbstractCircuit, qubits: tuple[cirq.Qid, ...], initial_state: Any
+    ) -> Iterator[TStepResult]:
+        raise NotImplementedError
+
     def _create_simulator_trial_result(
         self,
         params: study.ParamResolver,
-        measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[TSimulationState]',
-    ) -> 'SimulationTrialResult':
+        measurements: dict[str, np.ndarray],
+        final_simulator_state: cirq.SimulationStateBase[TSimulationState],
+    ) -> SimulationTrialResult:
         """This method creates a default trial result.
 
         Args:
@@ -455,7 +464,7 @@ def test_iter_definitions():
 
         def compute_amplitudes_sweep(
             self,
-            program: 'cirq.AbstractCircuit',
+            program: cirq.AbstractCircuit,
             bitstrings: Sequence[int],
             params: study.Sweepable,
             qubit_order: cirq.QubitOrderOrList = cirq.QubitOrder.DEFAULT,
@@ -464,22 +473,22 @@ def test_iter_definitions():
 
         def simulate_expectation_values_sweep(
             self,
-            program: 'cirq.AbstractCircuit',
-            observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
-            params: 'study.Sweepable',
+            program: cirq.AbstractCircuit,
+            observables: cirq.PauliSumLike | list[cirq.PauliSumLike],
+            params: study.Sweepable,
             qubit_order: cirq.QubitOrderOrList = cirq.QubitOrder.DEFAULT,
             initial_state: Any = None,
             permit_terminal_measurements: bool = False,
-        ) -> List[List[float]]:
+        ) -> list[list[float]]:
             return [[1.0]]
 
         def simulate_sweep(
             self,
-            program: 'cirq.AbstractCircuit',
+            program: cirq.AbstractCircuit,
             params: study.Sweepable,
             qubit_order: cirq.QubitOrderOrList = cirq.QubitOrder.DEFAULT,
             initial_state: Any = None,
-        ) -> List[SimulationTrialResult]:
+        ) -> list[SimulationTrialResult]:
             return [mock_trial_result]
 
     non_iter_sim = FakeNonIterSimulatorImpl()

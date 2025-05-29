@@ -11,11 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """An implementation of AbstractJob that uses in-memory constructs
 and a provided sampler to execute circuits."""
+
+from __future__ import annotations
+
 import concurrent.futures
 import datetime
-from typing import cast, List, Optional, Sequence, Tuple
+from typing import cast, Sequence
 
 import duet
 
@@ -26,16 +30,16 @@ from cirq_google.engine.engine_result import EngineResult
 from cirq_google.engine.local_simulation_type import LocalSimulationType
 
 
-def _flatten_results(batch_results: Sequence[Sequence[EngineResult]]) -> List[EngineResult]:
+def _flatten_results(batch_results: Sequence[Sequence[EngineResult]]) -> list[EngineResult]:
     return [result for batch in batch_results for result in batch]
 
 
 def _to_engine_results(
-    batch_results: Sequence[Sequence['cirq.Result']],
+    batch_results: Sequence[Sequence[cirq.Result]],
     *,
     job_id: str,
-    job_finished_time: Optional[datetime.datetime] = None,
-) -> List[List[EngineResult]]:
+    job_finished_time: datetime.datetime | None = None,
+) -> list[list[EngineResult]]:
     """Convert cirq.Result from simulators into (simulated) EngineResults."""
 
     if job_finished_time is None:
@@ -72,7 +76,7 @@ class SimulatedLocalJob(AbstractLocalJob):
     def __init__(
         self,
         *args,
-        sampler: Optional[cirq.Sampler] = None,
+        sampler: cirq.Sampler | None = None,
         simulation_type: LocalSimulationType = LocalSimulationType.SYNCHRONOUS,
         **kwargs,
     ):
@@ -100,7 +104,7 @@ class SimulatedLocalJob(AbstractLocalJob):
         # See https://github.com/python/mypy/issues/6037.
         return self._state  # type: ignore[return-value]
 
-    def failure(self) -> Optional[Tuple[str, str]]:
+    def failure(self) -> tuple[str, str] | None:
         """Return failure code and message of the job if present."""
         return (self._failure_code, self._failure_message)
 
@@ -130,7 +134,7 @@ class SimulatedLocalJob(AbstractLocalJob):
             self._state = quantum.ExecutionStatus.State.RUNNING
             programs = [parent.get_circuit(n) for n in range(batch_size)]
             batch_results = self._sampler.run_batch(
-                programs=programs, params_list=cast(List[cirq.Sweepable], sweeps), repetitions=reps
+                programs=programs, params_list=cast(list[cirq.Sweepable], sweeps), repetitions=reps
             )
             batch_engine_results = _to_engine_results(batch_results, job_id=self.id())
             self._state = quantum.ExecutionStatus.State.SUCCESS

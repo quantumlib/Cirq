@@ -106,6 +106,9 @@ Expected key:   010010
 Actual key:     111011
 
 """
+
+from __future__ import annotations
+
 import numpy as np
 
 import cirq

@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import functools
 import itertools
 import math
@@ -211,7 +214,7 @@ def test_simplify_cnots_triplets(
     assert actual_output_cnots == expected_output_cnots
 
     # Check that the unitaries are the same.
-    qubit_ids = set(sum(input_cnots, ()))
+    qubit_ids = set(itertools.chain.from_iterable(input_cnots))
     qubits = {qubit_id: cirq.NamedQubit(f"{qubit_id}") for qubit_id in qubit_ids}
 
     target, control = (0, 1) if input_flip_control_and_target else (1, 0)

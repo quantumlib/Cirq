@@ -20,6 +20,8 @@ FinalState
  0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j]
 """
 
+from __future__ import annotations
+
 import numpy as np
 
 import cirq

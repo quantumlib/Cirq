@@ -1,6 +1,9 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
+from __future__ import annotations
+
 import dataclasses
-from typing import Iterable, TYPE_CHECKING, Union
+from typing import Iterable, TYPE_CHECKING
 
 from cirq import circuits, ops, study
 from cirq.work.observable_measurement import measure_grouped_settings, StoppingCriteria
@@ -12,7 +15,7 @@ if TYPE_CHECKING:
 
 def calibrate_readout_error(
     qubits: Iterable[ops.Qid],
-    sampler: Union['cirq.Simulator', 'cirq.Sampler'],
+    sampler: cirq.Simulator | cirq.Sampler,
     stopping_criteria: StoppingCriteria,
 ):
     # We know there won't be any fancy sweeps or observables so we can

@@ -14,7 +14,9 @@
 
 """Transformer pass that removes operations with tiny effects."""
 
-from typing import Optional, TYPE_CHECKING
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from cirq import protocols
 from cirq.transformers import transformer_api, transformer_primitives
@@ -25,11 +27,11 @@ if TYPE_CHECKING:
 
 @transformer_api.transformer
 def drop_negligible_operations(
-    circuit: 'cirq.AbstractCircuit',
+    circuit: cirq.AbstractCircuit,
     *,
-    context: Optional['cirq.TransformerContext'] = None,
+    context: cirq.TransformerContext | None = None,
     atol: float = 1e-8,
-) -> 'cirq.Circuit':
+) -> cirq.Circuit:
     """Removes operations with tiny effects.
 
     An operation `op` is considered to have a tiny effect if
@@ -47,7 +49,7 @@ def drop_negligible_operations(
     if context is None:
         context = transformer_api.TransformerContext()
 
-    def map_func(op: 'cirq.Operation', _: int) -> 'cirq.OP_TREE':
+    def map_func(op: cirq.Operation, _: int) -> cirq.OP_TREE:
         return (
             op
             if protocols.num_qubits(op) > 10

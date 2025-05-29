@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List
+
+from __future__ import annotations
 
 import numpy as np
 from numpy import sqrt
@@ -49,7 +50,7 @@ class ThreeDQubit(cirq.ops.Qid):
         return sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2 + (self.z - other.z) ** 2)
 
     @staticmethod
-    def cube(diameter: int, x0: float = 0, y0: float = 0, z0: float = 0) -> List['ThreeDQubit']:
+    def cube(diameter: int, x0: float = 0, y0: float = 0, z0: float = 0) -> list[ThreeDQubit]:
         """Returns a cube of ThreeDQubits.
 
         Args:
@@ -66,7 +67,7 @@ class ThreeDQubit(cirq.ops.Qid):
     @staticmethod
     def parallelep(
         rows: int, cols: int, lays: int, x0: float = 0, y0: float = 0, z0: float = 0
-    ) -> List['ThreeDQubit']:
+    ) -> list[ThreeDQubit]:
         """Returns a parallelepiped of ThreeDQubits.
 
         Args:
@@ -104,7 +105,7 @@ class TwoDQubit(ThreeDQubit):
         super().__init__(x, y, z=0)
 
     @staticmethod
-    def square(diameter: int, x0: float = 0, y0: float = 0) -> List['TwoDQubit']:
+    def square(diameter: int, x0: float = 0, y0: float = 0) -> list[TwoDQubit]:
         """Returns a square of TwoDQubit.
 
         Args:
@@ -118,7 +119,7 @@ class TwoDQubit(ThreeDQubit):
         return TwoDQubit.rect(diameter, diameter, x0=x0, y0=y0)
 
     @staticmethod
-    def rect(rows: int, cols: int, x0: float = 0, y0: float = 0) -> List['TwoDQubit']:
+    def rect(rows: int, cols: int, x0: float = 0, y0: float = 0) -> list[TwoDQubit]:
         """Returns a rectangle of TwoDQubit.
 
         Args:

@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import abc
 from types import NotImplementedType
-from typing import Any, cast, Generic, Optional, Sequence, TYPE_CHECKING, TypeVar, Union
+from typing import Any, cast, Generic, Sequence, TYPE_CHECKING, TypeVar
 
-import numpy as np
 import sympy
 
 from cirq import linalg, ops, protocols
@@ -26,6 +27,8 @@ from cirq.protocols import has_unitary, num_qubits, unitary
 from cirq.sim.simulation_state import SimulationState
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq
 
 
@@ -41,9 +44,9 @@ class StabilizerSimulationState(
         self,
         *,
         state: TStabilizerState,
-        prng: Optional[np.random.RandomState] = None,
-        qubits: Optional[Sequence['cirq.Qid']] = None,
-        classical_data: Optional['cirq.ClassicalDataStore'] = None,
+        prng: np.random.RandomState | None = None,
+        qubits: Sequence[cirq.Qid] | None = None,
+        classical_data: cirq.ClassicalDataStore | None = None,
     ):
         """Initializes the StabilizerSimulationState.
 
@@ -65,8 +68,8 @@ class StabilizerSimulationState(
         return self._state
 
     def _act_on_fallback_(
-        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
-    ) -> Union[bool, NotImplementedType]:
+        self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool = True
+    ) -> bool | NotImplementedType:
         strats = [self._strat_apply_gate, self._strat_apply_mixture]
         if allow_decompose:
             strats.append(self._strat_decompose)
@@ -89,7 +92,7 @@ class StabilizerSimulationState(
         self._state.apply_cx(target_axis, control_axis, exponent, global_shift)
         self._state.apply_cx(control_axis, target_axis)
 
-    def _strat_apply_gate(self, val: Any, qubits: Sequence['cirq.Qid']) -> bool:
+    def _strat_apply_gate(self, val: Any, qubits: Sequence[cirq.Qid]) -> bool:
         if not protocols.has_stabilizer_effect(val):
             return NotImplemented
         gate = val.gate if isinstance(val, ops.Operation) else val
@@ -117,7 +120,7 @@ class StabilizerSimulationState(
             return NotImplemented
         return True
 
-    def _strat_apply_mixture(self, val: Any, qubits: Sequence['cirq.Qid']) -> bool:
+    def _strat_apply_mixture(self, val: Any, qubits: Sequence[cirq.Qid]) -> bool:
         mixture = protocols.mixture(val, None)
         if mixture is None:
             return NotImplemented
@@ -129,9 +132,7 @@ class StabilizerSimulationState(
             matrix_gates.MatrixGate(unitaries[index]), qubits
         )
 
-    def _strat_act_from_single_qubit_decompose(
-        self, val: Any, qubits: Sequence['cirq.Qid']
-    ) -> bool:
+    def _strat_act_from_single_qubit_decompose(self, val: Any, qubits: Sequence[cirq.Qid]) -> bool:
         if num_qubits(val) == 1:
             if not has_unitary(val):
                 return NotImplemented
@@ -148,7 +149,7 @@ class StabilizerSimulationState(
 
         return NotImplemented
 
-    def _strat_decompose(self, val: Any, qubits: Sequence['cirq.Qid']) -> bool:
+    def _strat_decompose(self, val: Any, qubits: Sequence[cirq.Qid]) -> bool:
         gate = val.gate if isinstance(val, ops.Operation) else val
         operations = protocols.decompose_once_with_qubits(gate, qubits, None)
         if operations is None or not all(protocols.has_stabilizer_effect(op) for op in operations):

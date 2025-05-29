@@ -11,17 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """A protocol for implementing high performance clifford tableau evolutions
 for Clifford Simulator."""
 
-from typing import Optional, Sequence, TYPE_CHECKING
+from __future__ import annotations
 
-import numpy as np
+from typing import Sequence, TYPE_CHECKING
 
 from cirq.qis import clifford_tableau
 from cirq.sim.clifford.stabilizer_simulation_state import StabilizerSimulationState
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq
 
 
@@ -30,10 +33,10 @@ class CliffordTableauSimulationState(StabilizerSimulationState[clifford_tableau.
 
     def __init__(
         self,
-        tableau: 'cirq.CliffordTableau',
-        prng: Optional[np.random.RandomState] = None,
-        qubits: Optional[Sequence['cirq.Qid']] = None,
-        classical_data: Optional['cirq.ClassicalDataStore'] = None,
+        tableau: cirq.CliffordTableau,
+        prng: np.random.RandomState | None = None,
+        qubits: Sequence[cirq.Qid] | None = None,
+        classical_data: cirq.ClassicalDataStore | None = None,
     ):
         """Inits CliffordTableauSimulationState.
 
@@ -51,5 +54,5 @@ class CliffordTableauSimulationState(StabilizerSimulationState[clifford_tableau.
         super().__init__(state=tableau, prng=prng, qubits=qubits, classical_data=classical_data)
 
     @property
-    def tableau(self) -> 'cirq.CliffordTableau':
+    def tableau(self) -> cirq.CliffordTableau:
         return self.state

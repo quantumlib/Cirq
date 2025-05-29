@@ -19,24 +19,22 @@ Gate compilation methods implemented here are following the paper below:
     arXiv:1603.07678
 """
 
-from typing import cast, Iterable, List, Optional, Tuple, TYPE_CHECKING
+from __future__ import annotations
 
-import numpy as np
+from typing import cast, Iterable, TYPE_CHECKING
 
 from cirq import linalg, ops, protocols
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions, two_qubit_to_cz
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq
 
 
 def two_qubit_matrix_to_ion_operations(
-    q0: 'cirq.Qid',
-    q1: 'cirq.Qid',
-    mat: np.ndarray,
-    atol: float = 1e-8,
-    clean_operations: bool = True,
-) -> List[ops.Operation]:
+    q0: cirq.Qid, q1: cirq.Qid, mat: np.ndarray, atol: float = 1e-8, clean_operations: bool = True
+) -> list[ops.Operation]:
     """Decomposes a two-qubit operation into MS/single-qubit rotation gates.
 
     Args:
@@ -56,8 +54,8 @@ def two_qubit_matrix_to_ion_operations(
 
 
 def _kak_decomposition_to_operations(
-    q0: 'cirq.Qid', q1: 'cirq.Qid', kak: linalg.KakDecomposition, atol: float = 1e-8
-) -> List[ops.Operation]:
+    q0: cirq.Qid, q1: cirq.Qid, kak: linalg.KakDecomposition, atol: float = 1e-8
+) -> list[ops.Operation]:
     """Assumes that the decomposition is canonical."""
     b0, b1 = kak.single_qubit_operations_before
     pre = [_do_single_on(b0, q0, atol), _do_single_on(b1, q1, atol)]
@@ -74,13 +72,13 @@ def _kak_decomposition_to_operations(
     )
 
 
-def _do_single_on(u: np.ndarray, q: 'cirq.Qid', atol: float = 1e-8):
+def _do_single_on(u: np.ndarray, q: cirq.Qid, atol: float = 1e-8):
     for gate in single_qubit_decompositions.single_qubit_matrix_to_gates(u, atol):
         yield gate(q)
 
 
 def _parity_interaction(
-    q0: 'cirq.Qid', q1: 'cirq.Qid', rads: float, atol: float, gate: Optional[ops.Gate] = None
+    q0: cirq.Qid, q1: cirq.Qid, rads: float, atol: float, gate: ops.Gate | None = None
 ):
     """Yields an XX interaction framed by the given operation."""
 
@@ -98,9 +96,9 @@ def _parity_interaction(
 
 
 def _non_local_part(
-    q0: 'cirq.Qid',
-    q1: 'cirq.Qid',
-    interaction_coefficients: Tuple[float, float, float],
+    q0: cirq.Qid,
+    q1: cirq.Qid,
+    interaction_coefficients: tuple[float, float, float],
     atol: float = 1e-8,
 ):
     """Yields non-local operation of KAK decomposition."""

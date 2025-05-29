@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import abc
-from typing import FrozenSet, Iterable, Optional, TYPE_CHECKING
+from typing import Iterable, TYPE_CHECKING
 
 import networkx as nx
 
@@ -59,7 +59,7 @@ class Device(metaclass=abc.ABCMeta):
     """
 
     @property
-    def metadata(self) -> Optional[DeviceMetadata]:
+    def metadata(self) -> DeviceMetadata | None:
         """Returns the associated Metadata with the device if applicable.
 
         Returns:
@@ -116,11 +116,11 @@ class DeviceMetadata:
                 directional coupling, undirected edges indicate bi-directional
                 coupling.
         """
-        self._qubits_set: FrozenSet[cirq.Qid] = frozenset(qubits)
+        self._qubits_set: frozenset[cirq.Qid] = frozenset(qubits)
         self._nx_graph = nx_graph
 
     @property
-    def qubit_set(self) -> FrozenSet[cirq.Qid]:
+    def qubit_set(self) -> frozenset[cirq.Qid]:
         """Returns the set of qubits on the device.
 
         Returns:

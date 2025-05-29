@@ -12,14 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import os
 import subprocess
-from typing import Iterable
-
-import pytest
+from typing import Iterable, TYPE_CHECKING
 
 from dev_tools import shell_tools
 from dev_tools.test_utils import only_on_posix
+
+if TYPE_CHECKING:
+    import pytest
 
 
 def run(

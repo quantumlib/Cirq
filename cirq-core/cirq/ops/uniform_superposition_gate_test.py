@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
@@ -65,18 +67,18 @@ def test_incompatible_m_value_and_qubit_args(m: int, n: int) -> None:
             cirq.UniformSuperpositionGate(m, n)
 
 
-def test_repr():
+def test_repr() -> None:
     assert (
         repr(cirq.UniformSuperpositionGate(7, 3))
         == 'UniformSuperpositionGate(m_value=7, num_qubits=3)'
     )
 
 
-def test_uniform_superposition_gate_json_dict():
+def test_uniform_superposition_gate_json_dict() -> None:
     assert cirq.UniformSuperpositionGate(7, 3)._json_dict_() == {'m_value': 7, 'num_qubits': 3}
 
 
-def test_str():
+def test_str() -> None:
     assert (
         str(cirq.UniformSuperpositionGate(7, 3))
         == 'UniformSuperpositionGate(m_value=7, num_qubits=3)'

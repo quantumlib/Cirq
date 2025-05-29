@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import abc
-from typing import Any, List
+from __future__ import annotations
 
-from cirq_google.api import v2
+import abc
+from typing import Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from cirq_google.api import v2
 
 
 class TagDeserializer(abc.ABC):
@@ -34,8 +37,8 @@ class TagDeserializer(abc.ABC):
         self,
         proto: v2.program_pb2.Tag,
         *,
-        constants: List[v2.program_pb2.Constant],
-        deserialized_constants: List[Any],
+        constants: list[v2.program_pb2.Constant],
+        deserialized_constants: list[Any],
     ) -> Any:
         """Converts a proto-formatted operation into a Cirq operation.
 

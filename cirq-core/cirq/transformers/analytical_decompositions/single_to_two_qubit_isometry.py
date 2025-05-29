@@ -13,7 +13,10 @@
 # limitations under the License.
 
 """Analytical decompositions for 2-qubit unitaries when one input qubit is in the |0> state."""
-from typing import List, TYPE_CHECKING
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -25,13 +28,13 @@ if TYPE_CHECKING:
 
 
 def two_qubit_matrix_to_cz_isometry(
-    q0: 'cirq.Qid',
-    q1: 'cirq.Qid',
+    q0: cirq.Qid,
+    q1: cirq.Qid,
     mat: np.ndarray,
     allow_partial_czs: bool = False,
     atol: float = 1e-8,
     clean_operations: bool = True,
-) -> List['cirq.Operation']:
+) -> list[cirq.Operation]:
     """Decomposes a 2q operation into at-most 2 CZs + 1q rotations; assuming `q0` is initially |0>.
 
     The method implements isometry from one to two qubits; assuming qubit `q0` is always in the |0>

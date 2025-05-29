@@ -13,7 +13,10 @@
 # limitations under the License.
 
 """Objects and methods for acting efficiently on a state vector."""
-from typing import Any, Callable, List, Optional, Sequence, Tuple, Type, TYPE_CHECKING, Union
+
+from __future__ import annotations
+
+from typing import Any, Callable, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -29,7 +32,7 @@ if TYPE_CHECKING:
 class _BufferedStateVector(qis.QuantumStateRepresentation):
     """Contains the state vector and buffer for efficient state evolution."""
 
-    def __init__(self, state_vector: np.ndarray, buffer: Optional[np.ndarray] = None):
+    def __init__(self, state_vector: np.ndarray, buffer: np.ndarray | None = None):
         """Initializes the object with the inputs.
 
         This initializer creates the buffer if necessary.
@@ -50,10 +53,10 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
     def create(
         cls,
         *,
-        initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
-        qid_shape: Optional[Tuple[int, ...]] = None,
-        dtype: Optional[Type[np.complexfloating]] = None,
-        buffer: Optional[np.ndarray] = None,
+        initial_state: np.ndarray | cirq.STATE_VECTOR_LIKE = 0,
+        qid_shape: tuple[int, ...] | None = None,
+        dtype: type[np.complexfloating] | None = None,
+        buffer: np.ndarray | None = None,
     ):
         """Initializes the object with the inputs.
 
@@ -85,7 +88,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         state_vector = state_vector.astype(dtype, copy=False)
         return cls(state_vector, buffer)
 
-    def copy(self, deep_copy_buffers: bool = True) -> '_BufferedStateVector':
+    def copy(self, deep_copy_buffers: bool = True) -> _BufferedStateVector:
         """Copies the object.
 
         Args:
@@ -98,7 +101,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
             buffer=self._buffer.copy() if deep_copy_buffers else self._buffer,
         )
 
-    def kron(self, other: '_BufferedStateVector') -> '_BufferedStateVector':
+    def kron(self, other: _BufferedStateVector) -> _BufferedStateVector:
         """Creates the Kronecker product with the other state vector.
 
         Args:
@@ -113,7 +116,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
 
     def factor(
         self, axes: Sequence[int], *, validate=True, atol=1e-07
-    ) -> Tuple['_BufferedStateVector', '_BufferedStateVector']:
+    ) -> tuple[_BufferedStateVector, _BufferedStateVector]:
         """Factors a state vector into two independent state vectors.
 
         This function should only be called on state vectors that are known to be separable, such
@@ -143,7 +146,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         )
         return extracted, remainder
 
-    def reindex(self, axes: Sequence[int]) -> '_BufferedStateVector':
+    def reindex(self, axes: Sequence[int]) -> _BufferedStateVector:
         """Transposes the axes of a state vector to a specified order.
 
         Args:
@@ -176,7 +179,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         self._swap_target_tensor_for(new_target_tensor)
         return True
 
-    def apply_mixture(self, action: Any, axes: Sequence[int], prng) -> Optional[int]:
+    def apply_mixture(self, action: Any, axes: Sequence[int], prng) -> int | None:
         """Apply mixture to state.
 
         Args:
@@ -198,7 +201,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         self._swap_target_tensor_for(self._buffer)
         return index
 
-    def apply_channel(self, action: Any, axes: Sequence[int], prng) -> Optional[int]:
+    def apply_channel(self, action: Any, axes: Sequence[int], prng) -> int | None:
         """Apply channel to state.
 
         Args:
@@ -253,8 +256,8 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         return index
 
     def measure(
-        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
-    ) -> List[int]:
+        self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
+    ) -> list[int]:
         """Measures the state vector.
 
         Args:
@@ -269,10 +272,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         return bits
 
     def sample(
-        self,
-        axes: Sequence[int],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        self, axes: Sequence[int], repetitions: int = 1, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
     ) -> np.ndarray:
         """Samples the state vector.
 
@@ -320,12 +320,12 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
     def __init__(
         self,
         *,
-        available_buffer: Optional[np.ndarray] = None,
-        prng: Optional[np.random.RandomState] = None,
-        qubits: Optional[Sequence['cirq.Qid']] = None,
-        initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
-        dtype: Type[np.complexfloating] = np.complex64,
-        classical_data: Optional['cirq.ClassicalDataStore'] = None,
+        available_buffer: np.ndarray | None = None,
+        prng: np.random.RandomState | None = None,
+        qubits: Sequence[cirq.Qid] | None = None,
+        initial_state: np.ndarray | cirq.STATE_VECTOR_LIKE = 0,
+        dtype: type[np.complexfloating] = np.complex64,
+        classical_data: cirq.ClassicalDataStore | None = None,
     ):
         """Inits StateVectorSimulationState.
 
@@ -356,7 +356,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
         )
         super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
 
-    def add_qubits(self, qubits: Sequence['cirq.Qid']):
+    def add_qubits(self, qubits: Sequence[cirq.Qid]):
         ret = super().add_qubits(qubits)
         return (
             self.kronecker_product(type(self)(qubits=qubits), inplace=True)
@@ -364,7 +364,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
             else ret
         )
 
-    def remove_qubits(self, qubits: Sequence['cirq.Qid']):
+    def remove_qubits(self, qubits: Sequence[cirq.Qid]):
         ret = super().remove_qubits(qubits)
         if ret is not NotImplemented:
             return ret
@@ -373,9 +373,9 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
         return remainder
 
     def _act_on_fallback_(
-        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
+        self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool = True
     ) -> bool:
-        strats: List[Callable[[Any, Any, Sequence['cirq.Qid']], bool]] = [
+        strats: list[Callable[[Any, Any, Sequence[cirq.Qid]], bool]] = [
             _strat_act_on_state_vector_from_apply_unitary,
             _strat_act_on_state_vector_from_mixture,
             _strat_act_on_state_vector_from_channel,
@@ -415,7 +415,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
 
 
 def _strat_act_on_state_vector_from_apply_unitary(
-    action: Any, args: 'cirq.StateVectorSimulationState', qubits: Sequence['cirq.Qid']
+    action: Any, args: cirq.StateVectorSimulationState, qubits: Sequence[cirq.Qid]
 ) -> bool:
     if not args._state.apply_unitary(action, args.get_axes(qubits)):
         return NotImplemented
@@ -423,7 +423,7 @@ def _strat_act_on_state_vector_from_apply_unitary(
 
 
 def _strat_act_on_state_vector_from_mixture(
-    action: Any, args: 'cirq.StateVectorSimulationState', qubits: Sequence['cirq.Qid']
+    action: Any, args: cirq.StateVectorSimulationState, qubits: Sequence[cirq.Qid]
 ) -> bool:
     index = args._state.apply_mixture(action, args.get_axes(qubits), args.prng)
     if index is None:
@@ -435,7 +435,7 @@ def _strat_act_on_state_vector_from_mixture(
 
 
 def _strat_act_on_state_vector_from_channel(
-    action: Any, args: 'cirq.StateVectorSimulationState', qubits: Sequence['cirq.Qid']
+    action: Any, args: cirq.StateVectorSimulationState, qubits: Sequence[cirq.Qid]
 ) -> bool:
     index = args._state.apply_channel(action, args.get_axes(qubits), args.prng)
     if index is None:

@@ -12,15 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 """Utility methods for decomposing arbitrary n-qubit (2^n x 2^n) unitary.
 
 Based on:
 Synthesis of Quantum Logic Circuits. Tech. rep. 2006,
 https://arxiv.org/abs/quant-ph/0406176
 """
+
+from __future__ import annotations
+
 from types import SimpleNamespace
-from typing import Callable, Iterable, List, TYPE_CHECKING
+from typing import Callable, Iterable, TYPE_CHECKING
 
 import numpy as np
 from scipy.linalg import cossin
@@ -39,9 +41,9 @@ if TYPE_CHECKING:
 
 
 def quantum_shannon_decomposition(
-    qubits: 'List[cirq.Qid]', u: np.ndarray, atol: float = 1e-8
-) -> Iterable['cirq.Operation']:
-    """Decomposes n-qubit unitary into 1-q, 2-q and GlobalPhase gates, preserving global phase.
+    qubits: list[cirq.Qid], u: np.ndarray, atol: float = 1e-8
+) -> Iterable[cirq.Operation]:
+    """Decomposes n-qubit unitary 1-q, 2-q and GlobalPhase gates, preserving global phase.
 
     The gates used are CX/YPow/ZPow/CNOT/GlobalPhase/CZ/PhasedXZGate/PhasedXPowGate.
 
@@ -143,7 +145,7 @@ def quantum_shannon_decomposition(
             yield op
 
 
-def _recursive_decomposition(qubits: 'List[cirq.Qid]', u: np.ndarray) -> Iterable['cirq.Operation']:
+def _recursive_decomposition(qubits: list[cirq.Qid], u: np.ndarray) -> Iterable[cirq.Operation]:
     """Recursive step in the quantum shannon decomposition.
 
     Decomposes n-qubit unitary into generic 2-qubit gates, CNOT, CZ and 1-qubit gates.
@@ -211,7 +213,7 @@ def _recursive_decomposition(qubits: 'List[cirq.Qid]', u: np.ndarray) -> Iterabl
     yield from _msb_demuxer(qubits, u1, u2)
 
 
-def _global_phase_difference(u: np.ndarray, ops: List['cirq.Operation']) -> float:
+def _global_phase_difference(u: np.ndarray, ops: list[cirq.Operation]) -> float:
     """Returns the difference in global phase between unitary u and
     a list of operations computing u.
     """
@@ -220,7 +222,7 @@ def _global_phase_difference(u: np.ndarray, ops: List['cirq.Operation']) -> floa
     return np.angle(u[i, j]) - np.angle(new_unitary[i, j])
 
 
-def _single_qubit_decomposition(qubit: 'cirq.Qid', u: np.ndarray) -> Iterable['cirq.Operation']:
+def _single_qubit_decomposition(qubit: cirq.Qid, u: np.ndarray) -> Iterable[cirq.Operation]:
     """Decomposes single-qubit gate, and returns list of operations, keeping phase invariant.
 
     Args:
@@ -264,8 +266,8 @@ def _single_qubit_decomposition(qubit: 'cirq.Qid', u: np.ndarray) -> Iterable['c
 
 
 def _msb_demuxer(
-    demux_qubits: 'List[cirq.Qid]', u1: np.ndarray, u2: np.ndarray
-) -> Iterable['cirq.Operation']:
+    demux_qubits: list[cirq.Qid], u1: np.ndarray, u2: np.ndarray
+) -> Iterable[cirq.Operation]:
     """Demultiplexes a unitary matrix that is multiplexed in its most-significant-qubit.
 
     Decomposition structure:
@@ -330,8 +332,8 @@ def _nth_gray(n: int) -> int:
 
 
 def _multiplexed_cossin(
-    cossin_qubits: 'List[cirq.Qid]', angles: List[float], rot_func: Callable = ops.ry
-) -> Iterable['cirq.Operation']:
+    cossin_qubits: list[cirq.Qid], angles: list[float], rot_func: Callable = ops.ry
+) -> Iterable[cirq.Operation]:
     """Performs a multiplexed rotation over all qubits in this unitary matrix,
 
     Uses ry and rz multiplexing for quantum shannon decomposition

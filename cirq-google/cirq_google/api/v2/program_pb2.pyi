@@ -463,6 +463,42 @@ class ISwapPowGate(google.protobuf.message.Message):
 global___ISwapPowGate = ISwapPowGate
 
 @typing.final
+class ISwapLikeGate(google.protobuf.message.Message):
+    """Representation of an iswap-like gate
+    with theta=pi/2 and a non-zero hardware-dependent phi angle
+    """
+
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    class _OriginalCirqGate:
+        ValueType = typing.NewType("ValueType", builtins.int)
+        V: typing_extensions.TypeAlias = ValueType
+
+    class _OriginalCirqGateEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[ISwapLikeGate._OriginalCirqGate.ValueType], builtins.type):
+        DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
+        UNSPECIFIED: ISwapLikeGate._OriginalCirqGate.ValueType  # 0
+        SYCAMORE: ISwapLikeGate._OriginalCirqGate.ValueType  # 1
+        WILLOW: ISwapLikeGate._OriginalCirqGate.ValueType  # 2
+
+    class OriginalCirqGate(_OriginalCirqGate, metaclass=_OriginalCirqGateEnumTypeWrapper):
+        """Original gate, for deserializing faithfully."""
+
+    UNSPECIFIED: ISwapLikeGate.OriginalCirqGate.ValueType  # 0
+    SYCAMORE: ISwapLikeGate.OriginalCirqGate.ValueType  # 1
+    WILLOW: ISwapLikeGate.OriginalCirqGate.ValueType  # 2
+
+    ORIGINAL_GATE_FIELD_NUMBER: builtins.int
+    original_gate: global___ISwapLikeGate.OriginalCirqGate.ValueType
+    def __init__(
+        self,
+        *,
+        original_gate: global___ISwapLikeGate.OriginalCirqGate.ValueType = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing.Literal["original_gate", b"original_gate"]) -> None: ...
+
+global___ISwapLikeGate = ISwapLikeGate
+
+@typing.final
 class MeasurementGate(google.protobuf.message.Message):
     """Representation of cirq.MeasurementGate
     i.e. cirq.measure
@@ -489,7 +525,7 @@ global___MeasurementGate = MeasurementGate
 
 @typing.final
 class WaitGate(google.protobuf.message.Message):
-    """Representation of cirq.WAitGate"""
+    """Representation of cirq.WaitGate"""
 
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -512,7 +548,9 @@ global___WaitGate = WaitGate
 
 @typing.final
 class Operation(google.protobuf.message.Message):
-    """An operation acts on a set of qubits."""
+    """An operation acts on a set of qubits.
+    next available id = 27
+    """
 
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -532,12 +570,14 @@ class Operation(google.protobuf.message.Message):
     HPOWGATE_FIELD_NUMBER: builtins.int
     SINGLEQUBITCLIFFORDGATE_FIELD_NUMBER: builtins.int
     RESETGATE_FIELD_NUMBER: builtins.int
+    ISWAPLIKEGATE_FIELD_NUMBER: builtins.int
     QUBITS_FIELD_NUMBER: builtins.int
     QUBIT_CONSTANT_INDEX_FIELD_NUMBER: builtins.int
     TOKEN_VALUE_FIELD_NUMBER: builtins.int
     TOKEN_CONSTANT_INDEX_FIELD_NUMBER: builtins.int
     TAGS_FIELD_NUMBER: builtins.int
     TAG_INDICES_FIELD_NUMBER: builtins.int
+    CONDITIONED_ON_FIELD_NUMBER: builtins.int
     token_value: builtins.str
     token_constant_index: builtins.int
     @property
@@ -573,6 +613,8 @@ class Operation(google.protobuf.message.Message):
     @property
     def resetgate(self) -> global___ResetGate: ...
     @property
+    def iswaplikegate(self) -> global___ISwapLikeGate: ...
+    @property
     def qubits(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Qubit]:
         """Which qubits the operation acts on.
         Operations should populate one of the following two
@@ -591,6 +633,13 @@ class Operation(google.protobuf.message.Message):
     @property
     def tag_indices(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]:
         """Indices in the constant table for tags associated with the operation"""
+
+    @property
+    def conditioned_on(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Arg]:
+        """Classical conditions
+        Note that this condition is not a sympy expression
+        as it has a relation such as "==", "<" etc
+        """
 
     def __init__(
         self,
@@ -611,17 +660,19 @@ class Operation(google.protobuf.message.Message):
         hpowgate: global___HPowGate | None = ...,
         singlequbitcliffordgate: global___SingleQubitCliffordGate | None = ...,
         resetgate: global___ResetGate | None = ...,
+        iswaplikegate: global___ISwapLikeGate | None = ...,
         qubits: collections.abc.Iterable[global___Qubit] | None = ...,
         qubit_constant_index: collections.abc.Iterable[builtins.int] | None = ...,
         token_value: builtins.str = ...,
         token_constant_index: builtins.int = ...,
         tags: collections.abc.Iterable[global___Tag] | None = ...,
         tag_indices: collections.abc.Iterable[builtins.int] | None = ...,
+        conditioned_on: collections.abc.Iterable[global___Arg] | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["couplerpulsegate", b"couplerpulsegate", "czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate_value", b"gate_value", "hpowgate", b"hpowgate", "identitygate", b"identitygate", "internalgate", b"internalgate", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "resetgate", b"resetgate", "singlequbitcliffordgate", b"singlequbitcliffordgate", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["couplerpulsegate", b"couplerpulsegate", "czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate_value", b"gate_value", "hpowgate", b"hpowgate", "identitygate", b"identitygate", "internalgate", b"internalgate", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "qubit_constant_index", b"qubit_constant_index", "qubits", b"qubits", "resetgate", b"resetgate", "singlequbitcliffordgate", b"singlequbitcliffordgate", "tag_indices", b"tag_indices", "tags", b"tags", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> None: ...
+    def HasField(self, field_name: typing.Literal["couplerpulsegate", b"couplerpulsegate", "czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate_value", b"gate_value", "hpowgate", b"hpowgate", "identitygate", b"identitygate", "internalgate", b"internalgate", "iswaplikegate", b"iswaplikegate", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "resetgate", b"resetgate", "singlequbitcliffordgate", b"singlequbitcliffordgate", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["conditioned_on", b"conditioned_on", "couplerpulsegate", b"couplerpulsegate", "czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate_value", b"gate_value", "hpowgate", b"hpowgate", "identitygate", b"identitygate", "internalgate", b"internalgate", "iswaplikegate", b"iswaplikegate", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "qubit_constant_index", b"qubit_constant_index", "qubits", b"qubits", "resetgate", b"resetgate", "singlequbitcliffordgate", b"singlequbitcliffordgate", "tag_indices", b"tag_indices", "tags", b"tags", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> None: ...
     @typing.overload
-    def WhichOneof(self, oneof_group: typing.Literal["gate_value", b"gate_value"]) -> typing.Literal["xpowgate", "ypowgate", "zpowgate", "phasedxpowgate", "phasedxzgate", "czpowgate", "fsimgate", "iswappowgate", "measurementgate", "waitgate", "internalgate", "couplerpulsegate", "identitygate", "hpowgate", "singlequbitcliffordgate", "resetgate"] | None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["gate_value", b"gate_value"]) -> typing.Literal["xpowgate", "ypowgate", "zpowgate", "phasedxpowgate", "phasedxzgate", "czpowgate", "fsimgate", "iswappowgate", "measurementgate", "waitgate", "internalgate", "couplerpulsegate", "identitygate", "hpowgate", "singlequbitcliffordgate", "resetgate", "iswaplikegate"] | None: ...
     @typing.overload
     def WhichOneof(self, oneof_group: typing.Literal["token", b"token"]) -> typing.Literal["token_value", "token_constant_index"] | None: ...
 
@@ -933,12 +984,15 @@ class Arg(google.protobuf.message.Message):
     SYMBOL_FIELD_NUMBER: builtins.int
     FUNC_FIELD_NUMBER: builtins.int
     CONSTANT_INDEX_FIELD_NUMBER: builtins.int
+    MEASUREMENT_KEY_FIELD_NUMBER: builtins.int
     symbol: builtins.str
     constant_index: builtins.int
     @property
     def arg_value(self) -> global___ArgValue: ...
     @property
     def func(self) -> global___ArgFunction: ...
+    @property
+    def measurement_key(self) -> global___MeasurementKey: ...
     def __init__(
         self,
         *,
@@ -946,10 +1000,11 @@ class Arg(google.protobuf.message.Message):
         symbol: builtins.str = ...,
         func: global___ArgFunction | None = ...,
         constant_index: builtins.int = ...,
+        measurement_key: global___MeasurementKey | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["arg", b"arg", "arg_value", b"arg_value", "constant_index", b"constant_index", "func", b"func", "symbol", b"symbol"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["arg", b"arg", "arg_value", b"arg_value", "constant_index", b"constant_index", "func", b"func", "symbol", b"symbol"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["arg", b"arg"]) -> typing.Literal["arg_value", "symbol", "func", "constant_index"] | None: ...
+    def HasField(self, field_name: typing.Literal["arg", b"arg", "arg_value", b"arg_value", "constant_index", b"constant_index", "func", b"func", "measurement_key", b"measurement_key", "symbol", b"symbol"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["arg", b"arg", "arg_value", b"arg_value", "constant_index", b"constant_index", "func", b"func", "measurement_key", b"measurement_key", "symbol", b"symbol"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["arg", b"arg"]) -> typing.Literal["arg_value", "symbol", "func", "constant_index", "measurement_key"] | None: ...
 
 global___Arg = Arg
 
@@ -1260,8 +1315,12 @@ class CircuitOperation(google.protobuf.message.Message):
     QUBIT_MAP_FIELD_NUMBER: builtins.int
     MEASUREMENT_KEY_MAP_FIELD_NUMBER: builtins.int
     ARG_MAP_FIELD_NUMBER: builtins.int
+    REPEAT_UNTIL_FIELD_NUMBER: builtins.int
+    CONDITIONED_ON_FIELD_NUMBER: builtins.int
+    USE_REPETITION_IDS_FIELD_NUMBER: builtins.int
     circuit_constant_index: builtins.int
     """The index of the circuit in the top-level constant table."""
+    use_repetition_ids: builtins.bool
     @property
     def repetition_specification(self) -> global___RepetitionSpecification:
         """Specifier for repetitions of the circuit, which contains either a number
@@ -1288,6 +1347,16 @@ class CircuitOperation(google.protobuf.message.Message):
         to args in the "outer" circuit (the one that contains this operation).
         """
 
+    @property
+    def repeat_until(self) -> global___Arg:
+        """Classical conditions
+        Condition for repeating the circuit until this condition is true.
+        """
+
+    @property
+    def conditioned_on(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Arg]:
+        """Condition for executing the circuit operation only if this condition is true."""
+
     def __init__(
         self,
         *,
@@ -1296,9 +1365,13 @@ class CircuitOperation(google.protobuf.message.Message):
         qubit_map: global___QubitMapping | None = ...,
         measurement_key_map: global___MeasurementKeyMapping | None = ...,
         arg_map: global___ArgMapping | None = ...,
+        repeat_until: global___Arg | None = ...,
+        conditioned_on: collections.abc.Iterable[global___Arg] | None = ...,
+        use_repetition_ids: builtins.bool = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["arg_map", b"arg_map", "measurement_key_map", b"measurement_key_map", "qubit_map", b"qubit_map", "repetition_specification", b"repetition_specification"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["arg_map", b"arg_map", "circuit_constant_index", b"circuit_constant_index", "measurement_key_map", b"measurement_key_map", "qubit_map", b"qubit_map", "repetition_specification", b"repetition_specification"]) -> None: ...
+    def HasField(self, field_name: typing.Literal["_repeat_until", b"_repeat_until", "arg_map", b"arg_map", "measurement_key_map", b"measurement_key_map", "qubit_map", b"qubit_map", "repeat_until", b"repeat_until", "repetition_specification", b"repetition_specification"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["_repeat_until", b"_repeat_until", "arg_map", b"arg_map", "circuit_constant_index", b"circuit_constant_index", "conditioned_on", b"conditioned_on", "measurement_key_map", b"measurement_key_map", "qubit_map", b"qubit_map", "repeat_until", b"repeat_until", "repetition_specification", b"repetition_specification", "use_repetition_ids", b"use_repetition_ids"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["_repeat_until", b"_repeat_until"]) -> typing.Literal["repeat_until"] | None: ...
 
 global___CircuitOperation = CircuitOperation
 
@@ -1398,13 +1471,32 @@ class MeasurementKey(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
     STRING_KEY_FIELD_NUMBER: builtins.int
+    PATH_FIELD_NUMBER: builtins.int
+    INDEX_FIELD_NUMBER: builtins.int
     string_key: builtins.str
+    index: builtins.int
+    """Used in classical conditions to specify which measurement
+    should be used if the measurement is repeated.
+    Specified as a negative number meaning how many measurements ago.
+    If not specified, default is -1, meaning the last measured value.
+    """
+    @property
+    def path(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
+        """Used in conditional statements representing the path to the key
+        in a multi-level circuit (with repeated or nested circuits).
+        See cirq.MeasurementKey for more details.
+        """
+
     def __init__(
         self,
         *,
         string_key: builtins.str = ...,
+        path: collections.abc.Iterable[builtins.str] | None = ...,
+        index: builtins.int | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["string_key", b"string_key"]) -> None: ...
+    def HasField(self, field_name: typing.Literal["_index", b"_index", "index", b"index"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["_index", b"_index", "index", b"index", "path", b"path", "string_key", b"string_key"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["_index", b"_index"]) -> typing.Literal["index"] | None: ...
 
 global___MeasurementKey = MeasurementKey
 

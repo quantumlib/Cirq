@@ -14,8 +14,10 @@
 
 """Heuristic qubit routing algorithm based on arxiv:1902.08091."""
 
+from __future__ import annotations
+
 import itertools
-from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING
+from typing import Any, Sequence, TYPE_CHECKING
 
 import networkx as nx
 
@@ -26,12 +28,12 @@ from cirq.transformers.routing import line_initial_mapper, mapping_manager
 if TYPE_CHECKING:
     import cirq
 
-QidIntPair = Tuple[int, int]
+QidIntPair = tuple[int, int]
 
 
 def _disjoint_nc2_combinations(
     qubit_pairs: Sequence[QidIntPair],
-) -> List[Tuple[QidIntPair, QidIntPair]]:
+) -> list[tuple[QidIntPair, QidIntPair]]:
     """Gets disjoint pair combinations of qubits pairs.
 
     For example:
@@ -108,13 +110,13 @@ class RouteCQC:
 
     def __call__(
         self,
-        circuit: 'cirq.AbstractCircuit',
+        circuit: cirq.AbstractCircuit,
         *,
         lookahead_radius: int = 8,
         tag_inserted_swaps: bool = False,
-        initial_mapper: Optional['cirq.AbstractInitialMapper'] = None,
-        context: Optional['cirq.TransformerContext'] = None,
-    ) -> 'cirq.AbstractCircuit':
+        initial_mapper: cirq.AbstractInitialMapper | None = None,
+        context: cirq.TransformerContext | None = None,
+    ) -> cirq.AbstractCircuit:
         """Transforms the given circuit to make it executable on the device.
 
         This method calls self.route_circuit and returns the routed circuit. See docstring of
@@ -150,13 +152,13 @@ class RouteCQC:
 
     def route_circuit(
         self,
-        circuit: 'cirq.AbstractCircuit',
+        circuit: cirq.AbstractCircuit,
         *,
         lookahead_radius: int = 8,
         tag_inserted_swaps: bool = False,
-        initial_mapper: Optional['cirq.AbstractInitialMapper'] = None,
-        context: Optional['cirq.TransformerContext'] = None,
-    ) -> Tuple['cirq.AbstractCircuit', Dict['cirq.Qid', 'cirq.Qid'], Dict['cirq.Qid', 'cirq.Qid']]:
+        initial_mapper: cirq.AbstractInitialMapper | None = None,
+        context: cirq.TransformerContext | None = None,
+    ) -> tuple[cirq.AbstractCircuit, dict[cirq.Qid, cirq.Qid], dict[cirq.Qid, cirq.Qid]]:
         """Transforms the given circuit to make it executable on the device.
 
         This transformer assumes that all multi-qubit operations have been decomposed into 2-qubit
@@ -241,8 +243,8 @@ class RouteCQC:
 
     @classmethod
     def _get_one_and_two_qubit_ops_as_timesteps(
-        cls, circuit: 'cirq.AbstractCircuit'
-    ) -> Tuple[List[List['cirq.Operation']], List[List['cirq.Operation']]]:
+        cls, circuit: cirq.AbstractCircuit
+    ) -> tuple[list[list[cirq.Operation]], list[list[cirq.Operation]]]:
         """Gets the single and two qubit operations of the circuit factored into timesteps.
 
         The i'th entry in the nested two-qubit and single-qubit ops correspond to the two-qubit
@@ -254,7 +256,7 @@ class RouteCQC:
                         qubits with a custom key.
         """
         two_qubit_circuit = circuits.Circuit()
-        single_qubit_ops: List[List[cirq.Operation]] = []
+        single_qubit_ops: list[list[cirq.Operation]] = []
 
         for i, moment in enumerate(circuit):
             for op in moment:
@@ -286,11 +288,11 @@ class RouteCQC:
     def _route(
         cls,
         mm: mapping_manager.MappingManager,
-        two_qubit_ops: List[List['cirq.Operation']],
-        single_qubit_ops: List[List['cirq.Operation']],
+        two_qubit_ops: list[list[cirq.Operation]],
+        single_qubit_ops: list[list[cirq.Operation]],
         lookahead_radius: int,
         tag_inserted_swaps: bool = False,
-    ) -> List[List['cirq.Operation']]:
+    ) -> list[list[cirq.Operation]]:
         """Main routing procedure that inserts necessary swaps on the given timesteps.
 
         The i'th element of the returned list corresponds to the routed operatiosn in the i'th
@@ -309,18 +311,18 @@ class RouteCQC:
         Returns:
             a list of lists corresponding to timesteps of the routed circuit.
         """
-        two_qubit_ops_ints: List[List[QidIntPair]] = [
+        two_qubit_ops_ints: list[list[QidIntPair]] = [
             [
                 (mm.logical_qid_to_int[op.qubits[0]], mm.logical_qid_to_int[op.qubits[1]])
                 for op in timestep_ops
             ]
             for timestep_ops in two_qubit_ops
         ]
-        routed_ops: List[List['cirq.Operation']] = []
+        routed_ops: list[list[cirq.Operation]] = []
 
         def process_executable_two_qubit_ops(timestep: int) -> int:
-            unexecutable_ops: List['cirq.Operation'] = []
-            unexecutable_ops_ints: List[QidIntPair] = []
+            unexecutable_ops: list[cirq.Operation] = []
+            unexecutable_ops_ints: list[QidIntPair] = []
             for op, op_ints in zip(two_qubit_ops[timestep], two_qubit_ops_ints[timestep]):
                 if mm.is_adjacent(*op_ints):
                     routed_ops[timestep].append(mm.mapped_op(op))
@@ -339,10 +341,10 @@ class RouteCQC:
 
             # swaps applied in the current timestep thus far. This ensures the same swaps
             # don't get executed twice in the same timestep.
-            seen: Set[Tuple[QidIntPair, ...]] = set()
+            seen: set[tuple[QidIntPair, ...]] = set()
 
             while process_executable_two_qubit_ops(timestep):
-                chosen_swaps: Optional[Tuple[QidIntPair, ...]] = None
+                chosen_swaps: tuple[QidIntPair, ...] | None = None
                 for strat in strats:
                     chosen_swaps = strat(mm, two_qubit_ops_ints, timestep, lookahead_radius)
                     if chosen_swaps is not None:
@@ -370,7 +372,7 @@ class RouteCQC:
         mm: mapping_manager.MappingManager,
         two_qubit_ops_ints: Sequence[Sequence[QidIntPair]],
         timestep: int,
-    ) -> Tuple[QidIntPair, ...]:
+    ) -> tuple[QidIntPair, ...]:
         """Inserts SWAPS along the shortest path of the qubits that are the farthest.
 
         Since swaps along the shortest path are being executed one after the other, in order
@@ -388,7 +390,7 @@ class RouteCQC:
         two_qubit_ops_ints: Sequence[Sequence[QidIntPair]],
         timestep: int,
         lookahead_radius: int,
-    ) -> Optional[Tuple[QidIntPair, ...]]:
+    ) -> tuple[QidIntPair, ...] | None:
         """Computes cost function with pairs of candidate swaps that act on disjoint qubits."""
         pair_sigma = _disjoint_nc2_combinations(
             cls._initial_candidate_swaps(mm, two_qubit_ops_ints[timestep])
@@ -404,9 +406,9 @@ class RouteCQC:
         two_qubit_ops_ints: Sequence[Sequence[QidIntPair]],
         timestep: int,
         lookahead_radius: int,
-    ) -> Optional[Tuple[QidIntPair, ...]]:
+    ) -> tuple[QidIntPair, ...] | None:
         """Computes cost function with list of single candidate swaps."""
-        sigma: List[Tuple[QidIntPair, ...]] = [
+        sigma: list[tuple[QidIntPair, ...]] = [
             (swap,) for swap in cls._initial_candidate_swaps(mm, two_qubit_ops_ints[timestep])
         ]
         return cls._choose_optimal_swap(mm, two_qubit_ops_ints, timestep, lookahead_radius, sigma)
@@ -418,8 +420,8 @@ class RouteCQC:
         two_qubit_ops_ints: Sequence[Sequence[QidIntPair]],
         timestep: int,
         lookahead_radius: int,
-        sigma: Sequence[Tuple[QidIntPair, ...]],
-    ) -> Optional[Tuple[QidIntPair, ...]]:
+        sigma: Sequence[tuple[QidIntPair, ...]],
+    ) -> tuple[QidIntPair, ...] | None:
         """Optionally returns the swap with minimum cost from a list of n-tuple candidate swaps.
 
         Computes a cost (as defined by the overridable function `_cost`) for each candidate swap
@@ -447,7 +449,7 @@ class RouteCQC:
     @classmethod
     def _initial_candidate_swaps(
         cls, mm: mapping_manager.MappingManager, two_qubit_ops: Sequence[QidIntPair]
-    ) -> List[QidIntPair]:
+    ) -> list[QidIntPair]:
         """Finds all feasible SWAPs between qubits involved in 2-qubit operations."""
         physical_qubits = (mm.logical_to_physical[lq[i]] for lq in two_qubit_ops for i in range(2))
         physical_swaps = mm.induced_subgraph_int.edges(nbunch=physical_qubits)
@@ -459,7 +461,7 @@ class RouteCQC:
     def _cost(
         cls,
         mm: mapping_manager.MappingManager,
-        swaps: Tuple[QidIntPair, ...],
+        swaps: tuple[QidIntPair, ...],
         two_qubit_ops: Sequence[QidIntPair],
     ) -> Any:
         """Computes the cost function for the given list of swaps over the current timestep ops.

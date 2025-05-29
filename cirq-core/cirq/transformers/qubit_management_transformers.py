@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Optional, Set, Tuple, TYPE_CHECKING
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from cirq import circuits, ops
 
@@ -21,8 +23,8 @@ if TYPE_CHECKING:
 
 
 def _get_qubit_mapping_first_and_last_moment(
-    circuit: 'cirq.AbstractCircuit',
-) -> Dict['cirq.Qid', Tuple[int, int]]:
+    circuit: cirq.AbstractCircuit,
+) -> dict[cirq.Qid, tuple[int, int]]:
     """Computes `(first_moment_idx, last_moment_idx)` tuple for each qubit in the input circuit.
 
     Args:
@@ -41,13 +43,13 @@ def _get_qubit_mapping_first_and_last_moment(
     return ret
 
 
-def _is_temp(q: 'cirq.Qid') -> bool:
+def _is_temp(q: cirq.Qid) -> bool:
     return isinstance(q, (ops.CleanQubit, ops.BorrowableQubit))
 
 
 def map_clean_and_borrowable_qubits(
-    circuit: 'cirq.AbstractCircuit', *, qm: Optional['cirq.QubitManager'] = None
-) -> 'cirq.Circuit':
+    circuit: cirq.AbstractCircuit, *, qm: cirq.QubitManager | None = None
+) -> cirq.Circuit:
     """Uses `qm: QubitManager` to map all `CleanQubit`/`BorrowableQubit`s to system qubits.
 
     `CleanQubit` and `BorrowableQubit` are internal qubit types that are used as placeholder qubits
@@ -97,11 +99,11 @@ def map_clean_and_borrowable_qubits(
     trivial_map = {q: q for q in all_qubits}
     # `allocated_map` maintains the mapping of all temporary qubits seen so far, mapping each of
     # them to either a newly allocated managed ancilla or an existing borrowed system qubit.
-    allocated_map: Dict['cirq.Qid', 'cirq.Qid'] = {}
-    to_free: Set['cirq.Qid'] = set()
+    allocated_map: dict[cirq.Qid, cirq.Qid] = {}
+    to_free: set[cirq.Qid] = set()
     last_op_idx = -1
 
-    def map_func(op: 'cirq.Operation', idx: int) -> 'cirq.OP_TREE':
+    def map_func(op: cirq.Operation, idx: int) -> cirq.OP_TREE:
         nonlocal last_op_idx, to_free
         assert isinstance(qm, ops.QubitManager)
 

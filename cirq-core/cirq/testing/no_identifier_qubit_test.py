@@ -12,19 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cirq
 
 
-def test_named_qubit_repr():
+def test_named_qubit_repr() -> None:
     q = cirq.testing.NoIdentifierQubit()
     assert repr(q) == "cirq.testing.NoIdentifierQubit()"
 
 
-def test_comparsion_key():
+def test_comparsion_key() -> None:
     q = cirq.testing.NoIdentifierQubit()
     p = cirq.testing.NoIdentifierQubit()
     assert p == q
 
 
-def test_to_json():
+def test_to_json() -> None:
     assert cirq.testing.NoIdentifierQubit()._json_dict_() == {}

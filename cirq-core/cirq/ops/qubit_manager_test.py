@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 
 import cirq
 from cirq.ops import qubit_manager as cqi
 
 
-def test_clean_qubits():
+def test_clean_qubits() -> None:
     q = cqi.CleanQubit(1)
     assert q.id == 1
     assert q.dimension == 2
@@ -39,7 +41,7 @@ def test_clean_qubits():
     assert cqi.CleanQubit(1) < cqi.CleanQubit(2)
 
 
-def test_ancilla_qubits_prefix():
+def test_ancilla_qubits_prefix() -> None:
     assert cqi.CleanQubit(1, prefix="1") != cqi.CleanQubit(1, prefix="2")
     assert cqi.CleanQubit(1, prefix="1") < cqi.CleanQubit(1, prefix="2")
     assert cqi.CleanQubit(1, prefix="1") < cqi.CleanQubit(2, prefix="1")
@@ -49,7 +51,7 @@ def test_ancilla_qubits_prefix():
     assert cqi.CleanQubit(1, prefix="1") != cqi.BorrowableQubit(1, prefix="1")
 
 
-def test_borrow_qubits():
+def test_borrow_qubits() -> None:
     q = cqi.BorrowableQubit(10)
     assert q.id == 10
     assert q.dimension == 2
@@ -71,7 +73,7 @@ def test_borrow_qubits():
 
 
 @pytest.mark.parametrize('_', range(2))
-def test_simple_qubit_manager(_):
+def test_simple_qubit_manager(_) -> None:
     qm = cirq.ops.SimpleQubitManager()
     assert qm.qalloc(1) == [cqi.CleanQubit(0)]
     assert qm.qalloc(2) == [cqi.CleanQubit(1), cqi.CleanQubit(2)]
