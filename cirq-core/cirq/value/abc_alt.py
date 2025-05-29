@@ -82,8 +82,8 @@ class ABCMetaImplementAnyOneOf(abc.ABCMeta):
     `@alternative(...)` may be used.
     """
 
-    def __new__(mcls, name, bases, namespace, **kwargs):
-        cls = super().__new__(mcls, name, bases, namespace, **kwargs)
+    def __new__(mcs, name, bases, namespace, **kwargs):
+        cls = super().__new__(mcs, name, bases, namespace, **kwargs)
         implemented_by = {}
 
         def has_some_implementation(name: str) -> bool:
