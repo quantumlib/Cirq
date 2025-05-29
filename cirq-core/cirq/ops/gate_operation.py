@@ -148,9 +148,6 @@ class GateOperation(raw_types.Operation):
     def _num_qubits_(self):
         return len(self._qubits)
 
-    def _decompose_(self) -> cirq.OP_TREE:
-        return self._decompose_with_context_()
-
     def _decompose_with_context_(
         self, *, context: cirq.DecompositionContext
     ) -> cirq.OP_TREE:

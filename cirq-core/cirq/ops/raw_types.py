@@ -828,9 +828,6 @@ class TaggedOperation(Operation):
     def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['sub_operation', 'tags'])
 
-    def _decompose_(self) -> cirq.OP_TREE:
-        return self._decompose_with_context_()
-
     def _decompose_with_context_(
         self, *, context: cirq.DecompositionContext
     ) -> cirq.OP_TREE:

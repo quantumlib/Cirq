@@ -139,9 +139,6 @@ class ControlledGate(raw_types.Gate):
     def _qid_shape_(self) -> tuple[int, ...]:
         return self.control_qid_shape + protocols.qid_shape(self.sub_gate)
 
-    def _decompose_(self, qubits: tuple[cirq.Qid, ...]) -> None | NotImplementedType | cirq.OP_TREE:
-        return self._decompose_with_context_(qubits)
-
     def _decompose_with_context_(
         self, qubits: tuple[cirq.Qid, ...], *, context: cirq.DecompositionContext
     ) -> None | NotImplementedType | cirq.OP_TREE:
