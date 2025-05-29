@@ -16,22 +16,19 @@
 
 from __future__ import annotations
 
-from typing import Iterable, Iterator, Sequence, TYPE_CHECKING
+from typing import Iterable, Iterator, Sequence
 
 import numpy as np
 
-from cirq import circuits, devices, linalg, ops, protocols
-
-if TYPE_CHECKING:
-    import cirq
+from cirq import circuits, devices, linalg as cirq_linalg, ops, protocols
 
 
 def decompose_two_qubit_interaction_into_four_fsim_gates(
-    interaction: cirq.SupportsUnitary | np.ndarray,
+    interaction: protocols.SupportsUnitary | np.ndarray,
     *,
-    fsim_gate: cirq.FSimGate | cirq.ISwapPowGate,
-    qubits: Sequence[cirq.Qid] | None = None,
-) -> cirq.Circuit:
+    fsim_gate: ops.FSimGate | ops.ISwapPowGate,
+    qubits: Sequence[ops.Qid] | None = None,
+) -> circuits.Circuit:
     """Decomposes operations into an FSimGate near theta=pi/2, phi=0.
 
     This decomposition is guaranteed to use exactly four of the given FSim
@@ -51,7 +48,7 @@ def decompose_two_qubit_interaction_into_four_fsim_gates(
             output. Must satisfy 3/8π < phi < 5/8π and abs(theta) < pi/4.
         qubits: The qubits that the resulting operations should apply the
             desired interaction to. If not set then defaults to either the
-            qubits of the given interaction (if it is a `cirq.Operation`) or
+            qubits of the given interaction (if it is a `ops.Operation`) or
             else to `cirq.LineQubit.range(2)`.
 
     Returns:
@@ -82,7 +79,7 @@ def decompose_two_qubit_interaction_into_four_fsim_gates(
             qubits = devices.LineQubit.range(2)
     if len(qubits) != 2:
         raise ValueError(f'Expected a pair of qubits, but got {qubits!r}.')
-    kak = linalg.kak_decomposition(interaction)
+    kak = cirq_linalg.kak_decomposition(interaction)
 
     result_using_b_gates = _decompose_two_qubit_interaction_into_two_b_gates(kak, qubits=qubits)
 
@@ -112,12 +109,12 @@ def _sticky_0_to_1(v: float, *, atol: float) -> float | None:
 
 def _decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops(
     *,
-    qubits: Sequence[cirq.Qid],
-    fsim_gate: cirq.FSimGate,
+    qubits: Sequence[ops.Qid],
+    fsim_gate: ops.FSimGate,
     canonical_x_kak_coefficient: float,
     canonical_y_kak_coefficient: float,
     atol: float = 1e-8,
-) -> list[cirq.Operation]:
+) -> list[ops.Operation]:
     x = canonical_x_kak_coefficient
     y = canonical_y_kak_coefficient
     assert 0 <= y <= x <= np.pi / 4
@@ -176,11 +173,11 @@ _B = _BGate()
 
 
 def _decompose_two_qubit_interaction_into_two_b_gates(
-    interaction: cirq.SupportsUnitary | np.ndarray | cirq.KakDecomposition,
+    interaction: protocols.SupportsUnitary | np.ndarray | cirq_linalg.KakDecomposition,
     *,
-    qubits: Sequence[cirq.Qid],
-) -> list[cirq.Operation]:
-    kak = linalg.kak_decomposition(interaction)
+    qubits: Sequence[ops.Qid],
+) -> list[ops.Operation]:
+    kak = cirq_linalg.kak_decomposition(interaction)
 
     result = _decompose_interaction_into_two_b_gates_ignoring_single_qubit_ops(
         qubits, kak.interaction_coefficients
@@ -194,9 +191,9 @@ def _decompose_two_qubit_interaction_into_two_b_gates(
 
 
 def _decompose_b_gate_into_two_fsims(
-    *, fsim_gate: cirq.FSimGate, qubits: Sequence[cirq.Qid]
-) -> list[cirq.Operation]:
-    kak = linalg.kak_decomposition(_B)
+    *, fsim_gate: ops.FSimGate, qubits: Sequence[ops.Qid]
+) -> list[ops.Operation]:
+    kak = cirq_linalg.kak_decomposition(_B)
 
     result = _decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops(
         qubits=qubits,
@@ -213,8 +210,8 @@ def _decompose_b_gate_into_two_fsims(
 
 
 def _decompose_interaction_into_two_b_gates_ignoring_single_qubit_ops(
-    qubits: Sequence[cirq.Qid], kak_interaction_coefficients: Iterable[float]
-) -> list[cirq.Operation]:
+    qubits: Sequence[ops.Qid], kak_interaction_coefficients: Iterable[float]
+) -> list[ops.Operation]:
     """Decompose using a minimal construction of two-qubit operations.
 
     References:
@@ -238,8 +235,11 @@ def _decompose_interaction_into_two_b_gates_ignoring_single_qubit_ops(
 
 
 def _fix_single_qubit_gates_around_kak_interaction(
-    *, desired: cirq.KakDecomposition, operations: list[cirq.Operation], qubits: Sequence[cirq.Qid]
-) -> Iterator[cirq.Operation]:
+    *,
+    desired: cirq_linalg.KakDecomposition,
+    operations: list[ops.Operation],
+    qubits: Sequence[ops.Qid],
+) -> Iterator[ops.Operation]:
     """Adds single qubit operations to complete a desired interaction.
 
     Args:
@@ -253,7 +253,7 @@ def _fix_single_qubit_gates_around_kak_interaction(
         A list of operations whose kak decomposition approximately equals the
         desired kak decomposition.
     """
-    actual = linalg.kak_decomposition(circuits.Circuit(operations).unitary(qubit_order=qubits))
+    actual = cirq_linalg.kak_decomposition(circuits.Circuit(operations).unitary(qubit_order=qubits))
 
     def dag(a: np.ndarray) -> np.ndarray:
         return np.transpose(np.conjugate(a))

@@ -17,23 +17,20 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Iterable, Iterator, TYPE_CHECKING
+from typing import Iterable, Iterator
 
 import numpy as np
 
-from cirq import ops, protocols
+from cirq import circuits, ops, protocols
 from cirq.transformers import transformer_api, transformer_primitives
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions
-
-if TYPE_CHECKING:
-    import cirq
 
 
 def _is_integer(n):
     return np.isclose(n, np.round(n))
 
 
-def _is_swaplike(gate: cirq.Gate):
+def _is_swaplike(gate: ops.Gate):
     if isinstance(gate, ops.SwapPowGate):
         return gate.exponent == 1
 
@@ -48,12 +45,12 @@ def _is_swaplike(gate: cirq.Gate):
 
 @transformer_api.transformer(add_deep_support=True)
 def eject_z(
-    circuit: cirq.AbstractCircuit,
+    circuit: circuits.AbstractCircuit,
     *,
-    context: cirq.TransformerContext | None = None,
+    context: transformer_api.TransformerContext | None = None,
     atol: float = 0.0,
     eject_parameterized: bool = False,
-) -> cirq.Circuit:
+) -> circuits.Circuit:
     """Pushes Z gates towards the end of the circuit.
 
     As the Z gates get pushed they may absorb other Z gates, get absorbed into
@@ -77,7 +74,7 @@ def eject_z(
     phased_xz_replacements: dict[tuple[int, ops.Operation], ops.PhasedXZGate] = {}
     last_phased_xz_op: dict[ops.Qid, tuple[int, ops.Operation] | None] = defaultdict(lambda: None)
 
-    def dump_tracked_phase(qubits: Iterable[ops.Qid]) -> Iterator[cirq.OP_TREE]:
+    def dump_tracked_phase(qubits: Iterable[ops.Qid]) -> Iterator[ops.OP_TREE]:
         """Zeroes qubit_phase entries by emitting Z gates."""
         for q in qubits:
             p, key = qubit_phase[q], last_phased_xz_op[q]
@@ -87,7 +84,7 @@ def eject_z(
             elif key:
                 phased_xz_replacements[key] = phased_xz_replacements[key].with_z_exponent(p * 2)
 
-    def map_func(op: cirq.Operation, moment_index: int) -> cirq.OP_TREE:
+    def map_func(op: ops.Operation, moment_index: int) -> ops.OP_TREE:
         last_phased_xz_op.update({q: None for q in op.qubits})
 
         if tags_to_ignore & set(op.tags):

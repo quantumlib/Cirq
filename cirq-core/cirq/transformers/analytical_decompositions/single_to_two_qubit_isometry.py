@@ -16,25 +16,20 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import numpy as np
 
 from cirq import ops
 from cirq.transformers.analytical_decompositions import two_qubit_to_cz
 
-if TYPE_CHECKING:
-    import cirq
-
 
 def two_qubit_matrix_to_cz_isometry(
-    q0: cirq.Qid,
-    q1: cirq.Qid,
+    q0: ops.Qid,
+    q1: ops.Qid,
     mat: np.ndarray,
     allow_partial_czs: bool = False,
     atol: float = 1e-8,
     clean_operations: bool = True,
-) -> list[cirq.Operation]:
+) -> list[ops.Operation]:
     """Decomposes a 2q operation into at-most 2 CZs + 1q rotations; assuming `q0` is initially |0>.
 
     The method implements isometry from one to two qubits; assuming qubit `q0` is always in the |0>

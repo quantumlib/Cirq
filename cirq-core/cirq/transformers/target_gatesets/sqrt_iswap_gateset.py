@@ -51,7 +51,7 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
         atol: float = 1e-8,
         required_sqrt_iswap_count: int | None = None,
         use_sqrt_iswap_inv: bool = False,
-        additional_gates: Sequence[type[cirq.Gate] | cirq.Gate | cirq.GateFamily] = (),
+        additional_gates: Sequence[type[ops.Gate] | ops.Gate | ops.GateFamily] = (),
     ):
         """Initializes `cirq.SqrtIswapTargetGateset`
 
@@ -89,7 +89,7 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
         self.required_sqrt_iswap_count = required_sqrt_iswap_count
         self.use_sqrt_iswap_inv = use_sqrt_iswap_inv
 
-    def _decompose_two_qubit_operation(self, op: cirq.Operation, _) -> DecomposeResult:
+    def _decompose_two_qubit_operation(self, op: ops.Operation, _) -> DecomposeResult:
         if protocols.has_unitary(op):
             return two_qubit_to_sqrt_iswap.two_qubit_matrix_to_sqrt_iswap_operations(
                 op.qubits[0],

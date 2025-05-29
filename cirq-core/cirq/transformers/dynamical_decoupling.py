@@ -18,7 +18,6 @@ from __future__ import annotations
 
 from functools import reduce
 from itertools import cycle
-from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -28,9 +27,6 @@ from cirq.protocols.has_stabilizer_effect_protocol import has_stabilizer_effect
 from cirq.protocols.has_unitary_protocol import has_unitary
 from cirq.transformers import transformer_api
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions
-
-if TYPE_CHECKING:
-    import cirq
 
 
 def _get_dd_sequence_from_schema_name(schema: str) -> tuple[ops.Gate, ...]:
@@ -206,12 +202,12 @@ def _need_merge_pulled_through(op_at_q: ops.Operation, is_at_last_busy_moment: b
 
 @transformer_api.transformer
 def add_dynamical_decoupling(
-    circuit: cirq.AbstractCircuit,
+    circuit: circuits.AbstractCircuit,
     *,
-    context: cirq.TransformerContext | None = None,
+    context: transformer_api.TransformerContext | None = None,
     schema: str | tuple[ops.Gate, ...] = 'DEFAULT',
     single_qubit_gate_moments_only: bool = True,
-) -> cirq.Circuit:
+) -> circuits.Circuit:
     """Adds dynamical decoupling gate operations to a given circuit.
     This transformer might add new moments thus change structure of the original circuit.
 
@@ -286,7 +282,7 @@ def add_dynamical_decoupling(
             transformed_moments.extend(moments_to_be_appended)
 
         # Step 2, calc updated_moment with insertions / merges.
-        updated_moment_ops: set[cirq.Operation] = set()
+        updated_moment_ops: set[ops.Operation] = set()
         for q in orig_circuit.all_qubits():
             op_at_q = moment.operation_at(q)
             remaining_pulled_through_gate = pulled_through.get(q)

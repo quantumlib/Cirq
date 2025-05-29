@@ -21,7 +21,7 @@ https://arxiv.org/abs/quant-ph/0406176
 
 from __future__ import annotations
 
-from typing import Callable, Iterable, TYPE_CHECKING
+from typing import Callable, Iterable
 
 import numpy as np
 from scipy.linalg import cossin
@@ -37,13 +37,10 @@ from cirq.transformers.analytical_decompositions.two_qubit_to_cz import (
     two_qubit_matrix_to_cz_operations,
 )
 
-if TYPE_CHECKING:
-    import cirq
-
 
 def quantum_shannon_decomposition(
-    qubits: list[cirq.Qid], u: np.ndarray, atol: float = 1e-8
-) -> Iterable[cirq.Operation]:
+    qubits: list[ops.Qid], u: np.ndarray, atol: float = 1e-8
+) -> Iterable[ops.Operation]:
     """Decomposes n-qubit unitary 1-q, 2-q and GlobalPhase gates, preserving global phase.
 
     The gates used are CX/YPow/ZPow/CNOT/GlobalPhase/CZ/PhasedXZGate/PhasedXPowGate.
@@ -141,7 +138,7 @@ def quantum_shannon_decomposition(
     yield from _msb_demuxer(qubits, u1, u2)
 
 
-def _single_qubit_decomposition(qubit: cirq.Qid, u: np.ndarray) -> Iterable[cirq.Operation]:
+def _single_qubit_decomposition(qubit: ops.Qid, u: np.ndarray) -> Iterable[ops.Operation]:
     """Decomposes single-qubit gate, and returns list of operations, keeping phase invariant.
 
     Args:
@@ -185,8 +182,8 @@ def _single_qubit_decomposition(qubit: cirq.Qid, u: np.ndarray) -> Iterable[cirq
 
 
 def _msb_demuxer(
-    demux_qubits: list[cirq.Qid], u1: np.ndarray, u2: np.ndarray
-) -> Iterable[cirq.Operation]:
+    demux_qubits: list[ops.Qid], u1: np.ndarray, u2: np.ndarray
+) -> Iterable[ops.Operation]:
     """Demultiplexes a unitary matrix that is multiplexed in its most-significant-qubit.
 
     Decomposition structure:
@@ -248,8 +245,8 @@ def _nth_gray(n: int) -> int:
 
 
 def _multiplexed_cossin(
-    cossin_qubits: list[cirq.Qid], angles: list[float], rot_func: Callable = ops.ry
-) -> Iterable[cirq.Operation]:
+    cossin_qubits: list[ops.Qid], angles: list[float], rot_func: Callable = ops.ry
+) -> Iterable[ops.Operation]:
     """Performs a multiplexed rotation over all qubits in this unitary matrix,
 
     Uses ry and rz multiplexing for quantum shannon decomposition

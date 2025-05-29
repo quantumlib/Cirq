@@ -14,30 +14,25 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from cirq import circuits, ops
-
-if TYPE_CHECKING:
-    import cirq
+from cirq import circuits, ops, protocols
 
 
 class _SwapPrintGate(ops.Gate):
     """A gate that displays the string representation of each qubits on the circuit."""
 
-    def __init__(self, qubits: tuple[tuple[cirq.Qid, cirq.Qid], ...]) -> None:
+    def __init__(self, qubits: tuple[tuple[ops.Qid, ops.Qid], ...]) -> None:
         self.qubits = qubits
 
     def num_qubits(self):
         return len(self.qubits)
 
-    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> tuple[str, ...]:
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs) -> tuple[str, ...]:
         return tuple(f'{str(q[1])}' for q in self.qubits)
 
 
 def routed_circuit_with_mapping(
-    routed_circuit: cirq.AbstractCircuit, initial_map: dict[cirq.Qid, cirq.Qid] | None = None
-) -> cirq.AbstractCircuit:
+    routed_circuit: circuits.AbstractCircuit, initial_map: dict[ops.Qid, ops.Qid] | None = None
+) -> circuits.AbstractCircuit:
     """Returns the same circuits with information about the permutation of qubits after each swap.
 
     Args:
@@ -55,7 +50,7 @@ def routed_circuit_with_mapping(
         initial_map = qdict.copy()
     inverse_map = {v: k for k, v in initial_map.items()}
 
-    def swap_print_moment() -> cirq.Operation:
+    def swap_print_moment() -> ops.Operation:
         return _SwapPrintGate(
             tuple(zip(qdict.values(), [inverse_map[x] for x in qdict.values()]))
         ).on(*all_qubits)

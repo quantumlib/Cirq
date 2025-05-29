@@ -110,13 +110,13 @@ class RouteCQC:
 
     def __call__(
         self,
-        circuit: cirq.AbstractCircuit,
+        circuit: circuits.AbstractCircuit,
         *,
         lookahead_radius: int = 8,
         tag_inserted_swaps: bool = False,
         initial_mapper: cirq.AbstractInitialMapper | None = None,
-        context: cirq.TransformerContext | None = None,
-    ) -> cirq.AbstractCircuit:
+        context: transformer_api.TransformerContext | None = None,
+    ) -> circuits.AbstractCircuit:
         """Transforms the given circuit to make it executable on the device.
 
         This method calls self.route_circuit and returns the routed circuit. See docstring of
@@ -152,19 +152,19 @@ class RouteCQC:
 
     def route_circuit(
         self,
-        circuit: cirq.AbstractCircuit,
+        circuit: circuits.AbstractCircuit,
         *,
         lookahead_radius: int = 8,
         tag_inserted_swaps: bool = False,
         initial_mapper: cirq.AbstractInitialMapper | None = None,
-        context: cirq.TransformerContext | None = None,
-    ) -> tuple[cirq.AbstractCircuit, dict[cirq.Qid, cirq.Qid], dict[cirq.Qid, cirq.Qid]]:
+        context: transformer_api.TransformerContext | None = None,
+    ) -> tuple[circuits.AbstractCircuit, dict[ops.Qid, ops.Qid], dict[ops.Qid, ops.Qid]]:
         """Transforms the given circuit to make it executable on the device.
 
         This transformer assumes that all multi-qubit operations have been decomposed into 2-qubit
         operations and will raise an error if `circuit` a n-qubit operation where n > 2. If
-        `circuit` contains `cirq.CircuitOperation`s and `context.deep` is True then they are first
-        unrolled before proceeding. If `context.deep` is False or `context` is None then any
+        `circuit` contains `cirq.CircuitOperation`s and `context.deep` is True then they are
+        first unrolled before proceeding. If `context.deep` is False or `context` is None then any
         `cirq.CircuitOperation` that acts on more than 2-qubits will also raise an error.
 
         The algorithm tries to find the best swap at each timestep by ranking a set of candidate
@@ -243,8 +243,8 @@ class RouteCQC:
 
     @classmethod
     def _get_one_and_two_qubit_ops_as_timesteps(
-        cls, circuit: cirq.AbstractCircuit
-    ) -> tuple[list[list[cirq.Operation]], list[list[cirq.Operation]]]:
+        cls, circuit: circuits.AbstractCircuit
+    ) -> tuple[list[list[ops.Operation]], list[list[ops.Operation]]]:
         """Gets the single and two qubit operations of the circuit factored into timesteps.
 
         The i'th entry in the nested two-qubit and single-qubit ops correspond to the two-qubit
@@ -256,7 +256,7 @@ class RouteCQC:
                         qubits with a custom key.
         """
         two_qubit_circuit = circuits.Circuit()
-        single_qubit_ops: list[list[cirq.Operation]] = []
+        single_qubit_ops: list[list[ops.Operation]] = []
 
         for i, moment in enumerate(circuit):
             for op in moment:
@@ -288,11 +288,11 @@ class RouteCQC:
     def _route(
         cls,
         mm: mapping_manager.MappingManager,
-        two_qubit_ops: list[list[cirq.Operation]],
-        single_qubit_ops: list[list[cirq.Operation]],
+        two_qubit_ops: list[list[ops.Operation]],
+        single_qubit_ops: list[list[ops.Operation]],
         lookahead_radius: int,
         tag_inserted_swaps: bool = False,
-    ) -> list[list[cirq.Operation]]:
+    ) -> list[list[ops.Operation]]:
         """Main routing procedure that inserts necessary swaps on the given timesteps.
 
         The i'th element of the returned list corresponds to the routed operatiosn in the i'th
@@ -318,10 +318,10 @@ class RouteCQC:
             ]
             for timestep_ops in two_qubit_ops
         ]
-        routed_ops: list[list[cirq.Operation]] = []
+        routed_ops: list[list[ops.Operation]] = []
 
         def process_executable_two_qubit_ops(timestep: int) -> int:
-            unexecutable_ops: list[cirq.Operation] = []
+            unexecutable_ops: list[ops.Operation] = []
             unexecutable_ops_ints: list[QidIntPair] = []
             for op, op_ints in zip(two_qubit_ops[timestep], two_qubit_ops_ints[timestep]):
                 if mm.is_adjacent(*op_ints):

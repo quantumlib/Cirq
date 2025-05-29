@@ -33,15 +33,11 @@ If some logical qubits are unampped after this first procedure then there are tw
 from __future__ import annotations
 
 from collections import deque
-from typing import TYPE_CHECKING
 
 import networkx as nx
 
-from cirq import protocols, value
+from cirq import circuits, ops, protocols, value
 from cirq.transformers.routing import initial_mapper
-
-if TYPE_CHECKING:
-    import cirq
 
 
 @value.value_equality
@@ -84,8 +80,8 @@ class LineInitialMapper(initial_mapper.AbstractInitialMapper):
         self.center = nx.center(self.device_graph)[0]
 
     def _make_circuit_graph(
-        self, circuit: cirq.AbstractCircuit
-    ) -> tuple[list[deque[cirq.Qid]], dict[cirq.Qid, cirq.Qid]]:
+        self, circuit: circuits.AbstractCircuit
+    ) -> tuple[list[deque[ops.Qid]], dict[ops.Qid, ops.Qid]]:
         """Creates a (potentially incomplete) qubit connectivity graph of the circuit.
 
         Iterates over moments in the circuit from left to right and adds edges between logical
@@ -101,11 +97,11 @@ class LineInitialMapper(initial_mapper.AbstractInitialMapper):
             The (potentially incomplete) qubit connectivity graph of the circuit, which is
                 guaranteed to be a forest of line graphs.
         """
-        circuit_graph: list[deque[cirq.Qid]] = [deque([q]) for q in sorted(circuit.all_qubits())]
-        component_id: dict[cirq.Qid, int] = {q[0]: i for i, q in enumerate(circuit_graph)}
-        partners: dict[cirq.Qid, cirq.Qid] = {}
+        circuit_graph: list[deque[ops.Qid]] = [deque([q]) for q in sorted(circuit.all_qubits())]
+        component_id: dict[ops.Qid, int] = {q[0]: i for i, q in enumerate(circuit_graph)}
+        partners: dict[ops.Qid, ops.Qid] = {}
 
-        def degree_lt_two(q: cirq.Qid):
+        def degree_lt_two(q: ops.Qid):
             return any(circuit_graph[component_id[q]][i] == q for i in [-1, 0])
 
         for op in circuit.all_operations():
@@ -143,7 +139,7 @@ class LineInitialMapper(initial_mapper.AbstractInitialMapper):
         )
         return graph, partners
 
-    def initial_mapping(self, circuit: cirq.AbstractCircuit) -> dict[cirq.Qid, cirq.Qid]:
+    def initial_mapping(self, circuit: circuits.AbstractCircuit) -> dict[ops.Qid, ops.Qid]:
         """Maps disjoint lines of logical qubits onto lines of physical qubits.
 
         Args:
@@ -153,13 +149,13 @@ class LineInitialMapper(initial_mapper.AbstractInitialMapper):
             a dictionary that maps logical qubits in the circuit (keys) to physical qubits on the
             device (values).
         """
-        mapped_physicals: set[cirq.Qid] = set()
-        qubit_map: dict[cirq.Qid, cirq.Qid] = {}
+        mapped_physicals: set[ops.Qid] = set()
+        qubit_map: dict[ops.Qid, ops.Qid] = {}
         circuit_graph, partners = self._make_circuit_graph(circuit)
 
         def next_physical(
-            current_physical: cirq.Qid, partner: cirq.Qid, isolated: bool = False
-        ) -> cirq.Qid:
+            current_physical: ops.Qid, partner: ops.Qid, isolated: bool = False
+        ) -> ops.Qid:
             # Handle the first physical qubit getting mapped.
             if current_physical not in mapped_physicals:
                 return current_physical
@@ -190,9 +186,7 @@ class LineInitialMapper(initial_mapper.AbstractInitialMapper):
 
         return qubit_map
 
-    def _closest_unmapped_qubit(
-        self, source: cirq.Qid, mapped_physicals: set[cirq.Qid]
-    ) -> cirq.Qid:
+    def _closest_unmapped_qubit(self, source: ops.Qid, mapped_physicals: set[ops.Qid]) -> ops.Qid:
         """Finds the closest available neighbor to a physical qubit 'source' on the device.
 
         Args:

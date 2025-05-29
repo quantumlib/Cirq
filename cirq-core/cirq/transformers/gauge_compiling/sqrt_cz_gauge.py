@@ -32,8 +32,6 @@ if TYPE_CHECKING:
     import numpy as np
     import sympy
 
-    import cirq
-
 _SQRT_CZ = CZ**0.5
 _ADJ_S = S**-1
 
@@ -43,7 +41,7 @@ class SqrtCZGauge(Gauge):
     def weight(self) -> float:
         return 3.0
 
-    def sample(self, gate: cirq.Gate, prng: np.random.Generator) -> ConstantGauge:
+    def sample(self, gate: Gate, prng: np.random.Generator) -> ConstantGauge:
         if prng.choice([True, False]):
             return ConstantGauge(two_qubit_gate=gate)
         swap_qubits = prng.choice([True, False])

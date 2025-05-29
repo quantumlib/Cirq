@@ -16,26 +16,23 @@
 
 from __future__ import annotations
 
-from typing import Callable, cast, TYPE_CHECKING
+from typing import Callable, cast
 
 from cirq import circuits, ops, protocols
 from cirq.transformers import transformer_api, transformer_primitives
 
-if TYPE_CHECKING:
-    import cirq
-
 
 def _rewrite_merged_k_qubit_unitaries(
-    circuit: cirq.AbstractCircuit,
+    circuit: circuits.AbstractCircuit,
     *,
-    context: cirq.TransformerContext | None = None,
+    context: transformer_api.TransformerContext | None = None,
     k: int = 0,
-    rewriter: Callable[[cirq.CircuitOperation], cirq.OP_TREE] | None = None,
+    rewriter: Callable[[circuits.CircuitOperation], ops.OP_TREE] | None = None,
     merged_circuit_op_tag: str = "_merged_k_qubit_unitaries_component",
-) -> cirq.Circuit:
+) -> circuits.Circuit:
     deep = context.deep if context else False
 
-    def map_func(op: cirq.Operation, _) -> cirq.OP_TREE:
+    def map_func(op: ops.Operation, _) -> ops.OP_TREE:
         op_untagged = op.untagged
         if (
             deep
@@ -68,12 +65,12 @@ def _rewrite_merged_k_qubit_unitaries(
 
 @transformer_api.transformer
 def merge_k_qubit_unitaries(
-    circuit: cirq.AbstractCircuit,
+    circuit: circuits.AbstractCircuit,
     *,
-    context: cirq.TransformerContext | None = None,
+    context: transformer_api.TransformerContext | None = None,
     k: int = 0,
-    rewriter: Callable[[cirq.CircuitOperation], cirq.OP_TREE] | None = None,
-) -> cirq.Circuit:
+    rewriter: Callable[[circuits.CircuitOperation], ops.OP_TREE] | None = None,
+) -> circuits.Circuit:
     """Merges connected components of unitary operations, acting on <= k qubits.
 
     Uses rewriter to convert a connected component of unitary operations acting on <= k-qubits
@@ -85,7 +82,7 @@ def merge_k_qubit_unitaries(
         context: `cirq.TransformerContext` storing common configurable options for transformers.
         k: Connected components of unitary operations acting on <= k qubits are merged.
         rewriter: Callable type that takes a `cirq.CircuitOperation`, encapsulating a connected
-            component of unitary operations acting on <= k qubits, and produces a `cirq.OP_TREE`.
+            component of unitary operations acting on <= k qubits, and produces a `ops.OP_TREE`.
             Specifies how to merge the connected component into a more desirable form.
 
     Returns:

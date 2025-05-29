@@ -16,19 +16,14 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from cirq import circuits, protocols
+from cirq import circuits, ops, protocols
 from cirq.transformers import transformer_api
-
-if TYPE_CHECKING:
-    import cirq
 
 
 @transformer_api.transformer(add_deep_support=True)
 def insertion_sort_transformer(
-    circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
-) -> cirq.Circuit:
+    circuit: circuits.AbstractCircuit, *, context: transformer_api.TransformerContext | None = None
+) -> circuits.Circuit:
     """Sorts the operations using their sorted `.qubits` property as comparison key.
 
     Operations are swapped only if they commute.
@@ -37,10 +32,8 @@ def insertion_sort_transformer(
         circuit: input circuit.
         context: optional TransformerContext (not used),
     """
-    final_operations: list[cirq.Operation] = []
-    qubit_index: dict[cirq.Qid, int] = {
-        q: idx for idx, q in enumerate(sorted(circuit.all_qubits()))
-    }
+    final_operations: list[ops.Operation] = []
+    qubit_index: dict[ops.Qid, int] = {q: idx for idx, q in enumerate(sorted(circuit.all_qubits()))}
     cached_qubit_indices: dict[int, list[int]] = {}
     for pos, op in enumerate(circuit.all_operations()):
         # here `pos` is at the append position of final_operations

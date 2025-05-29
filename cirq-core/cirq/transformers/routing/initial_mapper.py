@@ -15,12 +15,8 @@
 from __future__ import annotations
 
 import abc
-from typing import TYPE_CHECKING
 
-from cirq import value
-
-if TYPE_CHECKING:
-    import cirq
+from cirq import circuits, ops, value
 
 
 class AbstractInitialMapper(metaclass=abc.ABCMeta):
@@ -39,7 +35,7 @@ class AbstractInitialMapper(metaclass=abc.ABCMeta):
     """
 
     @abc.abstractmethod
-    def initial_mapping(self, circuit: cirq.AbstractCircuit) -> dict[cirq.Qid, cirq.Qid]:
+    def initial_mapping(self, circuit: circuits.AbstractCircuit) -> dict[ops.Qid, ops.Qid]:
         """Maps the logical qubits of a circuit onto physical qubits on a device.
 
         Args:
@@ -54,10 +50,10 @@ class AbstractInitialMapper(metaclass=abc.ABCMeta):
 class HardCodedInitialMapper(AbstractInitialMapper):
     """Initial Mapper class takes a hard-coded mapping and returns it."""
 
-    def __init__(self, _map: dict[cirq.Qid, cirq.Qid]) -> None:
+    def __init__(self, _map: dict[ops.Qid, ops.Qid]) -> None:
         self._map = _map
 
-    def initial_mapping(self, circuit: cirq.AbstractCircuit) -> dict[cirq.Qid, cirq.Qid]:
+    def initial_mapping(self, circuit: circuits.AbstractCircuit) -> dict[ops.Qid, ops.Qid]:
         """Returns the hard-coded initial mapping.
 
         Args:

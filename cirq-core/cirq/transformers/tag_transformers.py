@@ -20,16 +20,15 @@ from typing import Callable, Hashable, TYPE_CHECKING
 from cirq.transformers import transformer_api, transformer_primitives
 
 if TYPE_CHECKING:
-    import cirq
-
+    from cirq import circuits, ops
 
 @transformer_api.transformer
 def index_tags(
-    circuit: cirq.AbstractCircuit,
+    circuit: circuits.AbstractCircuit,
     *,
-    context: cirq.TransformerContext | None = None,
+    context: transformer_api.TransformerContext | None = None,
     target_tags: set[Hashable] | None = None,
-) -> cirq.Circuit:
+) -> circuits.Circuit:
     """Indexes tags in target_tags as tag_0, tag_1, ... per tag.
 
     Args:
@@ -46,7 +45,7 @@ def index_tags(
         return circuit.unfreeze(copy=False)
     tag_iter_by_tags = {tag: itertools.count(start=0, step=1) for tag in target_tags}
 
-    def _map_func(op: cirq.Operation, _) -> cirq.OP_TREE:
+    def _map_func(op: ops.Operation, _) -> ops.OP_TREE:
         tag_set = set(op.tags)
         nonlocal tag_iter_by_tags
         for tag in target_tags.intersection(op.tags):
@@ -62,12 +61,12 @@ def index_tags(
 
 @transformer_api.transformer
 def remove_tags(
-    circuit: cirq.AbstractCircuit,
+    circuit: circuits.AbstractCircuit,
     *,
-    context: cirq.TransformerContext | None = None,
+    context: transformer_api.TransformerContext | None = None,
     target_tags: set[Hashable] | None = None,
     remove_if: Callable[[Hashable], bool] = lambda _: False,
-) -> cirq.Circuit:
+) -> circuits.Circuit:
     """Removes tags from the operations based on the input args.
 
     Args:
@@ -84,7 +83,7 @@ def remove_tags(
         raise ValueError("remove_tags doesn't support tags_to_ignore, use function args instead.")
     target_tags = target_tags or set()
 
-    def _map_func(op: cirq.Operation, _) -> cirq.OP_TREE:
+    def _map_func(op: ops.Operation, _) -> ops.OP_TREE:
         remaing_tags = set()
         for tag in op.tags:
             if not remove_if(tag) and tag not in target_tags:

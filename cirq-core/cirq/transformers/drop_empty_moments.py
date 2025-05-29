@@ -21,13 +21,13 @@ from typing import TYPE_CHECKING
 from cirq.transformers import transformer_api, transformer_primitives
 
 if TYPE_CHECKING:
-    import cirq
+    from cirq import circuits
 
 
 @transformer_api.transformer
 def drop_empty_moments(
-    circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
-) -> cirq.Circuit:
+    circuit: circuits.AbstractCircuit, *, context: transformer_api.TransformerContext | None = None
+) -> circuits.Circuit:
     """Removes empty moments from a circuit.
 
     Args:

@@ -29,11 +29,9 @@ from cirq.transformers.analytical_decompositions import single_qubit_decompositi
 if TYPE_CHECKING:
     import numpy as np
 
-    import cirq
-
 
 def two_qubit_matrix_to_ion_operations(
-    q0: cirq.Qid, q1: cirq.Qid, mat: np.ndarray, atol: float = 1e-8, clean_operations: bool = True
+    q0: ops.Qid, q1: ops.Qid, mat: np.ndarray, atol: float = 1e-8, clean_operations: bool = True
 ) -> list[ops.Operation]:
     """Decomposes a two-qubit operation into MS/single-qubit rotation gates.
 
@@ -54,7 +52,7 @@ def two_qubit_matrix_to_ion_operations(
 
 
 def _kak_decomposition_to_operations(
-    q0: cirq.Qid, q1: cirq.Qid, kak: linalg.KakDecomposition, atol: float = 1e-8
+    q0: ops.Qid, q1: ops.Qid, kak: linalg.KakDecomposition, atol: float = 1e-8
 ) -> list[ops.Operation]:
     """Assumes that the decomposition is canonical."""
     b0, b1 = kak.single_qubit_operations_before
@@ -72,13 +70,13 @@ def _kak_decomposition_to_operations(
     )
 
 
-def _do_single_on(u: np.ndarray, q: cirq.Qid, atol: float = 1e-8):
+def _do_single_on(u: np.ndarray, q: ops.Qid, atol: float = 1e-8):
     for gate in single_qubit_decompositions.single_qubit_matrix_to_gates(u, atol):
         yield gate(q)
 
 
 def _parity_interaction(
-    q0: cirq.Qid, q1: cirq.Qid, rads: float, atol: float, gate: ops.Gate | None = None
+    q0: ops.Qid, q1: ops.Qid, rads: float, atol: float, gate: ops.Gate | None = None
 ):
     """Yields an XX interaction framed by the given operation."""
 
@@ -96,8 +94,8 @@ def _parity_interaction(
 
 
 def _non_local_part(
-    q0: cirq.Qid,
-    q1: cirq.Qid,
+    q0: ops.Qid,
+    q1: ops.Qid,
     interaction_coefficients: tuple[float, float, float],
     atol: float = 1e-8,
 ):

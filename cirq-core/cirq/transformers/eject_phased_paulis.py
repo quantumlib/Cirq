@@ -31,12 +31,12 @@ if TYPE_CHECKING:
 
 @transformer_api.transformer(add_deep_support=True)
 def eject_phased_paulis(
-    circuit: cirq.AbstractCircuit,
+    circuit: circuits.AbstractCircuit,
     *,
-    context: cirq.TransformerContext | None = None,
+    context: transformer_api.TransformerContext | None = None,
     atol: float = 1e-8,
     eject_parameterized: bool = False,
-) -> cirq.Circuit:
+) -> circuits.Circuit:
     """Transformer pass to push X, Y, PhasedX & (certain) PhasedXZ gates to the end of the circuit.
 
     As the gates get pushed, they may absorb Z gates, cancel against other
@@ -62,7 +62,7 @@ def eject_phased_paulis(
     held_w_phases: dict[ops.Qid, value.TParamVal] = {}
     tags_to_ignore = set(context.tags_to_ignore) if context else set()
 
-    def map_func(op: cirq.Operation, _: int) -> cirq.OP_TREE:
+    def map_func(op: ops.Operation, _: int) -> ops.OP_TREE:
         # Dump if `op` marked with a no compile tag.
         if set(op.tags) & tags_to_ignore:
             return [_dump_held(op.qubits, held_w_phases, atol), op]
@@ -109,7 +109,7 @@ def eject_phased_paulis(
 
 def _absorb_z_into_w(
     op: ops.Operation, held_w_phases: dict[ops.Qid, value.TParamVal]
-) -> cirq.OP_TREE:
+) -> ops.OP_TREE:
     """Absorbs a Z^t gate into a W(a) flip.
 
     [Where W(a) is shorthand for PhasedX(phase_exponent=a).]
@@ -130,7 +130,7 @@ def _absorb_z_into_w(
 
 def _dump_held(
     qubits: Iterable[ops.Qid], held_w_phases: dict[ops.Qid, value.TParamVal], atol: float
-) -> Iterator[cirq.OP_TREE]:
+) -> Iterator[ops.OP_TREE]:
     # Note: sorting is to avoid non-determinism in the insertion order.
     for q in sorted(qubits):
         p = held_w_phases.get(q)
@@ -142,7 +142,7 @@ def _dump_held(
 
 def _dump_into_measurement(
     op: ops.Operation, held_w_phases: dict[ops.Qid, value.TParamVal]
-) -> cirq.OP_TREE:
+) -> ops.OP_TREE:
     measurement = cast(ops.MeasurementGate, cast(ops.GateOperation, op).gate)
     new_measurement = measurement.with_bits_flipped(
         *[i for i, q in enumerate(op.qubits) if q in held_w_phases]
@@ -154,7 +154,7 @@ def _dump_into_measurement(
 
 def _potential_cross_whole_w(
     op: ops.Operation, atol: float, held_w_phases: dict[ops.Qid, value.TParamVal]
-) -> cirq.OP_TREE:
+) -> ops.OP_TREE:
     """Grabs or cancels a held W gate against an existing W gate.
 
     [Where W(a) is shorthand for PhasedX(phase_exponent=a).]
@@ -187,7 +187,7 @@ def _potential_cross_whole_w(
 
 def _potential_cross_partial_w(
     op: ops.Operation, held_w_phases: dict[ops.Qid, value.TParamVal], atol: float
-) -> cirq.OP_TREE:
+) -> ops.OP_TREE:
     """Cross the held W over a partial W gate.
 
     [Where W(a) is shorthand for PhasedX(phase_exponent=a).]
@@ -212,7 +212,7 @@ def _potential_cross_partial_w(
     return gate.on(op.qubits[0])
 
 
-def _single_cross_over_cz(op: ops.Operation, qubit_with_w: cirq.Qid) -> cirq.OP_TREE:
+def _single_cross_over_cz(op: ops.Operation, qubit_with_w: ops.Qid) -> ops.OP_TREE:
     """Crosses exactly one W flip over a partial CZ.
 
     [Where W(a) is shorthand for PhasedX(phase_exponent=a).]
@@ -253,7 +253,7 @@ def _single_cross_over_cz(op: ops.Operation, qubit_with_w: cirq.Qid) -> cirq.OP_
 
 def _double_cross_over_cz(
     op: ops.Operation, held_w_phases: dict[ops.Qid, value.TParamVal]
-) -> cirq.OP_TREE:
+) -> ops.OP_TREE:
     """Crosses two W flips over a partial CZ.
 
     [Where W(a) is shorthand for PhasedX(phase_exponent=a).]

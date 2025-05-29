@@ -17,19 +17,15 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import TYPE_CHECKING
 
 from cirq import circuits, ops
 from cirq.transformers import transformer_api
 
-if TYPE_CHECKING:
-    import cirq
-
 
 @transformer_api.transformer(add_deep_support=True)
 def align_left(
-    circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
-) -> cirq.Circuit:
+    circuit: circuits.AbstractCircuit, *, context: transformer_api.TransformerContext | None = None
+) -> circuits.Circuit:
     """Align gates to the left of the circuit.
 
     Note that tagged operations with tag in `context.tags_to_ignore` will continue to stay in their
@@ -60,8 +56,8 @@ def align_left(
 
 @transformer_api.transformer(add_deep_support=True)
 def align_right(
-    circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
-) -> cirq.Circuit:
+    circuit: circuits.AbstractCircuit, *, context: transformer_api.TransformerContext | None = None
+) -> circuits.Circuit:
     """Align gates to the right of the circuit.
 
     Note that tagged operations with tag in `context.tags_to_ignore` will continue to stay in their

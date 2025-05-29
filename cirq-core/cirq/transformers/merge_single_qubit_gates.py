@@ -16,23 +16,18 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from cirq import circuits, ops, protocols
 from cirq.transformers import merge_k_qubit_gates, transformer_api, transformer_primitives
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions
 
-if TYPE_CHECKING:
-    import cirq
-
 
 @transformer_api.transformer
 def merge_single_qubit_gates_to_phased_x_and_z(
-    circuit: cirq.AbstractCircuit,
+    circuit: circuits.AbstractCircuit,
     *,
-    context: cirq.TransformerContext | None = None,
+    context: transformer_api.TransformerContext | None = None,
     atol: float = 1e-8,
-) -> cirq.Circuit:
+) -> circuits.Circuit:
     """Replaces runs of single qubit rotations with `cirq.PhasedXPowGate` and `cirq.ZPowGate`.
 
     Specifically, any run of non-parameterized single-qubit unitaries will be replaced by an
@@ -48,7 +43,7 @@ def merge_single_qubit_gates_to_phased_x_and_z(
         Copy of the transformed input circuit.
     """
 
-    def rewriter(op: cirq.CircuitOperation) -> cirq.OP_TREE:
+    def rewriter(op: circuits.CircuitOperation) -> ops.OP_TREE:
         u = protocols.unitary(op)
         if protocols.num_qubits(op) == 0:
             return ops.GlobalPhaseGate(u[0, 0]).on()
@@ -64,11 +59,11 @@ def merge_single_qubit_gates_to_phased_x_and_z(
 
 @transformer_api.transformer
 def merge_single_qubit_gates_to_phxz(
-    circuit: cirq.AbstractCircuit,
+    circuit: circuits.AbstractCircuit,
     *,
-    context: cirq.TransformerContext | None = None,
+    context: transformer_api.TransformerContext | None = None,
     atol: float = 1e-8,
-) -> cirq.Circuit:
+) -> circuits.Circuit:
     """Replaces runs of single qubit rotations with a single optional `cirq.PhasedXZGate`.
 
     Specifically, any run of non-parameterized single-qubit unitaries will be replaced by an
@@ -84,7 +79,7 @@ def merge_single_qubit_gates_to_phxz(
         Copy of the transformed input circuit.
     """
 
-    def rewriter(op: cirq.CircuitOperation) -> cirq.OP_TREE:
+    def rewriter(op: circuits.CircuitOperation) -> ops.OP_TREE:
         u = protocols.unitary(op)
         if protocols.num_qubits(op) == 0:
             return ops.GlobalPhaseGate(u[0, 0]).on()
@@ -98,11 +93,11 @@ def merge_single_qubit_gates_to_phxz(
 
 @transformer_api.transformer
 def merge_single_qubit_moments_to_phxz(
-    circuit: cirq.AbstractCircuit,
+    circuit: circuits.AbstractCircuit,
     *,
-    context: cirq.TransformerContext | None = None,
+    context: transformer_api.TransformerContext | None = None,
     atol: float = 1e-8,
-) -> cirq.Circuit:
+) -> circuits.Circuit:
     """Merges adjacent moments with only 1-qubit rotations to a single moment with PhasedXZ gates.
 
     Args:
@@ -116,7 +111,7 @@ def merge_single_qubit_moments_to_phxz(
     """
     tags_to_ignore = set(context.tags_to_ignore) if context else set()
 
-    def can_merge_moment(m: cirq.Moment):
+    def can_merge_moment(m: circuits.Moment):
         return all(
             protocols.num_qubits(op) == 1
             and protocols.has_unitary(op)
@@ -124,7 +119,7 @@ def merge_single_qubit_moments_to_phxz(
             for op in m
         )
 
-    def merge_func(m1: cirq.Moment, m2: cirq.Moment) -> cirq.Moment | None:
+    def merge_func(m1: circuits.Moment, m2: circuits.Moment) -> circuits.Moment | None:
         if not (can_merge_moment(m1) and can_merge_moment(m2)):
             return None
         ret_ops = []

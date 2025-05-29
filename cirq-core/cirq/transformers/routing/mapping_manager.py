@@ -22,7 +22,7 @@ import networkx as nx
 import numpy as np
 
 if TYPE_CHECKING:
-    import cirq
+    from cirq import ops
 
 
 class MappingManager:
@@ -37,7 +37,7 @@ class MappingManager:
     logical qubits are mapped to, via `self.logical_qid_to_int` map).
     """
 
-    def __init__(self, device_graph: nx.Graph, initial_mapping: dict[cirq.Qid, cirq.Qid]) -> None:
+    def __init__(self, device_graph: nx.Graph, initial_mapping: dict[ops.Qid, ops.Qid]) -> None:
         """Initializes MappingManager.
 
         Args:
@@ -84,12 +84,12 @@ class MappingManager:
         )
 
     @property
-    def physical_qid_to_int(self) -> dict[cirq.Qid, int]:
+    def physical_qid_to_int(self) -> dict[ops.Qid, int]:
         """Mapping of physical qubits, that were part of the initial mapping, to unique integers."""
         return self._physical_qid_to_int
 
     @property
-    def int_to_physical_qid(self) -> list[cirq.Qid]:
+    def int_to_physical_qid(self) -> list[ops.Qid]:
         """Inverse mapping of unique integers to corresponding physical qubits.
 
         `self.physical_qid_to_int[self.int_to_physical_qid[i]] == i` for each i.
@@ -97,12 +97,12 @@ class MappingManager:
         return self._int_to_physical_qid
 
     @property
-    def logical_qid_to_int(self) -> dict[cirq.Qid, int]:
+    def logical_qid_to_int(self) -> dict[ops.Qid, int]:
         """Mapping of logical qubits, that were part of the initial mapping, to unique integers."""
         return self._logical_qid_to_int
 
     @property
-    def int_to_logical_qid(self) -> list[cirq.Qid]:
+    def int_to_logical_qid(self) -> list[ops.Qid]:
         """Inverse mapping of unique integers to corresponding physical qubits.
 
         `self.logical_qid_to_int[self.int_to_logical_qid[i]] == i` for each i.
@@ -113,7 +113,7 @@ class MappingManager:
     def logical_to_physical(self) -> np.ndarray:
         """The mapping of logical qubit integers to physical qubit integers.
 
-        Let `lq: cirq.Qid` be a logical qubit. Then the corresponding physical qubit that it
+        Let `lq: ops.Qid` be a logical qubit. Then the corresponding physical qubit that it
         maps to can be obtained by:
         `self.int_to_physical_qid[self.logical_to_physical[self.logical_qid_to_int[lq]]]`
         """
@@ -123,7 +123,7 @@ class MappingManager:
     def physical_to_logical(self) -> np.ndarray:
         """The mapping of physical qubits integers to logical qubits integers.
 
-        Let `pq: cirq.Qid` be a physical qubit. Then the corresponding logical qubit that it
+        Let `pq: ops.Qid` be a physical qubit. Then the corresponding logical qubit that it
         maps to can be obtained by:
         `self.int_to_logical_qid[self.physical_to_logical[self.physical_qid_to_int[pq]]]`
         """
@@ -178,7 +178,7 @@ class MappingManager:
         self._logical_to_physical[[lq1, lq2]] = self._logical_to_physical[[lq2, lq1]]
         self._physical_to_logical[[pq1, pq2]] = self._physical_to_logical[[pq2, pq1]]
 
-    def mapped_op(self, op: cirq.Operation) -> cirq.Operation:
+    def mapped_op(self, op: ops.Operation) -> ops.Operation:
         """Transforms the given logical operation to act on corresponding physical qubits.
 
         Args:
@@ -189,7 +189,7 @@ class MappingManager:
         """
         logical_ints = [self._logical_qid_to_int[q] for q in op.qubits]
         physical_ints = self.logical_to_physical[logical_ints]
-        qubit_map: dict[cirq.Qid, cirq.Qid] = {
+        qubit_map: dict[ops.Qid, ops.Qid] = {
             q: self._int_to_physical_qid[physical_ints[i]] for i, q in enumerate(op.qubits)
         }
         return op.transform_qubits(qubit_map)

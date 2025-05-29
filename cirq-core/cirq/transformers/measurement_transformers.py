@@ -16,17 +16,14 @@ from __future__ import annotations
 
 import itertools
 from collections import defaultdict
-from typing import Any, cast, Iterable, Sequence, TYPE_CHECKING
+from typing import Any, cast, Iterable, Sequence
 
 import numpy as np
 
-from cirq import linalg, ops, protocols, value
+from cirq import circuits, linalg, ops, protocols, value
 from cirq.linalg import transformations
 from cirq.transformers import transformer_api, transformer_primitives
 from cirq.transformers.synchronize_terminal_measurements import find_terminal_measurements
-
-if TYPE_CHECKING:
-    import cirq
 
 
 class _MeasurementQid(ops.Qid):
@@ -35,7 +32,7 @@ class _MeasurementQid(ops.Qid):
     Exactly one qubit will be created per qubit in the measurement gate.
     """
 
-    def __init__(self, key: str | cirq.MeasurementKey, qid: cirq.Qid, index: int = 0):
+    def __init__(self, key: str | value.MeasurementKey, qid: ops.Qid, index: int = 0):
         """Initializes the qubit.
 
         Args:
@@ -65,8 +62,8 @@ class _MeasurementQid(ops.Qid):
 
 @transformer_api.transformer
 def defer_measurements(
-    circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
-) -> cirq.Circuit:
+    circuit: circuits.AbstractCircuit, *, context: transformer_api.TransformerContext | None = None
+) -> circuits.Circuit:
     """Implements the Deferred Measurement Principle.
 
     Uses the Deferred Measurement Principle to move all measurements to the
@@ -96,9 +93,9 @@ def defer_measurements(
 
     circuit = transformer_primitives.unroll_circuit_op(circuit, deep=True, tags_to_check=None)
     terminal_measurements = {op for _, op in find_terminal_measurements(circuit)}
-    measurement_qubits: dict[cirq.MeasurementKey, list[tuple[cirq.Qid, ...]]] = defaultdict(list)
+    measurement_qubits: dict[value.MeasurementKey, list[tuple[ops.Qid, ...]]] = defaultdict(list)
 
-    def defer(op: cirq.Operation, _) -> cirq.OP_TREE:
+    def defer(op: ops.Operation, _) -> ops.OP_TREE:
         if op in terminal_measurements:
             return op
         gate = op.gate
@@ -169,9 +166,9 @@ def defer_measurements(
 
 
 def _all_possible_datastore_states(
-    keys: Iterable[tuple[cirq.MeasurementKey, int]],
-    measurement_qubits: dict[cirq.MeasurementKey, list[tuple[cirq.Qid, ...]]],
-) -> Iterable[cirq.ClassicalDataStoreReader]:
+    keys: Iterable[tuple[value.MeasurementKey, int]],
+    measurement_qubits: dict[value.MeasurementKey, list[tuple[ops.Qid, ...]]],
+) -> Iterable[value.ClassicalDataStoreReader]:
     """The cartesian product of all possible DataStore states for the given keys."""
     # First we get the list of all possible values. So if we have a key mapped to qubits of shape
     # (2, 2) and a key mapped to a qutrit, the possible measurement values are:
@@ -214,10 +211,12 @@ def _all_possible_datastore_states(
 
 @transformer_api.transformer
 def dephase_measurements(
-    circuit: cirq.AbstractCircuit,
+    circuit: circuits.AbstractCircuit,
     *,
-    context: cirq.TransformerContext | None = transformer_api.TransformerContext(deep=True),
-) -> cirq.Circuit:
+    context: transformer_api.TransformerContext | None = transformer_api.TransformerContext(
+        deep=True
+    ),
+) -> circuits.Circuit:
     """Changes all measurements to a dephase operation.
 
     This transformer is useful when using a density matrix simulator, when
@@ -240,7 +239,7 @@ def dephase_measurements(
             surprises.
     """
 
-    def dephase(op: cirq.Operation, _) -> cirq.OP_TREE:
+    def dephase(op: ops.Operation, _) -> ops.OP_TREE:
         gate = op.gate
         if isinstance(gate, ops.MeasurementGate):
             key = value.MeasurementKey.parse_serialized(gate.key)
@@ -257,10 +256,12 @@ def dephase_measurements(
 
 @transformer_api.transformer
 def drop_terminal_measurements(
-    circuit: cirq.AbstractCircuit,
+    circuit: circuits.AbstractCircuit,
     *,
-    context: cirq.TransformerContext | None = transformer_api.TransformerContext(deep=True),
-) -> cirq.Circuit:
+    context: transformer_api.TransformerContext | None = transformer_api.TransformerContext(
+        deep=True
+    ),
+) -> circuits.Circuit:
     """Removes terminal measurements from a circuit.
 
     This transformer is helpful when trying to capture the final state vector
@@ -289,7 +290,7 @@ def drop_terminal_measurements(
     if not circuit.are_all_measurements_terminal():
         raise ValueError('Circuit contains a non-terminal measurement.')
 
-    def flip_inversion(op: cirq.Operation, _) -> cirq.OP_TREE:
+    def flip_inversion(op: ops.Operation, _) -> ops.OP_TREE:
         if isinstance(op.gate, ops.MeasurementGate):
             return [
                 (
@@ -432,7 +433,7 @@ class _ConfusionChannel(ops.Gate):
     def _kraus_(self) -> tuple[np.ndarray, ...]:
         return self._kraus
 
-    def _apply_channel_(self, args: cirq.ApplyChannelArgs):
+    def _apply_channel_(self, args: protocols.ApplyChannelArgs):
         configs: list[transformations._BuildFromSlicesArgs] = []
         for i in range(np.prod(self._shape) ** 2):
             scale = cast(complex, self._confusion_map.flat[i])
@@ -482,7 +483,7 @@ class _ModAdd(ops.ArithmeticGate):
         return self._dimension
 
 
-def _mod_add(source: cirq.Qid, target: cirq.Qid) -> cirq.Operation:
+def _mod_add(source: ops.Qid, target: ops.Qid) -> ops.Operation:
     assert source.dimension == target.dimension
     if source.dimension == 2:
         # Use a CX gate in 2D case for simplicity.

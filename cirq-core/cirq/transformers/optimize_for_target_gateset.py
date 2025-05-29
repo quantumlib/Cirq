@@ -16,18 +16,15 @@
 
 from __future__ import annotations
 
-from typing import Callable, Hashable, Sequence, TYPE_CHECKING
+from typing import Callable, Hashable, Sequence
 
-from cirq import circuits
+from cirq import circuits, ops
 from cirq.protocols import decompose_protocol as dp
-from cirq.transformers import transformer_api, transformer_primitives
-
-if TYPE_CHECKING:
-    import cirq
+from cirq.transformers import CompilationTargetGateset, transformer_api, transformer_primitives
 
 
-def _create_on_stuck_raise_error(gateset: cirq.Gateset):
-    def _value_error_describing_bad_operation(op: cirq.Operation) -> ValueError:
+def _create_on_stuck_raise_error(gateset: ops.Gateset):
+    def _value_error_describing_bad_operation(op: ops.Operation) -> ValueError:
         return ValueError(f"Unable to convert {op} to target gateset {gateset!r}")
 
     return _value_error_describing_bad_operation
@@ -35,14 +32,14 @@ def _create_on_stuck_raise_error(gateset: cirq.Gateset):
 
 @transformer_api.transformer
 def _decompose_operations_to_target_gateset(
-    circuit: cirq.AbstractCircuit,
+    circuit: circuits.AbstractCircuit,
     *,
-    context: cirq.TransformerContext | None = None,
-    gateset: cirq.Gateset | None = None,
-    decomposer: Callable[[cirq.Operation, int], dp.DecomposeResult] = lambda *_: NotImplemented,
+    context: transformer_api.TransformerContext | None = None,
+    gateset: ops.Gateset | None = None,
+    decomposer: Callable[[ops.Operation, int], dp.DecomposeResult] = lambda *_: NotImplemented,
     ignore_failures: bool = True,
     tags_to_decompose: Sequence[Hashable] = (),
-) -> cirq.Circuit:
+) -> circuits.Circuit:
     """Decomposes every operation to `gateset` using `cirq.decompose` and `decomposer`.
 
     This transformer attempts to decompose every operation `op` in the given circuit to `gateset`
@@ -56,7 +53,7 @@ def _decompose_operations_to_target_gateset(
         context: `cirq.TransformerContext` storing common configurable options for transformers.
         gateset: Target gateset, which the decomposed operations should belong to.
         decomposer: A callable type which accepts an (operation, moment_index) and returns
-            - An equivalent `cirq.OP_TREE` implementing `op` using gates from `gateset`.
+            - An equivalent `ops.OP_TREE` implementing `op` using gates from `gateset`.
             - `None` or `NotImplemented` if does not know how to decompose a given `op`.
         ignore_failures: If set, operations that fail to convert are left unchanged. If not set,
             conversion failures raise a ValueError.
@@ -70,7 +67,7 @@ def _decompose_operations_to_target_gateset(
         ValueError: If any input operation fails to convert and `ignore_failures` is False.
     """
 
-    def map_func(op: cirq.Operation, moment_index: int):
+    def map_func(op: ops.Operation, moment_index: int):
         if (
             context
             and context.deep
@@ -99,13 +96,13 @@ def _decompose_operations_to_target_gateset(
 
 @transformer_api.transformer
 def optimize_for_target_gateset(
-    circuit: cirq.AbstractCircuit,
+    circuit: circuits.AbstractCircuit,
     *,
-    context: cirq.TransformerContext | None = None,
-    gateset: cirq.CompilationTargetGateset | None = None,
+    context: transformer_api.TransformerContext | None = None,
+    gateset: CompilationTargetGateset | None = None,
     ignore_failures: bool = True,
     max_num_passes: int | None = 1,
-) -> cirq.Circuit:
+) -> circuits.Circuit:
     """Transforms the given circuit into an equivalent circuit using gates accepted by `gateset`.
 
     Repeat max_num_passes times or when `max_num_passes=None` until no further changes can be done

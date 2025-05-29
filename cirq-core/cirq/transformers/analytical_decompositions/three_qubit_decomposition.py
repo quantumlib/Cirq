@@ -20,8 +20,7 @@ from typing import Sequence
 
 import numpy as np
 
-import cirq
-from cirq import ops, transformers as opt
+from cirq import circuits, linalg as cirq_linalg, ops, transformers as opt
 
 
 def three_qubit_matrix_to_operations(
@@ -52,7 +51,7 @@ def three_qubit_matrix_to_operations(
     """
     if np.shape(u) != (8, 8):
         raise ValueError(f"Expected unitary matrix with shape (8,8) got {np.shape(u)}")
-    if not cirq.is_unitary(u, atol=atol):
+    if not cirq_linalg.is_unitary(u, atol=atol):
         raise ValueError(f"Matrix is not unitary: {u}")
 
     try:
@@ -67,9 +66,9 @@ def three_qubit_matrix_to_operations(
     (u1, u2), theta, (v1h, v2h) = cossin(u, 4, 4, separate=True)
 
     cs_ops = _cs_to_ops(q0, q1, q2, theta)
-    if len(cs_ops) > 0 and cs_ops[-1] == cirq.CZ(q2, q0):
+    if len(cs_ops) > 0 and cs_ops[-1] == ops.CZ(q2, q0):
         # optimization A.1 - merging the last CZ from the end of CS into UD
-        # cz = cirq.Circuit([cs_ops[-1]]).unitary()
+        # cz = circuits.Circuit([cs_ops[-1]]).unitary()
         # CZ(c,a) = CZ(a,c) as CZ is symmetric
         # for the u1⊕u2 multiplexor operator:
         # as u1(b,c) is the operator in case a = \0>,
@@ -84,7 +83,7 @@ def three_qubit_matrix_to_operations(
         q0, q1, q2, v1h, v2h, shift_left=False, diagonal=d_ud, atol=atol
     )
 
-    return list(cirq.Circuit(vdh_ops + cs_ops + ud_ops).all_operations())
+    return list(circuits.Circuit(vdh_ops + cs_ops + ud_ops).all_operations())
 
 
 def _cs_to_ops(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, theta: np.ndarray) -> list[ops.Operation]:
@@ -105,18 +104,18 @@ def _cs_to_ops(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, theta: np.ndarray) -> list
     # Note: we are using *2 as the thetas are already half angles from the
     # CSD decomposition, but cirq.ry takes full angles.
     angles = _multiplexed_angles(theta * 2)
-    rys = [cirq.ry(angle).on(q0) for angle in angles]
-    ops = [
+    rys = [ops.ry(angle).on(q0) for angle in angles]
+    all_ops = [
         rys[0],
-        cirq.CZ(q1, q0),
+        ops.CZ(q1, q0),
         rys[1],
-        cirq.CZ(q2, q0),
+        ops.CZ(q2, q0),
         rys[2],
-        cirq.CZ(q1, q0),
+        ops.CZ(q1, q0),
         rys[3],
-        cirq.CZ(q2, q0),
+        ops.CZ(q2, q0),
     ]
-    return _optimize_multiplexed_angles_circuit(ops)
+    return _optimize_multiplexed_angles_circuit(all_ops)
 
 
 def _two_qubit_multiplexor_to_ops(
@@ -173,7 +172,7 @@ def _two_qubit_multiplexor_to_ops(
         known two-qubit and single qubit gates
     """
     u1u2 = u1 @ u2.conj().T
-    eigvals, v = cirq.unitary_eig(u1u2)
+    eigvals, v = cirq_linalg.unitary_eig(u1u2)
     d = np.diag(np.sqrt(eigvals))
 
     w = d @ v.conj().T @ u2
@@ -214,10 +213,10 @@ def _optimize_multiplexed_angles_circuit(operations: Sequence[ops.Operation]):
     Returns:
         the optimized operations
     """
-    circuit = cirq.Circuit(operations)
-    circuit = cirq.transformers.drop_negligible_operations(circuit)
+    circuit = circuits.Circuit(operations)
+    circuit = opt.drop_negligible_operations(circuit)
     if np.allclose(circuit.unitary(), np.eye(8), atol=1e-14):
-        return cirq.Circuit([])
+        return circuits.Circuit([])
 
     # the only way we can get identity here is if all four CZs are
     # next to each other
@@ -246,18 +245,18 @@ def _optimize_multiplexed_angles_circuit(operations: Sequence[ops.Operation]):
 def _middle_multiplexor_to_ops(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, eigvals: np.ndarray):
     theta = np.real(np.log(np.sqrt(eigvals)) * 1j * 2)
     angles = _multiplexed_angles(theta)
-    rzs = [cirq.rz(angle).on(q0) for angle in angles]
-    ops = [
+    rzs = [ops.rz(angle).on(q0) for angle in angles]
+    all_ops = [
         rzs[0],
-        cirq.CNOT(q1, q0),
+        ops.CNOT(q1, q0),
         rzs[1],
-        cirq.CNOT(q2, q0),
+        ops.CNOT(q2, q0),
         rzs[2],
-        cirq.CNOT(q1, q0),
+        ops.CNOT(q1, q0),
         rzs[3],
-        cirq.CNOT(q2, q0),
+        ops.CNOT(q2, q0),
     ]
-    return _optimize_multiplexed_angles_circuit(ops)
+    return _optimize_multiplexed_angles_circuit(all_ops)
 
 
 def _multiplexed_angles(theta: Sequence[float] | np.ndarray) -> np.ndarray:
