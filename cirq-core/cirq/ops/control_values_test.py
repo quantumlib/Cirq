@@ -239,14 +239,14 @@ def test_sum_of_products_repr(data):
 def test_sum_of_products_validate():
     control_val = cirq.SumOfProducts(((1, 2), (0, 1)))
 
-    _ = control_val.validate([2, 3])
+    control_val.validate([2, 3])
 
     with pytest.raises(ValueError):
-        _ = control_val.validate([2, 2])
+        control_val.validate([2, 2])
 
     # number of qubits != number of control values.
     with pytest.raises(ValueError):
-        _ = control_val.validate([2])
+        control_val.validate([2])
 
 
 @pytest.mark.parametrize('data', [((1,),), ((0, 1),), ((0, 0), (0, 1), (1, 0))])
