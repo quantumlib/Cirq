@@ -69,7 +69,7 @@ def quantum_shannon_decomposition(
     Yields:
         A single 2-qubit or 1-qubit operations from OP TREE
         composed from the set
-           { CNOT, rz, ry, ZPowGate }
+           { CNOT, CZ, rz, ry, ZPowGate }
 
     Raises:
         ValueError: If the u matrix is non-unitary
@@ -146,7 +146,7 @@ def quantum_shannon_decomposition(
 def _recursive_decomposition(qubits: 'List[cirq.Qid]', u: np.ndarray) -> Iterable['cirq.Operation']:
     """Recursive step in the quantum shannon decomposition.
 
-    Decomposes n-qubit unitary into generic 2-qubit gates, CNOT and 1-qubit gates.
+    Decomposes n-qubit unitary into generic 2-qubit gates, CNOT, CZ and 1-qubit gates.
     All generic 2-qubit gates are applied to the two least significant qubits and
     are not decomposed further here.
 
@@ -160,7 +160,7 @@ def _recursive_decomposition(qubits: 'List[cirq.Qid]', u: np.ndarray) -> Iterabl
         3. _msb_demuxer
 
     Yields:
-        Generic 2-qubit gates or operations from {ry,rz,CNOT}.
+        Generic 2-qubit gates or operations from {ry,rz,CNOT,CZ}.
 
     Raises:
         ValueError: If the u matrix is not of shape (2^n,2^n)
@@ -195,6 +195,17 @@ def _recursive_decomposition(qubits: 'List[cirq.Qid]', u: np.ndarray) -> Iterabl
     # Then most significant qubit is Ry multiplexed over all other qubits
     # Yield ops from multiplexed Ry part
     yield from _multiplexed_cossin(qubits, theta, ops.ry)
+
+    # Optimization A.1 in Shende et al. - the last CZ gate in the multiplexed Ry part
+    # is merged into the generic multiplexor (u1, u2)
+    # This gate is CZ(qubits[1], qubits[0]) = CZ(qubits[0], qubits[1])
+    # as CZ is symmetric.
+    # For the u1⊕u2 multiplexor operator:
+    # as u1 is the operator in case qubits[0] = |0>,
+    # and u2 is the operator in case qubits[0] = |1>
+    # we can represent the merge by phasing u2 with Z ⊗ I
+    cz_diag = np.concatenate((np.ones(n >> 2), np.full(n >> 2, -1)))
+    u2 = u2 @ np.diag(cz_diag)
 
     # Yield ops from decomposition of multiplexed u1/u2 part
     yield from _msb_demuxer(qubits, u1, u2)
@@ -334,7 +345,7 @@ def _multiplexed_cossin(
     Calls:
         No major calls
 
-    Yields: Single operation from OP TREE from set 1- and 2-qubit gates: {ry,rz,CNOT}
+    Yields: Single operation from OP TREE from set 1- and 2-qubit gates: {ry,rz,CNOT,CZ}
     """
     # Most significant qubit is main qubit with rotation function applied
     main_qubit = cossin_qubits[0]
@@ -375,4 +386,11 @@ def _multiplexed_cossin(
             yield rot_func(rotation).on(main_qubit)
 
         # Add a CNOT from the select qubit to the main qubit
-        yield ops.CNOT(control_qubits[select_qubit], main_qubit)
+        # Optimization A.1 in Shende et al. - use CZ instead of CNOT for ry rotations
+        if rot_func == ops.ry:
+            # Don't emit the last gate, as it will be merged into the generic multiplexor
+            # in the cosine-sine decomposition
+            if j < len(angles) - 1:
+                yield ops.CZ(control_qubits[select_qubit], main_qubit)
+        else:
+            yield ops.CNOT(control_qubits[select_qubit], main_qubit)
