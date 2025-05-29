@@ -29,7 +29,7 @@ def test_empty_init():
 
 sym = sympy.Symbol('sym')
 expr = sym * -(2 + 3j)
-symval = expr.subs({'sym': 5})
+symval = expr.subs({'sym': 5})  # pylint: disable=assignment-from-no-return
 symvalresolved = -10 - 15j
 
 
