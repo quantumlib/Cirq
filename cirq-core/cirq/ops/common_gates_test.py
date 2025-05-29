@@ -1333,6 +1333,7 @@ def test_decompose_with_extracted_phases(gate_type: type, exponent: cirq.TParamV
     decomposed = cirq.decompose(op, context=context)
     gate0 = decomposed[0].gate
     assert isinstance(gate0, gate_type)
+    assert isinstance(gate0, cirq.EigenGate)
     assert gate0.global_shift == 0
     assert gate0.exponent == exponent
     if exponent * 2 / 3 % 2 != 0:
