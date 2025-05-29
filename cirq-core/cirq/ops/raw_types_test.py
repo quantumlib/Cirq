@@ -79,6 +79,7 @@ def test_wrapped_qid():
         'dimension': 3,
     }
 
+    # pylint: disable=unnecessary-negation
     assert not ValidQubit('zz') == 4
     assert ValidQubit('zz') != 4
     assert ValidQubit('zz') > ValidQubit('aa')

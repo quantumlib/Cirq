@@ -116,6 +116,7 @@ def test_relative_index_consistency() -> None:
 
 
 def test_gt() -> None:
+    # pylint: disable=unnecessary-negation
     assert not cirq.X > cirq.X
     assert not cirq.X > cirq.Y
     assert cirq.X > cirq.Z
@@ -133,6 +134,7 @@ def test_gt_other_type() -> None:
 
 
 def test_lt() -> None:
+    # pylint: disable=unnecessary-negation
     assert not cirq.X < cirq.X
     assert cirq.X < cirq.Y
     assert not cirq.X < cirq.Z

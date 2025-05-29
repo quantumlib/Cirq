@@ -64,7 +64,7 @@ class QasmArgs(string.Formatter):
     def _format_number(self, value) -> str:
         """OpenQASM 2.0 does not support '1e-5' and wants '1.0e-5'"""
         s = f'{value}'
-        if 'e' in s and not '.' in s:
+        if 'e' in s and '.' not in s:
             return s.replace('e', '.0e')
         return s
 
