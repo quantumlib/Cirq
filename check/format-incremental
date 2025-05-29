@@ -95,7 +95,7 @@ if (( ${#format_files[@]} == 0 )); then
     exit 0
 fi
 
-# Exclude notebooks and __init__.py files from isort targets
+# Apply isort only on python files with the exception of __init__.py files
 declare -a isort_files=()
 for f in "${format_files[@]}"; do
     if [[ "${f}" == *.py && "${f##*/}" != __init__.py ]]; then
