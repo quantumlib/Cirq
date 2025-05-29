@@ -360,10 +360,7 @@ class QasmParser:
         't': QasmGateStatement(qasm_gate='t', num_params=0, num_args=1, cirq_gate=ops.T),
         'tdg': QasmGateStatement(qasm_gate='tdg', num_params=0, num_args=1, cirq_gate=ops.T**-1),
         'u0': QasmGateStatement(
-            qasm_gate='u0',
-            cirq_gate=QasmUGate(0, 0, 0),
-            num_params=0,
-            num_args=1
+            qasm_gate='u0', cirq_gate=QasmUGate(0, 0, 0), num_params=0, num_args=1
         ),
         'u1': QasmGateStatement(
             qasm_gate='u1',
