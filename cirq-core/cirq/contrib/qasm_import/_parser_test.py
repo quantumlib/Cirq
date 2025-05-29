@@ -1153,7 +1153,7 @@ def test_two_qubit_gates_not_enough_args(qasm_gate: str) -> None:
     'qasm_gate', [g[0] for g in two_qubit_gates] + [g[0] for g in two_qubit_param_gates.keys()]
 )
 def test_two_qubit_gates_with_too_much_parameters(qasm_gate: str) -> None:
-    params_mapping = {'crx': 1, 'cry': 1, 'crz': 1, 'cu1': 1, 'cu2': 2, 'cu3': 3, 'cu': 3,}
+    params_mapping = {'crx': 1, 'cry': 1, 'crz': 1, 'cu1': 1, 'cu2': 2, 'cu3': 3, 'cu': 3}
 
     num_params_needed = params_mapping.get(qasm_gate, 0)
 
