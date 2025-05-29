@@ -1,5 +1,5 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-from typing import cast, List, Tuple
+from typing import cast
 
 import pytest
 import sympy
@@ -12,7 +12,7 @@ from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 
 
 @pytest.fixture
-def circuit_data() -> Tuple[cirq.Circuit, List[cirq.LineQubit], cirq.Linspace]:
+def circuit_data() -> tuple[cirq.Circuit, list[cirq.LineQubit], cirq.Linspace]:
     circuit = cirq.Circuit()
     qubits = cirq.LineQubit.range(2)
     circuit.append(cirq.H(qubits[0]))
@@ -27,7 +27,7 @@ def circuit_data() -> Tuple[cirq.Circuit, List[cirq.LineQubit], cirq.Linspace]:
 @pytest.mark.rigetti_integration
 @allow_deprecated_cirq_rigetti_use_in_tests
 def test_readout_on_reassigned_qubits(
-    circuit_data: Tuple[cirq.Circuit, List[cirq.LineQubit], cirq.Linspace],
+    circuit_data: tuple[cirq.Circuit, list[cirq.LineQubit], cirq.Linspace],
 ) -> None:
     """test that RigettiQCSSampler can properly readout qubits after quilc has
     reassigned those qubits in the compiled native Quil.

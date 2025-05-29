@@ -14,7 +14,9 @@
 
 """Utility methods for diagonalizing matrices."""
 
-from typing import Callable, List, Tuple
+from __future__ import annotations
+
+from typing import Callable
 
 import numpy as np
 
@@ -52,7 +54,7 @@ def diagonalize_real_symmetric_matrix(
 
 def _contiguous_groups(
     length: int, comparator: Callable[[int, int], bool]
-) -> List[Tuple[int, int]]:
+) -> list[tuple[int, int]]:
     """Splits range(length) into approximate equivalence classes.
 
     Args:
@@ -155,7 +157,7 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
     rtol: float = 1e-5,
     atol: float = 1e-8,
     check_preconditions: bool = True,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """Finds orthogonal matrices that diagonalize both mat1 and mat2.
 
     Requires mat1 and mat2 to be real.
@@ -226,7 +228,7 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
 
 def bidiagonalize_unitary_with_special_orthogonals(
     mat: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8, check_preconditions: bool = True
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Finds orthogonal matrices L, R such that L @ matrix @ R is diagonal.
 
     Args:

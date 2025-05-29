@@ -14,9 +14,11 @@
 
 """A more flexible abstract base class metaclass ABCMetaImplementAnyOneOf."""
 
+from __future__ import annotations
+
 import abc
 import functools
-from typing import Callable, cast, Set, TypeVar
+from typing import Callable, cast, TypeVar
 
 T = TypeVar('T')
 
@@ -101,7 +103,7 @@ class ABCMetaImplementAnyOneOf(abc.ABCMeta):
                 return False
             return True
 
-        def find_next_implementations(all_names: Set[str]) -> bool:
+        def find_next_implementations(all_names: set[str]) -> bool:
             next_implemented_by = {}
             for name in all_names:
                 if has_some_implementation(name):

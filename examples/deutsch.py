@@ -26,6 +26,8 @@ Result f(0)⊕f(1):
 result=1
 """
 
+from __future__ import annotations
+
 import random
 
 import cirq

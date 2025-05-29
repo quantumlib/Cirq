@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Iterator, Tuple
+from typing import Iterator
 
 from cirq import circuits, ops, transformers
 from cirq.contrib.paulistring.clifford_target_gateset import CliffordTargetGateset
@@ -22,7 +22,7 @@ from cirq.contrib.paulistring.clifford_target_gateset import CliffordTargetGates
 
 def convert_and_separate_circuit(
     circuit: circuits.Circuit, leave_cliffords: bool = True, atol: float = 1e-8
-) -> Tuple[circuits.Circuit, circuits.Circuit]:
+) -> tuple[circuits.Circuit, circuits.Circuit]:
     """Converts a circuit into two, one made of PauliStringPhasor and the other Clifford gates.
 
     Args:

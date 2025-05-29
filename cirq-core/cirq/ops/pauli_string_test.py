@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
 import math
 
@@ -1990,3 +1992,31 @@ def test_resolve(resolve_fn):
     pst = cirq.PauliString({q: 'x'}, coefficient=t)
     ps1 = cirq.PauliString({q: 'x'}, coefficient=1j)
     assert resolve_fn(pst, {'t': 1j}) == ps1
+
+
+@pytest.mark.parametrize(
+    'gate1,gate2',
+    [
+        (cirq.I, cirq.I),
+        (cirq.I, cirq.X),
+        (cirq.I, cirq.Y),
+        (cirq.I, cirq.Z),
+        (cirq.X, cirq.I),
+        (cirq.Y, cirq.I),
+        (cirq.Z, cirq.I),
+    ],
+    ids=str,
+)
+def test_pauli_ops_identity_gate_operation(gate1: cirq.Pauli, gate2: cirq.Pauli) -> None:
+    # TODO: Issue #7280 - Support addition and subtraction of identity gate operations.
+    if gate1 == gate2 == cirq.I:
+        pytest.skip('Not yet implemented per #7280')
+    q = cirq.LineQubit(0)
+    pauli1, pauli2 = gate1.on(q), gate2.on(q)
+    unitary1, unitary2 = cirq.unitary(gate1), cirq.unitary(gate2)
+    addition = pauli1 + pauli2
+    assert isinstance(addition, cirq.PauliSum)
+    assert np.array_equal(addition.matrix(), unitary1 + unitary2)
+    subtraction = pauli1 - pauli2
+    assert isinstance(subtraction, cirq.PauliSum)
+    assert np.array_equal(subtraction.matrix(), unitary1 - unitary2)

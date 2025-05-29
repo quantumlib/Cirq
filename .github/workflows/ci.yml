@@ -113,11 +113,15 @@ jobs:
         with:
           python-version: '3.11'
           architecture: 'x64'
-      - name: Install pylint
-        run: pip install -r dev_tools/requirements/pylint.env.txt
-      - name: Display version
-        run: check/pylint --version
-      - name: Lint
+      - name: Install lint tools
+        run: pip install -r dev_tools/requirements/lint.env.txt
+      - name: Display versions
+        run: |
+          ruff --version
+          check/pylint --version
+      - name: Lint with ruff
+        run: FORCE_COLOR=1 ruff check
+      - name: Lint with pylint
         run: check/pylint -v
   doc_test:
     if: github.repository_owner == 'quantumlib'
@@ -308,7 +312,7 @@ jobs:
       - name: Coverage check
         run: check/pytest-and-incremental-coverage -n auto --rigetti-integration
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@ad3126e916f78f00edff4ed0317cf185271ccc2d # v5
+        uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: Stop Quil dependencies

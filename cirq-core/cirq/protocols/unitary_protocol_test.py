@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Optional
+
+from __future__ import annotations
 
 import numpy as np
 import pytest
@@ -74,7 +75,7 @@ class FullyImplemented(cirq.Gate):
     def _has_unitary_(self) -> bool:
         return self.unitary_value
 
-    def _unitary_(self) -> Optional[np.ndarray]:
+    def _unitary_(self) -> np.ndarray | None:
         if not self.unitary_value:
             return None
         return m1

@@ -15,11 +15,12 @@
 from __future__ import annotations
 
 import functools
-from typing import Dict
+from typing import TYPE_CHECKING
 
-from cirq.protocols.json_serialization import ObjectFactory
+if TYPE_CHECKING:
+    from cirq.protocols.json_serialization import ObjectFactory
 
 
 @functools.lru_cache()
-def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
+def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
     return {}

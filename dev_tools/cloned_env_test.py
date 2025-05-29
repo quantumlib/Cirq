@@ -13,6 +13,9 @@
 # limitations under the License.
 
 """Tests the cloned_env fixture in conftest.py"""
+
+from __future__ import annotations
+
 import json
 import os
 import shutil

@@ -18,11 +18,11 @@ import operator
 import random
 from typing import Any, Callable, cast, Iterable, TYPE_CHECKING
 
-import networkx
-
 from cirq import ops
 
 if TYPE_CHECKING:
+    import networkx
+
     import cirq
 
 

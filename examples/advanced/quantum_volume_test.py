@@ -1,6 +1,8 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 """Tests for the Quantum Volume benchmarker."""
 
+from __future__ import annotations
+
 import pytest
 
 from examples.advanced import quantum_volume

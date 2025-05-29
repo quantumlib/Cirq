@@ -11,8 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import random
-from typing import cast, Dict, Optional, Sequence, Union
+from typing import cast, Sequence
 
 import numpy as np
 import pytest
@@ -72,10 +75,10 @@ def _cases_for_random_circuit():
     'n_qubits,n_moments,op_density,gate_domain,pass_qubits', _cases_for_random_circuit()
 )
 def test_random_circuit(
-    n_qubits: Union[int, Sequence[cirq.Qid]],
+    n_qubits: int | Sequence[cirq.Qid],
     n_moments: int,
     op_density: float,
-    gate_domain: Optional[Dict[cirq.Gate, int]],
+    gate_domain: dict[cirq.Gate, int] | None,
     pass_qubits: bool,
 ) -> None:
     qubit_set = cirq.LineQubit.range(n_qubits)

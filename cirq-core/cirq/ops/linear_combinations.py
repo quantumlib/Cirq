@@ -16,25 +16,10 @@ from __future__ import annotations
 
 import numbers
 from collections import defaultdict
-from typing import (
-    AbstractSet,
-    Any,
-    DefaultDict,
-    Dict,
-    FrozenSet,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import AbstractSet, Any, Iterable, Mapping, TYPE_CHECKING, Union
 
 import numpy as np
-from scipy.sparse import csr_matrix
-from sympy.core.expr import Expr
-from sympy.core.symbol import Symbol
+import sympy
 from sympy.logic.boolalg import And, Not, Or, Xor
 
 from cirq import linalg, protocols, qis, value
@@ -46,9 +31,11 @@ from cirq.ops.projector import ProjectorString
 from cirq.value.linear_dict import _format_terms
 
 if TYPE_CHECKING:
+    from scipy.sparse import csr_matrix
+
     import cirq
 
-UnitPauliStringT = FrozenSet[Tuple[raw_types.Qid, pauli_gates.Pauli]]
+UnitPauliStringT = frozenset[tuple[raw_types.Qid, pauli_gates.Pauli]]
 PauliSumLike = Union[
     complex, PauliString, 'PauliSum', pauli_string.SingleQubitPauliStringGateOperation
 ]
@@ -92,7 +79,7 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         """
         super().__init__(terms, validator=self._is_compatible)
 
-    def num_qubits(self) -> Optional[int]:
+    def num_qubits(self) -> int | None:
         """Returns number of qubits in the domain if known, None if unknown."""
         if not self:
             return None
@@ -102,29 +89,25 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
     def _is_compatible(self, gate: cirq.Gate) -> bool:
         return self.num_qubits() is None or self.num_qubits() == gate.num_qubits()
 
-    def __add__(
-        self, other: Union[raw_types.Gate, LinearCombinationOfGates]
-    ) -> LinearCombinationOfGates:
+    def __add__(self, other: raw_types.Gate | LinearCombinationOfGates) -> LinearCombinationOfGates:
         if not isinstance(other, LinearCombinationOfGates):
             other = other.wrap_in_linear_combination()
         return super().__add__(other)
 
     def __iadd__(
-        self, other: Union[raw_types.Gate, LinearCombinationOfGates]
+        self, other: raw_types.Gate | LinearCombinationOfGates
     ) -> LinearCombinationOfGates:
         if not isinstance(other, LinearCombinationOfGates):
             other = other.wrap_in_linear_combination()
         return super().__iadd__(other)
 
-    def __sub__(
-        self, other: Union[raw_types.Gate, LinearCombinationOfGates]
-    ) -> LinearCombinationOfGates:
+    def __sub__(self, other: raw_types.Gate | LinearCombinationOfGates) -> LinearCombinationOfGates:
         if not isinstance(other, LinearCombinationOfGates):
             other = other.wrap_in_linear_combination()
         return super().__sub__(other)
 
     def __isub__(
-        self, other: Union[raw_types.Gate, LinearCombinationOfGates]
+        self, other: raw_types.Gate | LinearCombinationOfGates
     ) -> LinearCombinationOfGates:
         if not isinstance(other, LinearCombinationOfGates):
             other = other.wrap_in_linear_combination()
@@ -239,7 +222,7 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         return isinstance(operation, raw_types.Operation)
 
     @property
-    def qubits(self) -> Tuple[raw_types.Qid, ...]:
+    def qubits(self) -> tuple[raw_types.Qid, ...]:
         """Returns qubits acted on self."""
         if not self:
             return ()
@@ -319,7 +302,7 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         """Computes Pauli expansion of self from Pauli expansions of terms."""
 
         def extend_term(
-            pauli_names: str, qubits: Tuple[cirq.Qid, ...], all_qubits: Tuple[cirq.Qid, ...]
+            pauli_names: str, qubits: tuple[cirq.Qid, ...], all_qubits: tuple[cirq.Qid, ...]
         ) -> str:
             """Extends Pauli product on qubits to product on all_qubits."""
             assert len(pauli_names) == len(qubits)
@@ -328,8 +311,8 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
 
         def extend(
             expansion: value.LinearDict[str],
-            qubits: Tuple[cirq.Qid, ...],
-            all_qubits: Tuple[cirq.Qid, ...],
+            qubits: tuple[cirq.Qid, ...],
+            all_qubits: tuple[cirq.Qid, ...],
         ) -> value.LinearDict[str]:
             """Extends Pauli expansion on qubits to expansion on all_qubits."""
             return value.LinearDict(
@@ -360,7 +343,7 @@ def _is_linear_dict_of_unit_pauli_string(linear_dict: value.LinearDict[UnitPauli
 
 
 def _pauli_string_from_unit(
-    unit: UnitPauliStringT, coefficient: Union[int, float, cirq.TParamValComplex] = 1
+    unit: UnitPauliStringT, coefficient: int | float | cirq.TParamValComplex = 1
 ):
     return PauliString(qubit_pauli_map=dict(unit), coefficient=coefficient)
 
@@ -418,7 +401,7 @@ class PauliSum:
     4.0+0.0j
     """
 
-    def __init__(self, linear_dict: Optional[value.LinearDict[UnitPauliStringT]] = None):
+    def __init__(self, linear_dict: value.LinearDict[UnitPauliStringT] | None = None):
         """Construct a PauliSum from a linear dictionary.
 
         Note, the preferred method of constructing PauliSum objects is either implicitly
@@ -470,7 +453,7 @@ class PauliSum:
         return PauliSum() + val
 
     @classmethod
-    def from_pauli_strings(cls, terms: Union[PauliString, List[PauliString]]) -> PauliSum:
+    def from_pauli_strings(cls, terms: PauliString | list[PauliString]) -> PauliSum:
         """Returns a PauliSum by combining `cirq.PauliString` terms.
 
         Args:
@@ -482,7 +465,7 @@ class PauliSum:
         """
         if isinstance(terms, PauliString):
             terms = [terms]
-        termdict: DefaultDict[UnitPauliStringT, value.Scalar] = defaultdict(lambda: 0)
+        termdict: defaultdict[UnitPauliStringT, value.Scalar] = defaultdict(lambda: 0)
         for pstring in terms:
             key = frozenset(pstring._qubit_pauli_map.items())
             termdict[key] += pstring.coefficient
@@ -490,7 +473,7 @@ class PauliSum:
 
     @classmethod
     def from_boolean_expression(
-        cls, boolean_expr: Expr, qubit_map: Dict[str, cirq.Qid]
+        cls, boolean_expr: sympy.Expr, qubit_map: dict[str, cirq.Qid]
     ) -> PauliSum:
         """Builds the Hamiltonian representation of a Boolean expression.
 
@@ -507,7 +490,7 @@ class PauliSum:
         Raises:
             ValueError: If `boolean_expr` is of an unsupported type.
         """
-        if isinstance(boolean_expr, Symbol):
+        if isinstance(boolean_expr, sympy.Symbol):
             # In table 1, the entry for 'x' is '1/2.I - 1/2.Z'
             return cls.from_pauli_strings(
                 [
@@ -542,7 +525,7 @@ class PauliSum:
         raise ValueError(f'Unsupported type: {type(boolean_expr)}')
 
     @property
-    def qubits(self) -> Tuple[raw_types.Qid, ...]:
+    def qubits(self) -> tuple[raw_types.Qid, ...]:
         """The sorted list of qubits used in this PauliSum."""
         qs = {q for k in self._linear_dict.keys() for q, _ in k}
         return tuple(sorted(qs))
@@ -579,7 +562,7 @@ class PauliSum:
         factory = type(self)
         return factory(self._linear_dict.copy())
 
-    def matrix(self, qubits: Optional[Iterable[raw_types.Qid]] = None) -> np.ndarray:
+    def matrix(self, qubits: Iterable[raw_types.Qid] | None = None) -> np.ndarray:
         """Returns the matrix of this PauliSum in computational basis of qubits.
 
         Args:
@@ -763,6 +746,10 @@ class PauliSum:
             other = PauliSum.from_pauli_strings([PauliString(coefficient=other)])
         elif isinstance(other, PauliString):
             other = PauliSum.from_pauli_strings([other])
+        elif isinstance(other, raw_types.Operation) and isinstance(
+            other.gate, identity.IdentityGate
+        ):
+            other = PauliSum.from_pauli_strings([PauliString()])
 
         if not isinstance(other, PauliSum):
             return NotImplemented
@@ -771,11 +758,8 @@ class PauliSum:
         return self
 
     def __add__(self, other):
-        if not isinstance(other, (numbers.Complex, PauliString, PauliSum)):
-            if hasattr(other, 'gate') and isinstance(other.gate, identity.IdentityGate):
-                other = PauliString(other)
-            else:
-                return NotImplemented
+        if not isinstance(other, (numbers.Complex, PauliString, PauliSum, raw_types.Operation)):
+            return NotImplemented
         result = self.copy()
         result += other
         return result
@@ -789,8 +773,12 @@ class PauliSum:
     def __isub__(self, other):
         if isinstance(other, numbers.Complex):
             other = PauliSum.from_pauli_strings([PauliString(coefficient=other)])
-        if isinstance(other, PauliString):
+        elif isinstance(other, PauliString):
             other = PauliSum.from_pauli_strings([other])
+        elif isinstance(other, raw_types.Operation) and isinstance(
+            other.gate, identity.IdentityGate
+        ):
+            other = PauliSum.from_pauli_strings([PauliString()])
 
         if not isinstance(other, PauliSum):
             return NotImplemented
@@ -799,7 +787,7 @@ class PauliSum:
         return self
 
     def __sub__(self, other):
-        if not isinstance(other, (numbers.Complex, PauliString, PauliSum)):
+        if not isinstance(other, (numbers.Complex, PauliString, PauliSum, raw_types.Operation)):
             return NotImplemented
         result = self.copy()
         result -= other
@@ -883,7 +871,7 @@ class ProjectorSum:
     """List of mappings representing a sum of projector operators."""
 
     def __init__(
-        self, linear_dict: Optional[value.LinearDict[FrozenSet[Tuple[raw_types.Qid, int]]]] = None
+        self, linear_dict: value.LinearDict[frozenset[tuple[raw_types.Qid, int]]] | None = None
     ):
         """Constructor for ProjectorSum
 
@@ -892,7 +880,7 @@ class ProjectorSum:
                 number. The tuple is a projector onto the qubit and the complex number is the
                 weight of these projections.
         """
-        self._linear_dict: value.LinearDict[FrozenSet[Tuple[raw_types.Qid, int]]] = (
+        self._linear_dict: value.LinearDict[frozenset[tuple[raw_types.Qid, int]]] = (
             linear_dict if linear_dict is not None else value.LinearDict({})
         )
 
@@ -900,11 +888,11 @@ class ProjectorSum:
         return self._linear_dict
 
     @property
-    def qubits(self) -> Tuple[raw_types.Qid, ...]:
+    def qubits(self) -> tuple[raw_types.Qid, ...]:
         qs = {q for k in self._linear_dict.keys() for q, _ in k}
         return tuple(sorted(qs))
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         linear_dict = []
         for projector_dict, scalar in dict(self._linear_dict).items():
             key = [[k, v] for k, v in dict(projector_dict).items()]
@@ -922,9 +910,7 @@ class ProjectorSum:
         return cls(linear_dict=value.LinearDict(converted_dict))
 
     @classmethod
-    def from_projector_strings(
-        cls, terms: Union[ProjectorString, List[ProjectorString]]
-    ) -> ProjectorSum:
+    def from_projector_strings(cls, terms: ProjectorString | list[ProjectorString]) -> ProjectorSum:
         """Builds a ProjectorSum from one or more ProjectorString(s).
 
         Args:
@@ -935,7 +921,7 @@ class ProjectorSum:
         """
         if isinstance(terms, ProjectorString):
             terms = [terms]
-        termdict: DefaultDict[FrozenSet[Tuple[raw_types.Qid, int]], value.Scalar] = defaultdict(
+        termdict: defaultdict[frozenset[tuple[raw_types.Qid, int]], value.Scalar] = defaultdict(
             lambda: 0.0
         )
         for pstring in terms:
@@ -946,7 +932,7 @@ class ProjectorSum:
     def copy(self) -> ProjectorSum:
         return ProjectorSum(self._linear_dict.copy())
 
-    def matrix(self, projector_qids: Optional[Iterable[raw_types.Qid]] = None) -> csr_matrix:
+    def matrix(self, projector_qids: Iterable[raw_types.Qid] | None = None) -> csr_matrix:
         """Returns the matrix of self in computational basis of qubits.
 
         Args:
@@ -1024,7 +1010,7 @@ class ProjectorSum:
     def __bool__(self) -> bool:
         return bool(self._linear_dict)
 
-    def __iadd__(self, other: Union[ProjectorString, ProjectorSum]):
+    def __iadd__(self, other: ProjectorString | ProjectorSum):
         if isinstance(other, ProjectorString):
             other = ProjectorSum.from_projector_strings(other)
         elif not isinstance(other, ProjectorSum):
@@ -1032,7 +1018,7 @@ class ProjectorSum:
         self._linear_dict += other._linear_dict
         return self
 
-    def __add__(self, other: Union[ProjectorString, ProjectorSum]):
+    def __add__(self, other: ProjectorString | ProjectorSum):
         if isinstance(other, ProjectorString):
             other = ProjectorSum.from_projector_strings(other)
         elif not isinstance(other, ProjectorSum):
@@ -1041,7 +1027,7 @@ class ProjectorSum:
         result += other
         return result
 
-    def __isub__(self, other: Union[ProjectorString, ProjectorSum]):
+    def __isub__(self, other: ProjectorString | ProjectorSum):
         if isinstance(other, ProjectorString):
             other = ProjectorSum.from_projector_strings(other)
         elif not isinstance(other, ProjectorSum):
@@ -1049,7 +1035,7 @@ class ProjectorSum:
         self._linear_dict -= other._linear_dict
         return self
 
-    def __sub__(self, other: Union[ProjectorString, ProjectorSum]):
+    def __sub__(self, other: ProjectorString | ProjectorSum):
         if isinstance(other, ProjectorString):
             other = ProjectorSum.from_projector_strings(other)
         elif not isinstance(other, ProjectorSum):
