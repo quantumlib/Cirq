@@ -290,4 +290,9 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'sympy.EulerGamma': lambda: sympy.EulerGamma,
         'complex': complex,
         'datetime.datetime': _datetime,
+        'DepolarizingNoiseModel': cirq.contrib.noise_models.DepolarizingNoiseModel,
+        'ReadoutNoiseModel': cirq.contrib.noise_models.ReadoutNoiseModel,
+        'DampedReadoutNoiseModel': cirq.contrib.noise_models.DampedReadoutNoiseModel,
+        'DepolarizingWithReadoutNoiseModel': cirq.contrib.noise_models.DepolarizingWithReadoutNoiseModel,
+        'DepolarizingWithDampedReadoutNoiseModel': cirq.contrib.noise_models.DepolarizingWithDampedReadoutNoiseModel,
     }

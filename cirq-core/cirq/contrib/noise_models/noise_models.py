@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 from typing import Sequence, TYPE_CHECKING
+from dataclasses import dataclass
 
 from cirq import circuits, devices, ops, value
 from cirq.devices.noise_model import validate_all_measurements
@@ -23,6 +24,7 @@ if TYPE_CHECKING:
     import cirq
 
 
+@dataclass(frozen=True)
 class DepolarizingNoiseModel(devices.NoiseModel):
     """Applies depolarizing noise to each qubit individually at the end of
     every moment.
@@ -31,16 +33,8 @@ class DepolarizingNoiseModel(devices.NoiseModel):
     also contain gates.
     """
 
-    def __init__(self, depol_prob: float, prepend: bool = False):
-        """A depolarizing noise model
-
-        Args:
-            depol_prob: Depolarizing probability.
-            prepend: If True, put noise before affected gates. Default: False.
-        """
-        value.validate_probability(depol_prob, 'depol prob')
-        self.qubit_noise_gate = ops.DepolarizingChannel(depol_prob)
-        self._prepend = prepend
+    depol_prob: float
+    prepend: bool = False
 
     def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]):
         if validate_all_measurements(moment) or self.is_virtual_moment(moment):  # pragma: no cover
@@ -49,22 +43,20 @@ class DepolarizingNoiseModel(devices.NoiseModel):
         output = [
             moment,
             circuits.Moment(
-                self.qubit_noise_gate(q) for q in system_qubits
+                ops.DepolarizingChannel(self.depol_prob)(q) for q in system_qubits
             ),
         ]
-        return output[::-1] if self._prepend else output
+        return output[::-1] if self.prepend else output
 
     def _json_dict_(self):
-        return {
-            'depol_prob': self.qubit_noise_gate.p,
-            'prepend': self._prepend,
-        }
+        return {'depol_prob': self.depol_prob, 'prepend': self.prepend}
 
     @classmethod
     def _from_json_dict_(cls, depol_prob, prepend=False, **kwargs):
         return cls(depol_prob=depol_prob, prepend=prepend)
 
 
+@dataclass(frozen=True)
 class ReadoutNoiseModel(devices.NoiseModel):
     """NoiseModel with probabilistic bit flips preceding measurement.
 
@@ -77,16 +69,8 @@ class ReadoutNoiseModel(devices.NoiseModel):
     also contain gates.
     """
 
-    def __init__(self, bitflip_prob: float, prepend: bool = True):
-        """A noise model with readout error.
-
-        Args:
-            bitflip_prob: Probability of a bit-flip during measurement.
-            prepend: If True, put noise before affected gates. Default: True.
-        """
-        value.validate_probability(bitflip_prob, 'bitflip prob')
-        self.readout_noise_gate = ops.BitFlipChannel(bitflip_prob)
-        self._prepend = prepend
+    bitflip_prob: float
+    prepend: bool = True
 
     def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]):
         if self.is_virtual_moment(moment):
@@ -94,24 +78,22 @@ class ReadoutNoiseModel(devices.NoiseModel):
         if validate_all_measurements(moment):
             output = [
                 circuits.Moment(
-                    self.readout_noise_gate(q) for q in system_qubits
+                    ops.BitFlipChannel(self.bitflip_prob)(q) for q in system_qubits
                 ),
                 moment,
             ]
-            return output if self._prepend else output[::-1]
+            return output if self.prepend else output[::-1]
         return moment
 
     def _json_dict_(self):
-        return {
-            'bitflip_prob': self.readout_noise_gate.p,
-            'prepend': self._prepend,
-        }
+        return {'bitflip_prob': self.bitflip_prob, 'prepend': self.prepend}
 
     @classmethod
     def _from_json_dict_(cls, bitflip_prob, prepend=True, **kwargs):
         return cls(bitflip_prob=bitflip_prob, prepend=prepend)
 
 
+@dataclass(frozen=True)
 class DampedReadoutNoiseModel(devices.NoiseModel):
     """NoiseModel with T1 decay preceding measurement.
 
@@ -124,16 +106,8 @@ class DampedReadoutNoiseModel(devices.NoiseModel):
     also contain gates.
     """
 
-    def __init__(self, decay_prob: float, prepend: bool = True):
-        """A depolarizing noise model with damped readout error.
-
-        Args:
-            decay_prob: Probability of T1 decay during measurement.
-            prepend: If True, put noise before affected gates. Default: True.
-        """
-        value.validate_probability(decay_prob, 'decay_prob')
-        self.readout_decay_gate = ops.AmplitudeDampingChannel(decay_prob)
-        self._prepend = prepend
+    decay_prob: float
+    prepend: bool = True
 
     def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]):
         if self.is_virtual_moment(moment):
@@ -141,24 +115,22 @@ class DampedReadoutNoiseModel(devices.NoiseModel):
         if validate_all_measurements(moment):
             output = [
                 circuits.Moment(
-                    self.readout_decay_gate(q) for q in system_qubits
+                    ops.AmplitudeDampingChannel(self.decay_prob)(q) for q in system_qubits
                 ),
                 moment,
             ]
-            return output if self._prepend else output[::-1]
+            return output if self.prepend else output[::-1]
         return moment
 
     def _json_dict_(self):
-        return {
-            'decay_prob': self.readout_decay_gate._prob,
-            'prepend': self._prepend,
-        }
+        return {'decay_prob': self.decay_prob, 'prepend': self.prepend}
 
     @classmethod
     def _from_json_dict_(cls, decay_prob, prepend=True, **kwargs):
         return cls(decay_prob=decay_prob, prepend=prepend)
 
 
+@dataclass(frozen=True)
 class DepolarizingWithReadoutNoiseModel(devices.NoiseModel):
     """DepolarizingNoiseModel with probabilistic bit flips preceding
     measurement.
@@ -167,33 +139,23 @@ class DepolarizingWithReadoutNoiseModel(devices.NoiseModel):
     also contain gates.
     """
 
-    def __init__(self, depol_prob: float, bitflip_prob: float):
-        """A depolarizing noise model with readout error.
-        Args:
-            depol_prob: Depolarizing probability.
-            bitflip_prob: Probability of a bit-flip during measurement.
-        """
-        value.validate_probability(depol_prob, 'depol prob')
-        value.validate_probability(bitflip_prob, 'bitflip prob')
-        self.qubit_noise_gate = ops.DepolarizingChannel(depol_prob)
-        self.readout_noise_gate = ops.BitFlipChannel(bitflip_prob)
+    depol_prob: float
+    bitflip_prob: float
 
     def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]):
         if validate_all_measurements(moment):
-            return [circuits.Moment(self.readout_noise_gate(q) for q in system_qubits), moment]
-        return [moment, circuits.Moment(self.qubit_noise_gate(q) for q in system_qubits)]
+            return [circuits.Moment(ops.BitFlipChannel(self.bitflip_prob)(q) for q in system_qubits), moment]
+        return [moment, circuits.Moment(ops.DepolarizingChannel(self.depol_prob)(q) for q in system_qubits)]
 
     def _json_dict_(self):
-        return {
-            'depol_prob': self.qubit_noise_gate.p,
-            'bitflip_prob': self.readout_noise_gate.p,
-        }
+        return {'depol_prob': self.depol_prob, 'bitflip_prob': self.bitflip_prob}
 
     @classmethod
     def _from_json_dict_(cls, depol_prob, bitflip_prob, **kwargs):
         return cls(depol_prob=depol_prob, bitflip_prob=bitflip_prob)
 
 
+@dataclass(frozen=True)
 class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
     """DepolarizingWithReadoutNoiseModel with T1 decay preceding
     measurement.
@@ -203,37 +165,22 @@ class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
     also contain gates.
     """
 
-    def __init__(self, depol_prob: float, bitflip_prob: float, decay_prob: float):
-        """A depolarizing noise model with damped readout error.
-        Args:
-            depol_prob: Depolarizing probability.
-            bitflip_prob: Probability of a bit-flip during measurement.
-            decay_prob: Probability of T1 decay during measurement.
-                Bitflip noise is applied first, then amplitude decay.
-        """
-        value.validate_probability(depol_prob, 'depol prob')
-        value.validate_probability(bitflip_prob, 'bitflip prob')
-        value.validate_probability(decay_prob, 'decay_prob')
-        self.qubit_noise_gate = ops.DepolarizingChannel(depol_prob)
-        self.readout_noise_gate = ops.BitFlipChannel(bitflip_prob)
-        self.readout_decay_gate = ops.AmplitudeDampingChannel(decay_prob)
+    depol_prob: float
+    bitflip_prob: float
+    decay_prob: float
 
     def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]):
         if validate_all_measurements(moment):
             return [
-                circuits.Moment(self.readout_decay_gate(q) for q in system_qubits),
-                circuits.Moment(self.readout_noise_gate(q) for q in system_qubits),
+                circuits.Moment(ops.AmplitudeDampingChannel(self.decay_prob)(q) for q in system_qubits),
+                circuits.Moment(ops.BitFlipChannel(self.bitflip_prob)(q) for q in system_qubits),
                 moment,
             ]
         else:
-            return [moment, circuits.Moment(self.qubit_noise_gate(q) for q in system_qubits)]
+            return [moment, circuits.Moment(ops.DepolarizingChannel(self.depol_prob)(q) for q in system_qubits)]
 
     def _json_dict_(self):
-        return {
-            'depol_prob': self.qubit_noise_gate.p,
-            'bitflip_prob': self.readout_noise_gate.p,
-            'decay_prob': self.readout_decay_gate._prob,
-        }
+        return {'depol_prob': self.depol_prob, 'bitflip_prob': self.bitflip_prob, 'decay_prob': self.decay_prob}
 
     @classmethod
     def _from_json_dict_(cls, depol_prob, bitflip_prob, decay_prob, **kwargs):

@@ -1,0 +1,2 @@
+import cirq
+cirq.contrib.noise_models.DepolarizingWithReadoutNoiseModel(depol_prob=0.01, bitflip_prob=0.02, prepend=False) 

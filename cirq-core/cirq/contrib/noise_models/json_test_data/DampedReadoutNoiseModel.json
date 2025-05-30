@@ -1,0 +1,8 @@
+{
+  "cirq_type": "DampedReadoutNoiseModel",
+  "readout_decay_gate": {
+    "cirq_type": "AmplitudeDampingChannel",
+    "p": 0.03
+  },
+  "prepend": true
+} 

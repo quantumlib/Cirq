@@ -1,0 +1,6 @@
+{
+  "cirq_type": "DepolarizingWithReadoutNoiseModel",
+  "depol_prob": 0.01,
+  "bitflip_prob": 0.02,
+  "prepend": false
+} 
