@@ -308,13 +308,13 @@ def transformer(cls_or_func: Any = None, *, add_deep_support: bool = False) -> A
 
     >>> @cirq.transformer
     ... def convert_to_sqrt_iswap(
-    ...     circuit: circuits.AbstractCircuit,
+    ...     circuit: cirq.AbstractCircuit,
     ...     *,
-    ...     context: 'Optional[transformer_api.TransformerContext]' = None,
+    ...     context: 'Optional[cirq.TransformerContext]' = None,
     ...     atol: float = 1e-8,
     ...     sqrt_iswap_gate: cirq.ISwapPowGate = cirq.SQRT_ISWAP_INV,
     ...     cleanup_operations: bool = True,
-    ... ) -> circuits.Circuit:
+    ... ) -> cirq.Circuit:
     ...     pass
 
     Args:

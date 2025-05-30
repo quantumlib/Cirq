@@ -22,6 +22,7 @@ from cirq.transformers import transformer_api, transformer_primitives
 if TYPE_CHECKING:
     from cirq import circuits, ops
 
+
 @transformer_api.transformer
 def index_tags(
     circuit: circuits.AbstractCircuit,

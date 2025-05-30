@@ -38,8 +38,8 @@ def create_transformer_with_kwargs(
     expects `cirq.TRANSFORMER`. For example:
 
     >>> def run_transformers(transformers: list[cirq.TRANSFORMER]):
-    ...     circuit = circuits.Circuit(cirq.X(cirq.q(0)))
-    ...     context = transformer_api.TransformerContext()
+    ...     circuit = cirq.Circuit(cirq.X(cirq.q(0)))
+    ...     context = cirq.TransformerContext()
     ...     for transformer in transformers:
     ...         transformer(circuit, context=context)
     ...
