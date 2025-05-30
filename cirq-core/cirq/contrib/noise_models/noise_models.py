@@ -54,6 +54,16 @@ class DepolarizingNoiseModel(devices.NoiseModel):
         ]
         return output[::-1] if self._prepend else output
 
+    def _json_dict_(self) -> dict[str, object]:
+        return {'qubit_noise_gate': self.qubit_noise_gate, 'prepend': self._prepend}
+
+    @classmethod
+    def _from_json_dict_(cls, qubit_noise_gate, prepend, **kwargs):
+        obj = cls.__new__(cls)
+        obj.qubit_noise_gate = qubit_noise_gate
+        obj._prepend = prepend
+        return obj
+
 
 class ReadoutNoiseModel(devices.NoiseModel):
     """NoiseModel with probabilistic bit flips preceding measurement.
@@ -90,6 +100,16 @@ class ReadoutNoiseModel(devices.NoiseModel):
             ]
             return output if self._prepend else output[::-1]
         return moment
+
+    def _json_dict_(self) -> dict[str, object]:
+        return {'readout_noise_gate': self.readout_noise_gate, 'prepend': self._prepend}
+
+    @classmethod
+    def _from_json_dict_(cls, readout_noise_gate, prepend, **kwargs):
+        obj = cls.__new__(cls)
+        obj.readout_noise_gate = readout_noise_gate
+        obj._prepend = prepend
+        return obj
 
 
 class DampedReadoutNoiseModel(devices.NoiseModel):
@@ -128,6 +148,16 @@ class DampedReadoutNoiseModel(devices.NoiseModel):
             return output if self._prepend else output[::-1]
         return moment
 
+    def _json_dict_(self) -> dict[str, object]:
+        return {'readout_decay_gate': self.readout_decay_gate, 'prepend': self._prepend}
+
+    @classmethod
+    def _from_json_dict_(cls, readout_decay_gate, prepend, **kwargs):
+        obj = cls.__new__(cls)
+        obj.readout_decay_gate = readout_decay_gate
+        obj._prepend = prepend
+        return obj
+
 
 class DepolarizingWithReadoutNoiseModel(devices.NoiseModel):
     """DepolarizingNoiseModel with probabilistic bit flips preceding
@@ -152,6 +182,19 @@ class DepolarizingWithReadoutNoiseModel(devices.NoiseModel):
         if validate_all_measurements(moment):
             return [circuits.Moment(self.readout_noise_gate(q) for q in system_qubits), moment]
         return [moment, circuits.Moment(self.qubit_noise_gate(q) for q in system_qubits)]
+
+    def _json_dict_(self) -> dict[str, object]:
+        return {
+            'qubit_noise_gate': self.qubit_noise_gate,
+            'readout_noise_gate': self.readout_noise_gate,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, qubit_noise_gate, readout_noise_gate, **kwargs):
+        obj = cls.__new__(cls)
+        obj.qubit_noise_gate = qubit_noise_gate
+        obj.readout_noise_gate = readout_noise_gate
+        return obj
 
 
 class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
@@ -187,3 +230,18 @@ class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
             ]
         else:
             return [moment, circuits.Moment(self.qubit_noise_gate(q) for q in system_qubits)]
+
+    def _json_dict_(self) -> dict[str, object]:
+        return {
+            'qubit_noise_gate': self.qubit_noise_gate,
+            'readout_noise_gate': self.readout_noise_gate,
+            'readout_decay_gate': self.readout_decay_gate,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, qubit_noise_gate, readout_noise_gate, readout_decay_gate, **kwargs):
+        obj = cls.__new__(cls)
+        obj.qubit_noise_gate = qubit_noise_gate
+        obj.readout_noise_gate = readout_noise_gate
+        obj.readout_decay_gate = readout_decay_gate
+        return obj

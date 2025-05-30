@@ -126,3 +126,10 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
                 combined_measure_ops.append(multi_measurements[key])
             final_moments.append(circuits.Moment(combined_measure_ops))
         return final_moments
+
+    def _json_dict_(self) -> dict[str, object]:
+        return {'noise_properties': self._noise_properties}
+
+    @classmethod
+    def _from_json_dict_(cls, noise_properties, **kwargs):
+        return cls(noise_properties)
