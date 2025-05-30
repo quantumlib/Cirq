@@ -112,11 +112,11 @@ def test_constant_qubit_noise():
     expected = [
         [
             cirq.Moment([cirq.X(a)]),
-            cirq.Moment(d.with_tags(ops.VirtualTag()) for d in [damp(a), damp(b), damp(c)]),
+            cirq.Moment([damp(a), damp(b), damp(c)]),
         ],
         [
             cirq.Moment(),
-            cirq.Moment(d.with_tags(ops.VirtualTag()) for d in [damp(a), damp(b), damp(c)]),
+            cirq.Moment([damp(a), damp(b), damp(c)]),
         ],
     ]
     assert actual == expected
@@ -133,11 +133,11 @@ def test_constant_qubit_noise_prepend():
     actual = damp_all.noisy_moments([cirq.Moment([cirq.X(a)]), cirq.Moment()], [a, b, c])
     expected = [
         [
-            cirq.Moment(d.with_tags(ops.VirtualTag()) for d in [damp(a), damp(b), damp(c)]),
+            cirq.Moment([damp(a), damp(b), damp(c)]),
             cirq.Moment([cirq.X(a)]),
         ],
         [
-            cirq.Moment(d.with_tags(ops.VirtualTag()) for d in [damp(a), damp(b), damp(c)]),
+            cirq.Moment([damp(a), damp(b), damp(c)]),
             cirq.Moment(),
         ],
     ]

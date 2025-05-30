@@ -242,7 +242,7 @@ class ConstantQubitNoiseModel(NoiseModel):
         output = [
             moment,
             moment_module.Moment(
-                [self.qubit_noise_gate(q).with_tags(ops.VirtualTag()) for q in system_qubits]
+                [self.qubit_noise_gate(q) for q in system_qubits]
             ),
         ]
         return output[::-1] if self._prepend else output

@@ -49,10 +49,20 @@ class DepolarizingNoiseModel(devices.NoiseModel):
         output = [
             moment,
             circuits.Moment(
-                self.qubit_noise_gate(q).with_tags(ops.VirtualTag()) for q in system_qubits
+                self.qubit_noise_gate(q) for q in system_qubits
             ),
         ]
         return output[::-1] if self._prepend else output
+
+    def _json_dict_(self):
+        return {
+            'depol_prob': self.qubit_noise_gate.p,
+            'prepend': self._prepend,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, depol_prob, prepend=False, **kwargs):
+        return cls(depol_prob=depol_prob, prepend=prepend)
 
 
 class ReadoutNoiseModel(devices.NoiseModel):
@@ -84,12 +94,22 @@ class ReadoutNoiseModel(devices.NoiseModel):
         if validate_all_measurements(moment):
             output = [
                 circuits.Moment(
-                    self.readout_noise_gate(q).with_tags(ops.VirtualTag()) for q in system_qubits
+                    self.readout_noise_gate(q) for q in system_qubits
                 ),
                 moment,
             ]
             return output if self._prepend else output[::-1]
         return moment
+
+    def _json_dict_(self):
+        return {
+            'bitflip_prob': self.readout_noise_gate.p,
+            'prepend': self._prepend,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, bitflip_prob, prepend=True, **kwargs):
+        return cls(bitflip_prob=bitflip_prob, prepend=prepend)
 
 
 class DampedReadoutNoiseModel(devices.NoiseModel):
@@ -121,12 +141,22 @@ class DampedReadoutNoiseModel(devices.NoiseModel):
         if validate_all_measurements(moment):
             output = [
                 circuits.Moment(
-                    self.readout_decay_gate(q).with_tags(ops.VirtualTag()) for q in system_qubits
+                    self.readout_decay_gate(q) for q in system_qubits
                 ),
                 moment,
             ]
             return output if self._prepend else output[::-1]
         return moment
+
+    def _json_dict_(self):
+        return {
+            'decay_prob': self.readout_decay_gate._prob,
+            'prepend': self._prepend,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, decay_prob, prepend=True, **kwargs):
+        return cls(decay_prob=decay_prob, prepend=prepend)
 
 
 class DepolarizingWithReadoutNoiseModel(devices.NoiseModel):
@@ -152,6 +182,16 @@ class DepolarizingWithReadoutNoiseModel(devices.NoiseModel):
         if validate_all_measurements(moment):
             return [circuits.Moment(self.readout_noise_gate(q) for q in system_qubits), moment]
         return [moment, circuits.Moment(self.qubit_noise_gate(q) for q in system_qubits)]
+
+    def _json_dict_(self):
+        return {
+            'depol_prob': self.qubit_noise_gate.p,
+            'bitflip_prob': self.readout_noise_gate.p,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, depol_prob, bitflip_prob, **kwargs):
+        return cls(depol_prob=depol_prob, bitflip_prob=bitflip_prob)
 
 
 class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
@@ -187,3 +227,14 @@ class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
             ]
         else:
             return [moment, circuits.Moment(self.qubit_noise_gate(q) for q in system_qubits)]
+
+    def _json_dict_(self):
+        return {
+            'depol_prob': self.qubit_noise_gate.p,
+            'bitflip_prob': self.readout_noise_gate.p,
+            'decay_prob': self.readout_decay_gate._prob,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, depol_prob, bitflip_prob, decay_prob, **kwargs):
+        return cls(depol_prob=depol_prob, bitflip_prob=bitflip_prob, decay_prob=decay_prob)
