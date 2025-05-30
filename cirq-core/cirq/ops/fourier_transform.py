@@ -212,6 +212,4 @@ def qft(*qubits: cirq.Qid, without_reverse: bool = False, inverse: bool = False)
         A `cirq.Operation` applying the qft to the given qubits.
     """
     result = QuantumFourierTransformGate(len(qubits), without_reverse=without_reverse).on(*qubits)
-    if inverse:
-        result = cirq.inverse(result)
-    return result
+    return cirq.inverse(result) if inverse else result

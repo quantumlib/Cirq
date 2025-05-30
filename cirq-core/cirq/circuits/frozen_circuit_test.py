@@ -24,7 +24,7 @@ import sympy
 import cirq
 
 
-def test_from_moments():
+def test_from_moments() -> None:
     a, b, c, d = cirq.LineQubit.range(4)
     moment = cirq.Moment(cirq.Z(a), cirq.Z(b))
     subcircuit = cirq.FrozenCircuit.from_moments(cirq.X(c), cirq.Y(d))
@@ -51,10 +51,11 @@ def test_from_moments():
         cirq.Moment(cirq.measure(a, b, key='ab'), cirq.measure(c, d, key='cd')),
     )
     assert circuit[0] is moment
+    assert isinstance(circuit[1].operations[0], cirq.CircuitOperation)
     assert circuit[1].operations[0].circuit is subcircuit
 
 
-def test_freeze_and_unfreeze():
+def test_freeze_and_unfreeze() -> None:
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.X(a), cirq.H(b))
 
@@ -80,7 +81,7 @@ def test_freeze_and_unfreeze():
     assert fcc is not f
 
 
-def test_immutable():
+def test_immutable() -> None:
     q = cirq.LineQubit(0)
     c = cirq.FrozenCircuit(cirq.X(q), cirq.H(q))
 
@@ -89,10 +90,10 @@ def test_immutable():
         AttributeError,
         match="(can't set attribute)|(property 'moments' of 'FrozenCircuit' object has no setter)",
     ):
-        c.moments = (cirq.Moment(cirq.H(q)), cirq.Moment(cirq.X(q)))
+        c.moments = (cirq.Moment(cirq.H(q)), cirq.Moment(cirq.X(q)))  # type: ignore[misc]
 
 
-def test_tagged_circuits():
+def test_tagged_circuits() -> None:
     q = cirq.LineQubit(0)
     ops = [cirq.X(q), cirq.H(q)]
     tags = [sympy.Symbol("a"), "b"]
