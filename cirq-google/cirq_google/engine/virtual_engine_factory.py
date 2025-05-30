@@ -452,12 +452,7 @@ def create_default_noisy_quantum_virtual_machine(
 
     calibration = load_median_device_calibration(processor_id)
     device = create_device_from_processor_id(processor_id)
-    gate_times_ns: dict[type[cirq.Gate], float] | None = None
-    if processor_id == "willow_pink":
-        gate_times_ns = extract_gate_times_ns_from_device(device)
-    noise_properties = calibration_to_noise_properties.noise_properties_from_calibration(
-        calibration, gate_times_ns=gate_times_ns
-    )
+    noise_properties = load_device_noise_properties(processor_id)
     noise_model = NoiseModelFromGoogleNoiseProperties(noise_properties)
     simulator = simulator_class(noise=noise_model, **kwargs)  # type: ignore
 
