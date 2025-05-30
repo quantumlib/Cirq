@@ -1,0 +1,2 @@
+import cirq
+cirq.contrib.noise_models.ReadoutNoiseModel(readout_noise_gate=cirq.BitFlipChannel(0.02), prepend=False) 

@@ -1,0 +1,5 @@
+{
+  "cirq_type": "DepolarizingNoiseModel",
+  "depol_prob": 0.01,
+  "prepend": true
+} 

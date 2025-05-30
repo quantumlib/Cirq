@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 from math import exp
-from typing import Sequence, TYPE_CHECKING
+from typing import Sequence, TYPE_CHECKING, Optional, Dict
+from dataclasses import dataclass
 
 import cirq
 from cirq.devices.noise_model import validate_all_measurements
@@ -24,6 +25,7 @@ if TYPE_CHECKING:
     from cirq_google.engine import calibration
 
 
+@dataclass(frozen=True)
 class PerQubitDepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
     """NoiseModel with T1 decay on gates and damping/bitflip on measurement.
 
@@ -35,35 +37,19 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
     allow a moment to contain both measurement and non-measurement gates.
     """
 
-    def __init__(
-        self,
-        depol_probs: dict[cirq.Qid, float] | None = None,
-        bitflip_probs: dict[cirq.Qid, float] | None = None,
-        decay_probs: dict[cirq.Qid, float] | None = None,
-    ):
-        """A depolarizing noise model with damped readout error.
+    depol_probs: Optional[Dict[cirq.Qid, float]] = None
+    bitflip_probs: Optional[Dict[cirq.Qid, float]] = None
+    decay_probs: Optional[Dict[cirq.Qid, float]] = None
 
-        All error modes are specified on a per-qubit basis. To omit a given
-        error mode from the noise model, leave its dict blank when initializing
-        this object.
-
-        Args:
-            depol_probs: Dict of depolarizing probabilities for each qubit.
-            bitflip_probs: Dict of bit-flip probabilities during measurement.
-            decay_probs: Dict of T1 decay probabilities during measurement.
-                Bitflip noise is applied first, then amplitude decay.
-        """
+    def __post_init__(self):
         for probs, desc in [
-            (depol_probs, "depolarization prob"),
-            (bitflip_probs, "readout error prob"),
-            (decay_probs, "readout decay prob"),
+            (self.depol_probs, "depolarization prob"),
+            (self.bitflip_probs, "readout error prob"),
+            (self.decay_probs, "readout decay prob"),
         ]:
             if probs:
                 for qubit, prob in probs.items():
                     cirq.validate_probability(prob, f'{desc} of {qubit}')
-        self.depol_probs = depol_probs
-        self.bitflip_probs = bitflip_probs
-        self.decay_probs = decay_probs
 
     def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         if self.is_virtual_moment(moment):
@@ -95,6 +81,17 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
                         )
                     )
             return moments
+
+    def _json_dict_(self) -> dict:
+        return {
+            'depol_probs': self.depol_probs,
+            'bitflip_probs': self.bitflip_probs,
+            'decay_probs': self.decay_probs,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, depol_probs=None, bitflip_probs=None, decay_probs=None, **kwargs):
+        return cls(depol_probs=depol_probs, bitflip_probs=bitflip_probs, decay_probs=decay_probs)
 
 
 def simple_noise_from_calibration_metrics(

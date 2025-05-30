@@ -1,0 +1,2 @@
+import cirq
+cirq.contrib.noise_models.DampedReadoutNoiseModel(readout_decay_gate=cirq.AmplitudeDampingChannel(0.03), prepend=True) 

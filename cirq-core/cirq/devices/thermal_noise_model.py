@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import dataclasses
 import functools
-from typing import Sequence, TYPE_CHECKING
+from typing import Sequence, TYPE_CHECKING, Set, Dict, Optional
 
 import numpy as np
 import sympy
@@ -160,7 +160,7 @@ def _validate_rates(qubits: set[cirq.Qid], rates: dict[cirq.Qid, np.ndarray]) ->
             )
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class ThermalNoiseModel(devices.NoiseModel):
     """NoiseModel representing simulated thermalization of a qubit.
 
@@ -169,68 +169,31 @@ class ThermalNoiseModel(devices.NoiseModel):
     transitions a qubit to higher or lower energy levels, respectively.
     """
 
-    def __init__(
-        self,
-        qubits: set[cirq.Qid],
-        gate_durations_ns: dict[type, float],
-        heat_rate_GHz: float | dict[cirq.Qid, float] | None = None,
-        cool_rate_GHz: float | dict[cirq.Qid, float] | None = None,
-        dephase_rate_GHz: float | dict[cirq.Qid, float] | None = None,
-        require_physical_tag: bool = True,
-        skip_measurements: bool = True,
-        prepend: bool = False,
-    ):
-        """Construct a ThermalNoiseModel data object.
+    qubits: Set[cirq.Qid]
+    gate_durations_ns: Dict[type, float]
+    heat_rate_GHz: Optional[float] = None
+    cool_rate_GHz: Optional[float] = None
+    dephase_rate_GHz: Optional[float] = None
+    require_physical_tag: bool = True
+    skip_measurements: bool = True
+    prepend: bool = False
 
-        Required Args:
-            qubits: Set of all qubits in the system.
-            gate_durations_ns: Map of gate types to their duration in
-                nanoseconds. These values will override default values for
-                gate duration, if any (e.g. WaitGate).
-        Optional Args:
-            heat_rate_GHz: single number (units GHz) specifying heating rate,
-                either per qubit, or global value for all.
-                Given a rate gh, the Lindblad op will be sqrt(gh)*a^dag
-                (where a is annihilation), so that the heating Lindbladian is
-                gh(a^dag • a - 0.5{a*a^dag, •}).
-            cool_rate_GHz: single number (units GHz) specifying cooling rate,
-                either per qubit, or global value for all.
-                Given a rate gc, the Lindblad op will be sqrt(gc)*a
-                so that the cooling Lindbladian is gc(a • a^dag - 0.5{n, •})
-                This number is equivalent to 1/T1.
-            dephase_rate_GHz: single number (units GHz) specifying dephasing
-                rate, either per qubit, or global value for all.
-                Given a rate gd, Lindblad op will be sqrt(2*gd)*n where
-                n = a^dag * a, so that the dephasing Lindbladian is
-                2 * gd * (n • n - 0.5{n^2, •}).
-                This number is equivalent to 1/Tphi.
-            require_physical_tag: whether to only apply noise to operations
-                tagged with PHYSICAL_GATE_TAG.
-            skip_measurements: whether to skip applying noise to measurements.
-            prepend: If True, put noise before affected gates. Default: False.
-
-        Returns:
-            The ThermalNoiseModel with specified parameters.
-        """
+    def __post_init__(self):
         rate_dict = {}
 
-        heat_rate_GHz = _as_rate_dict(heat_rate_GHz, qubits)
-        cool_rate_GHz = _as_rate_dict(cool_rate_GHz, qubits)
-        dephase_rate_GHz = _as_rate_dict(dephase_rate_GHz, qubits)
+        heat_rate_GHz = _as_rate_dict(self.heat_rate_GHz, self.qubits)
+        cool_rate_GHz = _as_rate_dict(self.cool_rate_GHz, self.qubits)
+        dephase_rate_GHz = _as_rate_dict(self.dephase_rate_GHz, self.qubits)
 
-        for q in qubits:
+        for q in self.qubits:
             gamma_h = heat_rate_GHz[q]
             gamma_c = cool_rate_GHz[q]
             gamma_phi = dephase_rate_GHz[q]
 
             rate_dict[q] = _decoherence_matrix(gamma_c, gamma_phi, gamma_h, q.dimension)
 
-        _validate_rates(qubits, rate_dict)
-        self.gate_durations_ns: dict[type, float] = gate_durations_ns
+        _validate_rates(self.qubits, rate_dict)
         self.rate_matrix_GHz: dict[cirq.Qid, np.ndarray] = rate_dict
-        self.require_physical_tag: bool = require_physical_tag
-        self.skip_measurements: bool = skip_measurements
-        self._prepend = prepend
 
     def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         if not moment.operations:
@@ -282,4 +245,29 @@ class ThermalNoiseModel(devices.NoiseModel):
         if not noise_ops:
             return [moment]
         output = [moment, moment_module.Moment(noise_ops)]
-        return output[::-1] if self._prepend else output
+        return output[::-1] if self.prepend else output
+
+    def _json_dict_(self) -> dict:
+        return {
+            'qubits': list(self.qubits),
+            'gate_durations_ns': list(self.gate_durations_ns.items()),
+            'heat_rate_GHz': self.heat_rate_GHz,
+            'cool_rate_GHz': self.cool_rate_GHz,
+            'dephase_rate_GHz': self.dephase_rate_GHz,
+            'require_physical_tag': self.require_physical_tag,
+            'skip_measurements': self.skip_measurements,
+            'prepend': self.prepend,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, qubits, gate_durations_ns, heat_rate_GHz=None, cool_rate_GHz=None, dephase_rate_GHz=None, require_physical_tag=True, skip_measurements=True, prepend=False, **kwargs):
+        return cls(
+            qubits=set(qubits),
+            gate_durations_ns=dict(gate_durations_ns),
+            heat_rate_GHz=heat_rate_GHz,
+            cool_rate_GHz=cool_rate_GHz,
+            dephase_rate_GHz=dephase_rate_GHz,
+            require_physical_tag=require_physical_tag,
+            skip_measurements=skip_measurements,
+            prepend=prepend,
+        )

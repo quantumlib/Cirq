@@ -1,0 +1,2 @@
+import cirq
+cirq.devices.noise_model.ConstantQubitNoiseModel(qubit_noise_gate=cirq.DepolarizingChannel(0.01), prepend=True) 
