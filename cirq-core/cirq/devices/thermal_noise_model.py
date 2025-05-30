@@ -21,6 +21,7 @@ from typing import Sequence, TYPE_CHECKING
 import numpy as np
 import sympy
 
+import cirq
 from cirq import devices, ops, protocols, qis
 from cirq._import import LazyLoader
 from cirq.devices.noise_utils import PHYSICAL_GATE_TAG
@@ -283,3 +284,31 @@ class ThermalNoiseModel(devices.NoiseModel):
             return [moment]
         output = [moment, moment_module.Moment(noise_ops)]
         return output[::-1] if self._prepend else output
+
+    def _json_dict_(self) -> dict[str, object]:
+        gate_times = {cirq.json_cirq_type(k): v for k, v in self.gate_durations_ns.items()}
+        return {
+            'gate_durations_ns': tuple(gate_times.items()),
+            'rate_matrix_GHz': tuple((q, m.tolist()) for q, m in self.rate_matrix_GHz.items()),
+            'require_physical_tag': self.require_physical_tag,
+            'skip_measurements': self.skip_measurements,
+            'prepend': self._prepend,
+        }
+
+    @classmethod
+    def _from_json_dict_(
+        cls,
+        gate_durations_ns,
+        rate_matrix_GHz,
+        require_physical_tag,
+        skip_measurements,
+        prepend,
+        **kwargs,
+    ):
+        obj = cls.__new__(cls)
+        obj.gate_durations_ns = {cirq.cirq_type_from_json(k): v for k, v in gate_durations_ns}
+        obj.rate_matrix_GHz = {q: np.array(m) for q, m in rate_matrix_GHz}
+        obj.require_physical_tag = require_physical_tag
+        obj.skip_measurements = skip_measurements
+        obj._prepend = prepend
+        return obj

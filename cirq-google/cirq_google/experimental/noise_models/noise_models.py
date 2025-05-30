@@ -96,6 +96,21 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
                     )
             return moments
 
+    def _json_dict_(self) -> dict[str, object]:
+        return {
+            'depol_probs': self.depol_probs,
+            'bitflip_probs': self.bitflip_probs,
+            'decay_probs': self.decay_probs,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, depol_probs, bitflip_probs, decay_probs, **kwargs):
+        obj = cls.__new__(cls)
+        obj.depol_probs = depol_probs
+        obj.bitflip_probs = bitflip_probs
+        obj.decay_probs = decay_probs
+        return obj
+
 
 def simple_noise_from_calibration_metrics(
     calibration: calibration.Calibration,
