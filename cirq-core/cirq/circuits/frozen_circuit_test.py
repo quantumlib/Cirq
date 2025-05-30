@@ -90,7 +90,7 @@ def test_immutable() -> None:
         AttributeError,
         match="(can't set attribute)|(property 'moments' of 'FrozenCircuit' object has no setter)",
     ):
-        c.moments = (cirq.Moment(cirq.H(q)), cirq.Moment(cirq.X(q)))  # type: ignore
+        c.moments = (cirq.Moment(cirq.H(q)), cirq.Moment(cirq.X(q)))  # type: ignore[misc]
 
 
 def test_tagged_circuits() -> None:

@@ -238,9 +238,9 @@ def test_drawer_copy() -> None:
         'vertical_padding': orig_vertical_padding,
         'horizontal_padding': orig_horizontal_padding,
     }
-    orig_drawer = TextDiagramDrawer(**kwargs)  # type: ignore
+    orig_drawer = TextDiagramDrawer(**kwargs)  # type: ignore[arg-type]
 
-    same_drawer = TextDiagramDrawer(**kwargs)  # type: ignore
+    same_drawer = TextDiagramDrawer(**kwargs)  # type: ignore[arg-type]
     assert orig_drawer == same_drawer
 
     copy_drawer = orig_drawer.copy()
@@ -336,7 +336,7 @@ AB D
     with pytest.raises(ValueError):
         TextDiagramDrawer.vstack((d, dd))
 
-    vstacked = TextDiagramDrawer.vstack((dd, d), padding_resolver=max)  # type: ignore
+    vstacked = TextDiagramDrawer.vstack((dd, d), padding_resolver=max)  # type: ignore[arg-type]
     expected = """
 D
 
@@ -350,7 +350,7 @@ A  B
     """.strip()
     assert_has_rendering(vstacked, expected)
 
-    hstacked = TextDiagramDrawer.hstack((d, dd), padding_resolver=max)  # type: ignore
+    hstacked = TextDiagramDrawer.hstack((d, dd), padding_resolver=max)  # type: ignore[arg-type]
     expected = """
 AB D
 
@@ -360,7 +360,7 @@ AB D
     """.strip()
     assert_has_rendering(hstacked, expected)
 
-    vstacked_min = TextDiagramDrawer.vstack((dd, d), padding_resolver=min)  # type:ignore
+    vstacked_min = TextDiagramDrawer.vstack((dd, d), padding_resolver=min)  # type: ignore[arg-type]
     expected = """
 D
 
@@ -374,7 +374,7 @@ AB
     """.strip()
     assert_has_rendering(vstacked_min, expected)
 
-    hstacked_min = TextDiagramDrawer.hstack((d, dd), padding_resolver=min)  # type:ignore
+    hstacked_min = TextDiagramDrawer.hstack((d, dd), padding_resolver=min)  # type: ignore[arg-type]
     expected = """
 AB D
 

@@ -69,7 +69,7 @@ def test_basis_state_simulator() -> None:
     circuit = create_test_circuit()
     r = sim.simulate(circuit)
     assert r.measurements == {'a': np.array([1]), 'b': np.array([2])}
-    assert r._final_simulator_state._state.basis == [2, 2]  # type: ignore
+    assert r._final_simulator_state._state.basis == [2, 2]  # type: ignore[attr-defined]
 
 
 def test_built_in_states() -> None:
@@ -79,7 +79,7 @@ def test_built_in_states() -> None:
     r = sim.simulate(circuit)
     assert r.measurements == {'a': np.array([1]), 'b': np.array([2])}
     assert np.allclose(
-        r._final_simulator_state._state._state_vector,  # type: ignore
+        r._final_simulator_state._state._state_vector,  # type: ignore[attr-defined]
         [[0, 0, 0], [0, 0, 0], [0, 0, 1]],
     )
 
@@ -106,7 +106,7 @@ def test_noise() -> None:
     circuit = create_test_circuit()
     r = sim.simulate(circuit)
     assert r.measurements == {'a': np.array([2]), 'b': np.array([2])}
-    assert r._final_simulator_state._state.basis == [1, 2]  # type: ignore
+    assert r._final_simulator_state._state.basis == [1, 2]  # type: ignore[attr-defined]
 
 
 def test_run() -> None:

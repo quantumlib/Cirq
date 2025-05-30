@@ -178,7 +178,7 @@ def test_identity_global() -> None:
     assert cirq.identity_each(*qids) == cirq.IdentityGate(3, (1, 2, 3)).on(*qids)
     with pytest.raises(ValueError, match='Not a cirq.Qid'):
         # The user forgot to expand the list for example.
-        cirq.identity_each(qubits)  # type: ignore
+        cirq.identity_each(qubits)  # type: ignore[arg-type]
 
 
 def test_identity_mul() -> None:

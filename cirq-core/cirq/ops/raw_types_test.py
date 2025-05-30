@@ -63,7 +63,7 @@ def test_wrapped_qid() -> None:
     assert type(ValidQubit('a').with_dimension(2)) is ValidQubit
     assert type(ValidQubit('a').with_dimension(5).with_dimension(2)) is ValidQubit
     assert ValidQubit('a').with_dimension(3).with_dimension(4) == ValidQubit('a').with_dimension(4)
-    assert ValidQubit('a').with_dimension(3).qubit == ValidQubit('a')  # type: ignore
+    assert ValidQubit('a').with_dimension(3).qubit == ValidQubit('a')  # type: ignore[attr-defined]
     assert ValidQubit('a').with_dimension(3) == ValidQubit('a').with_dimension(3)
     assert ValidQubit('a').with_dimension(3) < ValidQubit('a').with_dimension(4)
     assert ValidQubit('a').with_dimension(3) < ValidQubit('b').with_dimension(3)
@@ -74,7 +74,7 @@ def test_wrapped_qid() -> None:
     )
     assert str(ValidQubit('a').with_dimension(3)) == 'TQ_a (d=3)'
 
-    assert ValidQubit('zz').with_dimension(3)._json_dict_() == {  # type: ignore
+    assert ValidQubit('zz').with_dimension(3)._json_dict_() == {  # type: ignore[attr-defined]
         'qubit': ValidQubit('zz'),
         'dimension': 3,
     }
@@ -210,7 +210,7 @@ def test_default_validation_and_inverse() -> None:
     assert i**-1 == t
     assert t**-1 == i
     assert cirq.decompose(i) == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]
-    assert [*i._decompose_()] == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]  # type: ignore
+    assert [*i._decompose_()] == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]  # type: ignore[misc]
     gate = i.gate
     assert gate is not None
     assert [*gate._decompose_([a, b])] == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]  # type: ignore

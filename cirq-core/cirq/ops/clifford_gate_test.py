@@ -737,7 +737,7 @@ def test_clifford_gate_from_tableau() -> None:
         cirq.CliffordGate.from_clifford_tableau(t)
 
     with pytest.raises(ValueError, match="Input argument has to be a CliffordTableau instance."):
-        cirq.CliffordGate.from_clifford_tableau(1)  # type: ignore
+        cirq.CliffordGate.from_clifford_tableau(1)  # type: ignore[arg-type]
 
 
 def test_multi_clifford_decompose_by_unitary() -> None:

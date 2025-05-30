@@ -59,13 +59,15 @@ def test_any_unitary_gate_family() -> None:
 
 def test_any_integer_power_gate_family() -> None:
     with pytest.raises(ValueError, match='subclass of `cirq.EigenGate`'):
-        cirq.AnyIntegerPowerGateFamily(gate=cirq.testing.SingleQubitGate)  # type: ignore
+        cirq.AnyIntegerPowerGateFamily(gate=cirq.testing.SingleQubitGate)  # type: ignore[arg-type]
     with pytest.raises(ValueError, match='subclass of `cirq.EigenGate`'):
-        cirq.AnyIntegerPowerGateFamily(gate=CustomXPowGate())  # type: ignore
+        cirq.AnyIntegerPowerGateFamily(gate=CustomXPowGate())  # type: ignore[arg-type]
     eq = cirq.testing.EqualsTester()
     gate_family = cirq.AnyIntegerPowerGateFamily(CustomXPowGate)
     eq.add_equality_group(gate_family)
-    eq.add_equality_group(cirq.AnyIntegerPowerGateFamily(cirq.EigenGate))  # type: ignore
+    eq.add_equality_group(
+        cirq.AnyIntegerPowerGateFamily(cirq.EigenGate)  # type: ignore[type-abstract]
+    )
     cirq.testing.assert_equivalent_repr(gate_family)
     assert CustomX in gate_family
     assert CustomX**2 in gate_family

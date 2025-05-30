@@ -107,8 +107,8 @@ def test_qft() -> None:
 
     arr = np.array([[1, 1, 1, 1], [1, -1j, -1, 1j], [1, -1, 1, -1], [1, 1j, -1, -1j]]) / 2
     np.testing.assert_allclose(
-        cirq.unitary(cirq.qft(*cirq.LineQubit.range(2)) ** -1),  # type:ignore
-        arr,  # type: ignore
+        cirq.unitary(cirq.qft(*cirq.LineQubit.range(2)) ** -1),  # type: ignore[operator]
+        arr,  # type: ignore[arg-type]
         atol=1e-8,
     )
 
@@ -121,7 +121,7 @@ def test_qft() -> None:
 
 def test_inverse() -> None:
     a, b, c = cirq.LineQubit.range(3)
-    assert cirq.qft(a, b, c, inverse=True) == cirq.qft(a, b, c) ** -1  # type:ignore
+    assert cirq.qft(a, b, c, inverse=True) == cirq.qft(a, b, c) ** -1  # type: ignore[operator]
     assert cirq.qft(a, b, c, inverse=True, without_reverse=True) == cirq.inverse(
         cirq.qft(a, b, c, without_reverse=True)
     )

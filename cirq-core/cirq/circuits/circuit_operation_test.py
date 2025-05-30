@@ -60,7 +60,7 @@ def test_circuit_type() -> None:
         cirq.measure(a, b, c, key='m'),
     )
     with pytest.raises(TypeError, match='Expected circuit of type FrozenCircuit'):
-        _ = cirq.CircuitOperation(circuit)  # type: ignore
+        _ = cirq.CircuitOperation(circuit)  # type: ignore[arg-type]
 
 
 def test_non_invertible_circuit() -> None:
@@ -195,7 +195,7 @@ def test_with_qubits() -> None:
         _ = op_base.with_qubit_mapping(lambda q: b)
     # with_qubit_mapping requires exactly one argument.
     with pytest.raises(TypeError, match='must be a function or dict'):
-        _ = op_base.with_qubit_mapping('bad arg')  # type: ignore
+        _ = op_base.with_qubit_mapping('bad arg')  # type: ignore[arg-type]
 
 
 def test_with_measurement_keys() -> None:

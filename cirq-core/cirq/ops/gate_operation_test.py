@@ -377,19 +377,19 @@ def test_mul() -> None:
     # Delegates right multiplication.
     q = cirq.LineQubit(0)
     r = GateRMul().on(q)
-    assert 2 * r == 3  # type: ignore
+    assert 2 * r == 3  # type: ignore[operator]
     with pytest.raises(TypeError):
-        _ = r * 2  # type: ignore
+        _ = r * 2  # type: ignore[operator]
 
     # Delegates left multiplication.
     m = GateMul().on(q)
-    assert m * 2 == 5  # type: ignore
+    assert m * 2 == 5  # type: ignore[operator]
     with pytest.raises(TypeError):
-        _ = 2 * m  # type: ignore
+        _ = 2 * m  # type: ignore[operator]
 
     # Handles the symmetric type case correctly.
-    assert m * m == 6  # type: ignore
-    assert r * r == 4  # type: ignore
+    assert m * m == 6  # type: ignore[operator]
+    assert r * r == 4  # type: ignore[operator]
 
 
 def test_with_gate() -> None:

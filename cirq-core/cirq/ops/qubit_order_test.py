@@ -130,4 +130,4 @@ def test_qubit_order_iterator() -> None:
 
 def test_qubit_order_invalid() -> None:
     with pytest.raises(ValueError, match="Don't know how to interpret <5> as a Basis."):
-        _ = cirq.QubitOrder.as_qubit_order(5)  # type: ignore
+        _ = cirq.QubitOrder.as_qubit_order(5)  # type: ignore[arg-type]

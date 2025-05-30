@@ -49,11 +49,11 @@ def test_flatten_op_tree() -> None:
 
     # Bad trees.
     with pytest.raises(TypeError):
-        _ = list(cirq.flatten_op_tree(None))  # type: ignore
+        _ = list(cirq.flatten_op_tree(None))  # type: ignore[arg-type]
     with pytest.raises(TypeError):
-        _ = list(cirq.flatten_op_tree(5))  # type: ignore
+        _ = list(cirq.flatten_op_tree(5))  # type: ignore[arg-type]
     with pytest.raises(TypeError):
-        _ = list(cirq.flatten_op_tree([operations[0], (4,)]))  # type: ignore
+        _ = list(cirq.flatten_op_tree([operations[0], (4,)]))  # type: ignore[list-item]
 
 
 def test_flatten_to_ops_or_moments() -> None:
@@ -68,11 +68,11 @@ def test_flatten_to_ops_or_moments() -> None:
 
     # Bad trees.
     with pytest.raises(TypeError):
-        _ = list(cirq.flatten_to_ops_or_moments(None))  # type: ignore
+        _ = list(cirq.flatten_to_ops_or_moments(None))  # type: ignore[arg-type]
     with pytest.raises(TypeError):
-        _ = list(cirq.flatten_to_ops_or_moments(5))  # type: ignore
+        _ = list(cirq.flatten_to_ops_or_moments(5))  # type: ignore[arg-type]
     with pytest.raises(TypeError):
-        _ = list(cirq.flatten_to_ops_or_moments([operations[0], (4,)]))  # type: ignore
+        _ = list(cirq.flatten_to_ops_or_moments([operations[0], (4,)]))  # type: ignore[list-item]
 
 
 def test_freeze_op_tree() -> None:
@@ -97,18 +97,18 @@ def test_freeze_op_tree() -> None:
 
     # Bad trees.
     with pytest.raises(TypeError):
-        cirq.freeze_op_tree(None)  # type: ignore
+        cirq.freeze_op_tree(None)  # type: ignore[arg-type]
     with pytest.raises(TypeError):
-        cirq.freeze_op_tree(5)  # type: ignore
+        cirq.freeze_op_tree(5)  # type: ignore[arg-type]
     with pytest.raises(TypeError):
-        _ = cirq.freeze_op_tree([operations[0], (4,)])  # type: ignore
+        _ = cirq.freeze_op_tree([operations[0], (4,)])  # type: ignore[list-item]
 
 
 def test_transform_bad_tree() -> None:
     with pytest.raises(TypeError):
-        _ = list(cirq.transform_op_tree(None))  # type: ignore
+        _ = list(cirq.transform_op_tree(None))  # type: ignore[arg-type]
     with pytest.raises(TypeError):
-        _ = list(cirq.transform_op_tree(5))  # type: ignore
+        _ = list(cirq.transform_op_tree(5))  # type: ignore[arg-type]
     with pytest.raises(TypeError):
         _ = list(
             cirq.flatten_op_tree(
