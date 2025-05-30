@@ -27,8 +27,13 @@ import cirq
 from cirq_google.api import v2
 from cirq_google.devices import grid_device
 from cirq_google.devices.google_noise_properties import NoiseModelFromGoogleNoiseProperties
-from cirq_google.engine import calibration, engine_validator, simulated_local_processor, util
-from cirq_google.engine.calibration_to_noise_properties import noise_properties_from_calibration
+from cirq_google.engine import (
+    calibration,
+    calibration_to_noise_properties,
+    engine_validator,
+    simulated_local_processor,
+    util,
+)
 from cirq_google.engine.simulated_local_engine import SimulatedLocalEngine
 from cirq_google.engine.simulated_local_processor import SimulatedLocalProcessor
 from cirq_google.ops import fsim_gate_family
@@ -124,8 +129,11 @@ def load_device_noise_properties(processor_id: str) -> cirq_google.GoogleNoisePr
     device = create_device_from_processor_id(processor_id)
     calibration = load_median_device_calibration(processor_id)
     zphase_data = load_sample_device_zphase(processor_id) if processor_id in ZPHASE_DATA else None
-    gate_times_ns = extract_gate_times_ns_from_device(device)
-    return noise_properties_from_calibration(
+    if processor_id in ('rainbow', 'weber'):
+        gate_times_ns = calibration_to_noise_properties.DEFAULT_GATE_NS
+    else:
+        gate_times_ns = extract_gate_times_ns_from_device(device)
+    return calibration_to_noise_properties.noise_properties_from_calibration(
         calibration=calibration, zphase_data=zphase_data, gate_times_ns=gate_times_ns
     )
 
@@ -447,7 +455,9 @@ def create_default_noisy_quantum_virtual_machine(
     gate_times_ns: dict[type[cirq.Gate], float] | None = None
     if processor_id == "willow_pink":
         gate_times_ns = extract_gate_times_ns_from_device(device)
-    noise_properties = noise_properties_from_calibration(calibration, gate_times_ns=gate_times_ns)
+    noise_properties = calibration_to_noise_properties.noise_properties_from_calibration(
+        calibration, gate_times_ns=gate_times_ns
+    )
     noise_model = NoiseModelFromGoogleNoiseProperties(noise_properties)
     simulator = simulator_class(noise=noise_model, **kwargs)  # type: ignore
 
