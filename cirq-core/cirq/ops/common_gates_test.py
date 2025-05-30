@@ -1322,3 +1322,8 @@ def test_parameterized_pauli_expansion(gate_type, exponent):
     gate_resolved = cirq.resolve_parameters(gate, {'s': 0.5})
     pauli_resolved = cirq.resolve_parameters(pauli, {'s': 0.5})
     assert cirq.approx_eq(pauli_resolved, cirq.pauli_expansion(gate_resolved))
+
+
+def test_xpowgate_string_exponent_raises():
+    with pytest.raises(TypeError, match="Exponent must be a float or sympy expression, not str"):
+        _ = cirq.X ** "text"
