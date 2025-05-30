@@ -28,7 +28,7 @@ class ValidQubit(cirq.Qid):
         self._name = name
 
     @property
-    def dimension(self):
+    def dimension(self) -> int:
         return 2
 
     def _comparison_key(self):
@@ -108,7 +108,7 @@ class ValiGate(cirq.Gate):
     def _num_qubits_(self):
         return 2
 
-    def validate_args(self, qubits):
+    def validate_args(self, qubits) -> None:
         if len(qubits) == 1:
             return  # Bypass check for some tests
         super().validate_args(qubits)

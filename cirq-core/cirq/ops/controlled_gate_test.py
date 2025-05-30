@@ -466,7 +466,7 @@ def test_nontrivial_controlled_gate_is_consistent(
     control_qid_shape: Sequence[int],
     control_values: Any,
     should_decompose_to_target: bool,
-):
+) -> None:
     _test_controlled_gate_is_consistent(
         gate, should_decompose_to_target, control_qid_shape, control_values
     )
@@ -511,7 +511,7 @@ def _test_controlled_gate_is_consistent(
 )
 def test_controlled_gate_decomposition_uses_canonical_version(
     sub_gate: cirq.Gate, expected_decomposition: list[cirq.Gate]
-):
+) -> None:
     cgate = cirq.ControlledGate(sub_gate, num_controls=1)
     qubits = cirq.LineQubit.range(1 + sub_gate.num_qubits())
     dec = cirq.decompose_once(cgate.on(*qubits))
@@ -523,7 +523,7 @@ def test_controlled_gate_decomposition_uses_canonical_version(
 )
 def test_controlled_gate_full_decomposition(
     sub_gate: cirq.Gate, expected_decomposition: list[cirq.Gate]
-):
+) -> None:
     cgate = cirq.ControlledGate(sub_gate, num_controls=1)
     qubits = cirq.LineQubit.range(1 + sub_gate.num_qubits())
     dec = cirq.decompose(cgate.on(*qubits))

@@ -654,7 +654,7 @@ class Operation(metaclass=abc.ABCMeta):
             *self.qubits
         )
 
-    def validate_args(self, qubits: Sequence[cirq.Qid]):
+    def validate_args(self, qubits: Sequence[cirq.Qid]) -> None:
         """Raises an exception if the `qubits` don't match this operation's qid
         shape.
 

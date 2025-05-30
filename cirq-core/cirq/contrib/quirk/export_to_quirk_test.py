@@ -21,7 +21,7 @@ import cirq
 from cirq.contrib.quirk.export_to_quirk import circuit_to_quirk_url
 
 
-def assert_links_to(circuit: cirq.Circuit, expected: str, **kwargs):
+def assert_links_to(circuit: cirq.Circuit, expected: str, **kwargs) -> None:
     actual = circuit_to_quirk_url(circuit, **kwargs)
     actual = actual.replace('\n', '').replace(' ', '').strip()
     expected = expected.replace('],[', '],\n[').strip()

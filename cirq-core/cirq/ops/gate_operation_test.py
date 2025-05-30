@@ -279,7 +279,7 @@ def test_measurement_key() -> None:
     assert cirq.measurement_key_name(cirq.measure(a, key='lock')) == 'lock'
 
 
-def assert_mixtures_equal(actual, expected):
+def assert_mixtures_equal(actual, expected) -> None:
     """Assert equal for tuple of mixed scalar and array types."""
     for a, e in zip(actual, expected):
         np.testing.assert_almost_equal(a[0], e[0])

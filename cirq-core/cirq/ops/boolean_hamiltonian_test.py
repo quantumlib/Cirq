@@ -173,7 +173,7 @@ def test_gray_code_comparison(seq_a, seq_b, expected) -> None:
 )
 def test_simplify_commuting_cnots(
     input_cnots, input_flip_control_and_target, expected_simplified, expected_output_cnots
-):
+) -> None:
     actual_simplified, actual_output_cnots = bh._simplify_commuting_cnots(
         input_cnots, input_flip_control_and_target
     )
@@ -206,7 +206,7 @@ def test_simplify_commuting_cnots(
 )
 def test_simplify_cnots_triplets(
     input_cnots, input_flip_control_and_target, expected_simplified, expected_output_cnots
-):
+) -> None:
     actual_simplified, actual_output_cnots = bh._simplify_cnots_triplets(
         input_cnots, input_flip_control_and_target
     )

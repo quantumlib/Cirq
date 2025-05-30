@@ -499,7 +499,7 @@ def test_partial_trace_of_state_vector_as_mixture_invalid_input() -> None:
         cirq.partial_trace_of_state_vector_as_mixture(state, [0, 1, 2], atol=1e-8)
 
 
-def mixtures_equal(m1, m2, atol=1e-7):
+def mixtures_equal(m1, m2, atol=1e-7) -> bool:
     for (p1, v1), (p2, v2) in zip(m1, m2):
         if not (
             cirq.approx_eq(p1, p2, atol=atol) and cirq.equal_up_to_global_phase(v1, v2, atol=atol)
