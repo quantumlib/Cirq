@@ -54,7 +54,7 @@ class Duration:
 
     def __init__(
         self,
-        value: DURATION_LIKE = None,
+        value: DURATION_LIKE | int = None,
         *,  # Force keyword args.
         picos: _NUMERIC_INPUT_TYPE = 0,
         nanos: _NUMERIC_INPUT_TYPE = 0,
