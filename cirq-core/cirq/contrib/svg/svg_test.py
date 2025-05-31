@@ -21,12 +21,14 @@ def test_svg() -> None:
             cirq.PhasedXPowGate(exponent=0.123, phase_exponent=0.456).on(c),
             cirq.Z(a),
             cirq.measure(a, b, c, key='z'),
-            cirq.MatrixGate(np.eye(2)).on(a),
+            cirq.MatrixGate(np.eye(2)).on(a).with_classical_controls('z'),
         )
     )
     assert '?' in svg_text
     assert '<svg' in svg_text
     assert '</svg>' in svg_text
+    assert 'double' in svg_text
+    assert 'arrow' in svg_text
 
 
 def test_svg_noise() -> None:
