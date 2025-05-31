@@ -252,6 +252,8 @@ def test_pow() -> None:
         assert ZGateDef(exponent=0.5) ** 0.5j
     assert ZGateDef(exponent=0.5) ** (1 + 0j) == ZGateDef(exponent=0.5)
 
+    assert ZGaetDef(exponent="not compatible") is NotImplemented
+
 
 def test_inverse() -> None:
     assert cirq.inverse(CExpZinGate(0.25)) == CExpZinGate(-0.25)
