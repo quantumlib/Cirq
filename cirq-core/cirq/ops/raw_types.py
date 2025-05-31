@@ -227,7 +227,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         if __cirq_debug__.get():
             _validate_qid_shape(self, qubits)
 
-    def on(self, *qubits: Qid) -> Operation:
+    def on(self, *qubits: Qid) -> cirq.Operation:
         """Returns an application of this gate to the given qubits.
 
         Args:
@@ -449,7 +449,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
     @value.alternative(requires='_num_qubits_', implementation=_default_shape_from_num_qubits)
     def _qid_shape_(self) -> tuple[int, ...]:
-        """Returns a Tuple containing the number of quantum levels of each qid
+        """Returns a tuple containing the number of quantum levels of each qid
         the gate acts on.  E.g. (2, 2, 2) for the three-qubit CCZ gate and
         (3, 3) for a 2-qutrit ternary gate.
         """
@@ -654,7 +654,7 @@ class Operation(metaclass=abc.ABCMeta):
             *self.qubits
         )
 
-    def validate_args(self, qubits: Sequence[cirq.Qid]):
+    def validate_args(self, qubits: Sequence[cirq.Qid]) -> None:
         """Raises an exception if the `qubits` don't match this operation's qid
         shape.
 

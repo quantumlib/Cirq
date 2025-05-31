@@ -41,7 +41,7 @@ updates:
   - package-ecosystem: "npm"
     # The "npm" ecosystem directive makes Dependabot look for package.json in
     # the specified directory.
-    directory: "/cirq-web/cirq_ts/"
+    directory: "/cirq-web/cirq_web/"
     schedule:
       interval: "monthly"
     versioning-strategy: "widen"

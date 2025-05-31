@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import abc
 import importlib.metadata
-from typing import Awaitable, Callable, Dict, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Awaitable, Callable, Sequence, TYPE_CHECKING
 
 import google.api_core
 import google.auth
