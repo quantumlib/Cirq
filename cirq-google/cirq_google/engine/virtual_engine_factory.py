@@ -134,7 +134,7 @@ def load_device_noise_properties(processor_id: str) -> cirq_google.GoogleNoisePr
     else:
         gate_times_ns = extract_gate_times_ns_from_device(device)
     return calibration_to_noise_properties.noise_properties_from_calibration(
-        calibration=calibration, zphase_data=zphase_data, gate_times_ns=gate_times_ns
+        calibration=calibration, gate_times_ns=gate_times_ns, zphase_data=zphase_data
     )
 
 

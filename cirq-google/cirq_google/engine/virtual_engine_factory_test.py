@@ -281,7 +281,9 @@ def test_create_default_noisy_quantum_virtual_machine(
     assert device_specification is not None
     assert device_specification == expected
     with mock.patch.object(
-        factory, "extract_gate_times_ns_from_device", return_value=None
+        factory,
+        "extract_gate_times_ns_from_device",
+        wraps=factory.extract_gate_times_ns_from_device,
     ) as mocked_extract:
         _ = factory.create_default_noisy_quantum_virtual_machine(
             processor_id=processor_id, simulator_class=cirq.Simulator
