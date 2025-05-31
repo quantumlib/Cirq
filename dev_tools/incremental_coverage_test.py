@@ -17,7 +17,7 @@ from __future__ import annotations
 from dev_tools import incremental_coverage
 
 
-def test_determine_ignored_lines():
+def test_determine_ignored_lines() -> None:
     f = incremental_coverage.determine_ignored_lines
 
     assert f("a = 0  # pragma: no cover") == {1}

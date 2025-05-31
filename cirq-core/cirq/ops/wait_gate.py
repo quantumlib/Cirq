@@ -33,7 +33,7 @@ class WaitGate(raw_types.Gate):
 
     def __init__(
         self,
-        duration: cirq.DURATION_LIKE,
+        duration: cirq.DURATION_LIKE | int,
         num_qubits: int | None = None,
         qid_shape: tuple[int, ...] | None = None,
     ) -> None:

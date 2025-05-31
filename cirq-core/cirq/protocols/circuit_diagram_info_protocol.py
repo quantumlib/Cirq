@@ -194,7 +194,7 @@ class CircuitDiagramInfoArgs:
         known_qubit_count: int | None,
         use_unicode_characters: bool,
         precision: int | None,
-        label_map: dict[cirq.LabelEntity, int] | None,
+        label_map: dict[LabelEntity, int] | None,
         include_tags: bool = True,
         transpose: bool = False,
     ) -> None:

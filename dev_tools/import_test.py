@@ -206,7 +206,7 @@ def verify_import_tree(depth: int = 1, track_others: bool = False, timeit: bool 
 FAIL_EXIT_CODE = 65
 
 
-def test_no_circular_imports():
+def test_no_circular_imports() -> None:
     """Runs the test in a subprocess because cirq has already been imported
     before in an earlier test but this test needs to control the import process.
     """

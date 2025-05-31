@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import string
 from types import NotImplementedType
-from typing import Any, Iterable, TYPE_CHECKING, TypeVar
+from typing import Any, Iterable, Mapping, TYPE_CHECKING, TypeVar
 
 from typing_extensions import Protocol
 
@@ -38,7 +38,7 @@ class QasmArgs(string.Formatter):
         self,
         precision: int = 10,
         version: str = '2.0',
-        qubit_id_map: dict[cirq.Qid, str] | None = None,
+        qubit_id_map: Mapping[cirq.Qid, str] | None = None,
         meas_key_id_map: dict[str, str] | None = None,
         meas_key_bitcount: dict[str, int] | None = None,
     ) -> None:
@@ -64,7 +64,7 @@ class QasmArgs(string.Formatter):
     def _format_number(self, value) -> str:
         """OpenQASM 2.0 does not support '1e-5' and wants '1.0e-5'"""
         s = f'{value}'
-        if 'e' in s and not '.' in s:
+        if 'e' in s and '.' not in s:
             return s.replace('e', '.0e')
         return s
 
