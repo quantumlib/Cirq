@@ -25,6 +25,19 @@ import cirq_google as cg
 import cirq_google.api.v2 as v2
 import cirq_google.engine.virtual_engine_factory as factory
 
+# copy of cirq_google.engine.calibration_to_noise_properties.DEFAULT_GATE_NS
+OLD_QVM_DEFAULT_GATE_NS: dict[type[cirq.Gate], float] = {
+    cirq.ZPowGate: 25.0,
+    cirq.MeasurementGate: 4000.0,
+    cirq.ResetChannel: 250.0,
+    cirq.PhasedXZGate: 25.0,
+    cirq.FSimGate: 32.0,
+    cirq.ISwapPowGate: 32.0,
+    cirq.CZPowGate: 32.0,
+    cg.ops.SycamoreGate: 12.0,
+    # ops.WaitGate is a special case.
+}
+
 
 def _test_processor(processor: cg.engine.abstract_processor.AbstractProcessor) -> None:
     """Tests an engine instance with some standard commands.
@@ -62,13 +75,40 @@ def test_create_from_device() -> None:
     _test_processor(engine.get_processor('sycamore'))
 
 
-def test_load_device_noise_properties() -> None:
+def test_load_device_noise_properties_of_rainbow() -> None:
     noise_properties = factory.load_device_noise_properties("rainbow")
     assert noise_properties.readout_errors[cirq.GridQubit(9, 4)] == [0.0124, 0.0464]
-    assert noise_properties.gate_times_ns[cirq.PhasedXZGate] == 25
+    assert noise_properties.gate_times_ns == OLD_QVM_DEFAULT_GATE_NS
     op_id = cirq.OpIdentifier(cirq.ISwapPowGate, cirq.GridQubit(3, 2), cirq.GridQubit(4, 2))
     assert noise_properties.fsim_errors[op_id].zeta == -0.004952147720840733
     assert noise_properties.fsim_errors[op_id].gamma == -0.04094895320428251
+
+
+def test_load_device_noise_properties_of_weber() -> None:
+    noise_properties = factory.load_device_noise_properties("weber")
+    assert noise_properties.readout_errors[cirq.GridQubit(9, 4)] == [0.0086, 0.0634]
+    assert noise_properties.gate_times_ns == OLD_QVM_DEFAULT_GATE_NS
+    op_id = cirq.OpIdentifier(cirq.ISwapPowGate, cirq.GridQubit(3, 2), cirq.GridQubit(4, 2))
+    assert noise_properties.fsim_errors[op_id].zeta == -0.10303422893651185
+    assert noise_properties.fsim_errors[op_id].gamma == -0.0032040209641905903
+
+
+def test_load_device_noise_properties_of_willow_pink() -> None:
+    noise_properties = factory.load_device_noise_properties("willow_pink")
+    assert noise_properties.readout_errors[cirq.GridQubit(6, 5)] == [
+        0.0016608771929824222,
+        0.01175789473684208,
+    ]
+    assert noise_properties.gate_times_ns[cirq.CZPowGate] == 42
+    assert noise_properties.gate_times_ns[cirq.MeasurementGate] == 600
+    assert noise_properties.gate_times_ns[cirq.PhasedXZGate] == 25
+    assert noise_properties.gate_times_ns[cirq.ResetChannel] == 160
+    op_id = cirq.OpIdentifier(cirq.CZPowGate, cirq.GridQubit(4, 6), cirq.GridQubit(5, 6))
+    assert noise_properties.gate_pauli_errors[op_id] == 0.005621218474436904
+    assert noise_properties.fsim_errors[op_id].theta == 0.04183530427211678
+    assert noise_properties.fsim_errors[op_id].phi == 0.008106226272121209
+    assert noise_properties.fsim_errors[op_id].zeta == 0
+    assert noise_properties.fsim_errors[op_id].gamma == 0
 
 
 def test_median_rainbow_device() -> None:
@@ -241,7 +281,9 @@ def test_create_default_noisy_quantum_virtual_machine(
     assert device_specification is not None
     assert device_specification == expected
     with mock.patch.object(
-        factory, "extract_gate_times_ns_from_device", return_value=None
+        factory,
+        "extract_gate_times_ns_from_device",
+        wraps=factory.extract_gate_times_ns_from_device,
     ) as mocked_extract:
         _ = factory.create_default_noisy_quantum_virtual_machine(
             processor_id=processor_id, simulator_class=cirq.Simulator
