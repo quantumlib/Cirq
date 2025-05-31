@@ -242,7 +242,7 @@ def test_noise_properties_from_calibration():
     ):
         prop = cirq_google.noise_properties_from_calibration(calibration)
     assert prop == cirq_google.noise_properties_from_calibration(
-        calibration, gate_times_ns="sycamore"
+        calibration, gate_times_ns="legacy"
     )
 
     for i, q in enumerate(qubits):
@@ -327,7 +327,7 @@ def test_zphase_data():
     }
 
     prop = cirq_google.noise_properties_from_calibration(
-        calibration, gate_times_ns="sycamore", zphase_data=zphase_data
+        calibration, gate_times_ns="legacy", zphase_data=zphase_data
     )
     for i, qs in enumerate(qubit_pairs):
         for gate, values in [
@@ -429,4 +429,4 @@ def test_incomplete_calibration():
     # Create NoiseProperties object from Calibration
     calibration = cirq_google.Calibration(_CALIBRATION_DATA)
     with pytest.raises(ValueError, match='Keys specified for T1 and Tphi are not identical.'):
-        _ = cirq_google.noise_properties_from_calibration(calibration, gate_times_ns="sycamore")
+        _ = cirq_google.noise_properties_from_calibration(calibration, gate_times_ns="legacy")

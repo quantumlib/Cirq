@@ -20,7 +20,7 @@ calibration using the following pipeline:
 
     >>> cal = cirq_google.engine.load_median_device_calibration("rainbow")
     >>> noise_props = cirq_google.engine.noise_properties_from_calibration(
-    ...     cal, gate_times_ns="sycamore")
+    ...     cal, gate_times_ns="legacy")
     >>> noise_model = cirq_google.NoiseModelFromGoogleNoiseProperties(noise_props)
     >>> simulator = cirq.Simulator(noise=noise_model)
     >>> circuit = cirq.Circuit(cirq.X(cirq.GridQubit(5, 2)))
@@ -93,7 +93,7 @@ def _unpack_2q_from_calibration(
 def noise_properties_from_calibration(
     calibration: engine.Calibration,
     *,
-    gate_times_ns: dict[type[cirq.Gate], float] | Literal['sycamore'] | None = None,
+    gate_times_ns: dict[type[cirq.Gate], float] | Literal['legacy'] | None = None,
     zphase_data: util.ZPhaseDataType | None = None,
 ) -> google_noise_properties.GoogleNoiseProperties:
     """Translates between `cirq_google.Calibration` and NoiseProperties.
@@ -106,7 +106,7 @@ def noise_properties_from_calibration(
 
         >>> cal = cirq_google.engine.load_median_device_calibration("rainbow")
         >>> noise_props = cirq_google.engine.noise_properties_from_calibration(
-        ...     cal, gate_times_ns="sycamore")
+        ...     cal, gate_times_ns="legacy")
         >>> # noise_props with all gate durations set to 37ns.
         >>> noise_props_37ns = noise_props.with_params(gate_times_ns=37)
 
@@ -114,10 +114,10 @@ def noise_properties_from_calibration(
 
     Args:
         calibration: a Calibration object with hardware metrics.
-        gate_times_ns: Map of gate durations in nanoseconds or "sycamore"
+        gate_times_ns: Map of gate durations in nanoseconds or "legacy"
             to use the Sycamore gate times listed in `known_devices.py`.
-            Note this argument has changed from optional to mandatory.
-            Use "sycamore" to get the legacy default values.
+            Note this argument has changed from optional to mandatory and
+            the "legacy" value was added as an alias for the old default.
         zphase_data: Optional data for Z phases not captured by Calibration -
             specifically, zeta and gamma. These values require Floquet
             calibration and can be provided here if available.
@@ -131,14 +131,14 @@ def noise_properties_from_calibration(
             'Function noise_properties_from_calibration was called without the '
             'gate_times_ns argument.\n'
             'This argument will become mandatory in cirq_google v1.7.\n'
-            'To continue using the legacy default gate times, please pass the "sycamore" value.'
+            'To continue using the old gate times default, please pass the "legacy" value.'
         )
         gate_times_ns = DEFAULT_GATE_NS
-    elif gate_times_ns == 'sycamore':
+    elif gate_times_ns == 'legacy':
         gate_times_ns = DEFAULT_GATE_NS
     if not isinstance(gate_times_ns, dict):
         raise TypeError(
-            f'gate_times_ns must be a dictionary or the "sycamore" string. '
+            f'gate_times_ns must be a dictionary or the "legacy" string. '
             f'Got {gate_times_ns} instead.'
         )
 
