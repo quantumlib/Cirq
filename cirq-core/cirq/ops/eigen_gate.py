@@ -289,6 +289,8 @@ class EigenGate(raw_types.Gate):
         return _approximate_common_period(real_periods)
 
     def __pow__(self, exponent: float | sympy.Symbol) -> EigenGate:
+        if isinstance(exponent, str):
+            raise TypeError("Exponent must be a float or sympy expression, not str. String exponents are not supported.")
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             return NotImplemented  # pragma: no cover
