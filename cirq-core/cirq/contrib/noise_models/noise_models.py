@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     import cirq
 
 
+@value.value_equality
 class DepolarizingNoiseModel(devices.NoiseModel):
     """Applies depolarizing noise to each qubit individually at the end of
     every moment.
@@ -41,6 +42,15 @@ class DepolarizingNoiseModel(devices.NoiseModel):
         value.validate_probability(depol_prob, 'depol prob')
         self.qubit_noise_gate = ops.DepolarizingChannel(depol_prob)
         self._prepend = prepend
+
+    def _value_equality_values_(self):
+        return self.qubit_noise_gate.p, self._prepend
+
+    def __repr__(self) -> str:
+        return (
+            "cirq.contrib.noise_models.DepolarizingNoiseModel("
+            f"{self.qubit_noise_gate.p!r}, prepend={self._prepend!r})"
+        )
 
     def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]):
         if validate_all_measurements(moment) or self.is_virtual_moment(moment):  # pragma: no cover
@@ -65,6 +75,7 @@ class DepolarizingNoiseModel(devices.NoiseModel):
         return obj
 
 
+@value.value_equality
 class ReadoutNoiseModel(devices.NoiseModel):
     """NoiseModel with probabilistic bit flips preceding measurement.
 
@@ -87,6 +98,15 @@ class ReadoutNoiseModel(devices.NoiseModel):
         value.validate_probability(bitflip_prob, 'bitflip prob')
         self.readout_noise_gate = ops.BitFlipChannel(bitflip_prob)
         self._prepend = prepend
+
+    def _value_equality_values_(self):
+        return self.readout_noise_gate.p, self._prepend
+
+    def __repr__(self) -> str:
+        return (
+            "cirq.contrib.noise_models.ReadoutNoiseModel("
+            f"{self.readout_noise_gate.p!r}, prepend={self._prepend!r})"
+        )
 
     def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]):
         if self.is_virtual_moment(moment):
@@ -112,6 +132,7 @@ class ReadoutNoiseModel(devices.NoiseModel):
         return obj
 
 
+@value.value_equality
 class DampedReadoutNoiseModel(devices.NoiseModel):
     """NoiseModel with T1 decay preceding measurement.
 
@@ -134,6 +155,15 @@ class DampedReadoutNoiseModel(devices.NoiseModel):
         value.validate_probability(decay_prob, 'decay_prob')
         self.readout_decay_gate = ops.AmplitudeDampingChannel(decay_prob)
         self._prepend = prepend
+
+    def _value_equality_values_(self):
+        return self.readout_decay_gate.gamma, self._prepend
+
+    def __repr__(self) -> str:
+        return (
+            "cirq.contrib.noise_models.DampedReadoutNoiseModel("
+            f"{self.readout_decay_gate.gamma!r}, prepend={self._prepend!r})"
+        )
 
     def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]):
         if self.is_virtual_moment(moment):
@@ -159,6 +189,7 @@ class DampedReadoutNoiseModel(devices.NoiseModel):
         return obj
 
 
+@value.value_equality
 class DepolarizingWithReadoutNoiseModel(devices.NoiseModel):
     """DepolarizingNoiseModel with probabilistic bit flips preceding
     measurement.
@@ -177,6 +208,15 @@ class DepolarizingWithReadoutNoiseModel(devices.NoiseModel):
         value.validate_probability(bitflip_prob, 'bitflip prob')
         self.qubit_noise_gate = ops.DepolarizingChannel(depol_prob)
         self.readout_noise_gate = ops.BitFlipChannel(bitflip_prob)
+
+    def _value_equality_values_(self):
+        return (self.qubit_noise_gate.p, self.readout_noise_gate.p)
+
+    def __repr__(self) -> str:
+        return (
+            "cirq.contrib.noise_models.DepolarizingWithReadoutNoiseModel("
+            f"{self.qubit_noise_gate.p!r}, {self.readout_noise_gate.p!r})"
+        )
 
     def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]):
         if validate_all_measurements(moment):
@@ -197,6 +237,7 @@ class DepolarizingWithReadoutNoiseModel(devices.NoiseModel):
         return obj
 
 
+@value.value_equality
 class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
     """DepolarizingWithReadoutNoiseModel with T1 decay preceding
     measurement.
@@ -230,6 +271,15 @@ class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
             ]
         else:
             return [moment, circuits.Moment(self.qubit_noise_gate(q) for q in system_qubits)]
+
+    def _value_equality_values_(self):
+        return (self.qubit_noise_gate.p, self.readout_noise_gate.p, self.readout_decay_gate.gamma)
+
+    def __repr__(self) -> str:
+        return (
+            "cirq.contrib.noise_models.DepolarizingWithDampedReadoutNoiseModel("
+            f"{self.qubit_noise_gate.p!r}, {self.readout_noise_gate.p!r}, {self.readout_decay_gate.gamma!r})"
+        )
 
     def _json_dict_(self) -> dict[str, object]:
         return {

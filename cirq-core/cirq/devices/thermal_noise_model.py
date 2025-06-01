@@ -22,7 +22,7 @@ import numpy as np
 import sympy
 
 import cirq
-from cirq import devices, ops, protocols, qis
+from cirq import devices, ops, protocols, qis, value
 from cirq._import import LazyLoader
 from cirq.devices.noise_utils import PHYSICAL_GATE_TAG
 
@@ -161,7 +161,8 @@ def _validate_rates(qubits: set[cirq.Qid], rates: dict[cirq.Qid, np.ndarray]) ->
             )
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(eq=False)
+@value.value_equality
 class ThermalNoiseModel(devices.NoiseModel):
     """NoiseModel representing simulated thermalization of a qubit.
 
@@ -232,6 +233,26 @@ class ThermalNoiseModel(devices.NoiseModel):
         self.require_physical_tag: bool = require_physical_tag
         self.skip_measurements: bool = skip_measurements
         self._prepend = prepend
+
+    def _value_equality_values_(self):
+        gate_times = tuple(sorted((k, v) for k, v in self.gate_durations_ns.items()))
+        rates = tuple(
+            sorted(
+                ((q, tuple(m.reshape(-1))) for q, m in self.rate_matrix_GHz.items()),
+                key=lambda x: repr(x[0]),
+            )
+        )
+        return gate_times, rates, self.require_physical_tag, self.skip_measurements, self._prepend
+
+    def __repr__(self) -> str:
+        return (
+            "cirq.devices.ThermalNoiseModel("
+            f"qubits={set(self.rate_matrix_GHz.keys())!r}, "
+            f"gate_durations_ns={self.gate_durations_ns!r}, "
+            f"heat_rate_GHz=None, cool_rate_GHz=None, dephase_rate_GHz=None, "
+            f"require_physical_tag={self.require_physical_tag!r}, "
+            f"skip_measurements={self.skip_measurements!r}, prepend={self._prepend!r})"
+        )
 
     def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         if not moment.operations:

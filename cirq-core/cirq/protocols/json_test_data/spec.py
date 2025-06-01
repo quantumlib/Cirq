@@ -169,6 +169,7 @@ TestSpec = ModuleJsonTestSpec(
         'Simulator',
         'StabilizerSampler',
         'DEFAULT_RESOLVERS',
+        'NoiseModelFromNoiseProperties',
     ],
     deprecated={},
     tested_elsewhere=[

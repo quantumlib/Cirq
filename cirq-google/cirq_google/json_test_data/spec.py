@@ -25,6 +25,8 @@ TestSpec = ModuleJsonTestSpec(
         'EngineProgram',
         'ProtoVersion',
         'GreedySequenceSearchStrategy',
+        'NoiseModelFromGoogleNoiseProperties',
+        'PerQubitDepolarizingWithDampedReadoutNoiseModel',
         'ProcessorSampler',
         'ValidatingSampler',
         'CouldNotPlaceError',
