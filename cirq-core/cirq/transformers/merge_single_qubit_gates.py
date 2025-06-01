@@ -118,7 +118,7 @@ def merge_single_qubit_moments_to_phxz(
 
     def can_merge_moment(m: cirq.Moment):
         return all(
-            protocols.num_qubits(op) == 1
+            (protocols.num_qubits(op) == 1 or protocols.num_qubits(op) == 0)
             and protocols.has_unitary(op)
             and tags_to_ignore.isdisjoint(op.tags)
             for op in m
@@ -146,6 +146,10 @@ def merge_single_qubit_moments_to_phxz(
                     )
                     if gate:
                         ret_ops.append(gate(q))
+        # Transfer global phase
+        for op in m1.operations + m2.operations:
+            if protocols.num_qubits(op) == 0:
+                ret_ops.append(op)
         return circuits.Moment(ret_ops)
 
     return transformer_primitives.merge_moments(
