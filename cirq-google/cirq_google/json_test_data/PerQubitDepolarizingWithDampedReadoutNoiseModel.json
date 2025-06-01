@@ -1,0 +1,30 @@
+{
+  "cirq_type": "PerQubitDepolarizingWithDampedReadoutNoiseModel",
+  "depol_probs": [
+    [
+      {
+        "cirq_type": "LineQubit",
+        "x": 0
+      },
+      0.1
+    ]
+  ],
+  "bitflip_probs": [
+    [
+      {
+        "cirq_type": "LineQubit",
+        "x": 0
+      },
+      0.2
+    ]
+  ],
+  "decay_probs": [
+    [
+      {
+        "cirq_type": "LineQubit",
+        "x": 0
+      },
+      0.3
+    ]
+  ]
+}

@@ -18,12 +18,14 @@ from math import exp
 from typing import Sequence, TYPE_CHECKING
 
 import cirq
+from cirq import value
 from cirq.devices.noise_model import validate_all_measurements
 
 if TYPE_CHECKING:
     from cirq_google.engine import calibration
 
 
+@value.value_equality()
 class PerQubitDepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
     """NoiseModel with T1 decay on gates and damping/bitflip on measurement.
 
@@ -65,6 +67,22 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
         self.bitflip_probs = bitflip_probs
         self.decay_probs = decay_probs
 
+    def _value_equality_values_(self):
+        return (
+            tuple(sorted((q, p) for q, p in (self.depol_probs or {}).items())),
+            tuple(sorted((q, p) for q, p in (self.bitflip_probs or {}).items())),
+            tuple(sorted((q, p) for q, p in (self.decay_probs or {}).items())),
+        )
+
+    def __repr__(self) -> str:
+        return (
+            'cirq_google.experimental.noise_models.'
+            'PerQubitDepolarizingWithDampedReadoutNoiseModel('
+            f'depol_probs={self.depol_probs!r}, '
+            f'bitflip_probs={self.bitflip_probs!r}, '
+            f'decay_probs={self.decay_probs!r})'
+        )
+
     def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         if self.is_virtual_moment(moment):
             return moment
@@ -98,17 +116,17 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
 
     def _json_dict_(self) -> dict[str, object]:
         return {
-            'depol_probs': self.depol_probs,
-            'bitflip_probs': self.bitflip_probs,
-            'decay_probs': self.decay_probs,
+            'depol_probs': tuple((q, p) for q, p in (self.depol_probs or {}).items()),
+            'bitflip_probs': tuple((q, p) for q, p in (self.bitflip_probs or {}).items()),
+            'decay_probs': tuple((q, p) for q, p in (self.decay_probs or {}).items()),
         }
 
     @classmethod
     def _from_json_dict_(cls, depol_probs, bitflip_probs, decay_probs, **kwargs):
         obj = cls.__new__(cls)
-        obj.depol_probs = depol_probs
-        obj.bitflip_probs = bitflip_probs
-        obj.decay_probs = decay_probs
+        obj.depol_probs = dict(depol_probs)
+        obj.bitflip_probs = dict(bitflip_probs)
+        obj.decay_probs = dict(decay_probs)
         return obj
 
 
