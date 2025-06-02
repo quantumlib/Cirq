@@ -383,7 +383,9 @@ def test_json_serde_works():
         },
     }
 
-    prop = cirq_google.noise_properties_from_calibration(calibration, zphase_data)
+    prop = cirq_google.noise_properties_from_calibration(
+        calibration, gate_times_ns='legacy', zphase_data=zphase_data
+    )
 
     json_text = cirq.to_json(prop)
     prop1 = cirq.read_json(json_text=json_text)
