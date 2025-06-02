@@ -176,9 +176,7 @@ def _assert_meets_standards_helper(
             assert_controlled_unitary_consistent(val)
 
 
-def assert_commutes_magic_method_consistent_with_unitaries(
-    *vals: Sequence[Any], atol: float = 1e-8
-) -> None:
+def assert_commutes_magic_method_consistent_with_unitaries(*vals: Any, atol: float = 1e-8) -> None:
     if any(isinstance(val, ops.Operation) for val in vals):
         raise TypeError('`_commutes_` need not be consistent with unitaries for `Operation`.')
     unitaries = [protocols.unitary(val, None) for val in vals]
