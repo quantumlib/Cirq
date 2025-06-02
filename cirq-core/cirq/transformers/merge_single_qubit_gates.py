@@ -118,7 +118,7 @@ def merge_single_qubit_moments_to_phxz(
 
     def can_merge_moment(m: cirq.Moment):
         return all(
-            (protocols.num_qubits(op) == 1 or protocols.num_qubits(op) == 0)
+            protocols.num_qubits(op) <= 1
             and protocols.has_unitary(op)
             and tags_to_ignore.isdisjoint(op.tags)
             for op in m
