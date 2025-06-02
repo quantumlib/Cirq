@@ -55,8 +55,8 @@ temp.track();
 describe('Bloch sphere', () => {
   // Create the temporary directory first, then run everything.
   temp.mkdir('tmp', (err, dirPath) => {
-    const outputPath = path.join(dirPath, 'bloch_sphere.png');
-    const newVectorOutputPath = path.join(dirPath, 'bloch_sphere_vec.png');
+    const outputPath = path.join(dirPath, 'bloch_sphere');
+    const newVectorOutputPath = path.join(dirPath, 'bloch_sphere_vec');
 
     before(async () => {
       // Opens a headless browser with the generated HTML file and takes a screenshot.
@@ -67,7 +67,7 @@ describe('Bloch sphere', () => {
 
       // Take a screenshot of the first image
       await page.setContent(htmlContent("renderBlochSphere('container')"));
-      await page.screenshot({path: outputPath});
+      await page.screenshot({path: `${outputPath}.png`});
       await browser.close();
     });
 
@@ -75,7 +75,7 @@ describe('Bloch sphere', () => {
       const expected = PNG.PNG.sync.read(
         readFileSync('e2e/bloch_sphere/bloch_sphere_expected.png'),
       );
-      const actual = PNG.PNG.sync.read(readFileSync(outputPath));
+      const actual = PNG.PNG.sync.read(readFileSync(`${outputPath}.png`));
       const {width, height} = expected;
       const diff = new PNG.PNG({width, height});
 
@@ -95,7 +95,7 @@ describe('Bloch sphere', () => {
       await page.setContent(
         htmlContent("renderBlochSphere('container').addVector(0.5, 0.5, 0.5);"),
       );
-      await page.screenshot({path: newVectorOutputPath});
+      await page.screenshot({path: `${newVectorOutputPath}.png`});
       await browser.close();
     });
 
@@ -103,7 +103,7 @@ describe('Bloch sphere', () => {
       const expected = PNG.PNG.sync.read(
         readFileSync('e2e/bloch_sphere/bloch_sphere_expected_custom.png'),
       );
-      const actual = PNG.PNG.sync.read(readFileSync(newVectorOutputPath));
+      const actual = PNG.PNG.sync.read(readFileSync(`${newVectorOutputPath}.png`));
       const {width, height} = expected;
       const diff = new PNG.PNG({width, height});
 
