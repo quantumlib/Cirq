@@ -50,7 +50,7 @@ temp.track();
 
 describe('Circuit', () => {
   temp.mkdir('tmp', (err, dirPath) => {
-    const outputPath = path.join(dirPath, 'circuit.png');
+    const outputPath = path.join(dirPath, 'circuit');
 
     before(async () => {
       const browser = await puppeteer.launch({args: ['--app']});
@@ -83,13 +83,13 @@ describe('Circuit', () => {
         );
       `),
       );
-      await page.screenshot({path: outputPath});
+      await page.screenshot({path: `${outputPath}.png`});
       await browser.close();
     });
 
     it('with limited gates matches the gold copy', () => {
       const expected = PNG.PNG.sync.read(readFileSync('e2e/circuit/circuit_expected.png'));
-      const actual = PNG.PNG.sync.read(readFileSync(outputPath));
+      const actual = PNG.PNG.sync.read(readFileSync(`${outputPath}.png`));
       const {width, height} = expected;
       const diff = new PNG.PNG({width, height});
 

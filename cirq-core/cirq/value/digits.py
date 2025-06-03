@@ -127,6 +127,11 @@ def big_endian_int_to_digits(val: int, *, digit_count: int, base: int) -> list[i
 
 
 @overload
+def big_endian_int_to_digits(val: int, *, digit_count: int, base: Iterable[int]) -> list[int]:
+    pass
+
+
+@overload
 def big_endian_int_to_digits(val: int, *, base: Iterable[int]) -> list[int]:
     pass
 
