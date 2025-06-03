@@ -11,10 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """A collection of `CircuitTransformer` s that the client may pass to `RigettiQCSService` or
 `RigettiQCSSampler` as `transformer`.
 """
-from typing import Callable, cast
+
+from typing import Callable
 
 from pyquil import Program
 from typing_extensions import Protocol
@@ -114,7 +116,7 @@ def build(
             post_transformation_hooks=post_transformation_hooks,
         )
 
-    return cast(CircuitTransformer, transformer)
+    return transformer
 
 
 @deprecated_cirq_rigetti_function()

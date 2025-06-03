@@ -573,7 +573,6 @@ def test_simulate_moment_steps(dtype: type[np.complexfloating], split: bool):
 def test_simulate_moment_steps_empty_circuit(dtype: type[np.complexfloating], split: bool):
     circuit = cirq.Circuit()
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
-    step = None
     for step in simulator.simulate_moment_steps(circuit):
         pass
     assert np.allclose(step.state_vector(copy=True), np.array([1]))
