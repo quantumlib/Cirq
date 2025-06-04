@@ -207,7 +207,13 @@ class Serializer:
         return cast(line_qubit.LineQubit, max(all_qubits)).x + 1
 
     def _serialize_circuit(self, circuit: cirq.AbstractCircuit) -> list:
-        return [self._serialize_op(op) for moment in circuit for op in moment]
+        return [
+            serialized_op
+            for moment in circuit
+            for op in moment
+            for serialized_op in [self._serialize_op(op)]
+            if serialized_op != {}
+        ]
 
     def _serialize_op(self, op: cirq.Operation) -> dict:
         if op.gate is None:
@@ -227,7 +233,9 @@ class Serializer:
         for gate_mro_type in gate_type.mro():
             if gate_mro_type in self._dispatch:
                 serialized_op = self._dispatch[gate_mro_type](gate, targets)
-                if serialized_op:
+                # serialized_op {} results when serializing a PauliStringPhasorGate
+                # where the exponentiated term is identity or the evolution time is 0.
+                if serialized_op == {} or serialized_op:
                     return serialized_op
         raise ValueError(f'Gate {gate} acting on {targets} cannot be serialized by IonQ API.')
 
@@ -300,13 +308,16 @@ class Serializer:
         coefficients = [pauli_string_coefficient.real]
         # I am ignoring here the global phase of i * pi * (gate.exponent_neg + gate.exponent_pos) / 2
         time = math.pi * (gate.exponent_neg - gate.exponent_pos) / 2
-        seralized_gate = {
-            'gate': 'pauliexp',
-            'terms': [little_endian_pauli_string],
-            "coefficients": coefficients,
-            'targets': targets,
-            'time': time,
-        }
+        if little_endian_pauli_string == "" or time == 0:
+            seralized_gate = {}
+        else:
+            seralized_gate = {
+                'gate': 'pauliexp',
+                'terms': [little_endian_pauli_string],
+                "coefficients": coefficients,
+                'targets': targets,
+                'time': time,
+            }
         # TODO: remove this print statement once the serializer is stable.
         print(seralized_gate)
         return seralized_gate

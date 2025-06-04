@@ -596,6 +596,47 @@ def test_serialize_many_circuits_pauli_string_phasor_gate():
     )
 
 
+def test_serialize_single_circuit_negative_argument_pauli_string_phasor_gate():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    serializer = ionq.Serializer()
+    pauli_string = -1 * cirq.Z(q0) * cirq.I(q1) * cirq.Y(q2)
+    exponent_neg = 0.25
+    exponent_pos = -0.5
+    circuit = cirq.Circuit(
+        cirq.PauliStringPhasor(pauli_string, exponent_neg=exponent_neg, exponent_pos=exponent_pos)
+    )
+    result = serializer.serialize_single_circuit(circuit)
+
+    # compare time floating point values with a tolerance
+    expected_time = -1 * math.pi * (exponent_neg - exponent_pos) / 2
+    assert result.body['circuit'][0]['time'] == pytest.approx(expected_time, abs=1e-10)
+
+    result.body['circuit'][0].pop('time')
+    assert result == ionq.SerializedProgram(
+        body={
+            'gateset': 'qis',
+            'qubits': 3,
+            'circuit': [
+                {'gate': 'pauliexp', 'terms': ['YZ'], 'coefficients': [1.0], 'targets': [0, 2]}
+            ],
+        },
+        metadata={},
+        settings={},
+    )
+
+
+def test_serialize_pauli_string_phasor_gate_only_id_gates_in_pauli_string():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    serializer = ionq.Serializer()
+    pauli_string = +1 * cirq.I(q0) * cirq.I(q1) * cirq.I(q2)
+    circuit = cirq.Circuit(
+        cirq.PauliStringPhasor(pauli_string, exponent_neg=1, exponent_pos=0),
+        cirq.measure((q0, q1, q2), key='result'),
+    )
+    result = serializer.serialize_single_circuit(circuit)
+    assert result.body['circuit'] == []
+
+
 def test_serialize_single_circuit_measurement_gate():
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.measure(q0, key='tomyheart'))
