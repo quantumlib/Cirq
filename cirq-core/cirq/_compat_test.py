@@ -812,8 +812,7 @@ def _test_broken_module_1_inner():
     with pytest.raises(
         DeprecatedModuleImportError, match="missing_module cannot be imported. The typical reasons"
     ):
-        # pylint: disable=unused-import
-        import cirq.testing._compat_test_data.broken_ref as br  # type: ignore
+        import cirq.testing._compat_test_data.broken_ref as _  # type: ignore # noqa: F401
 
 
 def _test_broken_module_2_inner():
