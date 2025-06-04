@@ -202,12 +202,10 @@ def test_deprecated():
         old_func(1, 2)
 
     with pytest.raises(AssertionError, match='deadline should match vX.Y'):
-        # pylint: disable=unused-variable
+
         @deprecated(deadline='invalid', fix='Roll some dice.')
         def badly_deprecated_func(*args, **kwargs):  # pragma: no cover
             return new_func(*args, **kwargs)
-
-        # pylint: enable=unused-variable
 
 
 def test_deprecated_parameter():
@@ -234,20 +232,16 @@ def test_deprecated_parameter():
         'Double it yourself.',
         deadline='v1.2',
     ):
-        # pylint: disable=unexpected-keyword-arg
         # pylint: disable=no-value-for-parameter
         assert f(double_count=1) == 2
         # pylint: enable=no-value-for-parameter
-        # pylint: enable=unexpected-keyword-arg
 
     with pytest.raises(
         ValueError, match='During testing using Cirq deprecated functionality is not allowed'
     ):
-        # pylint: disable=unexpected-keyword-arg
         # pylint: disable=no-value-for-parameter
         f(double_count=1)
         # pylint: enable=no-value-for-parameter
-        # pylint: enable=unexpected-keyword-arg
 
     with pytest.raises(AssertionError, match='deadline should match vX.Y'):
 
@@ -259,11 +253,8 @@ def test_deprecated_parameter():
             match=lambda args, kwargs: 'double_count' in kwargs,
             rewrite=lambda args, kwargs: (args, {'new_count': kwargs['double_count'] * 2}),
         )
-        # pylint: disable=unused-variable
         def f_with_badly_deprecated_param(new_count):  # pragma: no cover
             return new_count
-
-        # pylint: enable=unused-variable
 
 
 @duet.sync
@@ -293,11 +284,9 @@ async def test_deprecated_parameter_async_function():
         'Double it yourself.',
         deadline='v1.2',
     ):
-        # pylint: disable=unexpected-keyword-arg
         # pylint: disable=no-value-for-parameter
         assert await f(double_count=1) == 2
         # pylint: enable=no-value-for-parameter
-        # pylint: enable=unexpected-keyword-arg
 
 
 def test_wrap_module():
@@ -587,7 +576,6 @@ def _repeated_import_path():
 
 def _type_repr_in_deprecated_module():
     # initialize the DeprecatedModuleFinders
-    # pylint: disable=unused-import
     import cirq.testing._compat_test_data.fake_a as mod_a
 
     expected_repr = "<class 'cirq.testing._compat_test_data.module_a.types.SampleType'>"
@@ -763,8 +751,6 @@ def test_metadata_search_path():
 
 def _test_metadata_search_path_inner():  # pragma: no cover
     # initialize the DeprecatedModuleFinders
-    # pylint: disable=unused-import
-
     assert importlib.metadata.metadata('numpy')
 
 
@@ -805,7 +791,6 @@ def test_type_repr_in_new_module():
 
 def _test_type_repr_in_new_module_inner():
     # initialize the DeprecatedModuleFinders
-    # pylint: disable=unused-import
     import cirq.testing._compat_test_data.module_a as mod_a
 
     expected_repr = "<class 'cirq.testing._compat_test_data.module_a.types.SampleType'>"
@@ -875,7 +860,6 @@ def test_new_module_is_top_level():
 
 def _test_new_module_is_top_level_inner():
     # sets up the DeprecationFinders
-    # pylint: disable=unused-import
     import time
 
     # imports a top level module that was also deprecated

@@ -233,7 +233,6 @@ class AbstractCircuit(abc.ABC):
         """See `cirq.SupportsDecompose`."""
         return self.all_operations()
 
-    # pylint: disable=function-redefined
     @overload
     def __getitem__(self, key: int) -> cirq.Moment:
         pass
@@ -276,8 +275,6 @@ class AbstractCircuit(abc.ABC):
             return self._from_moments(moment[qubit_idx] for moment in selected_moments)
 
         raise TypeError('__getitem__ called with key not of type slice, int, or tuple.')
-
-    # pylint: enable=function-redefined
 
     def __str__(self) -> str:
         return self.to_text_diagram()
@@ -1895,7 +1892,6 @@ class Circuit(AbstractCircuit):
         copied_circuit._placement_cache = None
         return copied_circuit
 
-    # pylint: disable=function-redefined
     @overload
     def __setitem__(self, key: int, value: cirq.Moment):
         pass
@@ -1915,8 +1911,6 @@ class Circuit(AbstractCircuit):
 
         self._moments[key] = value
         self._mutated()
-
-    # pylint: enable=function-redefined
 
     def __delitem__(self, key: int | slice):
         del self._moments[key]

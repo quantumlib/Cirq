@@ -123,7 +123,6 @@ def _value_equality_getstate(self: _SupportsValueEquality) -> dict[str, Any]:
     return state
 
 
-# pylint: disable=function-redefined
 @overload
 def value_equality(
     cls: type,
@@ -258,6 +257,3 @@ def value_equality(
         setattr(cls, '_approx_eq_', _value_equality_approx_eq)
 
     return cls
-
-
-# pylint: enable=function-redefined

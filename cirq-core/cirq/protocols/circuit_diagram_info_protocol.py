@@ -357,7 +357,6 @@ def _op_info_with_fallback(
     return protocols.CircuitDiagramInfo(wire_symbols=symbols)
 
 
-# pylint: disable=function-redefined
 @overload
 def circuit_diagram_info(
     val: Any, args: CircuitDiagramInfoArgs | None = None
@@ -429,6 +428,3 @@ def circuit_diagram_info(
         f"object of type '{type(val)}' does have a _circuit_diagram_info_ "
         "method, but it returned NotImplemented."
     )
-
-
-# pylint: enable=function-redefined
