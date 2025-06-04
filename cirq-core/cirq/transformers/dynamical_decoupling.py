@@ -276,14 +276,24 @@ def add_dynamical_decoupling(
             dd_iter_by_qubits[q] = cycle(base_dd_sequence)
         # Need to insert a new moment before current moment
         if new_moment_ops:
-            # Fill insertable idle moments in the new moment using dd sequence
-            for q in orig_circuit.all_qubits() - stop_pulling_through_qubits:
-                if busy_moment_range_by_qubit[q][0] < moment_id <= busy_moment_range_by_qubit[q][1]:
-                    new_moment_ops.append(_update_pulled_through(q, next(dd_iter_by_qubits[q])))
             moments_to_be_appended = _try_merge_single_qubit_ops_of_two_moments(
-                transformed_moments.pop(), circuits.Moment(new_moment_ops)
+                transformed_moments[-1], circuits.Moment(new_moment_ops)
             )
-            transformed_moments.extend(moments_to_be_appended)
+            if len(moments_to_be_appended) == 1:
+                transformed_moments.pop()
+                transformed_moments.append(moments_to_be_appended)
+            else:  # Fill insertable idle moments in the new moment using dd sequence
+                for q in orig_circuit.all_qubits() - stop_pulling_through_qubits:
+                    if (
+                        busy_moment_range_by_qubit[q][0]
+                        < moment_id
+                        <= busy_moment_range_by_qubit[q][1]
+                    ):
+                        new_moment_ops.append(_update_pulled_through(q, next(dd_iter_by_qubits[q])))
+                moments_to_be_appended = _try_merge_single_qubit_ops_of_two_moments(
+                    transformed_moments.pop(), circuits.Moment(new_moment_ops)
+                )
+                transformed_moments.extend(moments_to_be_appended)
 
         # Step 2, calc updated_moment with insertions / merges.
         updated_moment_ops: set[cirq.Operation] = set()
