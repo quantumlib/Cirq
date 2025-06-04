@@ -74,7 +74,7 @@ def test_single_qubit_cliffords():
             assert is_pauli(u @ p @ u.conj().T), str(u)
 
     # Check that XZ decomposition has at most one X gate per clifford.
-    for gates in cliffords.c1_in_xz:
+    for gates in cliffords.c1_in_xz.gate_sequence:
         num_i = len([gate for gate in gates if gate == cirq.ops.SingleQubitCliffordGate.I])
         num_x = len(
             [
@@ -229,13 +229,16 @@ def test_tomography_plot_raises_for_incorrect_number_of_axes():
         result.plot(axes)
 
 
-def test_single_qubit_cliffords_gateset():
+@pytest.mark.parametrize('num_cliffords', range(5, 10))
+def test_single_qubit_cliffords_gateset(num_cliffords):
     qubits = [GridQubit(0, i) for i in range(4)]
     clifford_group = cirq.experiments.qubit_characterizations._single_qubit_cliffords()
     c = cirq.experiments.qubit_characterizations._create_parallel_rb_circuit(
-        qubits, 5, clifford_group.c1_in_xy
+        qubits, num_cliffords, clifford_group.c1_in_xy
     )
     device = cirq.testing.ValidatingTestDevice(
         qubits=qubits, allowed_gates=(cirq.ops.PhasedXZGate, cirq.MeasurementGate)
     )
     device.validate_circuit(c)
+
+    assert len(c) == num_cliffords + 2

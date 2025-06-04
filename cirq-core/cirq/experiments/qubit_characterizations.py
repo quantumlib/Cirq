@@ -19,6 +19,7 @@ import functools
 import itertools
 from typing import Any, cast, Iterator, Mapping, Sequence, TYPE_CHECKING
 
+import attrs
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -36,7 +37,31 @@ if TYPE_CHECKING:
     import cirq
 
 
-@dataclasses.dataclass
+def _canonize_clifford_sequences(
+    sequences: list[list[ops.SingleQubitCliffordGate]],
+) -> list[list[ops.SingleQubitCliffordGate]]:
+    return [[_reduce_gate_seq(seq)] for seq in sequences]
+
+
+@attrs.frozen
+class _CliffordGateSequence:
+    gate_sequence: list[list[ops.SingleQubitCliffordGate]]
+
+    @functools.cached_property
+    def _reduced_gate_sequence(self):
+        return _canonize_clifford_sequences(self.gate_sequence)
+
+    def __iter__(self):
+        yield from self._reduced_gate_sequence
+
+    def __getitem__(self, idx):
+        return self._reduced_gate_sequence[idx]
+
+    def __len__(self):
+        return len(self._reduced_gate_sequence)
+
+
+@attrs.frozen
 class Cliffords:
     """The single-qubit Clifford group, decomposed into elementary gates.
 
@@ -54,11 +79,11 @@ class Cliffords:
         s1_y
     """
 
-    c1_in_xy: list[list[ops.SingleQubitCliffordGate]]
-    c1_in_xz: list[list[ops.SingleQubitCliffordGate]]
-    s1: list[list[ops.SingleQubitCliffordGate]]
-    s1_x: list[list[ops.SingleQubitCliffordGate]]
-    s1_y: list[list[ops.SingleQubitCliffordGate]]
+    c1_in_xy: _CliffordGateSequence = attrs.field(converter=_CliffordGateSequence)
+    c1_in_xz: _CliffordGateSequence = attrs.field(converter=_CliffordGateSequence)
+    s1: _CliffordGateSequence = attrs.field(converter=_CliffordGateSequence)
+    s1_x: _CliffordGateSequence = attrs.field(converter=_CliffordGateSequence)
+    s1_y: _CliffordGateSequence = attrs.field(converter=_CliffordGateSequence)
 
 
 class RandomizedBenchMarkResult:
