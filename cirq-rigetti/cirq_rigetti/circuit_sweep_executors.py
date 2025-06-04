@@ -84,7 +84,7 @@ def _execute_and_read_result(
     result = cirq.ResultDict(
         params=cast(cirq.ParamResolver, resolver or cirq.ParamResolver({})),
         measurements=measurements,
-    )  # noqa
+    )
     return result
 
 
