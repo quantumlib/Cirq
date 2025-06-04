@@ -155,7 +155,6 @@ def obj_to_dict_helper(obj: Any, attribute_names: Iterable[str]) -> dict[str, An
     return d
 
 
-# pylint: enable=redefined-builtin
 def dataclass_json_dict(obj: Any) -> dict[str, Any]:
     """Return a dictionary suitable for `_json_dict_` from a dataclass.
 

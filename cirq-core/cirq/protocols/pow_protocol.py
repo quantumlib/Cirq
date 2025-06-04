@@ -96,6 +96,3 @@ def pow(val: Any, exponent: Any, default: Any = RaiseTypeErrorIfNotProvided) -> 
     raise TypeError(
         f"object of type '{type(val)}' does have a __pow__ method, but it returned NotImplemented."
     )
-
-
-# pylint: enable=redefined-builtin
