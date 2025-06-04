@@ -759,7 +759,7 @@ def _two_qubit_clifford_matrices(q_0: cirq.Qid, q_1: cirq.Qid, cliffords: Cliffo
 def _random_single_q_clifford(
     qubit: cirq.Qid,
     num_cfds: int,
-    cfds: Sequence[Sequence[cirq.ops.SingleQubitCliffordGate]] | _single_qubit_cliffords,
+    cfds: Sequence[Sequence[cirq.ops.SingleQubitCliffordGate]] | _CliffordGateSequence,
 ) -> list[cirq.Operation]:
     clifford_group_size = 24
     operations = [[gate.to_phased_xz_gate()(qubit) for gate in gates] for gates in cfds]
