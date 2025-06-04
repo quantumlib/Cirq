@@ -281,7 +281,7 @@ def add_dynamical_decoupling(
             )
             if len(moments_to_be_appended) == 1:
                 transformed_moments.pop()
-                transformed_moments.append(moments_to_be_appended)
+                transformed_moments.append(moments_to_be_appended[0])
             else:  # Fill insertable idle moments in the new moment using dd sequence
                 for q in orig_circuit.all_qubits() - stop_pulling_through_qubits:
                     if (
