@@ -702,7 +702,9 @@ def two_qubit_state_tomography(
 
 
 def _create_parallel_rb_circuit(
-    qubits: Sequence[cirq.Qid], num_cliffords: int, c1: list
+    qubits: Sequence[cirq.Qid],
+    num_cliffords: int,
+    c1: _CliffordGateSequence | list[list[ops.SingleQubitCliffordGate]],
 ) -> cirq.Circuit:
     sequences_to_zip = [_random_single_q_clifford(qubit, num_cliffords, c1) for qubit in qubits]
     # Ensure each sequence has the same number of moments.
