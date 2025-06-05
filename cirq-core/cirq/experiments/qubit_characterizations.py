@@ -367,7 +367,7 @@ class TomographyResult:
 def single_qubit_randomized_benchmarking(
     sampler: cirq.Sampler,
     qubit: cirq.Qid,
-    use_xy_basis: bool = True,
+    use_xy_basis: bool = False,
     *,
     num_clifford_range: Sequence[int] = tuple(np.logspace(np.log10(5), 3, 5, dtype=int)),
     num_circuits: int = 10,
