@@ -174,7 +174,6 @@ class AbstractJob(abc.ABC):
     def __iter__(self) -> Iterator[cirq.Result]:
         yield from self.results()
 
-    # pylint: disable=function-redefined
     @overload
     def __getitem__(self, item: int) -> cirq.Result:
         pass
@@ -185,8 +184,6 @@ class AbstractJob(abc.ABC):
 
     def __getitem__(self, item):
         return self.results()[item]
-
-    # pylint: enable=function-redefined
 
     def __len__(self) -> int:
         return len(self.results())

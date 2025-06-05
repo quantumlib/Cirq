@@ -130,7 +130,6 @@ def unitary_eig(
     return R.diagonal(), V
 
 
-# pylint: enable=missing-raises-doc
 def map_eigenvalues(
     matrix: np.ndarray, func: Callable[[complex], complex], *, atol: float = 1e-8
 ) -> np.ndarray:

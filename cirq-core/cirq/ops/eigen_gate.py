@@ -128,11 +128,9 @@ class EigenGate(raw_types.Gate):
         Child classes should override this method if they have an __init__
         method with a differing signature.
         """
-        # pylint: disable=unexpected-keyword-arg
         if self._global_shift == 0:
             return type(self)(exponent=exponent)
         return type(self)(exponent=exponent, global_shift=self._global_shift)
-        # pylint: enable=unexpected-keyword-arg
 
     def _diagram_exponent(
         self, args: protocols.CircuitDiagramInfoArgs, *, ignore_global_phase: bool = True

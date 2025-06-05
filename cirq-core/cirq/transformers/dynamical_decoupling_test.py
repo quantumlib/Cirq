@@ -745,7 +745,7 @@ def test_cross_clifford_pieces_filling_merge():
                                                                                                                       │
     6: ───────────────────────────────────────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───X─────────────────────────@───PhXZ(a=0.8,x=0.8,z=0.5)─────H────────────────────────
     """
-    # pylint: enable
+    # pylint: enable=line-too-long
     qubits = cirq.LineQubit.range(7)
     phased_xz_gate = cirq.PhasedXZGate(axis_phase_exponent=0.2, x_exponent=0.2, z_exponent=0.1)
     assert_dd(

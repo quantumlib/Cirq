@@ -78,7 +78,7 @@ def test_with_quilc_parametric_compilation(
     results = executors.with_quilc_parametric_compilation(
         quantum_computer=quantum_computer,
         circuit=parametric_circuit,
-        resolvers=param_resolvers,  # noqa
+        resolvers=param_resolvers,
         repetitions=repetitions,
     )
     assert len(param_resolvers) == len(results)
@@ -135,7 +135,7 @@ def test_without_quilc_compilation(
     results = executors.without_quilc_compilation(
         quantum_computer=quantum_computer,
         circuit=parametric_circuit,
-        resolvers=param_resolvers,  # noqa
+        resolvers=param_resolvers,
         repetitions=repetitions,
     )
     assert len(param_resolvers) == len(results)

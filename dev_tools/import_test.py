@@ -183,7 +183,7 @@ def verify_import_tree(depth: int = 1, track_others: bool = False, timeit: bool 
     # note that with the cirq.google injection we do change the metapath
     with wrap_module_executions('' if track_others else 'cirq', wrap_module, after_exec, False):
         # Import cirq with instrumentation
-        pass  # pylint: disable=unused-import
+        pass
 
     sys.path[:] = orig_path  # Restore the path.
 
