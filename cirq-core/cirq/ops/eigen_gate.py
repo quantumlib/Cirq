@@ -19,7 +19,7 @@ import fractions
 import math
 import numbers
 from types import NotImplementedType
-from typing import AbstractSet, Any, cast, Iterable, NamedTuple, TYPE_CHECKING
+from typing import AbstractSet, Any, cast, Iterable, NamedTuple, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy
@@ -103,9 +103,14 @@ class EigenGate(raw_types.Gate):
                 `cirq.unitary(cirq.rx(pi))` equals -iX instead of X.
 
         Raises:
+            TypeError: If the supplied exponent is a string.
             ValueError: If the supplied exponent is a complex number with an
                 imaginary component.
         """
+        if isinstance(exponent, str):
+            raise TypeError(
+                f"Gate exponent must be a number, not a string. Invalid Value: {exponent}"
+            )
         if isinstance(exponent, complex):
             if exponent.imag:
                 raise ValueError(f"Gate exponent must be real. Invalid Value: {exponent}")
@@ -289,11 +294,13 @@ class EigenGate(raw_types.Gate):
         return _approximate_common_period(real_periods)
 
     def __pow__(self, exponent: Union[float, sympy.Symbol]) -> 'EigenGate':
-        if not isinstance(exponent, (int, float, sympy.Symbol)):
-            return NotImplemented # pragma: no cover
+        if isinstance(exponent, str):
+            raise TypeError(
+                f"Cannot raise {type(self).__name__} to a string exponent: {exponent!r}"
+            )
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
-            return NotImplemented # pragma: no cover
+            return NotImplemented  # pragma: no cover
         return self._with_exponent(exponent=new_exponent)
 
     def _value_equality_values_(self):

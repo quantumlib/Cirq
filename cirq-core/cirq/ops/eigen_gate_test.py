@@ -252,7 +252,14 @@ def test_pow() -> None:
         assert ZGateDef(exponent=0.5) ** 0.5j
     assert ZGateDef(exponent=0.5) ** (1 + 0j) == ZGateDef(exponent=0.5)
 
-    assert ZGaetDef(exponent="not compatible") is NotImplemented
+    with pytest.raises(TypeError):
+        assert cirq.XPowGate() ** "text"
+
+    with pytest.raises(TypeError):
+        assert cirq.XPowGate(exponent="text")
+
+    with pytest.raises(TypeError):
+        assert cirq.XPowGate(exponent=sympy.Symbol('a')) ** "text"
 
 
 def test_inverse() -> None:
