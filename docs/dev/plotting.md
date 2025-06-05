@@ -28,12 +28,12 @@ interactive session. The recommended way to achieve that is illustrated in the
 example below.
 
 ```python
-from typing import Any, List, Optional
+from typing import Any
 import matplotlib.pyplot as plt
 
 class Foo:
     ...
-    def plot(self, ax: Optional[plt.Axes]=None, **plot_kwargs: Any) -> plt.Axes:
+    def plot(self, ax: plt.Axes | None = None, **plot_kwargs: Any) -> plt.Axes:
         show_plot = not ax
         if ax is None:
             fig, ax = plt.subplots(1, 1)  # or your favorite figure setup
@@ -78,8 +78,8 @@ not sufficient. The `plot` method of such a class should take an optional
 ```python
 class Foo:
     ...
-    def plot(self, axes: Optional[List[plt.Axes]]=None,
-             **plot_kwargs: Any) -> List[plt.Axes]:
+    def plot(self, axes: list[plt.Axes] | None = None,
+             **plot_kwargs: Any) -> list[plt.Axes]:
         show_plot = not axes
         if axes is None:
             fig, axes = plt.subplots(1, 2)  # or your favorite figure setup

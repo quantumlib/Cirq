@@ -570,7 +570,7 @@ def test_valid_apply_measurement():
     q0 = cirq.LineQubit(0)
     state = cirq.CliffordState(qubit_map={q0: 0}, initial_state=1)
     measurements = {}
-    _ = state.apply_measurement(
+    state.apply_measurement(
         cirq.measure(q0), measurements, np.random.RandomState(), collapse_state_vector=False
     )
     assert measurements == {'q(0)': [1]}

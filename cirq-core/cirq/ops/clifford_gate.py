@@ -747,11 +747,7 @@ class SingleQubitCliffordGate(CliffordGate):
 
         return NotImplemented
 
-    def _act_on_(
-        self,
-        sim_state: cirq.SimulationStateBase,  # pylint: disable=unused-argument
-        qubits: Sequence[cirq.Qid],  # pylint: disable=unused-argument
-    ):
+    def _act_on_(self, sim_state: cirq.SimulationStateBase, qubits: Sequence[cirq.Qid]):
         # TODO(#5256) Add the implementation of _act_on_ with CliffordTableauSimulationState.
         return NotImplemented
 

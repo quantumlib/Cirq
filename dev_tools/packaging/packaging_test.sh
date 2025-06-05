@@ -54,10 +54,7 @@ python_test_template="\
 import @p
 print(@p)
 assert '${tmp_dir}' in @p.__file__, 'Package path seems invalid.'
-assert (
-    '@p' == 'cirq_ts' or
-    '${CIRQ_PRE_RELEASE_VERSION}' == @p.__version__
-), 'Package version is invalid'
+assert '${CIRQ_PRE_RELEASE_VERSION}' == @p.__version__, 'Package version is invalid'
 "
 
 CIRQ_PACKAGES=$(env PYTHONPATH=. python dev_tools/modules.py list --mode package)

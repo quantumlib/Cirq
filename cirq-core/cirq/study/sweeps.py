@@ -109,7 +109,6 @@ class Sweep(metaclass=abc.ABCMeta):
         for params in self.param_tuples():
             yield resolver.ParamResolver(collections.OrderedDict(params))
 
-    # pylint: disable=function-redefined
     @overload
     def __getitem__(self, val: int) -> resolver.ParamResolver:
         pass
@@ -138,8 +137,6 @@ class Sweep(metaclass=abc.ABCMeta):
                 results[inds_map[i]] = item
 
         return ListSweep(results)
-
-    # pylint: enable=function-redefined
 
     @abc.abstractmethod
     def param_tuples(self) -> Iterator[Params]:

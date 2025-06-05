@@ -341,8 +341,8 @@ def sample_2q_xeb_circuits(
     # Construct truncated-with-measurement circuits to run.
     tasks = _generate_sample_2q_xeb_tasks(zipped_circuits, cycle_depths)
     if shuffle is not None:
-        shuffle = value.parse_random_state(shuffle)
-        shuffle.shuffle(tasks)
+        prng = value.parse_random_state(shuffle)
+        prng.shuffle(tasks)  # type: ignore[arg-type]
 
     # Batch and run tasks.
     records = _execute_sample_2q_xeb_tasks_in_batches(

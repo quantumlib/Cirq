@@ -1603,7 +1603,7 @@ def test_nested_custom_gate_has_keyword_in_name() -> None:
     assert parsed_qasm.circuit == expected
 
 
-def test_rzz_gate():
+def test_rzz_gate() -> None:
     qasm = """
     OPENQASM 2.0;
     include "qelib1.inc";
@@ -1626,7 +1626,7 @@ def test_rzz_gate():
     assert parsed_qasm.qregs == {'q': 2}
 
 
-def test_rxx_gate():
+def test_rxx_gate() -> None:
     qasm = """
     OPENQASM 2.0;
     include "qelib1.inc";
@@ -1649,7 +1649,7 @@ def test_rxx_gate():
     assert parsed_qasm.qregs == {'q': 2}
 
 
-def test_ryy_gate():
+def test_ryy_gate() -> None:
     qasm = """
     OPENQASM 2.0;
     include "qelib1.inc";
@@ -1672,7 +1672,7 @@ def test_ryy_gate():
     assert parsed_qasm.qregs == {'q': 2}
 
 
-def test_crx_gate():
+def test_crx_gate() -> None:
     qasm = """
     OPENQASM 2.0;
     include "qelib1.inc";
@@ -1695,7 +1695,7 @@ def test_crx_gate():
     assert parsed_qasm.qregs == {'q': 2}
 
 
-def test_iswap_gate():
+def test_iswap_gate() -> None:
     qasm = """
     OPENQASM 2.0;
     include "qelib1.inc";

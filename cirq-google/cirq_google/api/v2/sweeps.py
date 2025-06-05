@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import numbers
 from typing import Any, Callable, cast, TYPE_CHECKING
 
 import sympy
@@ -31,10 +32,10 @@ def _build_sweep_const(value: Any) -> run_context_pb2.ConstValue:
     """Build the sweep const message from a value."""
     if value is None:
         return run_context_pb2.ConstValue(is_none=True)
-    elif isinstance(value, float):
-        return run_context_pb2.ConstValue(float_value=value)
-    elif isinstance(value, int):
-        return run_context_pb2.ConstValue(int_value=value)
+    elif isinstance(value, numbers.Integral):
+        return run_context_pb2.ConstValue(int_value=int(value))
+    elif isinstance(value, numbers.Real):
+        return run_context_pb2.ConstValue(float_value=float(value))
     elif isinstance(value, str):
         return run_context_pb2.ConstValue(string_value=value)
     elif isinstance(value, tunits.Value):

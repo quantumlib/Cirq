@@ -232,7 +232,6 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def __getitem__(self, key: TKey) -> pauli_gates.Pauli:
         return self._qubit_pauli_map[key]
 
-    # pylint: disable=function-redefined
     @overload
     def get(self, key: Any, default: None = None) -> pauli_gates.Pauli | None:
         pass
@@ -280,8 +279,6 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                 coefficient=self.coefficient,
             )
         return NotImplemented
-
-    # pylint: enable=function-redefined
 
     @property
     def gate(self) -> cirq.DensePauliString:
@@ -897,9 +894,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
         if not self.keys() <= set(qubits):
             raise ValueError('not self.keys() <= set(qubits)')
-        # pylint: disable=too-many-function-args
         pauli_mask = [self.get(q, identity.I) for q in qubits]
-        # pylint: enable=too-many-function-args
         return dense_pauli_string.DensePauliString(pauli_mask, coefficient=self.coefficient)
 
     def conjugated_by(self, clifford: cirq.OP_TREE) -> PauliString:
@@ -1349,7 +1344,6 @@ class MutablePauliString(Generic[TKey]):
     def __delitem__(self, key: TKey):
         del self.pauli_int_dict[key]
 
-    # pylint: disable=function-redefined
     @overload
     def get(self, key: TKey, default: None = None) -> cirq.Pauli | None:
         pass
@@ -1363,7 +1357,6 @@ class MutablePauliString(Generic[TKey]):
         result = self.pauli_int_dict.get(key, None)
         return default if result is None else _INT_TO_PAULI[result - 1]
 
-    # pylint: enable=function-redefined
     def inplace_before(self, ops: cirq.OP_TREE) -> cirq.MutablePauliString:
         r"""Propagates the pauli string from after to before a Clifford effect.
 

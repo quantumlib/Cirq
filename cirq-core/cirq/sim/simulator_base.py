@@ -227,9 +227,10 @@ class SimulatorBase(
             if self._can_be_in_run_prefix(self.noise)
             else (resolved_circuit[0:0], resolved_circuit)
         )
-        step_result = None
+        step_result: TStepResultBase | None = None
         for step_result in self._core_iterator(circuit=prefix, sim_state=sim_state):
             pass
+        assert step_result is not None
 
         general_ops = list(general_suffix.all_operations())
         if all(isinstance(op.gate, ops.MeasurementGate) for op in general_ops):
@@ -310,9 +311,10 @@ class SimulatorBase(
             if self._can_be_in_run_prefix(self.noise)
             else (program[0:0], program)
         )
-        step_result = None
+        step_result: TStepResultBase | None = None
         for step_result in self._core_iterator(circuit=prefix, sim_state=sim_state):
             pass
+        assert step_result is not None
         sim_state = step_result._sim_state
         yield from super().simulate_sweep_iter(suffix, params, qubit_order, sim_state)
 

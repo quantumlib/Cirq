@@ -227,7 +227,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         if __cirq_debug__.get():
             _validate_qid_shape(self, qubits)
 
-    def on(self, *qubits: Qid) -> Operation:
+    def on(self, *qubits: Qid) -> cirq.Operation:
         """Returns an application of this gate to the given qubits.
 
         Args:
@@ -654,7 +654,7 @@ class Operation(metaclass=abc.ABCMeta):
             *self.qubits
         )
 
-    def validate_args(self, qubits: Sequence[cirq.Qid]):
+    def validate_args(self, qubits: Sequence[cirq.Qid]) -> None:
         """Raises an exception if the `qubits` don't match this operation's qid
         shape.
 
