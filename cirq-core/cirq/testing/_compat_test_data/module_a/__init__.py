@@ -1,4 +1,5 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+# ruff: noqa: F401
 """module_a for module deprecation tests"""
 
 import logging

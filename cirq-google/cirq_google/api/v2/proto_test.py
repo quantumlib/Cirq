@@ -18,6 +18,6 @@
 
 from __future__ import annotations
 
-from cirq_google.api.v2 import metrics_pb2, program_pb2, result_pb2, run_context_pb2
+from cirq_google.api.v2 import metrics_pb2, program_pb2, result_pb2, run_context_pb2  # noqa: F401
 
 # pylint: enable=unused-import

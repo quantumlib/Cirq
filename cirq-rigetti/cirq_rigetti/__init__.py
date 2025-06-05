@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# ruff: noqa: F401
+
 from cirq_rigetti._version import __version__ as __version__
 
 from cirq_rigetti.sampler import (

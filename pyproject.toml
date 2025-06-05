@@ -57,8 +57,8 @@ extend-exclude = ["*_pb2.py*"]
 [tool.ruff.lint]
 select = [
     # "ANN201",  # missing-return-type-undocumented-public-function
-    # "F401",  # unused-import
-    # "F601",  # multi-value-repeated-key-literal
+    "F401",  # unused-import
+    "F601",  # multi-value-repeated-key-literal
     "F821",  # undefined-name
     "RUF100",  # unused-noqa
     "TC001",  # typing-only-first-party-import

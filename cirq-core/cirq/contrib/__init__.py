@@ -18,9 +18,9 @@ Any contributions not ready for full production can be put in a subdirectory in
 this package.
 """
 
-from cirq.contrib import acquaintance
-from cirq.contrib import graph_device
-from cirq.contrib import quirk
+from cirq.contrib import acquaintance  # noqa: F401
+from cirq.contrib import graph_device  # noqa: F401
+from cirq.contrib import quirk  # noqa: F401
 from cirq.contrib.qcircuit import circuit_to_latex_using_qcircuit as circuit_to_latex_using_qcircuit
-from cirq.contrib import json
+from cirq.contrib import json  # noqa: F401
 from cirq.contrib.circuitdag import CircuitDag as CircuitDag, Unique as Unique
