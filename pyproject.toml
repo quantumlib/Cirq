@@ -60,6 +60,7 @@ select = [
     # "F401",  # unused-import
     # "F601",  # multi-value-repeated-key-literal
     "F821",  # undefined-name
+    "RUF100",  # unused-noqa
     "TC001",  # typing-only-first-party-import
     "TC002",  # typing-only-third-party-import
     # "TC003",  # typing-only-standard-library-import

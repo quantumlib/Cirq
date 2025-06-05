@@ -26,7 +26,7 @@ RaiseTypeErrorIfNotProvided: Any = ([],)
 TDefault = TypeVar('TDefault')
 
 
-# pylint: disable=function-redefined, redefined-builtin
+# pylint: disable=redefined-builtin
 @overload
 def pow(val: cirq.Gate, exponent: Any) -> cirq.Gate:
     pass
@@ -57,7 +57,7 @@ def pow(val: Any, exponent: Any, default: TDefault) -> Any:
     pass
 
 
-# pylint: enable=function-redefined
+# pylint: enable=redefined-builtin
 
 
 def pow(val: Any, exponent: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
@@ -96,6 +96,3 @@ def pow(val: Any, exponent: Any, default: Any = RaiseTypeErrorIfNotProvided) -> 
     raise TypeError(
         f"object of type '{type(val)}' does have a __pow__ method, but it returned NotImplemented."
     )
-
-
-# pylint: enable=redefined-builtin

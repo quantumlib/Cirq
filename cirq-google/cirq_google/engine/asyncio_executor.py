@@ -17,10 +17,13 @@ from __future__ import annotations
 import asyncio
 import errno
 import threading
-from typing import Awaitable, Callable, TypeVar
+from typing import Awaitable, Callable, TYPE_CHECKING, TypeVar
 
 import duet
 from typing_extensions import ParamSpec
+
+if TYPE_CHECKING:
+    import concurrent
 
 R = TypeVar('R')
 P = ParamSpec("P")
@@ -66,7 +69,9 @@ class AsyncioExecutor:
             *args: Positional args to pass to func.
             **kwargs: Keyword args to pass to func.
         """
-        future = asyncio.run_coroutine_threadsafe(func(*args, **kwargs), self.loop)
+        future: concurrent.futures.Future = asyncio.run_coroutine_threadsafe(
+            func(*args, **kwargs), self.loop  # type: ignore[arg-type]
+        )
         return duet.AwaitableFuture.wrap(future)
 
     _instance: AsyncioExecutor | None = None

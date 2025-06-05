@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# pylint: skip-file
-
 from __future__ import annotations
 
 import numpy as np
@@ -102,6 +100,7 @@ def test_merge_k_qubit_unitaries_raises() -> None:
 
 
 def test_merge_complex_circuit_preserving_moment_structure() -> None:
+    # pylint: disable=line-too-long
     q = cirq.LineQubit.range(3)
     c_orig = cirq.Circuit(
         cirq.Moment(cirq.H.on_each(*q)),
