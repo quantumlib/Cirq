@@ -69,6 +69,7 @@ enable=
     unused-variable,
     unused-wildcard-import,
     use-maxsplit-arg,
+    useless-suppression,
     using-constant-test,
     wildcard-import,
     wrong-import-order,

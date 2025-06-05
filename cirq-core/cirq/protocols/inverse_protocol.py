@@ -28,7 +28,6 @@ RaiseTypeErrorIfNotProvided: tuple[list[Any]] = ([],)
 TDefault = TypeVar('TDefault')
 
 
-# pylint: disable=function-redefined
 @overload
 def inverse(val: cirq.Gate) -> cirq.Gate:
     pass
@@ -100,7 +99,6 @@ def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     # Check if object defines an inverse via __pow__.
     raiser = getattr(val, '__pow__', None)
 
-    # pylint: disable=not-callable
     result = NotImplemented if raiser is None else raiser(-1)
     if result is not NotImplemented:
         return result
@@ -121,6 +119,3 @@ def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
         "It has no __pow__ method (or the method returned NotImplemented) "
         "and it isn't an iterable of invertible objects."
     )
-
-
-# pylint: enable=function-redefined

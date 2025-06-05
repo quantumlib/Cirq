@@ -65,7 +65,6 @@ class PolygonUnit:
 class Heatmap:
     """Distribution of a value in 2D qubit lattice as a color map."""
 
-    # pylint: disable=function-redefined
     @overload
     def __init__(self, value_map: Mapping[QubitTuple, SupportsFloat], **kwargs):
         pass
