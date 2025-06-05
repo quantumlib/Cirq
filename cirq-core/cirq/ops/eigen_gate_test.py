@@ -261,6 +261,9 @@ def test_pow() -> None:
     with pytest.raises(TypeError):
         assert cirq.XPowGate(exponent=sympy.Symbol('a')) ** "text"
 
+    with pytest.raises(TypeError):
+        assert cirq.X ** "text"
+
 
 def test_inverse() -> None:
     assert cirq.inverse(CExpZinGate(0.25)) == CExpZinGate(-0.25)
