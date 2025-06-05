@@ -19,6 +19,7 @@ from __future__ import annotations
 from typing import Sequence
 
 import numpy as np
+import scipy.linalg
 
 import cirq
 from cirq import ops, transformers as opt
@@ -47,24 +48,13 @@ def three_qubit_matrix_to_operations(
 
     Raises:
         ValueError: If the u matrix is non-unitary or not of shape (8,8).
-        ImportError: If the decomposition cannot be done because the SciPy version is less than
-            1.5.0 and so does not contain the required `cossin` method.
     """
     if np.shape(u) != (8, 8):
         raise ValueError(f"Expected unitary matrix with shape (8,8) got {np.shape(u)}")
     if not cirq.is_unitary(u, atol=atol):
         raise ValueError(f"Matrix is not unitary: {u}")
 
-    try:
-        from scipy.linalg import cossin
-    except ImportError:  # pragma: no cover
-        raise ImportError(
-            "cirq.three_qubit_unitary_to_operations requires "
-            "SciPy 1.5.0+, as it uses the cossin function. Please"
-            " upgrade scipy in your environment to use this "
-            "function!"
-        )
-    (u1, u2), theta, (v1h, v2h) = cossin(u, 4, 4, separate=True)
+    (u1, u2), theta, (v1h, v2h) = scipy.linalg.cossin(u, 4, 4, separate=True)
 
     cs_ops = _cs_to_ops(q0, q1, q2, theta)
     if len(cs_ops) > 0 and cs_ops[-1] == cirq.CZ(q2, q0):
