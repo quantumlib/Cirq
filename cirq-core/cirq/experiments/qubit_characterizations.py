@@ -39,25 +39,31 @@ if TYPE_CHECKING:
 
 def _canonize_clifford_sequences(
     sequences: list[list[ops.SingleQubitCliffordGate]],
-) -> list[list[ops.SingleQubitCliffordGate]]:
-    return [[_reduce_gate_seq(seq)] for seq in sequences]
+) -> list[tuple[ops.SingleQubitCliffordGate]]:
+    return [(_reduce_gate_seq(seq),) for seq in sequences]
 
 
 @attrs.frozen
 class _CliffordGateSequence:
+    """Wrap around a list of sequences of clifford gates.
+
+    This class wraps around a list of sequences of clifford gates and re-exposes them as
+    a list of tuple where each tuple contains a single clifford gates.
+    """
+
     gate_sequence: list[list[ops.SingleQubitCliffordGate]]
 
     @functools.cached_property
-    def _reduced_gate_sequence(self):
+    def _reduced_gate_sequence(self) -> list[tuple[ops.SingleQubitCliffordGate]]:
         return _canonize_clifford_sequences(self.gate_sequence)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[tuple[ops.SingleQubitCliffordGate]]:
         yield from self._reduced_gate_sequence
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx) -> tuple[ops.SingleQubitCliffordGate]:
         return self._reduced_gate_sequence[idx]
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._reduced_gate_sequence)
 
 
@@ -415,7 +421,7 @@ def single_qubit_randomized_benchmarking(
 def parallel_single_qubit_randomized_benchmarking(
     sampler: cirq.Sampler,
     qubits: Sequence[cirq.Qid],
-    use_xy_basis: bool = True,
+    use_xy_basis: bool = False,
     *,
     num_clifford_range: Sequence[int] = tuple(
         np.logspace(np.log10(5), np.log10(1000), 5, dtype=int)
