@@ -291,7 +291,7 @@ class EigenGate(raw_types.Gate):
         real_periods = [abs(2 / e) for e in exponents if e != 0]
         return _approximate_common_period(real_periods)
 
-    def __pow__(self, exponent: Union[float, sympy.Symbol]) -> 'EigenGate':
+    def __pow__(self, exponent: float | sympy.Symbol) -> EigenGate:
         if isinstance(exponent, str):
             raise TypeError(
                 f"Cannot raise {type(self).__name__} to a string exponent: {exponent!r}"
