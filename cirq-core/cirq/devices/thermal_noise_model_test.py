@@ -342,3 +342,19 @@ def test_noisy_moment_two_qubit():
             [9.87330937e-01, 0, 0, 9.95013725e-01],
         ],
     )
+
+
+def test_thermal_noise_model_repr_and_json():
+    q0 = cirq.LineQubit(0)
+    model = ThermalNoiseModel(
+        qubits={q0},
+        gate_durations_ns={cirq.ZPowGate: 5.0},
+        heat_rate_GHz={q0: 1e-5},
+        cool_rate_GHz={q0: 1e-4},
+        dephase_rate_GHz={q0: 2e-4},
+        require_physical_tag=False,
+        skip_measurements=False,
+    )
+    assert 'ThermalNoiseModel' in repr(model)
+    restored = ThermalNoiseModel._from_json_dict_(**model._json_dict_())
+    assert restored == model

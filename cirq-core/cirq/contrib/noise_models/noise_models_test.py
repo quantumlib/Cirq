@@ -269,3 +269,19 @@ def test_aggregate_decay_noise_after_moment() -> None:
         ]
     )
     assert_equivalent_op_tree(true_noisy_program, noisy_circuit)
+
+
+def test_noise_model_repr_and_json():
+    models = [
+        ccn.DepolarizingNoiseModel(0.1),
+        ccn.ReadoutNoiseModel(0.2),
+        ccn.DampedReadoutNoiseModel(0.3),
+        ccn.DepolarizingWithReadoutNoiseModel(0.1, 0.2),
+        ccn.DepolarizingWithDampedReadoutNoiseModel(0.1, 0.2, 0.3),
+    ]
+    for m in models:
+        cirq.testing.assert_equivalent_repr(
+            m, setup_code="import cirq\nimport cirq.contrib.noise_models as ccn"
+        )
+        restored = type(m)._from_json_dict_(**m._json_dict_())
+        assert restored == m

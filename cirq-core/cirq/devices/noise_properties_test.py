@@ -54,3 +54,12 @@ def test_sample_model() -> None:
         cirq.Moment(cirq.H(q0), cirq.H(q1)),
     )
     assert noisy_circuit == expected_circuit
+
+
+def test_noise_model_from_noise_properties_repr_and_json():
+    q0 = cirq.LineQubit(0)
+    props = SampleNoiseProperties([q0], [])
+    model = NoiseModelFromNoiseProperties(props)
+    assert 'NoiseModelFromNoiseProperties' in repr(model)
+    restored = NoiseModelFromNoiseProperties._from_json_dict_(**model._json_dict_())
+    assert restored._noise_properties is props

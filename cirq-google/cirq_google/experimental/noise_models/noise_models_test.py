@@ -320,3 +320,13 @@ def test_per_qubit_combined_noise_from_data():
         ),
     )
     assert_equivalent_op_tree(expected_program, noisy_circuit)
+
+
+def test_per_qubit_noise_model_repr_and_json():
+    q0 = cirq.GridQubit(0, 0)
+    model = cirq_google.experimental.noise_models.PerQubitDepolarizingWithDampedReadoutNoiseModel(
+        depol_probs={q0: 0.1}, bitflip_probs={q0: 0.2}, decay_probs={q0: 0.3}
+    )
+    cirq.testing.assert_equivalent_repr(model, setup_code='import cirq\nimport cirq_google')
+    restored = type(model)._from_json_dict_(**model._json_dict_())
+    assert restored == model
