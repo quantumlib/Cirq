@@ -52,7 +52,7 @@ def sample_noise_properties(
     system_qubits: list[cirq.Qid], qubit_pairs: list[tuple[cirq.Qid, cirq.Qid]]
 ):
     # Known false positive: https://github.com/PyCQA/pylint/issues/5857
-    return GoogleNoiseProperties(  # pylint: disable=unexpected-keyword-arg
+    return GoogleNoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
         t1_ns={q: 1e5 for q in system_qubits},
         tphi_ns={q: 2e5 for q in system_qubits},

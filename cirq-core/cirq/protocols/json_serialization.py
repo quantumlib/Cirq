@@ -155,7 +155,6 @@ def obj_to_dict_helper(obj: Any, attribute_names: Iterable[str]) -> dict[str, An
     return d
 
 
-# pylint: enable=redefined-builtin
 def dataclass_json_dict(obj: Any) -> dict[str, Any]:
     """Return a dictionary suitable for `_json_dict_` from a dataclass.
 
@@ -460,7 +459,6 @@ def cirq_type_from_json(type_str: str, resolvers: Sequence[JsonResolver] | None 
     raise ValueError(f"Type {type_str} maps to a factory method instead of a type.")
 
 
-# pylint: disable=function-redefined
 @overload
 def to_json(
     obj: Any, file_or_fn: IO | pathlib.Path | str, *, indent=2, separators=None, cls=CirqEncoder
@@ -517,7 +515,6 @@ def to_json(
     return None
 
 
-# pylint: enable=function-redefined
 def read_json(
     file_or_fn: None | IO | pathlib.Path | str = None,
     *,

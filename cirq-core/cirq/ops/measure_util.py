@@ -90,9 +90,6 @@ def measure_paulistring_terms(
     return [PauliMeasurementGate([pauli_basis[q]], key=key_func(q)).on(q) for q in pauli_basis]
 
 
-# pylint: disable=function-redefined
-
-
 @overload
 def measure(
     *target: raw_types.Qid,
@@ -205,6 +202,3 @@ def measure_each(
     )
     qubitsequence = qubits[0] if one_iterable_arg else qubits
     return [MeasurementGate(1, key_func(q), qid_shape=(q.dimension,)).on(q) for q in qubitsequence]
-
-
-# pylint: enable=function-redefined

@@ -294,7 +294,7 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
     ):
         gate_type_times = {cirq.cirq_type_from_json(gate): val for gate, val in gate_times_ns}
         # Known false positive: https://github.com/PyCQA/pylint/issues/5857
-        return GoogleNoiseProperties(  # pylint: disable=unexpected-keyword-arg
+        return GoogleNoiseProperties(
             gate_times_ns=gate_type_times,
             t1_ns=dict(t1_ns),
             tphi_ns=dict(tphi_ns),

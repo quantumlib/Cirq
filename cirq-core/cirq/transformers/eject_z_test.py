@@ -193,8 +193,6 @@ def test_unphaseable_causes_earlier_merge_without_size_increase():
         pass
 
     u = UnknownGate()
-
-    # pylint: disable=not-callable
     q = cirq.NamedQubit('q')
     assert_optimizes(
         before=cirq.Circuit(
