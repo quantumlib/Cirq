@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import cirq
+import cirq.testing
 from cirq.devices.insertion_noise_model import InsertionNoiseModel
 from cirq.devices.noise_properties import NoiseModelFromNoiseProperties, NoiseProperties
 from cirq.devices.noise_utils import OpIdentifier, PHYSICAL_GATE_TAG
@@ -63,3 +64,15 @@ def test_noise_model_from_noise_properties_repr_and_json():
     assert 'NoiseModelFromNoiseProperties' in repr(model)
     restored = NoiseModelFromNoiseProperties._from_json_dict_(**model._json_dict_())
     assert restored._noise_properties is props
+
+
+def test_noise_model_from_noise_properties_equality() -> None:
+    q0 = cirq.LineQubit(0)
+    props1 = SampleNoiseProperties([q0], [])
+    props2 = SampleNoiseProperties([q0], [])
+    eq = cirq.testing.EqualsTester()
+    eq.make_equality_group(
+        lambda: NoiseModelFromNoiseProperties(props1),
+        lambda: NoiseModelFromNoiseProperties(props1),
+    )
+    eq.add_equality_group(NoiseModelFromNoiseProperties(props2))
