@@ -50,7 +50,9 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'CouplerPulse': cirq_google.experimental.CouplerPulse,
         'Coupler': cirq_google.Coupler,
         'GoogleNoiseProperties': cirq_google.GoogleNoiseProperties,
-        'PerQubitDepolarizingWithDampedReadoutNoiseModel': cirq_google.experimental.PerQubitDepolarizingWithDampedReadoutNoiseModel,
+        'PerQubitDepolarizingWithDampedReadoutNoiseModel': (
+            cirq_google.experimental.PerQubitDepolarizingWithDampedReadoutNoiseModel
+        ),
         'SycamoreGate': cirq_google.SycamoreGate,
         'WillowGate': cirq_google.WillowGate,
         # cirq_google.GateTabulation has been removed and replaced by cirq.TwoQubitGateTabulation.

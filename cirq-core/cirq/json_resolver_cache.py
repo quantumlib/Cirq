@@ -155,8 +155,12 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'DepolarizingNoiseModel': cirq.contrib.noise_models.DepolarizingNoiseModel,
         'ReadoutNoiseModel': cirq.contrib.noise_models.ReadoutNoiseModel,
         'DampedReadoutNoiseModel': cirq.contrib.noise_models.DampedReadoutNoiseModel,
-        'DepolarizingWithReadoutNoiseModel': cirq.contrib.noise_models.DepolarizingWithReadoutNoiseModel,
-        'DepolarizingWithDampedReadoutNoiseModel': cirq.contrib.noise_models.DepolarizingWithDampedReadoutNoiseModel,
+        'DepolarizingWithReadoutNoiseModel': (
+            cirq.contrib.noise_models.DepolarizingWithReadoutNoiseModel
+        ),
+        'DepolarizingWithDampedReadoutNoiseModel': (
+            cirq.contrib.noise_models.DepolarizingWithDampedReadoutNoiseModel
+        ),
         '_InverseCompositeGate': raw_types._InverseCompositeGate,
         'KeyCondition': cirq.KeyCondition,
         'KrausChannel': cirq.KrausChannel,
