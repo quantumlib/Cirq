@@ -248,9 +248,18 @@ def test_pow() -> None:
     assert ZGateDef(exponent=0.25, global_shift=0.5) ** 2 == ZGateDef(
         exponent=0.5, global_shift=0.5
     )
-    with pytest.raises(ValueError, match="real"):
+    with pytest.raises(ValueError, match="Gate exponent must be real."):
         assert ZGateDef(exponent=0.5) ** 0.5j
     assert ZGateDef(exponent=0.5) ** (1 + 0j) == ZGateDef(exponent=0.5)
+
+    with pytest.raises(TypeError, match="Gate exponent must be a number or sympy expression."):
+        assert ZGateDef(exponent=0.5) ** "text"
+
+    with pytest.raises(TypeError, match="Gate exponent must be a number or sympy expression."):
+        assert ZGateDef(exponent="text")
+
+    with pytest.raises(TypeError, match="Gate exponent must be a number or sympy expression."):
+        assert ZGateDef(exponent=sympy.Symbol('a')) ** "text"
 
 
 def test_inverse() -> None:
