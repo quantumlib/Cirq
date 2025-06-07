@@ -307,9 +307,7 @@ class QasmParser:
         ),
         'cz': QasmGateStatement(qasm_gate='cz', cirq_gate=ops.CZ, num_params=0, num_args=2),
         'h': QasmGateStatement(qasm_gate='h', num_params=0, num_args=1, cirq_gate=ops.H),
-        'id': QasmGateStatement(
-            qasm_gate='id', cirq_gate=ops.I, num_params=0, num_args=1
-        ),
+        'id': QasmGateStatement(qasm_gate='id', cirq_gate=ops.I, num_params=0, num_args=1),
         'rx': QasmGateStatement(
             qasm_gate='rx', cirq_gate=(lambda params: ops.rx(params[0])), num_params=1, num_args=1
         ),

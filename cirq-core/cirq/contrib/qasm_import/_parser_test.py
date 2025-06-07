@@ -216,9 +216,7 @@ def test_CX_gate() -> None:
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q1': 2, 'q2': 2}
 
-    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(
-        qasm, cirq.unitary(expected_circuit)
-    )
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
 def test_classical_control() -> None:
@@ -381,9 +379,7 @@ def test_U_gate() -> None:
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 2}
 
-    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(
-        qasm, cirq.unitary(expected_circuit)
-    )
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
 def test_U_angles() -> None:
@@ -472,9 +468,7 @@ def test_expressions(expr: str) -> None:
     )
     assert parsed_qasm.qregs == {'q': 1}
 
-    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(
-        qasm, cirq.unitary(expected_circuit)
-    )
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
 def test_unknown_function() -> None:
@@ -488,11 +482,7 @@ def test_unknown_function() -> None:
         parser.parse(qasm)
 
 
-rotation_gates = [
-    ('rx', cirq.rx),
-    ('ry', cirq.ry),
-    ('rz', cirq.rz),
-]
+rotation_gates = [('rx', cirq.rx), ('ry', cirq.ry), ('rz', cirq.rz)]
 
 
 single_qubit_gates = [
@@ -536,9 +526,7 @@ def test_rotation_gates(qasm_gate: str, cirq_gate: Callable[[float], cirq.Gate])
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 2}
 
-    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(
-        qasm, cirq.unitary(expected_circuit)
-    )
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
 @pytest.mark.parametrize('qasm_gate', [g[0] for g in rotation_gates])
@@ -632,9 +620,7 @@ def test_measure_individual_bits() -> None:
     assert parsed_qasm.qregs == {'q1': 2}
     assert parsed_qasm.cregs == {'c1': 2}
 
-    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(
-        qasm, cirq.unitary(expected_circuit)
-    )
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
 def test_measure_registers() -> None:
@@ -665,9 +651,7 @@ def test_measure_registers() -> None:
     assert parsed_qasm.qregs == {'q1': 3}
     assert parsed_qasm.cregs == {'c1': 3}
 
-    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(
-        qasm, cirq.unitary(expected_circuit)
-    )
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
 def test_measure_mismatched_register_size() -> None:
@@ -791,9 +775,7 @@ def test_u0_gate() -> None:
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 1}
 
-    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(
-        qasm, cirq.unitary(expected_circuit)
-    )
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
 def test_u1_gate() -> None:
@@ -818,9 +800,7 @@ def test_u1_gate() -> None:
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 1}
 
-    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(
-        qasm, cirq.unitary(expected_circuit)
-    )
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
 def test_p_gate() -> None:
@@ -845,9 +825,7 @@ def test_p_gate() -> None:
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 1}
 
-    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(
-        qasm, cirq.unitary(expected_circuit)
-    )
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
 def test_u2_gate() -> None:
@@ -872,9 +850,7 @@ def test_u2_gate() -> None:
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 1}
 
-    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(
-        qasm, cirq.unitary(expected_circuit)
-    )
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
 def test_id_gate() -> None:
@@ -901,9 +877,7 @@ def test_id_gate() -> None:
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 2}
 
-    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(
-        qasm, cirq.unitary(expected_circuit)
-    )
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
 def test_u3_gate() -> None:
@@ -939,9 +913,7 @@ def test_u3_gate() -> None:
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 2}
 
-    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(
-        qasm, cirq.unitary(expected_circuit)
-    )
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
 def test_u_gate() -> None:
@@ -977,14 +949,14 @@ def test_u_gate() -> None:
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 2}
 
-    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(
-        qasm, cirq.unitary(expected_circuit)
-    )
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
 @pytest.mark.parametrize(
     'qasm_gate',
-    ['p', 'u0', 'u1', 'u2', 'u3'] + [g[0] for g in rotation_gates] + [g[0] for g in single_qubit_gates],
+    ['p', 'u0', 'u1', 'u2', 'u3']
+    + [g[0] for g in rotation_gates]
+    + [g[0] for g in single_qubit_gates],
 )
 def test_standard_single_qubit_gates_wrong_number_of_args(qasm_gate) -> None:
     qasm = f"""
@@ -1003,9 +975,15 @@ def test_standard_single_qubit_gates_wrong_number_of_args(qasm_gate) -> None:
 @pytest.mark.parametrize(
     ['qasm_gate', 'num_params'],
     [
-        ['u0', 1], ['rx', 1], ['ry', 1],
-        ['rz', 1], ['p', 1], ['u1', 1],
-        ['u2', 2], ['u3', 3], ['u', 3]
+        ['u0', 1],
+        ['rx', 1],
+        ['ry', 1],
+        ['rz', 1],
+        ['p', 1],
+        ['u1', 1],
+        ['u2', 2],
+        ['u3', 3],
+        ['u', 3],
     ]
     + [[g[0], 0] for g in single_qubit_gates],
 )
@@ -1055,7 +1033,7 @@ two_qubit_param_gates = {
     ('crx', cirq.ControlledGate(cirq.rx(0.1))): 1,
     ('cry', cirq.ControlledGate(cirq.ry(0.1))): 1,
     ('crz', cirq.ControlledGate(cirq.rz(0.1))): 1,
-    ('cp', cirq.ControlledGate(cirq.ZPowGate(exponent=0.1/np.pi))): 1,
+    ('cp', cirq.ControlledGate(cirq.ZPowGate(exponent=0.1 / np.pi))): 1,
 }
 
 
@@ -1095,9 +1073,7 @@ def test_two_qubit_gates(qasm_gate: str, cirq_gate: cirq.testing.TwoQubitGate) -
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q1': 2, 'q2': 2}
 
-    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(
-        qasm, cirq.unitary(expected_circuit)
-    )
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
 @pytest.mark.parametrize(
@@ -1147,9 +1123,7 @@ def test_two_qubit_param_gates(
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q1': 2, 'q2': 2}
 
-    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(
-        qasm, cirq.unitary(expected_circuit)
-    )
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
 @pytest.mark.parametrize(
@@ -1262,9 +1236,7 @@ def test_three_qubit_gates(qasm_gate: str, cirq_gate: cirq.testing.TwoQubitGate)
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q1': 2, 'q2': 2, 'q3': 2}
 
-    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(
-        qasm, cirq.unitary(expected_circuit)
-    )
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
 @pytest.mark.parametrize('qasm_gate', [g[0] for g in three_qubit_gates])
@@ -1343,9 +1315,7 @@ def test_four_qubit_gates(qasm_gate: str, cirq_gate: cirq.testing.TwoQubitGate) 
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q1': 2, 'q2': 2, 'q3': 2, 'q4': 2}
 
-    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(
-        qasm, cirq.unitary(expected_circuit)
-    )
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
 @pytest.mark.parametrize('qasm_gate', [g[0] for g in four_qubit_gates])
@@ -1376,9 +1346,7 @@ def test_four_qubit_gates_with_too_much_parameters(qasm_gate: str) -> None:
         parser.parse(qasm)
 
 
-five_qubit_gates = [
-    ('c4x', cirq.ControlledGate(cirq.X, num_controls=4)),
-]
+five_qubit_gates = [('c4x', cirq.ControlledGate(cirq.X, num_controls=4))]
 
 
 @pytest.mark.parametrize('qasm_gate,cirq_gate', five_qubit_gates)
@@ -1426,9 +1394,7 @@ def test_five_qubit_gates(qasm_gate: str, cirq_gate: cirq.testing.TwoQubitGate) 
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q1': 2, 'q2': 2, 'q3': 2, 'q4': 2, 'q5': 2}
 
-    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(
-        qasm, cirq.unitary(expected_circuit)
-    )
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
 @pytest.mark.parametrize('qasm_gate', [g[0] for g in five_qubit_gates])
@@ -1483,9 +1449,7 @@ def test_single_qubit_gates(qasm_gate: str, cirq_gate: cirq.Gate) -> None:
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 2}
 
-    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(
-        qasm, cirq.unitary(expected_circuit)
-    )
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
 def test_openqasm_3_0_qubits() -> None:
@@ -1844,9 +1808,7 @@ def test_rzz_gate() -> None:
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 2}
 
-    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(
-        qasm, cirq.unitary(expected_circuit)
-    )
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
 def test_rxx_gate() -> None:
@@ -1871,9 +1833,7 @@ def test_rxx_gate() -> None:
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 2}
 
-    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(
-        qasm, cirq.unitary(expected_circuit)
-    )
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
 def test_crx_gate() -> None:
@@ -1898,9 +1858,7 @@ def test_crx_gate() -> None:
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 2}
 
-    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(
-        qasm, cirq.unitary(expected_circuit)
-    )
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
 @pytest.mark.parametrize(
