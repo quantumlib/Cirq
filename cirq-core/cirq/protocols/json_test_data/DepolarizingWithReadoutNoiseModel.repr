@@ -1,1 +1,1 @@
-cirq.contrib.noise_models.DepolarizingWithReadoutNoiseModel(0.1, 0.2)
+__import__('cirq' + '.contrib.noise_models', fromlist=['DepolarizingWithReadoutNoiseModel']).DepolarizingWithReadoutNoiseModel(0.1, 0.2)

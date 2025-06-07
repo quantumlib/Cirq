@@ -1,1 +1,1 @@
-cirq.contrib.noise_models.DampedReadoutNoiseModel(0.3, prepend=True)
+__import__('cirq' + '.contrib.noise_models', fromlist=['DampedReadoutNoiseModel']).DampedReadoutNoiseModel(0.3, prepend=True)
