@@ -1,0 +1,1 @@
+cirq_google.experimental.noise_models.PerQubitDepolarizingWithDampedReadoutNoiseModel(depol_probs={cirq.LineQubit(0): 0.1}, bitflip_probs={cirq.LineQubit(0): 0.2}, decay_probs={cirq.LineQubit(0): 0.3})

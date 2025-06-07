@@ -24,3 +24,4 @@ from cirq.contrib import quirk
 from cirq.contrib.qcircuit import circuit_to_latex_using_qcircuit as circuit_to_latex_using_qcircuit
 from cirq.contrib import json
 from cirq.contrib.circuitdag import CircuitDag as CircuitDag, Unique as Unique
+from cirq.contrib import noise_models
