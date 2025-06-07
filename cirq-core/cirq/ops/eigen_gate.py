@@ -19,7 +19,7 @@ import fractions
 import math
 import numbers
 from types import NotImplementedType
-from typing import AbstractSet, Any, cast, Iterable, NamedTuple, TYPE_CHECKING, Union
+from typing import AbstractSet, Any, cast, Iterable, NamedTuple, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -107,9 +107,10 @@ class EigenGate(raw_types.Gate):
             ValueError: If the supplied exponent is a complex number with an
                 imaginary component.
         """
-        if isinstance(exponent, str):
+        if not isinstance(exponent, (numbers.Number, sympy.Expr)):
             raise TypeError(
-                f"Gate exponent must be a number, not a string. Invalid Value: {exponent}"
+                "Gate exponent must be a number or sympy expression. "
+                f"Invalid type: {type(exponent).__name__!r}"
             )
         if isinstance(exponent, complex):
             if exponent.imag:
@@ -291,10 +292,11 @@ class EigenGate(raw_types.Gate):
         real_periods = [abs(2 / e) for e in exponents if e != 0]
         return _approximate_common_period(real_periods)
 
-    def __pow__(self, exponent: float | sympy.Symbol) -> EigenGate:
-        if isinstance(exponent, str):
+    def __pow__(self, exponent: value.TParamVal) -> EigenGate:
+        if not isinstance(exponent, (numbers.Number, sympy.Expr)):
             raise TypeError(
-                f"Cannot raise {type(self).__name__} to a string exponent: {exponent!r}"
+                "Gate exponent must be a number or sympy expression. "
+                f"Invalid type: {type(exponent).__name__!r}"
             )
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
