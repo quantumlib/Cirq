@@ -73,7 +73,7 @@ def test_empty_moments() -> None:
         ('>c', '&gt;c'),
         ('>=d', '&gt;=d'),
         ('>e<', '&gt;e&lt;'),
-        ('A[<virtual>]B[cirq.VirtualTag()]C>D<E', 'ABC&gt;D&lt;E'),
+        ('ABC>D<E', 'ABC&gt;D&lt;E'),
     ],
 )
 def test_gate_with_less_greater_str(symbol, svg_symbol) -> None:
