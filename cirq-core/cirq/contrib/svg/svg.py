@@ -20,9 +20,6 @@ def fixup_text(text: str):
         # https://github.com/quantumlib/Cirq/issues/4499
         # TODO: Visualize Custom MatrixGate
         return '?'
-    # https://github.com/quantumlib/Cirq/issues/2905
-    text = text.replace('[<virtual>]', '')
-    text = text.replace('[cirq.VirtualTag()]', '')
     text = text.replace('&', '&amp;')
     text = text.replace('<', '&lt;').replace('>', '&gt;')
     return text
