@@ -915,9 +915,12 @@ class TaggedOperation(Operation):
         sub_op_info = protocols.circuit_diagram_info(self.sub_operation, args, NotImplemented)
         # Add tag to wire symbol if it exists.
         if sub_op_info is not NotImplemented and args.include_tags and sub_op_info.wire_symbols:
-            sub_op_info.wire_symbols = (
-                sub_op_info.wire_symbols[0] + f"[{', '.join(map(str, self._tags))}]",
-            ) + sub_op_info.wire_symbols[1:]
+            # Filter out VirtualTags as they are not intended for user display.
+            filtered_tags = [str(t) for t in self._tags if not isinstance(t, ops.VirtualTag)]
+            if filtered_tags:
+                sub_op_info.wire_symbols = (
+                    sub_op_info.wire_symbols[0] + f"[{', '.join(filtered_tags)}]",
+                ) + sub_op_info.wire_symbols[1:]
         return sub_op_info
 
     @cached_method
