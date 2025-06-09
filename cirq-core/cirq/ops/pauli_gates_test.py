@@ -227,8 +227,8 @@ def test_powers() -> None:
     assert isinstance(cirq.Z**1, cirq.Pauli)
 
     with pytest.raises(TypeError, match="Gate exponent must be a number or sympy expression."):
-        assert cirq.X ** 'text'  # type: ignore
+        assert cirq.X ** 'text'
     with pytest.raises(TypeError, match="Gate exponent must be a number or sympy expression."):
-        assert cirq.Y ** 'text'  # type: ignore
+        assert cirq.Y ** 'text'
     with pytest.raises(TypeError, match="Gate exponent must be a number or sympy expression."):
-        assert cirq.Z ** 'text'  # type: ignore
+        assert cirq.Z ** 'text'
