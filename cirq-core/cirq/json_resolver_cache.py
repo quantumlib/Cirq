@@ -165,12 +165,10 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
             'cirq' + '.contrib.noise_models', fromlist=['DampedReadoutNoiseModel']
         ).DampedReadoutNoiseModel,
         'DepolarizingWithReadoutNoiseModel': __import__(
-            'cirq' + '.contrib.noise_models',
-            fromlist=['DepolarizingWithReadoutNoiseModel'],
+            'cirq' + '.contrib.noise_models', fromlist=['DepolarizingWithReadoutNoiseModel']
         ).DepolarizingWithReadoutNoiseModel,
         'DepolarizingWithDampedReadoutNoiseModel': __import__(
-            'cirq' + '.contrib.noise_models',
-            fromlist=['DepolarizingWithDampedReadoutNoiseModel'],
+            'cirq' + '.contrib.noise_models', fromlist=['DepolarizingWithDampedReadoutNoiseModel']
         ).DepolarizingWithDampedReadoutNoiseModel,
         '_InverseCompositeGate': raw_types._InverseCompositeGate,
         'KeyCondition': cirq.KeyCondition,

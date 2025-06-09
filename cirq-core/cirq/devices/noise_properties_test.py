@@ -72,6 +72,6 @@ def test_noise_model_from_noise_properties_equality() -> None:
     props2 = SampleNoiseProperties([q0], [])
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(
-       lambda: NoiseModelFromNoiseProperties(props1), lambda: NoiseModelFromNoiseProperties(props1)
+        lambda: NoiseModelFromNoiseProperties(props1), lambda: NoiseModelFromNoiseProperties(props1)
     )
     eq.add_equality_group(NoiseModelFromNoiseProperties(props2))
