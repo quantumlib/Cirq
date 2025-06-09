@@ -103,9 +103,15 @@ class EigenGate(raw_types.Gate):
                 `cirq.unitary(cirq.rx(pi))` equals -iX instead of X.
 
         Raises:
+            TypeError: If the supplied exponent is a string.
             ValueError: If the supplied exponent is a complex number with an
                 imaginary component.
         """
+        if not isinstance(exponent, (numbers.Number, sympy.Expr)):
+            raise TypeError(
+                "Gate exponent must be a number or sympy expression. "
+                f"Invalid type: {type(exponent).__name__!r}"
+            )
         if isinstance(exponent, complex):
             if exponent.imag:
                 raise ValueError(f"Gate exponent must be real. Invalid Value: {exponent}")
@@ -286,7 +292,12 @@ class EigenGate(raw_types.Gate):
         real_periods = [abs(2 / e) for e in exponents if e != 0]
         return _approximate_common_period(real_periods)
 
-    def __pow__(self, exponent: float | sympy.Symbol) -> EigenGate:
+    def __pow__(self, exponent: value.TParamVal) -> EigenGate:
+        if not isinstance(exponent, (numbers.Number, sympy.Expr)):
+            raise TypeError(
+                "Gate exponent must be a number or sympy expression. "
+                f"Invalid type: {type(exponent).__name__!r}"
+            )
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             return NotImplemented  # pragma: no cover
