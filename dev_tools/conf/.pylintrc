@@ -54,7 +54,6 @@ enable=
     simplifiable-condition,
     simplifiable-if-statement,
     singleton-comparison,
-    syntax-error,
     too-many-function-args,
     trailing-whitespace,
     undefined-variable,
