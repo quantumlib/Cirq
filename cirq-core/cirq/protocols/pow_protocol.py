@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# ruff: noqa: A001
+
 from __future__ import annotations
 
 from typing import Any, Callable, overload, TYPE_CHECKING, TypeVar

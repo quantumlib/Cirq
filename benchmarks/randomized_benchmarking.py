@@ -55,7 +55,7 @@ class SingleQubitRandomizedBenchmarking:
         for q in qubits:
             gate_ids = np.random.choice(len(self.sq_xz_cliffords), depth)
             idx = _find_inv_matrix(dot(self.sq_xz_matrices[gate_ids][::-1]), self.sq_xz_matrices)
-            op_sequence = [self.sq_xz_cliffords[id].on(q) for id in gate_ids]
+            op_sequence = [self.sq_xz_cliffords[gate_id].on(q) for gate_id in gate_ids]
             op_sequence.append(self.sq_xz_cliffords[idx].on(q))
             op_grid.append(op_sequence)
         return op_grid

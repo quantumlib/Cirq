@@ -56,6 +56,7 @@ extend-exclude = ["*_pb2.py*"]
 
 [tool.ruff.lint]
 select = [
+    "A001",  # builtin-variable-shadowing, pylint redefined-builtin
     "A002",  # builtin-argument-shadowing, pylint redefined-builtin
     # "ANN201",  # missing-return-type-undocumented-public-function
     "B002",  # unary-prefix-increment-decrement, pylint nonexistent-operator
