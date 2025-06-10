@@ -70,6 +70,7 @@ select = [
     "F403",  # undefined-local-with-import-star, pylint wildcard-import
     "F405",  # undefined-local-with-import-star-usage, pylint unused-wildcard-import
     "F406",  # undefined-local-with-nested-import-star-usage, pylint wildcard-import
+    "F541",  # f-string-missing-placeholders, pylint f-string-without-interpolation
     "F601",  # multi-value-repeated-key-literal
     "F701",  # break-outside-loop, pylint not-in-loop
     "F702",  # continue-outside-loop, pylint not-in-loop
