@@ -212,7 +212,7 @@ def _normalize_input_paulis(
 
 
 def _extract_readout_qubits(pauli_strings: list[ops.PauliString]) -> list[ops.Qid]:
-    """Extracts unique qubits from a list of Pauli strings."""
+    """Extracts unique qubits from a list of QWC Pauli strings."""
     qubits = set()
     for pauli_str in pauli_strings:
         for qubit in pauli_str.qubits:
@@ -220,14 +220,21 @@ def _extract_readout_qubits(pauli_strings: list[ops.PauliString]) -> list[ops.Qi
     return sorted(qubits)
 
 
-
-def _build_pauli_string_calibration_result(qubits_to_error: SingleQubitReadoutCalibrationResult, readout_qubits: ops.Qid) -> SingleQubitReadoutCalibrationResult:
+def _build_pauli_string_calibration_result(
+    qubits_to_error: SingleQubitReadoutCalibrationResult, readout_qubits: list[ops.Qid]
+) -> SingleQubitReadoutCalibrationResult:
+    """Builds a calibration result for the specific readout qubits."""
     return SingleQubitReadoutCalibrationResult(
-        zero_state_errors={qubit: qubits_to_error.zero_state_errors[qubit] for qubit in readout_qubits},
-        one_state_errors={qubit: qubits_to_error.one_state_errors[qubit] for qubit in readout_qubits},
-        timestamp= qubits_to_error.timestamp,
+        zero_state_errors={
+            qubit: qubits_to_error.zero_state_errors[qubit] for qubit in readout_qubits
+        },
+        one_state_errors={
+            qubit: qubits_to_error.one_state_errors[qubit] for qubit in readout_qubits
+        },
+        timestamp=qubits_to_error.timestamp,
         repetitions=qubits_to_error.repetitions,
     )
+
 
 def _pauli_strings_to_basis_change_ops(
     pauli_strings: list[ops.PauliString], qid_list: list[ops.Qid]
@@ -328,14 +335,22 @@ def _process_pauli_measurement_results(
         measurement_results = circuit_result.measurements["m"]
         pauli_strs = pauli_string_groups[pauli_group_index]
         pauli_readout_qubits = _extract_readout_qubits(pauli_strs)
-        
-        calibration_result = calibration_results[tuple(pauli_readout_qubits)] if disable_readout_mitigation is False else None
+
+        calibration_result = (
+            calibration_results[tuple(pauli_readout_qubits)]
+            if disable_readout_mitigation is False
+            else None
+        )
 
         for pauli_str in pauli_strs:
             qubits_sorted = sorted(pauli_str.qubits)
             qubit_indices = [qubits.index(q) for q in qubits_sorted]
 
-            pauli_str_calibration_result = _build_pauli_string_calibration_result(calibration_result, qubits_sorted) if disable_readout_mitigation is False else None
+            pauli_str_calibration_result = (
+                _build_pauli_string_calibration_result(calibration_result, qubits_sorted)
+                if disable_readout_mitigation is False
+                else None
+            )
             confusion_matrices = (
                 _build_many_one_qubits_confusion_matrix(pauli_str_calibration_result)
                 if disable_readout_mitigation is False
@@ -372,9 +387,7 @@ def _process_pauli_measurement_results(
                     mitigated_stddev=d_m_with_coefficient,
                     unmitigated_expectation=unmitigated_value_with_coefficient,
                     unmitigated_stddev=d_unmit_with_coefficient,
-                    calibration_result=(
-                        pauli_str_calibration_result
-                    ),
+                    calibration_result=(pauli_str_calibration_result),
                 )
             )
 
