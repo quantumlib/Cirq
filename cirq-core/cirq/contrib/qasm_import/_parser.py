@@ -229,11 +229,117 @@ class QasmParser:
 
     qelib_gates = {
         'ccx': QasmGateStatement(qasm_gate='ccx', num_params=0, num_args=3, cirq_gate=ops.CCX),
+        'rccx': QasmGateStatement(
+            qasm_gate='rccx',
+            num_params=0,
+            num_args=3,
+            cirq_gate=ops.MatrixGate(
+                np.array([
+                    [1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+                    [0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+                    [0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+                    [0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+                    [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+                    [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, -1.+0.j, 0.+0.j, 0.+0.j],
+                    [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.-1.j],
+                    [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+1.j, 0.+0.j]
+                ])
+            )
+        ),
         'c3x': QasmGateStatement(
             qasm_gate='c3x',
             num_params=0,
             num_args=4,
             cirq_gate=ops.ControlledGate(sub_gate=ops.X, num_controls=3),
+        ),
+        'rc3x': QasmGateStatement(
+            qasm_gate='rc3x',
+            num_params=0,
+            num_args=4,
+            cirq_gate=ops.MatrixGate(
+                np.array([
+                    [
+                        1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 0.+0.j
+                    ],
+                    [
+                        0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 0.+0.j
+                    ],
+                    [
+                        0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 0.+0.j
+                    ],
+                    [
+                        0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 0.+0.j
+                    ],
+                    [
+                        0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 0.+0.j
+                    ],
+                    [
+                        0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j,
+                        0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 0.+0.j
+                    ],
+                    [
+                        0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j,
+                        0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 0.+0.j
+                    ],
+                    [
+                        0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 0.+0.j
+                    ],
+                    [
+                        0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 0.+0.j
+                    ],
+                    [
+                        0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 0.+0.j
+                    ],
+                    [
+                        0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 0.+0.j
+                    ],
+                    [
+                        0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 0.+0.j
+                    ],
+                    [
+                        0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+1.j, 0.+0.j,
+                        0.+0.j, 0.+0.j
+                    ],
+                    [
+                        0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.-1.j,
+                        0.+0.j, 0.+0.j
+                    ],
+                    [
+                        0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 1.+0.j
+                    ],
+                    [
+                        0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                        -1.+0.j, 0.+0.j
+                    ]
+                ])
+            )
         ),
         'c4x': QasmGateStatement(
             qasm_gate='c4x',
@@ -307,7 +413,20 @@ class QasmParser:
         ),
         'cz': QasmGateStatement(qasm_gate='cz', cirq_gate=ops.CZ, num_params=0, num_args=2),
         'h': QasmGateStatement(qasm_gate='h', num_params=0, num_args=1, cirq_gate=ops.H),
-        'id': QasmGateStatement(qasm_gate='id', cirq_gate=ops.I, num_params=0, num_args=1),
+        'id': QasmGateStatement(qasm_gate='id', cirq_gate=ops.IdentityGate(1), num_params=0, num_args=1),
+        'iswap': QasmGateStatement(
+            qasm_gate='iswap', cirq_gate=ops.ISwapPowGate(), num_params=0, num_args=2
+        ),
+        'r': QasmGateStatement(
+            qasm_gate='r',
+            num_params=2,
+            num_args=1,
+            cirq_gate=(
+                lambda params: QasmUGate(
+                    params[0] / np.pi, (params[1] / np.pi) - 0.5, (-params[1] / np.pi) + 0.5
+                )
+            ),
+        ),
         'rx': QasmGateStatement(
             qasm_gate='rx', cirq_gate=(lambda params: ops.rx(params[0])), num_params=1, num_args=1
         ),
@@ -322,6 +441,12 @@ class QasmParser:
             num_params=1,
             num_args=2,
             cirq_gate=(lambda params: ops.XXPowGate(exponent=params[0] / np.pi)),
+        ),
+        'ryy': QasmGateStatement(
+            qasm_gate='ryy',
+            num_params=1,
+            num_args=2,
+            cirq_gate=(lambda params: ops.YYPowGate(exponent=params[0] / np.pi)),
         ),
         'rzz': QasmGateStatement(
             qasm_gate='rzz',
@@ -351,7 +476,7 @@ class QasmParser:
         ),
         'p': QasmGateStatement(
             qasm_gate='p',
-            cirq_gate=(lambda params: QasmUGate(0, 0, params[0] / np.pi)),
+            cirq_gate=(lambda params: ops.ZPowGate(exponent=params[0] / np.pi)),
             num_params=1,
             num_args=1,
         ),

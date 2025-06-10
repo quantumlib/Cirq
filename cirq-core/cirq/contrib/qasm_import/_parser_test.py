@@ -815,7 +815,7 @@ def test_p_gate() -> None:
     q0 = cirq.NamedQubit('q_0')
 
     expected_circuit = Circuit()
-    expected_circuit.append(QasmUGate(0, 0, 1.0 / 3.0)(q0))
+    expected_circuit.append(cirq.ZPowGate(exponent=1.0 / 3.0)(q0))
 
     parsed_qasm = parser.parse(qasm)
 
@@ -952,9 +952,31 @@ def test_u_gate() -> None:
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
+def test_r_gate() -> None:
+    qasm = """
+     OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
+     r(pi, pi / 2.0) q[0];
+"""
+    parser = QasmParser()
+
+    q0 = cirq.NamedQubit('q_0')
+
+    expected_circuit = Circuit()
+    expected_circuit.append(QasmUGate(1.0, 0.0, 0.0)(q0))
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 1}
+
+
 @pytest.mark.parametrize(
     'qasm_gate',
-    ['p', 'u0', 'u1', 'u2', 'u3']
+    ['p', 'u0', 'u1', 'u2', 'r', 'u3']
     + [g[0] for g in rotation_gates]
     + [g[0] for g in single_qubit_gates],
 )
@@ -982,6 +1004,7 @@ def test_standard_single_qubit_gates_wrong_number_of_args(qasm_gate) -> None:
         ['p', 1],
         ['u1', 1],
         ['u2', 2],
+        ['r', 2],
         ['u3', 3],
         ['u', 3],
     ]
@@ -1194,7 +1217,25 @@ def test_two_qubit_gates_with_too_much_parameters(qasm_gate: str) -> None:
         parser.parse(qasm)
 
 
-three_qubit_gates = [('ccx', cirq.TOFFOLI), ('cswap', cirq.CSWAP)]
+three_qubit_gates = [
+    ('ccx', cirq.TOFFOLI),
+    ('cswap', cirq.CSWAP),
+    (
+        'rccx',
+        cirq.MatrixGate(
+            np.array([
+                [1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+                [0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+                [0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+                [0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+                [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+                [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, -1.+0.j, 0.+0.j, 0.+0.j],
+                [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.-1.j],
+                [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+1.j, 0.+0.j]
+            ])
+        )
+    ),
+]
 
 
 @pytest.mark.parametrize('qasm_gate,cirq_gate', three_qubit_gates)
@@ -1270,6 +1311,93 @@ def test_three_qubit_gates_with_too_much_parameters(qasm_gate: str) -> None:
 four_qubit_gates = [
     ('c3x', cirq.ControlledGate(cirq.X, num_controls=3)),
     ('c3sqrtx', cirq.ControlledGate(cirq.XPowGate(exponent=0.5), num_controls=3)),
+    (
+        'rc3x',
+        cirq.MatrixGate(
+            np.array([
+                [
+                    1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 0.+0.j
+                ],
+                [
+                    0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 0.+0.j
+                ],
+                [
+                    0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 0.+0.j
+                ],
+                [
+                    0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 0.+0.j
+                ],
+                [
+                    0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 0.+0.j
+                ],
+                [
+                    0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j,
+                    0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 0.+0.j
+                ],
+                [
+                    0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j,
+                    0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 0.+0.j
+                ],
+                [
+                    0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 0.+0.j
+                ],
+                [
+                    0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 0.+0.j
+                ],
+                [
+                    0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 0.+0.j
+                ],
+                [
+                    0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 0.+0.j
+                ],
+                [
+                    0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 0.+0.j
+                ],
+                [
+                    0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+1.j, 0.+0.j,
+                    0.+0.j, 0.+0.j
+                ],
+                [
+                    0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.-1.j,
+                    0.+0.j, 0.+0.j
+                ],
+                [
+                    0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 1.+0.j
+                ],
+                [
+                    0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j,
+                    -1.+0.j, 0.+0.j
+                ]
+            ])
+        )
+    )
 ]
 
 
@@ -1811,6 +1939,28 @@ def test_rzz_gate() -> None:
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
+def test_ryy_gate() -> None:
+    qasm = """
+    OPENQASM 2.0;
+    include "qelib1.inc";
+    qreg q[2];
+    ryy(pi/3) q[0],q[1];
+    """
+    parser = QasmParser()
+
+    q0, q1 = cirq.NamedQubit('q_0'), cirq.NamedQubit('q_1')
+
+    expected_circuit = Circuit()
+    expected_circuit.append(cirq.YYPowGate(exponent=1 / 3).on(q0, q1))
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 2}
+
+
 def test_rxx_gate() -> None:
     qasm = """
     OPENQASM 2.0;
@@ -1859,6 +2009,79 @@ def test_crx_gate() -> None:
     assert parsed_qasm.qregs == {'q': 2}
 
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
+
+
+def test_cry_gate() -> None:
+    qasm = """
+    OPENQASM 2.0;
+    include "qelib1.inc";
+    qreg q[2];
+    cry(pi/7) q[0],q[1];
+    """
+    parser = QasmParser()
+
+    q0, q1 = cirq.NamedQubit('q_0'), cirq.NamedQubit('q_1')
+
+    expected_circuit = Circuit()
+    expected_circuit.append(cirq.ControlledGate(cirq.ry(np.pi / 7)).on(q0, q1))
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 2}
+
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
+
+
+def test_crz_gate() -> None:
+    qasm = """
+    OPENQASM 2.0;
+    include "qelib1.inc";
+    qreg q[2];
+    crz(pi/7) q[0],q[1];
+    """
+    parser = QasmParser()
+
+    q0, q1 = cirq.NamedQubit('q_0'), cirq.NamedQubit('q_1')
+
+    expected_circuit = Circuit()
+    expected_circuit.append(cirq.ControlledGate(cirq.rz(np.pi / 7)).on(q0, q1))
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 2}
+
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
+
+
+def test_iswap_gate() -> None:
+    qasm = """
+    OPENQASM 2.0;
+    include "qelib1.inc";
+    qreg q[2];
+    iswap q[0],q[1];
+    """
+    parser = QasmParser()
+
+    q0, q1 = cirq.NamedQubit('q_0'), cirq.NamedQubit('q_1')
+
+    expected_circuit = Circuit()
+    expected_circuit.append(cirq.ISwapPowGate().on(q0, q1))
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 2}
 
 
 @pytest.mark.parametrize(
