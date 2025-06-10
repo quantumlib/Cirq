@@ -14,6 +14,8 @@
 
 """Cirq is a framework for creating, editing, and invoking quantum circuits."""
 
+# ruff: noqa: F401
+
 from cirq import _import
 
 from cirq._compat import __cirq_debug__ as __cirq_debug__, with_debug as with_debug
