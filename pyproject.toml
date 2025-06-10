@@ -65,6 +65,7 @@ select = [
     "B018",  # useless-expression,
              # pylint expression-not-assigned, pointless-exception-statement,
              # pointless-statement, pointless-string-statement
+    "E402",  # module-import-not-at-top-of-file, pylint wrong-import-position
     "E711",  # none-comparison, pylint singleton-comparison
     "E712",  # true-false-comparison, pylint singleton-comparison
     "F401",  # unused-import, pylint unused-import
@@ -93,3 +94,6 @@ select = [
     "UP037",  # quoted-annotation
     "W605",  # invalid-escape-sequence, pylint anomalous-backslash-in-string
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"*.ipynb" = ["E402"]

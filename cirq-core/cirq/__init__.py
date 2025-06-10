@@ -710,6 +710,6 @@ _register_resolver(_class_resolver_dictionary)
 
 # contrib's json resolver cache depends on cirq.DEFAULT_RESOLVER
 
-from cirq import contrib
+from cirq import contrib  # noqa: E402
 
 # pylint: enable=wrong-import-position
