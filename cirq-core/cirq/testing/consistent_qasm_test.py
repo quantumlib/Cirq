@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import importlib.util
 import warnings
 
 import numpy as np
@@ -53,9 +54,7 @@ class QuditGate(cirq.Gate):
 
 
 def test_assert_qasm_is_consistent_with_unitary() -> None:
-    try:
-        import qiskit as _
-    except ImportError:  # pragma: no cover
+    if importlib.util.find_spec('qiskit') is None:  # pragma: no cover
         warnings.warn(
             "Skipped test_assert_qasm_is_consistent_with_unitary "
             "because qiskit isn't installed to verify against."
