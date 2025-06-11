@@ -72,7 +72,6 @@ class PasqalDevice(cirq.devices.Device):
             qubits, nx.from_edgelist([(a, b) for a in qubits for b in qubits if a != b])
         )
 
-    # pylint: enable=missing-raises-doc
     @property
     def supported_qubit_type(self):
         return (NamedQubit,)

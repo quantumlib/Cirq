@@ -201,7 +201,7 @@ class BadEigenGate(GoodEigenGate):
         )
 
 
-def test_assert_implements_consistent_protocols():
+def test_assert_implements_consistent_protocols() -> None:
     cirq.testing.assert_implements_consistent_protocols(
         GoodGate(phase_exponent=0.0), global_vals={'GoodGate': GoodGate}
     )
@@ -249,7 +249,7 @@ def test_assert_implements_consistent_protocols():
         cirq.testing.assert_implements_consistent_protocols(controlled_gate_op_test.BadGate())
 
 
-def test_assert_eigengate_implements_consistent_protocols():
+def test_assert_eigengate_implements_consistent_protocols() -> None:
     cirq.testing.assert_eigengate_implements_consistent_protocols(
         GoodEigenGate,
         global_vals={'GoodEigenGate': GoodEigenGate},
@@ -264,7 +264,7 @@ def test_assert_eigengate_implements_consistent_protocols():
         )
 
 
-def test_assert_commutes_magic_method_consistent_with_unitaries():
+def test_assert_commutes_magic_method_consistent_with_unitaries() -> None:
     gate_op = cirq.CNOT(*cirq.LineQubit.range(2))
     with pytest.raises(TypeError):
         cirq.testing.assert_commutes_magic_method_consistent_with_unitaries(gate_op)

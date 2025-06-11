@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Generic, Sequence
+from typing import Any, Generic, Iterator, Sequence
 from unittest import mock
 
 import duet
@@ -72,6 +72,11 @@ class SimulatesIntermediateStateImpl(
     metaclass=abc.ABCMeta,
 ):
     """A SimulatesIntermediateState that uses the default SimulationTrialResult type."""
+
+    def _base_iterator(
+        self, circuit: cirq.AbstractCircuit, qubits: tuple[cirq.Qid, ...], initial_state: Any
+    ) -> Iterator[TStepResult]:
+        raise NotImplementedError
 
     def _create_simulator_trial_result(
         self,

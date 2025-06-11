@@ -538,7 +538,6 @@ class Moment:
             )
         return Moment(new_ops)
 
-    # pylint: disable=function-redefined
     @overload
     def __getitem__(self, key: raw_types.Qid) -> cirq.Operation:
         pass

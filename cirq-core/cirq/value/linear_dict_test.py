@@ -29,7 +29,7 @@ def test_empty_init():
 
 sym = sympy.Symbol('sym')
 expr = sym * -(2 + 3j)
-symval = expr.subs({'sym': 5})
+symval = expr.subs({'sym': 5})  # pylint: disable=assignment-from-no-return
 symvalresolved = -10 - 15j
 
 
@@ -433,6 +433,7 @@ def test_bool(terms, bool_value):
     ),
 )
 def test_equal(terms_1, terms_2):
+    # pylint: disable=unnecessary-negation
     linear_dict_1 = cirq.LinearDict(terms_1)
     linear_dict_2 = cirq.LinearDict(terms_2)
     assert linear_dict_1 == linear_dict_2
@@ -452,6 +453,7 @@ def test_equal(terms_1, terms_2):
     ),
 )
 def test_unequal(terms_1, terms_2):
+    # pylint: disable=unnecessary-negation
     linear_dict_1 = cirq.LinearDict(terms_1)
     linear_dict_2 = cirq.LinearDict(terms_2)
     assert linear_dict_1 != linear_dict_2
