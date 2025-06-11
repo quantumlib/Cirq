@@ -27,7 +27,10 @@ import cirq
 
 from cirq.devices import line_qubit
 from cirq.ops.pauli_string_phasor import PauliStringPhasorGate
-from cirq_ionq.ionq_exceptions import IonQSerializerMixedGatesetsException
+from cirq_ionq.ionq_exceptions import (
+    IonQSerializerMixedGatesetsException,
+    NotSupportedPauliexpParameters,
+)
 from cirq_ionq.ionq_native_gates import GPI2Gate, GPIGate, MSGate, ZZGate
 
 
@@ -301,13 +304,19 @@ class Serializer:
         little_endian_pauli_string = big_endian_pauli_string[::-1]
         pauli_string_coefficient = gate.dense_pauli_string.coefficient
         if pauli_string_coefficient.imag != 0:
-            raise ValueError(
-                'IonQ pauliexp gates does not support complex evolution coefficients. '
+            raise NotSupportedPauliexpParameters(
+                'IonQ `pauliexp` gates does not support complex evolution coefficients. '
                 f'Found in a PauliStringPhasorGate a complex evolution coefficient {pauli_string_coefficient} for the associated DensePauliString.'
             )
         coefficients = [pauli_string_coefficient.real]
         # I am ignoring here the global phase of i * pi * (gate.exponent_neg + gate.exponent_pos) / 2
+        # @CodeReview: could you please confirm that this formula below is correct?
         time = math.pi * (gate.exponent_neg - gate.exponent_pos) / 2
+        if time < 0:
+            raise NotSupportedPauliexpParameters(
+                'IonQ `pauliexp` gates does not support negative evolution times. '
+                f'Found in a PauliStringPhasorGate a negative evolution time {time}.'
+            )
         if little_endian_pauli_string == "" or time == 0:
             seralized_gate = {}
         else:

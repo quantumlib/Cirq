@@ -55,3 +55,12 @@ class IonQSerializerMixedGatesetsException(Exception):
 
     def __init__(self, message):
         super().__init__(f"Message: '{message}'")
+
+
+class NotSupportedPauliexpParameters(Exception):
+    """An exception to be thrown when trying to serialize
+    a Cirq PauliStringPhasorGate to IonQ `pauliexp` gate.
+    """
+
+    def __init__(self, message):
+        super().__init__(f"Message: '{message}'")
