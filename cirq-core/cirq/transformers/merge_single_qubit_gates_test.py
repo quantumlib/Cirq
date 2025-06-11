@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List
+from __future__ import annotations
 
 import cirq
 
 
 def assert_optimizes(optimized: cirq.AbstractCircuit, expected: cirq.AbstractCircuit):
     # Ignore differences that would be caught by follow-up optimizations.
-    followup_transformers: List[cirq.TRANSFORMER] = [
+    followup_transformers: list[cirq.TRANSFORMER] = [
         cirq.drop_negligible_operations,
         cirq.drop_empty_moments,
     ]
@@ -221,13 +221,13 @@ def test_merge_single_qubit_moments_to_phxz_deep():
     )
 
 
-def test_merge_single_qubit_moments_to_phxz_global_phase():
+def test_merge_single_qubit_gates_to_phxz_global_phase():
     c = cirq.Circuit(cirq.GlobalPhaseGate(1j).on())
     c2 = cirq.merge_single_qubit_gates_to_phxz(c)
     assert c == c2
 
 
-def test_merge_single_qubit_moments_to_phased_x_and_z_global_phase():
+def test_merge_single_qubit_gates_to_phased_x_and_z_global_phase():
     c = cirq.Circuit(cirq.GlobalPhaseGate(1j).on())
     c2 = cirq.merge_single_qubit_gates_to_phased_x_and_z(c)
     assert c == c2

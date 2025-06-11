@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Collection, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import Collection, Sequence, TYPE_CHECKING
 
 import numpy as np
 import pytest
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
 
 class GoodGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:  # pragma: no cover
+    def _eigen_components(self) -> list[tuple[float, np.ndarray]]:  # pragma: no cover
         return [(0, np.diag([1, 0])), (1, np.diag([0, 1]))]
 
 
@@ -34,15 +34,13 @@ class BadGateOperation(cirq.GateOperation):
     def controlled_by(
         self,
         *control_qubits: cirq.Qid,
-        control_values: Optional[
-            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
-        ] = None,
+        control_values: cv.AbstractControlValues | Sequence[int | Collection[int]] | None = None,
     ) -> cirq.Operation:
         return cirq.ControlledOperation(control_qubits, self, control_values)
 
 
 class BadGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
+    def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
         return [(0, np.diag([1, 0])), (1, np.diag([0, 1]))]
 
     def on(self, *qubits: cirq.Qid) -> cirq.Operation:
@@ -50,11 +48,9 @@ class BadGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
 
     def controlled(
         self,
-        num_controls: Optional[int] = None,
-        control_values: Optional[
-            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
-        ] = None,
-        control_qid_shape: Optional[Tuple[int, ...]] = None,
+        num_controls: int | None = None,
+        control_values: cv.AbstractControlValues | Sequence[int | Collection[int]] | None = None,
+        control_qid_shape: tuple[int, ...] | None = None,
     ) -> cirq.Gate:
         ret = super().controlled(num_controls, control_values, control_qid_shape)
         if num_controls == 1 and control_values is None:
@@ -62,7 +58,7 @@ class BadGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
         return ret
 
 
-def test_assert_controlled_and_controlled_by_identical():
+def test_assert_controlled_and_controlled_by_identical() -> None:
     cirq.testing.assert_controlled_and_controlled_by_identical(GoodGate())
 
     with pytest.raises(AssertionError):
@@ -79,7 +75,7 @@ def test_assert_controlled_and_controlled_by_identical():
         )
 
 
-def test_assert_controlled_unitary_consistent():
+def test_assert_controlled_unitary_consistent() -> None:
     cirq.testing.assert_controlled_and_controlled_by_identical(
         GoodGate(exponent=0.5, global_shift=1 / 3)
     )

@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import functools
-from typing import Dict
+from __future__ import annotations
 
-from cirq.protocols.json_serialization import ObjectFactory
+import functools
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from cirq.protocols.json_serialization import ObjectFactory
 
 
 @functools.lru_cache()
-def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
+def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
     return {}

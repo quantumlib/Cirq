@@ -11,21 +11,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Tools for running circuits in a shuffled order with readout error benchmarking."""
+
+from __future__ import annotations
+
 import time
-from typing import Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from cirq import circuits, ops, protocols, work
 from cirq.experiments import SingleQubitReadoutCalibrationResult
-from cirq.study import ResultDict
+
+if TYPE_CHECKING:
+    from cirq.study import ResultDict
 
 
 def _validate_input(
     input_circuits: list[circuits.Circuit],
-    circuit_repetitions: Union[int, list[int]],
-    rng_or_seed: Union[np.random.Generator, int],
+    circuit_repetitions: int | list[int],
+    rng_or_seed: np.random.Generator | int,
     num_random_bitstrings: int,
     readout_repetitions: int,
 ):
@@ -153,12 +159,12 @@ def _analyze_readout_results(
 def run_shuffled_with_readout_benchmarking(
     input_circuits: list[circuits.Circuit],
     sampler: work.Sampler,
-    circuit_repetitions: Union[int, list[int]],
-    rng_or_seed: Union[np.random.Generator, int],
+    circuit_repetitions: int | list[int],
+    rng_or_seed: np.random.Generator | int,
     num_random_bitstrings: int = 100,
     readout_repetitions: int = 1000,
-    qubits: Optional[Union[List[ops.Qid], List[List[ops.Qid]]]] = None,
-) -> tuple[list[ResultDict], Dict[Tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult]]:
+    qubits: list[ops.Qid] | list[list[ops.Qid]] | None = None,
+) -> tuple[list[ResultDict], dict[tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult]]:
     """Run the circuits in a shuffled order with readout error benchmarking.
 
     Args:
@@ -186,7 +192,7 @@ def run_shuffled_with_readout_benchmarking(
     )
 
     # If input qubits is None, extract qubits from input circuits
-    qubits_to_measure: List[List[ops.Qid]] = []
+    qubits_to_measure: list[list[ops.Qid]] = []
     if qubits is None:
         qubits_set: set[ops.Qid] = set()
         for circuit in input_circuits:

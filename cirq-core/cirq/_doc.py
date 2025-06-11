@@ -13,9 +13,11 @@
 # limitations under the License.
 """Workaround for associating docstrings with public constants."""
 
-from typing import Any, Dict
+from __future__ import annotations
 
-RECORDED_CONST_DOCS: Dict[int, str] = {}
+from typing import Any
+
+RECORDED_CONST_DOCS: dict[int, str] = {}
 
 
 def document(value: Any, doc_string: str = ''):

@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from random import random
-from typing import Callable
 
 import numpy as np
 import pytest
@@ -29,20 +30,6 @@ from cirq.transformers.analytical_decompositions.three_qubit_decomposition impor
 )
 
 
-def _skip_if_scipy(*, version_is_greater_than_1_5_0: bool) -> Callable[[Callable], Callable]:
-    def decorator(func):  # pragma: no cover
-        try:
-            # pylint: disable=unused-import
-            from scipy.linalg import cossin
-
-            return None if version_is_greater_than_1_5_0 else func
-        except ImportError:
-            return func if version_is_greater_than_1_5_0 else None
-
-    return decorator
-
-
-@_skip_if_scipy(version_is_greater_than_1_5_0=False)
 @pytest.mark.parametrize(
     "u",
     [
@@ -52,7 +39,7 @@ def _skip_if_scipy(*, version_is_greater_than_1_5_0: bool) -> Callable[[Callable
         cirq.CCX._unitary_(),
     ],
 )
-def test_three_qubit_matrix_to_operations(u):
+def test_three_qubit_matrix_to_operations(u) -> None:
     a, b, c = cirq.LineQubit.range(3)
     operations = cirq.three_qubit_matrix_to_operations(a, b, c, u)
     final_circuit = cirq.Circuit(operations)
@@ -68,24 +55,12 @@ def test_three_qubit_matrix_to_operations(u):
     assert num_two_qubit_gates <= 20, f"expected at most 20 CZ/CNOTs got {num_two_qubit_gates}"
 
 
-@_skip_if_scipy(version_is_greater_than_1_5_0=False)
-def test_three_qubit_matrix_to_operations_errors():
+def test_three_qubit_matrix_to_operations_errors() -> None:
     a, b, c = cirq.LineQubit.range(3)
     with pytest.raises(ValueError, match="(8,8)"):
         cirq.three_qubit_matrix_to_operations(a, b, c, np.eye(2))
     with pytest.raises(ValueError, match="not unitary"):
         cirq.three_qubit_matrix_to_operations(a, b, c, cirq.unitary(cirq.CCX) * 2)
-
-
-# on environments with scipy <1.5.0 this will not be sufficient to cover the
-# full three_qubit_matrix_to_operations method. In case we ever introduce a CI
-# environment like that, we'll need to ignore the coverage somehow conditionally on
-# the scipy version.
-@_skip_if_scipy(version_is_greater_than_1_5_0=True)
-def test_three_qubit_matrix_to_operations_scipy_error():  # pragma: no cover
-    a, b, c = cirq.LineQubit.range(3)
-    with pytest.raises(ImportError, match="three_qubit.*1.5.0+"):
-        cirq.three_qubit_matrix_to_operations(a, b, c, np.eye(8))
 
 
 @pytest.mark.parametrize(
@@ -100,7 +75,7 @@ def test_three_qubit_matrix_to_operations_scipy_error():  # pragma: no cover
         (np.array([0.3, 0.3, -0.3, -0.3]), 2),
     ],
 )
-def test_cs_to_ops(theta, num_czs):
+def test_cs_to_ops(theta, num_czs) -> None:
     a, b, c = cirq.LineQubit.range(3)
     cs = _theta_to_cs(theta)
     circuit_cs = cirq.Circuit(_cs_to_ops(a, b, c, theta))
@@ -126,7 +101,7 @@ def _theta_to_cs(theta: np.ndarray) -> np.ndarray:
     return np.block([[c, -s], [s, c]])
 
 
-def test_multiplexed_angles():
+def test_multiplexed_angles() -> None:
     theta = [random() * np.pi, random() * np.pi, random() * np.pi, random() * np.pi]
 
     angles = _multiplexed_angles(theta)
@@ -190,7 +165,7 @@ def test_multiplexed_angles():
         [([-0.3, 0.3, -0.3, -0.3]), 4],
     ],
 )
-def test_middle_multiplexor(angles, num_cnots):
+def test_middle_multiplexor(angles, num_cnots) -> None:
     a, b, c = cirq.LineQubit.range(3)
     eigvals = np.exp(np.array(angles) * np.pi * 1j)
     d = np.diag(np.sqrt(eigvals))
@@ -212,7 +187,7 @@ def test_middle_multiplexor(angles, num_cnots):
 
 
 @pytest.mark.parametrize("shift_left", [True, False])
-def test_two_qubit_multiplexor_to_circuit(shift_left):
+def test_two_qubit_multiplexor_to_circuit(shift_left) -> None:
     a, b, c = cirq.LineQubit.range(3)
     u1 = cirq.testing.random_unitary(4)
     u2 = cirq.testing.random_unitary(4)

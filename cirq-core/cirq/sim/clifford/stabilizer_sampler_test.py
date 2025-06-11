@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 
 import cirq
 
 
-def test_produces_samples():
+def test_produces_samples() -> None:
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b), cirq.measure(a, key='a'), cirq.measure(b, key='b'))
 
@@ -26,7 +28,7 @@ def test_produces_samples():
     assert np.all(result['a'] ^ result['b'] == 0)
 
 
-def test_reset():
+def test_reset() -> None:
     q = cirq.LineQubit(0)
     sampler = cirq.StabilizerSampler()
     c = cirq.Circuit(cirq.X(q), cirq.reset(q), cirq.measure(q))

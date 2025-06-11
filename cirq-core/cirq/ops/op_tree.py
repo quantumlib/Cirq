@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, Iterable, Iterator, NoReturn, TYPE_CHECKING, Union
+from typing import Callable, Iterable, Iterator, NoReturn, TYPE_CHECKING
 
 from cirq._doc import document
 from cirq._import import LazyLoader
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 moment = LazyLoader("moment", globals(), "cirq.circuits.moment")
 
 
-OP_TREE = Union[Operation, Iterable['OP_TREE']]
+OP_TREE = Operation | Iterable['OP_TREE']
 document(
     OP_TREE,
     """An operation or nested collections of operations.
@@ -37,10 +37,10 @@ document(
     `cirq.OP_TREE` argument:
 
     - A single operation (a `cirq.Operation`).
-    - A list of operations (a `List[cirq.Operation]`).
-    - A list of lists of operations (a `List[List[cirq.Operation]]`).
+    - A list of operations (a `list[cirq.Operation]`).
+    - A list of lists of operations (a `list[list[cirq.Operation]]`).
     - A list mixing operations and generators of operations
-        (a `List[Union[cirq.Operation, Iterator[cirq.Operation]]]`).
+        (a `list[cirq.Operation | Iterator[cirq.Operation]]`).
     - Generally anything that can be iterated, and its items iterated, and
         so forth recursively until a bottom layer of operations is found.
     """,
@@ -49,7 +49,7 @@ document(
 
 def flatten_op_tree(
     root: OP_TREE, preserve_moments: bool = False
-) -> Iterator[Union[Operation, cirq.Moment]]:
+) -> Iterator[Operation | cirq.Moment]:
     """Performs an in-order iteration of the operations (leaves) in an OP_TREE.
 
     Args:
@@ -90,7 +90,7 @@ def flatten_to_ops(root: OP_TREE) -> Iterator[Operation]:
         _bad_op_tree(root)
 
 
-def flatten_to_ops_or_moments(root: OP_TREE) -> Iterator[Union[Operation, cirq.Moment]]:
+def flatten_to_ops_or_moments(root: OP_TREE) -> Iterator[Operation | cirq.Moment]:
     """Performs an in-order iteration OP_TREE, yielding ops and moments.
 
     Args:

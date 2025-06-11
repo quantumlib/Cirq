@@ -14,6 +14,8 @@
 
 """Cirq is a framework for creating, editing, and invoking quantum circuits."""
 
+# ruff: noqa: F401
+
 from cirq import _import
 
 from cirq._compat import __cirq_debug__ as __cirq_debug__, with_debug as with_debug
@@ -205,7 +207,9 @@ from cirq.ops import (
     CSwapGate as CSwapGate,
     CX as CX,
     CXPowGate as CXPowGate,
+    CXSWAP as CXSWAP,
     CZ as CZ,
+    CZSWAP as CZSWAP,
     CZPowGate as CZPowGate,
     DensePauliString as DensePauliString,
     depolarize as depolarize,
@@ -363,6 +367,7 @@ from cirq.transformers import (
     eject_z as eject_z,
     expand_composite as expand_composite,
     HardCodedInitialMapper as HardCodedInitialMapper,
+    index_tags as index_tags,
     is_negligible_turn as is_negligible_turn,
     LineInitialMapper as LineInitialMapper,
     MappingManager as MappingManager,
@@ -385,6 +390,7 @@ from cirq.transformers import (
     prepare_two_qubit_state_using_sqrt_iswap as prepare_two_qubit_state_using_sqrt_iswap,
     quantum_shannon_decomposition as quantum_shannon_decomposition,
     RouteCQC as RouteCQC,
+    remove_tags as remove_tags,
     routed_circuit_with_mapping as routed_circuit_with_mapping,
     SqrtIswapTargetGateset as SqrtIswapTargetGateset,
     single_qubit_matrix_to_gates as single_qubit_matrix_to_gates,
@@ -393,6 +399,7 @@ from cirq.transformers import (
     single_qubit_matrix_to_phxz as single_qubit_matrix_to_phxz,
     single_qubit_op_to_framed_phase_form as single_qubit_op_to_framed_phase_form,
     stratified_circuit as stratified_circuit,
+    symbolize_single_qubit_gates_by_indexed_tags as symbolize_single_qubit_gates_by_indexed_tags,
     synchronize_terminal_measurements as synchronize_terminal_measurements,
     TRANSFORMER as TRANSFORMER,
     TransformerContext as TransformerContext,

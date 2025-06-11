@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from __future__ import annotations
 
 import attrs
 
@@ -42,14 +42,14 @@ class DynamicalDecouplingTag:
     def _validate_protocol(self, attribute, value):
         assert value in SUPPORTED_DD_PROTOCOLS
 
-    def to_proto(self, msg: Optional[program_pb2.Tag] = None) -> program_pb2.Tag:
+    def to_proto(self, msg: program_pb2.Tag | None = None) -> program_pb2.Tag:
         if msg is None:
             msg = program_pb2.Tag()
         msg.dynamical_decoupling.protocol = self.protocol
         return msg
 
     @staticmethod
-    def from_proto(msg: program_pb2.Tag) -> 'DynamicalDecouplingTag':
+    def from_proto(msg: program_pb2.Tag) -> DynamicalDecouplingTag:
         if msg.WhichOneof("tag") != "dynamical_decoupling":
             raise ValueError(f"Message is not a DynamicalDecouplingTag, {msg}")
         return DynamicalDecouplingTag(protocol=msg.dynamical_decoupling.protocol)

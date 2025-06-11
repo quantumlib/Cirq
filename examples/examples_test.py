@@ -1,4 +1,7 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
+from __future__ import annotations
+
 import itertools
 
 import matplotlib.pyplot as plt
@@ -32,7 +35,7 @@ import examples.two_qubit_gate_compilation
 from examples.shors_code import OneQubitShorsCode
 
 
-def test_example_runs_bernstein_vazirani():
+def test_example_runs_bernstein_vazirani() -> None:
     examples.bernstein_vazirani.main(qubit_count=3)
 
     # Check empty oracle case. Cover both biases.
@@ -41,63 +44,63 @@ def test_example_runs_bernstein_vazirani():
     assert list(examples.bernstein_vazirani.make_oracle([], a, [], True)) == [cirq.X(a)]
 
 
-def test_example_runs_simon():
+def test_example_runs_simon() -> None:
     examples.simon_algorithm.main()
 
 
-def test_example_runs_hidden_shift():
+def test_example_runs_hidden_shift() -> None:
     examples.hidden_shift_algorithm.main()
 
 
-def test_example_runs_deutsch():
+def test_example_runs_deutsch() -> None:
     examples.deutsch.main()
 
 
-def test_example_runs_hello_qubit():
+def test_example_runs_hello_qubit() -> None:
     examples.hello_qubit.main()
 
 
-def test_example_runs_bell_inequality():
+def test_example_runs_bell_inequality() -> None:
     examples.bell_inequality.main()
 
 
-def test_example_runs_bb84():
+def test_example_runs_bb84() -> None:
     examples.bb84.main()
 
 
-def test_example_runs_quantum_fourier_transform():
+def test_example_runs_quantum_fourier_transform() -> None:
     examples.quantum_fourier_transform.main()
 
 
-def test_example_runs_bcs_mean_field():
+def test_example_runs_bcs_mean_field() -> None:
     examples.bcs_mean_field.main()
 
 
-def test_example_runs_grover():
+def test_example_runs_grover() -> None:
     examples.grover.main()
 
 
-def test_example_runs_basic_arithmetic():
+def test_example_runs_basic_arithmetic() -> None:
     examples.basic_arithmetic.main(n=2)
 
 
-def test_example_runs_phase_estimator():
+def test_example_runs_phase_estimator() -> None:
     examples.phase_estimator.main(qnums=(2,), repetitions=2)
 
 
 @pytest.mark.usefixtures('closefigures')
-def test_example_heatmaps():
+def test_example_heatmaps() -> None:
     pytest.importorskip("cirq_google")
     plt.switch_backend('agg')
     examples.heatmaps.main()
 
 
-def test_example_runs_qaoa():
+def test_example_runs_qaoa() -> None:
     examples.qaoa.main(repetitions=10, maxiter=5, use_boolean_hamiltonian_gate=False)
     examples.qaoa.main(repetitions=10, maxiter=5, use_boolean_hamiltonian_gate=True)
 
 
-def test_example_qaoa_same_unitary():
+def test_example_qaoa_same_unitary() -> None:
     n = 6
     p = 2
 
@@ -119,40 +122,40 @@ def test_example_qaoa_same_unitary():
     )
 
 
-def test_example_runs_quantum_teleportation():
+def test_example_runs_quantum_teleportation() -> None:
     _, teleported = examples.quantum_teleportation.main(seed=12)
     assert np.allclose(np.array([0.07023552, -0.9968105, -0.03788921]), teleported)
 
 
-def test_example_runs_superdense_coding():
+def test_example_runs_superdense_coding() -> None:
     examples.superdense_coding.main()
 
 
-def test_example_runs_hhl():
+def test_example_runs_hhl() -> None:
     examples.hhl.main()
 
 
 @pytest.mark.usefixtures('closefigures')
-def test_example_runs_qubit_characterizations():
+def test_example_runs_qubit_characterizations() -> None:
     examples.qubit_characterizations_example.main(
         minimum_cliffords=2, maximum_cliffords=6, cliffords_step=2
     )
 
 
-def test_example_swap_networks():
+def test_example_swap_networks() -> None:
     examples.swap_networks.main()
 
 
-def test_example_noisy_simulation():
+def test_example_noisy_simulation() -> None:
     examples.noisy_simulation_example.main()
 
 
-def test_example_shor_modular_exp_register_size():
+def test_example_shor_modular_exp_register_size() -> None:
     with pytest.raises(ValueError):
         _ = examples.shor.ModularExp(target=[2, 2], exponent=[2, 2, 2], base=4, modulus=5)
 
 
-def test_example_shor_modular_exp_register_type():
+def test_example_shor_modular_exp_register_type() -> None:
     operation = examples.shor.ModularExp(target=[2, 2, 2], exponent=[2, 2], base=4, modulus=5)
     with pytest.raises(ValueError):
         _ = operation.with_registers([2, 2, 2])
@@ -164,7 +167,7 @@ def test_example_shor_modular_exp_register_type():
         _ = operation.with_registers([2, 2, 2], [2, 2, 2], 4, [2, 2, 2])
 
 
-def test_example_shor_modular_exp_registers():
+def test_example_shor_modular_exp_registers() -> None:
     target = [2, 2, 2]
     exponent = [2, 2]
     operation = examples.shor.ModularExp(target, exponent, 4, 5)
@@ -176,7 +179,7 @@ def test_example_shor_modular_exp_registers():
     assert new_operation.registers() == (new_target, new_exponent, 6, 7)
 
 
-def test_example_shor_modular_exp_diagram():
+def test_example_shor_modular_exp_diagram() -> None:
     target = [2, 2, 2]
     exponent = [2, 2]
     gate = examples.shor.ModularExp(target, exponent, 4, 5)
@@ -222,43 +225,47 @@ def assert_order(r: int, x: int, n: int) -> None:
 @pytest.mark.parametrize(
     'x, n', ((2, 3), (5, 6), (2, 7), (6, 7), (5, 8), (6, 11), (6, 49), (7, 810))
 )
-def test_example_shor_naive_order_finder(x, n):
+def test_example_shor_naive_order_finder(x, n) -> None:
     r = examples.shor.naive_order_finder(x, n)
+    assert r is not None
     assert_order(r, x, n)
 
 
 @pytest.mark.parametrize('x, n', ((2, 3), (5, 6), (2, 7), (6, 7)))
-def test_example_shor_quantum_order_finder(x, n):
+def test_example_shor_quantum_order_finder(x, n) -> None:
     r = None
     for _ in range(15):
         r = examples.shor.quantum_order_finder(x, n)
         if r is not None:
             break
+    assert r is not None
     assert_order(r, x, n)
 
 
 @pytest.mark.parametrize('x, n', ((1, 7), (7, 7)))
-def test_example_shor_naive_order_finder_invalid_x(x, n):
+def test_example_shor_naive_order_finder_invalid_x(x, n) -> None:
     with pytest.raises(ValueError):
         _ = examples.shor.naive_order_finder(x, n)
 
 
 @pytest.mark.parametrize('x, n', ((1, 7), (7, 7)))
-def test_example_shor_quantum_order_finder_invalid_x(x, n):
+def test_example_shor_quantum_order_finder_invalid_x(x, n) -> None:
     with pytest.raises(ValueError):
         _ = examples.shor.quantum_order_finder(x, n)
 
 
 @pytest.mark.parametrize('n', (4, 6, 15, 125, 101 * 103, 127 * 127))
-def test_example_shor_find_factor_with_composite_n_and_naive_order_finder(n):
+def test_example_shor_find_factor_with_composite_n_and_naive_order_finder(n) -> None:
     d = examples.shor.find_factor(n, examples.shor.naive_order_finder)
+    assert d is not None
     assert 1 < d < n
     assert n % d == 0
 
 
 @pytest.mark.parametrize('n', (4, 6, 15, 125))
-def test_example_shor_find_factor_with_composite_n_and_quantum_order_finder(n):
+def test_example_shor_find_factor_with_composite_n_and_quantum_order_finder(n) -> None:
     d = examples.shor.find_factor(n, examples.shor.quantum_order_finder)
+    assert d is not None
     assert 1 < d < n
     assert n % d == 0
 
@@ -270,23 +277,23 @@ def test_example_shor_find_factor_with_composite_n_and_quantum_order_finder(n):
         (examples.shor.naive_order_finder, examples.shor.quantum_order_finder),
     ),
 )
-def test_example_shor_find_factor_with_prime_n(n, order_finder):
+def test_example_shor_find_factor_with_prime_n(n, order_finder) -> None:
     d = examples.shor.find_factor(n, order_finder)
     assert d is None
 
 
 @pytest.mark.parametrize('n', (2, 3, 15, 17, 2**89 - 1))
-def test_example_runs_shor_valid(n):
+def test_example_runs_shor_valid(n) -> None:
     examples.shor.main(n=n)
 
 
 @pytest.mark.parametrize('n', (-1, 0, 1))
-def test_example_runs_shor_invalid(n):
+def test_example_runs_shor_invalid(n) -> None:
     with pytest.raises(ValueError):
         examples.shor.main(n=n)
 
 
-def test_example_qec_single_qubit():
+def test_example_qec_single_qubit() -> None:
     mycode1 = OneQubitShorsCode()
     my_circuit1 = cirq.Circuit(mycode1.encode())
     my_circuit1 += cirq.Circuit(mycode1.correct())
@@ -308,6 +315,6 @@ def test_example_qec_single_qubit():
 
 
 @pytest.mark.usefixtures('closefigures')
-def test_two_qubit_gate_compilation_example():
+def test_two_qubit_gate_compilation_example() -> None:
     plt.switch_backend('agg')
     examples.two_qubit_gate_compilation.main(samples=10, max_infidelity=0.3)

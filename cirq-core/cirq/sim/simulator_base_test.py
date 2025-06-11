@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import math
-from typing import Any, Dict, List, Sequence, Tuple
+from typing import Any, Sequence
 
 import numpy as np
 import pytest
@@ -33,7 +33,7 @@ class CountingState(cirq.qis.QuantumStateRepresentation):
 
     def measure(
         self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
-    ) -> List[int]:
+    ) -> list[int]:
         self.measurement_count += 1
         return [self.gate_count]
 
@@ -47,7 +47,7 @@ class CountingState(cirq.qis.QuantumStateRepresentation):
 
     def factor(
         self, axes: Sequence[int], *, validate=True, atol=1e-07
-    ) -> Tuple[CountingState, CountingState]:
+    ) -> tuple[CountingState, CountingState]:
         return CountingState(
             self.data, self.gate_count, self.measurement_count, self.copy_count
         ), CountingState(self.data)
@@ -98,11 +98,11 @@ class SplittableCountingSimulationState(CountingSimulationState):
 class CountingStepResult(cirq.StepResultBase[CountingSimulationState]):
     def sample(
         self,
-        qubits: List[cirq.Qid],
+        qubits: list[cirq.Qid],
         repetitions: int = 1,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> np.ndarray:
-        measurements: List[List[int]] = []
+        measurements: list[list[int]] = []
         for _ in range(repetitions):
             measurements.append(self._merged_sim_state._perform_measurement(qubits))
         return np.array(measurements, dtype=int)
@@ -134,7 +134,7 @@ class CountingSimulator(
     def _create_simulator_trial_result(
         self,
         params: cirq.ParamResolver,
-        measurements: Dict[str, np.ndarray],
+        measurements: dict[str, np.ndarray],
         final_simulator_state: cirq.SimulationStateBase[CountingSimulationState],
     ) -> CountingTrialResult:
         return CountingTrialResult(
@@ -222,7 +222,9 @@ def test_noise_applied_measurement_gate():
 def test_parameterized_copies_all_but_last():
     sim = CountingSimulator()
     n = 4
-    rs = sim.simulate_sweep(cirq.Circuit(cirq.X(q0) ** 'a'), [{'a': i} for i in range(n)])
+    rs = sim.simulate_sweep(
+        cirq.Circuit(cirq.X(q0) ** sympy.Symbol('a')), [{'a': i} for i in range(n)]
+    )
     for i in range(n):
         r = rs[i]
         assert r._final_simulator_state.gate_count == 1

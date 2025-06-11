@@ -18,6 +18,8 @@ The actual tests live in cirq.protocols.json_serialization_test.py.
 See cirq-core/cirq/testing/json.py for a description of the framework.
 """
 
+from __future__ import annotations
+
 import pathlib
 
 import cirq_pasqal

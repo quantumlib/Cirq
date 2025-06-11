@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import AbstractSet, Any, Dict, Union
+from typing import AbstractSet, Any
 
 import numpy as np
 import sympy
@@ -54,7 +54,7 @@ class QuantumFourierTransformGate(raw_types.Gate):
         self._num_qubits = num_qubits
         self._without_reverse = without_reverse
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {'num_qubits': self._num_qubits, 'without_reverse': self._without_reverse}
 
     def _value_equality_values_(self):
@@ -112,15 +112,15 @@ class PhaseGradientGate(raw_types.Gate):
     This gate makes up a portion of the quantum fourier transform.
     """
 
-    def __init__(self, *, num_qubits: int, exponent: Union[float, sympy.Basic]):
+    def __init__(self, *, num_qubits: int, exponent: float | sympy.Basic):
         self._num_qubits = num_qubits
         self._exponent = exponent
 
     @property
-    def exponent(self) -> Union[float, sympy.Basic]:
+    def exponent(self) -> float | sympy.Basic:
         return self._exponent
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {'num_qubits': self._num_qubits, 'exponent': self.exponent}
 
     def _value_equality_values_(self):
@@ -212,6 +212,4 @@ def qft(*qubits: cirq.Qid, without_reverse: bool = False, inverse: bool = False)
         A `cirq.Operation` applying the qft to the given qubits.
     """
     result = QuantumFourierTransformGate(len(qubits), without_reverse=without_reverse).on(*qubits)
-    if inverse:
-        result = cirq.inverse(result)
-    return result
+    return cirq.inverse(result) if inverse else result

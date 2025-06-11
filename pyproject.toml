@@ -1,6 +1,6 @@
 [tool.black]
 line-length = 100
-target_version = ['py310', 'py311', 'py312']
+target_version = ['py311', 'py312', 'py313']
 skip-string-normalization = true
 skip-magic-trailing-comma = true
 extend-exclude = ".*_pb2[.]py[i]?"
@@ -14,7 +14,6 @@ include = [
     "./*",
 ]
 omit = ["benchmarks/*"]
-
 
 [tool.coverage.report]
 exclude_also = [
@@ -48,3 +47,24 @@ markers = [
 ]
 # Silence deprecation warnings about option "asyncio_default_fixture_loop_scope"
 asyncio_default_fixture_loop_scope = "function"
+
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["*_pb2.py*"]
+
+[tool.ruff.lint]
+select = [
+    # "ANN201",  # missing-return-type-undocumented-public-function
+    "F401",  # unused-import
+    "F601",  # multi-value-repeated-key-literal
+    "F821",  # undefined-name
+    "RUF100",  # unused-noqa
+    "TC001",  # typing-only-first-party-import
+    "TC002",  # typing-only-third-party-import
+    # "TC003",  # typing-only-standard-library-import
+    "UP006",  # non-pep585-annotation
+    "UP007",  # non-pep604-annotation-union
+    "UP037",  # quoted-annotation
+]

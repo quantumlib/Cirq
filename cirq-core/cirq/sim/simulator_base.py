@@ -18,20 +18,7 @@ from __future__ import annotations
 
 import abc
 import collections
-from typing import (
-    Any,
-    cast,
-    Dict,
-    Generic,
-    Iterator,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-    TYPE_CHECKING,
-    TypeVar,
-)
+from typing import Any, cast, Generic, Iterator, Sequence, TYPE_CHECKING, TypeVar
 
 import numpy as np
 
@@ -93,7 +80,7 @@ class SimulatorBase(
     def __init__(
         self,
         *,
-        dtype: Type[np.complexfloating] = np.complex64,
+        dtype: type[np.complexfloating] = np.complex64,
         noise: cirq.NOISE_MODEL_LIKE = None,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         split_untangled_states: bool = False,
@@ -173,7 +160,7 @@ class SimulatorBase(
         return protocols.has_unitary(val)
 
     def _base_iterator(
-        self, circuit: cirq.AbstractCircuit, qubits: Tuple[cirq.Qid, ...], initial_state: Any
+        self, circuit: cirq.AbstractCircuit, qubits: tuple[cirq.Qid, ...], initial_state: Any
     ) -> Iterator[TStepResultBase]:
         sim_state = self._create_simulation_state(initial_state, qubits)
         return self._core_iterator(circuit, sim_state)
@@ -206,7 +193,7 @@ class SimulatorBase(
             return
 
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
-        measured: Dict[Tuple[cirq.Qid, ...], bool] = collections.defaultdict(bool)
+        measured: dict[tuple[cirq.Qid, ...], bool] = collections.defaultdict(bool)
         for moment in noisy_moments:
             for op in ops.flatten_to_ops(moment):
                 try:
@@ -227,7 +214,7 @@ class SimulatorBase(
 
     def _run(
         self, circuit: cirq.AbstractCircuit, param_resolver: cirq.ParamResolver, repetitions: int
-    ) -> Dict[str, np.ndarray]:
+    ) -> dict[str, np.ndarray]:
         """See definition in `cirq.SimulatesSamples`."""
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
@@ -240,9 +227,10 @@ class SimulatorBase(
             if self._can_be_in_run_prefix(self.noise)
             else (resolved_circuit[0:0], resolved_circuit)
         )
-        step_result = None
+        step_result: TStepResultBase | None = None
         for step_result in self._core_iterator(circuit=prefix, sim_state=sim_state):
             pass
+        assert step_result is not None
 
         general_ops = list(general_suffix.all_operations())
         if all(isinstance(op.gate, ops.MeasurementGate) for op in general_ops):
@@ -256,7 +244,7 @@ class SimulatorBase(
                 measurement_ops, repetitions, seed=self._prng, _allow_repeated=True
             )
 
-        records: Dict[cirq.MeasurementKey, List[Sequence[Sequence[int]]]] = {}
+        records: dict[cirq.MeasurementKey, list[Sequence[Sequence[int]]]] = {}
         for i in range(repetitions):
             for step_result in self._core_iterator(
                 general_suffix,
@@ -323,9 +311,10 @@ class SimulatorBase(
             if self._can_be_in_run_prefix(self.noise)
             else (program[0:0], program)
         )
-        step_result = None
+        step_result: TStepResultBase | None = None
         for step_result in self._core_iterator(circuit=prefix, sim_state=sim_state):
             pass
+        assert step_result is not None
         sim_state = step_result._sim_state
         yield from super().simulate_sweep_iter(suffix, params, qubit_order, sim_state)
 
@@ -337,7 +326,7 @@ class SimulatorBase(
 
         classical_data = value.ClassicalDataDictionaryStore()
         if self._split_untangled_states:
-            args_map: Dict[Optional[cirq.Qid], TSimulationState] = {}
+            args_map: dict[cirq.Qid | None, TSimulationState] = {}
             if isinstance(initial_state, int):
                 for q in reversed(qubits):
                     args_map[q] = self._create_partial_simulation_state(
@@ -374,7 +363,7 @@ class StepResultBase(
             sim_state: The `SimulationStateBase` for this step.
         """
         super().__init__(sim_state)
-        self._merged_sim_state_cache: Optional[TSimulationState] = None
+        self._merged_sim_state_cache: TSimulationState | None = None
         qubits = sim_state.qubits
         self._qubits = qubits
         self._qubit_mapping = {q: i for i, q in enumerate(qubits)}
@@ -392,7 +381,7 @@ class StepResultBase(
 
     def sample(
         self,
-        qubits: List[cirq.Qid],
+        qubits: list[cirq.Qid],
         repetitions: int = 1,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> np.ndarray:
@@ -407,7 +396,7 @@ class SimulationTrialResultBase(
     def __init__(
         self,
         params: study.ParamResolver,
-        measurements: Dict[str, np.ndarray],
+        measurements: dict[str, np.ndarray],
         final_simulator_state: cirq.SimulationStateBase[TSimulationState],
     ) -> None:
         """Initializes the `SimulationTrialResultBase` class.
@@ -422,7 +411,7 @@ class SimulationTrialResultBase(
                 trial finishes.
         """
         super().__init__(params, measurements, final_simulator_state=final_simulator_state)
-        self._merged_sim_state_cache: Optional[TSimulationState] = None
+        self._merged_sim_state_cache: TSimulationState | None = None
 
     def get_state_containing_qubit(self, qubit: cirq.Qid) -> TSimulationState:
         """Returns the independent state space containing the qubit.
@@ -437,7 +426,7 @@ class SimulationTrialResultBase(
     def _get_substates(self) -> Sequence[TSimulationState]:
         state = self._final_simulator_state
         if isinstance(state, SimulationProductState):
-            substates: Dict[TSimulationState, int] = {}
+            substates: dict[TSimulationState, int] = {}
             for q in state.qubits:
                 substates[self.get_state_containing_qubit(q)] = 0
             substates[state[None]] = 0

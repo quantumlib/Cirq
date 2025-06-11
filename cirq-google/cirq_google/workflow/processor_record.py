@@ -11,9 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import abc
 import dataclasses
-from typing import Any, Dict
+from typing import Any
 
 import cirq
 import cirq_google as cg
@@ -28,20 +31,20 @@ class ProcessorRecord(metaclass=abc.ABCMeta):
     """A serializable record that maps to a particular `cg.engine.AbstractProcessor`."""
 
     @abc.abstractmethod
-    def get_processor(self) -> 'cg.engine.AbstractProcessor':
+    def get_processor(self) -> cg.engine.AbstractProcessor:
         """Using this classes' attributes, return a unique `cg.engine.AbstractProcessor`
 
         This is the primary method that descendants must implement.
         """
 
-    def get_sampler(self) -> 'cg.ProcessorSampler':
+    def get_sampler(self) -> cg.ProcessorSampler:
         """Return a `cirq.Sampler` for the processor specified by this class.
 
         The default implementation delegates to `self.get_processor()`.
         """
         return self.get_processor().get_sampler()
 
-    def get_device(self) -> 'cirq.Device':
+    def get_device(self) -> cirq.Device:
         """Return a `cirq.Device` for the processor specified by this class.
 
         The default implementation delegates to `self.get_processor()`.
@@ -62,7 +65,7 @@ class EngineProcessorRecord(ProcessorRecord):
 
     processor_id: str
 
-    def get_processor(self) -> 'cg.EngineProcessor':
+    def get_processor(self) -> cg.EngineProcessor:
         """Return a `cg.EngineProcessor` for the specified processor_id."""
         engine = cg.get_engine()
         return engine.get_processor(self.processor_id)
@@ -97,7 +100,7 @@ class SimulatedProcessorRecord(ProcessorRecord):
     processor_id: str
     noise_strength: float = 0
 
-    def get_processor(self) -> 'cg.engine.SimulatedLocalProcessor':
+    def get_processor(self) -> cg.engine.SimulatedLocalProcessor:
         """Return a `cg.SimulatedLocalProcessor` for the specified processor_id."""
         return cg.engine.SimulatedLocalProcessor(
             processor_id=self.processor_id,
@@ -105,7 +108,7 @@ class SimulatedProcessorRecord(ProcessorRecord):
             device=self._get_input_device(),
         )
 
-    def _get_input_device(self) -> 'cirq.Device':
+    def _get_input_device(self) -> cirq.Device:
         """Return a `cirq.Device` for the specified processor_id.
 
         This method presumes the GOOGLE_CLOUD_PROJECT environment
@@ -115,7 +118,7 @@ class SimulatedProcessorRecord(ProcessorRecord):
         """
         return cg.get_engine_device(self.processor_id)
 
-    def _get_input_sampler(self) -> 'cirq.Sampler':
+    def _get_input_sampler(self) -> cirq.Sampler:
         """Return a local `cirq.Sampler` based on the `noise_strength` attribute.
 
         If `self.noise_strength` is `0` return a noiseless state-vector simulator.
@@ -138,7 +141,7 @@ class SimulatedProcessorRecord(ProcessorRecord):
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.dataclass_json_dict(self)
 
     def __str__(self) -> str:
@@ -167,7 +170,7 @@ class SimulatedProcessorWithLocalDeviceRecord(SimulatedProcessorRecord):
             a depolarizing model with this probability of noise.
     """
 
-    def _get_input_device(self) -> 'cirq.Device':
+    def _get_input_device(self) -> cirq.Device:
         """Return a `cg.GridDevice` for the specified processor_id.
 
         Only 'rainbow' and 'weber' are recognized processor_ids and the device information

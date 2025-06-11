@@ -11,10 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import math
 from copy import deepcopy
 from typing import Iterator
 
+import numpy as np
 import pytest
 import sympy
 import tunits
@@ -415,3 +419,9 @@ def test_tunits_round_trip(sweep):
     msg = v2.sweep_to_proto(sweep)
     recovered = v2.sweep_from_proto(msg)
     assert sweep == recovered
+
+
+@pytest.mark.parametrize('value', [np.float32(3.14), np.int64(5)])
+def test_const_sweep_with_numpy_types_roundtrip(value):
+    sweep = cirq.Points('const', [value])
+    assert v2.sweep_from_proto(v2.sweep_to_proto(sweep)) == sweep

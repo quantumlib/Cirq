@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import abc
 from collections import defaultdict
-from typing import DefaultDict, Dict, Iterator, Optional, Sequence, TYPE_CHECKING
+from typing import Iterator, Sequence, TYPE_CHECKING
 
 from cirq import circuits, devices, ops, protocols, transformers
 from cirq.contrib.acquaintance.gates import AcquaintanceOpportunityGate
@@ -99,7 +99,7 @@ class StrategyExecutorTransformer:
         self._mapping = execution_strategy.initial_mapping.copy()
 
     def __call__(
-        self, circuit: circuits.AbstractCircuit, context: Optional[cirq.TransformerContext] = None
+        self, circuit: circuits.AbstractCircuit, context: cirq.TransformerContext | None = None
     ) -> circuits.Circuit:
         """Executes an acquaintance strategy using cirq.map_operations_and_unroll and
         mutates initial mapping.
@@ -174,7 +174,7 @@ class GreedyExecutionStrategy(ExecutionStrategy):
         self,
         gates: LogicalGates,
         initial_mapping: LogicalMapping,
-        device: Optional[cirq.Device] = None,
+        device: cirq.Device | None = None,
     ) -> None:
         """Inits GreedyExecutionStrategy.
 
@@ -214,13 +214,13 @@ class GreedyExecutionStrategy(ExecutionStrategy):
                 yield gate(*[index_to_qubit[i] for i in gate_indices])
 
     @staticmethod
-    def canonicalize_gates(gates: LogicalGates) -> Dict[frozenset, LogicalGates]:
+    def canonicalize_gates(gates: LogicalGates) -> dict[frozenset, LogicalGates]:
         """Canonicalizes a set of gates by the qubits they act on.
 
         Takes a set of gates specified by ordered sequences of logical
         indices, and groups those that act on the same qubits regardless of
         order."""
-        canonicalized_gates: DefaultDict[frozenset, LogicalGates] = defaultdict(dict)
+        canonicalized_gates: defaultdict[frozenset, LogicalGates] = defaultdict(dict)
         for indices, gate in gates.items():
             indices = tuple(indices)
             canonicalized_gates[frozenset(indices)][indices] = gate

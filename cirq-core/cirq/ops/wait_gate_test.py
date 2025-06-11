@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import datetime
 
 import pytest
@@ -19,7 +22,7 @@ import sympy
 import cirq
 
 
-def test_init():
+def test_init() -> None:
     g = cirq.WaitGate(datetime.timedelta(0, 0, 5))
     assert g.duration == cirq.Duration(micros=5)
 
@@ -36,13 +39,13 @@ def test_init():
         _ = cirq.WaitGate(2)
 
 
-def test_eq():
+def test_eq() -> None:
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.WaitGate(0), cirq.WaitGate(cirq.Duration()))
     eq.make_equality_group(lambda: cirq.WaitGate(cirq.Duration(nanos=4)))
 
 
-def test_protocols():
+def test_protocols() -> None:
     t = sympy.Symbol('t')
     p = cirq.WaitGate(cirq.Duration(millis=5 * t))
     c = cirq.WaitGate(cirq.Duration(millis=2))
@@ -67,7 +70,7 @@ def test_protocols():
     assert cirq.decompose(p.on(q)) == []
 
 
-def test_qid_shape():
+def test_qid_shape() -> None:
     assert cirq.qid_shape(cirq.WaitGate(0, qid_shape=(2, 3))) == (2, 3)
     assert cirq.qid_shape(cirq.WaitGate(0, num_qubits=3)) == (2, 2, 2)
     with pytest.raises(ValueError, match='empty set of qubits'):
@@ -84,7 +87,7 @@ def test_resolve_parameters(num_qubits: int) -> None:
     assert cirq.num_qubits(resolved) == num_qubits
 
 
-def test_json():
+def test_json() -> None:
     q0, q1 = cirq.GridQubit.rect(1, 2)
     qtrit = cirq.GridQid(1, 2, dimension=3)
     cirq.testing.assert_json_roundtrip_works(cirq.wait(q0, nanos=10))
@@ -93,5 +96,5 @@ def test_json():
     cirq.testing.assert_json_roundtrip_works(cirq.wait(qtrit, q1, nanos=10))
 
 
-def test_str():
+def test_str() -> None:
     assert str(cirq.WaitGate(cirq.Duration(nanos=5))) == 'WaitGate(5 ns)'

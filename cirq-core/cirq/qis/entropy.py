@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from collections.abc import Sequence
 from concurrent.futures import ThreadPoolExecutor
 from itertools import product
-from typing import Any, Optional
+from typing import Any, cast, Iterator
 
 import numpy as np
 import numpy.typing as npt
@@ -73,8 +75,17 @@ def _compute_bitstrings_contribution_to_purity(bitstrings: npt.NDArray[np.int8])
     """
 
     bitstrings, probs = _bitstrings_to_probs(bitstrings)
+    product_iterator = cast(
+        Iterator[
+            tuple[
+                tuple[npt.NDArray[np.int8], npt.NDArray[Any]],
+                tuple[npt.NDArray[np.int8], npt.NDArray[Any]],
+            ]
+        ],
+        product(zip(bitstrings, probs), repeat=2),
+    )
     purity = 0
-    for (s, p), (s_prime, p_prime) in product(zip(bitstrings, probs), repeat=2):
+    for (s, p), (s_prime, p_prime) in product_iterator:
         purity += (-2.0) ** float(-_get_hamming_distance(s, s_prime)) * p * p_prime
 
     return purity * 2 ** (bitstrings.shape[-1])
@@ -83,7 +94,7 @@ def _compute_bitstrings_contribution_to_purity(bitstrings: npt.NDArray[np.int8])
 def process_renyi_entropy_from_bitstrings(
     measured_bitstrings: npt.NDArray[np.int8],
     subsystem: tuple[int] | None = None,
-    pool: Optional[ThreadPoolExecutor] = None,
+    pool: ThreadPoolExecutor | None = None,
 ) -> float:
     """Compute the Rényi entropy of an array of bitstrings.
     Args:

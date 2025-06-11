@@ -24,12 +24,13 @@
 # tests is possible, via setting the NOTEBOOK_PARTITIONS env var to e.g. 5, and then passing to
 # pytest the `-k partition-0` or `-k partition-1`, etc. argument to limit to the given partition.
 
+from __future__ import annotations
+
 import os
 import re
 import shutil
 import subprocess
 import warnings
-from typing import List, Set
 
 import pytest
 
@@ -41,7 +42,13 @@ from dev_tools.notebooks import filter_notebooks, list_all_notebooks, rewrite_no
 # note that these notebooks are still tested in dev_tools/notebook_test.py
 # Please, always indicate in comments the feature used for easier bookkeeping.
 
-NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = []
+NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = [
+    # Requires `load_device_noise_properties` from #7369
+    'docs/hardware/qubit_picking.ipynb',
+    'docs/simulate/noisy_simulation.ipynb',
+    'docs/simulate/quantum_virtual_machine.ipynb',
+    'docs/simulate/qvm_basic_example.ipynb',
+]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
 # please always add a reason for skipping.
@@ -98,7 +105,7 @@ def _find_base_revision():
     raise ValueError("Can't find a base revision to compare the files with.")
 
 
-def _list_changed_notebooks() -> Set[str]:
+def _list_changed_notebooks() -> set[str]:
     try:
         rev = _find_base_revision()
         output = subprocess.check_output(f'git diff --diff-filter=d --name-only {rev}'.split())
@@ -179,7 +186,7 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
     "partition, notebook_path",
     _partitioned_test_cases(filter_notebooks(_list_changed_notebooks(), SKIP_NOTEBOOKS)),
 )
-def test_changed_notebooks_against_released_cirq(partition, notebook_path, cloned_env):
+def test_changed_notebooks_against_released_cirq(partition, notebook_path, cloned_env) -> None:
     """Tests changed notebooks in isolated virtual environments.
 
     In order to speed up the execution of these tests an auxiliary file may be supplied which
@@ -199,7 +206,7 @@ def test_changed_notebooks_against_released_cirq(partition, notebook_path, clone
     "partition, notebook_path",
     _partitioned_test_cases(filter_notebooks(list_all_notebooks(), SKIP_NOTEBOOKS)),
 )
-def test_all_notebooks_against_released_cirq(partition, notebook_path, cloned_env):
+def test_all_notebooks_against_released_cirq(partition, notebook_path, cloned_env) -> None:
     """Tests all notebooks in isolated virtual environments.
 
     See `test_changed_notebooks_against_released_cirq` for more details on
@@ -209,7 +216,7 @@ def test_all_notebooks_against_released_cirq(partition, notebook_path, cloned_en
 
 
 @pytest.mark.parametrize("notebook_path", NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES)
-def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path):
+def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path) -> None:
     # utf-8 is important for Windows testing, otherwise characters like ┌──┐ fail on cp1252
     with open(notebook_path, encoding="utf-8") as notebook:
         content = notebook.read()

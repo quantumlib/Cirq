@@ -1,5 +1,9 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
+from __future__ import annotations
+
 import random
+from typing import cast
 
 import numpy as np
 import pytest
@@ -8,14 +12,14 @@ import sympy
 import cirq
 
 
-def test_init_properties():
+def test_init_properties() -> None:
     g = cirq.PhasedXZGate(x_exponent=0.125, z_exponent=0.25, axis_phase_exponent=0.375)
     assert g.x_exponent == 0.125
     assert g.z_exponent == 0.25
     assert g.axis_phase_exponent == 0.375
 
 
-def test_eq():
+def test_eq() -> None:
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(
         lambda: cirq.PhasedXZGate(x_exponent=0.25, z_exponent=0.5, axis_phase_exponent=0.75)
@@ -58,7 +62,7 @@ def test_from_zyz_exponents(z0: float, y: float, z1: float) -> None:
     )
 
 
-def test_canonicalization():
+def test_canonicalization() -> None:
     def f(x, z, a):
         return cirq.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
 
@@ -145,7 +149,7 @@ def test_canonicalization():
     assert t.axis_phase_exponent == 0
 
 
-def test_from_matrix():
+def test_from_matrix() -> None:
     # Axis rotations.
     assert cirq.approx_eq(
         cirq.PhasedXZGate.from_matrix(cirq.unitary(cirq.X**0.1)),
@@ -217,7 +221,7 @@ def test_from_matrix():
         np.array([[0, 1], [1j, 0]]),
     ],
 )
-def test_from_matrix_close_unitary(unitary: np.ndarray):
+def test_from_matrix_close_unitary(unitary: np.ndarray) -> None:
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(cirq.PhasedXZGate.from_matrix(unitary)), unitary, atol=1e-8
     )
@@ -232,14 +236,14 @@ def test_from_matrix_close_unitary(unitary: np.ndarray):
         np.array([[0, 1], [1j, 0]]),
     ],
 )
-def test_from_matrix_close_kraus(unitary: np.ndarray):
+def test_from_matrix_close_kraus(unitary: np.ndarray) -> None:
     gate = cirq.PhasedXZGate.from_matrix(unitary)
     kraus = cirq.kraus(gate)
     assert len(kraus) == 1
     cirq.testing.assert_allclose_up_to_global_phase(kraus[0], unitary, atol=1e-8)
 
 
-def test_protocols():
+def test_protocols() -> None:
     a = random.random()
     b = random.random()
     c = random.random()
@@ -256,7 +260,7 @@ def test_protocols():
     cirq.testing.assert_implements_consistent_protocols(g)
 
 
-def test_inverse():
+def test_inverse() -> None:
     a = random.random()
     b = random.random()
     c = random.random()
@@ -264,12 +268,14 @@ def test_inverse():
     g = cirq.PhasedXZGate(x_exponent=a, z_exponent=b, axis_phase_exponent=c).on(q)
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(g**-1), np.transpose(np.conjugate(cirq.unitary(g))), atol=1e-8
+        cirq.unitary(cast(cirq.GateOperation, g) ** -1),
+        np.transpose(np.conjugate(cirq.unitary(g))),
+        atol=1e-8,
     )
 
 
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
-def test_parameterized(resolve_fn):
+def test_parameterized(resolve_fn) -> None:
     a = random.random()
     b = random.random()
     c = random.random()
@@ -296,7 +302,7 @@ def test_parameterized(resolve_fn):
         resolve_fn(cirq.PhasedXZGate(x_exponent=a, z_exponent=b, axis_phase_exponent=t), resolver)
 
 
-def test_str_diagram():
+def test_str_diagram() -> None:
     g = cirq.PhasedXZGate(x_exponent=0.5, z_exponent=0.25, axis_phase_exponent=0.125)
 
     assert str(g) == "PhXZ(a=0.125,x=0.5,z=0.25)"

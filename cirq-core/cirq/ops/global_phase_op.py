@@ -16,7 +16,7 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import AbstractSet, Any, cast, Collection, Dict, Optional, Sequence, Tuple, Union
+from typing import AbstractSet, Any, cast, Collection, Sequence
 
 import numpy as np
 import sympy
@@ -50,12 +50,12 @@ class GlobalPhaseGate(raw_types.Gate):
             return GlobalPhaseGate(self.coefficient**power)
         return NotImplemented
 
-    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+    def _unitary_(self) -> np.ndarray | NotImplementedType:
         if not self._has_unitary_():
             return NotImplemented
         return np.array([[self.coefficient]])
 
-    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray | NotImplementedType:
         if not self._has_unitary_():
             return NotImplemented
         assert not cirq.is_parameterized(self)
@@ -74,10 +74,10 @@ class GlobalPhaseGate(raw_types.Gate):
     def _op_repr_(self, qubits: Sequence[cirq.Qid]) -> str:
         return f'cirq.global_phase_operation({proper_repr(self.coefficient)})'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['coefficient'])
 
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         return tuple()
 
     def _is_parameterized_(self) -> bool:
@@ -94,11 +94,9 @@ class GlobalPhaseGate(raw_types.Gate):
 
     def controlled(
         self,
-        num_controls: Optional[int] = None,
-        control_values: Optional[
-            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
-        ] = None,
-        control_qid_shape: Optional[Tuple[int, ...]] = None,
+        num_controls: int | None = None,
+        control_values: cv.AbstractControlValues | Sequence[int | Collection[int]] | None = None,
+        control_qid_shape: tuple[int, ...] | None = None,
     ) -> raw_types.Gate:
         result = super().controlled(num_controls, control_values, control_qid_shape)
         if (

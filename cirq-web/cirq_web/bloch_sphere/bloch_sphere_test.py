@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import math
 
 import numpy as np
@@ -21,36 +23,36 @@ import cirq
 import cirq_web
 
 
-def test_init_bloch_sphere_type():
+def test_init_bloch_sphere_type() -> None:
     bloch_sphere = cirq_web.BlochSphere(state_vector=[1 / math.sqrt(2), 1 / math.sqrt(2)])
     assert isinstance(bloch_sphere, cirq_web.BlochSphere)
 
 
 @pytest.mark.parametrize('sphere_radius', [5, 0.2, 100])
-def test_valid_bloch_sphere_radius(sphere_radius):
+def test_valid_bloch_sphere_radius(sphere_radius) -> None:
     bloch_sphere = cirq_web.BlochSphere(sphere_radius, [1 / math.sqrt(2), 1 / math.sqrt(2)])
     assert sphere_radius == bloch_sphere.sphere_radius
 
 
 @pytest.mark.parametrize('sphere_radius', [0, -1])
-def test_invalid_bloch_sphere_radius(sphere_radius):
+def test_invalid_bloch_sphere_radius(sphere_radius) -> None:
     with pytest.raises(ValueError):
         cirq_web.BlochSphere(sphere_radius=sphere_radius)
 
 
-def test_valid_bloch_sphere_vector():
+def test_valid_bloch_sphere_vector() -> None:
     state_vector = np.array([1 / math.sqrt(2), 1 / math.sqrt(2)])
     bloch_sphere = cirq_web.BlochSphere(state_vector=state_vector)
     bloch_vector = cirq.bloch_vector_from_state_vector(state_vector, 0)
     assert np.array_equal(bloch_vector, bloch_sphere.bloch_vector)
 
 
-def test_no_state_vector_given():
+def test_no_state_vector_given() -> None:
     with pytest.raises(ValueError):
         cirq_web.BlochSphere()
 
 
-def test_bloch_sphere_default_client_code():
+def test_bloch_sphere_default_client_code() -> None:
     bloch_sphere = cirq_web.BlochSphere(state_vector=[1 / math.sqrt(2), 1 / math.sqrt(2)])
 
     expected_client_code = f"""
@@ -63,7 +65,7 @@ def test_bloch_sphere_default_client_code():
     assert expected_client_code == bloch_sphere.get_client_code()
 
 
-def test_bloch_sphere_default_client_code_comp_basis():
+def test_bloch_sphere_default_client_code_comp_basis() -> None:
     bloch_sphere = cirq_web.BlochSphere(state_vector=1)
 
     expected_client_code = f"""
@@ -76,7 +78,7 @@ def test_bloch_sphere_default_client_code_comp_basis():
     assert expected_client_code == bloch_sphere.get_client_code()
 
 
-def test_bloch_sphere_default_bundle_name():
+def test_bloch_sphere_default_bundle_name() -> None:
     state_vector = cirq.to_valid_state_vector([math.sqrt(2) / 2, math.sqrt(2) / 2])
     bloch_sphere = cirq_web.BlochSphere(state_vector=state_vector)
 

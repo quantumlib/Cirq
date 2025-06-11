@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import datetime
 import os
 from unittest import mock
@@ -38,7 +40,6 @@ def test_service_run(target, expected_results):
         'target': target,
         'metadata': {'shots': '4', 'measurement0': f'a{chr(31)}0'},
         'qubits': '1',
-        'status': 'completed',
     }
     mock_client.get_results.return_value = {'0': '0.25', '1': '0.75'}
     service._client = mock_client
@@ -84,7 +85,6 @@ def test_service_run_batch(target, expected_results1, expected_results2):
             'qubit_numbers': '[1, 1]',
         },
         'qubits': '1',
-        'status': 'completed',
     }
     mock_client.get_results.return_value = {
         "xxx": {'0': '0.25', '1': '0.75'},

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import cast, Sequence, TYPE_CHECKING
 
 from cirq import devices, ops, protocols

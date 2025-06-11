@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 
 import cirq
 
 
-def test_init_sum_of_products_raises():
+def test_init_sum_of_products_raises() -> None:
     # data shouldn't be empty.
     with pytest.raises(ValueError):
         _ = cirq.SumOfProducts([])
@@ -27,7 +29,7 @@ def test_init_sum_of_products_raises():
         _ = cirq.SumOfProducts([[1], [1, 0]])
 
 
-def test_init_product_of_sums():
+def test_init_product_of_sums() -> None:
     eq = cirq.testing.EqualsTester()
     # 0. Trivial case of 1 control and 1 qubit.
     eq.add_equality_group(cirq.ProductOfSums([1]), cirq.ProductOfSums(((1,),)))
@@ -57,7 +59,7 @@ def test_init_product_of_sums():
     eq.add_equality_group([(1, 2), (0, 1)])
 
 
-def test_init_sum_of_products():
+def test_init_sum_of_products() -> None:
     eq = cirq.testing.EqualsTester()
     # 0. Trivial case of 1 control and 1 qubit
     eq.add_equality_group(cirq.SumOfProducts([[1]]), cirq.SumOfProducts(((1,),)))
@@ -88,7 +90,7 @@ def test_init_sum_of_products():
     eq.add_equality_group(cirq.SumOfProducts([(1, 0), (2, 0), (1, 1), (2, 1)]))
 
 
-def test_equality_across_types():
+def test_equality_across_types() -> None:
     eq = cirq.testing.EqualsTester()
     # Trivial case of 1 control and 1 qubit
     eq.add_equality_group(
@@ -122,7 +124,7 @@ def test_equality_across_types():
     eq.add_equality_group(cirq.ProductOfSums([(0, 1), (1, 0)]))  # or control
 
 
-def test_and_operation():
+def test_and_operation() -> None:
     eq = cirq.testing.EqualsTester()
 
     eq.add_equality_group(
@@ -169,12 +171,12 @@ def test_and_operation():
         [cirq.SumOfProducts([(0, 0), (1, 1)]), cirq.ProductOfSums([0, 1, 2]), cirq.SumOfProducts],
     ],
 )
-def test_and_operation_adds_qubits(cv1, cv2, expected_type):
+def test_and_operation_adds_qubits(cv1, cv2, expected_type) -> None:
     assert isinstance(cv1 & cv2, expected_type)
     assert cirq.num_qubits(cv1 & cv2) == cirq.num_qubits(cv1) + cirq.num_qubits(cv2)
 
 
-def test_or_operation():
+def test_or_operation() -> None:
     eq = cirq.testing.EqualsTester()
 
     eq.add_equality_group(
@@ -212,7 +214,7 @@ def test_or_operation():
         [cirq.SumOfProducts([[0], [1], [2]]), cirq.SumOfProducts([[1, 0]]), None],
     ],
 )
-def test_or_operation_acts_on_same_qubits(cv1, cv2, expected_type):
+def test_or_operation_acts_on_same_qubits(cv1, cv2, expected_type) -> None:
     if cirq.num_qubits(cv1) == cirq.num_qubits(cv2):
         assert cirq.num_qubits(cv1 | cv2) == cirq.num_qubits(cv1)
         assert expected_type is not None
@@ -224,31 +226,31 @@ def test_or_operation_acts_on_same_qubits(cv1, cv2, expected_type):
 
 
 @pytest.mark.parametrize('data', [((1,),), ((0, 1), (1,)), [(0, 1), (1, 0)]])
-def test_product_of_sums_repr(data):
+def test_product_of_sums_repr(data) -> None:
     cirq.testing.assert_equivalent_repr(cirq.ProductOfSums(data))
 
 
 @pytest.mark.parametrize('data', [((1,),), ((0, 1),), ((0, 0), (0, 1), (1, 0))])
-def test_sum_of_products_repr(data):
+def test_sum_of_products_repr(data) -> None:
     cirq.testing.assert_equivalent_repr(cirq.SumOfProducts(data))
     cirq.testing.assert_equivalent_repr(cirq.SumOfProducts(data, name="CustomName"))
 
 
-def test_sum_of_products_validate():
+def test_sum_of_products_validate() -> None:
     control_val = cirq.SumOfProducts(((1, 2), (0, 1)))
 
-    _ = control_val.validate([2, 3])
+    control_val.validate([2, 3])
 
     with pytest.raises(ValueError):
-        _ = control_val.validate([2, 2])
+        control_val.validate([2, 2])
 
     # number of qubits != number of control values.
     with pytest.raises(ValueError):
-        _ = control_val.validate([2])
+        control_val.validate([2])
 
 
 @pytest.mark.parametrize('data', [((1,),), ((0, 1),), ((0, 0), (0, 1), (1, 0))])
-def test_sum_of_products_num_qubits(data):
+def test_sum_of_products_num_qubits(data) -> None:
     assert cirq.num_qubits(cirq.SumOfProducts(data)) == len(data[0])
 
 
@@ -261,7 +263,7 @@ def test_sum_of_products_num_qubits(data):
         [((1, 1, 1, 1),), True],
     ],
 )
-def test_sum_of_products_is_trivial(data, is_trivial):
+def test_sum_of_products_is_trivial(data, is_trivial) -> None:
     assert cirq.SumOfProducts(data).is_trivial == is_trivial
 
 
@@ -269,16 +271,16 @@ def test_sum_of_products_is_trivial(data, is_trivial):
     'data, is_trivial',
     [[((1,),), True], [((0, 1),), False], [([2], [1], [2]), False], [([1], [1], [1], [1]), True]],
 )
-def test_product_of_sum_is_trivial(data, is_trivial):
+def test_product_of_sum_is_trivial(data, is_trivial) -> None:
     assert cirq.ProductOfSums(data).is_trivial == is_trivial
 
 
-def test_product_of_sums_str():
+def test_product_of_sums_str() -> None:
     c = cirq.ProductOfSums([(0, 1), 1, 0, (0, 2)])
     assert str(c) == 'C01C1C0C02'
 
 
-def test_sum_of_products_str():
+def test_sum_of_products_str() -> None:
     c = cirq.SumOfProducts(((1, 0), (0, 1)))
     assert str(c) == 'C_01_10'
 
@@ -286,7 +288,7 @@ def test_sum_of_products_str():
     assert str(c) == 'C_xor'
 
 
-def test_control_values_diagrams():
+def test_control_values_diagrams() -> None:
     q = cirq.LineQubit.range(3)
     ccx = cirq.X(q[0]).controlled_by(*q[1:])
     ccx_sop = cirq.X(q[0]).controlled_by(*q[1:], control_values=cirq.SumOfProducts([[1, 1]]))

@@ -11,20 +11,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Helper for testing python logging statements."""
+
+from __future__ import annotations
+
 import contextlib
 import logging
-from typing import Iterator, List, Optional
+from typing import Iterator
 
 
 @contextlib.contextmanager
 def assert_logs(
     *matches: str,
-    count: Optional[int] = 1,
+    count: int | None = 1,
     min_level: int = logging.WARNING,
     max_level: int = logging.CRITICAL,
     capture_warnings: bool = True,
-) -> Iterator[List[logging.LogRecord]]:
+) -> Iterator[list[logging.LogRecord]]:
     """A context manager for testing logging and warning events.
 
     To use this one wraps the code that is to be tested for log events within
@@ -92,6 +96,3 @@ def assert_logs(
                 f'{match} expected to appear in log messages but it was '
                 f'not found. Log messages: {msgs}.'
             )
-
-
-# pylint: enable=missing-raises-doc

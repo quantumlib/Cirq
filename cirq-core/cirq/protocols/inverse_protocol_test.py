@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 
 import cirq
@@ -32,7 +34,7 @@ class ReturnsFive:
 
 
 class SelfInverse:
-    def __pow__(self, exponent) -> 'SelfInverse':
+    def __pow__(self, exponent) -> SelfInverse:
         return self
 
 
@@ -50,7 +52,7 @@ class IsIterable:
 @pytest.mark.parametrize(
     'val', (NoMethod(), 'text', object(), ReturnsNotImplemented(), [NoMethod(), 5])
 )
-def test_objects_with_no_inverse(val):
+def test_objects_with_no_inverse(val) -> None:
     with pytest.raises(TypeError, match="isn't invertible"):
         _ = cirq.inverse(val)
     assert cirq.inverse(val, None) is None
@@ -76,6 +78,6 @@ def test_objects_with_no_inverse(val):
         (IsIterable(), (0.5, 1)),
     ),
 )
-def test_objects_with_inverse(val, inv):
+def test_objects_with_inverse(val, inv) -> None:
     assert cirq.inverse(val) == inv
     assert cirq.inverse(val, 0) == inv

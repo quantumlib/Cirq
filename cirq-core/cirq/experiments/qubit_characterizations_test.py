@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
@@ -219,7 +221,7 @@ def test_tomography_plot_raises_for_incorrect_number_of_axes():
     qubit = GridQubit(0, 0)
     circuit = circuits.Circuit(ops.X(qubit) ** 0.5)
     result = single_qubit_state_tomography(simulator, qubit, circuit, 1000)
-    with pytest.raises(TypeError):  # ax is not a List[plt.Axes]
+    with pytest.raises(TypeError):  # ax is not a list[plt.Axes]
         ax = plt.subplot()
         result.plot(ax)
     with pytest.raises(ValueError):

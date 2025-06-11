@@ -188,6 +188,7 @@ Win rate for all 9 possible inputs, out of 10,000 repetitions each:
 
 """
 
+from __future__ import annotations
 
 import dataclasses
 

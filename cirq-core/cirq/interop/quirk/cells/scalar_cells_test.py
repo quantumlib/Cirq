@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cirq
 from cirq.interop.quirk.cells.testing import assert_url_to_circuit_returns
 
 
-def test_scalar_operations():
+def test_scalar_operations() -> None:
     assert_url_to_circuit_returns('{"cols":[["…"]]}', cirq.Circuit())
 
     assert_url_to_circuit_returns(

@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 from typing import cast
 
 import pytest
@@ -18,7 +21,7 @@ import pytest
 import cirq
 
 
-def test_flatten_op_tree():
+def test_flatten_op_tree() -> None:
     operations = [
         cirq.GateOperation(cirq.testing.SingleQubitGate(), [cirq.NamedQubit(str(i))])
         for i in range(10)
@@ -46,33 +49,33 @@ def test_flatten_op_tree():
 
     # Bad trees.
     with pytest.raises(TypeError):
-        _ = list(cirq.flatten_op_tree(None))
+        _ = list(cirq.flatten_op_tree(None))  # type: ignore[arg-type]
     with pytest.raises(TypeError):
-        _ = list(cirq.flatten_op_tree(5))
+        _ = list(cirq.flatten_op_tree(5))  # type: ignore[arg-type]
     with pytest.raises(TypeError):
-        _ = list(cirq.flatten_op_tree([operations[0], (4,)]))
+        _ = list(cirq.flatten_op_tree([operations[0], (4,)]))  # type: ignore[list-item]
 
 
-def test_flatten_to_ops_or_moments():
+def test_flatten_to_ops_or_moments() -> None:
     operations = [
         cirq.GateOperation(cirq.testing.SingleQubitGate(), [cirq.NamedQubit(str(i))])
         for i in range(10)
     ]
-    op_tree = [operations[0], cirq.Moment(operations[1:5]), operations[5:]]
+    op_tree: cirq.OP_TREE = [operations[0], cirq.Moment(operations[1:5]), operations[5:]]
     output = [operations[0], cirq.Moment(operations[1:5])] + operations[5:]
     assert list(cirq.flatten_to_ops_or_moments(op_tree)) == output
     assert list(cirq.flatten_op_tree(op_tree, preserve_moments=True)) == output
 
     # Bad trees.
     with pytest.raises(TypeError):
-        _ = list(cirq.flatten_to_ops_or_moments(None))
+        _ = list(cirq.flatten_to_ops_or_moments(None))  # type: ignore[arg-type]
     with pytest.raises(TypeError):
-        _ = list(cirq.flatten_to_ops_or_moments(5))
+        _ = list(cirq.flatten_to_ops_or_moments(5))  # type: ignore[arg-type]
     with pytest.raises(TypeError):
-        _ = list(cirq.flatten_to_ops_or_moments([operations[0], (4,)]))
+        _ = list(cirq.flatten_to_ops_or_moments([operations[0], (4,)]))  # type: ignore[list-item]
 
 
-def test_freeze_op_tree():
+def test_freeze_op_tree() -> None:
     operations = [
         cirq.GateOperation(cirq.testing.SingleQubitGate(), [cirq.NamedQubit(str(i))])
         for i in range(10)
@@ -94,29 +97,29 @@ def test_freeze_op_tree():
 
     # Bad trees.
     with pytest.raises(TypeError):
-        cirq.freeze_op_tree(None)
+        cirq.freeze_op_tree(None)  # type: ignore[arg-type]
     with pytest.raises(TypeError):
-        cirq.freeze_op_tree(5)
+        cirq.freeze_op_tree(5)  # type: ignore[arg-type]
     with pytest.raises(TypeError):
-        _ = cirq.freeze_op_tree([operations[0], (4,)])
+        _ = cirq.freeze_op_tree([operations[0], (4,)])  # type: ignore[list-item]
 
 
-def test_transform_bad_tree():
+def test_transform_bad_tree() -> None:
     with pytest.raises(TypeError):
-        _ = list(cirq.transform_op_tree(None))
+        _ = list(cirq.transform_op_tree(None))  # type: ignore[arg-type]
     with pytest.raises(TypeError):
-        _ = list(cirq.transform_op_tree(5))
+        _ = list(cirq.transform_op_tree(5))  # type: ignore[arg-type]
     with pytest.raises(TypeError):
         _ = list(
             cirq.flatten_op_tree(
                 cirq.transform_op_tree(
-                    [cirq.GateOperation(cirq.Gate(), [cirq.NamedQubit('q')]), (4,)]
+                    [cirq.GateOperation(cirq.Gate(), [cirq.NamedQubit('q')]), (4,)]  # type: ignore
                 )
             )
         )
 
 
-def test_transform_leaves():
+def test_transform_leaves() -> None:
     gs = [cirq.testing.SingleQubitGate() for _ in range(10)]
     operations = [cirq.GateOperation(gs[i], [cirq.NamedQubit(str(i))]) for i in range(10)]
     expected = [cirq.GateOperation(gs[i], [cirq.NamedQubit(str(i) + 'a')]) for i in range(10)]
@@ -150,7 +153,7 @@ def test_transform_leaves():
     )
 
 
-def test_transform_internal_nodes():
+def test_transform_internal_nodes() -> None:
     operations = [
         cirq.GateOperation(cirq.testing.SingleQubitGate(), [cirq.LineQubit(2 * i)])
         for i in range(10)
