@@ -273,7 +273,7 @@ class SimulatorResult:
         tolerance = 1e-6
         total = sum(weights)
         if np.isclose(total, 1.0, rtol=0, atol=tolerance):
-            weights = [w / total for w in weights]
+            weights = tuple((w / total for w in weights))
 
         indices = rand.choice(
             range(len(values)), p=weights, size=override_repetitions or self.repetitions()
