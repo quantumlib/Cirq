@@ -25,11 +25,10 @@ import numpy as np
 
 from cirq import circuits, ops, work
 from cirq.contrib.shuffle_circuits import run_shuffled_with_readout_benchmarking
-from cirq.experiments.single_qubit_readout_calibration import SingleQubitReadoutCalibrationResult
 from cirq.experiments.readout_confusion_matrix import TensoredConfusionMatrices
 
 if TYPE_CHECKING:
-    from cirq.experiments import SingleQubitReadoutCalibrationResult
+    from cirq.experiments.single_qubit_readout_calibration import SingleQubitReadoutCalibrationResult
     from cirq.study import ResultDict
 
 
@@ -353,16 +352,26 @@ def _process_pauli_measurement_results(
             qubits_sorted = sorted(pauli_str.qubits)
             qubit_indices = [qubits.index(q) for q in qubits_sorted]
 
-            pauli_str_calibration_result = (
-                _build_pauli_string_calibration_result(calibration_result, qubits_sorted)
-                if disable_readout_mitigation is False
-                else None
-            )
-            confusion_matrices = (
-                _build_many_one_qubits_confusion_matrix(pauli_str_calibration_result)
-                if disable_readout_mitigation is False
-                else _build_many_one_qubits_empty_confusion_matrix(len(qubits_sorted))
-            )
+            if disable_readout_mitigation:
+                pauli_str_calibration_result = None
+                confusion_matrices = _build_many_one_qubits_empty_confusion_matrix(
+                    len(qubits_sorted)
+                )
+            else:
+                if calibration_result is None:
+                    # This case should be logically impossible if mitigation is on,
+                    # so we raise an error.
+                    raise ValueError(
+                        f"Readout mitigation is enabled, but no calibration result was "
+                        f"found for qubits {pauli_readout_qubits}."
+                    )
+                pauli_str_calibration_result = _build_pauli_string_calibration_result(
+                    calibration_result, qubits_sorted
+                )
+                confusion_matrices = _build_many_one_qubits_confusion_matrix(
+                    pauli_str_calibration_result
+                )
+
             tensored_cm = TensoredConfusionMatrices(
                 confusion_matrices,
                 [[q] for q in qubits_sorted],
@@ -394,7 +403,7 @@ def _process_pauli_measurement_results(
                     mitigated_stddev=d_m_with_coefficient,
                     unmitigated_expectation=unmitigated_value_with_coefficient,
                     unmitigated_stddev=d_unmit_with_coefficient,
-                    calibration_result=(pauli_str_calibration_result),
+                    calibration_result=pauli_str_calibration_result,
                 )
             )
 
