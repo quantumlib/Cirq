@@ -1050,7 +1050,8 @@ two_qubit_gates = [
 
 # Mapping of two-qubit gates and `num_params`
 two_qubit_param_gates = {
-    # ('cu1', cirq.ControlledGate(QasmUGate(0, 0, 0.1))): 1,
+    # TODO: fix and enable commented gates below
+    # ('cu1', cirq.ControlledGate(QasmUGate(0, 0, 0.1 / np.pi))): 1,
     # ('cu3', cirq.ControlledGate(QasmUGate(0.1 / np.pi, 0.2 / np.pi, 0.3 / np.pi))): 3,
     # ('cu', cirq.ControlledGate(QasmUGate(0.1 / np.pi, 0.2 / np.pi, 0.3 / np.pi))): 3,
     ('crx', cirq.ControlledGate(cirq.rx(0.1))): 1,
@@ -1109,12 +1110,7 @@ def test_two_qubit_gates(qasm_gate: str, cirq_gate: cirq.testing.TwoQubitGate) -
 def test_two_qubit_param_gates(
     qasm_gate: str, cirq_gate: cirq.testing.TwoQubitGate, num_params: int
 ) -> None:
-    if num_params == 1:
-        params = '(0.1)'
-    elif num_params == 2:
-        params = '(0.1, 0.2)'
-    elif num_params == 3:
-        params = '(0.1, 0.2, 0.3)'
+    params = f"({', '.join(f'{0.1 * (x + 1):g}' for x in range(num_params))})"
 
     qasm = f"""
     OPENQASM 2.0;
@@ -1313,7 +1309,7 @@ three_qubit_gates = [
 
 
 @pytest.mark.parametrize('qasm_gate,cirq_gate', three_qubit_gates)
-def test_three_qubit_gates(qasm_gate: str, cirq_gate: cirq.testing.TwoQubitGate) -> None:
+def test_three_qubit_gates(qasm_gate: str, cirq_gate: cirq.Gate) -> None:
     qasm = f"""
      OPENQASM 2.0;
      include "qelib1.inc";
@@ -1686,7 +1682,7 @@ four_qubit_gates = [
 
 
 @pytest.mark.parametrize('qasm_gate,cirq_gate', four_qubit_gates)
-def test_four_qubit_gates(qasm_gate: str, cirq_gate: cirq.testing.TwoQubitGate) -> None:
+def test_four_qubit_gates(qasm_gate: str, cirq_gate: cirq.Gate) -> None:
     qasm = f"""
      OPENQASM 2.0;
      include "qelib1.inc";
@@ -1762,7 +1758,7 @@ five_qubit_gates = [('c4x', cirq.ControlledGate(cirq.X, num_controls=4))]
 
 
 @pytest.mark.parametrize('qasm_gate,cirq_gate', five_qubit_gates)
-def test_five_qubit_gates(qasm_gate: str, cirq_gate: cirq.testing.TwoQubitGate) -> None:
+def test_five_qubit_gates(qasm_gate: str, cirq_gate: cirq.Gate) -> None:
     qasm = f"""
      OPENQASM 2.0;
      include "qelib1.inc";
