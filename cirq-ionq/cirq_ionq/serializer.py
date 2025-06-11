@@ -24,7 +24,6 @@ from typing import Any, Callable, cast, Collection, Iterator, Sequence, TYPE_CHE
 import numpy as np
 
 import cirq
-
 from cirq.devices import line_qubit
 from cirq_ionq.ionq_exceptions import (
     IonQSerializerMixedGatesetsException,
@@ -34,8 +33,8 @@ from cirq_ionq.ionq_native_gates import GPI2Gate, GPIGate, MSGate, ZZGate
 
 
 if TYPE_CHECKING:
-    from cirq.ops.pauli_string_phasor import PauliStringPhasorGate
     import sympy
+    from cirq.ops.pauli_string_phasor import PauliStringPhasorGate
 
 _NATIVE_GATES = cirq.Gateset(
     GPIGate, GPI2Gate, MSGate, ZZGate, cirq.MeasurementGate, unroll_circuit_op=False
@@ -86,7 +85,8 @@ class Serializer:
             cirq.HPowGate: self._serialize_h_pow_gate,
             cirq.SwapPowGate: self._serialize_swap_gate,
             cirq.MeasurementGate: self._serialize_measurement_gate,
-            cirq.ops.pauli_string_phasor.PauliStringPhasorGate: self._serialize_pauli_string_phasor_gate,
+            cirq.ops.pauli_string_phasor.PauliStringPhasorGate:
+                self._serialize_pauli_string_phasor_gate,
             # These gates can't be used with any of the non-measurement gates above
             # Rather than validating this here, we rely on the IonQ API to report failure.
             GPIGate: self._serialize_gpi_gate,
@@ -306,11 +306,15 @@ class Serializer:
         if pauli_string_coefficient.imag != 0:
             raise NotSupportedPauliexpParameters(
                 'IonQ `pauliexp` gates does not support complex evolution coefficients. '
-                f'Found in a PauliStringPhasorGate a complex evolution coefficient {pauli_string_coefficient} for the associated DensePauliString.'
+                'Found in a PauliStringPhasorGate a complex evolution coefficient '
+                f'{pauli_string_coefficient} for the associated DensePauliString.'
             )
         coefficients = [pauli_string_coefficient.real]
-        # I am ignoring here the global phase of i * pi * (gate.exponent_neg + gate.exponent_pos) / 2
-        # @CodeReview: could you please confirm that this formula below is correct?
+        #
+        # @CodeReview: could you please confirm that this formula for time is correct?
+        #
+        # I am ignoring here the global phase of:
+        # i * pi * (gate.exponent_neg + gate.exponent_pos) / 2
         time = math.pi * (gate.exponent_neg - gate.exponent_pos) / 2
         if time < 0:
             raise NotSupportedPauliexpParameters(

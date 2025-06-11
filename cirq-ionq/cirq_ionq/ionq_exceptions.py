@@ -58,8 +58,8 @@ class IonQSerializerMixedGatesetsException(Exception):
 
 
 class NotSupportedPauliexpParameters(Exception):
-    """An exception to be thrown when trying to serialize
-    a Cirq PauliStringPhasorGate to IonQ `pauliexp` gate.
+    """An exception that may be thrown when trying to serialize a Cirq
+    PauliStringPhasorGate to IonQ `pauliexp` gate with unsupported parameters.
     """
 
     def __init__(self, message):
