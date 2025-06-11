@@ -14,13 +14,13 @@
 
 from __future__ import annotations
 
-import cirq
 import json
 import math
 import numpy as np
 import pytest
 import sympy
 
+import cirq
 import cirq_ionq as ionq
 from cirq_ionq.ionq_exceptions import (
     IonQSerializerMixedGatesetsException,
