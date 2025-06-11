@@ -26,9 +26,11 @@ import numpy as np
 from cirq import circuits, ops, work
 from cirq.contrib.shuffle_circuits import run_shuffled_with_readout_benchmarking
 from cirq.experiments.readout_confusion_matrix import TensoredConfusionMatrices
+from cirq.experiments.single_qubit_readout_calibration import (
+    SingleQubitReadoutCalibrationResult,
+)
 
 if TYPE_CHECKING:
-    from cirq.experiments.single_qubit_readout_calibration import SingleQubitReadoutCalibrationResult
     from cirq.study import ResultDict
 
 
