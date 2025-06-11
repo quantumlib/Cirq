@@ -233,7 +233,6 @@ class AbstractCircuit(abc.ABC):
         """See `cirq.SupportsDecompose`."""
         return self.all_operations()
 
-    # pylint: disable=function-redefined
     @overload
     def __getitem__(self, key: int) -> cirq.Moment:
         pass
@@ -276,8 +275,6 @@ class AbstractCircuit(abc.ABC):
             return self._from_moments(moment[qubit_idx] for moment in selected_moments)
 
         raise TypeError('__getitem__ called with key not of type slice, int, or tuple.')
-
-    # pylint: enable=function-redefined
 
     def __str__(self) -> str:
         return self.to_text_diagram()
@@ -918,7 +915,7 @@ class AbstractCircuit(abc.ABC):
     def all_qubits(self) -> frozenset[cirq.Qid]:
         """Returns the qubits acted upon by Operations in this circuit.
 
-        Returns: FrozenSet of `cirq.Qid` objects acted on by all operations
+        Returns: frozenset of `cirq.Qid` objects acted on by all operations
             in this circuit.
         """
         return frozenset(q for m in self.moments for q in m.qubits)
@@ -966,7 +963,7 @@ class AbstractCircuit(abc.ABC):
     def _measurement_key_objs_(self) -> frozenset[cirq.MeasurementKey]:
         """Returns the set of all measurement keys in this circuit.
 
-        Returns: FrozenSet of `cirq.MeasurementKey` objects that are
+        Returns: frozenset of `cirq.MeasurementKey` objects that are
             in this circuit.
         """
         return self.all_measurement_key_objs()
@@ -974,7 +971,7 @@ class AbstractCircuit(abc.ABC):
     def all_measurement_key_names(self) -> frozenset[str]:
         """Returns the set of all measurement key names in this circuit.
 
-        Returns: FrozenSet of strings that are the measurement key
+        Returns: frozenset of strings that are the measurement key
             names in this circuit.
         """
         return frozenset(
@@ -1895,7 +1892,6 @@ class Circuit(AbstractCircuit):
         copied_circuit._placement_cache = None
         return copied_circuit
 
-    # pylint: disable=function-redefined
     @overload
     def __setitem__(self, key: int, value: cirq.Moment):
         pass
@@ -1915,8 +1911,6 @@ class Circuit(AbstractCircuit):
 
         self._moments[key] = value
         self._mutated()
-
-    # pylint: enable=function-redefined
 
     def __delitem__(self, key: int | slice):
         del self._moments[key]

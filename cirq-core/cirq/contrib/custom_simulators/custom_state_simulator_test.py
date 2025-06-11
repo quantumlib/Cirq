@@ -64,26 +64,27 @@ def create_test_circuit():
     )
 
 
-def test_basis_state_simulator():
+def test_basis_state_simulator() -> None:
     sim = CustomStateSimulator(ComputationalBasisSimState)
     circuit = create_test_circuit()
     r = sim.simulate(circuit)
     assert r.measurements == {'a': np.array([1]), 'b': np.array([2])}
-    assert r._final_simulator_state._state.basis == [2, 2]
+    assert r._final_simulator_state._state.basis == [2, 2]  # type: ignore[attr-defined]
 
 
-def test_built_in_states():
+def test_built_in_states() -> None:
     # Verify this works for the built-in states too, you just lose the custom step/trial results.
     sim = CustomStateSimulator(cirq.StateVectorSimulationState)
     circuit = create_test_circuit()
     r = sim.simulate(circuit)
     assert r.measurements == {'a': np.array([1]), 'b': np.array([2])}
     assert np.allclose(
-        r._final_simulator_state._state._state_vector, [[0, 0, 0], [0, 0, 0], [0, 0, 1]]
+        r._final_simulator_state._state._state_vector,  # type: ignore[attr-defined]
+        [[0, 0, 0], [0, 0, 0], [0, 0, 1]],
     )
 
 
-def test_product_state_mode_built_in_state():
+def test_product_state_mode_built_in_state() -> None:
     sim = CustomStateSimulator(cirq.StateVectorSimulationState, split_untangled_states=True)
     circuit = create_test_circuit()
     r = sim.simulate(circuit)
@@ -99,16 +100,16 @@ def test_product_state_mode_built_in_state():
     )
 
 
-def test_noise():
+def test_noise() -> None:
     x = cirq.XPowGate(dimension=3)
     sim = CustomStateSimulator(ComputationalBasisSimState, noise=x**2)
     circuit = create_test_circuit()
     r = sim.simulate(circuit)
     assert r.measurements == {'a': np.array([2]), 'b': np.array([2])}
-    assert r._final_simulator_state._state.basis == [1, 2]
+    assert r._final_simulator_state._state.basis == [1, 2]  # type: ignore[attr-defined]
 
 
-def test_run():
+def test_run() -> None:
     sim = CustomStateSimulator(ComputationalBasisSimState)
     circuit = create_test_circuit()
     r = sim.run(circuit)
@@ -116,7 +117,7 @@ def test_run():
     assert np.allclose(r.records['b'], np.array([[1], [2]]))
 
 
-def test_parameterized_repetitions():
+def test_parameterized_repetitions() -> None:
     q = cirq.LineQid(0, dimension=5)
     x = cirq.XPowGate(dimension=5)
     circuit = cirq.Circuit(
@@ -182,7 +183,7 @@ class ComputationalBasisSimProductState(cirq.SimulationState[ComputationalBasisP
             return True
 
 
-def test_product_state_mode():
+def test_product_state_mode() -> None:
     sim = CustomStateSimulator(ComputationalBasisSimProductState, split_untangled_states=True)
     circuit = create_test_circuit()
     r = sim.simulate(circuit)

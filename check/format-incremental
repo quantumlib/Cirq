@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 
 ################################################################################
-# Formats python files that have been modified.
+# Formats python and notebook files that have been modified.
 #
 # Usage:
 #     check/format-incremental [BASE_REVISION] [--apply] [--all]
 #
-# By default, the script analyzes python files that have changed relative to the
-# base revision and determines whether they need to be formatted. If any changes
-# are needed, it prints the diff and exits with code 1, otherwise it exits with
-# code 0.
+# By default, the script analyzes python and notebook files that have changed
+# relative to the base revision and determines whether they need to be
+# formatted. If any changes are needed, it prints the diff and exits with
+# code 1, otherwise it exits with code 0.
 #
 # With '--apply', reformats the files instead of printing the diff and exits
 # with code 0.
 #
-# With '--all', analyzes all python files, instead of only changed files.
+# With '--all', analyzes all files, instead of only changed files.
 #
 # You can specify a base git revision to compare against (i.e. to use when
 # determining whether or not a file is considered to have "changed"). For
@@ -80,14 +80,14 @@ if (( only_changed == 1 )); then
         rev="${base}"
     fi
 
-    # Get the modified, added and moved python files.
+    # Get the modified, added and moved python and notebook files.
     IFS=$'\n' read -r -d '' -a format_files < \
         <(git diff --name-only --diff-filter=MAR "${rev}" -- \
-        '*.py' ':(exclude)*_pb2.py')
+        '*.py' '*.ipynb' ':(exclude)*_pb2.py')
 else
-    echo -e "Formatting all python files." >&2
+    echo -e "Formatting all python and notebook files." >&2
     IFS=$'\n' read -r -d '' -a format_files < \
-        <(git ls-files '*.py' ':(exclude)*_pb2.py')
+        <(git ls-files '*.py' '*.ipynb' ':(exclude)*_pb2.py')
 fi
 
 if (( ${#format_files[@]} == 0 )); then
@@ -95,10 +95,10 @@ if (( ${#format_files[@]} == 0 )); then
     exit 0
 fi
 
-# Exclude __init__.py files from isort targets
+# Apply isort only on python files with the exception of __init__.py files
 declare -a isort_files=()
 for f in "${format_files[@]}"; do
-    if [[ "${f##*/}" != __init__.py ]]; then
+    if [[ "${f}" == *.py && "${f##*/}" != __init__.py ]]; then
         isort_files+=("${f}")
     fi
 done

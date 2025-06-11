@@ -116,7 +116,7 @@ def unitary_eig(
             was unitary.
 
     Returns:
-        A Tuple of
+        A tuple of
             eigvals: The eigenvalues of `matrix`.
             V: The unitary matrix with the eigenvectors as columns.
 
@@ -130,7 +130,6 @@ def unitary_eig(
     return R.diagonal(), V
 
 
-# pylint: enable=missing-raises-doc
 def map_eigenvalues(
     matrix: np.ndarray, func: Callable[[complex], complex], *, atol: float = 1e-8
 ) -> np.ndarray:
