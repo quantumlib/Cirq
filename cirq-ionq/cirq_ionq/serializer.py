@@ -21,10 +21,10 @@ import json
 import math
 from typing import Any, Callable, Collection, Iterator, Sequence, TYPE_CHECKING, cast
 
-import numpy as np
-
 import cirq
+import numpy as np
 from cirq.devices import line_qubit
+
 from cirq_ionq.ionq_exceptions import (
     IonQSerializerMixedGatesetsException,
     NotSupportedPauliexpParameters,
