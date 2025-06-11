@@ -19,10 +19,9 @@ from __future__ import annotations
 import dataclasses
 import json
 import math
+from typing import Any, Callable, Collection, Iterator, Sequence, TYPE_CHECKING, cast
 
 import numpy as np
-
-from typing import Any, Callable, cast, Collection, Iterator, Sequence, TYPE_CHECKING
 
 import cirq
 from cirq.devices import line_qubit
@@ -31,7 +30,6 @@ from cirq_ionq.ionq_exceptions import (
     NotSupportedPauliexpParameters,
 )
 from cirq_ionq.ionq_native_gates import GPI2Gate, GPIGate, MSGate, ZZGate
-
 
 if TYPE_CHECKING:
     import sympy
