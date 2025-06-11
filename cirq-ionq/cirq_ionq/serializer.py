@@ -19,9 +19,10 @@ from __future__ import annotations
 import dataclasses
 import json
 import math
-from typing import Any, Callable, cast, Collection, Iterator, Sequence, TYPE_CHECKING
 
 import numpy as np
+
+from typing import Any, Callable, cast, Collection, Iterator, Sequence, TYPE_CHECKING
 
 import cirq
 from cirq.devices import line_qubit
