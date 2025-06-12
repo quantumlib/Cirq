@@ -19,8 +19,8 @@ import pytest
 
 import cirq
 
-a = np.eye(2)
-b = np.eye(2)
+a = np.array([[1]])
+b = np.array([[1j]])
 
 
 class NoMethod:
