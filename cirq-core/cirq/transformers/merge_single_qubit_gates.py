@@ -306,18 +306,16 @@ def merge_single_qubit_gates_to_phxz_symbolized(
     ]
 
     # Step 2, get the new symbolized circuit by symbolizing on indexed symbolized_single_tag.
-    new_circuit = align.align_right(
-        tag_transformers.remove_tags(  # remove the temp tags used to track merges
-            symbolize.symbolize_single_qubit_gates_by_indexed_tags(
-                tag_transformers.index_tags(  # index all 1-qubit-ops merged from ops with symbols
-                    merged_circuits[0],
-                    context=transformer_api.TransformerContext(deep=deep),
-                    target_tags={symbolized_single_tag},
-                ),
-                symbolize_tag=symbolize.SymbolizeTag(prefix=symbolized_single_tag),
+    new_circuit = tag_transformers.remove_tags(  # remove the temp tags used to track merges
+        symbolize.symbolize_single_qubit_gates_by_indexed_tags(
+            tag_transformers.index_tags(  # index all 1-qubit-ops merged from ops with symbols
+                merged_circuits[0],
+                context=transformer_api.TransformerContext(deep=deep),
+                target_tags={symbolized_single_tag},
             ),
-            remove_if=lambda tag: str(tag).startswith(symbolized_single_tag),
-        )
+            symbolize_tag=symbolize.SymbolizeTag(prefix=symbolized_single_tag),
+        ),
+        remove_if=lambda tag: str(tag).startswith(symbolized_single_tag),
     )
 
     # Step 3, get N sets of parameterizations as new_sweep.
@@ -326,4 +324,4 @@ def merge_single_qubit_gates_to_phxz_symbolized(
         _sweep_on_symbols(sweep, remaining_symbols),  # remaining sweeps
     )
 
-    return new_circuit, new_sweep
+    return align.align_right(new_circuit), new_sweep

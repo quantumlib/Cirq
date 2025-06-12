@@ -297,6 +297,29 @@ class TestMergeSingleQubitGatesSymbolized(TestCase):
                 {q: q for q in input_circuit.all_qubits()},
             )
 
+    def test_with_gauge_compiling_as_sweep_success(self):
+        qubits = cirq.LineQubit.range(7)
+        c = cirq.Circuit(
+            cirq.Moment(cirq.H(qubits[0]), cirq.H(qubits[3])),
+            cirq.Moment(cirq.CZ(qubits[0], qubits[2]), cirq.CZ(qubits[3], qubits[5])),
+            cirq.Moment(cirq.CZ(qubits[0], qubits[1]), cirq.CZ(qubits[3], qubits[4])),
+            cirq.Moment(cirq.CZ(qubits[1], qubits[3]), cirq.CZ(qubits[4], qubits[6])),
+            cirq.Moment(cirq.M(*qubits, key='m')),
+        )
+        old_circuit, old_sweep = cirq.transformers.gauge_compiling.CZGaugeTransformer.as_sweep(
+            c, N=50
+        )
+        new_circuit, new_sweep = cirq.merge_single_qubit_gates_to_phxz_symbolized(
+            old_circuit, sweep=old_sweep
+        )
+        # Check the unitaries are preserved for each set of sweep paramerization.
+        for old_resolver, new_resolver in zip(old_sweep, new_sweep):
+            cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+                cirq.resolve_parameters(old_circuit[0:-1], old_resolver),
+                cirq.resolve_parameters(new_circuit[0:-1], new_resolver),
+                {q: q for q in qubits},
+            )
+
     def test_case_non_parameterized_singles(self):
         """Test merge_single_qubit_gates_to_phxz_symbolized when all single qubit gates are not
         parameterized."""
