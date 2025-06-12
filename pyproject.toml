@@ -78,6 +78,7 @@ select = [
     "F702",  # continue-outside-loop, pylint not-in-loop
     "F704",  # yield-outside-function, pylint yield-outside-function
     "F706",  # return-in-init, pylint return-outside-function
+    "F811",  # redefined-while-unused, pylint function-redefined
     "F821",  # undefined-name, pylint undefined-variable, unexpected-keyword-arg
     "PIE790",  # unnecessary-placeholder, pylint unnecessary-pass
     "PLE0100",  # yield-in-init, pylint init-is-generator

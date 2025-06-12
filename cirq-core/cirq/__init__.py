@@ -698,8 +698,6 @@ from cirq.work import (
 
 # Unflattened sub-modules.
 
-from cirq import testing
-
 # Registers cirq-core's public classes for JSON serialization.
 # pylint: disable=wrong-import-position
 from cirq.protocols.json_serialization import _register_resolver
