@@ -84,6 +84,7 @@ def unitary(
 
     The matrix is determined by any one of the following techniques:
 
+    - If the value is a numpy array, it is returned directly.
     - The value has a `_unitary_` method that returns something besides None or
         NotImplemented. The matrix is whatever the method returned.
     - The value has a `_decompose_` method that returns a list of operations,
@@ -111,6 +112,9 @@ def unitary(
         TypeError: `val` doesn't have a unitary effect and no default value was
             specified.
     """
+    if isinstance(val, np.ndarray):
+        return val
+
     strats = [
         _strat_unitary_from_unitary,
         _strat_unitary_from_apply_unitary,
