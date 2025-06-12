@@ -69,7 +69,7 @@ class SingleQubitRandomizedBenchmarking:
         qubits = cirq.GridQubit.rect(1, num_qubits)
         for _ in range(num_circuits):
             op_grid = self._get_op_grid(qubits, depth)
-            circuit = cirq.Circuit(
+            cirq.Circuit(
                 [cirq.Moment(ops[d] for ops in op_grid) for d in range(depth + 1)],
                 cirq.Moment(cirq.measure(*qubits)),
             )

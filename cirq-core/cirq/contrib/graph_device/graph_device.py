@@ -174,8 +174,8 @@ class UndirectedGraphDevice(devices.Device):
             device_edge = self.get_device_edge_from_op(operation)
         except Exception as error:
             if frozenset(operation.qubits) not in self.device_graph.edges:
-                error = ValueError(f'{operation.qubits} not in device graph edges')
-            raise error
+                raise ValueError(f'{operation.qubits} not in device graph edges') from error
+            raise  # pragma: no cover
         device_edge.validate_operation(operation)
 
     def validate_crosstalk(

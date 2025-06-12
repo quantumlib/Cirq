@@ -80,6 +80,7 @@ select = [
     "F706",  # return-in-init, pylint return-outside-function
     "F811",  # redefined-while-unused, pylint function-redefined
     "F821",  # undefined-name, pylint undefined-variable, unexpected-keyword-arg
+    "F841",  # unused-variable, pylint unused-variable
     "PIE790",  # unnecessary-placeholder, pylint unnecessary-pass
     "PLE0100",  # yield-in-init, pylint init-is-generator
     "PLE0101",  # return-in-init, pylint return-in-init
