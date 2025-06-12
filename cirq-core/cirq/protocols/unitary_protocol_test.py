@@ -165,6 +165,11 @@ def test_unitary():
     test_matrix = np.array([[1, 0], [0, 1]])
     assert cirq.unitary(test_matrix, NotImplemented) is test_matrix
 
+    # Test that non-unitary numpy arrays raise ValueError
+    non_unitary_matrix = np.array([[1, 1], [0, 1]])
+    with pytest.raises(ValueError, match="The provided numpy array is not unitary"):
+        _ = cirq.unitary(non_unitary_matrix)
+
     assert cirq.unitary(NoMethod(), None) is None
     assert cirq.unitary(ReturnsNotImplemented(), None) is None
     assert cirq.unitary(ReturnsMatrix(), None) is m1
