@@ -86,7 +86,7 @@ def test_known_two_qubit_op_decomposition(op, theta_range):
         cirq.FSimGate(0.25, 0.85).on(*_QUBITS),
         cirq.XX(*_QUBITS),
         cirq.YY(*_QUBITS),
-        *[cirq.testing.random_unitary(4, random_state=1234) for _ in range(10)],
+        *[cirq.MatrixGate(cirq.testing.random_unitary(4, random_state=1234)).on(*_QUBITS) for _ in range(10)],
     ],
 )
 def test_unknown_two_qubit_op_decomposition(op):
