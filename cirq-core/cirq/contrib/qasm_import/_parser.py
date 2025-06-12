@@ -346,6 +346,38 @@ class QasmParser:
         'x': QasmGateStatement(qasm_gate='x', num_params=0, num_args=1, cirq_gate=ops.X),
         'y': QasmGateStatement(qasm_gate='y', num_params=0, num_args=1, cirq_gate=ops.Y),
         'z': QasmGateStatement(qasm_gate='z', num_params=0, num_args=1, cirq_gate=ops.Z),
+        
+        # xs-es addidtional gates
+
+        'rxx': QasmGateStatement(
+            qasm_gate='rxx',
+            num_params=1,
+            num_args=2,
+            cirq_gate=lambda params: ops.XXPowGate(exponent=params[0] / np.pi),
+        ),
+
+        'ryy': QasmGateStatement(
+            qasm_gate='ryy',
+            num_params=1,
+            num_args=2,
+            cirq_gate=lambda params: ops.YYPowGate(exponent=params[0] / np.pi),
+        ),
+        'rzx': QasmGateStatement(
+            qasm_gate='rzx',
+            num_params=1,
+            num_args=2,
+            cirq_gate=lambda params: ops.ZXGate(exponent=params[0] / np.pi),
+        ),
+        'rccx': QasmGateStatement(
+            qasm_gate='rccx',
+            num_params=1,
+            num_args=3,
+            cirq_gate=lambda params: ops.CCXPowGate(exponent=params[0] / np.pi),
+        ),
+
+
+
+
     }
 
     tokens = QasmLexer.tokens
