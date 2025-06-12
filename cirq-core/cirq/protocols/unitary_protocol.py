@@ -112,6 +112,7 @@ def unitary(
     Raises:
         TypeError: `val` doesn't have a unitary effect and no default value was
             specified.
+        ValueError: `val` is a numpy array that is not unitary.
     """
     if isinstance(val, np.ndarray):
         if not linalg.is_unitary(val):
