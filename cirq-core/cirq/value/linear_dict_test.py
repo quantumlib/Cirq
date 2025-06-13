@@ -410,7 +410,7 @@ def test_scalar_division(scalar, terms, terms_expected):
 )
 def test_expressions(expression, expected):
     assert expression == expected
-    assert not expression != expected
+    assert not expression != expected  # noqa: SIM202
     assert cirq.approx_eq(expression, expected)
 
 
@@ -438,8 +438,8 @@ def test_equal(terms_1, terms_2):
     linear_dict_2 = cirq.LinearDict(terms_2)
     assert linear_dict_1 == linear_dict_2
     assert linear_dict_2 == linear_dict_1
-    assert not linear_dict_1 != linear_dict_2
-    assert not linear_dict_2 != linear_dict_1
+    assert not linear_dict_1 != linear_dict_2  # noqa: SIM202
+    assert not linear_dict_2 != linear_dict_1  # noqa: SIM202
 
 
 @pytest.mark.parametrize(
@@ -458,8 +458,8 @@ def test_unequal(terms_1, terms_2):
     linear_dict_2 = cirq.LinearDict(terms_2)
     assert linear_dict_1 != linear_dict_2
     assert linear_dict_2 != linear_dict_1
-    assert not linear_dict_1 == linear_dict_2
-    assert not linear_dict_2 == linear_dict_1
+    assert not linear_dict_1 == linear_dict_2  # noqa: SIM201
+    assert not linear_dict_2 == linear_dict_1  # noqa: SIM201
 
 
 @pytest.mark.parametrize(

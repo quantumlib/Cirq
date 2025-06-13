@@ -80,7 +80,7 @@ def test_wrapped_qid() -> None:
     }
 
     # pylint: disable=unnecessary-negation
-    assert not ValidQubit('zz') == 4
+    assert not ValidQubit('zz') == 4  # noqa: SIM201
     assert ValidQubit('zz') != 4
     assert ValidQubit('zz') > ValidQubit('aa')
     assert ValidQubit('zz') <= ValidQubit('zz')
