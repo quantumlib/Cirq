@@ -1570,8 +1570,6 @@ def test_circuit_diagram_info():
     )
 
 
-
-
 def test_mutable_pauli_string_init_raises():
     q = cirq.LineQubit.range(3)
     with pytest.raises(ValueError, match='must be between 1 and 3'):

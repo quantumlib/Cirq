@@ -58,8 +58,6 @@ def pow(val: Any, exponent: Any, default: TDefault) -> Any:
     pass
 
 
-
-
 def pow(val: Any, exponent: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     """Returns `val**factor` of the given value, if defined.
 

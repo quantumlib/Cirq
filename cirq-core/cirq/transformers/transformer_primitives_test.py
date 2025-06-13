@@ -204,8 +204,6 @@ def test_map_operations_deep_subcircuits():
         )
 
 
-
-
 @pytest.mark.parametrize("deep", [False, True])
 def test_map_operations_preserves_circuit_tags(deep: bool) -> None:
     tag = "should be preserved"
@@ -705,8 +703,6 @@ def test_merge_operations_deep():
     )
 
 
-
-
 def test_merge_operations_to_circuit_op_merges_connected_component():
     c_orig = _create_circuit_to_merge()
     cirq.testing.assert_has_diagram(
@@ -772,8 +768,6 @@ def test_merge_2q_unitaries_to_circuit_op():
 2: ───#2────────────────────────────────────────────────────────────────────────────#2───────────────────────────────────────M───
         ''',  # noqa: E501
     )
-
-
 
 
 def test_merge_operations_respects_tags_to_ignore():

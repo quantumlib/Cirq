@@ -394,10 +394,10 @@ def test_deprecated_class():
         OldClass('1')
 
     with pytest.raises(AssertionError, match='deadline should match vX.Y'):
+
         @deprecated_class(deadline='invalid', fix='theFix', name='foo')
         class BadlyDeprecatedClass(NewClass):  # pragma: no cover
             ...
-
 
 
 def _from_parent_import_deprecated():

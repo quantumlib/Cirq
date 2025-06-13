@@ -785,9 +785,7 @@ def test_inverse_composite_standards() -> None:
         def _is_parameterized_(self) -> bool:
             return cirq.is_parameterized(self._param)
 
-        def _resolve_parameters_(
-            self, resolver: cirq.ParamResolver, recursive: bool
-        ) -> Gate:
+        def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Gate:
             return Gate(cirq.resolve_parameters(self._param, resolver, recursive))
 
         def __repr__(self):
