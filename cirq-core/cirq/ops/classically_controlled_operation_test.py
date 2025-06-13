@@ -505,7 +505,6 @@ def test_scope_local() -> None:
     assert internal_control_keys == ['0:0:a', '0:1:a', '1:0:a', '1:1:a']
     assert not cirq.control_keys(outer_subcircuit)
     assert not cirq.control_keys(circuit)
-    # pylint: disable=line-too-long
     cirq.testing.assert_has_diagram(
         cirq.Circuit(outer_subcircuit),
         """
@@ -515,7 +514,6 @@ def test_scope_local() -> None:
 """,  # noqa: E501
         use_unicode_characters=True,
     )
-    # pylint: enable=line-too-long
     cirq.testing.assert_has_diagram(
         circuit,
         """
@@ -659,7 +657,6 @@ def test_scope_extern() -> None:
     assert internal_control_keys == ['0:b', '0:b', '1:b', '1:b']
     assert not cirq.control_keys(outer_subcircuit)
     assert not cirq.control_keys(circuit)
-    # pylint: disable=line-too-long
     cirq.testing.assert_has_diagram(
         cirq.Circuit(outer_subcircuit),
         """
@@ -671,7 +668,6 @@ def test_scope_extern() -> None:
 """,  # noqa: E501
         use_unicode_characters=True,
     )
-    # pylint: enable=line-too-long
     cirq.testing.assert_has_diagram(
         circuit,
         """
@@ -780,7 +776,6 @@ def test_scope_extern_mismatch() -> None:
     assert internal_control_keys == ['b', 'b', 'b', 'b']
     assert cirq.control_keys(outer_subcircuit) == {cirq.MeasurementKey('b')}
     assert cirq.control_keys(circuit) == {cirq.MeasurementKey('b')}
-    # pylint: disable=line-too-long
     cirq.testing.assert_has_diagram(
         cirq.Circuit(outer_subcircuit),
         """
@@ -794,7 +789,6 @@ b: ═══╩═════════════════════�
 """,  # noqa: E501
         use_unicode_characters=True,
     )
-    # pylint: enable=line-too-long
     cirq.testing.assert_has_diagram(
         circuit,
         """
@@ -984,7 +978,6 @@ d: ═══╩═════════════════════�
         use_unicode_characters=True,
     )
 
-    # pylint: disable=line-too-long
     cirq.testing.assert_has_diagram(
         circuit,
         """
@@ -1000,7 +993,6 @@ d: ══════════════════════^═══�
 """,  # noqa: E501
         use_unicode_characters=True,
     )
-    # pylint: enable=line-too-long
 
 
 def test_sympy_scope_simulation() -> None:
