@@ -42,7 +42,7 @@ from cirq.experiments.random_quantum_circuit_generation import (
     GRID_STAGGERED_PATTERN as GRID_STAGGERED_PATTERN,
     HALF_GRID_STAGGERED_PATTERN as HALF_GRID_STAGGERED_PATTERN,
     GridInteractionLayer as GridInteractionLayer,
-    random_rotations_between_grid_interaction_layers_circuit as random_rotations_between_grid_interaction_layers_circuit,
+    random_rotations_between_grid_interaction_layers_circuit as random_rotations_between_grid_interaction_layers_circuit,  # noqa: E501
 )
 
 from cirq.experiments.readout_confusion_matrix import (

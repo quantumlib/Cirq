@@ -190,8 +190,8 @@ def test_quantum_executable_group_methods():
     # pylint: disable=line-too-long
     assert str(eg) == (
         "QuantumExecutableGroup(executables=["
-        "QuantumExecutable(spec=cirq_google.KeyValueExecutableSpec(executable_family='cirq_google.algo_benchmarks.example', key_value_pairs=(('name', 'example-program-0'),))), "
-        "QuantumExecutable(spec=cirq_google.KeyValueExecutableSpec(executable_family='cirq_google.algo_benchmarks.example', key_value_pairs=(('name', 'example-program-1'),))), ...])"
+        "QuantumExecutable(spec=cirq_google.KeyValueExecutableSpec(executable_family='cirq_google.algo_benchmarks.example', key_value_pairs=(('name', 'example-program-0'),))), "  # noqa: E501
+        "QuantumExecutable(spec=cirq_google.KeyValueExecutableSpec(executable_family='cirq_google.algo_benchmarks.example', key_value_pairs=(('name', 'example-program-1'),))), ...])"  # noqa: E501
     )
     # pylint: enable=line-too-long
 

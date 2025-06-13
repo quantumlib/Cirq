@@ -130,13 +130,13 @@ from cirq.linalg import (
     apply_matrix_to_slices as apply_matrix_to_slices,
     axis_angle as axis_angle,
     AxisAngleDecomposition as AxisAngleDecomposition,
-    bidiagonalize_real_matrix_pair_with_symmetric_products as bidiagonalize_real_matrix_pair_with_symmetric_products,
-    bidiagonalize_unitary_with_special_orthogonals as bidiagonalize_unitary_with_special_orthogonals,
+    bidiagonalize_real_matrix_pair_with_symmetric_products as bidiagonalize_real_matrix_pair_with_symmetric_products,  # noqa: E501
+    bidiagonalize_unitary_with_special_orthogonals as bidiagonalize_unitary_with_special_orthogonals,  # noqa: E501
     block_diag as block_diag,
     CONTROL_TAG as CONTROL_TAG,
     deconstruct_single_qubit_matrix_into_angles as deconstruct_single_qubit_matrix_into_angles,
     density_matrix_kronecker_product as density_matrix_kronecker_product,
-    diagonalize_real_symmetric_and_sorted_diagonal_matrices as diagonalize_real_symmetric_and_sorted_diagonal_matrices,
+    diagonalize_real_symmetric_and_sorted_diagonal_matrices as diagonalize_real_symmetric_and_sorted_diagonal_matrices,  # noqa: E501
     diagonalize_real_symmetric_matrix as diagonalize_real_symmetric_matrix,
     dot as dot,
     expand_matrix_in_orthogonal_basis as expand_matrix_in_orthogonal_basis,
@@ -165,7 +165,7 @@ from cirq.linalg import (
     partial_trace as partial_trace,
     partial_trace_of_state_vector_as_mixture as partial_trace_of_state_vector_as_mixture,
     PAULI_BASIS as PAULI_BASIS,
-    scatter_plot_normalized_kak_interaction_coefficients as scatter_plot_normalized_kak_interaction_coefficients,
+    scatter_plot_normalized_kak_interaction_coefficients as scatter_plot_normalized_kak_interaction_coefficients,  # noqa: E501
     pow_pauli_combination as pow_pauli_combination,
     reflection_matrix_pow as reflection_matrix_pow,
     slice_for_qubits_equal_to as slice_for_qubits_equal_to,
@@ -351,13 +351,13 @@ from cirq.transformers import (
     align_right as align_right,
     CompilationTargetGateset as CompilationTargetGateset,
     CZTargetGateset as CZTargetGateset,
-    compute_cphase_exponents_for_fsim_decomposition as compute_cphase_exponents_for_fsim_decomposition,
+    compute_cphase_exponents_for_fsim_decomposition as compute_cphase_exponents_for_fsim_decomposition,  # noqa: E501
     create_transformer_with_kwargs as create_transformer_with_kwargs,
     decompose_clifford_tableau_to_operations as decompose_clifford_tableau_to_operations,
     decompose_cphase_into_two_fsim as decompose_cphase_into_two_fsim,
     decompose_multi_controlled_x as decompose_multi_controlled_x,
     decompose_multi_controlled_rotation as decompose_multi_controlled_rotation,
-    decompose_two_qubit_interaction_into_four_fsim_gates as decompose_two_qubit_interaction_into_four_fsim_gates,
+    decompose_two_qubit_interaction_into_four_fsim_gates as decompose_two_qubit_interaction_into_four_fsim_gates,  # noqa: E501
     defer_measurements as defer_measurements,
     dephase_measurements as dephase_measurements,
     drop_empty_moments as drop_empty_moments,
@@ -408,7 +408,7 @@ from cirq.transformers import (
     transformer as transformer,
     two_qubit_matrix_to_cz_isometry as two_qubit_matrix_to_cz_isometry,
     two_qubit_matrix_to_cz_operations as two_qubit_matrix_to_cz_operations,
-    two_qubit_matrix_to_diagonal_and_cz_operations as two_qubit_matrix_to_diagonal_and_cz_operations,
+    two_qubit_matrix_to_diagonal_and_cz_operations as two_qubit_matrix_to_diagonal_and_cz_operations,  # noqa: E501
     two_qubit_matrix_to_ion_operations as two_qubit_matrix_to_ion_operations,
     two_qubit_matrix_to_sqrt_iswap_operations as two_qubit_matrix_to_sqrt_iswap_operations,
     two_qubit_gate_product_tabulation as two_qubit_gate_product_tabulation,

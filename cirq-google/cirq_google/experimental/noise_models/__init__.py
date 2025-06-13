@@ -16,6 +16,6 @@
 
 from cirq_google.experimental.noise_models.noise_models import (
     # pylint: disable=line-too-long
-    PerQubitDepolarizingWithDampedReadoutNoiseModel as PerQubitDepolarizingWithDampedReadoutNoiseModel,
+    PerQubitDepolarizingWithDampedReadoutNoiseModel as PerQubitDepolarizingWithDampedReadoutNoiseModel,  # noqa: E501
     simple_noise_from_calibration_metrics as simple_noise_from_calibration_metrics,
 )

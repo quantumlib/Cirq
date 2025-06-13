@@ -66,6 +66,7 @@ select = [
              # pylint expression-not-assigned, pointless-exception-statement,
              # pointless-statement, pointless-string-statement
     "E402",  # module-import-not-at-top-of-file, pylint wrong-import-position
+    "E501",  # line-too-long, pylint line-too-long
     "E711",  # none-comparison, pylint singleton-comparison
     "E712",  # true-false-comparison, pylint singleton-comparison
     "F401",  # unused-import, pylint unused-import
