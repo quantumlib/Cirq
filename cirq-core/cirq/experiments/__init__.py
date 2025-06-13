@@ -37,7 +37,6 @@ from cirq.experiments.purity_estimation import (
 )
 
 from cirq.experiments.random_quantum_circuit_generation import (
-    # pylint: disable=line-too-long
     GRID_ALIGNED_PATTERN as GRID_ALIGNED_PATTERN,
     GRID_STAGGERED_PATTERN as GRID_STAGGERED_PATTERN,
     HALF_GRID_STAGGERED_PATTERN as HALF_GRID_STAGGERED_PATTERN,

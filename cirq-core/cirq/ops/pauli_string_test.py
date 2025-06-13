@@ -1546,7 +1546,6 @@ def test_pretty_print():
     assert p.text_pretty == 'cirq.PauliString(...)'
 
 
-# pylint: disable=line-too-long
 def test_circuit_diagram_info():
     a, b, c = cirq.LineQubit.range(3)
 
@@ -1571,7 +1570,6 @@ def test_circuit_diagram_info():
     )
 
 
-# pylint: enable=line-too-long
 
 
 def test_mutable_pauli_string_init_raises():

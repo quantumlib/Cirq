@@ -100,7 +100,6 @@ def test_merge_k_qubit_unitaries_raises() -> None:
 
 
 def test_merge_complex_circuit_preserving_moment_structure() -> None:
-    # pylint: disable=line-too-long
     q = cirq.LineQubit.range(3)
     c_orig = cirq.Circuit(
         cirq.Moment(cirq.H.on_each(*q)),
