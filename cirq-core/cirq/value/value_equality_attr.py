@@ -86,7 +86,7 @@ def _value_equality_eq(self: _SupportsValueEquality, other: _SupportsValueEquali
 
 
 def _value_equality_ne(self: _SupportsValueEquality, other: _SupportsValueEquality) -> bool:
-    return not self == other
+    return not self == other  # noqa: SIM201
 
 
 def _value_equality_hash(self: _SupportsValueEquality) -> int:

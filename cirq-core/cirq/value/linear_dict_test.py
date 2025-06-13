@@ -458,8 +458,8 @@ def test_unequal(terms_1, terms_2):
     linear_dict_2 = cirq.LinearDict(terms_2)
     assert linear_dict_1 != linear_dict_2
     assert linear_dict_2 != linear_dict_1
-    assert not linear_dict_1 == linear_dict_2
-    assert not linear_dict_2 == linear_dict_1
+    assert not linear_dict_1 == linear_dict_2  # noqa: SIM201
+    assert not linear_dict_2 == linear_dict_1  # noqa: SIM201
 
 
 @pytest.mark.parametrize(
