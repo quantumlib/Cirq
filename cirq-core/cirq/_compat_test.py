@@ -567,7 +567,7 @@ def _repeated_import_path():
     """to ensure that the highly unlikely repeated subpath import doesn't interfere"""
 
     # pylint: disable=line-too-long
-    from cirq.testing._compat_test_data.repeated_child.cirq.testing._compat_test_data.repeated_child import (  # type: ignore
+    from cirq.testing._compat_test_data.repeated_child.cirq.testing._compat_test_data.repeated_child import (  # type: ignore  # noqa: E501
         child,
     )
 

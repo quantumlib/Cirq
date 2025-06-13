@@ -16,12 +16,12 @@
 
 from cirq.transformers.analytical_decompositions import (
     # pylint: disable=line-too-long
-    compute_cphase_exponents_for_fsim_decomposition as compute_cphase_exponents_for_fsim_decomposition,
+    compute_cphase_exponents_for_fsim_decomposition as compute_cphase_exponents_for_fsim_decomposition,  # noqa: E501
     decompose_cphase_into_two_fsim as decompose_cphase_into_two_fsim,
     decompose_clifford_tableau_to_operations as decompose_clifford_tableau_to_operations,
     decompose_multi_controlled_x as decompose_multi_controlled_x,
     decompose_multi_controlled_rotation as decompose_multi_controlled_rotation,
-    decompose_two_qubit_interaction_into_four_fsim_gates as decompose_two_qubit_interaction_into_four_fsim_gates,
+    decompose_two_qubit_interaction_into_four_fsim_gates as decompose_two_qubit_interaction_into_four_fsim_gates,  # noqa: E501
     is_negligible_turn as is_negligible_turn,
     parameterized_2q_op_to_sqrt_iswap_operations as parameterized_2q_op_to_sqrt_iswap_operations,
     prepare_two_qubit_state_using_cz as prepare_two_qubit_state_using_cz,
@@ -36,7 +36,7 @@ from cirq.transformers.analytical_decompositions import (
     three_qubit_matrix_to_operations as three_qubit_matrix_to_operations,
     two_qubit_matrix_to_cz_isometry as two_qubit_matrix_to_cz_isometry,
     two_qubit_matrix_to_cz_operations as two_qubit_matrix_to_cz_operations,
-    two_qubit_matrix_to_diagonal_and_cz_operations as two_qubit_matrix_to_diagonal_and_cz_operations,
+    two_qubit_matrix_to_diagonal_and_cz_operations as two_qubit_matrix_to_diagonal_and_cz_operations,  # noqa: E501
     two_qubit_matrix_to_ion_operations as two_qubit_matrix_to_ion_operations,
     two_qubit_matrix_to_sqrt_iswap_operations as two_qubit_matrix_to_sqrt_iswap_operations,
     unitary_to_pauli_string as unitary_to_pauli_string,
