@@ -490,7 +490,6 @@ def test_phased_fsim_circuit() -> None:
 1: ───PhFSim(0.5π, -π, 0.5π, 0, -0.25π)───PhFSim(-π, 0.5π, 0.1π, 0.2π, 0.3π)───
     """,
     )
-    # pylint: disable=line-too-long
     cirq.testing.assert_has_diagram(
         c,
         """
@@ -510,7 +509,6 @@ def test_phased_fsim_circuit() -> None:
         use_unicode_characters=False,
         precision=None,
     )
-    # pylint: enable=line-too-long
     c = cirq.Circuit(
         cirq.PhasedFSimGate(
             sympy.Symbol('a') + sympy.Symbol('b'),

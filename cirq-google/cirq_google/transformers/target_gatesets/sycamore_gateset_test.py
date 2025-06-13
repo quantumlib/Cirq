@@ -23,8 +23,6 @@ import cirq
 import cirq_google
 from cirq_google.transformers.target_gatesets import sycamore_gateset
 
-# pylint: disable=line-too-long
-
 
 def test_merge_swap_rzz_and_2q_unitaries():
     q = cirq.LineQubit.range(3)
@@ -81,9 +79,6 @@ def test_merge_swap_rzz_and_2q_unitaries():
 2: ────────────────────────────────────────────────────────────────────────────────────×───────────#2───────────────────────────────────────────────────────────────────────────────────────────────────────────────X───────────────────────────────────────────────────────────────────────────────────────────────
 ''',  # noqa: E501
     )
-
-
-# pylint: enable=line-too-long
 
 
 def test_merge_swap_rzz_and_2q_unitaries_raises_if_tags_sames():

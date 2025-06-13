@@ -80,7 +80,6 @@ from cirq_google.engine.runtime_estimator import (
 from cirq_google.engine.validating_sampler import ValidatingSampler as ValidatingSampler
 
 from cirq_google.engine.virtual_engine_factory import (
-    # pylint: disable=line-too-long
     create_default_noisy_quantum_virtual_machine as create_default_noisy_quantum_virtual_machine,
     create_device_from_processor_id as create_device_from_processor_id,
     create_noiseless_virtual_engine_from_device as create_noiseless_virtual_engine_from_device,

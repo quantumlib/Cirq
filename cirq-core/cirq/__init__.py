@@ -123,7 +123,6 @@ from cirq.interop import (
 )
 
 from cirq.linalg import (
-    # pylint: disable=line-too-long
     all_near_zero as all_near_zero,
     all_near_zero_mod as all_near_zero_mod,
     allclose_up_to_global_phase as allclose_up_to_global_phase,
@@ -344,7 +343,6 @@ from cirq.ops import (
 
 
 from cirq.transformers import (
-    # pylint: disable=line-too-long
     AbstractInitialMapper as AbstractInitialMapper,
     add_dynamical_decoupling as add_dynamical_decoupling,
     align_left as align_left,
@@ -572,7 +570,6 @@ from cirq.value import (
     ProductState as ProductState,
 )
 
-# pylint: disable=redefined-builtin
 from cirq.protocols import (
     act_on as act_on,
     apply_channel as apply_channel,
@@ -694,12 +691,10 @@ from cirq.work import (
     ZerosSampler as ZerosSampler,
 )
 
-# pylint: enable=redefined-builtin
 
 # Unflattened sub-modules.
 
 # Registers cirq-core's public classes for JSON serialization.
-# pylint: disable=wrong-import-position
 from cirq.protocols.json_serialization import _register_resolver
 from cirq.json_resolver_cache import _class_resolver_dictionary
 
@@ -709,5 +704,3 @@ _register_resolver(_class_resolver_dictionary)
 # contrib's json resolver cache depends on cirq.DEFAULT_RESOLVER
 
 from cirq import contrib  # noqa: E402
-
-# pylint: enable=wrong-import-position
