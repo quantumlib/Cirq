@@ -565,7 +565,7 @@ class Moment:
         extra_qubits: Iterable[cirq.Qid] = (),
         use_unicode_characters: bool = True,
         precision: int | None = None,
-        include_tags: bool = True,
+        include_tags: bool | Iterable[type] = True,
     ) -> str:
         """Create a text diagram for the moment.
 
@@ -583,8 +583,10 @@ class Moment:
             precision: How precise numbers, such as angles, should be. Use None
                 for infinite precision, or an integer for a certain number of
                 digits of precision.
-            include_tags: Whether or not to include operation tags in the
-                diagram.
+            include_tags: Controls which tags attached to operations are
+                included. ``True`` includes all tags, ``False`` includes none,
+                or a collection of tag classes may be specified to include only
+                those tags.
 
         Returns:
             The text diagram rendered into text.

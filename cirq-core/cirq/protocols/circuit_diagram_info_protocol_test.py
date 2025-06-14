@@ -21,6 +21,10 @@ import sympy
 import cirq
 
 
+class CustomTag:
+    pass
+
+
 def test_circuit_diagram_info_value_wrapping() -> None:
     single_info = cirq.CircuitDiagramInfo(('Single',))
 
@@ -180,6 +184,26 @@ def test_circuit_diagram_info_args_eq() -> None:
             known_qubit_count=2,
             use_unicode_characters=False,
             precision=None,
+            label_map=None,
+            include_tags={str},
+        )
+    )
+    eq.add_equality_group(
+        cirq.CircuitDiagramInfoArgs(
+            known_qubits=cirq.LineQubit.range(2),
+            known_qubit_count=2,
+            use_unicode_characters=False,
+            precision=None,
+            label_map=None,
+            include_tags={CustomTag},
+        )
+    )
+    eq.add_equality_group(
+        cirq.CircuitDiagramInfoArgs(
+            known_qubits=cirq.LineQubit.range(2),
+            known_qubit_count=2,
+            use_unicode_characters=False,
+            precision=None,
             label_map={cirq.LineQubit(0): 5, cirq.LineQubit(1): 7},
         )
     )
@@ -205,6 +229,30 @@ def test_circuit_diagram_info_args_repr() -> None:
             label_map={cirq.LineQubit(0): 5, cirq.LineQubit(1): 7},
             include_tags=False,
             transpose=True,
+        )
+    )
+
+    cirq.testing.assert_equivalent_repr(
+        cirq.CircuitDiagramInfoArgs(
+            known_qubits=cirq.LineQubit.range(1),
+            known_qubit_count=1,
+            use_unicode_characters=False,
+            precision=None,
+            label_map=None,
+            include_tags={str},
+            transpose=False,
+        )
+    )
+
+    cirq.testing.assert_equivalent_repr(
+        cirq.CircuitDiagramInfoArgs(
+            known_qubits=cirq.LineQubit.range(1),
+            known_qubit_count=1,
+            use_unicode_characters=False,
+            precision=None,
+            label_map=None,
+            include_tags={CustomTag},
+            transpose=False,
         )
     )
 
