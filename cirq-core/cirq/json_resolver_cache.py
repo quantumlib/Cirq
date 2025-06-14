@@ -152,24 +152,6 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'IdentityGate': cirq.IdentityGate,
         'InitObsSetting': cirq.work.InitObsSetting,
         'InsertionNoiseModel': InsertionNoiseModel,
-        # Avoid importing the optional contrib module at import time which would
-        # require optional dependencies. Instead, import noise models lazily
-        # when the resolver dictionary is created.
-        'DepolarizingNoiseModel': __import__(
-            'cirq' + '.contrib.noise_models', fromlist=['DepolarizingNoiseModel']
-        ).DepolarizingNoiseModel,
-        'ReadoutNoiseModel': __import__(
-            'cirq' + '.contrib.noise_models', fromlist=['ReadoutNoiseModel']
-        ).ReadoutNoiseModel,
-        'DampedReadoutNoiseModel': __import__(
-            'cirq' + '.contrib.noise_models', fromlist=['DampedReadoutNoiseModel']
-        ).DampedReadoutNoiseModel,
-        'DepolarizingWithReadoutNoiseModel': __import__(
-            'cirq' + '.contrib.noise_models', fromlist=['DepolarizingWithReadoutNoiseModel']
-        ).DepolarizingWithReadoutNoiseModel,
-        'DepolarizingWithDampedReadoutNoiseModel': __import__(
-            'cirq' + '.contrib.noise_models', fromlist=['DepolarizingWithDampedReadoutNoiseModel']
-        ).DepolarizingWithDampedReadoutNoiseModel,
         '_InverseCompositeGate': raw_types._InverseCompositeGate,
         'KeyCondition': cirq.KeyCondition,
         'KrausChannel': cirq.KrausChannel,

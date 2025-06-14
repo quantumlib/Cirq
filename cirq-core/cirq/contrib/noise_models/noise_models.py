@@ -40,14 +40,15 @@ class DepolarizingNoiseModel(devices.NoiseModel):
             prepend: If True, put noise before affected gates. Default: False.
         """
         value.validate_probability(depol_prob, 'depol prob')
+        self.depol_prob = depol_prob
         self.qubit_noise_gate = ops.DepolarizingChannel(depol_prob)
         self._prepend = prepend
 
     def _value_equality_values_(self):
-        return self.qubit_noise_gate, self._prepend
+        return self.depol_prob, self._prepend
 
     def __repr__(self) -> str:
-        p = self.qubit_noise_gate.p
+        p = self.depol_prob
         return (
             f'cirq.contrib.noise_models.DepolarizingNoiseModel('
             f'{p!r}, prepend={self._prepend!r})'
@@ -66,14 +67,11 @@ class DepolarizingNoiseModel(devices.NoiseModel):
         return output[::-1] if self._prepend else output
 
     def _json_dict_(self) -> dict[str, object]:
-        return {'qubit_noise_gate': self.qubit_noise_gate, 'prepend': self._prepend}
+        return {'depol_prob': self.depol_prob, 'prepend': self._prepend}
 
     @classmethod
-    def _from_json_dict_(cls, qubit_noise_gate, prepend, **kwargs):
-        obj = cls.__new__(cls)
-        obj.qubit_noise_gate = qubit_noise_gate
-        obj._prepend = prepend
-        return obj
+    def _from_json_dict_(cls, depol_prob, prepend, **kwargs):
+        return cls(depol_prob, prepend=prepend)
 
 
 @value.value_equality()
@@ -97,14 +95,15 @@ class ReadoutNoiseModel(devices.NoiseModel):
             prepend: If True, put noise before affected gates. Default: True.
         """
         value.validate_probability(bitflip_prob, 'bitflip prob')
+        self.bitflip_prob = bitflip_prob
         self.readout_noise_gate = ops.BitFlipChannel(bitflip_prob)
         self._prepend = prepend
 
     def _value_equality_values_(self):
-        return self.readout_noise_gate, self._prepend
+        return self.bitflip_prob, self._prepend
 
     def __repr__(self) -> str:
-        p = self.readout_noise_gate.p
+        p = self.bitflip_prob
         return f'cirq.contrib.noise_models.ReadoutNoiseModel(' f'{p!r}, prepend={self._prepend!r})'
 
     def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]):
@@ -121,14 +120,11 @@ class ReadoutNoiseModel(devices.NoiseModel):
         return moment
 
     def _json_dict_(self) -> dict[str, object]:
-        return {'readout_noise_gate': self.readout_noise_gate, 'prepend': self._prepend}
+        return {'bitflip_prob': self.bitflip_prob, 'prepend': self._prepend}
 
     @classmethod
-    def _from_json_dict_(cls, readout_noise_gate, prepend, **kwargs):
-        obj = cls.__new__(cls)
-        obj.readout_noise_gate = readout_noise_gate
-        obj._prepend = prepend
-        return obj
+    def _from_json_dict_(cls, bitflip_prob, prepend, **kwargs):
+        return cls(bitflip_prob, prepend=prepend)
 
 
 @value.value_equality()
@@ -152,14 +148,15 @@ class DampedReadoutNoiseModel(devices.NoiseModel):
             prepend: If True, put noise before affected gates. Default: True.
         """
         value.validate_probability(decay_prob, 'decay_prob')
+        self.decay_prob = decay_prob
         self.readout_decay_gate = ops.AmplitudeDampingChannel(decay_prob)
         self._prepend = prepend
 
     def _value_equality_values_(self):
-        return self.readout_decay_gate, self._prepend
+        return self.decay_prob, self._prepend
 
     def __repr__(self) -> str:
-        p = self.readout_decay_gate.gamma
+        p = self.decay_prob
         return (
             f'cirq.contrib.noise_models.DampedReadoutNoiseModel('
             f'{p!r}, prepend={self._prepend!r})'
@@ -179,14 +176,11 @@ class DampedReadoutNoiseModel(devices.NoiseModel):
         return moment
 
     def _json_dict_(self) -> dict[str, object]:
-        return {'readout_decay_gate': self.readout_decay_gate, 'prepend': self._prepend}
+        return {'decay_prob': self.decay_prob, 'prepend': self._prepend}
 
     @classmethod
-    def _from_json_dict_(cls, readout_decay_gate, prepend, **kwargs):
-        obj = cls.__new__(cls)
-        obj.readout_decay_gate = readout_decay_gate
-        obj._prepend = prepend
-        return obj
+    def _from_json_dict_(cls, decay_prob, prepend, **kwargs):
+        return cls(decay_prob, prepend=prepend)
 
 
 @value.value_equality()
@@ -206,15 +200,17 @@ class DepolarizingWithReadoutNoiseModel(devices.NoiseModel):
         """
         value.validate_probability(depol_prob, 'depol prob')
         value.validate_probability(bitflip_prob, 'bitflip prob')
+        self.depol_prob = depol_prob
+        self.bitflip_prob = bitflip_prob
         self.qubit_noise_gate = ops.DepolarizingChannel(depol_prob)
         self.readout_noise_gate = ops.BitFlipChannel(bitflip_prob)
 
     def _value_equality_values_(self):
-        return self.qubit_noise_gate, self.readout_noise_gate
+        return self.depol_prob, self.bitflip_prob
 
     def __repr__(self) -> str:
-        p = self.qubit_noise_gate.p
-        b = self.readout_noise_gate.p
+        p = self.depol_prob
+        b = self.bitflip_prob
         return 'cirq.contrib.noise_models.DepolarizingWithReadoutNoiseModel(' f'{p!r}, {b!r})'
 
     def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]):
@@ -224,16 +220,13 @@ class DepolarizingWithReadoutNoiseModel(devices.NoiseModel):
 
     def _json_dict_(self) -> dict[str, object]:
         return {
-            'qubit_noise_gate': self.qubit_noise_gate,
-            'readout_noise_gate': self.readout_noise_gate,
+            'depol_prob': self.depol_prob,
+            'bitflip_prob': self.bitflip_prob,
         }
 
     @classmethod
-    def _from_json_dict_(cls, qubit_noise_gate, readout_noise_gate, **kwargs):
-        obj = cls.__new__(cls)
-        obj.qubit_noise_gate = qubit_noise_gate
-        obj.readout_noise_gate = readout_noise_gate
-        return obj
+    def _from_json_dict_(cls, depol_prob, bitflip_prob, **kwargs):
+        return cls(depol_prob, bitflip_prob)
 
 
 @value.value_equality()
@@ -257,17 +250,20 @@ class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
         value.validate_probability(depol_prob, 'depol prob')
         value.validate_probability(bitflip_prob, 'bitflip prob')
         value.validate_probability(decay_prob, 'decay_prob')
+        self.depol_prob = depol_prob
+        self.bitflip_prob = bitflip_prob
+        self.decay_prob = decay_prob
         self.qubit_noise_gate = ops.DepolarizingChannel(depol_prob)
         self.readout_noise_gate = ops.BitFlipChannel(bitflip_prob)
         self.readout_decay_gate = ops.AmplitudeDampingChannel(decay_prob)
 
     def _value_equality_values_(self):
-        return (self.qubit_noise_gate, self.readout_noise_gate, self.readout_decay_gate)
+        return self.depol_prob, self.bitflip_prob, self.decay_prob
 
     def __repr__(self) -> str:
-        p = self.qubit_noise_gate.p
-        b = self.readout_noise_gate.p
-        d = self.readout_decay_gate.gamma
+        p = self.depol_prob
+        b = self.bitflip_prob
+        d = self.decay_prob
         return (
             'cirq.contrib.noise_models.DepolarizingWithDampedReadoutNoiseModel('
             f'{p!r}, {b!r}, {d!r})'
@@ -285,15 +281,11 @@ class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
 
     def _json_dict_(self) -> dict[str, object]:
         return {
-            'qubit_noise_gate': self.qubit_noise_gate,
-            'readout_noise_gate': self.readout_noise_gate,
-            'readout_decay_gate': self.readout_decay_gate,
+            'depol_prob': self.depol_prob,
+            'bitflip_prob': self.bitflip_prob,
+            'decay_prob': self.decay_prob,
         }
 
     @classmethod
-    def _from_json_dict_(cls, qubit_noise_gate, readout_noise_gate, readout_decay_gate, **kwargs):
-        obj = cls.__new__(cls)
-        obj.qubit_noise_gate = qubit_noise_gate
-        obj.readout_noise_gate = readout_noise_gate
-        obj.readout_decay_gate = readout_decay_gate
-        return obj
+    def _from_json_dict_(cls, depol_prob, bitflip_prob, decay_prob, **kwargs):
+        return cls(depol_prob, bitflip_prob, decay_prob)

@@ -68,11 +68,7 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
         self.decay_probs = decay_probs
 
     def _value_equality_values_(self):
-        return (
-            tuple(sorted((q, p) for q, p in (self.depol_probs or {}).items())),
-            tuple(sorted((q, p) for q, p in (self.bitflip_probs or {}).items())),
-            tuple(sorted((q, p) for q, p in (self.decay_probs or {}).items())),
-        )
+        return self.depol_probs, self.bitflip_probs, self.decay_probs
 
     def __repr__(self) -> str:
         return (
@@ -123,11 +119,11 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
 
     @classmethod
     def _from_json_dict_(cls, depol_probs, bitflip_probs, decay_probs, **kwargs):
-        obj = cls.__new__(cls)
-        obj.depol_probs = dict(depol_probs)
-        obj.bitflip_probs = dict(bitflip_probs)
-        obj.decay_probs = dict(decay_probs)
-        return obj
+        return cls(
+            depol_probs=dict(depol_probs),
+            bitflip_probs=dict(bitflip_probs),
+            decay_probs=dict(decay_probs),
+        )
 
 
 def simple_noise_from_calibration_metrics(

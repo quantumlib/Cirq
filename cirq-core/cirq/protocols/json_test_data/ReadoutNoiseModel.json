@@ -1,8 +1,0 @@
-{
-  "cirq_type": "ReadoutNoiseModel",
-  "readout_noise_gate": {
-    "cirq_type": "BitFlipChannel",
-    "p": 0.2
-  },
-  "prepend": true
-}

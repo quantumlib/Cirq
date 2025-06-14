@@ -230,6 +230,9 @@ class ThermalNoiseModel(devices.NoiseModel):
         _validate_rates(qubits, rate_dict)
         self.gate_durations_ns: dict[type, float] = gate_durations_ns
         self.rate_matrix_GHz: dict[cirq.Qid, np.ndarray] = rate_dict
+        self.heat_rate_GHz = heat_rate_GHz
+        self.cool_rate_GHz = cool_rate_GHz
+        self.dephase_rate_GHz = dephase_rate_GHz
         self.require_physical_tag: bool = require_physical_tag
         self.skip_measurements: bool = skip_measurements
         self._prepend = prepend
@@ -249,7 +252,9 @@ class ThermalNoiseModel(devices.NoiseModel):
             "cirq.devices.ThermalNoiseModel("
             f"qubits={set(self.rate_matrix_GHz.keys())!r}, "
             f"gate_durations_ns={self.gate_durations_ns!r}, "
-            f"heat_rate_GHz=None, cool_rate_GHz=None, dephase_rate_GHz=None, "
+            f"heat_rate_GHz={self.heat_rate_GHz!r}, "
+            f"cool_rate_GHz={self.cool_rate_GHz!r}, "
+            f"dephase_rate_GHz={self.dephase_rate_GHz!r}, "
             f"require_physical_tag={self.require_physical_tag!r}, "
             f"skip_measurements={self.skip_measurements!r}, prepend={self._prepend!r})"
         )

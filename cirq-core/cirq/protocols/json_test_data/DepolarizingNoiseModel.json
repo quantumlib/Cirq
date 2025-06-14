@@ -1,8 +1,0 @@
-{
-  "cirq_type": "DepolarizingNoiseModel",
-  "qubit_noise_gate": {
-    "cirq_type": "DepolarizingChannel",
-    "p": 0.1
-  },
-  "prepend": false
-}
