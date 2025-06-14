@@ -469,15 +469,20 @@ def _apply_unitary_from_matrix(matrix: np.ndarray, unitary_value: Any, args: App
 def _strat_apply_unitary_from_unitary(
     unitary_value: Any, args: ApplyUnitaryArgs
 ) -> np.ndarray | None:
-    # Check for magic method.
-    method = getattr(unitary_value, '_unitary_', None)
-    if method is None:
-        return NotImplemented
+    if isinstance(unitary_value, np.ndarray):
+        matrix = unitary_value
+        if not linalg.is_unitary(matrix):
+            return None
+    else:
+        # Check for magic method.
+        method = getattr(unitary_value, '_unitary_', None)
+        if method is None:
+            return NotImplemented
 
-    # Attempt to get the unitary matrix.
-    matrix = method()
-    if matrix is NotImplemented or matrix is None:
-        return matrix
+        # Attempt to get the unitary matrix.
+        matrix = method()
+        if matrix is NotImplemented or matrix is None:
+            return matrix
 
     return _apply_unitary_from_matrix(matrix, unitary_value, args)
 
