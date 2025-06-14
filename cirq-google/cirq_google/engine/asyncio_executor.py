@@ -70,7 +70,7 @@ class AsyncioExecutor:
             **kwargs: Keyword args to pass to func.
         """
         future: concurrent.futures.Future = asyncio.run_coroutine_threadsafe(
-            func(*args, **kwargs), self.loop  # type: ignore[arg-type]
+            func(*args, **kwargs), self.loop
         )
         return duet.AwaitableFuture.wrap(future)
 

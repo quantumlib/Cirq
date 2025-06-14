@@ -137,7 +137,7 @@ def sample_heavy_set(
     # Don't do a single large measurement gate because then the key will be one
     # large string. Instead, do a bunch of single-qubit measurement gates so we
     # preserve the qubit keys.
-    sorted_qubits = sorted(qubits, key=key)  # type: ignore[arg-type]
+    sorted_qubits = sorted(qubits, key=key)
     circuit_copy = circuit + [cirq.measure(q) for q in sorted_qubits]
 
     # Run the sampler to compare each output against the Heavy Set.

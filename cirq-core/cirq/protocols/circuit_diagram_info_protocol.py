@@ -206,6 +206,7 @@ class CircuitDiagramInfoArgs:
         self.use_unicode_characters = use_unicode_characters
         self.precision = precision
         self.label_map = label_map
+        self.include_tags: bool | frozenset[type]
         if isinstance(include_tags, bool):
             self.include_tags = include_tags
         else:
