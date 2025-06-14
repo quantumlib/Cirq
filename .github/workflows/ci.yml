@@ -323,7 +323,7 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.11', '3.12']
-    runs-on: windows-2019
+    runs-on: windows-2022
     steps:
       - name: Check out source repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
