@@ -107,10 +107,10 @@ class EigenGate(raw_types.Gate):
             ValueError: If the supplied exponent is a complex number with an
                 imaginary component.
         """
-        if not isinstance(exponent, (numbers.Number, sympy.Expr)):
+        if isinstance(exponent, str):
             raise TypeError(
                 "Gate exponent must be a number or sympy expression. "
-                f"Invalid type: {type(exponent).__name__!r}"
+                f"Received a string instead: {exponent!r}"
             )
         if isinstance(exponent, complex):
             if exponent.imag:
@@ -293,10 +293,10 @@ class EigenGate(raw_types.Gate):
         return _approximate_common_period(real_periods)
 
     def __pow__(self, exponent: value.TParamVal) -> EigenGate:
-        if not isinstance(exponent, (numbers.Number, sympy.Expr)):
+        if isinstance(exponent, str):
             raise TypeError(
                 "Gate exponent must be a number or sympy expression. "
-                f"Invalid type: {type(exponent).__name__!r}"
+                f"Received a string instead: {exponent!r}"
             )
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:

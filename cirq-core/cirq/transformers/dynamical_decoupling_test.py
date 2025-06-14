@@ -698,7 +698,6 @@ def test_with_non_clifford_measurements():
 
 
 def test_cross_clifford_pieces_filling_merge():
-    # pylint: disable=line-too-long
     """Test case diagrams.
     Input:
     0: ─────────────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───@─────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───@───PhXZ(a=0.2,x=0.2,z=0.1)───H───
@@ -729,8 +728,7 @@ def test_cross_clifford_pieces_filling_merge():
     5: ───PhXZ(a=0.2,x=0.2,z=0.1)───@───PhXZ(a=0.2,x=0.2,z=0.1)───@─────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───@───PhXZ(a=-0.8,x=0.2,z=-0.9)───H────────────────────────
                                                                                                                       │
     6: ───────────────────────────────────────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───X─────────────────────────@───PhXZ(a=0.8,x=0.8,z=0.5)─────H────────────────────────
-    """
-    # pylint: enable=line-too-long
+    """  # noqa: E501
     qubits = cirq.LineQubit.range(7)
     phased_xz_gate = cirq.PhasedXZGate(axis_phase_exponent=0.2, x_exponent=0.2, z_exponent=0.1)
     assert_dd(
@@ -761,7 +759,7 @@ def test_cross_clifford_pieces_filling_merge():
 5: ───PhXZ(a=0.2,x=0.2,z=0.1)───@───PhXZ(a=0.2,x=0.2,z=0.1)───@─────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───@───PhXZ(a=-0.8,x=0.2,z=-0.9)───H────────────────────────
                                                                                                                   │
 6: ───────────────────────────────────────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───X─────────────────────────@───PhXZ(a=0.8,x=0.8,z=0.5)─────H────────────────────────
-""",
+""",  # noqa: E501
     )
 
 
