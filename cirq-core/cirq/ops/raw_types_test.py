@@ -555,6 +555,8 @@ def test_circuit_diagram() -> None:
     diagram_with_non_string_tag = "(1, 1): ───H[<taggy>]───"
     assert c.to_text_diagram() == diagram_with_non_string_tag
     assert c.to_text_diagram(include_tags=False) == diagram_without_tags
+    assert c.to_text_diagram(include_tags={str}) == diagram_without_tags
+    assert c.to_text_diagram(include_tags={TaggyTag}) == diagram_with_non_string_tag
 
 
 def test_circuit_diagram_tagged_global_phase() -> None:
