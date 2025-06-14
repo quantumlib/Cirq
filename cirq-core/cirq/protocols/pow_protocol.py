@@ -28,7 +28,6 @@ RaiseTypeErrorIfNotProvided: Any = ([],)
 TDefault = TypeVar('TDefault')
 
 
-# pylint: disable=redefined-builtin
 @overload
 def pow(val: cirq.Gate, exponent: Any) -> cirq.Gate:
     pass
@@ -57,9 +56,6 @@ def pow(val: cirq.Circuit, exponent: int, default: TDefault) -> TDefault | cirq.
 @overload
 def pow(val: Any, exponent: Any, default: TDefault) -> Any:
     pass
-
-
-# pylint: enable=redefined-builtin
 
 
 def pow(val: Any, exponent: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:

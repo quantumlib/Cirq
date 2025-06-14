@@ -116,7 +116,6 @@ def test_map_operations_does_not_insert_too_many_moments():
     )
 
 
-# pylint: disable=line-too-long
 def test_map_operations_deep_subcircuits():
     q = cirq.LineQubit.range(5)
     c_orig = cirq.Circuit(cirq.CX(q[0], q[1]), cirq.CX(q[3], q[2]), cirq.CX(q[3], q[4]))
@@ -203,9 +202,6 @@ def test_map_operations_deep_subcircuits():
 4: ───#5──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ''',  # noqa: E501
         )
-
-
-# pylint: enable=line-too-long
 
 
 @pytest.mark.parametrize("deep", [False, True])
@@ -707,9 +703,6 @@ def test_merge_operations_deep():
     )
 
 
-# pylint: disable=line-too-long
-
-
 def test_merge_operations_to_circuit_op_merges_connected_component():
     c_orig = _create_circuit_to_merge()
     cirq.testing.assert_has_diagram(
@@ -775,9 +768,6 @@ def test_merge_2q_unitaries_to_circuit_op():
 2: ───#2────────────────────────────────────────────────────────────────────────────#2───────────────────────────────────────M───
         ''',  # noqa: E501
     )
-
-
-# pylint: enable=line-too-long
 
 
 def test_merge_operations_respects_tags_to_ignore():

@@ -124,7 +124,6 @@ def test_gate_error_handling() -> None:
 
 
 def test_equality_of_gates() -> None:
-    # pylint: disable=unnecessary-negation
     state = np.array([1, 0, 0, 0], dtype=np.complex64)
     gate_1 = cirq.StatePreparationChannel(state)
     gate_2 = cirq.StatePreparationChannel(state)
