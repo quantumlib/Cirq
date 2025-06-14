@@ -24,7 +24,7 @@ from __future__ import annotations
 import abc
 from typing import Iterable, Sequence, TYPE_CHECKING
 
-from cirq import _import, devices, ops, protocols
+from cirq import _import, devices, ops, protocols, value
 from cirq.devices.noise_utils import PHYSICAL_GATE_TAG
 
 circuits = _import.LazyLoader("circuits", globals(), "cirq.circuits.circuit")
@@ -41,6 +41,7 @@ class NoiseProperties(abc.ABC):
         """Construct all NoiseModels associated with this NoiseProperties."""
 
 
+@value.value_equality
 class NoiseModelFromNoiseProperties(devices.NoiseModel):
     def __init__(self, noise_properties: NoiseProperties) -> None:
         """Creates a Noise Model from a NoiseProperties object that can be used with a Simulator.
@@ -53,6 +54,12 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
         """
         self._noise_properties = noise_properties
         self.noise_models = self._noise_properties.build_noise_models()
+
+    def _value_equality_values_(self):
+        return self._noise_properties
+
+    def __repr__(self) -> str:
+        return "cirq.devices.NoiseModelFromNoiseProperties(" f"{self._noise_properties!r})"
 
     def is_virtual(self, op: cirq.Operation) -> bool:
         """Returns True if an operation is virtual.
@@ -126,3 +133,10 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
                 combined_measure_ops.append(multi_measurements[key])
             final_moments.append(circuits.Moment(combined_measure_ops))
         return final_moments
+
+    def _json_dict_(self) -> dict[str, object]:
+        return {'noise_properties': self._noise_properties}
+
+    @classmethod
+    def _from_json_dict_(cls, noise_properties, **kwargs):
+        return cls(noise_properties)
