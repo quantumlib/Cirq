@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 from __future__ import annotations
 
 import pathlib
@@ -11,7 +12,24 @@ TestSpec = ModuleJsonTestSpec(
     packages=[cirq.contrib],
     test_data_path=pathlib.Path(__file__).parent,
     not_yet_serializable=[],
-    should_not_be_serialized=[],
-    resolver_cache=_class_resolver_dictionary(),
+    should_not_be_serialized=[
+        "QuantumVolumeResult",
+        "SwapPermutationGate",
+        "BayesianNetworkGate",
+        "Unique",
+        "CircuitDag",
+    ],
+    resolver_cache={
+        k: v
+        for k, v in _class_resolver_dictionary().items()
+        if k
+        not in {
+            "QuantumVolumeResult",
+            "SwapPermutationGate",
+            "BayesianNetworkGate",
+            "Unique",
+            "CircuitDag",
+        }
+    },
     deprecated={},
 )
