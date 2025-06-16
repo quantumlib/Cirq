@@ -330,6 +330,4 @@ def test_noise_model_repr_round_trip():
     model = PerQubitDepolarizingWithDampedReadoutNoiseModel(
         depol_probs={qubit: 0.01}, bitflip_probs={qubit: 0.02}, decay_probs={qubit: 0.03}
     )
-    cirq.testing.assert_equivalent_repr(
-        model, setup_code='import cirq\nimport cirq_google\n'
-    )
+    cirq.testing.assert_equivalent_repr(model, setup_code='import cirq\nimport cirq_google\n')
