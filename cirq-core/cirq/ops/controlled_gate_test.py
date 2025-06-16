@@ -804,17 +804,22 @@ def test_controlled_global_phase_matrix_gate_decomposes(num_controls, angle, con
     np.testing.assert_allclose(cirq.unitary(cirq.Circuit(decomposed)), cirq.unitary(cg_matrix))
 
 
-def test_simplified_controlled_phased_eigengate_decomposition() -> None:
-    q0, q1 = cirq.LineQubit.range(2)
+@pytest.mark.parametrize('gate_type', [cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate, cirq.CZPowGate])
+def test_controlled_phase_extracted_before_decomposition(gate_type) -> None:
+    test_shift = 0.123  # arbitrary
 
-    # Z gate
-    op = cirq.ZPowGate(global_shift=0.22).controlled().on(q0, q1)
-    ops = cirq.decompose(op)
-    assert ops == [cirq.CZ(q0, q1), cirq.Z(q0) ** 0.22]
-    np.testing.assert_allclose(cirq.unitary(op), cirq.unitary(cirq.Circuit(ops)))
+    shifted_gate = gate_type(global_shift=test_shift).controlled()
+    unshifted_gate = gate_type().controlled()
+    qs = cirq.LineQubit.range(cirq.num_qubits(shifted_gate))
+    shifted_op = shifted_gate.on(*qs)
+    unshifted_op = unshifted_gate.on(*qs)
+    shifted_decomposition = cirq.decompose(shifted_op)
+    unshifted_decomposition = cirq.decompose(unshifted_op)
 
-    # X gate
-    op = cirq.XPowGate(global_shift=0.22).controlled().on(q0, q1)
-    ops = cirq.decompose(op)
-    assert ops == [cirq.Y(q1) ** -0.5, cirq.CZ(q0, q1), cirq.Y(q1) ** 0.5, cirq.Z(q0) ** 0.22]
-    np.testing.assert_allclose(cirq.unitary(op), cirq.unitary(cirq.Circuit(ops)))
+    # No brute-force calculation. It's the standard decomposition plus Z for the controlled shift.
+    assert shifted_decomposition == unshifted_decomposition + [cirq.Z(qs[0]) ** test_shift]
+
+    # Sanity check that the decomposition is equivalent
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Circuit(shifted_decomposition)), cirq.unitary(shifted_op), atol=1e-10
+    )

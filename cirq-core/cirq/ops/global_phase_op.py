@@ -92,12 +92,6 @@ class GlobalPhaseGate(raw_types.Gate):
         coefficient = protocols.resolve_parameters(self.coefficient, resolver, recursive)
         return GlobalPhaseGate(coefficient=coefficient)
 
-    @property
-    def is_identity(self) -> bool:
-        return (
-            not protocols.is_parameterized(self._coefficient) and abs(self._coefficient - 1.0) == 0
-        )
-
     def controlled(
         self,
         num_controls: int | None = None,

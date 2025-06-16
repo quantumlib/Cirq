@@ -150,12 +150,12 @@ class ControlledGate(raw_types.Gate):
             return controlled_sub_gate.on(*qubits)
 
         # Try decomposing the subgate next.
-        # Extract global phases from decomposition, as controlled phases decompose easily.
         result = protocols.decompose_once_with_qubits(
             self.sub_gate,
             qubits[self.num_controls() :],
             NotImplemented,
             flatten=False,
+            # Extract global phases from decomposition, as controlled phases decompose easily.
             context=context.extracting_global_phases(),
         )
         if result is not NotImplemented:

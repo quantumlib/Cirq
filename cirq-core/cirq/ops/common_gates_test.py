@@ -1328,7 +1328,8 @@ def test_parameterized_pauli_expansion(gate_type, exponent):
 @pytest.mark.parametrize('exponent', [0, 0.5, 2, 3, -0.5, -2, -3, sympy.Symbol('s')])
 def test_decompose_with_extracted_phases(gate_type: type, exponent: cirq.TParamVal) -> None:
     context = cirq.DecompositionContext(cirq.SimpleQubitManager(), extract_global_phases=True)
-    gate = gate_type(exponent=exponent, global_shift=2 / 3)
+    test_shift = 2 / 3  # Interesting because e.g. X(shift=2/3) ** 3 == X with no phase
+    gate = gate_type(exponent=exponent, global_shift=test_shift)
     op = gate.on(*cirq.LineQubit.range(cirq.num_qubits(gate)))
     decomposed = cirq.decompose(op, context=context)
     gate0 = decomposed[0].gate
@@ -1336,11 +1337,11 @@ def test_decompose_with_extracted_phases(gate_type: type, exponent: cirq.TParamV
     assert isinstance(gate0, cirq.EigenGate)
     assert gate0.global_shift == 0
     assert gate0.exponent == exponent
-    if exponent * 2 / 3 % 2 != 0:
+    if exponent * test_shift % 2 != 0:
         assert len(decomposed) == 2
         gate1 = decomposed[1].gate
         assert isinstance(gate1, cirq.GlobalPhaseGate)
-        assert gate1.coefficient == 1j ** (exponent * (4 / 3))
+        assert gate1.coefficient == 1j ** (2 * exponent * test_shift)
     else:
         assert len(decomposed) == 1
     decomposed_circuit = cirq.Circuit(decomposed)
