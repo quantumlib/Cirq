@@ -3,8 +3,8 @@ from __future__ import annotations
 import pathlib
 
 import cirq
-from cirq.testing.json import ModuleJsonTestSpec
 from cirq.contrib.json import _class_resolver_dictionary
+from cirq.testing.json import ModuleJsonTestSpec
 
 TestSpec = ModuleJsonTestSpec(
     name="cirq.contrib",

@@ -5,11 +5,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from cirq.protocols.json_serialization import DEFAULT_RESOLVERS, _register_resolver
+from cirq.protocols.json_serialization import _register_resolver, DEFAULT_RESOLVERS
 
 if TYPE_CHECKING:  # pragma: no cover
     from cirq.protocols.json_serialization import ObjectFactory
-
 
 import functools
 
@@ -23,14 +22,14 @@ def contrib_class_resolver(cirq_type: str):
 def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
     from cirq.contrib.acquaintance import SwapPermutationGate
     from cirq.contrib.bayesian_network import BayesianNetworkGate
-    from cirq.contrib.quantum_volume import QuantumVolumeResult
     from cirq.contrib.noise_models import (
-        DepolarizingNoiseModel,
-        ReadoutNoiseModel,
         DampedReadoutNoiseModel,
-        DepolarizingWithReadoutNoiseModel,
+        DepolarizingNoiseModel,
         DepolarizingWithDampedReadoutNoiseModel,
+        DepolarizingWithReadoutNoiseModel,
+        ReadoutNoiseModel,
     )
+    from cirq.contrib.quantum_volume import QuantumVolumeResult
 
     classes = [
         BayesianNetworkGate,
