@@ -68,7 +68,14 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
         self.decay_probs = decay_probs
 
     def _value_equality_values_(self):
-        return self.depol_probs, self.bitflip_probs, self.decay_probs
+        def _as_tuple(d):
+            return tuple(sorted(d.items())) if d is not None else None
+
+        return (
+            _as_tuple(self.depol_probs),
+            _as_tuple(self.bitflip_probs),
+            _as_tuple(self.decay_probs),
+        )
 
     def __repr__(self) -> str:
         return (

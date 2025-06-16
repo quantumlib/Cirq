@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 import cirq
 import cirq.contrib.noise_models as ccn
 from cirq import ops
@@ -92,6 +94,22 @@ def test_readout_noise_after_moment() -> None:
         ]
     )
     assert_equivalent_op_tree(true_noisy_program, noisy_circuit)
+
+
+@pytest.mark.parametrize(
+    'model',
+    [
+        ccn.DepolarizingNoiseModel(0.1),
+        ccn.ReadoutNoiseModel(0.2),
+        ccn.DampedReadoutNoiseModel(0.3),
+        ccn.DepolarizingWithReadoutNoiseModel(0.1, 0.2),
+        ccn.DepolarizingWithDampedReadoutNoiseModel(0.1, 0.2, 0.3),
+    ],
+)
+def test_repr_and_json_roundtrip(model) -> None:
+    assert model == eval(repr(model))
+    json_text = cirq.to_json(model)
+    assert cirq.read_json(json_text=json_text) == model
 
 
 def test_readout_noise_no_prepend() -> None:
