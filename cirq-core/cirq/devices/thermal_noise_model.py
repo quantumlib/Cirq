@@ -248,10 +248,13 @@ class ThermalNoiseModel(devices.NoiseModel):
         return gate_times, rates, self.require_physical_tag, self.skip_measurements, self._prepend
 
     def __repr__(self) -> str:
+        gate_durations = ', '.join(
+            f'{t.__module__}.{t.__name__}: {v!r}' for t, v in self.gate_durations_ns.items()
+        )
         return (
             "cirq.devices.ThermalNoiseModel("
             f"qubits={set(self.rate_matrix_GHz.keys())!r}, "
-            f"gate_durations_ns={self.gate_durations_ns!r}, "
+            f"gate_durations_ns={{ {gate_durations} }}, "
             f"heat_rate_GHz={self.heat_rate_GHz!r}, "
             f"cool_rate_GHz={self.cool_rate_GHz!r}, "
             f"dephase_rate_GHz={self.dephase_rate_GHz!r}, "
