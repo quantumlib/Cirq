@@ -69,9 +69,14 @@ class AsyncioExecutor:
             *args: Positional args to pass to func.
             **kwargs: Keyword args to pass to func.
         """
-        future: concurrent.futures.Future = asyncio.run_coroutine_threadsafe(
-            func(*args, **kwargs), self.loop
-        )
+
+
+        # Wrap the awaitable in a coroutine so that run_coroutine_threadsafe
+        # receives a Coroutine and mypy can correctly infer the argument type.
+        async def _run() -> R:
+            return await func(*args, **kwargs)
+
+        future: concurrent.futures.Future = asyncio.run_coroutine_threadsafe(_run(), self.loop)
         return duet.AwaitableFuture.wrap(future)
 
     _instance: AsyncioExecutor | None = None
