@@ -70,7 +70,6 @@ class AsyncioExecutor:
             **kwargs: Keyword args to pass to func.
         """
 
-
         # Wrap the awaitable in a coroutine so that run_coroutine_threadsafe
         # receives a Coroutine and mypy can correctly infer the argument type.
         async def _run() -> R:
