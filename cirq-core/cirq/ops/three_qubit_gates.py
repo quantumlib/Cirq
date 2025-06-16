@@ -37,7 +37,6 @@ from cirq.ops import (
 )
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     import cirq
 
 

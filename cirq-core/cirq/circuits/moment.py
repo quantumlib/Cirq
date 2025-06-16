@@ -45,7 +45,6 @@ if TYPE_CHECKING:
 
 # Lazy imports to break circular dependencies.
 circuit = LazyLoader("circuit", globals(), "cirq.circuits.circuit")
-op_tree = LazyLoader("op_tree", globals(), "cirq.ops.op_tree")
 text_diagram_drawer = LazyLoader(
     "text_diagram_drawer", globals(), "cirq.circuits.text_diagram_drawer"
 )
@@ -538,7 +537,6 @@ class Moment:
             )
         return Moment(new_ops)
 
-    # pylint: disable=function-redefined
     @overload
     def __getitem__(self, key: raw_types.Qid) -> cirq.Operation:
         pass
