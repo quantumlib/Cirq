@@ -3,14 +3,13 @@
 
 from __future__ import annotations
 
+import functools
 from typing import TYPE_CHECKING
 
 from cirq.protocols.json_serialization import _register_resolver, DEFAULT_RESOLVERS
 
 if TYPE_CHECKING:  # pragma: no cover
     from cirq.protocols.json_serialization import ObjectFactory
-
-import functools
 
 
 def contrib_class_resolver(cirq_type: str):

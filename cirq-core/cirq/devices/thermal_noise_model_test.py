@@ -342,5 +342,3 @@ def test_noisy_moment_two_qubit():
             [9.87330937e-01, 0, 0, 9.95013725e-01],
         ],
     )
-
-

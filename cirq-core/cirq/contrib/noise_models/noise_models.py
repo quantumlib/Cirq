@@ -219,10 +219,7 @@ class DepolarizingWithReadoutNoiseModel(devices.NoiseModel):
         return [moment, circuits.Moment(self.qubit_noise_gate(q) for q in system_qubits)]
 
     def _json_dict_(self) -> dict[str, object]:
-        return {
-            'depol_prob': self.depol_prob,
-            'bitflip_prob': self.bitflip_prob,
-        }
+        return {'depol_prob': self.depol_prob, 'bitflip_prob': self.bitflip_prob}
 
     @classmethod
     def _from_json_dict_(cls, depol_prob, bitflip_prob, **kwargs):

@@ -320,5 +320,3 @@ def test_per_qubit_combined_noise_from_data():
         ),
     )
     assert_equivalent_op_tree(expected_program, noisy_circuit)
-
-

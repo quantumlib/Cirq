@@ -269,5 +269,3 @@ def test_aggregate_decay_noise_after_moment() -> None:
         ]
     )
     assert_equivalent_op_tree(true_noisy_program, noisy_circuit)
-
-
