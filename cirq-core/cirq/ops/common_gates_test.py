@@ -1332,24 +1332,27 @@ def test_decompose_with_extracted_phases(gate_type: type, exponent: cirq.TParamV
     gate = gate_type(exponent=exponent, global_shift=test_shift)
     op = gate.on(*cirq.LineQubit.range(cirq.num_qubits(gate)))
     decomposed = cirq.decompose(op, context=context)
+
+    # The first gate should be the original gate, but with shift removed.
     gate0 = decomposed[0].gate
     assert isinstance(gate0, gate_type)
     assert isinstance(gate0, cirq.EigenGate)
     assert gate0.global_shift == 0
     assert gate0.exponent == exponent
-    if exponent * test_shift % 2 != 0:
+    if exponent % 3 == 0:
+        # Since test_shift == 2/3, gate**3 nullifies the phase, leaving only the unphased gate.
+        assert len(decomposed) == 1
+    else:
+        # Other exponents emit a global phase gate to compensate.
         assert len(decomposed) == 2
         gate1 = decomposed[1].gate
         assert isinstance(gate1, cirq.GlobalPhaseGate)
         assert gate1.coefficient == 1j ** (2 * exponent * test_shift)
-    else:
-        assert len(decomposed) == 1
+
+    # Sanity check that the decomposition is equivalent to the original.
     decomposed_circuit = cirq.Circuit(decomposed)
-    if not cirq.is_parameterized(exponent):
-        np.testing.assert_allclose(cirq.unitary(op), cirq.unitary(decomposed_circuit), atol=1e-10)
-    else:
-        resolver = {'s': -1.234}
-        np.testing.assert_allclose(
-            cirq.final_state_vector(cirq.Circuit(op), param_resolver=resolver),
-            cirq.final_state_vector(decomposed_circuit, param_resolver=resolver),
-        )
+    if cirq.is_parameterized(exponent):
+        resolver = {'s': -1.234}  # arbitrary
+        op = cirq.resolve_parameters(op, resolver)
+        decomposed_circuit = cirq.resolve_parameters(decomposed_circuit, resolver)
+    np.testing.assert_allclose(cirq.unitary(op), cirq.unitary(decomposed_circuit), atol=1e-10)

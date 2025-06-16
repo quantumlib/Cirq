@@ -817,7 +817,13 @@ def test_controlled_phase_extracted_before_decomposition(gate_type) -> None:
     unshifted_decomposition = cirq.decompose(unshifted_op)
 
     # No brute-force calculation. It's the standard decomposition plus Z for the controlled shift.
-    assert shifted_decomposition == unshifted_decomposition + [cirq.Z(qs[0]) ** test_shift]
+    assert shifted_decomposition[:-1] == unshifted_decomposition
+    z_op = shifted_decomposition[-1]
+    assert z_op.qubits == (qs[0],)
+    z = z_op.gate
+    assert isinstance(z, cirq.ZPowGate)
+    np.testing.assert_approx_equal(z.exponent, test_shift)
+    assert z.global_shift == 0
 
     # Sanity check that the decomposition is equivalent
     np.testing.assert_allclose(
