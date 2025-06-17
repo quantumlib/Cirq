@@ -24,11 +24,13 @@ def test_parse_prng_generator_passthrough():
     assert cirq.value.parse_prng(rng) is rng
 
 
-def test_parse_prng_none_singleton():
-    """Test that passing None returns a reusable singleton Generator."""
+def test_parse_prng_none():
+    """Test that passing None returns a new Generator instance."""
     rng1 = cirq.value.parse_prng(None)
     rng2 = cirq.value.parse_prng(None)
-    assert rng1 is rng2
+    assert rng1 is not rng2
+    assert type(rng1) is np.random.Generator
+    assert type(rng2) is np.random.Generator
 
 
 def test_parse_prng_int_seeding():

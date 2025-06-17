@@ -29,6 +29,7 @@ document(
     """,
 )
 
+
 def parse_prng(prng_or_seed: PRNG_OR_SEED_LIKE) -> np.random.Generator:
     """Converts the input object into a `numpy.random.Generator`.
 
