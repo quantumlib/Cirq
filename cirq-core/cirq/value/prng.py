@@ -1,4 +1,4 @@
-# Copyright 2024 The Cirq Developers
+# Copyright 2025 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,32 +19,21 @@ from typing import Union
 from cirq._doc import document
 
 
+# Type for PRNG or seed-like input.
 PRNG_OR_SEED_LIKE = Union[None, int, np.random.RandomState, np.random.Generator]
 document(
     PRNG_OR_SEED_LIKE,
     """A pseudorandom number generator or object that can be converted to one.
 
-    Can be an instance of `np.random.Generator`, `np.random.RandomState`,
-    an integer seed, or None.
+    Can be an instance of `np.random.Generator`, an integer seed, a `np.random.RandomState`, or None.
     """,
 )
-
-# Singleton generator instance for None input, created on demand.
-# Avoids creating many Generators if parse_prng(None) is called frequently.
-_NONE_PRNG_INSTANCE: np.random.Generator = None
-
-def _get_none_prng_instance() -> np.random.Generator:
-    """Returns the singleton PRNG instance used for None inputs."""
-    global _NONE_PRNG_INSTANCE
-    if _NONE_PRNG_INSTANCE is None:
-        _NONE_PRNG_INSTANCE = np.random.default_rng(None)
-    return _NONE_PRNG_INSTANCE
 
 def parse_prng(prng_or_seed: PRNG_OR_SEED_LIKE) -> np.random.Generator:
     """Converts the input object into a `numpy.random.Generator`.
 
     - If `prng_or_seed` is already a `np.random.Generator`, it's returned directly.
-    - If `prng_or_seed` is `None`, returns a singleton `np.random.Generator`
+    - If `prng_or_seed` is `None`, returns a new `np.random.Generator`
       instance (seeded unpredictably by NumPy).
     - If `prng_or_seed` is an integer, returns `np.random.default_rng(prng_or_seed)`.
     - If `prng_or_seed` is an instance of `np.random.RandomState`, returns a `np.random.Generator` initialized with the RandomState's bit generator or falls back on a random seed.
@@ -70,7 +59,7 @@ def parse_prng(prng_or_seed: PRNG_OR_SEED_LIKE) -> np.random.Generator:
         return prng_or_seed
 
     if prng_or_seed is None:
-        return _get_none_prng_instance()
+        return np.random.default_rng()
 
     if isinstance(prng_or_seed, numbers.Integral):
         return np.random.default_rng(int(prng_or_seed))
