@@ -1,0 +1,77 @@
+# Copyright 2025 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Label PRs with labels such as size.
+#
+# This workflow is designed not to fail if labeling actions encounter errors;
+# instead, it writes error messages as annotations on the workflow's run summary
+# page. If labels don't seem to be getting applied, check there for errors.
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+name: Pull request labeler
+run-name: >-
+  Label pull request ${{github.event.pull_request.number}} by ${{github.actor}}
+
+on:
+  # Note: do not copy-paste this workflow with `pull_request_target` left as-is.
+  # Its use here is a special case where security implications are understood.
+  # Workflows should normally use `pull_request` instead.
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+
+  # Allow manual invocation.
+  workflow_dispatch:
+    inputs:
+      pr-number:
+        description: 'The PR number of the PR to label:'
+        type: string
+        required: true
+      trace:
+        description: 'Turn on shell script debugging'
+        type: boolean
+
+# Declare default permissions as read only.
+permissions: read-all
+
+jobs:
+  label-pr-size:
+    if: github.repository_owner == 'quantumlib'
+    name: Update PR size labels
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    env:
+      PR_NUMBER: ${{inputs.pr-number || github.event.pull_request.number}}
+      # The next var is used by Bash. We add 'xtrace' to the options if this run
+      # is a workflow_dispatch invocation and the user set the 'trace' option.
+      SHELLOPTS: ${{inputs.trace && 'xtrace' || '' }}
+    steps:
+      - name: Check out a copy of the git repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          sparse-checkout: |
+            ./dev_tools/ci/size-labeler.sh
+
+      - name: Label the PR with a size label
+        id: label
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        run: ./dev_tools/ci/size-labeler.sh

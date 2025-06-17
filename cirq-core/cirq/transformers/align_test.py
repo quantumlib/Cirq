@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cirq
 
 
@@ -208,3 +210,16 @@ def test_classical_control():
     )
     cirq.testing.assert_same_circuits(cirq.align_left(circuit), circuit)
     cirq.testing.assert_same_circuits(cirq.align_right(circuit), circuit)
+
+
+def test_measurement_and_classical_control_same_moment_preserve_order():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit()
+    op_measure = cirq.measure(q0, key='m')
+    op_controlled = cirq.X(q1).with_classical_controls('m')
+    circuit.append(op_measure)
+    circuit.append(op_controlled, cirq.InsertStrategy.INLINE)
+    circuit = cirq.align_right(circuit)
+    ops_in_order = list(circuit.all_operations())
+    assert ops_in_order[0] == op_measure
+    assert ops_in_order[1] == op_controlled

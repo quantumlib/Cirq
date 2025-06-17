@@ -11,12 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Callable, Optional, Sequence, Union
+
+from __future__ import annotations
+
+from typing import Callable, Sequence
+
+import duet
 
 import cirq
 
 VALIDATOR_TYPE = Callable[
-    [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], Union[int, Sequence[int]]], None
+    [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], int | Sequence[int]], None
 ]
 
 
@@ -24,8 +29,8 @@ class ValidatingSampler(cirq.Sampler):
     def __init__(
         self,
         *,
-        device: Optional[cirq.Device] = None,
-        validator: Optional[VALIDATOR_TYPE] = None,
+        device: cirq.Device | None = None,
+        validator: VALIDATOR_TYPE | None = None,
         sampler: cirq.Sampler = cirq.Simulator(),
     ):
         """Wrapper around `cirq.Sampler` that performs device validation.
@@ -50,7 +55,7 @@ class ValidatingSampler(cirq.Sampler):
         self,
         circuits: Sequence[cirq.AbstractCircuit],
         sweeps: Sequence[cirq.Sweepable],
-        repetitions: Union[int, Sequence[int]],
+        repetitions: int | Sequence[int],
     ):
         if self._device:
             for circuit in circuits:
@@ -64,12 +69,14 @@ class ValidatingSampler(cirq.Sampler):
         self._validate_circuit([program], [params], repetitions)
         return self._sampler.run_sweep(program, params, repetitions)
 
-    def run_batch(
+    async def run_batch_async(
         self,
         programs: Sequence[cirq.AbstractCircuit],
-        params_list: Optional[Sequence[cirq.Sweepable]] = None,
-        repetitions: Union[int, Sequence[int]] = 1,
+        params_list: Sequence[cirq.Sweepable] | None = None,
+        repetitions: int | Sequence[int] = 1,
     ) -> Sequence[Sequence[cirq.Result]]:
         params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
         self._validate_circuit(programs, params_list, repetitions)
-        return self._sampler.run_batch(programs, params_list, repetitions)
+        return await self._sampler.run_batch_async(programs, params_list, repetitions)
+
+    run_batch = duet.sync(run_batch_async)

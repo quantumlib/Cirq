@@ -24,56 +24,57 @@
 # tests is possible, via setting the NOTEBOOK_PARTITIONS env var to e.g. 5, and then passing to
 # pytest the `-k partition-0` or `-k partition-1`, etc. argument to limit to the given partition.
 
+from __future__ import annotations
+
 import os
 import re
-import subprocess
 import shutil
+import subprocess
 import warnings
-from typing import Set, List
 
 import pytest
 
 from dev_tools import shell_tools
-from dev_tools.notebooks import list_all_notebooks, filter_notebooks, rewrite_notebook
+from dev_tools.notebooks import filter_notebooks, list_all_notebooks, rewrite_notebook
 
 # these notebooks rely on features that are not released yet
 # after every release we should raise a PR and empty out this list
 # note that these notebooks are still tested in dev_tools/notebook_test.py
 # Please, always indicate in comments the feature used for easier bookkeeping.
 
-NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
-    # Requires pinned quimb from #6438
-    'cirq-core/cirq/contrib/quimb/Contract-a-Grid-Circuit.ipynb',
-    # get_qcs_objects_for_notebook
-    'docs/noise/calibration_api.ipynb',
-    'docs/noise/floquet_calibration_example.ipynb',
-    'docs/noise/qcvv/xeb_calibration_example.ipynb',
+NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = [
+    # Requires `load_device_noise_properties` from #7369
+    'docs/hardware/qubit_picking.ipynb',
+    'docs/simulate/noisy_simulation.ipynb',
+    'docs/simulate/quantum_virtual_machine.ipynb',
+    'docs/simulate/qvm_basic_example.ipynb',
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
 # please always add a reason for skipping.
 SKIP_NOTEBOOKS = [
     # skipping vendor notebooks as we don't have auth sorted out
-    "**/aqt/*.ipynb",
-    "**/azure-quantum/*.ipynb",
-    "**/google/*.ipynb",
-    "**/ionq/*.ipynb",
-    "**/pasqal/*.ipynb",
-    # Rigetti uses local simulation with docker, so should work
-    # if you run into issues locally, run
-    # `docker compose -f cirq-rigetti/docker-compose.test.yaml up`
-    "**/rigetti/*.ipynb",
-    # skipping fidelity estimation due to
-    # https://github.com/quantumlib/Cirq/issues/3502
-    "examples/*fidelity*",
+    '**/aqt/*.ipynb',
+    '**/azure-quantum/*.ipynb',
+    '**/ionq/*.ipynb',
+    '**/pasqal/*.ipynb',
+    '**/rigetti/*.ipynb',
     # skipping quantum utility simulation (too large)
     'examples/advanced/*quantum_utility*',
-    # Also skipping stabilizer code testing.
-    "examples/*stabilizer_code*",
-    # An intentionally empty/template code notebook.
-    "docs/simulate/qvm_builder_code.ipynb",
-    *NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES,
+    # tutorials that use QCS and arent skipped due to one or more cleared output cells
+    'docs/tutorials/google/identifying_hardware_changes.ipynb',
+    'docs/tutorials/google/echoes.ipynb',
+    'docs/noise/qcvv/xeb_calibration_example.ipynb',
+    # temporary: need to fix QVM metrics and device spec
+    'docs/tutorials/google/spin_echoes.ipynb',
+    'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
 ]
+SKIP_NOTEBOOKS += [
+    # notebooks that import the examples module which is not installed with cirq
+    'examples/direct_fidelity_estimation.ipynb',
+    'examples/stabilizer_code.ipynb',
+]
+SKIP_NOTEBOOKS += NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES
 
 # As these notebooks run in an isolated env, we want to minimize dependencies that are
 # installed. We assume colab packages (feel free to add dependencies here that appear in colab, as
@@ -85,10 +86,12 @@ PACKAGES = [
     "jupyter",
     # assumed to be part of colab
     "seaborn~=0.12",
+    # TODO: remove after the fix of https://github.com/rigetti/qcs-sdk-rust/issues/531
+    "qcs-sdk-python<=0.21.12",
+    "numpy~=1.25",
 ]
 
 
-# TODO(3577): extract these out to common utilities when we rewrite bash scripts in python
 def _find_base_revision():
     for rev in ['upstream/main', 'origin/main', 'main']:
         try:
@@ -102,7 +105,7 @@ def _find_base_revision():
     raise ValueError("Can't find a base revision to compare the files with.")
 
 
-def _list_changed_notebooks() -> Set[str]:
+def _list_changed_notebooks() -> set[str]:
     try:
         rev = _find_base_revision()
         output = subprocess.check_output(f'git diff --diff-filter=d --name-only {rev}'.split())
@@ -169,7 +172,8 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
             f"notebook (in Github Actions, you can download it from the workflow artifact"
             f" 'notebook-outputs'). \n"
             f"If this is a new failure in this notebook due to a new change, "
-            f"that is only available in main for now, consider adding `pip install cirq~=1.0.dev` "
+            f"that is only available in main for now, consider adding "
+            f"`pip install --upgrade cirq~=1.0.dev` "
             f"instead of `pip install cirq` to this notebook, and exclude it from "
             f"dev_tools/notebooks/isolated_notebook_test.py."
         )
@@ -182,7 +186,7 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
     "partition, notebook_path",
     _partitioned_test_cases(filter_notebooks(_list_changed_notebooks(), SKIP_NOTEBOOKS)),
 )
-def test_changed_notebooks_against_released_cirq(partition, notebook_path, cloned_env):
+def test_changed_notebooks_against_released_cirq(partition, notebook_path, cloned_env) -> None:
     """Tests changed notebooks in isolated virtual environments.
 
     In order to speed up the execution of these tests an auxiliary file may be supplied which
@@ -202,7 +206,7 @@ def test_changed_notebooks_against_released_cirq(partition, notebook_path, clone
     "partition, notebook_path",
     _partitioned_test_cases(filter_notebooks(list_all_notebooks(), SKIP_NOTEBOOKS)),
 )
-def test_all_notebooks_against_released_cirq(partition, notebook_path, cloned_env):
+def test_all_notebooks_against_released_cirq(partition, notebook_path, cloned_env) -> None:
     """Tests all notebooks in isolated virtual environments.
 
     See `test_changed_notebooks_against_released_cirq` for more details on
@@ -212,15 +216,15 @@ def test_all_notebooks_against_released_cirq(partition, notebook_path, cloned_en
 
 
 @pytest.mark.parametrize("notebook_path", NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES)
-def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path):
+def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path) -> None:
     # utf-8 is important for Windows testing, otherwise characters like ┌──┐ fail on cp1252
     with open(notebook_path, encoding="utf-8") as notebook:
         content = notebook.read()
         mandatory_matches = [
-            r"!pip install --quiet cirq(-google)?~=1.0.dev",
+            r"!pip install --upgrade --quiet cirq(-google)?~=1.0.dev",
             r"Note: this notebook relies on unreleased Cirq features\. "
             r"If you want to try these features, make sure you install cirq(-google)? via "
-            r"`pip install cirq(-google)?~=1.0.dev`\.",
+            r"`pip install --upgrade cirq(-google)?~=1.0.dev`\.",
         ]
 
         for m in mandatory_matches:

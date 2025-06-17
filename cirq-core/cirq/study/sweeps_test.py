@@ -11,8 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import pytest
 import sympy
+
 import cirq
 
 
@@ -75,6 +79,11 @@ def test_zip():
     assert len(sweep) == 3
     assert _values(sweep, 'a') == [1, 2, 3]
     assert _values(sweep, 'b') == [4, 5, 6]
+    assert list(sweep.param_tuples()) == [
+        (('a', 1), ('b', 4)),
+        (('a', 2), ('b', 5)),
+        (('a', 3), ('b', 6)),
+    ]
 
 
 def test_zip_longest():
@@ -110,7 +119,9 @@ def test_zip_longest_compatibility():
 
 
 def test_empty_zip():
+    assert len(cirq.Zip()) == 0
     assert len(cirq.ZipLongest()) == 0
+    assert str(cirq.Zip()) == 'Zip()'
     with pytest.raises(ValueError, match='non-empty'):
         _ = cirq.ZipLongest(cirq.Points('e', []), cirq.Points('a', [1, 2, 3]))
 
@@ -141,10 +152,26 @@ def test_product():
     assert _values(sweep, 'a') == [1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3]
     assert _values(sweep, 'b') == [4, 5, 6, 7, 4, 5, 6, 7, 4, 5, 6, 7]
 
+    sweep = cirq.Points('a', [1, 2]) * (cirq.Points('b', [3, 4]) * cirq.Points('c', [5, 6]))
+    assert len(sweep) == 8
+    assert _values(sweep, 'a') == [1, 1, 1, 1, 2, 2, 2, 2]
+    assert _values(sweep, 'b') == [3, 3, 4, 4, 3, 3, 4, 4]
+    assert _values(sweep, 'c') == [5, 6, 5, 6, 5, 6, 5, 6]
+
+
+def test_zip_addition():
+    zip_sweep = cirq.Zip(cirq.Points('a', [1, 2]), cirq.Points('b', [3, 4]))
+    zip_sweep2 = cirq.Points('c', [5, 6]) + zip_sweep
+    assert len(zip_sweep2) == 2
+    assert _values(zip_sweep2, 'a') == [1, 2]
+    assert _values(zip_sweep2, 'b') == [3, 4]
+    assert _values(zip_sweep2, 'c') == [5, 6]
+
 
 def test_empty_product():
     sweep = cirq.Product()
     assert len(sweep) == len(list(sweep)) == 1
+    assert str(sweep) == 'Product()'
 
 
 def test_slice_access_error():
@@ -246,6 +273,8 @@ def test_equality():
     et.make_equality_group(lambda: cirq.Linspace('b', 0, 10, 11))
     et.make_equality_group(lambda: cirq.Points('a', list(range(11))))
     et.make_equality_group(lambda: cirq.Points('b', list(range(11))))
+    et.make_equality_group(lambda: cirq.Concat(cirq.Linspace('a', 0, 10, 11)))
+    et.make_equality_group(lambda: cirq.Concat(cirq.Linspace('b', 0, 10, 11)))
 
     # Product and Zip sweeps can also be equated.
     et.make_equality_group(lambda: cirq.Linspace('a', 0, 5, 6) * cirq.Linspace('b', 10, 15, 6))
@@ -373,3 +402,105 @@ def test_dict_to_zip_sweep():
     assert cirq.dict_to_zip_sweep({'t': [0, 1], 's': [2, 3], 'r': 4}) == (
         cirq.Zip(cirq.Points('t', [0, 1]), cirq.Points('s', [2, 3]), cirq.Points('r', [4]))
     )
+
+
+def test_concat_linspace():
+    sweep1 = cirq.Linspace('a', 0.34, 9.16, 4)
+    sweep2 = cirq.Linspace('a', 10, 20, 4)
+    concat_sweep = cirq.Concat(sweep1, sweep2)
+
+    assert len(concat_sweep) == 8
+    assert concat_sweep.keys == ['a']
+    params = list(concat_sweep.param_tuples())
+    assert len(params) == 8
+    assert params[0] == (('a', 0.34),)
+    assert params[3] == (('a', 9.16),)
+    assert params[4] == (('a', 10.0),)
+    assert params[7] == (('a', 20.0),)
+
+
+def test_concat_points():
+    sweep1 = cirq.Points('a', [1, 2])
+    sweep2 = cirq.Points('a', [3, 4, 5])
+    concat_sweep = cirq.Concat(sweep1, sweep2)
+
+    assert concat_sweep.keys == ['a']
+    assert len(concat_sweep) == 5
+    params = list(concat_sweep)
+    assert len(params) == 5
+    assert _values(concat_sweep, 'a') == [1, 2, 3, 4, 5]
+
+
+def test_concat_many_points():
+    sweep1 = cirq.Points('a', [1, 2])
+    sweep2 = cirq.Points('a', [3, 4, 5])
+    sweep3 = cirq.Points('a', [6, 7, 8])
+    concat_sweep = cirq.Concat(sweep1, sweep2, sweep3)
+
+    assert len(concat_sweep) == 8
+    params = list(concat_sweep)
+    assert len(params) == 8
+    assert _values(concat_sweep, 'a') == [1, 2, 3, 4, 5, 6, 7, 8]
+
+
+def test_concat_mixed():
+    sweep1 = cirq.Linspace('a', 0, 1, 3)
+    sweep2 = cirq.Points('a', [2, 3])
+    concat_sweep = cirq.Concat(sweep1, sweep2)
+
+    assert len(concat_sweep) == 5
+    assert _values(concat_sweep, 'a') == [0.0, 0.5, 1.0, 2, 3]
+
+
+def test_concat_inconsistent_keys():
+    sweep1 = cirq.Linspace('a', 0, 1, 3)
+    sweep2 = cirq.Points('b', [2, 3])
+
+    with pytest.raises(ValueError, match="All sweeps must have the same descriptors"):
+        cirq.Concat(sweep1, sweep2)
+
+
+def test_concat_sympy_symbol():
+    a = sympy.Symbol('a')
+    sweep1 = cirq.Linspace(a, 0, 1, 3)
+    sweep2 = cirq.Points(a, [2, 3])
+    concat_sweep = cirq.Concat(sweep1, sweep2)
+
+    assert len(concat_sweep) == 5
+    assert _values(concat_sweep, 'a') == [0.0, 0.5, 1.0, 2, 3]
+
+
+def test_concat_repr_and_str():
+    sweep1 = cirq.Linspace('a', 0, 1, 3)
+    sweep2 = cirq.Points('a', [2, 3])
+    concat_sweep = cirq.Concat(sweep1, sweep2)
+
+    expected_repr = (
+        "cirq.Concat(cirq.Linspace('a', start=0, stop=1, length=3), cirq.Points('a', [2, 3]))"
+    )
+    expected_str = "Concat(cirq.Linspace('a', start=0, stop=1, length=3), cirq.Points('a', [2, 3]))"
+
+    assert repr(concat_sweep) == expected_repr
+    assert str(concat_sweep) == expected_str
+
+
+def test_concat_large_sweep():
+    sweep1 = cirq.Points('a', list(range(101)))
+    sweep2 = cirq.Points('a', list(range(101, 202)))
+    concat_sweep = cirq.Concat(sweep1, sweep2)
+
+    assert len(concat_sweep) == 202
+    assert _values(concat_sweep, 'a') == list(range(101)) + list(range(101, 202))
+
+
+def test_concat_different_keys_raises():
+    sweep1 = cirq.Linspace('a', 0, 1, 3)
+    sweep2 = cirq.Points('b', [2, 3])
+
+    with pytest.raises(ValueError, match="All sweeps must have the same descriptors."):
+        _ = cirq.Concat(sweep1, sweep2)
+
+
+def test_concat_empty_sweep_raises():
+    with pytest.raises(ValueError, match="Concat requires at least one sweep."):
+        _ = cirq.Concat()

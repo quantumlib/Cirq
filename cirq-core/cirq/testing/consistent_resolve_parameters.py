@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import Any
 
-import cirq
 import sympy
+
+import cirq
 
 
 def assert_consistent_resolve_parameters(val: Any):

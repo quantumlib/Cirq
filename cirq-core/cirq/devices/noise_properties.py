@@ -19,10 +19,12 @@ be translated into noise models. NoiseModelFromNoiseProperties consumes those
 noise models to produce a single noise model which replicates device noise.
 """
 
-import abc
-from typing import Iterable, Sequence, TYPE_CHECKING, List
+from __future__ import annotations
 
-from cirq import _import, ops, protocols, devices
+import abc
+from typing import Iterable, Sequence, TYPE_CHECKING
+
+from cirq import _import, devices, ops, protocols
 from cirq.devices.noise_utils import PHYSICAL_GATE_TAG
 
 circuits = _import.LazyLoader("circuits", globals(), "cirq.circuits.circuit")
@@ -35,7 +37,7 @@ class NoiseProperties(abc.ABC):
     """Noise-defining properties for a quantum device."""
 
     @abc.abstractmethod
-    def build_noise_models(self) -> List['cirq.NoiseModel']:
+    def build_noise_models(self) -> list[cirq.NoiseModel]:
         """Construct all NoiseModels associated with this NoiseProperties."""
 
 
@@ -52,7 +54,7 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
         self._noise_properties = noise_properties
         self.noise_models = self._noise_properties.build_noise_models()
 
-    def is_virtual(self, op: 'cirq.Operation') -> bool:
+    def is_virtual(self, op: cirq.Operation) -> bool:
         """Returns True if an operation is virtual.
 
         Device-specific subclasses should implement this method to mark any
@@ -67,8 +69,8 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
         return False
 
     def noisy_moments(
-        self, moments: Iterable['cirq.Moment'], system_qubits: Sequence['cirq.Qid']
-    ) -> Sequence['cirq.OP_TREE']:
+        self, moments: Iterable[cirq.Moment], system_qubits: Sequence[cirq.Qid]
+    ) -> Sequence[cirq.OP_TREE]:
         # Split multi-qubit measurements into single-qubit measurements.
         # These will be recombined after noise is applied.
         split_measure_moments = []

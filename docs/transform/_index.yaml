@@ -5,7 +5,7 @@ landing_page:
   nav: left
   rows:
   - heading: Transform a circuit
-    description: Programmatically transform a provided circuit into another one to
+    description: Programmatically transform one circuit into another one to
       implement any compilation or optimization process that changes a circuit.
     options:
     - cards

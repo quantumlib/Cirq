@@ -13,7 +13,11 @@
 # limitations under the License.
 
 """Protocol for objects that are mixtures (probabilistic combinations)."""
-from typing import Any, Sequence, Tuple, Union
+
+from __future__ import annotations
+
+from types import NotImplementedType
+from typing import Any, Sequence
 
 import numpy as np
 from typing_extensions import Protocol
@@ -21,18 +25,18 @@ from typing_extensions import Protocol
 from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.protocols.has_unitary_protocol import has_unitary
-from cirq.type_workarounds import NotImplementedType
+from cirq.protocols.unitary_protocol import unitary
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
-RaiseTypeErrorIfNotProvided: Sequence[Tuple[float, Any]] = ((0.0, []),)
+RaiseTypeErrorIfNotProvided: Sequence[tuple[float, Any]] = ((0.0, []),)
 
 
 class SupportsMixture(Protocol):
     """An object that decomposes into a probability distribution of unitaries."""
 
     @doc_private
-    def _mixture_(self) -> Union[Sequence[Tuple[float, Any]], NotImplementedType]:
+    def _mixture_(self) -> Sequence[tuple[float, Any]] | NotImplementedType:
         """Decompose into a probability distribution of unitaries.
 
         This method is used by the global `cirq.mixture` method.
@@ -63,7 +67,7 @@ class SupportsMixture(Protocol):
 
 def mixture(
     val: Any, default: Any = RaiseTypeErrorIfNotProvided
-) -> Sequence[Tuple[float, np.ndarray]]:
+) -> Sequence[tuple[float, np.ndarray]]:
     """Return a sequence of tuples representing a probabilistic unitary.
 
     A mixture is described by an iterable of tuples of the form
@@ -83,14 +87,14 @@ def mixture(
         with that probability in the mixture. The probabilities will sum to 1.0.
 
     Raises:
-        TypeError: If `val` has no `_mixture_` or `_unitary_` mehod, or if it
+        TypeError: If `val` has no `_mixture_` or `_unitary_` method, or if it
             does and this method returned `NotImplemented`.
     """
 
     mixture_getter = getattr(val, '_mixture_', None)
     result = NotImplemented if mixture_getter is None else mixture_getter()
-    if result is not NotImplemented:
-        return result
+    if result is not NotImplemented and result is not None:
+        return tuple((p, u if isinstance(u, np.ndarray) else unitary(u)) for p, u in result)
 
     unitary_getter = getattr(val, '_unitary_', None)
     result = NotImplemented if unitary_getter is None else unitary_getter()

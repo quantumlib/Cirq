@@ -13,13 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+from __future__ import annotations
+
 import proto
-
-from google.protobuf import any_pb2
-from google.protobuf import duration_pb2
-from google.protobuf import field_mask_pb2
-from google.protobuf import timestamp_pb2
-
+from google.protobuf import any_pb2, duration_pb2, field_mask_pb2, timestamp_pb2
 
 __protobuf__ = proto.module(
     package='google.cloud.quantum.v1alpha1',
@@ -156,15 +154,48 @@ class QuantumJob(proto.Message):
 
 class DeviceConfigSelector(proto.Message):
     r"""-
+    This message has `oneof`_ fields (mutually exclusive fields).
+    For each oneof, at most one member field can be set at the same time.
+    Setting any member of the oneof automatically clears all other
+    members.
+    .. _oneof: https://proto-plus-python.readthedocs.io/en/stable/fields.html#oneofs-mutually-exclusive-fields
     Attributes:
         run_name (str):
             -
+            This field is a member of `oneof`_ ``top_level_identifier``.
+        snapshot_id (str):
+            -
+            This field is a member of `oneof`_ ``top_level_identifier``.
         config_alias (str):
             -
     """
 
-    run_name = proto.Field(proto.STRING, number=1)
-    config_alias = proto.Field(proto.STRING, number=2)
+    run_name: str = proto.Field(proto.STRING, number=1, oneof='top_level_identifier')
+    snapshot_id: str = proto.Field(proto.STRING, number=3, oneof='top_level_identifier')
+    config_alias: str = proto.Field(proto.STRING, number=2)
+
+
+class DeviceConfigKey(proto.Message):
+    r"""-
+    This message has `oneof`_ fields (mutually exclusive fields).
+    For each oneof, at most one member field can be set at the same time.
+    Setting any member of the oneof automatically clears all other
+    members.
+    .. _oneof: https://proto-plus-python.readthedocs.io/en/stable/fields.html#oneofs-mutually-exclusive-fields
+    Attributes:
+        run (str):
+            -
+            This field is a member of `oneof`_ ``top_level_identifier``.
+        snapshot_id (str):
+            -
+            This field is a member of `oneof`_ ``top_level_identifier``.
+        config_alias (str):
+            -
+    """
+
+    run: str = proto.Field(proto.STRING, number=1, oneof='top_level_identifier')
+    snapshot_id: str = proto.Field(proto.STRING, number=3, oneof='top_level_identifier')
+    config_alias: str = proto.Field(proto.STRING, number=2)
 
 
 class SchedulingConfig(proto.Message):
@@ -609,20 +640,6 @@ class QuantumReservation(proto.Message):
     end_time = proto.Field(proto.MESSAGE, number=3, message=timestamp_pb2.Timestamp)
     cancelled_time = proto.Field(proto.MESSAGE, number=4, message=timestamp_pb2.Timestamp)
     whitelisted_users = proto.RepeatedField(proto.STRING, number=5)
-
-
-class DeviceConfigKey(proto.Message):
-    r"""-
-
-    Attributes:
-        run (str):
-            -
-        config_alias (str):
-            -
-    """
-
-    run = proto.Field(proto.STRING, number=1)
-    config_alias = proto.Field(proto.STRING, number=2)
 
 
 __all__ = tuple(sorted(__protobuf__.manifest))

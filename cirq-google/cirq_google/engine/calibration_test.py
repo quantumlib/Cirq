@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import datetime
-import pytest
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import pytest
 from google.protobuf.text_format import Merge
 
 import cirq

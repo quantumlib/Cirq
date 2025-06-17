@@ -11,20 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import itertools
 import os
 import time
 from collections import defaultdict
-from random import randint, random, sample, randrange
-from typing import Iterator, Optional, Tuple, TYPE_CHECKING
+from random import randint, random, randrange, sample
+from typing import Iterator
 
 import numpy as np
 import pytest
 import sympy
 
 import cirq
-from cirq import circuits
-from cirq import ops
+from cirq import circuits, ops
 from cirq.testing.devices import ValidatingTestDevice
 
 
@@ -50,23 +52,7 @@ BCONE = ValidatingTestDevice(
 )
 
 
-if TYPE_CHECKING:
-    import cirq
-
 q0, q1, q2, q3 = cirq.LineQubit.range(4)
-
-
-class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
-    def validate_operation(self, operation):
-        if not isinstance(operation, cirq.Operation):
-            raise ValueError(f'not isinstance({operation!r}, {cirq.Operation!r})')
-
-    def validate_moment(self, moment):
-        if not isinstance(moment, cirq.Moment):
-            raise ValueError(f'not isinstance({moment!r}, {cirq.Moment!r})')
-
-
-moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
 
 
 def test_from_moments():
@@ -907,8 +893,8 @@ def test_insert_at_frontier():
             self.replacer = replacer
 
         def optimization_at(
-            self, circuit: 'cirq.Circuit', index: int, op: 'cirq.Operation'
-        ) -> Optional['cirq.PointOptimizationSummary']:
+            self, circuit: cirq.Circuit, index: int, op: cirq.Operation
+        ) -> cirq.PointOptimizationSummary | None:
             new_ops = self.replacer(op)
             return cirq.PointOptimizationSummary(
                 clear_span=1, clear_qubits=op.qubits, new_operations=new_ops
@@ -2136,7 +2122,7 @@ M('msg')─M──────M
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols(circuit_cls):
     class BadGate(cirq.testing.ThreeQubitGate):
-        def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> Tuple[str, str]:
+        def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> tuple[str, str]:
             return 'a', 'a'
 
     q1 = cirq.NamedQubit('(0, 0)')
@@ -2738,7 +2724,7 @@ def test_expanding_gate_symbols(circuit_cls):
         def num_qubits(self) -> int:
             return self._num_qubits
 
-        def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> Tuple[str, ...]:
+        def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> tuple[str, ...]:
             assert args.known_qubit_count is not None
             return ('@',) + ('Z',) * (args.known_qubit_count - 1)
 
@@ -3555,6 +3541,52 @@ def test_insert_operations_random_circuits(circuit):
     assert circuit == other_circuit
 
 
+def test_insert_zero_index():
+    # Should always go to moment[0], independent of qubit order or earliest/inline strategy.
+    q0, q1 = cirq.LineQubit.range(2)
+    c0 = cirq.Circuit(cirq.X(q0))
+    c0.insert(0, cirq.Y.on_each(q0, q1), strategy=cirq.InsertStrategy.EARLIEST)
+    c1 = cirq.Circuit(cirq.X(q0))
+    c1.insert(0, cirq.Y.on_each(q1, q0), strategy=cirq.InsertStrategy.EARLIEST)
+    c2 = cirq.Circuit(cirq.X(q0))
+    c2.insert(0, cirq.Y.on_each(q0, q1), strategy=cirq.InsertStrategy.INLINE)
+    c3 = cirq.Circuit(cirq.X(q0))
+    c3.insert(0, cirq.Y.on_each(q1, q0), strategy=cirq.InsertStrategy.INLINE)
+    expected = cirq.Circuit(cirq.Moment(cirq.Y(q0), cirq.Y(q1)), cirq.Moment(cirq.X(q0)))
+    assert c0 == expected
+    assert c1 == expected
+    assert c2 == expected
+    assert c3 == expected
+
+
+def test_insert_earliest_on_previous_moment():
+    q = cirq.LineQubit(0)
+    c = cirq.Circuit(cirq.Moment(cirq.X(q)), cirq.Moment(), cirq.Moment(), cirq.Moment(cirq.Z(q)))
+    c.insert(3, cirq.Y(q), strategy=cirq.InsertStrategy.EARLIEST)
+    # Should fall back to moment[1] since EARLIEST
+    assert c == cirq.Circuit(
+        cirq.Moment(cirq.X(q)), cirq.Moment(cirq.Y(q)), cirq.Moment(), cirq.Moment(cirq.Z(q))
+    )
+
+
+def test_insert_inline_end_of_circuit():
+    # If end index is specified, INLINE should place all ops there independent of qubit order.
+    q0, q1 = cirq.LineQubit.range(2)
+    c0 = cirq.Circuit(cirq.X(q0))
+    c0.insert(1, cirq.Y.on_each(q0, q1), strategy=cirq.InsertStrategy.INLINE)
+    c1 = cirq.Circuit(cirq.X(q0))
+    c1.insert(1, cirq.Y.on_each(q1, q0), strategy=cirq.InsertStrategy.INLINE)
+    c2 = cirq.Circuit(cirq.X(q0))
+    c2.insert(5, cirq.Y.on_each(q0, q1), strategy=cirq.InsertStrategy.INLINE)
+    c3 = cirq.Circuit(cirq.X(q0))
+    c3.insert(5, cirq.Y.on_each(q1, q0), strategy=cirq.InsertStrategy.INLINE)
+    expected = cirq.Circuit(cirq.Moment(cirq.X(q0)), cirq.Moment(cirq.Y(q0), cirq.Y(q1)))
+    assert c0 == expected
+    assert c1 == expected
+    assert c2 == expected
+    assert c3 == expected
+
+
 def test_insert_operations_errors():
     a, b, c = (cirq.NamedQubit(s) for s in 'abc')
     with pytest.raises(ValueError):
@@ -3579,7 +3611,7 @@ def test_insert_operations_errors():
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_to_qasm(circuit_cls):
     q0 = cirq.NamedQubit('q0')
-    circuit = circuit_cls(cirq.X(q0))
+    circuit = circuit_cls(cirq.X(q0), cirq.measure(q0, key='mmm'))
     assert circuit.to_qasm() == cirq.qasm(circuit)
     assert (
         circuit.to_qasm()
@@ -3591,9 +3623,29 @@ include "qelib1.inc";
 
 // Qubits: [q0]
 qreg q[1];
+creg m_mmm[1];
 
 
 x q[0];
+measure q[0] -> m_mmm[0];
+"""
+    )
+    assert circuit.to_qasm(version="3.0") == cirq.qasm(circuit, args=cirq.QasmArgs(version="3.0"))
+    assert (
+        circuit.to_qasm(version="3.0")
+        == f"""// Generated from Cirq v{cirq.__version__}
+
+OPENQASM 3.0;
+include "stdgates.inc";
+
+
+// Qubits: [q0]
+qubit[1] q;
+bit[1] m_mmm;
+
+
+x q[0];
+m_mmm[0] = measure q[0];
 """
     )
 
@@ -4825,18 +4877,36 @@ global phase:   0.5π
 def test_create_speed():
     # Added in https://github.com/quantumlib/Cirq/pull/5332
     # Previously this took ~30s to run. Now it should take ~150ms. However the coverage test can
-    # run this slowly, so allowing 2 sec to account for things like that. Feel free to increase the
+    # run this slowly, so allowing 4 sec to account for things like that. Feel free to increase the
     # buffer time or delete the test entirely if it ends up causing flakes.
-    #
-    # Updated in https://github.com/quantumlib/Cirq/pull/5756
-    # After several tiny overtime failures of the GitHub CI Pytest MacOS (3.7)
-    # the timeout was increased to 4 sec.  A more thorough investigation or test
-    # removal should be considered if this continues to time out.
     qs = 100
     moments = 500
     xs = [cirq.X(cirq.LineQubit(i)) for i in range(qs)]
-    opa = [xs[i] for i in range(qs) for _ in range(moments)]
+    ops = [xs[i] for i in range(qs) for _ in range(moments)]
     t = time.perf_counter()
-    c = cirq.Circuit(opa)
+    c = cirq.Circuit(ops)
+    duration = time.perf_counter() - t
     assert len(c) == moments
-    assert time.perf_counter() - t < 4
+    assert duration < 4
+
+
+def test_append_speed():
+    # Previously this took ~17s to run. Now it should take ~150ms. However the coverage test can
+    # run this slowly, so allowing 5 sec to account for things like that. Feel free to increase the
+    # buffer time or delete the test entirely if it ends up causing flakes.
+    #
+    # The `append` improvement mainly helps for deep circuits. It is less useful for wide circuits
+    # because the Moment (immutable) needs verified and reconstructed each time an op is added.
+    qs = 2
+    moments = 10000
+    xs = [cirq.X(cirq.LineQubit(i)) for i in range(qs)]
+    c = cirq.Circuit()
+    t = time.perf_counter()
+    # Iterating with the moments in the inner loop highlights the improvement: when filling in the
+    # second qubit, we no longer have to search backwards from moment 10000 for a placement index.
+    for q in range(qs):
+        for _ in range(moments):
+            c.append(xs[q])
+    duration = time.perf_counter() - t
+    assert len(c) == moments
+    assert duration < 5

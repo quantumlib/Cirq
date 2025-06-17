@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+from __future__ import annotations
+
 import dataclasses
 import datetime
-from typing import Any, Dict, Optional, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     import cirq_google
@@ -35,21 +38,21 @@ class CalibrationResult:
     """
 
     code: Any
-    error_message: Optional[str]
-    token: Optional[str]
-    valid_until: Optional[datetime.datetime]
-    metrics: 'cirq_google.Calibration'
+    error_message: str | None
+    token: str | None
+    valid_until: datetime.datetime | None
+    metrics: cirq_google.Calibration
 
     @classmethod
     def _from_json_dict_(
         cls,
         code: Any,
-        error_message: Optional[str],
-        token: Optional[str],
+        error_message: str | None,
+        token: str | None,
         utc_valid_until: float,
-        metrics: 'cirq_google.Calibration',
+        metrics: cirq_google.Calibration,
         **kwargs,
-    ) -> 'CalibrationResult':
+    ) -> CalibrationResult:
         """Magic method for the JSON serialization protocol."""
         valid_until = (
             datetime.datetime.utcfromtimestamp(utc_valid_until)
@@ -58,7 +61,7 @@ class CalibrationResult:
         )
         return cls(code, error_message, token, valid_until, metrics)
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         """Magic method for the JSON serialization protocol."""
         utc_valid_until = (
             self.valid_until.replace(tzinfo=datetime.timezone.utc).timestamp()

@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import math
-from typing import Any, cast, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import Any, cast, Iterator, Sequence, TYPE_CHECKING
 
 from sympy.combinatorics import GrayCode
 
@@ -94,8 +96,8 @@ class BayesianNetworkGate(raw_types.Gate):
 
     def __init__(
         self,
-        init_probs: List[Tuple[str, Optional[float]]],
-        arc_probs: List[Tuple[str, Tuple[str], List[float]]],
+        init_probs: list[tuple[str, float | None]],
+        arc_probs: list[tuple[str, tuple[str], list[float]]],
     ):
         """Builds a BayesianNetworkGate.
 
@@ -158,7 +160,7 @@ class BayesianNetworkGate(raw_types.Gate):
                     raise ValueError('Conditional prob should be between 0 and 1.')
         self._arc_probs = arc_probs
 
-    def _decompose_(self, qubits: Sequence['raw_types.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
         parameter_names = [init_prob[0] for init_prob in self._init_probs]
         qubit_map = dict(zip(parameter_names, qubits))
 
@@ -173,28 +175,27 @@ class BayesianNetworkGate(raw_types.Gate):
     def _has_unitary_(self) -> bool:
         return True
 
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         return (2,) * len(self._init_probs)
 
     def _value_equality_values_(self):
         return self._init_probs, self._arc_probs
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {'init_probs': self._init_probs, 'arc_probs': self._arc_probs}
 
     @classmethod
     def _from_json_dict_(
         cls,
-        init_probs: List[List[Union[str, Optional[float]]]],
-        arc_probs: List[List[Union[str, List[str], List[float]]]],
+        init_probs: list[list[str | float | None]],
+        arc_probs: list[list[str | list[str] | list[float]]],
         **kwargs,
-    ) -> 'BayesianNetworkGate':
+    ) -> BayesianNetworkGate:
         converted_init_probs = cast(
-            List[Tuple[str, Optional[float]]],
-            [(param, init_prob) for param, init_prob in init_probs],
+            list[tuple[str, float | None]], [(param, init_prob) for param, init_prob in init_probs]
         )
         converted_cond_probs = cast(
-            List[Tuple[str, Tuple[str], List[float]]],
+            list[tuple[str, tuple[str], list[float]]],
             [(target, tuple(params), cond_probs) for target, params, cond_probs in arc_probs],
         )
         return cls(converted_init_probs, converted_cond_probs)

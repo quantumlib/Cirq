@@ -1,6 +1,8 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 """Example heatmaps from the cirq.vis.heatmap package."""
 
+from __future__ import annotations
+
 import numpy as np
 
 import cirq

@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 
 import cirq
-
 
 Q, Q2, Q3 = cirq.LineQubit.range(3)
 
@@ -44,7 +45,7 @@ Q, Q2, Q3 = cirq.LineQubit.range(3)
         (cirq.ZPowGate(exponent=0.5)(Q).controlled_by(Q2, Q3), False),
     ],
 )
-def test_gateset(op: cirq.Operation, expected: bool):
+def test_gateset(op: cirq.Operation, expected: bool) -> None:
     assert cirq.is_native_neutral_atom_op(op) == expected
     if op.gate is not None:
         assert cirq.is_native_neutral_atom_gate(op.gate) == expected

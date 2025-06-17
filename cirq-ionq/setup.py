@@ -12,46 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import io
-import os
+import runpy
+
 from setuptools import find_packages, setup
 
-# This reads the __version__ variable from cirq/_version.py
-__version__ = ''
-exec(open('cirq_ionq/_version.py').read())
+# This reads the __version__ variable from cirq_ionq/_version.py
+__version__ = runpy.run_path('cirq_ionq/_version.py')['__version__']
+assert __version__, 'Version string cannot be empty'
 
 name = 'cirq-ionq'
 
 description = 'A Cirq package to simulate and connect to IonQ quantum computers'
 
 # README file as long_description.
-long_description = io.open('README.rst', encoding='utf-8').read()
-
-# If CIRQ_PRE_RELEASE_VERSION is set then we update the version to this value.
-# It is assumed that it ends with one of `.devN`, `.aN`, `.bN`, `.rcN` and hence
-# it will be a pre-release version on PyPi. See
-# https://packaging.python.org/guides/distributing-packages-using-setuptools/#pre-release-versioning
-# for more details.
-if 'CIRQ_PRE_RELEASE_VERSION' in os.environ:
-    __version__ = os.environ['CIRQ_PRE_RELEASE_VERSION']
-    long_description = (
-        "**This is a development version of Cirq-ionq and may be "
-        "unstable.**\n\n**For the latest stable release of Cirq-ionq "
-        "see**\n`here <https://pypi.org/project/cirq-ionq>`__.\n\n" + long_description
-    )
+long_description = open('README.md', encoding='utf-8').read()
 
 # Read in requirements
 requirements = open('requirements.txt').readlines()
 requirements = [r.strip() for r in requirements]
+requirements += [f'cirq-core=={__version__}']
 
 cirq_packages = ['cirq_ionq'] + [
     'cirq_ionq.' + package for package in find_packages(where='cirq_ionq')
 ]
 
-# Sanity check
-assert __version__, 'Version string cannot be empty'
-
-requirements += [f'cirq-core=={__version__}']
 
 setup(
     name=name,
@@ -59,11 +43,53 @@ setup(
     url='http://github.com/quantumlib/cirq',
     author='The Cirq Developers',
     author_email='cirq-dev@googlegroups.com',
-    python_requires=('>=3.10.0'),
+    maintainer="Google Quantum AI open-source maintainers",
+    maintainer_email="quantum-oss-maintainers@google.com",
+    python_requires='>=3.11.0',
     install_requires=requirements,
     license='Apache 2',
     description=description,
     long_description=long_description,
+    long_description_content_type='text/markdown',
     packages=cirq_packages,
     package_data={'cirq_ionq': ['py.typed'], 'cirq_ionq.json_test_data': ['*']},
+    classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Education",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Topic :: Scientific/Engineering :: Quantum Computing",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Typing :: Typed",
+    ],
+    keywords=[
+        "algorithms",
+        "api",
+        "cirq",
+        "google",
+        "google quantum",
+        "nisq",
+        "python",
+        "quantum",
+        "quantum algorithms",
+        "quantum circuit",
+        "quantum circuit simulator",
+        "quantum computer simulator",
+        "quantum computing",
+        "quantum development kit",
+        "quantum information",
+        "quantum programming",
+        "quantum programming language",
+        "quantum simulation",
+        "sdk",
+        "simulation",
+    ],
 )

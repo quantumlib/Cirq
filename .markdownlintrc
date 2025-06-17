@@ -1,0 +1,160 @@
+{ // -*- jsonc -*-
+  // Copyright 2025 The Cirq Developers
+  //
+  // Licensed under the Apache License, Version 2.0 (the "License");
+  // you may not use this file except in compliance with the License.
+  // You may obtain a copy of the License at
+  //
+  //     https://www.apache.org/licenses/LICENSE-2.0
+  //
+  // Unless required by applicable law or agreed to in writing, software
+  // distributed under the License is distributed on an "AS IS" BASIS,
+  // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  // See the License for the specific language governing permissions and
+  // limitations under the License.
+
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Markdownlint linter configuration for this project.
+  //
+  // Note: there are multiple programs programs named "markdownlint". We use
+  // https://github.com/igorshubovych/markdownlint-cli/, which is the one you
+  // get with "brew install markdownlint" on MacOS.
+  //
+  // These settings try to stay close to the Google Markdown Style as
+  // described at https://google.github.io/styleguide/docguide/style.html
+  // with very few differences.
+  //
+  // For a list of configuration options, see the following page:
+  // https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+  // (Beware that the above looks similar but is NOT the same as the page
+  // https://github.com/markdownlint/markdownlint/blob/main/docs/RULES.md.)
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  "$schema": "https://raw.githubusercontent.com/DavidAnson/markdownlint/main/schema/markdownlint-config-schema.json",
+
+  // Require ATX-style headings.
+  // https://google.github.io/styleguide/docguide/style.html#atx-style-headings
+  "headings": {
+    "style": "atx"
+  },
+
+  // Google style does not require that the first line of a file is a heading
+  // for the title; it only states that the first heading should be a level 1.
+  // https://google.github.io/styleguide/docguide/style.html#document-layout
+  "first-line-heading": false,
+
+  // The Google style does not define what to do about trailing punctuation in
+  // headings. The markdownlint default disallows exclamation points, which
+  // seems likely to be more annoying than useful – I have definitely seen
+  // people use exclamation points in headings in README files on GitHub.
+  // This setting removes exclamation point from the banned characters.
+  "no-trailing-punctuation": {
+    "punctuation": ".,;:。，；："
+  },
+
+  // No trailing spaces.
+  // https://google.github.io/styleguide/docguide/style.html#trailing-whitespace
+  "whitespace": {
+    "br_spaces": 0
+  },
+
+  // Google style is 80 characters.
+  // Google style exempts some constructs from the line-length limit:
+  // https://google.github.io/styleguide/docguide/style.html#exceptions
+  "line-length": {
+    "line_length": 100,
+    "code_block_line_length": 100,
+    "heading_line_length": 100,
+    "code_blocks": false,
+    "headings": false,
+    "tables": false
+  },
+
+  // Google Markdown style specifies 2 spaces after item numbers, 3 spaces
+  // after bullets, so that the text itself is consistently indented 4 spaces.
+  // https://google.github.io/styleguide/docguide/style.html#nested-list-spacing
+  "list-marker-space": {
+    "ol_multi": 2,
+    "ol_single": 2,
+    "ul_multi": 3,
+    "ul_single": 3
+  },
+
+  "ul-indent": {
+    "indent": 4
+  },
+
+  // Bare URLs are allowed in GitHub-flavored Markdown and in Google’s style.
+  "no-bare-urls": false,
+
+  // Basic Markdown allows raw HTML. Both GitHub & PyPI support subsets of
+  // HTML, though it's unclear what subset PyPI supports. Google's style guide
+  // recommends against using raw HTML, but does allow it. (C.f. the bottom of
+  // https://google.github.io/styleguide/docguide/style.html) Google's in-house
+  // documentation system allows many inline and block-level tags, but strips
+  // others that can pose security risks (e.g., <object> and standalone <svg>).
+  // The list below tries to capture the intersection of what GitHub allows
+  // (c.f. https://github.com/github/markup/issues/245#issuecomment-682231577),
+  // what PyPI seems to allow, what Google allows, and what seems likely to be
+  // most useful in situations where someone needs to reach for HTML.
+  "html": {
+    "allowed_elements": [
+      "a",
+      "abbr",
+      "b",
+      "blockquote",
+      "br",
+      "caption",
+      "cite",
+      "code",
+      "dd",
+      "del",
+      "details",
+      "dfn",
+      "div",
+      "dl",
+      "dt",
+      "em",
+      "figcaption",
+      "figure",
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "h5",
+      "h6",
+      "hr",
+      "i",
+      "img",
+      "ins",
+      "kbd",
+      "li",
+      "mark",
+      "ol",
+      "p",
+      "picture",
+      "pre",
+      "q",
+      "s",
+      "samp",
+      "small",
+      "span",
+      "strong",
+      "sub",
+      "summary",
+      "sup",
+      "table",
+      "tbody",
+      "td",
+      "tfoot",
+      "th",
+      "thead",
+      "time",
+      "tr",
+      "tt",
+      "ul",
+      "var",
+      "wbr"
+    ]
+  }
+}

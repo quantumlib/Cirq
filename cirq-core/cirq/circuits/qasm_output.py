@@ -14,12 +14,14 @@
 
 """Utility classes for representing QASM."""
 
-from typing import Callable, Dict, Optional, Sequence, Set, Tuple, Union, TYPE_CHECKING
+from __future__ import annotations
 
 import re
+from typing import Callable, Iterator, Sequence, TYPE_CHECKING
+
 import numpy as np
 
-from cirq import ops, linalg, protocols, value
+from cirq import linalg, ops, protocols, value
 
 if TYPE_CHECKING:
     import cirq
@@ -46,15 +48,15 @@ class QasmUGate(ops.Gate):
         return 1
 
     @staticmethod
-    def from_matrix(mat: np.ndarray) -> 'QasmUGate':
+    def from_matrix(mat: np.ndarray) -> QasmUGate:
         pre_phase, rotation, post_phase = linalg.deconstruct_single_qubit_matrix_into_angles(mat)
         return QasmUGate(rotation / np.pi, post_phase / np.pi, pre_phase / np.pi)
 
     def _has_unitary_(self):
         return True
 
-    def _qasm_(self, qubits: Tuple['cirq.Qid', ...], args: 'cirq.QasmArgs') -> str:
-        args.validate_version('2.0')
+    def _qasm_(self, qubits: tuple[cirq.Qid, ...], args: cirq.QasmArgs) -> str:
+        args.validate_version('2.0', '3.0')
         return args.format(
             'u3({0:half_turns},{1:half_turns},{2:half_turns}) {3};\n',
             self.theta,
@@ -82,17 +84,17 @@ class QasmUGate(ops.Gate):
     def _value_equality_values_(self):
         return self.lmda, self.theta, self.phi
 
-    def _json_dict_(self) -> Dict[str, float]:
+    def _json_dict_(self) -> dict[str, float]:
         return {'theta': self.theta, 'phi': self.phi, 'lmda': self.lmda}
 
     @classmethod
-    def _from_json_dict_(cls, theta: float, phi: float, lmda: float, **kwargs) -> 'QasmUGate':
+    def _from_json_dict_(cls, theta: float, phi: float, lmda: float, **kwargs) -> QasmUGate:
         return cls(theta, phi, lmda)
 
 
 @value.value_equality
 class QasmTwoQubitGate(ops.Gate):
-    def __init__(self, kak: 'cirq.KakDecomposition') -> None:
+    def __init__(self, kak: cirq.KakDecomposition) -> None:
         """A two qubit gate represented in QASM by the KAK decomposition.
 
         All angles are in half turns.  Assumes a canonicalized KAK
@@ -110,7 +112,7 @@ class QasmTwoQubitGate(ops.Gate):
         return self.kak
 
     @staticmethod
-    def from_matrix(mat: np.ndarray, atol=1e-8) -> 'QasmTwoQubitGate':
+    def from_matrix(mat: np.ndarray, atol=1e-8) -> QasmTwoQubitGate:
         """Creates a QasmTwoQubitGate from the given matrix.
 
         Args:
@@ -126,7 +128,7 @@ class QasmTwoQubitGate(ops.Gate):
     def _unitary_(self):
         return protocols.unitary(self.kak)
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
         q0, q1 = qubits
         x, y, z = self.kak.interaction_coefficients
         a = x * -2 / np.pi + 0.5
@@ -170,8 +172,8 @@ class QasmOutput:
 
     def __init__(
         self,
-        operations: 'cirq.OP_TREE',
-        qubits: Tuple['cirq.Qid', ...],
+        operations: cirq.OP_TREE,
+        qubits: tuple[cirq.Qid, ...],
         header: str = '',
         precision: int = 10,
         version: str = '2.0',
@@ -197,17 +199,19 @@ class QasmOutput:
         meas_key_id_map, meas_comments = self._generate_measurement_ids()
         self.meas_comments = meas_comments
         qubit_id_map = self._generate_qubit_ids()
+        self.cregs = self._generate_cregs(meas_key_id_map)
         self.args = protocols.QasmArgs(
             precision=precision,
             version=version,
             qubit_id_map=qubit_id_map,
             meas_key_id_map=meas_key_id_map,
+            meas_key_bitcount={k: v[0] for k, v in self.cregs.items()},
         )
 
-    def _generate_measurement_ids(self) -> Tuple[Dict[str, str], Dict[str, Optional[str]]]:
+    def _generate_measurement_ids(self) -> tuple[dict[str, str], dict[str, str | None]]:
         # Pick an id for the creg that will store each measurement
-        meas_key_id_map: Dict[str, str] = {}
-        meas_comments: Dict[str, Optional[str]] = {}
+        meas_key_id_map: dict[str, str] = {}
+        meas_comments: dict[str, str | None] = {}
         meas_i = 0
         for meas in self.measurements:
             key = protocols.measurement_key_name(meas)
@@ -223,14 +227,38 @@ class QasmOutput:
             meas_key_id_map[key] = meas_id
         return meas_key_id_map, meas_comments
 
-    def _generate_qubit_ids(self) -> Dict['cirq.Qid', str]:
+    def _generate_qubit_ids(self) -> dict[cirq.Qid, str]:
         return {qubit: f'q[{i}]' for i, qubit in enumerate(self.qubits)}
+
+    def _generate_cregs(self, meas_key_id_map: dict[str, str]) -> dict[str, tuple[int, str]]:
+        """Pick an id for the creg that will store each measurement
+
+        This function finds the largest measurement using each key.
+        That is, if multiple measurements are made with the same key,
+        it will use the key with the most number of qubits.
+
+        Returns: dictionary with key of measurement id and value of (#qubits, comment).
+        """
+        cregs: dict[str, tuple[int, str]] = {}
+        for meas in self.measurements:
+            key = protocols.measurement_key_name(meas)
+            meas_id = meas_key_id_map[key]
+
+            if self.meas_comments[key] is not None:
+                comment = f'  // Measurement: {self.meas_comments[key]}'
+            else:
+                comment = ''
+
+            if meas_id not in cregs or cregs[meas_id][0] < len(meas.qubits):
+                cregs[meas_id] = (len(meas.qubits), comment)
+
+        return cregs
 
     def is_valid_qasm_id(self, id_str: str) -> bool:
         """Test if id_str is a valid id in QASM grammar."""
         return self.valid_id_re.match(id_str) is not None
 
-    def save(self, path: Union[str, bytes, int]) -> None:
+    def save(self, path: str | bytes | int) -> None:
         """Write QASM output to a file specified by path."""
         with open(path, 'w') as f:
 
@@ -246,7 +274,7 @@ class QasmOutput:
         return ''.join(output)
 
     def _write_qasm(self, output_func: Callable[[str], None]) -> None:
-        self.args.validate_version('2.0')
+        self.args.validate_version('2.0', '3.0')
 
         # Generate nice line spacing
         line_gap = [0]
@@ -267,8 +295,12 @@ class QasmOutput:
             output('\n')
 
         # Version
-        output('OPENQASM 2.0;\n')
-        output('include "qelib1.inc";\n')
+        output(f'OPENQASM {self.args.version};\n')
+        if self.args.version == '2.0':
+            output('include "qelib1.inc";\n')
+        else:
+            output('include "stdgates.inc";\n')
+
         output_line_gap(2)
 
         # Function definitions
@@ -276,23 +308,22 @@ class QasmOutput:
 
         # Register definitions
         # Qubit registers
+
         output(f"// Qubits: [{', '.join(map(str, self.qubits))}]\n")
         if len(self.qubits) > 0:
-            output(f'qreg q[{len(self.qubits)}];\n')
-        # Classical registers
-        # Pick an id for the creg that will store each measurement
-        already_output_keys: Set[str] = set()
-        for meas in self.measurements:
-            key = protocols.measurement_key_name(meas)
-            if key in already_output_keys:
-                continue
-            already_output_keys.add(key)
-            meas_id = self.args.meas_key_id_map[key]
-            comment = self.meas_comments[key]
-            if comment is None:
-                output(f'creg {meas_id}[{len(meas.qubits)}];\n')
+            if self.args.version == '2.0':
+                output(f'qreg q[{len(self.qubits)}];\n')
             else:
-                output(f'creg {meas_id}[{len(meas.qubits)}];  // Measurement: {comment}\n')
+                output(f'qubit[{len(self.qubits)}] q;\n')
+
+        # Classical registers
+        for meas_id in self.cregs:
+            length, comment = self.cregs[meas_id]
+            if self.args.version == '2.0':
+                output(f'creg {meas_id}[{length}];{comment}\n')
+            else:
+                output(f'bit[{length}] {meas_id};{comment}\n')
+
         # In OpenQASM 2.0, the transformation of global phase gates is ignored.
         # Therefore, no newline is created when the operations contained in
         # a circuit consist only of global phase gates.
@@ -304,11 +335,11 @@ class QasmOutput:
 
     def _write_operations(
         self,
-        op_tree: 'cirq.OP_TREE',
+        op_tree: cirq.OP_TREE,
         output: Callable[[str], None],
         output_line_gap: Callable[[int], None],
     ) -> None:
-        def keep(op: 'cirq.Operation') -> bool:
+        def keep(op: cirq.Operation) -> bool:
             return protocols.qasm(op, args=self.args, default=None) is not None
 
         def fallback(op):
@@ -320,7 +351,7 @@ class QasmOutput:
                 return NotImplemented
 
             if len(op.qubits) == 1:
-                return QasmUGate.from_matrix(mat).on(*op.qubits)
+                return QasmUGate.from_matrix(mat).on(*op.qubits)  # pragma: no cover
             return QasmTwoQubitGate.from_matrix(mat).on(*op.qubits)
 
         def on_stuck(bad_op):
@@ -337,10 +368,10 @@ class QasmOutput:
             if should_annotate:
                 output_line_gap(1)
                 if isinstance(main_op, ops.GateOperation):
-                    x = str(main_op.gate).replace('\n', '\n //')
+                    x = str(main_op.gate).replace('\n', '\n//       ')
                     output(f'// Gate: {x!s}\n')
                 else:
-                    x = str(main_op).replace('\n', '\n //')
+                    x = str(main_op).replace('\n', '\n//            ')
                     output(f'// Operation: {x!s}\n')
 
             for qasm in qasms:

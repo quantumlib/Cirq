@@ -11,18 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Tests for Heatmap."""
+
+from __future__ import annotations
 
 import pathlib
 import shutil
 import string
 from tempfile import mkdtemp
 
-import numpy as np
-import pytest
-
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import numpy as np
+import pytest
 from matplotlib.colors import to_rgba_array
 
 from cirq.devices import grid_qubit
@@ -246,7 +248,7 @@ def test_non_float_values(ax, format_string):
     for artist in ax.get_children():
         if isinstance(artist, mpl.text.Text):
             col, row = artist.get_position()
-            if (row, col) in test_value_map:
+            if (row, col) in test_value_map:  # pragma: no cover
                 foo = test_value_map[(row, col)]
                 actual_text = artist.get_text()
                 expected_text = format(foo, format_string)

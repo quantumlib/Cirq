@@ -12,22 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import DefaultDict, Dict, Sequence, TYPE_CHECKING, Optional
+from __future__ import annotations
 
 import abc
 from collections import defaultdict
+from typing import Iterator, Sequence, TYPE_CHECKING
 
 from cirq import circuits, devices, ops, protocols, transformers
-
 from cirq.contrib.acquaintance.gates import AcquaintanceOpportunityGate
+from cirq.contrib.acquaintance.mutation_utils import expose_acquaintance_gates
 from cirq.contrib.acquaintance.permutation import (
-    PermutationGate,
+    LogicalGates,
     LogicalIndex,
     LogicalIndexSequence,
-    LogicalGates,
     LogicalMapping,
+    PermutationGate,
 )
-from cirq.contrib.acquaintance.mutation_utils import expose_acquaintance_gates
 
 if TYPE_CHECKING:
     import cirq
@@ -44,7 +44,7 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def device(self) -> 'cirq.Device':
+    def device(self) -> cirq.Device:
         """The device for which the executed acquaintance strategy should be
         valid.
         """
@@ -56,8 +56,8 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def get_operations(
-        self, indices: Sequence[LogicalIndex], qubits: Sequence['cirq.Qid']
-    ) -> 'cirq.OP_TREE':
+        self, indices: Sequence[LogicalIndex], qubits: Sequence[cirq.Qid]
+    ) -> cirq.OP_TREE:
         """Gets the logical operations to apply to qubits."""
 
     def __call__(self, *args, **kwargs):
@@ -75,6 +75,7 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
         strategy = StrategyExecutorTransformer(self)
         final_circuit = strategy(input_circuit, **kwargs)
         input_circuit._moments = final_circuit._moments
+        input_circuit._placement_cache = final_circuit._placement_cache
         return strategy.mapping
 
 
@@ -98,13 +99,13 @@ class StrategyExecutorTransformer:
         self._mapping = execution_strategy.initial_mapping.copy()
 
     def __call__(
-        self, circuit: circuits.AbstractCircuit, context: Optional['cirq.TransformerContext'] = None
+        self, circuit: circuits.AbstractCircuit, context: cirq.TransformerContext | None = None
     ) -> circuits.Circuit:
         """Executes an acquaintance strategy using cirq.map_operations_and_unroll and
         mutates initial mapping.
 
         Args:
-            circuit: 'cirq.Circuit' input circuit to transform.
+            circuit: `cirq.Circuit` input circuit to transform.
             context: `cirq.TransformerContext` storing common configurable
               options for transformers.
 
@@ -127,7 +128,7 @@ class StrategyExecutorTransformer:
     def mapping(self) -> LogicalMapping:
         return self._mapping
 
-    def _map_func(self, op: 'cirq.Operation', index) -> 'cirq.OP_TREE':
+    def _map_func(self, op: cirq.Operation, index) -> cirq.OP_TREE:
         if isinstance(op.gate, AcquaintanceOpportunityGate):
             logical_indices = tuple(self._mapping[q] for q in op.qubits)
             logical_operations = self.execution_strategy.get_operations(logical_indices, op.qubits)
@@ -151,17 +152,13 @@ class AcquaintanceOperation(ops.GateOperation):
     logical indices on a particular set of physical qubits.
     """
 
-    def __init__(
-        self, qubits: Sequence['cirq.Qid'], logical_indices: Sequence[LogicalIndex]
-    ) -> None:
+    def __init__(self, qubits: Sequence[cirq.Qid], logical_indices: Sequence[LogicalIndex]) -> None:
         if len(logical_indices) != len(qubits):
             raise ValueError('len(logical_indices) != len(qubits)')
         super().__init__(AcquaintanceOpportunityGate(num_qubits=len(qubits)), qubits)
         self.logical_indices: LogicalIndexSequence = logical_indices
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         wire_symbols = tuple(f'({i})' for i in self.logical_indices)
         return protocols.CircuitDiagramInfo(wire_symbols=wire_symbols)
 
@@ -177,7 +174,7 @@ class GreedyExecutionStrategy(ExecutionStrategy):
         self,
         gates: LogicalGates,
         initial_mapping: LogicalMapping,
-        device: Optional['cirq.Device'] = None,
+        device: cirq.Device | None = None,
     ) -> None:
         """Inits GreedyExecutionStrategy.
 
@@ -203,12 +200,12 @@ class GreedyExecutionStrategy(ExecutionStrategy):
         return self._initial_mapping
 
     @property
-    def device(self) -> 'cirq.Device':
+    def device(self) -> cirq.Device:
         return self._device
 
     def get_operations(
-        self, indices: Sequence[LogicalIndex], qubits: Sequence['cirq.Qid']
-    ) -> 'cirq.OP_TREE':
+        self, indices: Sequence[LogicalIndex], qubits: Sequence[cirq.Qid]
+    ) -> Iterator[cirq.OP_TREE]:
         index_set = frozenset(indices)
         if index_set in self.index_set_to_gates:
             gates = self.index_set_to_gates.pop(index_set)
@@ -217,13 +214,13 @@ class GreedyExecutionStrategy(ExecutionStrategy):
                 yield gate(*[index_to_qubit[i] for i in gate_indices])
 
     @staticmethod
-    def canonicalize_gates(gates: LogicalGates) -> Dict[frozenset, LogicalGates]:
+    def canonicalize_gates(gates: LogicalGates) -> dict[frozenset, LogicalGates]:
         """Canonicalizes a set of gates by the qubits they act on.
 
         Takes a set of gates specified by ordered sequences of logical
         indices, and groups those that act on the same qubits regardless of
         order."""
-        canonicalized_gates: DefaultDict[frozenset, LogicalGates] = defaultdict(dict)
+        canonicalized_gates: defaultdict[frozenset, LogicalGates] = defaultdict(dict)
         for indices, gate in gates.items():
             indices = tuple(indices)
             canonicalized_gates[frozenset(indices)][indices] = gate

@@ -13,11 +13,13 @@
 # limitations under the License.
 
 """Linear combination represented as mapping of things to coefficients."""
-import numbers
+
+from __future__ import annotations
+
 from typing import (
+    AbstractSet,
     Any,
     Callable,
-    Dict,
     Generic,
     ItemsView,
     Iterable,
@@ -25,22 +27,44 @@ from typing import (
     KeysView,
     Mapping,
     MutableMapping,
-    Optional,
     overload,
-    Tuple,
+    TYPE_CHECKING,
     TypeVar,
-    Union,
     ValuesView,
 )
+
+import numpy as np
+import sympy
 from typing_extensions import Self
 
-Scalar = Union[complex, float, numbers.Complex]
+from cirq import protocols
+
+if TYPE_CHECKING:
+    import cirq
+
+Scalar = complex | np.number
 TVector = TypeVar('TVector')
 
 TDefault = TypeVar('TDefault')
 
 
-def _format_coefficient(format_spec: str, coefficient: Scalar) -> str:
+class _SympyPrinter(sympy.printing.str.StrPrinter):
+    def __init__(self, format_spec: str):
+        super().__init__()
+        self._format_spec = format_spec
+
+    def _print(self, expr, **kwargs):
+        if expr.is_complex:
+            coefficient = complex(expr)
+            s = _format_coefficient(self._format_spec, coefficient)
+            return s[1:-1] if s.startswith('(') else s
+        return super()._print(expr, **kwargs)
+
+
+def _format_coefficient(format_spec: str, coefficient: cirq.TParamValComplex) -> str:
+    if isinstance(coefficient, sympy.Basic):
+        printer = _SympyPrinter(format_spec)
+        return printer.doprint(coefficient)
     coefficient = complex(coefficient)
     real_str = f'{coefficient.real:{format_spec}}'
     imag_str = f'{coefficient.imag:{format_spec}}'
@@ -57,7 +81,7 @@ def _format_coefficient(format_spec: str, coefficient: Scalar) -> str:
     return f'({real_str}+{imag_str}j)'
 
 
-def _format_term(format_spec: str, vector: TVector, coefficient: Scalar) -> str:
+def _format_term(format_spec: str, vector: TVector, coefficient: cirq.TParamValComplex) -> str:
     coefficient_str = _format_coefficient(format_spec, coefficient)
     if not coefficient_str:
         return coefficient_str
@@ -67,7 +91,7 @@ def _format_term(format_spec: str, vector: TVector, coefficient: Scalar) -> str:
     return '+' + result
 
 
-def _format_terms(terms: Iterable[Tuple[TVector, Scalar]], format_spec: str):
+def _format_terms(terms: Iterable[tuple[TVector, cirq.TParamValComplex]], format_spec: str):
     formatted_terms = [_format_term(format_spec, vector, coeff) for vector, coeff in terms]
     s = ''.join(formatted_terms)
     if not s:
@@ -77,7 +101,7 @@ def _format_terms(terms: Iterable[Tuple[TVector, Scalar]], format_spec: str):
     return s
 
 
-class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
+class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComplex']):
     """Represents linear combination of things.
 
     LinearDict implements the basic linear algebraic operations of vector
@@ -94,8 +118,8 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
 
     def __init__(
         self,
-        terms: Optional[Mapping[TVector, Scalar]] = None,
-        validator: Optional[Callable[[TVector], bool]] = None,
+        terms: Mapping[TVector, cirq.TParamValComplex] | None = None,
+        validator: Callable[[TVector], bool] | None = None,
     ) -> None:
         """Initializes linear combination from a collection of terms.
 
@@ -110,13 +134,18 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
         """
         self._has_validator = validator is not None
         self._is_valid = validator or (lambda x: True)
-        self._terms: Dict[TVector, Scalar] = {}
+        self._terms: dict[TVector, cirq.TParamValComplex] = {}
         if terms is not None:
             self.update(terms)
 
     @classmethod
     def fromkeys(cls, vectors, coefficient=0):
-        return LinearDict(dict.fromkeys(vectors, complex(coefficient)))
+        return LinearDict(
+            dict.fromkeys(
+                vectors,
+                coefficient if isinstance(coefficient, sympy.Basic) else complex(coefficient),
+            )
+        )
 
     def _check_vector_valid(self, vector: TVector) -> None:
         if not self._is_valid(vector):
@@ -124,7 +153,11 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
 
     def clean(self, *, atol: float = 1e-9) -> Self:
         """Remove terms with coefficients of absolute value atol or less."""
-        negligible = [v for v, c in self._terms.items() if abs(c) <= atol]  # type: ignore[operator]
+        negligible = [
+            v
+            for v, c in self._terms.items()
+            if not isinstance(c, sympy.Basic) and abs(complex(c)) <= atol
+        ]
         for v in negligible:
             del self._terms[v]
         return self
@@ -137,40 +170,49 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
         snapshot = self.copy().clean(atol=0)
         return snapshot._terms.keys()
 
-    def values(self) -> ValuesView[Scalar]:
+    def values(self) -> ValuesView[cirq.TParamValComplex]:
         snapshot = self.copy().clean(atol=0)
         return snapshot._terms.values()
 
-    def items(self) -> ItemsView[TVector, Scalar]:
+    def items(self) -> ItemsView[TVector, cirq.TParamValComplex]:
         snapshot = self.copy().clean(atol=0)
         return snapshot._terms.items()
 
-    # pylint: disable=function-redefined
     @overload
-    def update(self, other: Mapping[TVector, Scalar], **kwargs: Scalar) -> None:
+    def update(
+        self, other: Mapping[TVector, cirq.TParamValComplex], **kwargs: cirq.TParamValComplex
+    ) -> None:
         pass
 
     @overload
-    def update(self, other: Iterable[Tuple[TVector, Scalar]], **kwargs: Scalar) -> None:
+    def update(
+        self,
+        other: Iterable[tuple[TVector, cirq.TParamValComplex]],
+        **kwargs: cirq.TParamValComplex,
+    ) -> None:
         pass
 
     @overload
-    def update(self, *args: Any, **kwargs: Scalar) -> None:
+    def update(self, *args: Any, **kwargs: cirq.TParamValComplex) -> None:
         pass
 
     def update(self, *args, **kwargs):
         terms = dict()
         terms.update(*args, **kwargs)
         for vector, coefficient in terms.items():
+            if isinstance(coefficient, sympy.Basic):
+                coefficient = sympy.simplify(coefficient)
+                if coefficient.is_complex:
+                    coefficient = complex(coefficient)
             self[vector] = coefficient
         self.clean(atol=0)
 
     @overload
-    def get(self, vector: TVector) -> Scalar:
+    def get(self, vector: TVector) -> cirq.TParamValComplex:
         pass
 
     @overload
-    def get(self, vector: TVector, default: TDefault) -> Union[Scalar, TDefault]:
+    def get(self, vector: TVector, default: TDefault) -> cirq.TParamValComplex | TDefault:
         pass
 
     def get(self, vector, default=0):
@@ -178,15 +220,13 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
             return default
         return self._terms.get(vector)
 
-    # pylint: enable=function-redefined
-
     def __contains__(self, vector: Any) -> bool:
         return vector in self._terms and self._terms[vector] != 0
 
-    def __getitem__(self, vector: TVector) -> Scalar:
+    def __getitem__(self, vector: TVector) -> cirq.TParamValComplex:
         return self._terms.get(vector, 0)
 
-    def __setitem__(self, vector: TVector, coefficient: Scalar) -> None:
+    def __setitem__(self, vector: TVector, coefficient: cirq.TParamValComplex) -> None:
         self._check_vector_valid(vector)
         if coefficient != 0:
             self._terms[vector] = coefficient
@@ -234,21 +274,21 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
         factory = type(self)
         return factory({v: -c for v, c in self.items()})
 
-    def __imul__(self, a: Scalar) -> Self:
+    def __imul__(self, a: cirq.TParamValComplex) -> Self:
         for vector in self:
             self._terms[vector] *= a
         self.clean(atol=0)
         return self
 
-    def __mul__(self, a: Scalar) -> Self:
+    def __mul__(self, a: cirq.TParamValComplex) -> Self:
         result = self.copy()
         result *= a
-        return result
+        return result.copy()
 
-    def __rmul__(self, a: Scalar) -> Self:
+    def __rmul__(self, a: cirq.TParamValComplex) -> Self:
         return self.__mul__(a)
 
-    def __truediv__(self, a: Scalar) -> Self:
+    def __truediv__(self, a: cirq.TParamValComplex) -> Self:
         return self.__mul__(1 / a)
 
     def __bool__(self) -> bool:
@@ -307,7 +347,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
         else:
             p.text(str(self))
 
-    def _json_dict_(self) -> Dict[Any, Any]:
+    def _json_dict_(self) -> dict[Any, Any]:
         if self._has_validator:
             raise ValueError('LinearDict with a validator is not json serializable.')
         return {
@@ -318,3 +358,19 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
     @classmethod
     def _from_json_dict_(cls, keys, values, **kwargs):
         return cls(terms=dict(zip(keys, values)))
+
+    def _is_parameterized_(self) -> bool:
+        return any(protocols.is_parameterized(v) for v in self._terms.values())
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return set(name for v in self._terms.values() for name in protocols.parameter_names(v))
+
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> LinearDict:
+        result = self.copy()
+        result.update(
+            {
+                k: protocols.resolve_parameters(v, resolver, recursive)
+                for k, v in self._terms.items()
+            }
+        )
+        return result

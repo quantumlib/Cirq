@@ -36,7 +36,7 @@ specification.  This time is stored as an integer number of picoseconds.
 Example code to print out the gate durations for every gate supported by the
 device is shown below:
 
-```
+```python
 import cirq
 
 # Create an Engine object to use.
@@ -99,7 +99,7 @@ verify a circuit.
 The following example illustrates retrieving the device specification live
 from the engine and then using it to validate a circuit.
 
-```
+```python
 import cirq
 import cirq_google as cg
 

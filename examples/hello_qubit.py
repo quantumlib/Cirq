@@ -8,6 +8,8 @@ Results:
 m=11000111111011001000
 """
 
+from __future__ import annotations
+
 import cirq
 
 

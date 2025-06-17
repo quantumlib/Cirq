@@ -11,23 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Optional, List
-import cirq
 
 from pyquil import get_qc
+from pyquil.api import QuantumComputer
+from qcs_sdk.client import QCSClient
 from qcs_sdk.qpu import list_quantum_processors
 from qcs_sdk.qpu.isa import get_instruction_set_architecture, InstructionSetArchitecture
-from qcs_sdk.client import QCSClient
 from qcs_sdk.qpu.translation import get_quilt_calibrations
-from pyquil.api import QuantumComputer
-from cirq_rigetti.sampler import RigettiQCSSampler
-from cirq_rigetti import circuit_transformers as transformers
-from cirq_rigetti import circuit_sweep_executors as executors
 
+import cirq
+from cirq_rigetti import circuit_sweep_executors as executors, circuit_transformers as transformers
+from cirq_rigetti.deprecation import deprecated_cirq_rigetti_class, deprecated_cirq_rigetti_function
+from cirq_rigetti.sampler import RigettiQCSSampler
 
 _default_executor = executors.with_quilc_compilation_and_cirq_parameter_resolution
 
 
+@deprecated_cirq_rigetti_class()
 class RigettiQCSService:
     """This class supports running circuits on QCS quantum hardware as well as
     pyQuil's quantum virtual machine (QVM). When sampling a parametric circuit
@@ -96,7 +96,7 @@ class RigettiQCSService:
         )
 
     @staticmethod
-    def list_quantum_processors(client: Optional[QCSClient] = None) -> List[str]:
+    def list_quantum_processors(client: QCSClient | None = None) -> list[str]:
         """Retrieve a list of available Rigetti quantum processors.
 
         Args:
@@ -113,7 +113,7 @@ class RigettiQCSService:
 
     @staticmethod
     def get_quilt_calibrations(
-        quantum_processor_id: str, client: Optional[QCSClient] = None
+        quantum_processor_id: str, client: QCSClient | None = None
     ) -> str:  # pragma: no cover
         """Retrieve the calibration data used for client-side Quil-T generation.
 
@@ -132,7 +132,7 @@ class RigettiQCSService:
 
     @staticmethod
     def get_instruction_set_architecture(
-        quantum_processor_id: str, client: Optional[QCSClient] = None
+        quantum_processor_id: str, client: QCSClient | None = None
     ) -> InstructionSetArchitecture:  # pragma: no cover
         """Retrieve the Instruction Set Architecture of a QuantumProcessor by ID. This
         includes site specific operations and native gate capabilities.
@@ -152,11 +152,12 @@ class RigettiQCSService:
         )
 
 
+@deprecated_cirq_rigetti_function()
 def get_rigetti_qcs_service(
     quantum_processor_id: str,
     *,
-    as_qvm: Optional[bool] = None,
-    noisy: Optional[bool] = None,
+    as_qvm: bool | None = None,
+    noisy: bool | None = None,
     executor: executors.CircuitSweepExecutor = _default_executor,
     transformer: transformers.CircuitTransformer = transformers.default,
 ) -> RigettiQCSService:

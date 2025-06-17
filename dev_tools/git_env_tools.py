@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import os
 import shutil
 import subprocess
 import sys
 
-from dev_tools import shell_tools, github_repository, prepared_env
+from dev_tools import github_repository, prepared_env, shell_tools
 
 
 def get_repo_root() -> str:

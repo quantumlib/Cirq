@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
+from __future__ import annotations
 
 import networkx as nx
+import pytest
 
 import cirq
 import cirq.contrib.routing as ccr

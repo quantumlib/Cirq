@@ -1,0 +1,144 @@
+/*
+ * Packed arrays store n-dimensional, homogeneous numeric data in a serialized
+ * byte array, along with their shape and endianness. Their performance is
+ * competitive with labrad and flatbuffer serialization/deserialization due to
+ * the reduced scope of functionality (i.e. just arrays).
+ *
+ * Each packed type has:
+ *  - shape: a list of integers that mimic numpy's shape parameter. That is,
+ *    each element represents the length of a dimension. A 2-D n x m array would
+ *    have the shape [n, m].
+ *  - endianness: The endianness of encoding; client libraries are responsible
+ *    for correcting mismatched endianness. We highly recommend client
+ *    libraries to stick with consistent and, preferably, system-native
+ *    endianness. Note that unspecified endianness defaults to little endian;
+ *    this approximately reflects how protobufs are serialized on the wire.
+ *
+ * Note that different types are used to enforce typing in downstream data
+ * data sources without inspecting the proto data.  (For instance, enforcing
+ * that a field stored as a proto is Complex128 requires only checking message
+ * type and not the data.)
+ */
+syntax = "proto3";
+
+package cirq.google.api.v2;
+
+option java_package = "com.google.cirq.google.api.v2";
+option java_outer_classname = "NDArrayProto";
+option java_multiple_files = true;
+
+enum Endianness {
+  LITTLE_ENDIAN = 0;
+  BIG_ENDIAN = 1;
+}
+
+/*
+ * Array of interleaved (real, imaginary) pairs, each of which are 64-bit
+ * floats.
+ */
+message Complex128Array {
+  repeated uint32 shape = 1;
+  Endianness endianness = 2;
+  oneof data {
+    bytes flat_bytes = 3;
+  }
+}
+
+/*
+ * Array of interleaved (real, imaginary) pairs, each of which are 32-bit
+ * floats.
+ */
+message Complex64Array {
+  repeated uint32 shape = 1;
+  Endianness endianness = 2;
+  oneof data {
+    bytes flat_bytes = 3;
+  }
+}
+
+message Float16Array {
+  repeated uint32 shape = 1;
+  Endianness endianness = 2;
+  oneof data {
+    bytes flat_bytes = 3;
+  }
+}
+
+message Float32Array {
+  repeated uint32 shape = 1;
+  Endianness endianness = 2;
+  oneof data {
+    bytes flat_bytes = 3;
+  }
+}
+
+message Float64Array {
+  repeated uint32 shape = 1;
+  Endianness endianness = 2;
+  oneof data {
+    bytes flat_bytes = 3;
+  }
+}
+
+message Int64Array {
+  repeated uint32 shape = 1;
+  Endianness endianness = 2;
+  oneof data {
+    bytes flat_bytes = 3;
+  }
+}
+
+message Int32Array {
+  repeated uint32 shape = 1;
+  Endianness endianness = 2;
+  oneof data {
+    bytes flat_bytes = 3;
+  }
+}
+
+message Int16Array {
+  repeated uint32 shape = 1;
+  Endianness endianness = 2;
+  oneof data {
+    bytes flat_bytes = 3;
+  }
+}
+
+message Int8Array {
+  repeated uint32 shape = 1;
+  oneof data {
+    bytes flat_bytes = 2;
+  }
+}
+
+message UInt8Array {
+  repeated uint32 shape = 1;
+  oneof data {
+    bytes flat_bytes = 2;
+  }
+}
+
+/*
+ * BitArrays represent arbitrary shape bit arrays.
+ *
+ * They are packed into bytes, in big-endian bit order and therefore will
+ * consume ceil(product(shape) / 8) bytes.
+ *
+ * For example, say we have an array:
+ *    array = [0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0]
+ *    Where array[0] == 0, array[1] == 1, array[2] == 1, etc.
+ *
+ * It will get mapped into bytes as follows:
+ *    0  1  1  0  1  0  0  0 : 1  0  1  0
+ *   [       byte 0          |        byte 1         ]
+ *    7  6  5  4  3  2  1  0 : 7  6  5  4  3  2  1  0     <-- bit index in byte
+ *                                         ^^^^^^^^^^^
+ *                                         unused bits will be zeroed out
+ *
+ */
+message BitArray {
+  repeated uint32 shape = 1;
+  oneof data {
+    bytes flat_bytes = 2;
+  }
+}

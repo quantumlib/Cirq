@@ -12,14 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 
 from unittest.mock import patch
-import pytest
 
 import numpy as np
+import pytest
 
 import cirq
-from cirq.transformers.gauge_compiling import GaugeTransformer, GaugeSelector
+from cirq.transformers.gauge_compiling import GaugeSelector, GaugeTransformer
 
 
 class GaugeTester:
@@ -72,6 +73,43 @@ class GaugeTester:
                     _check_equivalent_with_error_message(c, nc, gauge)
             else:
                 _check_equivalent_with_error_message(c, nc, gauge)
+
+    def test_sweep(self):
+        qubits = cirq.LineQubit.range(3)
+
+        input_circuit = cirq.Circuit(
+            cirq.Moment(cirq.H(qubits[0])),
+            cirq.Moment(self.two_qubit_gate(*qubits[:2])),
+            cirq.Moment(self.two_qubit_gate(*qubits[1:])),
+            cirq.Moment([cirq.H(q) for q in qubits]),
+            cirq.Moment([cirq.measure(q) for q in qubits]),
+        )
+
+        n_samples = 5
+        parameterized_circuit, sweeps = self.gauge_transformer.as_sweep(input_circuit, N=n_samples)
+
+        # Check the parameterized circuit and N set of parameters.
+        assert cirq.is_parameterized(parameterized_circuit)
+        simulator = cirq.Simulator()
+        results = simulator.run_sweep(parameterized_circuit, sweeps)
+        assert len(results) == n_samples
+
+        # Check compilied circuits have the same unitary as the orig circuit.
+        for params in sweeps:
+            compiled_circuit = cirq.resolve_parameters(parameterized_circuit, params)
+            if self.must_fail:
+                with pytest.raises(AssertionError):
+                    cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+                        input_circuit[:-1],
+                        compiled_circuit[:-1],
+                        qubit_map={q: q for q in input_circuit.all_qubits()},
+                    )
+                break
+            cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+                input_circuit[:-1],
+                compiled_circuit[:-1],
+                qubit_map={q: q for q in input_circuit.all_qubits()},
+            )
 
 
 def _check_equivalent_with_error_message(c: cirq.AbstractCircuit, nc: cirq.AbstractCircuit, gauge):

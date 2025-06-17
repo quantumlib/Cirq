@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
 
 import pytest
@@ -79,5 +81,5 @@ def test_swap_network_str():
 (3, 0): ───q(3)───ZZ───q(3)───╱1╲───q(2)───ZZ───q(2)───╲0╱───q(4)───ZZ───q(4)───╱1╲───q(0)───ZZ───q(0)───╲0╱───q(2)───ZZ───q(2)───╱1╲───q(1)───
                                            │           │                                     │           │
 (4, 0): ───q(4)────────q(4)─────────q(4)───ZZ───q(4)───╱1╲───q(2)────────q(2)─────────q(2)───ZZ───q(2)───╱1╲───q(0)────────q(0)─────────q(0)───
-    """.strip()
+    """.strip()  # noqa: E501
     assert actual_str == expected_str

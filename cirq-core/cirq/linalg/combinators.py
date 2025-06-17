@@ -14,18 +14,20 @@
 
 """Utility methods for combining matrices."""
 
+from __future__ import annotations
+
 import functools
-from typing import Union, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from cirq._doc import document
 
 if TYPE_CHECKING:
-    from numpy.typing import DTypeLike, ArrayLike
+    from numpy.typing import ArrayLike, DTypeLike
 
 
-def kron(*factors: Union[np.ndarray, complex, float], shape_len: int = 2) -> np.ndarray:
+def kron(*factors: np.ndarray | complex, shape_len: int = 2) -> np.ndarray:
     """Computes the kronecker product of a sequence of values.
 
     A *args version of lambda args: functools.reduce(np.kron, args).
@@ -56,7 +58,7 @@ document(
 )
 
 
-def kron_with_controls(*factors: Union[np.ndarray, complex, float]) -> np.ndarray:
+def kron_with_controls(*factors: np.ndarray | complex) -> np.ndarray:
     """Computes the kronecker product of a sequence of values and control tags.
 
     Use `cirq.CONTROL_TAG` to represent controls. Any entry of the output
@@ -107,7 +109,7 @@ def kron_with_controls(*factors: Union[np.ndarray, complex, float]) -> np.ndarra
     return product
 
 
-def dot(*values: 'ArrayLike') -> np.ndarray:
+def dot(*values: ArrayLike) -> np.ndarray:
     """Computes the dot/matrix product of a sequence of values.
 
     Performs the computation in serial order without regard to the matrix
@@ -136,7 +138,7 @@ def dot(*values: 'ArrayLike') -> np.ndarray:
     return result
 
 
-def _merge_dtypes(dtype1: 'DTypeLike', dtype2: 'DTypeLike') -> np.dtype:
+def _merge_dtypes(dtype1: DTypeLike, dtype2: DTypeLike) -> np.dtype:
     return (np.zeros(0, dtype1) + np.zeros(0, dtype2)).dtype
 
 

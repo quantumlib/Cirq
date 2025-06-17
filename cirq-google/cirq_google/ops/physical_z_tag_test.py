@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import cirq
 import cirq_google
 
@@ -26,3 +29,9 @@ def test_syc_str_repr():
     cirq.testing.assert_equivalent_repr(
         cirq_google.PhysicalZTag(), setup_code=('import cirq\nimport cirq_google\n')
     )
+
+
+def test_proto():
+    tag = cirq_google.PhysicalZTag()
+    msg = tag.to_proto()
+    assert tag == cirq_google.PhysicalZTag.from_proto(msg)

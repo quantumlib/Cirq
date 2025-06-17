@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
+from __future__ import annotations
 
 import numpy as np
+import pytest
 
-import cirq_ionq as ionq
 import cirq.testing
+import cirq_ionq as ionq
 
 
 def test_qpu_result_fields():

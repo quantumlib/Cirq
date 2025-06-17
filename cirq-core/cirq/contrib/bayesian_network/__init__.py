@@ -12,4 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.contrib.bayesian_network.bayesian_network_gate import BayesianNetworkGate
+from cirq.contrib.bayesian_network.bayesian_network_gate import (
+    BayesianNetworkGate as BayesianNetworkGate,
+)

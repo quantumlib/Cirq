@@ -12,18 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 
 import functools
 import glob
-import re
 import os
+import re
 import subprocess
 import tempfile
 from logging import warning
-from typing import Set, List
 
 
-def list_all_notebooks() -> Set[str]:
+def list_all_notebooks() -> set[str]:
     """Returns the relative paths to all notebooks in the git repo.
 
     In case the folder is not a git repo, it returns an empty set.
@@ -36,7 +36,7 @@ def list_all_notebooks() -> Set[str]:
         return set()
 
 
-def filter_notebooks(all_notebooks: Set[str], skip_list: List[str]):
+def filter_notebooks(all_notebooks: set[str], skip_list: list[str]):
     """Returns the absolute path for notebooks except those that are skipped.
 
     Args:

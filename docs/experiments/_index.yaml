@@ -6,7 +6,7 @@ landing_page:
   rows:
   - heading: Experiments using quantum circuits
     description: This is a collection of algorithms and experiments written in and
-      using Cirq. A couple of them use only base Cirq, but the rest use additional
+      using Cirq. A few use only base Cirq; the rest use additional
       code stored in ReCirq, a GitHub repository for research code that uses and builds
       upon Cirq.
   - buttons:
@@ -15,7 +15,7 @@ landing_page:
     - label: ReCirq GitHub
       path: https://github.com/quantumlib/ReCirq
   - heading: Algorithms in base Cirq
-    description: Algorithms and experiments executable using only default Cirq code.
+    description: Algorithms and experiments that use only default Cirq code.
     options:
     - cards
     items:
@@ -24,20 +24,20 @@ landing_page:
         shown in quantum textbooks.
       path: /cirq/experiments/textbook_algorithms
     - heading: Shor's Algorithm
-      description: The famous integer factorization algorithm by Peter Shor.
+      description: An implementation of the famous integer factorization algorithm by Peter Shor.
       path: /cirq/experiments/shor
     - heading: Variational Quantum Eigensolver
-      description: Compute the ground state of a Hamiltonian using the variational
-        principle.
+      description: An example of computing the ground state of a Hamiltonian using the
+        variational principle.
       path: /cirq/experiments/variational_algorithm
     - heading: Quantum Walks
-      description: The quantum analog of a random walk algorithm.
+      description: An example of the quantum analog of a random walk algorithm.
       path: /cirq/experiments/quantum_walks
     - heading: Fourier Checking
-      description: Demonstrate the separation between quantum and classical computers.
+      description: A demonstration of the separation between quantum and classical computers.
       path: /cirq/experiments/fourier_checking
     - heading: Hidden Linear Function problem
-      description: Show quantum separation with a constant depth solution.
+      description: An example showing quantum separation with a constant-depth solution.
       path: /cirq/experiments/hidden_linear_function
 
   - heading: ReCirq Experiments

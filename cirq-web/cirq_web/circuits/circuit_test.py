@@ -11,17 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import cirq
-import cirq_web
+
+from __future__ import annotations
 
 import pytest
+
+import cirq
+import cirq_web
 
 
 def strip_ws(string):
     return "".join(string.split())
 
 
-def test_circuit_init_type():
+def test_circuit_init_type() -> None:
     qubits = [cirq.GridQubit(x, y) for x in range(2) for y in range(2)]
     moment = cirq.Moment(cirq.H(qubits[0]))
     circuit = cirq.Circuit(moment)
@@ -31,7 +34,7 @@ def test_circuit_init_type():
 
 
 @pytest.mark.parametrize('qubit', [cirq.GridQubit(0, 0), cirq.LineQubit(0)])
-def test_circuit_client_code(qubit):
+def test_circuit_client_code(qubit) -> None:
     moment = cirq.Moment(cirq.H(qubit))
     circuit = cirq_web.Circuit3D(cirq.Circuit(moment))
 
@@ -51,7 +54,9 @@ def test_circuit_client_code(qubit):
         <button id="camera-reset">Reset Camera</button>
         <button id="camera-toggle">Toggle Camera Type</button>
         <script>
-        let viz_{stripped_id} = createGridCircuit({str(circuit_obj)}, {str(moments)}, "{circuit.id}", {circuit.padding_factor});
+        let viz_{stripped_id} = createGridCircuit(
+            {str(circuit_obj)}, {str(moments)}, "{circuit.id}", {circuit.padding_factor}
+        );
 
         document.getElementById("camera-reset").addEventListener('click', ()  => {{
         viz_{stripped_id}.scene.setCameraAndControls(viz_{stripped_id}.circuit);
@@ -66,7 +71,7 @@ def test_circuit_client_code(qubit):
     assert strip_ws(circuit.get_client_code()) == strip_ws(expected_client_code)
 
 
-def test_circuit_client_code_unsupported_qubit_type():
+def test_circuit_client_code_unsupported_qubit_type() -> None:
     moment = cirq.Moment(cirq.H(cirq.NamedQubit('q0')))
     circuit = cirq_web.Circuit3D(cirq.Circuit(moment))
 
@@ -74,7 +79,7 @@ def test_circuit_client_code_unsupported_qubit_type():
         circuit.get_client_code()
 
 
-def test_circuit_default_bundle_name():
+def test_circuit_default_bundle_name() -> None:
     qubits = [cirq.GridQubit(x, y) for x in range(2) for y in range(2)]
     moment = cirq.Moment(cirq.H(qubits[0]))
     circuit = cirq_web.Circuit3D(cirq.Circuit(moment))

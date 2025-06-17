@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import abc
-from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
+from typing import Any, Sequence, TYPE_CHECKING
+
 import numpy as np
 
 from cirq import protocols
-from cirq._compat import proper_repr, cached_method
+from cirq._compat import _method_cache_name, cached_method, proper_repr
 from cirq.qis import quantum_state_representation
 from cirq.value import big_endian_int_to_digits, linear_dict, random_state
 
@@ -144,9 +147,9 @@ class CliffordTableau(StabilizerState):
         self,
         num_qubits,
         initial_state: int = 0,
-        rs: Optional[np.ndarray] = None,
-        xs: Optional[np.ndarray] = None,
-        zs: Optional[np.ndarray] = None,
+        rs: np.ndarray | None = None,
+        xs: np.ndarray | None = None,
+        zs: np.ndarray | None = None,
     ):
         """Initializes CliffordTableau
         Args:
@@ -163,7 +166,7 @@ class CliffordTableau(StabilizerState):
         self._xs = self._reconstruct_xs(xs)
         self._zs = self._reconstruct_zs(zs)
 
-    def _reconstruct_rs(self, rs: Optional[np.ndarray]) -> np.ndarray:
+    def _reconstruct_rs(self, rs: np.ndarray | None) -> np.ndarray:
         if rs is None:
             new_rs = np.zeros(2 * self.n + 1, dtype=bool)
             for i, val in enumerate(
@@ -182,7 +185,7 @@ class CliffordTableau(StabilizerState):
                 )
         return new_rs
 
-    def _reconstruct_xs(self, xs: Optional[np.ndarray]) -> np.ndarray:
+    def _reconstruct_xs(self, xs: np.ndarray | None) -> np.ndarray:
         if xs is None:
             new_xs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
             for i in range(self.n):
@@ -204,7 +207,7 @@ class CliffordTableau(StabilizerState):
                 )
         return new_xs
 
-    def _reconstruct_zs(self, zs: Optional[np.ndarray]) -> np.ndarray:
+    def _reconstruct_zs(self, zs: np.ndarray | None) -> np.ndarray:
         if zs is None:
             new_zs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
             for i in range(self.n):
@@ -257,7 +260,7 @@ class CliffordTableau(StabilizerState):
         """Returns the 2n * 2n matrix representation of the Clifford tableau."""
         return np.concatenate([self.xs, self.zs], axis=1)
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['n', 'rs', 'xs', 'zs'])
 
     @classmethod
@@ -285,10 +288,10 @@ class CliffordTableau(StabilizerState):
             and np.array_equal(self.zs, other.zs)
         )
 
-    def __copy__(self) -> 'CliffordTableau':
+    def __copy__(self) -> CliffordTableau:
         return self.copy()
 
-    def copy(self, deep_copy_buffers: bool = True) -> 'CliffordTableau':
+    def copy(self, deep_copy_buffers: bool = True) -> CliffordTableau:
         state = CliffordTableau(self.n)
         state.rs = self.rs.copy()
         state.xs = self.xs.copy()
@@ -326,34 +329,44 @@ class CliffordTableau(StabilizerState):
         return string
 
     def _str_full_(self) -> str:
-        string = ''
+        left_col_width = max(7, self.n * 2 + 3)
+        right_col_width = max(10, self.n * 2 + 4)
 
-        string += 'stable' + ' ' * max(self.n * 2 - 3, 1)
-        string += '| destable\n'
-        string += '-' * max(7, self.n * 2 + 3) + '+' + '-' * max(10, self.n * 2 + 4) + '\n'
+        def _fill_row(left: str, right: str, mid='|', fill=' ') -> str:
+            """Builds a left-aligned fixed-width row with 2 columns."""
+            return f"{left:{fill}<{left_col_width}}{mid}{right:{fill}<{right_col_width}}".rstrip()
 
-        for j in range(self.n):
-            for i in [j + self.n, j]:
-                string += '- ' if self.rs[i] else '+ '
+        def _pauli_from_matrix(r: int, c: int) -> str:
+            match (bool(self.xs[r, c]), bool(self.zs[r, c])):
+                case (True, False):
+                    return f'X{c}'
+                case (False, True):
+                    return f'Z{c}'
+                case (True, True):
+                    return f'Y{c}'
+                case _:
+                    # (False, False) is the only leftover option
+                    return '  '
 
-                for k in range(self.n):
-                    if self.xs[i, k] & (not self.zs[i, k]):
-                        string += f'X{k}'
-                    elif (not self.xs[i, k]) & self.zs[i, k]:
-                        string += f'Z{k}'
-                    elif self.xs[i, k] & self.zs[i, k]:
-                        string += f'Y{k}'
-                    else:
-                        string += '  '
+        title_row = _fill_row('stable', ' destable')
+        divider = _fill_row('', '', mid='+', fill='-')
+        contents = [
+            _fill_row(
+                left=(
+                    f"{'-' if self.rs[i + self.n] else '+'} "
+                    f"{''.join(_pauli_from_matrix(i + self.n, j) for j in range(self.n))}"
+                ),
+                right=(
+                    f" {'-' if self.rs[i] else '+'} "
+                    f"{''.join(_pauli_from_matrix(i, j) for j in range(self.n))}"
+                ),
+            )
+            for i in range(self.n)
+        ]
 
-                if i == j + self.n:
-                    string += ' ' * max(0, 4 - self.n * 2) + ' | '
+        return '\n'.join([title_row, divider, *contents]) + '\n'
 
-            string += '\n'
-
-        return string
-
-    def then(self, second: 'CliffordTableau') -> 'CliffordTableau':
+    def then(self, second: CliffordTableau) -> CliffordTableau:
         """Returns a composed CliffordTableau of this tableau and the second tableau.
 
         Then composed tableau is equal to (up to global phase) the composed
@@ -420,7 +433,7 @@ class CliffordTableau(StabilizerState):
 
         return merged_tableau
 
-    def inverse(self) -> 'CliffordTableau':
+    def inverse(self) -> CliffordTableau:
         """Returns the inverse Clifford tableau of this tableau."""
         ret_table = CliffordTableau(num_qubits=self.n)
         # It relies on the symplectic property of Clifford tableau.
@@ -439,7 +452,7 @@ class CliffordTableau(StabilizerState):
         ret_table.rs = ret_table.then(self).rs
         return ret_table
 
-    def __matmul__(self, second: 'CliffordTableau'):
+    def __matmul__(self, second: CliffordTableau):
         if not isinstance(second, CliffordTableau):
             return NotImplemented
         return second.then(self)
@@ -470,7 +483,7 @@ class CliffordTableau(StabilizerState):
         self._xs[q1, :] ^= self._xs[q2, :]
         self._zs[q1, :] ^= self._zs[q2, :]
 
-    def _row_to_dense_pauli(self, i: int) -> 'cirq.DensePauliString':
+    def _row_to_dense_pauli(self, i: int) -> cirq.DensePauliString:
         """Return a dense Pauli string for the given row in the tableau.
 
         Args:
@@ -498,12 +511,12 @@ class CliffordTableau(StabilizerState):
                 pauli_mask += "I"
         return DensePauliString(pauli_mask, coefficient=coefficient)
 
-    def stabilizers(self) -> List['cirq.DensePauliString']:
+    def stabilizers(self) -> list[cirq.DensePauliString]:
         """Returns the stabilizer generators of the state. These
         are n operators {S_1,S_2,...,S_n} such that S_i |psi> = |psi>"""
         return [self._row_to_dense_pauli(i) for i in range(self.n, 2 * self.n)]
 
-    def destabilizers(self) -> List['cirq.DensePauliString']:
+    def destabilizers(self) -> list[cirq.DensePauliString]:
         """Returns the destabilizer generators of the state. These
         are n operators {S_1,S_2,...,S_n} such that along with the stabilizer
         generators above generate the full Pauli group on n qubits."""
@@ -651,10 +664,19 @@ class CliffordTableau(StabilizerState):
         pass
 
     def measure(
-        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
-    ) -> List[int]:
+        self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
+    ) -> list[int]:
         return [self._measure(axis, random_state.parse_random_state(seed)) for axis in axes]
 
     @cached_method
     def __hash__(self) -> int:
         return hash(self.matrix().tobytes() + self.rs.tobytes())
+
+    def __getstate__(self) -> dict[str, Any]:
+        # clear cached hash value when pickling, see #6674
+        state = self.__dict__
+        hash_attr = _method_cache_name(self.__hash__)
+        if hash_attr in state:
+            state = state.copy()
+            del state[hash_attr]
+        return state

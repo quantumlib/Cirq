@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import scipy.stats
 
@@ -87,6 +89,7 @@ def test_decompose_specific_matrices():
             _test_decompose(cirq.unitary(gate), controls_count)
 
 
+@cirq.testing.retry_once_with_later_random_values
 def test_decompose_random_unitary():
     for controls_count in range(5):
         for _ in range(10):
@@ -95,6 +98,7 @@ def test_decompose_random_unitary():
         _test_decompose(_random_unitary(), controls_count)
 
 
+@cirq.testing.retry_once_with_later_random_values
 def test_decompose_random_special_unitary():
     for controls_count in range(5):
         for _ in range(10):

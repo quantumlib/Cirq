@@ -14,8 +14,11 @@
 
 """Transformer passes which align operations to the left or right of the circuit."""
 
+from __future__ import annotations
+
 import dataclasses
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
+
 from cirq import circuits, ops
 from cirq.transformers import transformer_api
 
@@ -25,8 +28,8 @@ if TYPE_CHECKING:
 
 @transformer_api.transformer(add_deep_support=True)
 def align_left(
-    circuit: 'cirq.AbstractCircuit', *, context: Optional['cirq.TransformerContext'] = None
-) -> 'cirq.Circuit':
+    circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
+) -> cirq.Circuit:
     """Align gates to the left of the circuit.
 
     Note that tagged operations with tag in `context.tags_to_ignore` will continue to stay in their
@@ -57,8 +60,8 @@ def align_left(
 
 @transformer_api.transformer(add_deep_support=True)
 def align_right(
-    circuit: 'cirq.AbstractCircuit', *, context: Optional['cirq.TransformerContext'] = None
-) -> 'cirq.Circuit':
+    circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
+) -> cirq.Circuit:
     """Align gates to the right of the circuit.
 
     Note that tagged operations with tag in `context.tags_to_ignore` will continue to stay in their
@@ -73,4 +76,14 @@ def align_right(
     """
     if context is not None and context.deep is True:
         context = dataclasses.replace(context, deep=False)
-    return align_left(circuit[::-1], context=context)[::-1]
+    # Reverse the circuit, align left, and reverse again. Note each moment also has to have its ops
+    # reversed internally, to avoid edge conditions where non-commuting but can-be-in-same-moment
+    # ops (measurements and classical controls, particularly) could end up getting swapped.
+    backwards = []
+    for moment in circuit[::-1]:
+        backwards.append(circuits.Moment(reversed(moment.operations)))
+    aligned_backwards = align_left(circuits.Circuit(backwards), context=context)
+    forwards = []
+    for moment in aligned_backwards[::-1]:
+        forwards.append(circuits.Moment(reversed(moment.operations)))
+    return circuits.Circuit(forwards)

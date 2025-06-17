@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import AbstractSet, Iterator, Any
+from __future__ import annotations
 
-import pytest
+from typing import AbstractSet, Any, cast, Iterator
+
 import numpy as np
+import pytest
 import sympy
 
 import cirq
@@ -26,7 +28,7 @@ class ValidQubit(cirq.Qid):
         self._name = name
 
     @property
-    def dimension(self):
+    def dimension(self) -> int:
         return 2
 
     def _comparison_key(self):
@@ -49,19 +51,19 @@ class ValidQid(cirq.Qid):
     def dimension(self):
         return self._dimension
 
-    def with_dimension(self, dimension):
+    def with_dimension(self, dimension) -> ValidQid:
         return ValidQid(self._name, dimension)
 
     def _comparison_key(self):
         return self._name
 
 
-def test_wrapped_qid():
+def test_wrapped_qid() -> None:
     assert type(ValidQubit('a').with_dimension(3)) is not ValidQubit
     assert type(ValidQubit('a').with_dimension(2)) is ValidQubit
     assert type(ValidQubit('a').with_dimension(5).with_dimension(2)) is ValidQubit
     assert ValidQubit('a').with_dimension(3).with_dimension(4) == ValidQubit('a').with_dimension(4)
-    assert ValidQubit('a').with_dimension(3).qubit == ValidQubit('a')
+    assert ValidQubit('a').with_dimension(3).qubit == ValidQubit('a')  # type: ignore[attr-defined]
     assert ValidQubit('a').with_dimension(3) == ValidQubit('a').with_dimension(3)
     assert ValidQubit('a').with_dimension(3) < ValidQubit('a').with_dimension(4)
     assert ValidQubit('a').with_dimension(3) < ValidQubit('b').with_dimension(3)
@@ -72,13 +74,20 @@ def test_wrapped_qid():
     )
     assert str(ValidQubit('a').with_dimension(3)) == 'TQ_a (d=3)'
 
-    assert ValidQubit('zz').with_dimension(3)._json_dict_() == {
+    assert ValidQubit('zz').with_dimension(3)._json_dict_() == {  # type: ignore[attr-defined]
         'qubit': ValidQubit('zz'),
         'dimension': 3,
     }
 
+    assert not ValidQubit('zz') == 4  # noqa: SIM201
+    assert ValidQubit('zz') != 4
+    assert ValidQubit('zz') > ValidQubit('aa')
+    assert ValidQubit('zz') <= ValidQubit('zz')
+    assert ValidQubit('zz') >= ValidQubit('zz')
+    assert ValidQubit('zz') >= ValidQubit('aa')
 
-def test_qid_dimension():
+
+def test_qid_dimension() -> None:
     assert ValidQubit('a').dimension == 2
     assert ValidQubit('a').with_dimension(3).dimension == 3
     with pytest.raises(ValueError, match='Wrong qid dimension'):
@@ -99,7 +108,7 @@ class ValiGate(cirq.Gate):
     def _num_qubits_(self):
         return 2
 
-    def validate_args(self, qubits):
+    def validate_args(self, qubits) -> None:
         if len(qubits) == 1:
             return  # Bypass check for some tests
         super().validate_args(qubits)
@@ -108,7 +117,7 @@ class ValiGate(cirq.Gate):
         return True
 
 
-def test_gate():
+def test_gate() -> None:
     a, b, c = cirq.LineQubit.range(3)
 
     g = ValiGate()
@@ -128,7 +137,7 @@ def test_gate():
     assert g.controlled(0) is g
 
 
-def test_op():
+def test_op() -> None:
     a, b, c, d = cirq.LineQubit.range(4)
     g = ValiGate()
     op = g(a, b)
@@ -138,7 +147,7 @@ def test_op():
     assert controlled_op.controls == (c, d)
 
 
-def test_op_validate():
+def test_op_validate() -> None:
     op = cirq.X(cirq.LineQid(0, 2))
     op2 = cirq.CNOT(*cirq.LineQid.range(2, dimension=2))
     op.validate_args([cirq.LineQid(1, 2)])  # Valid
@@ -151,7 +160,7 @@ def test_op_validate():
         op2.validate_args([cirq.LineQid(1, 2), cirq.LineQid(1, 2)])
 
 
-def test_disable_op_validation():
+def test_disable_op_validation() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     h_op = cirq.H(q0)
 
@@ -174,7 +183,7 @@ def test_disable_op_validation():
         h_op.validate_args([q0, q1])
 
 
-def test_default_validation_and_inverse():
+def test_default_validation_and_inverse() -> None:
     class TestGate(cirq.Gate):
         def _num_qubits_(self):
             return 2
@@ -196,13 +205,15 @@ def test_default_validation_and_inverse():
     with pytest.raises(ValueError, match='number of qubits'):
         TestGate().on(a)
 
-    t = TestGate().on(a, b)
-    i = t**-1
+    t = cast(cirq.GateOperation, TestGate().on(a, b))
+    i = cast(cirq.GateOperation, t**-1)
     assert i**-1 == t
     assert t**-1 == i
     assert cirq.decompose(i) == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]
-    assert [*i._decompose_()] == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]
-    assert [*i.gate._decompose_([a, b])] == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]
+    assert [*i._decompose_()] == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]  # type: ignore[misc]
+    gate = i.gate
+    assert gate is not None
+    assert [*gate._decompose_([a, b])] == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]  # type: ignore
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(i), cirq.unitary(t).conj().T, atol=1e-8
     )
@@ -210,7 +221,22 @@ def test_default_validation_and_inverse():
     cirq.testing.assert_implements_consistent_protocols(i, local_vals={'TestGate': TestGate})
 
 
-def test_default_inverse():
+def test_default_no_qubits() -> None:
+    class TestOp(cirq.Operation):
+        def with_qubits(self, *new_qubits):
+            raise NotImplementedError()
+
+        @property
+        def qubits(self):
+            pass
+
+    op = TestOp()
+    assert op.controlled_by(*[]) is op
+    tagged_op = TestOp().with_tags("abc")
+    assert tagged_op.classical_controls == frozenset()
+
+
+def test_default_inverse() -> None:
     class TestGate(cirq.Gate):
         def _num_qubits_(self):
             return 3
@@ -225,7 +251,7 @@ def test_default_inverse():
     )
 
 
-def test_no_inverse_if_not_unitary():
+def test_no_inverse_if_not_unitary() -> None:
     class TestGate(cirq.Gate):
         def _num_qubits_(self):
             return 1
@@ -236,7 +262,7 @@ def test_no_inverse_if_not_unitary():
     assert cirq.inverse(TestGate(), None) is None
 
 
-def test_default_qudit_inverse():
+def test_default_qudit_inverse() -> None:
     class TestGate(cirq.Gate):
         def _qid_shape_(self):
             return (1, 2, 3)
@@ -258,13 +284,14 @@ def test_default_qudit_inverse():
         (cirq.CZ * 1, cirq.CZ / 1),
         (-cirq.CSWAP * 1j, cirq.CSWAP / 1j),
         (cirq.TOFFOLI * 0.5, cirq.TOFFOLI / 2),
+        (-cirq.X * sympy.Symbol('s'), -sympy.Symbol('s') * cirq.X),
     ),
 )
-def test_gate_algebra(expression, expected_result):
+def test_gate_algebra(expression, expected_result) -> None:
     assert expression == expected_result
 
 
-def test_gate_shape():
+def test_gate_shape() -> None:
     class ShapeGate(cirq.Gate):
         def _qid_shape_(self):
             return (1, 2, 3, 4)
@@ -293,7 +320,7 @@ def test_gate_shape():
     assert dep_gate.num_qubits() == 3
 
 
-def test_gate_shape_protocol():
+def test_gate_shape_protocol() -> None:
     """This test is only needed while the `_num_qubits_` and `_qid_shape_`
     methods are implemented as alternatives.  This can be removed once the
     deprecated `num_qubits` method is removed."""
@@ -353,10 +380,10 @@ def test_gate_shape_protocol():
     assert QubitGate().num_qubits() == 2  # Deprecated
 
 
-def test_operation_shape():
+def test_operation_shape() -> None:
     class FixedQids(cirq.Operation):
         def with_qubits(self, *new_qids):
-            raise NotImplementedError  # pragma: no cover
+            raise NotImplementedError
 
     class QubitOp(FixedQids):
         @property
@@ -395,12 +422,12 @@ def test_operation_shape():
     assert cirq.num_qubits(shape_op) == 4
 
 
-def test_gate_json_dict():
+def test_gate_json_dict() -> None:
     g = cirq.CSWAP  # not an eigen gate (which has its own _json_dict_)
     assert g._json_dict_() == {}
 
 
-def test_inverse_composite_diagram_info():
+def test_inverse_composite_diagram_info() -> None:
     class Gate(cirq.Gate):
         def _decompose_(self, qubits):
             return cirq.S.on(qubits[0])
@@ -427,7 +454,7 @@ def test_inverse_composite_diagram_info():
     )
 
 
-def test_tagged_operation_equality():
+def test_tagged_operation_equality() -> None:
     eq = cirq.testing.EqualsTester()
     q1 = cirq.GridQubit(1, 1)
     op = cirq.X(q1)
@@ -444,7 +471,7 @@ def test_tagged_operation_equality():
     )
 
 
-def test_tagged_operation():
+def test_tagged_operation() -> None:
     q1 = cirq.GridQubit(1, 1)
     q2 = cirq.GridQubit(2, 2)
     op = cirq.X(q1).with_tags('tag1')
@@ -458,8 +485,14 @@ def test_tagged_operation():
     assert op.with_qubits(q2).qubits == (q2,)
     assert not cirq.is_measurement(op)
 
+    # Tags can't be types
+    # This is to prevent typos of cirq.X(q1).with_tags(TagType)
+    # when you meant cirq.X(q1).with_tags(TagType())
+    with pytest.raises(ValueError, match="cannot be types"):
+        _ = cirq.X(q1).with_tags(cirq.Circuit)
 
-def test_with_tags_returns_same_instance_if_possible():
+
+def test_with_tags_returns_same_instance_if_possible() -> None:
     untagged = cirq.X(cirq.GridQubit(1, 1))
     assert untagged.with_tags() is untagged
 
@@ -467,7 +500,7 @@ def test_with_tags_returns_same_instance_if_possible():
     assert tagged.with_tags() is tagged
 
 
-def test_tagged_measurement():
+def test_tagged_measurement() -> None:
     assert not cirq.is_measurement(cirq.global_phase_operation(coefficient=-1.0).with_tags('tag0'))
 
     a = cirq.LineQubit(0)
@@ -481,14 +514,14 @@ def test_tagged_measurement():
     assert cirq.with_measurement_key_mapping(op, {'x': 'k'}) == op
 
 
-def test_cannot_remap_non_measurement_gate():
+def test_cannot_remap_non_measurement_gate() -> None:
     a = cirq.LineQubit(0)
     op = cirq.X(a).with_tags('tag')
 
     assert cirq.with_measurement_key_mapping(op, {'m': 'k'}) is NotImplemented
 
 
-def test_circuit_diagram():
+def test_circuit_diagram() -> None:
     class TaggyTag:
         """Tag with a custom str function to test circuit diagrams."""
 
@@ -506,7 +539,7 @@ def test_circuit_diagram():
         exponent_qubit_index=None,
         auto_exponent_parens=True,
     )
-    args = cirq.CircuitDiagramInfoArgs(None, None, None, None, None, False)
+    args = cirq.CircuitDiagramInfoArgs(None, None, False, None, None, False)
     assert cirq.circuit_diagram_info(tagged_h) == expected
     assert cirq.circuit_diagram_info(tagged_h, args) == cirq.circuit_diagram_info(h)
 
@@ -521,9 +554,11 @@ def test_circuit_diagram():
     diagram_with_non_string_tag = "(1, 1): ───H[<taggy>]───"
     assert c.to_text_diagram() == diagram_with_non_string_tag
     assert c.to_text_diagram(include_tags=False) == diagram_without_tags
+    assert c.to_text_diagram(include_tags={str}) == diagram_without_tags
+    assert c.to_text_diagram(include_tags={TaggyTag}) == diagram_with_non_string_tag
 
 
-def test_circuit_diagram_tagged_global_phase():
+def test_circuit_diagram_tagged_global_phase() -> None:
     # Tests global phase operation
     q = cirq.NamedQubit('a')
     global_phase = cirq.global_phase_operation(coefficient=-1.0).with_tags('tag0')
@@ -551,8 +586,8 @@ def test_circuit_diagram_tagged_global_phase():
     # Operation with no qubits and returns diagram info with no wire symbols
     class NoWireSymbols(cirq.GlobalPhaseGate):
         def _circuit_diagram_info_(
-            self, args: 'cirq.CircuitDiagramInfoArgs'
-        ) -> 'cirq.CircuitDiagramInfo':
+            self, args: cirq.CircuitDiagramInfoArgs
+        ) -> cirq.CircuitDiagramInfo:
             return expected
 
     no_wire_symbol_op = NoWireSymbols(coefficient=-1.0)().with_tags('tag0')
@@ -590,7 +625,7 @@ global phase:   0.5π[tag1]   0.5π[tag2]
     )
 
 
-def test_circuit_diagram_no_circuit_diagram():
+def test_circuit_diagram_no_circuit_diagram() -> None:
     class NoCircuitDiagram(cirq.Gate):
         def num_qubits(self) -> int:
             return 1
@@ -605,7 +640,7 @@ def test_circuit_diagram_no_circuit_diagram():
     assert cirq.Circuit(NoCircuitDiagram()(q).with_tags('taggy')).to_text_diagram() == expected
 
 
-def test_tagged_operation_forwards_protocols():
+def test_tagged_operation_forwards_protocols() -> None:
     """The results of all protocols applied to an operation with a tag should
     be equivalent to the result without tags.
     """
@@ -652,6 +687,9 @@ def test_tagged_operation_forwards_protocols():
     assert isinstance(controlled_y, cirq.Operation)
     assert not isinstance(controlled_y, cirq.TaggedOperation)
     classically_controlled_y = tagged_y.with_classical_controls("a")
+    assert classically_controlled_y.classical_controls == frozenset(
+        {cirq.KeyCondition(cirq.MeasurementKey(name='a'))}
+    )
     assert classically_controlled_y == y.with_classical_controls("a")
     assert isinstance(classically_controlled_y, cirq.Operation)
     assert not isinstance(classically_controlled_y, cirq.TaggedOperation)
@@ -662,6 +700,8 @@ def test_tagged_operation_forwards_protocols():
     assert cirq.commutes(tagged_x, clifford_x)
     assert cirq.commutes(clifford_x, tagged_x)
     assert cirq.commutes(tagged_x, tagged_x)
+    assert cirq.phase_by(clifford_x, 0.125, 0, default=None) is None
+    assert cirq.phase_by(tagged_x, 0.125, 0, default=None) is None
 
     assert cirq.trace_distance_bound(y**0.001) == cirq.trace_distance_bound(
         (y**0.001).with_tags(tag)
@@ -682,7 +722,7 @@ def test_tagged_operation_forwards_protocols():
     assert tagged_mixture[1][0] == flip_mixture[1][0]
     assert np.isclose(tagged_mixture[1][1], flip_mixture[1][1]).all()
 
-    qubit_map = {q1: 'q1'}
+    qubit_map: dict[cirq.Qid, str] = {q1: 'q1'}
     qasm_args = cirq.QasmArgs(qubit_id_map=qubit_map)
     assert cirq.qasm(h, args=qasm_args) == cirq.qasm(tagged_h, args=qasm_args)
 
@@ -703,13 +743,13 @@ class ParameterizableTag:
         return cirq.parameter_names(self.value)
 
     def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'ParameterizableTag':
+        self, resolver: cirq.ParamResolver, recursive: bool
+    ) -> ParameterizableTag:
         return ParameterizableTag(cirq.resolve_parameters(self.value, resolver, recursive))
 
 
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
-def test_tagged_operation_resolves_parameterized_tags(resolve_fn):
+def test_tagged_operation_resolves_parameterized_tags(resolve_fn) -> None:
     q = cirq.GridQubit(0, 0)
     tag = ParameterizableTag(sympy.Symbol('t'))
     assert cirq.is_parameterized(tag)
@@ -723,10 +763,10 @@ def test_tagged_operation_resolves_parameterized_tags(resolve_fn):
     assert cirq.parameter_names(resolved_op) == set()
 
 
-def test_inverse_composite_standards():
+def test_inverse_composite_standards() -> None:
     @cirq.value_equality
     class Gate(cirq.Gate):
-        def __init__(self, param: 'cirq.TParamVal'):
+        def __init__(self, param: cirq.TParamVal):
             self._param = param
 
         def _decompose_(self, qubits):
@@ -747,7 +787,7 @@ def test_inverse_composite_standards():
         def _is_parameterized_(self) -> bool:
             return cirq.is_parameterized(self._param)
 
-        def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'Gate':
+        def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Gate:
             return Gate(cirq.resolve_parameters(self._param, resolver, recursive))
 
         def __repr__(self):
@@ -762,7 +802,7 @@ def test_inverse_composite_standards():
     assert str(g) == 'C(a)†'
 
 
-def test_tagged_act_on():
+def test_tagged_act_on() -> None:
     class YesActOn(cirq.Gate):
         def _num_qubits_(self) -> int:
             return 1
@@ -796,7 +836,7 @@ def test_tagged_act_on():
         cirq.act_on(MissingActOn().with_tags("test"), args)
 
 
-def test_single_qubit_gate_validates_on_each():
+def test_single_qubit_gate_validates_on_each() -> None:
     class Example(cirq.testing.SingleQubitGate):
         def matrix(self):
             pass
@@ -820,7 +860,7 @@ def test_single_qubit_gate_validates_on_each():
         _ = g.on_each(*test_non_qubits)
 
 
-def test_on_each():
+def test_on_each() -> None:
     class CustomGate(cirq.testing.SingleQubitGate):
         pass
 
@@ -851,7 +891,7 @@ def test_on_each():
     assert c.on_each(qubit_iterator) == [c(a), c(b), c(a), c(b)]
 
 
-def test_on_each_two_qubits():
+def test_on_each_two_qubits() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     g = cirq.testing.TwoQubitGate()
@@ -906,7 +946,7 @@ def test_on_each_two_qubits():
     assert g.on_each(qubit_iterator) == [g(a, b), g(a, b)]
 
 
-def test_on_each_three_qubits():
+def test_on_each_three_qubits() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
@@ -956,7 +996,7 @@ def test_on_each_three_qubits():
     assert g.on_each(qubit_iterator) == [g(a, b, c), g(a, b, c)]
 
 
-def test_on_each_iterable_qid():
+def test_on_each_iterable_qid() -> None:
     class QidIter(cirq.Qid):
         @property
         def dimension(self) -> int:
@@ -974,7 +1014,7 @@ def test_on_each_iterable_qid():
 @pytest.mark.parametrize(
     'op', [cirq.X(cirq.NamedQubit("q")), cirq.X(cirq.NamedQubit("q")).with_tags("tagged_op")]
 )
-def test_with_methods_return_self_on_empty_conditions(op):
+def test_with_methods_return_self_on_empty_conditions(op) -> None:
     assert op is op.with_tags(*[])
     assert op is op.with_classical_controls(*[])
     assert op is op.controlled_by(*[])

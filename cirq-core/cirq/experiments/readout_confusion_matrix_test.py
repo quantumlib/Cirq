@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
-import cirq
 import pytest
 
-from cirq.experiments.single_qubit_readout_calibration_test import NoisySingleQubitReadoutSampler
+import cirq
 from cirq.experiments.readout_confusion_matrix import TensoredConfusionMatrices
+from cirq.experiments.single_qubit_readout_calibration_test import NoisySingleQubitReadoutSampler
 
 
 def add_readout_error(

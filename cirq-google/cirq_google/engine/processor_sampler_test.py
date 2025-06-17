@@ -12,20 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from unittest import mock
 
+import duet
 import pytest
 
 import cirq
 import cirq_google as cg
 from cirq_google.engine.abstract_processor import AbstractProcessor
+from cirq_google.engine.engine_job import EngineJob
 
 
 @pytest.mark.parametrize('circuit', [cirq.Circuit(), cirq.FrozenCircuit()])
 @pytest.mark.parametrize(
-    'run_name, device_config_name', [('run_name', 'device_config_alias'), ('', '')]
+    'run_name, device_config_name, snapshot_id',
+    [('run_name', 'device_config_alias', ''), ('', '', '')],
 )
-def test_run_circuit(circuit, run_name, device_config_name):
+def test_run_circuit(circuit, run_name, device_config_name, snapshot_id):
     processor = mock.create_autospec(AbstractProcessor)
     sampler = cg.ProcessorSampler(
         processor=processor, run_name=run_name, device_config_name=device_config_name
@@ -37,17 +42,22 @@ def test_run_circuit(circuit, run_name, device_config_name):
         program=circuit,
         repetitions=5,
         run_name=run_name,
+        snapshot_id=snapshot_id,
         device_config_name=device_config_name,
     )
 
 
 @pytest.mark.parametrize(
-    'run_name, device_config_name', [('run_name', 'device_config_alias'), ('', '')]
+    'run_name, device_config_name, snapshot_id',
+    [('run_name', 'device_config_alias', ''), ('', '', ''), ('', 'config_name', 'snapshot_id')],
 )
-def test_run_batch(run_name, device_config_name):
+def test_run_batch(run_name, device_config_name, snapshot_id):
     processor = mock.create_autospec(AbstractProcessor)
     sampler = cg.ProcessorSampler(
-        processor=processor, run_name=run_name, device_config_name=device_config_name
+        processor=processor,
+        run_name=run_name,
+        snapshot_id=snapshot_id,
+        device_config_name=device_config_name,
     )
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a))
@@ -63,6 +73,7 @@ def test_run_batch(run_name, device_config_name):
             params=params1,
             repetitions=5,
             run_name=run_name,
+            snapshot_id=snapshot_id,
             device_config_name=device_config_name,
         ),
         mock.call().results_async(),
@@ -71,6 +82,7 @@ def test_run_batch(run_name, device_config_name):
             params=params2,
             repetitions=5,
             run_name=run_name,
+            snapshot_id=snapshot_id,
             device_config_name=device_config_name,
         ),
         mock.call().results_async(),
@@ -79,9 +91,10 @@ def test_run_batch(run_name, device_config_name):
 
 
 @pytest.mark.parametrize(
-    'run_name, device_config_name', [('run_name', 'device_config_alias'), ('', '')]
+    'run_name, device_config_name, snapshot_id',
+    [('run_name', 'device_config_alias', ''), ('', '', '')],
 )
-def test_run_batch_identical_repetitions(run_name, device_config_name):
+def test_run_batch_identical_repetitions(run_name, device_config_name, snapshot_id):
     processor = mock.create_autospec(AbstractProcessor)
     sampler = cg.ProcessorSampler(
         processor=processor, run_name=run_name, device_config_name=device_config_name
@@ -100,6 +113,7 @@ def test_run_batch_identical_repetitions(run_name, device_config_name):
             params=params1,
             repetitions=5,
             run_name=run_name,
+            snapshot_id=snapshot_id,
             device_config_name=device_config_name,
         ),
         mock.call().results_async(),
@@ -108,6 +122,7 @@ def test_run_batch_identical_repetitions(run_name, device_config_name):
             params=params2,
             repetitions=5,
             run_name=run_name,
+            snapshot_id=snapshot_id,
             device_config_name=device_config_name,
         ),
         mock.call().results_async(),
@@ -153,8 +168,65 @@ def test_run_batch_differing_repetitions():
         program=circuit2,
         repetitions=2,
         run_name=run_name,
+        snapshot_id='',
         device_config_name=device_config_name,
     )
+
+
+@duet.sync
+async def test_sampler_with_full_job_queue_blocks():
+    processor = mock.create_autospec(AbstractProcessor)
+    sampler = cg.ProcessorSampler(processor=processor, max_concurrent_jobs=2)
+
+    async def wait_forever(**kwargs):
+        await duet.AwaitableFuture[None]()
+
+    processor.run_sweep_async.side_effect = wait_forever
+
+    a = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.X(a))
+
+    with pytest.raises(TimeoutError):
+        async with duet.timeout_scope(0.01):
+            await sampler.run_batch_async([circuit] * 3)
+
+    assert processor.run_sweep_async.call_count == 2
+
+
+@duet.sync
+async def test_sampler_with_job_queue_availability_runs_all():
+    processor = mock.create_autospec(AbstractProcessor)
+    sampler = cg.ProcessorSampler(processor=processor, max_concurrent_jobs=3)
+
+    async def wait_forever(**kwargs):
+        await duet.AwaitableFuture[None]()
+
+    processor.run_sweep_async.side_effect = wait_forever
+
+    a = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.X(a))
+
+    with pytest.raises(TimeoutError):
+        async with duet.timeout_scope(0.01):
+            await sampler.run_batch_async([circuit] * 3)
+
+    assert processor.run_sweep_async.call_count == 3
+
+
+@duet.sync
+async def test_sampler_with_full_job_queue_unblocks_when_available():
+    processor = mock.create_autospec(AbstractProcessor)
+    sampler = cg.ProcessorSampler(processor=processor, max_concurrent_jobs=2)
+
+    job = mock.AsyncMock(EngineJob)
+    processor.run_sweep_async.return_value = job
+
+    a = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.X(a))
+
+    await sampler.run_batch_async([circuit] * 3)
+
+    assert processor.run_sweep_async.call_count == 3
 
 
 def test_processor_sampler_processor_property():

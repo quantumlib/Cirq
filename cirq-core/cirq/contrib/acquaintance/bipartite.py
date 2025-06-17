@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import enum
 import itertools
-from typing import Dict, Sequence, Tuple, Union, TYPE_CHECKING
+from typing import Iterator, Sequence, TYPE_CHECKING
 
 from cirq import ops
-
 from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.permutation import PermutationGate, SwapPermutationGate
 
@@ -60,10 +61,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
     """
 
     def __init__(
-        self,
-        subgraph: Union[str, BipartiteGraphType],
-        part_size: int,
-        swap_gate: 'cirq.Gate' = ops.SWAP,
+        self, subgraph: str | BipartiteGraphType, part_size: int, swap_gate: cirq.Gate = ops.SWAP
     ) -> None:
         super().__init__(2 * part_size, swap_gate)
         self.part_size = part_size
@@ -72,7 +70,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
         )
         self.swap_gate = swap_gate
 
-    def decompose_complete(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def decompose_complete(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
         swap_gate = SwapPermutationGate(self.swap_gate)
         if self.part_size == 1:
             yield acquaint(*qubits)
@@ -87,7 +85,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
                 yield acquaint(*qubits[x : x + 2])
                 yield swap_gate(*qubits[x : x + 2])
 
-    def decompose_matching(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def decompose_matching(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
         swap_gate = SwapPermutationGate(self.swap_gate)
         for k in range(-self.part_size + 1, self.part_size):
             for x in range(abs(k), 2 * self.part_size - abs(k), 2):
@@ -96,7 +94,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
                 else:
                     yield acquaint(*qubits[x : x + 2])
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         if len(qubits) != 2 * self.part_size:
             raise ValueError('len(qubits) != 2 * self.part_size')
         if self.subgraph == BipartiteGraphType.COMPLETE:
@@ -105,7 +103,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
             return self.decompose_matching(qubits)
         raise NotImplementedError('No decomposition implemented for ' + str(self.subgraph))
 
-    def permutation(self) -> Dict[int, int]:
+    def permutation(self) -> dict[int, int]:
         if self.num_qubits() != 2 * self.part_size:
             raise ValueError('qubit_count != 2 * self.part_size')
         if self.subgraph == BipartiteGraphType.MATCHING:
@@ -123,7 +121,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
             return dict(enumerate(range(2 * self.part_size)))
         raise NotImplementedError(str(self.subgraph) + 'not implemented')
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> tuple[str, ...]:
         qubit_count = 2 * self.part_size
         if args.known_qubit_count not in (None, qubit_count):
             raise ValueError('args.known_qubit_count not in (None, 2 * self.part_size)')
@@ -148,7 +146,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
         return wire_symbols
 
     def __repr__(self) -> str:
-        args: Tuple[str, ...] = (repr(self.subgraph), repr(self.part_size))
+        args: tuple[str, ...] = (repr(self.subgraph), repr(self.part_size))
         if self.swap_gate != ops.SWAP:
             args += (repr(self.swap_gate),)
         args_str = ', '.join(args)

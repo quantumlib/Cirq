@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import re
-from typing import Optional
-import numpy as np
+
 import ply.lex as lex
 
 from cirq.contrib.qasm_import.exception import QasmException
@@ -24,31 +25,36 @@ class QasmLexer:
     def __init__(self):
         self.lex = lex.lex(object=self, debug=False)
 
-    literals = "{}[]();,+/*-^"
+    literals = "{}[]();,+/*-^="
 
     reserved = {
+        'qubit': 'QUBIT',
         'qreg': 'QREG',
+        'bit': 'BIT',
         'creg': 'CREG',
         'measure': 'MEASURE',
+        'reset': 'RESET',
+        'gate': 'GATE',
         'if': 'IF',
-        '->': 'ARROW',
-        '==': 'EQ',
+        'pi': 'PI',
     }
 
-    tokens = ['FORMAT_SPEC', 'NUMBER', 'NATURAL_NUMBER', 'QELIBINC', 'ID', 'PI'] + list(
-        reserved.values()
-    )
+    tokens = [
+        'FORMAT_SPEC',
+        'NUMBER',
+        'NATURAL_NUMBER',
+        'STDGATESINC',
+        'QELIBINC',
+        'ID',
+        'ARROW',
+        'EQ',
+    ] + list(reserved.values())
 
     def t_newline(self, t):
         r"""\n+"""
         t.lexer.lineno += len(t.value)
 
     t_ignore = ' \t'
-
-    def t_PI(self, t):
-        r"""pi"""
-        t.value = np.pi
-        return t
 
     # all numbers except NATURAL_NUMBERs:
     # it's useful to have this separation to be able to handle indices
@@ -83,20 +89,8 @@ class QasmLexer:
         r"""include(\s+)"qelib1.inc";"""
         return t
 
-    def t_QREG(self, t):
-        r"""qreg"""
-        return t
-
-    def t_CREG(self, t):
-        r"""creg"""
-        return t
-
-    def t_MEASURE(self, t):
-        r"""measure"""
-        return t
-
-    def t_IF(self, t):
-        r"""if"""
+    def t_STDGATESINC(self, t):
+        r"""include(\s+)"stdgates.inc";"""
         return t
 
     def t_ARROW(self, t):
@@ -109,6 +103,8 @@ class QasmLexer:
 
     def t_ID(self, t):
         r"""[a-zA-Z][a-zA-Z\d_]*"""
+        if t.value in QasmLexer.reserved:
+            t.type = QasmLexer.reserved[t.value]
         return t
 
     def t_COMMENT(self, t):
@@ -120,5 +116,5 @@ class QasmLexer:
     def input(self, qasm):
         self.lex.input(qasm)
 
-    def token(self) -> Optional[lex.Token]:
+    def token(self) -> lex.Token | None:
         return self.lex.token()

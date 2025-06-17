@@ -11,16 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Protocol for determining commutativity."""
 
-from typing import Any, overload, TypeVar, Union
+from __future__ import annotations
+
+from types import NotImplementedType
+from typing import Any, overload, TypeVar
 
 import numpy as np
 from typing_extensions import Protocol
 
 from cirq import linalg
 from cirq._doc import doc_private
-from cirq.type_workarounds import NotImplementedType
 
 # This is a special indicator value used by the unitary method to determine
 # whether or not the caller provided a 'default' argument.
@@ -35,7 +38,7 @@ class SupportsCommutes(Protocol):
     """An object that can determine commutation relationships vs others."""
 
     @doc_private
-    def _commutes_(self, other: Any, *, atol: float) -> Union[None, bool, NotImplementedType]:
+    def _commutes_(self, other: Any, *, atol: float) -> None | bool | NotImplementedType:
         r"""Determines if this object commutes with the other object.
 
         Can return None to indicate the commutation relationship is
@@ -74,17 +77,15 @@ class SupportsCommutes(Protocol):
 
 
 @overload
-def commutes(v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8) -> bool: ...
+def commutes(v1: Any, v2: Any, *, atol: float = 1e-8) -> bool: ...
 
 
 @overload
-def commutes(
-    v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8, default: TDefault
-) -> Union[bool, TDefault]: ...
+def commutes(v1: Any, v2: Any, *, atol: float = 1e-8, default: TDefault) -> bool | TDefault: ...
 
 
 def commutes(
-    v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8, default: Any = RaiseTypeErrorIfNotProvided
+    v1: Any, v2: Any, *, atol: float = 1e-8, default: Any = RaiseTypeErrorIfNotProvided
 ) -> Any:
     """Determines whether two values commute.
 
@@ -147,7 +148,7 @@ def commutes(
     )
 
 
-def definitely_commutes(v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8) -> bool:
+def definitely_commutes(v1: Any, v2: Any, *, atol: float = 1e-8) -> bool:
     """Determines whether two values definitely commute.
 
     Returns:
@@ -158,8 +159,8 @@ def definitely_commutes(v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8) -> 
 
 
 def _strat_commutes_from_commutes(
-    v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8
-) -> Union[bool, NotImplementedType, None]:
+    v1: Any, v2: Any, *, atol: float = 1e-8
+) -> bool | NotImplementedType | None:
     """Attempts to determine commutativity via the objects' _commutes_
     method."""
 
@@ -176,7 +177,7 @@ def _strat_commutes_from_commutes(
 
 def _strat_commutes_from_matrix(
     v1: Any, v2: Any, *, atol: float
-) -> Union[bool, NotImplementedType, None]:
+) -> bool | NotImplementedType | None:
     """Attempts to determine commutativity of matrices."""
     if not isinstance(v1, np.ndarray) or not isinstance(v2, np.ndarray):
         return NotImplemented

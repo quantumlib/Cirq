@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import cast
+
 import numpy as np
 import pytest
 
@@ -74,11 +77,11 @@ def test_measurement_eq():
     eq.make_equality_group(
         lambda: cirq.MeasurementGate(1, 'a'),
         lambda: cirq.MeasurementGate(1, 'a', invert_mask=()),
+        lambda: cirq.MeasurementGate(1, 'a', invert_mask=(False,)),
         lambda: cirq.MeasurementGate(1, 'a', qid_shape=(2,)),
         lambda: cirq.MeasurementGate(1, 'a', confusion_map={}),
     )
     eq.add_equality_group(cirq.MeasurementGate(1, 'a', invert_mask=(True,)))
-    eq.add_equality_group(cirq.MeasurementGate(1, 'a', invert_mask=(False,)))
     eq.add_equality_group(
         cirq.MeasurementGate(1, 'a', confusion_map={(0,): np.array([[0, 1], [1, 0]])})
     )

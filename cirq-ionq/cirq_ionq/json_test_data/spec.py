@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pathlib
 
 import cirq_ionq
-from cirq_ionq.json_resolver_cache import _class_resolver_dictionary
-
 from cirq.testing.json import ModuleJsonTestSpec
+from cirq_ionq.json_resolver_cache import _class_resolver_dictionary
 
 TestSpec = ModuleJsonTestSpec(
     name="cirq_ionq",
@@ -31,6 +32,7 @@ TestSpec = ModuleJsonTestSpec(
         "IonQUnsuccessfulJobException",
         "IonQNotFoundException",
         "IonQAPIDevice",
+        "IonQSerializerMixedGatesetsException",
         "Job",
         "SimulatorResult",
     ],

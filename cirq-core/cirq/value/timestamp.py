@@ -11,10 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """A typed location in time that supports picosecond accuracy."""
 
+from __future__ import annotations
+
 from datetime import timedelta
-from typing import Union, overload
+from typing import overload
 
 from cirq.value.duration import Duration
 
@@ -24,9 +27,7 @@ class Timestamp:
 
     Supports affine operations against Duration."""
 
-    def __init__(
-        self, *, picos: Union[int, float] = 0, nanos: Union[int, float] = 0  # Forces keyword args.
-    ) -> None:
+    def __init__(self, *, picos: float = 0, nanos: float = 0) -> None:  # Forces keyword args.
         """Initializes a Timestamp with a time specified in ns and/or ps.
 
         The time is relative to some unspecified "time zero". If both picos and
@@ -47,23 +48,26 @@ class Timestamp:
         """The timestamp's location in picoseconds from arbitrary time zero."""
         return self._picos
 
-    def __add__(self, other) -> 'Timestamp':
+    def __add__(self, other) -> Timestamp:
         if isinstance(other, timedelta):
             return Timestamp(picos=self._picos + other.total_seconds() * 10**12)
         if not isinstance(other, Duration):
             return NotImplemented
         return Timestamp(picos=self._picos + other.total_picos())
 
-    def __radd__(self, other) -> 'Timestamp':
+    def __radd__(self, other) -> Timestamp:
         return self.__add__(other)
 
-    # pylint: disable=function-redefined
     @overload
-    def __sub__(self, other: 'Timestamp') -> Duration:
+    def __sub__(self, other: Timestamp) -> Duration:
         pass
 
     @overload
-    def __sub__(self, other: Duration) -> 'Timestamp':
+    def __sub__(self, other: Duration) -> Timestamp:
+        pass
+
+    @overload
+    def __sub__(self, other: timedelta) -> Timestamp:
         pass
 
     def __sub__(self, other):
@@ -74,8 +78,6 @@ class Timestamp:
         if isinstance(other, type(self)):
             return Duration(picos=self._picos - other._picos)
         return NotImplemented
-
-    # pylint: enable=function-redefined
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):

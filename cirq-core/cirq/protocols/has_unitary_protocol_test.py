@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
 import cirq
 
 
-def test_inconclusive():
+def test_inconclusive() -> None:
     class No:
         pass
 
@@ -30,7 +32,7 @@ def test_inconclusive():
 @pytest.mark.parametrize(
     'measurement_gate', (cirq.MeasurementGate(1, 'a'), cirq.PauliMeasurementGate([cirq.X], 'a'))
 )
-def test_fail_fast_measure(measurement_gate):
+def test_fail_fast_measure(measurement_gate) -> None:
     assert not cirq.has_unitary(measurement_gate)
 
     qubit = cirq.NamedQubit('q0')
@@ -40,13 +42,13 @@ def test_fail_fast_measure(measurement_gate):
     assert not cirq.has_unitary(circuit)
 
 
-def test_fail_fast_measure_large_memory():
+def test_fail_fast_measure_large_memory() -> None:
     num_qubits = 100
     measurement_op = cirq.MeasurementGate(num_qubits, 'a').on(*cirq.LineQubit.range(num_qubits))
     assert not cirq.has_unitary(measurement_op)
 
 
-def test_via_unitary():
+def test_via_unitary() -> None:
     class No1:
         def _unitary_(self):
             return NotImplemented
@@ -65,7 +67,7 @@ def test_via_unitary():
     assert cirq.has_unitary(Yes(), allow_decompose=False)
 
 
-def test_via_apply_unitary():
+def test_via_apply_unitary() -> None:
     class No1(EmptyOp):
         def _apply_unitary_(self, args):
             return None
@@ -80,7 +82,8 @@ def test_via_apply_unitary():
 
     class No4:  # A non-operation non-gate.
         def _apply_unitary_(self, args):
-            assert False  # Because has_unitary doesn't understand how to call.
+            # Because has_unitary doesn't understand how to call.
+            assert False  # pragma: no cover
 
     class Yes1(EmptyOp):
         def _apply_unitary_(self, args):
@@ -99,7 +102,7 @@ def test_via_apply_unitary():
     assert not cirq.has_unitary(No4())
 
 
-def test_via_decompose():
+def test_via_decompose() -> None:
     class Yes1:
         def _decompose_(self):
             return []
@@ -131,7 +134,7 @@ def test_via_decompose():
     assert not cirq.has_unitary(No1(), allow_decompose=False)
 
 
-def test_via_has_unitary():
+def test_via_has_unitary() -> None:
     class No1:
         def _has_unitary_(self):
             return NotImplemented
@@ -149,19 +152,19 @@ def test_via_has_unitary():
     assert cirq.has_unitary(Yes())
 
 
-def test_order():
+def test_order() -> None:
     class Yes1(EmptyOp):
         def _has_unitary_(self):
             return True
 
         def _decompose_(self):
-            assert False
+            assert False  # pragma: no cover
 
         def _apply_unitary_(self, args):
-            assert False
+            assert False  # pragma: no cover
 
         def _unitary_(self):
-            assert False
+            assert False  # pragma: no cover
 
     class Yes2(EmptyOp):
         def _has_unitary_(self):
@@ -171,10 +174,10 @@ def test_order():
             return []
 
         def _apply_unitary_(self, args):
-            assert False
+            assert False  # pragma: no cover
 
         def _unitary_(self):
-            assert False
+            assert False  # pragma: no cover
 
     class Yes3(EmptyOp):
         def _has_unitary_(self):
@@ -187,7 +190,7 @@ def test_order():
             return args.target_tensor
 
         def _unitary_(self):
-            assert False
+            assert False  # pragma: no cover
 
     class Yes4(EmptyOp):
         def _has_unitary_(self):

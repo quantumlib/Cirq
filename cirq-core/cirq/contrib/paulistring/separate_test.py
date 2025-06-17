@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cirq
 from cirq.contrib.paulistring import convert_and_separate_circuit
 
 
-def test_toffoli_separate():
+def test_toffoli_separate() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.testing.nonoptimal_toffoli_circuit(q0, q1, q2)
 

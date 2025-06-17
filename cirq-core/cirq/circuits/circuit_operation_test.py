@@ -11,8 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import unittest.mock as mock
-from typing import Optional
 
 import numpy as np
 import pytest
@@ -26,7 +28,7 @@ from cirq.circuits.circuit_operation import _full_join_string_lists
 ALL_SIMULATORS = (cirq.Simulator(), cirq.DensityMatrixSimulator(), cirq.CliffordSimulator())
 
 
-def test_properties():
+def test_properties() -> None:
     a, b, c = cirq.LineQubit.range(3)
     circuit = cirq.FrozenCircuit(
         cirq.X(a),
@@ -48,7 +50,7 @@ def test_properties():
     assert op == circuit.to_op()
 
 
-def test_circuit_type():
+def test_circuit_type() -> None:
     a, b, c = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(
         cirq.X(a),
@@ -58,10 +60,10 @@ def test_circuit_type():
         cirq.measure(a, b, c, key='m'),
     )
     with pytest.raises(TypeError, match='Expected circuit of type FrozenCircuit'):
-        _ = cirq.CircuitOperation(circuit)
+        _ = cirq.CircuitOperation(circuit)  # type: ignore[arg-type]
 
 
-def test_non_invertible_circuit():
+def test_non_invertible_circuit() -> None:
     a, b, c = cirq.LineQubit.range(3)
     circuit = cirq.FrozenCircuit(
         cirq.X(a),
@@ -74,7 +76,7 @@ def test_non_invertible_circuit():
         _ = cirq.CircuitOperation(circuit, repetitions=-2)
 
 
-def test_repetitions_and_ids_length_mismatch():
+def test_repetitions_and_ids_length_mismatch() -> None:
     a, b, c = cirq.LineQubit.range(3)
     circuit = cirq.FrozenCircuit(
         cirq.X(a),
@@ -87,7 +89,7 @@ def test_repetitions_and_ids_length_mismatch():
         _ = cirq.CircuitOperation(circuit, repetitions=2, repetition_ids=['a', 'b', 'c'])
 
 
-def test_is_measurement_memoization():
+def test_is_measurement_memoization() -> None:
     a = cirq.LineQubit(0)
     circuit = cirq.FrozenCircuit(cirq.measure(a, key='m'))
     c_op = cirq.CircuitOperation(circuit)
@@ -98,7 +100,7 @@ def test_is_measurement_memoization():
     assert hasattr(circuit, cache_name)
 
 
-def test_invalid_measurement_keys():
+def test_invalid_measurement_keys() -> None:
     a = cirq.LineQubit(0)
     circuit = cirq.FrozenCircuit(cirq.measure(a, key='m'))
     c_op = cirq.CircuitOperation(circuit)
@@ -118,7 +120,7 @@ def test_invalid_measurement_keys():
     _ = cirq.CircuitOperation(circuit, measurement_key_map={'m:a': 'ma'})
 
 
-def test_invalid_qubit_mapping():
+def test_invalid_qubit_mapping() -> None:
     q = cirq.LineQubit(0)
     q3 = cirq.LineQid(1, dimension=3)
 
@@ -136,7 +138,7 @@ def test_invalid_qubit_mapping():
         _ = c_op.with_qubit_mapping(lambda q: q3)
 
 
-def test_circuit_sharing():
+def test_circuit_sharing() -> None:
     a, b, c = cirq.LineQubit.range(3)
     circuit = cirq.FrozenCircuit(
         cirq.X(a),
@@ -156,7 +158,7 @@ def test_circuit_sharing():
     assert hash(op1) == hash(op3)
 
 
-def test_with_qubits():
+def test_with_qubits() -> None:
     a, b, c, d = cirq.LineQubit.range(4)
     circuit = cirq.FrozenCircuit(cirq.H(a), cirq.CX(a, b))
     op_base = cirq.CircuitOperation(circuit)
@@ -168,7 +170,7 @@ def test_with_qubits():
 
     assert op_base.with_qubit_mapping({a: d, b: c, d: a}) == op_with_qubits
 
-    def map_fn(qubit: 'cirq.Qid') -> 'cirq.Qid':
+    def map_fn(qubit: cirq.Qid) -> cirq.Qid:
         if qubit == a:
             return d
         if qubit == b:
@@ -193,10 +195,10 @@ def test_with_qubits():
         _ = op_base.with_qubit_mapping(lambda q: b)
     # with_qubit_mapping requires exactly one argument.
     with pytest.raises(TypeError, match='must be a function or dict'):
-        _ = op_base.with_qubit_mapping('bad arg')
+        _ = op_base.with_qubit_mapping('bad arg')  # type: ignore[arg-type]
 
 
-def test_with_measurement_keys():
+def test_with_measurement_keys() -> None:
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.FrozenCircuit(cirq.X(a), cirq.measure(b, key='mb'), cirq.measure(a, key='ma'))
     op_base = cirq.CircuitOperation(circuit)
@@ -213,7 +215,7 @@ def test_with_measurement_keys():
         _ = op_base.with_measurement_key_mapping({'ma': 'mb'})
 
 
-def test_with_params():
+def test_with_params() -> None:
     a = cirq.LineQubit(0)
     z_exp = sympy.Symbol('z_exp')
     x_exp = sympy.Symbol('x_exp')
@@ -240,7 +242,7 @@ def test_with_params():
     )
 
 
-def test_recursive_params():
+def test_recursive_params() -> None:
     q = cirq.LineQubit(0)
     a, a2, b, b2 = sympy.symbols('a a2 b b2')
     circuitop = cirq.CircuitOperation(
@@ -291,18 +293,18 @@ def test_repeat(add_measurements: bool, use_default_ids_for_initial_rep: bool) -
             _ = op_base.repeat(initial_repetitions)
         initial_repetitions = abs(initial_repetitions)
 
-    op_with_reps: Optional[cirq.CircuitOperation] = None
+    op_with_reps: cirq.CircuitOperation | None = None
     rep_ids = []
     if use_default_ids_for_initial_rep:
-        op_with_reps = op_base.repeat(initial_repetitions)
         rep_ids = ['0', '1', '2']
-        assert op_base**initial_repetitions == op_with_reps
+        op_with_reps = op_base.repeat(initial_repetitions, use_repetition_ids=True)
     else:
         rep_ids = ['a', 'b', 'c']
         op_with_reps = op_base.repeat(initial_repetitions, rep_ids)
-        assert op_base**initial_repetitions != op_with_reps
-        assert (op_base**initial_repetitions).replace(repetition_ids=rep_ids) == op_with_reps
+    assert op_base**initial_repetitions != op_with_reps
+    assert (op_base**initial_repetitions).replace(repetition_ids=rep_ids) == op_with_reps
     assert op_with_reps.repetitions == initial_repetitions
+    assert op_with_reps.use_repetition_ids
     assert op_with_reps.repetition_ids == rep_ids
     assert op_with_reps.repeat(1) is op_with_reps
 
@@ -332,10 +334,32 @@ def test_repeat(add_measurements: bool, use_default_ids_for_initial_rep: bool) -
     assert op_base.repeat(2.99999999999).repetitions == 3
 
 
+def test_replace_repetition_ids() -> None:
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.H(a), cirq.CX(a, b), cirq.M(b, key='mb'), cirq.M(a, key='ma'))
+    op = cirq.CircuitOperation(circuit.freeze())
+    assert op.repetitions == 1
+    assert not op.use_repetition_ids
+
+    op2 = op.replace(repetitions=2)
+    assert op2.repetitions == 2
+    assert not op2.use_repetition_ids
+
+    op3 = op.replace(repetitions=3, repetition_ids=None)
+    assert op3.repetitions == 3
+    assert not op3.use_repetition_ids
+
+    # Passing `repetition_ids` will also enable `use_repetition_ids`
+    op4 = op.replace(repetitions=4, repetition_ids=['a', 'b', 'c', 'd'])
+    assert op4.repetitions == 4
+    assert op4.use_repetition_ids
+    assert op4.repetition_ids == ['a', 'b', 'c', 'd']
+
+
 @pytest.mark.parametrize('add_measurements', [True, False])
 @pytest.mark.parametrize('use_repetition_ids', [True, False])
 @pytest.mark.parametrize('initial_reps', [0, 1, 2, 3])
-def test_repeat_zero_times(add_measurements, use_repetition_ids, initial_reps):
+def test_repeat_zero_times(add_measurements, use_repetition_ids, initial_reps) -> None:
     q = cirq.LineQubit(0)
     subcircuit = cirq.Circuit(cirq.X(q))
     if add_measurements:
@@ -350,7 +374,7 @@ def test_repeat_zero_times(add_measurements, use_repetition_ids, initial_reps):
     assert np.allclose(result.state_vector(), [1, 0])
 
 
-def test_no_repetition_ids():
+def test_no_repetition_ids() -> None:
     def default_repetition_ids(self):  # pragma: no cover
         assert False, "Should not call default_repetition_ids"
 
@@ -371,7 +395,7 @@ def test_no_repetition_ids():
         assert op2.repetition_ids is None
 
 
-def test_parameterized_repeat():
+def test_parameterized_repeat() -> None:
     q = cirq.LineQubit(0)
     op = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q))) ** sympy.Symbol('a')
     assert cirq.parameter_names(op) == {'a'}
@@ -431,11 +455,12 @@ def test_parameterized_repeat():
         cirq.Simulator().simulate(cirq.Circuit(op))
 
 
-def test_parameterized_repeat_side_effects():
+def test_parameterized_repeat_side_effects() -> None:
     q = cirq.LineQubit(0)
     op = cirq.CircuitOperation(
         cirq.FrozenCircuit(cirq.X(q).with_classical_controls('c'), cirq.measure(q, key='m')),
         repetitions=sympy.Symbol('a'),
+        use_repetition_ids=True,
     )
 
     # Control keys can be calculated because they only "lift" if there's a matching
@@ -495,7 +520,7 @@ def test_parameterized_repeat_side_effects():
     )
 
 
-def test_parameterized_repeat_side_effects_when_not_using_rep_ids():
+def test_parameterized_repeat_side_effects_when_not_using_rep_ids() -> None:
     q = cirq.LineQubit(0)
     op = cirq.CircuitOperation(
         cirq.FrozenCircuit(cirq.X(q).with_classical_controls('c'), cirq.measure(q, key='m')),
@@ -521,7 +546,7 @@ def test_parameterized_repeat_side_effects_when_not_using_rep_ids():
         op.repeat(repetition_ids=['x', 'y'])
 
 
-def test_qid_shape():
+def test_qid_shape() -> None:
     circuit = cirq.FrozenCircuit(
         cirq.IdentityGate(qid_shape=(q.dimension,)).on(q)
         for q in cirq.LineQid.for_qid_shape((1, 2, 3, 4))
@@ -536,7 +561,7 @@ def test_qid_shape():
     assert cirq.num_qubits(id_op) == 3
 
 
-def test_string_format():
+def test_string_format() -> None:
     x, y, z = cirq.LineQubit.range(3)
 
     fc0 = cirq.FrozenCircuit()
@@ -586,7 +611,7 @@ cirq.CircuitOperation(
             cirq.measure(cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2), key=cirq.MeasurementKey(name='m')),
         ),
     ]),
-)"""
+)"""  # noqa: E501
     )
 
     fc2 = cirq.FrozenCircuit(cirq.X(x), cirq.H(y), cirq.CX(y, x))
@@ -689,7 +714,6 @@ cirq.CircuitOperation(
             ),
         ),
     ]),
-    use_repetition_ids=False,
 )"""
     )
     op7 = cirq.CircuitOperation(
@@ -706,13 +730,12 @@ cirq.CircuitOperation(
             cirq.measure(cirq.LineQubit(0), key=cirq.MeasurementKey(name='a')),
         ),
     ]),
-    use_repetition_ids=False,
     repeat_until=cirq.KeyCondition(cirq.MeasurementKey(name='a')),
 )"""
     )
 
 
-def test_json_dict():
+def test_json_dict() -> None:
     a, b, c = cirq.LineQubit.range(3)
     circuit = cirq.FrozenCircuit(
         cirq.X(a),
@@ -737,10 +760,11 @@ def test_json_dict():
         'param_resolver': op.param_resolver,
         'parent_path': op.parent_path,
         'repetition_ids': None,
+        'use_repetition_ids': False,
     }
 
 
-def test_terminal_matches():
+def test_terminal_matches() -> None:
     a, b = cirq.LineQubit.range(2)
     fc = cirq.FrozenCircuit(cirq.H(a), cirq.measure(b, key='m1'))
     op = cirq.CircuitOperation(fc)
@@ -778,23 +802,23 @@ def test_terminal_matches():
     assert c.are_any_measurements_terminal()
 
 
-def test_nonterminal_in_subcircuit():
+def test_nonterminal_in_subcircuit() -> None:
     a, b = cirq.LineQubit.range(2)
     fc = cirq.FrozenCircuit(cirq.H(a), cirq.measure(b, key='m1'), cirq.X(b))
-    op = cirq.CircuitOperation(fc)
-    c = cirq.Circuit(cirq.X(a), op)
-    assert isinstance(op, cirq.CircuitOperation)
+    circuit_op = cirq.CircuitOperation(fc)
+    c = cirq.Circuit(cirq.X(a), circuit_op)
+    assert isinstance(circuit_op, cirq.CircuitOperation)
     assert not c.are_all_measurements_terminal()
     assert not c.are_any_measurements_terminal()
 
-    op = op.with_tags('test')
+    op = circuit_op.with_tags('test')
     c = cirq.Circuit(cirq.X(a), op)
     assert not isinstance(op, cirq.CircuitOperation)
     assert not c.are_all_measurements_terminal()
     assert not c.are_any_measurements_terminal()
 
 
-def test_decompose_applies_maps():
+def test_decompose_applies_maps() -> None:
     a, b, c = cirq.LineQubit.range(3)
     exp = sympy.Symbol('exp')
     theta = sympy.Symbol('theta')
@@ -822,7 +846,7 @@ def test_decompose_applies_maps():
     assert cirq.Circuit(cirq.decompose_once(op)) == expected_circuit
 
 
-def test_decompose_loops():
+def test_decompose_loops() -> None:
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.FrozenCircuit(cirq.H(a), cirq.CX(a, b))
     base_op = cirq.CircuitOperation(circuit)
@@ -838,10 +862,30 @@ def test_decompose_loops():
     assert cirq.Circuit(cirq.decompose_once(op)) == expected_circuit
 
 
-def test_decompose_loops_with_measurements():
+def test_decompose_loops_with_measurements() -> None:
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.FrozenCircuit(cirq.H(a), cirq.CX(a, b), cirq.measure(a, b, key='m'))
     base_op = cirq.CircuitOperation(circuit)
+
+    op = base_op.with_qubits(b, a).repeat(3)
+    expected_circuit = cirq.Circuit(
+        cirq.H(b),
+        cirq.CX(b, a),
+        cirq.measure(b, a, key=cirq.MeasurementKey.parse_serialized('m')),
+        cirq.H(b),
+        cirq.CX(b, a),
+        cirq.measure(b, a, key=cirq.MeasurementKey.parse_serialized('m')),
+        cirq.H(b),
+        cirq.CX(b, a),
+        cirq.measure(b, a, key=cirq.MeasurementKey.parse_serialized('m')),
+    )
+    assert cirq.Circuit(cirq.decompose_once(op)) == expected_circuit
+
+
+def test_decompose_loops_with_measurements_use_rep_ids() -> None:
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.FrozenCircuit(cirq.H(a), cirq.CX(a, b), cirq.measure(a, b, key='m'))
+    base_op = cirq.CircuitOperation(circuit, use_repetition_ids=True)
 
     op = base_op.with_qubits(b, a).repeat(3)
     expected_circuit = cirq.Circuit(
@@ -858,7 +902,7 @@ def test_decompose_loops_with_measurements():
     assert cirq.Circuit(cirq.decompose_once(op)) == expected_circuit
 
 
-def test_decompose_nested():
+def test_decompose_nested() -> None:
     a, b, c, d = cirq.LineQubit.range(4)
     exp1 = sympy.Symbol('exp1')
     exp_half = sympy.Symbol('exp_half')
@@ -938,7 +982,7 @@ def test_decompose_nested():
     assert final_op.mapped_circuit(deep=True) == expected_circuit
 
 
-def test_decompose_repeated_nested_measurements():
+def test_decompose_repeated_nested_measurements() -> None:
     # Details of this test described at
     # https://tinyurl.com/measurement-repeated-circuitop#heading=h.sbgxcsyin9wt.
     a = cirq.LineQubit(0)
@@ -990,7 +1034,7 @@ def test_decompose_repeated_nested_measurements():
     assert op3.mapped_circuit(deep=True) == expected_circuit
 
 
-def test_keys_under_parent_path():
+def test_keys_under_parent_path() -> None:
     a = cirq.LineQubit(0)
     op1 = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.measure(a, key='A')))
     assert cirq.measurement_key_names(op1) == {'A'}
@@ -999,10 +1043,12 @@ def test_keys_under_parent_path():
     op3 = cirq.with_key_path_prefix(op2, ('C',))
     assert cirq.measurement_key_names(op3) == {'C:B:A'}
     op4 = op3.repeat(2)
-    assert cirq.measurement_key_names(op4) == {'C:B:0:A', 'C:B:1:A'}
+    assert cirq.measurement_key_names(op4) == {'C:B:A'}
+    op4_rep = op3.repeat(2).replace(use_repetition_ids=True)
+    assert cirq.measurement_key_names(op4_rep) == {'C:B:0:A', 'C:B:1:A'}
 
 
-def test_mapped_circuit_preserves_moments():
+def test_mapped_circuit_preserves_moments() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     fc = cirq.FrozenCircuit(cirq.Moment(cirq.X(q0)), cirq.Moment(cirq.X(q1)))
     op = cirq.CircuitOperation(fc)
@@ -1010,7 +1056,7 @@ def test_mapped_circuit_preserves_moments():
     assert op.repeat(3).mapped_circuit(deep=True) == fc * 3
 
 
-def test_mapped_op():
+def test_mapped_op() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     a, b = (sympy.Symbol(x) for x in 'ab')
     fc1 = cirq.FrozenCircuit(cirq.X(q0) ** a, cirq.measure(q0, q1, key='m'))
@@ -1026,14 +1072,14 @@ def test_mapped_op():
     assert op1.mapped_op() == op2
 
 
-def test_tag_propagation():
+def test_tag_propagation() -> None:
     # Tags are not propagated from the CircuitOperation to its components.
     # TODO: support tag propagation for better serialization.
     a, b, c = cirq.LineQubit.range(3)
     circuit = cirq.FrozenCircuit(cirq.X(a), cirq.H(b), cirq.H(c), cirq.CZ(a, c))
-    op = cirq.CircuitOperation(circuit)
+    circuit_op = cirq.CircuitOperation(circuit)
     test_tag = 'test_tag'
-    op = op.with_tags(test_tag)
+    op = circuit_op.with_tags(test_tag)
 
     assert test_tag in op.tags
 
@@ -1043,13 +1089,15 @@ def test_tag_propagation():
         assert test_tag not in op.tags
 
 
-def test_mapped_circuit_keeps_keys_under_parent_path():
+def test_mapped_circuit_keeps_keys_under_parent_path() -> None:
     q = cirq.LineQubit(0)
+    bit_flip = cirq.bit_flip(0.5)
+    assert isinstance(bit_flip, cirq.BitFlipChannel)
     op1 = cirq.CircuitOperation(
         cirq.FrozenCircuit(
             cirq.measure(q, key='A'),
             cirq.measure_single_paulistring(cirq.X(q), key='B'),
-            cirq.MixedUnitaryChannel.from_mixture(cirq.bit_flip(0.5), key='C').on(q),
+            cirq.MixedUnitaryChannel.from_mixture(bit_flip, key='C').on(q),
             cirq.KrausChannel.from_channel(cirq.phase_damp(0.5), key='D').on(q),
         )
     )
@@ -1057,7 +1105,7 @@ def test_mapped_circuit_keeps_keys_under_parent_path():
     assert cirq.measurement_key_names(op2.mapped_circuit()) == {'X:A', 'X:B', 'X:C', 'X:D'}
 
 
-def test_mapped_circuit_allows_repeated_keys():
+def test_mapped_circuit_allows_repeated_keys() -> None:
     q = cirq.LineQubit(0)
     op1 = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.measure(q, key='A')))
     op2 = cirq.CircuitOperation(cirq.FrozenCircuit(op1, op1))
@@ -1065,49 +1113,31 @@ def test_mapped_circuit_allows_repeated_keys():
     cirq.testing.assert_has_diagram(
         circuit, "0: ───M('A')───M('A')───", use_unicode_characters=True
     )
-    op1 = cirq.measure(q, key='A')
-    op2 = cirq.CircuitOperation(cirq.FrozenCircuit(op1, op1))
-    circuit = op2.mapped_circuit()
+    op3 = cirq.measure(q, key='A')
+    op4 = cirq.CircuitOperation(cirq.FrozenCircuit(op3, op3))
+    circuit = op4.mapped_circuit()
     cirq.testing.assert_has_diagram(
         circuit, "0: ───M('A')───M('A')───", use_unicode_characters=True
     )
 
 
 @pytest.mark.parametrize('sim', ALL_SIMULATORS)
-def test_simulate_no_repetition_ids_both_levels(sim):
+def test_simulate_no_repetition_ids_both_levels(sim) -> None:
     q = cirq.LineQubit(0)
     inner = cirq.Circuit(cirq.measure(q, key='a'))
-    middle = cirq.Circuit(
-        cirq.CircuitOperation(inner.freeze(), repetitions=2, use_repetition_ids=False)
-    )
-    outer_subcircuit = cirq.CircuitOperation(
-        middle.freeze(), repetitions=2, use_repetition_ids=False
-    )
+    middle = cirq.Circuit(cirq.CircuitOperation(inner.freeze(), repetitions=2))
+    outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
     circuit = cirq.Circuit(outer_subcircuit)
     result = sim.run(circuit)
     assert result.records['a'].shape == (1, 4, 1)
 
 
 @pytest.mark.parametrize('sim', ALL_SIMULATORS)
-def test_simulate_no_repetition_ids_outer(sim):
-    q = cirq.LineQubit(0)
-    inner = cirq.Circuit(cirq.measure(q, key='a'))
-    middle = cirq.Circuit(cirq.CircuitOperation(inner.freeze(), repetitions=2))
-    outer_subcircuit = cirq.CircuitOperation(
-        middle.freeze(), repetitions=2, use_repetition_ids=False
-    )
-    circuit = cirq.Circuit(outer_subcircuit)
-    result = sim.run(circuit)
-    assert result.records['0:a'].shape == (1, 2, 1)
-    assert result.records['1:a'].shape == (1, 2, 1)
-
-
-@pytest.mark.parametrize('sim', ALL_SIMULATORS)
-def test_simulate_no_repetition_ids_inner(sim):
+def test_simulate_no_repetition_ids_outer(sim) -> None:
     q = cirq.LineQubit(0)
     inner = cirq.Circuit(cirq.measure(q, key='a'))
     middle = cirq.Circuit(
-        cirq.CircuitOperation(inner.freeze(), repetitions=2, use_repetition_ids=False)
+        cirq.CircuitOperation(inner.freeze(), repetitions=2, use_repetition_ids=True)
     )
     outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
     circuit = cirq.Circuit(outer_subcircuit)
@@ -1117,14 +1147,27 @@ def test_simulate_no_repetition_ids_inner(sim):
 
 
 @pytest.mark.parametrize('sim', ALL_SIMULATORS)
-def test_repeat_until(sim):
+def test_simulate_no_repetition_ids_inner(sim) -> None:
+    q = cirq.LineQubit(0)
+    inner = cirq.Circuit(cirq.measure(q, key='a'))
+    middle = cirq.Circuit(cirq.CircuitOperation(inner.freeze(), repetitions=2))
+    outer_subcircuit = cirq.CircuitOperation(
+        middle.freeze(), repetitions=2, use_repetition_ids=True
+    )
+    circuit = cirq.Circuit(outer_subcircuit)
+    result = sim.run(circuit)
+    assert result.records['0:a'].shape == (1, 2, 1)
+    assert result.records['1:a'].shape == (1, 2, 1)
+
+
+@pytest.mark.parametrize('sim', ALL_SIMULATORS)
+def test_repeat_until(sim) -> None:
     q = cirq.LineQubit(0)
     key = cirq.MeasurementKey('m')
     c = cirq.Circuit(
         cirq.X(q),
         cirq.CircuitOperation(
             cirq.FrozenCircuit(cirq.X(q), cirq.measure(q, key=key)),
-            use_repetition_ids=False,
             repeat_until=cirq.KeyCondition(key),
         ),
     )
@@ -1135,11 +1178,10 @@ def test_repeat_until(sim):
 
 
 @pytest.mark.parametrize('sim', ALL_SIMULATORS)
-def test_repeat_until_sympy(sim):
+def test_repeat_until_sympy(sim) -> None:
     q1, q2 = cirq.LineQubit.range(2)
     circuitop = cirq.CircuitOperation(
         cirq.FrozenCircuit(cirq.X(q2), cirq.measure(q2, key='b')),
-        use_repetition_ids=False,
         repeat_until=cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), sympy.Symbol('b'))),
     )
     c = cirq.Circuit(cirq.measure(q1, key='a'), circuitop)
@@ -1153,13 +1195,12 @@ def test_repeat_until_sympy(sim):
 
 
 @pytest.mark.parametrize('sim', [cirq.Simulator(), cirq.DensityMatrixSimulator()])
-def test_post_selection(sim):
+def test_post_selection(sim) -> None:
     q = cirq.LineQubit(0)
     key = cirq.MeasurementKey('m')
     c = cirq.Circuit(
         cirq.CircuitOperation(
             cirq.FrozenCircuit(cirq.X(q) ** 0.2, cirq.measure(q, key=key)),
-            use_repetition_ids=False,
             repeat_until=cirq.KeyCondition(key),
         )
     )
@@ -1169,26 +1210,25 @@ def test_post_selection(sim):
         assert result.records['m'][0][i] == (0,)
 
 
-def test_repeat_until_diagram():
+def test_repeat_until_diagram() -> None:
     q = cirq.LineQubit(0)
     key = cirq.MeasurementKey('m')
     c = cirq.Circuit(
         cirq.CircuitOperation(
             cirq.FrozenCircuit(cirq.X(q) ** 0.2, cirq.measure(q, key=key)),
-            use_repetition_ids=False,
             repeat_until=cirq.KeyCondition(key),
         )
     )
     cirq.testing.assert_has_diagram(
         c,
         """
-0: ───[ 0: ───X^0.2───M('m')─── ](no_rep_ids, until=m)───
+0: ───[ 0: ───X^0.2───M('m')─── ](until=m)───
 """,
         use_unicode_characters=True,
     )
 
 
-def test_repeat_until_error():
+def test_repeat_until_error() -> None:
     q = cirq.LineQubit(0)
     with pytest.raises(ValueError, match='Cannot use repetitions with repeat_until'):
         cirq.CircuitOperation(
@@ -1199,9 +1239,61 @@ def test_repeat_until_error():
     with pytest.raises(ValueError, match='Infinite loop'):
         cirq.CircuitOperation(
             cirq.FrozenCircuit(cirq.measure(q, key='m')),
-            use_repetition_ids=False,
             repeat_until=cirq.KeyCondition(cirq.MeasurementKey('a')),
         )
+
+
+def test_repeat_until_protocols() -> None:
+    q = cirq.LineQubit(0)
+    op = cirq.CircuitOperation(
+        cirq.FrozenCircuit(cirq.H(q) ** sympy.Symbol('p'), cirq.measure(q, key='a')),
+        repeat_until=cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), 0)),
+    )
+    scoped = cirq.with_rescoped_keys(op, ('0',))
+    # Ensure the _repeat_until has been mapped, the measurement has been mapped to the same key,
+    # and the control keys of the subcircuit is empty (because the control key of the condition is
+    # bound to the measurement).
+    assert scoped._mapped_repeat_until.keys == (cirq.MeasurementKey('a', ('0',)),)
+    assert cirq.measurement_key_objs(scoped) == {cirq.MeasurementKey('a', ('0',))}
+    assert not cirq.control_keys(scoped)
+    mapped = cirq.with_measurement_key_mapping(scoped, {'a': 'b'})
+    assert mapped._mapped_repeat_until.keys == (cirq.MeasurementKey('b', ('0',)),)
+    assert cirq.measurement_key_objs(mapped) == {cirq.MeasurementKey('b', ('0',))}
+    assert not cirq.control_keys(mapped)
+    prefixed = cirq.with_key_path_prefix(mapped, ('1',))
+    assert prefixed._mapped_repeat_until.keys == (cirq.MeasurementKey('b', ('1', '0')),)
+    assert cirq.measurement_key_objs(prefixed) == {cirq.MeasurementKey('b', ('1', '0'))}
+    assert not cirq.control_keys(prefixed)
+    setpath = cirq.with_key_path(prefixed, ('2',))
+    assert setpath._mapped_repeat_until.keys == (cirq.MeasurementKey('b', ('2',)),)
+    assert cirq.measurement_key_objs(setpath) == {cirq.MeasurementKey('b', ('2',))}
+    assert not cirq.control_keys(setpath)
+    resolved = cirq.resolve_parameters(setpath, {'p': 1})
+    assert resolved._mapped_repeat_until.keys == (cirq.MeasurementKey('b', ('2',)),)
+    assert cirq.measurement_key_objs(resolved) == {cirq.MeasurementKey('b', ('2',))}
+    assert not cirq.control_keys(resolved)
+
+
+def test_inner_repeat_until_simulate() -> None:
+    sim = cirq.Simulator()
+    q = cirq.LineQubit(0)
+    inner_loop = cirq.CircuitOperation(
+        cirq.FrozenCircuit(cirq.H(q), cirq.measure(q, key="inner_loop")),
+        repeat_until=cirq.SympyCondition(sympy.Eq(sympy.Symbol("inner_loop"), 0)),
+    )
+    outer_loop = cirq.Circuit(inner_loop, cirq.X(q), cirq.measure(q, key="outer_loop"))
+    circuit = cirq.Circuit(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(outer_loop), repetitions=2, use_repetition_ids=True
+        )
+    )
+    result = sim.run(circuit, repetitions=1)
+    assert all(len(v) == 1 and v[0] == 1 for v in result.records['0:inner_loop'][0][:-1])
+    assert result.records['0:inner_loop'][0][-1] == [0]
+    assert result.records['0:outer_loop'] == [[[1]]]
+    assert all(len(v) == 1 and v[0] == 1 for v in result.records['1:inner_loop'][0][:-1])
+    assert result.records['1:inner_loop'][0][-1] == [0]
+    assert result.records['1:outer_loop'] == [[[1]]]
 
 
 # TODO: Operation has a "gate" property. What is this for a CircuitOperation?

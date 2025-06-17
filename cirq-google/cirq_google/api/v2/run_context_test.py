@@ -12,17 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq_google.api.v2 import program_pb2
-from cirq_google.api.v2 import run_context_pb2
-import cirq_google.api.v2.run_context as run_context
+from __future__ import annotations
+
 import google.protobuf.text_format as text_format
+
+import cirq_google.api.v2.run_context as run_context
+from cirq_google.api.v2 import program_pb2, run_context_pb2
 
 
 def test_converting_multiple_device_params_to_device_parameters_diff() -> None:
     """Test of converting a list of DeviceParameter's to a DeviceParametersDiff object."""
     readout_paths = (["q3_4", "readout_default"], ["q5_6", "readout_default"])
 
-    device_params = []
+    device_params: list[
+        tuple[
+            run_context_pb2.DeviceParameter,
+            program_pb2.ArgValue | run_context_pb2.DeviceParametersDiff.GenericValue,
+        ]
+    ] = []
     for readout_path in readout_paths:
         device_params.extend(
             [
@@ -39,6 +46,12 @@ def test_converting_multiple_device_params_to_device_parameters_diff() -> None:
                     ),
                 ),
                 (
+                    run_context_pb2.DeviceParameter(path=[*readout_path, "readoutCenters"]),
+                    run_context_pb2.DeviceParametersDiff.GenericValue(
+                        type_descriptor="tuple[complex, complex]", value=b"(-1.0+2.0i, 3.0-4.0i)"
+                    ),
+                ),
+                (
                     run_context_pb2.DeviceParameter(path=[*readout_path, "demod", "phase_i_rad"]),
                     program_pb2.ArgValue(double_value=0.0),
                 ),
@@ -50,16 +63,15 @@ def test_converting_multiple_device_params_to_device_parameters_diff() -> None:
           parent: -1
         }
         groups {
-          parent: 0
           name: 1
         }
         groups {
           parent: 1
-          name: 4
+          name: 5
         }
         groups {
           parent: -1
-          name: 6
+          name: 7
         }
         groups {
           parent: 3
@@ -67,7 +79,7 @@ def test_converting_multiple_device_params_to_device_parameters_diff() -> None:
         }
         groups {
           parent: 4
-          name: 4
+          name: 5
         }
         params {
           resource_group: 1
@@ -87,8 +99,16 @@ def test_converting_multiple_device_params_to_device_parameters_diff() -> None:
           }
         }
         params {
+          resource_group: 1
+          name: 4
+          generic_value {
+            type_descriptor: "tuple[complex, complex]"
+            value: "(-1.0+2.0i, 3.0-4.0i)"
+          }
+        }
+        params {
           resource_group: 2
-          name: 5
+          name: 6
           value {
             double_value: 0
           }
@@ -111,8 +131,16 @@ def test_converting_multiple_device_params_to_device_parameters_diff() -> None:
           }
         }
         params {
+          resource_group: 4
+          name: 4
+          generic_value {
+            type_descriptor: "tuple[complex, complex]"
+            value: "(-1.0+2.0i, 3.0-4.0i)"
+          }
+        }
+        params {
           resource_group: 5
-          name: 5
+          name: 6
           value {
             double_value: 0
           }
@@ -121,11 +149,11 @@ def test_converting_multiple_device_params_to_device_parameters_diff() -> None:
         strs: "readout_default"
         strs: "readoutDemodDelay"
         strs: "readoutFidelities"
+        strs: "readoutCenters"
         strs: "demod"
         strs: "phase_i_rad"
         strs: "q5_6"
     """
-    print(diff)
     assert text_format.Parse(expected_diff_pb_text, run_context_pb2.DeviceParametersDiff()) == diff
 
 

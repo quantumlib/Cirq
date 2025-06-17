@@ -14,14 +14,17 @@
 
 """Classes and methods for visualizing results, quantum states, and devices."""
 
-from cirq.vis.heatmap import Heatmap
+from cirq.vis.heatmap import Heatmap as Heatmap
 
-from cirq.vis.heatmap import TwoQubitInteractionHeatmap
+from cirq.vis.heatmap import TwoQubitInteractionHeatmap as TwoQubitInteractionHeatmap
 
-from cirq.vis.histogram import integrated_histogram
+from cirq.vis.histogram import integrated_histogram as integrated_histogram
 
-from cirq.vis.state_histogram import get_state_histogram, plot_state_histogram
+from cirq.vis.state_histogram import (
+    get_state_histogram as get_state_histogram,
+    plot_state_histogram as plot_state_histogram,
+)
 
-from cirq.vis.density_matrix import plot_density_matrix
+from cirq.vis.density_matrix import plot_density_matrix as plot_density_matrix
 
-from cirq.vis.vis_utils import relative_luminance
+from cirq.vis.vis_utils import relative_luminance as relative_luminance

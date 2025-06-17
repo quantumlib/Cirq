@@ -1,0 +1,1 @@
+cirq_google.study.Metadata(device_parameters=[cirq_google.study.DeviceParameter(path=['test', 'subdir'], idx=None, value=None, units=None)], is_const=True, label='fake_label', unit=None)
