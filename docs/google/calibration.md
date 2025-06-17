@@ -20,7 +20,7 @@ A dropdown menu will let you choose the current characterization or historical
 metrics from a previous run.  Calibration metrics can also be retrieved
 programmatically using an engine instance or with a job.
 
-```
+```python
 import cirq_google as cg
 
 # Create an Engine object to use.
@@ -167,7 +167,7 @@ calculated by fitting Gaussian distributions to the signals prepared in the
 distributions.  Note that this is a component of both the p_00 and p_11 errors
 and is included within those metrics.
 
-### Isolated 1 qubit randomized benchmark error: 
+### Isolated 1 qubit randomized benchmark error:
 *   Metric key: single_qubit_rb_average_error_per_gate
 *   Metric key: single_qubit_rb_pauli_error_per_gate
 *   Metric key: single_qubit_rb_incoherent_error_per_gate
@@ -186,7 +186,7 @@ More information about randomized benchmarking can be found in section 6.3
 (page 120) of this
 [thesis](https://web.physics.ucsb.edu/~martinisgroup/theses/Chen2018.pdf).
 
-### T1 
+### T1
 *   Metric key: single_qubit_idle_t1_micros
 
 The T1 of a qubit represents the time constant of the exponential decay of a

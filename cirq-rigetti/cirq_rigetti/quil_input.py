@@ -12,68 +12,69 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Type, cast, Dict, Union, List, Tuple, Optional
+from typing import Any, Callable, cast
 
-import sympy
 import numpy as np
+import sympy
 from numpy.typing import NDArray
-
 from pyquil.quil import Program
+from pyquil.quilatom import (
+    Add,
+    BinaryExp,
+    Div,
+    Function,
+    MemoryReference,
+    Mul,
+    Parameter,
+    ParameterDesignator,
+    Pow,
+    qubit_index,
+    QubitDesignator,
+    Sub,
+    substitute_array,
+)
 from pyquil.quilbase import (
     Declare,
     DefGate,
+    Fence,
+    FenceAll,
     Gate as PyQuilGate,
     Measurement as PyQuilMeasurement,
     Pragma,
     Reset,
     ResetQubit,
-    Fence,
-    FenceAll,
-)
-from pyquil.quilatom import (
-    MemoryReference,
-    ParameterDesignator,
-    QubitDesignator,
-    Function,
-    BinaryExp,
-    Add,
-    Sub,
-    Mul,
-    Div,
-    Pow,
-    Parameter,
-    substitute_array,
-    qubit_index,
 )
 from pyquil.simulation import matrices
 
 import cirq
+from cirq._compat import cached_method
 from cirq.circuits.circuit import Circuit
 from cirq.devices.insertion_noise_model import InsertionNoiseModel
-from cirq.protocols.circuit_diagram_info_protocol import CircuitDiagramInfoArgs, CircuitDiagramInfo
 from cirq.devices.line_qubit import LineQubit
 from cirq.devices.noise_utils import OpIdentifier
-from cirq.value import value_equality
-from cirq.protocols import is_parameterized
-
-from cirq.ops.common_gates import CNOT, CZ, CZPowGate, H, S, T, ZPowGate, YPowGate, XPowGate
-from cirq.ops.parity_gates import ZZPowGate, XXPowGate, YYPowGate
-from cirq.ops.pauli_gates import X, Y, Z
+from cirq.ops.common_gates import CNOT, CZ, CZPowGate, H, S, T, XPowGate, YPowGate, ZPowGate
 from cirq.ops.fsim_gate import FSimGate, PhasedFSimGate
 from cirq.ops.identity import I
+from cirq.ops.kraus_channel import KrausChannel
 from cirq.ops.matrix_gates import MatrixGate
 from cirq.ops.measurement_gate import MeasurementGate
+from cirq.ops.parity_gates import XXPowGate, YYPowGate, ZZPowGate
+from cirq.ops.pauli_gates import X, Y, Z
+from cirq.ops.raw_types import Gate
 from cirq.ops.swap_gates import ISWAP, ISwapPowGate, SWAP
 from cirq.ops.three_qubit_gates import CCNOT, CSWAP
-from cirq.ops.raw_types import Gate
-from cirq.ops.kraus_channel import KrausChannel
-from cirq._compat import cached_method
+from cirq.protocols import is_parameterized
+from cirq.protocols.circuit_diagram_info_protocol import CircuitDiagramInfo, CircuitDiagramInfoArgs
+from cirq.value import value_equality
+from cirq_rigetti.deprecation import deprecated_cirq_rigetti_class, deprecated_cirq_rigetti_function
 
 
+@deprecated_cirq_rigetti_class()
 class UndefinedQuilGate(Exception):
     """Error for a undefined Quil Gate."""
 
 
+@deprecated_cirq_rigetti_class()
 class UnsupportedQuilInstruction(Exception):
     """Error for a unsupported instruction."""
 
@@ -83,6 +84,7 @@ class UnsupportedQuilInstruction(Exception):
 #
 
 
+@deprecated_cirq_rigetti_class()
 @value_equality(distinct_child_types=True, approximate=True)
 class CPHASE00(Gate):
     """Cirq equivalent to Quil CPHASE00."""
@@ -122,6 +124,7 @@ class CPHASE00(Gate):
         return (self.phi,)
 
 
+@deprecated_cirq_rigetti_class()
 @value_equality(distinct_child_types=True, approximate=True)
 class CPHASE01(Gate):
     """Cirq equivalent to Quil CPHASE01."""
@@ -161,6 +164,7 @@ class CPHASE01(Gate):
         return (self.phi,)
 
 
+@deprecated_cirq_rigetti_class()
 @value_equality(distinct_child_types=True, approximate=True)
 class CPHASE10(Gate):
     """Cirq equivalent to Quil CPHASE10."""
@@ -200,6 +204,7 @@ class CPHASE10(Gate):
         return (self.phi,)
 
 
+@deprecated_cirq_rigetti_class()
 @value_equality(distinct_child_types=True, approximate=True)
 class PSWAP(Gate):
     """Cirq equivalent to Quil PSWAP."""
@@ -251,7 +256,7 @@ RESET directives have special meaning on QCS, to enable active reset.
 
 
 # Parameterized gates map to functions that produce Gate constructors.
-SUPPORTED_GATES: Dict[str, Union[Gate, Callable[..., Gate]]] = {
+SUPPORTED_GATES: dict[str, Gate | Callable[..., Gate]] = {
     "CCNOT": CCNOT,
     "CNOT": CNOT,
     "CSWAP": CSWAP,
@@ -283,7 +288,7 @@ SUPPORTED_GATES: Dict[str, Union[Gate, Callable[..., Gate]]] = {
 }
 
 # Gate parameters must be transformed to Cirq units
-PARAMETRIC_TRANSFORMERS: Dict[str, Callable] = {
+PARAMETRIC_TRANSFORMERS: dict[str, Callable] = {
     "CPHASE": lambda theta: dict(exponent=theta / np.pi, global_shift=0.0),
     "CPHASE00": lambda phi: dict(phi=phi),
     "CPHASE01": lambda phi: dict(phi=phi),
@@ -304,7 +309,8 @@ PARAMETRIC_TRANSFORMERS: Dict[str, Callable] = {
 }
 
 
-def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
+@deprecated_cirq_rigetti_function()
+def circuit_from_quil(quil: str | Program) -> Circuit:
     """Convert a Quil program to a Cirq Circuit.
 
     Args:
@@ -328,8 +334,8 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
 
     defined_gates, parameter_transformers = get_defined_gates(program)
 
-    kraus_model: Dict[Tuple[QubitDesignator, ...], List[NDArray[np.complex_]]] = {}
-    confusion_maps: Dict[int, NDArray[np.float_]] = {}
+    kraus_model: dict[tuple[QubitDesignator, ...], list[NDArray[np.complex128]]] = {}
+    confusion_maps: dict[int, NDArray[np.float64]] = {}
 
     # Interpret the Pragmas
     for inst in program:
@@ -348,7 +354,7 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
                 raise UndefinedQuilGate(f"{gate_name} is not known.")
 
             entries = np.fromstring(
-                inst.freeform_string.strip("()").replace("i", "j"), dtype=np.complex_, sep=" "
+                inst.freeform_string.strip("()").replace("i", "j"), dtype=np.complex128, sep=" "
             )
             dim = int(np.sqrt(len(entries)))
             kraus_gate_op = entries.reshape((dim, dim))
@@ -364,7 +370,7 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
         elif inst.command == "READOUT-POVM":
             qubit = qubit_index(inst.args[0])
             entries = np.fromstring(
-                inst.freeform_string.strip("()").replace("i", "j"), dtype=np.float_, sep=" "
+                inst.freeform_string.strip("()").replace("i", "j"), dtype=np.float64, sep=" "
             )
             confusion_matrix = entries.reshape((2, 2)).T
 
@@ -408,12 +414,12 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
                 )
             quil_memory_reference = inst.classical_reg.out()
             if qubit in confusion_maps:
-                cmap: Dict[Tuple[int, ...], NDArray[np.float_]] = {(qubit,): confusion_maps[qubit]}
+                cmap: dict[tuple[int, ...], NDArray[np.float64]] = {(qubit,): confusion_maps[qubit]}
                 """
                 Argument "confusion_map" to "MeasurementGate" has incompatible type
-                    "         Dict[Tuple[int],      ndarray[Any, dtype[floating[Any]]]]"
+                    "         dict[tuple[int],      ndarray[Any, dtype[floating[Any]]]]"
                 expected
-                    "Optional[Dict[Tuple[int, ...], ndarray[Any, Any]]]"
+                    "Optional[dict[tuple[int, ...], ndarray[Any, Any]]]"
                 """
                 circuit += MeasurementGate(1, key=quil_memory_reference, confusion_map=cmap)(
                     line_qubit
@@ -450,7 +456,8 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
     return circuit
 
 
-def get_defined_gates(program: Program) -> Tuple[Dict, Dict]:
+@deprecated_cirq_rigetti_function()
+def get_defined_gates(program: Program) -> tuple[dict, dict]:
     """Get the gate definitions for the program. Will include the default SUPPORTED_GATES, in
     addition to any gates defined in the Quil
 
@@ -470,13 +477,16 @@ def get_defined_gates(program: Program) -> Tuple[Dict, Dict]:
                 p.name: a for p, a in zip(defgate.parameters, args)
             }
         else:
-            defined_gates[defgate.name] = MatrixGate(np.asarray(defgate.matrix, dtype=np.complex_))
+            defined_gates[defgate.name] = MatrixGate(
+                np.asarray(defgate.matrix, dtype=np.complex128)
+            )
     return defined_gates, parameter_transformers
 
 
+@deprecated_cirq_rigetti_function()
 def kraus_noise_model_to_cirq(
-    kraus_noise_model: Dict[Tuple[QubitDesignator, ...], List[NDArray[np.complex_]]],
-    defined_gates: Optional[Dict[QubitDesignator, Gate]] = None,
+    kraus_noise_model: dict[tuple[QubitDesignator, ...], list[NDArray[np.complex128]]],
+    defined_gates: dict[QubitDesignator, Gate] | None = None,
 ) -> InsertionNoiseModel:  # pragma: no cover
     """Construct a Cirq noise model from the provided Kraus operators.
 
@@ -503,7 +513,7 @@ def kraus_noise_model_to_cirq(
         qubits = [LineQubit(q) for q in qubit_indices]
 
         # defined_gates is not None by this point
-        gate: Type[Gate] = defined_gates[gate_name]  # type: ignore
+        gate: type[Gate] = defined_gates[gate_name]  # type: ignore
         target_op = OpIdentifier(gate, *qubits)
 
         insert_op = KrausChannel(kraus_ops, validate=True).on(*qubits)
@@ -514,6 +524,7 @@ def kraus_noise_model_to_cirq(
     return noise_model
 
 
+@deprecated_cirq_rigetti_function()
 def quil_expression_to_sympy(expression: ParameterDesignator):
     """Convert a quil expression to a Sympy expression.
 
@@ -527,7 +538,7 @@ def quil_expression_to_sympy(expression: ParameterDesignator):
         ValueError: Connect convert unknown BinaryExp.
         ValueError: Unrecognized expression.
     """
-    if type(expression) in {np.int_, np.float_, np.complex_, int, float, complex}:
+    if type(expression) in {np.int_, np.float64, np.complex128, int, float, complex}:
         return expression
     elif isinstance(expression, Parameter):  # pragma: no cover
         return sympy.Symbol(expression.name)
@@ -577,6 +588,7 @@ def quil_expression_to_sympy(expression: ParameterDesignator):
         )
 
 
+@deprecated_cirq_rigetti_function()
 @cached_method
 def defgate_to_cirq(defgate: DefGate):
     """Convert a Quil DefGate to a Cirq Gate class.
@@ -634,8 +646,9 @@ def defgate_to_cirq(defgate: DefGate):
     return gate
 
 
+@deprecated_cirq_rigetti_function()
 def remove_gate_from_kraus(
-    kraus_ops: List[NDArray[np.complex_]], gate_matrix: NDArray[np.complex_]
+    kraus_ops: list[NDArray[np.complex128]], gate_matrix: NDArray[np.complex128]
 ):  # pragma: no cover
     """Recover the kraus operators from a kraus composed with a gate.
     This function is the reverse of append_kraus_to_gate.

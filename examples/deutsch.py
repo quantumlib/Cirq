@@ -26,10 +26,12 @@ Result f(0)⊕f(1):
 result=1
 """
 
+from __future__ import annotations
+
 import random
 
 import cirq
-from cirq import H, X, CNOT, measure
+from cirq import CNOT, H, measure, X
 
 
 def main():

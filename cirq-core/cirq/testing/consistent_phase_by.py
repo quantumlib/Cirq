@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import Any
 
 import numpy as np
 import sympy
 
-from cirq import protocols, linalg
+from cirq import linalg, protocols
 from cirq.testing import lin_alg_utils
 
 

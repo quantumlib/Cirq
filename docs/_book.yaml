@@ -178,10 +178,10 @@ upper_tabs:
         path: /cirq/noise/calibration_faq
       - title: "Floquet Calibration"
         path: /cirq/noise/floquet_calibration_example
-      - title: "Cross Entropy Benchmarking (XEB)"
+      - title: "Cross-Entropy Benchmarking (XEB)"
         style: accordion
         section:
-        - title: "Cross Entropy Benchmarking Theory"
+        - title: "Cross-Entropy Benchmarking Theory"
           path: /cirq/noise/qcvv/xeb_theory
         - title: "Coherent vs incoherent noise with XEB"
           path: /cirq/noise/qcvv/coherent_vs_incoherent_xeb
@@ -239,7 +239,7 @@ upper_tabs:
         path: /cirq/dev/versions
       - title: "Triage process"
         path: /cirq/dev/triage
-      - title: "Issues / requests / questions"
+      - title: "Issues, requests, and questions"
         path: /cirq/dev/support
 
     - name: "Reference"

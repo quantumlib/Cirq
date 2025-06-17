@@ -12,11 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from itertools import product
+
 import numpy as np
 import pytest
-import cirq
 import sympy
+
+import cirq
 
 
 def test_x_gate():

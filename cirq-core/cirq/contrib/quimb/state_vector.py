@@ -1,12 +1,17 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-import warnings
-from typing import cast, Sequence, Union, List, Tuple, Dict, Optional
 
-import numpy as np
+from __future__ import annotations
+
+import warnings
+from typing import cast, Sequence, TYPE_CHECKING
+
 import quimb
 import quimb.tensor as qtn
 
 import cirq
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 def _get_quimb_version():
@@ -25,10 +30,8 @@ QUIMB_VERSION = _get_quimb_version()
 
 
 def circuit_to_tensors(
-    circuit: cirq.Circuit,
-    qubits: Optional[Sequence[cirq.Qid]] = None,
-    initial_state: Union[int, None] = 0,
-) -> Tuple[List[qtn.Tensor], Dict['cirq.Qid', int], None]:
+    circuit: cirq.Circuit, qubits: Sequence[cirq.Qid] | None = None, initial_state: int | None = 0
+) -> tuple[list[qtn.Tensor], dict[cirq.Qid, int], None]:
     """Given a circuit, construct a tensor network representation.
 
     Indices are named "i{i}_q{x}" where i is a time index and x is a
@@ -62,7 +65,7 @@ def circuit_to_tensors(
 
     qubit_frontier = {q: 0 for q in qubits}
     positions = None
-    tensors: List[qtn.Tensor] = []
+    tensors: list[qtn.Tensor] = []
 
     if initial_state == 0:
         for q in qubits:
@@ -89,7 +92,7 @@ def circuit_to_tensors(
 
 
 def tensor_state_vector(
-    circuit: cirq.Circuit, qubits: Optional[Sequence[cirq.Qid]] = None
+    circuit: cirq.Circuit, qubits: Sequence[cirq.Qid] | None = None
 ) -> np.ndarray:
     """Given a circuit contract a tensor network into a final state vector."""
     if qubits is None:
@@ -102,9 +105,7 @@ def tensor_state_vector(
     return tn.to_dense(f_inds)
 
 
-def tensor_unitary(
-    circuit: cirq.Circuit, qubits: Optional[Sequence[cirq.Qid]] = None
-) -> np.ndarray:
+def tensor_unitary(circuit: cirq.Circuit, qubits: Sequence[cirq.Qid] | None = None) -> np.ndarray:
     """Given a circuit contract a tensor network into a dense unitary
     of the circuit."""
     if qubits is None:
@@ -170,15 +171,8 @@ def tensor_expectation_value(
         )
     else:
         tn.rank_simplify(inplace=True)
-    # TODO(#6586): revert when our minimum quimb version has bugfix for quimb#231
-    # Skip path-info evaluation when TensorNetwork consists of scalar Tensors.
-    # Avoid bug in quimb-1.8.0.
-    # Ref: https://github.com/jcmgray/quimb/issues/231
-    if tn.ind_map:
-        path_info = tn.contract(get='path-info')
-        ram_gb = path_info.largest_intermediate * 128 / 8 / 1024 / 1024 / 1024
-    else:
-        ram_gb = 0
+    path_info = tn.contract(get='path-info')
+    ram_gb = path_info.largest_intermediate * 128 / 8 / 1024 / 1024 / 1024
     if ram_gb > max_ram_gb:
         raise MemoryError(f"We estimate that this contraction will take too much RAM! {ram_gb} GB")
     e_val = tn.contract(inplace=True)

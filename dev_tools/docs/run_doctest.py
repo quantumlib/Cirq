@@ -25,22 +25,28 @@ The -q argument suppresses all output except the final result line and any error
 messages.
 """
 
-from typing import Any, Dict, Iterable, List, Tuple
+from __future__ import annotations
 
-import sys
+import doctest
 import glob
 import importlib.util
-import doctest
+import sys
+import warnings
+from types import ModuleType
+from typing import Any, Iterable, Sequence
 
 from dev_tools import shell_tools
 from dev_tools.output_capture import OutputCapture
 
-# Bug workaround: https://github.com/python/mypy/issues/1498
-ModuleType = Any
+# The contrib module imports quimb. Quimb a dependency on the package named cotengra. The latter
+# has optional dependencies on optimization packages; unfortunately, it also has hardwired
+# warnings that it prints if the user doesn't load at least one of the optional packages. The
+# warnings are confusing in the context of testing, so the following ignores them.
+warnings.filterwarnings("ignore", category=UserWarning, module="cotengra.hyperoptimizers.hyper")
 
 
 class Doctest:
-    def __init__(self, file_name: str, mod: ModuleType, test_globals: Dict[str, Any]):
+    def __init__(self, file_name: str, mod: ModuleType, test_globals: dict[str, Any]):
         self.file_name = file_name
         self.mod = mod
         self.test_globals = test_globals
@@ -98,7 +104,7 @@ def load_tests(
     include_modules: bool = True,
     include_local: bool = True,
     quiet: bool = True,
-) -> List[Doctest]:
+) -> list[Doctest]:
     """Prepares tests for code snippets from docstrings found in each file.
 
     Args:
@@ -117,13 +123,16 @@ def load_tests(
     else:
         try_print = lambda *args, **kwargs: None
     if include_modules:
+        import numpy
+        import pandas
+        import sympy
+
         import cirq
         import cirq_google
-        import numpy
-        import sympy
-        import pandas
 
         base_globals = {
+            'Iterable': Iterable,
+            'Sequence': Sequence,
             'cirq': cirq,
             'cirq_google': cirq_google,
             'np': numpy,
@@ -141,7 +150,7 @@ def load_tests(
         glob = make_globals(mod)
         return Doctest(file_path, mod, glob)
 
-    def make_globals(mod: ModuleType) -> Dict[str, Any]:
+    def make_globals(mod: ModuleType) -> dict[str, Any]:
         if include_local:
             glob = dict(mod.__dict__)
             glob.update(base_globals)
@@ -156,7 +165,7 @@ def load_tests(
 
 def exec_tests(
     tests: Iterable[Doctest], quiet: bool = True
-) -> Tuple[doctest.TestResults, List[str]]:
+) -> tuple[doctest.TestResults, list[str]]:
     """Runs a list of `Doctest`s and collects and returns any error messages.
 
     Args:
@@ -183,9 +192,8 @@ def exec_tests(
         if r.failed != 0:
             try_print('F', end='', flush=True)
             error = shell_tools.highlight(
-                '{}\n{} failed, {} passed, {} total\n'.format(
-                    test.file_name, r.failed, r.attempted - r.failed, r.attempted
-                ),
+                f'{test.file_name}\n'
+                f'{r.failed} failed, {r.attempted - r.failed} passed, {r.attempted} total\n',
                 shell_tools.RED,
             )
             error += out.content()
@@ -229,11 +237,11 @@ def main():
 
     file_names = glob.glob('cirq**/cirq**/**/*.py', recursive=True)
     assert file_names
-    # Remove the engine client code.
     excluded = [
-        'cirq-google/cirq_google/engine/client/',
-        'cirq-google/cirq_google/cloud/',
         'cirq-google/cirq_google/api/',
+        'cirq-google/cirq_google/cloud/',
+        'cirq-rigetti/',
+        'cirq-web/cirq_web/node_modules/',
     ]
     file_names = [
         f

@@ -12,20 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, FrozenSet, List, Sequence, Set, TYPE_CHECKING
+from __future__ import annotations
+
+from typing import cast, Sequence, TYPE_CHECKING
 
 from cirq import circuits
-
-from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.executor import AcquaintanceOperation
-from cirq.contrib.acquaintance.mutation_utils import expose_acquaintance_gates
+from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.inspection_utils import LogicalAnnotator
+from cirq.contrib.acquaintance.mutation_utils import expose_acquaintance_gates
 
 if TYPE_CHECKING:
     import cirq
 
 
-def remove_redundant_acquaintance_opportunities(strategy: 'cirq.Circuit') -> int:
+def remove_redundant_acquaintance_opportunities(strategy: cirq.Circuit) -> int:
     """Removes redundant acquaintance opportunities."""
 
     qubits = sorted(strategy.all_qubits())
@@ -35,11 +36,11 @@ def remove_redundant_acquaintance_opportunities(strategy: 'cirq.Circuit') -> int
     annotated_strategy = strategy.copy()
     LogicalAnnotator(mapping)(annotated_strategy)
 
-    new_moments: List['cirq.Moment'] = []
-    acquaintance_opps: Set[FrozenSet[int]] = set()
+    new_moments: list[cirq.Moment] = []
+    acquaintance_opps: set[frozenset[int]] = set()
     n_removed = 0
     for moment in annotated_strategy:
-        new_moment: List['cirq.Operation'] = []
+        new_moment: list[cirq.Operation] = []
         for op in moment:
             if isinstance(op, AcquaintanceOperation):
                 opp = frozenset(cast(Sequence[int], op.logical_indices))

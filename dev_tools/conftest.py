@@ -11,19 +11,30 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import os
 import shutil
 import sys
 import tempfile
 import uuid
 from pathlib import Path
-from typing import Tuple
+from unittest import mock
 
 import pytest
 from filelock import FileLock
 
 from dev_tools import shell_tools
 from dev_tools.env_tools import create_virtual_env
+
+
+@pytest.fixture(scope="session", autouse=True)
+def disable_local_gcloud_credentials(tmp_path_factory):
+    # Ensure tests cannot authenticate to production servers with user credentials
+    empty_dir = tmp_path_factory.mktemp("empty_gcloud_config", numbered=False)
+    with mock.patch.dict(os.environ, {"CLOUDSDK_CONFIG": str(empty_dir)}):
+        yield
 
 
 @pytest.fixture(scope="session")
@@ -91,10 +102,10 @@ def cloned_env(testrun_uid, worker_id):
                 shutil.rmtree(env_dir)
         return reuse
 
-    def _create_base_env(base_dir: Path, pip_install_args: Tuple[str, ...]):
+    def _create_base_env(base_dir: Path, pip_install_args: tuple[str, ...]):
         try:
             create_virtual_env(str(base_dir), [], sys.executable, True)
-            with open(base_dir / "testrun.uid", mode="w") as f:
+            with open(base_dir / "testrun.uid", mode="w", encoding="utf8") as f:
                 f.write(testrun_uid)
             if pip_install_args:
                 shell_tools.run([f"{base_dir}/bin/pip", "install", *pip_install_args])

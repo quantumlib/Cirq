@@ -14,18 +14,22 @@
 
 """Module for use in exporting cirq-google objects in JSON."""
 
-import warnings
-import functools
-from typing import Dict
+from __future__ import annotations
 
-from cirq.protocols.json_serialization import ObjectFactory
+import functools
+import warnings
+from typing import TYPE_CHECKING
+
 from cirq.transformers.heuristic_decompositions.two_qubit_gate_tabulation import (
     TwoQubitGateTabulation,
 )
 
+if TYPE_CHECKING:
+    from cirq.protocols.json_serialization import ObjectFactory
+
 
 @functools.lru_cache()
-def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
+def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
     def _old_xmon(*args, **kwargs):
         d_type = kwargs['constant']
         warnings.warn(
@@ -44,8 +48,10 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'CalibrationTag': cirq_google.CalibrationTag,
         'CalibrationLayer': cirq_google.CalibrationLayer,
         'CouplerPulse': cirq_google.experimental.CouplerPulse,
+        'Coupler': cirq_google.Coupler,
         'GoogleNoiseProperties': cirq_google.GoogleNoiseProperties,
         'SycamoreGate': cirq_google.SycamoreGate,
+        'WillowGate': cirq_google.WillowGate,
         # cirq_google.GateTabulation has been removed and replaced by cirq.TwoQubitGateTabulation.
         'GateTabulation': TwoQubitGateTabulation,
         'PhysicalZTag': cirq_google.PhysicalZTag,
@@ -61,21 +67,19 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'cirq.google.ExecutableResult': cirq_google.ExecutableResult,
         'cirq.google.ExecutableGroupResult': cirq_google.ExecutableGroupResult,
         # Pylint fights with the black formatter.
-        # pylint: disable=line-too-long
-        'cirq.google.ExecutableGroupResultFilesystemRecord': cirq_google.ExecutableGroupResultFilesystemRecord,
-        # pylint: enable=line-too-long
+        'cirq.google.ExecutableGroupResultFilesystemRecord': cirq_google.ExecutableGroupResultFilesystemRecord,  # noqa: E501
         'cirq.google.QuantumRuntimeConfiguration': cirq_google.QuantumRuntimeConfiguration,
         'cirq.google.NaiveQubitPlacer': cirq_google.NaiveQubitPlacer,
         'cirq.google.RandomDevicePlacer': cirq_google.RandomDevicePlacer,
         'cirq.google.EngineProcessorRecord': cirq_google.EngineProcessorRecord,
         'cirq.google.SimulatedProcessorRecord': cirq_google.SimulatedProcessorRecord,
-        # pylint: disable=line-too-long
-        'cirq.google.SimulatedProcessorWithLocalDeviceRecord': cirq_google.SimulatedProcessorWithLocalDeviceRecord,
+        'cirq.google.SimulatedProcessorWithLocalDeviceRecord': cirq_google.SimulatedProcessorWithLocalDeviceRecord,  # noqa: E501
         'cirq.google.HardcodedQubitPlacer': cirq_google.HardcodedQubitPlacer,
-        # pylint: enable=line-too-long
         'cirq.google.EngineResult': cirq_google.EngineResult,
         'cirq.google.GridDevice': cirq_google.GridDevice,
         'cirq.google.GoogleCZTargetGateset': cirq_google.GoogleCZTargetGateset,
         'cirq.google.DeviceParameter': cirq_google.study.device_parameter.DeviceParameter,
+        'cirq.google.Metadata': cirq_google.study.device_parameter.Metadata,
         'InternalGate': cirq_google.InternalGate,
+        'InternalTag': cirq_google.InternalTag,
     }

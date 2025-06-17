@@ -133,8 +133,11 @@ S^-1   │         │      │
 
 """
 
+from __future__ import annotations
+
 import numpy as np
 import scipy.optimize
+
 import cirq
 
 
@@ -306,7 +309,7 @@ def bcs_parameters(n_site, n_fermi, u, t):
         t: the tunneling strength
 
     Returns:
-        float delta, List[float] bog_theta
+        float delta, list[float] bog_theta
     """
 
     # The wave numbers satisfy the periodic boundary condition.

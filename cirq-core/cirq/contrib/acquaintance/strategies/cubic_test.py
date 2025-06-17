@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
 
 import pytest
@@ -21,7 +23,7 @@ import cirq.contrib.acquaintance as cca
 import cirq.contrib.acquaintance.strategies.cubic as ccasc
 
 
-def test_skip_and_wrap_around():
+def test_skip_and_wrap_around() -> None:
     assert ccasc.skip_and_wrap_around(range(3)) == (0, 2, 1)
     assert ccasc.skip_and_wrap_around(range(4)) == (0, 3, 1, 2)
     assert ccasc.skip_and_wrap_around('abcde') == tuple('aebdc')
@@ -29,7 +31,7 @@ def test_skip_and_wrap_around():
 
 
 @pytest.mark.parametrize('n_qubits', range(3, 9))
-def test_cubic_acquaintance_strategy(n_qubits):
+def test_cubic_acquaintance_strategy(n_qubits) -> None:
     qubits = tuple(cirq.LineQubit.range(n_qubits))
     strategy = cca.cubic_acquaintance_strategy(qubits)
     initial_mapping = {q: i for i, q in enumerate(qubits)}

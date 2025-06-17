@@ -14,10 +14,12 @@
 
 """Utility methods for decomposing two-qubit unitaries into Sycamore gates."""
 
-from typing import Iterator, List, Optional
+from __future__ import annotations
 
 import itertools
 import math
+from typing import Iterator
+
 import numpy as np
 
 import cirq
@@ -26,7 +28,7 @@ from cirq_google import ops
 
 def _decompose_arbitrary_into_syc_tabulation(
     op: cirq.Operation, tabulation: cirq.TwoQubitGateTabulation
-) -> cirq.OP_TREE:
+) -> Iterator[cirq.OP_TREE]:
     """Synthesize an arbitrary 2 qubit operation to a Sycamore operation using the given Tabulation.
 
     Args:
@@ -76,7 +78,7 @@ def two_qubit_matrix_to_sycamore_operations(
         A `cirq.OP_TREE` that implements the given unitary operation using only `cirq_google.SYC` +
         single qubit rotations.
     """
-    decomposed_ops: List[cirq.OP_TREE] = []
+    decomposed_ops: list[cirq.OP_TREE] = []
     for op in cirq.two_qubit_matrix_to_cz_operations(
         q0, q1, mat, allow_partial_czs=True, atol=atol, clean_operations=clean_operations
     ):
@@ -93,7 +95,7 @@ def two_qubit_matrix_to_sycamore_operations(
     )
 
 
-def known_2q_op_to_sycamore_operations(op: cirq.Operation) -> Optional[cirq.OP_TREE]:
+def known_2q_op_to_sycamore_operations(op: cirq.Operation) -> cirq.OP_TREE | None:
     """Synthesizes a known two-qubit operation using `cirq_google.SYC` + single qubit rotations.
 
     This function dispatches to various known gate decompositions based on gate type. Currently,
@@ -155,7 +157,7 @@ def known_2q_op_to_sycamore_operations(op: cirq.Operation) -> Optional[cirq.OP_T
 
 def _decompose_phased_iswap_into_syc(
     phase_exponent: float, a: cirq.Qid, b: cirq.Qid
-) -> cirq.OP_TREE:
+) -> Iterator[cirq.OP_TREE]:
     """Decomposes `cirq.PhasedISwapPowGate` with an exponent of 1 into Sycamore gates.
 
     This should only be called if the gate has an exponent of 1. Otherwise,
@@ -180,7 +182,7 @@ def _decompose_phased_iswap_into_syc(
 
 def _decompose_phased_iswap_into_syc_precomputed(
     theta: float, a: cirq.Qid, b: cirq.Qid
-) -> cirq.OP_TREE:
+) -> Iterator[cirq.OP_TREE]:
     """Decomposes `cirq.PhasedISwapPowGate` into Sycamore gates using precomputed coefficients.
 
     This should only be called if the Gate has a phase_exponent of .25. If the gate has an
@@ -252,7 +254,7 @@ def _decompose_cz_into_syc(a: cirq.Qid, b: cirq.Qid):
     yield (cirq.Z**-1.333333333333333).on(a),
 
 
-def _decompose_cphase_into_syc(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
+def _decompose_cphase_into_syc(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> Iterator[cirq.OP_TREE]:
     """Implements a cphase using the Ising gate generated from 2 Sycamore gates.
 
     A cphase gate has the matrix diag([1, 1, 1, exp(1j * theta)]) and can be mapped to the Rzz
@@ -365,7 +367,7 @@ def _find_local_equivalents(target_unitary: np.ndarray, source_unitary: np.ndarr
 
 def _create_corrected_circuit(
     target_unitary: np.ndarray, program: cirq.Circuit, q0: cirq.Qid, q1: cirq.Qid
-) -> cirq.OP_TREE:
+) -> Iterator[cirq.OP_TREE]:
     """Adds pre/post single qubit rotations to `program` to make it equivalent to `target_unitary`.
 
     Adds single qubit correction terms to the given circuit on 2 qubit s.t. it implements
@@ -410,7 +412,7 @@ def _phased_x_z_ops(mat: np.ndarray, q: cirq.Qid) -> Iterator[cirq.Operation]:
         yield gate(q)
 
 
-def _rzz(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
+def _rzz(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> Iterator[cirq.OP_TREE]:
     """Implements the Rzz Ising coupling gate (i.e. exp(-1j * theta * zz)) using Sycamore gates.
 
     Args:
@@ -432,7 +434,7 @@ def _rzz(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
     yield _create_corrected_circuit(target_unitary, program, q0, q1)
 
 
-def _swap_rzz(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
+def _swap_rzz(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> Iterator[cirq.OP_TREE]:
     """An implementation of SWAP * exp(-1j * theta * ZZ) using three sycamore gates.
 
     This builds off of the _rzz method.

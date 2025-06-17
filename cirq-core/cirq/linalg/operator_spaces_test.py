@@ -12,11 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
 
 import numpy as np
 import pytest
 import scipy.linalg
+import sympy
 
 import cirq
 
@@ -83,7 +86,7 @@ def _one_hot_matrix(size: int, i: int, j: int) -> np.ndarray:
         ),
     ),
 )
-def test_kron_bases(basis1, basis2, expected_kron_basis):
+def test_kron_bases(basis1, basis2, expected_kron_basis) -> None:
     kron_basis = cirq.kron_bases(basis1, basis2)
     assert len(kron_basis) == 16
     assert set(kron_basis.keys()) == set(expected_kron_basis.keys())
@@ -114,14 +117,14 @@ def test_kron_bases(basis1, basis2, expected_kron_basis):
         ),
     ),
 )
-def test_kron_bases_consistency(basis1, basis2):
+def test_kron_bases_consistency(basis1, basis2) -> None:
     assert set(basis1.keys()) == set(basis2.keys())
     for name in basis1.keys():
         assert np.all(basis1[name] == basis2[name])
 
 
 @pytest.mark.parametrize('basis,repeat', itertools.product((PAULI_BASIS, STANDARD_BASIS), range(5)))
-def test_kron_bases_repeat_sanity_checks(basis, repeat):
+def test_kron_bases_repeat_sanity_checks(basis, repeat) -> None:
     product_basis = cirq.kron_bases(basis, repeat=repeat)
     assert len(product_basis) == 4**repeat
     for name1, matrix1 in product_basis.items():
@@ -137,7 +140,7 @@ def test_kron_bases_repeat_sanity_checks(basis, repeat):
     'm1,m2,expect_real',
     ((X, X, True), (X, Y, True), (X, H, True), (X, SQRT_X, False), (I, SQRT_Z, False)),
 )
-def test_hilbert_schmidt_inner_product_is_conjugate_symmetric(m1, m2, expect_real):
+def test_hilbert_schmidt_inner_product_is_conjugate_symmetric(m1, m2, expect_real) -> None:
     v1 = cirq.hilbert_schmidt_inner_product(m1, m2)
     v2 = cirq.hilbert_schmidt_inner_product(m2, m1)
     assert v1 == v2.conjugate()
@@ -148,7 +151,7 @@ def test_hilbert_schmidt_inner_product_is_conjugate_symmetric(m1, m2, expect_rea
 
 
 @pytest.mark.parametrize('a,m1,b,m2', ((1, X, 1, Z), (2, X, 3, Y), (2j, X, 3, I), (2, X, 3, X)))
-def test_hilbert_schmidt_inner_product_is_linear(a, m1, b, m2):
+def test_hilbert_schmidt_inner_product_is_linear(a, m1, b, m2) -> None:
     v1 = cirq.hilbert_schmidt_inner_product(H, (a * m1 + b * m2))
     v2 = a * cirq.hilbert_schmidt_inner_product(H, m1) + b * cirq.hilbert_schmidt_inner_product(
         H, m2
@@ -157,7 +160,7 @@ def test_hilbert_schmidt_inner_product_is_linear(a, m1, b, m2):
 
 
 @pytest.mark.parametrize('m', (I, X, Y, Z, H, SQRT_X, SQRT_Y, SQRT_Z))
-def test_hilbert_schmidt_inner_product_is_positive_definite(m):
+def test_hilbert_schmidt_inner_product_is_positive_definite(m) -> None:
     v = cirq.hilbert_schmidt_inner_product(m, m)
     # Cannot check using np.is_real due to bug in aarch64.
     # See https://github.com/quantumlib/Cirq/issues/4379
@@ -185,7 +188,7 @@ def test_hilbert_schmidt_inner_product_is_positive_definite(m):
         (SQRT_X, E11, np.sqrt(-0.5j)),
     ),
 )
-def test_hilbert_schmidt_inner_product_values(m1, m2, expected_value):
+def test_hilbert_schmidt_inner_product_values(m1, m2, expected_value) -> None:
     v = cirq.hilbert_schmidt_inner_product(m1, m2)
     assert np.isclose(v, expected_value)
 
@@ -194,7 +197,7 @@ def test_hilbert_schmidt_inner_product_values(m1, m2, expected_value):
     'm,basis',
     itertools.product((I, X, Y, Z, H, SQRT_X, SQRT_Y, SQRT_Z), (PAULI_BASIS, STANDARD_BASIS)),
 )
-def test_expand_matrix_in_orthogonal_basis(m, basis):
+def test_expand_matrix_in_orthogonal_basis(m, basis) -> None:
     expansion = cirq.expand_matrix_in_orthogonal_basis(m, basis)
 
     reconstructed = np.zeros(m.shape, dtype=complex)
@@ -215,7 +218,7 @@ def test_expand_matrix_in_orthogonal_basis(m, basis):
         {'I': 1, 'X': 2, 'Y': 3, 'Z': 4},
     ),
 )
-def test_matrix_from_basis_coefficients(expansion):
+def test_matrix_from_basis_coefficients(expansion) -> None:
     m = cirq.matrix_from_basis_coefficients(expansion, PAULI_BASIS)
 
     for name, coefficient in expansion.items():
@@ -235,7 +238,7 @@ def test_matrix_from_basis_coefficients(expansion):
         )
     ),
 )
-def test_expand_is_inverse_of_reconstruct(m1, basis):
+def test_expand_is_inverse_of_reconstruct(m1, basis) -> None:
     c1 = cirq.expand_matrix_in_orthogonal_basis(m1, basis)
     m2 = cirq.matrix_from_basis_coefficients(c1, basis)
     c2 = cirq.expand_matrix_in_orthogonal_basis(m2, basis)
@@ -287,11 +290,21 @@ def test_expand_is_inverse_of_reconstruct(m1, basis):
             (-1, -2, 3, 4),
             (1j, 2j, 3j, 4j),
             (1j, 2j, 3, 4),
+            (sympy.Symbol('i'), sympy.Symbol('x'), sympy.Symbol('y'), sympy.Symbol('z')),
+            (
+                sympy.Symbol('i') * 1j,
+                -sympy.Symbol('x'),
+                -sympy.Symbol('y') * 1j,
+                sympy.Symbol('z'),
+            ),
         ),
         (0, 1, 2, 3, 4, 5, 100, 101),
     ),
 )
-def test_pow_pauli_combination(coefficients, exponent):
+def test_pow_pauli_combination(coefficients, exponent) -> None:
+    is_symbolic = any(isinstance(a, sympy.Basic) for a in coefficients)
+    if is_symbolic and exponent > 2:
+        return  # too slow
     i = cirq.PAULI_BASIS['I']
     x = cirq.PAULI_BASIS['X']
     y = cirq.PAULI_BASIS['Y']
@@ -303,5 +316,7 @@ def test_pow_pauli_combination(coefficients, exponent):
 
     bi, bx, by, bz = cirq.pow_pauli_combination(ai, ax, ay, az, exponent)
     result = bi * i + bx * x + by * y + bz * z
-
-    assert np.allclose(result, expected_result)
+    if is_symbolic:
+        assert cirq.approx_eq(result, expected_result)
+    else:
+        assert np.allclose(result, expected_result)

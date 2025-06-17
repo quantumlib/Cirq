@@ -12,4 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dev_tools.requirements.reqs import explode
+from dev_tools.requirements.reqs import explode as explode

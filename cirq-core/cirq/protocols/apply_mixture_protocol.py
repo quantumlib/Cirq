@@ -14,18 +14,18 @@
 
 """A protocol for implementing high performance mixture evolutions."""
 
-from typing import Any, cast, Iterable, Optional, Tuple, TypeVar, Union
+from __future__ import annotations
+
+from types import NotImplementedType
+from typing import Any, cast, Iterable, TypeVar
 
 import numpy as np
 from typing_extensions import Protocol
 
 from cirq import linalg
 from cirq._doc import doc_private
-from cirq.protocols.apply_unitary_protocol import apply_unitary, ApplyUnitaryArgs
-
-from cirq.protocols.mixture_protocol import mixture
 from cirq.protocols import qid_shape_protocol
-from cirq.type_workarounds import NotImplementedType
+from cirq.protocols.apply_unitary_protocol import apply_unitary, ApplyUnitaryArgs
 
 # This is a special indicator value used by the apply_mixture method
 # to determine whether or not the caller provided a 'default' argument. It must
@@ -75,7 +75,7 @@ class ApplyMixtureArgs:
         auxiliary_buffer0: np.ndarray,
         auxiliary_buffer1: np.ndarray,
         left_axes: Iterable[int],
-        right_axes: Optional[Iterable[int]] = None,
+        right_axes: Iterable[int] | None = None,
     ):
         """Args for apply mixture.
 
@@ -114,9 +114,7 @@ class SupportsApplyMixture(Protocol):
     """An object that can efficiently implement a mixture."""
 
     @doc_private
-    def _apply_mixture_(
-        self, args: ApplyMixtureArgs
-    ) -> Union[np.ndarray, None, NotImplementedType]:
+    def _apply_mixture_(self, args: ApplyMixtureArgs) -> np.ndarray | None | NotImplementedType:
         """Efficiently applies a mixture.
 
         This method is given both the target tensor and workspace of the same
@@ -159,8 +157,8 @@ def apply_mixture(
     val: Any,
     args: ApplyMixtureArgs,
     *,
-    default: Union[np.ndarray, TDefault] = RaiseTypeErrorIfNotProvided,
-) -> Union[np.ndarray, TDefault]:
+    default: np.ndarray | TDefault = RaiseTypeErrorIfNotProvided,
+) -> np.ndarray | TDefault:
     """High performance evolution under a mixture of unitaries evolution.
 
     Follows the steps below to attempt to apply a mixture:
@@ -261,9 +259,9 @@ def apply_mixture(
         return result
 
     # Fallback to using the object's `_mixture_` matrices. (STEP C)
-    prob_mix = mixture(val, None)
-    if prob_mix is not None:
-        return _mixture_strat(prob_mix, args, is_density_matrix)
+    result = _apply_mixture_from_mixture_strat(val, args, is_density_matrix)
+    if result is not None:
+        return result
 
     # Don't know how to apply mixture. Fallback to specified default behavior.
     # (STEP D)
@@ -275,7 +273,7 @@ def apply_mixture(
     )
 
 
-def _validate_input(val: Any, args: 'ApplyMixtureArgs') -> Tuple[Any, 'ApplyMixtureArgs', bool]:
+def _validate_input(val: Any, args: ApplyMixtureArgs) -> tuple[Any, ApplyMixtureArgs, bool]:
     """Validate args input and determine if we are operating on a
     density matrix or a state vector.
     """
@@ -305,8 +303,8 @@ def _validate_input(val: Any, args: 'ApplyMixtureArgs') -> Tuple[Any, 'ApplyMixt
 
 
 def _apply_unitary_strat(
-    val: Any, args: 'ApplyMixtureArgs', is_density_matrix: bool
-) -> Optional[np.ndarray]:
+    val: Any, args: ApplyMixtureArgs, is_density_matrix: bool
+) -> np.ndarray | None:
     """Attempt to use `apply_unitary` and return the result.
 
     If `val` does not support `apply_unitary` returns None.
@@ -327,7 +325,7 @@ def _apply_unitary_strat(
     right_args = ApplyUnitaryArgs(
         target_tensor=np.conjugate(left_result),
         available_buffer=args.auxiliary_buffer0,
-        axes=cast(Tuple[int], args.right_axes),
+        axes=cast(tuple[int], args.right_axes),
     )
     right_result = apply_unitary(val, right_args)
     np.conjugate(right_result, out=right_result)
@@ -335,8 +333,8 @@ def _apply_unitary_strat(
 
 
 def _apply_unitary_from_matrix_strat(
-    val: np.ndarray, args: 'ApplyMixtureArgs', is_density_matrix: bool
-) -> Optional[np.ndarray]:
+    val: np.ndarray, args: ApplyMixtureArgs, is_density_matrix: bool
+) -> np.ndarray | None:
     """Used to enact mixture tuples that are given as (probability, np.ndarray)
 
     If `val` does not support `apply_unitary` returns None.
@@ -354,17 +352,25 @@ def _apply_unitary_from_matrix_strat(
     linalg.targeted_left_multiply(
         np.conjugate(matrix_tensor),
         args.auxiliary_buffer0,
-        cast(Tuple[int], args.right_axes),
+        cast(tuple[int], args.right_axes),
         out=args.target_tensor,
     )
     return args.target_tensor
 
 
-def _mixture_strat(val: Any, args: 'ApplyMixtureArgs', is_density_matrix: bool) -> np.ndarray:
+def _apply_mixture_from_mixture_strat(
+    val: Any, args: ApplyMixtureArgs, is_density_matrix: bool
+) -> np.ndarray | None:
     """Attempt to use unitary matrices in _mixture_ and return the result."""
+    method = getattr(val, '_mixture_', None)
+    if method is None:
+        return None
+    prob_mix = method()
+    if prob_mix is NotImplemented or prob_mix is None:
+        return None
     args.out_buffer[:] = 0
     np.copyto(dst=args.auxiliary_buffer1, src=args.target_tensor)
-    for prob, op in val:
+    for prob, op in prob_mix:
         np.copyto(dst=args.target_tensor, src=args.auxiliary_buffer1)
         right_result = _apply_unitary_strat(op, args, is_density_matrix)
         if right_result is None:

@@ -11,24 +11,29 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Abstract base class for things sampling quantum circuits."""
 
+from __future__ import annotations
+
 import collections
-from typing import Dict, FrozenSet, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import Sequence, TYPE_CHECKING, TypeVar
 
 import duet
 import pandas as pd
 
 from cirq import ops, protocols, study, value
 from cirq.work.observable_measurement import (
+    CheckpointFileOptions,
     measure_observables,
     RepetitionsStoppingCriteria,
-    CheckpointFileOptions,
 )
 from cirq.work.observable_settings import _hashable_param
 
 if TYPE_CHECKING:
     import cirq
+
+T = TypeVar('T')
 
 
 class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
@@ -36,10 +41,10 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def run(
         self,
-        program: 'cirq.AbstractCircuit',
-        param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
+        program: cirq.AbstractCircuit,
+        param_resolver: cirq.ParamResolverOrSimilarType = None,
         repetitions: int = 1,
-    ) -> 'cirq.Result':
+    ) -> cirq.Result:
         """Samples from the given `Circuit`.
 
         This mode of operation for a sampler will provide results
@@ -64,10 +69,10 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
 
     async def run_async(
         self,
-        program: 'cirq.AbstractCircuit',
-        param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
+        program: cirq.AbstractCircuit,
+        param_resolver: cirq.ParamResolverOrSimilarType = None,
         repetitions: int = 1,
-    ) -> 'cirq.Result':
+    ) -> cirq.Result:
         """Asynchronously samples from the given Circuit.
 
         Provides measurement outcomes as a `cirq.Result` object.  This
@@ -86,12 +91,8 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         return results[0]
 
     def sample(
-        self,
-        program: 'cirq.AbstractCircuit',
-        *,
-        repetitions: int = 1,
-        params: 'cirq.Sweepable' = None,
-    ) -> 'pd.DataFrame':
+        self, program: cirq.AbstractCircuit, *, repetitions: int = 1, params: cirq.Sweepable = None
+    ) -> pd.DataFrame:
         """Samples the given Circuit, producing a pandas data frame.
 
         This interface will operate in a similar way to the `run` method
@@ -178,21 +179,21 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         return pd.concat(results)
 
     def _run_sweep_impl(
-        self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
-    ) -> Sequence['cirq.Result']:
+        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+    ) -> Sequence[cirq.Result]:
         """Implements run_sweep using run_sweep_async"""
         return duet.run(self.run_sweep_async, program, params, repetitions)
 
     async def _run_sweep_async_impl(
-        self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
-    ) -> Sequence['cirq.Result']:
+        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+    ) -> Sequence[cirq.Result]:
         """Implements run_sweep_async using run_sweep"""
         return self.run_sweep(program, params=params, repetitions=repetitions)
 
     @value.alternative(requires='run_sweep_async', implementation=_run_sweep_impl)
     def run_sweep(
-        self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
-    ) -> Sequence['cirq.Result']:
+        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+    ) -> Sequence[cirq.Result]:
         """Samples from the given Circuit.
 
         This allows for sweeping over different parameter values,
@@ -215,8 +216,8 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
 
     @value.alternative(requires='run_sweep', implementation=_run_sweep_async_impl)
     async def run_sweep_async(
-        self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
-    ) -> Sequence['cirq.Result']:
+        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+    ) -> Sequence[cirq.Result]:
         """Asynchronously samples from the given Circuit.
 
         By default, this method invokes `run_sweep` synchronously and simply
@@ -233,13 +234,13 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         """
         raise NotImplementedError
 
-    def run_batch(
+    async def run_batch_async(
         self,
-        programs: Sequence['cirq.AbstractCircuit'],
-        params_list: Optional[Sequence['cirq.Sweepable']] = None,
-        repetitions: Union[int, Sequence[int]] = 1,
-    ) -> Sequence[Sequence['cirq.Result']]:
-        """Runs the supplied circuits.
+        programs: Sequence[cirq.AbstractCircuit],
+        params_list: Sequence[cirq.Sweepable] | None = None,
+        repetitions: int | Sequence[int] = 1,
+    ) -> Sequence[Sequence[cirq.Result]]:
+        """Runs the supplied circuits asynchronously.
 
         Each circuit provided in `programs` will pair with the optional
         associated parameter sweep provided in the `params_list`, and be run
@@ -278,32 +279,18 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
                 of `params_list` or the length of `repetitions`.
         """
         params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
-        return [
-            self.run_sweep(circuit, params=params, repetitions=repetitions)
-            for circuit, params, repetitions in zip(programs, params_list, repetitions)
-        ]
-
-    async def run_batch_async(
-        self,
-        programs: Sequence['cirq.AbstractCircuit'],
-        params_list: Optional[Sequence['cirq.Sweepable']] = None,
-        repetitions: Union[int, Sequence[int]] = 1,
-    ) -> Sequence[Sequence['cirq.Result']]:
-        """Runs the supplied circuits asynchronously.
-
-        See docs for `cirq.Sampler.run_batch`.
-        """
-        params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
         return await duet.pstarmap_async(
             self.run_sweep_async, zip(programs, params_list, repetitions)
         )
 
+    run_batch = duet.sync(run_batch_async)
+
     def _normalize_batch_args(
         self,
-        programs: Sequence['cirq.AbstractCircuit'],
-        params_list: Optional[Sequence['cirq.Sweepable']] = None,
-        repetitions: Union[int, Sequence[int]] = 1,
-    ) -> Tuple[Sequence['cirq.Sweepable'], Sequence[int]]:
+        programs: Sequence[cirq.AbstractCircuit],
+        params_list: Sequence[cirq.Sweepable] | None = None,
+        repetitions: int | Sequence[int] = 1,
+    ) -> tuple[Sequence[cirq.Sweepable], Sequence[int]]:
         if params_list is None:
             params_list = [None] * len(programs)
         if len(programs) != len(params_list):
@@ -322,11 +309,11 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def sample_expectation_values(
         self,
-        program: 'cirq.AbstractCircuit',
-        observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
+        program: cirq.AbstractCircuit,
+        observables: cirq.PauliSumLike | list[cirq.PauliSumLike],
         *,
         num_samples: int,
-        params: 'cirq.Sweepable' = None,
+        params: cirq.Sweepable = None,
         permit_terminal_measurements: bool = False,
     ) -> Sequence[Sequence[float]]:
         """Calculates estimated expectation values from samples of a circuit.
@@ -372,17 +359,17 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
             )
 
         # Wrap input into a list of pauli sum
-        pauli_sums: List['cirq.PauliSum'] = (
+        pauli_sums: list[cirq.PauliSum] = (
             [ops.PauliSum.wrap(o) for o in observables]
-            if isinstance(observables, List)
+            if isinstance(observables, list)
             else [ops.PauliSum.wrap(observables)]
         )
         del observables
 
         # Flatten Pauli Sum into one big list of Pauli String
         # Keep track of which Pauli Sum each one was from.
-        flat_pstrings: List['cirq.PauliString'] = []
-        pstring_to_psum_i: Dict['cirq.PauliString', int] = {}
+        flat_pstrings: list[cirq.PauliString] = []
+        pstring_to_psum_i: dict[cirq.PauliString, int] = {}
         for psum_i, pauli_sum in enumerate(pauli_sums):
             for pstring in pauli_sum:
                 flat_pstrings.append(pstring)
@@ -390,10 +377,10 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
 
         # Flatten Circuit Sweep into one big list of Params.
         # Keep track of their indices so we can map back.
-        flat_params: List['cirq.ParamMappingType'] = [
+        flat_params: list[cirq.ParamMappingType] = [
             pr.param_dict for pr in study.to_resolvers(params)
         ]
-        circuit_param_to_sweep_i: Dict[FrozenSet[Tuple[str, Union[int, Tuple[int, int]]]], int] = {
+        circuit_param_to_sweep_i: dict[frozenset[tuple[str, int | tuple[int, int]]], int] = {
             _hashable_param(param.items()): i for i, param in enumerate(flat_params)
         }
 
@@ -411,7 +398,7 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         # nesting structure, we place the measured values according to the back-mappings we set up
         # above. We also do the sum operation to aggregate multiple PauliString measured values
         # for a given PauliSum.
-        nested_results: List[List[float]] = [[0] * len(pauli_sums) for _ in range(len(flat_params))]
+        nested_results: list[list[float]] = [[0] * len(pauli_sums) for _ in range(len(flat_params))]
         for res in obs_meas_results:
             param_i = circuit_param_to_sweep_i[_hashable_param(res.circuit_params.items())]
             psum_i = pstring_to_psum_i[res.setting.observable]
@@ -421,8 +408,8 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
 
     @staticmethod
     def _get_measurement_shapes(
-        circuit: 'cirq.AbstractCircuit',
-    ) -> Dict[str, Tuple[int, Tuple[int, ...]]]:
+        circuit: cirq.AbstractCircuit,
+    ) -> dict[str, tuple[int, tuple[int, ...]]]:
         """Gets the shapes of measurements in the given circuit.
 
         Returns:
@@ -435,8 +422,8 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
             ValueError: if the qid_shape of different instances of the same measurement
             key disagree.
         """
-        qid_shapes: Dict[str, Tuple[int, ...]] = {}
-        num_instances: Dict[str, int] = collections.Counter()
+        qid_shapes: dict[str, tuple[int, ...]] = {}
+        num_instances: dict[str, int] = collections.Counter()
         for op in circuit.all_operations():
             key = protocols.measurement_key_name(op, default=None)
             if key is not None:

@@ -11,11 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Tests for GridDevicemetadata."""
 
-import pytest
-import cirq
+from __future__ import annotations
+
 import networkx as nx
+import pytest
+
+import cirq
 
 
 def test_griddevice_metadata():

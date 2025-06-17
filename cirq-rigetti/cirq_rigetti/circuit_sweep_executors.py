@@ -15,25 +15,26 @@
 `RigettiQCSSampler` as `executor`.
 """
 
-from typing import Any, cast, Dict, Optional, Sequence, Union
+from typing import Any, cast, Sequence
+
+import sympy
 from pyquil import Program
 from pyquil.api import QuantumComputer, QuantumExecutable
 from pyquil.quilbase import Declare
-import cirq
-import sympy
 from typing_extensions import Protocol
-from cirq_rigetti.logging import logger
+
+import cirq
 from cirq_rigetti import circuit_transformers as transformers
+from cirq_rigetti.deprecation import deprecated_cirq_rigetti_class, deprecated_cirq_rigetti_function
+from cirq_rigetti.logging import logger
 
 
 def _execute_and_read_result(
     quantum_computer: QuantumComputer,
     executable: QuantumExecutable,
-    measurement_id_map: Dict[str, str],
+    measurement_id_map: dict[str, str],
     resolver: cirq.ParamResolverOrSimilarType,
-    memory_map: Optional[
-        Dict[Union[sympy.Expr, str], Union[int, float, Sequence[int], Sequence[float]]]
-    ] = None,
+    memory_map: dict[sympy.Expr | str, int | float | Sequence[int] | Sequence[float]] | None = None,
 ) -> cirq.Result:
     """Execute the `pyquil.api.QuantumExecutable` and parse the measurements into
     a `cirq.Result`.
@@ -83,11 +84,11 @@ def _execute_and_read_result(
     result = cirq.ResultDict(
         params=cast(cirq.ParamResolver, resolver or cirq.ParamResolver({})),
         measurements=measurements,
-    )  # noqa
+    )
     return result
 
 
-def _get_param_dict(resolver: cirq.ParamResolverOrSimilarType) -> Dict[Union[str, sympy.Expr], Any]:
+def _get_param_dict(resolver: cirq.ParamResolverOrSimilarType) -> dict[str | sympy.Expr, Any]:
     """Converts a `cirq.ParamResolverOrSimilarType` to a dictionary.
 
     Args:
@@ -96,7 +97,7 @@ def _get_param_dict(resolver: cirq.ParamResolverOrSimilarType) -> Dict[Union[str
     Returns:
         A dictionary representation of the `resolver`.
     """
-    param_dict: Dict[Union[str, sympy.Expr], Any] = {}
+    param_dict: dict[str | sympy.Expr, Any] = {}
     if isinstance(resolver, cirq.ParamResolver):
         param_dict = dict(resolver.param_dict)
     elif isinstance(resolver, dict):
@@ -128,6 +129,7 @@ def _prepend_real_declarations(
     return program
 
 
+@deprecated_cirq_rigetti_class()
 class CircuitSweepExecutor(Protocol):
     """A type definition for circuit sweep execution functions."""
 
@@ -158,6 +160,7 @@ class CircuitSweepExecutor(Protocol):
         """
 
 
+@deprecated_cirq_rigetti_function()
 def without_quilc_compilation(
     *,
     quantum_computer: QuantumComputer,
@@ -199,6 +202,7 @@ def without_quilc_compilation(
     return cirq_results
 
 
+@deprecated_cirq_rigetti_function()
 def with_quilc_compilation_and_cirq_parameter_resolution(
     *,
     quantum_computer: QuantumComputer,
@@ -242,6 +246,7 @@ def with_quilc_compilation_and_cirq_parameter_resolution(
     return cirq_results
 
 
+@deprecated_cirq_rigetti_function()
 def with_quilc_parametric_compilation(
     *,
     quantum_computer: QuantumComputer,

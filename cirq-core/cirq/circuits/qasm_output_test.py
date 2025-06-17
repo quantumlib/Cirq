@@ -11,8 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import re
+
+from __future__ import annotations
+
 import os
+import re
+
 import numpy as np
 import pytest
 
@@ -25,12 +29,12 @@ def _make_qubits(n):
     return [cirq.NamedQubit(f'q{i}') for i in range(n)]
 
 
-def test_u_gate_repr():
+def test_u_gate_repr() -> None:
     gate = QasmUGate(0.1, 0.2, 0.3)
     assert repr(gate) == 'cirq.circuits.qasm_output.QasmUGate(theta=0.1, phi=0.2, lmda=0.3)'
 
 
-def test_u_gate_eq():
+def test_u_gate_eq() -> None:
     gate = QasmUGate(0.1, 0.2, 0.3)
     gate2 = QasmUGate(0.1, 0.2, 0.3)
     cirq.approx_eq(gate, gate2, atol=1e-16)
@@ -39,27 +43,32 @@ def test_u_gate_eq():
     cirq.approx_eq(gate4, gate3, atol=1e-16)
 
 
-def test_qasm_two_qubit_gate_repr():
+def test_qasm_two_qubit_gate_repr() -> None:
     cirq.testing.assert_equivalent_repr(
         QasmTwoQubitGate.from_matrix(cirq.testing.random_unitary(4))
     )
 
 
-def test_qasm_u_qubit_gate_unitary():
+def test_qasm_u_qubit_gate_unitary() -> None:
     u = cirq.testing.random_unitary(2)
     g = QasmUGate.from_matrix(u)
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(g), u, atol=1e-7)
 
     cirq.testing.assert_implements_consistent_protocols(g)
 
+    u = cirq.unitary(cirq.Y)
+    g = QasmUGate.from_matrix(u)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(g), u, atol=1e-7)
+    cirq.testing.assert_implements_consistent_protocols(g)
 
-def test_qasm_two_qubit_gate_unitary():
+
+def test_qasm_two_qubit_gate_unitary() -> None:
     u = cirq.testing.random_unitary(4)
     g = QasmTwoQubitGate.from_matrix(u)
     np.testing.assert_allclose(cirq.unitary(g), u)
 
 
-def test_empty_circuit_one_qubit():
+def test_empty_circuit_one_qubit() -> None:
     (q0,) = _make_qubits(1)
     output = cirq.QasmOutput((), (q0,))
     assert (
@@ -74,7 +83,7 @@ qreg q[1];
     )
 
 
-def test_empty_circuit_no_qubits():
+def test_empty_circuit_no_qubits() -> None:
     output = cirq.QasmOutput((), ())
     assert (
         str(output)
@@ -87,7 +96,7 @@ include "qelib1.inc";
     )
 
 
-def test_header():
+def test_header() -> None:
     (q0,) = _make_qubits(1)
     output = cirq.QasmOutput(
         (),
@@ -134,7 +143,7 @@ qreg q[1];
     )
 
 
-def test_single_gate_no_parameter():
+def test_single_gate_no_parameter() -> None:
     (q0,) = _make_qubits(1)
     output = cirq.QasmOutput((cirq.X(q0),), (q0,))
     assert (
@@ -152,7 +161,7 @@ x q[0];
     )
 
 
-def test_single_gate_with_parameter():
+def test_single_gate_with_parameter() -> None:
     (q0,) = _make_qubits(1)
     output = cirq.QasmOutput((cirq.X(q0) ** 0.25,), (q0,))
     assert (
@@ -170,7 +179,7 @@ rx(pi*0.25) q[0];
     )
 
 
-def test_h_gate_with_parameter():
+def test_h_gate_with_parameter() -> None:
     (q0,) = _make_qubits(1)
     output = cirq.QasmOutput((cirq.H(q0) ** 0.25,), (q0,))
     assert (
@@ -191,7 +200,7 @@ ry(pi*-0.25) q[0];
     )
 
 
-def test_qasm_global_pahse():
+def test_qasm_global_pahse() -> None:
     output = cirq.QasmOutput((cirq.global_phase_operation(np.exp(1j * 5))), ())
     assert (
         str(output)
@@ -204,7 +213,7 @@ include "qelib1.inc";
     )
 
 
-def test_precision():
+def test_precision() -> None:
     (q0,) = _make_qubits(1)
     output = cirq.QasmOutput((cirq.X(q0) ** 0.1234567,), (q0,), precision=3)
     assert (
@@ -222,14 +231,14 @@ rx(pi*0.123) q[0];
     )
 
 
-def test_version():
+def test_version() -> None:
     (q0,) = _make_qubits(1)
     with pytest.raises(ValueError):
-        output = cirq.QasmOutput((), (q0,), version='3.0')
+        output = cirq.QasmOutput((), (q0,), version='4.0')
         _ = str(output)
 
 
-def test_save_to_file(tmpdir):
+def test_save_to_file(tmpdir) -> None:
     file_path = os.path.join(tmpdir, 'test.qasm')
     (q0,) = _make_qubits(1)
     output = cirq.QasmOutput((), (q0,))
@@ -248,7 +257,7 @@ qreg q[1];
     )
 
 
-def test_unsupported_operation():
+def test_unsupported_operation() -> None:
     (q0,) = _make_qubits(1)
 
     class UnsupportedOperation(cirq.Operation):
@@ -260,7 +269,7 @@ def test_unsupported_operation():
         _ = str(output)
 
 
-def _all_operations(q0, q1, q2, q3, q4, include_measurements=True):
+def _all_operations(q0, q1, q2, q3, q4, *, include_measurements=True):
     class ExampleOperation(cirq.Operation):
         qubits = (q0,)
         with_qubits = NotImplemented
@@ -348,7 +357,7 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurements=True):
     )
 
 
-def test_output_unitary_same_as_qiskit():
+def test_output_unitary_same_as_qiskit() -> None:
     qubits = tuple(_make_qubits(5))
     operations = _all_operations(*qubits, include_measurements=False)
     output = cirq.QasmOutput(operations, qubits, header='Generated from Cirq', precision=10)
@@ -359,7 +368,7 @@ def test_output_unitary_same_as_qiskit():
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(text, cirq_unitary)
 
 
-def test_fails_on_big_unknowns():
+def test_fails_on_big_unknowns() -> None:
     class UnrecognizedGate(cirq.testing.ThreeQubitGate):
         pass
 
@@ -368,7 +377,7 @@ def test_fails_on_big_unknowns():
         _ = c.to_qasm()
 
 
-def test_output_format():
+def test_output_format() -> None:
     def filter_unpredictable_numbers(text):
         return re.sub(r'u3\(.+\)', r'u3(<not-repeatable>)', text)
 
@@ -562,7 +571,7 @@ x q[0];
     )
 
 
-def test_reset():
+def test_reset() -> None:
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b), cirq.reset(a), cirq.reset(b))
     output = cirq.QasmOutput(
@@ -589,4 +598,59 @@ cx q[0],q[1];
 reset q[0];
 reset q[1];
     """.strip()
+    )
+
+
+def test_different_sized_registers() -> None:
+    qubits = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.measure(qubits[0], key='c'), cirq.measure(qubits, key='c'))
+    output = cirq.QasmOutput(
+        c.all_operations(), tuple(sorted(c.all_qubits())), header='Generated from Cirq!'
+    )
+    assert (
+        str(output)
+        == """// Generated from Cirq!
+
+OPENQASM 2.0;
+include "qelib1.inc";
+
+
+// Qubits: [q(0), q(1)]
+qreg q[2];
+creg m_c[2];
+
+
+measure q[0] -> m_c[0];
+
+// Gate: cirq.MeasurementGate(2, cirq.MeasurementKey(name='c'), ())
+measure q[0] -> m_c[0];
+measure q[1] -> m_c[1];
+"""
+    )
+    # OPENQASM 3.0
+    output3 = cirq.QasmOutput(
+        c.all_operations(),
+        tuple(sorted(c.all_qubits())),
+        header='Generated from Cirq!',
+        version='3.0',
+    )
+    assert (
+        str(output3)
+        == """// Generated from Cirq!
+
+OPENQASM 3.0;
+include "stdgates.inc";
+
+
+// Qubits: [q(0), q(1)]
+qubit[2] q;
+bit[2] m_c;
+
+
+m_c[0] = measure q[0];
+
+// Gate: cirq.MeasurementGate(2, cirq.MeasurementKey(name='c'), ())
+m_c[0] = measure q[0];
+m_c[1] = measure q[1];
+"""
     )

@@ -11,15 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
+import numpy as np
 import pytest
 import sympy
-import numpy as np
 
 import cirq
 import cirq_pasqal
-
-from cirq_pasqal import PasqalDevice, PasqalVirtualDevice
-from cirq_pasqal import TwoDQubit, ThreeDQubit
+from cirq_pasqal import PasqalDevice, PasqalVirtualDevice, ThreeDQubit, TwoDQubit
 
 
 def generic_device(num_qubits) -> PasqalDevice:

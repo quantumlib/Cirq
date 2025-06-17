@@ -12,24 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import string
-from typing import Callable, Dict, Set, Tuple, Union, Any, Optional, List, cast
+from typing import Any, Callable, cast
+
 import numpy as np
+
 import cirq
 import cirq_rigetti
-from cirq import protocols, value, ops
+from cirq import ops, protocols, value
+from cirq_rigetti.deprecation import deprecated_cirq_rigetti_class, deprecated_cirq_rigetti_function
 
 
+@deprecated_cirq_rigetti_function()
 def to_quil_complex_format(num) -> str:
     """A function for outputting a number to a complex string in QUIL format."""
     cnum = complex(str(num))
     return f"{cnum.real}+{cnum.imag}i"
 
 
+@deprecated_cirq_rigetti_class()
 class QuilFormatter(string.Formatter):
     """A unique formatter to correctly output values to QUIL."""
 
     def __init__(
-        self, qubit_id_map: Dict['cirq.Qid', str], measurement_id_map: Dict[str, str]
+        self, qubit_id_map: dict['cirq.Qid', str], measurement_id_map: dict[str, str]
     ) -> None:
         """Inits QuilFormatter.
 
@@ -52,6 +57,7 @@ class QuilFormatter(string.Formatter):
         return super().format_field(value, spec)
 
 
+@deprecated_cirq_rigetti_class()
 @value.value_equality(approximate=True)
 class QuilOneQubitGate(ops.Gate):
     """A QUIL gate representing any single qubit unitary with a DEFGATE and
@@ -76,6 +82,7 @@ class QuilOneQubitGate(ops.Gate):
         return self.matrix
 
 
+@deprecated_cirq_rigetti_class()
 @value.value_equality(approximate=True)
 class QuilTwoQubitGate(ops.Gate):
     """A two qubit gate represented in QUIL with a DEFGATE and it's 4x4
@@ -100,14 +107,14 @@ class QuilTwoQubitGate(ops.Gate):
         return f'cirq.circuits.quil_output.QuilTwoQubitGate(matrix=\n{self.matrix}\n)'
 
 
-def _ccnotpow_gate(op: cirq.Operation, formatter: QuilFormatter) -> Optional[str]:
+def _ccnotpow_gate(op: cirq.Operation, formatter: QuilFormatter) -> str | None:
     gate = cast(cirq.CCNotPowGate, op.gate)
     if gate._exponent != 1:
         return None
     return formatter.format('CCNOT {0} {1} {2}\n', op.qubits[0], op.qubits[1], op.qubits[2])
 
 
-def _cczpow_gate(op: cirq.Operation, formatter: QuilFormatter) -> Optional[str]:
+def _cczpow_gate(op: cirq.Operation, formatter: QuilFormatter) -> str | None:
     gate = cast(cirq.CCZPowGate, op.gate)
     if gate._exponent != 1:
         return None
@@ -119,7 +126,7 @@ def _cczpow_gate(op: cirq.Operation, formatter: QuilFormatter) -> Optional[str]:
     return ''.join(lines)
 
 
-def _cnotpow_gate(op: cirq.Operation, formatter: QuilFormatter) -> Optional[str]:
+def _cnotpow_gate(op: cirq.Operation, formatter: QuilFormatter) -> str | None:
     gate = cast(cirq.CNotPowGate, op.gate)
     if gate._exponent == 1:
         return formatter.format('CNOT {0} {1}\n', op.qubits[0], op.qubits[1])
@@ -221,7 +228,7 @@ def _swappow_gate(op: cirq.Operation, formatter: QuilFormatter) -> str:
     )
 
 
-def _twoqubitdiagonal_gate(op: cirq.Operation, formatter: QuilFormatter) -> Optional[str]:
+def _twoqubitdiagonal_gate(op: cirq.Operation, formatter: QuilFormatter) -> str | None:
     gate = cast(cirq.TwoQubitDiagonalGate, op.gate)
     diag_angles_radians = np.asarray(gate._diag_angles_radians)
     if np.count_nonzero(diag_angles_radians) == 1:
@@ -334,13 +341,14 @@ SUPPORTED_GATES = {
 }
 
 
+@deprecated_cirq_rigetti_class()
 class QuilOutput:
     """An object for passing operations and qubits then outputting them to
     QUIL format. The string representation returns the QUIL output for the
     circuit.
     """
 
-    def __init__(self, operations: 'cirq.OP_TREE', qubits: Tuple['cirq.Qid', ...]) -> None:
+    def __init__(self, operations: 'cirq.OP_TREE', qubits: tuple['cirq.Qid', ...]) -> None:
         """Inits QuilOutput.
 
         Args:
@@ -358,12 +366,12 @@ class QuilOutput:
             qubit_id_map=self.qubit_id_map, measurement_id_map=self.measurement_id_map
         )
 
-    def _generate_qubit_ids(self) -> Dict['cirq.Qid', str]:
+    def _generate_qubit_ids(self) -> dict['cirq.Qid', str]:
         return {qubit: str(i) for i, qubit in enumerate(self.qubits)}
 
-    def _generate_measurement_ids(self) -> Dict[str, str]:
+    def _generate_measurement_ids(self) -> dict[str, str]:
         index = 0
-        measurement_id_map: Dict[str, str] = {}
+        measurement_id_map: dict[str, str] = {}
         for op in self.operations:
             if isinstance(op.gate, ops.MeasurementGate):
                 key = protocols.measurement_key_name(op)
@@ -373,7 +381,7 @@ class QuilOutput:
                 index += 1
         return measurement_id_map
 
-    def save_to_file(self, path: Union[str, bytes, int]) -> None:
+    def save_to_file(self, path: str | bytes | int) -> None:
         """Write QUIL output to a file specified by path."""
         with open(path, 'w') as f:
             f.write(str(self))
@@ -383,10 +391,10 @@ class QuilOutput:
         self._write_quil(lambda s: output.append(s))
         return self.rename_defgates(''.join(output))
 
-    def _op_to_maybe_quil(self, op: cirq.Operation) -> Optional[str]:
+    def _op_to_maybe_quil(self, op: cirq.Operation) -> str | None:
         for gate_type in SUPPORTED_GATES.keys():
             if isinstance(op.gate, gate_type):
-                quil: Callable[[cirq.Operation, QuilFormatter], Optional[str]] = SUPPORTED_GATES[
+                quil: Callable[[cirq.Operation, QuilFormatter], str | None] = SUPPORTED_GATES[
                     gate_type
                 ]
                 return quil(op, self.formatter)
@@ -401,7 +409,7 @@ class QuilOutput:
     def _write_quil(self, output_func: Callable[[str], None]) -> None:
         output_func('# Created using Cirq.\n\n')
         if len(self.measurements) > 0:
-            measurements_declared: Set[str] = set()
+            measurements_declared: set[str] = set()
             for m in self.measurements:
                 key = protocols.measurement_key_name(m)
                 if key in measurements_declared:
@@ -475,6 +483,7 @@ class QuilOutput:
         return result
 
 
+@deprecated_cirq_rigetti_class()
 class RigettiQCSQuilOutput(QuilOutput):
     """A sub-class of `cirq.circuits.quil_output.QuilOutput` that additionally accepts a
     `qubit_id_map` for explicitly mapping logical qubits to physical qubits.
@@ -492,9 +501,9 @@ class RigettiQCSQuilOutput(QuilOutput):
         self,
         *,
         operations: cirq.OP_TREE,
-        qubits: Tuple[cirq.Qid, ...],
-        decompose_operation: Optional[Callable[[cirq.Operation], List[cirq.Operation]]] = None,
-        qubit_id_map: Optional[Dict[cirq.Qid, str]] = None,
+        qubits: tuple[cirq.Qid, ...],
+        decompose_operation: Callable[[cirq.Operation], list[cirq.Operation]] | None = None,
+        qubit_id_map: dict[cirq.Qid, str] | None = None,
     ):
         """Initializes an instance of `RigettiQCSQuilOutput`.
 
@@ -532,7 +541,7 @@ class RigettiQCSQuilOutput(QuilOutput):
         output_func("# Created using Cirq.\n\n")
 
         if len(self.measurements) > 0:
-            measurements_declared: Set[str] = set()
+            measurements_declared: set[str] = set()
             for m in self.measurements:
                 key = cirq.measurement_key_name(m)
                 if key in measurements_declared:

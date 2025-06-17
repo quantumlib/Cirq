@@ -1,15 +1,19 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-from typing import Tuple, Any, List, Union, Dict
-import pytest
-import cirq
-from pyquil import Program
+from typing import Any
+
 import numpy as np
+import pytest
 import sympy
+from pyquil import Program
+
+import cirq
 from cirq_rigetti import circuit_sweep_executors as executors, circuit_transformers
+from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_with_quilc_compilation_and_cirq_parameter_resolution(
-    mock_qpu_implementer: Any, parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Sweepable]
+    mock_qpu_implementer: Any, parametric_circuit_with_params: tuple[cirq.Circuit, cirq.Sweepable]
 ) -> None:
     """test that execution with quilc compilation and cirq parameter resolution calls
     ``quil_to_native_quil`` and ``native_quil_to_executable`` for each parameter
@@ -46,9 +50,10 @@ def test_with_quilc_compilation_and_cirq_parameter_resolution(
 
 
 @pytest.mark.parametrize('pass_dict', [True, False])
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_with_quilc_parametric_compilation(
     mock_qpu_implementer: Any,
-    parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace],
+    parametric_circuit_with_params: tuple[cirq.Circuit, cirq.Linspace],
     pass_dict: bool,
 ) -> None:
     """test that execution with quilc parametric compilation only compiles only once and
@@ -58,7 +63,7 @@ def test_with_quilc_parametric_compilation(
     parametric_circuit, sweepable = parametric_circuit_with_params
     repetitions = 2
 
-    param_resolvers: List[Union[cirq.ParamResolver, cirq.ParamDictType]]
+    param_resolvers: list[cirq.ParamResolver | cirq.ParamDictType]
     if pass_dict:
         param_resolvers = [dict(params.param_dict) for params in sweepable]
     else:
@@ -73,7 +78,7 @@ def test_with_quilc_parametric_compilation(
     results = executors.with_quilc_parametric_compilation(
         quantum_computer=quantum_computer,
         circuit=parametric_circuit,
-        resolvers=param_resolvers,  # noqa
+        resolvers=param_resolvers,
         repetitions=repetitions,
     )
     assert len(param_resolvers) == len(results)
@@ -88,8 +93,9 @@ def test_with_quilc_parametric_compilation(
         ), "should return an ordered list of results with correct set of measurements"
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_parametric_with_symbols(
-    mock_qpu_implementer: Any, parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace]
+    mock_qpu_implementer: Any, parametric_circuit_with_params: tuple[cirq.Circuit, cirq.Linspace]
 ):
     parametric_circuit, _ = parametric_circuit_with_params
     repetitions = 2
@@ -106,8 +112,9 @@ def test_parametric_with_symbols(
         )
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_without_quilc_compilation(
-    mock_qpu_implementer: Any, parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Sweepable]
+    mock_qpu_implementer: Any, parametric_circuit_with_params: tuple[cirq.Circuit, cirq.Sweepable]
 ) -> None:
     """test execution without quilc compilation treats the transformed cirq
     Circuit as native quil and does not pass it through quilc.
@@ -128,7 +135,7 @@ def test_without_quilc_compilation(
     results = executors.without_quilc_compilation(
         quantum_computer=quantum_computer,
         circuit=parametric_circuit,
-        resolvers=param_resolvers,  # noqa
+        resolvers=param_resolvers,
         repetitions=repetitions,
     )
     assert len(param_resolvers) == len(results)
@@ -143,8 +150,9 @@ def test_without_quilc_compilation(
         ), "should return an ordered list of results with correct set of measurements"
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_invalid_pyquil_region_measurement(
-    mock_qpu_implementer: Any, parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Sweepable]
+    mock_qpu_implementer: Any, parametric_circuit_with_params: tuple[cirq.Circuit, cirq.Sweepable]
 ) -> None:
     """test that executors raise `ValueError` if the measurement_id_map
     does not exist.
@@ -163,8 +171,8 @@ def test_invalid_pyquil_region_measurement(
     )
 
     def broken_hook(
-        program: Program, measurement_id_map: Dict[str, str]
-    ) -> Tuple[Program, Dict[str, str]]:
+        program: Program, measurement_id_map: dict[str, str]
+    ) -> tuple[Program, dict[str, str]]:
         return program, {cirq_key: f'{cirq_key}-doesnt-exist' for cirq_key in measurement_id_map}
 
     transformer = circuit_transformers.build(post_transformation_hooks=[broken_hook])

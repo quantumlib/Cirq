@@ -11,50 +11,55 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Dict, List, TYPE_CHECKING
-import pytest
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy as np
+import pytest
+
 import cirq
 from cirq_google.engine.abstract_job import AbstractJob
 
 if TYPE_CHECKING:
     import datetime
+
     import cirq_google.engine.abstract_engine as abstract_engine
     import cirq_google.engine.abstract_program as abstract_program
 
 
 class MockJob(AbstractJob):
-    def engine(self) -> 'abstract_engine.AbstractEngine':  # type: ignore[empty-body]
+    def engine(self) -> abstract_engine.AbstractEngine:  # type: ignore[empty-body]
         pass
 
     def id(self) -> str:  # type: ignore[empty-body]
         pass
 
-    def program(self) -> 'abstract_program.AbstractProgram':  # type: ignore[empty-body]
+    def program(self) -> abstract_program.AbstractProgram:  # type: ignore[empty-body]
         pass
 
-    def create_time(self) -> 'datetime.datetime':  # type: ignore[empty-body]
+    def create_time(self) -> datetime.datetime:  # type: ignore[empty-body]
         pass
 
-    def update_time(self) -> 'datetime.datetime':  # type: ignore[empty-body]
+    def update_time(self) -> datetime.datetime:  # type: ignore[empty-body]
         pass
 
     def description(self) -> str:  # type: ignore[empty-body]
         pass
 
-    def set_description(self, description: str) -> 'AbstractJob':  # type: ignore[empty-body]
+    def set_description(self, description: str) -> AbstractJob:  # type: ignore[empty-body]
         pass
 
-    def labels(self) -> Dict[str, str]:  # type: ignore[empty-body]
+    def labels(self) -> dict[str, str]:  # type: ignore[empty-body]
         pass
 
-    def set_labels(self, labels: Dict[str, str]) -> 'AbstractJob':  # type: ignore[empty-body]
+    def set_labels(self, labels: dict[str, str]) -> AbstractJob:  # type: ignore[empty-body]
         pass
 
-    def add_labels(self, labels: Dict[str, str]) -> 'AbstractJob':  # type: ignore[empty-body]
+    def add_labels(self, labels: dict[str, str]) -> AbstractJob:  # type: ignore[empty-body]
         pass
 
-    def remove_labels(self, keys: List[str]) -> 'AbstractJob':  # type: ignore[empty-body]
+    def remove_labels(self, keys: list[str]) -> AbstractJob:  # type: ignore[empty-body]
         pass
 
     def processor_ids(self):

@@ -13,10 +13,10 @@
 # limitations under the License.
 
 """Target gateset used for compiling circuits to IonQ device."""
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Tuple
+
+from __future__ import annotations
+
+from typing import Any, Iterator
 
 import cirq
 
@@ -53,11 +53,12 @@ class IonQTargetGateset(cirq.TwoQubitCompilationTargetGateset):
             cirq.YYPowGate,
             cirq.ZZPowGate,
             cirq.MeasurementGate,
+            cirq.GlobalPhaseGate,
             unroll_circuit_op=False,
         )
         self.atol = atol
 
-    def _decompose_single_qubit_operation(self, op: cirq.Operation, _) -> cirq.OP_TREE:
+    def _decompose_single_qubit_operation(self, op: cirq.Operation, _) -> Iterator[cirq.OP_TREE]:
         qubit = op.qubits[0]
         mat = cirq.unitary(op)
         for gate in cirq.single_qubit_matrix_to_gates(mat, self.atol):
@@ -87,7 +88,7 @@ class IonQTargetGateset(cirq.TwoQubitCompilationTargetGateset):
         return NotImplemented
 
     @property
-    def preprocess_transformers(self) -> List['cirq.TRANSFORMER']:
+    def preprocess_transformers(self) -> list[cirq.TRANSFORMER]:
         """List of transformers which should be run before decomposing individual operations.
 
         Decompose to three qubit gates because three qubit gates have different decomposition
@@ -100,7 +101,7 @@ class IonQTargetGateset(cirq.TwoQubitCompilationTargetGateset):
         ]
 
     @property
-    def postprocess_transformers(self) -> List['cirq.TRANSFORMER']:
+    def postprocess_transformers(self) -> list[cirq.TRANSFORMER]:
         """List of transformers which should be run after decomposing individual operations."""
         return [cirq.drop_negligible_operations, cirq.drop_empty_moments]
 
@@ -110,7 +111,7 @@ class IonQTargetGateset(cirq.TwoQubitCompilationTargetGateset):
     def _value_equality_values_(self) -> Any:
         return self.atol
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ['atol'])
 
     @classmethod
@@ -119,8 +120,8 @@ class IonQTargetGateset(cirq.TwoQubitCompilationTargetGateset):
 
 
 def decompose_all_to_all_connect_ccz_gate(
-    ccz_gate: 'cirq.CCZPowGate', qubits: Tuple['cirq.Qid', ...]
-) -> 'cirq.OP_TREE':
+    ccz_gate: cirq.CCZPowGate, qubits: tuple[cirq.Qid, ...]
+) -> cirq.OP_TREE:
     """Decomposition of all-to-all connected qubits are different from line qubits or grid qubits.
 
     For example, for qubits in the same ion trap, the decomposition of CCZ gate will be:
@@ -142,7 +143,7 @@ def decompose_all_to_all_connect_ccz_gate(
     global_phase = 1j ** (2 * ccz_gate.global_shift * ccz_gate._exponent)
     global_phase = (
         complex(global_phase)
-        if cirq.is_parameterized(global_phase) and global_phase.is_complex  # type: ignore
+        if cirq.is_parameterized(global_phase) and global_phase.is_complex
         else global_phase
     )
     global_phase_operation = (

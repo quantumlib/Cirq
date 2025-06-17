@@ -14,18 +14,19 @@
 
 """Tests for kraus_protocol.py."""
 
-from typing import Iterable, List, Sequence, Tuple
+from __future__ import annotations
+
+from typing import Iterable, Sequence
 
 import numpy as np
 import pytest
 
 import cirq
 
+LOCAL_DEFAULT: list[np.ndarray] = [np.array([])]
 
-LOCAL_DEFAULT: List[np.ndarray] = [np.array([])]
 
-
-def test_kraus_no_methods():
+def test_kraus_no_methods() -> None:
     class NoMethod:
         pass
 
@@ -52,7 +53,7 @@ def assert_not_implemented(val):
     assert not cirq.has_kraus(val)
 
 
-def test_kraus_returns_not_implemented():
+def test_kraus_returns_not_implemented() -> None:
     class ReturnsNotImplemented:
         def _kraus_(self):
             return NotImplemented
@@ -60,7 +61,7 @@ def test_kraus_returns_not_implemented():
     assert_not_implemented(ReturnsNotImplemented())
 
 
-def test_mixture_returns_not_implemented():
+def test_mixture_returns_not_implemented() -> None:
     class ReturnsNotImplemented:
         def _mixture_(self):
             return NotImplemented
@@ -68,7 +69,7 @@ def test_mixture_returns_not_implemented():
     assert_not_implemented(ReturnsNotImplemented())
 
 
-def test_unitary_returns_not_implemented():
+def test_unitary_returns_not_implemented() -> None:
     class ReturnsNotImplemented:
         def _unitary_(self):
             return NotImplemented
@@ -81,7 +82,7 @@ def test_unitary_returns_not_implemented():
     assert cirq.kraus(ReturnsNotImplemented(), LOCAL_DEFAULT) is LOCAL_DEFAULT
 
 
-def test_explicit_kraus():
+def test_explicit_kraus() -> None:
     a0 = np.array([[0, 0], [1, 0]])
     a1 = np.array([[1, 0], [0, 0]])
     c = (a0, a1)
@@ -99,11 +100,11 @@ def test_explicit_kraus():
     assert cirq.has_kraus(ReturnsKraus())
 
 
-def test_kraus_fallback_to_mixture():
+def test_kraus_fallback_to_mixture() -> None:
     m = ((0.3, cirq.unitary(cirq.X)), (0.4, cirq.unitary(cirq.Y)), (0.3, cirq.unitary(cirq.Z)))
 
     class ReturnsMixture:
-        def _mixture_(self) -> Iterable[Tuple[float, np.ndarray]]:
+        def _mixture_(self) -> Iterable[tuple[float, np.ndarray]]:
             return m
 
     c = (
@@ -121,7 +122,7 @@ def test_kraus_fallback_to_mixture():
     assert cirq.has_kraus(ReturnsMixture())
 
 
-def test_kraus_fallback_to_unitary():
+def test_kraus_fallback_to_unitary() -> None:
     u = np.array([[1, 0], [1, 0]])
 
     class ReturnsUnitary:
@@ -161,12 +162,12 @@ class HasKrausWhenDecomposed(cirq.testing.SingleQubitGate):
 
 
 @pytest.mark.parametrize('cls', [HasKraus, HasMixture, HasUnitary])
-def test_has_kraus(cls):
+def test_has_kraus(cls) -> None:
     assert cirq.has_kraus(cls())
 
 
 @pytest.mark.parametrize('decomposed_cls', [HasKraus, HasMixture, HasUnitary])
-def test_has_kraus_when_decomposed(decomposed_cls):
+def test_has_kraus_when_decomposed(decomposed_cls) -> None:
     op = HasKrausWhenDecomposed(decomposed_cls).on(cirq.NamedQubit('test'))
     assert cirq.has_kraus(op)
     assert not cirq.has_kraus(op, allow_decompose=False)

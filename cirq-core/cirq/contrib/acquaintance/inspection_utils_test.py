@@ -12,18 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from itertools import product, combinations
+from __future__ import annotations
+
+from itertools import combinations, product
 
 import pytest
 
 import cirq
 import cirq.contrib.acquaintance as cca
+import cirq.contrib.acquaintance.inspection_utils as inspection_utils
 
 
 @pytest.mark.parametrize('n_qubits, acquaintance_size', product(range(2, 6), range(2, 5)))
-def test_get_logical_acquaintance_opportunities(n_qubits, acquaintance_size):
+def test_get_logical_acquaintance_opportunities(n_qubits, acquaintance_size) -> None:
     qubits = cirq.LineQubit.range(n_qubits)
     acquaintance_strategy = cca.complete_acquaintance_strategy(qubits, acquaintance_size)
     initial_mapping = {q: i for i, q in enumerate(qubits)}
     opps = cca.get_logical_acquaintance_opportunities(acquaintance_strategy, initial_mapping)
     assert opps == set(frozenset(s) for s in combinations(range(n_qubits), acquaintance_size))
+
+
+def test_device() -> None:
+    assert inspection_utils.LogicalAnnotator({}).device == cirq.UNCONSTRAINED_DEVICE

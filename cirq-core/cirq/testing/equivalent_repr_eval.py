@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Optional
+from __future__ import annotations
+
+from typing import Any
 
 
 def assert_equivalent_repr(
@@ -21,8 +23,8 @@ def assert_equivalent_repr(
     setup_code: str = (
         'import cirq\nimport numpy as np\nimport sympy\nimport pandas as pd\nimport datetime\n'
     ),
-    global_vals: Optional[Dict[str, Any]] = None,
-    local_vals: Optional[Dict[str, Any]] = None,
+    global_vals: dict[str, Any] | None = None,
+    local_vals: dict[str, Any] | None = None,
 ) -> None:
     """Checks that eval(repr(v)) == v.
 
@@ -39,7 +41,7 @@ def assert_equivalent_repr(
     Raises:
         AssertionError: If the assertion fails, or eval(repr(value)) raises an error.
     """
-    __tracebackhide__ = True  # pylint: disable=unused-variable
+    __tracebackhide__ = True
 
     global_vals = global_vals or {}
     local_vals = local_vals or {}

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 
 import cirq
@@ -105,7 +107,7 @@ class GateDecomposes(cirq.Gate):
         yield YesOp(*qubits)
 
 
-def test_inconclusive():
+def test_inconclusive() -> None:
     assert not cirq.has_stabilizer_effect(object())
     assert not cirq.has_stabilizer_effect('boo')
     assert not cirq.has_stabilizer_effect(cirq.testing.SingleQubitGate())
@@ -113,21 +115,21 @@ def test_inconclusive():
     assert not cirq.has_stabilizer_effect(NoOp())
 
 
-def test_via_has_stabilizer_effect_method():
+def test_via_has_stabilizer_effect_method() -> None:
     assert not cirq.has_stabilizer_effect(No1())
     assert not cirq.has_stabilizer_effect(No2())
     assert not cirq.has_stabilizer_effect(No3())
     assert cirq.has_stabilizer_effect(Yes())
 
 
-def test_via_gate_of_op():
+def test_via_gate_of_op() -> None:
     assert cirq.has_stabilizer_effect(YesOp())
     assert not cirq.has_stabilizer_effect(NoOp1())
     assert not cirq.has_stabilizer_effect(NoOp2())
     assert not cirq.has_stabilizer_effect(NoOp3())
 
 
-def test_via_unitary():
+def test_via_unitary() -> None:
     op1 = OpWithUnitary(np.array([[0, 1], [1, 0]]))
     assert cirq.has_stabilizer_effect(op1)
 
@@ -148,7 +150,7 @@ def test_via_unitary():
     assert not cirq.has_stabilizer_effect(cirq.CCZ)
 
 
-def test_via_decompose():
+def test_via_decompose() -> None:
     assert cirq.has_stabilizer_effect(cirq.Circuit(cirq.H.on_each(cirq.LineQubit.range(4))))
     assert not cirq.has_stabilizer_effect(cirq.Circuit(cirq.T.on_each(cirq.LineQubit.range(4))))
     assert not cirq.has_stabilizer_effect(

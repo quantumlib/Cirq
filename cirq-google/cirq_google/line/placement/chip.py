@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Tuple, TYPE_CHECKING
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import cirq
 
@@ -20,7 +22,7 @@ if TYPE_CHECKING:
     import cirq_google
 
 
-EDGE = Tuple[cirq.GridQubit, cirq.GridQubit]
+EDGE = tuple[cirq.GridQubit, cirq.GridQubit]
 
 
 def above(qubit: cirq.GridQubit) -> cirq.GridQubit:
@@ -72,8 +74,8 @@ def right_of(qubit: cirq.GridQubit) -> cirq.GridQubit:
 
 
 def chip_as_adjacency_list(
-    device: 'cirq_google.GridDevice',
-) -> Dict[cirq.GridQubit, List[cirq.GridQubit]]:
+    device: cirq_google.GridDevice,
+) -> dict[cirq.GridQubit, list[cirq.GridQubit]]:
     """Gives adjacency list representation of a chip.
 
     The adjacency list is constructed in order of above, left_of, below and
@@ -87,7 +89,7 @@ def chip_as_adjacency_list(
         given qubit.
     """
     c_set = device.metadata.qubit_set
-    c_adj: Dict[cirq.GridQubit, List[cirq.GridQubit]] = {}
+    c_adj: dict[cirq.GridQubit, list[cirq.GridQubit]] = {}
     for n in c_set:
         c_adj[n] = []
         for m in [above(n), left_of(n), below(n), right_of(n)]:

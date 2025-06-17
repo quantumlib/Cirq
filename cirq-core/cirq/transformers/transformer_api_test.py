@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from unittest import mock
-from typing import Optional
+
+import pytest
 
 import cirq
 from cirq.transformers.transformer_api import LogLevel
-
-import pytest
 
 
 @cirq.transformer()
@@ -27,7 +28,7 @@ class MockTransformerClass:
         self.mock = mock.Mock()
 
     def __call__(
-        self, circuit: cirq.AbstractCircuit, *, context: Optional[cirq.TransformerContext] = None
+        self, circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
     ) -> cirq.Circuit:
         self.mock(circuit, context)
         return circuit.unfreeze()
@@ -51,7 +52,7 @@ class MockTransformerClassWithDefaults:
         self,
         circuit: cirq.AbstractCircuit,
         *,
-        context: Optional[cirq.TransformerContext] = cirq.TransformerContext(),
+        context: cirq.TransformerContext | None = cirq.TransformerContext(),
         atol: float = 1e-4,
         custom_arg: CustomArg = CustomArg(),
     ) -> cirq.AbstractCircuit:
@@ -71,7 +72,7 @@ def make_transformer_func_with_defaults() -> cirq.TRANSFORMER:
     def func(
         circuit: cirq.AbstractCircuit,
         *,
-        context: Optional[cirq.TransformerContext] = cirq.TransformerContext(),
+        context: cirq.TransformerContext | None = cirq.TransformerContext(),
         atol: float = 1e-4,
         custom_arg: CustomArg = CustomArg(),
     ) -> cirq.FrozenCircuit:
@@ -87,7 +88,7 @@ def make_transformer_func(add_deep_support: bool = False) -> cirq.TRANSFORMER:
 
     @cirq.transformer(add_deep_support=add_deep_support)
     def mock_tranformer_func(
-        circuit: cirq.AbstractCircuit, *, context: Optional[cirq.TransformerContext] = None
+        circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
     ) -> cirq.Circuit:
         my_mock(circuit, context)
         return circuit.unfreeze()
@@ -177,7 +178,7 @@ def test_transformer_decorator_adds_support_for_deep(transformer, supports_deep)
 @cirq.transformer
 class T1:
     def __call__(
-        self, circuit: cirq.AbstractCircuit, context: Optional[cirq.TransformerContext] = None
+        self, circuit: cirq.AbstractCircuit, context: cirq.TransformerContext | None = None
     ) -> cirq.AbstractCircuit:
         assert context is not None
         context.logger.log("First Verbose Log", "of T1", level=LogLevel.DEBUG)
@@ -191,7 +192,7 @@ t1 = T1()
 
 @cirq.transformer
 def t2(
-    circuit: cirq.AbstractCircuit, context: Optional[cirq.TransformerContext] = None
+    circuit: cirq.AbstractCircuit, context: cirq.TransformerContext | None = None
 ) -> cirq.FrozenCircuit:
     assert context is not None
     context.logger.log("First INFO Log", "of T2 Start")
@@ -202,7 +203,7 @@ def t2(
 
 @cirq.transformer
 def t3(
-    circuit: cirq.AbstractCircuit, context: Optional[cirq.TransformerContext] = None
+    circuit: cirq.AbstractCircuit, context: cirq.TransformerContext | None = None
 ) -> cirq.Circuit:
     assert context is not None
     context.logger.log("First INFO Log", "of T3 Start")
@@ -255,6 +256,14 @@ def test_transformer_stats_logger_show_levels(capfd):
     context.logger.show(LogLevel.NONE)
     out, _ = capfd.readouterr()
     assert all(line not in out for line in [info_line, debug_line, warning_line])
+
+
+def test_noop_logger():
+    logger = cirq.transformers.transformer_api.NoOpTransformerLogger()
+    logger.register_initial(cirq.Circuit(), "test")
+    logger.log("stuff")
+    logger.register_final(cirq.Circuit(), "test")
+    logger.show()
 
 
 def test_transformer_stats_logger_linear_and_nested(capfd):

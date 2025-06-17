@@ -11,14 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import TYPE_CHECKING
+
+from __future__ import annotations
 
 import abc
-
-from cirq_google.line.placement.sequence import GridQubitLineTuple
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import cirq_google
+    from cirq_google.line.placement.sequence import GridQubitLineTuple
 
 
 class LinePlacementStrategy(metaclass=abc.ABCMeta):
@@ -29,7 +30,7 @@ class LinePlacementStrategy(metaclass=abc.ABCMeta):
     """
 
     @abc.abstractmethod
-    def place_line(self, device: 'cirq_google.GridDevice', length: int) -> GridQubitLineTuple:
+    def place_line(self, device: cirq_google.GridDevice, length: int) -> GridQubitLineTuple:
         """Runs line sequence search.
 
         Args:

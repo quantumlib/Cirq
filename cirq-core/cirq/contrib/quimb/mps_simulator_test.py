@@ -1,4 +1,7 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
+from __future__ import annotations
+
 import itertools
 import math
 
@@ -479,6 +482,11 @@ def test_simulation_state_initializer():
     )
     assert s.qubits == (cirq.LineQubit(0),)
     assert s.classical_data == expected_classical_data
+    assert s.estimation_stats() == {
+        'estimated_fidelity': 1.0,
+        'memory_bytes': 16,
+        'num_coefs_used': 2,
+    }
 
 
 def test_act_on_gate():

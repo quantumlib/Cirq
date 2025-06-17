@@ -12,17 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from itertools import combinations, product
 from random import randint
 from string import ascii_lowercase as alphabet
-from typing import Optional, Sequence, Tuple
+from typing import Sequence
 
 import numpy
 import pytest
 
 import cirq
-import cirq.testing as ct
 import cirq.contrib.acquaintance as cca
+import cirq.testing as ct
 
 
 def test_acquaintance_gate_repr():
@@ -139,7 +141,7 @@ def test_acquaint_part_pairs(part_lens):
     assert expected_opps == actual_opps
 
 
-acquaintance_sizes: Tuple[Optional[int], ...] = (None,)
+acquaintance_sizes: tuple[int | None, ...] = (None,)
 acquaintance_sizes += tuple(range(5))
 
 
@@ -254,10 +256,10 @@ class OtherOperation(cirq.Operation):
         self._qubits = tuple(qubits)
 
     @property
-    def qubits(self) -> Tuple[cirq.Qid, ...]:
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         return self._qubits
 
-    def with_qubits(self, *new_qubits: cirq.Qid) -> 'OtherOperation':
+    def with_qubits(self, *new_qubits: cirq.Qid) -> OtherOperation:
         return type(self)(self._qubits)
 
     def __eq__(self, other):

@@ -11,13 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import os
 
 import pytest
 
 CIRQ_MAINTAINERS = ('TEAM', "@quantumlib/cirq-maintainers")
 
-BASE_MAINTAINERS = {CIRQ_MAINTAINERS, ('USERNAME', "@vtomole"), ('USERNAME', "@cduck")}
+BASE_MAINTAINERS = {CIRQ_MAINTAINERS, ('USERNAME', "@vtomole")}
 
 DOCS_MAINTAINERS = BASE_MAINTAINERS.union({('USERNAME', '@aasfaw'), ('USERNAME', '@rmlarose')})
 
@@ -77,14 +80,14 @@ QCVV_MAINTAINERS = BASE_MAINTAINERS.union(QCVV_TEAM)
         ("docs/tutorials/google/start.ipynb", GOOGLE_MAINTAINERS.union(DOCS_MAINTAINERS)),
     ],
 )
-def test_codeowners(filepath, expected):
+def test_codeowners(filepath, expected) -> None:
     # for some reason the codeowners library does not publish all the wheels
     # for Mac and Windows. Eventually we could write our own codeowners parser,
     # but for now it is good enough. If codeowners is not installed, this test
     # will be skipped
     codeowners = pytest.importorskip("codeowners")
 
-    with open(".github/CODEOWNERS") as f:
+    with open(".github/CODEOWNERS", encoding="utf8") as f:
         owners = codeowners.CodeOwners(f.read())
         assert os.path.exists(
             filepath

@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cirq
 
 
-def test_group_settings_greedy_one_group():
+def test_group_settings_greedy_one_group() -> None:
     qubits = cirq.LineQubit.range(2)
     q0, q1 = qubits
     terms = [cirq.X(q0), cirq.Y(q1)]
@@ -33,7 +35,7 @@ def test_group_settings_greedy_one_group():
     assert set(the_group) == set(settings)
 
 
-def test_group_settings_greedy_two_groups():
+def test_group_settings_greedy_two_groups() -> None:
     qubits = cirq.LineQubit.range(2)
     q0, q1 = qubits
     terms = [cirq.X(q0) * cirq.X(q1), cirq.Y(q0) * cirq.Y(q1)]
@@ -48,7 +50,7 @@ def test_group_settings_greedy_two_groups():
     assert set(grouped_settings.keys()) == set(group_max_settings_should_be)
 
 
-def test_group_settings_greedy_single_item():
+def test_group_settings_greedy_single_item() -> None:
     qubits = cirq.LineQubit.range(2)
     q0, q1 = qubits
     term = cirq.X(q0) * cirq.X(q1)
@@ -60,11 +62,11 @@ def test_group_settings_greedy_single_item():
     assert list(grouped_settings.values())[0][0] == settings[0]
 
 
-def test_group_settings_greedy_empty():
+def test_group_settings_greedy_empty() -> None:
     assert cirq.work.group_settings_greedy([]) == dict()
 
 
-def test_group_settings_greedy_init_state_compat():
+def test_group_settings_greedy_init_state_compat() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     settings = [
         cirq.work.InitObsSetting(
@@ -78,14 +80,13 @@ def test_group_settings_greedy_init_state_compat():
     assert len(grouped_settings) == 1
 
 
-def test_group_settings_greedy_init_state_compat_sparse():
+def test_group_settings_greedy_init_state_compat_sparse() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     settings = [
         cirq.work.InitObsSetting(init_state=cirq.KET_PLUS(q0), observable=cirq.X(q0)),
         cirq.work.InitObsSetting(init_state=cirq.KET_ZERO(q1), observable=cirq.Z(q1)),
     ]
     grouped_settings = cirq.work.group_settings_greedy(settings)
-    # pylint: disable=line-too-long
     grouped_settings_should_be = {
         cirq.work.InitObsSetting(
             init_state=cirq.KET_PLUS(q0) * cirq.KET_ZERO(q1), observable=cirq.X(q0) * cirq.Z(q1)
@@ -94,7 +95,7 @@ def test_group_settings_greedy_init_state_compat_sparse():
     assert grouped_settings == grouped_settings_should_be
 
 
-def test_group_settings_greedy_init_state_incompat():
+def test_group_settings_greedy_init_state_incompat() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     settings = [
         cirq.work.InitObsSetting(
@@ -106,7 +107,7 @@ def test_group_settings_greedy_init_state_incompat():
     assert len(grouped_settings) == 2
 
 
-def test_group_settings_greedy_hydrogen():
+def test_group_settings_greedy_hydrogen() -> None:
     qubits = cirq.LineQubit.range(4)
     q0, q1, q2, q3 = qubits
     terms = [

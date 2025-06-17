@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 
 import cirq
 
 
-def test_default():
+def test_default() -> None:
     a2 = cirq.NamedQubit('a2')
     a10 = cirq.NamedQubit('a10')
     b = cirq.NamedQubit('b')
@@ -30,7 +32,7 @@ def test_default():
     assert sorted([q5, a10, a2, b, q4]) == [q4, q5, a2, a10, b]
 
 
-def test_default_grouping():
+def test_default_grouping() -> None:
     presorted = (
         cirq.GridQubit(0, 1),
         cirq.GridQubit(1, 0),
@@ -48,7 +50,7 @@ def test_default_grouping():
     assert cirq.QubitOrder.DEFAULT.order_for(reversed(presorted)) == presorted
 
 
-def test_explicit():
+def test_explicit() -> None:
     a2 = cirq.NamedQubit('a2')
     a10 = cirq.NamedQubit('a10')
     b = cirq.NamedQubit('b')
@@ -62,7 +64,7 @@ def test_explicit():
         _ = q.order_for([cirq.NamedQubit('c')])
 
 
-def test_explicit_with_fallback():
+def test_explicit_with_fallback() -> None:
     a2 = cirq.NamedQubit('a2')
     a10 = cirq.NamedQubit('a10')
     b = cirq.NamedQubit('b')
@@ -74,7 +76,7 @@ def test_explicit_with_fallback():
     assert q.order_for([a10, a2]) == (b, a2, a10)
 
 
-def test_sorted_by():
+def test_sorted_by() -> None:
     a = cirq.NamedQubit('2')
     b = cirq.NamedQubit('10')
     c = cirq.NamedQubit('-5')
@@ -86,7 +88,7 @@ def test_sorted_by():
     assert q.order_for([a, b, c]) == (b, a, c)
 
 
-def test_map():
+def test_map() -> None:
     b = cirq.NamedQubit('b!')
     q = cirq.QubitOrder.explicit([cirq.NamedQubit('b')]).map(
         internalize=lambda e: cirq.NamedQubit(e.name[:-1]),
@@ -97,7 +99,7 @@ def test_map():
     assert q.order_for([b]) == (b,)
 
 
-def test_qubit_order_or_list():
+def test_qubit_order_or_list() -> None:
     b = cirq.NamedQubit('b')
 
     implied_by_list = cirq.QubitOrder.as_qubit_order([b])
@@ -114,7 +116,7 @@ def test_qubit_order_or_list():
     assert ordered is passed_through
 
 
-def test_qubit_order_iterator():
+def test_qubit_order_iterator() -> None:
     generator = (q for q in cirq.LineQubit.range(5))
     assert cirq.QubitOrder.explicit(generator).order_for((cirq.LineQubit(3),)) == tuple(
         cirq.LineQubit.range(5)
@@ -126,6 +128,6 @@ def test_qubit_order_iterator():
     )
 
 
-def test_qubit_order_invalid():
+def test_qubit_order_invalid() -> None:
     with pytest.raises(ValueError, match="Don't know how to interpret <5> as a Basis."):
-        _ = cirq.QubitOrder.as_qubit_order(5)
+        _ = cirq.QubitOrder.as_qubit_order(5)  # type: ignore[arg-type]

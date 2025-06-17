@@ -11,9 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 from typing import Iterator
 
-from cirq.interop.quirk.cells.cell import CellMaker, CELL_SIZES
+from cirq.interop.quirk.cells.cell import CELL_SIZES, CellMaker
 
 
 def generate_all_unsupported_cell_makers() -> Iterator[CellMaker]:

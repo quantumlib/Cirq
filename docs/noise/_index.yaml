@@ -20,13 +20,7 @@ landing_page:
     options:
     - cards
     items:
-    - heading: Calibration FAQ
-      description: Frequently asked questions about characterization and compensation.
-      path: /cirq/noise/calibration_faq
-    - heading: Floquet Calibration
-      description: A characterization method using Floquet theory.
-      path: /cirq/noise/floquet_calibration_example
-    - heading: Cross Entropy Benchmarking (XEB)
+    - heading: Cross-Entropy Benchmarking (XEB)
       description: A characterization benchmarking method using cross entropy.
       path: /cirq/noise/qcvv/xeb_theory
   - heading: Visualizing noise

@@ -14,9 +14,8 @@
 
 """Tests for executable snippets in documentation.
 
-This tests runs code snippets that are executable in `.md` and `.rst`
-documentation. It covers all such files under the docs directory, as well as
-the top level README file.
+This tests code snippets that are executable in `.md` documentation. It covers
+all such files under the docs directory, as well as the top-level README file.
 
 In addition to checking that the code executes:
 
@@ -45,22 +44,17 @@ In addition to checking that the code executes:
             substitution
             --->
 
-      and for `.rst` the substitution is of the form
-
-            .. test-substitution::
-                pattern
-                substitution
-
       where pattern is the regex matching pattern (passed to re.compile) and
       substitution is the replacement string.
 """
 
-import inspect
-from typing import Any, Dict, List, Optional, Pattern, Tuple, Iterator
+from __future__ import annotations
 
+import inspect
 import os
 import pathlib
 import re
+from typing import Any, Iterator, Pattern
 
 import pytest
 
@@ -69,7 +63,7 @@ import cirq
 
 def test_can_run_readme_code_snippets():
     # Get the contents of the README.md file at the project root.
-    readme_path = 'README.rst'
+    readme_path = 'README.md'
     assert readme_path is not None
 
     assert_file_has_working_code_snippets(readme_path, assume_import=False)
@@ -79,8 +73,6 @@ def find_docs_code_snippets_paths() -> Iterator[str]:
     docs_folder = pathlib.Path(__file__).parent
     for filename in docs_folder.rglob('*.md'):
         yield str(filename.relative_to(docs_folder))
-    for filename in docs_folder.rglob('*.rst'):
-        yield str(filename.relative_to(docs_folder))
 
 
 @pytest.mark.parametrize('path', find_docs_code_snippets_paths())
@@ -89,7 +81,7 @@ def test_can_run_docs_code_snippets(path):
     assert_file_has_working_code_snippets(os.path.join(docs_folder, path), assume_import=True)
 
 
-def find_code_snippets(pattern: str, content: str) -> List[Tuple[str, int]]:
+def find_code_snippets(pattern: str, content: str) -> list[tuple[str, int]]:
     matches = re.finditer(pattern, content, re.MULTILINE | re.DOTALL)
     newlines = re.finditer("\n", content)
     snippets = []
@@ -103,17 +95,17 @@ def find_code_snippets(pattern: str, content: str) -> List[Tuple[str, int]]:
     return snippets
 
 
-def find_markdown_code_snippets(content: str) -> List[Tuple[str, int]]:
+def find_markdown_code_snippets(content: str) -> list[tuple[str, int]]:
     return find_code_snippets("\n```python(.*?)\n```\n", content)
 
 
-def find_markdown_test_overrides(content: str) -> List[Tuple[Pattern, str]]:
+def find_markdown_test_overrides(content: str) -> list[tuple[Pattern, str]]:
     test_sub_text = find_code_snippets("<!---test_substitution\n(.*?)--->", content)
     substitutions = [line.split('\n')[:-1] for line, _ in test_sub_text]
     return [(re.compile(match), sub) for match, sub in substitutions]
 
 
-def apply_overrides(content: str, overrides: List[Tuple[Pattern, str]]) -> str:
+def apply_overrides(content: str, overrides: list[tuple[Pattern, str]]) -> str:
     override_content = content
     for pattern, sub in overrides:
         override_content = re.sub(pattern, sub, override_content)
@@ -136,120 +128,6 @@ def deindent_snippet(snippet: str) -> str:
         else:
             deindented_lines.append(line)
     return '\n'.join(deindented_lines)
-
-
-def find_rst_code_snippets(content: str) -> List[Tuple[str, int]]:
-    snippets = find_code_snippets(
-        r'\n.. code-block:: python\n(?:\s+:.*?\n)*\n(.*?)(?:\n\S|\Z)', content
-    )
-    return [(deindent_snippet(content), line_number) for content, line_number in snippets]
-
-
-def find_rst_test_overrides(content: str) -> List[Tuple[Pattern, str]]:
-    # Find ".. test-substitution::"
-    test_sub_text = find_code_snippets(r'.. test-substitution::\n(([^\n]*\n){2})', content)
-    substitutions = [line.split('\n')[:-1] for line, _ in test_sub_text]
-    return [(re.compile(match.lstrip()), sub.lstrip()) for match, sub in substitutions]
-
-
-def test_find_rst_code_snippets():
-    snippets = find_rst_code_snippets(
-        """
-A 3 by 3 grid of qubits using
-
-.. code-block:: python
-
-    print("hello world")
-
-The next level up.
-
-.. code-block:: python
-    :emphasize-lines: 3,5
-
-    print("hello 1")
-
-    for i in range(10):
-        print(f"hello {i}")
-
-More text.
-
-.. code-block:: python
-
-    print("last line")
-"""
-    )
-
-    assert snippets == [
-        ('print("hello world")\n', 4),
-        ('print("hello 1")\n\nfor i in range(10):\n    print(f"hello {i}")\n', 10),
-        ('print("last line")\n', 20),
-    ]
-
-
-def test_find_rst_overrides():
-    overrides = find_rst_test_overrides(
-        """
-A 3 by 3 grid of qubits using
-
-.. code-block:: python
-
-    print("hello world")
-    print("golden")
-
-.. test-substitution::
-    hello world
-    goodbye cruel world
-
-.. test-substitution::
-    golden
-    yellow
-"""
-    )
-    assert len(overrides) == 2
-    assert overrides[0][0].match('hello world')
-    assert overrides[1][0].match('golden')
-    assert overrides[0][1] == 'goodbye cruel world'
-    assert overrides[1][1] == 'yellow'
-
-
-def test_apply_rst_overrides():
-    content = """
-A 3 by 3 grid of qubits using
-
-.. code-block:: python
-
-    print("hello world")
-    print("golden")
-
-.. test-substitution::
-    hello world
-    goodbye cruel world
-
-.. test-substitution::
-    golden
-    yellow
-"""
-    overrides = find_rst_test_overrides(content)
-    print(overrides)
-    assert (
-        apply_overrides(content, overrides)
-        == """
-A 3 by 3 grid of qubits using
-
-.. code-block:: python
-
-    print("goodbye cruel world")
-    print("yellow")
-
-.. test-substitution::
-    goodbye cruel world
-    goodbye cruel world
-
-.. test-substitution::
-    yellow
-    yellow
-"""
-    )
 
 
 def test_find_markdown_code_snippets():
@@ -359,21 +237,17 @@ def assert_file_has_working_code_snippets(path: str, assume_import: bool):
         overrides = find_markdown_test_overrides(content)
         content = apply_overrides(content, overrides)
         snippets = find_markdown_code_snippets(content)
-    else:
-        overrides = find_rst_test_overrides(content)
-        content = apply_overrides(content, overrides)
-        snippets = find_rst_code_snippets(content)
     assert_code_snippets_run_in_sequence(snippets, assume_import)
 
 
-def assert_code_snippets_run_in_sequence(snippets: List[Tuple[str, int]], assume_import: bool):
+def assert_code_snippets_run_in_sequence(snippets: list[tuple[str, int]], assume_import: bool):
     """Checks that a sequence of code snippets actually run.
 
     State is kept between snippets. Imports and variables defined in one
     snippet will be visible in later snippets.
     """
 
-    state: Dict[str, Any] = {}
+    state: dict[str, Any] = {}
 
     if assume_import:
         exec('import cirq', state)
@@ -464,7 +338,7 @@ def test_canonicalize_printed_line():
 
 
 def assert_code_snippet_executes_correctly(
-    snippet: str, state: Dict, line_number: Optional[int] = None
+    snippet: str, state: dict, line_number: int | None = None
 ):
     """Executes a snippet and compares output / errors to annotations."""
 
@@ -487,10 +361,10 @@ def assert_code_snippet_executes_correctly(
 
 
 def assert_code_snippet_runs_and_prints_expected(
-    snippet: str, state: Dict, line_number: Optional[int] = None
+    snippet: str, state: dict, line_number: int | None = None
 ):
     """Executes a snippet and compares captured output to annotated output."""
-    output_lines: List[str] = []
+    output_lines: list[str] = []
     expected_outputs = find_expected_outputs(snippet)
 
     def print_capture(*values, sep=' '):
@@ -510,7 +384,7 @@ def assert_code_snippet_runs_and_prints_expected(
         raise
 
 
-def assert_code_snippet_fails(snippet: str, state: Dict, expected_failure_type: str):
+def assert_code_snippet_fails(snippet: str, state: dict, expected_failure_type: str):
     try:
         exec(snippet, state)
     except Exception as ex:
@@ -527,7 +401,7 @@ def assert_code_snippet_fails(snippet: str, state: Dict, expected_failure_type: 
     raise AssertionError('Expected snippet to fail, but it ran to completion.')
 
 
-def assert_expected_lines_present_in_order(expected_lines: List[str], actual_lines: List[str]):
+def assert_expected_lines_present_in_order(expected_lines: list[str], actual_lines: list[str]):
     """Checks that all expected lines are present.
 
     It is permitted for there to be extra actual lines between expected lines.
@@ -567,7 +441,7 @@ def assert_expected_lines_present_in_order(expected_lines: List[str], actual_lin
         i += 1
 
 
-def find_expected_outputs(snippet: str) -> List[str]:
+def find_expected_outputs(snippet: str) -> list[str]:
     """Finds expected output lines within a snippet.
 
     Expected output must be annotated with a leading '# prints'.
@@ -597,7 +471,7 @@ def find_expected_outputs(snippet: str) -> List[str]:
     return expected
 
 
-def _indent(lines: List[str]) -> str:
+def _indent(lines: list[str]) -> str:
     return '\t' + '\n'.join(lines).replace('\n', '\n\t')
 
 

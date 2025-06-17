@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
@@ -714,7 +716,8 @@ def test_cast_to_complex():
     )
 
     with pytest.raises(
-        np.ComplexWarning, match='Casting complex values to real discards the imaginary part'
+        np.exceptions.ComplexWarning,
+        match='Casting complex values to real discards the imaginary part',
     ):
         cirq.apply_unitary(y0, args)
 

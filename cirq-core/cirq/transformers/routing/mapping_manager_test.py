@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from networkx.utils.misc import graphs_equal
-import pytest
+from __future__ import annotations
+
 import networkx as nx
+import pytest
+from networkx.utils.misc import graphs_equal
 
 import cirq
 

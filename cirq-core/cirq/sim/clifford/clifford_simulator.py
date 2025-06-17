@@ -15,8 +15,8 @@
 """An efficient simulator for Clifford circuits.
 
 Allowed operations include:
-	- X,Y,Z,H,S,CNOT,CZ
-	- measurements in the computational basis
+    - X,Y,Z,H,S,CNOT,CZ
+    - measurements in the computational basis
 
 The quantum state is specified in two forms:
     1. In terms of stabilizer generators. These are a set of n Pauli operators
@@ -30,7 +30,9 @@ The quantum state is specified in two forms:
     to state vector amplitudes.
 """
 
-from typing import Any, Dict, List, Sequence, Union
+from __future__ import annotations
+
+from typing import Any, Sequence
 
 import numpy as np
 
@@ -50,7 +52,7 @@ class CliffordSimulator(
     """An efficient simulator for Clifford circuits."""
 
     def __init__(
-        self, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None, split_untangled_states: bool = False
+        self, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None, split_untangled_states: bool = False
     ):
         """Creates instance of `CliffordSimulator`.
 
@@ -63,17 +65,17 @@ class CliffordSimulator(
         super().__init__(seed=seed, split_untangled_states=split_untangled_states)
 
     @staticmethod
-    def is_supported_operation(op: 'cirq.Operation') -> bool:
+    def is_supported_operation(op: cirq.Operation) -> bool:
         """Checks whether given operation can be simulated by this simulator."""
         # TODO: support more general Pauli measurements
         return protocols.has_stabilizer_effect(op)
 
     def _create_partial_simulation_state(
         self,
-        initial_state: Union[int, 'cirq.StabilizerChFormSimulationState'],
-        qubits: Sequence['cirq.Qid'],
-        classical_data: 'cirq.ClassicalDataStore',
-    ) -> 'cirq.StabilizerChFormSimulationState':
+        initial_state: int | cirq.StabilizerChFormSimulationState,
+        qubits: Sequence[cirq.Qid],
+        classical_data: cirq.ClassicalDataStore,
+    ) -> cirq.StabilizerChFormSimulationState:
         """Creates the StabilizerChFormSimulationState for a circuit.
 
         Args:
@@ -90,7 +92,8 @@ class CliffordSimulator(
             StabilizerChFormSimulationState for the circuit.
         """
         if isinstance(initial_state, clifford.StabilizerChFormSimulationState):
-            return initial_state
+            # Instances of SimulationStateBase usually returned before this point
+            return initial_state  # pragma: no cover
 
         return clifford.StabilizerChFormSimulationState(
             prng=self._prng,
@@ -100,15 +103,15 @@ class CliffordSimulator(
         )
 
     def _create_step_result(
-        self, sim_state: 'cirq.SimulationStateBase[clifford.StabilizerChFormSimulationState]'
+        self, sim_state: cirq.SimulationStateBase[clifford.StabilizerChFormSimulationState]
     ):
         return CliffordSimulatorStepResult(sim_state=sim_state)
 
     def _create_simulator_trial_result(
         self,
-        params: 'cirq.ParamResolver',
-        measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[cirq.StabilizerChFormSimulationState]',
+        params: cirq.ParamResolver,
+        measurements: dict[str, np.ndarray],
+        final_simulator_state: cirq.SimulationStateBase[cirq.StabilizerChFormSimulationState],
     ):
         return CliffordTrialResult(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
@@ -120,16 +123,16 @@ class CliffordTrialResult(
 ):
     def __init__(
         self,
-        params: 'cirq.ParamResolver',
-        measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[cirq.StabilizerChFormSimulationState]',
+        params: cirq.ParamResolver,
+        measurements: dict[str, np.ndarray],
+        final_simulator_state: cirq.SimulationStateBase[cirq.StabilizerChFormSimulationState],
     ) -> None:
         super().__init__(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
 
     @property
-    def final_state(self) -> 'cirq.CliffordState':
+    def final_state(self) -> cirq.CliffordState:
         state = self._get_merged_sim_state()
         clifford_state = CliffordState(state.qubit_map)
         clifford_state.ch_form = state.state.copy()
@@ -151,7 +154,7 @@ class CliffordSimulatorStepResult(
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
     def __init__(
-        self, sim_state: 'cirq.SimulationStateBase[clifford.StabilizerChFormSimulationState]'
+        self, sim_state: cirq.SimulationStateBase[clifford.StabilizerChFormSimulationState]
     ):
         """Results of a step of the simulator.
         Attributes:
@@ -188,7 +191,7 @@ class CliffordSimulatorStepResult(
         return self._clifford_state
 
 
-@value.value_equality
+@value.value_equality(unhashable=True)
 class CliffordState:
     """A state of the Clifford simulation.
 
@@ -198,7 +201,7 @@ class CliffordState:
     Gates and measurements are applied to each representation in O(n^2) time.
     """
 
-    def __init__(self, qubit_map, initial_state: Union[int, 'cirq.StabilizerStateChForm'] = 0):
+    def __init__(self, qubit_map, initial_state: int | cirq.StabilizerStateChForm = 0):
         self.qubit_map = qubit_map
         self.n = len(qubit_map)
 
@@ -221,7 +224,7 @@ class CliffordState:
     def _value_equality_values_(self) -> Any:
         return self.qubit_map, self.ch_form
 
-    def copy(self) -> 'cirq.CliffordState':
+    def copy(self) -> cirq.CliffordState:
         state = CliffordState(self.qubit_map)
         state.ch_form = self.ch_form.copy()
 
@@ -240,7 +243,7 @@ class CliffordState:
     def state_vector(self):
         return self.ch_form.state_vector()
 
-    def apply_unitary(self, op: 'cirq.Operation'):
+    def apply_unitary(self, op: cirq.Operation):
         ch_form_args = clifford.StabilizerChFormSimulationState(
             prng=np.random.RandomState(), qubits=self.qubit_map.keys(), initial_state=self.ch_form
         )
@@ -252,8 +255,8 @@ class CliffordState:
 
     def apply_measurement(
         self,
-        op: 'cirq.Operation',
-        measurements: Dict[str, List[int]],
+        op: cirq.Operation,
+        measurements: dict[str, list[int]],
         prng: np.random.RandomState,
         collapse_state_vector=True,
     ):

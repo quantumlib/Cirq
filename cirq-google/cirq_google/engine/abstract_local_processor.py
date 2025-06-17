@@ -11,20 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import abc
 import datetime
-from typing import Dict, List, Optional, overload, TYPE_CHECKING, Union
+from typing import overload, TYPE_CHECKING
 
 from google.protobuf.timestamp_pb2 import Timestamp
 
-from cirq_google.engine import calibration
 from cirq_google.cloud import quantum
 from cirq_google.engine.abstract_processor import AbstractProcessor
-from cirq_google.engine.abstract_program import AbstractProgram
 
 if TYPE_CHECKING:
+    import cirq_google.engine.calibration as calibration
     from cirq_google.engine.abstract_engine import AbstractEngine
     from cirq_google.engine.abstract_local_program import AbstractLocalProgram
+    from cirq_google.engine.abstract_program import AbstractProgram
 
 
 @overload
@@ -32,10 +35,10 @@ def _to_timestamp(union_time: None) -> None: ...
 
 
 @overload
-def _to_timestamp(union_time: Union[datetime.datetime, datetime.timedelta]) -> int: ...
+def _to_timestamp(union_time: datetime.datetime | datetime.timedelta) -> int: ...
 
 
-def _to_timestamp(union_time: Union[None, datetime.datetime, datetime.timedelta]) -> Optional[int]:
+def _to_timestamp(union_time: None | datetime.datetime | datetime.timedelta) -> int | None:
     """Translate a datetime or timedelta into a number of seconds since epoch."""
     if isinstance(union_time, datetime.timedelta):
         return int((datetime.datetime.now() + union_time).timestamp())
@@ -67,16 +70,16 @@ class AbstractLocalProcessor(AbstractProcessor):
         self,
         *,
         processor_id: str,
-        engine: Optional['AbstractEngine'] = None,
-        expected_down_time: Optional[datetime.datetime] = None,
-        expected_recovery_time: Optional[datetime.datetime] = None,
-        schedule: Optional[List[quantum.QuantumTimeSlot]] = None,
+        engine: AbstractEngine | None = None,
+        expected_down_time: datetime.datetime | None = None,
+        expected_recovery_time: datetime.datetime | None = None,
+        schedule: list[quantum.QuantumTimeSlot] | None = None,
         project_name: str = 'fake_project',
     ):
         self._engine = engine
         self._expected_recovery_time = expected_recovery_time
         self._expected_down_time = expected_down_time
-        self._reservations: Dict[str, quantum.QuantumReservation] = {}
+        self._reservations: dict[str, quantum.QuantumReservation] = {}
         self._resource_id_counter = 0
         self._processor_id = processor_id
         self._project_name = project_name
@@ -107,7 +110,7 @@ class AbstractLocalProcessor(AbstractProcessor):
         """Unique string id of the processor."""
         return self._processor_id
 
-    def engine(self) -> Optional['AbstractEngine']:
+    def engine(self) -> AbstractEngine | None:
         """Returns the parent Engine object.
 
         Returns:
@@ -122,12 +125,12 @@ class AbstractLocalProcessor(AbstractProcessor):
         """Sets the parent processor."""
         self._engine = engine
 
-    def expected_down_time(self) -> 'Optional[datetime.datetime]':
+    def expected_down_time(self) -> datetime.datetime | None:
         """Returns the start of the next expected down time of the processor, if
         set."""
         return self._expected_down_time
 
-    def expected_recovery_time(self) -> 'Optional[datetime.datetime]':
+    def expected_recovery_time(self) -> datetime.datetime | None:
         """Returns the expected the processor should be available, if set."""
         return self._expected_recovery_time
 
@@ -235,7 +238,7 @@ class AbstractLocalProcessor(AbstractProcessor):
         self,
         start_time: datetime.datetime,
         end_time: datetime.datetime,
-        whitelisted_users: Optional[List[str]] = None,
+        whitelisted_users: list[str] | None = None,
     ) -> quantum.QuantumReservation:
         """Creates a reservation on this processor.
 
@@ -271,7 +274,7 @@ class AbstractLocalProcessor(AbstractProcessor):
         if reservation_id in self._reservations:
             del self._reservations[reservation_id]
 
-    def get_reservation(self, reservation_id: str) -> Optional[quantum.QuantumReservation]:
+    def get_reservation(self, reservation_id: str) -> quantum.QuantumReservation | None:
         """Retrieve a reservation given its id."""
         if reservation_id in self._reservations:
             return self._reservations[reservation_id]
@@ -281,9 +284,9 @@ class AbstractLocalProcessor(AbstractProcessor):
     def update_reservation(
         self,
         reservation_id: str,
-        start_time: Optional[datetime.datetime] = None,
-        end_time: Optional[datetime.datetime] = None,
-        whitelisted_users: Optional[List[str]] = None,
+        start_time: datetime.datetime | None = None,
+        end_time: datetime.datetime | None = None,
+        whitelisted_users: list[str] | None = None,
     ) -> None:
         """Updates a reservation with new information.
 
@@ -319,9 +322,9 @@ class AbstractLocalProcessor(AbstractProcessor):
 
     def list_reservations(
         self,
-        from_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(),
-        to_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(weeks=2),
-    ) -> List[quantum.QuantumReservation]:
+        from_time: None | datetime.datetime | datetime.timedelta = datetime.timedelta(),
+        to_time: None | datetime.datetime | datetime.timedelta = datetime.timedelta(weeks=2),
+    ) -> list[quantum.QuantumReservation]:
         """Retrieves the reservations from a processor.
 
         Only reservations from this processor and project will be
@@ -355,10 +358,10 @@ class AbstractLocalProcessor(AbstractProcessor):
 
     def get_schedule(
         self,
-        from_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(),
-        to_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(weeks=2),
-        time_slot_type: Optional[quantum.QuantumTimeSlot.TimeSlotType] = None,
-    ) -> List[quantum.QuantumTimeSlot]:
+        from_time: None | datetime.datetime | datetime.timedelta = datetime.timedelta(),
+        to_time: None | datetime.datetime | datetime.timedelta = datetime.timedelta(weeks=2),
+        time_slot_type: quantum.QuantumTimeSlot.TimeSlotType | None = None,
+    ) -> list[quantum.QuantumTimeSlot]:
         """Retrieves the schedule for a processor.
 
         The schedule may be filtered by time.
@@ -381,7 +384,7 @@ class AbstractLocalProcessor(AbstractProcessor):
         Returns:
             Time slots that fit the criteria.
         """
-        time_slots: List[quantum.QuantumTimeSlot] = []
+        time_slots: list[quantum.QuantumTimeSlot] = []
         start_timestamp = _to_timestamp(from_time)
         end_timestamp = _to_timestamp(to_time)
         for slot in self._schedule:
@@ -393,7 +396,7 @@ class AbstractLocalProcessor(AbstractProcessor):
         return time_slots
 
     @abc.abstractmethod
-    def get_latest_calibration(self, timestamp: int) -> Optional[calibration.Calibration]:
+    def get_latest_calibration(self, timestamp: int) -> calibration.Calibration | None:
         """Returns the latest calibration with the provided timestamp or earlier."""
 
     @abc.abstractmethod
@@ -410,10 +413,10 @@ class AbstractLocalProcessor(AbstractProcessor):
     @abc.abstractmethod
     def list_programs(
         self,
-        created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
-        created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[Dict[str, str]] = None,
-    ) -> List['AbstractLocalProgram']:
+        created_before: datetime.datetime | datetime.date | None = None,
+        created_after: datetime.datetime | datetime.date | None = None,
+        has_labels: dict[str, str] | None = None,
+    ) -> list[AbstractLocalProgram]:
         """Returns a list of previously executed quantum programs.
 
         Args:

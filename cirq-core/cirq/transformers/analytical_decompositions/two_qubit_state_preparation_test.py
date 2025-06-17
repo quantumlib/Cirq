@@ -14,10 +14,13 @@
 
 """Tests for efficient two qubit state preparation methods."""
 
+from __future__ import annotations
+
 import copy
 
-import pytest
 import numpy as np
+import pytest
+
 import cirq
 
 

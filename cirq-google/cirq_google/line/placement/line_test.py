@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from unittest import mock
+
 import cirq
 import cirq_google as cg
 from cirq_google import line_on_device

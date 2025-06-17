@@ -11,19 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import datetime
 import glob
 import re
 import time
 import uuid
-from typing import List, cast, Any
+from typing import Any, cast
 
 import numpy as np
 import pytest
 
 import cirq
 import cirq_google as cg
-from cirq_google.workflow.quantum_executable_test import _get_quantum_executables, _get_example_spec
+from cirq_google.workflow.quantum_executable_test import _get_example_spec, _get_quantum_executables
 from cirq_google.workflow.quantum_runtime import _time_into_runtime_info
 
 
@@ -168,7 +171,7 @@ def _load_result_by_hand(tmpdir: str, run_id: str) -> cg.ExecutableGroupResult:
         key=lambda s: int(cast(Any, re.search(r'ExecutableResult\.(\d+)\.json\.gz$', s)).group(1)),
     )
     assert len(fns) == 3
-    exe_results: List[cg.ExecutableResult] = [cirq.read_json_gzip(fn) for fn in fns]
+    exe_results: list[cg.ExecutableResult] = [cirq.read_json_gzip(fn) for fn in fns]
     return cg.ExecutableGroupResult(
         runtime_configuration=rt_config,
         shared_runtime_info=shared_rt_info,

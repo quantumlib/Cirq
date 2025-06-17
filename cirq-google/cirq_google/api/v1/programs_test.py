@@ -11,35 +11,34 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import numpy as np
 import pytest
 import sympy
 
-import cirq
+import cirq.testing
 import cirq_google.api.v1.programs as programs
 from cirq_google.api.v1 import operations_pb2
 
 
 def assert_proto_dict_convert(gate: cirq.Gate, proto: operations_pb2.Operation, *qubits: cirq.Qid):
     assert programs.gate_to_proto(gate, qubits, delay=0) == proto
-    assert programs.xmon_op_from_proto(proto) == gate(*qubits)
+    xmon_op = programs.xmon_op_from_proto(proto)
+    assert xmon_op.qubits == qubits
+    assert xmon_op.gate == gate or np.allclose(cirq.unitary(xmon_op.gate), cirq.unitary(gate))
 
 
 def test_protobuf_round_trip():
     qubits = cirq.GridQubit.rect(1, 5)
     circuit = cirq.Circuit(
-        [cirq.X(q) ** 0.5 for q in qubits],
-        [
-            cirq.CZ(q, q2)
-            for q in [cirq.GridQubit(0, 0)]
-            for q, q2 in zip(qubits, qubits)
-            if q != q2
-        ],
+        [cirq.X(q) ** 0.5 for q in qubits], [cirq.CZ(qubits[0], q1) for q1 in qubits[1:]]
     )
 
     protos = list(programs.circuit_as_schedule_to_protos(circuit))
     s2 = programs.circuit_from_schedule_from_protos(protos)
-    assert s2 == circuit
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(s2, circuit)
 
 
 def make_bytes(s: str) -> bytes:

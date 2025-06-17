@@ -1,0 +1,1 @@
+sympy.Or(sympy.Symbol('s'), sympy.Symbol('t'))

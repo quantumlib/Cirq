@@ -6,12 +6,13 @@
 -r notebook.txt
 -r tensorflow-docs.txt
 -r packaging.txt
+-r ruff.txt
 
 # For testing and analyzing code.
 asv
 
 # For verifying behavior of qasm output.
-qiskit-aer~=0.12.0
+qiskit-aer~=0.17.0
 
-# For verifying rst
-rstcheck
+# For testing stimcirq compatibility (cirq-google)
+stimcirq

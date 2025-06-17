@@ -1,3 +1,5 @@
-This folder contains test data for cirq's JSON serialization functionality.
+# JSON test data for Cirq serialization tests
 
-For more information, see [`docs/dev/serialization.md`](/docs/dev/serialization.md).
+This folder contains test data for Cirq's JSON serialization functionality. For
+more information, please see
+[`docs/dev/serialization.md`](/docs/dev/serialization.md).

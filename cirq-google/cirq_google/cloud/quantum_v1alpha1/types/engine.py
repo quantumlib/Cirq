@@ -12,13 +12,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
+# ruff: noqa: E501
+
+from __future__ import annotations
+
 import proto
+from google.protobuf import duration_pb2, field_mask_pb2
 
 from cirq_google.cloud.quantum_v1alpha1.types import quantum
-from google.protobuf import duration_pb2
-from google.protobuf import field_mask_pb2
-
 
 __protobuf__ = proto.module(
     package='google.cloud.quantum.v1alpha1',

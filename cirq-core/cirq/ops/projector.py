@@ -1,12 +1,18 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
+from __future__ import annotations
+
 import itertools
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Union
+import math
+from typing import Any, Iterable, Mapping, TYPE_CHECKING
 
 import numpy as np
 from scipy.sparse import csr_matrix
 
 from cirq import value
-from cirq.ops import raw_types
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def _check_qids_dimension(qids):
@@ -20,9 +26,7 @@ def _check_qids_dimension(qids):
 class ProjectorString:
     """Mapping of `cirq.Qid` to measurement values (with a coefficient) representing a projector."""
 
-    def __init__(
-        self, projector_dict: Dict[raw_types.Qid, int], coefficient: Union[int, float, complex] = 1
-    ):
+    def __init__(self, projector_dict: dict[cirq.Qid, int], coefficient: complex = 1):
         """Constructor for ProjectorString
 
         Args:
@@ -35,14 +39,14 @@ class ProjectorString:
         self._coefficient = complex(coefficient)
 
     @property
-    def projector_dict(self) -> Dict[raw_types.Qid, int]:
+    def projector_dict(self) -> dict[cirq.Qid, int]:
         return self._projector_dict
 
     @property
     def coefficient(self) -> complex:
         return self._coefficient
 
-    def matrix(self, projector_qids: Optional[Iterable[raw_types.Qid]] = None) -> csr_matrix:
+    def matrix(self, projector_qids: Iterable[cirq.Qid] | None = None) -> csr_matrix:
         """Returns the matrix of self in computational basis of qubits.
 
         Args:
@@ -61,7 +65,7 @@ class ProjectorString:
             for qid in projector_qids
         ]
 
-        total_d = np.prod([qid.dimension for qid in projector_qids], dtype=np.int64)
+        total_d = math.prod(qid.dimension for qid in projector_qids)
 
         ones_idx = []
         for idx in itertools.product(*idx_to_keep):
@@ -76,15 +80,15 @@ class ProjectorString:
             ([self._coefficient] * len(ones_idx), (ones_idx, ones_idx)), shape=(total_d, total_d)
         )
 
-    def _get_idx_to_keep(self, qid_map: Mapping[raw_types.Qid, int]):
+    def _get_idx_to_keep(self, qid_map: Mapping[cirq.Qid, int]):
         num_qubits = len(qid_map)
-        idx_to_keep: List[Any] = [slice(0, 2)] * num_qubits
+        idx_to_keep: list[Any] = [slice(0, 2)] * num_qubits
         for q in self.projector_dict.keys():
             idx_to_keep[qid_map[q]] = self.projector_dict[q]
         return tuple(idx_to_keep)
 
     def expectation_from_state_vector(
-        self, state_vector: np.ndarray, qid_map: Mapping[raw_types.Qid, int]
+        self, state_vector: np.ndarray, qid_map: Mapping[cirq.Qid, int]
     ) -> complex:
         """Expectation of the projection from a state vector.
 
@@ -106,7 +110,7 @@ class ProjectorString:
         )
 
     def expectation_from_density_matrix(
-        self, state: np.ndarray, qid_map: Mapping[raw_types.Qid, int]
+        self, state: np.ndarray, qid_map: Mapping[cirq.Qid, int]
     ) -> complex:
         """Expectation of the projection from a density matrix.
 
@@ -134,7 +138,7 @@ class ProjectorString:
             + f"coefficient={self._coefficient})"
         )
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             'projector_dict': list(self._projector_dict.items()),
             'coefficient': self._coefficient,

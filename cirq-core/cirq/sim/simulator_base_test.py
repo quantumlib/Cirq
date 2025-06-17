@@ -11,8 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import math
-from typing import Any, Dict, List, Sequence, Tuple
+from typing import Any, Sequence
 
 import numpy as np
 import pytest
@@ -29,12 +32,12 @@ class CountingState(cirq.qis.QuantumStateRepresentation):
         self.copy_count = copy_count
 
     def measure(
-        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
-    ) -> List[int]:
+        self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
+    ) -> list[int]:
         self.measurement_count += 1
         return [self.gate_count]
 
-    def kron(self, other: 'CountingState') -> 'CountingState':
+    def kron(self, other: CountingState) -> CountingState:
         return CountingState(
             self.data,
             self.gate_count + other.gate_count,
@@ -44,15 +47,15 @@ class CountingState(cirq.qis.QuantumStateRepresentation):
 
     def factor(
         self, axes: Sequence[int], *, validate=True, atol=1e-07
-    ) -> Tuple['CountingState', 'CountingState']:
+    ) -> tuple[CountingState, CountingState]:
         return CountingState(
             self.data, self.gate_count, self.measurement_count, self.copy_count
         ), CountingState(self.data)
 
-    def reindex(self, axes: Sequence[int]) -> 'CountingState':
+    def reindex(self, axes: Sequence[int]) -> CountingState:
         return CountingState(self.data, self.gate_count, self.measurement_count, self.copy_count)
 
-    def copy(self, deep_copy_buffers: bool = True) -> 'CountingState':
+    def copy(self, deep_copy_buffers: bool = True) -> CountingState:
         return CountingState(
             self.data, self.gate_count, self.measurement_count, self.copy_count + 1
         )
@@ -64,7 +67,7 @@ class CountingSimulationState(cirq.SimulationState[CountingState]):
         super().__init__(state=state_obj, qubits=qubits, classical_data=classical_data)
 
     def _act_on_fallback_(
-        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
+        self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool = True
     ) -> bool:
         self._state.gate_count += 1
         return True
@@ -95,11 +98,11 @@ class SplittableCountingSimulationState(CountingSimulationState):
 class CountingStepResult(cirq.StepResultBase[CountingSimulationState]):
     def sample(
         self,
-        qubits: List[cirq.Qid],
+        qubits: list[cirq.Qid],
         repetitions: int = 1,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> np.ndarray:
-        measurements: List[List[int]] = []
+        measurements: list[list[int]] = []
         for _ in range(repetitions):
             measurements.append(self._merged_sim_state._perform_measurement(qubits))
         return np.array(measurements, dtype=int)
@@ -121,7 +124,7 @@ class CountingSimulator(
     def _create_partial_simulation_state(
         self,
         initial_state: Any,
-        qubits: Sequence['cirq.Qid'],
+        qubits: Sequence[cirq.Qid],
         classical_data: cirq.ClassicalDataStore,
     ) -> CountingSimulationState:
         return CountingSimulationState(
@@ -131,8 +134,8 @@ class CountingSimulator(
     def _create_simulator_trial_result(
         self,
         params: cirq.ParamResolver,
-        measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[CountingSimulationState]',
+        measurements: dict[str, np.ndarray],
+        final_simulator_state: cirq.SimulationStateBase[CountingSimulationState],
     ) -> CountingTrialResult:
         return CountingTrialResult(
             params, measurements, final_simulator_state=final_simulator_state
@@ -151,7 +154,7 @@ class SplittableCountingSimulator(CountingSimulator):
     def _create_partial_simulation_state(
         self,
         initial_state: Any,
-        qubits: Sequence['cirq.Qid'],
+        qubits: Sequence[cirq.Qid],
         classical_data: cirq.ClassicalDataStore,
     ) -> CountingSimulationState:
         return SplittableCountingSimulationState(
@@ -219,7 +222,9 @@ def test_noise_applied_measurement_gate():
 def test_parameterized_copies_all_but_last():
     sim = CountingSimulator()
     n = 4
-    rs = sim.simulate_sweep(cirq.Circuit(cirq.X(q0) ** 'a'), [{'a': i} for i in range(n)])
+    rs = sim.simulate_sweep(
+        cirq.Circuit(cirq.X(q0) ** sympy.Symbol('a')), [{'a': i} for i in range(n)]
+    )
     for i in range(n):
         r = rs[i]
         assert r._final_simulator_state.gate_count == 1

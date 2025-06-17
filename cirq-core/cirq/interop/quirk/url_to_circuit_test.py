@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import json
 import urllib
 
@@ -18,7 +21,7 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq import quirk_url_to_circuit, quirk_json_to_circuit
+from cirq import quirk_json_to_circuit, quirk_url_to_circuit
 from cirq.interop.quirk.cells.testing import assert_url_to_circuit_returns
 
 
@@ -353,7 +356,7 @@ def test_example_qft_circuit():
 6: ───┼───×─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────@^0.016───@^0.031───@^(1/16)───@^(1/8)───@^0.25───@^0.5───H───┼─────────┼─────────┼─────────┼──────────┼─────────┼────────@───────────
       │                                                                                                                                                                                                                                               │         │         │         │          │         │        │
 7: ───×───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────@^0.008───@^0.016───@^0.031───@^(1/16)───@^(1/8)───@^0.25───@^0.5───H───
-    """
+    """  # noqa: E501
 
     qft_example_json = (
         '{"cols":['

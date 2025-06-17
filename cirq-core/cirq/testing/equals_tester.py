@@ -20,18 +20,18 @@ group are all equal to each other, but that items between each group are never
 equal to each other. It will also check that a==b implies hash(a)==hash(b).
 """
 
+from __future__ import annotations
+
 import collections
-
-from typing import Any, Callable, List, Tuple, Union
-
 import itertools
+from typing import Any, Callable
 
 
 class EqualsTester:
     """Tests equality against user-provided disjoint equivalence groups."""
 
     def __init__(self) -> None:
-        self._groups: List[Tuple[Union[Any, _ClassUnknownToSubjects], ...]] = [
+        self._groups: list[tuple[Any | _ClassUnknownToSubjects, ...]] = [
             (_ClassUnknownToSubjects(),)
         ]
 
@@ -143,7 +143,7 @@ class _ClassUnknownToSubjects:
         return not self == other
 
     def __hash__(self):
-        return hash(_ClassUnknownToSubjects)
+        return hash(_ClassUnknownToSubjects)  # pragma: no cover
 
 
 class _TestsForNotImplemented:
