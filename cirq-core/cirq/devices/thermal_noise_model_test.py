@@ -356,6 +356,6 @@ def test_repr_and_json_roundtrip():
         skip_measurements=False,
     )
 
-    assert model == eval(repr(model))
+    cirq.testing.assert_equivalent_repr(model)
     json_text = cirq.to_json(model)
     assert cirq.read_json(json_text=json_text) == model
