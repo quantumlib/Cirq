@@ -122,3 +122,16 @@ def global_phase_operation(
 ) -> cirq.GateOperation:
     """Creates an operation that represents a global phase on the state."""
     return GlobalPhaseGate(coefficient, atol)()
+
+
+def from_phase_and_exponent(
+    half_turns: cirq.TParamVal, exponent: cirq.TParamVal
+) -> cirq.GlobalPhaseGate:
+    """Creates a GlobalPhaseGate from the global phase and exponent."""
+    coefficient = 1j ** (2 * half_turns * exponent)
+    coefficient = (
+        complex(coefficient)
+        if isinstance(coefficient, sympy.Expr) and coefficient.is_complex
+        else coefficient
+    )
+    return GlobalPhaseGate(coefficient)
