@@ -1,0 +1,30 @@
+{
+  "cirq_type": "ThermalNoiseModel",
+  "gate_durations_ns": [
+    [
+      "ZPowGate",
+      5.0
+    ]
+  ],
+  "rate_matrix_GHz": [
+    [
+      {
+        "cirq_type": "LineQubit",
+        "x": 0
+      },
+      [
+        [
+          0.0,
+          0.0001
+        ],
+        [
+          1e-05,
+          0.0002
+        ]
+      ]
+    ]
+  ],
+  "require_physical_tag": false,
+  "skip_measurements": false,
+  "prepend": false
+}
