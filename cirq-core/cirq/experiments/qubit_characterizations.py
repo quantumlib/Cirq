@@ -529,16 +529,16 @@ def single_qubit_state_tomography(
     """
     circuit_z = circuit + circuits.Circuit(ops.measure(qubit, key='z'))
     results = sampler.run(circuit_z, repetitions=repetitions)
-    rho_11 = np.mean(results.records['z'])
+    rho_11 = np.mean(results.records['z'][:, -1])
     rho_00 = 1.0 - rho_11
 
     circuit_x = circuits.Circuit(circuit, ops.X(qubit) ** 0.5, ops.measure(qubit, key='z'))
     results = sampler.run(circuit_x, repetitions=repetitions)
-    rho_01_im = np.mean(results.records['z']) - 0.5
+    rho_01_im = np.mean(results.records['z'][:, -1]) - 0.5
 
     circuit_y = circuits.Circuit(circuit, ops.Y(qubit) ** -0.5, ops.measure(qubit, key='z'))
     results = sampler.run(circuit_y, repetitions=repetitions)
-    rho_01_re = 0.5 - np.mean(results.records['z'])
+    rho_01_re = 0.5 - np.mean(results.records['z'][:, -1])
 
     rho_01 = rho_01_re + 1j * rho_01_im
     rho_10 = np.conj(rho_01)
