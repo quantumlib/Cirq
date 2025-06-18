@@ -231,3 +231,35 @@ def test_merge_single_qubit_gates_to_phased_x_and_z_global_phase():
     c = cirq.Circuit(cirq.GlobalPhaseGate(1j).on())
     c2 = cirq.merge_single_qubit_gates_to_phased_x_and_z(c)
     assert c == c2
+
+
+def test_merge_single_qubit_moments_to_phxz_with_global_phase_in_first_moment():
+    q0 = cirq.LineQubit(0)
+    c_orig = cirq.Circuit(
+        cirq.Moment(cirq.Y(q0) ** 0.5, cirq.GlobalPhaseGate(1j**0.5).on()), cirq.Moment(cirq.X(q0))
+    )
+    c_expected = cirq.Circuit(
+        cirq.Moment(
+            cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0.5, z_exponent=-1.0).on(q0),
+            cirq.GlobalPhaseGate(1j**0.5).on(),
+        )
+    )
+    context = cirq.TransformerContext(tags_to_ignore=["ignore"])
+    c_new = cirq.merge_single_qubit_moments_to_phxz(c_orig, context=context)
+    assert c_new == c_expected
+
+
+def test_merge_single_qubit_moments_to_phxz_with_global_phase_in_second_moment():
+    q0 = cirq.LineQubit(0)
+    c_orig = cirq.Circuit(
+        cirq.Moment(cirq.Y(q0) ** 0.5), cirq.Moment(cirq.X(q0), cirq.GlobalPhaseGate(1j**0.5).on())
+    )
+    c_expected = cirq.Circuit(
+        cirq.Moment(
+            cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0.5, z_exponent=-1.0).on(q0),
+            cirq.GlobalPhaseGate(1j**0.5).on(),
+        )
+    )
+    context = cirq.TransformerContext(tags_to_ignore=["ignore"])
+    c_new = cirq.merge_single_qubit_moments_to_phxz(c_orig, context=context)
+    assert c_new == c_expected
