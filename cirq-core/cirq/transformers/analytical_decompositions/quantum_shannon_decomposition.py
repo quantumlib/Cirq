@@ -21,10 +21,10 @@ https://arxiv.org/abs/quant-ph/0406176
 
 from __future__ import annotations
 
-from types import SimpleNamespace
-from typing import Callable, Iterable, TYPE_CHECKING
+from typing import Callable, cast, Iterable, TYPE_CHECKING
 
 import numpy as np
+from attr import define
 from scipy.linalg import cossin
 
 from cirq import ops
@@ -38,6 +38,12 @@ from cirq.transformers.analytical_decompositions.two_qubit_to_cz import (
 
 if TYPE_CHECKING:
     import cirq
+
+
+@define
+class _TwoQubitGate:
+    location: int
+    matrix: np.ndarray
 
 
 def quantum_shannon_decomposition(
@@ -96,53 +102,51 @@ def quantum_shannon_decomposition(
         return
 
     # Collect all operations from the recursive decomposition
-    shannon_decomp = [*_recursive_decomposition(qubits, u)]
+    shannon_decomp: list[cirq.Operation | list[cirq.Operation]] = [
+        *_recursive_decomposition(qubits, u)
+    ]
     # Separate all 2-qubit generic gates while keeping track of location
-    two_qubit_mat = [
-        SimpleNamespace(location=loc, matrix=unitary_protocol.unitary(o))
-        for loc, o in enumerate(shannon_decomp)
+    two_qubit_gates = [
+        _TwoQubitGate(location=loc, matrix=unitary_protocol.unitary(o))
+        for loc, o in enumerate(cast(list[cirq.Operation], shannon_decomp))
         if isinstance(o.gate, ops.MatrixGate)
     ]
     # Apply case A.2 from Shende et al.
     q0 = qubits[-2]
     q1 = qubits[-1]
-    for idx in range(len(two_qubit_mat) - 1, 0, -1):
+    for idx in range(len(two_qubit_gates) - 1, 0, -1):
         diagonal, operations = two_qubit_matrix_to_diagonal_and_cz_operations(
             q0,
             q1,
-            two_qubit_mat[idx].matrix,
+            two_qubit_gates[idx].matrix,
             allow_partial_czs=True,
             clean_operations=True,
             atol=atol,
         )
         global_phase = _global_phase_difference(
-            two_qubit_mat[idx].matrix, [ops.MatrixGate(diagonal)(q0, q1), *operations]
+            two_qubit_gates[idx].matrix, [ops.MatrixGate(diagonal)(q0, q1), *operations]
         )
-        if np.abs(global_phase) > 1e-9:
+        if not np.isclose(global_phase, 0, atol=atol):
             operations.append(ops.global_phase_operation(np.exp(1j * global_phase)))
         # Replace the generic gate with ops from OP TREE
-        shannon_decomp[two_qubit_mat[idx].location] = operations
+        shannon_decomp[two_qubit_gates[idx].location] = operations
         # Join the diagonal with the unitary to be decomposed in the next step
-        two_qubit_mat[idx - 1].matrix = diagonal @ two_qubit_mat[idx - 1].matrix
-    if len(two_qubit_mat) > 0:
+        two_qubit_gates[idx - 1].matrix = diagonal @ two_qubit_gates[idx - 1].matrix
+    if len(two_qubit_gates) > 0:
         operations = two_qubit_matrix_to_cz_operations(
             q0,
             q1,
-            two_qubit_mat[0].matrix,
+            two_qubit_gates[0].matrix,
             allow_partial_czs=True,
             clean_operations=True,
             atol=atol,
         )
-        global_phase = _global_phase_difference(two_qubit_mat[0].matrix, operations)
-        if np.abs(global_phase) > 1e-9:
+        global_phase = _global_phase_difference(two_qubit_gates[0].matrix, operations)
+        if not np.isclose(global_phase, 0, atol=atol):
             operations.append(ops.global_phase_operation(np.exp(1j * global_phase)))
-        shannon_decomp[two_qubit_mat[0].location] = operations
+        shannon_decomp[two_qubit_gates[0].location] = operations
     # Yield the final operations in order
-    for op in shannon_decomp:
-        if isinstance(op, list):
-            yield from op
-        else:
-            yield op
+    yield from cast(Iterable[cirq.Operation], ops.flatten_op_tree(shannon_decomp))
 
 
 def _recursive_decomposition(qubits: list[cirq.Qid], u: np.ndarray) -> Iterable[cirq.Operation]:

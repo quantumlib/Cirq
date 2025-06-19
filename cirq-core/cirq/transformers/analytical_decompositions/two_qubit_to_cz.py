@@ -80,8 +80,8 @@ def two_qubit_matrix_to_cz_operations(
     if clean_operations:
         if not allow_partial_czs:
             # CZ^t is not allowed for any $t$ except $t=1$.
-            return _remove_partial_czs_or_fail(cleanup_operations(operations), atol=atol)
-        return cleanup_operations(operations)
+            return _remove_partial_czs_or_fail(cleanup_operations(operations, atol=atol), atol=atol)
+        return cleanup_operations(operations, atol=atol)
     return operations
 
 
@@ -181,8 +181,8 @@ def _xx_yy_zz_interaction_via_full_czs(q0: cirq.Qid, q1: cirq.Qid, x: float, y: 
     yield ops.H(q1)
 
 
-def cleanup_operations(operations: Sequence[ops.Operation]):
-    operations = _merge_single_qubit_gates(operations)
+def cleanup_operations(operations: Sequence[ops.Operation], atol: float = 1e-8):
+    operations = _merge_single_qubit_gates(operations, atol=atol)
     circuit = circuits.Circuit(operations)
     circuit = eject_phased_paulis(circuit)
     circuit = eject_z(circuit)
@@ -191,12 +191,14 @@ def cleanup_operations(operations: Sequence[ops.Operation]):
 
 
 def _transform_single_qubit_operations_to_phased_x_and_z(
-    operations: Sequence[ops.Operation],
+    operations: Sequence[ops.Operation], atol: float
 ) -> Sequence[ops.Operation]:
     """Transforms operations on the same qubit to a PhasedXPowGate followed by a Z gate.
 
     Args:
         operations: sequence of operations on the same qubit
+        atol: a limit on the amount of absolute error introduced by the
+            transformation.
     Returns:
         A PhasedXPowGate followed by a Z gate. If one the gates is not needed, it will be omitted.
     """
@@ -205,11 +207,13 @@ def _transform_single_qubit_operations_to_phased_x_and_z(
         u = protocols.unitary(op) @ u
     return [
         g(op.qubits[0])
-        for g in single_qubit_decompositions.single_qubit_matrix_to_phased_x_z(u, atol=1e-8)
+        for g in single_qubit_decompositions.single_qubit_matrix_to_phased_x_z(u, atol=atol)
     ]
 
 
-def _merge_single_qubit_gates(operations: Sequence[ops.Operation]) -> Sequence[ops.Operation]:
+def _merge_single_qubit_gates(
+    operations: Sequence[ops.Operation], atol: float
+) -> Sequence[ops.Operation]:
     """Merge consecutive single qubit gates.
 
     Traverses the sequence of operations maintaining a list of consecutive single qubit
@@ -218,6 +222,8 @@ def _merge_single_qubit_gates(operations: Sequence[ops.Operation]) -> Sequence[o
 
     Args:
         operations: sequence of operations
+        atol: a limit on the amount of absolute error introduced by the
+            transformation.
     Returns:
         new sequence of operations after merging gates
     """
@@ -226,7 +232,9 @@ def _merge_single_qubit_gates(operations: Sequence[ops.Operation]) -> Sequence[o
     for op in operations:
         if protocols.num_qubits(op) == 2:
             for _, qubit_ops in pending_ops.items():
-                merged_ops.extend(_transform_single_qubit_operations_to_phased_x_and_z(qubit_ops))
+                merged_ops.extend(
+                    _transform_single_qubit_operations_to_phased_x_and_z(qubit_ops, atol=atol)
+                )
             pending_ops.clear()
             # Add the 2-qubit gate
             merged_ops.append(op)
@@ -236,7 +244,9 @@ def _merge_single_qubit_gates(operations: Sequence[ops.Operation]) -> Sequence[o
             pending_ops[op.qubits].append(op)
     # Merge remaining pending operations
     for _, qubit_ops in pending_ops.items():
-        merged_ops.extend(_transform_single_qubit_operations_to_phased_x_and_z(qubit_ops))
+        merged_ops.extend(
+            _transform_single_qubit_operations_to_phased_x_and_z(qubit_ops, atol=atol)
+        )
     return merged_ops
 
 
