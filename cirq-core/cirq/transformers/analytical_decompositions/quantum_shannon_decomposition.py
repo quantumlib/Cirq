@@ -108,7 +108,7 @@ def quantum_shannon_decomposition(
     # Separate all 2-qubit generic gates while keeping track of location
     two_qubit_gates = [
         _TwoQubitGate(location=loc, matrix=unitary_protocol.unitary(o))
-        for loc, o in enumerate(cast(list[cirq.Operation], shannon_decomp))
+        for loc, o in enumerate(cast(list[ops.Operation], shannon_decomp))
         if isinstance(o.gate, ops.MatrixGate)
     ]
     # Apply case A.2 from Shende et al.
@@ -146,7 +146,7 @@ def quantum_shannon_decomposition(
             operations.append(ops.global_phase_operation(np.exp(1j * global_phase)))
         shannon_decomp[two_qubit_gates[0].location] = operations
     # Yield the final operations in order
-    yield from cast(Iterable[cirq.Operation], ops.flatten_op_tree(shannon_decomp))
+    yield from cast(Iterable[ops.Operation], ops.flatten_op_tree(shannon_decomp))
 
 
 def _recursive_decomposition(qubits: list[cirq.Qid], u: np.ndarray) -> Iterable[cirq.Operation]:
