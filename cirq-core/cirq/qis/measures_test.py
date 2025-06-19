@@ -20,6 +20,8 @@ import numpy as np
 import pytest
 
 import cirq
+import cirq.qis.measures as measures
+from cirq import partial_trace
 
 N = 15
 VEC1 = cirq.testing.random_superposition(N)
@@ -185,6 +187,30 @@ def test_fidelity_fail_inference() -> None:
 def test_fidelity_bad_shape() -> None:
     with pytest.raises(ValueError, match='Invalid quantum state'):
         _ = cirq.fidelity(np.array([[[1.0]]]), np.array([[[1.0]]]), qid_shape=(1,))
+
+
+def test_fidelity_numerical_stability_high_dim():
+    init_qubits = 10
+    final_qubits = init_qubits - 1
+    rng = np.random.RandomState(42)
+    psi = rng.randn(2**init_qubits) + 1j * rng.randn(2**init_qubits)
+    psi /= np.linalg.norm(psi)
+    rho = np.outer(psi, np.conjugate(psi))
+    rho_reshaped = rho.reshape((2,) * (init_qubits * 2))
+    keep_idxs = list(range(final_qubits))
+    rho_reduced = partial_trace(rho_reshaped, keep_idxs).reshape((2**final_qubits,) * 2)
+
+    # Direct fidelity computation (old)
+    rho1_sqrt = measures._sqrt_positive_semidefinite_matrix(rho_reduced)
+    eigs = measures.linalg.eigvalsh(rho1_sqrt @ rho_reduced @ rho1_sqrt)
+    cirq_fidelity = (np.sum(np.sqrt(np.abs(eigs)))) ** 2
+    # SVD-based fidelity (patched)
+    get_fidelity = cirq.fidelity(
+        rho_reduced, rho_reduced, validate=False, qid_shape=(2,) * final_qubits
+    )
+    # Old version should exceed 1, new should be ~1
+    assert cirq_fidelity > 1 + 1e-6
+    assert get_fidelity == pytest.approx(1, abs=1e-6)
 
 
 def test_von_neumann_entropy() -> None:
