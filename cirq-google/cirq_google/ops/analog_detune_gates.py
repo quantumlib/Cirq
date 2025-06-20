@@ -95,8 +95,16 @@ class AnalogDetuneQubit(cirq.ops.Gate):
             or cirq.is_parameterized(self.w)
             or cirq.is_parameterized(self.target_freq)
             or cirq.is_parameterized(self.prev_freq)
-            or any(cirq.is_parameterized(v) for v in self.neighbor_coupler_g_dict.values())
-            or any(cirq.is_parameterized(v) for v in self.prev_neighbor_coupler_g_dict.values())
+            or (
+                self.neighbor_coupler_g_dict
+                and any(cirq.is_parameterized(v) for v in self.neighbor_coupler_g_dict.values())
+            )
+            or (
+                self.prev_neighbor_coupler_g_dict
+                and any(
+                    cirq.is_parameterized(v) for v in self.prev_neighbor_coupler_g_dict.values()
+                )
+            )
         )
 
     def _parameter_names_(self) -> AbstractSet[str]:
@@ -113,7 +121,7 @@ class AnalogDetuneQubit(cirq.ops.Gate):
         self, resolver: cirq.ParamResolverOrSimilarType, recursive: bool
     ) -> AnalogDetuneQubit:
         # A shortcut for value resolution to avoid tu.unit compare with float issue.
-        def _direct_symbol_replacement(x, resolver: cirq.ParamResolverOrSimilarType):
+        def _direct_symbol_replacement(x, resolver: cirq.ParamResolver):
             if isinstance(x, sympy.Symbol):
                 value = resolver.param_dict.get(x.name, "__NOT_FOUND__")
                 if value == "__NOT_FOUND__":
@@ -123,14 +131,15 @@ class AnalogDetuneQubit(cirq.ops.Gate):
                 return x
             return x
 
+        resolver_ = cirq.ParamResolver(resolver)
         return AnalogDetuneQubit(
-            length=_direct_symbol_replacement(self.length, resolver),
-            w=_direct_symbol_replacement(self.w, resolver),
-            target_freq=_direct_symbol_replacement(self.target_freq, resolver),
-            prev_freq=_direct_symbol_replacement(self.prev_freq, resolver),
+            length=_direct_symbol_replacement(self.length, resolver_),
+            w=_direct_symbol_replacement(self.w, resolver_),
+            target_freq=_direct_symbol_replacement(self.target_freq, resolver_),
+            prev_freq=_direct_symbol_replacement(self.prev_freq, resolver_),
             neighbor_coupler_g_dict=(
                 {
-                    k: _direct_symbol_replacement(v, resolver)
+                    k: _direct_symbol_replacement(v, resolver_)
                     for k, v in self.neighbor_coupler_g_dict.items()
                 }
                 if self.neighbor_coupler_g_dict
@@ -138,7 +147,7 @@ class AnalogDetuneQubit(cirq.ops.Gate):
             ),
             prev_neighbor_coupler_g_dict=(
                 {
-                    k: _direct_symbol_replacement(v, resolver)
+                    k: _direct_symbol_replacement(v, resolver_)
                     for k, v in self.prev_neighbor_coupler_g_dict.items()
                 }
                 if self.prev_neighbor_coupler_g_dict
@@ -168,7 +177,7 @@ class AnalogDetuneQubit(cirq.ops.Gate):
             self.linear_rise,
         )
 
-    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> tuple[str, ...]:
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> str:
         return f"AnalogDetune(freq={self.target_freq})"
 
     def _json_dict_(self):

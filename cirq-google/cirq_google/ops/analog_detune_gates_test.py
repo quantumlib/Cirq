@@ -55,7 +55,7 @@ def test_equality():
                 target_freq=5 * tu.GHz,
                 neighbor_coupler_g_dict={"c_q1_1_q2_1": sympy.Symbol("g")},
             ),
-            {'length': 50 * tu.ns, 'g': 43 * tu.MHz},
+            {'length': 50 * tu.ns, sympy.Symbol("g"): 43 * tu.MHz},
             adg.AnalogDetuneQubit(
                 length=50 * tu.ns,
                 w=10 * tu.ns,
