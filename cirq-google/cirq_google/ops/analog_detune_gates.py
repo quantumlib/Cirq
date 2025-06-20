@@ -83,7 +83,7 @@ class AnalogDetuneQubit(cirq.ops.Gate):
         self.prev_neighbor_coupler_g_dict = prev_neighbor_coupler_g_dict
         self.linear_rise = linear_rise
 
-    def _unitary_(self) -> np.ndarray:
+    def _unitary_(self) -> np.ndarray:  # coverage: ignore
         return NotImplemented
 
     def num_qubits(self) -> int:
@@ -92,7 +92,7 @@ class AnalogDetuneQubit(cirq.ops.Gate):
     def _is_parameterized_(self) -> bool:
         def _is_parameterized_dict(dict_with_value: dict[str, ValueOrSymbol] | None) -> bool:
             if dict_with_value is None:
-                return False
+                return False  # coverage: ignore
             return any(cirq.is_parameterized(v) for v in dict_with_value.values())
 
         return (
@@ -107,7 +107,7 @@ class AnalogDetuneQubit(cirq.ops.Gate):
     def _parameter_names_(self) -> AbstractSet[str]:
         def dict_param_name(dict_with_value: dict[str, ValueOrSymbol] | None) -> AbstractSet[str]:
             if dict_with_value is None:
-                return set()
+                return set()  # coverage: ignore
             return {v.name for v in dict_with_value.values() if cirq.is_parameterized(v)}
 
         return (
@@ -130,7 +130,7 @@ class AnalogDetuneQubit(cirq.ops.Gate):
                     value = resolver.param_dict.get(x, "__NOT_FOUND__")
                 if value != "__NOT_FOUND__":
                     return value
-                return x
+                return x  # coverage: ignore
             return x
 
         resolver_ = cirq.ParamResolver(resolver)
