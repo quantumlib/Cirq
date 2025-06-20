@@ -19,6 +19,7 @@ import functools
 import itertools
 from typing import Any, cast, Iterator, Mapping, Sequence, TYPE_CHECKING
 
+import attrs
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -36,7 +37,37 @@ if TYPE_CHECKING:
     import cirq
 
 
-@dataclasses.dataclass
+def _canonize_clifford_sequences(
+    sequences: list[list[ops.SingleQubitCliffordGate]],
+) -> list[tuple[ops.SingleQubitCliffordGate]]:
+    return [(_reduce_gate_seq(seq),) for seq in sequences]
+
+
+@attrs.frozen
+class _CliffordGateSequence:
+    """Wrap around a list of sequences of clifford gates.
+
+    This class wraps around a list of sequences of clifford gates and re-exposes them as
+    a list of tuple where each tuple contains a single clifford gates.
+    """
+
+    gate_sequence: list[list[ops.SingleQubitCliffordGate]]
+
+    @functools.cached_property
+    def _reduced_gate_sequence(self) -> list[tuple[ops.SingleQubitCliffordGate]]:
+        return _canonize_clifford_sequences(self.gate_sequence)
+
+    def __iter__(self) -> Iterator[tuple[ops.SingleQubitCliffordGate]]:
+        yield from self._reduced_gate_sequence
+
+    def __getitem__(self, idx) -> tuple[ops.SingleQubitCliffordGate]:
+        return self._reduced_gate_sequence[idx]
+
+    def __len__(self) -> int:
+        return len(self._reduced_gate_sequence)
+
+
+@attrs.frozen
 class Cliffords:
     """The single-qubit Clifford group, decomposed into elementary gates.
 
@@ -54,11 +85,11 @@ class Cliffords:
         s1_y
     """
 
-    c1_in_xy: list[list[ops.SingleQubitCliffordGate]]
-    c1_in_xz: list[list[ops.SingleQubitCliffordGate]]
-    s1: list[list[ops.SingleQubitCliffordGate]]
-    s1_x: list[list[ops.SingleQubitCliffordGate]]
-    s1_y: list[list[ops.SingleQubitCliffordGate]]
+    c1_in_xy: _CliffordGateSequence = attrs.field(converter=_CliffordGateSequence)
+    c1_in_xz: _CliffordGateSequence = attrs.field(converter=_CliffordGateSequence)
+    s1: _CliffordGateSequence = attrs.field(converter=_CliffordGateSequence)
+    s1_x: _CliffordGateSequence = attrs.field(converter=_CliffordGateSequence)
+    s1_y: _CliffordGateSequence = attrs.field(converter=_CliffordGateSequence)
 
 
 class RandomizedBenchMarkResult:
@@ -336,7 +367,7 @@ class TomographyResult:
 def single_qubit_randomized_benchmarking(
     sampler: cirq.Sampler,
     qubit: cirq.Qid,
-    use_xy_basis: bool = True,
+    use_xy_basis: bool = False,
     *,
     num_clifford_range: Sequence[int] = tuple(np.logspace(np.log10(5), 3, 5, dtype=int)),
     num_circuits: int = 10,
@@ -390,7 +421,7 @@ def single_qubit_randomized_benchmarking(
 def parallel_single_qubit_randomized_benchmarking(
     sampler: cirq.Sampler,
     qubits: Sequence[cirq.Qid],
-    use_xy_basis: bool = True,
+    use_xy_basis: bool = False,
     *,
     num_clifford_range: Sequence[int] = tuple(
         np.logspace(np.log10(5), np.log10(1000), 5, dtype=int)
@@ -677,7 +708,9 @@ def two_qubit_state_tomography(
 
 
 def _create_parallel_rb_circuit(
-    qubits: Sequence[cirq.Qid], num_cliffords: int, c1: list
+    qubits: Sequence[cirq.Qid],
+    num_cliffords: int,
+    c1: _CliffordGateSequence | list[list[ops.SingleQubitCliffordGate]],
 ) -> cirq.Circuit:
     sequences_to_zip = [_random_single_q_clifford(qubit, num_cliffords, c1) for qubit in qubits]
     # Ensure each sequence has the same number of moments.
@@ -730,7 +763,9 @@ def _two_qubit_clifford_matrices(q_0: cirq.Qid, q_1: cirq.Qid, cliffords: Cliffo
 
 
 def _random_single_q_clifford(
-    qubit: cirq.Qid, num_cfds: int, cfds: Sequence[Sequence[cirq.ops.SingleQubitCliffordGate]]
+    qubit: cirq.Qid,
+    num_cfds: int,
+    cfds: Sequence[Sequence[cirq.ops.SingleQubitCliffordGate]] | _CliffordGateSequence,
 ) -> list[cirq.Operation]:
     clifford_group_size = 24
     operations = [[gate.to_phased_xz_gate()(qubit) for gate in gates] for gates in cfds]
