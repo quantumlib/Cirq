@@ -15,13 +15,15 @@
 """Define detuning gates for Analog Experiment usage."""
 from __future__ import annotations
 
-from typing import TypeAlias
+from typing import AbstractSet, Any, TYPE_CHECKING, TypeAlias
 
-import numpy as np
 import sympy
 import tunits as tu
 
 import cirq
+
+if TYPE_CHECKING:
+    import numpy as np
 
 # The gate is intended for the google internal use, hence the typing style
 # follows more on the t-unit + symbol instead of float + symbol style.
@@ -109,7 +111,7 @@ class AnalogDetuneQubit(cirq.ops.Gate):
 
     def _resolve_parameters_(
         self, resolver: cirq.ParamResolverOrSimilarType, recursive: bool
-    ) -> 'AnalogDetuneQubit':
+    ) -> AnalogDetuneQubit:
         # A shortcut for value resolution to avoid tu.unit compare with float issue.
         def _direct_symbol_replacement(x, resolver: cirq.ParamResolverOrSimilarType):
             if isinstance(x, sympy.Symbol):
@@ -166,8 +168,8 @@ class AnalogDetuneQubit(cirq.ops.Gate):
             self.linear_rise,
         )
 
-    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> Tuple[str, ...]:
-        return f"AnalogDetune(freq={target_freq})"
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> tuple[str, ...]:
+        return f"AnalogDetune(freq={self.target_freq})"
 
     def _json_dict_(self):
         return cirq.obj_to_dict_helper(
