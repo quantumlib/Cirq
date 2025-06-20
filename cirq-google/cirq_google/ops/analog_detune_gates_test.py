@@ -23,6 +23,7 @@ import cirq_google.ops.analog_detune_gates as adg
 def test_equality():
     g1 = adg.AnalogDetuneQubit(length=20 * tu.ns, w=10 * tu.ns, target_freq=5 * tu.GHz)
     g2 = adg.AnalogDetuneQubit(length=20 * tu.ns, w=10 * tu.ns, target_freq=5 * tu.GHz)
+    assert g1.num_qubits() == 1
     assert g1 == g2
 
     g1 = adg.AnalogDetuneQubit(
@@ -68,14 +69,55 @@ def test_equality():
                 length=sympy.Symbol('l'),
                 w=sympy.Symbol('w'),
                 target_freq=sympy.Symbol('t_freq'),
-                prev_freq=sympy.Symbol('p_freq'),
+                prev_neighbor_coupler_g_dict={"c_q1_1_q2_1": sympy.Symbol("g2")},
             ),
-            {'l': 10 * tu.ns, 'w': 8 * tu.ns, 't_freq': 6 * tu.GHz, 'p_freq': 5 * tu.ns},
+            {'l': 10 * tu.ns, 'w': 8 * tu.ns, 't_freq': 6 * tu.GHz, 'g2': 5 * tu.MHz},
             adg.AnalogDetuneQubit(
-                length=10 * tu.ns, w=8 * tu.ns, target_freq=6 * tu.GHz, prev_freq=5 * tu.ns
+                length=10 * tu.ns,
+                w=8 * tu.ns,
+                target_freq=6 * tu.GHz,
+                prev_neighbor_coupler_g_dict={"c_q1_1_q2_1": 5 * tu.MHz},
             ),
         ),
     ],
 )
 def test_analog_detune_qubit_resolution(gate, resolver, expected):
     assert cirq.resolve_parameters(gate, resolver) == expected
+
+
+def test_analog_detune_qubit_parameter_names():
+    gate = adg.AnalogDetuneQubit(
+        length=sympy.Symbol('l'),
+        w=10 * tu.ns,
+        target_freq=sympy.Symbol('t_freq'),
+        prev_freq=sympy.Symbol('p_freq'),
+        neighbor_coupler_g_dict={"c_q1_1_q2_1": sympy.Symbol("g")},
+        prev_neighbor_coupler_g_dict={"c_q1_1_q2_1": 54 * tu.MHz},
+    )
+    assert cirq.parameter_names(gate) == {'l', 't_freq', 'p_freq', 'g'}
+
+
+def test_analog_detune_qubit_circuit_diagram():
+    q = cirq.q(0, 1)
+    gate = adg.AnalogDetuneQubit(
+        length=sympy.Symbol('l'),
+        w=10 * tu.ns,
+        target_freq=sympy.Symbol('t_freq'),
+        prev_freq=sympy.Symbol('p_freq'),
+    )
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(gate(q)), "(0, 1): ───AnalogDetune(freq=t_freq)───"
+    )
+    gate.target_freq = 8 * tu.GHz
+    cirq.testing.assert_has_diagram(cirq.Circuit(gate(q)), "(0, 1): ───AnalogDetune(freq=8 GHz)───")
+
+
+def test_analog_detune_qubit_jsonify():
+    gate = adg.AnalogDetuneQubit(
+        length=sympy.Symbol('l'),
+        w=sympy.Symbol('w'),
+        target_freq=sympy.Symbol('t_freq'),
+        prev_freq=sympy.Symbol('p_freq'),
+        neighbor_coupler_g_dict={"c_q1_1_q2_1": sympy.Symbol("g")},
+    )
+    assert gate == cirq.read_json(json_text=cirq.to_json(gate))

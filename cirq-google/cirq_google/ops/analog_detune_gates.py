@@ -90,31 +90,33 @@ class AnalogDetuneQubit(cirq.ops.Gate):
         return 1
 
     def _is_parameterized_(self) -> bool:
+        def _is_parameterized_dict(dict_with_value: dict[str, ValueOrSymbol] | None) -> bool:
+            if dict_with_value is None:
+                return False
+            return any(cirq.is_parameterized(v) for v in dict_with_value.values())
+
         return (
             cirq.is_parameterized(self.length)
             or cirq.is_parameterized(self.w)
             or cirq.is_parameterized(self.target_freq)
             or cirq.is_parameterized(self.prev_freq)
-            or (
-                self.neighbor_coupler_g_dict
-                and any(cirq.is_parameterized(v) for v in self.neighbor_coupler_g_dict.values())
-            )
-            or (
-                self.prev_neighbor_coupler_g_dict
-                and any(
-                    cirq.is_parameterized(v) for v in self.prev_neighbor_coupler_g_dict.values()
-                )
-            )
+            or _is_parameterized_dict(self.neighbor_coupler_g_dict)
+            or _is_parameterized_dict(self.prev_neighbor_coupler_g_dict)
         )
 
     def _parameter_names_(self) -> AbstractSet[str]:
+        def dict_param_name(dict_with_value: dict[str, ValueOrSymbol] | None) -> AbstractSet[str]:
+            if dict_with_value is None:
+                return set()
+            return {v.name for v in dict_with_value.values() if cirq.is_parameterized(v)}
+
         return (
             cirq.parameter_names(self.length)
             | cirq.parameter_names(self.w)
             | cirq.parameter_names(self.target_freq)
             | cirq.parameter_names(self.prev_freq)
-            | cirq.parameter_names(self.neighbor_coupler_g_dict)
-            | cirq.parameter_names(self.prev_neighbor_coupler_g_dict)
+            | dict_param_name(self.neighbor_coupler_g_dict)
+            | dict_param_name(self.prev_neighbor_coupler_g_dict)
         )
 
     def _resolve_parameters_(
@@ -156,7 +158,7 @@ class AnalogDetuneQubit(cirq.ops.Gate):
             linear_rise=self.linear_rise,
         )
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return (
             f'AnalogDetuneQubit(length={self.length}, '
             f'w={self.w}, '
