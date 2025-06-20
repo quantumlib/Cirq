@@ -117,7 +117,7 @@ def test_analog_detune_qubit_jsonify():
         length=sympy.Symbol('l'),
         w=sympy.Symbol('w'),
         target_freq=sympy.Symbol('t_freq'),
-        prev_freq=sympy.Symbol('p_freq'),
+        # prev_freq=sympy.Symbol('p_freq'),
         neighbor_coupler_g_dict={"c_q1_1_q2_1": sympy.Symbol("g")},
     )
     assert gate == cirq.read_json(json_text=cirq.to_json(gate))
