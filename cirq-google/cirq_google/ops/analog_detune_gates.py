@@ -126,12 +126,6 @@ class AnalogDetuneQubit(cirq.ops.Gate):
                 return x
             return x
 
-        print(
-            {
-                k: _direct_symbol_replacement(v, resolver)
-                for k, v in self.neighbor_coupler_g_dict.items()
-            }
-        )
         return AnalogDetuneQubit(
             length=_direct_symbol_replacement(self.length, resolver),
             w=_direct_symbol_replacement(self.w, resolver),

@@ -77,7 +77,4 @@ def test_equality():
     ],
 )
 def test_analog_detune_qubit_resolution(gate, resolver, expected):
-    print()
-    print(cirq.resolve_parameters(gate, resolver))
-    print(expected)
     assert cirq.resolve_parameters(gate, resolver) == expected
