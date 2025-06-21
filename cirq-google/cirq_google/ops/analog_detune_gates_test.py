@@ -99,6 +99,11 @@ def test_analog_detune_qubit_parameter_names():
     gate = adg.AnalogDetuneQubit(length=sympy.Symbol('l'), w=10 * tu.ns)
     assert cirq.parameter_names(gate) == {'l'}
 
+    gate = adg.AnalogDetuneQubit(
+        length=5 * tu.ns, w=10 * tu.ns, neighbor_coupler_g_dict={"c_q1_1_q2_1": sympy.Symbol("g")}
+    )
+    assert cirq.parameter_names(gate) == {'g'}
+
 
 def test_analog_detune_qubit_circuit_diagram():
     q = cirq.q(0, 1)
