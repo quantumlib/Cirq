@@ -2,5 +2,5 @@
     "cirq_type": "AnalogDetuneQubit",
     "length": 10,
     "w": 5,
-    "target_freq": 8,
+    "target_freq": 8
 }
