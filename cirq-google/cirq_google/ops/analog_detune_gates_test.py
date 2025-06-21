@@ -96,6 +96,9 @@ def test_analog_detune_qubit_parameter_names():
     )
     assert cirq.parameter_names(gate) == {'l', 't_freq', 'p_freq', 'g'}
 
+    gate = adg.AnalogDetuneQubit(length=sympy.Symbol('l'), w=10 * tu.ns)
+    assert cirq.parameter_names(gate) == {'l'}
+
 
 def test_analog_detune_qubit_circuit_diagram():
     q = cirq.q(0, 1)
@@ -120,3 +123,16 @@ def test_analog_detune_qubit_jsonify():
         neighbor_coupler_g_dict={"c_q1_1_q2_1": sympy.Symbol("g")},
     )
     assert gate == cirq.read_json(json_text=cirq.to_json(gate))
+
+
+def test_analog_detune_qubit_repr():
+    gate = adg.AnalogDetuneQubit(
+        length=sympy.Symbol('l'),
+        w=10 * tu.ns,
+        target_freq=sympy.Symbol('t_freq'),
+        prev_freq=sympy.Symbol('p_freq'),
+    )
+    assert repr(gate) == (
+        "AnalogDetuneQubit(length=l, w=10 ns, target_freq=t_freq, prev_freq=p_freq,"
+        " neighbor_coupler_g_dict=None, prev_neighbor_coupler_g_dict=None)"
+    )
