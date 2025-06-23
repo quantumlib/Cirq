@@ -33,8 +33,10 @@ FloatOrSymbol: TypeAlias = float | sympy.Basic
 
 @cirq.value_equality(approximate=True)
 class AnalogDetuneQubit(cirq.ops.Gate):
-    """A step function that steup a qubit to the freq according to analog model.
+    """A step function that steup a qubit to the frequency according to analog model.
+
     Pulse shape:
+
     .. svgbob::
       :align: center
                    |   ,--------|---- amp (calculated from target freq using analog model)
@@ -45,10 +47,12 @@ class AnalogDetuneQubit(cirq.ops.Gate):
         |          |---length --|
         |
         --------------------------(calculated from previous qubit freq using analog model)
-    Because the step hold at amp with inifinite length. You need prev_freq to compensate
-    previous Detune gate. If not provide, no compensation will be applied, i.e. start from 0.
-    If the target_freq is None and prev_freq provided, this Detune gate will
-    reset the qubit freq back to absolute amp=0 according to prev_freq.
+
+    Note the step is held at amp with infinite length. This gate is typically used by concatenating
+    multiple instances. To ensure the curve is continuous and avoids sudden jumps, you need
+    prev_freq to compensate for the previous Detune gate. If not provided, no compensation
+    will be applied, i.e. start from 0. If the target_freq is None and prev_freq provided,
+    this Detune gate will reset the qubit freq back to absolute amp=0 according to prev_freq.
     """
 
     def __init__(
