@@ -219,27 +219,7 @@ def _normalize_input_paulis(
 
 def _extract_readout_qubits(pauli_strings: list[ops.PauliString]) -> list[ops.Qid]:
     """Extracts unique qubits from a list of QWC Pauli strings."""
-    qubits = set()
-    for pauli_str in pauli_strings:
-        for qubit in pauli_str.qubits:
-            qubits.add(qubit)
-    return sorted(qubits)
-
-
-def _build_pauli_string_calibration_result(
-    qubits_to_error: SingleQubitReadoutCalibrationResult, readout_qubits: list[ops.Qid]
-) -> SingleQubitReadoutCalibrationResult:
-    """Builds a calibration result for the specific readout qubits."""
-    return SingleQubitReadoutCalibrationResult(
-        zero_state_errors={
-            qubit: qubits_to_error.zero_state_errors[qubit] for qubit in readout_qubits
-        },
-        one_state_errors={
-            qubit: qubits_to_error.one_state_errors[qubit] for qubit in readout_qubits
-        },
-        timestamp=qubits_to_error.timestamp,
-        repetitions=qubits_to_error.repetitions,
-    )
+    return sorted(set(q for ps in pauli_strings for q in ps.qubits))
 
 
 def _pauli_strings_to_basis_change_ops(
@@ -365,8 +345,8 @@ def _process_pauli_measurement_results(
                         f"Readout mitigation is enabled, but no calibration result was "
                         f"found for qubits {pauli_readout_qubits}."
                     )
-                pauli_str_calibration_result = _build_pauli_string_calibration_result(
-                    calibration_result, qubits_sorted
+                pauli_str_calibration_result = calibration_result.readout_result_for_qubits(
+                    qubits_sorted
                 )
                 confusion_matrices = _build_many_one_qubits_confusion_matrix(
                     pauli_str_calibration_result
