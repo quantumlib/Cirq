@@ -103,9 +103,15 @@ class EigenGate(raw_types.Gate):
                 `cirq.unitary(cirq.rx(pi))` equals -iX instead of X.
 
         Raises:
+            TypeError: If the supplied exponent is a string.
             ValueError: If the supplied exponent is a complex number with an
                 imaginary component.
         """
+        if isinstance(exponent, str):
+            raise TypeError(
+                "Gate exponent must be a number or sympy expression. "
+                f"Received a string instead: {exponent!r}"
+            )
         if isinstance(exponent, complex):
             if exponent.imag:
                 raise ValueError(f"Gate exponent must be real. Invalid Value: {exponent}")
@@ -128,11 +134,9 @@ class EigenGate(raw_types.Gate):
         Child classes should override this method if they have an __init__
         method with a differing signature.
         """
-        # pylint: disable=unexpected-keyword-arg
         if self._global_shift == 0:
             return type(self)(exponent=exponent)
         return type(self)(exponent=exponent, global_shift=self._global_shift)
-        # pylint: enable=unexpected-keyword-arg
 
     def _diagram_exponent(
         self, args: protocols.CircuitDiagramInfoArgs, *, ignore_global_phase: bool = True
@@ -288,7 +292,12 @@ class EigenGate(raw_types.Gate):
         real_periods = [abs(2 / e) for e in exponents if e != 0]
         return _approximate_common_period(real_periods)
 
-    def __pow__(self, exponent: float | sympy.Symbol) -> EigenGate:
+    def __pow__(self, exponent: value.TParamVal) -> EigenGate:
+        if isinstance(exponent, str):
+            raise TypeError(
+                "Gate exponent must be a number or sympy expression. "
+                f"Received a string instead: {exponent!r}"
+            )
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             return NotImplemented  # pragma: no cover

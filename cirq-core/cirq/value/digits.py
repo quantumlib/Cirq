@@ -120,7 +120,6 @@ def big_endian_digits_to_int(digits: Iterable[int], *, base: int | Iterable[int]
     return result
 
 
-# pylint: disable=function-redefined
 @overload
 def big_endian_int_to_digits(val: int, *, digit_count: int, base: int) -> list[int]:
     pass
@@ -194,6 +193,3 @@ def big_endian_int_to_digits(
         )
 
     return result[::-1]
-
-
-# pylint: enable=function-redefined

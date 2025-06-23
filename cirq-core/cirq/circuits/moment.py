@@ -45,7 +45,6 @@ if TYPE_CHECKING:
 
 # Lazy imports to break circular dependencies.
 circuit = LazyLoader("circuit", globals(), "cirq.circuits.circuit")
-op_tree = LazyLoader("op_tree", globals(), "cirq.ops.op_tree")
 text_diagram_drawer = LazyLoader(
     "text_diagram_drawer", globals(), "cirq.circuits.text_diagram_drawer"
 )
@@ -538,7 +537,6 @@ class Moment:
             )
         return Moment(new_ops)
 
-    # pylint: disable=function-redefined
     @overload
     def __getitem__(self, key: raw_types.Qid) -> cirq.Operation:
         pass
@@ -567,7 +565,7 @@ class Moment:
         extra_qubits: Iterable[cirq.Qid] = (),
         use_unicode_characters: bool = True,
         precision: int | None = None,
-        include_tags: bool = True,
+        include_tags: bool | Iterable[type] = True,
     ) -> str:
         """Create a text diagram for the moment.
 
@@ -585,8 +583,10 @@ class Moment:
             precision: How precise numbers, such as angles, should be. Use None
                 for infinite precision, or an integer for a certain number of
                 digits of precision.
-            include_tags: Whether or not to include operation tags in the
-                diagram.
+            include_tags: Controls which tags attached to operations are
+                included. ``True`` includes all tags, ``False`` includes none,
+                or a collection of tag classes may be specified to include only
+                those tags.
 
         Returns:
             The text diagram rendered into text.

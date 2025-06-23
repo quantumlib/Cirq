@@ -149,7 +149,6 @@ class QuantumExecutable:
     problem_topology: cirq.NamedTopology | None = None
     initial_state: cirq.ProductState | None = None
 
-    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         circuit: cirq.AbstractCircuit,
