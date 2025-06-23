@@ -124,12 +124,11 @@ def test_gate_error_handling() -> None:
 
 
 def test_equality_of_gates() -> None:
-    # pylint: disable=unnecessary-negation
     state = np.array([1, 0, 0, 0], dtype=np.complex64)
     gate_1 = cirq.StatePreparationChannel(state)
     gate_2 = cirq.StatePreparationChannel(state)
     assert gate_1 == gate_2, "Equal state not leading to same gate"
-    assert not gate_1 == state, "Incompatible objects shouldn't be equal"
+    assert not gate_1 == state, "Incompatible objects shouldn't be equal"  # noqa: SIM201
     state = np.array([0, 1, 0, 0], dtype=np.complex64)
     gate_3 = cirq.StatePreparationChannel(state, name='gate_a')
     gate_4 = cirq.StatePreparationChannel(state, name='gate_b')

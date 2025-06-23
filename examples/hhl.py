@@ -146,7 +146,6 @@ class PhaseKickback(cirq.Gate):
     """
 
     def __init__(self, num_qubits, unitary):
-        super(PhaseKickback, self)
         self._num_qubits = num_qubits
         self.U = unitary
 
@@ -173,7 +172,6 @@ class EigenRotation(cirq.Gate):
     """
 
     def __init__(self, num_qubits, C, t):
-        super(EigenRotation, self)
         self._num_qubits = num_qubits
         self.C = C
         self.t = t

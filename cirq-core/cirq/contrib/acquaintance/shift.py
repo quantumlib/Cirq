@@ -36,7 +36,7 @@ class CircularShiftGate(PermutationGate):
             shift: The number of positions to circularly left shift the qubits.
             swap_gate: The gate to use when decomposing.
         """
-        super(CircularShiftGate, self).__init__(num_qubits, swap_gate)
+        super().__init__(num_qubits, swap_gate)
         self.shift = shift
 
     def __repr__(self) -> str:
