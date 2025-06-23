@@ -92,7 +92,7 @@ class AnalogDetuneQubit(cirq.ops.Gate):
     def _is_parameterized_(self) -> bool:
         def _is_parameterized_dict(dict_with_value: dict[str, ValueOrSymbol] | None) -> bool:
             if dict_with_value is None:
-                return False
+                return False  # pragma: no cover
             return any(cirq.is_parameterized(v) for v in dict_with_value.values())
 
         return (
