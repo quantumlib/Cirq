@@ -28,10 +28,10 @@ from cirq.contrib.shuffle_circuits import run_shuffled_with_readout_benchmarking
 from cirq.experiments.readout_confusion_matrix import TensoredConfusionMatrices
 
 if TYPE_CHECKING:
-    from cirq.study import ResultDict
     from cirq.experiments.single_qubit_readout_calibration import (
         SingleQubitReadoutCalibrationResult,
     )
+    from cirq.study import ResultDict
 
 
 @attrs.frozen
