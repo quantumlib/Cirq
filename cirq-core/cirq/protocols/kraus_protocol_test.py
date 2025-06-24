@@ -198,3 +198,10 @@ def test_kraus_fallback_to_apply_channel() -> None:
     expected_super = sum(np.kron(k, k.conj()) for k in expected_kraus)
     actual_super = sum(np.kron(k, k.conj()) for k in kraus_ops)
     np.testing.assert_allclose(actual_super, expected_super, atol=1e-8)
+
+
+def test_strat_kraus_from_apply_channel_returns_none():
+    from cirq.protocols.kraus_protocol import _strat_kraus_from_apply_channel
+    class NoApplyChannel:
+        pass
+    assert _strat_kraus_from_apply_channel(NoApplyChannel()) is None
