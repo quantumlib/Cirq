@@ -28,7 +28,9 @@ from cirq.contrib.shuffle_circuits import run_shuffled_with_readout_benchmarking
 from cirq.experiments.readout_confusion_matrix import TensoredConfusionMatrices
 
 if TYPE_CHECKING:
-    from cirq.experiments import SingleQubitReadoutCalibrationResult
+    from cirq.experiments.single_qubit_readout_calibration import (
+        SingleQubitReadoutCalibrationResult,
+    )
     from cirq.study import ResultDict
 
 
@@ -217,6 +219,11 @@ def _normalize_input_paulis(
     return cast(dict[circuits.FrozenCircuit, list[list[ops.PauliString]]], circuits_to_pauli)
 
 
+def _extract_readout_qubits(pauli_strings: list[ops.PauliString]) -> list[ops.Qid]:
+    """Extracts unique qubits from a list of QWC Pauli strings."""
+    return sorted(set(q for ps in pauli_strings for q in ps.qubits))
+
+
 def _pauli_strings_to_basis_change_ops(
     pauli_strings: list[ops.PauliString], qid_list: list[ops.Qid]
 ):
@@ -315,16 +322,38 @@ def _process_pauli_measurement_results(
     for pauli_group_index, circuit_result in enumerate(circuit_results):
         measurement_results = circuit_result.measurements["m"]
         pauli_strs = pauli_string_groups[pauli_group_index]
+        pauli_readout_qubits = _extract_readout_qubits(pauli_strs)
+
+        calibration_result = (
+            calibration_results[tuple(pauli_readout_qubits)]
+            if disable_readout_mitigation is False
+            else None
+        )
 
         for pauli_str in pauli_strs:
             qubits_sorted = sorted(pauli_str.qubits)
             qubit_indices = [qubits.index(q) for q in qubits_sorted]
 
-            confusion_matrices = (
-                _build_many_one_qubits_confusion_matrix(calibration_results[tuple(qubits_sorted)])
-                if disable_readout_mitigation is False
-                else _build_many_one_qubits_empty_confusion_matrix(len(qubits_sorted))
-            )
+            if disable_readout_mitigation:
+                pauli_str_calibration_result = None
+                confusion_matrices = _build_many_one_qubits_empty_confusion_matrix(
+                    len(qubits_sorted)
+                )
+            else:
+                if calibration_result is None:
+                    # This case should be logically impossible if mitigation is on,
+                    # so we raise an error.
+                    raise ValueError(
+                        f"Readout mitigation is enabled, but no calibration result was "
+                        f"found for qubits {pauli_readout_qubits}."
+                    )
+                pauli_str_calibration_result = calibration_result.readout_result_for_qubits(
+                    qubits_sorted
+                )
+                confusion_matrices = _build_many_one_qubits_confusion_matrix(
+                    pauli_str_calibration_result
+                )
+
             tensored_cm = TensoredConfusionMatrices(
                 confusion_matrices,
                 [[q] for q in qubits_sorted],
@@ -356,11 +385,7 @@ def _process_pauli_measurement_results(
                     mitigated_stddev=d_m_with_coefficient,
                     unmitigated_expectation=unmitigated_value_with_coefficient,
                     unmitigated_stddev=d_unmit_with_coefficient,
-                    calibration_result=(
-                        calibration_results[tuple(qubits_sorted)]
-                        if disable_readout_mitigation is False
-                        else None
-                    ),
+                    calibration_result=pauli_str_calibration_result,
                 )
             )
 
@@ -428,8 +453,7 @@ def measure_pauli_strings(
     unique_qubit_tuples = set()
     for pauli_string_groups in normalized_circuits_to_pauli.values():
         for pauli_strings in pauli_string_groups:
-            for pauli_string in pauli_strings:
-                unique_qubit_tuples.add(tuple(sorted(pauli_string.qubits)))
+            unique_qubit_tuples.add(tuple(_extract_readout_qubits(pauli_strings)))
     # qubits_list is a list of qubit tuples
     qubits_list = sorted(unique_qubit_tuples)
 
