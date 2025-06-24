@@ -54,7 +54,7 @@ _CONTEXT_COUNTER = itertools.count()  # Use _reset_context_counter() to reset th
 @runtime_checkable
 class OpDecomposerWithContext(Protocol):
     def __call__(
-        self, __op: cirq.Operation, *, context: cirq.DecompositionContext | None = None
+        self, __op: cirq.Operation, *, context: cirq.DecompositionContext
     ) -> DecomposeResult: ...
 
 
@@ -126,7 +126,7 @@ class SupportsDecompose(Protocol):
         pass
 
     def _decompose_with_context_(
-        self, *, context: DecompositionContext | None = None
+        self, *, context: DecompositionContext
     ) -> DecomposeResult:
         pass
 
@@ -154,13 +154,13 @@ class SupportsDecomposeWithQubits(Protocol):
         pass
 
     def _decompose_with_context_(
-        self, qubits: tuple[cirq.Qid, ...], *, context: DecompositionContext | None = None
+        self, qubits: tuple[cirq.Qid, ...], *, context: DecompositionContext
     ) -> DecomposeResult:
         pass
 
 
 def _try_op_decomposer(
-    val: Any, decomposer: OpDecomposer | None, *, context: DecompositionContext | None = None
+    val: Any, decomposer: OpDecomposer | None, *, context: DecompositionContext
 ) -> DecomposeResult:
     if decomposer is None or not isinstance(val, ops.Operation):
         return None
@@ -173,7 +173,7 @@ def _try_op_decomposer(
 
 @dataclasses.dataclass(frozen=True)
 class _DecomposeArgs:
-    context: DecompositionContext | None
+    context: DecompositionContext
     intercepting_decomposer: OpDecomposer | None
     fallback_decomposer: OpDecomposer | None
     keep: Callable[[cirq.Operation], bool] | None
@@ -359,14 +359,9 @@ def decompose_once(
         TypeError: `val` didn't have a `_decompose_` method (or that method returned
             `NotImplemented` or `None`) and `default` wasn't set.
     """
-    if context is None:
-        context = DecompositionContext(
-            ops.SimpleQubitManager(prefix=f'_decompose_protocol_{next(_CONTEXT_COUNTER)}')
-        )
-
-    method = getattr(val, '_decompose_with_context_', None)
-    decomposed = NotImplemented if method is None else method(*args, **kwargs, context=context)
-    if decomposed is NotImplemented or decomposed is None:
+    if context is not None and hasattr(val, '_decompose_with_context_'):
+        decomposed = val._decompose_with_context_(*args, context=context, **kwargs)
+    else:
         method = getattr(val, '_decompose_', None)
         decomposed = NotImplemented if method is None else method(*args, **kwargs)
 
