@@ -202,6 +202,8 @@ def test_kraus_fallback_to_apply_channel() -> None:
 
 def test_strat_kraus_from_apply_channel_returns_none():
     from cirq.protocols.kraus_protocol import _strat_kraus_from_apply_channel
+
     class NoApplyChannel:
         pass
+
     assert _strat_kraus_from_apply_channel(NoApplyChannel()) is None
