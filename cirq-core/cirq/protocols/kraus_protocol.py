@@ -100,7 +100,7 @@ def _strat_kraus_from_apply_channel(val: Any) -> tuple[np.ndarray, ...] | None:
     This is very expensive (O(16^N)), so only do this as a last resort."""
     method = getattr(val, '_apply_channel_', None)
     if method is None:
-        return NotImplemented
+        return None
 
     qid_shape = protocols.qid_shape(val)
 
@@ -118,7 +118,7 @@ def _strat_kraus_from_apply_channel(val: Any) -> tuple[np.ndarray, ...] | None:
         default=None,
     )
     if superop is None or superop is NotImplemented:
-        return NotImplemented
+        return None
     n = np.prod(qid_shape) ** 2
     kraus_ops = qis.superoperator_to_kraus(superop.reshape((n, n)))
     return tuple(kraus_ops)
@@ -194,7 +194,7 @@ def kraus(
 
     # Last-resort fallback: try to derive Kraus from _apply_channel_
     result = _strat_kraus_from_apply_channel(val)
-    if result is not NotImplemented:
+    if result is not None:
         return result
 
     if kraus_getter is None and unitary_getter is None and mixture_getter is None:
