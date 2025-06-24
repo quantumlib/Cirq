@@ -807,7 +807,8 @@ def test_controlled_global_phase_matrix_gate_decomposes(
 
 
 @pytest.mark.parametrize('gate_type', [cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate, cirq.CZPowGate])
-def test_controlled_phase_extracted_before_decomposition(gate_type) -> None:
+@pytest.mark.parametrize('test_shift', np.pi * (np.random.default_rng(324).random(10) * 2 - 1))
+def test_controlled_phase_extracted_before_decomposition(gate_type, test_shift) -> None:
     test_shift = 0.123  # arbitrary
 
     shifted_gate = gate_type(global_shift=test_shift).controlled()
