@@ -243,15 +243,13 @@ class TestMergeSingleQubitGatesSymbolized(TestCase):
     def test_case1(self):
         """Test case diagram.
         Input circuit:
-        # pylint: disable=line-too-long
-        0: ───X─────────@──────────H[ignore]───H───X───PhXZ(a=a0,x=x0,z=z0)───X───PhXZ(a=a1,x=x1,z=z1)───
+        0: ───X─────────@──────────H[ignore]───H───X───PhXZ(a=a0,x=x0,z=z0)───X───PhXZ(a=a1,x=x1,z=z1)───  # pylint: disable=line-too-long
                         │
-        1: ───H^h_exp───@^cz_exp─────────────────────────────────────────────────────────────────────────
+        1: ───H^h_exp───@^cz_exp─────────────────────────────────────────────────────────────────────────  # pylint: disable=line-too-long
         Expected output:
         0: ───PhXZ(a=-1,x=1,z=0)─────@──────────H[ignore]───PhXZ(a=a1,x=x1,z=z1)───
                                      │
         1: ───PhXZ(a=a0,x=x0,z=z0)───@^cz_exp──────────────────────────────────────
-        # pylint: enable=line-too-long
         """
         a, b = cirq.LineQubit.range(2)
         sa0, sa1 = [sympy.Symbol(a) for a in ["a0", "a1"]]
