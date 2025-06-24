@@ -203,7 +203,11 @@ def test_kraus_fallback_to_apply_channel() -> None:
 def test_strat_kraus_from_apply_channel_returns_none():
     from cirq.protocols.kraus_protocol import _strat_kraus_from_apply_channel
 
-    class NoApplyChannel:
-        pass
+    class ApplyChannelReturnsNone:
+        def _apply_channel_(self, *args, **kwargs):
+            return None
 
-    assert _strat_kraus_from_apply_channel(NoApplyChannel()) is None
+        def _num_qubits_(self):
+            return 1  # Needed for qid_shape
+
+    assert _strat_kraus_from_apply_channel(ApplyChannelReturnsNone()) is None
