@@ -23,6 +23,7 @@ from typing import Any, Sequence, TypeVar
 import numpy as np
 from typing_extensions import Protocol
 
+from cirq import protocols, qis
 from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.protocols.mixture_protocol import has_mixture
@@ -94,6 +95,35 @@ class SupportsKraus(Protocol):
         """
 
 
+def _strat_kraus_from_apply_channel(val: Any) -> tuple[np.ndarray, ...] | None:
+    """Attempts to compute a value's Kraus operators via its _apply_channel_ method.
+    This is very expensive (O(16^N)), so only do this as a last resort."""
+    method = getattr(val, '_apply_channel_', None)
+    if method is None:
+        return NotImplemented
+
+    qid_shape = protocols.qid_shape(val)
+
+    eye = qis.eye_tensor(qid_shape * 2, dtype=np.complex128)
+    superop = protocols.apply_channel(
+        val=val,
+        args=protocols.ApplyChannelArgs(
+            target_tensor=eye,
+            out_buffer=np.ones_like(eye) * float('nan'),
+            auxiliary_buffer0=np.ones_like(eye) * float('nan'),
+            auxiliary_buffer1=np.ones_like(eye) * float('nan'),
+            left_axes=list(range(len(qid_shape))),
+            right_axes=list(range(len(qid_shape), len(qid_shape) * 2)),
+        ),
+        default=None,
+    )
+    if superop is None or superop is NotImplemented:
+        return NotImplemented
+    n = np.prod(qid_shape) ** 2
+    kraus_ops = qis.superoperator_to_kraus(superop.reshape((n, n)))
+    return tuple(kraus_ops)
+
+
 def kraus(
     val: Any, default: Any = RaiseTypeErrorIfNotProvided
 ) -> tuple[np.ndarray, ...] | TDefault:
@@ -161,6 +191,11 @@ def kraus(
 
     if default is not RaiseTypeErrorIfNotProvided:
         return default
+
+    # Last-resort fallback: try to derive Kraus from _apply_channel_
+    result = _strat_kraus_from_apply_channel(val)
+    if result is not NotImplemented:
+        return result
 
     if kraus_getter is None and unitary_getter is None and mixture_getter is None:
         raise TypeError(

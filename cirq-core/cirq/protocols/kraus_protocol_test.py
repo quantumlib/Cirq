@@ -171,3 +171,30 @@ def test_has_kraus_when_decomposed(decomposed_cls) -> None:
     op = HasKrausWhenDecomposed(decomposed_cls).on(cirq.NamedQubit('test'))
     assert cirq.has_kraus(op)
     assert not cirq.has_kraus(op, allow_decompose=False)
+
+
+def test_kraus_fallback_to_apply_channel() -> None:
+    """Kraus protocol falls back to _apply_channel_ when no _kraus_, _mixture_, or _unitary_."""
+    p = 0.5
+    K0 = np.sqrt(1 - p) * np.eye(2)
+    K1 = np.sqrt(p) * np.array([[0, 1], [1, 0]])
+    expected_kraus = (K0, K1)
+
+    class BitFlipChannel:
+        def _num_qubits_(self):
+            return 1
+
+        def _apply_channel_(self, args: cirq.ApplyChannelArgs):
+            X = np.array([[0, 1], [1, 0]], dtype=np.complex128)
+            rho = args.target_tensor
+            out = (1 - p) * rho + p * X @ rho @ X
+            args.out_buffer[...] = out
+            return args.out_buffer
+
+    chan = BitFlipChannel()
+    kraus_ops = cirq.kraus(chan)
+
+    # Compare the superoperator matrices for equivalence
+    expected_super = sum(np.kron(k, k.conj()) for k in expected_kraus)
+    actual_super = sum(np.kron(k, k.conj()) for k in kraus_ops)
+    np.testing.assert_allclose(actual_super, expected_super, atol=1e-8)
