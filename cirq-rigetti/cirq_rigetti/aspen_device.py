@@ -381,7 +381,7 @@ class OctagonalQubit(cirq.ops.Qid):
 @deprecated_cirq_rigetti_class()
 class AspenQubit(OctagonalQubit):
     def __init__(self, octagon: int, octagon_position: int):
-        super(AspenQubit, self).__init__(octagon_position)
+        super().__init__(octagon_position)
         self._octagon = octagon
         self.index = octagon * 10 + octagon_position
 

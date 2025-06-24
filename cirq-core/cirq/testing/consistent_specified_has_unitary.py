@@ -22,9 +22,7 @@ from cirq import protocols
 def assert_specifies_has_unitary_if_unitary(val: Any) -> None:
     """Checks that unitary values can be cheaply identifies as unitary."""
 
-    # pylint: disable=unused-variable
     __tracebackhide__ = True
-    # pylint: enable=unused-variable
 
     assert not protocols.has_unitary(val) or hasattr(val, '_has_unitary_'), (
         "Value is unitary but doesn't specify a _has_unitary_ method that "
