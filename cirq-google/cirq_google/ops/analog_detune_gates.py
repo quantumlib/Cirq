@@ -30,6 +30,9 @@ if TYPE_CHECKING:
 ValueOrSymbol: TypeAlias = tu.Value | sympy.Basic
 FloatOrSymbol: TypeAlias = float | sympy.Basic
 
+# A sentile for not finding the key in resolver.
+NOT_FOUND = "__NOT_FOUND__"
+
 
 @cirq.value_equality(approximate=True)
 class AnalogDetuneQubit(cirq.ops.Gate):
@@ -129,10 +132,10 @@ class AnalogDetuneQubit(cirq.ops.Gate):
         # A shortcut for value resolution to avoid tu.unit compare with float issue.
         def _direct_symbol_replacement(x, resolver: cirq.ParamResolver):
             if isinstance(x, sympy.Symbol):
-                value = resolver.param_dict.get(x.name, "__NOT_FOUND__")
-                if value == "__NOT_FOUND__":
-                    value = resolver.param_dict.get(x, "__NOT_FOUND__")
-                if value != "__NOT_FOUND__":
+                value = resolver.param_dict.get(x.name, NOT_FOUND)
+                if value == NOT_FOUND:
+                    value = resolver.param_dict.get(x, NOT_FOUND)
+                if value != NOT_FOUND:
                     return value
                 return x  # pragma: no cover
             return x
