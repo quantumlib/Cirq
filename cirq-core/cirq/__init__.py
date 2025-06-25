@@ -380,6 +380,7 @@ from cirq.transformers import (
     merge_operations_to_circuit_op as merge_operations_to_circuit_op,
     merge_single_qubit_gates_to_phased_x_and_z as merge_single_qubit_gates_to_phased_x_and_z,
     merge_single_qubit_gates_to_phxz as merge_single_qubit_gates_to_phxz,
+    merge_single_qubit_gates_to_phxz_symbolized as merge_single_qubit_gates_to_phxz_symbolized,
     merge_single_qubit_moments_to_phxz as merge_single_qubit_moments_to_phxz,
     optimize_for_target_gateset as optimize_for_target_gateset,
     parameterized_2q_op_to_sqrt_iswap_operations as parameterized_2q_op_to_sqrt_iswap_operations,
