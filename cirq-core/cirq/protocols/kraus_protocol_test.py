@@ -22,6 +22,7 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq.testing.circuit_compare import apply_kraus_operators
 
 LOCAL_DEFAULT: list[np.ndarray] = [np.array([])]
 
@@ -173,33 +174,6 @@ def test_has_kraus_when_decomposed(decomposed_cls) -> None:
     assert not cirq.has_kraus(op, allow_decompose=False)
 
 
-def test_kraus_fallback_to_apply_channel() -> None:
-    """Kraus protocol falls back to _apply_channel_ when no _kraus_, _mixture_, or _unitary_."""
-    p = 0.5
-    K0 = np.sqrt(1 - p) * np.eye(2)
-    K1 = np.sqrt(p) * np.array([[0, 1], [1, 0]])
-    expected_kraus = (K0, K1)
-
-    class BitFlipChannel:
-        def _num_qubits_(self):
-            return 1
-
-        def _apply_channel_(self, args: cirq.ApplyChannelArgs):
-            X = np.array([[0, 1], [1, 0]], dtype=np.complex128)
-            rho = args.target_tensor
-            out = (1 - p) * rho + p * X @ rho @ X
-            args.out_buffer[...] = out
-            return args.out_buffer
-
-    chan = BitFlipChannel()
-    kraus_ops = cirq.kraus(chan)
-
-    # Compare the superoperator matrices for equivalence
-    expected_super = sum(np.kron(k, k.conj()) for k in expected_kraus)
-    actual_super = sum(np.kron(k, k.conj()) for k in kraus_ops)
-    np.testing.assert_allclose(actual_super, expected_super, atol=1e-8)
-
-
 def test_strat_kraus_from_apply_channel_returns_none():
     from cirq.protocols.kraus_protocol import _strat_kraus_from_apply_channel
 
@@ -211,3 +185,55 @@ def test_strat_kraus_from_apply_channel_returns_none():
             return 1  # Needed for qid_shape
 
     assert _strat_kraus_from_apply_channel(ApplyChannelReturnsNone()) is None
+
+
+def test_kraus_fallback_to_apply_channel_bitflipchannel_real() -> None:
+    """Test fallback using the real cirq.BitFlipChannel and compare to a custom channel."""
+    p = 0.5
+    expected_kraus = cirq.kraus(cirq.BitFlipChannel(p))
+
+    class CustomBitFlipChannel:
+        def _num_qubits_(self):
+            return 1
+
+        def _apply_channel_(self, args: cirq.ApplyChannelArgs):
+            X = np.array([[0, 1], [1, 0]], dtype=np.complex128)
+            rho = args.target_tensor
+            out = (1 - p) * rho + p * X @ rho @ X
+            args.out_buffer[...] = out
+            return args.out_buffer
+
+    kraus_ops = cirq.kraus(CustomBitFlipChannel())
+    # Compare the action on a test density matrix
+    rho = np.array([[0.7, 0.2], [0.2, 0.3]], dtype=np.complex128)
+    expected_rho = apply_kraus_operators(expected_kraus, rho)
+    actual_rho = apply_kraus_operators(kraus_ops, rho)
+    np.testing.assert_allclose(actual_rho, expected_rho, atol=1e-8)
+
+
+def test_reset_channel_kraus_apply_channel_consistency():
+    """Test that ResetChannel's _kraus_ and _apply_channel_ produce the same channel, even if one is missing."""
+    Reset = cirq.ResetChannel
+    # Original gate
+    gate = Reset()
+    cirq.testing.assert_has_consistent_apply_channel(gate)
+    cirq.testing.assert_consistent_channel(gate)
+
+    # Remove _kraus_ method
+    class NoKrausReset(Reset):
+        def _kraus_(self):
+            return NotImplemented
+
+    gate_no_kraus = NoKrausReset()
+    # Should still match the original superoperator
+    np.testing.assert_allclose(cirq.kraus(gate), cirq.kraus(gate_no_kraus), atol=1e-8)
+
+    # Remove _apply_channel_ method
+    class NoApplyChannelReset(Reset):
+        def _apply_channel_(self, args):
+            return NotImplemented
+
+    gate_no_apply = NoApplyChannelReset()
+    cirq.testing.assert_consistent_channel(gate_no_apply)
+    # Should still match the original superoperator
+    np.testing.assert_allclose(cirq.kraus(gate), cirq.kraus(gate_no_apply), atol=1e-8)

@@ -491,3 +491,22 @@ def assert_has_consistent_qid_shape(val: Any) -> None:
         assert num_qubits == len(
             val.qubits
         ), f'Length of num_qubits and val.qubits disagrees: {num_qubits}, {len(val.qubits)}'
+
+
+def apply_kraus_operators(kraus_operators: Sequence[np.ndarray], rho: np.ndarray) -> np.ndarray:
+    """
+    Applies a quantum channel (in Kraus operator form) to a density matrix.
+
+    Args:
+        kraus_operators: Sequence of Kraus operators specifying the channel.
+        rho: The input density matrix.
+
+    Returns:
+        The output density matrix after the channel is applied.
+    """
+    d_out, d_in = kraus_operators[0].shape
+    assert rho.shape == (d_in, d_in)
+    out = np.zeros((d_out, d_out), dtype=np.complex128)
+    for k in kraus_operators:
+        out += k @ rho @ k.conj().T
+    return out
