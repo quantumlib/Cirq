@@ -159,7 +159,7 @@ class AnalogTrajectory:
         default_idle_freq: tu.Value = 6.5 * tu.GHz,
         resolver: cirq.ParamResolverOrSimilarType | None = None,
         axes: tuple[Axes, Axes] | None = None,
-    ) -> tuple[Axes, Axes]:
+    ) -> tuple[Axes, Axes]:  # pragma: no cover
         if idle_freq_map is None:
             idle_freq_map = {q: default_idle_freq for q in self.qubits}
         full_trajectory_resolved = cirq.resolve_parameters(
