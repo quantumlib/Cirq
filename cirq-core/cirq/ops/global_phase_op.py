@@ -93,6 +93,10 @@ class GlobalPhaseGate(raw_types.Gate):
         return GlobalPhaseGate(coefficient=coefficient)
 
     def is_identity(self) -> bool:
+        """Checks if gate is equivalent to an identity.
+
+        Returns: True if the coefficient is within rounding error of 1.
+        """
         return not protocols.is_parameterized(self._coefficient) and np.isclose(self.coefficient, 1)
 
     def controlled(
