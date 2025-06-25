@@ -494,8 +494,7 @@ def assert_has_consistent_qid_shape(val: Any) -> None:
 
 
 def apply_kraus_operators(kraus_operators: Sequence[np.ndarray], rho: np.ndarray) -> np.ndarray:
-    """
-    Applies a quantum channel (in Kraus operator form) to a density matrix.
+    """Applies a quantum channel (in Kraus operator form) to a density matrix.
 
     Args:
         kraus_operators: Sequence of Kraus operators specifying the channel.

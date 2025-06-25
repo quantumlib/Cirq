@@ -212,7 +212,8 @@ def test_kraus_fallback_to_apply_channel_bitflipchannel_real() -> None:
 
 
 def test_reset_channel_kraus_apply_channel_consistency():
-    """Test that ResetChannel's _kraus_ and _apply_channel_ produce the same channel, even if one is missing."""
+    """Test that ResetChannel's _kraus_ and _apply_channel_ produce the same channel,
+    even if one is missing."""
     Reset = cirq.ResetChannel
     # Original gate
     gate = Reset()
