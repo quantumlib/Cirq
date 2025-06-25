@@ -16,6 +16,8 @@ from __future__ import annotations
 
 from typing import AbstractSet, Any
 
+import matplotlib.pyplot as plt
+import numpy as np
 import attrs
 import sympy
 import tunits as tu
@@ -161,3 +163,42 @@ class AnalogTrajectory:
             }
             resolved_trajectory.append(FreqMap(dt, resolved_qubit_freq_dict, g_dict))  # type: ignore
         return resolved_trajectory
+
+    # TODO make this plot better.
+    def plot(
+        self,
+        idle_freq_map: dict[str, tu.Value] | None = None,
+        default_idle_freq: tu.Value = 6.5 * tu.GHz,
+        resolver: cirq.ParamResolverOrSimilarType | None = None,
+    ):
+        if idle_freq_map is None:
+            idle_freq_map = {q: default_idle_freq for q in self.qubits}
+        full_trajectory_resolved = cirq.resolve_parameters(
+            self.get_full_trajectory_with_resolved_idles(idle_freq_map), resolver
+        )
+
+        plt.figure(figsize=(10, 4))
+        times = np.cumsum([step.duration[tu.ns] for step in full_trajectory_resolved])
+        ylabels = ["Qubit freq. (GHz)", "Coupling (MHz)"]
+
+        plt.subplot(1, 2, 1)
+        for qubit_agent in self.qubits:
+            plt.plot(
+                times,
+                [step.qubit_freqs[qubit_agent][tu.GHz] for step in full_trajectory_resolved],
+                label=qubit_agent,
+            )
+        plt.subplot(1, 2, 2)
+        for pair_agent in self.pairs:
+            plt.plot(
+                times,
+                [step.couplings[pair_agent][tu.MHz] for step in full_trajectory_resolved],
+                label=pair_agent,
+            )
+
+        for i in range(2):
+            plt.subplot(1, 2, i + 1)
+            plt.legend()
+            plt.xlabel("Time (ns)")
+            plt.ylabel(ylabels[i])
+            plt.tight_layout()

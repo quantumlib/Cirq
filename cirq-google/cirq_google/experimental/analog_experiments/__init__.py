@@ -15,6 +15,6 @@
 """Folder for Running Analog experiments."""
 
 from cirq_google.experimental.analog_experiments.analog_trajectory_util import (
-    FreqMap as FreqMap
-    AnalogTrajectory as AnalogTrajectory
+    FreqMap as FreqMap,
+    AnalogTrajectory as AnalogTrajectory,
 )
