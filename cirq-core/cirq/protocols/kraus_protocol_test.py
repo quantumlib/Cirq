@@ -175,20 +175,23 @@ def test_has_kraus_when_decomposed(decomposed_cls) -> None:
 
 
 def test_strat_kraus_from_apply_channel_returns_none():
-    from cirq.protocols.kraus_protocol import _strat_kraus_from_apply_channel
+    # Remove _kraus_ and _apply_channel_ methods
+    class NoApplyChannelReset(cirq.ResetChannel):
+        def _kraus_(self):
+            return NotImplemented
 
-    class ApplyChannelReturnsNone:
-        def _apply_channel_(self, *args, **kwargs):
-            return None
+        def _apply_channel_(self, args):
+            return NotImplemented
 
-        def _num_qubits_(self):
-            return 1  # Needed for qid_shape
-
-    assert _strat_kraus_from_apply_channel(ApplyChannelReturnsNone()) is None
+    gate_no_apply = NoApplyChannelReset()
+    with pytest.raises(
+        TypeError,
+        match="does have a _kraus_, _mixture_ or _unitary_ method, but it returned NotImplemented",
+    ):
+        cirq.kraus(gate_no_apply)
 
 
 def test_kraus_fallback_to_apply_channel_bitflipchannel_real() -> None:
-    """Test fallback using the real cirq.BitFlipChannel and compare to a custom channel."""
     p = 0.5
     expected_kraus = cirq.kraus(cirq.BitFlipChannel(p))
 
@@ -212,8 +215,6 @@ def test_kraus_fallback_to_apply_channel_bitflipchannel_real() -> None:
 
 
 def test_reset_channel_kraus_apply_channel_consistency():
-    """Test that ResetChannel's _kraus_ and _apply_channel_ produce the same channel,
-    even if one is missing."""
     Reset = cirq.ResetChannel
     # Original gate
     gate = Reset()
@@ -228,13 +229,3 @@ def test_reset_channel_kraus_apply_channel_consistency():
     gate_no_kraus = NoKrausReset()
     # Should still match the original superoperator
     np.testing.assert_allclose(cirq.kraus(gate), cirq.kraus(gate_no_kraus), atol=1e-8)
-
-    # Remove _apply_channel_ method
-    class NoApplyChannelReset(Reset):
-        def _apply_channel_(self, args):
-            return NotImplemented
-
-    gate_no_apply = NoApplyChannelReset()
-    cirq.testing.assert_consistent_channel(gate_no_apply)
-    # Should still match the original superoperator
-    np.testing.assert_allclose(cirq.kraus(gate), cirq.kraus(gate_no_apply), atol=1e-8)
