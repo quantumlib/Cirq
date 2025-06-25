@@ -169,9 +169,7 @@ class AnalogTrajectory:
             *[cirq.parameter_names(freq_map) for freq_map in full_trajectory_resolved]
         )
         if unresolved_param_names:
-            raise ValueError(
-                f"There are some parameters {unresolved_param_names} not resolved."
-            )
+            raise ValueError(f"There are some parameters {unresolved_param_names} not resolved.")
 
         times = np.cumsum([step.duration[tu.ns] for step in full_trajectory_resolved])
 
