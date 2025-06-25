@@ -56,14 +56,14 @@ class _IonQClient:
     """
 
     SUPPORTED_TARGETS = {'qpu', 'simulator'}
-    SUPPORTED_VERSIONS = {'v0.3'}
+    SUPPORTED_VERSIONS = {'v0.4'}
 
     def __init__(
         self,
         remote_host: str,
         api_key: str,
         default_target: str | None = None,
-        api_version: str = 'v0.3',
+        api_version: str = 'v0.4',
         max_retry_seconds: int = 3600,  # 1 hour
         verbose: bool = False,
     ):
@@ -81,7 +81,7 @@ class _IonQClient:
             api_key: The key used for authenticating against the IonQ API.
             default_target: The default target to run against. Supports one of 'qpu' and
                 'simulator'. Can be overridden by calls with target in their signature.
-            api_version: Which version fo the api to use. As of Feb, 2023, accepts 'v0.3' only,
+            api_version: Which version fo the api to use. As of June, 2025, accepts 'v0.4' only,
                 which is the default.
             max_retry_seconds: The time to continue retriable responses. Defaults to 3600.
             verbose: Whether to print to stderr and stdio any retriable errors that are encountered.
@@ -93,7 +93,7 @@ class _IonQClient:
         )
         assert (
             api_version in self.SUPPORTED_VERSIONS
-        ), f'Only api v0.3 is accepted but was {api_version}'
+        ), f'Only api v0.4 is accepted but was {api_version}'
         assert (
             default_target is None or default_target in self.SUPPORTED_TARGETS
         ), f'Target can only be one of {self.SUPPORTED_TARGETS} but was {default_target}.'
@@ -136,9 +136,10 @@ class _IonQClient:
         actual_target = self._target(target)
 
         json: dict[str, Any] = {
-            'target': actual_target,
+            'backend': actual_target,
+            "type": "ionq.circuit.v1",
             'lang': 'json',
-            'body': serialized_program.body,
+            'input': serialized_program.body,
         }
         if name:
             json['name'] = name
@@ -157,6 +158,10 @@ class _IonQClient:
 
         if extra_query_params is not None:
             json.update(extra_query_params)
+
+        print("Job url:", self.url)
+        print("Job headers:", self.headers)
+        print("Job json:", json)
 
         def request():
             return requests.post(f'{self.url}/jobs', json=json, headers=self.headers)
@@ -243,7 +248,7 @@ class _IonQClient:
         Args:
             job_id: The UUID of the job (returned when the job was created).
 
-        Note that the IonQ API v0.3 can cancel a completed job, which updates its status to
+        Note that the IonQ API v0.4 can cancel a completed job, which updates its status to
         canceled.
 
         Returns:

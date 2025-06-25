@@ -37,7 +37,7 @@ class Service:
         remote_host: str | None = None,
         api_key: str | None = None,
         default_target: str | None = None,
-        api_version='v0.3',
+        api_version='v0.4',
         max_retry_seconds: int = 3600,
         job_settings: dict | None = None,
         verbose=False,
@@ -56,7 +56,7 @@ class Service:
                 and target must always be specified in calls. If set, then this default is used,
                 unless a target is specified for a given call. Supports either 'qpu' or
                 'simulator'.
-            api_version: Version of the api. Defaults to 'v0.3'.
+            api_version: Version of the api. Defaults to 'v0.4'.
             max_retry_seconds: The number of seconds to retry calls for. Defaults to one hour.
             job_settings: A dictionary of settings which can override behavior for circuits when
                 run on IonQ hardware.
@@ -70,7 +70,7 @@ class Service:
             remote_host
             or os.getenv('CIRQ_IONQ_REMOTE_HOST')
             or os.getenv('IONQ_REMOTE_HOST')
-            or f'https://api.ionq.co/{api_version}'
+            or f'https://api-staging.ionq.co/{api_version}'
         )
 
         self.job_settings = job_settings or {}
