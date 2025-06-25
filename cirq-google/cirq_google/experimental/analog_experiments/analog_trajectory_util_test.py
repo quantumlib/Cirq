@@ -61,7 +61,7 @@ def sparse_trajectory() -> list[FreqMapType]:
 
 
 def test_full_traj(sparse_trajectory):
-    analog_traj = atu.AnalogTrajectory.from_sparse_trajecotry(sparse_trajectory)
+    analog_traj = atu.AnalogTrajectory.from_sparse_trajectory(sparse_trajectory)
     assert len(analog_traj.full_trajectory) == 4
     assert analog_traj.full_trajectory[0] == atu.FreqMap(
         0 * tu.ns,

@@ -87,7 +87,7 @@ class AnalogTrajectory:
         self.pairs = pairs
 
     @classmethod
-    def from_sparse_trajecotry(
+    def from_sparse_trajectory(
         cls,
         sparse_trajectory: list[
             tuple[
