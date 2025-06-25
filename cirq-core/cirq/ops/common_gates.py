@@ -1532,6 +1532,6 @@ def _extract_phase(
         return NotImplemented
     result = [gate_class(exponent=gate.exponent).on(*qubits)]
     phase_gate = global_phase_op.from_phase_and_exponent(gate.global_shift, gate.exponent)
-    if phase_gate.coefficient != 1:
+    if not phase_gate.is_identity():
         result.append(phase_gate())
     return result

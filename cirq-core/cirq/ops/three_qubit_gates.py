@@ -110,9 +110,7 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         p = common_gates.T**exp
         sweep_abc = [common_gates.CNOT(a, b), common_gates.CNOT(b, c)]
         global_phase_gate = global_phase_op.from_phase_and_exponent(self.global_shift, exp)
-        global_phase_operation = (
-            [] if np.isclose(global_phase_gate.coefficient, 1) else [global_phase_gate()]
-        )
+        global_phase_operation = [] if global_phase_gate.is_identity() else [global_phase_gate()]
         return global_phase_operation + [
             p(a),
             p(b),

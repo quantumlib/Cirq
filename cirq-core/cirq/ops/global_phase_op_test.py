@@ -307,6 +307,15 @@ def test_global_phase_gate_controlled(coeff, exp) -> None:
     )
 
 
+def test_is_identity() -> None:
+    g = cirq.GlobalPhaseGate(1)
+    assert g.is_identity()
+    g = cirq.GlobalPhaseGate(1j)
+    assert not g.is_identity()
+    g = cirq.GlobalPhaseGate(-1)
+    assert not g.is_identity()
+
+
 def test_from_phase_and_exponent() -> None:
     g = global_phase_op.from_phase_and_exponent(2.5, 0.5)
     assert g.coefficient == np.exp(1.25j * np.pi)
