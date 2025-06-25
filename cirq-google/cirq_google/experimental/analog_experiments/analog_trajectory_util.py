@@ -14,17 +14,18 @@
 
 from __future__ import annotations
 
-from typing import AbstractSet, Any
+from typing import AbstractSet, TYPE_CHECKING
 
+import attrs
 import matplotlib.pyplot as plt
 import numpy as np
-import attrs
-import sympy
 import tunits as tu
 
 import cirq
+from cirq_google.experimental.analog_experiments import symbol_util as su
 
-ValueOrSymbol = tu.Value | sympy.Symbol
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
 
 
 @attrs.mutable
@@ -37,51 +38,35 @@ class FreqMap:
         couplings: dict describing coupling rates at end of step
     """
 
-    duration: ValueOrSymbol
-    qubit_freqs: dict[str, ValueOrSymbol | None]
-    couplings: dict[tuple[str, str], ValueOrSymbol]
+    duration: su.ValueOrSymbol
+    qubit_freqs: dict[str, su.ValueOrSymbol | None]
+    couplings: dict[tuple[str, str], su.ValueOrSymbol]
 
     def _is_parameterized_(self) -> bool:
-        def _is_parameterized_dict(dict_with_value: dict[str, ValueOrSymbol | None]) -> bool:
-            return any(cirq.is_parameterized(v) for v in dict_with_value.values())
-
         return (
             cirq.is_parameterized(self.duration)
-            or _is_parameterized_dict(self.qubit_freqs)
-            or _is_parameterized_dict(self.couplings)
+            or su.is_parameterized_dict(self.qubit_freqs)
+            or su.is_parameterized_dict(self.couplings)
         )
 
     def _parameter_names_(self) -> AbstractSet[str]:
-        def dict_param_name(dict_with_value: dict[Any, ValueOrSymbol | None]) -> AbstractSet[str]:
-            return {v.name for v in dict_with_value.values() if cirq.is_parameterized(v)}
-
         return (
             cirq.parameter_names(self.duration)
-            | dict_param_name(self.qubit_freqs)
-            | dict_param_name(self.couplings)
+            | su.dict_param_name(self.qubit_freqs)
+            | su.dict_param_name(self.couplings)
         )
 
     def _resolve_parameters_(
         self, resolver: cirq.ParamResolverOrSimilarType, recursive: bool
     ) -> FreqMap:
-        def _direct_symbol_replacement(x, resolver: cirq.ParamResolver):
-            if isinstance(x, sympy.Symbol):
-                value = resolver.param_dict.get(x.name, "__NOT_FOUND__")
-                if value == "__NOT_FOUND__":
-                    value = resolver.param_dict.get(x, "__NOT_FOUND__")
-                if value != "__NOT_FOUND__":
-                    return value
-                return x  # pragma: no cover
-            return x
-
         resolver_ = cirq.ParamResolver(resolver)
         return FreqMap(
-            duration=_direct_symbol_replacement(self.duration, resolver_),
+            duration=su.direct_symbol_replacement(self.duration, resolver_),
             qubit_freqs={
-                k: _direct_symbol_replacement(v, resolver_) for k, v in self.qubit_freqs.items()
+                k: su.direct_symbol_replacement(v, resolver_) for k, v in self.qubit_freqs.items()
             },
             couplings={
-                k: _direct_symbol_replacement(v, resolver_) for k, v in self.couplings.items()
+                k: su.direct_symbol_replacement(v, resolver_) for k, v in self.couplings.items()
             },
         )
 
@@ -105,7 +90,11 @@ class AnalogTrajectory:
     def from_sparse_trajecotry(
         cls,
         sparse_trajectory: list[
-            tuple[tu.Value, dict[str, ValueOrSymbol | None], dict[tuple[str, str], ValueOrSymbol]],
+            tuple[
+                tu.Value,
+                dict[str, su.ValueOrSymbol | None],
+                dict[tuple[str, str], su.ValueOrSymbol],
+            ],
         ],
         qubits: list[str] | None = None,
         pairs: list[tuple[str, str]] | None = None,
@@ -157,48 +146,46 @@ class AnalogTrajectory:
         """Insert idle frequencies instead of None in trajectory."""
 
         resolved_trajectory: list[FreqMap] = []
-        for dt, qubit_freq_dict, g_dict in self.full_trajectory:
-            resolved_qubit_freq_dict = {
-                q: idle_freq_map[q] if f is None else f for q, f in qubit_freq_dict.items()
+        for freq_map in self.full_trajectory:
+            resolved_qubit_freqs = {
+                q: idle_freq_map[q] if f is None else f for q, f in freq_map.qubit_freqs.items()
             }
-            resolved_trajectory.append(FreqMap(dt, resolved_qubit_freq_dict, g_dict))  # type: ignore
+            resolved_trajectory.append(attrs.evolve(freq_map, qubit_freqs=resolved_qubit_freqs))
         return resolved_trajectory
 
-    # TODO make this plot better.
     def plot(
         self,
         idle_freq_map: dict[str, tu.Value] | None = None,
         default_idle_freq: tu.Value = 6.5 * tu.GHz,
         resolver: cirq.ParamResolverOrSimilarType | None = None,
-    ):
+        axes: tuple[Axes, Axes] | None = None,
+    ) -> tuple[Axes, Axes]:
         if idle_freq_map is None:
             idle_freq_map = {q: default_idle_freq for q in self.qubits}
         full_trajectory_resolved = cirq.resolve_parameters(
             self.get_full_trajectory_with_resolved_idles(idle_freq_map), resolver
         )
-
-        plt.figure(figsize=(10, 4))
         times = np.cumsum([step.duration[tu.ns] for step in full_trajectory_resolved])
-        ylabels = ["Qubit freq. (GHz)", "Coupling (MHz)"]
 
-        plt.subplot(1, 2, 1)
+        if axes is None:
+            _, axes = plt.subplots(1, 2, figsize=(10, 4))
+
         for qubit_agent in self.qubits:
-            plt.plot(
+            axes[0].plot(
                 times,
                 [step.qubit_freqs[qubit_agent][tu.GHz] for step in full_trajectory_resolved],
                 label=qubit_agent,
             )
-        plt.subplot(1, 2, 2)
         for pair_agent in self.pairs:
-            plt.plot(
+            axes[1].plot(
                 times,
                 [step.couplings[pair_agent][tu.MHz] for step in full_trajectory_resolved],
                 label=pair_agent,
             )
 
-        for i in range(2):
-            plt.subplot(1, 2, i + 1)
-            plt.legend()
-            plt.xlabel("Time (ns)")
-            plt.ylabel(ylabels[i])
-            plt.tight_layout()
+        for ax, ylabel in zip(axes, ["Qubit freq. (GHz)", "Coupling (MHz)"]):
+            ax.set_xlabel("Time (ns)")
+            ax.set_ylabel(ylabel)
+            ax.legend()
+        plt.tight_layout()
+        return axes
