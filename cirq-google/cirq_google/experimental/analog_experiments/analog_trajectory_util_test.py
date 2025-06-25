@@ -45,13 +45,14 @@ def test_freq_map_resolve(freq_map):
     )
 
 
+FreqMapType = tuple[tu.Value, dict[str, tu.Value | None], dict[tuple[str, str], tu.Value]]
+
+
 @pytest.fixture
-def sparse_trajectory() -> (
-    list[tuple[tu.Value, dict[str, tu.Value | None], dict[tuple[str, str], tu.Value]]]
-):
-    traj1 = (20 * tu.ns, {"q0_1": 5 * tu.GHz}, {})
-    traj2 = (30 * tu.ns, {"q0_2": 8 * tu.GHz}, {})
-    traj3 = (
+def sparse_trajectory() -> list[FreqMapType]:
+    traj1: FreqMapType = (20 * tu.ns, {"q0_1": 5 * tu.GHz}, {})
+    traj2: FreqMapType = (30 * tu.ns, {"q0_2": 8 * tu.GHz}, {})
+    traj3: FreqMapType = (
         40 * tu.ns,
         {"q0_0": 8 * tu.GHz, "q0_1": None, "q0_2": None},
         {("q0_0", "q0_1"): 5 * tu.MHz, ("q0_1", "q0_2"): 8 * tu.MHz},

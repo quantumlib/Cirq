@@ -134,7 +134,7 @@ class AnalogTrajectory:
             }
             # If no g provided, set equal to previous
             new_g_dict: dict[tuple[str, str], tu.Value] = {
-                p: g_dict.get(p, full_trajectory[-1].couplings.get(p)) for p in pairs
+                p: g_dict.get(p, full_trajectory[-1].couplings.get(p)) for p in pairs  # type: ignore[misc]
             }
 
             full_trajectory.append(FreqMap(dt, new_qubit_freq_dict, new_g_dict))
@@ -173,7 +173,7 @@ class AnalogTrajectory:
         for qubit_agent in self.qubits:
             axes[0].plot(
                 times,
-                [step.qubit_freqs[qubit_agent][tu.GHz] for step in full_trajectory_resolved],
+                [step.qubit_freqs[qubit_agent][tu.GHz] for step in full_trajectory_resolved],  # type: ignore[misc]
                 label=qubit_agent,
             )
         for pair_agent in self.pairs:
