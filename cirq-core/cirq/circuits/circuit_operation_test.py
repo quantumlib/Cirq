@@ -611,7 +611,7 @@ cirq.CircuitOperation(
             cirq.measure(cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2), key=cirq.MeasurementKey(name='m')),
         ),
     ]),
-)"""
+)"""  # noqa: E501
     )
 
     fc2 = cirq.FrozenCircuit(cirq.X(x), cirq.H(y), cirq.CX(y, x))

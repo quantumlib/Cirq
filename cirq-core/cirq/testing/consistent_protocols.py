@@ -96,9 +96,7 @@ def assert_eigengate_implements_consistent_protocols(
 ) -> None:
     """Checks that an EigenGate subclass is internally consistent and has a
     good __repr__."""
-    # pylint: disable=unused-variable
     __tracebackhide__ = True
-    # pylint: enable=unused-variable
 
     for exponent in exponents:
         for shift in global_shifts:
@@ -113,9 +111,7 @@ def assert_eigengate_implements_consistent_protocols(
 
 
 def assert_eigen_shifts_is_consistent_with_eigen_components(val: ops.EigenGate) -> None:
-    # pylint: disable=unused-variable
     __tracebackhide__ = True
-    # pylint: enable=unused-variable
     if not protocols.is_parameterized(val):
         assert val._eigen_shifts() == [
             e[0] for e in val._eigen_components()
@@ -123,9 +119,7 @@ def assert_eigen_shifts_is_consistent_with_eigen_components(val: ops.EigenGate) 
 
 
 def assert_has_consistent_trace_distance_bound(val: Any) -> None:
-    # pylint: disable=unused-variable
     __tracebackhide__ = True
-    # pylint: enable=unused-variable
     u = protocols.unitary(val, default=None)
     val_from_trace = protocols.trace_distance_bound(val)
     assert 0.0 <= val_from_trace <= 1.0
@@ -149,7 +143,7 @@ def _assert_meets_standards_helper(
     local_vals: dict[str, Any] | None,
     ignore_decompose_to_default_gateset: bool,
 ) -> None:
-    __tracebackhide__ = True  # pylint: disable=unused-variable
+    __tracebackhide__ = True
 
     assert_consistent_resolve_parameters(val)
     assert_specifies_has_unitary_if_unitary(val)

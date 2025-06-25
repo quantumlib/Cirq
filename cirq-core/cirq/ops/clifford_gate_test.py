@@ -125,7 +125,6 @@ def test_init_from_double_invalid(trans1, from1) -> None:
 @pytest.mark.parametrize('trans,frm', itertools.product(_all_rotations(), _paulis))
 def test_init_from_single_map_vs_kwargs(trans, frm) -> None:
     from_str = str(frm).lower() + '_to'
-    # pylint: disable=unexpected-keyword-arg
     gate_kw = cirq.SingleQubitCliffordGate.from_single_map(**{from_str: trans})
     gate_map = cirq.SingleQubitCliffordGate.from_single_map({frm: trans})
     assert gate_kw == gate_map

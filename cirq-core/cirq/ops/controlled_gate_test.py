@@ -804,3 +804,31 @@ def test_controlled_global_phase_matrix_gate_decomposes(
     decomposed = cirq.decompose(cg_matrix(*all_qubits))
     assert not any(isinstance(op.gate, cirq.MatrixGate) for op in decomposed)
     np.testing.assert_allclose(cirq.unitary(cirq.Circuit(decomposed)), cirq.unitary(cg_matrix))
+
+
+@pytest.mark.parametrize('gate_type', [cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate, cirq.CZPowGate])
+@pytest.mark.parametrize('test_shift', np.pi * (np.random.default_rng(324).random(10) * 2 - 1))
+def test_controlled_phase_extracted_before_decomposition(gate_type, test_shift) -> None:
+    test_shift = 0.123  # arbitrary
+
+    shifted_gate = gate_type(global_shift=test_shift).controlled()
+    unshifted_gate = gate_type().controlled()
+    qs = cirq.LineQubit.range(cirq.num_qubits(shifted_gate))
+    shifted_op = shifted_gate.on(*qs)
+    unshifted_op = unshifted_gate.on(*qs)
+    shifted_decomposition = cirq.decompose(shifted_op)
+    unshifted_decomposition = cirq.decompose(unshifted_op)
+
+    # No brute-force calculation. It's the standard decomposition plus Z for the controlled shift.
+    assert shifted_decomposition[:-1] == unshifted_decomposition
+    z_op = shifted_decomposition[-1]
+    assert z_op.qubits == (qs[0],)
+    z = z_op.gate
+    assert isinstance(z, cirq.ZPowGate)
+    np.testing.assert_approx_equal(z.exponent, test_shift)
+    assert z.global_shift == 0
+
+    # Sanity check that the decomposition is equivalent
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Circuit(shifted_decomposition)), cirq.unitary(shifted_op), atol=1e-10
+    )

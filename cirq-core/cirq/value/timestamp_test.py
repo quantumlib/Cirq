@@ -77,10 +77,9 @@ def test_cmp() -> None:
             assert (i >= j) == (a >= b)
             assert (i > j) == (a > b)
 
-    # pylint: disable=unnecessary-negation
-    assert not (Timestamp() == 0)
+    assert not (Timestamp() == 0)  # noqa: SIM201
     assert Timestamp() != 0
-    assert not (Timestamp() == Duration())
+    assert not (Timestamp() == Duration())  # noqa: SIM201
     assert Timestamp() != Duration()
 
 
