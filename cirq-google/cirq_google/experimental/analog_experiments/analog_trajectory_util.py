@@ -165,6 +165,14 @@ class AnalogTrajectory:
         full_trajectory_resolved = cirq.resolve_parameters(
             self.get_full_trajectory_with_resolved_idles(idle_freq_map), resolver
         )
+        unresolved_param_names = set().union(
+            *[cirq.parameter_names(freq_map) for freq_map in full_trajectory_resolved]
+        )
+        if unresolved_param_names:
+            raise ValueError(
+                f"There are some parameters {unresolved_param_names} not resolved."
+            )
+
         times = np.cumsum([step.duration[tu.ns] for step in full_trajectory_resolved])
 
         if axes is None:
@@ -173,7 +181,7 @@ class AnalogTrajectory:
         for qubit_agent in self.qubits:
             axes[0].plot(
                 times,
-                [step.qubit_freqs[qubit_agent][tu.GHz] for step in full_trajectory_resolved],  # type: ignore[misc]
+                [step.qubit_freqs[qubit_agent][tu.GHz] for step in full_trajectory_resolved],  # type: ignore[index]
                 label=qubit_agent,
             )
         for pair_agent in self.pairs:
