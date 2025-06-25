@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# ruff: noqa: A001
+
 from __future__ import annotations
 
 from typing import Any, Callable, overload, TYPE_CHECKING, TypeVar
@@ -26,7 +28,6 @@ RaiseTypeErrorIfNotProvided: Any = ([],)
 TDefault = TypeVar('TDefault')
 
 
-# pylint: disable=function-redefined, redefined-builtin
 @overload
 def pow(val: cirq.Gate, exponent: Any) -> cirq.Gate:
     pass
@@ -55,9 +56,6 @@ def pow(val: cirq.Circuit, exponent: int, default: TDefault) -> TDefault | cirq.
 @overload
 def pow(val: Any, exponent: Any, default: TDefault) -> Any:
     pass
-
-
-# pylint: enable=function-redefined
 
 
 def pow(val: Any, exponent: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
@@ -96,6 +94,3 @@ def pow(val: Any, exponent: Any, default: Any = RaiseTypeErrorIfNotProvided) -> 
     raise TypeError(
         f"object of type '{type(val)}' does have a __pow__ method, but it returned NotImplemented."
     )
-
-
-# pylint: enable=redefined-builtin

@@ -227,7 +227,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         if __cirq_debug__.get():
             _validate_qid_shape(self, qubits)
 
-    def on(self, *qubits: Qid) -> Operation:
+    def on(self, *qubits: Qid) -> cirq.Operation:
         """Returns an application of this gate to the given qubits.
 
         Args:
@@ -654,7 +654,7 @@ class Operation(metaclass=abc.ABCMeta):
             *self.qubits
         )
 
-    def validate_args(self, qubits: Sequence[cirq.Qid]):
+    def validate_args(self, qubits: Sequence[cirq.Qid]) -> None:
         """Raises an exception if the `qubits` don't match this operation's qid
         shape.
 
@@ -913,11 +913,12 @@ class TaggedOperation(Operation):
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         sub_op_info = protocols.circuit_diagram_info(self.sub_operation, args, NotImplemented)
-        # Add tag to wire symbol if it exists.
-        if sub_op_info is not NotImplemented and args.include_tags and sub_op_info.wire_symbols:
-            sub_op_info.wire_symbols = (
-                sub_op_info.wire_symbols[0] + f"[{', '.join(map(str, self._tags))}]",
-            ) + sub_op_info.wire_symbols[1:]
+        if sub_op_info is not NotImplemented and sub_op_info.wire_symbols:
+            visible_tags = args.tags_to_include(self._tags)
+            if visible_tags:
+                sub_op_info.wire_symbols = (
+                    sub_op_info.wire_symbols[0] + f"[{', '.join(map(str, visible_tags))}]",
+                ) + sub_op_info.wire_symbols[1:]
         return sub_op_info
 
     @cached_method

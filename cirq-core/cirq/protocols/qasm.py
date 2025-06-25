@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import string
 from types import NotImplementedType
-from typing import Any, Iterable, TYPE_CHECKING, TypeVar
+from typing import Any, Iterable, Mapping, TYPE_CHECKING, TypeVar
 
 from typing_extensions import Protocol
 
@@ -38,7 +38,7 @@ class QasmArgs(string.Formatter):
         self,
         precision: int = 10,
         version: str = '2.0',
-        qubit_id_map: dict[cirq.Qid, str] | None = None,
+        qubit_id_map: Mapping[cirq.Qid, str] | None = None,
         meas_key_id_map: dict[str, str] | None = None,
         meas_key_bitcount: dict[str, int] | None = None,
     ) -> None:
@@ -129,7 +129,6 @@ class SupportsQasmWithArgsAndQubits(Protocol):
         pass
 
 
-# pylint: disable=function-redefined
 def qasm(
     val: Any,
     *,
@@ -172,7 +171,6 @@ def qasm(
         kwargs: dict[str, Any] = {}
         if args is not None:
             kwargs['args'] = args
-        # pylint: disable=not-callable
         if qubits is not None:
             kwargs['qubits'] = tuple(qubits)
         try:
@@ -182,7 +180,6 @@ def qasm(
                 "cirq.qasm does not expect qubits or args to be specified"
                 f"for the given value of type {type(val)}."
             ) from error
-        # pylint: enable=not-callable
     if result is not None and result is not NotImplemented:
         return result
 
@@ -194,6 +191,3 @@ def qasm(
         f"object of type '{type(val)}' does have a _qasm_ method, "
         "but it returned NotImplemented or None."
     )
-
-
-# pylint: enable=function-redefined

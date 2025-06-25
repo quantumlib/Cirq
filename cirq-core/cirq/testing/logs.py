@@ -96,6 +96,3 @@ def assert_logs(
                 f'{match} expected to appear in log messages but it was '
                 f'not found. Log messages: {msgs}.'
             )
-
-
-# pylint: enable=missing-raises-doc

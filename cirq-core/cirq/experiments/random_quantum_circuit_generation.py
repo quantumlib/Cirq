@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import dataclasses
 import itertools
-from typing import Any, Callable, cast, Container, Iterable, Iterator, Sequence, TYPE_CHECKING
+from typing import Any, Callable, Container, Iterable, Iterator, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -458,8 +458,7 @@ def _pairs_from_moment(moment: cirq.Moment) -> list[QidPairT]:
     for op in moment.operations:
         if len(op.qubits) != 2:
             raise ValueError("Layer circuit contains non-2-qubit operations.")
-        qpair = cast(QidPairT, op.qubits)
-        pairs.append(qpair)
+        pairs.append(op.qubits)
     return pairs
 
 

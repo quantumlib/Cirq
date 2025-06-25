@@ -86,7 +86,7 @@ def _value_equality_eq(self: _SupportsValueEquality, other: _SupportsValueEquali
 
 
 def _value_equality_ne(self: _SupportsValueEquality, other: _SupportsValueEquality) -> bool:
-    return not self == other
+    return not self == other  # noqa: SIM201
 
 
 def _value_equality_hash(self: _SupportsValueEquality) -> int:
@@ -123,7 +123,6 @@ def _value_equality_getstate(self: _SupportsValueEquality) -> dict[str, Any]:
     return state
 
 
-# pylint: disable=function-redefined
 @overload
 def value_equality(
     cls: type,
@@ -258,6 +257,3 @@ def value_equality(
         setattr(cls, '_approx_eq_', _value_equality_approx_eq)
 
     return cls
-
-
-# pylint: enable=function-redefined

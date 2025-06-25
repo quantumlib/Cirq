@@ -337,9 +337,7 @@ def test_get(qubit_pauli_map):
         assert qubit_pauli_map.get(key) == pauli_string.get(key)
     assert qubit_pauli_map.get(other) is None
     assert pauli_string.get(other) is None
-    # pylint: disable=too-many-function-args
     assert qubit_pauli_map.get(other, 5) == pauli_string.get(other, 5) == 5
-    # pylint: enable=too-many-function-args
 
 
 @pytest.mark.parametrize('qubit_pauli_map', _sample_qubit_pauli_maps())
@@ -1548,7 +1546,6 @@ def test_pretty_print():
     assert p.text_pretty == 'cirq.PauliString(...)'
 
 
-# pylint: disable=line-too-long
 def test_circuit_diagram_info():
     a, b, c = cirq.LineQubit.range(3)
 
@@ -1569,11 +1566,8 @@ def test_circuit_diagram_info():
 1: ───────────────────────────────────────┼─────────────────Y─────────────────PauliString(-iY)───Y───────────────────────────────
                                           │
 2: ───────────────────────────────────────Z──────────────────────────────────────────────────────────────────────────────────────
-        """,
+        """,  # noqa: E501
     )
-
-
-# pylint: enable=line-too-long
 
 
 def test_mutable_pauli_string_init_raises():

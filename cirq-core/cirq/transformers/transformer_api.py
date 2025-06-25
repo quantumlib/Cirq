@@ -231,7 +231,7 @@ class TRANSFORMER(Protocol):
     >>> def convert_to_cz(
     ...     circuit: cirq.AbstractCircuit,
     ...     *,
-    ...     context: 'Optional[cirq.TransformerContext]' = None,
+    ...     context: cirq.TransformerContext | None = None,
     ...     atol: float = 1e-8,
     ... ) -> cirq.Circuit:
     ...     ...
@@ -245,7 +245,7 @@ class TRANSFORMER(Protocol):
     ...         self,
     ...         circuit: cirq.AbstractCircuit,
     ...         *,
-    ...         context: 'Optional[cirq.TransformerContext]' = None,
+    ...         context: cirq.TransformerContext | None = None,
     ...      ) -> cirq.AbstractCircuit:
     ...         ...
     """
@@ -288,7 +288,7 @@ def transformer(cls_or_func: Any = None, *, add_deep_support: bool = False) -> A
 
     >>> @cirq.transformer
     ... def convert_to_cz(
-    ...    circuit: cirq.AbstractCircuit, *, context: 'Optional[cirq.TransformerContext]' = None
+    ...    circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
     ... ) -> cirq.Circuit:
     ...    ...
 
@@ -302,7 +302,7 @@ def transformer(cls_or_func: Any = None, *, add_deep_support: bool = False) -> A
     ...        self,
     ...        circuit: cirq.AbstractCircuit,
     ...        *,
-    ...        context: 'Optional[cirq.TransformerContext]' = None,
+    ...        context: cirq.TransformerContext | None = None,
     ...    ) -> cirq.Circuit:
     ...        ...
 
@@ -313,7 +313,7 @@ def transformer(cls_or_func: Any = None, *, add_deep_support: bool = False) -> A
     ... def convert_to_sqrt_iswap(
     ...     circuit: cirq.AbstractCircuit,
     ...     *,
-    ...     context: 'Optional[cirq.TransformerContext]' = None,
+    ...     context: cirq.TransformerContext | None = None,
     ...     atol: float = 1e-8,
     ...     sqrt_iswap_gate: cirq.ISwapPowGate = cirq.SQRT_ISWAP_INV,
     ...     cleanup_operations: bool = True,

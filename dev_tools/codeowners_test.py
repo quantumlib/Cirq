@@ -80,7 +80,7 @@ QCVV_MAINTAINERS = BASE_MAINTAINERS.union(QCVV_TEAM)
         ("docs/tutorials/google/start.ipynb", GOOGLE_MAINTAINERS.union(DOCS_MAINTAINERS)),
     ],
 )
-def test_codeowners(filepath, expected):
+def test_codeowners(filepath, expected) -> None:
     # for some reason the codeowners library does not publish all the wheels
     # for Mac and Windows. Eventually we could write our own codeowners parser,
     # but for now it is good enough. If codeowners is not installed, this test
