@@ -29,12 +29,12 @@ def freq_map() -> atu.FreqMap:
     )
 
 
-def test_freq_map_param_names(freq_map):
+def test_freq_map_param_names(freq_map: atu.FreqMap) -> None:
     assert cirq.is_parameterized(freq_map)
     assert cirq.parameter_names(freq_map) == {"f_q0_2", "g_q0_1_q0_2"}
 
 
-def test_freq_map_resolve(freq_map):
+def test_freq_map_resolve(freq_map: atu.FreqMap) -> None:
     resolved_freq_map = cirq.resolve_parameters(
         freq_map, {"f_q0_2": 6 * tu.GHz, "g_q0_1_q0_2": 7 * tu.MHz}
     )
@@ -60,7 +60,7 @@ def sparse_trajectory() -> list[FreqMapType]:
     return [traj1, traj2, traj3]
 
 
-def test_full_traj(sparse_trajectory):
+def test_full_traj(sparse_trajectory: list[FreqMapType]) -> None:
     analog_traj = atu.AnalogTrajectory.from_sparse_trajectory(sparse_trajectory)
     assert len(analog_traj.full_trajectory) == 4
     assert analog_traj.full_trajectory[0] == atu.FreqMap(
@@ -81,5 +81,35 @@ def test_full_traj(sparse_trajectory):
     assert analog_traj.full_trajectory[3] == atu.FreqMap(
         40 * tu.ns,
         {"q0_0": 8 * tu.GHz, "q0_1": None, "q0_2": None},
+        {("q0_0", "q0_1"): 5 * tu.MHz, ("q0_1", "q0_2"): 8 * tu.MHz},
+    )
+
+
+def test_get_full_trajectory_with_resolved_idles(sparse_trajectory: list[FreqMapType]) -> None:
+
+    analog_traj = atu.AnalogTrajectory.from_sparse_trajectory(sparse_trajectory)
+    resolved_full_traj = analog_traj.get_full_trajectory_with_resolved_idles(
+        {"q0_0": 5 * tu.GHz, "q0_1": 6 * tu.GHz, "q0_2": 7 * tu.GHz}
+    )
+
+    assert len(resolved_full_traj) == 4
+    assert resolved_full_traj[0] == atu.FreqMap(
+        0 * tu.ns,
+        {"q0_0": 5 * tu.GHz, "q0_1": 6 * tu.GHz, "q0_2": 7 * tu.GHz},
+        {("q0_0", "q0_1"): 0 * tu.MHz, ("q0_1", "q0_2"): 0 * tu.MHz},
+    )
+    assert resolved_full_traj[1] == atu.FreqMap(
+        20 * tu.ns,
+        {"q0_0": 5 * tu.GHz, "q0_1": 5 * tu.GHz, "q0_2": 7 * tu.GHz},
+        {("q0_0", "q0_1"): 0 * tu.MHz, ("q0_1", "q0_2"): 0 * tu.MHz},
+    )
+    assert resolved_full_traj[2] == atu.FreqMap(
+        30 * tu.ns,
+        {"q0_0": 5 * tu.GHz, "q0_1": 5 * tu.GHz, "q0_2": 8 * tu.GHz},
+        {("q0_0", "q0_1"): 0 * tu.MHz, ("q0_1", "q0_2"): 0 * tu.MHz},
+    )
+    assert resolved_full_traj[3] == atu.FreqMap(
+        40 * tu.ns,
+        {"q0_0": 8 * tu.GHz, "q0_1": 6 * tu.GHz, "q0_2": 7 * tu.GHz},
         {("q0_0", "q0_1"): 5 * tu.MHz, ("q0_1", "q0_2"): 8 * tu.MHz},
     )
