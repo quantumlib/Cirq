@@ -130,7 +130,14 @@ def global_phase_operation(
 def from_phase_and_exponent(
     half_turns: cirq.TParamVal, exponent: cirq.TParamVal
 ) -> cirq.GlobalPhaseGate:
-    """Creates a GlobalPhaseGate from the global phase and exponent."""
+    """Creates a GlobalPhaseGate from the global phase and exponent.
+
+    Args:
+        half_turns: The number of half turns to rotate by.
+        exponent: The power to raise the phase to.
+
+    Returns: A `GlobalPhaseGate` with the corresponding coefficient.
+    """
     coefficient = 1j ** (2 * half_turns * exponent)
     coefficient = (
         complex(coefficient)
