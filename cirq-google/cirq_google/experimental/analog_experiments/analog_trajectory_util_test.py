@@ -113,3 +113,19 @@ def test_get_full_trajectory_with_resolved_idles(sparse_trajectory: list[FreqMap
         {"q0_0": 8 * tu.GHz, "q0_1": 6 * tu.GHz, "q0_2": 7 * tu.GHz},
         {("q0_0", "q0_1"): 5 * tu.MHz, ("q0_1", "q0_2"): 8 * tu.MHz},
     )
+
+
+def test_plot_with_unresolved_parameters():
+    traj1: FreqMapType = (20 * tu.ns, {"q0_1": sympy.Symbol("qf")}, {})
+    traj2: FreqMapType = (sympy.Symbol("t"), {"q0_2": 8 * tu.GHz}, {})
+    analog_traj = atu.AnalogTrajectory.from_sparse_trajectory([traj1, traj2])
+
+    with pytest.raises(ValueError):
+        analog_traj.plot()
+
+
+def test_analog_traj_plot():
+    traj1: FreqMapType = (20 * tu.ns, {"q0_1": sympy.Symbol("qf")}, {})
+    traj2: FreqMapType = (sympy.Symbol("t"), {"q0_2": 8 * tu.GHz}, {})
+    analog_traj = atu.AnalogTrajectory.from_sparse_trajectory([traj1, traj2])
+    analog_traj.plot(resolver={"t": 10 * tu.ns, "qf": 5 * tu.GHz})
