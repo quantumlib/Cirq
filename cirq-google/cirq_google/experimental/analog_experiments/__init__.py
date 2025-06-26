@@ -1,4 +1,4 @@
-# Copyright 2019 The Cirq Developers
+# Copyright 2025 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +15,6 @@
 """Folder for Running Analog experiments."""
 
 from cirq_google.experimental.analog_experiments.analog_trajectory_util import (
-    FreqMap as FreqMap,
+    FrequencyMap as FrequencyMap,
     AnalogTrajectory as AnalogTrajectory,
 )

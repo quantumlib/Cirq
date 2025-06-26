@@ -18,7 +18,7 @@ from __future__ import annotations
 from typing import AbstractSet, Any, TYPE_CHECKING
 
 import cirq
-from cirq_google.experimental.analog_experiments import symbol_util as su
+from cirq_google.study import symbol_util as su
 
 if TYPE_CHECKING:
     import numpy as np

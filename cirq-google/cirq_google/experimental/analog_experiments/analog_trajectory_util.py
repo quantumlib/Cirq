@@ -1,4 +1,4 @@
-# Copyright 2019 The Cirq Developers
+# Copyright 2025 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,14 +22,14 @@ import numpy as np
 import tunits as tu
 
 import cirq
-from cirq_google.experimental.analog_experiments import symbol_util as su
+from cirq_google.study import symbol_util as su
 
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
 
 @attrs.mutable
-class FreqMap:
+class FrequencyMap:
     """Object containing information about the step to a new analog Hamiltonian.
 
     Attributes:
@@ -58,9 +58,9 @@ class FreqMap:
 
     def _resolve_parameters_(
         self, resolver: cirq.ParamResolverOrSimilarType, recursive: bool
-    ) -> FreqMap:
+    ) -> FrequencyMap:
         resolver_ = cirq.ParamResolver(resolver)
-        return FreqMap(
+        return FrequencyMap(
             duration=su.direct_symbol_replacement(self.duration, resolver_),
             qubit_freqs={
                 k: su.direct_symbol_replacement(v, resolver_) for k, v in self.qubit_freqs.items()
@@ -80,7 +80,11 @@ class AnalogTrajectory:
     """
 
     def __init__(
-        self, *, full_trajectory: list[FreqMap], qubits: list[str], pairs: list[tuple[str, str]]
+        self,
+        *,
+        full_trajectory: list[FrequencyMap],
+        qubits: list[str],
+        pairs: list[tuple[str, str]],
     ):
         self.full_trajectory = full_trajectory
         self.qubits = qubits
@@ -102,7 +106,7 @@ class AnalogTrajectory:
         """Construct AnalogTrajectory from sparse trajectory.
 
         Args:
-            sparse_trajectory: A list of tuples, where each tuple defines a segment of `FreqMap`
+            sparse_trajectory: A list of tuples, where each tuple defines a `FrequencyMap`
                 and contains three elements: (duration, qubit_freqs, coupling_strengths).
                 `duration` is a tunits value, `qubit_freqs` is a dictionary mapping qubit strings
                 to detuning frequencies, and `coupling_strengths` is a dictionary mapping qubit
@@ -122,10 +126,10 @@ class AnalogTrajectory:
             qubits = list(set(qubits_in_traj))
             pairs = list(set(pairs_in_traj))
 
-        full_trajectory: list[FreqMap] = []
+        full_trajectory: list[FrequencyMap] = []
         init_qubit_freq_dict: dict[str, tu.Value | None] = {q: None for q in qubits}
         init_g_dict: dict[tuple[str, str], tu.Value] = {p: 0 * tu.MHz for p in pairs}
-        full_trajectory.append(FreqMap(0 * tu.ns, init_qubit_freq_dict, init_g_dict))
+        full_trajectory.append(FrequencyMap(0 * tu.ns, init_qubit_freq_dict, init_g_dict))
 
         for dt, qubit_freq_dict, g_dict in sparse_trajectory:
             # If no freq provided, set equal to previous
@@ -137,15 +141,15 @@ class AnalogTrajectory:
                 p: g_dict.get(p, full_trajectory[-1].couplings.get(p)) for p in pairs  # type: ignore[misc]
             }
 
-            full_trajectory.append(FreqMap(dt, new_qubit_freq_dict, new_g_dict))
+            full_trajectory.append(FrequencyMap(dt, new_qubit_freq_dict, new_g_dict))
         return cls(full_trajectory=full_trajectory, qubits=qubits, pairs=pairs)
 
     def get_full_trajectory_with_resolved_idles(
         self, idle_freq_map: dict[str, tu.Value]
-    ) -> list[FreqMap]:
+    ) -> list[FrequencyMap]:
         """Insert idle frequencies instead of None in trajectory."""
 
-        resolved_trajectory: list[FreqMap] = []
+        resolved_trajectory: list[FrequencyMap] = []
         for freq_map in self.full_trajectory:
             resolved_qubit_freqs = {
                 q: idle_freq_map[q] if f is None else f for q, f in freq_map.qubit_freqs.items()

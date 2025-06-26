@@ -1,4 +1,4 @@
-# Copyright 2019 The Cirq Developers
+# Copyright 2025 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,24 +21,24 @@ from cirq_google.experimental.analog_experiments import analog_trajectory_util a
 
 
 @pytest.fixture
-def freq_map() -> atu.FreqMap:
-    return atu.FreqMap(
+def freq_map() -> atu.FrequencyMap:
+    return atu.FrequencyMap(
         10 * tu.ns,
         {"q0_0": 5 * tu.GHz, "q0_1": 6 * tu.GHz, "q0_2": sympy.Symbol("f_q0_2")},
         {("q0_0", "q0_1"): 5 * tu.MHz, ("q0_1", "q0_2"): sympy.Symbol("g_q0_1_q0_2")},
     )
 
 
-def test_freq_map_param_names(freq_map: atu.FreqMap) -> None:
+def test_freq_map_param_names(freq_map: atu.FrequencyMap) -> None:
     assert cirq.is_parameterized(freq_map)
     assert cirq.parameter_names(freq_map) == {"f_q0_2", "g_q0_1_q0_2"}
 
 
-def test_freq_map_resolve(freq_map: atu.FreqMap) -> None:
+def test_freq_map_resolve(freq_map: atu.FrequencyMap) -> None:
     resolved_freq_map = cirq.resolve_parameters(
         freq_map, {"f_q0_2": 6 * tu.GHz, "g_q0_1_q0_2": 7 * tu.MHz}
     )
-    assert resolved_freq_map == atu.FreqMap(
+    assert resolved_freq_map == atu.FrequencyMap(
         10 * tu.ns,
         {"q0_0": 5 * tu.GHz, "q0_1": 6 * tu.GHz, "q0_2": 6 * tu.GHz},
         {("q0_0", "q0_1"): 5 * tu.MHz, ("q0_1", "q0_2"): 7 * tu.MHz},
@@ -63,22 +63,22 @@ def sparse_trajectory() -> list[FreqMapType]:
 def test_full_traj(sparse_trajectory: list[FreqMapType]) -> None:
     analog_traj = atu.AnalogTrajectory.from_sparse_trajectory(sparse_trajectory)
     assert len(analog_traj.full_trajectory) == 4
-    assert analog_traj.full_trajectory[0] == atu.FreqMap(
+    assert analog_traj.full_trajectory[0] == atu.FrequencyMap(
         0 * tu.ns,
         {"q0_0": None, "q0_1": None, "q0_2": None},
         {("q0_0", "q0_1"): 0 * tu.MHz, ("q0_1", "q0_2"): 0 * tu.MHz},
     )
-    assert analog_traj.full_trajectory[1] == atu.FreqMap(
+    assert analog_traj.full_trajectory[1] == atu.FrequencyMap(
         20 * tu.ns,
         {"q0_0": None, "q0_1": 5 * tu.GHz, "q0_2": None},
         {("q0_0", "q0_1"): 0 * tu.MHz, ("q0_1", "q0_2"): 0 * tu.MHz},
     )
-    assert analog_traj.full_trajectory[2] == atu.FreqMap(
+    assert analog_traj.full_trajectory[2] == atu.FrequencyMap(
         30 * tu.ns,
         {"q0_0": None, "q0_1": 5 * tu.GHz, "q0_2": 8 * tu.GHz},
         {("q0_0", "q0_1"): 0 * tu.MHz, ("q0_1", "q0_2"): 0 * tu.MHz},
     )
-    assert analog_traj.full_trajectory[3] == atu.FreqMap(
+    assert analog_traj.full_trajectory[3] == atu.FrequencyMap(
         40 * tu.ns,
         {"q0_0": 8 * tu.GHz, "q0_1": None, "q0_2": None},
         {("q0_0", "q0_1"): 5 * tu.MHz, ("q0_1", "q0_2"): 8 * tu.MHz},
@@ -93,22 +93,22 @@ def test_get_full_trajectory_with_resolved_idles(sparse_trajectory: list[FreqMap
     )
 
     assert len(resolved_full_traj) == 4
-    assert resolved_full_traj[0] == atu.FreqMap(
+    assert resolved_full_traj[0] == atu.FrequencyMap(
         0 * tu.ns,
         {"q0_0": 5 * tu.GHz, "q0_1": 6 * tu.GHz, "q0_2": 7 * tu.GHz},
         {("q0_0", "q0_1"): 0 * tu.MHz, ("q0_1", "q0_2"): 0 * tu.MHz},
     )
-    assert resolved_full_traj[1] == atu.FreqMap(
+    assert resolved_full_traj[1] == atu.FrequencyMap(
         20 * tu.ns,
         {"q0_0": 5 * tu.GHz, "q0_1": 5 * tu.GHz, "q0_2": 7 * tu.GHz},
         {("q0_0", "q0_1"): 0 * tu.MHz, ("q0_1", "q0_2"): 0 * tu.MHz},
     )
-    assert resolved_full_traj[2] == atu.FreqMap(
+    assert resolved_full_traj[2] == atu.FrequencyMap(
         30 * tu.ns,
         {"q0_0": 5 * tu.GHz, "q0_1": 5 * tu.GHz, "q0_2": 8 * tu.GHz},
         {("q0_0", "q0_1"): 0 * tu.MHz, ("q0_1", "q0_2"): 0 * tu.MHz},
     )
-    assert resolved_full_traj[3] == atu.FreqMap(
+    assert resolved_full_traj[3] == atu.FrequencyMap(
         40 * tu.ns,
         {"q0_0": 8 * tu.GHz, "q0_1": 6 * tu.GHz, "q0_2": 7 * tu.GHz},
         {("q0_0", "q0_1"): 5 * tu.MHz, ("q0_1", "q0_2"): 8 * tu.MHz},
