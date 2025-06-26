@@ -22,7 +22,7 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.testing.circuit_compare import apply_kraus_operators
+from cirq.protocols.apply_channel_protocol import _apply_kraus
 
 LOCAL_DEFAULT: list[np.ndarray] = [np.array([])]
 
@@ -191,27 +191,41 @@ def test_strat_kraus_from_apply_channel_returns_none():
         cirq.kraus(gate_no_apply)
 
 
-def test_kraus_fallback_to_apply_channel_bitflipchannel_real() -> None:
-    p = 0.5
-    expected_kraus = cirq.kraus(cirq.BitFlipChannel(p))
+@pytest.mark.parametrize(
+    'channel_cls,params',
+    [
+        (cirq.BitFlipChannel, (0.5,)),
+        (cirq.PhaseFlipChannel, (0.3,)),
+        (cirq.DepolarizingChannel, (0.2,)),
+        (cirq.AmplitudeDampingChannel, (0.4,)),
+        (cirq.PhaseDampingChannel, (0.25,)),
+    ],
+)
+def test_kraus_fallback_to_apply_channel(channel_cls, params) -> None:
+    """Kraus protocol falls back to _apply_channel_ when no _kraus_, _mixture_, or _unitary_."""
+    # Create the expected channel and get its Kraus operators
+    expected_channel = channel_cls(*params)
+    expected_kraus = cirq.kraus(expected_channel)
 
-    class CustomBitFlipChannel:
+    class TestChannel:
+        def __init__(self, channel_cls, params):
+            self.channel_cls = channel_cls
+            self.params = params
+            self.expected_kraus = cirq.kraus(channel_cls(*params))
+
         def _num_qubits_(self):
             return 1
 
         def _apply_channel_(self, args: cirq.ApplyChannelArgs):
-            X = np.array([[0, 1], [1, 0]], dtype=np.complex128)
-            rho = args.target_tensor
-            out = (1 - p) * rho + p * X @ rho @ X
-            args.out_buffer[...] = out
-            return args.out_buffer
+            return _apply_kraus(self.expected_kraus, args)
 
-    kraus_ops = cirq.kraus(CustomBitFlipChannel())
-    # Compare the action on a test density matrix
-    rho = np.array([[0.7, 0.2], [0.2, 0.3]], dtype=np.complex128)
-    expected_rho = apply_kraus_operators(expected_kraus, rho)
-    actual_rho = apply_kraus_operators(kraus_ops, rho)
-    np.testing.assert_allclose(actual_rho, expected_rho, atol=1e-8)
+    chan = TestChannel(channel_cls, params)
+    kraus_ops = cirq.kraus(chan)
+
+    # Compare the superoperator matrices for equivalence
+    expected_super = sum(np.kron(k, k.conj()) for k in expected_kraus)
+    actual_super = sum(np.kron(k, k.conj()) for k in kraus_ops)
+    np.testing.assert_allclose(actual_super, expected_super, atol=1e-8)
 
 
 def test_reset_channel_kraus_apply_channel_consistency():

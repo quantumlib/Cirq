@@ -16,17 +16,25 @@
 
 from __future__ import annotations
 
-from typing import Iterable
+from typing import Iterable, Sequence
 
 import numpy as np
 import pytest
 
 import cirq
-from cirq.testing.circuit_compare import apply_kraus_operators
 
 
 def apply_channel(channel: cirq.SupportsKraus, rho: np.ndarray) -> np.ndarray:
     return apply_kraus_operators(cirq.kraus(channel), rho)
+
+
+def apply_kraus_operators(kraus_operators: Sequence[np.ndarray], rho: np.ndarray) -> np.ndarray:
+    d_out, d_in = kraus_operators[0].shape
+    assert rho.shape == (d_in, d_in)
+    out = np.zeros((d_out, d_out), dtype=np.complex128)
+    for k in kraus_operators:
+        out += k @ rho @ k.conj().T
+    return out
 
 
 def generate_standard_operator_basis(d_out: int, d_in: int) -> Iterable[np.ndarray]:
