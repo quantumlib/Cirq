@@ -434,7 +434,7 @@ def parallel_single_qubit_randomized_benchmarking(
         repetitions: The number of repetitions of each circuit.
         xy_only: whether to use only gates that have either an X or a Y component.
             if True, this excludes I, Z, Z/2, -Z/2.
-        xy_only: whether to use only gates that have either an X or a Z component.
+        xz_only: whether to use only gates that have either an X or a Z component.
             if True, this excludes I, Y, Y/2, -Y/2.
     Returns:
         A dictionary from qubits to RandomizedBenchMarkResult objects.
