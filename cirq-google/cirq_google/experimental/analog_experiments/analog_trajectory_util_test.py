@@ -125,7 +125,7 @@ def test_plot_with_unresolved_parameters():
 
 
 def test_analog_traj_plot():
-    traj1: FreqMapType = (20 * tu.ns, {"q0_1": sympy.Symbol("qf")}, {})
+    traj1: FreqMapType = (5 * tu.ns, {"q0_1": sympy.Symbol("qf")}, {("q0_0", "q0_1"): 2 * tu.MHz})
     traj2: FreqMapType = (sympy.Symbol("t"), {"q0_2": 8 * tu.GHz}, {})
     analog_traj = atu.AnalogTrajectory.from_sparse_trajectory([traj1, traj2])
     analog_traj.plot(resolver={"t": 10 * tu.ns, "qf": 5 * tu.GHz})
