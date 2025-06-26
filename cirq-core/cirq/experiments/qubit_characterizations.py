@@ -398,9 +398,8 @@ def _gateset_selector(
 ) -> list[list[ops.SingleQubitCliffordGate]]:
     clifford_group = _single_qubit_cliffords()
     sequences = clifford_group.c1_in_xy if use_xy_basis else clifford_group.c1_in_xz
-    filter_seq = lambda seq: len(seq) == 2
     if xy_only or xz_only:
-        sequences = list(filter(filter_seq, sequences))
+        sequences = [seq for seq in sequences if len(seq) == 2]
     return _canonize_clifford_sequences(sequences)
 
 
