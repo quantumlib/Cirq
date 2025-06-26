@@ -270,9 +270,8 @@ class SimulatorResult:
 
         # normalize weights to sum to 1 if within tolerance because
         # IonQ's pauliexp gates results are not extremely precise
-        tolerance = 1e-6
         total = sum(weights)
-        if np.isclose(total, 1.0, rtol=0, atol=tolerance):
+        if np.isclose(total, 1.0, rtol=0, atol=1e-5):
             weights = tuple((w / total for w in weights))
 
         indices = rand.choice(

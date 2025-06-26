@@ -207,7 +207,7 @@ class Serializer:
         all_qubits = circuit.all_qubits()
         return cast(line_qubit.LineQubit, max(all_qubits)).x + 1
 
-    def _serialize_circuit(self, circuit: cirq.AbstractCircuit) -> list:
+    def _serialize_circuit(self, circuit: cirq.AbstractCircuit) -> list[dict]:
         return [
             serialized_op
             for moment in circuit
@@ -293,11 +293,11 @@ class Serializer:
 
     def _serialize_pauli_string_phasor_gate(
         self, gate: PauliStringPhasorGate, targets: Sequence[int]
-    ) -> dict | None:
-        paulis = {0: "I", 1: "X", 2: "Y", 3: "Z"}
+    ) -> dict[str, Any] | None:
+        PAULIS = {0: "I", 1: "X", 2: "Y", 3: "Z"}
         # Cirq uses big-endian ordering while IonQ API uses little-endian ordering.
         big_endian_pauli_string = ''.join(
-            [paulis[pindex] for pindex in gate.dense_pauli_string.pauli_mask]
+            [PAULIS[pindex] for pindex in gate.dense_pauli_string.pauli_mask]
         )
         little_endian_pauli_string = big_endian_pauli_string[::-1]
         pauli_string_coefficient = gate.dense_pauli_string.coefficient
@@ -308,9 +308,7 @@ class Serializer:
                 f'{pauli_string_coefficient} for the associated DensePauliString.'
             )
         coefficients = [pauli_string_coefficient.real]
-        #
-        # @CodeReview: could you please confirm that this formula for time is correct?
-        #
+
         # I am ignoring here the global phase of:
         # i * pi * (gate.exponent_neg + gate.exponent_pos) / 2
         time = math.pi * (gate.exponent_neg - gate.exponent_pos) / 2
