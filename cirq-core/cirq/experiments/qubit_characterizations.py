@@ -414,7 +414,7 @@ def parallel_single_qubit_randomized_benchmarking(
     ),
     num_circuits: int = 10,
     repetitions: int = 1000,
-    xy_only: bool = False,
+    xy_only: bool = True,
     xz_only: bool = False,
 ) -> ParallelRandomizedBenchmarkingResult:
     """Clifford-based randomized benchmarking (RB) single qubits in parallel.
