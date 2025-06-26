@@ -178,7 +178,6 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
         snapshot = self.copy().clean(atol=0)
         return snapshot._terms.items()
 
-    # pylint: disable=function-redefined
     @overload
     def update(
         self, other: Mapping[TVector, cirq.TParamValComplex], **kwargs: cirq.TParamValComplex
@@ -220,8 +219,6 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
         if self._terms.get(vector, 0) == 0:
             return default
         return self._terms.get(vector)
-
-    # pylint: enable=function-redefined
 
     def __contains__(self, vector: Any) -> bool:
         return vector in self._terms and self._terms[vector] != 0

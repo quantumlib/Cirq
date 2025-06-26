@@ -87,7 +87,6 @@ def chosen_angle_to_canonical_half_turns(
     )
 
 
-# pylint: disable=function-redefined
 @overload
 def canonicalize_half_turns(half_turns: float) -> float:
     pass
@@ -108,6 +107,3 @@ def canonicalize_half_turns(half_turns: type_alias.TParamVal) -> type_alias.TPar
     if half_turns > 1:
         half_turns -= 2
     return half_turns
-
-
-# pylint: enable=function-redefined

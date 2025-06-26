@@ -113,7 +113,6 @@ def single_qubit_matrix_gate(matrix: np.ndarray | None) -> QuirkOp | None:
     if matrix is None or matrix.shape[0] != 2:
         return None
 
-    # pylint: disable=consider-using-f-string
     matrix = matrix.round(6)
     matrix_repr = '{{%s+%si,%s+%si},{%s+%si,%s+%si}}' % (
         np.real(matrix[0, 0]),

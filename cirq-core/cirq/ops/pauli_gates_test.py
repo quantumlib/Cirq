@@ -116,7 +116,6 @@ def test_relative_index_consistency() -> None:
 
 
 def test_gt() -> None:
-    # pylint: disable=unnecessary-negation
     assert not cirq.X > cirq.X
     assert not cirq.X > cirq.Y
     assert cirq.X > cirq.Z
@@ -134,7 +133,6 @@ def test_gt_other_type() -> None:
 
 
 def test_lt() -> None:
-    # pylint: disable=unnecessary-negation
     assert not cirq.X < cirq.X
     assert cirq.X < cirq.Y
     assert not cirq.X < cirq.Z
@@ -225,3 +223,10 @@ def test_powers() -> None:
     assert isinstance(cirq.X**1, cirq.Pauli)
     assert isinstance(cirq.Y**1, cirq.Pauli)
     assert isinstance(cirq.Z**1, cirq.Pauli)
+
+    with pytest.raises(TypeError, match="Gate exponent must be a number or sympy expression."):
+        assert cirq.X ** 'text'
+    with pytest.raises(TypeError, match="Gate exponent must be a number or sympy expression."):
+        assert cirq.Y ** 'text'
+    with pytest.raises(TypeError, match="Gate exponent must be a number or sympy expression."):
+        assert cirq.Z ** 'text'

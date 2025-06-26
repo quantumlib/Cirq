@@ -81,9 +81,16 @@ class DecompositionContext:
     Args:
         qubit_manager: A `cirq.QubitManager` instance to allocate clean / dirty ancilla qubits as
             part of the decompose protocol.
+        extract_global_phases: If set, will extract the global phases from
+         `DECOMPOSE_TARGET_GATESET` into independent global phase operations.
     """
 
     qubit_manager: cirq.QubitManager
+    extract_global_phases: bool = False
+
+    def extracting_global_phases(self) -> DecompositionContext:
+        """Returns a copy with the `extract_global_phases` field set."""
+        return dataclasses.replace(self, extract_global_phases=True)
 
 
 class SupportsDecompose(Protocol):
@@ -308,9 +315,6 @@ def decompose(
     return [*_decompose_dfs(val, args)]
 
 
-# pylint: disable=function-redefined
-
-
 @overload
 def decompose_once(val: Any, **kwargs) -> list[cirq.Operation]:
     pass
@@ -450,9 +454,6 @@ def decompose_once_with_qubits(
         `NotImplemented` or `None`) and `default` wasn't set.
     """
     return decompose_once(val, default, tuple(qubits), flatten=flatten, context=context)
-
-
-# pylint: enable=function-redefined
 
 
 def _try_decompose_into_operations_and_qubits(
