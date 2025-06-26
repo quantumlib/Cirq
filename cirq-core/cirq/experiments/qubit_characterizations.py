@@ -19,7 +19,6 @@ import functools
 import itertools
 from typing import Any, cast, Iterator, Mapping, Sequence, TYPE_CHECKING
 
-import attrs
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -39,35 +38,11 @@ if TYPE_CHECKING:
 
 def _canonize_clifford_sequences(
     sequences: list[list[ops.SingleQubitCliffordGate]],
-) -> list[tuple[ops.SingleQubitCliffordGate]]:
-    return [(_reduce_gate_seq(seq),) for seq in sequences]
+) -> list[list[ops.SingleQubitCliffordGate]]:
+    return [[_reduce_gate_seq(seq)] for seq in sequences]
 
 
-@attrs.frozen
-class _CliffordGateSequence:
-    """Wrap around a list of sequences of clifford gates.
-
-    This class wraps around a list of sequences of clifford gates and re-exposes them as
-    a list of tuple where each tuple contains a single clifford gates.
-    """
-
-    gate_sequence: list[list[ops.SingleQubitCliffordGate]]
-
-    @functools.cached_property
-    def _reduced_gate_sequence(self) -> list[tuple[ops.SingleQubitCliffordGate]]:
-        return _canonize_clifford_sequences(self.gate_sequence)
-
-    def __iter__(self) -> Iterator[tuple[ops.SingleQubitCliffordGate]]:
-        yield from self._reduced_gate_sequence
-
-    def __getitem__(self, idx) -> tuple[ops.SingleQubitCliffordGate]:
-        return self._reduced_gate_sequence[idx]
-
-    def __len__(self) -> int:
-        return len(self._reduced_gate_sequence)
-
-
-@attrs.frozen
+@dataclasses.dataclass
 class Cliffords:
     """The single-qubit Clifford group, decomposed into elementary gates.
 
@@ -83,13 +58,14 @@ class Cliffords:
         s1
         s1_x
         s1_y
+
     """
 
-    c1_in_xy: _CliffordGateSequence = attrs.field(converter=_CliffordGateSequence)
-    c1_in_xz: _CliffordGateSequence = attrs.field(converter=_CliffordGateSequence)
-    s1: _CliffordGateSequence = attrs.field(converter=_CliffordGateSequence)
-    s1_x: _CliffordGateSequence = attrs.field(converter=_CliffordGateSequence)
-    s1_y: _CliffordGateSequence = attrs.field(converter=_CliffordGateSequence)
+    c1_in_xy: list[list[ops.SingleQubitCliffordGate]]
+    c1_in_xz: list[list[ops.SingleQubitCliffordGate]]
+    s1: list[list[ops.SingleQubitCliffordGate]]
+    s1_x: list[list[ops.SingleQubitCliffordGate]]
+    s1_y: list[list[ops.SingleQubitCliffordGate]]
 
 
 class RandomizedBenchMarkResult:
@@ -418,6 +394,17 @@ def single_qubit_randomized_benchmarking(
     return result.results_dictionary[qubit]
 
 
+def _gateset_selector(
+    use_xy_basis: bool, xy_only: bool, xz_only: bool
+) -> list[list[ops.SingleQubitCliffordGate]]:
+    clifford_group = _single_qubit_cliffords()
+    sequences = clifford_group.c1_in_xy if use_xy_basis else clifford_group.c1_in_xz
+    filter_seq = lambda seq: len(seq) == 2
+    if xy_only or xz_only:
+        sequences = list(filter(filter_seq, sequences))
+    return _canonize_clifford_sequences(sequences)
+
+
 def parallel_single_qubit_randomized_benchmarking(
     sampler: cirq.Sampler,
     qubits: Sequence[cirq.Qid],
@@ -428,6 +415,8 @@ def parallel_single_qubit_randomized_benchmarking(
     ),
     num_circuits: int = 10,
     repetitions: int = 1000,
+    xy_only: bool = False,
+    xz_only: bool = False,
 ) -> ParallelRandomizedBenchmarkingResult:
     """Clifford-based randomized benchmarking (RB) single qubits in parallel.
 
@@ -444,13 +433,15 @@ def parallel_single_qubit_randomized_benchmarking(
         num_circuits: The number of random circuits generated for each
             number of Cliffords.
         repetitions: The number of repetitions of each circuit.
-
+        xy_only: whether to use only gates that have either an X or a Y component.
+            if True, this excludes I, Z, Z/2, -Z/2.
+        xy_only: whether to use only gates that have either an X or a Z component.
+            if True, this excludes I, Y, Y/2, -Y/2.
     Returns:
         A dictionary from qubits to RandomizedBenchMarkResult objects.
     """
 
-    clifford_group = _single_qubit_cliffords()
-    c1 = clifford_group.c1_in_xy if use_xy_basis else clifford_group.c1_in_xz
+    c1 = _gateset_selector(use_xy_basis, xy_only, xz_only)
 
     # create circuits
     circuits_all: list[cirq.AbstractCircuit] = []
@@ -708,9 +699,7 @@ def two_qubit_state_tomography(
 
 
 def _create_parallel_rb_circuit(
-    qubits: Sequence[cirq.Qid],
-    num_cliffords: int,
-    c1: _CliffordGateSequence | list[list[ops.SingleQubitCliffordGate]],
+    qubits: Sequence[cirq.Qid], num_cliffords: int, c1: list[list[ops.SingleQubitCliffordGate]]
 ) -> cirq.Circuit:
     sequences_to_zip = [_random_single_q_clifford(qubit, num_cliffords, c1) for qubit in qubits]
     # Ensure each sequence has the same number of moments.
@@ -763,13 +752,10 @@ def _two_qubit_clifford_matrices(q_0: cirq.Qid, q_1: cirq.Qid, cliffords: Cliffo
 
 
 def _random_single_q_clifford(
-    qubit: cirq.Qid,
-    num_cfds: int,
-    cfds: Sequence[Sequence[cirq.ops.SingleQubitCliffordGate]] | _CliffordGateSequence,
+    qubit: cirq.Qid, num_cfds: int, cfds: Sequence[Sequence[cirq.ops.SingleQubitCliffordGate]]
 ) -> list[cirq.Operation]:
-    clifford_group_size = 24
     operations = [[gate.to_phased_xz_gate()(qubit) for gate in gates] for gates in cfds]
-    gate_ids = np.random.choice(clifford_group_size, num_cfds).tolist()
+    gate_ids = np.random.choice(len(cfds), num_cfds).tolist()
     adjoint = _reduce_gate_seq([gate for gate_id in gate_ids for gate in cfds[gate_id]]) ** -1
     return [op for gate_id in gate_ids for op in operations[gate_id]] + [
         adjoint.to_phased_xz_gate()(qubit)
