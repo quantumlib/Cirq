@@ -58,7 +58,6 @@ class Cliffords:
         s1
         s1_x
         s1_y
-
     """
 
     c1_in_xy: list[list[ops.SingleQubitCliffordGate]]
