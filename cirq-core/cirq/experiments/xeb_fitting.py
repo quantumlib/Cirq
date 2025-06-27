@@ -342,7 +342,7 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
 
         return np.asarray(initial_simplex), names
 
-    def get_parameterized_gate(self):
+    def get_parameterized_gate(self) -> cirq.PhasedFSimGate:
         theta = THETA_SYMBOL if self.characterize_theta else self.theta_default
         zeta = ZETA_SYMBOL if self.characterize_zeta else self.zeta_default
         chi = CHI_SYMBOL if self.characterize_chi else self.chi_default
@@ -374,7 +374,7 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
 
     def with_defaults_from_gate(
         self, gate: cirq.Gate, gate_to_angles_func=phased_fsim_angles_from_gate
-    ):
+    ) -> XEBPhasedFSimCharacterizationOptions:
         """A new Options class with {angle}_defaults inferred from `gate`.
 
         This keeps the same settings for the characterize_{angle} booleans, but will disregard
@@ -393,7 +393,7 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
         return protocols.dataclass_json_dict(self)
 
 
-def SqrtISwapXEBOptions(*args, **kwargs):
+def SqrtISwapXEBOptions(*args, **kwargs) -> XEBPhasedFSimCharacterizationOptions:
     """Options for calibrating a sqrt(ISWAP) gate using XEB."""
     return XEBPhasedFSimCharacterizationOptions(*args, **kwargs).with_defaults_from_gate(
         ops.SQRT_ISWAP

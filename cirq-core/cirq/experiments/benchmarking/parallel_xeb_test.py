@@ -37,8 +37,8 @@ _PAIRS = ((cirq.q(0, 0), cirq.q(0, 1)), (cirq.q(0, 2), cirq.q(0, 3)), (cirq.q(0,
 
 class TestXEBWideCircuitInfo:
 
-    def test_from_circuit(self):
-        permutation = [1, 2, 0]
+    def test_from_circuit(self) -> None:
+        permutation = np.array([1, 2, 0])
         target = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.CNOT(*_QUBITS)))
         wide_circuit = xeb.XEBWideCircuitInfo.from_narrow_circuits(
             _CIRCUIT_TEMPLATES, permutation=permutation, pairs=_PAIRS, target=target
@@ -65,7 +65,7 @@ class TestXEBWideCircuitInfo:
             narrow_template_indices=permutation,
         )
 
-    def test_sliced_circuit(self):
+    def test_sliced_circuit(self) -> None:
         wid_circuit = xeb.XEBWideCircuitInfo(
             wide_circuit=cirq.Circuit.from_moments(
                 [
@@ -114,10 +114,14 @@ class TestXEBWideCircuitInfo:
         assert wid_circuit.sliced_circuits([1]) == [sliced_circuit]
 
 
-def test_create_combination_circuits():
+def test_create_combination_circuits() -> None:
     wide_circuits_info = xeb.create_combination_circuits(
         _CIRCUIT_TEMPLATES,
-        [rqcg.CircuitLibraryCombination(layer=None, combinations=[[1, 2, 0]], pairs=_PAIRS)],
+        [
+            rqcg.CircuitLibraryCombination(
+                layer=None, combinations=np.array([[1, 2, 0]]), pairs=_PAIRS
+            )
+        ],
         target=cirq.CNOT(*_QUBITS),
     )
 
@@ -142,10 +146,14 @@ def test_create_combination_circuits():
     ]
 
 
-def test_create_combination_circuits_with_target_dict():
+def test_create_combination_circuits_with_target_dict() -> None:
     wide_circuits_info = xeb.create_combination_circuits(
         _CIRCUIT_TEMPLATES,
-        [rqcg.CircuitLibraryCombination(layer=None, combinations=[[1, 2, 0]], pairs=_PAIRS)],
+        [
+            rqcg.CircuitLibraryCombination(
+                layer=None, combinations=np.array([[1, 2, 0]]), pairs=_PAIRS
+            )
+        ],
         target={_PAIRS[0]: cirq.CNOT(*_QUBITS), _PAIRS[1]: cirq.CZ(*_QUBITS)},
     )
 
@@ -164,7 +172,7 @@ def test_create_combination_circuits_with_target_dict():
     ]
 
 
-def test_simulate_circuit():
+def test_simulate_circuit() -> None:
     sim = cirq.Simulator(seed=0)
     circuit = cirq.Circuit.from_moments(
         cirq.X.on_each(_QUBITS),
@@ -180,7 +188,7 @@ def test_simulate_circuit():
     np.testing.assert_allclose(result, [[0, 1, 0, 0], [1, 0, 0, 0]])  # |01>  # |00>
 
 
-def test_simulate_circuit_library():
+def test_simulate_circuit_library() -> None:
     circuit_templates = [
         cirq.Circuit.from_moments(
             cirq.X.on_each(_QUBITS),
@@ -199,7 +207,7 @@ def test_simulate_circuit_library():
     np.testing.assert_allclose(result, [[[0, 1, 0, 0], [1, 0, 0, 0]]])  # |01>  # |00>
 
 
-def test_simulate_circuit_library_with_target_dict():
+def test_simulate_circuit_library_with_target_dict() -> None:
     circuit_templates = [
         cirq.Circuit.from_moments(
             [cirq.H(_QUBITS[0]), cirq.X(_QUBITS[1])],
@@ -219,13 +227,15 @@ def test_simulate_circuit_library_with_target_dict():
     )
 
     # First pair result.
-    np.testing.assert_allclose(result[_PAIRS[0]], [[[0.25, 0.25, 0.25, 0.25], [0, 1, 0, 0]]])
+    np.testing.assert_allclose(
+        result[_PAIRS[0]], [[[0.25, 0.25, 0.25, 0.25], [0.0, 1.0, 0.0, 0.0]]]
+    )
 
     # Second pair result.
     np.testing.assert_allclose(result[_PAIRS[1]], [[[0, 0, 1, 0], [1, 0, 0, 0]]])  # |10>  # |00>
 
 
-def test_sample_all_circuits():
+def test_sample_all_circuits() -> None:
     wide_circuits = [
         cirq.Circuit.from_moments(
             [cirq.Y.on_each(*_PAIRS[0]), cirq.Z.on_each(*_PAIRS[1]), cirq.X.on_each(*_PAIRS[2])],
@@ -252,7 +262,7 @@ def test_sample_all_circuits():
     )  # |01>
 
 
-def test_estimate_fidelities():
+def test_estimate_fidelities() -> None:
     sampling_result = [{str(_PAIRS[0]): np.array([0.15, 0.15, 0.35, 0.35])}]
 
     simulation_results = [[np.array([0.1, 0.2, 0.3, 0.4])]]
@@ -279,11 +289,15 @@ def test_estimate_fidelities():
     )
 
     assert result == [
-        xeb.XEBFidelity(pair=_PAIRS[0], cycle_depth=1, fidelity=pytest.approx(0.785, abs=2e-4))
+        xeb.XEBFidelity(
+            pair=_PAIRS[0],
+            cycle_depth=1,
+            fidelity=pytest.approx(0.785, abs=2e-4),  # type: ignore[arg-type]
+        )
     ]
 
 
-def test_estimate_fidelities_with_dict_target():
+def test_estimate_fidelities_with_dict_target() -> None:
     sampling_result = [{str(_PAIRS[0]): np.array([0.15, 0.15, 0.35, 0.35])}]
 
     simulation_results = {_PAIRS[0]: [[np.array([0.1, 0.2, 0.3, 0.4])]]}
@@ -310,7 +324,11 @@ def test_estimate_fidelities_with_dict_target():
     )
 
     assert result == [
-        xeb.XEBFidelity(pair=_PAIRS[0], cycle_depth=1, fidelity=pytest.approx(0.785, abs=2e-4))
+        xeb.XEBFidelity(
+            pair=_PAIRS[0],
+            cycle_depth=1,
+            fidelity=pytest.approx(0.785, abs=2e-4),  # type: ignore[arg-type]
+        )
     ]
 
 
@@ -323,7 +341,7 @@ def _assert_fidelities_approx_equal(fids, expected: float, atol: float):
 
 @pytest.mark.parametrize('target', [cirq.CZ, cirq.Circuit(cirq.CZ(*_QUBITS)), cirq.CZ(*_QUBITS)])
 @pytest.mark.parametrize('pairs', [_PAIRS[:1], _PAIRS[:2]])
-def test_parallel_two_qubit_xeb(target, pairs):
+def test_parallel_two_qubit_xeb(target, pairs) -> None:
     sampler = cirq.DensityMatrixSimulator(noise=cirq.depolarize(0.03), seed=0)
     result = xeb.parallel_two_qubit_xeb(
         sampler=sampler,
@@ -349,17 +367,17 @@ class ExampleDevice(cirq.Device):
 
 
 class ExampleProcessor:
-    def get_device(self):
+    def get_device(self) -> ExampleDevice:
         return ExampleDevice()
 
 
 class DensityMatrixSimulatorWithProcessor(cirq.DensityMatrixSimulator):
     @property
-    def processor(self):
+    def processor(self) -> ExampleProcessor:
         return ExampleProcessor()
 
 
-def test_parallel_two_qubit_xeb_with_device():
+def test_parallel_two_qubit_xeb_with_device() -> None:
     target = cirq.CZ
     sampler = DensityMatrixSimulatorWithProcessor(noise=cirq.depolarize(0.03), seed=0)
     result = xeb.parallel_two_qubit_xeb(
@@ -380,7 +398,7 @@ def test_parallel_two_qubit_xeb_with_device():
     assert result.all_qubit_pairs == pairs
 
 
-def test_parallel_two_qubit_xeb_with_dict_target():
+def test_parallel_two_qubit_xeb_with_dict_target() -> None:
     target = {p: cirq.Circuit(cirq.CZ(*_QUBITS)) for p in _PAIRS[:2]}
     target[_PAIRS[2]] = cirq.CZ(*_QUBITS)
     sampler = cirq.DensityMatrixSimulator(noise=cirq.depolarize(0.03), seed=0)
@@ -395,7 +413,7 @@ def test_parallel_two_qubit_xeb_with_dict_target():
     assert result.all_qubit_pairs == _PAIRS
 
 
-def test_parallel_two_qubit_xeb_with_ideal_target():
+def test_parallel_two_qubit_xeb_with_ideal_target() -> None:
     target = {p: cirq.Circuit(cirq.CZ(*_QUBITS)) for p in _PAIRS[:2]}
     target[_PAIRS[2]] = cirq.CZ(*_QUBITS)
     sampler = cirq.DensityMatrixSimulator(noise=cirq.depolarize(0.03), seed=0)
@@ -417,7 +435,7 @@ def threading_pool() -> Iterator[futures.Executor]:
         yield pool
 
 
-def test_parallel_two_qubit_xeb_with_dict_target_and_pool(threading_pool):
+def test_parallel_two_qubit_xeb_with_dict_target_and_pool(threading_pool) -> None:
     target = {p: cirq.Circuit(cirq.CZ(*_QUBITS)) for p in _PAIRS}
     sampler = cirq.DensityMatrixSimulator(noise=cirq.depolarize(0.03), seed=0)
     result = xeb.parallel_two_qubit_xeb(
@@ -432,7 +450,7 @@ def test_parallel_two_qubit_xeb_with_dict_target_and_pool(threading_pool):
     assert result.all_qubit_pairs == _PAIRS
 
 
-def test_parallel_two_qubit_xeb_with_invalid_input_raises():
+def test_parallel_two_qubit_xeb_with_invalid_input_raises() -> None:
     with pytest.raises(AssertionError):
         _ = xeb.parallel_two_qubit_xeb(
             sampler=cirq.Simulator(seed=0), target={_PAIRS[0]: cirq.CZ}, pairs=_PAIRS
