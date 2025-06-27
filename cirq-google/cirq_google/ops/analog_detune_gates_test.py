@@ -143,7 +143,7 @@ def test_analog_detune_qubit_repr():
     )
 
 
-def test_analog_detune_coupler_equality():
+def test_analog_detune_coupler_equality() -> None:
     g1 = adg.AnalogDetuneCouplerOnly(
         length=20 * tu.ns, w=10 * tu.ns, g_0=5 * tu.GHz, g_max=sympy.Symbol("g")
     )
@@ -154,7 +154,7 @@ def test_analog_detune_coupler_equality():
     assert g1 == g2
 
 
-def test_analog_detune_coupler_resolution():
+def test_analog_detune_coupler_resolution() -> None:
     gate = adg.AnalogDetuneCouplerOnly(
         length=sympy.Symbol('length'),
         w=10 * tu.ns,
@@ -174,7 +174,7 @@ def test_analog_detune_coupler_resolution():
     )
 
 
-def test_analog_detune_coupler_parameter_names():
+def test_analog_detune_coupler_parameter_names() -> None:
     gate = adg.AnalogDetuneCouplerOnly(
         length=sympy.Symbol('l'),
         w=10 * tu.ns,
@@ -186,7 +186,7 @@ def test_analog_detune_coupler_parameter_names():
     assert cirq.parameter_names(gate) == {'l', 'g', 'q'}
 
 
-def test_analog_detune_coupler_repr():
+def test_analog_detune_coupler_repr() -> None:
     gate = adg.AnalogDetuneCouplerOnly(
         length=sympy.Symbol('l'),
         w=10 * tu.ns,
@@ -201,7 +201,7 @@ def test_analog_detune_coupler_repr():
     )
 
 
-def test_analog_detune_coupler_circuit_diagram():
+def test_analog_detune_coupler_circuit_diagram() -> None:
     q1, q2 = cirq.q(0, 0), cirq.q(0, 1)
     gate = adg.AnalogDetuneCouplerOnly(
         length=sympy.Symbol('l'), w=10 * tu.ns, g_0=5 * tu.MHz, g_max=20 * tu.MHz
@@ -218,6 +218,6 @@ def test_analog_detune_coupler_circuit_diagram():
     )
 
 
-def test_analog_detune_coupler_jsonify():
+def test_analog_detune_coupler_jsonify() -> None:
     gate = adg.AnalogDetuneCouplerOnly(length=sympy.Symbol('l'), w=10, g_0=5, g_max=20)
     assert gate == cirq.read_json(json_text=cirq.to_json(gate))

@@ -60,6 +60,7 @@ class AnalogDetuneQubit(cirq.ops.Gate):
         linear_rise: bool = True,
     ):
         """Inits AnalogDetuneQubit.
+
         Args:
             length: The duration of gate.
             w: Width of the step envelope raising edge.
@@ -214,6 +215,25 @@ class AnalogDetuneCouplerOnly(cirq.ops.Gate):
         interpolate_coupling_cal: bool = True,
         analog_cal_for_pulseshaping: bool = False,
     ):
+        """Inits AnalogDetuneCouplerOnly.
+
+        Args:
+            length: The duration of gate.
+            w: Width of the step envelope raising edge.
+            g_0: The pulse shape is specified with the equation g(t) = g_0+A*t^g_exp.
+                where g(0)=g_0 and g(w)=g_max. The ramp is according to the power law
+                with exponent specified by g_ramp_exponent.
+            g_max: See g_0.
+            g_ramp_exponent: See g_0.
+            neighbor_qubits_freq: Two frequency of the neighbor qubits at the moment.
+                If the provided value is None, we assume neighbor qubits are at idle freq.
+            prev_neighbor_qubits_freq: Two frequency of the neighbor qubits at preivous moment.
+            interpolate_coupling_cal: If true, find the required amp for the coupling strength
+                through interpolation. If not true, require all coupling strength has associated
+                amp calibrated in the registry.
+            analog_cal_for_pulseshaping: If ture, using the analog model instead of
+                standard transmon model to find the amp of pulse.
+        """
         self.length = length
         self.w = w
         self.g_0 = g_0
@@ -270,7 +290,7 @@ class AnalogDetuneCouplerOnly(cirq.ops.Gate):
 
     def _resolve_parameters_(
         self, resolver: cirq.ParamResolverOrSimilarType, recursive: bool
-    ) -> AnalogDetuneQubit:
+    ) -> AnalogDetuneCouplerOnly:
         resolver_ = cirq.ParamResolver(resolver)
         return AnalogDetuneCouplerOnly(
             length=su.direct_symbol_replacement(self.length, resolver_),
