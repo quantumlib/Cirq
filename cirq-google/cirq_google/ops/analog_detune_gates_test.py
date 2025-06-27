@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import textwrap
+
 import pytest
 import sympy
 import tunits as tu
@@ -215,6 +217,18 @@ def test_analog_detune_coupler_circuit_diagram() -> None:
     cirq.testing.assert_has_diagram(
         cirq.Circuit(gate.on(q1, q2)),
         "c(q(0, 0),q(0, 1)): ───AnalogDetuneCouplerOnly(length=l, g_max=None)───",
+    )
+
+    q3, q4 = cirq.q(0, 2), cirq.q(0, 3)
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(gate.on_each((q1, q2), (q3, q4))),
+        textwrap.dedent(
+            """
+        c(q(0, 0),q(0, 1)): ───AnalogDetuneCouplerOnly(length=l, g_max=None)───
+        
+        c(q(0, 2),q(0, 3)): ───AnalogDetuneCouplerOnly(length=l, g_max=None)───
+        """
+        ),
     )
 
 
