@@ -764,7 +764,7 @@ class CircuitSerializer(serializer.Serializer):
                     constants=constants,
                     deserialized_constants=deserialized_constants,
                 )
-                if sub_gate is None or subgate.gate is None:
+                if sub_gate is None or sub_gate.gate is None:
                     raise ValueError(
                         "Not a valid gate for RandomGateChannel: " f"{operation_proto}"
                     )  # pragma: nocover
