@@ -1172,7 +1172,7 @@ class AbstractCircuit(abc.ABC):
         *,
         use_unicode_characters: bool = True,
         transpose: bool = False,
-        include_tags: bool = True,
+        include_tags: bool | Iterable[type] = True,
         precision: int | None = 3,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ) -> str:
@@ -1182,7 +1182,10 @@ class AbstractCircuit(abc.ABC):
             use_unicode_characters: Determines if unicode characters are
                 allowed (as opposed to ascii-only diagrams).
             transpose: Arranges qubit wires vertically instead of horizontally.
-            include_tags: Whether tags on TaggedOperations should be printed
+            include_tags: Controls which tags attached to operations are
+                included. ``True`` includes all tags, ``False`` includes none,
+                or a collection of tag classes may be specified to include only
+                those tags.
             precision: Number of digits to display in text diagram
             qubit_order: Determines how qubits are ordered in the diagram.
 
@@ -1209,7 +1212,7 @@ class AbstractCircuit(abc.ABC):
         use_unicode_characters: bool = True,
         qubit_namer: Callable[[cirq.Qid], str] | None = None,
         transpose: bool = False,
-        include_tags: bool = True,
+        include_tags: bool | Iterable[type] = True,
         draw_moment_groups: bool = True,
         precision: int | None = 3,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -1224,7 +1227,10 @@ class AbstractCircuit(abc.ABC):
                 allowed (as opposed to ascii-only diagrams).
             qubit_namer: Names qubits in diagram. Defaults to using _circuit_diagram_info_ or str.
             transpose: Arranges qubit wires vertically instead of horizontally.
-            include_tags: Whether to include tags in the operation.
+            include_tags: Controls which tags attached to operations are
+                included. ``True`` includes all tags, ``False`` includes none,
+                or a collection of tag classes may be specified to include only
+                those tags.
             draw_moment_groups: Whether to draw moment symbol or not
             precision: Number of digits to use when representing numbers.
             qubit_order: Determines how qubits are ordered in the diagram.
@@ -2534,7 +2540,7 @@ def _draw_moment_annotations(
     get_circuit_diagram_info: Callable[
         [cirq.Operation, cirq.CircuitDiagramInfoArgs], cirq.CircuitDiagramInfo
     ],
-    include_tags: bool,
+    include_tags: bool | Iterable[type],
     first_annotation_row: int,
     transpose: bool,
 ):
@@ -2566,7 +2572,7 @@ def _draw_moment_in_diagram(
     get_circuit_diagram_info: (
         Callable[[cirq.Operation, cirq.CircuitDiagramInfoArgs], cirq.CircuitDiagramInfo] | None
     ),
-    include_tags: bool,
+    include_tags: bool | Iterable[type],
     first_annotation_row: int,
     transpose: bool,
 ):
@@ -2637,8 +2643,16 @@ def _draw_moment_in_diagram(
         desc = _formatted_phase(global_phase, use_unicode_characters, precision)
         if desc:
             y = max(label_map.values(), default=0) + 1
-            if tags and include_tags:
-                desc = desc + f"[{', '.join(map(str, tags))}]"
+            visible_tags = protocols.CircuitDiagramInfoArgs(
+                known_qubits=None,
+                known_qubit_count=None,
+                use_unicode_characters=True,
+                precision=None,
+                label_map=None,
+                include_tags=include_tags,
+            ).tags_to_include(tags)
+            if visible_tags:
+                desc = desc + f"[{', '.join(map(str, visible_tags))}]"
             out_diagram.write(x0, y, desc)
 
     if not non_global_ops:
