@@ -25,15 +25,15 @@ from matplotlib import pyplot as plt
 # this is for older systems with matplotlib <3.2 otherwise 3d projections fail
 from scipy.optimize import curve_fit
 
+
 import cirq.vis.heatmap as cirq_heatmap
 import cirq.vis.histogram as cirq_histogram
 from cirq import circuits, ops, protocols
 from cirq.devices import grid_qubit
-from cirq.protocols import measurement_key_names
 
 if TYPE_CHECKING:
     from mpl_toolkits import mplot3d
-    
+
     import cirq
 
 
@@ -528,7 +528,7 @@ def single_qubit_state_tomography(
     Returns:
         A TomographyResult object that stores and plots the density matrix.
     """
-    keys = measurement_key_names(circuit)
+    keys = protocols.measurement_key_names(circuit)
     tomo_key = "tomo_key"
     while tomo_key in keys:
         tomo_key = f"tomo_key{uuid.uuid4().hex}"
