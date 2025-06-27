@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import random
+from typing import Iterator
 
 import pytest
 
@@ -23,7 +24,7 @@ import cirq.contrib.acquaintance as cca
 import cirq.testing as ct
 
 
-def test_swap_permutation_gate():
+def test_swap_permutation_gate() -> None:
     no_decomp = lambda op: (isinstance(op, cirq.GateOperation) and op.gate == cirq.SWAP)
     a, b = cirq.NamedQubit('a'), cirq.NamedQubit('b')
     gate = cca.SwapPermutationGate()
@@ -42,7 +43,7 @@ def test_swap_permutation_gate():
         cirq.commutes(gate, cirq.CCZ)
 
 
-def test_validate_permutation_errors():
+def test_validate_permutation_errors() -> None:
     validate_permutation = cca.PermutationGate.validate_permutation
     validate_permutation({})
 
@@ -59,7 +60,7 @@ def test_validate_permutation_errors():
     assert cirq.circuit_diagram_info(gate, default=None) is None
 
 
-def test_diagram():
+def test_diagram() -> None:
     gate = cca.SwapPermutationGate()
     a, b = cirq.NamedQubit('a'), cirq.NamedQubit('b')
     circuit = cirq.Circuit([gate(a, b)])
@@ -72,17 +73,19 @@ b: ───1↦0───
     assert actual_text_diagram == expected_text_diagram
 
 
-def test_update_mapping():
+def test_update_mapping() -> None:
     gate = cca.SwapPermutationGate()
     a, b, c = (cirq.NamedQubit(s) for s in 'abc')
+    mapping: dict[cirq.Qid, int]
     mapping = {s: i for i, s in enumerate((a, b, c))}
     ops = [gate(a, b), gate(b, c)]
     cca.update_mapping(mapping, ops)
     assert mapping == {a: 1, b: 2, c: 0}
 
 
-def test_get_logical_operations():
+def test_get_logical_operations() -> None:
     a, b, c, d = qubits = cirq.LineQubit.range(4)
+    mapping: dict[cirq.Qid, cirq.Qid]
     mapping = dict(zip(qubits, qubits))
     operations = [
         cirq.ZZ(a, b),
@@ -106,7 +109,7 @@ def test_get_logical_operations():
         for n_elements in (random.randint(5, 20) for _ in range(20))
     ),
 )
-def test_linear_permutation_gate(n_elements, n_permuted):
+def test_linear_permutation_gate(n_elements, n_permuted) -> None:
     qubits = cirq.LineQubit.range(n_elements)
     elements = tuple(range(n_elements))
     elements_to_permute = random.sample(elements, n_permuted)
@@ -116,16 +119,18 @@ def test_linear_permutation_gate(n_elements, n_permuted):
     gate = cca.LinearPermutationGate(n_elements, permutation)
     ct.assert_equivalent_repr(gate)
     assert gate.permutation() == permutation
+    mapping: dict[cirq.Qid, int]
     mapping = dict(zip(qubits, elements))
     for swap in cirq.flatten_op_tree(cirq.decompose_once_with_qubits(gate, qubits)):
         assert isinstance(swap, cirq.GateOperation)
+        assert isinstance(swap.gate, cca.PermutationGate)
         swap.gate.update_mapping(mapping, swap.qubits)
     for i in range(n_elements):
         p = permutation.get(elements[i], i)
         assert mapping.get(qubits[p], elements[i]) == i
 
 
-def random_equal_permutations(n_perms, n_items, prob):
+def random_equal_permutations(n_perms, n_items, prob) -> list[dict[int, int]]:
     indices_to_permute = [i for i in range(n_items) if random.random() <= prob]
     permuted_indices = random.sample(indices_to_permute, len(indices_to_permute))
     base_permutation = dict(zip(indices_to_permute, permuted_indices))
@@ -138,7 +143,9 @@ def random_equal_permutations(n_perms, n_items, prob):
     return permutations
 
 
-def random_permutation_equality_groups(n_groups, n_perms_per_group, n_items, prob):
+def random_permutation_equality_groups(
+    n_groups, n_perms_per_group, n_items, prob
+) -> Iterator[list[dict[int, int]]]:
     fingerprints = set()
     for _ in range(n_groups):
         perms = random_equal_permutations(n_perms_per_group, n_items, prob)
@@ -150,7 +157,7 @@ def random_permutation_equality_groups(n_groups, n_perms_per_group, n_items, pro
 
 
 @pytest.mark.parametrize('permutation_sets', [random_permutation_equality_groups(5, 3, 10, 0.5)])
-def test_linear_permutation_gate_equality(permutation_sets):
+def test_linear_permutation_gate_equality(permutation_sets) -> None:
     swap_gates = [cirq.SWAP, cirq.CNOT]
     equals_tester = ct.EqualsTester()
     for swap_gate in swap_gates:
@@ -163,7 +170,7 @@ def test_linear_permutation_gate_equality(permutation_sets):
             )
 
 
-def test_linear_permutation_gate_pow_not_implemented():
+def test_linear_permutation_gate_pow_not_implemented() -> None:
     permutation_gate = cca.LinearPermutationGate(3, {0: 1, 1: 2, 2: 0})
 
     assert permutation_gate.__pow__(0) is NotImplemented
@@ -183,7 +190,7 @@ def test_linear_permutation_gate_pow_not_implemented():
         (4, {0: 3, 1: 2, 2: 1, 3: 0}),
     ],
 )
-def test_linear_permutation_gate_pow_identity(num_qubits, permutation):
+def test_linear_permutation_gate_pow_identity(num_qubits, permutation) -> None:
     permutation_gate = cca.LinearPermutationGate(num_qubits, permutation)
 
     assert permutation_gate**1 == permutation_gate
@@ -199,7 +206,7 @@ def test_linear_permutation_gate_pow_identity(num_qubits, permutation):
         (4, {0: 3, 1: 2, 2: 1, 3: 0}, {0: 3, 1: 2, 2: 1, 3: 0}),
     ],
 )
-def test_linear_permutation_gate_pow_inverse(num_qubits, permutation, inverse):
+def test_linear_permutation_gate_pow_inverse(num_qubits, permutation, inverse) -> None:
     permutation_gate = cca.LinearPermutationGate(num_qubits, permutation)
     inverse_gate = cca.LinearPermutationGate(num_qubits, inverse)
 
@@ -207,7 +214,7 @@ def test_linear_permutation_gate_pow_inverse(num_qubits, permutation, inverse):
     assert cirq.inverse(permutation_gate) == inverse_gate
 
 
-def test_display_mapping():
+def test_display_mapping() -> None:
     indices = [4, 2, 0, 1, 3]
     qubits = cirq.LineQubit.range(len(indices))
     circuit = cca.complete_acquaintance_strategy(qubits, 2)
@@ -238,7 +245,7 @@ def test_display_mapping():
         for _ in range(4)
     ],
 )
-def test_return_to_initial_mapping(circuit):
+def test_return_to_initial_mapping(circuit) -> None:
     qubits = sorted(circuit.all_qubits())
     cca.return_to_initial_mapping(circuit)
     initial_mapping = {q: i for i, q in enumerate(qubits)}
@@ -247,7 +254,7 @@ def test_return_to_initial_mapping(circuit):
     assert mapping == initial_mapping
 
 
-def test_uses_consistent_swap_gate():
+def test_uses_consistent_swap_gate() -> None:
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit([cca.SwapPermutationGate()(a, b), cca.SwapPermutationGate()(a, b)])
     assert cca.uses_consistent_swap_gate(circuit, cirq.SWAP)
@@ -264,7 +271,7 @@ def test_uses_consistent_swap_gate():
     assert not cca.uses_consistent_swap_gate(circuit, cirq.CZ)
 
 
-def test_swap_gate_eq():
+def test_swap_gate_eq() -> None:
     assert cca.SwapPermutationGate() == cca.SwapPermutationGate(cirq.SWAP)
     assert cca.SwapPermutationGate() != cca.SwapPermutationGate(cirq.CZ)
     assert cca.SwapPermutationGate(cirq.CZ) == cca.SwapPermutationGate(cirq.CZ)
@@ -278,5 +285,5 @@ def test_swap_gate_eq():
         cca.SwapPermutationGate(cirq.CZ),
     ],
 )
-def test_swap_gate_repr(gate):
+def test_swap_gate_repr(gate) -> None:
     cirq.testing.assert_equivalent_repr(gate)

@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import json
+from typing import Any, Self
 from unittest import mock
 
 import numpy as np
@@ -33,11 +34,11 @@ class GetResultReturn:
         self.test_dict = {'job': {'job_id': '2131da'}, 'response': {'status': 'queued'}}
         self.counter = 0
 
-    def json(self):
+    def json(self) -> dict[str, Any]:
         self.counter += 1
         return self.test_dict
 
-    def update(self, *args, **kwargs):
+    def update(self, *args, **kwargs) -> Self:
         return self
 
 
@@ -55,7 +56,7 @@ class GetResultNoStatus(GetResultReturn):
     """A put mock class for testing error responses
     This will not return a status in the second call"""
 
-    def update(self, *args, **kwargs):
+    def update(self, *args, **kwargs) -> Self:
         del self.test_dict['response']['status']
         return self
 
@@ -64,14 +65,14 @@ class GetResultErrorSecond(GetResultReturn):
     """A put mock class for testing error responses
     This will return an error on the second put call"""
 
-    def update(self, *args, **kwargs):
+    def update(self, *args, **kwargs) -> Self:
         if self.counter >= 1:
             self.test_dict['response']['status'] = 'error'
         return self
 
 
 class SubmitGoodResponse:
-    def json(self):
+    def json(self) -> dict[str, Any]:
         return {"job": {"job_id": "test_job"}, "response": {"status": "queued"}}
 
 
@@ -79,7 +80,7 @@ class SubmitResultNoID:
     """A put mock class for testing error responses
     This will not return an id at the first call"""
 
-    def json(self):
+    def json(self) -> dict[str, Any]:
         return {"job": {}, "response": {"status": "queued"}}
 
 
@@ -87,7 +88,7 @@ class SubmitResultNoStatus:
     """A put mock class for testing error responses
     This will not return an id at the first call"""
 
-    def json(self):
+    def json(self) -> dict[str, Any]:
         return {"job": {"job_id": "test_job"}, "response": {}}
 
 
@@ -95,11 +96,11 @@ class SubmitResultWithError:
     """A put mock class for testing error responses
     This will not return an id at the first call"""
 
-    def json(self):
+    def json(self) -> dict[str, Any]:
         return {"job": {"job_id": "test_job"}, "response": {"status": "error"}}
 
 
-def test_aqt_sampler_submit_job_error_handling():
+def test_aqt_sampler_submit_job_error_handling() -> None:
     for e_return in [SubmitResultNoID(), SubmitResultNoStatus(), SubmitResultWithError()]:
         with (
             mock.patch('cirq_aqt.aqt_sampler.post', return_value=e_return),
@@ -119,7 +120,7 @@ def test_aqt_sampler_submit_job_error_handling():
                 _results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions)
 
 
-def test_aqt_sampler_get_result_error_handling():
+def test_aqt_sampler_get_result_error_handling() -> None:
     for e_return in [GetResultError(), GetResultErrorSecond(), GetResultNoStatus()]:
         with (
             mock.patch('cirq_aqt.aqt_sampler.post', return_value=SubmitGoodResponse()),
@@ -141,7 +142,7 @@ def test_aqt_sampler_get_result_error_handling():
                 _results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions)
 
 
-def test_aqt_sampler_empty_circuit():
+def test_aqt_sampler_empty_circuit() -> None:
     num_points = 10
     max_angle = np.pi
     repetitions = 1000
@@ -155,7 +156,7 @@ def test_aqt_sampler_empty_circuit():
         _results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions)
 
 
-def test_aqt_sampler():
+def test_aqt_sampler() -> None:
     class ResultReturn:
         def __init__(self):
             self.request_counter = 0
@@ -200,7 +201,7 @@ def test_aqt_sampler():
     assert result_method.call_count == 3
 
 
-def test_aqt_sampler_sim():
+def test_aqt_sampler_sim() -> None:
     theta = sympy.Symbol('theta')
     num_points = 10
     max_angle = np.pi
@@ -228,7 +229,7 @@ def test_aqt_sampler_sim():
     assert excited_state_probs[-1] == 0.25
 
 
-def test_aqt_sampler_sim_xtalk():
+def test_aqt_sampler_sim_xtalk() -> None:
     num_points = 10
     max_angle = np.pi
     repetitions = 100
@@ -249,7 +250,7 @@ def test_aqt_sampler_sim_xtalk():
     _results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions)
 
 
-def test_aqt_sampler_ms():
+def test_aqt_sampler_ms() -> None:
     repetitions = 1000
     num_qubits = 4
     _, qubits = get_aqt_device(num_qubits)
@@ -264,7 +265,7 @@ def test_aqt_sampler_ms():
     assert hist[0] > repetitions / 3
 
 
-def test_aqt_device_wrong_op_str():
+def test_aqt_device_wrong_op_str() -> None:
     circuit = cirq.Circuit()
     q0, q1 = cirq.LineQubit.range(2)
     circuit.append(cirq.CNOT(q0, q1) ** 1.0)

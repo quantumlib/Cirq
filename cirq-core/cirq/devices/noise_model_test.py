@@ -25,13 +25,15 @@ from cirq.devices.noise_model import validate_all_measurements
 from cirq.testing import assert_equivalent_op_tree
 
 
-def assert_equivalent_op_tree_sequence(x: Sequence[cirq.OP_TREE], y: Sequence[cirq.OP_TREE]):
+def assert_equivalent_op_tree_sequence(
+    x: Sequence[cirq.OP_TREE], y: Sequence[cirq.OP_TREE]
+) -> None:
     assert len(x) == len(y)
     for a, b in zip(x, y):
         assert_equivalent_op_tree(a, b)
 
 
-def test_requires_one_override():
+def test_requires_one_override() -> None:
     class C(cirq.NoiseModel):
         pass
 
@@ -39,7 +41,7 @@ def test_requires_one_override():
         _ = C()
 
 
-def test_infers_other_methods():
+def test_infers_other_methods() -> None:
     q = cirq.LineQubit(0)
 
     class NoiseModelWithNoisyMomentListMethod(cirq.NoiseModel):
@@ -93,7 +95,7 @@ def test_infers_other_methods():
     )
 
 
-def test_no_noise():
+def test_no_noise() -> None:
     q = cirq.LineQubit(0)
     m = cirq.Moment([cirq.X(q)])
     assert cirq.NO_NOISE.noisy_operation(cirq.X(q)) == cirq.X(q)
@@ -104,7 +106,7 @@ def test_no_noise():
     cirq.testing.assert_equivalent_repr(cirq.NO_NOISE)
 
 
-def test_constant_qubit_noise():
+def test_constant_qubit_noise() -> None:
     a, b, c = cirq.LineQubit.range(3)
     damp = cirq.amplitude_damp(0.5)
     damp_all = cirq.ConstantQubitNoiseModel(damp)
@@ -126,7 +128,7 @@ def test_constant_qubit_noise():
         _ = cirq.ConstantQubitNoiseModel(cirq.CNOT**0.01)
 
 
-def test_constant_qubit_noise_prepend():
+def test_constant_qubit_noise_prepend() -> None:
     a, b, c = cirq.LineQubit.range(3)
     damp = cirq.amplitude_damp(0.5)
     damp_all = cirq.ConstantQubitNoiseModel(damp, prepend=True)
@@ -145,7 +147,7 @@ def test_constant_qubit_noise_prepend():
     cirq.testing.assert_equivalent_repr(damp_all)
 
 
-def test_noise_composition():
+def test_noise_composition() -> None:
     # Verify that noise models can be composed without regard to ordering, as
     # long as the noise operators commute with one another.
     a, b, c = cirq.LineQubit.range(3)
@@ -174,11 +176,11 @@ def test_noise_composition():
     assert_equivalent_op_tree(actual_zs, expected_circuit)
 
 
-def test_constant_qubit_noise_repr():
+def test_constant_qubit_noise_repr() -> None:
     cirq.testing.assert_equivalent_repr(cirq.ConstantQubitNoiseModel(cirq.X**0.01))
 
 
-def test_wrap():
+def test_wrap() -> None:
     class Forget(cirq.NoiseModel):
         def noisy_operation(self, operation):
             raise NotImplementedError()
@@ -195,13 +197,13 @@ def test_wrap():
     assert cirq.NoiseModel.from_noise_model_like(forget) is forget
 
     with pytest.raises(TypeError, match='Expected a NOISE_MODEL_LIKE'):
-        _ = cirq.NoiseModel.from_noise_model_like('test')
+        _ = cirq.NoiseModel.from_noise_model_like('test')  # type: ignore[arg-type]
 
     with pytest.raises(ValueError, match='Multi-qubit gate'):
         _ = cirq.NoiseModel.from_noise_model_like(cirq.CZ**0.01)
 
 
-def test_gate_substitution_noise_model():
+def test_gate_substitution_noise_model() -> None:
     def _overrotation(op):
         if isinstance(op.gate, cirq.XPowGate):
             return cirq.XPowGate(exponent=op.gate.exponent + 0.1).on(*op.qubits)
@@ -217,14 +219,14 @@ def test_gate_substitution_noise_model():
     np.testing.assert_allclose(rho1, rho2)
 
 
-def test_moment_is_measurements():
+def test_moment_is_measurements() -> None:
     q = cirq.LineQubit.range(2)
     circ = cirq.Circuit([cirq.X(q[0]), cirq.X(q[1]), cirq.measure(*q, key='z')])
     assert not validate_all_measurements(circ[0])
     assert validate_all_measurements(circ[1])
 
 
-def test_moment_is_measurements_mixed1():
+def test_moment_is_measurements_mixed1() -> None:
     q = cirq.LineQubit.range(2)
     circ = cirq.Circuit([cirq.X(q[0]), cirq.X(q[1]), cirq.measure(q[0], key='z'), cirq.Z(q[1])])
     assert not validate_all_measurements(circ[0])
@@ -233,7 +235,7 @@ def test_moment_is_measurements_mixed1():
     assert e.match(".*must be homogeneous: all measurements.*")
 
 
-def test_moment_is_measurements_mixed2():
+def test_moment_is_measurements_mixed2() -> None:
     q = cirq.LineQubit.range(2)
     circ = cirq.Circuit([cirq.X(q[0]), cirq.X(q[1]), cirq.Z(q[0]), cirq.measure(q[1], key='z')])
     assert not validate_all_measurements(circ[0])

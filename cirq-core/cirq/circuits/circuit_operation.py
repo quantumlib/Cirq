@@ -648,7 +648,7 @@ class CircuitOperation(ops.Operation):
     def __pow__(self, power: IntParam) -> cirq.CircuitOperation:
         return self.repeat(power)
 
-    def _with_key_path_(self, path: tuple[str, ...]):
+    def _with_key_path_(self, path: tuple[str, ...]) -> cirq.CircuitOperation:
         return self.replace(parent_path=path)
 
     def _with_key_path_prefix_(self, prefix: tuple[str, ...]):
@@ -667,7 +667,7 @@ class CircuitOperation(ops.Operation):
         path += self.parent_path
         return self.replace(parent_path=path, extern_keys=bindable_keys)
 
-    def with_key_path(self, path: tuple[str, ...]):
+    def with_key_path(self, path: tuple[str, ...]) -> cirq.CircuitOperation:
         """Alias for `cirq.with_key_path(self, path)`.
 
         Args:

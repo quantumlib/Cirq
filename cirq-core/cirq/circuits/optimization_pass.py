@@ -126,7 +126,7 @@ class PointOptimizer:
             change should be made.
         """
 
-    def optimize_circuit(self, circuit: cirq.Circuit):
+    def optimize_circuit(self, circuit: cirq.Circuit) -> None:
         frontier: dict[cirq.Qid, int] = defaultdict(lambda: 0)
         i = 0
         while i < len(circuit):  # Note: circuit may mutate as we go.

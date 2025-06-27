@@ -24,7 +24,7 @@ class RabiCalibration:
     params = ([50, 100, 150, 200], [20, 40, 60, 80, 100])
     param_names = ["num_qubits", "num_scan_points"]
 
-    def setup(self, num_qubits: int, _):
+    def setup(self, num_qubits: int, _) -> None:
         qubits = cirq.GridQubit.rect(1, num_qubits)
         self.symbols = {q: sympy.Symbol(f'a_{q}') for q in qubits}
         self.circuit = cirq.Circuit(
@@ -32,7 +32,7 @@ class RabiCalibration:
         )
         self.qubit_amps = {q: random.uniform(0.48, 0.52) for q in qubits}
 
-    def time_parameter_resolution(self, _, num_scan_points: int):
+    def time_parameter_resolution(self, _, num_scan_points: int) -> None:
         for diff in np.linspace(-0.3, 0.3, num=num_scan_points):
             resolver = {self.symbols[q]: amp + diff for q, amp in self.qubit_amps.items()}
             _ = cirq.resolve_parameters(self.circuit, resolver)

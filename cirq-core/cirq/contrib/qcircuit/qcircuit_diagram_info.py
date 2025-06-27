@@ -17,7 +17,7 @@ from __future__ import annotations
 from cirq import ops, protocols
 
 
-def escape_text_for_latex(text):
+def escape_text_for_latex(text: str) -> str:
     escaped = (
         text.replace('\\', r'\textbackslash{}')
         .replace('{', r'\{')

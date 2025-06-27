@@ -807,7 +807,7 @@ class AbstractCircuit(abc.ABC):
             gate_op = cast(ops.GateOperation, op)
             yield index, gate_op, cast(_TGate, gate_op.gate)
 
-    def has_measurements(self):
+    def has_measurements(self) -> bool:
         """Returns whether or not this circuit has measurements.
 
         Returns: True if `cirq.is_measurement(self)` is True otherwise False.
@@ -2446,7 +2446,9 @@ class Circuit(AbstractCircuit):
         """
         self.insert(len(self._moments), moment_or_operation_tree, strategy)
 
-    def clear_operations_touching(self, qubits: Iterable[cirq.Qid], moment_indices: Iterable[int]):
+    def clear_operations_touching(
+        self, qubits: Iterable[cirq.Qid], moment_indices: Iterable[int]
+    ) -> None:
         """Clears operations that are touching given qubits at given moments.
 
         Args:

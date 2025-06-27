@@ -20,7 +20,7 @@ class MapLargeExpandedCircuit:
     params = ([100, 500, 1000], [100, 1000, 4000])
     timeout = 600  # Change timeout to 2 minutes instead of default 60 seconds.
 
-    def setup(self, num_qubits: int, num_moments: int):
+    def setup(self, num_qubits: int, num_moments: int) -> None:
         qubits = cirq.LineQubit.range(num_qubits)
         one_q_x_moment = cirq.Moment(cirq.X(q) for q in qubits[::2])
         one_q_y_moment = cirq.Moment(cirq.Y(q) for q in qubits[1::2])
@@ -32,7 +32,7 @@ class MapLargeExpandedCircuit:
             [one_q_x_moment, two_q_cx_moment, one_q_y_moment, two_q_cz_moment] * (num_moments // 4)
         )
 
-    def time_map_moments(self, num_qubits: int, _):
+    def time_map_moments(self, num_qubits: int, _) -> None:
         all_qubits = cirq.LineQubit.range(num_qubits)
 
         def map_func(m: cirq.Moment, _) -> cirq.Moment:
@@ -46,19 +46,19 @@ class MapLargeExpandedCircuit:
 
         _ = cirq.map_moments(circuit=self.circuit, map_func=map_func)
 
-    def time_map_operations_apply_tag(self, *_):
+    def time_map_operations_apply_tag(self, *_) -> None:
         def map_func(op: cirq.Operation, _) -> cirq.Operation:
             return op.with_tags("old op")
 
         _ = cirq.map_operations(circuit=self.circuit, map_func=map_func)
 
-    def time_map_operations_to_optree(self, *_):
+    def time_map_operations_to_optree(self, *_) -> None:
         def map_func(op: cirq.Operation, _) -> cirq.OP_TREE:
             return [op, op]
 
         _ = cirq.map_operations(circuit=self.circuit, map_func=map_func)
 
-    def time_map_operations_to_optree_and_unroll(self, *_):
+    def time_map_operations_to_optree_and_unroll(self, *_) -> None:
         def map_func(op: cirq.Operation, _) -> cirq.OP_TREE:
             return [op, op]
 

@@ -21,14 +21,14 @@ import cirq
 import cirq.contrib.bayesian_network as ccb
 
 
-def test_basic_properties():
+def test_basic_properties() -> None:
     gate = ccb.BayesianNetworkGate([('q0', None), ('q1', None), ('q2', None)], [])
 
     assert gate._has_unitary_()
     assert gate._qid_shape_() == (2, 2, 2)
 
 
-def test_incorrect_constructor():
+def test_incorrect_constructor() -> None:
     # Success building.
     ccb.BayesianNetworkGate([('q0', 0.0), ('q1', None)], [('q1', ('q0',), [0.0, 0.0])])
 
@@ -37,7 +37,9 @@ def test_incorrect_constructor():
 
     # This is an easy mistake where the tuple for q0 doesn't have the comma at the end.
     with pytest.raises(ValueError, match='Conditional prob params must be a tuple.'):
-        ccb.BayesianNetworkGate([('q0', 0.0), ('q1', None)], [('q1', ('q0'), [0.0, 0.0])])
+        ccb.BayesianNetworkGate(
+            [('q0', 0.0), ('q1', None)], [('q1', ('q0'), [0.0, 0.0])]  # type: ignore
+        )
 
     with pytest.raises(ValueError, match='Incorrect number of conditional probs.'):
         ccb.BayesianNetworkGate([('q0', 0.0), ('q1', None)], [('q1', ('q0',), [0.0])])
@@ -46,7 +48,7 @@ def test_incorrect_constructor():
         ccb.BayesianNetworkGate([('q0', 0.0), ('q1', None)], [('q1', ('q0',), [2016.0913, 0.0])])
 
 
-def test_repr():
+def test_repr() -> None:
     gate = ccb.BayesianNetworkGate([('q0', 0.0), ('q1', None)], [('q1', ('q0',), [0.0, 0.0])])
 
     assert repr(gate) == (
@@ -56,7 +58,7 @@ def test_repr():
 
 
 @pytest.mark.parametrize('input_prob', [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
-def test_prob_encoding(input_prob):
+def test_prob_encoding(input_prob) -> None:
     q = cirq.NamedQubit('q')
     gate = ccb.BayesianNetworkGate([('q', input_prob)], [])
     circuit = cirq.Circuit(gate.on(q))
@@ -82,7 +84,7 @@ def test_prob_encoding(input_prob):
     ],
 )
 @pytest.mark.parametrize('decompose', [True, False])
-def test_initial_probs(p0, p1, p2, expected_probs, decompose):
+def test_initial_probs(p0, p1, p2, expected_probs, decompose) -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     gate = ccb.BayesianNetworkGate([('q0', p0), ('q1', p1), ('q2', p2)], [])
     if decompose:
@@ -102,7 +104,7 @@ def test_initial_probs(p0, p1, p2, expected_probs, decompose):
     [(0.0, 0.0, 0.1), (0.0, 1.0, 0.2), (1.0, 0.0, 0.3), (1.0, 1.0, 0.4)],
 )
 @pytest.mark.parametrize('decompose', [True, False])
-def test_arc_probs(input_prob_q0, input_prob_q1, expected_prob_q2, decompose):
+def test_arc_probs(input_prob_q0, input_prob_q1, expected_prob_q2, decompose) -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     gate = ccb.BayesianNetworkGate(
         [('q0', input_prob_q0), ('q1', input_prob_q1), ('q2', None)],
@@ -122,7 +124,7 @@ def test_arc_probs(input_prob_q0, input_prob_q1, expected_prob_q2, decompose):
     np.testing.assert_almost_equal(actual_prob_q2_is_one, expected_prob_q2, decimal=4)
 
 
-def test_repro_figure_10_of_paper():
+def test_repro_figure_10_of_paper() -> None:
     # We try to create the network of figure 10 and check that the probabilities are the same as
     # the ones in table 10 of https://arxiv.org/abs/2004.14803.
     ir = cirq.NamedQubit('q4_IR')

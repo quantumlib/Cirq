@@ -131,6 +131,6 @@ class XOnAllQubitsCircuit:
     params = [[1, 10, 100, 1000], [1, 10, 100, 1000]]
     param_names = ["Number of Qubits(N)", "Depth(D)"]
 
-    def time_circuit_construction(self, N: int, D: int):
+    def time_circuit_construction(self, N: int, D: int) -> cirq.Circuit:
         q = cirq.LineQubit.range(N)
         return cirq.Circuit(cirq.Moment(cirq.X.on_each(*q)) for _ in range(D))
