@@ -171,6 +171,7 @@ def test_single_qubit_state_tomography():
     np.testing.assert_almost_equal(act_rho_2, tar_rho_2, decimal=1)
     np.testing.assert_almost_equal(act_rho_3, tar_rho_3, decimal=1)
 
+
 def test_single_qubit_state_tomography_unique_key():
     # Checks if the key 'z' is already being used in the circuit, and if so picks a unique key
     sim = cirq.Simulator()
