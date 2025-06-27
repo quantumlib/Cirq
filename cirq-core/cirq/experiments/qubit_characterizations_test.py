@@ -171,6 +171,23 @@ def test_single_qubit_state_tomography():
     np.testing.assert_almost_equal(act_rho_2, tar_rho_2, decimal=1)
     np.testing.assert_almost_equal(act_rho_3, tar_rho_3, decimal=1)
 
+def test_single_qubit_state_tomography_unique_key():
+    # Checks if the key 'z' is already being used in the circuit, and if so picks a unique key
+    sim = cirq.Simulator()
+    qubits = cirq.LineQubit.range(2)
+
+    circuit_1 = cirq.Circuit(
+        cirq.H(qubits[0]),
+        cirq.H(qubits[1]),
+        cirq.measure(qubits[0], qubits[1], key='z')
+    )
+
+    result = single_qubit_state_tomography(sim, qubits[0], circuit_1, repetitions=1000)
+
+    act_rho_1 = result.data
+    tar_rho_1 = np.array([[ 0.527+0.j, -0.001-0.02j], [-0.001+0.02j, 0.473+0.j ]])
+    np.testing.assert_almost_equal(act_rho_1, tar_rho_1, decimal=1)
+
 
 def test_two_qubit_state_tomography():
     # Check that the density matrices of the four Bell states closely match
