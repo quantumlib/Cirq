@@ -1,0 +1,1 @@
+AnalogDetuneCouplerOnly(length=l, w=10 ns, g_0=5 MHz, g_max=g, g_ramp_exponent=1.0, neighbor_qubits_freq=(q, None), prev_neighbor_qubits_freq=(5, 6))
