@@ -177,15 +177,13 @@ def test_single_qubit_state_tomography_unique_key():
     qubits = cirq.LineQubit.range(2)
 
     circuit_1 = cirq.Circuit(
-        cirq.H(qubits[0]),
-        cirq.H(qubits[1]),
-        cirq.measure(qubits[0], qubits[1], key='z')
+        cirq.H(qubits[0]), cirq.H(qubits[1]), cirq.measure(qubits[0], qubits[1], key='z')
     )
 
     result = single_qubit_state_tomography(sim, qubits[0], circuit_1, repetitions=1000)
-
     act_rho_1 = result.data
-    tar_rho_1 = np.array([[ 0.527+0.j, -0.001-0.02j], [-0.001+0.02j, 0.473+0.j ]])
+    tar_rho_1 = np.array([[0.527 + 0.0j, -0.001 - 0.02j], [-0.001 + 0.02j, 0.473 + 0.0j]])
+
     np.testing.assert_almost_equal(act_rho_1, tar_rho_1, decimal=1)
 
 
