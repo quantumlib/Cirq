@@ -229,13 +229,21 @@ def test_tomography_plot_raises_for_incorrect_number_of_axes():
         result.plot(axes)
 
 
-def test_single_qubit_cliffords_gateset():
+@pytest.mark.parametrize('num_cliffords', range(5, 10))
+@pytest.mark.parametrize('use_xy_basis', [False, True])
+@pytest.mark.parametrize('xy_only', [False, True])
+@pytest.mark.parametrize('xz_only', [False, True])
+def test_single_qubit_cliffords_gateset(num_cliffords, use_xy_basis, xy_only, xz_only):
     qubits = [GridQubit(0, i) for i in range(4)]
-    clifford_group = cirq.experiments.qubit_characterizations._single_qubit_cliffords()
+    c1_in_xy = cirq.experiments.qubit_characterizations._gateset_selector(
+        use_xy_basis, xy_only, xz_only
+    )
     c = cirq.experiments.qubit_characterizations._create_parallel_rb_circuit(
-        qubits, 5, clifford_group.c1_in_xy
+        qubits, num_cliffords, c1_in_xy
     )
     device = cirq.testing.ValidatingTestDevice(
         qubits=qubits, allowed_gates=(cirq.ops.PhasedXZGate, cirq.MeasurementGate)
     )
     device.validate_circuit(c)
+
+    assert len(c) == num_cliffords + 2
