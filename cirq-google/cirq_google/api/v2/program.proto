@@ -215,8 +215,32 @@ message WaitGate {
   FloatArg duration_nanos = 1;
 }
 
+// Representation of cirq.DepolarizingChannel
+message DepolarizingChannel {
+  FloatArg probability = 1;
+  int32 num_qubits = 2;
+}
+
+// Representation of cirq.RandomGateChannel
+message RandomGateChannel {
+  FloatArg probability = 1;
+  Operation sub_gate = 2;
+}
+
+// Representation of noisy channels
+// These should only be used for serialization
+// of noisy circuits for simulation.
+// These channels would generally not be supported
+// by hardware.
+message NoiseChannel {
+  oneof channel_value {
+    DepolarizingChannel depolarizingchannel = 1;
+    RandomGateChannel randomgatechannel = 2;
+  }
+}
+
 // An operation acts on a set of qubits.
-// next available id = 27
+// next available id = 28
 message Operation {
   // Previously deprecated fields.  Do not use.
   reserved 1, 2;
@@ -241,6 +265,7 @@ message Operation {
     SingleQubitCliffordGate singlequbitcliffordgate = 21;
     ResetGate resetgate = 24;
     ISwapLikeGate iswaplikegate = 26;
+    NoiseChannel noisechannel = 27;
   }
 
   // Which qubits the operation acts on.
