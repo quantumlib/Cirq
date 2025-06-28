@@ -15,9 +15,10 @@
 """Define detuning gates for Analog Experiment usage."""
 from __future__ import annotations
 
-from typing import AbstractSet, Any, TYPE_CHECKING
+from typing import AbstractSet, Any, Iterable, TYPE_CHECKING
 
 import cirq
+from cirq_google.ops import coupler
 from cirq_google.study import symbol_util as su
 
 if TYPE_CHECKING:
@@ -59,6 +60,7 @@ class AnalogDetuneQubit(cirq.ops.Gate):
         linear_rise: bool = True,
     ):
         """Inits AnalogDetuneQubit.
+
         Args:
             length: The duration of gate.
             w: Width of the step envelope raising edge.
@@ -169,5 +171,182 @@ class AnalogDetuneQubit(cirq.ops.Gate):
                 'neighbor_coupler_g_dict',
                 'prev_neighbor_coupler_g_dict',
                 'linear_rise',
+            ],
+        )
+
+
+@cirq.value_equality(approximate=True)
+class AnalogDetuneCouplerOnly(cirq.ops.Gate):
+    """Set a coupler detuning from g_0 to g_max according to analog model.
+
+    The shape of pulse followed by the g=g_0+A*t^g_exp (1 gives linear ramp),
+    where the coefficient is auto calculated by the g_max.
+
+    Pulse shape:
+
+    .. svgbob::
+      :align: center
+
+            |   ,--------|---- amp_max (parsed from g_max)
+            |  /         |
+    amp_0---|-' - - - - -| - -
+    |
+    |       |-w -|       |
+    |       |---length --|
+    |
+    --------------------------(calculated from the g_0)
+    """
+
+    def __init__(
+        self,
+        length: su.ValueOrSymbol,
+        w: su.ValueOrSymbol,
+        g_0: su.ValueOrSymbol,
+        g_max: su.ValueOrSymbol,
+        g_ramp_exponent: cirq.TParamVal = 1.0,
+        neighbor_qubits_freq: tuple[su.ValueOrSymbol | None, su.ValueOrSymbol | None] = (
+            None,
+            None,
+        ),
+        prev_neighbor_qubits_freq: tuple[su.ValueOrSymbol | None, su.ValueOrSymbol | None] = (
+            None,
+            None,
+        ),
+        interpolate_coupling_cal: bool = True,
+        analog_cal_for_pulseshaping: bool = False,
+    ):
+        """Inits AnalogDetuneCouplerOnly.
+
+        Args:
+            length: The duration of gate.
+            w: Width of the step envelope raising edge.
+            g_0: The pulse shape is specified with the equation g(t) = g_0+A*t^g_exp.
+                where g(0)=g_0 and g(w)=g_max. The ramp is according to the power law
+                with exponent specified by g_ramp_exponent.
+            g_max: See g_0.
+            g_ramp_exponent: See g_0.
+            neighbor_qubits_freq: Two frequency of the neighbor qubits at the moment.
+                If the provided value is None, we assume neighbor qubits are at idle freq.
+            prev_neighbor_qubits_freq: Two frequency of the neighbor qubits at preivous moment.
+            interpolate_coupling_cal: If true, find the required amp for the coupling strength
+                through interpolation. If not true, require all coupling strength has associated
+                amp calibrated in the registry.
+            analog_cal_for_pulseshaping: If ture, using the analog model instead of
+                standard transmon model to find the amp of pulse.
+        """
+        self.length = length
+        self.w = w
+        self.g_0 = g_0
+        self.g_max = g_max
+        self.g_ramp_exponent = g_ramp_exponent
+        self.neighbor_qubits_freq = tuple(neighbor_qubits_freq)
+        self.prev_neighbor_qubits_freq = tuple(prev_neighbor_qubits_freq)
+        self.interpolate_coupling_cal = interpolate_coupling_cal
+        self.analog_cal_for_pulseshaping = analog_cal_for_pulseshaping
+
+    def _unitary_(self) -> np.ndarray:
+        return NotImplemented  # pragma: no cover
+
+    def on(self, *qubits: cirq.Qid) -> cirq.Operation:
+        """Returns an application of this gate to the given qubits.
+
+        Coupler gate will silently change two qubit Qids into
+        a single Coupler Qid object so that adjacent couplers
+        can be simultaneously acted on in the same moment.
+        """
+        if len(qubits) == 2:
+            return super().on(coupler.Coupler(qubits[0], qubits[1]))
+        else:
+            return super().on(*qubits)
+
+    def on_each(self, *targets: cirq.Qid | Iterable[Any]) -> list[cirq.Operation]:
+        """Returns a list of operations applying the gate to all targets."""
+        return [self.on(t) if isinstance(t, cirq.Qid) else self.on(*t) for t in targets]
+
+    def _num_qubits_(self) -> int:
+        return 1
+
+    def _is_parameterized_(self) -> bool:
+        return (
+            cirq.is_parameterized(self.length)
+            or cirq.is_parameterized(self.w)
+            or cirq.is_parameterized(self.g_0)
+            or cirq.is_parameterized(self.g_max)
+            or cirq.is_parameterized(self.g_ramp_exponent)
+            or cirq.is_parameterized(self.neighbor_qubits_freq)
+            or cirq.is_parameterized(self.prev_neighbor_qubits_freq)
+        )
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return (
+            cirq.parameter_names(self.length)
+            | cirq.parameter_names(self.w)
+            | cirq.parameter_names(self.g_0)
+            | cirq.parameter_names(self.g_max)
+            | cirq.parameter_names(self.g_ramp_exponent)
+            | cirq.parameter_names(self.neighbor_qubits_freq)
+            | cirq.parameter_names(self.prev_neighbor_qubits_freq)
+        )
+
+    def _resolve_parameters_(
+        self, resolver: cirq.ParamResolverOrSimilarType, recursive: bool
+    ) -> AnalogDetuneCouplerOnly:
+        resolver_ = cirq.ParamResolver(resolver)
+        return AnalogDetuneCouplerOnly(
+            length=su.direct_symbol_replacement(self.length, resolver_),
+            w=su.direct_symbol_replacement(self.w, resolver_),
+            g_0=su.direct_symbol_replacement(self.g_0, resolver_),
+            g_max=su.direct_symbol_replacement(self.g_max, resolver_),
+            g_ramp_exponent=su.direct_symbol_replacement(self.g_ramp_exponent, resolver_),
+            neighbor_qubits_freq=tuple(
+                su.direct_symbol_replacement(f, resolver_) for f in self.neighbor_qubits_freq
+            ),
+            prev_neighbor_qubits_freq=tuple(
+                su.direct_symbol_replacement(f, resolver_) for f in self.prev_neighbor_qubits_freq
+            ),
+            interpolate_coupling_cal=self.interpolate_coupling_cal,
+            analog_cal_for_pulseshaping=self.analog_cal_for_pulseshaping,
+        )
+
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> str:
+        return f"AnalogDetuneCouplerOnly(length={self.length}, g_max={self.g_max})"
+
+    def __repr__(self) -> str:
+        return (
+            f'AnalogDetuneCouplerOnly(length={self.length}, '
+            f'w={self.w}, '
+            f'g_0={self.g_0}, '
+            f'g_max={self.g_max}, '
+            f'g_ramp_exponent={self.g_ramp_exponent}, '
+            f'neighbor_qubits_freq={self.neighbor_qubits_freq}, '
+            f'prev_neighbor_qubits_freq={self.prev_neighbor_qubits_freq})'
+        )
+
+    def _value_equality_values_(self) -> Any:
+        return (
+            self.length,
+            self.w,
+            self.g_0,
+            self.g_max,
+            self.g_ramp_exponent,
+            self.neighbor_qubits_freq,
+            self.prev_neighbor_qubits_freq,
+            self.interpolate_coupling_cal,
+            self.analog_cal_for_pulseshaping,
+        )
+
+    def _json_dict_(self):
+        return cirq.obj_to_dict_helper(
+            self,
+            [
+                'length',
+                'w',
+                'g_0',
+                'g_max',
+                'g_ramp_exponent',
+                'neighbor_qubits_freq',
+                'prev_neighbor_qubits_freq',
+                'interpolate_coupling_cal',
+                'analog_cal_for_pulseshaping',
             ],
         )
