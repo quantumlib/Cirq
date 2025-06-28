@@ -1,0 +1,1 @@
+cirq.contrib.noise_models.ReadoutNoiseModel(0.2, prepend=True)
