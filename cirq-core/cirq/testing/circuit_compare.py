@@ -336,6 +336,7 @@ def assert_has_consistent_apply_channel(val: Any, *, atol: float = 1e-8) -> None
         atol: Absolute error tolerance.
     """
     __tracebackhide__ = True
+    assert hasattr(val, '_apply_channel_')
 
     kraus = protocols.kraus(val, default=None)
     expected = qis.kraus_to_superoperator(kraus) if kraus is not None else None
