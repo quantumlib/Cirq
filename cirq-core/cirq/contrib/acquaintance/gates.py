@@ -148,7 +148,7 @@ def acquaint_and_shift(
     acquaintance_size: int | None,
     swap_gate: cirq.Gate,
     mapping: dict[ops.Qid, int],
-):
+) -> None:
     """Acquaints and shifts a pair of lists of qubits. The first part is
     acquainted with every qubit individually in the second part, and vice
     versa. Operations are grouped into several layers:

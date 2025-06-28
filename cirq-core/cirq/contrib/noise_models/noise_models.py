@@ -42,7 +42,7 @@ class DepolarizingNoiseModel(devices.NoiseModel):
         self.qubit_noise_gate = ops.DepolarizingChannel(depol_prob)
         self._prepend = prepend
 
-    def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]):
+    def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         if validate_all_measurements(moment) or self.is_virtual_moment(moment):  # pragma: no cover
             return moment
 
@@ -78,7 +78,7 @@ class ReadoutNoiseModel(devices.NoiseModel):
         self.readout_noise_gate = ops.BitFlipChannel(bitflip_prob)
         self._prepend = prepend
 
-    def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]):
+    def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         if self.is_virtual_moment(moment):
             return moment
         if validate_all_measurements(moment):
@@ -115,7 +115,7 @@ class DampedReadoutNoiseModel(devices.NoiseModel):
         self.readout_decay_gate = ops.AmplitudeDampingChannel(decay_prob)
         self._prepend = prepend
 
-    def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]):
+    def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         if self.is_virtual_moment(moment):
             return moment
         if validate_all_measurements(moment):
@@ -148,7 +148,7 @@ class DepolarizingWithReadoutNoiseModel(devices.NoiseModel):
         self.qubit_noise_gate = ops.DepolarizingChannel(depol_prob)
         self.readout_noise_gate = ops.BitFlipChannel(bitflip_prob)
 
-    def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]):
+    def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         if validate_all_measurements(moment):
             return [circuits.Moment(self.readout_noise_gate(q) for q in system_qubits), moment]
         return [moment, circuits.Moment(self.qubit_noise_gate(q) for q in system_qubits)]
@@ -178,7 +178,7 @@ class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
         self.readout_noise_gate = ops.BitFlipChannel(bitflip_prob)
         self.readout_decay_gate = ops.AmplitudeDampingChannel(decay_prob)
 
-    def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]):
+    def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         if validate_all_measurements(moment):
             return [
                 circuits.Moment(self.readout_decay_gate(q) for q in system_qubits),

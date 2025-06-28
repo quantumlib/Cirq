@@ -30,7 +30,9 @@ class ComputationalBasisState(cirq.qis.QuantumStateRepresentation):
     def copy(self, deep_copy_buffers: bool = True) -> ComputationalBasisState:
         return ComputationalBasisState(self.basis)  # pragma: no cover
 
-    def measure(self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None):
+    def measure(
+        self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
+    ) -> list[int]:
         return [self.basis[i] for i in axes]
 
 
@@ -49,7 +51,7 @@ class ComputationalBasisSimState(cirq.SimulationState[ComputationalBasisState]):
             return True
 
 
-def create_test_circuit():
+def create_test_circuit() -> cirq.Circuit:
     q0, q1 = cirq.LineQid.range(2, dimension=3)
     x = cirq.XPowGate(dimension=3)
     return cirq.Circuit(
@@ -143,7 +145,9 @@ class ComputationalBasisProductState(cirq.qis.QuantumStateRepresentation):
     def copy(self, deep_copy_buffers: bool = True) -> ComputationalBasisProductState:
         return ComputationalBasisProductState(self.basis)
 
-    def measure(self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None):
+    def measure(
+        self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
+    ) -> list[int]:
         return [self.basis[i] for i in axes]
 
     def kron(self, other: ComputationalBasisProductState) -> ComputationalBasisProductState:

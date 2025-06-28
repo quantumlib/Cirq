@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import abc
 import itertools
-from typing import cast, Iterable, TYPE_CHECKING
+from typing import Any, cast, Hashable, Iterable, NoReturn, TYPE_CHECKING
 
 from cirq import devices, ops, value
 from cirq.contrib.graph_device.hypergraph import UndirectedHypergraph
@@ -98,7 +98,7 @@ def is_crosstalk_graph(graph: UndirectedHypergraph) -> bool:
     return True
 
 
-def raise_crosstalk_error(*ops: ops.Operation):
+def raise_crosstalk_error(*ops: ops.Operation) -> NoReturn:
     raise ValueError(f'crosstalk on {ops}')
 
 
@@ -156,11 +156,11 @@ class UndirectedGraphDevice(devices.Device):
         return cast(tuple['cirq.Qid', ...], tuple(sorted(self.device_graph.vertices)))
 
     @property
-    def edges(self):
+    def edges(self) -> tuple[frozenset[Hashable], ...]:
         return tuple(sorted(self.device_graph.edges))
 
     @property
-    def labelled_edges(self):
+    def labelled_edges(self) -> dict[frozenset, Any]:
         return self.device_graph.labelled_edges
 
     def get_device_edge_from_op(self, operation: ops.Operation) -> UndirectedGraphDeviceEdge:
@@ -185,6 +185,7 @@ class UndirectedGraphDevice(devices.Device):
             self.crosstalk_graph._adjacency_lists.get(frozenset(operation.qubits), ())
         )
         for crosstalk_edge in adjacent_crosstalk_edges:
+            # pylint: disable=unreachable
             label = self.crosstalk_graph.labelled_edges[crosstalk_edge]
             validator = (
                 raise_crosstalk_error(operation, *other_operations) if (label is None) else label
@@ -194,7 +195,7 @@ class UndirectedGraphDevice(devices.Device):
             ):
                 validator(operation, *crosstalk_operations)
 
-    def validate_moment(self, moment: cirq.Moment):
+    def validate_moment(self, moment: cirq.Moment) -> None:
         super().validate_moment(moment)
         ops = moment.operations
         for i, op in enumerate(ops):

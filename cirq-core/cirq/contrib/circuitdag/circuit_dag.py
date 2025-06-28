@@ -44,7 +44,7 @@ class Unique(Generic[T]):
     def __repr__(self) -> str:
         return f'cirq.contrib.Unique({id(self)}, {self.val!r})'
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         if not isinstance(other, type(self)):
             return NotImplemented
         return id(self) < id(other)
@@ -176,7 +176,7 @@ class CircuitDag(networkx.DiGraph):
     def all_operations(self) -> Iterator[cirq.Operation]:
         return (node.val for node in self.ordered_nodes())
 
-    def all_qubits(self):
+    def all_qubits(self) -> frozenset[cirq.Qid]:
         return frozenset(q for node in self.nodes for q in node.val.qubits)
 
     def to_circuit(self) -> cirq.Circuit:
