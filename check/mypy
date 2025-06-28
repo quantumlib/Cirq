@@ -17,6 +17,13 @@ CONFIG_FILE='mypy.ini'
 read -r -a CIRQ_PACKAGES < \
     <(env PYTHONPATH=. python dev_tools/modules.py list --mode package-path)
 
+# TODO(#7297) clean up after cirq-rigetti removal
+for i in "${!CIRQ_PACKAGES[@]}"; do
+    if [[ "${CIRQ_PACKAGES[i]}" == cirq-rigetti* ]]; then
+        unset "CIRQ_PACKAGES[i]"
+    fi
+done
+
 echo -e -n "\033[31m"
 mypy --config-file=dev_tools/conf/$CONFIG_FILE "$@" "${CIRQ_PACKAGES[@]}" dev_tools examples
 result=$?
