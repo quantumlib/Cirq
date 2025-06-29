@@ -802,7 +802,7 @@ def test_get_processor():
 
 def test_get_sampler_initializes_max_concurrent_jobs():
     max_concurrent_jobs = 5
-    engine = cg.Engine(project_id='proj', context=EngineContext(enable_streaming=False))
+    engine = cg.Engine(project_id='proj')
     sampler = engine.get_sampler(processor_id='tmp', max_concurrent_jobs=max_concurrent_jobs)
 
     assert sampler.max_concurrent_jobs == max_concurrent_jobs

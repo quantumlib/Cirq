@@ -617,7 +617,9 @@ class Engine(abstract_engine.AbstractEngine):
                 'you need to specify a list.'
             )
         return self.get_processor(processor_id).get_sampler(
-            run_name=run_name, device_config_name=device_config_name, snapshot_id=snapshot_id,
+            run_name=run_name,
+            device_config_name=device_config_name,
+            snapshot_id=snapshot_id,
             max_concurrent_jobs=max_concurrent_jobs,
         )
 
