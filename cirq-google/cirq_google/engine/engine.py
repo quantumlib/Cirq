@@ -583,6 +583,7 @@ class Engine(abstract_engine.AbstractEngine):
         run_name: str = "",
         device_config_name: str = "",
         snapshot_id: str = "",
+        max_concurrent_jobs: int = 10,
     ) -> cirq_google.ProcessorSampler:
         """Returns a sampler backed by the engine.
 
@@ -596,6 +597,10 @@ class Engine(abstract_engine.AbstractEngine):
                 available qubits, couplers, and supported gates in the processor.
             snapshot_id: A unique identifier for an immutable snapshot reference. A
                 snapshot contains a collection of device configurations for the processor.
+            max_concurrent_jobs: The maximum number of jobs to be sent
+                concurrently to the Engine. This client-side throttle can be
+                used to proactively reduce load to the backends and avoid quota
+                violations when pipelining circuit executions.
 
         Returns:
             A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
@@ -612,7 +617,10 @@ class Engine(abstract_engine.AbstractEngine):
                 'you need to specify a list.'
             )
         return self.get_processor(processor_id).get_sampler(
-            run_name=run_name, device_config_name=device_config_name, snapshot_id=snapshot_id
+            run_name=run_name,
+            device_config_name=device_config_name,
+            snapshot_id=snapshot_id,
+            max_concurrent_jobs=max_concurrent_jobs,
         )
 
 
