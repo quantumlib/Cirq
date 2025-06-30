@@ -19,7 +19,8 @@ import sympy
 import tunits as tu
 
 import cirq
-import cirq_google.ops.analog_detune_gates as adg
+import cirq_google as cg
+from cirq_google.ops import analog_detune_gates as adg
 
 
 def test_analog_detune_qubit_equality():
@@ -215,7 +216,7 @@ def test_analog_detune_coupler_circuit_diagram() -> None:
 
     gate.g_max = None
     cirq.testing.assert_has_diagram(
-        cirq.Circuit(gate.on(q1, q2)),
+        cirq.Circuit(gate.on(cg.Coupler(q1, q2))),
         "c(q(0, 0),q(0, 1)): ───AnalogDetuneCouplerOnly(length=l, g_max=None)───",
     )
 
