@@ -494,7 +494,7 @@ def parallel_single_qubit_rb(
     sampler: cirq.Sampler,
     qubits: Sequence[cirq.Qid] | cirq.Qid,
     parameters: RBParameters = RBParameters(),
-    rng_or_seed: np.random.Generator | numbers.Integeral | None = None,
+    rng_or_seed: np.random.Generator | int | None = None,
 ) -> RandomizedBenchMarkResult | ParallelRandomizedBenchmarkingResult:
     """Clifford-based randomized benchmarking (RB) single qubits in parallel.
 
