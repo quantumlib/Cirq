@@ -17,7 +17,6 @@ from __future__ import annotations
 import dataclasses
 import functools
 import itertools
-import numbers
 from typing import Any, cast, Iterator, Mapping, overload, Sequence, TYPE_CHECKING
 
 import attrs
@@ -362,7 +361,7 @@ class RBParameters:
     num_clifford_range: Sequence[int] = tuple(np.logspace(np.log10(5), 3, 5, dtype=int))
     num_circuits: int = 10
     repetitions: int = 600
-    use_xy_basis: bool = True
+    use_xy_basis: bool = False
     strict_basis: bool = True
 
     def gateset(self) -> list[list[ops.SingleQubitCliffordGate]]:
@@ -377,7 +376,7 @@ class RBParameters:
 def single_qubit_randomized_benchmarking(
     sampler: cirq.Sampler,
     qubit: cirq.Qid,
-    use_xy_basis: bool = False,
+    use_xy_basis: bool = True,
     *,
     num_clifford_range: Sequence[int] = tuple(np.logspace(np.log10(5), 3, 5, dtype=int)),
     num_circuits: int = 10,
@@ -434,7 +433,7 @@ def single_qubit_randomized_benchmarking(
 def parallel_single_qubit_randomized_benchmarking(
     sampler: cirq.Sampler,
     qubits: Sequence[cirq.Qid],
-    use_xy_basis: bool = False,
+    use_xy_basis: bool = True,
     *,
     num_clifford_range: Sequence[int] = tuple(
         np.logspace(np.log10(5), np.log10(1000), 5, dtype=int)
@@ -478,7 +477,7 @@ def parallel_single_qubit_rb(
     sampler: cirq.Sampler,
     qubits: cirq.Qid,
     parameters: RBParameters = RBParameters(),
-    rng_or_seed: np.random.Generator | numbers.Integeral | None = None,
+    rng_or_seed: np.random.Generator | int | None = None,
 ) -> RandomizedBenchMarkResult: ...
 
 
@@ -487,7 +486,7 @@ def parallel_single_qubit_rb(
     sampler: cirq.Sampler,
     qubits: Sequence[cirq.Qid],
     parameters: RBParameters = RBParameters(),
-    rng_or_seed: np.random.Generator | numbers.Integeral | None = None,
+    rng_or_seed: np.random.Generator | int | None = None,
 ) -> ParallelRandomizedBenchmarkingResult: ...
 
 

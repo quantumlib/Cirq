@@ -26,7 +26,6 @@ import cirq.experiments.qubit_characterizations as ceqc
 from cirq import circuits, GridQubit, ops, sim
 from cirq.experiments import (
     parallel_single_qubit_randomized_benchmarking,
-    parallel_single_qubit_rb,
     single_qubit_randomized_benchmarking,
     single_qubit_state_tomography,
     two_qubit_randomized_benchmarking,
