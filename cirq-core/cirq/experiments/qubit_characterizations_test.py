@@ -14,6 +14,9 @@
 
 from __future__ import annotations
 
+import os
+from unittest import mock
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
@@ -23,6 +26,7 @@ import cirq.experiments.qubit_characterizations as ceqc
 from cirq import circuits, GridQubit, ops, sim
 from cirq.experiments import (
     parallel_single_qubit_randomized_benchmarking,
+    parallel_single_qubit_rb,
     single_qubit_randomized_benchmarking,
     single_qubit_state_tomography,
     two_qubit_randomized_benchmarking,
@@ -104,6 +108,7 @@ def test_single_qubit_cliffords():
         assert num_x <= 1
 
 
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 def test_single_qubit_randomized_benchmarking():
     # Check that the ground state population at the end of the Clifford
     # sequences is always unity.
@@ -116,7 +121,8 @@ def test_single_qubit_randomized_benchmarking():
     assert np.isclose(results.pauli_error(), 0.0, atol=1e-7)  # warning is expected
 
 
-def test_parallel_single_qubit_randomized_benchmarking():
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_parallel_single_qubit_parallel_single_qubit_randomized_benchmarking():
     # Check that the ground state population at the end of the Clifford
     # sequences is always unity.
     simulator = sim.Simulator()
@@ -231,13 +237,12 @@ def test_tomography_plot_raises_for_incorrect_number_of_axes():
 
 @pytest.mark.parametrize('num_cliffords', range(5, 10))
 @pytest.mark.parametrize('use_xy_basis', [False, True])
-@pytest.mark.parametrize('xy_only', [False, True])
-@pytest.mark.parametrize('xz_only', [False, True])
-def test_single_qubit_cliffords_gateset(num_cliffords, use_xy_basis, xy_only, xz_only):
+@pytest.mark.parametrize('strict_basis', [False, True])
+def test_single_qubit_cliffords_gateset(num_cliffords, use_xy_basis, strict_basis):
     qubits = [GridQubit(0, i) for i in range(4)]
-    c1_in_xy = cirq.experiments.qubit_characterizations._gateset_selector(
-        use_xy_basis, xy_only, xz_only
-    )
+    c1_in_xy = cirq.experiments.qubit_characterizations.RBParameters(
+        use_xy_basis=use_xy_basis, strict_basis=strict_basis
+    ).gateset()
     c = cirq.experiments.qubit_characterizations._create_parallel_rb_circuit(
         qubits, num_cliffords, c1_in_xy
     )
