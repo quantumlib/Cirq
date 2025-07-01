@@ -403,7 +403,9 @@ jobs:
   notebooks-branch:
     if: github.repository_owner == 'quantumlib'
     name: Notebook Tests against PR
-    runs-on: ubuntu-22.04
+    # TODO - switch back to ubuntu
+    # runs-on: ubuntu-22.04
+    runs-on: macos-13
     steps:
       - name: Check out source repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
