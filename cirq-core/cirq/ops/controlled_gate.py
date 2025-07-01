@@ -24,7 +24,6 @@ from cirq.ops import (
     control_values as cv,
     controlled_operation as cop,
     diagonal_gate as dg,
-    global_phase_op as gp,
     op_tree,
     raw_types,
 )
@@ -139,12 +138,9 @@ class ControlledGate(raw_types.Gate):
     def _qid_shape_(self) -> tuple[int, ...]:
         return self.control_qid_shape + protocols.qid_shape(self.sub_gate)
 
-    def _decompose_(self, qubits: tuple[cirq.Qid, ...]) -> None | NotImplementedType | cirq.OP_TREE:
-        return self._decompose_with_context_(qubits)
-
     def _decompose_with_context_(
-        self, qubits: tuple[cirq.Qid, ...], context: cirq.DecompositionContext | None = None
-    ) -> None | NotImplementedType | cirq.OP_TREE:
+        self, qubits: tuple[cirq.Qid, ...], context: cirq.DecompositionContext
+    ) -> NotImplementedType | cirq.OP_TREE:
         control_qubits = list(qubits[: self.num_controls()])
         controlled_sub_gate = self.sub_gate.controlled(
             self.num_controls(), self.control_values, self.control_qid_shape
@@ -152,6 +148,25 @@ class ControlledGate(raw_types.Gate):
         # Prefer the subgate controlled version if available
         if self != controlled_sub_gate:
             return controlled_sub_gate.on(*qubits)
+
+        # Try decomposing the subgate next.
+        result = protocols.decompose_once_with_qubits(
+            self.sub_gate,
+            qubits[self.num_controls() :],
+            NotImplemented,
+            flatten=False,
+            # Extract global phases from decomposition, as controlled phases decompose easily.
+            context=context.extracting_global_phases(),
+        )
+        if result is not NotImplemented:
+            return op_tree.transform_op_tree(
+                result,
+                lambda op: op.controlled_by(
+                    *qubits[: self.num_controls()], control_values=self.control_values
+                ),
+            )
+
+        # Finally try brute-force on the unitary.
         if protocols.has_unitary(self.sub_gate) and all(q.dimension == 2 for q in qubits):
             n_qubits = protocols.num_qubits(self.sub_gate)
             # Case 1: Global Phase (1x1 Matrix)
@@ -173,54 +188,9 @@ class ControlledGate(raw_types.Gate):
                     protocols.unitary(self.sub_gate), control_qubits, qubits[-1]
                 )
                 return invert_ops + decomposed_ops + invert_ops
-        if isinstance(self.sub_gate, common_gates.CZPowGate):
-            z_sub_gate = common_gates.ZPowGate(exponent=self.sub_gate.exponent)
-            num_controls = self.num_controls() + 1
-            control_values = self.control_values & cv.ProductOfSums(((1,),))
-            control_qid_shape = self.control_qid_shape + (2,)
-            controlled_z = (
-                z_sub_gate.controlled(
-                    num_controls=num_controls,
-                    control_values=control_values,
-                    control_qid_shape=control_qid_shape,
-                )
-                if protocols.is_parameterized(self)
-                else ControlledGate(
-                    z_sub_gate,
-                    num_controls=num_controls,
-                    control_values=control_values,
-                    control_qid_shape=control_qid_shape,
-                )
-            )
-            if self != controlled_z:
-                result = controlled_z.on(*qubits)
-                if self.sub_gate.global_shift == 0:
-                    return result
-                # Reconstruct the controlled global shift of the subgate.
-                total_shift = self.sub_gate.exponent * self.sub_gate.global_shift
-                phase_gate = gp.GlobalPhaseGate(1j ** (2 * total_shift))
-                controlled_phase_op = phase_gate.controlled(
-                    num_controls=self.num_controls(),
-                    control_values=self.control_values,
-                    control_qid_shape=self.control_qid_shape,
-                ).on(*control_qubits)
-                return [result, controlled_phase_op]
-        result = protocols.decompose_once_with_qubits(
-            self.sub_gate,
-            qubits[self.num_controls() :],
-            NotImplemented,
-            flatten=False,
-            context=context,
-        )
-        if result is NotImplemented:
-            return NotImplemented
 
-        return op_tree.transform_op_tree(
-            result,
-            lambda op: op.controlled_by(
-                *qubits[: self.num_controls()], control_values=self.control_values
-            ),
-        )
+        # If nothing works, return `NotImplemented`.
+        return NotImplemented
 
     def on(self, *qubits: cirq.Qid) -> cop.ControlledOperation:
         if len(qubits) == 0:

@@ -610,6 +610,7 @@ def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: str | None):
         if deprecation is not None and deprecation.old_name in content:
             ctx_managers.append(deprecation.deprecation_assertion)  # pragma: no cover
 
+    # TODO: consider to add the support for 'tunits'.
     imports = {'cirq': cirq, 'pd': pd, 'sympy': sympy, 'np': np, 'datetime': datetime, 'nx': nx}
 
     for m in TESTED_MODULES.keys():

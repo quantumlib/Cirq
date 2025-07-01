@@ -81,9 +81,16 @@ class DecompositionContext:
     Args:
         qubit_manager: A `cirq.QubitManager` instance to allocate clean / dirty ancilla qubits as
             part of the decompose protocol.
+        extract_global_phases: If set, will extract the global phases from
+         `DECOMPOSE_TARGET_GATESET` into independent global phase operations.
     """
 
     qubit_manager: cirq.QubitManager
+    extract_global_phases: bool = False
+
+    def extracting_global_phases(self) -> DecompositionContext:
+        """Returns a copy with the `extract_global_phases` field set."""
+        return dataclasses.replace(self, extract_global_phases=True)
 
 
 class SupportsDecompose(Protocol):
