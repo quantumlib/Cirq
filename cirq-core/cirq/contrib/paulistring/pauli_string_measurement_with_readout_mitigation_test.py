@@ -877,13 +877,7 @@ def test_process_pauli_measurement_results_raises_error_on_missing_calibration()
     qubits: Sequence[cirq.Qid] = cirq.LineQubit.range(5)
 
     measurement_op = cirq.measure(*qubits, key='m')
-    test_circuits = list[cirq.Circuit]()
-    for _ in range(3):
-        circuit_list = []
-
-        circuit = _create_ghz(5, qubits) + measurement_op
-        circuit_list.append(circuit)
-    test_circuits.extend(circuit_list)
+    test_circuits: list[cirq.Circuit] = [_create_ghz(5, qubits) + measurement_op for _ in range(3)]
 
     pauli_strings = [_generate_random_pauli_string(qubits, True) for _ in range(3)]
     sampler = cirq.Simulator()
