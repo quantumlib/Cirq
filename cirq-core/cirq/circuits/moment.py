@@ -24,6 +24,7 @@ from typing import (
     Any,
     Callable,
     cast,
+    Hashable,
     Iterable,
     Iterator,
     Mapping,
@@ -144,7 +145,7 @@ class Moment:
         """Returns a tuple of the operation's tags."""
         return self._tags
 
-    def with_tags(self, *new_tags: Hashable) -> cirq.Operation:
+    def with_tags(self, *new_tags: Hashable) -> cirq.Moment:
         """Creates a new Moment with the current ops and the specified tags.
 
         If the moment already has tags, this will add the new_tags to the

@@ -1015,7 +1015,6 @@ def test_subtracting_moments_with_tags() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     op1 = cirq.X(q0)
     op2 = cirq.Y(q1)
-    op3 = cirq.Z(q2)
     moment_a = cirq.Moment(op1, op2, tags=("tag_a1", "tag_a2"))
     moment_b = cirq.Moment(op2, tags=("tag_a1", "tag_b2"))
 
