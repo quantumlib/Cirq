@@ -26,6 +26,7 @@ from cirq.testing import random_two_qubit_circuit_with_czs
 from cirq.transformers.analytical_decompositions.two_qubit_to_cz import (
     _is_trivial_angle,
     _parity_interaction,
+    cleanup_operations,
     two_qubit_matrix_to_diagonal_and_cz_operations,
 )
 
@@ -294,3 +295,11 @@ def test_remove_partial_czs_or_fail() -> None:
         _ = cirq.transformers.analytical_decompositions.two_qubit_to_cz._remove_partial_czs_or_fail(
             [CZ**-0.5], atol=1e-9
         )
+
+
+@pytest.mark.parametrize("gate", [cirq.CCZ, cirq.GlobalPhaseGate(1.0)])
+def test_cleanup_operations_raises_if_op_not_on_1_or_2_qubits(gate: cirq.Gate) -> None:
+    qubits = cirq.LineQubit.range(gate.num_qubits())
+    op = gate.on(*qubits)
+    with pytest.raises(ValueError, match="expected 1 or 2"):
+        cleanup_operations([op], atol=1e-8)
