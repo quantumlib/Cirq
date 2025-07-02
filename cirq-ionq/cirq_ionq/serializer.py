@@ -19,7 +19,7 @@ from __future__ import annotations
 import dataclasses
 import json
 import math
-from typing import Any, Callable, cast, Collection, Iterator, Sequence, TYPE_CHECKING
+from typing import Any, Callable, Collection, Iterator, Sequence, TYPE_CHECKING, cast
 
 import numpy as np
 
