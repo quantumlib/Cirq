@@ -201,20 +201,12 @@ jobs:
           cache-dependency-path: |
             **/requirements.txt
             dev_tools/requirements/**/*.txt
-      - name: Install system packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install libffi7
       - name: Install requirements
         run: |
           pip install --upgrade setuptools wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
-      - name: Run Quil dependencies
-        run: docker compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Pytest check
-        run: check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib --rigetti-integration
-      - name: Stop Quil dependencies
-        run: docker compose -f cirq-rigetti/docker-compose.test.yaml down
+        run: check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib --ignore=cirq-rigetti
   # TODO(#6706) remove after we start using NumPy 2.0 in regular pytest
   pytest-numpy-2:
     if: github.repository_owner == 'quantumlib'
@@ -235,10 +227,6 @@ jobs:
           cache-dependency-path: |
             **/requirements.txt
             dev_tools/requirements/**/*.txt
-      - name: Install system packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install libffi7
       - name: Install requirements
         run: |
           pip install wheel
@@ -299,24 +287,16 @@ jobs:
           cache-dependency-path: |
             **/requirements.txt
             dev_tools/requirements/**/*.txt
-      - name: Install system requirements
-        run: |
-          sudo apt-get update
-          sudo apt-get install libffi7
       - name: Install requirements
         run: |
           pip install --upgrade setuptools wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
-      - name: Run Quil dependencies
-        run: docker compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Coverage check
-        run: check/pytest-and-incremental-coverage -n auto --rigetti-integration
+        run: check/pytest-and-incremental-coverage -n auto --ignore=cirq-rigetti
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-      - name: Stop Quil dependencies
-        run: docker compose -f cirq-rigetti/docker-compose.test.yaml down
   windows:
     if: github.repository_owner == 'quantumlib'
     name: Pytest Windows
@@ -343,7 +323,7 @@ jobs:
       - name: Pytest Windows
         run: |
           source dev_tools/pypath
-          check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib
+          check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib --ignore=cirq-rigetti
         shell: bash
   macos:
     if: github.repository_owner == 'quantumlib'
@@ -369,7 +349,7 @@ jobs:
           pip install --upgrade setuptools wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest check
-        run: check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib
+        run: check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib --ignore=cirq-rigetti
   notebooks-stable:
     if: github.repository_owner == 'quantumlib'
     name: Changed Notebooks Isolated Test against Cirq stable
