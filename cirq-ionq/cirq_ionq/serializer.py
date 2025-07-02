@@ -19,10 +19,11 @@ from __future__ import annotations
 import dataclasses
 import json
 import math
-from typing import Any, Callable, Collection, Iterator, Sequence, TYPE_CHECKING, cast
+from typing import Any, Callable, cast, Collection, Iterator, Sequence, TYPE_CHECKING
+
+import numpy as np
 
 import cirq
-import numpy as np
 from cirq.devices import line_qubit
 
 from cirq_ionq.ionq_exceptions import (
@@ -84,7 +85,7 @@ class Serializer:
             cirq.HPowGate: self._serialize_h_pow_gate,
             cirq.SwapPowGate: self._serialize_swap_gate,
             cirq.MeasurementGate: self._serialize_measurement_gate,
-            cirq.ops.pauli_string_phasor.PauliStringPhasorGate: self._serialize_pauli_string_phasor_gate,
+            cirq.ops.pauli_string_phasor.PauliStringPhasorGate: self._serialize_pauli_string_phasor_gate, # noqa: E501
             # These gates can't be used with any of the non-measurement gates above
             # Rather than validating this here, we rely on the IonQ API to report failure.
             GPIGate: self._serialize_gpi_gate,
@@ -301,12 +302,6 @@ class Serializer:
         )
         little_endian_pauli_string = big_endian_pauli_string[::-1]
         pauli_string_coefficient = gate.dense_pauli_string.coefficient
-        if pauli_string_coefficient.imag != 0:
-            raise NotSupportedPauliexpParameters(
-                'IonQ `pauliexp` gates does not support complex evolution coefficients. '
-                'Found in a PauliStringPhasorGate a complex evolution coefficient '
-                f'{pauli_string_coefficient} for the associated DensePauliString.'
-            )
         coefficients = [pauli_string_coefficient.real]
 
         # I am ignoring here the global phase of:
@@ -327,8 +322,6 @@ class Serializer:
                 'targets': targets,
                 'time': time,
             }
-        # TODO: remove this print statement once the serializer is stable.
-        print(seralized_gate)
         return seralized_gate
 
     # These could potentially be using serialize functions on the gates themselves.
