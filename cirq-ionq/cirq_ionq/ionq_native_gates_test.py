@@ -100,7 +100,7 @@ def test_zz_unitary(phase):
     [
         *[ionq.GPIGate(phi=angle) for angle in PARAMS_FOR_ONE_ANGLE_GATE],
         *[ionq.GPI2Gate(phi=angle) for angle in PARAMS_FOR_ONE_ANGLE_GATE],
-        *[ionq.MSGate(phi0=angles[0], phi1=angles[1]) for angles in PARAMS_FOR_TWO_ANGLE_GATE],
+        *[ionq.MSGate(phi0=angles[0], phi1=angles[1], theta=0.8) for angles in PARAMS_FOR_TWO_ANGLE_GATE],
         *[ionq.ZZGate(theta=angle) for angle in PARAMS_FOR_ONE_ANGLE_GATE],
     ],
 )
