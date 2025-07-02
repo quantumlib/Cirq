@@ -77,7 +77,12 @@ class Moment:
             are no such operations, returns an empty Moment.
     """
 
-    def __init__(self, *contents: cirq.OP_TREE, _flatten_contents: bool = True) -> None:
+    def __init__(
+        self,
+        *contents: cirq.OP_TREE,
+        _flatten_contents: bool = True,
+        tags: tuple[Hashable, ...] = (),
+    ) -> None:
         """Constructs a moment with the given operations.
 
         Args:
@@ -110,6 +115,7 @@ class Moment:
 
         self._measurement_key_objs: frozenset[cirq.MeasurementKey] | None = None
         self._control_keys: frozenset[cirq.MeasurementKey] | None = None
+        self._tags = tags
 
     @classmethod
     def from_ops(cls, *ops: cirq.Operation) -> cirq.Moment:
@@ -132,6 +138,32 @@ class Moment:
     @cached_property
     def qubits(self) -> frozenset[cirq.Qid]:
         return frozenset(self._qubit_to_op)
+
+    @property
+    def tags(self) -> tuple[Hashable, ...]:
+        """Returns a tuple of the operation's tags."""
+        return self._tags
+
+    def with_tags(self, *new_tags: Hashable) -> cirq.Operation:
+        """Creates a new Moment with the current ops and the specified tags.
+
+        If the moment already has tags, this will add the new_tags to the
+        preexisting tags.
+
+        This method can be used to attach meta-data to moments
+        without affecting their functionality.  The intended usage is to
+        attach classes intended for this purpose or strings to mark operations
+        for specific usage that will be recognized by consumers.
+
+        Tags can be a list of any type of object that is useful to identify
+        this operation as long as the type is hashable.  If you wish the
+        resulting operation to be eventually serialized into JSON, you should
+        also restrict the operation to be JSON serializable.
+
+        Please note that tags should be instantiated if classes are
+        used.  Raw types are not allowed.
+        """
+        return Moment(*self._operations, _flatten_contents=False, tags=(*self._tags, *new_tags))
 
     def operates_on_single_qubit(self, qubit: cirq.Qid) -> bool:
         """Determines if the moment has operations touching the given qubit.
@@ -183,7 +215,7 @@ class Moment:
             raise ValueError(f'Overlapping operations: {operation}')
 
         # Use private variables to facilitate a quick copy.
-        m = Moment(_flatten_contents=False)
+        m = Moment(_flatten_contents=False, tags=self._tags)
         m._operations = self._operations + (operation,)
         m._sorted_operations = None
         m._qubit_to_op = {**self._qubit_to_op, **{q: operation for q in operation.qubits}}
@@ -212,7 +244,7 @@ class Moment:
         if not flattened_contents:
             return self
 
-        m = Moment(_flatten_contents=False)
+        m = Moment(_flatten_contents=False, tags=self._tags)
         # Use private variables to facilitate a quick copy.
         m._qubit_to_op = self._qubit_to_op.copy()
         for op in flattened_contents:
@@ -510,18 +542,26 @@ class Moment:
         return qis.kraus_to_superoperator(self._kraus_())
 
     def _json_dict_(self) -> dict[str, Any]:
-        return protocols.obj_to_dict_helper(self, ['operations'])
+        # For backwards compatibility, only output tags if they exist.
+        args = ['operations', 'tags'] if self._tags else ['operations']
+        return protocols.obj_to_dict_helper(self, args)
 
     @classmethod
-    def _from_json_dict_(cls, operations, **kwargs):
-        return cls.from_ops(*operations)
+    def _from_json_dict_(cls, operations, tags=(), **kwargs):
+        return cls(*operations, tags=tags)
 
     def __add__(self, other: cirq.OP_TREE) -> cirq.Moment:
         if isinstance(other, circuit.AbstractCircuit):
             return NotImplemented  # Delegate to Circuit.__radd__.
+        if isinstance(other, Moment):
+            return self.with_tags(*other.tags).with_operations(other)
         return self.with_operations(other)
 
     def __sub__(self, other: cirq.OP_TREE) -> cirq.Moment:
+        if isinstance(other, Moment):
+            new_tags = tuple(tag for tag in self._tags if tag not in other.tags)
+        else:
+            new_tags = self._tags
         must_remove = set(op_tree.flatten_to_ops(other))
         new_ops = []
         for op in self.operations:
@@ -535,7 +575,7 @@ class Moment:
                 f"Missing operations: {must_remove!r}\n"
                 f"Moment: {self!r}"
             )
-        return Moment(new_ops)
+        return Moment(new_ops, tags=new_tags)
 
     @overload
     def __getitem__(self, key: raw_types.Qid) -> cirq.Operation:
