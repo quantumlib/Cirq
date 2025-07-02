@@ -226,12 +226,15 @@ def _merge_single_qubit_gates(
             transformation.
     Returns:
         new sequence of operations after merging gates
+
+    Raises:
+        ValueError: if one of the operations is not on 1 or 2 qubits
     """
     merged_ops: list[ops.Operation] = []
     pending_ops: dict[tuple[cirq.Qid, ...], list[ops.Operation]] = dict()
     for op in operations:
         if protocols.num_qubits(op) == 2:
-            for _, qubit_ops in pending_ops.items():
+            for qubit_ops in pending_ops.values():
                 merged_ops.extend(
                     _transform_single_qubit_operations_to_phased_x_and_z(qubit_ops, atol=atol)
                 )
@@ -242,8 +245,10 @@ def _merge_single_qubit_gates(
             if op.qubits not in pending_ops:
                 pending_ops[op.qubits] = []
             pending_ops[op.qubits].append(op)
+        else:
+            raise ValueError(f'operation is on {protocols.num_qubits(op)} qubits, expected 1 or 2')
     # Merge remaining pending operations
-    for _, qubit_ops in pending_ops.items():
+    for qubit_ops in pending_ops.values():
         merged_ops.extend(
             _transform_single_qubit_operations_to_phased_x_and_z(qubit_ops, atol=atol)
         )

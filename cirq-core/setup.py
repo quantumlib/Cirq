@@ -49,7 +49,8 @@ setup(
     author_email='cirq-dev@googlegroups.com',
     maintainer="The Quantum AI open-source software maintainers",
     maintainer_email="quantum-oss-maintainers@google.com",
-    python_requires=('>=3.11.0'),
+    # TODO: #6648 - update when internal docs build supports python3.11
+    python_requires='>=3.10.0',
     install_requires=requirements,
     extras_require={'contrib': contrib_requirements},
     license='Apache 2',
