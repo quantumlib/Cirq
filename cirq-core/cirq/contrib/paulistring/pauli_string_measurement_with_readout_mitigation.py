@@ -304,10 +304,11 @@ def _process_pauli_measurement_results(
 
     Args:
         qubits: Qubits to build confusion matrices for. In a sorted order.
-        pauli_strings: The lists of QWC Pauli string groups that are measured.
+        pauli_string_groups: The lists of QWC Pauli string groups that are measured.
         circuit_results: A list of ResultDict obtained
             from running the Pauli measurement circuits.
-        confusion_matrices: A list of confusion matrices from calibration results.
+        calibration_results: A dictionary of SingleQubitReadoutCalibrationResult
+            for tuples of qubits present in `pauli_string_groups`.
         pauli_repetitions: The number of repetitions used for Pauli string measurements.
         timestamp: The timestamp of the calibration results.
         disable_readout_mitigation: If set to True, returns no error-mitigated error
@@ -326,7 +327,7 @@ def _process_pauli_measurement_results(
 
         calibration_result = (
             calibration_results[tuple(pauli_readout_qubits)]
-            if disable_readout_mitigation is False
+            if not disable_readout_mitigation
             else None
         )
 
@@ -458,7 +459,7 @@ def measure_pauli_strings(
     qubits_list = sorted(unique_qubit_tuples)
 
     # Build the basis-change circuits for each Pauli string group
-    pauli_measurement_circuits = list[circuits.Circuit]()
+    pauli_measurement_circuits: list[circuits.Circuit] = []
     for input_circuit, pauli_string_groups in normalized_circuits_to_pauli.items():
         qid_list = sorted(input_circuit.all_qubits())
         basis_change_circuits = []
