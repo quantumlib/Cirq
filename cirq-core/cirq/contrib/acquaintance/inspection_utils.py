@@ -51,7 +51,9 @@ class LogicalAnnotator(ExecutionStrategy):
         yield AcquaintanceOperation(qubits, indices)
 
 
-def get_acquaintance_dag(strategy: cirq.Circuit, initial_mapping: LogicalMapping):
+def get_acquaintance_dag(
+    strategy: cirq.Circuit, initial_mapping: LogicalMapping
+) -> circuitdag.CircuitDag:
     strategy = strategy.copy()
     expose_acquaintance_gates(strategy)
     LogicalAnnotator(initial_mapping)(strategy)
@@ -66,9 +68,11 @@ def get_acquaintance_dag(strategy: cirq.Circuit, initial_mapping: LogicalMapping
 
 def get_logical_acquaintance_opportunities(
     strategy: cirq.Circuit, initial_mapping: LogicalMapping
-) -> set[frozenset[LogicalIndex]]:
+) -> set[frozenset[int]] | set[frozenset[cirq.Qid]]:
     acquaintance_dag = get_acquaintance_dag(strategy, initial_mapping)
     logical_acquaintance_opportunities = set()
     for op in acquaintance_dag.all_operations():
-        logical_acquaintance_opportunities.add(frozenset(op.logical_indices))
+        logical_acquaintance_opportunities.add(
+            frozenset(op.logical_indices)  # type: ignore[attr-defined]
+        )
     return logical_acquaintance_opportunities
