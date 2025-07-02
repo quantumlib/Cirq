@@ -890,7 +890,10 @@ def test_process_pauli_measurement_results_raises_error_on_missing_calibration()
 
     circuit_results = sampler.run_batch(test_circuits, repetitions=1000)
 
-    empty_calibration_result_dict = {tuple(qubits): None}
+    pauli_strings_qubits = sorted(
+        set(itertools.chain.from_iterable(ps.qubits for ps in pauli_strings))
+    )
+    empty_calibration_result_dict = {tuple(pauli_strings_qubits): None}
 
     with pytest.raises(
         ValueError,
