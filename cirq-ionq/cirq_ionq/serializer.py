@@ -25,7 +25,6 @@ import numpy as np
 
 import cirq
 from cirq.devices import line_qubit
-
 from cirq_ionq.ionq_exceptions import (
     IonQSerializerMixedGatesetsException,
     NotSupportedPauliexpParameters,
@@ -34,6 +33,7 @@ from cirq_ionq.ionq_native_gates import GPI2Gate, GPIGate, MSGate, ZZGate
 
 if TYPE_CHECKING:
     import sympy
+
     from cirq.ops.pauli_string_phasor import PauliStringPhasorGate
 
 _NATIVE_GATES = cirq.Gateset(
