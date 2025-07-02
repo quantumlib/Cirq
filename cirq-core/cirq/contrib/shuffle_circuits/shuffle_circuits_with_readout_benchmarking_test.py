@@ -17,16 +17,15 @@ from __future__ import annotations
 import itertools
 from typing import Sequence
 
-import cirq.contrib.shuffle_circuits
 import numpy as np
 import pytest
 import sympy
 
 import cirq
+import cirq.contrib.shuffle_circuits
 from cirq.contrib.shuffle_circuits import (
     run_shuffled_circuits_with_readout_benchmarking,
     run_sweep_with_readout_benchmarking,
-    run_shuffled_with_readout_benchmarking,
 )
 from cirq.contrib.shuffle_circuits.shuffle_circuits_with_readout_benchmarking import (
     ReadoutBenchmarkingParams,
@@ -196,7 +195,8 @@ def test_circuits_with_readout_benchmarking_errors_with_noise(mode: str):
 
 @pytest.mark.parametrize("mode", ["shuffled", "sweep"])
 def test_circuits_with_readout_benchmarking_errors_with_noise_and_input_qubits(mode: str):
-    """Test shuffled/sweep circuits with readout benchmarking with noise from sampler and input qubits."""
+    """Test shuffled/sweep circuits with readout benchmarking with
+    noise from sampler and input qubits."""
     qubits = cirq.LineQubit.range(6)
     readout_qubits = qubits[:4]
 
@@ -246,7 +246,8 @@ def test_circuits_with_readout_benchmarking_errors_with_noise_and_input_qubits(m
 
 @pytest.mark.parametrize("mode", ["shuffled", "sweep"])
 def test_circuits_with_readout_benchmarking_errors_with_noise_and_lists_input_qubits(mode: str):
-    """Test shuffled/sweep circuits with readout benchmarking with noise from sampler and input qubits."""
+    """Test shuffled/sweep circuits with readout benchmarking with noise
+    from sampler and input qubits."""
     qubits_1 = cirq.LineQubit.range(3)
     qubits_2 = cirq.LineQubit.range(4)
     readout_qubits = [qubits_1, qubits_2]
@@ -435,7 +436,6 @@ def test_zero_num_random_bitstrings():
 def test_zero_readout_repetitions():
     """Test that the readout repetitions is zero."""
     q = cirq.LineQubit(0)
-    circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
     with pytest.raises(
         ValueError, match="Must provide non-zero readout_repetitions for readout" + " calibration."
     ):

@@ -24,7 +24,10 @@ import attrs
 import numpy as np
 
 from cirq import circuits, ops, work
-from cirq.contrib.shuffle_circuits import run_shuffled_with_readout_benchmarking
+from cirq.contrib.shuffle_circuits import run_shuffled_circuits_with_readout_benchmarking
+from cirq.contrib.shuffle_circuits.shuffle_circuits_with_readout_benchmarking import (
+    ReadoutBenchmarkingParams,
+)
 from cirq.experiments.readout_confusion_matrix import TensoredConfusionMatrices
 
 if TYPE_CHECKING:
@@ -473,14 +476,16 @@ def measure_pauli_strings(
         pauli_measurement_circuits.extend(basis_change_circuits)
 
     # Run shuffled benchmarking for readout calibration
-    circuits_results, calibration_results = run_shuffled_with_readout_benchmarking(
-        input_circuits=pauli_measurement_circuits,
+    circuits_results, calibration_results = run_shuffled_circuits_with_readout_benchmarking(
         sampler=sampler,
-        circuit_repetitions=pauli_repetitions,
+        input_circuits=pauli_measurement_circuits,
+        parameters=ReadoutBenchmarkingParams(
+            circuit_repetitions=pauli_repetitions,
+            num_random_bitstrings=num_random_bitstrings,
+            readout_repetitions=readout_repetitions,
+            qubits=[list(qubits) for qubits in qubits_list],
+        ),
         rng_or_seed=rng_or_seed,
-        qubits=[list(qubits) for qubits in qubits_list],
-        num_random_bitstrings=num_random_bitstrings,
-        readout_repetitions=readout_repetitions,
     )
 
     # Process the results to calculate expectation values
