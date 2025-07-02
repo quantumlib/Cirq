@@ -286,7 +286,7 @@ def _build_many_one_qubits_empty_confusion_matrix(qubits_length: int) -> list[np
 
 
 def _process_pauli_measurement_results(
-    qubits: list[ops.Qid],
+    qubits: Sequence[ops.Qid],
     pauli_string_groups: list[list[ops.PauliString]],
     circuit_results: list[ResultDict],
     calibration_results: dict[tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult],
@@ -460,7 +460,7 @@ def measure_pauli_strings(
     # Build the basis-change circuits for each Pauli string group
     pauli_measurement_circuits = list[circuits.Circuit]()
     for input_circuit, pauli_string_groups in normalized_circuits_to_pauli.items():
-        qid_list = list(sorted(input_circuit.all_qubits()))
+        qid_list = sorted(input_circuit.all_qubits())
         basis_change_circuits = []
         input_circuit_unfrozen = input_circuit.unfreeze()
         for pauli_strings in pauli_string_groups:

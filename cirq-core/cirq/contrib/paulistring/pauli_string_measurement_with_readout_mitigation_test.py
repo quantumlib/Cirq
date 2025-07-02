@@ -874,7 +874,7 @@ def test_group_paulis_type_mismatch() -> None:
 
 def test_process_pauli_measurement_results_raises_error_on_missing_calibration() -> None:
     """Test that the function raises an error if the calibration result is missing."""
-    qubits: list[cirq.Qid] = [q for q in cirq.LineQubit.range(5)]
+    qubits: Sequence[cirq.Qid] = cirq.LineQubit.range(5)
 
     measurement_op = cirq.measure(*qubits, key='m')
     test_circuits = list[cirq.Circuit]()
