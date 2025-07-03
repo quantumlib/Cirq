@@ -52,17 +52,9 @@ TESTED_MODULES: dict[str, _ModuleDeprecation | None] = {
     'cirq_ionq': None,
     'cirq_google': None,
     'cirq_pasqal': None,
-    'cirq_rigetti': None,
     'cirq.protocols': None,
     'non_existent_should_be_fine': None,
 }
-
-# TODO(#6706) remove after cirq_rigetti supports NumPy 2.0
-if np.__version__.startswith("2."):  # pragma: no cover
-    warnings.warn(
-        "json_serialization_test - ignoring cirq_rigetti due to incompatibility with NumPy 2.0"
-    )
-    del TESTED_MODULES["cirq_rigetti"]
 
 
 def _get_testspecs_for_modules() -> list[ModuleJsonTestSpec]:
@@ -618,6 +610,7 @@ def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: str | None):
         if deprecation is not None and deprecation.old_name in content:
             ctx_managers.append(deprecation.deprecation_assertion)  # pragma: no cover
 
+    # TODO: consider to add the support for 'tunits'.
     imports = {'cirq': cirq, 'pd': pd, 'sympy': sympy, 'np': np, 'datetime': datetime, 'nx': nx}
 
     for m in TESTED_MODULES.keys():

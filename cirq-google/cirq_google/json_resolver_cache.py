@@ -44,6 +44,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
 
     return {
         '_NamedConstantXmonDevice': _old_xmon,
+        'AnalogDetuneQubit': cirq_google.AnalogDetuneQubit,
         'Calibration': cirq_google.Calibration,
         'CalibrationTag': cirq_google.CalibrationTag,
         'CalibrationLayer': cirq_google.CalibrationLayer,
