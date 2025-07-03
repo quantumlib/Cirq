@@ -25,6 +25,7 @@ def test_depol_noise() -> None:
     qubits = cirq.LineQubit.range(2)
     moment = cirq.Moment([cirq.X(qubits[0]), cirq.Y(qubits[1])])
     noisy_mom = noise_model.noisy_moment(moment, system_qubits=qubits)
+    assert isinstance(noisy_mom, list)
     assert len(noisy_mom) == 2
     assert noisy_mom[0] == moment
     for g in noisy_mom[1]:
@@ -36,6 +37,7 @@ def test_depol_noise_prepend() -> None:
     qubits = cirq.LineQubit.range(2)
     moment = cirq.Moment([cirq.X(qubits[0]), cirq.Y(qubits[1])])
     noisy_mom = noise_model.noisy_moment(moment, system_qubits=qubits)
+    assert isinstance(noisy_mom, list)
     assert len(noisy_mom) == 2
     assert noisy_mom[1] == moment
     for g in noisy_mom[0]:
@@ -99,6 +101,7 @@ def test_readout_noise_no_prepend() -> None:
     qubits = cirq.LineQubit.range(2)
     moment = cirq.Moment([cirq.measure(*qubits, key="meas")])
     noisy_mom = noise_model.noisy_moment(moment, system_qubits=qubits)
+    assert isinstance(noisy_mom, list)
     assert len(noisy_mom) == 2
     assert noisy_mom[0] == moment
     for g in noisy_mom[1]:
@@ -167,6 +170,7 @@ def test_damped_readout_noise_no_prepend() -> None:
     qubits = cirq.LineQubit.range(2)
     moment = cirq.Moment([cirq.measure(*qubits, key="meas")])
     noisy_mom = noise_model.noisy_moment(moment, system_qubits=qubits)
+    assert isinstance(noisy_mom, list)
     assert len(noisy_mom) == 2
     assert noisy_mom[0] == moment
     for g in noisy_mom[1]:
