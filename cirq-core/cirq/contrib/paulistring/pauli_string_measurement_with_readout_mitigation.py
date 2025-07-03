@@ -325,7 +325,7 @@ def _process_pauli_measurement_results(
         pauli_readout_qubits = _extract_readout_qubits(pauli_strs)
 
         calibration_result = (
-            calibration_results.get(tuple(pauli_readout_qubits), None)
+            calibration_results[tuple(pauli_readout_qubits)]
             if disable_readout_mitigation is False
             else None
         )
