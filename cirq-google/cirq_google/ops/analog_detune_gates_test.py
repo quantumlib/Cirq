@@ -12,15 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import textwrap
+
 import pytest
 import sympy
 import tunits as tu
 
 import cirq
-import cirq_google.ops.analog_detune_gates as adg
+import cirq_google as cg
+from cirq_google.ops import analog_detune_gates as adg
 
 
-def test_equality():
+def test_analog_detune_qubit_equality():
     g1 = adg.AnalogDetuneQubit(length=20 * tu.ns, w=10 * tu.ns, target_freq=5 * tu.GHz)
     g2 = adg.AnalogDetuneQubit(length=20 * tu.ns, w=10 * tu.ns, target_freq=5 * tu.GHz)
     assert g1.num_qubits() == 1
@@ -141,3 +144,95 @@ def test_analog_detune_qubit_repr():
         "AnalogDetuneQubit(length=l, w=10 ns, target_freq=t_freq, prev_freq=p_freq,"
         " neighbor_coupler_g_dict=None, prev_neighbor_coupler_g_dict=None)"
     )
+
+
+def test_analog_detune_coupler_equality() -> None:
+    g1 = adg.AnalogDetuneCouplerOnly(
+        length=20 * tu.ns, w=10 * tu.ns, g_0=5 * tu.GHz, g_max=sympy.Symbol("g")
+    )
+    g2 = adg.AnalogDetuneCouplerOnly(
+        length=20 * tu.ns, w=10 * tu.ns, g_0=5 * tu.GHz, g_max=sympy.Symbol("g")
+    )
+    assert g1.num_qubits() == 1
+    assert g1 == g2
+
+
+def test_analog_detune_coupler_resolution() -> None:
+    gate = adg.AnalogDetuneCouplerOnly(
+        length=sympy.Symbol('length'),
+        w=10 * tu.ns,
+        g_0=5 * tu.MHz,
+        g_max=sympy.Symbol('g'),
+        neighbor_qubits_freq=(sympy.Symbol('q'), None),
+        prev_neighbor_qubits_freq=(5, 6),
+    )
+    resolver = {'length': 50 * tu.ns, sympy.Symbol('g'): 2 * tu.MHz, 'q': 5}
+    assert cirq.resolve_parameters(gate, resolver) == adg.AnalogDetuneCouplerOnly(
+        length=50 * tu.ns,
+        w=10 * tu.ns,
+        g_0=5 * tu.MHz,
+        g_max=2 * tu.MHz,
+        neighbor_qubits_freq=(5, None),
+        prev_neighbor_qubits_freq=(5, 6),
+    )
+
+
+def test_analog_detune_coupler_parameter_names() -> None:
+    gate = adg.AnalogDetuneCouplerOnly(
+        length=sympy.Symbol('l'),
+        w=10 * tu.ns,
+        g_0=5 * tu.MHz,
+        g_max=sympy.Symbol('g'),
+        neighbor_qubits_freq=(sympy.Symbol('q'), None),
+        prev_neighbor_qubits_freq=(5, 6),
+    )
+    assert cirq.parameter_names(gate) == {'l', 'g', 'q'}
+
+
+def test_analog_detune_coupler_repr() -> None:
+    gate = adg.AnalogDetuneCouplerOnly(
+        length=sympy.Symbol('l'),
+        w=10 * tu.ns,
+        g_0=5 * tu.MHz,
+        g_max=sympy.Symbol('g'),
+        neighbor_qubits_freq=(sympy.Symbol('q'), None),
+        prev_neighbor_qubits_freq=(5, 6),
+    )
+    assert repr(gate) == (
+        "AnalogDetuneCouplerOnly(length=l, w=10 ns, g_0=5 MHz, g_max=g, g_ramp_exponent=1.0,"
+        " neighbor_qubits_freq=(q, None), prev_neighbor_qubits_freq=(5, 6))"
+    )
+
+
+def test_analog_detune_coupler_circuit_diagram() -> None:
+    q1, q2 = cirq.q(0, 0), cirq.q(0, 1)
+    gate = adg.AnalogDetuneCouplerOnly(
+        length=sympy.Symbol('l'), w=10 * tu.ns, g_0=5 * tu.MHz, g_max=20 * tu.MHz
+    )
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(gate.on(q1, q2)),
+        "c(q(0, 0),q(0, 1)): ───AnalogDetuneCouplerOnly(length=l, g_max=20 MHz)───",
+    )
+
+    gate.g_max = None
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(gate.on(cg.Coupler(q1, q2))),
+        "c(q(0, 0),q(0, 1)): ───AnalogDetuneCouplerOnly(length=l, g_max=None)───",
+    )
+
+    q3, q4 = cirq.q(0, 2), cirq.q(0, 3)
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(gate.on_each((q1, q2), (q3, q4))),
+        textwrap.dedent(
+            """
+        c(q(0, 0),q(0, 1)): ───AnalogDetuneCouplerOnly(length=l, g_max=None)───
+        
+        c(q(0, 2),q(0, 3)): ───AnalogDetuneCouplerOnly(length=l, g_max=None)───
+        """
+        ),
+    )
+
+
+def test_analog_detune_coupler_jsonify() -> None:
+    gate = adg.AnalogDetuneCouplerOnly(length=sympy.Symbol('l'), w=10, g_0=5, g_max=20)
+    assert gate == cirq.read_json(json_text=cirq.to_json(gate))

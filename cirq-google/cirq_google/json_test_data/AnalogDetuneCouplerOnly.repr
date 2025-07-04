@@ -1,0 +1,1 @@
+cirq_google.AnalogDetuneCouplerOnly(length=sympy.Symbol('l'), w=10, g_0=5, g_max=20)
