@@ -39,5 +39,26 @@
         }
       }
     ]
+  },
+  {
+	  "cirq_type": "Moment",
+	  "operations": [
+	      	  {
+		    	  "cirq_type": "SingleQubitPauliStringGateOperation",
+		    	  "pauli": {
+			  	  "cirq_type": "_PauliX",
+			  	  "exponent": 1.0,
+			  	  "global_shift": 0.0
+		    	  },
+		    	  "qubit": {
+			  	  "cirq_type": "LineQubit",
+			  	  "x": 0
+		    	  }
+	      	  }
+	  ],
+	  "tags": {
+	      	  "cirq_type": "Duration",
+	      	  "picos": 25000
+	  }
   }
 ]
