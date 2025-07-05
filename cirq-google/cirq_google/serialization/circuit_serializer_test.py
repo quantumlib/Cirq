@@ -386,6 +386,32 @@ OPERATIONS = [
         ),
     ),
     (cirq.I(Q0), op_proto({'identitygate': {'qid_shape': [2]}, 'qubit_constant_index': [0]})),
+    (
+        cirq.depolarize(0.5)(Q0),
+        op_proto(
+            {
+                'noisechannel': {'depolarizingchannel': {'probability': {'float_value': 0.5}}},
+                'qubit_constant_index': [0],
+            }
+        ),
+    ),
+    (
+        cirq.X(Q0).with_probability(0.5),
+        op_proto(
+            {
+                'noisechannel': {
+                    'randomgatechannel': {
+                        'probability': {'float_value': 0.5},
+                        'sub_gate': {
+                            'xpowgate': {'exponent': {'float_value': 1.0}},
+                            'qubit_constant_index': [0],
+                        },
+                    }
+                },
+                'qubit_constant_index': [0],
+            }
+        ),
+    ),
 ]
 
 
