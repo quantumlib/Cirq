@@ -4910,3 +4910,189 @@ def test_append_speed():
     duration = time.perf_counter() - t
     assert len(c) == moments
     assert duration < 5
+
+
+import pytest
+
+import cirq
+from cirq import InsertStrategy, Moment, ops
+from cirq.circuits.circuit import (
+    _PlacementCache,  # May need to adjust if private member access is an issue
+)
+
+
+def test_placement_cache_rebuild_and_invalidation():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    c = cirq.Circuit()
+
+    # Initial appends (EARLIEST by default) should use/build cache
+    c.append(cirq.H(q0))
+    c.append(cirq.H(q1))  # Moment 0: H(q0), H(q1)
+    assert c._placement_cache is not None, "Cache should be active after initial appends"
+    assert len(c) == 1
+    assert c._placement_cache._length == 1
+    assert c._placement_cache._qubit_indices.get(q0) == 0
+    assert c._placement_cache._qubit_indices.get(q1) == 0
+
+    c.append(cirq.CNOT(q0, q1))  # Moment 1: CNOT(q0, q1)
+    assert c._placement_cache is not None, "Cache should remain active for subsequent appends"
+    assert len(c) == 2
+    assert c._placement_cache._length == 2
+    # Verify qubit indices in cache
+    assert c._placement_cache._qubit_indices[q0] == 1  # CNOT is in moment 1
+    assert c._placement_cache._qubit_indices[q1] == 1  # CNOT is in moment 1
+
+    # Operation that invalidates the cache: insert with NEW strategy
+    c.insert(1, cirq.X(q2), strategy=InsertStrategy.NEW)
+    # Circuit: H(q0),H(q1) | X(q2) | CNOT(q0,q1)
+    # Moment 0: H(q0), H(q1)
+    # Moment 1: X(q2)
+    # Moment 2: CNOT(q0, q1)
+    assert c._placement_cache is None, "Cache should be invalidated by insert (NEW)"
+    assert len(c) == 3
+
+    # First EARLIEST append after invalidation should trigger rebuild
+    c.append(cirq.Y(q0))  # Appends to a new moment 3
+    # Circuit: H(q0),H(q1) | X(q2) | CNOT(q0,q1) | Y(q0)
+    assert c._placement_cache is not None, "Cache should be rebuilt on first EARLIEST append"
+    assert len(c) == 4
+    assert c._placement_cache._length == 4  # Cache should now know about all 4 moments
+
+    # Check cache integrity after rebuild
+    assert c._placement_cache._qubit_indices[q0] == 3  # Y(q0) is latest @ moment 3
+    assert c._placement_cache._qubit_indices[q1] == 2  # CNOT(q0,q1) is latest for q1 @ moment 2
+    assert c._placement_cache._qubit_indices[q2] == 1  # X(q2) is latest @ moment 1
+
+    # Subsequent EARLIEST appends should use the rebuilt cache
+    c.append(cirq.Z(q1))  # Appends to moment 3 with Y(q0)
+    # Circuit: H(q0),H(q1) | X(q2) | CNOT(q0,q1) | Y(q0), Z(q1)
+    assert c._placement_cache is not None, "Cache should stay active"
+    assert len(c) == 4
+    assert c._placement_cache._length == 4
+    assert c._placement_cache._qubit_indices[q1] == 3  # Z(q1) is now latest for q1 @ moment 3
+
+    # Another invalidating operation: __setitem__
+    c[0] = Moment([ops.S(q0)])  # Moment 0: S(q0)
+    assert c._placement_cache is None, "Cache should be invalidated by __setitem__"
+
+    # EARLIEST append to trigger rebuild again
+    c.append(ops.T(q2))  # Appends to moment 4
+    # Circuit: S(q0) | X(q2) | CNOT(q0,q1) | Y(q0), Z(q1), T(q2)
+    assert c._placement_cache is not None, "Cache should be rebuilt again"
+    assert len(c) == 4
+    assert c._placement_cache._length == 4
+    assert c._placement_cache._qubit_indices[q0] == 3  # Y(q0) still latest for q0 @ moment 3
+    assert c._placement_cache._qubit_indices[q1] == 3  # Z(q1) still latest for q1 @ moment 3
+    assert c._placement_cache._qubit_indices[q2] == 2  # T(q2) is new latest for q2 @ moment 2
+
+    # Test with a different invalidating operation: clear_operations_touching
+    c.clear_operations_touching([q0], [0])  # Removes S(q0) from moment 0
+    assert c._placement_cache is None, "Cache invalidated by clear_operations_touching"
+
+    # Rebuild
+    c.append(cirq.H(q0))  # Appends to moment 4 (with T(q2))
+    # Circuit: EMPTY | X(q2) | CNOT(q0,q1) | Y(q0), Z(q1) | T(q2), H(q0)
+    assert c._placement_cache is not None
+    assert len(c) == 5
+    assert c._placement_cache._length == 5
+    assert c._placement_cache._qubit_indices[q0] == 4  # H(q0) is new latest @ moment 4
+
+    # Test initialization with non-EARLIEST strategy invalidates cache if it was active
+    c_new_strat = cirq.Circuit(cirq.H(q0), cirq.H(q1), strategy=InsertStrategy.NEW)
+    assert (
+        c_new_strat._placement_cache is None
+    ), "Cache should be None for NEW strategy init if ops are provided"
+    assert len(c_new_strat) == 2
+
+    # Test initialization with all moments also results in a None cache
+    c_all_moments = cirq.Circuit(Moment(cirq.H(q0)), Moment(cirq.H(q1)))
+    assert c_all_moments._placement_cache is None, "Cache should be None for all-moments init"
+
+    # Test that if EARLIEST append itself creates new moments, cache length is correct
+    c_len_test = cirq.Circuit()
+    c_len_test.append(Moment(cirq.X(q0)))  # Moment 0, cache len 1
+    assert c_len_test._placement_cache is not None
+    c_len_test.append(Moment(cirq.Y(q0)))  # Moment 1, cache len 2
+    assert c_len_test._placement_cache is not None
+    assert c_len_test._placement_cache._length == 2
+    c_len_test.append(cirq.Z(q0))  # This should go into a new moment 2 because Y(q0) is in moment 1
+    assert c_len_test._placement_cache is not None
+    assert c_len_test._placement_cache._length == 3
+    assert c_len_test._placement_cache._qubit_indices[q0] == 2
+
+    # Test inserting a Moment object with EARLIEST strategy when cache is active
+    c_moment_append = cirq.Circuit(cirq.H(q0))  # Cache active, length 1
+    assert c_moment_append._placement_cache is not None
+    new_moment = Moment(cirq.X(q1))
+    c_moment_append.append(new_moment)  # Appends the moment at index 1
+    assert len(c_moment_append) == 2
+    assert c_moment_append[1] == new_moment
+    assert c_moment_append._placement_cache is not None
+    assert c_moment_append._placement_cache._length == 2
+    assert c_moment_append._placement_cache._qubit_indices[q0] == 0
+    assert c_moment_append._placement_cache._qubit_indices[q1] == 1
+
+    # Test _mutated correctly clears cache when preserve_placement_cache is False
+    c_mutated_test = cirq.Circuit(cirq.H(q0))
+    assert c_mutated_test._placement_cache is not None
+    c_mutated_test._mutated(preserve_placement_cache=False)  # Explicit call for testing this path
+    assert c_mutated_test._placement_cache is None
+
+    # Test _mutated preserves cache when preserve_placement_cache is True
+    c_mutated_preserve = cirq.Circuit(cirq.H(q0))
+    assert c_mutated_preserve._placement_cache is not None
+    initial_cache_obj = c_mutated_preserve._placement_cache
+    c_mutated_preserve._mutated(preserve_placement_cache=True)
+    assert c_mutated_preserve._placement_cache is initial_cache_obj
+
+    # Test scenario: Init with EARLIEST (cache active) -> insert (NEW) (cache invalid) -> append (EARLIEST) (cache rebuild)
+    q_a, q_b = cirq.LineQubit.range(2)
+    circuit_scenario = cirq.Circuit(cirq.H(q_a), cirq.H(q_b), strategy=InsertStrategy.EARLIEST)
+    assert circuit_scenario._placement_cache is not None  # Active
+    assert circuit_scenario._placement_cache._length == 1
+
+    circuit_scenario.insert(0, cirq.X(q_a), strategy=InsertStrategy.NEW)  # Invalidates
+    # Circuit: X(q_a) | H(q_a), H(q_b)
+    assert circuit_scenario._placement_cache is None
+
+    circuit_scenario.append(cirq.CNOT(q_a, q_b))  # Rebuilds and appends
+    # Circuit: X(q_a) | H(q_a), H(q_b) | CNOT(q_a, q_b)
+    assert circuit_scenario._placement_cache is not None
+    assert circuit_scenario._placement_cache._length == 3
+    assert circuit_scenario._placement_cache._qubit_indices[q_a] == 2
+    assert circuit_scenario._placement_cache._qubit_indices[q_b] == 2
+
+
+def test_cache_correctness_with_measurement_and_control_keys():
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit()
+
+    # Append measurement
+    c.append(cirq.measure(q0, key="m0"))  # Moment 0
+    assert c._placement_cache is not None
+    assert c._placement_cache._mkey_indices.get(cirq.MeasurementKey.parse_serialized("m0")) == 0
+    assert c._placement_cache._length == 1
+
+    # Append classically controlled op
+    c.append(cirq.X(q1).with_classical_controls("m0"))  # Moment 1
+    assert c._placement_cache is not None
+    assert c._placement_cache._ckey_indices.get(cirq.MeasurementKey.parse_serialized("m0")) == 1
+    assert c._placement_cache._length == 2
+    assert c._placement_cache._qubit_indices[q1] == 1
+
+    # Invalidate cache
+    c.insert(
+        0, cirq.H(q0), strategy=InsertStrategy.NEW
+    )  # Moment 0: H(q0) | measure(q0) | X(q1).c("m0")
+    assert c._placement_cache is None
+
+    # Rebuild and append another measurement
+    c.append(cirq.measure(q1, key="m1"))  # Moment 3
+    # Circuit: H(q0) | measure(q0 key="m0") | X(q1).c("m0") | measure(q1 key="m1")
+    assert c._placement_cache is not None
+    assert c._placement_cache._length == 4
+    assert c._placement_cache._mkey_indices.get(cirq.MeasurementKey.parse_serialized("m0")) == 1
+    assert c._placement_cache._mkey_indices.get(cirq.MeasurementKey.parse_serialized("m1")) == 3
+    assert c._placement_cache._ckey_indices.get(cirq.MeasurementKey.parse_serialized("m0")) == 2
+    assert c._placement_cache._qubit_indices[q0] == 1  # measure(q0) is latest for q0
+    assert c._placement_cache._qubit_indices[q1] == 3  # measure(q1) is latest for q1

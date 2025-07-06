@@ -35,8 +35,10 @@ from typing import (
     cast,
     Iterable,
     Iterator,
+    List,
     Mapping,
     MutableSequence,
+    Optional,
     overload,
     Sequence,
     TYPE_CHECKING,
@@ -1777,24 +1779,47 @@ class Circuit(AbstractCircuit):
             return
         flattened_contents = tuple(ops.flatten_to_ops_or_moments(contents))
         if all(isinstance(c, Moment) for c in flattened_contents):
-            self._placement_cache = None
+            self._placement_cache = None  # Direct moment loading doesn't use/need cache initially.
             self._moments[:] = cast(Iterable[Moment], flattened_contents)
             return
+        # EARLIEST strategy during __init__ will use _load_contents_with_earliest_strategy,
         with _compat.block_overlapping_deprecation('.*'):
             if strategy == InsertStrategy.EARLIEST:
                 self._load_contents_with_earliest_strategy(flattened_contents)
             else:
+                # For non-EARLIEST strategies, the cache is not useful during this initial loading.
+                if self._placement_cache is not None:
+                    self._placement_cache = None
                 self.append(flattened_contents, strategy=strategy)
 
-    def _mutated(self, *, preserve_placement_cache=False) -> None:
+    def _mutated(self, *, preserve_placement_cache: bool = False) -> None:
         """Clear cached properties in response to this circuit being mutated."""
         self._all_qubits = None
         self._frozen = None
         self._is_measurement = None
         self._is_parameterized = None
         self._parameter_names = None
-        if not preserve_placement_cache:
+        if not preserve_placement_cache and self._placement_cache is not None:
             self._placement_cache = None
+
+    def _rebuild_placement_cache(self) -> None:
+        """Rebuilds the placement cache from the current _moments.
+
+        This method is called when an EARLIEST append is attempted and the
+        cache has been invalidated.
+        """
+        self._placement_cache = _PlacementCache()
+        cache = self._placement_cache  # Shorthand
+
+        for i, moment_val in enumerate(self._moments):
+            for op_in_moment in moment_val.operations:
+                for q_op in op_in_moment.qubits:
+                    cache._qubit_indices[q_op] = i
+                for mk_op in protocols.measurement_key_objs(op_in_moment):
+                    cache._mkey_indices[mk_op] = i
+                for ck_op in protocols.control_keys(op_in_moment):
+                    cache._ckey_indices[ck_op] = i
+        cache._length = len(self._moments)
 
     @classmethod
     def _from_moments(cls, moments: Iterable[cirq.Moment]) -> Circuit:
@@ -2116,8 +2141,14 @@ class Circuit(AbstractCircuit):
             ValueError: Bad insertion strategy.
         """
         # limit index to 0..len(self._moments), also deal with indices smaller 0
-        k = max(min(index if index >= 0 else len(self._moments) + index, len(self._moments)), 0)
-        if strategy != InsertStrategy.EARLIEST or k != len(self._moments):
+        k_idx = max(min(index if index >= 0 else len(self._moments) + index, len(self._moments)), 0)
+
+        # FIX: Move cache logic here, use original index
+        is_earliest_append = strategy == InsertStrategy.EARLIEST and index == len(self._moments)
+        if is_earliest_append:
+            if self._placement_cache is None:
+                self._rebuild_placement_cache()
+        elif self._placement_cache is not None:
             self._placement_cache = None
         mops = list(ops.flatten_to_ops_or_moments(moment_or_operation_tree))
         if self._placement_cache:
@@ -2126,6 +2157,8 @@ class Circuit(AbstractCircuit):
             batches = [[mop] for mop in mops]  # Each op goes into its own moment.
         else:
             batches = list(_group_into_moment_compatible(mops))
+
+        current_k_idx = k_idx  # Use a local variable for the current index within the batch loop
         for batch in batches:
             # Insert a moment if inline/earliest and _any_ op in the batch requires it.
             if (
@@ -2133,28 +2166,32 @@ class Circuit(AbstractCircuit):
                 and not isinstance(batch[0], Moment)
                 and strategy in (InsertStrategy.INLINE, InsertStrategy.EARLIEST)
                 and not all(
-                    (strategy is InsertStrategy.EARLIEST and self._can_add_op_at(k, op))
-                    or (k > 0 and self._can_add_op_at(k - 1, op))
+                    (strategy is InsertStrategy.EARLIEST and self._can_add_op_at(current_k_idx, op))
+                    or (current_k_idx > 0 and self._can_add_op_at(current_k_idx - 1, op))
                     for op in cast(list[cirq.Operation], batch)
                 )
             ):
-                self._moments.insert(k, Moment())
+                self._moments.insert(current_k_idx, Moment())
                 if strategy is InsertStrategy.INLINE:
-                    k += 1
+                    current_k_idx += 1
             max_p = 0
+            current_strategy_for_batch = strategy
             for moment_or_op in batch:
                 # Determine Placement
                 if self._placement_cache:
                     p = self._placement_cache.append(moment_or_op)
                 elif isinstance(moment_or_op, Moment):
-                    p = k
-                elif strategy in (InsertStrategy.NEW, InsertStrategy.NEW_THEN_INLINE):
-                    self._moments.insert(k, Moment())
-                    p = k
-                elif strategy is InsertStrategy.INLINE:
-                    p = k - 1
+                    p = current_k_idx
+                elif current_strategy_for_batch in (
+                    InsertStrategy.NEW,
+                    InsertStrategy.NEW_THEN_INLINE,
+                ):
+                    self._moments.insert(current_k_idx, Moment())
+                    p = current_k_idx
+                elif current_strategy_for_batch is InsertStrategy.INLINE:
+                    p = current_k_idx - 1
                 else:  # InsertStrategy.EARLIEST:
-                    p = self.earliest_available_moment(moment_or_op, end_moment_index=k)
+                    p = self.earliest_available_moment(moment_or_op, end_moment_index=current_k_idx)
                 # Place
                 if isinstance(moment_or_op, Moment):
                     self._moments.insert(p, moment_or_op)
@@ -2164,12 +2201,19 @@ class Circuit(AbstractCircuit):
                     self._moments[p] = self._moments[p].with_operation(moment_or_op)
                 # Iterate
                 max_p = max(p, max_p)
-                if strategy is InsertStrategy.NEW_THEN_INLINE:
-                    strategy = InsertStrategy.INLINE
-                    k += 1
-            k = max(k, max_p + 1)
-        self._mutated(preserve_placement_cache=True)
-        return k
+                if current_strategy_for_batch is InsertStrategy.NEW_THEN_INLINE:
+                    current_strategy_for_batch = InsertStrategy.INLINE
+                    if p == current_k_idx:
+                        current_k_idx += 1
+            # Update current_k_idx to be after the newly inserted operations for the next batch.
+            current_k_idx = max(current_k_idx, max_p + 1)
+        # At the end, update k_idx to reflect the final position
+        k_idx = current_k_idx
+        # Preserve cache only if it was an EARLIEST append and the cache was successfully used/rebuilt.
+        self._mutated(
+            preserve_placement_cache=(is_earliest_append and self._placement_cache is not None)
+        )
+        return k_idx
 
     def insert_into_range(self, operations: cirq.OP_TREE, start: int, end: int) -> int:
         """Writes operations inline into an area of the circuit.
