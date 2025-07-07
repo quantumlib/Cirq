@@ -26,7 +26,7 @@ import pytest
 import sympy
 
 import cirq
-from cirq import circuits, ops
+from cirq import circuits, Moment, ops
 from cirq.testing.devices import ValidatingTestDevice
 
 
@@ -4912,15 +4912,6 @@ def test_append_speed():
     assert duration < 5
 
 
-import pytest
-
-import cirq
-from cirq import InsertStrategy, Moment, ops
-from cirq.circuits.circuit import (
-    _PlacementCache,  # May need to adjust if private member access is an issue
-)
-
-
 def test_placement_cache_rebuild_and_invalidation():
     q0, q1, q2 = cirq.LineQubit.range(3)
     c = cirq.Circuit()
@@ -4943,7 +4934,7 @@ def test_placement_cache_rebuild_and_invalidation():
     assert c._placement_cache._qubit_indices[q1] == 1  # CNOT is in moment 1
 
     # Operation that invalidates the cache: insert with NEW strategy
-    c.insert(1, cirq.X(q2), strategy=InsertStrategy.NEW)
+    c.insert(1, cirq.X(q2), strategy=cirq.InsertStrategy.NEW)
     # Circuit: H(q0),H(q1) | X(q2) | CNOT(q0,q1)
     # Moment 0: H(q0), H(q1)
     # Moment 1: X(q2)
@@ -4998,7 +4989,7 @@ def test_placement_cache_rebuild_and_invalidation():
     assert c._placement_cache._qubit_indices[q0] == 4  # H(q0) is new latest @ moment 4
 
     # Test initialization with non-EARLIEST strategy invalidates cache if it was active
-    c_new_strat = cirq.Circuit(cirq.H(q0), cirq.H(q1), strategy=InsertStrategy.NEW)
+    c_new_strat = cirq.Circuit(cirq.H(q0), cirq.H(q1), strategy=cirq.InsertStrategy.NEW)
     assert (
         c_new_strat._placement_cache is None
     ), "Cache should be None for NEW strategy init if ops are provided"
@@ -5045,13 +5036,14 @@ def test_placement_cache_rebuild_and_invalidation():
     c_mutated_preserve._mutated(preserve_placement_cache=True)
     assert c_mutated_preserve._placement_cache is initial_cache_obj
 
-    # Test scenario: Init with EARLIEST (cache active) -> insert (NEW) (cache invalid) -> append (EARLIEST) (cache rebuild)
+    # Test scenario: Init with EARLIEST (cache active)
+    # -> insert (NEW) (cache invalid) -> append (EARLIEST) (cache rebuild)
     q_a, q_b = cirq.LineQubit.range(2)
-    circuit_scenario = cirq.Circuit(cirq.H(q_a), cirq.H(q_b), strategy=InsertStrategy.EARLIEST)
+    circuit_scenario = cirq.Circuit(cirq.H(q_a), cirq.H(q_b), strategy=cirq.InsertStrategy.EARLIEST)
     assert circuit_scenario._placement_cache is not None  # Active
     assert circuit_scenario._placement_cache._length == 1
 
-    circuit_scenario.insert(0, cirq.X(q_a), strategy=InsertStrategy.NEW)  # Invalidates
+    circuit_scenario.insert(0, cirq.X(q_a), strategy=cirq.InsertStrategy.NEW)  # Invalidates
     # Circuit: X(q_a) | H(q_a), H(q_b)
     assert circuit_scenario._placement_cache is None
 
@@ -5082,7 +5074,7 @@ def test_cache_correctness_with_measurement_and_control_keys():
 
     # Invalidate cache
     c.insert(
-        0, cirq.H(q0), strategy=InsertStrategy.NEW
+        0, cirq.H(q0), strategy=cirq.InsertStrategy.NEW
     )  # Moment 0: H(q0) | measure(q0) | X(q1).c("m0")
     assert c._placement_cache is None
 

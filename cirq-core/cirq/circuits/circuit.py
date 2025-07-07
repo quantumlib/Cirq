@@ -35,10 +35,8 @@ from typing import (
     cast,
     Iterable,
     Iterator,
-    List,
     Mapping,
     MutableSequence,
-    Optional,
     overload,
     Sequence,
     TYPE_CHECKING,
@@ -2209,7 +2207,8 @@ class Circuit(AbstractCircuit):
             current_k_idx = max(current_k_idx, max_p + 1)
         # At the end, update k_idx to reflect the final position
         k_idx = current_k_idx
-        # Preserve cache only if it was an EARLIEST append and the cache was successfully used/rebuilt.
+        # Preserve cache only if it was an EARLIEST append and the cache was
+        # successfully used/rebuilt.
         self._mutated(
             preserve_placement_cache=(is_earliest_append and self._placement_cache is not None)
         )
