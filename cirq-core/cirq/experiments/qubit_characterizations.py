@@ -17,7 +17,7 @@ from __future__ import annotations
 import dataclasses
 import functools
 import itertools
-from typing import Any, cast, Iterator, Mapping, overload, Sequence, TYPE_CHECKING
+from typing import Any, cast, Iterator, Mapping, Sequence, TYPE_CHECKING
 
 import attrs
 import numpy as np
@@ -422,7 +422,7 @@ def single_qubit_randomized_benchmarking(
         A RandomizedBenchMarkResult object that stores and plots the result.
     """
 
-    return parallel_single_qubit_rb(
+    return single_qubit_rb(
         sampler,
         qubit,
         RBParameters(
@@ -435,7 +435,7 @@ def single_qubit_randomized_benchmarking(
     )
 
 
-@deprecated(deadline='v2.0', fix='please use single_qubit_rb instead')
+@deprecated(deadline='v2.0', fix='please use parallel_single_qubit_rb instead')
 def parallel_single_qubit_randomized_benchmarking(
     sampler: cirq.Sampler,
     qubits: Sequence[cirq.Qid],
@@ -478,30 +478,33 @@ def parallel_single_qubit_randomized_benchmarking(
     )
 
 
-@overload
-def parallel_single_qubit_rb(
+def single_qubit_rb(
     sampler: cirq.Sampler,
-    qubits: cirq.Qid,
+    qubit: cirq.Qid,
     parameters: RBParameters = RBParameters(),
     rng_or_seed: np.random.Generator | int | None = None,
-) -> RandomizedBenchMarkResult: ...
+) -> RandomizedBenchMarkResult:
+    """Clifford-based randomized benchmarking (RB) on a single qubit.
+
+    Args:
+        sampler: The quantum engine or simulator to run the circuits.
+        qubits: The qubit(s) to benchmark.
+        parameters: The parameters of the experiment.
+        rng_or_seed: A np.random.Generator object or seed.
+    Returns:
+        A dictionary from qubits to RandomizedBenchMarkResult objects.
+    """
+    return parallel_single_qubit_rb(sampler, [qubit], parameters, rng_or_seed).results_dictionary[
+        qubit
+    ]
 
 
-@overload
 def parallel_single_qubit_rb(
     sampler: cirq.Sampler,
     qubits: Sequence[cirq.Qid],
     parameters: RBParameters = RBParameters(),
     rng_or_seed: np.random.Generator | int | None = None,
-) -> ParallelRandomizedBenchmarkingResult: ...
-
-
-def parallel_single_qubit_rb(
-    sampler: cirq.Sampler,
-    qubits: Sequence[cirq.Qid] | cirq.Qid,
-    parameters: RBParameters = RBParameters(),
-    rng_or_seed: np.random.Generator | int | None = None,
-) -> RandomizedBenchMarkResult | ParallelRandomizedBenchmarkingResult:
+) -> ParallelRandomizedBenchmarkingResult:
     """Clifford-based randomized benchmarking (RB) single qubits in parallel.
 
     Args:
@@ -512,10 +515,6 @@ def parallel_single_qubit_rb(
     Returns:
         A dictionary from qubits to RandomizedBenchMarkResult objects.
     """
-    is_single_qubit = False
-    if isinstance(qubits, ops.Qid):
-        qubits = (qubits,)
-        is_single_qubit = True
 
     rng_or_seed = (
         rng_or_seed
@@ -545,8 +544,6 @@ def parallel_single_qubit_rb(
         for qubit in qubits:
             gnd_probs[qubit].append(1.0 - np.mean(excited_probs[qubit]))
 
-    if is_single_qubit:
-        return RandomizedBenchMarkResult(parameters.num_clifford_range, gnd_probs[qubits[0]])
     return ParallelRandomizedBenchmarkingResult(
         {q: RandomizedBenchMarkResult(parameters.num_clifford_range, gnd_probs[q]) for q in qubits}
     )
