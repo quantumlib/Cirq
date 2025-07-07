@@ -61,7 +61,7 @@ def _pauli_up_to_global_phase(gate: ops.Gate) -> ops.Pauli | None:
 def _validate_dd_sequence(dd_sequence: tuple[ops.Gate, ...]) -> None:
     """Validates a given dynamical decoupling sequence.
 
-    The sequence should only consists of Pauli gates and is essentially an identity gate.
+    The sequence should only consist of Pauli gates and is essentially an identity gate.
 
     Args:
         dd_sequence: Input dynamical sequence to be validated.
@@ -82,7 +82,7 @@ def _validate_dd_sequence(dd_sequence: tuple[ops.Gate, ...]) -> None:
 
     if not protocols.equal_up_to_global_phase(product, np.eye(2)):
         raise ValueError(
-            'Invalid dynamical decoupling sequence. Expect sequence production equals'
+            'Invalid dynamical decoupling sequence. Expect sequence product equals'
             f' identity up to a global phase, got {product}.'.replace('\n', ' ')
         )
 
@@ -208,13 +208,13 @@ def add_dynamical_decoupling(
     single_qubit_gate_moments_only: bool = True,
 ) -> cirq.Circuit:
     """Adds dynamical decoupling gate operations to a given circuit.
-    This transformer might add new moments thus change structure of the original circuit.
+    This transformer might add new moments and thus change the structure of the original circuit.
 
     Args:
           circuit: Input circuit to transform.
           context: `cirq.TransformerContext` storing common configurable options for transformers.
           schema: Dynamical decoupling schema name or a dynamical decoupling sequence.
-            If a schema is specified, provided dynamical decouping sequence will be used.
+            If a schema is specified, the provided dynamical decoupling sequence will be used.
             Otherwise, customized dynamical decoupling sequence will be applied.
           single_qubit_gate_moments_only: If set True, dynamical decoupling operation will only be
             added in single-qubit gate moments.

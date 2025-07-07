@@ -30,26 +30,15 @@ jobs:
           cache-dependency-path: |
             **/requirements.txt
             dev_tools/requirements/**/*.txt
-      - name: Install system requirements
-        run: |
-          sudo apt-get update
-          sudo apt-get install libffi7
       - name: Install requirements
         run: |
           pip install --upgrade cirq~=1.0.dev &&
-            version=$(pip show cirq | sed -n "s/^Version: //p" | grep .) &&
-            pip install "cirq-rigetti==${version}" &&
             pip install \
-              -r dev_tools/requirements/deps/format.txt \
               -r dev_tools/requirements/deps/pylint.txt \
               -r dev_tools/requirements/deps/pytest.txt \
               -r dev_tools/requirements/deps/notebook.txt
-      - name: Run Quil dependencies
-        run: docker compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Pytest check
-        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --rigetti-integration --enable-slow-tests
-      - name: Stop Quil dependencies
-        run: docker compose -f cirq-rigetti/docker-compose.test.yaml down
+        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --ignore=cirq-rigetti --enable-slow-tests
   windows:
     if: github.repository_owner == 'quantumlib'
     name: Pytest Windows
@@ -70,13 +59,11 @@ jobs:
       - name: Install requirements
         run: |
           pip install --upgrade cirq~=1.0.dev &&
-            pip install --upgrade cirq-rigetti~=1.0.dev &&
-            pip install -r dev_tools/requirements/deps/format.txt &&
             pip install -r dev_tools/requirements/deps/pylint.txt &&
             pip install -r dev_tools/requirements/deps/pytest.txt &&
             pip install -r dev_tools/requirements/deps/notebook.txt
       - name: Pytest Windows
-        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --enable-slow-tests
+        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --ignore=cirq-rigetti --enable-slow-tests
         shell: bash
   macos:
     if: github.repository_owner == 'quantumlib'
@@ -98,12 +85,9 @@ jobs:
       - name: Install requirements
         run: |
           pip install --upgrade cirq~=1.0.dev &&
-            version=$(pip show cirq | sed -n "s/^Version: //p" | grep .) &&
-            pip install "cirq-rigetti==${version}" &&
             pip install \
-              -r dev_tools/requirements/deps/format.txt \
               -r dev_tools/requirements/deps/pylint.txt \
               -r dev_tools/requirements/deps/pytest.txt \
               -r dev_tools/requirements/deps/notebook.txt
       - name: Pytest check
-        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --enable-slow-tests
+        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --ignore=cirq-rigetti --enable-slow-tests

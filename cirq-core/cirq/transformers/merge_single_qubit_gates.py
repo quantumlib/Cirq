@@ -185,7 +185,7 @@ def _sweep_on_symbols(sweep: Sweep, symbols: set[sympy.Symbol]) -> Sweep:
 def _calc_phxz_sweeps(
     symbolized_circuit: cirq.Circuit, resolved_circuits: list[cirq.Circuit]
 ) -> Sweep:
-    """Return the phxz sweep of the symbolized_circuit on resolved_circuits.
+    """Returns the phxz sweep of the symbolized_circuit on resolved_circuits.
 
     Raises:
         ValueError: Structural mismatch: A `resolved_circuit` contains an unexpected gate type.
@@ -246,7 +246,7 @@ def merge_single_qubit_gates_to_phxz_symbolized(
     Args:
         circuit: Input circuit to transform. It will not be modified.
         context: `cirq.TransformerContext` storing common configurable options for transformers.
-        sweep: Sweep of the symbols in the input circuit, updated Sweep will be returned
+        sweep: Sweep of the symbols in the input circuit. An updated Sweep will be returned
             based on the transformation.
         atol: Absolute tolerance to angle error. Larger values allow more negligible gates to be
             dropped, smaller values increase accuracy.
@@ -280,7 +280,7 @@ def merge_single_qubit_gates_to_phxz_symbolized(
     remaining_symbols: set[sympy.Symbol] = set(
         protocols.parameter_symbols(circuit) - single_qubit_gate_symbols
     )
-    # If all single qubit gates are not parameterized, call the nonparamerized version of
+    # If all single qubit gates are not parameterized, call the non-parameterized version of
     # the transformer.
     if not single_qubit_gate_symbols:
         return (merge_single_qubit_gates_to_phxz(circuit, context=context, atol=atol), sweep)

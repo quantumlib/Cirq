@@ -287,7 +287,7 @@ class TestMergeSingleQubitGatesSymbolized(TestCase):
         )
         assert_optimizes(output_circuit, expected)
 
-        # Check the unitaries are preserved for each set of sweep paramerization.
+        # Check the unitaries are preserved for each set of sweep parameterization.
         for old_resolver, new_resolver in zip(sweep, new_sweep):
             cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
                 cirq.resolve_parameters(input_circuit, old_resolver),
@@ -310,7 +310,7 @@ class TestMergeSingleQubitGatesSymbolized(TestCase):
         new_circuit, new_sweep = cirq.merge_single_qubit_gates_to_phxz_symbolized(
             old_circuit, sweep=old_sweep
         )
-        # Check the unitaries are preserved for each set of sweep paramerization.
+        # Check the unitaries are preserved for each set of sweep parameterization.
         for old_resolver, new_resolver in zip(old_sweep, new_sweep):
             cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
                 cirq.resolve_parameters(old_circuit[0:-1], old_resolver),

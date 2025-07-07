@@ -197,7 +197,7 @@ def circuit_to_density_matrix_tensors(
 
 
 def tensor_density_matrix(
-    circuit: cirq.Circuit, qubits: list[cirq.Qid] | None = None
+    circuit: cirq.Circuit, qubits: Sequence[cirq.Qid] | None = None
 ) -> np.ndarray:
     """Given a circuit with mixtures or channels, contract a tensor network
     representing the resultant density matrix.

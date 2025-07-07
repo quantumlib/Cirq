@@ -21,7 +21,7 @@ import pytest
 import cirq.contrib.graph_device as ccgd
 
 
-def test_update_edge_label():
+def test_update_edge_label() -> None:
     edge = frozenset(range(3))
     graph = ccgd.UndirectedHypergraph(labelled_edges={edge: 'a'})
     assert graph.labelled_edges[edge] == 'a'
@@ -29,7 +29,7 @@ def test_update_edge_label():
     assert graph.labelled_edges[edge] == 'b'
 
 
-def test_hypergraph():
+def test_hypergraph() -> None:
     vertices = range(4)
     graph = ccgd.UndirectedHypergraph(vertices=vertices)
     assert graph.vertices == tuple(vertices)
@@ -55,7 +55,7 @@ def test_hypergraph():
         for _ in range(10)
     ],
 )
-def test_eq(vertices, edges):
+def test_eq(vertices, edges) -> None:
     vertices = set(vertices).union(*edges)
     graph_initialized = ccgd.UndirectedHypergraph(vertices=vertices, labelled_edges=edges)
     graph_added_parallel = ccgd.UndirectedHypergraph()
@@ -69,15 +69,15 @@ def test_eq(vertices, edges):
     assert graph_initialized == graph_added_parallel == graph_added_sequential
 
 
-def test_random_hypergraph():
+def test_random_hypergraph() -> None:
     n_vertices = 4
     graph = ccgd.UndirectedHypergraph.random(n_vertices, {1: 1.0})
-    assert sorted(graph.vertices) == sorted(range(n_vertices))
+    assert sorted(graph.vertices) == sorted(range(n_vertices))  # type: ignore[type-var]
     assert set(graph.labelled_edges.values()) == set((None,))
     assert tuple(len(edge) for edge in graph.edges) == (1,) * n_vertices
 
 
-def test_copy():
+def test_copy() -> None:
     graph_original = ccgd.UndirectedHypergraph(labelled_edges={(0, 1): None})
     graph_copy = graph_original.__copy__()
     assert graph_copy == graph_original
@@ -85,20 +85,20 @@ def test_copy():
     assert graph_copy != graph_original
 
 
-def test_iadd():
+def test_iadd() -> None:
     graph = ccgd.UndirectedHypergraph(labelled_edges={(0, 1): None})
     addend = ccgd.UndirectedHypergraph(labelled_edges={(1, 2): None})
     graph += addend
     assert set(graph.edges) == set(frozenset(e) for e in ((0, 1), (1, 2)))
-    assert sorted(graph.vertices) == [0, 1, 2]
+    assert sorted(graph.vertices) == [0, 1, 2]  # type: ignore[type-var]
 
 
-def test_add():
+def test_add() -> None:
     first_addend = ccgd.UndirectedHypergraph(labelled_edges={('a', 'b'): None})
     second_addend = ccgd.UndirectedHypergraph(labelled_edges={('c', 'b'): None})
     graph_sum = first_addend + second_addend
-    assert sorted(first_addend.vertices) == list('ab')
-    assert sorted(second_addend.vertices) == list('bc')
+    assert sorted(first_addend.vertices) == list('ab')  # type: ignore[type-var]
+    assert sorted(second_addend.vertices) == list('bc')  # type: ignore[type-var]
     assert sorted(graph_sum.vertices) == list('abc')
     assert sorted(first_addend.edges) == [frozenset('ab')]
     assert sorted(second_addend.edges) == [frozenset('bc')]
