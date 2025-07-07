@@ -983,3 +983,14 @@ def test_moment_with_tags() -> None:
 
     new_moment_with_custom_tag = moment_with_custom_tag.with_tags(456)
     assert new_moment_with_custom_tag.tags == ("string_tag", 123, tag_obj, 456)
+
+    # Test that tags are dropped if the Moment is changed.
+    moment = cirq.Moment.from_ops(op1, tags=(tag_obj,))
+    assert moment.tags == (tag_obj,)
+    assert moment.with_operation(op2).tags == ()
+    assert moment.with_operations(op2).tags == ()
+    assert moment.without_operations_touching([q0]).tags == ()
+
+    # Test that tags are retained if the Moment is unchanged.
+    assert moment.with_operations().tags == (tag_obj,)
+    assert moment.without_operations_touching([q1]).tags == (tag_obj,)

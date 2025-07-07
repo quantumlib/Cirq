@@ -139,7 +139,7 @@ class Moment:
                 These are a tuple of any Hashable object.  Tags will be dropped if
                 the operations in the Moment are modified or transformed.
         """
-        return cls(*ops, _flatten_contents=False)
+        return cls(*ops, _flatten_contents=False, tags=tags)
 
     @property
     def operations(self) -> tuple[cirq.Operation, ...]:
@@ -229,7 +229,7 @@ class Moment:
             raise ValueError(f'Overlapping operations: {operation}')
 
         # Use private variables to facilitate a quick copy.
-        m = Moment(_flatten_contents=False, tags=self._tags)
+        m = Moment(_flatten_contents=False)
         m._operations = self._operations + (operation,)
         m._sorted_operations = None
         m._qubit_to_op = {**self._qubit_to_op, **{q: operation for q in operation.qubits}}
@@ -244,7 +244,8 @@ class Moment:
     def with_operations(self, *contents: cirq.OP_TREE) -> cirq.Moment:
         """Returns a new moment with the given contents added.
 
-        Any tags on the original Moment object are dropped.
+        Any tags on the original Moment object are dropped if the Moment
+        is changed.
 
         Args:
             *contents: New operations to add to this moment.
@@ -283,7 +284,8 @@ class Moment:
     def without_operations_touching(self, qubits: Iterable[cirq.Qid]) -> cirq.Moment:
         """Returns an equal moment, but without ops on the given qubits.
 
-        Any tags on the original Moment object are dropped.
+        Any tags on the original Moment object are dropped if the Moment
+        is changed.
 
         Args:
             qubits: Operations that touch these will be removed.
