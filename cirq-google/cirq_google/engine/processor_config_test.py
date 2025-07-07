@@ -20,10 +20,19 @@ import cirq_google as cg
 
 import datetime
 
-def test_get_config_returns_existing_processor_config(self):
-    p1 = cg.engine.ProcessorConfig(name="p1", effective_device=None, calibraion=None)
-    p2 = cg.engine.ProcessorConfig(name="p2", effective_device=None, calibraion=None)
+def test_get_config_returns_existing_processor_config():
+    p1 = cg.engine.ProcessorConfig(name="p1", effective_device=None, calibration=None)
+    p2 = cg.engine.ProcessorConfig(name="p2", effective_device=None, calibration=None)
+    id = 'p2'
+    snapshot = cg.engine.ProcessorConfigSnapshot(snapshot_id="test_snap", create_time=datetime.datetime.now, run_names=[], processor_configs=[p1, p2])
 
-    snapshot = cg.ProcessorConfigSnapshot(snapshot_id="test_snap", create_time=datetime.datetime.now, run_names=[], processor_configs=[p1, p2])
+    assert snapshot.get_config(id) == p2
 
-    assert snapshot.get_config("p2") == p2
+def test_get_config_returns_none():
+    p1 = cg.engine.ProcessorConfig(name="p1", effective_device=None, calibration=None)
+    p2 = cg.engine.ProcessorConfig(name="p2", effective_device=None, calibration=None)
+    id_does_not_exist = 'p3'
+
+    snapshot = cg.engine.ProcessorConfigSnapshot(snapshot_id="test_snap", create_time=datetime.datetime.now, run_names=[], processor_configs=[p1, p2])
+
+    assert snapshot.get_config(id_does_not_exist) == None
