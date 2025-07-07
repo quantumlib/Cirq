@@ -142,7 +142,7 @@ class RandomizedBenchMarkResult:
             xdata=self._num_cfds_seq,
             ydata=self._gnd_state_probs,
             p0=[0.5, 0.5, 1.0 - 1e-3],
-            bounds=([0, 0.25, 0], [0.5, 0.75, 1]),
+            bounds=([-1, -1, 0], [1, 1, 1]),
         )
 
 
@@ -367,9 +367,15 @@ class RBParameters:
     def gateset(self) -> list[list[ops.SingleQubitCliffordGate]]:
         clifford_group = _single_qubit_cliffords()
         sequences = clifford_group.c1_in_xy if self.use_xy_basis else clifford_group.c1_in_xz
+        sequences = _canonize_clifford_sequences(sequences)
         if self.strict_basis:
-            sequences = [seq for seq in sequences if len(seq) == 2]
-        return _canonize_clifford_sequences(sequences)
+            if self.use_xy_basis:
+                excluded_gates = ops.Gateset(ops.I, ops.Z, ops.Z**0.5, ops.Z**-0.5)
+            else:
+                excluded_gates = ops.Gateset(ops.I, ops.Y, ops.Y**0.5, ops.Y**-0.5)
+
+            sequences = [[g] for (g,) in sequences if g not in excluded_gates]
+        return sequences
 
 
 @deprecated(deadline='v2.0', fix='please use single_qubit_rb instead')

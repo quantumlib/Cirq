@@ -242,6 +242,10 @@ def test_single_qubit_cliffords_gateset(num_cliffords, use_xy_basis, strict_basi
     c1_in_xy = cirq.experiments.qubit_characterizations.RBParameters(
         use_xy_basis=use_xy_basis, strict_basis=strict_basis
     ).gateset()
+    if strict_basis:
+        assert len(c1_in_xy) == 20
+    else:
+        assert len(c1_in_xy) == 24
     c = cirq.experiments.qubit_characterizations._create_parallel_rb_circuit(
         qubits, num_cliffords, c1_in_xy
     )
