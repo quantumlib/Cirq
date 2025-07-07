@@ -125,7 +125,7 @@ def _map_operations_impl(
             resulting optree spans more than 1 moment, it's either wrapped in a tagged circuit
             operation and inserted in-place in the same moment (if  `wrap_in_circuit_op` is True)
             OR the mapped operations are inserted directly in the circuit, preserving moment
-            strucutre. The effect is equivalent to (but much faster) a two-step approach of first
+            structure. The effect is equivalent to (but much faster) a two-step approach of first
             wrapping the operations in a circuit operation and then calling `cirq.unroll_circuit_op`
             to unroll the corresponding circuit ops.
         deep: If true, `map_func` will be recursively applied to circuits wrapped inside
@@ -364,13 +364,13 @@ def merge_operations(
     """Merges operations in a circuit by calling `merge_func` iteratively on operations.
 
     Two operations op1 and op2 are merge-able if
-        - There is no other operations between op1 and op2 in the circuit
+        - There is no other operation between op1 and op2 in the circuit
         - is_subset(op1.qubits, op2.qubits) or is_subset(op2.qubits, op1.qubits)
 
     The `merge_func` is a callable which, given two merge-able operations
     op1 and op2, decides whether they should be merged into a single operation
     or not. If not, it should return None, else it should return the single merged
-    operations `op`.
+    operation `op`.
 
     The method iterates on the input circuit moment-by-moment from left to right and attempts
     to repeatedly merge each operation in the latest moment with all the corresponding merge-able
@@ -383,7 +383,7 @@ def merge_operations(
 
     The number of calls to `merge_func` is O(N), where N = Total no. of operations, because:
         - Every time the `merge_func` returns a new operation, the number of operations in the
-            circuit reduce by 1 and hence this can happen at most O(N) times
+            circuit reduces by 1 and hence this can happen at most O(N) times
         - Every time the `merge_func` returns None, the current operation is inserted into the
             frontier and we go on to process the next operation, which can also happen at-most
             O(N) times.
@@ -501,7 +501,7 @@ def merge_operations_to_circuit_op(
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
         can_merge: Callable to determine whether a new operation `right_op` can be merged into an
-            existing connected component of operations `left_ops` based on boolen returned by
+            existing connected component of operations `left_ops` based on boolean returned by
             `can_merge(left_ops, right_op)`.
         tags_to_ignore: Tagged operations marked any of `tags_to_ignore` will not be considered as
             potential candidates for any connected component.
@@ -771,7 +771,7 @@ def unroll_circuit_op_greedy_frontier(
 def toggle_tags(circuit: CIRCUIT_TYPE, tags: Sequence[Hashable], *, deep: bool = False):
     """Toggles tags applied on each operation in the circuit, via `op.tags ^= tags`
 
-    For every operations `op` in the input circuit, the tags on `op` are replaced by a symmetric
+    For every operation `op` in the input circuit, the tags on `op` are replaced by a symmetric
     difference of `op.tags` and `tags` -- this is useful in scenarios where you mark a small subset
     of operations with a specific tag and then toggle the set of marked operations s.t. every
     marked operation is now unmarked and vice versa.

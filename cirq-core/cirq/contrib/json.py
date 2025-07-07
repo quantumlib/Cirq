@@ -3,10 +3,10 @@
 
 from __future__ import annotations
 
-from cirq.protocols.json_serialization import DEFAULT_RESOLVERS
+from cirq.protocols.json_serialization import DEFAULT_RESOLVERS, ObjectFactory
 
 
-def contrib_class_resolver(cirq_type: str):
+def contrib_class_resolver(cirq_type: str) -> ObjectFactory | None:
     """Extend cirq's JSON API with resolvers for cirq contrib classes."""
     from cirq.contrib.acquaintance import SwapPermutationGate
     from cirq.contrib.bayesian_network import BayesianNetworkGate

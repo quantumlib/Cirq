@@ -52,17 +52,9 @@ TESTED_MODULES: dict[str, _ModuleDeprecation | None] = {
     'cirq_ionq': None,
     'cirq_google': None,
     'cirq_pasqal': None,
-    'cirq_rigetti': None,
     'cirq.protocols': None,
     'non_existent_should_be_fine': None,
 }
-
-# TODO(#6706) remove after cirq_rigetti supports NumPy 2.0
-if np.__version__.startswith("2."):  # pragma: no cover
-    warnings.warn(
-        "json_serialization_test - ignoring cirq_rigetti due to incompatibility with NumPy 2.0"
-    )
-    del TESTED_MODULES["cirq_rigetti"]
 
 
 def _get_testspecs_for_modules() -> list[ModuleJsonTestSpec]:

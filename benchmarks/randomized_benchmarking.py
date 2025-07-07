@@ -39,7 +39,7 @@ class SingleQubitRandomizedBenchmarking:
     param_names = ["depth", "num_qubits", "num_circuits"]
     timeout = 600  # Change timeout to 10 minutes instead of default 60 seconds.
 
-    def setup(self, *_):
+    def setup(self, *_) -> None:
         self.sq_xz_matrices = np.array(
             [
                 dot([cirq.unitary(c) for c in reversed(group)])
@@ -60,12 +60,12 @@ class SingleQubitRandomizedBenchmarking:
             op_grid.append(op_sequence)
         return op_grid
 
-    def time_rb_op_grid_generation(self, depth: int, num_qubits: int, num_circuits: int):
+    def time_rb_op_grid_generation(self, depth: int, num_qubits: int, num_circuits: int) -> None:
         qubits = cirq.GridQubit.rect(1, num_qubits)
         for _ in range(num_circuits):
             self._get_op_grid(qubits, depth)
 
-    def time_rb_circuit_construction(self, depth: int, num_qubits: int, num_circuits: int):
+    def time_rb_circuit_construction(self, depth: int, num_qubits: int, num_circuits: int) -> None:
         qubits = cirq.GridQubit.rect(1, num_qubits)
         for _ in range(num_circuits):
             op_grid = self._get_op_grid(qubits, depth)
