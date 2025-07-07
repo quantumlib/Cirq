@@ -214,6 +214,8 @@ class Moment:
     def with_operation(self, operation: cirq.Operation) -> cirq.Moment:
         """Returns an equal moment, but with the given op added.
 
+        Any tags on the Moment will be dropped.
+
         Args:
             operation: The operation to append.
 

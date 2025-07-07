@@ -56,9 +56,11 @@
 		    	  }
 	      	  }
 	  ],
-	  "tags": {
+	  "tags": [
+	      {
 	      	  "cirq_type": "Duration",
 	      	  "picos": 25000
-	  }
+	      }
+	  ]
   }
 ]

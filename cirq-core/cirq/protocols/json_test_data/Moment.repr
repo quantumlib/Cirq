@@ -5,6 +5,6 @@
 ),
 cirq.Moment(
     cirq.X(cirq.LineQubit(0)),
-    tags=cirq.Duration(nanos=25)
+    tags=(cirq.Duration(nanos=25),)
 )
 ]
