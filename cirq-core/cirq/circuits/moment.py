@@ -94,6 +94,12 @@ class Moment:
                 we skip flattening and assume that contents already consists
                 of individual operations. This is used internally by helper
                 methods to avoid unnecessary validation.
+            tags:  Optional tags to denote specific Moment objects with meta-data.
+                These are a tuple of any Hashable object.  Typically, a class
+                will be passed.  Tags apply only to this specific set of operations
+                and will be lost on any transformation of the
+                Moment.  For instance, if operations are added to the Moment, tags
+                will be dropped unless explicitly added back in by the user.
 
         Raises:
             ValueError: A qubit appears more than once.
@@ -119,7 +125,7 @@ class Moment:
         self._tags = tags
 
     @classmethod
-    def from_ops(cls, *ops: cirq.Operation) -> cirq.Moment:
+    def from_ops(cls, *ops: cirq.Operation, tags: tuple[Hashable, ...] = ()) -> cirq.Moment:
         """Construct a Moment from the given operations.
 
         This avoids calling `flatten_to_ops` in the moment constructor, which
@@ -129,6 +135,9 @@ class Moment:
 
         Args:
             *ops: Operations to include in the Moment.
+            tags:  Optional tags to denote specific Moment objects with meta-data.
+                These are a tuple of any Hashable object.  Tags will be dropped if
+                the operations in the Moment are modified or transformed.
         """
         return cls(*ops, _flatten_contents=False)
 
@@ -164,6 +173,8 @@ class Moment:
         Please note that tags should be instantiated if classes are
         used.  Raw types are not allowed.
         """
+        if not new_tags:
+            return self
         return Moment(*self._operations, _flatten_contents=False, tags=(*self._tags, *new_tags))
 
     def operates_on_single_qubit(self, qubit: cirq.Qid) -> bool:
@@ -231,6 +242,8 @@ class Moment:
     def with_operations(self, *contents: cirq.OP_TREE) -> cirq.Moment:
         """Returns a new moment with the given contents added.
 
+        Any tags on the original Moment object are dropped.
+
         Args:
             *contents: New operations to add to this moment.
 
@@ -245,7 +258,7 @@ class Moment:
         if not flattened_contents:
             return self
 
-        m = Moment(_flatten_contents=False, tags=self._tags)
+        m = Moment(_flatten_contents=False)
         # Use private variables to facilitate a quick copy.
         m._qubit_to_op = self._qubit_to_op.copy()
         for op in flattened_contents:
@@ -267,6 +280,8 @@ class Moment:
 
     def without_operations_touching(self, qubits: Iterable[cirq.Qid]) -> cirq.Moment:
         """Returns an equal moment, but without ops on the given qubits.
+
+        Any tags on the original Moment object are dropped.
 
         Args:
             qubits: Operations that touch these will be removed.
@@ -554,15 +569,9 @@ class Moment:
     def __add__(self, other: cirq.OP_TREE) -> cirq.Moment:
         if isinstance(other, circuit.AbstractCircuit):
             return NotImplemented  # Delegate to Circuit.__radd__.
-        if isinstance(other, Moment):
-            return self.with_tags(*other.tags).with_operations(other)
         return self.with_operations(other)
 
     def __sub__(self, other: cirq.OP_TREE) -> cirq.Moment:
-        if isinstance(other, Moment):
-            new_tags = tuple(tag for tag in self._tags if tag not in other.tags)
-        else:
-            new_tags = self._tags
         must_remove = set(op_tree.flatten_to_ops(other))
         new_ops = []
         for op in self.operations:
@@ -576,7 +585,7 @@ class Moment:
                 f"Missing operations: {must_remove!r}\n"
                 f"Moment: {self!r}"
             )
-        return Moment(new_ops, tags=new_tags)
+        return Moment(new_ops)
 
     @overload
     def __getitem__(self, key: raw_types.Qid) -> cirq.Operation:
