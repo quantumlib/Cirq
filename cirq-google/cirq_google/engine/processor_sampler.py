@@ -113,3 +113,8 @@ class ProcessorSampler(cirq.Sampler):
     @property
     def device_config_name(self) -> str:
         return self._device_config_name
+
+    @property
+    def max_concurrent_jobs(self) -> int:
+        assert self._concurrent_job_limiter.capacity is not None
+        return self._concurrent_job_limiter.capacity

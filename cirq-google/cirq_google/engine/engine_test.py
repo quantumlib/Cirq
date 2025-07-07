@@ -800,6 +800,14 @@ def test_get_processor():
     assert cg.Engine(project_id='proj').get_processor('xmonsim').processor_id == 'xmonsim'
 
 
+def test_get_sampler_initializes_max_concurrent_jobs():
+    max_concurrent_jobs = 5
+    engine = cg.Engine(project_id='proj')
+    sampler = engine.get_sampler(processor_id='tmp', max_concurrent_jobs=max_concurrent_jobs)
+
+    assert sampler.max_concurrent_jobs == max_concurrent_jobs
+
+
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_sampler_with_unary_rpcs(client):
     setup_run_circuit_with_result_(client, _RESULTS)
