@@ -191,7 +191,7 @@ def test_do_not_decompose_no_compile():
     assert_equal_mod_empty(c, cirq.expand_composite(c, context=context))
 
 
-def test_expands_composite_recursively_preserving_structur():
+def test_expands_composite_recursively_preserving_structure():
     q = cirq.LineQubit.range(2)
     c_nested = cirq.FrozenCircuit(
         cirq.SWAP(*q[:2]), cirq.SWAP(*q[:2]).with_tags("ignore"), cirq.SWAP(*q[:2])
