@@ -488,7 +488,7 @@ def single_qubit_rb(
 
     Args:
         sampler: The quantum engine or simulator to run the circuits.
-        qubits: The qubit(s) to benchmark.
+        qubit: The qubit(s) to benchmark.
         parameters: The parameters of the experiment.
         rng_or_seed: A np.random.Generator object or seed.
     Returns:
