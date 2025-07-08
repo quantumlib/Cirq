@@ -142,7 +142,7 @@ class RandomizedBenchMarkResult:
             xdata=self._num_cfds_seq,
             ydata=self._gnd_state_probs,
             p0=[0.5, 0.5, 1.0 - 1e-3],
-            bounds=([-1, -1, 0], [1, 1, 1]),
+            bounds=([0, -1, 0], [1, 1, 1]),
         )
 
 
