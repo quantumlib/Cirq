@@ -1347,19 +1347,20 @@ class AbstractCircuit(abc.ABC):
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Self:
         changed = False
         resolved_moments: list[cirq.Moment] = []
+        resolved_tags: list[Hashable] = []
         for moment in self:
             resolved_moment = protocols.resolve_parameters(moment, resolver, recursive)
             if resolved_moment is not moment:
                 changed = True
             resolved_moments.append(resolved_moment)
-        if not changed:
+        for tag in self.tags:
+            resolved_tag = protocols.resolve_parameters(tag, resolver, recursive)
+            if resolved_tag is not tag:
+                changed = True
+        if changed:
+            return self._from_moments(resolved_moments, tags=resolved_tags)
+        else:
             return self  # pragma: no cover
-        circuit = self._from_moments(resolved_moments, tags=self.tags)
-
-        resolved_tags = [
-            protocols.resolve_parameters(tag, resolver, recursive) for tag in self.tags
-        ]
-        return circuit.with_tags(*resolved_tags)
 
     def _qasm_(self, args: cirq.QasmArgs | None = None) -> str:
         if args is None:
@@ -1952,7 +1953,7 @@ class Circuit(AbstractCircuit):
     def copy(self) -> Circuit:
         """Return a copy of this circuit."""
         copied_circuit = Circuit()
-        copied_circuit._moments = self._moments[:]
+        copied_circuit._moments[:] = self._moments[:]
         copied_circuit._placement_cache = None
         copied_circuit._tags = self.tags
         return copied_circuit
@@ -2534,7 +2535,7 @@ class Circuit(AbstractCircuit):
         if not new_tags:
             return self
         new_circuit = Circuit(tags=self.tags + new_tags)
-        new_circuit._moments = self._moments
+        new_circuit._moments[:] = self._moments
         return new_circuit
 
     def with_noise(self, noise: cirq.NOISE_MODEL_LIKE) -> cirq.Circuit:
