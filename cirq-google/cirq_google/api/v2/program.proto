@@ -80,6 +80,9 @@ message Circuit {
   // This field is used to reduce size of circuits that contain many
   // repeated moments.
   repeated int32 moment_indices = 3;
+
+  optional int32 token_constant_index = 4;
+  repeated int32 tag_indices = 5;
 }
 
 // A moment is a collection of operations and circuit operations that operate
@@ -480,7 +483,7 @@ message Tuple {
   }
 
   SequenceType sequence_type = 1;
-    
+
   repeated Arg values = 2;
 }
 
@@ -552,11 +555,11 @@ message CircuitOperation {
   // Map of args in the "inner" circuit (referenced by circuit_constant_index)
   // to args in the "outer" circuit (the one that contains this operation).
   ArgMapping arg_map = 5;
-  
+
   // Classical conditions
-  // Condition for repeating the circuit until this condition is true. 
+  // Condition for repeating the circuit until this condition is true.
   optional Arg repeat_until = 6;
-  
+
   // Condition for executing the circuit operation only if this condition is true.
   repeated Arg conditioned_on = 7;
 

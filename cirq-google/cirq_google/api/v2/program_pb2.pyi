@@ -148,7 +148,10 @@ class Circuit(google.protobuf.message.Message):
     SCHEDULING_STRATEGY_FIELD_NUMBER: builtins.int
     MOMENTS_FIELD_NUMBER: builtins.int
     MOMENT_INDICES_FIELD_NUMBER: builtins.int
+    TOKEN_CONSTANT_INDEX_FIELD_NUMBER: builtins.int
+    TAG_INDICES_FIELD_NUMBER: builtins.int
     scheduling_strategy: global___Circuit.SchedulingStrategy.ValueType
+    token_constant_index: builtins.int
     @property
     def moments(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Moment]:
         """The moments of the circuit, with the first element corresponding to the
@@ -164,14 +167,20 @@ class Circuit(google.protobuf.message.Message):
         repeated moments.
         """
 
+    @property
+    def tag_indices(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]: ...
     def __init__(
         self,
         *,
         scheduling_strategy: global___Circuit.SchedulingStrategy.ValueType = ...,
         moments: collections.abc.Iterable[global___Moment] | None = ...,
         moment_indices: collections.abc.Iterable[builtins.int] | None = ...,
+        token_constant_index: builtins.int | None = ...,
+        tag_indices: collections.abc.Iterable[builtins.int] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["moment_indices", b"moment_indices", "moments", b"moments", "scheduling_strategy", b"scheduling_strategy"]) -> None: ...
+    def HasField(self, field_name: typing.Literal["_token_constant_index", b"_token_constant_index", "token_constant_index", b"token_constant_index"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["_token_constant_index", b"_token_constant_index", "moment_indices", b"moment_indices", "moments", b"moments", "scheduling_strategy", b"scheduling_strategy", "tag_indices", b"tag_indices", "token_constant_index", b"token_constant_index"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["_token_constant_index", b"_token_constant_index"]) -> typing.Literal["token_constant_index"] | None: ...
 
 global___Circuit = Circuit
 
