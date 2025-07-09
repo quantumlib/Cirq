@@ -4930,10 +4930,16 @@ def test_tagged_circuits() -> None:
     # Test equality
     assert tagged_circuit.tags == tuple(tags)
     assert circuit != tagged_circuit
-    assert cirq.approx_eq(circuit, tagged_circuit)
+    assert not cirq.approx_eq(circuit, tagged_circuit)
     # Test _repr_ and _json_ round trips.
     cirq.testing.assert_equivalent_repr(tagged_circuit)
     cirq.testing.assert_json_roundtrip_works(tagged_circuit)
+    # Test utility methods and constructors
+    assert tagged_circuit.with_tags() is tagged_circuit
+    assert circuit.with_tags(*tags) == tagged_circuit
+    assert tagged_circuit.with_tags("c") == cirq.Circuit(ops, tags=[*tags, "c"])
+    assert tagged_circuit.untagged == circuit
+    assert circuit.untagged is circuit
     # Test parameterized protocols
     assert cirq.is_parameterized(circuit) is False
     assert cirq.is_parameterized(tagged_circuit) is True

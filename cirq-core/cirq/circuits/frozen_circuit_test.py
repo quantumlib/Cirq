@@ -103,8 +103,8 @@ def test_tagged_circuits() -> None:
     # Test equality
     assert tagged_circuit.tags == tuple(tags)
     assert circuit == frozen_circuit != tagged_circuit
+    assert not cirq.approx_eq(frozen_circuit, tagged_circuit)
     assert cirq.approx_eq(circuit, frozen_circuit)
-    assert cirq.approx_eq(frozen_circuit, tagged_circuit)
     # Test hash
     assert hash(frozen_circuit) != hash(tagged_circuit)
     # Test _repr_ and _json_ round trips.

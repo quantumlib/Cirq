@@ -65,9 +65,12 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         self._tags = tuple(tags)
 
     @classmethod
-    def _from_moments(cls, moments: Iterable[cirq.Moment]) -> FrozenCircuit:
+    def _from_moments(
+        cls, moments: Iterable[cirq.Moment], tags: Sequence[Hashable]
+    ) -> FrozenCircuit:
         new_circuit = FrozenCircuit()
         new_circuit._moments = tuple(moments)
+        new_circuit._tags = tuple(tags)
         return new_circuit
 
     @property
@@ -78,7 +81,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return self
 
     def unfreeze(self, copy: bool = True) -> cirq.Circuit:
-        return Circuit._from_moments(self._moments)
+        return Circuit._from_moments(self._moments, tags=self.tags)
 
     @property
     def tags(self) -> tuple[Hashable, ...]:
@@ -87,8 +90,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
 
     @cached_property
     def untagged(self) -> cirq.FrozenCircuit:
-        """Returns the underlying FrozenCircuit without any tags."""
-        return self._from_moments(self._moments) if self.tags else self
+        return super().untagged
 
     def with_tags(self, *new_tags: Hashable) -> cirq.FrozenCircuit:
         """Creates a new tagged `FrozenCircuit` with `self.tags` and `new_tags` combined."""
@@ -172,15 +174,6 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
     @_compat.cached_method
     def _parameter_names_(self) -> AbstractSet[str]:
         return super()._parameter_names_()
-
-    def _resolve_parameters_(
-        self, resolver: cirq.ParamResolver, recursive: bool
-    ) -> cirq.FrozenCircuit:
-        resolved_circuit = super()._resolve_parameters_(resolver, recursive)
-        resolved_tags = [
-            protocols.resolve_parameters(tag, resolver, recursive) for tag in self.tags
-        ]
-        return resolved_circuit.with_tags(*resolved_tags)
 
     def _measurement_key_names_(self) -> frozenset[str]:
         return self.all_measurement_key_names()
