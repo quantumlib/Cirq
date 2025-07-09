@@ -40,7 +40,6 @@ from typing import (
     MutableSequence,
     overload,
     Sequence,
-    Tuple,
     TYPE_CHECKING,
     TypeVar,
     Union,
@@ -205,7 +204,7 @@ class AbstractCircuit(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def tags(self) -> Tuple[Hashable, ...]:
+    def tags(self) -> tuple[Hashable, ...]:
         """Returns a tuple of the Circuit's tags."""
 
     def __bool__(self) -> bool:
@@ -2491,7 +2490,7 @@ class Circuit(AbstractCircuit):
         return self._moments
 
     @property
-    def tags(self) -> Tuple[Hashable, ...]:
+    def tags(self) -> tuple[Hashable, ...]:
         return self._tags
 
     def with_noise(self, noise: cirq.NOISE_MODEL_LIKE) -> cirq.Circuit:
