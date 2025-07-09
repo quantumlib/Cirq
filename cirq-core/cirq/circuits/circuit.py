@@ -40,7 +40,6 @@ from typing import (
     MutableSequence,
     overload,
     Sequence,
-    Tuple,
     TYPE_CHECKING,
     TypeVar,
     Union,
