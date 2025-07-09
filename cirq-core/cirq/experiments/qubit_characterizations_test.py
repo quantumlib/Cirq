@@ -152,24 +152,30 @@ def test_two_qubit_randomized_benchmarking():
 def test_single_qubit_state_tomography():
     # Check that the density matrices of the output states of X/2, Y/2 and
     # H + Y gates closely match the ideal cases.
+    # Checks that unique tomography keys are generated
     simulator = sim.Simulator()
-    qubit = GridQubit(0, 0)
+    q_0 = GridQubit(0, 0)
+    q_1 = GridQubit(0, 1)
 
-    circuit_1 = circuits.Circuit(ops.X(qubit) ** 0.5)
-    circuit_2 = circuits.Circuit(ops.Y(qubit) ** 0.5)
-    circuit_3 = circuits.Circuit(ops.H(qubit), ops.Y(qubit))
+    circuit_1 = circuits.Circuit(ops.X(q_0) ** 0.5)
+    circuit_2 = circuits.Circuit(ops.Y(q_0) ** 0.5)
+    circuit_3 = circuits.Circuit(ops.H(q_0), ops.Y(q_0))
+    circuit_4 = circuits.Circuit(ops.H(q_0), ops.Y(q_0), cirq.measure(q_1, key='z'))
 
-    act_rho_1 = single_qubit_state_tomography(simulator, qubit, circuit_1, 1000).data
-    act_rho_2 = single_qubit_state_tomography(simulator, qubit, circuit_2, 1000).data
-    act_rho_3 = single_qubit_state_tomography(simulator, qubit, circuit_3, 1000).data
+    act_rho_1 = single_qubit_state_tomography(simulator, q_0, circuit_1, 1000).data
+    act_rho_2 = single_qubit_state_tomography(simulator, q_0, circuit_2, 1000).data
+    act_rho_3 = single_qubit_state_tomography(simulator, q_0, circuit_3, 1000).data
+    act_rho_4 = single_qubit_state_tomography(simulator, q_0, circuit_4, 1000).data
 
     tar_rho_1 = np.array([[0.5, 0.5j], [-0.5j, 0.5]])
     tar_rho_2 = np.array([[0.5, 0.5], [0.5, 0.5]])
     tar_rho_3 = np.array([[0.5, -0.5], [-0.5, 0.5]])
+    tar_rho_4 = np.array([[0.5, -0.5], [-0.5, 0.5]])
 
     np.testing.assert_almost_equal(act_rho_1, tar_rho_1, decimal=1)
     np.testing.assert_almost_equal(act_rho_2, tar_rho_2, decimal=1)
     np.testing.assert_almost_equal(act_rho_3, tar_rho_3, decimal=1)
+    np.testing.assert_almost_equal(act_rho_4, tar_rho_4, decimal=1)
 
 
 def test_two_qubit_state_tomography():
