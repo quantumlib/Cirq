@@ -17,6 +17,7 @@ from __future__ import annotations
 import dataclasses
 import functools
 import itertools
+import uuid
 from typing import Any, cast, Iterator, Mapping, Sequence, TYPE_CHECKING
 
 import attrs
@@ -636,7 +637,7 @@ def single_qubit_state_tomography(
     while tomo_key in keys:
         tomo_key = f"tomo_key{uuid.uuid4().hex}"
 
-    circuit_z = circuit + circuit.Circuit(ops.measure(qubit, key=tomo_key))
+    circuit_z = circuit + circuits.Circuit(ops.measure(qubit, key=tomo_key))
 
     results = sampler.run(circuit_z, repetitions=repetitions)
     rho_11 = np.mean(results.records[tomo_key][:, -1, :])
