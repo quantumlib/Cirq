@@ -112,6 +112,7 @@ class _IonQClient:
         target: str | None = None,
         name: str | None = None,
         extra_query_params: dict | None = None,
+        batch_mode: bool = False,
     ) -> dict:
         """Create a job.
 
@@ -137,7 +138,7 @@ class _IonQClient:
 
         json: dict[str, Any] = {
             'backend': actual_target,
-            "type": "ionq.circuit.v1",
+            "type": "ionq.multi-circuit.v1" if batch_mode else "ionq.circuit.v1",
             'lang': 'json',
             'input': serialized_program.body,
         }
@@ -214,9 +215,10 @@ class _IonQClient:
         if extra_query_params is not None:
             params.update(extra_query_params)
 
+        # TODO: remove replace("v0.4", "v0.3")
         def request():
             return requests.get(
-                f'{self.url}/jobs/{job_id}/results', params=params, headers=self.headers
+                f'{self.url.replace("v0.4", "v0.3")}/jobs/{job_id}/results', params=params, headers=self.headers
             )
 
         return self._make_request(request, {}).json()

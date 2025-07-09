@@ -70,7 +70,7 @@ class Service:
             remote_host
             or os.getenv('CIRQ_IONQ_REMOTE_HOST')
             or os.getenv('IONQ_REMOTE_HOST')
-            or f'https://api-staging.ionq.co/{api_version}'
+            or f'https://api-staging.ionq.co/{api_version}' #TODO: replace api-staging.ionq.co with api.ionq.co
         )
 
         self.job_settings = job_settings or {}
@@ -297,6 +297,7 @@ class Service:
             target=target,
             name=name,
             extra_query_params=extra_query_params,
+            batch_mode=True,
         )
         # The returned job does not have fully populated fields, so make
         # a second call and return the results of the fully filled out job.
