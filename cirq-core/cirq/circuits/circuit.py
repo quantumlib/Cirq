@@ -33,12 +33,14 @@ from typing import (
     Any,
     Callable,
     cast,
+    Hashable,
     Iterable,
     Iterator,
     Mapping,
     MutableSequence,
     overload,
     Sequence,
+    Tuple,
     TYPE_CHECKING,
     TypeVar,
     Union,
@@ -201,6 +203,11 @@ class AbstractCircuit(abc.ABC):
             copy: If True and 'self' is a Circuit, returns a copy that circuit.
         """
 
+    @property
+    @abc.abstractmethod
+    def tags(self) -> Tuple[Hashable, ...]:
+        """Returns a tuple of the Circuit's tags."""
+
     def __bool__(self) -> bool:
         return bool(self.moments)
 
@@ -210,6 +217,7 @@ class AbstractCircuit(abc.ABC):
         return other is self or (
             len(self.moments) == len(other.moments)
             and all(m0 == m1 for m0, m1 in zip(self.moments, other.moments))
+            and self.tags == other.tags
         )
 
     def _approx_eq_(self, other: Any, atol: float) -> bool:
@@ -283,7 +291,9 @@ class AbstractCircuit(abc.ABC):
         args = []
         if self.moments:
             args.append(_list_repr_with_indented_item_lines(self.moments))
-        return f'{", ".join(args)}'
+        moments_repr = f'{", ".join(args)}'
+        tag_repr = ','.join(_compat.proper_repr(t) for t in self.tags)
+        return f'{moments_repr}, tags=[{tag_repr}]' if self.tags else moments_repr
 
     def __repr__(self) -> str:
         cls_name = self.__class__.__name__
@@ -1300,10 +1310,14 @@ class AbstractCircuit(abc.ABC):
         return diagram
 
     def _is_parameterized_(self) -> bool:
-        return any(protocols.is_parameterized(op) for op in self.all_operations())
+        return any(protocols.is_parameterized(op) for op in self.all_operations()) or any(
+            protocols.is_parameterized(tag) for tag in self.tags
+        )
 
     def _parameter_names_(self) -> AbstractSet[str]:
-        return {name for op in self.all_operations() for name in protocols.parameter_names(op)}
+        op_params = {name for op in self.all_operations() for name in protocols.parameter_names(op)}
+        tag_params = {name for tag in self.tags for name in protocols.parameter_names(tag)}
+        return op_params | tag_params
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Self:
         changed = False
@@ -1394,11 +1408,13 @@ class AbstractCircuit(abc.ABC):
         self._to_qasm_output(header, precision, qubit_order).save(file_path)
 
     def _json_dict_(self):
-        return protocols.obj_to_dict_helper(self, ['moments'])
+        attribute_names = ['moments', 'tags'] if self.tags else ['moments']
+        ret = protocols.obj_to_dict_helper(self, attribute_names)
+        return ret
 
     @classmethod
-    def _from_json_dict_(cls, moments, **kwargs):
-        return cls(moments, strategy=InsertStrategy.EARLIEST)
+    def _from_json_dict_(cls, moments, tags=(), **kwargs):
+        return cls(moments, tags=tags, strategy=InsertStrategy.EARLIEST)
 
     def zip(
         *circuits: cirq.AbstractCircuit, align: cirq.Alignment | str = Alignment.LEFT
@@ -1753,7 +1769,10 @@ class Circuit(AbstractCircuit):
     """
 
     def __init__(
-        self, *contents: cirq.OP_TREE, strategy: cirq.InsertStrategy = InsertStrategy.EARLIEST
+        self,
+        *contents: cirq.OP_TREE,
+        strategy: cirq.InsertStrategy = InsertStrategy.EARLIEST,
+        tags: Sequence[Hashable] = (),
     ) -> None:
         """Initializes a circuit.
 
@@ -1767,9 +1786,14 @@ class Circuit(AbstractCircuit):
                 from `contents`, this determines how the operations are packed
                 together. This option does not affect later insertions into the
                 circuit.
+            tags: A sequence of any type of object that is useful to attach metadata
+                to this circuit as long as the type is hashable.  If you wish the
+                resulting circuit to be eventually serialized into JSON, you should
+                also restrict the tags to be JSON serializable.
         """
         self._placement_cache: _PlacementCache | None = _PlacementCache()
         self._moments: list[cirq.Moment] = []
+        self._tags = tuple(tags)
 
         # Implementation note: the following cached properties are set lazily and then
         # invalidated and reset to None in `self._mutated()`, which is called any time
@@ -2465,6 +2489,10 @@ class Circuit(AbstractCircuit):
     @property
     def moments(self) -> Sequence[cirq.Moment]:
         return self._moments
+
+    @property
+    def tags(self) -> Tuple[Hashable, ...]:
+        return self._tags
 
     def with_noise(self, noise: cirq.NOISE_MODEL_LIKE) -> cirq.Circuit:
         """Make a noisy version of the circuit.

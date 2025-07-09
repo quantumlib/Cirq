@@ -4919,3 +4919,24 @@ def test_append_speed() -> None:
     duration = time.perf_counter() - t
     assert len(c) == moments
     assert duration < 5
+
+
+def test_tagged_circuits() -> None:
+    q = cirq.LineQubit(0)
+    ops = [cirq.X(q), cirq.H(q)]
+    tags = [sympy.Symbol("a"), "b"]
+    circuit = cirq.Circuit(ops)
+    tagged_circuit = cirq.Circuit(ops, tags=tags)
+    # Test equality
+    assert tagged_circuit.tags == tuple(tags)
+    assert circuit != tagged_circuit
+    assert cirq.approx_eq(circuit, tagged_circuit)
+    # Test _repr_ and _json_ round trips.
+    cirq.testing.assert_equivalent_repr(tagged_circuit)
+    cirq.testing.assert_json_roundtrip_works(tagged_circuit)
+    # Test parameterized protocols
+    assert cirq.is_parameterized(circuit) is False
+    assert cirq.is_parameterized(tagged_circuit) is True
+    assert cirq.parameter_names(tagged_circuit) == {"a"}
+    # Tags are not propagated to diagrams yet.
+    assert str(circuit) == str(tagged_circuit)
