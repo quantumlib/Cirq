@@ -618,6 +618,41 @@ def test_serialize_deserialize_circuit_with_tokens():
     assert serializer.deserialize(proto) == circuit
 
 
+def test_serialize_deserialize_circuit_tags():
+    serializer = cg.CircuitSerializer(
+        tag_serializer=DiscountTagSerializer(), tag_deserializer=DiscountTagDeserializer()
+    )
+    tag1 = cg.CalibrationTag("abc123")
+    tag2 = DiscountTag(discount=2.0)
+    circuit = cirq.Circuit(tags=(tag1, tag2))
+    proto = v2.program_pb2.Program(
+        language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
+        circuit=v2.program_pb2.Circuit(
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
+            tag_indices=[1],
+            token_constant_index=0,
+        ),
+        constants=[
+            v2.program_pb2.Constant(string_value="abc123"),
+            v2.program_pb2.Constant(
+                tag_value=v2.program_pb2.Tag(
+                    internal_tag=v2.program_pb2.InternalTag(
+                        tag_name="Discount",
+                        tag_package="test",
+                        tag_args={
+                            "discount": v2.program_pb2.Arg(
+                                arg_value=v2.program_pb2.ArgValue(float_value=2)
+                            )
+                        },
+                    )
+                )
+            ),
+        ],
+    )
+    assert proto == serializer.serialize(circuit)
+    assert serializer.deserialize(proto) == circuit
+
+
 def test_deserialize_circuit_with_token_strings():
     """Supporting token strings for backwards compatibility."""
     serializer = cg.CircuitSerializer()
