@@ -4,6 +4,10 @@ on:
   schedule:
     # Checks out main by default.
     - cron: '0 0 * * *'
+  # FIXME - remove this before PR submission
+  pull_request:
+    branches:
+      - main
 
 concurrency:
   group: ${{ github.workflow }}
