@@ -1579,9 +1579,7 @@ class AbstractCircuit(abc.ABC):
         for k in range(1, len(circuits)):
             offset, n_acc = _concat_ragged_helper(offset, n_acc, buffer, circuits[k].moments, align)
 
-        return cirq.Circuit(
-            buffer[offset : offset + n_acc], tags=circuits[0].tags if circuits else ()
-        )
+        return cirq.Circuit(buffer[offset : offset + n_acc], tags=circuits[0].tags)
 
     def get_independent_qubit_sets(self) -> list[set[cirq.Qid]]:
         """Divide circuit's qubits into independent qubit sets.
@@ -1956,7 +1954,7 @@ class Circuit(AbstractCircuit):
     def copy(self) -> Circuit:
         """Return a copy of this circuit."""
         copied_circuit = Circuit()
-        copied_circuit._moments[:] = self._moments[:]
+        copied_circuit._moments[:] = self._moments
         copied_circuit._placement_cache = None
         copied_circuit._tags = self.tags
         return copied_circuit
