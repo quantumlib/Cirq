@@ -81,7 +81,10 @@ message Circuit {
   // repeated moments.
   repeated int32 moment_indices = 3;
 
+  // Token that can be used to specify a version of a gate.
+  // For instance, a gate that has been calibrated for a circuit.
   optional int32 token_constant_index = 4;
+  // Indices in the constant table for tags associated with the circuit
   repeated int32 tag_indices = 5;
 }
 

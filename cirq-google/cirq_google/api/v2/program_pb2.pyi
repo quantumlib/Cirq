@@ -152,6 +152,9 @@ class Circuit(google.protobuf.message.Message):
     TAG_INDICES_FIELD_NUMBER: builtins.int
     scheduling_strategy: global___Circuit.SchedulingStrategy.ValueType
     token_constant_index: builtins.int
+    """Token that can be used to specify a version of a gate.
+    For instance, a gate that has been calibrated for a circuit.
+    """
     @property
     def moments(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Moment]:
         """The moments of the circuit, with the first element corresponding to the
@@ -168,7 +171,9 @@ class Circuit(google.protobuf.message.Message):
         """
 
     @property
-    def tag_indices(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]: ...
+    def tag_indices(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]:
+        """Indices in the constant table for tags associated with the circuit"""
+
     def __init__(
         self,
         *,
