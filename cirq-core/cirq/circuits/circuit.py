@@ -1357,6 +1357,7 @@ class AbstractCircuit(abc.ABC):
             resolved_tag = protocols.resolve_parameters(tag, resolver, recursive)
             if resolved_tag is not tag:
                 changed = True
+            resolved_tags.append(resolved_tag)
         if changed:
             return self._from_moments(resolved_moments, tags=resolved_tags)
         else:
@@ -1509,7 +1510,7 @@ class AbstractCircuit(abc.ABC):
         if isinstance(align, str):
             align = Alignment[align.upper()]
 
-        result = cirq.Circuit()
+        result = cirq.Circuit(tags=circuits[0].tags if circuits else ())
         for k in range(n):
             try:
                 if align == Alignment.LEFT:
@@ -1578,7 +1579,9 @@ class AbstractCircuit(abc.ABC):
         for k in range(1, len(circuits)):
             offset, n_acc = _concat_ragged_helper(offset, n_acc, buffer, circuits[k].moments, align)
 
-        return cirq.Circuit(buffer[offset : offset + n_acc])
+        return cirq.Circuit(
+            buffer[offset : offset + n_acc], tags=circuits[0].tags if circuits else ()
+        )
 
     def get_independent_qubit_sets(self) -> list[set[cirq.Qid]]:
         """Divide circuit's qubits into independent qubit sets.
@@ -2015,7 +2018,7 @@ class Circuit(AbstractCircuit):
     def __mul__(self, repetitions: _INT_TYPE):
         if not isinstance(repetitions, (int, np.integer)):
             return NotImplemented
-        return Circuit(self._moments * int(repetitions))
+        return Circuit(self._moments * int(repetitions), tags=self.tags)
 
     def __rmul__(self, repetitions: _INT_TYPE):
         if not isinstance(repetitions, (int, np.integer)):
@@ -2041,7 +2044,7 @@ class Circuit(AbstractCircuit):
                 return NotImplemented
             inv_moments.append(inv_moment)
 
-        return cirq.Circuit(inv_moments)
+        return cirq.Circuit(inv_moments, tags=self.tags)
 
     __hash__ = None  # type: ignore
 
@@ -2552,7 +2555,7 @@ class Circuit(AbstractCircuit):
         """
         noise_model = devices.NoiseModel.from_noise_model_like(noise)
         qubits = sorted(self.all_qubits())
-        c_noisy = Circuit()
+        c_noisy = Circuit(tags=self.tags)
         for op_tree in noise_model.noisy_moments(self, qubits):
             # Keep moments aligned
             c_noisy += Circuit(op_tree)
