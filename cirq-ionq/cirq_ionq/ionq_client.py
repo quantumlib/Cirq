@@ -140,7 +140,7 @@ class _IonQClient:
             'backend': actual_target,
             "type": "ionq.multi-circuit.v1" if batch_mode else "ionq.circuit.v1",
             'lang': 'json',
-            'input': serialized_program.body,
+            'input': serialized_program.input,
         }
         if name:
             json['name'] = name
@@ -155,9 +155,16 @@ class _IonQClient:
         json['metadata']['shots'] = str(repetitions)
 
         if serialized_program.error_mitigation:
-            json['error_mitigation'] = serialized_program.error_mitigation
+            if not 'settings' in json.keys():
+                json['settings'] = {}
+            json['settings']['error_mitigation'] = serialized_program.error_mitigation
 
         if extra_query_params is not None:
+            if 'error_mitigation' in extra_query_params:
+                if 'settings' not in json:
+                    json['settings'] = {}
+                json['settings']['error_mitigation'] = extra_query_params['error_mitigation']
+                extra_query_params = {k: v for k, v in extra_query_params.items() if k != 'error_mitigation'}
             json.update(extra_query_params)
 
         print("Job url:", self.url)
@@ -218,7 +225,9 @@ class _IonQClient:
         # TODO: remove replace("v0.4", "v0.3")
         def request():
             return requests.get(
-                f'{self.url.replace("v0.4", "v0.3")}/jobs/{job_id}/results', params=params, headers=self.headers
+                f'{self.url.replace("v0.4", "v0.3")}/jobs/{job_id}/results',
+                params=params,
+                headers=self.headers,
             )
 
         return self._make_request(request, {}).json()

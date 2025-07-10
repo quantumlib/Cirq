@@ -92,7 +92,7 @@ def test_serialize_single_circuit_implicit_num_qubits():
     circuit = cirq.Circuit(cirq.X(q0))
     serializer = ionq.Serializer()
     result = serializer.serialize_single_circuit(circuit)
-    assert result.body['qubits'] == 3
+    assert result.input['qubits'] == 3
 
 
 def test_serialize_many_circuits_implicit_num_qubits():
@@ -100,7 +100,7 @@ def test_serialize_many_circuits_implicit_num_qubits():
     circuit = cirq.Circuit(cirq.X(q0))
     serializer = ionq.Serializer()
     result = serializer.serialize_many_circuits([circuit])
-    assert result.body['qubits'] == 3
+    assert result.input['qubits'] == 3
 
 
 def test_serialize_single_circuit_settings():
@@ -111,7 +111,7 @@ def test_serialize_single_circuit_settings():
         circuit, job_settings={"foo": "bar", "key": "heart"}
     )
     assert result == ionq.SerializedProgram(
-        body={'gateset': 'qis', 'qubits': 3, 'circuit': [{'gate': 'x', 'targets': [2]}]},
+        input={'gateset': 'qis', 'qubits': 3, 'circuit': [{'gate': 'x', 'targets': [2]}]},
         metadata={},
         settings={"foo": "bar", "key": "heart"},
     )
@@ -125,7 +125,7 @@ def test_serialize_many_circuits_settings():
         [circuit], job_settings={"foo": "bar", "key": "heart"}
     )
     assert result == ionq.SerializedProgram(
-        body={
+        input={
             'gateset': 'qis',
             'qubits': 3,
             'circuits': [{'circuit': [{'gate': 'x', 'targets': [2]}]}],
@@ -175,7 +175,7 @@ def test_serialize_single_circuit_pow_gates():
             circuit = cirq.Circuit((gate**exponent)(q0))
             result = serializer.serialize_single_circuit(circuit)
             assert result == ionq.SerializedProgram(
-                body={
+                input={
                     'gateset': 'qis',
                     'qubits': 1,
                     'circuit': [{'gate': name, 'targets': [0], 'rotation': exponent * np.pi}],
@@ -193,7 +193,7 @@ def test_serialize_many_circuits_pow_gates():
             circuit = cirq.Circuit((gate**exponent)(q0))
             result = serializer.serialize_many_circuits([circuit])
             assert result == ionq.SerializedProgram(
-                body={
+                input={
                     'gateset': 'qis',
                     'qubits': 1,
                     'circuits': [
@@ -212,7 +212,7 @@ def test_serialize_single_circuit_pauli_gates():
         circuit = cirq.Circuit(gate(q0))
         result = serializer.serialize_single_circuit(circuit)
         assert result == ionq.SerializedProgram(
-            body={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': name, 'targets': [0]}]},
+            input={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': name, 'targets': [0]}]},
             metadata={},
             settings={},
         )
@@ -225,7 +225,7 @@ def test_serialize_many_circuits_pauli_gates():
         circuit = cirq.Circuit(gate(q0))
         result = serializer.serialize_many_circuits([circuit])
         assert result == ionq.SerializedProgram(
-            body={
+            input={
                 'gateset': 'qis',
                 'qubits': 1,
                 'circuits': [{'circuit': [{'gate': name, 'targets': [0]}]}],
@@ -241,14 +241,14 @@ def test_serialize_single_circuit_sqrt_x_gate():
     circuit = cirq.Circuit(cirq.X(q0) ** (0.5))
     result = serializer.serialize_single_circuit(circuit)
     assert result == ionq.SerializedProgram(
-        body={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': 'v', 'targets': [0]}]},
+        input={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': 'v', 'targets': [0]}]},
         metadata={},
         settings={},
     )
     circuit = cirq.Circuit(cirq.X(q0) ** (-0.5))
     result = serializer.serialize_single_circuit(circuit)
     assert result == ionq.SerializedProgram(
-        body={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': 'vi', 'targets': [0]}]},
+        input={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': 'vi', 'targets': [0]}]},
         metadata={},
         settings={},
     )
@@ -260,7 +260,7 @@ def test_serialize_many_circuits_sqrt_x_gate():
     circuit = cirq.Circuit(cirq.X(q0) ** (0.5))
     result = serializer.serialize_many_circuits([circuit])
     assert result == ionq.SerializedProgram(
-        body={
+        input={
             'gateset': 'qis',
             'qubits': 1,
             'circuits': [{'circuit': [{'gate': 'v', 'targets': [0]}]}],
@@ -271,7 +271,7 @@ def test_serialize_many_circuits_sqrt_x_gate():
     circuit = cirq.Circuit(cirq.X(q0) ** (-0.5))
     result = serializer.serialize_many_circuits([circuit])
     assert result == ionq.SerializedProgram(
-        body={
+        input={
             'gateset': 'qis',
             'qubits': 1,
             'circuits': [{'circuit': [{'gate': 'vi', 'targets': [0]}]}],
@@ -287,14 +287,14 @@ def test_serialize_single_circuit_s_gate():
     circuit = cirq.Circuit(cirq.Z(q0) ** (0.5))
     result = serializer.serialize_single_circuit(circuit)
     assert result == ionq.SerializedProgram(
-        body={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': 's', 'targets': [0]}]},
+        input={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': 's', 'targets': [0]}]},
         metadata={},
         settings={},
     )
     circuit = cirq.Circuit(cirq.Z(q0) ** (-0.5))
     result = serializer.serialize_single_circuit(circuit)
     assert result == ionq.SerializedProgram(
-        body={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': 'si', 'targets': [0]}]},
+        input={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': 'si', 'targets': [0]}]},
         metadata={},
         settings={},
     )
@@ -306,7 +306,7 @@ def test_serialize_many_circuits_s_gate():
     circuit = cirq.Circuit(cirq.Z(q0) ** (0.5))
     result = serializer.serialize_many_circuits([circuit])
     assert result == ionq.SerializedProgram(
-        body={
+        input={
             'gateset': 'qis',
             'qubits': 1,
             'circuits': [{'circuit': [{'gate': 's', 'targets': [0]}]}],
@@ -317,7 +317,7 @@ def test_serialize_many_circuits_s_gate():
     circuit = cirq.Circuit(cirq.Z(q0) ** (-0.5))
     result = serializer.serialize_many_circuits([circuit])
     assert result == ionq.SerializedProgram(
-        body={
+        input={
             'gateset': 'qis',
             'qubits': 1,
             'circuits': [{'circuit': [{'gate': 'si', 'targets': [0]}]}],
@@ -333,7 +333,7 @@ def test_serialize_single_circuit_h_gate():
     circuit = cirq.Circuit(cirq.H(q0))
     result = serializer.serialize_single_circuit(circuit)
     assert result == ionq.SerializedProgram(
-        body={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': 'h', 'targets': [0]}]},
+        input={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': 'h', 'targets': [0]}]},
         metadata={},
         settings={},
     )
@@ -349,7 +349,7 @@ def test_serialize_many_circuits_h_gate():
     circuit = cirq.Circuit(cirq.H(q0))
     result = serializer.serialize_many_circuits([circuit])
     assert result == ionq.SerializedProgram(
-        body={
+        input={
             'gateset': 'qis',
             'qubits': 1,
             'circuits': [{'circuit': [{'gate': 'h', 'targets': [0]}]}],
@@ -369,14 +369,14 @@ def test_serialize_single_circuit_t_gate():
     circuit = cirq.Circuit(cirq.Z(q0) ** (0.25))
     result = serializer.serialize_single_circuit(circuit)
     assert result == ionq.SerializedProgram(
-        body={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': 't', 'targets': [0]}]},
+        input={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': 't', 'targets': [0]}]},
         metadata={},
         settings={},
     )
     circuit = cirq.Circuit(cirq.Z(q0) ** (-0.25))
     result = serializer.serialize_single_circuit(circuit)
     assert result == ionq.SerializedProgram(
-        body={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': 'ti', 'targets': [0]}]},
+        input={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': 'ti', 'targets': [0]}]},
         metadata={},
         settings={},
     )
@@ -388,7 +388,7 @@ def test_serialize_many_circuits_t_gate():
     circuit = cirq.Circuit(cirq.Z(q0) ** (0.25))
     result = serializer.serialize_many_circuits([circuit])
     assert result == ionq.SerializedProgram(
-        body={
+        input={
             'gateset': 'qis',
             'qubits': 1,
             'circuits': [{'circuit': [{'gate': 't', 'targets': [0]}]}],
@@ -399,7 +399,7 @@ def test_serialize_many_circuits_t_gate():
     circuit = cirq.Circuit(cirq.Z(q0) ** (-0.25))
     result = serializer.serialize_many_circuits([circuit])
     assert result == ionq.SerializedProgram(
-        body={
+        input={
             'gateset': 'qis',
             'qubits': 1,
             'circuits': [{'circuit': [{'gate': 'ti', 'targets': [0]}]}],
@@ -417,7 +417,7 @@ def test_serialize_single_circuit_parity_pow_gate():
             circuit = cirq.Circuit(gate(exponent=exponent)(q0, q1))
             result = serializer.serialize_single_circuit(circuit)
             assert result == ionq.SerializedProgram(
-                body={
+                input={
                     'gateset': 'qis',
                     'qubits': 2,
                     'circuit': [{'gate': name, 'targets': [0, 1], 'rotation': exponent * np.pi}],
@@ -435,7 +435,7 @@ def test_serialize__many_circuits_parity_pow_gate():
             circuit = cirq.Circuit(gate(exponent=exponent)(q0, q1))
             result = serializer.serialize_many_circuits([circuit])
             assert result == ionq.SerializedProgram(
-                body={
+                input={
                     'gateset': 'qis',
                     'qubits': 2,
                     'circuits': [
@@ -457,7 +457,7 @@ def test_serialize_single_circuit_cnot_gate():
     circuit = cirq.Circuit(cirq.CNOT(q0, q1))
     result = serializer.serialize_single_circuit(circuit)
     assert result == ionq.SerializedProgram(
-        body={
+        input={
             'gateset': 'qis',
             'qubits': 2,
             'circuit': [{'gate': 'cnot', 'control': 0, 'target': 1}],
@@ -477,7 +477,7 @@ def test_serialize_many_circuits_cnot_gate():
     circuit = cirq.Circuit(cirq.CNOT(q0, q1))
     result = serializer.serialize_many_circuits([circuit])
     assert result == ionq.SerializedProgram(
-        body={
+        input={
             'gateset': 'qis',
             'qubits': 2,
             'circuits': [{'circuit': [{'gate': 'cnot', 'control': 0, 'target': 1}]}],
@@ -497,7 +497,7 @@ def test_serialize_single_circuit_swap_gate():
     circuit = cirq.Circuit(cirq.SWAP(q0, q1))
     result = serializer.serialize_single_circuit(circuit)
     assert result == ionq.SerializedProgram(
-        body={'gateset': 'qis', 'qubits': 2, 'circuit': [{'gate': 'swap', 'targets': [0, 1]}]},
+        input={'gateset': 'qis', 'qubits': 2, 'circuit': [{'gate': 'swap', 'targets': [0, 1]}]},
         metadata={},
         settings={},
     )
@@ -513,7 +513,7 @@ def test_serialize_many_circuits_swap_gate():
     circuit = cirq.Circuit(cirq.SWAP(q0, q1))
     result = serializer.serialize_many_circuits([circuit])
     assert result == ionq.SerializedProgram(
-        body={
+        input={
             'gateset': 'qis',
             'qubits': 2,
             'circuits': [{'circuit': [{'gate': 'swap', 'targets': [0, 1]}]}],
@@ -533,7 +533,7 @@ def test_serialize_single_circuit_measurement_gate():
     serializer = ionq.Serializer()
     result = serializer.serialize_single_circuit(circuit)
     assert result == ionq.SerializedProgram(
-        body={'gateset': 'native', 'qubits': 1, 'circuit': []},
+        input={'gateset': 'native', 'qubits': 1, 'circuit': []},
         metadata={'measurement0': f'tomyheart{chr(31)}0'},
         settings={},
     )
@@ -545,7 +545,7 @@ def test_serialize_many_circuits_measurement_gate():
     serializer = ionq.Serializer()
     result = serializer.serialize_many_circuits([circuit])
     assert result == ionq.SerializedProgram(
-        body={'gateset': 'native', 'qubits': 1, 'circuits': [{'circuit': []}]},
+        input={'gateset': 'native', 'qubits': 1, 'circuits': [{'circuit': []}]},
         metadata={
             'measurements': '[{"measurement0": "tomyheart\\u001f0"}]',
             'qubit_numbers': '[1]',
@@ -560,7 +560,7 @@ def test_serialize_single_circuit_measurement_gate_target_order():
     serializer = ionq.Serializer()
     result = serializer.serialize_single_circuit(circuit)
     assert result == ionq.SerializedProgram(
-        body={'gateset': 'native', 'qubits': 3, 'circuit': []},
+        input={'gateset': 'native', 'qubits': 3, 'circuit': []},
         metadata={'measurement0': f'tomyheart{chr(31)}2,0'},
         settings={},
     )
@@ -572,7 +572,7 @@ def test_serialize_many_circuits_measurement_gate_target_order():
     serializer = ionq.Serializer()
     result = serializer.serialize_many_circuits([circuit])
     assert result == ionq.SerializedProgram(
-        body={'gateset': 'native', 'qubits': 3, 'circuits': [{'circuit': []}]},
+        input={'gateset': 'native', 'qubits': 3, 'circuits': [{'circuit': []}]},
         metadata={
             'measurements': '[{"measurement0": "tomyheart\\u001f2,0"}]',
             'qubit_numbers': '[3]',
@@ -610,7 +610,7 @@ def test_serialize_single_circuit_native_gates():
     serializer = ionq.Serializer()
     result = serializer.serialize_single_circuit(circuit)
     assert result == ionq.SerializedProgram(
-        body={
+        input={
             'gateset': 'native',
             'qubits': 3,
             'circuit': [
@@ -634,7 +634,7 @@ def test_serialize_many_circuits_native_gates():
     serializer = ionq.Serializer()
     result = serializer.serialize_many_circuits([circuit])
     assert result == ionq.SerializedProgram(
-        body={
+        input={
             'gateset': 'native',
             'qubits': 3,
             'circuits': [
@@ -676,7 +676,7 @@ def test_serialize_single_circuit_measurement_gate_multiple_keys():
     serializer = ionq.Serializer()
     result = serializer.serialize_single_circuit(circuit)
     assert result == ionq.SerializedProgram(
-        body={'gateset': 'native', 'qubits': 2, 'circuit': []},
+        input={'gateset': 'native', 'qubits': 2, 'circuit': []},
         metadata={'measurement0': f'a{chr(31)}0{chr(30)}b{chr(31)}1'},
         settings={},
     )
@@ -688,7 +688,7 @@ def test_serialize_many_circuits_measurement_gate_multiple_keys():
     serializer = ionq.Serializer()
     result = serializer.serialize_many_circuits([circuit])
     assert result == ionq.SerializedProgram(
-        body={'gateset': 'native', 'qubits': 2, 'circuits': [{'circuit': []}]},
+        input={'gateset': 'native', 'qubits': 2, 'circuits': [{'circuit': []}]},
         metadata={
             'measurements': '[{"measurement0": "a\\u001f0\\u001eb\\u001f1"}]',
             'qubit_numbers': '[2]',
@@ -771,7 +771,7 @@ def test_serialize_single_circuit_atol():
     # Within tolerance given above this is an X gate.
     circuit = cirq.Circuit(cirq.X(q0) ** 1.09)
     result = serializer.serialize_single_circuit(circuit)
-    assert result.body['circuit'][0]['gate'] == 'x'
+    assert result.input['circuit'][0]['gate'] == 'x'
 
 
 def test_serialize_many_circuits_atol():
@@ -780,4 +780,4 @@ def test_serialize_many_circuits_atol():
     # Within tolerance given above this is an X gate.
     circuit = cirq.Circuit(cirq.X(q0) ** 1.09)
     result = serializer.serialize_many_circuits([circuit])
-    assert result.body['circuits'][0]['circuit'][0]['gate'] == 'x'
+    assert result.input['circuits'][0]['circuit'][0]['gate'] == 'x'
