@@ -58,7 +58,7 @@ def map_clean_and_borrowable_qubits(
     This transformer uses the `QubitManager` provided in the input to:
      - Allocate clean ancilla qubits by delegating to `qm.qalloc` for all `CleanQubit`s.
      - Allocate dirty qubits for all `BorrowableQubit` types via the following two steps:
-         1. First analyse the input circuit and check if there are any suitable system qubits
+         1. First analyze the input circuit and check if there are any suitable system qubits
             that can be borrowed, i.e. ones which do not have any overlapping operations
             between circuit[start_index : end_index] where `(start_index, end_index)` is the
             lifespan of temporary borrowable qubit under consideration. If yes, borrow the system
@@ -84,7 +84,7 @@ def map_clean_and_borrowable_qubits(
         circuit: Input `cirq.Circuit` containing temporarily allocated
             `CleanQubit`/`BorrowableQubit`s.
         qm: An instance of `cirq.QubitManager` specifying the strategy to use for allocating /
-            / deallocating new ancilla qubits to replace the temporary qubits.
+            deallocating new ancilla qubits to replace the temporary qubits.
 
     Returns:
         An updated `cirq.Circuit` with all `CleanQubit`/`BorrowableQubit` mapped to either existing

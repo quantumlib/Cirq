@@ -30,8 +30,9 @@ from cirq import ops, value, vis
 from cirq._compat import cached_method
 from cirq.experiments import random_quantum_circuit_generation as rqcg
 from cirq.experiments.qubit_characterizations import (
-    parallel_single_qubit_randomized_benchmarking,
+    parallel_single_qubit_rb,
     ParallelRandomizedBenchmarkingResult,
+    RBParameters,
 )
 from cirq.experiments.xeb_fitting import (
     benchmark_2q_xeb_fidelities,
@@ -586,12 +587,14 @@ def run_rb_and_xeb(
 
     qubits, pairs = qubits_and_pairs(sampler, qubits, pairs)
 
-    rb = parallel_single_qubit_randomized_benchmarking(
+    rb = parallel_single_qubit_rb(
         sampler=sampler,
         qubits=qubits,
-        repetitions=repetitions,
-        num_circuits=num_circuits,
-        num_clifford_range=num_clifford_range,
+        parameters=RBParameters(
+            num_circuits=num_circuits,
+            repetitions=repetitions,
+            num_clifford_range=num_clifford_range,
+        ),
     )
 
     xeb = parallel_two_qubit_xeb(
