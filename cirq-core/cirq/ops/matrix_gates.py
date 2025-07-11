@@ -170,6 +170,7 @@ class MatrixGate(raw_types.Gate):
             return NotImplemented
         # The above algorithms ignore phase, but phase is important to maintain if the gate is
         # controlled. Here, we add it back in with a global phase op.
+        # u = Circuit(*decomposed).unitary(qubits, qubits)
         ident = identity.IdentityGate(qid_shape=self._qid_shape).on(*qubits)  # Preserve qid order
         u = protocols.unitary(Circuit(ident, *decomposed)).reshape(self._matrix.shape)
         phase_delta = linalg.phase_delta(u, self._matrix)
