@@ -35,7 +35,7 @@ import warnings
 import pytest
 
 from dev_tools import shell_tools
-from dev_tools.notebooks import filter_notebooks, list_all_notebooks, rewrite_notebook
+from dev_tools.notebooks import filter_notebooks, list_all_notebooks, REPO_ROOT, rewrite_notebook
 
 # these notebooks rely on features that are not released yet
 # after every release we should raise a PR and empty out this list
@@ -105,19 +105,22 @@ def _find_base_revision():
     raise ValueError("Can't find a base revision to compare the files with.")
 
 
-def _list_changed_notebooks() -> set[str]:
+def _list_changed_notebooks() -> list[str]:
     try:
         rev = _find_base_revision()
-        output = subprocess.check_output(f'git diff --diff-filter=d --name-only {rev}'.split())
-        lines = output.decode('utf-8').splitlines()
+        output = subprocess.check_output(
+            f'git diff --merge-base --diff-filter=d --name-only {rev}'.split(),
+            cwd=REPO_ROOT,
+            text=True,
+        )
+        changed_files = [str(REPO_ROOT.joinpath(f)) for f in output.splitlines()]
         # run all tests if this file or any of the dev tool dependencies change
         if any(
-            l
-            for l in lines
-            if l.endswith("isolated_notebook_test.py") or l.startswith("dev_tools/requirements")
+            f.endswith("isolated_notebook_test.py") or "/dev_tools/requirements/" in f
+            for f in changed_files
         ):
             return list_all_notebooks()
-        return set(l for l in lines if l.endswith(".ipynb"))
+        return [f for f in changed_files if f.endswith(".ipynb")]
     except ValueError as e:
         # It would be nicer if we could somehow automatically skip the execution of this completely,
         # however, in order to be able to rely on parallel pytest (xdist) we need parametrization to
@@ -129,7 +132,7 @@ def _list_changed_notebooks() -> set[str]:
             f"No changed notebooks are tested "
             f"(this is expected in non-notebook tests in CI): {e}"
         )
-        return set()
+        return []
 
 
 def _partitioned_test_cases(notebooks):
@@ -232,3 +235,9 @@ def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path) -> None:
                 f"{notebook_path} is marked as NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES, "
                 f"however it contains no line matching:\n{m}"
             )
+
+
+def test_skip_notebooks_has_valid_patterns() -> None:
+    """Verify patterns in SKIP_NOTEBOOKS are all valid."""
+    patterns_without_match = [g for g in SKIP_NOTEBOOKS if not any(REPO_ROOT.glob(g))]
+    assert patterns_without_match == []
