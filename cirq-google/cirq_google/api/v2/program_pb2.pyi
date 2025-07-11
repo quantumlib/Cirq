@@ -148,13 +148,8 @@ class Circuit(google.protobuf.message.Message):
     SCHEDULING_STRATEGY_FIELD_NUMBER: builtins.int
     MOMENTS_FIELD_NUMBER: builtins.int
     MOMENT_INDICES_FIELD_NUMBER: builtins.int
-    TOKEN_CONSTANT_INDEX_FIELD_NUMBER: builtins.int
     TAG_INDICES_FIELD_NUMBER: builtins.int
     scheduling_strategy: global___Circuit.SchedulingStrategy.ValueType
-    token_constant_index: builtins.int
-    """Token that can be used to specify a version of a gate.
-    For instance, a gate that has been calibrated for a circuit.
-    """
     @property
     def moments(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Moment]:
         """The moments of the circuit, with the first element corresponding to the
@@ -180,12 +175,9 @@ class Circuit(google.protobuf.message.Message):
         scheduling_strategy: global___Circuit.SchedulingStrategy.ValueType = ...,
         moments: collections.abc.Iterable[global___Moment] | None = ...,
         moment_indices: collections.abc.Iterable[builtins.int] | None = ...,
-        token_constant_index: builtins.int | None = ...,
         tag_indices: collections.abc.Iterable[builtins.int] | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["_token_constant_index", b"_token_constant_index", "token_constant_index", b"token_constant_index"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["_token_constant_index", b"_token_constant_index", "moment_indices", b"moment_indices", "moments", b"moments", "scheduling_strategy", b"scheduling_strategy", "tag_indices", b"tag_indices", "token_constant_index", b"token_constant_index"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["_token_constant_index", b"_token_constant_index"]) -> typing.Literal["token_constant_index"] | None: ...
+    def ClearField(self, field_name: typing.Literal["moment_indices", b"moment_indices", "moments", b"moments", "scheduling_strategy", b"scheduling_strategy", "tag_indices", b"tag_indices"]) -> None: ...
 
 global___Circuit = Circuit
 
@@ -802,6 +794,7 @@ class Tag(google.protobuf.message.Message):
     PHYSICAL_Z_FIELD_NUMBER: builtins.int
     CLASSICAL_STATE_FIELD_NUMBER: builtins.int
     FSIM_VIA_MODEL_FIELD_NUMBER: builtins.int
+    CALIBRATION_TAG_FIELD_NUMBER: builtins.int
     INTERNAL_TAG_FIELD_NUMBER: builtins.int
     @property
     def dynamical_decoupling(self) -> global___DynamicalDecouplingTag:
@@ -843,6 +836,10 @@ class Tag(google.protobuf.message.Message):
         """
 
     @property
+    def calibration_tag(self) -> global___CalibrationTag:
+        """Calibration Tag"""
+
+    @property
     def internal_tag(self) -> global___InternalTag:
         """Catch-all for all gates that do not fit into the
         above tags.
@@ -857,11 +854,12 @@ class Tag(google.protobuf.message.Message):
         physical_z: global___PhysicalZTag | None = ...,
         classical_state: global___ClassicalStateTag | None = ...,
         fsim_via_model: global___FSimViaModelTag | None = ...,
+        calibration_tag: global___CalibrationTag | None = ...,
         internal_tag: global___InternalTag | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["classical_state", b"classical_state", "dynamical_decoupling", b"dynamical_decoupling", "fsim_via_model", b"fsim_via_model", "internal_tag", b"internal_tag", "no_sync", b"no_sync", "phase_match", b"phase_match", "physical_z", b"physical_z", "tag", b"tag"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["classical_state", b"classical_state", "dynamical_decoupling", b"dynamical_decoupling", "fsim_via_model", b"fsim_via_model", "internal_tag", b"internal_tag", "no_sync", b"no_sync", "phase_match", b"phase_match", "physical_z", b"physical_z", "tag", b"tag"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["tag", b"tag"]) -> typing.Literal["dynamical_decoupling", "no_sync", "phase_match", "physical_z", "classical_state", "fsim_via_model", "internal_tag"] | None: ...
+    def HasField(self, field_name: typing.Literal["calibration_tag", b"calibration_tag", "classical_state", b"classical_state", "dynamical_decoupling", b"dynamical_decoupling", "fsim_via_model", b"fsim_via_model", "internal_tag", b"internal_tag", "no_sync", b"no_sync", "phase_match", b"phase_match", "physical_z", b"physical_z", "tag", b"tag"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["calibration_tag", b"calibration_tag", "classical_state", b"classical_state", "dynamical_decoupling", b"dynamical_decoupling", "fsim_via_model", b"fsim_via_model", "internal_tag", b"internal_tag", "no_sync", b"no_sync", "phase_match", b"phase_match", "physical_z", b"physical_z", "tag", b"tag"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["tag", b"tag"]) -> typing.Literal["dynamical_decoupling", "no_sync", "phase_match", "physical_z", "classical_state", "fsim_via_model", "calibration_tag", "internal_tag"] | None: ...
 
 global___Tag = Tag
 
@@ -950,6 +948,24 @@ class NoSyncTag(google.protobuf.message.Message):
     def WhichOneof(self, oneof_group: typing.Literal["rev", b"rev"]) -> typing.Literal["reverse", "remove_all_syncs_before"] | None: ...
 
 global___NoSyncTag = NoSyncTag
+
+@typing.final
+class CalibrationTag(google.protobuf.message.Message):
+    """Tag to specify specific override tokens for operations or circuits."""
+
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    TOKEN_FIELD_NUMBER: builtins.int
+    token: builtins.str
+    """Token to serialize"""
+    def __init__(
+        self,
+        *,
+        token: builtins.str = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing.Literal["token", b"token"]) -> None: ...
+
+global___CalibrationTag = CalibrationTag
 
 @typing.final
 class InternalTag(google.protobuf.message.Message):

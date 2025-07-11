@@ -81,9 +81,9 @@ message Circuit {
   // repeated moments.
   repeated int32 moment_indices = 3;
 
-  // Token that can be used to specify a version of a gate.
-  // For instance, a gate that has been calibrated for a circuit.
-  optional int32 token_constant_index = 4;
+  // Deprecated field, do not use.
+  reserved 4;
+  
   // Indices in the constant table for tags associated with the circuit
   repeated int32 tag_indices = 5;
 }
@@ -289,8 +289,8 @@ message Operation {
   // The token can be specified as a string or as a reference to
   // the constant table of the circuit.
   oneof token {
-    string token_value = 4;
-    int32 token_constant_index = 5;
+    string token_value = 4 [deprecated = true];
+    int32 token_constant_index = 5 [deprecated = true];
   }
 
   // To be deprecated
@@ -342,6 +342,9 @@ message Tag {
     // Uses parameter model to interpolate FSim gate.
     FSimViaModelTag fsim_via_model = 7;
 
+    // Calibration Tag
+    CalibrationTag calibration_tag = 9;
+
     // Catch-all for all gates that do not fit into the
     // above tags.
     InternalTag internal_tag = 8;
@@ -378,6 +381,12 @@ message NoSyncTag {
     // Remove all possible synchronizations
     bool remove_all_syncs_after = 4;
   }
+}
+
+// Tag to specify specific override tokens for operations or circuits.
+message CalibrationTag {
+  // Token to serialize
+  string token = 1;
 }
 
 // Tag to represent any internal tags or tags not yet
