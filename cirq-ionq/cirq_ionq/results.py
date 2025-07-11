@@ -267,6 +267,13 @@ class SimulatorResult:
         rand = cirq.value.parse_random_state(seed)
         measurements = {}
         values, weights = zip(*list(self.probabilities().items()))
+
+        # normalize weights to sum to 1 if within tolerance because
+        # IonQ's pauliexp gates results are not extremely precise
+        total = sum(weights)
+        if np.isclose(total, 1.0, rtol=0, atol=1e-5):
+            weights = tuple((w / total for w in weights))
+
         indices = rand.choice(
             range(len(values)), p=weights, size=override_repetitions or self.repetitions()
         )
