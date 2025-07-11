@@ -582,18 +582,18 @@ def test_serialize_deserialize_circuit_with_tokens():
     op_q0_tag1 = v2.program_pb2.Operation()
     op_q0_tag1.xpowgate.exponent.float_value = 1.0
     op_q0_tag1.qubit_constant_index.append(0)
-    op_q0_tag1.token_constant_index = 1
+    op_q0_tag1.tag_indices.append(1)
 
     op_q1_tag2 = v2.program_pb2.Operation()
     op_q1_tag2.xpowgate.exponent.float_value = 1.0
     op_q1_tag2.qubit_constant_index.append(3)
-    op_q1_tag2.token_constant_index = 4
+    op_q1_tag2.tag_indices.append(4)
 
     # Test repeated tag uses existing constant entey
     op_q0_tag2 = v2.program_pb2.Operation()
     op_q0_tag2.xpowgate.exponent.float_value = 1.0
     op_q0_tag2.qubit_constant_index.append(0)
-    op_q0_tag2.token_constant_index = 4
+    op_q0_tag2.tag_indices.append(4)
 
     proto = v2.program_pb2.Program(
         language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
@@ -602,10 +602,18 @@ def test_serialize_deserialize_circuit_with_tokens():
         ),
         constants=[
             v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='2_4')),
-            v2.program_pb2.Constant(string_value='abc123'),
+            v2.program_pb2.Constant(
+                tag_value=v2.program_pb2.Tag(
+                    calibration_tag=v2.program_pb2.CalibrationTag(token='abc123')
+                )
+            ),
             v2.program_pb2.Constant(operation_value=op_q0_tag1),
             v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='2_5')),
-            v2.program_pb2.Constant(string_value='def456'),
+            v2.program_pb2.Constant(
+                tag_value=v2.program_pb2.Tag(
+                    calibration_tag=v2.program_pb2.CalibrationTag(token='def456')
+                )
+            ),
             v2.program_pb2.Constant(operation_value=op_q1_tag2),
             v2.program_pb2.Constant(moment_value=v2.program_pb2.Moment(operation_indices=[2, 5])),
             v2.program_pb2.Constant(operation_value=op_q0_tag2),
@@ -628,12 +636,14 @@ def test_serialize_deserialize_circuit_tags():
     proto = v2.program_pb2.Program(
         language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
         circuit=v2.program_pb2.Circuit(
-            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-            tag_indices=[1],
-            token_constant_index=0,
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT, tag_indices=[0, 1]
         ),
         constants=[
-            v2.program_pb2.Constant(string_value="abc123"),
+            v2.program_pb2.Constant(
+                tag_value=v2.program_pb2.Tag(
+                    calibration_tag=v2.program_pb2.CalibrationTag(token="abc123")
+                )
+            ),
             v2.program_pb2.Constant(
                 tag_value=v2.program_pb2.Tag(
                     internal_tag=v2.program_pb2.InternalTag(
@@ -697,7 +707,7 @@ def test_serialize_deserialize_circuit_with_subcircuit():
     op_tag = v2.program_pb2.Operation()
     op_tag.xpowgate.exponent.float_value = 1.0
     op_tag.qubit_constant_index.append(0)
-    op_tag.token_constant_index = 1
+    op_tag.tag_indices.append(1)
     op_symbol = v2.program_pb2.Operation()
     op_symbol.xpowgate.exponent.func.type = 'mul'
     op_symbol.xpowgate.exponent.func.args.add().arg_value.float_value = 2.0
@@ -726,7 +736,11 @@ def test_serialize_deserialize_circuit_with_subcircuit():
         ),
         constants=[
             v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='2_5')),
-            v2.program_pb2.Constant(string_value='abc123'),
+            v2.program_pb2.Constant(
+                tag_value=v2.program_pb2.Tag(
+                    calibration_tag=v2.program_pb2.CalibrationTag(token='abc123')
+                )
+            ),
             v2.program_pb2.Constant(operation_value=op_tag),
             v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='2_4')),
             v2.program_pb2.Constant(operation_value=op_symbol),

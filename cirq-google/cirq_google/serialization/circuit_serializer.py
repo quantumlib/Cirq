@@ -320,39 +320,22 @@ class CircuitSerializer(serializer.Serializer):
         raw_constants: dict[Any, int],
     ):
         constant = v2.program_pb2.Constant()
-        if isinstance(tag, CalibrationTag):
-            constant.string_value = tag.token
-            if tag.token in raw_constants:
-                msg.token_constant_index = raw_constants[tag.token]
+        if (tag_index := raw_constants.get(tag, None)) is None:
+            if self.tag_serializer and self.tag_serializer.can_serialize_tag(tag):
+                self.tag_serializer.to_proto(
+                    tag, msg=constant.tag_value, constants=constants, raw_constants=raw_constants
+                )
+            elif getattr(tag, 'to_proto', None) is not None:
+                tag.to_proto(constant.tag_value)  # type: ignore
             else:
-                # Token not found, add it to the list
-                msg.token_constant_index = len(constants)
+                warnings.warn(f'Unrecognized Tag {tag}, not serializing.')
+            if constant.WhichOneof('const_value'):
                 constants.append(constant)
                 if raw_constants is not None:
-                    raw_constants[tag.token] = msg.token_constant_index
+                    raw_constants[tag] = len(constants) - 1
+                msg.tag_indices.append(len(constants) - 1)
         else:
-            if isinstance(tag, DynamicalDecouplingTag):
-                # TODO(dstrain): Remove this once we are deserializing tag indices everywhere.
-                tag.to_proto(msg=msg.tags.add())
-            if (tag_index := raw_constants.get(tag, None)) is None:
-                if self.tag_serializer and self.tag_serializer.can_serialize_tag(tag):
-                    self.tag_serializer.to_proto(
-                        tag,
-                        msg=constant.tag_value,
-                        constants=constants,
-                        raw_constants=raw_constants,
-                    )
-                elif getattr(tag, 'to_proto', None) is not None:
-                    tag.to_proto(constant.tag_value)  # type: ignore
-                else:
-                    warnings.warn(f'Unrecognized Tag {tag}, not serializing.')
-                if constant.WhichOneof('const_value'):
-                    constants.append(constant)
-                    if raw_constants is not None:
-                        raw_constants[tag] = len(constants) - 1
-                    msg.tag_indices.append(len(constants) - 1)
-            else:
-                msg.tag_indices.append(tag_index)
+            msg.tag_indices.append(tag_index)
 
     def _serialize_circuit_op(
         self,
@@ -507,8 +490,6 @@ class CircuitSerializer(serializer.Serializer):
         for moment_index in circuit_proto.moment_indices:
             moments.append(deserialized_constants[moment_index])
 
-        if circuit_proto.HasField('token_constant_index'):
-            tags.append(CalibrationTag(constants[circuit_proto.token_constant_index].string_value))
         for tag_index in circuit_proto.tag_indices:
             tags.append(deserialized_constants[tag_index])
         return cirq.Circuit(moments, tags=tags)
@@ -879,6 +860,8 @@ class CircuitSerializer(serializer.Serializer):
             return PhysicalZTag()
         elif which == 'fsim_via_model':
             return FSimViaModelTag()
+        elif which == 'calibration_tag':
+            return CalibrationTag.from_proto(msg)
         elif which == 'internal_tag':
             return InternalTag.from_proto(msg)
         else:
