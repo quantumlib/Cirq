@@ -116,8 +116,7 @@ def _list_changed_notebooks() -> list[str]:
         changed_files = [str(REPO_ROOT.joinpath(f)) for f in output.splitlines()]
         # run all tests if this file or any of the dev tool dependencies change
         if any(
-            # FIXME - correct before PR submission
-            f.endswith("NO-MATCH-isolated_notebook_test.py") or "/dev_tools/requirements/" in f
+            f.endswith("isolated_notebook_test.py") or "/dev_tools/requirements/" in f
             for f in changed_files
         ):
             return list_all_notebooks()
