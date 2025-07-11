@@ -22,7 +22,7 @@ import numpy as np
 
 from cirq import _import, linalg, protocols
 from cirq._compat import proper_repr
-from cirq.ops import global_phase_op, identity, phased_x_z_gate, raw_types
+from cirq.ops import global_phase_op, phased_x_z_gate, raw_types
 
 if TYPE_CHECKING:
     import cirq
