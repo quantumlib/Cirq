@@ -419,7 +419,7 @@ def test_decompose_when_qubits_not_in_ascending_order():
     # Previous code for preserving global phase would misorder qubits
     q0, q1 = cirq.LineQubit.range(2)
     circuit1 = cirq.Circuit()
-    matrix = cirq.unitary(cirq.H.controlled())
+    matrix = cirq.testing.random_unitary(4, random_state=0)
     circuit1.append(cirq.MatrixGate(matrix).on(q1, q0))
     u1 = cirq.unitary(circuit1)
     decomposed = cirq.decompose(circuit1)
