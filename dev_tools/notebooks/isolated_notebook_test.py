@@ -109,7 +109,9 @@ def _list_changed_notebooks() -> list[str]:
     try:
         rev = _find_base_revision()
         output = subprocess.check_output(
-            f'git diff --diff-filter=d --name-only {rev}'.split(), cwd=REPO_ROOT, text=True
+            f'git diff --merge-base --diff-filter=d --name-only {rev}'.split(),
+            cwd=REPO_ROOT,
+            text=True,
         )
         changed_files = [str(REPO_ROOT.joinpath(f)) for f in output.splitlines()]
         # run all tests if this file or any of the dev tool dependencies change
