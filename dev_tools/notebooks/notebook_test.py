@@ -29,7 +29,7 @@ import pytest
 
 from dev_tools import shell_tools
 from dev_tools.modules import list_modules
-from dev_tools.notebooks import filter_notebooks, list_all_notebooks, rewrite_notebook
+from dev_tools.notebooks import filter_notebooks, list_all_notebooks, REPO_ROOT, rewrite_notebook
 from dev_tools.test_utils import only_on_posix
 
 SKIP_NOTEBOOKS = [
@@ -131,3 +131,9 @@ papermill {rewritten_notebook_path} {out_path} {papermill_flags}"""
             f" 'notebook-outputs')"
         )
     os.remove(rewritten_notebook_path)
+
+
+def test_skip_notebooks_has_valid_patterns() -> None:
+    """Verify patterns in SKIP_NOTEBOOKS are all valid."""
+    patterns_without_match = [g for g in SKIP_NOTEBOOKS if not any(REPO_ROOT.glob(g))]
+    assert patterns_without_match == []

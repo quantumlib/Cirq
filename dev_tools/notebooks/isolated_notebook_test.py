@@ -236,3 +236,9 @@ def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path) -> None:
                 f"{notebook_path} is marked as NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES, "
                 f"however it contains no line matching:\n{m}"
             )
+
+
+def test_skip_notebooks_has_valid_patterns() -> None:
+    """Verify patterns in SKIP_NOTEBOOKS are all valid."""
+    patterns_without_match = [g for g in SKIP_NOTEBOOKS if not any(REPO_ROOT.glob(g))]
+    assert patterns_without_match == []
