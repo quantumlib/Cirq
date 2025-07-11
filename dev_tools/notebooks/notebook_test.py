@@ -24,6 +24,7 @@ from __future__ import annotations
 import importlib.metadata
 import os
 import tempfile
+from typing import Iterator
 
 import pytest
 
@@ -52,7 +53,7 @@ SKIP_NOTEBOOKS = [
 
 
 @pytest.fixture
-def require_packages_not_changed():
+def require_packages_not_changed() -> Iterator[None]:
     """Verify notebook test does not change packages in the Python test environment.
 
     Raise AssertionError if the pre-existing set of Python packages changes in any way.
@@ -73,7 +74,7 @@ def require_packages_not_changed():
 
 
 @pytest.fixture
-def env_with_temporary_pip_target():
+def env_with_temporary_pip_target() -> Iterator[dict[str, str]]:
     """Setup system environment that tells pip to install packages to a temporary directory."""
     with tempfile.TemporaryDirectory(suffix='-notebook-site-packages') as tmpdirname:
         # Note: We need to append tmpdirname to the PYTHONPATH, because PYTHONPATH may
@@ -94,7 +95,7 @@ def env_with_temporary_pip_target():
 @pytest.mark.parametrize("notebook_path", filter_notebooks(list_all_notebooks(), SKIP_NOTEBOOKS))
 def test_notebooks_against_cirq_head(
     notebook_path, require_packages_not_changed, env_with_temporary_pip_target
-):
+) -> None:
     """Test that jupyter notebooks execute.
 
     In order to speed up the execution of these tests an auxiliary file may be supplied which
