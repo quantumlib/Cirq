@@ -877,3 +877,187 @@ def test_merge_operations_does_not_merge_measurements_behind_ccos():
     cirq.testing.assert_same_circuits(
         cirq.align_left(cirq.merge_operations(circuit, merge_func)), expected_circuit
     )
+
+
+def test_merge_3q_unitaries_to_circuit_op_3q_gate_absorbs_overlapping_2q_gates():
+    q = cirq.LineQubit.range(3)
+    c_orig = cirq.Circuit(
+        cirq.Moment(
+            cirq.H(q[0]).with_tags("ignore"),
+            cirq.H(q[1]).with_tags("ignore"),
+            cirq.H(q[2]).with_tags("ignore"),
+        ),
+        cirq.Moment(cirq.CNOT(q[0], q[2]), cirq.X(q[1]).with_tags("ignore")),
+        cirq.CNOT(q[0], q[1]),
+        cirq.CNOT(q[1], q[2]),
+        cirq.CCZ(*q),
+        strategy=cirq.InsertStrategy.NEW,
+    )
+    cirq.testing.assert_has_diagram(
+        c_orig,
+        '''
+                  ┌──────────┐
+0: ───H[ignore]────@─────────────@───────@───
+                   │             │       │
+1: ───H[ignore]────┼X[ignore]────X───@───@───
+                   │                 │   │
+2: ───H[ignore]────X─────────────────X───@───
+                  └──────────┘
+''',
+    )
+
+    c_new = cirq.merge_k_qubit_unitaries_to_circuit_op(
+        c_orig, k=3, merged_circuit_op_tag="merged", tags_to_ignore=["ignore"]
+    )
+    cirq.testing.assert_has_diagram(
+        cirq.drop_empty_moments(c_new),
+        '''
+                              [ 0: ───@───@───────@─── ]
+                              [       │   │       │    ]
+0: ───H[ignore]───────────────[ 1: ───┼───X───@───@─── ]───────────
+                              [       │       │   │    ]
+                              [ 2: ───X───────X───@─── ][merged]
+                              │
+1: ───H[ignore]───X[ignore]───#2───────────────────────────────────
+                              │
+2: ───H[ignore]───────────────#3───────────────────────────────────
+''',
+    )
+
+
+def test_merge_3q_unitaries_to_circuit_op_3q_gate_absorbs_disjoint_gates():
+    q = cirq.LineQubit.range(3)
+    c_orig = cirq.Circuit(
+        cirq.Moment(cirq.CNOT(q[0], q[1]), cirq.X(q[2])),
+        cirq.CCZ(*q),
+        strategy=cirq.InsertStrategy.NEW,
+    )
+    cirq.testing.assert_has_diagram(
+        c_orig,
+        '''
+0: ───@───@───
+      │   │
+1: ───X───@───
+          │
+2: ───X───@───
+''',
+    )
+
+    c_new = cirq.merge_k_qubit_unitaries_to_circuit_op(
+        c_orig, k=3, merged_circuit_op_tag="merged", tags_to_ignore=["ignore"]
+    )
+    cirq.testing.assert_has_diagram(
+        cirq.drop_empty_moments(c_new),
+        '''
+      [ 0: ───@───@─── ]
+      [       │   │    ]
+0: ───[ 1: ───X───@─── ]───────────
+      [           │    ]
+      [ 2: ───X───@─── ][merged]
+      │
+1: ───#2───────────────────────────
+      │
+2: ───#3───────────────────────────
+''',
+    )
+
+
+def test_merge_3q_unitaries_to_circuit_op_3q_gate_doesnt_absorb_unmergeable_gate():
+    q = cirq.LineQubit.range(3)
+    c_orig = cirq.Circuit(
+        cirq.CCZ(*q),
+        cirq.Moment(cirq.CNOT(q[0], q[1]), cirq.X(q[2]).with_tags("ignore")),
+        cirq.CCZ(*q),
+        strategy=cirq.InsertStrategy.NEW,
+    )
+    cirq.testing.assert_has_diagram(
+        c_orig,
+        '''
+0: ───@───@───────────@───
+      │   │           │
+1: ───@───X───────────@───
+      │               │
+2: ───@───X[ignore]───@───
+''',
+    )
+
+    c_new = cirq.merge_k_qubit_unitaries_to_circuit_op(
+        c_orig, k=3, merged_circuit_op_tag="merged", tags_to_ignore=["ignore"]
+    )
+    cirq.testing.assert_has_diagram(
+        cirq.drop_empty_moments(c_new),
+        '''
+      [ 0: ───@───@─── ]
+      [       │   │    ]
+0: ───[ 1: ───@───X─── ]───────────────────────@───
+      [       │        ]                       │
+      [ 2: ───@─────── ][merged]               │
+      │                                        │
+1: ───#2───────────────────────────────────────@───
+      │                                        │
+2: ───#3───────────────────────────X[ignore]───@───
+''',
+    )
+
+
+def test_merge_3q_unitaries_to_circuit_op_prefer_to_merge_into_earlier_op():
+    q = cirq.LineQubit.range(6)
+    c_orig = cirq.Circuit(
+        cirq.Moment(
+            cirq.CCZ(*q[0:3]), cirq.X(q[3]), cirq.H(q[4]), cirq.H(q[5]).with_tags("ignore")
+        ),
+        cirq.Moment(cirq.CNOT(q[0], q[1]), cirq.X(q[2]).with_tags("ignore"), cirq.CCZ(*q[3:6])),
+        cirq.Moment(
+            cirq.X(q[0]),
+            cirq.X(q[1]),
+            cirq.X(q[2]),
+            cirq.X(q[3]).with_tags("ignore"),
+            cirq.CNOT(*q[4:6]),
+        ),
+        cirq.Moment(cirq.CCZ(*q[0:3]), cirq.CCZ(*q[3:6])),
+        strategy=cirq.InsertStrategy.NEW,
+    )
+    cirq.testing.assert_has_diagram(
+        c_orig,
+        '''
+0: ───@───────────@───────────X───────────@───
+      │           │                       │
+1: ───@───────────X───────────X───────────@───
+      │                                   │
+2: ───@───────────X[ignore]───X───────────@───
+
+3: ───X───────────@───────────X[ignore]───@───
+                  │                       │
+4: ───H───────────@───────────@───────────@───
+                  │           │           │
+5: ───H[ignore]───@───────────X───────────@───
+''',
+    )
+
+    c_new = cirq.merge_k_qubit_unitaries_to_circuit_op(
+        c_orig, k=3, merged_circuit_op_tag="merged", tags_to_ignore=["ignore"]
+    )
+    cirq.testing.assert_has_diagram(
+        cirq.drop_empty_moments(c_new),
+        '''
+      [ 0: ───@───@───X─── ]                                                        [ 0: ───────@─── ]
+      [       │   │        ]                                                        [           │    ]
+0: ───[ 1: ───@───X───X─── ]────────────────────────────────────────────────────────[ 1: ───────@─── ]───────────
+      [       │            ]                                                        [           │    ]
+      [ 2: ───@─────────── ][merged]                                                [ 2: ───X───@─── ][merged]
+      │                                                                             │
+1: ───#2────────────────────────────────────────────────────────────────────────────#2───────────────────────────
+      │                                                                             │
+2: ───#3───────────────────────────────X[ignore]────────────────────────────────────#3───────────────────────────
+
+                                       [ 3: ───X───@─────── ]
+                                       [           │        ]
+3: ────────────────────────────────────[ 4: ───H───@───@─── ]───────────X[ignore]───@────────────────────────────
+                                       [           │   │    ]                       │
+                                       [ 5: ───────@───X─── ][merged]               │
+                                       │                                            │
+4: ────────────────────────────────────#2───────────────────────────────────────────@────────────────────────────
+                                       │                                            │
+5: ───H[ignore]────────────────────────#3───────────────────────────────────────────@────────────────────────────
+''',
+    )
