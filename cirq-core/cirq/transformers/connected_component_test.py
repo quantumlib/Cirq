@@ -16,7 +16,10 @@ from __future__ import annotations
 
 import cirq
 from cirq.transformers.connected_component import (
-    Component, ComponentWithOps, ComponentWithCircuitOp, ComponentFactory, ComponentWithOpsFactory, ComponentWithCircuitOpFactory
+    Component,
+    ComponentFactory,
+    ComponentWithCircuitOpFactory,
+    ComponentWithOpsFactory,
 )
 
 
@@ -51,11 +54,23 @@ def test_merge_components():
         assert c[i].parent == c[4]
 
 
+def test_merge_same_component():
+    q = cirq.NamedQubit('x')
+    c = [Component(op=cirq.X(q), moment=i) for i in range(3)]
+    c[1].merge(c[0])
+    c[2].merge(c[1])
+    # Disjoint set structure:
+    #     c[1]
+    #    /  \
+    # c[0]  c[2]
+    assert c[0].merge(c[2]) == c[1]
+
+
 def test_merge_returns_None_if_one_component_is_not_mergeable():
     q = cirq.NamedQubit('x')
     c0 = Component(op=cirq.X(q), moment=0, is_mergeable=True)
     c1 = Component(op=cirq.X(q), moment=1, is_mergeable=False)
-    assert c0.merge(c1) == None
+    assert c0.merge(c1) is None
 
 
 def test_factory_merge_returns_None_if_is_mergeable_is_false():
@@ -68,7 +83,7 @@ def test_factory_merge_returns_None_if_is_mergeable_is_false():
     factory = ComponentFactory(is_mergeable=is_mergeable)
     c0 = factory.new_component(op=cirq.X(q), moment=0, is_mergeable=True)
     c1 = factory.new_component(op=cirq.X(q), moment=1, is_mergeable=True)
-    assert c0.merge(c1) == None
+    assert c0.merge(c1) is None
 
 
 def test_merge_qubits_with_merge_left_true():
@@ -143,6 +158,24 @@ def test_component_with_ops_merge():
     assert c[0].find().ops == ops
 
 
+def test_component_with_ops_merge_same_component():
+    def is_mergeable(op: cirq.Operation) -> bool:
+        del op
+        return True
+
+    def can_merge(ops1: list[cirq.Operation], ops2: list[cirq.Operation]) -> bool:
+        del ops1, ops2
+        return True
+
+    factory = ComponentWithOpsFactory(is_mergeable, can_merge)
+
+    q = cirq.NamedQubit('x')
+    c = [factory.new_component(op=cirq.X(q), moment=i) for i in range(3)]
+    c[1].merge(c[0])
+    c[2].merge(c[1])
+    assert c[0].merge(c[2]) == c[1]
+
+
 def test_component_with_ops_merge_when_merge_fails():
     def is_mergeable(op: cirq.Operation) -> bool:
         del op
@@ -151,6 +184,28 @@ def test_component_with_ops_merge_when_merge_fails():
     def can_merge(ops1: list[cirq.Operation], ops2: list[cirq.Operation]) -> bool:
         del ops1, ops2
         return False
+
+    factory = ComponentWithOpsFactory(is_mergeable, can_merge)
+
+    q = cirq.LineQubit.range(3)
+    ops = [cirq.X(q[i]) for i in range(3)]
+    c = [factory.new_component(op=ops[i], moment=i) for i in range(3)]
+
+    c[0].merge(c[1])
+    c[1].merge(c[2])
+    # No merge happened
+    for i in range(3):
+        assert c[i].find() == c[i]
+
+
+def test_component_with_ops_merge_when_is_mergeable_is_false():
+    def is_mergeable(op: cirq.Operation) -> bool:
+        del op
+        return False
+
+    def can_merge(ops1: list[cirq.Operation], ops2: list[cirq.Operation]) -> bool:
+        del ops1, ops2
+        return True
 
     factory = ComponentWithOpsFactory(is_mergeable, can_merge)
 
@@ -186,6 +241,24 @@ def test_component_with_circuit_op_merge():
         assert c[i].find().circuit_op == ops[0]
 
 
+def test_component_with_circuit_op_merge_same_component():
+    def is_mergeable(op: cirq.Operation) -> bool:
+        del op
+        return True
+
+    def merge_func(op1: cirq.Operation, op2: cirq.Operation) -> cirq.Operation:
+        del op2
+        return op1
+
+    factory = ComponentWithCircuitOpFactory(is_mergeable, merge_func)
+
+    q = cirq.NamedQubit('x')
+    c = [factory.new_component(op=cirq.X(q), moment=i) for i in range(3)]
+    c[1].merge(c[0])
+    c[2].merge(c[1])
+    assert c[0].merge(c[2]) == c[1]
+
+
 def test_component_with_circuit_op_merge_func_is_none():
     def is_mergeable(op: cirq.Operation) -> bool:
         del op
@@ -208,5 +281,23 @@ def test_component_with_circuit_op_merge_func_is_none():
         assert c[i].find() == c[i]
 
 
+def test_component_with_circuit_op_merge_when_is_mergeable_is_false():
+    def is_mergeable(op: cirq.Operation) -> bool:
+        del op
+        return False
 
+    def merge_func(op1: cirq.Operation, op2: cirq.Operation) -> cirq.Operation:
+        del op2
+        return op1
 
+    factory = ComponentWithCircuitOpFactory(is_mergeable, merge_func)
+
+    q = cirq.LineQubit.range(3)
+    ops = [cirq.X(q[i]) for i in range(3)]
+    c = [factory.new_component(op=ops[i], moment=i) for i in range(3)]
+
+    c[0].merge(c[1])
+    c[1].merge(c[2])
+    # No merge happened
+    for i in range(3):
+        assert c[i].find() == c[i]

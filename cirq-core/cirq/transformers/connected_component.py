@@ -23,6 +23,7 @@ from cirq import ops, protocols
 if TYPE_CHECKING:
     import cirq
 
+
 class Component:
     """Internal representation for a connected component of operations.
 
@@ -33,7 +34,7 @@ class Component:
     """
 
     # Properties for the disjoint set data structure
-    parent: Component|None = None
+    parent: Component | None = None
     rank: int = 0
 
     # True if the component can be merged
@@ -50,7 +51,7 @@ class Component:
     # Initial operation in the component
     op: cirq.Operation
 
-    def __init__(self, op: cirq.Operation, moment: int, is_mergeable = True):
+    def __init__(self, op: cirq.Operation, moment: int, is_mergeable=True):
         """Initializes a singleton component."""
         self.is_mergeable = is_mergeable
         self.moment = moment
@@ -63,7 +64,7 @@ class Component:
         """Finds the component representative."""
 
         root = self
-        while root.parent != None:
+        while root.parent is not None:
             root = root.parent
         x = self
         while x != root:
@@ -72,7 +73,7 @@ class Component:
             x = cast(Component, parent)
         return root
 
-    def merge(self, c: Component, merge_left = True) -> Component|None:
+    def merge(self, c: Component, merge_left=True) -> Component | None:
         """Attempts to merge two components.
 
         We assume the following is true whenever merge is called:
@@ -134,14 +135,18 @@ class ComponentWithOps(Component):
     # Method to decide if two components can be merged based on their operations
     can_merge: Callable[[Sequence[cirq.Operation], Sequence[cirq.Operation]], bool]
 
-    def __init__(self, op: cirq.Operation, moment: int,
-                 can_merge: Callable[[Sequence[cirq.Operation], Sequence[cirq.Operation]], bool],
-                 is_mergeable = True):
+    def __init__(
+        self,
+        op: cirq.Operation,
+        moment: int,
+        can_merge: Callable[[Sequence[cirq.Operation], Sequence[cirq.Operation]], bool],
+        is_mergeable=True,
+    ):
         super().__init__(op, moment, is_mergeable)
         self.ops = [op]
         self.can_merge = can_merge
 
-    def merge(self, c: Component, merge_left = True) -> Component|None:
+    def merge(self, c: Component, merge_left=True) -> Component | None:
         """Attempts to merge two components.
 
         Returns:
@@ -158,8 +163,6 @@ class ComponentWithOps(Component):
             return None
 
         root = cast(ComponentWithOps, super(ComponentWithOps, x).merge(y, merge_left))
-        if not root:
-            return None
         root.ops = x.ops + y.ops
         # Clear the ops list in the non-representative set to avoid memory consumption
         if x != root:
@@ -181,14 +184,18 @@ class ComponentWithCircuitOp(Component):
 
     merge_func: Callable[[ops.Operation, ops.Operation], ops.Operation | None]
 
-    def __init__(self, op: cirq.Operation, moment: int,
-                 merge_func: Callable[[ops.Operation, ops.Operation], ops.Operation | None],
-                 is_mergeable = True):
+    def __init__(
+        self,
+        op: cirq.Operation,
+        moment: int,
+        merge_func: Callable[[ops.Operation, ops.Operation], ops.Operation | None],
+        is_mergeable=True,
+    ):
         super().__init__(op, moment, is_mergeable)
         self.circuit_op = op
         self.merge_func = merge_func
 
-    def merge(self, c: Component, merge_left = True) -> Component|None:
+    def merge(self, c: Component, merge_left=True) -> Component | None:
         """Attempts to merge two components.
 
         Returns:
@@ -208,8 +215,6 @@ class ComponentWithCircuitOp(Component):
             return None
 
         root = cast(ComponentWithCircuitOp, super(ComponentWithCircuitOp, x).merge(y, merge_left))
-        if not root:
-            return None
 
         root.circuit_op = new_op
         # The merge_func can be arbitrary, so we need to recompute the component properties
@@ -230,11 +235,10 @@ class ComponentFactory:
 
     is_mergeable: Callable[[cirq.Operation], bool]
 
-    def __init__(self,
-                 is_mergeable: Callable[[cirq.Operation], bool]):
+    def __init__(self, is_mergeable: Callable[[cirq.Operation], bool]):
         self.is_mergeable = is_mergeable
 
-    def new_component(self, op: cirq.Operation, moment: int, is_mergeable = True) -> Component:
+    def new_component(self, op: cirq.Operation, moment: int, is_mergeable=True) -> Component:
         return Component(op, moment, self.is_mergeable(op) and is_mergeable)
 
 
@@ -243,13 +247,15 @@ class ComponentWithOpsFactory(ComponentFactory):
 
     can_merge: Callable[[Sequence[cirq.Operation], Sequence[cirq.Operation]], bool]
 
-    def __init__(self,
-                 is_mergeable: Callable[[cirq.Operation], bool],
-                 can_merge: Callable[[Sequence[cirq.Operation], Sequence[cirq.Operation]], bool]):
+    def __init__(
+        self,
+        is_mergeable: Callable[[cirq.Operation], bool],
+        can_merge: Callable[[Sequence[cirq.Operation], Sequence[cirq.Operation]], bool],
+    ):
         super().__init__(is_mergeable)
         self.can_merge = can_merge
 
-    def new_component(self, op: cirq.Operation, moment: int, is_mergeable = True) -> Component:
+    def new_component(self, op: cirq.Operation, moment: int, is_mergeable=True) -> Component:
         return ComponentWithOps(op, moment, self.can_merge, self.is_mergeable(op) and is_mergeable)
 
 
@@ -258,15 +264,15 @@ class ComponentWithCircuitOpFactory(ComponentFactory):
 
     merge_func: Callable[[ops.Operation, ops.Operation], ops.Operation | None]
 
-    def __init__(self,
-                 is_mergeable: Callable[[cirq.Operation], bool],
-                 merge_func: Callable[[ops.Operation, ops.Operation], ops.Operation | None]):
+    def __init__(
+        self,
+        is_mergeable: Callable[[cirq.Operation], bool],
+        merge_func: Callable[[ops.Operation, ops.Operation], ops.Operation | None],
+    ):
         super().__init__(is_mergeable)
         self.merge_func = merge_func
 
     def new_component(self, op: cirq.Operation, moment: int, is_mergeable=True) -> Component:
-        return ComponentWithCircuitOp(op, moment, self.merge_func, self.is_mergeable(op) and is_mergeable)
-
-
-
-
+        return ComponentWithCircuitOp(
+            op, moment, self.merge_func, self.is_mergeable(op) and is_mergeable
+        )
