@@ -80,6 +80,12 @@ message Circuit {
   // This field is used to reduce size of circuits that contain many
   // repeated moments.
   repeated int32 moment_indices = 3;
+
+  // Deprecated field, do not use.
+  reserved 4;
+  
+  // Indices in the constant table for tags associated with the circuit
+  repeated int32 tag_indices = 5;
 }
 
 // A moment is a collection of operations and circuit operations that operate
@@ -283,8 +289,8 @@ message Operation {
   // The token can be specified as a string or as a reference to
   // the constant table of the circuit.
   oneof token {
-    string token_value = 4;
-    int32 token_constant_index = 5;
+    string token_value = 4 [deprecated = true];
+    int32 token_constant_index = 5 [deprecated = true];
   }
 
   // To be deprecated
@@ -336,6 +342,9 @@ message Tag {
     // Uses parameter model to interpolate FSim gate.
     FSimViaModelTag fsim_via_model = 7;
 
+    // Calibration Tag
+    CalibrationTag calibration_tag = 9;
+
     // Catch-all for all gates that do not fit into the
     // above tags.
     InternalTag internal_tag = 8;
@@ -372,6 +381,12 @@ message NoSyncTag {
     // Remove all possible synchronizations
     bool remove_all_syncs_after = 4;
   }
+}
+
+// Tag to specify specific override tokens for operations or circuits.
+message CalibrationTag {
+  // Token to serialize
+  string token = 1;
 }
 
 // Tag to represent any internal tags or tags not yet
@@ -480,7 +495,7 @@ message Tuple {
   }
 
   SequenceType sequence_type = 1;
-    
+
   repeated Arg values = 2;
 }
 
@@ -552,11 +567,11 @@ message CircuitOperation {
   // Map of args in the "inner" circuit (referenced by circuit_constant_index)
   // to args in the "outer" circuit (the one that contains this operation).
   ArgMapping arg_map = 5;
-  
+
   // Classical conditions
-  // Condition for repeating the circuit until this condition is true. 
+  // Condition for repeating the circuit until this condition is true.
   optional Arg repeat_until = 6;
-  
+
   // Condition for executing the circuit operation only if this condition is true.
   repeated Arg conditioned_on = 7;
 
