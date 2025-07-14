@@ -142,7 +142,7 @@ def _partitioned_test_cases(notebooks):
 
 def _rewrite_and_run_notebook(notebook_path, cloned_env):
     notebook_file = os.path.basename(notebook_path)
-    notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, "."))
+    notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, REPO_ROOT))
     out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"
     notebook_env = cloned_env("isolated_notebook_tests", *PACKAGES)
 
@@ -150,12 +150,12 @@ def _rewrite_and_run_notebook(notebook_path, cloned_env):
 
     rewritten_notebook_path = rewrite_notebook(notebook_path)
 
+    REPO_ROOT.joinpath("out", notebook_rel_dir).mkdir(parents=True, exist_ok=True)
     cmd = f"""
-mkdir -p out/{notebook_rel_dir}
 cd {notebook_env}
 . ./bin/activate
 pip list
-papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
+papermill {rewritten_notebook_path} {REPO_ROOT / out_path}"""
     result = shell_tools.run(
         cmd,
         log_run_to_stderr=False,
