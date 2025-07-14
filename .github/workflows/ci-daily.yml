@@ -43,6 +43,12 @@ jobs:
               -r dev_tools/requirements/deps/notebook.txt
       - name: Pytest check
         run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --ignore=cirq-rigetti --enable-slow-tests
+      - name: Persist the outputs
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: failure()
+        with:
+          name: notebook-outputs-ubuntu
+          path: out
   windows:
     if: github.repository_owner == 'quantumlib'
     name: Pytest Windows
@@ -69,6 +75,12 @@ jobs:
       - name: Pytest Windows
         run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --ignore=cirq-rigetti --enable-slow-tests
         shell: bash
+      - name: Persist the outputs
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: failure()
+        with:
+          name: notebook-outputs-windows
+          path: out
   macos:
     if: github.repository_owner == 'quantumlib'
     name: Pytest MacOS
@@ -95,3 +107,9 @@ jobs:
               -r dev_tools/requirements/deps/notebook.txt
       - name: Pytest check
         run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --ignore=cirq-rigetti --enable-slow-tests
+      - name: Persist the outputs
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: failure()
+        with:
+          name: notebook-outputs-macos
+          path: out
