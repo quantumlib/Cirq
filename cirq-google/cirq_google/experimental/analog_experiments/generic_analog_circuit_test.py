@@ -68,7 +68,7 @@ def test_make_one_moment_of_generic_analog_circuit() -> None:
     )
 
     trajectory = None  # we don't need trajector in this test.
-    builder = gac.GenericAnalogCircuitBuilder(trajectory)
+    builder = gac.GenericAnalogCircuitBuilder(trajectory)  # type: ignore
     moment = builder.make_one_moment(freq_map, prev_freq_map)
 
     assert len(moment.operations) == 5

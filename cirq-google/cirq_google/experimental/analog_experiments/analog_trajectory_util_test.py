@@ -18,6 +18,7 @@ import tunits as tu
 
 import cirq
 from cirq_google.experimental.analog_experiments import analog_trajectory_util as atu
+from cirq_google.study import symbol_util as su
 
 
 @pytest.fixture
@@ -51,7 +52,9 @@ def test_duration_nanos_in_freq_map() -> None:
     fm = atu.FrequencyMap(10 * tu.ns, {}, {}, False)
     assert fm.duration_nanos() == 10
     fm = atu.FrequencyMap(sympy.Symbol("t"), {}, {}, False)
-    assert cirq.resolve_parameters(fm.duration_nanos(), {"t": 10 * tu.ns}).total_nanos() == 10
+    resolved_duration_nanos = cirq.resolve_parameters(fm.duration_nanos(), {"t": 10 * tu.ns})
+    assert isinstance(resolved_duration_nanos, su.TunitForDurationNanos)
+    assert resolved_duration_nanos.total_nanos() == 10
 
     with pytest.raises(ValueError, match="either be a tu.Value or a sympy.Symbol"):
         atu.FrequencyMap(10, {}, {}, False).duration_nanos()
