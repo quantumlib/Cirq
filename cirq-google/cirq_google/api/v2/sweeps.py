@@ -251,11 +251,7 @@ def sweep_from_proto(
             else:
                 point_list = msg.single_sweep.points.points
             return sweep_transformer(
-                cirq.Points(
-                    key=key,
-                    points=[p * unit for p in point_list],
-                    metadata=metadata,
-                )
+                cirq.Points(key=key, points=[p * unit for p in point_list], metadata=metadata)
             )
         if msg.single_sweep.WhichOneof('sweep') == 'const_value':
             return sweep_transformer(
@@ -272,7 +268,6 @@ def sweep_from_proto(
 
 
 def metadata_to_proto(metadata: Metadata) -> run_context_pb2.Metadata:
-
     """Convert the metadata dataclass to the metadata proto."""
     device_parameters: list[run_context_pb2.DeviceParameter] = []
     if params := getattr(metadata, "device_parameters", None):
