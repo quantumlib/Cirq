@@ -1204,6 +1204,16 @@ def test_custom_tag_serializer_with_tags_outside_constants():
     assert serializer.deserialize(circuit_proto) == expected_circuit
 
 
+def test_moments_with_tags():
+    serializer = cg.CircuitSerializer()
+    original_circuit = cirq.Circuit(
+        cirq.Moment(cirq.X(cirq.GridQubit(1, 1))).with_tags(DiscountTag(0.50)),
+        cirq.Moment(cirq.Z(cirq.GridQubit(2, 2))).with_tags(cg.CalibrationTag("abc")),
+    )
+    deserialized_circuit = serializer.deserialize(serializer.serialize(original_circuit))
+    assert original_circuit == deserialized_circuit
+
+
 def test_reset_gate_with_improper_argument():
     serializer = cg.CircuitSerializer()
 
