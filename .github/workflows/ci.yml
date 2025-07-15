@@ -187,7 +187,7 @@ jobs:
     name: Pytest Ubuntu
     strategy:
       matrix:
-        python-version: ['3.11', '3.12']
+        python-version: ['3.11', '3.12', '3.13']
     runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
@@ -302,7 +302,7 @@ jobs:
     name: Pytest Windows
     strategy:
       matrix:
-        python-version: ['3.11', '3.12']
+        python-version: ['3.11', '3.12', '3.13']
     runs-on: windows-2022
     steps:
       - name: Check out source repository
@@ -330,7 +330,7 @@ jobs:
     name: Pytest MacOS
     strategy:
       matrix:
-        python-version: ['3.11', '3.12']
+        python-version: ['3.11', '3.12', '3.13']
     runs-on: macos-13
     steps:
       - name: Check out source repository
