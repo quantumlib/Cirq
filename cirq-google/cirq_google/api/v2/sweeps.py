@@ -140,10 +140,14 @@ def sweep_to_proto(
         else:
             if isinstance(sweep.points[0], tunits.Value):
                 unit = sweep.points[0].unit
+                # Dual-write to both points and point_list for temporary compatibility.
                 out.single_sweep.points.points.extend(p[unit] for p in sweep.points)
+                out.single_sweep.points.point_list.extend(p[unit] for p in sweep.points)
                 unit.to_proto(out.single_sweep.points.unit)
             else:
+                # Dual-write to both points and point_list for temporary compatibility.
                 out.single_sweep.points.points.extend(sweep.points)
+                out.single_sweep.points.point_list.extend(sweep.points)
         # Encode the metadata if present
         if isinstance(sweep.metadata, Metadata):
             out.single_sweep.metadata.MergeFrom(metadata_to_proto(sweep.metadata))
@@ -240,10 +244,16 @@ def sweep_from_proto(
             unit = 1.0
             if msg.single_sweep.points.HasField('unit'):
                 unit = tunits.Value.from_proto(msg.single_sweep.points.unit)
+            # point_list is the double floating number instead of single one.
+            # if point_list is presented, we use this value first.
+            if msg.single_sweep.points.point_list:
+                point_list = msg.single_sweep.points.point_list
+            else:
+                point_list = msg.single_sweep.points.points
             return sweep_transformer(
                 cirq.Points(
                     key=key,
-                    points=[p * unit for p in msg.single_sweep.points.points],
+                    points=[p * unit for p in point_list],
                     metadata=metadata,
                 )
             )
@@ -262,6 +272,7 @@ def sweep_from_proto(
 
 
 def metadata_to_proto(metadata: Metadata) -> run_context_pb2.Metadata:
+
     """Convert the metadata dataclass to the metadata proto."""
     device_parameters: list[run_context_pb2.DeviceParameter] = []
     if params := getattr(metadata, "device_parameters", None):

@@ -365,10 +365,14 @@ def test_sweep_with_list_sweep():
     expected.sweep_function.function_type = v2.run_context_pb2.SweepFunction.ZIP
     p1 = expected.sweep_function.sweeps.add()
     p1.single_sweep.parameter_key = 'a'
+    # Because of dual writes
     p1.single_sweep.points.points.extend([1, 3])
+    p1.single_sweep.points.point_list.extend([1, 3])
     p2 = expected.sweep_function.sweeps.add()
     p2.single_sweep.parameter_key = 'b'
+    # Because of dual writes
     p2.single_sweep.points.points.extend([2, 4])
+    p2.single_sweep.points.point_list.extend([2, 4])
     assert proto == expected
 
 

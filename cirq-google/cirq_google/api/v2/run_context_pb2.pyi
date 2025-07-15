@@ -506,10 +506,17 @@ class Points(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
     POINTS_FIELD_NUMBER: builtins.int
+    POINT_LIST_FIELD_NUMBER: builtins.int
     UNIT_FIELD_NUMBER: builtins.int
     @property
     def points(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
         """The values."""
+
+    @property
+    def point_list(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
+        """Due to historical reason, the points are stored as float32.
+        But float64 should be a better choice.
+        """
 
     @property
     def unit(self) -> tunits.proto.tunits_pb2.Value: ...
@@ -517,10 +524,11 @@ class Points(google.protobuf.message.Message):
         self,
         *,
         points: collections.abc.Iterable[builtins.float] | None = ...,
+        point_list: collections.abc.Iterable[builtins.float] | None = ...,
         unit: tunits.proto.tunits_pb2.Value | None = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["unit", b"unit"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["points", b"points", "unit", b"unit"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["point_list", b"point_list", "points", b"points", "unit", b"unit"]) -> None: ...
 
 global___Points = Points
 

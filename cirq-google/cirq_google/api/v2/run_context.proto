@@ -228,6 +228,10 @@ message Points {
   // The values.
   repeated float points = 1;
 
+  // Due to historical reason, the points are stored as float32.
+  // But float64 should be a better choice.
+  repeated double point_list = 3;
+
   tunits.Value unit = 2;
 }
 
