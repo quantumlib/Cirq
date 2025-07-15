@@ -50,13 +50,6 @@ _EXCLUDE_JSON_FILES = (
     "cirq/protocols/json_test_data/sympy.Indexed.json",
     "cirq/protocols/json_test_data/sympy.IndexedBase.json",
     "cirq/protocols/json_test_data/sympy.pi.json",
-    # Cirq-Rigetti is deprecated per #7058
-    # Instead of handling deprecation-in-test errors we exclude
-    # all cirq_rigetti classes here.
-    "cirq_rigetti/json_test_data/AspenQubit.json",
-    "cirq_rigetti/json_test_data/OctagonalQubit.json",
-    # RigettiQCSAspenDevice does not pickle
-    "cirq_rigetti/json_test_data/RigettiQCSAspenDevice.json",
 )
 
 
@@ -87,11 +80,9 @@ def _read_json(json_filename: str) -> Any:
 
 def test_exclude_json_files_has_valid_entries() -> None:
     """Verify _EXCLUDE_JSON_FILES has valid entries."""
-    # cirq_rigetti is getting removed per #7058
-    skip_rigetti = True
     json_file_validates = lambda f: any(
         m.test_data_path.joinpath(os.path.basename(f)).is_file() for m in MODULE_TEST_SPECS
-    ) or (skip_rigetti and f.startswith("cirq_rigetti/"))
+    )
     invalid_json_paths = [f for f in _EXCLUDE_JSON_FILES if not json_file_validates(f)]
     assert invalid_json_paths == []
 

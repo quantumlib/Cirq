@@ -58,7 +58,6 @@ SKIP_NOTEBOOKS = [
     '**/azure-quantum/*.ipynb',
     '**/ionq/*.ipynb',
     '**/pasqal/*.ipynb',
-    '**/rigetti/*.ipynb',
     # skipping quantum utility simulation (too large)
     'examples/advanced/*quantum_utility*',
     # tutorials that use QCS and arent skipped due to one or more cleared output cells
@@ -86,9 +85,6 @@ PACKAGES = [
     "jupyter",
     # assumed to be part of colab
     "seaborn~=0.12",
-    # TODO: remove after the fix of https://github.com/rigetti/qcs-sdk-rust/issues/531
-    "qcs-sdk-python<=0.21.12",
-    "numpy~=1.25",
 ]
 
 
