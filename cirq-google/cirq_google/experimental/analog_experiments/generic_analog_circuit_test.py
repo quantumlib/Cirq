@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import sympy
 import tunits as tu
 
@@ -23,14 +24,22 @@ from cirq_google.experimental.analog_experiments import (
 from cirq_google.ops.analog_detune_gates import AnalogDetuneCouplerOnly, AnalogDetuneQubit
 
 
-def test_get_neighbor_freqs():
+def test_get_neighbor_freqs() -> None:
     pair = ("q0_0", "q0_1")
     qubit_freq_dict = {"q0_0": 5 * tu.GHz, "q0_1": sympy.Symbol("f_q"), "q0_2": 6 * tu.GHz}
     neighbor_freqs = gac._get_neighbor_freqs(pair, qubit_freq_dict)
     assert neighbor_freqs == (5 * tu.GHz, sympy.Symbol("f_q"))
 
 
-def test_coupler_name_from_qubit_pair():
+def test_to_grid_qubit() -> None:
+    grid_qubit = gac._to_grid_qubit("q0_1")
+    assert grid_qubit == cirq.GridQubit(0, 1)
+
+    with pytest.raises(ValueError, match="Invalid qubit name format"):
+        gac._to_grid_qubit("q1")
+
+
+def test_coupler_name_from_qubit_pair() -> None:
     pair = ("q0_0", "q0_1")
     coupler_name = gac._coupler_name_from_qubit_pair(pair)
     assert coupler_name == "c_q0_0_q0_1"
@@ -44,7 +53,7 @@ def test_coupler_name_from_qubit_pair():
     assert coupler_name == "c_q7_7_q7_8"
 
 
-def test_make_one_moment_of_generic_analog_circuit():
+def test_make_one_moment_of_generic_analog_circuit() -> None:
     freq_map = atu.FrequencyMap(
         duration=3 * tu.ns,
         qubit_freqs={"q0_0": 5 * tu.GHz, "q0_1": 6 * tu.GHz, "q0_2": sympy.Symbol("f_q0_2")},
@@ -115,7 +124,7 @@ def test_make_one_moment_of_generic_analog_circuit():
     ).on(cirq.GridQubit(0, 1), cirq.GridQubit(0, 2))
 
 
-def test_generic_analog_make_circuit():
+def test_generic_analog_make_circuit() -> None:
     trajectory = atu.AnalogTrajectory.from_sparse_trajectory(
         [
             (5 * tu.ns, {"q0_0": 5 * tu.GHz}, {}),
@@ -125,13 +134,14 @@ def test_generic_analog_make_circuit():
                 {"q0_0": 8 * tu.GHz, "q0_1": sympy.Symbol('f')},
                 {("q0_0", "q0_1"): -5 * tu.MHz},
             ),
+            (3 * tu.ns, {}, {}),
             (2 * tu.ns, {"q0_1": 4 * tu.GHz}, {}),
         ]
     )
     builder = gac.GenericAnalogCircuitBuilder(trajectory)
     circuit = builder.make_circuit()
 
-    assert len(circuit) == 4
+    assert len(circuit) == 5
     for op in circuit[0].operations:
         assert isinstance(op.gate, AnalogDetuneQubit)
     for op in circuit[1].operations:
@@ -142,4 +152,7 @@ def test_generic_analog_make_circuit():
     assert isinstance(circuit[2].operations[2].gate, AnalogDetuneCouplerOnly)
 
     for op in circuit[3].operations:
+        assert isinstance(op.gate, cirq.WaitGate)
+
+    for op in circuit[4].operations:
         assert isinstance(op.gate, AnalogDetuneQubit)

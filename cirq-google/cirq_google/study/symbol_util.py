@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import AbstractSet, Any, TypeAlias
 
 import sympy
@@ -84,7 +86,7 @@ class TunitForDurationNanos:
 
     def _resolve_parameters_(
         self, resolver: cirq.ParamResolverOrSimilarType, recursive: bool
-    ) -> float:
+    ) -> TunitForDurationNanos:
         resolver_ = cirq.ParamResolver(resolver)
         return TunitForDurationNanos(
             duration_nanos=direct_symbol_replacement(self.duration_nanos, resolver_)[tu.ns]

@@ -51,7 +51,7 @@ def test_duration_nanos_in_freq_map() -> None:
     fm = atu.FrequencyMap(10 * tu.ns, {}, {}, False)
     assert fm.duration_nanos() == 10
     fm = atu.FrequencyMap(sympy.Symbol("t"), {}, {}, False)
-    assert cirq.resolve_parameters(fm.duration_nanos(), {"t": 10 * tu.ns}).duration_nanos == 10
+    assert cirq.resolve_parameters(fm.duration_nanos(), {"t": 10 * tu.ns}).total_nanos() == 10
 
     with pytest.raises(ValueError, match="either be a tu.Value or a sympy.Symbol"):
         atu.FrequencyMap(10, {}, {}, False).duration_nanos()

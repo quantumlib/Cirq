@@ -32,6 +32,8 @@ def _get_neighbor_freqs(
 @functools.cache
 def _to_grid_qubit(qubit_name: str) -> cirq.GridQubit:
     match = re.compile(r"^q(\d+)_(\d+)$").match(qubit_name)
+    if match is None:
+        raise ValueError(f"Invalid qubit name format: '{qubit_name}'. Expected 'q<row>_<col>'.")
     return cirq.GridQubit(int(match[1]), int(match[2]))
 
 
@@ -100,7 +102,7 @@ class GenericAnalogCircuitBuilder:
                     wait_gate = cirq.WaitGate(
                         cirq.Duration(nanos=1), qid_shape=cirq.qid_shape(target)
                     )
-                    wait_gate._duration = d
+                    wait_gate._duration = d  # type: ignore
 
                 moment = cirq.Moment(wait_gate.on(*target))
             else:
