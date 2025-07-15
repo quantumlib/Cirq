@@ -49,7 +49,18 @@ def test_direct_symbol_replacement():
 
 
 def test_tunit_for_duration_nanos():
-    xx = su.TunitForDurationNanos(duration=sympy.Symbol("t"))
-    assert cirq.is_parameterized(xx)
-    assert xx._parameter_names_() == {"t"}
-    assert cirq.resolve_parameters(xx, {"t": 5 * tu.ns}) == 5
+    d = su.TunitForDurationNanos(duration_nanos=sympy.Symbol("t"))
+    assert str(d) == "duration=t"
+    assert cirq.is_parameterized(d)
+    assert d._parameter_names_() == {"t"}
+    assert cirq.resolve_parameters(d, {"t": 5 * tu.ns}).duration_nanos == 5.0
+
+
+def test_tunit_for_duration_total_nanos():
+    d = su.TunitForDurationNanos(duration_nanos=sympy.Symbol("t"))
+    assert d.total_nanos() == sympy.Symbol("t")
+    assert d.total_micros() == sympy.Symbol("t")
+    d_resolved = cirq.resolve_parameters(d, {"t": 5 * tu.ns})
+    assert str(d_resolved) == "duration=5.0 ns"
+    assert d_resolved.total_nanos() == 5
+    assert d_resolved.total_micros() == 5000

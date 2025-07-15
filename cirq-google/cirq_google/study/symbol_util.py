@@ -60,19 +60,32 @@ class TunitForDurationNanos:
     as the input of `cirq.Duration(nanos=TunitForDurationNanos())`.
     """
 
-    def __init__(self, duration: sympy.Symbol):
-        if not isinstance(duration, sympy.Symbol):
-            raise ValueError("The duration must be a symbol.")
-        self.duration = duration
+    def __init__(self, duration_nanos: sympy.Symbol | float):
+        self.duration_nanos = duration_nanos
+
+    def total_micros(self):
+        if isinstance(self.duration_nanos, sympy.Symbol):
+            return self.duration_nanos
+        return self.duration_nanos * 1000
+
+    def total_nanos(self):
+        return self.duration_nanos
+
+    def __repr__(self) -> str:
+        if isinstance(self.duration_nanos, sympy.Symbol):
+            return f"duration={self.duration_nanos}"
+        return f"duration={self.duration_nanos} ns"
 
     def _is_parameterized_(self) -> bool:
-        return cirq.is_parameterized(self.duration)
+        return cirq.is_parameterized(self.duration_nanos)
 
     def _parameter_names_(self) -> AbstractSet[str]:
-        return cirq.parameter_names(self.duration)
+        return cirq.parameter_names(self.duration_nanos)
 
     def _resolve_parameters_(
         self, resolver: cirq.ParamResolverOrSimilarType, recursive: bool
     ) -> float:
         resolver_ = cirq.ParamResolver(resolver)
-        return direct_symbol_replacement(self.duration, resolver_)[tu.ns]
+        return TunitForDurationNanos(
+            duration_nanos=direct_symbol_replacement(self.duration_nanos, resolver_)[tu.ns]
+        )

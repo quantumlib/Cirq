@@ -48,10 +48,13 @@ def test_freq_map_resolve(freq_map: atu.FrequencyMap) -> None:
 
 
 def test_duration_nanos_in_freq_map() -> None:
-    x = atu.FrequencyMap(10 * tu.ns, {}, {}, False)
-    assert x.duration_nanos() == 10
-    x = atu.FrequencyMap(sympy.Symbol("t"), {}, {}, False)
-    assert cirq.resolve_parameters(x.duration_nanos(), {"t": 10 * tu.ns}) == 10
+    fm = atu.FrequencyMap(10 * tu.ns, {}, {}, False)
+    assert fm.duration_nanos() == 10
+    fm = atu.FrequencyMap(sympy.Symbol("t"), {}, {}, False)
+    assert cirq.resolve_parameters(fm.duration_nanos(), {"t": 10 * tu.ns}).duration_nanos == 10
+
+    with pytest.raises(ValueError, match="either be a tu.Value or a sympy.Symbol"):
+        atu.FrequencyMap(10, {}, {}, False).duration_nanos()
 
 
 FreqMapType = tuple[tu.Value, dict[str, tu.Value | None], dict[tuple[str, str], tu.Value]]
@@ -145,7 +148,7 @@ def test_get_full_trajectory_with_resolved_idles(sparse_trajectory: list[FreqMap
     )
 
 
-def test_plot_with_unresolved_parameters():
+def test_plot_with_unresolved_parameters() -> None:
     traj1: FreqMapType = (20 * tu.ns, {"q0_1": sympy.Symbol("qf")}, {})
     traj2: FreqMapType = (sympy.Symbol("t"), {"q0_2": 8 * tu.GHz}, {})
     analog_traj = atu.AnalogTrajectory.from_sparse_trajectory([traj1, traj2])
@@ -154,7 +157,7 @@ def test_plot_with_unresolved_parameters():
         analog_traj.plot()
 
 
-def test_analog_traj_plot():
+def test_analog_traj_plot() -> None:
     traj1: FreqMapType = (5 * tu.ns, {"q0_1": sympy.Symbol("qf")}, {("q0_0", "q0_1"): 2 * tu.MHz})
     traj2: FreqMapType = (sympy.Symbol("t"), {"q0_2": 8 * tu.GHz}, {})
     analog_traj = atu.AnalogTrajectory.from_sparse_trajectory([traj1, traj2])

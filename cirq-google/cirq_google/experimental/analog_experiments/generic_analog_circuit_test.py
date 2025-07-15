@@ -45,9 +45,6 @@ def test_coupler_name_from_qubit_pair():
 
 
 def test_make_one_moment_of_generic_analog_circuit():
-    trajectory = None  # we don't need trajector in this test.
-    generic_analog_circuit = gac.GenericAnalogCircuit(trajectory)
-
     freq_map = atu.FrequencyMap(
         duration=3 * tu.ns,
         qubit_freqs={"q0_0": 5 * tu.GHz, "q0_1": 6 * tu.GHz, "q0_2": sympy.Symbol("f_q0_2")},
@@ -61,7 +58,9 @@ def test_make_one_moment_of_generic_analog_circuit():
         is_wait_step=False,
     )
 
-    moment = generic_analog_circuit.make_one_moment(freq_map, prev_freq_map)
+    trajectory = None  # we don't need trajector in this test.
+    builder = gac.GenericAnalogCircuitBuilder(trajectory)
+    moment = builder.make_one_moment(freq_map, prev_freq_map)
 
     assert len(moment.operations) == 5
     # Three detune qubit gates
@@ -114,3 +113,33 @@ def test_make_one_moment_of_generic_analog_circuit():
         prev_neighbor_qubits_freq=(6 * tu.GHz, sympy.Symbol("f_q0_2")),
         interpolate_coupling_cal=False,
     ).on(cirq.GridQubit(0, 1), cirq.GridQubit(0, 2))
+
+
+def test_generic_analog_make_circuit():
+    trajectory = atu.AnalogTrajectory.from_sparse_trajectory(
+        [
+            (5 * tu.ns, {"q0_0": 5 * tu.GHz}, {}),
+            (sympy.Symbol('t'), {}, {}),
+            (
+                10 * tu.ns,
+                {"q0_0": 8 * tu.GHz, "q0_1": sympy.Symbol('f')},
+                {("q0_0", "q0_1"): -5 * tu.MHz},
+            ),
+            (2 * tu.ns, {"q0_1": 4 * tu.GHz}, {}),
+        ]
+    )
+    builder = gac.GenericAnalogCircuitBuilder(trajectory)
+    circuit = builder.make_circuit()
+
+    assert len(circuit) == 4
+    for op in circuit[0].operations:
+        assert isinstance(op.gate, AnalogDetuneQubit)
+    for op in circuit[1].operations:
+        assert isinstance(op.gate, cirq.WaitGate)
+
+    assert isinstance(circuit[2].operations[0].gate, AnalogDetuneQubit)
+    assert isinstance(circuit[2].operations[1].gate, AnalogDetuneQubit)
+    assert isinstance(circuit[2].operations[2].gate, AnalogDetuneCouplerOnly)
+
+    for op in circuit[3].operations:
+        assert isinstance(op.gate, AnalogDetuneQubit)

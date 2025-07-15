@@ -51,7 +51,7 @@ def _get_neighbor_coupler_freqs(
     }
 
 
-class GenericAnalogCircuit:
+class GenericAnalogCircuitBuilder:
     """Class for making arbitrary analog circuits. The circuit is defined by an
     AnalogTrajectory object. The class constructs the circuit from AnalogDetune
     pulses, which automatically calculate the necessary bias amps to both qubits
@@ -88,10 +88,21 @@ class GenericAnalogCircuit:
         moments = []
         for freq_map in self.trajectory.full_trajectory[1:]:
             if freq_map.is_wait_step:
-                # `duration_nanos` is a patch solution for tunit working with cirq.Duration.
-                moment = cirq.Moment(
-                    cirq.wait(self.trajectory.qubits, nanos=freq_map.duration_nanos())  # type: ignore
-                )
+                target = [_to_grid_qubit(q) for q in self.trajectory.qubits]
+                d = freq_map.duration_nanos()
+                if isinstance(d, float):
+                    wait_gate = cirq.WaitGate(
+                        cirq.Duration(nanos=d), qid_shape=cirq.qid_shape(target)
+                    )
+                else:
+                    # The following is patching solution for resolving the parameter
+                    # can be tunits. It should only work for pyle internal translation.
+                    wait_gate = cirq.WaitGate(
+                        cirq.Duration(nanos=1), qid_shape=cirq.qid_shape(target)
+                    )
+                    wait_gate._duration = d
+
+                moment = cirq.Moment(wait_gate.on(*target))
             else:
                 moment = self.make_one_moment(freq_map, prev_freq_map)
             moments.append(moment)
