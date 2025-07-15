@@ -533,7 +533,7 @@ class CircuitSerializer(serializer.Serializer):
 
         for tag_index in moment_proto.tag_indices:
             tags.append(deserialized_constants[tag_index])
-        moment = cirq.Moment(moment_ops, tags=tags)
+        moment = cirq.Moment(moment_ops, tags=tuple(tags))  # type: ignore[arg-type]
         return moment
 
     def _deserialize_gate_op(
