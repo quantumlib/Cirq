@@ -18,3 +18,7 @@ from cirq_google.experimental.analog_experiments.analog_trajectory_util import (
     FrequencyMap as FrequencyMap,
     AnalogTrajectory as AnalogTrajectory,
 )
+
+from cirq_google.experimental.analog_experiments.generic_analog_circuit import (
+    GenericAnalogCircuit as GenericAnalogCircuit,
+)

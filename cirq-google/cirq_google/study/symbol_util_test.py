@@ -46,3 +46,10 @@ def test_direct_symbol_replacement():
     value_resolved = [su.direct_symbol_replacement(v, resolver) for v in value_list]
 
     assert value_resolved == [5 * tu.ns, 8 * tu.GHz, sympy.Symbol("z"), 123, "fd"]
+
+
+def test_tunit_for_duration_nanos():
+    xx = su.TunitForDurationNanos(duration=sympy.Symbol("t"))
+    assert cirq.is_parameterized(xx)
+    assert xx._parameter_names_() == {"t"}
+    assert cirq.resolve_parameters(xx, {"t": 5 * tu.ns}) == 5

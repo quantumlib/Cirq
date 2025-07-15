@@ -51,3 +51,28 @@ def is_parameterized_dict(dict_with_value: dict[Any, ValueOrSymbol] | None) -> b
     if dict_with_value is None:
         return False  # pragma: no cover
     return any(cirq.is_parameterized(v) for v in dict_with_value.values())
+
+
+class TunitForDurationNanos:
+    """A wrapper class that can be used with symbols for duration nanos.
+
+    When resolving it, it will nanos (as float) so that we can use it
+    as the input of `cirq.Duration(nanos=TunitForDurationNanos())`.
+    """
+
+    def __init__(self, duration: sympy.Symbol):
+        if not isinstance(duration, sympy.Symbol):
+            raise ValueError("The duration must be a symbol.")
+        self.duration = duration
+
+    def _is_parameterized_(self) -> bool:
+        return cirq.is_parameterized(self.duration)
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return cirq.parameter_names(self.duration)
+
+    def _resolve_parameters_(
+        self, resolver: cirq.ParamResolverOrSimilarType, recursive: bool
+    ) -> float:
+        resolver_ = cirq.ParamResolver(resolver)
+        return direct_symbol_replacement(self.duration, resolver_)[tu.ns]
