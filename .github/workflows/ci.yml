@@ -206,7 +206,7 @@ jobs:
           pip install --upgrade setuptools wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Pytest check
-        run: check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib --ignore=cirq-rigetti
+        run: check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib
   # TODO(#6706) remove after we start using NumPy 2.0 in regular pytest
   pytest-numpy-2:
     if: github.repository_owner == 'quantumlib'
@@ -232,7 +232,7 @@ jobs:
           pip install wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev-np2.env.txt
       - name: Pytest check
-        run: check/pytest -n auto --durations=20 --ignore=cirq-rigetti
+        run: check/pytest -n auto --durations=20
   pip-compile:
     if: github.repository_owner == 'quantumlib'
     name: Check consistency of requirements
@@ -292,7 +292,7 @@ jobs:
           pip install --upgrade setuptools wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Coverage check
-        run: check/pytest-and-incremental-coverage -n auto --ignore=cirq-rigetti
+        run: check/pytest-and-incremental-coverage -n auto
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5
         env:
@@ -323,7 +323,7 @@ jobs:
       - name: Pytest Windows
         run: |
           source dev_tools/pypath
-          check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib --ignore=cirq-rigetti
+          check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib
         shell: bash
   macos:
     if: github.repository_owner == 'quantumlib'
@@ -349,7 +349,7 @@ jobs:
           pip install --upgrade setuptools wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest check
-        run: check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib --ignore=cirq-rigetti
+        run: check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib
   notebooks-stable:
     if: github.repository_owner == 'quantumlib'
     name: Changed Notebooks Isolated Test against Cirq stable
