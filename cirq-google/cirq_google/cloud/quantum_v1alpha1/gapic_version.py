@@ -13,7 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .client import QuantumEngineServiceClient
-from .async_client import QuantumEngineServiceAsyncClient
-
-__all__ = ('QuantumEngineServiceClient', 'QuantumEngineServiceAsyncClient')
+__version__ = "0.0.0"  # {x-release-please-version}

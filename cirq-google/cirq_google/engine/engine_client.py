@@ -951,7 +951,7 @@ class EngineClient:
         processor_id: str,
         start: datetime.datetime,
         end: datetime.datetime,
-        whitelisted_users: list[str] | None = None,
+        allowlisted_users: list[str] | None = None,
     ):
         """Creates a quantum reservation and returns the created object.
 
@@ -962,7 +962,7 @@ class EngineClient:
                 or None if the engine should generate an id
             start: the starting time of the reservation as a datetime object
             end: the ending time of the reservation as a datetime object
-            whitelisted_users: a list of emails that can use the reservation.
+            allowlisted_users: a list of emails that can use the reservation.
         """
         parent = _processor_name_from_ids(project_id, processor_id)
         reservation = quantum.QuantumReservation(
@@ -970,8 +970,8 @@ class EngineClient:
             start_time=Timestamp(seconds=int(start.timestamp())),
             end_time=Timestamp(seconds=int(end.timestamp())),
         )
-        if whitelisted_users:
-            reservation.whitelisted_users.extend(whitelisted_users)
+        if allowlisted_users:
+            reservation.allowlisted_users.extend(allowlisted_users)
         request = quantum.CreateQuantumReservationRequest(
             parent=parent, quantum_reservation=reservation
         )
@@ -1090,12 +1090,12 @@ class EngineClient:
         reservation_id: str,
         start: datetime.datetime | None = None,
         end: datetime.datetime | None = None,
-        whitelisted_users: list[str] | None = None,
+        allowlisted_users: list[str] | None = None,
     ):
         """Updates a quantum reservation.
 
         This will update a quantum reservation's starting time, ending time,
-        and list of whitelisted users.  If any field is not filled, it will
+        and list of allowlisted users.  If any field is not filled, it will
         not be updated.
 
         Args:
@@ -1104,8 +1104,8 @@ class EngineClient:
             reservation_id: Unique ID of the reservation in the parent project,
             start: the new starting time of the reservation as a datetime object
             end: the new ending time of the reservation as a datetime object
-            whitelisted_users: a list of emails that can use the reservation.
-                The empty list, [], will clear the whitelisted_users while None
+            allowlisted_users: a list of emails that can use the reservation.
+                The empty list, [], will clear the allowlisted_users while None
                 will leave the value unchanged.
         """
         name = (
@@ -1122,9 +1122,9 @@ class EngineClient:
         if end:
             reservation.end_time = end
             paths.append('end_time')
-        if whitelisted_users is not None:
-            reservation.whitelisted_users.extend(whitelisted_users)
-            paths.append('whitelisted_users')
+        if allowlisted_users is not None:
+            reservation.allowlisted_users.extend(allowlisted_users)
+            paths.append('allowlisted_users')
 
         request = quantum.UpdateQuantumReservationRequest(
             name=name,

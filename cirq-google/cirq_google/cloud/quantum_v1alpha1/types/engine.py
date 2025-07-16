@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2022 Google LLC
+# Copyright 2025 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,10 +12,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-# ruff: noqa: E501
-
+#
 from __future__ import annotations
+
+from typing import MutableSequence
 
 import proto
 from google.protobuf import duration_pb2, field_mask_pb2
@@ -44,6 +44,7 @@ __protobuf__ = proto.module(
         'ListQuantumProcessorsRequest',
         'ListQuantumProcessorsResponse',
         'GetQuantumProcessorRequest',
+        'GetQuantumProcessorConfigRequest',
         'ListQuantumCalibrationsRequest',
         'ListQuantumCalibrationsResponse',
         'GetQuantumCalibrationRequest',
@@ -75,15 +76,17 @@ class CreateQuantumJobRequest(proto.Message):
     Attributes:
         parent (str):
             -
-        quantum_job (google.cloud.quantum_v1alpha1.types.QuantumJob):
+        quantum_job (cirq_google.cloud.quantum_v1alpha1.types.QuantumJob):
             -
         overwrite_existing_run_context (bool):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
-    quantum_job = proto.Field(proto.MESSAGE, number=2, message=quantum.QuantumJob)
-    overwrite_existing_run_context = proto.Field(proto.BOOL, number=3)
+    parent: str = proto.Field(proto.STRING, number=1)
+    quantum_job: quantum.QuantumJob = proto.Field(
+        proto.MESSAGE, number=2, message=quantum.QuantumJob
+    )
+    overwrite_existing_run_context: bool = proto.Field(proto.BOOL, number=3)
 
 
 class GetQuantumJobRequest(proto.Message):
@@ -96,8 +99,8 @@ class GetQuantumJobRequest(proto.Message):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
-    return_run_context = proto.Field(proto.BOOL, number=2)
+    name: str = proto.Field(proto.STRING, number=1)
+    return_run_context: bool = proto.Field(proto.BOOL, number=2)
 
 
 class ListQuantumJobsRequest(proto.Message):
@@ -114,17 +117,17 @@ class ListQuantumJobsRequest(proto.Message):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
-    page_size = proto.Field(proto.INT32, number=2)
-    page_token = proto.Field(proto.STRING, number=3)
-    filter = proto.Field(proto.STRING, number=4)
+    parent: str = proto.Field(proto.STRING, number=1)
+    page_size: int = proto.Field(proto.INT32, number=2)
+    page_token: str = proto.Field(proto.STRING, number=3)
+    filter: str = proto.Field(proto.STRING, number=4)
 
 
 class ListQuantumJobsResponse(proto.Message):
     r"""-
 
     Attributes:
-        jobs (Sequence[google.cloud.quantum_v1alpha1.types.QuantumJob]):
+        jobs (MutableSequence[cirq_google.cloud.quantum_v1alpha1.types.QuantumJob]):
             -
         next_page_token (str):
             -
@@ -134,8 +137,10 @@ class ListQuantumJobsResponse(proto.Message):
     def raw_page(self):
         return self
 
-    jobs = proto.RepeatedField(proto.MESSAGE, number=1, message=quantum.QuantumJob)
-    next_page_token = proto.Field(proto.STRING, number=2)
+    jobs: MutableSequence[quantum.QuantumJob] = proto.RepeatedField(
+        proto.MESSAGE, number=1, message=quantum.QuantumJob
+    )
+    next_page_token: str = proto.Field(proto.STRING, number=2)
 
 
 class DeleteQuantumJobRequest(proto.Message):
@@ -146,7 +151,7 @@ class DeleteQuantumJobRequest(proto.Message):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
+    name: str = proto.Field(proto.STRING, number=1)
 
 
 class UpdateQuantumJobRequest(proto.Message):
@@ -155,15 +160,19 @@ class UpdateQuantumJobRequest(proto.Message):
     Attributes:
         name (str):
             -
-        quantum_job (google.cloud.quantum_v1alpha1.types.QuantumJob):
+        quantum_job (cirq_google.cloud.quantum_v1alpha1.types.QuantumJob):
             -
         update_mask (google.protobuf.field_mask_pb2.FieldMask):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
-    quantum_job = proto.Field(proto.MESSAGE, number=2, message=quantum.QuantumJob)
-    update_mask = proto.Field(proto.MESSAGE, number=3, message=field_mask_pb2.FieldMask)
+    name: str = proto.Field(proto.STRING, number=1)
+    quantum_job: quantum.QuantumJob = proto.Field(
+        proto.MESSAGE, number=2, message=quantum.QuantumJob
+    )
+    update_mask: field_mask_pb2.FieldMask = proto.Field(
+        proto.MESSAGE, number=3, message=field_mask_pb2.FieldMask
+    )
 
 
 class CancelQuantumJobRequest(proto.Message):
@@ -174,7 +183,7 @@ class CancelQuantumJobRequest(proto.Message):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
+    name: str = proto.Field(proto.STRING, number=1)
 
 
 class ListQuantumJobEventsRequest(proto.Message):
@@ -189,16 +198,16 @@ class ListQuantumJobEventsRequest(proto.Message):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
-    page_size = proto.Field(proto.INT32, number=2)
-    page_token = proto.Field(proto.STRING, number=3)
+    parent: str = proto.Field(proto.STRING, number=1)
+    page_size: int = proto.Field(proto.INT32, number=2)
+    page_token: str = proto.Field(proto.STRING, number=3)
 
 
 class ListQuantumJobEventsResponse(proto.Message):
     r"""-
 
     Attributes:
-        events (Sequence[google.cloud.quantum_v1alpha1.types.QuantumJobEvent]):
+        events (MutableSequence[cirq_google.cloud.quantum_v1alpha1.types.QuantumJobEvent]):
             -
         next_page_token (str):
             -
@@ -208,8 +217,10 @@ class ListQuantumJobEventsResponse(proto.Message):
     def raw_page(self):
         return self
 
-    events = proto.RepeatedField(proto.MESSAGE, number=1, message=quantum.QuantumJobEvent)
-    next_page_token = proto.Field(proto.STRING, number=2)
+    events: MutableSequence[quantum.QuantumJobEvent] = proto.RepeatedField(
+        proto.MESSAGE, number=1, message=quantum.QuantumJobEvent
+    )
+    next_page_token: str = proto.Field(proto.STRING, number=2)
 
 
 class GetQuantumResultRequest(proto.Message):
@@ -220,7 +231,7 @@ class GetQuantumResultRequest(proto.Message):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
+    parent: str = proto.Field(proto.STRING, number=1)
 
 
 class CreateQuantumProgramRequest(proto.Message):
@@ -229,15 +240,17 @@ class CreateQuantumProgramRequest(proto.Message):
     Attributes:
         parent (str):
             -
-        quantum_program (google.cloud.quantum_v1alpha1.types.QuantumProgram):
+        quantum_program (cirq_google.cloud.quantum_v1alpha1.types.QuantumProgram):
             -
         overwrite_existing_source_code (bool):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
-    quantum_program = proto.Field(proto.MESSAGE, number=2, message=quantum.QuantumProgram)
-    overwrite_existing_source_code = proto.Field(proto.BOOL, number=3)
+    parent: str = proto.Field(proto.STRING, number=1)
+    quantum_program: quantum.QuantumProgram = proto.Field(
+        proto.MESSAGE, number=2, message=quantum.QuantumProgram
+    )
+    overwrite_existing_source_code: bool = proto.Field(proto.BOOL, number=3)
 
 
 class GetQuantumProgramRequest(proto.Message):
@@ -250,8 +263,8 @@ class GetQuantumProgramRequest(proto.Message):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
-    return_code = proto.Field(proto.BOOL, number=2)
+    name: str = proto.Field(proto.STRING, number=1)
+    return_code: bool = proto.Field(proto.BOOL, number=2)
 
 
 class ListQuantumProgramsRequest(proto.Message):
@@ -268,17 +281,17 @@ class ListQuantumProgramsRequest(proto.Message):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
-    page_size = proto.Field(proto.INT32, number=2)
-    page_token = proto.Field(proto.STRING, number=3)
-    filter = proto.Field(proto.STRING, number=4)
+    parent: str = proto.Field(proto.STRING, number=1)
+    page_size: int = proto.Field(proto.INT32, number=2)
+    page_token: str = proto.Field(proto.STRING, number=3)
+    filter: str = proto.Field(proto.STRING, number=4)
 
 
 class ListQuantumProgramsResponse(proto.Message):
     r"""-
 
     Attributes:
-        programs (Sequence[google.cloud.quantum_v1alpha1.types.QuantumProgram]):
+        programs (MutableSequence[cirq_google.cloud.quantum_v1alpha1.types.QuantumProgram]):
             -
         next_page_token (str):
             -
@@ -288,8 +301,10 @@ class ListQuantumProgramsResponse(proto.Message):
     def raw_page(self):
         return self
 
-    programs = proto.RepeatedField(proto.MESSAGE, number=1, message=quantum.QuantumProgram)
-    next_page_token = proto.Field(proto.STRING, number=2)
+    programs: MutableSequence[quantum.QuantumProgram] = proto.RepeatedField(
+        proto.MESSAGE, number=1, message=quantum.QuantumProgram
+    )
+    next_page_token: str = proto.Field(proto.STRING, number=2)
 
 
 class DeleteQuantumProgramRequest(proto.Message):
@@ -302,8 +317,8 @@ class DeleteQuantumProgramRequest(proto.Message):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
-    delete_jobs = proto.Field(proto.BOOL, number=2)
+    name: str = proto.Field(proto.STRING, number=1)
+    delete_jobs: bool = proto.Field(proto.BOOL, number=2)
 
 
 class UpdateQuantumProgramRequest(proto.Message):
@@ -312,15 +327,19 @@ class UpdateQuantumProgramRequest(proto.Message):
     Attributes:
         name (str):
             -
-        quantum_program (google.cloud.quantum_v1alpha1.types.QuantumProgram):
+        quantum_program (cirq_google.cloud.quantum_v1alpha1.types.QuantumProgram):
             -
         update_mask (google.protobuf.field_mask_pb2.FieldMask):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
-    quantum_program = proto.Field(proto.MESSAGE, number=2, message=quantum.QuantumProgram)
-    update_mask = proto.Field(proto.MESSAGE, number=3, message=field_mask_pb2.FieldMask)
+    name: str = proto.Field(proto.STRING, number=1)
+    quantum_program: quantum.QuantumProgram = proto.Field(
+        proto.MESSAGE, number=2, message=quantum.QuantumProgram
+    )
+    update_mask: field_mask_pb2.FieldMask = proto.Field(
+        proto.MESSAGE, number=3, message=field_mask_pb2.FieldMask
+    )
 
 
 class ListQuantumProcessorsRequest(proto.Message):
@@ -337,17 +356,17 @@ class ListQuantumProcessorsRequest(proto.Message):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
-    page_size = proto.Field(proto.INT32, number=2)
-    page_token = proto.Field(proto.STRING, number=3)
-    filter = proto.Field(proto.STRING, number=4)
+    parent: str = proto.Field(proto.STRING, number=1)
+    page_size: int = proto.Field(proto.INT32, number=2)
+    page_token: str = proto.Field(proto.STRING, number=3)
+    filter: str = proto.Field(proto.STRING, number=4)
 
 
 class ListQuantumProcessorsResponse(proto.Message):
     r"""-
 
     Attributes:
-        processors (Sequence[google.cloud.quantum_v1alpha1.types.QuantumProcessor]):
+        processors (MutableSequence[cirq_google.cloud.quantum_v1alpha1.types.QuantumProcessor]):
             -
         next_page_token (str):
             -
@@ -357,8 +376,10 @@ class ListQuantumProcessorsResponse(proto.Message):
     def raw_page(self):
         return self
 
-    processors = proto.RepeatedField(proto.MESSAGE, number=1, message=quantum.QuantumProcessor)
-    next_page_token = proto.Field(proto.STRING, number=2)
+    processors: MutableSequence[quantum.QuantumProcessor] = proto.RepeatedField(
+        proto.MESSAGE, number=1, message=quantum.QuantumProcessor
+    )
+    next_page_token: str = proto.Field(proto.STRING, number=2)
 
 
 class GetQuantumProcessorRequest(proto.Message):
@@ -369,7 +390,18 @@ class GetQuantumProcessorRequest(proto.Message):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
+    name: str = proto.Field(proto.STRING, number=1)
+
+
+class GetQuantumProcessorConfigRequest(proto.Message):
+    r"""-
+
+    Attributes:
+        name (str):
+            Required. -
+    """
+
+    name: str = proto.Field(proto.STRING, number=1)
 
 
 class ListQuantumCalibrationsRequest(proto.Message):
@@ -378,7 +410,7 @@ class ListQuantumCalibrationsRequest(proto.Message):
     Attributes:
         parent (str):
             -
-        view (google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsRequest.QuantumCalibrationView):
+        view (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsRequest.QuantumCalibrationView):
             -
         page_size (int):
             -
@@ -386,27 +418,36 @@ class ListQuantumCalibrationsRequest(proto.Message):
             -
         filter (str):
             -
-    """
+    """  # noqa E501
 
     class QuantumCalibrationView(proto.Enum):
-        r"""-"""
+        r"""-
+
+        Values:
+            QUANTUM_CALIBRATION_VIEW_UNSPECIFIED (0):
+                -
+            BASIC (1):
+                -
+            FULL (2):
+                -
+        """
 
         QUANTUM_CALIBRATION_VIEW_UNSPECIFIED = 0
         BASIC = 1
         FULL = 2
 
-    parent = proto.Field(proto.STRING, number=1)
-    view = proto.Field(proto.ENUM, number=5, enum=QuantumCalibrationView)
-    page_size = proto.Field(proto.INT32, number=2)
-    page_token = proto.Field(proto.STRING, number=3)
-    filter = proto.Field(proto.STRING, number=4)
+    parent: str = proto.Field(proto.STRING, number=1)
+    view: QuantumCalibrationView = proto.Field(proto.ENUM, number=5, enum=QuantumCalibrationView)
+    page_size: int = proto.Field(proto.INT32, number=2)
+    page_token: str = proto.Field(proto.STRING, number=3)
+    filter: str = proto.Field(proto.STRING, number=4)
 
 
 class ListQuantumCalibrationsResponse(proto.Message):
     r"""-
 
     Attributes:
-        calibrations (Sequence[google.cloud.quantum_v1alpha1.types.QuantumCalibration]):
+        calibrations (MutableSequence[cirq_google.cloud.quantum_v1alpha1.types.QuantumCalibration]):
             -
         next_page_token (str):
             -
@@ -416,8 +457,10 @@ class ListQuantumCalibrationsResponse(proto.Message):
     def raw_page(self):
         return self
 
-    calibrations = proto.RepeatedField(proto.MESSAGE, number=1, message=quantum.QuantumCalibration)
-    next_page_token = proto.Field(proto.STRING, number=2)
+    calibrations: MutableSequence[quantum.QuantumCalibration] = proto.RepeatedField(
+        proto.MESSAGE, number=1, message=quantum.QuantumCalibration
+    )
+    next_page_token: str = proto.Field(proto.STRING, number=2)
 
 
 class GetQuantumCalibrationRequest(proto.Message):
@@ -428,7 +471,7 @@ class GetQuantumCalibrationRequest(proto.Message):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
+    name: str = proto.Field(proto.STRING, number=1)
 
 
 class CreateQuantumReservationRequest(proto.Message):
@@ -437,12 +480,14 @@ class CreateQuantumReservationRequest(proto.Message):
     Attributes:
         parent (str):
             -
-        quantum_reservation (google.cloud.quantum_v1alpha1.types.QuantumReservation):
+        quantum_reservation (cirq_google.cloud.quantum_v1alpha1.types.QuantumReservation):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
-    quantum_reservation = proto.Field(proto.MESSAGE, number=2, message=quantum.QuantumReservation)
+    parent: str = proto.Field(proto.STRING, number=1)
+    quantum_reservation: quantum.QuantumReservation = proto.Field(
+        proto.MESSAGE, number=2, message=quantum.QuantumReservation
+    )
 
 
 class CancelQuantumReservationRequest(proto.Message):
@@ -453,7 +498,7 @@ class CancelQuantumReservationRequest(proto.Message):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
+    name: str = proto.Field(proto.STRING, number=1)
 
 
 class DeleteQuantumReservationRequest(proto.Message):
@@ -464,7 +509,7 @@ class DeleteQuantumReservationRequest(proto.Message):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
+    name: str = proto.Field(proto.STRING, number=1)
 
 
 class GetQuantumReservationRequest(proto.Message):
@@ -475,7 +520,7 @@ class GetQuantumReservationRequest(proto.Message):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
+    name: str = proto.Field(proto.STRING, number=1)
 
 
 class ListQuantumReservationsRequest(proto.Message):
@@ -492,17 +537,17 @@ class ListQuantumReservationsRequest(proto.Message):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
-    page_size = proto.Field(proto.INT32, number=2)
-    page_token = proto.Field(proto.STRING, number=3)
-    filter = proto.Field(proto.STRING, number=4)
+    parent: str = proto.Field(proto.STRING, number=1)
+    page_size: int = proto.Field(proto.INT32, number=2)
+    page_token: str = proto.Field(proto.STRING, number=3)
+    filter: str = proto.Field(proto.STRING, number=4)
 
 
 class ListQuantumReservationsResponse(proto.Message):
     r"""-
 
     Attributes:
-        reservations (Sequence[google.cloud.quantum_v1alpha1.types.QuantumReservation]):
+        reservations (MutableSequence[cirq_google.cloud.quantum_v1alpha1.types.QuantumReservation]):
             -
         next_page_token (str):
             -
@@ -512,8 +557,10 @@ class ListQuantumReservationsResponse(proto.Message):
     def raw_page(self):
         return self
 
-    reservations = proto.RepeatedField(proto.MESSAGE, number=1, message=quantum.QuantumReservation)
-    next_page_token = proto.Field(proto.STRING, number=2)
+    reservations: MutableSequence[quantum.QuantumReservation] = proto.RepeatedField(
+        proto.MESSAGE, number=1, message=quantum.QuantumReservation
+    )
+    next_page_token: str = proto.Field(proto.STRING, number=2)
 
 
 class UpdateQuantumReservationRequest(proto.Message):
@@ -522,15 +569,19 @@ class UpdateQuantumReservationRequest(proto.Message):
     Attributes:
         name (str):
             -
-        quantum_reservation (google.cloud.quantum_v1alpha1.types.QuantumReservation):
+        quantum_reservation (cirq_google.cloud.quantum_v1alpha1.types.QuantumReservation):
             -
         update_mask (google.protobuf.field_mask_pb2.FieldMask):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
-    quantum_reservation = proto.Field(proto.MESSAGE, number=2, message=quantum.QuantumReservation)
-    update_mask = proto.Field(proto.MESSAGE, number=3, message=field_mask_pb2.FieldMask)
+    name: str = proto.Field(proto.STRING, number=1)
+    quantum_reservation: quantum.QuantumReservation = proto.Field(
+        proto.MESSAGE, number=2, message=quantum.QuantumReservation
+    )
+    update_mask: field_mask_pb2.FieldMask = proto.Field(
+        proto.MESSAGE, number=3, message=field_mask_pb2.FieldMask
+    )
 
 
 class QuantumRunStreamRequest(proto.Message):
@@ -548,29 +599,29 @@ class QuantumRunStreamRequest(proto.Message):
             -
         parent (str):
             -
-        create_quantum_program_and_job (google.cloud.quantum_v1alpha1.types.CreateQuantumProgramAndJobRequest):
+        create_quantum_program_and_job (cirq_google.cloud.quantum_v1alpha1.types.CreateQuantumProgramAndJobRequest):
             -
 
             This field is a member of `oneof`_ ``request``.
-        create_quantum_job (google.cloud.quantum_v1alpha1.types.CreateQuantumJobRequest):
+        create_quantum_job (cirq_google.cloud.quantum_v1alpha1.types.CreateQuantumJobRequest):
             -
 
             This field is a member of `oneof`_ ``request``.
-        get_quantum_result (google.cloud.quantum_v1alpha1.types.GetQuantumResultRequest):
+        get_quantum_result (cirq_google.cloud.quantum_v1alpha1.types.GetQuantumResultRequest):
             -
 
             This field is a member of `oneof`_ ``request``.
-    """
+    """  # noqa E501
 
-    message_id = proto.Field(proto.STRING, number=1)
-    parent = proto.Field(proto.STRING, number=2)
-    create_quantum_program_and_job = proto.Field(
+    message_id: str = proto.Field(proto.STRING, number=1)
+    parent: str = proto.Field(proto.STRING, number=2)
+    create_quantum_program_and_job: CreateQuantumProgramAndJobRequest = proto.Field(
         proto.MESSAGE, number=3, oneof='request', message='CreateQuantumProgramAndJobRequest'
     )
-    create_quantum_job = proto.Field(
+    create_quantum_job: CreateQuantumJobRequest = proto.Field(
         proto.MESSAGE, number=4, oneof='request', message='CreateQuantumJobRequest'
     )
-    get_quantum_result = proto.Field(
+    get_quantum_result: GetQuantumResultRequest = proto.Field(
         proto.MESSAGE, number=5, oneof='request', message='GetQuantumResultRequest'
     )
 
@@ -581,15 +632,19 @@ class CreateQuantumProgramAndJobRequest(proto.Message):
     Attributes:
         parent (str):
             -
-        quantum_program (google.cloud.quantum_v1alpha1.types.QuantumProgram):
+        quantum_program (cirq_google.cloud.quantum_v1alpha1.types.QuantumProgram):
             -
-        quantum_job (google.cloud.quantum_v1alpha1.types.QuantumJob):
+        quantum_job (cirq_google.cloud.quantum_v1alpha1.types.QuantumJob):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
-    quantum_program = proto.Field(proto.MESSAGE, number=2, message=quantum.QuantumProgram)
-    quantum_job = proto.Field(proto.MESSAGE, number=3, message=quantum.QuantumJob)
+    parent: str = proto.Field(proto.STRING, number=1)
+    quantum_program: quantum.QuantumProgram = proto.Field(
+        proto.MESSAGE, number=2, message=quantum.QuantumProgram
+    )
+    quantum_job: quantum.QuantumJob = proto.Field(
+        proto.MESSAGE, number=3, message=quantum.QuantumJob
+    )
 
 
 class QuantumRunStreamResponse(proto.Message):
@@ -605,38 +660,67 @@ class QuantumRunStreamResponse(proto.Message):
     Attributes:
         message_id (str):
             -
-        error (google.cloud.quantum_v1alpha1.types.StreamError):
+        error (cirq_google.cloud.quantum_v1alpha1.types.StreamError):
             -
 
             This field is a member of `oneof`_ ``response``.
-        job (google.cloud.quantum_v1alpha1.types.QuantumJob):
+        job (cirq_google.cloud.quantum_v1alpha1.types.QuantumJob):
             -
 
             This field is a member of `oneof`_ ``response``.
-        result (google.cloud.quantum_v1alpha1.types.QuantumResult):
+        result (cirq_google.cloud.quantum_v1alpha1.types.QuantumResult):
             -
 
             This field is a member of `oneof`_ ``response``.
     """
 
-    message_id = proto.Field(proto.STRING, number=1)
-    error = proto.Field(proto.MESSAGE, number=2, oneof='response', message='StreamError')
-    job = proto.Field(proto.MESSAGE, number=3, oneof='response', message=quantum.QuantumJob)
-    result = proto.Field(proto.MESSAGE, number=4, oneof='response', message=quantum.QuantumResult)
+    message_id: str = proto.Field(proto.STRING, number=1)
+    error: StreamError = proto.Field(
+        proto.MESSAGE, number=2, oneof='response', message='StreamError'
+    )
+    job: quantum.QuantumJob = proto.Field(
+        proto.MESSAGE, number=3, oneof='response', message=quantum.QuantumJob
+    )
+    result: quantum.QuantumResult = proto.Field(
+        proto.MESSAGE, number=4, oneof='response', message=quantum.QuantumResult
+    )
 
 
 class StreamError(proto.Message):
     r"""-
 
     Attributes:
-        code (google.cloud.quantum_v1alpha1.types.StreamError.Code):
+        code (cirq_google.cloud.quantum_v1alpha1.types.StreamError.Code):
             -
         message (str):
             -
     """
 
     class Code(proto.Enum):
-        r"""-"""
+        r"""-
+
+        Values:
+            CODE_UNSPECIFIED (0):
+                -
+            INTERNAL (1):
+                -
+            INVALID_ARGUMENT (2):
+                -
+            PERMISSION_DENIED (3):
+                -
+            PROGRAM_ALREADY_EXISTS (4):
+                -
+            JOB_ALREADY_EXISTS (5):
+                -
+            PROGRAM_DOES_NOT_EXIST (6):
+                -
+            JOB_DOES_NOT_EXIST (7):
+                -
+            PROCESSOR_DOES_NOT_EXIST (8):
+                -
+            INVALID_PROCESSOR_FOR_JOB (9):
+                -
+        """
 
         CODE_UNSPECIFIED = 0
         INTERNAL = 1
@@ -649,8 +733,8 @@ class StreamError(proto.Message):
         PROCESSOR_DOES_NOT_EXIST = 8
         INVALID_PROCESSOR_FOR_JOB = 9
 
-    code = proto.Field(proto.ENUM, number=1, enum=Code)
-    message = proto.Field(proto.STRING, number=2)
+    code: Code = proto.Field(proto.ENUM, number=1, enum=Code)
+    message: str = proto.Field(proto.STRING, number=2)
 
 
 class ListQuantumReservationGrantsRequest(proto.Message):
@@ -667,30 +751,30 @@ class ListQuantumReservationGrantsRequest(proto.Message):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
-    page_size = proto.Field(proto.INT32, number=2)
-    page_token = proto.Field(proto.STRING, number=3)
-    filter = proto.Field(proto.STRING, number=4)
+    parent: str = proto.Field(proto.STRING, number=1)
+    page_size: int = proto.Field(proto.INT32, number=2)
+    page_token: str = proto.Field(proto.STRING, number=3)
+    filter: str = proto.Field(proto.STRING, number=4)
 
 
 class ListQuantumReservationGrantsResponse(proto.Message):
     r"""-
 
     Attributes:
-        reservation_grants (Sequence[google.cloud.quantum_v1alpha1.types.QuantumReservationGrant]):
+        reservation_grants (MutableSequence[cirq_google.cloud.quantum_v1alpha1.types.QuantumReservationGrant]):
             -
         next_page_token (str):
             -
-    """
+    """  # noqa E501
 
     @property
     def raw_page(self):
         return self
 
-    reservation_grants = proto.RepeatedField(
+    reservation_grants: MutableSequence[quantum.QuantumReservationGrant] = proto.RepeatedField(
         proto.MESSAGE, number=1, message=quantum.QuantumReservationGrant
     )
-    next_page_token = proto.Field(proto.STRING, number=2)
+    next_page_token: str = proto.Field(proto.STRING, number=2)
 
 
 class ReallocateQuantumReservationGrantRequest(proto.Message):
@@ -707,10 +791,12 @@ class ReallocateQuantumReservationGrantRequest(proto.Message):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
-    source_project_id = proto.Field(proto.STRING, number=2)
-    target_project_id = proto.Field(proto.STRING, number=3)
-    duration = proto.Field(proto.MESSAGE, number=4, message=duration_pb2.Duration)
+    name: str = proto.Field(proto.STRING, number=1)
+    source_project_id: str = proto.Field(proto.STRING, number=2)
+    target_project_id: str = proto.Field(proto.STRING, number=3)
+    duration: duration_pb2.Duration = proto.Field(
+        proto.MESSAGE, number=4, message=duration_pb2.Duration
+    )
 
 
 class ListQuantumReservationBudgetsRequest(proto.Message):
@@ -727,30 +813,30 @@ class ListQuantumReservationBudgetsRequest(proto.Message):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
-    page_size = proto.Field(proto.INT32, number=2)
-    page_token = proto.Field(proto.STRING, number=3)
-    filter = proto.Field(proto.STRING, number=4)
+    parent: str = proto.Field(proto.STRING, number=1)
+    page_size: int = proto.Field(proto.INT32, number=2)
+    page_token: str = proto.Field(proto.STRING, number=3)
+    filter: str = proto.Field(proto.STRING, number=4)
 
 
 class ListQuantumReservationBudgetsResponse(proto.Message):
     r"""-
 
     Attributes:
-        reservation_budgets (Sequence[google.cloud.quantum_v1alpha1.types.QuantumReservationBudget]):
+        reservation_budgets (MutableSequence[cirq_google.cloud.quantum_v1alpha1.types.QuantumReservationBudget]):
             -
         next_page_token (str):
             -
-    """
+    """  # noqa E501
 
     @property
     def raw_page(self):
         return self
 
-    reservation_budgets = proto.RepeatedField(
+    reservation_budgets: MutableSequence[quantum.QuantumReservationBudget] = proto.RepeatedField(
         proto.MESSAGE, number=1, message=quantum.QuantumReservationBudget
     )
-    next_page_token = proto.Field(proto.STRING, number=2)
+    next_page_token: str = proto.Field(proto.STRING, number=2)
 
 
 class ListQuantumTimeSlotsRequest(proto.Message):
@@ -767,17 +853,17 @@ class ListQuantumTimeSlotsRequest(proto.Message):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
-    page_size = proto.Field(proto.INT32, number=2)
-    page_token = proto.Field(proto.STRING, number=3)
-    filter = proto.Field(proto.STRING, number=4)
+    parent: str = proto.Field(proto.STRING, number=1)
+    page_size: int = proto.Field(proto.INT32, number=2)
+    page_token: str = proto.Field(proto.STRING, number=3)
+    filter: str = proto.Field(proto.STRING, number=4)
 
 
 class ListQuantumTimeSlotsResponse(proto.Message):
     r"""-
 
     Attributes:
-        time_slots (Sequence[google.cloud.quantum_v1alpha1.types.QuantumTimeSlot]):
+        time_slots (MutableSequence[cirq_google.cloud.quantum_v1alpha1.types.QuantumTimeSlot]):
             -
         next_page_token (str):
             -
@@ -787,8 +873,10 @@ class ListQuantumTimeSlotsResponse(proto.Message):
     def raw_page(self):
         return self
 
-    time_slots = proto.RepeatedField(proto.MESSAGE, number=1, message=quantum.QuantumTimeSlot)
-    next_page_token = proto.Field(proto.STRING, number=2)
+    time_slots: MutableSequence[quantum.QuantumTimeSlot] = proto.RepeatedField(
+        proto.MESSAGE, number=1, message=quantum.QuantumTimeSlot
+    )
+    next_page_token: str = proto.Field(proto.STRING, number=2)
 
 
 __all__ = tuple(sorted(__protobuf__.manifest))
