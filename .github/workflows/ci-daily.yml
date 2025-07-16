@@ -38,7 +38,7 @@ jobs:
               -r dev_tools/requirements/deps/pytest.txt \
               -r dev_tools/requirements/deps/notebook.txt
       - name: Pytest check
-        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --ignore=cirq-rigetti --enable-slow-tests
+        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --enable-slow-tests
   windows:
     if: github.repository_owner == 'quantumlib'
     name: Pytest Windows
@@ -63,7 +63,7 @@ jobs:
             pip install -r dev_tools/requirements/deps/pytest.txt &&
             pip install -r dev_tools/requirements/deps/notebook.txt
       - name: Pytest Windows
-        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --ignore=cirq-rigetti --enable-slow-tests
+        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --enable-slow-tests
         shell: bash
   macos:
     if: github.repository_owner == 'quantumlib'
@@ -90,4 +90,4 @@ jobs:
               -r dev_tools/requirements/deps/pytest.txt \
               -r dev_tools/requirements/deps/notebook.txt
       - name: Pytest check
-        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --ignore=cirq-rigetti --enable-slow-tests
+        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --enable-slow-tests
