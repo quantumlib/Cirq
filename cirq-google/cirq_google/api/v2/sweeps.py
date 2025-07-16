@@ -151,14 +151,14 @@ def sweep_to_proto(
         else:
             if isinstance(sweep.points[0], tunits.Value):
                 unit = sweep.points[0].unit
-                # Dual-write to both points and point_list for temporary compatibility.
+                # Dual-write to both points and points_fl64 for temporary compatibility.
                 out.single_sweep.points.points.extend(p[unit] for p in sweep.points)
-                out.single_sweep.points.point_list.extend(p[unit] for p in sweep.points)
+                out.single_sweep.points.points_fl64.extend(p[unit] for p in sweep.points)
                 unit.to_proto(out.single_sweep.points.unit)
             else:
-                # Dual-write to both points and point_list for temporary compatibility.
+                # Dual-write to both points and points_fl64 for temporary compatibility.
                 out.single_sweep.points.points.extend(sweep.points)
-                out.single_sweep.points.point_list.extend(sweep.points)
+                out.single_sweep.points.points_fl64.extend(sweep.points)
         # Encode the metadata if present
         if isinstance(sweep.metadata, Metadata):
             out.single_sweep.metadata.MergeFrom(metadata_to_proto(sweep.metadata))
@@ -265,14 +265,14 @@ def sweep_from_proto(
             unit = 1.0
             if msg.single_sweep.points.HasField('unit'):
                 unit = tunits.Value.from_proto(msg.single_sweep.points.unit)
-            # point_list is the double floating number instead of single one.
-            # if point_list is presented, we use this value first.
-            if msg.single_sweep.points.point_list:
-                point_list = msg.single_sweep.points.point_list
+            # points_fl64 is the double floating number instead of single one.
+            # if points_fl64 is presented, we use this value first.
+            if msg.single_sweep.points.points_fl64:
+                points_fl64 = msg.single_sweep.points.points_fl64
             else:
-                point_list = msg.single_sweep.points.points
+                points_fl64 = msg.single_sweep.points.points
             return sweep_transformer(
-                cirq.Points(key=key, points=[p * unit for p in point_list], metadata=metadata)
+                cirq.Points(key=key, points=[p * unit for p in points_fl64], metadata=metadata)
             )
         if msg.single_sweep.WhichOneof('sweep') == 'const_value':
             return sweep_transformer(
