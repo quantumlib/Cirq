@@ -35,6 +35,7 @@ def _build_sweep_const(value: Any) -> run_context_pb2.ConstValue:
     elif isinstance(value, numbers.Integral):
         return run_context_pb2.ConstValue(int_value=int(value))
     elif isinstance(value, numbers.Real):
+        # TODO Switch to double_value when server is rolled out.
         return run_context_pb2.ConstValue(float_value=float(value))
     elif isinstance(value, str):
         return run_context_pb2.ConstValue(string_value=value)
@@ -50,6 +51,8 @@ def _recover_sweep_const(const_pb: run_context_pb2.ConstValue) -> Any:
     """Recover a const value from the sweep const message."""
     if const_pb.WhichOneof('value') == 'is_none':
         return None
+    if const_pb.WhichOneof('value') == 'double_value':
+        return const_pb.double_value
     if const_pb.WhichOneof('value') == 'float_value':
         return const_pb.float_value
     if const_pb.WhichOneof('value') == 'int_value':
@@ -115,11 +118,19 @@ def sweep_to_proto(
             unit = sweep.start.unit
             out.single_sweep.linspace.first_point = sweep.start[unit]
             out.single_sweep.linspace.last_point = sweep.stop[unit]
+            # Dual write for float32 to float64 migration
+            out.single_sweep.linspace.first_point_fl64 = sweep.start[unit]
+            out.single_sweep.linspace.last_point_fl64 = sweep.stop[unit]
+
             out.single_sweep.linspace.num_points = sweep.length
             unit.to_proto(out.single_sweep.linspace.unit)
         else:
             out.single_sweep.linspace.first_point = sweep.start
             out.single_sweep.linspace.last_point = sweep.stop
+            # Dual write for float32 to float64 migration
+            out.single_sweep.linspace.first_point_fl64 = sweep.start
+            out.single_sweep.linspace.last_point_fl64 = sweep.stop
+
             out.single_sweep.linspace.num_points = sweep.length
         # Encode the metadata if present
         if isinstance(sweep.metadata, Metadata):
@@ -231,11 +242,21 @@ def sweep_from_proto(
             unit: float | tunits.Value = 1.0
             if msg.single_sweep.linspace.HasField('unit'):
                 unit = tunits.Value.from_proto(msg.single_sweep.linspace.unit)
+            # If float 64 field is presented, we use it first.
+            if msg.single_sweep.linspace.first_point_fl64:
+                first_point = msg.single_sweep.linspace.first_point_fl64
+            else:
+                first_point = msg.single_sweep.linspace.first_point
+
+            if msg.single_sweep.linspace.last_point_fl64:
+                last_point = msg.single_sweep.linspace.last_point_fl64
+            else:
+                last_point = msg.single_sweep.linspace.last_point
             return sweep_transformer(
                 cirq.Linspace(
                     key=key,
-                    start=msg.single_sweep.linspace.first_point * unit,  # type: ignore[arg-type]
-                    stop=msg.single_sweep.linspace.last_point * unit,  # type: ignore[arg-type]
+                    start=first_point * unit,  # type: ignore[arg-type]
+                    stop=last_point * unit,  # type: ignore[arg-type]
                     length=msg.single_sweep.linspace.num_points,
                     metadata=metadata,
                 )

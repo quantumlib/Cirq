@@ -225,7 +225,7 @@ message SingleSweep {
 
 // A list of explicit values.
 message Points {
-  // The values.
+  // The values. (it is deprecated because it is float32.)
   repeated float points = 1;
 
   // Due to historical reason, the points are stored as float32.
@@ -241,10 +241,12 @@ message Points {
 // and the num_points is 5, thi corresponds to the points
 //   1.0, 1.25, 1.5, 1.75, 2.0
 message Linspace {
-  // The start of the range.
+  // The start of the range. (float32 should be avoided.)
   float first_point = 1;
-  // The end of the range.
+  double first_point_fl64 = 5;
+  // The end of the range. (float32 should be avoided.)
   float last_point = 2;
+  double last_point_fl64 = 6;
   // The number of points in the range (including first and last). Must be
   // greater than zero. If it is 1, the first_point and last_point must be
   // the same.
@@ -261,6 +263,7 @@ message ConstValue {
     // object.
     bool is_none = 1;
     float float_value = 2;
+    double double_value = 6;
     int64 int_value = 3;
     string string_value = 4;
     tunits.Value with_unit_value = 5;
