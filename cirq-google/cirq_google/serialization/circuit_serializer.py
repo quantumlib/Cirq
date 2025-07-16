@@ -319,7 +319,7 @@ class CircuitSerializer(serializer.Serializer):
     def _serialize_tag(
         self,
         tag: Hashable,
-        msg: v2.program_pb2.Operation | v2.program_pb2.Circuit,
+        msg: v2.program_pb2.Operation | v2.program_pb2.Moment | v2.program_pb2.Circuit,
         *,
         constants: list[v2.program_pb2.Constant],
         raw_constants: dict[Any, int],
