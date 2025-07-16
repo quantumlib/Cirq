@@ -1,4 +1,0 @@
-pyquil>=4.14.3,<5.0.0
-
-# TODO: remove after the fix of https://github.com/rigetti/qcs-sdk-rust/issues/531
-qcs-sdk-python<=0.21.12
