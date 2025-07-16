@@ -17,8 +17,7 @@ and warn users that the latest version of cirq uses python 3.11+"""
 
 import sys
 
-# TODO: #6648 - update when internal docs build supports python3.11
-if sys.version_info < (3, 11 - 1, 0):  # pragma: no cover
+if sys.version_info < (3, 11, 0):  # pragma: no cover
     raise SystemError(
         "You installed the latest version of cirq but aren't on python 3.11+.\n"
         'To fix this error, you need to either:\n'
