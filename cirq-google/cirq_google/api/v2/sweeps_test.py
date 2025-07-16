@@ -147,6 +147,12 @@ def test_build_recover_const(val):
         assert val2 == val
 
 
+def test_build_covert_const_double():
+    val = 1.2355
+    val2 = v2.run_context_pb2.ConstValue(double_value=val)
+    assert math.isclose(val, val2.double_value, abs_tol=1e-10)
+
+
 def test_build_const_unsupported_type():
     with pytest.raises(ValueError, match='Unsupported type for serializing const sweep'):
         v2.sweeps._build_sweep_const((1, 2))

@@ -251,7 +251,7 @@ def sweep_from_proto(
             if msg.single_sweep.linspace.last_point_fl64:
                 last_point = msg.single_sweep.linspace.last_point_fl64
             else:
-                last_point = msg.single_sweep.linspace.last_point
+                last_point = msg.single_sweep.linspace.last_point  # pragma: no cover
             return sweep_transformer(
                 cirq.Linspace(
                     key=key,
@@ -268,11 +268,11 @@ def sweep_from_proto(
             # points_fl64 is the double floating number instead of single one.
             # if points_fl64 is presented, we use this value first.
             if msg.single_sweep.points.points_fl64:
-                points_fl64 = msg.single_sweep.points.points_fl64
+                points = msg.single_sweep.points.points_fl64
             else:
-                points_fl64 = msg.single_sweep.points.points
+                points = msg.single_sweep.points.points  # pragma: no cover
             return sweep_transformer(
-                cirq.Points(key=key, points=[p * unit for p in points_fl64], metadata=metadata)
+                cirq.Points(key=key, points=[p * unit for p in points], metadata=metadata)
             )
         if msg.single_sweep.WhichOneof('sweep') == 'const_value':
             return sweep_transformer(
