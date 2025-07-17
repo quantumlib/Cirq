@@ -228,8 +228,7 @@ message Points {
   // The values.  Deprecated, superseded by points_fl64 (assign both fields during transition).
   repeated float points = 1;
 
-  // Due to historical reason, the points are stored as float32.
-  // But float64 should be a better choice.
+  // The values.
   repeated double points_fl64 = 3;
 
   tunits.Value unit = 2;
