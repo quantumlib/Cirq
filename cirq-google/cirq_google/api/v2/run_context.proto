@@ -225,7 +225,7 @@ message SingleSweep {
 
 // A list of explicit values.
 message Points {
-  // The values. (it is deprecated because it is float32.)
+  // The values.  Deprecated, superseded by points_fl64 (assign both fields during transition).
   repeated float points = 1;
 
   // Due to historical reason, the points are stored as float32.
