@@ -119,8 +119,8 @@ def sweep_to_proto(
             out.single_sweep.linspace.first_point = sweep.start[unit]
             out.single_sweep.linspace.last_point = sweep.stop[unit]
             # Dual write for float32 to float64 migration
-            out.single_sweep.linspace.first_point_fl64 = sweep.start[unit]
-            out.single_sweep.linspace.last_point_fl64 = sweep.stop[unit]
+            out.single_sweep.linspace.first_point_double = sweep.start[unit]
+            out.single_sweep.linspace.last_point_double = sweep.stop[unit]
 
             out.single_sweep.linspace.num_points = sweep.length
             unit.to_proto(out.single_sweep.linspace.unit)
@@ -128,8 +128,8 @@ def sweep_to_proto(
             out.single_sweep.linspace.first_point = sweep.start
             out.single_sweep.linspace.last_point = sweep.stop
             # Dual write for float32 to float64 migration
-            out.single_sweep.linspace.first_point_fl64 = sweep.start
-            out.single_sweep.linspace.last_point_fl64 = sweep.stop
+            out.single_sweep.linspace.first_point_double = sweep.start
+            out.single_sweep.linspace.last_point_double = sweep.stop
 
             out.single_sweep.linspace.num_points = sweep.length
         # Encode the metadata if present
@@ -151,14 +151,14 @@ def sweep_to_proto(
         else:
             if isinstance(sweep.points[0], tunits.Value):
                 unit = sweep.points[0].unit
-                # Dual-write to both points and points_fl64 for temporary compatibility.
+                # Dual-write to both points and points_double for temporary compatibility.
                 out.single_sweep.points.points.extend(p[unit] for p in sweep.points)
-                out.single_sweep.points.points_fl64.extend(p[unit] for p in sweep.points)
+                out.single_sweep.points.points_double.extend(p[unit] for p in sweep.points)
                 unit.to_proto(out.single_sweep.points.unit)
             else:
-                # Dual-write to both points and points_fl64 for temporary compatibility.
+                # Dual-write to both points and points_double for temporary compatibility.
                 out.single_sweep.points.points.extend(sweep.points)
-                out.single_sweep.points.points_fl64.extend(sweep.points)
+                out.single_sweep.points.points_double.extend(sweep.points)
         # Encode the metadata if present
         if isinstance(sweep.metadata, Metadata):
             out.single_sweep.metadata.MergeFrom(metadata_to_proto(sweep.metadata))
@@ -243,13 +243,13 @@ def sweep_from_proto(
             if msg.single_sweep.linspace.HasField('unit'):
                 unit = tunits.Value.from_proto(msg.single_sweep.linspace.unit)
             # If float 64 field is presented, we use it first.
-            if msg.single_sweep.linspace.first_point_fl64:
-                first_point = msg.single_sweep.linspace.first_point_fl64
+            if msg.single_sweep.linspace.first_point_double:
+                first_point = msg.single_sweep.linspace.first_point_double
             else:
                 first_point = msg.single_sweep.linspace.first_point
 
-            if msg.single_sweep.linspace.last_point_fl64:
-                last_point = msg.single_sweep.linspace.last_point_fl64
+            if msg.single_sweep.linspace.last_point_double:
+                last_point = msg.single_sweep.linspace.last_point_double
             else:
                 last_point = msg.single_sweep.linspace.last_point  # pragma: no cover
             return sweep_transformer(
@@ -265,10 +265,10 @@ def sweep_from_proto(
             unit = 1.0
             if msg.single_sweep.points.HasField('unit'):
                 unit = tunits.Value.from_proto(msg.single_sweep.points.unit)
-            # points_fl64 is the double floating number instead of single one.
-            # if points_fl64 is presented, we use this value first.
-            if msg.single_sweep.points.points_fl64:
-                points = msg.single_sweep.points.points_fl64
+            # points_double is the double floating number instead of single one.
+            # if points_double is presented, we use this value first.
+            if msg.single_sweep.points.points_double:
+                points = msg.single_sweep.points.points_double
             else:
                 points = msg.single_sweep.points.points  # pragma: no cover
             return sweep_transformer(

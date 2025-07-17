@@ -506,17 +506,15 @@ class Points(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
     POINTS_FIELD_NUMBER: builtins.int
-    POINTS_FL64_FIELD_NUMBER: builtins.int
+    POINTS_DOUBLE_FIELD_NUMBER: builtins.int
     UNIT_FIELD_NUMBER: builtins.int
     @property
     def points(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
-        """The values. (it is deprecated because it is float32.)"""
+        """The values.  Deprecated, superseded by points_double (assign both fields during transition)."""
 
     @property
-    def points_fl64(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
-        """Due to historical reason, the points are stored as float32.
-        But float64 should be a better choice.
-        """
+    def points_double(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
+        """The values."""
 
     @property
     def unit(self) -> tunits.proto.tunits_pb2.Value: ...
@@ -524,11 +522,11 @@ class Points(google.protobuf.message.Message):
         self,
         *,
         points: collections.abc.Iterable[builtins.float] | None = ...,
-        points_fl64: collections.abc.Iterable[builtins.float] | None = ...,
+        points_double: collections.abc.Iterable[builtins.float] | None = ...,
         unit: tunits.proto.tunits_pb2.Value | None = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["unit", b"unit"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["points", b"points", "points_fl64", b"points_fl64", "unit", b"unit"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["points", b"points", "points_double", b"points_double", "unit", b"unit"]) -> None: ...
 
 global___Points = Points
 
@@ -544,17 +542,19 @@ class Linspace(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
     FIRST_POINT_FIELD_NUMBER: builtins.int
-    FIRST_POINT_FL64_FIELD_NUMBER: builtins.int
+    FIRST_POINT_DOUBLE_FIELD_NUMBER: builtins.int
     LAST_POINT_FIELD_NUMBER: builtins.int
-    LAST_POINT_FL64_FIELD_NUMBER: builtins.int
+    LAST_POINT_DOUBLE_FIELD_NUMBER: builtins.int
     NUM_POINTS_FIELD_NUMBER: builtins.int
     UNIT_FIELD_NUMBER: builtins.int
     first_point: builtins.float
-    """The start of the range. (float32 should be avoided.)"""
-    first_point_fl64: builtins.float
+    """The start of the range.
+    Deprecated: superseded by first_point_double (assign both fields during transition).
+    """
+    first_point_double: builtins.float
     last_point: builtins.float
     """The end of the range. (float32 should be avoided.)"""
-    last_point_fl64: builtins.float
+    last_point_double: builtins.float
     num_points: builtins.int
     """The number of points in the range (including first and last). Must be
     greater than zero. If it is 1, the first_point and last_point must be
@@ -566,14 +566,14 @@ class Linspace(google.protobuf.message.Message):
         self,
         *,
         first_point: builtins.float = ...,
-        first_point_fl64: builtins.float = ...,
+        first_point_double: builtins.float = ...,
         last_point: builtins.float = ...,
-        last_point_fl64: builtins.float = ...,
+        last_point_double: builtins.float = ...,
         num_points: builtins.int = ...,
         unit: tunits.proto.tunits_pb2.Value | None = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["unit", b"unit"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["first_point", b"first_point", "first_point_fl64", b"first_point_fl64", "last_point", b"last_point", "last_point_fl64", b"last_point_fl64", "num_points", b"num_points", "unit", b"unit"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["first_point", b"first_point", "first_point_double", b"first_point_double", "last_point", b"last_point", "last_point_double", b"last_point_double", "num_points", b"num_points", "unit", b"unit"]) -> None: ...
 
 global___Linspace = Linspace
 

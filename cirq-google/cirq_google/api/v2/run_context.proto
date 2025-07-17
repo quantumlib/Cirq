@@ -225,11 +225,11 @@ message SingleSweep {
 
 // A list of explicit values.
 message Points {
-  // The values.  Deprecated, superseded by points_fl64 (assign both fields during transition).
+  // The values.  Deprecated, superseded by points_double (assign both fields during transition).
   repeated float points = 1;
 
   // The values.
-  repeated double points_fl64 = 3;
+  repeated double points_double = 3;
 
   tunits.Value unit = 2;
 }
@@ -241,12 +241,12 @@ message Points {
 //   1.0, 1.25, 1.5, 1.75, 2.0
 message Linspace {
   // The start of the range.
-  // Deprecated: superseded by first_point_fl64 (assign both fields during transition).
+  // Deprecated: superseded by first_point_double (assign both fields during transition).
   float first_point = 1;
-  double first_point_fl64 = 5;
+  double first_point_double = 5;
   // The end of the range. (float32 should be avoided.)
   float last_point = 2;
-  double last_point_fl64 = 6;
+  double last_point_double = 6;
   // The number of points in the range (including first and last). Must be
   // greater than zero. If it is 1, the first_point and last_point must be
   // the same.
