@@ -168,6 +168,11 @@ class CircuitSerializer(serializer.Serializer):
                         raw_constants[op] = op_index
                         moment_proto.operation_indices.append(op_index)
 
+            for tag in moment.tags:
+                self._serialize_tag(
+                    tag, moment_proto, constants=constants, raw_constants=raw_constants
+                )
+
             # Add this moment to the constants table
             constants.append(v2.program_pb2.Constant(moment_value=moment_proto))
             moment_index = len(constants) - 1
@@ -314,7 +319,7 @@ class CircuitSerializer(serializer.Serializer):
     def _serialize_tag(
         self,
         tag: Hashable,
-        msg: v2.program_pb2.Operation | v2.program_pb2.Circuit,
+        msg: v2.program_pb2.Operation | v2.program_pb2.Moment | v2.program_pb2.Circuit,
         *,
         constants: list[v2.program_pb2.Constant],
         raw_constants: dict[Any, int],
@@ -502,6 +507,7 @@ class CircuitSerializer(serializer.Serializer):
         deserialized_constants: list[Any],
     ) -> cirq.Moment:
         moment_ops = []
+        tags = []
         for op in moment_proto.operations:
             if self.op_deserializer and self.op_deserializer.can_deserialize_proto(op):
                 gate_op = self.op_deserializer.from_proto(
@@ -524,7 +530,10 @@ class CircuitSerializer(serializer.Serializer):
             )
         for operation_index in moment_proto.operation_indices:
             moment_ops.append(deserialized_constants[operation_index])
-        moment = cirq.Moment(moment_ops)
+
+        for tag_index in moment_proto.tag_indices:
+            tags.append(deserialized_constants[tag_index])
+        moment = cirq.Moment(moment_ops, tags=tuple(tags))
         return moment
 
     def _deserialize_gate_op(
