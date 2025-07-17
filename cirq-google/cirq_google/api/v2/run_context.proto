@@ -240,7 +240,8 @@ message Points {
 // and the num_points is 5, thi corresponds to the points
 //   1.0, 1.25, 1.5, 1.75, 2.0
 message Linspace {
-  // The start of the range. (float32 should be avoided.)
+  // The start of the range.
+  // Deprecated: superseded by first_point_fl64 (assign both fields during transition).
   float first_point = 1;
   double first_point_fl64 = 5;
   // The end of the range. (float32 should be avoided.)
