@@ -78,7 +78,7 @@ class CircuitOperation(ops.Operation):
         repetition_ids: Sequence[str] | None = None,
         parent_path: tuple[str, ...] = (),
         extern_keys: frozenset[cirq.MeasurementKey] = frozenset(),
-        use_repetition_ids: bool | None = True,
+        use_repetition_ids: bool | None = None,
         repeat_until: cirq.Condition | None = None,
     ):
         """Initializes a CircuitOperation.
