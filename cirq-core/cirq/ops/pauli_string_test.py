@@ -1828,6 +1828,14 @@ def test_mutable_pauli_string_inplace_conjugate_by():
     assert p2 is p and p == cirq.X(a) * cirq.Y(b)
 
 
+def test_mps_inplace_after_clifford_gate_type():
+    q = cirq.LineQubit(0)
+
+    mps = cirq.MutablePauliString(cirq.X(q))
+    mps2 = mps.inplace_after(cirq.CliffordGate.from_op_list([cirq.H(q)], [q]).on(q))
+    assert mps2 is mps and mps == cirq.Z(q)
+
+
 def test_after_before_vs_conjugate_by():
     a, b, c = cirq.LineQubit.range(3)
     p = cirq.X(a) * cirq.Y(b) * cirq.Z(c)
