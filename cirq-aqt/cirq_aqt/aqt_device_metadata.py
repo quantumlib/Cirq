@@ -57,7 +57,7 @@ class AQTDeviceMetadata(cirq.DeviceMetadata):
             cirq.GateFamily(cirq.PhasedXPowGate): self._oneq_gates_duration,
         }
         assert not self._gateset.gates.symmetric_difference(self._gate_durations.keys()), (
-            "AQTDeviceMetadata.gate_durations must have the same Gates " "as AQTTargetGateset."
+            "AQTDeviceMetadata.gate_durations must have the same Gates as AQTTargetGateset."
         )
 
     @property

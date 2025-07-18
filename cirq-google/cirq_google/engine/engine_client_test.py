@@ -1301,7 +1301,7 @@ def test_list_jobs(client_constructor, default_engine_client):
             None,
         ),
         (
-            '(execution_status.state = FAILURE OR ' 'execution_status.state = CANCELLED)',
+            '(execution_status.state = FAILURE OR execution_status.state = CANCELLED)',
             None,
             None,
             None,

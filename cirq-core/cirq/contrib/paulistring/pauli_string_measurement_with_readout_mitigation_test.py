@@ -815,7 +815,7 @@ def test_group_paulis_are_not_qwc() -> None:
     circuits_to_pauli[circuit] = [[pauli_str1, pauli_str2]]  # type: ignore
     with pytest.raises(
         ValueError,
-        match="The group of Pauli strings are not " "Qubit-Wise Commuting with each other.",
+        match="The group of Pauli strings are not Qubit-Wise Commuting with each other.",
     ):
         measure_pauli_strings(
             circuits_to_pauli, cirq.Simulator(), 1000, 1000, 1000, np.random.default_rng()
