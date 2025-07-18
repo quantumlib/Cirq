@@ -109,6 +109,9 @@ message Moment {
 
   // Deprecated field id, do not use.
   reserved 3;
+  
+  // Indices in the constant table for tags associated with the circuit
+  repeated int32 tag_indices = 5;
 }
 
 // The language in which the program is expressed.
