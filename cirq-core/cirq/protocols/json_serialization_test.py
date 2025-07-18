@@ -549,9 +549,7 @@ def test_type_serialization(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cl
 
     sto = SerializableTypeObject(cls)
     test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
-    expected_json = (
-        f'{{\n  "cirq_type": "SerializableTypeObject",\n' f'  "test_type": "{typename}"\n}}'
-    )
+    expected_json = f'{{\n  "cirq_type": "SerializableTypeObject",\n  "test_type": "{typename}"\n}}'
     assert cirq.to_json(sto) == expected_json
     assert cirq.read_json(json_text=expected_json, resolvers=test_resolvers) == sto
     assert_json_roundtrip_works(sto, resolvers=test_resolvers)

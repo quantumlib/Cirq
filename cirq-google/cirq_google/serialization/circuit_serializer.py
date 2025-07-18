@@ -783,7 +783,7 @@ class CircuitSerializer(serializer.Serializer):
                 )
                 if sub_gate is None or sub_gate.gate is None:
                     raise ValueError(
-                        "Not a valid gate for RandomGateChannel: " f"{operation_proto}"
+                        f"Not a valid gate for RandomGateChannel: {operation_proto}"
                     )  # pragma: nocover
                 op = cirq.RandomGateChannel(probability=p, sub_gate=sub_gate.gate)(*qubits)
             else:
