@@ -758,16 +758,18 @@ class CircuitSerializer(serializer.Serializer):
             op = gate(*qubits)
         elif which_gate_type == 'noisechannel':
             which_channel_type = operation_proto.noisechannel.WhichOneof('channel_value')
-            print('dingdong')
             if which_channel_type == 'depolarizingchannel':
                 p = arg_func_langs.float_arg_from_proto(
                     operation_proto.noisechannel.depolarizingchannel.probability
                 )
-                num_qubits = operation_proto.noisechannel.depolarizingchannel.num_qubits
-                print(num_qubits)
                 if not isinstance(p, float):
                     raise ValueError(
-                        f"Depolarizing noise probability {p} " "cannot be symbol or None"
+                        f"Depolarizing noise probability {p} cannot be symbol or None"
+                    )  # pragma: nocover
+                num_qubits = operation_proto.noisechannel.depolarizingchannel.num_qubits
+                if num_qubits <= 0:
+                    raise ValueError(
+                        f"Depolarizing noise gate must have positive num_qubits: {num_qubits}"
                     )  # pragma: nocover
                 op = cirq.DepolarizingChannel(p=p, n_qubits=num_qubits)(*qubits)
             elif which_channel_type == 'randomgatechannel':
