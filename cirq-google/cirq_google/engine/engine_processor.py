@@ -324,19 +324,19 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         self,
         start_time: datetime.datetime,
         end_time: datetime.datetime,
-        whitelisted_users: list[str] | None = None,
+        allowlisted_users: list[str] | None = None,
     ):
         """Creates a reservation on this processor.
 
         Args:
             start_time: the starting date/time of the reservation.
             end_time: the ending date/time of the reservation.
-            whitelisted_users: a list of emails that are allowed
+            allowlisted_users: a list of emails that are allowed
               to send programs during this reservation (in addition to users
               with permission "quantum.reservations.use" on the project).
         """
         response = self.context.client.create_reservation(
-            self.project_id, self.processor_id, start_time, end_time, whitelisted_users
+            self.project_id, self.processor_id, start_time, end_time, allowlisted_users
         )
         return response
 
@@ -393,7 +393,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         reservation_id: str,
         start_time: datetime.datetime | None = None,
         end_time: datetime.datetime | None = None,
-        whitelisted_users: list[str] | None = None,
+        allowlisted_users: list[str] | None = None,
     ):
         """Updates a reservation with new information.
 
@@ -407,7 +407,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             reservation_id,
             start=start_time,
             end=end_time,
-            whitelisted_users=whitelisted_users,
+            allowlisted_users=allowlisted_users,
         )
 
     def list_reservations(

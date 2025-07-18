@@ -1530,7 +1530,7 @@ def test_create_reservation(client_constructor, default_engine_client):
         name='projects/proj/processors/processor0/reservations/papar-party-44',
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000003600),
-        whitelisted_users=users,
+        allowlisted_users=users,
     )
     grpc_client.create_quantum_reservation.return_value = result
 
@@ -1555,7 +1555,7 @@ def test_cancel_reservation(client_constructor, default_engine_client):
         name=name,
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000002000),
-        whitelisted_users=['jeff@google.com'],
+        allowlisted_users=['jeff@google.com'],
     )
     grpc_client.cancel_quantum_reservation.return_value = result
 
@@ -1575,7 +1575,7 @@ def test_delete_reservation(client_constructor, default_engine_client):
         name=name,
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000002000),
-        whitelisted_users=['jeff@google.com'],
+        allowlisted_users=['jeff@google.com'],
     )
     grpc_client.delete_quantum_reservation.return_value = result
 
@@ -1595,7 +1595,7 @@ def test_get_reservation(client_constructor, default_engine_client):
         name=name,
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000002000),
-        whitelisted_users=['jeff@google.com'],
+        allowlisted_users=['jeff@google.com'],
     )
     grpc_client.get_quantum_reservation.return_value = result
 
@@ -1635,13 +1635,13 @@ def test_list_reservation(client_constructor, default_engine_client):
             name=name,
             start_time=Timestamp(seconds=1000000000),
             end_time=Timestamp(seconds=1000002000),
-            whitelisted_users=['jeff@google.com'],
+            allowlisted_users=['jeff@google.com'],
         ),
         quantum.QuantumReservation(
             name=name,
             start_time=Timestamp(seconds=1200000000),
             end_time=Timestamp(seconds=1200002000),
-            whitelisted_users=['dstrain@google.com'],
+            allowlisted_users=['dstrain@google.com'],
         ),
     ]
     grpc_client.list_quantum_reservations.return_value = Pager(results)
@@ -1657,7 +1657,7 @@ def test_update_reservation(client_constructor, default_engine_client):
         name=name,
         start_time=Timestamp(seconds=1000001000),
         end_time=Timestamp(seconds=1000002000),
-        whitelisted_users=['jeff@google.com'],
+        allowlisted_users=['jeff@google.com'],
     )
     grpc_client.update_quantum_reservation.return_value = result
 
@@ -1668,7 +1668,7 @@ def test_update_reservation(client_constructor, default_engine_client):
             'papar-party-44',
             start=datetime.datetime.fromtimestamp(1000001000),
             end=datetime.datetime.fromtimestamp(1000002000),
-            whitelisted_users=['jeff@google.com'],
+            allowlisted_users=['jeff@google.com'],
         )
         == result
     )
@@ -1676,7 +1676,7 @@ def test_update_reservation(client_constructor, default_engine_client):
         quantum.UpdateQuantumReservationRequest(
             name=name,
             quantum_reservation=result,
-            update_mask=FieldMask(paths=['start_time', 'end_time', 'whitelisted_users']),
+            update_mask=FieldMask(paths=['start_time', 'end_time', 'allowlisted_users']),
         )
     )
 
@@ -1685,12 +1685,12 @@ def test_update_reservation(client_constructor, default_engine_client):
 def test_update_reservation_remove_all_users(client_constructor, default_engine_client):
     grpc_client = _setup_client_mock(client_constructor)
     name = 'projects/proj/processors/processor0/reservations/papar-party-44'
-    result = quantum.QuantumReservation(name=name, whitelisted_users=[])
+    result = quantum.QuantumReservation(name=name, allowlisted_users=[])
     grpc_client.update_quantum_reservation.return_value = result
 
     assert (
         default_engine_client.update_reservation(
-            'proj', 'processor0', 'papar-party-44', whitelisted_users=[]
+            'proj', 'processor0', 'papar-party-44', allowlisted_users=[]
         )
         == result
     )
@@ -1698,7 +1698,7 @@ def test_update_reservation_remove_all_users(client_constructor, default_engine_
         quantum.UpdateQuantumReservationRequest(
             name=name,
             quantum_reservation=result,
-            update_mask=FieldMask(paths=['whitelisted_users']),
+            update_mask=FieldMask(paths=['allowlisted_users']),
         )
     )
 

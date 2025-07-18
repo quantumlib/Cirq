@@ -65,6 +65,11 @@
                 "get_quantum_processor"
               ]
             },
+            "GetQuantumProcessorConfig": {
+              "methods": [
+                "get_quantum_processor_config"
+              ]
+            },
             "GetQuantumProgram": {
               "methods": [
                 "get_quantum_program"
@@ -208,6 +213,161 @@
             "GetQuantumProcessor": {
               "methods": [
                 "get_quantum_processor"
+              ]
+            },
+            "GetQuantumProcessorConfig": {
+              "methods": [
+                "get_quantum_processor_config"
+              ]
+            },
+            "GetQuantumProgram": {
+              "methods": [
+                "get_quantum_program"
+              ]
+            },
+            "GetQuantumReservation": {
+              "methods": [
+                "get_quantum_reservation"
+              ]
+            },
+            "GetQuantumResult": {
+              "methods": [
+                "get_quantum_result"
+              ]
+            },
+            "ListQuantumCalibrations": {
+              "methods": [
+                "list_quantum_calibrations"
+              ]
+            },
+            "ListQuantumJobEvents": {
+              "methods": [
+                "list_quantum_job_events"
+              ]
+            },
+            "ListQuantumJobs": {
+              "methods": [
+                "list_quantum_jobs"
+              ]
+            },
+            "ListQuantumProcessors": {
+              "methods": [
+                "list_quantum_processors"
+              ]
+            },
+            "ListQuantumPrograms": {
+              "methods": [
+                "list_quantum_programs"
+              ]
+            },
+            "ListQuantumReservationBudgets": {
+              "methods": [
+                "list_quantum_reservation_budgets"
+              ]
+            },
+            "ListQuantumReservationGrants": {
+              "methods": [
+                "list_quantum_reservation_grants"
+              ]
+            },
+            "ListQuantumReservations": {
+              "methods": [
+                "list_quantum_reservations"
+              ]
+            },
+            "ListQuantumTimeSlots": {
+              "methods": [
+                "list_quantum_time_slots"
+              ]
+            },
+            "QuantumRunStream": {
+              "methods": [
+                "quantum_run_stream"
+              ]
+            },
+            "ReallocateQuantumReservationGrant": {
+              "methods": [
+                "reallocate_quantum_reservation_grant"
+              ]
+            },
+            "UpdateQuantumJob": {
+              "methods": [
+                "update_quantum_job"
+              ]
+            },
+            "UpdateQuantumProgram": {
+              "methods": [
+                "update_quantum_program"
+              ]
+            },
+            "UpdateQuantumReservation": {
+              "methods": [
+                "update_quantum_reservation"
+              ]
+            }
+          }
+        },
+        "rest": {
+          "libraryClient": "QuantumEngineServiceClient",
+          "rpcs": {
+            "CancelQuantumJob": {
+              "methods": [
+                "cancel_quantum_job"
+              ]
+            },
+            "CancelQuantumReservation": {
+              "methods": [
+                "cancel_quantum_reservation"
+              ]
+            },
+            "CreateQuantumJob": {
+              "methods": [
+                "create_quantum_job"
+              ]
+            },
+            "CreateQuantumProgram": {
+              "methods": [
+                "create_quantum_program"
+              ]
+            },
+            "CreateQuantumReservation": {
+              "methods": [
+                "create_quantum_reservation"
+              ]
+            },
+            "DeleteQuantumJob": {
+              "methods": [
+                "delete_quantum_job"
+              ]
+            },
+            "DeleteQuantumProgram": {
+              "methods": [
+                "delete_quantum_program"
+              ]
+            },
+            "DeleteQuantumReservation": {
+              "methods": [
+                "delete_quantum_reservation"
+              ]
+            },
+            "GetQuantumCalibration": {
+              "methods": [
+                "get_quantum_calibration"
+              ]
+            },
+            "GetQuantumJob": {
+              "methods": [
+                "get_quantum_job"
+              ]
+            },
+            "GetQuantumProcessor": {
+              "methods": [
+                "get_quantum_processor"
+              ]
+            },
+            "GetQuantumProcessorConfig": {
+              "methods": [
+                "get_quantum_processor_config"
               ]
             },
             "GetQuantumProgram": {
