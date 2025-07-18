@@ -53,7 +53,6 @@ from cirq.ops import (
     identity,
     op_tree,
     pauli_gates,
-    pauli_interaction_gate,
     raw_types,
 )
 
@@ -1386,7 +1385,7 @@ class MutablePauliString(Generic[TKey]):
             tableau = gate_in_clifford.clifford_tableau.inverse()
 
             for qid, q in enumerate(op.qubits):
-                pauli = self.get(q, None)
+                pauli = self.get(cast(TKey, q), None)
                 match pauli:
                     case pauli_gates.X:
                         conjugated *= tableau.destabilizers()[qid]
@@ -1404,9 +1403,9 @@ class MutablePauliString(Generic[TKey]):
             for qid, q in enumerate(op.qubits):
                 new_pauli_int = PAULI_GATE_LIKE_TO_INDEX_MAP[conjugated[qid]]
                 if new_pauli_int == 0:
-                    self.pauli_int_dict.pop(q, None)
+                    self.pauli_int_dict.pop(cast(TKey, q), None)
                 else:
-                    self.pauli_int_dict[q] = new_pauli_int
+                    self.pauli_int_dict[cast(TKey, q)] = new_pauli_int
         return self
 
     def inplace_after(self, ops: cirq.OP_TREE) -> cirq.MutablePauliString:
