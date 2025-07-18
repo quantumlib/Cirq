@@ -18,17 +18,23 @@ from __future__ import annotations
 
 import dataclasses
 import json
+import math
 from typing import Any, Callable, cast, Collection, Iterator, Sequence, TYPE_CHECKING
 
 import numpy as np
 
 import cirq
 from cirq.devices import line_qubit
-from cirq_ionq.ionq_exceptions import IonQSerializerMixedGatesetsException
+from cirq_ionq.ionq_exceptions import (
+    IonQSerializerMixedGatesetsException,
+    NotSupportedPauliexpParameters,
+)
 from cirq_ionq.ionq_native_gates import GPI2Gate, GPIGate, MSGate, ZZGate
 
 if TYPE_CHECKING:
     import sympy
+
+    from cirq.ops.pauli_string_phasor import PauliStringPhasorGate
 
 _NATIVE_GATES = cirq.Gateset(
     GPIGate, GPI2Gate, MSGate, ZZGate, cirq.MeasurementGate, unroll_circuit_op=False
@@ -79,6 +85,7 @@ class Serializer:
             cirq.HPowGate: self._serialize_h_pow_gate,
             cirq.SwapPowGate: self._serialize_swap_gate,
             cirq.MeasurementGate: self._serialize_measurement_gate,
+            cirq.ops.pauli_string_phasor.PauliStringPhasorGate: self._serialize_pauli_string_phasor_gate,  # noqa: E501
             # These gates can't be used with any of the non-measurement gates above
             # Rather than validating this here, we rely on the IonQ API to report failure.
             GPIGate: self._serialize_gpi_gate,
@@ -201,8 +208,14 @@ class Serializer:
         all_qubits = circuit.all_qubits()
         return cast(line_qubit.LineQubit, max(all_qubits)).x + 1
 
-    def _serialize_circuit(self, circuit: cirq.AbstractCircuit) -> list:
-        return [self._serialize_op(op) for moment in circuit for op in moment]
+    def _serialize_circuit(self, circuit: cirq.AbstractCircuit) -> list[dict]:
+        return [
+            serialized_op
+            for moment in circuit
+            for op in moment
+            for serialized_op in [self._serialize_op(op)]
+            if serialized_op != {}
+        ]
 
     def _serialize_op(self, op: cirq.Operation) -> dict:
         if op.gate is None:
@@ -222,7 +235,9 @@ class Serializer:
         for gate_mro_type in gate_type.mro():
             if gate_mro_type in self._dispatch:
                 serialized_op = self._dispatch[gate_mro_type](gate, targets)
-                if serialized_op:
+                # serialized_op {} results when serializing a PauliStringPhasorGate
+                # where the exponentiated term is identity or the evolution time is 0.
+                if serialized_op == {} or serialized_op:
                     return serialized_op
         raise ValueError(f'Gate {gate} acting on {targets} cannot be serialized by IonQ API.')
 
@@ -276,6 +291,38 @@ class Serializer:
         if self._near_mod_n(gate.exponent, 1, 2):
             return {'gate': 'h', 'targets': targets}
         return None
+
+    def _serialize_pauli_string_phasor_gate(
+        self, gate: PauliStringPhasorGate, targets: Sequence[int]
+    ) -> dict[str, Any] | None:
+        PAULIS = {0: "I", 1: "X", 2: "Y", 3: "Z"}
+        # Cirq uses big-endian ordering while IonQ API uses little-endian ordering.
+        big_endian_pauli_string = ''.join(
+            [PAULIS[pindex] for pindex in gate.dense_pauli_string.pauli_mask]
+        )
+        little_endian_pauli_string = big_endian_pauli_string[::-1]
+        pauli_string_coefficient = gate.dense_pauli_string.coefficient
+        coefficients = [pauli_string_coefficient.real]
+
+        # I am ignoring here the global phase of:
+        # i * pi * (gate.exponent_neg + gate.exponent_pos) / 2
+        time = math.pi * (gate.exponent_neg - gate.exponent_pos) / 2
+        if time < 0:
+            raise NotSupportedPauliexpParameters(
+                'IonQ `pauliexp` gates does not support negative evolution times. '
+                f'Found in a PauliStringPhasorGate a negative evolution time {time}.'
+            )
+        if little_endian_pauli_string == "" or time == 0:
+            seralized_gate = {}
+        else:
+            seralized_gate = {
+                'gate': 'pauliexp',
+                'terms': [little_endian_pauli_string],
+                "coefficients": coefficients,
+                'targets': targets,
+                'time': time,
+            }
+        return seralized_gate
 
     # These could potentially be using serialize functions on the gates themselves.
     def _serialize_gpi_gate(self, gate: GPIGate, targets: Sequence[int]) -> dict | None:
