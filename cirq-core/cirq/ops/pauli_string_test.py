@@ -1714,6 +1714,9 @@ def test_mutable_pauli_string_inplace_conjugate_by():
         def _decompose_(self):
             return []
 
+        def __pow__(self, power):
+            return []
+
     # No-ops
     p2 = p.inplace_after(cirq.global_phase_operation(1j))
     assert p2 is p and p == cirq.X(a)
