@@ -213,7 +213,7 @@ def test_list_program_filters(
 
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_list_program_filters_invalid_type(client_constructor, default_engine_client):
-    with pytest.raises(ValueError, match=""):
+    with pytest.raises(ValueError, match="Unsupported date/time"):
         default_engine_client.list_programs(
             project_id='proj', created_before="Unsupported date/time"
         )
