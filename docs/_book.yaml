@@ -167,10 +167,6 @@ upper_tabs:
         path: /cirq/noise/representing_noise
       ####  CHARACTERIZATION AND COMPENSATION  ####
       - heading: "Characterization and compensation"
-      - title: "Calibration FAQ"
-        path: /cirq/noise/calibration_faq
-      - title: "Floquet Calibration"
-        path: /cirq/noise/floquet_calibration_example
       - title: "Cross-Entropy Benchmarking (XEB)"
         style: accordion
         section:
