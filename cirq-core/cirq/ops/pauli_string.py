@@ -1371,7 +1371,43 @@ class MutablePauliString(Generic[TKey]):
         Returns:
             The mutable pauli string that was mutated.
         """
-        return self.inplace_after(protocols.inverse(ops))
+        # An inplace impl of PauliString.conjugated_by().
+        flattened_ops = list(op_tree.flatten_to_ops(ops))
+
+        for op in flattened_ops[::-1]:
+            conjugated: cirq.DensePauliString = dense_pauli_string.DensePauliString(
+                pauli_mask=[identity.I for _ in op.qubits]
+            )
+            gate_in_clifford: cirq.CliffordGate
+            if isinstance(op.gate, clifford_gate.CliffordGate):
+                gate_in_clifford = op.gate
+            else:
+                gate_in_clifford = clifford_gate.CliffordGate.from_op_list([op], op.qubits)
+            tableau = gate_in_clifford.clifford_tableau.inverse()
+
+            for qid, q in enumerate(op.qubits):
+                pauli = self.get(q, None)
+                match pauli:
+                    case pauli_gates.X:
+                        conjugated *= tableau.destabilizers()[qid]
+                    case pauli_gates.Z:
+                        conjugated *= tableau.stabilizers()[qid]
+                    case pauli_gates.Y:
+                        conjugated *= (
+                            1j
+                            * tableau.destabilizers()[qid]  # conj X first
+                            * tableau.stabilizers()[qid]  # then conj Z
+                        )
+                    case _:
+                        continue
+            self.coefficient *= conjugated.coefficient
+            for qid, q in enumerate(op.qubits):
+                new_pauli_int = PAULI_GATE_LIKE_TO_INDEX_MAP[conjugated[qid]]
+                if new_pauli_int == 0:
+                    self.pauli_int_dict.pop(q, None)
+                else:
+                    self.pauli_int_dict[q] = new_pauli_int
+        return self
 
     def inplace_after(self, ops: cirq.OP_TREE) -> cirq.MutablePauliString:
         r"""Propagates the pauli string from before to after a Clifford effect.
@@ -1391,43 +1427,7 @@ class MutablePauliString(Generic[TKey]):
             NotImplementedError: If any ops decompose into an unsupported
                 Clifford gate.
         """
-        for clifford in op_tree.flatten_to_ops(ops):
-            for op in _decompose_into_cliffords(clifford):
-                ps = [self.pauli_int_dict.pop(cast(TKey, q), 0) for q in op.qubits]
-                if not any(ps):
-                    continue
-                gate = op.gate
-
-                if isinstance(gate, clifford_gate.SingleQubitCliffordGate):
-                    out = gate.pauli_tuple(_INT_TO_PAULI[ps[0] - 1])
-                    if out[1]:
-                        self.coefficient *= -1
-                    self.pauli_int_dict[cast(TKey, op.qubits[0])] = PAULI_GATE_LIKE_TO_INDEX_MAP[
-                        out[0]
-                    ]
-
-                elif isinstance(gate, pauli_interaction_gate.PauliInteractionGate):
-                    q0, q1 = op.qubits
-                    p0 = _INT_TO_PAULI_OR_IDENTITY[ps[0]]
-                    p1 = _INT_TO_PAULI_OR_IDENTITY[ps[1]]
-
-                    # Kick across Paulis that anti-commute with the controls.
-                    kickback_0_to_1 = not protocols.commutes(p0, gate.pauli0)
-                    kickback_1_to_0 = not protocols.commutes(p1, gate.pauli1)
-                    kick0 = gate.pauli1 if kickback_0_to_1 else identity.I
-                    kick1 = gate.pauli0 if kickback_1_to_0 else identity.I
-                    self.__imul__({q0: p0, q1: kick0})
-                    self.__imul__({q0: kick1, q1: p1})
-
-                    # Decompose inverted controls into single-qubit operations.
-                    if gate.invert0:
-                        self.inplace_after(gate.pauli1(q1))
-                    if gate.invert1:
-                        self.inplace_after(gate.pauli0(q0))
-
-                else:  # pragma: no cover
-                    raise NotImplementedError(f"Unrecognized decomposed Clifford: {op!r}")
-        return self
+        return self.inplace_before(protocols.inverse(ops))
 
     def _imul_helper(self, other: cirq.PAULI_STRING_LIKE, sign: int):
         """Left-multiplies or right-multiplies by a PAULI_STRING_LIKE.
@@ -1592,35 +1592,6 @@ class MutablePauliString(Generic[TKey]):
 
     def __repr__(self) -> str:
         return f'{self.frozen()!r}.mutable_copy()'
-
-
-def _decompose_into_cliffords(op: cirq.Operation) -> list[cirq.Operation]:
-    # An operation that can be ignored?
-    if isinstance(op.gate, global_phase_op.GlobalPhaseGate):
-        return []
-
-    # Already a known Clifford?
-    if isinstance(
-        op.gate,
-        (clifford_gate.SingleQubitCliffordGate, pauli_interaction_gate.PauliInteractionGate),
-    ):
-        return [op]
-
-    # Specifies a decomposition into Cliffords?
-    v = getattr(op, '_decompose_into_clifford_', None)
-    if v is not None:
-        result = v()
-        if result is not None and result is not NotImplemented:
-            return list(op_tree.flatten_to_ops(result))
-
-    # Specifies a decomposition that happens to contain only Cliffords?
-    decomposed = protocols.decompose_once(op, None)
-    if decomposed is not None:
-        return [out for sub_op in decomposed for out in _decompose_into_cliffords(sub_op)]
-
-    raise TypeError(  # pragma: no cover
-        f'Operation is not a known Clifford and did not decompose into known Cliffords: {op!r}'
-    )
 
 
 # Mypy has extreme difficulty with these constants for some reason.
