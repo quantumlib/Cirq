@@ -28,3 +28,6 @@ from cirq.vis.state_histogram import (
 from cirq.vis.density_matrix import plot_density_matrix as plot_density_matrix
 
 from cirq.vis.vis_utils import relative_luminance as relative_luminance
+
+from cirq.vis.circuit_to_latex_quantikz import CircuitToQuantikz
+from cirq.vis.circuit_to_latex_render import render_circuit
