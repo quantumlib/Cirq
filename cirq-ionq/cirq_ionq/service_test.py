@@ -37,9 +37,9 @@ def test_service_run(target, expected_results):
     mock_client.get_job.return_value = {
         'id': 'job_id',
         'status': 'completed',
-        'target': target,
+        'backend': target,
         'metadata': {'shots': '4', 'measurement0': f'a{chr(31)}0'},
-        'qubits': '1',
+        'stats': {'qubits': '1'},
     }
     mock_client.get_results.return_value = {'0': '0.25', '1': '0.75'}
     service._client = mock_client
@@ -55,7 +55,7 @@ def test_service_run(target, expected_results):
 
     create_job_kwargs = mock_client.create_job.call_args[1]
     # Serialization induces a float, so we don't validate full circuit.
-    assert create_job_kwargs['serialized_program'].body['qubits'] == 1
+    assert create_job_kwargs['serialized_program'].input['qubits'] == 1
     assert create_job_kwargs['serialized_program'].metadata == {'measurement0': f'a{chr(31)}0'}
     assert create_job_kwargs['repetitions'] == 4
     assert create_job_kwargs['target'] == target
@@ -76,7 +76,7 @@ def test_service_run_batch(target, expected_results1, expected_results2):
     mock_client.get_job.return_value = {
         'id': 'job_id',
         'status': 'completed',
-        'target': target,
+        'backend': target,
         'metadata': {
             'shots': '4',
             'measurements': (
@@ -84,7 +84,7 @@ def test_service_run_batch(target, expected_results1, expected_results2):
             ),
             'qubit_numbers': '[1, 1]',
         },
-        'qubits': '1',
+        'stats': {'qubits': '1'},
     }
     mock_client.get_results.return_value = {
         "xxx": {'0': '0.25', '1': '0.75'},
@@ -112,7 +112,7 @@ def test_service_run_batch(target, expected_results1, expected_results2):
 
     create_job_kwargs = mock_client.create_job.call_args[1]
     # Serialization induces a float, so we don't validate full circuit.
-    assert create_job_kwargs['serialized_program'].body['qubits'] == 1
+    assert create_job_kwargs['serialized_program'].input['qubits'] == 1
     assert create_job_kwargs['serialized_program'].metadata == {
         'measurements': "[{\"measurement0\": \"a\\u001f0\"}, {\"measurement0\": \"b\\u001f0\"}]",
         'qubit_numbers': '[1, 1]',
@@ -129,8 +129,8 @@ def test_sampler():
     job_dict = {
         'id': '1',
         'status': 'completed',
-        'qubits': '1',
-        'target': 'qpu',
+        'stats': {'qubits': '1'},
+        'backend': 'qpu',
         'metadata': {'shots': 4, 'measurement0': f'a{chr(31)}0'},
     }
     mock_client.create_job.return_value = job_dict
@@ -172,7 +172,7 @@ def test_service_create_job():
     assert job.status() == 'completed'
     create_job_kwargs = mock_client.create_job.call_args[1]
     # Serialization induces a float, so we don't validate full circuit.
-    assert create_job_kwargs['serialized_program'].body['qubits'] == 1
+    assert create_job_kwargs['serialized_program'].input['qubits'] == 1
     assert create_job_kwargs['repetitions'] == 100
     assert create_job_kwargs['target'] == 'qpu'
     assert create_job_kwargs['name'] == 'bacon'
@@ -286,8 +286,8 @@ def test_service_remote_host_from_env_var_ionq():
 
 @mock.patch.dict(os.environ, {}, clear=True)
 def test_service_remote_host_default():
-    service = ionq.Service(api_key='tomyheart', api_version='v0.3')
-    assert service.remote_host == 'https://api.ionq.co/v0.3'
+    service = ionq.Service(api_key='tomyheart', api_version='v0.4')
+    assert service.remote_host == 'https://api.ionq.co/v0.4'
 
 
 @mock.patch.dict(

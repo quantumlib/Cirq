@@ -122,7 +122,7 @@ class Job:
             IonQException: If unable to get the status of the job from the API.
         """
         self._check_if_unsuccessful()
-        return self._job['target']
+        return self._job['backend']
 
     def name(self) -> str:
         """Returns the name of the job which was supplied during job creation.
@@ -151,7 +151,7 @@ class Job:
                     if index == circuit_index:
                         return qubit_number
 
-        return int(self._job['qubits'])
+        return int(self._job['stats']['qubits'])
 
     def repetitions(self) -> int:
         """Returns the number of repetitions for the job.
