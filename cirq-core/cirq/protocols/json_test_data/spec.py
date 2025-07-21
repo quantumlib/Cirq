@@ -166,10 +166,10 @@ TestSpec = ModuleJsonTestSpec(
         'ParamMappingType',
         # utility:
         'CliffordSimulator',
+        'NoiseModelFromNoiseProperties',
         'Simulator',
         'StabilizerSampler',
         'DEFAULT_RESOLVERS',
-        'NoiseModelFromNoiseProperties',
     ],
     deprecated={},
     tested_elsewhere=[
