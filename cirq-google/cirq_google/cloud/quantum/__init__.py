@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2022 Google LLC
+# Copyright 2025 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,6 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from cirq_google.cloud.quantum import gapic_version as package_version
+
+__version__ = package_version.__version__
+
 
 from cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service.client import (
     QuantumEngineServiceClient,
@@ -32,6 +36,7 @@ from cirq_google.cloud.quantum_v1alpha1.types.engine import DeleteQuantumProgram
 from cirq_google.cloud.quantum_v1alpha1.types.engine import DeleteQuantumReservationRequest
 from cirq_google.cloud.quantum_v1alpha1.types.engine import GetQuantumCalibrationRequest
 from cirq_google.cloud.quantum_v1alpha1.types.engine import GetQuantumJobRequest
+from cirq_google.cloud.quantum_v1alpha1.types.engine import GetQuantumProcessorConfigRequest
 from cirq_google.cloud.quantum_v1alpha1.types.engine import GetQuantumProcessorRequest
 from cirq_google.cloud.quantum_v1alpha1.types.engine import GetQuantumProgramRequest
 from cirq_google.cloud.quantum_v1alpha1.types.engine import GetQuantumReservationRequest
@@ -61,6 +66,7 @@ from cirq_google.cloud.quantum_v1alpha1.types.engine import StreamError
 from cirq_google.cloud.quantum_v1alpha1.types.engine import UpdateQuantumJobRequest
 from cirq_google.cloud.quantum_v1alpha1.types.engine import UpdateQuantumProgramRequest
 from cirq_google.cloud.quantum_v1alpha1.types.engine import UpdateQuantumReservationRequest
+from cirq_google.cloud.quantum_v1alpha1.types.quantum import DeviceConfigKey
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import DeviceConfigSelector
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import ExecutionStatus
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import GcsLocation
@@ -70,6 +76,7 @@ from cirq_google.cloud.quantum_v1alpha1.types.quantum import QuantumCalibration
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import QuantumJob
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import QuantumJobEvent
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import QuantumProcessor
+from cirq_google.cloud.quantum_v1alpha1.types.quantum import QuantumProcessorConfig
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import QuantumProgram
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import QuantumReservation
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import QuantumReservationBudget
@@ -77,7 +84,6 @@ from cirq_google.cloud.quantum_v1alpha1.types.quantum import QuantumReservationG
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import QuantumResult
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import QuantumTimeSlot
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import SchedulingConfig
-from cirq_google.cloud.quantum_v1alpha1.types.quantum import DeviceConfigKey
 
 __all__ = (
     'QuantumEngineServiceClient',
@@ -93,6 +99,7 @@ __all__ = (
     'DeleteQuantumReservationRequest',
     'GetQuantumCalibrationRequest',
     'GetQuantumJobRequest',
+    'GetQuantumProcessorConfigRequest',
     'GetQuantumProcessorRequest',
     'GetQuantumProgramRequest',
     'GetQuantumReservationRequest',
@@ -122,6 +129,7 @@ __all__ = (
     'UpdateQuantumJobRequest',
     'UpdateQuantumProgramRequest',
     'UpdateQuantumReservationRequest',
+    'DeviceConfigKey',
     'DeviceConfigSelector',
     'ExecutionStatus',
     'GcsLocation',
@@ -131,6 +139,7 @@ __all__ = (
     'QuantumJob',
     'QuantumJobEvent',
     'QuantumProcessor',
+    'QuantumProcessorConfig',
     'QuantumProgram',
     'QuantumReservation',
     'QuantumReservationBudget',
@@ -138,5 +147,4 @@ __all__ = (
     'QuantumResult',
     'QuantumTimeSlot',
     'SchedulingConfig',
-    'DeviceConfigKey',
 )

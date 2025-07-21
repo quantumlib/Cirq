@@ -465,7 +465,7 @@ def test_create_reservation(create_reservation):
         name=name,
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000003600),
-        whitelisted_users=['dstrain@google.com'],
+        allowlisted_users=['dstrain@google.com'],
     )
     create_reservation.return_value = result
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
@@ -490,7 +490,7 @@ def test_delete_reservation(delete_reservation):
         name=name,
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000003600),
-        whitelisted_users=['dstrain@google.com'],
+        allowlisted_users=['dstrain@google.com'],
     )
     delete_reservation.return_value = result
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
@@ -505,7 +505,7 @@ def test_cancel_reservation(cancel_reservation):
         name=name,
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000003600),
-        whitelisted_users=['dstrain@google.com'],
+        allowlisted_users=['dstrain@google.com'],
     )
     cancel_reservation.return_value = result
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
@@ -522,7 +522,7 @@ def test_remove_reservation_delete(delete_reservation, get_reservation):
         name=name,
         start_time=Timestamp(seconds=now + 20000),
         end_time=Timestamp(seconds=now + 23610),
-        whitelisted_users=['dstrain@google.com'],
+        allowlisted_users=['dstrain@google.com'],
     )
     get_reservation.return_value = result
     delete_reservation.return_value = result
@@ -545,7 +545,7 @@ def test_remove_reservation_cancel(cancel_reservation, get_reservation):
         name=name,
         start_time=Timestamp(seconds=now + 10),
         end_time=Timestamp(seconds=now + 3610),
-        whitelisted_users=['dstrain@google.com'],
+        allowlisted_users=['dstrain@google.com'],
     )
     get_reservation.return_value = result
     cancel_reservation.return_value = result
@@ -581,7 +581,7 @@ def test_remove_reservation_failures(get_reservation, get_processor):
         name=name,
         start_time=Timestamp(seconds=now + 10),
         end_time=Timestamp(seconds=now + 3610),
-        whitelisted_users=['dstrain@google.com'],
+        allowlisted_users=['dstrain@google.com'],
     )
     get_reservation.return_value = result
     get_processor.return_value = None
@@ -604,7 +604,7 @@ def test_get_reservation(get_reservation):
         name=name,
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000003600),
-        whitelisted_users=['dstrain@google.com'],
+        allowlisted_users=['dstrain@google.com'],
     )
     get_reservation.return_value = result
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
@@ -619,7 +619,7 @@ def test_update_reservation(update_reservation):
         name=name,
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000003600),
-        whitelisted_users=['dstrain@google.com'],
+        allowlisted_users=['dstrain@google.com'],
     )
     start = datetime.datetime.fromtimestamp(1000000000)
     end = datetime.datetime.fromtimestamp(1000003600)
@@ -627,7 +627,7 @@ def test_update_reservation(update_reservation):
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
     assert processor.update_reservation('rid', start, end, ['dstrain@google.com']) == result
     update_reservation.assert_called_once_with(
-        'proj', 'p0', 'rid', start=start, end=end, whitelisted_users=['dstrain@google.com']
+        'proj', 'p0', 'rid', start=start, end=end, allowlisted_users=['dstrain@google.com']
     )
 
 
@@ -639,13 +639,13 @@ def test_list_reservation(list_reservations):
             name=name,
             start_time=Timestamp(seconds=1000000000),
             end_time=Timestamp(seconds=1000003600),
-            whitelisted_users=['dstrain@google.com'],
+            allowlisted_users=['dstrain@google.com'],
         ),
         quantum.QuantumReservation(
             name=name + '2',
             start_time=Timestamp(seconds=1000003600),
             end_time=Timestamp(seconds=1000007200),
-            whitelisted_users=['wcourtney@google.com'],
+            allowlisted_users=['wcourtney@google.com'],
         ),
     ]
     list_reservations.return_value = results
