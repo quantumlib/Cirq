@@ -13,7 +13,7 @@ def contrib_class_resolver(cirq_type: str) -> ObjectFactory | None:
     return _class_resolver_dictionary().get(cirq_type, None)
 
 
-@functools.lru_cache()
+@functools.cache
 def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
     from cirq.contrib.acquaintance import SwapPermutationGate
     from cirq.contrib.bayesian_network import BayesianNetworkGate

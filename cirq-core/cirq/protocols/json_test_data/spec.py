@@ -169,12 +169,14 @@ TestSpec = ModuleJsonTestSpec(
         'Simulator',
         'StabilizerSampler',
         'DEFAULT_RESOLVERS',
-        'NoiseModelFromNoiseProperties',
     ],
     deprecated={},
     tested_elsewhere=[
+        # Tested in cirq.devices.noise_properties_test module, because
+        # serde test uses a non-public SampleNoiseProperties class.
+        'NoiseModelFromNoiseProperties',
         # SerializableByKey does not follow common serialization rules.
         # It is tested separately in test_context_serialization.
-        'SerializableByKey'
+        'SerializableByKey',
     ],
 )

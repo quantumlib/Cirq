@@ -14,15 +14,14 @@
 
 from __future__ import annotations
 
-import dataclasses
 import functools
 from typing import Sequence, TYPE_CHECKING
 
 import numpy as np
 import sympy
 
-import cirq
 from cirq import devices, ops, protocols, qis, value
+from cirq._compat import proper_repr
 from cirq._import import LazyLoader
 from cirq.devices.noise_utils import PHYSICAL_GATE_TAG
 
@@ -131,19 +130,16 @@ def _decoherence_matrix(
     return rate_matrix
 
 
-def _as_rate_dict(
-    rate_or_dict: float | dict[cirq.Qid, float] | None, qubits: set[cirq.Qid]
-) -> dict[cirq.Qid, float]:
-    """Convert float or None input into dictionary form.
-
-    This method also ensures that no qubits are missing from dictionary keys.
-    """
+def _get_rate_for_qubit(
+    rate_or_dict: float | dict[cirq.Qid, float] | None, qubit: cirq.Qid
+) -> float:
+    """Convert supported rate specification values in ThermalNoiseModel to a float."""
     if rate_or_dict is None:
-        return {q: 0.0 for q in qubits}
+        return 0.0
     elif isinstance(rate_or_dict, dict):
-        return {**{q: 0.0 for q in qubits}, **rate_or_dict}
+        return rate_or_dict.get(qubit, 0.0)
     else:
-        return {q: rate_or_dict for q in qubits}
+        return rate_or_dict
 
 
 def _validate_rates(qubits: set[cirq.Qid], rates: dict[cirq.Qid, np.ndarray]) -> None:
@@ -161,7 +157,6 @@ def _validate_rates(qubits: set[cirq.Qid], rates: dict[cirq.Qid, np.ndarray]) ->
             )
 
 
-@dataclasses.dataclass(eq=False)
 @value.value_equality
 class ThermalNoiseModel(devices.NoiseModel):
     """NoiseModel representing simulated thermalization of a qubit.
@@ -216,48 +211,51 @@ class ThermalNoiseModel(devices.NoiseModel):
         """
         rate_dict = {}
 
-        heat_rate_GHz = _as_rate_dict(heat_rate_GHz, qubits)
-        cool_rate_GHz = _as_rate_dict(cool_rate_GHz, qubits)
-        dephase_rate_GHz = _as_rate_dict(dephase_rate_GHz, qubits)
-
-        for q in qubits:
-            gamma_h = heat_rate_GHz[q]
-            gamma_c = cool_rate_GHz[q]
-            gamma_phi = dephase_rate_GHz[q]
-
+        # let us have reproducible sorted order in the rate_matrix_GHz dictionary
+        for q in sorted(qubits):
+            gamma_h = _get_rate_for_qubit(heat_rate_GHz, q)
+            gamma_c = _get_rate_for_qubit(cool_rate_GHz, q)
+            gamma_phi = _get_rate_for_qubit(dephase_rate_GHz, q)
             rate_dict[q] = _decoherence_matrix(gamma_c, gamma_phi, gamma_h, q.dimension)
 
         _validate_rates(qubits, rate_dict)
         self.gate_durations_ns: dict[type, float] = gate_durations_ns
         self.rate_matrix_GHz: dict[cirq.Qid, np.ndarray] = rate_dict
-        self.heat_rate_GHz = heat_rate_GHz
-        self.cool_rate_GHz = cool_rate_GHz
-        self.dephase_rate_GHz = dephase_rate_GHz
+        self._heat_rate_GHz = heat_rate_GHz
+        self._cool_rate_GHz = cool_rate_GHz
+        self._dephase_rate_GHz = dephase_rate_GHz
         self.require_physical_tag: bool = require_physical_tag
         self.skip_measurements: bool = skip_measurements
         self._prepend = prepend
 
     def _value_equality_values_(self):
-        gate_times = tuple(sorted((k, v) for k, v in self.gate_durations_ns.items()))
-        rates = tuple(
-            sorted(
-                ((q, tuple(m.reshape(-1))) for q, m in self.rate_matrix_GHz.items()),
-                key=lambda x: repr(x[0]),
-            )
+        gate_durations_ns_tuple = tuple(
+            sorted(self.gate_durations_ns.items(), key=lambda x: str(x[0]))
         )
-        return gate_times, rates, self.require_physical_tag, self.skip_measurements, self._prepend
+        rate_matrix_GHz_tuple = tuple(
+            sorted((q, tuple(m.flat)) for q, m in self.rate_matrix_GHz.items())
+        )
+        return (
+            gate_durations_ns_tuple,
+            rate_matrix_GHz_tuple,
+            self.require_physical_tag,
+            self.skip_measurements,
+            self._prepend,
+        )
 
     def __repr__(self) -> str:
-        gate_durations = ', '.join(
-            f'{t.__module__}.{t.__name__}: {v!r}' for t, v in self.gate_durations_ns.items()
-        )
+        rate_args_repr = []
+        if self._heat_rate_GHz is not None:
+            rate_args_repr.append(f"heat_rate_GHz={proper_repr(self._heat_rate_GHz)}, ")
+        if self._cool_rate_GHz is not None:
+            rate_args_repr.append(f"cool_rate_GHz={proper_repr(self._cool_rate_GHz)}, ")
+        if self._dephase_rate_GHz is not None:
+            rate_args_repr.append(f"dephase_rate_GHz={proper_repr(self._dephase_rate_GHz)}, ")
         return (
             "cirq.devices.ThermalNoiseModel("
             f"qubits={set(self.rate_matrix_GHz.keys())!r}, "
-            f"gate_durations_ns={{ {gate_durations} }}, "
-            f"heat_rate_GHz={self.heat_rate_GHz!r}, "
-            f"cool_rate_GHz={self.cool_rate_GHz!r}, "
-            f"dephase_rate_GHz={self.dephase_rate_GHz!r}, "
+            f"gate_durations_ns={proper_repr(self.gate_durations_ns)}, "
+            f"{''.join(rate_args_repr)}"
             f"require_physical_tag={self.require_physical_tag!r}, "
             f"skip_measurements={self.skip_measurements!r}, prepend={self._prepend!r})"
         )
@@ -315,10 +313,16 @@ class ThermalNoiseModel(devices.NoiseModel):
         return output[::-1] if self._prepend else output
 
     def _json_dict_(self) -> dict[str, object]:
-        gate_times = {cirq.json_cirq_type(k): v for k, v in self.gate_durations_ns.items()}
+        qubits = sorted(self.rate_matrix_GHz.keys())
+
         return {
-            'gate_durations_ns': tuple(gate_times.items()),
-            'rate_matrix_GHz': tuple((q, m.tolist()) for q, m in self.rate_matrix_GHz.items()),
+            'qubits': qubits,
+            'gate_durations_ns': {
+                protocols.json_cirq_type(k): v for k, v in self.gate_durations_ns.items()
+            },
+            'heat_rate_GHz': [_get_rate_for_qubit(self._heat_rate_GHz, q) for q in qubits],
+            'cool_rate_GHz': [_get_rate_for_qubit(self._cool_rate_GHz, q) for q in qubits],
+            'dephase_rate_GHz': [_get_rate_for_qubit(self._dephase_rate_GHz, q) for q in qubits],
             'require_physical_tag': self.require_physical_tag,
             'skip_measurements': self.skip_measurements,
             'prepend': self._prepend,
@@ -327,17 +331,25 @@ class ThermalNoiseModel(devices.NoiseModel):
     @classmethod
     def _from_json_dict_(
         cls,
+        qubits,
         gate_durations_ns,
-        rate_matrix_GHz,
+        heat_rate_GHz,
+        cool_rate_GHz,
+        dephase_rate_GHz,
         require_physical_tag,
         skip_measurements,
         prepend,
         **kwargs,
     ):
-        obj = cls.__new__(cls)
-        obj.gate_durations_ns = {cirq.cirq_type_from_json(k): v for k, v in gate_durations_ns}
-        obj.rate_matrix_GHz = {q: np.array(m) for q, m in rate_matrix_GHz}
-        obj.require_physical_tag = require_physical_tag
-        obj.skip_measurements = skip_measurements
-        obj._prepend = prepend
-        return obj
+        return cls(
+            qubits=set(qubits),
+            gate_durations_ns={
+                protocols.cirq_type_from_json(k): v for k, v in gate_durations_ns.items()
+            },
+            heat_rate_GHz=dict(zip(qubits, heat_rate_GHz)),
+            cool_rate_GHz=dict(zip(qubits, cool_rate_GHz)),
+            dephase_rate_GHz=dict(zip(qubits, dephase_rate_GHz)),
+            require_physical_tag=require_physical_tag,
+            skip_measurements=skip_measurements,
+            prepend=prepend,
+        )

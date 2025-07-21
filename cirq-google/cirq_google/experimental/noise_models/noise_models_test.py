@@ -325,9 +325,17 @@ def test_per_qubit_combined_noise_from_data():
     assert_equivalent_op_tree(expected_program, noisy_circuit)
 
 
-def test_noise_model_repr_round_trip():
-    qubit = cirq.LineQubit(0)
+@pytest.mark.parametrize(
+    'depol_probs, bitflip_probs, decay_probs',
+    [
+        ({cirq.q(0): 0.01}, {cirq.q(0): 0.02}, {cirq.q(0): 0.03}),
+        (None, {cirq.q(0): 0.02}, {cirq.q(0): 0.03}),
+        ({cirq.q(0): 0.01}, None, {cirq.q(0): 0.03}),
+        ({cirq.q(0): 0.01}, {cirq.q(0): 0.02}, None),
+    ],
+)
+def test_noise_model_repr_round_trip(depol_probs, bitflip_probs, decay_probs):
     model = PerQubitDepolarizingWithDampedReadoutNoiseModel(
-        depol_probs={qubit: 0.01}, bitflip_probs={qubit: 0.02}, decay_probs={qubit: 0.03}
+        depol_probs=depol_probs, bitflip_probs=bitflip_probs, decay_probs=decay_probs
     )
     cirq.testing.assert_equivalent_repr(model, setup_code='import cirq\nimport cirq_google\n')

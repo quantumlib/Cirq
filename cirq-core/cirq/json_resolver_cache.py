@@ -48,7 +48,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
     import pandas as pd
 
     import cirq
-    from cirq.devices import InsertionNoiseModel, ThermalNoiseModel
+    from cirq.devices import InsertionNoiseModel, NoiseModelFromNoiseProperties, ThermalNoiseModel
     from cirq.devices.noise_model import _NoNoiseModel
     from cirq.experiments import GridInteractionLayer
     from cirq.ops import raw_types
@@ -152,7 +152,6 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'IdentityGate': cirq.IdentityGate,
         'InitObsSetting': cirq.work.InitObsSetting,
         'InsertionNoiseModel': InsertionNoiseModel,
-        'ThermalNoiseModel': ThermalNoiseModel,
         '_InverseCompositeGate': raw_types._InverseCompositeGate,
         'KeyCondition': cirq.KeyCondition,
         'KrausChannel': cirq.KrausChannel,
@@ -176,6 +175,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'NamedQubit': cirq.NamedQubit,
         'NamedQid': cirq.NamedQid,
         'NoIdentifierQubit': cirq.testing.NoIdentifierQubit,
+        'NoiseModelFromNoiseProperties': NoiseModelFromNoiseProperties,
         'ObservableMeasuredResult': cirq.work.ObservableMeasuredResult,
         'OpIdentifier': cirq.OpIdentifier,
         'ParamResolver': cirq.ParamResolver,
@@ -227,6 +227,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'SympyCondition': cirq.SympyCondition,
         'TaggedOperation': cirq.TaggedOperation,
         'TensoredConfusionMatrices': cirq.TensoredConfusionMatrices,
+        'ThermalNoiseModel': ThermalNoiseModel,
         'TiltedSquareLattice': cirq.TiltedSquareLattice,
         'ThreeQubitDiagonalGate': cirq.ThreeQubitDiagonalGate,
         'TrialResult': cirq.ResultDict,  # keep support for Cirq < 0.11.

@@ -24,6 +24,3 @@ from cirq.contrib import quirk  # noqa: F401
 from cirq.contrib.qcircuit import circuit_to_latex_using_qcircuit as circuit_to_latex_using_qcircuit
 from cirq.contrib import json  # noqa: F401
 from cirq.contrib.circuitdag import CircuitDag as CircuitDag, Unique as Unique
-from cirq.contrib.acquaintance import SwapPermutationGate as SwapPermutationGate
-from cirq.contrib.bayesian_network import BayesianNetworkGate as BayesianNetworkGate
-from cirq.contrib.quantum_volume import QuantumVolumeResult as QuantumVolumeResult

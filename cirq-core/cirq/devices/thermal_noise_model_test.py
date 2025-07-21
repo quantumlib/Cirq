@@ -344,7 +344,7 @@ def test_noisy_moment_two_qubit():
     )
 
 
-def test_repr_and_json_roundtrip():
+def test_repr():
     q0 = cirq.LineQubit(0)
     model = ThermalNoiseModel(
         qubits={q0},
@@ -355,7 +355,9 @@ def test_repr_and_json_roundtrip():
         require_physical_tag=False,
         skip_measurements=False,
     )
-
     cirq.testing.assert_equivalent_repr(model)
-    json_text = cirq.to_json(model)
-    assert cirq.read_json(json_text=json_text) == model
+    # optional rate arguments are skipped when unspecified
+    s1 = repr(ThermalNoiseModel(qubits={q0}, gate_durations_ns={cirq.ZPowGate: 5.0}))
+    assert 'heat_rate_GHz' not in s1
+    assert 'cool_rate_GHz' not in s1
+    assert 'dephase_rate_GHz' not in s1
