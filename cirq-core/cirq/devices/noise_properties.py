@@ -58,9 +58,6 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
     def _value_equality_values_(self):
         return self._noise_properties
 
-    def __repr__(self) -> str:
-        return f"cirq.devices.NoiseModelFromNoiseProperties({self._noise_properties!r})"
-
     def is_virtual(self, op: cirq.Operation) -> bool:
         """Returns True if an operation is virtual.
 
@@ -136,7 +133,3 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
 
     def _json_dict_(self) -> dict[str, object]:
         return {'noise_properties': self._noise_properties}
-
-    @classmethod
-    def _from_json_dict_(cls, noise_properties, **kwargs):
-        return cls(noise_properties)
