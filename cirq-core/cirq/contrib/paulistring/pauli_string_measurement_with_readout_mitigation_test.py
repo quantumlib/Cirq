@@ -1043,3 +1043,34 @@ def test_coefficient_not_real_number() -> None:
 #         measure_pauli_strings(
 #             circuits_to_pauli, cirq.Simulator(), 1000, 1000, 1000, np.random.default_rng()
 #         )
+
+
+# def test_process_pauli_measurement_results_raises_error_on_missing_calibration() -> None:
+#     """Test that the function raises an error if the calibration result is missing."""
+#     qubits: Sequence[cirq.Qid] = cirq.LineQubit.range(5)
+
+#     measurement_op = cirq.measure(*qubits, key='m')
+#     test_circuits: list[cirq.Circuit] = [_create_ghz(5, qubits) + measurement_op for _ in range(3)]
+
+#     pauli_strings = [_generate_random_pauli_string(qubits, True) for _ in range(3)]
+#     sampler = cirq.Simulator()
+
+#     circuit_results = sampler.run_batch(test_circuits, repetitions=1000)
+
+#     pauli_strings_qubits = sorted(
+#         set(itertools.chain.from_iterable(ps.qubits for ps in pauli_strings))
+#     )
+#     empty_calibration_result_dict = {tuple(pauli_strings_qubits): None}
+
+#     with pytest.raises(
+#         ValueError,
+#         match="Readout mitigation is enabled, but no calibration result was found for qubits",
+#     ):
+#         _process_pauli_measurement_results(
+#             qubits,
+#             [pauli_strings],
+#             circuit_results[0],  # type: ignore[arg-type]
+#             empty_calibration_result_dict,  # type: ignore[arg-type]
+#             1000,
+#             1.0,
+#         )

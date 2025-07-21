@@ -409,10 +409,10 @@ def _build_many_one_qubits_empty_confusion_matrix(qubits_length: int) -> list[np
 def _build_pauli_measurement_circuits(
     circuits_to_pauli_params: list[CircuitToPauliStringsParameters], with_symmetries: bool = False
 ) -> list[circuits.Circuit]:
-    pauli_measurement_circuits = list[circuits.Circuit]()
+    pauli_measurement_circuits: list[circuits.Circuit] = []
     for circuit_to_pauli_params in circuits_to_pauli_params:
         input_circuit = circuit_to_pauli_params.circuit
-        qid_list = list(sorted(input_circuit.all_qubits()))
+        qid_list = sorted(input_circuit.all_qubits())
         basis_change_circuits = []
         input_circuit_unfrozen = input_circuit.unfreeze()
         for pauli_strings in circuit_to_pauli_params.pauli_strings:
