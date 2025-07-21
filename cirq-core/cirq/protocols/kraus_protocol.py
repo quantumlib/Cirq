@@ -148,9 +148,7 @@ def kraus(
     mixture_getter = getattr(val, '_mixture_', None)
     mixture_result = NotImplemented if mixture_getter is None else mixture_getter()
     if mixture_result is not NotImplemented and mixture_result is not None:
-        return tuple(
-            np.sqrt(p) * (u if isinstance(u, np.ndarray) else unitary(u)) for p, u in mixture_result
-        )
+        return tuple(np.sqrt(p) * unitary(u) for p, u in mixture_result)
 
     unitary_getter = getattr(val, '_unitary_', None)
     unitary_result = NotImplemented if unitary_getter is None else unitary_getter()

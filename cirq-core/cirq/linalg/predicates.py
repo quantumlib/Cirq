@@ -115,8 +115,12 @@ def is_unitary(matrix: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8) ->
     Returns:
         Whether the matrix is unitary within the given tolerance.
     """
-    return matrix.shape[0] == matrix.shape[1] and np.allclose(
-        matrix.dot(np.conj(matrix.T)), np.eye(matrix.shape[0]), rtol=rtol, atol=atol
+    return (
+        matrix.ndim == 2
+        and matrix.shape[0] == matrix.shape[1]
+        and np.allclose(
+            matrix.dot(np.conj(matrix.T)), np.eye(matrix.shape[0]), rtol=rtol, atol=atol
+        )
     )
 
 

@@ -19,7 +19,7 @@ from typing import Any, TypeVar
 import numpy as np
 from typing_extensions import Protocol
 
-from cirq import qis
+from cirq import linalg, qis
 from cirq._doc import doc_private
 from cirq.protocols import qid_shape_protocol
 from cirq.protocols.apply_unitary_protocol import ApplyUnitaryArgs
@@ -112,6 +112,8 @@ def has_unitary(val: Any, *, allow_decompose: bool = True) -> bool:
 
 def _strat_has_unitary_from_has_unitary(val: Any) -> bool | None:
     """Attempts to infer a value's unitary-ness via its _has_unitary_ method."""
+    if isinstance(val, np.ndarray):
+        return linalg.is_unitary(val)
     if hasattr(val, '_has_unitary_'):
         result = val._has_unitary_()
         if result is NotImplemented:

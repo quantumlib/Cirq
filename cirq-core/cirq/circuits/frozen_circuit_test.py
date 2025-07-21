@@ -96,15 +96,15 @@ def test_immutable() -> None:
 def test_tagged_circuits() -> None:
     q = cirq.LineQubit(0)
     ops = [cirq.X(q), cirq.H(q)]
-    tags = [sympy.Symbol("a"), "b"]
+    tags = (sympy.Symbol("a"), "b")
     circuit = cirq.Circuit(ops)
     frozen_circuit = cirq.FrozenCircuit(ops)
     tagged_circuit = cirq.FrozenCircuit(ops, tags=tags)
     # Test equality
-    assert tagged_circuit.tags == tuple(tags)
+    assert tagged_circuit.tags == tags
     assert circuit == frozen_circuit != tagged_circuit
+    assert not cirq.approx_eq(frozen_circuit, tagged_circuit)
     assert cirq.approx_eq(circuit, frozen_circuit)
-    assert cirq.approx_eq(frozen_circuit, tagged_circuit)
     # Test hash
     assert hash(frozen_circuit) != hash(tagged_circuit)
     # Test _repr_ and _json_ round trips.
@@ -116,9 +116,29 @@ def test_tagged_circuits() -> None:
     assert tagged_circuit.with_tags("c") == cirq.FrozenCircuit(ops, tags=[*tags, "c"])
     assert tagged_circuit.untagged == frozen_circuit
     assert frozen_circuit.untagged is frozen_circuit
+    assert tagged_circuit.unfreeze(copy=True).tags == tags
+    assert tagged_circuit.unfreeze(copy=False).tags == tags
     # Test parameterized protocols
     assert cirq.is_parameterized(frozen_circuit) is False
     assert cirq.is_parameterized(tagged_circuit) is True
     assert cirq.parameter_names(tagged_circuit) == {"a"}
+    assert cirq.resolve_parameters(tagged_circuit, {"a": 1}).tags == (1, "b")
     # Tags are not propagated to diagrams yet.
     assert str(frozen_circuit) == str(tagged_circuit)
+    # Test tags are preserved through operations
+    assert (tagged_circuit + circuit).tags == tags
+    assert (circuit + tagged_circuit).tags == ()  # We only preserve the tags for the first one
+    assert (2 * tagged_circuit).tags == tags
+    assert (tagged_circuit * 2).tags == tags
+    assert (tagged_circuit**-1).tags == tags
+    for c in tagged_circuit.factorize():
+        assert tagged_circuit.tags == tags
+
+    q2 = cirq.LineQubit(1)
+    circuit2 = cirq.Circuit(cirq.X(q2), cirq.H(q2))
+    assert tagged_circuit.zip(circuit2).tags == tags
+    assert circuit2.zip(tagged_circuit).tags == ()  # We only preserve the tags for the first one
+    assert tagged_circuit.concat_ragged(circuit2).tags == tags
+    assert (
+        circuit2.concat_ragged(tagged_circuit).tags == ()
+    )  # We only preserve the tags for the first one

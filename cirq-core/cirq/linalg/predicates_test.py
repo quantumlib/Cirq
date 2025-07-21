@@ -103,10 +103,13 @@ def test_is_hermitian_tolerance():
 
 
 def test_is_unitary():
+    assert not cirq.is_unitary(np.empty((0,)))
     assert cirq.is_unitary(np.empty((0, 0)))
     assert not cirq.is_unitary(np.empty((1, 0)))
     assert not cirq.is_unitary(np.empty((0, 1)))
+    assert not cirq.is_unitary(np.empty((0, 0, 0)))
 
+    assert not cirq.is_unitary(np.array(1))
     assert cirq.is_unitary(np.array([[1]]))
     assert cirq.is_unitary(np.array([[-1]]))
     assert cirq.is_unitary(np.array([[1j]]))

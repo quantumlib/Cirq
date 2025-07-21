@@ -71,7 +71,7 @@ class UndirectedHypergraph:
                 self._adjacency_lists[neighbor].difference_update((edge,))
         del self._adjacency_lists[vertex]
 
-    def remove_vertices(self, vertices):
+    def remove_vertices(self, vertices) -> None:
         for vertex in vertices:
             self.remove_vertex(vertex)
 
@@ -82,7 +82,7 @@ class UndirectedHypergraph:
             self._adjacency_lists[vertex].update((vertices,))
         self._labelled_edges[vertices] = label
 
-    def add_edges(self, edges: dict[Iterable[Hashable], Any]):
+    def add_edges(self, edges: dict[Iterable[Hashable], Any]) -> None:
         for vertices, label in edges.items():
             self.add_edge(vertices, label)
 

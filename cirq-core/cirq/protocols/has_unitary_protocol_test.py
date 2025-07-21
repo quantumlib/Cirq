@@ -61,10 +61,13 @@ def test_via_unitary() -> None:
         def _unitary_(self):
             return np.array([[1]])
 
+    m = np.diag([1, -1])
     assert not cirq.has_unitary(No1())
     assert not cirq.has_unitary(No2())
+    assert not cirq.has_unitary(m * 2)
     assert cirq.has_unitary(Yes())
     assert cirq.has_unitary(Yes(), allow_decompose=False)
+    assert cirq.has_unitary(m)
 
 
 def test_via_apply_unitary() -> None:

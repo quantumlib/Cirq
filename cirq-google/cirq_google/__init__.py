@@ -53,6 +53,8 @@ from cirq_google.line import (
 )
 
 from cirq_google.ops import (
+    AnalogDetuneCouplerOnly as AnalogDetuneCouplerOnly,
+    AnalogDetuneQubit as AnalogDetuneQubit,
     CalibrationTag as CalibrationTag,
     Coupler as Coupler,
     FSimGateFamily as FSimGateFamily,

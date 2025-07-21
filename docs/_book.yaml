@@ -159,13 +159,6 @@ upper_tabs:
       - title: "Pasqal sampler"
         path: /cirq/hardware/pasqal/sampler
 
-      ##### RIGETTI ####
-      - heading: "Rigetti hardware"
-      - title: "Access and authentication"
-        path: /cirq/hardware/rigetti/access
-      - title: "Getting started with Rigetti hardware"
-        path: /cirq/hardware/rigetti/getting_started
-
     - name: "Noise"
       contents:
       - title: "Overview"
@@ -174,10 +167,6 @@ upper_tabs:
         path: /cirq/noise/representing_noise
       ####  CHARACTERIZATION AND COMPENSATION  ####
       - heading: "Characterization and compensation"
-      - title: "Calibration FAQ"
-        path: /cirq/noise/calibration_faq
-      - title: "Floquet Calibration"
-        path: /cirq/noise/floquet_calibration_example
       - title: "Cross-Entropy Benchmarking (XEB)"
         style: accordion
         section:
@@ -269,11 +258,6 @@ upper_tabs:
       - title: "All symbols"
         path: /reference/python/cirq_pasqal/all_symbols
       - include: /reference/python/cirq_pasqal/_toc.yaml
-
-      - heading: "cirq-rigetti"
-      - title: "All symbols"
-        path: /reference/python/cirq_rigetti/all_symbols
-      - include: /reference/python/cirq_rigetti/_toc.yaml
 
       - heading: "cirq-web"
       - title: "All symbols"

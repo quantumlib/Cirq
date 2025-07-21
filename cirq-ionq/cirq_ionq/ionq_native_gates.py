@@ -248,7 +248,7 @@ class MSGate(cirq.Gate):
             return self
 
         if power == -1:
-            return MSGate(phi0=self.phi0 + 0.5, phi1=self.phi1)
+            return MSGate(phi0=self.phi0 + 0.5, phi1=self.phi1, theta=self.theta)
 
         return NotImplemented
 

@@ -445,3 +445,12 @@ def test_decompose_without_context_succeed() -> None:
             cirq.ops.CleanQubit(1, prefix='_decompose_protocol'),
         )
     ]
+
+
+def test_extracting_global_phases() -> None:
+    qm = cirq.SimpleQubitManager()
+    context = cirq.DecompositionContext(qm)
+    new_context = context.extracting_global_phases()
+    assert not context.extract_global_phases
+    assert new_context.extract_global_phases
+    assert new_context.qubit_manager is qm

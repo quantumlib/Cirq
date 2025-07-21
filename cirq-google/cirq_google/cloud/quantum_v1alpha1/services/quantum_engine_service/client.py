@@ -390,11 +390,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
             # transport is a QuantumEngineServiceTransport instance.
             if credentials or client_options.credentials_file or api_key_value:
                 raise ValueError(
-                    "When providing a transport instance, " "provide its credentials directly."
+                    "When providing a transport instance, provide its credentials directly."
                 )
             if client_options.scopes:
                 raise ValueError(
-                    "When providing a transport instance, provide its scopes " "directly."
+                    "When providing a transport instance, provide its scopes directly."
                 )
             self._transport = transport
         else:

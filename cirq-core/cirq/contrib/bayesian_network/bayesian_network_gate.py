@@ -97,7 +97,7 @@ class BayesianNetworkGate(raw_types.Gate):
     def __init__(
         self,
         init_probs: list[tuple[str, float | None]],
-        arc_probs: list[tuple[str, tuple[str], list[float]]],
+        arc_probs: list[tuple[str, tuple[str, ...], list[float]]],
     ):
         """Builds a BayesianNetworkGate.
 
@@ -195,7 +195,7 @@ class BayesianNetworkGate(raw_types.Gate):
             list[tuple[str, float | None]], [(param, init_prob) for param, init_prob in init_probs]
         )
         converted_cond_probs = cast(
-            list[tuple[str, tuple[str], list[float]]],
+            list[tuple[str, tuple[str, ...], list[float]]],
             [(target, tuple(params), cond_probs) for target, params, cond_probs in arc_probs],
         )
         return cls(converted_init_probs, converted_cond_probs)

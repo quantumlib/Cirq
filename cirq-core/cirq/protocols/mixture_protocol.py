@@ -94,7 +94,7 @@ def mixture(
     mixture_getter = getattr(val, '_mixture_', None)
     result = NotImplemented if mixture_getter is None else mixture_getter()
     if result is not NotImplemented and result is not None:
-        return tuple((p, u if isinstance(u, np.ndarray) else unitary(u)) for p, u in result)
+        return tuple((p, unitary(u)) for p, u in result)
 
     unitary_getter = getattr(val, '_unitary_', None)
     result = NotImplemented if unitary_getter is None else unitary_getter()

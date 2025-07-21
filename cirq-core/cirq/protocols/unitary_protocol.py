@@ -20,6 +20,7 @@ from typing import Any, TypeVar
 import numpy as np
 from typing_extensions import Protocol
 
+from cirq import linalg
 from cirq._doc import doc_private
 from cirq.protocols import qid_shape_protocol
 from cirq.protocols.apply_unitary_protocol import apply_unitaries, ApplyUnitaryArgs
@@ -84,6 +85,7 @@ def unitary(
 
     The matrix is determined by any one of the following techniques:
 
+    - If the value is a numpy array, it is returned directly.
     - The value has a `_unitary_` method that returns something besides None or
         NotImplemented. The matrix is whatever the method returned.
     - The value has a `_decompose_` method that returns a list of operations,
@@ -110,7 +112,13 @@ def unitary(
     Raises:
         TypeError: `val` doesn't have a unitary effect and no default value was
             specified.
+        ValueError: `val` is a numpy array that is not unitary.
     """
+    if isinstance(val, np.ndarray):
+        if not linalg.is_unitary(val):
+            raise ValueError("The provided numpy array is not unitary.")
+        return val
+
     strats = [
         _strat_unitary_from_unitary,
         _strat_unitary_from_apply_unitary,

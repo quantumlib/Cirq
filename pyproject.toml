@@ -41,7 +41,6 @@ filterwarnings = [
     "ignore::UserWarning:cotengra.hyperoptimizers.hyper",
 ]
 markers = [
-    "rigetti_integration: tests that connect to Quil compiler or QVM.",
     "slow: slow tests that should be skipped by default.",
     "weekly: tests to be run only by weekly CI automation.",
 ]
@@ -82,6 +81,7 @@ select = [
     "F811",  # redefined-while-unused, pylint function-redefined
     "F821",  # undefined-name, pylint undefined-variable, unexpected-keyword-arg
     "F841",  # unused-variable, pylint unused-variable
+    "ISC",  # flake8-implicit-str-concat
     "PIE790",  # unnecessary-placeholder, pylint unnecessary-pass
     "PLE0100",  # yield-in-init, pylint init-is-generator
     "PLE0101",  # return-in-init, pylint return-in-init

@@ -14,6 +14,10 @@
 
 """Qubit Gates, Operations, and Tags useful for Google devices."""
 
+from cirq_google.ops.analog_detune_gates import AnalogDetuneQubit as AnalogDetuneQubit
+
+from cirq_google.ops.analog_detune_gates import AnalogDetuneCouplerOnly as AnalogDetuneCouplerOnly
+
 from cirq_google.ops.calibration_tag import CalibrationTag as CalibrationTag
 
 from cirq_google.ops.coupler import Coupler as Coupler
