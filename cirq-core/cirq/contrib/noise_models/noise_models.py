@@ -104,7 +104,7 @@ class ReadoutNoiseModel(devices.NoiseModel):
 
     def __repr__(self) -> str:
         p = self.bitflip_prob
-        return f'cirq.contrib.noise_models.ReadoutNoiseModel(' f'{p!r}, prepend={self._prepend!r})'
+        return f'cirq.contrib.noise_models.ReadoutNoiseModel({p!r}, prepend={self._prepend!r})'
 
     def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         if self.is_virtual_moment(moment):
@@ -211,7 +211,7 @@ class DepolarizingWithReadoutNoiseModel(devices.NoiseModel):
     def __repr__(self) -> str:
         p = self.depol_prob
         b = self.bitflip_prob
-        return 'cirq.contrib.noise_models.DepolarizingWithReadoutNoiseModel(' f'{p!r}, {b!r})'
+        return f'cirq.contrib.noise_models.DepolarizingWithReadoutNoiseModel({p!r}, {b!r})'
 
     def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         if validate_all_measurements(moment):

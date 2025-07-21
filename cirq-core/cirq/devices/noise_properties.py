@@ -59,7 +59,7 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
         return self._noise_properties
 
     def __repr__(self) -> str:
-        return "cirq.devices.NoiseModelFromNoiseProperties(" f"{self._noise_properties!r})"
+        return f"cirq.devices.NoiseModelFromNoiseProperties({self._noise_properties!r})"
 
     def is_virtual(self, op: cirq.Operation) -> bool:
         """Returns True if an operation is virtual.
