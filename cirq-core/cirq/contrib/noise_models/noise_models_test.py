@@ -19,7 +19,7 @@ import pytest
 import cirq
 import cirq.contrib.noise_models as ccn
 from cirq import ops
-from cirq.testing import assert_equivalent_op_tree
+from cirq.testing import assert_equivalent_op_tree, assert_equivalent_repr
 
 
 def test_depol_noise() -> None:
@@ -102,16 +102,20 @@ def test_readout_noise_after_moment() -> None:
     'model',
     [
         ccn.DepolarizingNoiseModel(0.1),
+        ccn.DepolarizingNoiseModel(0.1, prepend=False),
+        ccn.DepolarizingNoiseModel(0.1, prepend=True),
         ccn.ReadoutNoiseModel(0.2),
+        ccn.ReadoutNoiseModel(0.2, prepend=False),
+        ccn.ReadoutNoiseModel(0.2, prepend=True),
         ccn.DampedReadoutNoiseModel(0.3),
+        ccn.DampedReadoutNoiseModel(0.3, prepend=False),
+        ccn.DampedReadoutNoiseModel(0.3, prepend=True),
         ccn.DepolarizingWithReadoutNoiseModel(0.1, 0.2),
         ccn.DepolarizingWithDampedReadoutNoiseModel(0.1, 0.2, 0.3),
     ],
 )
-def test_repr_and_json_roundtrip(model) -> None:
-    assert model == eval(repr(model))
-    json_text = cirq.to_json(model)
-    assert cirq.read_json(json_text=json_text) == model
+def test_repr(model) -> None:
+    assert_equivalent_repr(model)
 
 
 def test_readout_noise_no_prepend() -> None:
