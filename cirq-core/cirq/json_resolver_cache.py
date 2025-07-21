@@ -152,7 +152,6 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'IdentityGate': cirq.IdentityGate,
         'InitObsSetting': cirq.work.InitObsSetting,
         'InsertionNoiseModel': InsertionNoiseModel,
-        'ThermalNoiseModel': ThermalNoiseModel,
         '_InverseCompositeGate': raw_types._InverseCompositeGate,
         'KeyCondition': cirq.KeyCondition,
         'KrausChannel': cirq.KrausChannel,
@@ -227,6 +226,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'SympyCondition': cirq.SympyCondition,
         'TaggedOperation': cirq.TaggedOperation,
         'TensoredConfusionMatrices': cirq.TensoredConfusionMatrices,
+        'ThermalNoiseModel': ThermalNoiseModel,
         'TiltedSquareLattice': cirq.TiltedSquareLattice,
         'ThreeQubitDiagonalGate': cirq.ThreeQubitDiagonalGate,
         'TrialResult': cirq.ResultDict,  # keep support for Cirq < 0.11.
