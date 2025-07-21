@@ -125,7 +125,7 @@ class _BaseGridQid(ops.Qid):
         layout.
 
         If you want to take into account the device layout, you must pass in the
-        device's qubit set as the `qid` parameter.
+        device's qubit set as the `qids` parameter.
 
         Args:
             qids: optional Iterable of qubits to constrain neighbors to.
