@@ -171,10 +171,11 @@ def test_product():
     sweep = cirq.Product(*[cirq.Points(str(i), [0]) for i in range(1025)])
     assert list(map(list, sweep.param_tuples())) == [[(str(i), 0) for i in range(1025)]]
 
+
 def test_nested_product_zip():
     sweep = cirq.Product(
         cirq.Product(cirq.Points('a', [0]), cirq.Points('b', [0])),
-        cirq.Zip(cirq.Points('c', [0, 1]), cirq.Points('d', [0, 1]))
+        cirq.Zip(cirq.Points('c', [0, 1]), cirq.Points('d', [0, 1])),
     )
     assert list(map(list, sweep.param_tuples())) == [
         [('a', 0), ('b', 0), ('c', 0), ('d', 0)],
