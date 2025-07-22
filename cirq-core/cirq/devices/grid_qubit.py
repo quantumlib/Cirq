@@ -117,7 +117,15 @@ class _BaseGridQid(ops.Qid):
         )
 
     def neighbors(self, qids: Iterable[ops.Qid] | None = None) -> set[_BaseGridQid]:
-        """Returns qubits that are potential neighbors to this GridQid
+        """Returns qubits that are potential neighbors to this GridQid.
+
+        Note that this returns _potential_ neighbors.  That is, if no arguments
+        are given, this returns the qubits above, below, to the right and left of
+        the Qid in the grid.  It does not take into account any hardware device
+        layout.
+
+        If you want to take into account the device layout, you must pass in the
+        device's qubit set as the `qids` parameter.
 
         Args:
             qids: optional Iterable of qubits to constrain neighbors to.

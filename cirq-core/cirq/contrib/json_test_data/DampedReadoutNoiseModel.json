@@ -1,0 +1,12 @@
+[
+  {
+    "cirq_type": "DampedReadoutNoiseModel",
+    "decay_prob": 0.3,
+    "prepend": true
+  },
+  {
+    "cirq_type": "DampedReadoutNoiseModel",
+    "decay_prob": 0.4,
+    "prepend": false
+  }
+]
