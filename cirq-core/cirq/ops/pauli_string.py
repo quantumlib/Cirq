@@ -973,10 +973,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             )
 
             # Initialize the conjugation of Pc.
-            conjugated: cirq.DensePauliString = (
-                dense_pauli_string.DensePauliString(pauli_mask=[identity.I for _ in op.qubits])
-                * ps.coefficient
-            )
+            conjugated = dense_pauli_string.DensePauliString('I' * len(op.qubits)) * ps.coefficient
 
             # Calculate the conjugation via CliffordGate's clifford_tableau.
             # Note the clifford_tableau in CliffordGate represents C·P·C^-1 instead of C^-1·P·C.
@@ -1372,11 +1369,8 @@ class MutablePauliString(Generic[TKey]):
         """
         # An inplace impl of PauliString.conjugated_by().
         flattened_ops = list(op_tree.flatten_to_ops(ops))
-
         for op in flattened_ops[::-1]:
-            conjugated: cirq.DensePauliString = dense_pauli_string.DensePauliString(
-                pauli_mask=[identity.I for _ in op.qubits]
-            )
+            conjugated = dense_pauli_string.DensePauliString('I' * len(op.qubits))
             gate_in_clifford: cirq.CliffordGate
             if isinstance(op.gate, clifford_gate.CliffordGate):
                 gate_in_clifford = op.gate
