@@ -85,12 +85,12 @@ def remove_tags(
     target_tags = target_tags or set()
 
     def _map_func(op: cirq.Operation, _) -> cirq.OP_TREE:
-        remaing_tags = set()
+        remaining_tags = set()
         for tag in op.tags:
             if not remove_if(tag) and tag not in target_tags:
-                remaing_tags.add(tag)
+                remaining_tags.add(tag)
 
-        return op.untagged.with_tags(*remaing_tags)
+        return op.untagged.with_tags(*remaining_tags)
 
     return transformer_primitives.map_operations(
         circuit, _map_func, deep=context.deep if context else False

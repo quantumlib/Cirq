@@ -236,7 +236,7 @@ def test_pull_through_h_gate_case2(single_qubit_gate_moments_only: bool):
         ([X], 'Invalid dynamical decoupling sequence. Expect more than one gates.'),
         (
             [X, Y],
-            'Invalid dynamical decoupling sequence. Expect sequence production equals identity'
+            'Invalid dynamical decoupling sequence. Expect sequence product equals identity'
             ' up to a global phase, got',
         ),
         (

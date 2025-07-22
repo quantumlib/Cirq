@@ -147,6 +147,12 @@ def test_build_recover_const(val):
         assert val2 == val
 
 
+def test_build_covert_const_double():
+    val = 1.2355
+    val2 = v2.sweeps._recover_sweep_const(v2.run_context_pb2.ConstValue(double_value=val))
+    assert val2 == val
+
+
 def test_build_const_unsupported_type():
     with pytest.raises(ValueError, match='Unsupported type for serializing const sweep'):
         v2.sweeps._build_sweep_const((1, 2))
@@ -365,10 +371,14 @@ def test_sweep_with_list_sweep():
     expected.sweep_function.function_type = v2.run_context_pb2.SweepFunction.ZIP
     p1 = expected.sweep_function.sweeps.add()
     p1.single_sweep.parameter_key = 'a'
+    # Because of dual writes
     p1.single_sweep.points.points.extend([1, 3])
+    p1.single_sweep.points.points_double.extend([1, 3])
     p2 = expected.sweep_function.sweeps.add()
     p2.single_sweep.parameter_key = 'b'
+    # Because of dual writes
     p2.single_sweep.points.points.extend([2, 4])
+    p2.single_sweep.points.points_double.extend([2, 4])
     assert proto == expected
 
 

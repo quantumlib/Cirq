@@ -14,6 +14,9 @@
 
 from __future__ import annotations
 
+import os
+from unittest import mock
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
@@ -104,6 +107,7 @@ def test_single_qubit_cliffords():
         assert num_x <= 1
 
 
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 def test_single_qubit_randomized_benchmarking():
     # Check that the ground state population at the end of the Clifford
     # sequences is always unity.
@@ -116,7 +120,8 @@ def test_single_qubit_randomized_benchmarking():
     assert np.isclose(results.pauli_error(), 0.0, atol=1e-7)  # warning is expected
 
 
-def test_parallel_single_qubit_randomized_benchmarking():
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_parallel_single_qubit_parallel_single_qubit_randomized_benchmarking():
     # Check that the ground state population at the end of the Clifford
     # sequences is always unity.
     simulator = sim.Simulator()
@@ -229,13 +234,24 @@ def test_tomography_plot_raises_for_incorrect_number_of_axes():
         result.plot(axes)
 
 
-def test_single_qubit_cliffords_gateset():
+@pytest.mark.parametrize('num_cliffords', range(5, 10))
+@pytest.mark.parametrize('use_xy_basis', [False, True])
+@pytest.mark.parametrize('strict_basis', [False, True])
+def test_single_qubit_cliffords_gateset(num_cliffords, use_xy_basis, strict_basis):
     qubits = [GridQubit(0, i) for i in range(4)]
-    clifford_group = cirq.experiments.qubit_characterizations._single_qubit_cliffords()
+    c1_in_xy = cirq.experiments.qubit_characterizations.RBParameters(
+        use_xy_basis=use_xy_basis, strict_basis=strict_basis
+    ).gateset()
+    if strict_basis:
+        assert len(c1_in_xy) == 20
+    else:
+        assert len(c1_in_xy) == 24
     c = cirq.experiments.qubit_characterizations._create_parallel_rb_circuit(
-        qubits, 5, clifford_group.c1_in_xy
+        qubits, num_cliffords, c1_in_xy
     )
     device = cirq.testing.ValidatingTestDevice(
         qubits=qubits, allowed_gates=(cirq.ops.PhasedXZGate, cirq.MeasurementGate)
     )
     device.validate_circuit(c)
+
+    assert len(c) == num_cliffords + 2

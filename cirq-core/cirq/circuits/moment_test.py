@@ -939,3 +939,68 @@ def test_superoperator() -> None:
     assert m._has_superoperator_()
     s = m._superoperator_()
     assert np.allclose(s, np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]) / 2)
+
+
+def test_moment_with_tags() -> None:
+    q0 = cirq.LineQubit(0)
+    q1 = cirq.LineQubit(1)
+    op1 = cirq.X(q0)
+    op2 = cirq.Y(q1)
+
+    # Test initialization with no tags
+    moment_no_tags = cirq.Moment(op1)
+    assert moment_no_tags.tags == ()
+
+    # Test initialization with tags
+    moment_with_tags = cirq.Moment(op1, op2, tags=("initial_tag_1", "initial_tag_2"))
+    assert moment_with_tags.tags == ("initial_tag_1", "initial_tag_2")
+
+    # Test with_tags method to add new tags
+    new_moment = moment_with_tags.with_tags("new_tag_1", "new_tag_2")
+
+    # Ensure the original moment's tags are unchanged
+    assert moment_with_tags.tags == ("initial_tag_1", "initial_tag_2")
+
+    # Ensure the new moment has both old and new tags
+    assert new_moment.tags == ("initial_tag_1", "initial_tag_2", "new_tag_1", "new_tag_2")
+
+    # Test with_tags on a moment that initially had no tags
+    new_moment_from_no_tags = moment_no_tags.with_tags("single_new_tag")
+    assert new_moment_from_no_tags.tags == ("single_new_tag",)
+
+    # Test adding no new tags
+    same_moment_tags = moment_with_tags.with_tags()
+    assert same_moment_tags.tags == ("initial_tag_1", "initial_tag_2")
+
+    class CustomTag:
+        """Example Hashable Tag"""
+
+        def __init__(self, value):
+            self.value = value
+
+        def __hash__(self):
+            return hash(self.value)  # pragma: nocover
+
+        def __eq__(self, other):
+            return isinstance(other, CustomTag) and self.value == other.value  # pragma: nocover
+
+        def __repr__(self):
+            return f"CustomTag({self.value})"  # pragma: nocover
+
+    tag_obj = CustomTag("complex_tag")
+    moment_with_custom_tag = cirq.Moment(op1, tags=("string_tag", 123, tag_obj))
+    assert moment_with_custom_tag.tags == ("string_tag", 123, tag_obj)
+
+    new_moment_with_custom_tag = moment_with_custom_tag.with_tags(456)
+    assert new_moment_with_custom_tag.tags == ("string_tag", 123, tag_obj, 456)
+
+    # Test that tags are dropped if the Moment is changed.
+    moment = cirq.Moment.from_ops(op1, tags=(tag_obj,))
+    assert moment.tags == (tag_obj,)
+    assert moment.with_operation(op2).tags == ()
+    assert moment.with_operations(op2).tags == ()
+    assert moment.without_operations_touching([q0]).tags == ()
+
+    # Test that tags are retained if the Moment is unchanged.
+    assert moment.with_operations().tags == (tag_obj,)
+    assert moment.without_operations_touching([q1]).tags == (tag_obj,)
