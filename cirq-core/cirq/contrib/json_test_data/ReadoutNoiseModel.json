@@ -1,0 +1,12 @@
+[
+  {
+    "cirq_type": "ReadoutNoiseModel",
+    "bitflip_prob": 0.2,
+    "prepend": true
+  },
+  {
+    "cirq_type": "ReadoutNoiseModel",
+    "bitflip_prob": 0.23,
+    "prepend": false
+  }
+]

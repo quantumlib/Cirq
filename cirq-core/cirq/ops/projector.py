@@ -135,7 +135,7 @@ class ProjectorString:
     def __repr__(self) -> str:
         return (
             f"cirq.ProjectorString(projector_dict={self._projector_dict},"
-            + f"coefficient={self._coefficient})"
+            f"coefficient={self._coefficient})"
         )
 
     def _json_dict_(self) -> dict[str, Any]:

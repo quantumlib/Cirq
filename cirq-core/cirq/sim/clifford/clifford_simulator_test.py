@@ -276,7 +276,7 @@ def test_clifford_trial_result_repr_pretty():
         final_simulator_state=final_simulator_state,
     )
 
-    cirq.testing.assert_repr_pretty(result, "measurements: m=1\n" "output state: |0⟩")
+    cirq.testing.assert_repr_pretty(result, "measurements: m=1\noutput state: |0⟩")
     cirq.testing.assert_repr_pretty(result, "cirq.CliffordTrialResult(...)", cycle=True)
 
 
@@ -285,7 +285,7 @@ def test_clifford_step_result_str():
     result = next(
         cirq.CliffordSimulator().simulate_moment_steps(cirq.Circuit(cirq.measure(q0, key='m')))
     )
-    assert str(result) == "m=0\n" "|0⟩"
+    assert str(result) == "m=0\n|0⟩"
 
 
 def test_clifford_step_result_repr_pretty():
@@ -293,7 +293,7 @@ def test_clifford_step_result_repr_pretty():
     result = next(
         cirq.CliffordSimulator().simulate_moment_steps(cirq.Circuit(cirq.measure(q0, key='m')))
     )
-    cirq.testing.assert_repr_pretty(result, "m=0\n" "|0⟩")
+    cirq.testing.assert_repr_pretty(result, "m=0\n|0⟩")
     cirq.testing.assert_repr_pretty(result, "cirq.CliffordSimulatorStateResult(...)", cycle=True)
 
 

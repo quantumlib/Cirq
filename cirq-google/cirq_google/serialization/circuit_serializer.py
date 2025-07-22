@@ -288,6 +288,7 @@ class CircuitSerializer(serializer.Serializer):
             arg_func_langs.float_arg_to_proto(
                 gate.p, out=msg.noisechannel.depolarizingchannel.probability
             )
+            msg.noisechannel.depolarizingchannel.num_qubits = len(op.qubits)
         elif isinstance(gate, cirq.RandomGateChannel):
             arg_func_langs.float_arg_to_proto(
                 gate.probability, out=msg.noisechannel.randomgatechannel.probability
@@ -763,9 +764,14 @@ class CircuitSerializer(serializer.Serializer):
                 )
                 if not isinstance(p, float):
                     raise ValueError(
-                        f"Depolarizing noise probability {p} " "cannot be symbol or None"
+                        f"Depolarizing noise probability {p} cannot be symbol or None"
                     )  # pragma: nocover
-                op = cirq.DepolarizingChannel(p=p)(*qubits)
+                num_qubits = operation_proto.noisechannel.depolarizingchannel.num_qubits
+                if num_qubits <= 0:
+                    raise ValueError(
+                        f"Depolarizing noise gate must have positive num_qubits: {num_qubits}"
+                    )  # pragma: nocover
+                op = cirq.DepolarizingChannel(p=p, n_qubits=num_qubits)(*qubits)
             elif which_channel_type == 'randomgatechannel':
                 p = arg_func_langs.float_arg_from_proto(
                     operation_proto.noisechannel.randomgatechannel.probability
@@ -777,7 +783,7 @@ class CircuitSerializer(serializer.Serializer):
                 )
                 if sub_gate is None or sub_gate.gate is None:
                     raise ValueError(
-                        "Not a valid gate for RandomGateChannel: " f"{operation_proto}"
+                        f"Not a valid gate for RandomGateChannel: {operation_proto}"
                     )  # pragma: nocover
                 op = cirq.RandomGateChannel(probability=p, sub_gate=sub_gate.gate)(*qubits)
             else:

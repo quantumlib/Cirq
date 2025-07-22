@@ -23,7 +23,10 @@ import cirq
 import cirq_google
 from cirq.testing import assert_equivalent_op_tree
 from cirq_google.api import v2
-from cirq_google.experimental.noise_models import simple_noise_from_calibration_metrics
+from cirq_google.experimental.noise_models import (
+    PerQubitDepolarizingWithDampedReadoutNoiseModel,
+    simple_noise_from_calibration_metrics,
+)
 
 # Fake calibration data object.
 _CALIBRATION_DATA = Merge(
@@ -320,3 +323,19 @@ def test_per_qubit_combined_noise_from_data():
         ),
     )
     assert_equivalent_op_tree(expected_program, noisy_circuit)
+
+
+@pytest.mark.parametrize(
+    'depol_probs, bitflip_probs, decay_probs',
+    [
+        ({cirq.q(0): 0.01}, {cirq.q(0): 0.02}, {cirq.q(0): 0.03}),
+        (None, {cirq.q(0): 0.02}, {cirq.q(0): 0.03}),
+        ({cirq.q(0): 0.01}, None, {cirq.q(0): 0.03}),
+        ({cirq.q(0): 0.01}, {cirq.q(0): 0.02}, None),
+    ],
+)
+def test_noise_model_repr_round_trip(depol_probs, bitflip_probs, decay_probs):
+    model = PerQubitDepolarizingWithDampedReadoutNoiseModel(
+        depol_probs=depol_probs, bitflip_probs=bitflip_probs, decay_probs=decay_probs
+    )
+    cirq.testing.assert_equivalent_repr(model, setup_code='import cirq\nimport cirq_google\n')

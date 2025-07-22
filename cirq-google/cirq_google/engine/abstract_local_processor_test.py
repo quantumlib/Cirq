@@ -19,6 +19,7 @@ import datetime
 import pytest
 from google.protobuf.timestamp_pb2 import Timestamp
 
+import cirq
 from cirq_google.cloud import quantum
 from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
 
@@ -96,11 +97,11 @@ def test_reservations():
 
     # Create Reservation
     reservation = p.create_reservation(
-        start_time=start_reservation, end_time=end_reservation, whitelisted_users=users
+        start_time=start_reservation, end_time=end_reservation, allowlisted_users=users
     )
     assert reservation.start_time.timestamp() == int(start_reservation.timestamp())
     assert reservation.end_time.timestamp() == int(end_reservation.timestamp())
-    assert reservation.whitelisted_users == users
+    assert reservation.allowlisted_users == users
 
     # Get Reservation
     assert p.get_reservation(reservation.name) == reservation
@@ -116,12 +117,22 @@ def test_reservations():
     reservation = p.get_reservation(reservation.name)
     assert reservation.start_time.timestamp() == int(start_reservation.timestamp())
     users = ['gooduser@test.com', 'otheruser@prod.com']
-    p.update_reservation(reservation_id=reservation.name, whitelisted_users=users)
+    p.update_reservation(reservation_id=reservation.name, allowlisted_users=users)
     reservation = p.get_reservation(reservation.name)
-    assert reservation.whitelisted_users == users
+    assert reservation.allowlisted_users == users
 
     with pytest.raises(ValueError, match='does not exist'):
-        p.update_reservation(reservation_id='invalid', whitelisted_users=users)
+        p.update_reservation(reservation_id='invalid', allowlisted_users=users)
+
+    day = datetime.timedelta(hours=24)
+    with cirq.testing.assert_deprecated('Change whitelisted_users', deadline='v1.7'):
+        _ = p.create_reservation(
+            start_time=start_reservation + day,
+            end_time=end_reservation + day,
+            whitelisted_users=users,
+        )
+    with cirq.testing.assert_deprecated('Change whitelisted_users', deadline='v1.7'):
+        p.update_reservation(reservation_id=reservation.name, whitelisted_users=users)
 
 
 def test_list_reservations():
@@ -131,13 +142,13 @@ def test_list_reservations():
     users = ['abc@def.com']
 
     reservation1 = p.create_reservation(
-        start_time=now - hour, end_time=now, whitelisted_users=users
+        start_time=now - hour, end_time=now, allowlisted_users=users
     )
     reservation2 = p.create_reservation(
-        start_time=now, end_time=now + hour, whitelisted_users=users
+        start_time=now, end_time=now + hour, allowlisted_users=users
     )
     reservation3 = p.create_reservation(
-        start_time=now + hour, end_time=now + 2 * hour, whitelisted_users=users
+        start_time=now + hour, end_time=now + 2 * hour, allowlisted_users=users
     )
 
     assert p.list_reservations(now - 2 * hour, now + 3 * hour) == [

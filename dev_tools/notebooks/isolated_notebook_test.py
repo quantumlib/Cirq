@@ -63,10 +63,11 @@ SKIP_NOTEBOOKS = [
     # tutorials that use QCS and arent skipped due to one or more cleared output cells
     'docs/tutorials/google/identifying_hardware_changes.ipynb',
     'docs/tutorials/google/echoes.ipynb',
-    'docs/noise/qcvv/xeb_calibration_example.ipynb',
     # temporary: need to fix QVM metrics and device spec
     'docs/tutorials/google/spin_echoes.ipynb',
     'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
+    # temporary: allow name changes of keyword arguments in quantum engine interfaces to stabilize
+    'docs/simulate/virtual_engine_interface.ipynb',
 ]
 SKIP_NOTEBOOKS += [
     # notebooks that import the examples module which is not installed with cirq

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2022 Google LLC
+# Copyright 2025 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,32 +12,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-# ruff: noqa: E501
-
-from __future__ import annotations
-
+#
 import abc
-import importlib.metadata
-from typing import Awaitable, Callable, Sequence, TYPE_CHECKING
+from typing import Awaitable, Callable, Optional, Sequence
 
 import google.api_core
 import google.auth
+import google.protobuf
 from google.api_core import exceptions as core_exceptions, gapic_v1
+from google.auth import credentials as ga_credentials
 from google.oauth2 import service_account
+from google.protobuf import empty_pb2
 
-if TYPE_CHECKING:
-    from google.auth import credentials as ga_credentials
-    from google.protobuf import empty_pb2
+import cirq_google
+from cirq_google.cloud.quantum_v1alpha1.types import engine, quantum
 
-    from cirq_google.cloud.quantum_v1alpha1.types import engine, quantum
+DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo(gapic_version=cirq_google.__version__)
 
-try:
-    DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo(
-        gapic_version=importlib.metadata.version("google-cloud-quantum")
-    )
-except ModuleNotFoundError:
-    DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo()
+if hasattr(DEFAULT_CLIENT_INFO, "protobuf_runtime_version"):  # pragma: NO COVER
+    DEFAULT_CLIENT_INFO.protobuf_runtime_version = google.protobuf.__version__
 
 
 class QuantumEngineServiceTransport(abc.ABC):
@@ -51,19 +44,20 @@ class QuantumEngineServiceTransport(abc.ABC):
         self,
         *,
         host: str = DEFAULT_HOST,
-        credentials: ga_credentials.Credentials | None = None,
-        credentials_file: str | None = None,
-        scopes: Sequence[str] | None = None,
-        quota_project_id: str | None = None,
+        credentials: Optional[ga_credentials.Credentials] = None,
+        credentials_file: Optional[str] = None,
+        scopes: Optional[Sequence[str]] = None,
+        quota_project_id: Optional[str] = None,
         client_info: gapic_v1.client_info.ClientInfo = DEFAULT_CLIENT_INFO,
-        always_use_jwt_access: bool | None = False,
+        always_use_jwt_access: Optional[bool] = False,
+        api_audience: Optional[str] = None,
         **kwargs,
     ) -> None:
         """Instantiate the transport.
 
         Args:
             host (Optional[str]):
-                 The hostname to connect to.
+                 The hostname to connect to (default: 'quantum.googleapis.com').
             credentials (Optional[google.auth.credentials.Credentials]): The
                 authorization credentials to attach to requests. These
                 credentials identify the application to the service; if none
@@ -83,15 +77,13 @@ class QuantumEngineServiceTransport(abc.ABC):
             always_use_jwt_access (Optional[bool]): Whether self signed JWT should
                 be used for service account credentials.
         """
-        # Save the hostname. Default to port 443 (HTTPS) if none is specified.
-        if ':' not in host:
-            host += ':443'
-        self._host = host
 
         scopes_kwargs = {"scopes": scopes, "default_scopes": self.AUTH_SCOPES}
 
         # Save the scopes.
         self._scopes = scopes
+        if not hasattr(self, "_ignore_credentials"):
+            self._ignore_credentials: bool = False
 
         # If no credentials are provided, then determine the appropriate
         # defaults.
@@ -104,10 +96,14 @@ class QuantumEngineServiceTransport(abc.ABC):
             credentials, _ = google.auth.load_credentials_from_file(
                 credentials_file, **scopes_kwargs, quota_project_id=quota_project_id
             )
-        elif credentials is None:
+        elif credentials is None and not self._ignore_credentials:
             credentials, _ = google.auth.default(**scopes_kwargs, quota_project_id=quota_project_id)
+            # Don't apply audience if the credentials file passed from user.
+            if hasattr(credentials, "with_gdch_audience"):
+                credentials = credentials.with_gdch_audience(api_audience if api_audience else host)
 
-        # If the credentials are service account credentials, then always try to use self signed JWT.
+        # If the credentials are service account credentials, then always try to use self signed
+        # JWT.
         if (
             always_use_jwt_access
             and isinstance(credentials, service_account.Credentials)
@@ -117,6 +113,15 @@ class QuantumEngineServiceTransport(abc.ABC):
 
         # Save the credentials.
         self._credentials = credentials
+
+        # Save the hostname. Default to port 443 (HTTPS) if none is specified.
+        if ':' not in host:
+            host += ':443'
+        self._host = host
+
+    @property
+    def host(self):
+        return self._host
 
     def _prep_wrapped_messages(self, client_info):
         # Precompute the wrapped methods.
@@ -165,6 +170,9 @@ class QuantumEngineServiceTransport(abc.ABC):
             ),
             self.get_quantum_processor: gapic_v1.method.wrap_method(
                 self.get_quantum_processor, default_timeout=60.0, client_info=client_info
+            ),
+            self.get_quantum_processor_config: gapic_v1.method.wrap_method(
+                self.get_quantum_processor_config, default_timeout=60.0, client_info=client_info
             ),
             self.list_quantum_calibrations: gapic_v1.method.wrap_method(
                 self.list_quantum_calibrations, default_timeout=60.0, client_info=client_info
@@ -343,6 +351,15 @@ class QuantumEngineServiceTransport(abc.ABC):
         raise NotImplementedError()
 
     @property
+    def get_quantum_processor_config(
+        self,
+    ) -> Callable[
+        [engine.GetQuantumProcessorConfigRequest],
+        quantum.QuantumProcessorConfig | Awaitable[quantum.QuantumProcessorConfig],
+    ]:
+        raise NotImplementedError()
+
+    @property
     def list_quantum_calibrations(
         self,
     ) -> Callable[
@@ -458,6 +475,10 @@ class QuantumEngineServiceTransport(abc.ABC):
         [engine.ListQuantumTimeSlotsRequest],
         engine.ListQuantumTimeSlotsResponse | Awaitable[engine.ListQuantumTimeSlotsResponse],
     ]:
+        raise NotImplementedError()
+
+    @property
+    def kind(self) -> str:
         raise NotImplementedError()
 
 

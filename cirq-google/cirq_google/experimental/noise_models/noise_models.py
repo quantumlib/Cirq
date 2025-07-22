@@ -15,15 +15,17 @@
 from __future__ import annotations
 
 from math import exp
-from typing import Sequence, TYPE_CHECKING
+from typing import Any, Sequence, TYPE_CHECKING
 
 import cirq
+from cirq._compat import proper_repr
 from cirq.devices.noise_model import validate_all_measurements
 
 if TYPE_CHECKING:
     from cirq_google.engine import calibration
 
 
+@cirq.value_equality()
 class PerQubitDepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
     """NoiseModel with T1 decay on gates and damping/bitflip on measurement.
 
@@ -65,6 +67,26 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
         self.bitflip_probs = bitflip_probs
         self.decay_probs = decay_probs
 
+    def _value_equality_values_(self) -> Any:
+        return (
+            _sorted_items_or_none(self.depol_probs),
+            _sorted_items_or_none(self.bitflip_probs),
+            _sorted_items_or_none(self.decay_probs),
+        )
+
+    def __repr__(self) -> str:
+        prob_args_repr = []
+        if self.depol_probs is not None:
+            prob_args_repr.append(f'depol_probs={proper_repr(self.depol_probs)}')
+        if self.bitflip_probs is not None:
+            prob_args_repr.append(f'bitflip_probs={proper_repr(self.bitflip_probs)}')
+        if self.decay_probs is not None:
+            prob_args_repr.append(f'decay_probs={proper_repr(self.decay_probs)}')
+        return (
+            'cirq_google.experimental.noise_models.'
+            f'PerQubitDepolarizingWithDampedReadoutNoiseModel({", ".join(prob_args_repr)})'
+        )
+
     def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         if self.is_virtual_moment(moment):
             return moment
@@ -95,6 +117,27 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
                         )
                     )
             return moments
+
+    def _json_dict_(self) -> dict[str, tuple[tuple[cirq.Qid, float], ...] | None]:
+        return {
+            'depol_probs': _sorted_items_or_none(self.depol_probs),
+            'bitflip_probs': _sorted_items_or_none(self.bitflip_probs),
+            'decay_probs': _sorted_items_or_none(self.decay_probs),
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, depol_probs, bitflip_probs, decay_probs, **kwargs):
+        return cls(
+            depol_probs=None if depol_probs is None else dict(depol_probs),
+            bitflip_probs=None if bitflip_probs is None else dict(bitflip_probs),
+            decay_probs=None if decay_probs is None else dict(decay_probs),
+        )
+
+
+def _sorted_items_or_none(
+    d: dict[cirq.Qid, float] | None,
+) -> tuple[tuple[cirq.Qid, float], ...] | None:
+    return tuple(sorted(d.items())) if d is not None else None
 
 
 def simple_noise_from_calibration_metrics(

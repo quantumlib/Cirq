@@ -16,10 +16,11 @@ from __future__ import annotations
 
 import abc
 import datetime
-from typing import overload, TYPE_CHECKING
+from typing import Any, overload, TYPE_CHECKING
 
 from google.protobuf.timestamp_pb2 import Timestamp
 
+from cirq import _compat
 from cirq_google.cloud import quantum
 from cirq_google.engine.abstract_processor import AbstractProcessor
 
@@ -45,6 +46,13 @@ def _to_timestamp(union_time: None | datetime.datetime | datetime.timedelta) -> 
     elif isinstance(union_time, datetime.datetime):
         return int(union_time.timestamp())
     return None
+
+
+def _fix_deprecated_allowlisted_users_args(
+    args: tuple[Any, ...], kwargs: dict[str, Any]
+) -> tuple[tuple[Any, ...], dict[str, Any]]:
+    kwargs['allowlisted_users'] = kwargs.pop('whitelisted_users')
+    return args, kwargs
 
 
 class AbstractLocalProcessor(AbstractProcessor):
@@ -234,18 +242,25 @@ class AbstractLocalProcessor(AbstractProcessor):
             return False
         return True
 
+    @_compat.deprecated_parameter(
+        deadline='v1.7',
+        fix='Change whitelisted_users to allowlisted_users.',
+        parameter_desc='whitelisted_users',
+        match=lambda args, kwargs: 'whitelisted_users' in kwargs,
+        rewrite=_fix_deprecated_allowlisted_users_args,
+    )
     def create_reservation(
         self,
         start_time: datetime.datetime,
         end_time: datetime.datetime,
-        whitelisted_users: list[str] | None = None,
+        allowlisted_users: list[str] | None = None,
     ) -> quantum.QuantumReservation:
         """Creates a reservation on this processor.
 
         Args:
             start_time: the starting date/time of the reservation.
             end_time: the ending date/time of the reservation.
-            whitelisted_users: a list of emails that are allowed
+            allowlisted_users: a list of emails that are allowed
               to send programs during this reservation (in addition to users
               with permission "quantum.reservations.use" on the project).
 
@@ -259,7 +274,7 @@ class AbstractLocalProcessor(AbstractProcessor):
             name=reservation_id,
             start_time=Timestamp(seconds=int(start_time.timestamp())),
             end_time=Timestamp(seconds=int(end_time.timestamp())),
-            whitelisted_users=whitelisted_users,
+            allowlisted_users=allowlisted_users,
         )
         time_slot = self._reservation_to_time_slot(new_reservation)
         if not self._is_available(time_slot):
@@ -281,12 +296,19 @@ class AbstractLocalProcessor(AbstractProcessor):
         else:
             return None
 
+    @_compat.deprecated_parameter(
+        deadline='v1.7',
+        fix='Change whitelisted_users to allowlisted_users.',
+        parameter_desc='whitelisted_users',
+        match=lambda args, kwargs: 'whitelisted_users' in kwargs,
+        rewrite=_fix_deprecated_allowlisted_users_args,
+    )
     def update_reservation(
         self,
         reservation_id: str,
         start_time: datetime.datetime | None = None,
         end_time: datetime.datetime | None = None,
-        whitelisted_users: list[str] | None = None,
+        allowlisted_users: list[str] | None = None,
     ) -> None:
         """Updates a reservation with new information.
 
@@ -300,7 +322,7 @@ class AbstractLocalProcessor(AbstractProcessor):
                 starting time is left unchanged.
             end_time: New ending time  of the reservation.  If unspecified,
                 ending time is left unchanged.
-            whitelisted_users: The new list of whitelisted users to allow on
+            allowlisted_users: The new list of allowlisted users to allow on
                 the reservation.  If unspecified, the users are left unchanged.
 
         Raises:
@@ -316,9 +338,9 @@ class AbstractLocalProcessor(AbstractProcessor):
             self._reservations[reservation_id].end_time = datetime.datetime.fromtimestamp(
                 _to_timestamp(end_time)
             )
-        if whitelisted_users is not None:
-            del self._reservations[reservation_id].whitelisted_users[:]
-            self._reservations[reservation_id].whitelisted_users.extend(whitelisted_users)
+        if allowlisted_users is not None:
+            del self._reservations[reservation_id].allowlisted_users[:]
+            self._reservations[reservation_id].allowlisted_users.extend(allowlisted_users)
 
     def list_reservations(
         self,
