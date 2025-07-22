@@ -18,7 +18,7 @@ jobs:
     name: Pytest Ubuntu
     strategy:
       matrix:
-        python-version: ['3.11', '3.12']
+        python-version: ['3.11', '3.12', '3.13']
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -38,13 +38,13 @@ jobs:
               -r dev_tools/requirements/deps/pytest.txt \
               -r dev_tools/requirements/deps/notebook.txt
       - name: Pytest check
-        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --ignore=cirq-rigetti --enable-slow-tests
+        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --enable-slow-tests
   windows:
     if: github.repository_owner == 'quantumlib'
     name: Pytest Windows
     strategy:
       matrix:
-        python-version: ['3.11', '3.12']
+        python-version: ['3.11', '3.12', '3.13']
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -63,14 +63,14 @@ jobs:
             pip install -r dev_tools/requirements/deps/pytest.txt &&
             pip install -r dev_tools/requirements/deps/notebook.txt
       - name: Pytest Windows
-        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --ignore=cirq-rigetti --enable-slow-tests
+        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --enable-slow-tests
         shell: bash
   macos:
     if: github.repository_owner == 'quantumlib'
     name: Pytest MacOS
     strategy:
       matrix:
-        python-version: ['3.11', '3.12']
+        python-version: ['3.11', '3.12', '3.13']
     runs-on: macos-13
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -90,4 +90,4 @@ jobs:
               -r dev_tools/requirements/deps/pytest.txt \
               -r dev_tools/requirements/deps/notebook.txt
       - name: Pytest check
-        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --ignore=cirq-rigetti --enable-slow-tests
+        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --enable-slow-tests

@@ -14,8 +14,11 @@
 
 from __future__ import annotations
 
+import pytest
+
 import cirq
 import cirq_google
+from cirq_google.api.v2 import program_pb2
 
 
 def test_equality():
@@ -39,3 +42,14 @@ def test_str_repr():
     assert str(example_tag) == 'CalibrationTag(\'foo\')'
     assert repr(example_tag) == 'cirq_google.CalibrationTag(\'foo\')'
     cirq.testing.assert_equivalent_repr(example_tag, setup_code=('import cirq\nimport cirq_google'))
+
+
+def test_proto_serialization():
+    tag = cirq_google.CalibrationTag('foo')
+    msg = tag.to_proto()
+    assert tag == cirq_google.CalibrationTag.from_proto(msg)
+
+    with pytest.raises(ValueError, match="Message is not a CalibrationTag"):
+        msg = program_pb2.Tag()
+        msg.fsim_via_model.SetInParent()
+        cirq_google.CalibrationTag.from_proto(msg)
