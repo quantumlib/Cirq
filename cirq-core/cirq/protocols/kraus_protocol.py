@@ -191,13 +191,16 @@ def kraus(
     if channel_result is not NotImplemented:
         return tuple(channel_result)  # pragma: no cover
 
+    # Last-resort fallback: try to derive Kraus from _apply_channel_
+    # Note: _apply_channel can lead to kraus being called again, so
+    # if default is None, this can trigger an infinite loop.
+    if default is not None:
+        result = _strat_kraus_from_apply_channel(val)
+        if result is not None:
+            return result
+
     if default is not RaiseTypeErrorIfNotProvided:
         return default
-
-    # Last-resort fallback: try to derive Kraus from _apply_channel_
-    result = _strat_kraus_from_apply_channel(val)
-    if result is not None:
-        return result
 
     if kraus_getter is None and unitary_getter is None and mixture_getter is None:
         raise TypeError(
