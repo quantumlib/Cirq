@@ -105,13 +105,15 @@ def _strat_kraus_from_apply_channel(val: Any) -> tuple[np.ndarray, ...] | None:
     qid_shape = protocols.qid_shape(val)
 
     eye = qis.eye_tensor(qid_shape * 2, dtype=np.complex128)
+    buffer = np.empty_like(eye)
+    buffer.fill(float('nan'))
     superop = protocols.apply_channel(
         val=val,
         args=protocols.ApplyChannelArgs(
             target_tensor=eye,
-            out_buffer=np.ones_like(eye) * float('nan'),
-            auxiliary_buffer0=np.ones_like(eye) * float('nan'),
-            auxiliary_buffer1=np.ones_like(eye) * float('nan'),
+            out_buffer=buffer,
+            auxiliary_buffer0=buffer.copy(),
+            auxiliary_buffer1=buffer.copy(),
             left_axes=list(range(len(qid_shape))),
             right_axes=list(range(len(qid_shape), len(qid_shape) * 2)),
         ),
