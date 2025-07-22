@@ -193,6 +193,7 @@ class Moment(google.protobuf.message.Message):
     OPERATIONS_FIELD_NUMBER: builtins.int
     CIRCUIT_OPERATIONS_FIELD_NUMBER: builtins.int
     OPERATION_INDICES_FIELD_NUMBER: builtins.int
+    TAG_INDICES_FIELD_NUMBER: builtins.int
     @property
     def operations(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Operation]:
         """All of the gate operations in the moment. Each operation and circuit
@@ -214,14 +215,19 @@ class Moment(google.protobuf.message.Message):
         for improved serialization size.
         """
 
+    @property
+    def tag_indices(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]:
+        """Indices in the constant table for tags associated with the circuit"""
+
     def __init__(
         self,
         *,
         operations: collections.abc.Iterable[global___Operation] | None = ...,
         circuit_operations: collections.abc.Iterable[global___CircuitOperation] | None = ...,
         operation_indices: collections.abc.Iterable[builtins.int] | None = ...,
+        tag_indices: collections.abc.Iterable[builtins.int] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["circuit_operations", b"circuit_operations", "operation_indices", b"operation_indices", "operations", b"operations"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["circuit_operations", b"circuit_operations", "operation_indices", b"operation_indices", "operations", b"operations", "tag_indices", b"tag_indices"]) -> None: ...
 
 global___Moment = Moment
 
