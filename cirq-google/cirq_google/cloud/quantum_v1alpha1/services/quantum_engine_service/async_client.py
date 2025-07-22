@@ -22,7 +22,7 @@ from google.api_core import gapic_v1, retry_async as retries
 from google.api_core.client_options import ClientOptions
 from google.auth import credentials as ga_credentials
 
-from cirq_google.cloud.quantum_v1alpha1 import gapic_version as package_version
+import cirq_google
 
 try:
     OptionalRetry = retries.AsyncRetry | gapic_v1.method._MethodDefault | None
@@ -2646,7 +2646,7 @@ class QuantumEngineServiceAsyncClient:
         await self.transport.close()
 
 
-DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo(gapic_version=package_version.__version__)
+DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo(cirq_google.__version__)
 
 if hasattr(DEFAULT_CLIENT_INFO, "protobuf_runtime_version"):  # pragma: NO COVER
     DEFAULT_CLIENT_INFO.protobuf_runtime_version = google.protobuf.__version__
