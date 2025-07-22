@@ -3,4 +3,4 @@ import cirq_web
 
 
 def test_version() -> None:
-    assert cirq_web.__version__ == "1.6.0.dev0"
+    assert cirq_web.__version__ == "1.6.0"
