@@ -28,6 +28,7 @@ from google.protobuf import any_pb2
 from google.protobuf.field_mask_pb2 import FieldMask
 from google.protobuf.timestamp_pb2 import Timestamp
 
+import cirq.testing
 import cirq_google.engine.stream_manager as engine_stream_manager
 from cirq_google.cloud import quantum
 from cirq_google.engine.engine_client import EngineClient, EngineException
@@ -1545,6 +1546,10 @@ def test_create_reservation(client_constructor, default_engine_client):
             parent='projects/proj/processors/processor0', quantum_reservation=result
         )
     )
+    with cirq.testing.assert_deprecated('Change whitelisted_users', deadline='v1.7'):
+        _ = default_engine_client.create_reservation(
+            'proj', 'processor0', start, end, whitelisted_users=users
+        )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
@@ -1679,6 +1684,15 @@ def test_update_reservation(client_constructor, default_engine_client):
             update_mask=FieldMask(paths=['start_time', 'end_time', 'allowlisted_users']),
         )
     )
+    with cirq.testing.assert_deprecated('Change whitelisted_users', deadline='v1.7'):
+        _ = default_engine_client.update_reservation(
+            'proj',
+            'processor0',
+            'papar-party-44',
+            start=datetime.datetime.fromtimestamp(1000001000),
+            end=datetime.datetime.fromtimestamp(1000002000),
+            whitelisted_users=['jeff@google.com'],
+        )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
