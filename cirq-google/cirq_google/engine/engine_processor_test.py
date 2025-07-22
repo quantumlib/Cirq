@@ -481,6 +481,12 @@ def test_create_reservation(create_reservation):
         datetime.datetime.fromtimestamp(1000003600),
         ['dstrain@google.com'],
     )
+    with cirq.testing.assert_deprecated('Change whitelisted_users', deadline='v1.7'):
+        _ = processor.create_reservation(
+            datetime.datetime.fromtimestamp(1000000000),
+            datetime.datetime.fromtimestamp(1000003600),
+            whitelisted_users=['dstrain@google.com'],
+        )
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.delete_reservation_async')
@@ -629,6 +635,10 @@ def test_update_reservation(update_reservation):
     update_reservation.assert_called_once_with(
         'proj', 'p0', 'rid', start=start, end=end, allowlisted_users=['dstrain@google.com']
     )
+    with cirq.testing.assert_deprecated('Change whitelisted_users', deadline='v1.7'):
+        _ = processor.update_reservation(
+            'rid', start, end, whitelisted_users=['dstrain@google.com']
+        )
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_reservations_async')
