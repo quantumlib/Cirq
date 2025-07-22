@@ -230,10 +230,16 @@ class Product(Sweep):
         return length
 
     def param_tuples(self) -> Iterator[Params]:
-        yield from map(
-            itertools.chain.from_iterable,
-            itertools.product(*(factor.param_tuples() for factor in self.factors)),
-        )
+        def _gen(factors):
+            if not factors:
+                yield ()
+            else:
+                first, rest = factors[0], factors[1:]
+                for first_values in first.param_tuples():
+                    for rest_values in _gen(rest):
+                        yield first_values + rest_values
+
+        return _gen(self.factors)
 
     def __repr__(self) -> str:
         factors_repr = ', '.join(repr(f) for f in self.factors)
