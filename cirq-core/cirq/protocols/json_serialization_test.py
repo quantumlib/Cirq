@@ -52,6 +52,7 @@ TESTED_MODULES: dict[str, _ModuleDeprecation | None] = {
     'cirq_ionq': None,
     'cirq_google': None,
     'cirq_pasqal': None,
+    f'cirq{"."}contrib': None,
     'cirq.protocols': None,
     'non_existent_should_be_fine': None,
 }
