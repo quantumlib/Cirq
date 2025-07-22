@@ -57,7 +57,11 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     packages=cirq_packages,
-    package_data={'cirq': ['py.typed'], 'cirq.protocols.json_test_data': ['*']},
+    package_data={
+        'cirq': ['py.typed'],
+        'cirq.protocols.json_test_data': ['*'],
+        f'cirq{"."}contrib.json_test_data': ['*'],
+    },
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
