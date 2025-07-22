@@ -18,7 +18,7 @@ import datetime
 import sys
 import warnings
 from functools import cached_property
-from typing import AsyncIterable, Awaitable, Callable, TypeVar
+from typing import Any, AsyncIterable, Awaitable, Callable, TypeVar
 
 import duet
 import proto
@@ -26,12 +26,20 @@ from google.api_core.exceptions import GoogleAPICallError, NotFound
 from google.protobuf import any_pb2, field_mask_pb2
 from google.protobuf.timestamp_pb2 import Timestamp
 
+from cirq import _compat
 from cirq_google.cloud import quantum
 from cirq_google.engine import stream_manager
 from cirq_google.engine.asyncio_executor import AsyncioExecutor
 
 _M = TypeVar('_M', bound=proto.Message)
 _R = TypeVar('_R')
+
+
+def _fix_deprecated_allowlisted_users_args(
+    args: tuple[Any, ...], kwargs: dict[str, Any]
+) -> tuple[tuple[Any, ...], dict[str, Any]]:
+    kwargs['allowlisted_users'] = kwargs.pop('whitelisted_users')
+    return args, kwargs
 
 
 class EngineException(Exception):
@@ -945,6 +953,13 @@ class EngineClient:
 
     get_current_calibration = duet.sync(get_current_calibration_async)
 
+    @_compat.deprecated_parameter(
+        deadline='v1.7',
+        fix='Change whitelisted_users to allowlisted_users.',
+        parameter_desc='whitelisted_users',
+        match=lambda args, kwargs: 'whitelisted_users' in kwargs,
+        rewrite=_fix_deprecated_allowlisted_users_args,
+    )
     async def create_reservation_async(
         self,
         project_id: str,
@@ -977,7 +992,7 @@ class EngineClient:
         )
         return await self._send_request_async(self.grpc_client.create_quantum_reservation, request)
 
-    create_reservation = duet.sync(create_reservation_async)
+    create_reservation = duet.sync(create_reservation_async)  # type: ignore[misc]
 
     async def cancel_reservation_async(
         self, project_id: str, processor_id: str, reservation_id: str
@@ -1083,6 +1098,13 @@ class EngineClient:
 
     list_reservations = duet.sync(list_reservations_async)
 
+    @_compat.deprecated_parameter(
+        deadline='v1.7',
+        fix='Change whitelisted_users to allowlisted_users.',
+        parameter_desc='whitelisted_users',
+        match=lambda args, kwargs: 'whitelisted_users' in kwargs,
+        rewrite=_fix_deprecated_allowlisted_users_args,
+    )
     async def update_reservation_async(
         self,
         project_id: str,
@@ -1133,7 +1155,7 @@ class EngineClient:
         )
         return await self._send_request_async(self.grpc_client.update_quantum_reservation, request)
 
-    update_reservation = duet.sync(update_reservation_async)
+    update_reservation = duet.sync(update_reservation_async)  # type: ignore[misc]
 
     async def list_time_slots_async(
         self, project_id: str, processor_id: str, filter_str: str = ''
