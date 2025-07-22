@@ -158,6 +158,29 @@ def test_product():
     assert _values(sweep, 'b') == [3, 3, 4, 4, 3, 3, 4, 4]
     assert _values(sweep, 'c') == [5, 6, 5, 6, 5, 6, 5, 6]
 
+    sweep = cirq.Points('a', [1, 2]) * (cirq.Points('b', [3, 4, 5]))
+    assert list(map(list, sweep.param_tuples())) == [
+        [('a', 1), ('b', 3)],
+        [('a', 1), ('b', 4)],
+        [('a', 1), ('b', 5)],
+        [('a', 2), ('b', 3)],
+        [('a', 2), ('b', 4)],
+        [('a', 2), ('b', 5)],
+    ]
+
+    sweep = cirq.Product(*[cirq.Points(str(i), [0]) for i in range(1025)])
+    assert list(map(list, sweep.param_tuples())) == [[(str(i), 0) for i in range(1025)]]
+
+def test_nested_product_zip():
+    sweep = cirq.Product(
+        cirq.Product(cirq.Points('a', [0]), cirq.Points('b', [0])),
+        cirq.Zip(cirq.Points('c', [0, 1]), cirq.Points('d', [0, 1]))
+    )
+    assert list(map(list, sweep.param_tuples())) == [
+        [('a', 0), ('b', 0), ('c', 0), ('d', 0)],
+        [('a', 0), ('b', 0), ('c', 1), ('d', 1)],
+    ]
+
 
 def test_zip_addition():
     zip_sweep = cirq.Zip(cirq.Points('a', [1, 2]), cirq.Points('b', [3, 4]))
@@ -172,6 +195,7 @@ def test_empty_product():
     sweep = cirq.Product()
     assert len(sweep) == len(list(sweep)) == 1
     assert str(sweep) == 'Product()'
+    assert list(map(list, sweep.param_tuples())) == [[]]
 
 
 def test_slice_access_error():
