@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Creates the abstraction for multi moment gauge compiling as a cirq transformer."""
-
-from __future__ import annotations
+"""Defines the abstraction for multi-moment gauge compiling as a cirq transformer."""
 
 import abc
 
@@ -45,7 +43,6 @@ class MultiMomentGaugeTransformer(abc.ABC):
         self,
         target: ops.Gate | ops.Gateset | ops.GateFamily,
         supported_gates: ops.Gateset = ops.Gateset(),
-        rng: np.random.Generator = np.random.default_rng(),
     ) -> None:
         """Constructs a MultiMomentGaugeTransformer.
 
@@ -56,7 +53,6 @@ class MultiMomentGaugeTransformer(abc.ABC):
             supported_gates: Determines what other gates, in addition to the target gates,
               are permitted within the gauge moments. If a moment contains a gate not found
               in either target or supported_gates, it won't be gauged.
-            rng: A pseudorandom number generator.
         """
         self.target = ops.GateFamily(target) if isinstance(target, ops.Gate) else target
         self.supported_gates = (
@@ -64,7 +60,6 @@ class MultiMomentGaugeTransformer(abc.ABC):
             if isinstance(supported_gates, ops.Gate)
             else supported_gates
         )
-        self.rng = rng
 
     @abc.abstractmethod
     def gauge_on_moments(self, moments_to_gauge: list[circuits.Moment]) -> list[circuits.Moment]:
@@ -78,11 +73,14 @@ class MultiMomentGaugeTransformer(abc.ABC):
         """
 
     @abc.abstractmethod
-    def sample_left_moment(self, active_qubits: frozenset[ops.Qid]) -> circuits.Moment:
+    def sample_left_moment(
+        self, active_qubits: frozenset[ops.Qid], rng: np.random.Generator
+    ) -> circuits.Moment:
         """Samples a random single-qubit moment to be inserted before the target block.
 
         Args:
             active_qubits: The qubits on which the sampled gates should be applied.
+            rng: A pseudorandom number generator.
 
         Returns:
             The sampled moment.
