@@ -1,4 +1,4 @@
-# Copyright 2021 The Cirq Developers
+# Copyright 2025 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,6 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Define version number here, read it from setup.py automatically"""
+"""Test data for JSON serialization of :mod:`cirq.contrib` objects."""
 
-__version__ = "1.7.0.dev0"
+from cirq.contrib.json_test_data.spec import TestSpec as TestSpec

@@ -44,7 +44,6 @@ SKIP_NOTEBOOKS = [
     # tutorials that use QCS and arent skipped due to one or more cleared output cells
     'docs/tutorials/google/identifying_hardware_changes.ipynb',
     'docs/tutorials/google/echoes.ipynb',
-    'docs/noise/qcvv/xeb_calibration_example.ipynb',
     # temporary: need to fix QVM metrics and device spec
     'docs/tutorials/google/spin_echoes.ipynb',
     'docs/tutorials/google/visualizing_calibration_metrics.ipynb',

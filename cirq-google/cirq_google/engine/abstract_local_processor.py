@@ -16,10 +16,11 @@ from __future__ import annotations
 
 import abc
 import datetime
-from typing import overload, TYPE_CHECKING
+from typing import Any, overload, TYPE_CHECKING
 
 from google.protobuf.timestamp_pb2 import Timestamp
 
+from cirq import _compat
 from cirq_google.cloud import quantum
 from cirq_google.engine.abstract_processor import AbstractProcessor
 
@@ -45,6 +46,13 @@ def _to_timestamp(union_time: None | datetime.datetime | datetime.timedelta) -> 
     elif isinstance(union_time, datetime.datetime):
         return int(union_time.timestamp())
     return None
+
+
+def _fix_deprecated_allowlisted_users_args(
+    args: tuple[Any, ...], kwargs: dict[str, Any]
+) -> tuple[tuple[Any, ...], dict[str, Any]]:
+    kwargs['allowlisted_users'] = kwargs.pop('whitelisted_users')
+    return args, kwargs
 
 
 class AbstractLocalProcessor(AbstractProcessor):
@@ -234,6 +242,13 @@ class AbstractLocalProcessor(AbstractProcessor):
             return False
         return True
 
+    @_compat.deprecated_parameter(
+        deadline='v1.7',
+        fix='Change whitelisted_users to allowlisted_users.',
+        parameter_desc='whitelisted_users',
+        match=lambda args, kwargs: 'whitelisted_users' in kwargs,
+        rewrite=_fix_deprecated_allowlisted_users_args,
+    )
     def create_reservation(
         self,
         start_time: datetime.datetime,
@@ -281,6 +296,13 @@ class AbstractLocalProcessor(AbstractProcessor):
         else:
             return None
 
+    @_compat.deprecated_parameter(
+        deadline='v1.7',
+        fix='Change whitelisted_users to allowlisted_users.',
+        parameter_desc='whitelisted_users',
+        match=lambda args, kwargs: 'whitelisted_users' in kwargs,
+        rewrite=_fix_deprecated_allowlisted_users_args,
+    )
     def update_reservation(
         self,
         reservation_id: str,
