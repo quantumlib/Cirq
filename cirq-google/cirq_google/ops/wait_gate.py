@@ -32,7 +32,8 @@ class WaitGateWithUnit(cirq.WaitGate):
     ):
         if not isinstance(duration, su.ValueOrSymbol):
             raise ValueError("The duration must either be a tu.Value or a sympy.Symbol.")
-        self._duration = duration
+        # Override the original duration
+        self._duration: su.ValueOrSymbol = duration
         # The rest is copy-pasted from WaitGate. We just cannot use
         # super().__init__ because of the duration.
         if qid_shape is None:
