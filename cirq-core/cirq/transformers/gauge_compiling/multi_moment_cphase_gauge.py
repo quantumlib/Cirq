@@ -182,10 +182,12 @@ class CPhaseGaugeTransformerMM(MultiMomentGaugeTransformer):
     def __init__(self, supported_gates=_SUPPORTED_GATESET):
         super().__init__(target=_TARGET_GATESET, supported_gates=supported_gates)
 
-    def sample_left_moment(self, active_qubits: frozenset[ops.Qid]) -> circuits.Moment:
+    def sample_left_moment(
+        self, active_qubits: frozenset[ops.Qid], rng: np.random.Generator = np.random.default_rng()
+    ) -> circuits.Moment:
         return circuits.Moment(
             [
-                self.rng.choice(
+                rng.choice(
                     np.array([ops.I, ops.X, ops.Y, ops.Z], dtype=ops.Gate),
                     p=[0.25, 0.25, 0.25, 0.25],
                 ).on(q)
