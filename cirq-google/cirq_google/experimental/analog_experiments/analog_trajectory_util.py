@@ -19,7 +19,6 @@ from typing import AbstractSet, TYPE_CHECKING
 import attrs
 import matplotlib.pyplot as plt
 import numpy as np
-import sympy
 import tunits as tu
 
 import cirq
@@ -73,19 +72,6 @@ class FrequencyMap:
             },
             is_wait_step=self.is_wait_step,
         )
-
-    def duration_nanos(self) -> float | su.TunitForDurationNanos:
-        # The following is the patching code for symbol/tunit can work
-        # with cirq.Duration object.
-        if isinstance(self.duration, tu.Value):
-            nanos = self.duration[tu.ns]
-        elif isinstance(self.duration, sympy.Symbol):
-            nanos = su.TunitForDurationNanos(self.duration)
-        else:
-            raise ValueError(
-                "The duration in the freq map must either be a tu.Value or a sympy.Symbol."
-            )
-        return nanos
 
 
 class AnalogTrajectory:

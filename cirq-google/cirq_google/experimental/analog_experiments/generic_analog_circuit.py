@@ -17,7 +17,7 @@ import re
 
 import cirq
 from cirq_google.experimental.analog_experiments import analog_trajectory_util as atu
-from cirq_google.ops import analog_detune_gates as adg
+from cirq_google.ops import analog_detune_gates as adg, wait_gate as wg
 from cirq_google.study import symbol_util as su
 
 
@@ -90,21 +90,11 @@ class GenericAnalogCircuitBuilder:
         moments = []
         for freq_map in self.trajectory.full_trajectory[1:]:
             if freq_map.is_wait_step:
-                target = [_to_grid_qubit(q) for q in self.trajectory.qubits]
-                d = freq_map.duration_nanos()
-                if isinstance(d, float):
-                    wait_gate = cirq.WaitGate(
-                        cirq.Duration(nanos=d), qid_shape=cirq.qid_shape(target)
-                    )
-                else:
-                    # The following is patching solution for resolving the parameter
-                    # can be tunits. It should only work for pyle internal translation.
-                    wait_gate = cirq.WaitGate(
-                        cirq.Duration(nanos=1), qid_shape=cirq.qid_shape(target)
-                    )
-                    wait_gate._duration = d  # type: ignore
-
-                moment = cirq.Moment(wait_gate.on(*target))
+                targets = [_to_grid_qubit(q) for q in self.trajectory.qubits]
+                wait_gate = wg.WaitGateWithUnit(
+                    freq_map.duration, qid_shape=cirq.qid_shape(targets)
+                )
+                moment = cirq.Moment(wait_gate.on(*targets))
             else:
                 moment = self.make_one_moment(freq_map, prev_freq_map)
             moments.append(moment)
