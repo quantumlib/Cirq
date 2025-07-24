@@ -29,6 +29,11 @@ class RunContext(google.protobuf.message.Message):
 
     PARAMETER_SWEEPS_FIELD_NUMBER: builtins.int
     DEVICE_PARAMETERS_OVERRIDE_FIELD_NUMBER: builtins.int
+    COMPRESSED_RUN_CONTEXT_FIELD_NUMBER: builtins.int
+    compressed_run_context: builtins.bytes
+    """If compression is desired, this field stores the gzipped bytes
+    of the RunContext
+    """
     @property
     def parameter_sweeps(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___ParameterSweep]:
         """The parameters for operations in a program."""
@@ -47,9 +52,10 @@ class RunContext(google.protobuf.message.Message):
         *,
         parameter_sweeps: collections.abc.Iterable[global___ParameterSweep] | None = ...,
         device_parameters_override: global___DeviceParametersDiff | None = ...,
+        compressed_run_context: builtins.bytes = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["device_parameters_override", b"device_parameters_override"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["device_parameters_override", b"device_parameters_override", "parameter_sweeps", b"parameter_sweeps"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["compressed_run_context", b"compressed_run_context", "device_parameters_override", b"device_parameters_override", "parameter_sweeps", b"parameter_sweeps"]) -> None: ...
 
 global___RunContext = RunContext
 
