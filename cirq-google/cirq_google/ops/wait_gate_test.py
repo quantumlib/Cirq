@@ -44,6 +44,10 @@ def test_wait_gate_with_units_resolving() -> None:
 
     resolved_gate = cirq.resolve_parameters(gate, {"d": 10 * tu.ns})
     assert resolved_gate.duration == cirq.Duration(nanos=10)
+    
+    gate = wg.WaitGateWithUnit(10*tu.ns)
+    assert gate._resolve_parameters_({}, True) == gate
+
 
 
 def test_wait_gate_equality() -> None:
