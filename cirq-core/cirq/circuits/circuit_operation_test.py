@@ -22,7 +22,7 @@ import sympy
 
 import cirq
 import cirq.circuits.circuit_operation as circuit_operation
-from cirq import _compat
+from cirq import _compat, protocols
 from cirq.circuits.circuit_operation import _full_join_string_lists
 
 ALL_SIMULATORS = (cirq.Simulator(), cirq.DensityMatrixSimulator(), cirq.CliffordSimulator())
@@ -1297,3 +1297,30 @@ def test_inner_repeat_until_simulate() -> None:
 
 
 # TODO: Operation has a "gate" property. What is this for a CircuitOperation?
+
+
+def test_has_unitary_protocol_returns_true_if_all_common_gates() -> None:
+    q = cirq.LineQubit(0)
+    op = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q), cirq.Y(q), cirq.Z(q)))
+    assert protocols.has_unitary(op)
+
+
+def test_has_unitary_protocol_returns_false_if_measurement_gate() -> None:
+    q = cirq.LineQubit(0)
+    key = cirq.MeasurementKey('m')
+    op = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q) ** 0.2, cirq.measure(q, key=key)))
+    assert not protocols.has_unitary(op)
+
+
+def test_has_unitary_protocol_returns_false_if_parametrized() -> None:
+    q = cirq.LineQubit(0)
+    exp = sympy.Symbol('exp')
+    op = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q) ** exp))
+    assert not protocols.has_unitary(op)
+
+
+def test_has_unitary_protocol_returns_true_if_all_params_resolve() -> None:
+    q = cirq.LineQubit(0)
+    exp = sympy.Symbol('exp')
+    op = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q) ** exp), param_resolver={exp: 0.5})
+    assert protocols.has_unitary(op)

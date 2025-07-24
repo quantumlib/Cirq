@@ -1,0 +1,1 @@
+cirq.devices.ThermalNoiseModel(qubits={cirq.LineQubit(0), cirq.LineQubit(1)}, gate_durations_ns={cirq.ops.common_gates.ZPowGate: 5.0,cirq.ops.common_gates.CZPowGate: 12.0}, heat_rate_GHz=1e-05, cool_rate_GHz={cirq.LineQubit(0): 0.0001,cirq.LineQubit(1): 0.00015}, dephase_rate_GHz=0.0002, require_physical_tag=False, skip_measurements=False, prepend=False)

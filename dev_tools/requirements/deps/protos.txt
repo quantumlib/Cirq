@@ -1,7 +1,7 @@
 # dependencies for proto generation - used by cirq-google
 
 # This bundles the protoc tool for generating proto code.
-grpcio-tools~=1.62.3
+grpcio-tools~=1.71.2
 
 mypy-protobuf~=3.6
 

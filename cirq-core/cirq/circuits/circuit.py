@@ -33,6 +33,7 @@ from typing import (
     Any,
     Callable,
     cast,
+    Hashable,
     Iterable,
     Iterator,
     Mapping,
@@ -141,7 +142,9 @@ class AbstractCircuit(abc.ABC):
     """
 
     @classmethod
-    def from_moments(cls: type[CIRCUIT_TYPE], *moments: cirq.OP_TREE | None) -> CIRCUIT_TYPE:
+    def from_moments(
+        cls: type[CIRCUIT_TYPE], *moments: cirq.OP_TREE | None, tags: Sequence[Hashable] = ()
+    ) -> CIRCUIT_TYPE:
         """Create a circuit from moment op trees.
 
         Args:
@@ -155,8 +158,12 @@ class AbstractCircuit(abc.ABC):
                     which is then included in the new circuit. Note that in this
                     case we have the normal restriction that operations in a
                     moment must be applied to disjoint sets of qubits.
+            tags: A sequence of any type of object that is useful to attach metadata
+                to this circuit as long as the type is hashable.  If you wish the
+                resulting circuit to be eventually serialized into JSON, you should
+                also restrict the tags to be JSON serializable.
         """
-        return cls._from_moments(cls._make_moments(moments))
+        return cls._from_moments(cls._make_moments(moments), tags=tags)
 
     @staticmethod
     def _make_moments(moments: Iterable[cirq.OP_TREE | None]) -> Iterator[cirq.Moment]:
@@ -170,7 +177,9 @@ class AbstractCircuit(abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    def _from_moments(cls: type[CIRCUIT_TYPE], moments: Iterable[cirq.Moment]) -> CIRCUIT_TYPE:
+    def _from_moments(
+        cls: type[CIRCUIT_TYPE], moments: Iterable[cirq.Moment], tags: Sequence[Hashable]
+    ) -> CIRCUIT_TYPE:
         """Create a circuit from moments.
 
         This must be implemented by subclasses. It provides a more efficient way
@@ -201,6 +210,20 @@ class AbstractCircuit(abc.ABC):
             copy: If True and 'self' is a Circuit, returns a copy that circuit.
         """
 
+    @property
+    @abc.abstractmethod
+    def tags(self) -> tuple[Hashable, ...]:
+        """Returns a tuple of the Circuit's tags."""
+
+    @abc.abstractmethod
+    def with_tags(self, *new_tags: Hashable) -> Self:
+        """Creates a new tagged Circuit with `self.tags` and `new_tags` combined."""
+
+    @property
+    def untagged(self) -> Self:
+        """Returns the underlying Circuit without any tags."""
+        return self._from_moments(self.moments, tags=()) if self.tags else self
+
     def __bool__(self) -> bool:
         return bool(self.moments)
 
@@ -210,14 +233,16 @@ class AbstractCircuit(abc.ABC):
         return other is self or (
             len(self.moments) == len(other.moments)
             and all(m0 == m1 for m0, m1 in zip(self.moments, other.moments))
+            and self.tags == other.tags
         )
 
     def _approx_eq_(self, other: Any, atol: float) -> bool:
         """See `cirq.protocols.SupportsApproximateEquality`."""
         if not isinstance(other, AbstractCircuit):
             return NotImplemented
-        return other is self or cirq.protocols.approx_eq(
-            tuple(self.moments), tuple(other.moments), atol=atol
+        return other is self or (
+            self.tags == other.tags
+            and cirq.protocols.approx_eq(tuple(self.moments), tuple(other.moments), atol=atol)
         )
 
     def __ne__(self, other) -> bool:
@@ -259,7 +284,7 @@ class AbstractCircuit(abc.ABC):
 
     def __getitem__(self, key):
         if isinstance(key, slice):
-            return self._from_moments(self.moments[key])
+            return self._from_moments(self.moments[key], tags=self.tags)
         if hasattr(key, '__index__'):
             return self.moments[key]
         if isinstance(key, tuple):
@@ -272,7 +297,9 @@ class AbstractCircuit(abc.ABC):
                 return selected_moments[qubit_idx]
             if isinstance(qubit_idx, ops.Qid):
                 qubit_idx = [qubit_idx]
-            return self._from_moments(moment[qubit_idx] for moment in selected_moments)
+            return self._from_moments(
+                (moment[qubit_idx] for moment in selected_moments), tags=self.tags
+            )
 
         raise TypeError('__getitem__ called with key not of type slice, int, or tuple.')
 
@@ -283,7 +310,9 @@ class AbstractCircuit(abc.ABC):
         args = []
         if self.moments:
             args.append(_list_repr_with_indented_item_lines(self.moments))
-        return f'{", ".join(args)}'
+        moments_repr = f'{", ".join(args)}'
+        tag_repr = ','.join(_compat.proper_repr(t) for t in self.tags)
+        return f'{moments_repr}, tags=[{tag_repr}]' if self.tags else moments_repr
 
     def __repr__(self) -> str:
         cls_name = self.__class__.__name__
@@ -942,7 +971,9 @@ class AbstractCircuit(abc.ABC):
             """Apply func to expand each op into a circuit, then zip up the circuits."""
             return Circuit.zip(*[Circuit(func(op)) for op in moment])
 
-        return self._from_moments(m for moment in self for m in map_moment(moment))
+        return self._from_moments(
+            (m for moment in self for m in map_moment(moment)), tags=self.tags
+        )
 
     def qid_shape(
         self, qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT
@@ -983,15 +1014,19 @@ class AbstractCircuit(abc.ABC):
 
     def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
         return self._from_moments(
-            protocols.with_measurement_key_mapping(moment, key_map) for moment in self.moments
+            (protocols.with_measurement_key_mapping(moment, key_map) for moment in self.moments),
+            tags=self.tags,
         )
 
     def _with_key_path_(self, path: tuple[str, ...]):
-        return self._from_moments(protocols.with_key_path(moment, path) for moment in self.moments)
+        return self._from_moments(
+            (protocols.with_key_path(moment, path) for moment in self.moments), tags=self.tags
+        )
 
     def _with_key_path_prefix_(self, prefix: tuple[str, ...]):
         return self._from_moments(
-            protocols.with_key_path_prefix(moment, prefix) for moment in self.moments
+            (protocols.with_key_path_prefix(moment, prefix) for moment in self.moments),
+            tags=self.tags,
         )
 
     def _with_rescoped_keys_(
@@ -1002,7 +1037,7 @@ class AbstractCircuit(abc.ABC):
             new_moment = protocols.with_rescoped_keys(moment, path, bindable_keys)
             moments.append(new_moment)
             bindable_keys |= protocols.measurement_key_objs(new_moment)
-        return self._from_moments(moments)
+        return self._from_moments(moments, tags=self.tags)
 
     def _qid_shape_(self) -> tuple[int, ...]:
         return self.qid_shape()
@@ -1300,22 +1335,33 @@ class AbstractCircuit(abc.ABC):
         return diagram
 
     def _is_parameterized_(self) -> bool:
-        return any(protocols.is_parameterized(op) for op in self.all_operations())
+        return any(protocols.is_parameterized(op) for op in self.all_operations()) or any(
+            protocols.is_parameterized(tag) for tag in self.tags
+        )
 
     def _parameter_names_(self) -> AbstractSet[str]:
-        return {name for op in self.all_operations() for name in protocols.parameter_names(op)}
+        op_params = {name for op in self.all_operations() for name in protocols.parameter_names(op)}
+        tag_params = {name for tag in self.tags for name in protocols.parameter_names(tag)}
+        return op_params | tag_params
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Self:
         changed = False
         resolved_moments: list[cirq.Moment] = []
+        resolved_tags: list[Hashable] = []
         for moment in self:
             resolved_moment = protocols.resolve_parameters(moment, resolver, recursive)
             if resolved_moment is not moment:
                 changed = True
             resolved_moments.append(resolved_moment)
-        if not changed:
+        for tag in self.tags:
+            resolved_tag = protocols.resolve_parameters(tag, resolver, recursive)
+            if resolved_tag is not tag:
+                changed = True
+            resolved_tags.append(resolved_tag)
+        if changed:
+            return self._from_moments(resolved_moments, tags=resolved_tags)
+        else:
             return self  # pragma: no cover
-        return self._from_moments(resolved_moments)
 
     def _qasm_(self, args: cirq.QasmArgs | None = None) -> str:
         if args is None:
@@ -1394,11 +1440,13 @@ class AbstractCircuit(abc.ABC):
         self._to_qasm_output(header, precision, qubit_order).save(file_path)
 
     def _json_dict_(self):
-        return protocols.obj_to_dict_helper(self, ['moments'])
+        attribute_names = ['moments', 'tags'] if self.tags else ['moments']
+        ret = protocols.obj_to_dict_helper(self, attribute_names)
+        return ret
 
     @classmethod
-    def _from_json_dict_(cls, moments, **kwargs):
-        return cls(moments, strategy=InsertStrategy.EARLIEST)
+    def _from_json_dict_(cls, moments, tags=(), **kwargs):
+        return cls(moments, tags=tags, strategy=InsertStrategy.EARLIEST)
 
     def zip(
         *circuits: cirq.AbstractCircuit, align: cirq.Alignment | str = Alignment.LEFT
@@ -1462,7 +1510,7 @@ class AbstractCircuit(abc.ABC):
         if isinstance(align, str):
             align = Alignment[align.upper()]
 
-        result = cirq.Circuit()
+        result = cirq.Circuit(tags=circuits[0].tags if circuits else ())
         for k in range(n):
             try:
                 if align == Alignment.LEFT:
@@ -1531,7 +1579,7 @@ class AbstractCircuit(abc.ABC):
         for k in range(1, len(circuits)):
             offset, n_acc = _concat_ragged_helper(offset, n_acc, buffer, circuits[k].moments, align)
 
-        return cirq.Circuit(buffer[offset : offset + n_acc])
+        return cirq.Circuit(buffer[offset : offset + n_acc], tags=circuits[0].tags)
 
     def get_independent_qubit_sets(self) -> list[set[cirq.Qid]]:
         """Divide circuit's qubits into independent qubit sets.
@@ -1610,7 +1658,10 @@ class AbstractCircuit(abc.ABC):
         # the qubits from one factor belong to a specific independent qubit set.
         # This makes it possible to create independent circuits based on these
         # moments.
-        return (self._from_moments(m[qubits] for m in self.moments) for qubits in qubit_factors)
+        return (
+            self._from_moments([m[qubits] for m in self.moments], tags=self.tags)
+            for qubits in qubit_factors
+        )
 
     def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
         controls = frozenset(k for op in self.all_operations() for k in protocols.control_keys(op))
@@ -1754,7 +1805,10 @@ class Circuit(AbstractCircuit):
     """
 
     def __init__(
-        self, *contents: cirq.OP_TREE, strategy: cirq.InsertStrategy = InsertStrategy.EARLIEST
+        self,
+        *contents: cirq.OP_TREE,
+        strategy: cirq.InsertStrategy = InsertStrategy.EARLIEST,
+        tags: Sequence[Hashable] = (),
     ) -> None:
         """Initializes a circuit.
 
@@ -1768,9 +1822,14 @@ class Circuit(AbstractCircuit):
                 from `contents`, this determines how the operations are packed
                 together. This option does not affect later insertions into the
                 circuit.
+            tags: A sequence of any type of object that is useful to attach metadata
+                to this circuit as long as the type is hashable.  If you wish the
+                resulting circuit to be eventually serialized into JSON, you should
+                also restrict the tags to be JSON serializable.
         """
         self._placement_cache: _PlacementCache | None = _PlacementCache()
         self._moments: list[cirq.Moment] = []
+        self._tags = tuple(tags)
 
         # Implementation note: the following cached properties are set lazily and then
         # invalidated and reset to None in `self._mutated()`, which is called any time
@@ -1804,10 +1863,11 @@ class Circuit(AbstractCircuit):
             self._placement_cache = None
 
     @classmethod
-    def _from_moments(cls, moments: Iterable[cirq.Moment]) -> Circuit:
+    def _from_moments(cls, moments: Iterable[cirq.Moment], tags: Sequence[Hashable]) -> Circuit:
         new_circuit = Circuit()
         new_circuit._moments[:] = moments
         new_circuit._placement_cache = None
+        new_circuit._tags = tuple(tags)
         return new_circuit
 
     def _load_contents_with_earliest_strategy(self, contents: cirq.OP_TREE):
@@ -1866,7 +1926,7 @@ class Circuit(AbstractCircuit):
         from cirq.circuits.frozen_circuit import FrozenCircuit
 
         if self._frozen is None:
-            self._frozen = FrozenCircuit._from_moments(self._moments)
+            self._frozen = FrozenCircuit._from_moments(self._moments, tags=self.tags)
         return self._frozen
 
     def unfreeze(self, copy: bool = True) -> cirq.Circuit:
@@ -1895,8 +1955,9 @@ class Circuit(AbstractCircuit):
     def copy(self) -> Circuit:
         """Return a copy of this circuit."""
         copied_circuit = Circuit()
-        copied_circuit._moments = self._moments[:]
+        copied_circuit._moments[:] = self._moments
         copied_circuit._placement_cache = None
+        copied_circuit._tags = self.tags
         return copied_circuit
 
     @overload
@@ -1956,7 +2017,7 @@ class Circuit(AbstractCircuit):
     def __mul__(self, repetitions: _INT_TYPE):
         if not isinstance(repetitions, (int, np.integer)):
             return NotImplemented
-        return Circuit(self._moments * int(repetitions))
+        return Circuit(self._moments * int(repetitions), tags=self.tags)
 
     def __rmul__(self, repetitions: _INT_TYPE):
         if not isinstance(repetitions, (int, np.integer)):
@@ -1982,7 +2043,7 @@ class Circuit(AbstractCircuit):
                 return NotImplemented
             inv_moments.append(inv_moment)
 
-        return cirq.Circuit(inv_moments)
+        return cirq.Circuit(inv_moments, tags=self.tags)
 
     __hash__ = None  # type: ignore
 
@@ -2477,6 +2538,18 @@ class Circuit(AbstractCircuit):
     def moments(self) -> Sequence[cirq.Moment]:
         return self._moments
 
+    @property
+    def tags(self) -> tuple[Hashable, ...]:
+        return self._tags
+
+    def with_tags(self, *new_tags: Hashable) -> cirq.Circuit:
+        """Creates a new tagged `Circuit` with `self.tags` and `new_tags` combined."""
+        if not new_tags:
+            return self
+        new_circuit = Circuit(tags=self.tags + new_tags)
+        new_circuit._moments[:] = self._moments
+        return new_circuit
+
     def with_noise(self, noise: cirq.NOISE_MODEL_LIKE) -> cirq.Circuit:
         """Make a noisy version of the circuit.
 
@@ -2491,7 +2564,7 @@ class Circuit(AbstractCircuit):
         """
         noise_model = devices.NoiseModel.from_noise_model_like(noise)
         qubits = sorted(self.all_qubits())
-        c_noisy = Circuit()
+        c_noisy = Circuit(tags=self.tags)
         for op_tree in noise_model.noisy_moments(self, qubits):
             # Keep moments aligned
             c_noisy += Circuit(op_tree)
