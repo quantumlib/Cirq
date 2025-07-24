@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import gzip
 import math
 from copy import deepcopy
 from typing import Iterator
@@ -415,6 +416,16 @@ def test_run_context_to_proto(pass_out: bool) -> None:
     assert len(out.parameter_sweeps) == 1
     assert v2.sweep_from_proto(out.parameter_sweeps[0].sweep) == sweep
     assert out.parameter_sweeps[0].repetitions == 100
+
+
+def test_run_context_to_proto_with_compression() -> None:
+    sweep = cirq.Linspace('a', 0, 1, 21)
+    out = v2.run_context_to_proto(sweep, 100, compress_proto=True)
+    raw_bytes = gzip.decompress(out.compressed_run_context)
+    msg = v2.run_context_pb2.RunContext()
+    msg.ParseFromString(raw_bytes)
+    assert v2.sweep_from_proto(msg.parameter_sweeps[0].sweep) == sweep
+    assert msg.parameter_sweeps[0].repetitions == 100
 
 
 @pytest.mark.parametrize(
