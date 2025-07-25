@@ -26,6 +26,7 @@ from typing_extensions import Protocol
 from cirq import protocols, qis
 from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
+from cirq.protocols.has_unitary_protocol import has_unitary
 from cirq.protocols.mixture_protocol import has_mixture
 from cirq.protocols.unitary_protocol import unitary
 
@@ -95,7 +96,7 @@ class SupportsKraus(Protocol):
         """
 
 
-def _strat_kraus_from_apply_channel(val: Any) -> tuple[np.ndarray, ...] | None:
+def _strat_kraus_from_apply_channel(val: Any, atol: float) -> tuple[np.ndarray, ...] | None:
     """Attempts to compute a value's Kraus operators via its _apply_channel_ method.
     This is very expensive (O(16^N)), so only do this as a last resort."""
     method = getattr(val, '_apply_channel_', None)
@@ -122,12 +123,15 @@ def _strat_kraus_from_apply_channel(val: Any) -> tuple[np.ndarray, ...] | None:
     if superop is None or superop is NotImplemented:
         return None
     n = np.prod(qid_shape) ** 2
-    kraus_ops = qis.superoperator_to_kraus(superop.reshape((n, n)))
+    # Note that super-operator calculations can be numerically unstable
+    # and we want to avoid returning kraus channels with "almost zero"
+    # components
+    kraus_ops = qis.superoperator_to_kraus(superop.reshape((n, n)), atol=atol)
     return tuple(kraus_ops)
 
 
 def kraus(
-    val: Any, default: Any = RaiseTypeErrorIfNotProvided
+    val: Any, default: Any = RaiseTypeErrorIfNotProvided, atol: float = 1e-6
 ) -> tuple[np.ndarray, ...] | TDefault:
     r"""Returns a list of matrices describing the channel for the given value.
 
@@ -149,6 +153,8 @@ def kraus(
         default: Determines the fallback behavior when `val` doesn't have
             a channel. If `default` is not set, a TypeError is raised. If
             default is set to a value, that value is returned.
+        atol: If calculating kraus channels from channels, use this tolerance
+            for determining whether a super-operator is all zeros.
 
     Returns:
         If `val` has a `_kraus_` method and its result is not NotImplemented,
@@ -187,6 +193,9 @@ def kraus(
     if unitary_result is not NotImplemented and unitary_result is not None:
         return (unitary_result,)
 
+    if protocols.has_unitary(val):
+        return (unitary(val),)
+
     channel_result = NotImplemented if channel_getter is None else channel_getter()
     if channel_result is not NotImplemented:
         return tuple(channel_result)  # pragma: no cover
@@ -195,7 +204,7 @@ def kraus(
     # Note: _apply_channel can lead to kraus being called again, so if default
     # is None, this can trigger an infinite loop.
     if default is not None:
-        result = _strat_kraus_from_apply_channel(val)
+        result = _strat_kraus_from_apply_channel(val, atol)
         if result is not None:
             return result
 
