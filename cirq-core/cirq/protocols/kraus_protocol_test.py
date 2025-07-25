@@ -153,9 +153,6 @@ class HasUnitary(cirq.testing.SingleQubitGate):
     def _has_unitary_(self) -> bool:
         return True
 
-    def _unitary_(self) -> np.ndarray:
-        return np.asarray([[1, 0], [0, 1]])
-
 
 class HasKrausWhenDecomposed(cirq.testing.SingleQubitGate):
     def __init__(self, decomposed_cls):
