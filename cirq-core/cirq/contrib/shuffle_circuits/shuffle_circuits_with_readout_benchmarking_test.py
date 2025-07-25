@@ -344,6 +344,95 @@ def test_can_handle_zero_random_bitstring(mode: str):
     assert len(readout_calibration_results.items()) == 0
 
 
+@pytest.mark.parametrize("mode", ["shuffled", "sweep"])
+def test_circuits_with_readout_benchmarking_no_qubits_arg(mode: str):
+    """Test benchmarking when the `qubits` argument is not provided."""
+    qubits = cirq.LineQubit.range(3)
+    sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.2, seed=1234)
+    circuit_repetitions = 1
+    rng = np.random.default_rng()
+    readout_repetitions = 1000
+    num_random_bitstrings = 100
+
+    readout_benchmarking_params = sc_readout.ReadoutBenchmarkingParams(
+        circuit_repetitions=circuit_repetitions,
+        num_random_bitstrings=num_random_bitstrings,
+        readout_repetitions=readout_repetitions,
+    )
+
+    if mode == "shuffled":
+        input_circuits = _create_test_circuits(qubits, 3)
+        measurements, readout_calibration_results = (
+            sc_readout.run_shuffled_circuits_with_readout_benchmarking(
+                sampler, input_circuits, readout_benchmarking_params, rng, qubits=None
+            )
+        )
+        assert len(measurements) == len(input_circuits)
+    else:  # mode == "sweep"
+        input_circuits, sweep_params = _create_test_circuits_with_sweep(qubits, 3)
+        sweep_measurements, readout_calibration_results = (
+            sc_readout.run_sweep_with_readout_benchmarking(
+                sampler, input_circuits, sweep_params, readout_benchmarking_params, rng, qubits=None
+            )
+        )
+        assert len(sweep_measurements) == len(input_circuits)
+
+    # When qubits is None, all qubits from input circuits are benchmarked as one group.
+    assert len(readout_calibration_results) == 1
+    qlist, result = list(readout_calibration_results.items())[0]
+    assert isinstance(qlist, tuple)
+    assert set(qlist) == set(qubits)
+    assert isinstance(result, SingleQubitReadoutCalibrationResult)
+    for error in result.zero_state_errors.values():
+        assert 0.08 < error < 0.12
+    for error in result.one_state_errors.values():
+        assert 0.18 < error < 0.22
+    assert result.repetitions == readout_repetitions
+
+
+def test_deprecated_run_shuffled_with_readout_benchmarking():
+    """Test that the deprecated function works correctly and is covered."""
+    qubits = cirq.LineQubit.range(3)
+    input_circuits = _create_test_circuits(qubits, 3)
+    sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.2, seed=1234)
+    circuit_repetitions = 1
+    readout_repetitions = 1000
+    num_random_bitstrings = 100
+
+    # Test with an integer seed.
+    with cirq.testing.assert_deprecated(deadline='v2.0', count=1):
+        measurements_seed, results_seed = sc_readout.run_shuffled_with_readout_benchmarking(
+            input_circuits=input_circuits,
+            sampler=sampler,
+            circuit_repetitions=circuit_repetitions,
+            rng_or_seed=123,
+            num_random_bitstrings=num_random_bitstrings,
+            readout_repetitions=readout_repetitions,
+            qubits=qubits,
+        )
+    assert len(measurements_seed) == len(input_circuits)
+    qlist, result = list(results_seed.items())[0]
+    assert tuple(qubits) == qlist
+    for error in result.zero_state_errors.values():
+        assert 0.08 < error < 0.12
+    for error in result.one_state_errors.values():
+        assert 0.18 < error < 0.22
+
+    # Test with qubits=None to cover the auto-detection branch.
+    with cirq.testing.assert_deprecated(deadline='v2.0', count=1):
+        _, results_none = sc_readout.run_shuffled_with_readout_benchmarking(
+            input_circuits=input_circuits,
+            sampler=sampler,
+            circuit_repetitions=circuit_repetitions,
+            rng_or_seed=123,
+            num_random_bitstrings=num_random_bitstrings,
+            readout_repetitions=readout_repetitions,
+            qubits=None,
+        )
+    qlist_none, _ = list(results_none.items())[0]
+    assert set(qlist_none) == set(qubits)
+
+
 def test_empty_input_circuits():
     """Test that the input circuits are empty."""
     readout_benchmarking_params = sc_readout.ReadoutBenchmarkingParams(
@@ -391,8 +480,6 @@ def test_no_measurements():
 
 def test_zero_circuit_repetitions():
     """Test that the circuit repetitions are zero."""
-    q = cirq.LineQubit(0)
-
     with pytest.raises(ValueError, match="Must provide non-zero circuit_repetitions."):
         sc_readout.ReadoutBenchmarkingParams(
             circuit_repetitions=0, num_random_bitstrings=5, readout_repetitions=100
@@ -420,7 +507,6 @@ def test_mismatch_circuit_repetitions():
 
 def test_zero_num_random_bitstrings():
     """Test that the number of random bitstrings is smaller than zero."""
-    q = cirq.LineQubit(0)
     with pytest.raises(ValueError, match="Must provide zero or more num_random_bitstrings."):
         sc_readout.ReadoutBenchmarkingParams(
             circuit_repetitions=10, num_random_bitstrings=-1, readout_repetitions=100
@@ -429,7 +515,6 @@ def test_zero_num_random_bitstrings():
 
 def test_zero_readout_repetitions():
     """Test that the readout repetitions is zero."""
-    q = cirq.LineQubit(0)
     with pytest.raises(
         ValueError, match="Must provide non-zero readout_repetitions for readout" + " calibration."
     ):

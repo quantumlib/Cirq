@@ -899,7 +899,7 @@ def test_process_pauli_measurement_results_raises_error_on_missing_calibration()
         _process_pauli_measurement_results(
             qubits,
             [pauli_strings],
-            circuit_results[0],  # type: ignore[arg-type]
+            circuit_results[0],
             empty_calibration_result_dict,  # type: ignore[arg-type]
             1000,
             1.0,
