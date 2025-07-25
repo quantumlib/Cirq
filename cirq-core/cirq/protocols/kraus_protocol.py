@@ -193,7 +193,7 @@ def kraus(
     if unitary_result is not NotImplemented and unitary_result is not None:
         return (unitary_result,)
 
-    if protocols.has_unitary(val):
+    if has_unitary(val):
         return (unitary(val),)
 
     channel_result = NotImplemented if channel_getter is None else channel_getter()
