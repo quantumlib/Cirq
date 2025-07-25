@@ -40,15 +40,11 @@ class ReadoutBenchmarkingParams:
         num_random_bitstrings: The number of random bitstrings for measuring readout.
             If set to 0, no readout calibration circuits are generated.
         readout_repetitions: The number of repetitions for each readout bitstring.
-        qubits: The qubits to benchmark readout errors. If None, all qubits in the
-                input_circuits are used. Can be a list of qubits or a list of tuples
-                of qubits.
     """
 
     circuit_repetitions: int | list[int]
     num_random_bitstrings: int = 100
     readout_repetitions: int = 1000
-    qubits: Optional[Sequence[ops.Qid] | Sequence[Sequence[ops.Qid]]] = None
 
     def __attrs_post_init__(self):
         _validate_benchmarking_setup(
@@ -229,7 +225,7 @@ def _shuffle_circuits(
 
 
 def _analyze_readout_results(
-    unshuffled_readout_measurements: list[ResultDict] | list[study.Result],
+    unshuffled_readout_measurements: Sequence[ResultDict] | Sequence[study.Result],
     random_bitstrings: np.ndarray,
     readout_repetitions: int,
     qubits: list[ops.Qid],
@@ -379,6 +375,7 @@ def run_shuffled_circuits_with_readout_benchmarking(
     input_circuits: list[circuits.Circuit],
     parameters: ReadoutBenchmarkingParams,
     rng_or_seed: np.random.Generator | int,
+    qubits: Optional[Sequence[ops.Qid] | Sequence[Sequence[ops.Qid]]] = None,
 ) -> tuple[Sequence[ResultDict], dict[tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult]]:
     """Run the circuits in a shuffled order with readout error benchmarking.
 
@@ -386,6 +383,9 @@ def run_shuffled_circuits_with_readout_benchmarking(
         sampler: The sampler to use.
         input_circuits: The circuits to run.
         parameters: The readout benchmarking parameters.
+        qubits: The qubits to benchmark readout errors. If None, all qubits in the
+                input_circuits are used. Can be a list of qubits or a list of tuples
+                of qubits.
         rng_or_seed: A random number generator used to generate readout circuits.
                      Or an integer seed.
 
@@ -398,7 +398,7 @@ def run_shuffled_circuits_with_readout_benchmarking(
 
     _validate_experiment_input(input_circuits, parameters.circuit_repetitions, rng_or_seed)
 
-    qubits_to_measure = _determine_qubits_to_measure(input_circuits, parameters.qubits)
+    qubits_to_measure = _determine_qubits_to_measure(input_circuits, qubits)
 
     # Generate the readout calibration circuits if num_random_bitstrings>0
     # Else all_readout_calibration_circuits and all_random_bitstrings are empty
@@ -460,6 +460,7 @@ def run_sweep_with_readout_benchmarking(
     sweep_params: Sequence[study.Sweepable],
     parameters: ReadoutBenchmarkingParams,
     rng_or_seed: np.random.Generator | int,
+    qubits: Optional[Sequence[ops.Qid] | Sequence[Sequence[ops.Qid]]] = None,
 ) -> tuple[
     Sequence[Sequence[study.Result]], dict[tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult]
 ]:
@@ -471,6 +472,9 @@ def run_sweep_with_readout_benchmarking(
         parameters: The readout benchmarking parameters.
         rng_or_seed: A random number generator used to generate readout circuits.
                      Or an integer seed.
+        qubits: The qubits to benchmark readout errors. If None, all qubits in the
+        input_circuits are used. Can be a list of qubits or a list of tuples
+        of qubits.
 
     Returns:
         A tuple containing:
@@ -482,7 +486,7 @@ def run_sweep_with_readout_benchmarking(
         input_circuits, sweep_params, parameters.circuit_repetitions, rng_or_seed
     )
 
-    qubits_to_measure = _determine_qubits_to_measure(input_circuits, parameters.qubits)
+    qubits_to_measure = _determine_qubits_to_measure(input_circuits, qubits)
 
     # Generate the readout calibration circuits (parameterized circuits) and sweep params
     # if num_random_bitstrings>0

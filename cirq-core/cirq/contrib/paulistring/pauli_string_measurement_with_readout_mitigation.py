@@ -23,11 +23,8 @@ from typing import cast, Sequence, TYPE_CHECKING
 import attrs
 import numpy as np
 
-from cirq import circuits, ops, work
-from cirq.contrib.shuffle_circuits import run_shuffled_circuits_with_readout_benchmarking
-from cirq.contrib.shuffle_circuits.shuffle_circuits_with_readout_benchmarking import (
-    ReadoutBenchmarkingParams,
-)
+import cirq.contrib.shuffle_circuits.shuffle_circuits_with_readout_benchmarking as sc_readout
+from cirq import circuits, ops, study, work
 from cirq.experiments.readout_confusion_matrix import TensoredConfusionMatrices
 
 if TYPE_CHECKING:
@@ -291,7 +288,7 @@ def _build_many_one_qubits_empty_confusion_matrix(qubits_length: int) -> list[np
 def _process_pauli_measurement_results(
     qubits: list[ops.Qid],
     pauli_string_groups: list[list[ops.PauliString]],
-    circuit_results: list[ResultDict],
+    circuit_results: list[ResultDict] | Sequence[study.Result],
     calibration_results: dict[tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult],
     pauli_repetitions: int,
     timestamp: float,
@@ -476,16 +473,18 @@ def measure_pauli_strings(
         pauli_measurement_circuits.extend(basis_change_circuits)
 
     # Run shuffled benchmarking for readout calibration
-    circuits_results, calibration_results = run_shuffled_circuits_with_readout_benchmarking(
-        sampler=sampler,
-        input_circuits=pauli_measurement_circuits,
-        parameters=ReadoutBenchmarkingParams(
-            circuit_repetitions=pauli_repetitions,
-            num_random_bitstrings=num_random_bitstrings,
-            readout_repetitions=readout_repetitions,
+    circuits_results, calibration_results = (
+        sc_readout.run_shuffled_circuits_with_readout_benchmarking(
+            sampler=sampler,
+            input_circuits=pauli_measurement_circuits,
+            parameters=sc_readout.ReadoutBenchmarkingParams(
+                circuit_repetitions=pauli_repetitions,
+                num_random_bitstrings=num_random_bitstrings,
+                readout_repetitions=readout_repetitions,
+            ),
+            rng_or_seed=rng_or_seed,
             qubits=[list(qubits) for qubits in qubits_list],
-        ),
-        rng_or_seed=rng_or_seed,
+        )
     )
 
     # Process the results to calculate expectation values
