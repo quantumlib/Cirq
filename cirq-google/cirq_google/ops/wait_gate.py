@@ -61,7 +61,6 @@ class WaitGateWithUnit(cirq.WaitGate):
         self, resolver: cirq.ParamResolver, recursive: bool
     ) -> WaitGateWithUnit:
         if isinstance(self._duration, sympy.Symbol):
-            resolver_ = cirq.ParamResolver(resolver)
-            _duration = su.direct_symbol_replacement(self._duration, resolver_)
+            _duration = su.direct_symbol_replacement(self._duration, resolver)
             return WaitGateWithUnit(_duration, qid_shape=self._qid_shape)
         return self
