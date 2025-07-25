@@ -38,4 +38,6 @@ from cirq_google.ops.dynamical_decoupling_tag import (
     DynamicalDecouplingTag as DynamicalDecouplingTag,
 )
 
+from cirq_google.ops.wait_gate import WaitGateWithUnit as WaitGateWithUnit
+
 from cirq_google.ops.willow_gate import WillowGate as WillowGate, WILLOW as WILLOW

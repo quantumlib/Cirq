@@ -56,6 +56,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
             cirq_google.experimental.PerQubitDepolarizingWithDampedReadoutNoiseModel
         ),
         'SycamoreGate': cirq_google.SycamoreGate,
+        'WaitGateWithUnit': cirq_google.WaitGateWithUnit,
         'WillowGate': cirq_google.WillowGate,
         # cirq_google.GateTabulation has been removed and replaced by cirq.TwoQubitGateTabulation.
         'GateTabulation': TwoQubitGateTabulation,
