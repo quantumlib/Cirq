@@ -249,7 +249,7 @@ def test_reset_channel_kraus_apply_channel_consistency():
 
 
 def test_kraus_channel_with_has_unitary():
-    """CZSWAP is a gate with no unitary but has a unitary."""
+    """CZSWAP has no unitary dunder method but has_unitary returns True."""
     op = cirq.CZSWAP.on(cirq.q(1), cirq.q(2))
     channels = cirq.kraus(op)
     assert len(channels) == 1

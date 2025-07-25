@@ -98,7 +98,12 @@ class SupportsKraus(Protocol):
 
 def _strat_kraus_from_apply_channel(val: Any, atol: float) -> tuple[np.ndarray, ...] | None:
     """Attempts to compute a value's Kraus operators via its _apply_channel_ method.
-    This is very expensive (O(16^N)), so only do this as a last resort."""
+    This is very expensive (O(16^N)), so only do this as a last resort.
+
+    Args:
+        val: value to calculate kraus channels from.
+        atol: Absolute tolerance for super-operator calculation.
+            Matrices with all entries less than this will be dropped."""
     method = getattr(val, '_apply_channel_', None)
     if method is None:
         return None
@@ -153,7 +158,7 @@ def kraus(
         default: Determines the fallback behavior when `val` doesn't have
             a channel. If `default` is not set, a TypeError is raised. If
             default is set to a value, that value is returned.
-        atol: If calculating kraus channels from channels, use this tolerance
+        atol: If calculating Kraus channels from channels, use this tolerance
             for determining whether a super-operator is all zeros.
 
     Returns:
