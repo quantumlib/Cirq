@@ -885,7 +885,7 @@ def test_kraus() -> None:
 
 
 def test_kraus_too_big() -> None:
-    m = cirq.Moment(cirq.IdentityGate(11).on(*cirq.LineQubit.range(11)))
+    m = cirq.Moment(cirq.IdentityGate(11).with_probability(0.5).on(*cirq.LineQubit.range(11)))
     assert not cirq.has_kraus(m)
     assert not m._has_superoperator_()
     assert m._kraus_() is NotImplemented
