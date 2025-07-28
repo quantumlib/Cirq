@@ -154,7 +154,7 @@ class BitMaskKeyCondition(Condition):
         - BitMaskKeyCondition.create_not_equal_mask('a', 13) -> (a & 13) != 13
 
     The bits in the bitmask have the same order as the qubits passed to `cirq.measure(...)`. That's
-    the most significant bit corresponds to the the first (left most) qubit.
+    the most significant bit corresponds to the first (left most) qubit.
 
     Attributes:
         - key: Measurement key.
