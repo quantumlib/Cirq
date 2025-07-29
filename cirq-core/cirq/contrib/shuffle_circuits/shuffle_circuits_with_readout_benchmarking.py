@@ -47,32 +47,24 @@ class ReadoutBenchmarkingParams:
     readout_repetitions: int = 1000
 
     def __attrs_post_init__(self):
-        _validate_benchmarking_setup(
-            self.circuit_repetitions, self.num_random_bitstrings, self.readout_repetitions
-        )
+        # Check circuit_repetitions
+        if isinstance(self.circuit_repetitions, int):
+            if self.circuit_repetitions <= 0:
+                raise ValueError("Must provide non-zero circuit_repetitions.")
 
+        # Check num_random_bitstrings is bigger than or equal to 0
+        if self.num_random_bitstrings < 0:
+            raise ValueError("Must provide zero or more num_random_bitstrings.")
 
-def _validate_benchmarking_setup(
-    circuit_repetitions: int | list[int], num_random_bitstrings: int, readout_repetitions: int
-):
-    # Check circuit_repetitions
-    if isinstance(circuit_repetitions, int):
-        if circuit_repetitions <= 0:
-            raise ValueError("Must provide non-zero circuit_repetitions.")
-
-    # Check num_random_bitstrings is bigger than or equal to 0
-    if num_random_bitstrings < 0:
-        raise ValueError("Must provide zero or more num_random_bitstrings.")
-
-    # Check readout_repetitions is bigger than 0
-    if readout_repetitions <= 0:
-        raise ValueError("Must provide non-zero readout_repetitions for readout calibration.")
+        # Check readout_repetitions is bigger than 0
+        if self.readout_repetitions <= 0:
+            raise ValueError("Must provide non-zero readout_repetitions for readout calibration.")
 
 
 def _validate_experiment_input(
     input_circuits: Sequence[circuits.Circuit],
     circuit_repetitions: int | list[int],
-    rng_or_seed: np.random.Generator | int,
+    rng_or_seed: Optional[np.random.Generator | int] = None,
 ):
     if not input_circuits:
         raise ValueError("Input circuits must not be empty.")
@@ -88,7 +80,11 @@ def _validate_experiment_input(
         raise ValueError("Number of circuit_repetitions must match the number of input circuits.")
 
     # Check rng is a numpy random generator
-    if not isinstance(rng_or_seed, np.random.Generator) and not isinstance(rng_or_seed, int):
+    if (
+        rng_or_seed
+        and not isinstance(rng_or_seed, np.random.Generator)
+        and not isinstance(rng_or_seed, int)
+    ):
         raise ValueError("Must provide a numpy random generator or a seed")
 
 
@@ -96,7 +92,7 @@ def _validate_experiment_input_with_sweep(
     input_circuits: Sequence[circuits.Circuit],
     sweep_params: Sequence[study.Sweepable],
     circuit_repetitions: int | list[int],
-    rng_or_seed: np.random.Generator | int,
+    rng_or_seed: Optional[np.random.Generator | int] = None,
 ):
     """Validates the input for the run_sweep_with_readout_benchmarking function."""
     if not sweep_params:
@@ -316,7 +312,18 @@ def run_shuffled_with_readout_benchmarking(
 
     """
 
-    _validate_benchmarking_setup(circuit_repetitions, num_random_bitstrings, readout_repetitions)
+    # Check circuit_repetitions
+    if isinstance(circuit_repetitions, int):
+        if circuit_repetitions <= 0:
+            raise ValueError("Must provide non-zero circuit_repetitions.")
+
+    # Check num_random_bitstrings is bigger than or equal to 0
+    if num_random_bitstrings < 0:
+        raise ValueError("Must provide zero or more num_random_bitstrings.")
+
+    # Check readout_repetitions is bigger than 0
+    if readout_repetitions <= 0:
+        raise ValueError("Must provide non-zero readout_repetitions for readout calibration.")
     _validate_experiment_input(input_circuits, circuit_repetitions, rng_or_seed)
 
     qubits_to_measure = _determine_qubits_to_measure(input_circuits, qubits)
@@ -374,8 +381,8 @@ def run_shuffled_circuits_with_readout_benchmarking(
     sampler: work.Sampler,
     input_circuits: list[circuits.Circuit],
     parameters: ReadoutBenchmarkingParams,
-    rng_or_seed: np.random.Generator | int,
     qubits: Optional[Sequence[ops.Qid] | Sequence[Sequence[ops.Qid]]] = None,
+    rng_or_seed: Optional[np.random.Generator | int] = None,
 ) -> tuple[Sequence[ResultDict], dict[tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult]]:
     """Run the circuits in a shuffled order with readout error benchmarking.
 
@@ -459,8 +466,8 @@ def run_sweep_with_readout_benchmarking(
     input_circuits: list[circuits.Circuit],
     sweep_params: Sequence[study.Sweepable],
     parameters: ReadoutBenchmarkingParams,
-    rng_or_seed: np.random.Generator | int,
     qubits: Optional[Sequence[ops.Qid] | Sequence[Sequence[ops.Qid]]] = None,
+    rng_or_seed: Optional[np.random.Generator | int] = None,
 ) -> tuple[
     Sequence[Sequence[study.Result]], dict[tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult]
 ]:
@@ -470,11 +477,11 @@ def run_sweep_with_readout_benchmarking(
         input_circuits: The circuits to run.
         sweep_params: The sweep parameters for the input circuits.
         parameters: The readout benchmarking parameters.
-        rng_or_seed: A random number generator used to generate readout circuits.
-                     Or an integer seed.
         qubits: The qubits to benchmark readout errors. If None, all qubits in the
         input_circuits are used. Can be a list of qubits or a list of tuples
         of qubits.
+        rng_or_seed: A random number generator used to generate readout circuits.
+                     Or an integer seed.
 
     Returns:
         A tuple containing:
@@ -524,10 +531,9 @@ def run_sweep_with_readout_benchmarking(
 
     # Analyze results
     readout_calibration_results = {}
-    i = 0
-    for qubit_group, random_bitstrings in zip(qubits_to_measure, all_random_bitstrings):
-        group_measurements = readout_measurements[i]
-        i += 1
+    for qubit_group, random_bitstrings, group_measurements in zip(
+        qubits_to_measure, all_random_bitstrings, readout_measurements
+    ):
 
         calibration_result = _analyze_readout_results(
             group_measurements,

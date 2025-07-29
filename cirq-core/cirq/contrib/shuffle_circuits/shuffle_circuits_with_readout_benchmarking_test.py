@@ -94,7 +94,7 @@ def _circuits_with_readout_benchmarking_errors_shuffled(
 ):
     measurements, readout_calibration_results = (
         sc_readout.run_shuffled_circuits_with_readout_benchmarking(
-            sampler, input_circuits, parameters, rng_or_seed, qubits
+            sampler, input_circuits, parameters, qubits, rng_or_seed
         )
     )
 
@@ -113,7 +113,7 @@ def _circuits_with_readout_benchmarking_errors_sweep(
 ):
     sweep_measurements, readout_calibration_results = (
         sc_readout.run_sweep_with_readout_benchmarking(
-            sampler, input_circuits, sweep_params, parameters, rng_or_seed, qubits
+            sampler, input_circuits, sweep_params, parameters, qubits, rng_or_seed
         )
     )
 
@@ -345,12 +345,11 @@ def test_can_handle_zero_random_bitstring(mode: str):
 
 
 @pytest.mark.parametrize("mode", ["shuffled", "sweep"])
-def test_circuits_with_readout_benchmarking_no_qubits_arg(mode: str):
+def test_circuits_with_readout_benchmarking_no_qubits_arg_empty_rng(mode: str):
     """Test benchmarking when the `qubits` argument is not provided."""
     qubits = cirq.LineQubit.range(3)
     sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.2, seed=1234)
     circuit_repetitions = 1
-    rng = np.random.default_rng()
     readout_repetitions = 1000
     num_random_bitstrings = 100
 
@@ -364,7 +363,7 @@ def test_circuits_with_readout_benchmarking_no_qubits_arg(mode: str):
         input_circuits = _create_test_circuits(qubits, 3)
         measurements, readout_calibration_results = (
             sc_readout.run_shuffled_circuits_with_readout_benchmarking(
-                sampler, input_circuits, readout_benchmarking_params, rng, qubits=None
+                sampler, input_circuits, readout_benchmarking_params, None, None
             )
         )
         assert len(measurements) == len(input_circuits)
@@ -372,7 +371,7 @@ def test_circuits_with_readout_benchmarking_no_qubits_arg(mode: str):
         input_circuits, sweep_params = _create_test_circuits_with_sweep(qubits, 3)
         sweep_measurements, readout_calibration_results = (
             sc_readout.run_sweep_with_readout_benchmarking(
-                sampler, input_circuits, sweep_params, readout_benchmarking_params, rng, qubits=None
+                sampler, input_circuits, sweep_params, readout_benchmarking_params, None, None
             )
         )
         assert len(sweep_measurements) == len(input_circuits)
