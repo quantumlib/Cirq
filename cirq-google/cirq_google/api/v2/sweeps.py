@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import gzip
 import numbers
 from typing import Any, Callable, cast, TYPE_CHECKING
 
@@ -321,7 +322,11 @@ def metadata_from_proto(metadata_pb: run_context_pb2.Metadata) -> Metadata:
 
 
 def run_context_to_proto(
-    sweepable: cirq.Sweepable, repetitions: int, *, out: run_context_pb2.RunContext | None = None
+    sweepable: cirq.Sweepable,
+    repetitions: int,
+    *,
+    out: run_context_pb2.RunContext | None = None,
+    compress_proto: bool = False,
 ) -> run_context_pb2.RunContext:
     """Populates a RunContext protobuf message.
 
@@ -330,14 +335,23 @@ def run_context_to_proto(
         repetitions: The number of repetitions for the run context.
         out: Optional message to be populated. If not given, a new message will
             be created.
+        compress_proto: If set to `True` the function will gzip the proto and
+            store the contents in the bytes field.
 
     Returns:
         Populated RunContext protobuf message.
     """
     if out is None:
         out = run_context_pb2.RunContext()
+    if compress_proto:
+        uncompressed_wrapper = out
+        out = run_context_pb2.RunContext()
     for sweep in cirq.to_sweeps(sweepable):
         sweep_proto = out.parameter_sweeps.add()
         sweep_proto.repetitions = repetitions
         sweep_to_proto(sweep, out=sweep_proto.sweep)
+    if compress_proto:
+        raw_bytes = out.SerializeToString()
+        uncompressed_wrapper.compressed_run_context = gzip.compress(raw_bytes)
+        return uncompressed_wrapper
     return out
