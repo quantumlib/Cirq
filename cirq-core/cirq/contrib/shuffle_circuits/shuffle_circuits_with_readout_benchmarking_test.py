@@ -431,6 +431,44 @@ def test_deprecated_run_shuffled_with_readout_benchmarking():
     qlist_none, _ = list(results_none.items())[0]
     assert set(qlist_none) == set(qubits)
 
+    # Test circuit_repetitions must be > 0
+    with cirq.testing.assert_deprecated(deadline="v2.0", count=1):
+        with pytest.raises(ValueError, match="Must provide non-zero circuit_repetitions."):
+            sc_readout.run_shuffled_with_readout_benchmarking(
+                input_circuits,
+                sampler,
+                circuit_repetitions=0,
+                num_random_bitstrings=5,
+                readout_repetitions=100,
+                rng_or_seed=123,
+            )
+
+    # Test num_random_bitstrings must be >= 0
+    with cirq.testing.assert_deprecated(deadline="v2.0", count=1):
+        with pytest.raises(ValueError, match="Must provide zero or more num_random_bitstrings."):
+            sc_readout.run_shuffled_with_readout_benchmarking(
+                input_circuits,
+                sampler,
+                circuit_repetitions=10,
+                num_random_bitstrings=-1,
+                readout_repetitions=100,
+                rng_or_seed=123,
+            )
+
+    # Test readout_repetitions must be > 0
+    with cirq.testing.assert_deprecated(deadline="v2.0", count=1):
+        with pytest.raises(
+            ValueError, match="Must provide non-zero readout_repetitions for readout calibration."
+        ):
+            sc_readout.run_shuffled_with_readout_benchmarking(
+                input_circuits,
+                sampler,
+                circuit_repetitions=10,
+                num_random_bitstrings=1,
+                readout_repetitions=0,
+                rng_or_seed=123,
+            )
+
 
 def test_empty_input_circuits():
     """Test that the input circuits are empty."""
