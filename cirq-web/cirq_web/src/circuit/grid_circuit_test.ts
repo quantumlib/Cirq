@@ -142,24 +142,26 @@ describe('GridCircuit', () => {
 
     const circuit = new GridCircuit(moments, symbols);
     it('creates the correct number of GridQubit children', () => {
-      const qubits = circuit.children.filter(child => child.constructor.name === 'GridQubit');
+      const qubits = circuit.children.filter(
+        child => child.constructor.name === 'GridQubit'
+      );
       expect(qubits.length).to.equal(1);
     });
 
     it('creates GeneralOperation objects for each foreign symbol', () => {
       const generalOps = circuit.children.filter(
-        child => child.constructor.name === 'GeneralOperation',
+        child => child.constructor.name === 'GeneralOperation'
       );
       expect(generalOps.length).to.equal(3);
     });
 
     it('places foreign symbols on a new row below the qubit', () => {
       const generalOps = circuit.children.filter(
-        child => child.constructor.name === 'GeneralOperation',
+        child => child.constructor.name === 'GeneralOperation'
       ) as GeneralOperation[];
 
       // There is 1 qubit at row 0. Padding factor defaults to 1.
-      // The new row should be max_row + padding + 1 = 0 + 1 + 1 = 2.
+      // The new row should be max_row + padding + 1 = 0 + 1 + 1 = 2
       const expectedRow = 2;
       for (const op of generalOps) {
         expect(op.row).to.equal(expectedRow);
@@ -168,7 +170,7 @@ describe('GridCircuit', () => {
 
     it('places symbols from the same moment in adjacent columns', () => {
       const generalOps = circuit.children.filter(
-        child => child.constructor.name === 'GeneralOperation',
+        child => child.constructor.name === 'GeneralOperation'
       ) as GeneralOperation[];
 
       const opsInMoment0 = generalOps.filter(op => {
@@ -185,7 +187,7 @@ describe('GridCircuit', () => {
 
     it('resets column placement for each new moment', () => {
       const generalOps = circuit.children.filter(
-        child => child.constructor.name === 'GeneralOperation',
+        child => child.constructor.name === 'GeneralOperation'
       ) as GeneralOperation[];
 
       const opsInMoment1 = generalOps.filter(op => {
@@ -195,6 +197,36 @@ describe('GridCircuit', () => {
 
       expect(opsInMoment1.length).to.equal(1);
       expect(opsInMoment1[0].col).to.equal(0);
+    });
+  });
+
+  describe('when a circuit contains only symbols with no location info', () => {
+    const moments = 1;
+    const symbols: SymbolInformation[] = [
+      {
+        wire_symbols: ['H'],
+        location_info: [],
+        color_info: ['red'],
+        moment: 0,
+      },
+    ];
+
+    const circuit = new GridCircuit(moments, symbols);
+
+    it('creates only GeneralOperation children', () => {
+      const generalOps = circuit.children.filter(
+        child => child.constructor.name === 'GeneralOperation'
+      );
+      const qubits = circuit.children.filter(
+        child => child.constructor.name === 'GridQubit'
+      );
+      expect(generalOps.length).to.equal(1);
+      expect(qubits.length).to.equal(0);
+    });
+
+    it('places the foreign symbol at row 0', () => {
+      const generalOp = circuit.children[0] as GeneralOperation;
+      expect(generalOp.row).to.equal(0);
     });
   });
 });
