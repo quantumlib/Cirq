@@ -13,6 +13,7 @@
 // limitations under the License.
 import {Group} from 'three';
 import {GridQubit} from './components/grid_qubit';
+import {GeneralOperation} from './components/general_operation';
 import {Symbol3D, SymbolInformation} from './components/types';
 
 /**
@@ -25,6 +26,8 @@ export class GridCircuit extends Group {
   // rows to <column, GridQubit> pairs.
   private qubit_map: Map<number, Map<number, GridQubit>>;
   private padding_factor: number;
+  public foreign_symbols: SymbolInformation[];
+
   /**
    * Class constructor
    * @param initial_num_moments The number of moments of the circuit. This
@@ -37,8 +40,13 @@ export class GridCircuit extends Group {
     super();
     this.padding_factor = padding_factor;
     this.qubit_map = new Map();
+    this.foreign_symbols = [];
 
     for (const symbol of symbols) {
+      if (symbol.location_info.length == 0) {
+        this.foreign_symbols.push(symbol);
+        continue; 
+      }
       // Being accurate is more important than speed here, so
       // traversing through each object isn't a big deal.
       // However, this logic can be changed if needed to avoid redundancy.
@@ -50,6 +58,10 @@ export class GridCircuit extends Group {
         this.addQubit(coordinate.row, coordinate.col, initial_num_moments);
       }
       this.addSymbol(symbol, initial_num_moments);
+    }
+
+    if (this.foreign_symbols.length > 0) {
+      this.resolveForeignSymbols(initial_num_moments, padding_factor);
     }
   }
 
@@ -97,5 +109,26 @@ export class GridCircuit extends Group {
       return innerMap.has(col);
     }
     return false;
+  }
+
+  private resolveForeignSymbols(initial_num_moments: number, padding_factor: number) {
+    // Foreign symbols separated addtl. to look distinct from qubits
+    let currentRow = this.qubit_map.size > 0 ? 
+      Math.max(...this.qubit_map.keys()) + padding_factor + 1 : 0;
+
+    for (let moment = 0; moment < initial_num_moments; moment++) {
+      const symbolsInMoment = this.foreign_symbols.filter(s => s.moment === moment);
+      
+      symbolsInMoment.forEach((symbol, col) => {
+        const newSymbol = new Symbol3D({
+          ...symbol,
+          location_info: [{row: currentRow, col}]
+        }, this.padding_factor);
+
+        const operation = new GeneralOperation(currentRow, col);
+        operation.addSymbol(newSymbol);
+        this.add(operation);
+      });
+    }
   }
 }
