@@ -13,9 +13,7 @@
 # limitations under the License.
 
 import random
-from typing import Any, Iterable, Iterator
-
-import sympy
+from typing import Any, Iterator
 
 import cirq
 from cirq.study.sweeps import SingleSweep
@@ -89,7 +87,8 @@ class FiniteRandomVariable(SingleSweep):
     def __repr__(self) -> str:
         metadata_repr = f', metadata={self.metadata!r}' if self.metadata is not None else ""
         return (
-            f'cirq_google.study.FiniteRandomVariable({self.key!r}, distribution={self.distribution!r}, '
+            f'cirq_google.study.FiniteRandomVariable({self.key!r}, '
+            f'distribution={self.distribution!r}, '
             f'seed={self.seed!r}, length={self.length!r}{metadata_repr})'
         )
 

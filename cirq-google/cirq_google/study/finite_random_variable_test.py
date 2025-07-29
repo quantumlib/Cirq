@@ -99,8 +99,6 @@ def test_rng_state_is_restored():
     """Ensures the sweep does not affect the global random number generator state."""
     global_seed = 123
     random.seed(global_seed)
-    # Generate a control value from the global RNG
-    control_value = random.random()
 
     # Create and iterate over a sweep with a different, independent seed
     sweep_seed = 999
