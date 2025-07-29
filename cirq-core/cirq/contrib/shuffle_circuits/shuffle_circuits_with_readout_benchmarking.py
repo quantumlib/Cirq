@@ -79,14 +79,6 @@ def _validate_experiment_input(
     if isinstance(circuit_repetitions, list) and len(circuit_repetitions) != len(input_circuits):
         raise ValueError("Number of circuit_repetitions must match the number of input circuits.")
 
-    # Check rng is a numpy random generator
-    if (
-        rng_or_seed
-        and not isinstance(rng_or_seed, np.random.Generator)
-        and not isinstance(rng_or_seed, int)
-    ):
-        raise ValueError("Must provide a numpy random generator or a seed")
-
 
 def _validate_experiment_input_with_sweep(
     input_circuits: Sequence[circuits.Circuit],

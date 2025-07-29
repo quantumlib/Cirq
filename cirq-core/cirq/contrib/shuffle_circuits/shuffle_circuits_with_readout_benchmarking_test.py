@@ -560,22 +560,6 @@ def test_zero_readout_repetitions():
         )
 
 
-def test_rng_type_mismatch():
-    """Test that the rng is not a numpy random generator or a seed."""
-    q = cirq.LineQubit(0)
-    circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
-    readout_benchmarking_params = sc_readout.ReadoutBenchmarkingParams(
-        circuit_repetitions=10, num_random_bitstrings=5, readout_repetitions=100
-    )
-    with pytest.raises(ValueError, match="Must provide a numpy random generator or a seed"):
-        sc_readout.run_shuffled_circuits_with_readout_benchmarking(
-            cirq.ZerosSampler(),
-            [circuit],
-            readout_benchmarking_params,
-            rng_or_seed="not a random generator or seed",
-        )
-
-
 def test_empty_sweep_params():
     """Test that the sweep params are empty."""
     q = cirq.LineQubit(5)
