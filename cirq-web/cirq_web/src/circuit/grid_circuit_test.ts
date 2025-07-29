@@ -142,22 +142,20 @@ describe('GridCircuit', () => {
 
     const circuit = new GridCircuit(moments, symbols);
     it('creates the correct number of GridQubit children', () => {
-      const qubits = circuit.children.filter(
-        child => child.constructor.name === 'GridQubit'
-      );
+      const qubits = circuit.children.filter(child => child.constructor.name === 'GridQubit');
       expect(qubits.length).to.equal(1);
     });
 
     it('creates GeneralOperation objects for each foreign symbol', () => {
       const generalOps = circuit.children.filter(
-        child => child.constructor.name === 'GeneralOperation'
+        child => child.constructor.name === 'GeneralOperation',
       );
       expect(generalOps.length).to.equal(3);
     });
 
     it('places foreign symbols on a new row below the qubit', () => {
       const generalOps = circuit.children.filter(
-        child => child.constructor.name === 'GeneralOperation'
+        child => child.constructor.name === 'GeneralOperation',
       ) as GeneralOperation[];
 
       // There is 1 qubit at row 0. Padding factor defaults to 1.
@@ -170,7 +168,7 @@ describe('GridCircuit', () => {
 
     it('places symbols from the same moment in adjacent columns', () => {
       const generalOps = circuit.children.filter(
-        child => child.constructor.name === 'GeneralOperation'
+        child => child.constructor.name === 'GeneralOperation',
       ) as GeneralOperation[];
 
       const opsInMoment0 = generalOps.filter(op => {
@@ -187,7 +185,7 @@ describe('GridCircuit', () => {
 
     it('resets column placement for each new moment', () => {
       const generalOps = circuit.children.filter(
-        child => child.constructor.name === 'GeneralOperation'
+        child => child.constructor.name === 'GeneralOperation',
       ) as GeneralOperation[];
 
       const opsInMoment1 = generalOps.filter(op => {
@@ -215,11 +213,9 @@ describe('GridCircuit', () => {
 
     it('creates only GeneralOperation children', () => {
       const generalOps = circuit.children.filter(
-        child => child.constructor.name === 'GeneralOperation'
+        child => child.constructor.name === 'GeneralOperation',
       );
-      const qubits = circuit.children.filter(
-        child => child.constructor.name === 'GridQubit'
-      );
+      const qubits = circuit.children.filter(child => child.constructor.name === 'GridQubit');
       expect(generalOps.length).to.equal(1);
       expect(qubits.length).to.equal(0);
     });
