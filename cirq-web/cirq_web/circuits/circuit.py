@@ -79,7 +79,6 @@ class Circuit3D(widget.Widget):
             viz_{stripped_id}.scene.toggleCamera(viz_{stripped_id}.circuit);
             }});
 
-            console.log(viz_{stripped_id});
             if (viz_{stripped_id}.circuit.foreign_symbols.length > 0) {{
                 const wrapper = document.getElementById("foreign-symbols-wrapper-{stripped_id}");
                 const list = document.getElementById("foreign-symbols-list-{stripped_id}");
