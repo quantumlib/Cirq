@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
 import pytest
 import sympy
 
@@ -140,10 +139,11 @@ def test_float_precision_exponents():
     assert r"X^{0.0}" in latex_int_exp  # 0.12345 rounded to 0
     assert r"Y^{0.0}" in latex_int_exp  # 0.5 is still 0.5 if not integer
 
+
 def test_qubit_order():
     qubits = cirq.LineQubit.range(4)
     circuit = cirq.Circuit(cirq.X.on_each(*qubits))
-    qubit_order = cirq.QubitOrder.explicit([qubits[3],qubits[2],qubits[1], qubits[0]])
+    qubit_order = cirq.QubitOrder.explicit([qubits[3], qubits[2], qubits[1], qubits[0]])
     converter = CircuitToQuantikz(circuit, qubit_order=qubit_order)
     latex_code = converter.generate_latex_document()
     q3 = latex_code.find("q(3)")

@@ -65,13 +65,11 @@ from __future__ import annotations
 
 import math
 import warnings
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Optional
 
-import numpy as np
 import sympy
 
-from cirq import circuits, devices, ops, protocols
+from cirq import circuits, ops, protocols
 
 __all__ = ["CircuitToQuantikz", "DEFAULT_PREAMBLE_TEMPLATE", "GATE_STYLES_COLORFUL"]
 
@@ -137,8 +135,8 @@ GATE_STYLES_COLORFUL = {
 
 
 # Initialize gate maps globally as recommended
-_SIMPLE_GATE_MAP: Dict[Type[ops.Gate], str] = {ops.MeasurementGate: "Measure"}
-_EXPONENT_GATE_MAP: Dict[Type[ops.Gate], str] = {
+_SIMPLE_GATE_MAP: dict[type[ops.Gate], str] = {ops.MeasurementGate: "Measure"}
+_EXPONENT_GATE_MAP: dict[type[ops.Gate], str] = {
     ops.XPowGate: "X",
     ops.YPowGate: "Y",
     ops.ZPowGate: "Z",
@@ -158,7 +156,7 @@ _GATE_NAME_MAP = {
     "CX": r"\mathrm{CX}",
     "iSwap": r"i\mathrm{SWAP}",
 }
-_PARAMETERIZED_GATE_BASE_NAMES: Dict[Type[ops.Gate], str] = {}
+_PARAMETERIZED_GATE_BASE_NAMES: dict[type[ops.Gate], str] = {}
 _param_gate_specs = [
     ("Rx", getattr(ops, "Rx", None)),
     ("Ry", getattr(ops, "Ry", None)),
@@ -224,17 +222,17 @@ class CircuitToQuantikz:
         self,
         circuit: circuits.Circuit,
         *,
-        gate_styles: Optional[Dict[str, str]] = None,
+        gate_styles: Optional[dict[str, str]] = None,
         quantikz_options: Optional[str] = None,
         fold_at: Optional[int] = None,
         custom_preamble: str = "",
         custom_postamble: str = "",
         wire_labels: str = "qid",
         show_parameters: bool = True,
-        gate_name_map: Optional[Dict[str, str]] = None,
+        gate_name_map: Optional[dict[str, str]] = None,
         float_precision_exps: int = 2,
         float_precision_angles: int = 2,
-        qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ):
         if not circuit:
             raise ValueError("Input circuit cannot be empty.")
@@ -257,7 +255,7 @@ class CircuitToQuantikz:
         self.float_precision_exps = float_precision_exps
         self.float_precision_angles = float_precision_angles
 
-    def _map_qubits_to_indices(self) -> Dict[ops.Qid, int]:
+    def _map_qubits_to_indices(self) -> dict[ops.Qid, int]:
         """Creates a mapping from `cirq.Qid` objects to their corresponding
         integer indices based on the sorted qubit order.
 
@@ -337,7 +335,7 @@ class CircuitToQuantikz:
                     else:
                         # Format to specified precision for rounding
                         rounded_str = format(py_float, float_format_string)
-                        # Convert back to float and then to string to remove unnecessary trailing zeros
+                        # Convert back to float then to string to remove unnecessary trailing zeros
                         exp_str = str(float(rounded_str))
                 except (TypeError, ValueError, AttributeError, sympy.SympifyError):
                     # Fallback to Sympy's string representation if conversion fails
@@ -391,7 +389,10 @@ class CircuitToQuantikz:
                     if (op_idx := s_diag.find("(")) != -1 and (
                         cp_idx := s_diag.rfind(")")
                     ) > op_idx:
-                        return f"{mapped_name}({self._format_exponent_for_display(s_diag[op_idx+1:cp_idx])})"
+                        return (
+                            f"{mapped_name}"
+                            f"({self._format_exponent_for_display(s_diag[op_idx+1:cp_idx])})"
+                        )
             except (ValueError, AttributeError, IndexError):
                 # Fallback to default string representation if diagram info parsing fails.
                 pass
@@ -423,7 +424,10 @@ class CircuitToQuantikz:
                             isinstance(gate, ops.CZPowGate) and name_cand == "@"
                         )
                         if needs_recon:
-                            name_cand = f"{recon_base}^{{{self._format_exponent_for_display(gate.exponent)}}}"
+                            name_cand = (
+                                f"{recon_base}^"
+                                f"{{{self._format_exponent_for_display(gate.exponent)}}}"
+                            )
 
                 fmt_name = name_cand.replace("π", r"\pi")
                 if "_" in fmt_name and "\\" not in fmt_name:
@@ -465,7 +469,7 @@ class CircuitToQuantikz:
     def _get_quantikz_options_string(self) -> str:
         return f"[{self.quantikz_options}]" if self.quantikz_options else ""
 
-    def _render_operation(self, op: ops.Operation) -> Dict[int, str]:
+    def _render_operation(self, op: ops.Operation) -> dict[int, str]:
         """Renders a single Cirq operation into its Quantikz LaTeX string representation.
 
         Handles various gate types, including single-qubit gates, multi-qubit gates,
@@ -729,7 +733,8 @@ class CircuitToQuantikz:
             A string containing the full LaTeX document, ready to be compiled.
         """
         preamble = preamble_template or DEFAULT_PREAMBLE_TEMPLATE
-        preamble += f"\n% --- Custom Preamble Injection Point ---\n{self.custom_preamble}\n% --- End Custom Preamble ---\n"
+        preamble += "\n% --- Custom Preamble Injection Point ---\n"
+        preamble += f"{self.custom_preamble}\n% --- End Custom Preamble ---\n"
         doc_parts = [preamble, "\\begin{document}", self._generate_latex_body()]
         if self.custom_postamble:
             doc_parts.extend(

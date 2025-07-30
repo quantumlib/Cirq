@@ -34,23 +34,19 @@ dynamic quantum processes or circuit transformations.
 
 from __future__ import annotations
 
-import inspect
 import io
-import math
-import os
 import shutil
 import subprocess
 import tempfile
 import traceback
 import warnings
 from pathlib import Path
-from typing import Any, Sequence, Type
+from typing import Any
 
 import numpy as np
-import sympy
 
 # Import individual Cirq packages as recommended for internal Cirq code
-from cirq import circuits, devices, ops, protocols, study
+from cirq import circuits, ops
 
 # Use absolute import for the sibling module
 from cirq.vis.circuit_to_latex_quantikz import CircuitToQuantikz
@@ -101,7 +97,7 @@ def render_circuit(
     show_parameters: bool = True,
     gate_name_map: dict[str, str] | None = None,
     float_precision_exps: int = 2,
-    qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+    qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     **kwargs: Any,
 ) -> str | Image | None:
     r"""Renders a Cirq circuit to a LaTeX diagram, compiles it, and optionally displays it.
@@ -223,7 +219,8 @@ def render_circuit(
             "'pdflatex' not found. Cannot compile LaTeX. "
             "Please install a LaTeX distribution (e.g., TeX Live, MiKTeX) "
             "and ensure pdflatex is in your PATH. "
-            "On Ubuntu/Debian: `sudo apt-get install texlive-full` (or `texlive-base` for minimal). "
+            "On Ubuntu/Debian: `sudo apt-get install texlive-full` "
+            "(or `texlive-base` for minimal). "
             "On macOS: `brew install --cask mactex` (or `brew install texlive` for minimal). "
             "On Windows: Download and install MiKTeX or TeX Live."
         )
@@ -234,7 +231,8 @@ def render_circuit(
             "This tool is part of the Poppler utilities. "
             "On Ubuntu/Debian: `sudo apt-get install poppler-utils`. "
             "On macOS: `brew install poppler`. "
-            "On Windows: Download Poppler for Windows (e.g., from Poppler for Windows GitHub releases) "
+            "On Windows: Download Poppler for Windows "
+            "(e.g., from Poppler for Windows GitHub releases) "
             "and add its `bin` directory to your system PATH."
         )
         run_pdftoppm = False  # Disable dependent step
@@ -317,7 +315,8 @@ def render_circuit(
                         log_file = tmp_tex_path.with_suffix(".log")
                         if log_file.exists():
                             print(
-                                f"--- Tail of {log_file.name} ---\n{log_file.read_text(errors='ignore')[-2000:]}"
+                                f"--- Tail of {log_file.name} ---\n"
+                                f"{log_file.read_text(errors='ignore')[-2000:]}"
                             )
                         else:
                             if proc.stdout:
@@ -331,7 +330,8 @@ def render_circuit(
                         log_file = tmp_tex_path.with_suffix(".log")
                         if log_file.exists():
                             print(
-                                f"--- Tail of {log_file.name} ---\n{log_file.read_text(errors='ignore')[-2000:]}"
+                                f"--- Tail of {log_file.name} ---\n"
+                                f"{log_file.read_text(errors='ignore')[-2000:]}"
                             )
                         break
                     elif tmp_pdf_path.is_file():
@@ -354,7 +354,7 @@ def render_circuit(
                 cmd_ppm = [
                     pdftoppm_exec,
                     "-png",
-                    f"-r",
+                    "-r",
                     str(dpi),
                     "-singlefile",  # Ensures single output file for single-page PDFs
                     str(tmp_pdf_path),
@@ -408,7 +408,8 @@ def render_circuit(
                 except Exception as e:
                     print(f"Error copying .png file to final path: {e}")
             elif png_generated and tmp_png_path.exists() and not final_png_path:
-                # If PNG was generated but no specific output_png_path, use the temp path for display
+                # If PNG was generated but no specific output_png_path,
+                # use the temp path for display
                 final_output_path_for_display = tmp_png_path
 
             jupyter_image_object: Image | None = None
@@ -425,8 +426,9 @@ def render_circuit(
                     try:
                         # Check if running in a Jupyter-like environment that supports display
                         # get_ipython() returns a shell object if in IPython, None otherwise.
-                        # ZMQInteractiveShell is for Jupyter notebooks, TerminalInteractiveShell for IPython console.
-                        sh_obj = get_ipython()  # noqa: E1111
+                        # ZMQInteractiveShell is for Jupyter notebooks,
+                        # TerminalInteractiveShell for IPython console.
+                        sh_obj = get_ipython()
                         if (
                             sh_obj is not None
                             and sh_obj.__class__.__name__ == "ZMQInteractiveShell"
@@ -437,7 +439,8 @@ def render_circuit(
                             _debug_print("PNG displayed in Jupyter notebook.")
                         else:
                             _debug_print(
-                                "Not in a ZMQInteractiveShell (Jupyter notebook). PNG not displayed inline."
+                                "Not in a ZMQInteractiveShell (Jupyter notebook). "
+                                "PNG not displayed inline."
                             )
                             # Still create Image object if it might be returned later
                             jupyter_image_object = Image(
@@ -523,8 +526,9 @@ def create_gif_from_ipython_images(
             # Ensure image is in RGB/RGBA for broad compatibility before making it a numpy array.
             # GIF supports palette ('P') directly, but converting to RGB first can be safer
             # if complex palettes or transparency are involved and imageio's handling is unknown.
-            # However, for GIFs, 'P' mode with a good palette is often preferred for smaller file sizes.
-            # Let's try to keep 'P' if possible, but convert RGBA to RGB as GIFs don't support full alpha well.
+            # However, for GIFs, 'P' mode with a good palette is often
+            # preferred for smaller file sizes. Let's try to keep 'P' if possible,
+            # but convert RGBA to RGB as GIFs don't support full alpha well.
             if pil_img_file.mode == "RGBA":
                 # Create a white background image
                 background = PILImage.new("RGB", pil_img_file.size, (255, 255, 255))
