@@ -1184,13 +1184,30 @@ class EngineClient:
 
     async def get_quantum_processor_config_by_snapshot_id_async(self,
         project_id: str, processor_id: str, config_id: str, snapshot_id: str
-    ) -> quantum.QuantumProcessorConfig:
-        request = quantum.GetQuantumProcessorConfigRequest(
-            name=_quantum_processor_name_with_snapshot_id(
-                project_id=project_id, processor_id=processor_id, snapshot_id=snapshot_id, config_id=config_id
-            )
-        )
-        return await self._send_request_async(self.grpc_client.get_quantum_processor_config, request)
+    ) -> quantum.QuantumProcessorConfig | None:
+        """Returns the QuantumProcessorConfig for the given snapshot id.
+
+        Args:
+            project_id: A project_id of the parent Google Cloud Project.
+            processor_id: The processor unique identifier.
+            config_id: The id of the quantum processor config.
+            snapshot_id: The id of the snapshot that contains the quantum processor config.
+
+        Returns:
+            The quantum procesor config or None if it does not exist.
+
+        Raises:
+            EngineException: If the request to get the config fails.
+        """
+        try:
+            name = _quantum_processor_name_with_snapshot_id(
+                project_id=project_id, processor_id=processor_id, snapshot_id=snapshot_id, config_id=config_id)
+            request = quantum.GetQuantumProcessorConfigRequest(name=name)
+            return await self._send_request_async(self.grpc_client.get_quantum_processor_config, request)
+        except EngineException as err:
+            if isinstance(err.__cause__, NotFound):
+                return None
+            raise
 
     get_quantum_processor_config_by_snapshot_id = duet.sync(get_quantum_processor_config_by_snapshot_id_async)
     
