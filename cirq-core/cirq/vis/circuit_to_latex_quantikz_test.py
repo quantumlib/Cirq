@@ -28,10 +28,23 @@ def test_empty_circuit_raises_value_error():
         CircuitToQuantikz(empty_circuit)
 
 
+def test_circuit_no_qubits_raises_value_error():
+    """Test that a circuit with no qubits raises a ValueError."""
+    empty_circuit = cirq.Circuit(cirq.global_phase_operation(-1))
+    with pytest.raises(ValueError, match="Circuit contains no qubits."):
+        CircuitToQuantikz(empty_circuit)
+
+
 def test_basic_circuit_conversion():
     """Test a simple circuit conversion to LaTeX."""
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1), cirq.measure(q0, key='m0'))
+    circuit = cirq.Circuit(
+        cirq.H(q0),
+        cirq.CZ(q0, q1),
+        cirq.CNOT(q0, q1),
+        cirq.SWAP(q0, q1),
+        cirq.measure(q0, key='m0'),
+    )
     converter = CircuitToQuantikz(circuit, wire_labels="q")
     latex_code = converter.generate_latex_document()
 
@@ -52,10 +65,16 @@ def test_parameter_display():
         cirq.H(q_param),
         cirq.rz(alpha).on(q_param),  # Parameterized gate
         cirq.X(q_param),
+        cirq.X(q_param) ** sympy.Symbol("a_2"),
+        cirq.X(q_param) ** 2.0,
+        cirq.X(q_param) ** sympy.N(1.5),
+        cirq.X(q_param) ** sympy.N(3.0),
         cirq.Y(q_param) ** 0.25,  # Parameterized exponent
+        cirq.Y(q_param) ** alpha,  # Formula exponent
         cirq.X(q_param),  # Parameterized exponent
         cirq.rx(beta).on(q_param),  # Parameterized gate
         cirq.H(q_param),
+        cirq.CZPowGate(exponent=0.25).on(q_param, cirq.q(2)),
         cirq.measure(q_param, key="result"),
     )
     # Test with show_parameters=True (default)
@@ -63,6 +82,12 @@ def test_parameter_display():
     latex_show_params = converter_show_params.generate_latex_document()
     assert r"R_{Z}(\alpha)" in latex_show_params
     assert r"Y^{0.25}" in latex_show_params
+    assert r"H" in latex_show_params
+    # Test with show_parameters=False
+    converter_show_params = CircuitToQuantikz(param_circuit, show_parameters=False)
+    latex_show_params = converter_show_params.generate_latex_document()
+    assert r"R_{Z}(\alpha)" not in latex_show_params
+    assert r"Y^{0.25}" not in latex_show_params
     assert r"H" in latex_show_params
 
 
@@ -157,3 +182,24 @@ def test_qubit_order():
     assert q3 < q2
     assert q2 < q1
     assert q1 < q0
+
+
+def test_custom_gate():
+    class CustomGate(cirq.Gate):
+        def __init__(self):
+            self.exponent = 0.5
+
+        def _num_qubits_(self):
+            return 1
+
+        def _unitary_(self):
+            return np.array([[1.0, 0.0], [0.0, 1.0]])  # pragma: nocover
+
+    circuit = cirq.Circuit(CustomGate().on(cirq.q(0)))
+    converter = CircuitToQuantikz(circuit)
+    latex_code = converter.generate_latex_document()
+    assert "Custom" in latex_code
+
+
+def test_thermal_channel():
+    circuit = cirq.Circuit()

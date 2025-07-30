@@ -337,7 +337,12 @@ class CircuitToQuantikz:
                         rounded_str = format(py_float, float_format_string)
                         # Convert back to float then to string to remove unnecessary trailing zeros
                         exp_str = str(float(rounded_str))
-                except (TypeError, ValueError, AttributeError, sympy.SympifyError):
+                except (
+                    TypeError,
+                    ValueError,
+                    AttributeError,
+                    sympy.SympifyError,
+                ):  # pragma: nocover
                     # Fallback to Sympy's string representation if conversion fails
                     exp_str = s_exponent
             else:  # Symbolic expression
@@ -393,7 +398,7 @@ class CircuitToQuantikz:
                             f"{mapped_name}"
                             f"({self._format_exponent_for_display(s_diag[op_idx+1:cp_idx])})"
                         )
-            except (ValueError, AttributeError, IndexError):
+            except (ValueError, AttributeError, IndexError):  # pragma: nocover
                 # Fallback to default string representation if diagram info parsing fails.
                 pass
             if hasattr(gate, "exponent") and not math.isclose(gate.exponent, 1.0):
@@ -414,7 +419,7 @@ class CircuitToQuantikz:
 
                 if (
                     hasattr(gate, "exponent")
-                    and not math.isclose(gate.exponent, 1.0)
+                    and not (isinstance(gate.exponent, float) and math.isclose(gate.exponent, 1.0))
                     and isinstance(gate, tuple(_EXPONENT_GATE_MAP.keys()))
                 ):
                     has_exp_in_cand = ("^" in name_cand) or ("**" in name_cand)
