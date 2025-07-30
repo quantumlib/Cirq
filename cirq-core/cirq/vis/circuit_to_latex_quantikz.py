@@ -245,7 +245,9 @@ class CircuitToQuantikz:
         self.current_gate_name_map = _GATE_NAME_MAP.copy()
         if gate_name_map:
             self.current_gate_name_map.update(gate_name_map)
-        self.sorted_qubits = qubit_order.order_for(self.circuit.all_qubits())
+        self.sorted_qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            self.circuit.all_qubits()
+        )
         if not self.sorted_qubits:
             raise ValueError("Circuit contains no qubits.")
         self.qubit_to_index = self._map_qubits_to_indices()

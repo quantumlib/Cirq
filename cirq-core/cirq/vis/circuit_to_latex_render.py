@@ -67,7 +67,7 @@ except ImportError:
     def display(*args, **kwargs):
         pass
 
-    def Markdown(*args, **kwargs):  # type: ignore
+    def Markdown(*args, **kwargs):
         pass
 
     def get_ipython(*args, **kwargs) -> Any:
@@ -175,7 +175,7 @@ def render_circuit(
         >>> circuit = cirq.Circuit(
         ...     cirq.H(q0),
         ...     cirq.CNOT(q0, q1),
-        ...     cirq.Rx(rads=0.25 * cirq.PI).on(q1),
+        ...     cirq.X(exponent=0.25).on(q1),
         ...     cirq.measure(q0, q1, key='result')
         ... )
         >>> # Render and display in Jupyter (if available), also save to a file
