@@ -101,10 +101,7 @@ def test_rng_state_is_restored():
     random.seed(global_seed)
 
     # Create and iterate over a sweep with a different, independent seed
-    sweep_seed = 999
-    sweep = cirq_google.study.FiniteRandomVariable(
-        key=KEY, distribution=DIST, seed=sweep_seed, length=20
-    )
+    sweep = cirq_google.study.FiniteRandomVariable(key=KEY, distribution=DIST, seed=999, length=20)
     _ = list(sweep)  # This should use its own RNG state and restore the global one
 
     # Generate another value from the global RNG
@@ -112,7 +109,6 @@ def test_rng_state_is_restored():
 
     # Now, check if the global RNG state was truly unaffected
     random.seed(global_seed)
-    _ = random.random()  # Discard the first value
     expected_next_value = random.random()
 
     assert value_after_sweep == expected_next_value
