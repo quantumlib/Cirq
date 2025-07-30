@@ -56,14 +56,14 @@ class _IonQClient:
     """
 
     SUPPORTED_TARGETS = {'qpu', 'simulator'}
-    SUPPORTED_VERSIONS = {'v0.3'}
+    SUPPORTED_VERSIONS = {'v0.4'}
 
     def __init__(
         self,
         remote_host: str,
         api_key: str,
         default_target: str | None = None,
-        api_version: str = 'v0.3',
+        api_version: str = 'v0.4',
         max_retry_seconds: int = 3600,  # 1 hour
         verbose: bool = False,
     ):
@@ -81,7 +81,7 @@ class _IonQClient:
             api_key: The key used for authenticating against the IonQ API.
             default_target: The default target to run against. Supports one of 'qpu' and
                 'simulator'. Can be overridden by calls with target in their signature.
-            api_version: Which version fo the api to use. As of Feb, 2023, accepts 'v0.3' only,
+            api_version: Which version fo the api to use. As of June, 2025, accepts 'v0.4' only,
                 which is the default.
             max_retry_seconds: The time to continue retriable responses. Defaults to 3600.
             verbose: Whether to print to stderr and stdio any retriable errors that are encountered.
@@ -93,7 +93,7 @@ class _IonQClient:
         )
         assert (
             api_version in self.SUPPORTED_VERSIONS
-        ), f'Only api v0.3 is accepted but was {api_version}'
+        ), f'Only api v0.4 is accepted but was {api_version}'
         assert (
             default_target is None or default_target in self.SUPPORTED_TARGETS
         ), f'Target can only be one of {self.SUPPORTED_TARGETS} but was {default_target}.'
@@ -112,6 +112,7 @@ class _IonQClient:
         target: str | None = None,
         name: str | None = None,
         extra_query_params: dict | None = None,
+        batch_mode: bool = False,
     ) -> dict:
         """Create a job.
 
@@ -136,9 +137,10 @@ class _IonQClient:
         actual_target = self._target(target)
 
         json: dict[str, Any] = {
-            'target': actual_target,
+            'backend': actual_target,
+            "type": "ionq.multi-circuit.v1" if batch_mode else "ionq.circuit.v1",
             'lang': 'json',
-            'body': serialized_program.body,
+            'input': serialized_program.input,
         }
         if name:
             json['name'] = name
@@ -153,10 +155,21 @@ class _IonQClient:
         json['metadata']['shots'] = str(repetitions)
 
         if serialized_program.error_mitigation:
-            json['error_mitigation'] = serialized_program.error_mitigation
+            if not 'settings' in json.keys():
+                json['settings'] = {}
+            json['settings']['error_mitigation'] = serialized_program.error_mitigation
 
         if extra_query_params is not None:
+            if 'error_mitigation' in extra_query_params:
+                if 'settings' not in json:
+                    json['settings'] = {}
+                json['settings']['error_mitigation'] = extra_query_params['error_mitigation']
+                extra_query_params = {k: v for k, v in extra_query_params.items() if k != 'error_mitigation'}
             json.update(extra_query_params)
+
+        print("Job url:", self.url)
+        print("Job headers:", self.headers)
+        print("Job json:", json)
 
         def request():
             return requests.post(f'{self.url}/jobs', json=json, headers=self.headers)
@@ -209,9 +222,12 @@ class _IonQClient:
         if extra_query_params is not None:
             params.update(extra_query_params)
 
+        # TODO: remove replace("v0.4", "v0.3")
         def request():
             return requests.get(
-                f'{self.url}/jobs/{job_id}/results', params=params, headers=self.headers
+                f'{self.url.replace("v0.4", "v0.3")}/jobs/{job_id}/results',
+                params=params,
+                headers=self.headers,
             )
 
         return self._make_request(request, {}).json()
@@ -243,7 +259,7 @@ class _IonQClient:
         Args:
             job_id: The UUID of the job (returned when the job was created).
 
-        Note that the IonQ API v0.3 can cancel a completed job, which updates its status to
+        Note that the IonQ API v0.4 can cancel a completed job, which updates its status to
         canceled.
 
         Returns:

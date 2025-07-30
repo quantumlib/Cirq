@@ -26,9 +26,9 @@ import cirq_ionq as ionq
 def test_job_fields():
     job_dict = {
         'id': 'my_id',
-        'target': 'qpu',
+        'backend': 'qpu',
         'name': 'bacon',
-        'qubits': '5',
+        'stats': {'qubits': '5'},
         'status': 'completed',
         'metadata': {'shots': 1000, 'measurement0': f'a{chr(31)}0,1'},
     }
@@ -44,9 +44,9 @@ def test_job_fields():
 def test_job_fields_multiple_circuits():
     job_dict = {
         'id': 'my_id',
-        'target': 'qpu',
+        'backend': 'qpu',
         'name': 'bacon',
-        'qubits': '5',
+        'stats': {'qubits': '5'},
         'status': 'completed',
         'metadata': {
             'shots': 1000,
@@ -87,8 +87,8 @@ def test_job_results_qpu():
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '2',
-        'target': 'qpu',
+        'stats': {'qubits': '2'},
+        'backend': 'qpu',
         'metadata': {'shots': 1000, 'measurement0': f'a{chr(31)}0,1'},
         'warning': {'messages': ['foo', 'bar']},
     }
@@ -111,8 +111,8 @@ def test_batch_job_results_qpu():
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '2',
-        'target': 'qpu',
+        'stats': {'qubits': '2'},
+        'backend': 'qpu',
         'metadata': {
             'shots': 1000,
             'measurements': json.dumps(
@@ -140,8 +140,8 @@ def test_job_results_rounding_qpu():
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '2',
-        'target': 'qpu',
+        'stats': {'qubits': '2'},
+        'backend': 'qpu',
         'metadata': {'shots': 5000, 'measurement0': f'a{chr(31)}0,1'},
     }
     # 5000*0.0006 ~ 2.9999 but should be interpreted as 3
@@ -173,8 +173,8 @@ def test_job_results_qpu_endianness():
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '2',
-        'target': 'qpu',
+        'stats': {'qubits': '2'},
+        'backend': 'qpu',
         'metadata': {'shots': 1000},
     }
     job = ionq.Job(mock_client, job_dict)
@@ -190,8 +190,8 @@ def test_batch_job_results_qpu_endianness():
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '2',
-        'target': 'qpu',
+        'stats': {'qubits': '2'},
+        'backend': 'qpu',
         'metadata': {
             'shots': 1000,
             'measurements': json.dumps([{'measurement0': f'a{chr(31)}0,1'}]),
@@ -209,8 +209,8 @@ def test_job_results_qpu_target_endianness():
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '2',
-        'target': 'qpu.target',
+        'stats': {'qubits': '2'},
+        'backend': 'qpu.target',
         'metadata': {'shots': 1000},
         'data': {'histogram': {'0': '0.6', '1': '0.4'}},
     }
@@ -227,8 +227,8 @@ def test_batch_job_results_qpu_target_endianness():
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '2',
-        'target': 'qpu.target',
+        'stats': {'qubits': '2'},
+        'backend': 'qpu.target',
         'metadata': {
             'shots': 1000,
             'measurements': json.dumps([{'measurement0': f'a{chr(31)}0,1'}]),
@@ -247,8 +247,8 @@ def test_job_results_poll(mock_sleep):
     completed_job = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '1',
-        'target': 'qpu',
+        'stats': {'qubits': '1'},
+        'backend': 'qpu',
         'metadata': {'shots': 1000},
     }
     mock_client = mock.MagicMock()
@@ -288,8 +288,8 @@ def test_job_results_simulator():
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '1',
-        'target': 'simulator',
+        'stats': {'qubits': '1'},
+        'backend': 'simulator',
         'metadata': {'shots': '100'},
     }
     job = ionq.Job(mock_client, job_dict)
@@ -306,8 +306,8 @@ def test_batch_job_results_simulator():
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '2',
-        'target': 'simulator',
+        'stats': {'qubits': '2'},
+        'backend': 'simulator',
         'metadata': {
             'shots': 1000,
             'measurements': json.dumps(
@@ -330,8 +330,8 @@ def test_job_results_simulator_endianness():
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '2',
-        'target': 'simulator',
+        'stats': {'qubits': '2'},
+        'backend': 'simulator',
         'metadata': {'shots': '100'},
     }
     job = ionq.Job(mock_client, job_dict)
@@ -347,8 +347,8 @@ def test_batch_job_results_simulator_endianness():
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '2',
-        'target': 'simulator',
+        'stats': {'qubits': '2'},
+        'backend': 'simulator',
         'metadata': {
             'shots': 1000,
             'measurements': json.dumps([{'measurement0': f'a{chr(31)}0,1'}]),
@@ -366,8 +366,8 @@ def test_job_sharpen_results():
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '1',
-        'target': 'simulator',
+        'stats': {'qubits': '1'},
+        'backend': 'simulator',
         'metadata': {'shots': '100'},
     }
     job = ionq.Job(mock_client, job_dict)
@@ -400,9 +400,9 @@ def test_job_delete():
 def test_job_fields_unsuccessful():
     job_dict = {
         'id': 'my_id',
-        'target': 'qpu',
+        'backend': 'qpu',
         'name': 'bacon',
-        'qubits': '5',
+        'stats': {'qubits': '5'},
         'status': 'deleted',
         'metadata': {'shots': 1000},
     }
@@ -420,9 +420,9 @@ def test_job_fields_unsuccessful():
 def test_job_fields_cannot_get_status():
     job_dict = {
         'id': 'my_id',
-        'target': 'qpu',
+        'backend': 'qpu',
         'name': 'bacon',
-        'qubits': '5',
+        'stats': {'qubits': '5'},
         'status': 'running',
         'metadata': {'shots': 1000},
     }
@@ -442,9 +442,9 @@ def test_job_fields_cannot_get_status():
 def test_job_fields_update_status():
     job_dict = {
         'id': 'my_id',
-        'target': 'qpu',
+        'backend': 'qpu',
         'name': 'bacon',
-        'qubits': '5',
+        'stats': {'qubits': '5'},
         'status': 'running',
         'metadata': {'shots': 1000},
     }
