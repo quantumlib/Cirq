@@ -82,7 +82,13 @@ class FiniteRandomVariable(SingleSweep):
         return iter(random_values)
 
     def _tuple(self):
-        return (self.key, tuple(self.distribution.items()), self.seed, self.length, self.metadata)
+        return (
+            self.key,
+            tuple(sorted(self.distribution.items())),
+            self.seed,
+            self.length,
+            self.metadata,
+        )
 
     def __repr__(self) -> str:
         metadata_repr = f', metadata={self.metadata!r}' if self.metadata is not None else ""
