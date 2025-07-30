@@ -151,6 +151,7 @@ def render_circuit(
             in the output. Passed to `CircuitToQuantikz`.
         float_precision_exps: An integer specifying the number of decimal
             places for formatting floating-point exponents. Passed to `CircuitToQuantikz`.
+        qubit_order: The order of the qubit lines in the rendered diagram.
         **kwargs: Additional keyword arguments passed directly to the
             `CircuitToQuantikz` constructor. Refer to `CircuitToQuantikz` for
             available options. Note that explicit arguments in `render_circuit`
@@ -428,7 +429,9 @@ def render_circuit(
                         # get_ipython() returns a shell object if in IPython, None otherwise.
                         # ZMQInteractiveShell is for Jupyter notebooks,
                         # TerminalInteractiveShell for IPython console.
+                        # pylint: disable=assignment-from-no-return
                         sh_obj = get_ipython()
+                        # pylint: enable=assignment-from-no-return
                         if (
                             sh_obj is not None
                             and sh_obj.__class__.__name__ == "ZMQInteractiveShell"
