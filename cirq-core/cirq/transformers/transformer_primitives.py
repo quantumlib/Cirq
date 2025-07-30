@@ -317,35 +317,35 @@ class _MergedCircuit:
     def append_empty_moment(self) -> None:
         self.components_by_index.append({})
 
-    def add_moment(self, index: list[int], moment: int) -> None:
+    def add_moment(self, index: list[int], moment_id: int) -> None:
         """Adds a moment to a sorted list of moment indexes.
 
         Optimized for the majority case when the new moment is higher than any moment in the list.
         """
-        if index[-1] < moment:
-            index.append(moment)
+        if index[-1] < moment_id:
+            index.append(moment_id)
         else:
-            bisect.insort(index, moment)
+            bisect.insort(index, moment_id)
 
-    def remove_moment(self, index: list[int], moment: int) -> None:
+    def remove_moment(self, index: list[int], moment_id: int) -> None:
         """Removes a moment from a sorted list of moment indexes.
 
         Optimized for the majority case when the moment is last in the list.
         """
-        if index[-1] == moment:
+        if index[-1] == moment_id:
             index.pop()
         else:
-            index.remove(moment)
+            index.remove(moment_id)
 
     def add_component(self, c: Component) -> None:
         """Adds a new components to merged circuit."""
-        self.components_by_index[c.moment][c] = 0
+        self.components_by_index[c.moment_id][c] = 0
         for q in c.qubits:
-            self.add_moment(self.qubit_indexes[q], c.moment)
+            self.add_moment(self.qubit_indexes[q], c.moment_id)
         for mkey in c.mkeys:
-            self.add_moment(self.mkey_indexes[mkey], c.moment)
+            self.add_moment(self.mkey_indexes[mkey], c.moment_id)
         for ckey in c.ckeys:
-            self.add_moment(self.ckey_indexes[ckey], c.moment)
+            self.add_moment(self.ckey_indexes[ckey], c.moment_id)
 
     def remove_component(self, c: Component, c_data: Component) -> None:
         """Removes a component from the merged circuit.
@@ -355,13 +355,13 @@ class _MergedCircuit:
             c_data: copy of the data in c before any component merges involving c
                 (this is necessary as component merges alter the component data)
         """
-        self.components_by_index[c_data.moment].pop(c)
+        self.components_by_index[c_data.moment_id].pop(c)
         for q in c_data.qubits:
-            self.remove_moment(self.qubit_indexes[q], c_data.moment)
+            self.remove_moment(self.qubit_indexes[q], c_data.moment_id)
         for mkey in c_data.mkeys:
-            self.remove_moment(self.mkey_indexes[mkey], c_data.moment)
+            self.remove_moment(self.mkey_indexes[mkey], c_data.moment_id)
         for ckey in c_data.ckeys:
-            self.remove_moment(self.ckey_indexes[ckey], c_data.moment)
+            self.remove_moment(self.ckey_indexes[ckey], c_data.moment_id)
 
     def get_mergeable_components(self, c: Component, c_qs: set[cirq.Qid]) -> list[Component]:
         """Finds all components that can be merged with c.

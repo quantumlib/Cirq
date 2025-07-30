@@ -18,6 +18,8 @@ from __future__ import annotations
 
 from typing import Callable, cast, Sequence, TYPE_CHECKING
 
+from typing_extensions import override
+
 from cirq import ops, protocols
 
 if TYPE_CHECKING:
@@ -41,7 +43,7 @@ class Component:
     is_mergeable: bool
 
     # Circuit moment containing the component
-    moment: int
+    moment_id: int
     # Union of all op qubits in the component
     qubits: frozenset[cirq.Qid]
     # Union of all measurement keys in the component
@@ -51,10 +53,10 @@ class Component:
     # Initial operation in the component
     op: cirq.Operation
 
-    def __init__(self, op: cirq.Operation, moment: int, is_mergeable=True):
+    def __init__(self, op: cirq.Operation, moment_id: int, is_mergeable=True):
         """Initializes a singleton component."""
         self.is_mergeable = is_mergeable
-        self.moment = moment
+        self.moment_id = moment_id
         self.qubits = frozenset(op.qubits)
         self.mkeys = protocols.measurement_key_objs(op)
         self.ckeys = protocols.control_keys(op)
@@ -76,18 +78,14 @@ class Component:
     def merge(self, c: Component, merge_left=True) -> Component | None:
         """Attempts to merge two components.
 
-        We assume the following is true whenever merge is called:
-            - if merge_left = True then c.qubits are a subset of self.qubits
-            - if merge_left = False then self.qubits are a subset of c.qubits
-
         If merge_left is True, c is merged into this component, and the representative
-        will keep this moment and qubits. If merge_left is False, this component is
-        merged into c, and the representative will keep c's moment and qubits.
+        will keep this component's moment. If merge_left is False, this component is
+        merged into c, and the representative will keep c's moment.
 
         Args:
             c: other component to merge
-            merge_left: True to keep self's data for the merged component, False to
-                keep c's data for the merged component.
+            merge_left: True to keep self's moment for the merged component, False to
+                keep c's moment for the merged component.
 
         Returns:
             None, if the components can't be merged.
@@ -104,19 +102,18 @@ class Component:
 
         if x.rank < y.rank:
             if merge_left:
-                # As y will be the new representative, copy moment and qubits from x
-                y.moment = x.moment
-                y.qubits = x.qubits
+                # As y will be the new representative, copy moment id from x
+                y.moment_id = x.moment_id
             x, y = y, x
         elif not merge_left:
-            # As x will be the new representative, copy moment and qubits from y
-            x.moment = y.moment
-            x.qubits = y.qubits
+            # As x will be the new representative, copy moment id from y
+            x.moment_id = y.moment_id
 
         y.parent = x
         if x.rank == y.rank:
             x.rank += 1
 
+        x.qubits = x.qubits.union(y.qubits)
         x.mkeys = x.mkeys.union(y.mkeys)
         x.ckeys = x.ckeys.union(y.ckeys)
         return x
@@ -138,14 +135,15 @@ class ComponentWithOps(Component):
     def __init__(
         self,
         op: cirq.Operation,
-        moment: int,
+        moment_id: int,
         can_merge: Callable[[Sequence[cirq.Operation], Sequence[cirq.Operation]], bool],
         is_mergeable=True,
     ):
-        super().__init__(op, moment, is_mergeable)
+        super().__init__(op, moment_id, is_mergeable)
         self.ops = [op]
         self.can_merge = can_merge
 
+    @override
     def merge(self, c: Component, merge_left=True) -> Component | None:
         """Attempts to merge two components.
 
@@ -187,16 +185,21 @@ class ComponentWithCircuitOp(Component):
     def __init__(
         self,
         op: cirq.Operation,
-        moment: int,
+        moment_id: int,
         merge_func: Callable[[ops.Operation, ops.Operation], ops.Operation | None],
         is_mergeable=True,
     ):
-        super().__init__(op, moment, is_mergeable)
+        super().__init__(op, moment_id, is_mergeable)
         self.circuit_op = op
         self.merge_func = merge_func
 
+    @override
     def merge(self, c: Component, merge_left=True) -> Component | None:
         """Attempts to merge two components.
+
+        If merge_left is True, the merge will use this component representative's
+        merge_func. If merge_left is False, the merge will use c representative's
+        merge_func.
 
         Returns:
             None if merge_func returns None, otherwise the new representative.
@@ -210,7 +213,10 @@ class ComponentWithCircuitOp(Component):
         if not x.is_mergeable or not y.is_mergeable:
             return None
 
-        new_op = x.merge_func(x.circuit_op, y.circuit_op)
+        if merge_left:
+            new_op = x.merge_func(x.circuit_op, y.circuit_op)
+        else:
+            new_op = y.merge_func(x.circuit_op, y.circuit_op)
         if not new_op:
             return None
 
@@ -238,8 +244,8 @@ class ComponentFactory:
     def __init__(self, is_mergeable: Callable[[cirq.Operation], bool]):
         self.is_mergeable = is_mergeable
 
-    def new_component(self, op: cirq.Operation, moment: int, is_mergeable=True) -> Component:
-        return Component(op, moment, self.is_mergeable(op) and is_mergeable)
+    def new_component(self, op: cirq.Operation, moment_id: int, is_mergeable=True) -> Component:
+        return Component(op, moment_id, self.is_mergeable(op) and is_mergeable)
 
 
 class ComponentWithOpsFactory(ComponentFactory):
@@ -255,8 +261,11 @@ class ComponentWithOpsFactory(ComponentFactory):
         super().__init__(is_mergeable)
         self.can_merge = can_merge
 
-    def new_component(self, op: cirq.Operation, moment: int, is_mergeable=True) -> Component:
-        return ComponentWithOps(op, moment, self.can_merge, self.is_mergeable(op) and is_mergeable)
+    @override
+    def new_component(self, op: cirq.Operation, moment_id: int, is_mergeable=True) -> Component:
+        return ComponentWithOps(
+            op, moment_id, self.can_merge, self.is_mergeable(op) and is_mergeable
+        )
 
 
 class ComponentWithCircuitOpFactory(ComponentFactory):
@@ -272,7 +281,8 @@ class ComponentWithCircuitOpFactory(ComponentFactory):
         super().__init__(is_mergeable)
         self.merge_func = merge_func
 
-    def new_component(self, op: cirq.Operation, moment: int, is_mergeable=True) -> Component:
+    @override
+    def new_component(self, op: cirq.Operation, moment_id: int, is_mergeable=True) -> Component:
         return ComponentWithCircuitOp(
-            op, moment, self.merge_func, self.is_mergeable(op) and is_mergeable
+            op, moment_id, self.merge_func, self.is_mergeable(op) and is_mergeable
         )
