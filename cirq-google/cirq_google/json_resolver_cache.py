@@ -49,6 +49,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'Calibration': cirq_google.Calibration,
         'CalibrationTag': cirq_google.CalibrationTag,
         'CalibrationLayer': cirq_google.CalibrationLayer,
+        'CompressDurationTag': cirq_google.CompressDurationTag,
         'CouplerPulse': cirq_google.experimental.CouplerPulse,
         'Coupler': cirq_google.Coupler,
         'GoogleNoiseProperties': cirq_google.GoogleNoiseProperties,

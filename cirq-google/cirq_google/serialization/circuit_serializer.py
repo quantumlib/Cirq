@@ -26,6 +26,7 @@ import cirq
 from cirq_google.api import v2
 from cirq_google.experimental.ops import CouplerPulse
 from cirq_google.ops import (
+    CompressDurationTag,
     DynamicalDecouplingTag,
     FSimViaModelTag,
     InternalGate,
@@ -879,6 +880,8 @@ class CircuitSerializer(serializer.Serializer):
             return CalibrationTag.from_proto(msg)
         elif which == 'internal_tag':
             return InternalTag.from_proto(msg)
+        elif which == 'compress_duration':
+            return CompressDurationTag()
         else:
             warnings.warn(f'Unknown tag {msg=}, ignoring')
             return None
