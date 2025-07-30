@@ -1743,3 +1743,29 @@ def test_list_time_slots(client_constructor, default_engine_client):
     grpc_client.list_quantum_time_slots.return_value = Pager(results)
 
     assert default_engine_client.list_time_slots('proj', 'processor0') == results
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_get_quantum_processor_config_by_snapshot_id(
+    client_constructor, default_engine_client):
+    grpc_client = _setup_client_mock(client_constructor)
+    project_id = "test_project"
+    processor_id = "test_processor"
+    snapshot_id = "test_snapshot_id"
+    config_id = "test_config_id"
+    name = f'projects/{project_id}/processors/{processor_id}/configSnapshots/{snapshot_id}/configs/{config_id}'
+    
+    result = quantum.QuantumProcessorConfig(
+        name=name,
+        device_specification=any_pb2.Any(),
+        characterization=any_pb2.Any()
+    )
+    grpc_client = _setup_client_mock(client_constructor)
+    grpc_client.get_quantum_processor_config_by_snapshot_id.return_value = result
+
+    assert default_engine_client.get_quantum_processor_config_by_snapshot_id(
+        project_id=project_id, processor_id=processor_id, config_id=config_id, snapshot_id=snapshot_id
+    )
+    grpc_client.get_quantum_processor_config.assert_called_with(
+        quantum.GetQuantumProcessorConfigRequest(name=name)
+    )
+    

@@ -1182,6 +1182,20 @@ class EngineClient:
     list_time_slots = duet.sync(list_time_slots_async)
 
 
+    async def get_quantum_processor_config_by_snapshot_id_async(self,
+        project_id: str, processor_id: str, config_id: str, snapshot_id: str
+    ) -> quantum.QuantumProcessorConfig:
+        request = quantum.GetQuantumProcessorConfigRequest(
+            name=_quantum_processor_name_with_snapshot_id(
+                project_id=project_id, processor_id=processor_id, snapshot_id=snapshot_id, config_id=config_id
+            )
+        )
+        return await self._send_request_async(self.grpc_client.get_quantum_processor_config, request)
+
+    get_quantum_processor_config_by_snapshot_id = duet.sync(get_quantum_processor_config_by_snapshot_id_async)
+    
+
+
 def _project_name(project_id: str) -> str:
     return f'projects/{project_id}'
 
@@ -1228,6 +1242,11 @@ def _ids_from_processor_name(processor_name: str) -> tuple[str, str]:
 def _ids_from_calibration_name(calibration_name: str) -> tuple[str, str, int]:
     parts = calibration_name.split('/')
     return parts[1], parts[3], int(parts[5])
+
+def _quantum_processor_name_with_snapshot_id(
+        project_id: str, processor_id: str, snapshot_id: str, config_id: str
+) -> str:
+    return f'projects/{project_id}/processors/{processor_id}/configSnapshots/{snapshot_id}/configs/{config_id}'
 
 
 def _date_or_time_to_filter_expr(param_name: str, param: datetime.datetime | datetime.date):
