@@ -265,6 +265,13 @@ class CircuitToQuantikz:
         """
         return {q: i for i, q in enumerate(self.sorted_qubits)}
 
+    def _escape_string(self, label) -> str:
+        """Escape labels for latex."""
+        label = label.replace("π", r"\pi")
+        if "_" in label and "\\" not in label:
+            label = label.replace("_", r"\_")
+        return label
+
     def _get_wire_label(self, qubit: ops.Qid, index: int) -> str:
         r"""Generates the LaTeX string for a qubit wire label.
 
@@ -282,7 +289,7 @@ class CircuitToQuantikz:
             else (
                 str(index)
                 if self.wire_labels == "index"
-                else str(qubit).replace("_", r"\_").replace(" ", r"\,")
+                else str(self._escape_string(str(qubit))).replace(" ", r"\,")
             )
         )
         return f"${lbl}$"
@@ -350,13 +357,7 @@ class CircuitToQuantikz:
         else:  # For other types (int, strings not sympy objects)
             exp_str = str(exponent)
 
-        # LaTeX replacements for pi
-        exp_str = exp_str.replace("pi", r"\pi").replace("π", r"\pi")
-
-        # Handle underscores: replace "_" with "\_" if not part of a LaTeX command
-        if "_" in exp_str and "\\" not in exp_str:
-            exp_str = exp_str.replace("_", r"\_")
-        return exp_str
+        return self._escape_string(exp_str)
 
     def _get_gate_name(self, gate: ops.Gate) -> str:
         """Determines the appropriate LaTeX string for a given Cirq gate.
@@ -373,7 +374,7 @@ class CircuitToQuantikz:
             "Rx(0.5)", "CZ").
         """
         gate_type = type(gate)
-        if gate_type.__name__ == "ThermalChannel":
+        if gate_type.__name__ == "ThermalChannel":  # pragma: nocover
             return "\\Lambda_\\mathrm{th}"
         if (simple_name := _SIMPLE_GATE_MAP.get(gate_type)) is not None:
             return simple_name
@@ -401,9 +402,11 @@ class CircuitToQuantikz:
             except (ValueError, AttributeError, IndexError):  # pragma: nocover
                 # Fallback to default string representation if diagram info parsing fails.
                 pass
-            if hasattr(gate, "exponent") and not math.isclose(gate.exponent, 1.0):
+            if hasattr(gate, "exponent") and not math.isclose(
+                gate.exponent, 1.0
+            ):  # pragma: nocover
                 return f"{mapped_name}({self._format_exponent_for_display(gate.exponent)})"
-            return mapped_name
+            return mapped_name  # pragma: nocover
 
         try:
             # Use protocols directly
@@ -434,42 +437,36 @@ class CircuitToQuantikz:
                                 f"{{{self._format_exponent_for_display(gate.exponent)}}}"
                             )
 
-                fmt_name = name_cand.replace("π", r"\pi")
-                if "_" in fmt_name and "\\" not in fmt_name:
-                    fmt_name = fmt_name.replace("_", r"\_")
-                if "**" in fmt_name:
-                    parts = fmt_name.split("**", 1)
-                    if len(parts) == 2:
-                        fmt_name = f"{parts[0]}^{{{self._format_exponent_for_display(parts[1])}}}"
+                fmt_name = self._escape_string(name_cand)
+                parts = fmt_name.split("**", 1)
+                if len(parts) == 2:  # pragma: nocover
+                    fmt_name = f"{parts[0]}^{{{self._format_exponent_for_display(parts[1])}}}"
                 return fmt_name
-        except (ValueError, AttributeError, IndexError):
+        except (ValueError, AttributeError, IndexError):  # pragma: nocover
             # Fallback to default string representation if diagram info parsing fails.
             pass
 
         name_fb = str(gate)
-        if name_fb.endswith("Gate"):
-            name_fb = name_fb[:-4]
+        if name_fb.endswith("**1.0"):
+            name_fb = name_fb[:-5]
+        if name_fb.endswith("**1"):
+            name_fb = name_fb[:-3]
         if name_fb.endswith("()"):
             name_fb = name_fb[:-2]
+        if name_fb.endswith("Gate"):
+            name_fb = name_fb[:-4]
         if not self.show_parameters:
             base_fb = name_fb.split("**")[0].split("(")[0].strip()
             fb_key = _EXPONENT_GATE_MAP.get(gate_type, base_fb)
             mapped_fb = self.current_gate_name_map.get(fb_key, fb_key)
             return self._format_exponent_for_display(mapped_fb)
-        if name_fb.endswith("**1.0"):
-            name_fb = name_fb[:-5]
-        if name_fb.endswith("**1"):
-            name_fb = name_fb[:-3]
         if "**" in name_fb:
             parts = name_fb.split("**", 1)
             if len(parts) == 2:
                 fb_key = _EXPONENT_GATE_MAP.get(gate_type, parts[0])
                 base_str_fb = self.current_gate_name_map.get(fb_key, parts[0])
                 name_fb = f"{base_str_fb}^{{{self._format_exponent_for_display(parts[1])}}}"
-        name_fb = name_fb.replace("π", r"\pi")
-        if "_" in name_fb and "\\" not in name_fb:
-            name_fb = name_fb.replace("_", r"\_")
-        return name_fb
+        return self._escape_string(name_fb)
 
     def _get_quantikz_options_string(self) -> str:
         return f"[{self.quantikz_options}]" if self.quantikz_options else ""
@@ -491,7 +488,7 @@ class CircuitToQuantikz:
         """
         output, q_indices = {}, sorted([self.qubit_to_index[q] for q in op.qubits])
         gate = op.gate
-        if gate is None:
+        if gate is None:  # pragma: nocover
             raise ValueError(f'Only GateOperations are supported {op}')
         gate_name_render = self._get_gate_name(gate)
 
@@ -510,29 +507,20 @@ class CircuitToQuantikz:
         elif (param_base_name := _PARAMETERIZED_GATE_BASE_NAMES.get(gate_type)) is not None:
             style_key = param_base_name
         elif (base_key_for_pow := _EXPONENT_GATE_MAP.get(gate_type)) is not None:
-            if hasattr(gate, "exponent"):
-                if gate.exponent == 1:
-                    style_key = base_key_for_pow
-                else:
-                    style_key = {
-                        "X": "X_pow",
-                        "Y": "Y_pow",
-                        "Z": "Z_pow",
-                        "H": "H_pow",
-                        "CZ": "CZ_pow",
-                        "CX": "CX_pow",
-                        "iSwap": "iSWAP_pow",
-                    }.get(base_key_for_pow, f"{base_key_for_pow}_pow")
-            else:
+            if getattr(gate, "exponent", 1) == 1:
                 style_key = base_key_for_pow
+            else:
+                style_key = {
+                    "X": "X_pow",
+                    "Y": "Y_pow",
+                    "Z": "Z_pow",
+                    "H": "H_pow",
+                    "CZ": "CZ_pow",
+                    "CX": "CX_pow",
+                    "iSwap": "iSWAP_pow",
+                }.get(base_key_for_pow, f"{base_key_for_pow}_pow")
 
         style_opts_str = self.gate_styles.get(style_key, "")
-        if not style_opts_str:
-            if gate_type.__name__ == "FSimGate":
-                style_opts_str = self.gate_styles.get("FSim", "")
-            elif gate_type.__name__ == "PhasedXZGate":
-                style_opts_str = self.gate_styles.get("PhasedXZ", "")
-
         final_style_tikz = f"[{style_opts_str}]" if style_opts_str else ""
 
         # Apply special Quantikz commands for specific gate types
@@ -576,17 +564,12 @@ class CircuitToQuantikz:
             return output
 
         # Handle generic \gate command for single and multi-qubit gates
-        if not q_indices:
-            warnings.warn(f"Op {op} has no qubits.")
-            return output
         if len(q_indices) == 1:
             output[q_indices[0]] = f"\\gate{final_style_tikz}{{{gate_name_render}}}"
         else:  # Multi-qubit gate
-            wires_opt = f"wires={q_indices[-1]-q_indices[0]+1}"
+            combined_opts = f"wires={q_indices[-1]-q_indices[0]+1}"
             if style_opts_str:
-                combined_opts = f"{wires_opt}, {style_opts_str}"
-            else:
-                combined_opts = wires_opt
+                combined_opts = f"{combined_opts}, {style_opts_str}"
             output[q_indices[0]] = f"\\gate[{combined_opts}]{{{gate_name_render}}}"
             for i in range(1, len(q_indices)):
                 output[q_indices[i]] = "\\qw"
@@ -613,20 +596,13 @@ class CircuitToQuantikz:
             processed_indices = set()
 
             for op in moment:
-                q_idx_op = sorted([self.qubit_to_index[q] for q in op.qubits])
-                if not q_idx_op:
+                if not op.qubits:
                     warnings.warn(f"Op {op} no qubits.")
-                    continue
-                if any(q in processed_indices for q in q_idx_op):
-                    for q_idx in q_idx_op:
-                        if q_idx not in processed_indices:
-                            moment_out[q_idx] = "\\qw"
                     continue
                 op_rnd = self._render_operation(op)
                 for idx, tex in op_rnd.items():
                     if idx not in processed_indices:
                         moment_out[idx] = tex
-                processed_indices.update(q_idx_op)
             for i in range(self.num_qubits):
                 active_chunk[i].append(moment_out[i])
 

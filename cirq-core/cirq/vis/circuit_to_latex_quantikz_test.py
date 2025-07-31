@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import pytest
 import sympy
 
@@ -40,9 +41,11 @@ def test_basic_circuit_conversion():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.H(q0),
+        cirq.PhasedXZGate(x_exponent=1, z_exponent=1, axis_phase_exponent=0.5)(q0),
         cirq.CZ(q0, q1),
         cirq.CNOT(q0, q1),
         cirq.SWAP(q0, q1),
+        cirq.FSimGate(np.pi / 2, np.pi / 6)(q0, q1),
         cirq.measure(q0, key='m0'),
     )
     converter = CircuitToQuantikz(circuit, wire_labels="q")
@@ -88,6 +91,12 @@ def test_parameter_display():
     latex_show_params = converter_show_params.generate_latex_document()
     assert r"R_{Z}(\alpha)" not in latex_show_params
     assert r"Y^{0.25}" not in latex_show_params
+    assert r"H" in latex_show_params
+    # Test with folding
+    converter_show_params = CircuitToQuantikz(param_circuit, show_parameters=True, fold_at=5)
+    latex_show_params = converter_show_params.generate_latex_document()
+    assert r"R_{Z}(\alpha)" in latex_show_params
+    assert r"Y^{0.25}" in latex_show_params
     assert r"H" in latex_show_params
 
 
@@ -184,22 +193,32 @@ def test_qubit_order():
     assert q1 < q0
 
 
-def test_custom_gate():
+@pytest.mark.parametrize("show_parameters", [True, False])
+def test_custom_gate(show_parameters) -> None:
     class CustomGate(cirq.Gate):
-        def __init__(self):
-            self.exponent = 0.5
+        def __init__(self, exponent: float | int):
+            self.exponent = exponent
 
         def _num_qubits_(self):
             return 1
 
+        def __str__(self):
+            return f"Custom_Gate()**{self.exponent}"
+
         def _unitary_(self):
             return np.array([[1.0, 0.0], [0.0, 1.0]])  # pragma: nocover
 
-    circuit = cirq.Circuit(CustomGate().on(cirq.q(0)))
-    converter = CircuitToQuantikz(circuit)
+    circuit = cirq.Circuit(
+        CustomGate(1.0).on(cirq.q(0)), CustomGate(1).on(cirq.q(0)), CustomGate(1.5).on(cirq.q(0))
+    )
+    converter = CircuitToQuantikz(circuit, show_parameters=show_parameters)
     latex_code = converter.generate_latex_document()
     assert "Custom" in latex_code
 
 
-def test_thermal_channel():
-    circuit = cirq.Circuit()
+def test_misc_gates() -> None:
+    """Tests gates that have special handling."""
+    circuit = cirq.Circuit(cirq.global_phase_operation(-1), cirq.X(cirq.q(0)) ** 1.5)
+    converter = CircuitToQuantikz(circuit)
+    latex_code = converter.generate_latex_document()
+    assert latex_code

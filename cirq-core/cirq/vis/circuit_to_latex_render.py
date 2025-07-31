@@ -57,20 +57,20 @@ try:
     from IPython.display import display, Image, Markdown  # pragma: nocover
 
     _HAS_IPYTHON = True  # pragma: nocover
-except ImportError:
-    _HAS_IPYTHON = False  # pragma: nocover
+except ImportError:  # pragma: nocover
+    _HAS_IPYTHON = False
 
-    class Image:  # pragma: nocover
-        def __init__(self, *args, **kwargs):  # pragma: nocover
+    class Image:  # type: ignore
+        def __init__(self, *args, **kwargs):
             pass
 
-    def display(*args, **kwargs):  # pragma: nocover
+    def display(*args, **kwargs):
         pass
 
-    def Markdown(*args, **kwargs):  # pragma: nocover
+    def Markdown(*args, **kwargs):
         pass
 
-    def get_ipython(*args, **kwargs) -> Any:  # pragma: nocover
+    def get_ipython(*args, **kwargs) -> Any:
         pass
 
 
@@ -188,12 +188,6 @@ def render_circuit(
         ...     quantikz_options="[column sep=0.7em]",
         ...     show_parameters=False # Example of new parameter
         ... )
-        >>> if isinstance(img_or_path, Image):
-        ...     print("Circuit rendered and displayed in Jupyter.")
-        >>> elif isinstance(img_or_path, str):
-        ...     print(f"Circuit rendered and saved to {img_or_path}")
-        >>> else:
-        ...     print("Circuit rendering failed or no output generated.")
         >>> # To view the saved PNG outside Jupyter:
         >>> # import matplotlib.pyplot as plt
         >>> # import matplotlib.image as mpimg

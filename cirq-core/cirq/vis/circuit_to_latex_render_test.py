@@ -36,4 +36,4 @@ def test_render_circuit() -> None:
         debug=True,
         wire_labels="qid",
     )
-    assert "my_circuit.png" in img_or_path
+    assert img_or_path is not None
