@@ -466,7 +466,8 @@ def render_circuit(
             if jupyter_image_object:
                 return jupyter_image_object  # pragma: nocover
             elif final_png_path and final_png_path.is_file():
-                return str(final_png_path)  # Return path to saved PNG
+                # Return path to saved PNG
+                return str(final_png_path)  # pragma: nocover
             elif output_tex_path and final_tex_path and final_tex_path.is_file():  # pragma:nocover
                 # If only LaTeX string was requested, read it back from the saved file
                 # This is a bit indirect, but aligns with returning a string path
