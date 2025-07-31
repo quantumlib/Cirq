@@ -25,11 +25,23 @@ class FiniteRandomVariable(SingleSweep):
     This can generate a stream of random samples pulled from a finite
     distribution.  For instance, a coin flip, die roll, or from {1, 0, -1}.
 
+    This sweep uses python's internal random.choices to generate samples
+    from the requested distribution.  Given the same seed, this sequence
+    will be identical across machines.
+
     Note: this is an experimental sweep and is not guaranteed to be
     future-compatible.
 
-    It is highly recommended that you specify a seed, so that the samples
-    are reproducible.
+    Args:
+        key:  symbol or string to sweep across.
+        distribution: dictionary with keys of the potential values of the
+            sweep.  The value of the dictionary is the weight of the value
+            in the resulting statistical distribution.  This will be
+            normalized to one.  For instance, specifying weights 1,2,1 will
+            result in a 25%, 50%, 25% distribution for the respective keys.
+        seed: A number to seed the pseudo-random number generator.
+        length:  Number of samples which is the same as the number of
+            sweep points.
     """
 
     def __init__(
