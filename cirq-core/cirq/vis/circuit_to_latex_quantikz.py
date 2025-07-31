@@ -575,6 +575,13 @@ class CircuitToQuantikz:
                 output[q_indices[i]] = "\\qw"
         return output
 
+    def _initial_active_chunk(self) -> list[list[str]]:
+        """Add initial wire labels for the first chunk"""
+        return [
+            [f"\\lstick{{{self._get_wire_label(self.sorted_qubits[i],i)}}}"]
+            for i in range(self.num_qubits)
+        ]
+
     def _generate_latex_body(self) -> str:
         """Generates the main LaTeX body for the circuit diagram.
 
@@ -584,66 +591,42 @@ class CircuitToQuantikz:
         Handles qubit wire labels and ensures correct LaTeX syntax.
         """
         chunks = []
-        m_count = 0
-        active_chunk: list[list[str]] = [[] for _ in range(self.num_qubits)]
-        # Add initial wire labels for the first chunk
-        for i in range(self.num_qubits):
-            active_chunk[i].append(f"\\lstick{{{self._get_wire_label(self.sorted_qubits[i], i)}}}")
+        active_chunk = self._initial_active_chunk()
 
         for m_idx, moment in enumerate(self.circuit):
-            m_count += 1
             moment_out = ["\\qw"] * self.num_qubits
-            processed_indices = set()
 
+            # Add LaTeX for each operation in the moment
             for op in moment:
                 if not op.qubits:
                     warnings.warn(f"Op {op} no qubits.")
                     continue
                 op_rnd = self._render_operation(op)
                 for idx, tex in op_rnd.items():
-                    if idx not in processed_indices:
-                        moment_out[idx] = tex
+                    moment_out[idx] = tex
             for i in range(self.num_qubits):
                 active_chunk[i].append(moment_out[i])
 
             is_last_m = m_idx == len(self.circuit) - 1
-            if self.fold_at and m_count % self.fold_at == 0 and not is_last_m:
+            if self.fold_at and m_idx % self.fold_at == 0 and not is_last_m:
                 for i in range(self.num_qubits):
                     lbl = self._get_wire_label(self.sorted_qubits[i], i)
                     active_chunk[i].extend([f"\\rstick{{{lbl}}}", "\\qw"])
                 chunks.append(active_chunk)
-                active_chunk = [[] for _ in range(self.num_qubits)]
-                for i in range(self.num_qubits):
-                    active_chunk[i].append(
-                        f"\\lstick{{{self._get_wire_label(self.sorted_qubits[i],i)}}}"
-                    )
+                active_chunk = self._initial_active_chunk()
 
-        if self.num_qubits > 0:
-            ended_on_fold = self.fold_at and m_count > 0 and m_count % self.fold_at == 0
-            if not ended_on_fold or not self.fold_at:
-                for i in range(self.num_qubits):
-                    if not active_chunk[i]:
-                        active_chunk[i] = [
-                            f"\\lstick{{{self._get_wire_label(self.sorted_qubits[i],i)}}}"
-                        ]
-                    active_chunk[i].append("\\qw")
-            if self.fold_at:
-                for i in range(self.num_qubits):
-                    if not active_chunk[i]:
-                        active_chunk[i] = [
-                            f"\\lstick{{{self._get_wire_label(self.sorted_qubits[i],i)}}}"
-                        ]
-                    active_chunk[i].extend(
-                        [f"\\rstick{{{self._get_wire_label(self.sorted_qubits[i],i)}}}", "\\qw"]
-                    )
+        if self.fold_at:
+            for i in range(self.num_qubits):
+                active_chunk[i].extend(
+                    [f"\\rstick{{{self._get_wire_label(self.sorted_qubits[i],i)}}}"]
+                )
+        for i in range(self.num_qubits):
+            active_chunk[i].append("\\qw")
         chunks.append(active_chunk)
 
         final_parts = []
         opts_str = self._get_quantikz_options_string()
         for chunk_data in chunks:
-            if not any(row for row_list in chunk_data for row in row_list):
-                continue
-
             is_empty_like = True
             if chunk_data and any(chunk_data):
                 for r_cmds in chunk_data:
