@@ -902,7 +902,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         The product-of-Paulis $P$ conjugated by the Clifford operation $C$ is
 
             $$
-            C^\dagger P C
+            C^dagger P C
             $$
 
         For example, conjugating a +Y operation by an S operation results in a
@@ -967,50 +967,13 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             # Decompose P = Pc⊗R, where Pc acts on the same qubits as C, R acts on the remaining.
             # Then the conjugation = (C^{-1}⊗I·Pc⊗R·C⊗I) = (C^{-1}·Pc·C)⊗R.
 
-            # Isolate R
-            remain: cirq.PauliString = PauliString(
+            # Conjugation on the qubits of op
+            conjugated = _calc_conjugation(ps, op)
+            # The pauli string on the remaining qubits
+            remain: PauliString = PauliString(
                 *(pauli(q) for q in all_qubits - set(op.qubits) if (pauli := ps.get(q)) is not None)
             )
-
-            # Initialize the conjugation of Pc.
-            conjugated = dense_pauli_string.DensePauliString('I' * len(op.qubits)) * ps.coefficient
-
-            # Calculate the conjugation via CliffordGate's clifford_tableau.
-            # Note the clifford_tableau in CliffordGate represents C·P·C^-1 instead of C^-1·P·C.
-            # So we take the inverse of the tableau to match the definition of the conjugation here.
-            gate_in_clifford: cirq.CliffordGate
-            if isinstance(op.gate, clifford_gate.CliffordGate):
-                gate_in_clifford = op.gate
-            else:
-                # Convert the clifford gate to CliffordGate type.
-                gate_in_clifford = clifford_gate.CliffordGate.from_op_list([op], op.qubits)
-            tableau = gate_in_clifford.clifford_tableau.inverse()
-
-            # Calculate the conjugation by `op` via mutiplying the conjugation of each Pauli:
-            #   C^{-1}·(P_1⊗...⊗P_n)·C
-            # = C^{-1}·(P_1⊗I) ...·(P_n⊗I)·C
-            # = (C^{-1}(P_1⊗I)C)·...·(C^{-1}(P_n⊗I)C)
-            # For the Pauli on the kth qubit P_k. The conjugation is calculated as following.
-            #   Puali X_k's conjugation is from the destabilzer table;
-            #   Puali Z_k's conjugation is from the stabilzer table;
-            #   Puali Y_k's conjugation is calcluated according to Y = iXZ. E.g., for the kth qubit,
-            #     C^{-1}·Y_k⊗I·C = C^{-1}·(iX_k⊗I·Z_k⊗I)·C = i (C^{-1}·X_k⊗I·C)·(C^{-1}·Z_k⊗I·C).
-            for qid, qubit in enumerate(op.qubits):
-                pauli = ps.get(qubit)
-                match pauli:
-                    case None:
-                        continue
-                    case pauli_gates.X:
-                        conjugated *= tableau.destabilizers()[qid]
-                    case pauli_gates.Z:
-                        conjugated *= tableau.stabilizers()[qid]
-                    case pauli_gates.Y:
-                        conjugated *= (
-                            1j
-                            * tableau.destabilizers()[qid]  # conj X first
-                            * tableau.stabilizers()[qid]  # then conj Z
-                        )
-            ps = remain * conjugated.on(*op.qubits)
+            ps = remain * conjugated
         return ps
 
     def after(self, ops: cirq.OP_TREE) -> cirq.PauliString:
@@ -1370,32 +1333,10 @@ class MutablePauliString(Generic[TKey]):
         # An inplace impl of PauliString.conjugated_by().
         flattened_ops = list(op_tree.flatten_to_ops(ops))
         for op in flattened_ops[::-1]:
-            conjugated = dense_pauli_string.DensePauliString('I' * len(op.qubits))
-            gate_in_clifford: cirq.CliffordGate
-            if isinstance(op.gate, clifford_gate.CliffordGate):
-                gate_in_clifford = op.gate
-            else:
-                gate_in_clifford = clifford_gate.CliffordGate.from_op_list([op], op.qubits)
-            tableau = gate_in_clifford.clifford_tableau.inverse()
-
-            for qid, q in enumerate(op.qubits):
-                pauli = self.get(cast(TKey, q), None)
-                match pauli:
-                    case pauli_gates.X:
-                        conjugated *= tableau.destabilizers()[qid]
-                    case pauli_gates.Z:
-                        conjugated *= tableau.stabilizers()[qid]
-                    case pauli_gates.Y:
-                        conjugated *= (
-                            1j
-                            * tableau.destabilizers()[qid]  # conj X first
-                            * tableau.stabilizers()[qid]  # then conj Z
-                        )
-                    case _:
-                        continue
-            self.coefficient *= conjugated.coefficient
-            for qid, q in enumerate(op.qubits):
-                new_pauli_int = PAULI_GATE_LIKE_TO_INDEX_MAP[conjugated[qid]]
+            conjugated = _calc_conjugation(self.frozen(), op)
+            self.coefficient = conjugated.coefficient
+            for q in op.qubits:
+                new_pauli_int = PAULI_GATE_LIKE_TO_INDEX_MAP[conjugated.get(q) or 0]
                 if new_pauli_int == 0:
                     self.pauli_int_dict.pop(cast(TKey, q), None)
                 else:
@@ -1631,3 +1572,52 @@ def _pauli_like_to_pauli_int(key: Any, pauli_gate_like: PAULI_GATE_LIKE):
             f"{set(PAULI_GATE_LIKE_TO_INDEX_MAP.keys())!r}"
         )
     return pauli_int
+
+
+def _calc_conjugation(ps: cirq.PauliString, clifford_op: cirq.Operation) -> cirq.PauliString:
+    """Computes the conjugation of a Pauli string by a single Clifford operation.
+
+    It computes $C^-1 P C$ where P is the Pauli string `ps` and C is the `clifford_op`.
+    """
+
+    # Initialize the conjugation of the pauli string.
+    conjugated = dense_pauli_string.DensePauliString('I' * len(clifford_op.qubits)) * ps.coefficient
+
+    # Calculate the conjugation via CliffordGate's clifford_tableau.
+    # Note the clifford_tableau in CliffordGate represents C·P·C^-1 instead of C^-1·P·C.
+    # So we take the inverse of the tableau to match the definition of the conjugation here.
+    if isinstance(clifford_op.gate, clifford_gate.CliffordGate):
+        gate_in_clifford = clifford_op.gate
+    else:
+        # Convert the clifford gate to CliffordGate type.
+        gate_in_clifford = clifford_gate.CliffordGate.from_op_list(
+            [clifford_op], clifford_op.qubits
+        )
+    tableau = gate_in_clifford.clifford_tableau.inverse()
+
+    # Calculate the conjugation by `clifford_op` via mutiplying the conjugation of each Pauli:
+    #   C^{-1}·(P_1⊗...⊗P_n)·C
+    # = C^{-1}·(P_1⊗I) ...·(P_n⊗I)·C
+    # = (C^{-1}(P_1⊗I)C)·...·(C^{-1}(P_n⊗I)C)
+    # For the Pauli on the kth qubit P_k. The conjugation is calculated as following.
+    #   Pauli X_k's conjugation is from the destabilizer table;
+    #   Pauli Z_k's conjugation is from the stabilizer table;
+    #   Pauli Y_k's conjugation is calculated according to Y = iXZ. E.g., for the kth qubit,
+    #     C^{-1}·Y_k⊗I·C = C^{-1}·(iX_k⊗I·Z_k⊗I)·C = i (C^{-1}·X_k⊗I·C)·(C^{-1}·Z_k⊗I·C).
+    for qid, qubit in enumerate(clifford_op.qubits):
+        pauli = ps.get(qubit)
+        match pauli:
+            case None:
+                continue
+            case pauli_gates.X:
+                conjugated *= tableau.destabilizers()[qid]
+            case pauli_gates.Z:
+                conjugated *= tableau.stabilizers()[qid]
+            case pauli_gates.Y:
+                conjugated *= (
+                    1j
+                    * tableau.destabilizers()[qid]  # conj X first
+                    * tableau.stabilizers()[qid]  # then conj Z
+                )
+
+    return conjugated.on(*clifford_op.qubits)
