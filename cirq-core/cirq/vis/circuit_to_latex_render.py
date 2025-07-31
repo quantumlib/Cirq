@@ -285,7 +285,7 @@ def render_circuit(
                 return None
 
             pdf_generated = False
-            if run_pdflatex and pdflatex_exec: # pragma: nocover
+            if run_pdflatex and pdflatex_exec:  # pragma: nocover
                 _debug_print(f"Running pdflatex ({pdflatex_exec})...")
                 # Run pdflatex twice for correct cross-references and layout
                 cmd_latex = [
@@ -345,7 +345,7 @@ def render_circuit(
                     return None  # Critical failure, return None
 
             png_generated, final_output_path_for_display = False, None
-            if run_pdftoppm and pdftoppm_exec and pdf_generated:
+            if run_pdftoppm and pdftoppm_exec and pdf_generated:  # pragma: nocover
                 _debug_print(f"Running pdftoppm ({pdftoppm_exec})...")
                 # pdftoppm outputs to <prefix>-<page_number>.png if multiple pages,
                 # or <prefix>.png if single page with -singlefile.
