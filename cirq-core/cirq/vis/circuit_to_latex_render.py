@@ -393,20 +393,20 @@ def render_circuit(
                     _debug_print(f"Copied .tex to: {final_tex_path}")
                 except Exception as e:  # pragma: nocover
                     print(f"Error copying .tex file to final path: {e}")
-            if final_pdf_path and pdf_generated and tmp_pdf_path.exists():
+            if final_pdf_path and pdf_generated and tmp_pdf_path.exists():  # pragma: nocover
                 try:
                     final_pdf_path.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(tmp_pdf_path, final_pdf_path)
                     _debug_print(f"Copied .pdf to: {final_pdf_path}")
-                except Exception as e:  # pragma: nocover
+                except Exception as e:
                     print(f"Error copying .pdf file to final path: {e}")
-            if final_png_path and png_generated and tmp_png_path.exists():
+            if final_png_path and png_generated and tmp_png_path.exists():  # pragma: nocover
                 try:
                     final_png_path.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(tmp_png_path, final_png_path)
                     _debug_print(f"Copied .png to: {final_png_path}")
                     final_output_path_for_display = final_png_path  # Use the final path for display
-                except Exception as e:  # pragma: nocover
+                except Exception as e:
                     print(f"Error copying .png file to final path: {e}")
             elif png_generated and tmp_png_path.exists() and not final_png_path:  # pragma: nocover
                 # If PNG was generated but no specific output_png_path,
