@@ -54,7 +54,7 @@ def _get_neighbor_coupler_freqs(
     }
 
 
-def is_same_value_or_symbol(val1, val2) -> bool:
+def is_same_value_or_symbol(val1: Any, val2: Any) -> bool:
     """Check two values are same value or same symbols."""
     try:
         # If we run "sympy.Symbol('t') == 2*tu.ns", it will
