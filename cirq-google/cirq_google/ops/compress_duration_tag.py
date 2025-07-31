@@ -23,7 +23,7 @@ from cirq_google.api.v2 import program_pb2
 
 
 class CompressDurationTag:
-    """Class to direct hardware to ignore operations of zero duration.
+    """Class to direct hardware to compress operations of zero duration.
 
     By default, parameters of gates that could lead to no-ops do not
     change the original duration of the gate.  For instance, X**0
@@ -34,6 +34,9 @@ class CompressDurationTag:
     When applied to an operation, this will cause the operation to
     compress to zero duration if possible.  Currently, this will affect
     gates with angles of zero.
+
+    This can also affect PhasedXZGates to turn them into virtual Z gates
+    if the resulting gate has a Z phase but no X component.
     """
 
     def __str__(self) -> str:
