@@ -1202,8 +1202,8 @@ class EngineClient:
         Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
-            config_id: The id of the quantum processor config.
             snapshot_id: The id of the snapshot that contains the quantum processor config.
+            config_id: The id of the quantum processor config.
 
         Returns:
             The quantum procesor config or None if it does not exist.
@@ -1287,6 +1287,7 @@ def _ids_from_processor_name(processor_name: str) -> tuple[str, str]:
 def _ids_from_calibration_name(calibration_name: str) -> tuple[str, str, int]:
     parts = calibration_name.split('/')
     return parts[1], parts[3], int(parts[5])
+
 
 def _quantum_processor_name_with_snapshot_id(
         project_id: str, processor_id: str, snapshot_id: str, config_id: str

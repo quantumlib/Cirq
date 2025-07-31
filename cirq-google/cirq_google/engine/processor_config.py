@@ -17,11 +17,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from cirq_google.devices import GridDevice
+from cirq_google.api import v2
+from cirq_google.cloud.quantum_v1alpha1.types import quantum
 
-import datetime
+
+from cirq_google.engine import util
+import cirq_google as cg
 
 if TYPE_CHECKING:
-    import cirq_google as cg
+    import cirq_google.engine.engine as engine_base
 
 class ProcessorConfig:
     """Representation of a quantum processor configuration
@@ -39,6 +43,35 @@ class ProcessorConfig:
         self._name = name
         self._effective_device = effective_device
         self._calibration = calibration
+    
+    @classmethod
+    def from_quantum_config(
+        cls, quantum_config: quantum.QuantumProcessorConfig
+    ) -> ProcessorConfig:
+        """Create instance from a QuantumProcessorConfig
+
+        Args:
+            quantum_config: The `QuantumProcessorConfig` to create.
+        
+        Raises:
+            ValueError: If the quantum_config.device_specification is invalid
+        
+        Returns:
+            The ProcessorConfig
+        """
+        name = quantum_config.name
+        device_spec = util.unpack_any(
+            quantum_config.device_specification, v2.device_pb2.DeviceSpecification()
+        )
+        characterization = util.unpack_any(
+            quantum_config.characterization, v2.metrics_pb2.MetricsSnapshot()
+        )
+        
+        return ProcessorConfig(
+            name=name,
+            effective_device=cg.GridDevice.from_proto(device_spec),
+            calibration=cg.Calibration(characterization)
+        )
 
     @property
     def name(self) -> str:
@@ -61,39 +94,33 @@ class ProcessorConfigSnapshot:
 
     def __init__(self,
                  *,
+                 project_id: str,
+                 processor_id: str,
                  snapshot_id: str,
-                 create_time: datetime.datetime,
-                 run_names: list[str],
-                 processor_configs: list[ProcessorConfig]
+                 context: engine_base.EngineContext,
     ) -> None:
+        self._project_id = project_id
+        self._processor_id = processor_id
         self._snapshot_id = snapshot_id
-        self._create_time = create_time
-        self._run_names = run_names
-        self._processor_configs = processor_configs
+        self._context = context
     
     @property
     def snapshot_id(self) -> str:
         """The indentifier for this snapshot."""
         return self._snapshot_id
     
-    @property
-    def run_names(self) -> list[str]:
-        """Alternate ids which may be used to identify this config snapshot."""
-        return self._run_names
-    
-    @property
-    def all_configs(self) -> list[ProcessorConfig]:
-        """List of all configurations in this snapshot."""
-        return self._processor_configs
-    
     def get_config(self, name: str) -> ProcessorConfig | None:
         """Returns the configuration with the given name in this snapshot if it exists.
 
         Args:
             name: The name of the configuration.
+
+        Raises:
+            ValueError: If config is invalid.
         """
-        for config in self._processor_configs:
-            if name == config.name:
-                return config
-        
-        return None
+        response = self._context.client.get_quantum_processor_config_by_snapshot_id(
+            project_id=self._project_id, processor_id=self._processor_id,
+            snapshot_id=self._snapshot_id, config_id=name
+        )    
+        return ProcessorConfig.from_quantum_config(response)
+
