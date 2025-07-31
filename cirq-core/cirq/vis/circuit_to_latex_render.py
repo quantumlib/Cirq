@@ -285,7 +285,7 @@ def render_circuit(
                 return None
 
             pdf_generated = False
-            if run_pdflatex and pdflatex_exec:
+            if run_pdflatex and pdflatex_exec: # pragma: nocover
                 _debug_print(f"Running pdflatex ({pdflatex_exec})...")
                 # Run pdflatex twice for correct cross-references and layout
                 cmd_latex = [
