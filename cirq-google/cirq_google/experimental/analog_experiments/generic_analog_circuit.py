@@ -14,6 +14,7 @@
 
 import functools
 import re
+from typing import Any
 
 import cirq
 from cirq_google.experimental.analog_experiments import analog_trajectory_util as atu
@@ -51,6 +52,16 @@ def _get_neighbor_coupler_freqs(
         for pair, g in coupler_g_dict.items()
         if qubit_name in pair
     }
+
+
+def is_same_value_or_symbol(val1, val2) -> bool:
+    """Check two values are same value or same symbols."""
+    try:
+        # If we run "sympy.Symbol('t') == 2*tu.ns", it will
+        # throw the dimension issue.
+        return val1 == val2
+    except:
+        return False
 
 
 class GenericAnalogCircuitBuilder:
@@ -125,7 +136,7 @@ class GenericAnalogCircuitBuilder:
         for p, g_max in freq_map.couplings.items():
             # Currently skipping the step if these are the same.
             # However, change in neighbor qubit freq could potentially change coupler amp
-            if g_max == prev_freq_map.couplings[p]:
+            if is_same_value_or_symbol(g_max, prev_freq_map.couplings.get(p)):
                 continue
 
             coupler_gates.append(

@@ -39,6 +39,16 @@ def test_to_grid_qubit() -> None:
         gac._to_grid_qubit("q1")
 
 
+def test_is_same_value_or_symbol() -> None:
+    assert gac.is_same_value_or_symbol(sympy.Symbol("a"), sympy.Symbol("a"))
+    assert gac.is_same_value_or_symbol(1, 1)
+    assert gac.is_same_value_or_symbol(1 * tu.ns, 1 * tu.ns)
+
+    assert not gac.is_same_value_or_symbol(sympy.Symbol("a"), sympy.Symbol("b"))
+    assert not gac.is_same_value_or_symbol(1 * tu.ns, sympy.Symbol("a"))
+    assert not gac.is_same_value_or_symbol(1 * tu.ns, None)
+
+
 def test_coupler_name_from_qubit_pair() -> None:
     pair = ("q0_0", "q0_1")
     coupler_name = gac._coupler_name_from_qubit_pair(pair)
