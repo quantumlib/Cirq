@@ -24,6 +24,7 @@ import tunits
 import cirq
 from cirq_google.api.v2 import run_context_pb2
 from cirq_google.study.device_parameter import DeviceParameter, Metadata
+from cirq_google.study.finite_random_variable import FiniteRandomVariable
 
 if TYPE_CHECKING:
     from cirq.study import sweeps
@@ -171,6 +172,24 @@ def sweep_to_proto(
                 out.single_sweep.parameter.idx = sweep.metadata.idx
             if sweep.metadata and getattr(sweep.metadata, 'units', None):
                 out.single_sweep.parameter.units = sweep.metadata.units
+    elif isinstance(sweep, FiniteRandomVariable) and not isinstance(sweep.key, sympy.Expr):
+        sweep = cast(FiniteRandomVariable, sweep_transformer(sweep))
+        out.single_sweep.parameter_key = sweep.key
+        out.single_sweep.random_variable.length = sweep.length
+        out.single_sweep.random_variable.seed = sweep.seed
+        for random_value, prob in sweep.distribution.items():
+            out.single_sweep.random_variable.distribution[str(random_value)] = prob
+        # Encode the metadata if present
+        if isinstance(sweep.metadata, Metadata):
+            out.single_sweep.metadata.MergeFrom(metadata_to_proto(sweep.metadata))
+        else:
+            # Use duck-typing to support google-internal Parameter objects
+            if sweep.metadata and getattr(sweep.metadata, 'path', None):
+                out.single_sweep.parameter.path.extend(sweep.metadata.path)
+            if sweep.metadata and getattr(sweep.metadata, 'idx', None):
+                out.single_sweep.parameter.idx = sweep.metadata.idx
+            if sweep.metadata and getattr(sweep.metadata, 'units', None):
+                out.single_sweep.parameter.units = sweep.metadata.units
     elif isinstance(sweep, cirq.ListSweep):
         sweep_dict: dict[str, list[float]] = {}
         for param_resolver in sweep:
@@ -280,6 +299,18 @@ def sweep_from_proto(
                 cirq.Points(
                     key=key,
                     points=[_recover_sweep_const(msg.single_sweep.const_value)],
+                    metadata=metadata,
+                )
+            )
+        if msg.single_sweep.WhichOneof('sweep') == 'random_variable':
+            sweep_msg = msg.single_sweep.random_variable
+            distribution = {float(key): val for key, val in sweep_msg.distribution.items()}
+            return sweep_transformer(
+                FiniteRandomVariable(
+                    key=key,
+                    distribution=distribution,
+                    length=sweep_msg.length,
+                    seed=sweep_msg.seed,
                     metadata=metadata,
                 )
             )
