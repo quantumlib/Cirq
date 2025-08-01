@@ -828,9 +828,6 @@ class TaggedOperation(Operation):
     def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['sub_operation', 'tags'])
 
-    def _decompose_(self) -> cirq.OP_TREE:
-        return self._decompose_with_context_()
-
     def _decompose_with_context_(
         self, context: cirq.DecompositionContext | None = None
     ) -> cirq.OP_TREE:
@@ -982,9 +979,6 @@ class _InverseCompositeGate(Gate):
         if power == -1:
             return self._original
         return NotImplemented
-
-    def _decompose_(self, qubits):
-        return self._decompose_with_context_(qubits)
 
     def _decompose_with_context_(
         self, qubits: Sequence[cirq.Qid], context: cirq.DecompositionContext | None = None

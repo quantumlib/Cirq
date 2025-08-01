@@ -148,14 +148,11 @@ class GateOperation(raw_types.Operation):
     def _num_qubits_(self):
         return len(self._qubits)
 
-    def _decompose_(self) -> cirq.OP_TREE:
-        return self._decompose_with_context_()
-
     def _decompose_with_context_(
         self, context: cirq.DecompositionContext | None = None
     ) -> cirq.OP_TREE:
         return protocols.decompose_once_with_qubits(
-            self.gate, self.qubits, NotImplemented, flatten=False, context=context
+            self.gate, self.qubits, None, flatten=False, context=context
         )
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:

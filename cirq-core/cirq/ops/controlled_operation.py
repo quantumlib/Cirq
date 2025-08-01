@@ -134,26 +134,16 @@ class ControlledOperation(raw_types.Operation):
             new_qubits[:n], self.sub_operation.with_qubits(*new_qubits[n:]), self.control_values
         )
 
-    def _decompose_(self):
-        return self._decompose_with_context_()
-
     def _decompose_with_context_(self, context: cirq.DecompositionContext | None = None):
         result = protocols.decompose_once_with_qubits(
-            self.gate, self.qubits, NotImplemented, flatten=False, context=context
+            self.gate, self.qubits, None, flatten=False, context=context
         )
-        if result is not NotImplemented:
+        if result is not None:
             return result
 
-        if isinstance(self.sub_operation.gate, matrix_gates.MatrixGate):
-            # Default decompositions of 2/3 qubit `cirq.MatrixGate` ignores global phase, which is
-            # local phase in the controlled variant and hence cannot be ignored.
-            return NotImplemented
-
-        result = protocols.decompose_once(
-            self.sub_operation, NotImplemented, flatten=False, context=context
-        )
-        if result is NotImplemented:
-            return NotImplemented
+        result = protocols.decompose_once(self.sub_operation, None, flatten=False, context=context)
+        if result is None:
+            return None
 
         return op_tree.transform_op_tree(
             result, lambda op: op.controlled_by(*self.controls, control_values=self.control_values)
@@ -230,7 +220,7 @@ class ControlledOperation(raw_types.Operation):
         sub_tensor = sub_matrix.reshape(qid_shape[len(self.controls) :] * 2)
         for control_vals in self.control_values.expand():
             active = (*(v for v in control_vals), *(slice(None),) * sub_n) * 2
-            tensor[active] = sub_tensor  # type: ignore[index]
+            tensor[active] = sub_tensor
         return tensor.reshape((np.prod(qid_shape, dtype=np.int64).item(),) * 2)
 
     def _unitary_(self) -> np.ndarray | NotImplementedType:
