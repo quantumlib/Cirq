@@ -444,8 +444,9 @@ def test_run_context_to_proto_with_compression() -> None:
         (cirq.Points('tunits_const', [tunits.MHz])),  # type: ignore[list-item]
     ],
 )
-def test_tunits_round_trip(sweep):
-    msg = v2.sweep_to_proto(sweep)
+@pytest.mark.parametrize('use_float64', [True, False])
+def test_tunits_round_trip(sweep, use_float64):
+    msg = v2.sweep_to_proto(sweep, use_float64=use_float64)
     recovered = v2.sweep_from_proto(msg)
     assert sweep == recovered
 
