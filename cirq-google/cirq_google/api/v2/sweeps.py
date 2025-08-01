@@ -18,6 +18,7 @@ import gzip
 import numbers
 from typing import Any, Callable, cast, TYPE_CHECKING
 
+import numpy as np
 import sympy
 import tunits
 
@@ -39,7 +40,7 @@ def _build_sweep_const(value: Any, use_float64: bool = False) -> run_context_pb2
         if use_float64:
             return run_context_pb2.ConstValue(double_value=float(value))
         else:
-            return run_context_pb2.ConstValue(float_value=float(value))
+            return run_context_pb2.ConstValue(float_value=np.float32(value))
     elif isinstance(value, str):
         return run_context_pb2.ConstValue(string_value=value)
     elif isinstance(value, tunits.Value):
