@@ -118,6 +118,11 @@ def test_sweep_to_proto_roundtrip(sweep):
     # Check that metadata is the same, if it exists.
     assert getattr(deserialized, 'metadata', None) == getattr(sweep, 'metadata', None)
 
+    # Assert for using float64 case
+    msg_float64 = v2.sweep_to_proto(sweep, use_float64=True)
+    deserialized_float64 = v2.sweep_from_proto(msg_float64)
+    assert deserialized_float64 == sweep
+
 
 def test_sweep_to_proto_linspace():
     proto = v2.sweep_to_proto(
@@ -372,13 +377,17 @@ def test_sweep_with_list_sweep():
     expected.sweep_function.function_type = v2.run_context_pb2.SweepFunction.ZIP
     p1 = expected.sweep_function.sweeps.add()
     p1.single_sweep.parameter_key = 'a'
-    # Because of dual writes
     p1.single_sweep.points.points.extend([1, 3])
-    p1.single_sweep.points.points_double.extend([1, 3])
     p2 = expected.sweep_function.sweeps.add()
     p2.single_sweep.parameter_key = 'b'
-    # Because of dual writes
     p2.single_sweep.points.points.extend([2, 4])
+    assert proto == expected
+
+    # Encode into float64 isntead
+    proto = v2.sweep_to_proto(ls, use_float64=True)
+    p1.single_sweep.points.ClearField('points')
+    p1.single_sweep.points.points_double.extend([1.0, 3.0])
+    p2.single_sweep.points.ClearField('points')
     p2.single_sweep.points.points_double.extend([2, 4])
     assert proto == expected
 
