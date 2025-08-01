@@ -26,7 +26,6 @@ from cirq.ops import (
     controlled_gate,
     eigen_gate,
     gate_operation,
-    matrix_gates,
     op_tree,
     raw_types,
 )
