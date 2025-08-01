@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import itertools
+from types import NotImplementedType
 from unittest import mock
 
 import pytest
@@ -461,7 +462,7 @@ def test_handling_of_none_vs_notimplemented_return_values() -> None:
     class TestOp:
         called_decompose = False
         called_decompose_with_context = False
-        return_value = None
+        return_value: NotImplementedType | None = None
 
         def _decompose_(self):
             self.called_decompose = True
