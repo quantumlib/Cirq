@@ -18,7 +18,6 @@ import gzip
 import numbers
 from typing import Any, Callable, cast, TYPE_CHECKING
 
-import numpy as np
 import sympy
 import tunits
 
@@ -40,7 +39,8 @@ def _build_sweep_const(value: Any, use_float64: bool = False) -> run_context_pb2
         if use_float64:
             return run_context_pb2.ConstValue(double_value=float(value))
         else:
-            return run_context_pb2.ConstValue(float_value=np.float32(value))
+            # Note: A loss of precision for floating-point numbers may occur here.
+            return run_context_pb2.ConstValue(float_value=float(value))
     elif isinstance(value, str):
         return run_context_pb2.ConstValue(string_value=value)
     elif isinstance(value, tunits.Value):
@@ -139,6 +139,7 @@ def sweep_to_proto(
                 out.single_sweep.linspace.first_point_double = sweep.start[unit]
                 out.single_sweep.linspace.last_point_double = sweep.stop[unit]
             else:
+                # Note: A loss of precision for floating-point numbers may occur here.
                 out.single_sweep.linspace.first_point = sweep.start[unit]
                 out.single_sweep.linspace.last_point = sweep.stop[unit]
             out.single_sweep.linspace.num_points = sweep.length
@@ -148,6 +149,7 @@ def sweep_to_proto(
                 out.single_sweep.linspace.first_point_double = sweep.start
                 out.single_sweep.linspace.last_point_double = sweep.stop
             else:
+                # Note: A loss of precision for floating-point numbers may occur here.
                 out.single_sweep.linspace.first_point = sweep.start
                 out.single_sweep.linspace.last_point = sweep.stop
 
@@ -174,12 +176,14 @@ def sweep_to_proto(
                 if use_float64:
                     out.single_sweep.points.points_double.extend(p[unit] for p in sweep.points)
                 else:
+                    # Note: A loss of precision for floating-point numbers may occur here.
                     out.single_sweep.points.points.extend(p[unit] for p in sweep.points)
                 unit.to_proto(out.single_sweep.points.unit)
             else:
                 if use_float64:
                     out.single_sweep.points.points_double.extend(sweep.points)
                 else:
+                    # Note: A loss of precision for floating-point numbers may occur here.
                     out.single_sweep.points.points.extend(sweep.points)
 
         # Encode the metadata if present
