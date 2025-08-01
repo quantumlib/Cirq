@@ -64,8 +64,8 @@ class AnalogDetuneQubit(cirq.ops.Gate):
         Args:
             length: The duration of gate.
             w: Width of the step envelope raising edge.
-            target_freq: The target frequecy for the qubit at end of detune gate.
-            prev_freq: Previous detuning frequecy to compensate beginning of detune gate.
+            target_freq: The target frequency for the qubit at end of detune gate.
+            prev_freq: Previous detuning frequency to compensate beginning of detune gate.
             neighbor_coupler_g_dict: A dictionary has coupler name like "c_q0_0_q1_0"
                 as key and the coupling strength `g` as the value.
             prev_neighbor_coupler_g_dict: A dictionary has the same format as
@@ -231,7 +231,7 @@ class AnalogDetuneCouplerOnly(cirq.ops.Gate):
             interpolate_coupling_cal: If true, find the required amp for the coupling strength
                 through interpolation. If not true, require all coupling strength has associated
                 amp calibrated in the registry.
-            analog_cal_for_pulseshaping: If ture, using the analog model instead of
+            analog_cal_for_pulseshaping: If true, using the analog model instead of
                 standard transmon model to find the amp of pulse.
         """
         self.length = length
