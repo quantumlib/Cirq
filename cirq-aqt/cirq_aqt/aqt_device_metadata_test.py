@@ -38,7 +38,7 @@ def metadata(qubits) -> AQTDeviceMetadata:
     )
 
 
-def test_aqtdevice_metadata(metadata, qubits):
+def test_aqtdevice_metadata(metadata, qubits) -> None:
     assert metadata.qubit_set == frozenset(qubits)
     assert set(qubits) == set(metadata.nx_graph.nodes())
     edges = metadata.nx_graph.edges()
@@ -48,7 +48,7 @@ def test_aqtdevice_metadata(metadata, qubits):
     assert len(metadata.gate_durations) == 4
 
 
-def test_aqtdevice_duration_of(metadata, qubits):
+def test_aqtdevice_duration_of(metadata, qubits) -> None:
     q0, q1 = qubits[:2]
     ms = cirq.Duration(millis=1)
     assert metadata.duration_of(cirq.Z(q0)) == 10 * ms
@@ -59,5 +59,5 @@ def test_aqtdevice_duration_of(metadata, qubits):
         metadata.duration_of(cirq.I(q0))
 
 
-def test_repr(metadata):
+def test_repr(metadata) -> None:
     cirq.testing.assert_equivalent_repr(metadata, setup_code='import cirq\nimport cirq_aqt\n')

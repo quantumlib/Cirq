@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import gzip
 import numbers
 from typing import Any, Callable, cast, TYPE_CHECKING
 
@@ -35,6 +36,7 @@ def _build_sweep_const(value: Any) -> run_context_pb2.ConstValue:
     elif isinstance(value, numbers.Integral):
         return run_context_pb2.ConstValue(int_value=int(value))
     elif isinstance(value, numbers.Real):
+        # TODO Switch to double_value when server is rolled out.
         return run_context_pb2.ConstValue(float_value=float(value))
     elif isinstance(value, str):
         return run_context_pb2.ConstValue(string_value=value)
@@ -50,6 +52,8 @@ def _recover_sweep_const(const_pb: run_context_pb2.ConstValue) -> Any:
     """Recover a const value from the sweep const message."""
     if const_pb.WhichOneof('value') == 'is_none':
         return None
+    if const_pb.WhichOneof('value') == 'double_value':
+        return const_pb.double_value
     if const_pb.WhichOneof('value') == 'float_value':
         return const_pb.float_value
     if const_pb.WhichOneof('value') == 'int_value':
@@ -115,11 +119,19 @@ def sweep_to_proto(
             unit = sweep.start.unit
             out.single_sweep.linspace.first_point = sweep.start[unit]
             out.single_sweep.linspace.last_point = sweep.stop[unit]
+            # Dual write for float32 to float64 migration
+            out.single_sweep.linspace.first_point_double = sweep.start[unit]
+            out.single_sweep.linspace.last_point_double = sweep.stop[unit]
+
             out.single_sweep.linspace.num_points = sweep.length
             unit.to_proto(out.single_sweep.linspace.unit)
         else:
             out.single_sweep.linspace.first_point = sweep.start
             out.single_sweep.linspace.last_point = sweep.stop
+            # Dual write for float32 to float64 migration
+            out.single_sweep.linspace.first_point_double = sweep.start
+            out.single_sweep.linspace.last_point_double = sweep.stop
+
             out.single_sweep.linspace.num_points = sweep.length
         # Encode the metadata if present
         if isinstance(sweep.metadata, Metadata):
@@ -140,10 +152,14 @@ def sweep_to_proto(
         else:
             if isinstance(sweep.points[0], tunits.Value):
                 unit = sweep.points[0].unit
+                # Dual-write to both points and points_double for temporary compatibility.
                 out.single_sweep.points.points.extend(p[unit] for p in sweep.points)
+                out.single_sweep.points.points_double.extend(p[unit] for p in sweep.points)
                 unit.to_proto(out.single_sweep.points.unit)
             else:
+                # Dual-write to both points and points_double for temporary compatibility.
                 out.single_sweep.points.points.extend(sweep.points)
+                out.single_sweep.points.points_double.extend(sweep.points)
         # Encode the metadata if present
         if isinstance(sweep.metadata, Metadata):
             out.single_sweep.metadata.MergeFrom(metadata_to_proto(sweep.metadata))
@@ -227,11 +243,21 @@ def sweep_from_proto(
             unit: float | tunits.Value = 1.0
             if msg.single_sweep.linspace.HasField('unit'):
                 unit = tunits.Value.from_proto(msg.single_sweep.linspace.unit)
+            # If float 64 field is presented, we use it first.
+            if msg.single_sweep.linspace.first_point_double:
+                first_point = msg.single_sweep.linspace.first_point_double
+            else:
+                first_point = msg.single_sweep.linspace.first_point
+
+            if msg.single_sweep.linspace.last_point_double:
+                last_point = msg.single_sweep.linspace.last_point_double
+            else:
+                last_point = msg.single_sweep.linspace.last_point  # pragma: no cover
             return sweep_transformer(
                 cirq.Linspace(
                     key=key,
-                    start=msg.single_sweep.linspace.first_point * unit,  # type: ignore[arg-type]
-                    stop=msg.single_sweep.linspace.last_point * unit,  # type: ignore[arg-type]
+                    start=first_point * unit,  # type: ignore[arg-type]
+                    stop=last_point * unit,  # type: ignore[arg-type]
                     length=msg.single_sweep.linspace.num_points,
                     metadata=metadata,
                 )
@@ -240,12 +266,14 @@ def sweep_from_proto(
             unit = 1.0
             if msg.single_sweep.points.HasField('unit'):
                 unit = tunits.Value.from_proto(msg.single_sweep.points.unit)
+            # points_double is the double floating number instead of single one.
+            # if points_double is presented, we use this value first.
+            if msg.single_sweep.points.points_double:
+                points = msg.single_sweep.points.points_double
+            else:
+                points = msg.single_sweep.points.points  # pragma: no cover
             return sweep_transformer(
-                cirq.Points(
-                    key=key,
-                    points=[p * unit for p in msg.single_sweep.points.points],
-                    metadata=metadata,
-                )
+                cirq.Points(key=key, points=[p * unit for p in points], metadata=metadata)
             )
         if msg.single_sweep.WhichOneof('sweep') == 'const_value':
             return sweep_transformer(
@@ -294,7 +322,11 @@ def metadata_from_proto(metadata_pb: run_context_pb2.Metadata) -> Metadata:
 
 
 def run_context_to_proto(
-    sweepable: cirq.Sweepable, repetitions: int, *, out: run_context_pb2.RunContext | None = None
+    sweepable: cirq.Sweepable,
+    repetitions: int,
+    *,
+    out: run_context_pb2.RunContext | None = None,
+    compress_proto: bool = False,
 ) -> run_context_pb2.RunContext:
     """Populates a RunContext protobuf message.
 
@@ -303,14 +335,23 @@ def run_context_to_proto(
         repetitions: The number of repetitions for the run context.
         out: Optional message to be populated. If not given, a new message will
             be created.
+        compress_proto: If set to `True` the function will gzip the proto and
+            store the contents in the bytes field.
 
     Returns:
         Populated RunContext protobuf message.
     """
     if out is None:
         out = run_context_pb2.RunContext()
+    if compress_proto:
+        uncompressed_wrapper = out
+        out = run_context_pb2.RunContext()
     for sweep in cirq.to_sweeps(sweepable):
         sweep_proto = out.parameter_sweeps.add()
         sweep_proto.repetitions = repetitions
         sweep_to_proto(sweep, out=sweep_proto.sweep)
+    if compress_proto:
+        raw_bytes = out.SerializeToString()
+        uncompressed_wrapper.compressed_run_context = gzip.compress(raw_bytes)
+        return uncompressed_wrapper
     return out

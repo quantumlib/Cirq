@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import gzip
 import math
 from copy import deepcopy
 from typing import Iterator
@@ -145,6 +146,12 @@ def test_build_recover_const(val):
         assert math.isclose(val, val2)  # avoid the floating precision issue.
     else:
         assert val2 == val
+
+
+def test_build_covert_const_double():
+    val = 1.2355
+    val2 = v2.sweeps._recover_sweep_const(v2.run_context_pb2.ConstValue(double_value=val))
+    assert val2 == val
 
 
 def test_build_const_unsupported_type():
@@ -365,10 +372,14 @@ def test_sweep_with_list_sweep():
     expected.sweep_function.function_type = v2.run_context_pb2.SweepFunction.ZIP
     p1 = expected.sweep_function.sweeps.add()
     p1.single_sweep.parameter_key = 'a'
+    # Because of dual writes
     p1.single_sweep.points.points.extend([1, 3])
+    p1.single_sweep.points.points_double.extend([1, 3])
     p2 = expected.sweep_function.sweeps.add()
     p2.single_sweep.parameter_key = 'b'
+    # Because of dual writes
     p2.single_sweep.points.points.extend([2, 4])
+    p2.single_sweep.points.points_double.extend([2, 4])
     assert proto == expected
 
 
@@ -405,6 +416,16 @@ def test_run_context_to_proto(pass_out: bool) -> None:
     assert len(out.parameter_sweeps) == 1
     assert v2.sweep_from_proto(out.parameter_sweeps[0].sweep) == sweep
     assert out.parameter_sweeps[0].repetitions == 100
+
+
+def test_run_context_to_proto_with_compression() -> None:
+    sweep = cirq.Linspace('a', 0, 1, 21)
+    out = v2.run_context_to_proto(sweep, 100, compress_proto=True)
+    raw_bytes = gzip.decompress(out.compressed_run_context)
+    msg = v2.run_context_pb2.RunContext()
+    msg.ParseFromString(raw_bytes)
+    assert v2.sweep_from_proto(msg.parameter_sweeps[0].sweep) == sweep
+    assert msg.parameter_sweeps[0].repetitions == 100
 
 
 @pytest.mark.parametrize(

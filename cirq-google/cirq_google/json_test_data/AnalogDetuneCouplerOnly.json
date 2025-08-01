@@ -1,0 +1,21 @@
+{
+    "cirq_type": "AnalogDetuneCouplerOnly",
+    "length": {
+      "cirq_type": "sympy.Symbol",
+      "name": "l"
+    },
+    "w": 10,
+    "g_0": 5,
+    "g_max": 20,
+    "g_ramp_exponent": 1.0,
+    "neighbor_qubits_freq": [
+      null,
+      null
+    ],
+    "prev_neighbor_qubits_freq": [
+      null,
+      null
+    ],
+    "interpolate_coupling_cal": true,
+    "analog_cal_for_pulseshaping": false
+}

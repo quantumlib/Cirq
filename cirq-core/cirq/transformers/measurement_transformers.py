@@ -172,7 +172,7 @@ def _all_possible_datastore_states(
     keys: Iterable[tuple[cirq.MeasurementKey, int]],
     measurement_qubits: dict[cirq.MeasurementKey, list[tuple[cirq.Qid, ...]]],
 ) -> Iterable[cirq.ClassicalDataStoreReader]:
-    """The cartesian product of all possible DataStore states for the given keys."""
+    """The Cartesian product of all possible DataStore states for the given keys."""
     # First we get the list of all possible values. So if we have a key mapped to qubits of shape
     # (2, 2) and a key mapped to a qutrit, the possible measurement values are:
     # [((0, 0), (0,)),

@@ -1322,3 +1322,37 @@ def test_parameterized_pauli_expansion(gate_type, exponent) -> None:
     gate_resolved = cirq.resolve_parameters(gate, {'s': 0.5})
     pauli_resolved = cirq.resolve_parameters(pauli, {'s': 0.5})
     assert cirq.approx_eq(pauli_resolved, cirq.pauli_expansion(gate_resolved))
+
+
+@pytest.mark.parametrize('gate_type', [cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate, cirq.CZPowGate])
+@pytest.mark.parametrize('exponent', [0, 0.5, 2, 3, -0.5, -2, -3, sympy.Symbol('s')])
+def test_decompose_with_extracted_phases(gate_type: type, exponent: cirq.TParamVal) -> None:
+    context = cirq.DecompositionContext(cirq.SimpleQubitManager(), extract_global_phases=True)
+    test_shift = 2 / 3  # Interesting because e.g. X(shift=2/3) ** 3 == X with no phase
+    gate = gate_type(exponent=exponent, global_shift=test_shift)
+    op = gate.on(*cirq.LineQubit.range(cirq.num_qubits(gate)))
+    decomposed = cirq.decompose(op, context=context)
+
+    # The first gate should be the original gate, but with shift removed.
+    gate0 = decomposed[0].gate
+    assert isinstance(gate0, gate_type)
+    assert isinstance(gate0, cirq.EigenGate)
+    assert gate0.global_shift == 0
+    assert gate0.exponent == exponent
+    if exponent % 3 == 0:
+        # Since test_shift == 2/3, gate**3 nullifies the phase, leaving only the unphased gate.
+        assert len(decomposed) == 1
+    else:
+        # Other exponents emit a global phase gate to compensate.
+        assert len(decomposed) == 2
+        gate1 = decomposed[1].gate
+        assert isinstance(gate1, cirq.GlobalPhaseGate)
+        assert gate1.coefficient == 1j ** (2 * exponent * test_shift)
+
+    # Sanity check that the decomposition is equivalent to the original.
+    decomposed_circuit = cirq.Circuit(decomposed)
+    if cirq.is_parameterized(exponent):
+        resolver = {'s': -1.234}  # arbitrary
+        op = cirq.resolve_parameters(op, resolver)
+        decomposed_circuit = cirq.resolve_parameters(decomposed_circuit, resolver)
+    np.testing.assert_allclose(cirq.unitary(op), cirq.unitary(decomposed_circuit), atol=1e-10)

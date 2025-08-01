@@ -327,7 +327,7 @@ class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
 
     TODO: This line search strategy is still work in progress and requires
     efficiency improvements.
-    Github issue: https://github.com/quantumlib/Cirq/issues/2217
+    GitHub issue: https://github.com/quantumlib/Cirq/issues/2217
     """
 
     def __init__(

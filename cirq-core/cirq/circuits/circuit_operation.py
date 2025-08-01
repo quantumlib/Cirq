@@ -29,7 +29,7 @@ import numpy as np
 import sympy
 
 from cirq import circuits, ops, protocols, study, value
-from cirq._compat import proper_repr
+from cirq._compat import cached_method, proper_repr
 
 if TYPE_CHECKING:
     import cirq
@@ -296,12 +296,13 @@ class CircuitOperation(ops.Operation):
     def _is_measurement_(self) -> bool:
         return self.circuit._is_measurement_()
 
+    @cached_method
     def _has_unitary_(self) -> bool:
         # Return false if parameterized for early exit of has_unitary protocol.
-        # Otherwise return NotImplemented instructing the protocol to try alternate strategies
         if self._is_parameterized_() or self.repeat_until:
             return False
-        return NotImplemented
+        operations = self._mapped_any_loop.all_operations()
+        return all(protocols.has_unitary(op) for op in operations)
 
     def _ensure_deterministic_loop_count(self):
         if self.repeat_until or isinstance(self.repetitions, sympy.Expr):
@@ -648,7 +649,7 @@ class CircuitOperation(ops.Operation):
     def __pow__(self, power: IntParam) -> cirq.CircuitOperation:
         return self.repeat(power)
 
-    def _with_key_path_(self, path: tuple[str, ...]):
+    def _with_key_path_(self, path: tuple[str, ...]) -> cirq.CircuitOperation:
         return self.replace(parent_path=path)
 
     def _with_key_path_prefix_(self, prefix: tuple[str, ...]):
@@ -667,7 +668,7 @@ class CircuitOperation(ops.Operation):
         path += self.parent_path
         return self.replace(parent_path=path, extern_keys=bindable_keys)
 
-    def with_key_path(self, path: tuple[str, ...]):
+    def with_key_path(self, path: tuple[str, ...]) -> cirq.CircuitOperation:
         """Alias for `cirq.with_key_path(self, path)`.
 
         Args:

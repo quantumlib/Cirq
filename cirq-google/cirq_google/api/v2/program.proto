@@ -80,6 +80,12 @@ message Circuit {
   // This field is used to reduce size of circuits that contain many
   // repeated moments.
   repeated int32 moment_indices = 3;
+
+  // Deprecated field, do not use.
+  reserved 4;
+  
+  // Indices in the constant table for tags associated with the circuit
+  repeated int32 tag_indices = 5;
 }
 
 // A moment is a collection of operations and circuit operations that operate
@@ -103,6 +109,9 @@ message Moment {
 
   // Deprecated field id, do not use.
   reserved 3;
+  
+  // Indices in the constant table for tags associated with the circuit
+  repeated int32 tag_indices = 5;
 }
 
 // The language in which the program is expressed.
@@ -215,8 +224,32 @@ message WaitGate {
   FloatArg duration_nanos = 1;
 }
 
+// Representation of cirq.DepolarizingChannel
+message DepolarizingChannel {
+  FloatArg probability = 1;
+  int32 num_qubits = 2;
+}
+
+// Representation of cirq.RandomGateChannel
+message RandomGateChannel {
+  FloatArg probability = 1;
+  Operation sub_gate = 2;
+}
+
+// Representation of noisy channels
+// These should only be used for serialization
+// of noisy circuits for simulation.
+// These channels would generally not be supported
+// by hardware.
+message NoiseChannel {
+  oneof channel_value {
+    DepolarizingChannel depolarizingchannel = 1;
+    RandomGateChannel randomgatechannel = 2;
+  }
+}
+
 // An operation acts on a set of qubits.
-// next available id = 27
+// next available id = 28
 message Operation {
   // Previously deprecated fields.  Do not use.
   reserved 1, 2;
@@ -241,6 +274,7 @@ message Operation {
     SingleQubitCliffordGate singlequbitcliffordgate = 21;
     ResetGate resetgate = 24;
     ISwapLikeGate iswaplikegate = 26;
+    NoiseChannel noisechannel = 27;
   }
 
   // Which qubits the operation acts on.
@@ -258,8 +292,8 @@ message Operation {
   // The token can be specified as a string or as a reference to
   // the constant table of the circuit.
   oneof token {
-    string token_value = 4;
-    int32 token_constant_index = 5;
+    string token_value = 4 [deprecated = true];
+    int32 token_constant_index = 5 [deprecated = true];
   }
 
   // To be deprecated
@@ -311,6 +345,9 @@ message Tag {
     // Uses parameter model to interpolate FSim gate.
     FSimViaModelTag fsim_via_model = 7;
 
+    // Calibration Tag
+    CalibrationTag calibration_tag = 9;
+
     // Catch-all for all gates that do not fit into the
     // above tags.
     InternalTag internal_tag = 8;
@@ -347,6 +384,12 @@ message NoSyncTag {
     // Remove all possible synchronizations
     bool remove_all_syncs_after = 4;
   }
+}
+
+// Tag to specify specific override tokens for operations or circuits.
+message CalibrationTag {
+  // Token to serialize
+  string token = 1;
 }
 
 // Tag to represent any internal tags or tags not yet
@@ -455,7 +498,7 @@ message Tuple {
   }
 
   SequenceType sequence_type = 1;
-    
+
   repeated Arg values = 2;
 }
 
@@ -527,11 +570,11 @@ message CircuitOperation {
   // Map of args in the "inner" circuit (referenced by circuit_constant_index)
   // to args in the "outer" circuit (the one that contains this operation).
   ArgMapping arg_map = 5;
-  
+
   // Classical conditions
-  // Condition for repeating the circuit until this condition is true. 
+  // Condition for repeating the circuit until this condition is true.
   optional Arg repeat_until = 6;
-  
+
   // Condition for executing the circuit operation only if this condition is true.
   repeated Arg conditioned_on = 7;
 

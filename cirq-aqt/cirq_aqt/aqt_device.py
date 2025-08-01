@@ -189,7 +189,7 @@ class AQTSimulator:
         self.noise_dict = noise_dict
         self.simulate_ideal = simulate_ideal
 
-    def generate_circuit_from_list(self, json_string: str):
+    def generate_circuit_from_list(self, json_string: str) -> None:
         """Generates a list of cirq operations from a json string.
 
         The default behavior is to add a measurement to any qubit at the end
@@ -288,11 +288,11 @@ class AQTDevice(cirq.Device):
     def metadata(self) -> aqt_device_metadata.AQTDeviceMetadata:
         return self._metadata
 
-    def validate_gate(self, gate: cirq.Gate):
+    def validate_gate(self, gate: cirq.Gate) -> None:
         if gate not in self.metadata.gateset:
             raise ValueError(f'Unsupported gate type: {gate!r}')
 
-    def validate_operation(self, operation):
+    def validate_operation(self, operation) -> None:
         if not isinstance(operation, cirq.GateOperation):
             raise ValueError(f'Unsupported operation: {operation!r}')
 
@@ -304,7 +304,7 @@ class AQTDevice(cirq.Device):
             if q not in self.qubits:
                 raise ValueError(f'Qubit not on device: {q!r}')
 
-    def validate_circuit(self, circuit: cirq.AbstractCircuit):
+    def validate_circuit(self, circuit: cirq.AbstractCircuit) -> None:
         super().validate_circuit(circuit)
         _verify_unique_measurement_keys(circuit.all_operations())
 

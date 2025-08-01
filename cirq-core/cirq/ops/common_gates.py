@@ -37,7 +37,14 @@ import cirq
 from cirq import protocols, value
 from cirq._compat import proper_repr
 from cirq._doc import document
-from cirq.ops import control_values as cv, controlled_gate, eigen_gate, gate_features, raw_types
+from cirq.ops import (
+    control_values as cv,
+    controlled_gate,
+    eigen_gate,
+    gate_features,
+    global_phase_op,
+    raw_types,
+)
 from cirq.ops.measurement_gate import MeasurementGate
 from cirq.ops.swap_gates import ISWAP, ISwapPowGate, SWAP, SwapPowGate
 
@@ -234,6 +241,11 @@ class XPowGate(eigen_gate.EigenGate):
             if result.control_qid_shape == (2, 2):
                 return cirq.CCXPowGate(exponent=self._exponent)
         return result
+
+    def _decompose_with_context_(
+        self, qubits: tuple[cirq.Qid, ...], context: cirq.DecompositionContext
+    ) -> list[cirq.Operation] | NotImplementedType:
+        return _extract_phase(self, XPowGate, qubits, context)
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if self._dimension != 2:
@@ -487,6 +499,11 @@ class YPowGate(eigen_gate.EigenGate):
             f'global_shift={self._global_shift!r})'
         )
 
+    def _decompose_with_context_(
+        self, qubits: tuple[cirq.Qid, ...], context: cirq.DecompositionContext
+    ) -> list[cirq.Operation] | NotImplementedType:
+        return _extract_phase(self, YPowGate, qubits, context)
+
 
 class Ry(YPowGate):
     r"""A gate with matrix $e^{-i Y t/2}$ that rotates around the Y axis of the Bloch sphere by $t$.
@@ -698,6 +715,11 @@ class ZPowGate(eigen_gate.EigenGate):
             if result.control_qid_shape == (2, 2):
                 return cirq.CCZPowGate(exponent=self._exponent)
         return result
+
+    def _decompose_with_context_(
+        self, qubits: tuple[cirq.Qid, ...], context: cirq.DecompositionContext
+    ) -> list[cirq.Operation] | NotImplementedType:
+        return _extract_phase(self, ZPowGate, qubits, context)
 
     def _qid_shape_(self) -> tuple[int, ...]:
         return (self._dimension,)
@@ -1131,6 +1153,11 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             control_qid_shape=result.control_qid_shape + (2,),
         )
 
+    def _decompose_with_context_(
+        self, qubits: tuple[cirq.Qid, ...], context: cirq.DecompositionContext
+    ) -> list[cirq.Operation] | NotImplementedType:
+        return _extract_phase(self, CZPowGate, qubits, context)
+
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(
             wire_symbols=('@', '@'), exponent=self._diagram_exponent(args)
@@ -1486,3 +1513,25 @@ def _phased_x_or_pauli_gate(
             case 0.5:
                 return YPowGate(exponent=exponent)
     return cirq.ops.PhasedXPowGate(exponent=exponent, phase_exponent=phase_exponent)
+
+
+def _extract_phase(
+    gate: cirq.EigenGate,
+    gate_class: type,
+    qubits: tuple[cirq.Qid, ...],
+    context: cirq.DecompositionContext,
+) -> list[cirq.Operation] | NotImplementedType:
+    """Extracts the global phase field to its own gate, or absorbs it if it has no effect.
+
+    This is for use within the decompose handlers, and will return `NotImplemented` if there is no
+    global phase, implying it is already in its simplest form. It will return a list, with the
+    original op minus any global phase first, and the global phase op second. If the resulting
+    global phase is empty (can happen for example in `XPowGate(global_phase=2/3)**3`), then it is
+    excluded from the return value."""
+    if not context.extract_global_phases or gate.global_shift == 0:
+        return NotImplemented
+    result = [gate_class(exponent=gate.exponent).on(*qubits)]
+    phase_gate = global_phase_op.from_phase_and_exponent(gate.global_shift, gate.exponent)
+    if not phase_gate.is_identity():
+        result.append(phase_gate())
+    return result

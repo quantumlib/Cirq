@@ -44,13 +44,19 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
 
     return {
         '_NamedConstantXmonDevice': _old_xmon,
+        'AnalogDetuneCouplerOnly': cirq_google.AnalogDetuneCouplerOnly,
+        'AnalogDetuneQubit': cirq_google.AnalogDetuneQubit,
         'Calibration': cirq_google.Calibration,
         'CalibrationTag': cirq_google.CalibrationTag,
         'CalibrationLayer': cirq_google.CalibrationLayer,
         'CouplerPulse': cirq_google.experimental.CouplerPulse,
         'Coupler': cirq_google.Coupler,
         'GoogleNoiseProperties': cirq_google.GoogleNoiseProperties,
+        'PerQubitDepolarizingWithDampedReadoutNoiseModel': (
+            cirq_google.experimental.PerQubitDepolarizingWithDampedReadoutNoiseModel
+        ),
         'SycamoreGate': cirq_google.SycamoreGate,
+        'WaitGateWithUnit': cirq_google.WaitGateWithUnit,
         'WillowGate': cirq_google.WillowGate,
         # cirq_google.GateTabulation has been removed and replaced by cirq.TwoQubitGateTabulation.
         'GateTabulation': TwoQubitGateTabulation,
