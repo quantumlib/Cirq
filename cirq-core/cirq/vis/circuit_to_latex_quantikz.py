@@ -595,10 +595,25 @@ class CircuitToQuantikz:
             moment_out = ["\\qw"] * self.num_qubits
 
             # Add LaTeX for each operation in the moment
+            spanned_qubits: set[int] = set()
             for op in moment:
                 if not op.qubits:
                     warnings.warn(f"Op {op} no qubits.")
                     continue
+                min_qubit = min(self.qubit_to_index[q] for q in op.qubits)
+                max_qubit = max(self.qubit_to_index[q] for q in op.qubits)
+                for i in range(min_qubit, max_qubit + 1):
+                    if i in spanned_qubits:
+                        # This overlaps another operation:
+                        # Create a new column.
+                        for i in range(self.num_qubits):
+                            active_chunk[i].append(moment_out[i])
+                        moment_out = ["\\qw"] * self.num_qubits
+                        spanned_qubits = set()
+                for i in range(min_qubit, max_qubit + 1):
+                    spanned_qubits.add(i)
+                for q in op.qubits:
+                    spanned_qubits.add(self.qubit_to_index[q])
                 op_rnd = self._render_operation(op)
                 for idx, tex in op_rnd.items():
                     moment_out[idx] = tex
