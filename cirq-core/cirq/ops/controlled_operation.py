@@ -219,7 +219,7 @@ class ControlledOperation(raw_types.Operation):
         sub_tensor = sub_matrix.reshape(qid_shape[len(self.controls) :] * 2)
         for control_vals in self.control_values.expand():
             active = (*(v for v in control_vals), *(slice(None),) * sub_n) * 2
-            tensor[active] = sub_tensor
+            tensor[active] = sub_tensor  # type: ignore[index]
         return tensor.reshape((np.prod(qid_shape, dtype=np.int64).item(),) * 2)
 
     def _unitary_(self) -> np.ndarray | NotImplementedType:
