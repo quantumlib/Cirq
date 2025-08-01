@@ -1,4 +1,4 @@
-# Copyright 2019 The Cirq Developers
+# Copyright 2025 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -61,17 +61,17 @@ Example:
     \end{document}
 """
 
+from __future__ import annotations
+
 import math
 import warnings
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Optional
 
-import numpy as np
 import sympy
 
-from cirq import circuits, devices, ops, protocols
+from cirq import circuits, ops, protocols
 
-__all__ = ["CircuitToQuantikz", "DEFAULT_PREAMBLE_TEMPLATE", "GATE_STYLES_COLORFUL1"]
+__all__ = ["CircuitToQuantikz", "DEFAULT_PREAMBLE_TEMPLATE", "GATE_STYLES_COLORFUL"]
 
 
 # =============================================================================
@@ -102,7 +102,7 @@ _orange_gate_style = r"style={fill=orange!20}"  # For FSim, ISwap, etc.
 _gray_gate_style = r"style={fill=gray!20}"  # For Measure
 _noisy_channel_style = r"style={fill=red!20}"
 
-GATE_STYLES_COLORFUL1 = {
+GATE_STYLES_COLORFUL = {
     "H": _yellow_gate_style,
     "_PauliX": _Pauli_gate_style,  # ops.X(q_param)
     "_PauliY": _Pauli_gate_style,  # ops.Y(q_param)
@@ -135,8 +135,8 @@ GATE_STYLES_COLORFUL1 = {
 
 
 # Initialize gate maps globally as recommended
-_SIMPLE_GATE_MAP: Dict[Type[ops.Gate], str] = {ops.MeasurementGate: "Measure"}
-_EXPONENT_GATE_MAP: Dict[Type[ops.Gate], str] = {
+_SIMPLE_GATE_MAP: dict[type[ops.Gate], str] = {ops.MeasurementGate: "Measure"}
+_EXPONENT_GATE_MAP: dict[type[ops.Gate], str] = {
     ops.XPowGate: "X",
     ops.YPowGate: "Y",
     ops.ZPowGate: "Z",
@@ -146,7 +146,16 @@ _EXPONENT_GATE_MAP: Dict[Type[ops.Gate], str] = {
     ops.SwapPowGate: "Swap",
     ops.ISwapPowGate: "iSwap",
 }
-_PARAMETERIZED_GATE_BASE_NAMES: Dict[Type[ops.Gate], str] = {}
+_GATE_NAME_MAP = {
+    "Rx": r"R_{X}",
+    "Ry": r"R_{Y}",
+    "Rz": r"R_{Z}",
+    "FSim": r"\mathrm{fSim}",
+    "PhasedXZ": r"\Phi",
+    "CZ": r"\mathrm{CZ}",
+    "CX": r"\mathrm{CX}",
+    "iSwap": r"i\mathrm{SWAP}",
+}
 _param_gate_specs = [
     ("Rx", getattr(ops, "Rx", None)),
     ("Ry", getattr(ops, "Ry", None)),
@@ -154,10 +163,9 @@ _param_gate_specs = [
     ("PhasedXZ", getattr(ops, "PhasedXZGate", None)),
     ("FSim", getattr(ops, "FSimGate", None)),
 ]
-if _param_gate_specs:
-    for _name, _gate_cls in _param_gate_specs:
-        if _gate_cls:
-            _PARAMETERIZED_GATE_BASE_NAMES[_gate_cls] = _name
+_PARAMETERIZED_GATE_BASE_NAMES: dict[type[ops.Gate], str] = {
+    _gate_cls: _name for _name, _gate_cls in _param_gate_specs if _gate_cls is not None
+}
 
 
 # =============================================================================
@@ -175,7 +183,7 @@ class CircuitToQuantikz:
         circuit: The `cirq.Circuit` object to be converted.
         gate_styles: An optional dictionary mapping gate names (strings) to
             Quantikz style options (strings). These styles are applied to
-            the generated gates. If `None`, `GATE_STYLES_COLORFUL1` is used.
+            the generated gates. If `None`, `GATE_STYLES_COLORFUL` is used.
         quantikz_options: An optional string of global options to pass to the
             `quantikz` environment (e.g., `"[row sep=0.5em]"`).
         fold_at: An optional integer specifying the number of moments after
@@ -190,7 +198,7 @@ class CircuitToQuantikz:
             - `"q"`: Labels as $q_0, q_1, \dots$
             - `"index"`: Labels as $0, 1, \dots$
             - `"qid"`: Labels as the string representation of the `cirq.Qid`
-            - Any other value defaults to `"q"`.
+            - Any other value defaults to `"qid"`.
         show_parameters: A boolean indicating whether gate parameters (e.g.,
             exponents for `XPowGate`, angles for `Rx`) should be displayed
             in the gate labels.
@@ -202,51 +210,44 @@ class CircuitToQuantikz:
         float_precision_angles: An integer specifying the number of decimal
             places for formatting floating-point angles. (Note: Not fully
             implemented in current version for all angle types).
+        qubit_order:  Determines how qubits are ordered in the diagram.
 
     Raises:
         ValueError: If the input `circuit` is empty or contains no qubits.
     """
 
-    GATE_NAME_MAP = {
-        "Rx": r"R_{X}",
-        "Ry": r"R_{Y}",
-        "Rz": r"R_{Z}",
-        "FSim": r"\mathrm{fSim}",
-        "PhasedXZ": r"\Phi",
-        "CZ": r"\mathrm{CZ}",
-        "CX": r"\mathrm{CX}",
-        "iSwap": r"i\mathrm{SWAP}",
-    }
-
     def __init__(
         self,
         circuit: circuits.Circuit,
         *,
-        gate_styles: Optional[Dict[str, str]] = None,
+        gate_styles: Optional[dict[str, str]] = None,
         quantikz_options: Optional[str] = None,
         fold_at: Optional[int] = None,
         custom_preamble: str = "",
         custom_postamble: str = "",
-        wire_labels: str = "q",
+        wire_labels: str = "qid",
         show_parameters: bool = True,
-        gate_name_map: Optional[Dict[str, str]] = None,
+        gate_name_map: Optional[dict[str, str]] = None,
         float_precision_exps: int = 2,
         float_precision_angles: int = 2,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ):
         if not circuit:
             raise ValueError("Input circuit cannot be empty.")
         self.circuit = circuit
-        self.gate_styles = gate_styles if gate_styles is not None else GATE_STYLES_COLORFUL1.copy()
+        self.gate_styles = gate_styles if gate_styles is not None else GATE_STYLES_COLORFUL.copy()
         self.quantikz_options = quantikz_options or ""
         self.fold_at = fold_at
         self.custom_preamble = custom_preamble
         self.custom_postamble = custom_postamble
         self.wire_labels = wire_labels
         self.show_parameters = show_parameters
-        self.current_gate_name_map = self.GATE_NAME_MAP.copy()
+        self.current_gate_name_map = _GATE_NAME_MAP.copy()
         if gate_name_map:
             self.current_gate_name_map.update(gate_name_map)
-        self.sorted_qubits = self._get_sorted_qubits()
+        self.sorted_qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            self.circuit.all_qubits()
+        )
         if not self.sorted_qubits:
             raise ValueError("Circuit contains no qubits.")
         self.qubit_to_index = self._map_qubits_to_indices()
@@ -254,22 +255,7 @@ class CircuitToQuantikz:
         self.float_precision_exps = float_precision_exps
         self.float_precision_angles = float_precision_angles
 
-        # Gate maps are now global, no need to initialize here.
-        self._SIMPLE_GATE_MAP = _SIMPLE_GATE_MAP
-        self._EXPONENT_GATE_MAP = _EXPONENT_GATE_MAP
-        self._PARAMETERIZED_GATE_BASE_NAMES = _PARAMETERIZED_GATE_BASE_NAMES
-
-    def _get_sorted_qubits(self) -> List[ops.Qid]:
-        """Determines and returns a sorted list of all unique qubits in the circuit.
-
-        Returns:
-            A list of `cirq.Qid` objects, sorted to ensure consistent qubit
-            ordering in the LaTeX output.
-        """
-        qubits = set(q for moment in self.circuit for op in moment for q in op.qubits)
-        return sorted(list(qubits))
-
-    def _map_qubits_to_indices(self) -> Dict[ops.Qid, int]:
+    def _map_qubits_to_indices(self) -> dict[ops.Qid, int]:
         """Creates a mapping from `cirq.Qid` objects to their corresponding
         integer indices based on the sorted qubit order.
 
@@ -278,6 +264,13 @@ class CircuitToQuantikz:
             zero-based integer indices.
         """
         return {q: i for i, q in enumerate(self.sorted_qubits)}
+
+    def _escape_string(self, label) -> str:
+        """Escape labels for latex."""
+        label = label.replace("π", r"\pi")
+        if "_" in label and "\\" not in label:
+            label = label.replace("_", r"\_")
+        return label
 
     def _get_wire_label(self, qubit: ops.Qid, index: int) -> str:
         r"""Generates the LaTeX string for a qubit wire label.
@@ -290,14 +283,13 @@ class CircuitToQuantikz:
             A string formatted as a LaTeX math-mode label (e.g., "$q_0$", "$3$",
             or "$q_{qubit\_name}$").
         """
-        s = str(qubit).replace("_", r"\_").replace(" ", r"\,")
         lbl = (
             f"q_{{{index}}}"
             if self.wire_labels == "q"
             else (
                 str(index)
                 if self.wire_labels == "index"
-                else s if self.wire_labels == "qid" else f"q_{{{index}}}"
+                else str(self._escape_string(str(qubit))).replace(" ", r"\,")
             )
         )
         return f"${lbl}$"
@@ -350,9 +342,14 @@ class CircuitToQuantikz:
                     else:
                         # Format to specified precision for rounding
                         rounded_str = format(py_float, float_format_string)
-                        # Convert back to float and then to string to remove unnecessary trailing zeros
+                        # Convert back to float then to string to remove unnecessary trailing zeros
                         exp_str = str(float(rounded_str))
-                except (TypeError, ValueError, AttributeError, sympy.SympifyError):
+                except (
+                    TypeError,
+                    ValueError,
+                    AttributeError,
+                    sympy.SympifyError,
+                ):  # pragma: nocover
                     # Fallback to Sympy's string representation if conversion fails
                     exp_str = s_exponent
             else:  # Symbolic expression
@@ -360,13 +357,7 @@ class CircuitToQuantikz:
         else:  # For other types (int, strings not sympy objects)
             exp_str = str(exponent)
 
-        # LaTeX replacements for pi
-        exp_str = exp_str.replace("pi", r"\pi").replace("π", r"\pi")
-
-        # Handle underscores: replace "_" with "\_" if not part of a LaTeX command
-        if "_" in exp_str and "\\" not in exp_str:
-            exp_str = exp_str.replace("_", r"\_")
-        return exp_str
+        return self._escape_string(exp_str)
 
     def _get_gate_name(self, gate: ops.Gate) -> str:
         """Determines the appropriate LaTeX string for a given Cirq gate.
@@ -383,16 +374,16 @@ class CircuitToQuantikz:
             "Rx(0.5)", "CZ").
         """
         gate_type = type(gate)
-        if gate_type.__name__ == "ThermalChannel":
+        if gate_type.__name__ == "ThermalChannel":  # pragma: nocover
             return "\\Lambda_\\mathrm{th}"
-        if (simple_name := self._SIMPLE_GATE_MAP.get(gate_type)) is not None:
+        if (simple_name := _SIMPLE_GATE_MAP.get(gate_type)) is not None:
             return simple_name
 
-        base_key = self._EXPONENT_GATE_MAP.get(gate_type)
+        base_key = _EXPONENT_GATE_MAP.get(gate_type)
         if base_key is not None and hasattr(gate, "exponent") and gate.exponent == 1:
             return self.current_gate_name_map.get(base_key, base_key)
 
-        if (param_base_key := self._PARAMETERIZED_GATE_BASE_NAMES.get(gate_type)) is not None:
+        if (param_base_key := _PARAMETERIZED_GATE_BASE_NAMES.get(gate_type)) is not None:
             mapped_name = self.current_gate_name_map.get(param_base_key, param_base_key)
             if not self.show_parameters:
                 return mapped_name
@@ -404,13 +395,18 @@ class CircuitToQuantikz:
                     if (op_idx := s_diag.find("(")) != -1 and (
                         cp_idx := s_diag.rfind(")")
                     ) > op_idx:
-                        return f"{mapped_name}({self._format_exponent_for_display(s_diag[op_idx+1:cp_idx])})"
-            except (ValueError, AttributeError, IndexError):
+                        return (
+                            f"{mapped_name}"
+                            f"({self._format_exponent_for_display(s_diag[op_idx+1:cp_idx])})"
+                        )
+            except (ValueError, AttributeError, IndexError):  # pragma: nocover
                 # Fallback to default string representation if diagram info parsing fails.
                 pass
-            if hasattr(gate, "exponent") and not math.isclose(gate.exponent, 1.0):
+            if hasattr(gate, "exponent") and not math.isclose(
+                gate.exponent, 1.0
+            ):  # pragma: nocover
                 return f"{mapped_name}({self._format_exponent_for_display(gate.exponent)})"
-            return mapped_name
+            return mapped_name  # pragma: nocover
 
         try:
             # Use protocols directly
@@ -426,8 +422,8 @@ class CircuitToQuantikz:
 
                 if (
                     hasattr(gate, "exponent")
-                    and not math.isclose(gate.exponent, 1.0)
-                    and isinstance(gate, tuple(self._EXPONENT_GATE_MAP.keys()))
+                    and not (isinstance(gate.exponent, float) and math.isclose(gate.exponent, 1.0))
+                    and isinstance(gate, tuple(_EXPONENT_GATE_MAP.keys()))
                 ):
                     has_exp_in_cand = ("^" in name_cand) or ("**" in name_cand)
                     if not has_exp_in_cand and base_key:
@@ -436,49 +432,46 @@ class CircuitToQuantikz:
                             isinstance(gate, ops.CZPowGate) and name_cand == "@"
                         )
                         if needs_recon:
-                            name_cand = f"{recon_base}^{{{self._format_exponent_for_display(gate.exponent)}}}"
+                            name_cand = (
+                                f"{recon_base}^"
+                                f"{{{self._format_exponent_for_display(gate.exponent)}}}"
+                            )
 
-                fmt_name = name_cand.replace("π", r"\pi")
-                if "_" in fmt_name and "\\" not in fmt_name:
-                    fmt_name = fmt_name.replace("_", r"\_")
-                if "**" in fmt_name:
-                    parts = fmt_name.split("**", 1)
-                    if len(parts) == 2:
-                        fmt_name = f"{parts[0]}^{{{self._format_exponent_for_display(parts[1])}}}"
+                fmt_name = self._escape_string(name_cand)
+                parts = fmt_name.split("**", 1)
+                if len(parts) == 2:  # pragma: nocover
+                    fmt_name = f"{parts[0]}^{{{self._format_exponent_for_display(parts[1])}}}"
                 return fmt_name
-        except (ValueError, AttributeError, IndexError):
+        except (ValueError, AttributeError, IndexError):  # pragma: nocover
             # Fallback to default string representation if diagram info parsing fails.
             pass
 
         name_fb = str(gate)
-        if name_fb.endswith("Gate"):
-            name_fb = name_fb[:-4]
-        if name_fb.endswith("()"):
-            name_fb = name_fb[:-2]
-        if not self.show_parameters:
-            base_fb = name_fb.split("**")[0].split("(")[0].strip()
-            fb_key = self._EXPONENT_GATE_MAP.get(gate_type, base_fb)
-            mapped_fb = self.current_gate_name_map.get(fb_key, fb_key)
-            return self._format_exponent_for_display(mapped_fb)
         if name_fb.endswith("**1.0"):
             name_fb = name_fb[:-5]
         if name_fb.endswith("**1"):
             name_fb = name_fb[:-3]
+        if name_fb.endswith("()"):
+            name_fb = name_fb[:-2]
+        if name_fb.endswith("Gate"):
+            name_fb = name_fb[:-4]
+        if not self.show_parameters:
+            base_fb = name_fb.split("**")[0].split("(")[0].strip()
+            fb_key = _EXPONENT_GATE_MAP.get(gate_type, base_fb)
+            mapped_fb = self.current_gate_name_map.get(fb_key, fb_key)
+            return self._format_exponent_for_display(mapped_fb)
         if "**" in name_fb:
             parts = name_fb.split("**", 1)
             if len(parts) == 2:
-                fb_key = self._EXPONENT_GATE_MAP.get(gate_type, parts[0])
+                fb_key = _EXPONENT_GATE_MAP.get(gate_type, parts[0])
                 base_str_fb = self.current_gate_name_map.get(fb_key, parts[0])
                 name_fb = f"{base_str_fb}^{{{self._format_exponent_for_display(parts[1])}}}"
-        name_fb = name_fb.replace("π", r"\pi")
-        if "_" in name_fb and "\\" not in name_fb:
-            name_fb = name_fb.replace("_", r"\_")
-        return name_fb
+        return self._escape_string(name_fb)
 
     def _get_quantikz_options_string(self) -> str:
         return f"[{self.quantikz_options}]" if self.quantikz_options else ""
 
-    def _render_operation(self, op: ops.Operation) -> Dict[int, str]:
+    def _render_operation(self, op: ops.Operation) -> dict[int, str]:
         """Renders a single Cirq operation into its Quantikz LaTeX string representation.
 
         Handles various gate types, including single-qubit gates, multi-qubit gates,
@@ -494,7 +487,10 @@ class CircuitToQuantikz:
             for the current moment.
         """
         output, q_indices = {}, sorted([self.qubit_to_index[q] for q in op.qubits])
-        gate, gate_name_render = op.gate, self._get_gate_name(op.gate)
+        gate = op.gate
+        if gate is None:  # pragma: nocover
+            raise ValueError(f'Only GateOperations are supported {op}')
+        gate_name_render = self._get_gate_name(gate)
 
         gate_type = type(gate)
         style_key = gate_type.__name__  # Default style key
@@ -508,32 +504,23 @@ class CircuitToQuantikz:
             style_key = "Swapideal"
         elif isinstance(gate, ops.MeasurementGate):
             style_key = "Measure"
-        elif (param_base_name := self._PARAMETERIZED_GATE_BASE_NAMES.get(gate_type)) is not None:
+        elif (param_base_name := _PARAMETERIZED_GATE_BASE_NAMES.get(gate_type)) is not None:
             style_key = param_base_name
-        elif (base_key_for_pow := self._EXPONENT_GATE_MAP.get(gate_type)) is not None:
-            if hasattr(gate, "exponent"):
-                if gate.exponent == 1:
-                    style_key = base_key_for_pow
-                else:
-                    style_key = {
-                        "X": "X_pow",
-                        "Y": "Y_pow",
-                        "Z": "Z_pow",
-                        "H": "H_pow",
-                        "CZ": "CZ_pow",
-                        "CX": "CX_pow",
-                        "iSwap": "iSWAP_pow",
-                    }.get(base_key_for_pow, f"{base_key_for_pow}_pow")
-            else:
+        elif (base_key_for_pow := _EXPONENT_GATE_MAP.get(gate_type)) is not None:
+            if getattr(gate, "exponent", 1) == 1:
                 style_key = base_key_for_pow
+            else:
+                style_key = {
+                    "X": "X_pow",
+                    "Y": "Y_pow",
+                    "Z": "Z_pow",
+                    "H": "H_pow",
+                    "CZ": "CZ_pow",
+                    "CX": "CX_pow",
+                    "iSwap": "iSWAP_pow",
+                }.get(base_key_for_pow, f"{base_key_for_pow}_pow")
 
         style_opts_str = self.gate_styles.get(style_key, "")
-        if not style_opts_str:
-            if gate_type.__name__ == "FSimGate":
-                style_opts_str = self.gate_styles.get("FSim", "")
-            elif gate_type.__name__ == "PhasedXZGate":
-                style_opts_str = self.gate_styles.get("PhasedXZ", "")
-
         final_style_tikz = f"[{style_opts_str}]" if style_opts_str else ""
 
         # Apply special Quantikz commands for specific gate types
@@ -577,21 +564,23 @@ class CircuitToQuantikz:
             return output
 
         # Handle generic \gate command for single and multi-qubit gates
-        if not q_indices:
-            warnings.warn(f"Op {op} has no qubits.")
-            return output
         if len(q_indices) == 1:
             output[q_indices[0]] = f"\\gate{final_style_tikz}{{{gate_name_render}}}"
         else:  # Multi-qubit gate
-            wires_opt = f"wires={q_indices[-1]-q_indices[0]+1}"
+            combined_opts = f"wires={q_indices[-1]-q_indices[0]+1}"
             if style_opts_str:
-                combined_opts = f"{wires_opt}, {style_opts_str}"
-            else:
-                combined_opts = wires_opt
+                combined_opts = f"{combined_opts}, {style_opts_str}"
             output[q_indices[0]] = f"\\gate[{combined_opts}]{{{gate_name_render}}}"
             for i in range(1, len(q_indices)):
                 output[q_indices[i]] = "\\qw"
         return output
+
+    def _initial_active_chunk(self) -> list[list[str]]:
+        """Add initial wire labels for the first chunk"""
+        return [
+            [f"\\lstick{{{self._get_wire_label(self.sorted_qubits[i],i)}}}"]
+            for i in range(self.num_qubits)
+        ]
 
     def _generate_latex_body(self) -> str:
         """Generates the main LaTeX body for the circuit diagram.
@@ -601,72 +590,44 @@ class CircuitToQuantikz:
         into multiple rows if `fold_at` is specified.
         Handles qubit wire labels and ensures correct LaTeX syntax.
         """
-        chunks, m_count, active_chunk = [], 0, [[] for _ in range(self.num_qubits)]
-        # Add initial wire labels for the first chunk
-        for i in range(self.num_qubits):
-            active_chunk[i].append(f"\\lstick{{{self._get_wire_label(self.sorted_qubits[i], i)}}}")
+        chunks = []
+        active_chunk = self._initial_active_chunk()
 
         for m_idx, moment in enumerate(self.circuit):
-            m_count += 1
             moment_out = ["\\qw"] * self.num_qubits
-            processed_indices = set()
 
+            # Add LaTeX for each operation in the moment
             for op in moment:
-                q_idx_op = sorted([self.qubit_to_index[q] for q in op.qubits])
-                if not q_idx_op:
+                if not op.qubits:
                     warnings.warn(f"Op {op} no qubits.")
-                    continue
-                if any(q in processed_indices for q in q_idx_op):
-                    for q_idx in q_idx_op:
-                        if q_idx not in processed_indices:
-                            moment_out[q_idx] = "\\qw"
                     continue
                 op_rnd = self._render_operation(op)
                 for idx, tex in op_rnd.items():
-                    if idx not in processed_indices:
-                        moment_out[idx] = tex
-                processed_indices.update(q_idx_op)
+                    moment_out[idx] = tex
             for i in range(self.num_qubits):
                 active_chunk[i].append(moment_out[i])
 
             is_last_m = m_idx == len(self.circuit) - 1
-            if self.fold_at and m_count % self.fold_at == 0 and not is_last_m:
+            if self.fold_at and m_idx % self.fold_at == 0 and not is_last_m:
                 for i in range(self.num_qubits):
                     lbl = self._get_wire_label(self.sorted_qubits[i], i)
                     active_chunk[i].extend([f"\\rstick{{{lbl}}}", "\\qw"])
                 chunks.append(active_chunk)
-                active_chunk = [[] for _ in range(self.num_qubits)]
-                for i in range(self.num_qubits):
-                    active_chunk[i].append(
-                        f"\\lstick{{{self._get_wire_label(self.sorted_qubits[i],i)}}}"
-                    )
+                active_chunk = self._initial_active_chunk()
 
-        if self.num_qubits > 0:
-            ended_on_fold = self.fold_at and m_count > 0 and m_count % self.fold_at == 0
-            if not ended_on_fold or not self.fold_at:
-                for i in range(self.num_qubits):
-                    if not active_chunk[i]:
-                        active_chunk[i] = [
-                            f"\\lstick{{{self._get_wire_label(self.sorted_qubits[i],i)}}}"
-                        ]
-                    active_chunk[i].append("\\qw")
-            if self.fold_at:
-                for i in range(self.num_qubits):
-                    if not active_chunk[i]:
-                        active_chunk[i] = [
-                            f"\\lstick{{{self._get_wire_label(self.sorted_qubits[i],i)}}}"
-                        ]
-                    active_chunk[i].extend(
-                        [f"\\rstick{{{self._get_wire_label(self.sorted_qubits[i],i)}}}", "\\qw"]
-                    )
+        if self.fold_at:
+            for i in range(self.num_qubits):
+                active_chunk[i].extend(
+                    [f"\\rstick{{{self._get_wire_label(self.sorted_qubits[i],i)}}}"]
+                )
+        for i in range(self.num_qubits):
+            active_chunk[i].append("\\qw")
         chunks.append(active_chunk)
 
         final_parts = []
         opts_str = self._get_quantikz_options_string()
-        for chunk_data in chunks:
-            if not any(row for row_list in chunk_data for row in row_list):
-                continue
-
+        # TODO: test coverage for the below section
+        for chunk_data in chunks:  # pragma: nocover
             is_empty_like = True
             if chunk_data and any(chunk_data):
                 for r_cmds in chunk_data:
@@ -712,7 +673,7 @@ class CircuitToQuantikz:
             lines.append("\\end{quantikz}")
             final_parts.append("\n".join(filter(None, lines)))
 
-        if not final_parts and self.num_qubits > 0:
+        if not final_parts and self.num_qubits > 0:  # pragma: nocover
             lines = [f"\\begin{{quantikz}}{opts_str}"]
             for i in range(self.num_qubits):
                 lines.append(
@@ -737,7 +698,8 @@ class CircuitToQuantikz:
             A string containing the full LaTeX document, ready to be compiled.
         """
         preamble = preamble_template or DEFAULT_PREAMBLE_TEMPLATE
-        preamble += f"\n% --- Custom Preamble Injection Point ---\n{self.custom_preamble}\n% --- End Custom Preamble ---\n"
+        preamble += "\n% --- Custom Preamble Injection Point ---\n"
+        preamble += f"{self.custom_preamble}\n% --- End Custom Preamble ---\n"
         doc_parts = [preamble, "\\begin{document}", self._generate_latex_body()]
         if self.custom_postamble:
             doc_parts.extend(

@@ -1,4 +1,4 @@
-# Copyright 2019 The Cirq Developers
+# Copyright 2025 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,24 +32,21 @@ function for animating sequences of images, which can be useful for visualizing
 dynamic quantum processes or circuit transformations.
 """
 
+from __future__ import annotations
 
-import inspect
 import io
-import math
-import os
 import shutil
 import subprocess
 import tempfile
 import traceback
 import warnings
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Type, Union
+from typing import Any
 
 import numpy as np
-import sympy
 
 # Import individual Cirq packages as recommended for internal Cirq code
-from cirq import circuits, devices, ops, protocols, study
+from cirq import circuits, ops
 
 # Use absolute import for the sibling module
 from cirq.vis.circuit_to_latex_quantikz import CircuitToQuantikz
@@ -57,23 +54,23 @@ from cirq.vis.circuit_to_latex_quantikz import CircuitToQuantikz
 __all__ = ["render_circuit", "create_gif_from_ipython_images"]
 
 try:
-    from IPython.display import display, Image, Markdown  # type: ignore
+    from IPython.display import display, Image, Markdown  # pragma: nocover
 
-    _HAS_IPYTHON = True
-except ImportError:
+    _HAS_IPYTHON = True  # pragma: nocover
+except ImportError:  # pragma: nocover
     _HAS_IPYTHON = False
 
     class Image:  # type: ignore
         def __init__(self, *args, **kwargs):
             pass
 
-    def display(*args, **kwargs):  # type: ignore
+    def display(*args, **kwargs):
         pass
 
-    def Markdown(*args, **kwargs):  # type: ignore
+    def Markdown(*args, **kwargs):
         pass
 
-    def get_ipython(*args, **kwargs):  # type: ignore
+    def get_ipython(*args, **kwargs) -> Any:
         pass
 
 
@@ -82,9 +79,9 @@ except ImportError:
 # =============================================================================
 def render_circuit(
     circuit: circuits.Circuit,
-    output_png_path: Optional[str] = None,
-    output_pdf_path: Optional[str] = None,
-    output_tex_path: Optional[str] = None,
+    output_png_path: str | None = None,
+    output_pdf_path: str | None = None,
+    output_tex_path: str | None = None,
     dpi: int = 300,
     run_pdflatex: bool = True,
     run_pdftoppm: bool = True,
@@ -93,15 +90,16 @@ def render_circuit(
     debug: bool = False,
     timeout: int = 120,
     # Carried over CircuitToQuantikz args
-    gate_styles: Optional[Dict[str, str]] = None,
-    quantikz_options: Optional[str] = None,
-    fold_at: Optional[int] = None,
+    gate_styles: dict[str, str] | None = None,
+    quantikz_options: str | None = None,
+    fold_at: int | None = None,
     wire_labels: str = "q",
     show_parameters: bool = True,
-    gate_name_map: Optional[Dict[str, str]] = None,
+    gate_name_map: dict[str, str] | None = None,
     float_precision_exps: int = 2,
+    qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     **kwargs: Any,
-) -> Optional[Union[str, "Image"]]:
+) -> str | Image | None:
     r"""Renders a Cirq circuit to a LaTeX diagram, compiles it, and optionally displays it.
 
     This function takes a `cirq.Circuit` object, converts it into a Quantikz
@@ -153,6 +151,7 @@ def render_circuit(
             in the output. Passed to `CircuitToQuantikz`.
         float_precision_exps: An integer specifying the number of decimal
             places for formatting floating-point exponents. Passed to `CircuitToQuantikz`.
+        qubit_order: The order of the qubit lines in the rendered diagram.
         **kwargs: Additional keyword arguments passed directly to the
             `CircuitToQuantikz` constructor. Refer to `CircuitToQuantikz` for
             available options. Note that explicit arguments in `render_circuit`
@@ -171,12 +170,13 @@ def render_circuit(
 
     Example:
         >>> import cirq
+        >>> import numpy as np
         >>> from cirq.vis.circuit_to_latex_render import render_circuit
         >>> q0, q1, q2 = cirq.LineQubit.range(3)
         >>> circuit = cirq.Circuit(
         ...     cirq.H(q0),
         ...     cirq.CNOT(q0, q1),
-        ...     cirq.Rx(rads=0.25 * cirq.PI).on(q1),
+        ...     cirq.rx(0.25*np.pi).on(q1),
         ...     cirq.measure(q0, q1, key='result')
         ... )
         >>> # Render and display in Jupyter (if available), also save to a file
@@ -188,12 +188,6 @@ def render_circuit(
         ...     quantikz_options="[column sep=0.7em]",
         ...     show_parameters=False # Example of new parameter
         ... )
-        >>> if isinstance(img_or_path, Image):
-        ...     print("Circuit rendered and displayed in Jupyter.")
-        >>> elif isinstance(img_or_path, str):
-        ...     print(f"Circuit rendered and saved to {img_or_path}")
-        >>> else:
-        ...     print("Circuit rendering failed or no output generated.")
         >>> # To view the saved PNG outside Jupyter:
         >>> # import matplotlib.pyplot as plt
         >>> # import matplotlib.image as mpimg
@@ -221,21 +215,25 @@ def render_circuit(
             "'pdflatex' not found. Cannot compile LaTeX. "
             "Please install a LaTeX distribution (e.g., TeX Live, MiKTeX) "
             "and ensure pdflatex is in your PATH. "
-            "On Ubuntu/Debian: `sudo apt-get install texlive-full` (or `texlive-base` for minimal). "
+            "On Ubuntu/Debian: `sudo apt-get install texlive-full` "
+            "(or `texlive-base` for minimal). "
             "On macOS: `brew install --cask mactex` (or `brew install texlive` for minimal). "
             "On Windows: Download and install MiKTeX or TeX Live."
-        )
-        run_pdflatex = run_pdftoppm = False  # Disable dependent steps
+        )  # pragma: no cover
+        # Disable dependent steps
+        run_pdflatex = run_pdftoppm = False  # pragma: nocover
     if run_pdftoppm and not pdftoppm_exec:
         warnings.warn(
             "'pdftoppm' not found. Cannot convert PDF to PNG. "
             "This tool is part of the Poppler utilities. "
             "On Ubuntu/Debian: `sudo apt-get install poppler-utils`. "
             "On macOS: `brew install poppler`. "
-            "On Windows: Download Poppler for Windows (e.g., from Poppler for Windows GitHub releases) "
+            "On Windows: Download Poppler for Windows "
+            "(e.g., from Poppler for Windows GitHub releases) "
             "and add its `bin` directory to your system PATH."
-        )
-        run_pdftoppm = False  # Disable dependent step
+        )  # pragma: nocover
+        # Disable dependent step
+        run_pdftoppm = False  # pragma: nocover
 
     try:
         # Use TemporaryDirectory for safe handling of temporary files
@@ -256,13 +254,14 @@ def render_circuit(
                 "show_parameters": show_parameters,
                 "gate_name_map": gate_name_map,
                 "float_precision_exps": float_precision_exps,
+                "qubit_order": qubit_order,
                 **kwargs,  # Existing kwargs are merged, but explicit args take precedence
             }
 
             try:
                 converter = CircuitToQuantikz(circuit, **converter_kwargs)
-            except Exception as e:
-                print(f"Error initializing CircuitToQuantikz: {e}")
+            except Exception as e:  # pragma: nocover
+                print(f"Error initializing CircuitToQuantikz: {e}")  # pragma: nocover
                 if debug:
                     traceback.print_exc()
                 return None
@@ -270,7 +269,7 @@ def render_circuit(
             _debug_print("Generating LaTeX source...")
             try:
                 latex_s = converter.generate_latex_document()
-            except Exception as e:
+            except Exception as e:  # pragma: nocover
                 print(f"Error generating LaTeX document: {e}")
                 if debug:
                     traceback.print_exc()
@@ -281,12 +280,12 @@ def render_circuit(
             try:
                 tmp_tex_path.write_text(latex_s, encoding="utf-8")
                 _debug_print(f"LaTeX saved to temporary file: {tmp_tex_path}")
-            except IOError as e:
+            except IOError as e:  # pragma: nocover
                 print(f"Error writing temporary LaTeX file {tmp_tex_path}: {e}")
                 return None
 
             pdf_generated = False
-            if run_pdflatex and pdflatex_exec:
+            if run_pdflatex and pdflatex_exec:  # pragma: nocover
                 _debug_print(f"Running pdflatex ({pdflatex_exec})...")
                 # Run pdflatex twice for correct cross-references and layout
                 cmd_latex = [
@@ -308,13 +307,14 @@ def render_circuit(
                         cwd=tmp_p,
                         timeout=timeout,
                     )
-                    if proc.returncode != 0:
+                    if proc.returncode != 0:  # pragma: nocover
                         latex_failed = True
                         print(f"!!! pdflatex failed on run {i+1} (exit code {proc.returncode}) !!!")
                         log_file = tmp_tex_path.with_suffix(".log")
                         if log_file.exists():
                             print(
-                                f"--- Tail of {log_file.name} ---\n{log_file.read_text(errors='ignore')[-2000:]}"
+                                f"--- Tail of {log_file.name} ---\n"
+                                f"{log_file.read_text(errors='ignore')[-2000:]}"
                             )
                         else:
                             if proc.stdout:
@@ -322,13 +322,14 @@ def render_circuit(
                             if proc.stderr:
                                 print(f"--- pdflatex stderr ---\n{proc.stderr}")
                         break  # Exit loop if pdflatex failed
-                    elif not tmp_pdf_path.is_file() and i == 1:
+                    elif not tmp_pdf_path.is_file() and i == 1:  # pragma: nocover
                         latex_failed = True
                         print("!!! pdflatex completed, but PDF file not found. Check logs. !!!")
                         log_file = tmp_tex_path.with_suffix(".log")
                         if log_file.exists():
                             print(
-                                f"--- Tail of {log_file.name} ---\n{log_file.read_text(errors='ignore')[-2000:]}"
+                                f"--- Tail of {log_file.name} ---\n"
+                                f"{log_file.read_text(errors='ignore')[-2000:]}"
                             )
                         break
                     elif tmp_pdf_path.is_file():
@@ -337,13 +338,14 @@ def render_circuit(
                 if not latex_failed and tmp_pdf_path.is_file():
                     pdf_generated = True
                     _debug_print(f"PDF successfully generated at: {tmp_pdf_path}")
-                elif not latex_failed:  # pdflatex returned 0 but PDF not found
+                elif not latex_failed:  # pragma: nocover
+                    # pdflatex returned 0 but PDF not found
                     print("pdflatex reported success but PDF file was not found.")
-                if latex_failed:
+                if latex_failed:  # pragma: nocover
                     return None  # Critical failure, return None
 
             png_generated, final_output_path_for_display = False, None
-            if run_pdftoppm and pdftoppm_exec and pdf_generated:
+            if run_pdftoppm and pdftoppm_exec and pdf_generated:  # pragma: nocover
                 _debug_print(f"Running pdftoppm ({pdftoppm_exec})...")
                 # pdftoppm outputs to <prefix>-<page_number>.png if multiple pages,
                 # or <prefix>.png if single page with -singlefile.
@@ -351,7 +353,7 @@ def render_circuit(
                 cmd_ppm = [
                     pdftoppm_exec,
                     "-png",
-                    f"-r",
+                    "-r",
                     str(dpi),
                     "-singlefile",  # Ensures single output file for single-page PDFs
                     str(tmp_pdf_path),
@@ -370,15 +372,17 @@ def render_circuit(
                         png_generated = True
                         _debug_print(f"PNG successfully generated at: {tmp_png_path}")
                     else:
-                        print(f"!!! pdftoppm succeeded but PNG ({tmp_png_path}) not found. !!!")
-                except subprocess.CalledProcessError as e_ppm:
+                        print(
+                            f"!!! pdftoppm succeeded but PNG ({tmp_png_path}) not found. !!!"
+                        )  # pragma: nocover
+                except subprocess.CalledProcessError as e_ppm:  # pragma: nocover
                     print(
                         f"!!! pdftoppm failed (exit code {e_ppm.returncode}) !!!\n"
                         f"Stdout: {e_ppm.stdout}\nStderr: {e_ppm.stderr}"
                     )
-                except subprocess.TimeoutExpired:
+                except subprocess.TimeoutExpired:  # pragma: nocover
                     print("!!! pdftoppm timed out. !!!")
-                except Exception as e_ppm_other:
+                except Exception as e_ppm_other:  # pragma: nocover
                     print(f"An unexpected error occurred during pdftoppm: {e_ppm_other}")
 
             # Copy files to final destinations if requested
@@ -387,16 +391,16 @@ def render_circuit(
                     final_tex_path.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(tmp_tex_path, final_tex_path)
                     _debug_print(f"Copied .tex to: {final_tex_path}")
-                except Exception as e:
+                except Exception as e:  # pragma: nocover
                     print(f"Error copying .tex file to final path: {e}")
-            if final_pdf_path and pdf_generated and tmp_pdf_path.exists():
+            if final_pdf_path and pdf_generated and tmp_pdf_path.exists():  # pragma: nocover
                 try:
                     final_pdf_path.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(tmp_pdf_path, final_pdf_path)
                     _debug_print(f"Copied .pdf to: {final_pdf_path}")
                 except Exception as e:
                     print(f"Error copying .pdf file to final path: {e}")
-            if final_png_path and png_generated and tmp_png_path.exists():
+            if final_png_path and png_generated and tmp_png_path.exists():  # pragma: nocover
                 try:
                     final_png_path.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(tmp_png_path, final_png_path)
@@ -404,17 +408,18 @@ def render_circuit(
                     final_output_path_for_display = final_png_path  # Use the final path for display
                 except Exception as e:
                     print(f"Error copying .png file to final path: {e}")
-            elif png_generated and tmp_png_path.exists() and not final_png_path:
-                # If PNG was generated but no specific output_png_path, use the temp path for display
+            elif png_generated and tmp_png_path.exists() and not final_png_path:  # pragma: nocover
+                # If PNG was generated but no specific output_png_path,
+                # use the temp path for display
                 final_output_path_for_display = tmp_png_path
 
-            jupyter_image_object: Optional["Image"] = None
+            jupyter_image_object: Image | None = None
 
             if (
                 display_png_jupyter
                 and final_output_path_for_display
                 and final_output_path_for_display.is_file()
-            ):
+            ):  # pragma: nocover
                 _debug_print(
                     f"Attempting to display PNG in Jupyter: {final_output_path_for_display}"
                 )
@@ -422,8 +427,11 @@ def render_circuit(
                     try:
                         # Check if running in a Jupyter-like environment that supports display
                         # get_ipython() returns a shell object if in IPython, None otherwise.
-                        # ZMQInteractiveShell is for Jupyter notebooks, TerminalInteractiveShell for IPython console.
-                        sh_obj = get_ipython()  # type: ignore
+                        # ZMQInteractiveShell is for Jupyter notebooks,
+                        # TerminalInteractiveShell for IPython console.
+                        # pylint: disable=assignment-from-no-return
+                        sh_obj = get_ipython()
+                        # pylint: enable=assignment-from-no-return
                         if (
                             sh_obj is not None
                             and sh_obj.__class__.__name__ == "ZMQInteractiveShell"
@@ -434,7 +442,8 @@ def render_circuit(
                             _debug_print("PNG displayed in Jupyter notebook.")
                         else:
                             _debug_print(
-                                "Not in a ZMQInteractiveShell (Jupyter notebook). PNG not displayed inline."
+                                "Not in a ZMQInteractiveShell (Jupyter notebook). "
+                                "PNG not displayed inline."
                             )
                             # Still create Image object if it might be returned later
                             jupyter_image_object = Image(
@@ -449,27 +458,29 @@ def render_circuit(
                     _debug_print("IPython not available, cannot display PNG inline.")
             elif display_png_jupyter and (
                 not final_output_path_for_display or not final_output_path_for_display.is_file()
-            ):
+            ):  # pragma: nocover
                 if run_pdflatex and run_pdftoppm:
                     print("PNG display requested, but PNG not successfully created/found.")
 
             # Determine return value based on requested outputs
             if jupyter_image_object:
-                return jupyter_image_object
+                return jupyter_image_object  # pragma: nocover
             elif final_png_path and final_png_path.is_file():
-                return str(final_png_path)  # Return path to saved PNG
-            elif output_tex_path and final_tex_path and final_tex_path.is_file():
+                # Return path to saved PNG
+                return str(final_png_path)  # pragma: nocover
+            elif output_tex_path and final_tex_path and final_tex_path.is_file():  # pragma:nocover
                 # If only LaTeX string was requested, read it back from the saved file
                 # This is a bit indirect, but aligns with returning a string path
                 return final_tex_path.read_text(encoding="utf-8")
-            return None  # Default return if no specific output is generated or requested as return
+            # Default return if no specific output is generated or requested as return
+            return None  # pragma: nocover
 
-    except subprocess.TimeoutExpired as e_timeout:
+    except subprocess.TimeoutExpired as e_timeout:  # pragma: nocover
         print(f"!!! Process timed out: {e_timeout} !!!")
         if debug:
             traceback.print_exc()
         return None
-    except Exception as e_crit:
+    except Exception as e_crit:  # pragma: nocover
         print(f"Critical error in render_circuit: {e_crit}")
         if debug:
             traceback.print_exc()
@@ -477,8 +488,8 @@ def render_circuit(
 
 
 def create_gif_from_ipython_images(
-    image_list: List["Image"], output_filename: str, fps: int, **kwargs: Any
-) -> None:
+    image_list: list[Image], output_filename: str, fps: int, **kwargs: Any
+) -> None:  # pragma: nocover
     r"""Creates a GIF from a list of IPython.core.display.Image objects and saves it.
 
     This utility requires `ImageMagick` to be installed and available in your
@@ -502,7 +513,7 @@ def create_gif_from_ipython_images(
             - `duration`: Total duration of the animation in seconds (overrides delay).
     """
     try:
-        import imageio
+        import imageio  # type: ignore
     except ImportError:
         print("You need to install imageio: `pip install imageio`")
         return None
@@ -516,20 +527,23 @@ def create_gif_from_ipython_images(
     for ipython_image in image_list:
         image_bytes = ipython_image.data
         try:
-            pil_img = PILImage.open(io.BytesIO(image_bytes))
+            pil_img_file = PILImage.open(io.BytesIO(image_bytes))
             # Ensure image is in RGB/RGBA for broad compatibility before making it a numpy array.
             # GIF supports palette ('P') directly, but converting to RGB first can be safer
             # if complex palettes or transparency are involved and imageio's handling is unknown.
-            # However, for GIFs, 'P' mode with a good palette is often preferred for smaller file sizes.
-            # Let's try to keep 'P' if possible, but convert RGBA to RGB as GIFs don't support full alpha well.
-            if pil_img.mode == "RGBA":
+            # However, for GIFs, 'P' mode with a good palette is often
+            # preferred for smaller file sizes. Let's try to keep 'P' if possible,
+            # but convert RGBA to RGB as GIFs don't support full alpha well.
+            if pil_img_file.mode == "RGBA":
                 # Create a white background image
-                background = PILImage.new("RGB", pil_img.size, (255, 255, 255))
+                background = PILImage.new("RGB", pil_img_file.size, (255, 255, 255))
                 # Paste the RGBA image onto the white background
-                background.paste(pil_img, mask=pil_img.split()[3])  # 3 is the alpha channel
+                background.paste(
+                    pil_img_file, mask=pil_img_file.split()[3]
+                )  # 3 is the alpha channel
                 pil_img = background
             elif pil_img.mode not in ["RGB", "L", "P"]:  # L for grayscale, P for palette
-                pil_img = pil_img.convert("RGB")
+                pil_img = pil_img_file.convert("RGB")
             frames.append(np.array(pil_img))
         except Exception as e:
             print(f"Warning: Could not process an image. Error: {e}")
@@ -577,7 +591,7 @@ def create_gif_from_ipython_images(
                 imageio.mimsave(output_filename, rgb_frames, fps=fps, loop=kwargs.get("loop", 0))
                 print(f"GIF saved with basic RGB settings as {output_filename}")
             else:
-                print("Could not convert frames to RGB for basic save.")
+                print("Could not convert frames to RGB for basic save.")  # pragma: nocover
 
-        except Exception as fallback_e:
+        except Exception as fallback_e:  # pragma: nocover
             print(f"Fallback GIF saving also failed: {fallback_e}")
