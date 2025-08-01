@@ -93,7 +93,7 @@ def render_circuit(
     gate_styles: dict[str, str] | None = None,
     quantikz_options: str | None = None,
     fold_at: int | None = None,
-    wire_labels: str = "q",
+    wire_labels: str = "qid",
     show_parameters: bool = True,
     gate_name_map: dict[str, str] | None = None,
     float_precision_exps: int = 2,

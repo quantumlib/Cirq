@@ -287,9 +287,7 @@ class CircuitToQuantikz:
             f"q_{{{index}}}"
             if self.wire_labels == "q"
             else (
-                str(index)
-                if self.wire_labels == "index"
-                else str(self._escape_string(str(qubit))).replace(" ", r"\,")
+                str(index) if self.wire_labels == "index" else str(self._escape_string(str(qubit)))
             )
         )
         return f"${lbl}$"

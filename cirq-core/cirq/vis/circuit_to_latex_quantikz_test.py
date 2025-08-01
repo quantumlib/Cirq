@@ -114,20 +114,30 @@ def test_custom_gate_name_map():
 
 def test_wire_labels():
     """Test different wire labeling options."""
-    q0, q1 = cirq.NamedQubit('alice'), cirq.LineQubit(10)
-    circuit = cirq.Circuit(cirq.H(q0), cirq.X(q1))
+    q0, q1, q2 = cirq.NamedQubit('alice'), cirq.LineQubit(10), cirq.GridQubit(4, 3)
+    circuit = cirq.Circuit(cirq.H(q0), cirq.X(q1), cirq.Z(q2))
 
-    # Default 'q' labels
+    # 'q' labels
     converter_q = CircuitToQuantikz(circuit, wire_labels="q")
     latex_q = converter_q.generate_latex_document()
     assert r"\lstick{$q_{0}$}" in latex_q
     assert r"\lstick{$q_{1}$}" in latex_q
+    assert r"\lstick{$q_{2}$}" in latex_q
 
     # 'index' labels
     converter_idx = CircuitToQuantikz(circuit, wire_labels="index")
     latex_idx = converter_idx.generate_latex_document()
     assert r"\lstick{$0$}" in latex_idx
     assert r"\lstick{$1$}" in latex_idx
+    assert r"\lstick{$2$}" in latex_idx
+
+    # 'qid' labels
+    converter_q = CircuitToQuantikz(circuit, wire_labels="qid")
+    latex_q = converter_q.generate_latex_document()
+    print(latex_q)
+    assert r"\lstick{$alice$}" in latex_q
+    assert r"\lstick{$q(10)$}" in latex_q
+    assert r"\lstick{$q(4, 3)$}" in latex_q
 
 
 def test_custom_preamble_and_postamble():
