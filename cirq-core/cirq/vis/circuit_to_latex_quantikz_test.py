@@ -38,15 +38,16 @@ def test_circuit_no_qubits_raises_value_error():
 
 def test_basic_circuit_conversion():
     """Test a simple circuit conversion to LaTeX."""
-    q0, q1 = cirq.LineQubit.range(2)
+    q0, q1, q2, q3 = cirq.LineQubit.range(4)
     circuit = cirq.Circuit(
         cirq.H(q0),
         cirq.PhasedXZGate(x_exponent=1, z_exponent=1, axis_phase_exponent=0.5)(q0),
         cirq.CZ(q0, q1),
         cirq.CNOT(q0, q1),
         cirq.SWAP(q0, q1),
+        cirq.Moment(cirq.CZ(q1, q2), cirq.CZ(q0, q3)),
         cirq.FSimGate(np.pi / 2, np.pi / 6)(q0, q1),
-        cirq.measure(q0, key='m0'),
+        cirq.measure(q0, q2, q3, key='m0'),
     )
     converter = CircuitToQuantikz(circuit, wire_labels="q")
     latex_code = converter.generate_latex_document()
