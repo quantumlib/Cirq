@@ -1714,6 +1714,9 @@ def test_mutable_pauli_string_inplace_conjugate_by():
         def _decompose_(self):
             return []
 
+        def __pow__(self, power):
+            return []
+
     # No-ops
     p2 = p.inplace_after(cirq.global_phase_operation(1j))
     assert p2 is p and p == cirq.X(a)
@@ -1823,6 +1826,14 @@ def test_mutable_pauli_string_inplace_conjugate_by():
     p = cirq.MutablePauliString(cirq.X(a))
     p2 = p.inplace_after(cirq.PauliInteractionGate(cirq.Z, True, cirq.Y, False).on(a, b))
     assert p2 is p and p == cirq.X(a) * cirq.Y(b)
+
+
+def test_mps_inplace_after_clifford_gate_type():
+    q = cirq.LineQubit(0)
+
+    mps = cirq.MutablePauliString(cirq.X(q))
+    mps2 = mps.inplace_after(cirq.CliffordGate.from_op_list([cirq.H(q)], [q]).on(q))
+    assert mps2 is mps and mps == cirq.Z(q)
 
 
 def test_after_before_vs_conjugate_by():
