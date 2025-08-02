@@ -51,8 +51,14 @@ def test_circuit_client_code(qubit) -> None:
     stripped_id = circuit.id.replace('-', '')
 
     expected_client_code = f"""
-        <button id="camera-reset">Reset Camera</button>
-        <button id="camera-toggle">Toggle Camera Type</button>
+        <div>
+            <button id="camera-reset">Reset Camera</button>
+            <button id="camera-toggle">Toggle Camera Type</button>
+        </div>
+        <div id="foreign-symbols-wrapper-{stripped_id}" style="display: none;">
+            <h4>Foreign symbols:</h4>
+            <ul id="foreign-symbols-list-{stripped_id}"></ul>
+        </div>
         <script>
         let viz_{stripped_id} = createGridCircuit(
             {str(circuit_obj)}, {str(moments)}, "{circuit.id}", {circuit.padding_factor}
@@ -65,6 +71,17 @@ def test_circuit_client_code(qubit) -> None:
         document.getElementById("camera-toggle").addEventListener('click', ()  => {{
         viz_{stripped_id}.scene.toggleCamera(viz_{stripped_id}.circuit);
         }});
+
+        if (viz_{stripped_id}.circuit.foreign_symbols.length > 0) {{
+            const wrapper = document.getElementById("foreign-symbols-wrapper-{stripped_id}");
+            const list = document.getElementById("foreign-symbols-list-{stripped_id}");
+            wrapper.style.display = 'block';
+            viz_{stripped_id}.circuit.foreign_symbols.forEach(op => {{
+                const listItem = document.createElement('li');
+                listItem.innerText = `Moment ${{op.moment}}: ${{op.wire_symbols.join(', ')}}`;
+                list.appendChild(listItem);
+            }});
+        }}
         </script>
         """
 

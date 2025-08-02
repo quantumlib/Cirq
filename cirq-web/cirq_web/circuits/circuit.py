@@ -58,8 +58,14 @@ class Circuit3D(widget.Widget):
         self.serialized_circuit = self._serialize_circuit()
 
         return f"""
-            <button id="camera-reset">Reset Camera</button>
-            <button id="camera-toggle">Toggle Camera Type</button>
+            <div>
+                <button id="camera-reset">Reset Camera</button>
+                <button id="camera-toggle">Toggle Camera Type</button>
+            </div>
+            <div id="foreign-symbols-wrapper-{stripped_id}" style="display: none;">
+                <h4>Foreign symbols:</h4>
+                <ul id="foreign-symbols-list-{stripped_id}"></ul>
+            </div>
             <script>
             let viz_{stripped_id} = createGridCircuit(
                 {self.serialized_circuit}, {moments}, "{self.id}", {self.padding_factor}
@@ -72,6 +78,17 @@ class Circuit3D(widget.Widget):
             document.getElementById("camera-toggle").addEventListener('click', ()  => {{
             viz_{stripped_id}.scene.toggleCamera(viz_{stripped_id}.circuit);
             }});
+
+            if (viz_{stripped_id}.circuit.foreign_symbols.length > 0) {{
+                const wrapper = document.getElementById("foreign-symbols-wrapper-{stripped_id}");
+                const list = document.getElementById("foreign-symbols-list-{stripped_id}");
+                wrapper.style.display = 'block';
+                viz_{stripped_id}.circuit.foreign_symbols.forEach(op => {{
+                    const listItem = document.createElement('li');
+                    listItem.innerText = `Moment ${{op.moment}}: ${{op.wire_symbols.join(', ')}}`;
+                    list.appendChild(listItem);
+                }});
+            }}
             </script>
         """
 
