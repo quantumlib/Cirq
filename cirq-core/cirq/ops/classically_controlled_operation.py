@@ -125,15 +125,10 @@ class ClassicallyControlledOperation(raw_types.Operation):
             *self._conditions
         )
 
-    def _decompose_(self):
-        return self._decompose_with_context_()
-
     def _decompose_with_context_(self, context: cirq.DecompositionContext | None = None):
-        result = protocols.decompose_once(
-            self._sub_operation, NotImplemented, flatten=False, context=context
-        )
-        if result is NotImplemented:
-            return NotImplemented
+        result = protocols.decompose_once(self._sub_operation, None, flatten=False, context=context)
+        if result is None:
+            return None
 
         return op_tree.transform_op_tree(
             result, lambda op: ClassicallyControlledOperation(op, self._conditions)
