@@ -48,6 +48,8 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = [
     'docs/simulate/noisy_simulation.ipynb',
     'docs/simulate/quantum_virtual_machine.ipynb',
     'docs/simulate/qvm_basic_example.ipynb',
+    'docs/simulate/qvm_builder_code.ipynb',
+    'docs/simulate/qvm_stabilizer_example.ipynb',
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
