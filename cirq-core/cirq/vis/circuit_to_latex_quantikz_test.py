@@ -100,6 +100,13 @@ def test_parameter_display():
     assert r"Y^{0.25}" in latex_show_params
     assert r"H" in latex_show_params
 
+    # Test with folding at boundary
+    converter_show_params = CircuitToQuantikz(param_circuit, show_parameters=True, fold_at=1)
+    latex_show_params = converter_show_params.generate_latex_document()
+    assert r"R_{Z}(\alpha)" in latex_show_params
+    assert r"Y^{0.25}" in latex_show_params
+    assert r"H" in latex_show_params
+
 
 def test_custom_gate_name_map():
     """Test custom gate name mapping."""
@@ -135,7 +142,6 @@ def test_wire_labels():
     # 'qid' labels
     converter_q = CircuitToQuantikz(circuit, wire_labels="qid")
     latex_q = converter_q.generate_latex_document()
-    print(latex_q)
     assert r"\lstick{$alice$}" in latex_q
     assert r"\lstick{$q(10)$}" in latex_q
     assert r"\lstick{$q(4, 3)$}" in latex_q
@@ -233,3 +239,12 @@ def test_misc_gates() -> None:
     converter = CircuitToQuantikz(circuit)
     latex_code = converter.generate_latex_document()
     assert latex_code
+
+
+def test_classical_control() -> None:
+    circuit = cirq.Circuit(
+        cirq.measure(cirq.q(0), key='a'), cirq.X(cirq.q(1)).with_classical_controls('a')
+    )
+    converter = CircuitToQuantikz(circuit)
+    latex_code = converter.generate_latex_document()
+    assert "\\vcw" in latex_code

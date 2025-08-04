@@ -19,7 +19,7 @@ from cirq.vis.circuit_to_latex_render import render_circuit
 
 
 def test_render_circuit() -> None:
-    q0, q1, q2 = cirq.LineQubit.range(3)
+    q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.H(q0),
         cirq.CNOT(q0, q1),

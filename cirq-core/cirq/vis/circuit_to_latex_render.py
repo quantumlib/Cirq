@@ -54,7 +54,7 @@ from cirq.vis.circuit_to_latex_quantikz import CircuitToQuantikz
 __all__ = ["render_circuit", "create_gif_from_ipython_images"]
 
 try:
-    from IPython.display import display, Image, Markdown  # pragma: nocover
+    from IPython.display import display, Image  # pragma: nocover
 
     _HAS_IPYTHON = True  # pragma: nocover
 except ImportError:  # pragma: nocover
@@ -65,9 +65,6 @@ except ImportError:  # pragma: nocover
             pass
 
     def display(*args, **kwargs):
-        pass
-
-    def Markdown(*args, **kwargs):
         pass
 
     def get_ipython(*args, **kwargs) -> Any:

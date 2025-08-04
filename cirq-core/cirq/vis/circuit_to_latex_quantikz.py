@@ -69,7 +69,7 @@ from typing import Any, Optional
 
 import sympy
 
-from cirq import circuits, ops, protocols
+from cirq import circuits, ops, protocols, value
 
 __all__ = ["CircuitToQuantikz", "DEFAULT_PREAMBLE_TEMPLATE", "GATE_STYLES_COLORFUL"]
 
@@ -251,6 +251,7 @@ class CircuitToQuantikz:
         if not self.sorted_qubits:
             raise ValueError("Circuit contains no qubits.")
         self.qubit_to_index = self._map_qubits_to_indices()
+        self.key_to_index = self._map_keys_to_indices()
         self.num_qubits = len(self.sorted_qubits)
         self.float_precision_exps = float_precision_exps
         self.float_precision_angles = float_precision_angles
@@ -264,6 +265,18 @@ class CircuitToQuantikz:
             zero-based integer indices.
         """
         return {q: i for i, q in enumerate(self.sorted_qubits)}
+
+    def _map_keys_to_indices(self) -> dict[str, list[int]]:
+        """Maps measurement keys to qubit indices.
+
+        Used by classically controlled operations to map keys
+        to qubit wires.
+        """
+        key_map: dict[str, list[int]] = {}
+        for op in self.circuit.all_operations():
+            if isinstance(op.gate, ops.MeasurementGate):
+                key_map[op.gate.key] = [self.qubit_to_index[q] for q in op.qubits]
+        return key_map
 
     def _escape_string(self, label) -> str:
         """Escape labels for latex."""
@@ -372,8 +385,6 @@ class CircuitToQuantikz:
             "Rx(0.5)", "CZ").
         """
         gate_type = type(gate)
-        if gate_type.__name__ == "ThermalChannel":  # pragma: nocover
-            return "\\Lambda_\\mathrm{th}"
         if (simple_name := _SIMPLE_GATE_MAP.get(gate_type)) is not None:
             return simple_name
 
@@ -486,6 +497,8 @@ class CircuitToQuantikz:
         """
         output, q_indices = {}, sorted([self.qubit_to_index[q] for q in op.qubits])
         gate = op.gate
+        if isinstance(op, ops.ClassicallyControlledOperation):
+            gate = op.without_classical_controls().gate
         if gate is None:  # pragma: nocover
             raise ValueError(f'Only GateOperations are supported {op}')
         gate_name_render = self._get_gate_name(gate)
@@ -531,43 +544,32 @@ class CircuitToQuantikz:
                     q0 = q_indices[idx - 1]
                     q1 = q_indices[idx]
                     output[i] = f"\\meter{final_style_tikz}{{}} \\vqw{{{q0-q1}}}"
-            return output
-        if isinstance(gate, ops.CNotPowGate) and hasattr(gate, "exponent") and gate.exponent == 1:
+        elif isinstance(gate, ops.CNotPowGate) and hasattr(gate, "exponent") and gate.exponent == 1:
             c, t = (
                 (self.qubit_to_index[op.qubits[0]], self.qubit_to_index[op.qubits[1]])
                 if len(op.qubits) == 2
                 else (q_indices[0], q_indices[0])
             )
-            output[c], output[t] = (
-                f"\\ctrl{final_style_tikz}{{{t-c}}}",
-                f"\\targ{final_style_tikz}{{}}",
-            )
-            return output
-        if isinstance(gate, ops.CZPowGate) and hasattr(gate, "exponent") and gate.exponent == 1:
+            output[c] = f"\\ctrl{final_style_tikz}{{{t-c}}}"
+            output[t] = f"\\targ{final_style_tikz}{{}}"
+        elif isinstance(gate, ops.CZPowGate) and hasattr(gate, "exponent") and gate.exponent == 1:
             i1, i2 = (
                 (q_indices[0], q_indices[1])
                 if len(q_indices) >= 2
                 else (q_indices[0], q_indices[0])
             )
-            output[i1], output[i2] = (
-                f"\\ctrl{final_style_tikz}{{{i2-i1}}}",
-                f"\\control{final_style_tikz}{{}}",
-            )
-            return output
-        if isinstance(gate, ops.SwapPowGate) and hasattr(gate, "exponent") and gate.exponent == 1:
+            output[i1] = f"\\ctrl{final_style_tikz}{{{i2-i1}}}"
+            output[i2] = f"\\control{final_style_tikz}{{}}"
+        elif isinstance(gate, ops.SwapPowGate) and hasattr(gate, "exponent") and gate.exponent == 1:
             i1, i2 = (
                 (q_indices[0], q_indices[1])
                 if len(q_indices) >= 2
                 else (q_indices[0], q_indices[0])
             )
-            output[i1], output[i2] = (
-                f"\\swap{final_style_tikz}{{{i2-i1}}}",
-                f"\\targX{final_style_tikz}{{}}",
-            )
-            return output
-
+            output[i1] = f"\\swap{final_style_tikz}{{{i2-i1}}}"
+            output[i2] = f"\\targX{final_style_tikz}{{}}"
         # Handle generic \gate command for single and multi-qubit gates
-        if len(q_indices) == 1:
+        elif len(q_indices) == 1:
             output[q_indices[0]] = f"\\gate{final_style_tikz}{{{gate_name_render}}}"
         else:  # Multi-qubit gate
             combined_opts = f"wires={q_indices[-1]-q_indices[0]+1}"
@@ -576,6 +578,14 @@ class CircuitToQuantikz:
             output[q_indices[0]] = f"\\gate[{combined_opts}]{{{gate_name_render}}}"
             for i in range(1, len(q_indices)):
                 output[q_indices[i]] = "\\qw"
+        if isinstance(op, ops.ClassicallyControlledOperation):
+            q0 = q_indices[0]
+            for key in op.classical_controls:
+                if isinstance(key, value.KeyCondition):
+                    for index in self.key_to_index[key.key.name]:
+                        output[q0] += f" \\vcw{{{index-q0}}}"
+                        output[index] = "\\ctrl{}"
+
         return output
 
     def _initial_active_chunk(self) -> list[list[str]]:
@@ -629,77 +639,40 @@ class CircuitToQuantikz:
             if self.fold_at and m_idx % self.fold_at == 0 and not is_last_m:
                 for i in range(self.num_qubits):
                     lbl = self._get_wire_label(self.sorted_qubits[i], i)
-                    active_chunk[i].extend([f"\\rstick{{{lbl}}}", "\\qw"])
+                    active_chunk[i].extend(["\\qw", f"\\rstick{{{lbl}}}"])
                 chunks.append(active_chunk)
                 active_chunk = self._initial_active_chunk()
 
+        for i in range(self.num_qubits):
+            active_chunk[i].append("\\qw")
         if self.fold_at:
             for i in range(self.num_qubits):
                 active_chunk[i].extend(
                     [f"\\rstick{{{self._get_wire_label(self.sorted_qubits[i],i)}}}"]
                 )
-        for i in range(self.num_qubits):
-            active_chunk[i].append("\\qw")
         chunks.append(active_chunk)
 
-        final_parts = []
         opts_str = self._get_quantikz_options_string()
-        # TODO: test coverage for the below section
-        for chunk_data in chunks:  # pragma: nocover
-            is_empty_like = True
-            if chunk_data and any(chunk_data):
-                for r_cmds in chunk_data:
-                    if any(
-                        cmd not in ["\\qw", ""]
-                        and not cmd.startswith("\\lstick")
-                        and not cmd.startswith("\\rstick")
-                        for cmd in r_cmds
-                    ):
-                        is_empty_like = False
-                        break
-                if all(
-                    all(
-                        cmd == "\\qw" or cmd.startswith("\\lstick") or cmd.startswith("\\rstick")
-                        for cmd in r
-                    )
-                    for r in chunk_data
-                    if r
-                ):
-                    if len(chunks) > 1 or not self.circuit:
-                        if all(len(r) <= (4 if self.fold_at else 2) for r in chunk_data if r):
-                            is_empty_like = True
-            if is_empty_like and len(chunks) > 1 and self.circuit:
-                continue
-
+        final_parts = []
+        for chunk_data in chunks:
             lines = [f"\\begin{{quantikz}}{opts_str}"]
             for i in range(self.num_qubits):
                 if i < len(chunk_data) and chunk_data[i]:
                     lines.append(" & ".join(chunk_data[i]) + " \\\\")
-                elif i < self.num_qubits:
-                    lines.append(
-                        f"\\lstick{{{self._get_wire_label(self.sorted_qubits[i],i)}}} & \\qw \\\\"
-                    )
 
             if len(lines) > 1:
                 for k_idx in range(len(lines) - 1, 0, -1):
-                    if lines[k_idx].strip() and lines[k_idx].strip() != "\\\\":
-                        if lines[k_idx].endswith(" \\\\"):
-                            lines[k_idx] = lines[k_idx].rstrip()[:-3].rstrip()
-                        break
-                    elif lines[k_idx].strip() == "\\\\" and k_idx == len(lines) - 1:
-                        lines[k_idx] = ""
+                    stipped_line = lines[k_idx].strip()
+                    if stipped_line:
+                        if stipped_line != "\\\\":
+                            if lines[k_idx].endswith(" \\\\"):
+                                lines[k_idx] = lines[k_idx].rstrip()[:-3].rstrip()
+                            break
+                        elif k_idx == len(lines) - 1:  # pragma: nocover
+                            lines[k_idx] = ""
             lines.append("\\end{quantikz}")
             final_parts.append("\n".join(filter(None, lines)))
 
-        if not final_parts and self.num_qubits > 0:  # pragma: nocover
-            lines = [f"\\begin{{quantikz}}{opts_str}"]
-            for i in range(self.num_qubits):
-                lines.append(
-                    f"\\lstick{{{self._get_wire_label(self.sorted_qubits[i],i)}}} & \\qw"
-                    + (" \\\\" if i < self.num_qubits - 1 else "")
-                )
-            lines.append("\\end{quantikz}")
-            return "\n".join(lines)
         return "\n\n\\vspace{1em}\n\n".join(final_parts)
 
     def generate_latex_document(self, preamble_template: Optional[str] = None) -> str:
