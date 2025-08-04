@@ -20,6 +20,10 @@ message RunContext {
   // If the same parameter is supplied in both places, the provision here in
   // device_parameters_override will have no effect.
   DeviceParametersDiff device_parameters_override = 2;
+
+  // If compression is desired, this field stores the gzipped bytes
+  // of the RunContext
+  bytes compressed_run_context = 3;
 }
 
 // Specifies how to repeatedly sample a circuit, with or without sweeping over

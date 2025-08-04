@@ -167,7 +167,7 @@ def test_has_kraus(cls) -> None:
     assert cirq.has_kraus(cls())
 
 
-@pytest.mark.parametrize('decomposed_cls', [HasKraus, HasMixture, HasUnitary])
+@pytest.mark.parametrize('decomposed_cls', [HasKraus, HasMixture])
 def test_has_kraus_when_decomposed(decomposed_cls) -> None:
     op = HasKrausWhenDecomposed(decomposed_cls).on(cirq.NamedQubit('test'))
     assert cirq.has_kraus(op)
@@ -243,3 +243,11 @@ def test_reset_channel_kraus_apply_channel_consistency():
     gate_no_kraus = NoKrausReset()
     # Should still match the original superoperator
     np.testing.assert_allclose(cirq.kraus(gate), cirq.kraus(gate_no_kraus), atol=1e-8)
+
+
+def test_kraus_channel_with_has_unitary():
+    """CZSWAP has no unitary dunder method but has_unitary returns True."""
+    op = cirq.CZSWAP.on(cirq.q(1), cirq.q(2))
+    channels = cirq.kraus(op)
+    assert len(channels) == 1
+    np.testing.assert_allclose(channels[0], cirq.unitary(op))

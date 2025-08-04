@@ -26,7 +26,7 @@ from . import program_pb2 as cirq__google_dot_api_dot_v2_dot_program__pb2
 from tunits.proto import tunits_pb2 as tunits_dot_proto_dot_tunits__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n$cirq_google/api/v2/run_context.proto\x12\x12\x63irq.google.api.v2\x1a cirq_google/api/v2/program.proto\x1a\x19tunits/proto/tunits.proto\"\x98\x01\n\nRunContext\x12<\n\x10parameter_sweeps\x18\x01 \x03(\x0b\x32\".cirq.google.api.v2.ParameterSweep\x12L\n\x1a\x64\x65vice_parameters_override\x18\x02 \x01(\x0b\x32(.cirq.google.api.v2.DeviceParametersDiff\"O\n\x0eParameterSweep\x12\x13\n\x0brepetitions\x18\x01 \x01(\x05\x12(\n\x05sweep\x18\x02 \x01(\x0b\x32\x19.cirq.google.api.v2.Sweep\"\x86\x01\n\x05Sweep\x12;\n\x0esweep_function\x18\x01 \x01(\x0b\x32!.cirq.google.api.v2.SweepFunctionH\x00\x12\x37\n\x0csingle_sweep\x18\x02 \x01(\x0b\x32\x1f.cirq.google.api.v2.SingleSweepH\x00\x42\x07\n\x05sweep\"\xe3\x01\n\rSweepFunction\x12\x45\n\rfunction_type\x18\x01 \x01(\x0e\x32..cirq.google.api.v2.SweepFunction.FunctionType\x12)\n\x06sweeps\x18\x02 \x03(\x0b\x32\x19.cirq.google.api.v2.Sweep\"`\n\x0c\x46unctionType\x12\x1d\n\x19\x46UNCTION_TYPE_UNSPECIFIED\x10\x00\x12\x0b\n\x07PRODUCT\x10\x01\x12\x07\n\x03ZIP\x10\x02\x12\x0f\n\x0bZIP_LONGEST\x10\x03\x12\n\n\x06\x43ONCAT\x10\x04\"W\n\x0f\x44\x65viceParameter\x12\x0c\n\x04path\x18\x01 \x03(\t\x12\x10\n\x03idx\x18\x02 \x01(\x03H\x00\x88\x01\x01\x12\x12\n\x05units\x18\x03 \x01(\tH\x01\x88\x01\x01\x42\x06\n\x04_idxB\x08\n\x06_units\"\xa8\x01\n\x08Metadata\x12>\n\x11\x64\x65vice_parameters\x18\x01 \x03(\x0b\x32#.cirq.google.api.v2.DeviceParameter\x12\x12\n\x05label\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x15\n\x08is_const\x18\x03 \x01(\x08H\x01\x88\x01\x01\x12\x11\n\x04unit\x18\x04 \x01(\tH\x02\x88\x01\x01\x42\x08\n\x06_labelB\x0b\n\t_is_constB\x07\n\x05_unit\"\xcf\x03\n\x14\x44\x65viceParametersDiff\x12\x46\n\x06groups\x18\x01 \x03(\x0b\x32\x36.cirq.google.api.v2.DeviceParametersDiff.ResourceGroup\x12>\n\x06params\x18\x02 \x03(\x0b\x32..cirq.google.api.v2.DeviceParametersDiff.Param\x12\x0c\n\x04strs\x18\x04 \x03(\t\x1a-\n\rResourceGroup\x12\x0e\n\x06parent\x18\x01 \x01(\x05\x12\x0c\n\x04name\x18\x02 \x01(\x05\x1a\x36\n\x0cGenericValue\x12\x17\n\x0ftype_descriptor\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x0c\x1a\xb9\x01\n\x05Param\x12\x16\n\x0eresource_group\x18\x01 \x01(\x05\x12\x0c\n\x04name\x18\x02 \x01(\x05\x12-\n\x05value\x18\x03 \x01(\x0b\x32\x1c.cirq.google.api.v2.ArgValueH\x00\x12N\n\rgeneric_value\x18\x04 \x01(\x0b\x32\x35.cirq.google.api.v2.DeviceParametersDiff.GenericValueH\x00\x42\x0b\n\tparam_val\"\xac\x02\n\x0bSingleSweep\x12\x15\n\rparameter_key\x18\x01 \x01(\t\x12,\n\x06points\x18\x02 \x01(\x0b\x32\x1a.cirq.google.api.v2.PointsH\x00\x12\x30\n\x08linspace\x18\x03 \x01(\x0b\x32\x1c.cirq.google.api.v2.LinspaceH\x00\x12\x35\n\x0b\x63onst_value\x18\x05 \x01(\x0b\x32\x1e.cirq.google.api.v2.ConstValueH\x00\x12\x36\n\tparameter\x18\x04 \x01(\x0b\x32#.cirq.google.api.v2.DeviceParameter\x12.\n\x08metadata\x18\x06 \x01(\x0b\x32\x1c.cirq.google.api.v2.MetadataB\x07\n\x05sweep\"L\n\x06Points\x12\x0e\n\x06points\x18\x01 \x03(\x02\x12\x15\n\rpoints_double\x18\x03 \x03(\x01\x12\x1b\n\x04unit\x18\x02 \x01(\x0b\x32\r.tunits.Value\"\x9b\x01\n\x08Linspace\x12\x13\n\x0b\x66irst_point\x18\x01 \x01(\x02\x12\x1a\n\x12\x66irst_point_double\x18\x05 \x01(\x01\x12\x12\n\nlast_point\x18\x02 \x01(\x02\x12\x19\n\x11last_point_double\x18\x06 \x01(\x01\x12\x12\n\nnum_points\x18\x03 \x01(\x03\x12\x1b\n\x04unit\x18\x04 \x01(\x0b\x32\r.tunits.Value\"\xae\x01\n\nConstValue\x12\x11\n\x07is_none\x18\x01 \x01(\x08H\x00\x12\x15\n\x0b\x66loat_value\x18\x02 \x01(\x02H\x00\x12\x16\n\x0c\x64ouble_value\x18\x06 \x01(\x01H\x00\x12\x13\n\tint_value\x18\x03 \x01(\x03H\x00\x12\x16\n\x0cstring_value\x18\x04 \x01(\tH\x00\x12(\n\x0fwith_unit_value\x18\x05 \x01(\x0b\x32\r.tunits.ValueH\x00\x42\x07\n\x05valueB2\n\x1d\x63om.google.cirq.google.api.v2B\x0fRunContextProtoP\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n$cirq_google/api/v2/run_context.proto\x12\x12\x63irq.google.api.v2\x1a cirq_google/api/v2/program.proto\x1a\x19tunits/proto/tunits.proto\"\xb8\x01\n\nRunContext\x12<\n\x10parameter_sweeps\x18\x01 \x03(\x0b\x32\".cirq.google.api.v2.ParameterSweep\x12L\n\x1a\x64\x65vice_parameters_override\x18\x02 \x01(\x0b\x32(.cirq.google.api.v2.DeviceParametersDiff\x12\x1e\n\x16\x63ompressed_run_context\x18\x03 \x01(\x0c\"O\n\x0eParameterSweep\x12\x13\n\x0brepetitions\x18\x01 \x01(\x05\x12(\n\x05sweep\x18\x02 \x01(\x0b\x32\x19.cirq.google.api.v2.Sweep\"\x86\x01\n\x05Sweep\x12;\n\x0esweep_function\x18\x01 \x01(\x0b\x32!.cirq.google.api.v2.SweepFunctionH\x00\x12\x37\n\x0csingle_sweep\x18\x02 \x01(\x0b\x32\x1f.cirq.google.api.v2.SingleSweepH\x00\x42\x07\n\x05sweep\"\xe3\x01\n\rSweepFunction\x12\x45\n\rfunction_type\x18\x01 \x01(\x0e\x32..cirq.google.api.v2.SweepFunction.FunctionType\x12)\n\x06sweeps\x18\x02 \x03(\x0b\x32\x19.cirq.google.api.v2.Sweep\"`\n\x0c\x46unctionType\x12\x1d\n\x19\x46UNCTION_TYPE_UNSPECIFIED\x10\x00\x12\x0b\n\x07PRODUCT\x10\x01\x12\x07\n\x03ZIP\x10\x02\x12\x0f\n\x0bZIP_LONGEST\x10\x03\x12\n\n\x06\x43ONCAT\x10\x04\"W\n\x0f\x44\x65viceParameter\x12\x0c\n\x04path\x18\x01 \x03(\t\x12\x10\n\x03idx\x18\x02 \x01(\x03H\x00\x88\x01\x01\x12\x12\n\x05units\x18\x03 \x01(\tH\x01\x88\x01\x01\x42\x06\n\x04_idxB\x08\n\x06_units\"\xa8\x01\n\x08Metadata\x12>\n\x11\x64\x65vice_parameters\x18\x01 \x03(\x0b\x32#.cirq.google.api.v2.DeviceParameter\x12\x12\n\x05label\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x15\n\x08is_const\x18\x03 \x01(\x08H\x01\x88\x01\x01\x12\x11\n\x04unit\x18\x04 \x01(\tH\x02\x88\x01\x01\x42\x08\n\x06_labelB\x0b\n\t_is_constB\x07\n\x05_unit\"\xcf\x03\n\x14\x44\x65viceParametersDiff\x12\x46\n\x06groups\x18\x01 \x03(\x0b\x32\x36.cirq.google.api.v2.DeviceParametersDiff.ResourceGroup\x12>\n\x06params\x18\x02 \x03(\x0b\x32..cirq.google.api.v2.DeviceParametersDiff.Param\x12\x0c\n\x04strs\x18\x04 \x03(\t\x1a-\n\rResourceGroup\x12\x0e\n\x06parent\x18\x01 \x01(\x05\x12\x0c\n\x04name\x18\x02 \x01(\x05\x1a\x36\n\x0cGenericValue\x12\x17\n\x0ftype_descriptor\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x0c\x1a\xb9\x01\n\x05Param\x12\x16\n\x0eresource_group\x18\x01 \x01(\x05\x12\x0c\n\x04name\x18\x02 \x01(\x05\x12-\n\x05value\x18\x03 \x01(\x0b\x32\x1c.cirq.google.api.v2.ArgValueH\x00\x12N\n\rgeneric_value\x18\x04 \x01(\x0b\x32\x35.cirq.google.api.v2.DeviceParametersDiff.GenericValueH\x00\x42\x0b\n\tparam_val\"\xac\x02\n\x0bSingleSweep\x12\x15\n\rparameter_key\x18\x01 \x01(\t\x12,\n\x06points\x18\x02 \x01(\x0b\x32\x1a.cirq.google.api.v2.PointsH\x00\x12\x30\n\x08linspace\x18\x03 \x01(\x0b\x32\x1c.cirq.google.api.v2.LinspaceH\x00\x12\x35\n\x0b\x63onst_value\x18\x05 \x01(\x0b\x32\x1e.cirq.google.api.v2.ConstValueH\x00\x12\x36\n\tparameter\x18\x04 \x01(\x0b\x32#.cirq.google.api.v2.DeviceParameter\x12.\n\x08metadata\x18\x06 \x01(\x0b\x32\x1c.cirq.google.api.v2.MetadataB\x07\n\x05sweep\"L\n\x06Points\x12\x0e\n\x06points\x18\x01 \x03(\x02\x12\x15\n\rpoints_double\x18\x03 \x03(\x01\x12\x1b\n\x04unit\x18\x02 \x01(\x0b\x32\r.tunits.Value\"\x9b\x01\n\x08Linspace\x12\x13\n\x0b\x66irst_point\x18\x01 \x01(\x02\x12\x1a\n\x12\x66irst_point_double\x18\x05 \x01(\x01\x12\x12\n\nlast_point\x18\x02 \x01(\x02\x12\x19\n\x11last_point_double\x18\x06 \x01(\x01\x12\x12\n\nnum_points\x18\x03 \x01(\x03\x12\x1b\n\x04unit\x18\x04 \x01(\x0b\x32\r.tunits.Value\"\xae\x01\n\nConstValue\x12\x11\n\x07is_none\x18\x01 \x01(\x08H\x00\x12\x15\n\x0b\x66loat_value\x18\x02 \x01(\x02H\x00\x12\x16\n\x0c\x64ouble_value\x18\x06 \x01(\x01H\x00\x12\x13\n\tint_value\x18\x03 \x01(\x03H\x00\x12\x16\n\x0cstring_value\x18\x04 \x01(\tH\x00\x12(\n\x0fwith_unit_value\x18\x05 \x01(\x0b\x32\r.tunits.ValueH\x00\x42\x07\n\x05valueB2\n\x1d\x63om.google.cirq.google.api.v2B\x0fRunContextProtoP\x01\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -35,33 +35,33 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'\n\035com.google.cirq.google.api.v2B\017RunContextProtoP\001'
   _globals['_RUNCONTEXT']._serialized_start=122
-  _globals['_RUNCONTEXT']._serialized_end=274
-  _globals['_PARAMETERSWEEP']._serialized_start=276
-  _globals['_PARAMETERSWEEP']._serialized_end=355
-  _globals['_SWEEP']._serialized_start=358
-  _globals['_SWEEP']._serialized_end=492
-  _globals['_SWEEPFUNCTION']._serialized_start=495
-  _globals['_SWEEPFUNCTION']._serialized_end=722
-  _globals['_SWEEPFUNCTION_FUNCTIONTYPE']._serialized_start=626
-  _globals['_SWEEPFUNCTION_FUNCTIONTYPE']._serialized_end=722
-  _globals['_DEVICEPARAMETER']._serialized_start=724
-  _globals['_DEVICEPARAMETER']._serialized_end=811
-  _globals['_METADATA']._serialized_start=814
-  _globals['_METADATA']._serialized_end=982
-  _globals['_DEVICEPARAMETERSDIFF']._serialized_start=985
-  _globals['_DEVICEPARAMETERSDIFF']._serialized_end=1448
-  _globals['_DEVICEPARAMETERSDIFF_RESOURCEGROUP']._serialized_start=1159
-  _globals['_DEVICEPARAMETERSDIFF_RESOURCEGROUP']._serialized_end=1204
-  _globals['_DEVICEPARAMETERSDIFF_GENERICVALUE']._serialized_start=1206
-  _globals['_DEVICEPARAMETERSDIFF_GENERICVALUE']._serialized_end=1260
-  _globals['_DEVICEPARAMETERSDIFF_PARAM']._serialized_start=1263
-  _globals['_DEVICEPARAMETERSDIFF_PARAM']._serialized_end=1448
-  _globals['_SINGLESWEEP']._serialized_start=1451
-  _globals['_SINGLESWEEP']._serialized_end=1751
-  _globals['_POINTS']._serialized_start=1753
-  _globals['_POINTS']._serialized_end=1829
-  _globals['_LINSPACE']._serialized_start=1832
-  _globals['_LINSPACE']._serialized_end=1987
-  _globals['_CONSTVALUE']._serialized_start=1990
-  _globals['_CONSTVALUE']._serialized_end=2164
+  _globals['_RUNCONTEXT']._serialized_end=306
+  _globals['_PARAMETERSWEEP']._serialized_start=308
+  _globals['_PARAMETERSWEEP']._serialized_end=387
+  _globals['_SWEEP']._serialized_start=390
+  _globals['_SWEEP']._serialized_end=524
+  _globals['_SWEEPFUNCTION']._serialized_start=527
+  _globals['_SWEEPFUNCTION']._serialized_end=754
+  _globals['_SWEEPFUNCTION_FUNCTIONTYPE']._serialized_start=658
+  _globals['_SWEEPFUNCTION_FUNCTIONTYPE']._serialized_end=754
+  _globals['_DEVICEPARAMETER']._serialized_start=756
+  _globals['_DEVICEPARAMETER']._serialized_end=843
+  _globals['_METADATA']._serialized_start=846
+  _globals['_METADATA']._serialized_end=1014
+  _globals['_DEVICEPARAMETERSDIFF']._serialized_start=1017
+  _globals['_DEVICEPARAMETERSDIFF']._serialized_end=1480
+  _globals['_DEVICEPARAMETERSDIFF_RESOURCEGROUP']._serialized_start=1191
+  _globals['_DEVICEPARAMETERSDIFF_RESOURCEGROUP']._serialized_end=1236
+  _globals['_DEVICEPARAMETERSDIFF_GENERICVALUE']._serialized_start=1238
+  _globals['_DEVICEPARAMETERSDIFF_GENERICVALUE']._serialized_end=1292
+  _globals['_DEVICEPARAMETERSDIFF_PARAM']._serialized_start=1295
+  _globals['_DEVICEPARAMETERSDIFF_PARAM']._serialized_end=1480
+  _globals['_SINGLESWEEP']._serialized_start=1483
+  _globals['_SINGLESWEEP']._serialized_end=1783
+  _globals['_POINTS']._serialized_start=1785
+  _globals['_POINTS']._serialized_end=1861
+  _globals['_LINSPACE']._serialized_start=1864
+  _globals['_LINSPACE']._serialized_end=2019
+  _globals['_CONSTVALUE']._serialized_start=2022
+  _globals['_CONSTVALUE']._serialized_end=2196
 # @@protoc_insertion_point(module_scope)

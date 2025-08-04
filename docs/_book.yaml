@@ -167,18 +167,13 @@ upper_tabs:
         path: /cirq/noise/representing_noise
       ####  CHARACTERIZATION AND COMPENSATION  ####
       - heading: "Characterization and compensation"
-      - title: "Cross-Entropy Benchmarking (XEB)"
-        style: accordion
-        section:
-        - title: "Cross-Entropy Benchmarking Theory"
-          path: /cirq/noise/qcvv/xeb_theory
-        - title: "Coherent vs incoherent noise with XEB"
-          path: /cirq/noise/qcvv/coherent_vs_incoherent_xeb
-        - title: "Parallel XEB"
-          path: /cirq/noise/qcvv/parallel_xeb
-        - title: "XEB calibration: Example and Benchmark"
-          path: /cirq/noise/qcvv/xeb_calibration_example
-      ####  VISUALIZING NOISE  ####
+      - title: "Cross-Entropy Benchmarking (XEB) Theory"
+        path: /cirq/noise/qcvv/xeb_theory
+      - title: "Coherent vs incoherent noise with XEB"
+        path: /cirq/noise/qcvv/coherent_vs_incoherent_xeb
+      - title: "Parallel XEB"
+        path: /cirq/noise/qcvv/parallel_xeb
+    ####  VISUALIZING NOISE  ####
       - heading: "Visualizing noise"
       - title: "Heatmaps"
         path: /cirq/noise/heatmaps

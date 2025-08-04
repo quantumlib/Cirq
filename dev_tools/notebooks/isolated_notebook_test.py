@@ -48,8 +48,9 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = [
     'docs/simulate/noisy_simulation.ipynb',
     'docs/simulate/quantum_virtual_machine.ipynb',
     'docs/simulate/qvm_basic_example.ipynb',
-    'docs/simulate/qvm_builder_code.ipynb',
-    'docs/simulate/qvm_stabilizer_example.ipynb',
+    # Remove once the renaming of `whitelisted_users` -> `allowlisted_users`
+    # throughout cirq_google is released.
+    'docs/simulate/virtual_engine_interface.ipynb',
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
@@ -65,7 +66,6 @@ SKIP_NOTEBOOKS = [
     # tutorials that use QCS and arent skipped due to one or more cleared output cells
     'docs/tutorials/google/identifying_hardware_changes.ipynb',
     'docs/tutorials/google/echoes.ipynb',
-    'docs/noise/qcvv/xeb_calibration_example.ipynb',
     # temporary: need to fix QVM metrics and device spec
     'docs/tutorials/google/spin_echoes.ipynb',
     'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
