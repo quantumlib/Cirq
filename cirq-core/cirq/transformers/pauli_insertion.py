@@ -100,6 +100,7 @@ class PauliInsertionTransformer:
         new_circuit: list[circuits.Moment] = []
         for moment in circuit:
             if any(tag in tags_to_ignore for tag in moment.tags):
+                new_circuit.append(moment)
                 continue
             new_moment = []
             for op in moment:
