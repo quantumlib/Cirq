@@ -87,40 +87,7 @@ class ProcessorConfig:
     def calibration(self) -> cg.Calibration:
         """Charicterization metrics captured for this configuration"""
         return self._calibration
-
-
-class ProcessorConfigSnapshot:
-    """A snapshot of available device configurations for a processor."""
-
-    def __init__(self,
-                 *,
-                 project_id: str,
-                 processor_id: str,
-                 snapshot_id: str,
-                 context: engine_base.EngineContext,
-    ) -> None:
-        self._project_id = project_id
-        self._processor_id = processor_id
-        self._snapshot_id = snapshot_id
-        self._context = context
     
-    @property
-    def snapshot_id(self) -> str:
-        """The indentifier for this snapshot."""
-        return self._snapshot_id
-    
-    def get_config(self, name: str) -> ProcessorConfig | None:
-        """Returns the configuration with the given name in this snapshot if it exists.
-
-        Args:
-            name: The name of the configuration.
-
-        Raises:
-            ValueError: If config is invalid.
-        """
-        response = self._context.client.get_quantum_processor_config_by_snapshot_id(
-            project_id=self._project_id, processor_id=self._processor_id,
-            snapshot_id=self._snapshot_id, config_id=name
-        )    
-        return ProcessorConfig.from_quantum_config(response)
+    def __repr__(self) -> str:
+        return f'cirq_google.ProcessorConfig(name={self.name}, effective_device={repr(self.effective_device)}, calibration={repr(self.calibration)})'
 

@@ -18,17 +18,12 @@ from __future__ import annotations
 
 import cirq_google as cg
 
-from unittest import mock
-import datetime
 import pytest
 
-from google.protobuf.text_format import Merge
-from google.protobuf.timestamp_pb2 import Timestamp
 from cirq_google.api import v2
 from cirq_google.cloud import quantum
 from cirq_google.devices import GridDevice
-from cirq_google.engine import engine_client, util
-from cirq_google.engine.engine import EngineContext
+from cirq_google.engine import util
 
 _METRIC_SNAPSHOT = v2.metrics_pb2.MetricsSnapshot(
             timestamp_ms=1562544000021,
@@ -60,45 +55,28 @@ _DEVICE_SPEC = v2.device_pb2.DeviceSpecification(
     ],
 )
 
+def test_from_quantum_config():
 
-@pytest.fixture(scope='module', autouse=True)
-def mock_grpc_client():
-    with mock.patch(
-        'cirq_google.engine.engine_client.quantum.QuantumEngineServiceClient'
-    ) as _fixture:
-        yield _fixture
-
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_by_snapshot_id_async')
-def test_get_config(get_quantum_processor):
     project_id = "test_project_id"
     processor_id = "test_proc_id"
     snapshot_id = "test_proc_id"
     config_id = "test_config_id"
     name = f'projects/{project_id}/processors/{processor_id}/configSnapshots/{snapshot_id}/configs/{config_id}'
-    snapshot = cg.engine.ProcessorConfigSnapshot(
-        project_id=project_id, processor_id=processor_id,
-        snapshot_id=snapshot_id, context=EngineContext()
-    )
-
     expected_config = cg.engine.ProcessorConfig(
         name=name,
         effective_device=GridDevice.from_proto(_DEVICE_SPEC),
         calibration=cg.Calibration(_METRIC_SNAPSHOT)
     )   
-
     quantum_config = quantum.QuantumProcessorConfig(
         name=name,
         device_specification=util.pack_any(_DEVICE_SPEC),
         characterization=util.pack_any(_METRIC_SNAPSHOT)
     )
-    get_quantum_processor.return_value = quantum_config
-    
-    actual_config = snapshot.get_config(config_id)
 
-    get_quantum_processor.assert_called_once_with(
-        project_id=project_id, processor_id=processor_id,
-        snapshot_id=snapshot_id, config_id=config_id
+    processor_config = cg.engine.ProcessorConfig.from_quantum_config(
+        quantum_config
     )
-    assert actual_config.name == expected_config.name
-    assert actual_config.effective_device == expected_config.effective_device
-    assert actual_config.calibration == expected_config.calibration
+
+    assert processor_config.name == expected_config.name
+    assert processor_config.effective_device == expected_config.effective_device
+    assert processor_config.calibration == expected_config.calibration
