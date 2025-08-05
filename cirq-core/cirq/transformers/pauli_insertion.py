@@ -17,7 +17,6 @@
 from __future__ import annotations
 
 import inspect
-from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -58,7 +57,7 @@ class PauliInsertionTransformer:
         target: ops.Gate | ops.GateFamily | ops.Gateset | type[ops.Gate | ops.Operation],
         probabilities: np.ndarray | None = None,
     ):
-        """Creates a pauli insertion transformer that samples 2Q paulis with the given probabilities.
+        """Makes a pauli insertion transformer that samples 2Q paulis with the given probabilities.
 
         Args:
             target: The target gate, gatefamily, gateset, or type (e.g. PauliSumExponential).
