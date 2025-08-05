@@ -902,7 +902,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         The product-of-Paulis $P$ conjugated by the Clifford operation $C$ is
 
             $$
-            C^dagger P C
+            C^\dagger P C
             $$
 
         For example, conjugating a +Y operation by an S operation results in a
