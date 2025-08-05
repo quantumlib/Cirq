@@ -29,12 +29,17 @@ def _random_probs(n: int, seed: int | None = None):
 
 
 @pytest.mark.parametrize('probs', _random_probs(3, 0))
-def test_pauli_insertion_with_probabilities(probs):
+@pytest.mark.parametrize(
+    'target',
+    [cirq.ZZPowGate, cirq.ZZ**0.324, cirq.Gateset(cirq.ZZ**0.324), cirq.GateFamily(cirq.ZZ**0.324)],
+)
+def test_pauli_insertion_with_probabilities(probs, target):
     c = cirq.Circuit(cirq.ZZ(*cirq.LineQubit.range(2)) ** 0.324)
-    transformer = cirq.transformers.PauliInsertionTransformer(cirq.ZZPowGate, probs)
+    transformer = cirq.transformers.PauliInsertionTransformer(target, probs)
     count = np.zeros((4, 4))
+    rng = np.random.default_rng(0)
     for _ in range(100):
-        nc = transformer(c)
+        nc = transformer(c, rng_or_seed=rng)
         assert len(nc) == 2
         u, v = nc[0]
         i = _PAULIS.index(u.gate)
@@ -49,8 +54,9 @@ def test_pauli_insertion_with_probabilities_doesnot_create_moment(probs):
     c = cirq.Circuit.from_moments([], [cirq.ZZ(*cirq.LineQubit.range(2)) ** 0.324])
     transformer = cirq.transformers.PauliInsertionTransformer(cirq.ZZPowGate, probs)
     count = np.zeros((4, 4))
+    rng = np.random.default_rng(0)
     for _ in range(100):
-        nc = transformer(c)
+        nc = transformer(c, rng_or_seed=rng)
         assert len(nc) == 2
         u, v = nc[0]
         i = _PAULIS.index(u.gate)
@@ -58,3 +64,26 @@ def test_pauli_insertion_with_probabilities_doesnot_create_moment(probs):
         count[i, j] += 1
     count = count / count.sum()
     np.testing.assert_allclose(count, probs, atol=0.1)
+
+
+def test_invalid_context_raises():
+    c = cirq.Circuit(cirq.ZZ(*cirq.LineQubit.range(2)) ** 0.324)
+    transformer = cirq.transformers.PauliInsertionTransformer(cirq.ZZPowGate)
+    with pytest.raises(ValueError):
+        _ = transformer(c, context=cirq.TransformerContext(deep=True))
+
+
+def test_transformer_ignores_tagged_ops():
+    op = cirq.ZZ(*cirq.LineQubit.range(2)) ** 0.324
+    c = cirq.Circuit(op.with_tags('ignore'))
+    transformer = cirq.transformers.PauliInsertionTransformer(cirq.ZZPowGate)
+
+    assert transformer(c, context=cirq.TransformerContext(tags_to_ignore=('ignore',))) == c
+
+
+def test_transformer_ignores_tagged_moments():
+    op = cirq.ZZ(*cirq.LineQubit.range(2)) ** 0.324
+    c = cirq.Circuit(cirq.Moment(op).with_tags('ignore'))
+    transformer = cirq.transformers.PauliInsertionTransformer(cirq.ZZPowGate)
+
+    assert transformer(c, context=cirq.TransformerContext(tags_to_ignore=('ignore',))) == c

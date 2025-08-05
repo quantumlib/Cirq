@@ -23,24 +23,7 @@ import numpy as np
 from cirq import circuits, ops
 from cirq.transformers import transformer_api
 
-_PAULIS = [ops.I, ops.X, ops.Y, ops.Z]
-
-
-def _is_target(
-    op: ops.Operation,
-    target: ops.Gate | ops.GateFamily | ops.Gateset | type[ops.Gate | ops.Operation],
-):
-    if inspect.isclass(target):
-        if issubclass(target, ops.Operation):
-            return isinstance(op, target)
-        if not hasattr(op, 'gate'):
-            return False
-        return isinstance(op.gate, target)
-    if isinstance(target, ops.Gate):
-        if not hasattr(op, 'gate') or op.gate is None:
-            return False
-        return op.gate == target
-    return op in target
+_PAULIS: tuple[ops.Gate] = (ops.I, ops.X, ops.Y, ops.Z)  # type: ignore[has-type]
 
 
 @transformer_api.transformer
@@ -54,13 +37,13 @@ class PauliInsertionTransformer:
 
     def __init__(
         self,
-        target: ops.Gate | ops.GateFamily | ops.Gateset | type[ops.Gate | ops.Operation],
+        target: ops.Gate | ops.GateFamily | ops.Gateset | type[ops.Gate],
         probabilities: np.ndarray | None = None,
     ):
         """Makes a pauli insertion transformer that samples 2Q paulis with the given probabilities.
 
         Args:
-            target: The target gate, gatefamily, gateset, or type (e.g. PauliSumExponential).
+            target: The target gate, gatefamily, gateset, or type (e.g. ZZPowGAte).
             probabilities: Optional ndarray representing the probabilities of sampling 2Q paulis.
                 The order of the paulis is IXYZ. If None, assume uniform distribution.
         Returns:
@@ -72,7 +55,13 @@ class PauliInsertionTransformer:
         assert probabilities.shape == (4, 4)
         assert np.isclose(probabilities.sum(), 1)
 
-        self.target = target
+        if inspect.isclass(target):
+            self.target = ops.GateFamily(target)
+        elif isinstance(target, ops.Gate):
+            self.target = ops.Gateset(target)
+        else:
+            assert isinstance(target, (ops.Gateset, ops.GateFamily))
+            self.target = target
         self._flat_probs = probabilities.reshape(-1)
 
     def __call__(
@@ -106,7 +95,7 @@ class PauliInsertionTransformer:
             for op in moment:
                 if any(tag in tags_to_ignore for tag in op.tags):
                     continue
-                if not _is_target(op, self.target):
+                if op not in self.target:
                     continue
                 pair = np.unravel_index(rng.choice(16, p=self._flat_probs), (4, 4))
                 for pauli_index, q in zip(pair, op.qubits):
