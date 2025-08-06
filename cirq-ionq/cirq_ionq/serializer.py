@@ -127,11 +127,17 @@ class Serializer:
             'qubits': num_qubits,
             'circuit': [op for op in serialized_ops if op['gate'] != 'meas'],
         }
-        metadata = self._serialize_measurements(op for op in serialized_ops if op['gate'] == 'meas')
+        if metadata is not None:
+            metadata.update(
+                self._serialize_measurements(op for op in serialized_ops if op['gate'] == 'meas')
+            )
+        else:
+            metadata = self._serialize_measurements(
+                op for op in serialized_ops if op['gate'] == 'meas'
+            )
 
         return SerializedProgram(
             input=input,
-            metadata=metadata,
             settings=(job_settings or {}),
             compilation=compilation,
             error_mitigation=error_mitigation,
@@ -190,12 +196,20 @@ class Serializer:
             )
             qubit_numbers.append(self._num_qubits(circuit))
 
-        return SerializedProgram(
-            input=input,
-            metadata={
+        if metadata is not None:
+            new_entries = {
                 "measurements": json.dumps(measurements),
                 "qubit_numbers": json.dumps(qubit_numbers),
-            },
+            }
+            metadata.update(new_entries)
+        else:
+            metadata = {
+                "measurements": json.dumps(measurements),
+                "qubit_numbers": json.dumps(qubit_numbers),
+            }
+
+        return SerializedProgram(
+            input=input,
             settings=(job_settings or {}),
             compilation=compilation,
             error_mitigation=error_mitigation,

@@ -398,6 +398,7 @@ def test_ionq_client_get_job_retry(mock_get):
     _ = client.get_job('job_id')
     assert mock_get.call_count == 2
 
+
 # TODO: uncomment when production code is fixed
 # @mock.patch('requests.get')
 # def test_ionq_client_get_results(mock_get):

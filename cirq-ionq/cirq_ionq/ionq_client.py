@@ -227,7 +227,9 @@ class _IonQClient:
         # TODO: WHY replace("v0.4", "v0.3") ???
         def request():
             return requests.get(
-                f'{self.url.replace("v0.4", "v0.3")}/jobs/{job_id}/results', params=params, headers=self.headers
+                f'{self.url.replace("v0.4", "v0.3")}/jobs/{job_id}/results',
+                params=params,
+                headers=self.headers,
             )
 
         return self._make_request(request, {}).json()
