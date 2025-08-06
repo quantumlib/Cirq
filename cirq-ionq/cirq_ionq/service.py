@@ -70,7 +70,7 @@ class Service:
             remote_host
             or os.getenv('CIRQ_IONQ_REMOTE_HOST')
             or os.getenv('IONQ_REMOTE_HOST')
-            or f'https://api-staging.ionq.co/{api_version}' #TODO: replace api-staging.ionq.co with api.ionq.co
+            or f'https://api.ionq.co/{api_version}'
         )
 
         self.job_settings = job_settings or {}
@@ -99,7 +99,11 @@ class Service:
         target: str | None = None,
         param_resolver: cirq.ParamResolverOrSimilarType = cirq.ParamResolver({}),
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+        compilation: dict | None = None,
         error_mitigation: dict | None = None,
+        noise: dict | None = None,
+        metadata: dict | None = None,
+        dry_run: bool = False,
         sharpen: bool | None = None,
         extra_query_params: dict | None = None,
     ) -> cirq.Result:
@@ -114,12 +118,23 @@ class Service:
             seed: If the target is `simulation` the seed for generating results. If None, this
                 will be `np.random`, if an int, will be `np.random.RandomState(int)`, otherwise
                 must be a modulate similar to `np.random`.
-            error_mitigation: A dictionary of error mitigation settings. Valid keys include:
-                - 'debias': A boolean indicating whether to use the debiasing technique for
+            compilation {"opt": int, "precision": str}: settings for compilation when creating a job
+                default values: {"opt": 0, "precision": "1E-3"}
+            error_mitigation (dict): settings for error mitigation when creating a job. Defaults to None.
+                Not available on all backends. Set by default on some hardware systems. See
+                `IonQ API Job Creation <https://docs.ionq.com/api-reference/v0.4/jobs/create-job>`_  and
+                `IonQ Debiasing and Sharpening <https://ionq.com/resources/debiasing-and-sharpening>`_ for details.
+                Valid keys include: ``debiasing`` False or Object.
+                - 'debiasing': A boolean indicating whether to use the debiasing technique for
                   aggregating results. This technique is used to reduce the bias in the results
                   caused by measurement error and can improve the accuracy of the output.
             sharpen: A boolean that determines how to aggregate error mitigated.
-                If True, apply majority vote mitigation; if False, apply average mitigation.
+                If True, apply majority vote mitigation; if False, apply average mitigation. See
+                `IonQ Debiasing and Sharpening <https://ionq.com/resources/debiasing-and-sharpening>`_ for details.
+            noise (dict): {"model": str, "seed": int or None}. Defaults to None.
+            dry_run: If True, the job will be submitted by the API client but not processed remotely.
+                Useful for obtaining cost estimates. Defaults to False.
+            metadata (dict): optional metadata to attach to the job. Defaults to None.
             extra_query_params: Specify any parameters to include in the request.
 
         Returns:
@@ -131,7 +146,11 @@ class Service:
             repetitions=repetitions,
             name=name,
             target=target,
+            compilation=compilation,
             error_mitigation=error_mitigation,
+            noise=noise,
+            metadata=metadata,
+            dry_run=dry_run,
             extra_query_params=extra_query_params,
         ).results(sharpen=sharpen)
         if isinstance(job_results[0], results.QPUResult):
@@ -150,7 +169,11 @@ class Service:
         target: str | None = None,
         param_resolver: cirq.ParamResolverOrSimilarType = cirq.ParamResolver({}),
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+        compilation: dict | None = None,
         error_mitigation: dict | None = None,
+        noise: dict | None = None,
+        metadata: dict | None = None,
+        dry_run: bool = False,
         sharpen: bool | None = None,
         extra_query_params: dict | None = None,
     ) -> list[cirq.Result]:
@@ -165,12 +188,23 @@ class Service:
             seed: If the target is `simulation` the seed for generating results. If None, this
                 will be `np.random`, if an int, will be `np.random.RandomState(int)`, otherwise
                 must be a modulate similar to `np.random`.
-            error_mitigation: A dictionary of error mitigation settings. Valid keys include:
-                - 'debias': A boolean indicating whether to use the debiasing technique for
+            compilation {"opt": int, "precision": str}: settings for compilation when creating a job
+                default values: {"opt": 0, "precision": "1E-3"}
+            error_mitigation (dict): settings for error mitigation when creating a job. Defaults to None.
+                Not available on all backends. Set by default on some hardware systems. See
+                `IonQ API Job Creation <https://docs.ionq.com/api-reference/v0.4/jobs/create-job>`_  and
+                `IonQ Debiasing and Sharpening <https://ionq.com/resources/debiasing-and-sharpening>`_ for details.
+                Valid keys include: ``debiasing`` False or Object.
+                - 'debiasing': A boolean indicating whether to use the debiasing technique for
                   aggregating results. This technique is used to reduce the bias in the results
                   caused by measurement error and can improve the accuracy of the output.
             sharpen: A boolean that determines how to aggregate error mitigated.
-                If True, apply majority vote mitigation; if False, apply average mitigation.
+                If True, apply majority vote mitigation; if False, apply average mitigation. See
+                `IonQ Debiasing and Sharpening <https://ionq.com/resources/debiasing-and-sharpening>`_ for details.
+            noise (dict): {"model": str, "seed": int or None}. Defaults to None.
+            dry_run: If True, the job will be submitted by the API client but not processed remotely.
+                Useful for obtaining cost estimates. Defaults to False.
+            metadata (dict): optional metadata to attach to the job. Defaults to None.
             extra_query_params: Specify any parameters to include in the request.
 
         Returns:
@@ -185,7 +219,11 @@ class Service:
             repetitions=repetitions,
             name=name,
             target=target,
+            compilation=compilation,
             error_mitigation=error_mitigation,
+            noise=noise,
+            metadata=metadata,
+            dry_run=dry_run,
             extra_query_params=extra_query_params,
         ).results(sharpen=sharpen)
 
@@ -224,7 +262,11 @@ class Service:
         repetitions: int = 100,
         name: str | None = None,
         target: str | None = None,
+        compilation: dict | None = None,
         error_mitigation: dict | None = None,
+        noise: dict | None = None,
+        metadata: dict | None = None,
+        dry_run: bool = False,
         extra_query_params: dict | None = None,
     ) -> job.Job:
         """Create a new job to run the given circuit.
@@ -234,10 +276,16 @@ class Service:
             repetitions: The number of times to repeat the circuit. Defaults to 100.
             name: An optional name for the created job. Different from the `job_id`.
             target: Where to run the job. Can be 'qpu' or 'simulator'.
+            compilation {"opt": int, "precision": str}: settings for compilation when creating a job
+                default values: {"opt": 0, "precision": "1E-3"}
             error_mitigation: A dictionary of error mitigation settings. Valid keys include:
                 - 'debias': A boolean indicating whether to use the debiasing technique for
                   aggregating results. This technique is used to reduce the bias in the results
                   caused by measurement error and can improve the accuracy of the output.
+            dry_run: If True, the job will be submitted by the API client but not processed remotely.
+                Useful for obtaining cost estimates. Defaults to False.
+            noise (dict): {"model": str, "seed": int or None}. Defaults to None.
+            metadata (dict): optional metadata to attach to the job. Defaults to None.
             extra_query_params: Specify any parameters to include in the request.
 
         Returns:
@@ -247,7 +295,13 @@ class Service:
             IonQException: If there was an error accessing the API.
         """
         serialized_program = serializer.Serializer().serialize_single_circuit(
-            circuit, job_settings=self.job_settings, error_mitigation=error_mitigation
+            circuit,
+            job_settings=self.job_settings,
+            compilation=compilation,
+            error_mitigation=error_mitigation,
+            noise=noise,
+            metadata=metadata,
+            dry_run=dry_run,
         )
         result = self._client.create_job(
             serialized_program=serialized_program,
@@ -266,7 +320,11 @@ class Service:
         repetitions: int = 100,
         name: str | None = None,
         target: str | None = None,
+        compilation: dict | None = None,
         error_mitigation: dict | None = None,
+        noise: dict | None = None,
+        metadata: dict | None = None,
+        dry_run: bool = False,
         extra_query_params: dict | None = None,
     ) -> job.Job:
         """Create a new job to run the given circuit.
@@ -276,10 +334,16 @@ class Service:
             repetitions: The number of times to repeat the circuit. Defaults to 100.
             name: An optional name for the created job. Different from the `job_id`.
             target: Where to run the job. Can be 'qpu' or 'simulator'.
+            compilation {"opt": int, "precision": str}: settings for compilation when creating a job
+                default values: {"opt": 0, "precision": "1E-3"}
             error_mitigation: A dictionary of error mitigation settings. Valid keys include:
                 - 'debias': A boolean indicating whether to use the debiasing technique for
                   aggregating results. This technique is used to reduce the bias in the results
                   caused by measurement error and can improve the accuracy of the output.
+            dry_run: If True, the job will be submitted by the API client but not processed remotely.
+                Useful for obtaining cost estimates. Defaults to False.
+            noise (dict): {"model": str, "seed": int or None}. Defaults to None.
+            metadata (dict): optional metadata to attach to the job. Defaults to None.
             extra_query_params: Specify any parameters to include in the request.
 
         Returns:
@@ -289,7 +353,13 @@ class Service:
             IonQException: If there was an error accessing the API.
         """
         serialized_program = serializer.Serializer().serialize_many_circuits(
-            circuits, job_settings=self.job_settings, error_mitigation=error_mitigation
+            circuits,
+            job_settings=self.job_settings,
+            compilation=compilation,
+            error_mitigation=error_mitigation,
+            noise=noise,
+            metadata=metadata,
+            dry_run=dry_run,
         )
         result = self._client.create_job(
             serialized_program=serialized_program,

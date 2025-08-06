@@ -51,6 +51,9 @@ class SerializedProgram:
     settings: dict
     metadata: dict
     error_mitigation: dict | None = None
+    noise: dict | None = None
+    compilation: dict | None = None
+    dry_run: bool = False
 
 
 class Serializer:
@@ -91,7 +94,11 @@ class Serializer:
         self,
         circuit: cirq.AbstractCircuit,
         job_settings: dict | None = None,
+        compilation: dict | None = None,
         error_mitigation: dict | None = None,
+        noise: dict | None = None,
+        metadata: dict | None = None,
+        dry_run: bool = False,
     ) -> SerializedProgram:
         """Serialize the given circuit.
 
@@ -119,14 +126,22 @@ class Serializer:
             input=input,
             metadata=metadata,
             settings=(job_settings or {}),
+            compilation=compilation,
             error_mitigation=error_mitigation,
+            noise=noise,
+            metadata=metadata,
+            dry_run=dry_run,
         )
 
     def serialize_many_circuits(
         self,
         circuits: list[cirq.AbstractCircuit],
         job_settings: dict | None = None,
+        compilation: dict | None = None,
         error_mitigation: dict | None = None,
+        noise: dict | None = None,
+        metadata: dict | None = None,
+        dry_run: bool = False,
     ) -> SerializedProgram:
         """Serialize the given array of circuits.
 
@@ -175,7 +190,11 @@ class Serializer:
                 "qubit_numbers": json.dumps(qubit_numbers),
             },
             settings=(job_settings or {}),
+            compilation=compilation,
             error_mitigation=error_mitigation,
+            noise=noise,
+            metadata=metadata,
+            dry_run=dry_run,
         )
 
     def _validate_circuit(self, circuit: cirq.AbstractCircuit):

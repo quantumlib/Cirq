@@ -164,7 +164,9 @@ class _IonQClient:
                 if 'settings' not in json:
                     json['settings'] = {}
                 json['settings']['error_mitigation'] = extra_query_params['error_mitigation']
-                extra_query_params = {k: v for k, v in extra_query_params.items() if k != 'error_mitigation'}
+                extra_query_params = {
+                    k: v for k, v in extra_query_params.items() if k != 'error_mitigation'
+                }
             json.update(extra_query_params)
 
         print("Job url:", self.url)
@@ -222,12 +224,10 @@ class _IonQClient:
         if extra_query_params is not None:
             params.update(extra_query_params)
 
-        # TODO: remove replace("v0.4", "v0.3")
+        # TODO: WHY replace("v0.4", "v0.3") ???
         def request():
             return requests.get(
-                f'{self.url.replace("v0.4", "v0.3")}/jobs/{job_id}/results',
-                params=params,
-                headers=self.headers,
+                f'{self.url.replace("v0.4", "v0.3")}/jobs/{job_id}/results', params=params, headers=self.headers
             )
 
         return self._make_request(request, {}).json()
