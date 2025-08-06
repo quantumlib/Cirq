@@ -236,7 +236,7 @@ def test_pull_through_h_gate_case2(single_qubit_gate_moments_only: bool):
         ([X], 'Invalid dynamical decoupling sequence. Expect more than one gates.'),
         (
             [X, Y],
-            'Invalid dynamical decoupling sequence. Expect sequence production equals identity'
+            'Invalid dynamical decoupling sequence. Expect sequence product equals identity'
             ' up to a global phase, got',
         ),
         (
@@ -533,9 +533,9 @@ def test_multiple_clifford_pieces_case1():
                           │
     b: ───H───H───H───H───@^0.5───H───H───H───H───
     Output:
-    a: ───H───X───H───PhXZ(a=0.5,x=0,z=-1)───@───────X───H───X───PhXZ(a=0.5,x=0.5,z=-1)───
-                                             │
-    b: ───H───H───H───H──────────────────────@^0.5───H───H───H───H────────────────────────
+    a: ───H───X───H───X───Y───@───────X───H───X───PhXZ(a=0.5,x=0.5,z=-1)───
+                              │
+    b: ───H───H───H───H───────@^0.5───H───H───H───H────────────────────────
     """
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -551,22 +551,11 @@ def test_multiple_clifford_pieces_case1():
             cirq.Moment(H(b)),
             cirq.Moment(H(a), H(b)),
         ),
-        expected_circuit=cirq.Circuit(
-            cirq.Moment(H(a), H(b)),
-            cirq.Moment(H(b), X(a)),
-            cirq.Moment(H(a), H(b)),
-            cirq.Moment(
-                H(b), cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=0, z_exponent=-1).on(a)
-            ),
-            cirq.Moment(CZPowGate(exponent=0.5).on(a, b)),
-            cirq.Moment(H(b), X(a)),
-            cirq.Moment(H(a), H(b)),
-            cirq.Moment(H(b), X(a)),
-            cirq.Moment(
-                H(b),
-                cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=0.5, z_exponent=-1).on(a),
-            ),
-        ),
+        expected_circuit="""
+a: ───H───X───H───X───Y───@───────X───H───X───PhXZ(a=0.5,x=0.5,z=-1)───
+                          │
+b: ───H───H───H───H───────@^0.5───H───H───H───H────────────────────────
+""",
         schema="XX_PAIR",
     )
 
@@ -658,14 +647,6 @@ def test_with_non_clifford_measurements():
     2: ───H───@───H───@───────M───
                       │
     3: ───────────H───@───H───M───
-    Output:
-    0: ───────────H───@───PhXZ(a=0.5,x=0.5,z=0)───M───
-                      │
-    1: ───H───@───X───@───X───────────────────────M───
-              │
-    2: ───H───@───H───@───I───────────────────────M───
-                      │
-    3: ───────────H───@───H───────────────────────M───
     """
     qubits = cirq.LineQubit.range(4)
     assert_dd(
@@ -677,21 +658,15 @@ def test_with_non_clifford_measurements():
             cirq.Moment([H(qubits[i]) for i in [0, 3]]),
             cirq.Moment([cirq.M(qubits[i]) for i in [0, 1, 2, 3]]),
         ),
-        expected_circuit=cirq.Circuit(
-            cirq.Moment([H(qubits[i]) for i in [1, 2]]),
-            cirq.Moment(CZ(*qubits[1:3])),
-            cirq.Moment([H(qubits[i]) for i in [0, 2, 3]] + [X(qubits[1])]),
-            cirq.Moment(CZ(*qubits[0:2]), CZ(*qubits[2:])),
-            cirq.Moment(
-                H(qubits[3]),
-                cirq.I(qubits[2]),
-                X(qubits[1]),
-                cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=0.5, z_exponent=0).on(
-                    qubits[0]
-                ),
-            ),
-            cirq.Moment([cirq.M(qubits[i]) for i in [0, 1, 2, 3]]),
-        ),
+        expected_circuit="""
+0: ───────────H───@───H───X───M───
+                  │
+1: ───H───@───X───@───X───────M───
+          │
+2: ───H───@───H───@───X───X───M───
+                  │
+3: ───────────H───@───H───────M───
+""",
         schema="XX_PAIR",
         single_qubit_gate_moments_only=True,
     )
@@ -844,11 +819,58 @@ def test_merge_before_non_cliffords():
     assert_dd(
         input_circuit=input_circuit,
         expected_circuit="""
-0: ───X───X───X──────────────────────────────────────────M───
+0: ───X───X───X───────────────────────X──────────────────────X───M───
 
-1: ───X───X───PhXZ(a=-1.25,x=1,z=0)───FSim(0, 0.0637π)───M───
-                                      │
-2: ───X───X───S───────────────────────FSim(0, 0.0637π)───M───
+1: ───X───X───PhXZ(a=-1,x=0,z=-0.5)───Y───FSim(0, 0.0637π)───────M───
+                                          │
+2: ───X───X───S───────────────────────────FSim(0, 0.0637π)───────M───
 """,
         schema="XX_PAIR",
+    )
+
+
+@pytest.mark.parametrize(
+    'single_qubit_gate_moments_only, expected_diagram',
+    [
+        (
+            True,
+            # With single_qubit_gate_moments_only=True, the second DD gate on q2
+            # is inserted in a new moment after the CZ gate.
+            """
+0: ───X───X───@───────M───
+              │
+1: ───X───X───@───────M───
+
+2: ───X───X───────X───M───
+""",
+        ),
+        (
+            False,
+            # With single_qubit_gate_moments_only=False, the second DD gate on q2
+            # is inserted in the same moment as the CZ gate.
+            """
+0: ───X───X───@───M───
+              │
+1: ───X───X───@───M───
+
+2: ───X───X───X───M───
+""",
+        ),
+    ],
+)
+def test_single_qubit_gate_moments_only_true_vs_false(
+    single_qubit_gate_moments_only, expected_diagram
+):
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    input_circuit = cirq.Circuit(
+        cirq.Moment([X(q) for q in [q0, q1, q2]]),
+        cirq.Moment([X(q) for q in [q0, q1]]),
+        cirq.Moment(CZ(q0, q1)),
+        cirq.Moment([cirq.M(q) for q in [q0, q1, q2]]),
+    )
+    assert_dd(
+        input_circuit=input_circuit,
+        expected_circuit=expected_diagram,
+        schema="XX_PAIR",
+        single_qubit_gate_moments_only=single_qubit_gate_moments_only,
     )

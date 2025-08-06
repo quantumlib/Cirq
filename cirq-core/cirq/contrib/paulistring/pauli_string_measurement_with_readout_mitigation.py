@@ -23,8 +23,8 @@ from typing import cast, Sequence, TYPE_CHECKING
 import attrs
 import numpy as np
 
-from cirq import circuits, ops, work
-from cirq.contrib.shuffle_circuits import run_shuffled_with_readout_benchmarking
+import cirq.contrib.shuffle_circuits.shuffle_circuits_with_readout_benchmarking as sc_readout
+from cirq import circuits, ops, study, work
 from cirq.experiments.readout_confusion_matrix import TensoredConfusionMatrices
 
 if TYPE_CHECKING:
@@ -286,9 +286,9 @@ def _build_many_one_qubits_empty_confusion_matrix(qubits_length: int) -> list[np
 
 
 def _process_pauli_measurement_results(
-    qubits: list[ops.Qid],
+    qubits: Sequence[ops.Qid],
     pauli_string_groups: list[list[ops.PauliString]],
-    circuit_results: list[ResultDict],
+    circuit_results: list[ResultDict] | Sequence[study.Result],
     calibration_results: dict[tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult],
     pauli_repetitions: int,
     timestamp: float,
@@ -304,10 +304,11 @@ def _process_pauli_measurement_results(
 
     Args:
         qubits: Qubits to build confusion matrices for. In a sorted order.
-        pauli_strings: The lists of QWC Pauli string groups that are measured.
+        pauli_string_groups: The lists of QWC Pauli string groups that are measured.
         circuit_results: A list of ResultDict obtained
             from running the Pauli measurement circuits.
-        confusion_matrices: A list of confusion matrices from calibration results.
+        calibration_results: A dictionary of SingleQubitReadoutCalibrationResult
+            for tuples of qubits present in `pauli_string_groups`.
         pauli_repetitions: The number of repetitions used for Pauli string measurements.
         timestamp: The timestamp of the calibration results.
         disable_readout_mitigation: If set to True, returns no error-mitigated error
@@ -326,7 +327,7 @@ def _process_pauli_measurement_results(
 
         calibration_result = (
             calibration_results[tuple(pauli_readout_qubits)]
-            if disable_readout_mitigation is False
+            if not disable_readout_mitigation
             else None
         )
 
@@ -458,9 +459,9 @@ def measure_pauli_strings(
     qubits_list = sorted(unique_qubit_tuples)
 
     # Build the basis-change circuits for each Pauli string group
-    pauli_measurement_circuits = list[circuits.Circuit]()
+    pauli_measurement_circuits: list[circuits.Circuit] = []
     for input_circuit, pauli_string_groups in normalized_circuits_to_pauli.items():
-        qid_list = list(sorted(input_circuit.all_qubits()))
+        qid_list = sorted(input_circuit.all_qubits())
         basis_change_circuits = []
         input_circuit_unfrozen = input_circuit.unfreeze()
         for pauli_strings in pauli_string_groups:
@@ -473,14 +474,18 @@ def measure_pauli_strings(
         pauli_measurement_circuits.extend(basis_change_circuits)
 
     # Run shuffled benchmarking for readout calibration
-    circuits_results, calibration_results = run_shuffled_with_readout_benchmarking(
-        input_circuits=pauli_measurement_circuits,
-        sampler=sampler,
-        circuit_repetitions=pauli_repetitions,
-        rng_or_seed=rng_or_seed,
-        qubits=[list(qubits) for qubits in qubits_list],
-        num_random_bitstrings=num_random_bitstrings,
-        readout_repetitions=readout_repetitions,
+    circuits_results, calibration_results = (
+        sc_readout.run_shuffled_circuits_with_readout_benchmarking(
+            sampler=sampler,
+            input_circuits=pauli_measurement_circuits,
+            parameters=sc_readout.ReadoutBenchmarkingParams(
+                circuit_repetitions=pauli_repetitions,
+                num_random_bitstrings=num_random_bitstrings,
+                readout_repetitions=readout_repetitions,
+            ),
+            rng_or_seed=rng_or_seed,
+            qubits=[list(qubits) for qubits in qubits_list],
+        )
     )
 
     # Process the results to calculate expectation values

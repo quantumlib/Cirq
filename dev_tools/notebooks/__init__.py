@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from dev_tools.notebooks.utils import (
+    REPO_ROOT as REPO_ROOT,
     filter_notebooks as filter_notebooks,
     list_all_notebooks as list_all_notebooks,
     rewrite_notebook as rewrite_notebook,

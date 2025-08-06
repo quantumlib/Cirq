@@ -19,6 +19,7 @@ import pytest
 import sympy
 
 import cirq
+from cirq.ops import global_phase_op
 
 
 def test_init() -> None:
@@ -304,3 +305,22 @@ def test_global_phase_gate_controlled(coeff, exp) -> None:
     assert g.controlled(control_values=xor_control_values) == cirq.ControlledGate(
         g, control_values=xor_control_values
     )
+
+
+def test_is_identity() -> None:
+    g = cirq.GlobalPhaseGate(1)
+    assert g.is_identity()
+    g = cirq.GlobalPhaseGate(1j)
+    assert not g.is_identity()
+    g = cirq.GlobalPhaseGate(-1)
+    assert not g.is_identity()
+
+
+def test_from_phase_and_exponent() -> None:
+    g = global_phase_op.from_phase_and_exponent(2.5, 0.5)
+    assert g.coefficient == np.exp(1.25j * np.pi)
+    a, b = sympy.symbols('a, b')
+    g = global_phase_op.from_phase_and_exponent(a, b)
+    assert g.coefficient == 1j ** (2 * a * b)
+    g = global_phase_op.from_phase_and_exponent(1 / a, a)
+    assert g.coefficient == -1

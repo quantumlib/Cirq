@@ -15,12 +15,15 @@
 
 from cirq.experiments.qubit_characterizations import (
     RandomizedBenchMarkResult as RandomizedBenchMarkResult,
+    RBParameters as RBParameters,
     single_qubit_randomized_benchmarking as single_qubit_randomized_benchmarking,
+    single_qubit_rb as single_qubit_rb,
     single_qubit_state_tomography as single_qubit_state_tomography,
     TomographyResult as TomographyResult,
     two_qubit_randomized_benchmarking as two_qubit_randomized_benchmarking,
     two_qubit_state_tomography as two_qubit_state_tomography,
     parallel_single_qubit_randomized_benchmarking as parallel_single_qubit_randomized_benchmarking,
+    parallel_single_qubit_rb as parallel_single_qubit_rb,
 )
 
 from cirq.experiments.fidelity_estimation import (

@@ -532,7 +532,7 @@ def internal_gate_from_proto(msg: v2.program_pb2.InternalGate) -> InternalGate:
 def clifford_tableau_arg_to_proto(
     value: CliffordTableau, *, out: v2.program_pb2.CliffordTableau | None = None
 ):
-    """Writes an CliffordTableau object into an CliffordTableau proto.
+    """Writes a CliffordTableau object into a CliffordTableau proto.
     Args:
         value: The gate to encode.
         out: The proto to write the result into. Defaults to a new instance.

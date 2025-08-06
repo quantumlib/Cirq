@@ -36,9 +36,6 @@ long_description = open('README.md', encoding='utf-8').read()
 # This is a pure metapackage that installs all our packages
 requirements = [f'{p.name}=={p.version}' for p in modules.list_modules()]
 
-# Exclude cirq-rigetti so that cirq can be installed with numpy-2
-requirements = [r for r in requirements if not r.startswith("cirq-rigetti")]
-
 dev_requirements = explode('dev_tools/requirements/deps/dev-tools.txt')
 
 # filter out direct urls (https://github.com/pypa/pip/issues/6301)

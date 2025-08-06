@@ -18,7 +18,7 @@ jobs:
     name: Pytest Ubuntu
     strategy:
       matrix:
-        python-version: ['3.11', '3.12']
+        python-version: ['3.11', '3.12', '3.13']
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -30,32 +30,21 @@ jobs:
           cache-dependency-path: |
             **/requirements.txt
             dev_tools/requirements/**/*.txt
-      - name: Install system requirements
-        run: |
-          sudo apt-get update
-          sudo apt-get install libffi7
       - name: Install requirements
         run: |
           pip install --upgrade cirq~=1.0.dev &&
-            version=$(pip show cirq | sed -n "s/^Version: //p" | grep .) &&
-            pip install "cirq-rigetti==${version}" &&
             pip install \
-              -r dev_tools/requirements/deps/format.txt \
               -r dev_tools/requirements/deps/pylint.txt \
               -r dev_tools/requirements/deps/pytest.txt \
               -r dev_tools/requirements/deps/notebook.txt
-      - name: Run Quil dependencies
-        run: docker compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Pytest check
-        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --rigetti-integration --enable-slow-tests
-      - name: Stop Quil dependencies
-        run: docker compose -f cirq-rigetti/docker-compose.test.yaml down
+        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --enable-slow-tests
   windows:
     if: github.repository_owner == 'quantumlib'
     name: Pytest Windows
     strategy:
       matrix:
-        python-version: ['3.11', '3.12']
+        python-version: ['3.11', '3.12', '3.13']
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -70,8 +59,6 @@ jobs:
       - name: Install requirements
         run: |
           pip install --upgrade cirq~=1.0.dev &&
-            pip install --upgrade cirq-rigetti~=1.0.dev &&
-            pip install -r dev_tools/requirements/deps/format.txt &&
             pip install -r dev_tools/requirements/deps/pylint.txt &&
             pip install -r dev_tools/requirements/deps/pytest.txt &&
             pip install -r dev_tools/requirements/deps/notebook.txt
@@ -83,7 +70,7 @@ jobs:
     name: Pytest MacOS
     strategy:
       matrix:
-        python-version: ['3.11', '3.12']
+        python-version: ['3.11', '3.12', '3.13']
     runs-on: macos-13
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -98,10 +85,7 @@ jobs:
       - name: Install requirements
         run: |
           pip install --upgrade cirq~=1.0.dev &&
-            version=$(pip show cirq | sed -n "s/^Version: //p" | grep .) &&
-            pip install "cirq-rigetti==${version}" &&
             pip install \
-              -r dev_tools/requirements/deps/format.txt \
               -r dev_tools/requirements/deps/pylint.txt \
               -r dev_tools/requirements/deps/pytest.txt \
               -r dev_tools/requirements/deps/notebook.txt

@@ -37,7 +37,6 @@ import cirq_aqt
 import cirq_google
 import cirq_ionq
 import cirq_pasqal
-import cirq_rigetti
 import cirq_web
 from cirq import _doc
 
@@ -87,7 +86,6 @@ def main(unused_argv):
     generate_cirq_aqt()
     generate_cirq_ionq()
     generate_cirq_pasqal()
-    generate_cirq_rigetti()
     generate_cirq_web()
 
 
@@ -185,28 +183,6 @@ def generate_cirq_pasqal():
         py_modules=[("cirq_pasqal", cirq_pasqal)],
         base_dir=os.path.dirname(cirq_pasqal.__file__),
         code_url_prefix=FLAGS.code_url_prefix + "/cirq-pasqal/cirq_pasqal",
-        search_hints=FLAGS.search_hints,
-        site_path=FLAGS.site_path,
-        callbacks=[
-            public_api.local_definitions_filter,
-            filter_unwanted_inherited_methods,
-            filter_type_checking,
-        ],
-        extra_docs=_doc.RECORDED_CONST_DOCS,
-    )
-    doc_controls.decorate_all_class_attributes(
-        doc_controls.do_not_doc_inheritable, networkx.DiGraph, skip=[]
-    )
-
-    doc_generator.build(output_dir=FLAGS.output_dir)
-
-
-def generate_cirq_rigetti():
-    doc_generator = generate_lib.DocGenerator(
-        root_title="Cirq_rigetti",
-        py_modules=[("cirq_rigetti", cirq_rigetti)],
-        base_dir=os.path.dirname(cirq_rigetti.__file__),
-        code_url_prefix=FLAGS.code_url_prefix + "/cirq-rigetti/cirq_rigetti",
         search_hints=FLAGS.search_hints,
         site_path=FLAGS.site_path,
         callbacks=[
