@@ -46,17 +46,20 @@ class SerializedProgram:
     """A container for the serialized portions of a `cirq.Circuit`.
 
     Attributes:
-        body: A dictionary which contains the number of qubits and the serialized circuit
+        input: A dictionary which contains the number of qubits and the serialized circuit
             minus the measurements.
         settings: A dictionary of settings which can override behavior for this circuit when
             run on IonQ hardware.
         metadata: A dictionary whose keys store information about the measurements in the circuit.
     """
 
-    body: dict
+    input: dict
     settings: dict
     metadata: dict
     error_mitigation: dict | None = None
+    noise: dict | None = None
+    compilation: dict | None = None
+    dry_run: bool = False
 
 
 class Serializer:
@@ -98,7 +101,11 @@ class Serializer:
         self,
         circuit: cirq.AbstractCircuit,
         job_settings: dict | None = None,
+        compilation: dict | None = None,
         error_mitigation: dict | None = None,
+        noise: dict | None = None,
+        metadata: dict | None = None,
+        dry_run: bool = False,
     ) -> SerializedProgram:
         """Serialize the given circuit.
 
@@ -115,25 +122,39 @@ class Serializer:
 
         # IonQ API does not support measurements, so we pass the measurement keys through
         # the metadata field.  Here we split these out of the serialized ops.
-        body = {
+        input = {
             'gateset': gateset,
             'qubits': num_qubits,
             'circuit': [op for op in serialized_ops if op['gate'] != 'meas'],
         }
-        metadata = self._serialize_measurements(op for op in serialized_ops if op['gate'] == 'meas')
+        if metadata is not None:
+            metadata.update(
+                self._serialize_measurements(op for op in serialized_ops if op['gate'] == 'meas')
+            )
+        else:
+            metadata = self._serialize_measurements(
+                op for op in serialized_ops if op['gate'] == 'meas'
+            )
 
         return SerializedProgram(
-            body=body,
-            metadata=metadata,
+            input=input,
             settings=(job_settings or {}),
+            compilation=compilation,
             error_mitigation=error_mitigation,
+            noise=noise,
+            metadata=metadata,
+            dry_run=dry_run,
         )
 
     def serialize_many_circuits(
         self,
         circuits: list[cirq.AbstractCircuit],
         job_settings: dict | None = None,
+        compilation: dict | None = None,
         error_mitigation: dict | None = None,
+        noise: dict | None = None,
+        metadata: dict | None = None,
+        dry_run: bool = False,
     ) -> SerializedProgram:
         """Serialize the given array of circuits.
 
@@ -161,13 +182,13 @@ class Serializer:
 
         # IonQ API does not support measurements, so we pass the measurement keys through
         # the metadata field.  Here we split these out of the serialized ops.
-        body: dict[str, Any] = {'gateset': gateset, 'qubits': num_qubits, 'circuits': []}
+        input: dict[str, Any] = {'gateset': gateset, 'qubits': num_qubits, 'circuits': []}
 
         measurements = []
         qubit_numbers = []
         for circuit in circuits:
             serialized_ops = self._serialize_circuit(circuit)
-            body['circuits'].append(
+            input['circuits'].append(
                 {'circuit': [op for op in serialized_ops if op['gate'] != 'meas']}
             )
             measurements.append(
@@ -175,14 +196,26 @@ class Serializer:
             )
             qubit_numbers.append(self._num_qubits(circuit))
 
-        return SerializedProgram(
-            body=body,
-            metadata={
+        if metadata is not None:
+            new_entries = {
                 "measurements": json.dumps(measurements),
                 "qubit_numbers": json.dumps(qubit_numbers),
-            },
+            }
+            metadata.update(new_entries)
+        else:
+            metadata = {
+                "measurements": json.dumps(measurements),
+                "qubit_numbers": json.dumps(qubit_numbers),
+            }
+
+        return SerializedProgram(
+            input=input,
             settings=(job_settings or {}),
+            compilation=compilation,
             error_mitigation=error_mitigation,
+            noise=noise,
+            metadata=metadata,
+            dry_run=dry_run,
         )
 
     def _validate_circuit(self, circuit: cirq.AbstractCircuit):
