@@ -95,13 +95,11 @@ class RandomizedBenchMarkResult:
         ):
             self._gnd_state_probs_std = None
         else:
-            self._gnd_state_probs_std = ground_state_probabilities_std.copy()
+            self._gnd_state_probs_std = np.array(ground_state_probabilities_std)
             zeros = np.isclose(self._gnd_state_probs_std, 0)
             self._gnd_state_probs_std[zeros] = self._gnd_state_probs_std[
                 np.logical_not(zeros)
             ].min()
-
-        print(self._gnd_state_probs_std)
 
     @property
     def data(self) -> Sequence[tuple[int, float]]:
