@@ -24,7 +24,7 @@ import numpy as np
 from cirq import circuits, ops
 from cirq.transformers import transformer_api
 
-_PAULIS: tuple[ops.Gate] = (ops.I, ops.X, ops.Y, ops.Z)  # type: ignore[has-type]
+_PAULIS: tuple[ops.Gate, ops.Gate, ops.Gate, ops.Gate] = (ops.I, ops.X, ops.Y, ops.Z)  # type: ignore[has-type]
 
 
 @transformer_api.transformer
@@ -65,7 +65,7 @@ class PauliInsertionTransformer:
         self.probabilities = probabilities
 
         if inspect.isclass(target):
-            self.target = ops.GateFamily(target)
+            self.target: ops.GateFamily | ops.Gateset = ops.GateFamily(target)
         elif isinstance(target, ops.Gate):
             self.target = ops.Gateset(target)
         else:
@@ -78,7 +78,7 @@ class PauliInsertionTransformer:
         return op in self.target
 
     def _sample(
-        self, qubits: tuple[ops.Qid, ops.Qid], rng: np.random.Generator
+        self, qubits: tuple[ops.Qid, ...], rng: np.random.Generator
     ) -> tuple[ops.Gate, ops.Gate]:
         if isinstance(self.probabilities, dict):
             flat_probs = self.probabilities[qubits].reshape(-1)
