@@ -179,7 +179,7 @@ def arg_to_proto(
 
 
 def dict_to_arg_mapping_proto(
-    value_dict: dict[str, ARG_LIKE] | None, *, out: v2.program_pb2.ArgMapping | None = None
+    value_dict: dict[ARG_LIKE, ARG_LIKE] | None, *, out: v2.program_pb2.ArgMapping | None = None
 ) -> v2.program_pb2.ArgMapping:
     """Writes a dictionary into an ArgMapping proto."""
     msg = v2.program_pb2.ArgMapping() if out is None else out
@@ -430,7 +430,7 @@ def arg_from_proto(
 
 def dict_from_arg_mapping_proto(
     arg_mapping_proto: v2.program_pb2.ArgMapping, *, required_arg_name: str | None = None
-) -> dict[str, ARG_LIKE] | None:
+) -> dict[ARG_LIKE, ARG_LIKE] | None:
     """Extracts a python dictionary from an arg_mapping proto."""
     if not arg_mapping_proto.entries:
         return None

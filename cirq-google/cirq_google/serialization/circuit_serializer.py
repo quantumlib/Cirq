@@ -830,7 +830,7 @@ class CircuitSerializer(serializer.Serializer):
                     f'\n\noperation_proto:\n{operation_proto}'
                 )  # pragma: nocover
         elif which_gate_type == 'analog_detune_qubit':
-            gate = AnalogDetuneQubit(
+            adq_gate = AnalogDetuneQubit(
                 length=arg_func_langs.arg_from_proto(operation_proto.analog_detune_qubit.length),
                 w=arg_func_langs.arg_from_proto(operation_proto.analog_detune_qubit.w),
                 target_freq=arg_func_langs.arg_from_proto(
@@ -847,7 +847,7 @@ class CircuitSerializer(serializer.Serializer):
                 ),
                 linear_rise=operation_proto.analog_detune_qubit.linear_rise,
             )
-            op = gate(*qubits)
+            op = adq_gate(*qubits)
         elif which_gate_type == 'analog_detune_coupler_only':
             if nf := operation_proto.analog_detune_coupler_only.neighbor_qubits_freq:
                 neighbor_qubits_freq = tuple(arg_func_langs.arg_from_proto(f) for f in nf)
@@ -858,7 +858,7 @@ class CircuitSerializer(serializer.Serializer):
             else:
                 prev_neighbor_qubits_freq = (None, None)
 
-            gate = AnalogDetuneCouplerOnly(
+            adco_gate = AnalogDetuneCouplerOnly(
                 length=arg_func_langs.arg_from_proto(
                     operation_proto.analog_detune_coupler_only.length
                 ),
@@ -870,20 +870,20 @@ class CircuitSerializer(serializer.Serializer):
                 g_ramp_exponent=arg_func_langs.arg_from_proto(
                     operation_proto.analog_detune_coupler_only.g_ramp_exponent
                 ),
-                neighbor_qubits_freq=neighbor_qubits_freq,
-                prev_neighbor_qubits_freq=prev_neighbor_qubits_freq,
+                neighbor_qubits_freq=neighbor_qubits_freq,  # type: ignore[arg-type]
+                prev_neighbor_qubits_freq=prev_neighbor_qubits_freq,  # type: ignore[arg-type]
                 interpolate_coupling_cal=operation_proto.analog_detune_coupler_only.interpolate_coupling_cal,
                 analog_cal_for_pulseshaping=operation_proto.analog_detune_coupler_only.analog_cal_for_pulseshaping,
             )
-            op = gate(*qubits)
+            op = adco_gate(*qubits)
         elif which_gate_type == 'wait_gate_with_unit':
-            gate = WaitGateWithUnit(
+            wg = WaitGateWithUnit(
                 duration=arg_func_langs.arg_from_proto(
                     operation_proto.wait_gate_with_unit.duration
                 ),
                 qid_shape=operation_proto.wait_gate_with_unit.qid_shape,
             )
-            op = gate(*qubits)
+            op = wg(*qubits)
         else:
             raise ValueError(
                 f'Unsupported serialized gate with type "{which_gate_type}".'
