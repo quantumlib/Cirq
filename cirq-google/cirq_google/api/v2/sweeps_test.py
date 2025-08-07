@@ -474,6 +474,7 @@ def test_sweepable(sweepable: cirq.Sweepable, use_resolver: bool) -> None:
         if isinstance(sweepable, list):
             sweepable = [cirq.ParamResolver(element) for element in sweepable]
         else:
+            assert isinstance(sweepable, dict)
             sweepable = cirq.ParamResolver(sweepable)
     sweeps = cirq.to_sweeps(sweepable)
     expected_sweep = v2.run_context_pb2.RunContext()
