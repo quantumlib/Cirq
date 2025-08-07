@@ -455,3 +455,36 @@ def test_tunits_round_trip(sweep, use_float64):
 def test_const_sweep_with_numpy_types_roundtrip(value):
     sweep = cirq.Points('const', [value])
     assert v2.sweep_from_proto(v2.sweep_to_proto(sweep)) == sweep
+
+
+@pytest.mark.parametrize(
+    'sweepable', [{'a': 4}, {'a': 2, 'b': 8}, [{'a': 1, 'b': 2}, {'a': 3, 'b': 4}]]
+)
+@pytest.mark.parametrize('use_resolver', [True, False])
+def test_sweepable(sweepable: cirq.Sweepable, use_resolver: bool) -> None:
+    """Sweepable objects are accepted by run_context_to_proto.
+
+    These, like lists of dictionaries and ParamResolvers should be
+    converted to sweeps by the serializer.
+
+    This test ensures that the sweepable is serialized the same
+    as the corresponding sweep.
+    """
+    if use_resolver:
+        if isinstance(sweepable, list):
+            sweepable = [cirq.ParamResolver(element) for element in sweepable]
+        else:
+            sweepable = cirq.ParamResolver(sweepable)
+    sweeps = cirq.to_sweeps(sweepable)
+    expected_sweep = v2.run_context_pb2.RunContext()
+    for sweep in sweeps:
+        sweep_proto = expected_sweep.parameter_sweeps.add()
+        sweep_proto.repetitions = 1000
+        v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
+    actual_sweep = v2.run_context_to_proto(sweepable, 1000, compress_proto=False)
+    assert expected_sweep == actual_sweep
+
+
+def test_invalid_sweepable():
+    with pytest.raises(TypeError):
+        _ = v2.run_context_to_proto(cirq.X, 1000, compress_proto=False)
