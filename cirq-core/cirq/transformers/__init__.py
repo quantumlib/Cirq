@@ -150,6 +150,7 @@ from cirq.transformers.gauge_compiling import (
     SpinInversionGaugeTransformer as SpinInversionGaugeTransformer,
     SqrtCZGaugeTransformer as SqrtCZGaugeTransformer,
     SqrtISWAPGaugeTransformer as SqrtISWAPGaugeTransformer,
+    CPhaseGaugeTransformerMM as CPhaseGaugeTransformerMM,
 )
 
 from cirq.transformers.randomized_measurements import (
