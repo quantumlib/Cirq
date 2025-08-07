@@ -81,6 +81,7 @@ class PauliInsertionTransformer:
         self, qubits: tuple[ops.Qid, ...], rng: np.random.Generator
     ) -> tuple[ops.Gate, ops.Gate]:
         if isinstance(self.probabilities, dict):
+            assert len(qubits) == 2
             flat_probs = self.probabilities[qubits].reshape(-1)
         else:
             flat_probs = self.probabilities.reshape(-1)
