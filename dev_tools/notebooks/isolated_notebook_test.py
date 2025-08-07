@@ -48,6 +48,8 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = [
     'docs/simulate/noisy_simulation.ipynb',
     'docs/simulate/quantum_virtual_machine.ipynb',
     'docs/simulate/qvm_basic_example.ipynb',
+    'docs/simulate/qvm_builder_code.ipynb',
+    'docs/simulate/qvm_stabilizer_example.ipynb',
     # Remove once the renaming of `whitelisted_users` -> `allowlisted_users`
     # throughout cirq_google is released.
     'docs/simulate/virtual_engine_interface.ipynb',
