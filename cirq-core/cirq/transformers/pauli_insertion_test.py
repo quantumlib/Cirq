@@ -87,3 +87,18 @@ def test_transformer_ignores_tagged_moments():
     transformer = cirq.transformers.PauliInsertionTransformer(cirq.ZZPowGate)
 
     assert transformer(c, context=cirq.TransformerContext(tags_to_ignore=('ignore',))) == c
+
+
+def test_transformer_ignores_with_probs_map():
+    qs = tuple(cirq.LineQubit.range(3))
+    op = cirq.ZZ(*qs[:2]) ** 0.324
+    c = cirq.Circuit(cirq.Moment(op))
+    transformer = cirq.transformers.PauliInsertionTransformer(
+        cirq.ZZPowGate, {qs[1:]: np.ones((4, 4)) / 16}
+    )
+
+    assert transformer(c) == c  # qubits are not in target
+
+    c = cirq.Circuit(cirq.Moment(op.with_qubits(*qs[1:])))
+    nc = transformer(c)
+    assert len(nc) == 2

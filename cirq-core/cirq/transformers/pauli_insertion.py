@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import inspect
+from collections.abc import Mapping
 
 import numpy as np
 
@@ -38,22 +39,30 @@ class PauliInsertionTransformer:
     def __init__(
         self,
         target: ops.Gate | ops.GateFamily | ops.Gateset | type[ops.Gate],
-        probabilities: np.ndarray | None = None,
+        probabilities: np.ndarray | Mapping[tuple[ops.Qid, ops.Qid], np.ndarray] | None = None,
     ):
         """Makes a pauli insertion transformer that samples 2Q paulis with the given probabilities.
 
         Args:
             target: The target gate, gatefamily, gateset, or type (e.g. ZZPowGAte).
-            probabilities: Optional ndarray representing the probabilities of sampling 2Q paulis.
-                The order of the paulis is IXYZ. If None, assume uniform distribution.
-        Returns:
-            A gauge transformer.
+            probabilities: Optional ndarray or mapping[qubit-pair, nndarray] representing the
+                probabilities of sampling 2Q paulis. The order of the paulis is IXYZ.
+                If at operation `op` a pair (i, j) is sampled then _PAULIS[i] is applied
+                to op.qubits[0] and _PAULIS[j] is applied to op.qubits[1].
+                If None, assume uniform distribution.
         """
         if probabilities is None:
             probabilities = np.ones((4, 4)) / 16
-        probabilities = np.asarray(probabilities)
-        assert probabilities.shape == (4, 4)
-        assert np.isclose(probabilities.sum(), 1)
+        elif isinstance(probabilities, dict):
+            probabilities = {k: np.asarray(v) for k, v in probabilities.items()}
+            for probs in probabilities.values():
+                assert np.isclose(probs.sum(), 1)
+                assert probs.shape == (4, 4)
+        else:
+            probabilities = np.asarray(probabilities)
+            assert np.isclose(probabilities.sum(), 1)
+            assert probabilities.shape == (4, 4)
+        self.probabilities = probabilities
 
         if inspect.isclass(target):
             self.target = ops.GateFamily(target)
@@ -62,7 +71,21 @@ class PauliInsertionTransformer:
         else:
             assert isinstance(target, (ops.Gateset, ops.GateFamily))
             self.target = target
-        self._flat_probs = probabilities.reshape(-1)
+
+    def _is_target(self, op: ops.Operation) -> bool:
+        if isinstance(self.probabilities, dict) and op.qubits not in self.probabilities:
+            return False
+        return op in self.target
+
+    def _sample(
+        self, qubits: tuple[ops.Qid, ops.Qid], rng: np.random.Generator
+    ) -> tuple[ops.Gate, ops.Gate]:
+        if isinstance(self.probabilities, dict):
+            flat_probs = self.probabilities[qubits].reshape(-1)
+        else:
+            flat_probs = self.probabilities.reshape(-1)
+        i, j = np.unravel_index(rng.choice(16, p=flat_probs), (4, 4))
+        return _PAULIS[i], _PAULIS[j]
 
     def __call__(
         self,
@@ -95,14 +118,14 @@ class PauliInsertionTransformer:
             for op in moment:
                 if any(tag in tags_to_ignore for tag in op.tags):
                     continue
-                if op not in self.target:
+                if not self._is_target(op):
                     continue
-                pair = np.unravel_index(rng.choice(16, p=self._flat_probs), (4, 4))
-                for pauli_index, q in zip(pair, op.qubits):
+                pair = self._sample(op.qubits, rng)
+                for pauli, q in zip(pair, op.qubits):
                     if new_circuit and (q not in new_circuit[-1].qubits):
-                        new_circuit[-1] += _PAULIS[pauli_index](q)
+                        new_circuit[-1] += pauli(q)
                     else:
-                        new_moment.append(_PAULIS[pauli_index](q))
+                        new_moment.append(pauli(q))
             if new_moment:
                 new_circuit.append(circuits.Moment(new_moment))
             new_circuit.append(moment)
