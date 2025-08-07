@@ -814,8 +814,7 @@ def test_group_paulis_are_not_qwc() -> None:
     circuits_to_pauli: dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
     circuits_to_pauli[circuit] = [[pauli_str1, pauli_str2]]  # type: ignore
     with pytest.raises(
-        ValueError,
-        match="The group of Pauli strings are not " "Qubit-Wise Commuting with each other.",
+        ValueError, match="The group of Pauli strings are not Qubit-Wise Commuting with each other."
     ):
         measure_pauli_strings(
             circuits_to_pauli, cirq.Simulator(), 1000, 1000, 1000, np.random.default_rng()
@@ -896,7 +895,7 @@ def test_process_pauli_measurement_results_raises_error_on_missing_calibration()
         _process_pauli_measurement_results(
             qubits,
             [pauli_strings],
-            circuit_results[0],  # type: ignore[arg-type]
+            circuit_results[0],
             empty_calibration_result_dict,  # type: ignore[arg-type]
             1000,
             1.0,

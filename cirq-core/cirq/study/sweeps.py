@@ -231,7 +231,7 @@ class Product(Sweep):
 
     def param_tuples(self) -> Iterator[Params]:
         yield from map(
-            itertools.chain.from_iterable,
+            lambda values: tuple(itertools.chain.from_iterable(values)),
             itertools.product(*(factor.param_tuples() for factor in self.factors)),
         )
 

@@ -115,7 +115,7 @@ class QPUResult:
         `cirq.Result` contains a less dense representation of results than that returned by
         the IonQ API.  Typically these results are also ordered by when they were run, though
         that contract is implicit.  Because the IonQ API does not retain that ordering information,
-        the order of these `cirq.Result` objects should *not* be interpetted as representing the
+        the order of these `cirq.Result` objects should *not* be interpreted as representing the
         order in which the circuit was repeated. Correlations between measurements keys are
         preserved.
 
@@ -267,6 +267,13 @@ class SimulatorResult:
         rand = cirq.value.parse_random_state(seed)
         measurements = {}
         values, weights = zip(*list(self.probabilities().items()))
+
+        # normalize weights to sum to 1 if within tolerance because
+        # IonQ's pauliexp gates results are not extremely precise
+        total = sum(weights)
+        if np.isclose(total, 1.0, rtol=0, atol=1e-5):
+            weights = tuple((w / total for w in weights))
+
         indices = rand.choice(
             range(len(values)), p=weights, size=override_repetitions or self.repetitions()
         )

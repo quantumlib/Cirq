@@ -99,6 +99,16 @@ OPERATIONS = [
         op_proto({'xpowgate': {'exponent': {'symbol': 'a'}}, 'qubit_constant_index': [0]}),
     ),
     (
+        cirq.XPowGate(exponent=0)(Q1).with_tags(cg.CompressDurationTag()),
+        op_proto(
+            {
+                'xpowgate': {'exponent': {'float_value': 0.0}},
+                'qubit_constant_index': [0],
+                'tag_indices': [1],
+            }
+        ),
+    ),
+    (
         cirq.XPowGate(exponent=0.25 + sympy.Symbol('t'))(Q1),
         op_proto(
             {
@@ -390,8 +400,21 @@ OPERATIONS = [
         cirq.depolarize(0.5)(Q0),
         op_proto(
             {
-                'noisechannel': {'depolarizingchannel': {'probability': {'float_value': 0.5}}},
+                'noisechannel': {
+                    'depolarizingchannel': {'probability': {'float_value': 0.5}, 'num_qubits': 1}
+                },
                 'qubit_constant_index': [0],
+            }
+        ),
+    ),
+    (
+        cirq.depolarize(0.5, n_qubits=2)(Q0, Q1),
+        op_proto(
+            {
+                'noisechannel': {
+                    'depolarizingchannel': {'probability': {'float_value': 0.5}, 'num_qubits': 2}
+                },
+                'qubit_constant_index': [0, 1],
             }
         ),
     ),
