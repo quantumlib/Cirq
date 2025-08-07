@@ -311,10 +311,10 @@ class CircuitSerializer(serializer.Serializer):
             arg_func_langs.arg_to_proto(gate.w, out=msg.analog_detune_qubit.w)
             arg_func_langs.arg_to_proto(gate.target_freq, out=msg.analog_detune_qubit.target_freq)
             arg_func_langs.arg_to_proto(gate.prev_freq, out=msg.analog_detune_qubit.prev_freq)
-            arg_func_langs.dict_to_arg_mapping_proto(
+            arg_func_langs.dict_to_arg_mapping_proto(  # type: ignore[arg-type]
                 gate.neighbor_coupler_g_dict, out=msg.analog_detune_qubit.neighbor_coupler_g_dict
             )
-            arg_func_langs.dict_to_arg_mapping_proto(
+            arg_func_langs.dict_to_arg_mapping_proto(  # type: ignore[arg-type]
                 gate.prev_neighbor_coupler_g_dict,
                 out=msg.analog_detune_qubit.prev_neighbor_coupler_g_dict,
             )
@@ -839,10 +839,10 @@ class CircuitSerializer(serializer.Serializer):
                 prev_freq=arg_func_langs.arg_from_proto(
                     operation_proto.analog_detune_qubit.prev_freq
                 ),
-                neighbor_coupler_g_dict=arg_func_langs.dict_from_arg_mapping_proto(
+                neighbor_coupler_g_dict=arg_func_langs.dict_from_arg_mapping_proto(  # type: ignore[arg-type]
                     operation_proto.analog_detune_qubit.neighbor_coupler_g_dict
                 ),
-                prev_neighbor_coupler_g_dict=arg_func_langs.dict_from_arg_mapping_proto(
+                prev_neighbor_coupler_g_dict=arg_func_langs.dict_from_arg_mapping_proto(  # type: ignore[arg-type]
                     operation_proto.analog_detune_qubit.prev_neighbor_coupler_g_dict
                 ),
                 linear_rise=operation_proto.analog_detune_qubit.linear_rise,
