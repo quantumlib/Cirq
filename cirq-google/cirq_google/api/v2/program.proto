@@ -248,6 +248,37 @@ message NoiseChannel {
   }
 }
 
+// Representation of cirq_google.ops.AnalogDetuneCouplerOnly
+message AnalogDetuneCouplerOnly{
+  Arg length= 1;
+  Arg w = 2;
+  Arg g_0 = 3;
+  Arg g_max = 4;
+  Arg g_ramp_exponent = 5;
+  repeated Arg neighbor_qubits_freq = 6;
+  repeated Arg prev_neighbor_qubits_freq =7;
+  bool interpolate_coupling_cal = 8;
+  bool analog_cal_for_pulseshaping = 9;
+}
+
+// Representation of cirq_google.ops.AnalogDetuneQubit
+message AnalogDetuneQubit{
+  Arg length= 1;
+  Arg w = 2;
+  Arg target_freq = 3;
+  Arg prev_freq = 4;
+  ArgMapping neighbor_coupler_g_dict = 5;
+  ArgMapping prev_neighbor_coupler_g_dict = 6;
+  bool linear_rise =7;
+}
+
+// Representation of cirq_google.ops.WaitGateWithUnit
+message WaitGateWithUnit{
+  Arg duration = 1;
+
+  repeated int32 qid_shape = 2;
+}
+
 // An operation acts on a set of qubits.
 // next available id = 28
 message Operation {
@@ -275,6 +306,9 @@ message Operation {
     ResetGate resetgate = 24;
     ISwapLikeGate iswaplikegate = 26;
     NoiseChannel noisechannel = 27;
+    AnalogDetuneCouplerOnly analog_detune_coupler_only = 28;
+    AnalogDetuneQubit analog_detune_qubit = 29;
+    WaitGateWithUnit wait_gate_with_unit = 30;
   }
 
   // Which qubits the operation acts on.
