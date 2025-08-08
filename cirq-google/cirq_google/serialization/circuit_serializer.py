@@ -311,11 +311,11 @@ class CircuitSerializer(serializer.Serializer):
             arg_func_langs.arg_to_proto(gate.w, out=msg.analog_detune_qubit.w)
             arg_func_langs.arg_to_proto(gate.target_freq, out=msg.analog_detune_qubit.target_freq)
             arg_func_langs.arg_to_proto(gate.prev_freq, out=msg.analog_detune_qubit.prev_freq)
-            arg_func_langs.dict_to_arg_mapping_proto(  # type: ignore[arg-type]
-                gate.neighbor_coupler_g_dict, out=msg.analog_detune_qubit.neighbor_coupler_g_dict
+            arg_func_langs.dict_to_arg_mapping_proto(
+                gate.neighbor_coupler_g_dict, out=msg.analog_detune_qubit.neighbor_coupler_g_dict  # type: ignore[arg-type]
             )
-            arg_func_langs.dict_to_arg_mapping_proto(  # type: ignore[arg-type]
-                gate.prev_neighbor_coupler_g_dict,
+            arg_func_langs.dict_to_arg_mapping_proto(
+                gate.prev_neighbor_coupler_g_dict,  # type: ignore[arg-type]
                 out=msg.analog_detune_qubit.prev_neighbor_coupler_g_dict,
             )
             msg.analog_detune_qubit.linear_rise = gate.linear_rise
@@ -852,7 +852,7 @@ class CircuitSerializer(serializer.Serializer):
             if nf := operation_proto.analog_detune_coupler_only.neighbor_qubits_freq:
                 neighbor_qubits_freq = tuple(arg_func_langs.arg_from_proto(f) for f in nf)
             else:
-                neighbor_qubits_freq = (None, None)
+                neighbor_qubits_freq = (None, None)  # pragma: no cover
             if pnf := operation_proto.analog_detune_coupler_only.prev_neighbor_qubits_freq:
                 prev_neighbor_qubits_freq = tuple(arg_func_langs.arg_from_proto(f) for f in pnf)
             else:

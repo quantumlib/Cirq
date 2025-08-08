@@ -356,7 +356,7 @@ def arg_from_proto(
             arg_value = arg_proto.arg_value
             which_val = arg_value.WhichOneof('arg_value')
             if not which_val:
-                return None
+                return None  # pragma: no cover
             match which_val:
                 case 'float_value':
                     result = float(arg_value.float_value)
