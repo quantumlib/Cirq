@@ -42,24 +42,10 @@ class ProcessorConfig(abstract_processor_config.AbstractProcessorConfig):
     ) -> None:
         self._quantum_processor_config = quantum_processor_config
         self._run_name = run_name
-        
-        device_spec = quantum_processor_config.device_specification
-        if not device_spec.Is(v2.device_pb2.DeviceSpecification.DESCRIPTOR):
-            raise ValueError(
-                f'Invalid device_specification type `{device_spec.type_url}`. '
-                f'Expected type.googleapis.com/cirq.google.api.v2.DeviceSpecification'
-            )
         self._device_spec =  util.unpack_any(
             self._quantum_processor_config.device_specification,
             v2.device_pb2.DeviceSpecification()
         )
-
-        metrics = quantum_processor_config.characterization
-        if not metrics.Is(v2.metrics_pb2.MetricsSnapshot.DESCRIPTOR):
-            raise ValueError(
-                f'Invalid characterization type `{metrics.type_url}`. '
-                f'Expected type.googleapis.com/cirq.google.api.v2.MetricsSnapshot'
-            )
         self._metric_snapshot = util.unpack_any(
             self._quantum_processor_config.characterization,
             v2.metrics_pb2.MetricsSnapshot()
@@ -67,7 +53,7 @@ class ProcessorConfig(abstract_processor_config.AbstractProcessorConfig):
     
     @property
     def effective_device(self) -> cirq.Device:
-        """The GridDevice generated from this configuration's device specification"""
+        """The GridDevice generated from thisc configuration's device specification"""
         return cg.GridDevice.from_proto(self._device_spec)
 
     @property

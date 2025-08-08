@@ -68,28 +68,6 @@ _VALID_QUANTUM_PROCESSOR_CONFIG = quantum.QuantumProcessorConfig(
         characterization=util.pack_any(_METRIC_SNAPSHOT)
     )
 
-def test_processor_config_init_fails_with_invalid_device_spec():
-    quantum_config = quantum.QuantumProcessorConfig(
-        name='',
-        device_specification=any_pb2.Any(),
-        characterization=util.pack_any(_METRIC_SNAPSHOT)
-    )
-    with pytest.raises(ValueError):
-        _ = cg.engine.ProcessorConfig(
-            quantum_processor_config=quantum_config
-        )
-
-def test_processor_config_init_fails_with_invalid_characterization():   
-    quantum_config = quantum.QuantumProcessorConfig(
-        name='',
-        device_specification=util.pack_any(_DEVICE_SPEC),
-        characterization=any_pb2.Any()
-    )
-    with pytest.raises(ValueError):
-        _ = cg.engine.ProcessorConfig(
-            quantum_processor_config=quantum_config
-        )
-
 def test_processor_config_snapshot_id():
     config = cg.engine.ProcessorConfig(
             quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG
