@@ -258,9 +258,9 @@ message AnalogDetuneCouplerOnly{
   Arg g_0 = 3;
   Arg g_max = 4;
   Arg g_ramp_exponent = 5;
-  // Two frequency of the neighbor qubits at the moment.
+  // Two frequencies of the neighbor qubits at the moment.
   repeated Arg neighbor_qubits_freq = 6;
-  // Two frequency of the neighbor qubits at preivous moment.
+  // Two frequencies of the neighbor qubits at preivous moment.
   repeated Arg prev_neighbor_qubits_freq =7;
   bool interpolate_coupling_cal = 8;
   bool analog_cal_for_pulseshaping = 9;
@@ -272,7 +272,7 @@ message AnalogDetuneQubit{
   Arg length= 1; // The duration of gate 
   Arg w = 2;   // Width of the step envelope raising edge
   Arg target_freq = 3;  // The target frequency for the qubit at end of detune gate.
-  Arg prev_freq = 4; // revious detuning frequency to compensate beginning of detune gate.
+  Arg prev_freq = 4; // Previous detuning frequency to compensate beginning of detune gate.
 
   //A dictionary has coupler name like "c_q0_0_q1_0" as key and the coupling strength `g` as the value.
   ArgMapping neighbor_coupler_g_dict = 5;
