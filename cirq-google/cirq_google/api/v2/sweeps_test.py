@@ -27,7 +27,7 @@ import tunits
 import cirq
 from cirq.study import sweeps
 from cirq_google.api import v2
-from cirq_google.study import DeviceParameter, Metadata
+from cirq_google.study import DeviceParameter, FiniteRandomVariable, Metadata
 
 
 class UnknownSweep(sweeps.SingleSweep):
@@ -109,6 +109,24 @@ class UnknownSweep(sweeps.SingleSweep):
             + cirq.Points('c', ["abc"]) * cirq.Points("d", [1, 2, 3, 4])  # type: ignore[list-item]
         ),
         cirq.Concat(cirq.Points('a', [1.0, 2.0, 3.0]), cirq.Points('a', [4.0])),
+        FiniteRandomVariable('r', {0: 0.25, 0.5: 0.5, 1: 0.25}, 100, 42),
+        FiniteRandomVariable(
+            'r',
+            {0.0: 0.25, 0.5: 0.5, 1.0: 0.25},
+            200,
+            999,
+            metadata=DeviceParameter(path=['path', 'to', 'parameter'], idx=4, units='ns'),
+        ),
+        FiniteRandomVariable(
+            'r',
+            {0.0: 0.25, 0.5: 0.5, 1.0: 0.25},
+            200,
+            999,
+            metadata=Metadata(
+                device_parameters=[DeviceParameter(path=['path', 'to', 'parameter'], idx=2)],
+                label="bb",
+            ),
+        ),
     ],
 )
 def test_sweep_to_proto_roundtrip(sweep):

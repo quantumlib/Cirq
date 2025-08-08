@@ -461,6 +461,7 @@ class SingleSweep(google.protobuf.message.Message):
     POINTS_FIELD_NUMBER: builtins.int
     LINSPACE_FIELD_NUMBER: builtins.int
     CONST_VALUE_FIELD_NUMBER: builtins.int
+    RANDOM_VARIABLE_FIELD_NUMBER: builtins.int
     PARAMETER_FIELD_NUMBER: builtins.int
     METADATA_FIELD_NUMBER: builtins.int
     parameter_key: builtins.str
@@ -480,6 +481,10 @@ class SingleSweep(google.protobuf.message.Message):
         """A constant value."""
 
     @property
+    def random_variable(self) -> global___FiniteRandomVariable:
+        """Random Variable chosen from a finite list"""
+
+    @property
     def parameter(self) -> global___DeviceParameter:
         """Optional arguments for if this is a device parameter.
         (as opposed to a circuit symbol)
@@ -496,12 +501,13 @@ class SingleSweep(google.protobuf.message.Message):
         points: global___Points | None = ...,
         linspace: global___Linspace | None = ...,
         const_value: global___ConstValue | None = ...,
+        random_variable: global___FiniteRandomVariable | None = ...,
         parameter: global___DeviceParameter | None = ...,
         metadata: global___Metadata | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["const_value", b"const_value", "linspace", b"linspace", "metadata", b"metadata", "parameter", b"parameter", "points", b"points", "sweep", b"sweep"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["const_value", b"const_value", "linspace", b"linspace", "metadata", b"metadata", "parameter", b"parameter", "parameter_key", b"parameter_key", "points", b"points", "sweep", b"sweep"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["sweep", b"sweep"]) -> typing.Literal["points", "linspace", "const_value"] | None: ...
+    def HasField(self, field_name: typing.Literal["const_value", b"const_value", "linspace", b"linspace", "metadata", b"metadata", "parameter", b"parameter", "points", b"points", "random_variable", b"random_variable", "sweep", b"sweep"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["const_value", b"const_value", "linspace", b"linspace", "metadata", b"metadata", "parameter", b"parameter", "parameter_key", b"parameter_key", "points", b"points", "random_variable", b"random_variable", "sweep", b"sweep"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["sweep", b"sweep"]) -> typing.Literal["points", "linspace", "const_value", "random_variable"] | None: ...
 
 global___SingleSweep = SingleSweep
 
@@ -620,3 +626,43 @@ class ConstValue(google.protobuf.message.Message):
     def WhichOneof(self, oneof_group: typing.Literal["value", b"value"]) -> typing.Literal["is_none", "float_value", "double_value", "int_value", "string_value", "with_unit_value"] | None: ...
 
 global___ConstValue = ConstValue
+
+@typing.final
+class FiniteRandomVariable(google.protobuf.message.Message):
+    """A message for a random variable with a finite distribution"""
+
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    @typing.final
+    class DistributionEntry(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        KEY_FIELD_NUMBER: builtins.int
+        VALUE_FIELD_NUMBER: builtins.int
+        key: builtins.str
+        value: builtins.float
+        def __init__(
+            self,
+            *,
+            key: builtins.str = ...,
+            value: builtins.float = ...,
+        ) -> None: ...
+        def ClearField(self, field_name: typing.Literal["key", b"key", "value", b"value"]) -> None: ...
+
+    DISTRIBUTION_FIELD_NUMBER: builtins.int
+    LENGTH_FIELD_NUMBER: builtins.int
+    SEED_FIELD_NUMBER: builtins.int
+    length: builtins.int
+    seed: builtins.int
+    @property
+    def distribution(self) -> google.protobuf.internal.containers.ScalarMap[builtins.str, builtins.float]: ...
+    def __init__(
+        self,
+        *,
+        distribution: collections.abc.Mapping[builtins.str, builtins.float] | None = ...,
+        length: builtins.int = ...,
+        seed: builtins.int = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing.Literal["distribution", b"distribution", "length", b"length", "seed", b"seed"]) -> None: ...
+
+global___FiniteRandomVariable = FiniteRandomVariable
