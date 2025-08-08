@@ -20,6 +20,8 @@ from cirq_google.engine.abstract_job import AbstractJob as AbstractJob
 
 from cirq_google.engine.abstract_processor import AbstractProcessor as AbstractProcessor
 
+from cirq_google.engine.abstract_processor_config import AbstractProcessorConfig as AbstractProcessorConfig
+
 from cirq_google.engine.abstract_program import AbstractProgram as AbstractProgram
 
 from cirq_google.engine.abstract_local_engine import AbstractLocalEngine as AbstractLocalEngine
@@ -95,3 +97,8 @@ from cirq_google.engine.virtual_engine_factory import (
 from cirq_google.engine.engine_result import EngineResult as EngineResult
 
 from cirq_google.engine.processor_sampler import ProcessorSampler as ProcessorSampler
+
+from cirq_google.engine.processor_config import (
+    ProcessorConfig as ProcessorConfig,
+)
+

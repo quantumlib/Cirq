@@ -26,7 +26,7 @@ from typing import Sequence, TYPE_CHECKING
 if TYPE_CHECKING:
     import cirq
     from cirq_google.cloud import quantum
-    from cirq_google.engine import abstract_job, abstract_processor, abstract_program
+    from cirq_google.engine import abstract_job, abstract_processor, abstract_program, abstract_processor_config
 
 VALID_DATE_TYPE = datetime.datetime | datetime.date
 
@@ -133,4 +133,42 @@ class AbstractEngine(abc.ABC):
         Args:
             processor_id: String identifier, or list of string identifiers,
                 determining which processors may be used when sampling.
+        """
+    
+    @abc.abstractmethod
+    def get_processor_config_by_snapshot_id(
+        self,
+        processor_id: str,
+        snapshot_id: str,
+        config_id: str
+    ) -> abstract_processor_config.AbstractProcessorConfig:
+        """Returns a ProcessorConfig from this project and the given processor id.
+
+        Args:
+           processor_id: The processor unique identifier.
+           snapshot_id: The unique identifier for the snapshot.
+           config_id: The unique identifier for the snapshot.
+
+        Returns:
+           The ProcessorConfig from this project and processor.
+        """
+
+    @abc.abstractmethod
+    def get_processor_config_by_run_name(
+        self,
+        processor_id: str,
+        config_id: str,
+        run_name: str = 'current'
+    ) -> abstract_processor_config.AbstractProcessorConfig:
+        """Returns a ProcessorConfig from this project and the given processor id.
+
+           If no run_name is provided, the config from the most recent run is returned.
+    
+           Args:
+               processor_id: The processor unique identifier.
+               run_name: The unique identifier for the automation run.
+               config_id: The unique identifier for the snapshot.
+
+            Returns:
+                The ProcessorConfig from this project and processor.
         """

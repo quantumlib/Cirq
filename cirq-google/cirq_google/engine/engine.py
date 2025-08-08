@@ -43,6 +43,7 @@ from cirq_google.engine import (
     engine_job,
     engine_processor,
     engine_program,
+    processor_config,
     util,
 )
 from cirq_google.serialization import CIRCUIT_SERIALIZER, Serializer
@@ -622,6 +623,66 @@ class Engine(abstract_engine.AbstractEngine):
             snapshot_id=snapshot_id,
             max_concurrent_jobs=max_concurrent_jobs,
         )
+    
+    async def get_processor_config_by_snapshot_id_async(
+        self,
+        processor_id: str,
+        snapshot_id: str,
+        config_id: str
+    ) -> processor_config.ProcessorConfig:
+        """Returns a ProcessorConfig from this project and the given processor id.
+
+        Args:
+           processor_id: The processor unique identifier.
+           snapshot_id: The unique identifier for the snapshot.
+           config_id: The unique identifier for the snapshot.
+
+        Returns:
+           The ProcessorConfig from this project and processor.
+        """
+        quantum_config = await self.context.client.get_quantum_processor_config_by_snapshot_id_async(
+            project_id=self.project_id,
+            processor_id=processor_id,
+            snapshot_id=snapshot_id,
+            config_id=config_id
+        )
+        return processor_config.ProcessorConfig(
+            quantum_processor_config=quantum_config
+        )
+    
+    get_processor_config_by_snapshot_id = duet.sync(get_processor_config_by_snapshot_id_async)
+    
+
+    async def get_processor_config_by_run_name_async(
+        self,
+        processor_id: str,
+        config_id: str,
+        run_name: str = 'current'
+    ) -> processor_config.ProcessorConfig:
+        """Returns a ProcessorConfig from this project and the given processor id.
+
+           If no run_name is provided, the config from the most recent run is returned.
+    
+           Args:
+               processor_id: The processor unique identifier.
+               run_name: The unique identifier for the automation run.
+               config_id: The unique identifier for the snapshot.
+
+            Returns:
+                The ProcessorConfig from this project and processor.
+        """
+        quantum_config = await self.context.client.get_quantum_processor_config_by_run_name_async(
+            project_id=self.project_id,
+            processor_id=processor_id,
+            run_name=run_name,
+            config_id=config_id
+        )
+        return processor_config.ProcessorConfig(
+            quantum_processor_config=quantum_config,
+            run_name=run_name
+        )
+    
+    get_processor_config_by_run_name = duet.sync(get_processor_config_by_run_name_async)
 
 
 def get_engine(project_id: str | None = None) -> Engine:
