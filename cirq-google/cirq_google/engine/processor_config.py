@@ -16,78 +16,106 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from cirq_google.devices import GridDevice
-from cirq_google.api import v2
-from cirq_google.cloud.quantum_v1alpha1.types import quantum
-
-
-from cirq_google.engine import util
+import cirq
 import cirq_google as cg
 
-if TYPE_CHECKING:
-    import cirq_google.engine.engine as engine_base
+from cirq_google.api import v2
+from cirq_google.cloud.quantum_v1alpha1.types import quantum
+from cirq_google.engine import abstract_processor_config
 
-class ProcessorConfig:
+from cirq_google.engine import util
+
+class ProcessorConfig(abstract_processor_config.AbstractProcessorConfig):
     """Representation of a quantum processor configuration
 
     Describes available qubits, gates, and calivration data associated with
     a processor configuration.
+
+    Raise:
+        ValueError: If quantum_processor_config is contains incompatible types.
     """
 
     def __init__(self,
                  *,
-                 name: str,
-                 effective_device: GridDevice,
-                 calibration: cg.Calibration,
+                 quantum_processor_config: quantum.QuantumProcessorConfig,
+                 run_name: str = ''
     ) -> None:
-        self._name = name
-        self._effective_device = effective_device
-        self._calibration = calibration
-    
-    @classmethod
-    def from_quantum_config(
-        cls, quantum_config: quantum.QuantumProcessorConfig
-    ) -> ProcessorConfig:
-        """Create instance from a QuantumProcessorConfig
-
-        Args:
-            quantum_config: The `QuantumProcessorConfig` to create.
+        self._quantum_processor_config = quantum_processor_config
+        self._run_name = run_name
         
-        Raises:
-            ValueError: If the quantum_config.device_specification is invalid
-        
-        Returns:
-            The ProcessorConfig
-        """
-        name = quantum_config.name
-        device_spec = util.unpack_any(
-            quantum_config.device_specification, v2.device_pb2.DeviceSpecification()
-        )
-        characterization = util.unpack_any(
-            quantum_config.characterization, v2.metrics_pb2.MetricsSnapshot()
-        )
-        
-        return ProcessorConfig(
-            name=name,
-            effective_device=cg.GridDevice.from_proto(device_spec),
-            calibration=cg.Calibration(characterization)
+        device_spec = quantum_processor_config.device_specification
+        if not device_spec.Is(v2.device_pb2.DeviceSpecification.DESCRIPTOR):
+            raise ValueError(
+                f'Invalid device_specification type `{device_spec.type_url}`. '
+                f'Expected type.googleapis.com/cirq.google.api.v2.DeviceSpecification'
+            )
+        self._device_spec =  util.unpack_any(
+            self._quantum_processor_config.device_specification,
+            v2.device_pb2.DeviceSpecification()
         )
 
-    @property
-    def name(self) -> str:
-        """The name of this configuration"""
-        return self._name
+        metrics = quantum_processor_config.characterization
+        if not metrics.Is(v2.metrics_pb2.MetricsSnapshot.DESCRIPTOR):
+            raise ValueError(
+                f'Invalid characterization type `{metrics.type_url}`. '
+                f'Expected type.googleapis.com/cirq.google.api.v2.MetricsSnapshot'
+            )
+        self._metric_snapshot = util.unpack_any(
+            self._quantum_processor_config.characterization,
+            v2.metrics_pb2.MetricsSnapshot()
+        )
     
     @property
-    def effective_device(self) -> GridDevice:
+    def effective_device(self) -> cirq.Device:
         """The GridDevice generated from this configuration's device specification"""
-        return self._effective_device
+        return cg.GridDevice.from_proto(self._device_spec)
 
     @property
     def calibration(self) -> cg.Calibration:
         """Charicterization metrics captured for this configuration"""
-        return self._calibration
-    
-    def __repr__(self) -> str:
-        return f'cirq_google.ProcessorConfig(name={self.name}, effective_device={repr(self.effective_device)}, calibration={repr(self.calibration)})'
+        return cg.Calibration(self._metric_snapshot)
 
+    @property
+    def snapshot_id(self) -> str:
+        """The snapshot that contains this processor config"""
+        if 'configSnapshots' not in self._quantum_processor_config.name:
+            # We assume the calling `get_quantume_processor_config` always
+            # returns a config with the snapshot resouce nanme.  This check
+            # is added in case this behavior changes in the future.
+            return ''
+        parts = self._quantum_processor_config.name.split('/')
+        return parts[5]
+
+    @property
+    def run_name(self) -> str:
+        """The run that generated this config if avaiable."""
+        return self._run_name
+    
+    @property
+    def project_id(self) -> str:
+        """The project that contains this config."""
+        parts = self._quantum_processor_config.name.split('/')
+        return parts[1]
+    
+    @property
+    def processor_id(self) -> str:
+        """The processor id for this config."""
+        parts = self._quantum_processor_config.name.split('/')
+        return parts[3]
+    
+    @property
+    def config_id(self) -> str:
+        """The unique identifier for this config."""
+        parts = self._quantum_processor_config.name.split('/')
+        return parts[-1]
+
+    def __repr__(self) -> str:
+        return(
+            f'cirq_google.ProcessorConfig'
+            f'(project_id={self.project_id}, '
+            f'processor_id={self.processor_id}, '
+            f'snapshot_id={self.snapshot_id}, '
+            f'run_name={self.run_name} '
+            f'config_id={self.config_id}'
+        )
+    

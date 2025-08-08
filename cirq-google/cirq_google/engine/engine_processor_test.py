@@ -1039,17 +1039,16 @@ def test_get_config_by_run_name(get_quantum_config):
             )
         ],
     )
-    expected_config = ProcessorConfig(
-        name=name,
-        effective_device=grid_device.GridDevice.from_proto(device_spec),
-        calibration=cg.Calibration(_METRIC_SNAPSHOT)
-    )
     quantum_config = quantum.QuantumProcessorConfig(
         name=name,
         device_specification=util.pack_any(device_spec),
         characterization=util.pack_any(_METRIC_SNAPSHOT)
     )
     get_quantum_config.return_value = quantum_config
+    expected_config = ProcessorConfig(
+        quantum_processor_config=quantum_config,
+        run_name=run_name
+    )
     processor = cg.EngineProcessor(
         project_id=project_id,
         processor_id=processor_id,
@@ -1064,7 +1063,10 @@ def test_get_config_by_run_name(get_quantum_config):
         project_id=project_id, processor_id=processor_id,
         run_name=run_name, config_id=config_id
     )
-    assert actual_config.name == expected_config.name
+    assert actual_config.project_id == expected_config.project_id
+    assert actual_config.processor_id == expected_config.processor_id
+    assert actual_config.config_id == config_id
+    assert actual_config.run_name == run_name
     assert actual_config.effective_device == expected_config.effective_device
     assert actual_config.calibration == expected_config.calibration
 
@@ -1126,17 +1128,15 @@ def test_get_config_by_snapshot_id(get_quantum_config):
             )
         ],
     )
-    expected_config = ProcessorConfig(
-        name=name,
-        effective_device=grid_device.GridDevice.from_proto(device_spec),
-        calibration=cg.Calibration(_METRIC_SNAPSHOT)
-    )
     quantum_config = quantum.QuantumProcessorConfig(
         name=name,
         device_specification=util.pack_any(device_spec),
         characterization=util.pack_any(_METRIC_SNAPSHOT)
     )
     get_quantum_config.return_value = quantum_config
+    expected_config = ProcessorConfig(
+        quantum_processor_config=quantum_config
+    )
     processor = cg.EngineProcessor(
         project_id=project_id,
         processor_id=processor_id,
@@ -1151,6 +1151,10 @@ def test_get_config_by_snapshot_id(get_quantum_config):
         project_id=project_id, processor_id=processor_id,
         snapshot_id=snapshot_id, config_id=config_id
     )
-    assert actual_config.name == expected_config.name
+    assert actual_config.project_id == expected_config.project_id
+    assert actual_config.processor_id == expected_config.processor_id
+    assert actual_config.config_id == config_id
+    assert actual_config.run_name == ''
+    assert actual_config.snapshot_id == snapshot_id
     assert actual_config.effective_device == expected_config.effective_device
     assert actual_config.calibration == expected_config.calibration

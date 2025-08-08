@@ -25,6 +25,8 @@ from cirq_google.cloud import quantum
 from cirq_google.devices import GridDevice
 from cirq_google.engine import util
 
+from google.protobuf import any_pb2
+
 _METRIC_SNAPSHOT = v2.metrics_pb2.MetricsSnapshot(
             timestamp_ms=1562544000021,
             metrics=[
@@ -55,28 +57,87 @@ _DEVICE_SPEC = v2.device_pb2.DeviceSpecification(
     ],
 )
 
-def test_from_quantum_config():
+_PROCESSOR_ID = 'test_processor_id'
+_PROJECT_ID = 'test_project_id'
+_SNAPSHOT_ID = 'test_snapshot_id'
+_CONFIG_ID = 'test_config_id'
 
-    project_id = "test_project_id"
-    processor_id = "test_proc_id"
-    snapshot_id = "test_proc_id"
-    config_id = "test_config_id"
-    name = f'projects/{project_id}/processors/{processor_id}/configSnapshots/{snapshot_id}/configs/{config_id}'
-    expected_config = cg.engine.ProcessorConfig(
-        name=name,
-        effective_device=GridDevice.from_proto(_DEVICE_SPEC),
-        calibration=cg.Calibration(_METRIC_SNAPSHOT)
-    )   
-    quantum_config = quantum.QuantumProcessorConfig(
-        name=name,
+_VALID_QUANTUM_PROCESSOR_CONFIG = quantum.QuantumProcessorConfig(
+        name=f'projects/{_PROJECT_ID}/processors/{_PROCESSOR_ID}/configSnapshots/{_SNAPSHOT_ID}/configs/{_CONFIG_ID}',
         device_specification=util.pack_any(_DEVICE_SPEC),
         characterization=util.pack_any(_METRIC_SNAPSHOT)
     )
 
-    processor_config = cg.engine.ProcessorConfig.from_quantum_config(
-        quantum_config
+def test_processor_config_init_fails_with_invalid_device_spec():
+    quantum_config = quantum.QuantumProcessorConfig(
+        name='',
+        device_specification=any_pb2.Any(),
+        characterization=util.pack_any(_METRIC_SNAPSHOT)
     )
+    with pytest.raises(ValueError):
+        _ = cg.engine.ProcessorConfig(
+            quantum_processor_config=quantum_config
+        )
 
-    assert processor_config.name == expected_config.name
-    assert processor_config.effective_device == expected_config.effective_device
-    assert processor_config.calibration == expected_config.calibration
+def test_processor_config_init_fails_with_invalid_characterization():   
+    quantum_config = quantum.QuantumProcessorConfig(
+        name='',
+        device_specification=util.pack_any(_DEVICE_SPEC),
+        characterization=any_pb2.Any()
+    )
+    with pytest.raises(ValueError):
+        _ = cg.engine.ProcessorConfig(
+            quantum_processor_config=quantum_config
+        )
+
+def test_processor_config_snapshot_id():
+    config = cg.engine.ProcessorConfig(
+            quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG
+        )
+    
+    assert config.snapshot_id == _SNAPSHOT_ID
+
+def test_processor_config_run_name():    
+    run_name = 'test_run_name'
+    config = cg.engine.ProcessorConfig(
+            quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG,
+            run_name=run_name
+        )
+    
+    assert config.run_name == run_name
+
+def test_processor_config_effective_device():
+    config = cg.engine.ProcessorConfig(
+            quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG,
+        )
+    
+    assert config.effective_device == GridDevice.from_proto(_DEVICE_SPEC)
+
+def test_processor_config_calibration(): 
+    config = cg.engine.ProcessorConfig(
+            quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG,
+        )
+    
+    assert config.calibration == cg.Calibration(_METRIC_SNAPSHOT)
+
+def test_processor_project_id(): 
+    config = cg.engine.ProcessorConfig(
+            quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG,
+        )
+    
+    assert config.project_id == _PROJECT_ID
+
+def test_processor_processor_id(): 
+    config = cg.engine.ProcessorConfig(
+            quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG,
+        )
+    
+    assert config.processor_id == _PROCESSOR_ID
+
+def test_processor_config_id(): 
+    config = cg.engine.ProcessorConfig(
+            quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG,
+        )
+    
+    assert config.config_id == _CONFIG_ID
+

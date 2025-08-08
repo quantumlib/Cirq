@@ -517,7 +517,10 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             project_id=self.project_id, processor_id=self.processor_id,
             run_name=run_name, config_id=config_id
         )    
-        return processor_config.ProcessorConfig.from_quantum_config(response)
+        return processor_config.ProcessorConfig(
+            quantum_processor_config=response,
+            run_name=run_name
+        )
 
     def get_config_by_snapshot(
         self, config_id: str, snapshot_id: str
@@ -538,7 +541,9 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             project_id=self.project_id, processor_id=self.processor_id,
             snapshot_id=snapshot_id, config_id=config_id
         )    
-        return processor_config.ProcessorConfig.from_quantum_config(response)
+        return processor_config.ProcessorConfig(
+            quantum_processor_config=response
+        )
 
     def __str__(self):
         return (
