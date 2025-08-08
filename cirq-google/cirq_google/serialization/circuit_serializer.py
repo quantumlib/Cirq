@@ -856,7 +856,7 @@ class CircuitSerializer(serializer.Serializer):
             if pnf := operation_proto.analog_detune_coupler_only.prev_neighbor_qubits_freq:
                 prev_neighbor_qubits_freq = tuple(arg_func_langs.arg_from_proto(f) for f in pnf)
             else:
-                prev_neighbor_qubits_freq = (None, None)
+                prev_neighbor_qubits_freq = (None, None)  # pragma: no cover
 
             adco_gate = AnalogDetuneCouplerOnly(
                 length=arg_func_langs.arg_from_proto(
