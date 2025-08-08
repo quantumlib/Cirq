@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     from cirq_google.engine.abstract_job import AbstractJob
     from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
     from cirq_google.engine.abstract_program import AbstractProgram
+    from cirq_google.engine.abstract_processor_config import AbstractProcessorConfig
 
 
 class AbstractLocalEngine(AbstractEngine):
@@ -35,10 +36,21 @@ class AbstractLocalEngine(AbstractEngine):
 
     """
 
-    def __init__(self, processors: list[AbstractLocalProcessor]):
+    def __init__(
+            self,
+            processors: list[AbstractLocalProcessor],
+            configs: list[AbstractProcessorConfig] = []
+        ):
         for processor in processors:
             processor.set_engine(self)
         self._processors = {proc.processor_id: proc for proc in processors}
+        self._snapshot_configs = {
+            config.snapshot_id:{ config.config_id: config } for config in configs}
+        self._run_name_configs = {
+            config.run_name:{
+                config.config_id: config
+            } for config in configs if config.run_name
+        }
 
     def get_program(self, program_id: str) -> AbstractProgram:
         """Returns an existing AbstractProgram given an identifier.
@@ -175,3 +187,30 @@ class AbstractLocalEngine(AbstractEngine):
         if not isinstance(processor_id, str):
             raise ValueError(f'Invalid processor {processor_id}')
         return self._processors[processor_id].get_sampler()
+    
+    def get_processor_config_by_snapshot_id(
+        self,
+        processor_id: str,
+        snapshot_id: str,
+        config_id: str
+    ) -> AbstractProcessorConfig:
+        """Returns a ProcessorConfig from this project and the given processor id.
+
+        Args:
+           processor_id: The processor unique identifier.
+           snapshot_id: The unique identifier for the snapshot.
+           config_id: The unique identifier for the snapshot.
+
+        Returns:
+           The ProcessorConfig from this project and processor.
+        """
+        return self._snapshot_configs[snapshot_id][config_id]
+    
+    def get_processor_config_by_run_name(
+        self,
+        processor_id: str,
+        config_id: str,
+        run_name: str = 'current'
+    ) -> AbstractProcessorConfig:
+        return self._run_name_configs[run_name][config_id]    
+    
