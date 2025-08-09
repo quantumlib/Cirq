@@ -435,6 +435,82 @@ OPERATIONS = [
             }
         ),
     ),
+    (
+        cg.AnalogDetuneQubit(
+            length=5 * tunits.units.ns,
+            w=5 * tunits.units.ns,
+            target_freq=5 * tunits.units.GHz,
+            prev_freq=None,
+            neighbor_coupler_g_dict={'c_q0_0_q0_1': 5 * tunits.units.MHz},
+            prev_neighbor_coupler_g_dict=None,
+        ).on(Q0),
+        op_proto(
+            {
+                "analog_detune_qubit": {
+                    "length": {
+                        "arg_value": {
+                            "value_with_unit": {
+                                "units": [{"unit": "SECOND", "scale": "NANO"}],
+                                "real_value": 5,
+                            }
+                        }
+                    },
+                    "w": {
+                        "arg_value": {
+                            "value_with_unit": {
+                                "units": [{"unit": "SECOND", "scale": "NANO"}],
+                                "real_value": 5,
+                            }
+                        }
+                    },
+                    "target_freq": {
+                        "arg_value": {
+                            "value_with_unit": {
+                                "units": [{"unit": "HERTZ", "scale": "GIGA"}],
+                                "real_value": 5,
+                            }
+                        }
+                    },
+                    "neighbor_coupler_g_dict": {
+                        "entries": [
+                            {
+                                "key": {"arg_value": {"string_value": "c_q0_0_q0_1"}},
+                                "value": {
+                                    "arg_value": {
+                                        "value_with_unit": {
+                                            "units": [{"unit": "HERTZ", "scale": "MEGA"}],
+                                            "real_value": 5,
+                                        }
+                                    }
+                                },
+                            }
+                        ]
+                    },
+                    "linear_rise": True,
+                },
+                'qubit_constant_index': [0],
+            }
+        ),
+    ),
+    (
+        cg.WaitGateWithUnit(5 * tunits.units.ns, qid_shape=(2, 2))(Q0, Q1),
+        op_proto(
+            {
+                'wait_gate_with_unit': {
+                    "duration": {
+                        "arg_value": {
+                            "value_with_unit": {
+                                "units": [{"unit": "SECOND", "scale": "NANO"}],
+                                "real_value": 5,
+                            }
+                        }
+                    },
+                    "qid_shape": [2, 2],
+                },
+                'qubit_constant_index': [0, 1],
+            }
+        ),
+    ),
 ]
 
 
@@ -955,6 +1031,20 @@ def test_circuit_with_cliffords():
 
 def test_circuit_with_couplerpulse():
     circuit = cirq.Circuit(cg.experimental.CouplerPulse(cirq.Duration(nanos=1), 2)(Q0, Q1))
+    msg = cg.CIRCUIT_SERIALIZER.serialize(circuit)
+    assert cg.CIRCUIT_SERIALIZER.deserialize(msg) == circuit
+
+
+def test_circuit_with_analog_detune_coupler_only():
+    circuit = cirq.Circuit(
+        cg.AnalogDetuneCouplerOnly(
+            length=5 * tunits.units.ns,
+            w=5 * tunits.units.ns,
+            g_0=None,
+            g_max=4 * tunits.units.MHz,
+            neighbor_qubits_freq={'q0_1': 5 * tunits.units.GHz, 'q1_0': 6 * tunits.units.GHz},
+        ).on(Q0, Q1)
+    )
     msg = cg.CIRCUIT_SERIALIZER.serialize(circuit)
     assert cg.CIRCUIT_SERIALIZER.deserialize(msg) == circuit
 
