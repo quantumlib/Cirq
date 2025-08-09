@@ -634,7 +634,9 @@ global___NoiseChannel = NoiseChannel
 
 @typing.final
 class AnalogDetuneCouplerOnly(google.protobuf.message.Message):
-    """Representation of cirq_google.ops.AnalogDetuneCouplerOnly"""
+    """Representation of cirq_google.ops.AnalogDetuneCouplerOnly
+    All the following fields should be specified as the tunit.Value.
+    """
 
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -650,19 +652,31 @@ class AnalogDetuneCouplerOnly(google.protobuf.message.Message):
     interpolate_coupling_cal: builtins.bool
     analog_cal_for_pulseshaping: builtins.bool
     @property
-    def length(self) -> global___Arg: ...
+    def length(self) -> global___Arg:
+        """The duration of gate"""
+
     @property
-    def w(self) -> global___Arg: ...
+    def w(self) -> global___Arg:
+        """Width of the step envelope raising edge"""
+
     @property
-    def g_0(self) -> global___Arg: ...
+    def g_0(self) -> global___Arg:
+        """Coupler strength specified with the equation g(t) = g_0+A*t^g_exp.
+        See AnalogDetuneCouplerOnly for details.
+        """
+
     @property
     def g_max(self) -> global___Arg: ...
     @property
     def g_ramp_exponent(self) -> global___Arg: ...
     @property
-    def neighbor_qubits_freq(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Arg]: ...
+    def neighbor_qubits_freq(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Arg]:
+        """Two frequencies of the neighbor qubits at the moment."""
+
     @property
-    def prev_neighbor_qubits_freq(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Arg]: ...
+    def prev_neighbor_qubits_freq(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Arg]:
+        """Two frequencies of the neighbor qubits at preivous moment."""
+
     def __init__(
         self,
         *,
@@ -683,7 +697,9 @@ global___AnalogDetuneCouplerOnly = AnalogDetuneCouplerOnly
 
 @typing.final
 class AnalogDetuneQubit(google.protobuf.message.Message):
-    """Representation of cirq_google.ops.AnalogDetuneQubit"""
+    """Representation of cirq_google.ops.AnalogDetuneQubit
+    All the following fields should be specified as the tunit.Value.
+    """
 
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -695,16 +711,27 @@ class AnalogDetuneQubit(google.protobuf.message.Message):
     PREV_NEIGHBOR_COUPLER_G_DICT_FIELD_NUMBER: builtins.int
     LINEAR_RISE_FIELD_NUMBER: builtins.int
     linear_rise: builtins.bool
+    """If True, the rising edge will be a linear function."""
     @property
-    def length(self) -> global___Arg: ...
+    def length(self) -> global___Arg:
+        """The duration of gate"""
+
     @property
-    def w(self) -> global___Arg: ...
+    def w(self) -> global___Arg:
+        """Width of the step envelope raising edge"""
+
     @property
-    def target_freq(self) -> global___Arg: ...
+    def target_freq(self) -> global___Arg:
+        """The target frequency for the qubit at end of detune gate."""
+
     @property
-    def prev_freq(self) -> global___Arg: ...
+    def prev_freq(self) -> global___Arg:
+        """Previous detuning frequency to compensate beginning of detune gate."""
+
     @property
-    def neighbor_coupler_g_dict(self) -> global___ArgMapping: ...
+    def neighbor_coupler_g_dict(self) -> global___ArgMapping:
+        """A dictionary has coupler name like "c_q0_0_q1_0" as key and the coupling strength `g` as the value."""
+
     @property
     def prev_neighbor_coupler_g_dict(self) -> global___ArgMapping: ...
     def __init__(
@@ -749,7 +776,7 @@ global___WaitGateWithUnit = WaitGateWithUnit
 @typing.final
 class Operation(google.protobuf.message.Message):
     """An operation acts on a set of qubits.
-    next available id = 28
+    next available id = 31
     """
 
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
