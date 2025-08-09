@@ -373,7 +373,7 @@ def decompose_once(
 
     method = getattr(val, '_decompose_with_context_', None)
     decomposed = NotImplemented if method is None else method(*args, **kwargs, context=context)
-    if decomposed is NotImplemented or decomposed is None:
+    if decomposed is NotImplemented:
         method = getattr(val, '_decompose_', None)
         decomposed = NotImplemented if method is None else method(*args, **kwargs)
 

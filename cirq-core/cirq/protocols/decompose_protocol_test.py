@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import itertools
+from types import NotImplementedType
 from unittest import mock
 
 import pytest
@@ -454,3 +455,46 @@ def test_extracting_global_phases() -> None:
     assert not context.extract_global_phases
     assert new_context.extract_global_phases
     assert new_context.qubit_manager is qm
+
+
+def test_handling_of_none_vs_notimplemented_return_values() -> None:
+
+    class TestOp:
+        called_decompose = False
+        called_decompose_with_context = False
+        return_value: NotImplementedType | None = None
+
+        def _decompose_(self):
+            self.called_decompose = True
+            return self.return_value
+
+        def _decompose_with_context_(self, *, context):
+            assert context is not None, 'A default context should be provided'
+            self.called_decompose_with_context = True
+            return self.return_value
+
+    op = TestOp()
+    result = cirq.decompose(op)
+    assert op.called_decompose_with_context, 'Should always call _decompose_with_context_'
+    assert not op.called_decompose, 'Should not fall back to _decompose_'
+    assert result == [op]
+
+    op = TestOp()
+    result = cirq.decompose_once(op, default='dummy')
+    assert op.called_decompose_with_context, 'Should always call _decompose_with_context_'
+    assert not op.called_decompose, 'Should not fall back to _decompose_'
+    assert result == 'dummy'
+
+    op = TestOp()
+    op.return_value = NotImplemented
+    result = cirq.decompose(op)
+    assert op.called_decompose_with_context, 'Should always call _decompose_with_context_'
+    assert op.called_decompose, 'Should fall back to _decompose_'
+    assert result == [op]
+
+    op = TestOp()
+    op.return_value = NotImplemented
+    result = cirq.decompose_once(op, default='dummy')
+    assert op.called_decompose_with_context, 'Should always call _decompose_with_context_'
+    assert op.called_decompose, 'Should fall back to _decompose_'
+    assert result == 'dummy'
