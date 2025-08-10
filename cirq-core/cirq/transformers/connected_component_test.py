@@ -79,8 +79,7 @@ def test_merge_returns_None_if_one_component_is_not_mergeable():
 def test_factory_merge_returns_None_if_is_mergeable_is_false():
     q = cirq.NamedQubit('x')
 
-    def is_mergeable(op: cirq.Operation) -> bool:
-        del op
+    def is_mergeable(_: cirq.Operation) -> bool:
         return False
 
     factory = ComponentFactory(is_mergeable=is_mergeable)
@@ -140,8 +139,7 @@ def test_merge_moment_with_merge_left_false():
 
 
 def test_component_with_ops_merge():
-    def is_mergeable(op: cirq.Operation) -> bool:
-        del op
+    def is_mergeable(_: cirq.Operation) -> bool:
         return True
 
     def can_merge(ops1: list[cirq.Operation], ops2: list[cirq.Operation]) -> bool:
@@ -160,8 +158,7 @@ def test_component_with_ops_merge():
 
 
 def test_component_with_ops_merge_same_component():
-    def is_mergeable(op: cirq.Operation) -> bool:
-        del op
+    def is_mergeable(_: cirq.Operation) -> bool:
         return True
 
     def can_merge(ops1: list[cirq.Operation], ops2: list[cirq.Operation]) -> bool:
@@ -178,8 +175,7 @@ def test_component_with_ops_merge_same_component():
 
 
 def test_component_with_ops_merge_when_merge_fails():
-    def is_mergeable(op: cirq.Operation) -> bool:
-        del op
+    def is_mergeable(_: cirq.Operation) -> bool:
         return True
 
     def can_merge(ops1: list[cirq.Operation], ops2: list[cirq.Operation]) -> bool:
@@ -200,8 +196,7 @@ def test_component_with_ops_merge_when_merge_fails():
 
 
 def test_component_with_ops_merge_when_is_mergeable_is_false():
-    def is_mergeable(op: cirq.Operation) -> bool:
-        del op
+    def is_mergeable(_: cirq.Operation) -> bool:
         return False
 
     def can_merge(ops1: list[cirq.Operation], ops2: list[cirq.Operation]) -> bool:
@@ -222,12 +217,10 @@ def test_component_with_ops_merge_when_is_mergeable_is_false():
 
 
 def test_component_with_circuit_op_merge():
-    def is_mergeable(op: cirq.Operation) -> bool:
-        del op
+    def is_mergeable(_: cirq.Operation) -> bool:
         return True
 
-    def merge_func(op1: cirq.Operation, op2: cirq.Operation) -> cirq.Operation:
-        del op2
+    def merge_func(op1: cirq.Operation, _: cirq.Operation) -> cirq.Operation:
         return op1
 
     factory = ComponentWithCircuitOpFactory(is_mergeable, merge_func)
@@ -243,12 +236,10 @@ def test_component_with_circuit_op_merge():
 
 
 def test_component_with_circuit_op_merge_same_component():
-    def is_mergeable(op: cirq.Operation) -> bool:
-        del op
+    def is_mergeable(_: cirq.Operation) -> bool:
         return True
 
-    def merge_func(op1: cirq.Operation, op2: cirq.Operation) -> cirq.Operation:
-        del op2
+    def merge_func(op1: cirq.Operation, _: cirq.Operation) -> cirq.Operation:
         return op1
 
     factory = ComponentWithCircuitOpFactory(is_mergeable, merge_func)
@@ -261,8 +252,7 @@ def test_component_with_circuit_op_merge_same_component():
 
 
 def test_component_with_circuit_op_merge_func_is_none():
-    def is_mergeable(op: cirq.Operation) -> bool:
-        del op
+    def is_mergeable(_: cirq.Operation) -> bool:
         return True
 
     def merge_func(op1: cirq.Operation, op2: cirq.Operation) -> None:
@@ -283,12 +273,10 @@ def test_component_with_circuit_op_merge_func_is_none():
 
 
 def test_component_with_circuit_op_merge_when_is_mergeable_is_false():
-    def is_mergeable(op: cirq.Operation) -> bool:
-        del op
+    def is_mergeable(_: cirq.Operation) -> bool:
         return False
 
-    def merge_func(op1: cirq.Operation, op2: cirq.Operation) -> cirq.Operation:
-        del op2
+    def merge_func(op1: cirq.Operation, _: cirq.Operation) -> cirq.Operation:
         return op1
 
     factory = ComponentWithCircuitOpFactory(is_mergeable, merge_func)
@@ -305,12 +293,10 @@ def test_component_with_circuit_op_merge_when_is_mergeable_is_false():
 
 
 def test_component_with_circuit_op_merge_when_merge_left_is_false():
-    def merge_func_x(op1: cirq.Operation, op2: cirq.Operation) -> cirq.Operation:
-        del op2
+    def merge_func_x(op1: cirq.Operation, _: cirq.Operation) -> cirq.Operation:
         return op1
 
-    def merge_func_y(op1: cirq.Operation, op2: cirq.Operation) -> cirq.Operation:
-        del op1
+    def merge_func_y(_: cirq.Operation, op2: cirq.Operation) -> cirq.Operation:
         return op2
 
     q = cirq.LineQubit.range(2)

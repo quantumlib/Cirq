@@ -290,7 +290,11 @@ def map_operations_and_unroll(
 
 @dataclasses.dataclass
 class _MergedCircuit:
-    """An optimized internal representation of a circuit, tailored for merge operations
+    """An optimized internal representation of a circuit, tailored for merge operations.
+
+    Operations are represented as mergeable components.
+    Each component has a moment id, a set of qubits, a set of measurement keys, and a set of
+    control keys. The moment id is the index of the moment that contains the component.
 
     Attributes:
         qubit_indexes: Mapping from qubits to (sorted) list of component moments containing
@@ -299,8 +303,10 @@ class _MergedCircuit:
             containing measurement operations with the same key.
         ckey_indexes: Mapping from measurement keys to (sorted) list of component moments
             containing classically controlled operations controlled on the same key.
-        components_by_index: List of circuit moments containing components. We use a dictionary
-            instead of a set to store components to preserve insertion order.
+        components_by_index: List of components indexed by moment id.
+            For a moment id, we use a dictionary instead of a set to keep track of the
+            components in the moment. The dictionary is used to preserve insertion order,
+            and the values have no meaning.
     """
 
     qubit_indexes: dict[cirq.Qid, list[int]] = dataclasses.field(
@@ -596,8 +602,7 @@ def merge_operations(
             )
         return new_op
 
-    def is_mergeable(op: cirq.Operation):
-        del op
+    def is_mergeable(_: cirq.Operation):
         return True
 
     return _merge_operations_impl(
@@ -640,8 +645,7 @@ def merge_operations_to_circuit_op(
         Copy of input circuit with valid connected components wrapped in tagged circuit operations.
     """
 
-    def is_mergeable(op: cirq.Operation):
-        del op
+    def is_mergeable(_: cirq.Operation):
         return True
 
     return _merge_operations_impl(
