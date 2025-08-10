@@ -14,6 +14,8 @@
 
 """A Gauge Transformer for the CZ gate."""
 
+from __future__ import annotations
+
 from cirq import ops
 from cirq.ops.common_gates import CZ
 from cirq.transformers.gauge_compiling.gauge_compiling import (

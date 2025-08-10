@@ -15,11 +15,12 @@
 from __future__ import annotations
 
 import itertools
-from typing import Iterable
+from typing import Iterable, TYPE_CHECKING
 
 import networkx as nx
 
-import cirq
+if TYPE_CHECKING:
+    import cirq
 
 
 def _gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):

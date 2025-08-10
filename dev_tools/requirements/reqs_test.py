@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import os
 
 import pytest
@@ -29,12 +31,12 @@ def _list_all_req_files():
 
 
 @pytest.mark.parametrize('req', _list_all_req_files())
-def test_validate_requirement_files(req):
+def test_validate_requirement_files(req) -> None:
     """Test that all req files are using valid requirements."""
     assert len(explode(req)) > 0
 
 
-def test_explode():
+def test_explode() -> None:
     actual = explode("dev_tools/requirements/test_data/a.req.txt")
     assert actual == [
         'a_dependency==0.2.3',

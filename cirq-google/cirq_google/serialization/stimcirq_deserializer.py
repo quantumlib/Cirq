@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import functools
-from typing import Any, Dict, List, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import cirq
 from cirq_google.serialization import arg_func_langs
@@ -50,8 +50,8 @@ class StimCirqDeserializer(OpDeserializer):
         self,
         proto: v2.program_pb2.Operation,
         *,
-        constants: List[v2.program_pb2.Constant],
-        deserialized_constants: List[Any],
+        constants: list[v2.program_pb2.Constant],
+        deserialized_constants: list[Any],
     ) -> cirq.Operation:
         """Turns a cirq_google Operation proto into a stimcirq object.
 
@@ -75,7 +75,7 @@ class StimCirqDeserializer(OpDeserializer):
             raise ValueError(f"stimcirq object {proto} not recognized. (Is stimcirq installed?)")
 
         # Resolve each of the serialized arguments
-        kwargs: Dict[str, Any] = {}
+        kwargs: dict[str, Any] = {}
         for k, v in proto.internalgate.gate_args.items():
             if k == "pauli":
                 # Special Handling for pauli gate

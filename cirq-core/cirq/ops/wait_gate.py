@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import AbstractSet, Any, Dict, Optional, Tuple, TYPE_CHECKING
+from typing import AbstractSet, Any, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq.ops import raw_types
@@ -33,9 +33,9 @@ class WaitGate(raw_types.Gate):
 
     def __init__(
         self,
-        duration: cirq.DURATION_LIKE,
-        num_qubits: Optional[int] = None,
-        qid_shape: Optional[Tuple[int, ...]] = None,
+        duration: cirq.DURATION_LIKE | int,
+        num_qubits: int | None = None,
+        qid_shape: tuple[int, ...] | None = None,
     ) -> None:
         """Initialize a wait gate with the given duration.
 
@@ -84,7 +84,7 @@ class WaitGate(raw_types.Gate):
             qid_shape=self._qid_shape,
         )
 
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         return self._qid_shape
 
     def _has_unitary_(self) -> bool:
@@ -114,7 +114,7 @@ class WaitGate(raw_types.Gate):
     def __repr__(self) -> str:
         return f'cirq.WaitGate({repr(self.duration)})'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         d = protocols.obj_to_dict_helper(self, ['duration'])
         if len(self._qid_shape) != 1:
             d['num_qubits'] = len(self._qid_shape)

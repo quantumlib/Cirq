@@ -14,6 +14,8 @@
 
 """Progress and logging facilities for the quantum runtime."""
 
+from __future__ import annotations
+
 import abc
 from typing import TYPE_CHECKING
 
@@ -28,9 +30,7 @@ class _WorkflowLogger(abc.ABC):
     def initialize(self):
         """Initialization logic at the start of an execution loop."""
 
-    def consume_result(
-        self, exe_result: 'cg.ExecutableResult', shared_rt_info: 'cg.SharedRuntimeInfo'
-    ):
+    def consume_result(self, exe_result: cg.ExecutableResult, shared_rt_info: cg.SharedRuntimeInfo):
         """Consume executable results as they are completed.
 
         Args:
@@ -52,9 +52,7 @@ class _PrintLogger(_WorkflowLogger):
         """Write a newline at the start of an execution loop."""
         print()
 
-    def consume_result(
-        self, exe_result: 'cg.ExecutableResult', shared_rt_info: 'cg.SharedRuntimeInfo'
-    ):
+    def consume_result(self, exe_result: cg.ExecutableResult, shared_rt_info: cg.SharedRuntimeInfo):
         """Print a simple count of completed executables."""
         print(f'\r{self.i + 1} / {self.n_total}', end='', flush=True)
         self.i += 1

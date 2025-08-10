@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 import warnings
-from typing import cast, Dict, List, Optional, Sequence, Tuple, Union
+from typing import cast, Sequence, TYPE_CHECKING
 
-import numpy as np
 import quimb
 import quimb.tensor as qtn
 
 import cirq
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 def _get_quimb_version():
@@ -28,10 +30,8 @@ QUIMB_VERSION = _get_quimb_version()
 
 
 def circuit_to_tensors(
-    circuit: cirq.Circuit,
-    qubits: Optional[Sequence[cirq.Qid]] = None,
-    initial_state: Union[int, None] = 0,
-) -> Tuple[List[qtn.Tensor], Dict[cirq.Qid, int], None]:
+    circuit: cirq.Circuit, qubits: Sequence[cirq.Qid] | None = None, initial_state: int | None = 0
+) -> tuple[list[qtn.Tensor], dict[cirq.Qid, int], None]:
     """Given a circuit, construct a tensor network representation.
 
     Indices are named "i{i}_q{x}" where i is a time index and x is a
@@ -65,7 +65,7 @@ def circuit_to_tensors(
 
     qubit_frontier = {q: 0 for q in qubits}
     positions = None
-    tensors: List[qtn.Tensor] = []
+    tensors: list[qtn.Tensor] = []
 
     if initial_state == 0:
         for q in qubits:
@@ -92,7 +92,7 @@ def circuit_to_tensors(
 
 
 def tensor_state_vector(
-    circuit: cirq.Circuit, qubits: Optional[Sequence[cirq.Qid]] = None
+    circuit: cirq.Circuit, qubits: Sequence[cirq.Qid] | None = None
 ) -> np.ndarray:
     """Given a circuit contract a tensor network into a final state vector."""
     if qubits is None:
@@ -105,9 +105,7 @@ def tensor_state_vector(
     return tn.to_dense(f_inds)
 
 
-def tensor_unitary(
-    circuit: cirq.Circuit, qubits: Optional[Sequence[cirq.Qid]] = None
-) -> np.ndarray:
+def tensor_unitary(circuit: cirq.Circuit, qubits: Sequence[cirq.Qid] | None = None) -> np.ndarray:
     """Given a circuit contract a tensor network into a dense unitary
     of the circuit."""
     if qubits is None:

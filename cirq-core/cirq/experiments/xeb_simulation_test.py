@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import multiprocessing
-from typing import Any, Dict, Iterator, Optional, Sequence
+from typing import Any, Iterator, Sequence
 
 import numpy as np
 import pandas as pd
@@ -74,7 +74,7 @@ def test_simulate_circuit_length_validation():
         _ = simulate_2q_xeb_circuits(circuits=circuits, cycle_depths=cycle_depths)
 
 
-def _ref_simulate_2q_xeb_circuit(task: Dict[str, Any]):
+def _ref_simulate_2q_xeb_circuit(task: dict[str, Any]):
     """Helper function for simulating a given (circuit, cycle_depth)."""
     circuit_i = task['circuit_i']
     cycle_depth = task['cycle_depth']
@@ -98,7 +98,7 @@ def _ref_simulate_2q_xeb_circuits(
     circuits: Sequence[cirq.Circuit],
     cycle_depths: Sequence[int],
     param_resolver: cirq.ParamResolverOrSimilarType = None,
-    pool: Optional[multiprocessing.pool.Pool] = None,
+    pool: multiprocessing.pool.Pool | None = None,
 ):
     """Reference implementation for `simulate_2q_xeb_circuits` that
     does each circuit independently instead of using intermediate states.

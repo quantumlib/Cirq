@@ -70,6 +70,8 @@ Note: QFT in the above diagram omits swaps, which are included implicitly by
 reversing qubit order for phase kickbacks.
 """
 
+from __future__ import annotations
+
 import math
 import random
 from collections.abc import Mapping
@@ -144,7 +146,6 @@ class PhaseKickback(cirq.Gate):
     """
 
     def __init__(self, num_qubits, unitary):
-        super(PhaseKickback, self)
         self._num_qubits = num_qubits
         self.U = unitary
 
@@ -171,7 +172,6 @@ class EigenRotation(cirq.Gate):
     """
 
     def __init__(self, num_qubits, C, t):
-        super(EigenRotation, self)
         self._num_qubits = num_qubits
         self.C = C
         self.t = t

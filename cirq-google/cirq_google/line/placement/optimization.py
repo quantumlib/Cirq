@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import math
-from typing import Callable, Optional, Tuple, TypeVar
+from typing import Callable, TypeVar
 
 T = TypeVar('T')
 
 
-def _accept(random_sample: float, cost_diff: float, temp: float) -> Tuple[bool, float]:
+def _accept(random_sample: float, cost_diff: float, temp: float) -> tuple[bool, float]:
     """Calculates probability and draws if solution should be accepted.
 
     Based on exp(-Delta*E/T) formula.
@@ -50,7 +52,7 @@ def anneal_minimize(
     temp_final: float = 1e-6,
     cooling_factor: float = 0.99,
     repeat: int = 100,
-    trace_func: Optional[Callable[[T, float, float, float, bool], None]] = None,
+    trace_func: Callable[[T, float, float, float, bool], None] | None = None,
 ) -> T:
     """Minimize solution using Simulated Annealing meta-heuristic.
 

@@ -13,36 +13,50 @@
 # limitations under the License.
 
 """Functions to instantiate SimulatedLocalEngines to simulate various Google Devices."""
+
+from __future__ import annotations
+
 import json
 import pathlib
 import time
-from typing import cast, List, Optional, Type, Union
+from typing import cast, TYPE_CHECKING
 
 import google.protobuf.text_format as text_format
 
 import cirq
-from cirq.sim.simulator import SimulatesSamples
 from cirq_google.api import v2
 from cirq_google.devices import grid_device
 from cirq_google.devices.google_noise_properties import NoiseModelFromGoogleNoiseProperties
-from cirq_google.engine import calibration, engine_validator, simulated_local_processor, util
-from cirq_google.engine.calibration_to_noise_properties import noise_properties_from_calibration
+from cirq_google.engine import (
+    calibration,
+    calibration_to_noise_properties,
+    engine_validator,
+    simulated_local_processor,
+    util,
+)
 from cirq_google.engine.simulated_local_engine import SimulatedLocalEngine
 from cirq_google.engine.simulated_local_processor import SimulatedLocalProcessor
+from cirq_google.ops import fsim_gate_family
+
+if TYPE_CHECKING:
+    import cirq_google
 
 MOST_RECENT_TEMPLATES = {
     'rainbow': 'rainbow_2021_12_10_device_spec_for_grid_device.proto.txt',
     'weber': 'weber_2021_12_10_device_spec_for_grid_device.proto.txt',
+    'willow_pink': 'willow_pink_d7v1-2024_08_16_device_spec_for_grid_device.proto.txt',
 }
 
 MEDIAN_CALIBRATIONS = {
     'rainbow': 'rainbow_2021_11_16_calibration.json',
     'weber': 'weber_2021_11_03_calibration.json',
+    'willow_pink': 'willow_pink_d7v1-2024_08_16_calibration.json',
 }
 
 MEDIAN_CALIBRATION_TIMESTAMPS = {
     'rainbow': 1637058415838,  # 2021-11-16 10:26:55.838 UTC
     'weber': 1635923188204,  # 2021-11-03 07:06:28.204 UTC
+    'willow_pink': 1723795877630,  # 2024-08-16 08:11:17.630 UTC
 }
 
 ZPHASE_DATA = {'rainbow': 'rainbow_2021_08_26_zphase.json', 'weber': 'weber_2021_04_20_zphase.json'}
@@ -99,6 +113,31 @@ def _create_perfect_calibration(device: cirq.Device) -> calibration.Calibration:
     return calibration.Calibration(calibration=snapshot, metrics=all_metrics)
 
 
+def load_device_noise_properties(processor_id: str) -> cirq_google.GoogleNoiseProperties:
+    """Loads NoiseProperties for the given device.
+
+    This combines calibration data for the device with gate times from its specification, and
+    the Z phases data, if available, to construct NoiseProperties for device simulation.
+
+    Args:
+        processor_id: name of the processor to simulate.
+            Use `list_virtual_processors` to obtain available names.
+
+    Raises:
+        ValueError: if processor_id is not a supported QCS processor.
+    """
+    device = create_device_from_processor_id(processor_id)
+    calibration = load_median_device_calibration(processor_id)
+    zphase_data = load_sample_device_zphase(processor_id) if processor_id in ZPHASE_DATA else None
+    if processor_id in ('rainbow', 'weber'):
+        gate_times_ns = calibration_to_noise_properties.DEFAULT_GATE_NS
+    else:
+        gate_times_ns = extract_gate_times_ns_from_device(device)
+    return calibration_to_noise_properties.noise_properties_from_calibration(
+        calibration=calibration, gate_times_ns=gate_times_ns, zphase_data=zphase_data
+    )
+
+
 def load_median_device_calibration(processor_id: str) -> calibration.Calibration:
     """Loads a median `cirq_google.Calibration` for the given device.
 
@@ -111,6 +150,7 @@ def load_median_device_calibration(processor_id: str) -> calibration.Calibration
 
     Args:
         processor_id: name of the processor to simulate.
+            Use `list_virtual_processors` to obtain available names.
 
     Raises:
         ValueError: if processor_id is not a supported QCS processor.
@@ -167,7 +207,7 @@ def load_sample_device_zphase(processor_id: str) -> util.ZPhaseDataType:
 def _create_virtual_processor_from_device(
     processor_id: str,
     device: cirq.Device,
-    device_specification: Optional[v2.device_pb2.DeviceSpecification] = None,
+    device_specification: v2.device_pb2.DeviceSpecification | None = None,
 ) -> simulated_local_processor.SimulatedLocalProcessor:
     """Creates a Processor object that is backed by a noiseless simulator.
 
@@ -196,7 +236,7 @@ def _create_virtual_processor_from_device(
 def create_noiseless_virtual_engine_from_device(
     processor_id: str,
     device: cirq.Device,
-    device_specification: Optional[v2.device_pb2.DeviceSpecification] = None,
+    device_specification: v2.device_pb2.DeviceSpecification | None = None,
 ) -> SimulatedLocalEngine:
     """Creates an Engine object with a single processor backed by a noiseless simulator.
 
@@ -204,9 +244,8 @@ def create_noiseless_virtual_engine_from_device(
     a default validator, and a provided device.
 
     Args:
-        processor_id: name of the processor to simulate.  This is an arbitrary
-            string identifier and does not have to match the processor's name
-            in QCS.
+        processor_id: name of the virtual processor to simulate.
+            Use `list_virtual_processors` to obtain available names.
         device: A `cirq.Device` to validate circuits against.
         device_specification: a` DeviceSpecification` proto that the processor
             should return if `get_device_specification()` is queried.
@@ -225,9 +264,8 @@ def create_noiseless_virtual_processor_from_proto(
     and can be retrieved from a stored "proto.txt" file or from the QCS API.
 
     Args:
-        processor_id: name of the processor to simulate.  This is an arbitrary
-            string identifier and does not have to match the processor's name
-            in QCS.
+        processor_id: name of the processor to simulate.
+            Use `list_virtual_processors` to obtain available names.
         device_specification:  `v2.device_pb2.DeviceSpecification` proto to create
             a validating device from.
         gate_sets: Iterable of serializers to use in the processor.
@@ -239,10 +277,10 @@ def create_noiseless_virtual_processor_from_proto(
 
 
 def create_noiseless_virtual_engine_from_proto(
-    processor_ids: Union[str, List[str]],
-    device_specifications: Union[
-        v2.device_pb2.DeviceSpecification, List[v2.device_pb2.DeviceSpecification]
-    ],
+    processor_ids: str | list[str],
+    device_specifications: (
+        v2.device_pb2.DeviceSpecification | list[v2.device_pb2.DeviceSpecification]
+    ),
 ) -> SimulatedLocalEngine:
     """Creates a noiseless virtual engine object from a device specification proto.
 
@@ -253,6 +291,7 @@ def create_noiseless_virtual_engine_from_proto(
         processor_ids: names of the processors to simulate.  These are arbitrary
             string identifiers and do not have to match the processors' names
             in QCS.  This can be a single string or list of strings.
+            Use `list_virtual_processors` to obtain recognized names.
         device_specifications:  `v2.device_pb2.DeviceSpecification` proto to create
             validating devices from.  This can be a single DeviceSpecification
             or a list of them.  There should be one DeviceSpecification for each
@@ -293,6 +332,7 @@ def create_device_spec_from_processor_id(processor_id: str) -> v2.device_pb2.Dev
 
     Args:
         processor_id: name of the processor to simulate.
+            Use `list_virtual_processors` to obtain available names.
 
     Raises:
         ValueError: if processor_id is not a supported QCS processor.
@@ -303,11 +343,12 @@ def create_device_spec_from_processor_id(processor_id: str) -> v2.device_pb2.Dev
     return _create_device_spec_from_template(template_name)
 
 
-def create_device_from_processor_id(processor_id: str) -> cirq.Device:
-    """Generates a `cirq.Device` for a given processor ID.
+def create_device_from_processor_id(processor_id: str) -> grid_device.GridDevice:
+    """Generates a `cirq_google.GridDevice` for a given processor ID.
 
     Args:
         processor_id: name of the processor to simulate.
+            Use `list_virtual_processors` to obtain available names.
 
     Raises:
         ValueError: if processor_id is not a supported QCS processor.
@@ -322,9 +363,8 @@ def create_noiseless_virtual_processor_from_template(
     """Creates a simulated local processor from a device specification template.
 
     Args:
-        processor_id: name of the processor to simulate.  This is an arbitrary
-            string identifier and does not have to match the processor's name
-            in QCS.
+        processor_id: name of the processor to simulate.
+            Use `list_virtual_processors` to obtain available names.
         template_name: File name of the device specification template, see
             cirq_google/devices/specifications for valid templates.
         gate_sets: Iterable of serializers to use in the processor.
@@ -335,7 +375,7 @@ def create_noiseless_virtual_processor_from_template(
 
 
 def create_noiseless_virtual_engine_from_templates(
-    processor_ids: Union[str, List[str]], template_names: Union[str, List[str]]
+    processor_ids: str | list[str], template_names: str | list[str]
 ) -> SimulatedLocalEngine:
     """Creates a noiseless virtual engine object from a device specification template.
 
@@ -343,7 +383,7 @@ def create_noiseless_virtual_engine_from_templates(
         processor_ids: names of the processors to simulate.  These are arbitrary
             string identifiers and do not have to match the processors' names
             in QCS.  There can be a single string or a list of strings for multiple
-            processors.
+            processors.  Use `list_virtual_processors` to obtain recognized names.
         template_names: File names of the device specification templates, see
             cirq_google/devices/specifications for valid templates.  There can
             be a single str for a template name or a list of strings.  Each
@@ -385,12 +425,13 @@ def create_noiseless_virtual_engine_from_latest_templates() -> SimulatedLocalEng
 
 
 def create_default_noisy_quantum_virtual_machine(
-    processor_id: str, simulator_class: Optional[Type[SimulatesSamples]] = None, **kwargs
+    processor_id: str, simulator_class: type[cirq.SimulatesSamples] | None = None, **kwargs
 ) -> SimulatedLocalEngine:
     """Creates a virtual engine with a noisy simulator based on a processor id.
 
     Args:
         processor_id: The string name of a processor that has available noise data.
+            Use `list_virtual_processors` to obtain available names.
         simulator_class: The class of the type of simulator to be initialized. The
             simulator class initializer needs to support the `noise` parameter.
         **kwargs: Other arguments which are passed through to the simulator initializer.
@@ -410,12 +451,12 @@ def create_default_noisy_quantum_virtual_machine(
             simulator_class = cirq.Simulator  # pragma: no cover
 
     calibration = load_median_device_calibration(processor_id)
-    noise_properties = noise_properties_from_calibration(calibration)
+    device = create_device_from_processor_id(processor_id)
+    noise_properties = load_device_noise_properties(processor_id)
     noise_model = NoiseModelFromGoogleNoiseProperties(noise_properties)
     simulator = simulator_class(noise=noise_model, **kwargs)  # type: ignore
 
     device_specification = create_device_spec_from_processor_id(processor_id)
-    device = create_device_from_processor_id(processor_id)
     simulated_processor = SimulatedLocalProcessor(
         processor_id=processor_id,
         sampler=simulator,
@@ -425,3 +466,48 @@ def create_default_noisy_quantum_virtual_machine(
     )
 
     return SimulatedLocalEngine([simulated_processor])
+
+
+def extract_gate_times_ns_from_device(
+    device: cirq_google.GridDevice,
+) -> dict[type[cirq.Gate], float]:
+    """Extract a dictionary of gate durations in nanoseconds from GridDevice object.
+
+    The durations are obtained from `GridDevice.metadata` field which is
+    provided for devices obtained with `create_device_from_processor_id`.
+
+    Args:
+        device: Object representing Google devices with a grid qubit layout.
+
+    Returns:
+        A dictionary of gate durations versus supported gate types.  Returns an
+        empty dictionary when `device.metadata` do not provide gate durations.
+    """
+    gate_times_ns: dict[type[cirq.Gate], float] = {}
+    if not device.metadata.gate_durations:
+        return gate_times_ns
+    gate_type: type[cirq.Gate]  # pragma: no cover
+    for gate_family, duration in device.metadata.gate_durations.items():
+        if isinstance(gate_family, fsim_gate_family.FSimGateFamily):
+            for g in gate_family.gates_to_accept:
+                gate_type = g if isinstance(g, type) else type(g)
+                gate_times_ns[gate_type] = duration.total_nanos()
+            continue
+        # ordinary GateFamily here
+        gate_type = (
+            gate_family.gate if isinstance(gate_family.gate, type) else type(gate_family.gate)
+        )
+        gate_times_ns[gate_type] = duration.total_nanos()
+    # cirq.IdentityGate can leak from FSimGateFamily.  Exclude to default to zero duration.
+    _ = gate_times_ns.pop(cirq.IdentityGate, None)
+    # cirq.WaitGate has variable duration and should not be included here.
+    _ = gate_times_ns.pop(cirq.WaitGate, None)
+    return gate_times_ns
+
+
+def list_virtual_processors() -> list[str]:
+    """Return a sorted list of known virtual processor names.
+
+    These are accepted for the ``processor_id`` argument in factory functions.
+    """
+    return sorted(MOST_RECENT_TEMPLATES.keys())

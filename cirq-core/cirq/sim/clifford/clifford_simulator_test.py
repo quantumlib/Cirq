@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import itertools
 
 import numpy as np
@@ -273,7 +276,7 @@ def test_clifford_trial_result_repr_pretty():
         final_simulator_state=final_simulator_state,
     )
 
-    cirq.testing.assert_repr_pretty(result, "measurements: m=1\n" "output state: |0⟩")
+    cirq.testing.assert_repr_pretty(result, "measurements: m=1\noutput state: |0⟩")
     cirq.testing.assert_repr_pretty(result, "cirq.CliffordTrialResult(...)", cycle=True)
 
 
@@ -282,7 +285,7 @@ def test_clifford_step_result_str():
     result = next(
         cirq.CliffordSimulator().simulate_moment_steps(cirq.Circuit(cirq.measure(q0, key='m')))
     )
-    assert str(result) == "m=0\n" "|0⟩"
+    assert str(result) == "m=0\n|0⟩"
 
 
 def test_clifford_step_result_repr_pretty():
@@ -290,7 +293,7 @@ def test_clifford_step_result_repr_pretty():
     result = next(
         cirq.CliffordSimulator().simulate_moment_steps(cirq.Circuit(cirq.measure(q0, key='m')))
     )
-    cirq.testing.assert_repr_pretty(result, "m=0\n" "|0⟩")
+    cirq.testing.assert_repr_pretty(result, "m=0\n|0⟩")
     cirq.testing.assert_repr_pretty(result, "cirq.CliffordSimulatorStateResult(...)", cycle=True)
 
 
@@ -567,7 +570,7 @@ def test_valid_apply_measurement():
     q0 = cirq.LineQubit(0)
     state = cirq.CliffordState(qubit_map={q0: 0}, initial_state=1)
     measurements = {}
-    _ = state.apply_measurement(
+    state.apply_measurement(
         cirq.measure(q0), measurements, np.random.RandomState(), collapse_state_vector=False
     )
     assert measurements == {'q(0)': [1]}

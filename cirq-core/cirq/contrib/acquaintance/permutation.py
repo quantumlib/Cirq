@@ -16,19 +16,7 @@ from __future__ import annotations
 
 import abc
 from types import NotImplementedType
-from typing import (
-    Any,
-    cast,
-    Dict,
-    Iterable,
-    Iterator,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    TypeVar,
-    Union,
-)
+from typing import Any, cast, Iterable, Iterator, Sequence, TYPE_CHECKING, TypeVar
 
 from cirq import circuits, ops, protocols, transformers, value
 
@@ -37,10 +25,10 @@ if TYPE_CHECKING:
 
 
 LogicalIndex = TypeVar('LogicalIndex', int, ops.Qid)
-LogicalIndexSequence = Union[Sequence[int], Sequence['cirq.Qid']]
-LogicalGates = Dict[Tuple[LogicalIndex, ...], ops.Gate]
+LogicalIndexSequence = Sequence[int] | Sequence['cirq.Qid']
+LogicalGates = dict[tuple[LogicalIndex, ...], ops.Gate]
 LogicalMappingKey = TypeVar('LogicalMappingKey', bound=ops.Qid)
-LogicalMapping = Dict[LogicalMappingKey, LogicalIndex]
+LogicalMapping = dict[LogicalMappingKey, LogicalIndex]
 
 
 class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
@@ -61,12 +49,12 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
         return self._num_qubits
 
     @abc.abstractmethod
-    def permutation(self) -> Dict[int, int]:
+    def permutation(self) -> dict[int, int]:
         """permutation = {i: s[i]} indicates that the i-th element is mapped to
         the s[i]-th element."""
 
     def update_mapping(
-        self, mapping: Dict[ops.Qid, LogicalIndex], keys: Sequence[cirq.Qid]
+        self, mapping: dict[ops.Qid, LogicalIndex], keys: Sequence[cirq.Qid]
     ) -> None:
         """Updates a mapping (in place) from qubits to logical indices.
 
@@ -86,7 +74,7 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
                 mapping[new_key] = old_element
 
     @staticmethod
-    def validate_permutation(permutation: Dict[int, int], n_elements: Optional[int] = None) -> None:
+    def validate_permutation(permutation: dict[int, int], n_elements: int | None = None) -> None:
         if not permutation:
             return
         if set(permutation.values()) != set(permutation):
@@ -99,7 +87,7 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
 
     def _circuit_diagram_info_(
         self, args: cirq.CircuitDiagramInfoArgs
-    ) -> Union[str, Iterable[str], cirq.CircuitDiagramInfo]:
+    ) -> str | Iterable[str] | cirq.CircuitDiagramInfo:
         if args.known_qubit_count is None:
             return NotImplemented
         permutation = self.permutation()
@@ -150,7 +138,7 @@ class SwapPermutationGate(PermutationGate):
     def __init__(self, swap_gate: cirq.Gate = ops.SWAP):
         super().__init__(2, swap_gate)
 
-    def permutation(self) -> Dict[int, int]:
+    def permutation(self) -> dict[int, int]:
         return {0: 1, 1: 0}
 
     def _decompose_(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
@@ -166,7 +154,7 @@ class SwapPermutationGate(PermutationGate):
     def _value_equality_values_(self) -> Any:
         return (self.swap_gate,)
 
-    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> Union[bool, NotImplementedType]:
+    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> bool | NotImplementedType:
         if (
             isinstance(other, ops.Gate)
             and isinstance(other, ops.InterchangeableQubitsGate)
@@ -176,7 +164,7 @@ class SwapPermutationGate(PermutationGate):
         return NotImplemented
 
 
-def _canonicalize_permutation(permutation: Dict[int, int]) -> Dict[int, int]:
+def _canonicalize_permutation(permutation: dict[int, int]) -> dict[int, int]:
     return {i: j for i, j in permutation.items() if i != j}
 
 
@@ -186,7 +174,7 @@ class LinearPermutationGate(PermutationGate):
     sorting network."""
 
     def __init__(
-        self, num_qubits: int, permutation: Dict[int, int], swap_gate: cirq.Gate = ops.SWAP
+        self, num_qubits: int, permutation: dict[int, int], swap_gate: cirq.Gate = ops.SWAP
     ) -> None:
         """Initializes a linear permutation gate.
 
@@ -199,7 +187,7 @@ class LinearPermutationGate(PermutationGate):
         PermutationGate.validate_permutation(permutation, num_qubits)
         self._permutation = permutation
 
-    def permutation(self) -> Dict[int, int]:
+    def permutation(self) -> dict[int, int]:
         return self._permutation
 
     def _decompose_(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
@@ -238,7 +226,7 @@ class LinearPermutationGate(PermutationGate):
         return NotImplemented
 
 
-def update_mapping(mapping: Dict[ops.Qid, LogicalIndex], operations: cirq.OP_TREE) -> None:
+def update_mapping(mapping: dict[ops.Qid, LogicalIndex], operations: cirq.OP_TREE) -> None:
     """Updates a mapping (in place) from qubits to logical indices according to
     a set of permutation gates. Any gates other than permutation gates are
     ignored.
@@ -253,7 +241,7 @@ def update_mapping(mapping: Dict[ops.Qid, LogicalIndex], operations: cirq.OP_TRE
 
 
 def get_logical_operations(
-    operations: cirq.OP_TREE, initial_mapping: Dict[ops.Qid, ops.Qid]
+    operations: cirq.OP_TREE, initial_mapping: dict[ops.Qid, ops.Qid]
 ) -> Iterable[cirq.Operation]:
     """Gets the logical operations specified by the physical operations and
     initial mapping.

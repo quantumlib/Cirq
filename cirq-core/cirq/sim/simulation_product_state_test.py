@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Dict, Optional, Sequence
+
+from __future__ import annotations
+
+from typing import Any, Sequence
 
 import cirq
 
@@ -54,7 +57,7 @@ qs2 = cirq.LineQubit.range(2)
 def create_container(
     qubits: Sequence[cirq.Qid], split_untangled_states=True
 ) -> cirq.SimulationProductState[EmptySimulationState]:
-    state_map: Dict[Optional[cirq.Qid], EmptySimulationState] = {}
+    state_map: dict[cirq.Qid | None, EmptySimulationState] = {}
     log = cirq.ClassicalDataDictionaryStore()
     if split_untangled_states:
         for q in reversed(qubits):

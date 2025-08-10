@@ -13,9 +13,11 @@
 # limitations under the License.
 """Service to access IonQs API."""
 
+from __future__ import annotations
+
 import datetime
 import os
-from typing import List, Optional, Sequence
+from typing import Sequence
 
 import cirq
 from cirq_ionq import calibration, ionq_client, job, results, sampler, serializer
@@ -32,12 +34,12 @@ class Service:
 
     def __init__(
         self,
-        remote_host: Optional[str] = None,
-        api_key: Optional[str] = None,
-        default_target: Optional[str] = None,
+        remote_host: str | None = None,
+        api_key: str | None = None,
+        default_target: str | None = None,
         api_version='v0.3',
         max_retry_seconds: int = 3600,
-        job_settings: Optional[dict] = None,
+        job_settings: dict | None = None,
         verbose=False,
     ):
         """Creates the Service to access IonQ's API.
@@ -93,13 +95,13 @@ class Service:
         self,
         circuit: cirq.Circuit,
         repetitions: int,
-        name: Optional[str] = None,
-        target: Optional[str] = None,
+        name: str | None = None,
+        target: str | None = None,
         param_resolver: cirq.ParamResolverOrSimilarType = cirq.ParamResolver({}),
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
-        error_mitigation: Optional[dict] = None,
-        sharpen: Optional[bool] = None,
-        extra_query_params: Optional[dict] = None,
+        error_mitigation: dict | None = None,
+        sharpen: bool | None = None,
+        extra_query_params: dict | None = None,
     ) -> cirq.Result:
         """Run the given circuit on the IonQ API.
 
@@ -142,16 +144,16 @@ class Service:
 
     def run_batch(
         self,
-        circuits: List[cirq.AbstractCircuit],
+        circuits: list[cirq.AbstractCircuit],
         repetitions: int,
-        name: Optional[str] = None,
-        target: Optional[str] = None,
+        name: str | None = None,
+        target: str | None = None,
         param_resolver: cirq.ParamResolverOrSimilarType = cirq.ParamResolver({}),
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
-        error_mitigation: Optional[dict] = None,
-        sharpen: Optional[bool] = None,
-        extra_query_params: Optional[dict] = None,
-    ) -> List[cirq.Result]:
+        error_mitigation: dict | None = None,
+        sharpen: bool | None = None,
+        extra_query_params: dict | None = None,
+    ) -> list[cirq.Result]:
         """Run the given circuits on the IonQ API.
 
         Args:
@@ -201,7 +203,7 @@ class Service:
                 raise NotImplementedError(f"Unrecognized job result type '{type(job_result)}'.")
         return cirq_results
 
-    def sampler(self, target: Optional[str] = None, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None):
+    def sampler(self, target: str | None = None, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None):
         """Returns a `cirq.Sampler` object for accessing the sampler interface.
 
         Args:
@@ -220,10 +222,10 @@ class Service:
         self,
         circuit: cirq.AbstractCircuit,
         repetitions: int = 100,
-        name: Optional[str] = None,
-        target: Optional[str] = None,
-        error_mitigation: Optional[dict] = None,
-        extra_query_params: Optional[dict] = None,
+        name: str | None = None,
+        target: str | None = None,
+        error_mitigation: dict | None = None,
+        extra_query_params: dict | None = None,
     ) -> job.Job:
         """Create a new job to run the given circuit.
 
@@ -260,12 +262,12 @@ class Service:
 
     def create_batch_job(
         self,
-        circuits: List[cirq.AbstractCircuit],
+        circuits: list[cirq.AbstractCircuit],
         repetitions: int = 100,
-        name: Optional[str] = None,
-        target: Optional[str] = None,
-        error_mitigation: Optional[dict] = None,
-        extra_query_params: Optional[dict] = None,
+        name: str | None = None,
+        target: str | None = None,
+        error_mitigation: dict | None = None,
+        extra_query_params: dict | None = None,
     ) -> job.Job:
         """Create a new job to run the given circuit.
 
@@ -318,7 +320,7 @@ class Service:
         return job.Job(client=self._client, job_dict=job_dict)
 
     def list_jobs(
-        self, status: Optional[str] = None, limit: int = 100, batch_size: int = 1000
+        self, status: str | None = None, limit: int = 100, batch_size: int = 1000
     ) -> Sequence[job.Job]:
         """Lists jobs that have been created on the IonQ API.
 
@@ -356,8 +358,8 @@ class Service:
 
     def list_calibrations(
         self,
-        start: Optional[datetime.datetime] = None,
-        end: Optional[datetime.datetime] = None,
+        start: datetime.datetime | None = None,
+        end: datetime.datetime | None = None,
         limit: int = 100,
         batch_size: int = 1000,
     ) -> Sequence[calibration.Calibration]:

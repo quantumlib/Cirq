@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List
+from __future__ import annotations
 
 import numpy as np
 import pytest
@@ -42,7 +42,7 @@ def test_device_validation():
 
 
 def _batch_size_less_than_two(
-    circuits: List[cirq.Circuit], sweeps: List[cirq.Sweepable], repetitions: int
+    circuits: list[cirq.Circuit], sweeps: list[cirq.Sweepable], repetitions: int
 ):
     if len(circuits) > 2:
         raise ValueError('Too many batches')
@@ -77,7 +77,7 @@ def test_batch_validation():
         results = sampler.run_batch(circuits, sweeps, repetitions=100)
 
 
-def _too_many_reps(circuits: List[cirq.Circuit], sweeps: List[cirq.Sweepable], repetitions: int):
+def _too_many_reps(circuits: list[cirq.Circuit], sweeps: list[cirq.Sweepable], repetitions: int):
     if repetitions > 10000:
         raise ValueError('Too many repetitions')
 

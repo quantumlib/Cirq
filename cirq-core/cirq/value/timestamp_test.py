@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from datetime import timedelta
 
 import pytest
@@ -75,9 +77,9 @@ def test_cmp() -> None:
             assert (i >= j) == (a >= b)
             assert (i > j) == (a > b)
 
-    assert not (Timestamp() == 0)
+    assert not (Timestamp() == 0)  # noqa: SIM201
     assert Timestamp() != 0
-    assert not (Timestamp() == Duration())
+    assert not (Timestamp() == Duration())  # noqa: SIM201
     assert Timestamp() != Duration()
 
 

@@ -20,6 +20,10 @@ message RunContext {
   // If the same parameter is supplied in both places, the provision here in
   // device_parameters_override will have no effect.
   DeviceParametersDiff device_parameters_override = 2;
+
+  // If compression is desired, this field stores the gzipped bytes
+  // of the RunContext
+  bytes compressed_run_context = 3;
 }
 
 // Specifies how to repeatedly sample a circuit, with or without sweeping over
@@ -225,8 +229,11 @@ message SingleSweep {
 
 // A list of explicit values.
 message Points {
-  // The values.
+  // The values.  Deprecated, superseded by points_double (assign both fields during transition).
   repeated float points = 1;
+
+  // The values.
+  repeated double points_double = 3;
 
   tunits.Value unit = 2;
 }
@@ -238,9 +245,12 @@ message Points {
 //   1.0, 1.25, 1.5, 1.75, 2.0
 message Linspace {
   // The start of the range.
+  // Deprecated: superseded by first_point_double (assign both fields during transition).
   float first_point = 1;
-  // The end of the range.
+  double first_point_double = 5;
+  // The end of the range. (float32 should be avoided.)
   float last_point = 2;
+  double last_point_double = 6;
   // The number of points in the range (including first and last). Must be
   // greater than zero. If it is 1, the first_point and last_point must be
   // the same.
@@ -257,6 +267,7 @@ message ConstValue {
     // object.
     bool is_none = 1;
     float float_value = 2;
+    double double_value = 6;
     int64 int_value = 3;
     string string_value = 4;
     tunits.Value with_unit_value = 5;

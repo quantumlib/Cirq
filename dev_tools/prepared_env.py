@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import os
 import sys
-from typing import List, Optional
 
 import requests
 
@@ -26,11 +27,11 @@ class PreparedEnv:
 
     def __init__(
         self,
-        github_repo: Optional[github_repository.GithubRepository],
-        actual_commit_id: Optional[str],
+        github_repo: github_repository.GithubRepository | None,
+        actual_commit_id: str | None,
         compare_commit_id: str,
-        destination_directory: Optional[str],
-        virtual_env_path: Optional[str],
+        destination_directory: str | None,
+        virtual_env_path: str | None,
     ) -> None:
         """Initializes a description of a prepared (or desired) environment.
 
@@ -64,7 +65,7 @@ class PreparedEnv:
         return os.path.join(self.virtual_env_path, 'bin', program)
 
     def report_status_to_github(
-        self, state: str, description: str, context: str, target_url: Optional[str] = None
+        self, state: str, description: str, context: str, target_url: str | None = None
     ):
         """Sets a commit status indicator on github.
 
@@ -111,11 +112,11 @@ class PreparedEnv:
                 f'Request failed. Code: {response.status_code}. Content: {response.content!r}.'
             )
 
-    def get_changed_files(self) -> List[str]:
+    def get_changed_files(self) -> list[str]:
         """Get the files changed on one git branch vs another.
 
         Returns:
-            List[str]: File paths of changed files, relative to the git repo
+            list[str]: File paths of changed files, relative to the git repo
                 root.
         """
         optional_actual_commit_id = [] if self.actual_commit_id is None else [self.actual_commit_id]

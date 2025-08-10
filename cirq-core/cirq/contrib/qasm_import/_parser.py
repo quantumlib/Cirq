@@ -17,19 +17,7 @@ from __future__ import annotations
 import dataclasses
 import functools
 import operator
-from typing import (
-    Any,
-    Callable,
-    cast,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import Any, Callable, cast, Iterable, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -61,7 +49,7 @@ class Qasm:
         self.circuit = c
 
 
-def _generate_op_qubits(args: List[List[ops.Qid]], lineno: int) -> List[List[ops.Qid]]:
+def _generate_op_qubits(args: list[list[ops.Qid]], lineno: int) -> list[list[ops.Qid]]:
     """Generates the Cirq qubits for an operation from the OpenQASM qregs.
 
     OpenQASM gates can be applied on single qubits and qubit registers.
@@ -78,7 +66,7 @@ def _generate_op_qubits(args: List[List[ops.Qid]], lineno: int) -> List[List[ops
             f"Non matching quantum registers of length {reg_sizes} at line {lineno}"
         )
     op_qubits_gen = functools.reduce(
-        cast(Callable[[List['cirq.Qid'], List['cirq.Qid']], List['cirq.Qid']], np.broadcast), args
+        cast(Callable[[list['cirq.Qid'], list['cirq.Qid']], list['cirq.Qid']], np.broadcast), args
     )
     op_qubits = [[q] if isinstance(q, ops.Qid) else q for q in op_qubits_gen]
     if any(len(set(q)) < len(q) for q in op_qubits):
@@ -98,7 +86,7 @@ class QasmGateStatement:
     def __init__(
         self,
         qasm_gate: str,
-        cirq_gate: Union[ops.Gate, Callable[[List[float]], ops.Gate]],
+        cirq_gate: ops.Gate | Callable[[list[float]], ops.Gate],
         num_params: int,
         num_args: int,
     ):
@@ -119,14 +107,14 @@ class QasmGateStatement:
         assert num_args >= 1
         self.num_args = num_args
 
-    def _validate_args(self, args: List[List[ops.Qid]], lineno: int):
+    def _validate_args(self, args: list[list[ops.Qid]], lineno: int):
         if len(args) != self.num_args:
             raise QasmException(
                 f"{self.qasm_gate} only takes {self.num_args} arg(s) (qubits and/or registers), "
                 f"got: {len(args)}, at line {lineno}"
             )
 
-    def _validate_params(self, params: List[value.TParamVal], lineno: int):
+    def _validate_params(self, params: list[value.TParamVal], lineno: int):
         if len(params) != self.num_params:
             raise QasmException(
                 f"{self.qasm_gate} takes {self.num_params} parameter(s), "
@@ -134,7 +122,7 @@ class QasmGateStatement:
             )
 
     def on(
-        self, params: List[value.TParamVal], args: List[List[ops.Qid]], lineno: int
+        self, params: list[value.TParamVal], args: list[list[ops.Qid]], lineno: int
     ) -> Iterable[ops.Operation]:
         self._validate_args(args, lineno)
         self._validate_params(params, lineno)
@@ -159,11 +147,11 @@ class CustomGate:
 
     name: str
     circuit: FrozenCircuit
-    params: Tuple[str, ...]
-    qubits: Tuple[ops.Qid, ...]
+    params: tuple[str, ...]
+    qubits: tuple[ops.Qid, ...]
 
     def on(
-        self, params: List[value.TParamVal], args: List[List[ops.Qid]], lineno: int
+        self, params: list[value.TParamVal], args: list[list[ops.Qid]], lineno: int
     ) -> Iterable[ops.Operation]:
         if len(params) != len(self.params):
             raise QasmException(f"Wrong number of params for '{self.name}' at line {lineno}")
@@ -189,25 +177,25 @@ class QasmParser:
     def __init__(self) -> None:
         self.parser = yacc.yacc(module=self, debug=False, write_tables=False)
         self.circuit = Circuit()
-        self.qregs: Dict[str, int] = {}
-        self.cregs: Dict[str, int] = {}
-        self.gate_set: Dict[str, Union[CustomGate, QasmGateStatement]] = {**self.basic_gates}
+        self.qregs: dict[str, int] = {}
+        self.cregs: dict[str, int] = {}
+        self.gate_set: dict[str, CustomGate | QasmGateStatement] = {**self.basic_gates}
         """The gates available to use in the circuit, including those from libraries, and
          user-defined ones."""
         self.in_custom_gate_scope = False
         """This is set to True when the parser is in the middle of parsing a custom gate
          definition."""
-        self.custom_gate_scoped_params: Set[str] = set()
+        self.custom_gate_scoped_params: set[str] = set()
         """The params declared within the current custom gate definition. Empty if not in
          custom gate scope."""
-        self.custom_gate_scoped_qubits: Dict[str, ops.Qid] = {}
+        self.custom_gate_scoped_qubits: dict[str, ops.Qid] = {}
         """The qubits declared within the current custom gate definition. Empty if not in
          custom gate scope."""
         self.qelibinc = False
         self.lexer = QasmLexer()
         self.supported_format = False
-        self.parsedQasm: Optional[Qasm] = None
-        self.qubits: Dict[str, ops.Qid] = {}
+        self.parsedQasm: Qasm | None = None
+        self.qubits: dict[str, ops.Qid] = {}
         self.functions = {
             'sin': np.sin,
             'cos': np.cos,
@@ -228,7 +216,7 @@ class QasmParser:
             '^': operator.pow,
         }
 
-    basic_gates: Dict[str, QasmGateStatement] = {
+    basic_gates: dict[str, QasmGateStatement] = {
         'CX': QasmGateStatement(qasm_gate='CX', cirq_gate=CX, num_params=0, num_args=2),
         'U': QasmGateStatement(
             qasm_gate='U',
@@ -240,14 +228,493 @@ class QasmParser:
     }
 
     qelib_gates = {
+        'ccx': QasmGateStatement(qasm_gate='ccx', num_params=0, num_args=3, cirq_gate=ops.CCX),
+        'rccx': QasmGateStatement(
+            qasm_gate='rccx',
+            num_params=0,
+            num_args=3,
+            cirq_gate=ops.MatrixGate(
+                np.array(
+                    [
+                        [
+                            1.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                        ],
+                        [
+                            0.0 + 0.0j,
+                            1.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                        ],
+                        [
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            1.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                        ],
+                        [
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            1.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                        ],
+                        [
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            1.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                        ],
+                        [
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            -1.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                        ],
+                        [
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 - 1.0j,
+                        ],
+                        [
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 1.0j,
+                            0.0 + 0.0j,
+                        ],
+                    ]
+                )
+            ),
+        ),
+        'c3x': QasmGateStatement(
+            qasm_gate='c3x',
+            num_params=0,
+            num_args=4,
+            cirq_gate=ops.ControlledGate(sub_gate=ops.X, num_controls=3),
+        ),
+        'rc3x': QasmGateStatement(
+            qasm_gate='rc3x',
+            num_params=0,
+            num_args=4,
+            cirq_gate=ops.MatrixGate(
+                np.array(
+                    [
+                        [
+                            1.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                        ],
+                        [
+                            0.0 + 0.0j,
+                            1.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                        ],
+                        [
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            1.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                        ],
+                        [
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            1.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                        ],
+                        [
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            1.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                        ],
+                        [
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            1.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                        ],
+                        [
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            1.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                        ],
+                        [
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            1.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                        ],
+                        [
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            1.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                        ],
+                        [
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            1.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                        ],
+                        [
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            1.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                        ],
+                        [
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            1.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                        ],
+                        [
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 1.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                        ],
+                        [
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 - 1.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                        ],
+                        [
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            1.0 + 0.0j,
+                        ],
+                        [
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            0.0 + 0.0j,
+                            -1.0 + 0.0j,
+                            0.0 + 0.0j,
+                        ],
+                    ]
+                )
+            ),
+        ),
+        'c4x': QasmGateStatement(
+            qasm_gate='c4x',
+            num_params=0,
+            num_args=5,
+            cirq_gate=ops.ControlledGate(sub_gate=ops.X, num_controls=4),
+        ),
+        'ch': QasmGateStatement(
+            qasm_gate='ch', cirq_gate=ops.ControlledGate(ops.H), num_params=0, num_args=2
+        ),
+        'crx': QasmGateStatement(
+            qasm_gate='crx',
+            num_params=1,
+            num_args=2,
+            cirq_gate=(lambda params: ops.ControlledGate(ops.rx(params[0]))),
+        ),
+        'cry': QasmGateStatement(
+            qasm_gate='cry',
+            num_params=1,
+            num_args=2,
+            cirq_gate=(lambda params: ops.ControlledGate(ops.ry(params[0]))),
+        ),
+        'crz': QasmGateStatement(
+            qasm_gate='crz',
+            num_params=1,
+            num_args=2,
+            cirq_gate=(lambda params: ops.ControlledGate(ops.rz(params[0]))),
+        ),
+        'cp': QasmGateStatement(
+            qasm_gate='cp',
+            num_params=1,
+            num_args=2,
+            cirq_gate=(lambda params: ops.ControlledGate(ops.ZPowGate(exponent=params[0] / np.pi))),
+        ),
+        'cswap': QasmGateStatement(
+            qasm_gate='cswap', num_params=0, num_args=3, cirq_gate=ops.CSWAP
+        ),
+        'cu1': QasmGateStatement(
+            qasm_gate='cu1',
+            num_params=1,
+            num_args=2,
+            cirq_gate=(lambda params: ops.ControlledGate(QasmUGate(0, 0, params[0] / np.pi))),
+        ),
+        'cu3': QasmGateStatement(
+            qasm_gate='cu3',
+            num_params=3,
+            num_args=2,
+            cirq_gate=(lambda params: ops.ControlledGate(QasmUGate(*[p / np.pi for p in params]))),
+        ),
+        'cu': QasmGateStatement(
+            qasm_gate='cu',
+            num_params=3,
+            num_args=2,
+            cirq_gate=(lambda params: ops.ControlledGate(QasmUGate(*[p / np.pi for p in params]))),
+        ),
+        'csx': QasmGateStatement(
+            qasm_gate='csx',
+            num_params=0,
+            num_args=2,
+            cirq_gate=ops.ControlledGate(ops.XPowGate(exponent=0.5)),
+        ),
+        'c3sqrtx': QasmGateStatement(
+            qasm_gate='c3sqrtx',
+            num_params=0,
+            num_args=4,
+            cirq_gate=ops.ControlledGate(ops.XPowGate(exponent=0.5), num_controls=3),
+        ),
+        'cx': QasmGateStatement(qasm_gate='cx', cirq_gate=CX, num_params=0, num_args=2),
+        'cy': QasmGateStatement(
+            qasm_gate='cy', cirq_gate=ops.ControlledGate(ops.Y), num_params=0, num_args=2
+        ),
+        'cz': QasmGateStatement(qasm_gate='cz', cirq_gate=ops.CZ, num_params=0, num_args=2),
+        'h': QasmGateStatement(qasm_gate='h', num_params=0, num_args=1, cirq_gate=ops.H),
+        'id': QasmGateStatement(
+            qasm_gate='id', cirq_gate=ops.IdentityGate(1), num_params=0, num_args=1
+        ),
+        'iswap': QasmGateStatement(
+            qasm_gate='iswap', cirq_gate=ops.ISwapPowGate(), num_params=0, num_args=2
+        ),
+        'r': QasmGateStatement(
+            qasm_gate='r',
+            num_params=2,
+            num_args=1,
+            cirq_gate=(
+                lambda params: QasmUGate(
+                    params[0] / np.pi, (params[1] / np.pi) - 0.5, (-params[1] / np.pi) + 0.5
+                )
+            ),
+        ),
         'rx': QasmGateStatement(
             qasm_gate='rx', cirq_gate=(lambda params: ops.rx(params[0])), num_params=1, num_args=1
-        ),
-        'sx': QasmGateStatement(
-            qasm_gate='sx', num_params=0, num_args=1, cirq_gate=ops.XPowGate(exponent=0.5)
-        ),
-        'sxdg': QasmGateStatement(
-            qasm_gate='sxdg', num_params=0, num_args=1, cirq_gate=ops.XPowGate(exponent=-0.5)
         ),
         'ry': QasmGateStatement(
             qasm_gate='ry', cirq_gate=(lambda params: ops.ry(params[0])), num_params=1, num_args=1
@@ -255,12 +722,47 @@ class QasmParser:
         'rz': QasmGateStatement(
             qasm_gate='rz', cirq_gate=(lambda params: ops.rz(params[0])), num_params=1, num_args=1
         ),
-        'id': QasmGateStatement(
-            qasm_gate='id', cirq_gate=ops.IdentityGate(1), num_params=0, num_args=1
+        'rxx': QasmGateStatement(
+            qasm_gate='rxx',
+            num_params=1,
+            num_args=2,
+            cirq_gate=(lambda params: ops.XXPowGate(exponent=params[0] / np.pi)),
+        ),
+        'ryy': QasmGateStatement(
+            qasm_gate='ryy',
+            num_params=1,
+            num_args=2,
+            cirq_gate=(lambda params: ops.YYPowGate(exponent=params[0] / np.pi)),
+        ),
+        'rzz': QasmGateStatement(
+            qasm_gate='rzz',
+            num_params=1,
+            num_args=2,
+            cirq_gate=(lambda params: ops.ZZPowGate(exponent=params[0] / np.pi)),
+        ),
+        's': QasmGateStatement(qasm_gate='s', num_params=0, num_args=1, cirq_gate=ops.S),
+        'sdg': QasmGateStatement(qasm_gate='sdg', num_params=0, num_args=1, cirq_gate=ops.S**-1),
+        'swap': QasmGateStatement(qasm_gate='swap', cirq_gate=ops.SWAP, num_params=0, num_args=2),
+        'sx': QasmGateStatement(
+            qasm_gate='sx', num_params=0, num_args=1, cirq_gate=ops.XPowGate(exponent=0.5)
+        ),
+        'sxdg': QasmGateStatement(
+            qasm_gate='sxdg', num_params=0, num_args=1, cirq_gate=ops.XPowGate(exponent=-0.5)
+        ),
+        't': QasmGateStatement(qasm_gate='t', num_params=0, num_args=1, cirq_gate=ops.T),
+        'tdg': QasmGateStatement(qasm_gate='tdg', num_params=0, num_args=1, cirq_gate=ops.T**-1),
+        'u0': QasmGateStatement(
+            qasm_gate='u0', cirq_gate=(lambda _: ops.I), num_params=1, num_args=1
         ),
         'u1': QasmGateStatement(
             qasm_gate='u1',
             cirq_gate=(lambda params: QasmUGate(0, 0, params[0] / np.pi)),
+            num_params=1,
+            num_args=1,
+        ),
+        'p': QasmGateStatement(
+            qasm_gate='p',
+            cirq_gate=(lambda params: ops.ZPowGate(exponent=params[0] / np.pi)),
             num_params=1,
             num_args=1,
         ),
@@ -276,55 +778,15 @@ class QasmParser:
             num_args=1,
             cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])),
         ),
-        'r': QasmGateStatement(
-            qasm_gate='r',
-            num_params=2,
+        'u': QasmGateStatement(
+            qasm_gate='u',
+            num_params=3,
             num_args=1,
-            cirq_gate=(
-                lambda params: QasmUGate(
-                    params[0] / np.pi, (params[1] / np.pi) - 0.5, (-params[1] / np.pi) + 0.5
-                )
-            ),
+            cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])),
         ),
         'x': QasmGateStatement(qasm_gate='x', num_params=0, num_args=1, cirq_gate=ops.X),
         'y': QasmGateStatement(qasm_gate='y', num_params=0, num_args=1, cirq_gate=ops.Y),
         'z': QasmGateStatement(qasm_gate='z', num_params=0, num_args=1, cirq_gate=ops.Z),
-        'h': QasmGateStatement(qasm_gate='h', num_params=0, num_args=1, cirq_gate=ops.H),
-        's': QasmGateStatement(qasm_gate='s', num_params=0, num_args=1, cirq_gate=ops.S),
-        't': QasmGateStatement(qasm_gate='t', num_params=0, num_args=1, cirq_gate=ops.T),
-        'cx': QasmGateStatement(qasm_gate='cx', cirq_gate=CX, num_params=0, num_args=2),
-        'cy': QasmGateStatement(
-            qasm_gate='cy', cirq_gate=ops.ControlledGate(ops.Y), num_params=0, num_args=2
-        ),
-        'cz': QasmGateStatement(qasm_gate='cz', cirq_gate=ops.CZ, num_params=0, num_args=2),
-        'ch': QasmGateStatement(
-            qasm_gate='ch', cirq_gate=ops.ControlledGate(ops.H), num_params=0, num_args=2
-        ),
-        'cu1': QasmGateStatement(
-            qasm_gate='cu1',
-            num_params=1,
-            num_args=2,
-            cirq_gate=(lambda params: ops.ControlledGate(QasmUGate(0, 0, params[0] / np.pi))),
-        ),
-        'cu3': QasmGateStatement(
-            qasm_gate='cu3',
-            num_params=3,
-            num_args=2,
-            cirq_gate=(lambda params: ops.ControlledGate(QasmUGate(*[p / np.pi for p in params]))),
-        ),
-        'crz': QasmGateStatement(
-            qasm_gate='crz',
-            num_params=1,
-            num_args=2,
-            cirq_gate=(lambda params: ops.ControlledGate(ops.rz(params[0]))),
-        ),
-        'swap': QasmGateStatement(qasm_gate='swap', cirq_gate=ops.SWAP, num_params=0, num_args=2),
-        'cswap': QasmGateStatement(
-            qasm_gate='cswap', num_params=0, num_args=3, cirq_gate=ops.CSWAP
-        ),
-        'ccx': QasmGateStatement(qasm_gate='ccx', num_params=0, num_args=3, cirq_gate=ops.CCX),
-        'sdg': QasmGateStatement(qasm_gate='sdg', num_params=0, num_args=1, cirq_gate=ops.S**-1),
-        'tdg': QasmGateStatement(qasm_gate='tdg', num_params=0, num_args=1, cirq_gate=ops.T**-1),
     }
 
     tokens = QasmLexer.tokens
@@ -443,7 +905,7 @@ class QasmParser:
         self._resolve_gate_operation(args=p[5], gate=p[1], p=p, params=p[3])
 
     def _resolve_gate_operation(
-        self, args: List[List[ops.Qid]], gate: str, p: Any, params: List[value.TParamVal]
+        self, args: list[list[ops.Qid]], gate: str, p: Any, params: list[value.TParamVal]
     ):
         if gate not in self.gate_set:
             tip = ", did you forget to include qelib1.inc?" if not self.qelibinc else ""
@@ -693,7 +1155,7 @@ class QasmParser:
         """gate_def : GATE ID gate_qubits '{' gate_ops '}'"""
         self._gate_def(p, has_params=False)
 
-    def _gate_def(self, p: List[Any], *, has_params: bool):
+    def _gate_def(self, p: list[Any], *, has_params: bool):
         name = p[2]
         gate_params = tuple(p[4]) if has_params else ()
         offset = 3 if has_params else 0

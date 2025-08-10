@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Optional
+from __future__ import annotations
+
+from typing import Any
 
 import cirq.protocols.decompose_protocol as decompose_protocol
 import cirq.protocols.has_unitary_protocol as has_unitary_protocol
@@ -50,7 +52,7 @@ def has_stabilizer_effect(val: Any) -> bool:
     return False
 
 
-def _strat_has_stabilizer_effect_from_has_stabilizer_effect(val: Any) -> Optional[bool]:
+def _strat_has_stabilizer_effect_from_has_stabilizer_effect(val: Any) -> bool | None:
     """Infer whether val has stabilizer effect via its `_has_stabilizer_effect_` method."""
     if hasattr(val, '_has_stabilizer_effect_'):
         result = val._has_stabilizer_effect_()
@@ -59,14 +61,14 @@ def _strat_has_stabilizer_effect_from_has_stabilizer_effect(val: Any) -> Optiona
     return None
 
 
-def _strat_has_stabilizer_effect_from_gate(val: Any) -> Optional[bool]:
+def _strat_has_stabilizer_effect_from_gate(val: Any) -> bool | None:
     """Infer whether val's gate has stabilizer effect via the _has_stabilizer_effect_ method."""
     if hasattr(val, 'gate'):
         return _strat_has_stabilizer_effect_from_has_stabilizer_effect(val.gate)
     return None
 
 
-def _strat_has_stabilizer_effect_from_unitary(val: Any) -> Optional[bool]:
+def _strat_has_stabilizer_effect_from_unitary(val: Any) -> bool | None:
     """Attempts to infer whether val has stabilizer effect from its unitary.
 
     Returns whether unitary of `val` normalizes the Pauli group. Works only for
@@ -101,7 +103,7 @@ def _strat_has_stabilizer_effect_from_unitary(val: Any) -> Optional[bool]:
     return True
 
 
-def _strat_has_stabilizer_effect_from_decompose(val: Any) -> Optional[bool]:
+def _strat_has_stabilizer_effect_from_decompose(val: Any) -> bool | None:
     decomposition, _, _ = decompose_protocol._try_decompose_into_operations_and_qubits(val)
     if decomposition is None:
         return None

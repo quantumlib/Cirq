@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import unittest.mock as mock
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
 
 import pytest
 
@@ -31,11 +32,11 @@ GRID_HEIGHT = 5
 class _DeviceInfo:
     """Dataclass for device information relevant to GridDevice tests."""
 
-    grid_qubits: List[cirq.GridQubit]
-    qubit_pairs: List[Tuple[cirq.GridQubit, cirq.GridQubit]]
+    grid_qubits: list[cirq.GridQubit]
+    qubit_pairs: list[tuple[cirq.GridQubit, cirq.GridQubit]]
     expected_gateset: cirq.Gateset
-    expected_gate_durations: Dict[cirq.GateFamily, cirq.Duration]
-    expected_target_gatesets: Tuple[cirq.CompilationTargetGateset, ...]
+    expected_gate_durations: dict[cirq.GateFamily, cirq.Duration]
+    expected_target_gatesets: tuple[cirq.CompilationTargetGateset, ...]
 
 
 def _create_device_spec_with_horizontal_couplings():
@@ -80,6 +81,7 @@ def _create_device_spec_with_horizontal_couplings():
         'fsim_via_model',
         'cz_pow_gate',
         'internal_gate',
+        'reset',
     ]
     gate_durations = [(n, i * 1000) for i, n in enumerate(gate_names)]
     for gate_name, duration in sorted(gate_durations):
@@ -115,6 +117,7 @@ def _create_device_spec_with_horizontal_couplings():
         cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
         cirq.GateFamily(cirq.CZPowGate),
         cirq.GateFamily(cirq_google.InternalGate),
+        cirq.GateFamily(cirq.ResetChannel),
     )
 
     base_duration = cirq.Duration(picos=1_000)
@@ -151,6 +154,7 @@ def _create_device_spec_with_horizontal_couplings():
         * 10,
         cirq.GateFamily(cirq.CZPowGate): base_duration * 11,
         cirq.GateFamily(cirq_google.InternalGate): base_duration * 12,
+        cirq.GateFamily(cirq.ResetChannel): base_duration * 13,
     }
 
     expected_target_gatesets = (
@@ -179,6 +183,7 @@ def _create_device_spec_with_horizontal_couplings():
                 cirq.ops.wait_gate.WaitGate,
                 cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
                 cirq.GateFamily(cirq_google.InternalGate),
+                cirq.GateFamily(cirq.ResetChannel),
             ]
         ),
         cirq_google.SycamoreTargetGateset(),
@@ -207,6 +212,7 @@ def _create_device_spec_with_horizontal_couplings():
                 cirq.ops.wait_gate.WaitGate,
                 cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
                 cirq.GateFamily(cirq_google.InternalGate),
+                cirq.GateFamily(cirq.ResetChannel),
             ]
         ),
         cirq.CZTargetGateset(
@@ -236,6 +242,7 @@ def _create_device_spec_with_horizontal_couplings():
                 cirq.ops.wait_gate.WaitGate,
                 cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
                 cirq.GateFamily(cirq_google.InternalGate),
+                cirq.GateFamily(cirq.ResetChannel),
             ],
         ),
     )
@@ -596,6 +603,7 @@ def test_device_from_device_information_equals_device_from_proto():
         cirq.ops.wait_gate.WaitGate,
         cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
         cirq.GateFamily(cirq_google.InternalGate),
+        cirq.GateFamily(cirq.ResetChannel),
     )
 
     base_duration = cirq.Duration(picos=1_000)
@@ -622,6 +630,7 @@ def test_device_from_device_information_equals_device_from_proto():
         * 10,
         cirq.GateFamily(cirq.CZPowGate): base_duration * 11,
         cirq.GateFamily(cirq_google.InternalGate): base_duration * 12,
+        cirq.GateFamily(cirq.ResetChannel): base_duration * 13,
     }
 
     device_from_information = cirq_google.GridDevice._from_device_information(
@@ -730,6 +739,7 @@ def test_to_proto():
         * 10,
         cirq.GateFamily(cirq.CZPowGate): base_duration * 11,
         cirq.GateFamily(cirq_google.InternalGate): base_duration * 12,
+        cirq.GateFamily(cirq.ResetChannel): base_duration * 13,
     }
 
     spec = cirq_google.GridDevice._from_device_information(

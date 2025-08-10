@@ -27,7 +27,7 @@ import types
 import warnings
 from importlib.machinery import ModuleSpec
 from types import ModuleType
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Any, Callable
 from unittest import mock
 
 import duet
@@ -202,12 +202,10 @@ def test_deprecated():
         old_func(1, 2)
 
     with pytest.raises(AssertionError, match='deadline should match vX.Y'):
-        # pylint: disable=unused-variable
+
         @deprecated(deadline='invalid', fix='Roll some dice.')
         def badly_deprecated_func(*args, **kwargs):  # pragma: no cover
             return new_func(*args, **kwargs)
-
-        # pylint: enable=unused-variable
 
 
 def test_deprecated_parameter():
@@ -234,20 +232,16 @@ def test_deprecated_parameter():
         'Double it yourself.',
         deadline='v1.2',
     ):
-        # pylint: disable=unexpected-keyword-arg
         # pylint: disable=no-value-for-parameter
         assert f(double_count=1) == 2
         # pylint: enable=no-value-for-parameter
-        # pylint: enable=unexpected-keyword-arg
 
     with pytest.raises(
         ValueError, match='During testing using Cirq deprecated functionality is not allowed'
     ):
-        # pylint: disable=unexpected-keyword-arg
         # pylint: disable=no-value-for-parameter
         f(double_count=1)
         # pylint: enable=no-value-for-parameter
-        # pylint: enable=unexpected-keyword-arg
 
     with pytest.raises(AssertionError, match='deadline should match vX.Y'):
 
@@ -259,11 +253,8 @@ def test_deprecated_parameter():
             match=lambda args, kwargs: 'double_count' in kwargs,
             rewrite=lambda args, kwargs: (args, {'new_count': kwargs['double_count'] * 2}),
         )
-        # pylint: disable=unused-variable
         def f_with_badly_deprecated_param(new_count):  # pragma: no cover
             return new_count
-
-        # pylint: enable=unused-variable
 
 
 @duet.sync
@@ -293,11 +284,9 @@ async def test_deprecated_parameter_async_function():
         'Double it yourself.',
         deadline='v1.2',
     ):
-        # pylint: disable=unexpected-keyword-arg
         # pylint: disable=no-value-for-parameter
         assert await f(double_count=1) == 2
         # pylint: enable=no-value-for-parameter
-        # pylint: enable=unexpected-keyword-arg
 
 
 def test_wrap_module():
@@ -405,12 +394,10 @@ def test_deprecated_class():
         OldClass('1')
 
     with pytest.raises(AssertionError, match='deadline should match vX.Y'):
-        # pylint: disable=unused-variable
+
         @deprecated_class(deadline='invalid', fix='theFix', name='foo')
         class BadlyDeprecatedClass(NewClass):  # pragma: no cover
             ...
-
-        # pylint: enable=unused-variable
 
 
 def _from_parent_import_deprecated():
@@ -577,8 +564,7 @@ def _import_top_level_deprecated():
 def _repeated_import_path():
     """to ensure that the highly unlikely repeated subpath import doesn't interfere"""
 
-    # pylint: disable=line-too-long
-    from cirq.testing._compat_test_data.repeated_child.cirq.testing._compat_test_data.repeated_child import (  # type: ignore
+    from cirq.testing._compat_test_data.repeated_child.cirq.testing._compat_test_data.repeated_child import (  # type: ignore  # noqa: E501
         child,
     )
 
@@ -587,7 +573,6 @@ def _repeated_import_path():
 
 def _type_repr_in_deprecated_module():
     # initialize the DeprecatedModuleFinders
-    # pylint: disable=unused-import
     import cirq.testing._compat_test_data.fake_a as mod_a
 
     expected_repr = "<class 'cirq.testing._compat_test_data.module_a.types.SampleType'>"
@@ -763,9 +748,6 @@ def test_metadata_search_path():
 
 def _test_metadata_search_path_inner():  # pragma: no cover
     # initialize the DeprecatedModuleFinders
-    # pylint: disable=unused-import
-    import cirq.testing._compat_test_data.module_a
-
     assert importlib.metadata.metadata('numpy')
 
 
@@ -806,7 +788,6 @@ def test_type_repr_in_new_module():
 
 def _test_type_repr_in_new_module_inner():
     # initialize the DeprecatedModuleFinders
-    # pylint: disable=unused-import
     import cirq.testing._compat_test_data.module_a as mod_a
 
     expected_repr = "<class 'cirq.testing._compat_test_data.module_a.types.SampleType'>"
@@ -828,8 +809,7 @@ def _test_broken_module_1_inner():
     with pytest.raises(
         DeprecatedModuleImportError, match="missing_module cannot be imported. The typical reasons"
     ):
-        # pylint: disable=unused-import
-        import cirq.testing._compat_test_data.broken_ref as br  # type: ignore
+        import cirq.testing._compat_test_data.broken_ref as br  # type: ignore # noqa: F401
 
 
 def _test_broken_module_2_inner():
@@ -876,13 +856,10 @@ def test_new_module_is_top_level():
 
 def _test_new_module_is_top_level_inner():
     # sets up the DeprecationFinders
-    # pylint: disable=unused-import
     import time
 
     # imports a top level module that was also deprecated
     from freezegun import api
-
-    import cirq.testing._compat_test_data
 
     assert api.real_time == time.time
 
@@ -925,7 +902,7 @@ def test_loader_create_module():
     fake_mod = ModuleType('hello')
 
     class CreateModuleLoader(importlib.abc.Loader):
-        def create_module(self, spec: ModuleSpec) -> Optional[ModuleType]:
+        def create_module(self, spec: ModuleSpec) -> ModuleType | None:
             return fake_mod
 
     assert (
@@ -1017,16 +994,16 @@ def test_block_overlapping_deprecation():
 
 class Bar:
     def __init__(self) -> None:
-        self.foo_calls: Dict[int, int] = collections.Counter()
-        self.bar_calls: Dict[int, int] = collections.Counter()
+        self.foo_calls: dict[int, int] = collections.Counter()
+        self.bar_calls: dict[int, int] = collections.Counter()
 
     @cached_method
-    def foo(self, n: int) -> Tuple[int, int]:
+    def foo(self, n: int) -> tuple[int, int]:
         self.foo_calls[n] += 1
         return (id(self), n)
 
     @cached_method(maxsize=1)
-    def bar(self, n: int) -> Tuple[int, int]:
+    def bar(self, n: int) -> tuple[int, int]:
         self.bar_calls[n] += 1
         return (id(self), 2 * n)
 

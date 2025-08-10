@@ -14,6 +14,8 @@
 
 """Tests for `parity_gates.py`."""
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 import sympy

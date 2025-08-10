@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, List
+from __future__ import annotations
+
+from typing import Iterable
 from unittest import mock
 
 import numpy as np
@@ -94,8 +96,8 @@ def test_quadratic_sum_cost_calculates_quadratic_cost():
     q02 = cirq.GridQubit(0, 2)
     q03 = cirq.GridQubit(0, 3)
 
-    def calculate_cost(seqs: List[List[cirq.GridQubit]]):
-        qubits: List[cirq.GridQubit] = []
+    def calculate_cost(seqs: list[list[cirq.GridQubit]]):
+        qubits: list[cirq.GridQubit] = []
         for seq in seqs:
             qubits += seq
         return AnnealSequenceSearch(_create_device(qubits), seed=0xF00D0003)._quadratic_sum_cost(
@@ -294,7 +296,7 @@ def test_force_edge_active_creates_valid_solution_single_sequence():
 
 
 def test_create_initial_solution_creates_valid_solution():
-    def check_chip(qubits: List[cirq.GridQubit]):
+    def check_chip(qubits: list[cirq.GridQubit]):
         _verify_valid_state(
             qubits,
             AnnealSequenceSearch(
@@ -339,7 +341,7 @@ def test_choose_random_edge_chooses():
     assert search._choose_random_edge({e0, e1, e2}) in [e0, e1, e2]
 
 
-def _verify_valid_state(qubits: List[cirq.GridQubit], state: _STATE):
+def _verify_valid_state(qubits: list[cirq.GridQubit], state: _STATE):
     seqs, edges = state
     search = AnnealSequenceSearch(_create_device(qubits), seed=0xF00D0014)
     c_adj = chip_as_adjacency_list(_create_device(qubits))

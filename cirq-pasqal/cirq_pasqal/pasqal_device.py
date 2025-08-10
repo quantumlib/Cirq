@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Sequence, Union
+from typing import Any, Sequence
 
 import networkx as nx
 import numpy as np
@@ -72,7 +72,6 @@ class PasqalDevice(cirq.devices.Device):
             qubits, nx.from_edgelist([(a, b) for a in qubits for b in qubits if a != b])
         )
 
-    # pylint: enable=missing-raises-doc
     @property
     def supported_qubit_type(self):
         return (NamedQubit,)
@@ -171,7 +170,7 @@ class PasqalVirtualDevice(PasqalDevice):
     """
 
     def __init__(
-        self, control_radius: float, qubits: Sequence[Union[ThreeDQubit, GridQubit, LineQubit]]
+        self, control_radius: float, qubits: Sequence[ThreeDQubit | GridQubit | LineQubit]
     ) -> None:
         """Initializes a device with some qubits.
 
@@ -289,5 +288,5 @@ class PasqalVirtualDevice(PasqalDevice):
     def _value_equality_values_(self) -> Any:
         return (self.control_radius, self.qubits)
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.protocols.obj_to_dict_helper(self, ['control_radius', 'qubits'])

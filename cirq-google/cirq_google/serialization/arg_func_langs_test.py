@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import base64
 import inspect
-from typing import cast, Dict
+from typing import cast
 
 import numpy as np
 import pytest
@@ -41,7 +43,7 @@ from cirq_google.serialization.arg_func_langs import (
 )
 
 
-def _json_format_kwargs() -> Dict[str, bool]:
+def _json_format_kwargs() -> dict[str, bool]:
     """Determine kwargs to pass to json_format.MessageToDict.
 
     Protobuf v5 has a different signature for MessageToDict. If we ever move to requiring

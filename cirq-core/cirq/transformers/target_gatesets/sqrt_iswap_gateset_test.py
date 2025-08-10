@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from __future__ import annotations
 
 import numpy as np
 import pytest
@@ -38,7 +38,7 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit, **kwargs):
 
 
 def assert_optimization_not_broken(
-    circuit: cirq.Circuit, required_sqrt_iswap_count: Optional[int] = None
+    circuit: cirq.Circuit, required_sqrt_iswap_count: int | None = None
 ):
     c_new = cirq.optimize_for_target_gateset(
         circuit,

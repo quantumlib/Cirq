@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Optional, Sequence, TypeVar, Union
+from __future__ import annotations
+
+from typing import Any, Sequence, TypeVar
 
 import numpy as np
 from typing_extensions import Protocol
@@ -79,7 +81,7 @@ def trace_distance_bound(val: Any) -> float:
     return 1.0
 
 
-def _strat_from_trace_distance_bound_method(val: Any) -> Optional[float]:
+def _strat_from_trace_distance_bound_method(val: Any) -> float | None:
     """Attempts to use a specialized method."""
     getter = getattr(val, '_trace_distance_bound_', None)
     result = NotImplemented if getter is None else getter()
@@ -93,7 +95,7 @@ def _strat_from_trace_distance_bound_method(val: Any) -> Optional[float]:
     return NotImplemented
 
 
-def _strat_distance_from_unitary(val: Any) -> Optional[float]:
+def _strat_distance_from_unitary(val: Any) -> float | None:
     """Attempts to compute a value's trace_distance_bound from its unitary."""
     u = unitary_protocol.unitary(val, default=None)
 
@@ -109,7 +111,7 @@ def _strat_distance_from_unitary(val: Any) -> Optional[float]:
     return trace_distance_from_angle_list(np.angle(np.linalg.eigvals(u)))
 
 
-def trace_distance_from_angle_list(angle_list: Union[Sequence[float], np.ndarray]) -> float:
+def trace_distance_from_angle_list(angle_list: Sequence[float] | np.ndarray) -> float:
     """Given a list of arguments of the eigenvalues of a unitary matrix,
     calculates the trace distance bound of the unitary effect.
 

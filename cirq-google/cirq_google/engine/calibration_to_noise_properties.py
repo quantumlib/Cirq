@@ -19,7 +19,8 @@ Given a Calibration "cal", a user can simulate noise approximating that
 calibration using the following pipeline:
 
     >>> cal = cirq_google.engine.load_median_device_calibration("rainbow")
-    >>> noise_props = cirq_google.engine.noise_properties_from_calibration(cal)
+    >>> noise_props = cirq_google.engine.noise_properties_from_calibration(
+    ...     cal, gate_times_ns="legacy")
     >>> noise_model = cirq_google.NoiseModelFromGoogleNoiseProperties(noise_props)
     >>> simulator = cirq.Simulator(noise=noise_model)
     >>> circuit = cirq.Circuit(cirq.X(cirq.GridQubit(5, 2)))
@@ -28,9 +29,9 @@ calibration using the following pipeline:
 
 from __future__ import annotations
 
-from typing import Dict, Optional, Tuple, Type, TYPE_CHECKING
+from typing import Literal, TYPE_CHECKING
 
-from cirq import ops
+from cirq import _compat, ops
 from cirq.devices import noise_utils
 from cirq_google import engine, ops as cg_ops
 from cirq_google.devices import google_noise_properties
@@ -42,7 +43,7 @@ if TYPE_CHECKING:
 
 # TODO: acquire this based on the target device.
 # Default map of gates to their durations.
-DEFAULT_GATE_NS: Dict[Type[cirq.Gate], float] = {
+DEFAULT_GATE_NS: dict[type[cirq.Gate], float] = {
     ops.ZPowGate: 25.0,
     ops.MeasurementGate: 4000.0,
     ops.ResetChannel: 250.0,
@@ -53,12 +54,12 @@ DEFAULT_GATE_NS: Dict[Type[cirq.Gate], float] = {
     cg_ops.SycamoreGate: 12.0,
     # ops.WaitGate is a special case.
 }
-GATE_PREFIX_PAIRS: Dict[Type[cirq.Gate], str] = {
+GATE_PREFIX_PAIRS: dict[type[cirq.Gate], str] = {
     cg_ops.SycamoreGate: 'two_qubit_parallel_sycamore_gate',
     ops.CZPowGate: 'two_qubit_parallel_cz_gate',
     ops.ISwapPowGate: 'two_qubit_parallel_sqrt_iswap_gate',
 }
-GATE_ZPHASE_CODE_PAIRS: Dict[Type[cirq.Gate], str] = {
+GATE_ZPHASE_CODE_PAIRS: dict[type[cirq.Gate], str] = {
     cg_ops.SycamoreGate: 'syc',
     ops.CZPowGate: 'cz',
     ops.ISwapPowGate: 'sqrt_iswap',
@@ -67,7 +68,7 @@ GATE_ZPHASE_CODE_PAIRS: Dict[Type[cirq.Gate], str] = {
 
 def _unpack_1q_from_calibration(
     metric_name: str, calibration: engine.Calibration
-) -> Dict[cirq.Qid, float]:
+) -> dict[cirq.Qid, float]:
     """Converts a single-qubit metric from Calibration to dict format."""
     if metric_name not in calibration:
         return {}
@@ -79,7 +80,7 @@ def _unpack_1q_from_calibration(
 
 def _unpack_2q_from_calibration(
     metric_name: str, calibration: engine.Calibration
-) -> Dict[Tuple[cirq.Qid, ...], float]:
+) -> dict[tuple[cirq.Qid, ...], float]:
     """Converts a two-qubit metric from Calibration to dict format."""
     if metric_name not in calibration:
         return {}
@@ -91,8 +92,9 @@ def _unpack_2q_from_calibration(
 
 def noise_properties_from_calibration(
     calibration: engine.Calibration,
-    zphase_data: Optional[util.ZPhaseDataType] = None,
-    gate_times_ns: Optional[Dict[Type[cirq.Gate], float]] = None,
+    *,
+    gate_times_ns: dict[type[cirq.Gate], float] | Literal['legacy'] | None = None,
+    zphase_data: util.ZPhaseDataType | None = None,
 ) -> google_noise_properties.GoogleNoiseProperties:
     """Translates between `cirq_google.Calibration` and NoiseProperties.
 
@@ -103,26 +105,42 @@ def noise_properties_from_calibration(
     To manually override noise properties, call `with_params` on the output:
 
         >>> cal = cirq_google.engine.load_median_device_calibration("rainbow")
+        >>> noise_props = cirq_google.engine.noise_properties_from_calibration(
+        ...     cal, gate_times_ns="legacy")
         >>> # noise_props with all gate durations set to 37ns.
-        >>> noise_props = cirq_google.engine.noise_properties_from_calibration(cal).with_params(
-        ...     gate_times_ns=37)
+        >>> noise_props_37ns = noise_props.with_params(gate_times_ns=37)
 
     See `cirq_google.GoogleNoiseProperties` for details.
 
     Args:
         calibration: a Calibration object with hardware metrics.
+        gate_times_ns: Map of gate durations in nanoseconds or "legacy"
+            to use the Sycamore gate times listed in `known_devices.py`.
+            Note this argument has changed from optional to mandatory and
+            the "legacy" value was added as an alias for the old default.
         zphase_data: Optional data for Z phases not captured by Calibration -
             specifically, zeta and gamma. These values require Floquet
             calibration and can be provided here if available.
-        gate_times_ns: Map of gate durations in nanoseconds. If not provided,
-            defaults to the Sycamore gate times listed in `known_devices.py`.
 
     Returns:
         A `cirq_google.GoogleNoiseProperties` which represents the error
         present in the given Calibration object.
     """
     if gate_times_ns is None:
+        _compat._warn_or_error(
+            'Function noise_properties_from_calibration was called without the '
+            'gate_times_ns argument.\n'
+            'This argument will become mandatory in cirq_google v1.7.\n'
+            'To continue using the old gate times default, please pass the "legacy" value.'
+        )
         gate_times_ns = DEFAULT_GATE_NS
+    elif gate_times_ns == 'legacy':
+        gate_times_ns = DEFAULT_GATE_NS
+    if not isinstance(gate_times_ns, dict):
+        raise TypeError(
+            f'gate_times_ns must be a dictionary or the "legacy" string. '
+            f'Got {gate_times_ns} instead.'
+        )
 
     # Unpack all values from Calibration object
     # 1. Extract T1 for all qubits
@@ -206,7 +224,7 @@ def noise_properties_from_calibration(
             fsim_errors[op_id_reverse] = error_gate
 
     # Known false positive: https://github.com/PyCQA/pylint/issues/5857
-    return google_noise_properties.GoogleNoiseProperties(  # pylint: disable=unexpected-keyword-arg
+    return google_noise_properties.GoogleNoiseProperties(
         gate_times_ns=gate_times_ns,
         t1_ns=t1_ns,
         tphi_ns=tphi_ns,

@@ -15,9 +15,9 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
-RECORDED_CONST_DOCS: Dict[int, str] = {}
+RECORDED_CONST_DOCS: dict[int, str] = {}
 
 
 def document(value: Any, doc_string: str = ''):

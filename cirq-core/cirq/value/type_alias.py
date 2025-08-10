@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union
+from __future__ import annotations
 
 import numpy as np
 import sympy
@@ -22,11 +22,11 @@ from cirq._doc import document
 """Supply aliases for commonly used types.
 """
 
-TParamKey = Union[str, sympy.Expr]
+TParamKey = str | sympy.Expr
 document(TParamKey, """A parameter that a parameter resolver may map to a value.""")
 
-TParamVal = Union[float, sympy.Expr]
+TParamVal = float | sympy.Expr
 document(TParamVal, """A value that a parameter resolver may return for a parameter.""")
 
-TParamValComplex = Union[complex, np.number, sympy.Expr]
+TParamValComplex = complex | np.number | sympy.Expr
 document(TParamValComplex, """A complex value that parameter resolvers may use for parameters.""")

@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import re
 
 import numpy as np
@@ -410,3 +413,16 @@ def test_matrixgate_name_serialization():
     gate_after_serialization3 = cirq.read_json(json_text=cirq.to_json(gate3))
     assert gate3._name == ''
     assert gate_after_serialization3._name == ''
+
+
+def test_decompose_when_qubits_not_in_ascending_order():
+    # Previous code for preserving global phase would misorder qubits
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit1 = cirq.Circuit()
+    matrix = cirq.testing.random_unitary(4, random_state=0)
+    circuit1.append(cirq.MatrixGate(matrix).on(q1, q0))
+    u1 = cirq.unitary(circuit1)
+    decomposed = cirq.decompose(circuit1)
+    circuit2 = cirq.Circuit(decomposed)
+    u2 = cirq.unitary(circuit2)
+    np.testing.assert_allclose(u1, u2, atol=1e-14)

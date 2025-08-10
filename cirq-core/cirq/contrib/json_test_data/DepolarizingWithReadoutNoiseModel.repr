@@ -1,0 +1,1 @@
+cirq.contrib.noise_models.DepolarizingWithReadoutNoiseModel(0.1, 0.2)

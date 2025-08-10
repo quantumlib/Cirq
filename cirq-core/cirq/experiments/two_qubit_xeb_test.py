@@ -11,10 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Wraps Parallel Two Qubit XEB into a few convenience methods."""
+
+from __future__ import annotations
+
 import io
 import itertools
-from typing import Dict, Optional, Sequence
+from typing import Sequence
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -86,7 +90,7 @@ def test_parallel_two_qubit_xeb_simulator_without_processor_fails():
         ),
     ],
 )
-def test_parallel_two_qubit_xeb(sampler: cirq.Sampler, qubits: Optional[Sequence[cirq.GridQubit]]):
+def test_parallel_two_qubit_xeb(sampler: cirq.Sampler, qubits: Sequence[cirq.GridQubit] | None):
     res = cirq.experiments.parallel_two_qubit_xeb(
         sampler=sampler,
         qubits=qubits,
@@ -158,7 +162,7 @@ def test_pauli_error(q0: cirq.GridQubit, q1: cirq.GridQubit, pauli: float):
 
 
 class MockParallelRandomizedBenchmarkingResult(ParallelRandomizedBenchmarkingResult):
-    def pauli_error(self) -> Dict[cirq.Qid, float]:
+    def pauli_error(self) -> dict[cirq.Qid, float]:
         return {
             cirq.GridQubit(4, 4): 0.01,
             cirq.GridQubit(5, 4): 0.02,
@@ -290,8 +294,8 @@ def test_inferred_plots(ax, target_error, kind):
 )
 def test_run_rb_and_xeb(
     sampler: cirq.Sampler,
-    qubits: Optional[Sequence[cirq.GridQubit]],
-    pairs: Optional[Sequence[tuple[cirq.GridQubit, cirq.GridQubit]]],
+    qubits: Sequence[cirq.GridQubit] | None,
+    pairs: Sequence[tuple[cirq.GridQubit, cirq.GridQubit]] | None,
 ):
     res = cirq.experiments.run_rb_and_xeb(
         sampler=sampler,

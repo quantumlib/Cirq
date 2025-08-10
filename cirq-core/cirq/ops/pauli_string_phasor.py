@@ -15,19 +15,7 @@
 from __future__ import annotations
 
 import numbers
-from typing import (
-    AbstractSet,
-    cast,
-    Dict,
-    Iterable,
-    Iterator,
-    Optional,
-    Sequence,
-    TYPE_CHECKING,
-    Union,
-)
-
-import sympy
+from typing import AbstractSet, cast, Iterable, Iterator, Sequence, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq._compat import deprecated, proper_repr
@@ -42,6 +30,8 @@ from cirq.ops import (
 )
 
 if TYPE_CHECKING:
+    import sympy
+
     import cirq
 
 
@@ -65,7 +55,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
     def __init__(
         self,
         pauli_string: ps.PauliString,
-        qubits: Optional[Sequence[cirq.Qid]] = None,
+        qubits: Sequence[cirq.Qid] | None = None,
         *,
         exponent_neg: cirq.TParamVal = 1,
         exponent_pos: cirq.TParamVal = 0,
@@ -145,7 +135,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
             )
         return False
 
-    def map_qubits(self, qubit_map: Dict[raw_types.Qid, raw_types.Qid]) -> PauliStringPhasor:
+    def map_qubits(self, qubit_map: dict[raw_types.Qid, raw_types.Qid]) -> PauliStringPhasor:
         """Maps the qubits inside the PauliStringPhasor.
 
         Args:
@@ -355,7 +345,7 @@ class PauliStringPhasorGate(raw_types.Gate):
             return rel1 == rel2 and self.dense_pauli_string == other.dense_pauli_string
         return False
 
-    def __pow__(self, exponent: Union[float, sympy.Symbol]) -> PauliStringPhasorGate:
+    def __pow__(self, exponent: float | sympy.Symbol) -> PauliStringPhasorGate:
         pn = protocols.mul(self.exponent_neg, exponent, None)
         pp = protocols.mul(self.exponent_pos, exponent, None)
         if pn is None or pp is None:

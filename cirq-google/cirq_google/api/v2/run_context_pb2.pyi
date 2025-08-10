@@ -29,6 +29,11 @@ class RunContext(google.protobuf.message.Message):
 
     PARAMETER_SWEEPS_FIELD_NUMBER: builtins.int
     DEVICE_PARAMETERS_OVERRIDE_FIELD_NUMBER: builtins.int
+    COMPRESSED_RUN_CONTEXT_FIELD_NUMBER: builtins.int
+    compressed_run_context: builtins.bytes
+    """If compression is desired, this field stores the gzipped bytes
+    of the RunContext
+    """
     @property
     def parameter_sweeps(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___ParameterSweep]:
         """The parameters for operations in a program."""
@@ -47,9 +52,10 @@ class RunContext(google.protobuf.message.Message):
         *,
         parameter_sweeps: collections.abc.Iterable[global___ParameterSweep] | None = ...,
         device_parameters_override: global___DeviceParametersDiff | None = ...,
+        compressed_run_context: builtins.bytes = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["device_parameters_override", b"device_parameters_override"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["device_parameters_override", b"device_parameters_override", "parameter_sweeps", b"parameter_sweeps"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["compressed_run_context", b"compressed_run_context", "device_parameters_override", b"device_parameters_override", "parameter_sweeps", b"parameter_sweeps"]) -> None: ...
 
 global___RunContext = RunContext
 
@@ -506,9 +512,14 @@ class Points(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
     POINTS_FIELD_NUMBER: builtins.int
+    POINTS_DOUBLE_FIELD_NUMBER: builtins.int
     UNIT_FIELD_NUMBER: builtins.int
     @property
     def points(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
+        """The values.  Deprecated, superseded by points_double (assign both fields during transition)."""
+
+    @property
+    def points_double(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
         """The values."""
 
     @property
@@ -517,10 +528,11 @@ class Points(google.protobuf.message.Message):
         self,
         *,
         points: collections.abc.Iterable[builtins.float] | None = ...,
+        points_double: collections.abc.Iterable[builtins.float] | None = ...,
         unit: tunits.proto.tunits_pb2.Value | None = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["unit", b"unit"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["points", b"points", "unit", b"unit"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["points", b"points", "points_double", b"points_double", "unit", b"unit"]) -> None: ...
 
 global___Points = Points
 
@@ -536,13 +548,19 @@ class Linspace(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
     FIRST_POINT_FIELD_NUMBER: builtins.int
+    FIRST_POINT_DOUBLE_FIELD_NUMBER: builtins.int
     LAST_POINT_FIELD_NUMBER: builtins.int
+    LAST_POINT_DOUBLE_FIELD_NUMBER: builtins.int
     NUM_POINTS_FIELD_NUMBER: builtins.int
     UNIT_FIELD_NUMBER: builtins.int
     first_point: builtins.float
-    """The start of the range."""
+    """The start of the range.
+    Deprecated: superseded by first_point_double (assign both fields during transition).
+    """
+    first_point_double: builtins.float
     last_point: builtins.float
-    """The end of the range."""
+    """The end of the range. (float32 should be avoided.)"""
+    last_point_double: builtins.float
     num_points: builtins.int
     """The number of points in the range (including first and last). Must be
     greater than zero. If it is 1, the first_point and last_point must be
@@ -554,12 +572,14 @@ class Linspace(google.protobuf.message.Message):
         self,
         *,
         first_point: builtins.float = ...,
+        first_point_double: builtins.float = ...,
         last_point: builtins.float = ...,
+        last_point_double: builtins.float = ...,
         num_points: builtins.int = ...,
         unit: tunits.proto.tunits_pb2.Value | None = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["unit", b"unit"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["first_point", b"first_point", "last_point", b"last_point", "num_points", b"num_points", "unit", b"unit"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["first_point", b"first_point", "first_point_double", b"first_point_double", "last_point", b"last_point", "last_point_double", b"last_point_double", "num_points", b"num_points", "unit", b"unit"]) -> None: ...
 
 global___Linspace = Linspace
 
@@ -571,6 +591,7 @@ class ConstValue(google.protobuf.message.Message):
 
     IS_NONE_FIELD_NUMBER: builtins.int
     FLOAT_VALUE_FIELD_NUMBER: builtins.int
+    DOUBLE_VALUE_FIELD_NUMBER: builtins.int
     INT_VALUE_FIELD_NUMBER: builtins.int
     STRING_VALUE_FIELD_NUMBER: builtins.int
     WITH_UNIT_VALUE_FIELD_NUMBER: builtins.int
@@ -579,6 +600,7 @@ class ConstValue(google.protobuf.message.Message):
     object.
     """
     float_value: builtins.float
+    double_value: builtins.float
     int_value: builtins.int
     string_value: builtins.str
     @property
@@ -588,12 +610,13 @@ class ConstValue(google.protobuf.message.Message):
         *,
         is_none: builtins.bool = ...,
         float_value: builtins.float = ...,
+        double_value: builtins.float = ...,
         int_value: builtins.int = ...,
         string_value: builtins.str = ...,
         with_unit_value: tunits.proto.tunits_pb2.Value | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["float_value", b"float_value", "int_value", b"int_value", "is_none", b"is_none", "string_value", b"string_value", "value", b"value", "with_unit_value", b"with_unit_value"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["float_value", b"float_value", "int_value", b"int_value", "is_none", b"is_none", "string_value", b"string_value", "value", b"value", "with_unit_value", b"with_unit_value"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["value", b"value"]) -> typing.Literal["is_none", "float_value", "int_value", "string_value", "with_unit_value"] | None: ...
+    def HasField(self, field_name: typing.Literal["double_value", b"double_value", "float_value", b"float_value", "int_value", b"int_value", "is_none", b"is_none", "string_value", b"string_value", "value", b"value", "with_unit_value", b"with_unit_value"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["double_value", b"double_value", "float_value", b"float_value", "int_value", b"int_value", "is_none", b"is_none", "string_value", b"string_value", "value", b"value", "with_unit_value", b"with_unit_value"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["value", b"value"]) -> typing.Literal["is_none", "float_value", "double_value", "int_value", "string_value", "with_unit_value"] | None: ...
 
 global___ConstValue = ConstValue

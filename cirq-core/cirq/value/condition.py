@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import abc
 import dataclasses
-from typing import Any, Dict, FrozenSet, Mapping, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Mapping, TYPE_CHECKING
 
 import attrs
 import sympy
@@ -34,7 +34,7 @@ class Condition(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def keys(self) -> Tuple[cirq.MeasurementKey, ...]:
+    def keys(self) -> tuple[cirq.MeasurementKey, ...]:
         """Gets the control keys."""
 
     @abc.abstractmethod
@@ -50,7 +50,7 @@ class Condition(abc.ABC):
     def qasm(self):
         """Returns the qasm of this condition."""
 
-    def _qasm_(self, args: cirq.QasmArgs, **kwargs) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, **kwargs) -> str | None:
         return self.qasm
 
     def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]) -> cirq.Condition:
@@ -59,14 +59,14 @@ class Condition(abc.ABC):
             condition = condition.replace_key(k, mkp.with_measurement_key_mapping(k, key_map))
         return condition
 
-    def _with_key_path_prefix_(self, path: Tuple[str, ...]) -> cirq.Condition:
+    def _with_key_path_prefix_(self, path: tuple[str, ...]) -> cirq.Condition:
         condition = self
         for k in self.keys:
             condition = condition.replace_key(k, mkp.with_key_path_prefix(k, path))
         return condition
 
     def _with_rescoped_keys_(
-        self, path: Tuple[str, ...], bindable_keys: FrozenSet[cirq.MeasurementKey]
+        self, path: tuple[str, ...], bindable_keys: frozenset[cirq.MeasurementKey]
     ) -> cirq.Condition:
         condition = self
         for key in self.keys:
@@ -121,7 +121,7 @@ class KeyCondition(Condition):
     def qasm(self):
         raise ValueError('QASM is defined only for SympyConditions of type key == constant.')
 
-    def _qasm_(self, args: cirq.QasmArgs, **kwargs) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, **kwargs) -> str | None:
         args.validate_version('2.0', '3.0')
         key_str = str(self.key)
         if key_str not in args.meas_key_id_map:
@@ -154,7 +154,7 @@ class BitMaskKeyCondition(Condition):
         - BitMaskKeyCondition.create_not_equal_mask('a', 13) -> (a & 13) != 13
 
     The bits in the bitmask have the same order as the qubits passed to `cirq.measure(...)`. That's
-    the most significant bit corresponds to the the first (left most) qubit.
+    the most significant bit corresponds to the first (left most) qubit.
 
     Attributes:
         - key: Measurement key.
@@ -174,7 +174,7 @@ class BitMaskKeyCondition(Condition):
     index: int = -1
     target_value: int = 0
     equal_target: bool = False
-    bitmask: Optional[int] = None
+    bitmask: int | None = None
 
     @property
     def keys(self):
@@ -285,7 +285,7 @@ class SympyCondition(Condition):
         if missing:
             raise ValueError(f'Measurement keys {missing} missing when testing classical control')
 
-        replacements: Dict[str, Any] = {}
+        replacements: dict[str, Any] = {}
         for symbol in self.expr.free_symbols:
             if isinstance(symbol, sympy.Symbol):
                 name = symbol.name

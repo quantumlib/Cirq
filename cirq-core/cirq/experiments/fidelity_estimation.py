@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, Mapping, Optional, Sequence, TYPE_CHECKING
+from typing import Callable, Mapping, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -141,7 +141,7 @@ def xeb_fidelity(
     circuit: cirq.Circuit,
     bitstrings: Sequence[int],
     qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
-    amplitudes: Optional[Mapping[int, complex]] = None,
+    amplitudes: Mapping[int, complex] | None = None,
     estimator: Callable[[int, Sequence[float]], float] = linear_xeb_fidelity_from_probabilities,
 ) -> float:
     """Estimates XEB fidelity from one circuit using user-supplied estimator.
@@ -206,7 +206,7 @@ def linear_xeb_fidelity(
     circuit: cirq.Circuit,
     bitstrings: Sequence[int],
     qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
-    amplitudes: Optional[Mapping[int, complex]] = None,
+    amplitudes: Mapping[int, complex] | None = None,
 ) -> float:
     """Estimates XEB fidelity from one circuit using linear estimator."""
     return xeb_fidelity(
@@ -222,7 +222,7 @@ def log_xeb_fidelity(
     circuit: cirq.Circuit,
     bitstrings: Sequence[int],
     qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
-    amplitudes: Optional[Mapping[int, complex]] = None,
+    amplitudes: Mapping[int, complex] | None = None,
 ) -> float:
     """Estimates XEB fidelity from one circuit using logarithmic estimator."""
     return xeb_fidelity(

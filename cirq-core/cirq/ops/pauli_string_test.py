@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
 import math
 
@@ -335,9 +337,7 @@ def test_get(qubit_pauli_map):
         assert qubit_pauli_map.get(key) == pauli_string.get(key)
     assert qubit_pauli_map.get(other) is None
     assert pauli_string.get(other) is None
-    # pylint: disable=too-many-function-args
     assert qubit_pauli_map.get(other, 5) == pauli_string.get(other, 5) == 5
-    # pylint: enable=too-many-function-args
 
 
 @pytest.mark.parametrize('qubit_pauli_map', _sample_qubit_pauli_maps())
@@ -1546,7 +1546,6 @@ def test_pretty_print():
     assert p.text_pretty == 'cirq.PauliString(...)'
 
 
-# pylint: disable=line-too-long
 def test_circuit_diagram_info():
     a, b, c = cirq.LineQubit.range(3)
 
@@ -1567,11 +1566,8 @@ def test_circuit_diagram_info():
 1: ───────────────────────────────────────┼─────────────────Y─────────────────PauliString(-iY)───Y───────────────────────────────
                                           │
 2: ───────────────────────────────────────Z──────────────────────────────────────────────────────────────────────────────────────
-        """,
+        """,  # noqa: E501
     )
-
-
-# pylint: enable=line-too-long
 
 
 def test_mutable_pauli_string_init_raises():
@@ -1718,6 +1714,9 @@ def test_mutable_pauli_string_inplace_conjugate_by():
         def _decompose_(self):
             return []
 
+        def __pow__(self, power):
+            return []
+
     # No-ops
     p2 = p.inplace_after(cirq.global_phase_operation(1j))
     assert p2 is p and p == cirq.X(a)
@@ -1827,6 +1826,14 @@ def test_mutable_pauli_string_inplace_conjugate_by():
     p = cirq.MutablePauliString(cirq.X(a))
     p2 = p.inplace_after(cirq.PauliInteractionGate(cirq.Z, True, cirq.Y, False).on(a, b))
     assert p2 is p and p == cirq.X(a) * cirq.Y(b)
+
+
+def test_mps_inplace_after_clifford_gate_type():
+    q = cirq.LineQubit(0)
+
+    mps = cirq.MutablePauliString(cirq.X(q))
+    mps2 = mps.inplace_after(cirq.CliffordGate.from_op_list([cirq.H(q)], [q]).on(q))
+    assert mps2 is mps and mps == cirq.Z(q)
 
 
 def test_after_before_vs_conjugate_by():
@@ -1990,3 +1997,31 @@ def test_resolve(resolve_fn):
     pst = cirq.PauliString({q: 'x'}, coefficient=t)
     ps1 = cirq.PauliString({q: 'x'}, coefficient=1j)
     assert resolve_fn(pst, {'t': 1j}) == ps1
+
+
+@pytest.mark.parametrize(
+    'gate1,gate2',
+    [
+        (cirq.I, cirq.I),
+        (cirq.I, cirq.X),
+        (cirq.I, cirq.Y),
+        (cirq.I, cirq.Z),
+        (cirq.X, cirq.I),
+        (cirq.Y, cirq.I),
+        (cirq.Z, cirq.I),
+    ],
+    ids=str,
+)
+def test_pauli_ops_identity_gate_operation(gate1: cirq.Pauli, gate2: cirq.Pauli) -> None:
+    # TODO: Issue #7280 - Support addition and subtraction of identity gate operations.
+    if gate1 == gate2 == cirq.I:
+        pytest.skip('Not yet implemented per #7280')
+    q = cirq.LineQubit(0)
+    pauli1, pauli2 = gate1.on(q), gate2.on(q)
+    unitary1, unitary2 = cirq.unitary(gate1), cirq.unitary(gate2)
+    addition = pauli1 + pauli2
+    assert isinstance(addition, cirq.PauliSum)
+    assert np.array_equal(addition.matrix(), unitary1 + unitary2)
+    subtraction = pauli1 - pauli2
+    assert isinstance(subtraction, cirq.PauliSum)
+    assert np.array_equal(subtraction.matrix(), unitary1 - unitary2)

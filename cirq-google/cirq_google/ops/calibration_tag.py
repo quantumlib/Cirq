@@ -11,9 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Dict
+
+from __future__ import annotations
+
+from typing import Any
 
 import cirq
+from cirq_google.api.v2 import program_pb2
 
 
 class CalibrationTag:
@@ -35,7 +39,7 @@ class CalibrationTag:
     def __repr__(self) -> str:
         return f'cirq_google.CalibrationTag({self.token!r})'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ['token'])
 
     def __eq__(self, other) -> bool:
@@ -45,3 +49,15 @@ class CalibrationTag:
 
     def __hash__(self) -> int:
         return hash(self.token)
+
+    def to_proto(self, msg: program_pb2.Tag | None = None) -> program_pb2.Tag:
+        if msg is None:
+            msg = program_pb2.Tag()
+        msg.calibration_tag.token = self.token
+        return msg
+
+    @staticmethod
+    def from_proto(msg: program_pb2.Tag) -> CalibrationTag:
+        if msg.WhichOneof("tag") != "calibration_tag":
+            raise ValueError(f"Message is not a CalibrationTag, {msg}")
+        return CalibrationTag(token=msg.calibration_tag.token)

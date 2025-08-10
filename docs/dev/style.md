@@ -37,7 +37,7 @@ qubit = cirq.NamedQubit('a')
 ```
 The one exception to this is for the typing code, where we prefer the direct import
 ```python
-from typing import List
+from typing import Mapping
 ```
 This exception allows typing hints to be more compact.
 

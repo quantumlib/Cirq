@@ -13,6 +13,8 @@
 # limitations under the License.
 """Tests transpiling of circuits using the IonQ native gate set."""
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 

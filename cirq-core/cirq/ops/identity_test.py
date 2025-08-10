@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import itertools
 from typing import Any
 from unittest import mock
@@ -23,7 +26,7 @@ import cirq
 
 
 @pytest.mark.parametrize('num_qubits', [1, 2, 4])
-def test_identity_init(num_qubits):
+def test_identity_init(num_qubits) -> None:
     assert cirq.IdentityGate(num_qubits).num_qubits() == num_qubits
     assert cirq.qid_shape(cirq.IdentityGate(num_qubits)) == (2,) * num_qubits
     assert cirq.qid_shape(cirq.IdentityGate(3, (1, 2, 3))) == (1, 2, 3)
@@ -34,7 +37,7 @@ def test_identity_init(num_qubits):
         cirq.IdentityGate()
 
 
-def test_identity_on_each():
+def test_identity_on_each() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     assert cirq.I.on_each(q0, q1, q2) == [cirq.I(q0), cirq.I(q1), cirq.I(q2)]
     assert cirq.I.on_each([q0, [q1], q2]) == [cirq.I(q0), cirq.I(q1), cirq.I(q2)]
@@ -43,7 +46,7 @@ def test_identity_on_each():
         cirq.I.on_each('abc')
 
 
-def test_identity_on_each_iter_second():
+def test_identity_on_each_iter_second() -> None:
     class Q(cirq.Qid):
         @property
         def dimension(self) -> int:
@@ -60,7 +63,7 @@ def test_identity_on_each_iter_second():
     assert cirq.I.on_each(q) == [cirq.I(q)]
 
 
-def test_identity_on_each_only_single_qubit():
+def test_identity_on_each_only_single_qubit() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     q0_3, q1_3 = q0.with_dimension(3), q1.with_dimension(3)
     assert cirq.I.on_each(q0, q1) == [cirq.I.on(q0), cirq.I.on(q1)]
@@ -70,7 +73,7 @@ def test_identity_on_each_only_single_qubit():
     ]
 
 
-def test_identity_on_each_two_qubits():
+def test_identity_on_each_two_qubits() -> None:
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     q0_3, q1_3 = q0.with_dimension(3), q1.with_dimension(3)
     assert cirq.IdentityGate(2).on_each([(q0, q1)]) == [cirq.IdentityGate(2)(q0, q1)]
@@ -93,14 +96,14 @@ def test_identity_on_each_two_qubits():
 
 
 @pytest.mark.parametrize('num_qubits', [1, 2, 4])
-def test_identity_unitary(num_qubits):
+def test_identity_unitary(num_qubits) -> None:
     i = cirq.IdentityGate(num_qubits)
     assert np.allclose(cirq.unitary(i), np.identity(2**num_qubits))
     i3 = cirq.IdentityGate(num_qubits, (3,) * num_qubits)
     assert np.allclose(cirq.unitary(i3), np.identity(3**num_qubits))
 
 
-def test_identity_str():
+def test_identity_str() -> None:
     assert str(cirq.IdentityGate(1)) == 'I'
     assert str(cirq.IdentityGate(2)) == 'I(2)'
     # Qid shape is not included in str
@@ -108,13 +111,13 @@ def test_identity_str():
     assert str(cirq.IdentityGate(2, (1, 2))) == 'I(2)'
 
 
-def test_identity_repr():
+def test_identity_repr() -> None:
     assert repr(cirq.I) == 'cirq.I'
     assert repr(cirq.IdentityGate(5)) == 'cirq.IdentityGate(5)'
     assert repr(cirq.IdentityGate(qid_shape=(2, 3))) == 'cirq.IdentityGate(qid_shape=(2, 3))'
 
 
-def test_identity_apply_unitary():
+def test_identity_apply_unitary() -> None:
     v = np.array([1, 0])
     result = cirq.apply_unitary(cirq.I, cirq.ApplyUnitaryArgs(v, np.array([0, 1]), (0,)))
     assert result is v
@@ -126,7 +129,7 @@ def test_identity_apply_unitary():
     assert result is v
 
 
-def test_identity_eq():
+def test_identity_eq() -> None:
     equals_tester = cirq.testing.EqualsTester()
     equals_tester.make_equality_group(
         lambda: cirq.I, lambda: cirq.IdentityGate(1), lambda: cirq.IdentityGate(1, (2,))
@@ -137,12 +140,12 @@ def test_identity_eq():
     equals_tester.add_equality_group(cirq.IdentityGate(4, (1, 2, 3, 4)))
 
 
-def test_identity_trace_distance_bound():
+def test_identity_trace_distance_bound() -> None:
     assert cirq.I._trace_distance_bound_() == 0
     assert cirq.IdentityGate(num_qubits=2)._trace_distance_bound_() == 0
 
 
-def test_identity_pow():
+def test_identity_pow() -> None:
     I = cirq.I
     q = cirq.NamedQubit('q')
 
@@ -156,28 +159,29 @@ def test_identity_pow():
         _ = I(q) ** q
 
 
-def test_pauli_expansion_notimplemented():
+def test_pauli_expansion_notimplemented() -> None:
     assert cirq.IdentityGate(1, (3,))._pauli_expansion_() == NotImplemented
 
 
 @pytest.mark.parametrize(
     'gate_type, num_qubits', itertools.product((cirq.IdentityGate,), range(1, 5))
 )
-def test_consistent_protocols(gate_type, num_qubits):
+def test_consistent_protocols(gate_type, num_qubits) -> None:
     gate = gate_type(num_qubits=num_qubits)
     cirq.testing.assert_implements_consistent_protocols(gate, qubit_count=num_qubits)
 
 
-def test_identity_global():
+def test_identity_global() -> None:
     qubits = cirq.LineQubit.range(3)
     assert cirq.identity_each(*qubits) == cirq.IdentityGate(3).on(*qubits)
     qids = cirq.LineQid.for_qid_shape((1, 2, 3))
     assert cirq.identity_each(*qids) == cirq.IdentityGate(3, (1, 2, 3)).on(*qids)
     with pytest.raises(ValueError, match='Not a cirq.Qid'):
-        cirq.identity_each(qubits)  # The user forgot to expand the list for example.
+        # The user forgot to expand the list for example.
+        cirq.identity_each(qubits)  # type: ignore[arg-type]
 
 
-def test_identity_mul():
+def test_identity_mul() -> None:
     class UnknownGate(cirq.testing.SingleQubitGate):
         pass
 
@@ -204,19 +208,19 @@ def test_identity_mul():
     assert 1j * i == cirq.PauliString(coefficient=1j)
 
 
-def test_identity_short_circuits_act_on():
+def test_identity_short_circuits_act_on() -> None:
     args = mock.Mock(cirq.SimulationState)
     args._act_on_fallback_.side_effect = mock.Mock(side_effect=Exception('No!'))
     cirq.act_on(cirq.IdentityGate(1)(cirq.LineQubit(0)), args)
 
 
-def test_identity_commutes():
+def test_identity_commutes() -> None:
     assert cirq.commutes(cirq.I, cirq.X)
     with pytest.raises(TypeError):
         cirq.commutes(cirq.I, "Gate")
 
 
-def test_identity_diagram():
+def test_identity_diagram() -> None:
     cirq.testing.assert_has_diagram(
         cirq.Circuit(cirq.IdentityGate(3).on_each(cirq.LineQubit.range(3))),
         """

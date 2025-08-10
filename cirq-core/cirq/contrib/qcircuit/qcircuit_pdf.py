@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from __future__ import annotations
 
 import errno
@@ -34,7 +33,7 @@ def circuit_to_pdf_using_qcircuit_via_tex(
     qcircuit_kwargs=None,
     clean_ext=('dvi', 'ps'),
     documentclass='article',
-):
+) -> None:
     """Compiles the QCircuit-based latex diagram of the given circuit.
 
     Args:

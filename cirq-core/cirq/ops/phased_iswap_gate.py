@@ -15,7 +15,7 @@
 
 from __future__ import annotations
 
-from typing import AbstractSet, Any, cast, Dict, Iterator, List, Optional, Sequence, Tuple, Union
+from typing import AbstractSet, Any, cast, Iterator, Sequence
 
 import numpy as np
 import sympy
@@ -62,8 +62,8 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
     def __init__(
         self,
         *,
-        phase_exponent: Union[float, sympy.Expr] = 0.25,
-        exponent: Union[float, sympy.Expr] = 1.0,
+        phase_exponent: float | sympy.Expr = 0.25,
+        exponent: float | sympy.Expr = 1.0,
         global_shift: float = 0.0,
     ):
         """Inits PhasedISwapPowGate.
@@ -81,13 +81,13 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
         super().__init__(exponent=exponent, global_shift=global_shift)
 
     @property
-    def phase_exponent(self) -> Union[float, sympy.Expr]:
+    def phase_exponent(self) -> float | sympy.Expr:
         return self._phase_exponent
 
     def _num_qubits_(self) -> int:
         return 2
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             'phase_exponent': self._phase_exponent,
             'exponent': self._exponent,
@@ -126,20 +126,20 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
             phase_exponent=self.phase_exponent, exponent=exponent, global_shift=self.global_shift
         )
 
-    def _eigen_shifts(self) -> List[float]:
+    def _eigen_shifts(self) -> list[float]:
         return [0.0, +0.5, -0.5]
 
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
+    def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
         phase = np.exp(1j * np.pi * self.phase_exponent)
         phase_matrix = np.diag([1, phase, phase.conjugate(), 1])
         inverse_phase_matrix = np.conjugate(phase_matrix)
-        eigen_components: List[Tuple[float, np.ndarray]] = []
+        eigen_components: list[tuple[float, np.ndarray]] = []
         for eigenvalue, projector in self._iswap._eigen_components():
             new_projector = phase_matrix @ projector @ inverse_phase_matrix
             eigen_components.append((eigenvalue, new_projector))
         return eigen_components
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray | None:
         if protocols.is_parameterized(self):
             return NotImplemented
 

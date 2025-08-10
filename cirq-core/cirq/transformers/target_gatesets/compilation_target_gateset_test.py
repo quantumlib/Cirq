@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -37,7 +37,7 @@ def test_compilation_target_gateset() -> None:
             return op if cirq.num_qubits(op) == 2 and cirq.has_unitary(op) else NotImplemented
 
         @property
-        def preprocess_transformers(self) -> List[cirq.TRANSFORMER]:
+        def preprocess_transformers(self) -> list[cirq.TRANSFORMER]:
             return []
 
     gateset = ExampleTargetGateset()

@@ -24,24 +24,34 @@
 # tests is possible, via setting the NOTEBOOK_PARTITIONS env var to e.g. 5, and then passing to
 # pytest the `-k partition-0` or `-k partition-1`, etc. argument to limit to the given partition.
 
+from __future__ import annotations
+
 import os
 import re
 import shutil
 import subprocess
 import warnings
-from typing import List, Set
 
 import pytest
 
 from dev_tools import shell_tools
-from dev_tools.notebooks import filter_notebooks, list_all_notebooks, rewrite_notebook
+from dev_tools.notebooks import filter_notebooks, list_all_notebooks, REPO_ROOT, rewrite_notebook
 
 # these notebooks rely on features that are not released yet
 # after every release we should raise a PR and empty out this list
 # note that these notebooks are still tested in dev_tools/notebook_test.py
 # Please, always indicate in comments the feature used for easier bookkeeping.
 
-NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = []
+NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = [
+    # Requires `load_device_noise_properties` from #7369
+    'docs/hardware/qubit_picking.ipynb',
+    'docs/simulate/noisy_simulation.ipynb',
+    'docs/simulate/quantum_virtual_machine.ipynb',
+    'docs/simulate/qvm_basic_example.ipynb',
+    # Remove once the renaming of `whitelisted_users` -> `allowlisted_users`
+    # throughout cirq_google is released.
+    'docs/simulate/virtual_engine_interface.ipynb',
+]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
 # please always add a reason for skipping.
@@ -51,13 +61,11 @@ SKIP_NOTEBOOKS = [
     '**/azure-quantum/*.ipynb',
     '**/ionq/*.ipynb',
     '**/pasqal/*.ipynb',
-    '**/rigetti/*.ipynb',
     # skipping quantum utility simulation (too large)
     'examples/advanced/*quantum_utility*',
     # tutorials that use QCS and arent skipped due to one or more cleared output cells
     'docs/tutorials/google/identifying_hardware_changes.ipynb',
     'docs/tutorials/google/echoes.ipynb',
-    'docs/noise/qcvv/xeb_calibration_example.ipynb',
     # temporary: need to fix QVM metrics and device spec
     'docs/tutorials/google/spin_echoes.ipynb',
     'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
@@ -79,9 +87,6 @@ PACKAGES = [
     "jupyter",
     # assumed to be part of colab
     "seaborn~=0.12",
-    # TODO: remove after the fix of https://github.com/rigetti/qcs-sdk-rust/issues/531
-    "qcs-sdk-python<=0.21.12",
-    "numpy~=1.25",
 ]
 
 
@@ -98,19 +103,22 @@ def _find_base_revision():
     raise ValueError("Can't find a base revision to compare the files with.")
 
 
-def _list_changed_notebooks() -> Set[str]:
+def _list_changed_notebooks() -> list[str]:
     try:
         rev = _find_base_revision()
-        output = subprocess.check_output(f'git diff --diff-filter=d --name-only {rev}'.split())
-        lines = output.decode('utf-8').splitlines()
+        output = subprocess.check_output(
+            f'git diff --merge-base --diff-filter=d --name-only {rev}'.split(),
+            cwd=REPO_ROOT,
+            text=True,
+        )
+        changed_files = [str(REPO_ROOT.joinpath(f)) for f in output.splitlines()]
         # run all tests if this file or any of the dev tool dependencies change
         if any(
-            l
-            for l in lines
-            if l.endswith("isolated_notebook_test.py") or l.startswith("dev_tools/requirements")
+            f.endswith("isolated_notebook_test.py") or "/dev_tools/requirements/" in f
+            for f in changed_files
         ):
             return list_all_notebooks()
-        return set(l for l in lines if l.endswith(".ipynb"))
+        return [f for f in changed_files if f.endswith(".ipynb")]
     except ValueError as e:
         # It would be nicer if we could somehow automatically skip the execution of this completely,
         # however, in order to be able to rely on parallel pytest (xdist) we need parametrization to
@@ -122,7 +130,7 @@ def _list_changed_notebooks() -> Set[str]:
             f"No changed notebooks are tested "
             f"(this is expected in non-notebook tests in CI): {e}"
         )
-        return set()
+        return []
 
 
 def _partitioned_test_cases(notebooks):
@@ -132,7 +140,7 @@ def _partitioned_test_cases(notebooks):
 
 def _rewrite_and_run_notebook(notebook_path, cloned_env):
     notebook_file = os.path.basename(notebook_path)
-    notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, "."))
+    notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, REPO_ROOT))
     out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"
     notebook_env = cloned_env("isolated_notebook_tests", *PACKAGES)
 
@@ -140,17 +148,17 @@ def _rewrite_and_run_notebook(notebook_path, cloned_env):
 
     rewritten_notebook_path = rewrite_notebook(notebook_path)
 
+    REPO_ROOT.joinpath("out", notebook_rel_dir).mkdir(parents=True, exist_ok=True)
     cmd = f"""
-mkdir -p out/{notebook_rel_dir}
-cd {notebook_env}
 . ./bin/activate
 pip list
-papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
+papermill {rewritten_notebook_path} {REPO_ROOT/out_path}"""
     result = shell_tools.run(
         cmd,
         log_run_to_stderr=False,
         shell=True,
         check=False,
+        cwd=notebook_env,
         capture_output=True,
         # important to get rid of PYTHONPATH specifically, which contains
         # the Cirq repo path due to check/pytest
@@ -179,7 +187,7 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
     "partition, notebook_path",
     _partitioned_test_cases(filter_notebooks(_list_changed_notebooks(), SKIP_NOTEBOOKS)),
 )
-def test_changed_notebooks_against_released_cirq(partition, notebook_path, cloned_env):
+def test_changed_notebooks_against_released_cirq(partition, notebook_path, cloned_env) -> None:
     """Tests changed notebooks in isolated virtual environments.
 
     In order to speed up the execution of these tests an auxiliary file may be supplied which
@@ -199,7 +207,7 @@ def test_changed_notebooks_against_released_cirq(partition, notebook_path, clone
     "partition, notebook_path",
     _partitioned_test_cases(filter_notebooks(list_all_notebooks(), SKIP_NOTEBOOKS)),
 )
-def test_all_notebooks_against_released_cirq(partition, notebook_path, cloned_env):
+def test_all_notebooks_against_released_cirq(partition, notebook_path, cloned_env) -> None:
     """Tests all notebooks in isolated virtual environments.
 
     See `test_changed_notebooks_against_released_cirq` for more details on
@@ -209,7 +217,7 @@ def test_all_notebooks_against_released_cirq(partition, notebook_path, cloned_en
 
 
 @pytest.mark.parametrize("notebook_path", NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES)
-def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path):
+def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path) -> None:
     # utf-8 is important for Windows testing, otherwise characters like ┌──┐ fail on cp1252
     with open(notebook_path, encoding="utf-8") as notebook:
         content = notebook.read()
@@ -225,3 +233,9 @@ def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path):
                 f"{notebook_path} is marked as NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES, "
                 f"however it contains no line matching:\n{m}"
             )
+
+
+def test_skip_notebooks_has_valid_patterns() -> None:
+    """Verify patterns in SKIP_NOTEBOOKS are all valid."""
+    patterns_without_match = [g for g in SKIP_NOTEBOOKS if not any(REPO_ROOT.glob(g))]
+    assert patterns_without_match == []

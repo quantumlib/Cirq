@@ -14,10 +14,12 @@
 
 """Calibration wrapper for calibrations returned from the Quantum Engine."""
 
+from __future__ import annotations
+
 import datetime
 from collections import abc, defaultdict
 from itertools import cycle
-from typing import Any, cast, Dict, Iterator, List, Optional, Sequence, Tuple, Union
+from typing import Any, cast, Iterator, Sequence
 
 import google.protobuf.json_format as json_format
 import matplotlib as mpl
@@ -27,10 +29,10 @@ import cirq
 from cirq_google.api import v2
 
 # Calibration Metric types
-METRIC_KEY = Tuple[Union[cirq.GridQubit, str], ...]
-METRIC_VALUE = List[Union[str, int, float]]
-METRIC_DICT = Dict[METRIC_KEY, METRIC_VALUE]
-ALL_METRICS = Dict[str, METRIC_DICT]
+METRIC_KEY = tuple[cirq.GridQubit | str, ...]
+METRIC_VALUE = list[str | int | float]
+METRIC_DICT = dict[METRIC_KEY, METRIC_VALUE]
+ALL_METRICS = dict[str, METRIC_DICT]
 
 
 class Calibration(abc.Mapping):
@@ -62,7 +64,7 @@ class Calibration(abc.Mapping):
     def __init__(
         self,
         calibration: v2.metrics_pb2.MetricsSnapshot = v2.metrics_pb2.MetricsSnapshot(),
-        metrics: Optional[ALL_METRICS] = None,
+        metrics: ALL_METRICS | None = None,
     ) -> None:
         self.timestamp = calibration.timestamp_ms
         if metrics is None:
@@ -147,16 +149,16 @@ class Calibration(abc.Mapping):
         return proto
 
     @classmethod
-    def _from_json_dict_(cls, metrics: str, **kwargs) -> 'Calibration':
+    def _from_json_dict_(cls, metrics: str, **kwargs) -> Calibration:
         """Magic method for the JSON serialization protocol."""
         metric_proto = v2.metrics_pb2.MetricsSnapshot()
         return cls(json_format.ParseDict(metrics, metric_proto))
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         """Magic method for the JSON serialization protocol."""
         return {'metrics': json_format.MessageToDict(self.to_proto())}
 
-    def timestamp_str(self, tz: Optional[datetime.tzinfo] = None, timespec: str = 'auto') -> str:
+    def timestamp_str(self, tz: datetime.tzinfo | None = None, timespec: str = 'auto') -> str:
         """Return a string for the calibration timestamp.
 
         Args:
@@ -171,7 +173,7 @@ class Calibration(abc.Mapping):
         dt += datetime.timedelta(microseconds=self.timestamp % 1000000)
         return dt.isoformat(sep=' ', timespec=timespec)
 
-    def str_to_key(self, target: str) -> Union[cirq.GridQubit, str]:
+    def str_to_key(self, target: str) -> cirq.GridQubit | str:
         """Turns a string into a calibration key.
 
         Attempts to parse it as a GridQubit.  If this fails,
@@ -194,7 +196,7 @@ class Calibration(abc.Mapping):
         raise ValueError(f'The metric target {target} was not a tuple of qubits')
 
     @staticmethod
-    def key_to_qubits(target: METRIC_KEY) -> Tuple[cirq.GridQubit, ...]:
+    def key_to_qubits(target: METRIC_KEY) -> tuple[cirq.GridQubit, ...]:
         """Returns a tuple of qubits from a metric key.
 
         Raises:
@@ -241,7 +243,7 @@ class Calibration(abc.Mapping):
         if not all(len(k) == 1 for k in metrics.values()):
             raise ValueError(
                 'Heatmaps are only supported if all values in a metric are single metric values.'
-                + f'{key} has metric values {metrics.values()}'
+                f'{key} has metric values {metrics.values()}'
             )
         value_map = {self.key_to_qubits(k): self.value_to_float(v) for k, v in metrics.items()}
         if all(len(k) == 1 for k in value_map.keys()):
@@ -250,15 +252,15 @@ class Calibration(abc.Mapping):
             return cirq.TwoQubitInteractionHeatmap(value_map, title=key.replace('_', ' ').title())
         raise ValueError(
             'Heatmaps are only supported if all the targets in a metric are one or two qubits.'
-            + f'{key} has target qubits {value_map.keys()}'
+            f'{key} has target qubits {value_map.keys()}'
         )
 
     def plot_histograms(
         self,
         keys: Sequence[str],
-        ax: Optional[plt.Axes] = None,
+        ax: plt.Axes | None = None,
         *,
-        labels: Optional[Sequence[str]] = None,
+        labels: Sequence[str] | None = None,
     ) -> plt.Axes:
         """Plots integrated histograms of metric values corresponding to keys
 
@@ -287,8 +289,8 @@ class Calibration(abc.Mapping):
             if not all(len(k) == 1 for k in metrics.values()):
                 raise ValueError(
                     'Histograms are only supported if all values in a metric '
-                    + 'are single metric values.'
-                    + f'{key} has metric values {metrics.values()}'
+                    'are single metric values.'
+                    f'{key} has metric values {metrics.values()}'
                 )
             cirq.integrated_histogram(
                 [self.value_to_float(v) for v in metrics.values()],
@@ -303,8 +305,8 @@ class Calibration(abc.Mapping):
         return ax
 
     def plot(
-        self, key: str, fig: Optional[mpl.figure.Figure] = None
-    ) -> Tuple[mpl.figure.Figure, List[plt.Axes]]:
+        self, key: str, fig: mpl.figure.Figure | None = None
+    ) -> tuple[mpl.figure.Figure, list[plt.Axes]]:
         """Plots a heatmap and an integrated histogram for the given key.
 
         Args:
@@ -321,7 +323,7 @@ class Calibration(abc.Mapping):
         show_plot = not fig
         if fig is None:
             fig = plt.figure()
-        axs = cast(List[plt.Axes], fig.subplots(1, 2))
+        axs = cast(list[plt.Axes], fig.subplots(1, 2))
         self.heatmap(key).plot(axs[0])
         self.plot_histograms(key, axs[1])
         if show_plot:

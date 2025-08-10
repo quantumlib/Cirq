@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Check protobuf modules initialize successfully."""
 
-# pylint: disable=unused-import
-from cirq_google.api.v1 import operations_pb2, params_pb2, program_pb2
+from __future__ import annotations
 
-# pylint: enable=unused-import
+from cirq_google.api.v1 import operations_pb2, params_pb2, program_pb2  # noqa: F401

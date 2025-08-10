@@ -1,4 +1,7 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
+from __future__ import annotations
+
 import pathlib
 
 import cirq_google
@@ -23,7 +26,6 @@ TestSpec = ModuleJsonTestSpec(
         'NoiseModelFromGoogleNoiseProperties',
         'ProtoVersion',
         'GreedySequenceSearchStrategy',
-        'PerQubitDepolarizingWithDampedReadoutNoiseModel',
         'ProcessorSampler',
         'ValidatingSampler',
         'CouldNotPlaceError',

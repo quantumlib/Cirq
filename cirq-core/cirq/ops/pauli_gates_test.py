@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
 
 import numpy as np
@@ -221,3 +223,10 @@ def test_powers() -> None:
     assert isinstance(cirq.X**1, cirq.Pauli)
     assert isinstance(cirq.Y**1, cirq.Pauli)
     assert isinstance(cirq.Z**1, cirq.Pauli)
+
+    with pytest.raises(TypeError, match="Gate exponent must be a number or sympy expression."):
+        assert cirq.X ** 'text'
+    with pytest.raises(TypeError, match="Gate exponent must be a number or sympy expression."):
+        assert cirq.Y ** 'text'
+    with pytest.raises(TypeError, match="Gate exponent must be a number or sympy expression."):
+        assert cirq.Z ** 'text'

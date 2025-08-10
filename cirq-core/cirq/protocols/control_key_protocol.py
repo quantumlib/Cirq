@@ -16,7 +16,7 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import Any, FrozenSet, TYPE_CHECKING, Union
+from typing import Any, TYPE_CHECKING
 
 from typing_extensions import Protocol
 
@@ -37,7 +37,7 @@ class SupportsControlKey(Protocol):
     """
 
     @doc_private
-    def _control_keys_(self) -> Union[FrozenSet[cirq.MeasurementKey], NotImplementedType, None]:
+    def _control_keys_(self) -> frozenset[cirq.MeasurementKey] | NotImplementedType | None:
         """Return the keys for controls referenced by the receiving object.
 
         Returns:
@@ -46,7 +46,7 @@ class SupportsControlKey(Protocol):
         """
 
 
-def control_keys(val: Any) -> FrozenSet[cirq.MeasurementKey]:
+def control_keys(val: Any) -> frozenset[cirq.MeasurementKey]:
     """Gets the keys that the value is classically controlled by.
 
     Args:
@@ -64,7 +64,7 @@ def control_keys(val: Any) -> FrozenSet[cirq.MeasurementKey]:
     return frozenset()
 
 
-def measurement_keys_touched(val: Any) -> FrozenSet[cirq.MeasurementKey]:
+def measurement_keys_touched(val: Any) -> frozenset[cirq.MeasurementKey]:
     """Returns all the measurement keys used by the value.
 
     This would be the case if the value is or contains a measurement gate, or

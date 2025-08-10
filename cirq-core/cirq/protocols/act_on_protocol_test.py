@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Sequence, Tuple
+from typing import Any, Sequence
 
 import numpy as np
 import pytest
@@ -65,7 +65,7 @@ def test_act_on_fallback_errors() -> None:
 def test_act_on_errors() -> None:
     class Op(cirq.Operation):
         @property
-        def qubits(self) -> Tuple[cirq.Qid, ...]:  # type: ignore[empty-body]
+        def qubits(self) -> tuple[cirq.Qid, ...]:  # type: ignore[empty-body]
             pass
 
         def with_qubits(self, *new_qubits: cirq.Qid) -> Self:  # type: ignore[empty-body]
@@ -82,7 +82,7 @@ def test_act_on_errors() -> None:
 def test_qubits_not_allowed_for_operations() -> None:
     class Op(cirq.Operation):
         @property
-        def qubits(self) -> Tuple[cirq.Qid, ...]:  # type: ignore[empty-body]
+        def qubits(self) -> tuple[cirq.Qid, ...]:  # type: ignore[empty-body]
             pass
 
         def with_qubits(self, *new_qubits: cirq.Qid) -> Self:  # type: ignore[empty-body]

@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 import itertools
-from typing import Optional
 from unittest import mock
 
 import pytest
@@ -231,7 +230,7 @@ def test_decompose_intercept() -> None:
 
     # Accepts a context, when provided.
     def _intercept_with_context(
-        op: cirq.Operation, context: Optional[cirq.DecompositionContext] = None
+        op: cirq.Operation, context: cirq.DecompositionContext | None = None
     ):
         assert context is not None
         if op.gate == cirq.SWAP:
@@ -446,3 +445,12 @@ def test_decompose_without_context_succeed() -> None:
             cirq.ops.CleanQubit(1, prefix='_decompose_protocol'),
         )
     ]
+
+
+def test_extracting_global_phases() -> None:
+    qm = cirq.SimpleQubitManager()
+    context = cirq.DecompositionContext(qm)
+    new_context = context.extracting_global_phases()
+    assert not context.extract_global_phases
+    assert new_context.extract_global_phases
+    assert new_context.qubit_manager is qm

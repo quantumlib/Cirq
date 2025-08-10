@@ -24,18 +24,13 @@ from typing import (
     Any,
     Callable,
     cast,
-    Dict,
-    FrozenSet,
+    Hashable,
     Iterable,
     Iterator,
-    List,
     Mapping,
-    Optional,
     overload,
     Sequence,
-    Tuple,
     TYPE_CHECKING,
-    Union,
 )
 
 import numpy as np
@@ -51,13 +46,12 @@ if TYPE_CHECKING:
 
 # Lazy imports to break circular dependencies.
 circuit = LazyLoader("circuit", globals(), "cirq.circuits.circuit")
-op_tree = LazyLoader("op_tree", globals(), "cirq.ops.op_tree")
 text_diagram_drawer = LazyLoader(
     "text_diagram_drawer", globals(), "cirq.circuits.text_diagram_drawer"
 )
 
 
-def _default_breakdown(qid: cirq.Qid) -> Tuple[Any, Any]:
+def _default_breakdown(qid: cirq.Qid) -> tuple[Any, Any]:
     # Attempt to convert into a position on the complex plane.
     try:
         plane_pos = complex(qid)  # type: ignore
@@ -84,7 +78,12 @@ class Moment:
             are no such operations, returns an empty Moment.
     """
 
-    def __init__(self, *contents: cirq.OP_TREE, _flatten_contents: bool = True) -> None:
+    def __init__(
+        self,
+        *contents: cirq.OP_TREE,
+        _flatten_contents: bool = True,
+        tags: tuple[Hashable, ...] = (),
+    ) -> None:
         """Constructs a moment with the given operations.
 
         Args:
@@ -95,6 +94,12 @@ class Moment:
                 we skip flattening and assume that contents already consists
                 of individual operations. This is used internally by helper
                 methods to avoid unnecessary validation.
+            tags:  Optional tags to denote specific Moment objects with meta-data.
+                These are a tuple of any Hashable object.  Typically, a class
+                will be passed.  Tags apply only to this specific set of operations
+                and will be lost on any transformation of the
+                Moment.  For instance, if operations are added to the Moment, tags
+                will be dropped unless explicitly added back in by the user.
 
         Raises:
             ValueError: A qubit appears more than once.
@@ -102,12 +107,12 @@ class Moment:
         self._operations = (
             tuple(op_tree.flatten_to_ops(contents))
             if _flatten_contents
-            else cast(Tuple['cirq.Operation'], contents)
+            else cast(tuple['cirq.Operation'], contents)
         )
-        self._sorted_operations: Optional[Tuple[cirq.Operation, ...]] = None
+        self._sorted_operations: tuple[cirq.Operation, ...] | None = None
 
         # An internal dictionary to support efficient operation access by qubit.
-        self._qubit_to_op: Dict[cirq.Qid, cirq.Operation] = {}
+        self._qubit_to_op: dict[cirq.Qid, cirq.Operation] = {}
         for op in self.operations:
             for q in op.qubits:
                 # Check that operations don't overlap.
@@ -115,11 +120,12 @@ class Moment:
                     raise ValueError(f'Overlapping operations: {self.operations}')
                 self._qubit_to_op[q] = op
 
-        self._measurement_key_objs: Optional[FrozenSet[cirq.MeasurementKey]] = None
-        self._control_keys: Optional[FrozenSet[cirq.MeasurementKey]] = None
+        self._measurement_key_objs: frozenset[cirq.MeasurementKey] | None = None
+        self._control_keys: frozenset[cirq.MeasurementKey] | None = None
+        self._tags = tags
 
     @classmethod
-    def from_ops(cls, *ops: cirq.Operation) -> cirq.Moment:
+    def from_ops(cls, *ops: cirq.Operation, tags: tuple[Hashable, ...] = ()) -> cirq.Moment:
         """Construct a Moment from the given operations.
 
         This avoids calling `flatten_to_ops` in the moment constructor, which
@@ -129,16 +135,47 @@ class Moment:
 
         Args:
             *ops: Operations to include in the Moment.
+            tags:  Optional tags to denote specific Moment objects with meta-data.
+                These are a tuple of any Hashable object.  Tags will be dropped if
+                the operations in the Moment are modified or transformed.
         """
-        return cls(*ops, _flatten_contents=False)
+        return cls(*ops, _flatten_contents=False, tags=tags)
 
     @property
-    def operations(self) -> Tuple[cirq.Operation, ...]:
+    def operations(self) -> tuple[cirq.Operation, ...]:
         return self._operations
 
     @cached_property
-    def qubits(self) -> FrozenSet[cirq.Qid]:
+    def qubits(self) -> frozenset[cirq.Qid]:
         return frozenset(self._qubit_to_op)
+
+    @property
+    def tags(self) -> tuple[Hashable, ...]:
+        """Returns a tuple of the operation's tags."""
+        return self._tags
+
+    def with_tags(self, *new_tags: Hashable) -> cirq.Moment:
+        """Creates a new Moment with the current ops and the specified tags.
+
+        If the moment already has tags, this will add the new_tags to the
+        preexisting tags.
+
+        This method can be used to attach meta-data to moments
+        without affecting their functionality.  The intended usage is to
+        attach classes intended for this purpose or strings to mark operations
+        for specific usage that will be recognized by consumers.
+
+        Tags can be a list of any type of object that is useful to identify
+        this operation as long as the type is hashable.  If you wish the
+        resulting operation to be eventually serialized into JSON, you should
+        also restrict the operation to be JSON serializable.
+
+        Please note that tags should be instantiated if classes are
+        used.  Raw types are not allowed.
+        """
+        if not new_tags:
+            return self
+        return Moment(*self._operations, _flatten_contents=False, tags=(*self._tags, *new_tags))
 
     def operates_on_single_qubit(self, qubit: cirq.Qid) -> bool:
         """Determines if the moment has operations touching the given qubit.
@@ -160,7 +197,7 @@ class Moment:
         """
         return not self._qubit_to_op.keys().isdisjoint(qubits)
 
-    def operation_at(self, qubit: raw_types.Qid) -> Optional[cirq.Operation]:
+    def operation_at(self, qubit: raw_types.Qid) -> cirq.Operation | None:
         """Returns the operation on a certain qubit for the moment.
 
         Args:
@@ -176,6 +213,8 @@ class Moment:
 
     def with_operation(self, operation: cirq.Operation) -> cirq.Moment:
         """Returns an equal moment, but with the given op added.
+
+        Any tags on the Moment will be dropped.
 
         Args:
             operation: The operation to append.
@@ -204,6 +243,9 @@ class Moment:
 
     def with_operations(self, *contents: cirq.OP_TREE) -> cirq.Moment:
         """Returns a new moment with the given contents added.
+
+        Any tags on the original Moment object are dropped if the Moment
+        is changed.
 
         Args:
             *contents: New operations to add to this moment.
@@ -242,6 +284,9 @@ class Moment:
     def without_operations_touching(self, qubits: Iterable[cirq.Qid]) -> cirq.Moment:
         """Returns an equal moment, but without ops on the given qubits.
 
+        Any tags on the original Moment object are dropped if the Moment
+        is changed.
+
         Args:
             qubits: Operations that touch these will be removed.
 
@@ -267,7 +312,7 @@ class Moment:
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> cirq.Moment:
         changed = False
-        resolved_ops: List[cirq.Operation] = []
+        resolved_ops: list[cirq.Operation] = []
         for op in self:
             resolved_op = protocols.resolve_parameters(op, resolver, recursive)
             changed = (
@@ -291,35 +336,35 @@ class Moment:
         )
 
     @_compat.cached_method()
-    def _measurement_key_names_(self) -> FrozenSet[str]:
+    def _measurement_key_names_(self) -> frozenset[str]:
         return frozenset(str(key) for key in self._measurement_key_objs_())
 
-    def _measurement_key_objs_(self) -> FrozenSet[cirq.MeasurementKey]:
+    def _measurement_key_objs_(self) -> frozenset[cirq.MeasurementKey]:
         if self._measurement_key_objs is None:
             self._measurement_key_objs = frozenset(
                 key for op in self.operations for key in protocols.measurement_key_objs(op)
             )
         return self._measurement_key_objs
 
-    def _control_keys_(self) -> FrozenSet[cirq.MeasurementKey]:
+    def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
         if self._control_keys is None:
             self._control_keys = frozenset(
                 k for op in self.operations for k in protocols.control_keys(op)
             )
         return self._control_keys
 
-    def _sorted_operations_(self) -> Tuple[cirq.Operation, ...]:
+    def _sorted_operations_(self) -> tuple[cirq.Operation, ...]:
         if self._sorted_operations is None:
             self._sorted_operations = tuple(sorted(self._operations, key=lambda op: op.qubits))
         return self._sorted_operations
 
-    def _with_key_path_(self, path: Tuple[str, ...]):
+    def _with_key_path_(self, path: tuple[str, ...]):
         return Moment(
             protocols.with_key_path(op, path) if protocols.is_measurement(op) else op
             for op in self.operations
         )
 
-    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+    def _with_key_path_prefix_(self, prefix: tuple[str, ...]):
         return Moment(
             (
                 protocols.with_key_path_prefix(op, prefix)
@@ -330,7 +375,7 @@ class Moment:
         )
 
     def _with_rescoped_keys_(
-        self, path: Tuple[str, ...], bindable_keys: FrozenSet[cirq.MeasurementKey]
+        self, path: tuple[str, ...], bindable_keys: frozenset[cirq.MeasurementKey]
     ):
         return Moment(
             protocols.with_rescoped_keys(op, path, bindable_keys) for op in self.operations
@@ -364,7 +409,7 @@ class Moment:
     def __hash__(self):
         return hash((Moment, self._sorted_operations_()))
 
-    def __getstate__(self) -> Dict[str, Any]:
+    def __getstate__(self) -> dict[str, Any]:
         # clear cached hash value when pickling, see #6674
         state = self.__dict__
         hash_attr = _compat._method_cache_name(self.__hash__)
@@ -407,7 +452,7 @@ class Moment:
         return self._operations
 
     def transform_qubits(
-        self, qubit_map: Union[Dict[cirq.Qid, cirq.Qid], Callable[[cirq.Qid], cirq.Qid]]
+        self, qubit_map: dict[cirq.Qid, cirq.Qid] | Callable[[cirq.Qid], cirq.Qid]
     ) -> Self:
         """Returns the same moment, but with different qubits.
 
@@ -516,12 +561,14 @@ class Moment:
             return NotImplemented
         return qis.kraus_to_superoperator(self._kraus_())
 
-    def _json_dict_(self) -> Dict[str, Any]:
-        return protocols.obj_to_dict_helper(self, ['operations'])
+    def _json_dict_(self) -> dict[str, Any]:
+        # For backwards compatibility, only output tags if they exist.
+        args = ['operations', 'tags'] if self._tags else ['operations']
+        return protocols.obj_to_dict_helper(self, args)
 
     @classmethod
-    def _from_json_dict_(cls, operations, **kwargs):
-        return cls.from_ops(*operations)
+    def _from_json_dict_(cls, operations, tags=(), **kwargs):
+        return cls(*operations, tags=tags)
 
     def __add__(self, other: cirq.OP_TREE) -> cirq.Moment:
         if isinstance(other, circuit.AbstractCircuit):
@@ -544,7 +591,6 @@ class Moment:
             )
         return Moment(new_ops)
 
-    # pylint: disable=function-redefined
     @overload
     def __getitem__(self, key: raw_types.Qid) -> cirq.Operation:
         pass
@@ -569,11 +615,11 @@ class Moment:
     def to_text_diagram(
         self: cirq.Moment,
         *,
-        xy_breakdown_func: Callable[[cirq.Qid], Tuple[Any, Any]] = _default_breakdown,
+        xy_breakdown_func: Callable[[cirq.Qid], tuple[Any, Any]] = _default_breakdown,
         extra_qubits: Iterable[cirq.Qid] = (),
         use_unicode_characters: bool = True,
-        precision: Optional[int] = None,
-        include_tags: bool = True,
+        precision: int | None = None,
+        include_tags: bool | Iterable[type] = True,
     ) -> str:
         """Create a text diagram for the moment.
 
@@ -591,8 +637,10 @@ class Moment:
             precision: How precise numbers, such as angles, should be. Use None
                 for infinite precision, or an integer for a certain number of
                 digits of precision.
-            include_tags: Whether or not to include operation tags in the
-                diagram.
+            include_tags: Controls which tags attached to operations are
+                included. ``True`` includes all tags, ``False`` includes none,
+                or a collection of tag classes may be specified to include only
+                those tags.
 
         Returns:
             The text diagram rendered into text.
@@ -657,7 +705,7 @@ class Moment:
 
         return diagram.render()
 
-    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> Union[bool, NotImplementedType]:
+    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> bool | NotImplementedType:
         """Determines whether Moment commutes with the other Moment or Operation.
 
         Args:

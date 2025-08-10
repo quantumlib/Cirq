@@ -12,15 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import functools
-from typing import Dict
+from typing import TYPE_CHECKING
 
 import cirq_pasqal
-from cirq.protocols.json_serialization import ObjectFactory
+
+if TYPE_CHECKING:
+    from cirq.protocols.json_serialization import ObjectFactory
 
 
 @functools.lru_cache()
-def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
+def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
     return {
         'PasqalDevice': cirq_pasqal.PasqalDevice,
         'PasqalGateset': cirq_pasqal.PasqalGateset,

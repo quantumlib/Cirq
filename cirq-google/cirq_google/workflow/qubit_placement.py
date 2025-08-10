@@ -19,9 +19,7 @@ from __future__ import annotations
 import abc
 import dataclasses
 from functools import lru_cache
-from typing import Any, Callable, Dict, Hashable, List, Tuple, TYPE_CHECKING
-
-import numpy as np
+from typing import Any, Callable, Hashable, TYPE_CHECKING
 
 import cirq
 from cirq import _compat
@@ -30,6 +28,8 @@ from cirq.protocols import obj_to_dict_helper
 from cirq_google.workflow._device_shim import _Device_dot_get_nx_graph
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq_google as cg
 
 
@@ -45,7 +45,7 @@ class QubitPlacer(metaclass=abc.ABCMeta):
         problem_topology: cirq.NamedTopology,
         shared_rt_info: cg.SharedRuntimeInfo,
         rs: np.random.RandomState,
-    ) -> Tuple[cirq.FrozenCircuit, Dict[Any, cirq.Qid]]:
+    ) -> tuple[cirq.FrozenCircuit, dict[Any, cirq.Qid]]:
         """Place a circuit with a given topology.
 
         Args:
@@ -71,14 +71,14 @@ class NaiveQubitPlacer(QubitPlacer):
         problem_topology: cirq.NamedTopology,
         shared_rt_info: cg.SharedRuntimeInfo,
         rs: np.random.RandomState,
-    ) -> Tuple[cirq.FrozenCircuit, Dict[Any, cirq.Qid]]:
+    ) -> tuple[cirq.FrozenCircuit, dict[Any, cirq.Qid]]:
         return circuit.freeze(), {q: q for q in circuit.all_qubits()}
 
     @classmethod
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.dataclass_json_dict(self)
 
     def __repr__(self) -> str:
@@ -113,7 +113,7 @@ def default_topo_node_to_qubit(node: Any) -> cirq.Qid:
 class HardcodedQubitPlacer(QubitPlacer):
     def __init__(
         self,
-        mapping: Dict[cirq.NamedTopology, Dict[Any, cirq.Qid]],
+        mapping: dict[cirq.NamedTopology, dict[Any, cirq.Qid]],
         topo_node_to_qubit_func: Callable[[Hashable], cirq.Qid] = default_topo_node_to_qubit,
     ):
         """A placement strategy that uses the explicitly provided `mapping`.
@@ -142,7 +142,7 @@ class HardcodedQubitPlacer(QubitPlacer):
         problem_topology: NamedTopology,
         shared_rt_info: cg.SharedRuntimeInfo,
         rs: np.random.RandomState,
-    ) -> Tuple[cirq.FrozenCircuit, Dict[Any, cirq.Qid]]:
+    ) -> tuple[cirq.FrozenCircuit, dict[Any, cirq.Qid]]:
         """Place a circuit according to the hardcoded placements.
 
         Args:
@@ -191,9 +191,9 @@ class HardcodedQubitPlacer(QubitPlacer):
     @classmethod
     def _from_json_dict_(cls, **kwargs) -> HardcodedQubitPlacer:
         # From nested list(key_value_pair) to dictionary
-        mapping: Dict[cirq.NamedTopology, Dict[Any, cirq.Qid]] = {}
+        mapping: dict[cirq.NamedTopology, dict[Any, cirq.Qid]] = {}
         for topo, placement_kvs in kwargs['mapping']:
-            placement: Dict[Hashable, cirq.Qid] = {}
+            placement: dict[Hashable, cirq.Qid] = {}
             for k, v in placement_kvs:
                 if isinstance(k, list):
                     k = tuple(k)
@@ -212,7 +212,7 @@ class HardcodedQubitPlacer(QubitPlacer):
 @lru_cache()
 def _cached_get_placements(
     problem_topo: cirq.NamedTopology, device: cirq.Device
-) -> List[Dict[Any, cirq.Qid]]:
+) -> list[dict[Any, cirq.Qid]]:
     """Cache `cirq.get_placements` onto the specific device."""
     return get_placements(
         big_graph=_Device_dot_get_nx_graph(device), small_graph=problem_topo.graph
@@ -224,7 +224,7 @@ def _get_random_placement(
     device: cirq.Device,
     rs: np.random.RandomState,
     topo_node_to_qubit_func: Callable[[Any], cirq.Qid] = default_topo_node_to_qubit,
-) -> Dict[cirq.Qid, cirq.Qid]:
+) -> dict[cirq.Qid, cirq.Qid]:
     """Place `problem_topology` randomly onto a device.
 
     This is a helper function used by `RandomDevicePlacer.place_circuit`.
@@ -264,7 +264,7 @@ class RandomDevicePlacer(QubitPlacer):
         problem_topology: cirq.NamedTopology,
         shared_rt_info: cg.SharedRuntimeInfo,
         rs: np.random.RandomState,
-    ) -> Tuple[cirq.FrozenCircuit, Dict[Any, cirq.Qid]]:
+    ) -> tuple[cirq.FrozenCircuit, dict[Any, cirq.Qid]]:
         """Place a circuit with a given topology onto a device via `cirq.get_placements` with
         randomized selection of the placement each time.
 
@@ -299,7 +299,7 @@ class RandomDevicePlacer(QubitPlacer):
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(self, [])
 
     def __repr__(self) -> str:

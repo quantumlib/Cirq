@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
@@ -54,12 +56,13 @@ def test_apply_unitary_presence_absence():
             args.target_tensor[one] *= -1
             return args.target_tensor
 
-    fails = [NoUnitaryEffect(), HasApplyReturnsNotImplemented()]
+    fails = [NoUnitaryEffect(), HasApplyReturnsNotImplemented(), m * 2]
     passes = [
         HasUnitary(),
         HasApplyReturnsNotImplementedButHasUnitary(),
         HasApplyOutputInBuffer(),
         HasApplyMutateInline(),
+        m,
     ]
 
     def make_input():

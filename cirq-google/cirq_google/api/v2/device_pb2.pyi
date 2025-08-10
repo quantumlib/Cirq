@@ -200,6 +200,16 @@ class GateSpecification(google.protobuf.message.Message):
             self,
         ) -> None: ...
 
+    @typing.final
+    class Reset(google.protobuf.message.Message):
+        """This gate resets qubit to its |0> state."""
+
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        def __init__(
+            self,
+        ) -> None: ...
+
     GATE_DURATION_PICOS_FIELD_NUMBER: builtins.int
     SYC_FIELD_NUMBER: builtins.int
     SQRT_ISWAP_FIELD_NUMBER: builtins.int
@@ -214,6 +224,7 @@ class GateSpecification(google.protobuf.message.Message):
     FSIM_VIA_MODEL_FIELD_NUMBER: builtins.int
     CZ_POW_GATE_FIELD_NUMBER: builtins.int
     INTERNAL_GATE_FIELD_NUMBER: builtins.int
+    RESET_FIELD_NUMBER: builtins.int
     gate_duration_picos: builtins.int
     """This defines the approximate duration to run the gate on the device,
     specified as an integer number of picoseconds.
@@ -244,6 +255,8 @@ class GateSpecification(google.protobuf.message.Message):
     def cz_pow_gate(self) -> global___GateSpecification.CZPowGate: ...
     @property
     def internal_gate(self) -> global___GateSpecification.InternalGate: ...
+    @property
+    def reset(self) -> global___GateSpecification.Reset: ...
     def __init__(
         self,
         *,
@@ -261,10 +274,11 @@ class GateSpecification(google.protobuf.message.Message):
         fsim_via_model: global___GateSpecification.FSimViaModel | None = ...,
         cz_pow_gate: global___GateSpecification.CZPowGate | None = ...,
         internal_gate: global___GateSpecification.InternalGate | None = ...,
+        reset: global___GateSpecification.Reset | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["coupler_pulse", b"coupler_pulse", "cz", b"cz", "cz_pow_gate", b"cz_pow_gate", "fsim_via_model", b"fsim_via_model", "gate", b"gate", "internal_gate", b"internal_gate", "meas", b"meas", "phased_xz", b"phased_xz", "physical_zpow", b"physical_zpow", "sqrt_iswap", b"sqrt_iswap", "sqrt_iswap_inv", b"sqrt_iswap_inv", "syc", b"syc", "virtual_zpow", b"virtual_zpow", "wait", b"wait"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["coupler_pulse", b"coupler_pulse", "cz", b"cz", "cz_pow_gate", b"cz_pow_gate", "fsim_via_model", b"fsim_via_model", "gate", b"gate", "gate_duration_picos", b"gate_duration_picos", "internal_gate", b"internal_gate", "meas", b"meas", "phased_xz", b"phased_xz", "physical_zpow", b"physical_zpow", "sqrt_iswap", b"sqrt_iswap", "sqrt_iswap_inv", b"sqrt_iswap_inv", "syc", b"syc", "virtual_zpow", b"virtual_zpow", "wait", b"wait"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["gate", b"gate"]) -> typing.Literal["syc", "sqrt_iswap", "sqrt_iswap_inv", "cz", "phased_xz", "virtual_zpow", "physical_zpow", "coupler_pulse", "meas", "wait", "fsim_via_model", "cz_pow_gate", "internal_gate"] | None: ...
+    def HasField(self, field_name: typing.Literal["coupler_pulse", b"coupler_pulse", "cz", b"cz", "cz_pow_gate", b"cz_pow_gate", "fsim_via_model", b"fsim_via_model", "gate", b"gate", "internal_gate", b"internal_gate", "meas", b"meas", "phased_xz", b"phased_xz", "physical_zpow", b"physical_zpow", "reset", b"reset", "sqrt_iswap", b"sqrt_iswap", "sqrt_iswap_inv", b"sqrt_iswap_inv", "syc", b"syc", "virtual_zpow", b"virtual_zpow", "wait", b"wait"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["coupler_pulse", b"coupler_pulse", "cz", b"cz", "cz_pow_gate", b"cz_pow_gate", "fsim_via_model", b"fsim_via_model", "gate", b"gate", "gate_duration_picos", b"gate_duration_picos", "internal_gate", b"internal_gate", "meas", b"meas", "phased_xz", b"phased_xz", "physical_zpow", b"physical_zpow", "reset", b"reset", "sqrt_iswap", b"sqrt_iswap", "sqrt_iswap_inv", b"sqrt_iswap_inv", "syc", b"syc", "virtual_zpow", b"virtual_zpow", "wait", b"wait"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["gate", b"gate"]) -> typing.Literal["syc", "sqrt_iswap", "sqrt_iswap_inv", "cz", "phased_xz", "virtual_zpow", "physical_zpow", "coupler_pulse", "meas", "wait", "fsim_via_model", "cz_pow_gate", "internal_gate", "reset"] | None: ...
 
 global___GateSpecification = GateSpecification
 

@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -120,7 +120,7 @@ def random_orthogonal(
 
 
 def random_special_unitary(
-    dim: int, *, random_state: Optional[np.random.RandomState] = None
+    dim: int, *, random_state: np.random.RandomState | None = None
 ) -> np.ndarray:
     """Returns a random special unitary distributed with Haar measure.
 
@@ -186,9 +186,7 @@ def assert_allclose_up_to_global_phase(
     Raises:
         AssertionError: The matrices aren't nearly equal up to global phase.
     """
-    # pylint: disable=unused-variable
     __tracebackhide__ = True
-    # pylint: enable=unused-variable
 
     actual, desired = linalg.match_global_phase(actual, desired)
     np.testing.assert_allclose(

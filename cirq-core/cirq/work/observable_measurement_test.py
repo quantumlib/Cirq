@@ -11,8 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import tempfile
-from typing import Dict, Iterable, List
+from typing import Iterable
 
 import numpy as np
 import pytest
@@ -526,7 +529,7 @@ def test_XYZ_point8(circuit, observable) -> None:
 
 def _each_in_its_own_group_grouper(
     settings: Iterable[InitObsSetting],
-) -> Dict[InitObsSetting, List[InitObsSetting]]:
+) -> dict[InitObsSetting, list[InitObsSetting]]:
     return {setting: [setting] for setting in settings}
 
 

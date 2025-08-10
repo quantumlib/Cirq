@@ -18,27 +18,15 @@ from __future__ import annotations
 
 import abc
 from types import NotImplementedType
-from typing import (
-    Any,
-    Dict,
-    Generic,
-    Iterator,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    TypeVar,
-    Union,
-)
+from typing import Any, Generic, Iterator, Mapping, Sequence, TYPE_CHECKING, TypeVar
 
-import numpy as np
 from typing_extensions import Self
 
 from cirq import protocols, value
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq
 
 
@@ -49,10 +37,7 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
     """An interface for quantum states as targets for operations."""
 
     def __init__(
-        self,
-        *,
-        qubits: Sequence[cirq.Qid],
-        classical_data: Optional[cirq.ClassicalDataStore] = None,
+        self, *, qubits: Sequence[cirq.Qid], classical_data: cirq.ClassicalDataStore | None = None
     ):
         """Initializes the class.
 
@@ -65,7 +50,7 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
         self._classical_data = classical_data or value.ClassicalDataDictionaryStore()
 
     @property
-    def qubits(self) -> Tuple[cirq.Qid, ...]:
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         return self._qubits
 
     @property
@@ -87,7 +72,7 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def _act_on_fallback_(
         self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool = True
-    ) -> Union[bool, NotImplementedType]:
+    ) -> bool | NotImplementedType:
         """Handles the act_on protocol fallback implementation.
 
         Args:
@@ -115,21 +100,21 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
         """
 
     @property
-    def log_of_measurement_results(self) -> Dict[str, List[int]]:
+    def log_of_measurement_results(self) -> dict[str, list[int]]:
         """Gets the log of measurement results."""
         return {str(k): list(self.classical_data.get_digits(k)) for k in self.classical_data.keys()}
 
     @abc.abstractmethod
     def sample(
         self,
-        qubits: List[cirq.Qid],
+        qubits: list[cirq.Qid],
         repetitions: int = 1,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> np.ndarray:
         """Samples the state value."""
 
     @abc.abstractmethod
-    def __getitem__(self, item: Optional[cirq.Qid]) -> TSimulationState:
+    def __getitem__(self, item: cirq.Qid | None) -> TSimulationState:
         """Gets the item associated with the qubit."""
 
     @abc.abstractmethod
@@ -137,5 +122,5 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
         """Gets the number of items in the mapping."""
 
     @abc.abstractmethod
-    def __iter__(self) -> Iterator[Optional[cirq.Qid]]:
+    def __iter__(self) -> Iterator[cirq.Qid | None]:
         """Iterates the keys of the mapping."""

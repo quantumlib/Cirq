@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from cirq.transformers import transformer_api, transformer_primitives
 
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
 @transformer_api.transformer
 def drop_empty_moments(
-    circuit: cirq.AbstractCircuit, *, context: Optional[cirq.TransformerContext] = None
+    circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
 ) -> cirq.Circuit:
     """Removes empty moments from a circuit.
 

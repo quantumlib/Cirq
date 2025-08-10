@@ -19,7 +19,7 @@ from __future__ import annotations
 import abc
 import warnings
 from functools import cached_property
-from typing import Any, Dict, Generic, Iterator, Sequence, Type, TYPE_CHECKING, TypeVar
+from typing import Any, Generic, Iterator, Sequence, TYPE_CHECKING, TypeVar
 
 import numpy as np
 
@@ -50,7 +50,7 @@ class SimulatesIntermediateStateVector(
     def __init__(
         self,
         *,
-        dtype: Type[np.complexfloating] = np.complex64,
+        dtype: type[np.complexfloating] = np.complex64,
         noise: cirq.NOISE_MODEL_LIKE = None,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         split_untangled_states: bool = False,
@@ -62,7 +62,7 @@ class SimulatesIntermediateStateVector(
     def _create_simulator_trial_result(
         self,
         params: cirq.ParamResolver,
-        measurements: Dict[str, np.ndarray],
+        measurements: dict[str, np.ndarray],
         final_simulator_state: cirq.SimulationStateBase[cirq.StateVectorSimulationState],
     ) -> cirq.StateVectorTrialResult:
         return StateVectorTrialResult(
@@ -116,7 +116,7 @@ class StateVectorTrialResult(
     def __init__(
         self,
         params: cirq.ParamResolver,
-        measurements: Dict[str, np.ndarray],
+        measurements: dict[str, np.ndarray],
         final_simulator_state: cirq.SimulationStateBase[cirq.StateVectorSimulationState],
     ) -> None:
         super().__init__(

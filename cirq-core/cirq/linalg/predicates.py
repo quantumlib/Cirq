@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 from types import EllipsisType
-from typing import cast, List, Optional, Sequence, Tuple, Union
+from typing import cast, Sequence
 
 import numpy as np
 
@@ -115,8 +115,12 @@ def is_unitary(matrix: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8) ->
     Returns:
         Whether the matrix is unitary within the given tolerance.
     """
-    return matrix.shape[0] == matrix.shape[1] and np.allclose(
-        matrix.dot(np.conj(matrix.T)), np.eye(matrix.shape[0]), rtol=rtol, atol=atol
+    return (
+        matrix.ndim == 2
+        and matrix.shape[0] == matrix.shape[1]
+        and np.allclose(
+            matrix.dot(np.conj(matrix.T)), np.eye(matrix.shape[0]), rtol=rtol, atol=atol
+        )
     )
 
 
@@ -231,9 +235,9 @@ def slice_for_qubits_equal_to(
     little_endian_qureg_value: int = 0,
     *,  # Forces keyword args.
     big_endian_qureg_value: int = 0,
-    num_qubits: Optional[int] = None,
-    qid_shape: Optional[Tuple[int, ...]] = None,
-) -> Tuple[Union[slice, int, EllipsisType], ...]:
+    num_qubits: int | None = None,
+    qid_shape: tuple[int, ...] | None = None,
+) -> tuple[slice | int | EllipsisType, ...]:
     """Returns an index corresponding to a desired subset of an np.ndarray.
 
     It is assumed that the np.ndarray's shape is of the form (2, 2, 2, ..., 2).
@@ -288,10 +292,10 @@ def slice_for_qubits_equal_to(
     qid_shape_specified = qid_shape is not None
     if qid_shape is not None or num_qubits is not None:
         if num_qubits is None:
-            num_qubits = len(cast(Tuple[int, ...], qid_shape))
+            num_qubits = len(cast(tuple[int, ...], qid_shape))
         elif qid_shape is None:
             qid_shape = (2,) * num_qubits
-        if num_qubits != len(cast(Tuple[int, ...], qid_shape)):
+        if num_qubits != len(cast(tuple[int, ...], qid_shape)):
             raise ValueError('len(qid_shape) != num_qubits')
     if little_endian_qureg_value and big_endian_qureg_value:
         raise ValueError(
@@ -302,7 +306,7 @@ def slice_for_qubits_equal_to(
     out_size = (
         cast(int, num_qubits) if out_size_specified else max(target_qubit_axes, default=-1) + 1
     )
-    result = cast(List[Union[slice, int, 'ellipsis']], [slice(None)] * out_size)
+    result = cast(list[slice | int | EllipsisType], [slice(None)] * out_size)
     if not out_size_specified:
         result.append(Ellipsis)
     if qid_shape is None:

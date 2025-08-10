@@ -14,6 +14,8 @@
 
 """Cirq is a framework for creating, editing, and invoking quantum circuits."""
 
+# ruff: noqa: F401
+
 from cirq import _import
 
 from cirq._compat import __cirq_debug__ as __cirq_debug__, with_debug as with_debug
@@ -121,20 +123,19 @@ from cirq.interop import (
 )
 
 from cirq.linalg import (
-    # pylint: disable=line-too-long
     all_near_zero as all_near_zero,
     all_near_zero_mod as all_near_zero_mod,
     allclose_up_to_global_phase as allclose_up_to_global_phase,
     apply_matrix_to_slices as apply_matrix_to_slices,
     axis_angle as axis_angle,
     AxisAngleDecomposition as AxisAngleDecomposition,
-    bidiagonalize_real_matrix_pair_with_symmetric_products as bidiagonalize_real_matrix_pair_with_symmetric_products,
-    bidiagonalize_unitary_with_special_orthogonals as bidiagonalize_unitary_with_special_orthogonals,
+    bidiagonalize_real_matrix_pair_with_symmetric_products as bidiagonalize_real_matrix_pair_with_symmetric_products,  # noqa: E501
+    bidiagonalize_unitary_with_special_orthogonals as bidiagonalize_unitary_with_special_orthogonals,  # noqa: E501
     block_diag as block_diag,
     CONTROL_TAG as CONTROL_TAG,
     deconstruct_single_qubit_matrix_into_angles as deconstruct_single_qubit_matrix_into_angles,
     density_matrix_kronecker_product as density_matrix_kronecker_product,
-    diagonalize_real_symmetric_and_sorted_diagonal_matrices as diagonalize_real_symmetric_and_sorted_diagonal_matrices,
+    diagonalize_real_symmetric_and_sorted_diagonal_matrices as diagonalize_real_symmetric_and_sorted_diagonal_matrices,  # noqa: E501
     diagonalize_real_symmetric_matrix as diagonalize_real_symmetric_matrix,
     dot as dot,
     expand_matrix_in_orthogonal_basis as expand_matrix_in_orthogonal_basis,
@@ -163,7 +164,7 @@ from cirq.linalg import (
     partial_trace as partial_trace,
     partial_trace_of_state_vector_as_mixture as partial_trace_of_state_vector_as_mixture,
     PAULI_BASIS as PAULI_BASIS,
-    scatter_plot_normalized_kak_interaction_coefficients as scatter_plot_normalized_kak_interaction_coefficients,
+    scatter_plot_normalized_kak_interaction_coefficients as scatter_plot_normalized_kak_interaction_coefficients,  # noqa: E501
     pow_pauli_combination as pow_pauli_combination,
     reflection_matrix_pow as reflection_matrix_pow,
     slice_for_qubits_equal_to as slice_for_qubits_equal_to,
@@ -342,20 +343,19 @@ from cirq.ops import (
 
 
 from cirq.transformers import (
-    # pylint: disable=line-too-long
     AbstractInitialMapper as AbstractInitialMapper,
     add_dynamical_decoupling as add_dynamical_decoupling,
     align_left as align_left,
     align_right as align_right,
     CompilationTargetGateset as CompilationTargetGateset,
     CZTargetGateset as CZTargetGateset,
-    compute_cphase_exponents_for_fsim_decomposition as compute_cphase_exponents_for_fsim_decomposition,
+    compute_cphase_exponents_for_fsim_decomposition as compute_cphase_exponents_for_fsim_decomposition,  # noqa: E501
     create_transformer_with_kwargs as create_transformer_with_kwargs,
     decompose_clifford_tableau_to_operations as decompose_clifford_tableau_to_operations,
     decompose_cphase_into_two_fsim as decompose_cphase_into_two_fsim,
     decompose_multi_controlled_x as decompose_multi_controlled_x,
     decompose_multi_controlled_rotation as decompose_multi_controlled_rotation,
-    decompose_two_qubit_interaction_into_four_fsim_gates as decompose_two_qubit_interaction_into_four_fsim_gates,
+    decompose_two_qubit_interaction_into_four_fsim_gates as decompose_two_qubit_interaction_into_four_fsim_gates,  # noqa: E501
     defer_measurements as defer_measurements,
     dephase_measurements as dephase_measurements,
     drop_empty_moments as drop_empty_moments,
@@ -380,6 +380,7 @@ from cirq.transformers import (
     merge_operations_to_circuit_op as merge_operations_to_circuit_op,
     merge_single_qubit_gates_to_phased_x_and_z as merge_single_qubit_gates_to_phased_x_and_z,
     merge_single_qubit_gates_to_phxz as merge_single_qubit_gates_to_phxz,
+    merge_single_qubit_gates_to_phxz_symbolized as merge_single_qubit_gates_to_phxz_symbolized,
     merge_single_qubit_moments_to_phxz as merge_single_qubit_moments_to_phxz,
     optimize_for_target_gateset as optimize_for_target_gateset,
     parameterized_2q_op_to_sqrt_iswap_operations as parameterized_2q_op_to_sqrt_iswap_operations,
@@ -406,7 +407,7 @@ from cirq.transformers import (
     transformer as transformer,
     two_qubit_matrix_to_cz_isometry as two_qubit_matrix_to_cz_isometry,
     two_qubit_matrix_to_cz_operations as two_qubit_matrix_to_cz_operations,
-    two_qubit_matrix_to_diagonal_and_cz_operations as two_qubit_matrix_to_diagonal_and_cz_operations,
+    two_qubit_matrix_to_diagonal_and_cz_operations as two_qubit_matrix_to_diagonal_and_cz_operations,  # noqa: E501
     two_qubit_matrix_to_ion_operations as two_qubit_matrix_to_ion_operations,
     two_qubit_matrix_to_sqrt_iswap_operations as two_qubit_matrix_to_sqrt_iswap_operations,
     two_qubit_gate_product_tabulation as two_qubit_gate_product_tabulation,
@@ -570,7 +571,6 @@ from cirq.value import (
     ProductState as ProductState,
 )
 
-# pylint: disable=redefined-builtin
 from cirq.protocols import (
     act_on as act_on,
     apply_channel as apply_channel,
@@ -692,14 +692,10 @@ from cirq.work import (
     ZerosSampler as ZerosSampler,
 )
 
-# pylint: enable=redefined-builtin
 
 # Unflattened sub-modules.
 
-from cirq import testing
-
 # Registers cirq-core's public classes for JSON serialization.
-# pylint: disable=wrong-import-position
 from cirq.protocols.json_serialization import _register_resolver
 from cirq.json_resolver_cache import _class_resolver_dictionary
 
@@ -708,6 +704,4 @@ _register_resolver(_class_resolver_dictionary)
 
 # contrib's json resolver cache depends on cirq.DEFAULT_RESOLVER
 
-from cirq import contrib
-
-# pylint: enable=wrong-import-position
+from cirq import contrib  # noqa: E402

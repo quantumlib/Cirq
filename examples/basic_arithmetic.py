@@ -86,6 +86,7 @@ Execute Multiplier
 011 * 011 = 001
 """
 
+from __future__ import annotations
 
 import cirq
 
@@ -124,7 +125,6 @@ class Adder(cirq.Gate):
     """
 
     def __init__(self, num_qubits):
-        super(Adder, self)
         self._num_qubits = num_qubits
 
     def num_qubits(self):
@@ -196,7 +196,6 @@ class Multiplier(cirq.Gate):
     """
 
     def __init__(self, num_qubits):
-        super(Multiplier, self)
         self._num_qubits = num_qubits
 
     def num_qubits(self):

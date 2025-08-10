@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -41,7 +41,6 @@ def test_decompose_operations_raises_on_stuck():
     cirq.testing.assert_same_circuits(c_orig, c_new)
 
 
-# pylint: disable=line-too-long
 def test_decompose_operations_to_target_gateset_default():
     q = cirq.LineQubit.range(2)
     c_orig = cirq.Circuit(
@@ -74,7 +73,7 @@ m: ═════════════════════════�
 1: ───────Y^-0.5───@───Y^0.5────@───Y^-0.5───@───Y^0.5───────×───────────╫───X───T───Y^-0.5───@───Y^0.5────@───Y^-0.5───@───Y^0.5───T───
                                                                          ║   ║
 m: ══════════════════════════════════════════════════════════════════════@═══^══════════════════════════════════════════════════════════
-''',
+''',  # noqa: E501
     )
 
 
@@ -192,7 +191,7 @@ m: ═════════════════════@═══^═
                                                                   ║   ║
 m: ═══════════════════════════════════════════════════════════════@═══^═════════════════════════════════════════════════════════
                                          └────────┘                       └────────┘                 └────────┘
-       ''',
+       ''',  # noqa: E501
     )
 
     with pytest.raises(ValueError, match="Unable to convert"):
@@ -253,7 +252,7 @@ def test_optimize_for_target_gateset_deep():
 
 
 @pytest.mark.parametrize('max_num_passes', [2, None])
-def test_optimize_for_target_gateset_multiple_passes(max_num_passes: Union[int, None]):
+def test_optimize_for_target_gateset_multiple_passes(max_num_passes: int | None):
     gateset = cirq.CZTargetGateset()
 
     input_circuit = cirq.Circuit(
@@ -332,7 +331,7 @@ def test_optimize_for_target_gateset_multiple_passes(max_num_passes: Union[int, 
 
 @pytest.mark.parametrize('max_num_passes', [2, None])
 def test_optimize_for_target_gateset_multiple_passes_dont_preserve_moment_structure(
-    max_num_passes: Union[int, None],
+    max_num_passes: int | None,
 ):
     gateset = cirq.CZTargetGateset(preserve_moment_structure=False)
 

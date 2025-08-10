@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq._doc import document
@@ -43,7 +43,7 @@ class _UnconstrainedDevice(device.Device):
     def _value_equality_values_(self) -> Any:
         return ()
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, [])
 
 

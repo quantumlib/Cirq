@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -34,7 +34,7 @@ def two_qubit_matrix_to_cz_isometry(
     allow_partial_czs: bool = False,
     atol: float = 1e-8,
     clean_operations: bool = True,
-) -> List[cirq.Operation]:
+) -> list[cirq.Operation]:
     """Decomposes a 2q operation into at-most 2 CZs + 1q rotations; assuming `q0` is initially |0>.
 
     The method implements isometry from one to two qubits; assuming qubit `q0` is always in the |0>

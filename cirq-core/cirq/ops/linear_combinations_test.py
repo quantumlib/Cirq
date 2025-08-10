@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import collections
-from typing import Union
 
 import numpy as np
 import pytest
@@ -228,12 +229,12 @@ def test_parameterized_linear_combination_of_gates(
 
 
 def get_matrix(
-    operator: Union[
-        cirq.Gate,
-        cirq.GateOperation,
-        cirq.LinearCombinationOfGates,
-        cirq.LinearCombinationOfOperations,
-    ],
+    operator: (
+        cirq.Gate
+        | cirq.GateOperation
+        | cirq.LinearCombinationOfGates
+        | cirq.LinearCombinationOfOperations
+    ),
 ) -> np.ndarray:
     if isinstance(operator, (cirq.LinearCombinationOfGates, cirq.LinearCombinationOfOperations)):
         return operator.matrix()
@@ -241,8 +242,8 @@ def get_matrix(
 
 
 def assert_linear_combinations_are_equal(
-    actual: Union[cirq.LinearCombinationOfGates, cirq.LinearCombinationOfOperations],
-    expected: Union[cirq.LinearCombinationOfGates, cirq.LinearCombinationOfOperations],
+    actual: cirq.LinearCombinationOfGates | cirq.LinearCombinationOfOperations,
+    expected: cirq.LinearCombinationOfGates | cirq.LinearCombinationOfOperations,
 ) -> None:
     if not actual and not expected:
         assert len(actual) == 0
@@ -969,6 +970,10 @@ def test_paulisum_validation():
     ps = cirq.PauliSum()
     ps += cirq.I(cirq.LineQubit(0))
     assert ps == cirq.PauliSum(cirq.LinearDict({frozenset(): complex(1)}))
+
+    ps = cirq.PauliSum()
+    ps -= cirq.I(cirq.LineQubit(0))
+    assert ps == cirq.PauliSum(cirq.LinearDict({frozenset(): complex(-1)}))
 
 
 def test_add_number_paulisum():

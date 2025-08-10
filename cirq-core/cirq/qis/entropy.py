@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from collections.abc import Sequence
 from concurrent.futures import ThreadPoolExecutor
 from itertools import product
-from typing import Any, cast, Iterator, Optional
+from typing import Any, cast, Iterator
 
 import numpy as np
 import numpy.typing as npt
@@ -92,7 +94,7 @@ def _compute_bitstrings_contribution_to_purity(bitstrings: npt.NDArray[np.int8])
 def process_renyi_entropy_from_bitstrings(
     measured_bitstrings: npt.NDArray[np.int8],
     subsystem: tuple[int] | None = None,
-    pool: Optional[ThreadPoolExecutor] = None,
+    pool: ThreadPoolExecutor | None = None,
 ) -> float:
     """Compute the Rényi entropy of an array of bitstrings.
     Args:

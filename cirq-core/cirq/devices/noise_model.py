@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, Iterable, Sequence, TYPE_CHECKING, Union
+from typing import Any, Callable, Iterable, Sequence, TYPE_CHECKING, Union
 
 from cirq import ops, protocols, value
 from cirq._doc import document
@@ -196,7 +196,7 @@ class _NoNoiseModel(NoiseModel):
     def __repr__(self) -> str:
         return 'cirq.NO_NOISE'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, [])
 
     def _has_unitary_(self) -> bool:
@@ -247,7 +247,7 @@ class ConstantQubitNoiseModel(NoiseModel):
         ]
         return output[::-1] if self._prepend else output
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['qubit_noise_gate'])
 
     def _has_unitary_(self) -> bool:

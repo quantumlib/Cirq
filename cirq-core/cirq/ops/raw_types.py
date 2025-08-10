@@ -25,21 +25,14 @@ from typing import (
     Callable,
     cast,
     Collection,
-    Dict,
-    FrozenSet,
     Hashable,
     Iterable,
-    List,
     Mapping,
-    Optional,
     Sequence,
-    Tuple,
     TYPE_CHECKING,
-    Union,
 )
 
 import numpy as np
-import sympy
 from typing_extensions import Self
 
 from cirq import protocols, value
@@ -52,6 +45,8 @@ line_qubit = LazyLoader("line_qubit", globals(), "cirq.devices.line_qubit")
 
 
 if TYPE_CHECKING:
+    import sympy
+
     import cirq
     from cirq.ops import control_values as cv
 
@@ -117,7 +112,7 @@ class Qid(metaclass=abc.ABCMeta):
     def __hash__(self) -> int:
         return hash((Qid, self._comparison_key()))
 
-    def __getstate__(self) -> Dict[str, Any]:
+    def __getstate__(self) -> dict[str, Any]:
         # clear cached hash value when pickling, see #6674
         state = self.__dict__
         hash_attr = _method_cache_name(self.__hash__)
@@ -190,7 +185,7 @@ class _QubitAsQid(Qid):
     def __str__(self) -> str:
         return f'{self.qubit!s} (d={self.dimension})'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['qubit', 'dimension'])
 
 
@@ -232,7 +227,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         if __cirq_debug__.get():
             _validate_qid_shape(self, qubits)
 
-    def on(self, *qubits: Qid) -> Operation:
+    def on(self, *qubits: Qid) -> cirq.Operation:
         """Returns an application of this gate to the given qubits.
 
         Args:
@@ -243,7 +238,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         """
         return ops.gate_operation.GateOperation(self, qubits)
 
-    def on_each(self, *targets: Union[Qid, Iterable[Any]]) -> List[cirq.Operation]:
+    def on_each(self, *targets: Qid | Iterable[Any]) -> list[cirq.Operation]:
         """Returns a list of operations applying the gate to all targets.
 
         Args:
@@ -261,7 +256,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
                 If the gate qubit number is incompatible.
             TypeError: If a single target is supplied and it is not iterable.
         """
-        operations: List[cirq.Operation] = []
+        operations: list[cirq.Operation] = []
         if self._num_qubits_() > 1:
             iterator: Iterable = targets
             if len(targets) == 1:
@@ -322,16 +317,12 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         """
         return ops.linear_combinations.LinearCombinationOfGates({self: coefficient})
 
-    def __add__(
-        self, other: Union[Gate, cirq.LinearCombinationOfGates]
-    ) -> cirq.LinearCombinationOfGates:
+    def __add__(self, other: Gate | cirq.LinearCombinationOfGates) -> cirq.LinearCombinationOfGates:
         if isinstance(other, Gate):
             return self.wrap_in_linear_combination() + other.wrap_in_linear_combination()
         return self.wrap_in_linear_combination() + other
 
-    def __sub__(
-        self, other: Union[Gate, cirq.LinearCombinationOfGates]
-    ) -> cirq.LinearCombinationOfGates:
+    def __sub__(self, other: Gate | cirq.LinearCombinationOfGates) -> cirq.LinearCombinationOfGates:
         if isinstance(other, Gate):
             return self.wrap_in_linear_combination() - other.wrap_in_linear_combination()
         return self.wrap_in_linear_combination() - other
@@ -387,11 +378,9 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def controlled(
         self,
-        num_controls: Optional[int] = None,
-        control_values: Optional[
-            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
-        ] = None,
-        control_qid_shape: Optional[Tuple[int, ...]] = None,
+        num_controls: int | None = None,
+        control_values: cv.AbstractControlValues | Sequence[int | Collection[int]] | None = None,
+        control_qid_shape: tuple[int, ...] | None = None,
     ) -> Gate:
         """Returns a controlled version of this gate. If no arguments are
         specified, defaults to a single qubit control.
@@ -429,7 +418,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     def _backwards_compatibility_num_qubits(self) -> int:
         return protocols.num_qubits(self)
 
-    def _has_stabilizer_effect_(self) -> Optional[bool]:
+    def _has_stabilizer_effect_(self) -> bool | None:
         return NotImplemented
 
     @value.alternative(requires='_num_qubits_', implementation=_backwards_compatibility_num_qubits)
@@ -452,15 +441,15 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         """The number of qubits this gate acts on."""
         raise NotImplementedError
 
-    def _default_shape_from_num_qubits(self) -> Tuple[int, ...]:
+    def _default_shape_from_num_qubits(self) -> tuple[int, ...]:
         num_qubits = self._num_qubits_()
         if num_qubits is NotImplemented:
             return NotImplemented
         return (2,) * num_qubits
 
     @value.alternative(requires='_num_qubits_', implementation=_default_shape_from_num_qubits)
-    def _qid_shape_(self) -> Tuple[int, ...]:
-        """Returns a Tuple containing the number of quantum levels of each qid
+    def _qid_shape_(self) -> tuple[int, ...]:
+        """Returns a tuple containing the number of quantum levels of each qid
         the gate acts on.  E.g. (2, 2, 2) for the three-qubit CCZ gate and
         (3, 3) for a 2-qutrit ternary gate.
         """
@@ -468,7 +457,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def _equal_up_to_global_phase_(
         self, other: Any, atol: float = 1e-8
-    ) -> Union[NotImplementedType, bool]:
+    ) -> NotImplementedType | bool:
         """Default fallback for gates that do not implement this protocol."""
         try:
             return protocols.equal_up_to_global_phase(
@@ -480,12 +469,10 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def _commutes_on_qids_(
         self, qids: Sequence[cirq.Qid], other: Any, *, atol: float = 1e-8
-    ) -> Union[bool, NotImplementedType, None]:
+    ) -> bool | NotImplementedType | None:
         return NotImplemented
 
-    def _commutes_(
-        self, other: Any, *, atol: float = 1e-8
-    ) -> Union[None, NotImplementedType, bool]:
+    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> None | NotImplementedType | bool:
         if not isinstance(other, Gate):
             return NotImplemented
         if protocols.qid_shape(self) != protocols.qid_shape(other):
@@ -494,15 +481,15 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         qs = line_qubit.LineQid.for_qid_shape(protocols.qid_shape(self))
         return protocols.commutes(self(*qs), other(*qs))
 
-    def _mul_with_qubits(self, qubits: Tuple[cirq.Qid, ...], other):
+    def _mul_with_qubits(self, qubits: tuple[cirq.Qid, ...], other):
         """cirq.GateOperation.__mul__ delegates to this method."""
         return NotImplemented
 
-    def _rmul_with_qubits(self, qubits: Tuple[cirq.Qid, ...], other):
+    def _rmul_with_qubits(self, qubits: tuple[cirq.Qid, ...], other):
         """cirq.GateOperation.__rmul__ delegates to this method."""
         return NotImplemented
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, attribute_names=[])
 
 
@@ -514,12 +501,12 @@ class Operation(metaclass=abc.ABCMeta):
     """
 
     @property
-    def gate(self) -> Optional[cirq.Gate]:
+    def gate(self) -> cirq.Gate | None:
         return None
 
     @property
     @abc.abstractmethod
-    def qubits(self) -> Tuple[cirq.Qid, ...]:
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         raise NotImplementedError()
 
     def _num_qubits_(self) -> int:
@@ -530,7 +517,7 @@ class Operation(metaclass=abc.ABCMeta):
         return len(self.qubits)
 
     @cached_method
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         return protocols.qid_shape(self.qubits)
 
     @abc.abstractmethod
@@ -544,7 +531,7 @@ class Operation(metaclass=abc.ABCMeta):
         """
 
     @property
-    def tags(self) -> Tuple[Hashable, ...]:
+    def tags(self) -> tuple[Hashable, ...]:
         """Returns a tuple of the operation's tags."""
         return ()
 
@@ -579,7 +566,7 @@ class Operation(metaclass=abc.ABCMeta):
         return TaggedOperation(self, *new_tags)
 
     def transform_qubits(
-        self, qubit_map: Union[Dict[cirq.Qid, cirq.Qid], Callable[[cirq.Qid], cirq.Qid]]
+        self, qubit_map: dict[cirq.Qid, cirq.Qid] | Callable[[cirq.Qid], cirq.Qid]
     ) -> Self:
         """Returns the same operation, but with different qubits.
 
@@ -625,9 +612,7 @@ class Operation(metaclass=abc.ABCMeta):
     def controlled_by(
         self,
         *control_qubits: cirq.Qid,
-        control_values: Optional[
-            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
-        ] = None,
+        control_values: cv.AbstractControlValues | Sequence[int | Collection[int]] | None = None,
     ) -> cirq.Operation:
         """Returns a controlled version of this operation. If no control_qubits
            are specified, returns self.
@@ -669,7 +654,7 @@ class Operation(metaclass=abc.ABCMeta):
             *self.qubits
         )
 
-    def validate_args(self, qubits: Sequence[cirq.Qid]):
+    def validate_args(self, qubits: Sequence[cirq.Qid]) -> None:
         """Raises an exception if the `qubits` don't match this operation's qid
         shape.
 
@@ -684,21 +669,19 @@ class Operation(metaclass=abc.ABCMeta):
         if __cirq_debug__.get():
             _validate_qid_shape(self, qubits)
 
-    def _commutes_(
-        self, other: Any, *, atol: float = 1e-8
-    ) -> Union[bool, NotImplementedType, None]:
+    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> bool | NotImplementedType | None:
         """Determine if this Operation commutes with the object"""
         if not isinstance(other, Operation):
             return NotImplemented
         return _operations_commutes_impl([self], [other], atol=atol)
 
     @property
-    def classical_controls(self) -> FrozenSet[cirq.Condition]:
+    def classical_controls(self) -> frozenset[cirq.Condition]:
         """The classical controls gating this operation."""
         return frozenset()
 
     def with_classical_controls(
-        self, *conditions: Union[str, cirq.MeasurementKey, cirq.Condition, sympy.Expr]
+        self, *conditions: str | cirq.MeasurementKey | cirq.Condition | sympy.Expr
     ) -> cirq.Operation:
         """Returns a classically controlled version of this operation.
 
@@ -779,11 +762,11 @@ class TaggedOperation(Operation):
         return self._sub_operation
 
     @property
-    def qubits(self) -> Tuple[cirq.Qid, ...]:
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         return self.sub_operation.qubits
 
     @property
-    def gate(self) -> Optional[cirq.Gate]:
+    def gate(self) -> cirq.Gate | None:
         return self.sub_operation.gate
 
     def with_qubits(self, *new_qubits: cirq.Qid):
@@ -798,16 +781,14 @@ class TaggedOperation(Operation):
     def controlled_by(
         self,
         *control_qubits: cirq.Qid,
-        control_values: Optional[
-            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
-        ] = None,
+        control_values: cv.AbstractControlValues | Sequence[int | Collection[int]] | None = None,
     ) -> cirq.Operation:
         if len(control_qubits) == 0:
             return self
         return self.sub_operation.controlled_by(*control_qubits, control_values=control_values)
 
     @property
-    def tags(self) -> Tuple[Hashable, ...]:
+    def tags(self) -> tuple[Hashable, ...]:
         """Returns a tuple of the operation's tags."""
         return self._tags
 
@@ -844,14 +825,14 @@ class TaggedOperation(Operation):
     def _from_json_dict_(cls, sub_operation, tags, **kwargs):
         return cls(sub_operation, *tags)
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['sub_operation', 'tags'])
 
     def _decompose_(self) -> cirq.OP_TREE:
         return self._decompose_with_context_()
 
     def _decompose_with_context_(
-        self, context: Optional[cirq.DecompositionContext] = None
+        self, context: cirq.DecompositionContext | None = None
     ) -> cirq.OP_TREE:
         return protocols.decompose_once(
             self.sub_operation, default=None, flatten=False, context=context
@@ -862,41 +843,39 @@ class TaggedOperation(Operation):
 
     def _apply_unitary_(
         self, args: protocols.ApplyUnitaryArgs
-    ) -> Union[np.ndarray, None, NotImplementedType]:
+    ) -> np.ndarray | None | NotImplementedType:
         return protocols.apply_unitary(self.sub_operation, args, default=None)
 
     @cached_method
     def _has_unitary_(self) -> bool:
         return protocols.has_unitary(self.sub_operation)
 
-    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+    def _unitary_(self) -> np.ndarray | NotImplementedType:
         return protocols.unitary(self.sub_operation, NotImplemented)
 
-    def _commutes_(
-        self, other: Any, *, atol: float = 1e-8
-    ) -> Union[bool, NotImplementedType, None]:
+    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> bool | NotImplementedType | None:
         return protocols.commutes(self.sub_operation, other, atol=atol)
 
     @cached_method
     def _has_mixture_(self) -> bool:
         return protocols.has_mixture(self.sub_operation)
 
-    def _mixture_(self) -> Sequence[Tuple[float, Any]]:
+    def _mixture_(self) -> Sequence[tuple[float, Any]]:
         return protocols.mixture(self.sub_operation, NotImplemented)
 
     @cached_method
     def _has_kraus_(self) -> bool:
         return protocols.has_kraus(self.sub_operation)
 
-    def _kraus_(self) -> Union[Tuple[np.ndarray, ...], NotImplementedType]:
+    def _kraus_(self) -> tuple[np.ndarray, ...] | NotImplementedType:
         return protocols.kraus(self.sub_operation, NotImplemented)
 
     @cached_method
-    def _measurement_key_names_(self) -> FrozenSet[str]:
+    def _measurement_key_names_(self) -> frozenset[str]:
         return protocols.measurement_key_names(self.sub_operation)
 
     @cached_method
-    def _measurement_key_objs_(self) -> FrozenSet[cirq.MeasurementKey]:
+    def _measurement_key_objs_(self) -> frozenset[cirq.MeasurementKey]:
         return protocols.measurement_key_objs(self.sub_operation)
 
     @cached_method
@@ -934,11 +913,12 @@ class TaggedOperation(Operation):
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         sub_op_info = protocols.circuit_diagram_info(self.sub_operation, args, NotImplemented)
-        # Add tag to wire symbol if it exists.
-        if sub_op_info is not NotImplemented and args.include_tags and sub_op_info.wire_symbols:
-            sub_op_info.wire_symbols = (
-                sub_op_info.wire_symbols[0] + f"[{', '.join(map(str, self._tags))}]",
-            ) + sub_op_info.wire_symbols[1:]
+        if sub_op_info is not NotImplemented and sub_op_info.wire_symbols:
+            visible_tags = args.tags_to_include(self._tags)
+            if visible_tags:
+                sub_op_info.wire_symbols = (
+                    sub_op_info.wire_symbols[0] + f"[{', '.join(map(str, visible_tags))}]",
+                ) + sub_op_info.wire_symbols[1:]
         return sub_op_info
 
     @cached_method
@@ -959,16 +939,16 @@ class TaggedOperation(Operation):
     def __rmul__(self, other: Any) -> Any:
         return other * self.sub_operation
 
-    def _qasm_(self, args: protocols.QasmArgs) -> Optional[str]:
+    def _qasm_(self, args: protocols.QasmArgs) -> str | None:
         return protocols.qasm(self.sub_operation, args=args, default=None)
 
     def _equal_up_to_global_phase_(
         self, other: Any, atol: float = 1e-8
-    ) -> Union[NotImplementedType, bool]:
+    ) -> NotImplementedType | bool:
         return protocols.equal_up_to_global_phase(self.sub_operation, other, atol=atol)
 
     @property
-    def classical_controls(self) -> FrozenSet[cirq.Condition]:
+    def classical_controls(self) -> frozenset[cirq.Condition]:
         return self.sub_operation.classical_controls
 
     def without_classical_controls(self) -> cirq.Operation:
@@ -976,13 +956,13 @@ class TaggedOperation(Operation):
         return self if new_sub_operation is self.sub_operation else new_sub_operation
 
     def with_classical_controls(
-        self, *conditions: Union[str, cirq.MeasurementKey, cirq.Condition, sympy.Expr]
+        self, *conditions: str | cirq.MeasurementKey | cirq.Condition | sympy.Expr
     ) -> cirq.Operation:
         if not conditions:
             return self
         return self.sub_operation.with_classical_controls(*conditions)
 
-    def _control_keys_(self) -> FrozenSet[cirq.MeasurementKey]:
+    def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
         return protocols.control_keys(self.sub_operation)
 
 
@@ -1007,7 +987,7 @@ class _InverseCompositeGate(Gate):
         return self._decompose_with_context_(qubits)
 
     def _decompose_with_context_(
-        self, qubits: Sequence[cirq.Qid], context: Optional[cirq.DecompositionContext] = None
+        self, qubits: Sequence[cirq.Qid], context: cirq.DecompositionContext | None = None
     ) -> cirq.OP_TREE:
         return protocols.inverse(
             protocols.decompose_once_with_qubits(self._original, qubits, context=context)
@@ -1053,7 +1033,7 @@ class _InverseCompositeGate(Gate):
     def __str__(self) -> str:
         return f'{self._original!s}†'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {'original': self._original}
 
 
@@ -1082,7 +1062,7 @@ def _validate_qid_shape(val: Any, qubits: Sequence[cirq.Qid]) -> None:
 
 def _operations_commutes_impl(
     ops1: Collection[Operation], ops2: Collection[Operation], *, atol: float
-) -> Union[bool, NotImplementedType]:
+) -> bool | NotImplementedType:
     """Determine if two collections of non-overlapping Operations commute.
 
     This function implements the commutes protocol for the Operation and Moment classes

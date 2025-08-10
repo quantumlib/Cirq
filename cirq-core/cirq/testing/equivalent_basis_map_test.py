@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import pytest
 
 import cirq
@@ -33,8 +36,7 @@ def test_correct_mappings() -> None:
 def test_incorrect_mappings() -> None:
     a, b, c = cirq.LineQubit.range(3)
     with pytest.raises(
-        AssertionError,
-        match=r"0b001 \(1\) was mapped to " r"0b100 \(4\) instead of " r"0b010 \(2\)",
+        AssertionError, match=r"0b001 \(1\) was mapped to 0b100 \(4\) instead of 0b010 \(2\)"
     ):
         cirq.testing.assert_equivalent_computational_basis_map(
             maps={0b001: 0b010, 0b010: 0b100, 0b100: 0b001},

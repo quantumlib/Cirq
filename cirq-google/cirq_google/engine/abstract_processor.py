@@ -18,22 +18,23 @@ requests.  Inheritors of this interface should implement all
 methods.
 """
 
+from __future__ import annotations
+
 import abc
 import datetime
-from typing import Dict, List, Optional, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 import duet
 
 import cirq
-from cirq_google.api import v2
-from cirq_google.cloud import quantum
-from cirq_google.engine import calibration
 
 if TYPE_CHECKING:
     import cirq_google as cg
+    import cirq_google.api.v2 as v2
+    import cirq_google.cloud.quantum as quantum
     import cirq_google.engine.abstract_engine as abstract_engine
     import cirq_google.engine.abstract_job as abstract_job
-    import cirq_google.serialization.serializer as serializer
+    import cirq_google.engine.calibration as calibration
 
 
 class AbstractProcessor(abc.ABC):
@@ -60,14 +61,14 @@ class AbstractProcessor(abc.ABC):
         device_config_name: str,
         run_name: str = "",
         snapshot_id: str = "",
-        program_id: Optional[str] = None,
-        job_id: Optional[str] = None,
-        param_resolver: Optional[cirq.ParamResolver] = None,
+        program_id: str | None = None,
+        job_id: str | None = None,
+        param_resolver: cirq.ParamResolver | None = None,
         repetitions: int = 1,
-        program_description: Optional[str] = None,
-        program_labels: Optional[Dict[str, str]] = None,
-        job_description: Optional[str] = None,
-        job_labels: Optional[Dict[str, str]] = None,
+        program_description: str | None = None,
+        program_labels: dict[str, str] | None = None,
+        job_description: str | None = None,
+        job_labels: dict[str, str] | None = None,
     ) -> cirq.Result:
         """Runs the supplied Circuit on this processor.
 
@@ -130,15 +131,15 @@ class AbstractProcessor(abc.ABC):
         device_config_name: str,
         run_name: str = "",
         snapshot_id: str = "",
-        program_id: Optional[str] = None,
-        job_id: Optional[str] = None,
+        program_id: str | None = None,
+        job_id: str | None = None,
         params: cirq.Sweepable = None,
         repetitions: int = 1,
-        program_description: Optional[str] = None,
-        program_labels: Optional[Dict[str, str]] = None,
-        job_description: Optional[str] = None,
-        job_labels: Optional[Dict[str, str]] = None,
-    ) -> 'abstract_job.AbstractJob':
+        program_description: str | None = None,
+        program_labels: dict[str, str] | None = None,
+        job_description: str | None = None,
+        job_labels: dict[str, str] | None = None,
+    ) -> abstract_job.AbstractJob:
         """Runs the supplied Circuit on this processor.
 
         In contrast to run, this runs across multiple parameter sweeps, and
@@ -179,9 +180,7 @@ class AbstractProcessor(abc.ABC):
     run_sweep = duet.sync(run_sweep_async)
 
     @abc.abstractmethod
-    def get_sampler(
-        self, run_name: str = "", device_config_name: str = ""
-    ) -> 'cg.ProcessorSampler':
+    def get_sampler(self, run_name: str = "", device_config_name: str = "") -> cg.ProcessorSampler:
         """Returns a sampler backed by the processor.
 
         Args:
@@ -194,7 +193,7 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
-    def engine(self) -> Optional['abstract_engine.AbstractEngine']:
+    def engine(self) -> abstract_engine.AbstractEngine | None:
         """Returns the parent Engine object.
 
         Returns:
@@ -206,20 +205,20 @@ class AbstractProcessor(abc.ABC):
         """Returns the current health of processor."""
 
     @abc.abstractmethod
-    def expected_down_time(self) -> 'Optional[datetime.datetime]':
+    def expected_down_time(self) -> datetime.datetime | None:
         """Returns the start of the next expected down time of the processor, if
         set."""
 
     @abc.abstractmethod
-    def expected_recovery_time(self) -> 'Optional[datetime.datetime]':
+    def expected_recovery_time(self) -> datetime.datetime | None:
         """Returns the expected the processor should be available, if set."""
 
     @abc.abstractmethod
-    def supported_languages(self) -> List[str]:
+    def supported_languages(self) -> list[str]:
         """Returns the list of processor supported program languages."""
 
     @abc.abstractmethod
-    def get_device_specification(self) -> Optional[v2.device_pb2.DeviceSpecification]:
+    def get_device_specification(self) -> v2.device_pb2.DeviceSpecification | None:
         """Returns a device specification proto for use in determining
         information about the device.
 
@@ -245,9 +244,9 @@ class AbstractProcessor(abc.ABC):
     @abc.abstractmethod
     def list_calibrations(
         self,
-        earliest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
-        latest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
-    ) -> List[calibration.Calibration]:
+        earliest_timestamp: datetime.datetime | datetime.date | int | None = None,
+        latest_timestamp: datetime.datetime | datetime.date | int | None = None,
+    ) -> list[calibration.Calibration]:
         """Retrieve metadata about a specific calibration run.
 
         Args:
@@ -273,7 +272,7 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_current_calibration(self) -> Optional[calibration.Calibration]:
+    def get_current_calibration(self) -> calibration.Calibration | None:
         """Returns metadata about the current calibration for a processor.
 
         Returns:
@@ -285,14 +284,14 @@ class AbstractProcessor(abc.ABC):
         self,
         start_time: datetime.datetime,
         end_time: datetime.datetime,
-        whitelisted_users: Optional[List[str]] = None,
+        allowlisted_users: list[str] | None = None,
     ) -> quantum.QuantumReservation:
         """Creates a reservation on this processor.
 
         Args:
             start_time: the starting date/time of the reservation.
             end_time: the ending date/time of the reservation.
-            whitelisted_users: a list of emails that are allowed
+            allowlisted_users: a list of emails that are allowed
               to send programs during this reservation (in addition to users
               with permission "quantum.reservations.use" on the project).
         """
@@ -302,16 +301,16 @@ class AbstractProcessor(abc.ABC):
         """Removes a reservation on this processor."""
 
     @abc.abstractmethod
-    def get_reservation(self, reservation_id: str) -> Optional[quantum.QuantumReservation]:
+    def get_reservation(self, reservation_id: str) -> quantum.QuantumReservation | None:
         """Retrieve a reservation given its id."""
 
     @abc.abstractmethod
     def update_reservation(
         self,
         reservation_id: str,
-        start_time: Optional[datetime.datetime] = None,
-        end_time: Optional[datetime.datetime] = None,
-        whitelisted_users: Optional[List[str]] = None,
+        start_time: datetime.datetime | None = None,
+        end_time: datetime.datetime | None = None,
+        allowlisted_users: list[str] | None = None,
     ):
         """Updates a reservation with new information.
 
@@ -323,9 +322,9 @@ class AbstractProcessor(abc.ABC):
     @abc.abstractmethod
     def list_reservations(
         self,
-        from_time: Union[None, datetime.datetime, datetime.timedelta],
-        to_time: Union[None, datetime.datetime, datetime.timedelta],
-    ) -> List[quantum.QuantumReservation]:
+        from_time: None | datetime.datetime | datetime.timedelta,
+        to_time: None | datetime.datetime | datetime.timedelta,
+    ) -> list[quantum.QuantumReservation]:
         """Retrieves the reservations from a processor.
 
         Only reservations from this processor and project will be
@@ -350,10 +349,10 @@ class AbstractProcessor(abc.ABC):
     @abc.abstractmethod
     def get_schedule(
         self,
-        from_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(),
-        to_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(weeks=2),
-        time_slot_type: Optional[quantum.QuantumTimeSlot.TimeSlotType] = None,
-    ) -> List[quantum.QuantumTimeSlot]:
+        from_time: None | datetime.datetime | datetime.timedelta = datetime.timedelta(),
+        to_time: None | datetime.datetime | datetime.timedelta = datetime.timedelta(weeks=2),
+        time_slot_type: quantum.QuantumTimeSlot.TimeSlotType | None = None,
+    ) -> list[quantum.QuantumTimeSlot]:
         """Retrieves the schedule for a processor.
 
         The schedule may be filtered by time.

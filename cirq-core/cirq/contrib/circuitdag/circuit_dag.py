@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import functools
-from typing import Any, Callable, cast, Dict, Generic, Iterator, TypeVar
+from typing import Any, Callable, cast, Generic, Iterator, TypeVar
 
 import networkx
 
@@ -44,7 +44,7 @@ class Unique(Generic[T]):
     def __repr__(self) -> str:
         return f'cirq.contrib.Unique({id(self)}, {self.val!r})'
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         if not isinstance(other, type(self)):
             return NotImplemented
         return id(self) < id(other)
@@ -132,7 +132,7 @@ class CircuitDag(networkx.DiGraph):
         for node, attr in g2.nodes(data=True):
             attr['val'] = node.val
 
-        def node_match(attr1: Dict[Any, Any], attr2: Dict[Any, Any]) -> bool:
+        def node_match(attr1: dict[Any, Any], attr2: dict[Any, Any]) -> bool:
             return attr1['val'] == attr2['val']
 
         return networkx.is_isomorphic(g1, g2, node_match=node_match)
@@ -176,7 +176,7 @@ class CircuitDag(networkx.DiGraph):
     def all_operations(self) -> Iterator[cirq.Operation]:
         return (node.val for node in self.ordered_nodes())
 
-    def all_qubits(self):
+    def all_qubits(self) -> frozenset[cirq.Qid]:
         return frozenset(q for node in self.nodes for q in node.val.qubits)
 
     def to_circuit(self) -> cirq.Circuit:

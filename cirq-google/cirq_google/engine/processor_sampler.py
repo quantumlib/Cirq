@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import cast, Optional, Sequence, TYPE_CHECKING, Union
+from typing import cast, Sequence, TYPE_CHECKING
 
 import duet
 
@@ -88,8 +88,8 @@ class ProcessorSampler(cirq.Sampler):
     async def run_batch_async(
         self,
         programs: Sequence[cirq.AbstractCircuit],
-        params_list: Optional[Sequence[cirq.Sweepable]] = None,
-        repetitions: Union[int, Sequence[int]] = 1,
+        params_list: Sequence[cirq.Sweepable] | None = None,
+        repetitions: int | Sequence[int] = 1,
     ) -> Sequence[Sequence[cg.EngineResult]]:
         return cast(
             Sequence[Sequence['cg.EngineResult']],
@@ -113,3 +113,8 @@ class ProcessorSampler(cirq.Sampler):
     @property
     def device_config_name(self) -> str:
         return self._device_config_name
+
+    @property
+    def max_concurrent_jobs(self) -> int:
+        assert self._concurrent_job_limiter.capacity is not None
+        return self._concurrent_job_limiter.capacity

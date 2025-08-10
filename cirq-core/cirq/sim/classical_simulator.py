@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from copy import copy, deepcopy
-from typing import Any, Dict, Generic, List, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Any, Generic, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -38,7 +38,7 @@ def _is_identity(action) -> bool:
 class ClassicalBasisState(qis.QuantumStateRepresentation):
     """Represents a classical basis state for efficient state evolution."""
 
-    def __init__(self, initial_state: Union[List[int], np.ndarray]):
+    def __init__(self, initial_state: list[int] | np.ndarray):
         """Initializes the ClassicalBasisState object.
 
         Args:
@@ -60,7 +60,7 @@ class ClassicalBasisState(qis.QuantumStateRepresentation):
 
     def measure(
         self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
-    ) -> List[int]:
+    ) -> list[int]:
         """Measures the density matrix.
 
         Args:
@@ -77,9 +77,9 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
 
     def __init__(
         self,
-        initial_state: Union[int, List[int]] = 0,
-        qubits: Optional[Sequence[cirq.Qid]] = None,
-        classical_data: Optional[cirq.ClassicalDataStore] = None,
+        initial_state: int | list[int] = 0,
+        qubits: Sequence[cirq.Qid] | None = None,
+        classical_data: cirq.ClassicalDataStore | None = None,
     ):
         """Initializes the ClassicalBasisSimState object.
 
@@ -90,20 +90,20 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
 
         Raises:
             ValueError: If qubits not provided and initial_state is int.
-                        If initial_state is not an int, List[int], or np.ndarray.
+                        If initial_state is not an int, list[int], or np.ndarray.
 
         An initial_state value of type integer is parsed in big endian order.
         """
         if isinstance(initial_state, int):
             if qubits is None:
-                raise ValueError('qubits must be provided if initial_state is not List[int]')
+                raise ValueError('qubits must be provided if initial_state is not list[int]')
             state = ClassicalBasisState(
                 big_endian_int_to_bits(initial_state, bit_count=len(qubits))
             )
         elif isinstance(initial_state, (list, np.ndarray)):
             state = ClassicalBasisState(initial_state)
         else:
-            raise ValueError('initial_state must be an int or List[int] or np.ndarray')
+            raise ValueError('initial_state must be an int or list[int] or np.ndarray')
         super().__init__(state=state, qubits=qubits, classical_data=classical_data)
 
     def _act_on_fallback_(self, action, qubits: Sequence[cirq.Qid], allow_decompose: bool = True):
@@ -201,7 +201,7 @@ class ClassicalStateSimulator(
     def _create_simulator_trial_result(
         self,
         params: cirq.ParamResolver,
-        measurements: Dict[str, np.ndarray],
+        measurements: dict[str, np.ndarray],
         final_simulator_state: cirq.SimulationStateBase[ClassicalBasisSimState],
     ) -> ClassicalStateTrialResult[ClassicalBasisSimState]:
         """Creates a trial result for the simulator.

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cirq
 
 
@@ -85,7 +87,6 @@ def test_group_settings_greedy_init_state_compat_sparse() -> None:
         cirq.work.InitObsSetting(init_state=cirq.KET_ZERO(q1), observable=cirq.Z(q1)),
     ]
     grouped_settings = cirq.work.group_settings_greedy(settings)
-    # pylint: disable=line-too-long
     grouped_settings_should_be = {
         cirq.work.InitObsSetting(
             init_state=cirq.KET_PLUS(q0) * cirq.KET_ZERO(q1), observable=cirq.X(q0) * cirq.Z(q1)

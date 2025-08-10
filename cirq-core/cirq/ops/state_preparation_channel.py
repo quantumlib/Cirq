@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, Tuple, TYPE_CHECKING
+from typing import Any, Iterable, TYPE_CHECKING
 
 import numpy as np
 
@@ -59,7 +59,7 @@ class StatePreparationChannel(raw_types.Gate):
         it involves measurement."""
         return False
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         """Converts the gate object into a serializable dictionary"""
         return {'target_state': self._state.tolist(), 'name': self._name}
 
@@ -79,7 +79,7 @@ class StatePreparationChannel(raw_types.Gate):
     def _num_qubits_(self) -> int:
         return self._num_qubits
 
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         return self._qid_shape
 
     def _circuit_diagram_info_(self, _args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:

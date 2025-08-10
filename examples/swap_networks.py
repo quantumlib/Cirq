@@ -19,21 +19,23 @@ say that we want to apply a 2-qubit gate to pairs of qubits, even when the
 implied graph is not a subgraph of the hardware adjacency graph.
 """
 
+from __future__ import annotations
+
 import itertools
 import random
-from typing import Dict, List, Sequence, Tuple, TypeVar, Union
+from typing import Sequence, TypeVar
 
 import cirq
 import cirq.contrib.acquaintance as cca
 
 LogicalIndex = TypeVar('LogicalIndex', int, cirq.Qid)
-LogicalIndexSequence = Union[Sequence[int], Sequence[cirq.Qid]]
-LogicalGates = Dict[Tuple[LogicalIndex, ...], cirq.Gate]
+LogicalIndexSequence = Sequence[int] | Sequence[cirq.Qid]
+LogicalGates = dict[tuple[LogicalIndex, ...], cirq.Gate]
 LogicalMappingKey = TypeVar('LogicalMappingKey', bound=cirq.Qid)
-LogicalMapping = Dict[LogicalMappingKey, LogicalIndex]
+LogicalMapping = dict[LogicalMappingKey, LogicalIndex]
 
 
-def get_random_graph(n_vertices: int, edge_prob: float = 0.5) -> List[Tuple[int, int]]:
+def get_random_graph(n_vertices: int, edge_prob: float = 0.5) -> list[tuple[int, int]]:
     return [
         ij for ij in itertools.combinations(range(n_vertices), 2) if random.random() <= edge_prob
     ]
@@ -90,7 +92,7 @@ def get_phase_sep_circuit(
 
 def get_max_cut_qaoa_circuit(
     vertices: Sequence[int],
-    edges: Sequence[Tuple[int, int]],
+    edges: Sequence[tuple[int, int]],
     beta: float,
     gamma: float,
     use_logical_qubits: bool = False,

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import re
 
 import numpy as np
@@ -82,7 +84,7 @@ def test_asymmetric_depolarizing_channel_str() -> None:
     assert (
         str(cirq.asymmetric_depolarize(0.1, 0.2, 0.3))
         == "asymmetric_depolarize(error_probabilities={'I': 0.3999999999999999, "
-        + "'X': 0.1, 'Y': 0.2, 'Z': 0.3})"
+        "'X': 0.1, 'Y': 0.2, 'Z': 0.3})"
     )
 
 

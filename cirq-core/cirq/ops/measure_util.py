@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, Dict, Iterable, List, Optional, overload, Tuple, TYPE_CHECKING, Union
+from typing import Callable, Iterable, overload, TYPE_CHECKING
 
 import numpy as np
 
@@ -32,8 +32,7 @@ def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
 
 
 def measure_single_paulistring(
-    pauli_observable: pauli_string.PauliString,
-    key: Optional[Union[str, cirq.MeasurementKey]] = None,
+    pauli_observable: pauli_string.PauliString, key: str | cirq.MeasurementKey | None = None
 ) -> raw_types.Operation:
     """Returns a single PauliMeasurementGate which measures the pauli observable
 
@@ -68,7 +67,7 @@ def measure_single_paulistring(
 
 def measure_paulistring_terms(
     pauli_basis: pauli_string.PauliString, key_func: Callable[[raw_types.Qid], str] = str
-) -> List[raw_types.Operation]:
+) -> list[raw_types.Operation]:
     """Returns a list of operations individually measuring qubits in the pauli basis.
 
     Args:
@@ -91,14 +90,11 @@ def measure_paulistring_terms(
     return [PauliMeasurementGate([pauli_basis[q]], key=key_func(q)).on(q) for q in pauli_basis]
 
 
-# pylint: disable=function-redefined
-
-
 @overload
 def measure(
     *target: raw_types.Qid,
-    key: Optional[Union[str, cirq.MeasurementKey]] = None,
-    invert_mask: Tuple[bool, ...] = (),
+    key: str | cirq.MeasurementKey | None = None,
+    invert_mask: tuple[bool, ...] = (),
 ) -> raw_types.Operation:
     pass
 
@@ -107,17 +103,17 @@ def measure(
 def measure(
     __target: Iterable[raw_types.Qid],
     *,
-    key: Optional[Union[str, cirq.MeasurementKey]] = None,
-    invert_mask: Tuple[bool, ...] = (),
+    key: str | cirq.MeasurementKey | None = None,
+    invert_mask: tuple[bool, ...] = (),
 ) -> raw_types.Operation:
     pass
 
 
 def measure(
     *target,
-    key: Optional[Union[str, cirq.MeasurementKey]] = None,
-    invert_mask: Tuple[bool, ...] = (),
-    confusion_map: Optional[Dict[Tuple[int, ...], np.ndarray]] = None,
+    key: str | cirq.MeasurementKey | None = None,
+    invert_mask: tuple[bool, ...] = (),
+    confusion_map: dict[tuple[int, ...], np.ndarray] | None = None,
 ) -> raw_types.Operation:
     """Returns a single MeasurementGate applied to all the given qubits.
 
@@ -172,20 +168,20 @@ M = measure
 @overload
 def measure_each(
     *qubits: raw_types.Qid, key_func: Callable[[raw_types.Qid], str] = str
-) -> List[raw_types.Operation]:
+) -> list[raw_types.Operation]:
     pass
 
 
 @overload
 def measure_each(
     __qubits: Iterable[raw_types.Qid], *, key_func: Callable[[raw_types.Qid], str] = str
-) -> List[raw_types.Operation]:
+) -> list[raw_types.Operation]:
     pass
 
 
 def measure_each(
     *qubits, key_func: Callable[[raw_types.Qid], str] = str
-) -> List[raw_types.Operation]:
+) -> list[raw_types.Operation]:
     """Returns a list of operations individually measuring the given qubits.
 
     The qubits are measured in the computational basis.
@@ -206,6 +202,3 @@ def measure_each(
     )
     qubitsequence = qubits[0] if one_iterable_arg else qubits
     return [MeasurementGate(1, key_func(q), qid_shape=(q.dimension,)).on(q) for q in qubitsequence]
-
-
-# pylint: enable=function-redefined

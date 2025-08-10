@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 from cirq import ops, protocols
 
@@ -27,8 +27,8 @@ class Coupler(ops.Qid):
 
     _qubit0: ops.Qid
     _qubit1: ops.Qid
-    _hash: Optional[int] = None
-    _comp_key: Optional[Tuple[Any, Any]] = None
+    _hash: int | None = None
+    _comp_key: tuple[Any, Any] | None = None
 
     def __new__(cls, qubit0: ops.Qid, qubit1: ops.Qid) -> Coupler:
         """Creates a grid coupler between two qubits.
@@ -80,7 +80,7 @@ class Coupler(ops.Qid):
         return self._qubit1
 
     @property
-    def qubits(self) -> Tuple[ops.Qid, ops.Qid]:
+    def qubits(self) -> tuple[ops.Qid, ops.Qid]:
         return self._qubit0, self._qubit1
 
     @property
@@ -92,7 +92,7 @@ class Coupler(ops.Qid):
         return (self._qubit0, self._qubit1)
 
     # avoid pickling the _hash value, attributes are already stored with __getnewargs__
-    def __getstate__(self) -> Dict[str, Any]:
+    def __getstate__(self) -> dict[str, Any]:
         return {}
 
     def __repr__(self) -> str:
@@ -104,5 +104,5 @@ class Coupler(ops.Qid):
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(wire_symbols=(str(self),))
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['qubit0', 'qubit1'])

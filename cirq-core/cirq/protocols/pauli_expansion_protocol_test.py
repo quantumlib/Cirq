@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
@@ -52,7 +54,7 @@ class HasQuditUnitary:
 
 
 @pytest.mark.parametrize(
-    'val', (NoMethod(), ReturnsNotImplemented(), HasQuditUnitary(), 123, np.eye(2), object(), cirq)
+    'val', (NoMethod(), ReturnsNotImplemented(), HasQuditUnitary(), 123, object(), cirq)
 )
 def test_raises_no_pauli_expansion(val) -> None:
     assert cirq.pauli_expansion(val, default=None) is None

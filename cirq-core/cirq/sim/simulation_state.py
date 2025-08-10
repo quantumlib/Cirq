@@ -18,20 +18,7 @@ from __future__ import annotations
 
 import abc
 import copy
-from typing import (
-    Any,
-    cast,
-    Dict,
-    Generic,
-    Iterator,
-    List,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
-    TYPE_CHECKING,
-    TypeVar,
-)
+from typing import Any, cast, Generic, Iterator, Sequence, TYPE_CHECKING, TypeVar
 
 import numpy as np
 from typing_extensions import Self
@@ -52,9 +39,9 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         self,
         *,
         state: TState,
-        prng: Optional[np.random.RandomState] = None,
-        qubits: Optional[Sequence[cirq.Qid]] = None,
-        classical_data: Optional[cirq.ClassicalDataStore] = None,
+        prng: np.random.RandomState | None = None,
+        qubits: Sequence[cirq.Qid] | None = None,
+        classical_data: cirq.ClassicalDataStore | None = None,
     ):
         """Inits SimulationState.
 
@@ -86,7 +73,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         qubits: Sequence[cirq.Qid],
         key: str,
         invert_mask: Sequence[bool],
-        confusion_map: Dict[Tuple[int, ...], np.ndarray],
+        confusion_map: dict[tuple[int, ...], np.ndarray],
     ):
         """Measures the qubits and records to `log_of_measurement_results`.
 
@@ -110,10 +97,10 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
             value.MeasurementKey.parse_serialized(key), corrected, qubits
         )
 
-    def get_axes(self, qubits: Sequence[cirq.Qid]) -> List[int]:
+    def get_axes(self, qubits: Sequence[cirq.Qid]) -> list[int]:
         return [self.qubit_map[q] for q in qubits]
 
-    def _perform_measurement(self, qubits: Sequence[cirq.Qid]) -> List[int]:
+    def _perform_measurement(self, qubits: Sequence[cirq.Qid]) -> list[int]:
         """Delegates the call to measure the `QuantumStateRepresentation`."""
         if self._state is not None:
             return self._state.measure(self.get_axes(qubits), self.prng)
@@ -121,9 +108,9 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
 
     def _confuse_result(
         self,
-        bits: List[int],
+        bits: list[int],
         qubits: Sequence[cirq.Qid],
-        confusion_map: Dict[Tuple[int, ...], np.ndarray],
+        confusion_map: dict[tuple[int, ...], np.ndarray],
     ):
         """Applies confusion matrices to measured results.
 
@@ -211,7 +198,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
 
     def factor(
         self, qubits: Sequence[cirq.Qid], *, validate=True, atol=1e-07, inplace=False
-    ) -> Tuple[Self, Self]:
+    ) -> tuple[Self, Self]:
         """Splits two state spaces after a measurement or reset."""
         extracted = copy.copy(self)
         remainder = self if inplace else copy.copy(self)
@@ -249,7 +236,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         return args
 
     @property
-    def qubits(self) -> Tuple[cirq.Qid, ...]:
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         return self._qubits
 
     def swap(self, q1: cirq.Qid, q2: cirq.Qid, *, inplace=False):
@@ -310,7 +297,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         args._set_qubits(qubits)
         return args
 
-    def __getitem__(self, item: Optional[cirq.Qid]) -> Self:
+    def __getitem__(self, item: cirq.Qid | None) -> Self:
         if item not in self.qubit_map:
             raise IndexError(f'{item} not in {self.qubits}')
         return self
@@ -318,7 +305,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
     def __len__(self) -> int:
         return len(self.qubits)
 
-    def __iter__(self) -> Iterator[Optional[cirq.Qid]]:
+    def __iter__(self) -> Iterator[cirq.Qid | None]:
         return iter(self.qubits)
 
     @property
@@ -335,7 +322,7 @@ def strat_act_on_from_apply_decompose(
         decomposed = protocols.decompose_once(val, flatten=False, default=None)
     if decomposed is None:
         return NotImplemented
-    all_ancilla: Set[cirq.Qid] = set()
+    all_ancilla: set[cirq.Qid] = set()
     for operation in ops.flatten_to_ops(decomposed):
         curr_ancilla = tuple(q for q in operation.qubits if q not in args.qubits)
         args = args.add_qubits(curr_ancilla)

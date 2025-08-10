@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import dataclasses
 
 import numpy as np
@@ -191,8 +193,6 @@ def test_unphaseable_causes_earlier_merge_without_size_increase():
         pass
 
     u = UnknownGate()
-
-    # pylint: disable=not-callable
     q = cirq.NamedQubit('q')
     assert_optimizes(
         before=cirq.Circuit(

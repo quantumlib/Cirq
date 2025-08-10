@@ -18,7 +18,8 @@ import cirq
 import cirq.contrib.qcircuit as ccq
 
 
-def test_get_qcircuit_diagram_info():
+def test_get_qcircuit_diagram_info() -> None:
+    qubit_map: dict[cirq.LabelEntity, int]
     qubits = cirq.NamedQubit('x'), cirq.NamedQubit('y')
 
     gate = cirq.SwapPowGate(exponent=0.5)
