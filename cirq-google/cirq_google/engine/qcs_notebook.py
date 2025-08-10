@@ -177,6 +177,6 @@ def authenticate_user(clear_output: bool = False) -> None:
     except Exception as exc:
         print(
             "Authentication failed, you may not have permission to access a"
-            + " hardware Engine. Use a virtual Engine instead."
+            " hardware Engine. Use a virtual Engine instead."
         )
         raise exc

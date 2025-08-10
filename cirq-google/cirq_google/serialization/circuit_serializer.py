@@ -26,6 +26,7 @@ import cirq
 from cirq_google.api import v2
 from cirq_google.experimental.ops import CouplerPulse
 from cirq_google.ops import (
+    CompressDurationTag,
     DynamicalDecouplingTag,
     FSimViaModelTag,
     InternalGate,
@@ -168,6 +169,11 @@ class CircuitSerializer(serializer.Serializer):
                         raw_constants[op] = op_index
                         moment_proto.operation_indices.append(op_index)
 
+            for tag in moment.tags:
+                self._serialize_tag(
+                    tag, moment_proto, constants=constants, raw_constants=raw_constants
+                )
+
             # Add this moment to the constants table
             constants.append(v2.program_pb2.Constant(moment_value=moment_proto))
             moment_index = len(constants) - 1
@@ -283,6 +289,7 @@ class CircuitSerializer(serializer.Serializer):
             arg_func_langs.float_arg_to_proto(
                 gate.p, out=msg.noisechannel.depolarizingchannel.probability
             )
+            msg.noisechannel.depolarizingchannel.num_qubits = len(op.qubits)
         elif isinstance(gate, cirq.RandomGateChannel):
             arg_func_langs.float_arg_to_proto(
                 gate.probability, out=msg.noisechannel.randomgatechannel.probability
@@ -314,7 +321,7 @@ class CircuitSerializer(serializer.Serializer):
     def _serialize_tag(
         self,
         tag: Hashable,
-        msg: v2.program_pb2.Operation | v2.program_pb2.Circuit,
+        msg: v2.program_pb2.Operation | v2.program_pb2.Moment | v2.program_pb2.Circuit,
         *,
         constants: list[v2.program_pb2.Constant],
         raw_constants: dict[Any, int],
@@ -502,6 +509,7 @@ class CircuitSerializer(serializer.Serializer):
         deserialized_constants: list[Any],
     ) -> cirq.Moment:
         moment_ops = []
+        tags = []
         for op in moment_proto.operations:
             if self.op_deserializer and self.op_deserializer.can_deserialize_proto(op):
                 gate_op = self.op_deserializer.from_proto(
@@ -524,7 +532,10 @@ class CircuitSerializer(serializer.Serializer):
             )
         for operation_index in moment_proto.operation_indices:
             moment_ops.append(deserialized_constants[operation_index])
-        moment = cirq.Moment(moment_ops)
+
+        for tag_index in moment_proto.tag_indices:
+            tags.append(deserialized_constants[tag_index])
+        moment = cirq.Moment(moment_ops, tags=tuple(tags))
         return moment
 
     def _deserialize_gate_op(
@@ -754,9 +765,14 @@ class CircuitSerializer(serializer.Serializer):
                 )
                 if not isinstance(p, float):
                     raise ValueError(
-                        f"Depolarizing noise probability {p} " "cannot be symbol or None"
+                        f"Depolarizing noise probability {p} cannot be symbol or None"
                     )  # pragma: nocover
-                op = cirq.DepolarizingChannel(p=p)(*qubits)
+                num_qubits = operation_proto.noisechannel.depolarizingchannel.num_qubits
+                if num_qubits <= 0:
+                    raise ValueError(
+                        f"Depolarizing noise gate must have positive num_qubits: {num_qubits}"
+                    )  # pragma: nocover
+                op = cirq.DepolarizingChannel(p=p, n_qubits=num_qubits)(*qubits)
             elif which_channel_type == 'randomgatechannel':
                 p = arg_func_langs.float_arg_from_proto(
                     operation_proto.noisechannel.randomgatechannel.probability
@@ -768,7 +784,7 @@ class CircuitSerializer(serializer.Serializer):
                 )
                 if sub_gate is None or sub_gate.gate is None:
                     raise ValueError(
-                        "Not a valid gate for RandomGateChannel: " f"{operation_proto}"
+                        f"Not a valid gate for RandomGateChannel: {operation_proto}"
                     )  # pragma: nocover
                 op = cirq.RandomGateChannel(probability=p, sub_gate=sub_gate.gate)(*qubits)
             else:
@@ -864,6 +880,8 @@ class CircuitSerializer(serializer.Serializer):
             return CalibrationTag.from_proto(msg)
         elif which == 'internal_tag':
             return InternalTag.from_proto(msg)
+        elif which == 'compress_duration':
+            return CompressDurationTag()
         else:
             warnings.warn(f'Unknown tag {msg=}, ignoring')
             return None

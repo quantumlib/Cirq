@@ -39,13 +39,11 @@ SKIP_NOTEBOOKS = [
     '**/azure-quantum/*.ipynb',
     '**/ionq/*.ipynb',
     '**/pasqal/*.ipynb',
-    '**/rigetti/*.ipynb',
     # skipping quantum utility simulation (too large)
     'examples/advanced/*quantum_utility*',
     # tutorials that use QCS and arent skipped due to one or more cleared output cells
     'docs/tutorials/google/identifying_hardware_changes.ipynb',
     'docs/tutorials/google/echoes.ipynb',
-    'docs/noise/qcvv/xeb_calibration_example.ipynb',
     # temporary: need to fix QVM metrics and device spec
     'docs/tutorials/google/spin_echoes.ipynb',
     'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
@@ -108,18 +106,19 @@ def test_notebooks_against_cirq_head(
     Lines in this file that do not have `->` are ignored.
     """
     notebook_file = os.path.basename(notebook_path)
-    notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, "."))
+    notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, REPO_ROOT))
     out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"
     rewritten_notebook_path = rewrite_notebook(notebook_path)
     papermill_flags = "--no-request-save-on-cell-execute --autosave-cell-every 0"
-    cmd = f"""mkdir -p out/{notebook_rel_dir}
-papermill {rewritten_notebook_path} {out_path} {papermill_flags}"""
+    cmd = f"papermill {rewritten_notebook_path} {REPO_ROOT/out_path} {papermill_flags}"
 
+    REPO_ROOT.joinpath("out", notebook_rel_dir).mkdir(parents=True, exist_ok=True)
     result = shell_tools.run(
         cmd,
         log_run_to_stderr=False,
         shell=True,
         check=False,
+        cwd=REPO_ROOT,
         capture_output=True,
         env=env_with_temporary_pip_target,
     )

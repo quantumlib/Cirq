@@ -109,6 +109,9 @@ message Moment {
 
   // Deprecated field id, do not use.
   reserved 3;
+  
+  // Indices in the constant table for tags associated with the circuit
+  repeated int32 tag_indices = 5;
 }
 
 // The language in which the program is expressed.
@@ -344,6 +347,9 @@ message Tag {
 
     // Calibration Tag
     CalibrationTag calibration_tag = 9;
+    
+    // Compress duration to zero, if possible.
+    CompressDurationTag compress_duration = 10;
 
     // Catch-all for all gates that do not fit into the
     // above tags.
@@ -388,6 +394,10 @@ message CalibrationTag {
   // Token to serialize
   string token = 1;
 }
+
+// Tag to specify that hardware should compress the duration to zero
+// if possible.  For instance, in X**0 or PhasedXZGate with zero angles.
+message CompressDurationTag {}
 
 // Tag to represent any internal tags or tags not yet
 // implemented in the proto.

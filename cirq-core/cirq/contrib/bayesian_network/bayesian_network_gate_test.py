@@ -53,7 +53,7 @@ def test_repr() -> None:
 
     assert repr(gate) == (
         "cirq.BayesianNetworkGate(init_probs=[('q0', 0.0), ('q1', None)],"
-        + " arc_probs=[('q1', ('q0',), [0.0, 0.0])])"
+        " arc_probs=[('q1', ('q0',), [0.0, 0.0])])"
     )
 
 

@@ -99,6 +99,16 @@ OPERATIONS = [
         op_proto({'xpowgate': {'exponent': {'symbol': 'a'}}, 'qubit_constant_index': [0]}),
     ),
     (
+        cirq.XPowGate(exponent=0)(Q1).with_tags(cg.CompressDurationTag()),
+        op_proto(
+            {
+                'xpowgate': {'exponent': {'float_value': 0.0}},
+                'qubit_constant_index': [0],
+                'tag_indices': [1],
+            }
+        ),
+    ),
+    (
         cirq.XPowGate(exponent=0.25 + sympy.Symbol('t'))(Q1),
         op_proto(
             {
@@ -390,8 +400,21 @@ OPERATIONS = [
         cirq.depolarize(0.5)(Q0),
         op_proto(
             {
-                'noisechannel': {'depolarizingchannel': {'probability': {'float_value': 0.5}}},
+                'noisechannel': {
+                    'depolarizingchannel': {'probability': {'float_value': 0.5}, 'num_qubits': 1}
+                },
                 'qubit_constant_index': [0],
+            }
+        ),
+    ),
+    (
+        cirq.depolarize(0.5, n_qubits=2)(Q0, Q1),
+        op_proto(
+            {
+                'noisechannel': {
+                    'depolarizingchannel': {'probability': {'float_value': 0.5}, 'num_qubits': 2}
+                },
+                'qubit_constant_index': [0, 1],
             }
         ),
     ),
@@ -1202,6 +1225,20 @@ def test_custom_tag_serializer_with_tags_outside_constants():
         tag_serializer=DiscountTagSerializer(), tag_deserializer=DiscountTagDeserializer()
     )
     assert serializer.deserialize(circuit_proto) == expected_circuit
+
+
+def test_moments_with_tags():
+    serializer = cg.CircuitSerializer(
+        tag_serializer=DiscountTagSerializer(), tag_deserializer=DiscountTagDeserializer()
+    )
+    original_circuit = cirq.Circuit(
+        cirq.Moment(cirq.X(cirq.GridQubit(1, 1))).with_tags(DiscountTag(0.50)),
+        cirq.Moment(cirq.Z(cirq.GridQubit(2, 2))).with_tags(cg.CalibrationTag("abc")),
+    )
+    deserialized_circuit = serializer.deserialize(serializer.serialize(original_circuit))
+    assert original_circuit == deserialized_circuit
+    assert deserialized_circuit[0].tags == (DiscountTag(0.50),)
+    assert deserialized_circuit[1].tags == (cg.CalibrationTag("abc"),)
 
 
 def test_reset_gate_with_improper_argument():

@@ -193,6 +193,7 @@ class Moment(google.protobuf.message.Message):
     OPERATIONS_FIELD_NUMBER: builtins.int
     CIRCUIT_OPERATIONS_FIELD_NUMBER: builtins.int
     OPERATION_INDICES_FIELD_NUMBER: builtins.int
+    TAG_INDICES_FIELD_NUMBER: builtins.int
     @property
     def operations(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Operation]:
         """All of the gate operations in the moment. Each operation and circuit
@@ -214,14 +215,19 @@ class Moment(google.protobuf.message.Message):
         for improved serialization size.
         """
 
+    @property
+    def tag_indices(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]:
+        """Indices in the constant table for tags associated with the circuit"""
+
     def __init__(
         self,
         *,
         operations: collections.abc.Iterable[global___Operation] | None = ...,
         circuit_operations: collections.abc.Iterable[global___CircuitOperation] | None = ...,
         operation_indices: collections.abc.Iterable[builtins.int] | None = ...,
+        tag_indices: collections.abc.Iterable[builtins.int] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["circuit_operations", b"circuit_operations", "operation_indices", b"operation_indices", "operations", b"operations"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["circuit_operations", b"circuit_operations", "operation_indices", b"operation_indices", "operations", b"operations", "tag_indices", b"tag_indices"]) -> None: ...
 
 global___Moment = Moment
 
@@ -795,6 +801,7 @@ class Tag(google.protobuf.message.Message):
     CLASSICAL_STATE_FIELD_NUMBER: builtins.int
     FSIM_VIA_MODEL_FIELD_NUMBER: builtins.int
     CALIBRATION_TAG_FIELD_NUMBER: builtins.int
+    COMPRESS_DURATION_FIELD_NUMBER: builtins.int
     INTERNAL_TAG_FIELD_NUMBER: builtins.int
     @property
     def dynamical_decoupling(self) -> global___DynamicalDecouplingTag:
@@ -840,6 +847,10 @@ class Tag(google.protobuf.message.Message):
         """Calibration Tag"""
 
     @property
+    def compress_duration(self) -> global___CompressDurationTag:
+        """Compress duration to zero, if possible."""
+
+    @property
     def internal_tag(self) -> global___InternalTag:
         """Catch-all for all gates that do not fit into the
         above tags.
@@ -855,11 +866,12 @@ class Tag(google.protobuf.message.Message):
         classical_state: global___ClassicalStateTag | None = ...,
         fsim_via_model: global___FSimViaModelTag | None = ...,
         calibration_tag: global___CalibrationTag | None = ...,
+        compress_duration: global___CompressDurationTag | None = ...,
         internal_tag: global___InternalTag | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["calibration_tag", b"calibration_tag", "classical_state", b"classical_state", "dynamical_decoupling", b"dynamical_decoupling", "fsim_via_model", b"fsim_via_model", "internal_tag", b"internal_tag", "no_sync", b"no_sync", "phase_match", b"phase_match", "physical_z", b"physical_z", "tag", b"tag"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["calibration_tag", b"calibration_tag", "classical_state", b"classical_state", "dynamical_decoupling", b"dynamical_decoupling", "fsim_via_model", b"fsim_via_model", "internal_tag", b"internal_tag", "no_sync", b"no_sync", "phase_match", b"phase_match", "physical_z", b"physical_z", "tag", b"tag"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["tag", b"tag"]) -> typing.Literal["dynamical_decoupling", "no_sync", "phase_match", "physical_z", "classical_state", "fsim_via_model", "calibration_tag", "internal_tag"] | None: ...
+    def HasField(self, field_name: typing.Literal["calibration_tag", b"calibration_tag", "classical_state", b"classical_state", "compress_duration", b"compress_duration", "dynamical_decoupling", b"dynamical_decoupling", "fsim_via_model", b"fsim_via_model", "internal_tag", b"internal_tag", "no_sync", b"no_sync", "phase_match", b"phase_match", "physical_z", b"physical_z", "tag", b"tag"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["calibration_tag", b"calibration_tag", "classical_state", b"classical_state", "compress_duration", b"compress_duration", "dynamical_decoupling", b"dynamical_decoupling", "fsim_via_model", b"fsim_via_model", "internal_tag", b"internal_tag", "no_sync", b"no_sync", "phase_match", b"phase_match", "physical_z", b"physical_z", "tag", b"tag"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["tag", b"tag"]) -> typing.Literal["dynamical_decoupling", "no_sync", "phase_match", "physical_z", "classical_state", "fsim_via_model", "calibration_tag", "compress_duration", "internal_tag"] | None: ...
 
 global___Tag = Tag
 
@@ -966,6 +978,20 @@ class CalibrationTag(google.protobuf.message.Message):
     def ClearField(self, field_name: typing.Literal["token", b"token"]) -> None: ...
 
 global___CalibrationTag = CalibrationTag
+
+@typing.final
+class CompressDurationTag(google.protobuf.message.Message):
+    """Tag to specify that hardware should compress the duration to zero
+    if possible.  For instance, in X**0 or PhasedXZGate with zero angles.
+    """
+
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    def __init__(
+        self,
+    ) -> None: ...
+
+global___CompressDurationTag = CompressDurationTag
 
 @typing.final
 class InternalTag(google.protobuf.message.Message):

@@ -56,6 +56,7 @@ from cirq_google.ops import (
     AnalogDetuneCouplerOnly as AnalogDetuneCouplerOnly,
     AnalogDetuneQubit as AnalogDetuneQubit,
     CalibrationTag as CalibrationTag,
+    CompressDurationTag as CompressDurationTag,
     Coupler as Coupler,
     FSimGateFamily as FSimGateFamily,
     FSimViaModelTag as FSimViaModelTag,
@@ -64,6 +65,7 @@ from cirq_google.ops import (
     PhysicalZTag as PhysicalZTag,
     SYC as SYC,
     SycamoreGate as SycamoreGate,
+    WaitGateWithUnit as WaitGateWithUnit,
     WILLOW as WILLOW,
     WillowGate as WillowGate,
 )
