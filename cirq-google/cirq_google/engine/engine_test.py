@@ -986,12 +986,6 @@ def test_get_processor_config_by_snapshot_id_none(get_quantum_config_async):
     processor_id = "test_processor_id"
     snapshot_id = "test_snapshot_id"
     config_id = "test_config_id"
-    resource_name = (
-        f'projects/{project_id}/'
-        f'processors/{processor_id}/'
-        f'configSnapshots/{snapshot_id}/'
-        f'configs/{config_id}'
-    )
 
     get_quantum_config_async.return_value = None
 

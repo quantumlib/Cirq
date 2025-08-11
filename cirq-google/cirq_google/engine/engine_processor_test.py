@@ -1170,12 +1170,6 @@ def test_get_config_by_snapshot_id_not_found(get_quantum_config):
     processor_id = "test_proc_id"
     snapshot_id = "test_snapshot_id"
     config_id = "test_config_id"
-    name = (
-        f'projects/{project_id}/'
-        f'processors/{processor_id}/'
-        f'configSnapshots/{snapshot_id}/'
-        f'configs/{config_id}'
-    )
 
     get_quantum_config.return_value = None
 
@@ -1194,7 +1188,7 @@ def test_get_config_by_snapshot_id_not_found(get_quantum_config):
 
     assert result is None
 
-@mock.patch('' \
+@mock.patch('
 'cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_by_run_name_async'
 )
 def test_get_current_config_by_run_name_not_found(get_quantum_config):
