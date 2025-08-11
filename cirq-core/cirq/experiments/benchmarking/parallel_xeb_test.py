@@ -288,13 +288,11 @@ def test_estimate_fidelities() -> None:
         ],
     )
 
-    assert result == [
-        xeb.XEBFidelity(
-            pair=_PAIRS[0],
-            cycle_depth=1,
-            fidelity=pytest.approx(0.785, abs=2e-4),  # type: ignore[arg-type]
-        )
-    ]
+    assert len(result) == 1
+    xeb_fidelity = result[0]
+    assert xeb_fidelity.pair == _PAIRS[0]
+    assert xeb_fidelity.cycle_depth == 1
+    assert xeb_fidelity.fidelity == pytest.approx(0.785, abs=2e-4)
 
 
 def test_estimate_fidelities_with_dict_target() -> None:
@@ -323,13 +321,11 @@ def test_estimate_fidelities_with_dict_target() -> None:
         ],
     )
 
-    assert result == [
-        xeb.XEBFidelity(
-            pair=_PAIRS[0],
-            cycle_depth=1,
-            fidelity=pytest.approx(0.785, abs=2e-4),  # type: ignore[arg-type]
-        )
-    ]
+    assert len(result) == 1
+    xeb_fidelity = result[0]
+    assert xeb_fidelity.pair == _PAIRS[0]
+    assert xeb_fidelity.cycle_depth == 1
+    assert xeb_fidelity.fidelity == pytest.approx(0.785, abs=2e-4)
 
 
 def _assert_fidelities_approx_equal(fids, expected: float, atol: float):
