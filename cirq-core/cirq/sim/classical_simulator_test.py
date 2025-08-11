@@ -60,6 +60,15 @@ def test_Swap():
     np.testing.assert_equal(results, expected_results)
 
 
+def test_qubit_permutation_gate():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    perm_gate = cirq.QubitPermutationGate([2, 0, 1])
+    circuit = cirq.Circuit(perm_gate(q0, q1, q2), cirq.measure(q0, q1, q2, key='key'))
+    sim = cirq.ClassicalStateSimulator()
+    result = sim.simulate(circuit, initial_state=[1, 0, 1])
+    np.testing.assert_equal(result.measurements['key'], [1, 1, 0])
+
+
 def test_CCNOT():
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit()
@@ -209,6 +218,15 @@ def test_multiple_gates_order():
     np.testing.assert_equal(results, expected_results)
 
 
+
+def test_tuple_initial_state():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(cirq.X(q0), cirq.measure(q0, q1, q2, key='key'))
+    sim = cirq.ClassicalStateSimulator()
+    result = sim.simulate(circuit, initial_state=(0, 1, 0))
+    np.testing.assert_equal(result.measurements['key'], [1, 1, 0])
+
+
 def test_param_resolver():
     gate = cirq.CNOT ** sympy.Symbol('t')
     q0, q1 = cirq.LineQubit.range(2)
@@ -333,11 +351,11 @@ def test_create_invalid_partial_simulation_state_from_np():
     qs = cirq.LineQubit.range(2)
     classical_data = cirq.value.ClassicalDataDictionaryStore()
     sim = cirq.ClassicalStateSimulator()
-    sim_state = sim._create_partial_simulation_state(
-        initial_state=initial_state, qubits=qs, classical_data=classical_data
-    )
+    
     with pytest.raises(ValueError):
-        sim_state._act_on_fallback_(action=cirq.CX, qubits=qs)
+        sim_state = sim._create_partial_simulation_state(
+            initial_state=initial_state, qubits=qs, classical_data=classical_data
+        )
 
 
 def test_noise_model():
