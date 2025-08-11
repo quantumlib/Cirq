@@ -85,14 +85,16 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
 
         Args:
             qubits: The qubits to simulate.
-            initial_state: The initial state for the simulation. Accepts int, list[int], tuple[int], or np.ndarray.
+            initial_state: The initial state for the simulation. Accepts int, list[int],
+                tuple[int], or np.ndarray.
             classical_data: The classical data container for the simulation.
 
         Raises:
             ValueError: If qubits not provided and initial_state is int.
                 If initial_state is not an int, list[int], tuple[int], or np.ndarray.
                 If initial_state is a np.ndarray and its shape is not 1-dimensional.
-                If gate is not one of X, SWAP, QubitPermutationGate, a controlled version of X or SWAP, or a measurement.
+                If gate is not one of X, SWAP, QubitPermutationGate, a controlled version
+                    of X or SWAP, or a measurement.
 
         An initial_state value of type integer is parsed in big endian order.
         """
@@ -104,7 +106,9 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
             )
         elif isinstance(initial_state, np.ndarray):
             if initial_state.ndim != 1:
-                raise ValueError(f'initial_state must be 1-dimensional, got shape {initial_state.shape}')
+                raise ValueError(
+                    f'initial_state must be 1-dimensional, got shape {initial_state.shape}'
+                )
             state = ClassicalBasisState(list(initial_state))
         elif isinstance(initial_state, (list, tuple)):
             state = ClassicalBasisState(list(initial_state))

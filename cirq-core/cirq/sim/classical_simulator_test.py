@@ -218,7 +218,6 @@ def test_multiple_gates_order():
     np.testing.assert_equal(results, expected_results)
 
 
-
 def test_tuple_initial_state():
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(cirq.X(q0), cirq.measure(q0, q1, q2, key='key'))
@@ -351,9 +350,9 @@ def test_create_invalid_partial_simulation_state_from_np():
     qs = cirq.LineQubit.range(2)
     classical_data = cirq.value.ClassicalDataDictionaryStore()
     sim = cirq.ClassicalStateSimulator()
-    
+
     with pytest.raises(ValueError):
-        sim_state = sim._create_partial_simulation_state(
+        sim._create_partial_simulation_state(
             initial_state=initial_state, qubits=qs, classical_data=classical_data
         )
 
