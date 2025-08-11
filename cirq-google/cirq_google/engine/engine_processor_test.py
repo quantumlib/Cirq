@@ -28,9 +28,8 @@ from google.protobuf.timestamp_pb2 import Timestamp
 import cirq
 import cirq_google as cg
 from cirq_google.api import v2
-from cirq_google.devices import grid_device
 from cirq_google.cloud import quantum
-from cirq_google.engine import engine_client, util, calibration, ProcessorConfig
+from cirq_google.engine import engine_client, util, ProcessorConfig
 from cirq_google.engine.engine import EngineContext
 
 

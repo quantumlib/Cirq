@@ -18,18 +18,18 @@ import datetime
 from typing import Any, TYPE_CHECKING
 
 from cirq import _compat
+import cirq_google as cg
 from cirq_google.api import v2
 from cirq_google.devices import grid_device
-from cirq_google.engine import abstract_processor, calibration, processor_sampler, util, processor_config
+from cirq_google.engine import abstract_processor, calibration, processor_config, processor_sampler, util
 
 if TYPE_CHECKING:
-    from google.protobuf import any_pb2
-
     import cirq
-    import cirq_google as cg
     import cirq_google.cloud.quantum as quantum
     import cirq_google.engine.abstract_job as abstract_job
     import cirq_google.engine.engine as engine_base
+
+    from google.protobuf import any_pb2
 
 
 def _date_to_timestamp(union_time: datetime.datetime | datetime.date | int | None) -> int | None:

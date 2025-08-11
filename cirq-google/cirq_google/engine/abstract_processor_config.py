@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import abc
-import datetime
+import cirq
+import cirq_google as cg
+
 from typing import TYPE_CHECKING
 
-import cirq
-
-import cirq_google as cg
 
 class AbstractProcessorConfig(abc.ABC):
     """Interface for a QuantumProcessorConfig.
