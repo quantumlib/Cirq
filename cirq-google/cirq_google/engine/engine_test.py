@@ -1005,7 +1005,7 @@ def test_get_processor_config_by_snapshot_id_none(get_quantum_config_async):
 @mock.patch(
     'cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_by_run_name_async'
 )
-def test_get_processor_config_by_run_name(get_quantum_config_async):
+def test_get_processor_config_by_run_name_nine(get_quantum_config_async):
     project_id = "test_project_id"
     processor_id = "test_processor_id"
     config_id = "test_config_id"
