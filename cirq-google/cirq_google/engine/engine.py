@@ -640,7 +640,8 @@ class Engine(abstract_engine.AbstractEngine):
         Returns:
            The ProcessorConfig from this project and processor.
         """
-        quantum_config = await self.context.client.get_quantum_processor_config_by_snapshot_id_async(
+        client = self.context.client
+        quantum_config = await client.get_quantum_processor_config_by_snapshot_id_async(
             project_id=self.project_id,
             processor_id=processor_id,
             snapshot_id=snapshot_id,

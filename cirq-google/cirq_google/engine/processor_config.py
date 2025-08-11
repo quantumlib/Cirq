@@ -17,12 +17,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 
-import cirq
 import cirq_google as cg
 
 from cirq_google.api import v2
-from cirq_google.cloud.quantum_v1alpha1.types import quantum
 from cirq_google.engine import abstract_processor_config, util
+
+if TYPE_CHECKING:
+    import cirq
+    from cirq_google.cloud.quantum_v1alpha1.types import quantum
 
 
 class ProcessorConfig(abstract_processor_config.AbstractProcessorConfig):

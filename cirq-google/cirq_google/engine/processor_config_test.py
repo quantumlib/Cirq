@@ -125,7 +125,7 @@ def test_processor_config_repr():
             f'(project_id={_PROJECT_ID}, '
             f'processor_id={_PROCESSOR_ID}, '
             f'snapshot_id={_SNAPSHOT_ID}, '
-            f'run_name={''} '
+            f'run_name={""} '
             f'config_id={_CONFIG_ID}'
         )
     

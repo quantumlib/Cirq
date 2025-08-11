@@ -1187,7 +1187,10 @@ class EngineClient:
         """Runs get_quantum_processor_config with the given resource name."""
         try:
             request = quantum.GetQuantumProcessorConfigRequest(name=name)
-            return await self._send_request_async(self.grpc_client.get_quantum_processor_config, request)
+            return await self._send_request_async(
+                self.grpc_client.get_quantum_processor_config,
+                request
+            )
         except EngineException as err:
             if isinstance(err.__cause__, NotFound):
                 return None
@@ -1212,10 +1215,15 @@ class EngineClient:
             EngineException: If the request to get the config fails.
         """
         name = _quantum_processor_name_with_snapshot_id(
-                project_id=project_id, processor_id=processor_id, snapshot_id=snapshot_id, config_id=config_id)
+                project_id=project_id,
+                processor_id=processor_id,
+                snapshot_id=snapshot_id,
+                config_id=config_id
+        )
         return await self._get_quantum_processor_config(name)
 
-    get_quantum_processor_config_by_snapshot_id = duet.sync(get_quantum_processor_config_by_snapshot_id_async)
+    get_quantum_processor_config_by_snapshot_id = duet.sync(
+        get_quantum_processor_config_by_snapshot_id_async)
     
     async def get_quantum_processor_config_by_run_name_async(self,
         project_id: str, processor_id: str, run_name: str, config_id: str, 
@@ -1239,7 +1247,8 @@ class EngineClient:
         )
         return await self._get_quantum_processor_config(name)
     
-    get_quantum_processor_config_by_run_name = duet.sync(get_quantum_processor_config_by_run_name_async)
+    get_quantum_processor_config_by_run_name = duet.sync(
+        get_quantum_processor_config_by_run_name_async)
 
 def _project_name(project_id: str) -> str:
     return f'projects/{project_id}'
@@ -1292,13 +1301,22 @@ def _ids_from_calibration_name(calibration_name: str) -> tuple[str, str, int]:
 def _quantum_processor_name_with_snapshot_id(
         project_id: str, processor_id: str, snapshot_id: str, config_id: str
 ) -> str:
-    return f'projects/{project_id}/processors/{processor_id}/configSnapshots/{snapshot_id}/configs/{config_id}'
+    return (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configSnapshots/{snapshot_id}/'
+        f'configs/{config_id}'
+    )
 
 
 def _quantum_processor_name_with_run_name(
         project_id: str, processor_id: str, run_name: str, config_id: str
 ) -> str:
-    return f'projects/{project_id}/processors/{processor_id}/configAutomationRuns/{run_name}/configs/{config_id}'
+    return (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configAutomationRuns/{run_name}/'
+        f'configs/{config_id}')
 
 
 def _date_or_time_to_filter_expr(param_name: str, param: datetime.datetime | datetime.date):

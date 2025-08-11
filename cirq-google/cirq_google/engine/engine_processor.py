@@ -21,7 +21,8 @@ from cirq import _compat
 import cirq_google as cg
 from cirq_google.api import v2
 from cirq_google.devices import grid_device
-from cirq_google.engine import abstract_processor, calibration, processor_config, processor_sampler, util
+from cirq_google.engine import abstract_processor, calibration, processor_config, processor_sampler
+from cirq_google.engine import util
 
 if TYPE_CHECKING:
     import cirq

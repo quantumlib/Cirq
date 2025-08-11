@@ -1024,7 +1024,12 @@ def test_get_config_by_run_name(get_quantum_config):
     processor_id = "test_proc_id"
     run_name = "test_run_name"
     config_id = "test_config_id"
-    name = f'projects/{project_id}/processors/{processor_id}/configAutomationRuns/{run_name}/configs/{config_id}'
+    name = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configAutomationRuns/{run_name}/'
+        f'configs/{config_id}'
+    )
 
     device_spec = v2.device_pb2.DeviceSpecification(
     valid_qubits=["0_0", "1_1", "2_2"],
@@ -1074,7 +1079,11 @@ def test_get_current_config_by_run_name(get_quantum_config):
     project_id = "test_project_id"
     processor_id = "test_proc_id"
     config_id = "test_config_id"
-    name = f'projects/{project_id}/processors/{processor_id}/configAutomationRuns/current/configs/{config_id}'
+    name = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configAutomationRuns/current/configs/{config_id}'
+    )
 
     device_spec = v2.device_pb2.DeviceSpecification(
     valid_qubits=["0_0", "1_1", "2_2"],
@@ -1113,7 +1122,12 @@ def test_get_config_by_snapshot_id(get_quantum_config):
     processor_id = "test_proc_id"
     snapshot_id = "test_snapshot_id"
     config_id = "test_config_id"
-    name = f'projects/{project_id}/processors/{processor_id}/configSnapshots/{snapshot_id}/configs/{config_id}'
+    name = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configSnapshots/{snapshot_id}/'
+        f'configs/{config_id}'
+    )
 
     device_spec = v2.device_pb2.DeviceSpecification(
     valid_qubits=["0_0", "1_1", "2_2"],

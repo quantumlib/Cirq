@@ -914,7 +914,12 @@ def test_get_processor_config_by_snapshot_id(get_quantum_config_async):
     processor_id = "test_processor_id"
     snapshot_id = "test_snapshot_id"
     config_id = "test_config_id"
-    resource_name = f'projects/{project_id}/processors/{processor_id}/configSnapshots/{snapshot_id}/configs/{config_id}'
+    resource_name = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configSnapshots/{snapshot_id}/'
+        f'configs/{config_id}'
+    )
     quantum_confg = quantum.QuantumProcessorConfig(name=resource_name)
 
     get_quantum_config_async.return_value = quantum_confg
@@ -944,7 +949,12 @@ def test_get_processor_config_by_run_name(get_quantum_config_async):
     snapshot_id = "test_snapshot_id"
     config_id = "test_config_id"
     run_name = "test_run_name"
-    resource_name = f'projects/{project_id}/processors/{processor_id}/configSnapshots/{snapshot_id}/configs/{config_id}'
+    resource_name = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configSnapshots/{snapshot_id}/'
+        f'configs/{config_id}'
+    )
     quantum_confg = quantum.QuantumProcessorConfig(name=resource_name)
 
     get_quantum_config_async.return_value = quantum_confg
