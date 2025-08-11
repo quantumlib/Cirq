@@ -65,6 +65,20 @@ def _recover_sweep_const(const_pb: run_context_pb2.ConstValue) -> Any:
         return tunits.Value.from_proto(const_pb.with_unit_value)
 
 
+def _add_sweep_metadata(sweep: cirq.Sweep, single_sweep: run_context_pb2.SingleSweep) -> None:
+    """Encodes the metadata if present and adds Parameter fields if metadata is a Parameter."""
+    if isinstance(sweep.metadata, Metadata):
+        single_sweep.metadata.MergeFrom(metadata_to_proto(sweep.metadata))
+    elif sweep.metadata:
+        # Use duck-typing to support google-internal Parameter objects
+        if getattr(sweep.metadata, 'path', None):
+            single_sweep.parameter.path.extend(sweep.metadata.path)
+        if getattr(sweep.metadata, 'idx', None):
+            single_sweep.parameter.idx = sweep.metadata.idx
+        if getattr(sweep.metadata, 'units', None):
+            single_sweep.parameter.units = sweep.metadata.units
+
+
 def sweep_to_proto(
     sweep: cirq.Sweep,
     *,
@@ -134,17 +148,7 @@ def sweep_to_proto(
             out.single_sweep.linspace.last_point_double = sweep.stop
 
             out.single_sweep.linspace.num_points = sweep.length
-        # Encode the metadata if present
-        if isinstance(sweep.metadata, Metadata):
-            out.single_sweep.metadata.MergeFrom(metadata_to_proto(sweep.metadata))
-        else:
-            # Use duck-typing to support google-internal Parameter objects
-            if sweep.metadata and getattr(sweep.metadata, 'path', None):
-                out.single_sweep.parameter.path.extend(sweep.metadata.path)
-            if sweep.metadata and getattr(sweep.metadata, 'idx', None):
-                out.single_sweep.parameter.idx = sweep.metadata.idx
-            if sweep.metadata and getattr(sweep.metadata, 'units', None):
-                out.single_sweep.parameter.units = sweep.metadata.units
+        _add_sweep_metadata(sweep, out.single_sweep)
     elif isinstance(sweep, cirq.Points) and not isinstance(sweep.key, sympy.Expr):
         sweep = cast(cirq.Points, sweep_transformer(sweep))
         out.single_sweep.parameter_key = sweep.key
@@ -161,17 +165,7 @@ def sweep_to_proto(
                 # Dual-write to both points and points_double for temporary compatibility.
                 out.single_sweep.points.points.extend(sweep.points)
                 out.single_sweep.points.points_double.extend(sweep.points)
-        # Encode the metadata if present
-        if isinstance(sweep.metadata, Metadata):
-            out.single_sweep.metadata.MergeFrom(metadata_to_proto(sweep.metadata))
-        else:
-            # Use duck-typing to support google-internal Parameter objects
-            if sweep.metadata and getattr(sweep.metadata, 'path', None):
-                out.single_sweep.parameter.path.extend(sweep.metadata.path)
-            if sweep.metadata and getattr(sweep.metadata, 'idx', None):
-                out.single_sweep.parameter.idx = sweep.metadata.idx
-            if sweep.metadata and getattr(sweep.metadata, 'units', None):
-                out.single_sweep.parameter.units = sweep.metadata.units
+        _add_sweep_metadata(sweep, out.single_sweep)
     elif isinstance(sweep, FiniteRandomVariable) and not isinstance(sweep.key, sympy.Expr):
         sweep = cast(FiniteRandomVariable, sweep_transformer(sweep))
         out.single_sweep.parameter_key = sweep.key
@@ -179,17 +173,7 @@ def sweep_to_proto(
         out.single_sweep.random_variable.seed = sweep.seed
         for random_value, prob in sweep.distribution.items():
             out.single_sweep.random_variable.distribution[str(random_value)] = prob
-        # Encode the metadata if present
-        if isinstance(sweep.metadata, Metadata):
-            out.single_sweep.metadata.MergeFrom(metadata_to_proto(sweep.metadata))
-        else:
-            # Use duck-typing to support google-internal Parameter objects
-            if sweep.metadata and getattr(sweep.metadata, 'path', None):
-                out.single_sweep.parameter.path.extend(sweep.metadata.path)
-            if sweep.metadata and getattr(sweep.metadata, 'idx', None):
-                out.single_sweep.parameter.idx = sweep.metadata.idx
-            if sweep.metadata and getattr(sweep.metadata, 'units', None):
-                out.single_sweep.parameter.units = sweep.metadata.units
+        _add_sweep_metadata(sweep, out.single_sweep)
     elif isinstance(sweep, cirq.ListSweep):
         sweep_dict: dict[str, list[float]] = {}
         for param_resolver in sweep:

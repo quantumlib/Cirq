@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+import numbers
 import random
 from typing import Any, Iterator
 
@@ -23,9 +25,10 @@ class FiniteRandomVariable(SingleSweep):
     """A sweep over randomly-sampled values from a finite distribution.
 
     This can generate a stream of random samples pulled from a finite
-    distribution.  For instance, a coin flip, die roll, or from {1, 0, -1}.
+    distribution.  Some examples of possible finite distributions include
+    a coin flip, die roll, or from {1, 0, -1}.
 
-    This sweep uses python's internal random.choices to generate samples
+    This sweep uses Python's internal `random.choices` to generate samples
     from the requested distribution.  Given the same seed, this sequence
     will be identical across machines.
 
@@ -47,7 +50,7 @@ class FiniteRandomVariable(SingleSweep):
     def __init__(
         self,
         key: cirq.TParamKey,
-        distribution: dict[float, float],
+        distribution: dict[numbers.Real, float],
         seed: int,
         length: int,
         metadata: Any | None = None,
@@ -66,9 +69,9 @@ class FiniteRandomVariable(SingleSweep):
         """
         if not isinstance(distribution, dict) or not distribution:
             raise ValueError("distribution must be a non-empty dictionary.")
-        if not all(isinstance(k, (int, float)) for k in distribution.keys()):
+        if not all(isinstance(k, numbers.Real) for k in distribution.keys()):
             raise ValueError("distribution keys must be numbers.")
-        if not all(isinstance(v, (int, float)) and v >= 0 for v in distribution.values()):
+        if not all(isinstance(v, numbers.Real) and v >= 0 for v in distribution.values()):
             raise ValueError("distribution values (weights) must be non-negative numbers.")
         if length <= 0:
             raise ValueError("length must be a positive integer.")
