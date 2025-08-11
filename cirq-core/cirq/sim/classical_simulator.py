@@ -77,7 +77,7 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
 
     def __init__(
         self,
-        initial_state: int | list[int] | tuple[int, ...] = 0,
+        initial_state: int | Sequence[int] = 0,
         qubits: Sequence[cirq.Qid] | None = None,
         classical_data: cirq.ClassicalDataStore | None = None,
     ):
@@ -85,8 +85,7 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
 
         Args:
             qubits: The qubits to simulate.
-            initial_state: The initial state for the simulation. Accepts int, list[int],
-                tuple[int], or np.ndarray.
+            initial_state: The initial state for the simulation. Accepts int or a sequence of int.
             classical_data: The classical data container for the simulation.
 
         Raises:
