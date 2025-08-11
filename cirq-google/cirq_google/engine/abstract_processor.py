@@ -390,7 +390,7 @@ class AbstractProcessor(abc.ABC):
 
         Args:
             processor_id: The processor unique identifier.
-            confi_id: The quantum processor's unique identifier.
+            config_id: The quantum processor's unique identifier.
             run_name: The automation run name.  Use 'current'
                       if none id provided.
 
@@ -405,7 +405,7 @@ class AbstractProcessor(abc.ABC):
 
         Args:
             processor_id: The processor unique identifier.
-            confi_id: The quantum processor's unique identifier.
+            config_id: The quantum processor's unique identifier.
             snapshot_id: The snapshot's unique identifier.
 
         Returns: The quantum processor config.
