@@ -54,7 +54,7 @@ _CONTEXT_COUNTER = itertools.count()  # Use _reset_context_counter() to reset th
 @runtime_checkable
 class OpDecomposerWithContext(Protocol):
     def __call__(
-        self, __op: cirq.Operation, *, context: cirq.DecompositionContext | None = None
+        self, __op: cirq.Operation, *, context: cirq.DecompositionContext
     ) -> DecomposeResult: ...
 
 
@@ -132,9 +132,7 @@ class SupportsDecompose(Protocol):
     def _decompose_(self) -> DecomposeResult:
         pass
 
-    def _decompose_with_context_(
-        self, *, context: DecompositionContext | None = None
-    ) -> DecomposeResult:
+    def _decompose_with_context_(self, *, context: DecompositionContext) -> DecomposeResult:
         pass
 
 
@@ -161,13 +159,13 @@ class SupportsDecomposeWithQubits(Protocol):
         pass
 
     def _decompose_with_context_(
-        self, qubits: tuple[cirq.Qid, ...], *, context: DecompositionContext | None = None
+        self, qubits: tuple[cirq.Qid, ...], *, context: DecompositionContext
     ) -> DecomposeResult:
         pass
 
 
 def _try_op_decomposer(
-    val: Any, decomposer: OpDecomposer | None, *, context: DecompositionContext | None = None
+    val: Any, decomposer: OpDecomposer | None, *, context: DecompositionContext
 ) -> DecomposeResult:
     if decomposer is None or not isinstance(val, ops.Operation):
         return None
@@ -175,12 +173,12 @@ def _try_op_decomposer(
         assert isinstance(decomposer, OpDecomposerWithContext)
         return decomposer(val, context=context)
     else:
-        return decomposer(val)
+        return decomposer(val)  # type: ignore[call-arg]
 
 
 @dataclasses.dataclass(frozen=True)
 class _DecomposeArgs:
-    context: DecompositionContext | None
+    context: DecompositionContext
     intercepting_decomposer: OpDecomposer | None
     fallback_decomposer: OpDecomposer | None
     keep: Callable[[cirq.Operation], bool] | None
