@@ -14,22 +14,12 @@
 
 """Defines primitives for common transformer patterns."""
 
+from __future__ import annotations
+
 import bisect
 import dataclasses
 from collections import defaultdict
-from typing import (
-    Callable,
-    cast,
-    Dict,
-    Hashable,
-    List,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import Callable, cast, Hashable, Sequence, TYPE_CHECKING
 
 from cirq import circuits, ops, protocols
 from cirq.circuits.circuit import CIRCUIT_TYPE
@@ -61,7 +51,7 @@ def _create_target_circuit_type(ops: ops.OP_TREE, target_circuit: CIRCUIT_TYPE) 
 
 def map_moments(
     circuit: CIRCUIT_TYPE,
-    map_func: Callable[[circuits.Moment, int], Union[circuits.Moment, Sequence[circuits.Moment]]],
+    map_func: Callable[[circuits.Moment, int], circuits.Moment | Sequence[circuits.Moment]],
     *,
     tags_to_ignore: Sequence[Hashable] = (),
     deep: bool = False,
@@ -135,7 +125,7 @@ def _map_operations_impl(
             resulting optree spans more than 1 moment, it's either wrapped in a tagged circuit
             operation and inserted in-place in the same moment (if  `wrap_in_circuit_op` is True)
             OR the mapped operations are inserted directly in the circuit, preserving moment
-            strucutre. The effect is equivalent to (but much faster) a two-step approach of first
+            structure. The effect is equivalent to (but much faster) a two-step approach of first
             wrapping the operations in a circuit operation and then calling `cirq.unroll_circuit_op`
             to unroll the corresponding circuit ops.
         deep: If true, `map_func` will be recursively applied to circuits wrapped inside
@@ -157,7 +147,7 @@ def _map_operations_impl(
     """
     tags_to_ignore_set = set(tags_to_ignore)
 
-    def apply_map_func(op: 'cirq.Operation', idx: int) -> List['cirq.Operation']:
+    def apply_map_func(op: cirq.Operation, idx: int) -> list[cirq.Operation]:
         if tags_to_ignore_set.intersection(op.tags):
             return [op]
         if deep and isinstance(op.untagged, circuits.CircuitOperation):
@@ -173,7 +163,7 @@ def _map_operations_impl(
             ).with_tags(*op.tags)
         mapped_ops = [*ops.flatten_to_ops(map_func(op, idx))]
         op_qubits = set(op.qubits)
-        mapped_ops_qubits: Set['cirq.Qid'] = set()
+        mapped_ops_qubits: set[cirq.Qid] = set()
         has_overlapping_ops = False
         for mapped_op in mapped_ops:
             if raise_if_add_qubits and not op_qubits.issuperset(mapped_op.qubits):
@@ -194,9 +184,9 @@ def _map_operations_impl(
             ]
         return mapped_ops
 
-    new_moments: List[List['cirq.Operation']] = []
+    new_moments: list[list[cirq.Operation]] = []
     for idx, moment in enumerate(circuit):
-        curr_moments: List[List['cirq.Operation']] = [[]] if wrap_in_circuit_op else []
+        curr_moments: list[list[cirq.Operation]] = [[]] if wrap_in_circuit_op else []
         placement_cache = circuits.circuit._PlacementCache()
         for op in moment:
             mapped_ops = apply_map_func(op, idx)
@@ -305,21 +295,21 @@ class _MergedCircuit:
             of a set to store operations to preserve insertion order.
     """
 
-    qubit_indexes: Dict['cirq.Qid', List[int]] = dataclasses.field(
+    qubit_indexes: dict[cirq.Qid, list[int]] = dataclasses.field(
         default_factory=lambda: defaultdict(lambda: [-1])
     )
-    mkey_indexes: Dict['cirq.MeasurementKey', List[int]] = dataclasses.field(
+    mkey_indexes: dict[cirq.MeasurementKey, list[int]] = dataclasses.field(
         default_factory=lambda: defaultdict(lambda: [-1])
     )
-    ckey_indexes: Dict['cirq.MeasurementKey', List[int]] = dataclasses.field(
+    ckey_indexes: dict[cirq.MeasurementKey, list[int]] = dataclasses.field(
         default_factory=lambda: defaultdict(lambda: [-1])
     )
-    ops_by_index: List[Dict['cirq.Operation', int]] = dataclasses.field(default_factory=list)
+    ops_by_index: list[dict[cirq.Operation, int]] = dataclasses.field(default_factory=list)
 
     def append_empty_moment(self) -> None:
         self.ops_by_index.append({})
 
-    def add_op_to_moment(self, moment_index: int, op: 'cirq.Operation') -> None:
+    def add_op_to_moment(self, moment_index: int, op: cirq.Operation) -> None:
         self.ops_by_index[moment_index][op] = 0
         for q in op.qubits:
             if moment_index > self.qubit_indexes[q][-1]:
@@ -331,7 +321,7 @@ class _MergedCircuit:
         for ckey in protocols.control_keys(op):
             bisect.insort(self.ckey_indexes[ckey], moment_index)
 
-    def remove_op_from_moment(self, moment_index: int, op: 'cirq.Operation') -> None:
+    def remove_op_from_moment(self, moment_index: int, op: cirq.Operation) -> None:
         self.ops_by_index[moment_index].pop(op)
         for q in op.qubits:
             if self.qubit_indexes[q][-1] == moment_index:
@@ -344,8 +334,8 @@ class _MergedCircuit:
             self.ckey_indexes[ckey].remove(moment_index)
 
     def get_mergeable_ops(
-        self, op: 'cirq.Operation', op_qs: Set['cirq.Qid']
-    ) -> Tuple[int, List['cirq.Operation']]:
+        self, op: cirq.Operation, op_qs: set[cirq.Qid]
+    ) -> tuple[int, list[cirq.Operation]]:
         # Find the index of previous moment which can be merged with `op`.
         idx = max([self.qubit_indexes[q][-1] for q in op_qs], default=-1)
         idx = max([idx] + [self.mkey_indexes[ckey][-1] for ckey in protocols.control_keys(op)])
@@ -360,13 +350,13 @@ class _MergedCircuit:
             left_op for left_op in self.ops_by_index[idx] if not op_qs.isdisjoint(left_op.qubits)
         ]
 
-    def get_cirq_circuit(self) -> 'cirq.Circuit':
+    def get_cirq_circuit(self) -> cirq.Circuit:
         return circuits.Circuit(circuits.Moment(m.keys()) for m in self.ops_by_index)
 
 
 def merge_operations(
     circuit: CIRCUIT_TYPE,
-    merge_func: Callable[[ops.Operation, ops.Operation], Optional[ops.Operation]],
+    merge_func: Callable[[ops.Operation, ops.Operation], ops.Operation | None],
     *,
     tags_to_ignore: Sequence[Hashable] = (),
     deep: bool = False,
@@ -374,13 +364,13 @@ def merge_operations(
     """Merges operations in a circuit by calling `merge_func` iteratively on operations.
 
     Two operations op1 and op2 are merge-able if
-        - There is no other operations between op1 and op2 in the circuit
+        - There is no other operation between op1 and op2 in the circuit
         - is_subset(op1.qubits, op2.qubits) or is_subset(op2.qubits, op1.qubits)
 
     The `merge_func` is a callable which, given two merge-able operations
     op1 and op2, decides whether they should be merged into a single operation
     or not. If not, it should return None, else it should return the single merged
-    operations `op`.
+    operation `op`.
 
     The method iterates on the input circuit moment-by-moment from left to right and attempts
     to repeatedly merge each operation in the latest moment with all the corresponding merge-able
@@ -393,7 +383,7 @@ def merge_operations(
 
     The number of calls to `merge_func` is O(N), where N = Total no. of operations, because:
         - Every time the `merge_func` returns a new operation, the number of operations in the
-            circuit reduce by 1 and hence this can happen at most O(N) times
+            circuit reduces by 1 and hence this can happen at most O(N) times
         - Every time the `merge_func` returns None, the current operation is inserted into the
             frontier and we go on to process the next operation, which can also happen at-most
             O(N) times.
@@ -420,7 +410,7 @@ def merge_operations(
     _circuit_op_tag = "_internal_tag_to_mark_circuit_ops_in_circuit"
     tags_to_ignore_set = set(tags_to_ignore) | {_circuit_op_tag}
 
-    def apply_merge_func(op1: ops.Operation, op2: ops.Operation) -> Optional[ops.Operation]:
+    def apply_merge_func(op1: ops.Operation, op2: ops.Operation) -> ops.Operation | None:
         if not all(tags_to_ignore_set.isdisjoint(op.tags) for op in [op1, op2]):
             return None
         new_op = merge_func(op1, op2)
@@ -433,7 +423,7 @@ def merge_operations(
         return new_op
 
     merged_circuit = _MergedCircuit()
-    for moment_idx, current_moment in enumerate(cast(List['cirq.Moment'], circuit)):
+    for moment_idx, current_moment in enumerate(cast(list['cirq.Moment'], circuit)):
         merged_circuit.append_empty_moment()
         for op in sorted(current_moment.operations, key=lambda op: op.qubits):
             if (
@@ -493,7 +483,7 @@ def merge_operations(
 
 def merge_operations_to_circuit_op(
     circuit: CIRCUIT_TYPE,
-    can_merge: Callable[[Sequence['cirq.Operation'], Sequence['cirq.Operation']], bool],
+    can_merge: Callable[[Sequence[cirq.Operation], Sequence[cirq.Operation]], bool],
     *,
     tags_to_ignore: Sequence[Hashable] = (),
     merged_circuit_op_tag: str = "Merged connected component",
@@ -511,7 +501,7 @@ def merge_operations_to_circuit_op(
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
         can_merge: Callable to determine whether a new operation `right_op` can be merged into an
-            existing connected component of operations `left_ops` based on boolen returned by
+            existing connected component of operations `left_ops` based on boolean returned by
             `can_merge(left_ops, right_op)`.
         tags_to_ignore: Tagged operations marked any of `tags_to_ignore` will not be considered as
             potential candidates for any connected component.
@@ -524,8 +514,8 @@ def merge_operations_to_circuit_op(
         Copy of input circuit with valid connected components wrapped in tagged circuit operations.
     """
 
-    def merge_func(op1: 'cirq.Operation', op2: 'cirq.Operation') -> Optional['cirq.Operation']:
-        def get_ops(op: 'cirq.Operation'):
+    def merge_func(op1: cirq.Operation, op2: cirq.Operation) -> cirq.Operation | None:
+        def get_ops(op: cirq.Operation):
             op_untagged = op.untagged
             return (
                 [*op_untagged.circuit.all_operations()]
@@ -549,7 +539,7 @@ def merge_k_qubit_unitaries_to_circuit_op(
     k: int,
     *,
     tags_to_ignore: Sequence[Hashable] = (),
-    merged_circuit_op_tag: Optional[str] = None,
+    merged_circuit_op_tag: str | None = None,
     deep: bool = False,
 ) -> CIRCUIT_TYPE:
     """Merges connected components of operations, acting on <= k qubits, into circuit operations.
@@ -573,7 +563,7 @@ def merge_k_qubit_unitaries_to_circuit_op(
         Copy of input circuit with valid connected components wrapped in tagged circuit operations.
     """
 
-    def can_merge(ops1: Sequence['cirq.Operation'], ops2: Sequence['cirq.Operation']) -> bool:
+    def can_merge(ops1: Sequence[cirq.Operation], ops2: Sequence[cirq.Operation]) -> bool:
         return all(
             protocols.num_qubits(op) <= k and protocols.has_unitary(op)
             for op_list in [ops1, ops2]
@@ -591,7 +581,7 @@ def merge_k_qubit_unitaries_to_circuit_op(
 
 def merge_moments(
     circuit: CIRCUIT_TYPE,
-    merge_func: Callable[[circuits.Moment, circuits.Moment], Optional[circuits.Moment]],
+    merge_func: Callable[[circuits.Moment, circuits.Moment], circuits.Moment | None],
     *,
     tags_to_ignore: Sequence[Hashable] = (),
     deep: bool = False,
@@ -626,7 +616,7 @@ def merge_moments(
             ),
             tags_to_ignore=tags_to_ignore,
         )
-    merged_moments: List[circuits.Moment] = [circuit[0]]
+    merged_moments: list[circuits.Moment] = [circuit[0]]
     for current_moment in circuit[1:]:
         merged_moment = merge_func(merged_moments[-1], current_moment)
         if merged_moment is None:
@@ -640,7 +630,7 @@ def unroll_circuit_op(
     circuit: CIRCUIT_TYPE,
     *,
     deep: bool = False,
-    tags_to_check: Optional[Sequence[Hashable]] = (MAPPED_CIRCUIT_OP_TAG,),
+    tags_to_check: Sequence[Hashable] | None = (MAPPED_CIRCUIT_OP_TAG,),
 ) -> CIRCUIT_TYPE:
     """Unrolls (tagged) `cirq.CircuitOperation`s while preserving the moment structure.
 
@@ -659,7 +649,7 @@ def unroll_circuit_op(
     """
 
     def map_func(m: circuits.Moment, _: int):
-        to_zip: List['cirq.AbstractCircuit'] = []
+        to_zip: list[cirq.AbstractCircuit] = []
         for op in m:
             op_untagged = op.untagged
             if isinstance(op_untagged, circuits.CircuitOperation):
@@ -685,7 +675,7 @@ def unroll_circuit_op_greedy_earliest(
     circuit: CIRCUIT_TYPE,
     *,
     deep: bool = False,
-    tags_to_check: Optional[Sequence[Hashable]] = (MAPPED_CIRCUIT_OP_TAG,),
+    tags_to_check: Sequence[Hashable] | None = (MAPPED_CIRCUIT_OP_TAG,),
 ) -> CIRCUIT_TYPE:
     """Unrolls (tagged) `cirq.CircuitOperation`s by inserting operations using EARLIEST strategy.
 
@@ -732,7 +722,7 @@ def unroll_circuit_op_greedy_frontier(
     circuit: CIRCUIT_TYPE,
     *,
     deep: bool = False,
-    tags_to_check: Optional[Sequence[Hashable]] = (MAPPED_CIRCUIT_OP_TAG,),
+    tags_to_check: Sequence[Hashable] | None = (MAPPED_CIRCUIT_OP_TAG,),
 ) -> CIRCUIT_TYPE:
     """Unrolls (tagged) `cirq.CircuitOperation`s by inserting operations inline at qubit frontier.
 
@@ -751,7 +741,7 @@ def unroll_circuit_op_greedy_frontier(
         Copy of input circuit with (Tagged) CircuitOperation's expanded inline at qubit frontier.
     """
     unrolled_circuit = circuit.unfreeze(copy=True)
-    frontier: Dict['cirq.Qid', int] = defaultdict(lambda: 0)
+    frontier: dict[cirq.Qid, int] = defaultdict(lambda: 0)
     idx = 0
     while idx < len(unrolled_circuit):
         for op in unrolled_circuit[idx].operations:
@@ -781,7 +771,7 @@ def unroll_circuit_op_greedy_frontier(
 def toggle_tags(circuit: CIRCUIT_TYPE, tags: Sequence[Hashable], *, deep: bool = False):
     """Toggles tags applied on each operation in the circuit, via `op.tags ^= tags`
 
-    For every operations `op` in the input circuit, the tags on `op` are replaced by a symmetric
+    For every operation `op` in the input circuit, the tags on `op` are replaced by a symmetric
     difference of `op.tags` and `tags` -- this is useful in scenarios where you mark a small subset
     of operations with a specific tag and then toggle the set of marked operations s.t. every
     marked operation is now unmarked and vice versa.
@@ -799,7 +789,7 @@ def toggle_tags(circuit: CIRCUIT_TYPE, tags: Sequence[Hashable], *, deep: bool =
     """
     tags_to_xor = set(tags)
 
-    def map_func(op: 'cirq.Operation', _) -> 'cirq.Operation':
+    def map_func(op: cirq.Operation, _) -> cirq.Operation:
         return (
             op
             if deep and isinstance(op, circuits.CircuitOperation)

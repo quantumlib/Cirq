@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import AbstractSet, Any, Dict, Optional, Tuple, TYPE_CHECKING
+
+from __future__ import annotations
+
+from typing import AbstractSet, Any, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq.ops import raw_types
@@ -30,9 +33,9 @@ class WaitGate(raw_types.Gate):
 
     def __init__(
         self,
-        duration: 'cirq.DURATION_LIKE',
-        num_qubits: Optional[int] = None,
-        qid_shape: Optional[Tuple[int, ...]] = None,
+        duration: cirq.DURATION_LIKE | int,
+        num_qubits: int | None = None,
+        qid_shape: tuple[int, ...] | None = None,
     ) -> None:
         """Initialize a wait gate with the given duration.
 
@@ -66,7 +69,7 @@ class WaitGate(raw_types.Gate):
         self._qid_shape = qid_shape
 
     @property
-    def duration(self) -> 'cirq.Duration':
+    def duration(self) -> cirq.Duration:
         return self._duration
 
     def _is_parameterized_(self) -> bool:
@@ -75,13 +78,13 @@ class WaitGate(raw_types.Gate):
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self.duration)
 
-    def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'WaitGate':
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> WaitGate:
         return WaitGate(
             protocols.resolve_parameters(self.duration, resolver, recursive),
             qid_shape=self._qid_shape,
         )
 
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         return self._qid_shape
 
     def _has_unitary_(self) -> bool:
@@ -111,7 +114,7 @@ class WaitGate(raw_types.Gate):
     def __repr__(self) -> str:
         return f'cirq.WaitGate({repr(self.duration)})'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         d = protocols.obj_to_dict_helper(self, ['duration'])
         if len(self._qid_shape) != 1:
             d['num_qubits'] = len(self._qid_shape)
@@ -132,12 +135,12 @@ class WaitGate(raw_types.Gate):
 
 
 def wait(
-    *target: 'cirq.Qid',
-    duration: 'cirq.DURATION_LIKE' = None,
-    picos: 'cirq.TParamVal' = 0,
-    nanos: 'cirq.TParamVal' = 0,
-    micros: 'cirq.TParamVal' = 0,
-    millis: 'cirq.TParamVal' = 0,
+    *target: cirq.Qid,
+    duration: cirq.DURATION_LIKE = None,
+    picos: cirq.TParamVal = 0,
+    nanos: cirq.TParamVal = 0,
+    micros: cirq.TParamVal = 0,
+    millis: cirq.TParamVal = 0,
 ) -> raw_types.Operation:
     """Creates a WaitGate applied to all the given qubits.
 

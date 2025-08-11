@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from collections import abc
-from typing import Any, Dict, Generic, Iterator, List, Mapping, Optional, Sequence, TYPE_CHECKING
+from typing import Any, Generic, Iterator, Mapping, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -32,10 +34,10 @@ class SimulationProductState(
 
     def __init__(
         self,
-        sim_states: Dict[Optional['cirq.Qid'], TSimulationState],
-        qubits: Sequence['cirq.Qid'],
+        sim_states: dict[cirq.Qid | None, TSimulationState],
+        qubits: Sequence[cirq.Qid],
         split_untangled_states: bool,
-        classical_data: Optional['cirq.ClassicalDataStore'] = None,
+        classical_data: cirq.ClassicalDataStore | None = None,
     ):
         """Initializes the class.
 
@@ -55,7 +57,7 @@ class SimulationProductState(
         self._split_untangled_states = split_untangled_states
 
     @property
-    def sim_states(self) -> Mapping[Optional['cirq.Qid'], TSimulationState]:
+    def sim_states(self) -> Mapping[cirq.Qid | None, TSimulationState]:
         return self._sim_states
 
     @property
@@ -78,7 +80,7 @@ class SimulationProductState(
         return merged_state.transpose_to_qubit_order(self.qubits, inplace=True)
 
     def _act_on_fallback_(
-        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
+        self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool = True
     ) -> bool:
         gate_opt = (
             action
@@ -106,7 +108,7 @@ class SimulationProductState(
 
         # Go through the op's qubits and join any disparate SimulationState states
         # into a new combined state.
-        op_args_opt: Optional[TSimulationState] = None
+        op_args_opt: TSimulationState | None = None
         for q in qubits:
             if op_args_opt is None:
                 op_args_opt = self.sim_states[q]
@@ -136,9 +138,7 @@ class SimulationProductState(
                 self._sim_states[q] = op_args
         return True
 
-    def copy(
-        self, deep_copy_buffers: bool = True
-    ) -> 'cirq.SimulationProductState[TSimulationState]':
+    def copy(self, deep_copy_buffers: bool = True) -> cirq.SimulationProductState[TSimulationState]:
         classical_data = self._classical_data.copy()
         copies = {}
         for sim_state in set(self.sim_states.values()):
@@ -152,12 +152,12 @@ class SimulationProductState(
 
     def sample(
         self,
-        qubits: List['cirq.Qid'],
+        qubits: list[cirq.Qid],
         repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> np.ndarray:
         columns = []
-        selected_order: List[ops.Qid] = []
+        selected_order: list[ops.Qid] = []
         q_set = set(qubits)
         for v in dict.fromkeys(self.sim_states.values()):
             qs = [q for q in v.qubits if q in q_set]
@@ -170,11 +170,11 @@ class SimulationProductState(
         index_order = [qubit_map[q] for q in qubits]
         return stacked[:, index_order]
 
-    def __getitem__(self, item: Optional['cirq.Qid']) -> TSimulationState:
+    def __getitem__(self, item: cirq.Qid | None) -> TSimulationState:
         return self.sim_states[item]
 
     def __len__(self) -> int:
         return len(self.sim_states)
 
-    def __iter__(self) -> Iterator[Optional['cirq.Qid']]:
+    def __iter__(self) -> Iterator[cirq.Qid | None]:
         return iter(self.sim_states)

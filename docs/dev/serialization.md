@@ -35,13 +35,13 @@ print(text)
 
 The JSON can also be written to a file:
 
-```
+```python
 cirq.to_json(obj, filepath)
 ```
 
 Or read back in from a file:
 
-```
+```python
 obj = cirq.read_json(filepath)
 ```
 

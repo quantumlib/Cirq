@@ -36,9 +36,6 @@ long_description = open('README.md', encoding='utf-8').read()
 # This is a pure metapackage that installs all our packages
 requirements = [f'{p.name}=={p.version}' for p in modules.list_modules()]
 
-# Exclude cirq-rigetti so that cirq can be installed with numpy-2
-requirements = [r for r in requirements if not r.startswith("cirq-rigetti")]
-
 dev_requirements = explode('dev_tools/requirements/deps/dev-tools.txt')
 
 # filter out direct urls (https://github.com/pypa/pip/issues/6301)
@@ -52,7 +49,7 @@ setup(
     author_email='cirq-dev@googlegroups.com',
     maintainer="Google Quantum AI open-source maintainers",
     maintainer_email="quantum-oss-maintainers@google.com",
-    python_requires='>=3.10.0',
+    python_requires='>=3.11.0',
     install_requires=requirements,
     extras_require={'dev_env': dev_requirements},
     license='Apache 2',
@@ -70,7 +67,6 @@ setup(
         "Operating System :: Microsoft :: Windows",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",

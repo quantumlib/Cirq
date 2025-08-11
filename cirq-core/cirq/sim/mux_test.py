@@ -13,6 +13,9 @@
 # limitations under the License.
 
 """Tests sampling/simulation methods that delegate to appropriate simulators."""
+
+from __future__ import annotations
+
 import collections
 
 import numpy as np

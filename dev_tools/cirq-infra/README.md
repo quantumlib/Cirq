@@ -1,15 +1,25 @@
 # Cirq infra
 
-This doc describes cirq-infra, the GCP project supporting our open source
-project. The following things are planned to be running on GCP:
+_Cirq-infra_ is the name of a the Google Cloud Platform (GCP) project implemented and managed by the
+Google Quantum AI team in support of open-source projects like Cirq. It was originally introduced
+around the years 2020–2021 to implement several systems:
 
-*   [X] Cirq bot / PR monitor - see [../pr_monitor](../pr_monitor/README.md)
-*   [X] Triage party for triaging
-*   [ ] Performance tests and reports
+*   Automatic merging of pull requests on GitHub
+*   Automatic labeling of the sizes of changes in pull requests
+*   Running [Triage Party](https://github.com/google/triage-party), a tool for collaborative
+    triaging of GitHub issues and pull requests
 
-Access is granted to Cirq maintainers only.
+The automerge and automatic labeling capabilities were implemented using a homegrown tool called
+`pr_monitor`, whose source code was in the [`dev_tools`](../) subdirectory of the Cirq
+repository. In 2025, the automerge system was discontinued in favor of using GitHub's "merge
+queues", and the size-labeling facility was reimplemented using a GitHub Actions workflow.
+`pr_monitor` was retired in the Cirq 1.5 release.
+
+_Cirq-infra_ is still being used to support Triage Party.
 
 ## GCP Configuration
+
+Access is granted to Cirq maintainers only.
 
 ### Requirements
 

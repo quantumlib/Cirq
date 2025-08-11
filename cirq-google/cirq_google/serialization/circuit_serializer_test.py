@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
+
+from typing import Any
 
 import attrs
 import numpy as np
@@ -36,13 +38,13 @@ class FakeDevice(cirq.Device):
         pass
 
 
-def op_proto(json: Dict) -> v2.program_pb2.Operation:
+def op_proto(json: dict) -> v2.program_pb2.Operation:
     op = v2.program_pb2.Operation()
     json_format.ParseDict(json, op)
     return op
 
 
-def circuit_proto(json: Dict, qubits: List[str]):
+def circuit_proto(json: dict, qubits: list[str]):
     constants = [v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id=q)) for q in qubits]
     return v2.program_pb2.Program(
         language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
@@ -95,6 +97,16 @@ OPERATIONS = [
     (
         cirq.XPowGate(exponent=sympy.Symbol('a'))(Q1),
         op_proto({'xpowgate': {'exponent': {'symbol': 'a'}}, 'qubit_constant_index': [0]}),
+    ),
+    (
+        cirq.XPowGate(exponent=0)(Q1).with_tags(cg.CompressDurationTag()),
+        op_proto(
+            {
+                'xpowgate': {'exponent': {'float_value': 0.0}},
+                'qubit_constant_index': [0],
+                'tag_indices': [1],
+            }
+        ),
     ),
     (
         cirq.XPowGate(exponent=0.25 + sympy.Symbol('t'))(Q1),
@@ -336,7 +348,93 @@ OPERATIONS = [
         cirq.H(Q0),
         op_proto({'hpowgate': {'exponent': {'float_value': 1.0}}, 'qubit_constant_index': [0]}),
     ),
+    (
+        cirq.H(Q0).with_classical_controls('a'),
+        op_proto(
+            {
+                'hpowgate': {'exponent': {'float_value': 1.0}},
+                'qubit_constant_index': [0],
+                'conditioned_on': [{'measurement_key': {'string_key': 'a', 'index': -1}}],
+            }
+        ),
+    ),
+    (
+        cirq.H(Q0).with_classical_controls(
+            cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), sympy.Symbol('b')))
+        ),
+        op_proto(
+            {
+                'hpowgate': {'exponent': {'float_value': 1.0}},
+                'qubit_constant_index': [0],
+                'conditioned_on': [
+                    {'func': {'type': '==', 'args': [{'symbol': 'a'}, {'symbol': 'b'}]}}
+                ],
+            }
+        ),
+    ),
+    (
+        cirq.H(Q0).with_classical_controls(
+            cirq.BitMaskKeyCondition('a', bitmask=13, target_value=9, equal_target=False)
+        ),
+        op_proto(
+            {
+                'hpowgate': {'exponent': {'float_value': 1.0}},
+                'qubit_constant_index': [0],
+                'conditioned_on': [
+                    {
+                        'func': {
+                            'type': 'bitmask!=',
+                            'args': [
+                                {'measurement_key': {'string_key': 'a', 'index': -1}},
+                                {'arg_value': {'float_value': 9}},
+                                {'arg_value': {'float_value': 13}},
+                            ],
+                        }
+                    }
+                ],
+            }
+        ),
+    ),
     (cirq.I(Q0), op_proto({'identitygate': {'qid_shape': [2]}, 'qubit_constant_index': [0]})),
+    (
+        cirq.depolarize(0.5)(Q0),
+        op_proto(
+            {
+                'noisechannel': {
+                    'depolarizingchannel': {'probability': {'float_value': 0.5}, 'num_qubits': 1}
+                },
+                'qubit_constant_index': [0],
+            }
+        ),
+    ),
+    (
+        cirq.depolarize(0.5, n_qubits=2)(Q0, Q1),
+        op_proto(
+            {
+                'noisechannel': {
+                    'depolarizingchannel': {'probability': {'float_value': 0.5}, 'num_qubits': 2}
+                },
+                'qubit_constant_index': [0, 1],
+            }
+        ),
+    ),
+    (
+        cirq.X(Q0).with_probability(0.5),
+        op_proto(
+            {
+                'noisechannel': {
+                    'randomgatechannel': {
+                        'probability': {'float_value': 0.5},
+                        'sub_gate': {
+                            'xpowgate': {'exponent': {'float_value': 1.0}},
+                            'qubit_constant_index': [0],
+                        },
+                    }
+                },
+                'qubit_constant_index': [0],
+            }
+        ),
+    ),
 ]
 
 
@@ -350,6 +448,11 @@ def test_serialize_deserialize_ops(op, op_proto):
         constants.append(v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id=f'{q.row}_{q.col}')))
     for tag in op.tags:
         constants.append(v2.program_pb2.Constant(tag_value=tag.to_proto()))
+    constants.append(v2.program_pb2.Constant(operation_value=op_proto))
+    op_index = len(constants) - 1
+    constants.append(
+        v2.program_pb2.Constant(moment_value=v2.program_pb2.Moment(operation_indices=[op_index]))
+    )
 
     # Serialize / Deserializer circuit with single operation
     circuit = cirq.Circuit(op)
@@ -357,7 +460,7 @@ def test_serialize_deserialize_ops(op, op_proto):
         language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-            moments=[v2.program_pb2.Moment(operations=[op_proto])],
+            moment_indices=[len(constants) - 1],
         ),
         constants=constants,
     )
@@ -374,39 +477,29 @@ def test_serialize_deserialize_circuit():
     proto = v2.program_pb2.Program(
         language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
         circuit=v2.program_pb2.Circuit(
-            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-            moments=[
-                v2.program_pb2.Moment(
-                    operations=[
-                        v2.program_pb2.Operation(
-                            xpowgate=v2.program_pb2.XPowGate(
-                                exponent=v2.program_pb2.FloatArg(float_value=1.0)
-                            ),
-                            qubit_constant_index=[0],
-                        ),
-                        v2.program_pb2.Operation(
-                            xpowgate=v2.program_pb2.XPowGate(
-                                exponent=v2.program_pb2.FloatArg(float_value=1.0)
-                            ),
-                            qubit_constant_index=[1],
-                        ),
-                    ]
-                ),
-                v2.program_pb2.Moment(
-                    operations=[
-                        v2.program_pb2.Operation(
-                            xpowgate=v2.program_pb2.XPowGate(
-                                exponent=v2.program_pb2.FloatArg(float_value=1.0)
-                            ),
-                            qubit_constant_index=[0],
-                        )
-                    ]
-                ),
-            ],
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT, moment_indices=[4, 5]
         ),
         constants=[
             v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='1_1')),
+            v2.program_pb2.Constant(
+                operation_value=v2.program_pb2.Operation(
+                    xpowgate=v2.program_pb2.XPowGate(
+                        exponent=v2.program_pb2.FloatArg(float_value=1.0)
+                    ),
+                    qubit_constant_index=[0],
+                )
+            ),
             v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='1_2')),
+            v2.program_pb2.Constant(
+                operation_value=v2.program_pb2.Operation(
+                    xpowgate=v2.program_pb2.XPowGate(
+                        exponent=v2.program_pb2.FloatArg(float_value=1.0)
+                    ),
+                    qubit_constant_index=[2],
+                )
+            ),
+            v2.program_pb2.Constant(moment_value=v2.program_pb2.Moment(operation_indices=[1, 3])),
+            v2.program_pb2.Constant(moment_value=v2.program_pb2.Moment(operation_indices=[1])),
         ],
     )
     assert proto == serializer.serialize(circuit)
@@ -414,9 +507,7 @@ def test_serialize_deserialize_circuit():
 
 
 def test_serialize_deserialize_circuit_with_constants_table():
-    serializer = cg.CircuitSerializer(
-        USE_CONSTANTS_TABLE_FOR_MOMENTS=True, USE_CONSTANTS_TABLE_FOR_OPERATIONS=True
-    )
+    serializer = cg.CircuitSerializer()
     q0 = cirq.GridQubit(1, 1)
     q1 = cirq.GridQubit(1, 2)
     circuit = cirq.Circuit(cirq.X(q0), cirq.X(q1), cirq.X(q0))
@@ -492,9 +583,7 @@ def test_deserialize_circuit_with_mixed_moments_and_indicies_not_allowed():
 def test_serialize_deserialize_circuit_with_duplicate_moments():
     q = cirq.GridQubit(4, 3)
     circuit = cirq.Circuit(cirq.X(q), cirq.Z(q), cirq.X(q), cirq.Z(q))
-    serializer = cg.CircuitSerializer(
-        USE_CONSTANTS_TABLE_FOR_MOMENTS=True, USE_CONSTANTS_TABLE_FOR_OPERATIONS=True
-    )
+    serializer = cg.CircuitSerializer()
     proto = serializer.serialize(circuit)
     deserialized_circuit = serializer.deserialize(proto)
     assert deserialized_circuit == circuit
@@ -516,34 +605,81 @@ def test_serialize_deserialize_circuit_with_tokens():
     op_q0_tag1 = v2.program_pb2.Operation()
     op_q0_tag1.xpowgate.exponent.float_value = 1.0
     op_q0_tag1.qubit_constant_index.append(0)
-    op_q0_tag1.token_constant_index = 1
+    op_q0_tag1.tag_indices.append(1)
 
     op_q1_tag2 = v2.program_pb2.Operation()
     op_q1_tag2.xpowgate.exponent.float_value = 1.0
-    op_q1_tag2.qubit_constant_index.append(2)
-    op_q1_tag2.token_constant_index = 3
+    op_q1_tag2.qubit_constant_index.append(3)
+    op_q1_tag2.tag_indices.append(4)
 
     # Test repeated tag uses existing constant entey
     op_q0_tag2 = v2.program_pb2.Operation()
     op_q0_tag2.xpowgate.exponent.float_value = 1.0
     op_q0_tag2.qubit_constant_index.append(0)
-    op_q0_tag2.token_constant_index = 3
+    op_q0_tag2.tag_indices.append(4)
 
     proto = v2.program_pb2.Program(
         language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
         circuit=v2.program_pb2.Circuit(
-            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-            moments=[
-                v2.program_pb2.Moment(operations=[op_q0_tag1, op_q1_tag2]),
-                v2.program_pb2.Moment(operations=[op_q0_tag2]),
-                v2.program_pb2.Moment(operations=[X_PROTO]),
-            ],
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT, moment_indices=[6, 8, 10]
         ),
         constants=[
             v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='2_4')),
-            v2.program_pb2.Constant(string_value='abc123'),
+            v2.program_pb2.Constant(
+                tag_value=v2.program_pb2.Tag(
+                    calibration_tag=v2.program_pb2.CalibrationTag(token='abc123')
+                )
+            ),
+            v2.program_pb2.Constant(operation_value=op_q0_tag1),
             v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='2_5')),
-            v2.program_pb2.Constant(string_value='def456'),
+            v2.program_pb2.Constant(
+                tag_value=v2.program_pb2.Tag(
+                    calibration_tag=v2.program_pb2.CalibrationTag(token='def456')
+                )
+            ),
+            v2.program_pb2.Constant(operation_value=op_q1_tag2),
+            v2.program_pb2.Constant(moment_value=v2.program_pb2.Moment(operation_indices=[2, 5])),
+            v2.program_pb2.Constant(operation_value=op_q0_tag2),
+            v2.program_pb2.Constant(moment_value=v2.program_pb2.Moment(operation_indices=[7])),
+            v2.program_pb2.Constant(operation_value=X_PROTO),
+            v2.program_pb2.Constant(moment_value=v2.program_pb2.Moment(operation_indices=[9])),
+        ],
+    )
+    assert proto == serializer.serialize(circuit)
+    assert serializer.deserialize(proto) == circuit
+
+
+def test_serialize_deserialize_circuit_tags():
+    serializer = cg.CircuitSerializer(
+        tag_serializer=DiscountTagSerializer(), tag_deserializer=DiscountTagDeserializer()
+    )
+    tag1 = cg.CalibrationTag("abc123")
+    tag2 = DiscountTag(discount=2.0)
+    circuit = cirq.Circuit(tags=(tag1, tag2))
+    proto = v2.program_pb2.Program(
+        language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
+        circuit=v2.program_pb2.Circuit(
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT, tag_indices=[0, 1]
+        ),
+        constants=[
+            v2.program_pb2.Constant(
+                tag_value=v2.program_pb2.Tag(
+                    calibration_tag=v2.program_pb2.CalibrationTag(token="abc123")
+                )
+            ),
+            v2.program_pb2.Constant(
+                tag_value=v2.program_pb2.Tag(
+                    internal_tag=v2.program_pb2.InternalTag(
+                        tag_name="Discount",
+                        tag_package="test",
+                        tag_args={
+                            "discount": v2.program_pb2.Arg(
+                                arg_value=v2.program_pb2.ArgValue(float_value=2)
+                            )
+                        },
+                    )
+                )
+            ),
         ],
     )
     assert proto == serializer.serialize(circuit)
@@ -556,22 +692,21 @@ def test_deserialize_circuit_with_token_strings():
     proto = v2.program_pb2.Program(
         language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
         circuit=v2.program_pb2.Circuit(
-            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-            moments=[
-                v2.program_pb2.Moment(
-                    operations=[
-                        v2.program_pb2.Operation(
-                            xpowgate=v2.program_pb2.XPowGate(
-                                exponent=v2.program_pb2.FloatArg(float_value=1.0)
-                            ),
-                            token_value='abc123',
-                            qubit_constant_index=[0],
-                        )
-                    ]
-                )
-            ],
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT, moment_indices=[2]
         ),
-        constants=[v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='2_4'))],
+        constants=[
+            v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='2_4')),
+            v2.program_pb2.Constant(
+                operation_value=v2.program_pb2.Operation(
+                    xpowgate=v2.program_pb2.XPowGate(
+                        exponent=v2.program_pb2.FloatArg(float_value=1.0)
+                    ),
+                    token_value='abc123',
+                    qubit_constant_index=[0],
+                )
+            ),
+            v2.program_pb2.Constant(moment_value=v2.program_pb2.Moment(operation_indices=[1])),
+        ],
     )
     tag = cg.CalibrationTag('abc123')
     circuit = cirq.Circuit(cirq.X(Q0).with_tags(tag))
@@ -584,32 +719,34 @@ def test_serialize_deserialize_circuit_with_subcircuit():
     fcircuit = cirq.FrozenCircuit(cirq.XPowGate(exponent=2 * sympy.Symbol('t'))(Q0))
     circuit = cirq.Circuit(
         cirq.X(Q1).with_tags(tag1),
-        cirq.CircuitOperation(fcircuit).repeat(repetition_ids=['a', 'b']),
-        cirq.CircuitOperation(fcircuit).with_qubit_mapping({Q0: Q1}),
+        cirq.CircuitOperation(fcircuit, use_repetition_ids=True).repeat(repetition_ids=['a', 'b']),
+        cirq.CircuitOperation(fcircuit, use_repetition_ids=True).with_qubit_mapping({Q0: Q1}),
         cirq.X(Q0),
     )
 
     op_x = v2.program_pb2.Operation()
     op_x.xpowgate.exponent.float_value = 1.0
-    op_x.qubit_constant_index.append(2)
+    op_x.qubit_constant_index.append(3)
     op_tag = v2.program_pb2.Operation()
     op_tag.xpowgate.exponent.float_value = 1.0
     op_tag.qubit_constant_index.append(0)
-    op_tag.token_constant_index = 1
+    op_tag.tag_indices.append(1)
     op_symbol = v2.program_pb2.Operation()
     op_symbol.xpowgate.exponent.func.type = 'mul'
     op_symbol.xpowgate.exponent.func.args.add().arg_value.float_value = 2.0
     op_symbol.xpowgate.exponent.func.args.add().symbol = 't'
-    op_symbol.qubit_constant_index.append(2)
+    op_symbol.qubit_constant_index.append(3)
 
     c_op1 = v2.program_pb2.CircuitOperation()
-    c_op1.circuit_constant_index = 3
+    c_op1.circuit_constant_index = 6
+    c_op1.use_repetition_ids = True
     rep_spec = c_op1.repetition_specification
     rep_spec.repetition_count = 2
     rep_spec.repetition_ids.ids.extend(['a', 'b'])
 
     c_op2 = v2.program_pb2.CircuitOperation()
-    c_op2.circuit_constant_index = 3
+    c_op2.circuit_constant_index = 6
+    c_op2.use_repetition_ids = True
     c_op2.repetition_specification.repetition_count = 1
     qmap = c_op2.qubit_map.entries.add()
     qmap.key.id = '2_4'
@@ -618,25 +755,57 @@ def test_serialize_deserialize_circuit_with_subcircuit():
     proto = v2.program_pb2.Program(
         language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
         circuit=v2.program_pb2.Circuit(
-            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-            moments=[
-                v2.program_pb2.Moment(operations=[op_tag], circuit_operations=[c_op1]),
-                v2.program_pb2.Moment(operations=[op_x], circuit_operations=[c_op2]),
-            ],
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT, moment_indices=[7, 9]
         ),
         constants=[
             v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='2_5')),
-            v2.program_pb2.Constant(string_value='abc123'),
+            v2.program_pb2.Constant(
+                tag_value=v2.program_pb2.Tag(
+                    calibration_tag=v2.program_pb2.CalibrationTag(token='abc123')
+                )
+            ),
+            v2.program_pb2.Constant(operation_value=op_tag),
             v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='2_4')),
+            v2.program_pb2.Constant(operation_value=op_symbol),
+            v2.program_pb2.Constant(moment_value=v2.program_pb2.Moment(operation_indices=[4])),
             v2.program_pb2.Constant(
                 circuit_value=v2.program_pb2.Circuit(
-                    scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-                    moments=[v2.program_pb2.Moment(operations=[op_symbol])],
+                    scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT, moment_indices=[5]
+                )
+            ),
+            v2.program_pb2.Constant(
+                moment_value=v2.program_pb2.Moment(
+                    operation_indices=[2], circuit_operations=[c_op1]
+                )
+            ),
+            v2.program_pb2.Constant(operation_value=op_x),
+            v2.program_pb2.Constant(
+                moment_value=v2.program_pb2.Moment(
+                    operation_indices=[8], circuit_operations=[c_op2]
                 )
             ),
         ],
     )
+    assert str(proto) == str(serializer.serialize(circuit))
     assert proto == serializer.serialize(circuit)
+    assert serializer.deserialize(proto) == circuit
+
+
+def test_circuit_operation_with_classical_controls():
+    serializer = cg.CircuitSerializer()
+    fcircuit = cirq.FrozenCircuit(cirq.X(Q1) ** 0.5, cirq.measure(Q1, key='a'))
+    fcircuit2 = cirq.FrozenCircuit(cirq.X(Q1) ** 0.5)
+    circuit = cirq.Circuit(
+        cirq.CircuitOperation(
+            fcircuit,
+            use_repetition_ids=False,
+            repeat_until=cirq.KeyCondition(cirq.MeasurementKey('a')),
+        ),
+        cirq.CircuitOperation(fcircuit2, use_repetition_ids=False).with_classical_controls(
+            cirq.SympyCondition(sympy.Symbol('a') >= 1)
+        ),
+    )
+    proto = serializer.serialize(circuit)
     assert serializer.deserialize(proto) == circuit
 
 
@@ -808,7 +977,7 @@ def test_circuit_with_tag(tag):
 
 
 @pytest.mark.filterwarnings('ignore:Unrecognized Tag .*DingDongTag')
-def test_unknown_tag_is_ignored():
+def test_unrecognized_tag_is_ignored():
     class DingDongTag:
         pass
 
@@ -819,7 +988,7 @@ def test_unknown_tag_is_ignored():
 
 
 @pytest.mark.filterwarnings('ignore:Unknown tag msg=phase_match')
-def test_unrecognized_tag_is_ignored():
+def test_unknown_tag_is_ignored():
     op_tag = v2.program_pb2.Operation()
     op_tag.xpowgate.exponent.float_value = 1.0
     op_tag.qubit_constant_index.append(0)
@@ -890,10 +1059,10 @@ class BingBongSerializer(OpSerializer):
     def to_proto(
         self,
         op: cirq.Operation,
-        msg: Optional[v2.program_pb2.CircuitOperation] = None,
+        msg: v2.program_pb2.CircuitOperation | None = None,
         *,
-        constants: List[v2.program_pb2.Constant],
-        raw_constants: Dict[Any, int],
+        constants: list[v2.program_pb2.Constant],
+        raw_constants: dict[Any, int],
     ) -> v2.program_pb2.CircuitOperation:
         assert isinstance(op.gate, BingBongGate)
         if msg is None:
@@ -930,8 +1099,8 @@ class BingBongDeserializer(OpDeserializer):
         self,
         proto: v2.program_pb2.Operation,
         *,
-        constants: List[v2.program_pb2.Constant],
-        deserialized_constants: List[Any],
+        constants: list[v2.program_pb2.Constant],
+        deserialized_constants: list[Any],
     ) -> cirq.Operation:
         return BingBongGate(param=proto.internalgate.gate_args["param"].arg_value.float_value).on(
             deserialized_constants[proto.qubit_constant_index[0]]
@@ -947,14 +1116,19 @@ def test_serdes_preserves_syc():
     assert isinstance(c[0][cirq.q(0, 0)].gate, cg.SycamoreGate)
 
 
-@pytest.mark.parametrize('use_constants_table', [True, False])
-def test_custom_op_serializer(use_constants_table: bool):
+def test_serdes_preserves_willow():
+    serializer = cg.CircuitSerializer()
+    c = cirq.Circuit(cg.WILLOW(cirq.q(0, 0), cirq.q(0, 1)))
+    msg = serializer.serialize(c)
+    deserialized_circuit = serializer.deserialize(msg)
+    assert deserialized_circuit == c
+    assert isinstance(c[0][cirq.q(0, 0)].gate, cg.WillowGate)
+
+
+def test_custom_op_serializer():
     c = cirq.Circuit(BingBongGate(param=2.5)(cirq.q(0, 0)))
     serializer = cg.CircuitSerializer(
-        USE_CONSTANTS_TABLE_FOR_MOMENTS=use_constants_table,
-        USE_CONSTANTS_TABLE_FOR_OPERATIONS=use_constants_table,
-        op_serializer=BingBongSerializer(),
-        op_deserializer=BingBongDeserializer(),
+        op_serializer=BingBongSerializer(), op_deserializer=BingBongDeserializer()
     )
     msg = serializer.serialize(c)
     deserialized_circuit = serializer.deserialize(msg)
@@ -980,10 +1154,10 @@ class DiscountTagSerializer(TagSerializer):
     def to_proto(
         self,
         tag: Any,
-        msg: Optional[v2.program_pb2.Tag] = None,
+        msg: v2.program_pb2.Tag | None = None,
         *,
-        constants: List[v2.program_pb2.Constant],
-        raw_constants: Dict[Any, int],
+        constants: list[v2.program_pb2.Constant],
+        raw_constants: dict[Any, int],
     ) -> v2.program_pb2.Tag:
         assert isinstance(tag, DiscountTag)
         if msg is None:
@@ -1008,20 +1182,16 @@ class DiscountTagDeserializer(TagDeserializer):
         self,
         proto: v2.program_pb2.Operation,
         *,
-        constants: List[v2.program_pb2.Constant],
-        deserialized_constants: List[Any],
+        constants: list[v2.program_pb2.Constant],
+        deserialized_constants: list[Any],
     ) -> DiscountTag:
         return DiscountTag(discount=proto.internal_tag.tag_args["discount"].arg_value.float_value)
 
 
-@pytest.mark.parametrize('use_constants_table', [True, False])
-def test_custom_tag_serializer(use_constants_table: bool):
+def test_custom_tag_serializer():
     c = cirq.Circuit(cirq.X(cirq.q(0, 0)).with_tags(DiscountTag(0.25)))
     serializer = cg.CircuitSerializer(
-        USE_CONSTANTS_TABLE_FOR_MOMENTS=use_constants_table,
-        USE_CONSTANTS_TABLE_FOR_OPERATIONS=use_constants_table,
-        tag_serializer=DiscountTagSerializer(),
-        tag_deserializer=DiscountTagDeserializer(),
+        tag_serializer=DiscountTagSerializer(), tag_deserializer=DiscountTagDeserializer()
     )
     msg = serializer.serialize(c)
     deserialized_circuit = serializer.deserialize(msg)
@@ -1055,6 +1225,20 @@ def test_custom_tag_serializer_with_tags_outside_constants():
         tag_serializer=DiscountTagSerializer(), tag_deserializer=DiscountTagDeserializer()
     )
     assert serializer.deserialize(circuit_proto) == expected_circuit
+
+
+def test_moments_with_tags():
+    serializer = cg.CircuitSerializer(
+        tag_serializer=DiscountTagSerializer(), tag_deserializer=DiscountTagDeserializer()
+    )
+    original_circuit = cirq.Circuit(
+        cirq.Moment(cirq.X(cirq.GridQubit(1, 1))).with_tags(DiscountTag(0.50)),
+        cirq.Moment(cirq.Z(cirq.GridQubit(2, 2))).with_tags(cg.CalibrationTag("abc")),
+    )
+    deserialized_circuit = serializer.deserialize(serializer.serialize(original_circuit))
+    assert original_circuit == deserialized_circuit
+    assert deserialized_circuit[0].tags == (DiscountTag(0.50),)
+    assert deserialized_circuit[1].tags == (cg.CalibrationTag("abc"),)
 
 
 def test_reset_gate_with_improper_argument():
@@ -1094,13 +1278,9 @@ def test_reset_gate_with_no_dimension():
     assert reset_circuit == cirq.Circuit(cirq.R(cirq.q(1, 2)))
 
 
-@pytest.mark.parametrize('use_constants_table', [True, False])
-def test_stimcirq_gates(use_constants_table: bool):
+def test_stimcirq_gates():
     stimcirq = pytest.importorskip("stimcirq")
-    serializer = cg.CircuitSerializer(
-        USE_CONSTANTS_TABLE_FOR_MOMENTS=use_constants_table,
-        USE_CONSTANTS_TABLE_FOR_OPERATIONS=use_constants_table,
-    )
+    serializer = cg.CircuitSerializer()
     q = cirq.q(1, 2)
     q2 = cirq.q(2, 2)
     c = cirq.Circuit(

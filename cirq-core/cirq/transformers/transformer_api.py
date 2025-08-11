@@ -14,25 +14,14 @@
 
 """Defines the API for circuit transformers in Cirq."""
 
+from __future__ import annotations
+
 import dataclasses
 import enum
 import functools
 import inspect
 import textwrap
-from typing import (
-    Any,
-    Callable,
-    cast,
-    Hashable,
-    List,
-    Optional,
-    overload,
-    Tuple,
-    Type,
-    TYPE_CHECKING,
-    TypeVar,
-    Union,
-)
+from typing import Any, Callable, cast, Hashable, overload, TYPE_CHECKING, TypeVar
 
 from typing_extensions import Protocol
 
@@ -83,10 +72,10 @@ class _LoggerNode:
 
     transformer_id: int
     transformer_name: str
-    initial_circuit: 'cirq.AbstractCircuit'
-    final_circuit: 'cirq.AbstractCircuit'
-    logs: List[Tuple[LogLevel, Tuple[str, ...]]] = dataclasses.field(default_factory=list)
-    nested_loggers: List[int] = dataclasses.field(default_factory=list)
+    initial_circuit: cirq.AbstractCircuit
+    final_circuit: cirq.AbstractCircuit
+    logs: list[tuple[LogLevel, tuple[str, ...]]] = dataclasses.field(default_factory=list)
+    nested_loggers: list[int] = dataclasses.field(default_factory=list)
 
 
 class TransformerLogger:
@@ -99,8 +88,8 @@ class TransformerLogger:
 
     The logger assumes that
         - Transformers are run sequentially.
-        - Nested transformers are allowed, in which case the behavior would be similar to a
-          doing a depth first search on the graph of transformers -- i.e. the top level transformer
+        - Nested transformers are allowed, in which case the behavior would be similar to
+          doing a depth-first search on the graph of transformers -- i.e. the top level transformer
           would end (i.e. receive a `register_final` call) once all nested transformers (i.e. all
           `register_initial` calls received while the top level transformer was active) have
           finished (i.e. corresponding `register_final` calls have also been received).
@@ -113,10 +102,10 @@ class TransformerLogger:
     def __init__(self) -> None:
         """Initializes TransformerLogger."""
         self._curr_id: int = 0
-        self._logs: List[_LoggerNode] = []
-        self._stack: List[int] = []
+        self._logs: list[_LoggerNode] = []
+        self._stack: list[int] = []
 
-    def register_initial(self, circuit: 'cirq.AbstractCircuit', transformer_name: str) -> None:
+    def register_initial(self, circuit: cirq.AbstractCircuit, transformer_name: str) -> None:
         """Register the beginning of a new transformer stage.
 
         Args:
@@ -143,7 +132,7 @@ class TransformerLogger:
             raise ValueError('No active transformer found.')
         self._logs[self._stack[-1]].logs.append((level, args))
 
-    def register_final(self, circuit: 'cirq.AbstractCircuit', transformer_name: str) -> None:
+    def register_final(self, circuit: cirq.AbstractCircuit, transformer_name: str) -> None:
         """Register the end of the currently active transformer stage.
 
         Args:
@@ -195,13 +184,13 @@ class TransformerLogger:
 class NoOpTransformerLogger(TransformerLogger):
     """All calls to this logger are a no-op"""
 
-    def register_initial(self, circuit: 'cirq.AbstractCircuit', transformer_name: str) -> None:
+    def register_initial(self, circuit: cirq.AbstractCircuit, transformer_name: str) -> None:
         pass
 
     def log(self, *args: str, level: LogLevel = LogLevel.INFO) -> None:
         pass
 
-    def register_final(self, circuit: 'cirq.AbstractCircuit', transformer_name: str) -> None:
+    def register_final(self, circuit: cirq.AbstractCircuit, transformer_name: str) -> None:
         pass
 
     def show(self, level: LogLevel = LogLevel.INFO) -> None:
@@ -225,7 +214,7 @@ class TransformerContext:
     """
 
     logger: TransformerLogger = NoOpTransformerLogger()
-    tags_to_ignore: Tuple[Hashable, ...] = ()
+    tags_to_ignore: tuple[Hashable, ...] = ()
     deep: bool = False
 
 
@@ -242,7 +231,7 @@ class TRANSFORMER(Protocol):
     >>> def convert_to_cz(
     ...     circuit: cirq.AbstractCircuit,
     ...     *,
-    ...     context: 'Optional[cirq.TransformerContext]' = None,
+    ...     context: cirq.TransformerContext | None = None,
     ...     atol: float = 1e-8,
     ... ) -> cirq.Circuit:
     ...     ...
@@ -256,21 +245,19 @@ class TRANSFORMER(Protocol):
     ...         self,
     ...         circuit: cirq.AbstractCircuit,
     ...         *,
-    ...         context: 'Optional[cirq.TransformerContext]' = None,
+    ...         context: cirq.TransformerContext | None = None,
     ...      ) -> cirq.AbstractCircuit:
     ...         ...
     """
 
     def __call__(
-        self, circuit: 'cirq.AbstractCircuit', *, context: Optional[TransformerContext] = None
-    ) -> 'cirq.AbstractCircuit': ...
+        self, circuit: cirq.AbstractCircuit, *, context: TransformerContext | None = None
+    ) -> cirq.AbstractCircuit: ...
 
 
 _TRANSFORMER_T = TypeVar('_TRANSFORMER_T', bound=TRANSFORMER)
-_TRANSFORMER_CLS_T = TypeVar('_TRANSFORMER_CLS_T', bound=Type[TRANSFORMER])
-_TRANSFORMER_OR_CLS_T = TypeVar(
-    '_TRANSFORMER_OR_CLS_T', bound=Union[TRANSFORMER, Type[TRANSFORMER]]
-)
+_TRANSFORMER_CLS_T = TypeVar('_TRANSFORMER_CLS_T', bound=type[TRANSFORMER])
+_TRANSFORMER_OR_CLS_T = TypeVar('_TRANSFORMER_OR_CLS_T', bound=TRANSFORMER | type[TRANSFORMER])
 
 
 @overload
@@ -301,7 +288,7 @@ def transformer(cls_or_func: Any = None, *, add_deep_support: bool = False) -> A
 
     >>> @cirq.transformer
     ... def convert_to_cz(
-    ...    circuit: cirq.AbstractCircuit, *, context: 'Optional[cirq.TransformerContext]' = None
+    ...    circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
     ... ) -> cirq.Circuit:
     ...    ...
 
@@ -315,7 +302,7 @@ def transformer(cls_or_func: Any = None, *, add_deep_support: bool = False) -> A
     ...        self,
     ...        circuit: cirq.AbstractCircuit,
     ...        *,
-    ...        context: 'Optional[cirq.TransformerContext]' = None,
+    ...        context: cirq.TransformerContext | None = None,
     ...    ) -> cirq.Circuit:
     ...        ...
 
@@ -326,7 +313,7 @@ def transformer(cls_or_func: Any = None, *, add_deep_support: bool = False) -> A
     ... def convert_to_sqrt_iswap(
     ...     circuit: cirq.AbstractCircuit,
     ...     *,
-    ...     context: 'Optional[cirq.TransformerContext]' = None,
+    ...     context: cirq.TransformerContext | None = None,
     ...     atol: float = 1e-8,
     ...     sqrt_iswap_gate: cirq.ISwapPowGate = cirq.SQRT_ISWAP_INV,
     ...     cleanup_operations: bool = True,
@@ -357,8 +344,8 @@ def transformer(cls_or_func: Any = None, *, add_deep_support: bool = False) -> A
 
         @functools.wraps(method)
         def method_with_logging(
-            self, circuit: 'cirq.AbstractCircuit', **kwargs
-        ) -> 'cirq.AbstractCircuit':
+            self, circuit: cirq.AbstractCircuit, **kwargs
+        ) -> cirq.AbstractCircuit:
             return _transform_and_log(
                 add_deep_support,
                 lambda circuit, **kwargs: method(self, circuit, **kwargs),
@@ -376,7 +363,7 @@ def transformer(cls_or_func: Any = None, *, add_deep_support: bool = False) -> A
         default_context = _get_default_context(func)
 
         @functools.wraps(func)
-        def func_with_logging(circuit: 'cirq.AbstractCircuit', **kwargs) -> 'cirq.AbstractCircuit':
+        def func_with_logging(circuit: cirq.AbstractCircuit, **kwargs) -> cirq.AbstractCircuit:
             return _transform_and_log(
                 add_deep_support,
                 func,
@@ -401,10 +388,10 @@ def _get_default_context(func: TRANSFORMER) -> TransformerContext:
 def _run_transformer_on_circuit(
     add_deep_support: bool,
     func: TRANSFORMER,
-    circuit: 'cirq.AbstractCircuit',
-    extracted_context: Optional[TransformerContext],
+    circuit: cirq.AbstractCircuit,
+    extracted_context: TransformerContext | None,
     **kwargs,
-) -> 'cirq.AbstractCircuit':
+) -> cirq.AbstractCircuit:
     mutable_circuit = None
     if extracted_context and extracted_context.deep and add_deep_support:
         batch_replace = []
@@ -429,10 +416,10 @@ def _transform_and_log(
     add_deep_support: bool,
     func: TRANSFORMER,
     transformer_name: str,
-    circuit: 'cirq.AbstractCircuit',
-    extracted_context: Optional[TransformerContext],
+    circuit: cirq.AbstractCircuit,
+    extracted_context: TransformerContext | None,
     **kwargs,
-) -> 'cirq.AbstractCircuit':
+) -> cirq.AbstractCircuit:
     """Helper to log initial and final circuits before and after calling the transformer."""
     if extracted_context:
         extracted_context.logger.register_initial(circuit, transformer_name)

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -72,10 +74,7 @@ class _TestSimulator(cirq.Simulator):
         self.replacement = replacement
 
     def _core_iterator(
-        self,
-        circuit: 'cirq.AbstractCircuit',
-        sim_state,
-        all_measurements_are_terminal: bool = False,
+        self, circuit: cirq.AbstractCircuit, sim_state, all_measurements_are_terminal: bool = False
     ):
         new_circuit = cirq.Circuit(
             [

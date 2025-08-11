@@ -14,8 +14,10 @@
 
 """Target gateset used for compiling circuits to IonQ native gates."""
 
+from __future__ import annotations
+
 from types import NotImplementedType
-from typing import Any, Dict, Iterator, List, Tuple, Union
+from typing import Any, Iterator
 
 import numpy as np
 
@@ -45,7 +47,7 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
 
     def _decompose_two_qubit_operation(
         self, op: cirq.Operation, _
-    ) -> Union[NotImplementedType, cirq.OP_TREE]:
+    ) -> NotImplementedType | cirq.OP_TREE:
         if not cirq.has_unitary(op):
             return NotImplemented
         mat = cirq.unitary(op)
@@ -71,13 +73,13 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
 
     def _decompose_multi_qubit_operation(
         self, op: cirq.Operation, _
-    ) -> Union[NotImplementedType, cirq.OP_TREE]:
+    ) -> NotImplementedType | cirq.OP_TREE:
         if isinstance(op.gate, cirq.CCZPowGate):
             return self.decompose_all_to_all_connect_ccz_gate(op.gate, op.qubits)
         return NotImplemented
 
     @property
-    def preprocess_transformers(self) -> List['cirq.TRANSFORMER']:
+    def preprocess_transformers(self) -> list[cirq.TRANSFORMER]:
         """List of transformers which should be run before decomposing individual operations.
 
         Decompose to three qubit gates because three qubit gates have different decomposition
@@ -90,11 +92,11 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         ]
 
     @property
-    def postprocess_transformers(self) -> List['cirq.TRANSFORMER']:
+    def postprocess_transformers(self) -> list[cirq.TRANSFORMER]:
         """List of transformers which should be run after decomposing individual operations."""
         return [cirq.drop_negligible_operations, cirq.drop_empty_moments]
 
-    def single_qubit_matrix_to_native_gates(self, mat: np.ndarray) -> List[cirq.Gate]:
+    def single_qubit_matrix_to_native_gates(self, mat: np.ndarray) -> list[cirq.Gate]:
         z_rad_before, y_rad, z_rad_after = linalg.deconstruct_single_qubit_matrix_into_angles(mat)
         return [
             GPI2Gate(phi=(np.pi - z_rad_before) / (2.0 * np.pi)),
@@ -108,7 +110,7 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
     def _value_equality_values_cls_(self) -> Any:
         return type(self)
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ['atol'])
 
     @classmethod
@@ -122,8 +124,8 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         raise NotImplementedError()
 
     def decompose_all_to_all_connect_ccz_gate(
-        self, ccz_gate: 'cirq.CCZPowGate', qubits: Tuple['cirq.Qid', ...]
-    ) -> 'cirq.OP_TREE':
+        self, ccz_gate: cirq.CCZPowGate, qubits: tuple[cirq.Qid, ...]
+    ) -> cirq.OP_TREE:
         """Decomposition of all-to-all connected qubits are different from line
          qubits or grid qubits, ckeckout IonQTargetGateset.
 
@@ -147,7 +149,7 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         global_phase = 1j ** (2 * ccz_gate.global_shift * ccz_gate._exponent)
         global_phase = (
             complex(global_phase)
-            if cirq.is_parameterized(global_phase) and global_phase.is_complex  # type: ignore
+            if cirq.is_parameterized(global_phase) and global_phase.is_complex
             else global_phase
         )
         global_phase_operation = (

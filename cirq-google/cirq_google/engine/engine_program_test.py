@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import datetime
 from unittest import mock
 
@@ -20,7 +22,7 @@ import pytest
 from google.protobuf import any_pb2, timestamp_pb2
 from google.protobuf.text_format import Merge
 
-import cirq
+import cirq.testing
 import cirq_google as cg
 from cirq_google.api import v1, v2
 from cirq_google.cloud import quantum
@@ -304,7 +306,9 @@ def test_get_circuit_v2(get_program_async):
 
     program = cg.EngineProgram('a', 'b', EngineContext())
     get_program_async.return_value = quantum.QuantumProgram(code=_PROGRAM_V2)
-    assert program.get_circuit() == circuit
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+        program.get_circuit(), circuit
+    )
     get_program_async.assert_called_once_with('a', 'b', True)
 
 

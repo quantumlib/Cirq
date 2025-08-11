@@ -12,21 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cirq
 from cirq.devices.grid_qubit_test import _test_qid_pickled_hash
 from cirq.ops.named_qubit import _pad_digits
 
 
-def test_init():
+def test_init() -> None:
     q = cirq.NamedQubit('a')
     assert q.name == 'a'
 
-    q = cirq.NamedQid('a', dimension=3)
-    assert q.name == 'a'
-    assert q.dimension == 3
+    qid = cirq.NamedQid('a', dimension=3)
+    assert qid.name == 'a'
+    assert qid.dimension == 3
 
 
-def test_named_qubit_str():
+def test_named_qubit_str() -> None:
     q = cirq.NamedQubit('a')
     assert q.name == 'a'
     assert str(q) == 'a'
@@ -35,14 +37,14 @@ def test_named_qubit_str():
     assert str(qid) == 'a (d=3)'
 
 
-def test_named_qubit_repr():
+def test_named_qubit_repr() -> None:
     q = cirq.NamedQubit('a')
     assert repr(q) == "cirq.NamedQubit('a')"
     qid = cirq.NamedQid('a', dimension=3)
     assert repr(qid) == "cirq.NamedQid('a', dimension=3)"
 
 
-def test_named_qubit_pickled_hash():
+def test_named_qubit_pickled_hash() -> None:
     # Use a name that is unlikely to be used by any other tests.
     x = "test_named_qubit_pickled_hash"
     q_bad = cirq.NamedQubit(x)
@@ -51,7 +53,7 @@ def test_named_qubit_pickled_hash():
     _test_qid_pickled_hash(q, q_bad)
 
 
-def test_named_qid_pickled_hash():
+def test_named_qid_pickled_hash() -> None:
     # Use a name that is unlikely to be used by any other tests.
     x = "test_named_qid_pickled_hash"
     q_bad = cirq.NamedQid(x, dimension=3)
@@ -60,7 +62,7 @@ def test_named_qid_pickled_hash():
     _test_qid_pickled_hash(q, q_bad)
 
 
-def test_named_qubit_order():
+def test_named_qubit_order() -> None:
     order = cirq.testing.OrderTester()
     order.add_ascending(
         cirq.NamedQid('', dimension=1),
@@ -108,7 +110,7 @@ def test_named_qubit_order():
     )
 
 
-def test_pad_digits():
+def test_pad_digits() -> None:
     assert _pad_digits('') == ''
     assert _pad_digits('a') == 'a'
     assert _pad_digits('a0') == 'a00000000:1'
@@ -119,7 +121,7 @@ def test_pad_digits():
     assert _pad_digits('a00000000:8') == 'a00000000:8:00000008:1'
 
 
-def test_named_qubit_range():
+def test_named_qubit_range() -> None:
     qubits = cirq.NamedQubit.range(2, prefix='a')
     assert qubits == [cirq.NamedQubit('a0'), cirq.NamedQubit('a1')]
 
@@ -127,7 +129,7 @@ def test_named_qubit_range():
     assert qubits == [cirq.NamedQubit('a-1'), cirq.NamedQubit('a1'), cirq.NamedQubit('a3')]
 
 
-def test_named_qid_range():
+def test_named_qid_range() -> None:
     qids = cirq.NamedQid.range(2, prefix='a', dimension=3)
     assert qids == [cirq.NamedQid('a0', dimension=3), cirq.NamedQid('a1', dimension=3)]
 
@@ -149,7 +151,7 @@ def test_named_qid_range():
     ]
 
 
-def test_to_json():
+def test_to_json() -> None:
     assert cirq.NamedQubit('c')._json_dict_() == {'name': 'c'}
 
     assert cirq.NamedQid('c', dimension=3)._json_dict_() == {'name': 'c', 'dimension': 3}

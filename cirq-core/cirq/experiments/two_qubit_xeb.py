@@ -13,23 +13,26 @@
 # limitations under the License.
 
 """Provides functions for running and analyzing two-qubit XEB experiments."""
+
+from __future__ import annotations
+
 import functools
 import itertools
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Any, cast, Dict, Mapping, Optional, Sequence, Tuple, TYPE_CHECKING
+from typing import Any, cast, Mapping, Sequence, TYPE_CHECKING
 
 import networkx as nx
 import numpy as np
-import pandas as pd
 from matplotlib import pyplot as plt
 
 from cirq import ops, value, vis
 from cirq._compat import cached_method
 from cirq.experiments import random_quantum_circuit_generation as rqcg
 from cirq.experiments.qubit_characterizations import (
-    parallel_single_qubit_randomized_benchmarking,
+    parallel_single_qubit_rb,
     ParallelRandomizedBenchmarkingResult,
+    RBParameters,
 )
 from cirq.experiments.xeb_fitting import (
     benchmark_2q_xeb_fidelities,
@@ -42,25 +45,27 @@ from cirq.qis import noise_utils
 if TYPE_CHECKING:
     import multiprocessing
 
+    import pandas as pd
+
     import cirq
 
 
-def _grid_qubits_for_sampler(sampler: 'cirq.Sampler') -> Optional[Sequence['cirq.GridQubit']]:
+def _grid_qubits_for_sampler(sampler: cirq.Sampler) -> Sequence[cirq.GridQubit] | None:
     if hasattr(sampler, 'processor'):
         device = sampler.processor.get_device()
         return sorted(device.metadata.qubit_set)
     return None
 
 
-def _manhattan_distance(qubit1: 'cirq.GridQubit', qubit2: 'cirq.GridQubit') -> int:
+def _manhattan_distance(qubit1: cirq.GridQubit, qubit2: cirq.GridQubit) -> int:
     return abs(qubit1.row - qubit2.row) + abs(qubit1.col - qubit2.col)
 
 
 def qubits_and_pairs(
-    sampler: 'cirq.Sampler',
-    qubits: Optional[Sequence['cirq.GridQubit']] = None,
-    pairs: Optional[Sequence[tuple['cirq.GridQubit', 'cirq.GridQubit']]] = None,
-) -> Tuple[Sequence['cirq.GridQubit'], Sequence[tuple['cirq.GridQubit', 'cirq.GridQubit']]]:
+    sampler: cirq.Sampler,
+    qubits: Sequence[cirq.GridQubit] | None = None,
+    pairs: Sequence[tuple[cirq.GridQubit, cirq.GridQubit]] | None = None,
+) -> tuple[Sequence[cirq.GridQubit], Sequence[tuple[cirq.GridQubit, cirq.GridQubit]]]:
     """Extract qubits and pairs from sampler.
 
 
@@ -103,17 +108,21 @@ class TwoQubitXEBResult:
     fidelities: pd.DataFrame
 
     @functools.cached_property
-    def _qubit_pair_map(self) -> Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], int]:
+    def _qubit_pair_map(self) -> dict[tuple[cirq.GridQubit, cirq.GridQubit], int]:
+        if isinstance(self.fidelities.index[0][0], ops.Qid):
+            return {
+                (min(q0, q1), max(q0, q1)): i for i, (q0, q1) in enumerate(self.fidelities.index)
+            }
         return {
             (min(q0, q1), max(q0, q1)): i
             for i, (_, _, (q0, q1)) in enumerate(self.fidelities.index)
         }
 
     @functools.cached_property
-    def all_qubit_pairs(self) -> Tuple[Tuple['cirq.GridQubit', 'cirq.GridQubit'], ...]:
+    def all_qubit_pairs(self) -> tuple[tuple[cirq.GridQubit, cirq.GridQubit], ...]:
         return tuple(sorted(self._qubit_pair_map.keys()))
 
-    def plot_heatmap(self, ax: Optional[plt.Axes] = None, **plot_kwargs) -> plt.Axes:
+    def plot_heatmap(self, ax: plt.Axes | None = None, **plot_kwargs) -> plt.Axes:
         """plot the heatmap of XEB errors.
 
         Args:
@@ -127,7 +136,7 @@ class TwoQubitXEBResult:
         show_plot = not ax
         if not isinstance(ax, plt.Axes):
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
-        heatmap_data: Dict[Tuple['cirq.GridQubit', ...], float] = {
+        heatmap_data: dict[tuple[cirq.GridQubit, ...], float] = {
             pair: self.xeb_error(*pair) for pair in self.all_qubit_pairs
         }
 
@@ -139,11 +148,7 @@ class TwoQubitXEBResult:
         return ax
 
     def plot_fitted_exponential(
-        self,
-        q0: 'cirq.GridQubit',
-        q1: 'cirq.GridQubit',
-        ax: Optional[plt.Axes] = None,
-        **plot_kwargs,
+        self, q0: cirq.GridQubit, q1: cirq.GridQubit, ax: plt.Axes | None = None, **plot_kwargs
     ) -> plt.Axes:
         """plot the fitted model to for xeb error of a qubit pair.
 
@@ -185,21 +190,21 @@ class TwoQubitXEBResult:
             q0, q1 = q1, q0
         return self.fidelities.iloc[self._qubit_pair_map[(q0, q1)]]
 
-    def xeb_fidelity(self, q0: 'cirq.GridQubit', q1: 'cirq.GridQubit') -> float:
+    def xeb_fidelity(self, q0: cirq.GridQubit, q1: cirq.GridQubit) -> float:
         """Return the XEB fidelity of a qubit pair."""
         return noise_utils.decay_constant_to_xeb_fidelity(
             self._record(q0, q1).layer_fid, num_qubits=2
         )
 
-    def xeb_error(self, q0: 'cirq.GridQubit', q1: 'cirq.GridQubit') -> float:
+    def xeb_error(self, q0: cirq.GridQubit, q1: cirq.GridQubit) -> float:
         """Return the XEB error of a qubit pair."""
         return 1 - self.xeb_fidelity(q0, q1)
 
-    def all_errors(self) -> Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
+    def all_errors(self) -> dict[tuple[cirq.GridQubit, cirq.GridQubit], float]:
         """Return the XEB error of all qubit pairs."""
         return {(q0, q1): self.xeb_error(q0, q1) for q0, q1 in self.all_qubit_pairs}
 
-    def plot_histogram(self, ax: Optional[plt.Axes] = None, **plot_kwargs) -> plt.Axes:
+    def plot_histogram(self, ax: plt.Axes | None = None, **plot_kwargs) -> plt.Axes:
         """plot a histogram of all xeb errors.
 
         Args:
@@ -219,7 +224,7 @@ class TwoQubitXEBResult:
         return ax
 
     @cached_method
-    def pauli_error(self) -> Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
+    def pauli_error(self) -> dict[tuple[cirq.GridQubit, cirq.GridQubit], float]:
         """Return the Pauli error of all qubit pairs."""
         return {
             pair: noise_utils.decay_constant_to_pauli_error(
@@ -242,33 +247,33 @@ class InferredXEBResult:
     xeb_result: TwoQubitXEBResult
 
     @property
-    def all_qubit_pairs(self) -> Sequence[Tuple['cirq.GridQubit', 'cirq.GridQubit']]:
+    def all_qubit_pairs(self) -> Sequence[tuple[cirq.GridQubit, cirq.GridQubit]]:
         return self.xeb_result.all_qubit_pairs
 
     @cached_method
-    def single_qubit_pauli_error(self) -> Mapping['cirq.Qid', float]:
+    def single_qubit_pauli_error(self) -> Mapping[cirq.Qid, float]:
         """Return the single-qubit Pauli error for all qubits (RB results)."""
         return self.rb_result.pauli_error()
 
     @cached_method
-    def two_qubit_pauli_error(self) -> Mapping[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
+    def two_qubit_pauli_error(self) -> Mapping[tuple[cirq.GridQubit, cirq.GridQubit], float]:
         """Return the two-qubit Pauli error for all pairs."""
         return MappingProxyType(self.xeb_result.pauli_error())
 
     @cached_method
-    def inferred_pauli_error(self) -> Mapping[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
+    def inferred_pauli_error(self) -> Mapping[tuple[cirq.GridQubit, cirq.GridQubit], float]:
         """Return the inferred Pauli error for all pairs."""
         single_q_paulis = self.rb_result.pauli_error()
         xeb = self.xeb_result.pauli_error()
 
-        def _pauli_error(q0: 'cirq.GridQubit', q1: 'cirq.GridQubit') -> float:
+        def _pauli_error(q0: cirq.GridQubit, q1: cirq.GridQubit) -> float:
             q0, q1 = sorted([q0, q1])
             return xeb[(q0, q1)] - single_q_paulis[q0] - single_q_paulis[q1]
 
         return MappingProxyType({pair: _pauli_error(*pair) for pair in self.all_qubit_pairs})
 
     @cached_method
-    def inferred_decay_constant(self) -> Mapping[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
+    def inferred_decay_constant(self) -> Mapping[tuple[cirq.GridQubit, cirq.GridQubit], float]:
         """Return the inferred decay constant for all pairs."""
         return MappingProxyType(
             {
@@ -278,7 +283,7 @@ class InferredXEBResult:
         )
 
     @cached_method
-    def inferred_xeb_error(self) -> Mapping[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
+    def inferred_xeb_error(self) -> Mapping[tuple[cirq.GridQubit, cirq.GridQubit], float]:
         """Return the inferred XEB error for all pairs."""
         return MappingProxyType(
             {
@@ -289,7 +294,7 @@ class InferredXEBResult:
 
     def _target_errors(
         self, target_error: str
-    ) -> Mapping[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
+    ) -> Mapping[tuple[cirq.GridQubit, cirq.GridQubit], float]:
         """Returns requested error.
 
         The requested error must be one of 'pauli', 'decay_constant', or 'xeb'.
@@ -311,7 +316,7 @@ class InferredXEBResult:
         return error_funcs[target_error]()
 
     def plot_heatmap(
-        self, target_error: str = 'pauli', ax: Optional[plt.Axes] = None, **plot_kwargs
+        self, target_error: str = 'pauli', ax: plt.Axes | None = None, **plot_kwargs
     ) -> plt.Axes:
         """plot the heatmap of the target errors.
 
@@ -325,7 +330,7 @@ class InferredXEBResult:
         if not isinstance(ax, plt.Axes):
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
         heatmap_data = cast(
-            Mapping[Tuple['cirq.GridQubit', ...], float], self._target_errors(target_error)
+            Mapping[tuple['cirq.GridQubit', ...], float], self._target_errors(target_error)
         )
 
         name = f'{target_error} error' if target_error != 'decay_constant' else 'decay constant'
@@ -339,7 +344,7 @@ class InferredXEBResult:
     def plot_histogram(
         self,
         target_error: str = 'pauli',
-        ax: Optional[plt.Axes] = None,
+        ax: plt.Axes | None = None,
         kind: str = 'two_qubit',
         **plot_kwargs,
     ) -> plt.Axes:
@@ -393,21 +398,21 @@ class InferredXEBResult:
 
 
 def parallel_xeb_workflow(
-    sampler: 'cirq.Sampler',
-    qubits: Optional[Sequence['cirq.GridQubit']] = None,
-    entangling_gate: 'cirq.Gate' = ops.CZ,
+    sampler: cirq.Sampler,
+    qubits: Sequence[cirq.GridQubit] | None = None,
+    entangling_gate: cirq.Gate = ops.CZ,
     n_repetitions: int = 10**4,
     n_combinations: int = 10,
     n_circuits: int = 20,
     cycle_depths: Sequence[int] = (5, 25, 50, 100, 200, 300),
-    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ax: Optional[plt.Axes] = None,
-    pairs: Optional[Sequence[tuple['cirq.GridQubit', 'cirq.GridQubit']]] = None,
-    pool: Optional['multiprocessing.pool.Pool'] = None,
+    random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+    ax: plt.Axes | None = None,
+    pairs: Sequence[tuple[cirq.GridQubit, cirq.GridQubit]] | None = None,
+    pool: multiprocessing.pool.Pool | None = None,
     batch_size: int = 9,
     tags: Sequence[Any] = (),
     **plot_kwargs,
-) -> Tuple[pd.DataFrame, Sequence['cirq.Circuit'], pd.DataFrame]:
+) -> tuple[pd.DataFrame, Sequence[cirq.Circuit], pd.DataFrame]:
     """A utility method that runs the full XEB workflow.
 
     Args:
@@ -483,16 +488,16 @@ def parallel_xeb_workflow(
 
 
 def parallel_two_qubit_xeb(
-    sampler: 'cirq.Sampler',
-    qubits: Optional[Sequence['cirq.GridQubit']] = None,
-    entangling_gate: 'cirq.Gate' = ops.CZ,
+    sampler: cirq.Sampler,
+    qubits: Sequence[cirq.GridQubit] | None = None,
+    entangling_gate: cirq.Gate = ops.CZ,
     n_repetitions: int = 10**4,
     n_combinations: int = 10,
     n_circuits: int = 20,
     cycle_depths: Sequence[int] = (5, 25, 50, 100, 200, 300),
-    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ax: Optional[plt.Axes] = None,
-    pairs: Optional[Sequence[tuple['cirq.GridQubit', 'cirq.GridQubit']]] = None,
+    random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+    ax: plt.Axes | None = None,
+    pairs: Sequence[tuple[cirq.GridQubit, cirq.GridQubit]] | None = None,
     batch_size: int = 9,
     tags: Sequence[Any] = (),
     **plot_kwargs,
@@ -540,18 +545,18 @@ def parallel_two_qubit_xeb(
 
 
 def run_rb_and_xeb(
-    sampler: 'cirq.Sampler',
-    qubits: Optional[Sequence['cirq.GridQubit']] = None,
+    sampler: cirq.Sampler,
+    qubits: Sequence[cirq.GridQubit] | None = None,
     repetitions: int = 10**3,
     num_circuits: int = 20,
     num_clifford_range: Sequence[int] = tuple(
         np.logspace(np.log10(5), np.log10(1000), 5, dtype=int)
     ),
-    entangling_gate: 'cirq.Gate' = ops.CZ,
+    entangling_gate: cirq.Gate = ops.CZ,
     depths_xeb: Sequence[int] = (5, 25, 50, 100, 200, 300),
     xeb_combinations: int = 10,
-    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    pairs: Optional[Sequence[tuple['cirq.GridQubit', 'cirq.GridQubit']]] = None,
+    random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+    pairs: Sequence[tuple[cirq.GridQubit, cirq.GridQubit]] | None = None,
     batch_size: int = 9,
     tags: Sequence[Any] = (),
 ) -> InferredXEBResult:
@@ -582,12 +587,14 @@ def run_rb_and_xeb(
 
     qubits, pairs = qubits_and_pairs(sampler, qubits, pairs)
 
-    rb = parallel_single_qubit_randomized_benchmarking(
+    rb = parallel_single_qubit_rb(
         sampler=sampler,
         qubits=qubits,
-        repetitions=repetitions,
-        num_circuits=num_circuits,
-        num_clifford_range=num_clifford_range,
+        parameters=RBParameters(
+            num_circuits=num_circuits,
+            repetitions=repetitions,
+            num_clifford_range=num_clifford_range,
+        ),
     )
 
     xeb = parallel_two_qubit_xeb(

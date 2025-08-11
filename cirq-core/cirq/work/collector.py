@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import abc
-from typing import Any, Iterator, List, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Any, Iterator, TYPE_CHECKING
 
 import duet
 import numpy as np
@@ -29,7 +31,7 @@ if TYPE_CHECKING:
 class CircuitSampleJob:
     """Describes a sampling task."""
 
-    def __init__(self, circuit: 'cirq.AbstractCircuit', *, repetitions: int, tag: Any = None):
+    def __init__(self, circuit: cirq.AbstractCircuit, *, repetitions: int, tag: Any = None):
         """Inits CircuitSampleJob.
 
         Args:
@@ -57,11 +59,11 @@ class CircuitSampleJob:
 
 
 class CircuitSampleJobTree(Protocol):
-    def __iter__(self) -> Iterator[Union[CircuitSampleJob, 'CircuitSampleJobTree']]:
+    def __iter__(self) -> Iterator[CircuitSampleJob | CircuitSampleJobTree]:
         pass
 
 
-CIRCUIT_SAMPLE_JOB_TREE = Union[CircuitSampleJob, CircuitSampleJobTree]
+CIRCUIT_SAMPLE_JOB_TREE = CircuitSampleJob | CircuitSampleJobTree
 
 
 class Collector(metaclass=abc.ABCMeta):
@@ -75,7 +77,7 @@ class Collector(metaclass=abc.ABCMeta):
     """
 
     @abc.abstractmethod
-    def next_job(self) -> Optional[CIRCUIT_SAMPLE_JOB_TREE]:
+    def next_job(self) -> CIRCUIT_SAMPLE_JOB_TREE | None:
         """Determines what to sample next.
 
         This method is called by driving code when more samples can be
@@ -105,11 +107,7 @@ class Collector(metaclass=abc.ABCMeta):
         """
 
     def collect(
-        self,
-        sampler: 'cirq.Sampler',
-        *,
-        concurrency: int = 2,
-        max_total_samples: Optional[int] = None,
+        self, sampler: cirq.Sampler, *, concurrency: int = 2, max_total_samples: int | None = None
     ) -> None:
         """Collects needed samples from a sampler.
 
@@ -140,11 +138,7 @@ class Collector(metaclass=abc.ABCMeta):
         )
 
     async def collect_async(
-        self,
-        sampler: 'cirq.Sampler',
-        *,
-        concurrency: int = 2,
-        max_total_samples: Optional[int] = None,
+        self, sampler: cirq.Sampler, *, concurrency: int = 2, max_total_samples: int | None = None
     ) -> None:
         """Asynchronously collects needed samples from a sampler.
 
@@ -167,10 +161,10 @@ class Collector(metaclass=abc.ABCMeta):
             The collector's result after all desired samples have been
             collected.
         """
-        results: duet.AsyncCollector[Tuple[CircuitSampleJob, 'cirq.Result']] = duet.AsyncCollector()
+        results: duet.AsyncCollector[tuple[CircuitSampleJob, cirq.Result]] = duet.AsyncCollector()
         job_error = None
         running_jobs = 0
-        queued_jobs: List[CircuitSampleJob] = []
+        queued_jobs: list[CircuitSampleJob] = []
         remaining_samples = np.inf if max_total_samples is None else max_total_samples
 
         async def run_job(job):
@@ -213,7 +207,7 @@ class Collector(metaclass=abc.ABCMeta):
                 self.on_job_result(job, result)
 
 
-def _flatten_jobs(tree: Optional[CIRCUIT_SAMPLE_JOB_TREE]) -> Iterator[CircuitSampleJob]:
+def _flatten_jobs(tree: CIRCUIT_SAMPLE_JOB_TREE | None) -> Iterator[CircuitSampleJob]:
     if isinstance(tree, CircuitSampleJob):
         yield tree
     elif tree is not None:

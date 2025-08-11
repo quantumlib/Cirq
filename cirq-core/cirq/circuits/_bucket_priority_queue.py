@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Generic, Iterable, Iterator, List, Optional, Set, Tuple, TypeVar
+from __future__ import annotations
+
+from typing import Any, Generic, Iterable, Iterator, TypeVar
 
 TItem = TypeVar('TItem')
 
@@ -37,7 +39,7 @@ class BucketPriorityQueue(Generic[TItem]):
     """
 
     def __init__(
-        self, entries: Iterable[Tuple[int, TItem]] = (), *, drop_duplicate_entries: bool = False
+        self, entries: Iterable[tuple[int, TItem]] = (), *, drop_duplicate_entries: bool = False
     ):
         """Initializes a new priority queue.
 
@@ -48,10 +50,10 @@ class BucketPriorityQueue(Generic[TItem]):
                 in the priority queue. Note that duplicates of an item may still
                 be enqueued, as long as they have different priorities.
         """
-        self._buckets: List[List[TItem]] = []
+        self._buckets: list[list[TItem]] = []
         self._offset = 0
         self._len = 0
-        self._drop_set: Optional[Set[Tuple[int, TItem]]] = set() if drop_duplicate_entries else None
+        self._drop_set: set[tuple[int, TItem]] | None = set() if drop_duplicate_entries else None
 
         for p, e in entries:
             self.enqueue(p, e)
@@ -68,7 +70,7 @@ class BucketPriorityQueue(Generic[TItem]):
         """Returns how many items are in the priority queue."""
         return self._len
 
-    def __iter__(self) -> Iterator[Tuple[int, TItem]]:
+    def __iter__(self) -> Iterator[tuple[int, TItem]]:
         """Iterates the (priority, item) entries in the queue."""
         for i, bucket in enumerate(self._buckets):
             for item in bucket:
@@ -120,7 +122,7 @@ class BucketPriorityQueue(Generic[TItem]):
         self._len += 1
         return True
 
-    def dequeue(self) -> Tuple[int, TItem]:
+    def dequeue(self) -> tuple[int, TItem]:
         """Removes and returns an item from the priority queue.
 
         Returns:
@@ -178,6 +180,6 @@ class BucketPriorityQueue(Generic[TItem]):
         return not self == other
 
 
-def _indent(lines: List[Any]) -> str:
+def _indent(lines: list[Any]) -> str:
     paragraph = ''.join('\n' + str(line) for line in lines)
     return paragraph.replace('\n', '\n    ')

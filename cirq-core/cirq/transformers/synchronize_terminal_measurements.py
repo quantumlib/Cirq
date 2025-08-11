@@ -14,7 +14,9 @@
 
 """Transformer pass to move terminal measurements to the end of circuit."""
 
-from typing import List, Optional, Set, Tuple, TYPE_CHECKING
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from cirq import circuits, protocols
 from cirq.transformers import transformer_api
@@ -23,9 +25,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-def find_terminal_measurements(
-    circuit: 'cirq.AbstractCircuit',
-) -> List[Tuple[int, 'cirq.Operation']]:
+def find_terminal_measurements(circuit: cirq.AbstractCircuit) -> list[tuple[int, cirq.Operation]]:
     """Finds all terminal measurements in the given circuit.
 
     A measurement is terminal if there are no other operations acting on the measured qubits
@@ -39,9 +39,9 @@ def find_terminal_measurements(
         (moment_index, measurement_operation).
     """
 
-    open_qubits: Set['cirq.Qid'] = set(circuit.all_qubits())
-    seen_control_keys: Set['cirq.MeasurementKey'] = set()
-    terminal_measurements: Set[Tuple[int, 'cirq.Operation']] = set()
+    open_qubits: set[cirq.Qid] = set(circuit.all_qubits())
+    seen_control_keys: set[cirq.MeasurementKey] = set()
+    terminal_measurements: set[tuple[int, cirq.Operation]] = set()
     for i in range(len(circuit) - 1, -1, -1):
         moment = circuit[i]
         for q in open_qubits:
@@ -62,11 +62,11 @@ def find_terminal_measurements(
 
 @transformer_api.transformer(add_deep_support=True)
 def synchronize_terminal_measurements(
-    circuit: 'cirq.AbstractCircuit',
+    circuit: cirq.AbstractCircuit,
     *,
-    context: Optional['cirq.TransformerContext'] = None,
+    context: cirq.TransformerContext | None = None,
     after_other_operations: bool = True,
-) -> 'cirq.Circuit':
+) -> cirq.Circuit:
     """Move measurements to the end of the circuit.
 
     Move all measurements in a circuit to the final moment, if it can accommodate them (without

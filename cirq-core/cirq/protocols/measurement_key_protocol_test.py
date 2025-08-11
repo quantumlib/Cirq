@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 
 import cirq
@@ -28,7 +30,7 @@ class ReturnsObj:
 
 
 @pytest.mark.parametrize('gate', [ReturnsStr(), ReturnsObj()])
-def test_measurement_key_name(gate):
+def test_measurement_key_name(gate) -> None:
     assert isinstance(cirq.measurement_key_name(gate), str)
     assert cirq.measurement_key_name(gate) == 'door locker'
     assert cirq.measurement_key_obj(gate) == cirq.MeasurementKey(name='door locker')
@@ -39,7 +41,7 @@ def test_measurement_key_name(gate):
 
 
 @pytest.mark.parametrize('gate', [ReturnsStr(), ReturnsObj()])
-def test_measurement_key_obj(gate):
+def test_measurement_key_obj(gate) -> None:
     assert isinstance(cirq.measurement_key_obj(gate), cirq.MeasurementKey)
     assert cirq.measurement_key_obj(gate) == cirq.MeasurementKey(name='door locker')
     assert cirq.measurement_key_obj(gate) == 'door locker'
@@ -50,7 +52,7 @@ def test_measurement_key_obj(gate):
 
 
 @pytest.mark.parametrize('key_method', [cirq.measurement_key_name, cirq.measurement_key_obj])
-def test_measurement_key_no_method(key_method):
+def test_measurement_key_no_method(key_method) -> None:
     class NoMethod:
         pass
 
@@ -73,7 +75,7 @@ def test_measurement_key_no_method(key_method):
 
 
 @pytest.mark.parametrize('key_method', [cirq.measurement_key_name, cirq.measurement_key_obj])
-def test_measurement_key_not_implemented_default_behavior(key_method):
+def test_measurement_key_not_implemented_default_behavior(key_method) -> None:
     class ReturnsNotImplemented:
         def _measurement_key_name_(self):
             return NotImplemented
@@ -89,7 +91,7 @@ def test_measurement_key_not_implemented_default_behavior(key_method):
     assert key_method(ReturnsNotImplemented(), 'a') == 'a'
 
 
-def test_is_measurement():
+def test_is_measurement() -> None:
     q = cirq.NamedQubit('q')
     assert cirq.is_measurement(cirq.measure(q))
     assert cirq.is_measurement(cirq.MeasurementGate(num_qubits=1, key='b'))
@@ -99,7 +101,7 @@ def test_is_measurement():
     assert not cirq.is_measurement(cirq.bit_flip(1))
 
     class NotImplementedOperation(cirq.Operation):
-        def with_qubits(self, *new_qubits) -> 'NotImplementedOperation':
+        def with_qubits(self, *new_qubits) -> NotImplementedOperation:
             raise NotImplementedError()
 
         @property
@@ -109,7 +111,7 @@ def test_is_measurement():
     assert not cirq.is_measurement(NotImplementedOperation())
 
 
-def test_measurement_without_key():
+def test_measurement_without_key() -> None:
     class MeasurementWithoutKey:
         def _is_measurement_(self):
             return True
@@ -120,7 +122,7 @@ def test_measurement_without_key():
     assert cirq.is_measurement(MeasurementWithoutKey())
 
 
-def test_non_measurement_with_key():
+def test_non_measurement_with_key() -> None:
     class NonMeasurementGate(cirq.Gate):
         def _is_measurement_(self):
             return False  # pragma: no cover
@@ -155,7 +157,7 @@ def test_non_measurement_with_key():
     ('key_method', 'keys'),
     [(cirq.measurement_key_names, {'a', 'b'}), (cirq.measurement_key_objs, {'c', 'd'})],
 )
-def test_measurement_keys(key_method, keys):
+def test_measurement_keys(key_method, keys) -> None:
     class MeasurementKeysGate(cirq.Gate):
         def _measurement_key_names_(self):
             return frozenset(['a', 'b'])
@@ -180,7 +182,7 @@ def test_measurement_keys(key_method, keys):
     assert key_method(MeasurementKeysGate().on(a)) == keys
 
 
-def test_measurement_key_mapping():
+def test_measurement_key_mapping() -> None:
     class MultiKeyGate:
         def __init__(self, keys):
             self._keys = frozenset(keys)
@@ -217,7 +219,7 @@ def test_measurement_key_mapping():
     assert cirq.measurement_key_names(mkg_cdx) == {'c', 'd'}
 
 
-def test_measurement_key_path():
+def test_measurement_key_path() -> None:
     class MultiKeyGate:
         def __init__(self, keys):
             self._keys = frozenset(cirq.MeasurementKey.parse_serialized(key) for key in keys)

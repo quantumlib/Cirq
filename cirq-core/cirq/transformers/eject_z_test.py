@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import dataclasses
 
 import numpy as np
@@ -51,10 +53,10 @@ def assert_optimizes(
         cirq.Moment(cirq.CircuitOperation(before.freeze()).repeat(3).with_tags("preserve_tag")),
     )
     c_expected = cirq.Circuit(
-        cirq.PhasedXPowGate(phase_exponent=0, exponent=0.25).on_each(*q),
+        (cirq.X**0.25).on_each(*q),
         (cirq.Z**0.5).on_each(*q),
         cirq.Moment(cirq.CircuitOperation(before.freeze()).repeat(2).with_tags("ignore")),
-        cirq.PhasedXPowGate(phase_exponent=0, exponent=0.25).on_each(*q),
+        (cirq.X**0.25).on_each(*q),
         (cirq.Z**0.5).on_each(*q),
         cirq.Moment(cirq.CircuitOperation(expected.freeze()).repeat(3).with_tags("preserve_tag")),
     )
@@ -191,8 +193,6 @@ def test_unphaseable_causes_earlier_merge_without_size_increase():
         pass
 
     u = UnknownGate()
-
-    # pylint: disable=not-callable
     q = cirq.NamedQubit('q')
     assert_optimizes(
         before=cirq.Circuit(

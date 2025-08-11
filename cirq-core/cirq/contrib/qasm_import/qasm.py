@@ -12,11 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import circuits
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from cirq.contrib.qasm_import._parser import QasmParser
 
+if TYPE_CHECKING:
+    import cirq
 
-def circuit_from_qasm(qasm: str) -> circuits.Circuit:
+
+def circuit_from_qasm(qasm: str) -> cirq.Circuit:
     """Parses an OpenQASM string to `cirq.Circuit`.
 
     Args:

@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import string
 from types import NotImplementedType
-from typing import Any, Dict, Iterable, Optional, Tuple, TYPE_CHECKING, TypeVar, Union
+from typing import Any, Iterable, Mapping, TYPE_CHECKING, TypeVar
 
 from typing_extensions import Protocol
 
@@ -36,9 +38,9 @@ class QasmArgs(string.Formatter):
         self,
         precision: int = 10,
         version: str = '2.0',
-        qubit_id_map: Optional[Dict['cirq.Qid', str]] = None,
-        meas_key_id_map: Optional[Dict[str, str]] = None,
-        meas_key_bitcount: Optional[Dict[str, int]] = None,
+        qubit_id_map: Mapping[cirq.Qid, str] | None = None,
+        meas_key_id_map: dict[str, str] | None = None,
+        meas_key_bitcount: dict[str, int] | None = None,
     ) -> None:
         """Inits QasmArgs.
 
@@ -62,7 +64,7 @@ class QasmArgs(string.Formatter):
     def _format_number(self, value) -> str:
         """OpenQASM 2.0 does not support '1e-5' and wants '1.0e-5'"""
         s = f'{value}'
-        if 'e' in s and not '.' in s:
+        if 'e' in s and '.' not in s:
             return s.replace('e', '.0e')
         return s
 
@@ -97,7 +99,7 @@ class SupportsQasm(Protocol):
     """
 
     @doc_private
-    def _qasm_(self) -> Union[None, NotImplementedType, str]:
+    def _qasm_(self) -> None | NotImplementedType | str:
         pass
 
 
@@ -110,7 +112,7 @@ class SupportsQasmWithArgs(Protocol):
     """
 
     @doc_private
-    def _qasm_(self, args: QasmArgs) -> Union[None, NotImplementedType, str]:
+    def _qasm_(self, args: QasmArgs) -> None | NotImplementedType | str:
         pass
 
 
@@ -123,20 +125,17 @@ class SupportsQasmWithArgsAndQubits(Protocol):
     """
 
     @doc_private
-    def _qasm_(
-        self, qubits: Tuple['cirq.Qid'], args: QasmArgs
-    ) -> Union[None, NotImplementedType, str]:
+    def _qasm_(self, qubits: tuple[cirq.Qid], args: QasmArgs) -> None | NotImplementedType | str:
         pass
 
 
-# pylint: disable=function-redefined
 def qasm(
     val: Any,
     *,
-    args: Optional[QasmArgs] = None,
-    qubits: Optional[Iterable['cirq.Qid']] = None,
+    args: QasmArgs | None = None,
+    qubits: Iterable[cirq.Qid] | None = None,
     default: TDefault = RaiseTypeErrorIfNotProvided,
-) -> Union[str, TDefault]:
+) -> str | TDefault:
     """Returns QASM code for the given value, if possible.
 
     Different values require different sets of arguments. The general rule of
@@ -169,10 +168,9 @@ def qasm(
     method = getattr(val, '_qasm_', None)
     result = NotImplemented
     if method is not None:
-        kwargs: Dict[str, Any] = {}
+        kwargs: dict[str, Any] = {}
         if args is not None:
             kwargs['args'] = args
-        # pylint: disable=not-callable
         if qubits is not None:
             kwargs['qubits'] = tuple(qubits)
         try:
@@ -182,7 +180,6 @@ def qasm(
                 "cirq.qasm does not expect qubits or args to be specified"
                 f"for the given value of type {type(val)}."
             ) from error
-        # pylint: enable=not-callable
     if result is not None and result is not NotImplemented:
         return result
 
@@ -194,6 +191,3 @@ def qasm(
         f"object of type '{type(val)}' does have a _qasm_ method, "
         "but it returned NotImplemented or None."
     )
-
-
-# pylint: enable=function-redefined

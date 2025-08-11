@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import abc
-from typing import List, Sequence, Tuple, TYPE_CHECKING
+from typing import Sequence, TYPE_CHECKING
 
 import numpy as np
 from typing_extensions import Self
@@ -38,8 +40,8 @@ class QuantumStateRepresentation(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def measure(
-        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
-    ) -> List[int]:
+        self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
+    ) -> list[int]:
         """Measures the state.
 
         Args:
@@ -50,10 +52,7 @@ class QuantumStateRepresentation(metaclass=abc.ABCMeta):
         """
 
     def sample(
-        self,
-        axes: Sequence[int],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        self, axes: Sequence[int], repetitions: int = 1, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
     ) -> np.ndarray:
         """Samples the state. Subclasses can override with more performant method.
 
@@ -75,7 +74,7 @@ class QuantumStateRepresentation(metaclass=abc.ABCMeta):
         """Joins two state spaces together."""
         raise NotImplementedError()
 
-    def factor(self, axes: Sequence[int], *, validate=True, atol=1e-07) -> Tuple[Self, Self]:
+    def factor(self, axes: Sequence[int], *, validate=True, atol=1e-07) -> tuple[Self, Self]:
         """Splits two state spaces after a measurement or reset."""
         raise NotImplementedError()
 

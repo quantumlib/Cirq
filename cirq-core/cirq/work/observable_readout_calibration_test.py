@@ -1,4 +1,7 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
+from __future__ import annotations
+
 from typing import Sequence
 
 import numpy as np
@@ -19,7 +22,7 @@ class DepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
         self.readout_noise_gate = cirq.BitFlipChannel(bitflip_prob)
         self.readout_decay_gate = cirq.AmplitudeDampingChannel(decay_prob)
 
-    def noisy_moment(self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']):
+    def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]):
         if cirq.devices.noise_model.validate_all_measurements(moment):
             return [
                 cirq.Moment(self.readout_decay_gate(q) for q in system_qubits),
@@ -30,7 +33,7 @@ class DepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
             return [moment, cirq.Moment(self.qubit_noise_gate(q) for q in system_qubits)]
 
 
-def test_calibrate_readout_error():
+def test_calibrate_readout_error() -> None:
     sampler = cirq.DensityMatrixSimulator(
         noise=DepolarizingWithDampedReadoutNoiseModel(
             depol_prob=1e-3, bitflip_prob=0.03, decay_prob=0.03

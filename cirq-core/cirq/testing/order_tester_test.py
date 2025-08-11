@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import fractions
 
 import pytest
@@ -62,7 +64,7 @@ class MockValue:
         return f'MockValue(val={self.val!r}, ...)'
 
 
-def test_add_ordering_group_correct():
+def test_add_ordering_group_correct() -> None:
     ot = cirq.testing.OrderTester()
     ot.add_ascending(-4, 0)
     ot.add_ascending(1, 2)
@@ -70,7 +72,7 @@ def test_add_ordering_group_correct():
     ot.add_ascending_equivalence_group(float('inf'), float('inf'))
 
 
-def test_add_ordering_group_incorrect():
+def test_add_ordering_group_incorrect() -> None:
     ot = cirq.testing.OrderTester()
     ot.add_ascending(0)
     with pytest.raises(AssertionError):
@@ -88,7 +90,7 @@ def test_add_ordering_group_incorrect():
         ot.add_ascending(0)
 
 
-def test_propagates_internal_errors():
+def test_propagates_internal_errors() -> None:
     class UnorderableClass:  # pragma: no cover
         def __eq__(self, other):
             return NotImplemented
@@ -113,7 +115,7 @@ def test_propagates_internal_errors():
         ot.add_ascending(UnorderableClass())
 
 
-def test_add_ascending_equivalence_group():
+def test_add_ascending_equivalence_group() -> None:
     ot = cirq.testing.OrderTester()
     with pytest.raises(AssertionError, match='Expected X=1 to equal Y=3'):
         ot.add_ascending_equivalence_group(1, 3)
@@ -127,7 +129,7 @@ def test_add_ascending_equivalence_group():
     ot.add_ascending_equivalence_group(5)
 
 
-def test_fails_to_return_not_implemented_vs_unknown():
+def test_fails_to_return_not_implemented_vs_unknown() -> None:
     def make_impls(bad_index: int, bad_result: bool):
         def make_impl(i, op):
             def impl(x, y):
@@ -153,7 +155,7 @@ def test_fails_to_return_not_implemented_vs_unknown():
     ot.add_ascending(MockValue(1, *good_impls))
 
 
-def test_fails_on_inconsistent_hashes():
+def test_fails_on_inconsistent_hashes() -> None:
     class ModifiedHash(tuple):
         def __hash__(self):
             return super().__hash__() ^ 1

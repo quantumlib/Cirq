@@ -12,33 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
 import pytest
 
 
 def pytest_addoption(parser):
     parser.addoption(
-        "--rigetti-integration",
-        action="store_true",
-        default=False,
-        help="run Rigetti integration tests",
-    )
-    parser.addoption(
         "--enable-slow-tests", action="store_true", default=False, help="run slow tests"
     )
-    parser.addoption(
-        "--warn-numpy-data-promotion",
-        action="store_true",
-        default=False,
-        help="enable NumPy 2 data type promotion warnings",
-    )
-
-
-def pytest_configure(config):
-    # If requested, globally enable verbose NumPy 2 warnings about data type
-    # promotion. See https://numpy.org/doc/2.0/numpy_2_0_migration_guide.html.
-    if config.option.warn_numpy_data_promotion:
-        np._set_promotion_state("weak_and_warn")
 
 
 def pytest_collection_modifyitems(config, items):
@@ -50,14 +30,11 @@ def pytest_collection_modifyitems(config, items):
 
     # our marks for tests to be skipped by default
     skip_marks = {
-        "rigetti_integration": pytest.mark.skip(reason="need --rigetti-integration option to run"),
         "slow": pytest.mark.skip(reason="need --enable-slow-tests option to run"),
         "weekly": pytest.mark.skip(reason='only run by weekly automation'),
     }
 
     # drop skip_marks for tests enabled by command line options
-    if config.option.rigetti_integration:
-        del skip_marks["rigetti_integration"]  # pragma: no cover
     if config.option.enable_slow_tests:
         del skip_marks["slow"]  # pragma: no cover
     skip_keywords = frozenset(skip_marks.keys())

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import AbstractSet, Any, TYPE_CHECKING
 
 import sympy
@@ -35,7 +37,7 @@ class PeriodicValue:
     interval.
     """
 
-    def __init__(self, value: 'cirq.TParamVal', period: 'cirq.TParamVal'):
+    def __init__(self, value: cirq.TParamVal, period: cirq.TParamVal):
         """Initializes the equivalence class.
 
         Args:
@@ -99,9 +101,7 @@ class PeriodicValue:
 
         return parameter_names(self.value) | parameter_names(self.period)
 
-    def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'PeriodicValue':
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> PeriodicValue:
         # HACK: Avoids circular dependencies.
         from cirq.protocols import resolve_parameters
 

@@ -11,9 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """A testing class with utilities for checking linear algebra."""
 
-from typing import Optional, TYPE_CHECKING
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -24,7 +27,7 @@ if TYPE_CHECKING:
 
 
 def random_superposition(
-    dim: int, *, random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+    dim: int, *, random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None
 ) -> np.ndarray:
     """Returns a random unit-length vector from the uniform distribution.
 
@@ -46,7 +49,7 @@ def random_superposition(
 
 
 def random_density_matrix(
-    dim: int, *, random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+    dim: int, *, random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None
 ) -> np.ndarray:
     """Returns a random density matrix distributed with Hilbert-Schmidt measure.
 
@@ -68,9 +71,7 @@ def random_density_matrix(
     return mat / np.trace(mat)
 
 
-def random_unitary(
-    dim: int, *, random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
-) -> np.ndarray:
+def random_unitary(dim: int, *, random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None) -> np.ndarray:
     """Returns a random unitary matrix distributed with Haar measure.
 
     Args:
@@ -93,7 +94,7 @@ def random_unitary(
 
 
 def random_orthogonal(
-    dim: int, *, random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+    dim: int, *, random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None
 ) -> np.ndarray:
     """Returns a random orthogonal matrix distributed with Haar measure.
 
@@ -119,7 +120,7 @@ def random_orthogonal(
 
 
 def random_special_unitary(
-    dim: int, *, random_state: Optional[np.random.RandomState] = None
+    dim: int, *, random_state: np.random.RandomState | None = None
 ) -> np.ndarray:
     """Returns a random special unitary distributed with Haar measure.
 
@@ -139,7 +140,7 @@ def random_special_unitary(
 
 
 def random_special_orthogonal(
-    dim: int, *, random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+    dim: int, *, random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None
 ) -> np.ndarray:
     """Returns a random special orthogonal matrix distributed with Haar measure.
 
@@ -185,9 +186,7 @@ def assert_allclose_up_to_global_phase(
     Raises:
         AssertionError: The matrices aren't nearly equal up to global phase.
     """
-    # pylint: disable=unused-variable
     __tracebackhide__ = True
-    # pylint: enable=unused-variable
 
     actual, desired = linalg.match_global_phase(actual, desired)
     np.testing.assert_allclose(

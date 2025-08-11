@@ -12,14 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import datetime
-from typing import Mapping
+from typing import Mapping, TYPE_CHECKING
 
 import numpy as np
-import pandas as pd
 
 import cirq
 import cirq_google as cg
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 _DT = datetime.datetime(2022, 4, 1, 1, 23, 45, tzinfo=datetime.timezone.utc)
 
@@ -82,7 +86,7 @@ def test_engine_result_eq():
 
 class MyResult(cirq.Result):
     @property
-    def params(self) -> 'cirq.ParamResolver':
+    def params(self) -> cirq.ParamResolver:
         return cirq.ParamResolver()
 
     @property

@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Tests for Density Matrix Plotter."""
+
+from __future__ import annotations
 
 import numpy as np
 import pytest
@@ -24,7 +27,7 @@ from cirq.vis.density_matrix import _plot_element_of_density_matrix, plot_densit
 @pytest.mark.usefixtures('closefigures')
 @pytest.mark.parametrize('show_text', [True, False])
 @pytest.mark.parametrize('size', [2, 4, 8, 16])
-def test_density_matrix_plotter(size, show_text):
+def test_density_matrix_plotter(size, show_text) -> None:
     matrix = cirq.testing.random_density_matrix(size)
     # Check that the title shows back up
     ax = plot_density_matrix(matrix, show_text=show_text, title='Test Density Matrix Plot')
@@ -48,16 +51,16 @@ def test_density_matrix_plotter(size, show_text):
 @pytest.mark.usefixtures('closefigures')
 @pytest.mark.parametrize('show_text', [True, False])
 @pytest.mark.parametrize('size', [2, 4, 8, 16])
-def test_density_matrix_circle_rectangle_sizes(size, show_text):
+def test_density_matrix_circle_rectangle_sizes(size, show_text) -> None:
     matrix = cirq.testing.random_density_matrix(size)
     ax = plot_density_matrix(matrix, show_text=show_text, title='Test Density Matrix Plot')
     # Check that the radius of all the circles in the matrix is correct
-    circles = [c for c in ax.get_children() if isinstance(c, patches.Circle)]
-    mean_radius = np.mean([c.radius for c in circles if c.fill])
+    circle_list = [c for c in ax.get_children() if isinstance(c, patches.Circle)]
+    mean_radius = np.mean([c.radius for c in circle_list if c.fill])
     mean_value = np.mean(np.abs(matrix))
-    circles = np.array(sorted(circles, key=lambda x: (x.fill, x.center[0], -x.center[1]))).reshape(
-        (2, size, size)
-    )
+    circles = np.array(
+        sorted(circle_list, key=lambda x: (x.fill, x.center[0], -x.center[1]))
+    ).reshape((2, size, size))
     for i in range(size):
         for j in range(size):
             assert np.isclose(
@@ -65,15 +68,15 @@ def test_density_matrix_circle_rectangle_sizes(size, show_text):
             )
 
     # Check that all the rectangles are of the right height, and only on the diagonal elements
-    rects = [
+    rect_list = [
         r
         for r in ax.get_children()
         if isinstance(r, patches.Rectangle) and r.get_alpha() is not None
     ]
-    assert len(rects) == size
-    mean_size = np.mean([r.get_height() for r in rects])
+    assert len(rect_list) == size
+    mean_size = np.mean([r.get_height() for r in rect_list])
     mean_value = np.trace(np.abs(matrix)) / size
-    rects = np.array(sorted(rects, key=lambda x: x.get_x()))
+    rects = np.array(sorted(rect_list, key=lambda x: x.get_x()))
     for i in range(size):
         # Ensuring that the rectangle is the right height
         assert np.isclose(np.abs(matrix[i, i]) * mean_size / mean_value, rects[i].get_height())
@@ -90,7 +93,7 @@ def test_density_matrix_circle_rectangle_sizes(size, show_text):
 @pytest.mark.usefixtures('closefigures')
 @pytest.mark.parametrize('show_text', [True, False])
 @pytest.mark.parametrize('size', [2, 4, 8, 16])
-def test_density_matrix_sizes_upper_bounds(size, show_text):
+def test_density_matrix_sizes_upper_bounds(size, show_text) -> None:
     matrix = cirq.testing.random_density_matrix(size)
     ax = plot_density_matrix(matrix, show_text=show_text, title='Test Density Matrix Plot')
 
@@ -113,7 +116,7 @@ def test_density_matrix_sizes_upper_bounds(size, show_text):
 @pytest.mark.usefixtures('closefigures')
 @pytest.mark.parametrize('show_rect', [True, False])
 @pytest.mark.parametrize('value', [0.0, 1.0, 0.5 + 0.3j, 0.2 + 0.1j, 0.5 + 0.5j])
-def test_density_element_plot(value, show_rect):
+def test_density_element_plot(value, show_rect) -> None:
     _, ax = plt.subplots(figsize=(10, 10))
     _plot_element_of_density_matrix(
         ax, 0, 0, np.abs(value), np.angle(value), show_rect=False, show_text=False
@@ -122,9 +125,9 @@ def test_density_element_plot(value, show_rect):
     plotted_lines = [c for c in ax.get_children() if isinstance(c, lines.Line2D)]
     assert len(plotted_lines) == 1
     line_position = plotted_lines[0].get_xydata()
-    angle = np.arctan(
-        (line_position[1, 1] - line_position[0, 1]) / (line_position[1, 0] - line_position[0, 0])
-    )
+    numerator = line_position[1, 1] - line_position[0, 1]  # type: ignore
+    denumerator = line_position[1, 0] - line_position[0, 0]  # type: ignore
+    angle = np.arctan(numerator / denumerator)
     assert np.isclose(np.angle(value), angle)
     # Check if the circles are the right size ratio, given the value of the element
     circles_in = [c for c in ax.get_children() if isinstance(c, patches.Circle) and c.fill]
@@ -151,6 +154,6 @@ def test_density_element_plot(value, show_rect):
         np.random.random((4, 8)) * np.exp(np.random.random((4, 8)) * 2 * np.pi * 1j),
     ],
 )
-def test_density_matrix_type_error(matrix):
+def test_density_matrix_type_error(matrix) -> None:
     with pytest.raises(ValueError, match="Incorrect shape for density matrix:*"):
         plot_density_matrix(matrix)

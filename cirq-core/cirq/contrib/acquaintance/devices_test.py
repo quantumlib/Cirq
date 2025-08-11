@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 
 import cirq
 import cirq.contrib.acquaintance as cca
 
 
-def test_acquaintance_device():
+def test_acquaintance_device() -> None:
     with pytest.raises(ValueError):
         op = cirq.X(cirq.NamedQubit('q'))
         cca.UnconstrainedAcquaintanceDevice.validate_operation(op)
@@ -29,6 +31,6 @@ def test_acquaintance_device():
     cca.UnconstrainedAcquaintanceDevice.validate_operation(swap_network(*qubits))
 
 
-def test_not_operation():
+def test_not_operation() -> None:
     with pytest.raises(TypeError):
-        _ = cca.get_acquaintance_size(cirq.LineQubit(1))
+        _ = cca.get_acquaintance_size(cirq.LineQubit(1))  # type: ignore[arg-type]

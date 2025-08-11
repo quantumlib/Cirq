@@ -1,0 +1,12 @@
+[
+  {
+    "cirq_type": "DepolarizingNoiseModel",
+    "depol_prob": 0.1,
+    "prepend": false
+  },
+  {
+    "cirq_type": "DepolarizingNoiseModel",
+    "depol_prob": 0.15,
+    "prepend": true
+  }
+]

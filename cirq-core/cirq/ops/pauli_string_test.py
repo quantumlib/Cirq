@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
 import math
-from typing import List
 
 import numpy as np
 import pytest
@@ -336,9 +337,7 @@ def test_get(qubit_pauli_map):
         assert qubit_pauli_map.get(key) == pauli_string.get(key)
     assert qubit_pauli_map.get(other) is None
     assert pauli_string.get(other) is None
-    # pylint: disable=too-many-function-args
     assert qubit_pauli_map.get(other, 5) == pauli_string.get(other, 5) == 5
-    # pylint: enable=too-many-function-args
 
 
 @pytest.mark.parametrize('qubit_pauli_map', _sample_qubit_pauli_maps())
@@ -721,118 +720,6 @@ def test_to_z_basis_ops_product_state():
     cirq.testing.assert_allclose_up_to_global_phase(
         z_basis_state, expected_state, rtol=1e-7, atol=1e-7
     )
-
-
-def _assert_pass_over(ops: List[cirq.Operation], before: cirq.PauliString, after: cirq.PauliString):
-    assert before.pass_operations_over(ops[::-1]) == after
-    assert after.pass_operations_over(ops, after_to_before=True) == before
-
-
-@pytest.mark.parametrize('shift,sign', itertools.product(range(3), (-1, +1)))
-def test_pass_operations_over_single(shift: int, sign: int):
-    q0, q1 = _make_qubits(2)
-    X, Y, Z = (cirq.Pauli.by_relative_index(pauli, shift) for pauli in (cirq.X, cirq.Y, cirq.Z))
-
-    op0 = cirq.SingleQubitCliffordGate.from_pauli(Y)(q1)
-    ps_before: cirq.PauliString[cirq.Qid] = cirq.PauliString({q0: X}, sign)
-    ps_after = ps_before
-    _assert_pass_over([op0], ps_before, ps_after)
-
-    op0 = cirq.SingleQubitCliffordGate.from_pauli(X)(q0)
-    op1 = cirq.SingleQubitCliffordGate.from_pauli(Y)(q1)
-    ps_before = cirq.PauliString({q0: X, q1: Y}, sign)
-    ps_after = ps_before
-    _assert_pass_over([op0, op1], ps_before, ps_after)
-
-    op0 = cirq.SingleQubitCliffordGate.from_double_map({Z: (X, False), X: (Z, False)})(q0)
-    ps_before = cirq.PauliString({q0: X, q1: Y}, sign)
-    ps_after = cirq.PauliString({q0: Z, q1: Y}, sign)
-    _assert_pass_over([op0], ps_before, ps_after)
-
-    op1 = cirq.SingleQubitCliffordGate.from_pauli(X)(q1)
-    ps_before = cirq.PauliString({q0: X, q1: Y}, sign)
-    ps_after = -ps_before
-    _assert_pass_over([op1], ps_before, ps_after)
-
-    ps_after = cirq.PauliString({q0: Z, q1: Y}, -sign)
-    _assert_pass_over([op0, op1], ps_before, ps_after)
-
-    op0 = cirq.SingleQubitCliffordGate.from_pauli(Z, True)(q0)
-    op1 = cirq.SingleQubitCliffordGate.from_pauli(X, True)(q0)
-    ps_before = cirq.PauliString({q0: X}, sign)
-    ps_after = cirq.PauliString({q0: Y}, -sign)
-    _assert_pass_over([op0, op1], ps_before, ps_after)
-
-
-@pytest.mark.parametrize(
-    'shift,t_or_f1, t_or_f2,neg', itertools.product(range(3), *((True, False),) * 3)
-)
-def test_pass_operations_over_double(shift: int, t_or_f1: bool, t_or_f2: bool, neg: bool):
-    sign = -1 if neg else +1
-    q0, q1, q2 = _make_qubits(3)
-    X, Y, Z = (cirq.Pauli.by_relative_index(pauli, shift) for pauli in (cirq.X, cirq.Y, cirq.Z))
-
-    op0 = cirq.PauliInteractionGate(Z, t_or_f1, X, t_or_f2)(q0, q1)
-    ps_before = cirq.PauliString(qubit_pauli_map={q0: Z, q2: Y}, coefficient=sign)
-    ps_after = cirq.PauliString(qubit_pauli_map={q0: Z, q2: Y}, coefficient=sign)
-    assert_conjugation(ps_before, op0, ps_after, True)
-    _assert_pass_over([op0], ps_before, ps_after)
-
-    op0 = cirq.PauliInteractionGate(Y, t_or_f1, X, t_or_f2)(q0, q1)
-    ps_before = cirq.PauliString({q0: Z, q2: Y}, sign)
-    ps_after = cirq.PauliString({q0: Z, q2: Y, q1: X}, -sign if t_or_f2 else sign)
-    assert_conjugation(ps_before, op0, ps_after, True)
-    _assert_pass_over([op0], ps_before, ps_after)
-
-    op0 = cirq.PauliInteractionGate(Z, t_or_f1, X, t_or_f2)(q0, q1)
-    ps_before = cirq.PauliString({q0: Z, q1: Y}, sign)
-    ps_after = cirq.PauliString({q1: Y}, -sign if t_or_f1 else sign)
-    assert_conjugation(ps_before, op0, ps_after, True)
-    _assert_pass_over([op0], ps_before, ps_after)
-
-    op0 = cirq.PauliInteractionGate(Y, t_or_f1, X, t_or_f2)(q0, q1)
-    ps_before = cirq.PauliString({q0: Z, q1: Y}, sign)
-    ps_after = cirq.PauliString({q0: X, q1: Z}, -1 if neg ^ t_or_f1 ^ t_or_f2 else +1)
-    assert_conjugation(ps_before, op0, ps_after, True)
-    _assert_pass_over([op0], ps_before, ps_after)
-
-    op0 = cirq.PauliInteractionGate(X, t_or_f1, X, t_or_f2)(q0, q1)
-    ps_before = cirq.PauliString({q0: Z, q1: Y}, sign)
-    ps_after = cirq.PauliString({q0: Y, q1: Z}, +1 if neg ^ t_or_f1 ^ t_or_f2 else -1)
-    assert_conjugation(ps_before, op0, ps_after, True)
-    _assert_pass_over([op0], ps_before, ps_after)
-
-
-def test_pass_operations_over_cz():
-    q0, q1 = _make_qubits(2)
-    op0 = cirq.CZ(q0, q1)
-    ps_before = cirq.PauliString({q0: cirq.Z, q1: cirq.Y})
-    ps_after = cirq.PauliString({q1: cirq.Y})
-    _assert_pass_over([op0], ps_before, ps_after)
-
-
-def test_pass_operations_over_no_common_qubits():
-    class ExampleGate(cirq.testing.SingleQubitGate):
-
-        def _decompose_(self, qubits):
-            return cirq.X(qubits[0])
-
-    q0, q1 = _make_qubits(2)
-    op0 = ExampleGate()(q1)
-    ps_before = cirq.PauliString({q0: cirq.Z})
-    ps_after = cirq.PauliString({q0: cirq.Z})
-    _assert_pass_over([op0], ps_before, ps_after)
-
-
-def test_pass_unsupported_operations_over():
-    (q0,) = _make_qubits(1)
-    pauli_string = cirq.PauliString({q0: cirq.X})
-    with pytest.raises(
-        ValueError,
-        match='Clifford Gate can only be constructed from the operations'
-        ' that has stabilizer effect.',
-    ):
-        pauli_string.pass_operations_over([cirq.T(q0)])
 
 
 def test_with_qubits():
@@ -1637,40 +1524,6 @@ def test_conjugated_by_ordering():
     assert out1 == out2 == cirq.X(a) * cirq.Z(b)
 
 
-def test_pass_operations_over_ordering():
-    class OrderSensitiveGate(cirq.Gate):
-        def num_qubits(self):
-            return 2
-
-        def _decompose_(self, qubits):
-            return [cirq.Y(qubits[0]) ** -0.5, cirq.CNOT(*qubits)]
-
-    a, b = cirq.LineQubit.range(2)
-    inp = cirq.Z(b)
-    out1 = inp.pass_operations_over(OrderSensitiveGate().on(a, b))
-    out2 = inp.pass_operations_over([cirq.CNOT(a, b), cirq.Y(a) ** -0.5])
-    out3 = inp.pass_operations_over([cirq.CNOT(a, b)]).pass_operations_over([cirq.Y(a) ** -0.5])
-    assert out1 == out2 == out3 == cirq.X(a) * cirq.Z(b)
-
-
-def test_pass_operations_over_ordering_reversed():
-    class OrderSensitiveGate(cirq.Gate):
-        def num_qubits(self):
-            return 2
-
-        def _decompose_(self, qubits):
-            return [cirq.Y(qubits[0]) ** -0.5, cirq.CNOT(*qubits)]
-
-    a, b = cirq.LineQubit.range(2)
-    inp = cirq.X(a) * cirq.Z(b)
-    out1 = inp.pass_operations_over(OrderSensitiveGate().on(a, b), after_to_before=True)
-    out2 = inp.pass_operations_over([cirq.Y(a) ** -0.5, cirq.CNOT(a, b)], after_to_before=True)
-    out3 = inp.pass_operations_over([cirq.Y(a) ** -0.5], after_to_before=True).pass_operations_over(
-        [cirq.CNOT(a, b)], after_to_before=True
-    )
-    assert out1 == out2 == out3 == cirq.Z(b)
-
-
 def test_pretty_print():
     a, b, c = cirq.LineQubit.range(3)
     result = cirq.PauliString({a: 'x', b: 'y', c: 'z'})
@@ -1693,7 +1546,6 @@ def test_pretty_print():
     assert p.text_pretty == 'cirq.PauliString(...)'
 
 
-# pylint: disable=line-too-long
 def test_circuit_diagram_info():
     a, b, c = cirq.LineQubit.range(3)
 
@@ -1714,11 +1566,8 @@ def test_circuit_diagram_info():
 1: ───────────────────────────────────────┼─────────────────Y─────────────────PauliString(-iY)───Y───────────────────────────────
                                           │
 2: ───────────────────────────────────────Z──────────────────────────────────────────────────────────────────────────────────────
-        """,
+        """,  # noqa: E501
     )
-
-
-# pylint: enable=line-too-long
 
 
 def test_mutable_pauli_string_init_raises():
@@ -1865,6 +1714,9 @@ def test_mutable_pauli_string_inplace_conjugate_by():
         def _decompose_(self):
             return []
 
+        def __pow__(self, power):
+            return []
+
     # No-ops
     p2 = p.inplace_after(cirq.global_phase_operation(1j))
     assert p2 is p and p == cirq.X(a)
@@ -1974,6 +1826,14 @@ def test_mutable_pauli_string_inplace_conjugate_by():
     p = cirq.MutablePauliString(cirq.X(a))
     p2 = p.inplace_after(cirq.PauliInteractionGate(cirq.Z, True, cirq.Y, False).on(a, b))
     assert p2 is p and p == cirq.X(a) * cirq.Y(b)
+
+
+def test_mps_inplace_after_clifford_gate_type():
+    q = cirq.LineQubit(0)
+
+    mps = cirq.MutablePauliString(cirq.X(q))
+    mps2 = mps.inplace_after(cirq.CliffordGate.from_op_list([cirq.H(q)], [q]).on(q))
+    assert mps2 is mps and mps == cirq.Z(q)
 
 
 def test_after_before_vs_conjugate_by():
@@ -2137,3 +1997,31 @@ def test_resolve(resolve_fn):
     pst = cirq.PauliString({q: 'x'}, coefficient=t)
     ps1 = cirq.PauliString({q: 'x'}, coefficient=1j)
     assert resolve_fn(pst, {'t': 1j}) == ps1
+
+
+@pytest.mark.parametrize(
+    'gate1,gate2',
+    [
+        (cirq.I, cirq.I),
+        (cirq.I, cirq.X),
+        (cirq.I, cirq.Y),
+        (cirq.I, cirq.Z),
+        (cirq.X, cirq.I),
+        (cirq.Y, cirq.I),
+        (cirq.Z, cirq.I),
+    ],
+    ids=str,
+)
+def test_pauli_ops_identity_gate_operation(gate1: cirq.Pauli, gate2: cirq.Pauli) -> None:
+    # TODO: Issue #7280 - Support addition and subtraction of identity gate operations.
+    if gate1 == gate2 == cirq.I:
+        pytest.skip('Not yet implemented per #7280')
+    q = cirq.LineQubit(0)
+    pauli1, pauli2 = gate1.on(q), gate2.on(q)
+    unitary1, unitary2 = cirq.unitary(gate1), cirq.unitary(gate2)
+    addition = pauli1 + pauli2
+    assert isinstance(addition, cirq.PauliSum)
+    assert np.array_equal(addition.matrix(), unitary1 + unitary2)
+    subtraction = pauli1 - pauli2
+    assert isinstance(subtraction, cirq.PauliSum)
+    assert np.array_equal(subtraction.matrix(), unitary1 - unitary2)

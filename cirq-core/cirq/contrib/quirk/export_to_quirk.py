@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import json
 import urllib.parse
-from typing import Any, cast, Iterable, List, Tuple
+from typing import Any, cast, Iterable
 
 from cirq import circuits, devices, ops, protocols
 from cirq.contrib.quirk.linearize_circuit import linearize_circuit_qubits
@@ -40,7 +42,7 @@ def _try_convert_to_quirk_gate(op: ops.Operation, prefer_unknown_gate_to_failure
 
 def _to_quirk_cols(
     op: ops.Operation, prefer_unknown_gate_to_failure: bool
-) -> Iterable[Tuple[List[Any], bool]]:
+) -> Iterable[tuple[list[Any], bool]]:
     gate = _try_convert_to_quirk_gate(op, prefer_unknown_gate_to_failure)
     qubits = cast(Iterable[devices.LineQubit], op.qubits)
 
@@ -76,7 +78,7 @@ def circuit_to_quirk_url(
     circuit = circuit.copy()
     linearize_circuit_qubits(circuit)
 
-    cols: List[List[Any]] = []
+    cols: list[list[Any]] = []
     for moment in circuit:
         can_merges = []
         for op in moment.operations:

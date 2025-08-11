@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 
 import cirq
@@ -19,7 +21,7 @@ from cirq import quirk_url_to_circuit
 from cirq.interop.quirk.cells.testing import assert_url_to_circuit_returns
 
 
-def test_swap():
+def test_swap() -> None:
     a, b, c = cirq.LineQubit.range(3)
     assert_url_to_circuit_returns('{"cols":[["Swap","Swap"]]}', cirq.Circuit(cirq.SWAP(a, b)))
     assert_url_to_circuit_returns(
@@ -34,7 +36,7 @@ def test_swap():
         )
 
 
-def test_controlled_swap():
+def test_controlled_swap() -> None:
     a, b, c, d = cirq.LineQubit.range(4)
     assert_url_to_circuit_returns(
         '{"cols":[["Swap","•","Swap"]]}', cirq.Circuit(cirq.SWAP(a, c).controlled_by(b))
@@ -44,7 +46,7 @@ def test_controlled_swap():
     )
 
 
-def test_with_line_qubits_mapped_to():
+def test_with_line_qubits_mapped_to() -> None:
     a, b, c, d = cirq.LineQubit.range(4)
     a2, b2, c2, d2 = cirq.NamedQubit.range(4, prefix='q')
     cell = cirq.interop.quirk.cells.swap_cell.SwapCell(qubits=[a, b], controls=[c, d])
@@ -53,7 +55,7 @@ def test_with_line_qubits_mapped_to():
     assert cell.with_line_qubits_mapped_to([a2, b2, c2, d2]) == mapped_cell
 
 
-def test_repr():
+def test_repr() -> None:
     a, b, c, d = cirq.LineQubit.range(4)
     cirq.testing.assert_equivalent_repr(
         cirq.interop.quirk.cells.swap_cell.SwapCell(qubits=[a, b], controls=[c, d])

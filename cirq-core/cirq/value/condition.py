@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import abc
 import dataclasses
-from typing import Any, Dict, FrozenSet, Mapping, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Mapping, TYPE_CHECKING
 
 import attrs
 import sympy
@@ -32,15 +34,15 @@ class Condition(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def keys(self) -> Tuple['cirq.MeasurementKey', ...]:
+    def keys(self) -> tuple[cirq.MeasurementKey, ...]:
         """Gets the control keys."""
 
     @abc.abstractmethod
-    def replace_key(self, current: 'cirq.MeasurementKey', replacement: 'cirq.MeasurementKey'):
+    def replace_key(self, current: cirq.MeasurementKey, replacement: cirq.MeasurementKey):
         """Replaces the control keys."""
 
     @abc.abstractmethod
-    def resolve(self, classical_data: 'cirq.ClassicalDataStoreReader') -> bool:
+    def resolve(self, classical_data: cirq.ClassicalDataStoreReader) -> bool:
         """Resolves the condition based on the measurements."""
 
     @property
@@ -48,24 +50,24 @@ class Condition(abc.ABC):
     def qasm(self):
         """Returns the qasm of this condition."""
 
-    def _qasm_(self, args: 'cirq.QasmArgs', **kwargs) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, **kwargs) -> str | None:
         return self.qasm
 
-    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]) -> 'cirq.Condition':
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]) -> cirq.Condition:
         condition = self
         for k in self.keys:
             condition = condition.replace_key(k, mkp.with_measurement_key_mapping(k, key_map))
         return condition
 
-    def _with_key_path_prefix_(self, path: Tuple[str, ...]) -> 'cirq.Condition':
+    def _with_key_path_prefix_(self, path: tuple[str, ...]) -> cirq.Condition:
         condition = self
         for k in self.keys:
             condition = condition.replace_key(k, mkp.with_key_path_prefix(k, path))
         return condition
 
     def _with_rescoped_keys_(
-        self, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey']
-    ) -> 'cirq.Condition':
+        self, path: tuple[str, ...], bindable_keys: frozenset[cirq.MeasurementKey]
+    ) -> cirq.Condition:
         condition = self
         for key in self.keys:
             for i in range(len(path) + 1):
@@ -85,14 +87,14 @@ class KeyCondition(Condition):
     time of resolution.
     """
 
-    key: 'cirq.MeasurementKey'
+    key: cirq.MeasurementKey
     index: int = -1
 
     @property
     def keys(self):
         return (self.key,)
 
-    def replace_key(self, current: 'cirq.MeasurementKey', replacement: 'cirq.MeasurementKey'):
+    def replace_key(self, current: cirq.MeasurementKey, replacement: cirq.MeasurementKey):
         return KeyCondition(replacement) if self.key == current else self
 
     def __str__(self):
@@ -103,7 +105,7 @@ class KeyCondition(Condition):
             return f'cirq.KeyCondition({self.key!r}, {self.index})'
         return f'cirq.KeyCondition({self.key!r})'
 
-    def resolve(self, classical_data: 'cirq.ClassicalDataStoreReader') -> bool:
+    def resolve(self, classical_data: cirq.ClassicalDataStoreReader) -> bool:
         if self.key not in classical_data.keys():
             raise ValueError(f'Measurement key {self.key} missing when testing classical control')
         return classical_data.get_int(self.key, self.index) != 0
@@ -119,7 +121,7 @@ class KeyCondition(Condition):
     def qasm(self):
         raise ValueError('QASM is defined only for SympyConditions of type key == constant.')
 
-    def _qasm_(self, args: 'cirq.QasmArgs', **kwargs) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, **kwargs) -> str | None:
         args.validate_version('2.0', '3.0')
         key_str = str(self.key)
         if key_str not in args.meas_key_id_map:
@@ -144,7 +146,7 @@ class BitMaskKeyCondition(Condition):
     after taking the bitwise and with a bitmask.
 
     Examples:
-        - BitMaskKeycondition('a') -> a != 0
+        - BitMaskKeyCondition('a') -> a != 0
         - BitMaskKeyCondition('a', bitmask=13) -> (a & 13) != 0
         - BitMaskKeyCondition('a', bitmask=13, target_value=9) -> (a & 13) != 9
         - BitMaskKeyCondition('a', bitmask=13, target_value=9, equal_target=True) -> (a & 13) == 9
@@ -152,7 +154,7 @@ class BitMaskKeyCondition(Condition):
         - BitMaskKeyCondition.create_not_equal_mask('a', 13) -> (a & 13) != 13
 
     The bits in the bitmask have the same order as the qubits passed to `cirq.measure(...)`. That's
-    the most significant bit corresponds to the the first (left most) qubit.
+    the most significant bit corresponds to the first (left most) qubit.
 
     Attributes:
         - key: Measurement key.
@@ -162,7 +164,7 @@ class BitMaskKeyCondition(Condition):
         - bitmask: Optional bitmask to apply before doing the comparison.
     """
 
-    key: 'cirq.MeasurementKey' = attrs.field(
+    key: cirq.MeasurementKey = attrs.field(
         converter=lambda x: (
             x
             if isinstance(x, measurement_key.MeasurementKey)
@@ -172,7 +174,7 @@ class BitMaskKeyCondition(Condition):
     index: int = -1
     target_value: int = 0
     equal_target: bool = False
-    bitmask: Optional[int] = None
+    bitmask: int | None = None
 
     @property
     def keys(self):
@@ -180,8 +182,8 @@ class BitMaskKeyCondition(Condition):
 
     @staticmethod
     def create_equal_mask(
-        key: 'cirq.MeasurementKey', bitmask: int, *, index: int = -1
-    ) -> 'BitMaskKeyCondition':
+        key: cirq.MeasurementKey, bitmask: int, *, index: int = -1
+    ) -> BitMaskKeyCondition:
         """Creates a condition that evaluates (meas & bitmask) == bitmask."""
         return BitMaskKeyCondition(
             key, index, target_value=bitmask, equal_target=True, bitmask=bitmask
@@ -189,14 +191,14 @@ class BitMaskKeyCondition(Condition):
 
     @staticmethod
     def create_not_equal_mask(
-        key: 'cirq.MeasurementKey', bitmask: int, *, index: int = -1
-    ) -> 'BitMaskKeyCondition':
+        key: cirq.MeasurementKey, bitmask: int, *, index: int = -1
+    ) -> BitMaskKeyCondition:
         """Creates a condition that evaluates (meas & bitmask) != bitmask."""
         return BitMaskKeyCondition(
             key, index, target_value=bitmask, equal_target=False, bitmask=bitmask
         )
 
-    def replace_key(self, current: 'cirq.MeasurementKey', replacement: 'cirq.MeasurementKey'):
+    def replace_key(self, current: cirq.MeasurementKey, replacement: cirq.MeasurementKey):
         return BitMaskKeyCondition(replacement) if self.key == current else self
 
     def __str__(self):
@@ -218,7 +220,7 @@ class BitMaskKeyCondition(Condition):
         parameters = ', '.join(f'{f.name}={repr(values[f.name])}' for f in attrs.fields(type(self)))
         return f'cirq.BitMaskKeyCondition({parameters})'
 
-    def resolve(self, classical_data: 'cirq.ClassicalDataStoreReader') -> bool:
+    def resolve(self, classical_data: cirq.ClassicalDataStoreReader) -> bool:
         if self.key not in classical_data.keys():
             raise ValueError(f'Measurement key {self.key} missing when testing classical control')
         value = classical_data.get_int(self.key, self.index)
@@ -269,7 +271,7 @@ class SympyCondition(Condition):
             # keep the former here.
         )
 
-    def replace_key(self, current: 'cirq.MeasurementKey', replacement: 'cirq.MeasurementKey'):
+    def replace_key(self, current: cirq.MeasurementKey, replacement: cirq.MeasurementKey):
         return SympyCondition(self.expr.subs({str(current): sympy.Symbol(str(replacement))}))
 
     def __str__(self):
@@ -278,12 +280,12 @@ class SympyCondition(Condition):
     def __repr__(self):
         return f'cirq.SympyCondition({proper_repr(self.expr)})'
 
-    def resolve(self, classical_data: 'cirq.ClassicalDataStoreReader') -> bool:
+    def resolve(self, classical_data: cirq.ClassicalDataStoreReader) -> bool:
         missing = [str(k) for k in self.keys if k not in classical_data.keys()]
         if missing:
             raise ValueError(f'Measurement keys {missing} missing when testing classical control')
 
-        replacements: Dict[str, Any] = {}
+        replacements: dict[str, Any] = {}
         for symbol in self.expr.free_symbols:
             if isinstance(symbol, sympy.Symbol):
                 name = symbol.name

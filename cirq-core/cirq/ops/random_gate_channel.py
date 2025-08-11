@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numbers
-from typing import AbstractSet, Any, cast, Dict, Optional, SupportsFloat, Tuple, TYPE_CHECKING
+from typing import AbstractSet, Any, cast, SupportsFloat, TYPE_CHECKING
 
 import numpy as np
 
@@ -29,7 +31,7 @@ if TYPE_CHECKING:
 class RandomGateChannel(raw_types.Gate):
     """Applies a sub gate with some probability."""
 
-    def __init__(self, *, sub_gate: 'cirq.Gate', probability: 'cirq.TParamVal'):
+    def __init__(self, *, sub_gate: cirq.Gate, probability: cirq.TParamVal):
         if (
             isinstance(probability, numbers.Number)
             and not 0 <= float(cast(SupportsFloat, probability)) <= 1
@@ -45,14 +47,14 @@ class RandomGateChannel(raw_types.Gate):
             self._sub_gate = self.sub_gate.sub_gate
 
     @property
-    def sub_gate(self) -> 'cirq.Gate':
+    def sub_gate(self) -> cirq.Gate:
         return self._sub_gate
 
     @property
-    def probability(self) -> 'cirq.TParamVal':
+    def probability(self) -> cirq.TParamVal:
         return self._probability
 
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         return protocols.qid_shape(self.sub_gate)
 
     def _value_equality_values_(self):
@@ -78,8 +80,8 @@ class RandomGateChannel(raw_types.Gate):
         )
 
     def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'RandomGateChannel':
+        self, resolver: cirq.ParamResolver, recursive: bool
+    ) -> RandomGateChannel:
         return RandomGateChannel(
             sub_gate=protocols.resolve_parameters(self.sub_gate, resolver, recursive),
             probability=protocols.resolve_parameters(self.probability, resolver, recursive),
@@ -121,7 +123,7 @@ class RandomGateChannel(raw_types.Gate):
             result *= float(self.probability)
         return result
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['sub_gate', 'probability'])
 
     @classmethod
@@ -129,8 +131,8 @@ class RandomGateChannel(raw_types.Gate):
         return cls(sub_gate=sub_gate, probability=probability)
 
     def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> Optional['cirq.CircuitDiagramInfo']:
+        self, args: cirq.CircuitDiagramInfoArgs
+    ) -> cirq.CircuitDiagramInfo | None:
         result = protocols.circuit_diagram_info(self.sub_gate, args, None)
         if result is None:
             return None

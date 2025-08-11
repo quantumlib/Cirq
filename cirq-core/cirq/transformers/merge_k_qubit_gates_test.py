@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# pylint: skip-file
-
-from typing import List
+from __future__ import annotations
 
 import numpy as np
 import pytest
@@ -24,7 +22,7 @@ import cirq
 
 def assert_optimizes(optimized: cirq.AbstractCircuit, expected: cirq.AbstractCircuit):
     # Ignore differences that would be caught by follow-up optimizations.
-    followup_transformers: List[cirq.TRANSFORMER] = [
+    followup_transformers: list[cirq.TRANSFORMER] = [
         cirq.drop_negligible_operations,
         cirq.drop_empty_moments,
     ]
@@ -35,7 +33,7 @@ def assert_optimizes(optimized: cirq.AbstractCircuit, expected: cirq.AbstractCir
     cirq.testing.assert_same_circuits(optimized, expected)
 
 
-def test_merge_1q_unitaries():
+def test_merge_1q_unitaries() -> None:
     q, q2 = cirq.LineQubit.range(2)
     # 1. Combines trivial 1q sequence.
     c = cirq.Circuit(cirq.X(q) ** 0.5, cirq.Z(q) ** 0.5, cirq.X(q) ** -0.5)
@@ -55,7 +53,7 @@ def test_merge_1q_unitaries():
     assert isinstance(c[-1][q].gate, cirq.MatrixGate)
 
 
-def test_respects_nocompile_tags():
+def test_respects_nocompile_tags() -> None:
     q = cirq.NamedQubit("q")
     c = cirq.Circuit(
         [cirq.Z(q), cirq.H(q), cirq.X(q), cirq.H(q), cirq.X(q).with_tags("nocompile"), cirq.H(q)]
@@ -68,12 +66,12 @@ def test_respects_nocompile_tags():
     assert isinstance(c[-1][q].gate, cirq.MatrixGate)
 
 
-def test_ignores_2qubit_target():
+def test_ignores_2qubit_target() -> None:
     c = cirq.Circuit(cirq.CZ(*cirq.LineQubit.range(2)))
     assert_optimizes(optimized=cirq.merge_k_qubit_unitaries(c, k=1), expected=c)
 
 
-def test_ignore_unsupported_gate():
+def test_ignore_unsupported_gate() -> None:
     class UnsupportedExample(cirq.testing.SingleQubitGate):
         pass
 
@@ -81,7 +79,7 @@ def test_ignore_unsupported_gate():
     assert_optimizes(optimized=cirq.merge_k_qubit_unitaries(c, k=1), expected=c)
 
 
-def test_1q_rewrite():
+def test_1q_rewrite() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.X(q0), cirq.Y(q0), cirq.X(q1), cirq.CZ(q0, q1), cirq.Y(q1), cirq.measure(q0, q1)
@@ -96,12 +94,12 @@ def test_1q_rewrite():
     )
 
 
-def test_merge_k_qubit_unitaries_raises():
+def test_merge_k_qubit_unitaries_raises() -> None:
     with pytest.raises(ValueError, match="k should be greater than or equal to 1"):
         _ = cirq.merge_k_qubit_unitaries(cirq.Circuit())
 
 
-def test_merge_complex_circuit_preserving_moment_structure():
+def test_merge_complex_circuit_preserving_moment_structure() -> None:
     q = cirq.LineQubit.range(3)
     c_orig = cirq.Circuit(
         cirq.Moment(cirq.H.on_each(*q)),
@@ -133,7 +131,7 @@ a: ═════════════════════════�
     )
     component_id = 0
 
-    def rewriter_merge_to_circuit_op(op: 'cirq.CircuitOperation') -> 'cirq.OP_TREE':
+    def rewriter_merge_to_circuit_op(op: cirq.CircuitOperation) -> cirq.OP_TREE:
         nonlocal component_id
         component_id = component_id + 1
         return op.with_tags(f'{component_id}')
@@ -155,12 +153,12 @@ a: ═════════════════════════�
       │                                                                   │                                                       ║
 2: ───#2──────────────────────────────────────────────────────────────────X───────────[ 2: ───Z─── ][3]───M───────────────────────╫───
                                                                                                           ║                       ║
-a: ═══════════════════════════════════════════════════════════════════════════════════════════════════════V═══════════════════════@═══''',
+a: ═══════════════════════════════════════════════════════════════════════════════════════════════════════V═══════════════════════@═══''',  # noqa: E501
     )
 
     component_id = 0
 
-    def rewriter_replace_with_decomp(op: 'cirq.CircuitOperation') -> 'cirq.OP_TREE':
+    def rewriter_replace_with_decomp(op: cirq.CircuitOperation) -> cirq.OP_TREE:
         nonlocal component_id
         component_id = component_id + 1
         tag = f'{component_id}'
@@ -185,11 +183,11 @@ a: ═════════════════════════�
              │                                            │                                                 ║
 2: ───T[1]───iSwap^0.5───T[1]─────────────────────────────X───────────T[3]────────M─────────────────────────╫───
                                                                                   ║                         ║
-a: ═══════════════════════════════════════════════════════════════════════════════V═════════════════════════@═══''',
+a: ═══════════════════════════════════════════════════════════════════════════════V═════════════════════════@═══''',  # noqa: E501
     )
 
 
-def test_merge_k_qubit_unitaries_deep():
+def test_merge_k_qubit_unitaries_deep() -> None:
     q = cirq.LineQubit.range(2)
     h_cz_y = [cirq.H(q[0]), cirq.CZ(*q), cirq.Y(q[1])]
     c_orig = cirq.Circuit(
@@ -220,7 +218,7 @@ def test_merge_k_qubit_unitaries_deep():
 
     component_id = 0
 
-    def rewriter_merge_to_circuit_op(op: 'cirq.CircuitOperation') -> 'cirq.OP_TREE':
+    def rewriter_merge_to_circuit_op(op: cirq.CircuitOperation) -> cirq.OP_TREE:
         nonlocal component_id
         component_id = component_id + 1
         return op.with_tags(f'{component_id}')
@@ -251,7 +249,7 @@ def test_merge_k_qubit_unitaries_deep():
     cirq.testing.assert_same_circuits(c_new_matrix, c_expected_matrix)
 
 
-def test_merge_k_qubit_unitaries_deep_recurses_on_large_circuit_op():
+def test_merge_k_qubit_unitaries_deep_recurses_on_large_circuit_op() -> None:
     q = cirq.LineQubit.range(2)
     c_orig = cirq.Circuit(
         cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q[0]), cirq.H(q[0]), cirq.CNOT(*q)))

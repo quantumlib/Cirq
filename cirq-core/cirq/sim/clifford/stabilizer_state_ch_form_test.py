@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
@@ -22,7 +24,7 @@ import cirq.testing
 # Github issue: https://github.com/quantumlib/Cirq/issues/3021
 
 
-def test_initial_state():
+def test_initial_state() -> None:
     with pytest.raises(ValueError, match='Out of range'):
         _ = cirq.StabilizerStateChForm(initial_state=-31, num_qubits=5)
     with pytest.raises(ValueError, match='Out of range'):
@@ -33,7 +35,7 @@ def test_initial_state():
     np.testing.assert_allclose(state.state_vector(), expected_state_vector)
 
 
-def test_run():
+def test_run() -> None:
     (q0, q1, q2) = (cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2))
 
     """

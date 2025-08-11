@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Collection, Dict, List, Optional, Set, Tuple
+from __future__ import annotations
+
+from typing import cast, Collection
 
 import cirq
 from cirq_google.api import v2
@@ -25,7 +27,7 @@ _2_QUBIT_TARGET_SET = "2_qubit_targets"
 _MEAS_TARGET_SET = "meas_targets"
 
 
-def _parse_device(s: str) -> Tuple[List[cirq.GridQubit], Dict[str, Set[cirq.GridQubit]]]:
+def _parse_device(s: str) -> tuple[list[cirq.GridQubit], dict[str, set[cirq.GridQubit]]]:
     """Parse ASCIIart device layout into info about qubits and connectivity.
 
     Args:
@@ -41,8 +43,8 @@ def _parse_device(s: str) -> Tuple[List[cirq.GridQubit], Dict[str, Set[cirq.Grid
         on that measurement line.
     """
     lines = s.strip().split('\n')
-    qubits: List[cirq.GridQubit] = []
-    measurement_lines: Dict[str, Set[cirq.GridQubit]] = {}
+    qubits: list[cirq.GridQubit] = []
+    measurement_lines: dict[str, set[cirq.GridQubit]] = {}
     for row, line in enumerate(lines):
         for col, c in enumerate(line.strip()):
             if c != '-':
@@ -56,7 +58,7 @@ def _parse_device(s: str) -> Tuple[List[cirq.GridQubit], Dict[str, Set[cirq.Grid
 def _create_grid_device_from_diagram(
     ascii_grid: str,
     gateset: cirq.Gateset,
-    gate_durations: Optional[Dict['cirq.GateFamily', 'cirq.Duration']] = None,
+    gate_durations: dict[cirq.GateFamily, cirq.Duration] | None = None,
 ) -> grid_device.GridDevice:
     """Parse ASCIIart device layout into a GridDevice instance.
 
@@ -73,7 +75,7 @@ def _create_grid_device_from_diagram(
 
     # Create a list of all adjacent pairs on the grid for two-qubit gates.
     qubit_set = frozenset(qubits)
-    pairs: List[Tuple[cirq.GridQubit, cirq.GridQubit]] = []
+    pairs: list[tuple[cirq.GridQubit, cirq.GridQubit]] = []
     for qubit in qubits:
         for neighbor in sorted(qubit.neighbors()):
             if neighbor > qubit and neighbor in qubit_set:
@@ -97,7 +99,7 @@ def populate_qubits_in_device_proto(
 
 
 def populate_qubit_pairs_in_device_proto(
-    pairs: Collection[Tuple[cirq.Qid, cirq.Qid]], out: device_pb2.DeviceSpecification
+    pairs: Collection[tuple[cirq.Qid, cirq.Qid]], out: device_pb2.DeviceSpecification
 ) -> None:
     """Populates `DeviceSpecification.valid_targets` with the device's qubit pairs.
 

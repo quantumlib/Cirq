@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
 import cirq
 
-a = np.array([1])
-b = np.array([1j])
+a = np.array([[1]])
+b = np.array([[1j]])
 
 
 class NoMethod:

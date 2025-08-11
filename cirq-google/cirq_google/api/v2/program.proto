@@ -3,6 +3,7 @@ syntax = "proto3";
 package cirq.google.api.v2;
 
 import "tunits/proto/tunits.proto";
+import "cirq_google/api/v2/ndarrays.proto";
 
 option java_package = "com.google.cirq.google.api.v2";
 option java_outer_classname = "ProgramProto";
@@ -79,6 +80,12 @@ message Circuit {
   // This field is used to reduce size of circuits that contain many
   // repeated moments.
   repeated int32 moment_indices = 3;
+
+  // Deprecated field, do not use.
+  reserved 4;
+  
+  // Indices in the constant table for tags associated with the circuit
+  repeated int32 tag_indices = 5;
 }
 
 // A moment is a collection of operations and circuit operations that operate
@@ -102,6 +109,9 @@ message Moment {
 
   // Deprecated field id, do not use.
   reserved 3;
+  
+  // Indices in the constant table for tags associated with the circuit
+  repeated int32 tag_indices = 5;
 }
 
 // The language in which the program is expressed.
@@ -187,6 +197,19 @@ message ISwapPowGate {
   FloatArg exponent = 1;
 }
 
+// Representation of an iswap-like gate
+// with theta=pi/2 and a non-zero hardware-dependent phi angle
+message ISwapLikeGate {
+  // Original gate, for deserializing faithfully.
+  enum OriginalCirqGate {
+    UNSPECIFIED = 0;
+    SYCAMORE = 1;
+    WILLOW = 2;
+  }
+
+  OriginalCirqGate original_gate = 1;
+}
+
 // Representation of cirq.MeasurementGate
 // i.e. cirq.measure
 message MeasurementGate {
@@ -194,14 +217,39 @@ message MeasurementGate {
   Arg invert_mask = 2;
 }
 
-// Representation of cirq.WAitGate
+// Representation of cirq.WaitGate
 message WaitGate {
   // Duration of the waiting period,
   // serialized to the number of nanoseconds
   FloatArg duration_nanos = 1;
 }
 
+// Representation of cirq.DepolarizingChannel
+message DepolarizingChannel {
+  FloatArg probability = 1;
+  int32 num_qubits = 2;
+}
+
+// Representation of cirq.RandomGateChannel
+message RandomGateChannel {
+  FloatArg probability = 1;
+  Operation sub_gate = 2;
+}
+
+// Representation of noisy channels
+// These should only be used for serialization
+// of noisy circuits for simulation.
+// These channels would generally not be supported
+// by hardware.
+message NoiseChannel {
+  oneof channel_value {
+    DepolarizingChannel depolarizingchannel = 1;
+    RandomGateChannel randomgatechannel = 2;
+  }
+}
+
 // An operation acts on a set of qubits.
+// next available id = 28
 message Operation {
   // Previously deprecated fields.  Do not use.
   reserved 1, 2;
@@ -225,6 +273,8 @@ message Operation {
     HPowGate hpowgate = 20;
     SingleQubitCliffordGate singlequbitcliffordgate = 21;
     ResetGate resetgate = 24;
+    ISwapLikeGate iswaplikegate = 26;
+    NoiseChannel noisechannel = 27;
   }
 
   // Which qubits the operation acts on.
@@ -242,8 +292,8 @@ message Operation {
   // The token can be specified as a string or as a reference to
   // the constant table of the circuit.
   oneof token {
-    string token_value = 4;
-    int32 token_constant_index = 5;
+    string token_value = 4 [deprecated = true];
+    int32 token_constant_index = 5 [deprecated = true];
   }
 
   // To be deprecated
@@ -251,6 +301,11 @@ message Operation {
 
   // Indices in the constant table for tags associated with the operation
   repeated int32 tag_indices = 23;
+
+  // Classical conditions
+  // Note that this condition is not a sympy expression
+  // as it has a relation such as "==", "<" etc
+  repeated Arg conditioned_on = 25;
 }
 
 message DynamicalDecouplingTag {
@@ -290,6 +345,12 @@ message Tag {
     // Uses parameter model to interpolate FSim gate.
     FSimViaModelTag fsim_via_model = 7;
 
+    // Calibration Tag
+    CalibrationTag calibration_tag = 9;
+    
+    // Compress duration to zero, if possible.
+    CompressDurationTag compress_duration = 10;
+
     // Catch-all for all gates that do not fit into the
     // above tags.
     InternalTag internal_tag = 8;
@@ -327,6 +388,16 @@ message NoSyncTag {
     bool remove_all_syncs_after = 4;
   }
 }
+
+// Tag to specify specific override tokens for operations or circuits.
+message CalibrationTag {
+  // Token to serialize
+  string token = 1;
+}
+
+// Tag to specify that hardware should compress the duration to zero
+// if possible.  For instance, in X**0 or PhasedXZGate with zero angles.
+message CompressDurationTag {}
 
 // Tag to represent any internal tags or tags not yet
 // implemented in the proto.
@@ -381,6 +452,7 @@ message Arg {
     string symbol = 2;
     ArgFunction func = 3;
     int32 constant_index = 4;
+    MeasurementKey measurement_key = 5;
   }
 }
 
@@ -397,6 +469,9 @@ message ArgValue {
     tunits.Value value_with_unit = 8;
     bool bool_value = 9;
     bytes bytes_value = 10;
+    Complex complex_value = 11;
+    Tuple tuple_value = 12;
+    NDArray ndarray_value = 13;
   }
 }
 
@@ -416,6 +491,46 @@ message RepeatedString {
 message RepeatedBoolean {
   repeated bool values = 1;
 }
+
+// Representation of a mixed tuple of values
+message Tuple {
+
+  // Original (python) type of the data
+  enum SequenceType {
+    UNSPECIFIED = 0;
+    LIST = 1;
+    TUPLE = 2;
+    SET = 3;
+    FROZENSET = 4;
+  }
+
+  SequenceType sequence_type = 1;
+
+  repeated Arg values = 2;
+}
+
+// Representation of a complex number
+message Complex {
+    double real_value = 1;
+    double imag_value = 2;
+}
+
+message NDArray {
+  oneof arr {
+    Complex128Array complex128_array = 1;
+    Complex64Array complex64_array = 2;
+    Float16Array float16_array = 3;
+    Float32Array float32_array = 4;
+    Float64Array float64_array = 5;
+    Int64Array int64_array = 6;
+    Int32Array int32_array = 7;
+    Int16Array int16_array = 8;
+    Int8Array int8_array = 9;
+    UInt8Array uint8_array = 10;
+    BitArray bit_array = 11;
+  }
+}
+
 
 // A function of arguments. This is an s-expression tree representing
 // mathematically the function being evaluated.
@@ -462,6 +577,15 @@ message CircuitOperation {
   // Map of args in the "inner" circuit (referenced by circuit_constant_index)
   // to args in the "outer" circuit (the one that contains this operation).
   ArgMapping arg_map = 5;
+
+  // Classical conditions
+  // Condition for repeating the circuit until this condition is true.
+  optional Arg repeat_until = 6;
+
+  // Condition for executing the circuit operation only if this condition is true.
+  repeated Arg conditioned_on = 7;
+
+  bool use_repetition_ids = 8;
 }
 
 // A description of the repetitions of a subcircuit. IDs are used as suffixes
@@ -499,6 +623,17 @@ message QubitMapping {
 // A key for matching a measurement event to its results.
 message MeasurementKey {
   string string_key = 1;
+
+  // Used in conditional statements representing the path to the key
+  // in a multi-level circuit (with repeated or nested circuits).
+  // See cirq.MeasurementKey for more details.
+  repeated string path = 2;
+
+  // Used in classical conditions to specify which measurement
+  // should be used if the measurement is repeated.
+  // Specified as a negative number meaning how many measurements ago.
+  // If not specified, default is -1, meaning the last measured value.
+  optional int32 index = 3;
 }
 
 // A mapping of measurement keys from one value to another. All mappings are

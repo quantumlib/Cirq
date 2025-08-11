@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Provides test devices that can validate circuits during a routing procedure."""
+
+from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
@@ -39,7 +42,7 @@ class RoutingTestingDevice(devices.Device):
     def metadata(self) -> devices.DeviceMetadata:
         return self._metadata
 
-    def validate_operation(self, operation: 'cirq.Operation') -> None:
+    def validate_operation(self, operation: cirq.Operation) -> None:
         if not self._metadata.qubit_set.issuperset(operation.qubits):
             raise ValueError(f'Qubits not on device: {operation.qubits!r}.')
 

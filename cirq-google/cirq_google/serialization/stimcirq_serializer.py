@@ -12,12 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, List, Optional, Union
+from __future__ import annotations
 
-import cirq
+from typing import Any, TYPE_CHECKING
+
 from cirq_google.api import v2
 from cirq_google.serialization.arg_func_langs import arg_to_proto
 from cirq_google.serialization.op_serializer import OpSerializer
+
+if TYPE_CHECKING:
+    import cirq
 
 # Package name for stimcirq
 _STIMCIRQ_MODULE = "stimcirq"
@@ -53,15 +57,15 @@ class StimCirqSerializer(OpSerializer):
     def to_proto(
         self,
         op: cirq.Operation,
-        msg: Optional[v2.program_pb2.CircuitOperation] = None,
+        msg: v2.program_pb2.CircuitOperation | None = None,
         *,
-        constants: List[v2.program_pb2.Constant],
-        raw_constants: Dict[Any, int],
+        constants: list[v2.program_pb2.Constant],
+        raw_constants: dict[Any, int],
     ) -> v2.program_pb2.Operation:
         """Returns the stimcirq object as a proto."""
         msg = msg or v2.program_pb2.Operation()
         if getattr(op, "__module__", "").startswith(_STIMCIRQ_MODULE) or op.gate is None:
-            stimcirq_obj: Union[cirq.Operation, cirq.Gate] = op
+            stimcirq_obj: cirq.Operation | cirq.Gate = op
             is_gate = False
         else:
             stimcirq_obj = op.gate

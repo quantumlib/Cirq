@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from unittest import mock
 
 import pylatex
@@ -21,7 +23,7 @@ import cirq.contrib.qcircuit.qcircuit_pdf as qcircuit_pdf
 
 
 @mock.patch.object(pylatex.Document, "generate_pdf")
-def test_qcircuit_pdf(mock_generate_pdf):
+def test_qcircuit_pdf(mock_generate_pdf) -> None:
     circuit = cirq.Circuit(cirq.X(cirq.q(0)), cirq.CZ(cirq.q(0), cirq.q(1)))
     qcircuit_pdf.circuit_to_pdf_using_qcircuit_via_tex(circuit, "/tmp/test_file")
     mock_generate_pdf.assert_called_once_with(

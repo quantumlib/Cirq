@@ -99,7 +99,7 @@ verify a circuit.
 The following example illustrates retrieving the device specification live
 from the engine and then using it to validate a circuit.
 
-```
+```python
 import cirq
 import cirq_google as cg
 

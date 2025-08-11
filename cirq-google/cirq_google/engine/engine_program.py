@@ -12,19 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import datetime
-from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
+from typing import Sequence, TYPE_CHECKING
 
 import duet
-from google.protobuf import any_pb2
 
 import cirq
 from cirq_google.api import v2
-from cirq_google.cloud import quantum
 from cirq_google.engine import abstract_program, engine_client, engine_job
 from cirq_google.serialization import circuit_serializer
 
 if TYPE_CHECKING:
+    from google.protobuf import any_pb2
+
+    import cirq_google.cloud.quantum as quantum
     import cirq_google.engine.engine as engine_base
 
 
@@ -43,8 +46,8 @@ class EngineProgram(abstract_program.AbstractProgram):
         self,
         project_id: str,
         program_id: str,
-        context: 'engine_base.EngineContext',
-        _program: Optional[quantum.QuantumProgram] = None,
+        context: engine_base.EngineContext,
+        _program: quantum.QuantumProgram | None = None,
     ) -> None:
         """A job submitted to the engine.
 
@@ -66,11 +69,11 @@ class EngineProgram(abstract_program.AbstractProgram):
         device_config_name: str,
         run_name: str = "",
         snapshot_id: str = "",
-        job_id: Optional[str] = None,
+        job_id: str | None = None,
         params: cirq.Sweepable = None,
         repetitions: int = 1,
-        description: Optional[str] = None,
-        labels: Optional[Dict[str, str]] = None,
+        description: str | None = None,
+        labels: dict[str, str] | None = None,
     ) -> engine_job.EngineJob:
         """Runs the program on the QuantumEngine.
 
@@ -138,11 +141,11 @@ class EngineProgram(abstract_program.AbstractProgram):
         run_name: str = "",
         snapshot_id: str = "",
         device_config_name: str,
-        job_id: Optional[str] = None,
+        job_id: str | None = None,
         param_resolver: cirq.ParamResolver = cirq.ParamResolver({}),
         repetitions: int = 1,
-        description: Optional[str] = None,
-        labels: Optional[Dict[str, str]] = None,
+        description: str | None = None,
+        labels: dict[str, str] | None = None,
     ) -> cirq.Result:
         """Runs the supplied Circuit via Quantum Engine.
 
@@ -191,7 +194,7 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     run = duet.sync(run_async)
 
-    def engine(self) -> 'engine_base.Engine':
+    def engine(self) -> engine_base.Engine:
         """Returns the parent Engine object.
 
         Returns:
@@ -214,10 +217,10 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     async def list_jobs_async(
         self,
-        created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
-        created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[Dict[str, str]] = None,
-        execution_states: Optional[Set[quantum.ExecutionStatus.State]] = None,
+        created_before: datetime.datetime | datetime.date | None = None,
+        created_after: datetime.datetime | datetime.date | None = None,
+        has_labels: dict[str, str] | None = None,
+        execution_states: set[quantum.ExecutionStatus.State] | None = None,
     ) -> Sequence[engine_job.EngineJob]:
         """Returns the list of jobs for this program.
 
@@ -267,11 +270,11 @@ class EngineProgram(abstract_program.AbstractProgram):
             self._program = self.context.client.get_program(self.project_id, self.program_id, False)
         return self._program
 
-    def create_time(self) -> 'datetime.datetime':
+    def create_time(self) -> datetime.datetime:
         """Returns when the program was created."""
         return self._inner_program().create_time
 
-    def update_time(self) -> 'datetime.datetime':
+    def update_time(self) -> datetime.datetime:
         """Returns when the program was last updated."""
         self._program = self.context.client.get_program(self.project_id, self.program_id, False)
         return self._program.update_time
@@ -280,7 +283,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         """Returns the description of the program."""
         return self._inner_program().description
 
-    async def set_description_async(self, description: str) -> 'EngineProgram':
+    async def set_description_async(self, description: str) -> EngineProgram:
         """Sets the description of the program.
 
         Params:
@@ -296,11 +299,11 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     set_description = duet.sync(set_description_async)
 
-    def labels(self) -> Dict[str, str]:
+    def labels(self) -> dict[str, str]:
         """Returns the labels of the program."""
         return self._inner_program().labels
 
-    async def set_labels_async(self, labels: Dict[str, str]) -> 'EngineProgram':
+    async def set_labels_async(self, labels: dict[str, str]) -> EngineProgram:
         """Sets (overwriting) the labels for a previously created quantum
         program.
 
@@ -317,7 +320,7 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     set_labels = duet.sync(set_labels_async)
 
-    async def add_labels_async(self, labels: Dict[str, str]) -> 'EngineProgram':
+    async def add_labels_async(self, labels: dict[str, str]) -> EngineProgram:
         """Adds new labels to a previously created quantum program.
 
         Params:
@@ -333,7 +336,7 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     add_labels = duet.sync(add_labels_async)
 
-    async def remove_labels_async(self, keys: List[str]) -> 'EngineProgram':
+    async def remove_labels_async(self, keys: list[str]) -> EngineProgram:
         """Removes labels with given keys from the labels of a previously
         created quantum program.
 

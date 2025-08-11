@@ -23,7 +23,7 @@ The following document provides an ecosystem overview of various open-source too
 |[Stim](https://github.com/quantumlib/stim)|Google|A library for high-speed simulation of Clifford circuits and quantum error correction|
 |[TensorFlow Quantum](https://tensorflow.org/quantum)|Google|A library for developing new quantum machine learning algorithms|
 |[unitary](https://github.com/quantumlib/unitary)|Google|An API library providing common operations for adding quantum behaviors to games|
-|[Pennylane](https://pennylane.ai/)|Xanadu|A library for quantum machine learning with TensorFlow, PyTorch, or NumPy|
+|[PennyLane](https://pennylane.ai/)|Xanadu|A library for quantum machine learning with TensorFlow, PyTorch, or NumPy|
 
 ## Development tools
 

@@ -14,23 +14,26 @@
 
 """Support for serializing and deserializing cirq_google.api.v2 protos."""
 
+from __future__ import annotations
+
 import functools
 import warnings
-from typing import Any, Dict, List, Optional
+from typing import Any, Hashable
 
-import numpy as np
 import sympy
 
 import cirq
 from cirq_google.api import v2
 from cirq_google.experimental.ops import CouplerPulse
 from cirq_google.ops import (
+    CompressDurationTag,
     DynamicalDecouplingTag,
     FSimViaModelTag,
     InternalGate,
     InternalTag,
     PhysicalZTag,
-    SYC,
+    SycamoreGate,
+    WillowGate,
 )
 from cirq_google.ops.calibration_tag import CalibrationTag
 from cirq_google.serialization import (
@@ -61,14 +64,6 @@ class CircuitSerializer(serializer.Serializer):
     a `cirq.Circuit` object from a `Program` proto.
 
     Args:
-        USE_CONSTANTS_TABLE_FOR_MOMENTS: Temporary feature flag to enable
-            serialization of duplicate moments as entries in the constant table.
-            This flag will soon become the default and disappear as soon as
-            deserialization of this field is deployed.
-        USE_CONSTANTS_TABLE_FOR_MOMENTS: Temporary feature flag to enable
-            serialization of duplicate operations as entries in the constant table.
-            This flag will soon become the default and disappear as soon as
-            deserialization of this field is deployed.
         op_serializer: Optional custom serializer for serializing unknown gates.
         op_deserializer: Optional custom deserializer for deserializing unknown gates.
         tag_serializer: Optional custom serializer for serializing unknown tags.
@@ -77,17 +72,14 @@ class CircuitSerializer(serializer.Serializer):
 
     def __init__(
         self,
-        USE_CONSTANTS_TABLE_FOR_MOMENTS=False,
-        USE_CONSTANTS_TABLE_FOR_OPERATIONS=False,
-        op_serializer: Optional[op_serializer.OpSerializer] = None,
-        op_deserializer: Optional[op_deserializer.OpDeserializer] = None,
-        tag_serializer: Optional[tag_serializer.TagSerializer] = None,
-        tag_deserializer: Optional[tag_deserializer.TagDeserializer] = None,
+        op_serializer: op_serializer.OpSerializer | None = None,
+        op_deserializer: op_deserializer.OpDeserializer | None = None,
+        tag_serializer: tag_serializer.TagSerializer | None = None,
+        tag_deserializer: tag_deserializer.TagDeserializer | None = None,
+        **kwargs,
     ):
         """Construct the circuit serializer object."""
         super().__init__(gate_set_name=_SERIALIZER_NAME)
-        self.use_constants_table_for_moments = USE_CONSTANTS_TABLE_FOR_MOMENTS
-        self.use_constants_table_for_operations = USE_CONSTANTS_TABLE_FOR_OPERATIONS
         self.op_serializer = op_serializer
         self.op_deserializer = op_deserializer
         self.tag_serializer = tag_serializer
@@ -96,7 +88,7 @@ class CircuitSerializer(serializer.Serializer):
         self.stimcirq_deserializer = stimcirq_deserializer.StimCirqDeserializer()
 
     def serialize(
-        self, program: cirq.AbstractCircuit, msg: Optional[v2.program_pb2.Program] = None
+        self, program: cirq.AbstractCircuit, msg: v2.program_pb2.Program | None = None
     ) -> v2.program_pb2.Program:
         """Serialize a Circuit to cirq_google.api.v2.Program proto.
 
@@ -110,7 +102,7 @@ class CircuitSerializer(serializer.Serializer):
         """
         if not isinstance(program, (cirq.Circuit, cirq.FrozenCircuit)):
             raise NotImplementedError(f'Unrecognized program type: {type(program)}')
-        raw_constants: Dict[Any, int] = {}
+        raw_constants: dict[Any, int] = {}
         if msg is None:
             msg = v2.program_pb2.Program()
         msg.language.gate_set = self.name
@@ -126,32 +118,35 @@ class CircuitSerializer(serializer.Serializer):
         circuit: cirq.AbstractCircuit,
         msg: v2.program_pb2.Circuit,
         *,
-        constants: List[v2.program_pb2.Constant],
-        raw_constants: Dict[Any, int],
+        constants: list[v2.program_pb2.Constant],
+        raw_constants: dict[Any, int],
     ) -> None:
         msg.scheduling_strategy = v2.program_pb2.Circuit.MOMENT_BY_MOMENT
         for moment in circuit:
-            if self.use_constants_table_for_moments:
-
-                if (moment_index := raw_constants.get(moment, None)) is not None:
-                    # Moment is already in the constants table
-                    msg.moment_indices.append(moment_index)
-                    continue
-                else:
-                    # Moment is not yet in the constants table
-                    # Create it and we will add it to the table at the end
-                    moment_proto = v2.program_pb2.Moment()
+            if (moment_index := raw_constants.get(moment, None)) is not None:
+                # Moment is already in the constants table
+                msg.moment_indices.append(moment_index)
+                continue
             else:
-                # Constants table for moments disabled
-                moment_proto = msg.moments.add()
+                # Moment is not yet in the constants table
+                # Create it and we will add it to the table at the end
+                moment_proto = v2.program_pb2.Moment()
 
             for op in moment:
-                if isinstance(op.untagged, cirq.CircuitOperation):
+                if isinstance(op.untagged, cirq.CircuitOperation) or (
+                    isinstance(op.untagged, cirq.ClassicallyControlledOperation)
+                    and isinstance(op.untagged.without_classical_controls(), cirq.CircuitOperation)
+                ):
                     op_pb = moment_proto.circuit_operations.add()
                     self._serialize_circuit_op(
-                        op.untagged, op_pb, constants=constants, raw_constants=raw_constants
+                        op.untagged.without_classical_controls(),  # type: ignore
+                        op_pb,
+                        constants=constants,
+                        raw_constants=raw_constants,
                     )
-                elif self.use_constants_table_for_operations:
+                    for control in op.classical_controls:
+                        arg_func_langs.condition_to_proto(control, out=op_pb.conditioned_on.add())
+                else:
                     if (op_index := raw_constants.get(op, None)) is not None:
                         # Operation is already in the constants table
                         moment_proto.operation_indices.append(op_index)
@@ -173,35 +168,29 @@ class CircuitSerializer(serializer.Serializer):
                         op_index = len(constants) - 1
                         raw_constants[op] = op_index
                         moment_proto.operation_indices.append(op_index)
-                else:
-                    op_pb = moment_proto.operations.add()
-                    if self.op_serializer and self.op_serializer.can_serialize_operation(op):
-                        self.op_serializer.to_proto(
-                            op, op_pb, constants=constants, raw_constants=raw_constants
-                        )
-                    elif self.stimcirq_serializer.can_serialize_operation(op):
-                        self.stimcirq_serializer.to_proto(
-                            op, op_pb, constants=constants, raw_constants=raw_constants
-                        )
-                    else:
-                        self._serialize_gate_op(
-                            op, op_pb, constants=constants, raw_constants=raw_constants
-                        )
 
-            if self.use_constants_table_for_moments:
-                # Add this moment to the constants table
-                constants.append(v2.program_pb2.Constant(moment_value=moment_proto))
-                moment_index = len(constants) - 1
-                raw_constants[moment] = moment_index
-                msg.moment_indices.append(moment_index)
+            for tag in moment.tags:
+                self._serialize_tag(
+                    tag, moment_proto, constants=constants, raw_constants=raw_constants
+                )
+
+            # Add this moment to the constants table
+            constants.append(v2.program_pb2.Constant(moment_value=moment_proto))
+            moment_index = len(constants) - 1
+            raw_constants[moment] = moment_index
+            msg.moment_indices.append(moment_index)
+
+        # Serialize any circuit tags
+        for tag in circuit.tags:
+            self._serialize_tag(tag, msg, constants=constants, raw_constants=raw_constants)
 
     def _serialize_gate_op(
         self,
         op: cirq.Operation,
         msg: v2.program_pb2.Operation,
         *,
-        constants: List[v2.program_pb2.Constant],
-        raw_constants: Dict[Any, int],
+        constants: list[v2.program_pb2.Constant],
+        raw_constants: dict[Any, int],
     ) -> v2.program_pb2.Operation:
         """Serialize an Operation to cirq_google.api.v2.Operation proto.
 
@@ -220,6 +209,10 @@ class CircuitSerializer(serializer.Serializer):
             ValueError: If the operation cannot be serialized.
         """
         gate = op.gate
+        if isinstance(op, cirq.ClassicallyControlledOperation):
+            gate = op.without_classical_controls().gate
+            for control in op.classical_controls:
+                arg_func_langs.condition_to_proto(control, out=msg.conditioned_on.add())
         if isinstance(gate, InternalGate):
             arg_func_langs.internal_gate_arg_to_proto(gate, out=msg.internalgate)
         elif isinstance(gate, cirq.XPowGate):
@@ -253,6 +246,10 @@ class CircuitSerializer(serializer.Serializer):
             arg_func_langs.float_arg_to_proto(gate.exponent, out=msg.czpowgate.exponent)
         elif isinstance(gate, cirq.ISwapPowGate):
             arg_func_langs.float_arg_to_proto(gate.exponent, out=msg.iswappowgate.exponent)
+        elif isinstance(gate, SycamoreGate):
+            msg.iswaplikegate.original_gate = v2.program_pb2.ISwapLikeGate.OriginalCirqGate.SYCAMORE
+        elif isinstance(gate, WillowGate):
+            msg.iswaplikegate.original_gate = v2.program_pb2.ISwapLikeGate.OriginalCirqGate.WILLOW
         elif isinstance(gate, cirq.FSimGate):
             arg_func_langs.float_arg_to_proto(gate.theta, out=msg.fsimgate.theta)
             arg_func_langs.float_arg_to_proto(gate.phi, out=msg.fsimgate.phi)
@@ -260,7 +257,9 @@ class CircuitSerializer(serializer.Serializer):
                 msg.fsimgate.translate_via_model = True
         elif isinstance(gate, cirq.MeasurementGate):
             arg_func_langs.arg_to_proto(gate.key, out=msg.measurementgate.key)
-            arg_func_langs.arg_to_proto(gate.invert_mask, out=msg.measurementgate.invert_mask)
+            if len(gate.invert_mask):
+                # Do not serialize empty invert mask until servers support empty tuples
+                arg_func_langs.arg_to_proto(gate.invert_mask, out=msg.measurementgate.invert_mask)
         elif isinstance(gate, cirq.WaitGate):
             arg_func_langs.float_arg_to_proto(
                 gate.duration.total_nanos(), out=msg.waitgate.duration_nanos
@@ -286,6 +285,21 @@ class CircuitSerializer(serializer.Serializer):
             arg_func_langs.float_arg_to_proto(
                 gate.q1_detune_mhz, out=msg.couplerpulsegate.q1_detune_mhz
             )
+        elif isinstance(gate, cirq.DepolarizingChannel):
+            arg_func_langs.float_arg_to_proto(
+                gate.p, out=msg.noisechannel.depolarizingchannel.probability
+            )
+            msg.noisechannel.depolarizingchannel.num_qubits = len(op.qubits)
+        elif isinstance(gate, cirq.RandomGateChannel):
+            arg_func_langs.float_arg_to_proto(
+                gate.probability, out=msg.noisechannel.randomgatechannel.probability
+            )
+            self._serialize_gate_op(
+                gate.sub_gate(*op.qubits),
+                msg=msg.noisechannel.randomgatechannel.sub_gate,
+                constants=constants,
+                raw_constants=raw_constants,
+            )
         else:
             raise ValueError(f'Cannot serialize op {op!r} of type {type(gate)}')
 
@@ -300,49 +314,43 @@ class CircuitSerializer(serializer.Serializer):
             msg.qubit_constant_index.append(raw_constants[qubit])
 
         for tag in op.tags:
-            constant = v2.program_pb2.Constant()
-            if isinstance(tag, CalibrationTag):
-                constant.string_value = tag.token
-                if tag.token in raw_constants:
-                    msg.token_constant_index = raw_constants[tag.token]
-                else:
-                    # Token not found, add it to the list
-                    msg.token_constant_index = len(constants)
-                    constants.append(constant)
-                    if raw_constants is not None:
-                        raw_constants[tag.token] = msg.token_constant_index
-            else:
-                if isinstance(tag, DynamicalDecouplingTag):
-                    # TODO(dstrain): Remove this once we are deserializing tag indices everywhere.
-                    tag.to_proto(msg=msg.tags.add())
-                if (tag_index := raw_constants.get(tag, None)) is None:
-                    if self.tag_serializer and self.tag_serializer.can_serialize_tag(tag):
-                        self.tag_serializer.to_proto(
-                            tag,
-                            msg=constant.tag_value,
-                            constants=constants,
-                            raw_constants=raw_constants,
-                        )
-                    elif getattr(tag, 'to_proto', None) is not None:
-                        tag.to_proto(constant.tag_value)  # type: ignore
-                    else:
-                        warnings.warn(f'Unrecognized Tag {tag}, not serializing.')
-                    if constant.WhichOneof('const_value'):
-                        constants.append(constant)
-                        if raw_constants is not None:
-                            raw_constants[tag] = len(constants) - 1
-                        msg.tag_indices.append(len(constants) - 1)
-                else:
-                    msg.tag_indices.append(tag_index)
+            self._serialize_tag(tag, msg, constants=constants, raw_constants=raw_constants)
+
         return msg
+
+    def _serialize_tag(
+        self,
+        tag: Hashable,
+        msg: v2.program_pb2.Operation | v2.program_pb2.Moment | v2.program_pb2.Circuit,
+        *,
+        constants: list[v2.program_pb2.Constant],
+        raw_constants: dict[Any, int],
+    ):
+        constant = v2.program_pb2.Constant()
+        if (tag_index := raw_constants.get(tag, None)) is None:
+            if self.tag_serializer and self.tag_serializer.can_serialize_tag(tag):
+                self.tag_serializer.to_proto(
+                    tag, msg=constant.tag_value, constants=constants, raw_constants=raw_constants
+                )
+            elif getattr(tag, 'to_proto', None) is not None:
+                tag.to_proto(constant.tag_value)  # type: ignore
+            else:
+                warnings.warn(f'Unrecognized Tag {tag}, not serializing.')
+            if constant.WhichOneof('const_value'):
+                constants.append(constant)
+                if raw_constants is not None:
+                    raw_constants[tag] = len(constants) - 1
+                msg.tag_indices.append(len(constants) - 1)
+        else:
+            msg.tag_indices.append(tag_index)
 
     def _serialize_circuit_op(
         self,
         op: cirq.CircuitOperation,
-        msg: Optional[v2.program_pb2.CircuitOperation] = None,
+        msg: v2.program_pb2.CircuitOperation | None = None,
         *,
-        constants: Optional[List[v2.program_pb2.Constant]] = None,
-        raw_constants: Optional[Dict[Any, int]] = None,
+        constants: list[v2.program_pb2.Constant] | None = None,
+        raw_constants: dict[Any, int] | None = None,
     ) -> v2.program_pb2.CircuitOperation:
         """Serialize a CircuitOperation to cirq.google.api.v2.CircuitOperation proto.
 
@@ -394,7 +402,7 @@ class CircuitSerializer(serializer.Serializer):
         which = proto.WhichOneof('program')
 
         if which == 'circuit':
-            deserialized_constants: List[Any] = []
+            deserialized_constants: list[Any] = []
             for constant in proto.constants:
                 which_const = constant.WhichOneof('const_value')
                 if which_const == 'string_value':
@@ -470,10 +478,11 @@ class CircuitSerializer(serializer.Serializer):
         self,
         circuit_proto: v2.program_pb2.Circuit,
         *,
-        constants: List[v2.program_pb2.Constant],
-        deserialized_constants: List[Any],
+        constants: list[v2.program_pb2.Constant],
+        deserialized_constants: list[Any],
     ) -> cirq.Circuit:
         moments = []
+        tags = []
         if circuit_proto.moments and circuit_proto.moment_indices:
             raise ValueError(
                 'Circuit message must not have "moments" and '
@@ -487,16 +496,20 @@ class CircuitSerializer(serializer.Serializer):
             )
         for moment_index in circuit_proto.moment_indices:
             moments.append(deserialized_constants[moment_index])
-        return cirq.Circuit(moments)
+
+        for tag_index in circuit_proto.tag_indices:
+            tags.append(deserialized_constants[tag_index])
+        return cirq.Circuit(moments, tags=tags)
 
     def _deserialize_moment(
         self,
         moment_proto: v2.program_pb2.Moment,
         *,
-        constants: List[v2.program_pb2.Constant],
-        deserialized_constants: List[Any],
+        constants: list[v2.program_pb2.Constant],
+        deserialized_constants: list[Any],
     ) -> cirq.Moment:
         moment_ops = []
+        tags = []
         for op in moment_proto.operations:
             if self.op_deserializer and self.op_deserializer.can_deserialize_proto(op):
                 gate_op = self.op_deserializer.from_proto(
@@ -519,15 +532,18 @@ class CircuitSerializer(serializer.Serializer):
             )
         for operation_index in moment_proto.operation_indices:
             moment_ops.append(deserialized_constants[operation_index])
-        moment = cirq.Moment(moment_ops)
+
+        for tag_index in moment_proto.tag_indices:
+            tags.append(deserialized_constants[tag_index])
+        moment = cirq.Moment(moment_ops, tags=tuple(tags))
         return moment
 
     def _deserialize_gate_op(
         self,
         operation_proto: v2.program_pb2.Operation,
         *,
-        constants: Optional[List[v2.program_pb2.Constant]] = None,
-        deserialized_constants: Optional[List[Any]] = None,
+        constants: list[v2.program_pb2.Constant] | None = None,
+        deserialized_constants: list[Any] | None = None,
     ) -> cirq.Operation:
         """Deserialize an Operation from a cirq_google.api.v2.Operation.
 
@@ -645,6 +661,14 @@ class CircuitSerializer(serializer.Serializer):
                 )
                 or 0.0
             )(*qubits)
+        elif which_gate_type == 'iswaplikegate':
+            if (
+                operation_proto.iswaplikegate.original_gate
+                == v2.program_pb2.ISwapLikeGate.OriginalCirqGate.WILLOW
+            ):
+                op = WillowGate()(*qubits)
+            else:
+                op = SycamoreGate()(*qubits)
         elif which_gate_type == 'fsimgate':
             theta = arg_func_langs.float_arg_from_proto(
                 operation_proto.fsimgate.theta, required_arg_name=None
@@ -655,16 +679,7 @@ class CircuitSerializer(serializer.Serializer):
             if isinstance(theta, (int, float, sympy.Basic)) and isinstance(
                 phi, (int, float, sympy.Basic)
             ):
-                if (
-                    isinstance(theta, float)
-                    and isinstance(phi, float)
-                    and np.isclose(theta, np.pi / 2)
-                    and np.isclose(phi, np.pi / 6)
-                    and not operation_proto.fsimgate.translate_via_model
-                ):
-                    op = SYC(*qubits)
-                else:
-                    op = cirq.FSimGate(theta=theta, phi=phi)(*qubits)
+                op = cirq.FSimGate(theta=theta, phi=phi)(*qubits)
             else:
                 raise ValueError('theta and phi must be specified for FSimGate')
             if operation_proto.fsimgate.translate_via_model:
@@ -676,9 +691,9 @@ class CircuitSerializer(serializer.Serializer):
             parsed_invert_mask = arg_func_langs.arg_from_proto(
                 operation_proto.measurementgate.invert_mask, required_arg_name=None
             )
-            if (isinstance(parsed_invert_mask, list) or parsed_invert_mask is None) and isinstance(
-                key, str
-            ):
+            if (
+                isinstance(parsed_invert_mask, (list, tuple)) or parsed_invert_mask is None
+            ) and isinstance(key, str):
                 invert_mask: tuple[bool, ...] = ()
                 if parsed_invert_mask is not None:
                     invert_mask = tuple(bool(x) for x in parsed_invert_mask)
@@ -742,6 +757,41 @@ class CircuitSerializer(serializer.Serializer):
                 or 0.0,
             )
             op = gate(*qubits)
+        elif which_gate_type == 'noisechannel':
+            which_channel_type = operation_proto.noisechannel.WhichOneof('channel_value')
+            if which_channel_type == 'depolarizingchannel':
+                p = arg_func_langs.float_arg_from_proto(
+                    operation_proto.noisechannel.depolarizingchannel.probability
+                )
+                if not isinstance(p, float):
+                    raise ValueError(
+                        f"Depolarizing noise probability {p} cannot be symbol or None"
+                    )  # pragma: nocover
+                num_qubits = operation_proto.noisechannel.depolarizingchannel.num_qubits
+                if num_qubits <= 0:
+                    raise ValueError(
+                        f"Depolarizing noise gate must have positive num_qubits: {num_qubits}"
+                    )  # pragma: nocover
+                op = cirq.DepolarizingChannel(p=p, n_qubits=num_qubits)(*qubits)
+            elif which_channel_type == 'randomgatechannel':
+                p = arg_func_langs.float_arg_from_proto(
+                    operation_proto.noisechannel.randomgatechannel.probability
+                )
+                sub_gate = self._deserialize_gate_op(
+                    operation_proto.noisechannel.randomgatechannel.sub_gate,
+                    constants=constants,
+                    deserialized_constants=deserialized_constants,
+                )
+                if sub_gate is None or sub_gate.gate is None:
+                    raise ValueError(
+                        f"Not a valid gate for RandomGateChannel: {operation_proto}"
+                    )  # pragma: nocover
+                op = cirq.RandomGateChannel(probability=p, sub_gate=sub_gate.gate)(*qubits)
+            else:
+                raise ValueError(
+                    f'Unsupported serialized noise channel with type "{which_channel_type}".'
+                    f'\n\noperation_proto:\n{operation_proto}'
+                )  # pragma: nocover
         else:
             raise ValueError(
                 f'Unsupported serialized gate with type "{which_gate_type}".'
@@ -761,6 +811,13 @@ class CircuitSerializer(serializer.Serializer):
             )
         elif which == 'token_value':
             op = op.with_tags(CalibrationTag(operation_proto.token_value))
+
+        # Add conditions to op
+        if operation_proto.conditioned_on:
+            conditions = []
+            for condition in operation_proto.conditioned_on:
+                conditions.append(arg_func_langs.condition_from_proto(condition))
+                op = op.with_classical_controls(*conditions)
 
         # Add tags to op
         if operation_proto.tag_indices and deserialized_constants is not None:
@@ -791,9 +848,9 @@ class CircuitSerializer(serializer.Serializer):
         self,
         operation_proto: v2.program_pb2.CircuitOperation,
         *,
-        constants: List[v2.program_pb2.Constant],
-        deserialized_constants: List[Any],
-    ) -> cirq.CircuitOperation:
+        constants: list[v2.program_pb2.Constant],
+        deserialized_constants: list[Any],
+    ) -> cirq.Operation:
         """Deserialize a CircuitOperation from a
             cirq.google.api.v2.CircuitOperation.
 
@@ -819,8 +876,12 @@ class CircuitSerializer(serializer.Serializer):
             return PhysicalZTag()
         elif which == 'fsim_via_model':
             return FSimViaModelTag()
+        elif which == 'calibration_tag':
+            return CalibrationTag.from_proto(msg)
         elif which == 'internal_tag':
             return InternalTag.from_proto(msg)
+        elif which == 'compress_duration':
+            return CompressDurationTag()
         else:
             warnings.warn(f'Unknown tag {msg=}, ignoring')
             return None

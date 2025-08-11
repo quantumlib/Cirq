@@ -23,7 +23,7 @@ gcloud client:
 
 From a colab, you can execute:
 
-```
+```python
 from google.colab import auth
 auth.authenticate_user(clear_output=False)
 ```
@@ -239,4 +239,3 @@ for p in programs:
    for j in p.list_jobs(execution_states=[enums.ExecutionStatus.State.FAILURE]):
      print(j.job_id, j.status())
 ```
-

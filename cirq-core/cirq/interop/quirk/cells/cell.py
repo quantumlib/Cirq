@@ -11,20 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import abc
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    NamedTuple,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import Any, Callable, Iterable, NamedTuple, Sequence, TYPE_CHECKING, Union
 
 from cirq import devices, ops, value
 
@@ -41,7 +32,7 @@ class Cell(metaclass=abc.ABCMeta):
     """
 
     @classmethod
-    def _replace_qubit(cls, old_qubit: 'cirq.Qid', qubits: List['cirq.Qid']) -> 'cirq.Qid':
+    def _replace_qubit(cls, old_qubit: cirq.Qid, qubits: list[cirq.Qid]) -> cirq.Qid:
         if not isinstance(old_qubit, devices.LineQubit):
             raise ValueError(f'Can only map from line qubits, but got {old_qubit!r}.')
         if not 0 <= old_qubit.x < len(qubits):
@@ -50,12 +41,12 @@ class Cell(metaclass=abc.ABCMeta):
 
     @classmethod
     def _replace_qubits(
-        cls, old_qubits: Iterable['cirq.Qid'], qubits: List['cirq.Qid']
-    ) -> Tuple['cirq.Qid', ...]:
+        cls, old_qubits: Iterable[cirq.Qid], qubits: list[cirq.Qid]
+    ) -> tuple[cirq.Qid, ...]:
         return tuple(Cell._replace_qubit(e, qubits) for e in old_qubits)
 
     @abc.abstractmethod
-    def with_line_qubits_mapped_to(self, qubits: List['cirq.Qid']) -> 'Cell':
+    def with_line_qubits_mapped_to(self, qubits: list[cirq.Qid]) -> Cell:
         """Returns the same cell, but targeting different qubits.
 
         It is assumed that the cell is currently targeting `LineQubit`
@@ -84,7 +75,7 @@ class Cell(metaclass=abc.ABCMeta):
         extremely adversarial conditions.
         """
 
-    def with_input(self, letter: str, register: Union[Sequence['cirq.Qid'], int]) -> 'Cell':
+    def with_input(self, letter: str, register: Sequence[cirq.Qid] | int) -> Cell:
         """The same cell, but linked to an explicit input register or constant.
 
         If the cell doesn't need the input, it is returned unchanged.
@@ -99,7 +90,7 @@ class Cell(metaclass=abc.ABCMeta):
         """
         return self
 
-    def controlled_by(self, qubit: 'cirq.Qid') -> 'Cell':
+    def controlled_by(self, qubit: cirq.Qid) -> Cell:
         """The same cell, but with an explicit control on its main operations.
 
         Cells with effects that do not need to be controlled are permitted to
@@ -113,7 +104,7 @@ class Cell(metaclass=abc.ABCMeta):
         """
         return self
 
-    def operations(self) -> 'cirq.OP_TREE':
+    def operations(self) -> cirq.OP_TREE:
         """Returns operations that implement the cell's main action.
 
         Returns:
@@ -126,7 +117,7 @@ class Cell(metaclass=abc.ABCMeta):
         """
         return ()
 
-    def basis_change(self) -> 'cirq.OP_TREE':
+    def basis_change(self) -> cirq.OP_TREE:
         """Operations to conjugate a column with.
 
         The main distinctions between operations performed during the body of a
@@ -143,7 +134,7 @@ class Cell(metaclass=abc.ABCMeta):
         """
         return ()
 
-    def modify_column(self, column: List[Optional['Cell']]) -> None:
+    def modify_column(self, column: list[Cell | None]) -> None:
         """Applies this cell's modification to its column.
 
         For example, a control cell will add a control qubit to other operations
@@ -159,7 +150,7 @@ class Cell(metaclass=abc.ABCMeta):
             Nothing. The `column` argument is mutated in place.
         """
 
-    def persistent_modifiers(self) -> Dict[str, Callable[['Cell'], 'Cell']]:
+    def persistent_modifiers(self) -> dict[str, Callable[[Cell], Cell]]:
         """Overridable modifications to apply to the rest of the circuit.
 
         Persistent modifiers apply to all cells in the same column and also to
@@ -186,7 +177,7 @@ class ExplicitOperationsCell(Cell):
     def gate_count(self) -> int:
         return len(self._operations) + 2 * len(self._basis_change)
 
-    def with_line_qubits_mapped_to(self, qubits: List['cirq.Qid']) -> 'Cell':
+    def with_line_qubits_mapped_to(self, qubits: list[cirq.Qid]) -> Cell:
         return ExplicitOperationsCell(
             operations=tuple(
                 op.with_qubits(*Cell._replace_qubits(op.qubits, qubits)) for op in self._operations
@@ -200,13 +191,13 @@ class ExplicitOperationsCell(Cell):
     def _value_equality_values_(self):
         return self._operations, self._basis_change
 
-    def basis_change(self) -> 'cirq.OP_TREE':
+    def basis_change(self) -> cirq.OP_TREE:
         return self._basis_change
 
-    def operations(self) -> 'cirq.OP_TREE':
+    def operations(self) -> cirq.OP_TREE:
         return self._operations
 
-    def controlled_by(self, qubit: 'cirq.Qid') -> 'ExplicitOperationsCell':
+    def controlled_by(self, qubit: cirq.Qid) -> ExplicitOperationsCell:
         return ExplicitOperationsCell(
             [op.controlled_by(qubit) for op in self._operations], self._basis_change
         )
@@ -223,7 +214,7 @@ CellMaker = NamedTuple(
     [
         ('identifier', str),
         ('size', int),
-        ('maker', Callable[[CellMakerArgs], Union[None, 'Cell', 'cirq.Operation']]),
+        ('maker', Callable[[CellMakerArgs], Union[None, Cell, 'cirq.Operation']]),
     ],
 )
 CellMaker.__doc__ = """Turns Quirk identifiers into Cirq operations.

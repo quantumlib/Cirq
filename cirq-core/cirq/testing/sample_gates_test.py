@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
@@ -19,7 +22,7 @@ from cirq.testing import sample_gates
 
 
 @pytest.mark.parametrize('theta', np.linspace(0, 2 * np.pi, 20))
-def test_phase_using_clean_ancilla(theta: float):
+def test_phase_using_clean_ancilla(theta: float) -> None:
     g = sample_gates.PhaseUsingCleanAncilla(theta)
     q = cirq.LineQubit(0)
     qubit_order = cirq.QubitOrder.explicit([q], fallback=cirq.QubitOrder.DEFAULT)
@@ -45,7 +48,7 @@ def test_phase_using_clean_ancilla(theta: float):
     'target_bitsize, phase_state', [(1, 0), (1, 1), (2, 0), (2, 1), (2, 2), (2, 3)]
 )
 @pytest.mark.parametrize('ancilla_bitsize', [1, 4])
-def test_phase_using_dirty_ancilla(target_bitsize, phase_state, ancilla_bitsize):
+def test_phase_using_dirty_ancilla(target_bitsize, phase_state, ancilla_bitsize) -> None:
     g = sample_gates.PhaseUsingDirtyAncilla(phase_state, target_bitsize, ancilla_bitsize)
     q = cirq.LineQubit.range(target_bitsize)
     qubit_order = cirq.QubitOrder.explicit(q, fallback=cirq.QubitOrder.DEFAULT)

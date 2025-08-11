@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 import sympy
 
@@ -144,6 +146,7 @@ def test_circuit_op_from_proto(repetitions):
         qubit_map=qubit_map,
         measurement_key_map=measurement_key_map,
         arg_map=arg_map,
+        use_repetition_ids=True,
     )
 
     constants = [
@@ -162,5 +165,6 @@ def test_circuit_op_from_proto(repetitions):
         param_resolver={'k': 1.0},
         repetitions=repetitions,
         repetition_ids=repetition_ids,
+        use_repetition_ids=True,
     )
     assert actual == expected

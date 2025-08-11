@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import random
 
 import networkx as nx
@@ -30,7 +32,7 @@ def get_seeded_initial_mapping(graph_seed, init_seed):
 
 
 @pytest.mark.parametrize('seed', [random.randint(0, 2**32) for _ in range(10)])
-def test_initialization_reproducible_with_seed(seed):
+def test_initialization_reproducible_with_seed(seed) -> None:
     wrappers = (lambda s: s, np.random.RandomState)
     mappings = [
         get_seeded_initial_mapping(seed, wrapper(seed)) for wrapper in wrappers for _ in range(5)
@@ -39,7 +41,7 @@ def test_initialization_reproducible_with_seed(seed):
     eq.add_equality_group(*mappings)
 
 
-def test_initialization_with_no_seed():
+def test_initialization_with_no_seed() -> None:
     graph_seed = random.randint(0, 2**32)
     state = np.random.get_state()
     mappings = []
@@ -50,7 +52,7 @@ def test_initialization_with_no_seed():
     eq.add_equality_group(*mappings)
 
 
-def test_initialization_reproducible_between_runs():
+def test_initialization_reproducible_between_runs() -> None:
     seed = 45
     logical_graph = nx.erdos_renyi_graph(6, 0.5, seed=seed)
     logical_graph = nx.relabel_nodes(logical_graph, cirq.LineQubit)

@@ -13,6 +13,9 @@
 # limitations under the License.
 
 """Tests the cloned_env fixture in conftest.py"""
+
+from __future__ import annotations
+
 import json
 import os
 import shutil
@@ -32,7 +35,7 @@ from dev_tools.test_utils import only_on_posix
 # the "isolation" fails and all the cirq modules would be in the list
 @mock.patch.dict(os.environ, {"PYTHONPATH": ""})
 @pytest.mark.parametrize('param', ['a', 'b', 'c'])
-def test_isolated_env_cloning(cloned_env, param):
+def test_isolated_env_cloning(cloned_env, param) -> None:
     env = cloned_env("test_isolated", "flynt==0.64")
     assert (env / "bin" / "pip").is_file()
 

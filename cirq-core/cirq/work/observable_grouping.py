@@ -12,20 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, cast, Dict, Iterable, List, TYPE_CHECKING
+from __future__ import annotations
+
+from typing import Callable, cast, Iterable
 
 from cirq import ops, value
 from cirq.work.observable_settings import _max_weight_observable, _max_weight_state, InitObsSetting
 
-if TYPE_CHECKING:
-    pass
-
-GROUPER_T = Callable[[Iterable[InitObsSetting]], Dict[InitObsSetting, List[InitObsSetting]]]
+GROUPER_T = Callable[[Iterable[InitObsSetting]], dict[InitObsSetting, list[InitObsSetting]]]
 
 
 def group_settings_greedy(
     settings: Iterable[InitObsSetting],
-) -> Dict[InitObsSetting, List[InitObsSetting]]:
+) -> dict[InitObsSetting, list[InitObsSetting]]:
     """Greedily group settings which can be simultaneously measured.
 
     We construct a dictionary keyed by `max_setting` (see docstrings
@@ -46,7 +45,7 @@ def group_settings_greedy(
         input list of settings. Each dictionary value is a list of
         settings compatible with `max_setting`.
     """
-    grouped_settings: Dict[InitObsSetting, List[InitObsSetting]] = {}
+    grouped_settings: dict[InitObsSetting, list[InitObsSetting]] = {}
     for setting in settings:
         for max_setting, simul_settings in grouped_settings.items():
             trial_grouped_settings = simul_settings + [setting]

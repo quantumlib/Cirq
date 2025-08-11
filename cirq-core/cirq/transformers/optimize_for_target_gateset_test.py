@@ -12,13 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import pytest
 
 import cirq
-from cirq.protocols.decompose_protocol import DecomposeResult
 from cirq.transformers.optimize_for_target_gateset import _decompose_operations_to_target_gateset
+
+if TYPE_CHECKING:
+    from cirq.protocols.decompose_protocol import DecomposeResult
 
 
 def test_decompose_operations_raises_on_stuck():
@@ -37,7 +41,6 @@ def test_decompose_operations_raises_on_stuck():
     cirq.testing.assert_same_circuits(c_orig, c_new)
 
 
-# pylint: disable=line-too-long
 def test_decompose_operations_to_target_gateset_default():
     q = cirq.LineQubit.range(2)
     c_orig = cirq.Circuit(
@@ -70,7 +73,7 @@ m: ═════════════════════════�
 1: ───────Y^-0.5───@───Y^0.5────@───Y^-0.5───@───Y^0.5───────×───────────╫───X───T───Y^-0.5───@───Y^0.5────@───Y^-0.5───@───Y^0.5───T───
                                                                          ║   ║
 m: ══════════════════════════════════════════════════════════════════════V═══@══════════════════════════════════════════════════════════
-''',
+''',  # noqa: E501
     )
 
 
@@ -121,7 +124,7 @@ class MatrixGateTargetGateset(cirq.CompilationTargetGateset):
     def num_qubits(self) -> int:
         return 2
 
-    def decompose_to_target_gateset(self, op: 'cirq.Operation', _) -> DecomposeResult:
+    def decompose_to_target_gateset(self, op: cirq.Operation, _) -> DecomposeResult:
         if cirq.num_qubits(op) != 2 or not cirq.has_unitary(op):
             return NotImplemented
         return cirq.MatrixGate(cirq.unitary(op), name="M").on(*op.qubits)
@@ -188,7 +191,7 @@ m: ═════════════════════V═══@═
                                                                   ║   ║
 m: ═══════════════════════════════════════════════════════════════V═══@═════════════════════════════════════════════════════════
                                          └────────┘                       └────────┘                 └────────┘
-       ''',
+       ''',  # noqa: E501
     )
 
     with pytest.raises(ValueError, match="Unable to convert"):
@@ -249,7 +252,7 @@ def test_optimize_for_target_gateset_deep():
 
 
 @pytest.mark.parametrize('max_num_passes', [2, None])
-def test_optimize_for_target_gateset_multiple_passes(max_num_passes: Union[int, None]):
+def test_optimize_for_target_gateset_multiple_passes(max_num_passes: int | None):
     gateset = cirq.CZTargetGateset()
 
     input_circuit = cirq.Circuit(
@@ -328,7 +331,7 @@ def test_optimize_for_target_gateset_multiple_passes(max_num_passes: Union[int, 
 
 @pytest.mark.parametrize('max_num_passes', [2, None])
 def test_optimize_for_target_gateset_multiple_passes_dont_preserve_moment_structure(
-    max_num_passes: Union[int, None],
+    max_num_passes: int | None,
 ):
     gateset = cirq.CZTargetGateset(preserve_moment_structure=False)
 

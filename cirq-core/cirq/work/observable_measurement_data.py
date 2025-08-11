@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import dataclasses
 import datetime
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Any, Iterable, Mapping, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -33,7 +35,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-def _check_and_get_real_coef(observable: 'cirq.PauliString', atol: float):
+def _check_and_get_real_coef(observable: cirq.PauliString, atol: float):
     """Assert that a PauliString has a real coefficient and return it."""
     coef = observable.coefficient
     if isinstance(coef, sympy.Expr) or not np.isclose(coef.imag, 0, atol=atol):
@@ -43,8 +45,8 @@ def _check_and_get_real_coef(observable: 'cirq.PauliString', atol: float):
 
 def _obs_vals_from_measurements(
     bitstrings: np.ndarray,
-    qubit_to_index: Dict['cirq.Qid', int],
-    observable: 'cirq.PauliString',
+    qubit_to_index: Mapping[cirq.Qid, int],
+    observable: cirq.PauliString,
     atol: float,
 ):
     """Multiply together bitstrings to get observed values of operators."""
@@ -61,10 +63,10 @@ def _obs_vals_from_measurements(
 
 def _stats_from_measurements(
     bitstrings: np.ndarray,
-    qubit_to_index: Dict['cirq.Qid', int],
-    observable: 'cirq.PauliString',
+    qubit_to_index: Mapping[cirq.Qid, int],
+    observable: cirq.PauliString,
     atol: float,
-) -> Tuple[float, float]:
+) -> tuple[float, float]:
     """Return the mean and squared standard error of the mean for the given
     observable according to the measurements in `bitstrings`."""
     obs_vals = _obs_vals_from_measurements(bitstrings, qubit_to_index, observable, atol=atol)
@@ -107,7 +109,7 @@ class ObservableMeasuredResult:
     mean: float
     variance: float
     repetitions: int
-    circuit_params: Mapping[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]]
+    circuit_params: Mapping[str | sympy.Expr, value.Scalar | sympy.Expr]
 
     # unhashable because of the mapping-type circuit_params attribute
     __hash__ = None  # type: ignore
@@ -136,7 +138,7 @@ class ObservableMeasuredResult:
     def stddev(self):
         return np.sqrt(self.variance)
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         """Return the contents of this class as a dictionary.
 
         This makes records suitable for construction of a Pandas dataframe. The circuit parameters
@@ -213,29 +215,32 @@ class BitstringAccumulator:
     def __init__(
         self,
         meas_spec: _MeasurementSpec,
-        simul_settings: List[InitObsSetting],
-        qubit_to_index: Dict['cirq.Qid', int],
-        bitstrings: Optional[np.ndarray] = None,
-        chunksizes: Optional[np.ndarray] = None,
-        timestamps: Optional[np.ndarray] = None,
-        readout_calibration: Optional['BitstringAccumulator'] = None,
+        simul_settings: list[InitObsSetting],
+        qubit_to_index: Mapping[cirq.Qid, int],
+        bitstrings: np.ndarray | None = None,
+        chunksizes: np.ndarray | None = None,
+        timestamps: np.ndarray | None = None,
+        readout_calibration: BitstringAccumulator | None = None,
     ):
         self._meas_spec = meas_spec
         self._simul_settings = simul_settings
         self._qubit_to_index = qubit_to_index
         self._readout_calibration = readout_calibration
 
+        self.bitstrings: np.ndarray[tuple[int, ...], np.dtype[np.uint8]]
         if bitstrings is None:
             n_bits = len(qubit_to_index)
             self.bitstrings = np.zeros((0, n_bits), dtype=np.uint8)
         else:
             self.bitstrings = np.asarray(bitstrings, dtype=np.uint8)
 
+        self.chunksizes: np.ndarray[tuple[int, ...], np.dtype[np.int64]]
         if chunksizes is None:
             self.chunksizes = np.zeros((0,), dtype=np.int64)
         else:
             self.chunksizes = np.asarray(chunksizes, dtype=np.int64)
 
+        self.timestamps: np.ndarray[tuple[int, ...], np.dtype[np.datetime64]]
         if timestamps is None:
             self.timestamps = np.zeros((0,), dtype='datetime64[us]')
         else:
@@ -523,8 +528,8 @@ class BitstringAccumulator:
 
 
 def flatten_grouped_results(
-    grouped_results: List[BitstringAccumulator],
-) -> List[ObservableMeasuredResult]:
+    grouped_results: list[BitstringAccumulator],
+) -> list[ObservableMeasuredResult]:
     """Flatten a collection of BitstringAccumulators into a list of ObservableMeasuredResult.
 
     Raw results are contained in BitstringAccumulator which contains

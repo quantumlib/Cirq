@@ -11,10 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Single qubit readout experiments using parallel or isolated statistics."""
+
+from __future__ import annotations
+
 import dataclasses
 import time
-from typing import Any, cast, Dict, Iterable, List, Optional, TYPE_CHECKING
+from typing import Any, cast, Iterable, TYPE_CHECKING
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -43,12 +47,12 @@ class SingleQubitReadoutCalibrationResult:
         timestamp: The time the data was taken, in seconds since the epoch.
     """
 
-    zero_state_errors: Dict['cirq.Qid', float]
-    one_state_errors: Dict['cirq.Qid', float]
+    zero_state_errors: dict[cirq.Qid, float]
+    one_state_errors: dict[cirq.Qid, float]
     repetitions: int
     timestamp: float
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             'zero_state_errors': list(self.zero_state_errors.items()),
             'one_state_errors': list(self.one_state_errors.items()),
@@ -58,7 +62,7 @@ class SingleQubitReadoutCalibrationResult:
 
     def plot_heatmap(
         self,
-        axs: Optional[tuple[plt.Axes, plt.Axes]] = None,
+        axs: tuple[plt.Axes, plt.Axes] | None = None,
         annotation_format: str = '0.1%',
         **plot_kwargs: Any,
     ) -> tuple[plt.Axes, plt.Axes]:
@@ -106,16 +110,16 @@ class SingleQubitReadoutCalibrationResult:
 
     def plot_integrated_histogram(
         self,
-        ax: Optional[plt.Axes] = None,
+        ax: plt.Axes | None = None,
         cdf_on_x: bool = False,
         axis_label: str = 'Readout error rate',
         semilog: bool = True,
         median_line: bool = True,
-        median_label: Optional[str] = 'median',
+        median_label: str | None = 'median',
         mean_line: bool = False,
-        mean_label: Optional[str] = 'mean',
+        mean_label: str | None = 'mean',
         show_zero: bool = False,
-        title: Optional[str] = None,
+        title: str | None = None,
         **kwargs,
     ) -> plt.Axes:
         """Plot the readout errors using cirq.integrated_histogram().
@@ -175,6 +179,17 @@ class SingleQubitReadoutCalibrationResult:
         ax.set_ylabel('Percentile')
         return ax
 
+    def readout_result_for_qubits(
+        self, readout_qubits: list[ops.Qid]
+    ) -> SingleQubitReadoutCalibrationResult:
+        """Builds a calibration result for the specific readout qubits."""
+        return SingleQubitReadoutCalibrationResult(
+            zero_state_errors={qubit: self.zero_state_errors[qubit] for qubit in readout_qubits},
+            one_state_errors={qubit: self.one_state_errors[qubit] for qubit in readout_qubits},
+            timestamp=self.timestamp,
+            repetitions=self.repetitions,
+        )
+
     @classmethod
     def _from_json_dict_(
         cls, zero_state_errors, one_state_errors, repetitions, timestamp, **kwargs
@@ -197,7 +212,7 @@ class SingleQubitReadoutCalibrationResult:
 
 
 def estimate_single_qubit_readout_errors(
-    sampler: 'cirq.Sampler', *, qubits: Iterable['cirq.Qid'], repetitions: int = 1000
+    sampler: cirq.Sampler, *, qubits: Iterable[cirq.Qid], repetitions: int = 1000
 ) -> SingleQubitReadoutCalibrationResult:
     """Estimate single-qubit readout error.
 
@@ -229,13 +244,13 @@ def estimate_single_qubit_readout_errors(
 
 
 def estimate_parallel_single_qubit_readout_errors(
-    sampler: 'cirq.Sampler',
+    sampler: cirq.Sampler,
     *,
-    qubits: Iterable['cirq.Qid'],
+    qubits: Iterable[cirq.Qid],
     trials: int = 20,
     repetitions: int = 1000,
-    trials_per_batch: Optional[int] = None,
-    bit_strings: Optional[np.ndarray] = None,
+    trials_per_batch: int | None = None,
+    bit_strings: np.ndarray | None = None,
 ) -> SingleQubitReadoutCalibrationResult:
     """Estimate single qubit readout error using parallel operations.
 
@@ -296,7 +311,7 @@ def estimate_parallel_single_qubit_readout_errors(
     if trials_per_batch <= 0:
         raise ValueError("Must provide non-zero trials_per_batch for readout calibration.")
 
-    all_sweeps: List[study.Sweepable] = []
+    all_sweeps: list[study.Sweepable] = []
     num_batches = (trials + trials_per_batch - 1) // trials_per_batch
 
     # Initialize circuits

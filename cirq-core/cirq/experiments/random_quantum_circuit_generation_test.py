@@ -11,8 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import itertools
-from typing import Callable, cast, Dict, Iterable, List, Optional, Sequence, Set, Tuple
+from typing import Callable, cast, Iterable, Sequence
 
 import networkx as nx
 import numpy as np
@@ -32,7 +35,7 @@ from cirq.experiments.random_quantum_circuit_generation import (
     random_rotations_between_two_qubit_circuit,
 )
 
-SINGLE_QUBIT_LAYER = Dict[cirq.GridQubit, Optional[cirq.Gate]]
+SINGLE_QUBIT_LAYER = dict[cirq.GridQubit, cirq.Gate | None]
 
 
 def test_random_rotation_between_two_qubit_circuit():
@@ -366,7 +369,7 @@ def test_random_rotations_between_grid_interaction_layers(
     pattern: Sequence[GridInteractionLayer],
     single_qubit_gates: Sequence[cirq.Gate],
     add_final_single_qubit_layer: bool,
-    seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE',
+    seed: cirq.RANDOM_STATE_OR_SEED_LIKE,
     expected_circuit_length: int,
     single_qubit_layers_slice: slice,
     two_qubit_layers_slice: slice,
@@ -401,7 +404,7 @@ def test_grid_interaction_layer_repr():
 
 
 def _validate_single_qubit_layers(
-    qubits: Set[cirq.GridQubit], moments: Sequence[cirq.Moment], non_repeating_layers: bool = True
+    qubits: set[cirq.GridQubit], moments: Sequence[cirq.Moment], non_repeating_layers: bool = True
 ) -> None:
     previous_single_qubit_gates: SINGLE_QUBIT_LAYER = {q: None for q in qubits}
 
@@ -419,7 +422,7 @@ def _validate_single_qubit_layers(
 
 
 def _validate_two_qubit_layers(
-    qubits: Set[cirq.GridQubit],
+    qubits: set[cirq.GridQubit],
     moments: Sequence[cirq.Moment],
     pattern: Sequence[cirq.experiments.GridInteractionLayer],
 ) -> None:
@@ -444,12 +447,12 @@ def _validate_two_qubit_layers(
 
 
 def _coupled_qubit_pairs(
-    qubits: Set['cirq.GridQubit'],
-) -> List[Tuple['cirq.GridQubit', 'cirq.GridQubit']]:
+    qubits: set[cirq.GridQubit],
+) -> list[tuple[cirq.GridQubit, cirq.GridQubit]]:
     pairs = []
     for qubit in qubits:
 
-        def add_pair(neighbor: 'cirq.GridQubit'):
+        def add_pair(neighbor: cirq.GridQubit):
             if neighbor in qubits:
                 pairs.append((qubit, neighbor))
 

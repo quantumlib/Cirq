@@ -13,7 +13,10 @@
 # limitations under the License.
 
 """Utilities for manipulating linear operators as elements of vector space."""
-from typing import Dict, Tuple, TYPE_CHECKING
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -33,7 +36,7 @@ PAULI_BASIS = {
 document(PAULI_BASIS, """The four Pauli matrices (including identity) keyed by character.""")
 
 
-def kron_bases(*bases: Dict[str, np.ndarray], repeat: int = 1) -> Dict[str, np.ndarray]:
+def kron_bases(*bases: dict[str, np.ndarray], repeat: int = 1) -> dict[str, np.ndarray]:
     """Creates tensor product of bases."""
     product_basis = {'': np.array([[1]])}
     for basis in bases * repeat:
@@ -54,7 +57,7 @@ def hilbert_schmidt_inner_product(m1: np.ndarray, m2: np.ndarray) -> complex:
 
 
 def expand_matrix_in_orthogonal_basis(
-    m: np.ndarray, basis: Dict[str, np.ndarray]
+    m: np.ndarray, basis: dict[str, np.ndarray]
 ) -> value.LinearDict[str]:
     """Computes coefficients of expansion of m in basis.
 
@@ -71,27 +74,24 @@ def expand_matrix_in_orthogonal_basis(
 
 
 def matrix_from_basis_coefficients(
-    expansion: value.LinearDict[str], basis: Dict[str, np.ndarray]
+    expansion: value.LinearDict[str], basis: dict[str, np.ndarray]
 ) -> np.ndarray:
     """Computes linear combination of basis vectors with given coefficients."""
     some_element = next(iter(basis.values()))
     result = np.zeros_like(some_element, dtype=np.complex128)
     for name, coefficient in expansion.items():
-        result += coefficient * basis[name]
+        result += complex(coefficient) * basis[name]
     return result
 
 
 def pow_pauli_combination(
-    ai: 'cirq.TParamValComplex',
-    ax: 'cirq.TParamValComplex',
-    ay: 'cirq.TParamValComplex',
-    az: 'cirq.TParamValComplex',
+    ai: cirq.TParamValComplex,
+    ax: cirq.TParamValComplex,
+    ay: cirq.TParamValComplex,
+    az: cirq.TParamValComplex,
     exponent: int,
-) -> Tuple[
-    'cirq.TParamValComplex',
-    'cirq.TParamValComplex',
-    'cirq.TParamValComplex',
-    'cirq.TParamValComplex',
+) -> tuple[
+    cirq.TParamValComplex, cirq.TParamValComplex, cirq.TParamValComplex, cirq.TParamValComplex
 ]:
     """Computes non-negative integer power of single-qubit Pauli combination.
 

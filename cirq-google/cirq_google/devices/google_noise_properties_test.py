@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Tuple
+from __future__ import annotations
 
 import numpy as np
 import pytest
@@ -26,7 +26,7 @@ from cirq_google.devices.google_noise_properties import (
     NoiseModelFromGoogleNoiseProperties,
 )
 
-DEFAULT_GATE_NS: Dict[type, float] = {
+DEFAULT_GATE_NS: dict[type, float] = {
     cirq.ZPowGate: 25.0,
     cirq.MeasurementGate: 4000.0,
     cirq.ResetChannel: 250.0,
@@ -49,10 +49,10 @@ TWO_QUBIT_ERROR = 0.01
 # These properties are for testing purposes only - they are not representative
 # of device behavior for any existing hardware.
 def sample_noise_properties(
-    system_qubits: List[cirq.Qid], qubit_pairs: List[Tuple[cirq.Qid, cirq.Qid]]
+    system_qubits: list[cirq.Qid], qubit_pairs: list[tuple[cirq.Qid, cirq.Qid]]
 ):
     # Known false positive: https://github.com/PyCQA/pylint/issues/5857
-    return GoogleNoiseProperties(  # pylint: disable=unexpected-keyword-arg
+    return GoogleNoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
         t1_ns={q: 1e5 for q in system_qubits},
         tphi_ns={q: 2e5 for q in system_qubits},

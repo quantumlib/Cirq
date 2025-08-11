@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import random
 
 import numpy as np
@@ -582,7 +584,7 @@ def _local_two_qubit_unitaries(samples, random_state):
 _kak_gens = np.array([np.kron(X, X), np.kron(Y, Y), np.kron(Z, Z)])
 
 
-def _random_two_qubit_unitaries(num_samples: int, random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE'):
+def _random_two_qubit_unitaries(num_samples: int, random_state: cirq.RANDOM_STATE_OR_SEED_LIKE):
     # Randomly generated two-qubit unitaries and the KAK vectors (not canonical)
     kl = _local_two_qubit_unitaries(num_samples, random_state)
 

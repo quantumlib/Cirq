@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numbers
 from typing import AbstractSet, Any, cast, TYPE_CHECKING, TypeVar
 
@@ -48,7 +50,7 @@ class SupportsParameterization(Protocol):
         """
 
     @doc_private
-    def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> Self:
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Self:
         """Resolve the parameters in the effect."""
 
 
@@ -133,7 +135,7 @@ def parameter_symbols(val: Any) -> AbstractSet[sympy.Symbol]:
 
 
 def resolve_parameters(
-    val: T, param_resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool = True
+    val: T, param_resolver: cirq.ParamResolverOrSimilarType, recursive: bool = True
 ) -> T:
     """Resolves symbol parameters in the effect using the param resolver.
 
@@ -195,6 +197,6 @@ def resolve_parameters(
         return val
 
 
-def resolve_parameters_once(val: Any, param_resolver: 'cirq.ParamResolverOrSimilarType'):
+def resolve_parameters_once(val: Any, param_resolver: cirq.ParamResolverOrSimilarType):
     """Performs a single parameter resolution step using the param resolver."""
     return resolve_parameters(val, param_resolver, False)

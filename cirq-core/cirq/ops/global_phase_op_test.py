@@ -12,16 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 import sympy
 
 import cirq
+from cirq.ops import global_phase_op
 
 
-def test_init():
+def test_init() -> None:
     op = cirq.global_phase_operation(1j)
-    assert op.gate.coefficient == 1j
+    gate = op.gate
+    assert isinstance(gate, cirq.GlobalPhaseGate)
+    assert gate.coefficient == 1j
     assert op.qubits == ()
     assert op.with_qubits() == op
     assert cirq.has_stabilizer_effect(op)
@@ -32,7 +37,7 @@ def test_init():
         _ = cirq.global_phase_operation(1j).with_qubits(cirq.LineQubit(0))
 
 
-def test_protocols():
+def test_protocols() -> None:
     for p in [1, 1j, -1, sympy.Symbol('s')]:
         cirq.testing.assert_implements_consistent_protocols(cirq.global_phase_operation(p))
 
@@ -42,7 +47,7 @@ def test_protocols():
 
 
 @pytest.mark.parametrize('phase', [1, 1j, -1])
-def test_act_on_tableau(phase):
+def test_act_on_tableau(phase) -> None:
     original_tableau = cirq.CliffordTableau(0)
     args = cirq.CliffordTableauSimulationState(original_tableau.copy(), np.random.RandomState())
     cirq.act_on(cirq.global_phase_operation(phase), args, allow_decompose=False)
@@ -50,7 +55,7 @@ def test_act_on_tableau(phase):
 
 
 @pytest.mark.parametrize('phase', [1, 1j, -1])
-def test_act_on_ch_form(phase):
+def test_act_on_ch_form(phase) -> None:
     state = cirq.StabilizerStateChForm(0)
     args = cirq.StabilizerChFormSimulationState(
         qubits=[], prng=np.random.RandomState(), initial_state=state
@@ -59,16 +64,16 @@ def test_act_on_ch_form(phase):
     assert state.state_vector() == [[phase]]
 
 
-def test_str():
+def test_str() -> None:
     assert str(cirq.global_phase_operation(1j)) == '1j'
 
 
-def test_repr():
+def test_repr() -> None:
     op = cirq.global_phase_operation(1j)
     cirq.testing.assert_equivalent_repr(op)
 
 
-def test_diagram():
+def test_diagram() -> None:
     a, b = cirq.LineQubit.range(2)
     x, y = cirq.LineQubit.range(10, 12)
 
@@ -200,7 +205,7 @@ global phase:   -0.5π
     )
 
 
-def test_gate_init():
+def test_gate_init() -> None:
     gate = cirq.GlobalPhaseGate(1j)
     assert gate.coefficient == 1j
     assert isinstance(gate.on(), cirq.GateOperation)
@@ -213,7 +218,7 @@ def test_gate_init():
         _ = gate.on(cirq.LineQubit(0))
 
 
-def test_gate_protocols():
+def test_gate_protocols() -> None:
     for p in [1, 1j, -1]:
         cirq.testing.assert_implements_consistent_protocols(cirq.GlobalPhaseGate(p))
 
@@ -221,7 +226,7 @@ def test_gate_protocols():
 
 
 @pytest.mark.parametrize('phase', [1, 1j, -1])
-def test_gate_act_on_tableau(phase):
+def test_gate_act_on_tableau(phase) -> None:
     original_tableau = cirq.CliffordTableau(0)
     args = cirq.CliffordTableauSimulationState(original_tableau.copy(), np.random.RandomState())
     cirq.act_on(cirq.GlobalPhaseGate(phase), args, qubits=(), allow_decompose=False)
@@ -229,7 +234,7 @@ def test_gate_act_on_tableau(phase):
 
 
 @pytest.mark.parametrize('phase', [1, 1j, -1])
-def test_gate_act_on_ch_form(phase):
+def test_gate_act_on_ch_form(phase) -> None:
     state = cirq.StabilizerStateChForm(0)
     args = cirq.StabilizerChFormSimulationState(
         qubits=[], prng=np.random.RandomState(), initial_state=state
@@ -238,25 +243,25 @@ def test_gate_act_on_ch_form(phase):
     assert state.state_vector() == [[phase]]
 
 
-def test_gate_str():
+def test_gate_str() -> None:
     assert str(cirq.GlobalPhaseGate(1j)) == '1j'
 
 
-def test_gate_repr():
+def test_gate_repr() -> None:
     gate = cirq.GlobalPhaseGate(1j)
     cirq.testing.assert_equivalent_repr(gate)
 
 
-def test_gate_op_repr():
+def test_gate_op_repr() -> None:
     gate = cirq.GlobalPhaseGate(1j)
     cirq.testing.assert_equivalent_repr(gate.on())
 
 
-def test_gate_global_phase_op_json_dict():
+def test_gate_global_phase_op_json_dict() -> None:
     assert cirq.GlobalPhaseGate(-1j)._json_dict_() == {'coefficient': -1j}
 
 
-def test_parameterization():
+def test_parameterization() -> None:
     t = sympy.Symbol('t')
     gpt = cirq.GlobalPhaseGate(coefficient=t)
     assert cirq.is_parameterized(gpt)
@@ -267,14 +272,14 @@ def test_parameterization():
 
 
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
-def test_resolve(resolve_fn):
+def test_resolve(resolve_fn) -> None:
     t = sympy.Symbol('t')
     gpt = cirq.GlobalPhaseGate(coefficient=t)
     assert resolve_fn(gpt, {'t': -1}) == cirq.GlobalPhaseGate(coefficient=-1)
 
 
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
-def test_resolve_error(resolve_fn):
+def test_resolve_error(resolve_fn) -> None:
     t = sympy.Symbol('t')
     gpt = cirq.GlobalPhaseGate(coefficient=t)
     with pytest.raises(ValueError, match='Coefficient is not unitary'):
@@ -284,7 +289,7 @@ def test_resolve_error(resolve_fn):
 @pytest.mark.parametrize(
     'coeff, exp', [(-1, 1), (1j, 0.5), (-1j, -0.5), (1 / np.sqrt(2) * (1 + 1j), 0.25)]
 )
-def test_global_phase_gate_controlled(coeff, exp):
+def test_global_phase_gate_controlled(coeff, exp) -> None:
     g = cirq.GlobalPhaseGate(coeff)
     op = cirq.global_phase_operation(coeff)
     q = cirq.LineQubit.range(3)
@@ -300,3 +305,22 @@ def test_global_phase_gate_controlled(coeff, exp):
     assert g.controlled(control_values=xor_control_values) == cirq.ControlledGate(
         g, control_values=xor_control_values
     )
+
+
+def test_is_identity() -> None:
+    g = cirq.GlobalPhaseGate(1)
+    assert g.is_identity()
+    g = cirq.GlobalPhaseGate(1j)
+    assert not g.is_identity()
+    g = cirq.GlobalPhaseGate(-1)
+    assert not g.is_identity()
+
+
+def test_from_phase_and_exponent() -> None:
+    g = global_phase_op.from_phase_and_exponent(2.5, 0.5)
+    assert g.coefficient == np.exp(1.25j * np.pi)
+    a, b = sympy.symbols('a, b')
+    g = global_phase_op.from_phase_and_exponent(a, b)
+    assert g.coefficient == 1j ** (2 * a * b)
+    g = global_phase_op.from_phase_and_exponent(1 / a, a)
+    assert g.coefficient == -1

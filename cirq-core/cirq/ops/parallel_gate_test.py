@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 import sympy
@@ -26,7 +28,7 @@ import cirq
         (cirq.X**0.5, 4, cirq.LineQubit.range(4)),
     ],
 )
-def test_parallel_gate_operation_init(gate, num_copies, qubits):
+def test_parallel_gate_operation_init(gate, num_copies, qubits) -> None:
     v = cirq.ParallelGate(gate, num_copies)
     assert v.sub_gate == gate
     assert v.num_copies == num_copies
@@ -52,7 +54,7 @@ def test_parallel_gate_operation_init(gate, num_copies, qubits):
         (cirq.testing.TwoQubitGate(), 2, cirq.LineQubit.range(4), "must be a single qubit gate"),
     ],
 )
-def test_invalid_parallel_gate_operation(gate, num_copies, qubits, error_msg):
+def test_invalid_parallel_gate_operation(gate, num_copies, qubits, error_msg) -> None:
     with pytest.raises(ValueError, match=error_msg):
         cirq.ParallelGate(gate, num_copies)(*qubits)
 
@@ -61,27 +63,27 @@ def test_invalid_parallel_gate_operation(gate, num_copies, qubits, error_msg):
     'gate, num_copies, qubits',
     [(cirq.X, 2, cirq.LineQubit.range(2)), (cirq.H**0.5, 4, cirq.LineQubit.range(4))],
 )
-def test_decompose(gate, num_copies, qubits):
+def test_decompose(gate, num_copies, qubits) -> None:
     g = cirq.ParallelGate(gate, num_copies)
     step = gate.num_qubits()
     qubit_lists = [qubits[i * step : (i + 1) * step] for i in range(num_copies)]
     assert set(cirq.decompose_once(g(*qubits))) == set(gate.on_each(qubit_lists))
 
 
-def test_decompose_raises():
+def test_decompose_raises() -> None:
     g = cirq.ParallelGate(cirq.X, 2)
     qubits = cirq.LineQubit.range(4)
     with pytest.raises(ValueError, match=r'len\(qubits\)=4 should be 2'):
         cirq.decompose_once_with_qubits(g, qubits)
 
 
-def test_with_num_copies():
+def test_with_num_copies() -> None:
     g = cirq.testing.SingleQubitGate()
     pg = cirq.ParallelGate(g, 3)
     assert pg.with_num_copies(5) == cirq.ParallelGate(g, 5)
 
 
-def test_extrapolate():
+def test_extrapolate() -> None:
     # If the gate isn't extrapolatable, you get a type error.
     g = cirq.ParallelGate(cirq.testing.SingleQubitGate(), 2)
     with pytest.raises(TypeError):
@@ -93,7 +95,7 @@ def test_extrapolate():
 
 
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
-def test_parameterizable_gates(resolve_fn):
+def test_parameterizable_gates(resolve_fn) -> None:
     r = cirq.ParamResolver({'a': 0.5})
     g1 = cirq.ParallelGate(cirq.Z ** sympy.Symbol('a'), 2)
     assert cirq.is_parameterized(g1)
@@ -102,7 +104,7 @@ def test_parameterizable_gates(resolve_fn):
 
 
 @pytest.mark.parametrize('gate', [cirq.X ** sympy.Symbol("a"), cirq.testing.SingleQubitGate()])
-def test_no_unitary(gate):
+def test_no_unitary(gate) -> None:
     g = cirq.ParallelGate(gate, 2)
     assert not cirq.has_unitary(g)
     assert cirq.unitary(g, None) is None
@@ -115,7 +117,7 @@ def test_no_unitary(gate):
         (cirq.MatrixGate(cirq.unitary(cirq.H**0.25)), 6, cirq.LineQubit.range(6)),
     ],
 )
-def test_unitary(gate, num_copies, qubits):
+def test_unitary(gate, num_copies, qubits) -> None:
     g = cirq.ParallelGate(gate, num_copies)
     step = gate.num_qubits()
     qubit_lists = [qubits[i * step : (i + 1) * step] for i in range(num_copies)]
@@ -124,7 +126,7 @@ def test_unitary(gate, num_copies, qubits):
     )
 
 
-def test_not_implemented_diagram():
+def test_not_implemented_diagram() -> None:
     q = cirq.LineQubit.range(2)
     g = cirq.testing.SingleQubitGate()
     c = cirq.Circuit()
@@ -132,15 +134,15 @@ def test_not_implemented_diagram():
     assert 'cirq.testing.gate_features.SingleQubitGate ' in str(c)
 
 
-def test_repr():
+def test_repr() -> None:
     assert repr(cirq.ParallelGate(cirq.X, 2)) == 'cirq.ParallelGate(sub_gate=cirq.X, num_copies=2)'
 
 
-def test_str():
+def test_str() -> None:
     assert str(cirq.ParallelGate(cirq.X**0.5, 10)) == 'X**0.5 x 10'
 
 
-def test_equivalent_circuit():
+def test_equivalent_circuit() -> None:
     qreg = cirq.LineQubit.range(4)
     oldc = cirq.Circuit()
     newc = cirq.Circuit()
@@ -154,11 +156,11 @@ def test_equivalent_circuit():
 
 
 @pytest.mark.parametrize('gate, num_copies', [(cirq.X, 1), (cirq.Y, 2), (cirq.Z, 3), (cirq.H, 4)])
-def test_parallel_gate_operation_is_consistent(gate, num_copies):
+def test_parallel_gate_operation_is_consistent(gate, num_copies) -> None:
     cirq.testing.assert_implements_consistent_protocols(cirq.ParallelGate(gate, num_copies))
 
 
-def test_trace_distance():
+def test_trace_distance() -> None:
     s = cirq.X**0.25
     two_g = cirq.ParallelGate(s, 2)
     three_g = cirq.ParallelGate(s, 3)
@@ -171,6 +173,6 @@ def test_trace_distance():
 
 
 @pytest.mark.parametrize('gate, num_copies', [(cirq.X, 1), (cirq.Y, 2), (cirq.Z, 3), (cirq.H, 4)])
-def test_parallel_gate_op(gate, num_copies):
+def test_parallel_gate_op(gate, num_copies) -> None:
     qubits = cirq.LineQubit.range(num_copies * gate.num_qubits())
     assert cirq.parallel_gate_op(gate, *qubits) == cirq.ParallelGate(gate, num_copies).on(*qubits)

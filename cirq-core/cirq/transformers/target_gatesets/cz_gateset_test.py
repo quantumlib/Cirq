@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Sequence, Type
+from __future__ import annotations
+
+from typing import Sequence
 
 import numpy as np
 import pytest
@@ -31,7 +33,7 @@ def all_gates_of_type(m: cirq.Moment, g: cirq.Gateset):
 def assert_optimizes(
     before: cirq.Circuit,
     expected: cirq.Circuit,
-    additional_gates: Optional[Sequence[Type[cirq.Gate]]] = None,
+    additional_gates: Sequence[type[cirq.Gate]] | None = None,
 ):
     if additional_gates is None:
         gateset = cirq.CZTargetGateset()
@@ -56,7 +58,7 @@ def assert_optimization_not_broken(circuit: cirq.Circuit):
     )
 
 
-def test_convert_to_cz_preserving_moment_structure():
+def test_convert_to_cz_preserving_moment_structure() -> None:
     q = cirq.LineQubit.range(5)
     op = lambda q0, q1: cirq.H(q1).controlled_by(q0)
     c_orig = cirq.Circuit(
@@ -100,7 +102,7 @@ def test_convert_to_cz_preserving_moment_structure():
     )
 
 
-def test_clears_paired_cnot():
+def test_clears_paired_cnot() -> None:
     a, b = cirq.LineQubit.range(2)
     assert_optimizes(
         before=cirq.Circuit(cirq.Moment(cirq.CNOT(a, b)), cirq.Moment(cirq.CNOT(a, b))),
@@ -108,7 +110,7 @@ def test_clears_paired_cnot():
     )
 
 
-def test_ignores_czs_separated_by_parameterized():
+def test_ignores_czs_separated_by_parameterized() -> None:
     a, b = cirq.LineQubit.range(2)
     assert_optimizes(
         before=cirq.Circuit(
@@ -129,19 +131,19 @@ def test_ignores_czs_separated_by_parameterized():
     )
 
 
-def test_cnots_separated_by_single_gates_correct():
+def test_cnots_separated_by_single_gates_correct() -> None:
     a, b = cirq.LineQubit.range(2)
     assert_optimization_not_broken(cirq.Circuit(cirq.CNOT(a, b), cirq.H(b), cirq.CNOT(a, b)))
 
 
-def test_czs_separated_by_single_gates_correct():
+def test_czs_separated_by_single_gates_correct() -> None:
     a, b = cirq.LineQubit.range(2)
     assert_optimization_not_broken(
         cirq.Circuit(cirq.CZ(a, b), cirq.X(b), cirq.X(b), cirq.X(b), cirq.CZ(a, b))
     )
 
 
-def test_inefficient_circuit_correct():
+def test_inefficient_circuit_correct() -> None:
     t = 0.1
     v = 0.11
     a, b = cirq.LineQubit.range(2)
@@ -166,7 +168,7 @@ def test_inefficient_circuit_correct():
     )
 
 
-def test_optimizes_single_iswap():
+def test_optimizes_single_iswap() -> None:
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.ISWAP(a, b))
     assert_optimization_not_broken(c)
@@ -174,7 +176,7 @@ def test_optimizes_single_iswap():
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 2
 
 
-def test_optimizes_tagged_partial_cz():
+def test_optimizes_tagged_partial_cz() -> None:
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit((cirq.CZ**0.5)(a, b).with_tags('mytag'))
     assert_optimization_not_broken(c)
@@ -184,7 +186,7 @@ def test_optimizes_tagged_partial_cz():
     ), 'It should take 2 CZ gates to decompose a CZ**0.5 gate'
 
 
-def test_not_decompose_czs():
+def test_not_decompose_czs() -> None:
     circuit = cirq.Circuit(
         cirq.CZPowGate(exponent=1, global_shift=-0.5).on(*cirq.LineQubit.range(2))
     )
@@ -201,7 +203,7 @@ def test_not_decompose_czs():
         ),
     ),
 )
-def test_decompose_partial_czs(circuit):
+def test_decompose_partial_czs(circuit) -> None:
     circuit = cirq.optimize_for_target_gateset(
         circuit, gateset=cirq.CZTargetGateset(), ignore_failures=False
     )
@@ -216,7 +218,7 @@ def test_decompose_partial_czs(circuit):
     assert num_part_cz == 0
 
 
-def test_not_decompose_partial_czs():
+def test_not_decompose_partial_czs() -> None:
     circuit = cirq.Circuit(
         cirq.CZPowGate(exponent=0.1, global_shift=-0.5)(*cirq.LineQubit.range(2))
     )
@@ -232,7 +234,7 @@ def test_not_decompose_partial_czs():
     assert num_part_cz == 1
 
 
-def test_avoids_decompose_when_matrix_available():
+def test_avoids_decompose_when_matrix_available() -> None:
     class OtherXX(cirq.testing.TwoQubitGate):  # pragma: no cover
         def _has_unitary_(self) -> bool:
             return True
@@ -261,7 +263,7 @@ def test_avoids_decompose_when_matrix_available():
     assert len(c) == 0
 
 
-def test_composite_gates_without_matrix():
+def test_composite_gates_without_matrix() -> None:
     class CompositeExample(cirq.testing.SingleQubitGate):
         def _decompose_(self, qubits):
             yield cirq.X(qubits[0])
@@ -289,7 +291,7 @@ def test_composite_gates_without_matrix():
     )
 
 
-def test_unsupported_gate():
+def test_unsupported_gate() -> None:
     class UnsupportedExample(cirq.testing.TwoQubitGate):
         pass
 
@@ -319,11 +321,11 @@ def test_unsupported_gate():
         cirq.CZTargetGateset(additional_gates=()),
     ],
 )
-def test_repr(gateset):
+def test_repr(gateset) -> None:
     cirq.testing.assert_equivalent_repr(gateset)
 
 
-def test_with_commutation():
+def test_with_commutation() -> None:
     c = cirq.Circuit(
         cirq.CZ(cirq.q(0), cirq.q(1)), cirq.CZ(cirq.q(1), cirq.q(2)), cirq.CZ(cirq.q(0), cirq.q(1))
     )
@@ -335,7 +337,7 @@ def test_with_commutation():
     assert got == cirq.Circuit(cirq.CZ(cirq.q(1), cirq.q(2)))
 
 
-def test_reorder_operations_and_preserve_moment_structure_raises():
+def test_reorder_operations_and_preserve_moment_structure_raises() -> None:
     with pytest.raises(
         ValueError, match='reorder_operations and preserve_moment_structure can not both be True'
     ):

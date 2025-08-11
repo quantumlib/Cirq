@@ -14,6 +14,8 @@
 
 """A Gauge Transformer for the cphase gate."""
 
+from __future__ import annotations
+
 import numpy as np
 
 import cirq.transformers.gauge_compiling.sqrt_cz_gauge as sqrt_cz_gauge

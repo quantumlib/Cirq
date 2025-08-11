@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Tests for measures."""
+
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
@@ -25,7 +29,7 @@ MAT2 = cirq.testing.random_density_matrix(N)
 U = cirq.testing.random_unitary(N)
 
 
-def test_fidelity_symmetric():
+def test_fidelity_symmetric() -> None:
     np.testing.assert_allclose(cirq.fidelity(VEC1, VEC2), cirq.fidelity(VEC2, VEC1))
     np.testing.assert_allclose(cirq.fidelity(VEC1, MAT1), cirq.fidelity(MAT1, VEC1))
     np.testing.assert_allclose(
@@ -34,27 +38,27 @@ def test_fidelity_symmetric():
     )
 
 
-def test_bad_fidelity():
+def test_bad_fidelity() -> None:
     arr = np.asarray([[[1j, 0], [0, 0]], [[0, 0], [0, 0]]])
     assert arr.ndim > 2
     assert arr.dtype.kind == 'c'
     _ = cirq.fidelity(arr, arr)
 
 
-def test_fidelity_between_zero_and_one():
+def test_fidelity_between_zero_and_one() -> None:
     assert 0 <= cirq.fidelity(VEC1, VEC2) <= 1
     assert 0 <= cirq.fidelity(VEC1, MAT1) <= 1
     assert 0 <= cirq.fidelity(cirq.density_matrix(MAT1), MAT2) <= 1
 
 
-def test_fidelity_invariant_under_unitary_transformation():
+def test_fidelity_invariant_under_unitary_transformation() -> None:
     np.testing.assert_allclose(
         cirq.fidelity(cirq.density_matrix(MAT1), MAT2),
         cirq.fidelity(cirq.density_matrix(U @ MAT1 @ U.T.conj()), U @ MAT2 @ U.T.conj()),
     )
 
 
-def test_fidelity_commuting_matrices():
+def test_fidelity_commuting_matrices() -> None:
     d1 = np.random.uniform(size=N)
     d1 /= np.sum(d1)
     d2 = np.random.uniform(size=N)
@@ -67,7 +71,7 @@ def test_fidelity_commuting_matrices():
     )
 
 
-def test_fidelity_known_values():
+def test_fidelity_known_values() -> None:
     vec1 = np.array([1, 1j, -1, -1j]) * 0.5
     vec2 = np.array([1, -1, 1, -1], dtype=np.complex128) * 0.5
     vec3 = np.array([1, 0, 0, 0], dtype=np.complex128)
@@ -94,7 +98,7 @@ def test_fidelity_known_values():
     np.testing.assert_allclose(cirq.fidelity(mat3, vec2), 0.7)
 
 
-def test_fidelity_numpy_arrays():
+def test_fidelity_numpy_arrays() -> None:
     vec1 = np.array([1, 0, 0, 0, 0, 0, 0, 0], dtype=np.complex64)
     vec2 = np.array([1, 0, 0, 0], dtype=np.complex64)
     tensor1 = np.reshape(vec1, (2, 2, 2))
@@ -122,7 +126,7 @@ def test_fidelity_numpy_arrays():
         _ = cirq.fidelity(mat1, mat1)
 
 
-def test_fidelity_ints():
+def test_fidelity_ints() -> None:
     assert cirq.fidelity(3, 4) == 0.0
     assert cirq.fidelity(4, 4) == 1.0
 
@@ -134,7 +138,7 @@ def test_fidelity_ints():
         _ = cirq.fidelity(1, 4, qid_shape=(2,))
 
 
-def test_fidelity_product_states():
+def test_fidelity_product_states() -> None:
     a, b = cirq.LineQubit.range(2)
 
     np.testing.assert_allclose(
@@ -171,19 +175,19 @@ def test_fidelity_product_states():
         )
 
 
-def test_fidelity_fail_inference():
+def test_fidelity_fail_inference() -> None:
     state_vector = cirq.one_hot(shape=(4,), dtype=np.complex128)
     state_tensor = np.reshape(state_vector, (2, 2))
     with pytest.raises(ValueError, match='Please specify'):
         _ = cirq.fidelity(state_tensor, 4)
 
 
-def test_fidelity_bad_shape():
+def test_fidelity_bad_shape() -> None:
     with pytest.raises(ValueError, match='Invalid quantum state'):
         _ = cirq.fidelity(np.array([[[1.0]]]), np.array([[[1.0]]]), qid_shape=(1,))
 
 
-def test_von_neumann_entropy():
+def test_von_neumann_entropy() -> None:
     # 1x1 matrix
     assert cirq.von_neumann_entropy(np.array([[1]])) == 0
     # An EPR pair state (|00> + |11>)(<00| + <11|)
@@ -243,7 +247,7 @@ def test_von_neumann_entropy():
         (cirq.TOFFOLI, 9 / 16),
     ),
 )
-def test_entanglement_fidelity_of_unitary_channels(gate, expected_entanglement_fidelity):
+def test_entanglement_fidelity_of_unitary_channels(gate, expected_entanglement_fidelity) -> None:
     assert np.isclose(cirq.entanglement_fidelity(gate), expected_entanglement_fidelity)
 
 
@@ -261,7 +265,9 @@ def test_entanglement_fidelity_of_unitary_channels(gate, expected_entanglement_f
         (cirq.amplitude_damp, lambda gamma: 1 / 2 - gamma / 4 + np.sqrt(1 - gamma) / 2),
     ),
 )
-def test_entanglement_fidelity_of_noisy_channels(p, channel_factory, entanglement_fidelity_formula):
+def test_entanglement_fidelity_of_noisy_channels(
+    p, channel_factory, entanglement_fidelity_formula
+) -> None:
     channel = channel_factory(p)
     actual_entanglement_fidelity = cirq.entanglement_fidelity(channel)
     expected_entanglement_fidelity = entanglement_fidelity_formula(p)

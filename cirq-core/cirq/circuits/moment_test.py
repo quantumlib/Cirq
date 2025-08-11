@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 import sympy
@@ -20,7 +22,7 @@ import cirq
 import cirq.testing
 
 
-def test_validation():
+def test_validation() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
@@ -42,7 +44,7 @@ def test_validation():
         _ = cirq.Moment([cirq.CZ(a, c), cirq.CZ(c, d)])
 
 
-def test_equality():
+def test_equality() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
@@ -69,7 +71,7 @@ def test_equality():
     eq.make_equality_group(lambda: cirq.Moment([cirq.CZ(a, c), cirq.CZ(b, d)]))
 
 
-def test_approx_eq():
+def test_approx_eq() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
@@ -95,7 +97,7 @@ def test_approx_eq():
     )
 
 
-def test_operates_on_single_qubit():
+def test_operates_on_single_qubit() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
@@ -119,7 +121,7 @@ def test_operates_on_single_qubit():
     assert not cirq.Moment([cirq.X(a), cirq.X(b)]).operates_on_single_qubit(c)
 
 
-def test_operates_on():
+def test_operates_on() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
@@ -155,7 +157,7 @@ def test_operates_on():
     assert cirq.Moment([cirq.X(a), cirq.X(b)]).operates_on([a, b, c])
 
 
-def test_operation_at():
+def test_operation_at() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
@@ -170,14 +172,14 @@ def test_operation_at():
     assert cirq.Moment([cirq.CZ(a, b), cirq.X(c)]).operation_at(a) == cirq.CZ(a, b)
 
 
-def test_from_ops():
+def test_from_ops() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
     assert cirq.Moment.from_ops(cirq.X(a), cirq.Y(b)) == cirq.Moment(cirq.X(a), cirq.Y(b))
 
 
-def test_with_operation():
+def test_with_operation() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
@@ -202,7 +204,7 @@ def test_with_operation():
         _ = cirq.Moment([cirq.X(a), cirq.X(b)]).with_operation(cirq.X(b))
 
 
-def test_with_operations():
+def test_with_operations() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
@@ -236,7 +238,7 @@ def test_with_operations():
         _ = cirq.Moment([cirq.X(a), cirq.X(b)]).with_operations(cirq.X(b))
 
 
-def test_without_operations_touching():
+def test_without_operations_touching() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
@@ -282,14 +284,14 @@ def test_without_operations_touching():
     )
 
 
-def test_is_parameterized():
+def test_is_parameterized() -> None:
     a, b = cirq.LineQubit.range(2)
     moment = cirq.Moment(cirq.X(a) ** sympy.Symbol('v'), cirq.Y(b) ** sympy.Symbol('w'))
     assert cirq.is_parameterized(moment)
     assert not cirq.is_parameterized(cirq.Moment(cirq.X(a), cirq.Y(b)))
 
 
-def test_resolve_parameters():
+def test_resolve_parameters() -> None:
     a, b = cirq.LineQubit.range(2)
     moment = cirq.Moment(cirq.X(a) ** sympy.Symbol('v'), cirq.Y(b) ** sympy.Symbol('w'))
     resolved_moment = cirq.resolve_parameters(moment, cirq.ParamResolver({'v': 0.1, 'w': 0.2}))
@@ -299,12 +301,13 @@ def test_resolve_parameters():
     resolved_moment = cirq.resolve_parameters(moment, {'pi': np.pi})
     assert resolved_moment == cirq.Moment(cirq.Rz(rads=np.pi).on(a))
     resolved_gate = resolved_moment.operations[0].gate
+    assert isinstance(resolved_gate, cirq.Rz)
     assert not isinstance(resolved_gate.exponent, sympy.Basic)
     assert isinstance(resolved_gate.exponent, float)
     assert not cirq.is_parameterized(resolved_moment)
 
 
-def test_resolve_parameters_no_change():
+def test_resolve_parameters_no_change() -> None:
     a, b = cirq.LineQubit.range(2)
     moment = cirq.Moment(cirq.X(a), cirq.Y(b))
     resolved_moment = cirq.resolve_parameters(moment, cirq.ParamResolver({'v': 0.1, 'w': 0.2}))
@@ -315,14 +318,14 @@ def test_resolve_parameters_no_change():
     assert resolved_moment is moment
 
 
-def test_parameter_names():
+def test_parameter_names() -> None:
     a, b = cirq.LineQubit.range(2)
     moment = cirq.Moment(cirq.X(a) ** sympy.Symbol('v'), cirq.Y(b) ** sympy.Symbol('w'))
     assert cirq.parameter_names(moment) == {'v', 'w'}
     assert cirq.parameter_names(cirq.Moment(cirq.X(a), cirq.Y(b))) == set()
 
 
-def test_with_measurement_keys():
+def test_with_measurement_keys() -> None:
     a, b = cirq.LineQubit.range(2)
     m = cirq.Moment(cirq.measure(a, key='m1'), cirq.measure(b, key='m2'))
 
@@ -332,7 +335,7 @@ def test_with_measurement_keys():
     assert new_moment.operations[1] == cirq.measure(b, key='p2')
 
 
-def test_with_key_path():
+def test_with_key_path() -> None:
     a, b = cirq.LineQubit.range(2)
     m = cirq.Moment(cirq.measure(a, key='m1'), cirq.measure(b, key='m2'))
 
@@ -346,7 +349,7 @@ def test_with_key_path():
     )
 
 
-def test_with_key_path_prefix():
+def test_with_key_path_prefix() -> None:
     a, b, c = cirq.LineQubit.range(3)
     m = cirq.Moment(cirq.measure(a, key='m1'), cirq.measure(b, key='m2'), cirq.X(c))
     mb = cirq.with_key_path_prefix(m, ('b',))
@@ -356,7 +359,7 @@ def test_with_key_path_prefix():
     assert mab.operations[2] is m.operations[2]
 
 
-def test_copy():
+def test_copy() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     original = cirq.Moment([cirq.CZ(a, b)])
@@ -365,7 +368,7 @@ def test_copy():
     assert id(original) != id(copy)
 
 
-def test_qubits():
+def test_qubits() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
@@ -374,7 +377,7 @@ def test_qubits():
     assert cirq.Moment([cirq.CZ(a, b)]).qubits == {a, b}
 
 
-def test_container_methods():
+def test_container_methods() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     m = cirq.Moment([cirq.H(a), cirq.H(b)])
@@ -387,14 +390,14 @@ def test_container_methods():
     assert len(m) == 2
 
 
-def test_decompose():
+def test_decompose() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     m = cirq.Moment(cirq.X(a), cirq.X(b))
     assert list(cirq.decompose(m)) == list(m.operations)
 
 
-def test_measurement_keys():
+def test_measurement_keys() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     m = cirq.Moment(cirq.X(a), cirq.X(b))
@@ -407,7 +410,7 @@ def test_measurement_keys():
     assert cirq.is_measurement(m2)
 
 
-def test_measurement_key_objs_caching():
+def test_measurement_key_objs_caching() -> None:
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     m = cirq.Moment(cirq.measure(q0, key='foo'))
     assert m._measurement_key_objs is None
@@ -430,7 +433,7 @@ def test_measurement_key_objs_caching():
     }
 
 
-def test_control_keys_caching():
+def test_control_keys_caching() -> None:
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     m = cirq.Moment(cirq.X(q0).with_classical_controls('foo'))
     assert m._control_keys is None
@@ -452,13 +455,13 @@ def test_control_keys_caching():
     }
 
 
-def test_bool():
+def test_bool() -> None:
     assert not cirq.Moment()
     a = cirq.NamedQubit('a')
     assert cirq.Moment([cirq.X(a)])
 
 
-def test_repr():
+def test_repr() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
@@ -467,14 +470,14 @@ def test_repr():
     cirq.testing.assert_equivalent_repr(cirq.Moment(cirq.X(a), cirq.Y(b)))
 
 
-def test_json_dict():
+def test_json_dict() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     mom = cirq.Moment([cirq.CZ(a, b)])
     assert mom._json_dict_() == {'operations': (cirq.CZ(a, b),)}
 
 
-def test_inverse():
+def test_inverse() -> None:
     a, b, c = cirq.LineQubit.range(3)
     m = cirq.Moment([cirq.S(a), cirq.CNOT(b, c)])
     assert m**1 is m
@@ -485,15 +488,15 @@ def test_inverse():
     assert cirq.inverse(cirq.Moment([cirq.measure(a)]), default=None) is None
 
 
-def test_immutable_moment():
+def test_immutable_moment() -> None:
     with pytest.raises(AttributeError):
         q1, q2 = cirq.LineQubit.range(2)
         circuit = cirq.Circuit(cirq.X(q1))
         moment = circuit.moments[0]
-        moment.operations += (cirq.Y(q2),)
+        moment.operations += (cirq.Y(q2),)  # type: ignore[misc]
 
 
-def test_add():
+def test_add() -> None:
     a, b, c = cirq.LineQubit.range(3)
     expected_circuit = cirq.Circuit([cirq.CNOT(a, b), cirq.X(a), cirq.Y(b)])
 
@@ -518,7 +521,7 @@ def test_add():
     assert m1 + [] is m1
 
 
-def test_sub():
+def test_sub() -> None:
     a, b, c = cirq.LineQubit.range(3)
     m = cirq.Moment(cirq.X(a), cirq.Y(b))
     assert m - [] == m
@@ -537,7 +540,7 @@ def test_sub():
     assert m2 - cirq.Y(b) == cirq.Moment(cirq.X(a), cirq.Z(c))
 
 
-def test_op_tree():
+def test_op_tree() -> None:
     eq = cirq.testing.EqualsTester()
     a, b = cirq.LineQubit.range(2)
 
@@ -550,7 +553,7 @@ def test_op_tree():
     eq.add_equality_group(cirq.Moment(cirq.X(a), cirq.Y(b)), cirq.Moment([cirq.X(a), cirq.Y(b)]))
 
 
-def test_indexes_by_qubit():
+def test_indexes_by_qubit() -> None:
     a, b, c = cirq.LineQubit.range(3)
     moment = cirq.Moment([cirq.H(a), cirq.CNOT(b, c)])
 
@@ -559,7 +562,7 @@ def test_indexes_by_qubit():
     assert moment[c] == cirq.CNOT(b, c)
 
 
-def test_throws_when_indexed_by_unused_qubit():
+def test_throws_when_indexed_by_unused_qubit() -> None:
     a, b = cirq.LineQubit.range(2)
     moment = cirq.Moment([cirq.H(a)])
 
@@ -567,7 +570,7 @@ def test_throws_when_indexed_by_unused_qubit():
         _ = moment[b]
 
 
-def test_indexes_by_list_of_qubits():
+def test_indexes_by_list_of_qubits() -> None:
     q = cirq.LineQubit.range(4)
     moment = cirq.Moment([cirq.Z(q[0]), cirq.CNOT(q[1], q[2])])
 
@@ -582,7 +585,11 @@ def test_indexes_by_list_of_qubits():
     assert moment[q] == moment
 
 
-def test_moment_text_diagram():
+def test_moment_text_diagram() -> None:
+    a: cirq.Qid
+    b: cirq.Qid
+    c: cirq.Qid
+    d: cirq.Qid
     a, b, c, d = cirq.GridQubit.rect(2, 2)
     m = cirq.Moment(cirq.CZ(a, b), cirq.CNOT(c, d))
     assert (
@@ -672,7 +679,7 @@ aa │
     )
 
 
-def test_text_diagram_does_not_depend_on_insertion_order():
+def test_text_diagram_does_not_depend_on_insertion_order() -> None:
     q = cirq.LineQubit.range(4)
     ops = [cirq.CNOT(q[0], q[3]), cirq.CNOT(q[1], q[2])]
     m1, m2 = cirq.Moment(ops), cirq.Moment(ops[::-1])
@@ -680,7 +687,7 @@ def test_text_diagram_does_not_depend_on_insertion_order():
     assert str(m1) == str(m2)
 
 
-def test_commutes_moment_and_operation():
+def test_commutes_moment_and_operation() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
@@ -710,7 +717,7 @@ def test_commutes_moment_and_operation():
     assert cirq.commutes(moment, cirq.XX(a, b))
 
 
-def test_commutes_moment_and_moment():
+def test_commutes_moment_and_moment() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
@@ -731,7 +738,7 @@ def test_commutes_moment_and_moment():
     )
 
 
-def test_commutes_moment_with_controls():
+def test_commutes_moment_with_controls() -> None:
     a, b = cirq.LineQubit.range(2)
     assert cirq.commutes(
         cirq.Moment(cirq.measure(a, key='k0')), cirq.Moment(cirq.X(b).with_classical_controls('k1'))
@@ -759,7 +766,7 @@ def test_commutes_moment_with_controls():
     )
 
 
-def test_commutes_moment_and_moment_comprehensive():
+def test_commutes_moment_and_moment_comprehensive() -> None:
     a, b, c, d = cirq.LineQubit.range(4)
 
     # Basic Z⊗Z commuting with XX at different angles
@@ -788,7 +795,7 @@ def test_commutes_moment_and_moment_comprehensive():
     assert not cirq.commutes(m1, m2)  # Z⊗Z⊗Z doesn't commute with XX⊗X
 
 
-def test_commutes_handles_non_unitary_operation():
+def test_commutes_handles_non_unitary_operation() -> None:
     a = cirq.NamedQubit('a')
     op_damp_a = cirq.AmplitudeDampingChannel(gamma=0.1).on(a)
     assert cirq.commutes(cirq.Moment(cirq.X(a)), op_damp_a, default=None) is None
@@ -796,7 +803,7 @@ def test_commutes_handles_non_unitary_operation():
     assert cirq.commutes(cirq.Moment(op_damp_a), cirq.Moment(op_damp_a))
 
 
-def test_transform_qubits():
+def test_transform_qubits() -> None:
     a, b = cirq.LineQubit.range(2)
     x, y = cirq.GridQubit.rect(2, 1, 10, 20)
 
@@ -804,12 +811,17 @@ def test_transform_qubits():
     modified = cirq.Moment([cirq.X(x), cirq.Y(y)])
 
     assert original.transform_qubits({a: x, b: y}) == modified
-    assert original.transform_qubits(lambda q: cirq.GridQubit(10 + q.x, 20)) == modified
+    assert (
+        original.transform_qubits(
+            lambda q: cirq.GridQubit(10 + q.x, 20)  # type: ignore[attr-defined]
+        )
+        == modified
+    )
     with pytest.raises(TypeError, match='must be a function or dict'):
-        _ = original.transform_qubits('bad arg')
+        _ = original.transform_qubits('bad arg')  # type: ignore[arg-type]
 
 
-def test_expand_to():
+def test_expand_to() -> None:
     a, b = cirq.LineQubit.range(2)
     m1 = cirq.Moment(cirq.H(a))
     m2 = m1.expand_to({a})
@@ -824,7 +836,7 @@ def test_expand_to():
         _ = m1.expand_to({b})
 
 
-def test_kraus():
+def test_kraus() -> None:
     I = np.eye(2)
     X = np.array([[0, 1], [1, 0]])
     Y = np.array([[0, -1j], [1j, 0]])
@@ -872,8 +884,8 @@ def test_kraus():
     assert np.allclose(k[3], np.sqrt(p * q) * np.kron(X, Z))
 
 
-def test_kraus_too_big():
-    m = cirq.Moment(cirq.IdentityGate(11).on(*cirq.LineQubit.range(11)))
+def test_kraus_too_big() -> None:
+    m = cirq.Moment(cirq.IdentityGate(11).with_probability(0.5).on(*cirq.LineQubit.range(11)))
     assert not cirq.has_kraus(m)
     assert not m._has_superoperator_()
     assert m._kraus_() is NotImplemented
@@ -881,7 +893,7 @@ def test_kraus_too_big():
     assert cirq.kraus(m, default=None) is None
 
 
-def test_op_has_no_kraus():
+def test_op_has_no_kraus() -> None:
     class EmptyGate(cirq.testing.SingleQubitGate):
         pass
 
@@ -893,7 +905,7 @@ def test_op_has_no_kraus():
     assert cirq.kraus(m, default=None) is None
 
 
-def test_superoperator():
+def test_superoperator() -> None:
     cnot = cirq.unitary(cirq.CNOT)
 
     a, b = cirq.LineQubit.range(2)
@@ -927,3 +939,68 @@ def test_superoperator():
     assert m._has_superoperator_()
     s = m._superoperator_()
     assert np.allclose(s, np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]) / 2)
+
+
+def test_moment_with_tags() -> None:
+    q0 = cirq.LineQubit(0)
+    q1 = cirq.LineQubit(1)
+    op1 = cirq.X(q0)
+    op2 = cirq.Y(q1)
+
+    # Test initialization with no tags
+    moment_no_tags = cirq.Moment(op1)
+    assert moment_no_tags.tags == ()
+
+    # Test initialization with tags
+    moment_with_tags = cirq.Moment(op1, op2, tags=("initial_tag_1", "initial_tag_2"))
+    assert moment_with_tags.tags == ("initial_tag_1", "initial_tag_2")
+
+    # Test with_tags method to add new tags
+    new_moment = moment_with_tags.with_tags("new_tag_1", "new_tag_2")
+
+    # Ensure the original moment's tags are unchanged
+    assert moment_with_tags.tags == ("initial_tag_1", "initial_tag_2")
+
+    # Ensure the new moment has both old and new tags
+    assert new_moment.tags == ("initial_tag_1", "initial_tag_2", "new_tag_1", "new_tag_2")
+
+    # Test with_tags on a moment that initially had no tags
+    new_moment_from_no_tags = moment_no_tags.with_tags("single_new_tag")
+    assert new_moment_from_no_tags.tags == ("single_new_tag",)
+
+    # Test adding no new tags
+    same_moment_tags = moment_with_tags.with_tags()
+    assert same_moment_tags.tags == ("initial_tag_1", "initial_tag_2")
+
+    class CustomTag:
+        """Example Hashable Tag"""
+
+        def __init__(self, value):
+            self.value = value
+
+        def __hash__(self):
+            return hash(self.value)  # pragma: nocover
+
+        def __eq__(self, other):
+            return isinstance(other, CustomTag) and self.value == other.value  # pragma: nocover
+
+        def __repr__(self):
+            return f"CustomTag({self.value})"  # pragma: nocover
+
+    tag_obj = CustomTag("complex_tag")
+    moment_with_custom_tag = cirq.Moment(op1, tags=("string_tag", 123, tag_obj))
+    assert moment_with_custom_tag.tags == ("string_tag", 123, tag_obj)
+
+    new_moment_with_custom_tag = moment_with_custom_tag.with_tags(456)
+    assert new_moment_with_custom_tag.tags == ("string_tag", 123, tag_obj, 456)
+
+    # Test that tags are dropped if the Moment is changed.
+    moment = cirq.Moment.from_ops(op1, tags=(tag_obj,))
+    assert moment.tags == (tag_obj,)
+    assert moment.with_operation(op2).tags == ()
+    assert moment.with_operations(op2).tags == ()
+    assert moment.without_operations_touching([q0]).tags == ()
+
+    # Test that tags are retained if the Moment is unchanged.
+    assert moment.with_operations().tags == (tag_obj,)
+    assert moment.without_operations_touching([q1]).tags == (tag_obj,)

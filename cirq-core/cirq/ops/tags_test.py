@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cirq
 
 
-def test_virtual_tag():
+def test_virtual_tag() -> None:
     tag1 = cirq.ops.VirtualTag()
     tag2 = cirq.ops.VirtualTag()
 
@@ -26,7 +28,7 @@ def test_virtual_tag():
     cirq.testing.assert_equivalent_repr(tag2)
 
 
-def test_routing_swap_tag():
+def test_routing_swap_tag() -> None:
     tag1 = cirq.ops.RoutingSwapTag()
     tag2 = cirq.ops.RoutingSwapTag()
 

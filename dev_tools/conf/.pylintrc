@@ -8,70 +8,46 @@ output-format=colorized
 score=no
 reports=no
 enable=
-    anomalous-backslash-in-string,
+    abstract-class-instantiated,
     assert-on-tuple,
+    assignment-from-no-return,
+    bad-chained-comparison,
     bad-indentation,
+    bad-mcs-classmethod-argument,
+    bad-mcs-method-argument,
     bad-option-value,
     bad-reversed-sequence,
     bad-super-call,
-    consider-merging-isinstance,
     consider-using-f-string,
-    continue-in-finally,
-    dangerous-default-value,
+    deprecated-decorator,
     docstyle,
     duplicate-argument-name,
-    expression-not-assigned,
-    f-string-without-interpolation,
-    function-redefined,
     inconsistent-mro,
-    init-is-generator,
-    line-too-long,
-    lost-exception,
+    method-hidden,
     missing-kwoa,
     missing-param-doc,
     missing-raises-doc,
     mixed-line-endings,
     no-value-for-parameter,
-    nonexistent-operator,
-    not-in-loop,
-    pointless-statement,
-    redefined-builtin,
+    raising-bad-type,
+    raising-format-tuple,
+    redefined-slots-in-subclass,
     return-arg-in-generator,
-    return-in-init,
-    return-outside-function,
+    self-cls-assignment,
+    shadowed-import,
+    simplifiable-condition,
     simplifiable-if-statement,
-    singleton-comparison,
-    syntax-error,
     too-many-function-args,
     trailing-whitespace,
-    undefined-variable,
-    unexpected-keyword-arg,
     unhashable-dict-key,
-    unnecessary-pass,
+    unnecessary-semicolon,
     unreachable,
     unrecognized-inline-option,
-    unused-import,
-    unnecessary-semicolon,
-    unused-variable,
-    unused-wildcard-import,
-    wildcard-import,
-    wrong-or-nonexistent-copyright-notice,
+    use-maxsplit-arg,
+    useless-suppression,
+    using-constant-test,
     wrong-import-order,
-    wrong-import-position,
-    yield-outside-function
+    wrong-or-nonexistent-copyright-notice,
 
 # Ignore long lines containing urls or pylint directives.
 ignore-long-lines=^(.*#\w*pylint: disable.*|\s*(# )?[<\[\(]?https?://\S+[>\]\)]?)$
-
-[TYPECHECK]
-
-# List of members which are set dynamically and missed by pylint inference
-# system, and so shouldn't trigger E1101 when accessed. Python regular
-# expressions are accepted.
-generated-members=numpy.*
-
-
-[IMPORTS]
-
-# Force import order to recognize a module as part of a third party library.
-known-third-party=cirq,cirq_google,cirq_aqt,cirq_ionq

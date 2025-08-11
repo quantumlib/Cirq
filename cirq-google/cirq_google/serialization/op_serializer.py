@@ -12,16 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import abc
 import numbers
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import numpy as np
 
 import cirq
 from cirq.circuits import circuit_operation
 from cirq_google.api import v2
-from cirq_google.serialization.arg_func_langs import arg_to_proto
+from cirq_google.serialization.arg_func_langs import arg_to_proto, condition_to_proto
 
 
 class OpSerializer(abc.ABC):
@@ -38,9 +40,9 @@ class OpSerializer(abc.ABC):
         op,
         msg=None,
         *,
-        constants: List[v2.program_pb2.Constant],
-        raw_constants: Dict[Any, int],
-    ) -> Optional[Union[v2.program_pb2.CircuitOperation, v2.program_pb2.Operation]]:
+        constants: list[v2.program_pb2.Constant],
+        raw_constants: dict[Any, int],
+    ) -> v2.program_pb2.CircuitOperation | v2.program_pb2.Operation | None:
         """Converts op to proto using this serializer.
 
         If self.can_serialize_operation(op) == false, this should return None.
@@ -72,10 +74,10 @@ class CircuitOpSerializer(OpSerializer):
     def to_proto(
         self,
         op: cirq.CircuitOperation,
-        msg: Optional[v2.program_pb2.CircuitOperation] = None,
+        msg: v2.program_pb2.CircuitOperation | None = None,
         *,
-        constants: List[v2.program_pb2.Constant],
-        raw_constants: Dict[Any, int],
+        constants: list[v2.program_pb2.Constant],
+        raw_constants: dict[Any, int],
     ) -> v2.program_pb2.CircuitOperation:
         """Returns the cirq.google.api.v2.CircuitOperation message as a proto dict.
 
@@ -125,5 +127,10 @@ class CircuitOpSerializer(OpSerializer):
                 else:
                     raise ValueError(f'Cannot serialize complex value {p2}')
             arg_to_proto(p2, out=entry.value)
+
+        msg.use_repetition_ids = op.use_repetition_ids
+
+        if op.repeat_until:
+            condition_to_proto(op.repeat_until, out=msg.repeat_until)
 
         return msg

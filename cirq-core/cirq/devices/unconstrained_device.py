@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, TYPE_CHECKING
+from __future__ import annotations
+
+from typing import Any, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq._doc import document
@@ -26,7 +28,7 @@ if TYPE_CHECKING:
 class _UnconstrainedDevice(device.Device):
     """A device that allows everything, infinitely fast."""
 
-    def duration_of(self, operation: 'cirq.Operation') -> 'cirq.Duration':
+    def duration_of(self, operation: cirq.Operation) -> cirq.Duration:
         return value.Duration(picos=0)
 
     def validate_moment(self, moment) -> None:
@@ -41,7 +43,7 @@ class _UnconstrainedDevice(device.Device):
     def _value_equality_values_(self) -> Any:
         return ()
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, [])
 
 

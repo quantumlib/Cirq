@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
 import random
 from collections import defaultdict
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Union
+from typing import Any, Iterable, Sequence
 
 import numpy as np
 import sympy
@@ -78,7 +80,7 @@ def _measurement_subspaces(
         measurement_mask |= 1 << i
 
     # Keyed by computational basis state with lowest index.
-    measurement_subspaces: Dict[int, List[int]] = defaultdict(list)
+    measurement_subspaces: dict[int, list[int]] = defaultdict(list)
     computational_basis = range(1 << n_qubits)
 
     for basis_state in computational_basis:
@@ -115,9 +117,7 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
         reference: A circuit with the correct function.
         atol: Absolute error tolerance.
     """
-    # pylint: disable=unused-variable
     __tracebackhide__ = True
-    # pylint: enable=unused-variable
 
     measured_qubits_actual = {
         qubit
@@ -213,7 +213,7 @@ def assert_same_circuits(
 
 def _first_differing_moment_index(
     circuit1: circuits.AbstractCircuit, circuit2: circuits.AbstractCircuit
-) -> Optional[int]:
+) -> int | None:
     for i, (m1, m2) in enumerate(itertools.zip_longest(circuit1, circuit2)):
         if m1 != m2:
             return i
@@ -223,7 +223,7 @@ def _first_differing_moment_index(
 def assert_circuits_have_same_unitary_given_final_permutation(
     actual: circuits.AbstractCircuit,
     expected: circuits.AbstractCircuit,
-    qubit_map: Dict[ops.Qid, ops.Qid],
+    qubit_map: dict[ops.Qid, ops.Qid],
 ) -> None:
     """Asserts two circuits have the same unitary up to a final permutation of qubits.
 
@@ -255,7 +255,7 @@ def assert_circuits_have_same_unitary_given_final_permutation(
 
 
 def assert_has_diagram(
-    actual: Union[circuits.AbstractCircuit, circuits.Moment], desired: str, **kwargs
+    actual: circuits.AbstractCircuit | circuits.Moment, desired: str, **kwargs
 ) -> None:
     """Determines if a given circuit has the desired text diagram.
 
@@ -265,9 +265,7 @@ def assert_has_diagram(
             beginning and whitespace at the end are ignored.
         **kwargs: Keyword arguments to be passed to actual.to_text_diagram().
     """
-    # pylint: disable=unused-variable
     __tracebackhide__ = True
-    # pylint: enable=unused-variable
     actual_diagram = actual.to_text_diagram(**kwargs).lstrip("\n").rstrip()
     desired_diagram = desired.lstrip("\n").rstrip()
 
@@ -295,9 +293,7 @@ def assert_has_consistent_apply_unitary(val: Any, *, atol: float = 1e-8) -> None
         val: The value under test. Should have a `__pow__` method.
         atol: Absolute error tolerance.
     """
-    # pylint: disable=unused-variable
     __tracebackhide__ = True
-    # pylint: enable=unused-variable
 
     _assert_apply_unitary_works_when_axes_transposed(val, atol=atol)
 
@@ -339,9 +335,8 @@ def assert_has_consistent_apply_channel(val: Any, *, atol: float = 1e-8) -> None
         val: The value under test. Should have a `__pow__` method.
         atol: Absolute error tolerance.
     """
-    # pylint: disable=unused-variable
     __tracebackhide__ = True
-    # pylint: enable=unused-variable
+    assert hasattr(val, '_apply_channel_')
 
     kraus = protocols.kraus(val, default=None)
     expected = qis.kraus_to_superoperator(kraus) if kraus is not None else None
@@ -461,9 +456,7 @@ def assert_has_consistent_apply_unitary_for_various_exponents(
             the value's `__pow__` returns `NotImplemented` for any of these,
             they are skipped.
     """
-    # pylint: disable=unused-variable
     __tracebackhide__ = True
-    # pylint: enable=unused-variable
 
     for exponent in exponents:
         gate = protocols.pow(val, exponent, default=None)
@@ -483,9 +476,7 @@ def assert_has_consistent_qid_shape(val: Any) -> None:
         val: The value under test. Should have `_qid_shape_` and/or
             `num_qubits_` methods. Can optionally have a `qubits` property.
     """
-    # pylint: disable=unused-variable
     __tracebackhide__ = True
-    # pylint: enable=unused-variable
     default = (-1,)
     qid_shape = protocols.qid_shape(val, default)
     num_qubits = protocols.num_qubits(val, default)

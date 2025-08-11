@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 import sympy
@@ -19,7 +21,7 @@ import sympy
 import cirq
 
 
-def test_canonicalize_half_turns():
+def test_canonicalize_half_turns() -> None:
     assert cirq.canonicalize_half_turns(0) == 0
     assert cirq.canonicalize_half_turns(1) == +1
     assert cirq.canonicalize_half_turns(-1) == +1
@@ -34,7 +36,7 @@ def test_canonicalize_half_turns():
     assert cirq.canonicalize_half_turns(sympy.Symbol('a') * 0 + 3) == 1
 
 
-def test_chosen_angle_to_half_turns():
+def test_chosen_angle_to_half_turns() -> None:
     assert cirq.chosen_angle_to_half_turns() == 1
     assert cirq.chosen_angle_to_half_turns(default=0.5) == 0.5
     assert cirq.chosen_angle_to_half_turns(half_turns=0.25, default=0.75) == 0.25
@@ -54,7 +56,7 @@ def test_chosen_angle_to_half_turns():
         _ = cirq.chosen_angle_to_half_turns(half_turns=0, rads=0, degs=0)
 
 
-def test_chosen_angle_to_canonical_half_turns():
+def test_chosen_angle_to_canonical_half_turns() -> None:
     assert cirq.chosen_angle_to_canonical_half_turns() == 1
     assert cirq.chosen_angle_to_canonical_half_turns(default=0.5) == 0.5
     assert cirq.chosen_angle_to_canonical_half_turns(half_turns=0.25, default=0.75) == 0.25

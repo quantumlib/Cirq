@@ -14,7 +14,9 @@
 
 """Target gateset used for compiling circuits to CZ + 1-q rotations + measurement gates."""
 
-from typing import Any, Dict, Sequence, Type, TYPE_CHECKING, Union
+from __future__ import annotations
+
+from typing import Any, Sequence, TYPE_CHECKING
 
 from cirq import ops, protocols
 from cirq.transformers.analytical_decompositions import two_qubit_to_cz
@@ -47,7 +49,7 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
         *,
         atol: float = 1e-8,
         allow_partial_czs: bool = False,
-        additional_gates: Sequence[Union[Type['cirq.Gate'], 'cirq.Gate', 'cirq.GateFamily']] = (),
+        additional_gates: Sequence[type[cirq.Gate] | cirq.Gate | cirq.GateFamily] = (),
         preserve_moment_structure: bool = True,
         reorder_operations: bool = False,
     ) -> None:
@@ -83,7 +85,7 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
         self.atol = atol
         self.allow_partial_czs = allow_partial_czs
 
-    def _decompose_two_qubit_operation(self, op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
+    def _decompose_two_qubit_operation(self, op: cirq.Operation, _) -> cirq.OP_TREE:
         if not protocols.has_unitary(op):
             return NotImplemented
         return two_qubit_to_cz.two_qubit_matrix_to_cz_operations(
@@ -106,8 +108,8 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
     def _value_equality_values_(self) -> Any:
         return self.atol, self.allow_partial_czs, frozenset(self.additional_gates)
 
-    def _json_dict_(self) -> Dict[str, Any]:
-        d: Dict[str, Any] = {'atol': self.atol, 'allow_partial_czs': self.allow_partial_czs}
+    def _json_dict_(self) -> dict[str, Any]:
+        d: dict[str, Any] = {'atol': self.atol, 'allow_partial_czs': self.allow_partial_czs}
         if self.additional_gates:
             d['additional_gates'] = list(self.additional_gates)
         return d

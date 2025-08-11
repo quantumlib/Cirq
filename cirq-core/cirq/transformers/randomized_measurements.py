@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from collections.abc import Sequence
 from typing import Any
 
@@ -32,23 +34,23 @@ class RandomizedMeasurements:
         For more details on the randomized measurement toolbox see https://arxiv.org/abs/2203.11374
 
         Args:
-            subsystem: The specific subsystem (e.g qubit index) to measure in random basis
-            rest of the qubits are measured in the computational basis
+            subsystem: The specific subsystem (e.g., qubit index) to measure in a random basis.
+                The rest of the qubits are measured in the computational basis.
         """
         self.subsystem = subsystem
 
     def __call__(
         self,
-        circuit: "cirq.AbstractCircuit",
+        circuit: cirq.AbstractCircuit,
         unitary_ensemble: str = "pauli",
         rng: np.random.Generator | None = None,
         *,
         context: transformer_api.TransformerContext | None = None,
-    ) -> "cirq.Circuit":
+    ) -> cirq.Circuit:
         """Apply the transformer to the given circuit. Given an input circuit returns
-        a new circuit with the pre-measurement unitaries and measurements gates added.
-        to the qubits in the subsystem provided.If no subsystem is specified in the
-        construction of this class it defaults to measuring all the qubits in the
+        a new circuit with the pre-measurement unitaries and measurement gates added
+        to the qubits in the subsystem provided. If no subsystem is specified in the
+        construction of this class, it defaults to measuring all the qubits in the
         randomized bases.
 
         Args:
@@ -80,7 +82,7 @@ class RandomizedMeasurements:
 
     def random_single_qubit_unitary_moment(
         self, unitary_ensemble: str, qubits: Sequence[Any], rng: np.random.Generator
-    ) -> "cirq.Moment":
+    ) -> cirq.Moment:
         """Outputs the cirq moment associated with the pre-measurement rotations.
 
         Args:
@@ -115,7 +117,7 @@ class RandomizedMeasurements:
         return cirq.Moment.from_ops(*op_list)
 
 
-def _pauli_basis_rotation(rng: np.random.Generator) -> "cirq.Gate":
+def _pauli_basis_rotation(rng: np.random.Generator) -> cirq.Gate:
     """Randomly generate a Pauli basis rotation.
 
     Args:
@@ -127,7 +129,7 @@ def _pauli_basis_rotation(rng: np.random.Generator) -> "cirq.Gate":
     basis_idx = rng.choice(np.arange(3))
 
     if basis_idx == 0:
-        gate: "cirq.Gate" = cirq.Ry(rads=-np.pi / 2)
+        gate: cirq.Gate = cirq.Ry(rads=-np.pi / 2)
     elif basis_idx == 1:
         gate = cirq.Rx(rads=np.pi / 2)
     else:
@@ -135,8 +137,8 @@ def _pauli_basis_rotation(rng: np.random.Generator) -> "cirq.Gate":
     return gate
 
 
-def _single_qubit_clifford(rng: np.random.Generator) -> "cirq.Gate":
-    """Randomly generate a single-qubit Clifford rotation.
+def _single_qubit_clifford(rng: np.random.Generator) -> cirq.Gate:
+    """Randomly generates a single-qubit Clifford rotation.
 
     Args:
         rng: Random number generator
@@ -153,8 +155,8 @@ def _single_qubit_clifford(rng: np.random.Generator) -> "cirq.Gate":
     )
 
 
-def _single_qubit_cue(rng: np.random.Generator) -> "cirq.Gate":
-    """Randomly generate a CUE gate.
+def _single_qubit_cue(rng: np.random.Generator) -> cirq.Gate:
+    """Randomly generates a CUE gate.
 
     Args:
         rng: Random number generator

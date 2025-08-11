@@ -11,10 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """A typed time delta that supports picosecond accuracy."""
 
+from __future__ import annotations
+
 import datetime
-from typing import AbstractSet, Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Union
+from typing import AbstractSet, Any, TYPE_CHECKING, TypeAlias, Union
 
 import numpy as np
 import sympy
@@ -42,8 +45,8 @@ document(
 )
 
 
-_NUMERIC_INPUT_TYPE = Union[int, float, sympy.Expr, np.number]
-_NUMERIC_OUTPUT_TYPE = Union[int, float, sympy.Expr]
+_NUMERIC_INPUT_TYPE: TypeAlias = int | float | sympy.Expr | np.number
+_NUMERIC_OUTPUT_TYPE: TypeAlias = int | float | sympy.Expr
 
 
 class Duration:
@@ -51,7 +54,7 @@ class Duration:
 
     def __init__(
         self,
-        value: DURATION_LIKE = None,
+        value: DURATION_LIKE | int = None,
         *,  # Force keyword args.
         picos: _NUMERIC_INPUT_TYPE = 0,
         nanos: _NUMERIC_INPUT_TYPE = 0,
@@ -79,7 +82,7 @@ class Duration:
             >>> print(cirq.Duration(micros=1.5 * sympy.Symbol('t')))
             (1500.0*t) ns
         """
-        self._time_vals: List[_NUMERIC_INPUT_TYPE] = [0, 0, 0, 0]
+        self._time_vals: list[_NUMERIC_INPUT_TYPE] = [0, 0, 0, 0]
         self._multipliers = [1, 1000, 1000_000, 1000_000_000]
         if value is not None and value != 0:
             if isinstance(value, datetime.timedelta):
@@ -98,7 +101,7 @@ class Duration:
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self._time_vals)
 
-    def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'Duration':
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Duration:
         return _duration_from_time_vals(
             protocols.resolve_parameters(self._time_vals, resolver, recursive)
         )
@@ -121,16 +124,16 @@ class Duration:
         """Returns the number of milliseconds that the duration spans."""
         return self.total_picos() / 1000_000_000
 
-    def __add__(self, other) -> 'Duration':
+    def __add__(self, other) -> Duration:
         other = _attempt_duration_like_to_duration(other)
         if other is None:
             return NotImplemented
         return _duration_from_time_vals(_add_time_vals(self._time_vals, other._time_vals))
 
-    def __radd__(self, other) -> 'Duration':
+    def __radd__(self, other) -> Duration:
         return self.__add__(other)
 
-    def __sub__(self, other) -> 'Duration':
+    def __sub__(self, other) -> Duration:
         other = _attempt_duration_like_to_duration(other)
         if other is None:
             return NotImplemented
@@ -138,7 +141,7 @@ class Duration:
             _add_time_vals(self._time_vals, [-x for x in other._time_vals])
         )
 
-    def __rsub__(self, other) -> 'Duration':
+    def __rsub__(self, other) -> Duration:
         other = _attempt_duration_like_to_duration(other)
         if other is None:
             return NotImplemented
@@ -146,17 +149,17 @@ class Duration:
             _add_time_vals(other._time_vals, [-x for x in self._time_vals])
         )
 
-    def __mul__(self, other) -> 'Duration':
+    def __mul__(self, other) -> Duration:
         if not isinstance(other, (int, float, sympy.Expr)):
             return NotImplemented
         if other == 0:
             return _duration_from_time_vals([0] * 4)
         return _duration_from_time_vals([x * other for x in self._time_vals])
 
-    def __rmul__(self, other) -> 'Duration':
+    def __rmul__(self, other) -> Duration:
         return self.__mul__(other)
 
-    def __truediv__(self, other) -> Union['Duration', float]:
+    def __truediv__(self, other) -> Duration | float:
         if isinstance(other, (int, float, sympy.Expr)):
             new_time_vals = [x / other for x in self._time_vals]
             return _duration_from_time_vals(new_time_vals)
@@ -211,7 +214,7 @@ class Duration:
             return hash(datetime.timedelta(microseconds=self.total_picos() / 1000000))
         return hash((Duration, self.total_picos()))
 
-    def _decompose_into_amount_unit_suffix(self) -> Tuple[int, str, str]:
+    def _decompose_into_amount_unit_suffix(self) -> tuple[int, str, str]:
         picos = self.total_picos()
         if (
             isinstance(picos, sympy.Mul)
@@ -258,11 +261,11 @@ class Duration:
         amount, unit, _ = self._decompose_into_amount_unit_suffix()
         return f'cirq.Duration({unit}={proper_repr(amount)})'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {'picos': self.total_picos()}
 
 
-def _attempt_duration_like_to_duration(value: Any) -> Optional[Duration]:
+def _attempt_duration_like_to_duration(value: Any) -> Duration | None:
     if isinstance(value, Duration):
         return value
     if isinstance(value, datetime.timedelta):
@@ -273,9 +276,9 @@ def _attempt_duration_like_to_duration(value: Any) -> Optional[Duration]:
 
 
 def _add_time_vals(
-    val1: List[_NUMERIC_INPUT_TYPE], val2: List[_NUMERIC_INPUT_TYPE]
-) -> List[_NUMERIC_INPUT_TYPE]:
-    ret: List[_NUMERIC_INPUT_TYPE] = []
+    val1: list[_NUMERIC_INPUT_TYPE], val2: list[_NUMERIC_INPUT_TYPE]
+) -> list[_NUMERIC_INPUT_TYPE]:
+    ret: list[_NUMERIC_INPUT_TYPE] = []
     for i in range(4):
         if val1[i] and val2[i]:
             ret.append(val1[i] + val2[i])
@@ -284,7 +287,7 @@ def _add_time_vals(
     return ret
 
 
-def _duration_from_time_vals(time_vals: List[_NUMERIC_INPUT_TYPE]):
+def _duration_from_time_vals(time_vals: list[_NUMERIC_INPUT_TYPE]):
     ret = Duration()
     ret._time_vals = time_vals
     return ret

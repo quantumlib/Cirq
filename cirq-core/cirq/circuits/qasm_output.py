@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import re
-from typing import Callable, Dict, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import Callable, Iterator, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -55,7 +55,7 @@ class QasmUGate(ops.Gate):
     def _has_unitary_(self):
         return True
 
-    def _qasm_(self, qubits: Tuple[cirq.Qid, ...], args: cirq.QasmArgs) -> str:
+    def _qasm_(self, qubits: tuple[cirq.Qid, ...], args: cirq.QasmArgs) -> str:
         args.validate_version('2.0', '3.0')
         return args.format(
             'u3({0:half_turns},{1:half_turns},{2:half_turns}) {3};\n',
@@ -84,7 +84,7 @@ class QasmUGate(ops.Gate):
     def _value_equality_values_(self):
         return self.lmda, self.theta, self.phi
 
-    def _json_dict_(self) -> Dict[str, float]:
+    def _json_dict_(self) -> dict[str, float]:
         return {'theta': self.theta, 'phi': self.phi, 'lmda': self.lmda}
 
     @classmethod
@@ -173,7 +173,7 @@ class QasmOutput:
     def __init__(
         self,
         operations: cirq.OP_TREE,
-        qubits: Tuple[cirq.Qid, ...],
+        qubits: tuple[cirq.Qid, ...],
         header: str = '',
         precision: int = 10,
         version: str = '2.0',
@@ -208,10 +208,10 @@ class QasmOutput:
             meas_key_bitcount={k: v[0] for k, v in self.cregs.items()},
         )
 
-    def _generate_measurement_ids(self) -> Tuple[Dict[str, str], Dict[str, Optional[str]]]:
+    def _generate_measurement_ids(self) -> tuple[dict[str, str], dict[str, str | None]]:
         # Pick an id for the creg that will store each measurement
-        meas_key_id_map: Dict[str, str] = {}
-        meas_comments: Dict[str, Optional[str]] = {}
+        meas_key_id_map: dict[str, str] = {}
+        meas_comments: dict[str, str | None] = {}
         meas_i = 0
         for meas in self.measurements:
             key = protocols.measurement_key_name(meas)
@@ -227,10 +227,10 @@ class QasmOutput:
             meas_key_id_map[key] = meas_id
         return meas_key_id_map, meas_comments
 
-    def _generate_qubit_ids(self) -> Dict[cirq.Qid, str]:
+    def _generate_qubit_ids(self) -> dict[cirq.Qid, str]:
         return {qubit: f'q[{i}]' for i, qubit in enumerate(self.qubits)}
 
-    def _generate_cregs(self, meas_key_id_map: Dict[str, str]) -> Dict[str, tuple[int, str]]:
+    def _generate_cregs(self, meas_key_id_map: dict[str, str]) -> dict[str, tuple[int, str]]:
         """Pick an id for the creg that will store each measurement
 
         This function finds the largest measurement using each key.
@@ -239,7 +239,7 @@ class QasmOutput:
 
         Returns: dictionary with key of measurement id and value of (#qubits, comment).
         """
-        cregs: Dict[str, tuple[int, str]] = {}
+        cregs: dict[str, tuple[int, str]] = {}
         for meas in self.measurements:
             key = protocols.measurement_key_name(meas)
             meas_id = meas_key_id_map[key]
@@ -258,7 +258,7 @@ class QasmOutput:
         """Test if id_str is a valid id in QASM grammar."""
         return self.valid_id_re.match(id_str) is not None
 
-    def save(self, path: Union[str, bytes, int]) -> None:
+    def save(self, path: str | bytes | int) -> None:
         """Write QASM output to a file specified by path."""
         with open(path, 'w') as f:
 

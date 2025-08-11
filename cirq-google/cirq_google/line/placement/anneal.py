@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, List, Optional, Set, Tuple, TYPE_CHECKING
+from __future__ import annotations
+
+from typing import Any, Callable, TYPE_CHECKING
 
 import numpy as np
 
@@ -24,13 +26,13 @@ from cirq_google.line.placement.sequence import GridQubitLineTuple, LineSequence
 if TYPE_CHECKING:
     import cirq_google
 
-_STATE = Tuple[List[List[cirq.GridQubit]], Set[EDGE]]
+_STATE = tuple[list[list[cirq.GridQubit]], set[EDGE]]
 
 
 class AnnealSequenceSearch:
     """Simulated annealing search heuristic."""
 
-    def __init__(self, device: 'cirq_google.GridDevice', seed=None) -> None:
+    def __init__(self, device: cirq_google.GridDevice, seed=None) -> None:
         """Greedy sequence search constructor.
 
         Args:
@@ -43,10 +45,8 @@ class AnnealSequenceSearch:
 
     def search(
         self,
-        trace_func: Optional[
-            Callable[[List[LineSequence], float, float, float, bool], None]
-        ] = None,
-    ) -> List[LineSequence]:
+        trace_func: Callable[[list[LineSequence], float, float, float, bool], None] | None = None,
+    ) -> list[LineSequence]:
         """Issues new linear sequence search.
 
         Each call to this method starts new search.
@@ -141,8 +141,8 @@ class AnnealSequenceSearch:
         return (self._force_edge_active(seqs, edge, lambda: bool(self._rand.randint(2))), edges)
 
     def _force_edge_active(
-        self, seqs: List[List[cirq.GridQubit]], edge: EDGE, sample_bool: Callable[[], bool]
-    ) -> List[List[cirq.GridQubit]]:
+        self, seqs: list[list[cirq.GridQubit]], edge: EDGE, sample_bool: Callable[[], bool]
+    ) -> list[list[cirq.GridQubit]]:
         """Move which forces given edge to appear on some sequence.
 
         Args:
@@ -240,7 +240,7 @@ class AnnealSequenceSearch:
           Valid search state.
         """
 
-        def extract_sequences() -> List[List[cirq.GridQubit]]:
+        def extract_sequences() -> list[list[cirq.GridQubit]]:
             """Creates list of sequences for initial state.
 
             Returns:
@@ -266,7 +266,7 @@ class AnnealSequenceSearch:
                 seqs.append(seq)
             return seqs
 
-        def assemble_edges() -> Set[EDGE]:
+        def assemble_edges() -> set[EDGE]:
             """Creates list of edges for initial state.
 
             Returns:
@@ -304,7 +304,7 @@ class AnnealSequenceSearch:
         n1, n2 = edge
         return (n1, n2) if lower(n1, n2) else (n2, n1)
 
-    def _choose_random_edge(self, edges: Set[EDGE]) -> Optional[EDGE]:
+    def _choose_random_edge(self, edges: set[EDGE]) -> EDGE | None:
         """Picks random edge from the set of edges.
 
         Args:
@@ -327,15 +327,13 @@ class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
 
     TODO: This line search strategy is still work in progress and requires
     efficiency improvements.
-    Github issue: https://github.com/quantumlib/Cirq/issues/2217
+    GitHub issue: https://github.com/quantumlib/Cirq/issues/2217
     """
 
     def __init__(
         self,
-        trace_func: Optional[
-            Callable[[List[LineSequence], float, float, float, bool], None]
-        ] = None,
-        seed: Optional[int] = None,
+        trace_func: Callable[[list[LineSequence], float, float, float, bool], None] | None = None,
+        seed: int | None = None,
     ) -> None:
         """Linearized sequence search using simulated annealing method.
 
@@ -355,7 +353,7 @@ class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
         self.trace_func = trace_func
         self.seed = seed
 
-    def place_line(self, device: 'cirq_google.GridDevice', length: int) -> GridQubitLineTuple:
+    def place_line(self, device: cirq_google.GridDevice, length: int) -> GridQubitLineTuple:
         """Runs line sequence search.
 
         Args:
@@ -370,7 +368,7 @@ class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
         return GridQubitLineTuple.best_of(seqs, length)
 
 
-def index_2d(seqs: List[List[Any]], target: Any) -> Tuple[int, int]:
+def index_2d(seqs: list[list[Any]], target: Any) -> tuple[int, int]:
     """Finds the first index of a target item within a list of lists.
 
     Args:

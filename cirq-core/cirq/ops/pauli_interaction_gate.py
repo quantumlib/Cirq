@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterator, List, Sequence, Tuple, TYPE_CHECKING
+from __future__ import annotations
+
+from typing import Any, Iterator, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -24,7 +26,7 @@ from cirq.ops.clifford_gate import SingleQubitCliffordGate
 if TYPE_CHECKING:
     import cirq
 
-PAULI_EIGEN_MAP: Dict[pauli_gates.Pauli, Tuple[np.ndarray, np.ndarray]] = {
+PAULI_EIGEN_MAP: dict[pauli_gates.Pauli, tuple[np.ndarray, np.ndarray]] = {
     pauli_gates.X: (np.array([[0.5, 0.5], [0.5, 0.5]]), np.array([[0.5, -0.5], [-0.5, 0.5]])),
     pauli_gates.Y: (np.array([[0.5, -0.5j], [0.5j, 0.5]]), np.array([[0.5, 0.5j], [-0.5j, 0.5]])),
     pauli_gates.Z: (np.diag([1, 0]), np.diag([0, 1])),
@@ -35,8 +37,8 @@ PAULI_EIGEN_MAP: Dict[pauli_gates.Pauli, Tuple[np.ndarray, np.ndarray]] = {
 class PauliInteractionGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     """A CZ conjugated by arbitrary single qubit Cliffords."""
 
-    CZ: 'PauliInteractionGate'
-    CNOT: 'PauliInteractionGate'
+    CZ: PauliInteractionGate
+    CNOT: PauliInteractionGate
 
     def __init__(
         self,
@@ -66,7 +68,7 @@ class PauliInteractionGate(gate_features.InterchangeableQubitsGate, eigen_gate.E
         self._invert1 = invert1
 
     @property
-    def pauli0(self) -> 'cirq.Pauli':
+    def pauli0(self) -> cirq.Pauli:
         return self._pauli0
 
     @property
@@ -74,7 +76,7 @@ class PauliInteractionGate(gate_features.InterchangeableQubitsGate, eigen_gate.E
         return self._invert0
 
     @property
-    def pauli1(self) -> 'cirq.Pauli':
+    def pauli1(self) -> cirq.Pauli:
         return self._pauli1
 
     @property
@@ -98,15 +100,15 @@ class PauliInteractionGate(gate_features.InterchangeableQubitsGate, eigen_gate.E
             return 0
         return index
 
-    def _with_exponent(self, exponent: value.TParamVal) -> 'PauliInteractionGate':
+    def _with_exponent(self, exponent: value.TParamVal) -> PauliInteractionGate:
         return PauliInteractionGate(
             self.pauli0, self.invert0, self.pauli1, self.invert1, exponent=exponent
         )
 
-    def _eigen_shifts(self) -> List[float]:
+    def _eigen_shifts(self) -> list[float]:
         return [0.0, 1.0]
 
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
+    def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
         comp1 = np.kron(
             PAULI_EIGEN_MAP[self.pauli0][not self.invert0],
             PAULI_EIGEN_MAP[self.pauli1][not self.invert1],
@@ -114,7 +116,7 @@ class PauliInteractionGate(gate_features.InterchangeableQubitsGate, eigen_gate.E
         comp0 = np.eye(4) - comp1
         return [(0, comp0), (1, comp1)]
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
         q0, q1 = qubits
         right_gate0 = SingleQubitCliffordGate.from_single_map(z_to=(self.pauli0, self.invert0))
         right_gate1 = SingleQubitCliffordGate.from_single_map(z_to=(self.pauli1, self.invert1))
@@ -127,14 +129,8 @@ class PauliInteractionGate(gate_features.InterchangeableQubitsGate, eigen_gate.E
         yield right_gate0(q0)
         yield right_gate1(q1)
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
-        labels: Dict['cirq.Pauli', str] = {
-            pauli_gates.X: 'X',
-            pauli_gates.Y: 'Y',
-            pauli_gates.Z: '@',
-        }
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
+        labels: dict[cirq.Pauli, str] = {pauli_gates.X: 'X', pauli_gates.Y: 'Y', pauli_gates.Z: '@'}
         l0 = labels[self.pauli0]
         l1 = labels[self.pauli1]
         # Add brackets around letter if inverted
@@ -153,7 +149,7 @@ class PauliInteractionGate(gate_features.InterchangeableQubitsGate, eigen_gate.E
             return base
         return f'({base}**{proper_repr(self._exponent)})'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ["pauli0", "invert0", "pauli1", "invert1"])
 
 

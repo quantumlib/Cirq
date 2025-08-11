@@ -25,7 +25,9 @@ raised to a power (i.e. SQRT_ISWAP_INV=cirq.ISWAP**-0.5). See the definition in
 EigenGate.
 """
 
-from typing import cast, List, Optional, Tuple, TYPE_CHECKING
+from __future__ import annotations
+
+from typing import cast, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -81,7 +83,7 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
         )
         yield common_gates.CNOT(a, b)
 
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
+    def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
         # yapf: disable
         return [
             (0, np.array([[1, 0,   0,   0],
@@ -95,17 +97,17 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
         ]
         # yapf: enable
 
-    def _trace_distance_bound_(self) -> Optional[float]:
+    def _trace_distance_bound_(self) -> float | None:
         if self._is_parameterized_():
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
-    def _has_stabilizer_effect_(self) -> Optional[bool]:
+    def _has_stabilizer_effect_(self) -> bool | None:
         if self._is_parameterized_():
             return None
         return self.exponent % 1 == 0
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray | None:
         if self._exponent != 1:
             return NotImplemented
 
@@ -134,9 +136,7 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
             }
         )
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         if not args.use_unicode_characters:
             return protocols.CircuitDiagramInfo(
                 wire_symbols=('Swap', 'Swap'), exponent=self._diagram_exponent(args)
@@ -145,7 +145,7 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
             wire_symbols=('×', '×'), exponent=self._diagram_exponent(args)
         )
 
-    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> str | None:
         if self._exponent != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0', '3.0')
@@ -204,7 +204,7 @@ class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate
     def _num_qubits_(self) -> int:
         return 2
 
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
+    def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
         # yapf: disable
         return [
             (0, np.diag([1, 0, 0, 1])),
@@ -219,7 +219,7 @@ class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate
         ]
         # yapf: enable
 
-    def _has_stabilizer_effect_(self) -> Optional[bool]:
+    def _has_stabilizer_effect_(self) -> bool | None:
         if self._is_parameterized_():
             return None
         return self.exponent % 1 == 0
@@ -240,7 +240,7 @@ class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate
         yield common_gates.H(a)
         yield common_gates.CNOT(a, b)
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray | None:
         if self._exponent != 1:
             return NotImplemented
 
@@ -271,9 +271,7 @@ class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate
             }
         )
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(
             wire_symbols=('iSwap', 'iSwap'), exponent=self._diagram_exponent(args)
         )

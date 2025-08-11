@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cirq
 
 
@@ -30,7 +32,7 @@ class GateAllocInDecompose(cirq.Gate):
             qm.qfree([q])
 
 
-def test_greedy_qubit_manager():
+def test_greedy_qubit_manager() -> None:
     def make_circuit(qm: cirq.QubitManager):
         q = cirq.LineQubit.range(2)
         g = GateAllocInDecompose(1)
@@ -90,12 +92,12 @@ ancilla_1: ───X───X───
     )
 
 
-def test_empty_qubits():
+def test_empty_qubits() -> None:
     qm = cirq.GreedyQubitManager(prefix="anc")
     assert qm.qalloc(0) == []
 
 
-def test_greedy_qubit_manager_preserves_order():
+def test_greedy_qubit_manager_preserves_order() -> None:
     qm = cirq.GreedyQubitManager(prefix="anc")
     ancillae = [cirq.q(f"anc_{i}") for i in range(100)]
     assert qm.qalloc(100) == ancillae

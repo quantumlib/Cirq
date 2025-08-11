@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 import sympy
@@ -21,11 +23,11 @@ import cirq
 
 
 @pytest.mark.parametrize('eigen_gate_type', [cirq.ISwapPowGate, cirq.SwapPowGate])
-def test_phase_sensitive_eigen_gates_consistent_protocols(eigen_gate_type):
+def test_phase_sensitive_eigen_gates_consistent_protocols(eigen_gate_type) -> None:
     cirq.testing.assert_eigengate_implements_consistent_protocols(eigen_gate_type)
 
 
-def test_interchangeable_qubit_eq():
+def test_interchangeable_qubit_eq() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
@@ -44,7 +46,7 @@ def test_interchangeable_qubit_eq():
     eq.add_equality_group(cirq.ISWAP(a, c) ** 0.3)
 
 
-def test_text_diagrams():
+def test_text_diagrams() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     circuit = cirq.Circuit(cirq.SWAP(a, b), cirq.ISWAP(a, b) ** -1)
@@ -69,14 +71,14 @@ b: ---Swap---iSwap^-1---
     )
 
 
-def test_swap_has_stabilizer_effect():
+def test_swap_has_stabilizer_effect() -> None:
     assert cirq.has_stabilizer_effect(cirq.SWAP)
     assert cirq.has_stabilizer_effect(cirq.SWAP**2)
     assert not cirq.has_stabilizer_effect(cirq.SWAP**0.5)
     assert not cirq.has_stabilizer_effect(cirq.SWAP ** sympy.Symbol('foo'))
 
 
-def test_swap_unitary():
+def test_swap_unitary() -> None:
     # yapf: disable
     np.testing.assert_almost_equal(
         cirq.unitary(cirq.SWAP**0.5),
@@ -89,7 +91,7 @@ def test_swap_unitary():
     # yapf: enable
 
 
-def test_iswap_unitary():
+def test_iswap_unitary() -> None:
     # yapf: disable
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(cirq.ISWAP),
@@ -103,7 +105,7 @@ def test_iswap_unitary():
     # yapf: enable
 
 
-def test_iswap_inv_unitary():
+def test_iswap_inv_unitary() -> None:
     # yapf: disable
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(cirq.ISWAP_INV),
@@ -117,7 +119,7 @@ def test_iswap_inv_unitary():
     # yapf: enable
 
 
-def test_sqrt_iswap_unitary():
+def test_sqrt_iswap_unitary() -> None:
     # yapf: disable
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(cirq.SQRT_ISWAP),
@@ -131,7 +133,7 @@ def test_sqrt_iswap_unitary():
     # yapf: enable
 
 
-def test_sqrt_iswap_inv_unitary():
+def test_sqrt_iswap_inv_unitary() -> None:
     # yapf: disable
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(cirq.SQRT_ISWAP_INV),
@@ -145,7 +147,7 @@ def test_sqrt_iswap_inv_unitary():
     # yapf: enable
 
 
-def test_repr():
+def test_repr() -> None:
     assert repr(cirq.SWAP) == 'cirq.SWAP'
     assert repr(cirq.SWAP**0.5) == '(cirq.SWAP**0.5)'
 
@@ -156,7 +158,7 @@ def test_repr():
     assert repr(cirq.ISWAP_INV**0.5) == '(cirq.ISWAP**-0.5)'
 
 
-def test_str():
+def test_str() -> None:
     assert str(cirq.SWAP) == 'SWAP'
     assert str(cirq.SWAP**0.5) == 'SWAP**0.5'
 
@@ -167,7 +169,7 @@ def test_str():
     assert str(cirq.ISWAP_INV**0.5) == 'ISWAP**-0.5'
 
 
-def test_iswap_decompose_diagram():
+def test_iswap_decompose_diagram() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
@@ -182,7 +184,7 @@ b: ───X───────@───────@───────�
     )
 
 
-def test_trace_distance():
+def test_trace_distance() -> None:
     foo = sympy.Symbol('foo')
     sswap = cirq.SWAP**foo
     siswap = cirq.ISWAP**foo
@@ -194,14 +196,14 @@ def test_trace_distance():
     assert cirq.approx_eq(cirq.trace_distance_bound(cirq.ISWAP**0), 0.0)
 
 
-def test_trace_distance_over_range_of_exponents():
+def test_trace_distance_over_range_of_exponents() -> None:
     for exp in np.linspace(0, 4, 20):
         cirq.testing.assert_has_consistent_trace_distance_bound(cirq.SWAP**exp)
         cirq.testing.assert_has_consistent_trace_distance_bound(cirq.ISWAP**exp)
 
 
 @pytest.mark.parametrize('angle_rads', (-np.pi, -np.pi / 3, -0.1, np.pi / 5))
-def test_riswap_unitary(angle_rads):
+def test_riswap_unitary(angle_rads) -> None:
     actual = cirq.unitary(cirq.riswap(angle_rads))
     c = np.cos(angle_rads)
     s = 1j * np.sin(angle_rads)
@@ -215,7 +217,7 @@ def test_riswap_unitary(angle_rads):
 
 
 @pytest.mark.parametrize('angle_rads', (-2 * np.pi / 3, -0.2, 0.4, np.pi / 4))
-def test_riswap_hamiltonian(angle_rads):
+def test_riswap_hamiltonian(angle_rads) -> None:
     actual = cirq.unitary(cirq.riswap(angle_rads))
     x = np.array([[0, 1], [1, 0]])
     y = np.array([[0, -1j], [1j, 0]])
@@ -226,5 +228,5 @@ def test_riswap_hamiltonian(angle_rads):
 
 
 @pytest.mark.parametrize('angle_rads', (-np.pi / 5, 0.4, 2, np.pi))
-def test_riswap_has_consistent_protocols(angle_rads):
+def test_riswap_has_consistent_protocols(angle_rads) -> None:
     cirq.testing.assert_implements_consistent_protocols(cirq.riswap(angle_rads))

@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterator, List, Optional
+from __future__ import annotations
+
+from typing import Iterator
 
 import pytest
 
@@ -114,7 +116,6 @@ def test_map_operations_does_not_insert_too_many_moments():
     )
 
 
-# pylint: disable=line-too-long
 def test_map_operations_deep_subcircuits():
     q = cirq.LineQubit.range(5)
     c_orig = cirq.Circuit(cirq.CX(q[0], q[1]), cirq.CX(q[3], q[2]), cirq.CX(q[3], q[4]))
@@ -164,7 +165,7 @@ def test_map_operations_deep_subcircuits():
 3: ───#4──────────────────────────────────────────────────────────────────────────────────────────────────────
       │
 4: ───#5──────────────────────────────────────────────────────────────────────────────────────────────────────
-''',
+''',  # noqa: E501
     )
 
     c_mapped = cirq.map_operations(c_orig_with_circuit_ops, map_func, deep=True)
@@ -199,11 +200,8 @@ def test_map_operations_deep_subcircuits():
 3: ───#4──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
       │
 4: ───#5──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-''',
+''',  # noqa: E501
         )
-
-
-# pylint: enable=line-too-long
 
 
 @pytest.mark.parametrize("deep", [False, True])
@@ -501,7 +499,7 @@ def test_map_moments_drop_empty_moments_deep():
     cirq.testing.assert_same_circuits(c_mapped, c_expected)
 
 
-def _merge_z_moments_func(m1: cirq.Moment, m2: cirq.Moment) -> Optional[cirq.Moment]:
+def _merge_z_moments_func(m1: cirq.Moment, m2: cirq.Moment) -> cirq.Moment | None:
     if any(op.gate != cirq.Z for m in [m1, m2] for op in m):
         return None
     return cirq.Moment(
@@ -705,9 +703,6 @@ def test_merge_operations_deep():
     )
 
 
-# pylint: disable=line-too-long
-
-
 def test_merge_operations_to_circuit_op_merges_connected_component():
     c_orig = _create_circuit_to_merge()
     cirq.testing.assert_has_diagram(
@@ -721,7 +716,7 @@ def test_merge_operations_to_circuit_op_merges_connected_component():
 ''',
     )
 
-    def can_merge(ops1: List['cirq.Operation'], ops2: List['cirq.Operation']) -> bool:
+    def can_merge(ops1: list[cirq.Operation], ops2: list[cirq.Operation]) -> bool:
         """Artificial example where a CZ will absorb any merge-able operation."""
         return any(o.gate == cirq.CZ for op_list in [ops1, ops2] for o in op_list)
 
@@ -738,7 +733,7 @@ def test_merge_operations_to_circuit_op_merges_connected_component():
 1: ───────┼───────────#2───────────────────────────────────────────────────────────@───────Y───────────X───
           │                                                                        │
 2: ───H───X────────────────────────────────────────────────────────────────────────X───────────────────────
-''',
+''',  # noqa: E501
     )
 
 
@@ -770,11 +765,9 @@ def test_merge_2q_unitaries_to_circuit_op():
 1: ───┼────────────────────────────#2───────────────────────────────────────────────[       │        ]───────────────────────X───
       │                                                                             [ 2: ───X─────── ][merged]
       │                                                                             │
-2: ───#2────────────────────────────────────────────────────────────────────────────#2───────────────────────────────────────M───''',
+2: ───#2────────────────────────────────────────────────────────────────────────────#2───────────────────────────────────────M───
+        ''',  # noqa: E501
     )
-
-
-# pylint: enable=line-too-long
 
 
 def test_merge_operations_respects_tags_to_ignore():

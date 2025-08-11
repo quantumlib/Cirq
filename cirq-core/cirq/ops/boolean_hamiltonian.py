@@ -22,9 +22,12 @@ References:
 [4] Efficient Quantum Circuits for Diagonal Unitaries Without Ancillas by Jonathan Welch, Daniel
     Greenbaum, Sarah Mostame, and Alán Aspuru-Guzik, https://arxiv.org/abs/1306.3991
 """
+
+from __future__ import annotations
+
 import functools
 import itertools
-from typing import Any, Dict, Generator, List, Sequence, Tuple
+from typing import Any, Generator, Sequence
 
 import sympy.parsing.sympy_parser as sympy_parser
 
@@ -77,13 +80,13 @@ class BooleanHamiltonianGate(raw_types.Gate):
         self._boolean_strs: Sequence[str] = boolean_strs
         self._theta: float = theta
 
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         return (2,) * len(self._parameter_names)
 
     def _value_equality_values_(self) -> Any:
         return tuple(self._parameter_names), tuple(self._boolean_strs), self._theta
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             'parameter_names': self._parameter_names,
             'boolean_strs': self._boolean_strs,
@@ -93,10 +96,10 @@ class BooleanHamiltonianGate(raw_types.Gate):
     @classmethod
     def _from_json_dict_(
         cls, parameter_names, boolean_strs, theta, **kwargs
-    ) -> 'cirq.BooleanHamiltonianGate':
+    ) -> cirq.BooleanHamiltonianGate:
         return cls(parameter_names, boolean_strs, theta)
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         qubit_map = dict(zip(self._parameter_names, qubits))
         boolean_exprs = [sympy_parser.parse_expr(boolean_str) for boolean_str in self._boolean_strs]
         hamiltonian_polynomial_list = [
@@ -118,7 +121,7 @@ class BooleanHamiltonianGate(raw_types.Gate):
         )
 
 
-def _gray_code_comparator(k1: Tuple[int, ...], k2: Tuple[int, ...], flip: bool = False) -> int:
+def _gray_code_comparator(k1: tuple[int, ...], k2: tuple[int, ...], flip: bool = False) -> int:
     """Compares two Gray-encoded binary numbers.
 
     Args:
@@ -141,8 +144,8 @@ def _gray_code_comparator(k1: Tuple[int, ...], k2: Tuple[int, ...], flip: bool =
 
 
 def _simplify_commuting_cnots(
-    cnots: List[Tuple[int, int]], flip_control_and_target: bool
-) -> Tuple[bool, List[Tuple[int, int]]]:
+    cnots: list[tuple[int, int]], flip_control_and_target: bool
+) -> tuple[bool, list[tuple[int, int]]]:
     """Attempts to commute CNOTs and remove cancelling pairs.
 
     Commutation relations are based on 9 (flip_control_and_target=False) or 10
@@ -181,7 +184,7 @@ def _simplify_commuting_cnots(
     target, control = (0, 1) if flip_control_and_target else (1, 0)
 
     to_remove = set()
-    qubit_to_index: List[Tuple[int, Dict[int, int]]] = []
+    qubit_to_index: list[tuple[int, dict[int, int]]] = []
     for j in range(len(cnots)):
         if not qubit_to_index or cnots[j][target] != qubit_to_index[-1][0]:
             # The targets (resp. control) don't match, so we create a new dict.
@@ -202,8 +205,8 @@ def _simplify_commuting_cnots(
 
 
 def _simplify_cnots_triplets(
-    cnots: List[Tuple[int, int]], flip_control_and_target: bool
-) -> Tuple[bool, List[Tuple[int, int]]]:
+    cnots: list[tuple[int, int]], flip_control_and_target: bool
+) -> tuple[bool, list[tuple[int, int]]]:
     """Simplifies CNOT pairs according to equation 11 of [4].
 
     CNOT(i, j) @ CNOT(j, k) == CNOT(j, k) @ CNOT(i, k) @ CNOT(i, j)
@@ -228,7 +231,7 @@ def _simplify_cnots_triplets(
         # First, we look back for as long as the controls (resp. targets) are the same.
         # They all commute, so all are potential candidates for being simplified.
         # prev_match_index is qubit to index in `cnots` array.
-        prev_match_index: Dict[int, int] = {}
+        prev_match_index: dict[int, int] = {}
         for i in range(j - 1, -1, -1):
             # These CNOTs have the same target (resp. control) and though they are not candidates
             # for simplification, since they commute, we can keep looking for candidates.
@@ -242,7 +245,7 @@ def _simplify_cnots_triplets(
         # Next, we look forward for as long as the targets (resp. controls) are the
         # same. They all commute, so all are potential candidates for being simplified.
         # post_match_index is qubit to index in `cnots` array.
-        post_match_index: Dict[int, int] = {}
+        post_match_index: dict[int, int] = {}
         for k in range(j + 1, len(cnots)):
             # These CNOTs have the same control (resp. target) and though they are not candidates
             # for simplification, since they commute, we can keep looking for candidates.
@@ -257,7 +260,7 @@ def _simplify_cnots_triplets(
         keys = prev_match_index.keys() & post_match_index.keys()
         for key in keys:
             # We perform the swap which removes the pivot.
-            new_idx: List[int] = (
+            new_idx: list[int] = (
                 # Anything strictly before the pivot that is not the CNOT to swap.
                 [idx for idx in range(j) if idx != prev_match_index[key]]
                 # The two swapped CNOTs.
@@ -272,7 +275,7 @@ def _simplify_cnots_triplets(
     return False, cnots
 
 
-def _simplify_cnots(cnots: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
+def _simplify_cnots(cnots: list[tuple[int, int]]) -> list[tuple[int, int]]:
     """Takes a series of CNOTs and tries to applies rule to cancel out gates.
 
     Algorithm based on "Efficient quantum circuits for diagonal unitaries without ancillas" by
@@ -299,10 +302,8 @@ def _simplify_cnots(cnots: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
 
 
 def _get_gates_from_hamiltonians(
-    hamiltonian_polynomial_list: List['cirq.PauliSum'],
-    qubit_map: Dict[str, 'cirq.Qid'],
-    theta: float,
-) -> Generator['cirq.Operation', None, None]:
+    hamiltonian_polynomial_list: list[cirq.PauliSum], qubit_map: dict[str, cirq.Qid], theta: float
+) -> Generator[cirq.Operation, None, None]:
     """Builds a circuit according to [1].
 
     Args:
@@ -325,8 +326,8 @@ def _get_gates_from_hamiltonians(
         qubit_idx = tuple(sorted(qubit_indices[qubit] for qubit in pauli_string.qubits))
         hamiltonians[qubit_idx] = w
 
-    def _apply_cnots(prevh: Tuple[int, ...], currh: Tuple[int, ...]):
-        cnots: List[Tuple[int, int]] = []
+    def _apply_cnots(prevh: tuple[int, ...], currh: tuple[int, ...]):
+        cnots: list[tuple[int, int]] = []
 
         cnots.extend((prevh[i], prevh[-1]) for i in range(len(prevh) - 1))
         cnots.extend((currh[i], currh[-1]) for i in range(len(currh) - 1))
@@ -340,7 +341,7 @@ def _get_gates_from_hamiltonians(
         hamiltonians.keys(), key=functools.cmp_to_key(_gray_code_comparator)
     )
 
-    previous_h: Tuple[int, ...] = ()
+    previous_h: tuple[int, ...] = ()
     for h in sorted_hamiltonian_keys:
         w = hamiltonians[h]
         yield _apply_cnots(previous_h, h)

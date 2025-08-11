@@ -14,7 +14,9 @@
 
 """Quantum gates to prepare a given target state."""
 
-from typing import Any, Dict, Iterable, Tuple, TYPE_CHECKING
+from __future__ import annotations
+
+from typing import Any, Iterable, TYPE_CHECKING
 
 import numpy as np
 
@@ -57,14 +59,14 @@ class StatePreparationChannel(raw_types.Gate):
         it involves measurement."""
         return False
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         """Converts the gate object into a serializable dictionary"""
         return {'target_state': self._state.tolist(), 'name': self._name}
 
     @classmethod
     def _from_json_dict_(
         cls, target_state: np.ndarray, name: str, **kwargs
-    ) -> 'StatePreparationChannel':
+    ) -> StatePreparationChannel:
         """Recreates the channel object from it's serialized form
 
         Args:
@@ -77,12 +79,10 @@ class StatePreparationChannel(raw_types.Gate):
     def _num_qubits_(self) -> int:
         return self._num_qubits
 
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         return self._qid_shape
 
-    def _circuit_diagram_info_(
-        self, _args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, _args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         """Returns the information required to draw out the circuit diagram for this channel."""
         symbols = (
             [self._name]

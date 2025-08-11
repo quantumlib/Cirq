@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import dataclasses
 import datetime
 import gzip
@@ -18,21 +21,7 @@ import json
 import numbers
 import pathlib
 from types import NotImplementedType
-from typing import (
-    Any,
-    Callable,
-    cast,
-    Dict,
-    IO,
-    Iterable,
-    List,
-    Optional,
-    overload,
-    Sequence,
-    Tuple,
-    Type,
-    Union,
-)
+from typing import Any, Callable, cast, IO, Iterable, overload, Sequence
 
 import attrs
 import numpy as np
@@ -42,16 +31,16 @@ from typing_extensions import Protocol
 
 from cirq._doc import doc_private
 
-ObjectFactory = Union[Type, Callable[..., Any]]
+ObjectFactory = type | Callable[..., Any]
 
 
 class JsonResolver(Protocol):
     """Protocol for json resolver functions passed to read_json."""
 
-    def __call__(self, cirq_type: str) -> Optional[ObjectFactory]: ...
+    def __call__(self, cirq_type: str) -> ObjectFactory | None: ...
 
 
-def _lazy_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]) -> JsonResolver:
+def _lazy_resolver(dict_factory: Callable[[], dict[str, ObjectFactory]]) -> JsonResolver:
     """A lazy JsonResolver based on a dict_factory.
 
     It only calls dict_factory when the first key is accessed.
@@ -61,13 +50,13 @@ def _lazy_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]) -> Json
           class resolution map - it is assumed to be cached
     """
 
-    def json_resolver(cirq_type: str) -> Optional[ObjectFactory]:
+    def json_resolver(cirq_type: str) -> ObjectFactory | None:
         return dict_factory().get(cirq_type, None)
 
     return json_resolver
 
 
-DEFAULT_RESOLVERS: List[JsonResolver] = []
+DEFAULT_RESOLVERS: list[JsonResolver] = []
 """A default list of 'JsonResolver' functions for use in read_json.
 
 For more information about cirq_type resolution during deserialization
@@ -87,7 +76,7 @@ prepended to this list:
 """
 
 
-def _register_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]) -> None:
+def _register_resolver(dict_factory: Callable[[], dict[str, ObjectFactory]]) -> None:
     """Register a resolver based on a dict factory for lazy initialization.
 
     Cirq modules are the ones referred in cirq/__init__.py. If a Cirq module
@@ -124,7 +113,7 @@ class SupportsJSON(Protocol):
     """
 
     @doc_private
-    def _json_dict_(self) -> Union[None, NotImplementedType, Dict[Any, Any]]:
+    def _json_dict_(self) -> None | NotImplementedType | dict[Any, Any]:
         pass
 
 
@@ -145,7 +134,7 @@ class HasJSONNamespace(Protocol):
         pass
 
 
-def obj_to_dict_helper(obj: Any, attribute_names: Iterable[str]) -> Dict[str, Any]:
+def obj_to_dict_helper(obj: Any, attribute_names: Iterable[str]) -> dict[str, Any]:
     """Construct a dictionary containing attributes from obj
 
     This is useful as a helper function in objects implementing the
@@ -166,8 +155,7 @@ def obj_to_dict_helper(obj: Any, attribute_names: Iterable[str]) -> Dict[str, An
     return d
 
 
-# pylint: enable=redefined-builtin
-def dataclass_json_dict(obj: Any) -> Dict[str, Any]:
+def dataclass_json_dict(obj: Any) -> dict[str, Any]:
     """Return a dictionary suitable for `_json_dict_` from a dataclass.
 
     Dataclasses keep track of their relevant fields, so we can automatically generate these.
@@ -183,7 +171,7 @@ def dataclass_json_dict(obj: Any) -> Dict[str, Any]:
     return obj_to_dict_helper(obj, attribute_names)
 
 
-def attrs_json_dict(obj: Any) -> Dict[str, Any]:
+def attrs_json_dict(obj: Any) -> dict[str, Any]:
     """Return a dictionary suitable for `_json_dict_` from an attrs dataclass."""
     attribute_names = [f.name for f in attrs.fields(type(obj))]
     return obj_to_dict_helper(obj, attribute_names)
@@ -336,8 +324,8 @@ class ObjectHook:
 
     def __init__(self, resolvers: Sequence[JsonResolver]) -> None:
         self.resolvers = resolvers
-        self.memo: Dict[int, SerializableByKey] = {}
-        self.context_map: Dict[int, SerializableByKey] = {}
+        self.memo: dict[int, SerializableByKey] = {}
+        self.context_map: dict[int, SerializableByKey] = {}
 
     def __call__(self, d):
         cirq_type = d.get('cirq_type')
@@ -380,7 +368,7 @@ class SerializableByKey(SupportsJSON):
     """
 
 
-def json_namespace(type_obj: Type) -> str:
+def json_namespace(type_obj: type) -> str:
     """Returns a namespace for JSON serialization of `type_obj`.
 
     Types can provide custom namespaces with `_json_namespace_`; otherwise, a
@@ -404,7 +392,7 @@ def json_namespace(type_obj: Type) -> str:
     raise ValueError(f'{type_obj} is not a Cirq type, and does not define _json_namespace_.')
 
 
-def json_cirq_type(type_obj: Type) -> str:
+def json_cirq_type(type_obj: type) -> str:
     """Returns a string type for JSON serialization of `type_obj`.
 
     This method is not part of the base serialization path. Together with
@@ -418,7 +406,7 @@ def json_cirq_type(type_obj: Type) -> str:
 
 
 def factory_from_json(
-    type_str: str, resolvers: Optional[Sequence[JsonResolver]] = None
+    type_str: str, resolvers: Sequence[JsonResolver] | None = None
 ) -> ObjectFactory:
     """Returns a factory for constructing objects of type `type_str`.
 
@@ -444,7 +432,7 @@ def factory_from_json(
     raise ValueError(f"Could not resolve type '{type_str}' during deserialization")
 
 
-def cirq_type_from_json(type_str: str, resolvers: Optional[Sequence[JsonResolver]] = None) -> Type:
+def cirq_type_from_json(type_str: str, resolvers: Sequence[JsonResolver] | None = None) -> type:
     """Returns a type object for JSON deserialization of `type_str`.
 
     This method is not part of the base deserialization path. Together with
@@ -471,15 +459,9 @@ def cirq_type_from_json(type_str: str, resolvers: Optional[Sequence[JsonResolver
     raise ValueError(f"Type {type_str} maps to a factory method instead of a type.")
 
 
-# pylint: disable=function-redefined
 @overload
 def to_json(
-    obj: Any,
-    file_or_fn: Union[IO, pathlib.Path, str],
-    *,
-    indent=2,
-    separators=None,
-    cls=CirqEncoder,
+    obj: Any, file_or_fn: IO | pathlib.Path | str, *, indent=2, separators=None, cls=CirqEncoder
 ) -> None:
     pass
 
@@ -493,12 +475,12 @@ def to_json(
 
 def to_json(
     obj: Any,
-    file_or_fn: Union[None, IO, pathlib.Path, str] = None,
+    file_or_fn: None | IO | pathlib.Path | str = None,
     *,
-    indent: Optional[int] = 2,
-    separators: Optional[Tuple[str, str]] = None,
-    cls: Type[json.JSONEncoder] = CirqEncoder,
-) -> Optional[str]:
+    indent: int | None = 2,
+    separators: tuple[str, str] | None = None,
+    cls: type[json.JSONEncoder] = CirqEncoder,
+) -> str | None:
     """Write a JSON file containing a representation of obj.
 
     The object may be a cirq object or have data members that are cirq
@@ -533,12 +515,11 @@ def to_json(
     return None
 
 
-# pylint: enable=function-redefined
 def read_json(
-    file_or_fn: Union[None, IO, pathlib.Path, str] = None,
+    file_or_fn: None | IO | pathlib.Path | str = None,
     *,
-    json_text: Optional[str] = None,
-    resolvers: Optional[Sequence[JsonResolver]] = None,
+    json_text: str | None = None,
+    resolvers: Sequence[JsonResolver] | None = None,
 ):
     """Read a JSON file that optionally contains cirq objects.
 
@@ -582,11 +563,11 @@ def read_json(
 
 def to_json_gzip(
     obj: Any,
-    file_or_fn: Union[None, IO, pathlib.Path, str] = None,
+    file_or_fn: None | IO | pathlib.Path | str = None,
     *,
     indent: int = 2,
-    cls: Type[json.JSONEncoder] = CirqEncoder,
-) -> Optional[bytes]:
+    cls: type[json.JSONEncoder] = CirqEncoder,
+) -> bytes | None:
     """Write a gzipped JSON file containing a representation of obj.
 
     The object may be a cirq object or have data members that are cirq
@@ -621,10 +602,10 @@ def to_json_gzip(
 
 
 def read_json_gzip(
-    file_or_fn: Union[None, IO, pathlib.Path, str] = None,
+    file_or_fn: None | IO | pathlib.Path | str = None,
     *,
-    gzip_raw: Optional[bytes] = None,
-    resolvers: Optional[Sequence[JsonResolver]] = None,
+    gzip_raw: bytes | None = None,
+    resolvers: Sequence[JsonResolver] | None = None,
 ):
     """Read a gzipped JSON file that optionally contains cirq objects.
 

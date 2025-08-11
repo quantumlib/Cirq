@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import abc
-from typing import List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -26,7 +28,7 @@ if TYPE_CHECKING:
 class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
     """A mock sampler for testing. Immediately returns zeroes."""
 
-    def __init__(self, device: Optional[devices.Device] = None):
+    def __init__(self, device: devices.Device | None = None):
         """Construct a sampler that returns 0 for all measurements.
 
         Args:
@@ -36,8 +38,8 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
         self.device = device
 
     def run_sweep(
-        self, program: 'cirq.AbstractCircuit', params: study.Sweepable, repetitions: int = 1
-    ) -> List[study.Result]:
+        self, program: cirq.AbstractCircuit, params: study.Sweepable, repetitions: int = 1
+    ) -> list[study.Result]:
         """Samples circuit as if every measurement resulted in zero.
 
         Args:

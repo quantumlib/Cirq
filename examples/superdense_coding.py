@@ -37,6 +37,8 @@ output=10001000000000011110, 10000001100000001000
 
 """
 
+from __future__ import annotations
+
 import cirq
 
 

@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
 import cirq
 
 
-def test_assert_specifies_has_unitary_if_unitary_from_matrix():
+def test_assert_specifies_has_unitary_if_unitary_from_matrix() -> None:
     class Bad:
         def _unitary_(self):
             return np.array([[1]])
@@ -28,7 +30,7 @@ def test_assert_specifies_has_unitary_if_unitary_from_matrix():
         cirq.testing.assert_specifies_has_unitary_if_unitary(Bad())
 
 
-def test_assert_specifies_has_unitary_if_unitary_from_apply():
+def test_assert_specifies_has_unitary_if_unitary_from_apply() -> None:
     class Bad(cirq.Operation):
         @property
         def qubits(self):
@@ -45,7 +47,7 @@ def test_assert_specifies_has_unitary_if_unitary_from_apply():
         cirq.testing.assert_specifies_has_unitary_if_unitary(Bad())
 
 
-def test_assert_specifies_has_unitary_if_unitary_from_decompose():
+def test_assert_specifies_has_unitary_if_unitary_from_decompose() -> None:
     class Bad:
         def _decompose_(self):
             return []
@@ -70,7 +72,7 @@ def test_assert_specifies_has_unitary_if_unitary_from_decompose():
     cirq.testing.assert_specifies_has_unitary_if_unitary(Okay())
 
 
-def test_assert_specifies_has_unitary_if_unitary_pass():
+def test_assert_specifies_has_unitary_if_unitary_pass() -> None:
     class Good:
         def _has_unitary_(self):
             return True

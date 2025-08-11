@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import collections
-from typing import cast, Dict, Optional, TYPE_CHECKING, Union
+from typing import cast, TYPE_CHECKING
 
 import numpy as np
 
@@ -29,8 +31,8 @@ class PauliSumCollector(collector.Collector):
 
     def __init__(
         self,
-        circuit: 'cirq.AbstractCircuit',
-        observable: 'cirq.PauliSumLike',
+        circuit: cirq.AbstractCircuit,
+        observable: cirq.PauliSumLike,
         *,
         samples_per_term: int,
         max_samples_per_job: int = 1000000,
@@ -58,12 +60,12 @@ class PauliSumCollector(collector.Collector):
             if not p:
                 self._identity_offset += p.coefficient
 
-        self._zeros: Dict[ops.PauliString, int] = collections.defaultdict(lambda: 0)
-        self._ones: Dict[ops.PauliString, int] = collections.defaultdict(lambda: 0)
+        self._zeros: dict[ops.PauliString, int] = collections.defaultdict(lambda: 0)
+        self._ones: dict[ops.PauliString, int] = collections.defaultdict(lambda: 0)
         self._samples_per_term = samples_per_term
         self._total_samples_requested = 0
 
-    def next_job(self) -> Optional['cirq.CircuitSampleJob']:
+    def next_job(self) -> cirq.CircuitSampleJob | None:
         i = self._total_samples_requested // self._samples_per_term
         if i >= len(self._pauli_coef_terms):
             return None
@@ -77,13 +79,13 @@ class PauliSumCollector(collector.Collector):
             tag=pauli,
         )
 
-    def on_job_result(self, job: 'cirq.CircuitSampleJob', result: 'cirq.Result'):
+    def on_job_result(self, job: cirq.CircuitSampleJob, result: cirq.Result):
         job_id = cast(ops.PauliString, job.tag)
         parities = result.histogram(key='out', fold_func=lambda bits: np.sum(bits) % 2)
         self._zeros[job_id] += parities[0]
         self._ones[job_id] += parities[1]
 
-    def estimated_energy(self) -> Union[float, complex]:
+    def estimated_energy(self) -> float | complex:
         """Sums up the sampled expectations, weighted by their coefficients."""
         energy = 0j
         for pauli_string, coef in self._pauli_coef_terms:
@@ -99,8 +101,8 @@ class PauliSumCollector(collector.Collector):
 
 
 def _circuit_plus_pauli_string_measurements(
-    circuit: 'cirq.AbstractCircuit', pauli_string: 'cirq.PauliString'
-) -> 'cirq.AbstractCircuit':
+    circuit: cirq.AbstractCircuit, pauli_string: cirq.PauliString
+) -> cirq.AbstractCircuit:
     """A circuit measuring the given observable at the end of the given circuit."""
     assert pauli_string
     return circuit.from_moments(

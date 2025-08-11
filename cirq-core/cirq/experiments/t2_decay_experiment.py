@@ -11,8 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import enum
-from typing import Any, List, Optional, TYPE_CHECKING, Union
+from typing import Any, TYPE_CHECKING
 
 import pandas as pd
 import sympy
@@ -35,17 +38,17 @@ _T2_COLUMNS = ['delay_ns', 0, 1]
 
 
 def t2_decay(
-    sampler: 'cirq.Sampler',
+    sampler: cirq.Sampler,
     *,
-    qubit: 'cirq.Qid',
-    experiment_type: 'ExperimentType' = ExperimentType.RAMSEY,
+    qubit: cirq.Qid,
+    experiment_type: ExperimentType = ExperimentType.RAMSEY,
     num_points: int,
-    max_delay: 'cirq.DURATION_LIKE',
-    min_delay: 'cirq.DURATION_LIKE' = None,
+    max_delay: cirq.DURATION_LIKE,
+    min_delay: cirq.DURATION_LIKE = None,
     repetitions: int = 1000,
-    delay_sweep: Optional[study.Sweep] = None,
-    num_pulses: Optional[List[int]] = None,
-) -> Union['cirq.experiments.T2DecayResult', List['cirq.experiments.T2DecayResult']]:
+    delay_sweep: study.Sweep | None = None,
+    num_pulses: list[int] | None = None,
+) -> cirq.experiments.T2DecayResult | list[cirq.experiments.T2DecayResult]:
     """Runs a t2 transverse relaxation experiment.
 
     Initializes a qubit into a superposition state, evolves the system using
@@ -234,7 +237,7 @@ def _create_tabulation(measurements: pd.DataFrame) -> pd.DataFrame:
     return tabulation
 
 
-def _cpmg_circuit(qubit: 'cirq.Qid', delay_var: sympy.Symbol, max_pulses: int) -> 'cirq.Circuit':
+def _cpmg_circuit(qubit: cirq.Qid, delay_var: sympy.Symbol, max_pulses: int) -> cirq.Circuit:
     """Creates a CPMG circuit for a given qubit.
 
     The circuit will look like:
@@ -256,7 +259,7 @@ def _cpmg_circuit(qubit: 'cirq.Qid', delay_var: sympy.Symbol, max_pulses: int) -
     return circuit
 
 
-def _cpmg_sweep(num_pulses: List[int]):
+def _cpmg_sweep(num_pulses: list[int]):
     """Returns a sweep for a circuit created by _cpmg_circuit.
 
     The circuit in _cpmg_circuit parameterizes the pulses, so this function
@@ -351,7 +354,7 @@ class T2DecayResult:
         """
         return self._expectation_pauli_y
 
-    def plot_expectations(self, ax: Optional[plt.Axes] = None, **plot_kwargs: Any) -> plt.Axes:
+    def plot_expectations(self, ax: plt.Axes | None = None, **plot_kwargs: Any) -> plt.Axes:
         """Plots the expectation values of Pauli operators versus delay time.
 
         Args:
@@ -392,7 +395,7 @@ class T2DecayResult:
             fig.show()
         return ax
 
-    def plot_bloch_vector(self, ax: Optional[plt.Axes] = None, **plot_kwargs: Any) -> plt.Axes:
+    def plot_bloch_vector(self, ax: plt.Axes | None = None, **plot_kwargs: Any) -> plt.Axes:
         """Plots the estimated length of the Bloch vector versus time.
 
         This plot estimates the Bloch Vector by squaring the Pauli expectation

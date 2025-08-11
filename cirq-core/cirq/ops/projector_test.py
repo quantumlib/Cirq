@@ -1,11 +1,14 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
 import cirq
 
 
-def test_projector_matrix():
+def test_projector_matrix() -> None:
     q0 = cirq.NamedQubit('q0')
 
     zero_projector = cirq.ProjectorString({q0: 0})
@@ -15,11 +18,11 @@ def test_projector_matrix():
     np.testing.assert_allclose(zero_projector.matrix().toarray(), [[1.0, 0.0], [0.0, 0.0]])
     np.testing.assert_allclose(one_projector.matrix().toarray(), [[0.0, 0.0], [0.0, 1.0]])
     np.testing.assert_allclose(
-        coeff_projector.matrix().toarray(), [[1.23 + 4.56j, 0.0], [0.0, 0.0]]
+        coeff_projector.matrix().toarray(), np.asarray([[1.23 + 4.56j, 0.0], [0.0, 0.0]])
     )
 
 
-def test_projector_repr():
+def test_projector_repr() -> None:
     q0 = cirq.NamedQubit('q0')
 
     assert (
@@ -28,14 +31,14 @@ def test_projector_repr():
     )
 
 
-def test_projector_from_np_array():
+def test_projector_from_np_array() -> None:
     q0 = cirq.NamedQubit('q0')
 
     zero_projector = cirq.ProjectorString({q0: 0})
     np.testing.assert_allclose(zero_projector.matrix().toarray(), [[1.0, 0.0], [0.0, 0.0]])
 
 
-def test_projector_matrix_missing_qid():
+def test_projector_matrix_missing_qid() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     proj = cirq.ProjectorString({q0: 0})
     proj_with_coefficient = cirq.ProjectorString({q0: 0}, 1.23 + 4.56j)
@@ -53,7 +56,7 @@ def test_projector_matrix_missing_qid():
     )
 
 
-def test_equality():
+def test_equality() -> None:
     q0 = cirq.NamedQubit('q0')
 
     obj1a = cirq.ProjectorString({q0: 0})
@@ -67,7 +70,7 @@ def test_equality():
     eq.add_equality_group(obj3)
 
 
-def test_get_values():
+def test_get_values() -> None:
     q0 = cirq.NamedQubit('q0')
     d = cirq.ProjectorString({q0: 0}, 1.23 + 4.56j)
 
@@ -76,14 +79,14 @@ def test_get_values():
     assert d.coefficient == 1.23 + 4.56j
 
 
-def test_expectation_from_state_vector_basis_states_empty():
+def test_expectation_from_state_vector_basis_states_empty() -> None:
     q0 = cirq.NamedQubit('q0')
     d = cirq.ProjectorString({})
 
     np.testing.assert_allclose(d.expectation_from_state_vector(np.array([1.0, 0.0]), {q0: 0}), 1.0)
 
 
-def test_expectation_from_state_vector_basis_states_single_qubits():
+def test_expectation_from_state_vector_basis_states_single_qubits() -> None:
     q0 = cirq.NamedQubit('q0')
     d = cirq.ProjectorString({q0: 0})
 
@@ -91,7 +94,7 @@ def test_expectation_from_state_vector_basis_states_single_qubits():
     np.testing.assert_allclose(d.expectation_from_state_vector(np.array([0.0, 1.0]), {q0: 0}), 0.0)
 
 
-def test_expectation_from_state_vector_basis_states_three_qubits():
+def test_expectation_from_state_vector_basis_states_three_qubits() -> None:
     q0 = cirq.NamedQubit('q0')
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
@@ -141,7 +144,7 @@ def test_expectation_from_state_vector_basis_states_three_qubits():
     )
 
 
-def test_expectation_from_density_matrix_three_qubits():
+def test_expectation_from_density_matrix_three_qubits() -> None:
     q0 = cirq.NamedQubit('q0')
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
@@ -191,7 +194,7 @@ def test_expectation_from_density_matrix_three_qubits():
     )
 
 
-def test_consistency_state_vector_and_density_matrix():
+def test_consistency_state_vector_and_density_matrix() -> None:
     q0 = cirq.NamedQubit('q0')
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
@@ -209,7 +212,7 @@ def test_consistency_state_vector_and_density_matrix():
             )
 
 
-def test_expectation_higher_dims():
+def test_expectation_higher_dims() -> None:
     qubit = cirq.NamedQid('q0', dimension=2)
     qutrit = cirq.NamedQid('q1', dimension=3)
 
@@ -221,7 +224,7 @@ def test_expectation_higher_dims():
         _ = (d.expectation_from_state_vector(np.zeros(2 * 3), {qubit: 0, qutrit: 0}),)
 
 
-def test_expectation_with_coefficient():
+def test_expectation_with_coefficient() -> None:
     q0 = cirq.NamedQubit('q0')
     d = cirq.ProjectorString({q0: 0}, coefficient=(0.6 + 0.4j))
 
@@ -234,7 +237,7 @@ def test_expectation_with_coefficient():
     )
 
 
-def test_expectation_from_density_matrix_basis_states_empty():
+def test_expectation_from_density_matrix_basis_states_empty() -> None:
     q0 = cirq.NamedQubit('q0')
     d = cirq.ProjectorString({})
 
@@ -243,7 +246,7 @@ def test_expectation_from_density_matrix_basis_states_empty():
     )
 
 
-def test_expectation_from_density_matrix_basis_states_single_qubits():
+def test_expectation_from_density_matrix_basis_states_single_qubits() -> None:
     q0 = cirq.NamedQubit('q0')
     d = cirq.ProjectorString({q0: 0})
 

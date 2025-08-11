@@ -14,8 +14,10 @@
 
 """Transformer passes which align operations to the left or right of the circuit."""
 
+from __future__ import annotations
+
 import dataclasses
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from cirq import circuits, ops
 from cirq.transformers import transformer_api
@@ -26,9 +28,9 @@ if TYPE_CHECKING:
 
 @transformer_api.transformer(add_deep_support=True)
 def align_left(
-    circuit: 'cirq.AbstractCircuit', *, context: Optional['cirq.TransformerContext'] = None
-) -> 'cirq.Circuit':
-    """Align gates to the left of the circuit.
+    circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
+) -> cirq.Circuit:
+    """Aligns gates to the left of the circuit.
 
     Note that tagged operations with tag in `context.tags_to_ignore` will continue to stay in their
     original position and will not be aligned.
@@ -58,9 +60,9 @@ def align_left(
 
 @transformer_api.transformer(add_deep_support=True)
 def align_right(
-    circuit: 'cirq.AbstractCircuit', *, context: Optional['cirq.TransformerContext'] = None
-) -> 'cirq.Circuit':
-    """Align gates to the right of the circuit.
+    circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
+) -> cirq.Circuit:
+    """Aligns gates to the right of the circuit.
 
     Note that tagged operations with tag in `context.tags_to_ignore` will continue to stay in their
     original position and will not be aligned.

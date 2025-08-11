@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import functools
 import itertools
 import math
@@ -53,7 +56,7 @@ import cirq.ops.boolean_hamiltonian as bh
         '(x2 | x1) ^ x0',
     ],
 )
-def test_circuit(boolean_str):
+def test_circuit(boolean_str) -> None:
     boolean_expr = sympy_parser.parse_expr(boolean_str)
     var_names = cirq.parameter_names(boolean_expr)
     qubits = [cirq.NamedQubit(name) for name in var_names]
@@ -73,7 +76,7 @@ def test_circuit(boolean_str):
     circuit.append(cirq.H.on_each(*qubits))
 
     hamiltonian_gate = cirq.BooleanHamiltonianGate(
-        {q.name: q for q in qubits}, [boolean_str], 0.1 * math.pi
+        [q.name for q in qubits], [boolean_str], 0.1 * math.pi
     )
 
     assert hamiltonian_gate.num_qubits() == n
@@ -87,7 +90,7 @@ def test_circuit(boolean_str):
     np.testing.assert_array_equal(actual, expected)
 
 
-def test_gate_with_custom_names():
+def test_gate_with_custom_names() -> None:
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     gate = cirq.BooleanHamiltonianGate(['a', 'b'], ['a'], 0.1)
     assert cirq.decompose(gate.on(q0, q1)) == [cirq.Rz(rads=-0.05).on(q0)]
@@ -101,7 +104,7 @@ def test_gate_with_custom_names():
         gate.on(q0, cirq.LineQid(1, 3))
 
 
-def test_gate_consistent():
+def test_gate_consistent() -> None:
     gate = cirq.BooleanHamiltonianGate(['a', 'b'], ['a'], 0.1)
     op = gate.on(*cirq.LineQubit.range(2))
     cirq.testing.assert_implements_consistent_protocols(gate)
@@ -116,7 +119,7 @@ def test_gate_consistent():
         (3, [(), (0,), (0, 1), (1,), (1, 2), (0, 1, 2), (0, 2), (2,)]),
     ],
 )
-def test_gray_code_sorting(n_bits, expected_hs):
+def test_gray_code_sorting(n_bits, expected_hs) -> None:
     hs_template = []
     for x in range(2**n_bits):
         h = []
@@ -139,7 +142,7 @@ def test_gray_code_sorting(n_bits, expected_hs):
 @pytest.mark.parametrize(
     'seq_a,seq_b,expected', [((), (), 0), ((), (0,), -1), ((0,), (), 1), ((0,), (0,), 0)]
 )
-def test_gray_code_comparison(seq_a, seq_b, expected):
+def test_gray_code_comparison(seq_a, seq_b, expected) -> None:
     assert bh._gray_code_comparator(seq_a, seq_b) == expected
 
 
@@ -170,7 +173,7 @@ def test_gray_code_comparison(seq_a, seq_b, expected):
 )
 def test_simplify_commuting_cnots(
     input_cnots, input_flip_control_and_target, expected_simplified, expected_output_cnots
-):
+) -> None:
     actual_simplified, actual_output_cnots = bh._simplify_commuting_cnots(
         input_cnots, input_flip_control_and_target
     )
@@ -203,7 +206,7 @@ def test_simplify_commuting_cnots(
 )
 def test_simplify_cnots_triplets(
     input_cnots, input_flip_control_and_target, expected_simplified, expected_output_cnots
-):
+) -> None:
     actual_simplified, actual_output_cnots = bh._simplify_cnots_triplets(
         input_cnots, input_flip_control_and_target
     )
@@ -211,7 +214,7 @@ def test_simplify_cnots_triplets(
     assert actual_output_cnots == expected_output_cnots
 
     # Check that the unitaries are the same.
-    qubit_ids = set(sum(input_cnots, ()))
+    qubit_ids = set(itertools.chain.from_iterable(input_cnots))
     qubits = {qubit_id: cirq.NamedQubit(f"{qubit_id}") for qubit_id in qubit_ids}
 
     target, control = (0, 1) if input_flip_control_and_target else (1, 0)

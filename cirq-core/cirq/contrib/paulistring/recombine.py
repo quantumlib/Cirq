@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, cast, Iterable, List, Sequence, Tuple, Union
+from __future__ import annotations
+
+from typing import Any, Callable, cast, Iterable, Sequence
 
 from cirq import circuits, ops, protocols
 from cirq.contrib import circuitdag
@@ -26,7 +28,7 @@ def _sorted_best_string_placements(
     possible_nodes: Iterable[Any],
     output_ops: Sequence[ops.Operation],
     key: Callable[[Any], ops.PauliStringPhasor] = lambda node: node.val,
-) -> List[Tuple[ops.PauliStringPhasor, int, circuitdag.Unique[ops.PauliStringPhasor]]]:
+) -> list[tuple[ops.PauliStringPhasor, int, circuitdag.Unique[ops.PauliStringPhasor]]]:
     sort_key = lambda placement: (-len(placement[0].pauli_string), placement[1])
 
     node_maxes = []
@@ -53,7 +55,7 @@ def _sorted_best_string_placements(
             ):
                 # This is as far through as this Pauli string can move
                 break
-            string_op = string_op.pass_operations_over([out_op], after_to_before=True)
+            string_op = string_op.conjugated_by(protocols.inverse(out_op))
             curr = (string_op, i + 1, possible_node)
             if sort_key(curr) > sort_key(node_max):
                 node_max = curr
@@ -64,7 +66,7 @@ def _sorted_best_string_placements(
 
 
 def move_pauli_strings_into_circuit(
-    circuit_left: Union[circuits.Circuit, circuitdag.CircuitDag], circuit_right: circuits.Circuit
+    circuit_left: circuits.Circuit | circuitdag.CircuitDag, circuit_right: circuits.Circuit
 ) -> circuits.Circuit:
     if isinstance(circuit_left, circuitdag.CircuitDag):
         string_dag = circuitdag.CircuitDag(pauli_string_reorder_pred, circuit_left)

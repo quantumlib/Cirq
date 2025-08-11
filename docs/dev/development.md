@@ -17,28 +17,11 @@ cd Cirq
 
 The following command will set up large refactoring revisions to be ignored, when using git blame.
 
-```
+```bash
 git config blame.ignoreRevsFile .git-blame-ignore-revs
 ```
 
 Note that if you are using PyCharm, you might have to use the command Restart & Invalidate Caches to have the change be picked up.
-
-## Docker
-You can build the stable and pre-release Docker images with our `Dockerfile`.
-
-```bash
-    docker build -t cirq --target cirq_stable .
-    docker run -it cirq python -c "import cirq_google; print(cirq_google.Sycamore23)"
-```
-
-```bash
-    docker build -t cirq_pre --target cirq_pre_release .
-    docker run -it cirq_pre python -c "import cirq_google; print(cirq_google.Sycamore23)"
-```
-
-If you want to contribute changes to Cirq, you will instead want to fork the repository and submit pull requests from your fork.
-
-
 
 ## Forking the repository
 
@@ -89,22 +72,16 @@ These instructions are primarily for Linux-based environments that use the `apt`
 package manager.
 
 0. First clone the repository, if you have not already done so.
-See the previous section for instructions.
-
+   See the previous section for instructions.
 
 1. Install system dependencies.
 
-    Make sure you have Python 3.10 or greater.
+    Make sure you have Python 3.11 or greater.
     You can install most other dependencies via `apt-get`:
 
     ```bash
     cat apt-system-requirements.txt dev_tools/conf/apt-list-dev-tools.txt | xargs sudo apt-get install --yes
     ```
-
-    This installs Docker, among other things. You may need to restart
-    Docker or configure permissions on your system; see the
-    [Docker installation instructions](https://docs.docker.com/engine/install/ubuntu/)
-    for more information.
 
     There are some extra steps if Protocol Buffers are changed; see the next section.
 
@@ -152,7 +129,7 @@ See the previous section for instructions.
 
 If you want to pip install Cirq in an editable fashion, you'll have to install it per module, e.g.:
 
-```
+```bash
 pip install -e ./cirq-core -e ./cirq-google -e ./cirq-ionq -e ./cirq-aqt
 ```
 
@@ -273,7 +250,7 @@ For this pull request you may want to mark it as `[Testing]` so that it is not r
 Cirq uses [Google style doc strings](http://google.github.io/styleguide/pyguide.html#381-docstrings) with a Markdown flavor and support for LaTeX.
 Here is an example docstring:
 
-```
+```python
 def some_method(a: int, b: str) -> float:
     r"""One line summary of method.
 
@@ -330,7 +307,7 @@ Instead, in the directory `dev_tools/requirements`, create a separate `<job>.env
 
 You can call the following utility to unroll the content of a file:
 
-```
+```bash
 python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt
 ```
 

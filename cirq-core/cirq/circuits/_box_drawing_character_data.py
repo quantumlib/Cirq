@@ -14,7 +14,9 @@
 
 """Exposes structured data about unicode/ascii box drawing characters."""
 
-from typing import List, NamedTuple, Optional
+from __future__ import annotations
+
+from typing import NamedTuple
 
 _BoxDrawCharacterSet = NamedTuple(
     '_BoxDrawCharacterSet',
@@ -41,7 +43,7 @@ _BoxDrawCharacterSet = NamedTuple(
 class BoxDrawCharacterSet(_BoxDrawCharacterSet):
     def char(
         self, top: bool = False, bottom: bool = False, left: bool = False, right: bool = False
-    ) -> Optional[str]:
+    ) -> str | None:
         parts = []
         if top:
             parts.append('top')
@@ -116,10 +118,8 @@ _MixedBoxDrawCharacterSet = NamedTuple(
 
 
 class MixedBoxDrawCharacterSet(_MixedBoxDrawCharacterSet):
-    def char(
-        self, *, top: int = 0, bottom: int = 0, left: int = 0, right: int = 0
-    ) -> Optional[str]:
-        def parts_with(val: int) -> List[str]:
+    def char(self, *, top: int = 0, bottom: int = 0, left: int = 0, right: int = 0) -> str | None:
+        def parts_with(val: int) -> list[str]:
             parts = []
             if top == val:
                 parts.append('top')
@@ -338,14 +338,14 @@ NORMAL_THEN_DOUBLED_MIXED_BOX_CHARS = MixedBoxDrawCharacterSet(
 
 
 def box_draw_character(
-    first: Optional[BoxDrawCharacterSet],
+    first: BoxDrawCharacterSet | None,
     second: BoxDrawCharacterSet,
     *,
     top: int = 0,
     bottom: int = 0,
     left: int = 0,
     right: int = 0,
-) -> Optional[str]:
+) -> str | None:
     """Finds a box drawing character based on its connectivity.
 
     For example:

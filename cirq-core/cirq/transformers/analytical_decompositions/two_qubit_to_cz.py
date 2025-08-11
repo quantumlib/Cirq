@@ -14,7 +14,9 @@
 
 """Utility methods for decomposing two-qubit unitaries into CZ gates."""
 
-from typing import cast, Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING
+from __future__ import annotations
+
+from typing import cast, Iterable, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -24,15 +26,14 @@ from cirq.linalg.decompositions import extract_right_diag, num_cnots_required
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions
 from cirq.transformers.eject_phased_paulis import eject_phased_paulis
 from cirq.transformers.eject_z import eject_z
-from cirq.transformers.merge_single_qubit_gates import merge_single_qubit_gates_to_phased_x_and_z
 
 if TYPE_CHECKING:
     import cirq
 
 
 def _remove_partial_czs_or_fail(
-    operations: Iterable['cirq.Operation'], atol: float
-) -> List['cirq.Operation']:
+    operations: Iterable[cirq.Operation], atol: float
+) -> list[cirq.Operation]:
     result = []
     for op in operations:
         if isinstance(op.gate, ops.CZPowGate):
@@ -49,13 +50,13 @@ def _remove_partial_czs_or_fail(
 
 
 def two_qubit_matrix_to_cz_operations(
-    q0: 'cirq.Qid',
-    q1: 'cirq.Qid',
+    q0: cirq.Qid,
+    q1: cirq.Qid,
     mat: np.ndarray,
     allow_partial_czs: bool,
     atol: float = 1e-8,
     clean_operations: bool = True,
-) -> List[ops.Operation]:
+) -> list[ops.Operation]:
     """Decomposes a two-qubit operation into Z/XY/CZ gates.
 
     Args:
@@ -79,19 +80,19 @@ def two_qubit_matrix_to_cz_operations(
     if clean_operations:
         if not allow_partial_czs:
             # CZ^t is not allowed for any $t$ except $t=1$.
-            return _remove_partial_czs_or_fail(cleanup_operations(operations), atol=atol)
-        return cleanup_operations(operations)
+            return _remove_partial_czs_or_fail(cleanup_operations(operations, atol=atol), atol=atol)
+        return cleanup_operations(operations, atol=atol)
     return operations
 
 
 def two_qubit_matrix_to_diagonal_and_cz_operations(
-    q0: 'cirq.Qid',
-    q1: 'cirq.Qid',
+    q0: cirq.Qid,
+    q1: cirq.Qid,
     mat: np.ndarray,
     allow_partial_czs: bool = False,
     atol: float = 1e-8,
     clean_operations: bool = True,
-) -> Tuple[np.ndarray, List['cirq.Operation']]:
+) -> tuple[np.ndarray, list[cirq.Operation]]:
     """Decomposes a 2-qubit unitary to a diagonal and the remaining operations.
 
     For a 2-qubit unitary V, return ops, a list of operations and
@@ -136,7 +137,7 @@ def two_qubit_matrix_to_diagonal_and_cz_operations(
     )
 
 
-def _xx_interaction_via_full_czs(q0: 'cirq.Qid', q1: 'cirq.Qid', x: float):
+def _xx_interaction_via_full_czs(q0: cirq.Qid, q1: cirq.Qid, x: float):
     a = x * -2 / np.pi
     yield ops.H(q1)
     yield ops.CZ(q0, q1)
@@ -145,7 +146,7 @@ def _xx_interaction_via_full_czs(q0: 'cirq.Qid', q1: 'cirq.Qid', x: float):
     yield ops.H(q1)
 
 
-def _xx_yy_interaction_via_full_czs(q0: 'cirq.Qid', q1: 'cirq.Qid', x: float, y: float):
+def _xx_yy_interaction_via_full_czs(q0: cirq.Qid, q1: cirq.Qid, x: float, y: float):
     a = x * -2 / np.pi
     b = y * -2 / np.pi
     yield ops.X(q0) ** 0.5
@@ -160,9 +161,7 @@ def _xx_yy_interaction_via_full_czs(q0: 'cirq.Qid', q1: 'cirq.Qid', x: float, y:
     yield ops.X(q0) ** -0.5
 
 
-def _xx_yy_zz_interaction_via_full_czs(
-    q0: 'cirq.Qid', q1: 'cirq.Qid', x: float, y: float, z: float
-):
+def _xx_yy_zz_interaction_via_full_czs(q0: cirq.Qid, q1: cirq.Qid, x: float, y: float, z: float):
     a = x * -2 / np.pi + 0.5
     b = y * -2 / np.pi + 0.5
     c = z * -2 / np.pi + 0.5
@@ -182,22 +181,87 @@ def _xx_yy_zz_interaction_via_full_czs(
     yield ops.H(q1)
 
 
-def cleanup_operations(operations: Sequence[ops.Operation]):
+def cleanup_operations(operations: Sequence[ops.Operation], atol: float = 1e-8):
+    operations = _merge_single_qubit_gates(operations, atol=atol)
     circuit = circuits.Circuit(operations)
-    circuit = merge_single_qubit_gates_to_phased_x_and_z(circuit)
     circuit = eject_phased_paulis(circuit)
     circuit = eject_z(circuit)
     circuit = circuits.Circuit(circuit.all_operations(), strategy=circuits.InsertStrategy.EARLIEST)
     return list(circuit.all_operations())
 
 
+def _transform_single_qubit_operations_to_phased_x_and_z(
+    operations: Sequence[ops.Operation], atol: float
+) -> Sequence[ops.Operation]:
+    """Transforms operations on the same qubit to a PhasedXPowGate followed by a Z gate.
+
+    Args:
+        operations: sequence of operations on the same qubit
+        atol: a limit on the amount of absolute error introduced by the
+            transformation.
+    Returns:
+        A PhasedXPowGate followed by a Z gate. If one the gates is not needed, it will be omitted.
+    """
+    u = np.eye(2)
+    for op in operations:
+        u = protocols.unitary(op) @ u
+    return [
+        g(op.qubits[0])
+        for g in single_qubit_decompositions.single_qubit_matrix_to_phased_x_z(u, atol=atol)
+    ]
+
+
+def _merge_single_qubit_gates(
+    operations: Sequence[ops.Operation], atol: float
+) -> Sequence[ops.Operation]:
+    """Merge consecutive single qubit gates.
+
+    Traverses the sequence of operations maintaining a list of consecutive single qubit
+    operations for each qubit. When a 2-qubit gate is encountered, it transforms pending
+    operations to a PhasedXPowGate followed by a Z gate.
+
+    Args:
+        operations: sequence of operations
+        atol: a limit on the amount of absolute error introduced by the
+            transformation.
+    Returns:
+        new sequence of operations after merging gates
+
+    Raises:
+        ValueError: if one of the operations is not on 1 or 2 qubits
+    """
+    merged_ops: list[ops.Operation] = []
+    pending_ops: dict[tuple[cirq.Qid, ...], list[ops.Operation]] = dict()
+    for op in operations:
+        if protocols.num_qubits(op) == 2:
+            for qubit_ops in pending_ops.values():
+                merged_ops.extend(
+                    _transform_single_qubit_operations_to_phased_x_and_z(qubit_ops, atol=atol)
+                )
+            pending_ops.clear()
+            # Add the 2-qubit gate
+            merged_ops.append(op)
+        elif protocols.num_qubits(op) == 1:
+            if op.qubits not in pending_ops:
+                pending_ops[op.qubits] = []
+            pending_ops[op.qubits].append(op)
+        else:
+            raise ValueError(f'operation is on {protocols.num_qubits(op)} qubits, expected 1 or 2')
+    # Merge remaining pending operations
+    for qubit_ops in pending_ops.values():
+        merged_ops.extend(
+            _transform_single_qubit_operations_to_phased_x_and_z(qubit_ops, atol=atol)
+        )
+    return merged_ops
+
+
 def _kak_decomposition_to_operations(
-    q0: 'cirq.Qid',
-    q1: 'cirq.Qid',
+    q0: cirq.Qid,
+    q1: cirq.Qid,
     kak: linalg.KakDecomposition,
     allow_partial_czs: bool,
     atol: float = 1e-8,
-) -> List[ops.Operation]:
+) -> list[ops.Operation]:
     """Assumes that the decomposition is canonical."""
     b0, b1 = kak.single_qubit_operations_before
     pre = [_do_single_on(b0, q0, atol=atol), _do_single_on(b1, q1, atol=atol)]
@@ -232,7 +296,7 @@ def _is_trivial_angle(rad: float, atol: float) -> bool:
 
 
 def _parity_interaction(
-    q0: 'cirq.Qid', q1: 'cirq.Qid', rads: float, atol: float, gate: Optional[ops.Gate] = None
+    q0: cirq.Qid, q1: cirq.Qid, rads: float, atol: float, gate: ops.Gate | None = None
 ):
     """Yields a ZZ interaction framed by the given operation."""
     if abs(rads) < atol:
@@ -255,15 +319,15 @@ def _parity_interaction(
         yield g.on(q0), g.on(q1)
 
 
-def _do_single_on(u: np.ndarray, q: 'cirq.Qid', atol: float = 1e-8):
+def _do_single_on(u: np.ndarray, q: cirq.Qid, atol: float = 1e-8):
     for gate in single_qubit_decompositions.single_qubit_matrix_to_gates(u, atol):
         yield gate(q)
 
 
 def _non_local_part(
-    q0: 'cirq.Qid',
-    q1: 'cirq.Qid',
-    interaction_coefficients: Tuple[float, float, float],
+    q0: cirq.Qid,
+    q1: cirq.Qid,
+    interaction_coefficients: tuple[float, float, float],
     allow_partial_czs: bool,
     atol: float = 1e-8,
 ):

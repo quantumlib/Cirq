@@ -12,36 +12,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import dataclasses
 import functools
 import itertools
-from typing import (
-    Any,
-    cast,
-    Dict,
-    Iterator,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-)
+import uuid
+from typing import Any, cast, Iterator, Mapping, Sequence, TYPE_CHECKING
 
+import attrs
 import numpy as np
 from matplotlib import pyplot as plt
 
 # this is for older systems with matplotlib <3.2 otherwise 3d projections fail
-from mpl_toolkits import mplot3d
 from scipy.optimize import curve_fit
 
 import cirq.vis.heatmap as cirq_heatmap
 import cirq.vis.histogram as cirq_histogram
 from cirq import circuits, ops, protocols
+from cirq._compat import deprecated
 from cirq.devices import grid_qubit
 
 if TYPE_CHECKING:
+    from mpl_toolkits import mplot3d
+
     import cirq
+
+
+def _canonize_clifford_sequences(
+    sequences: list[list[ops.SingleQubitCliffordGate]],
+) -> list[list[ops.SingleQubitCliffordGate]]:
+    return [[_reduce_gate_seq(seq)] for seq in sequences]
 
 
 @dataclasses.dataclass
@@ -62,11 +63,11 @@ class Cliffords:
         s1_y
     """
 
-    c1_in_xy: List[List[ops.SingleQubitCliffordGate]]
-    c1_in_xz: List[List[ops.SingleQubitCliffordGate]]
-    s1: List[List[ops.SingleQubitCliffordGate]]
-    s1_x: List[List[ops.SingleQubitCliffordGate]]
-    s1_y: List[List[ops.SingleQubitCliffordGate]]
+    c1_in_xy: list[list[ops.SingleQubitCliffordGate]]
+    c1_in_xz: list[list[ops.SingleQubitCliffordGate]]
+    s1: list[list[ops.SingleQubitCliffordGate]]
+    s1_x: list[list[ops.SingleQubitCliffordGate]]
+    s1_y: list[list[ops.SingleQubitCliffordGate]]
 
 
 class RandomizedBenchMarkResult:
@@ -85,14 +86,14 @@ class RandomizedBenchMarkResult:
         self._gnd_state_probs = ground_state_probabilities
 
     @property
-    def data(self) -> Sequence[Tuple[int, float]]:
+    def data(self) -> Sequence[tuple[int, float]]:
         """Returns a sequence of tuple pairs with the first item being a
         number of Cliffords and the second item being the corresponding average
         ground state probability.
         """
         return [(num, prob) for num, prob in zip(self._num_cfds_seq, self._gnd_state_probs)]
 
-    def plot(self, ax: Optional[plt.Axes] = None, **plot_kwargs: Any) -> plt.Axes:
+    def plot(self, ax: plt.Axes | None = None, **plot_kwargs: Any) -> plt.Axes:
         """Plots the average ground state probability vs the number of
         Cliffords in the RB study.
 
@@ -135,14 +136,14 @@ class RandomizedBenchMarkResult:
         p = opt_params[2]
         return (1.0 - 1.0 / 4.0) * (1.0 - p)
 
-    def _fit_exponential(self) -> Tuple[np.ndarray, np.ndarray]:
+    def _fit_exponential(self) -> tuple[np.ndarray, np.ndarray]:
         exp_fit = lambda x, A, B, p: A * p**x + B
         return curve_fit(
             f=exp_fit,
             xdata=self._num_cfds_seq,
             ydata=self._gnd_state_probs,
             p0=[0.5, 0.5, 1.0 - 1e-3],
-            bounds=([0, 0.25, 0], [0.5, 0.75, 1]),
+            bounds=([0, -1, 0], [1, 1, 1]),
         )
 
 
@@ -150,10 +151,10 @@ class RandomizedBenchMarkResult:
 class ParallelRandomizedBenchmarkingResult:
     """Results from a parallel randomized benchmarking experiment."""
 
-    results_dictionary: Mapping['cirq.Qid', 'RandomizedBenchMarkResult']
+    results_dictionary: Mapping[cirq.Qid, RandomizedBenchMarkResult]
 
     def plot_single_qubit(
-        self, qubit: 'cirq.Qid', ax: Optional[plt.Axes] = None, **plot_kwargs: Any
+        self, qubit: cirq.Qid, ax: plt.Axes | None = None, **plot_kwargs: Any
     ) -> plt.Axes:
         """Plot the raw data for the specified qubit.
 
@@ -168,7 +169,7 @@ class ParallelRandomizedBenchmarkingResult:
 
         return self.results_dictionary[qubit].plot(ax, **plot_kwargs)
 
-    def pauli_error(self) -> Mapping['cirq.Qid', float]:
+    def pauli_error(self) -> Mapping[cirq.Qid, float]:
         """Return a dictionary of Pauli errors.
         Returns:
             A dictionary containing the Pauli errors for all qubits.
@@ -180,7 +181,7 @@ class ParallelRandomizedBenchmarkingResult:
 
     def plot_heatmap(
         self,
-        ax: Optional[plt.Axes] = None,
+        ax: plt.Axes | None = None,
         annotation_format: str = '0.1%',
         title: str = 'Single-qubit Pauli error',
         **plot_kwargs: Any,
@@ -213,16 +214,16 @@ class ParallelRandomizedBenchmarkingResult:
 
     def plot_integrated_histogram(
         self,
-        ax: Optional[plt.Axes] = None,
+        ax: plt.Axes | None = None,
         cdf_on_x: bool = False,
         axis_label: str = 'Pauli error',
         semilog: bool = True,
         median_line: bool = True,
-        median_label: Optional[str] = 'median',
+        median_label: str | None = 'median',
         mean_line: bool = False,
-        mean_label: Optional[str] = 'mean',
+        mean_label: str | None = 'mean',
         show_zero: bool = False,
-        title: Optional[str] = None,
+        title: str | None = None,
         **kwargs,
     ) -> plt.Axes:
         """Plot the Pauli errors using cirq.integrated_histogram().
@@ -286,8 +287,8 @@ class TomographyResult:
         return self._density_matrix
 
     def plot(
-        self, axes: Optional[List[plt.Axes]] = None, **plot_kwargs: Any
-    ) -> List[plt.Axes]:  # pragma: no cover
+        self, axes: list[plt.Axes] | None = None, **plot_kwargs: Any
+    ) -> list[plt.Axes]:  # pragma: no cover
         """Plots the real and imaginary parts of the density matrix as two 3D bar plots.
 
         Args:
@@ -341,9 +342,47 @@ class TomographyResult:
         return axes
 
 
+@attrs.frozen
+class RBParameters:
+    r"""Parameters for running randomized benchmarking.
+
+    Arguments:
+        num_clifford_range: The different numbers of Cliffords in the RB study.
+        num_circuits: The number of random circuits generated for each
+            number of Cliffords.
+        repetitions: The number of repetitions of each circuit.
+        use_xy_basis: Determines if the Clifford gates are built with x and y
+            rotations (True) or x and z rotations (False).
+        strict_basis: whether to use only cliffords that can be represented by at
+            most 2 gates of the choses basis. For example,
+            if True and use_xy_basis is True, this excludes $I, Z, \sqrt(Z), \-sqrt(Z)^\dagger$.
+            if True and use_xy_basis is False, this excludes $I, Y, \sqrt(Y), -\sqrt(Y)^\dagger$.
+    """
+
+    num_clifford_range: Sequence[int] = tuple(np.logspace(np.log10(5), 3, 5, dtype=int))
+    num_circuits: int = 10
+    repetitions: int = 600
+    use_xy_basis: bool = False
+    strict_basis: bool = True
+
+    def gateset(self) -> list[list[ops.SingleQubitCliffordGate]]:
+        clifford_group = _single_qubit_cliffords()
+        sequences = clifford_group.c1_in_xy if self.use_xy_basis else clifford_group.c1_in_xz
+        sequences = _canonize_clifford_sequences(sequences)
+        if self.strict_basis:
+            if self.use_xy_basis:
+                excluded_gates = ops.Gateset(ops.I, ops.Z, ops.Z**0.5, ops.Z**-0.5)
+            else:
+                excluded_gates = ops.Gateset(ops.I, ops.Y, ops.Y**0.5, ops.Y**-0.5)
+
+            sequences = [[g] for (g,) in sequences if g not in excluded_gates]
+        return sequences
+
+
+@deprecated(deadline='v2.0', fix='please use single_qubit_rb instead')
 def single_qubit_randomized_benchmarking(
-    sampler: 'cirq.Sampler',
-    qubit: 'cirq.Qid',
+    sampler: cirq.Sampler,
+    qubit: cirq.Qid,
     use_xy_basis: bool = True,
     *,
     num_clifford_range: Sequence[int] = tuple(np.logspace(np.log10(5), 3, 5, dtype=int)),
@@ -384,20 +423,23 @@ def single_qubit_randomized_benchmarking(
         A RandomizedBenchMarkResult object that stores and plots the result.
     """
 
-    result = parallel_single_qubit_randomized_benchmarking(
+    return single_qubit_rb(
         sampler,
-        (qubit,),
-        use_xy_basis,
-        num_clifford_range=num_clifford_range,
-        num_circuits=num_circuits,
-        repetitions=repetitions,
+        qubit,
+        RBParameters(
+            num_clifford_range=num_clifford_range,
+            num_circuits=num_circuits,
+            repetitions=repetitions,
+            use_xy_basis=use_xy_basis,
+            strict_basis=False,
+        ),
     )
-    return result.results_dictionary[qubit]
 
 
+@deprecated(deadline='v2.0', fix='please use parallel_single_qubit_rb instead')
 def parallel_single_qubit_randomized_benchmarking(
-    sampler: 'cirq.Sampler',
-    qubits: Sequence['cirq.Qid'],
+    sampler: cirq.Sampler,
+    qubits: Sequence[cirq.Qid],
     use_xy_basis: bool = True,
     *,
     num_clifford_range: Sequence[int] = tuple(
@@ -405,7 +447,7 @@ def parallel_single_qubit_randomized_benchmarking(
     ),
     num_circuits: int = 10,
     repetitions: int = 1000,
-) -> 'ParallelRandomizedBenchmarkingResult':
+) -> ParallelRandomizedBenchmarkingResult:
     """Clifford-based randomized benchmarking (RB) single qubits in parallel.
 
     This is the same as `single_qubit_randomized_benchmarking` except on all
@@ -421,42 +463,97 @@ def parallel_single_qubit_randomized_benchmarking(
         num_circuits: The number of random circuits generated for each
             number of Cliffords.
         repetitions: The number of repetitions of each circuit.
+    Returns:
+        A dictionary from qubits to RandomizedBenchMarkResult objects.
+    """
+    return parallel_single_qubit_rb(
+        sampler,
+        qubits,
+        RBParameters(
+            num_clifford_range=num_clifford_range,
+            num_circuits=num_circuits,
+            repetitions=repetitions,
+            use_xy_basis=use_xy_basis,
+            strict_basis=False,
+        ),
+    )
 
+
+def single_qubit_rb(
+    sampler: cirq.Sampler,
+    qubit: cirq.Qid,
+    parameters: RBParameters = RBParameters(),
+    rng_or_seed: np.random.Generator | int | None = None,
+) -> RandomizedBenchMarkResult:
+    """Clifford-based randomized benchmarking (RB) on a single qubit.
+
+    Args:
+        sampler: The quantum engine or simulator to run the circuits.
+        qubit: The qubit(s) to benchmark.
+        parameters: The parameters of the experiment.
+        rng_or_seed: A np.random.Generator object or seed.
+    Returns:
+        A dictionary from qubits to RandomizedBenchMarkResult objects.
+    """
+    return parallel_single_qubit_rb(sampler, [qubit], parameters, rng_or_seed).results_dictionary[
+        qubit
+    ]
+
+
+def parallel_single_qubit_rb(
+    sampler: cirq.Sampler,
+    qubits: Sequence[cirq.Qid],
+    parameters: RBParameters = RBParameters(),
+    rng_or_seed: np.random.Generator | int | None = None,
+) -> ParallelRandomizedBenchmarkingResult:
+    """Clifford-based randomized benchmarking (RB) single qubits in parallel.
+
+    Args:
+        sampler: The quantum engine or simulator to run the circuits.
+        qubits: The qubit(s) to benchmark.
+        parameters: The parameters of the experiment.
+        rng_or_seed: A np.random.Generator object or seed.
     Returns:
         A dictionary from qubits to RandomizedBenchMarkResult objects.
     """
 
-    clifford_group = _single_qubit_cliffords()
-    c1 = clifford_group.c1_in_xy if use_xy_basis else clifford_group.c1_in_xz
+    rng_or_seed = (
+        rng_or_seed
+        if isinstance(rng_or_seed, np.random.Generator)
+        else np.random.default_rng(rng_or_seed)
+    )
+
+    c1 = parameters.gateset()
 
     # create circuits
-    circuits_all: List['cirq.AbstractCircuit'] = []
-    for num_cliffords in num_clifford_range:
-        for _ in range(num_circuits):
-            circuits_all.append(_create_parallel_rb_circuit(qubits, num_cliffords, c1))
+    circuits_all: list[cirq.AbstractCircuit] = []
+    for num_cliffords in parameters.num_clifford_range:
+        for _ in range(parameters.num_circuits):
+            circuits_all.append(_create_parallel_rb_circuit(qubits, num_cliffords, c1, rng_or_seed))
 
     # run circuits
-    results = sampler.run_batch(circuits_all, repetitions=repetitions)
+    results = sampler.run_batch(circuits_all, repetitions=parameters.repetitions)
     gnd_probs: dict = {q: [] for q in qubits}
     idx = 0
-    for num_cliffords in num_clifford_range:
-        excited_probs: Dict['cirq.Qid', List[float]] = {q: [] for q in qubits}
-        for _ in range(num_circuits):
+    for num_cliffords in parameters.num_clifford_range:
+        excited_probs: dict[cirq.Qid, list[float]] = {q: [] for q in qubits}
+        for _ in range(parameters.num_circuits):
             result = results[idx][0]
             for qubit in qubits:
                 excited_probs[qubit].append(np.mean(result.measurements[str(qubit)]))
             idx += 1
         for qubit in qubits:
             gnd_probs[qubit].append(1.0 - np.mean(excited_probs[qubit]))
+
     return ParallelRandomizedBenchmarkingResult(
-        {q: RandomizedBenchMarkResult(num_clifford_range, gnd_probs[q]) for q in qubits}
+        {q: RandomizedBenchMarkResult(parameters.num_clifford_range, gnd_probs[q]) for q in qubits}
     )
 
 
 def two_qubit_randomized_benchmarking(
-    sampler: 'cirq.Sampler',
-    first_qubit: 'cirq.Qid',
-    second_qubit: 'cirq.Qid',
+    sampler: cirq.Sampler,
+    first_qubit: cirq.Qid,
+    second_qubit: cirq.Qid,
     *,
     num_clifford_range: Sequence[int] = range(5, 50, 5),
     num_circuits: int = 20,
@@ -514,10 +611,7 @@ def two_qubit_randomized_benchmarking(
 
 
 def single_qubit_state_tomography(
-    sampler: 'cirq.Sampler',
-    qubit: 'cirq.Qid',
-    circuit: 'cirq.AbstractCircuit',
-    repetitions: int = 1000,
+    sampler: cirq.Sampler, qubit: cirq.Qid, circuit: cirq.AbstractCircuit, repetitions: int = 1000
 ) -> TomographyResult:
     """Single-qubit state tomography.
 
@@ -538,18 +632,24 @@ def single_qubit_state_tomography(
     Returns:
         A TomographyResult object that stores and plots the density matrix.
     """
-    circuit_z = circuit + circuits.Circuit(ops.measure(qubit, key='z'))
+    keys = protocols.measurement_key_names(circuit)
+    tomo_key = "tomo_key"
+    while tomo_key in keys:
+        tomo_key = f"tomo_key{uuid.uuid4().hex}"
+
+    circuit_z = circuit + circuits.Circuit(ops.measure(qubit, key=tomo_key))
+
     results = sampler.run(circuit_z, repetitions=repetitions)
-    rho_11 = np.mean(results.measurements['z'])
+    rho_11 = np.mean(results.records[tomo_key][:, -1, :])
     rho_00 = 1.0 - rho_11
 
-    circuit_x = circuits.Circuit(circuit, ops.X(qubit) ** 0.5, ops.measure(qubit, key='z'))
+    circuit_x = circuits.Circuit(circuit, ops.X(qubit) ** 0.5, ops.measure(qubit, key=tomo_key))
     results = sampler.run(circuit_x, repetitions=repetitions)
-    rho_01_im = np.mean(results.measurements['z']) - 0.5
+    rho_01_im = np.mean(results.records[tomo_key][:, -1, :]) - 0.5
 
-    circuit_y = circuits.Circuit(circuit, ops.Y(qubit) ** -0.5, ops.measure(qubit, key='z'))
+    circuit_y = circuits.Circuit(circuit, ops.Y(qubit) ** -0.5, ops.measure(qubit, key=tomo_key))
     results = sampler.run(circuit_y, repetitions=repetitions)
-    rho_01_re = 0.5 - np.mean(results.measurements['z'])
+    rho_01_re = 0.5 - np.mean(results.records[tomo_key][:, -1, :])
 
     rho_01 = rho_01_re + 1j * rho_01_im
     rho_10 = np.conj(rho_01)
@@ -560,10 +660,10 @@ def single_qubit_state_tomography(
 
 
 def two_qubit_state_tomography(
-    sampler: 'cirq.Sampler',
-    first_qubit: 'cirq.Qid',
-    second_qubit: 'cirq.Qid',
-    circuit: 'cirq.AbstractCircuit',
+    sampler: cirq.Sampler,
+    first_qubit: cirq.Qid,
+    second_qubit: cirq.Qid,
+    circuit: cirq.AbstractCircuit,
     repetitions: int = 1000,
 ) -> TomographyResult:
     r"""Two-qubit state tomography.
@@ -688,9 +788,14 @@ def two_qubit_state_tomography(
 
 
 def _create_parallel_rb_circuit(
-    qubits: Sequence['cirq.Qid'], num_cliffords: int, c1: list
-) -> 'cirq.Circuit':
-    sequences_to_zip = [_random_single_q_clifford(qubit, num_cliffords, c1) for qubit in qubits]
+    qubits: Sequence[cirq.Qid],
+    num_cliffords: int,
+    c1: list[list[ops.SingleQubitCliffordGate]],
+    rng: np.random.Generator | None = None,
+) -> cirq.Circuit:
+    sequences_to_zip = [
+        _random_single_q_clifford(qubit, num_cliffords, c1, rng) for qubit in qubits
+    ]
     # Ensure each sequence has the same number of moments.
     num_moments = max(len(sequence) for sequence in sequences_to_zip)
     for q, sequence in zip(qubits, sequences_to_zip):
@@ -702,7 +807,7 @@ def _create_parallel_rb_circuit(
     return circuits.Circuit.from_moments(*moments, ops.measure_each(*qubits))
 
 
-def _indices_after_basis_rot(i: int, j: int) -> Tuple[int, Sequence[int], Sequence[int]]:
+def _indices_after_basis_rot(i: int, j: int) -> tuple[int, Sequence[int], Sequence[int]]:
     mat_idx = 3 * (3 * i + j)
     q_0_i = 3 - i
     q_1_j = 3 - j
@@ -711,9 +816,7 @@ def _indices_after_basis_rot(i: int, j: int) -> Tuple[int, Sequence[int], Sequen
     return mat_idx, indices, signs
 
 
-def _two_qubit_clifford_matrices(
-    q_0: 'cirq.Qid', q_1: 'cirq.Qid', cliffords: Cliffords
-) -> np.ndarray:
+def _two_qubit_clifford_matrices(q_0: cirq.Qid, q_1: cirq.Qid, cliffords: Cliffords) -> np.ndarray:
     mats = []
 
     # Total number of different gates in the two-qubit Clifford group.
@@ -743,11 +846,14 @@ def _two_qubit_clifford_matrices(
 
 
 def _random_single_q_clifford(
-    qubit: 'cirq.Qid', num_cfds: int, cfds: Sequence[Sequence['cirq.ops.SingleQubitCliffordGate']]
-) -> List['cirq.Operation']:
-    clifford_group_size = 24
+    qubit: cirq.Qid,
+    num_cfds: int,
+    cfds: Sequence[Sequence[cirq.ops.SingleQubitCliffordGate]],
+    rng: np.random.Generator | None = None,
+) -> list[cirq.Operation]:
     operations = [[gate.to_phased_xz_gate()(qubit) for gate in gates] for gates in cfds]
-    gate_ids = list(np.random.choice(clifford_group_size, num_cfds))
+    choice_fn = rng.choice if rng else np.random.choice
+    gate_ids = choice_fn(len(cfds), num_cfds).tolist()
     adjoint = _reduce_gate_seq([gate for gate_id in gate_ids for gate in cfds[gate_id]]) ** -1
     return [op for gate_id in gate_ids for op in operations[gate_id]] + [
         adjoint.to_phased_xz_gate()(qubit)
@@ -755,10 +861,10 @@ def _random_single_q_clifford(
 
 
 def _random_two_q_clifford(
-    q_0: 'cirq.Qid', q_1: 'cirq.Qid', num_cfds: int, cfd_matrices: np.ndarray, cliffords: Cliffords
-) -> 'cirq.Circuit':
+    q_0: cirq.Qid, q_1: cirq.Qid, num_cfds: int, cfd_matrices: np.ndarray, cliffords: Cliffords
+) -> cirq.Circuit:
     clifford_group_size = 11520
-    idx_list = list(np.random.choice(clifford_group_size, num_cfds))
+    idx_list = np.random.choice(clifford_group_size, num_cfds).tolist()
     circuit = circuits.Circuit()
     for idx in idx_list:
         circuit.append(_two_qubit_clifford(q_0, q_1, idx, cliffords))
@@ -778,9 +884,9 @@ def _matrix_bar_plot(
     mat: np.ndarray,
     z_label: str,
     ax: mplot3d.axes3d.Axes3D,
-    kets: Optional[Sequence[str]] = None,
-    title: Optional[str] = None,
-    ylim: Tuple[int, int] = (-1, 1),
+    kets: Sequence[str] | None = None,
+    title: str | None = None,
+    ylim: tuple[int, int] = (-1, 1),
     **bar3d_kwargs: Any,
 ) -> None:  # pragma: no cover
     num_rows, num_cols = mat.shape
@@ -819,8 +925,8 @@ def _reduce_gate_seq(
 
 
 def _two_qubit_clifford(
-    q_0: 'cirq.Qid', q_1: 'cirq.Qid', idx: int, cliffords: Cliffords
-) -> Iterator['cirq.OP_TREE']:
+    q_0: cirq.Qid, q_1: cirq.Qid, idx: int, cliffords: Cliffords
+) -> Iterator[cirq.OP_TREE]:
     """Generates a two-qubit Clifford gate.
 
     An integer (idx) from 0 to 11519 is used to generate a two-qubit Clifford
@@ -875,8 +981,8 @@ def _split_two_q_clifford_idx(idx: int):
 
 
 def _two_qubit_clifford_starters(
-    q_0: 'cirq.Qid', q_1: 'cirq.Qid', idx_0: int, idx_1: int, cliffords: Cliffords
-) -> Iterator['cirq.OP_TREE']:
+    q_0: cirq.Qid, q_1: cirq.Qid, idx_0: int, idx_1: int, cliffords: Cliffords
+) -> Iterator[cirq.OP_TREE]:
     """Fulfills part (a) for two-qubit Cliffords."""
     c1 = cliffords.c1_in_xy
     yield _single_qubit_gates(c1[idx_0], q_0)
@@ -884,8 +990,8 @@ def _two_qubit_clifford_starters(
 
 
 def _two_qubit_clifford_mixers(
-    q_0: 'cirq.Qid', q_1: 'cirq.Qid', idx_2: int, cliffords: Cliffords
-) -> Iterator['cirq.OP_TREE']:
+    q_0: cirq.Qid, q_1: cirq.Qid, idx_2: int, cliffords: Cliffords
+) -> Iterator[cirq.OP_TREE]:
     """Fulfills parts (b-d) for two-qubit Cliffords."""
     s1 = cliffords.s1
     s1_x = cliffords.s1_x
@@ -916,9 +1022,7 @@ def _two_qubit_clifford_mixers(
         yield _single_qubit_gates(s1_x[idx_4], q_1)
 
 
-def _single_qubit_gates(
-    gate_seq: Sequence['cirq.Gate'], qubit: 'cirq.Qid'
-) -> Iterator['cirq.OP_TREE']:
+def _single_qubit_gates(gate_seq: Sequence[cirq.Gate], qubit: cirq.Qid) -> Iterator[cirq.OP_TREE]:
     for gate in gate_seq:
         yield gate(qubit)
 
@@ -931,8 +1035,8 @@ def _single_qubit_cliffords() -> Cliffords:
         ops.SingleQubitCliffordGate.Z,
     )
 
-    c1_in_xy: List[List[ops.SingleQubitCliffordGate]] = []
-    c1_in_xz: List[List[ops.SingleQubitCliffordGate]] = []
+    c1_in_xy: list[list[ops.SingleQubitCliffordGate]] = []
+    c1_in_xz: list[list[ops.SingleQubitCliffordGate]] = []
 
     for phi_0, phi_1 in itertools.product([1.0, 0.5, -0.5], [0.0, 0.5, -0.5]):
         c1_in_xy.append([X**phi_0, Y**phi_1])
@@ -955,9 +1059,9 @@ def _single_qubit_cliffords() -> Cliffords:
     for z0, x, z1 in phi_xz:
         c1_in_xz.append([Z**z0, X**x, Z**z1])
 
-    s1: List[List[ops.SingleQubitCliffordGate]] = [[X**0.0], [Y**0.5, X**0.5], [X**-0.5, Y**-0.5]]
-    s1_x: List[List[ops.SingleQubitCliffordGate]] = [[X**0.5], [X**0.5, Y**0.5, X**0.5], [Y**-0.5]]
-    s1_y: List[List[ops.SingleQubitCliffordGate]] = [
+    s1: list[list[ops.SingleQubitCliffordGate]] = [[X**0.0], [Y**0.5, X**0.5], [X**-0.5, Y**-0.5]]
+    s1_x: list[list[ops.SingleQubitCliffordGate]] = [[X**0.5], [X**0.5, Y**0.5, X**0.5], [Y**-0.5]]
+    s1_y: list[list[ops.SingleQubitCliffordGate]] = [
         [Y**0.5],
         [X**-0.5, Y**-0.5, X**0.5],
         [Y, X**0.5],

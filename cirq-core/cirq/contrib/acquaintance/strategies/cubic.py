@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import Iterable, Sequence, Tuple, TYPE_CHECKING, TypeVar
+from typing import Iterable, Sequence, TYPE_CHECKING, TypeVar
 
 from cirq import circuits, ops
 from cirq.contrib.acquaintance.gates import acquaint
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 TItem = TypeVar('TItem')
 
 
-def skip_and_wrap_around(items: Sequence[TItem]) -> Tuple[TItem, ...]:
+def skip_and_wrap_around(items: Sequence[TItem]) -> tuple[TItem, ...]:
     n_items = len(items)
     positions = {
         p: i

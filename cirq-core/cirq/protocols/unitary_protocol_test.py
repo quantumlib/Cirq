@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Optional
+
+from __future__ import annotations
 
 import numpy as np
 import pytest
@@ -74,7 +75,7 @@ class FullyImplemented(cirq.Gate):
     def _has_unitary_(self) -> bool:
         return self.unitary_value
 
-    def _unitary_(self) -> Optional[np.ndarray]:
+    def _unitary_(self) -> np.ndarray | None:
         if not self.unitary_value:
             return None
         return m1
@@ -159,6 +160,15 @@ def test_unitary():
     with pytest.raises(TypeError, match='unitary effect'):
         _ = cirq.unitary(ReturnsNotImplemented())
     assert cirq.unitary(ReturnsMatrix()) is m1
+
+    # Test that numpy arrays are handled directly
+    test_matrix = np.array([[1, 0], [0, 1]])
+    assert cirq.unitary(test_matrix, NotImplemented) is test_matrix
+
+    # Test that non-unitary numpy arrays raise ValueError
+    non_unitary_matrix = np.array([[1, 1], [0, 1]])
+    with pytest.raises(ValueError, match="The provided numpy array is not unitary"):
+        _ = cirq.unitary(non_unitary_matrix)
 
     assert cirq.unitary(NoMethod(), None) is None
     assert cirq.unitary(ReturnsNotImplemented(), None) is None

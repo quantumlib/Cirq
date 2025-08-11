@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cirq
 
 
@@ -66,7 +68,7 @@ def get_decompose_func(gate_type, qm):
     return decompose_func
 
 
-def test_map_clean_and_borrowable_qubits_greedy_types():
+def test_map_clean_and_borrowable_qubits_greedy_types() -> None:
     qm = cirq.ops.SimpleQubitManager()
     q = cirq.LineQubit.range(2)
     g = GateAllocInDecompose(1)
@@ -130,7 +132,7 @@ ancilla_1: ───X───X───
     )
 
 
-def test_map_clean_and_borrowable_qubits_borrows():
+def test_map_clean_and_borrowable_qubits_borrows() -> None:
     qm = cirq.ops.SimpleQubitManager()
     op = GateAllocAndBorrowInDecompose(3).on(cirq.NamedQubit("original"))
     extra = cirq.LineQubit.range(3)
@@ -233,7 +235,7 @@ original: ────@───@───@───@─────@───@�
     )
 
 
-def test_map_clean_and_borrowable_qubits_deallocates_only_once():
+def test_map_clean_and_borrowable_qubits_deallocates_only_once() -> None:
     q = [cirq.ops.BorrowableQubit(i) for i in range(2)] + [cirq.q('q')]
     circuit = cirq.Circuit(cirq.X.on_each(*q), cirq.Y(q[1]), cirq.Z(q[1]))
     greedy_mm = cirq.GreedyQubitManager(prefix="a", size=2)

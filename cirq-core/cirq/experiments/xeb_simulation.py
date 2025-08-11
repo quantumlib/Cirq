@@ -11,9 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Estimation of fidelity associated with experimental circuit executions."""
+
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
+from typing import Any, Sequence, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -32,17 +36,17 @@ class _Simulate2qXEBTask:
 
     circuit_i: int
     cycle_depths: Sequence[int]
-    circuit: 'cirq.Circuit'
-    param_resolver: 'cirq.ParamResolverOrSimilarType'
+    circuit: cirq.Circuit
+    param_resolver: cirq.ParamResolverOrSimilarType
 
 
 class _Simulate_2q_XEB_Circuit:
     """Closure used in `simulate_2q_xeb_circuits` so it works with multiprocessing."""
 
-    def __init__(self, simulator: 'cirq.SimulatesIntermediateState'):
+    def __init__(self, simulator: cirq.SimulatesIntermediateState):
         self.simulator = simulator
 
-    def __call__(self, task: _Simulate2qXEBTask) -> List[Dict[str, Any]]:
+    def __call__(self, task: _Simulate2qXEBTask) -> list[dict[str, Any]]:
         """Helper function for simulating a given (circuit, cycle_depth)."""
         circuit_i = task.circuit_i
         cycle_depths = set(task.cycle_depths)
@@ -53,7 +57,7 @@ class _Simulate_2q_XEB_Circuit:
         if max(cycle_depths) > circuit_max_cycle_depth:
             raise ValueError("`circuit` was not long enough to compute all `cycle_depths`.")
 
-        records: List[Dict[str, Any]] = []
+        records: list[dict[str, Any]] = []
         for moment_i, step_result in enumerate(
             self.simulator.simulate_moment_steps(circuit=circuit, param_resolver=param_resolver)
         ):
@@ -77,11 +81,11 @@ class _Simulate_2q_XEB_Circuit:
 
 
 def simulate_2q_xeb_circuits(
-    circuits: Sequence['cirq.Circuit'],
+    circuits: Sequence[cirq.Circuit],
     cycle_depths: Sequence[int],
-    param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
-    pool: Optional['multiprocessing.pool.Pool'] = None,
-    simulator: Optional['cirq.SimulatesIntermediateState'] = None,
+    param_resolver: cirq.ParamResolverOrSimilarType = None,
+    pool: multiprocessing.pool.Pool | None = None,
+    simulator: cirq.SimulatesIntermediateState | None = None,
 ):
     """Simulate two-qubit XEB circuits.
 

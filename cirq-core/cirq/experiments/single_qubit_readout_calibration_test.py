@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 from typing import Sequence
 
 import numpy as np
@@ -30,7 +33,7 @@ def test_single_qubit_readout_result_repr():
 
 
 class NoisySingleQubitReadoutSampler(cirq.Sampler):
-    def __init__(self, p0: float, p1: float, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
+    def __init__(self, p0: float, p1: float, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None):
         """Sampler that flips some bits upon readout.
 
         Args:
@@ -44,7 +47,7 @@ class NoisySingleQubitReadoutSampler(cirq.Sampler):
         self.simulator = cirq.Simulator(seed=self.prng, split_untangled_states=False)
 
     def run_sweep(
-        self, program: 'cirq.AbstractCircuit', params: cirq.Sweepable, repetitions: int = 1
+        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
     ) -> Sequence[cirq.Result]:
         results = self.simulator.run_sweep(program, params, repetitions)
         for result in results:

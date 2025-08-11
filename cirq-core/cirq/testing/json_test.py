@@ -12,21 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 
 from cirq.testing.json import spec_for
 
 
-def test_module_missing_json_test_data():
+def test_module_missing_json_test_data() -> None:
     with pytest.raises(ValueError, match="json_test_data"):
         spec_for('cirq.testing.test_data.test_module_missing_json_test_data')
 
 
-def test_module_missing_testspec():
+def test_module_missing_testspec() -> None:
     with pytest.raises(ValueError, match="TestSpec"):
         spec_for('cirq.testing.test_data.test_module_missing_testspec')
 
 
-def test_missing_module():
+def test_missing_module() -> None:
     with pytest.raises(ModuleNotFoundError):
         spec_for('non_existent')
