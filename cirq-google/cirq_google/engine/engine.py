@@ -642,10 +642,12 @@ class Engine(abstract_engine.AbstractEngine):
             project_id=self.project_id,
             processor_id=processor_id,
             snapshot_id=snapshot_id,
-            config_id=config_id
+            config_id=config_id,
         )
-        return processor_config.ProcessorConfig(quantum_processor_config=quantum_config)
-    
+        if quantum_config:
+            return processor_config.ProcessorConfig(quantum_processor_config=quantum_config)
+        return None
+
     get_processor_config_by_snapshot_id = duet.sync(get_processor_config_by_snapshot_id_async)
     
 
@@ -668,11 +670,13 @@ class Engine(abstract_engine.AbstractEngine):
             project_id=self.project_id,
             processor_id=processor_id,
             run_name=run_name,
-            config_id=config_id
+            config_id=config_id,
         )
-        return processor_config.ProcessorConfig(
-            quantum_processor_config=quantum_config, run_name=run_name
-        )
+        if quantum_config:
+            return processor_config.ProcessorConfig(
+                quantum_processor_config=quantum_config, run_name=run_name
+            )
+        return None
     
     get_processor_config_by_run_name = duet.sync(get_processor_config_by_run_name_async)
 

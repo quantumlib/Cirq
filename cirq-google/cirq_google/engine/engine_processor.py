@@ -520,8 +520,10 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         Returns: The quantum processor config.
         """
         response = self.context.client.get_quantum_processor_config_by_run_name(
-            project_id=self.project_id, processor_id=self.processor_id,
-            run_name=run_name, config_id=config_id
+            project_id=self.project_id,
+            processor_id=self.processor_id,
+            run_name=run_name,
+            config_id=config_id,
         )
         if response: 
             return processor_config.ProcessorConfig(
@@ -548,7 +550,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             project_id=self.project_id,
             processor_id=self.processor_id,
             snapshot_id=snapshot_id,
-            config_id=config_id
+            config_id=config_id,
         )
         if response:
             return processor_config.ProcessorConfig(quantum_processor_config=response)

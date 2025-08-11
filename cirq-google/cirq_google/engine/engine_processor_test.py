@@ -1202,11 +1202,6 @@ def test_get_current_config_by_run_name_not_found(get_quantum_config):
     processor_id = "test_proc_id"
     config_id = "test_config_id"
     run_name = 'test_run_name'
-    name = (
-        f'projects/{project_id}/'
-        f'processors/{processor_id}/'
-        f'configAutomationRuns/{run_name}/configs/{config_id}'
-    )
 
     get_quantum_config.return_value = None
 

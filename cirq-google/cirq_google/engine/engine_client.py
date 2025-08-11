@@ -1196,8 +1196,8 @@ class EngineClient:
             raise
 
 
-    async def get_quantum_processor_config_by_snapshot_id_async(self,
-        project_id: str, processor_id: str, snapshot_id: str, config_id: str 
+    async def get_quantum_processor_config_by_snapshot_id_async(
+        self, project_id: str, processor_id: str, snapshot_id: str, config_id: str 
     ) -> quantum.QuantumProcessorConfig | None:
         """Returns the QuantumProcessorConfig for the given snapshot id.
 
@@ -1225,8 +1225,8 @@ class EngineClient:
         get_quantum_processor_config_by_snapshot_id_async
     )
     
-    async def get_quantum_processor_config_by_run_name_async(self,
-        project_id: str, processor_id: str, run_name: str, config_id: str
+    async def get_quantum_processor_config_by_run_name_async(
+        self, project_id: str, processor_id: str, run_name: str, config_id: str
     ) -> quantum.QuantumProcessorConfig | None:
         """Returns the QuantumProcessorConfig for the given run_name.
 
@@ -1300,7 +1300,7 @@ def _ids_from_calibration_name(calibration_name: str) -> tuple[str, str, int]:
 
 
 def _quantum_processor_name_with_snapshot_id(
-        project_id: str, processor_id: str, snapshot_id: str, config_id: str
+    project_id: str, processor_id: str, snapshot_id: str, config_id: str
 ) -> str:
     return (
         f'projects/{project_id}/'
@@ -1311,7 +1311,7 @@ def _quantum_processor_name_with_snapshot_id(
 
 
 def _quantum_processor_name_with_run_name(
-        project_id: str, processor_id: str, run_name: str, config_id: str
+    project_id: str, processor_id: str, run_name: str, config_id: str
 ) -> str:
     return (
         f'projects/{project_id}/'

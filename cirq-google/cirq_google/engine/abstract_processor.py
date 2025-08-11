@@ -380,7 +380,8 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_config_by_run_name(self, config_id: str, run_name: str = "current"
+    def get_config_by_run_name(
+        self, config_id: str, run_name: str = "current"
     ) -> abstract_processor_config.AbstractProcessorConfig | None:
         """Retrieves a ProcessorConfig from an automation run.
             
