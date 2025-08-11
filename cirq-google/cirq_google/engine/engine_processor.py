@@ -507,7 +507,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         self, config_id: str, run_name: str = "current"
     ) -> processor_config.ProcessorConfig | None:
         """Retrieves a ProcessorConfig from an automation run.
-            
+
             If no run name is provided, the config from the most recent run
             is returned.
 
@@ -525,7 +525,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             run_name=run_name,
             config_id=config_id,
         )
-        if response: 
+
+        if response:
             return processor_config.ProcessorConfig(
                 quantum_processor_config=response, run_name=run_name
             )
@@ -555,7 +556,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         if response:
             return processor_config.ProcessorConfig(quantum_processor_config=response)
         return None
-        
 
     def __str__(self):
         return (

@@ -21,7 +21,7 @@ from cirq_google.engine.abstract_job import AbstractJob as AbstractJob
 from cirq_google.engine.abstract_processor import AbstractProcessor as AbstractProcessor
 
 from cirq_google.engine.abstract_processor_config import (
-    AbstractProcessorConfig as AbstractProcessorConfig
+    AbstractProcessorConfig as AbstractProcessorConfig,
 )
 
 from cirq_google.engine.abstract_program import AbstractProgram as AbstractProgram

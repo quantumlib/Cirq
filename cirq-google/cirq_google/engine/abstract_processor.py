@@ -384,7 +384,7 @@ class AbstractProcessor(abc.ABC):
         self, config_id: str, run_name: str = "current"
     ) -> abstract_processor_config.AbstractProcessorConfig | None:
         """Retrieves a ProcessorConfig from an automation run.
-            
+
             If no run name is provided, the config from the most recent run
             is returned.
 

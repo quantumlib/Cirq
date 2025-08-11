@@ -1758,7 +1758,6 @@ def test_get_quantum_processor_config_by_snapshot_id(client_constructor, default
         f'configSnapshots/{snapshot_id}/'
         f'configs/{config_id}'
     )
-    
 
     grpc_client = _setup_client_mock(client_constructor)
     expected_result = quantum.QuantumProcessorConfig(name=resource_name)
@@ -1774,10 +1773,12 @@ def test_get_quantum_processor_config_by_snapshot_id(client_constructor, default
         quantum.GetQuantumProcessorConfigRequest(name=resource_name)
     )
     assert actual_result == expected_result
-    
+
 
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
-def test_get_quantum_processor_config_by_snapshot_id_not_found(client_constructor, default_engine_client):
+def test_get_quantum_processor_config_by_snapshot_id_not_found(
+    client_constructor, default_engine_client
+):
     project_id = "test_project_id"
     processor_id = "test_processor_id"
     snapshot_id = "test_snapshot_id"
@@ -1788,7 +1789,7 @@ def test_get_quantum_processor_config_by_snapshot_id_not_found(client_constructo
         f'configSnapshots/{snapshot_id}/'
         f'configs/{config_id}'
     )
-    
+
     grpc_client = _setup_client_mock(client_constructor)
     grpc_client.get_quantum_processor_config.side_effect = exceptions.NotFound('not found')
 
@@ -1796,7 +1797,7 @@ def test_get_quantum_processor_config_by_snapshot_id_not_found(client_constructo
         project_id=project_id,
         processor_id=processor_id,
         config_id=config_id,
-        snapshot_id=snapshot_id
+        snapshot_id=snapshot_id,
     )
     grpc_client.get_quantum_processor_config.assert_called_with(
         quantum.GetQuantumProcessorConfigRequest(name=resource_name)
@@ -1806,7 +1807,8 @@ def test_get_quantum_processor_config_by_snapshot_id_not_found(client_constructo
 
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_get_quantum_processor_config_by_snapshot_id_exception(
-    client_constructor, default_engine_client):
+    client_constructor, default_engine_client
+):
     grpc_client = _setup_client_mock(client_constructor)
     grpc_client.get_quantum_processor_config.side_effect = exceptions.BadRequest('invalid_reueust')
 
@@ -1818,9 +1820,9 @@ def test_get_quantum_processor_config_by_snapshot_id_exception(
             snapshot_id="test_snapshot_id",
         )
 
+
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
-def test_get_quantum_processor_config_by_run_name(
-    client_constructor, default_engine_client):
+def test_get_quantum_processor_config_by_run_name(client_constructor, default_engine_client):
 
     project_id = "test_project_id"
     processor_id = "test_processor_id"
@@ -1832,7 +1834,7 @@ def test_get_quantum_processor_config_by_run_name(
         f'configAutomationRuns/{run_name}/'
         f'configs/{config_id}'
     )
-    
+
     grpc_client = _setup_client_mock(client_constructor)
     expected_result = quantum.QuantumProcessorConfig(name=resource_name)
     grpc_client.get_quantum_processor_config.return_value = expected_result
@@ -1844,6 +1846,7 @@ def test_get_quantum_processor_config_by_run_name(
         quantum.GetQuantumProcessorConfigRequest(name=resource_name)
     )
     assert actual_result == expected_result
+
 
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_get_quantum_processor_config_by_run_name_not_found(
@@ -1869,6 +1872,7 @@ def test_get_quantum_processor_config_by_run_name_not_found(
         quantum.GetQuantumProcessorConfigRequest(name=resource_name)
     )
     assert actual_result is None
+
 
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_get_quantum_processor_config_by_run_name_exception(

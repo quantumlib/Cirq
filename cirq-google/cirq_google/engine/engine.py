@@ -623,7 +623,7 @@ class Engine(abstract_engine.AbstractEngine):
             snapshot_id=snapshot_id,
             max_concurrent_jobs=max_concurrent_jobs,
         )
-    
+
     async def get_processor_config_by_snapshot_id_async(
         self, processor_id: str, snapshot_id: str, config_id: str
     ) -> processor_config.ProcessorConfig | None:
@@ -649,7 +649,6 @@ class Engine(abstract_engine.AbstractEngine):
         return None
 
     get_processor_config_by_snapshot_id = duet.sync(get_processor_config_by_snapshot_id_async)
-    
 
     async def get_processor_config_by_run_name_async(
         self, processor_id: str, config_id: str, run_name: str = 'current'
@@ -657,7 +656,7 @@ class Engine(abstract_engine.AbstractEngine):
         """Returns a ProcessorConfig from this project and the given processor id.
 
         If no run_name is provided, the config from the most recent run is returned.
-    
+
         Args:
             processor_id: The processor unique identifier.
             run_name: The unique identifier for the automation run.
@@ -677,7 +676,7 @@ class Engine(abstract_engine.AbstractEngine):
                 quantum_processor_config=quantum_config, run_name=run_name
             )
         return None
-    
+
     get_processor_config_by_run_name = duet.sync(get_processor_config_by_run_name_async)
 
 

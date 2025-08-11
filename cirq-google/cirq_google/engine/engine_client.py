@@ -1195,9 +1195,8 @@ class EngineClient:
                 return None
             raise
 
-
     async def get_quantum_processor_config_by_snapshot_id_async(
-        self, project_id: str, processor_id: str, snapshot_id: str, config_id: str 
+        self, project_id: str, processor_id: str, snapshot_id: str, config_id: str
     ) -> quantum.QuantumProcessorConfig | None:
         """Returns the QuantumProcessorConfig for the given snapshot id.
 
@@ -1224,7 +1223,7 @@ class EngineClient:
     get_quantum_processor_config_by_snapshot_id = duet.sync(
         get_quantum_processor_config_by_snapshot_id_async
     )
-    
+
     async def get_quantum_processor_config_by_run_name_async(
         self, project_id: str, processor_id: str, run_name: str, config_id: str
     ) -> quantum.QuantumProcessorConfig | None:
@@ -1246,10 +1245,11 @@ class EngineClient:
             project_id=project_id, processor_id=processor_id, run_name=run_name, config_id=config_id
         )
         return await self._get_quantum_processor_config(name)
-    
+
     get_quantum_processor_config_by_run_name = duet.sync(
         get_quantum_processor_config_by_run_name_async
     )
+
 
 def _project_name(project_id: str) -> str:
     return f'projects/{project_id}'

@@ -139,8 +139,7 @@ class AbstractEngine(abc.ABC):
             processor_id: String identifier, or list of string identifiers,
                 determining which processors may be used when sampling.
         """
-    
-    
+
     @abc.abstractmethod
     def get_processor_config_by_snapshot_id(
         self, processor_id: str, snapshot_id: str, config_id: str
@@ -163,7 +162,7 @@ class AbstractEngine(abc.ABC):
         """Returns a ProcessorConfig from this project and the given processor id.
 
         If no run_name is provided, the config from the most recent run is returned.
-    
+
         Args:
             processor_id: The processor unique identifier.
             run_name: The unique identifier for the automation run.

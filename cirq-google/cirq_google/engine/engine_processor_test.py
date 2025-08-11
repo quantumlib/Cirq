@@ -185,14 +185,10 @@ _METRIC_SNAPSHOT = v2.metrics_pb2.MetricsSnapshot(
     timestamp_ms=1562544000021,
     metrics=[
         v2.metrics_pb2.Metric(
-            name='xeb',
-            targets=['0_0', '0_1'],
-            values=[v2.metrics_pb2.Value(double_val=0.9999)],
+            name='xeb', targets=['0_0', '0_1'], values=[v2.metrics_pb2.Value(double_val=0.9999)]
         ),
         v2.metrics_pb2.Metric(
-            name='xeb',
-            targets=['0_0', '1_0'],
-            values=[v2.metrics_pb2.Value(double_val=0.9998)],
+            name='xeb', targets=['0_0', '1_0'], values=[v2.metrics_pb2.Value(double_val=0.9998)]
         ),
     ],
 )
@@ -1014,9 +1010,11 @@ def test_sampler_with_stream_rpcs(client):
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
     assert client().run_job_over_stream.call_args[1]['project_id'] == 'proj'
 
+
 def test_str():
     processor = cg.EngineProcessor('a', 'p', EngineContext())
     assert str(processor) == 'EngineProcessor(project_id=\'a\', processor_id=\'p\')'
+
 
 @mock.patch(
     'cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_by_run_name_async'
@@ -1039,7 +1037,7 @@ def test_get_config_by_run_name(get_quantum_config):
             v2.device_pb2.TargetSet(
                 name="2_quibit_targets",
                 target_ordering=v2.device_pb2.TargetSet.SYMMETRIC,
-                targets=[v2.device_pb2.Target(ids=["0_0", "1_1"])]
+                targets=[v2.device_pb2.Target(ids=["0_0", "1_1"])],
             )
         ],
     )
@@ -1057,8 +1055,7 @@ def test_get_config_by_run_name(get_quantum_config):
     actual_config = processor.get_config_by_run_name(config_id=config_id, run_name=run_name)
 
     get_quantum_config.assert_called_once_with(
-        project_id=project_id, processor_id=processor_id,
-        run_name=run_name, config_id=config_id
+        project_id=project_id, processor_id=processor_id, run_name=run_name, config_id=config_id
     )
     assert actual_config.project_id == expected_config.project_id
     assert actual_config.processor_id == expected_config.processor_id
@@ -1066,6 +1063,7 @@ def test_get_config_by_run_name(get_quantum_config):
     assert actual_config.run_name == run_name
     assert actual_config.effective_device == expected_config.effective_device
     assert actual_config.calibration == expected_config.calibration
+
 
 @mock.patch(
     'cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_by_run_name_async'
@@ -1086,7 +1084,7 @@ def test_get_current_config_by_run_name(get_quantum_config):
             v2.device_pb2.TargetSet(
                 name="2_quibit_targets",
                 target_ordering=v2.device_pb2.TargetSet.SYMMETRIC,
-                targets=[v2.device_pb2.Target(ids=["0_0", "1_1"])]
+                targets=[v2.device_pb2.Target(ids=["0_0", "1_1"])],
             )
         ],
     )
@@ -1106,6 +1104,7 @@ def test_get_current_config_by_run_name(get_quantum_config):
     get_quantum_config.assert_called_once_with(
         project_id=project_id, processor_id=processor_id, run_name="current", config_id=config_id
     )
+
 
 @mock.patch(
     'cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_by_snapshot_id_async'
@@ -1128,7 +1127,7 @@ def test_get_config_by_snapshot_id(get_quantum_config):
             v2.device_pb2.TargetSet(
                 name="2_quibit_targets",
                 target_ordering=v2.device_pb2.TargetSet.SYMMETRIC,
-                targets=[v2.device_pb2.Target(ids=["0_0", "1_1"])]
+                targets=[v2.device_pb2.Target(ids=["0_0", "1_1"])],
             )
         ],
     )
@@ -1143,15 +1142,13 @@ def test_get_config_by_snapshot_id(get_quantum_config):
         project_id=project_id, processor_id=processor_id, context=EngineContext()
     )
 
-    actual_config = processor.get_config_by_snapshot(
-        config_id=config_id, snapshot_id=snapshot_id
-    )
+    actual_config = processor.get_config_by_snapshot(config_id=config_id, snapshot_id=snapshot_id)
 
     get_quantum_config.assert_called_once_with(
         project_id=project_id,
         processor_id=processor_id,
         snapshot_id=snapshot_id,
-        config_id=config_id
+        config_id=config_id,
     )
     assert actual_config.project_id == expected_config.project_id
     assert actual_config.processor_id == expected_config.processor_id
@@ -1183,13 +1180,14 @@ def test_get_config_by_snapshot_id_not_found(get_quantum_config):
         project_id=project_id,
         processor_id=processor_id,
         snapshot_id=snapshot_id,
-        config_id=config_id
+        config_id=config_id,
     )
 
     assert result is None
 
+
 @mock.patch(
-'cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_by_run_name_async'
+    'cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_by_run_name_async'
 )
 def test_get_current_config_by_run_name_not_found(get_quantum_config):
     project_id = "test_project_id"
@@ -1206,9 +1204,6 @@ def test_get_current_config_by_run_name_not_found(get_quantum_config):
     result = processor.get_config_by_run_name(config_id=config_id, run_name=run_name)
 
     get_quantum_config.assert_called_once_with(
-        project_id=project_id,
-        processor_id=processor_id,
-        run_name=run_name,
-        config_id=config_id
+        project_id=project_id, processor_id=processor_id, run_name=run_name, config_id=config_id
     )
     assert result is None

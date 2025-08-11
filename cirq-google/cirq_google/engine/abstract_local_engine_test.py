@@ -80,7 +80,7 @@ class ProgramDictProcessor(AbstractLocalProcessor):
 
     def get_program(self, program_id: str) -> AbstractProgram:
         return self._programs[program_id]
-    
+
     def get_config_by_run_name(self, *args, **kwargs):
         pass
 

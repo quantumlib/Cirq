@@ -39,6 +39,7 @@ class AbstractLocalEngine(AbstractEngine):
         for processor in processors:
             processor.set_engine(self)
         self._processors = {proc.processor_id: proc for proc in processors}
+
     def get_program(self, program_id: str) -> AbstractProgram:
         """Returns an existing AbstractProgram given an identifier.
 
@@ -174,7 +175,7 @@ class AbstractLocalEngine(AbstractEngine):
         if not isinstance(processor_id, str):
             raise ValueError(f'Invalid processor {processor_id}')
         return self._processors[processor_id].get_sampler()
-    
+
     def get_processor_config_by_snapshot_id(
         self, processor_id: str, snapshot_id: str, config_id: str
     ):
@@ -186,4 +187,3 @@ class AbstractLocalEngine(AbstractEngine):
     ):
         # TODO: Implement later as needed.
         pass
-    

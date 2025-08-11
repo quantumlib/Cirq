@@ -34,14 +34,13 @@ _METRIC_SNAPSHOT = v2.metrics_pb2.MetricsSnapshot(
     ],
 )
 
-
 _DEVICE_SPEC = v2.device_pb2.DeviceSpecification(
     valid_qubits=["0_0", "1_1", "2_2"],
     valid_targets=[
         v2.device_pb2.TargetSet(
             name="2_quibit_targets",
             target_ordering=v2.device_pb2.TargetSet.SYMMETRIC,
-            targets=[v2.device_pb2.Target(ids=["0_0", "1_1"])]
+            targets=[v2.device_pb2.Target(ids=["0_0", "1_1"])],
         )
     ],
 )
@@ -54,74 +53,74 @@ _CONFIG_ID = 'test_config_id'
 _VALID_QUANTUM_PROCESSOR_CONFIG = quantum.QuantumProcessorConfig(
     name=f'projects/{_PROJECT_ID}/processors/{_PROCESSOR_ID}/configSnapshots/{_SNAPSHOT_ID}/configs/{_CONFIG_ID}',
     device_specification=util.pack_any(_DEVICE_SPEC),
-    characterization=util.pack_any(_METRIC_SNAPSHOT)
+    characterization=util.pack_any(_METRIC_SNAPSHOT),
 )
 
 
 def test_processor_config_snapshot_id():
     config = cg.engine.ProcessorConfig(quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG)
-    
+
     assert config.snapshot_id == _SNAPSHOT_ID
 
 
-def test_processor_config_run_name():    
+def test_processor_config_run_name():
     run_name = 'test_run_name'
     config = cg.engine.ProcessorConfig(
         quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG, run_name=run_name
     )
-    
+
     assert config.run_name == run_name
 
 
 def test_processor_config_effective_device():
     config = cg.engine.ProcessorConfig(quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG)
-    
+
     assert config.effective_device == GridDevice.from_proto(_DEVICE_SPEC)
 
 
-def test_processor_config_calibration(): 
+def test_processor_config_calibration():
     config = cg.engine.ProcessorConfig(quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG)
-    
+
     assert config.calibration == cg.Calibration(_METRIC_SNAPSHOT)
 
 
-def test_processor_project_id(): 
+def test_processor_project_id():
     config = cg.engine.ProcessorConfig(quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG)
-    
+
     assert config.project_id == _PROJECT_ID
 
 
-def test_processor_processor_id(): 
+def test_processor_processor_id():
     config = cg.engine.ProcessorConfig(quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG)
-    
+
     assert config.processor_id == _PROCESSOR_ID
 
 
-def test_processor_config_id(): 
+def test_processor_config_id():
     config = cg.engine.ProcessorConfig(quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG)
-    
+
     assert config.config_id == _CONFIG_ID
 
 
 def test_processor_config_repr():
     config = cg.engine.ProcessorConfig(quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG)
     expected_repr = (
-            f'cirq_google.ProcessorConfig'
-            f'(project_id={_PROJECT_ID}, '
-            f'processor_id={_PROCESSOR_ID}, '
-            f'snapshot_id={_SNAPSHOT_ID}, '
-            f'run_name={""} '
-            f'config_id={_CONFIG_ID}'
-        )
-    
+        f'cirq_google.ProcessorConfig'
+        f'(project_id={_PROJECT_ID}, '
+        f'processor_id={_PROCESSOR_ID}, '
+        f'snapshot_id={_SNAPSHOT_ID}, '
+        f'run_name={""} '
+        f'config_id={_CONFIG_ID}'
+    )
+
     assert repr(config) == expected_repr
 
 
 def test_processor_config_repr_with_run_name():
     run_name = 'test_run_name'
     config = cg.engine.ProcessorConfig(
-            quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG, run_name=run_name
-        )
+        quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG, run_name=run_name
+    )
     expected_repr = (
         f'cirq_google.ProcessorConfig'
         f'(project_id={_PROJECT_ID}, '
@@ -130,5 +129,5 @@ def test_processor_config_repr_with_run_name():
         f'run_name={run_name} '
         f'config_id={_CONFIG_ID}'
     )
-    
+
     assert repr(config) == expected_repr

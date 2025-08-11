@@ -908,6 +908,7 @@ valid_gates {
     with pytest.raises(ValueError):
         device.validate_operation(cirq.CZ(cirq.GridQubit(1, 1), cirq.GridQubit(2, 2)))
 
+
 @mock.patch(
     'cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_by_snapshot_id_async'
 )
@@ -927,7 +928,7 @@ def test_get_processor_config_by_snapshot_id(get_quantum_config_async):
     get_quantum_config_async.return_value = quantum_confg
 
     result = cg.Engine(project_id=project_id).get_processor_config_by_snapshot_id(
-         processor_id=processor_id, snapshot_id=snapshot_id, config_id=config_id
+        processor_id=processor_id, snapshot_id=snapshot_id, config_id=config_id
     )
 
     get_quantum_config_async.assert_called_with(
@@ -941,6 +942,7 @@ def test_get_processor_config_by_snapshot_id(get_quantum_config_async):
     assert result.snapshot_id == snapshot_id
     assert result.config_id == config_id
     assert result.run_name == ''
+
 
 @mock.patch(
     'cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_by_run_name_async'
@@ -962,14 +964,11 @@ def test_get_processor_config_by_run_name(get_quantum_config_async):
     get_quantum_config_async.return_value = quantum_confg
 
     result = cg.Engine(project_id=project_id).get_processor_config_by_run_name(
-         processor_id=processor_id, run_name=run_name, config_id=config_id
+        processor_id=processor_id, run_name=run_name, config_id=config_id
     )
 
     get_quantum_config_async.assert_called_with(
-        project_id=project_id,
-        processor_id=processor_id,
-        run_name=run_name,
-        config_id=config_id
+        project_id=project_id, processor_id=processor_id, run_name=run_name, config_id=config_id
     )
     assert result.project_id == project_id
     assert result.processor_id == processor_id
@@ -990,7 +989,7 @@ def test_get_processor_config_by_snapshot_id_none(get_quantum_config_async):
     get_quantum_config_async.return_value = None
 
     result = cg.Engine(project_id=project_id).get_processor_config_by_snapshot_id(
-         processor_id=processor_id, snapshot_id=snapshot_id, config_id=config_id
+        processor_id=processor_id, snapshot_id=snapshot_id, config_id=config_id
     )
 
     assert result is None
@@ -1008,8 +1007,7 @@ def test_get_processor_config_by_run_name_nine(get_quantum_config_async):
     get_quantum_config_async.return_value = None
 
     result = cg.Engine(project_id=project_id).get_processor_config_by_run_name(
-         processor_id=processor_id, run_name=run_name, config_id=config_id
+        processor_id=processor_id, run_name=run_name, config_id=config_id
     )
 
     assert result is None
-
