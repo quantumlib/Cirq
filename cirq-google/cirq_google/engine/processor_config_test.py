@@ -119,3 +119,35 @@ def test_processor_config_id():
     
     assert config.config_id == _CONFIG_ID
 
+def test_processor_config_repr():
+    config = cg.engine.ProcessorConfig(
+            quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG,
+        )
+    expected_repr = (
+            f'cirq_google.ProcessorConfig'
+            f'(project_id={_PROJECT_ID}, '
+            f'processor_id={_PROCESSOR_ID}, '
+            f'snapshot_id={_SNAPSHOT_ID}, '
+            f'run_name={''} '
+            f'config_id={_CONFIG_ID}'
+        )
+    
+    assert repr(config) == expected_repr
+
+def test_processor_config_repr_with_run_name():
+    run_name = 'test_run_name'
+    config = cg.engine.ProcessorConfig(
+            quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG,
+            run_name=run_name
+        )
+    expected_repr = (
+            f'cirq_google.ProcessorConfig'
+            f'(project_id={_PROJECT_ID}, '
+            f'processor_id={_PROCESSOR_ID}, '
+            f'snapshot_id={_SNAPSHOT_ID}, '
+            f'run_name={run_name} '
+            f'config_id={_CONFIG_ID}'
+        )
+    
+    assert repr(config) == expected_repr
+
