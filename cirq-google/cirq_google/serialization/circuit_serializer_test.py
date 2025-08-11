@@ -99,6 +99,16 @@ OPERATIONS = [
         op_proto({'xpowgate': {'exponent': {'symbol': 'a'}}, 'qubit_constant_index': [0]}),
     ),
     (
+        cirq.XPowGate(exponent=0)(Q1).with_tags(cg.CompressDurationTag()),
+        op_proto(
+            {
+                'xpowgate': {'exponent': {'float_value': 0.0}},
+                'qubit_constant_index': [0],
+                'tag_indices': [1],
+            }
+        ),
+    ),
+    (
         cirq.XPowGate(exponent=0.25 + sympy.Symbol('t'))(Q1),
         op_proto(
             {
