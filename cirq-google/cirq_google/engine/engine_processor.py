@@ -18,7 +18,6 @@ import datetime
 from typing import Any, TYPE_CHECKING
 
 from cirq import _compat
-import cirq_google as cg
 from cirq_google.api import v2
 from cirq_google.devices import grid_device
 from cirq_google.engine import abstract_processor, calibration, processor_config, processor_sampler
@@ -26,6 +25,7 @@ from cirq_google.engine import util
 
 if TYPE_CHECKING:
     import cirq
+    import cirq_google as cg
     import cirq_google.cloud.quantum as quantum
     import cirq_google.engine.abstract_job as abstract_job
     import cirq_google.engine.engine as engine_base
@@ -500,7 +500,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
 
     def get_config_by_run_name(
         self, config_id: str, run_name: str = "current"
-    ) -> processor_config.ProcessorConfig:
+    ) -> processor_config.ProcessorConfig | None:
         """Retrieves a ProcessorConfig from an automation run.
             
             If no run name is provided, the config from the most recent run
@@ -517,15 +517,17 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         response = self.context.client.get_quantum_processor_config_by_run_name(
             project_id=self.project_id, processor_id=self.processor_id,
             run_name=run_name, config_id=config_id
-        )    
-        return processor_config.ProcessorConfig(
-            quantum_processor_config=response,
-            run_name=run_name
         )
+        if response: 
+            return processor_config.ProcessorConfig(
+                quantum_processor_config=response,
+                run_name=run_name
+            )
+        return None
 
     def get_config_by_snapshot(
         self, config_id: str, snapshot_id: str
-    ) -> processor_config.ProcessorConfig:
+    ) -> processor_config.ProcessorConfig | None:
         """Retrieves a ProcessorConfig from a given snapshot id.
 
         Args:
@@ -541,10 +543,13 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         response = self.context.client.get_quantum_processor_config_by_snapshot_id(
             project_id=self.project_id, processor_id=self.processor_id,
             snapshot_id=snapshot_id, config_id=config_id
-        )    
-        return processor_config.ProcessorConfig(
-            quantum_processor_config=response
         )
+        if response:
+            return processor_config.ProcessorConfig(
+                quantum_processor_config=response
+            )
+        return None
+        
 
     def __str__(self):
         return (

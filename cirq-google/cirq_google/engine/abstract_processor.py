@@ -382,7 +382,7 @@ class AbstractProcessor(abc.ABC):
     @abc.abstractmethod
     def get_config_by_run_name(
         self, config_id: str, run_name: str = "current"
-    ) -> ProcessorConfig:
+    ) -> ProcessorConfig | None:
         """Retrieves a ProcessorConfig from an automation run.
             
             If no run name is provided, the config from the most recent run
@@ -400,7 +400,7 @@ class AbstractProcessor(abc.ABC):
     @abc.abstractmethod
     def get_config_by_snapshot(
         self, config_id: str, snapshot_id: str
-    ) -> ProcessorConfig:
+    ) -> ProcessorConfig | None:
         """Retrieves a ProcessorConfig from a given snapshot id.
 
         Args:

@@ -1109,8 +1109,9 @@ def test_get_current_config_by_run_name(get_quantum_config):
         context=EngineContext()
     )
 
-    _ = processor.get_config_by_run_name(config_id=config_id)
+    result = processor.get_config_by_run_name(config_id=config_id)
 
+    assert not result.snapshot_id
     get_quantum_config.assert_called_once_with(
         project_id=project_id, processor_id=processor_id,
         run_name="current", config_id=config_id
@@ -1171,3 +1172,64 @@ def test_get_config_by_snapshot_id(get_quantum_config):
     assert actual_config.snapshot_id == snapshot_id
     assert actual_config.effective_device == expected_config.effective_device
     assert actual_config.calibration == expected_config.calibration
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_by_snapshot_id_async')
+def test_get_config_by_snapshot_id_not_found(get_quantum_config):
+    project_id = "test_project_id"
+    processor_id = "test_proc_id"
+    snapshot_id = "test_snapshot_id"
+    config_id = "test_config_id"
+    name = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configSnapshots/{snapshot_id}/'
+        f'configs/{config_id}'
+    )
+
+    get_quantum_config.return_value = None
+
+    processor = cg.EngineProcessor(
+        project_id=project_id,
+        processor_id=processor_id,
+        context=EngineContext()
+    )
+
+    result = processor.get_config_by_snapshot(
+        config_id=config_id, snapshot_id=snapshot_id
+    )
+
+    get_quantum_config.assert_called_once_with(
+        project_id=project_id, processor_id=processor_id,
+        snapshot_id=snapshot_id, config_id=config_id
+    )
+
+    assert result == None
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_by_run_name_async')
+def test_get_current_config_by_run_name_not_found(get_quantum_config):
+    project_id = "test_project_id"
+    processor_id = "test_proc_id"
+    config_id = "test_config_id"
+    run_name = 'test_run_name'
+    name = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configAutomationRuns/{run_name}/configs/{config_id}'
+    )
+
+    get_quantum_config.return_value = None
+
+    processor = cg.EngineProcessor(
+        project_id=project_id,
+        processor_id=processor_id,
+        context=EngineContext()
+    )
+
+    result = processor.get_config_by_run_name(config_id=config_id, run_name=run_name)
+
+    get_quantum_config.assert_called_once_with(
+        project_id=project_id, processor_id=processor_id,
+        run_name=run_name, config_id=config_id
+    )
+    assert result == None
