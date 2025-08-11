@@ -35,7 +35,7 @@ if TYPE_CHECKING:
     import cirq_google.engine.abstract_engine as abstract_engine
     import cirq_google.engine.abstract_job as abstract_job
     import cirq_google.engine.calibration as calibration
-    from cirq_google.engine import ProcessorConfig
+    from cirq_google.engine import abstract_processor_config
 
 
 class AbstractProcessor(abc.ABC):
@@ -380,9 +380,8 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_config_by_run_name(
-        self, config_id: str, run_name: str = "current"
-    ) -> ProcessorConfig | None:
+    def get_config_by_run_name(self, config_id: str, run_name: str = "current"
+    ) -> abstract_processor_config.AbstractProcessorConfig | None:
         """Retrieves a ProcessorConfig from an automation run.
             
             If no run name is provided, the config from the most recent run
@@ -400,7 +399,7 @@ class AbstractProcessor(abc.ABC):
     @abc.abstractmethod
     def get_config_by_snapshot(
         self, config_id: str, snapshot_id: str
-    ) -> ProcessorConfig | None:
+    ) -> abstract_processor_config.AbstractProcessorConfig | None:
         """Retrieves a ProcessorConfig from a given snapshot id.
 
         Args:

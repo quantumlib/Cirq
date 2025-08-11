@@ -20,17 +20,22 @@ from typing import Any, TYPE_CHECKING
 from cirq import _compat
 from cirq_google.api import v2
 from cirq_google.devices import grid_device
-from cirq_google.engine import abstract_processor, calibration, processor_config, processor_sampler
-from cirq_google.engine import util
+from cirq_google.engine import (
+    abstract_processor,
+    calibration,
+    processor_config,
+    processor_sampler,
+    util,
+)
 
 if TYPE_CHECKING:
+    from google.protobuf import any_pb2
+
     import cirq
     import cirq_google as cg
     import cirq_google.cloud.quantum as quantum
     import cirq_google.engine.abstract_job as abstract_job
     import cirq_google.engine.engine as engine_base
-
-    from google.protobuf import any_pb2
 
 
 def _date_to_timestamp(union_time: datetime.datetime | datetime.date | int | None) -> int | None:
@@ -520,8 +525,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         )
         if response: 
             return processor_config.ProcessorConfig(
-                quantum_processor_config=response,
-                run_name=run_name
+                quantum_processor_config=response, run_name=run_name
             )
         return None
 
@@ -541,13 +545,13 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             EngineException: If the request to get the config fails.
         """
         response = self.context.client.get_quantum_processor_config_by_snapshot_id(
-            project_id=self.project_id, processor_id=self.processor_id,
-            snapshot_id=snapshot_id, config_id=config_id
+            project_id=self.project_id,
+            processor_id=self.processor_id,
+            snapshot_id=snapshot_id,
+            config_id=config_id
         )
         if response:
-            return processor_config.ProcessorConfig(
-                quantum_processor_config=response
-            )
+            return processor_config.ProcessorConfig(quantum_processor_config=response)
         return None
         
 

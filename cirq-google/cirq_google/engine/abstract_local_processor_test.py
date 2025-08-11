@@ -71,9 +71,7 @@ class NothingProcessor(AbstractLocalProcessor):
     def get_program(self, *args, **kwargs):
         pass
 
-    def get_config_by_run_name(
-        self, config_id: str, run_name: str = "current"
-    ):
+    def get_config_by_run_name(self, config_id: str, run_name: str = "current"):
         pass
 
     def get_config_by_snapshot(self, config_id: str, snapshot_id: str):

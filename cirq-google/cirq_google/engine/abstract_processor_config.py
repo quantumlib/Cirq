@@ -20,30 +20,36 @@ class AbstractProcessorConfig(abc.ABC):
     def effective_device(self) -> cirq.Device:
         """The Device generated from thi configuration's device specification"""
     
+
     @property
     @abc.abstractmethod
     def calibration(self) -> cg.Calibration:
         """Charicterization metrics captured for this configuration"""
     
+
     @property
     @abc.abstractmethod
     def snapshot_id(self) -> str:
         """The snapshot that contains this processor config"""
     
+
     @property
     @abc.abstractmethod
     def run_name(self) -> str:
         """The run that generated this config if avaiable."""
 
+
     @property
     @abc.abstractmethod
     def project_id(self) -> str:
         """The if of the project that contains this config."""
-    
+
+
     @property
     @abc.abstractmethod
     def processor_id(self) -> str:
         """The processor id for this config."""
+
 
     @property
     @abc.abstractmethod

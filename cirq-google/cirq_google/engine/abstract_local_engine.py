@@ -35,10 +35,7 @@ class AbstractLocalEngine(AbstractEngine):
 
     """
 
-    def __init__(
-            self,
-            processors: list[AbstractLocalProcessor]
-        ):
+    def __init__(self, processors: list[AbstractLocalProcessor]):
         for processor in processors:
             processor.set_engine(self)
         self._processors = {proc.processor_id: proc for proc in processors}
@@ -179,19 +176,13 @@ class AbstractLocalEngine(AbstractEngine):
         return self._processors[processor_id].get_sampler()
     
     def get_processor_config_by_snapshot_id(
-        self,
-        processor_id: str,
-        snapshot_id: str,
-        config_id: str
+        self, processor_id: str, snapshot_id: str, config_id: str
     ):
         # TODO: Implement later as needed.
         pass
 
     def get_processor_config_by_run_name(
-        self,
-        processor_id: str,
-        config_id: str,
-        run_name: str = 'current'
+        self, processor_id: str, config_id: str, run_name: str = 'current'
     ):
         # TODO: Implement later as needed.
         pass
