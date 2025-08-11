@@ -342,7 +342,7 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
 
         return np.asarray(initial_simplex), names
 
-    def get_parameterized_gate(self) -> cirq.PhasedFSimGate:
+    def get_parameterized_gate(self) -> cirq.Gate:
         theta = THETA_SYMBOL if self.characterize_theta else self.theta_default
         zeta = ZETA_SYMBOL if self.characterize_zeta else self.zeta_default
         chi = CHI_SYMBOL if self.characterize_chi else self.chi_default
