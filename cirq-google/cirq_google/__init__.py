@@ -56,6 +56,7 @@ from cirq_google.ops import (
     AnalogDetuneCouplerOnly as AnalogDetuneCouplerOnly,
     AnalogDetuneQubit as AnalogDetuneQubit,
     CalibrationTag as CalibrationTag,
+    CompressDurationTag as CompressDurationTag,
     Coupler as Coupler,
     FSimGateFamily as FSimGateFamily,
     FSimViaModelTag as FSimViaModelTag,

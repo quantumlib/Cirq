@@ -20,6 +20,8 @@ from cirq_google.ops.analog_detune_gates import AnalogDetuneCouplerOnly as Analo
 
 from cirq_google.ops.calibration_tag import CalibrationTag as CalibrationTag
 
+from cirq_google.ops.compress_duration_tag import CompressDurationTag as CompressDurationTag
+
 from cirq_google.ops.coupler import Coupler as Coupler
 
 from cirq_google.ops.fsim_gate_family import FSimGateFamily as FSimGateFamily
