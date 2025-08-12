@@ -41,7 +41,7 @@ from dev_tools.notebooks import filter_notebooks, list_all_notebooks, REPO_ROOT,
 # They are excluded from isolated notebook tests in this file; however, they are still tested
 # in dev_tools/notebook_test.py.
 # After every release of Cirq, we should open a new PR to empty out this list.
-# For easier bookkeeping, please always add comments that indicate the prerelease feature(s) used
+# For easier bookkeeping, please always add comments that indicate the pre-release feature(s) used
 # by the notebooks in question when adding notebooks to this list.
 # For more information, please see the section "Lifecycle" in docs/dev/notebooks.md.
 

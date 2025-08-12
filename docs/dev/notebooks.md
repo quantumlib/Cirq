@@ -90,11 +90,16 @@ When you introduce a notebook that only uses already released features of Cirq, 
 
 ### Release
 
-Immediately after a release, we change all the **pre-release notebooks** in bulk. The steps are as follows:
+Immediately after a release, we change all the **pre-release notebooks** in bulk.
+The steps are as follows:
+
  - edit the pre-release notebooks to:
    1. remove the pre-release notices
-   2. change all occurrences of the instruction `pip install --upgrade cirq~=1.0.dev` to `pip install cirq`
- - remove excluded notebooks in [isolated_notebook_test.py](https://github.com/quantumlib/Cirq/blob/main/dev_tools/notebooks/isolated_notebook_test.py) by setting the list empty: `NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES=[]`
+   2. change all occurrences of `pip install --upgrade cirq~=1.0.dev` to `pip install cirq`
+
+ - remove excluded notebooks in [isolated_notebook_test.py](
+   https://github.com/quantumlib/Cirq/blob/main/dev_tools/notebooks/isolated_notebook_test.py)
+   by setting the list empty: `NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES=[]`
 
 As all the notebooks have been tested continuously up to this point, the release notebook PR should pass without issues.
 
