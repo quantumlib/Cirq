@@ -60,13 +60,23 @@ def test_Swap():
     np.testing.assert_equal(results, expected_results)
 
 
-def test_qubit_permutation_gate():
-    q0, q1, q2 = cirq.LineQubit.range(3)
-    perm_gate = cirq.QubitPermutationGate([2, 0, 1])
-    circuit = cirq.Circuit(perm_gate(q0, q1, q2), cirq.measure(q0, q1, q2, key='key'))
+@pytest.mark.parametrize(
+    "n,perm,state",
+    [
+        (n, np.random.permutation(n).tolist(), np.random.choice(2, size=n))
+        for n in np.random.randint(3, 8, size=10)
+    ],
+)
+def test_qubit_permutation_gate(n, perm, state):
+    qubits = cirq.LineQubit.range(n)
+    perm_gate = cirq.QubitPermutationGate(perm)
+    circuit = cirq.Circuit(perm_gate(*qubits), cirq.measure(*qubits, key='key'))
     sim = cirq.ClassicalStateSimulator()
-    result = sim.simulate(circuit, initial_state=[1, 0, 1])
-    np.testing.assert_equal(result.measurements['key'], [1, 1, 0])
+    result = sim.simulate(circuit, initial_state=state)
+    expected = [0] * n
+    for i in range(n):
+        expected[perm[i]] = state[i]
+    np.testing.assert_equal(result.measurements['key'], expected)
 
 
 def test_CCNOT():
