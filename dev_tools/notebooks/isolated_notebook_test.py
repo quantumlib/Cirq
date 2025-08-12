@@ -37,10 +37,13 @@ import pytest
 from dev_tools import shell_tools
 from dev_tools.notebooks import filter_notebooks, list_all_notebooks, REPO_ROOT, rewrite_notebook
 
-# these notebooks rely on features that are not released yet
-# after every release we should raise a PR and empty out this list
-# note that these notebooks are still tested in dev_tools/notebook_test.py
-# Please, always indicate in comments the feature used for easier bookkeeping.
+# The notebooks in the following list rely on features that are not yet released.
+# They are excluded from isolated notebook tests in this file; however, they are still tested
+# in dev_tools/notebook_test.py.
+# After every release of Cirq, we should open a new PR to empty out this list.
+# For easier bookkeeping, please always add comments that indicate the pre-release feature(s) used
+# by the notebooks in question when adding notebooks to this list.
+# For more information, please see the section "Lifecycle" in docs/dev/notebooks.md.
 
 NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = []
 
