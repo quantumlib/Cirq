@@ -48,7 +48,7 @@ def t2_decay(
     repetitions: int = 1000,
     delay_sweep: study.Sweep | None = None,
     num_pulses: list[int] | None = None,
-) -> cirq.experiments.T2DecayResult | list[cirq.experiments.T2DecayResult]:
+) -> cirq.experiments.T2DecayResult:
     """Runs a t2 transverse relaxation experiment.
 
     Initializes a qubit into a superposition state, evolves the system using

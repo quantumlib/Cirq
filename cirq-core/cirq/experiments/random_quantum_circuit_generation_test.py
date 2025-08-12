@@ -38,7 +38,7 @@ from cirq.experiments.random_quantum_circuit_generation import (
 SINGLE_QUBIT_LAYER = dict[cirq.GridQubit, cirq.Gate | None]
 
 
-def test_random_rotation_between_two_qubit_circuit():
+def test_random_rotation_between_two_qubit_circuit() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = random_rotations_between_two_qubit_circuit(q0, q1, 4, seed=52)
     assert len(circuit) == 4 * 2 + 1
@@ -75,7 +75,7 @@ X^0.5         PhX(0.25)^0.5
     )
 
 
-def test_generate_library_of_2q_circuits():
+def test_generate_library_of_2q_circuits() -> None:
     circuits = generate_library_of_2q_circuits(
         n_library_circuits=5, two_qubit_gate=cirq.CNOT, max_cycle_depth=13, random_state=9
     )
@@ -89,7 +89,7 @@ def test_generate_library_of_2q_circuits():
             assert m2.operations[0].gate == cirq.CNOT
 
 
-def test_generate_library_of_2q_circuits_custom_qubits():
+def test_generate_library_of_2q_circuits_custom_qubits() -> None:
     circuits = generate_library_of_2q_circuits(
         n_library_circuits=5,
         two_qubit_gate=cirq.ISWAP**0.5,
@@ -117,7 +117,7 @@ def _gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):
     )
 
 
-def test_get_random_combinations_for_device():
+def test_get_random_combinations_for_device() -> None:
     graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(3, 3))
     n_combinations = 4
     combinations = get_random_combinations_for_device(
@@ -136,7 +136,7 @@ def test_get_random_combinations_for_device():
         assert cirq.experiments.HALF_GRID_STAGGERED_PATTERN[i] == comb.layer
 
 
-def test_get_random_combinations_for_small_device():
+def test_get_random_combinations_for_small_device() -> None:
     graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(3, 1))
     n_combinations = 4
     combinations = get_random_combinations_for_device(
@@ -145,7 +145,8 @@ def test_get_random_combinations_for_small_device():
     assert len(combinations) == 2  # 3x1 device only fits two layers
 
 
-def test_get_random_combinations_for_pairs():
+def test_get_random_combinations_for_pairs() -> None:
+    all_pairs: list[list[tuple[cirq.Qid, cirq.Qid]]]
     all_pairs = [
         [(cirq.LineQubit(0), cirq.LineQubit(1)), (cirq.LineQubit(2), cirq.LineQubit(3))],
         [(cirq.LineQubit(1), cirq.LineQubit(2))],
@@ -167,7 +168,11 @@ def test_get_random_combinations_for_pairs():
         assert comb.pairs == all_pairs[i]
 
 
-def test_get_random_combinations_for_layer_circuit():
+def test_get_random_combinations_for_layer_circuit() -> None:
+    q0: cirq.Qid
+    q1: cirq.Qid
+    q2: cirq.Qid
+    q3: cirq.Qid
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     circuit = cirq.Circuit(cirq.CNOT(q0, q1), cirq.CNOT(q2, q3), cirq.CNOT(q1, q2))
     combinations = get_random_combinations_for_layer_circuit(
@@ -186,7 +191,7 @@ def test_get_random_combinations_for_layer_circuit():
         assert comb.layer == circuit.moments[i]
 
 
-def test_get_random_combinations_for_bad_layer_circuit():
+def test_get_random_combinations_for_bad_layer_circuit() -> None:
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     circuit = cirq.Circuit(
         cirq.H.on_each(q0, q1, q2, q3), cirq.CNOT(q0, q1), cirq.CNOT(q2, q3), cirq.CNOT(q1, q2)
@@ -198,7 +203,7 @@ def test_get_random_combinations_for_bad_layer_circuit():
         )
 
 
-def test_get_grid_interaction_layer_circuit():
+def test_get_grid_interaction_layer_circuit() -> None:
     graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(3, 3))
     layer_circuit = get_grid_interaction_layer_circuit(graph)
 
@@ -225,7 +230,7 @@ def test_get_grid_interaction_layer_circuit():
     assert layer_circuit == should_be
 
 
-def test_random_combinations_layer_circuit_vs_device():
+def test_random_combinations_layer_circuit_vs_device() -> None:
     # Random combinations from layer circuit is the same as getting it directly from graph
     graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(3, 3))
     layer_circuit = get_grid_interaction_layer_circuit(graph)
@@ -373,7 +378,7 @@ def test_random_rotations_between_grid_interaction_layers(
     expected_circuit_length: int,
     single_qubit_layers_slice: slice,
     two_qubit_layers_slice: slice,
-):
+) -> None:
     qubits = set(qubits)
     circuit = random_rotations_between_grid_interaction_layers_circuit(
         qubits,
@@ -396,7 +401,7 @@ def test_random_rotations_between_grid_interaction_layers(
     )
 
 
-def test_grid_interaction_layer_repr():
+def test_grid_interaction_layer_repr() -> None:
     layer = GridInteractionLayer(col_offset=0, vertical=True, stagger=False)
     assert repr(layer) == (
         'cirq.experiments.GridInteractionLayer(col_offset=0, vertical=True, stagger=False)'
@@ -462,7 +467,7 @@ def _coupled_qubit_pairs(
     return pairs
 
 
-def test_generate_library_of_2q_circuits_with_tags():
+def test_generate_library_of_2q_circuits_with_tags() -> None:
     circuits = generate_library_of_2q_circuits(
         n_library_circuits=5,
         two_qubit_gate=cirq.FSimGate(3, 4),

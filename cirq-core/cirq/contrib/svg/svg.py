@@ -15,7 +15,7 @@ FONT = matplotlib.font_manager.FontProperties()
 EMPTY_MOMENT_COLWIDTH = float(21)  # assumed default column width
 
 
-def fixup_text(text: str):
+def fixup_text(text: str) -> str:
     if '\n' in text:
         # https://github.com/quantumlib/Cirq/issues/4499
         # TODO: Visualize Custom MatrixGate
