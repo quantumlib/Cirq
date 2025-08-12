@@ -30,15 +30,18 @@ if TYPE_CHECKING:
     from cirq.study import sweeps
 
 
-def _build_sweep_const(value: Any) -> run_context_pb2.ConstValue:
+def _build_sweep_const(value: Any, use_float64: bool = False) -> run_context_pb2.ConstValue:
     """Build the sweep const message from a value."""
     if value is None:
         return run_context_pb2.ConstValue(is_none=True)
     elif isinstance(value, numbers.Integral):
         return run_context_pb2.ConstValue(int_value=int(value))
     elif isinstance(value, numbers.Real):
-        # TODO Switch to double_value when server is rolled out.
-        return run_context_pb2.ConstValue(float_value=float(value))
+        if use_float64:
+            return run_context_pb2.ConstValue(double_value=float(value))
+        else:
+            # Note: A loss of precision for floating-point numbers may occur here.
+            return run_context_pb2.ConstValue(float_value=float(value))
     elif isinstance(value, str):
         return run_context_pb2.ConstValue(string_value=value)
     elif isinstance(value, tunits.Value):
@@ -84,6 +87,7 @@ def sweep_to_proto(
     *,
     out: run_context_pb2.Sweep | None = None,
     sweep_transformer: Callable[[sweeps.SingleSweep], sweeps.SingleSweep] = lambda x: x,
+    use_float64: bool = False,
 ) -> run_context_pb2.Sweep:
     """Converts a Sweep to v2 protobuf message.
 
@@ -92,6 +96,8 @@ def sweep_to_proto(
         out: Optional message to be populated. If not given, a new message will
             be created.
         sweep_transformer: A function called on Linspace, Points.
+        use_float64: If true, float64 is used to encode the floating value. If false,
+            float32 is used instead. Default: False.
 
     Returns:
         Populated sweep protobuf message.
@@ -107,45 +113,60 @@ def sweep_to_proto(
         out.sweep_function.function_type = run_context_pb2.SweepFunction.PRODUCT
         for factor in sweep.factors:
             sweep_to_proto(
-                factor, out=out.sweep_function.sweeps.add(), sweep_transformer=sweep_transformer
+                factor,
+                out=out.sweep_function.sweeps.add(),
+                sweep_transformer=sweep_transformer,
+                use_float64=use_float64,
             )
     elif isinstance(sweep, cirq.ZipLongest):
         out.sweep_function.function_type = run_context_pb2.SweepFunction.ZIP_LONGEST
         for s in sweep.sweeps:
             sweep_to_proto(
-                s, out=out.sweep_function.sweeps.add(), sweep_transformer=sweep_transformer
+                s,
+                out=out.sweep_function.sweeps.add(),
+                sweep_transformer=sweep_transformer,
+                use_float64=use_float64,
             )
     elif isinstance(sweep, cirq.Zip):
         out.sweep_function.function_type = run_context_pb2.SweepFunction.ZIP
         for s in sweep.sweeps:
             sweep_to_proto(
-                s, out=out.sweep_function.sweeps.add(), sweep_transformer=sweep_transformer
+                s,
+                out=out.sweep_function.sweeps.add(),
+                sweep_transformer=sweep_transformer,
+                use_float64=use_float64,
             )
     elif isinstance(sweep, cirq.Concat):
         out.sweep_function.function_type = run_context_pb2.SweepFunction.CONCAT
         for s in sweep.sweeps:
             sweep_to_proto(
-                s, out=out.sweep_function.sweeps.add(), sweep_transformer=sweep_transformer
+                s,
+                out=out.sweep_function.sweeps.add(),
+                sweep_transformer=sweep_transformer,
+                use_float64=use_float64,
             )
     elif isinstance(sweep, cirq.Linspace) and not isinstance(sweep.key, sympy.Expr):
         sweep = cast(cirq.Linspace, sweep_transformer(sweep))
         out.single_sweep.parameter_key = sweep.key
         if isinstance(sweep.start, tunits.Value):
             unit = sweep.start.unit
-            out.single_sweep.linspace.first_point = sweep.start[unit]
-            out.single_sweep.linspace.last_point = sweep.stop[unit]
-            # Dual write for float32 to float64 migration
-            out.single_sweep.linspace.first_point_double = sweep.start[unit]
-            out.single_sweep.linspace.last_point_double = sweep.stop[unit]
-
+            if use_float64:
+                out.single_sweep.linspace.first_point_double = sweep.start[unit]
+                out.single_sweep.linspace.last_point_double = sweep.stop[unit]
+            else:
+                # Note: A loss of precision for floating-point numbers may occur here.
+                out.single_sweep.linspace.first_point = sweep.start[unit]
+                out.single_sweep.linspace.last_point = sweep.stop[unit]
             out.single_sweep.linspace.num_points = sweep.length
             unit.to_proto(out.single_sweep.linspace.unit)
         else:
-            out.single_sweep.linspace.first_point = sweep.start
-            out.single_sweep.linspace.last_point = sweep.stop
-            # Dual write for float32 to float64 migration
-            out.single_sweep.linspace.first_point_double = sweep.start
-            out.single_sweep.linspace.last_point_double = sweep.stop
+            if use_float64:
+                out.single_sweep.linspace.first_point_double = sweep.start
+                out.single_sweep.linspace.last_point_double = sweep.stop
+            else:
+                # Note: A loss of precision for floating-point numbers may occur here.
+                out.single_sweep.linspace.first_point = sweep.start
+                out.single_sweep.linspace.last_point = sweep.stop
 
             out.single_sweep.linspace.num_points = sweep.length
         _add_sweep_metadata(sweep, out.single_sweep)
@@ -153,18 +174,22 @@ def sweep_to_proto(
         sweep = cast(cirq.Points, sweep_transformer(sweep))
         out.single_sweep.parameter_key = sweep.key
         if len(sweep.points) == 1:
-            out.single_sweep.const_value.MergeFrom(_build_sweep_const(sweep.points[0]))
+            out.single_sweep.const_value.MergeFrom(_build_sweep_const(sweep.points[0], use_float64))
         else:
             if isinstance(sweep.points[0], tunits.Value):
                 unit = sweep.points[0].unit
-                # Dual-write to both points and points_double for temporary compatibility.
-                out.single_sweep.points.points.extend(p[unit] for p in sweep.points)
-                out.single_sweep.points.points_double.extend(p[unit] for p in sweep.points)
+                if use_float64:
+                    out.single_sweep.points.points_double.extend(p[unit] for p in sweep.points)
+                else:
+                    # Note: A loss of precision for floating-point numbers may occur here.
+                    out.single_sweep.points.points.extend(p[unit] for p in sweep.points)
                 unit.to_proto(out.single_sweep.points.unit)
             else:
-                # Dual-write to both points and points_double for temporary compatibility.
-                out.single_sweep.points.points.extend(sweep.points)
-                out.single_sweep.points.points_double.extend(sweep.points)
+                if use_float64:
+                    out.single_sweep.points.points_double.extend(sweep.points)
+                else:
+                    # Note: A loss of precision for floating-point numbers may occur here.
+                    out.single_sweep.points.points.extend(sweep.points)
         _add_sweep_metadata(sweep, out.single_sweep)
     elif isinstance(sweep, FiniteRandomVariable) and not isinstance(sweep.key, sympy.Expr):
         sweep = cast(FiniteRandomVariable, sweep_transformer(sweep))
@@ -187,6 +212,7 @@ def sweep_to_proto(
                 cirq.Points(key, sweep_dict[key]),
                 out=out.sweep_function.sweeps.add(),
                 sweep_transformer=sweep_transformer,
+                use_float64=use_float64,
             )
     else:
         raise ValueError(f'cannot convert to v2 Sweep proto: {sweep}')
@@ -342,6 +368,7 @@ def run_context_to_proto(
     *,
     out: run_context_pb2.RunContext | None = None,
     compress_proto: bool = False,
+    use_float64: bool = False,
 ) -> run_context_pb2.RunContext:
     """Populates a RunContext protobuf message.
 
@@ -352,6 +379,8 @@ def run_context_to_proto(
             be created.
         compress_proto: If set to `True` the function will gzip the proto and
             store the contents in the bytes field.
+        use_float64: If true, float64 is used to encode the floating value. If false,
+            float32 is used instead. Default: False.
 
     Returns:
         Populated RunContext protobuf message.
@@ -364,7 +393,7 @@ def run_context_to_proto(
     for sweep in cirq.to_sweeps(sweepable):
         sweep_proto = out.parameter_sweeps.add()
         sweep_proto.repetitions = repetitions
-        sweep_to_proto(sweep, out=sweep_proto.sweep)
+        sweep_to_proto(sweep, out=sweep_proto.sweep, use_float64=use_float64)
     if compress_proto:
         raw_bytes = out.SerializeToString()
         uncompressed_wrapper.compressed_run_context = gzip.compress(raw_bytes)

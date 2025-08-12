@@ -159,7 +159,7 @@ class _ZippedCircuit:
     """
 
     wide_circuit: cirq.Circuit
-    pairs: list[tuple[cirq.Qid, cirq.Qid]]
+    pairs: Sequence[tuple[cirq.Qid, cirq.Qid]]
     combination: list[int]
     layer_i: int
     combination_i: int
@@ -291,7 +291,7 @@ def sample_2q_xeb_circuits(
     combinations_by_layer: list[CircuitLibraryCombination] | None = None,
     shuffle: cirq.RANDOM_STATE_OR_SEED_LIKE | None = None,
     dataset_directory: str | None = None,
-):
+) -> pd.DataFrame:
     """Sample two-qubit XEB circuits given a sampler.
 
     Args:

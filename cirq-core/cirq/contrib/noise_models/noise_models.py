@@ -45,7 +45,7 @@ class DepolarizingNoiseModel(devices.NoiseModel):
         self._prepend = prepend
 
     @property
-    def depol_prob(self):
+    def depol_prob(self) -> float:
         """The depolarizing probability."""
         return self._depol_prob
 
@@ -100,7 +100,7 @@ class ReadoutNoiseModel(devices.NoiseModel):
         self._prepend = prepend
 
     @property
-    def bitflip_prob(self):
+    def bitflip_prob(self) -> float:
         """The probability of a bit-flip during measurement."""
         return self._bitflip_prob
 
@@ -154,7 +154,7 @@ class DampedReadoutNoiseModel(devices.NoiseModel):
         self._prepend = prepend
 
     @property
-    def decay_prob(self):
+    def decay_prob(self) -> float:
         """The probability of T1 decay during measurement."""
         return self._decay_prob
 
@@ -207,12 +207,12 @@ class DepolarizingWithReadoutNoiseModel(devices.NoiseModel):
         self.readout_noise_gate = ops.BitFlipChannel(bitflip_prob)
 
     @property
-    def depol_prob(self):
+    def depol_prob(self) -> float:
         """The depolarizing probability."""
         return self._depol_prob
 
     @property
-    def bitflip_prob(self):
+    def bitflip_prob(self) -> float:
         """The probability of a bit-flip during measurement."""
         return self._bitflip_prob
 
@@ -262,17 +262,17 @@ class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
         self.readout_decay_gate = ops.AmplitudeDampingChannel(decay_prob)
 
     @property
-    def depol_prob(self):
+    def depol_prob(self) -> float:
         """The depolarizing probability."""
         return self._depol_prob
 
     @property
-    def bitflip_prob(self):
+    def bitflip_prob(self) -> float:
         """Probability of a bit-flip during measurement."""
         return self._bitflip_prob
 
     @property
-    def decay_prob(self):
+    def decay_prob(self) -> float:
         """The probability of T1 decay during measurement."""
         return self._decay_prob
 
