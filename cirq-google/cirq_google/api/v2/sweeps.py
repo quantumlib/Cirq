@@ -24,6 +24,7 @@ import tunits
 import cirq
 from cirq_google.api.v2 import run_context_pb2
 from cirq_google.study.device_parameter import DeviceParameter, Metadata
+from cirq_google.study.finite_random_variable import FiniteRandomVariable
 
 if TYPE_CHECKING:
     from cirq.study import sweeps
@@ -65,6 +66,22 @@ def _recover_sweep_const(const_pb: run_context_pb2.ConstValue) -> Any:
         return const_pb.string_value
     if const_pb.WhichOneof('value') == 'with_unit_value':
         return tunits.Value.from_proto(const_pb.with_unit_value)
+
+
+def _add_sweep_metadata(sweep: cirq.Sweep, single_sweep: run_context_pb2.SingleSweep) -> None:
+    """Encodes the metadata if present and adds Parameter fields if metadata is a Parameter."""
+    # Only Linspace, Points, and FiniteRandomVariable sweeps have metadata
+    metadata = getattr(sweep, 'metadata', None)
+    if isinstance(metadata, Metadata):
+        single_sweep.metadata.MergeFrom(metadata_to_proto(metadata))
+    elif metadata:
+        # Use duck-typing to support google-internal Parameter objects
+        if getattr(metadata, 'path', None):
+            single_sweep.parameter.path.extend(metadata.path)
+        if getattr(metadata, 'idx', None):
+            single_sweep.parameter.idx = metadata.idx
+        if getattr(metadata, 'units', None):
+            single_sweep.parameter.units = metadata.units
 
 
 def sweep_to_proto(
@@ -154,17 +171,7 @@ def sweep_to_proto(
                 out.single_sweep.linspace.last_point = sweep.stop
 
             out.single_sweep.linspace.num_points = sweep.length
-        # Encode the metadata if present
-        if isinstance(sweep.metadata, Metadata):
-            out.single_sweep.metadata.MergeFrom(metadata_to_proto(sweep.metadata))
-        else:
-            # Use duck-typing to support google-internal Parameter objects
-            if sweep.metadata and getattr(sweep.metadata, 'path', None):
-                out.single_sweep.parameter.path.extend(sweep.metadata.path)
-            if sweep.metadata and getattr(sweep.metadata, 'idx', None):
-                out.single_sweep.parameter.idx = sweep.metadata.idx
-            if sweep.metadata and getattr(sweep.metadata, 'units', None):
-                out.single_sweep.parameter.units = sweep.metadata.units
+        _add_sweep_metadata(sweep, out.single_sweep)
     elif isinstance(sweep, cirq.Points) and not isinstance(sweep.key, sympy.Expr):
         sweep = cast(cirq.Points, sweep_transformer(sweep))
         out.single_sweep.parameter_key = sweep.key
@@ -185,18 +192,15 @@ def sweep_to_proto(
                 else:
                     # Note: A loss of precision for floating-point numbers may occur here.
                     out.single_sweep.points.points.extend(sweep.points)
-
-        # Encode the metadata if present
-        if isinstance(sweep.metadata, Metadata):
-            out.single_sweep.metadata.MergeFrom(metadata_to_proto(sweep.metadata))
-        else:
-            # Use duck-typing to support google-internal Parameter objects
-            if sweep.metadata and getattr(sweep.metadata, 'path', None):
-                out.single_sweep.parameter.path.extend(sweep.metadata.path)
-            if sweep.metadata and getattr(sweep.metadata, 'idx', None):
-                out.single_sweep.parameter.idx = sweep.metadata.idx
-            if sweep.metadata and getattr(sweep.metadata, 'units', None):
-                out.single_sweep.parameter.units = sweep.metadata.units
+        _add_sweep_metadata(sweep, out.single_sweep)
+    elif isinstance(sweep, FiniteRandomVariable) and not isinstance(sweep.key, sympy.Expr):
+        sweep = cast(FiniteRandomVariable, sweep_transformer(sweep))
+        out.single_sweep.parameter_key = sweep.key
+        out.single_sweep.random_variable.length = sweep.length
+        out.single_sweep.random_variable.seed = sweep.seed
+        for random_value, prob in sweep.distribution.items():
+            out.single_sweep.random_variable.distribution[str(random_value)] = prob
+        _add_sweep_metadata(sweep, out.single_sweep)
     elif isinstance(sweep, cirq.ListSweep):
         sweep_dict: dict[str, list[float]] = {}
         for param_resolver in sweep:
@@ -307,6 +311,18 @@ def sweep_from_proto(
                 cirq.Points(
                     key=key,
                     points=[_recover_sweep_const(msg.single_sweep.const_value)],
+                    metadata=metadata,
+                )
+            )
+        if msg.single_sweep.WhichOneof('sweep') == 'random_variable':
+            sweep_msg = msg.single_sweep.random_variable
+            distribution = {float(key): val for key, val in sweep_msg.distribution.items()}
+            return sweep_transformer(
+                FiniteRandomVariable(
+                    key=key,
+                    distribution=distribution,
+                    length=sweep_msg.length,
+                    seed=sweep_msg.seed,
                     metadata=metadata,
                 )
             )
