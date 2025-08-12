@@ -124,7 +124,7 @@ def _circuits_with_readout_benchmarking_errors_sweep(
 
 
 @pytest.mark.parametrize("mode", ["shuffled", "sweep"])
-def test_circuits_with_readout_benchmarking_errors_no_noise(mode: str):
+def test_circuits_with_readout_benchmarking_errors_no_noise(mode: str) -> None:
     """Test shuffled/sweep circuits with readout benchmarking with no noise from sampler."""
     qubits = cirq.LineQubit.range(5)
 
@@ -166,7 +166,7 @@ def test_circuits_with_readout_benchmarking_errors_no_noise(mode: str):
 
 
 @pytest.mark.parametrize("mode", ["shuffled", "sweep"])
-def test_circuits_with_readout_benchmarking_errors_with_noise(mode: str):
+def test_circuits_with_readout_benchmarking_errors_with_noise(mode: str) -> None:
     """Test shuffled/sweep circuits with readout benchmarking with noise from sampler."""
     qubits = cirq.LineQubit.range(6)
     sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.2, seed=1234)
@@ -209,7 +209,7 @@ def test_circuits_with_readout_benchmarking_errors_with_noise(mode: str):
 
 
 @pytest.mark.parametrize("mode", ["shuffled", "sweep"])
-def test_circuits_with_readout_benchmarking_errors_with_noise_and_input_qubits(mode: str):
+def test_circuits_with_readout_benchmarking_errors_with_noise_and_input_qubits(mode: str) -> None:
     """Test shuffled/sweep circuits with readout benchmarking with
     noise from sampler and input qubits."""
     qubits = cirq.LineQubit.range(6)
@@ -255,7 +255,9 @@ def test_circuits_with_readout_benchmarking_errors_with_noise_and_input_qubits(m
 
 
 @pytest.mark.parametrize("mode", ["shuffled", "sweep"])
-def test_circuits_with_readout_benchmarking_errors_with_noise_and_lists_input_qubits(mode: str):
+def test_circuits_with_readout_benchmarking_errors_with_noise_and_lists_input_qubits(
+    mode: str,
+) -> None:
     """Test shuffled/sweep circuits with readout benchmarking with noise
     from sampler and input qubits."""
     qubits_1 = cirq.LineQubit.range(3)
@@ -305,7 +307,7 @@ def test_circuits_with_readout_benchmarking_errors_with_noise_and_lists_input_qu
 
 
 @pytest.mark.parametrize("mode", ["shuffled", "sweep"])
-def test_can_handle_zero_random_bitstring(mode: str):
+def test_can_handle_zero_random_bitstring(mode: str) -> None:
     """Test shuffled/sweep circuits without readout benchmarking."""
     qubits_1 = cirq.LineQubit.range(3)
     qubits_2 = cirq.LineQubit.range(4)
@@ -345,7 +347,7 @@ def test_can_handle_zero_random_bitstring(mode: str):
 
 
 @pytest.mark.parametrize("mode", ["shuffled", "sweep"])
-def test_circuits_with_readout_benchmarking_no_qubits_arg_empty_rng(mode: str):
+def test_circuits_with_readout_benchmarking_no_qubits_arg_empty_rng(mode: str) -> None:
     """Test benchmarking when the `qubits` argument is not provided."""
     qubits = cirq.LineQubit.range(3)
     sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.2, seed=1234)
@@ -389,7 +391,7 @@ def test_circuits_with_readout_benchmarking_no_qubits_arg_empty_rng(mode: str):
     assert result.repetitions == readout_repetitions
 
 
-def test_deprecated_run_shuffled_with_readout_benchmarking():
+def test_deprecated_run_shuffled_with_readout_benchmarking() -> None:
     """Test that the deprecated function works correctly and is covered."""
     qubits = cirq.LineQubit.range(3)
     input_circuits = _create_test_circuits(qubits, 3)
@@ -470,7 +472,7 @@ def test_deprecated_run_shuffled_with_readout_benchmarking():
             )
 
 
-def test_empty_input_circuits():
+def test_empty_input_circuits() -> None:
     """Test that the input circuits are empty."""
     readout_benchmarking_params = sc_readout.ReadoutBenchmarkingParams(
         circuit_repetitions=10, num_random_bitstrings=5, readout_repetitions=100
@@ -484,7 +486,7 @@ def test_empty_input_circuits():
         )
 
 
-def test_non_circuit_input():
+def test_non_circuit_input() -> None:
     """Test that the input circuits are not of type cirq.Circuit."""
     q = cirq.LineQubit(0)
     readout_benchmarking_params = sc_readout.ReadoutBenchmarkingParams(
@@ -493,13 +495,13 @@ def test_non_circuit_input():
     with pytest.raises(ValueError, match="Input circuits must be of type cirq.Circuit."):
         sc_readout.run_shuffled_circuits_with_readout_benchmarking(
             cirq.ZerosSampler(),
-            [q],
+            [q],  # type: ignore[list-item]
             readout_benchmarking_params,
             rng_or_seed=np.random.default_rng(456),
         )
 
 
-def test_no_measurements():
+def test_no_measurements() -> None:
     """Test that the input circuits don't have measurements."""
     q = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.H(q))
@@ -515,7 +517,7 @@ def test_no_measurements():
         )
 
 
-def test_zero_circuit_repetitions():
+def test_zero_circuit_repetitions() -> None:
     """Test that the circuit repetitions are zero."""
     with pytest.raises(ValueError, match="Must provide non-zero circuit_repetitions."):
         sc_readout.ReadoutBenchmarkingParams(
@@ -523,7 +525,7 @@ def test_zero_circuit_repetitions():
         )
 
 
-def test_mismatch_circuit_repetitions():
+def test_mismatch_circuit_repetitions() -> None:
     """Test that the number of circuit repetitions don't match the number of input circuits."""
     q = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
@@ -542,7 +544,7 @@ def test_mismatch_circuit_repetitions():
         )
 
 
-def test_zero_num_random_bitstrings():
+def test_zero_num_random_bitstrings() -> None:
     """Test that the number of random bitstrings is smaller than zero."""
     with pytest.raises(ValueError, match="Must provide zero or more num_random_bitstrings."):
         sc_readout.ReadoutBenchmarkingParams(
@@ -550,7 +552,7 @@ def test_zero_num_random_bitstrings():
         )
 
 
-def test_zero_readout_repetitions():
+def test_zero_readout_repetitions() -> None:
     """Test that the readout repetitions is zero."""
     with pytest.raises(
         ValueError, match="Must provide non-zero readout_repetitions for readout" + " calibration."
@@ -560,7 +562,7 @@ def test_zero_readout_repetitions():
         )
 
 
-def test_empty_sweep_params():
+def test_empty_sweep_params() -> None:
     """Test that the sweep params are empty."""
     q = cirq.LineQubit(5)
     circuit = cirq.Circuit(cirq.H(q))
