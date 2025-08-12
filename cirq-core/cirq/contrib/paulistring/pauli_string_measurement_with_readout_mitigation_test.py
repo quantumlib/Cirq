@@ -221,7 +221,7 @@ def test_group_pauli_string_measurement_errors_no_noise_with_coefficient() -> No
     circuits_to_pauli[circuit].append([cirq.PauliString({q: cirq.X for q in qubits})])
 
     circuits_with_pauli_expectations = measure_pauli_strings(
-        circuits_to_pauli, sampler, 100, 100, 100, 100
+        circuits_to_pauli, sampler, 1000, 1000, 1000, 1000
     )
 
     for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
@@ -262,7 +262,7 @@ def test_pauli_string_measurement_errors_with_noise() -> None:
     based on the Pauli string"""
     qubits = cirq.LineQubit.range(7)
     circuit = cirq.FrozenCircuit(_create_ghz(7, qubits))
-    sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.005, seed=1234)
+    sampler = NoisySingleQubitReadoutSampler(p0=0.001, p1=0.005, seed=1234)
     simulator = cirq.Simulator()
 
     circuits_to_pauli: dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
@@ -297,7 +297,7 @@ def test_pauli_string_measurement_errors_with_noise() -> None:
             for (
                 error
             ) in pauli_string_measurement_results.calibration_result.zero_state_errors.values():
-                assert 0.08 < error < 0.12
+                assert 0.0008 < error < 0.0012
             for (
                 error
             ) in pauli_string_measurement_results.calibration_result.one_state_errors.values():
@@ -309,7 +309,7 @@ def test_group_pauli_string_measurement_errors_with_noise() -> None:
     based on the group Pauli strings"""
     qubits = cirq.LineQubit.range(7)
     circuit = cirq.FrozenCircuit(_create_ghz(7, qubits))
-    sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.005, seed=1234)
+    sampler = NoisySingleQubitReadoutSampler(p0=0.001, p1=0.005, seed=1234)
     simulator = cirq.Simulator()
 
     circuits_to_pauli: dict[cirq.FrozenCircuit, list[list[cirq.PauliString]]] = {}
@@ -348,7 +348,7 @@ def test_group_pauli_string_measurement_errors_with_noise() -> None:
             for (
                 error
             ) in pauli_string_measurement_results.calibration_result.zero_state_errors.values():
-                assert 0.08 < error < 0.12
+                assert 0.0008 < error < 0.0012
             for (
                 error
             ) in pauli_string_measurement_results.calibration_result.one_state_errors.values():
@@ -418,7 +418,7 @@ def test_allow_measurement_without_readout_mitigation() -> None:
     """Test that the function allows to measure without error mitigation"""
     qubits = cirq.LineQubit.range(7)
     circuit = cirq.FrozenCircuit(_create_ghz(7, qubits))
-    sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.005, seed=1234)
+    sampler = NoisySingleQubitReadoutSampler(p0=0.001, p1=0.005, seed=1234)
 
     circuits_to_pauli: dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
     circuits_to_pauli[circuit] = [
@@ -448,7 +448,7 @@ def test_allow_group_pauli_measurement_without_readout_mitigation() -> None:
     """Test that the function allows to measure without error mitigation"""
     qubits = cirq.LineQubit.range(7)
     circuit = cirq.FrozenCircuit(_create_ghz(7, qubits))
-    sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.005, seed=1234)
+    sampler = NoisySingleQubitReadoutSampler(p0=0.001, p1=0.005, seed=1234)
 
     circuits_to_pauli: dict[cirq.FrozenCircuit, list[list[cirq.PauliString]]] = {}
     circuits_to_pauli[circuit] = [
