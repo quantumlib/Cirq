@@ -43,16 +43,9 @@ from dev_tools.notebooks import filter_notebooks, list_all_notebooks, REPO_ROOT,
 # Please, always indicate in comments the feature used for easier bookkeeping.
 
 NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = [
-    # Requires `load_device_noise_properties` from #7369
-    'docs/hardware/qubit_picking.ipynb',
-    'docs/simulate/noisy_simulation.ipynb',
-    'docs/simulate/quantum_virtual_machine.ipynb',
-    'docs/simulate/qvm_basic_example.ipynb',
-    'docs/simulate/qvm_builder_code.ipynb',
-    'docs/simulate/qvm_stabilizer_example.ipynb',
     # Remove once the renaming of `whitelisted_users` -> `allowlisted_users`
     # throughout cirq_google is released.
-    'docs/simulate/virtual_engine_interface.ipynb',
+    'docs/simulate/virtual_engine_interface.ipynb'
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
