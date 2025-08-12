@@ -29,3 +29,21 @@ topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
 cd "${topdir}" || exit $?
 
 check/npm run test-e2e "$@"
+
+exit_code=$?
+
+echo "%START git status%"
+git status
+echo "%DONE git status%"
+
+for n in bloch_sphere_actual.png bloch_sphere_actual_custom.png circuit_actual.png;
+do
+    f="cirq-web/cirq_web/$n"
+    md5sum $f
+    echo "%BEGIN $f"
+    base64 -i $f
+    echo "%END $f"
+    echo
+done
+
+exit "$exit_code"
