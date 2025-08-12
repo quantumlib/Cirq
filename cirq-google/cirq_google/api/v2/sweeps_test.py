@@ -492,4 +492,4 @@ def test_run_context_to_proto_sweepable(sweepable: cirq.Sweepable, use_resolver:
 
 def test_invalid_sweepable_raises() -> None:
     with pytest.raises(TypeError):
-        _ = v2.run_context_to_proto(cirq.X, 1000, compress_proto=False)
+        _ = v2.run_context_to_proto(cirq.X, 1000, compress_proto=False)  # type: ignore[arg-type]
