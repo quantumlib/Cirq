@@ -47,5 +47,5 @@ class _UnconstrainedDevice(device.Device):
         return protocols.obj_to_dict_helper(self, [])
 
 
-UNCONSTRAINED_DEVICE: device.Device = _UnconstrainedDevice()
+UNCONSTRAINED_DEVICE = _UnconstrainedDevice()
 document(UNCONSTRAINED_DEVICE, """A device with no constraints on operations or qubits.""")
