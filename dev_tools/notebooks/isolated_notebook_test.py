@@ -42,13 +42,7 @@ from dev_tools.notebooks import filter_notebooks, list_all_notebooks, REPO_ROOT,
 # note that these notebooks are still tested in dev_tools/notebook_test.py
 # Please, always indicate in comments the feature used for easier bookkeeping.
 
-NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = [
-    # Requires `load_device_noise_properties` from #7369
-    'docs/hardware/qubit_picking.ipynb',
-    'docs/simulate/noisy_simulation.ipynb',
-    'docs/simulate/quantum_virtual_machine.ipynb',
-    'docs/simulate/qvm_basic_example.ipynb',
-]
+NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = []
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
 # please always add a reason for skipping.
@@ -66,8 +60,6 @@ SKIP_NOTEBOOKS = [
     # temporary: need to fix QVM metrics and device spec
     'docs/tutorials/google/spin_echoes.ipynb',
     'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
-    # temporary: allow name changes of keyword arguments in quantum engine interfaces to stabilize
-    'docs/simulate/virtual_engine_interface.ipynb',
 ]
 SKIP_NOTEBOOKS += [
     # notebooks that import the examples module which is not installed with cirq
