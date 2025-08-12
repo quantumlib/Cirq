@@ -5,6 +5,9 @@ on:
     # Checks out main by default.
     - cron: '0 0 * * *'
 
+  # Allow manual invocation.
+  workflow_dispatch:
+
 concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: true
