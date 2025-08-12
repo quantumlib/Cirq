@@ -67,16 +67,18 @@ def _recover_sweep_const(const_pb: run_context_pb2.ConstValue) -> Any:
 
 def _add_sweep_metadata(sweep: cirq.Sweep, single_sweep: run_context_pb2.SingleSweep) -> None:
     """Encodes the metadata if present and adds Parameter fields if metadata is a Parameter."""
-    if isinstance(sweep.metadata, Metadata):
-        single_sweep.metadata.MergeFrom(metadata_to_proto(sweep.metadata))
-    elif sweep.metadata:
+    # Only Linspace, Points, and FiniteRandomVariable sweeps have metadata
+    metadata = getattr(sweep, 'metadata', None)
+    if isinstance(metadata, Metadata):
+        single_sweep.metadata.MergeFrom(metadata_to_proto(metadata))
+    elif metadata:
         # Use duck-typing to support google-internal Parameter objects
-        if getattr(sweep.metadata, 'path', None):
-            single_sweep.parameter.path.extend(sweep.metadata.path)
-        if getattr(sweep.metadata, 'idx', None):
-            single_sweep.parameter.idx = sweep.metadata.idx
-        if getattr(sweep.metadata, 'units', None):
-            single_sweep.parameter.units = sweep.metadata.units
+        if getattr(metadata, 'path', None):
+            single_sweep.parameter.path.extend(metadata.path)
+        if getattr(metadata, 'idx', None):
+            single_sweep.parameter.idx = metadata.idx
+        if getattr(metadata, 'units', None):
+            single_sweep.parameter.units = metadata.units
 
 
 def sweep_to_proto(

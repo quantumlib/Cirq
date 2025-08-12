@@ -15,7 +15,8 @@
 
 import numbers
 import random
-from typing import Any, Iterator
+from collections.abc import Mapping
+from typing import Any, cast, Iterator
 
 import cirq
 from cirq.study.sweeps import SingleSweep
@@ -50,7 +51,7 @@ class FiniteRandomVariable(SingleSweep):
     def __init__(
         self,
         key: cirq.TParamKey,
-        distribution: dict[numbers.Real, float],
+        distribution: Mapping[float, float],
         seed: int,
         length: int,
         metadata: Any | None = None,
@@ -71,7 +72,9 @@ class FiniteRandomVariable(SingleSweep):
             raise ValueError("distribution must be a non-empty dictionary.")
         if not all(isinstance(k, numbers.Real) for k in distribution.keys()):
             raise ValueError("distribution keys must be numbers.")
-        if not all(isinstance(v, numbers.Real) and v >= 0 for v in distribution.values()):
+        if not all(
+            isinstance(v, numbers.Real) and cast(float, v) >= 0.0 for v in distribution.values()
+        ):
             raise ValueError("distribution values (weights) must be non-negative numbers.")
         if length <= 0:
             raise ValueError("length must be a positive integer.")
