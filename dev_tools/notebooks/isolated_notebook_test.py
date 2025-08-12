@@ -42,11 +42,7 @@ from dev_tools.notebooks import filter_notebooks, list_all_notebooks, REPO_ROOT,
 # note that these notebooks are still tested in dev_tools/notebook_test.py
 # Please, always indicate in comments the feature used for easier bookkeeping.
 
-NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = [
-    # Remove once the renaming of `whitelisted_users` -> `allowlisted_users`
-    # throughout cirq_google is released.
-    'docs/simulate/virtual_engine_interface.ipynb'
-]
+NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = []
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
 # please always add a reason for skipping.
