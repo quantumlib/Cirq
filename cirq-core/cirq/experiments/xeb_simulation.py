@@ -86,7 +86,7 @@ def simulate_2q_xeb_circuits(
     param_resolver: cirq.ParamResolverOrSimilarType = None,
     pool: multiprocessing.pool.Pool | None = None,
     simulator: cirq.SimulatesIntermediateState | None = None,
-):
+) -> pd.DataFrame:
     """Simulate two-qubit XEB circuits.
 
     These ideal probabilities can be benchmarked against potentially noisy

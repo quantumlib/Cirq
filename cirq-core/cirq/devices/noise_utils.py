@@ -48,7 +48,7 @@ class OpIdentifier:
     def _predicate(self, *args, **kwargs):
         return self._gate_family._predicate(*args, **kwargs)
 
-    def is_proper_subtype_of(self, op_id: OpIdentifier):
+    def is_proper_subtype_of(self, op_id: OpIdentifier) -> bool:
         """Returns true if this is contained within op_id, but not equal to it.
 
         If this returns true, (x in self) implies (x in op_id), but the reverse

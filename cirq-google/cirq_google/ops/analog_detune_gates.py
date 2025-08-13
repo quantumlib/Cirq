@@ -152,8 +152,16 @@ class AnalogDetuneQubit(cirq.ops.Gate):
             self.w,
             self.target_freq,
             self.prev_freq,
-            self.neighbor_coupler_g_dict,
-            self.prev_neighbor_coupler_g_dict,
+            (
+                tuple(sorted(self.neighbor_coupler_g_dict.items()))
+                if self.neighbor_coupler_g_dict
+                else None
+            ),
+            (
+                tuple(sorted(self.prev_neighbor_coupler_g_dict.items()))
+                if self.prev_neighbor_coupler_g_dict
+                else None
+            ),
             self.linear_rise,
         )
 
