@@ -99,7 +99,7 @@ describe('Circuit', () => {
       });
 
       // save the actual png in a permanent file
-      copyFileSync(outputPath, 'circuit_actual.png');
+      copyFileSync(`${outputPath}.png`, 'circuit_actual.png');
 
       expect(pixels).to.equal(0);
     });

@@ -85,7 +85,7 @@ describe('Bloch sphere', () => {
       });
 
       // save the actual png in a permanent file
-      copyFileSync(outputPath, 'bloch_sphere_actual.png');
+      copyFileSync(`${outputPath}.png`, 'bloch_sphere_actual.png');
 
       expect(pixels).to.equal(0);
     });
@@ -116,7 +116,7 @@ describe('Bloch sphere', () => {
       });
 
       // save the actual png in a permanent file
-      copyFileSync(newVectorOutputPath, 'bloch_sphere_actual_custom.png');
+      copyFileSync(`${newVectorOutputPath}.png`, 'bloch_sphere_actual_custom.png');
 
       expect(pixels).to.equal(0);
     });
