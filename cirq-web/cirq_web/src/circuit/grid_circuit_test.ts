@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import {GridCircuit} from './grid_circuit';
+import {GeneralOperation} from './components/general_operation';
 import {Symbol3D, SymbolInformation} from './components/types';
 import {expect} from 'chai';
 
@@ -107,6 +108,121 @@ describe('GridCircuit', () => {
 
       const qubits = circuit.children;
       expect(qubits.length).to.equal(3);
+    });
+  });
+
+  describe('when a circuit contains symbols with no location info', () => {
+    const moments = 2;
+    const symbols: SymbolInformation[] = [
+      {
+        wire_symbols: ['X'],
+        location_info: [{row: 0, col: 0}],
+        color_info: ['black'],
+        moment: 1,
+      },
+      {
+        wire_symbols: ['H'],
+        location_info: [],
+        color_info: ['red'],
+        moment: 0,
+      },
+      {
+        wire_symbols: ['Y'],
+        location_info: [],
+        color_info: ['blue'],
+        moment: 0,
+      },
+      {
+        wire_symbols: ['Z'],
+        location_info: [],
+        color_info: ['green'],
+        moment: 1,
+      },
+    ];
+
+    const circuit = new GridCircuit(moments, symbols);
+    it('creates the correct number of GridQubit children', () => {
+      const qubits = circuit.children.filter(child => child.constructor.name === 'GridQubit');
+      expect(qubits.length).to.equal(1);
+    });
+
+    it('creates GeneralOperation objects for each foreign symbol', () => {
+      const generalOps = circuit.children.filter(
+        child => child.constructor.name === 'GeneralOperation',
+      );
+      expect(generalOps.length).to.equal(3);
+    });
+
+    it('places foreign symbols on a new row below the qubit', () => {
+      const generalOps = circuit.children.filter(
+        child => child.constructor.name === 'GeneralOperation',
+      ) as GeneralOperation[];
+
+      // There is 1 qubit at row 0. Padding factor defaults to 1.
+      // The new row should be max_row + padding + 1 = 0 + 1 + 1 = 2
+      const expectedRow = 2;
+      for (const op of generalOps) {
+        expect(op.row).to.equal(expectedRow);
+      }
+    });
+
+    it('places symbols from the same moment in adjacent columns', () => {
+      const generalOps = circuit.children.filter(
+        child => child.constructor.name === 'GeneralOperation',
+      ) as GeneralOperation[];
+
+      const opsInMoment0 = generalOps.filter(op => {
+        const symbol = op.children[0] as Symbol3D;
+        return symbol.moment === 0;
+      });
+      // Sort by column to have a deterministic test
+      opsInMoment0.sort((a, b) => a.col - b.col);
+
+      expect(opsInMoment0.length).to.equal(2);
+      expect(opsInMoment0[0].col).to.equal(0);
+      expect(opsInMoment0[1].col).to.equal(1);
+    });
+
+    it('resets column placement for each new moment', () => {
+      const generalOps = circuit.children.filter(
+        child => child.constructor.name === 'GeneralOperation',
+      ) as GeneralOperation[];
+
+      const opsInMoment1 = generalOps.filter(op => {
+        const symbol = op.children[0] as Symbol3D;
+        return symbol.moment === 1;
+      });
+
+      expect(opsInMoment1.length).to.equal(1);
+      expect(opsInMoment1[0].col).to.equal(0);
+    });
+  });
+
+  describe('when a circuit contains only symbols with no location info', () => {
+    const moments = 1;
+    const symbols: SymbolInformation[] = [
+      {
+        wire_symbols: ['H'],
+        location_info: [],
+        color_info: ['red'],
+        moment: 0,
+      },
+    ];
+
+    const circuit = new GridCircuit(moments, symbols);
+
+    it('creates only GeneralOperation children', () => {
+      const generalOps = circuit.children.filter(
+        child => child.constructor.name === 'GeneralOperation',
+      );
+      const qubits = circuit.children.filter(child => child.constructor.name === 'GridQubit');
+      expect(generalOps.length).to.equal(1);
+      expect(qubits.length).to.equal(0);
+    });
+
+    it('places the foreign symbol at row 0', () => {
+      const generalOp = circuit.children[0] as GeneralOperation;
+      expect(generalOp.row).to.equal(0);
     });
   });
 });
