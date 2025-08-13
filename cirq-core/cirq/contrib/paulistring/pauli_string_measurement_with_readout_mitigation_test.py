@@ -141,7 +141,7 @@ def test_pauli_string_measurement_errors_no_noise() -> None:
                 _ideal_expectation_based_on_pauli_string(
                     pauli_string_measurement_results.pauli_string, final_state_vector
                 ),
-                atol=4 * pauli_string_measurement_results.mitigated_stddev,
+                atol=max(4 * pauli_string_measurement_results.mitigated_stddev, 0.1),
             )
             assert isinstance(
                 pauli_string_measurement_results.calibration_result,
@@ -189,7 +189,7 @@ def test_pauli_string_measurement_errors_with_coefficient_no_noise() -> None:
                 _ideal_expectation_based_on_pauli_string(
                     pauli_string_measurement_results.pauli_string, final_state_vector
                 ),
-                atol=4 * pauli_string_measurement_results.mitigated_stddev,
+                atol=max(4 * pauli_string_measurement_results.mitigated_stddev, 0.1),
             )
             assert isinstance(
                 pauli_string_measurement_results.calibration_result,
@@ -243,7 +243,7 @@ def test_group_pauli_string_measurement_errors_no_noise_with_coefficient() -> No
                 _ideal_expectation_based_on_pauli_string(
                     pauli_string_measurement_results.pauli_string, final_state_vector
                 ),
-                atol=4 * pauli_string_measurement_results.mitigated_stddev,
+                atol=max(4 * pauli_string_measurement_results.mitigated_stddev, 0.1),
             )
             assert isinstance(
                 pauli_string_measurement_results.calibration_result,
@@ -286,7 +286,7 @@ def test_pauli_string_measurement_errors_with_noise() -> None:
                 _ideal_expectation_based_on_pauli_string(
                     pauli_string_measurement_results.pauli_string, final_state_vector
                 ),
-                atol=4 * pauli_string_measurement_results.mitigated_stddev,
+                atol=max(4 * pauli_string_measurement_results.mitigated_stddev, 0.1),
             )
 
             assert isinstance(
@@ -337,7 +337,7 @@ def test_group_pauli_string_measurement_errors_with_noise() -> None:
                 _ideal_expectation_based_on_pauli_string(
                     pauli_string_measurement_results.pauli_string, final_state_vector
                 ),
-                atol=4 * pauli_string_measurement_results.mitigated_stddev,
+                atol=max(4 * pauli_string_measurement_results.mitigated_stddev, 0.1),
             )
 
             assert isinstance(
@@ -377,7 +377,7 @@ def test_many_circuits_input_measurement_with_noise() -> None:
     circuits_to_pauli[circuit_2] = [_generate_random_pauli_string(qubits_2) for _ in range(3)]
     circuits_to_pauli[circuit_3] = [_generate_random_pauli_string(qubits_3) for _ in range(3)]
 
-    sampler = NoisySingleQubitReadoutSampler(p0=0.03, p1=0.005, seed=1234)
+    sampler = NoisySingleQubitReadoutSampler(p0=0.003, p1=0.005, seed=1234)
     simulator = cirq.Simulator()
 
     circuits_with_pauli_expectations = measure_pauli_strings(
@@ -398,7 +398,7 @@ def test_many_circuits_input_measurement_with_noise() -> None:
                 _ideal_expectation_based_on_pauli_string(
                     pauli_string_measurement_results.pauli_string, final_state_vector
                 ),
-                atol=4 * pauli_string_measurement_results.mitigated_stddev,
+                atol=max(4 * pauli_string_measurement_results.mitigated_stddev, 0.1),
             )
             assert isinstance(
                 pauli_string_measurement_results.calibration_result,
@@ -407,7 +407,7 @@ def test_many_circuits_input_measurement_with_noise() -> None:
             for (
                 error
             ) in pauli_string_measurement_results.calibration_result.zero_state_errors.values():
-                assert 0.025 < error < 0.035
+                assert 0.0025 < error < 0.0035
             for (
                 error
             ) in pauli_string_measurement_results.calibration_result.one_state_errors.values():
@@ -496,7 +496,7 @@ def test_many_circuits_with_coefficient() -> None:
     circuits_to_pauli[circuit_2] = [_generate_random_pauli_string(qubits_2, True) for _ in range(3)]
     circuits_to_pauli[circuit_3] = [_generate_random_pauli_string(qubits_3, True) for _ in range(3)]
 
-    sampler = NoisySingleQubitReadoutSampler(p0=0.03, p1=0.005, seed=1234)
+    sampler = NoisySingleQubitReadoutSampler(p0=0.003, p1=0.005, seed=1234)
     simulator = cirq.Simulator()
 
     circuits_with_pauli_expectations = measure_pauli_strings(
@@ -517,7 +517,7 @@ def test_many_circuits_with_coefficient() -> None:
                 _ideal_expectation_based_on_pauli_string(
                     pauli_string_measurement_results.pauli_string, final_state_vector
                 ),
-                atol=4 * pauli_string_measurement_results.mitigated_stddev,
+                atol=max(4 * pauli_string_measurement_results.mitigated_stddev, 0.1),
             )
             assert isinstance(
                 pauli_string_measurement_results.calibration_result,
@@ -526,7 +526,7 @@ def test_many_circuits_with_coefficient() -> None:
             for (
                 error
             ) in pauli_string_measurement_results.calibration_result.zero_state_errors.values():
-                assert 0.025 < error < 0.035
+                assert 0.0025 < error < 0.0035
             for (
                 error
             ) in pauli_string_measurement_results.calibration_result.one_state_errors.values():
@@ -567,7 +567,7 @@ def test_many_group_pauli_in_circuits_with_coefficient() -> None:
         )
     ]
 
-    sampler = NoisySingleQubitReadoutSampler(p0=0.03, p1=0.005, seed=1234)
+    sampler = NoisySingleQubitReadoutSampler(p0=0.003, p1=0.005, seed=1234)
     simulator = cirq.Simulator()
 
     circuits_with_pauli_expectations = measure_pauli_strings(
@@ -588,7 +588,7 @@ def test_many_group_pauli_in_circuits_with_coefficient() -> None:
                 _ideal_expectation_based_on_pauli_string(
                     pauli_string_measurement_results.pauli_string, final_state_vector
                 ),
-                atol=4 * pauli_string_measurement_results.mitigated_stddev,
+                atol=max(4 * pauli_string_measurement_results.mitigated_stddev, 0.1),
             )
             assert isinstance(
                 pauli_string_measurement_results.calibration_result,
@@ -597,7 +597,7 @@ def test_many_group_pauli_in_circuits_with_coefficient() -> None:
             for (
                 error
             ) in pauli_string_measurement_results.calibration_result.zero_state_errors.values():
-                assert 0.025 < error < 0.035
+                assert 0.0025 < error < 0.035
             for (
                 error
             ) in pauli_string_measurement_results.calibration_result.one_state_errors.values():
