@@ -250,14 +250,29 @@ def setup_run_circuit_with_result_(client, result):
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
-def test_run_circuit_with_unary_rpcs(client):
+@pytest.mark.parametrize('compress_run_context', [True, False])
+def test_run_circuit_with_unary_rpcs(client, compress_run_context):
     setup_run_circuit_with_result_(client, _A_RESULT)
 
     engine = cg.Engine(
         project_id='proj',
-        context=EngineContext(service_args={'client_info': 1}, enable_streaming=False),
+        context=EngineContext(
+            service_args={'client_info': 1},
+            enable_streaming=False,
+            compress_run_context=compress_run_context,
+        ),
     )
     result = engine.run(program=_CIRCUIT, program_id='prog', job_id='job-id', processor_id='mysim')
+    if compress_run_context:
+        expected_sweep = util.pack_any(
+            v2.run_context_to_proto(cirq.UnitSweep, 1, compress_proto=True)
+        )
+    else:
+        expected_sweep = util.pack_any(
+            v2.run_context_pb2.RunContext(
+                parameter_sweeps=[v2.run_context_pb2.ParameterSweep(repetitions=1)]
+            )
+        )
 
     assert result.repetitions == 1
     assert result.params.param_dict == {'a': 1}
@@ -269,11 +284,7 @@ def test_run_circuit_with_unary_rpcs(client):
         program_id='prog',
         job_id='job-id',
         processor_id='mysim',
-        run_context=util.pack_any(
-            v2.run_context_pb2.RunContext(
-                parameter_sweeps=[v2.run_context_pb2.ParameterSweep(repetitions=1)]
-            )
-        ),
+        run_context=expected_sweep,
         description=None,
         labels=None,
         run_name='',
