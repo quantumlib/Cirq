@@ -141,7 +141,7 @@ def test_ionq_client_create_job_extra_params(mock_post):
         repetitions=200,
         target='qpu',
         name='bacon',
-        extra_query_params={'error_mitigation': {'debias': True}},
+        extra_query_params={'key': 'value'},
     )
     assert response == {'foo': 'bar'}
 
@@ -152,7 +152,7 @@ def test_ionq_client_create_job_extra_params(mock_post):
         'input': {'job': 'mine'},
         'name': 'bacon',
         'shots': '200',
-        'settings': {'error_mitigation': {'debias': True}},
+        'key': 'value',
         'metadata': {'shots': '200', 'a': '0,1'},
     }
     expected_headers = {
@@ -399,45 +399,88 @@ def test_ionq_client_get_job_retry(mock_get):
     assert mock_get.call_count == 2
 
 
-# TODO: uncomment when production code is fixed
-# @mock.patch('requests.get')
-# def test_ionq_client_get_results(mock_get):
-#     mock_get.return_value.ok = True
-#     mock_get.return_value.json.return_value = {'foo': 'bar'}
-#     client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
-#     response = client.get_results(job_id='job_id', sharpen=False)
-#     assert response == {'foo': 'bar'}
+@mock.patch('requests.get')
+def test_ionq_client_get_results(mock_get):
+    mock_get.return_value.ok = True
+    mock_get.return_value.json.return_value = {'foo': 'bar'}
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
+    client.batch_mode = False
+    response = client.get_results(job_id='job_id', sharpen=False)
+    assert response == {'foo': 'bar'}
 
-#     expected_headers = {
-#         'Authorization': 'apiKey to_my_heart',
-#         'Content-Type': 'application/json',
-#         'User-Agent': client._user_agent(),
-#     }
-#     mock_get.assert_called_with(
-#         'http://example.com/v0.4/jobs/job_id/results',
-#         headers=expected_headers,
-#         params={'sharpen': False},
-#     )
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json',
+        'User-Agent': client._user_agent(),
+    }
+    mock_get.assert_called_with(
+        'http://example.com/v0.4/jobs/job_id/results/probabilities',
+        headers=expected_headers,
+        params={'sharpen': False},
+    )
 
-# TODO: uncomment when production code is fixed
-# @mock.patch('requests.get')
-# def test_ionq_client_get_results_extra_params(mock_get):
-#     mock_get.return_value.ok = True
-#     mock_get.return_value.json.return_value = {'foo': 'bar'}
-#     client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
-#     response = client.get_results(job_id='job_id', extra_query_params={'sharpen': False})
-#     assert response == {'foo': 'bar'}
 
-#     expected_headers = {
-#         'Authorization': 'apiKey to_my_heart',
-#         'Content-Type': 'application/json',
-#         'User-Agent': client._user_agent(),
-#     }
-#     mock_get.assert_called_with(
-#         'http://example.com/v0.4/jobs/job_id/results',
-#         headers=expected_headers,
-#         params={'sharpen': False},
-#     )
+@mock.patch('requests.get')
+def test_ionq_client_get_results_batch_mode(mock_get):
+    mock_get.return_value.ok = True
+    mock_get.return_value.json.return_value = {'foo': 'bar'}
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
+    client.batch_mode = True
+    response = client.get_results(job_id='job_id', sharpen=False)
+    assert response == {'foo': 'bar'}
+
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json',
+        'User-Agent': client._user_agent(),
+    }
+    mock_get.assert_called_with(
+        'http://example.com/v0.4/jobs/job_id/results/probabilities/aggregated',
+        headers=expected_headers,
+        params={'sharpen': False},
+    )
+
+
+@mock.patch('requests.get')
+def test_ionq_client_get_results_extra_params(mock_get):
+    mock_get.return_value.ok = True
+    mock_get.return_value.json.return_value = {'foo': 'bar'}
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
+    client.batch_mode = False
+    response = client.get_results(job_id='job_id', extra_query_params={'sharpen': False})
+    assert response == {'foo': 'bar'}
+
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json',
+        'User-Agent': client._user_agent(),
+    }
+    mock_get.assert_called_with(
+        'http://example.com/v0.4/jobs/job_id/results/probabilities',
+        headers=expected_headers,
+        params={'sharpen': False},
+    )
+
+
+@mock.patch('requests.get')
+def test_ionq_client_get_results_extra_params_batch_mode(mock_get):
+    mock_get.return_value.ok = True
+    mock_get.return_value.json.return_value = {'foo': 'bar'}
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
+    client.batch_mode = True
+    response = client.get_results(job_id='job_id', extra_query_params={'sharpen': False})
+    assert response == {'foo': 'bar'}
+
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json',
+        'User-Agent': client._user_agent(),
+    }
+    mock_get.assert_called_with(
+        'http://example.com/v0.4/jobs/job_id/results/probabilities/aggregated',
+        headers=expected_headers,
+        params={'sharpen': False},
+    )
 
 
 @mock.patch('requests.get')

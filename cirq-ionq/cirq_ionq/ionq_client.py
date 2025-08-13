@@ -104,6 +104,7 @@ class _IonQClient:
         self.default_target = default_target
         self.max_retry_seconds = max_retry_seconds
         self.verbose = verbose
+        self.batch_mode = None
 
     def create_job(
         self,
@@ -159,16 +160,10 @@ class _IonQClient:
                 json['settings'] = {}
             json['settings']['error_mitigation'] = serialized_program.error_mitigation
 
-        if extra_query_params is not None:
-            if 'error_mitigation' in extra_query_params:
-                if 'settings' not in json:
-                    json['settings'] = {}
-                json['settings']['error_mitigation'] = extra_query_params['error_mitigation']
-                extra_query_params = {
-                    k: v for k, v in extra_query_params.items() if k != 'error_mitigation'
-                }
+        if extra_query_params:
             json.update(extra_query_params)
 
+        # TODO: remove
         print("Job url:", self.url)
         print("Job headers:", self.headers)
         print("Job json:", json)
@@ -176,7 +171,10 @@ class _IonQClient:
         def request():
             return requests.post(f'{self.url}/jobs', json=json, headers=self.headers)
 
-        return self._make_request(request, json).json()
+        request_response = self._make_request(request, json).json()
+        self.batch_mode = batch_mode
+
+        return request_response
 
     def get_job(self, job_id: str) -> dict:
         """Get the job from the IonQ API.
@@ -221,16 +219,22 @@ class _IonQClient:
         if sharpen is not None:
             params["sharpen"] = sharpen
 
-        if extra_query_params is not None:
+        if extra_query_params:
             params.update(extra_query_params)
 
-        # TODO: WHY replace("v0.4", "v0.3") ???
         def request():
-            return requests.get(
-                f'{self.url.replace("v0.4", "v0.3")}/jobs/{job_id}/results',
-                params=params,
-                headers=self.headers,
-            )
+            if self.batch_mode == True:
+                return requests.get(
+                    f'{self.url}/jobs/{job_id}/results/probabilities/aggregated',
+                    params=params,
+                    headers=self.headers,
+                )
+            elif self.batch_mode == False:
+                return requests.get(
+                    f'{self.url}/jobs/{job_id}/results/probabilities',
+                    params=params,
+                    headers=self.headers,
+                )
 
         return self._make_request(request, {}).json()
 
