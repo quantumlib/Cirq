@@ -14,7 +14,6 @@
 
 import puppeteer from 'puppeteer';
 import {expect} from 'chai';
-import {copyFileSync} from 'fs';
 import {readFileSync} from 'fs';
 import pixelmatch from 'pixelmatch';
 import * as PNG from 'pngjs';
@@ -97,9 +96,6 @@ describe('Circuit', () => {
       const pixels = pixelmatch(expected.data, actual.data, diff.data, width, height, {
         threshold: 0.1,
       });
-
-      // save the actual png in a permanent file
-      copyFileSync(`${outputPath}.png`, 'circuit_actual.png');
 
       expect(pixels).to.equal(0);
     });

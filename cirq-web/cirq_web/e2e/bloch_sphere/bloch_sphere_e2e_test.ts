@@ -14,7 +14,6 @@
 
 import puppeteer from 'puppeteer';
 import {expect} from 'chai';
-import {copyFileSync} from 'fs';
 import {readFileSync} from 'fs';
 import pixelmatch from 'pixelmatch';
 import * as PNG from 'pngjs';
@@ -84,9 +83,6 @@ describe('Bloch sphere', () => {
         threshold: 0.1,
       });
 
-      // save the actual png in a permanent file
-      copyFileSync(`${outputPath}.png`, 'bloch_sphere_actual.png');
-
       expect(pixels).to.equal(0);
     });
 
@@ -114,9 +110,6 @@ describe('Bloch sphere', () => {
       const pixels = pixelmatch(expected.data, actual.data, diff.data, width, height, {
         threshold: 0.1,
       });
-
-      // save the actual png in a permanent file
-      copyFileSync(`${newVectorOutputPath}.png`, 'bloch_sphere_actual_custom.png');
 
       expect(pixels).to.equal(0);
     });
