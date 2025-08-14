@@ -396,6 +396,9 @@ message Tag {
     // Catch-all for all gates that do not fit into the
     // above tags.
     InternalTag internal_tag = 8;
+
+    // Raw Types such as strings and other values
+    Arg raw_value = 11;
   }
 }
 
