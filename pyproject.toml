@@ -50,6 +50,7 @@ asyncio_default_fixture_loop_scope = "function"
 
 [tool.ruff]
 line-length = 100
+preview = true
 target-version = "py311"
 extend-exclude = ["*_pb2.py*"]
 
@@ -86,6 +87,7 @@ select = [
     "PLE0100",  # yield-in-init, pylint init-is-generator
     "PLE0101",  # return-in-init, pylint return-in-init
     "PLE0116",  # continue-in-finally, pylint continue-in-finally
+    "RUF027",  # missing-f-string-syntax
     "RUF100",  # unused-noqa
     "SIM101",  # duplicate-isinstance-call, pylint consider-merging-isinstance
     "SIM201",  # negate-equal-op, pylint unneeded-not, unnecessary-negation
