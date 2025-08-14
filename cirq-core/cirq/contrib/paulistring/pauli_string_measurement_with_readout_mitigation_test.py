@@ -762,7 +762,7 @@ def test_zero_pauli_repetitions(use_sweep: bool) -> None:
 
     circuits_to_pauli: dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
     circuits_to_pauli[circuit] = [cirq.PauliString({q: cirq.X for q in qubits})]
-    with pytest.raises(ValueError, match="Must provide non-zero pauli_repetitions."):
+    with pytest.raises(ValueError, match="Must provide positive pauli_repetitions."):
         measure_pauli_strings(
             circuits_to_pauli, cirq.Simulator(), 0, 1000, 1000, np.random.default_rng(), use_sweep
         )
@@ -793,7 +793,7 @@ def test_zero_readout_repetitions(use_sweep: bool) -> None:
     circuits_to_pauli: dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
     circuits_to_pauli[circuit] = [cirq.PauliString({q: cirq.X for q in qubits})]
     with pytest.raises(
-        ValueError, match="Must provide non-zero readout_repetitions for readout" + " calibration."
+        ValueError, match="Must provide positive readout_repetitions for readout" + " calibration."
     ):
         measure_pauli_strings(
             circuits_to_pauli, cirq.Simulator(), 1000, 0, 1000, np.random.default_rng(), use_sweep
@@ -859,8 +859,7 @@ def test_group_paulis_are_not_qwc(use_sweep: bool) -> None:
     circuits_to_pauli: dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
     circuits_to_pauli[circuit] = [[pauli_str1, pauli_str2]]  # type: ignore
     with pytest.raises(
-        ValueError,
-        match="The group of Pauli strings are not " "Qubit-Wise Commuting with each other.",
+        ValueError, match="The group of Pauli strings are not Qubit-Wise Commuting with each other."
     ):
         measure_pauli_strings(
             circuits_to_pauli,

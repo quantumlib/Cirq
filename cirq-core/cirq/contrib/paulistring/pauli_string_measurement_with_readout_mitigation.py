@@ -197,7 +197,7 @@ def _validate_input(
 
     # Check readout_repetitions is bigger than 0
     if readout_repetitions <= 0:
-        raise ValueError("Must provide non-zero readout_repetitions for readout calibration.")
+        raise ValueError("Must provide positive readout_repetitions for readout calibration.")
 
 
 def _normalize_input_paulis(
@@ -244,7 +244,14 @@ def _pauli_strings_to_basis_change_ops(
 def _pauli_strings_to_basis_change_with_sweep(
     pauli_strings: list[ops.PauliString], qid_list: list[ops.Qid]
 ) -> dict[str, float]:
-    """Decide single-qubit rotation sweep parameters for basis change."""
+    """Decide single-qubit rotation sweep parameters for basis change.
+
+    Args:
+        pauli_strings: A list of QWC Pauli strings.
+        qid_list: A list of qubits to apply the basis change on.
+    Returns:
+        A dictionary mapping parameter names to their values for basis change.
+    """
     params_dict = {}
 
     for qid, qubit in enumerate(qid_list):
@@ -360,7 +367,7 @@ def _build_many_one_qubits_empty_confusion_matrix(qubits_length: int) -> list[np
 def _process_pauli_measurement_results(
     qubits: Sequence[ops.Qid],
     pauli_string_groups: list[list[ops.PauliString]],
-    circuit_results: list[ResultDict] | Sequence[study.Result],
+    circuit_results: Sequence[ResultDict] | Sequence[study.Result],
     calibration_results: dict[tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult],
     pauli_repetitions: int,
     timestamp: float,
@@ -583,7 +590,7 @@ def measure_pauli_strings(
 
         disable_readout_mitigation = False if num_random_bitstrings != 0 else True
 
-        circuits_results_for_group: list[ResultDict] | Sequence[study.Result] = []
+        circuits_results_for_group: Sequence[ResultDict] | Sequence[study.Result] = []
         if use_sweep:
             circuits_results_for_group = circuits_results[i]
         else:
