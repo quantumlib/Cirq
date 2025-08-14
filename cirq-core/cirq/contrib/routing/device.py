@@ -36,7 +36,7 @@ def get_grid_device_graph(*args, **kwargs) -> nx.Graph:
     return gridqubits_to_graph_device(cirq.GridQubit.rect(*args, **kwargs))
 
 
-def gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):
+def gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]) -> nx.Graph:
     """Gets the graph of a set of grid qubits."""
     return nx.Graph(
         pair for pair in itertools.combinations(qubits, 2) if _manhattan_distance(*pair) == 1

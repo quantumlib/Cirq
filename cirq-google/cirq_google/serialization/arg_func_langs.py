@@ -99,7 +99,9 @@ def float_arg_to_proto(
     return msg
 
 
-def arg_to_proto(value: ARG_LIKE, *, out: v2.program_pb2.Arg | None = None) -> v2.program_pb2.Arg:
+def arg_to_proto(
+    value: ARG_LIKE | None, *, out: v2.program_pb2.Arg | None = None
+) -> v2.program_pb2.Arg:
     """Writes an argument value into an Arg proto.
 
     Args:
@@ -113,6 +115,8 @@ def arg_to_proto(value: ARG_LIKE, *, out: v2.program_pb2.Arg | None = None) -> v
         ValueError: if the object holds unsupported values.
     """
     msg = v2.program_pb2.Arg() if out is None else out
+    if value is None:
+        return msg
 
     if isinstance(value, (bool, np.bool_)):
         msg.arg_value.bool_value = bool(value)
@@ -171,6 +175,20 @@ def arg_to_proto(value: ARG_LIKE, *, out: v2.program_pb2.Arg | None = None) -> v
     else:
         _arg_func_to_proto(value, msg)
 
+    return msg
+
+
+def dict_to_arg_mapping_proto(
+    value_dict: dict[ARG_LIKE, ARG_LIKE] | None, *, out: v2.program_pb2.ArgMapping | None = None
+) -> v2.program_pb2.ArgMapping:
+    """Writes a dictionary into an ArgMapping proto."""
+    msg = v2.program_pb2.ArgMapping() if out is None else out
+    if value_dict is None:
+        return msg
+    for key, value in value_dict.items():
+        entry = msg.entries.add()
+        arg_to_proto(key, out=entry.key)
+        arg_to_proto(value, out=entry.value)
     return msg
 
 
@@ -406,6 +424,20 @@ def arg_from_proto(
         )
 
     return None
+
+
+def dict_from_arg_mapping_proto(
+    arg_mapping_proto: v2.program_pb2.ArgMapping, *, required_arg_name: str | None = None
+) -> dict[ARG_LIKE, ARG_LIKE] | None:
+    """Extracts a python dictionary from an arg_mapping proto."""
+    if not arg_mapping_proto.entries:
+        return None
+    return {
+        arg_from_proto(entry.key, required_arg_name=required_arg_name): arg_from_proto(
+            entry.value, required_arg_name=required_arg_name
+        )
+        for entry in arg_mapping_proto.entries
+    }
 
 
 def _arg_func_from_proto(

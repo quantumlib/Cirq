@@ -178,24 +178,6 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
         snapshot = self.copy().clean(atol=0)
         return snapshot._terms.items()
 
-    @overload
-    def update(
-        self, other: Mapping[TVector, cirq.TParamValComplex], **kwargs: cirq.TParamValComplex
-    ) -> None:
-        pass
-
-    @overload
-    def update(
-        self,
-        other: Iterable[tuple[TVector, cirq.TParamValComplex]],
-        **kwargs: cirq.TParamValComplex,
-    ) -> None:
-        pass
-
-    @overload
-    def update(self, *args: Any, **kwargs: cirq.TParamValComplex) -> None:
-        pass
-
     def update(self, *args, **kwargs):
         terms = dict()
         terms.update(*args, **kwargs)
