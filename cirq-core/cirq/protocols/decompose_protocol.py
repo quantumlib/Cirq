@@ -31,7 +31,7 @@ from typing import (
     Union,
 )
 
-from typing_extensions import Protocol, runtime_checkable
+from typing_extensions import Protocol
 
 from cirq import devices, ops
 from cirq._doc import doc_private
@@ -51,7 +51,6 @@ DecomposeResult = Union[None, NotImplementedType, 'cirq.OP_TREE']
 _CONTEXT_COUNTER = itertools.count()  # Use _reset_context_counter() to reset the counter.
 
 
-@runtime_checkable
 class OpDecomposerWithContext(Protocol):
     def __call__(
         self, __op: cirq.Operation, *, context: cirq.DecompositionContext
@@ -170,10 +169,8 @@ def _try_op_decomposer(
     if decomposer is None or not isinstance(val, ops.Operation):
         return None
     if 'context' in inspect.signature(decomposer).parameters:
-        assert isinstance(decomposer, OpDecomposerWithContext)
-        return decomposer(val, context=context)
-    else:
-        return decomposer(val)  # type: ignore[call-arg]
+        return decomposer(val, context=context)  # type: ignore[call-arg]
+    return decomposer(val)  # type: ignore[call-arg]
 
 
 @dataclasses.dataclass(frozen=True)
