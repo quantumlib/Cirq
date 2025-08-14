@@ -114,6 +114,7 @@ select = [
     "PLW1501",  # bad-open-mode
     "RUF013",  # implicit-optional
     "RUF019",  # unnecessary-key-check
+    "RUF027",  # missing-f-string-syntax
     "RUF100",  # unused-noqa
     "RUF200",  # invalid-pyproject-toml
     "SIM101",  # duplicate-isinstance-call, pylint consider-merging-isinstance

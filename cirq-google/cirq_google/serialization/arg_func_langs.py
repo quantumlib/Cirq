@@ -400,7 +400,7 @@ def arg_from_proto(
                             return set(values)
                         case v2.program_pb2.Tuple.SequenceType.FROZENSET:
                             return frozenset(values)
-                    raise ValueError('Unrecognized type: {sequence_type}')  # pragma: no cover
+                    raise ValueError(f'Unrecognized type: {sequence_type}')  # pragma: no cover
 
                 case 'ndarray_value':
                     return _ndarray_from_proto(arg_value)
