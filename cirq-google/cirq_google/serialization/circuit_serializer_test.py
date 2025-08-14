@@ -1334,7 +1334,10 @@ def test_op_with_raw_tags() -> None:
     original_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(1, 2)).with_tags("just_a_string_tag"))
     deserialized_circuit = serializer.deserialize(serializer.serialize(original_circuit))
     assert original_circuit == deserialized_circuit
-    assert deserialized_circuit[0].operation_at(cirq.GridQubit(1, 2)).tags == ("just_a_string_tag",)
+
+    op = deserialized_circuit.operation_at(cirq.GridQubit(1, 2), moment_index=0)
+    assert isinstance(op, cirq.TaggedOperation)
+    assert op.tags == ("just_a_string_tag",)
 
 
 def test_reset_gate_with_improper_argument():
