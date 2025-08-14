@@ -109,7 +109,7 @@ class EngineContext:
             enable_streaming: Feature gate for making Quantum Engine requests using the stream RPC.
                 If True, the Quantum Engine streaming RPC is used for creating jobs
                 and getting results. Otherwise, unary RPCs are used.
-            compress_run_context:  If true, the run context (i.e. sweep information
+            compress_run_context:  If true, the run context (i.e. sweep information)
                 will be compressed using gzip in transit.  This will save on data transfer size
                 but will add a small overhead client-side.
 
