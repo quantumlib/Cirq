@@ -374,7 +374,7 @@ class CircuitSerializer(serializer.Serializer):
             else:
                 # Try to serialize raw values like strings
                 try:
-                    proto = arg_func_langs.arg_to_proto(tag, out=constant.tag_value.raw_value)
+                    arg_func_langs.arg_to_proto(tag, out=constant.tag_value.raw_value)
                 except ValueError:
                     # Re-raise with a more precise message
                     raise ValueError(f'Unrecognized Tag {tag}, cannot serialize.')
