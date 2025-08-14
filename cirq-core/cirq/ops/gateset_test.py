@@ -452,3 +452,25 @@ def test_gateset_contains_op_with_no_gate():
     op = cirq.X(cirq.q(1)).with_classical_controls('a')
     assert op.gate is None
     assert op not in gf
+
+
+def test_overlapping_gate_families() -> None:
+    """Tests if a gate belongs both to an instance and type family
+    but is rejected by the type family it can still be accepted."""
+
+    # The following gateset should accept ZPowGates only with the tag
+    # except it lets in cirq.Z with no tag
+    tag = "PhysicalZTag"
+    gf_accept = cirq.GateFamily(cirq.ZPowGate, tags_to_accept=[tag])
+    instance_accept = cirq.GateFamily(cirq.Z)
+    gs = cirq.Gateset(gf_accept, instance_accept)
+
+    instance_op = cirq.Z(q)
+    instance_op_with_tag = cirq.Z(q).with_tags(tag)
+    type_op_no_tag = cirq.ZPowGate(exponent=0.5)(q)
+    type_op_with_tag = cirq.ZPowGate(exponent=0.5)(q).with_tags(tag)
+
+    assert instance_op in gs
+    assert instance_op_with_tag in gs
+    assert type_op_no_tag not in gs
+    assert type_op_with_tag in gs

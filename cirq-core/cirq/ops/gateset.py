@@ -416,20 +416,23 @@ class Gateset:
         g = item if isinstance(item, raw_types.Gate) else item.gate
         assert g is not None, f'`item`: {item} must be a gate or have a valid `item.gate`'
 
+        failed_family = None
+
+        for gate_mro_type in type(g).mro():
+            if gate_mro_type in self._type_gate_families:
+                if item in self._type_gate_families[gate_mro_type]:
+                    return True
+                assert item in failed_family, (
+                    f"{g} type {gate_mro_type} matches Type GateFamily:"
+                    f"{self._type_gate_families[gate_mro_type]} but is not accepted by it."
+                )
+
         if g in self._instance_gate_families:
             assert item in self._instance_gate_families[g], (
                 f"{item} instance matches {self._instance_gate_families[g]} but "
                 f"is not accepted by it."
             )
             return True
-
-        for gate_mro_type in type(g).mro():
-            if gate_mro_type in self._type_gate_families:
-                assert item in self._type_gate_families[gate_mro_type], (
-                    f"{g} type {gate_mro_type} matches Type GateFamily:"
-                    f"{self._type_gate_families[gate_mro_type]} but is not accepted by it."
-                )
-                return True
 
         return any(item in gate_family for gate_family in self._gates)
 
