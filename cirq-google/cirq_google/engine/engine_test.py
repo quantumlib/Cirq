@@ -44,12 +44,6 @@ _CIRCUIT2 = cirq.FrozenCircuit(
 )
 
 
-def _to_timestamp(json_string):
-    timestamp_proto = timestamp_pb2.Timestamp()
-    timestamp_proto.FromJsonString(json_string)
-    return timestamp_proto
-
-
 _A_RESULT = util.pack_any(
     Merge(
         """
