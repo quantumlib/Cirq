@@ -91,6 +91,7 @@ class EngineContext:
         serializer: Serializer = CIRCUIT_SERIALIZER,
         # TODO(#5996) Remove enable_streaming once the feature is stable.
         enable_streaming: bool = True,
+        compress_run_context: bool = False,
     ) -> None:
         """Context and client for using Quantum Engine.
 
@@ -109,6 +110,9 @@ class EngineContext:
             enable_streaming: Feature gate for making Quantum Engine requests using the stream RPC.
                 If True, the Quantum Engine streaming RPC is used for creating jobs
                 and getting results. Otherwise, unary RPCs are used.
+            compress_run_context:  If true, the run context (i.e. sweep information)
+                will be compressed using gzip in transit.  This will save on data transfer size
+                but will add a small overhead client-side.
 
         Raises:
             ValueError: If either `service_args` and `verbose` were supplied
@@ -122,6 +126,7 @@ class EngineContext:
             raise ValueError('ProtoVersion V1 no longer supported')
         self.serializer = serializer
         self.enable_streaming = enable_streaming
+        self.compress_run_context = compress_run_context
 
         if not client:
             client = engine_client.EngineClient(service_args=service_args, verbose=verbose)
@@ -144,7 +149,9 @@ class EngineContext:
     def _serialize_run_context(self, sweeps: cirq.Sweepable, repetitions: int) -> any_pb2.Any:
         if self.proto_version != ProtoVersion.V2:
             raise ValueError(f'invalid run context proto version: {self.proto_version}')
-        return util.pack_any(v2.run_context_to_proto(sweeps, repetitions))
+        return util.pack_any(
+            v2.run_context_to_proto(sweeps, repetitions, compress_proto=self.compress_run_context)
+        )
 
 
 class Engine(abstract_engine.AbstractEngine):
@@ -175,6 +182,7 @@ class Engine(abstract_engine.AbstractEngine):
         verbose: bool | None = None,
         timeout: int | None = None,
         context: EngineContext | None = None,
+        compress_run_context: bool = False,
     ) -> None:
         """Supports creating and running programs against the Quantum Engine.
 
@@ -193,6 +201,9 @@ class Engine(abstract_engine.AbstractEngine):
                 to never timeout.
             context: Engine configuration and context to use. For most users
                 this should never be specified.
+            compress_run_context:  If true, the run context (i.e. sweep information
+                will be compressed using gzip in transit.  This will save on data transfer size
+                but will add a small overhead client-side.
 
         Raises:
             ValueError: If context is provided and one of proto_version, service_args, or verbose.
@@ -207,6 +218,7 @@ class Engine(abstract_engine.AbstractEngine):
                 service_args=service_args,
                 verbose=verbose,
                 timeout=timeout,
+                compress_run_context=compress_run_context,
             )
         self.context = context
 
