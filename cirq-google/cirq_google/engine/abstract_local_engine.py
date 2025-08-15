@@ -176,13 +176,13 @@ class AbstractLocalEngine(AbstractEngine):
             raise ValueError(f'Invalid processor {processor_id}')
         return self._processors[processor_id].get_sampler()
 
-    def get_processor_config_by_snapshot_id(
+    def get_processor_config_from_snapshot(
         self, processor_id: str, snapshot_id: str, config_id: str
     ):
         # TODO: Implement later as needed.
         pass
 
-    def get_processor_config_by_run_name(
+    def get_processor_config_from_run(
         self, processor_id: str, config_id: str, run_name: str = 'current'
     ):
         # TODO: Implement later as needed.

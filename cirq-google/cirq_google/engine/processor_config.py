@@ -18,14 +18,14 @@ from typing import TYPE_CHECKING
 
 import cirq_google as cg
 from cirq_google.api import v2
-from cirq_google.engine import abstract_processor_config, util
+from cirq_google.engine import util
 
 if TYPE_CHECKING:
     import cirq
     from cirq_google.cloud.quantum_v1alpha1.types import quantum
 
 
-class ProcessorConfig(abstract_processor_config.AbstractProcessorConfig):
+class ProcessorConfig:
     """Representation of a quantum processor configuration
 
     Describes available qubits, gates, and calivration data associated with
@@ -40,22 +40,27 @@ class ProcessorConfig(abstract_processor_config.AbstractProcessorConfig):
     ) -> None:
         self._quantum_processor_config = quantum_processor_config
         self._run_name = run_name
-        self._device_spec = util.unpack_any(
-            self._quantum_processor_config.device_specification, v2.device_pb2.DeviceSpecification()
+        self._grid_device = cg.GridDevice.from_proto(
+            util.unpack_any(
+                self._quantum_processor_config.device_specification,
+                v2.device_pb2.DeviceSpecification(),
+            )
         )
-        self._metric_snapshot = util.unpack_any(
-            self._quantum_processor_config.characterization, v2.metrics_pb2.MetricsSnapshot()
+        self._calibration = cg.Calibration(
+            util.unpack_any(
+                self._quantum_processor_config.characterization, v2.metrics_pb2.MetricsSnapshot()
+            )
         )
 
     @property
     def effective_device(self) -> cirq.Device:
         """The GridDevice generated from thisc configuration's device specification"""
-        return cg.GridDevice.from_proto(self._device_spec)
+        return self._grid_device
 
     @property
     def calibration(self) -> cg.Calibration:
         """Charicterization metrics captured for this configuration"""
-        return cg.Calibration(self._metric_snapshot)
+        return self._calibration
 
     @property
     def snapshot_id(self) -> str:
@@ -86,7 +91,7 @@ class ProcessorConfig(abstract_processor_config.AbstractProcessorConfig):
         return parts[3]
 
     @property
-    def config_id(self) -> str:
+    def config_alias(self) -> str:
         """The unique identifier for this config."""
         parts = self._quantum_processor_config.name.split('/')
         return parts[-1]
@@ -98,5 +103,5 @@ class ProcessorConfig(abstract_processor_config.AbstractProcessorConfig):
             f'processor_id={self.processor_id}, '
             f'snapshot_id={self.snapshot_id}, '
             f'run_name={self.run_name} '
-            f'config_id={self.config_id}'
+            f'config_alias={self.config_alias}'
         )

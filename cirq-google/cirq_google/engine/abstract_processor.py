@@ -35,7 +35,7 @@ if TYPE_CHECKING:
     import cirq_google.engine.abstract_engine as abstract_engine
     import cirq_google.engine.abstract_job as abstract_job
     import cirq_google.engine.calibration as calibration
-    from cirq_google.engine import abstract_processor_config
+    import cirq_google.engine.processor_config as processor_config
 
 
 class AbstractProcessor(abc.ABC):
@@ -380,9 +380,9 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_config_by_run_name(
-        self, config_id: str, run_name: str = "current"
-    ) -> abstract_processor_config.AbstractProcessorConfig | None:
+    def get_config_from_run(
+        self, run_name: str = 'default', config_alias: str = 'default'
+    ) -> processor_config.ProcessorConfig | None:
         """Retrieves a ProcessorConfig from an automation run.
 
             If no run name is provided, the config from the most recent run
@@ -390,22 +390,22 @@ class AbstractProcessor(abc.ABC):
 
         Args:
             processor_id: The processor unique identifier.
-            config_id: The quantum processor's unique identifier.
-            run_name: The automation run name.  Use 'current'
+            config_alias: The quantum processor's unique identifier.
+            run_name: The automation run name.  Use 'default'
                       if none id provided.
 
         Returns: The quantum processor config.
         """
 
     @abc.abstractmethod
-    def get_config_by_snapshot(
-        self, config_id: str, snapshot_id: str
-    ) -> abstract_processor_config.AbstractProcessorConfig | None:
+    def get_config_from_snapshot(
+        self, snapshot_id: str, config_alias: str = 'default'
+    ) -> processor_config.ProcessorConfig | None:
         """Retrieves a ProcessorConfig from a given snapshot id.
 
         Args:
             processor_id: The processor unique identifier.
-            config_id: The quantum processor's unique identifier.
+            config_alias: The quantum processor's unique identifier.
             snapshot_id: The snapshot's unique identifier.
 
         Returns: The quantum processor config.

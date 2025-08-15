@@ -503,8 +503,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         filter_str = ' AND '.join(filters)
         return self.context.client.list_time_slots(self.project_id, self.processor_id, filter_str)
 
-    def get_config_by_run_name(
-        self, config_id: str, run_name: str = "current"
+    def get_config_from_run(
+        self, run_name: str = 'default', config_alias: str = 'default'
     ) -> processor_config.ProcessorConfig | None:
         """Retrieves a ProcessorConfig from an automation run.
 
@@ -513,17 +513,17 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
 
         Args:
             processor_id: The processor unique identifier.
-            config_id: The quantum processor's unique identifier.
-            run_name: The automation run name.  Use 'current'
+            config_alias: The quantum processor's unique identifier.
+            run_name: The automation run name.  Use 'default'
                       if none id provided.
 
         Returns: The quantum processor config.
         """
-        response = self.context.client.get_quantum_processor_config_by_run_name(
+        response = self.context.client.get_quantum_processor_config_from_run(
             project_id=self.project_id,
             processor_id=self.processor_id,
             run_name=run_name,
-            config_id=config_id,
+            config_alias=config_alias,
         )
 
         if response:
@@ -532,14 +532,14 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             )
         return None
 
-    def get_config_by_snapshot(
-        self, config_id: str, snapshot_id: str
+    def get_config_from_snapshot(
+        self, snapshot_id: str, config_alias: str = 'default'
     ) -> processor_config.ProcessorConfig | None:
         """Retrieves a ProcessorConfig from a given snapshot id.
 
         Args:
             processor_id: The processor unique identifier.
-            config_id: The quantum processor's unique identifier.
+            config_alias: The quantum processor's unique identifier.
             snapshot_id: The snapshot's unique identifier.
 
         Returns: The quantum processor config.
@@ -547,11 +547,11 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         Raises:
             EngineException: If the request to get the config fails.
         """
-        response = self.context.client.get_quantum_processor_config_by_snapshot_id(
+        response = self.context.client.get_quantum_processor_config_from_snapshot(
             project_id=self.project_id,
             processor_id=self.processor_id,
             snapshot_id=snapshot_id,
-            config_id=config_id,
+            config_alias=config_alias,
         )
         if response:
             return processor_config.ProcessorConfig(quantum_processor_config=response)

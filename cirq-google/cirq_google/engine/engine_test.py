@@ -915,104 +915,107 @@ valid_gates {
 
 
 @mock.patch(
-    'cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_by_snapshot_id_async'
+    'cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_from_snapshot_async'
 )
-def test_get_processor_config_by_snapshot_id(get_quantum_config_async):
+def test_get_processor_config_from_snapshot(get_quantum_config_async):
     project_id = "test_project_id"
     processor_id = "test_processor_id"
     snapshot_id = "test_snapshot_id"
-    config_id = "test_config_id"
+    config_alias = "test_config_alias"
     resource_name = (
         f'projects/{project_id}/'
         f'processors/{processor_id}/'
         f'configSnapshots/{snapshot_id}/'
-        f'configs/{config_id}'
+        f'configs/{config_alias}'
     )
     quantum_confg = quantum.QuantumProcessorConfig(name=resource_name)
 
     get_quantum_config_async.return_value = quantum_confg
 
-    result = cg.Engine(project_id=project_id).get_processor_config_by_snapshot_id(
-        processor_id=processor_id, snapshot_id=snapshot_id, config_id=config_id
+    result = cg.Engine(project_id=project_id).get_processor_config_from_snapshot(
+        processor_id=processor_id, snapshot_id=snapshot_id, config_alias=config_alias
     )
 
     get_quantum_config_async.assert_called_with(
         project_id=project_id,
         processor_id=processor_id,
         snapshot_id=snapshot_id,
-        config_id=config_id,
+        config_alias=config_alias,
     )
     assert result.project_id == project_id
     assert result.processor_id == processor_id
     assert result.snapshot_id == snapshot_id
-    assert result.config_id == config_id
+    assert result.config_alias == config_alias
     assert result.run_name == ''
 
 
 @mock.patch(
-    'cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_by_run_name_async'
+    'cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_from_run_async'
 )
-def test_get_processor_config_by_run_name(get_quantum_config_async):
+def test_get_processor_config_from_run(get_quantum_config_async):
     project_id = "test_project_id"
     processor_id = "test_processor_id"
     snapshot_id = "test_snapshot_id"
-    config_id = "test_config_id"
+    config_alias = "test_config_alias"
     run_name = "test_run_name"
     resource_name = (
         f'projects/{project_id}/'
         f'processors/{processor_id}/'
         f'configSnapshots/{snapshot_id}/'
-        f'configs/{config_id}'
+        f'configs/{config_alias}'
     )
     quantum_confg = quantum.QuantumProcessorConfig(name=resource_name)
 
     get_quantum_config_async.return_value = quantum_confg
 
-    result = cg.Engine(project_id=project_id).get_processor_config_by_run_name(
-        processor_id=processor_id, run_name=run_name, config_id=config_id
+    result = cg.Engine(project_id=project_id).get_processor_config_from_run(
+        processor_id=processor_id, run_name=run_name, config_alias=config_alias
     )
 
     get_quantum_config_async.assert_called_with(
-        project_id=project_id, processor_id=processor_id, run_name=run_name, config_id=config_id
+        project_id=project_id,
+        processor_id=processor_id,
+        run_name=run_name,
+        config_alias=config_alias,
     )
     assert result.project_id == project_id
     assert result.processor_id == processor_id
     assert result.snapshot_id == snapshot_id
     assert result.run_name == run_name
-    assert result.config_id == config_id
+    assert result.config_alias == config_alias
 
 
 @mock.patch(
-    'cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_by_snapshot_id_async'
+    'cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_from_snapshot_async'
 )
-def test_get_processor_config_by_snapshot_id_none(get_quantum_config_async):
+def test_get_processor_config_from_snapshot_none(get_quantum_config_async):
     project_id = "test_project_id"
     processor_id = "test_processor_id"
     snapshot_id = "test_snapshot_id"
-    config_id = "test_config_id"
+    config_alias = "test_config_alias"
 
     get_quantum_config_async.return_value = None
 
-    result = cg.Engine(project_id=project_id).get_processor_config_by_snapshot_id(
-        processor_id=processor_id, snapshot_id=snapshot_id, config_id=config_id
+    result = cg.Engine(project_id=project_id).get_processor_config_from_snapshot(
+        processor_id=processor_id, snapshot_id=snapshot_id, config_alias=config_alias
     )
 
     assert result is None
 
 
 @mock.patch(
-    'cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_by_run_name_async'
+    'cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_from_run_async'
 )
-def test_get_processor_config_by_run_name_nine(get_quantum_config_async):
+def test_get_processor_config_from_run_nine(get_quantum_config_async):
     project_id = "test_project_id"
     processor_id = "test_processor_id"
-    config_id = "test_config_id"
+    config_alias = "test_config_alias"
     run_name = "test_run_name"
 
     get_quantum_config_async.return_value = None
 
-    result = cg.Engine(project_id=project_id).get_processor_config_by_run_name(
-        processor_id=processor_id, run_name=run_name, config_id=config_id
+    result = cg.Engine(project_id=project_id).get_processor_config_from_run(
+        processor_id=processor_id, run_name=run_name, config_alias=config_alias
     )
 
     assert result is None
