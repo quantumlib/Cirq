@@ -236,8 +236,8 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         self._programs[program_id].add_job(job_id, job)
         return job
 
-    def get_config_from_run(self, config_id: str, run_name: str = "current"):
+    def get_config_from_run(self,  run_name: str = "default", config_alias: str = 'default'):
         pass
 
-    def get_config_from_snapshot(self, config_id: str, snapshot_id: str):
+    def get_config_from_snapshot(self, snapshot_id: str, config_id: str = 'default'):
         pass

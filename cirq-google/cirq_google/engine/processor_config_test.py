@@ -63,6 +63,17 @@ def test_processor_config_snapshot_id():
     assert config.snapshot_id == _SNAPSHOT_ID
 
 
+def test_processor_config_snapshot_id_empty():
+    quantum_config = quantum.QuantumProcessorConfig(
+    name=f'projects/proj_id/processors/proc_id/configAutomationRuns/default/configs/default',
+    device_specification=util.pack_any(_DEVICE_SPEC),
+    characterization=util.pack_any(_METRIC_SNAPSHOT),
+)
+    config = cg.engine.ProcessorConfig(quantum_processor_config=quantum_config)
+
+    assert config.snapshot_id == ''
+
+
 def test_processor_config_run_name():
     run_name = 'test_run_name'
     config = cg.engine.ProcessorConfig(
