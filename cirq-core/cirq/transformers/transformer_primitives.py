@@ -26,10 +26,10 @@ from cirq import circuits, ops, protocols
 from cirq.circuits.circuit import CIRCUIT_TYPE
 from cirq.transformers.connected_component import (
     Component,
-    ComponentFactory,
+    ComponentSet,
     ComponentWithCircuitOp,
-    ComponentWithCircuitOpFactory,
-    ComponentWithOpsFactory,
+    ComponentWithCircuitOpSet,
+    ComponentWithOpsSet,
 )
 
 if TYPE_CHECKING:
@@ -357,9 +357,9 @@ class _MergedCircuit:
         """Removes a component from the merged circuit.
 
         Args:
-            c: reference to the component to be removed
-            c_data: copy of the data in c before any component merges involving c
-                (this is necessary as component merges alter the component data)
+            c: Reference to the component to be removed.
+            c_data: Copy of the data in c before any component merges involving c
+                (this is necessary as component merges alter the component data).
         """
         self.components_by_index[c_data.moment_id].pop(c)
         for q in c_data.qubits:
@@ -373,11 +373,11 @@ class _MergedCircuit:
         """Finds all components that can be merged with c.
 
         Args:
-            c: component to be merged with existing components
-            c_qs: subset of c.qubits used to decide which components are mergeable
+            c: Component to be merged with existing components.
+            c_qs: Subset of c.qubits used to decide which components are mergeable.
 
         Returns:
-            list of mergeable components
+            List of mergeable components.
         """
         # Find the index of previous moment which can be merged with `c`.
         idx = max([self.qubit_indexes[q][-1] for q in c_qs], default=-1)
@@ -389,23 +389,21 @@ class _MergedCircuit:
 
         return [c for c in self.components_by_index[idx] if not c_qs.isdisjoint(c.qubits)]
 
-    def get_cirq_circuit(
-        self, components: list[Component], merged_circuit_op_tag: str
-    ) -> cirq.Circuit:
+    def get_cirq_circuit(self, cset: ComponentSet, merged_circuit_op_tag: str) -> cirq.Circuit:
         """Returns the merged circuit.
 
         Args:
-            components: all components in creation order
-            merged_circuit_op_tag: tag to use for CircuitOperations
+            cset: Disjoint set data structure containing the components.
+            merged_circuit_op_tag: Tag to use for CircuitOperations.
 
         Returns:
-            the circuit with merged components as a CircuitOperation
+            The circuit with merged components as a CircuitOperation.
         """
         component_ops: dict[Component, list[cirq.Operation]] = defaultdict(list)
 
         # Traverse the components in creation order and collect operations
-        for c in components:
-            root = c.find()
+        for c in cset.components():
+            root = cset.find(c)
             component_ops[root].append(c.op)
 
         moments = []
@@ -429,7 +427,7 @@ class _MergedCircuit:
 
 def _merge_operations_impl(
     circuit: CIRCUIT_TYPE,
-    factory: ComponentFactory,
+    cset: ComponentSet,
     *,
     merged_circuit_op_tag: str = "Merged connected component",
     tags_to_ignore: Sequence[Hashable] = (),
@@ -445,9 +443,8 @@ def _merge_operations_impl(
     to repeatedly merge each operation in the latest moment with all the corresponding merge-able
     operations to its left.
 
-    Operations are wrapped in a component and then component.merge is called to merge two
-    components. The factory can provide components with different implementations of the merge
-    function, allowing for optimizations.
+    Operations are wrapped in a component and then cset.merge() is called to merge two
+    components.
 
     If op1 and op2 are merged, both op1 and op2 are deleted from the circuit and
     the merged component is inserted at the index corresponding to the larger
@@ -458,8 +455,8 @@ def _merge_operations_impl(
 
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
-        factory: Factory that creates components from an operation.
-        merged_circuit_op_tag: tag used for CircuitOperations created from merged components.
+        cset: Disjoint set data structure that is used to create and merge components.
+        merged_circuit_op_tag: Tag used for CircuitOperations created from merged components.
         tags_to_ignore: Sequence of tags which should be ignored during the merge: operations with
             these tags will not be merged.
         deep: If true, the transformer primitive will be recursively applied to all circuits
@@ -469,7 +466,6 @@ def _merge_operations_impl(
     Returns:
         Copy of input circuit with merged operations.
     """
-    components = []  # List of all components in creation order
     tags_to_ignore_set = set(tags_to_ignore)
 
     merged_circuit = _MergedCircuit()
@@ -485,21 +481,19 @@ def _merge_operations_impl(
                 merged_op = op_untagged.replace(
                     circuit=_merge_operations_impl(
                         op_untagged.circuit,
-                        factory,
+                        cset,
                         merged_circuit_op_tag=merged_circuit_op_tag,
                         tags_to_ignore=tags_to_ignore,
                         deep=True,
                     )
                 ).with_tags(*op.tags)
-                c = factory.new_component(merged_op, moment_idx, is_mergeable=False)
-                components.append(c)
+                c = cset.new_component(merged_op, moment_idx, is_mergeable=False)
                 merged_circuit.add_component(c)
                 continue
 
-            c = factory.new_component(
+            c = cset.new_component(
                 op, moment_idx, is_mergeable=tags_to_ignore_set.isdisjoint(op.tags)
             )
-            components.append(c)
             if not c.is_mergeable:
                 merged_circuit.add_component(c)
                 continue
@@ -510,7 +504,7 @@ def _merge_operations_impl(
                 # Make a shallow copy of the left component data before merge
                 left_c_data = copy.copy(left_comp[0])
                 # Case-1: Try to merge c with the larger component on the left.
-                new_comp = left_comp[0].merge(c, merge_left=True)
+                new_comp = cset.merge(left_comp[0], c, merge_left=True)
                 if new_comp is not None:
                     merged_circuit.remove_component(left_comp[0], left_c_data)
                     merged_circuit.add_component(new_comp)
@@ -526,7 +520,7 @@ def _merge_operations_impl(
                         # Make a shallow copy of the left component data before merge
                         left_c_data = copy.copy(left_c)
                         # Try to merge left_c into c
-                        new_comp = left_c.merge(c, merge_left=False)
+                        new_comp = cset.merge(left_c, c, merge_left=False)
                         if new_comp is not None:
                             merged_circuit.remove_component(left_c, left_c_data)
                             c, is_merged = new_comp, True
@@ -534,7 +528,7 @@ def _merge_operations_impl(
                         c_qs -= left_c.qubits
                 left_comp = merged_circuit.get_mergeable_components(c, c_qs)
             merged_circuit.add_component(c)
-    ret_circuit = merged_circuit.get_cirq_circuit(components, merged_circuit_op_tag)
+    ret_circuit = merged_circuit.get_cirq_circuit(cset, merged_circuit_op_tag)
     return _to_target_circuit_type(ret_circuit, circuit)
 
 
@@ -607,7 +601,7 @@ def merge_operations(
 
     return _merge_operations_impl(
         circuit,
-        ComponentWithCircuitOpFactory(is_mergeable, apply_merge_func),
+        ComponentWithCircuitOpSet(is_mergeable, apply_merge_func),
         tags_to_ignore=tags_to_ignore,
         deep=deep,
     )
@@ -650,7 +644,7 @@ def merge_operations_to_circuit_op(
 
     return _merge_operations_impl(
         circuit,
-        ComponentWithOpsFactory(is_mergeable, can_merge),
+        ComponentWithOpsSet(is_mergeable, can_merge),
         merged_circuit_op_tag=merged_circuit_op_tag,
         tags_to_ignore=tags_to_ignore,
         deep=deep,
@@ -690,7 +684,7 @@ def merge_k_qubit_unitaries_to_circuit_op(
 
     return _merge_operations_impl(
         circuit,
-        ComponentFactory(is_mergeable),
+        ComponentSet(is_mergeable),
         merged_circuit_op_tag=merged_circuit_op_tag or f"Merged {k}q unitary connected component.",
         tags_to_ignore=tags_to_ignore,
         deep=deep,

@@ -18,6 +18,7 @@ from __future__ import annotations
 
 from typing import Callable, cast, Sequence, TYPE_CHECKING
 
+from scipy.cluster.hierarchy import DisjointSet
 from typing_extensions import override
 
 from cirq import ops, protocols
@@ -27,20 +28,7 @@ if TYPE_CHECKING:
 
 
 class Component:
-    """Internal representation for a connected component of operations.
-
-    It uses the disjoint-set data structure to implement merge efficiently.
-    Additional merge conditions can be added by deriving from the Component
-    class and overriding the merge function (see ComponentWithOps and
-    ComponentWithCircuitOp) below.
-    """
-
-    # Properties for the disjoint set data structure
-    parent: Component | None = None
-    rank: int = 0
-
-    # True if the component can be merged
-    is_mergeable: bool
+    """Internal representation for a connected component of operations."""
 
     # Circuit moment containing the component
     moment_id: int
@@ -53,116 +41,146 @@ class Component:
     # Initial operation in the component
     op: cirq.Operation
 
+    # True if the component can be merged with other components
+    is_mergeable: bool
+
     def __init__(self, op: cirq.Operation, moment_id: int, is_mergeable=True):
         """Initializes a singleton component."""
+        self.op = op
         self.is_mergeable = is_mergeable
         self.moment_id = moment_id
         self.qubits = frozenset(op.qubits)
         self.mkeys = protocols.measurement_key_objs(op)
         self.ckeys = protocols.control_keys(op)
-        self.op = op
 
-    def find(self) -> Component:
-        """Finds the component representative."""
 
-        root = self
-        while root.parent is not None:
-            root = root.parent
-        x = self
-        while x != root:
-            parent = x.parent
-            x.parent = root
-            x = cast(Component, parent)
-        return root
+class ComponentWithOps(Component):
+    """Component that keeps track of operations."""
 
-    def merge(self, c: Component, merge_left=True) -> Component | None:
+    # List of all operations in the component
+    ops: list[cirq.Operation]
+
+    def __init__(self, op: cirq.Operation, moment_id: int, is_mergeable=True):
+        super().__init__(op, moment_id, is_mergeable)
+        self.ops = [op]
+
+
+class ComponentWithCircuitOp(Component):
+    """Component that keeps track of operations as a CircuitOperation."""
+
+    # CircuitOperation containing all the operations in the component,
+    # or a single Operation if the component is a singleton
+    circuit_op: cirq.Operation
+
+    def __init__(self, op: cirq.Operation, moment_id: int, is_mergeable=True):
+        super().__init__(op, moment_id, is_mergeable)
+        self.circuit_op = op
+
+
+class ComponentSet:
+    """Represents a set of mergeable components of operations."""
+
+    _comp_type: type[Component]
+
+    _disjoint_set: DisjointSet
+
+    # Callable to decide if a component is mergeable
+    _is_mergeable: Callable[[cirq.Operation], bool]
+
+    # List of components in creation order
+    _components: list[Component]
+
+    def __init__(self, is_mergeable: Callable[[cirq.Operation], bool]):
+        self._is_mergeable = is_mergeable
+        self._disjoint_set = DisjointSet()
+        self._components = []
+        self._comp_type = Component
+
+    def new_component(self, op: cirq.Operation, moment_id: int, is_mergeable=True) -> Component:
+        """Creates a new component and adds it to the set."""
+        c = self._comp_type(op, moment_id, self._is_mergeable(op) and is_mergeable)
+        self._disjoint_set.add(c)
+        self._components.append(c)
+        return c
+
+    def components(self) -> list[Component]:
+        """Returns the initial components in creation order."""
+        return self._components
+
+    def find(self, x: Component) -> Component:
+        """Finds the representative for a merged component."""
+        return self._disjoint_set[x]
+
+    def merge(self, x: Component, y: Component, merge_left=True) -> Component | None:
         """Attempts to merge two components.
 
-        If merge_left is True, c is merged into this component, and the representative
-        will keep this component's moment. If merge_left is False, this component is
-        merged into c, and the representative will keep c's moment.
+        If merge_left is True, y is merged into x, and the representative will keep
+        y's moment. If merge_left is False, x is merged into y, and the representative
+        will keep y's moment.
 
         Args:
-            c: other component to merge
-            merge_left: True to keep self's moment for the merged component, False to
-                keep c's moment for the merged component.
+            x: First component to merge.
+            y: Second component to merge.
+            merge_left: True to keep x's moment for the merged component, False to
+                keep y's moment for the merged component.
 
         Returns:
             None, if the components can't be merged.
             Otherwise the new component representative.
         """
-        x = self.find()
-        y = c.find()
+        x = self._disjoint_set[x]
+        y = self._disjoint_set[y]
 
         if not x.is_mergeable or not y.is_mergeable:
             return None
 
-        if x == y:
+        if not self._disjoint_set.merge(x, y):
             return x
 
-        if x.rank < y.rank:
-            if merge_left:
-                # As y will be the new representative, copy moment id from x
-                y.moment_id = x.moment_id
-            x, y = y, x
-        elif not merge_left:
-            # As x will be the new representative, copy moment id from y
-            x.moment_id = y.moment_id
+        root = self._disjoint_set[x]
+        root.moment_id = x.moment_id if merge_left else y.moment_id
+        root.qubits = x.qubits.union(y.qubits)
+        root.mkeys = x.mkeys.union(y.mkeys)
+        root.ckeys = x.ckeys.union(y.ckeys)
 
-        y.parent = x
-        if x.rank == y.rank:
-            x.rank += 1
-
-        x.qubits = x.qubits.union(y.qubits)
-        x.mkeys = x.mkeys.union(y.mkeys)
-        x.ckeys = x.ckeys.union(y.ckeys)
-        return x
+        return root
 
 
-class ComponentWithOps(Component):
-    """Component that keeps track of operations.
+class ComponentWithOpsSet(ComponentSet):
+    """Represents a set of mergeable components, where each component tracks operations."""
 
-    Encapsulates a method can_merge that is used to decide if two components
-    can be merged.
-    """
-
-    # List of all operations in the component
-    ops: list[cirq.Operation]
-
-    # Method to decide if two components can be merged based on their operations
-    can_merge: Callable[[Sequence[cirq.Operation], Sequence[cirq.Operation]], bool]
+    # Callable that returns if two components can be merged based on their operations
+    _can_merge: Callable[[Sequence[cirq.Operation], Sequence[cirq.Operation]], bool]
 
     def __init__(
         self,
-        op: cirq.Operation,
-        moment_id: int,
+        is_mergeable: Callable[[cirq.Operation], bool],
         can_merge: Callable[[Sequence[cirq.Operation], Sequence[cirq.Operation]], bool],
-        is_mergeable=True,
     ):
-        super().__init__(op, moment_id, is_mergeable)
-        self.ops = [op]
-        self.can_merge = can_merge
+        super().__init__(is_mergeable)
+        self._can_merge = can_merge
+        self._comp_type = ComponentWithOps
 
     @override
-    def merge(self, c: Component, merge_left=True) -> Component | None:
+    def merge(self, x: Component, y: Component, merge_left=True) -> Component | None:
         """Attempts to merge two components.
 
         Returns:
-            None if can_merge is False, otherwise the new representative.
-                The representative will have ops = a.ops + b.ops.
+            None if can_merge is False or the merge doesn't succeed, otherwise the
+                new representative. The representative will have ops = x.ops + y.ops.
         """
-        x = cast(ComponentWithOps, self.find())
-        y = cast(ComponentWithOps, c.find())
+        x = cast(ComponentWithOps, self._disjoint_set[x])
+        y = cast(ComponentWithOps, self._disjoint_set[y])
 
         if x == y:
             return x
 
-        if not x.is_mergeable or not y.is_mergeable or not x.can_merge(x.ops, y.ops):
+        if not x.is_mergeable or not y.is_mergeable or not self._can_merge(x.ops, y.ops):
             return None
 
-        root = cast(ComponentWithOps, super(ComponentWithOps, x).merge(y, merge_left))
+        root = cast(ComponentWithOps, super(ComponentWithOpsSet, self).merge(x, y, merge_left))
         root.ops = x.ops + y.ops
-        # Clear the ops list in the non-representative set to avoid memory consumption
+        # Clear the ops list in the non-representative component to avoid memory consumption
         if x != root:
             x.ops = []
         else:
@@ -170,42 +188,31 @@ class ComponentWithOps(Component):
         return root
 
 
-class ComponentWithCircuitOp(Component):
-    """Component that keeps track of operations as a CircuitOperation.
+class ComponentWithCircuitOpSet(ComponentSet):
+    """Represents a set of mergeable components, with operations as a CircuitOperation."""
 
-    Encapsulates a method merge_func that is used to merge two components.
-    """
-
-    # CircuitOperation containing all the operations in the component,
-    # or a single Operation if the component is a singleton
-    circuit_op: cirq.Operation
-
-    merge_func: Callable[[ops.Operation, ops.Operation], ops.Operation | None]
+    # Callable that merges CircuitOperations from two components
+    _merge_func: Callable[[ops.Operation, ops.Operation], ops.Operation | None]
 
     def __init__(
         self,
-        op: cirq.Operation,
-        moment_id: int,
+        is_mergeable: Callable[[cirq.Operation], bool],
         merge_func: Callable[[ops.Operation, ops.Operation], ops.Operation | None],
-        is_mergeable=True,
     ):
-        super().__init__(op, moment_id, is_mergeable)
-        self.circuit_op = op
-        self.merge_func = merge_func
+        super().__init__(is_mergeable)
+        self._merge_func = merge_func
+        self._comp_type = ComponentWithCircuitOp
 
     @override
-    def merge(self, c: Component, merge_left=True) -> Component | None:
+    def merge(self, x: Component, y: Component, merge_left=True) -> Component | None:
         """Attempts to merge two components.
 
-        If merge_left is True, the merge will use this component representative's
-        merge_func. If merge_left is False, the merge will use c representative's
-        merge_func.
-
         Returns:
-            None if merge_func returns None, otherwise the new representative.
+            None if merge_func returns None or the merge doesn't succeed,
+                otherwise the new representative.
         """
-        x = cast(ComponentWithCircuitOp, self.find())
-        y = cast(ComponentWithCircuitOp, c.find())
+        x = cast(ComponentWithCircuitOp, self._disjoint_set[x])
+        y = cast(ComponentWithCircuitOp, self._disjoint_set[y])
 
         if x == y:
             return x
@@ -213,14 +220,13 @@ class ComponentWithCircuitOp(Component):
         if not x.is_mergeable or not y.is_mergeable:
             return None
 
-        if merge_left:
-            new_op = x.merge_func(x.circuit_op, y.circuit_op)
-        else:
-            new_op = y.merge_func(x.circuit_op, y.circuit_op)
+        new_op = self._merge_func(x.circuit_op, y.circuit_op)
         if not new_op:
             return None
 
-        root = cast(ComponentWithCircuitOp, super(ComponentWithCircuitOp, x).merge(y, merge_left))
+        root = cast(
+            ComponentWithCircuitOp, super(ComponentWithCircuitOpSet, self).merge(x, y, merge_left)
+        )
 
         root.circuit_op = new_op
         # The merge_func can be arbitrary, so we need to recompute the component properties
@@ -228,61 +234,9 @@ class ComponentWithCircuitOp(Component):
         root.mkeys = protocols.measurement_key_objs(new_op)
         root.ckeys = protocols.control_keys(new_op)
 
-        # Clear the circuit op in the non-representative set to avoid memory consumption
+        # Clear the circuit op in the non-representative component to avoid memory consumption
         if x != root:
             del x.circuit_op
         else:
             del y.circuit_op
         return root
-
-
-class ComponentFactory:
-    """Factory for components."""
-
-    is_mergeable: Callable[[cirq.Operation], bool]
-
-    def __init__(self, is_mergeable: Callable[[cirq.Operation], bool]):
-        self.is_mergeable = is_mergeable
-
-    def new_component(self, op: cirq.Operation, moment_id: int, is_mergeable=True) -> Component:
-        return Component(op, moment_id, self.is_mergeable(op) and is_mergeable)
-
-
-class ComponentWithOpsFactory(ComponentFactory):
-    """Factory for components with operations."""
-
-    can_merge: Callable[[Sequence[cirq.Operation], Sequence[cirq.Operation]], bool]
-
-    def __init__(
-        self,
-        is_mergeable: Callable[[cirq.Operation], bool],
-        can_merge: Callable[[Sequence[cirq.Operation], Sequence[cirq.Operation]], bool],
-    ):
-        super().__init__(is_mergeable)
-        self.can_merge = can_merge
-
-    @override
-    def new_component(self, op: cirq.Operation, moment_id: int, is_mergeable=True) -> Component:
-        return ComponentWithOps(
-            op, moment_id, self.can_merge, self.is_mergeable(op) and is_mergeable
-        )
-
-
-class ComponentWithCircuitOpFactory(ComponentFactory):
-    """Factory for components with operations as CircuitOperation."""
-
-    merge_func: Callable[[ops.Operation, ops.Operation], ops.Operation | None]
-
-    def __init__(
-        self,
-        is_mergeable: Callable[[cirq.Operation], bool],
-        merge_func: Callable[[ops.Operation, ops.Operation], ops.Operation | None],
-    ):
-        super().__init__(is_mergeable)
-        self.merge_func = merge_func
-
-    @override
-    def new_component(self, op: cirq.Operation, moment_id: int, is_mergeable=True) -> Component:
-        return ComponentWithCircuitOp(
-            op, moment_id, self.merge_func, self.is_mergeable(op) and is_mergeable
-        )
