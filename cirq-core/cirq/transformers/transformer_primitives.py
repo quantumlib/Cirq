@@ -304,9 +304,9 @@ class _MergedCircuit:
         ckey_indexes: Mapping from measurement keys to (sorted) list of component moments
             containing classically controlled operations controlled on the same key.
         components_by_index: List of components indexed by moment id.
-            For a moment id, we use a dictionary instead of a set to keep track of the
-            components in the moment. The dictionary is used to preserve insertion order,
-            and the values have no meaning.
+            For a moment id, we use a dictionary to keep track of the
+            components in the moment. The dictionary instead of a set is used to preserve
+            insertion order and the dictionary's values are intentionally unused.
     """
 
     qubit_indexes: dict[cirq.Qid, list[int]] = dataclasses.field(
