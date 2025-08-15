@@ -177,13 +177,13 @@ class AbstractLocalEngine(AbstractEngine):
         return self._processors[processor_id].get_sampler()
 
     def get_processor_config_from_snapshot(
-        self, processor_id: str, snapshot_id: str, config_id: str
+        self, processor_id: str, snapshot_id: str, config_alias: str = 'default'
     ):
         # TODO: Implement later as needed.
         pass
 
     def get_processor_config_from_run(
-        self, processor_id: str, config_id: str, run_name: str = 'current'
+        self, processor_id: str, run_name: str = 'default', config_alias: str = 'default'
     ):
         # TODO: Implement later as needed.
         pass
