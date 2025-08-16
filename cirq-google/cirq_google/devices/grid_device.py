@@ -157,6 +157,18 @@ _GATES: list[_GateRepresentations] = [
     _GateRepresentations(
         gate_spec_name='reset', supported_gates=[cirq.GateFamily(cirq.ResetChannel)]
     ),
+    _GateRepresentations(
+        gate_spec_name='analog_detune_qubit',
+        supported_gates=[cirq.GateFamily(ops.AnalogDetuneQubit)],
+    ),
+    _GateRepresentations(
+        gate_spec_name='analog_detune_coupler_only',
+        supported_gates=[cirq.GateFamily(ops.AnalogDetuneCouplerOnly)],
+    ),
+    _GateRepresentations(
+        gate_spec_name='wait_gate_with_unit',
+        supported_gates=[cirq.GateFamily(ops.WaitGateWithUnit)],
+    ),
 ]
 
 

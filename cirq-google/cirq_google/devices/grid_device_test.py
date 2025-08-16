@@ -82,6 +82,9 @@ def _create_device_spec_with_horizontal_couplings():
         'cz_pow_gate',
         'internal_gate',
         'reset',
+        'analog_detune_qubit',
+        'analog_detune_coupler_only',
+        "wait_gate_with_unit",
     ]
     gate_durations = [(n, i * 1000) for i, n in enumerate(gate_names)]
     for gate_name, duration in sorted(gate_durations):
@@ -118,6 +121,9 @@ def _create_device_spec_with_horizontal_couplings():
         cirq.GateFamily(cirq.CZPowGate),
         cirq.GateFamily(cirq_google.InternalGate),
         cirq.GateFamily(cirq.ResetChannel),
+        cirq.GateFamily(cirq_google.AnalogDetuneQubit),
+        cirq.GateFamily(cirq_google.AnalogDetuneCouplerOnly),
+        cirq.GateFamily(cirq_google.WaitGateWithUnit),
     )
 
     base_duration = cirq.Duration(picos=1_000)
@@ -155,6 +161,9 @@ def _create_device_spec_with_horizontal_couplings():
         cirq.GateFamily(cirq.CZPowGate): base_duration * 11,
         cirq.GateFamily(cirq_google.InternalGate): base_duration * 12,
         cirq.GateFamily(cirq.ResetChannel): base_duration * 13,
+        cirq.GateFamily(cirq_google.AnalogDetuneQubit): base_duration * 14,
+        cirq.GateFamily(cirq_google.AnalogDetuneCouplerOnly): base_duration * 15,
+        cirq.GateFamily(cirq_google.WaitGateWithUnit): base_duration * 16,
     }
 
     expected_target_gatesets = (
@@ -184,6 +193,9 @@ def _create_device_spec_with_horizontal_couplings():
                 cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
                 cirq.GateFamily(cirq_google.InternalGate),
                 cirq.GateFamily(cirq.ResetChannel),
+                cirq.GateFamily(cirq_google.AnalogDetuneQubit),
+                cirq.GateFamily(cirq_google.AnalogDetuneCouplerOnly),
+                cirq.GateFamily(cirq_google.WaitGateWithUnit),
             ]
         ),
         cirq_google.SycamoreTargetGateset(),
@@ -213,6 +225,9 @@ def _create_device_spec_with_horizontal_couplings():
                 cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
                 cirq.GateFamily(cirq_google.InternalGate),
                 cirq.GateFamily(cirq.ResetChannel),
+                cirq.GateFamily(cirq_google.AnalogDetuneQubit),
+                cirq.GateFamily(cirq_google.AnalogDetuneCouplerOnly),
+                cirq.GateFamily(cirq_google.WaitGateWithUnit),
             ]
         ),
         cirq.CZTargetGateset(
@@ -243,6 +258,9 @@ def _create_device_spec_with_horizontal_couplings():
                 cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
                 cirq.GateFamily(cirq_google.InternalGate),
                 cirq.GateFamily(cirq.ResetChannel),
+                cirq.GateFamily(cirq_google.AnalogDetuneQubit),
+                cirq.GateFamily(cirq_google.AnalogDetuneCouplerOnly),
+                cirq.GateFamily(cirq_google.WaitGateWithUnit),
             ],
         ),
     )
@@ -604,6 +622,9 @@ def test_device_from_device_information_equals_device_from_proto():
         cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
         cirq.GateFamily(cirq_google.InternalGate),
         cirq.GateFamily(cirq.ResetChannel),
+        cirq.GateFamily(cirq_google.AnalogDetuneQubit),
+        cirq.GateFamily(cirq_google.AnalogDetuneCouplerOnly),
+        cirq.GateFamily(cirq_google.WaitGateWithUnit),
     )
 
     base_duration = cirq.Duration(picos=1_000)
@@ -631,6 +652,9 @@ def test_device_from_device_information_equals_device_from_proto():
         cirq.GateFamily(cirq.CZPowGate): base_duration * 11,
         cirq.GateFamily(cirq_google.InternalGate): base_duration * 12,
         cirq.GateFamily(cirq.ResetChannel): base_duration * 13,
+        cirq.GateFamily(cirq_google.AnalogDetuneQubit): base_duration * 14,
+        cirq.GateFamily(cirq_google.AnalogDetuneCouplerOnly): base_duration * 15,
+        cirq.GateFamily(cirq_google.WaitGateWithUnit): base_duration * 16,
     }
 
     device_from_information = cirq_google.GridDevice._from_device_information(
@@ -740,6 +764,9 @@ def test_to_proto():
         cirq.GateFamily(cirq.CZPowGate): base_duration * 11,
         cirq.GateFamily(cirq_google.InternalGate): base_duration * 12,
         cirq.GateFamily(cirq.ResetChannel): base_duration * 13,
+        cirq.GateFamily(cirq_google.AnalogDetuneQubit): base_duration * 14,
+        cirq.GateFamily(cirq_google.AnalogDetuneCouplerOnly): base_duration * 15,
+        cirq.GateFamily(cirq_google.WaitGateWithUnit): base_duration * 16,
     }
 
     spec = cirq_google.GridDevice._from_device_information(
