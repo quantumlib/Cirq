@@ -178,7 +178,7 @@ class ComponentWithOpsSet(ComponentSet):
         if not x.is_mergeable or not y.is_mergeable or not self._can_merge(x.ops, y.ops):
             return None
 
-        root = cast(ComponentWithOps, super(ComponentWithOpsSet, self).merge(x, y, merge_left))
+        root = cast(ComponentWithOps, super().merge(x, y, merge_left))
         root.ops = x.ops + y.ops
         # Clear the ops list in the non-representative component to avoid memory consumption
         if x != root:
@@ -224,9 +224,7 @@ class ComponentWithCircuitOpSet(ComponentSet):
         if not new_op:
             return None
 
-        root = cast(
-            ComponentWithCircuitOp, super(ComponentWithCircuitOpSet, self).merge(x, y, merge_left)
-        )
+        root = cast(ComponentWithCircuitOp, super().merge(x, y, merge_left))
 
         root.circuit_op = new_op
         # The merge_func can be arbitrary, so we need to recompute the component properties
