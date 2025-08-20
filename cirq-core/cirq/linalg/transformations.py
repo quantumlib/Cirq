@@ -34,7 +34,7 @@ from cirq.linalg import predicates
 RaiseValueErrorIfNotProvided: np.ndarray = np.array([])
 
 
-def reflection_matrix_pow(reflection_matrix: np.ndarray, exponent: float):
+def reflection_matrix_pow(reflection_matrix: np.ndarray, exponent: float) -> np.ndarray:
     """Raises a matrix with two opposing eigenvalues to a power.
 
     Args:
@@ -720,7 +720,7 @@ def factor_density_matrix(
     return extracted, remainder
 
 
-def transpose_state_vector_to_axis_order(t: np.ndarray, axes: Sequence[int]):
+def transpose_state_vector_to_axis_order(t: np.ndarray, axes: Sequence[int]) -> np.ndarray:
     """Transposes the axes of a state vector to a specified order.
 
     Args:
@@ -733,7 +733,7 @@ def transpose_state_vector_to_axis_order(t: np.ndarray, axes: Sequence[int]):
     return np.moveaxis(t, axes, range(len(axes)))
 
 
-def transpose_density_matrix_to_axis_order(t: np.ndarray, axes: Sequence[int]):
+def transpose_density_matrix_to_axis_order(t: np.ndarray, axes: Sequence[int]) -> np.ndarray:
     """Transposes the axes of a density matrix to a specified order.
 
     Args:
@@ -780,7 +780,9 @@ def _index_from_coordinates(s: Sequence[int], volume: Sequence[int]) -> int:
     return np.dot(s, volume)
 
 
-def transpose_flattened_array(t: np.ndarray, shape: Sequence[int], axes: Sequence[int]):
+def transpose_flattened_array(
+    t: np.ndarray, shape: Sequence[int], axes: Sequence[int]
+) -> np.ndarray:
     """Transposes a flattened array.
 
     Equivalent to np.transpose(t.reshape(shape), axes).reshape((-1,)).

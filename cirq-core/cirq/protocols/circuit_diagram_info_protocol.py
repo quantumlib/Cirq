@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import re
 from fractions import Fraction
-from typing import Any, Iterable, overload, Protocol, Sequence, TYPE_CHECKING, TypeVar, Union
+from typing import Any, Iterable, overload, Protocol, Self, Sequence, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
 import sympy
@@ -75,7 +75,7 @@ class CircuitDiagramInfo:
         self.exponent_qubit_index = exponent_qubit_index
         self.auto_exponent_parens = auto_exponent_parens
 
-    def with_wire_symbols(self, new_wire_symbols: Iterable[str]):
+    def with_wire_symbols(self, new_wire_symbols: Iterable[str]) -> CircuitDiagramInfo:
         return CircuitDiagramInfo(
             wire_symbols=new_wire_symbols,
             exponent=self.exponent,
@@ -299,7 +299,7 @@ class CircuitDiagramInfoArgs:
             return str(radians)
         return repr(radians)
 
-    def copy(self):
+    def copy(self) -> Self:
         return self.__class__(
             known_qubits=self.known_qubits,
             known_qubit_count=self.known_qubit_count,
@@ -310,7 +310,7 @@ class CircuitDiagramInfoArgs:
             transpose=self.transpose,
         )
 
-    def with_args(self, **kwargs):
+    def with_args(self, **kwargs) -> Self:
         args = self.copy()
         for arg_name, val in kwargs.items():
             setattr(args, arg_name, val)

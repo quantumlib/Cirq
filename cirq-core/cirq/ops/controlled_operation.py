@@ -124,10 +124,10 @@ class ControlledOperation(raw_types.Operation):
         )
 
     @property
-    def qubits(self):
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         return self.controls + self.sub_operation.qubits
 
-    def with_qubits(self, *new_qubits):
+    def with_qubits(self, *new_qubits) -> ControlledOperation:
         n = len(self.controls)
         return ControlledOperation(
             new_qubits[:n], self.sub_operation.with_qubits(*new_qubits[n:]), self.control_values

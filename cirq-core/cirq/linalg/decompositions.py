@@ -518,7 +518,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
     include_frame: bool = True,
     ax: mplot3d.axes3d.Axes3D | None = None,
     **kwargs,
-):
+) -> mplot3d.axes3d.Axes3D:
     r"""Plots the interaction coefficients of many two-qubit operations.
 
     Plots:

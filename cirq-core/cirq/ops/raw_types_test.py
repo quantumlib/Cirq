@@ -48,7 +48,7 @@ class ValidQid(cirq.Qid):
         self.validate_dimension(dimension)
 
     @property
-    def dimension(self):
+    def dimension(self) -> int:
         return self._dimension
 
     def with_dimension(self, dimension) -> ValidQid:
