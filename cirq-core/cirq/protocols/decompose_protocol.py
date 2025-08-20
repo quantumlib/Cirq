@@ -25,13 +25,12 @@ from typing import (
     Iterable,
     Iterator,
     overload,
+    Protocol,
     Sequence,
     TYPE_CHECKING,
     TypeVar,
     Union,
 )
-
-from typing_extensions import Protocol
 
 from cirq import devices, ops
 from cirq._doc import doc_private

@@ -16,11 +16,10 @@ from __future__ import annotations
 
 import re
 from fractions import Fraction
-from typing import Any, Iterable, overload, Sequence, TYPE_CHECKING, TypeVar, Union
+from typing import Any, Iterable, overload, Protocol, Sequence, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
 import sympy
-from typing_extensions import Protocol
 
 from cirq import protocols, value
 from cirq._doc import doc_private

@@ -18,10 +18,9 @@ from __future__ import annotations
 
 import abc
 import copy
-from typing import Any, cast, Generic, Iterator, Sequence, TYPE_CHECKING, TypeVar
+from typing import Any, cast, Generic, Iterator, Self, Sequence, TYPE_CHECKING, TypeVar
 
 import numpy as np
-from typing_extensions import Self
 
 from cirq import ops, protocols, value
 from cirq.sim.simulation_state_base import SimulationStateBase

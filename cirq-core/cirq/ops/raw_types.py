@@ -28,12 +28,12 @@ from typing import (
     Hashable,
     Iterable,
     Mapping,
+    Self,
     Sequence,
     TYPE_CHECKING,
 )
 
 import numpy as np
-from typing_extensions import Self
 
 from cirq import protocols, value
 from cirq._compat import __cirq_debug__, _method_cache_name, cached_method
