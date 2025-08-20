@@ -28,7 +28,6 @@ from typing import (
     Hashable,
     Iterable,
     Mapping,
-    Self,
     Sequence,
     TYPE_CHECKING,
 )
