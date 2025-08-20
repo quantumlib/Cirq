@@ -94,7 +94,7 @@ def act_on(
     qubits: Sequence[cirq.Qid] | None = None,
     *,
     allow_decompose: bool = True,
-):
+) -> None:
     """Applies an action to a state argument.
 
     For example, the action may be a `cirq.Operation` and the state argument may

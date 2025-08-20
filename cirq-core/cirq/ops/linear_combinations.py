@@ -473,7 +473,7 @@ class PauliSum:
 
     @classmethod
     def from_boolean_expression(
-        cls, boolean_expr: sympy.Expr, qubit_map: dict[str, cirq.Qid]
+        cls, boolean_expr: sympy.Expr, qubit_map: Mapping[str, cirq.Qid]
     ) -> PauliSum:
         """Builds the Hamiltonian representation of a Boolean expression.
 
