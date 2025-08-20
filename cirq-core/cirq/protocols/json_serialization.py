@@ -217,7 +217,7 @@ class CirqEncoder(json.JSONEncoder):
         super().__init__(*args, **kwargs)
         self._memo: dict[Any, dict] = {}
 
-    def default(self, o):
+    def default(self, o) -> Any:
         # Object with custom method?
         if hasattr(o, '_json_dict_'):
             json_dict = _json_dict_with_cirq_type(o)
@@ -519,7 +519,7 @@ def read_json(
     *,
     json_text: str | None = None,
     resolvers: Sequence[JsonResolver] | None = None,
-):
+) -> Any:
     """Read a JSON file that optionally contains cirq objects.
 
     Args:
@@ -605,7 +605,7 @@ def read_json_gzip(
     *,
     gzip_raw: bytes | None = None,
     resolvers: Sequence[JsonResolver] | None = None,
-):
+) -> Any:
     """Read a gzipped JSON file that optionally contains cirq objects.
 
     Args:

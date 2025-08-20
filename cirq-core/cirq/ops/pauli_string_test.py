@@ -2099,7 +2099,7 @@ def test_pauli_ops_identity_gate_operation(gate1: cirq.Pauli, gate2: cirq.Pauli)
     assert np.array_equal(subtraction.matrix(), unitary1 - unitary2)
 
 
-def test_pauli_gate_multiplication_with_power():
+def test_pauli_gate_multiplication_with_power() -> None:
     q = cirq.LineQubit(0)
 
     # Test all Pauli gates (X, Y, Z)
@@ -2122,7 +2122,7 @@ def test_pauli_gate_multiplication_with_power():
         assert gate**5 * gate**0 == gate**5
 
 
-def test_try_interpret_as_pauli_string():
+def test_try_interpret_as_pauli_string() -> None:
     from cirq.ops.pauli_string import _try_interpret_as_pauli_string
 
     q = cirq.LineQubit(0)

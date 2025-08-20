@@ -49,7 +49,7 @@ class SupportsPhase(Protocol):
 
 def phase_by(
     val: Any, phase_turns: float, qubit_index: int, default: TDefault = RaiseTypeErrorIfNotProvided
-):
+) -> Any:
     """Returns a phased version of the effect.
 
     For example, an X gate phased by 90 degrees would be a Y gate.
