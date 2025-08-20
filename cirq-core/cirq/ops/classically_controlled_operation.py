@@ -117,10 +117,10 @@ class ClassicallyControlledOperation(raw_types.Operation):
         return self._sub_operation.without_classical_controls()
 
     @property
-    def qubits(self):
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         return self._sub_operation.qubits
 
-    def with_qubits(self, *new_qubits):
+    def with_qubits(self, *new_qubits) -> cirq.Operation:
         return self._sub_operation.with_qubits(*new_qubits).with_classical_controls(
             *self._conditions
         )

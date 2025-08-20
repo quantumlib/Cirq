@@ -39,7 +39,7 @@ def quirk_url_to_circuit(
     quirk_url: str,
     *,
     qubits: Sequence[cirq.Qid] | None = None,
-    extra_cell_makers: dict[str, cirq.Gate] | Iterable[cirq.interop.quirk.cells.CellMaker] = (),
+    extra_cell_makers: Mapping[str, cirq.Gate] | Iterable[cirq.interop.quirk.cells.CellMaker] = (),
     max_operation_count: int = 10**6,
 ) -> cirq.Circuit:
     """Parses a Cirq circuit out of a Quirk URL.
@@ -140,7 +140,7 @@ def quirk_json_to_circuit(
     data: dict,
     *,
     qubits: Sequence[cirq.Qid] | None = None,
-    extra_cell_makers: dict[str, cirq.Gate] | Iterable[cirq.interop.quirk.cells.CellMaker] = (),
+    extra_cell_makers: Mapping[str, cirq.Gate] | Iterable[cirq.interop.quirk.cells.CellMaker] = (),
     quirk_url: str | None = None,
     max_operation_count: int = 10**6,
 ) -> cirq.Circuit:
