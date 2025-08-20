@@ -33,7 +33,6 @@ from typing import (
 )
 
 import numpy as np
-from typing_extensions import Self
 
 from cirq import protocols, value
 from cirq._compat import __cirq_debug__, _method_cache_name, cached_method
@@ -521,7 +520,7 @@ class Operation(metaclass=abc.ABCMeta):
         return protocols.qid_shape(self.qubits)
 
     @abc.abstractmethod
-    def with_qubits(self, *new_qubits: cirq.Qid) -> Self:
+    def with_qubits(self, *new_qubits: cirq.Qid) -> cirq.Operation:
         """Returns the same operation, but applied to different qubits.
 
         Args:
@@ -567,7 +566,7 @@ class Operation(metaclass=abc.ABCMeta):
 
     def transform_qubits(
         self, qubit_map: dict[cirq.Qid, cirq.Qid] | Callable[[cirq.Qid], cirq.Qid]
-    ) -> Self:
+    ) -> cirq.Operation:
         """Returns the same operation, but with different qubits.
 
         This function will return a new operation with the same gate but
@@ -769,7 +768,7 @@ class TaggedOperation(Operation):
     def gate(self) -> cirq.Gate | None:
         return self.sub_operation.gate
 
-    def with_qubits(self, *new_qubits: cirq.Qid):
+    def with_qubits(self, *new_qubits: cirq.Qid) -> TaggedOperation:
         return TaggedOperation(self.sub_operation.with_qubits(*new_qubits), *self._tags)
 
     def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
