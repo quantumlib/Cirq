@@ -124,7 +124,7 @@ class X(Number):
         return self.val == other.val
 
     def __hash__(self):
-        return hash(self.val)
+        return hash(self.val)  # pragma: no cover
 
 
 class Y(Number):
@@ -134,7 +134,7 @@ class Y(Number):
         pass
 
     def __hash__(self):
-        return hash(complex(self))
+        return hash(complex(self))  # pragma: no cover
 
 
 def test_approx_eq_number_uses__eq__() -> None:

@@ -196,7 +196,7 @@ def test_mul() -> None:
     # Unknown number type
     class UnknownNumber(numbers.Number):
         def __hash__(self):
-            return hash(complex(self))
+            return hash(complex(self))  # pragma: no cover
 
     with pytest.raises(TypeError):
         _ = UnknownNumber() * f('I')
@@ -243,7 +243,7 @@ def test_imul() -> None:
     # Unknown number type
     class UnknownNumber(numbers.Number):
         def __hash__(self):
-            return hash(complex(self))
+            return hash(complex(self))  # pragma: no cover
 
     with pytest.raises(TypeError):
         p *= UnknownNumber()
