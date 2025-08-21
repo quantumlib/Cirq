@@ -20,7 +20,6 @@ from typing import Any, TypeVar
 import numpy as np
 from typing_extensions import Protocol
 
-from cirq import linalg
 from cirq._doc import doc_private
 from cirq.protocols import qid_shape_protocol
 from cirq.protocols.apply_unitary_protocol import apply_unitaries, ApplyUnitaryArgs
@@ -112,11 +111,8 @@ def unitary(
     Raises:
         TypeError: `val` doesn't have a unitary effect and no default value was
             specified.
-        ValueError: `val` is a numpy array that is not unitary.
     """
     if isinstance(val, np.ndarray):
-        if not linalg.is_unitary(val):
-            raise ValueError("The provided numpy array is not unitary.")
         return val
 
     strats = [
