@@ -374,7 +374,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         object.__setattr__(self, '_clifford_tableau', _clifford_tableau.copy())
 
     @property
-    def clifford_tableau(self):
+    def clifford_tableau(self) -> qis.CliffordTableau:
         return self._clifford_tableau
 
     def _json_dict_(self) -> dict[str, Any]:

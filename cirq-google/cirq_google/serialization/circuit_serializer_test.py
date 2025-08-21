@@ -435,6 +435,82 @@ OPERATIONS = [
             }
         ),
     ),
+    (
+        cg.AnalogDetuneQubit(
+            length=5 * tunits.units.ns,
+            w=5 * tunits.units.ns,
+            target_freq=5 * tunits.units.GHz,
+            prev_freq=None,
+            neighbor_coupler_g_dict={'c_q0_0_q0_1': 5 * tunits.units.MHz},
+            prev_neighbor_coupler_g_dict=None,
+        ).on(Q0),
+        op_proto(
+            {
+                "analog_detune_qubit": {
+                    "length": {
+                        "arg_value": {
+                            "value_with_unit": {
+                                "units": [{"unit": "SECOND", "scale": "NANO"}],
+                                "real_value": 5,
+                            }
+                        }
+                    },
+                    "w": {
+                        "arg_value": {
+                            "value_with_unit": {
+                                "units": [{"unit": "SECOND", "scale": "NANO"}],
+                                "real_value": 5,
+                            }
+                        }
+                    },
+                    "target_freq": {
+                        "arg_value": {
+                            "value_with_unit": {
+                                "units": [{"unit": "HERTZ", "scale": "GIGA"}],
+                                "real_value": 5,
+                            }
+                        }
+                    },
+                    "neighbor_coupler_g_dict": {
+                        "entries": [
+                            {
+                                "key": {"arg_value": {"string_value": "c_q0_0_q0_1"}},
+                                "value": {
+                                    "arg_value": {
+                                        "value_with_unit": {
+                                            "units": [{"unit": "HERTZ", "scale": "MEGA"}],
+                                            "real_value": 5,
+                                        }
+                                    }
+                                },
+                            }
+                        ]
+                    },
+                    "linear_rise": True,
+                },
+                'qubit_constant_index': [0],
+            }
+        ),
+    ),
+    (
+        cg.WaitGateWithUnit(5 * tunits.units.ns, qid_shape=(2, 2))(Q0, Q1),
+        op_proto(
+            {
+                'wait_gate_with_unit': {
+                    "duration": {
+                        "arg_value": {
+                            "value_with_unit": {
+                                "units": [{"unit": "SECOND", "scale": "NANO"}],
+                                "real_value": 5,
+                            }
+                        }
+                    },
+                    "qid_shape": [2, 2],
+                },
+                'qubit_constant_index': [0, 1],
+            }
+        ),
+    ),
 ]
 
 
@@ -959,6 +1035,20 @@ def test_circuit_with_couplerpulse():
     assert cg.CIRCUIT_SERIALIZER.deserialize(msg) == circuit
 
 
+def test_circuit_with_analog_detune_coupler_only():
+    circuit = cirq.Circuit(
+        cg.AnalogDetuneCouplerOnly(
+            length=5 * tunits.units.ns,
+            w=5 * tunits.units.ns,
+            g_0=None,
+            g_max=4 * tunits.units.MHz,
+            neighbor_qubits_freq={'q0_1': 5 * tunits.units.GHz, 'q1_0': 6 * tunits.units.GHz},
+        ).on(Q0, Q1)
+    )
+    msg = cg.CIRCUIT_SERIALIZER.serialize(circuit)
+    assert cg.CIRCUIT_SERIALIZER.deserialize(msg) == circuit
+
+
 @pytest.mark.parametrize(
     'tag',
     [
@@ -976,15 +1066,13 @@ def test_circuit_with_tag(tag):
     assert nc[0].operations[0].tags == (tag,)
 
 
-@pytest.mark.filterwarnings('ignore:Unrecognized Tag .*DingDongTag')
 def test_unrecognized_tag_is_ignored():
     class DingDongTag:
         pass
 
     c = cirq.Circuit(cirq.X(cirq.q(0)).with_tags(DingDongTag()))
-    msg = cg.CIRCUIT_SERIALIZER.serialize(c)
-    nc = cg.CIRCUIT_SERIALIZER.deserialize(msg)
-    assert cirq.Circuit(cirq.X(cirq.q(0))) == nc
+    with pytest.raises(ValueError, match="Unrecognized Tag"):
+        _ = cg.CIRCUIT_SERIALIZER.serialize(c)
 
 
 @pytest.mark.filterwarnings('ignore:Unknown tag msg=phase_match')
@@ -1239,6 +1327,17 @@ def test_moments_with_tags():
     assert original_circuit == deserialized_circuit
     assert deserialized_circuit[0].tags == (DiscountTag(0.50),)
     assert deserialized_circuit[1].tags == (cg.CalibrationTag("abc"),)
+
+
+def test_op_with_raw_tags() -> None:
+    serializer = cg.CircuitSerializer()
+    original_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(1, 2)).with_tags("just_a_string_tag"))
+    deserialized_circuit = serializer.deserialize(serializer.serialize(original_circuit))
+    assert original_circuit == deserialized_circuit
+
+    op = deserialized_circuit.operation_at(cirq.GridQubit(1, 2), moment_index=0)
+    assert isinstance(op, cirq.TaggedOperation)
+    assert op.tags == ("just_a_string_tag",)
 
 
 def test_reset_gate_with_improper_argument():

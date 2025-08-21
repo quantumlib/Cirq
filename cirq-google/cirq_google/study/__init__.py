@@ -16,3 +16,4 @@
 
 from cirq_google.study.device_parameter import DeviceParameter as DeviceParameter
 from cirq_google.study.device_parameter import Metadata as Metadata
+from cirq_google.study.finite_random_variable import FiniteRandomVariable as FiniteRandomVariable

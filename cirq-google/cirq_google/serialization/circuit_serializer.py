@@ -26,6 +26,8 @@ import cirq
 from cirq_google.api import v2
 from cirq_google.experimental.ops import CouplerPulse
 from cirq_google.ops import (
+    AnalogDetuneCouplerOnly,
+    AnalogDetuneQubit,
     CompressDurationTag,
     DynamicalDecouplingTag,
     FSimViaModelTag,
@@ -33,6 +35,7 @@ from cirq_google.ops import (
     InternalTag,
     PhysicalZTag,
     SycamoreGate,
+    WaitGateWithUnit,
     WillowGate,
 )
 from cirq_google.ops.calibration_tag import CalibrationTag
@@ -260,6 +263,9 @@ class CircuitSerializer(serializer.Serializer):
             if len(gate.invert_mask):
                 # Do not serialize empty invert mask until servers support empty tuples
                 arg_func_langs.arg_to_proto(gate.invert_mask, out=msg.measurementgate.invert_mask)
+        elif isinstance(gate, WaitGateWithUnit):  # WaitGateWithUnit is subclass of WaitGate.
+            arg_func_langs.arg_to_proto(gate._duration, out=msg.wait_gate_with_unit.duration)
+            msg.wait_gate_with_unit.qid_shape.extend(gate._qid_shape)
         elif isinstance(gate, cirq.WaitGate):
             arg_func_langs.float_arg_to_proto(
                 gate.duration.total_nanos(), out=msg.waitgate.duration_nanos
@@ -300,6 +306,37 @@ class CircuitSerializer(serializer.Serializer):
                 constants=constants,
                 raw_constants=raw_constants,
             )
+        elif isinstance(gate, AnalogDetuneQubit):
+            arg_func_langs.arg_to_proto(gate.length, out=msg.analog_detune_qubit.length)
+            arg_func_langs.arg_to_proto(gate.w, out=msg.analog_detune_qubit.w)
+            arg_func_langs.arg_to_proto(gate.target_freq, out=msg.analog_detune_qubit.target_freq)
+            arg_func_langs.arg_to_proto(gate.prev_freq, out=msg.analog_detune_qubit.prev_freq)
+            arg_func_langs.dict_to_arg_mapping_proto(
+                gate.neighbor_coupler_g_dict, out=msg.analog_detune_qubit.neighbor_coupler_g_dict  # type: ignore[arg-type]
+            )
+            arg_func_langs.dict_to_arg_mapping_proto(
+                gate.prev_neighbor_coupler_g_dict,  # type: ignore[arg-type]
+                out=msg.analog_detune_qubit.prev_neighbor_coupler_g_dict,
+            )
+            msg.analog_detune_qubit.linear_rise = gate.linear_rise
+        elif isinstance(gate, AnalogDetuneCouplerOnly):
+            arg_func_langs.arg_to_proto(gate.length, out=msg.analog_detune_coupler_only.length)
+            arg_func_langs.arg_to_proto(gate.w, out=msg.analog_detune_coupler_only.w)
+            arg_func_langs.arg_to_proto(gate.g_0, out=msg.analog_detune_coupler_only.g_0)
+            arg_func_langs.arg_to_proto(gate.g_max, out=msg.analog_detune_coupler_only.g_max)
+            arg_func_langs.arg_to_proto(
+                gate.g_ramp_exponent, out=msg.analog_detune_coupler_only.g_ramp_exponent
+            )
+            msg.analog_detune_coupler_only.neighbor_qubits_freq.extend(
+                [arg_func_langs.arg_to_proto(q) for q in gate.neighbor_qubits_freq]
+            )
+            msg.analog_detune_coupler_only.prev_neighbor_qubits_freq.extend(
+                [arg_func_langs.arg_to_proto(q) for q in gate.prev_neighbor_qubits_freq]
+            )
+            msg.analog_detune_coupler_only.interpolate_coupling_cal = gate.interpolate_coupling_cal
+            msg.analog_detune_coupler_only.analog_cal_for_pulseshaping = (
+                gate.analog_cal_for_pulseshaping
+            )
         else:
             raise ValueError(f'Cannot serialize op {op!r} of type {type(gate)}')
 
@@ -335,7 +372,12 @@ class CircuitSerializer(serializer.Serializer):
             elif getattr(tag, 'to_proto', None) is not None:
                 tag.to_proto(constant.tag_value)  # type: ignore
             else:
-                warnings.warn(f'Unrecognized Tag {tag}, not serializing.')
+                # Try to serialize raw values like strings
+                try:
+                    arg_func_langs.arg_to_proto(tag, out=constant.tag_value.raw_value)
+                except ValueError:
+                    # Re-raise with a more precise message
+                    raise ValueError(f'Unrecognized Tag {tag}, cannot serialize.')
             if constant.WhichOneof('const_value'):
                 constants.append(constant)
                 if raw_constants is not None:
@@ -792,6 +834,61 @@ class CircuitSerializer(serializer.Serializer):
                     f'Unsupported serialized noise channel with type "{which_channel_type}".'
                     f'\n\noperation_proto:\n{operation_proto}'
                 )  # pragma: nocover
+        elif which_gate_type == 'analog_detune_qubit':
+            adq_gate = AnalogDetuneQubit(
+                length=arg_func_langs.arg_from_proto(operation_proto.analog_detune_qubit.length),
+                w=arg_func_langs.arg_from_proto(operation_proto.analog_detune_qubit.w),
+                target_freq=arg_func_langs.arg_from_proto(
+                    operation_proto.analog_detune_qubit.target_freq
+                ),
+                prev_freq=arg_func_langs.arg_from_proto(
+                    operation_proto.analog_detune_qubit.prev_freq
+                ),
+                neighbor_coupler_g_dict=arg_func_langs.dict_from_arg_mapping_proto(  # type: ignore[arg-type]
+                    operation_proto.analog_detune_qubit.neighbor_coupler_g_dict
+                ),
+                prev_neighbor_coupler_g_dict=arg_func_langs.dict_from_arg_mapping_proto(  # type: ignore[arg-type]
+                    operation_proto.analog_detune_qubit.prev_neighbor_coupler_g_dict
+                ),
+                linear_rise=operation_proto.analog_detune_qubit.linear_rise,
+            )
+            op = adq_gate(*qubits)
+        elif which_gate_type == 'analog_detune_coupler_only':
+            if nf := operation_proto.analog_detune_coupler_only.neighbor_qubits_freq:
+                neighbor_qubits_freq = tuple(arg_func_langs.arg_from_proto(f) for f in nf)
+            else:
+                neighbor_qubits_freq = (None, None)  # pragma: no cover
+            if pnf := operation_proto.analog_detune_coupler_only.prev_neighbor_qubits_freq:
+                prev_neighbor_qubits_freq = tuple(arg_func_langs.arg_from_proto(f) for f in pnf)
+            else:
+                prev_neighbor_qubits_freq = (None, None)  # pragma: no cover
+
+            adco_gate = AnalogDetuneCouplerOnly(
+                length=arg_func_langs.arg_from_proto(
+                    operation_proto.analog_detune_coupler_only.length
+                ),
+                w=arg_func_langs.arg_from_proto(operation_proto.analog_detune_coupler_only.w),
+                g_0=arg_func_langs.arg_from_proto(operation_proto.analog_detune_coupler_only.g_0),
+                g_max=arg_func_langs.arg_from_proto(
+                    operation_proto.analog_detune_coupler_only.g_max
+                ),
+                g_ramp_exponent=arg_func_langs.arg_from_proto(
+                    operation_proto.analog_detune_coupler_only.g_ramp_exponent
+                ),
+                neighbor_qubits_freq=neighbor_qubits_freq,  # type: ignore[arg-type]
+                prev_neighbor_qubits_freq=prev_neighbor_qubits_freq,  # type: ignore[arg-type]
+                interpolate_coupling_cal=operation_proto.analog_detune_coupler_only.interpolate_coupling_cal,
+                analog_cal_for_pulseshaping=operation_proto.analog_detune_coupler_only.analog_cal_for_pulseshaping,
+            )
+            op = adco_gate(*qubits)
+        elif which_gate_type == 'wait_gate_with_unit':
+            wg = WaitGateWithUnit(
+                duration=arg_func_langs.arg_from_proto(
+                    operation_proto.wait_gate_with_unit.duration
+                ),
+                qid_shape=operation_proto.wait_gate_with_unit.qid_shape,
+            )
+            op = wg(*qubits)
         else:
             raise ValueError(
                 f'Unsupported serialized gate with type "{which_gate_type}".'
@@ -882,6 +979,8 @@ class CircuitSerializer(serializer.Serializer):
             return InternalTag.from_proto(msg)
         elif which == 'compress_duration':
             return CompressDurationTag()
+        elif which == 'raw_value':
+            return arg_func_langs.arg_from_proto(msg.raw_value)
         else:
             warnings.warn(f'Unknown tag {msg=}, ignoring')
             return None

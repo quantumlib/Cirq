@@ -66,7 +66,7 @@ def _node_and_coordinates(
 
 def draw_gridlike(
     graph: nx.Graph, ax: plt.Axes | None = None, tilted: bool = True, **kwargs
-) -> dict[Any, tuple[int, int]]:
+) -> dict[_GRIDLIKE_NODE, tuple[int, int]]:
     """Draw a grid-like graph using Matplotlib.
 
     This wraps nx.draw_networkx to produce a matplotlib drawing of the graph. Nodes
@@ -220,7 +220,7 @@ class TiltedSquareLattice(NamedTopology):
         n_nodes += ((self.width + 1) // 2) * ((self.height + 1) // 2)
         object.__setattr__(self, 'n_nodes', n_nodes)
 
-    def draw(self, ax=None, tilted=True, **kwargs):
+    def draw(self, ax=None, tilted=True, **kwargs) -> dict[_GRIDLIKE_NODE, tuple[int, int]]:
         """Draw this graph using Matplotlib.
 
         Args:
@@ -301,7 +301,7 @@ def get_placements(
 
 def _is_valid_placement_helper(
     big_graph: nx.Graph, small_mapped: nx.Graph, small_to_big_mapping: dict
-):
+) -> bool:
     """Helper function for `is_valid_placement` that assumes the mapping of `small_graph` has
     already occurred.
 
@@ -311,7 +311,9 @@ def _is_valid_placement_helper(
     return (subgraph.nodes == small_mapped.nodes) and (subgraph.edges == small_mapped.edges)
 
 
-def is_valid_placement(big_graph: nx.Graph, small_graph: nx.Graph, small_to_big_mapping: dict):
+def is_valid_placement(
+    big_graph: nx.Graph, small_graph: nx.Graph, small_to_big_mapping: dict
+) -> bool:
     """Return whether the given placement is a valid placement of small_graph onto big_graph.
 
     This is done by making sure all the nodes and edges on the mapped version of `small_graph`
@@ -338,7 +340,7 @@ def draw_placements(
     axes: Sequence[plt.Axes] | None = None,
     tilted: bool = True,
     bad_placement_callback: Callable[[plt.Axes, int], None] | None = None,
-):
+) -> None:
     """Draw a visualization of placements from small_graph onto big_graph using Matplotlib.
 
     The entire `big_graph` will be drawn with default blue colored nodes. `small_graph` nodes
