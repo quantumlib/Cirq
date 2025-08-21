@@ -429,7 +429,7 @@ def _strat_act_on_state_vector_from_mixture(
     if index is None:
         return NotImplemented
     if protocols.is_measurement(action):
-        key = protocols.measurement_key_name(action)
+        key = protocols.measurement_key_obj(action)
         args._classical_data.record_channel_measurement(key, index)
     return True
 
@@ -441,6 +441,6 @@ def _strat_act_on_state_vector_from_channel(
     if index is None:
         return NotImplemented
     if protocols.is_measurement(action):
-        key = protocols.measurement_key_name(action)
+        key = protocols.measurement_key_obj(action)
         args._classical_data.record_channel_measurement(key, index)
     return True
