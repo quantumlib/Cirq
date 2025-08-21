@@ -107,26 +107,38 @@ def test_serialize_many_circuits_implicit_num_qubits():
     assert result.input['qubits'] == 3
 
 
-def test_serialize_single_circuit_settings():
+def test_serialize_single_circuit():
     q0 = cirq.LineQubit(2)
     circuit = cirq.Circuit(cirq.X(q0))
     serializer = ionq.Serializer()
     result = serializer.serialize_single_circuit(
-        circuit, job_settings={"foo": "bar", "key": "heart"}
+        circuit,
+        job_settings={"foo": "bar", "key": "heart"},
+        compilation={"opt": 3, "precision": "1E-4"},
+        error_mitigation={'debiasing': True},
+        noise={"model": "default", "seed": 7},
     )
     assert result == ionq.SerializedProgram(
         input={'gateset': 'qis', 'qubits': 3, 'circuit': [{'gate': 'x', 'targets': [2]}]},
         metadata={},
         settings={"foo": "bar", "key": "heart"},
+        compilation={"opt": 3, "precision": "1E-4"},
+        error_mitigation={'debiasing': True},
+        noise={"model": "default", "seed": 7},
+        dry_run=False,
     )
 
 
-def test_serialize_many_circuits_settings():
+def test_serialize_many_circuits():
     q0 = cirq.LineQubit(2)
     circuit = cirq.Circuit(cirq.X(q0))
     serializer = ionq.Serializer()
     result = serializer.serialize_many_circuits(
-        [circuit], job_settings={"foo": "bar", "key": "heart"}
+        [circuit],
+        job_settings={"foo": "bar", "key": "heart"},
+        compilation={"opt": 3, "precision": "1E-4"},
+        error_mitigation={'debiasing': False},
+        noise={"model": "default", "seed": 7},
     )
     assert result == ionq.SerializedProgram(
         input={
@@ -136,6 +148,10 @@ def test_serialize_many_circuits_settings():
         },
         metadata={'measurements': '[{}]', 'qubit_numbers': '[3]'},
         settings={"foo": "bar", "key": "heart"},
+        compilation={"opt": 3, "precision": "1E-4"},
+        error_mitigation={'debiasing': False},
+        noise={"model": "default", "seed": 7},
+        dry_run=False,
     )
 
 
@@ -186,6 +202,10 @@ def test_serialize_single_circuit_pow_gates():
                 },
                 metadata={},
                 settings={},
+                compilation={},
+                error_mitigation={},
+                noise={},
+                dry_run=False,
             )
 
 
@@ -206,6 +226,10 @@ def test_serialize_many_circuits_pow_gates():
                 },
                 metadata={'measurements': '[{}]', 'qubit_numbers': '[1]'},
                 settings={},
+                compilation={},
+                error_mitigation={},
+                noise={},
+                dry_run=False,
             )
 
 
@@ -219,6 +243,10 @@ def test_serialize_single_circuit_pauli_gates():
             input={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': name, 'targets': [0]}]},
             metadata={},
             settings={},
+            compilation={},
+            error_mitigation={},
+            noise={},
+            dry_run=False,
         )
 
 
@@ -236,6 +264,10 @@ def test_serialize_many_circuits_pauli_gates():
             },
             metadata={'measurements': '[{}]', 'qubit_numbers': '[1]'},
             settings={},
+            compilation={},
+            error_mitigation={},
+            noise={},
+            dry_run=False,
         )
 
 
@@ -248,6 +280,10 @@ def test_serialize_single_circuit_sqrt_x_gate():
         input={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': 'v', 'targets': [0]}]},
         metadata={},
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
     circuit = cirq.Circuit(cirq.X(q0) ** (-0.5))
     result = serializer.serialize_single_circuit(circuit)
@@ -255,6 +291,10 @@ def test_serialize_single_circuit_sqrt_x_gate():
         input={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': 'vi', 'targets': [0]}]},
         metadata={},
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
 
 
@@ -271,6 +311,10 @@ def test_serialize_many_circuits_sqrt_x_gate():
         },
         metadata={'measurements': '[{}]', 'qubit_numbers': '[1]'},
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
     circuit = cirq.Circuit(cirq.X(q0) ** (-0.5))
     result = serializer.serialize_many_circuits([circuit])
@@ -282,6 +326,10 @@ def test_serialize_many_circuits_sqrt_x_gate():
         },
         metadata={'measurements': '[{}]', 'qubit_numbers': '[1]'},
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
 
 
@@ -294,6 +342,10 @@ def test_serialize_single_circuit_s_gate():
         input={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': 's', 'targets': [0]}]},
         metadata={},
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
     circuit = cirq.Circuit(cirq.Z(q0) ** (-0.5))
     result = serializer.serialize_single_circuit(circuit)
@@ -301,6 +353,10 @@ def test_serialize_single_circuit_s_gate():
         input={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': 'si', 'targets': [0]}]},
         metadata={},
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
 
 
@@ -317,6 +373,10 @@ def test_serialize_many_circuits_s_gate():
         },
         metadata={'measurements': '[{}]', 'qubit_numbers': '[1]'},
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
     circuit = cirq.Circuit(cirq.Z(q0) ** (-0.5))
     result = serializer.serialize_many_circuits([circuit])
@@ -328,6 +388,10 @@ def test_serialize_many_circuits_s_gate():
         },
         metadata={'measurements': '[{}]', 'qubit_numbers': '[1]'},
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
 
 
@@ -340,6 +404,10 @@ def test_serialize_single_circuit_h_gate():
         input={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': 'h', 'targets': [0]}]},
         metadata={},
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
 
     with pytest.raises(ValueError, match=r'H\*\*0.5'):
@@ -360,6 +428,10 @@ def test_serialize_many_circuits_h_gate():
         },
         metadata={'measurements': '[{}]', 'qubit_numbers': '[1]'},
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
 
     with pytest.raises(ValueError, match=r'H\*\*0.5'):
@@ -376,6 +448,10 @@ def test_serialize_single_circuit_t_gate():
         input={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': 't', 'targets': [0]}]},
         metadata={},
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
     circuit = cirq.Circuit(cirq.Z(q0) ** (-0.25))
     result = serializer.serialize_single_circuit(circuit)
@@ -383,6 +459,10 @@ def test_serialize_single_circuit_t_gate():
         input={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': 'ti', 'targets': [0]}]},
         metadata={},
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
 
 
@@ -399,6 +479,10 @@ def test_serialize_many_circuits_t_gate():
         },
         metadata={'measurements': '[{}]', 'qubit_numbers': '[1]'},
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
     circuit = cirq.Circuit(cirq.Z(q0) ** (-0.25))
     result = serializer.serialize_many_circuits([circuit])
@@ -410,6 +494,10 @@ def test_serialize_many_circuits_t_gate():
         },
         metadata={'measurements': '[{}]', 'qubit_numbers': '[1]'},
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
 
 
@@ -428,6 +516,10 @@ def test_serialize_single_circuit_parity_pow_gate():
                 },
                 metadata={},
                 settings={},
+                compilation={},
+                error_mitigation={},
+                noise={},
+                dry_run=False,
             )
 
 
@@ -452,6 +544,10 @@ def test_serialize__many_circuits_parity_pow_gate():
                 },
                 metadata={'measurements': '[{}]', 'qubit_numbers': '[2]'},
                 settings={},
+                compilation={},
+                error_mitigation={},
+                noise={},
+                dry_run=False,
             )
 
 
@@ -468,6 +564,10 @@ def test_serialize_single_circuit_cnot_gate():
         },
         metadata={},
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
 
     with pytest.raises(ValueError, match=r'CNOT\*\*0.5'):
@@ -488,6 +588,10 @@ def test_serialize_many_circuits_cnot_gate():
         },
         metadata={'measurements': '[{}]', 'qubit_numbers': '[2]'},
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
 
     with pytest.raises(ValueError, match=r'CNOT\*\*0.5'):
@@ -504,6 +608,10 @@ def test_serialize_single_circuit_swap_gate():
         input={'gateset': 'qis', 'qubits': 2, 'circuit': [{'gate': 'swap', 'targets': [0, 1]}]},
         metadata={},
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
 
     with pytest.raises(ValueError, match=r'SWAP\*\*0.5'):
@@ -524,6 +632,10 @@ def test_serialize_many_circuits_swap_gate():
         },
         metadata={'measurements': '[{}]', 'qubit_numbers': '[2]'},
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
 
     with pytest.raises(ValueError, match=r'SWAP\*\*0.5'):
@@ -557,6 +669,10 @@ def test_serialize_single_circuit_pauli_string_phasor_gate():
         },
         metadata={},
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
 
 
@@ -612,6 +728,10 @@ def test_serialize_many_circuits_pauli_string_phasor_gate():
         },
         metadata={'measurements': '[{}, {}]', 'qubit_numbers': '[4, 3]'},
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
 
 
@@ -649,6 +769,10 @@ def test_serialize_single_circuit_measurement_gate():
         input={'gateset': 'native', 'qubits': 1, 'circuit': []},
         metadata={'measurement0': f'tomyheart{chr(31)}0'},
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
 
 
@@ -664,6 +788,10 @@ def test_serialize_many_circuits_measurement_gate():
             'qubit_numbers': '[1]',
         },
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
 
 
@@ -676,6 +804,10 @@ def test_serialize_single_circuit_measurement_gate_target_order():
         input={'gateset': 'native', 'qubits': 3, 'circuit': []},
         metadata={'measurement0': f'tomyheart{chr(31)}2,0'},
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
 
 
@@ -691,6 +823,10 @@ def test_serialize_many_circuits_measurement_gate_target_order():
             'qubit_numbers': '[3]',
         },
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
 
 
@@ -735,6 +871,10 @@ def test_serialize_single_circuit_native_gates():
         },
         metadata={},
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
 
 
@@ -762,6 +902,10 @@ def test_serialize_many_circuits_native_gates():
         },
         metadata={'measurements': '[{}]', 'qubit_numbers': '[3]'},
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
 
 
@@ -792,6 +936,10 @@ def test_serialize_single_circuit_measurement_gate_multiple_keys():
         input={'gateset': 'native', 'qubits': 2, 'circuit': []},
         metadata={'measurement0': f'a{chr(31)}0{chr(30)}b{chr(31)}1'},
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
 
 
@@ -807,6 +955,10 @@ def test_serialize_many_circuits_measurement_gate_multiple_keys():
             'qubit_numbers': '[2]',
         },
         settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
     )
 
 

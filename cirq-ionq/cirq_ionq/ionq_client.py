@@ -160,6 +160,17 @@ class _IonQClient:
                 json['settings'] = {}
             json['settings']['error_mitigation'] = serialized_program.error_mitigation
 
+        if serialized_program.compilation:
+            if not 'settings' in json.keys():
+                json['settings'] = {}
+            json['settings']['compilation'] = serialized_program.compilation
+
+        if serialized_program.noise:
+            json['noise'] = serialized_program.noise
+
+        if serialized_program.dry_run:
+            json['dry_run'] = serialized_program.dry_run
+
         if extra_query_params:
             json.update(extra_query_params)
 

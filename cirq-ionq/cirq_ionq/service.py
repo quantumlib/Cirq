@@ -124,19 +124,20 @@ class Service:
                 Not available on all backends. Set by default on some hardware systems. See
                 `IonQ API Job Creation <https://docs.ionq.com/api-reference/v0.4/jobs/create-job>`_  and
                 `IonQ Debiasing and Sharpening <https://ionq.com/resources/debiasing-and-sharpening>`_ for details.
-                Valid keys include: ``debiasing`` False or Object.
+                Valid keys include: ``debiasing`` False or True.
                 - 'debiasing': A boolean indicating whether to use the debiasing technique for
                   aggregating results. This technique is used to reduce the bias in the results
                   caused by measurement error and can improve the accuracy of the output.
             sharpen: A boolean that determines how to aggregate error mitigated.
                 If True, apply majority vote mitigation; if False, apply average mitigation. See
                 `IonQ Debiasing and Sharpening <https://ionq.com/resources/debiasing-and-sharpening>`_ for details.
-            noise (dict): {"model": str, "seed": int or None}. Defaults to None.
+            noise (dict): {"model": str (required), "seed": int (optional)}. Defaults to None. Available noise
+                models: ideal, aria-1, aria-2, forte-1, forte-enterprise-1
             dry_run: If True, the job will be submitted by the API client but not processed remotely.
                 Useful for obtaining cost estimates. Defaults to False.
             metadata (dict): optional metadata to attach to the job. Defaults to None.
             extra_query_params: Specify any parameters to include in the request.
-
+            
         Returns:
             A `cirq.Result` for running the circuit.
         """
@@ -194,14 +195,15 @@ class Service:
                 Not available on all backends. Set by default on some hardware systems. See
                 `IonQ API Job Creation <https://docs.ionq.com/api-reference/v0.4/jobs/create-job>`_  and
                 `IonQ Debiasing and Sharpening <https://ionq.com/resources/debiasing-and-sharpening>`_ for details.
-                Valid keys include: ``debiasing`` False or Object.
+                Valid keys include: ``debiasing`` False or True.
                 - 'debiasing': A boolean indicating whether to use the debiasing technique for
                   aggregating results. This technique is used to reduce the bias in the results
                   caused by measurement error and can improve the accuracy of the output.
             sharpen: A boolean that determines how to aggregate error mitigated.
                 If True, apply majority vote mitigation; if False, apply average mitigation. See
                 `IonQ Debiasing and Sharpening <https://ionq.com/resources/debiasing-and-sharpening>`_ for details.
-            noise (dict): {"model": str, "seed": int or None}. Defaults to None.
+            noise (dict): {"model": str (required), "seed": int (optional)}. Defaults to None. Available noise
+                models: ideal, aria-1, aria-2, forte-1, forte-enterprise-1
             dry_run: If True, the job will be submitted by the API client but not processed remotely.
                 Useful for obtaining cost estimates. Defaults to False.
             metadata (dict): optional metadata to attach to the job. Defaults to None.
@@ -278,13 +280,21 @@ class Service:
             target: Where to run the job. Can be 'qpu' or 'simulator'.
             compilation {"opt": int, "precision": str}: settings for compilation when creating a job
                 default values: {"opt": 0, "precision": "1E-3"}
-            error_mitigation: A dictionary of error mitigation settings. Valid keys include:
-                - 'debias': A boolean indicating whether to use the debiasing technique for
+            error_mitigation (dict): settings for error mitigation when creating a job. Defaults to None.
+                Not available on all backends. Set by default on some hardware systems. See
+                `IonQ API Job Creation <https://docs.ionq.com/api-reference/v0.4/jobs/create-job>`_  and
+                `IonQ Debiasing and Sharpening <https://ionq.com/resources/debiasing-and-sharpening>`_ for details.
+                Valid keys include: ``debiasing`` False or True.
+                - 'debiasing': A boolean indicating whether to use the debiasing technique for
                   aggregating results. This technique is used to reduce the bias in the results
                   caused by measurement error and can improve the accuracy of the output.
+            sharpen: A boolean that determines how to aggregate error mitigated.
+                If True, apply majority vote mitigation; if False, apply average mitigation. See
+                `IonQ Debiasing and Sharpening <https://ionq.com/resources/debiasing-and-sharpening>`_ for details.
+            noise (dict): {"model": str (required), "seed": int (optional)}. Defaults to None. Available noise
+                models: ideal, aria-1, aria-2, forte-1, forte-enterprise-1
             dry_run: If True, the job will be submitted by the API client but not processed remotely.
                 Useful for obtaining cost estimates. Defaults to False.
-            noise (dict): {"model": str, "seed": int or None}. Defaults to None.
             metadata (dict): optional metadata to attach to the job. Defaults to None.
             extra_query_params: Specify any parameters to include in the request.
 
@@ -336,13 +346,21 @@ class Service:
             target: Where to run the job. Can be 'qpu' or 'simulator'.
             compilation {"opt": int, "precision": str}: settings for compilation when creating a job
                 default values: {"opt": 0, "precision": "1E-3"}
-            error_mitigation: A dictionary of error mitigation settings. Valid keys include:
-                - 'debias': A boolean indicating whether to use the debiasing technique for
+            error_mitigation (dict): settings for error mitigation when creating a job. Defaults to None.
+                Not available on all backends. Set by default on some hardware systems. See
+                `IonQ API Job Creation <https://docs.ionq.com/api-reference/v0.4/jobs/create-job>`_  and
+                `IonQ Debiasing and Sharpening <https://ionq.com/resources/debiasing-and-sharpening>`_ for details.
+                Valid keys include: ``debiasing`` False or True.
+                - 'debiasing': A boolean indicating whether to use the debiasing technique for
                   aggregating results. This technique is used to reduce the bias in the results
                   caused by measurement error and can improve the accuracy of the output.
+            sharpen: A boolean that determines how to aggregate error mitigated.
+                If True, apply majority vote mitigation; if False, apply average mitigation. See
+                `IonQ Debiasing and Sharpening <https://ionq.com/resources/debiasing-and-sharpening>`_ for details.
+            noise (dict): {"model": str (required), "seed": int (optional)}. Defaults to None. Available noise
+                models: ideal, aria-1, aria-2, forte-1, forte-enterprise-1
             dry_run: If True, the job will be submitted by the API client but not processed remotely.
                 Useful for obtaining cost estimates. Defaults to False.
-            noise (dict): {"model": str, "seed": int or None}. Defaults to None.
             metadata (dict): optional metadata to attach to the job. Defaults to None.
             extra_query_params: Specify any parameters to include in the request.
 

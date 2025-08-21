@@ -51,15 +51,19 @@ class SerializedProgram:
         settings: A dictionary of settings which can override behavior for this circuit when
             run on IonQ hardware.
         metadata: A dictionary whose keys store information about the measurements in the circuit.
+        compilation: {"opt": int, "precision": str}, settings for compilation when creating a job
+        error_mitigation: {'debiasing': bool} settings for error mitigation when creating a job
+        noise: Dictionary, {"model": str (required), "seed": int (optional)}
+        dry_run: If True, the job will be submitted by the API client but not processed remotely.
     """
 
     input: dict
     settings: dict
     metadata: dict
-    error_mitigation: dict | None = None
-    noise: dict | None = None
-    compilation: dict | None = None
-    dry_run: bool = False
+    compilation: dict
+    error_mitigation: dict
+    noise: dict
+    dry_run: bool
 
 
 class Serializer:
@@ -139,10 +143,10 @@ class Serializer:
         return SerializedProgram(
             input=input,
             settings=(job_settings or {}),
-            compilation=compilation,
-            error_mitigation=error_mitigation,
-            noise=noise,
-            metadata=metadata,
+            compilation=(compilation or {}),
+            error_mitigation=(error_mitigation or {}),
+            noise=(noise or {}),
+            metadata=(metadata or {}),
             dry_run=dry_run,
         )
 
@@ -211,10 +215,10 @@ class Serializer:
         return SerializedProgram(
             input=input,
             settings=(job_settings or {}),
-            compilation=compilation,
-            error_mitigation=error_mitigation,
-            noise=noise,
-            metadata=metadata,
+            compilation=(compilation or {}),
+            error_mitigation=(error_mitigation or {}),
+            noise=(noise or {}),
+            metadata=(metadata or {}),
             dry_run=dry_run,
         )
 
