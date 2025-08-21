@@ -117,23 +117,18 @@ class ClassicallyControlledOperation(raw_types.Operation):
         return self._sub_operation.without_classical_controls()
 
     @property
-    def qubits(self):
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         return self._sub_operation.qubits
 
-    def with_qubits(self, *new_qubits):
+    def with_qubits(self, *new_qubits) -> cirq.Operation:
         return self._sub_operation.with_qubits(*new_qubits).with_classical_controls(
             *self._conditions
         )
 
-    def _decompose_(self):
-        return self._decompose_with_context_()
-
-    def _decompose_with_context_(self, context: cirq.DecompositionContext | None = None):
-        result = protocols.decompose_once(
-            self._sub_operation, NotImplemented, flatten=False, context=context
-        )
-        if result is NotImplemented:
-            return NotImplemented
+    def _decompose_with_context_(self, *, context: cirq.DecompositionContext):
+        result = protocols.decompose_once(self._sub_operation, None, flatten=False, context=context)
+        if result is None:
+            return None
 
         return op_tree.transform_op_tree(
             result, lambda op: ClassicallyControlledOperation(op, self._conditions)

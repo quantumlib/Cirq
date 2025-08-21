@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, cast, Hashable, Sequence, TYPE_CHECKING
+from typing import Any, Callable, cast, Hashable, Iterable, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq.ops import global_phase_op, op_tree, raw_types
@@ -105,8 +105,8 @@ class GateFamily:
         name: str | None = None,
         description: str | None = None,
         ignore_global_phase: bool = True,
-        tags_to_accept: Sequence[Hashable] = (),
-        tags_to_ignore: Sequence[Hashable] = (),
+        tags_to_accept: Iterable[Hashable] = (),
+        tags_to_ignore: Iterable[Hashable] = (),
     ) -> None:
         """Init GateFamily.
 
@@ -416,13 +416,6 @@ class Gateset:
         g = item if isinstance(item, raw_types.Gate) else item.gate
         assert g is not None, f'`item`: {item} must be a gate or have a valid `item.gate`'
 
-        if g in self._instance_gate_families:
-            assert item in self._instance_gate_families[g], (
-                f"{item} instance matches {self._instance_gate_families[g]} but "
-                f"is not accepted by it."
-            )
-            return True
-
         for gate_mro_type in type(g).mro():
             if gate_mro_type in self._type_gate_families:
                 assert item in self._type_gate_families[gate_mro_type], (
@@ -430,6 +423,13 @@ class Gateset:
                     f"{self._type_gate_families[gate_mro_type]} but is not accepted by it."
                 )
                 return True
+
+        if g in self._instance_gate_families:
+            assert item in self._instance_gate_families[g], (
+                f"{item} instance matches {self._instance_gate_families[g]} but "
+                f"is not accepted by it."
+            )
+            return True
 
         return any(item in gate_family for gate_family in self._gates)
 

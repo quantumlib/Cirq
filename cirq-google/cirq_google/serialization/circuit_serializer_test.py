@@ -1066,15 +1066,13 @@ def test_circuit_with_tag(tag):
     assert nc[0].operations[0].tags == (tag,)
 
 
-@pytest.mark.filterwarnings('ignore:Unrecognized Tag .*DingDongTag')
 def test_unrecognized_tag_is_ignored():
     class DingDongTag:
         pass
 
     c = cirq.Circuit(cirq.X(cirq.q(0)).with_tags(DingDongTag()))
-    msg = cg.CIRCUIT_SERIALIZER.serialize(c)
-    nc = cg.CIRCUIT_SERIALIZER.deserialize(msg)
-    assert cirq.Circuit(cirq.X(cirq.q(0))) == nc
+    with pytest.raises(ValueError, match="Unrecognized Tag"):
+        _ = cg.CIRCUIT_SERIALIZER.serialize(c)
 
 
 @pytest.mark.filterwarnings('ignore:Unknown tag msg=phase_match')
@@ -1329,6 +1327,17 @@ def test_moments_with_tags():
     assert original_circuit == deserialized_circuit
     assert deserialized_circuit[0].tags == (DiscountTag(0.50),)
     assert deserialized_circuit[1].tags == (cg.CalibrationTag("abc"),)
+
+
+def test_op_with_raw_tags() -> None:
+    serializer = cg.CircuitSerializer()
+    original_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(1, 2)).with_tags("just_a_string_tag"))
+    deserialized_circuit = serializer.deserialize(serializer.serialize(original_circuit))
+    assert original_circuit == deserialized_circuit
+
+    op = deserialized_circuit.operation_at(cirq.GridQubit(1, 2), moment_index=0)
+    assert isinstance(op, cirq.TaggedOperation)
+    assert op.tags == ("just_a_string_tag",)
 
 
 def test_reset_gate_with_improper_argument():

@@ -24,11 +24,11 @@ import cirq
 
 
 class ExampleQuantumState(cirq.QuantumStateRepresentation):
-    def copy(self, deep_copy_buffers=True):
-        pass
+    def copy(self, deep_copy_buffers=True) -> Self:
+        return self.__class__()  # pragma: no cover
 
-    def measure(self, axes, seed=None):
-        pass
+    def measure(self, axes, seed=None) -> list[int]:
+        return []  # pragma: no cover
 
 
 class ExampleSimulationState(cirq.SimulationState):

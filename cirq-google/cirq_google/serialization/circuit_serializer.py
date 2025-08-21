@@ -372,7 +372,12 @@ class CircuitSerializer(serializer.Serializer):
             elif getattr(tag, 'to_proto', None) is not None:
                 tag.to_proto(constant.tag_value)  # type: ignore
             else:
-                warnings.warn(f'Unrecognized Tag {tag}, not serializing.')
+                # Try to serialize raw values like strings
+                try:
+                    arg_func_langs.arg_to_proto(tag, out=constant.tag_value.raw_value)
+                except ValueError:
+                    # Re-raise with a more precise message
+                    raise ValueError(f'Unrecognized Tag {tag}, cannot serialize.')
             if constant.WhichOneof('const_value'):
                 constants.append(constant)
                 if raw_constants is not None:
@@ -974,6 +979,8 @@ class CircuitSerializer(serializer.Serializer):
             return InternalTag.from_proto(msg)
         elif which == 'compress_duration':
             return CompressDurationTag()
+        elif which == 'raw_value':
+            return arg_func_langs.arg_from_proto(msg.raw_value)
         else:
             warnings.warn(f'Unknown tag {msg=}, ignoring')
             return None

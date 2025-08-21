@@ -33,7 +33,6 @@ from typing import (
 )
 
 import numpy as np
-from typing_extensions import Self
 
 from cirq import protocols, value
 from cirq._compat import __cirq_debug__, _method_cache_name, cached_method
@@ -521,7 +520,7 @@ class Operation(metaclass=abc.ABCMeta):
         return protocols.qid_shape(self.qubits)
 
     @abc.abstractmethod
-    def with_qubits(self, *new_qubits: cirq.Qid) -> Self:
+    def with_qubits(self, *new_qubits: cirq.Qid) -> cirq.Operation:
         """Returns the same operation, but applied to different qubits.
 
         Args:
@@ -567,7 +566,7 @@ class Operation(metaclass=abc.ABCMeta):
 
     def transform_qubits(
         self, qubit_map: dict[cirq.Qid, cirq.Qid] | Callable[[cirq.Qid], cirq.Qid]
-    ) -> Self:
+    ) -> cirq.Operation:
         """Returns the same operation, but with different qubits.
 
         This function will return a new operation with the same gate but
@@ -769,7 +768,7 @@ class TaggedOperation(Operation):
     def gate(self) -> cirq.Gate | None:
         return self.sub_operation.gate
 
-    def with_qubits(self, *new_qubits: cirq.Qid):
+    def with_qubits(self, *new_qubits: cirq.Qid) -> TaggedOperation:
         return TaggedOperation(self.sub_operation.with_qubits(*new_qubits), *self._tags)
 
     def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
@@ -828,12 +827,7 @@ class TaggedOperation(Operation):
     def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['sub_operation', 'tags'])
 
-    def _decompose_(self) -> cirq.OP_TREE:
-        return self._decompose_with_context_()
-
-    def _decompose_with_context_(
-        self, context: cirq.DecompositionContext | None = None
-    ) -> cirq.OP_TREE:
+    def _decompose_with_context_(self, *, context: cirq.DecompositionContext) -> cirq.OP_TREE:
         return protocols.decompose_once(
             self.sub_operation, default=None, flatten=False, context=context
         )
@@ -983,11 +977,8 @@ class _InverseCompositeGate(Gate):
             return self._original
         return NotImplemented
 
-    def _decompose_(self, qubits):
-        return self._decompose_with_context_(qubits)
-
     def _decompose_with_context_(
-        self, qubits: Sequence[cirq.Qid], context: cirq.DecompositionContext | None = None
+        self, qubits: Sequence[cirq.Qid], *, context: cirq.DecompositionContext
     ) -> cirq.OP_TREE:
         return protocols.inverse(
             protocols.decompose_once_with_qubits(self._original, qubits, context=context)

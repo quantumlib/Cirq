@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, Sequence, TYPE_CHECKING
+from typing import Callable, Mapping, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -141,7 +141,7 @@ def xeb_fidelity(
     circuit: cirq.Circuit,
     bitstrings: Sequence[int],
     qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
-    amplitudes: np.ndarray | None = None,
+    amplitudes: Mapping[int, complex] | np.ndarray | None = None,
     estimator: Callable[[int, Sequence[float]], float] = linear_xeb_fidelity_from_probabilities,
 ) -> float:
     """Estimates XEB fidelity from one circuit using user-supplied estimator.
@@ -169,7 +169,8 @@ def xeb_fidelity(
             `cirq.final_state_vector`.
         qubit_order: Qubit order used to construct bitstrings enumerating
             qubits starting with the most significant qubit.
-        amplitudes: Optional array of output amplitudes at bitstring indices.
+        amplitudes: Optional mapping from bitstring to output amplitude or
+            an array of amplitudes at bitstring indices.
             If provided, simulation is skipped. Useful for large circuits
             when an offline simulation had already been performed.
         estimator: Fidelity estimator to use, see above. Defaults to the
@@ -206,7 +207,7 @@ def linear_xeb_fidelity(
     circuit: cirq.Circuit,
     bitstrings: Sequence[int],
     qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
-    amplitudes: np.ndarray | None = None,
+    amplitudes: Mapping[int, complex] | np.ndarray | None = None,
 ) -> float:
     """Estimates XEB fidelity from one circuit using linear estimator."""
     return xeb_fidelity(
@@ -222,7 +223,7 @@ def log_xeb_fidelity(
     circuit: cirq.Circuit,
     bitstrings: Sequence[int],
     qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
-    amplitudes: np.ndarray | None = None,
+    amplitudes: Mapping[int, complex] | np.ndarray | None = None,
 ) -> float:
     """Estimates XEB fidelity from one circuit using logarithmic estimator."""
     return xeb_fidelity(
