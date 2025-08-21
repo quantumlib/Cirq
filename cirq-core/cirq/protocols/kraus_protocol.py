@@ -18,10 +18,9 @@ from __future__ import annotations
 
 import warnings
 from types import NotImplementedType
-from typing import Any, Sequence, TypeVar
+from typing import Any, Protocol, Sequence, TypeVar
 
 import numpy as np
-from typing_extensions import Protocol
 
 from cirq import protocols, qis
 from cirq._doc import doc_private

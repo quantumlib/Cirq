@@ -15,10 +15,9 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import Any, TypeVar
+from typing import Any, Protocol, TypeVar
 
 import numpy as np
-from typing_extensions import Protocol
 
 from cirq import linalg
 from cirq._doc import doc_private
