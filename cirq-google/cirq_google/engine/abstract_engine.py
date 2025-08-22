@@ -26,11 +26,7 @@ from typing import Sequence, TYPE_CHECKING
 if TYPE_CHECKING:
     import cirq
     from cirq_google.cloud import quantum
-    from cirq_google.engine import (
-        abstract_job,
-        abstract_processor,
-        abstract_program,
-    )
+    from cirq_google.engine import abstract_job, abstract_processor, abstract_program
 
 VALID_DATE_TYPE = datetime.datetime | datetime.date
 
