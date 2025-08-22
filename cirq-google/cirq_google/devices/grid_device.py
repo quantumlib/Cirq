@@ -30,7 +30,6 @@ from cirq_google.experimental import ops as experimental_ops
 # Gate family constants used in various parts of GridDevice logic.
 _PHASED_XZ_GATE_FAMILY = cirq.GateFamily(cirq.PhasedXZGate)
 _MEASUREMENT_GATE_FAMILY = cirq.GateFamily(cirq.MeasurementGate)
-_WAIT_GATE_FAMILY = cirq.GateFamily(cirq.WaitGate)
 
 _SYC_FSIM_GATE_FAMILY = ops.FSimGateFamily(gates_to_accept=[ops.SYC])
 _SQRT_ISWAP_FSIM_GATE_FAMILY = ops.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP])
@@ -70,7 +69,7 @@ _SQRT_ISWAP_TARGET_GATES = [
 
 
 # Families of gates which can be applied to any subset of valid qubits.
-_VARIADIC_GATE_TYPES = [cirq.MeasurementGate, cirq.WaitGate]
+_VARIADIC_GATE_TYPES = (cirq.MeasurementGate, cirq.WaitGate)
 
 
 GateOrFamily = type[cirq.Gate] | cirq.Gate | cirq.GateFamily
@@ -667,9 +666,7 @@ class GridDevice(cirq.Device):
 
             if (
                 len(operation.qubits) == 2
-                and not any(
-                    isinstance(operation.gate, gate_type) for gate_type in _VARIADIC_GATE_TYPES
-                )
+                and not isinstance(operation.gate, _VARIADIC_GATE_TYPES)
                 and frozenset(operation.qubits) not in qubit_pairs
             ):
                 raise ValueError(f'Qubit pair is not valid on device: {operation.qubits!r}.')

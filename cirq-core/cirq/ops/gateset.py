@@ -228,8 +228,7 @@ class GateFamily:
                 return False
 
         if isinstance(item, raw_types.Operation):
-            gate = item.gate
-            if gate is None:
+            if (gate := item.gate) is None:
                 return False
             return self._predicate(gate)
         return self._predicate(item)
