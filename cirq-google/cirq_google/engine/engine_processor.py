@@ -519,18 +519,9 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
 
         Returns: The quantum processor config.
         """
-        response = self.context.client.get_quantum_processor_config_from_run(
-            project_id=self.project_id,
-            processor_id=self.processor_id,
-            run_name=run_name,
-            config_alias=config_alias,
+        return self.engine().get_processor_config_from_run(
+            processor_id=self.processor_id, run_name=run_name, config_alias=config_alias
         )
-
-        if response:
-            return processor_config.ProcessorConfig(
-                quantum_processor_config=response, run_name=run_name
-            )
-        return None
 
     def get_config_from_snapshot(
         self, snapshot_id: str, config_alias: str = 'default'
@@ -547,15 +538,9 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         Raises:
             EngineException: If the request to get the config fails.
         """
-        response = self.context.client.get_quantum_processor_config_from_snapshot(
-            project_id=self.project_id,
-            processor_id=self.processor_id,
-            snapshot_id=snapshot_id,
-            config_alias=config_alias,
+        return self.engine().get_processor_config_from_snapshot(
+            processor_id=self.processor_id, snapshot_id=snapshot_id, config_alias=config_alias
         )
-        if response:
-            return processor_config.ProcessorConfig(quantum_processor_config=response)
-        return None
 
     def __str__(self):
         return (

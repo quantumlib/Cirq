@@ -48,7 +48,7 @@ _DEVICE_SPEC = v2.device_pb2.DeviceSpecification(
 _PROCESSOR_ID = 'test_processor_id'
 _PROJECT_ID = 'test_project_id'
 _SNAPSHOT_ID = 'test_snapshot_id'
-_CONFIG_ALIAS = 'test_CONFIG_ALIAS'
+_CONFIG_ALIAS = 'test_config_name'
 
 _VALID_QUANTUM_PROCESSOR_CONFIG = quantum.QuantumProcessorConfig(
     name=f'projects/{_PROJECT_ID}/processors/{_PROCESSOR_ID}/configSnapshots/{_SNAPSHOT_ID}/configs/{_CONFIG_ALIAS}',
@@ -95,12 +95,6 @@ def test_processor_config_calibration():
     assert config.calibration == cg.Calibration(_METRIC_SNAPSHOT)
 
 
-def test_processor_project_id():
-    config = cg.engine.ProcessorConfig(quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG)
-
-    assert config.project_id == _PROJECT_ID
-
-
 def test_processor_processor_id():
     config = cg.engine.ProcessorConfig(quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG)
 
@@ -110,18 +104,17 @@ def test_processor_processor_id():
 def test_processor_CONFIG_ALIAS():
     config = cg.engine.ProcessorConfig(quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG)
 
-    assert config.config_alias == _CONFIG_ALIAS
+    assert config.config_name == _CONFIG_ALIAS
 
 
 def test_processor_config_repr():
     config = cg.engine.ProcessorConfig(quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG)
     expected_repr = (
-        f'cirq_google.ProcessorConfig'
-        f'(project_id={_PROJECT_ID}, '
+        'cirq_google.ProcessorConfig'
         f'processor_id={_PROCESSOR_ID}, '
         f'snapshot_id={_SNAPSHOT_ID}, '
         f'run_name={""} '
-        f'config_alias={_CONFIG_ALIAS}'
+        f'config_name={_CONFIG_ALIAS}'
     )
 
     assert repr(config) == expected_repr
@@ -133,12 +126,11 @@ def test_processor_config_repr_with_run_name():
         quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG, run_name=run_name
     )
     expected_repr = (
-        f'cirq_google.ProcessorConfig'
-        f'(project_id={_PROJECT_ID}, '
+        'cirq_google.ProcessorConfig'
         f'processor_id={_PROCESSOR_ID}, '
         f'snapshot_id={_SNAPSHOT_ID}, '
         f'run_name={run_name} '
-        f'config_alias={_CONFIG_ALIAS}'
+        f'config_name={_CONFIG_ALIAS}'
     )
 
     assert repr(config) == expected_repr

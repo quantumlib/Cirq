@@ -26,18 +26,20 @@ if TYPE_CHECKING:
 
 
 class ProcessorConfig:
-    """Representation of a quantum processor configuration
+    """Representation of a quantum processor configuration.
 
-    Describes available qubits, gates, and calivration data associated with
+    Describes available qubits, gates, and calibration data associated with
     a processor configuration.
-
-    Raise:
-        ValueError: If quantum_processor_config is contains incompatible types.
     """
 
     def __init__(
         self, *, quantum_processor_config: quantum.QuantumProcessorConfig, run_name: str = ''
     ) -> None:
+        """Contructs a Processor Config.
+
+        Args:
+            quantum_processor_config: The quantum processor config.
+        """
         self._quantum_processor_config = quantum_processor_config
         self._run_name = run_name
         self._grid_device = cg.GridDevice.from_proto(
@@ -79,29 +81,22 @@ class ProcessorConfig:
         return self._run_name
 
     @property
-    def project_id(self) -> str:
-        """The project that contains this config."""
-        parts = self._quantum_processor_config.name.split('/')
-        return parts[1]
-
-    @property
     def processor_id(self) -> str:
         """The processor id for this config."""
         parts = self._quantum_processor_config.name.split('/')
         return parts[3]
 
     @property
-    def config_alias(self) -> str:
+    def config_name(self) -> str:
         """The unique identifier for this config."""
         parts = self._quantum_processor_config.name.split('/')
         return parts[-1]
 
     def __repr__(self) -> str:
         return (
-            f'cirq_google.ProcessorConfig'
-            f'(project_id={self.project_id}, '
+            'cirq_google.ProcessorConfig'
             f'processor_id={self.processor_id}, '
             f'snapshot_id={self.snapshot_id}, '
             f'run_name={self.run_name} '
-            f'config_alias={self.config_alias}'
+            f'config_name={self.config_name}'
         )

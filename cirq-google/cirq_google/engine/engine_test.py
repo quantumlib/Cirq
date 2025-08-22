@@ -942,10 +942,9 @@ def test_get_processor_config_from_snapshot(get_quantum_config_async):
         snapshot_id=snapshot_id,
         config_alias=config_alias,
     )
-    assert result.project_id == project_id
     assert result.processor_id == processor_id
     assert result.snapshot_id == snapshot_id
-    assert result.config_alias == config_alias
+    assert result.config_name == config_alias
     assert result.run_name == ''
 
 
@@ -978,11 +977,10 @@ def test_get_processor_config_from_run(get_quantum_config_async):
         run_name=run_name,
         config_alias=config_alias,
     )
-    assert result.project_id == project_id
     assert result.processor_id == processor_id
     assert result.snapshot_id == snapshot_id
     assert result.run_name == run_name
-    assert result.config_alias == config_alias
+    assert result.config_name == config_alias
 
 
 @mock.patch(

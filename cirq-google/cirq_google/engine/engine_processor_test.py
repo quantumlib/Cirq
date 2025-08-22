@@ -1016,10 +1016,8 @@ def test_str():
     assert str(processor) == 'EngineProcessor(project_id=\'a\', processor_id=\'p\')'
 
 
-@mock.patch(
-    'cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_from_run_async'
-)
-def test_get_config_from_run(get_quantum_config):
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_get_config_from_run(client):
     project_id = "test_project_id"
     processor_id = "test_proc_id"
     run_name = "test_run_name"
@@ -1046,7 +1044,7 @@ def test_get_config_from_run(get_quantum_config):
         device_specification=util.pack_any(device_spec),
         characterization=util.pack_any(_METRIC_SNAPSHOT),
     )
-    get_quantum_config.return_value = quantum_config
+    client().get_quantum_processor_config_from_run_async.return_value = quantum_config
     expected_config = ProcessorConfig(quantum_processor_config=quantum_config, run_name=run_name)
     processor = cg.EngineProcessor(
         project_id=project_id, processor_id=processor_id, context=EngineContext()
@@ -1054,24 +1052,21 @@ def test_get_config_from_run(get_quantum_config):
 
     actual_config = processor.get_config_from_run(config_alias=config_alias, run_name=run_name)
 
-    get_quantum_config.assert_called_once_with(
+    client().get_quantum_processor_config_from_run_async.assert_called_once_with(
         project_id=project_id,
         processor_id=processor_id,
         run_name=run_name,
         config_alias=config_alias,
     )
-    assert actual_config.project_id == expected_config.project_id
     assert actual_config.processor_id == expected_config.processor_id
-    assert actual_config.config_alias == config_alias
+    assert actual_config.config_name == config_alias
     assert actual_config.run_name == run_name
     assert actual_config.effective_device == expected_config.effective_device
     assert actual_config.calibration == expected_config.calibration
 
 
-@mock.patch(
-    'cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_from_run_async'
-)
-def test_get_default_config_from_run(get_quantum_config):
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_get_default_config_from_run(client):
     project_id = "test_project_id"
     processor_id = "test_proc_id"
     name = (
@@ -1095,22 +1090,20 @@ def test_get_default_config_from_run(get_quantum_config):
         device_specification=util.pack_any(device_spec),
         characterization=util.pack_any(_METRIC_SNAPSHOT),
     )
-    get_quantum_config.return_value = quantum_config
+    client().get_quantum_processor_config_from_run_async.return_value = quantum_config
     processor = cg.EngineProcessor(
         project_id=project_id, processor_id=processor_id, context=EngineContext()
     )
 
     _ = processor.get_config_from_run()
 
-    get_quantum_config.assert_called_once_with(
+    client().get_quantum_processor_config_from_run_async.assert_called_once_with(
         project_id=project_id, processor_id=processor_id, run_name='default', config_alias='default'
     )
 
 
-@mock.patch(
-    'cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_from_snapshot_async'
-)
-def test_get_config_from_snapshot(get_quantum_config):
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_get_config_from_snapshot(client):
     project_id = "test_project_id"
     processor_id = "test_proc_id"
     snapshot_id = "test_snapshot_id"
@@ -1137,7 +1130,7 @@ def test_get_config_from_snapshot(get_quantum_config):
         device_specification=util.pack_any(device_spec),
         characterization=util.pack_any(_METRIC_SNAPSHOT),
     )
-    get_quantum_config.return_value = quantum_config
+    client().get_quantum_processor_config_from_snapshot_async.return_value = quantum_config
     expected_config = ProcessorConfig(quantum_processor_config=quantum_config)
     processor = cg.EngineProcessor(
         project_id=project_id, processor_id=processor_id, context=EngineContext()
@@ -1147,25 +1140,22 @@ def test_get_config_from_snapshot(get_quantum_config):
         config_alias=config_alias, snapshot_id=snapshot_id
     )
 
-    get_quantum_config.assert_called_once_with(
+    client().get_quantum_processor_config_from_snapshot_async.assert_called_once_with(
         project_id=project_id,
         processor_id=processor_id,
         snapshot_id=snapshot_id,
         config_alias=config_alias,
     )
-    assert actual_config.project_id == expected_config.project_id
     assert actual_config.processor_id == expected_config.processor_id
-    assert actual_config.config_alias == config_alias
+    assert actual_config.config_name == config_alias
     assert actual_config.run_name == ''
     assert actual_config.snapshot_id == snapshot_id
     assert actual_config.effective_device == expected_config.effective_device
     assert actual_config.calibration == expected_config.calibration
 
 
-@mock.patch(
-    'cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_from_snapshot_async'
-)
-def test_get_default_config_from_snapshot(get_quantum_config):
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_get_default_config_from_snapshot(client):
     project_id = "test_project_id"
     processor_id = "test_proc_id"
     snapshot_id = "test_snapshot_id"
@@ -1191,7 +1181,7 @@ def test_get_default_config_from_snapshot(get_quantum_config):
         device_specification=util.pack_any(device_spec),
         characterization=util.pack_any(_METRIC_SNAPSHOT),
     )
-    get_quantum_config.return_value = quantum_config
+    client().get_quantum_processor_config_from_snapshot_async.return_value = quantum_config
     expected_config = ProcessorConfig(quantum_processor_config=quantum_config)
     processor = cg.EngineProcessor(
         project_id=project_id, processor_id=processor_id, context=EngineContext()
@@ -1199,31 +1189,28 @@ def test_get_default_config_from_snapshot(get_quantum_config):
 
     actual_config = processor.get_config_from_snapshot(snapshot_id=snapshot_id)
 
-    get_quantum_config.assert_called_once_with(
+    client().get_quantum_processor_config_from_snapshot_async.assert_called_once_with(
         project_id=project_id,
         processor_id=processor_id,
         snapshot_id=snapshot_id,
         config_alias='default',
     )
-    assert actual_config.project_id == expected_config.project_id
     assert actual_config.processor_id == expected_config.processor_id
-    assert actual_config.config_alias == 'default'
+    assert actual_config.config_name == 'default'
     assert actual_config.run_name == ''
     assert actual_config.snapshot_id == snapshot_id
     assert actual_config.effective_device == expected_config.effective_device
     assert actual_config.calibration == expected_config.calibration
 
 
-@mock.patch(
-    'cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_from_snapshot_async'
-)
-def test_get_config_from_snapshot_not_found(get_quantum_config):
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_get_config_from_snapshot_not_found(client):
     project_id = "test_project_id"
     processor_id = "test_proc_id"
     snapshot_id = "test_snapshot_id"
     config_alias = "test_config_alias"
 
-    get_quantum_config.return_value = None
+    client().get_quantum_processor_config_from_snapshot_async.return_value = None
 
     processor = cg.EngineProcessor(
         project_id=project_id, processor_id=processor_id, context=EngineContext()
@@ -1231,7 +1218,7 @@ def test_get_config_from_snapshot_not_found(get_quantum_config):
 
     result = processor.get_config_from_snapshot(config_alias=config_alias, snapshot_id=snapshot_id)
 
-    get_quantum_config.assert_called_once_with(
+    client().get_quantum_processor_config_from_snapshot_async.assert_called_once_with(
         project_id=project_id,
         processor_id=processor_id,
         snapshot_id=snapshot_id,
@@ -1241,16 +1228,14 @@ def test_get_config_from_snapshot_not_found(get_quantum_config):
     assert result is None
 
 
-@mock.patch(
-    'cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_from_run_async'
-)
-def test_get_current_config_from_run_not_found(get_quantum_config):
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_get_current_config_from_run_not_found(client):
     project_id = "test_project_id"
     processor_id = "test_proc_id"
     config_alias = "test_config_alias"
     run_name = 'test_run_name'
 
-    get_quantum_config.return_value = None
+    client().get_quantum_processor_config_from_run_async.return_value = None
 
     processor = cg.EngineProcessor(
         project_id=project_id, processor_id=processor_id, context=EngineContext()
@@ -1258,7 +1243,7 @@ def test_get_current_config_from_run_not_found(get_quantum_config):
 
     result = processor.get_config_from_run(config_alias=config_alias, run_name=run_name)
 
-    get_quantum_config.assert_called_once_with(
+    client().get_quantum_processor_config_from_run_async.assert_called_once_with(
         project_id=project_id,
         processor_id=processor_id,
         run_name=run_name,

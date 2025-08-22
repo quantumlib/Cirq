@@ -378,35 +378,3 @@ class AbstractProcessor(abc.ABC):
         Returns:
             Schedule time slots.
         """
-
-    @abc.abstractmethod
-    def get_config_from_run(
-        self, run_name: str = 'default', config_alias: str = 'default'
-    ) -> processor_config.ProcessorConfig | None:
-        """Retrieves a ProcessorConfig from an automation run.
-
-            If no run name is provided, the config from the most recent run
-            is returned.
-
-        Args:
-            processor_id: The processor unique identifier.
-            config_alias: The quantum processor's unique identifier.
-            run_name: The automation run name.  Use 'default'
-                      if none id provided.
-
-        Returns: The quantum processor config.
-        """
-
-    @abc.abstractmethod
-    def get_config_from_snapshot(
-        self, snapshot_id: str, config_alias: str = 'default'
-    ) -> processor_config.ProcessorConfig | None:
-        """Retrieves a ProcessorConfig from a given snapshot id.
-
-        Args:
-            processor_id: The processor unique identifier.
-            config_alias: The quantum processor's unique identifier.
-            snapshot_id: The snapshot's unique identifier.
-
-        Returns: The quantum processor config.
-        """
