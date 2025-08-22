@@ -19,7 +19,7 @@ from __future__ import annotations
 import re
 import warnings
 from dataclasses import dataclass
-from typing import Any, cast, Collection, Mapping, Sequence
+from typing import Any, cast, Collection, Iterator, Mapping, Sequence
 
 import cirq
 from cirq_google import ops, transformers
@@ -633,9 +633,9 @@ class GridDevice(cirq.Device):
         Raises:
             ValueError: The operation isn't valid for this device.
         """
-        return self._validate_operations([operation])
+        return self._validate_operations(iter([operation]))
 
-    def _validate_operations(self, operations: Sequence[cirq.Operation]) -> None:
+    def _validate_operations(self, operations: Iterator[cirq.Operation]) -> None:
         """Raises an exception if any of the operations are not valid.
 
         An operation is valid if

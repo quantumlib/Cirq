@@ -213,7 +213,7 @@ class GateFamily:
                 if self._ignore_global_phase
                 else gate == self._gate
             )
-        return isinstance(gate, self.gate)
+        return isinstance(gate, self.gate)  # type: ignore
 
     def __contains__(self, item: raw_types.Gate | raw_types.Operation) -> bool:
         if self._should_check_tags:
@@ -228,7 +228,10 @@ class GateFamily:
                 return False
 
         if isinstance(item, raw_types.Operation):
-            return self._predicate(item.gate)
+            gate = item.gate
+            if gate is None:
+                return False
+            return self._predicate(gate)
         return self._predicate(item)
 
     def __str__(self) -> str:
