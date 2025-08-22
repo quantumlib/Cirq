@@ -956,6 +956,7 @@ class Tag(google.protobuf.message.Message):
     CALIBRATION_TAG_FIELD_NUMBER: builtins.int
     COMPRESS_DURATION_FIELD_NUMBER: builtins.int
     INTERNAL_TAG_FIELD_NUMBER: builtins.int
+    RAW_VALUE_FIELD_NUMBER: builtins.int
     @property
     def dynamical_decoupling(self) -> global___DynamicalDecouplingTag:
         """Tag to denote a composite dynamical decoupling operation.
@@ -1009,6 +1010,10 @@ class Tag(google.protobuf.message.Message):
         above tags.
         """
 
+    @property
+    def raw_value(self) -> global___Arg:
+        """Raw Types such as strings and other values"""
+
     def __init__(
         self,
         *,
@@ -1021,10 +1026,11 @@ class Tag(google.protobuf.message.Message):
         calibration_tag: global___CalibrationTag | None = ...,
         compress_duration: global___CompressDurationTag | None = ...,
         internal_tag: global___InternalTag | None = ...,
+        raw_value: global___Arg | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["calibration_tag", b"calibration_tag", "classical_state", b"classical_state", "compress_duration", b"compress_duration", "dynamical_decoupling", b"dynamical_decoupling", "fsim_via_model", b"fsim_via_model", "internal_tag", b"internal_tag", "no_sync", b"no_sync", "phase_match", b"phase_match", "physical_z", b"physical_z", "tag", b"tag"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["calibration_tag", b"calibration_tag", "classical_state", b"classical_state", "compress_duration", b"compress_duration", "dynamical_decoupling", b"dynamical_decoupling", "fsim_via_model", b"fsim_via_model", "internal_tag", b"internal_tag", "no_sync", b"no_sync", "phase_match", b"phase_match", "physical_z", b"physical_z", "tag", b"tag"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["tag", b"tag"]) -> typing.Literal["dynamical_decoupling", "no_sync", "phase_match", "physical_z", "classical_state", "fsim_via_model", "calibration_tag", "compress_duration", "internal_tag"] | None: ...
+    def HasField(self, field_name: typing.Literal["calibration_tag", b"calibration_tag", "classical_state", b"classical_state", "compress_duration", b"compress_duration", "dynamical_decoupling", b"dynamical_decoupling", "fsim_via_model", b"fsim_via_model", "internal_tag", b"internal_tag", "no_sync", b"no_sync", "phase_match", b"phase_match", "physical_z", b"physical_z", "raw_value", b"raw_value", "tag", b"tag"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["calibration_tag", b"calibration_tag", "classical_state", b"classical_state", "compress_duration", b"compress_duration", "dynamical_decoupling", b"dynamical_decoupling", "fsim_via_model", b"fsim_via_model", "internal_tag", b"internal_tag", "no_sync", b"no_sync", "phase_match", b"phase_match", "physical_z", b"physical_z", "raw_value", b"raw_value", "tag", b"tag"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["tag", b"tag"]) -> typing.Literal["dynamical_decoupling", "no_sync", "phase_match", "physical_z", "classical_state", "fsim_via_model", "calibration_tag", "compress_duration", "internal_tag", "raw_value"] | None: ...
 
 global___Tag = Tag
 

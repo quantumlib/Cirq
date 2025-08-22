@@ -17,9 +17,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import cast, Iterable, Iterator, Sequence
-
-from typing_extensions import Protocol
+from typing import cast, Iterable, Iterator, Protocol, Sequence
 
 from cirq._doc import document
 from cirq.study.resolver import ParamResolver, ParamResolverOrSimilarType

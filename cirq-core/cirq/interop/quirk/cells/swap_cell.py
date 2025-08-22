@@ -38,7 +38,7 @@ class SwapCell(Cell):
             controls=Cell._replace_qubits(self._controls, qubits),
         )
 
-    def modify_column(self, column: list[Cell | None]):
+    def modify_column(self, column: list[Cell | None]) -> None:
         # Swallow other swap cells.
         for i in range(len(column)):
             gate = column[i]
@@ -52,7 +52,7 @@ class SwapCell(Cell):
             raise ValueError('Wrong number of swap gates in a column.')
         return ops.SWAP(*self._qubits).controlled_by(*self._controls)
 
-    def controlled_by(self, qubit: cirq.Qid):
+    def controlled_by(self, qubit: cirq.Qid) -> SwapCell:
         return SwapCell(self._qubits, self._controls + [qubit])
 
     def _value_equality_values_(self) -> Any:
