@@ -844,7 +844,9 @@ class AbstractCircuit(abc.ABC):
         return protocols.is_measurement(self)
 
     def _is_measurement_(self) -> bool:
-        return any(protocols.is_measurement(op) for op in self.all_operations())
+        # Measurements are most likely at the end of the circuit,
+        # so iterate from the end of the circuit
+        return any(protocols.is_measurement(op) for moment in reversed(self) for op in moment)
 
     def are_all_measurements_terminal(self) -> bool:
         """Whether all measurement gates are at the end of the circuit.
