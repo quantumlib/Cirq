@@ -508,9 +508,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
     ) -> processor_config.ProcessorConfig | None:
         """Retrieves a ProcessorConfig from an automation run.
 
-            If no run name is provided, the config from the most recent run
-            is returned.
-
         Args:
             processor_id: The processor unique identifier.
             config_alias: The quantum processor's unique identifier.

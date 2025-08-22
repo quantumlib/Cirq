@@ -35,7 +35,6 @@ if TYPE_CHECKING:
     import cirq_google.engine.abstract_engine as abstract_engine
     import cirq_google.engine.abstract_job as abstract_job
     import cirq_google.engine.calibration as calibration
-    import cirq_google.engine.processor_config as processor_config
 
 
 class AbstractProcessor(abc.ABC):

@@ -30,7 +30,6 @@ if TYPE_CHECKING:
         abstract_job,
         abstract_processor,
         abstract_program,
-        processor_config,
     )
 
 VALID_DATE_TYPE = datetime.datetime | datetime.date
