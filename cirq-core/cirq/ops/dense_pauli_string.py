@@ -25,13 +25,13 @@ from typing import (
     Iterable,
     Iterator,
     overload,
+    Self,
     Sequence,
     TYPE_CHECKING,
 )
 
 import numpy as np
 import sympy
-from typing_extensions import Self
 
 from cirq import linalg, protocols, value
 from cirq._compat import proper_repr

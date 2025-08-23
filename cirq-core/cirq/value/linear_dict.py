@@ -28,6 +28,7 @@ from typing import (
     Mapping,
     MutableMapping,
     overload,
+    Self,
     TYPE_CHECKING,
     TypeVar,
     ValuesView,
@@ -35,7 +36,6 @@ from typing import (
 
 import numpy as np
 import sympy
-from typing_extensions import Self
 
 from cirq import protocols
 

@@ -17,10 +17,9 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import Any, Sequence
+from typing import Any, Protocol, Sequence
 
 import numpy as np
-from typing_extensions import Protocol
 
 from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits

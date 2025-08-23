@@ -15,9 +15,7 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import Any, Sequence, TypeVar
-
-from typing_extensions import Protocol
+from typing import Any, Protocol, Sequence, TypeVar
 
 from cirq import ops
 from cirq._doc import doc_private, document
