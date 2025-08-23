@@ -56,7 +56,7 @@ def _add_sweep_const(
     elif isinstance(value, numbers.Real):
         # more general than isinstance(float) but also slower
         if use_float64:
-            sweep.const_value.double_value = float(value)
+            sweep.const_value.double_value = float(value)  # pragma: no cover
         else:
             # Note: A loss of precision for floating-point numbers may occur here.
             sweep.const_value.float_value = float(value)
