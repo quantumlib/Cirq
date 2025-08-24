@@ -139,6 +139,8 @@ class GateFamily:
         self._gate = gate
         self._tags_to_accept = frozenset(tags_to_accept)
         self._tags_to_ignore = frozenset(tags_to_ignore)
+        self._should_check_tags = self._tags_to_accept or self._tags_to_ignore
+        self._is_instance_gate_family = isinstance(self._gate, raw_types.Gate)
         self._name = name if name else self._default_name()
         self._description = description if description else self._default_description()
         self._ignore_global_phase = ignore_global_phase
@@ -205,26 +207,30 @@ class GateFamily:
         Args:
             gate: `cirq.Gate` instance which should be checked for containment.
         """
-        if isinstance(self.gate, raw_types.Gate):
+        if self._is_instance_gate_family:
             return (
                 protocols.equal_up_to_global_phase(gate, self.gate)
                 if self._ignore_global_phase
                 else gate == self._gate
             )
-        return isinstance(gate, self.gate)
+        return isinstance(gate, self.gate)  # type: ignore
 
     def __contains__(self, item: raw_types.Gate | raw_types.Operation) -> bool:
-        if self._tags_to_accept and (
-            not isinstance(item, raw_types.Operation) or self._tags_to_accept.isdisjoint(item.tags)
-        ):
-            return False
-        if isinstance(item, raw_types.Operation) and not self._tags_to_ignore.isdisjoint(item.tags):
-            return False
+        if self._should_check_tags:
+            if self._tags_to_accept and (
+                not isinstance(item, raw_types.Operation)
+                or self._tags_to_accept.isdisjoint(item.tags)
+            ):
+                return False
+            if isinstance(item, raw_types.Operation) and not self._tags_to_ignore.isdisjoint(
+                item.tags
+            ):
+                return False
 
         if isinstance(item, raw_types.Operation):
-            if item.gate is None:
+            if (gate := item.gate) is None:
                 return False
-            item = item.gate
+            return self._predicate(gate)
         return self._predicate(item)
 
     def __str__(self) -> str:
