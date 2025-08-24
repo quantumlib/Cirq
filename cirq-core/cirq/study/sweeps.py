@@ -33,11 +33,8 @@ ProductOrZipSweepLike = dict['cirq.TParamKey', Union['cirq.TParamVal', Sequence[
 
 
 def _check_duplicate_keys(sweeps):
-    keys = set()
-    key_count = 0
-    for sweep in sweeps:
-        key_count += len(sweep.keys)
-        keys.update(sweep.keys)
+    keys = set(itertools.chain.from_iterable(sweep.keys for sweep in sweeps))
+    key_count = sum(len(sweep.keys) for sweep in sweeps)
     # If the total length of the sweep keys
     # is not the same as the size of the set,
     # then there is a duplicate key.
