@@ -19,9 +19,17 @@ from __future__ import annotations
 import re
 import warnings
 from types import NotImplementedType
-from typing import AbstractSet, Any, cast, Collection, Mapping, Sequence, TYPE_CHECKING, TypeVar
-
-from typing_extensions import Self
+from typing import (
+    AbstractSet,
+    Any,
+    cast,
+    Collection,
+    Mapping,
+    Self,
+    Sequence,
+    TYPE_CHECKING,
+    TypeVar,
+)
 
 from cirq import ops, protocols, value
 from cirq.ops import control_values as cv, gate_features, raw_types

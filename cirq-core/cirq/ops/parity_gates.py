@@ -16,10 +16,9 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterator, Sequence, TYPE_CHECKING
+from typing import Any, Iterator, Self, Sequence, TYPE_CHECKING
 
 import numpy as np
-from typing_extensions import Self
 
 from cirq import protocols, value
 from cirq._compat import proper_repr

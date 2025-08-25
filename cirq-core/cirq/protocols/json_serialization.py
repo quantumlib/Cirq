@@ -21,13 +21,12 @@ import json
 import numbers
 import pathlib
 from types import NotImplementedType
-from typing import Any, Callable, cast, IO, Iterable, overload, Sequence
+from typing import Any, Callable, cast, IO, Iterable, overload, Protocol, Sequence
 
 import attrs
 import numpy as np
 import pandas as pd
 import sympy
-from typing_extensions import Protocol
 
 from cirq._doc import doc_private
 
