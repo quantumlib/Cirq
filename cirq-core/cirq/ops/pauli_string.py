@@ -271,6 +271,8 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             known = True
         elif isinstance(other, (PauliString, numbers.Number)):
             known = True
+        elif (as_pauli_string := _try_interpret_as_pauli_string(other)) is not None:
+            return self * as_pauli_string
         if known:
             return PauliString(
                 cast(PAULI_STRING_LIKE, other),
@@ -297,6 +299,8 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
         if isinstance(other, raw_types.Operation) and isinstance(other.gate, identity.IdentityGate):
             return self  # pragma: no cover
+        elif (as_pauli_string := _try_interpret_as_pauli_string(other)) is not None:
+            return as_pauli_string * self
 
         # Note: PauliString case handled by __mul__.
         return NotImplemented
