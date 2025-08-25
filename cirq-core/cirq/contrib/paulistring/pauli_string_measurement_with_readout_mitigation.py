@@ -555,7 +555,7 @@ def measure_pauli_strings(
     # Build the basis-change circuits for each Pauli string group
     pauli_measurement_circuits: list[circuits.Circuit] = []
     sweep_params: list[study.Sweepable] = []
-    circuits_results: list[ResultDict] | Sequence[Sequence[study.Result]] = []
+    circuits_results: Sequence[ResultDict] | Sequence[Sequence[study.Result]] = []
     calibration_results: dict[tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult] = {}
 
     benchmarking_params = sc_readout.ReadoutBenchmarkingParams(
