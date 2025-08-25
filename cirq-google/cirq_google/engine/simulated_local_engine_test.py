@@ -71,12 +71,6 @@ class ProgramDictProcessor(AbstractLocalProcessor):
     def supported_languages(self, *args, **kwargs):
         pass
 
-    def get_config_from_run(self, *args, **kwargs):
-        pass
-
-    def get_config_from_snapshot(self, *args, **kwargs):
-        pass
-
     def list_programs(
         self,
         created_before: datetime.datetime | datetime.date | None = None,
