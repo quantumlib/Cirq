@@ -272,6 +272,7 @@ def _pauli_strings_to_basis_change_with_sweep(
 
 def _generate_basis_change_circuits(
     normalized_circuits_to_pauli: dict[circuits.FrozenCircuit, list[list[ops.PauliString]]],
+    insert_strategy: circuits.InsertStrategy,
 ) -> list[circuits.Circuit]:
     """Generates basis change circuits for each group of Pauli strings."""
     pauli_measurement_circuits = list[circuits.Circuit]()
@@ -281,11 +282,13 @@ def _generate_basis_change_circuits(
         basis_change_circuits = []
         input_circuit_unfrozen = input_circuit.unfreeze()
         for pauli_strings in pauli_string_groups:
-            basis_change_circuit = (
-                input_circuit_unfrozen
-                + _pauli_strings_to_basis_change_ops(pauli_strings, qid_list)
-                + ops.measure(*qid_list, key="m")
+            basis_change_circuit = circuits.Circuit(
+                input_circuit_unfrozen,
+                _pauli_strings_to_basis_change_ops(pauli_strings, qid_list),
+                ops.measure(*qid_list, key="m"),
+                strategy=insert_strategy,
             )
+            print(basis_change_circuit)
             basis_change_circuits.append(basis_change_circuit)
         pauli_measurement_circuits.extend(basis_change_circuits)
 
@@ -294,6 +297,7 @@ def _generate_basis_change_circuits(
 
 def _generate_basis_change_circuits_with_sweep(
     normalized_circuits_to_pauli: dict[circuits.FrozenCircuit, list[list[ops.PauliString]]],
+    insert_strategy: circuits.InsertStrategy,
 ) -> tuple[list[circuits.Circuit], list[study.Sweepable]]:
     """Generates basis change circuits for each group of Pauli strings with sweep."""
     parameterized_circuits = list[circuits.Circuit]()
@@ -303,13 +307,17 @@ def _generate_basis_change_circuits_with_sweep(
         phi_symbols = sympy.symbols(f"phi:{len(qid_list)}")
         theta_symbols = sympy.symbols(f"theta:{len(qid_list)}")
 
-        parameterized_circuit = input_circuit.unfreeze() + circuits.Circuit(
-            [
-                ops.PhasedXPowGate(phase_exponent=(a - 1) / 2, exponent=b)(qubit)
-                for a, b, qubit in zip(phi_symbols, theta_symbols, qid_list)
-            ],
-            ops.M(*qid_list, key="m"),
+        # Create phased gates and measurement operator
+        phased_gates = [
+            ops.PhasedXPowGate(phase_exponent=(a - 1) / 2, exponent=b)(qubit)
+            for a, b, qubit in zip(phi_symbols, theta_symbols, qid_list)
+        ]
+        measurement_op = ops.M(*qid_list, key="m")
+
+        parameterized_circuit = circuits.Circuit(
+            input_circuit.unfreeze(), phased_gates, measurement_op, strategy=insert_strategy
         )
+        print(parameterized_circuit)
         sweep_param = []
         for pauli_strings in pauli_string_groups:
             sweep_param.append(_pauli_strings_to_basis_change_with_sweep(pauli_strings, qid_list))
@@ -483,6 +491,7 @@ def measure_pauli_strings(
     num_random_bitstrings: int,
     rng_or_seed: np.random.Generator | int,
     use_sweep: bool = False,
+    insert_strategy: circuits.InsertStrategy = circuits.InsertStrategy.INLINE,
 ) -> list[CircuitToPauliStringsMeasurementResult]:
     """Measures expectation values of Pauli strings on given circuits with/without
     readout error mitigation.
@@ -515,6 +524,8 @@ def measure_pauli_strings(
         rng_or_seed: A random number generator or seed for the readout benchmarking.
         use_sweep: If True, uses parameterized circuits and sweeps parameters
             for both Pauli measurements and readout benchmarking. Defaults to False.
+        insert_strategy: The strategy for inserting measurement operations into the circuit.
+            Defaults to circuits.InsertStrategy.INLINE.
 
     Returns:
         A list of CircuitToPauliStringsMeasurementResult objects, where each object contains:
@@ -555,7 +566,7 @@ def measure_pauli_strings(
 
     if use_sweep:
         pauli_measurement_circuits, sweep_params = _generate_basis_change_circuits_with_sweep(
-            normalized_circuits_to_pauli
+            normalized_circuits_to_pauli, insert_strategy
         )
 
         # Run benchmarking using sweep for readout calibration
@@ -569,7 +580,9 @@ def measure_pauli_strings(
         )
 
     else:
-        pauli_measurement_circuits = _generate_basis_change_circuits(normalized_circuits_to_pauli)
+        pauli_measurement_circuits = _generate_basis_change_circuits(
+            normalized_circuits_to_pauli, insert_strategy
+        )
 
         # Run shuffled benchmarking for readout calibration
         circuits_results, calibration_results = (
