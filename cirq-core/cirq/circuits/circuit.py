@@ -1767,6 +1767,7 @@ class Circuit(AbstractCircuit):
     *   batch_remove
     *   batch_insert_into
     *   insert_at_frontier
+    *   reverse
 
     Circuits can also be iterated over,
 
@@ -2525,6 +2526,16 @@ class Circuit(AbstractCircuit):
                 self._moments[k] = self._moments[k].without_operations_touching(qubits)
         self._mutated()
 
+    def reverse(self) -> None:
+        """Reverses the moments in the circuit, and the operations in the moments."""
+        # Work on a copy in case validation fails halfway through.
+        copy = self.copy()
+        backwards = []
+        for moment in copy[::-1]:
+            backwards.append(Moment(reversed(moment.operations)))
+        self._moments = backwards
+        self._mutated()
+
     @property
     def moments(self) -> Sequence[cirq.Moment]:
         return self._moments
@@ -2560,6 +2571,8 @@ class Circuit(AbstractCircuit):
             # Keep moments aligned
             c_noisy += Circuit(op_tree)
         return c_noisy
+    
+    
 
 
 def _pick_inserted_ops_moment_indices(
