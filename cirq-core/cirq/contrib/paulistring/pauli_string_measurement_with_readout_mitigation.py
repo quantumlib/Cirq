@@ -288,7 +288,6 @@ def _generate_basis_change_circuits(
                 ops.measure(*qid_list, key="m"),
                 strategy=insert_strategy,
             )
-            print(basis_change_circuit)
             basis_change_circuits.append(basis_change_circuit)
         pauli_measurement_circuits.extend(basis_change_circuits)
 
@@ -317,7 +316,6 @@ def _generate_basis_change_circuits_with_sweep(
         parameterized_circuit = circuits.Circuit(
             input_circuit.unfreeze(), phased_gates, measurement_op, strategy=insert_strategy
         )
-        print(parameterized_circuit)
         sweep_param = []
         for pauli_strings in pauli_string_groups:
             sweep_param.append(_pauli_strings_to_basis_change_with_sweep(pauli_strings, qid_list))
