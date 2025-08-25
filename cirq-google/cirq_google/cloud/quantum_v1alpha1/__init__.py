@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 
-
 from .services.quantum_engine_service import QuantumEngineServiceClient
 from .services.quantum_engine_service import QuantumEngineServiceAsyncClient
 

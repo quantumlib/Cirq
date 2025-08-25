@@ -63,8 +63,6 @@ SKIP_NOTEBOOKS = [
     # temporary: need to fix QVM metrics and device spec
     'docs/tutorials/google/spin_echoes.ipynb',
     'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
-    # temporary: allow name changes of keyword arguments in quantum engine interfaces to stabilize
-    'docs/simulate/virtual_engine_interface.ipynb',
 ]
 SKIP_NOTEBOOKS += [
     # notebooks that import the examples module which is not installed with cirq
