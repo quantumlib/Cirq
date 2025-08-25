@@ -1098,7 +1098,7 @@ def test_get_default_config_from_run(client):
     _ = processor.get_config_from_run()
 
     client().get_quantum_processor_config_from_run_async.assert_called_once_with(
-        project_id=project_id, processor_id=processor_id, run_name='default', config_alias='default'
+        project_id=project_id, processor_id=processor_id, run_name='current', config_alias='default'
     )
 
 

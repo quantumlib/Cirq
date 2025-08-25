@@ -504,9 +504,12 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         return self.context.client.list_time_slots(self.project_id, self.processor_id, filter_str)
 
     def get_config_from_run(
-        self, run_name: str = 'default', config_alias: str = 'default'
+        self, run_name: str = 'current', config_alias: str = 'default'
     ) -> processor_config.ProcessorConfig | None:
         """Retrieves a ProcessorConfig from an automation run.
+
+        If no `run_name` and `config_alias` are specified, the inernally configured default config
+        is returned.
 
         Args:
             processor_id: The processor unique identifier.
@@ -524,6 +527,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         self, snapshot_id: str, config_alias: str = 'default'
     ) -> processor_config.ProcessorConfig | None:
         """Retrieves a ProcessorConfig from a given snapshot id.
+
+        If not `config_alias` is specified, the internally configured default is returned.
 
         Args:
             processor_id: The processor unique identifier.

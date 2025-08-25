@@ -667,6 +667,9 @@ class Engine(abstract_engine.AbstractEngine):
     ) -> processor_config.ProcessorConfig | None:
         """Returns a ProcessorConfig from this project and the given processor id.
 
+        If no `run_name` and `config_alias` are specified, the inernally configured default config
+        is returned.
+
         Args:
             processor_id: The processor unique identifier.
             run_name: The unique identifier for the automation run.
