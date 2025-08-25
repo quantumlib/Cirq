@@ -61,7 +61,7 @@ def _add_sweep_const(
             # Note: A loss of precision for floating-point numbers may occur here.
             sweep.const_value.float_value = float(value)
     elif isinstance(value, tunits.Value):
-        sweep.const_value.with_unit_value.MergeFrom(value.to_proto())
+        value.to_proto(sweep.const_value.with_unit_value)
     else:
         raise ValueError(
             f"Unsupported type for serializing const sweep: {value=} and {type(value)=}"
