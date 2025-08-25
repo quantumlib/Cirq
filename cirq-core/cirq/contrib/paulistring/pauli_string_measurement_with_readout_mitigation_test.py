@@ -480,7 +480,12 @@ def test_allow_group_pauli_measurement_without_readout_mitigation(use_sweep: boo
 
 
 @pytest.mark.parametrize("use_sweep", [True, False])
-def test_many_circuits_with_coefficient(use_sweep: bool) -> None:
+@pytest.mark.parametrize(
+    "insert_strategy", [cirq.InsertStrategy.INLINE, cirq.InsertStrategy.EARLIEST]
+)
+def test_many_circuits_with_coefficient(
+    use_sweep: bool, insert_strategy: cirq.InsertStrategy
+) -> None:
     """Test that the mitigated expectation is close to the ideal expectation
     based on the Pauli string for multiple circuits"""
     qubits_1 = cirq.LineQubit.range(3)
@@ -506,7 +511,14 @@ def test_many_circuits_with_coefficient(use_sweep: bool) -> None:
     simulator = cirq.Simulator()
 
     circuits_with_pauli_expectations = measure_pauli_strings(
-        circuits_to_pauli, sampler, 1000, 1000, 1000, np.random.default_rng(), use_sweep
+        circuits_to_pauli,
+        sampler,
+        1000,
+        1000,
+        1000,
+        np.random.default_rng(),
+        use_sweep,
+        insert_strategy,
     )
 
     for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
