@@ -1,0 +1,307 @@
+# Copyright 2025 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from __future__ import annotations
+
+import cirq
+from cirq.transformers.connected_component import (
+    ComponentSet,
+    ComponentWithCircuitOpSet,
+    ComponentWithOpsSet,
+)
+
+
+def test_find_returns_itself_for_singleton():
+    def is_mergeable(_: cirq.Operation) -> bool:
+        return True
+
+    cset = ComponentSet(is_mergeable)
+
+    q = cirq.NamedQubit('x')
+    c = cset.new_component(op=cirq.X(q), moment_id=0)
+    assert cset.find(c) == c
+
+
+def test_merge_components():
+    def is_mergeable(_: cirq.Operation) -> bool:
+        return True
+
+    cset = ComponentSet(is_mergeable)
+
+    q = cirq.NamedQubit('x')
+    c = [cset.new_component(op=cirq.X(q), moment_id=i) for i in range(5)]
+    cset.merge(c[1], c[0])
+    cset.merge(c[2], c[1])
+    cset.merge(c[4], c[3])
+    cset.merge(c[3], c[0])
+
+    for i in range(5):
+        assert cset.find(c[i]) == cset.find(c[0])
+
+
+def test_merge_same_component():
+    def is_mergeable(_: cirq.Operation) -> bool:
+        return True
+
+    cset = ComponentSet(is_mergeable)
+
+    q = cirq.NamedQubit('x')
+    c = [cset.new_component(op=cirq.X(q), moment_id=i) for i in range(3)]
+    cset.merge(c[1], c[0])
+    cset.merge(c[2], c[1])
+
+    root = cset.find(c[0])
+
+    assert cset.merge(c[0], c[2]) == root
+
+
+def test_merge_returns_None_if_one_component_is_not_mergeable():
+    def is_mergeable(_: cirq.Operation) -> bool:
+        return True
+
+    cset = ComponentSet(is_mergeable)
+
+    q = cirq.NamedQubit('x')
+    c0 = cset.new_component(op=cirq.X(q), moment_id=0, is_mergeable=True)
+    c1 = cset.new_component(op=cirq.X(q), moment_id=1, is_mergeable=False)
+    assert cset.merge(c0, c1) is None
+
+
+def test_cset_merge_returns_None_if_is_mergeable_is_false():
+    q = cirq.NamedQubit('x')
+
+    def is_mergeable(_: cirq.Operation) -> bool:
+        return False
+
+    cset = ComponentSet(is_mergeable=is_mergeable)
+
+    c0 = cset.new_component(op=cirq.X(q), moment_id=0, is_mergeable=True)
+    c1 = cset.new_component(op=cirq.X(q), moment_id=1, is_mergeable=True)
+    assert cset.merge(c0, c1) is None
+
+
+def test_merge_qubits_with_merge_left_true():
+    def is_mergeable(_: cirq.Operation) -> bool:
+        return True
+
+    cset = ComponentSet(is_mergeable)
+
+    q0 = cirq.NamedQubit('x')
+    q1 = cirq.NamedQubit('y')
+    c0 = cset.new_component(op=cirq.X(q0), moment_id=0)
+    c1 = cset.new_component(op=cirq.X(q1), moment_id=0)
+    c2 = cset.new_component(op=cirq.X(q1), moment_id=1)
+    cset.merge(c1, c2)
+    cset.merge(c0, c1, merge_left=True)
+    assert cset.find(c1).qubits == frozenset([q0, q1])
+
+
+def test_merge_qubits_with_merge_left_false():
+    def is_mergeable(_: cirq.Operation) -> bool:
+        return True
+
+    cset = ComponentSet(is_mergeable)
+
+    q0 = cirq.NamedQubit('x')
+    q1 = cirq.NamedQubit('y')
+    c0 = cset.new_component(op=cirq.X(q0), moment_id=0)
+    c1 = cset.new_component(op=cirq.X(q0), moment_id=0)
+    c2 = cset.new_component(op=cirq.X(q1), moment_id=1)
+    cset.merge(c0, c1)
+    cset.merge(c1, c2, merge_left=False)
+    assert cset.find(c0).qubits == frozenset([q0, q1])
+
+
+def test_merge_moment_with_merge_left_true():
+    def is_mergeable(_: cirq.Operation) -> bool:
+        return True
+
+    cset = ComponentSet(is_mergeable)
+
+    q0 = cirq.NamedQubit('x')
+    q1 = cirq.NamedQubit('y')
+    c0 = cset.new_component(op=cirq.X(q0), moment_id=0)
+    c1 = cset.new_component(op=cirq.X(q1), moment_id=1)
+    c2 = cset.new_component(op=cirq.X(q1), moment_id=1)
+    cset.merge(c1, c2)
+    cset.merge(c0, c1, merge_left=True)
+    # the set representative kept c0's moment
+    assert cset.find(c1).moment_id == 0
+
+
+def test_merge_moment_with_merge_left_false():
+    def is_mergeable(_: cirq.Operation) -> bool:
+        return True
+
+    cset = ComponentSet(is_mergeable)
+
+    q0 = cirq.NamedQubit('x')
+    q1 = cirq.NamedQubit('y')
+    c0 = cset.new_component(op=cirq.X(q0), moment_id=0)
+    c1 = cset.new_component(op=cirq.X(q0), moment_id=0)
+    c2 = cset.new_component(op=cirq.X(q1), moment_id=1)
+    cset.merge(c0, c1)
+    cset.merge(c1, c2, merge_left=False)
+    # the set representative kept c2's moment
+    assert cset.find(c0).moment_id == 1
+
+
+def test_component_with_ops_merge():
+    def is_mergeable(_: cirq.Operation) -> bool:
+        return True
+
+    def can_merge(_ops1: list[cirq.Operation], _ops2: list[cirq.Operation]) -> bool:
+        return True
+
+    cset = ComponentWithOpsSet(is_mergeable, can_merge)
+
+    q = cirq.LineQubit.range(3)
+    ops = [cirq.X(q[i]) for i in range(3)]
+    c = [cset.new_component(op=ops[i], moment_id=i) for i in range(3)]
+
+    cset.merge(c[0], c[1])
+    cset.merge(c[1], c[2])
+    assert cset.find(c[0]).ops == ops
+
+
+def test_component_with_ops_merge_same_component():
+    def is_mergeable(_: cirq.Operation) -> bool:
+        return True
+
+    def can_merge(_ops1: list[cirq.Operation], _ops2: list[cirq.Operation]) -> bool:
+        return True
+
+    cset = ComponentWithOpsSet(is_mergeable, can_merge)
+
+    q = cirq.LineQubit.range(3)
+    ops = [cirq.X(q[i]) for i in range(3)]
+    c = [cset.new_component(op=ops[i], moment_id=i) for i in range(3)]
+    cset.merge(c[0], c[1])
+    cset.merge(c[1], c[2])
+    assert cset.merge(c[0], c[2]).ops == ops
+
+
+def test_component_with_ops_merge_when_merge_fails():
+    def is_mergeable(_: cirq.Operation) -> bool:
+        return True
+
+    def can_merge(_ops1: list[cirq.Operation], _ops2: list[cirq.Operation]) -> bool:
+        return False
+
+    cset = ComponentWithOpsSet(is_mergeable, can_merge)
+
+    q = cirq.LineQubit.range(3)
+    ops = [cirq.X(q[i]) for i in range(3)]
+    c = [cset.new_component(op=ops[i], moment_id=i) for i in range(3)]
+
+    cset.merge(c[0], c[1])
+    cset.merge(c[1], c[2])
+    # No merge happened
+    for i in range(3):
+        assert cset.find(c[i]) == c[i]
+
+
+def test_component_with_ops_merge_when_is_mergeable_is_false():
+    def is_mergeable(_: cirq.Operation) -> bool:
+        return False
+
+    def can_merge(_ops1: list[cirq.Operation], _ops2: list[cirq.Operation]) -> bool:
+        return True
+
+    cset = ComponentWithOpsSet(is_mergeable, can_merge)
+
+    q = cirq.LineQubit.range(3)
+    ops = [cirq.X(q[i]) for i in range(3)]
+    c = [cset.new_component(op=ops[i], moment_id=i) for i in range(3)]
+
+    cset.merge(c[0], c[1])
+    cset.merge(c[1], c[2])
+    # No merge happened
+    for i in range(3):
+        assert cset.find(c[i]) == c[i]
+
+
+def test_component_with_circuit_op_merge():
+    def is_mergeable(_: cirq.Operation) -> bool:
+        return True
+
+    def merge_func(op1: cirq.Operation, _: cirq.Operation) -> cirq.Operation:
+        return op1
+
+    cset = ComponentWithCircuitOpSet(is_mergeable, merge_func)
+
+    q = cirq.LineQubit.range(3)
+    ops = [cirq.X(q[i]) for i in range(3)]
+    c = [cset.new_component(op=ops[i], moment_id=i) for i in range(3)]
+
+    cset.merge(c[0], c[1])
+    cset.merge(c[1], c[2])
+    for i in range(3):
+        assert cset.find(c[i]).circuit_op == ops[0]
+
+
+def test_component_with_circuit_op_merge_same_component():
+    def is_mergeable(_: cirq.Operation) -> bool:
+        return True
+
+    def merge_func(op1: cirq.Operation, _: cirq.Operation) -> cirq.Operation:
+        return op1
+
+    cset = ComponentWithCircuitOpSet(is_mergeable, merge_func)
+
+    q = cirq.NamedQubit('x')
+    c = [cset.new_component(op=cirq.X(q), moment_id=i) for i in range(3)]
+    cset.merge(c[1], c[0])
+    cset.merge(c[2], c[1])
+    assert cset.merge(c[0], c[2]) == cset.find(c[1])
+
+
+def test_component_with_circuit_op_merge_func_is_none():
+    def is_mergeable(_: cirq.Operation) -> bool:
+        return True
+
+    def merge_func(_op1: cirq.Operation, _op2: cirq.Operation) -> None:
+        return None
+
+    cset = ComponentWithCircuitOpSet(is_mergeable, merge_func)
+
+    q = cirq.LineQubit.range(3)
+    ops = [cirq.X(q[i]) for i in range(3)]
+    c = [cset.new_component(op=ops[i], moment_id=i) for i in range(3)]
+
+    cset.merge(c[0], c[1])
+    cset.merge(c[1], c[2])
+    # No merge happened
+    for i in range(3):
+        assert cset.find(c[i]) == c[i]
+
+
+def test_component_with_circuit_op_merge_when_is_mergeable_is_false():
+    def is_mergeable(_: cirq.Operation) -> bool:
+        return False
+
+    def merge_func(op1: cirq.Operation, _: cirq.Operation) -> cirq.Operation:
+        return op1
+
+    cset = ComponentWithCircuitOpSet(is_mergeable, merge_func)
+
+    q = cirq.LineQubit.range(3)
+    ops = [cirq.X(q[i]) for i in range(3)]
+    c = [cset.new_component(op=ops[i], moment_id=i) for i in range(3)]
+
+    cset.merge(c[0], c[1])
+    cset.merge(c[1], c[2])
+    # No merge happened
+    for i in range(3):
+        assert cset.find(c[i]) == c[i]
