@@ -18,7 +18,7 @@ import dataclasses
 import functools
 import itertools
 import uuid
-from typing import Any, cast, Iterator, Mapping, Sequence, TYPE_CHECKING
+from typing import Any, cast, Iterator, Mapping, Optional, Sequence, TYPE_CHECKING
 
 import attrs
 import numpy as np
@@ -73,7 +73,12 @@ class Cliffords:
 class RandomizedBenchMarkResult:
     """Results from a randomized benchmarking experiment."""
 
-    def __init__(self, num_cliffords: Sequence[int], ground_state_probabilities: Sequence[float]):
+    def __init__(
+        self,
+        num_cliffords: Sequence[int],
+        ground_state_probabilities: Sequence[float],
+        ground_state_probabilities_std: Optional[Sequence[float]] | None = None,
+    ):
         """Inits RandomizedBenchMarkResult.
 
         Args:
@@ -81,9 +86,20 @@ class RandomizedBenchMarkResult:
                 study.
             ground_state_probabilities: The corresponding average ground state
                 probabilities.
+            ground_state_probabilities_std: The standard deviation of the probabilities.
         """
         self._num_cfds_seq = num_cliffords
         self._gnd_state_probs = ground_state_probabilities
+        if ground_state_probabilities_std is None or np.all(
+            np.isclose(ground_state_probabilities_std, 0)
+        ):
+            self._gnd_state_probs_std = None
+        else:
+            self._gnd_state_probs_std = np.array(ground_state_probabilities_std)
+            zeros = np.isclose(self._gnd_state_probs_std, 0)
+            self._gnd_state_probs_std[zeros] = self._gnd_state_probs_std[
+                np.logical_not(zeros)
+            ].min()
 
     @property
     def data(self) -> Sequence[tuple[int, float]]:
@@ -142,6 +158,7 @@ class RandomizedBenchMarkResult:
             f=exp_fit,
             xdata=self._num_cfds_seq,
             ydata=self._gnd_state_probs,
+            sigma=self._gnd_state_probs_std,
             p0=[0.5, 0.5, 1.0 - 1e-3],
             bounds=([0, -1, 0], [1, 1, 1]),
         )
@@ -534,6 +551,7 @@ def parallel_single_qubit_rb(
     # run circuits
     results = sampler.run_batch(circuits_all, repetitions=parameters.repetitions)
     gnd_probs: dict = {q: [] for q in qubits}
+    gnd_probs_std: dict = {q: [] for q in qubits}
     idx = 0
     for num_cliffords in parameters.num_clifford_range:
         excited_probs: dict[cirq.Qid, list[float]] = {q: [] for q in qubits}
@@ -544,9 +562,17 @@ def parallel_single_qubit_rb(
             idx += 1
         for qubit in qubits:
             gnd_probs[qubit].append(1.0 - np.mean(excited_probs[qubit]))
+            gnd_probs_std[qubit].append(
+                np.std(excited_probs[qubit]) / np.sqrt(parameters.repetitions)
+            )
 
     return ParallelRandomizedBenchmarkingResult(
-        {q: RandomizedBenchMarkResult(parameters.num_clifford_range, gnd_probs[q]) for q in qubits}
+        {
+            q: RandomizedBenchMarkResult(
+                parameters.num_clifford_range, gnd_probs[q], gnd_probs_std[q]
+            )
+            for q in qubits
+        }
     )
 
 
@@ -595,6 +621,7 @@ def two_qubit_randomized_benchmarking(
     cliffords = _single_qubit_cliffords()
     cfd_matrices = _two_qubit_clifford_matrices(first_qubit, second_qubit, cliffords)
     gnd_probs = []
+    gnd_probs_std = []
     for num_cfds in num_clifford_range:
         gnd_probs_l = []
         for _ in range(num_circuits):
@@ -606,8 +633,9 @@ def two_qubit_randomized_benchmarking(
             gnds = [(not r[0] and not r[1]) for r in results.measurements['z']]
             gnd_probs_l.append(np.mean(gnds))
         gnd_probs.append(float(np.mean(gnd_probs_l)))
+        gnd_probs_std.append(float(np.std(gnd_probs_l) / np.sqrt(repetitions)))
 
-    return RandomizedBenchMarkResult(num_clifford_range, gnd_probs)
+    return RandomizedBenchMarkResult(num_clifford_range, gnd_probs, gnd_probs_std)
 
 
 def single_qubit_state_tomography(

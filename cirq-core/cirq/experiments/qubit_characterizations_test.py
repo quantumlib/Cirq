@@ -140,6 +140,22 @@ def test_parallel_single_qubit_parallel_single_qubit_randomized_benchmarking() -
     _ = results.plot_integrated_histogram()
 
 
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_parallel_single_qubit_randomized_benchmarking_with_noise() -> None:
+    simulator = sim.Simulator(noise=cirq.depolarize(1e-3), seed=0)
+    qubits = (GridQubit(0, 0), GridQubit(0, 1))
+    num_cfds = range(5, 7, 1)
+    results = parallel_single_qubit_randomized_benchmarking(
+        simulator, num_clifford_range=num_cfds, repetitions=10, qubits=qubits
+    )
+    for qubit in qubits:
+        g_pops = np.asarray(results.results_dictionary[qubit].data)[:, 1]
+        assert np.isclose(np.mean(g_pops), 0.99, atol=1e-2)
+        _ = results.plot_single_qubit(qubit)
+    pauli_errors = results.pauli_error()
+    assert len(pauli_errors) == len(qubits)
+
+
 def test_two_qubit_randomized_benchmarking() -> None:
     # Check that the ground state population at the end of the Clifford
     # sequences is always unity.
