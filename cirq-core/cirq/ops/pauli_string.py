@@ -1107,17 +1107,14 @@ def _validate_qubit_mapping(
 def _try_interpret_as_pauli_string(op: Any):
     """Return a reprepresentation of an operation as a pauli string, if it is possible."""
     if isinstance(op, gate_operation.GateOperation):
-        gates = {
-            common_gates.XPowGate: pauli_gates.X,
-            common_gates.YPowGate: pauli_gates.Y,
-            common_gates.ZPowGate: pauli_gates.Z,
-        }
-        if (pauli := gates.get(type(op.gate), None)) is not None:
-            exponent = op.gate.exponent  # type: ignore
-            if exponent % 2 == 0:
-                return PauliString()
-            if exponent % 2 == 1:
-                return pauli.on(op.qubits[0])
+        try:
+            pauli_expansion_op = protocols.pauli_expansion(op)
+            if pauli_expansion_op is not None and len(pauli_expansion_op) == 1:
+                gate, coef = next(iter(pauli_expansion_op.items()))
+                return coef * PauliString({q: gate for q in op.qubits})
+        except TypeError:
+            # return None if there is no Pauli expansion for this GateOperation.
+            pass
     return None
 
 

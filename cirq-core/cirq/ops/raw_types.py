@@ -483,62 +483,18 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def _mul_with_qubits(self, qubits: tuple[cirq.Qid, ...], other):
         """cirq.GateOperation.__mul__ delegates to this method."""
-        if isinstance(other, Operation):
-            try:
-                # Try using pauli expansion if both operations have single-item expansions
-                pauli_expansion_self = protocols.pauli_expansion(self.on(*qubits))
-                pauli_expansion_other = protocols.pauli_expansion(other)
+        from cirq.ops.pauli_string import _try_interpret_as_pauli_string
 
-                if (
-                    pauli_expansion_self is not None
-                    and len(pauli_expansion_self) == 1
-                    and pauli_expansion_other is not None
-                    and len(pauli_expansion_other) == 1
-                ):
-
-                    gate_self, coef_self = next(iter(pauli_expansion_self.items()))
-                    gate_other, coef_other = next(iter(pauli_expansion_other.items()))
-
-                    from cirq.ops.pauli_string import PauliString
-
-                    return (
-                        coef_self
-                        * PauliString({q: gate_self for q in qubits})
-                        * coef_other
-                        * PauliString({q: gate_other for q in qubits})
-                    )
-            except TypeError:
-                return NotImplemented
+        if (as_pauli_string := _try_interpret_as_pauli_string(self.on(*qubits))) is not None:
+            return as_pauli_string * other
         return NotImplemented
 
     def _rmul_with_qubits(self, qubits: tuple[cirq.Qid, ...], other):
         """cirq.GateOperation.__rmul__ delegates to this method."""
-        if isinstance(other, Operation):
-            try:
-                # Try using pauli expansion if both operations have single-item expansions
-                pauli_expansion_self = protocols.pauli_expansion(self.on(*qubits))
-                pauli_expansion_other = protocols.pauli_expansion(other)
+        from cirq.ops.pauli_string import _try_interpret_as_pauli_string
 
-                if (
-                    pauli_expansion_self is not None
-                    and len(pauli_expansion_self) == 1
-                    and pauli_expansion_other is not None
-                    and len(pauli_expansion_other) == 1
-                ):
-
-                    gate_self, coef_self = next(iter(pauli_expansion_self.items()))
-                    gate_other, coef_other = next(iter(pauli_expansion_other.items()))
-
-                    from cirq.ops.pauli_string import PauliString
-
-                    return (
-                        coef_other
-                        * PauliString({q: gate_other for q in qubits})
-                        * coef_self
-                        * PauliString({q: gate_self for q in qubits})
-                    )
-            except TypeError:
-                return NotImplemented
+        if (as_pauli_string := _try_interpret_as_pauli_string(self.on(*qubits))) is not None:
+            return other * as_pauli_string
         return NotImplemented
 
     def _json_dict_(self) -> dict[str, Any]:
