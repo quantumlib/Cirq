@@ -25,8 +25,8 @@ for arg in "$@"; do
 done
 
 # Get the working directory to the repo root.
-thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
-topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
+thisdir=$(dirname "${BASH_SOURCE[0]}") || exit $?
+topdir=$(git -C "${thisdir}" rev-parse --show-toplevel) || exit $?
 cd "${topdir}" || exit $?
 
 # check if the nbfmt tool in tensorflow-docs is installed and working

@@ -31,8 +31,8 @@
 ################################################################################
 
 # Get the working directory to the repo root.
-thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
-topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
+thisdir=$(dirname "${BASH_SOURCE[0]}") || exit $?
+topdir=$(git -C "${thisdir}" rev-parse --show-toplevel) || exit $?
 cd "${topdir}" || exit $?
 
 
@@ -72,7 +72,7 @@ if (( only_changed == 1 )); then
             exit 1
         fi
     fi
-    base="$(git merge-base "${rev}" HEAD)"
+    base=$(git merge-base "${rev}" HEAD)
     if [ "$(git rev-parse "${rev}")" == "${base}" ]; then
         echo -e "Comparing against revision '${rev}'." >&2
     else
@@ -109,7 +109,7 @@ if [[ -t 1 || "${CI}" == true ]]; then
     arg_color=("--color")
 fi
 
-ISORTVERSION="$(isort --version-number)"
+ISORTVERSION=$(isort --version-number)
 
 echo "Sorting imports with isort... (version: $ISORTVERSION)"
 
@@ -124,7 +124,7 @@ if (( "${#isort_files[@]}" )); then
     ISORTSTATUS=$?
 fi
 
-BLACKVERSION="$(black --version | head -1)"
+BLACKVERSION=$(black --version | head -1)
 
 echo "Running the black formatter... (version: $BLACKVERSION)"
 

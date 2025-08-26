@@ -59,7 +59,7 @@ fi
 
 # Find the repo root.
 cd "$( dirname "${BASH_SOURCE[0]}" )"
-REPO_ROOT="$(git rev-parse --show-toplevel)"
+REPO_ROOT=$(git rev-parse --show-toplevel)
 
 # Temporary workspace.
 tmp_dir=$(mktemp -d "/tmp/verify-published-package.XXXXXXXXXXXXXXXX")
