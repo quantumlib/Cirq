@@ -23,15 +23,6 @@ from cirq import circuits, ops
 from cirq.transformers import transformer_api
 
 
-def _to_gate_family_or_gateset(
-    val: ops.Gate | ops.Gateset | ops.GateFamily,
-) -> ops.Gateset | ops.GateFamily:
-    """Converts a Gate into a GateFamily, otherwise returns the value."""
-    if isinstance(val, ops.Gate):
-        return ops.GateFamily(val)
-    return val
-
-
 @transformer_api.transformer
 @attrs.frozen
 class MultiMomentGaugeTransformer(abc.ABC):
@@ -55,10 +46,8 @@ class MultiMomentGaugeTransformer(abc.ABC):
         supported_gates: The gates that are supported in the "moments to be gauged".
     """
 
-    target: ops.GateFamily | ops.Gateset = attrs.field(converter=_to_gate_family_or_gateset)
-    supported_gates: ops.GateFamily | ops.Gateset = attrs.field(
-        converter=_to_gate_family_or_gateset, default=ops.Gateset()
-    )
+    target: ops.GateFamily | ops.Gateset
+    supported_gates: ops.GateFamily | ops.Gateset
 
     @abc.abstractmethod
     def gauge_on_moments(self, moments_to_gauge: list[circuits.Moment]) -> list[circuits.Moment]:
