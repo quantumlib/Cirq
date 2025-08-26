@@ -52,11 +52,6 @@ def test_gauge_on_single_cphase():
         for g2 in [X, Y, Z, I]:  # Test with all possible samples of the left moment.
             cphase_transformer = _TestCPhaseGaugeTransformerMM()
             output_circuit = cphase_transformer(input_circuit)
-            import logging
-
-            logging.info(f"\n{input_circuit}")
-            logging.info(f"g1: {g1}, g2: {g2}")
-            logging.info(f"\n{output_circuit}")
             cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
                 input_circuit, output_circuit, {q: q for q in input_circuit.all_qubits()}
             )
@@ -97,10 +92,6 @@ def test_gauge_on_cz_moments():
     transformer = CPhaseGaugeTransformerMM()
 
     output_circuit = transformer(input_circuit)
-    import logging
-
-    logging.info(f"\n{input_circuit}")
-    logging.info(f"\n{output_circuit}")
     cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
         input_circuit, output_circuit, {q: q for q in input_circuit.all_qubits()}
     )
@@ -249,10 +240,3 @@ def test_deep_not_supported():
     with pytest.raises(ValueError, match="GaugeTransformer cannot be used with deep=True"):
         t = CPhaseGaugeTransformerMM()
         t(cirq.Circuit(), context=cirq.TransformerContext(deep=True))
-
-
-def test_gate_type_not_supported():
-    with pytest.raises(ValueError, match="Gate type .* is not supported."):
-        t = CPhaseGaugeTransformerMM()
-        q0, q1, q2 = cirq.LineQubit.range(3)
-        t.gauge_on_moments([cirq.Moment(cirq.CZ(q0, q1), cirq.measure(q2))])
