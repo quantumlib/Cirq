@@ -13,8 +13,8 @@
 
 # Get the working directory to the repo root.
 thisdir=$(dirname "${BASH_SOURCE[0]:?}") || exit $?
-topdir=$(git -C "${thisdir}" rev-parse --show-toplevel) || exit $?
-cd "${topdir}" || exit $?
+repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel) || exit $?
+cd "${repo_dir}" || exit $?
 
 # Run in parallel by default.  Pass the `-n0` option for a single-process run.
 # (the last `-n` option wins)

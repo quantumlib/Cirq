@@ -23,7 +23,7 @@
 
 # Get the working directory to the repo root.
 thisdir=$(dirname "${BASH_SOURCE[0]:?}") || exit $?
-topdir=$(git -C "${thisdir}" rev-parse --show-toplevel) || exit $?
+repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel) || exit $?
 
-cd "${topdir}/cirq-web/cirq_web" || exit $?
+cd "${repo_dir}/cirq-web/cirq_web" || exit $?
 npx "$@"
