@@ -23,8 +23,9 @@
 ################################################################################
 
 # Get the working directory to the repo root.
-cd "$( dirname "${BASH_SOURCE[0]}" )" || exit 1
-cd "$(git rev-parse --show-toplevel)" || exit 1
+thisdir=$(dirname "${BASH_SOURCE[0]:?}") || exit $?
+repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel) || exit $?
+cd "${repo_dir}" || exit $?
 
 PYTEST_ARGS=()
 ANALYZE_COV=1
@@ -60,7 +61,7 @@ else
     echo -e "\033[31mNo default revision found to compare against. Argument #1 must be what to diff against (e.g. 'origin/main' or 'HEAD~1').\033[0m" >&2
     exit 1
 fi
-base="$(git merge-base "${rev}" HEAD)"
+base=$(git merge-base "${rev}" HEAD)
 if [ "$(git rev-parse "${rev}")" == "${base}" ]; then
     echo -e "Comparing against revision '${rev}'." >&2
 else

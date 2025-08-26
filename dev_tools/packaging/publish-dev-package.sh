@@ -104,8 +104,9 @@ UPLOAD_VERSION="${EXPECTED_VERSION}$(date "+%Y%m%d%H%M%S")"
 echo -e "Producing package with version \033[33m\033[100m${UPLOAD_VERSION}\033[0m to upload to \033[33m\033[100m${PYPI_REPO_NAME}\033[0m pypi repository"
 
 # Get the working directory to the repo root.
-cd "$( dirname "${BASH_SOURCE[0]}" )"
-cd "$(git rev-parse --show-toplevel)"
+thisdir=$(dirname "${BASH_SOURCE[0]:?}")
+repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel)
+cd "${repo_dir}"
 
 # Temporary workspace.
 tmp_package_dir=$(mktemp -d "/tmp/publish-dev-package_package.XXXXXXXXXXXXXXXX")
