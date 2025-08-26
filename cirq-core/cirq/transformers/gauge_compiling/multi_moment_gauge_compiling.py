@@ -16,13 +16,24 @@
 
 import abc
 
+import attrs
 import numpy as np
 
 from cirq import circuits, ops
 from cirq.transformers import transformer_api
 
 
+def _to_gate_family_or_gateset(
+    val: ops.Gate | ops.Gateset | ops.GateFamily,
+) -> ops.Gateset | ops.GateFamily:
+    """Converts a Gate into a GateFamily, otherwise returns the value."""
+    if isinstance(val, ops.Gate):
+        return ops.GateFamily(val)
+    return val
+
+
 @transformer_api.transformer
+@attrs.frozen
 class MultiMomentGaugeTransformer(abc.ABC):
     """A gauge transformer that wraps target blocks of moments with single-qubit gates.
 
@@ -37,29 +48,17 @@ class MultiMomentGaugeTransformer(abc.ABC):
         q₂: ... ───LG2───┤ gauged on ├────RG2───...
                          │           │
         q₃: ... ───LG3───╰───────────╯────RG3───...
+
+    Attributes:
+        target: The target gate, gate family or gateset, must exist in each of the moment in
+          the "moments to be gauged".
+        supported_gates: The gates that are supported in the "moments to be gauged".
     """
 
-    def __init__(
-        self,
-        target: ops.Gate | ops.Gateset | ops.GateFamily,
-        supported_gates: ops.Gateset = ops.Gateset(),
-    ) -> None:
-        """Constructs a MultiMomentGaugeTransformer.
-
-        Args:
-            target: Specifies the two-qubit gates, gate families, or gate sets that will
-              be targeted during gauge compiling. The gauge moment must contain at least
-              one of the target gates.
-            supported_gates: Determines what other gates, in addition to the target gates,
-              are permitted within the gauge moments. If a moment contains a gate not found
-              in either target or supported_gates, it won't be gauged.
-        """
-        self.target = ops.GateFamily(target) if isinstance(target, ops.Gate) else target
-        self.supported_gates = (
-            ops.GateFamily(supported_gates)
-            if isinstance(supported_gates, ops.Gate)
-            else supported_gates
-        )
+    target: ops.GateFamily | ops.Gateset = attrs.field(converter=_to_gate_family_or_gateset)
+    supported_gates: ops.GateFamily | ops.Gateset = attrs.field(
+        converter=_to_gate_family_or_gateset, default=ops.Gateset()
+    )
 
     @abc.abstractmethod
     def gauge_on_moments(self, moments_to_gauge: list[circuits.Moment]) -> list[circuits.Moment]:

@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -42,17 +41,27 @@ def test_gauge_on_single_cphase():
     q0, q1 = cirq.LineQubit.range(2)
 
     input_circuit = cirq.Circuit(cirq.Moment(cirq.CZ(q0, q1) ** 0.2))
-    cphase_transformer = CPhaseGaugeTransformerMM()
+
+    class _TestCPhaseGaugeTransformerMM(CPhaseGaugeTransformerMM):
+        def sample_left_moment(
+            self,
+            active_qubits: frozenset[cirq.Qid],
+            rng: np.random.Generator = np.random.default_rng(),
+        ) -> cirq.Moment:
+            return cirq.Moment(g1(q0), g2(q1))
 
     for g1 in [X, Y, Z, I]:
         for g2 in [X, Y, Z, I]:  # Test with all possible samples of the left moment.
-            with patch.object(
-                cphase_transformer, "sample_left_moment", return_value=[g1(q0), g2(q1)]
-            ):
-                output_circuit = cphase_transformer(input_circuit)
-                cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
-                    input_circuit, output_circuit, {q: q for q in input_circuit.all_qubits()}
-                )
+            cphase_transformer = _TestCPhaseGaugeTransformerMM()
+            output_circuit = cphase_transformer(input_circuit)
+            import logging
+
+            logging.info(f"\n{input_circuit}")
+            logging.info(f"g1: {g1}, g2: {g2}")
+            logging.info(f"\n{output_circuit}")
+            cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+                input_circuit, output_circuit, {q: q for q in input_circuit.all_qubits()}
+            )
 
 
 def test_gauge_on_cz_moments():
@@ -90,6 +99,10 @@ def test_gauge_on_cz_moments():
     transformer = CPhaseGaugeTransformerMM()
 
     output_circuit = transformer(input_circuit)
+    import logging
+
+    logging.info(f"\n{input_circuit}")
+    logging.info(f"\n{output_circuit}")
     cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
         input_circuit, output_circuit, {q: q for q in input_circuit.all_qubits()}
     )
@@ -203,10 +216,8 @@ def test_pauli_and_phxz_util_gate_merges():
         for right_pauli in [X, Y, Z, I]:
             left = _PauliAndZPow(pauli=left_pauli, zpow=ZPowGate(exponent=0.2))
             right = _PauliAndZPow(pauli=right_pauli, zpow=ZPowGate(exponent=0.6))
-            merge1 = deepcopy(right)
-            merge1.merge_left(left)
-            merge2 = deepcopy(left)
-            merge2.merge_right(right)
+            merge1 = right.merge_left(left)
+            merge2 = left.merge_right(right)
 
             assert np.allclose(
                 cirq.unitary(merge1.to_single_qubit_gate()),
@@ -240,3 +251,10 @@ def test_deep_not_supported():
     with pytest.raises(ValueError, match="GaugeTransformer cannot be used with deep=True"):
         t = CPhaseGaugeTransformerMM()
         t(cirq.Circuit(), context=cirq.TransformerContext(deep=True))
+
+
+def test_gate_type_not_supported():
+    with pytest.raises(ValueError, match="Gate type .* is not supported."):
+        t = CPhaseGaugeTransformerMM()
+        q0, q1, q2 = cirq.LineQubit.range(3)
+        t.gauge_on_moments([cirq.Moment(cirq.CZ(q0, q1), cirq.measure(q2))])
