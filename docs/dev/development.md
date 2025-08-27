@@ -141,8 +141,9 @@ get picked up!
 [Protocol buffers](https://developers.google.com/protocol-buffers) ("protobufs") are used in Cirq for converting circuits, gates, and other objects into a standard form that can be written and read by other programs.
 Cirq's protobufs live at [cirq-google/api/v2](https://github.com/quantumlib/Cirq/tree/main/cirq-google/cirq_google/api/v2) and may need to be changed or extended from time to time.
 
-If any protos are updated, their dependents can be rebuilt by calling the script [dev_tools/build-protos.sh](https://github.com/quantumlib/Cirq/tree/main/dev_tools).
-This script uses `grpcio-tools` and protobuf version 4.25 to generate the Python proto API.
+If any protos are updated, their dependents can be rebuilt by calling the script
+[dev_tools/build-protos.sh](https://github.com/quantumlib/Cirq/blob/main/dev_tools/build-protos.sh).
+This script uses the `grpcio-tools` package to generate the Python proto API.
 
 ## Continuous integration and local testing
 
@@ -243,7 +244,8 @@ revision and the working directory.
 The above scripts may not exactly match the results computed by the continuous integration workflows on GitHub.
 For example, you may be running an older version of `pylint` or `numpy`.
 If you need to test against the actual continuous integration check, open up a pull request.
-For this pull request you may want to mark it as `[Testing]` so that it is not reviewed.
+For this pull request you may want to open it in a draft mode or
+mark it as `[Testing]` so that it is not reviewed.
 
 ### Writing docstrings and generating documentation
 
