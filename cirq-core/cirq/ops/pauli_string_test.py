@@ -2025,3 +2025,44 @@ def test_pauli_ops_identity_gate_operation(gate1: cirq.Pauli, gate2: cirq.Pauli)
     subtraction = pauli1 - pauli2
     assert isinstance(subtraction, cirq.PauliSum)
     assert np.array_equal(subtraction.matrix(), unitary1 - unitary2)
+
+
+def test_pauli_gate_multiplication_with_power():
+    q = cirq.LineQubit(0)
+
+    # Test all Pauli gates (X, Y, Z)
+    pauli_gates = [cirq.X, cirq.Y, cirq.Z]
+    for pauli_gate in pauli_gates:
+        gate = pauli_gate(q)
+
+        # Test multiplication
+        assert gate**2 * gate * gate * gate == gate**5
+        assert gate * gate**2 * gate * gate == gate**5
+        assert gate * gate * gate**2 * gate == gate**5
+        assert gate * gate * gate * gate**2 == gate**5
+
+        # Test with different powers
+        assert gate**0 * gate**5 == gate**5
+        assert gate**1 * gate**4 == gate**5
+        assert gate**2 * gate**3 == gate**5
+        assert gate**3 * gate**2 == gate**5
+        assert gate**4 * gate**1 == gate**5
+        assert gate**5 * gate**0 == gate**5
+
+
+def test_try_interpret_as_pauli_string():
+    from cirq.ops.pauli_string import _try_interpret_as_pauli_string
+
+    q = cirq.LineQubit(0)
+
+    # Pauli gate operation
+    x_gate = cirq.X(q)
+    assert _try_interpret_as_pauli_string(x_gate) == cirq.PauliString({q: cirq.X})
+
+    # powered gates
+    x_squared = x_gate**2
+    assert _try_interpret_as_pauli_string(x_squared) == cirq.PauliString({q: cirq.I})
+
+    # non-Pauli operation
+    h_gate = cirq.H(q)
+    assert _try_interpret_as_pauli_string(h_gate) is None
