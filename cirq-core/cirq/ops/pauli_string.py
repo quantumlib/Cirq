@@ -266,12 +266,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         pass
 
     def __mul__(self, other):
-        known = False
-        if isinstance(other, raw_types.Operation) and isinstance(other.gate, identity.IdentityGate):
-            known = True
-        elif isinstance(other, (PauliString, numbers.Number)):
-            known = True
-        if known:
+        if isinstance(other, (PauliString, numbers.Number)):
             return PauliString(
                 cast(PAULI_STRING_LIKE, other),
                 qubit_pauli_map=self._qubit_pauli_map,
@@ -294,9 +289,6 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             return PauliString(
                 qubit_pauli_map=self._qubit_pauli_map, coefficient=self._coefficient * other
             )
-
-        if isinstance(other, raw_types.Operation) and isinstance(other.gate, identity.IdentityGate):
-            return self  # pragma: no cover
 
         # Note: PauliString case handled by __mul__.
         return NotImplemented
