@@ -1105,8 +1105,8 @@ def _try_interpret_as_pauli_string(op: Any):
     if isinstance(op, gate_operation.GateOperation):
         pauli_expansion_op = protocols.pauli_expansion(op, default=None)
         if pauli_expansion_op is not None and len(pauli_expansion_op) == 1:
-            gate, coef = next(iter(pauli_expansion_op.items()))
-            return coef * PauliString({q: gate for q in op.qubits})
+            gates, coef = next(iter(pauli_expansion_op.items()))
+            return PauliString(dict(zip(op.qubits, gates)), coefficient=coef)
     return None
 
 
