@@ -204,12 +204,15 @@ def _shuffle_circuits(
     all_circuits: list[circuits.Circuit], all_repetitions: list[int], rng: np.random.Generator
 ) -> tuple[list[circuits.Circuit], list[int], np.ndarray]:
     """Shuffles the input circuits and readout calibration circuits."""
-    shuf_order = rng.permutation(len(all_circuits))
-    unshuf_order = np.zeros_like(shuf_order)  # Inverse permutation
-    unshuf_order[shuf_order] = np.arange(len(all_circuits))
-    shuffled_circuits = [all_circuits[i] for i in shuf_order]
-    all_repetitions = [all_repetitions[i] for i in shuf_order]
-    return shuffled_circuits, all_repetitions, unshuf_order
+    # shuf_order = rng.permutation(len(all_circuits))
+    # unshuf_order = np.zeros_like(shuf_order)  # Inverse permutation
+    # unshuf_order[shuf_order] = np.arange(len(all_circuits))
+    # shuffled_circuits = [all_circuits[i] for i in shuf_order]
+    # all_repetitions = [all_repetitions[i] for i in shuf_order]
+    # return unshuf_order, all_repetitions, unshuf_order
+    unshuf_order = np.arange(len(all_circuits))
+    unshuffled_circuits = all_circuits
+    return unshuffled_circuits, all_repetitions, unshuf_order
 
 
 def _analyze_readout_results(
