@@ -84,7 +84,7 @@ def test_measurement() -> None:
 
 
 @pytest.mark.parametrize(
-    'identifier', ['b', 'CX', 'abc', 'aXY03', 'a_valid_name_with_02_digits_and_underscores']
+    'identifier', ['b', 'CX', 'abc', '_abc', 'aXY03', 'a_valid_name_with_02_digits_and_underscores']
 )
 def test_valid_ids(identifier: str) -> None:
     lexer = QasmLexer()
