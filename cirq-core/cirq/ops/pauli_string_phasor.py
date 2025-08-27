@@ -200,7 +200,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
         pn = self.exponent_neg
         return PauliStringPhasor(new_pauli_string, exponent_pos=pp, exponent_neg=pn)
 
-    @deprecated(deadline="v2.0", fix="Use conjuagetd_by() instead.")
+    @deprecated(deadline="v2.0", fix="Use conjugated_by() instead.")
     def pass_operations_over(
         self, ops: Iterable[raw_types.Operation], after_to_before: bool = False
     ) -> PauliStringPhasor:  # pragma: no cover

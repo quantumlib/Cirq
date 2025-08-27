@@ -183,7 +183,7 @@ class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState']):
         super().__init__(sim_state)
 
     @property
-    def state(self):
+    def state(self) -> MPSState:
         return self._merged_sim_state
 
     def __str__(self) -> str:
@@ -646,10 +646,10 @@ class MPSState(SimulationState[_MPSHandler]):
         """Delegates the action to self.apply_op"""
         return self._state.apply_op(action, self.get_axes(qubits), self.prng)
 
-    def estimation_stats(self):
+    def estimation_stats(self) -> dict[str, float]:
         """Returns some statistics about the memory usage and quality of the approximation."""
         return self._state.estimation_stats()
 
     @property
-    def M(self):
+    def M(self) -> list[qtn.Tensor]:
         return self._state._M

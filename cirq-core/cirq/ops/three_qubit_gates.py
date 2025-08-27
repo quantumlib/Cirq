@@ -423,8 +423,8 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             }
         )
 
-    def qubit_index_to_equivalence_group_key(self, index):
-        return index < 2
+    def qubit_index_to_equivalence_group_key(self, index) -> int:
+        return 1 if index < 2 else 0
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         if protocols.is_parameterized(self):
@@ -508,7 +508,7 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     """A controlled swap gate. The Fredkin gate."""
 
-    def qubit_index_to_equivalence_group_key(self, index):
+    def qubit_index_to_equivalence_group_key(self, index) -> int:
         return 0 if index == 0 else 1
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:

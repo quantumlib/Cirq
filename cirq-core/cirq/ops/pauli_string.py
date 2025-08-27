@@ -1008,7 +1008,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         """
         return self.conjugated_by(ops)
 
-    @deprecated(deadline="v2.0", fix="Use conjuagetd_by()/before()/after() instead.")
+    @deprecated(deadline="v2.0", fix="Use conjugated_by(), before(), or after() instead.")
     def pass_operations_over(
         self, ops: Iterable[cirq.Operation], after_to_before: bool = False
     ) -> PauliString:  # pragma: no cover

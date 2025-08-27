@@ -67,7 +67,7 @@ def _get_assert_diagonalized_by_str(m, p, d):
     )
 
 
-def assert_diagonalized_by(m, p, atol: float = 1e-8):
+def assert_diagonalized_by(m, p, atol: float = 1e-8) -> None:
     d = p.T.dot(m).dot(p)
 
     assert cirq.is_orthogonal(p) and cirq.is_diagonal(
@@ -82,7 +82,7 @@ def _get_assert_bidiagonalized_by_str(m, p, q, d):
     )
 
 
-def assert_bidiagonalized_by(m, p, q, rtol: float = 1e-5, atol: float = 1e-8):
+def assert_bidiagonalized_by(m, p, q, rtol: float = 1e-5, atol: float = 1e-8) -> None:
     d = p.dot(m).dot(q)
 
     assert (

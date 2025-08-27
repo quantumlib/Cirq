@@ -105,7 +105,7 @@ def get_grid_moments(
     )
 
 
-def simplify_expectation_value_circuit(circuit_sand: cirq.Circuit):
+def simplify_expectation_value_circuit(circuit_sand: cirq.Circuit) -> None:
     """For low weight operators on low-degree circuits, we can simplify
     the circuit representation of an expectation value.
 
