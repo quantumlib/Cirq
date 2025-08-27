@@ -271,8 +271,6 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             known = True
         elif isinstance(other, (PauliString, numbers.Number)):
             known = True
-        elif (as_pauli_string := _try_interpret_as_pauli_string(other)) is not None:
-            return self * as_pauli_string
         if known:
             return PauliString(
                 cast(PAULI_STRING_LIKE, other),
@@ -299,8 +297,6 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
         if isinstance(other, raw_types.Operation) and isinstance(other.gate, identity.IdentityGate):
             return self  # pragma: no cover
-        elif (as_pauli_string := _try_interpret_as_pauli_string(other)) is not None:
-            return as_pauli_string * self
 
         # Note: PauliString case handled by __mul__.
         return NotImplemented
@@ -1107,14 +1103,10 @@ def _validate_qubit_mapping(
 def _try_interpret_as_pauli_string(op: Any):
     """Return a reprepresentation of an operation as a pauli string, if it is possible."""
     if isinstance(op, gate_operation.GateOperation):
-        try:
-            pauli_expansion_op = protocols.pauli_expansion(op)
-            if pauli_expansion_op is not None and len(pauli_expansion_op) == 1:
-                gate, coef = next(iter(pauli_expansion_op.items()))
-                return coef * PauliString({q: gate for q in op.qubits})
-        except TypeError:
-            # return None if there is no Pauli expansion for this GateOperation.
-            pass
+        pauli_expansion_op = protocols.pauli_expansion(op, default=None)
+        if pauli_expansion_op is not None and len(pauli_expansion_op) == 1:
+            gate, coef = next(iter(pauli_expansion_op.items()))
+            return coef * PauliString({q: gate for q in op.qubits})
     return None
 
 
@@ -1157,15 +1149,11 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
             return self._as_pauli_string() * other._as_pauli_string()
         if isinstance(other, (PauliString, numbers.Complex)):
             return self._as_pauli_string() * other
-        if (as_pauli_string := _try_interpret_as_pauli_string(other)) is not None:
-            return self * as_pauli_string
         return NotImplemented
 
     def __rmul__(self, other):
         if isinstance(other, (PauliString, numbers.Complex)):
             return other * self._as_pauli_string()
-        if (as_pauli_string := _try_interpret_as_pauli_string(other)) is not None:
-            return as_pauli_string * self
         return NotImplemented
 
     def __neg__(self):
