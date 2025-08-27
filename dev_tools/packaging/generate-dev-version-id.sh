@@ -23,12 +23,11 @@
 # script was run. This can be used to ensure later releases
 # have increasing numerical release numbers.
 #
-# This script is used by publish-dev-package and can also be
-# used to set a bash variable for use by travis ci to deploy
-# a new dev version on successful merge.
+# This script is used by the automated "Pre-release cirq to PyPi"
+# GitHub action to produce a new dev version after successful merge.
 #
 # Example:
-#     > echo `generate-dev-version-id.sh`
+#     > ./generate-dev-version-id.sh
 #     0.6.0.dev20190829135619
 ################################################################################
 
