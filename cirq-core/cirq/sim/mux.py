@@ -28,6 +28,8 @@ from cirq._doc import document
 from cirq.sim import density_matrix_simulator, sparse_simulator
 from cirq.sim.clifford import clifford_simulator
 from cirq.transformers import measurement_transformers
+from cirq.linalg.transformations import partial_trace
+from cirq.protocols.qid_shape_protocol import num_qubits, qid_shape
 
 if TYPE_CHECKING:
     import cirq
@@ -291,11 +293,17 @@ def final_density_matrix(
         return sparse_result.density_matrix_of()
     else:
         # noisy case: use DensityMatrixSimulator with dephasing
+
+        if ignore_measurement_results:
+            noise_applied = circuit_like.with_noise(noise)
+            defered = measurement_transformers.defer_measurements(noise_applied)
+            dephased = measurement_transformers.dephase_measurements(defered)
+
         density_result = density_matrix_simulator.DensityMatrixSimulator(
-            dtype=dtype, noise=noise, seed=seed
+            dtype=dtype, noise=None if ignore_measurement_results else noise, seed=seed
         ).simulate(
             program=(
-                measurement_transformers.dephase_measurements(circuit_like)
+                dephased
                 if ignore_measurement_results
                 else circuit_like
             ),
@@ -303,4 +311,24 @@ def final_density_matrix(
             qubit_order=qubit_order,
             param_resolver=param_resolver,
         )
-        return density_result.final_density_matrix
+
+        res = density_result.final_density_matrix
+
+        if ignore_measurement_results:
+            nq = num_qubits(circuit_like)
+            qids = qid_shape(circuit_like)
+
+            #assuming that the ancella bits from the transformations are at the end
+            keep = list(range(nq))
+
+            dephased_qids = qid_shape(dephased)
+            tensor_form = np.reshape(res, dephased_qids + dephased_qids)
+
+            reduced_form = partial_trace(tensor_form, keep)
+
+            width = np.prod(qids)
+            r = np.reshape(reduced_form, (width,width))
+    
+            return r
+        
+        return res
