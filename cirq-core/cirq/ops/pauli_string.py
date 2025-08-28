@@ -1136,18 +1136,6 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
     def _as_pauli_string(self) -> PauliString:
         return PauliString(qubit_pauli_map={self.qubit: self.pauli})
 
-    def __mul__(self, other):
-        if isinstance(other, SingleQubitPauliStringGateOperation):
-            return self._as_pauli_string() * other._as_pauli_string()
-        if isinstance(other, (PauliString, numbers.Complex)):
-            return self._as_pauli_string() * other
-        return NotImplemented
-
-    def __rmul__(self, other):
-        if isinstance(other, (PauliString, numbers.Complex)):
-            return other * self._as_pauli_string()
-        return NotImplemented
-
     def __neg__(self):
         return -self._as_pauli_string()
 
