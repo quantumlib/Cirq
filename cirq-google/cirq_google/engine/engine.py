@@ -637,14 +637,14 @@ class Engine(abstract_engine.AbstractEngine):
         )
 
     async def get_processor_config_from_snapshot_async(
-        self, processor_id: str, snapshot_id: str, config_alias: str = 'default'
+        self, processor_id: str, snapshot_id: str, config_name: str = 'default'
     ) -> processor_config.ProcessorConfig | None:
         """Returns a ProcessorConfig from this project and the given processor id.
 
         Args:
            processor_id: The processor unique identifier.
            snapshot_id: The unique identifier for the snapshot.
-           config_alias: The identifier for the config.
+           config_name: The identifier for the config.
 
         Returns:
            The ProcessorConfig from this project and processor.
@@ -654,7 +654,7 @@ class Engine(abstract_engine.AbstractEngine):
             project_id=self.project_id,
             processor_id=processor_id,
             snapshot_id=snapshot_id,
-            config_alias=config_alias,
+            config_name=config_name,
         )
         if quantum_config:
             return processor_config.ProcessorConfig(quantum_processor_config=quantum_config)
@@ -663,17 +663,17 @@ class Engine(abstract_engine.AbstractEngine):
     get_processor_config_from_snapshot = duet.sync(get_processor_config_from_snapshot_async)
 
     async def get_processor_config_from_run_async(
-        self, processor_id: str, run_name: str = 'current', config_alias: str = 'default'
+        self, processor_id: str, run_name: str = 'current', config_name: str = 'default'
     ) -> processor_config.ProcessorConfig | None:
         """Returns a ProcessorConfig from this project and the given processor id.
 
-        If no `run_name` and `config_alias` are specified, the inernally configured default config
+        If no `run_name` and `config_name` are specified, the inernally configured default config
         is returned.
 
         Args:
             processor_id: The processor unique identifier.
             run_name: The unique identifier for the automation run.
-            config_alias: The identifier for the config.
+            config_name: The identifier for the config.
 
         Returns:
             The ProcessorConfig from this project and processor.
@@ -682,7 +682,7 @@ class Engine(abstract_engine.AbstractEngine):
             project_id=self.project_id,
             processor_id=processor_id,
             run_name=run_name,
-            config_alias=config_alias,
+            config_name=config_name,
         )
         if quantum_config:
             return processor_config.ProcessorConfig(

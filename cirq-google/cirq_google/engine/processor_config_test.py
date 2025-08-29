@@ -48,10 +48,10 @@ _DEVICE_SPEC = v2.device_pb2.DeviceSpecification(
 _PROCESSOR_ID = 'test_processor_id'
 _PROJECT_ID = 'test_project_id'
 _SNAPSHOT_ID = 'test_snapshot_id'
-_CONFIG_ALIAS = 'test_config_name'
+_CONFIG_NAME = 'test_config_name'
 
 _VALID_QUANTUM_PROCESSOR_CONFIG = quantum.QuantumProcessorConfig(
-    name=f'projects/{_PROJECT_ID}/processors/{_PROCESSOR_ID}/configSnapshots/{_SNAPSHOT_ID}/configs/{_CONFIG_ALIAS}',
+    name=f'projects/{_PROJECT_ID}/processors/{_PROCESSOR_ID}/configSnapshots/{_SNAPSHOT_ID}/configs/{_CONFIG_NAME}',
     device_specification=util.pack_any(_DEVICE_SPEC),
     characterization=util.pack_any(_METRIC_SNAPSHOT),
 )
@@ -101,10 +101,10 @@ def test_processor_processor_id():
     assert config.processor_id == _PROCESSOR_ID
 
 
-def test_processor_CONFIG_ALIAS():
+def test_processor_CONFIG_NAME():
     config = cg.engine.ProcessorConfig(quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG)
 
-    assert config.config_name == _CONFIG_ALIAS
+    assert config.config_name == _CONFIG_NAME
 
 
 def test_processor_config_repr():
@@ -114,7 +114,7 @@ def test_processor_config_repr():
         f'processor_id={_PROCESSOR_ID}, '
         f'snapshot_id={_SNAPSHOT_ID}, '
         f'run_name={""} '
-        f'config_name={_CONFIG_ALIAS}'
+        f'config_name={_CONFIG_NAME}'
     )
 
     assert repr(config) == expected_repr
@@ -130,7 +130,7 @@ def test_processor_config_repr_with_run_name():
         f'processor_id={_PROCESSOR_ID}, '
         f'snapshot_id={_SNAPSHOT_ID}, '
         f'run_name={run_name} '
-        f'config_name={_CONFIG_ALIAS}'
+        f'config_name={_CONFIG_NAME}'
     )
 
     assert repr(config) == expected_repr

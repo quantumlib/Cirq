@@ -1751,12 +1751,12 @@ def test_get_quantum_processor_config_from_snapshot(client_constructor, default_
     project_id = "test_project_id"
     processor_id = "test_processor_id"
     snapshot_id = "test_snapshot_id"
-    config_alias = "test_config_alias"
+    config_name = "test_config_name"
     resource_name = (
         f'projects/{project_id}/'
         f'processors/{processor_id}/'
         f'configSnapshots/{snapshot_id}/'
-        f'configs/{config_alias}'
+        f'configs/{config_name}'
     )
 
     grpc_client = _setup_client_mock(client_constructor)
@@ -1766,7 +1766,7 @@ def test_get_quantum_processor_config_from_snapshot(client_constructor, default_
     actual_result = default_engine_client.get_quantum_processor_config_from_snapshot(
         project_id=project_id,
         processor_id=processor_id,
-        config_alias=config_alias,
+        config_name=config_name,
         snapshot_id=snapshot_id,
     )
     grpc_client.get_quantum_processor_config.assert_called_with(
@@ -1782,12 +1782,12 @@ def test_get_quantum_processor_config_from_snapshot_not_found(
     project_id = "test_project_id"
     processor_id = "test_processor_id"
     snapshot_id = "test_snapshot_id"
-    config_alias = "test_config_alias"
+    config_name = "test_config_name"
     resource_name = (
         f'projects/{project_id}/'
         f'processors/{processor_id}/'
         f'configSnapshots/{snapshot_id}/'
-        f'configs/{config_alias}'
+        f'configs/{config_name}'
     )
 
     grpc_client = _setup_client_mock(client_constructor)
@@ -1796,7 +1796,7 @@ def test_get_quantum_processor_config_from_snapshot_not_found(
     actual_result = default_engine_client.get_quantum_processor_config_from_snapshot(
         project_id=project_id,
         processor_id=processor_id,
-        config_alias=config_alias,
+        config_name=config_name,
         snapshot_id=snapshot_id,
     )
     grpc_client.get_quantum_processor_config.assert_called_with(
@@ -1816,7 +1816,7 @@ def test_get_quantum_processor_config_from_snapshot_exception(
         _ = default_engine_client.get_quantum_processor_config_from_snapshot(
             project_id="test_project_id",
             processor_id="test_processor_id",
-            config_alias="test_config_alias",
+            config_name="test_config_name",
             snapshot_id="test_snapshot_id",
         )
 
@@ -1827,12 +1827,12 @@ def test_get_quantum_processor_config_from_run(client_constructor, default_engin
     project_id = "test_project_id"
     processor_id = "test_processor_id"
     run_name = "test_run_name"
-    config_alias = "test_config_alias"
+    config_name = "test_config_name"
     resource_name = (
         f'projects/{project_id}/'
         f'processors/{processor_id}/'
         f'configAutomationRuns/{run_name}/'
-        f'configs/{config_alias}'
+        f'configs/{config_name}'
     )
 
     grpc_client = _setup_client_mock(client_constructor)
@@ -1842,7 +1842,7 @@ def test_get_quantum_processor_config_from_run(client_constructor, default_engin
     actual_result = default_engine_client.get_quantum_processor_config_from_run(
         project_id=project_id,
         processor_id=processor_id,
-        config_alias=config_alias,
+        config_name=config_name,
         run_name=run_name,
     )
     grpc_client.get_quantum_processor_config.assert_called_with(
@@ -1856,12 +1856,12 @@ def test_get_quantum_processor_config_from_run_not_found(client_constructor, def
     project_id = "test_project_id"
     processor_id = "test_processor_id"
     run_name = "test_run_name"
-    config_alias = "test_config_alias"
+    config_name = "test_config_name"
     resource_name = (
         f'projects/{project_id}/'
         f'processors/{processor_id}/'
         f'configAutomationRuns/{run_name}/'
-        f'configs/{config_alias}'
+        f'configs/{config_name}'
     )
     grpc_client = _setup_client_mock(client_constructor)
     grpc_client.get_quantum_processor_config.side_effect = exceptions.NotFound('not found')
@@ -1869,7 +1869,7 @@ def test_get_quantum_processor_config_from_run_not_found(client_constructor, def
     actual_result = default_engine_client.get_quantum_processor_config_from_run(
         project_id=project_id,
         processor_id=processor_id,
-        config_alias=config_alias,
+        config_name=config_name,
         run_name=run_name,
     )
     grpc_client.get_quantum_processor_config.assert_called_with(
@@ -1887,6 +1887,6 @@ def test_get_quantum_processor_config_from_run_exception(client_constructor, def
         _ = default_engine_client.get_quantum_processor_config_from_run(
             project_id="test_project_id",
             processor_id="test_processor_id",
-            config_alias="test_config_alias",
+            config_name="test_config_name",
             run_name="test_run_name",
         )

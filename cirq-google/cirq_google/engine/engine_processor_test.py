@@ -1021,12 +1021,12 @@ def test_get_config_from_run(client):
     project_id = "test_project_id"
     processor_id = "test_proc_id"
     run_name = "test_run_name"
-    config_alias = "test_config_alias"
+    config_name = "test_config_name"
     name = (
         f'projects/{project_id}/'
         f'processors/{processor_id}/'
         f'configAutomationRuns/{run_name}/'
-        f'configs/{config_alias}'
+        f'configs/{config_name}'
     )
 
     device_spec = v2.device_pb2.DeviceSpecification(
@@ -1050,16 +1050,16 @@ def test_get_config_from_run(client):
         project_id=project_id, processor_id=processor_id, context=EngineContext()
     )
 
-    actual_config = processor.get_config_from_run(config_alias=config_alias, run_name=run_name)
+    actual_config = processor.get_config_from_run(config_name=config_name, run_name=run_name)
 
     client().get_quantum_processor_config_from_run_async.assert_called_once_with(
         project_id=project_id,
         processor_id=processor_id,
         run_name=run_name,
-        config_alias=config_alias,
+        config_name=config_name,
     )
     assert actual_config.processor_id == expected_config.processor_id
-    assert actual_config.config_name == config_alias
+    assert actual_config.config_name == config_name
     assert actual_config.run_name == run_name
     assert actual_config.effective_device == expected_config.effective_device
     assert actual_config.calibration == expected_config.calibration
@@ -1098,7 +1098,7 @@ def test_get_default_config_from_run(client):
     _ = processor.get_config_from_run()
 
     client().get_quantum_processor_config_from_run_async.assert_called_once_with(
-        project_id=project_id, processor_id=processor_id, run_name='current', config_alias='default'
+        project_id=project_id, processor_id=processor_id, run_name='current', config_name='default'
     )
 
 
@@ -1107,12 +1107,12 @@ def test_get_config_from_snapshot(client):
     project_id = "test_project_id"
     processor_id = "test_proc_id"
     snapshot_id = "test_snapshot_id"
-    config_alias = "test_config_alias"
+    config_name = "test_config_name"
     name = (
         f'projects/{project_id}/'
         f'processors/{processor_id}/'
         f'configSnapshots/{snapshot_id}/'
-        f'configs/{config_alias}'
+        f'configs/{config_name}'
     )
 
     device_spec = v2.device_pb2.DeviceSpecification(
@@ -1137,17 +1137,17 @@ def test_get_config_from_snapshot(client):
     )
 
     actual_config = processor.get_config_from_snapshot(
-        config_alias=config_alias, snapshot_id=snapshot_id
+        config_name=config_name, snapshot_id=snapshot_id
     )
 
     client().get_quantum_processor_config_from_snapshot_async.assert_called_once_with(
         project_id=project_id,
         processor_id=processor_id,
         snapshot_id=snapshot_id,
-        config_alias=config_alias,
+        config_name=config_name,
     )
     assert actual_config.processor_id == expected_config.processor_id
-    assert actual_config.config_name == config_alias
+    assert actual_config.config_name == config_name
     assert actual_config.run_name == ''
     assert actual_config.snapshot_id == snapshot_id
     assert actual_config.effective_device == expected_config.effective_device
@@ -1193,7 +1193,7 @@ def test_get_default_config_from_snapshot(client):
         project_id=project_id,
         processor_id=processor_id,
         snapshot_id=snapshot_id,
-        config_alias='default',
+        config_name='default',
     )
     assert actual_config.processor_id == expected_config.processor_id
     assert actual_config.config_name == 'default'
@@ -1208,7 +1208,7 @@ def test_get_config_from_snapshot_not_found(client):
     project_id = "test_project_id"
     processor_id = "test_proc_id"
     snapshot_id = "test_snapshot_id"
-    config_alias = "test_config_alias"
+    config_name = "test_config_name"
 
     client().get_quantum_processor_config_from_snapshot_async.return_value = None
 
@@ -1216,13 +1216,13 @@ def test_get_config_from_snapshot_not_found(client):
         project_id=project_id, processor_id=processor_id, context=EngineContext()
     )
 
-    result = processor.get_config_from_snapshot(config_alias=config_alias, snapshot_id=snapshot_id)
+    result = processor.get_config_from_snapshot(config_name=config_name, snapshot_id=snapshot_id)
 
     client().get_quantum_processor_config_from_snapshot_async.assert_called_once_with(
         project_id=project_id,
         processor_id=processor_id,
         snapshot_id=snapshot_id,
-        config_alias=config_alias,
+        config_name=config_name,
     )
 
     assert result is None
@@ -1232,7 +1232,7 @@ def test_get_config_from_snapshot_not_found(client):
 def test_get_current_config_from_run_not_found(client):
     project_id = "test_project_id"
     processor_id = "test_proc_id"
-    config_alias = "test_config_alias"
+    config_name = "test_config_name"
     run_name = 'test_run_name'
 
     client().get_quantum_processor_config_from_run_async.return_value = None
@@ -1241,12 +1241,12 @@ def test_get_current_config_from_run_not_found(client):
         project_id=project_id, processor_id=processor_id, context=EngineContext()
     )
 
-    result = processor.get_config_from_run(config_alias=config_alias, run_name=run_name)
+    result = processor.get_config_from_run(config_name=config_name, run_name=run_name)
 
     client().get_quantum_processor_config_from_run_async.assert_called_once_with(
         project_id=project_id,
         processor_id=processor_id,
         run_name=run_name,
-        config_alias=config_alias,
+        config_name=config_name,
     )
     assert result is None

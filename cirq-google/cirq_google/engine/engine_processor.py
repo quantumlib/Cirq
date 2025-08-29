@@ -504,35 +504,35 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         return self.context.client.list_time_slots(self.project_id, self.processor_id, filter_str)
 
     def get_config_from_run(
-        self, run_name: str = 'current', config_alias: str = 'default'
+        self, run_name: str = 'current', config_name: str = 'default'
     ) -> processor_config.ProcessorConfig | None:
         """Retrieves a ProcessorConfig from an automation run.
 
-        If no `run_name` and `config_alias` are specified, the inernally configured default config
+        If no `run_name` and `config_name` are specified, the inernally configured default config
         is returned.
 
         Args:
             processor_id: The processor unique identifier.
-            config_alias: The quantum processor's unique identifier.
+            config_name: The quantum processor's unique identifier.
             run_name: The automation run name.  Use 'default'
                       if none id provided.
 
         Returns: The quantum processor config.
         """
         return self.engine().get_processor_config_from_run(
-            processor_id=self.processor_id, run_name=run_name, config_alias=config_alias
+            processor_id=self.processor_id, run_name=run_name, config_name=config_name
         )
 
     def get_config_from_snapshot(
-        self, snapshot_id: str, config_alias: str = 'default'
+        self, snapshot_id: str, config_name: str = 'default'
     ) -> processor_config.ProcessorConfig | None:
         """Retrieves a ProcessorConfig from a given snapshot id.
 
-        If not `config_alias` is specified, the internally configured default is returned.
+        If not `config_name` is specified, the internally configured default is returned.
 
         Args:
             processor_id: The processor unique identifier.
-            config_alias: The quantum processor's unique identifier.
+            config_name: The quantum processor's unique identifier.
             snapshot_id: The snapshot's unique identifier.
 
         Returns: The quantum processor config.
@@ -541,7 +541,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             EngineException: If the request to get the config fails.
         """
         return self.engine().get_processor_config_from_snapshot(
-            processor_id=self.processor_id, snapshot_id=snapshot_id, config_alias=config_alias
+            processor_id=self.processor_id, snapshot_id=snapshot_id, config_name=config_name
         )
 
     def __str__(self):

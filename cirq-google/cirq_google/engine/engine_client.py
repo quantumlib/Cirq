@@ -1196,7 +1196,7 @@ class EngineClient:
             raise
 
     async def get_quantum_processor_config_from_snapshot_async(
-        self, project_id: str, processor_id: str, snapshot_id: str, config_alias: str
+        self, project_id: str, processor_id: str, snapshot_id: str, config_name: str
     ) -> quantum.QuantumProcessorConfig | None:
         """Returns the QuantumProcessorConfig for the given snapshot id.
 
@@ -1204,7 +1204,7 @@ class EngineClient:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
             snapshot_id: The id of the snapshot that contains the quantum processor config.
-            config_alias: The id of the quantum processor config.
+            config_name: The id of the quantum processor config.
 
         Returns:
             The quantum procesor config or None if it does not exist.
@@ -1216,7 +1216,7 @@ class EngineClient:
             project_id=project_id,
             processor_id=processor_id,
             snapshot_id=snapshot_id,
-            config_alias=config_alias,
+            config_name=config_name,
         )
         return await self._get_quantum_processor_config(name)
 
@@ -1225,14 +1225,14 @@ class EngineClient:
     )
 
     async def get_quantum_processor_config_from_run_async(
-        self, project_id: str, processor_id: str, run_name: str, config_alias: str
+        self, project_id: str, processor_id: str, run_name: str, config_name: str
     ) -> quantum.QuantumProcessorConfig | None:
         """Returns the QuantumProcessorConfig for the given run_name.
 
         Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
-            config_alias: The id of the quantum processor config.
+            config_name: The id of the quantum processor config.
             run_name: The run_name that contains the quantum processor config.
 
         Returns:
@@ -1245,7 +1245,7 @@ class EngineClient:
             project_id=project_id,
             processor_id=processor_id,
             run_name=run_name,
-            config_alias=config_alias,
+            config_name=config_name,
         )
         return await self._get_quantum_processor_config(name)
 
@@ -1301,24 +1301,24 @@ def _ids_from_calibration_name(calibration_name: str) -> tuple[str, str, int]:
 
 
 def _quantum_processor_name_with_snapshot_id(
-    project_id: str, processor_id: str, snapshot_id: str, config_alias: str
+    project_id: str, processor_id: str, snapshot_id: str, config_name: str
 ) -> str:
     return (
         f'projects/{project_id}/'
         f'processors/{processor_id}/'
         f'configSnapshots/{snapshot_id}/'
-        f'configs/{config_alias}'
+        f'configs/{config_name}'
     )
 
 
 def _quantum_processor_name_with_run_name(
-    project_id: str, processor_id: str, run_name: str, config_alias: str
+    project_id: str, processor_id: str, run_name: str, config_name: str
 ) -> str:
     return (
         f'projects/{project_id}/'
         f'processors/{processor_id}/'
         f'configAutomationRuns/{run_name}/'
-        f'configs/{config_alias}'
+        f'configs/{config_name}'
     )
 
 
