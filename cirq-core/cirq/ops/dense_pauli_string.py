@@ -614,15 +614,13 @@ def _as_pauli_mask(val: Iterable[cirq.PAULI_GATE_LIKE] | np.ndarray) -> np.ndarr
 
 
 def _attempt_value_to_pauli_index(v: cirq.Operation) -> tuple[int, int] | None:
-    if isinstance(v, pauli_string.PauliString):
-        pass
-    elif (v := pauli_string._try_interpret_as_pauli_string(v)) is None:
+    if (ps := pauli_string._try_interpret_as_pauli_string(v)) is None:
         return None
 
-    if len(v.qubits) != 1:
+    if len(ps.qubits) != 1:
         return None  # pragma: no cover
 
-    q = v.qubits[0]
+    q = ps.qubits[0]
     from cirq import devices
 
     if not isinstance(q, devices.LineQubit):
@@ -631,7 +629,7 @@ def _attempt_value_to_pauli_index(v: cirq.Operation) -> tuple[int, int] | None:
             'other than `cirq.LineQubit` so its dense index is ambiguous.\n'
             f'v={repr(v)}.'
         )
-    return pauli_string.PAULI_GATE_LIKE_TO_INDEX_MAP[v[q]], q.x
+    return pauli_string.PAULI_GATE_LIKE_TO_INDEX_MAP[ps[q]], q.x
 
 
 def _vectorized_pauli_mul_phase(lhs: int | np.ndarray, rhs: int | np.ndarray) -> complex:
