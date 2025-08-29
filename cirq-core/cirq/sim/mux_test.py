@@ -413,22 +413,21 @@ def test_ps_initial_state_dmat():
 
 def test_dm_classical_control():
     q0, q1 = cirq.LineQubit.range(2)
-    
+
     circuit = cirq.Circuit(
         cirq.H(q0),
         cirq.measure(q0, key='a'),
         cirq.H(q1).with_classical_controls('a'),
         cirq.measure(q1, key='b'),
     )
-    
+
     dm = cirq.final_density_matrix(circuit)
+    assert dm.shape == (4, 4)
 
-    assert dm.shape == (4,4)
+    expected = np.zeros((4, 4), dtype=np.complex64)
 
-    expected = np.zeros((4,4), dtype=np.complex64)
+    expected[0, 0] = 0.5 + 0.0j
+    expected[2, 2] = 0.25 + 0.0j
+    expected[3, 3] = 0.25 + 0.0j
 
-    expected[0,0] = 0.5 + 0.0j
-    expected[2,2] = 0.25 + 0.0j
-    expected[3,3] = 0.25 + 0.0j
-
-    np.testing.assert_allclose(dm,expected)
+    np.testing.assert_allclose(dm, expected)

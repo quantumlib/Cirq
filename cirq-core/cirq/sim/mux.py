@@ -25,11 +25,11 @@ import numpy as np
 
 from cirq import circuits, devices, ops, protocols, study, value
 from cirq._doc import document
+from cirq.linalg import transformations
+from cirq.protocols import qid_shape_protocol
 from cirq.sim import density_matrix_simulator, sparse_simulator
 from cirq.sim.clifford import clifford_simulator
 from cirq.transformers import measurement_transformers
-from cirq.linalg.transformations import partial_trace
-from cirq.protocols.qid_shape_protocol import num_qubits, qid_shape
 
 if TYPE_CHECKING:
     import cirq
@@ -293,20 +293,26 @@ def final_density_matrix(
         return sparse_result.density_matrix_of()
     else:
         # noisy case: use DensityMatrixSimulator with dephasing
+        has_classical_control = circuit_like != measurement_transformers.defer_measurements(circuit_like)
+        handling_classical_control = ignore_measurement_results and has_classical_control
 
-        if ignore_measurement_results:
-            noise_applied = circuit_like.with_noise(noise)
+        if handling_classical_control:
+            # case 1: classical control
+            noise_applied = circuit_like.with_noise(noise) if noise is not None else circuit_like
             defered = measurement_transformers.defer_measurements(noise_applied)
             dephased = measurement_transformers.dephase_measurements(defered)
+            program = dephased
+        elif ignore_measurement_results:
+            # case 2: no classical control, only terminal measurement
+            program = measurement_transformers.dephase_measurements(circuit_like)
+        else:
+            # case 3: no measurement
+            program = circuit_like
 
         density_result = density_matrix_simulator.DensityMatrixSimulator(
-            dtype=dtype, noise=None if ignore_measurement_results else noise, seed=seed
+            dtype=dtype, noise=None if handling_classical_control else noise, seed=seed
         ).simulate(
-            program=(
-                dephased
-                if ignore_measurement_results
-                else circuit_like
-            ),
+            program,
             initial_state=initial_state,
             qubit_order=qubit_order,
             param_resolver=param_resolver,
@@ -314,21 +320,23 @@ def final_density_matrix(
 
         res = density_result.final_density_matrix
 
-        if ignore_measurement_results:
-            nq = num_qubits(circuit_like)
-            qids = qid_shape(circuit_like)
+        if handling_classical_control:
+            num_qubits = qid_shape_protocol.num_qubits(circuit_like)
+            qid_shape = qid_shape_protocol.qid_shape(circuit_like)
 
-            #assuming that the ancella bits from the transformations are at the end
-            keep = list(range(nq))
+            # assuming that the ancella bits from the transformations are at the end
+            keep = list(range(num_qubits))
 
-            dephased_qids = qid_shape(dephased)
-            tensor_form = np.reshape(res, dephased_qids + dephased_qids)
+            dephased_qid_shape = qid_shape_protocol.qid_shape(dephased)
 
-            reduced_form = partial_trace(tensor_form, keep)
+            tensor_form = np.reshape(res, dephased_qid_shape + dephased_qid_shape)
 
-            width = np.prod(qids)
+            reduced_form = transformations.partial_trace(tensor_form, keep)
+
+            width = np.prod(qid_shape)
+
             r = np.reshape(reduced_form, (width,width))
-    
+            
             return r
         
         return res
