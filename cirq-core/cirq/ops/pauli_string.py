@@ -1134,12 +1134,6 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
         assert len(self.qubits) == 1
         return self.qubits[0]
 
-    def _as_pauli_string(self) -> PauliString:
-        return PauliString(qubit_pauli_map={self.qubit: self.pauli})
-
-    def __neg__(self):
-        return -self._as_pauli_string()
-
     def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['pauli', 'qubit'])
 
