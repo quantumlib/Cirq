@@ -50,6 +50,8 @@ echo =======================================
 echo Testing that all modules are installed
 echo =======================================
 
+exit_code=0
+
 python_test_template="\
 import @p
 print(@p)
@@ -61,5 +63,12 @@ CIRQ_PACKAGES=$(env PYTHONPATH=. python dev_tools/modules.py list --mode package
 for p in $CIRQ_PACKAGES; do
   echo "--- Testing $p -----"
   python_test="${python_test_template//@p/$p}"
-  env PYTHONPATH='' "${tmp_dir}/env/bin/python" -c "$python_test" && echo -e "\033[32mPASS\033[0m"  || echo -e "\033[31mFAIL\033[0m"
+  if env PYTHONPATH='' "${tmp_dir}/env/bin/python" -c "$python_test"; then
+    echo -e "\033[32mPASS\033[0m"
+  else
+    echo -e "\033[31mFAIL\033[0m"
+    exit_code=1
+  fi
 done
+
+exit ${exit_code}

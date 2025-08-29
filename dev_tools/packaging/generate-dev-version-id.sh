@@ -15,13 +15,11 @@
 # limitations under the License.
 
 ################################################################################
-# This script prints a new dev version id if the current cirq version
-# is a dev release.
+# This script prints a version id if the current Cirq version is a dev release.
 #
-# If version in Cirq's _version.py file contains 'dev' this
-# prints a dev version appended by an id given by the time the
-# script was run. This can be used to ensure later releases
-# have increasing numerical release numbers.
+# If version in Cirq's _version.py file ends in "dev0" this prints
+# a dev version appended by the HEAD commit date in the UTC timezone.
+# This can be used to ensure later releases have increasing release numbers.
 #
 # This script is used by the automated "Pre-release cirq to PyPi"
 # GitHub action to produce a new dev version after successful merge.
@@ -43,9 +41,16 @@ PROJECT_NAME=cirq-core/cirq
 ACTUAL_VERSION_LINE=$(tail -n 1 "${PROJECT_NAME}/_version.py")
 ACTUAL_VERSION=$(echo "$ACTUAL_VERSION_LINE" | cut -d'"' -f 2)
 
-if [[ ${ACTUAL_VERSION} == *"dev0" ]]; then
-  echo "${ACTUAL_VERSION%0}$(date "+%Y%m%d%H%M%S")"
-else
+if [[ ${ACTUAL_VERSION} != *"dev0" ]]; then
   echo "Version doesn't end in dev0: ${ACTUAL_VERSION_LINE}" >&2
   exit 1
 fi
+
+if ! (git diff --cached --quiet && git diff --quiet); then
+  echo "There are uncommitted changes in the repository." >&2
+  echo "Please commit or clean these up to try again." >&2
+  exit 1
+fi
+
+TIMESTAMP=$(TZ=UTC git log -1 --date="format-local:%Y%m%d%H%M%S" --pretty="%cd")
+echo "${ACTUAL_VERSION%0}${TIMESTAMP}"
