@@ -503,6 +503,10 @@ def test_commutes():
     assert cirq.commutes(f('IIIXII'), cirq.X(cirq.LineQubit(2)))
     assert not cirq.commutes(f('IIIXII'), cirq.Z(cirq.LineQubit(3)))
     assert cirq.commutes(f('IIIXII'), cirq.Z(cirq.LineQubit(2)))
+    assert cirq.commutes(f('IIIXII'), cirq.X(cirq.LineQubit(3)) ** 3)
+    assert cirq.commutes(f('IIIXII'), cirq.X(cirq.LineQubit(2)) ** 3)
+    assert not cirq.commutes(f('IIIXII'), cirq.Z(cirq.LineQubit(3)) ** 3)
+    assert cirq.commutes(f('IIIXII'), cirq.Z(cirq.LineQubit(2)) ** 3)
 
     assert cirq.commutes(f('XX'), "test", default=NotImplemented) is NotImplemented
 
