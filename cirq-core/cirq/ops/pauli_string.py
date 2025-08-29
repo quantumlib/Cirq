@@ -268,9 +268,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def __mul__(self, other):
         if isinstance(other, (PauliString, numbers.Number)):
             return PauliString(
-                cast(PAULI_STRING_LIKE, other),
-                qubit_pauli_map=self._qubit_pauli_map,
-                coefficient=self.coefficient,
+                other, qubit_pauli_map=self._qubit_pauli_map, coefficient=self.coefficient
             )
         return NotImplemented
 
