@@ -141,8 +141,9 @@ get picked up!
 [Protocol buffers](https://developers.google.com/protocol-buffers) ("protobufs") are used in Cirq for converting circuits, gates, and other objects into a standard form that can be written and read by other programs.
 Cirq's protobufs live at [cirq-google/api/v2](https://github.com/quantumlib/Cirq/tree/main/cirq-google/cirq_google/api/v2) and may need to be changed or extended from time to time.
 
-If any protos are updated, their dependents can be rebuilt by calling the script [dev_tools/build-protos.sh](https://github.com/quantumlib/Cirq/tree/main/dev_tools).
-This script uses `grpcio-tools` and protobuf version 4.25 to generate the Python proto API.
+If any protos are updated, their dependents can be rebuilt by calling the script
+[dev_tools/build-protos.sh](https://github.com/quantumlib/Cirq/blob/main/dev_tools/build-protos.sh).
+This script uses the `grpcio-tools` package to generate the Python proto API.
 
 ## Continuous integration and local testing
 
@@ -243,7 +244,8 @@ revision and the working directory.
 The above scripts may not exactly match the results computed by the continuous integration workflows on GitHub.
 For example, you may be running an older version of `pylint` or `numpy`.
 If you need to test against the actual continuous integration check, open up a pull request.
-For this pull request you may want to mark it as `[Testing]` so that it is not reviewed.
+For this pull request you may want to open it in a draft mode or
+mark it as `[Testing]` so that it is not reviewed.
 
 ### Writing docstrings and generating documentation
 
@@ -310,91 +312,3 @@ You can call the following utility to unroll the content of a file:
 ```bash
 python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt
 ```
-
-## Producing a PyPI package
-
-1. Do a dry run with test PyPI.
-
-    If you're making a release, you should have access to a test PyPI account
-    capable of uploading packages to Cirq. Put its credentials into the environment
-    variables `TEST_TWINE_USERNAME` and `TEST_TWINE_PASSWORD` then run
-
-    ```bash
-    ./dev_tools/packaging/publish-dev-package.sh EXPECTED_VERSION --test
-    ```
-
-    You must specify the EXPECTED_VERSION argument to match the version in [cirq/_version.py](https://github.com/quantumlib/Cirq/blob/main/cirq-core/cirq/_version.py), and it must contain the string `dev`.
-    This is to prevent accidentally uploading the wrong version.
-
-    The script will append the current date and time to the expected version number before uploading to test PyPI.
-    It will print out the full version that it uploaded.
-    Take not of this value.
-
-    Once the package has uploaded, verify that it works
-
-    ```bash
-    ./dev_tools/packaging/verify-published-package.sh FULL_VERSION_REPORTED_BY_PUBLISH_SCRIPT --test
-   ```
-
-    The script will create fresh virtual environments, install Cirq and its dependencies, check that code importing Cirq executes, and run the tests over the installed code. If everything goes smoothly, the script will finish by printing `VERIFIED`.
-
-2. Do a dry run with prod PyPI
-
-    This step is essentially identical to the test dry run, but with production PyPI.
-    You should have access to a production PyPI account capable of uploading packages to Cirq.
-    Put its credentials into the environment variables `PROD_TWINE_USERNAME` and `PROD_TWINE_PASSWORD` then run
-
-    ```bash
-    ./dev_tools/packaging/publish-dev-package.sh EXPECTED_VERSION --prod
-    ```
-
-    Once the package has uploaded, verify that it works
-
-    ```bash
-    ./dev_tools/packaging/verify-published-package.sh FULL_VERSION_REPORTED_BY_PUBLISH_SCRIPT --prod
-   ```
-
-    If everything goes smoothly, the script will finish by printing `VERIFIED`.
-
-3. Set the version number in [cirq/_version.py](https://github.com/quantumlib/Cirq/blob/main/cirq-core/cirq/_version.py).
-
-    Development versions end with `.dev` or `.dev#`.
-    For example, `0.0.4.dev500` is a development version of the release version `0.0.4`.
-    For a release, create a pull request turning `#.#.#.dev*` into `#.#.#` and a follow up pull request turning `#.#.#` into `(#+1).#.#.dev`.
-
-4. Run [dev_tools/packaging/produce-package.sh](https://github.com/quantumlib/Cirq/blob/main/dev_tools/packaging/produce-package.sh) to produce PyPI artifacts.
-
-    ```bash
-    ./dev_tools/packaging/produce-package.sh dist
-    ```
-
-    The output files will be placed in the directory `dist/`.
-
-5. Create a GitHub release.
-
-    Describe major changes (especially breaking changes) in the summary.
-    Make sure you point the tag being created at the one and only revision with the non-dev version number.
-    Attach the package files you produced to the release.
-
-6. Upload to PyPI.
-
-    You can use a tool such as `twine` for this.
-    For example:
-
-    ```bash
-    twine upload -u "${PROD_TWINE_USERNAME}" -p "${PROD_TWINE_PASSWORD}" dist/*
-    ```
-
-    You should then run the verification script to check that the uploaded package works:
-
-    ```bash
-    ./dev_tools/packaging/verify-published-package.sh VERSION_YOU_UPLOADED --prod
-   ```
-
-    And try it out for yourself:
-
-    ```bash
-    python -m pip install cirq
-    python -c "import cirq; print(cirq_google.Sycamore)"
-    python -c "import cirq; print(cirq.__version__)"
-    ```

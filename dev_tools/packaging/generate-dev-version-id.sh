@@ -23,20 +23,19 @@
 # script was run. This can be used to ensure later releases
 # have increasing numerical release numbers.
 #
-# This script is used by publish-dev-package and can also be
-# used to set a bash variable for use by travis ci to deploy
-# a new dev version on successful merge.
+# This script is used by the automated "Pre-release cirq to PyPi"
+# GitHub action to produce a new dev version after successful merge.
 #
 # Example:
-#     > echo `generate-dev-version-id.sh`
+#     > ./generate-dev-version-id.sh
 #     0.6.0.dev20190829135619
 ################################################################################
 
 set -e
 
 # Get the working directory to the repo root.
-cd "$( dirname "${BASH_SOURCE[0]}" )"
-repo_dir=$(git rev-parse --show-toplevel)
+thisdir=$(dirname "${BASH_SOURCE[0]:?}")
+repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel)
 cd "${repo_dir}"
 
 PROJECT_NAME=cirq-core/cirq
