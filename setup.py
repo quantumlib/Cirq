@@ -12,9 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pathlib
 import runpy
+import sys
 
 from setuptools import setup
+
+# Ensure we can import our own dev_tools
+sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 from dev_tools import modules
 from dev_tools.requirements import explode
