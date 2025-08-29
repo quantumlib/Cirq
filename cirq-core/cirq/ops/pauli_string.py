@@ -1090,15 +1090,16 @@ def _validate_qubit_mapping(
         )
 
 
-def _try_interpret_as_pauli_string(op: Any):
+def _try_interpret_as_pauli_string(op: Any) -> PauliString | None:
     """Return a reprepresentation of an operation as a pauli string, if it is possible."""
     if not isinstance(op, raw_types.Operation):
         return None
 
     pauli_expansion_op = protocols.pauli_expansion(op, default=None)
-    if pauli_expansion_op is not None and len(pauli_expansion_op) == 1:
-        gates, coef = next(iter(pauli_expansion_op.items()))
-        return PauliString(dict(zip(op.qubits, gates)), coefficient=coef)
+    if pauli_expansion_op is None or len(pauli_expansion_op) != 1:
+        return None
+    gates, coef = next(iter(pauli_expansion_op.items()))
+    return PauliString(dict(zip(op.qubits, gates)), coefficient=coef)
 
 
 # Ignoring type because mypy believes `with_qubits` methods are incompatible.
