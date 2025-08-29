@@ -1053,10 +1053,7 @@ def test_get_config_from_run(client):
     actual_config = processor.get_config_from_run(config_name=config_name, run_name=run_name)
 
     client().get_quantum_processor_config_from_run_async.assert_called_once_with(
-        project_id=project_id,
-        processor_id=processor_id,
-        run_name=run_name,
-        config_name=config_name,
+        project_id=project_id, processor_id=processor_id, run_name=run_name, config_name=config_name
     )
     assert actual_config.processor_id == expected_config.processor_id
     assert actual_config.config_name == config_name
@@ -1244,9 +1241,6 @@ def test_get_current_config_from_run_not_found(client):
     result = processor.get_config_from_run(config_name=config_name, run_name=run_name)
 
     client().get_quantum_processor_config_from_run_async.assert_called_once_with(
-        project_id=project_id,
-        processor_id=processor_id,
-        run_name=run_name,
-        config_name=config_name,
+        project_id=project_id, processor_id=processor_id, run_name=run_name, config_name=config_name
     )
     assert result is None

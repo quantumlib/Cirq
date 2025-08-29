@@ -1840,10 +1840,7 @@ def test_get_quantum_processor_config_from_run(client_constructor, default_engin
     grpc_client.get_quantum_processor_config.return_value = expected_result
 
     actual_result = default_engine_client.get_quantum_processor_config_from_run(
-        project_id=project_id,
-        processor_id=processor_id,
-        config_name=config_name,
-        run_name=run_name,
+        project_id=project_id, processor_id=processor_id, config_name=config_name, run_name=run_name
     )
     grpc_client.get_quantum_processor_config.assert_called_with(
         quantum.GetQuantumProcessorConfigRequest(name=resource_name)
@@ -1867,10 +1864,7 @@ def test_get_quantum_processor_config_from_run_not_found(client_constructor, def
     grpc_client.get_quantum_processor_config.side_effect = exceptions.NotFound('not found')
 
     actual_result = default_engine_client.get_quantum_processor_config_from_run(
-        project_id=project_id,
-        processor_id=processor_id,
-        config_name=config_name,
-        run_name=run_name,
+        project_id=project_id, processor_id=processor_id, config_name=config_name, run_name=run_name
     )
     grpc_client.get_quantum_processor_config.assert_called_with(
         quantum.GetQuantumProcessorConfigRequest(name=resource_name)

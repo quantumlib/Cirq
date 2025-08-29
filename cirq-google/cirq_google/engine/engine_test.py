@@ -972,10 +972,7 @@ def test_get_processor_config_from_run(get_quantum_config_async):
     )
 
     get_quantum_config_async.assert_called_with(
-        project_id=project_id,
-        processor_id=processor_id,
-        run_name=run_name,
-        config_name=config_name,
+        project_id=project_id, processor_id=processor_id, run_name=run_name, config_name=config_name
     )
     assert result.processor_id == processor_id
     assert result.snapshot_id == snapshot_id
