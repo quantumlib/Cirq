@@ -26,7 +26,6 @@ import numpy as np
 from cirq import circuits, devices, ops, protocols, study, value
 from cirq._doc import document
 from cirq.linalg import transformations
-from cirq.protocols import qid_shape_protocol
 from cirq.sim import density_matrix_simulator, sparse_simulator
 from cirq.sim.clifford import clifford_simulator
 from cirq.transformers import measurement_transformers
@@ -293,7 +292,9 @@ def final_density_matrix(
         return sparse_result.density_matrix_of()
     else:
         # noisy case: use DensityMatrixSimulator with dephasing
-        has_classical_control = circuit_like != measurement_transformers.defer_measurements(circuit_like)
+        has_classical_control = circuit_like != measurement_transformers.defer_measurements(
+            circuit_like
+        )
         handling_classical_control = ignore_measurement_results and has_classical_control
 
         if handling_classical_control:
@@ -317,17 +318,16 @@ def final_density_matrix(
             qubit_order=qubit_order,
             param_resolver=param_resolver,
         )
-
         res = density_result.final_density_matrix
 
         if handling_classical_control:
-            num_qubits = qid_shape_protocol.num_qubits(circuit_like)
-            qid_shape = qid_shape_protocol.qid_shape(circuit_like)
+            num_qubits = protocols.qid_shape_protocol.num_qubits(circuit_like)
+            qid_shape = protocols.qid_shape_protocol.qid_shape(circuit_like)
 
             # assuming that the ancella bits from the transformations are at the end
             keep = list(range(num_qubits))
 
-            dephased_qid_shape = qid_shape_protocol.qid_shape(dephased)
+            dephased_qid_shape = protocols.qid_shape_protocol.qid_shape(dephased)
 
             tensor_form = np.reshape(res, dephased_qid_shape + dephased_qid_shape)
 
@@ -335,8 +335,6 @@ def final_density_matrix(
 
             width = np.prod(qid_shape)
 
-            r = np.reshape(reduced_form, (width,width))
-            
-            return r
-        
+            res = np.reshape(reduced_form, (width, width))
+
         return res
