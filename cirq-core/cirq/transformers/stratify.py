@@ -69,7 +69,7 @@ def stratified_circuit(
     # Try the algorithm with each permutation of the classifiers.
     smallest_depth = protocols.num_qubits(circuit) * len(circuit) + 1
     shortest_stratified_circuit = circuits.Circuit()
-    reversed_circuit = circuit[::-1]
+    reversed_circuit = circuit.copy().reverse()
     for ordered_classifiers in itertools.permutations(classifiers):
         solution = _stratify_circuit(
             circuit,
@@ -87,7 +87,8 @@ def stratified_circuit(
             reversed_circuit,
             classifiers=ordered_classifiers,
             context=context or transformer_api.TransformerContext(),
-        )[::-1]
+        )
+        solution.reverse()
         if len(solution) < smallest_depth:
             shortest_stratified_circuit = solution
             smallest_depth = len(solution)
