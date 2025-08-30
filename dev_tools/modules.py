@@ -181,7 +181,7 @@ def _rewrite_version(version_file: Path, old: str, new: str) -> None:
 
 
 def _find_version_file(top: Path) -> Path:
-    for root, dirnames, files in os.walk(str(top)):
+    for root, dirnames, files in os.walk(top):
         if "build" in dirnames:
             dirnames.remove("build")
         if "_version.py" in files:
