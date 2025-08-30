@@ -56,7 +56,7 @@ _FOLDER = 'folder'
 _PACKAGE_PATH = 'package-path'
 _PACKAGE = 'package'
 
-_DEFAULT_SEARCH_DIR: Path = Path(".")
+_DEFAULT_SEARCH_DIR: Path = Path(__file__).absolute().parent.parent
 
 
 @dataclasses.dataclass
