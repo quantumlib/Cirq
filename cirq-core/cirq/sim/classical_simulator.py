@@ -38,7 +38,7 @@ def _is_identity(action) -> bool:
 class ClassicalBasisState(qis.QuantumStateRepresentation):
     """Represents a classical basis state for efficient state evolution."""
 
-    def __init__(self, initial_state: list[int] | np.ndarray):
+    def __init__(self, initial_state: list[int] | np.ndarray | tuple[int, ...]):
         """Initializes the ClassicalBasisState object.
 
         Args:
@@ -77,7 +77,7 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
 
     def __init__(
         self,
-        initial_state: int | list[int] = 0,
+        initial_state: int | list[int] | tuple[int, ...] | np.ndarray = 0,
         qubits: Sequence[cirq.Qid] | None = None,
         classical_data: cirq.ClassicalDataStore | None = None,
     ):
@@ -90,7 +90,7 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
 
         Raises:
             ValueError: If qubits not provided and initial_state is int.
-                        If initial_state is not an int, list[int], or np.ndarray.
+                        If initial_state is not an int, list[int], tuple[int, ...], or np.ndarray.
 
         An initial_state value of type integer is parsed in big endian order.
         """
@@ -100,10 +100,10 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
             state = ClassicalBasisState(
                 big_endian_int_to_bits(initial_state, bit_count=len(qubits))
             )
-        elif isinstance(initial_state, (list, np.ndarray)):
+        elif isinstance(initial_state, (list, tuple, np.ndarray)):
             state = ClassicalBasisState(initial_state)
         else:
-            raise ValueError('initial_state must be an int or list[int] or np.ndarray')
+            raise ValueError('initial_state must be an int, list[int], tuple[int], or np.ndarray')
         super().__init__(state=state, qubits=qubits, classical_data=classical_data)
 
     def _act_on_fallback_(self, action, qubits: Sequence[cirq.Qid], allow_decompose: bool = True):
@@ -152,10 +152,15 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
         elif gate == ops.TOFFOLI:
             c1, c2, q = mapped_qubits
             self._state.basis[q] ^= self._state.basis[c1] & self._state.basis[c2]
+        elif isinstance(gate, ops.QubitPermutationGate):
+            permutation = gate.permutation
+            temp_values = [self._state.basis[mapped_qubits[i]] for i in range(len(mapped_qubits))]
+            for i in range(len(permutation)):
+                self._state.basis[mapped_qubits[i]] = temp_values[permutation[i]]
         else:
             raise ValueError(
                 f'{gate} is not one of X, SWAP; a controlled version '
-                'of X or SWAP; or a measurement'
+                'of X or SWAP; QubitPermutationGate; or a measurement'
             )
         return True
 
