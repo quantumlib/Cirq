@@ -49,7 +49,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
                     ║
     1: ─────────────╫───X───
                     ║   ║
-    control_key: ═══@═══^═══
+    control_key: ═══V═══@═══
     >>> circuit2 = cirq.Circuit([
     ...     cirq.measure(a, key='control_key1'),
     ...     cirq.measure(b, key='control_key2'),
@@ -62,9 +62,9 @@ class ClassicallyControlledOperation(raw_types.Operation):
                       ║║
     2: ───────────────╫╫────X───
                       ║║    ║
-    control_key1: ════@╬════^═══
+    control_key1: ════V╬════@═══
                        ║    ║
-    control_key2: ═════@════^═══
+    control_key2: ═════V════@═══
                      └──┘
     """
 
@@ -175,7 +175,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
         control_label_count = 0
         if args.label_map is not None:
             control_label_count = len({k for c in self._conditions for k in c.keys})
-        wire_symbols = sub_info.wire_symbols + ('^',) * control_label_count
+        wire_symbols = sub_info.wire_symbols + ('@',) * control_label_count
         if control_label_count == 0 or any(
             not isinstance(c, value.KeyCondition) for c in self._conditions
         ):
