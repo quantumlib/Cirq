@@ -64,12 +64,12 @@ fi
 echo "Producing python 3 package files."
 
 CIRQ_MODULES=$(my_dev_tools_modules list --mode folder --include-parent)
+date_epoch=$(git log -1 --pretty="%ct")
 
 for m in $CIRQ_MODULES; do
-  echo "processing $m/setup.py..."
-  cd "$m"
-  python3 setup.py -q bdist_wheel -d "${out_dir}"
-  cd ..
+  echo "creating wheel for ${m}"
+  SOURCE_DATE_EPOCH="${date_epoch}" \
+    python3 -m pip wheel --no-deps --wheel-dir="${out_dir}" "./${m}"
 done
 
 ls "${out_dir}"
