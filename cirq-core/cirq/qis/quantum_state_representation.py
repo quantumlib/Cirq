@@ -15,10 +15,9 @@
 from __future__ import annotations
 
 import abc
-from typing import Sequence, TYPE_CHECKING
+from typing import Self, Sequence, TYPE_CHECKING
 
 import numpy as np
-from typing_extensions import Self
 
 from cirq import value
 

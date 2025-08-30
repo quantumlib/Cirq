@@ -51,7 +51,7 @@ round_to_2_prec = cirq.CircuitDiagramInfoArgs(
 )
 
 
-def assert_mixtures_equal(actual, expected):
+def assert_mixtures_equal(actual, expected) -> None:
     """Assert equal for tuple of mixed scalar and array types."""
     for a, e in zip(actual, expected):
         np.testing.assert_almost_equal(a[0], e[0])

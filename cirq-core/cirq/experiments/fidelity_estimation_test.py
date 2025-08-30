@@ -25,7 +25,7 @@ import cirq
 
 def sample_noisy_bitstrings(
     circuit: cirq.Circuit, qubit_order: Sequence[cirq.Qid], depolarization: float, repetitions: int
-) -> np.ndarray:
+) -> Sequence[int]:
     assert 0 <= depolarization <= 1
     dim = np.prod(circuit.qid_shape(), dtype=np.int64)
     n_incoherent = int(depolarization * repetitions)
@@ -34,7 +34,7 @@ def sample_noisy_bitstrings(
     circuit_with_measurements = cirq.Circuit(circuit, cirq.measure(*qubit_order, key='m'))
     r = cirq.sample(circuit_with_measurements, repetitions=n_coherent)
     coherent_samples = r.data['m'].to_numpy()
-    return np.concatenate((coherent_samples, incoherent_samples))
+    return np.concatenate((coherent_samples, incoherent_samples)).tolist()
 
 
 def make_random_quantum_circuit(qubits: Sequence[cirq.Qid], depth: int) -> cirq.Circuit:
@@ -69,7 +69,7 @@ def make_random_quantum_circuit(qubits: Sequence[cirq.Qid], depth: int) -> cirq.
         ),
     ),
 )
-def test_xeb_fidelity(depolarization, estimator):
+def test_xeb_fidelity(depolarization, estimator) -> None:
     prng_state = np.random.get_state()
     np.random.seed(0)
 
@@ -95,7 +95,7 @@ def test_xeb_fidelity(depolarization, estimator):
     np.random.set_state(prng_state)
 
 
-def test_linear_and_log_xeb_fidelity():
+def test_linear_and_log_xeb_fidelity() -> None:
     prng_state = np.random.get_state()
     np.random.seed(0)
 
@@ -122,7 +122,7 @@ def test_linear_and_log_xeb_fidelity():
     np.random.set_state(prng_state)
 
 
-def test_xeb_fidelity_invalid_qubits():
+def test_xeb_fidelity_invalid_qubits() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1))
     bitstrings = sample_noisy_bitstrings(circuit, (q0, q1, q2), 0.9, 10)
@@ -130,7 +130,7 @@ def test_xeb_fidelity_invalid_qubits():
         cirq.xeb_fidelity(circuit, bitstrings, (q0, q2))
 
 
-def test_xeb_fidelity_invalid_bitstrings():
+def test_xeb_fidelity_invalid_bitstrings() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1))
     bitstrings = [0, 1, 2, 3, 4]
@@ -138,7 +138,7 @@ def test_xeb_fidelity_invalid_bitstrings():
         cirq.xeb_fidelity(circuit, bitstrings, (q0, q1))
 
 
-def test_xeb_fidelity_tuple_input():
+def test_xeb_fidelity_tuple_input() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1))
     bitstrings = [0, 1, 2]

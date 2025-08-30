@@ -26,7 +26,6 @@ from cirq.ops import (
     controlled_gate,
     eigen_gate,
     gate_operation,
-    matrix_gates,
     op_tree,
     raw_types,
 )
@@ -125,35 +124,25 @@ class ControlledOperation(raw_types.Operation):
         )
 
     @property
-    def qubits(self):
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         return self.controls + self.sub_operation.qubits
 
-    def with_qubits(self, *new_qubits):
+    def with_qubits(self, *new_qubits) -> ControlledOperation:
         n = len(self.controls)
         return ControlledOperation(
             new_qubits[:n], self.sub_operation.with_qubits(*new_qubits[n:]), self.control_values
         )
 
-    def _decompose_(self):
-        return self._decompose_with_context_()
-
-    def _decompose_with_context_(self, context: cirq.DecompositionContext | None = None):
+    def _decompose_with_context_(self, *, context: cirq.DecompositionContext):
         result = protocols.decompose_once_with_qubits(
-            self.gate, self.qubits, NotImplemented, flatten=False, context=context
+            self.gate, self.qubits, None, flatten=False, context=context
         )
-        if result is not NotImplemented:
+        if result is not None:
             return result
 
-        if isinstance(self.sub_operation.gate, matrix_gates.MatrixGate):
-            # Default decompositions of 2/3 qubit `cirq.MatrixGate` ignores global phase, which is
-            # local phase in the controlled variant and hence cannot be ignored.
-            return NotImplemented
-
-        result = protocols.decompose_once(
-            self.sub_operation, NotImplemented, flatten=False, context=context
-        )
-        if result is NotImplemented:
-            return NotImplemented
+        result = protocols.decompose_once(self.sub_operation, None, flatten=False, context=context)
+        if result is None:
+            return None
 
         return op_tree.transform_op_tree(
             result, lambda op: op.controlled_by(*self.controls, control_values=self.control_values)

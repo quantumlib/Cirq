@@ -36,16 +36,14 @@ out_dir=$(realpath "${1}")
 
 SPECIFIED_VERSION="${2}"
 
-# Helper to run dev_tools/modules.py without CIRQ_PRE_RELEASE_VERSION
-# to avoid environment version override in setup.py.
+# Helper to isolate dev_tools/modules.py from Python environment variables
 my_dev_tools_modules() {
-    env -u CIRQ_PRE_RELEASE_VERSION PYTHONPATH=. \
-        python3 dev_tools/modules.py "$@"
+    python3 -E dev_tools/modules.py "$@"
 }
 
 # Get the working directory to the repo root.
-cd "$( dirname "${BASH_SOURCE[0]}" )"
-repo_dir=$(git rev-parse --show-toplevel)
+thisdir=$(dirname "${BASH_SOURCE[0]:?}")
+repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel)
 cd "${repo_dir}"
 
 # Make a clean copy of HEAD, without files ignored by git (but potentially kept by setup.py).

@@ -35,19 +35,19 @@ CNOT = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]])
 CZ = np.diag([1, 1, 1, -1])
 
 
-def assert_kronecker_factorization_within_tolerance(matrix, g, f1, f2):
+def assert_kronecker_factorization_within_tolerance(matrix, g, f1, f2) -> None:
     restored = g * cirq.linalg.combinators.kron(f1, f2)
     assert not np.any(np.isnan(restored)), "NaN in kronecker product."
     assert np.allclose(restored, matrix), "Can't factor kronecker product."
 
 
-def assert_magic_su2_within_tolerance(mat, a, b):
+def assert_magic_su2_within_tolerance(mat, a, b) -> None:
     recon = cirq.linalg.combinators.dot(MAGIC_CONJ_T, cirq.linalg.combinators.kron(a, b), MAGIC)
     assert np.allclose(recon, mat), "Failed to decompose within tolerance."
 
 
 @pytest.mark.parametrize('matrix', [X, cirq.kron(X, X), cirq.kron(X, Y), cirq.kron(X, np.eye(2))])
-def test_map_eigenvalues_identity(matrix):
+def test_map_eigenvalues_identity(matrix) -> None:
     identity_mapped = cirq.map_eigenvalues(matrix, lambda e: e)
     assert np.allclose(matrix, identity_mapped)
 
@@ -63,7 +63,7 @@ def test_map_eigenvalues_identity(matrix):
         [X, 0.5, np.array([[1j, 1], [1, 1j]]) * (1 - 1j) / 2],
     ],
 )
-def test_map_eigenvalues_raise(matrix, exponent, desired):
+def test_map_eigenvalues_raise(matrix, exponent, desired) -> None:
     exp_mapped = cirq.map_eigenvalues(matrix, lambda e: complex(e) ** exponent)
     assert np.allclose(desired, exp_mapped)
 
@@ -88,7 +88,7 @@ def _random_unitary_with_close_eigenvalues():
         _random_unitary_with_close_eigenvalues(),
     ],
 )
-def test_unitary_eig(matrix):
+def test_unitary_eig(matrix) -> None:
     # np.linalg.eig(matrix) won't work for the perturbed matrix
     d, vecs = unitary_eig(matrix)
 
@@ -96,7 +96,7 @@ def test_unitary_eig(matrix):
     np.testing.assert_allclose(matrix, vecs @ np.diag(d) @ vecs.conj().T, atol=1e-14)
 
 
-def test_non_unitary_eig():
+def test_non_unitary_eig() -> None:
     with pytest.raises(Exception):
         unitary_eig(np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 0, 1, 2], [3, 4, 5, 6]]))
 
@@ -118,7 +118,7 @@ def test_non_unitary_eig():
     ]
     + [(cirq.testing.random_unitary(2), cirq.testing.random_unitary(2)) for _ in range(10)],
 )
-def test_kron_factor(f1, f2):
+def test_kron_factor(f1, f2) -> None:
     p = cirq.kron(f1, f2)
     g, g1, g2 = cirq.kron_factor_4x4_to_2x2s(p)
     assert abs(np.linalg.det(g1) - 1) < 0.00001
@@ -134,7 +134,7 @@ def test_kron_factor(f1, f2):
         for _ in range(10)
     ],
 )
-def test_kron_factor_special_unitaries(f1, f2):
+def test_kron_factor_special_unitaries(f1, f2) -> None:
     p = cirq.kron(f1, f2)
     g, g1, g2 = cirq.kron_factor_4x4_to_2x2s(p)
     assert np.allclose(cirq.kron(g1, g2), p)
@@ -144,7 +144,7 @@ def test_kron_factor_special_unitaries(f1, f2):
     assert_kronecker_factorization_within_tolerance(p, g, g1, g2)
 
 
-def test_kron_factor_invalid_input():
+def test_kron_factor_invalid_input() -> None:
     mats = [
         cirq.kron_with_controls(cirq.CONTROL_TAG, X),
         np.array([[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 2, 3, 4]]),
@@ -167,7 +167,7 @@ def recompose_so4(a: np.ndarray, b: np.ndarray) -> np.ndarray:
 
 
 @pytest.mark.parametrize('m', [cirq.testing.random_special_orthogonal(4) for _ in range(10)])
-def test_so4_to_magic_su2s(m):
+def test_so4_to_magic_su2s(m) -> None:
     a, b = cirq.so4_to_magic_su2s(m)
     m2 = recompose_so4(a, b)
     assert_magic_su2_within_tolerance(m2, a, b)
@@ -181,7 +181,7 @@ def test_so4_to_magic_su2s(m):
         for _ in range(10)
     ],
 )
-def test_so4_to_magic_su2s_known_factors(a, b):
+def test_so4_to_magic_su2s_known_factors(a, b) -> None:
     m = recompose_so4(a, b)
     a2, b2 = cirq.so4_to_magic_su2s(m)
     m2 = recompose_so4(a2, b2)
@@ -206,7 +206,7 @@ def test_so4_to_magic_su2s_known_factors(a, b):
         np.diag([1, 1, 1, -1]),
     ],
 )
-def test_so4_to_magic_su2s_fail(mat):
+def test_so4_to_magic_su2s_fail(mat) -> None:
     with pytest.raises(ValueError):
         _ = cirq.so4_to_magic_su2s(mat)
 
@@ -214,7 +214,7 @@ def test_so4_to_magic_su2s_fail(mat):
 @pytest.mark.parametrize(
     'x,y,z', [[(random.random() * 2 - 1) * np.pi * 2 for _ in range(3)] for _ in range(10)]
 )
-def test_kak_canonicalize_vector(x, y, z):
+def test_kak_canonicalize_vector(x, y, z) -> None:
     i = np.eye(2)
     m = cirq.unitary(
         cirq.KakDecomposition(
@@ -243,12 +243,12 @@ def test_kak_canonicalize_vector(x, y, z):
     assert np.allclose(m, m2)
 
 
-def test_kak_vector_empty():
+def test_kak_vector_empty() -> None:
     assert len(cirq.kak_vector([])) == 0
 
 
 @pytest.mark.usefixtures('closefigures')
-def test_kak_plot_empty():
+def test_kak_plot_empty() -> None:
     cirq.scatter_plot_normalized_kak_interaction_coefficients([])
 
 
@@ -257,21 +257,21 @@ def test_kak_plot_empty():
     [np.eye(4), SWAP, SWAP * 1j, CZ, CNOT, SWAP @ CZ]
     + [cirq.testing.random_unitary(4) for _ in range(10)],
 )
-def test_kak_decomposition(target):
+def test_kak_decomposition(target) -> None:
     kak = cirq.kak_decomposition(target)
     np.testing.assert_allclose(cirq.unitary(kak), target, atol=1e-8)
 
 
-def test_kak_decomposition_unitary_object():
+def test_kak_decomposition_unitary_object() -> None:
     op = cirq.ISWAP(*cirq.LineQubit.range(2)) ** 0.5
     kak = cirq.kak_decomposition(op)
     np.testing.assert_allclose(cirq.unitary(kak), cirq.unitary(op), atol=1e-8)
     assert cirq.kak_decomposition(kak) is kak
 
 
-def test_kak_decomposition_invalid_object():
+def test_kak_decomposition_invalid_object() -> None:
     with pytest.raises(TypeError, match='unitary effect'):
-        _ = cirq.kak_decomposition('test')
+        _ = cirq.kak_decomposition('test')  # type: ignore[arg-type]
 
     with pytest.raises(ValueError, match='4x4 unitary matrix'):
         _ = cirq.kak_decomposition(np.eye(3))
@@ -289,7 +289,7 @@ def test_kak_decomposition_invalid_object():
     np.testing.assert_allclose(cirq.unitary(nil), np.eye(4), atol=1e-8)
 
 
-def test_kak_decomposition_eq():
+def test_kak_decomposition_eq() -> None:
     eq = cirq.testing.EqualsTester()
 
     eq.make_equality_group(
@@ -339,7 +339,7 @@ def test_kak_decomposition_eq():
     )
 
 
-def test_kak_repr():
+def test_kak_repr() -> None:
     cirq.testing.assert_equivalent_repr(
         cirq.KakDecomposition(
             global_phase=1j,
@@ -374,7 +374,7 @@ cirq.KakDecomposition(
     )
 
 
-def test_kak_str():
+def test_kak_str() -> None:
     v = cirq.KakDecomposition(
         interaction_coefficients=(0.3 * np.pi / 4, 0.2 * np.pi / 4, 0.1 * np.pi / 4),
         single_qubit_operations_before=(cirq.unitary(cirq.I), cirq.unitary(cirq.X)),
@@ -391,7 +391,7 @@ def test_kak_str():
     )
 
 
-def test_axis_angle_decomposition_eq():
+def test_axis_angle_decomposition_eq() -> None:
     eq = cirq.testing.EqualsTester()
 
     eq.make_equality_group(
@@ -402,13 +402,13 @@ def test_axis_angle_decomposition_eq():
     eq.add_equality_group(cirq.AxisAngleDecomposition(angle=1, axis=(0.8, 0.6, 0), global_phase=1))
 
 
-def test_axis_angle_decomposition_repr():
+def test_axis_angle_decomposition_repr() -> None:
     cirq.testing.assert_equivalent_repr(
         cirq.AxisAngleDecomposition(angle=1, axis=(0, 0.6, 0.8), global_phase=-1)
     )
 
 
-def test_axis_angle_decomposition_str():
+def test_axis_angle_decomposition_str() -> None:
     assert str(cirq.axis_angle(cirq.unitary(cirq.X))) == '1*π around X'
     assert str(cirq.axis_angle(cirq.unitary(cirq.Y))) == '1*π around Y'
     assert str(cirq.axis_angle(cirq.unitary(cirq.Z))) == '1*π around Z'
@@ -424,14 +424,14 @@ def test_axis_angle_decomposition_str():
     )
 
 
-def test_axis_angle_decomposition_unitary():
+def test_axis_angle_decomposition_unitary() -> None:
     u = cirq.testing.random_unitary(2)
     u = cirq.unitary(cirq.T)
     a = cirq.axis_angle(u)
     np.testing.assert_allclose(u, cirq.unitary(a), atol=1e-8)
 
 
-def test_axis_angle():
+def test_axis_angle() -> None:
     assert cirq.approx_eq(
         cirq.axis_angle(cirq.unitary(cirq.ry(1e-10))),
         cirq.AxisAngleDecomposition(angle=0, axis=(1, 0, 0), global_phase=1),
@@ -492,7 +492,7 @@ def test_axis_angle():
     )
 
 
-def test_axis_angle_canonicalize():
+def test_axis_angle_canonicalize() -> None:
     a = cirq.AxisAngleDecomposition(
         angle=np.pi * 2.3, axis=(1, 0, 0), global_phase=1j
     ).canonicalize()
@@ -522,7 +522,7 @@ def test_axis_angle_canonicalize():
     assert np.isclose(a.angle, -np.pi + 0.01)
 
 
-def test_axis_angle_canonicalize_approx_equal():
+def test_axis_angle_canonicalize_approx_equal() -> None:
     a1 = cirq.AxisAngleDecomposition(angle=np.pi, axis=(1, 0, 0), global_phase=1)
     a2 = cirq.AxisAngleDecomposition(angle=-np.pi, axis=(1, 0, 0), global_phase=-1)
     b1 = cirq.AxisAngleDecomposition(angle=np.pi, axis=(1, 0, 0), global_phase=-1)
@@ -530,7 +530,7 @@ def test_axis_angle_canonicalize_approx_equal():
     assert not cirq.approx_eq(a1, b1, atol=1e-8)
 
 
-def test_axis_angle_init():
+def test_axis_angle_init() -> None:
     a = cirq.AxisAngleDecomposition(angle=1, axis=(0, 1, 0), global_phase=1j)
     assert a.angle == 1
     assert a.axis == (0, 1, 0)
@@ -541,14 +541,14 @@ def test_axis_angle_init():
 
 
 @pytest.mark.usefixtures('closefigures')
-def test_scatter_plot_normalized_kak_interaction_coefficients():
+def test_scatter_plot_normalized_kak_interaction_coefficients() -> None:
     a, b = cirq.LineQubit.range(2)
-    data = [
+    data = (
         cirq.kak_decomposition(cirq.unitary(cirq.CZ)),
         cirq.unitary(cirq.CZ),
         cirq.CZ,
         cirq.Circuit(cirq.H(a), cirq.CNOT(a, b)),
-    ]
+    )
     ax = cirq.scatter_plot_normalized_kak_interaction_coefficients(data)
     assert ax is not None
     ax2 = cirq.scatter_plot_normalized_kak_interaction_coefficients(
@@ -645,33 +645,35 @@ def _local_invariants_from_kak(vector: np.ndarray) -> np.ndarray:
 _random_unitaries, _kak_vecs = _random_two_qubit_unitaries(100, random_state=11)
 
 
-def test_kak_vector_matches_vectorized():
+def test_kak_vector_matches_vectorized() -> None:
     actual = cirq.kak_vector(_random_unitaries)
     expected = np.array([cirq.kak_vector(u) for u in _random_unitaries])
     np.testing.assert_almost_equal(actual, expected)
 
 
-def test_kak_vector_local_invariants_random_input():
+def test_kak_vector_local_invariants_random_input() -> None:
     actual = _local_invariants_from_kak(cirq.kak_vector(_random_unitaries))
     expected = _local_invariants_from_kak(_kak_vecs)
 
     np.testing.assert_almost_equal(actual, expected)
 
 
-def test_kak_vector_on_weyl_chamber_face():
+def test_kak_vector_on_weyl_chamber_face() -> None:
     # unitaries with KAK vectors from I to ISWAP
     theta_swap = np.linspace(0, np.pi / 4, 10)
     k_vecs = np.zeros((10, 3))
     k_vecs[:, (0, 1)] = theta_swap[:, np.newaxis]
 
-    kwargs = dict(
-        global_phase=1j,
-        single_qubit_operations_before=(X, Y),
-        single_qubit_operations_after=(Z, 1j * X),
-    )
     unitaries = np.array(
         [
-            cirq.unitary(cirq.KakDecomposition(interaction_coefficients=(t, t, 0), **kwargs))
+            cirq.unitary(
+                cirq.KakDecomposition(
+                    interaction_coefficients=(t, t, 0),
+                    global_phase=1j,
+                    single_qubit_operations_before=(X, Y),
+                    single_qubit_operations_after=(Z, 1j * X),
+                )
+            )
             for t in theta_swap
         ]
     )
@@ -692,7 +694,7 @@ def test_kak_vector_on_weyl_chamber_face():
         (np.kron(X, X), (0, 0, 0)),
     ),
 )
-def test_kak_vector_weyl_chamber_vertices(unitary, expected):
+def test_kak_vector_weyl_chamber_vertices(unitary, expected) -> None:
     actual = cirq.kak_vector(unitary)
     np.testing.assert_almost_equal(actual, expected)
 
@@ -701,17 +703,17 @@ cases = [np.eye(3), SWAP.reshape((2, 8)), SWAP.ravel()]
 
 
 @pytest.mark.parametrize('bad_input', cases)
-def test_kak_vector_wrong_matrix_shape(bad_input):
+def test_kak_vector_wrong_matrix_shape(bad_input) -> None:
     with pytest.raises(ValueError, match='to have shape'):
         cirq.kak_vector(bad_input)
 
 
-def test_kak_vector_negative_atol():
+def test_kak_vector_negative_atol() -> None:
     with pytest.raises(ValueError, match='must be positive'):
         cirq.kak_vector(np.eye(4), atol=-1.0)
 
 
-def test_kak_vector_input_not_unitary():
+def test_kak_vector_input_not_unitary() -> None:
     with pytest.raises(ValueError, match='must correspond to'):
         cirq.kak_vector(np.zeros((4, 4)))
 
@@ -728,7 +730,7 @@ def test_kak_vector_input_not_unitary():
         cirq.unitary(cirq.CZ),
     ],
 )
-def test_kak_decompose(unitary: np.ndarray):
+def test_kak_decompose(unitary: np.ndarray) -> None:
     kak = cirq.kak_decomposition(unitary)
     circuit = cirq.Circuit(kak._decompose_(cirq.LineQubit.range(2)))
     np.testing.assert_allclose(cirq.unitary(circuit), unitary, atol=1e-6)
@@ -737,7 +739,7 @@ def test_kak_decompose(unitary: np.ndarray):
 
 
 @cirq.testing.retry_once_with_later_random_values
-def test_num_two_qubit_gates_required():
+def test_num_two_qubit_gates_required() -> None:
     for i in range(4):
         assert (
             cirq.num_cnots_required(
@@ -749,7 +751,7 @@ def test_num_two_qubit_gates_required():
     assert cirq.num_cnots_required(np.eye(4)) == 0
 
 
-def test_num_two_qubit_gates_required_invalid():
+def test_num_two_qubit_gates_required_invalid() -> None:
     with pytest.raises(ValueError, match="(4,4)"):
         cirq.num_cnots_required(np.array([[1]]))
 
@@ -772,7 +774,7 @@ def test_num_two_qubit_gates_required_invalid():
         ),
     ],
 )
-def test_extract_right_diag(u):
+def test_extract_right_diag(u) -> None:
     assert cirq.num_cnots_required(u) == 3
     diag = cirq.linalg.extract_right_diag(u)
     assert cirq.is_diagonal(diag)

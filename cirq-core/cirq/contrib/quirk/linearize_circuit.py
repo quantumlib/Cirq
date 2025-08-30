@@ -29,7 +29,7 @@ class QubitMapper:
     def map_moment(self, moment: circuits.Moment) -> circuits.Moment:
         return circuits.Moment(self.map_operation(op) for op in moment.operations)
 
-    def optimize_circuit(self, circuit: circuits.Circuit):
+    def optimize_circuit(self, circuit: circuits.Circuit) -> None:
         circuit[:] = (self.map_moment(m) for m in circuit)
 
 
