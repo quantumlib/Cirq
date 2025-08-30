@@ -33,7 +33,7 @@ jobs:
           envsubst < dev_tools/packaging/pypirc_template > $HOME/.pypirc
       - name: Build and publish
         run: |
-          export CIRQ_PRE_RELEASE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
+          CIRQ_PRE_RELEASE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
           [[ "$CIRQ_PRE_RELEASE_VERSION" =~ .*dev.* ]] && echo "Deploying dev version '$CIRQ_PRE_RELEASE_VERSION'" || (echo "not dev version"; exit 1)
           out_dir="${PWD}/dist"
           dev_tools/packaging/produce-package.sh ${out_dir} $CIRQ_PRE_RELEASE_VERSION
