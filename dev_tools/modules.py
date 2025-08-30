@@ -181,9 +181,8 @@ def _rewrite_version(version_file: Path, old: str, new: str) -> None:
 
 
 def _find_version_file(top: Path) -> Path:
-    for root, _, files in os.walk(str(top)):
-        if "_version.py" in files:
-            return Path(root) / "_version.py"
+    for version_path in top.glob("*/_version.py"):
+        return version_path
     raise FileNotFoundError(f"Can't find _version.py in {top}.")
 
 
