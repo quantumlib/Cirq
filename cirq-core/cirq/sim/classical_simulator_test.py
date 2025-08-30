@@ -344,3 +344,26 @@ def test_noise_model():
     noise_model = cirq.NoiseModel.from_noise_model_like(cirq.depolarize(p=0.01))
     with pytest.raises(ValueError):
         cirq.ClassicalStateSimulator(noise=noise_model)
+
+
+def test_qubit_permutation_gate():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit()
+    circuit.append(cirq.X(q0))
+    circuit.append(cirq.X(q2))
+    circuit.append(cirq.QubitPermutationGate([2, 1, 0])(q0, q1, q2))
+    circuit.append(cirq.measure((q0, q1, q2), key='key'))
+    expected_results = {'key': np.array([[[1, 0, 1]]], dtype=np.uint8)}
+    sim = cirq.ClassicalStateSimulator()
+    results = sim.run(circuit, param_resolver=None, repetitions=1).records
+    np.testing.assert_equal(results, expected_results)
+
+
+def test_tuple_initial_state():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit()
+    circuit.append(cirq.measure((q0, q1), key='key'))
+    expected_results = np.array([1, 0])
+    sim = cirq.ClassicalStateSimulator()
+    results = sim.simulate(circuit, initial_state=(1, 0)).measurements['key']
+    np.testing.assert_equal(results, expected_results)
