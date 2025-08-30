@@ -160,7 +160,7 @@ def replace_version(search_dir: Path = _DEFAULT_SEARCH_DIR, *, old: str, new: st
 
     _validate_version(new)
 
-    for m in list_modules(search_dir=search_dir, include_parent=True):
+    for m in list_modules(search_dir=search_dir):
         version_file = _find_version_file(search_dir / m.root)
         _rewrite_version(version_file, old, new)
         version_test = version_file.parent / "_version_test.py"
