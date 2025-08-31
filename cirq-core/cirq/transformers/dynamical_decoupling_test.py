@@ -20,7 +20,7 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq import add_dynamical_decoupling, CNOT, CZ, CZPowGate, H, X, Y, Z
+from cirq import add_dynamical_decoupling, CNOT, CZ, CZPowGate, H, I, measure, X, Y, Z
 
 
 def assert_sim_eq(circuit1: cirq.AbstractCircuit, circuit2: cirq.AbstractCircuit):
@@ -51,6 +51,22 @@ def assert_dd(
         {q: q for q in input_circuit.all_qubits()},
     )
     assert_sim_eq(input_circuit, transformed_circuit)
+
+
+def test_classically_controlled_no_update_succeeds():
+    """Test case diagrams.
+    Input:
+    0: ───M───I───
+          ║   ║
+    c: ═══@═══^═══
+    """
+    a = cirq.NamedQubit('a')
+
+    add_dynamical_decoupling(
+        cirq.Circuit(
+            cirq.Moment(measure(a, key="a")), cirq.Moment(I(a).with_classical_controls("a"))
+        )
+    )
 
 
 def test_no_insertion():
