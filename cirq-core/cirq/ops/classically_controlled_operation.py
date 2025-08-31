@@ -125,6 +125,9 @@ class ClassicallyControlledOperation(raw_types.Operation):
             *self._conditions
         )
 
+    def _has_unitary_(self) -> bool:
+        return False
+
     def _decompose_with_context_(self, *, context: cirq.DecompositionContext):
         result = protocols.decompose_once(self._sub_operation, None, flatten=False, context=context)
         if result is None:
