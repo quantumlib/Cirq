@@ -119,9 +119,7 @@ def _is_single_qubit_gate_moment(moment: Moment) -> bool:
 
 
 def _is_clifford_op(op: ops.Operation) -> bool:
-    if op.gate:
-        return has_unitary(op.gate) and has_stabilizer_effect(op.gate)
-    return False
+    return has_unitary(op) and has_stabilizer_effect(op)
 
 
 def _calc_busy_moment_range_of_each_qubit(circuit: FrozenCircuit) -> dict[ops.Qid, list[int]]:
