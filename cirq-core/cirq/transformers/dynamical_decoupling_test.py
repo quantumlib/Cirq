@@ -56,9 +56,9 @@ def assert_dd(
 def test_classically_controlled_no_update_succeeds():
     """Test case diagrams.
     Input:
-    0: ───M───I───
+    a: ───M───I───
           ║   ║
-    c: ═══@═══^═══
+    a: ═══@═══^═══
     """
     a = cirq.NamedQubit('a')
 
