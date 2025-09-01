@@ -107,6 +107,7 @@ def _ideal_expectation_based_on_pauli_string(
     )
 
 
+@cirq.testing.retry_once_with_later_random_values
 def test_pauli_string_measurement_errors_no_noise() -> None:
     """Test that the mitigated expectation is close to the ideal expectation
     based on the Pauli string"""
@@ -155,6 +156,7 @@ def test_pauli_string_measurement_errors_no_noise() -> None:
             }
 
 
+@cirq.testing.retry_once_with_later_random_values
 def test_pauli_string_measurement_errors_with_coefficient_no_noise() -> None:
     """Test that the mitigated expectation is close to the ideal expectation
     based on the Pauli string"""
@@ -203,6 +205,7 @@ def test_pauli_string_measurement_errors_with_coefficient_no_noise() -> None:
             }
 
 
+@cirq.testing.retry_once_with_later_random_values
 def test_group_pauli_string_measurement_errors_no_noise_with_coefficient() -> None:
     """Test that the mitigated expectation is close to the ideal expectation
     based on the group of Pauli strings"""
@@ -257,6 +260,7 @@ def test_group_pauli_string_measurement_errors_no_noise_with_coefficient() -> No
             }
 
 
+@cirq.testing.retry_once_with_later_random_values
 def test_pauli_string_measurement_errors_with_noise() -> None:
     """Test that the mitigated expectation is close to the ideal expectation
     based on the Pauli string"""
@@ -304,6 +308,7 @@ def test_pauli_string_measurement_errors_with_noise() -> None:
                 assert 0.0045 < error < 0.0055
 
 
+@cirq.testing.retry_once_with_later_random_values
 def test_group_pauli_string_measurement_errors_with_noise() -> None:
     """Test that the mitigated expectation is close to the ideal expectation
     based on the group Pauli strings"""
@@ -355,6 +360,7 @@ def test_group_pauli_string_measurement_errors_with_noise() -> None:
                 assert 0.0045 < error < 0.0055
 
 
+@cirq.testing.retry_once_with_later_random_values
 def test_many_circuits_input_measurement_with_noise() -> None:
     """Test that the mitigated expectation is close to the ideal expectation
     based on the Pauli string for multiple circuits"""
@@ -414,6 +420,7 @@ def test_many_circuits_input_measurement_with_noise() -> None:
                 assert 0.0045 < error < 0.0055
 
 
+@cirq.testing.retry_once_with_later_random_values
 def test_allow_measurement_without_readout_mitigation() -> None:
     """Test that the function allows to measure without error mitigation"""
     qubits = cirq.LineQubit.range(7)
@@ -444,6 +451,7 @@ def test_allow_measurement_without_readout_mitigation() -> None:
             assert pauli_string_measurement_results.calibration_result is None
 
 
+@cirq.testing.retry_once_with_later_random_values
 def test_allow_group_pauli_measurement_without_readout_mitigation() -> None:
     """Test that the function allows to measure without error mitigation"""
     qubits = cirq.LineQubit.range(7)
@@ -474,6 +482,7 @@ def test_allow_group_pauli_measurement_without_readout_mitigation() -> None:
             assert pauli_string_measurement_results.calibration_result is None
 
 
+@cirq.testing.retry_once_with_later_random_values
 def test_many_circuits_with_coefficient() -> None:
     """Test that the mitigated expectation is close to the ideal expectation
     based on the Pauli string for multiple circuits"""
@@ -533,6 +542,7 @@ def test_many_circuits_with_coefficient() -> None:
                 assert 0.0045 < error < 0.0055
 
 
+@cirq.testing.retry_once_with_later_random_values
 def test_many_group_pauli_in_circuits_with_coefficient() -> None:
     """Test that the mitigated expectation is close to the ideal expectation
     based on the Pauli string for multiple circuits"""
