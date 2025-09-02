@@ -73,11 +73,11 @@ class QuantumProgram(proto.Message):
             -
         description (str):
             -
-        gcs_code_location (google.cloud.quantum_v1alpha1.types.GcsLocation):
+        gcs_code_location (cirq_google.cloud.quantum_v1alpha1.types.GcsLocation):
             -
 
             This field is a member of `oneof`_ ``code_location``.
-        code_inline_data (google.cloud.quantum_v1alpha1.types.InlineData):
+        code_inline_data (cirq_google.cloud.quantum_v1alpha1.types.InlineData):
             -
 
             This field is a member of `oneof`_ ``code_location``.
@@ -154,17 +154,17 @@ class QuantumJob(proto.Message):
             -
         description (str):
             -
-        scheduling_config (google.cloud.quantum_v1alpha1.types.SchedulingConfig):
+        scheduling_config (cirq_google.cloud.quantum_v1alpha1.types.SchedulingConfig):
             -
-        output_config (google.cloud.quantum_v1alpha1.types.OutputConfig):
+        output_config (cirq_google.cloud.quantum_v1alpha1.types.OutputConfig):
             -
-        execution_status (google.cloud.quantum_v1alpha1.types.ExecutionStatus):
+        execution_status (cirq_google.cloud.quantum_v1alpha1.types.ExecutionStatus):
             -
-        gcs_run_context_location (google.cloud.quantum_v1alpha1.types.GcsLocation):
+        gcs_run_context_location (cirq_google.cloud.quantum_v1alpha1.types.GcsLocation):
             -
 
             This field is a member of `oneof`_ ``run_context_location``.
-        run_context_inline_data (google.cloud.quantum_v1alpha1.types.InlineData):
+        run_context_inline_data (cirq_google.cloud.quantum_v1alpha1.types.InlineData):
             -
 
             This field is a member of `oneof`_ ``run_context_location``.
@@ -239,7 +239,7 @@ class SchedulingConfig(proto.Message):
     Attributes:
         target_route (str):
             -
-        processor_selector (google.cloud.quantum_v1alpha1.types.SchedulingConfig.ProcessorSelector):
+        processor_selector (cirq_google.cloud.quantum_v1alpha1.types.SchedulingConfig.ProcessorSelector):
             -
         priority (int):
             -
@@ -255,7 +255,7 @@ class SchedulingConfig(proto.Message):
                 -
             processor (str):
                 -
-            device_config_selector (google.cloud.quantum_v1alpha1.types.DeviceConfigSelector):
+            device_config_selector (cirq_google.cloud.quantum_v1alpha1.types.DeviceConfigSelector):
                 -
 
                 This field is a member of `oneof`_ ``_device_config_selector``.
@@ -295,15 +295,15 @@ class ExecutionStatus(proto.Message):
     r"""-
 
     Attributes:
-        state (google.cloud.quantum_v1alpha1.types.ExecutionStatus.State):
+        state (cirq_google.cloud.quantum_v1alpha1.types.ExecutionStatus.State):
             -
         processor_name (str):
             -
         calibration_name (str):
             -
-        failure (google.cloud.quantum_v1alpha1.types.ExecutionStatus.Failure):
+        failure (cirq_google.cloud.quantum_v1alpha1.types.ExecutionStatus.Failure):
             -
-        timing (google.cloud.quantum_v1alpha1.types.ExecutionStatus.Timing):
+        timing (cirq_google.cloud.quantum_v1alpha1.types.ExecutionStatus.Timing):
             -
     """
     class State(proto.Enum):
@@ -337,7 +337,7 @@ class ExecutionStatus(proto.Message):
         r"""-
 
         Attributes:
-            error_code (google.cloud.quantum_v1alpha1.types.ExecutionStatus.Failure.Code):
+            error_code (cirq_google.cloud.quantum_v1alpha1.types.ExecutionStatus.Failure.Code):
                 -
             error_message (str):
                 -
@@ -530,7 +530,7 @@ class OutputConfig(proto.Message):
     .. _oneof: https://proto-plus-python.readthedocs.io/en/stable/fields.html#oneofs-mutually-exclusive-fields
 
     Attributes:
-        gcs_results_location (google.cloud.quantum_v1alpha1.types.GcsLocation):
+        gcs_results_location (cirq_google.cloud.quantum_v1alpha1.types.GcsLocation):
             -
 
             This field is a member of `oneof`_ ``output_destination``.
@@ -590,7 +590,7 @@ class QuantumJobEvent(proto.Message):
     Attributes:
         event_time (google.protobuf.timestamp_pb2.Timestamp):
             -
-        job (google.cloud.quantum_v1alpha1.types.QuantumJob):
+        job (cirq_google.cloud.quantum_v1alpha1.types.QuantumJob):
             -
         modified_field_mask (google.protobuf.field_mask_pb2.FieldMask):
             -
@@ -640,7 +640,7 @@ class QuantumProcessor(proto.Message):
     Attributes:
         name (str):
             -
-        health (google.cloud.quantum_v1alpha1.types.QuantumProcessor.Health):
+        health (cirq_google.cloud.quantum_v1alpha1.types.QuantumProcessor.Health):
             -
         expected_down_time (google.protobuf.timestamp_pb2.Timestamp):
             -
@@ -656,11 +656,11 @@ class QuantumProcessor(proto.Message):
             -
         current_calibration (str):
             Output only. -
-        active_time_slot (google.cloud.quantum_v1alpha1.types.QuantumTimeSlot):
+        active_time_slot (cirq_google.cloud.quantum_v1alpha1.types.QuantumTimeSlot):
             Output only. -
-        activity_stats (google.cloud.quantum_v1alpha1.types.QuantumProcessor.ActivityStats):
+        activity_stats (cirq_google.cloud.quantum_v1alpha1.types.QuantumProcessor.ActivityStats):
             -
-        default_device_config_key (google.cloud.quantum_v1alpha1.types.DeviceConfigKey):
+        default_device_config_key (cirq_google.cloud.quantum_v1alpha1.types.DeviceConfigKey):
             -
     """
     class Health(proto.Enum):
@@ -834,7 +834,7 @@ class QuantumReservationGrant(proto.Message):
             -
         available_duration (google.protobuf.duration_pb2.Duration):
             -
-        budgets (MutableSequence[google.cloud.quantum_v1alpha1.types.QuantumReservationGrant.Budget]):
+        budgets (MutableSequence[cirq_google.cloud.quantum_v1alpha1.types.QuantumReservationGrant.Budget]):
             -
     """
 
@@ -965,13 +965,13 @@ class QuantumTimeSlot(proto.Message):
             -
         end_time (google.protobuf.timestamp_pb2.Timestamp):
             -
-        time_slot_type (google.cloud.quantum_v1alpha1.types.QuantumTimeSlot.TimeSlotType):
+        time_slot_type (cirq_google.cloud.quantum_v1alpha1.types.QuantumTimeSlot.TimeSlotType):
             -
-        reservation_config (google.cloud.quantum_v1alpha1.types.QuantumTimeSlot.ReservationConfig):
+        reservation_config (cirq_google.cloud.quantum_v1alpha1.types.QuantumTimeSlot.ReservationConfig):
             -
 
             This field is a member of `oneof`_ ``type_config``.
-        maintenance_config (google.cloud.quantum_v1alpha1.types.QuantumTimeSlot.MaintenanceConfig):
+        maintenance_config (cirq_google.cloud.quantum_v1alpha1.types.QuantumTimeSlot.MaintenanceConfig):
             -
 
             This field is a member of `oneof`_ ``type_config``.
