@@ -24,8 +24,8 @@ import re
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 
-from google.cloud.quantum_v1alpha1.types import engine
-from google.cloud.quantum_v1alpha1.types import quantum
+from cirq_google.cloud.quantum_v1alpha1.types import engine
+from cirq_google.cloud.quantum_v1alpha1.types import quantum
 from google.protobuf import empty_pb2  # type: ignore
 
 

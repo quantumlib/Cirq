@@ -30,8 +30,8 @@ import google.protobuf.message
 import grpc  # type: ignore
 import proto  # type: ignore
 
-from google.cloud.quantum_v1alpha1.types import engine
-from google.cloud.quantum_v1alpha1.types import quantum
+from cirq_google.cloud.quantum_v1alpha1.types import engine
+from cirq_google.cloud.quantum_v1alpha1.types import quantum
 from google.protobuf import empty_pb2  # type: ignore
 from .base import QuantumEngineServiceTransport, DEFAULT_CLIENT_INFO
 

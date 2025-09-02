@@ -22,8 +22,6 @@ import re
 from typing import Dict, Callable, Mapping, MutableMapping, MutableSequence, Optional, Iterable, Iterator, Sequence, Tuple, Type, Union, cast
 import warnings
 
-from google.cloud.quantum_v1alpha1 import gapic_version as package_version
-
 from google.api_core import client_options as client_options_lib
 from google.api_core import exceptions as core_exceptions
 from google.api_core import gapic_v1
@@ -48,9 +46,10 @@ except ImportError:  # pragma: NO COVER
 
 _LOGGER = std_logging.getLogger(__name__)
 
-from google.cloud.quantum_v1alpha1.services.quantum_engine_service import pagers
-from google.cloud.quantum_v1alpha1.types import engine
-from google.cloud.quantum_v1alpha1.types import quantum
+import cirq_google
+from cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service import pagers
+from cirq_google.cloud.quantum_v1alpha1.types import engine
+from cirq_google.cloud.quantum_v1alpha1.types import quantum
 from google.protobuf import any_pb2  # type: ignore
 from google.protobuf import duration_pb2  # type: ignore
 from google.protobuf import timestamp_pb2  # type: ignore
@@ -632,7 +631,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         if "async" not in str(self._transport):
             if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(std_logging.DEBUG):  # pragma: NO COVER
                 _LOGGER.debug(
-                    "Created client `google.cloud.quantum_v1alpha1.QuantumEngineServiceClient`.",
+                    "Created client `cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient`.",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "universeDomain": getattr(self._transport._credentials, "universe_domain", ""),
@@ -679,7 +678,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.CreateQuantumProgramRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.CreateQuantumProgramRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -690,7 +689,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            google.cloud.quantum_v1alpha1.types.QuantumProgram:
+            cirq_google.cloud.quantum_v1alpha1.types.QuantumProgram:
                 -
         """
         # Create or coerce a protobuf request object.
@@ -760,7 +759,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.GetQuantumProgramRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.GetQuantumProgramRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -771,7 +770,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            google.cloud.quantum_v1alpha1.types.QuantumProgram:
+            cirq_google.cloud.quantum_v1alpha1.types.QuantumProgram:
                 -
         """
         # Create or coerce a protobuf request object.
@@ -842,7 +841,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumProgramsRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProgramsRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -853,7 +852,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            google.cloud.quantum_v1alpha1.services.quantum_engine_service.pagers.ListQuantumProgramsPager:
+            cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service.pagers.ListQuantumProgramsPager:
                 -
 
                 Iterating over this object will yield
@@ -936,7 +935,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 client.delete_quantum_program(request=request)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.DeleteQuantumProgramRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.DeleteQuantumProgramRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -1010,7 +1009,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.UpdateQuantumProgramRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.UpdateQuantumProgramRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -1021,7 +1020,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            google.cloud.quantum_v1alpha1.types.QuantumProgram:
+            cirq_google.cloud.quantum_v1alpha1.types.QuantumProgram:
                 -
         """
         # Create or coerce a protobuf request object.
@@ -1091,7 +1090,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.CreateQuantumJobRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.CreateQuantumJobRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -1102,7 +1101,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            google.cloud.quantum_v1alpha1.types.QuantumJob:
+            cirq_google.cloud.quantum_v1alpha1.types.QuantumJob:
                 -
         """
         # Create or coerce a protobuf request object.
@@ -1172,7 +1171,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.GetQuantumJobRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.GetQuantumJobRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -1183,7 +1182,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            google.cloud.quantum_v1alpha1.types.QuantumJob:
+            cirq_google.cloud.quantum_v1alpha1.types.QuantumJob:
                 -
         """
         # Create or coerce a protobuf request object.
@@ -1254,7 +1253,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumJobsRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobsRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -1265,7 +1264,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            google.cloud.quantum_v1alpha1.services.quantum_engine_service.pagers.ListQuantumJobsPager:
+            cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service.pagers.ListQuantumJobsPager:
                 -
 
                 Iterating over this object will yield
@@ -1348,7 +1347,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 client.delete_quantum_job(request=request)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.DeleteQuantumJobRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.DeleteQuantumJobRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -1422,7 +1421,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.UpdateQuantumJobRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.UpdateQuantumJobRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -1433,7 +1432,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            google.cloud.quantum_v1alpha1.types.QuantumJob:
+            cirq_google.cloud.quantum_v1alpha1.types.QuantumJob:
                 -
         """
         # Create or coerce a protobuf request object.
@@ -1500,7 +1499,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 client.cancel_quantum_job(request=request)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.CancelQuantumJobRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.CancelQuantumJobRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -1575,7 +1574,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -1586,7 +1585,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            google.cloud.quantum_v1alpha1.services.quantum_engine_service.pagers.ListQuantumJobEventsPager:
+            cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service.pagers.ListQuantumJobEventsPager:
                 -
 
                 Iterating over this object will yield
@@ -1672,7 +1671,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.GetQuantumResultRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.GetQuantumResultRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -1683,7 +1682,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            google.cloud.quantum_v1alpha1.types.QuantumResult:
+            cirq_google.cloud.quantum_v1alpha1.types.QuantumResult:
                 -
         """
         # Create or coerce a protobuf request object.
@@ -1754,7 +1753,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -1765,7 +1764,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            google.cloud.quantum_v1alpha1.services.quantum_engine_service.pagers.ListQuantumProcessorsPager:
+            cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service.pagers.ListQuantumProcessorsPager:
                 -
 
                 Iterating over this object will yield
@@ -1851,7 +1850,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.GetQuantumProcessorRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.GetQuantumProcessorRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -1862,7 +1861,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            google.cloud.quantum_v1alpha1.types.QuantumProcessor:
+            cirq_google.cloud.quantum_v1alpha1.types.QuantumProcessor:
                 -
         """
         # Create or coerce a protobuf request object.
@@ -1934,7 +1933,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.GetQuantumProcessorConfigRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.GetQuantumProcessorConfigRequest, dict]):
                 The request object. -
             name (str):
                 Required. -
@@ -1950,7 +1949,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            google.cloud.quantum_v1alpha1.types.QuantumProcessorConfig:
+            cirq_google.cloud.quantum_v1alpha1.types.QuantumProcessorConfig:
                 -
         """
         # Create or coerce a protobuf request object.
@@ -2035,7 +2034,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumProcessorConfigsRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorConfigsRequest, dict]):
                 The request object. -
             parent (str):
                 Required. -
@@ -2051,7 +2050,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            google.cloud.quantum_v1alpha1.services.quantum_engine_service.pagers.ListQuantumProcessorConfigsPager:
+            cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service.pagers.ListQuantumProcessorConfigsPager:
                 -
 
                 Iterating over this object will yield
@@ -2150,7 +2149,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -2161,7 +2160,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            google.cloud.quantum_v1alpha1.services.quantum_engine_service.pagers.ListQuantumCalibrationsPager:
+            cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service.pagers.ListQuantumCalibrationsPager:
                 -
 
                 Iterating over this object will yield
@@ -2247,7 +2246,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.GetQuantumCalibrationRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.GetQuantumCalibrationRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -2258,7 +2257,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            google.cloud.quantum_v1alpha1.types.QuantumCalibration:
+            cirq_google.cloud.quantum_v1alpha1.types.QuantumCalibration:
                 -
         """
         # Create or coerce a protobuf request object.
@@ -2328,7 +2327,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.CreateQuantumReservationRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.CreateQuantumReservationRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -2339,7 +2338,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            google.cloud.quantum_v1alpha1.types.QuantumReservation:
+            cirq_google.cloud.quantum_v1alpha1.types.QuantumReservation:
                 -
         """
         # Create or coerce a protobuf request object.
@@ -2409,7 +2408,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.CancelQuantumReservationRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.CancelQuantumReservationRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -2420,7 +2419,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            google.cloud.quantum_v1alpha1.types.QuantumReservation:
+            cirq_google.cloud.quantum_v1alpha1.types.QuantumReservation:
                 -
         """
         # Create or coerce a protobuf request object.
@@ -2487,7 +2486,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 client.delete_quantum_reservation(request=request)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.DeleteQuantumReservationRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.DeleteQuantumReservationRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -2561,7 +2560,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.GetQuantumReservationRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.GetQuantumReservationRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -2572,7 +2571,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            google.cloud.quantum_v1alpha1.types.QuantumReservation:
+            cirq_google.cloud.quantum_v1alpha1.types.QuantumReservation:
                 -
         """
         # Create or coerce a protobuf request object.
@@ -2643,7 +2642,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumReservationsRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationsRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -2654,7 +2653,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            google.cloud.quantum_v1alpha1.services.quantum_engine_service.pagers.ListQuantumReservationsPager:
+            cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service.pagers.ListQuantumReservationsPager:
                 -
 
                 Iterating over this object will yield
@@ -2740,7 +2739,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.UpdateQuantumReservationRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.UpdateQuantumReservationRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -2751,7 +2750,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            google.cloud.quantum_v1alpha1.types.QuantumReservation:
+            cirq_google.cloud.quantum_v1alpha1.types.QuantumReservation:
                 -
         """
         # Create or coerce a protobuf request object.
@@ -2832,7 +2831,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                     print(response)
 
         Args:
-            requests (Iterator[google.cloud.quantum_v1alpha1.types.QuantumRunStreamRequest]):
+            requests (Iterator[cirq_google.cloud.quantum_v1alpha1.types.QuantumRunStreamRequest]):
                 The request object iterator. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -2843,7 +2842,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            Iterable[google.cloud.quantum_v1alpha1.types.QuantumRunStreamResponse]:
+            Iterable[cirq_google.cloud.quantum_v1alpha1.types.QuantumRunStreamResponse]:
                 -
         """
 
@@ -2901,7 +2900,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -2912,7 +2911,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            google.cloud.quantum_v1alpha1.services.quantum_engine_service.pagers.ListQuantumReservationGrantsPager:
+            cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service.pagers.ListQuantumReservationGrantsPager:
                 -
 
                 Iterating over this object will yield
@@ -2998,7 +2997,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ReallocateQuantumReservationGrantRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.ReallocateQuantumReservationGrantRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -3009,7 +3008,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            google.cloud.quantum_v1alpha1.types.QuantumReservationGrant:
+            cirq_google.cloud.quantum_v1alpha1.types.QuantumReservationGrant:
                 -
         """
         # Create or coerce a protobuf request object.
@@ -3080,7 +3079,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -3091,7 +3090,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            google.cloud.quantum_v1alpha1.services.quantum_engine_service.pagers.ListQuantumReservationBudgetsPager:
+            cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service.pagers.ListQuantumReservationBudgetsPager:
                 -
 
                 Iterating over this object will yield
@@ -3178,7 +3177,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsRequest, dict]):
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsRequest, dict]):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
@@ -3189,7 +3188,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 be of type `bytes`.
 
         Returns:
-            google.cloud.quantum_v1alpha1.services.quantum_engine_service.pagers.ListQuantumTimeSlotsPager:
+            cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service.pagers.ListQuantumTimeSlotsPager:
                 -
 
                 Iterating over this object will yield
@@ -3259,7 +3258,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
 
 
-DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo(gapic_version=package_version.__version__)
+DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo(gapic_version=cirq_google.__version__)
 
 if hasattr(DEFAULT_CLIENT_INFO, "protobuf_runtime_version"):  # pragma: NO COVER
     DEFAULT_CLIENT_INFO.protobuf_runtime_version = google.protobuf.__version__

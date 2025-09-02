@@ -13,11 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from google.cloud.quantum_v1alpha1 import gapic_version as package_version
-
-__version__ = package_version.__version__
-
-
 from .services.quantum_engine_service import QuantumEngineServiceClient
 from .services.quantum_engine_service import QuantumEngineServiceAsyncClient
 

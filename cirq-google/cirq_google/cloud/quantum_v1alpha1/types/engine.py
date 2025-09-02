@@ -19,7 +19,7 @@ from typing import MutableMapping, MutableSequence
 
 import proto  # type: ignore
 
-from google.cloud.quantum_v1alpha1.types import quantum
+from cirq_google.cloud.quantum_v1alpha1.types import quantum
 from google.protobuf import duration_pb2  # type: ignore
 from google.protobuf import field_mask_pb2  # type: ignore
 
@@ -80,7 +80,7 @@ class CreateQuantumJobRequest(proto.Message):
     Attributes:
         parent (str):
             -
-        quantum_job (google.cloud.quantum_v1alpha1.types.QuantumJob):
+        quantum_job (cirq_google.cloud.quantum_v1alpha1.types.QuantumJob):
             -
         overwrite_existing_run_context (bool):
             -
@@ -157,7 +157,7 @@ class ListQuantumJobsResponse(proto.Message):
     r"""-
 
     Attributes:
-        jobs (MutableSequence[google.cloud.quantum_v1alpha1.types.QuantumJob]):
+        jobs (MutableSequence[cirq_google.cloud.quantum_v1alpha1.types.QuantumJob]):
             -
         next_page_token (str):
             -
@@ -198,7 +198,7 @@ class UpdateQuantumJobRequest(proto.Message):
     Attributes:
         name (str):
             -
-        quantum_job (google.cloud.quantum_v1alpha1.types.QuantumJob):
+        quantum_job (cirq_google.cloud.quantum_v1alpha1.types.QuantumJob):
             -
         update_mask (google.protobuf.field_mask_pb2.FieldMask):
             -
@@ -264,7 +264,7 @@ class ListQuantumJobEventsResponse(proto.Message):
     r"""-
 
     Attributes:
-        events (MutableSequence[google.cloud.quantum_v1alpha1.types.QuantumJobEvent]):
+        events (MutableSequence[cirq_google.cloud.quantum_v1alpha1.types.QuantumJobEvent]):
             -
         next_page_token (str):
             -
@@ -305,7 +305,7 @@ class CreateQuantumProgramRequest(proto.Message):
     Attributes:
         parent (str):
             -
-        quantum_program (google.cloud.quantum_v1alpha1.types.QuantumProgram):
+        quantum_program (cirq_google.cloud.quantum_v1alpha1.types.QuantumProgram):
             -
         overwrite_existing_source_code (bool):
             -
@@ -382,7 +382,7 @@ class ListQuantumProgramsResponse(proto.Message):
     r"""-
 
     Attributes:
-        programs (MutableSequence[google.cloud.quantum_v1alpha1.types.QuantumProgram]):
+        programs (MutableSequence[cirq_google.cloud.quantum_v1alpha1.types.QuantumProgram]):
             -
         next_page_token (str):
             -
@@ -429,7 +429,7 @@ class UpdateQuantumProgramRequest(proto.Message):
     Attributes:
         name (str):
             -
-        quantum_program (google.cloud.quantum_v1alpha1.types.QuantumProgram):
+        quantum_program (cirq_google.cloud.quantum_v1alpha1.types.QuantumProgram):
             -
         update_mask (google.protobuf.field_mask_pb2.FieldMask):
             -
@@ -487,7 +487,7 @@ class ListQuantumProcessorsResponse(proto.Message):
     r"""-
 
     Attributes:
-        processors (MutableSequence[google.cloud.quantum_v1alpha1.types.QuantumProcessor]):
+        processors (MutableSequence[cirq_google.cloud.quantum_v1alpha1.types.QuantumProcessor]):
             -
         next_page_token (str):
             -
@@ -566,7 +566,7 @@ class ListQuantumProcessorConfigsResponse(proto.Message):
     r"""-
 
     Attributes:
-        quantum_processor_configs (MutableSequence[google.cloud.quantum_v1alpha1.types.QuantumProcessorConfig]):
+        quantum_processor_configs (MutableSequence[cirq_google.cloud.quantum_v1alpha1.types.QuantumProcessorConfig]):
             -
         next_page_token (str):
             -
@@ -593,7 +593,7 @@ class ListQuantumCalibrationsRequest(proto.Message):
     Attributes:
         parent (str):
             -
-        view (google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsRequest.QuantumCalibrationView):
+        view (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsRequest.QuantumCalibrationView):
             -
         page_size (int):
             -
@@ -644,7 +644,7 @@ class ListQuantumCalibrationsResponse(proto.Message):
     r"""-
 
     Attributes:
-        calibrations (MutableSequence[google.cloud.quantum_v1alpha1.types.QuantumCalibration]):
+        calibrations (MutableSequence[cirq_google.cloud.quantum_v1alpha1.types.QuantumCalibration]):
             -
         next_page_token (str):
             -
@@ -685,7 +685,7 @@ class CreateQuantumReservationRequest(proto.Message):
     Attributes:
         parent (str):
             -
-        quantum_reservation (google.cloud.quantum_v1alpha1.types.QuantumReservation):
+        quantum_reservation (cirq_google.cloud.quantum_v1alpha1.types.QuantumReservation):
             -
     """
 
@@ -778,7 +778,7 @@ class ListQuantumReservationsResponse(proto.Message):
     r"""-
 
     Attributes:
-        reservations (MutableSequence[google.cloud.quantum_v1alpha1.types.QuantumReservation]):
+        reservations (MutableSequence[cirq_google.cloud.quantum_v1alpha1.types.QuantumReservation]):
             -
         next_page_token (str):
             -
@@ -805,7 +805,7 @@ class UpdateQuantumReservationRequest(proto.Message):
     Attributes:
         name (str):
             -
-        quantum_reservation (google.cloud.quantum_v1alpha1.types.QuantumReservation):
+        quantum_reservation (cirq_google.cloud.quantum_v1alpha1.types.QuantumReservation):
             -
         update_mask (google.protobuf.field_mask_pb2.FieldMask):
             -
@@ -842,15 +842,15 @@ class QuantumRunStreamRequest(proto.Message):
             -
         parent (str):
             -
-        create_quantum_program_and_job (google.cloud.quantum_v1alpha1.types.CreateQuantumProgramAndJobRequest):
+        create_quantum_program_and_job (cirq_google.cloud.quantum_v1alpha1.types.CreateQuantumProgramAndJobRequest):
             -
 
             This field is a member of `oneof`_ ``request``.
-        create_quantum_job (google.cloud.quantum_v1alpha1.types.CreateQuantumJobRequest):
+        create_quantum_job (cirq_google.cloud.quantum_v1alpha1.types.CreateQuantumJobRequest):
             -
 
             This field is a member of `oneof`_ ``request``.
-        get_quantum_result (google.cloud.quantum_v1alpha1.types.GetQuantumResultRequest):
+        get_quantum_result (cirq_google.cloud.quantum_v1alpha1.types.GetQuantumResultRequest):
             -
 
             This field is a member of `oneof`_ ``request``.
@@ -890,9 +890,9 @@ class CreateQuantumProgramAndJobRequest(proto.Message):
     Attributes:
         parent (str):
             -
-        quantum_program (google.cloud.quantum_v1alpha1.types.QuantumProgram):
+        quantum_program (cirq_google.cloud.quantum_v1alpha1.types.QuantumProgram):
             -
-        quantum_job (google.cloud.quantum_v1alpha1.types.QuantumJob):
+        quantum_job (cirq_google.cloud.quantum_v1alpha1.types.QuantumJob):
             -
     """
 
@@ -925,15 +925,15 @@ class QuantumRunStreamResponse(proto.Message):
     Attributes:
         message_id (str):
             -
-        error (google.cloud.quantum_v1alpha1.types.StreamError):
+        error (cirq_google.cloud.quantum_v1alpha1.types.StreamError):
             -
 
             This field is a member of `oneof`_ ``response``.
-        job (google.cloud.quantum_v1alpha1.types.QuantumJob):
+        job (cirq_google.cloud.quantum_v1alpha1.types.QuantumJob):
             -
 
             This field is a member of `oneof`_ ``response``.
-        result (google.cloud.quantum_v1alpha1.types.QuantumResult):
+        result (cirq_google.cloud.quantum_v1alpha1.types.QuantumResult):
             -
 
             This field is a member of `oneof`_ ``response``.
@@ -967,7 +967,7 @@ class StreamError(proto.Message):
     r"""-
 
     Attributes:
-        code (google.cloud.quantum_v1alpha1.types.StreamError.Code):
+        code (cirq_google.cloud.quantum_v1alpha1.types.StreamError.Code):
             -
         message (str):
             -
@@ -1055,7 +1055,7 @@ class ListQuantumReservationGrantsResponse(proto.Message):
     r"""-
 
     Attributes:
-        reservation_grants (MutableSequence[google.cloud.quantum_v1alpha1.types.QuantumReservationGrant]):
+        reservation_grants (MutableSequence[cirq_google.cloud.quantum_v1alpha1.types.QuantumReservationGrant]):
             -
         next_page_token (str):
             -
@@ -1145,7 +1145,7 @@ class ListQuantumReservationBudgetsResponse(proto.Message):
     r"""-
 
     Attributes:
-        reservation_budgets (MutableSequence[google.cloud.quantum_v1alpha1.types.QuantumReservationBudget]):
+        reservation_budgets (MutableSequence[cirq_google.cloud.quantum_v1alpha1.types.QuantumReservationBudget]):
             -
         next_page_token (str):
             -
@@ -1202,7 +1202,7 @@ class ListQuantumTimeSlotsResponse(proto.Message):
     r"""-
 
     Attributes:
-        time_slots (MutableSequence[google.cloud.quantum_v1alpha1.types.QuantumTimeSlot]):
+        time_slots (MutableSequence[cirq_google.cloud.quantum_v1alpha1.types.QuantumTimeSlot]):
             -
         next_page_token (str):
             -

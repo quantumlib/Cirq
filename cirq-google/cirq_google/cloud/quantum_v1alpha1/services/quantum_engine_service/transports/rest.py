@@ -33,8 +33,8 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 import warnings
 
 
-from google.cloud.quantum_v1alpha1.types import engine
-from google.cloud.quantum_v1alpha1.types import quantum
+from cirq_google.cloud.quantum_v1alpha1.types import engine
+from cirq_google.cloud.quantum_v1alpha1.types import quantum
 from google.protobuf import empty_pb2  # type: ignore
 
 
@@ -1388,7 +1388,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.CancelQuantumJob",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.CancelQuantumJob",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "CancelQuantumJob",
@@ -1481,7 +1481,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.CancelQuantumReservation",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.CancelQuantumReservation",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "CancelQuantumReservation",
@@ -1518,7 +1518,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 "status": response.status_code,
                 }
                 _LOGGER.debug(
-                    "Received response for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.cancel_quantum_reservation",
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.cancel_quantum_reservation",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "CancelQuantumReservation",
@@ -1603,7 +1603,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.CreateQuantumJob",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.CreateQuantumJob",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "CreateQuantumJob",
@@ -1640,7 +1640,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 "status": response.status_code,
                 }
                 _LOGGER.debug(
-                    "Received response for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.create_quantum_job",
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.create_quantum_job",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "CreateQuantumJob",
@@ -1725,7 +1725,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.CreateQuantumProgram",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.CreateQuantumProgram",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "CreateQuantumProgram",
@@ -1762,7 +1762,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 "status": response.status_code,
                 }
                 _LOGGER.debug(
-                    "Received response for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.create_quantum_program",
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.create_quantum_program",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "CreateQuantumProgram",
@@ -1848,7 +1848,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.CreateQuantumReservation",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.CreateQuantumReservation",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "CreateQuantumReservation",
@@ -1885,7 +1885,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 "status": response.status_code,
                 }
                 _LOGGER.debug(
-                    "Received response for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.create_quantum_reservation",
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.create_quantum_reservation",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "CreateQuantumReservation",
@@ -1963,7 +1963,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.DeleteQuantumJob",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.DeleteQuantumJob",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "DeleteQuantumJob",
@@ -2048,7 +2048,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.DeleteQuantumProgram",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.DeleteQuantumProgram",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "DeleteQuantumProgram",
@@ -2134,7 +2134,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.DeleteQuantumReservation",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.DeleteQuantumReservation",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "DeleteQuantumReservation",
@@ -2223,7 +2223,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumCalibration",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumCalibration",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "GetQuantumCalibration",
@@ -2260,7 +2260,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 "status": response.status_code,
                 }
                 _LOGGER.debug(
-                    "Received response for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.get_quantum_calibration",
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.get_quantum_calibration",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "GetQuantumCalibration",
@@ -2342,7 +2342,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumJob",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumJob",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "GetQuantumJob",
@@ -2379,7 +2379,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 "status": response.status_code,
                 }
                 _LOGGER.debug(
-                    "Received response for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.get_quantum_job",
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.get_quantum_job",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "GetQuantumJob",
@@ -2461,7 +2461,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumProcessor",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumProcessor",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "GetQuantumProcessor",
@@ -2498,7 +2498,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 "status": response.status_code,
                 }
                 _LOGGER.debug(
-                    "Received response for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.get_quantum_processor",
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.get_quantum_processor",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "GetQuantumProcessor",
@@ -2581,7 +2581,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumProcessorConfig",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumProcessorConfig",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "GetQuantumProcessorConfig",
@@ -2618,7 +2618,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 "status": response.status_code,
                 }
                 _LOGGER.debug(
-                    "Received response for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.get_quantum_processor_config",
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.get_quantum_processor_config",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "GetQuantumProcessorConfig",
@@ -2700,7 +2700,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumProgram",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumProgram",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "GetQuantumProgram",
@@ -2737,7 +2737,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 "status": response.status_code,
                 }
                 _LOGGER.debug(
-                    "Received response for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.get_quantum_program",
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.get_quantum_program",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "GetQuantumProgram",
@@ -2819,7 +2819,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumReservation",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumReservation",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "GetQuantumReservation",
@@ -2856,7 +2856,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 "status": response.status_code,
                 }
                 _LOGGER.debug(
-                    "Received response for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.get_quantum_reservation",
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.get_quantum_reservation",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "GetQuantumReservation",
@@ -2938,7 +2938,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumResult",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumResult",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "GetQuantumResult",
@@ -2975,7 +2975,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 "status": response.status_code,
                 }
                 _LOGGER.debug(
-                    "Received response for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.get_quantum_result",
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.get_quantum_result",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "GetQuantumResult",
@@ -3057,7 +3057,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumCalibrations",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumCalibrations",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumCalibrations",
@@ -3094,7 +3094,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 "status": response.status_code,
                 }
                 _LOGGER.debug(
-                    "Received response for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.list_quantum_calibrations",
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.list_quantum_calibrations",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumCalibrations",
@@ -3176,7 +3176,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumJobEvents",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumJobEvents",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumJobEvents",
@@ -3213,7 +3213,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 "status": response.status_code,
                 }
                 _LOGGER.debug(
-                    "Received response for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.list_quantum_job_events",
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.list_quantum_job_events",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumJobEvents",
@@ -3295,7 +3295,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumJobs",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumJobs",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumJobs",
@@ -3332,7 +3332,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 "status": response.status_code,
                 }
                 _LOGGER.debug(
-                    "Received response for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.list_quantum_jobs",
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.list_quantum_jobs",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumJobs",
@@ -3415,7 +3415,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumProcessorConfigs",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumProcessorConfigs",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumProcessorConfigs",
@@ -3452,7 +3452,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 "status": response.status_code,
                 }
                 _LOGGER.debug(
-                    "Received response for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.list_quantum_processor_configs",
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.list_quantum_processor_configs",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumProcessorConfigs",
@@ -3534,7 +3534,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumProcessors",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumProcessors",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumProcessors",
@@ -3571,7 +3571,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 "status": response.status_code,
                 }
                 _LOGGER.debug(
-                    "Received response for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.list_quantum_processors",
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.list_quantum_processors",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumProcessors",
@@ -3653,7 +3653,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumPrograms",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumPrograms",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumPrograms",
@@ -3690,7 +3690,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 "status": response.status_code,
                 }
                 _LOGGER.debug(
-                    "Received response for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.list_quantum_programs",
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.list_quantum_programs",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumPrograms",
@@ -3773,7 +3773,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumReservationBudgets",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumReservationBudgets",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumReservationBudgets",
@@ -3810,7 +3810,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 "status": response.status_code,
                 }
                 _LOGGER.debug(
-                    "Received response for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.list_quantum_reservation_budgets",
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.list_quantum_reservation_budgets",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumReservationBudgets",
@@ -3893,7 +3893,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumReservationGrants",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumReservationGrants",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumReservationGrants",
@@ -3930,7 +3930,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 "status": response.status_code,
                 }
                 _LOGGER.debug(
-                    "Received response for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.list_quantum_reservation_grants",
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.list_quantum_reservation_grants",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumReservationGrants",
@@ -4012,7 +4012,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumReservations",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumReservations",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumReservations",
@@ -4049,7 +4049,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 "status": response.status_code,
                 }
                 _LOGGER.debug(
-                    "Received response for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.list_quantum_reservations",
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.list_quantum_reservations",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumReservations",
@@ -4131,7 +4131,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumTimeSlots",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumTimeSlots",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumTimeSlots",
@@ -4168,7 +4168,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 "status": response.status_code,
                 }
                 _LOGGER.debug(
-                    "Received response for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.list_quantum_time_slots",
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.list_quantum_time_slots",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumTimeSlots",
@@ -4267,7 +4267,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ReallocateQuantumReservationGrant",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ReallocateQuantumReservationGrant",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ReallocateQuantumReservationGrant",
@@ -4304,7 +4304,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 "status": response.status_code,
                 }
                 _LOGGER.debug(
-                    "Received response for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.reallocate_quantum_reservation_grant",
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.reallocate_quantum_reservation_grant",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ReallocateQuantumReservationGrant",
@@ -4389,7 +4389,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.UpdateQuantumJob",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.UpdateQuantumJob",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "UpdateQuantumJob",
@@ -4426,7 +4426,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 "status": response.status_code,
                 }
                 _LOGGER.debug(
-                    "Received response for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.update_quantum_job",
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.update_quantum_job",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "UpdateQuantumJob",
@@ -4511,7 +4511,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.UpdateQuantumProgram",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.UpdateQuantumProgram",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "UpdateQuantumProgram",
@@ -4548,7 +4548,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 "status": response.status_code,
                 }
                 _LOGGER.debug(
-                    "Received response for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.update_quantum_program",
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.update_quantum_program",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "UpdateQuantumProgram",
@@ -4634,7 +4634,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                   "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.UpdateQuantumReservation",
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.UpdateQuantumReservation",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "UpdateQuantumReservation",
@@ -4671,7 +4671,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 "status": response.status_code,
                 }
                 _LOGGER.debug(
-                    "Received response for google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.update_quantum_reservation",
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.update_quantum_reservation",
                     extra = {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "UpdateQuantumReservation",
