@@ -318,23 +318,15 @@ def final_density_matrix(
             qubit_order=qubit_order,
             param_resolver=param_resolver,
         )
-        res = density_result.final_density_matrix
+        result = density_result.final_density_matrix
 
         if handling_classical_control:
-            num_qubits = protocols.qid_shape_protocol.num_qubits(circuit_like)
-            qid_shape = protocols.qid_shape_protocol.qid_shape(circuit_like)
-
-            # assuming that the ancella bits from the transformations are at the end
-            keep = list(range(num_qubits))
-
-            dephased_qid_shape = protocols.qid_shape_protocol.qid_shape(dephased)
-
-            tensor_form = np.reshape(res, dephased_qid_shape + dephased_qid_shape)
-
+            # assuming that the ancilla qubits from the transformations are at the end
+            keep = list(range(protocols.num_qubits(circuit_like)))
+            dephased_qid_shape = protocols.qid_shape(dephased)
+            tensor_form = np.reshape(result, dephased_qid_shape + dephased_qid_shape)
             reduced_form = transformations.partial_trace(tensor_form, keep)
+            width = np.prod(protocols.qid_shape(circuit_like))
+            result = np.reshape(reduced_form, (width, width))
 
-            width = np.prod(qid_shape)
-
-            res = np.reshape(reduced_form, (width, width))
-
-        return res
+        return result
