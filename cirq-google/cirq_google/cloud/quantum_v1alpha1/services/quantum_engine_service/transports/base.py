@@ -14,20 +14,24 @@
 # limitations under the License.
 #
 import abc
-from typing import Awaitable, Callable, Optional, Sequence
+from typing import Awaitable, Callable, Dict, Optional, Sequence, Union
 
+from google.cloud.quantum_v1alpha1 import gapic_version as package_version
+
+import google.auth  # type: ignore
 import google.api_core
-import google.auth
+from google.api_core import exceptions as core_exceptions
+from google.api_core import gapic_v1
+from google.api_core import retry as retries
+from google.auth import credentials as ga_credentials  # type: ignore
+from google.oauth2 import service_account # type: ignore
 import google.protobuf
-from google.api_core import exceptions as core_exceptions, gapic_v1
-from google.auth import credentials as ga_credentials
-from google.oauth2 import service_account
-from google.protobuf import empty_pb2
 
-import cirq_google
-from cirq_google.cloud.quantum_v1alpha1.types import engine, quantum
+from google.cloud.quantum_v1alpha1.types import engine
+from google.cloud.quantum_v1alpha1.types import quantum
+from google.protobuf import empty_pb2  # type: ignore
 
-DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo(gapic_version=cirq_google.__version__)
+DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo(gapic_version=package_version.__version__)
 
 if hasattr(DEFAULT_CLIENT_INFO, "protobuf_runtime_version"):  # pragma: NO COVER
     DEFAULT_CLIENT_INFO.protobuf_runtime_version = google.protobuf.__version__
@@ -36,23 +40,24 @@ if hasattr(DEFAULT_CLIENT_INFO, "protobuf_runtime_version"):  # pragma: NO COVER
 class QuantumEngineServiceTransport(abc.ABC):
     """Abstract transport class for QuantumEngineService."""
 
-    AUTH_SCOPES = ('https://www.googleapis.com/auth/cloud-platform',)
+    AUTH_SCOPES = (
+        'https://www.googleapis.com/auth/cloud-platform',
+    )
 
     DEFAULT_HOST: str = 'quantum.googleapis.com'
 
     def __init__(
-        self,
-        *,
-        host: str = DEFAULT_HOST,
-        credentials: Optional[ga_credentials.Credentials] = None,
-        credentials_file: Optional[str] = None,
-        scopes: Optional[Sequence[str]] = None,
-        quota_project_id: Optional[str] = None,
-        client_info: gapic_v1.client_info.ClientInfo = DEFAULT_CLIENT_INFO,
-        always_use_jwt_access: Optional[bool] = False,
-        api_audience: Optional[str] = None,
-        **kwargs,
-    ) -> None:
+            self, *,
+            host: str = DEFAULT_HOST,
+            credentials: Optional[ga_credentials.Credentials] = None,
+            credentials_file: Optional[str] = None,
+            scopes: Optional[Sequence[str]] = None,
+            quota_project_id: Optional[str] = None,
+            client_info: gapic_v1.client_info.ClientInfo = DEFAULT_CLIENT_INFO,
+            always_use_jwt_access: Optional[bool] = False,
+            api_audience: Optional[str] = None,
+            **kwargs,
+            ) -> None:
         """Instantiate the transport.
 
         Args:
@@ -88,27 +93,22 @@ class QuantumEngineServiceTransport(abc.ABC):
         # If no credentials are provided, then determine the appropriate
         # defaults.
         if credentials and credentials_file:
-            raise core_exceptions.DuplicateCredentialArgs(
-                "'credentials_file' and 'credentials' are mutually exclusive"
-            )
+            raise core_exceptions.DuplicateCredentialArgs("'credentials_file' and 'credentials' are mutually exclusive")
 
         if credentials_file is not None:
             credentials, _ = google.auth.load_credentials_from_file(
-                credentials_file, **scopes_kwargs, quota_project_id=quota_project_id
-            )
+                                credentials_file,
+                                **scopes_kwargs,
+                                quota_project_id=quota_project_id
+                            )
         elif credentials is None and not self._ignore_credentials:
             credentials, _ = google.auth.default(**scopes_kwargs, quota_project_id=quota_project_id)
             # Don't apply audience if the credentials file passed from user.
             if hasattr(credentials, "with_gdch_audience"):
                 credentials = credentials.with_gdch_audience(api_audience if api_audience else host)
 
-        # If the credentials are service account credentials, then always try to use self signed
-        # JWT.
-        if (
-            always_use_jwt_access
-            and isinstance(credentials, service_account.Credentials)
-            and hasattr(service_account.Credentials, "with_always_use_jwt_access")
-        ):
+        # If the credentials are service account credentials, then always try to use self signed JWT.
+        if always_use_jwt_access and isinstance(credentials, service_account.Credentials) and hasattr(service_account.Credentials, "with_always_use_jwt_access"):
             credentials = credentials.with_always_use_jwt_access(True)
 
         # Save the credentials.
@@ -127,82 +127,139 @@ class QuantumEngineServiceTransport(abc.ABC):
         # Precompute the wrapped methods.
         self._wrapped_methods = {
             self.create_quantum_program: gapic_v1.method.wrap_method(
-                self.create_quantum_program, default_timeout=60.0, client_info=client_info
+                self.create_quantum_program,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.get_quantum_program: gapic_v1.method.wrap_method(
-                self.get_quantum_program, default_timeout=60.0, client_info=client_info
+                self.get_quantum_program,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.list_quantum_programs: gapic_v1.method.wrap_method(
-                self.list_quantum_programs, default_timeout=60.0, client_info=client_info
+                self.list_quantum_programs,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.delete_quantum_program: gapic_v1.method.wrap_method(
-                self.delete_quantum_program, default_timeout=60.0, client_info=client_info
+                self.delete_quantum_program,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.update_quantum_program: gapic_v1.method.wrap_method(
-                self.update_quantum_program, default_timeout=60.0, client_info=client_info
+                self.update_quantum_program,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.create_quantum_job: gapic_v1.method.wrap_method(
-                self.create_quantum_job, default_timeout=60.0, client_info=client_info
+                self.create_quantum_job,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.get_quantum_job: gapic_v1.method.wrap_method(
-                self.get_quantum_job, default_timeout=60.0, client_info=client_info
+                self.get_quantum_job,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.list_quantum_jobs: gapic_v1.method.wrap_method(
-                self.list_quantum_jobs, default_timeout=60.0, client_info=client_info
+                self.list_quantum_jobs,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.delete_quantum_job: gapic_v1.method.wrap_method(
-                self.delete_quantum_job, default_timeout=60.0, client_info=client_info
+                self.delete_quantum_job,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.update_quantum_job: gapic_v1.method.wrap_method(
-                self.update_quantum_job, default_timeout=60.0, client_info=client_info
+                self.update_quantum_job,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.cancel_quantum_job: gapic_v1.method.wrap_method(
-                self.cancel_quantum_job, default_timeout=None, client_info=client_info
+                self.cancel_quantum_job,
+                default_timeout=None,
+                client_info=client_info,
             ),
             self.list_quantum_job_events: gapic_v1.method.wrap_method(
-                self.list_quantum_job_events, default_timeout=60.0, client_info=client_info
+                self.list_quantum_job_events,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.get_quantum_result: gapic_v1.method.wrap_method(
-                self.get_quantum_result, default_timeout=60.0, client_info=client_info
+                self.get_quantum_result,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.list_quantum_processors: gapic_v1.method.wrap_method(
-                self.list_quantum_processors, default_timeout=60.0, client_info=client_info
+                self.list_quantum_processors,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.get_quantum_processor: gapic_v1.method.wrap_method(
-                self.get_quantum_processor, default_timeout=60.0, client_info=client_info
+                self.get_quantum_processor,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.get_quantum_processor_config: gapic_v1.method.wrap_method(
-                self.get_quantum_processor_config, default_timeout=60.0, client_info=client_info
+                self.get_quantum_processor_config,
+                default_timeout=None,
+                client_info=client_info,
+            ),
+            self.list_quantum_processor_configs: gapic_v1.method.wrap_method(
+                self.list_quantum_processor_configs,
+                default_timeout=None,
+                client_info=client_info,
             ),
             self.list_quantum_calibrations: gapic_v1.method.wrap_method(
-                self.list_quantum_calibrations, default_timeout=60.0, client_info=client_info
+                self.list_quantum_calibrations,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.get_quantum_calibration: gapic_v1.method.wrap_method(
-                self.get_quantum_calibration, default_timeout=60.0, client_info=client_info
+                self.get_quantum_calibration,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.create_quantum_reservation: gapic_v1.method.wrap_method(
-                self.create_quantum_reservation, default_timeout=60.0, client_info=client_info
+                self.create_quantum_reservation,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.cancel_quantum_reservation: gapic_v1.method.wrap_method(
-                self.cancel_quantum_reservation, default_timeout=60.0, client_info=client_info
+                self.cancel_quantum_reservation,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.delete_quantum_reservation: gapic_v1.method.wrap_method(
-                self.delete_quantum_reservation, default_timeout=60.0, client_info=client_info
+                self.delete_quantum_reservation,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.get_quantum_reservation: gapic_v1.method.wrap_method(
-                self.get_quantum_reservation, default_timeout=60.0, client_info=client_info
+                self.get_quantum_reservation,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.list_quantum_reservations: gapic_v1.method.wrap_method(
-                self.list_quantum_reservations, default_timeout=60.0, client_info=client_info
+                self.list_quantum_reservations,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.update_quantum_reservation: gapic_v1.method.wrap_method(
-                self.update_quantum_reservation, default_timeout=60.0, client_info=client_info
+                self.update_quantum_reservation,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.quantum_run_stream: gapic_v1.method.wrap_method(
-                self.quantum_run_stream, default_timeout=60.0, client_info=client_info
+                self.quantum_run_stream,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.list_quantum_reservation_grants: gapic_v1.method.wrap_method(
-                self.list_quantum_reservation_grants, default_timeout=60.0, client_info=client_info
+                self.list_quantum_reservation_grants,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.reallocate_quantum_reservation_grant: gapic_v1.method.wrap_method(
                 self.reallocate_quantum_reservation_grant,
@@ -210,271 +267,294 @@ class QuantumEngineServiceTransport(abc.ABC):
                 client_info=client_info,
             ),
             self.list_quantum_reservation_budgets: gapic_v1.method.wrap_method(
-                self.list_quantum_reservation_budgets, default_timeout=60.0, client_info=client_info
+                self.list_quantum_reservation_budgets,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.list_quantum_time_slots: gapic_v1.method.wrap_method(
-                self.list_quantum_time_slots, default_timeout=60.0, client_info=client_info
+                self.list_quantum_time_slots,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
-        }
+         }
 
     def close(self):
         """Closes resources associated with the transport.
 
-        .. warning::
-             Only call this method if the transport is NOT shared
-             with other clients - this may cause errors in other clients!
+       .. warning::
+            Only call this method if the transport is NOT shared
+            with other clients - this may cause errors in other clients!
         """
         raise NotImplementedError()
 
     @property
-    def create_quantum_program(
-        self,
-    ) -> Callable[
-        [engine.CreateQuantumProgramRequest],
-        quantum.QuantumProgram | Awaitable[quantum.QuantumProgram],
-    ]:
+    def create_quantum_program(self) -> Callable[
+            [engine.CreateQuantumProgramRequest],
+            Union[
+                quantum.QuantumProgram,
+                Awaitable[quantum.QuantumProgram]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def get_quantum_program(
-        self,
-    ) -> Callable[
-        [engine.GetQuantumProgramRequest],
-        quantum.QuantumProgram | Awaitable[quantum.QuantumProgram],
-    ]:
+    def get_quantum_program(self) -> Callable[
+            [engine.GetQuantumProgramRequest],
+            Union[
+                quantum.QuantumProgram,
+                Awaitable[quantum.QuantumProgram]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def list_quantum_programs(
-        self,
-    ) -> Callable[
-        [engine.ListQuantumProgramsRequest],
-        engine.ListQuantumProgramsResponse | Awaitable[engine.ListQuantumProgramsResponse],
-    ]:
+    def list_quantum_programs(self) -> Callable[
+            [engine.ListQuantumProgramsRequest],
+            Union[
+                engine.ListQuantumProgramsResponse,
+                Awaitable[engine.ListQuantumProgramsResponse]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def delete_quantum_program(
-        self,
-    ) -> Callable[
-        [engine.DeleteQuantumProgramRequest], empty_pb2.Empty | Awaitable[empty_pb2.Empty]
-    ]:
+    def delete_quantum_program(self) -> Callable[
+            [engine.DeleteQuantumProgramRequest],
+            Union[
+                empty_pb2.Empty,
+                Awaitable[empty_pb2.Empty]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def update_quantum_program(
-        self,
-    ) -> Callable[
-        [engine.UpdateQuantumProgramRequest],
-        quantum.QuantumProgram | Awaitable[quantum.QuantumProgram],
-    ]:
+    def update_quantum_program(self) -> Callable[
+            [engine.UpdateQuantumProgramRequest],
+            Union[
+                quantum.QuantumProgram,
+                Awaitable[quantum.QuantumProgram]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def create_quantum_job(
-        self,
-    ) -> Callable[
-        [engine.CreateQuantumJobRequest], quantum.QuantumJob | Awaitable[quantum.QuantumJob]
-    ]:
+    def create_quantum_job(self) -> Callable[
+            [engine.CreateQuantumJobRequest],
+            Union[
+                quantum.QuantumJob,
+                Awaitable[quantum.QuantumJob]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def get_quantum_job(
-        self,
-    ) -> Callable[
-        [engine.GetQuantumJobRequest], quantum.QuantumJob | Awaitable[quantum.QuantumJob]
-    ]:
+    def get_quantum_job(self) -> Callable[
+            [engine.GetQuantumJobRequest],
+            Union[
+                quantum.QuantumJob,
+                Awaitable[quantum.QuantumJob]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def list_quantum_jobs(
-        self,
-    ) -> Callable[
-        [engine.ListQuantumJobsRequest],
-        engine.ListQuantumJobsResponse | Awaitable[engine.ListQuantumJobsResponse],
-    ]:
+    def list_quantum_jobs(self) -> Callable[
+            [engine.ListQuantumJobsRequest],
+            Union[
+                engine.ListQuantumJobsResponse,
+                Awaitable[engine.ListQuantumJobsResponse]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def delete_quantum_job(
-        self,
-    ) -> Callable[[engine.DeleteQuantumJobRequest], empty_pb2.Empty | Awaitable[empty_pb2.Empty]]:
+    def delete_quantum_job(self) -> Callable[
+            [engine.DeleteQuantumJobRequest],
+            Union[
+                empty_pb2.Empty,
+                Awaitable[empty_pb2.Empty]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def update_quantum_job(
-        self,
-    ) -> Callable[
-        [engine.UpdateQuantumJobRequest], quantum.QuantumJob | Awaitable[quantum.QuantumJob]
-    ]:
+    def update_quantum_job(self) -> Callable[
+            [engine.UpdateQuantumJobRequest],
+            Union[
+                quantum.QuantumJob,
+                Awaitable[quantum.QuantumJob]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def cancel_quantum_job(
-        self,
-    ) -> Callable[[engine.CancelQuantumJobRequest], empty_pb2.Empty | Awaitable[empty_pb2.Empty]]:
+    def cancel_quantum_job(self) -> Callable[
+            [engine.CancelQuantumJobRequest],
+            Union[
+                empty_pb2.Empty,
+                Awaitable[empty_pb2.Empty]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def list_quantum_job_events(
-        self,
-    ) -> Callable[
-        [engine.ListQuantumJobEventsRequest],
-        engine.ListQuantumJobEventsResponse | Awaitable[engine.ListQuantumJobEventsResponse],
-    ]:
+    def list_quantum_job_events(self) -> Callable[
+            [engine.ListQuantumJobEventsRequest],
+            Union[
+                engine.ListQuantumJobEventsResponse,
+                Awaitable[engine.ListQuantumJobEventsResponse]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def get_quantum_result(
-        self,
-    ) -> Callable[
-        [engine.GetQuantumResultRequest], quantum.QuantumResult | Awaitable[quantum.QuantumResult]
-    ]:
+    def get_quantum_result(self) -> Callable[
+            [engine.GetQuantumResultRequest],
+            Union[
+                quantum.QuantumResult,
+                Awaitable[quantum.QuantumResult]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def list_quantum_processors(
-        self,
-    ) -> Callable[
-        [engine.ListQuantumProcessorsRequest],
-        engine.ListQuantumProcessorsResponse | Awaitable[engine.ListQuantumProcessorsResponse],
-    ]:
+    def list_quantum_processors(self) -> Callable[
+            [engine.ListQuantumProcessorsRequest],
+            Union[
+                engine.ListQuantumProcessorsResponse,
+                Awaitable[engine.ListQuantumProcessorsResponse]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def get_quantum_processor(
-        self,
-    ) -> Callable[
-        [engine.GetQuantumProcessorRequest],
-        quantum.QuantumProcessor | Awaitable[quantum.QuantumProcessor],
-    ]:
+    def get_quantum_processor(self) -> Callable[
+            [engine.GetQuantumProcessorRequest],
+            Union[
+                quantum.QuantumProcessor,
+                Awaitable[quantum.QuantumProcessor]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def get_quantum_processor_config(
-        self,
-    ) -> Callable[
-        [engine.GetQuantumProcessorConfigRequest],
-        quantum.QuantumProcessorConfig | Awaitable[quantum.QuantumProcessorConfig],
-    ]:
+    def get_quantum_processor_config(self) -> Callable[
+            [engine.GetQuantumProcessorConfigRequest],
+            Union[
+                quantum.QuantumProcessorConfig,
+                Awaitable[quantum.QuantumProcessorConfig]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def list_quantum_calibrations(
-        self,
-    ) -> Callable[
-        [engine.ListQuantumCalibrationsRequest],
-        engine.ListQuantumCalibrationsResponse | Awaitable[engine.ListQuantumCalibrationsResponse],
-    ]:
+    def list_quantum_processor_configs(self) -> Callable[
+            [engine.ListQuantumProcessorConfigsRequest],
+            Union[
+                engine.ListQuantumProcessorConfigsResponse,
+                Awaitable[engine.ListQuantumProcessorConfigsResponse]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def get_quantum_calibration(
-        self,
-    ) -> Callable[
-        [engine.GetQuantumCalibrationRequest],
-        quantum.QuantumCalibration | Awaitable[quantum.QuantumCalibration],
-    ]:
+    def list_quantum_calibrations(self) -> Callable[
+            [engine.ListQuantumCalibrationsRequest],
+            Union[
+                engine.ListQuantumCalibrationsResponse,
+                Awaitable[engine.ListQuantumCalibrationsResponse]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def create_quantum_reservation(
-        self,
-    ) -> Callable[
-        [engine.CreateQuantumReservationRequest],
-        quantum.QuantumReservation | Awaitable[quantum.QuantumReservation],
-    ]:
+    def get_quantum_calibration(self) -> Callable[
+            [engine.GetQuantumCalibrationRequest],
+            Union[
+                quantum.QuantumCalibration,
+                Awaitable[quantum.QuantumCalibration]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def cancel_quantum_reservation(
-        self,
-    ) -> Callable[
-        [engine.CancelQuantumReservationRequest],
-        quantum.QuantumReservation | Awaitable[quantum.QuantumReservation],
-    ]:
+    def create_quantum_reservation(self) -> Callable[
+            [engine.CreateQuantumReservationRequest],
+            Union[
+                quantum.QuantumReservation,
+                Awaitable[quantum.QuantumReservation]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def delete_quantum_reservation(
-        self,
-    ) -> Callable[
-        [engine.DeleteQuantumReservationRequest], empty_pb2.Empty | Awaitable[empty_pb2.Empty]
-    ]:
+    def cancel_quantum_reservation(self) -> Callable[
+            [engine.CancelQuantumReservationRequest],
+            Union[
+                quantum.QuantumReservation,
+                Awaitable[quantum.QuantumReservation]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def get_quantum_reservation(
-        self,
-    ) -> Callable[
-        [engine.GetQuantumReservationRequest],
-        quantum.QuantumReservation | Awaitable[quantum.QuantumReservation],
-    ]:
+    def delete_quantum_reservation(self) -> Callable[
+            [engine.DeleteQuantumReservationRequest],
+            Union[
+                empty_pb2.Empty,
+                Awaitable[empty_pb2.Empty]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def list_quantum_reservations(
-        self,
-    ) -> Callable[
-        [engine.ListQuantumReservationsRequest],
-        engine.ListQuantumReservationsResponse | Awaitable[engine.ListQuantumReservationsResponse],
-    ]:
+    def get_quantum_reservation(self) -> Callable[
+            [engine.GetQuantumReservationRequest],
+            Union[
+                quantum.QuantumReservation,
+                Awaitable[quantum.QuantumReservation]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def update_quantum_reservation(
-        self,
-    ) -> Callable[
-        [engine.UpdateQuantumReservationRequest],
-        quantum.QuantumReservation | Awaitable[quantum.QuantumReservation],
-    ]:
+    def list_quantum_reservations(self) -> Callable[
+            [engine.ListQuantumReservationsRequest],
+            Union[
+                engine.ListQuantumReservationsResponse,
+                Awaitable[engine.ListQuantumReservationsResponse]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def quantum_run_stream(
-        self,
-    ) -> Callable[
-        [engine.QuantumRunStreamRequest],
-        engine.QuantumRunStreamResponse | Awaitable[engine.QuantumRunStreamResponse],
-    ]:
+    def update_quantum_reservation(self) -> Callable[
+            [engine.UpdateQuantumReservationRequest],
+            Union[
+                quantum.QuantumReservation,
+                Awaitable[quantum.QuantumReservation]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def list_quantum_reservation_grants(
-        self,
-    ) -> Callable[
-        [engine.ListQuantumReservationGrantsRequest],
-        engine.ListQuantumReservationGrantsResponse
-        | Awaitable[engine.ListQuantumReservationGrantsResponse],
-    ]:
+    def quantum_run_stream(self) -> Callable[
+            [engine.QuantumRunStreamRequest],
+            Union[
+                engine.QuantumRunStreamResponse,
+                Awaitable[engine.QuantumRunStreamResponse]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def reallocate_quantum_reservation_grant(
-        self,
-    ) -> Callable[
-        [engine.ReallocateQuantumReservationGrantRequest],
-        quantum.QuantumReservationGrant | Awaitable[quantum.QuantumReservationGrant],
-    ]:
+    def list_quantum_reservation_grants(self) -> Callable[
+            [engine.ListQuantumReservationGrantsRequest],
+            Union[
+                engine.ListQuantumReservationGrantsResponse,
+                Awaitable[engine.ListQuantumReservationGrantsResponse]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def list_quantum_reservation_budgets(
-        self,
-    ) -> Callable[
-        [engine.ListQuantumReservationBudgetsRequest],
-        engine.ListQuantumReservationBudgetsResponse
-        | Awaitable[engine.ListQuantumReservationBudgetsResponse],
-    ]:
+    def reallocate_quantum_reservation_grant(self) -> Callable[
+            [engine.ReallocateQuantumReservationGrantRequest],
+            Union[
+                quantum.QuantumReservationGrant,
+                Awaitable[quantum.QuantumReservationGrant]
+            ]]:
         raise NotImplementedError()
 
     @property
-    def list_quantum_time_slots(
-        self,
-    ) -> Callable[
-        [engine.ListQuantumTimeSlotsRequest],
-        engine.ListQuantumTimeSlotsResponse | Awaitable[engine.ListQuantumTimeSlotsResponse],
-    ]:
+    def list_quantum_reservation_budgets(self) -> Callable[
+            [engine.ListQuantumReservationBudgetsRequest],
+            Union[
+                engine.ListQuantumReservationBudgetsResponse,
+                Awaitable[engine.ListQuantumReservationBudgetsResponse]
+            ]]:
+        raise NotImplementedError()
+
+    @property
+    def list_quantum_time_slots(self) -> Callable[
+            [engine.ListQuantumTimeSlotsRequest],
+            Union[
+                engine.ListQuantumTimeSlotsResponse,
+                Awaitable[engine.ListQuantumTimeSlotsResponse]
+            ]]:
         raise NotImplementedError()
 
     @property
@@ -482,4 +562,6 @@ class QuantumEngineServiceTransport(abc.ABC):
         raise NotImplementedError()
 
 
-__all__ = ('QuantumEngineServiceTransport',)
+__all__ = (
+    'QuantumEngineServiceTransport',
+)

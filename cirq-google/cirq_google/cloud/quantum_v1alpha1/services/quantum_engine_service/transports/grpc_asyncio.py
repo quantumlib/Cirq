@@ -13,28 +13,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import importlib.util
 import inspect
-import logging as std_logging
+import json
 import pickle
+import logging as std_logging
 import warnings
-from typing import Awaitable, Callable, Optional, Sequence
+from typing import Awaitable, Callable, Dict, Optional, Sequence, Tuple, Union
 
-import google.protobuf.message
-import grpc  # type: ignore
-import proto
-from google.api_core import gapic_v1, grpc_helpers_async
-from google.auth import credentials as ga_credentials
-from google.auth.transport.grpc import SslCredentials
-from google.protobuf import empty_pb2
+from google.api_core import gapic_v1
+from google.api_core import grpc_helpers_async
+from google.api_core import exceptions as core_exceptions
+from google.api_core import retry_async as retries
+from google.auth import credentials as ga_credentials   # type: ignore
+from google.auth.transport.grpc import SslCredentials  # type: ignore
 from google.protobuf.json_format import MessageToJson
+import google.protobuf.message
+
+import grpc                        # type: ignore
+import proto                       # type: ignore
 from grpc.experimental import aio  # type: ignore
 
-from cirq_google.cloud.quantum_v1alpha1.types import engine, quantum
+from google.cloud.quantum_v1alpha1.types import engine
+from google.cloud.quantum_v1alpha1.types import quantum
+from google.protobuf import empty_pb2  # type: ignore
+from .base import QuantumEngineServiceTransport, DEFAULT_CLIENT_INFO
+from .grpc import QuantumEngineServiceGrpcTransport
 
-from .base import DEFAULT_CLIENT_INFO, QuantumEngineServiceTransport
-
-CLIENT_LOGGING_SUPPORTED = importlib.util.find_spec("google.api_core.client_logging") is not None
+try:
+    from google.api_core import client_logging  # type: ignore
+    CLIENT_LOGGING_SUPPORTED = True  # pragma: NO COVER
+except ImportError:  # pragma: NO COVER
+    CLIENT_LOGGING_SUPPORTED = False
 
 _LOGGER = std_logging.getLogger(__name__)
 
@@ -62,7 +71,7 @@ class _LoggingClientAIOInterceptor(grpc.aio.UnaryUnaryClientInterceptor):  # pra
             }
             _LOGGER.debug(
                 f"Sending request for {client_call_details.method}",
-                extra={
+                extra = {
                     "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                     "rpcName": str(client_call_details.method),
                     "request": grpc_request,
@@ -73,9 +82,7 @@ class _LoggingClientAIOInterceptor(grpc.aio.UnaryUnaryClientInterceptor):  # pra
         if logging_enabled:  # pragma: NO COVER
             response_metadata = await response.trailing_metadata()
             # Convert gRPC metadata `<class 'grpc.aio._metadata.Metadata'>` to list of tuples
-            metadata = (
-                dict([(k, str(v)) for k, v in response_metadata]) if response_metadata else None
-            )
+            metadata = dict([(k, str(v)) for k, v in response_metadata]) if response_metadata else None
             result = await response
             if isinstance(result, proto.Message):
                 response_payload = type(result).to_json(result)
@@ -83,10 +90,14 @@ class _LoggingClientAIOInterceptor(grpc.aio.UnaryUnaryClientInterceptor):  # pra
                 response_payload = MessageToJson(result)
             else:
                 response_payload = f"{type(result).__name__}: {pickle.dumps(result)}"
-            grpc_response = {"payload": response_payload, "metadata": metadata, "status": "OK"}
+            grpc_response = {
+                "payload": response_payload,
+                "metadata": metadata,
+                "status": "OK",
+            }
             _LOGGER.debug(
                 f"Received response to rpc {client_call_details.method}.",
-                extra={
+                extra = {
                     "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                     "rpcName": str(client_call_details.method),
                     "response": grpc_response,
@@ -110,18 +121,16 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
     """
 
     _grpc_channel: aio.Channel
-    _stubs: dict[str, Callable] = {}
+    _stubs: Dict[str, Callable] = {}
 
     @classmethod
-    def create_channel(
-        cls,
-        host: str = 'quantum.googleapis.com',
-        credentials: Optional[ga_credentials.Credentials] = None,
-        credentials_file: Optional[str] = None,
-        scopes: Optional[Sequence[str]] = None,
-        quota_project_id: Optional[str] = None,
-        **kwargs,
-    ) -> aio.Channel:
+    def create_channel(cls,
+                       host: str = 'quantum.googleapis.com',
+                       credentials: Optional[ga_credentials.Credentials] = None,
+                       credentials_file: Optional[str] = None,
+                       scopes: Optional[Sequence[str]] = None,
+                       quota_project_id: Optional[str] = None,
+                       **kwargs) -> aio.Channel:
         """Create and return a gRPC AsyncIO channel object.
         Args:
             host (Optional[str]): The host for the channel to use.
@@ -151,26 +160,24 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
             default_scopes=cls.AUTH_SCOPES,
             scopes=scopes,
             default_host=cls.DEFAULT_HOST,
-            **kwargs,
+            **kwargs
         )
 
-    def __init__(
-        self,
-        *,
-        host: str = 'quantum.googleapis.com',
-        credentials: Optional[ga_credentials.Credentials] = None,
-        credentials_file: Optional[str] = None,
-        scopes: Optional[Sequence[str]] = None,
-        channel: Optional[aio.Channel | Callable[..., aio.Channel]] = None,
-        api_mtls_endpoint: Optional[str] = None,
-        client_cert_source: Optional[Callable[[], tuple[bytes, bytes]]] = None,
-        ssl_channel_credentials: Optional[grpc.ChannelCredentials] = None,
-        client_cert_source_for_mtls: Optional[Callable[[], tuple[bytes, bytes]]] = None,
-        quota_project_id: Optional[str] = None,
-        client_info: gapic_v1.client_info.ClientInfo = DEFAULT_CLIENT_INFO,
-        always_use_jwt_access: Optional[bool] = False,
-        api_audience: Optional[str] = None,
-    ) -> None:
+    def __init__(self, *,
+            host: str = 'quantum.googleapis.com',
+            credentials: Optional[ga_credentials.Credentials] = None,
+            credentials_file: Optional[str] = None,
+            scopes: Optional[Sequence[str]] = None,
+            channel: Optional[Union[aio.Channel, Callable[..., aio.Channel]]] = None,
+            api_mtls_endpoint: Optional[str] = None,
+            client_cert_source: Optional[Callable[[], Tuple[bytes, bytes]]] = None,
+            ssl_channel_credentials: Optional[grpc.ChannelCredentials] = None,
+            client_cert_source_for_mtls: Optional[Callable[[], Tuple[bytes, bytes]]] = None,
+            quota_project_id: Optional[str] = None,
+            client_info: gapic_v1.client_info.ClientInfo = DEFAULT_CLIENT_INFO,
+            always_use_jwt_access: Optional[bool] = False,
+            api_audience: Optional[str] = None,
+            ) -> None:
         """Instantiate the transport.
 
         Args:
@@ -225,7 +232,7 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         """
         self._grpc_channel = None
         self._ssl_channel_credentials = ssl_channel_credentials
-        self._stubs: dict[str, Callable] = {}
+        self._stubs: Dict[str, Callable] = {}
 
         if api_mtls_endpoint:
             warnings.warn("api_mtls_endpoint is deprecated", DeprecationWarning)
@@ -294,9 +301,7 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         self._interceptor = _LoggingClientAIOInterceptor()
         self._grpc_channel._unary_unary_interceptors.append(self._interceptor)
         self._logged_channel = self._grpc_channel
-        self._wrap_with_kind = (
-            "kind" in inspect.signature(gapic_v1.method_async.wrap_method).parameters
-        )
+        self._wrap_with_kind = "kind" in inspect.signature(gapic_v1.method_async.wrap_method).parameters
         # Wrap messages. This must be done after self._logged_channel exists
         self._prep_wrapped_messages(client_info)
 
@@ -311,9 +316,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._grpc_channel
 
     @property
-    def create_quantum_program(
-        self,
-    ) -> Callable[[engine.CreateQuantumProgramRequest], Awaitable[quantum.QuantumProgram]]:
+    def create_quantum_program(self) -> Callable[
+            [engine.CreateQuantumProgramRequest],
+            Awaitable[quantum.QuantumProgram]]:
         r"""Return a callable for the create quantum program method over gRPC.
 
         -
@@ -337,9 +342,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['create_quantum_program']
 
     @property
-    def get_quantum_program(
-        self,
-    ) -> Callable[[engine.GetQuantumProgramRequest], Awaitable[quantum.QuantumProgram]]:
+    def get_quantum_program(self) -> Callable[
+            [engine.GetQuantumProgramRequest],
+            Awaitable[quantum.QuantumProgram]]:
         r"""Return a callable for the get quantum program method over gRPC.
 
         -
@@ -363,11 +368,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['get_quantum_program']
 
     @property
-    def list_quantum_programs(
-        self,
-    ) -> Callable[
-        [engine.ListQuantumProgramsRequest], Awaitable[engine.ListQuantumProgramsResponse]
-    ]:
+    def list_quantum_programs(self) -> Callable[
+            [engine.ListQuantumProgramsRequest],
+            Awaitable[engine.ListQuantumProgramsResponse]]:
         r"""Return a callable for the list quantum programs method over gRPC.
 
         -
@@ -391,9 +394,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['list_quantum_programs']
 
     @property
-    def delete_quantum_program(
-        self,
-    ) -> Callable[[engine.DeleteQuantumProgramRequest], Awaitable[empty_pb2.Empty]]:
+    def delete_quantum_program(self) -> Callable[
+            [engine.DeleteQuantumProgramRequest],
+            Awaitable[empty_pb2.Empty]]:
         r"""Return a callable for the delete quantum program method over gRPC.
 
         -
@@ -417,9 +420,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['delete_quantum_program']
 
     @property
-    def update_quantum_program(
-        self,
-    ) -> Callable[[engine.UpdateQuantumProgramRequest], Awaitable[quantum.QuantumProgram]]:
+    def update_quantum_program(self) -> Callable[
+            [engine.UpdateQuantumProgramRequest],
+            Awaitable[quantum.QuantumProgram]]:
         r"""Return a callable for the update quantum program method over gRPC.
 
         -
@@ -443,9 +446,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['update_quantum_program']
 
     @property
-    def create_quantum_job(
-        self,
-    ) -> Callable[[engine.CreateQuantumJobRequest], Awaitable[quantum.QuantumJob]]:
+    def create_quantum_job(self) -> Callable[
+            [engine.CreateQuantumJobRequest],
+            Awaitable[quantum.QuantumJob]]:
         r"""Return a callable for the create quantum job method over gRPC.
 
         -
@@ -469,9 +472,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['create_quantum_job']
 
     @property
-    def get_quantum_job(
-        self,
-    ) -> Callable[[engine.GetQuantumJobRequest], Awaitable[quantum.QuantumJob]]:
+    def get_quantum_job(self) -> Callable[
+            [engine.GetQuantumJobRequest],
+            Awaitable[quantum.QuantumJob]]:
         r"""Return a callable for the get quantum job method over gRPC.
 
         -
@@ -495,9 +498,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['get_quantum_job']
 
     @property
-    def list_quantum_jobs(
-        self,
-    ) -> Callable[[engine.ListQuantumJobsRequest], Awaitable[engine.ListQuantumJobsResponse]]:
+    def list_quantum_jobs(self) -> Callable[
+            [engine.ListQuantumJobsRequest],
+            Awaitable[engine.ListQuantumJobsResponse]]:
         r"""Return a callable for the list quantum jobs method over gRPC.
 
         -
@@ -521,9 +524,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['list_quantum_jobs']
 
     @property
-    def delete_quantum_job(
-        self,
-    ) -> Callable[[engine.DeleteQuantumJobRequest], Awaitable[empty_pb2.Empty]]:
+    def delete_quantum_job(self) -> Callable[
+            [engine.DeleteQuantumJobRequest],
+            Awaitable[empty_pb2.Empty]]:
         r"""Return a callable for the delete quantum job method over gRPC.
 
         -
@@ -547,9 +550,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['delete_quantum_job']
 
     @property
-    def update_quantum_job(
-        self,
-    ) -> Callable[[engine.UpdateQuantumJobRequest], Awaitable[quantum.QuantumJob]]:
+    def update_quantum_job(self) -> Callable[
+            [engine.UpdateQuantumJobRequest],
+            Awaitable[quantum.QuantumJob]]:
         r"""Return a callable for the update quantum job method over gRPC.
 
         -
@@ -573,9 +576,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['update_quantum_job']
 
     @property
-    def cancel_quantum_job(
-        self,
-    ) -> Callable[[engine.CancelQuantumJobRequest], Awaitable[empty_pb2.Empty]]:
+    def cancel_quantum_job(self) -> Callable[
+            [engine.CancelQuantumJobRequest],
+            Awaitable[empty_pb2.Empty]]:
         r"""Return a callable for the cancel quantum job method over gRPC.
 
         -
@@ -599,11 +602,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['cancel_quantum_job']
 
     @property
-    def list_quantum_job_events(
-        self,
-    ) -> Callable[
-        [engine.ListQuantumJobEventsRequest], Awaitable[engine.ListQuantumJobEventsResponse]
-    ]:
+    def list_quantum_job_events(self) -> Callable[
+            [engine.ListQuantumJobEventsRequest],
+            Awaitable[engine.ListQuantumJobEventsResponse]]:
         r"""Return a callable for the list quantum job events method over gRPC.
 
         -
@@ -627,9 +628,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['list_quantum_job_events']
 
     @property
-    def get_quantum_result(
-        self,
-    ) -> Callable[[engine.GetQuantumResultRequest], Awaitable[quantum.QuantumResult]]:
+    def get_quantum_result(self) -> Callable[
+            [engine.GetQuantumResultRequest],
+            Awaitable[quantum.QuantumResult]]:
         r"""Return a callable for the get quantum result method over gRPC.
 
         -
@@ -653,11 +654,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['get_quantum_result']
 
     @property
-    def list_quantum_processors(
-        self,
-    ) -> Callable[
-        [engine.ListQuantumProcessorsRequest], Awaitable[engine.ListQuantumProcessorsResponse]
-    ]:
+    def list_quantum_processors(self) -> Callable[
+            [engine.ListQuantumProcessorsRequest],
+            Awaitable[engine.ListQuantumProcessorsResponse]]:
         r"""Return a callable for the list quantum processors method over gRPC.
 
         -
@@ -681,9 +680,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['list_quantum_processors']
 
     @property
-    def get_quantum_processor(
-        self,
-    ) -> Callable[[engine.GetQuantumProcessorRequest], Awaitable[quantum.QuantumProcessor]]:
+    def get_quantum_processor(self) -> Callable[
+            [engine.GetQuantumProcessorRequest],
+            Awaitable[quantum.QuantumProcessor]]:
         r"""Return a callable for the get quantum processor method over gRPC.
 
         -
@@ -707,11 +706,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['get_quantum_processor']
 
     @property
-    def get_quantum_processor_config(
-        self,
-    ) -> Callable[
-        [engine.GetQuantumProcessorConfigRequest], Awaitable[quantum.QuantumProcessorConfig]
-    ]:
+    def get_quantum_processor_config(self) -> Callable[
+            [engine.GetQuantumProcessorConfigRequest],
+            Awaitable[quantum.QuantumProcessorConfig]]:
         r"""Return a callable for the get quantum processor config method over gRPC.
 
         -
@@ -735,11 +732,35 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['get_quantum_processor_config']
 
     @property
-    def list_quantum_calibrations(
-        self,
-    ) -> Callable[
-        [engine.ListQuantumCalibrationsRequest], Awaitable[engine.ListQuantumCalibrationsResponse]
-    ]:
+    def list_quantum_processor_configs(self) -> Callable[
+            [engine.ListQuantumProcessorConfigsRequest],
+            Awaitable[engine.ListQuantumProcessorConfigsResponse]]:
+        r"""Return a callable for the list quantum processor configs method over gRPC.
+
+        -
+
+        Returns:
+            Callable[[~.ListQuantumProcessorConfigsRequest],
+                    Awaitable[~.ListQuantumProcessorConfigsResponse]]:
+                A function that, when called, will call the underlying RPC
+                on the server.
+        """
+        # Generate a "stub function" on-the-fly which will actually make
+        # the request.
+        # gRPC handles serialization and deserialization, so we just need
+        # to pass in the functions for each.
+        if 'list_quantum_processor_configs' not in self._stubs:
+            self._stubs['list_quantum_processor_configs'] = self._logged_channel.unary_unary(
+                '/google.cloud.quantum.v1alpha1.QuantumEngineService/ListQuantumProcessorConfigs',
+                request_serializer=engine.ListQuantumProcessorConfigsRequest.serialize,
+                response_deserializer=engine.ListQuantumProcessorConfigsResponse.deserialize,
+            )
+        return self._stubs['list_quantum_processor_configs']
+
+    @property
+    def list_quantum_calibrations(self) -> Callable[
+            [engine.ListQuantumCalibrationsRequest],
+            Awaitable[engine.ListQuantumCalibrationsResponse]]:
         r"""Return a callable for the list quantum calibrations method over gRPC.
 
         -
@@ -763,9 +784,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['list_quantum_calibrations']
 
     @property
-    def get_quantum_calibration(
-        self,
-    ) -> Callable[[engine.GetQuantumCalibrationRequest], Awaitable[quantum.QuantumCalibration]]:
+    def get_quantum_calibration(self) -> Callable[
+            [engine.GetQuantumCalibrationRequest],
+            Awaitable[quantum.QuantumCalibration]]:
         r"""Return a callable for the get quantum calibration method over gRPC.
 
         -
@@ -789,9 +810,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['get_quantum_calibration']
 
     @property
-    def create_quantum_reservation(
-        self,
-    ) -> Callable[[engine.CreateQuantumReservationRequest], Awaitable[quantum.QuantumReservation]]:
+    def create_quantum_reservation(self) -> Callable[
+            [engine.CreateQuantumReservationRequest],
+            Awaitable[quantum.QuantumReservation]]:
         r"""Return a callable for the create quantum reservation method over gRPC.
 
         -
@@ -815,9 +836,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['create_quantum_reservation']
 
     @property
-    def cancel_quantum_reservation(
-        self,
-    ) -> Callable[[engine.CancelQuantumReservationRequest], Awaitable[quantum.QuantumReservation]]:
+    def cancel_quantum_reservation(self) -> Callable[
+            [engine.CancelQuantumReservationRequest],
+            Awaitable[quantum.QuantumReservation]]:
         r"""Return a callable for the cancel quantum reservation method over gRPC.
 
         -
@@ -841,9 +862,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['cancel_quantum_reservation']
 
     @property
-    def delete_quantum_reservation(
-        self,
-    ) -> Callable[[engine.DeleteQuantumReservationRequest], Awaitable[empty_pb2.Empty]]:
+    def delete_quantum_reservation(self) -> Callable[
+            [engine.DeleteQuantumReservationRequest],
+            Awaitable[empty_pb2.Empty]]:
         r"""Return a callable for the delete quantum reservation method over gRPC.
 
         -
@@ -867,9 +888,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['delete_quantum_reservation']
 
     @property
-    def get_quantum_reservation(
-        self,
-    ) -> Callable[[engine.GetQuantumReservationRequest], Awaitable[quantum.QuantumReservation]]:
+    def get_quantum_reservation(self) -> Callable[
+            [engine.GetQuantumReservationRequest],
+            Awaitable[quantum.QuantumReservation]]:
         r"""Return a callable for the get quantum reservation method over gRPC.
 
         -
@@ -893,11 +914,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['get_quantum_reservation']
 
     @property
-    def list_quantum_reservations(
-        self,
-    ) -> Callable[
-        [engine.ListQuantumReservationsRequest], Awaitable[engine.ListQuantumReservationsResponse]
-    ]:
+    def list_quantum_reservations(self) -> Callable[
+            [engine.ListQuantumReservationsRequest],
+            Awaitable[engine.ListQuantumReservationsResponse]]:
         r"""Return a callable for the list quantum reservations method over gRPC.
 
         -
@@ -921,9 +940,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['list_quantum_reservations']
 
     @property
-    def update_quantum_reservation(
-        self,
-    ) -> Callable[[engine.UpdateQuantumReservationRequest], Awaitable[quantum.QuantumReservation]]:
+    def update_quantum_reservation(self) -> Callable[
+            [engine.UpdateQuantumReservationRequest],
+            Awaitable[quantum.QuantumReservation]]:
         r"""Return a callable for the update quantum reservation method over gRPC.
 
         -
@@ -947,9 +966,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['update_quantum_reservation']
 
     @property
-    def quantum_run_stream(
-        self,
-    ) -> Callable[[engine.QuantumRunStreamRequest], Awaitable[engine.QuantumRunStreamResponse]]:
+    def quantum_run_stream(self) -> Callable[
+            [engine.QuantumRunStreamRequest],
+            Awaitable[engine.QuantumRunStreamResponse]]:
         r"""Return a callable for the quantum run stream method over gRPC.
 
         -
@@ -973,12 +992,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['quantum_run_stream']
 
     @property
-    def list_quantum_reservation_grants(
-        self,
-    ) -> Callable[
-        [engine.ListQuantumReservationGrantsRequest],
-        Awaitable[engine.ListQuantumReservationGrantsResponse],
-    ]:
+    def list_quantum_reservation_grants(self) -> Callable[
+            [engine.ListQuantumReservationGrantsRequest],
+            Awaitable[engine.ListQuantumReservationGrantsResponse]]:
         r"""Return a callable for the list quantum reservation
         grants method over gRPC.
 
@@ -1003,12 +1019,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['list_quantum_reservation_grants']
 
     @property
-    def reallocate_quantum_reservation_grant(
-        self,
-    ) -> Callable[
-        [engine.ReallocateQuantumReservationGrantRequest],
-        Awaitable[quantum.QuantumReservationGrant],
-    ]:
+    def reallocate_quantum_reservation_grant(self) -> Callable[
+            [engine.ReallocateQuantumReservationGrantRequest],
+            Awaitable[quantum.QuantumReservationGrant]]:
         r"""Return a callable for the reallocate quantum reservation
         grant method over gRPC.
 
@@ -1033,12 +1046,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['reallocate_quantum_reservation_grant']
 
     @property
-    def list_quantum_reservation_budgets(
-        self,
-    ) -> Callable[
-        [engine.ListQuantumReservationBudgetsRequest],
-        Awaitable[engine.ListQuantumReservationBudgetsResponse],
-    ]:
+    def list_quantum_reservation_budgets(self) -> Callable[
+            [engine.ListQuantumReservationBudgetsRequest],
+            Awaitable[engine.ListQuantumReservationBudgetsResponse]]:
         r"""Return a callable for the list quantum reservation
         budgets method over gRPC.
 
@@ -1063,11 +1073,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['list_quantum_reservation_budgets']
 
     @property
-    def list_quantum_time_slots(
-        self,
-    ) -> Callable[
-        [engine.ListQuantumTimeSlotsRequest], Awaitable[engine.ListQuantumTimeSlotsResponse]
-    ]:
+    def list_quantum_time_slots(self) -> Callable[
+            [engine.ListQuantumTimeSlotsRequest],
+            Awaitable[engine.ListQuantumTimeSlotsResponse]]:
         r"""Return a callable for the list quantum time slots method over gRPC.
 
         -
@@ -1091,85 +1099,142 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return self._stubs['list_quantum_time_slots']
 
     def _prep_wrapped_messages(self, client_info):
-        """Precompute the wrapped methods, overriding the base class method to use async wrappers."""  # noqa E501
+        """ Precompute the wrapped methods, overriding the base class method to use async wrappers."""
         self._wrapped_methods = {
             self.create_quantum_program: self._wrap_method(
-                self.create_quantum_program, default_timeout=60.0, client_info=client_info
+                self.create_quantum_program,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.get_quantum_program: self._wrap_method(
-                self.get_quantum_program, default_timeout=60.0, client_info=client_info
+                self.get_quantum_program,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.list_quantum_programs: self._wrap_method(
-                self.list_quantum_programs, default_timeout=60.0, client_info=client_info
+                self.list_quantum_programs,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.delete_quantum_program: self._wrap_method(
-                self.delete_quantum_program, default_timeout=60.0, client_info=client_info
+                self.delete_quantum_program,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.update_quantum_program: self._wrap_method(
-                self.update_quantum_program, default_timeout=60.0, client_info=client_info
+                self.update_quantum_program,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.create_quantum_job: self._wrap_method(
-                self.create_quantum_job, default_timeout=60.0, client_info=client_info
+                self.create_quantum_job,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.get_quantum_job: self._wrap_method(
-                self.get_quantum_job, default_timeout=60.0, client_info=client_info
+                self.get_quantum_job,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.list_quantum_jobs: self._wrap_method(
-                self.list_quantum_jobs, default_timeout=60.0, client_info=client_info
+                self.list_quantum_jobs,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.delete_quantum_job: self._wrap_method(
-                self.delete_quantum_job, default_timeout=60.0, client_info=client_info
+                self.delete_quantum_job,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.update_quantum_job: self._wrap_method(
-                self.update_quantum_job, default_timeout=60.0, client_info=client_info
+                self.update_quantum_job,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.cancel_quantum_job: self._wrap_method(
-                self.cancel_quantum_job, default_timeout=None, client_info=client_info
+                self.cancel_quantum_job,
+                default_timeout=None,
+                client_info=client_info,
             ),
             self.list_quantum_job_events: self._wrap_method(
-                self.list_quantum_job_events, default_timeout=60.0, client_info=client_info
+                self.list_quantum_job_events,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.get_quantum_result: self._wrap_method(
-                self.get_quantum_result, default_timeout=60.0, client_info=client_info
+                self.get_quantum_result,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.list_quantum_processors: self._wrap_method(
-                self.list_quantum_processors, default_timeout=60.0, client_info=client_info
+                self.list_quantum_processors,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.get_quantum_processor: self._wrap_method(
-                self.get_quantum_processor, default_timeout=60.0, client_info=client_info
+                self.get_quantum_processor,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.get_quantum_processor_config: self._wrap_method(
-                self.get_quantum_processor_config, default_timeout=60.0, client_info=client_info
+                self.get_quantum_processor_config,
+                default_timeout=None,
+                client_info=client_info,
+            ),
+            self.list_quantum_processor_configs: self._wrap_method(
+                self.list_quantum_processor_configs,
+                default_timeout=None,
+                client_info=client_info,
             ),
             self.list_quantum_calibrations: self._wrap_method(
-                self.list_quantum_calibrations, default_timeout=60.0, client_info=client_info
+                self.list_quantum_calibrations,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.get_quantum_calibration: self._wrap_method(
-                self.get_quantum_calibration, default_timeout=60.0, client_info=client_info
+                self.get_quantum_calibration,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.create_quantum_reservation: self._wrap_method(
-                self.create_quantum_reservation, default_timeout=60.0, client_info=client_info
+                self.create_quantum_reservation,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.cancel_quantum_reservation: self._wrap_method(
-                self.cancel_quantum_reservation, default_timeout=60.0, client_info=client_info
+                self.cancel_quantum_reservation,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.delete_quantum_reservation: self._wrap_method(
-                self.delete_quantum_reservation, default_timeout=60.0, client_info=client_info
+                self.delete_quantum_reservation,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.get_quantum_reservation: self._wrap_method(
-                self.get_quantum_reservation, default_timeout=60.0, client_info=client_info
+                self.get_quantum_reservation,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.list_quantum_reservations: self._wrap_method(
-                self.list_quantum_reservations, default_timeout=60.0, client_info=client_info
+                self.list_quantum_reservations,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.update_quantum_reservation: self._wrap_method(
-                self.update_quantum_reservation, default_timeout=60.0, client_info=client_info
+                self.update_quantum_reservation,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.quantum_run_stream: self._wrap_method(
-                self.quantum_run_stream, default_timeout=60.0, client_info=client_info
+                self.quantum_run_stream,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.list_quantum_reservation_grants: self._wrap_method(
-                self.list_quantum_reservation_grants, default_timeout=60.0, client_info=client_info
+                self.list_quantum_reservation_grants,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.reallocate_quantum_reservation_grant: self._wrap_method(
                 self.reallocate_quantum_reservation_grant,
@@ -1177,10 +1242,14 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
                 client_info=client_info,
             ),
             self.list_quantum_reservation_budgets: self._wrap_method(
-                self.list_quantum_reservation_budgets, default_timeout=60.0, client_info=client_info
+                self.list_quantum_reservation_budgets,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
             self.list_quantum_time_slots: self._wrap_method(
-                self.list_quantum_time_slots, default_timeout=60.0, client_info=client_info
+                self.list_quantum_time_slots,
+                default_timeout=60.0,
+                client_info=client_info,
             ),
         }
 
@@ -1197,4 +1266,6 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         return "grpc_asyncio"
 
 
-__all__ = ('QuantumEngineServiceGrpcAsyncIOTransport',)
+__all__ = (
+    'QuantumEngineServiceGrpcAsyncIOTransport',
+)
