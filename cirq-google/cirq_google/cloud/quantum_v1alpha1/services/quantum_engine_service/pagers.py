@@ -13,15 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from typing import (
-    Any,
-    AsyncIterator,
-    Awaitable,
-    Callable,
-    Iterator,
-    Sequence,
-    Union,
-)
+from typing import Any, AsyncIterator, Awaitable, Callable, Iterator, Sequence, Union
 
 from google.api_core import gapic_v1, retry as retries, retry_async as retries_async
 

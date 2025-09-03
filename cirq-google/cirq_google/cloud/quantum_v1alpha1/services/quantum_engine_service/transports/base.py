@@ -300,9 +300,7 @@ class QuantumEngineServiceTransport(abc.ABC):
     @property
     def delete_quantum_job(
         self,
-    ) -> Callable[
-        [engine.DeleteQuantumJobRequest], empty_pb2.Empty | Awaitable[empty_pb2.Empty]
-    ]:
+    ) -> Callable[[engine.DeleteQuantumJobRequest], empty_pb2.Empty | Awaitable[empty_pb2.Empty]]:
         raise NotImplementedError()
 
     @property
@@ -316,9 +314,7 @@ class QuantumEngineServiceTransport(abc.ABC):
     @property
     def cancel_quantum_job(
         self,
-    ) -> Callable[
-        [engine.CancelQuantumJobRequest], empty_pb2.Empty | Awaitable[empty_pb2.Empty]
-    ]:
+    ) -> Callable[[engine.CancelQuantumJobRequest], empty_pb2.Empty | Awaitable[empty_pb2.Empty]]:
         raise NotImplementedError()
 
     @property
@@ -334,8 +330,7 @@ class QuantumEngineServiceTransport(abc.ABC):
     def get_quantum_result(
         self,
     ) -> Callable[
-        [engine.GetQuantumResultRequest],
-        quantum.QuantumResult | Awaitable[quantum.QuantumResult],
+        [engine.GetQuantumResultRequest], quantum.QuantumResult | Awaitable[quantum.QuantumResult]
     ]:
         raise NotImplementedError()
 
@@ -371,7 +366,8 @@ class QuantumEngineServiceTransport(abc.ABC):
         self,
     ) -> Callable[
         [engine.ListQuantumProcessorConfigsRequest],
-        engine.ListQuantumProcessorConfigsResponse | Awaitable[engine.ListQuantumProcessorConfigsResponse],
+        engine.ListQuantumProcessorConfigsResponse
+        | Awaitable[engine.ListQuantumProcessorConfigsResponse],
     ]:
         raise NotImplementedError()
 
@@ -460,7 +456,8 @@ class QuantumEngineServiceTransport(abc.ABC):
         self,
     ) -> Callable[
         [engine.ListQuantumReservationGrantsRequest],
-        engine.ListQuantumReservationGrantsResponse | Awaitable[engine.ListQuantumReservationGrantsResponse],
+        engine.ListQuantumReservationGrantsResponse
+        | Awaitable[engine.ListQuantumReservationGrantsResponse],
     ]:
         raise NotImplementedError()
 
@@ -478,7 +475,8 @@ class QuantumEngineServiceTransport(abc.ABC):
         self,
     ) -> Callable[
         [engine.ListQuantumReservationBudgetsRequest],
-        engine.ListQuantumReservationBudgetsResponse | Awaitable[engine.ListQuantumReservationBudgetsResponse],
+        engine.ListQuantumReservationBudgetsResponse
+        | Awaitable[engine.ListQuantumReservationBudgetsResponse],
     ]:
         raise NotImplementedError()
 

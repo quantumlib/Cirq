@@ -298,9 +298,7 @@ class QuantumEngineServiceRestInterceptor:
     """
 
     def pre_cancel_quantum_job(
-        self,
-        request: engine.CancelQuantumJobRequest,
-        metadata: Sequence[tuple[str, str | bytes]],
+        self, request: engine.CancelQuantumJobRequest, metadata: Sequence[tuple[str, str | bytes]]
     ) -> tuple[engine.CancelQuantumJobRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for cancel_quantum_job
 
@@ -337,9 +335,7 @@ class QuantumEngineServiceRestInterceptor:
         return response
 
     def post_cancel_quantum_reservation_with_metadata(
-        self,
-        response: quantum.QuantumReservation,
-        metadata: Sequence[tuple[str, str | bytes]],
+        self, response: quantum.QuantumReservation, metadata: Sequence[tuple[str, str | bytes]]
     ) -> tuple[quantum.QuantumReservation, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for cancel_quantum_reservation
 
@@ -356,9 +352,7 @@ class QuantumEngineServiceRestInterceptor:
         return response, metadata
 
     def pre_create_quantum_job(
-        self,
-        request: engine.CreateQuantumJobRequest,
-        metadata: Sequence[tuple[str, str | bytes]],
+        self, request: engine.CreateQuantumJobRequest, metadata: Sequence[tuple[str, str | bytes]]
     ) -> tuple[engine.CreateQuantumJobRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for create_quantum_job
 
@@ -469,9 +463,7 @@ class QuantumEngineServiceRestInterceptor:
         return response
 
     def post_create_quantum_reservation_with_metadata(
-        self,
-        response: quantum.QuantumReservation,
-        metadata: Sequence[tuple[str, str | bytes]],
+        self, response: quantum.QuantumReservation, metadata: Sequence[tuple[str, str | bytes]]
     ) -> tuple[quantum.QuantumReservation, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for create_quantum_reservation
 
@@ -488,9 +480,7 @@ class QuantumEngineServiceRestInterceptor:
         return response, metadata
 
     def pre_delete_quantum_job(
-        self,
-        request: engine.DeleteQuantumJobRequest,
-        metadata: Sequence[tuple[str, str | bytes]],
+        self, request: engine.DeleteQuantumJobRequest, metadata: Sequence[tuple[str, str | bytes]]
     ) -> tuple[engine.DeleteQuantumJobRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for delete_quantum_job
 
@@ -551,9 +541,7 @@ class QuantumEngineServiceRestInterceptor:
         return response
 
     def post_get_quantum_calibration_with_metadata(
-        self,
-        response: quantum.QuantumCalibration,
-        metadata: Sequence[tuple[str, str | bytes]],
+        self, response: quantum.QuantumCalibration, metadata: Sequence[tuple[str, str | bytes]]
     ) -> tuple[quantum.QuantumCalibration, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for get_quantum_calibration
 
@@ -570,9 +558,7 @@ class QuantumEngineServiceRestInterceptor:
         return response, metadata
 
     def pre_get_quantum_job(
-        self,
-        request: engine.GetQuantumJobRequest,
-        metadata: Sequence[tuple[str, str | bytes]],
+        self, request: engine.GetQuantumJobRequest, metadata: Sequence[tuple[str, str | bytes]]
     ) -> tuple[engine.GetQuantumJobRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for get_quantum_job
 
@@ -683,9 +669,7 @@ class QuantumEngineServiceRestInterceptor:
         return response
 
     def post_get_quantum_processor_config_with_metadata(
-        self,
-        response: quantum.QuantumProcessorConfig,
-        metadata: Sequence[tuple[str, str | bytes]],
+        self, response: quantum.QuantumProcessorConfig, metadata: Sequence[tuple[str, str | bytes]]
     ) -> tuple[quantum.QuantumProcessorConfig, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for get_quantum_processor_config
 
@@ -702,9 +686,7 @@ class QuantumEngineServiceRestInterceptor:
         return response, metadata
 
     def pre_get_quantum_program(
-        self,
-        request: engine.GetQuantumProgramRequest,
-        metadata: Sequence[tuple[str, str | bytes]],
+        self, request: engine.GetQuantumProgramRequest, metadata: Sequence[tuple[str, str | bytes]]
     ) -> tuple[engine.GetQuantumProgramRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for get_quantum_program
 
@@ -771,9 +753,7 @@ class QuantumEngineServiceRestInterceptor:
         return response
 
     def post_get_quantum_reservation_with_metadata(
-        self,
-        response: quantum.QuantumReservation,
-        metadata: Sequence[tuple[str, str | bytes]],
+        self, response: quantum.QuantumReservation, metadata: Sequence[tuple[str, str | bytes]]
     ) -> tuple[quantum.QuantumReservation, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for get_quantum_reservation
 
@@ -790,9 +770,7 @@ class QuantumEngineServiceRestInterceptor:
         return response, metadata
 
     def pre_get_quantum_result(
-        self,
-        request: engine.GetQuantumResultRequest,
-        metadata: Sequence[tuple[str, str | bytes]],
+        self, request: engine.GetQuantumResultRequest, metadata: Sequence[tuple[str, str | bytes]]
     ) -> tuple[engine.GetQuantumResultRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for get_quantum_result
 
@@ -924,9 +902,7 @@ class QuantumEngineServiceRestInterceptor:
         return response, metadata
 
     def pre_list_quantum_jobs(
-        self,
-        request: engine.ListQuantumJobsRequest,
-        metadata: Sequence[tuple[str, str | bytes]],
+        self, request: engine.ListQuantumJobsRequest, metadata: Sequence[tuple[str, str | bytes]]
     ) -> tuple[engine.ListQuantumJobsRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for list_quantum_jobs
 
@@ -951,9 +927,7 @@ class QuantumEngineServiceRestInterceptor:
         return response
 
     def post_list_quantum_jobs_with_metadata(
-        self,
-        response: engine.ListQuantumJobsResponse,
-        metadata: Sequence[tuple[str, str | bytes]],
+        self, response: engine.ListQuantumJobsResponse, metadata: Sequence[tuple[str, str | bytes]]
     ) -> tuple[engine.ListQuantumJobsResponse, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for list_quantum_jobs
 
@@ -1111,9 +1085,7 @@ class QuantumEngineServiceRestInterceptor:
         self,
         request: engine.ListQuantumReservationBudgetsRequest,
         metadata: Sequence[tuple[str, str | bytes]],
-    ) -> tuple[
-        engine.ListQuantumReservationBudgetsRequest, Sequence[tuple[str, str | bytes]]
-    ]:
+    ) -> tuple[engine.ListQuantumReservationBudgetsRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for list_quantum_reservation_budgets
 
         Override in a subclass to manipulate the request or metadata
@@ -1140,9 +1112,7 @@ class QuantumEngineServiceRestInterceptor:
         self,
         response: engine.ListQuantumReservationBudgetsResponse,
         metadata: Sequence[tuple[str, str | bytes]],
-    ) -> tuple[
-        engine.ListQuantumReservationBudgetsResponse, Sequence[tuple[str, str | bytes]]
-    ]:
+    ) -> tuple[engine.ListQuantumReservationBudgetsResponse, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for list_quantum_reservation_budgets
 
         Override in a subclass to read or manipulate the response or metadata after it
@@ -1188,9 +1158,7 @@ class QuantumEngineServiceRestInterceptor:
         self,
         response: engine.ListQuantumReservationGrantsResponse,
         metadata: Sequence[tuple[str, str | bytes]],
-    ) -> tuple[
-        engine.ListQuantumReservationGrantsResponse, Sequence[tuple[str, str | bytes]]
-    ]:
+    ) -> tuple[engine.ListQuantumReservationGrantsResponse, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for list_quantum_reservation_grants
 
         Override in a subclass to read or manipulate the response or metadata after it
@@ -1301,9 +1269,7 @@ class QuantumEngineServiceRestInterceptor:
         self,
         request: engine.ReallocateQuantumReservationGrantRequest,
         metadata: Sequence[tuple[str, str | bytes]],
-    ) -> tuple[
-        engine.ReallocateQuantumReservationGrantRequest, Sequence[tuple[str, str | bytes]]
-    ]:
+    ) -> tuple[engine.ReallocateQuantumReservationGrantRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for reallocate_quantum_reservation_grant
 
         Override in a subclass to manipulate the request or metadata
@@ -1327,9 +1293,7 @@ class QuantumEngineServiceRestInterceptor:
         return response
 
     def post_reallocate_quantum_reservation_grant_with_metadata(
-        self,
-        response: quantum.QuantumReservationGrant,
-        metadata: Sequence[tuple[str, str | bytes]],
+        self, response: quantum.QuantumReservationGrant, metadata: Sequence[tuple[str, str | bytes]]
     ) -> tuple[quantum.QuantumReservationGrant, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for reallocate_quantum_reservation_grant
 
@@ -1346,9 +1310,7 @@ class QuantumEngineServiceRestInterceptor:
         return response, metadata
 
     def pre_update_quantum_job(
-        self,
-        request: engine.UpdateQuantumJobRequest,
-        metadata: Sequence[tuple[str, str | bytes]],
+        self, request: engine.UpdateQuantumJobRequest, metadata: Sequence[tuple[str, str | bytes]]
     ) -> tuple[engine.UpdateQuantumJobRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for update_quantum_job
 
@@ -1459,9 +1421,7 @@ class QuantumEngineServiceRestInterceptor:
         return response
 
     def post_update_quantum_reservation_with_metadata(
-        self,
-        response: quantum.QuantumReservation,
-        metadata: Sequence[tuple[str, str | bytes]],
+        self, response: quantum.QuantumReservation, metadata: Sequence[tuple[str, str | bytes]]
     ) -> tuple[quantum.QuantumReservation, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for update_quantum_reservation
 

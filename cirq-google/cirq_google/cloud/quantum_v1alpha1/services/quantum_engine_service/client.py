@@ -20,15 +20,7 @@ import re
 import warnings
 from collections import OrderedDict
 from http import HTTPStatus
-from typing import (
-    Callable,
-    cast,
-    Iterable,
-    Iterator,
-    Optional,
-    Sequence,
-    Union,
-)
+from typing import Callable, cast, Iterable, Iterator, Optional, Sequence, Union
 
 import google.protobuf
 from google.api_core import (
@@ -662,7 +654,9 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
             if api_key_value and hasattr(google.auth._default, "get_api_key_credentials"):
                 credentials = google.auth._default.get_api_key_credentials(api_key_value)
 
-            transport_init: type[QuantumEngineServiceTransport] | Callable[..., QuantumEngineServiceTransport] = (
+            transport_init: (
+                type[QuantumEngineServiceTransport] | Callable[..., QuantumEngineServiceTransport]
+            ) = (
                 QuantumEngineServiceClient.get_transport_class(transport)
                 if isinstance(transport, str) or transport is None
                 else cast(Callable[..., QuantumEngineServiceTransport], transport)

@@ -14,15 +14,7 @@
 # limitations under the License.
 #
 import logging as std_logging
-from typing import (
-    AsyncIterable,
-    AsyncIterator,
-    Awaitable,
-    Callable,
-    Optional,
-    Sequence,
-    Union,
-)
+from typing import AsyncIterable, AsyncIterator, Awaitable, Callable, Optional, Sequence, Union
 
 import google.protobuf
 from google.api_core import gapic_v1, retry_async as retries
