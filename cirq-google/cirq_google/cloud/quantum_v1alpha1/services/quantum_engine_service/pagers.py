@@ -13,10 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from google.api_core import gapic_v1
-from google.api_core import retry as retries
-from google.api_core import retry_async as retries_async
-from typing import Any, AsyncIterator, Awaitable, Callable, Sequence, Tuple, Optional, Iterator, Union
+from typing import (
+    Any,
+    AsyncIterator,
+    Awaitable,
+    Callable,
+    Iterator,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
+
+from google.api_core import gapic_v1, retry as retries, retry_async as retries_async
+
 try:
     OptionalRetry = Union[retries.Retry, gapic_v1.method._MethodDefault, None]
     OptionalAsyncRetry = Union[retries_async.AsyncRetry, gapic_v1.method._MethodDefault, None]
@@ -24,8 +34,7 @@ except AttributeError:  # pragma: NO COVER
     OptionalRetry = Union[retries.Retry, object, None]  # type: ignore
     OptionalAsyncRetry = Union[retries_async.AsyncRetry, object, None]  # type: ignore
 
-from cirq_google.cloud.quantum_v1alpha1.types import engine
-from cirq_google.cloud.quantum_v1alpha1.types import quantum
+from cirq_google.cloud.quantum_v1alpha1.types import engine, quantum
 
 
 class ListQuantumProgramsPager:
@@ -45,14 +54,17 @@ class ListQuantumProgramsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., engine.ListQuantumProgramsResponse],
-            request: engine.ListQuantumProgramsRequest,
-            response: engine.ListQuantumProgramsResponse,
-            *,
-            retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., engine.ListQuantumProgramsResponse],
+        request: engine.ListQuantumProgramsRequest,
+        response: engine.ListQuantumProgramsResponse,
+        *,
+        retry: OptionalRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+    ):
         """Instantiate the pager.
 
         Args:
@@ -85,7 +97,9 @@ class ListQuantumProgramsPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = self._method(self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata)
+            self._response = self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __iter__(self) -> Iterator[quantum.QuantumProgram]:
@@ -113,14 +127,17 @@ class ListQuantumProgramsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., Awaitable[engine.ListQuantumProgramsResponse]],
-            request: engine.ListQuantumProgramsRequest,
-            response: engine.ListQuantumProgramsResponse,
-            *,
-            retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
-            timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., Awaitable[engine.ListQuantumProgramsResponse]],
+        request: engine.ListQuantumProgramsRequest,
+        response: engine.ListQuantumProgramsResponse,
+        *,
+        retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+    ):
         """Instantiates the pager.
 
         Args:
@@ -153,8 +170,11 @@ class ListQuantumProgramsAsyncPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = await self._method(self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata)
+            self._response = await self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
+
     def __aiter__(self) -> AsyncIterator[quantum.QuantumProgram]:
         async def async_generator():
             async for page in self.pages:
@@ -184,14 +204,17 @@ class ListQuantumJobsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., engine.ListQuantumJobsResponse],
-            request: engine.ListQuantumJobsRequest,
-            response: engine.ListQuantumJobsResponse,
-            *,
-            retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., engine.ListQuantumJobsResponse],
+        request: engine.ListQuantumJobsRequest,
+        response: engine.ListQuantumJobsResponse,
+        *,
+        retry: OptionalRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+    ):
         """Instantiate the pager.
 
         Args:
@@ -224,7 +247,9 @@ class ListQuantumJobsPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = self._method(self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata)
+            self._response = self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __iter__(self) -> Iterator[quantum.QuantumJob]:
@@ -252,14 +277,17 @@ class ListQuantumJobsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., Awaitable[engine.ListQuantumJobsResponse]],
-            request: engine.ListQuantumJobsRequest,
-            response: engine.ListQuantumJobsResponse,
-            *,
-            retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
-            timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., Awaitable[engine.ListQuantumJobsResponse]],
+        request: engine.ListQuantumJobsRequest,
+        response: engine.ListQuantumJobsResponse,
+        *,
+        retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+    ):
         """Instantiates the pager.
 
         Args:
@@ -292,8 +320,11 @@ class ListQuantumJobsAsyncPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = await self._method(self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata)
+            self._response = await self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
+
     def __aiter__(self) -> AsyncIterator[quantum.QuantumJob]:
         async def async_generator():
             async for page in self.pages:
@@ -323,14 +354,17 @@ class ListQuantumJobEventsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., engine.ListQuantumJobEventsResponse],
-            request: engine.ListQuantumJobEventsRequest,
-            response: engine.ListQuantumJobEventsResponse,
-            *,
-            retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., engine.ListQuantumJobEventsResponse],
+        request: engine.ListQuantumJobEventsRequest,
+        response: engine.ListQuantumJobEventsResponse,
+        *,
+        retry: OptionalRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+    ):
         """Instantiate the pager.
 
         Args:
@@ -363,7 +397,9 @@ class ListQuantumJobEventsPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = self._method(self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata)
+            self._response = self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __iter__(self) -> Iterator[quantum.QuantumJobEvent]:
@@ -391,14 +427,17 @@ class ListQuantumJobEventsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., Awaitable[engine.ListQuantumJobEventsResponse]],
-            request: engine.ListQuantumJobEventsRequest,
-            response: engine.ListQuantumJobEventsResponse,
-            *,
-            retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
-            timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., Awaitable[engine.ListQuantumJobEventsResponse]],
+        request: engine.ListQuantumJobEventsRequest,
+        response: engine.ListQuantumJobEventsResponse,
+        *,
+        retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+    ):
         """Instantiates the pager.
 
         Args:
@@ -431,8 +470,11 @@ class ListQuantumJobEventsAsyncPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = await self._method(self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata)
+            self._response = await self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
+
     def __aiter__(self) -> AsyncIterator[quantum.QuantumJobEvent]:
         async def async_generator():
             async for page in self.pages:
@@ -462,14 +504,17 @@ class ListQuantumProcessorsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., engine.ListQuantumProcessorsResponse],
-            request: engine.ListQuantumProcessorsRequest,
-            response: engine.ListQuantumProcessorsResponse,
-            *,
-            retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., engine.ListQuantumProcessorsResponse],
+        request: engine.ListQuantumProcessorsRequest,
+        response: engine.ListQuantumProcessorsResponse,
+        *,
+        retry: OptionalRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+    ):
         """Instantiate the pager.
 
         Args:
@@ -502,7 +547,9 @@ class ListQuantumProcessorsPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = self._method(self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata)
+            self._response = self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __iter__(self) -> Iterator[quantum.QuantumProcessor]:
@@ -530,14 +577,17 @@ class ListQuantumProcessorsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., Awaitable[engine.ListQuantumProcessorsResponse]],
-            request: engine.ListQuantumProcessorsRequest,
-            response: engine.ListQuantumProcessorsResponse,
-            *,
-            retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
-            timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., Awaitable[engine.ListQuantumProcessorsResponse]],
+        request: engine.ListQuantumProcessorsRequest,
+        response: engine.ListQuantumProcessorsResponse,
+        *,
+        retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+    ):
         """Instantiates the pager.
 
         Args:
@@ -570,8 +620,11 @@ class ListQuantumProcessorsAsyncPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = await self._method(self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata)
+            self._response = await self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
+
     def __aiter__(self) -> AsyncIterator[quantum.QuantumProcessor]:
         async def async_generator():
             async for page in self.pages:
@@ -601,14 +654,17 @@ class ListQuantumProcessorConfigsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., engine.ListQuantumProcessorConfigsResponse],
-            request: engine.ListQuantumProcessorConfigsRequest,
-            response: engine.ListQuantumProcessorConfigsResponse,
-            *,
-            retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., engine.ListQuantumProcessorConfigsResponse],
+        request: engine.ListQuantumProcessorConfigsRequest,
+        response: engine.ListQuantumProcessorConfigsResponse,
+        *,
+        retry: OptionalRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+    ):
         """Instantiate the pager.
 
         Args:
@@ -641,7 +697,9 @@ class ListQuantumProcessorConfigsPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = self._method(self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata)
+            self._response = self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __iter__(self) -> Iterator[quantum.QuantumProcessorConfig]:
@@ -669,14 +727,17 @@ class ListQuantumProcessorConfigsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., Awaitable[engine.ListQuantumProcessorConfigsResponse]],
-            request: engine.ListQuantumProcessorConfigsRequest,
-            response: engine.ListQuantumProcessorConfigsResponse,
-            *,
-            retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
-            timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., Awaitable[engine.ListQuantumProcessorConfigsResponse]],
+        request: engine.ListQuantumProcessorConfigsRequest,
+        response: engine.ListQuantumProcessorConfigsResponse,
+        *,
+        retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+    ):
         """Instantiates the pager.
 
         Args:
@@ -709,8 +770,11 @@ class ListQuantumProcessorConfigsAsyncPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = await self._method(self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata)
+            self._response = await self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
+
     def __aiter__(self) -> AsyncIterator[quantum.QuantumProcessorConfig]:
         async def async_generator():
             async for page in self.pages:
@@ -740,14 +804,17 @@ class ListQuantumCalibrationsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., engine.ListQuantumCalibrationsResponse],
-            request: engine.ListQuantumCalibrationsRequest,
-            response: engine.ListQuantumCalibrationsResponse,
-            *,
-            retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., engine.ListQuantumCalibrationsResponse],
+        request: engine.ListQuantumCalibrationsRequest,
+        response: engine.ListQuantumCalibrationsResponse,
+        *,
+        retry: OptionalRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+    ):
         """Instantiate the pager.
 
         Args:
@@ -780,7 +847,9 @@ class ListQuantumCalibrationsPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = self._method(self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata)
+            self._response = self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __iter__(self) -> Iterator[quantum.QuantumCalibration]:
@@ -808,14 +877,17 @@ class ListQuantumCalibrationsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., Awaitable[engine.ListQuantumCalibrationsResponse]],
-            request: engine.ListQuantumCalibrationsRequest,
-            response: engine.ListQuantumCalibrationsResponse,
-            *,
-            retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
-            timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., Awaitable[engine.ListQuantumCalibrationsResponse]],
+        request: engine.ListQuantumCalibrationsRequest,
+        response: engine.ListQuantumCalibrationsResponse,
+        *,
+        retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+    ):
         """Instantiates the pager.
 
         Args:
@@ -848,8 +920,11 @@ class ListQuantumCalibrationsAsyncPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = await self._method(self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata)
+            self._response = await self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
+
     def __aiter__(self) -> AsyncIterator[quantum.QuantumCalibration]:
         async def async_generator():
             async for page in self.pages:
@@ -879,14 +954,17 @@ class ListQuantumReservationsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., engine.ListQuantumReservationsResponse],
-            request: engine.ListQuantumReservationsRequest,
-            response: engine.ListQuantumReservationsResponse,
-            *,
-            retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., engine.ListQuantumReservationsResponse],
+        request: engine.ListQuantumReservationsRequest,
+        response: engine.ListQuantumReservationsResponse,
+        *,
+        retry: OptionalRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+    ):
         """Instantiate the pager.
 
         Args:
@@ -919,7 +997,9 @@ class ListQuantumReservationsPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = self._method(self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata)
+            self._response = self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __iter__(self) -> Iterator[quantum.QuantumReservation]:
@@ -947,14 +1027,17 @@ class ListQuantumReservationsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., Awaitable[engine.ListQuantumReservationsResponse]],
-            request: engine.ListQuantumReservationsRequest,
-            response: engine.ListQuantumReservationsResponse,
-            *,
-            retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
-            timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., Awaitable[engine.ListQuantumReservationsResponse]],
+        request: engine.ListQuantumReservationsRequest,
+        response: engine.ListQuantumReservationsResponse,
+        *,
+        retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+    ):
         """Instantiates the pager.
 
         Args:
@@ -987,8 +1070,11 @@ class ListQuantumReservationsAsyncPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = await self._method(self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata)
+            self._response = await self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
+
     def __aiter__(self) -> AsyncIterator[quantum.QuantumReservation]:
         async def async_generator():
             async for page in self.pages:
@@ -1018,14 +1104,17 @@ class ListQuantumReservationGrantsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., engine.ListQuantumReservationGrantsResponse],
-            request: engine.ListQuantumReservationGrantsRequest,
-            response: engine.ListQuantumReservationGrantsResponse,
-            *,
-            retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., engine.ListQuantumReservationGrantsResponse],
+        request: engine.ListQuantumReservationGrantsRequest,
+        response: engine.ListQuantumReservationGrantsResponse,
+        *,
+        retry: OptionalRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+    ):
         """Instantiate the pager.
 
         Args:
@@ -1058,7 +1147,9 @@ class ListQuantumReservationGrantsPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = self._method(self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata)
+            self._response = self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __iter__(self) -> Iterator[quantum.QuantumReservationGrant]:
@@ -1086,14 +1177,17 @@ class ListQuantumReservationGrantsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., Awaitable[engine.ListQuantumReservationGrantsResponse]],
-            request: engine.ListQuantumReservationGrantsRequest,
-            response: engine.ListQuantumReservationGrantsResponse,
-            *,
-            retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
-            timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., Awaitable[engine.ListQuantumReservationGrantsResponse]],
+        request: engine.ListQuantumReservationGrantsRequest,
+        response: engine.ListQuantumReservationGrantsResponse,
+        *,
+        retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+    ):
         """Instantiates the pager.
 
         Args:
@@ -1126,8 +1220,11 @@ class ListQuantumReservationGrantsAsyncPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = await self._method(self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata)
+            self._response = await self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
+
     def __aiter__(self) -> AsyncIterator[quantum.QuantumReservationGrant]:
         async def async_generator():
             async for page in self.pages:
@@ -1157,14 +1254,17 @@ class ListQuantumReservationBudgetsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., engine.ListQuantumReservationBudgetsResponse],
-            request: engine.ListQuantumReservationBudgetsRequest,
-            response: engine.ListQuantumReservationBudgetsResponse,
-            *,
-            retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., engine.ListQuantumReservationBudgetsResponse],
+        request: engine.ListQuantumReservationBudgetsRequest,
+        response: engine.ListQuantumReservationBudgetsResponse,
+        *,
+        retry: OptionalRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+    ):
         """Instantiate the pager.
 
         Args:
@@ -1197,7 +1297,9 @@ class ListQuantumReservationBudgetsPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = self._method(self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata)
+            self._response = self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __iter__(self) -> Iterator[quantum.QuantumReservationBudget]:
@@ -1225,14 +1327,17 @@ class ListQuantumReservationBudgetsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., Awaitable[engine.ListQuantumReservationBudgetsResponse]],
-            request: engine.ListQuantumReservationBudgetsRequest,
-            response: engine.ListQuantumReservationBudgetsResponse,
-            *,
-            retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
-            timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., Awaitable[engine.ListQuantumReservationBudgetsResponse]],
+        request: engine.ListQuantumReservationBudgetsRequest,
+        response: engine.ListQuantumReservationBudgetsResponse,
+        *,
+        retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+    ):
         """Instantiates the pager.
 
         Args:
@@ -1265,8 +1370,11 @@ class ListQuantumReservationBudgetsAsyncPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = await self._method(self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata)
+            self._response = await self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
+
     def __aiter__(self) -> AsyncIterator[quantum.QuantumReservationBudget]:
         async def async_generator():
             async for page in self.pages:
@@ -1296,14 +1404,17 @@ class ListQuantumTimeSlotsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., engine.ListQuantumTimeSlotsResponse],
-            request: engine.ListQuantumTimeSlotsRequest,
-            response: engine.ListQuantumTimeSlotsResponse,
-            *,
-            retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., engine.ListQuantumTimeSlotsResponse],
+        request: engine.ListQuantumTimeSlotsRequest,
+        response: engine.ListQuantumTimeSlotsResponse,
+        *,
+        retry: OptionalRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+    ):
         """Instantiate the pager.
 
         Args:
@@ -1336,7 +1447,9 @@ class ListQuantumTimeSlotsPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = self._method(self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata)
+            self._response = self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __iter__(self) -> Iterator[quantum.QuantumTimeSlot]:
@@ -1364,14 +1477,17 @@ class ListQuantumTimeSlotsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-    def __init__(self,
-            method: Callable[..., Awaitable[engine.ListQuantumTimeSlotsResponse]],
-            request: engine.ListQuantumTimeSlotsRequest,
-            response: engine.ListQuantumTimeSlotsResponse,
-            *,
-            retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
-            timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = ()):
+
+    def __init__(
+        self,
+        method: Callable[..., Awaitable[engine.ListQuantumTimeSlotsResponse]],
+        request: engine.ListQuantumTimeSlotsRequest,
+        response: engine.ListQuantumTimeSlotsResponse,
+        *,
+        retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+    ):
         """Instantiates the pager.
 
         Args:
@@ -1404,8 +1520,11 @@ class ListQuantumTimeSlotsAsyncPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = await self._method(self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata)
+            self._response = await self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
+
     def __aiter__(self) -> AsyncIterator[quantum.QuantumTimeSlot]:
         async def async_generator():
             async for page in self.pages:
