@@ -1,0 +1,2 @@
+# DO NOT EDIT MANUALLY (except to fix linting and type checking errors)
+This directory and all of its sub-directories contain only generated RPC clients for the `QuantumEngineService` and the associated request/response objects. The only manual edits made to these files should be to fix linter and type checker complaints.
