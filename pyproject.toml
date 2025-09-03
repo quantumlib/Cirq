@@ -142,3 +142,9 @@ select = [
 
 [tool.ruff.lint.per-file-ignores]
 "*.ipynb" = ["E402"]
+"cirq-google/cirq_google/cloud/*" = [
+    "E402",  # module-import-not-at-top-of-file
+    "E501",  # line-too-long
+    "F401",  # unused-import
+    "UP007",  # non-pep604-annotation-union
+]
