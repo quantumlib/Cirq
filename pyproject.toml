@@ -146,5 +146,6 @@ select = [
     "E402",  # module-import-not-at-top-of-file
     "E501",  # line-too-long
     "F401",  # unused-import
+    "RUF100", # unused-noqa
     "UP007",  # non-pep604-annotation-union
 ]
