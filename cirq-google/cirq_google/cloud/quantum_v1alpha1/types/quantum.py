@@ -93,10 +93,10 @@ class QuantumProgram(proto.Message):
     labels: MutableMapping[str, str] = proto.MapField(proto.STRING, proto.STRING, number=4)
     label_fingerprint: str = proto.Field(proto.STRING, number=5)
     description: str = proto.Field(proto.STRING, number=6)
-    gcs_code_location: 'GcsLocation' = proto.Field(
+    gcs_code_location: GcsLocation = proto.Field(
         proto.MESSAGE, number=7, oneof='code_location', message='GcsLocation'
     )
-    code_inline_data: 'InlineData' = proto.Field(
+    code_inline_data: InlineData = proto.Field(
         proto.MESSAGE, number=9, oneof='code_location', message='InlineData'
     )
     code: any_pb2.Any = proto.Field(proto.MESSAGE, number=8, message=any_pb2.Any)
@@ -153,17 +153,17 @@ class QuantumJob(proto.Message):
     labels: MutableMapping[str, str] = proto.MapField(proto.STRING, proto.STRING, number=4)
     label_fingerprint: str = proto.Field(proto.STRING, number=5)
     description: str = proto.Field(proto.STRING, number=6)
-    scheduling_config: 'SchedulingConfig' = proto.Field(
+    scheduling_config: SchedulingConfig = proto.Field(
         proto.MESSAGE, number=7, message='SchedulingConfig'
     )
-    output_config: 'OutputConfig' = proto.Field(proto.MESSAGE, number=8, message='OutputConfig')
-    execution_status: 'ExecutionStatus' = proto.Field(
+    output_config: OutputConfig = proto.Field(proto.MESSAGE, number=8, message='OutputConfig')
+    execution_status: ExecutionStatus = proto.Field(
         proto.MESSAGE, number=9, message='ExecutionStatus'
     )
-    gcs_run_context_location: 'GcsLocation' = proto.Field(
+    gcs_run_context_location: GcsLocation = proto.Field(
         proto.MESSAGE, number=10, oneof='run_context_location', message='GcsLocation'
     )
-    run_context_inline_data: 'InlineData' = proto.Field(
+    run_context_inline_data: InlineData = proto.Field(
         proto.MESSAGE, number=12, oneof='run_context_location', message='InlineData'
     )
     run_context: any_pb2.Any = proto.Field(proto.MESSAGE, number=11, message=any_pb2.Any)
@@ -199,7 +199,7 @@ class SchedulingConfig(proto.Message):
 
         processor_names: MutableSequence[str] = proto.RepeatedField(proto.STRING, number=1)
         processor: str = proto.Field(proto.STRING, number=2)
-        device_config_selector: 'DeviceConfigSelector' = proto.Field(
+        device_config_selector: DeviceConfigSelector = proto.Field(
             proto.MESSAGE, number=3, optional=True, message='DeviceConfigSelector'
         )
 
@@ -313,7 +313,7 @@ class ExecutionStatus(proto.Message):
             SCHEDULING_EXPIRED = 14
             FAILED_PRECONDITION = 15
 
-        error_code: 'ExecutionStatus.Failure.Code' = proto.Field(
+        error_code: ExecutionStatus.Failure.Code = proto.Field(
             proto.ENUM, number=1, enum='ExecutionStatus.Failure.Code'
         )
         error_message: str = proto.Field(proto.STRING, number=2)
@@ -412,7 +412,7 @@ class OutputConfig(proto.Message):
             -
     """
 
-    gcs_results_location: 'GcsLocation' = proto.Field(
+    gcs_results_location: GcsLocation = proto.Field(
         proto.MESSAGE, number=1, oneof='output_destination', message='GcsLocation'
     )
     overwrite_existing: bool = proto.Field(proto.BOOL, number=2)
@@ -458,7 +458,7 @@ class QuantumJobEvent(proto.Message):
     event_time: timestamp_pb2.Timestamp = proto.Field(
         proto.MESSAGE, number=1, message=timestamp_pb2.Timestamp
     )
-    job: 'QuantumJob' = proto.Field(proto.MESSAGE, number=2, message='QuantumJob')
+    job: QuantumJob = proto.Field(proto.MESSAGE, number=2, message='QuantumJob')
     modified_field_mask: field_mask_pb2.FieldMask = proto.Field(
         proto.MESSAGE, number=3, message=field_mask_pb2.FieldMask
     )
@@ -560,11 +560,11 @@ class QuantumProcessor(proto.Message):
         proto.MESSAGE, number=9, message=duration_pb2.Duration
     )
     current_calibration: str = proto.Field(proto.STRING, number=10)
-    active_time_slot: 'QuantumTimeSlot' = proto.Field(
+    active_time_slot: QuantumTimeSlot = proto.Field(
         proto.MESSAGE, number=11, message='QuantumTimeSlot'
     )
     activity_stats: ActivityStats = proto.Field(proto.MESSAGE, number=12, message=ActivityStats)
-    default_device_config_key: 'DeviceConfigKey' = proto.Field(
+    default_device_config_key: DeviceConfigKey = proto.Field(
         proto.MESSAGE, number=13, message='DeviceConfigKey'
     )
 

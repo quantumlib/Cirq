@@ -13,11 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import json
 import logging as std_logging
 import pickle
 import warnings
-from typing import Callable, Dict, Optional, Sequence, Tuple, Union
+from typing import Callable, Optional, Sequence
 
 import google.auth  # type: ignore
 import google.protobuf.message
@@ -113,7 +112,7 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
     top of HTTP/2); the ``grpcio`` package must be installed.
     """
 
-    _stubs: Dict[str, Callable]
+    _stubs: dict[str, Callable]
 
     def __init__(
         self,
@@ -122,11 +121,11 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         credentials: Optional[ga_credentials.Credentials] = None,
         credentials_file: Optional[str] = None,
         scopes: Optional[Sequence[str]] = None,
-        channel: Optional[Union[grpc.Channel, Callable[..., grpc.Channel]]] = None,
+        channel: Optional[grpc.Channel | Callable[..., grpc.Channel]] = None,
         api_mtls_endpoint: Optional[str] = None,
-        client_cert_source: Optional[Callable[[], Tuple[bytes, bytes]]] = None,
+        client_cert_source: Optional[Callable[[], tuple[bytes, bytes]]] = None,
         ssl_channel_credentials: Optional[grpc.ChannelCredentials] = None,
-        client_cert_source_for_mtls: Optional[Callable[[], Tuple[bytes, bytes]]] = None,
+        client_cert_source_for_mtls: Optional[Callable[[], tuple[bytes, bytes]]] = None,
         quota_project_id: Optional[str] = None,
         client_info: gapic_v1.client_info.ClientInfo = DEFAULT_CLIENT_INFO,
         always_use_jwt_access: Optional[bool] = False,
@@ -185,7 +184,7 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         """
         self._grpc_channel = None
         self._ssl_channel_credentials = ssl_channel_credentials
-        self._stubs: Dict[str, Callable] = {}
+        self._stubs: dict[str, Callable] = {}
 
         if api_mtls_endpoint:
             warnings.warn("api_mtls_endpoint is deprecated", DeprecationWarning)

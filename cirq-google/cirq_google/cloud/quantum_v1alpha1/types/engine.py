@@ -15,7 +15,7 @@
 #
 from __future__ import annotations
 
-from typing import MutableMapping, MutableSequence
+from typing import MutableSequence
 
 import proto  # type: ignore
 from google.protobuf import duration_pb2  # type: ignore
@@ -655,13 +655,13 @@ class QuantumRunStreamRequest(proto.Message):
 
     message_id: str = proto.Field(proto.STRING, number=1)
     parent: str = proto.Field(proto.STRING, number=2)
-    create_quantum_program_and_job: 'CreateQuantumProgramAndJobRequest' = proto.Field(
+    create_quantum_program_and_job: CreateQuantumProgramAndJobRequest = proto.Field(
         proto.MESSAGE, number=3, oneof='request', message='CreateQuantumProgramAndJobRequest'
     )
-    create_quantum_job: 'CreateQuantumJobRequest' = proto.Field(
+    create_quantum_job: CreateQuantumJobRequest = proto.Field(
         proto.MESSAGE, number=4, oneof='request', message='CreateQuantumJobRequest'
     )
-    get_quantum_result: 'GetQuantumResultRequest' = proto.Field(
+    get_quantum_result: GetQuantumResultRequest = proto.Field(
         proto.MESSAGE, number=5, oneof='request', message='GetQuantumResultRequest'
     )
 
@@ -715,7 +715,7 @@ class QuantumRunStreamResponse(proto.Message):
     """
 
     message_id: str = proto.Field(proto.STRING, number=1)
-    error: 'StreamError' = proto.Field(
+    error: StreamError = proto.Field(
         proto.MESSAGE, number=2, oneof='response', message='StreamError'
     )
     job: quantum.QuantumJob = proto.Field(

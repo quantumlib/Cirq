@@ -14,10 +14,8 @@
 # limitations under the License.
 #
 import dataclasses
-import json  # type: ignore
 import logging
-import warnings
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
+from typing import Callable, Optional, Sequence, Union
 
 import google.protobuf
 from google.api_core import (
@@ -302,8 +300,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_cancel_quantum_job(
         self,
         request: engine.CancelQuantumJobRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.CancelQuantumJobRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.CancelQuantumJobRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for cancel_quantum_job
 
         Override in a subclass to manipulate the request or metadata
@@ -314,8 +312,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_cancel_quantum_reservation(
         self,
         request: engine.CancelQuantumReservationRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.CancelQuantumReservationRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.CancelQuantumReservationRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for cancel_quantum_reservation
 
         Override in a subclass to manipulate the request or metadata
@@ -341,8 +339,8 @@ class QuantumEngineServiceRestInterceptor:
     def post_cancel_quantum_reservation_with_metadata(
         self,
         response: quantum.QuantumReservation,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[quantum.QuantumReservation, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[quantum.QuantumReservation, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for cancel_quantum_reservation
 
         Override in a subclass to read or manipulate the response or metadata after it
@@ -360,8 +358,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_create_quantum_job(
         self,
         request: engine.CreateQuantumJobRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.CreateQuantumJobRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.CreateQuantumJobRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for create_quantum_job
 
         Override in a subclass to manipulate the request or metadata
@@ -383,8 +381,8 @@ class QuantumEngineServiceRestInterceptor:
         return response
 
     def post_create_quantum_job_with_metadata(
-        self, response: quantum.QuantumJob, metadata: Sequence[Tuple[str, Union[str, bytes]]]
-    ) -> Tuple[quantum.QuantumJob, Sequence[Tuple[str, Union[str, bytes]]]]:
+        self, response: quantum.QuantumJob, metadata: Sequence[tuple[str, str | bytes]]
+    ) -> tuple[quantum.QuantumJob, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for create_quantum_job
 
         Override in a subclass to read or manipulate the response or metadata after it
@@ -402,8 +400,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_create_quantum_program(
         self,
         request: engine.CreateQuantumProgramRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.CreateQuantumProgramRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.CreateQuantumProgramRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for create_quantum_program
 
         Override in a subclass to manipulate the request or metadata
@@ -427,8 +425,8 @@ class QuantumEngineServiceRestInterceptor:
         return response
 
     def post_create_quantum_program_with_metadata(
-        self, response: quantum.QuantumProgram, metadata: Sequence[Tuple[str, Union[str, bytes]]]
-    ) -> Tuple[quantum.QuantumProgram, Sequence[Tuple[str, Union[str, bytes]]]]:
+        self, response: quantum.QuantumProgram, metadata: Sequence[tuple[str, str | bytes]]
+    ) -> tuple[quantum.QuantumProgram, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for create_quantum_program
 
         Override in a subclass to read or manipulate the response or metadata after it
@@ -446,8 +444,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_create_quantum_reservation(
         self,
         request: engine.CreateQuantumReservationRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.CreateQuantumReservationRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.CreateQuantumReservationRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for create_quantum_reservation
 
         Override in a subclass to manipulate the request or metadata
@@ -473,8 +471,8 @@ class QuantumEngineServiceRestInterceptor:
     def post_create_quantum_reservation_with_metadata(
         self,
         response: quantum.QuantumReservation,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[quantum.QuantumReservation, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[quantum.QuantumReservation, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for create_quantum_reservation
 
         Override in a subclass to read or manipulate the response or metadata after it
@@ -492,8 +490,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_delete_quantum_job(
         self,
         request: engine.DeleteQuantumJobRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.DeleteQuantumJobRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.DeleteQuantumJobRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for delete_quantum_job
 
         Override in a subclass to manipulate the request or metadata
@@ -504,8 +502,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_delete_quantum_program(
         self,
         request: engine.DeleteQuantumProgramRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.DeleteQuantumProgramRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.DeleteQuantumProgramRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for delete_quantum_program
 
         Override in a subclass to manipulate the request or metadata
@@ -516,8 +514,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_delete_quantum_reservation(
         self,
         request: engine.DeleteQuantumReservationRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.DeleteQuantumReservationRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.DeleteQuantumReservationRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for delete_quantum_reservation
 
         Override in a subclass to manipulate the request or metadata
@@ -528,8 +526,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_get_quantum_calibration(
         self,
         request: engine.GetQuantumCalibrationRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.GetQuantumCalibrationRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.GetQuantumCalibrationRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for get_quantum_calibration
 
         Override in a subclass to manipulate the request or metadata
@@ -555,8 +553,8 @@ class QuantumEngineServiceRestInterceptor:
     def post_get_quantum_calibration_with_metadata(
         self,
         response: quantum.QuantumCalibration,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[quantum.QuantumCalibration, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[quantum.QuantumCalibration, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for get_quantum_calibration
 
         Override in a subclass to read or manipulate the response or metadata after it
@@ -574,8 +572,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_get_quantum_job(
         self,
         request: engine.GetQuantumJobRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.GetQuantumJobRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.GetQuantumJobRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for get_quantum_job
 
         Override in a subclass to manipulate the request or metadata
@@ -597,8 +595,8 @@ class QuantumEngineServiceRestInterceptor:
         return response
 
     def post_get_quantum_job_with_metadata(
-        self, response: quantum.QuantumJob, metadata: Sequence[Tuple[str, Union[str, bytes]]]
-    ) -> Tuple[quantum.QuantumJob, Sequence[Tuple[str, Union[str, bytes]]]]:
+        self, response: quantum.QuantumJob, metadata: Sequence[tuple[str, str | bytes]]
+    ) -> tuple[quantum.QuantumJob, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for get_quantum_job
 
         Override in a subclass to read or manipulate the response or metadata after it
@@ -616,8 +614,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_get_quantum_processor(
         self,
         request: engine.GetQuantumProcessorRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.GetQuantumProcessorRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.GetQuantumProcessorRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for get_quantum_processor
 
         Override in a subclass to manipulate the request or metadata
@@ -641,8 +639,8 @@ class QuantumEngineServiceRestInterceptor:
         return response
 
     def post_get_quantum_processor_with_metadata(
-        self, response: quantum.QuantumProcessor, metadata: Sequence[Tuple[str, Union[str, bytes]]]
-    ) -> Tuple[quantum.QuantumProcessor, Sequence[Tuple[str, Union[str, bytes]]]]:
+        self, response: quantum.QuantumProcessor, metadata: Sequence[tuple[str, str | bytes]]
+    ) -> tuple[quantum.QuantumProcessor, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for get_quantum_processor
 
         Override in a subclass to read or manipulate the response or metadata after it
@@ -660,8 +658,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_get_quantum_processor_config(
         self,
         request: engine.GetQuantumProcessorConfigRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.GetQuantumProcessorConfigRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.GetQuantumProcessorConfigRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for get_quantum_processor_config
 
         Override in a subclass to manipulate the request or metadata
@@ -687,8 +685,8 @@ class QuantumEngineServiceRestInterceptor:
     def post_get_quantum_processor_config_with_metadata(
         self,
         response: quantum.QuantumProcessorConfig,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[quantum.QuantumProcessorConfig, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[quantum.QuantumProcessorConfig, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for get_quantum_processor_config
 
         Override in a subclass to read or manipulate the response or metadata after it
@@ -706,8 +704,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_get_quantum_program(
         self,
         request: engine.GetQuantumProgramRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.GetQuantumProgramRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.GetQuantumProgramRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for get_quantum_program
 
         Override in a subclass to manipulate the request or metadata
@@ -729,8 +727,8 @@ class QuantumEngineServiceRestInterceptor:
         return response
 
     def post_get_quantum_program_with_metadata(
-        self, response: quantum.QuantumProgram, metadata: Sequence[Tuple[str, Union[str, bytes]]]
-    ) -> Tuple[quantum.QuantumProgram, Sequence[Tuple[str, Union[str, bytes]]]]:
+        self, response: quantum.QuantumProgram, metadata: Sequence[tuple[str, str | bytes]]
+    ) -> tuple[quantum.QuantumProgram, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for get_quantum_program
 
         Override in a subclass to read or manipulate the response or metadata after it
@@ -748,8 +746,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_get_quantum_reservation(
         self,
         request: engine.GetQuantumReservationRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.GetQuantumReservationRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.GetQuantumReservationRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for get_quantum_reservation
 
         Override in a subclass to manipulate the request or metadata
@@ -775,8 +773,8 @@ class QuantumEngineServiceRestInterceptor:
     def post_get_quantum_reservation_with_metadata(
         self,
         response: quantum.QuantumReservation,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[quantum.QuantumReservation, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[quantum.QuantumReservation, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for get_quantum_reservation
 
         Override in a subclass to read or manipulate the response or metadata after it
@@ -794,8 +792,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_get_quantum_result(
         self,
         request: engine.GetQuantumResultRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.GetQuantumResultRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.GetQuantumResultRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for get_quantum_result
 
         Override in a subclass to manipulate the request or metadata
@@ -817,8 +815,8 @@ class QuantumEngineServiceRestInterceptor:
         return response
 
     def post_get_quantum_result_with_metadata(
-        self, response: quantum.QuantumResult, metadata: Sequence[Tuple[str, Union[str, bytes]]]
-    ) -> Tuple[quantum.QuantumResult, Sequence[Tuple[str, Union[str, bytes]]]]:
+        self, response: quantum.QuantumResult, metadata: Sequence[tuple[str, str | bytes]]
+    ) -> tuple[quantum.QuantumResult, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for get_quantum_result
 
         Override in a subclass to read or manipulate the response or metadata after it
@@ -836,8 +834,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_list_quantum_calibrations(
         self,
         request: engine.ListQuantumCalibrationsRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.ListQuantumCalibrationsRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.ListQuantumCalibrationsRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for list_quantum_calibrations
 
         Override in a subclass to manipulate the request or metadata
@@ -863,8 +861,8 @@ class QuantumEngineServiceRestInterceptor:
     def post_list_quantum_calibrations_with_metadata(
         self,
         response: engine.ListQuantumCalibrationsResponse,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.ListQuantumCalibrationsResponse, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.ListQuantumCalibrationsResponse, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for list_quantum_calibrations
 
         Override in a subclass to read or manipulate the response or metadata after it
@@ -882,8 +880,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_list_quantum_job_events(
         self,
         request: engine.ListQuantumJobEventsRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.ListQuantumJobEventsRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.ListQuantumJobEventsRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for list_quantum_job_events
 
         Override in a subclass to manipulate the request or metadata
@@ -909,8 +907,8 @@ class QuantumEngineServiceRestInterceptor:
     def post_list_quantum_job_events_with_metadata(
         self,
         response: engine.ListQuantumJobEventsResponse,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.ListQuantumJobEventsResponse, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.ListQuantumJobEventsResponse, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for list_quantum_job_events
 
         Override in a subclass to read or manipulate the response or metadata after it
@@ -928,8 +926,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_list_quantum_jobs(
         self,
         request: engine.ListQuantumJobsRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.ListQuantumJobsRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.ListQuantumJobsRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for list_quantum_jobs
 
         Override in a subclass to manipulate the request or metadata
@@ -955,8 +953,8 @@ class QuantumEngineServiceRestInterceptor:
     def post_list_quantum_jobs_with_metadata(
         self,
         response: engine.ListQuantumJobsResponse,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.ListQuantumJobsResponse, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.ListQuantumJobsResponse, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for list_quantum_jobs
 
         Override in a subclass to read or manipulate the response or metadata after it
@@ -974,8 +972,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_list_quantum_processor_configs(
         self,
         request: engine.ListQuantumProcessorConfigsRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.ListQuantumProcessorConfigsRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.ListQuantumProcessorConfigsRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for list_quantum_processor_configs
 
         Override in a subclass to manipulate the request or metadata
@@ -1001,8 +999,8 @@ class QuantumEngineServiceRestInterceptor:
     def post_list_quantum_processor_configs_with_metadata(
         self,
         response: engine.ListQuantumProcessorConfigsResponse,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.ListQuantumProcessorConfigsResponse, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.ListQuantumProcessorConfigsResponse, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for list_quantum_processor_configs
 
         Override in a subclass to read or manipulate the response or metadata after it
@@ -1020,8 +1018,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_list_quantum_processors(
         self,
         request: engine.ListQuantumProcessorsRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.ListQuantumProcessorsRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.ListQuantumProcessorsRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for list_quantum_processors
 
         Override in a subclass to manipulate the request or metadata
@@ -1047,8 +1045,8 @@ class QuantumEngineServiceRestInterceptor:
     def post_list_quantum_processors_with_metadata(
         self,
         response: engine.ListQuantumProcessorsResponse,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.ListQuantumProcessorsResponse, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.ListQuantumProcessorsResponse, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for list_quantum_processors
 
         Override in a subclass to read or manipulate the response or metadata after it
@@ -1066,8 +1064,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_list_quantum_programs(
         self,
         request: engine.ListQuantumProgramsRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.ListQuantumProgramsRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.ListQuantumProgramsRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for list_quantum_programs
 
         Override in a subclass to manipulate the request or metadata
@@ -1093,8 +1091,8 @@ class QuantumEngineServiceRestInterceptor:
     def post_list_quantum_programs_with_metadata(
         self,
         response: engine.ListQuantumProgramsResponse,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.ListQuantumProgramsResponse, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.ListQuantumProgramsResponse, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for list_quantum_programs
 
         Override in a subclass to read or manipulate the response or metadata after it
@@ -1112,9 +1110,9 @@ class QuantumEngineServiceRestInterceptor:
     def pre_list_quantum_reservation_budgets(
         self,
         request: engine.ListQuantumReservationBudgetsRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[
-        engine.ListQuantumReservationBudgetsRequest, Sequence[Tuple[str, Union[str, bytes]]]
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[
+        engine.ListQuantumReservationBudgetsRequest, Sequence[tuple[str, str | bytes]]
     ]:
         """Pre-rpc interceptor for list_quantum_reservation_budgets
 
@@ -1141,9 +1139,9 @@ class QuantumEngineServiceRestInterceptor:
     def post_list_quantum_reservation_budgets_with_metadata(
         self,
         response: engine.ListQuantumReservationBudgetsResponse,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[
-        engine.ListQuantumReservationBudgetsResponse, Sequence[Tuple[str, Union[str, bytes]]]
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[
+        engine.ListQuantumReservationBudgetsResponse, Sequence[tuple[str, str | bytes]]
     ]:
         """Post-rpc interceptor for list_quantum_reservation_budgets
 
@@ -1162,8 +1160,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_list_quantum_reservation_grants(
         self,
         request: engine.ListQuantumReservationGrantsRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.ListQuantumReservationGrantsRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.ListQuantumReservationGrantsRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for list_quantum_reservation_grants
 
         Override in a subclass to manipulate the request or metadata
@@ -1189,9 +1187,9 @@ class QuantumEngineServiceRestInterceptor:
     def post_list_quantum_reservation_grants_with_metadata(
         self,
         response: engine.ListQuantumReservationGrantsResponse,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[
-        engine.ListQuantumReservationGrantsResponse, Sequence[Tuple[str, Union[str, bytes]]]
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[
+        engine.ListQuantumReservationGrantsResponse, Sequence[tuple[str, str | bytes]]
     ]:
         """Post-rpc interceptor for list_quantum_reservation_grants
 
@@ -1210,8 +1208,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_list_quantum_reservations(
         self,
         request: engine.ListQuantumReservationsRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.ListQuantumReservationsRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.ListQuantumReservationsRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for list_quantum_reservations
 
         Override in a subclass to manipulate the request or metadata
@@ -1237,8 +1235,8 @@ class QuantumEngineServiceRestInterceptor:
     def post_list_quantum_reservations_with_metadata(
         self,
         response: engine.ListQuantumReservationsResponse,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.ListQuantumReservationsResponse, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.ListQuantumReservationsResponse, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for list_quantum_reservations
 
         Override in a subclass to read or manipulate the response or metadata after it
@@ -1256,8 +1254,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_list_quantum_time_slots(
         self,
         request: engine.ListQuantumTimeSlotsRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.ListQuantumTimeSlotsRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.ListQuantumTimeSlotsRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for list_quantum_time_slots
 
         Override in a subclass to manipulate the request or metadata
@@ -1283,8 +1281,8 @@ class QuantumEngineServiceRestInterceptor:
     def post_list_quantum_time_slots_with_metadata(
         self,
         response: engine.ListQuantumTimeSlotsResponse,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.ListQuantumTimeSlotsResponse, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.ListQuantumTimeSlotsResponse, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for list_quantum_time_slots
 
         Override in a subclass to read or manipulate the response or metadata after it
@@ -1302,9 +1300,9 @@ class QuantumEngineServiceRestInterceptor:
     def pre_reallocate_quantum_reservation_grant(
         self,
         request: engine.ReallocateQuantumReservationGrantRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[
-        engine.ReallocateQuantumReservationGrantRequest, Sequence[Tuple[str, Union[str, bytes]]]
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[
+        engine.ReallocateQuantumReservationGrantRequest, Sequence[tuple[str, str | bytes]]
     ]:
         """Pre-rpc interceptor for reallocate_quantum_reservation_grant
 
@@ -1331,8 +1329,8 @@ class QuantumEngineServiceRestInterceptor:
     def post_reallocate_quantum_reservation_grant_with_metadata(
         self,
         response: quantum.QuantumReservationGrant,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[quantum.QuantumReservationGrant, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[quantum.QuantumReservationGrant, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for reallocate_quantum_reservation_grant
 
         Override in a subclass to read or manipulate the response or metadata after it
@@ -1350,8 +1348,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_update_quantum_job(
         self,
         request: engine.UpdateQuantumJobRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.UpdateQuantumJobRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.UpdateQuantumJobRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for update_quantum_job
 
         Override in a subclass to manipulate the request or metadata
@@ -1373,8 +1371,8 @@ class QuantumEngineServiceRestInterceptor:
         return response
 
     def post_update_quantum_job_with_metadata(
-        self, response: quantum.QuantumJob, metadata: Sequence[Tuple[str, Union[str, bytes]]]
-    ) -> Tuple[quantum.QuantumJob, Sequence[Tuple[str, Union[str, bytes]]]]:
+        self, response: quantum.QuantumJob, metadata: Sequence[tuple[str, str | bytes]]
+    ) -> tuple[quantum.QuantumJob, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for update_quantum_job
 
         Override in a subclass to read or manipulate the response or metadata after it
@@ -1392,8 +1390,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_update_quantum_program(
         self,
         request: engine.UpdateQuantumProgramRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.UpdateQuantumProgramRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.UpdateQuantumProgramRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for update_quantum_program
 
         Override in a subclass to manipulate the request or metadata
@@ -1417,8 +1415,8 @@ class QuantumEngineServiceRestInterceptor:
         return response
 
     def post_update_quantum_program_with_metadata(
-        self, response: quantum.QuantumProgram, metadata: Sequence[Tuple[str, Union[str, bytes]]]
-    ) -> Tuple[quantum.QuantumProgram, Sequence[Tuple[str, Union[str, bytes]]]]:
+        self, response: quantum.QuantumProgram, metadata: Sequence[tuple[str, str | bytes]]
+    ) -> tuple[quantum.QuantumProgram, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for update_quantum_program
 
         Override in a subclass to read or manipulate the response or metadata after it
@@ -1436,8 +1434,8 @@ class QuantumEngineServiceRestInterceptor:
     def pre_update_quantum_reservation(
         self,
         request: engine.UpdateQuantumReservationRequest,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[engine.UpdateQuantumReservationRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[engine.UpdateQuantumReservationRequest, Sequence[tuple[str, str | bytes]]]:
         """Pre-rpc interceptor for update_quantum_reservation
 
         Override in a subclass to manipulate the request or metadata
@@ -1463,8 +1461,8 @@ class QuantumEngineServiceRestInterceptor:
     def post_update_quantum_reservation_with_metadata(
         self,
         response: quantum.QuantumReservation,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]],
-    ) -> Tuple[quantum.QuantumReservation, Sequence[Tuple[str, Union[str, bytes]]]]:
+        metadata: Sequence[tuple[str, str | bytes]],
+    ) -> tuple[quantum.QuantumReservation, Sequence[tuple[str, str | bytes]]]:
         """Post-rpc interceptor for update_quantum_reservation
 
         Override in a subclass to read or manipulate the response or metadata after it
@@ -1506,7 +1504,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
         credentials: Optional[ga_credentials.Credentials] = None,
         credentials_file: Optional[str] = None,
         scopes: Optional[Sequence[str]] = None,
-        client_cert_source_for_mtls: Optional[Callable[[], Tuple[bytes, bytes]]] = None,
+        client_cert_source_for_mtls: Optional[Callable[[], tuple[bytes, bytes]]] = None,
         quota_project_id: Optional[str] = None,
         client_info: gapic_v1.client_info.ClientInfo = DEFAULT_CLIENT_INFO,
         always_use_jwt_access: Optional[bool] = False,
@@ -1594,7 +1592,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ):
             r"""Call the cancel quantum job method over HTTP.
 
@@ -1646,7 +1644,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.CancelQuantumJob",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.CancelQuantumJob",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "CancelQuantumJob",
@@ -1696,7 +1694,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> quantum.QuantumReservation:
             r"""Call the cancel quantum
             reservation method over HTTP.
@@ -1749,7 +1747,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.CancelQuantumReservation",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.CancelQuantumReservation",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "CancelQuantumReservation",
@@ -1830,7 +1828,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> quantum.QuantumJob:
             r"""Call the create quantum job method over HTTP.
 
@@ -1886,7 +1884,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.CreateQuantumJob",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.CreateQuantumJob",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "CreateQuantumJob",
@@ -1968,7 +1966,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> quantum.QuantumProgram:
             r"""Call the create quantum program method over HTTP.
 
@@ -2020,7 +2018,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.CreateQuantumProgram",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.CreateQuantumProgram",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "CreateQuantumProgram",
@@ -2102,7 +2100,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> quantum.QuantumReservation:
             r"""Call the create quantum
             reservation method over HTTP.
@@ -2155,7 +2153,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.CreateQuantumReservation",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.CreateQuantumReservation",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "CreateQuantumReservation",
@@ -2235,7 +2233,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ):
             r"""Call the delete quantum job method over HTTP.
 
@@ -2281,7 +2279,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.DeleteQuantumJob",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.DeleteQuantumJob",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "DeleteQuantumJob",
@@ -2330,7 +2328,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ):
             r"""Call the delete quantum program method over HTTP.
 
@@ -2374,7 +2372,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.DeleteQuantumProgram",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.DeleteQuantumProgram",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "DeleteQuantumProgram",
@@ -2423,7 +2421,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ):
             r"""Call the delete quantum
             reservation method over HTTP.
@@ -2468,7 +2466,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.DeleteQuantumReservation",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.DeleteQuantumReservation",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "DeleteQuantumReservation",
@@ -2517,7 +2515,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> quantum.QuantumCalibration:
             r"""Call the get quantum calibration method over HTTP.
 
@@ -2565,7 +2563,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumCalibration",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumCalibration",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "GetQuantumCalibration",
@@ -2645,7 +2643,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> quantum.QuantumJob:
             r"""Call the get quantum job method over HTTP.
 
@@ -2697,7 +2695,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumJob",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumJob",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "GetQuantumJob",
@@ -2776,7 +2774,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> quantum.QuantumProcessor:
             r"""Call the get quantum processor method over HTTP.
 
@@ -2824,7 +2822,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumProcessor",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumProcessor",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "GetQuantumProcessor",
@@ -2905,7 +2903,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> quantum.QuantumProcessorConfig:
             r"""Call the get quantum processor
             config method over HTTP.
@@ -2956,7 +2954,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumProcessorConfig",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumProcessorConfig",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "GetQuantumProcessorConfig",
@@ -3036,7 +3034,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> quantum.QuantumProgram:
             r"""Call the get quantum program method over HTTP.
 
@@ -3084,7 +3082,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumProgram",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumProgram",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "GetQuantumProgram",
@@ -3165,7 +3163,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> quantum.QuantumReservation:
             r"""Call the get quantum reservation method over HTTP.
 
@@ -3213,7 +3211,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumReservation",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumReservation",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "GetQuantumReservation",
@@ -3293,7 +3291,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> quantum.QuantumResult:
             r"""Call the get quantum result method over HTTP.
 
@@ -3343,7 +3341,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumResult",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.GetQuantumResult",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "GetQuantumResult",
@@ -3424,7 +3422,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> engine.ListQuantumCalibrationsResponse:
             r"""Call the list quantum calibrations method over HTTP.
 
@@ -3472,7 +3470,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumCalibrations",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumCalibrations",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumCalibrations",
@@ -3553,7 +3551,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> engine.ListQuantumJobEventsResponse:
             r"""Call the list quantum job events method over HTTP.
 
@@ -3601,7 +3599,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumJobEvents",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumJobEvents",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumJobEvents",
@@ -3681,7 +3679,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> engine.ListQuantumJobsResponse:
             r"""Call the list quantum jobs method over HTTP.
 
@@ -3733,7 +3731,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumJobs",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumJobs",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumJobs",
@@ -3814,7 +3812,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> engine.ListQuantumProcessorConfigsResponse:
             r"""Call the list quantum processor
             configs method over HTTP.
@@ -3865,7 +3863,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumProcessorConfigs",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumProcessorConfigs",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumProcessorConfigs",
@@ -3946,7 +3944,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> engine.ListQuantumProcessorsResponse:
             r"""Call the list quantum processors method over HTTP.
 
@@ -3994,7 +3992,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumProcessors",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumProcessors",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumProcessors",
@@ -4075,7 +4073,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> engine.ListQuantumProgramsResponse:
             r"""Call the list quantum programs method over HTTP.
 
@@ -4123,7 +4121,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumPrograms",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumPrograms",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumPrograms",
@@ -4204,7 +4202,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> engine.ListQuantumReservationBudgetsResponse:
             r"""Call the list quantum reservation
             budgets method over HTTP.
@@ -4255,7 +4253,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumReservationBudgets",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumReservationBudgets",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumReservationBudgets",
@@ -4340,7 +4338,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> engine.ListQuantumReservationGrantsResponse:
             r"""Call the list quantum reservation
             grants method over HTTP.
@@ -4391,7 +4389,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumReservationGrants",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumReservationGrants",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumReservationGrants",
@@ -4474,7 +4472,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> engine.ListQuantumReservationsResponse:
             r"""Call the list quantum reservations method over HTTP.
 
@@ -4522,7 +4520,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumReservations",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumReservations",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumReservations",
@@ -4603,7 +4601,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> engine.ListQuantumTimeSlotsResponse:
             r"""Call the list quantum time slots method over HTTP.
 
@@ -4651,7 +4649,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumTimeSlots",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumTimeSlots",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumTimeSlots",
@@ -4714,7 +4712,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> rest_streaming.ResponseIterator:
             raise NotImplementedError(
                 "Method QuantumRunStream is not available over REST transport"
@@ -4751,7 +4749,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> quantum.QuantumReservationGrant:
             r"""Call the reallocate quantum
             reservation grant method over HTTP.
@@ -4806,7 +4804,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ReallocateQuantumReservationGrant",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ReallocateQuantumReservationGrant",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ReallocateQuantumReservationGrant",
@@ -4895,7 +4893,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> quantum.QuantumJob:
             r"""Call the update quantum job method over HTTP.
 
@@ -4951,7 +4949,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.UpdateQuantumJob",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.UpdateQuantumJob",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "UpdateQuantumJob",
@@ -5033,7 +5031,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> quantum.QuantumProgram:
             r"""Call the update quantum program method over HTTP.
 
@@ -5085,7 +5083,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.UpdateQuantumProgram",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.UpdateQuantumProgram",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "UpdateQuantumProgram",
@@ -5167,7 +5165,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
             timeout: Optional[float] = None,
-            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+            metadata: Sequence[tuple[str, str | bytes]] = (),
         ) -> quantum.QuantumReservation:
             r"""Call the update quantum
             reservation method over HTTP.
@@ -5220,7 +5218,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     "headers": dict(metadata),
                 }
                 _LOGGER.debug(
-                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.UpdateQuantumReservation",
+                    "Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.UpdateQuantumReservation",
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "UpdateQuantumReservation",

@@ -19,9 +19,7 @@ from typing import (
     Awaitable,
     Callable,
     Iterator,
-    Optional,
     Sequence,
-    Tuple,
     Union,
 )
 
@@ -62,8 +60,8 @@ class ListQuantumProgramsPager:
         response: engine.ListQuantumProgramsResponse,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+        timeout: float | object = gapic_v1.method.DEFAULT,
+        metadata: Sequence[tuple[str, str | bytes]] = (),
     ):
         """Instantiate the pager.
 
@@ -135,8 +133,8 @@ class ListQuantumProgramsAsyncPager:
         response: engine.ListQuantumProgramsResponse,
         *,
         retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
-        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+        timeout: float | object = gapic_v1.method.DEFAULT,
+        metadata: Sequence[tuple[str, str | bytes]] = (),
     ):
         """Instantiates the pager.
 
@@ -212,8 +210,8 @@ class ListQuantumJobsPager:
         response: engine.ListQuantumJobsResponse,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+        timeout: float | object = gapic_v1.method.DEFAULT,
+        metadata: Sequence[tuple[str, str | bytes]] = (),
     ):
         """Instantiate the pager.
 
@@ -285,8 +283,8 @@ class ListQuantumJobsAsyncPager:
         response: engine.ListQuantumJobsResponse,
         *,
         retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
-        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+        timeout: float | object = gapic_v1.method.DEFAULT,
+        metadata: Sequence[tuple[str, str | bytes]] = (),
     ):
         """Instantiates the pager.
 
@@ -362,8 +360,8 @@ class ListQuantumJobEventsPager:
         response: engine.ListQuantumJobEventsResponse,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+        timeout: float | object = gapic_v1.method.DEFAULT,
+        metadata: Sequence[tuple[str, str | bytes]] = (),
     ):
         """Instantiate the pager.
 
@@ -435,8 +433,8 @@ class ListQuantumJobEventsAsyncPager:
         response: engine.ListQuantumJobEventsResponse,
         *,
         retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
-        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+        timeout: float | object = gapic_v1.method.DEFAULT,
+        metadata: Sequence[tuple[str, str | bytes]] = (),
     ):
         """Instantiates the pager.
 
@@ -512,8 +510,8 @@ class ListQuantumProcessorsPager:
         response: engine.ListQuantumProcessorsResponse,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+        timeout: float | object = gapic_v1.method.DEFAULT,
+        metadata: Sequence[tuple[str, str | bytes]] = (),
     ):
         """Instantiate the pager.
 
@@ -585,8 +583,8 @@ class ListQuantumProcessorsAsyncPager:
         response: engine.ListQuantumProcessorsResponse,
         *,
         retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
-        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+        timeout: float | object = gapic_v1.method.DEFAULT,
+        metadata: Sequence[tuple[str, str | bytes]] = (),
     ):
         """Instantiates the pager.
 
@@ -662,8 +660,8 @@ class ListQuantumProcessorConfigsPager:
         response: engine.ListQuantumProcessorConfigsResponse,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+        timeout: float | object = gapic_v1.method.DEFAULT,
+        metadata: Sequence[tuple[str, str | bytes]] = (),
     ):
         """Instantiate the pager.
 
@@ -735,8 +733,8 @@ class ListQuantumProcessorConfigsAsyncPager:
         response: engine.ListQuantumProcessorConfigsResponse,
         *,
         retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
-        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+        timeout: float | object = gapic_v1.method.DEFAULT,
+        metadata: Sequence[tuple[str, str | bytes]] = (),
     ):
         """Instantiates the pager.
 
@@ -812,8 +810,8 @@ class ListQuantumCalibrationsPager:
         response: engine.ListQuantumCalibrationsResponse,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+        timeout: float | object = gapic_v1.method.DEFAULT,
+        metadata: Sequence[tuple[str, str | bytes]] = (),
     ):
         """Instantiate the pager.
 
@@ -885,8 +883,8 @@ class ListQuantumCalibrationsAsyncPager:
         response: engine.ListQuantumCalibrationsResponse,
         *,
         retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
-        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+        timeout: float | object = gapic_v1.method.DEFAULT,
+        metadata: Sequence[tuple[str, str | bytes]] = (),
     ):
         """Instantiates the pager.
 
@@ -962,8 +960,8 @@ class ListQuantumReservationsPager:
         response: engine.ListQuantumReservationsResponse,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+        timeout: float | object = gapic_v1.method.DEFAULT,
+        metadata: Sequence[tuple[str, str | bytes]] = (),
     ):
         """Instantiate the pager.
 
@@ -1035,8 +1033,8 @@ class ListQuantumReservationsAsyncPager:
         response: engine.ListQuantumReservationsResponse,
         *,
         retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
-        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+        timeout: float | object = gapic_v1.method.DEFAULT,
+        metadata: Sequence[tuple[str, str | bytes]] = (),
     ):
         """Instantiates the pager.
 
@@ -1112,8 +1110,8 @@ class ListQuantumReservationGrantsPager:
         response: engine.ListQuantumReservationGrantsResponse,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+        timeout: float | object = gapic_v1.method.DEFAULT,
+        metadata: Sequence[tuple[str, str | bytes]] = (),
     ):
         """Instantiate the pager.
 
@@ -1185,8 +1183,8 @@ class ListQuantumReservationGrantsAsyncPager:
         response: engine.ListQuantumReservationGrantsResponse,
         *,
         retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
-        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+        timeout: float | object = gapic_v1.method.DEFAULT,
+        metadata: Sequence[tuple[str, str | bytes]] = (),
     ):
         """Instantiates the pager.
 
@@ -1262,8 +1260,8 @@ class ListQuantumReservationBudgetsPager:
         response: engine.ListQuantumReservationBudgetsResponse,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+        timeout: float | object = gapic_v1.method.DEFAULT,
+        metadata: Sequence[tuple[str, str | bytes]] = (),
     ):
         """Instantiate the pager.
 
@@ -1335,8 +1333,8 @@ class ListQuantumReservationBudgetsAsyncPager:
         response: engine.ListQuantumReservationBudgetsResponse,
         *,
         retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
-        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+        timeout: float | object = gapic_v1.method.DEFAULT,
+        metadata: Sequence[tuple[str, str | bytes]] = (),
     ):
         """Instantiates the pager.
 
@@ -1412,8 +1410,8 @@ class ListQuantumTimeSlotsPager:
         response: engine.ListQuantumTimeSlotsResponse,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+        timeout: float | object = gapic_v1.method.DEFAULT,
+        metadata: Sequence[tuple[str, str | bytes]] = (),
     ):
         """Instantiate the pager.
 
@@ -1485,8 +1483,8 @@ class ListQuantumTimeSlotsAsyncPager:
         response: engine.ListQuantumTimeSlotsResponse,
         *,
         retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
-        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
-        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+        timeout: float | object = gapic_v1.method.DEFAULT,
+        metadata: Sequence[tuple[str, str | bytes]] = (),
     ):
         """Instantiates the pager.
 

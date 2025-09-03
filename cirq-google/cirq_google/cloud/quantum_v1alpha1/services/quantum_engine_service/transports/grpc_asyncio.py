@@ -14,20 +14,17 @@
 # limitations under the License.
 #
 import inspect
-import json
 import logging as std_logging
 import pickle
 import warnings
-from typing import Awaitable, Callable, Dict, Optional, Sequence, Tuple, Union
+from typing import Awaitable, Callable, Optional, Sequence
 
 import google.protobuf.message
 import grpc  # type: ignore
 import proto  # type: ignore
 from google.api_core import (
-    exceptions as core_exceptions,
     gapic_v1,
     grpc_helpers_async,
-    retry_async as retries,
 )
 from google.auth import credentials as ga_credentials  # type: ignore
 from google.auth.transport.grpc import SslCredentials  # type: ignore
@@ -38,7 +35,6 @@ from grpc.experimental import aio  # type: ignore
 from cirq_google.cloud.quantum_v1alpha1.types import engine, quantum
 
 from .base import DEFAULT_CLIENT_INFO, QuantumEngineServiceTransport
-from .grpc import QuantumEngineServiceGrpcTransport
 
 try:
     from google.api_core import client_logging  # type: ignore
@@ -121,7 +117,7 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
     """
 
     _grpc_channel: aio.Channel
-    _stubs: Dict[str, Callable] = {}
+    _stubs: dict[str, Callable] = {}
 
     @classmethod
     def create_channel(
@@ -172,11 +168,11 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         credentials: Optional[ga_credentials.Credentials] = None,
         credentials_file: Optional[str] = None,
         scopes: Optional[Sequence[str]] = None,
-        channel: Optional[Union[aio.Channel, Callable[..., aio.Channel]]] = None,
+        channel: Optional[aio.Channel | Callable[..., aio.Channel]] = None,
         api_mtls_endpoint: Optional[str] = None,
-        client_cert_source: Optional[Callable[[], Tuple[bytes, bytes]]] = None,
+        client_cert_source: Optional[Callable[[], tuple[bytes, bytes]]] = None,
         ssl_channel_credentials: Optional[grpc.ChannelCredentials] = None,
-        client_cert_source_for_mtls: Optional[Callable[[], Tuple[bytes, bytes]]] = None,
+        client_cert_source_for_mtls: Optional[Callable[[], tuple[bytes, bytes]]] = None,
         quota_project_id: Optional[str] = None,
         client_info: gapic_v1.client_info.ClientInfo = DEFAULT_CLIENT_INFO,
         always_use_jwt_access: Optional[bool] = False,
@@ -236,7 +232,7 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         """
         self._grpc_channel = None
         self._ssl_channel_credentials = ssl_channel_credentials
-        self._stubs: Dict[str, Callable] = {}
+        self._stubs: dict[str, Callable] = {}
 
         if api_mtls_endpoint:
             warnings.warn("api_mtls_endpoint is deprecated", DeprecationWarning)
