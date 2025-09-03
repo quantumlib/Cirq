@@ -56,7 +56,10 @@ asyncio_default_fixture_loop_scope = "function"
 line-length = 100
 preview = true
 target-version = "py311"
-extend-exclude = ["*_pb2.py*"]
+extend-exclude = [
+    "*_pb2.py*",
+    "cirq-google/cirq_google/cloud/*.py",  # contains only generated code
+]
 
 [tool.ruff.lint]
 select = [
@@ -142,10 +145,3 @@ select = [
 
 [tool.ruff.lint.per-file-ignores]
 "*.ipynb" = ["E402"]
-"cirq-google/cirq_google/cloud/*" = [
-    "E402",  # module-import-not-at-top-of-file
-    "E501",  # line-too-long
-    "F401",  # unused-import
-    "RUF100", # unused-noqa
-    "UP007",  # non-pep604-annotation-union
-]
