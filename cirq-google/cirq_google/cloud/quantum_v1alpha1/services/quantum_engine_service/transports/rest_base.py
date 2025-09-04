@@ -14,19 +14,16 @@
 # limitations under the License.
 #
 import json  # type: ignore
-from google.api_core import path_template
-from google.api_core import gapic_v1
-
-from google.protobuf import json_format
-from .base import QuantumEngineServiceTransport, DEFAULT_CLIENT_INFO
-
 import re
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
-
-from cirq_google.cloud.quantum_v1alpha1.types import engine
-from cirq_google.cloud.quantum_v1alpha1.types import quantum
+from google.api_core import gapic_v1, path_template
 from google.protobuf import empty_pb2  # type: ignore
+from google.protobuf import json_format
+
+from cirq_google.cloud.quantum_v1alpha1.types import engine, quantum
+
+from .base import DEFAULT_CLIENT_INFO, QuantumEngineServiceTransport
 
 
 class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
@@ -42,14 +39,16 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
     It sends JSON representations of protocol buffers over HTTP/1.1
     """
 
-    def __init__(self, *,
-            host: str = 'quantum.googleapis.com',
-            credentials: Optional[Any] = None,
-            client_info: gapic_v1.client_info.ClientInfo = DEFAULT_CLIENT_INFO,
-            always_use_jwt_access: Optional[bool] = False,
-            url_scheme: str = 'https',
-            api_audience: Optional[str] = None,
-            ) -> None:
+    def __init__(
+        self,
+        *,
+        host: str = 'quantum.googleapis.com',
+        credentials: Optional[Any] = None,
+        client_info: gapic_v1.client_info.ClientInfo = DEFAULT_CLIENT_INFO,
+        always_use_jwt_access: Optional[bool] = False,
+        url_scheme: str = 'https',
+        api_audience: Optional[str] = None,
+    ) -> None:
         """Instantiate the transport.
         Args:
             host (Optional[str]):
@@ -84,7 +83,7 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             credentials=credentials,
             client_info=client_info,
             always_use_jwt_access=always_use_jwt_access,
-            api_audience=api_audience
+            api_audience=api_audience,
         )
 
     class _BaseCancelQuantumJob:
@@ -93,11 +92,12 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'post',
-                'uri': '/v1alpha1/{name=projects/*/programs/*/jobs/*}:cancel',
-                'body': '*',
-            },
+            http_options: List[Dict[str, str]] = [
+                {
+                    'method': 'post',
+                    'uri': '/v1alpha1/{name=projects/*/programs/*/jobs/*}:cancel',
+                    'body': '*',
+                }
             ]
             return http_options
 
@@ -112,16 +112,17 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             # Jsonify the request body
 
             body = json_format.MessageToJson(
-                transcoded_request['body'],
-                use_integers_for_enums=True
+                transcoded_request['body'], use_integers_for_enums=True
             )
             return body
+
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -132,11 +133,12 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'post',
-                'uri': '/v1alpha1/{name=projects/*/processors/*/reservations/*}:cancel',
-                'body': '*',
-            },
+            http_options: List[Dict[str, str]] = [
+                {
+                    'method': 'post',
+                    'uri': '/v1alpha1/{name=projects/*/processors/*/reservations/*}:cancel',
+                    'body': '*',
+                }
             ]
             return http_options
 
@@ -151,16 +153,17 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             # Jsonify the request body
 
             body = json_format.MessageToJson(
-                transcoded_request['body'],
-                use_integers_for_enums=True
+                transcoded_request['body'], use_integers_for_enums=True
             )
             return body
+
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -171,11 +174,12 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'post',
-                'uri': '/v1alpha1/{parent=projects/*/programs/*}/jobs',
-                'body': 'quantum_job',
-            },
+            http_options: List[Dict[str, str]] = [
+                {
+                    'method': 'post',
+                    'uri': '/v1alpha1/{parent=projects/*/programs/*}/jobs',
+                    'body': 'quantum_job',
+                }
             ]
             return http_options
 
@@ -190,16 +194,17 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             # Jsonify the request body
 
             body = json_format.MessageToJson(
-                transcoded_request['body'],
-                use_integers_for_enums=True
+                transcoded_request['body'], use_integers_for_enums=True
             )
             return body
+
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -210,11 +215,12 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'post',
-                'uri': '/v1alpha1/{parent=projects/*}/programs',
-                'body': 'quantum_program',
-            },
+            http_options: List[Dict[str, str]] = [
+                {
+                    'method': 'post',
+                    'uri': '/v1alpha1/{parent=projects/*}/programs',
+                    'body': 'quantum_program',
+                }
             ]
             return http_options
 
@@ -229,16 +235,17 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             # Jsonify the request body
 
             body = json_format.MessageToJson(
-                transcoded_request['body'],
-                use_integers_for_enums=True
+                transcoded_request['body'], use_integers_for_enums=True
             )
             return body
+
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -249,11 +256,12 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'post',
-                'uri': '/v1alpha1/{parent=projects/*/processors/*}/reservations',
-                'body': 'quantum_reservation',
-            },
+            http_options: List[Dict[str, str]] = [
+                {
+                    'method': 'post',
+                    'uri': '/v1alpha1/{parent=projects/*/processors/*}/reservations',
+                    'body': 'quantum_reservation',
+                }
             ]
             return http_options
 
@@ -268,16 +276,17 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             # Jsonify the request body
 
             body = json_format.MessageToJson(
-                transcoded_request['body'],
-                use_integers_for_enums=True
+                transcoded_request['body'], use_integers_for_enums=True
             )
             return body
+
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -288,10 +297,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'delete',
-                'uri': '/v1alpha1/{name=projects/*/programs/*/jobs/*}',
-            },
+            http_options: List[Dict[str, str]] = [
+                {'method': 'delete', 'uri': '/v1alpha1/{name=projects/*/programs/*/jobs/*}'}
             ]
             return http_options
 
@@ -303,10 +310,11 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -317,10 +325,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'delete',
-                'uri': '/v1alpha1/{name=projects/*/programs/*}',
-            },
+            http_options: List[Dict[str, str]] = [
+                {'method': 'delete', 'uri': '/v1alpha1/{name=projects/*/programs/*}'}
             ]
             return http_options
 
@@ -332,10 +338,11 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -346,10 +353,11 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'delete',
-                'uri': '/v1alpha1/{name=projects/*/processors/*/reservations/*}',
-            },
+            http_options: List[Dict[str, str]] = [
+                {
+                    'method': 'delete',
+                    'uri': '/v1alpha1/{name=projects/*/processors/*/reservations/*}',
+                }
             ]
             return http_options
 
@@ -361,10 +369,11 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -375,10 +384,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'get',
-                'uri': '/v1alpha1/{name=projects/*/processors/*/calibrations/*}',
-            },
+            http_options: List[Dict[str, str]] = [
+                {'method': 'get', 'uri': '/v1alpha1/{name=projects/*/processors/*/calibrations/*}'}
             ]
             return http_options
 
@@ -390,10 +397,11 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -404,10 +412,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'get',
-                'uri': '/v1alpha1/{name=projects/*/programs/*/jobs/*}',
-            },
+            http_options: List[Dict[str, str]] = [
+                {'method': 'get', 'uri': '/v1alpha1/{name=projects/*/programs/*/jobs/*}'}
             ]
             return http_options
 
@@ -419,10 +425,11 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -433,10 +440,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'get',
-                'uri': '/v1alpha1/{name=projects/*/processors/*}',
-            },
+            http_options: List[Dict[str, str]] = [
+                {'method': 'get', 'uri': '/v1alpha1/{name=projects/*/processors/*}'}
             ]
             return http_options
 
@@ -448,10 +453,11 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -460,23 +466,27 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
         def __hash__(self):  # pragma: NO COVER
             return NotImplementedError("__hash__ must be implemented.")
 
-        __REQUIRED_FIELDS_DEFAULT_VALUES: Dict[str, Any] =  {
-        }
+        __REQUIRED_FIELDS_DEFAULT_VALUES: Dict[str, Any] = {}
 
         @classmethod
         def _get_unset_required_fields(cls, message_dict):
-            return {k: v for k, v in cls.__REQUIRED_FIELDS_DEFAULT_VALUES.items() if k not in message_dict}
+            return {
+                k: v
+                for k, v in cls.__REQUIRED_FIELDS_DEFAULT_VALUES.items()
+                if k not in message_dict
+            }
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'get',
-                'uri': '/v1alpha1/{name=projects/*/processors/*/configSnapshots/*/configs/*}',
-            },
-        {
-                'method': 'get',
-                'uri': '/v1alpha1/{name=projects/*/processors/*/configAutomationRuns/*/configs/*}',
-            },
+            http_options: List[Dict[str, str]] = [
+                {
+                    'method': 'get',
+                    'uri': '/v1alpha1/{name=projects/*/processors/*/configSnapshots/*/configs/*}',
+                },
+                {
+                    'method': 'get',
+                    'uri': '/v1alpha1/{name=projects/*/processors/*/configAutomationRuns/*/configs/*}',
+                },
             ]
             return http_options
 
@@ -488,11 +498,16 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
-            query_params.update(_BaseQuantumEngineServiceRestTransport._BaseGetQuantumProcessorConfig._get_unset_required_fields(query_params))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
+            query_params.update(
+                _BaseQuantumEngineServiceRestTransport._BaseGetQuantumProcessorConfig._get_unset_required_fields(
+                    query_params
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -503,10 +518,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'get',
-                'uri': '/v1alpha1/{name=projects/*/programs/*}',
-            },
+            http_options: List[Dict[str, str]] = [
+                {'method': 'get', 'uri': '/v1alpha1/{name=projects/*/programs/*}'}
             ]
             return http_options
 
@@ -518,10 +531,11 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -532,10 +546,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'get',
-                'uri': '/v1alpha1/{name=projects/*/processors/*/reservations/*}',
-            },
+            http_options: List[Dict[str, str]] = [
+                {'method': 'get', 'uri': '/v1alpha1/{name=projects/*/processors/*/reservations/*}'}
             ]
             return http_options
 
@@ -547,10 +559,11 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -561,10 +574,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'get',
-                'uri': '/v1alpha1/{parent=projects/*/programs/*/jobs/*}/result',
-            },
+            http_options: List[Dict[str, str]] = [
+                {'method': 'get', 'uri': '/v1alpha1/{parent=projects/*/programs/*/jobs/*}/result'}
             ]
             return http_options
 
@@ -576,10 +587,11 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -590,10 +602,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'get',
-                'uri': '/v1alpha1/{parent=projects/*/processors/*}/calibrations',
-            },
+            http_options: List[Dict[str, str]] = [
+                {'method': 'get', 'uri': '/v1alpha1/{parent=projects/*/processors/*}/calibrations'}
             ]
             return http_options
 
@@ -605,10 +615,11 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -619,10 +630,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'get',
-                'uri': '/v1alpha1/{parent=projects/*/programs/*/jobs/*}/events',
-            },
+            http_options: List[Dict[str, str]] = [
+                {'method': 'get', 'uri': '/v1alpha1/{parent=projects/*/programs/*/jobs/*}/events'}
             ]
             return http_options
 
@@ -634,10 +643,11 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -648,10 +658,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'get',
-                'uri': '/v1alpha1/{parent=projects/*/programs/*}/jobs',
-            },
+            http_options: List[Dict[str, str]] = [
+                {'method': 'get', 'uri': '/v1alpha1/{parent=projects/*/programs/*}/jobs'}
             ]
             return http_options
 
@@ -663,10 +671,11 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -675,23 +684,27 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
         def __hash__(self):  # pragma: NO COVER
             return NotImplementedError("__hash__ must be implemented.")
 
-        __REQUIRED_FIELDS_DEFAULT_VALUES: Dict[str, Any] =  {
-        }
+        __REQUIRED_FIELDS_DEFAULT_VALUES: Dict[str, Any] = {}
 
         @classmethod
         def _get_unset_required_fields(cls, message_dict):
-            return {k: v for k, v in cls.__REQUIRED_FIELDS_DEFAULT_VALUES.items() if k not in message_dict}
+            return {
+                k: v
+                for k, v in cls.__REQUIRED_FIELDS_DEFAULT_VALUES.items()
+                if k not in message_dict
+            }
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'get',
-                'uri': '/v1alpha1/{parent=projects/*/processors/*/configSnapshots/*/configs}',
-            },
-        {
-                'method': 'get',
-                'uri': '/v1alpha1/{parent=projects/*/processors/*/configAutomationRuns/*/configs}',
-            },
+            http_options: List[Dict[str, str]] = [
+                {
+                    'method': 'get',
+                    'uri': '/v1alpha1/{parent=projects/*/processors/*/configSnapshots/*/configs}',
+                },
+                {
+                    'method': 'get',
+                    'uri': '/v1alpha1/{parent=projects/*/processors/*/configAutomationRuns/*/configs}',
+                },
             ]
             return http_options
 
@@ -703,11 +716,16 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
-            query_params.update(_BaseQuantumEngineServiceRestTransport._BaseListQuantumProcessorConfigs._get_unset_required_fields(query_params))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
+            query_params.update(
+                _BaseQuantumEngineServiceRestTransport._BaseListQuantumProcessorConfigs._get_unset_required_fields(
+                    query_params
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -718,10 +736,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'get',
-                'uri': '/v1alpha1/{parent=projects/*}/processors',
-            },
+            http_options: List[Dict[str, str]] = [
+                {'method': 'get', 'uri': '/v1alpha1/{parent=projects/*}/processors'}
             ]
             return http_options
 
@@ -733,10 +749,11 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -747,10 +764,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'get',
-                'uri': '/v1alpha1/{parent=projects/*}/programs',
-            },
+            http_options: List[Dict[str, str]] = [
+                {'method': 'get', 'uri': '/v1alpha1/{parent=projects/*}/programs'}
             ]
             return http_options
 
@@ -762,10 +777,11 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -776,10 +792,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'get',
-                'uri': '/v1alpha1/{parent=projects/*}/reservationBudgets',
-            },
+            http_options: List[Dict[str, str]] = [
+                {'method': 'get', 'uri': '/v1alpha1/{parent=projects/*}/reservationBudgets'}
             ]
             return http_options
 
@@ -791,10 +805,11 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -805,10 +820,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'get',
-                'uri': '/v1alpha1/{parent=projects/*}/reservationGrant',
-            },
+            http_options: List[Dict[str, str]] = [
+                {'method': 'get', 'uri': '/v1alpha1/{parent=projects/*}/reservationGrant'}
             ]
             return http_options
 
@@ -820,10 +833,11 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -834,10 +848,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'get',
-                'uri': '/v1alpha1/{parent=projects/*/processors/*}/reservations',
-            },
+            http_options: List[Dict[str, str]] = [
+                {'method': 'get', 'uri': '/v1alpha1/{parent=projects/*/processors/*}/reservations'}
             ]
             return http_options
 
@@ -849,10 +861,11 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -863,10 +876,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'get',
-                'uri': '/v1alpha1/{parent=projects/*/processors/*}/timeSlots',
-            },
+            http_options: List[Dict[str, str]] = [
+                {'method': 'get', 'uri': '/v1alpha1/{parent=projects/*/processors/*}/timeSlots'}
             ]
             return http_options
 
@@ -878,10 +889,11 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -896,11 +908,12 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'post',
-                'uri': '/v1alpha1/{name=projects/*/reservationGrant/*}:reallocate',
-                'body': '*',
-            },
+            http_options: List[Dict[str, str]] = [
+                {
+                    'method': 'post',
+                    'uri': '/v1alpha1/{name=projects/*/reservationGrant/*}:reallocate',
+                    'body': '*',
+                }
             ]
             return http_options
 
@@ -915,16 +928,17 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             # Jsonify the request body
 
             body = json_format.MessageToJson(
-                transcoded_request['body'],
-                use_integers_for_enums=True
+                transcoded_request['body'], use_integers_for_enums=True
             )
             return body
+
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -935,11 +949,12 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'patch',
-                'uri': '/v1alpha1/{name=projects/*/programs/*/jobs/*}',
-                'body': 'quantum_job',
-            },
+            http_options: List[Dict[str, str]] = [
+                {
+                    'method': 'patch',
+                    'uri': '/v1alpha1/{name=projects/*/programs/*/jobs/*}',
+                    'body': 'quantum_job',
+                }
             ]
             return http_options
 
@@ -954,16 +969,17 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             # Jsonify the request body
 
             body = json_format.MessageToJson(
-                transcoded_request['body'],
-                use_integers_for_enums=True
+                transcoded_request['body'], use_integers_for_enums=True
             )
             return body
+
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -974,11 +990,12 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'patch',
-                'uri': '/v1alpha1/{name=projects/*/programs/*}',
-                'body': 'quantum_program',
-            },
+            http_options: List[Dict[str, str]] = [
+                {
+                    'method': 'patch',
+                    'uri': '/v1alpha1/{name=projects/*/programs/*}',
+                    'body': 'quantum_program',
+                }
             ]
             return http_options
 
@@ -993,16 +1010,17 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             # Jsonify the request body
 
             body = json_format.MessageToJson(
-                transcoded_request['body'],
-                use_integers_for_enums=True
+                transcoded_request['body'], use_integers_for_enums=True
             )
             return body
+
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
@@ -1013,11 +1031,12 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
 
         @staticmethod
         def _get_http_options():
-            http_options: List[Dict[str, str]] = [{
-                'method': 'patch',
-                'uri': '/v1alpha1/{name=projects/*/processors/*/reservations/*}',
-                'body': 'quantum_reservation',
-            },
+            http_options: List[Dict[str, str]] = [
+                {
+                    'method': 'patch',
+                    'uri': '/v1alpha1/{name=projects/*/processors/*/reservations/*}',
+                    'body': 'quantum_reservation',
+                }
             ]
             return http_options
 
@@ -1032,21 +1051,20 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             # Jsonify the request body
 
             body = json_format.MessageToJson(
-                transcoded_request['body'],
-                use_integers_for_enums=True
+                transcoded_request['body'], use_integers_for_enums=True
             )
             return body
+
         @staticmethod
         def _get_query_params_json(transcoded_request):
-            query_params = json.loads(json_format.MessageToJson(
-                transcoded_request['query_params'],
-                use_integers_for_enums=True,
-            ))
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
 
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
 
 
-__all__=(
-    '_BaseQuantumEngineServiceRestTransport',
-)
+__all__ = ('_BaseQuantumEngineServiceRestTransport',)
