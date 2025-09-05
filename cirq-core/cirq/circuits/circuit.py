@@ -1666,8 +1666,8 @@ class AbstractCircuit(abc.ABC):
         )
 
     def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
-        measures = set()
-        controls = set()
+        measures: set[cirq.MeasurementKey] = set()
+        controls: set[cirq.MeasurementKey] = set()
         for op in self.all_operations():
             # Only require keys that haven't already been measured earlier
             controls.update(k for k in protocols.control_keys(op) if k not in measures)
