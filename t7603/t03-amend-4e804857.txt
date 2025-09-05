@@ -1,0 +1,10 @@
+x**2 * x * x * x
+47.9 μs ± 2.31 μs per loop (mean ± std. dev. of 7 runs, 10,000 loops each)
+x * x**2 * x * x
+45.8 μs ± 2.02 μs per loop (mean ± std. dev. of 7 runs, 10,000 loops each)
+x**1 * x**4
+42.4 μs ± 3.49 μs per loop (mean ± std. dev. of 7 runs, 10,000 loops each)
+x**4 * x**1
+42.5 μs ± 2.74 μs per loop (mean ± std. dev. of 7 runs, 10,000 loops each)
+x1 * x2
+13 μs ± 659 ns per loop (mean ± std. dev. of 7 runs, 100,000 loops each)
