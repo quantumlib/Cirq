@@ -1098,6 +1098,20 @@ def _try_interpret_as_pauli_string(op: Any) -> PauliString | None:
     if isinstance(op, PauliString):
         return op
 
+    # optimize for integer exponents of Pauli gates
+    cached_gates: dict[type[cirq.Gate | None], cirq.Pauli] = {
+        common_gates.XPowGate: pauli_gates.X,
+        common_gates.YPowGate: pauli_gates.Y,
+        common_gates.ZPowGate: pauli_gates.Z,
+    }
+    if (pauli := cached_gates.get(type(op.gate))) is not None:
+        exponent = op.gate.exponent  # type: ignore
+        if exponent % 2 == 0:
+            return PauliString()
+        if exponent % 2 == 1:
+            return pauli.on(op.qubits[0])
+        return None
+
     pauli_expansion_op = protocols.pauli_expansion(op, default=None)
     if pauli_expansion_op is None or len(pauli_expansion_op) != 1:
         return None
