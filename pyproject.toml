@@ -56,7 +56,10 @@ asyncio_default_fixture_loop_scope = "function"
 line-length = 100
 preview = true
 target-version = "py311"
-extend-exclude = ["*_pb2.py*"]
+extend-exclude = [
+    "*_pb2.py*",
+    "cirq-google/cirq_google/cloud/*.py",  # contains only generated code
+]
 
 [tool.ruff.lint]
 select = [
