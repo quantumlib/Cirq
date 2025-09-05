@@ -159,7 +159,7 @@ class EngineJob(abstract_job.AbstractJob):
 
     def labels(self) -> dict[str, str]:
         """Returns the labels of the job."""
-        return self._inner_job().labels
+        return dict(self._inner_job().labels)
 
     def set_labels(self, labels: dict[str, str]) -> EngineJob:
         """Sets (overwriting) the labels for a previously created quantum job.
