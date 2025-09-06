@@ -234,9 +234,12 @@ class ClassicallyControlledOperation(raw_types.Operation):
 
     def _qasm_(self, args: cirq.QasmArgs) -> str | None:
         args.validate_version('2.0', '3.0')
-        if len(self._conditions) > 1:
-            raise ValueError('QASM does not support multiple conditions.')
+        if args.version == "2.0" and len(self._conditions) > 1:
+            raise ValueError(
+                'QASM 2.0 does not support multiple conditions. Consider exporting with QASM 3.0.'
+            )
         subop_qasm = protocols.qasm(self._sub_operation, args=args)
         if not self._conditions:
             return subop_qasm
-        return f'if ({protocols.qasm(self._conditions[0], args=args)}) {subop_qasm}'
+        condition_qasm = " && ".join(protocols.qasm(c, args=args) for c in self._conditions)
+        return f'if ({condition_qasm}) {subop_qasm}'

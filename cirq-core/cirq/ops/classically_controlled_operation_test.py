@@ -281,8 +281,32 @@ def test_qasm_multiple_conditions() -> None:
             sympy.Eq(sympy.Symbol('a'), 0), sympy.Eq(sympy.Symbol('b'), 0)
         ),
     )
-    with pytest.raises(ValueError, match='QASM does not support multiple conditions'):
-        _ = cirq.qasm(circuit)
+    with pytest.raises(
+        ValueError,
+        match='QASM 2.0 does not support multiple conditions. Consider exporting with QASM 3.0.',
+    ):
+        _ = cirq.qasm(circuit, args=cirq.QasmArgs(version='2.0'))
+
+    qasm = cirq.qasm(circuit, args=cirq.QasmArgs(version='3.0'))
+    assert (
+        qasm
+        == f"""// Generated from Cirq v{cirq.__version__}
+
+OPENQASM 3.0;
+include "stdgates.inc";
+
+
+// Qubits: [q(0), q(1)]
+qubit[2] q;
+bit[1] m_a;
+bit[1] m_b;
+
+
+m_a[0] = measure q[0];
+m_b[0] = measure q[0];
+if (m_a==0 && m_b==0) x q[1];
+"""
+    )
 
 
 @pytest.mark.parametrize('sim', ALL_SIMULATORS)
