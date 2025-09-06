@@ -1,4 +1,4 @@
 google-api-core[grpc] ~= 2.22
 proto-plus ~= 1.25
-protobuf >= 5.26.1, <6.0dev
+protobuf >= 5.26.1, <7.0dev
 typedunits

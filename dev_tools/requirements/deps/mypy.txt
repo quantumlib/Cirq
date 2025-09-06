@@ -2,5 +2,5 @@
 mypy==1.17.1
 
 # packages with stub types for various libraries
-types-protobuf>=5.26.1, <7.0
+types-protobuf>=5.26.1, <7.0dev
 types-requests~=2.32
