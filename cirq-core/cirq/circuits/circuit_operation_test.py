@@ -1324,3 +1324,17 @@ def test_has_unitary_protocol_returns_true_if_all_params_resolve() -> None:
     exp = sympy.Symbol('exp')
     op = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q) ** exp), param_resolver={exp: 0.5})
     assert protocols.has_unitary(op)
+
+
+def test_control_keys_respects_internal_measurement_order() -> None:
+    q = cirq.LineQubit(0)
+
+    # Control BEFORE measurement inside the subcircuit: external key required
+    fc_before = cirq.FrozenCircuit(cirq.X(q).with_classical_controls('a'), cirq.measure(q, key='a'))
+    op_before = cirq.CircuitOperation(fc_before)
+    assert cirq.control_keys(op_before) == {cirq.MeasurementKey('a')}
+
+    # Measurement BEFORE control inside the subcircuit: no external key required
+    fc_after = cirq.FrozenCircuit(cirq.measure(q, key='a'), cirq.X(q).with_classical_controls('a'))
+    op_after = cirq.CircuitOperation(fc_after)
+    assert cirq.control_keys(op_after) == set()
