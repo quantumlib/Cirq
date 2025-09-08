@@ -247,8 +247,13 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
     def __mul__(self, other):
         concrete_class = type(self)
-        other = self._try_coerce_to_dps(other) or other
-        if isinstance(other, BaseDensePauliString):
+        if isinstance(other, (sympy.Basic, numbers.Number)):
+            new_coef = protocols.mul(self.coefficient, other, default=None)
+            if new_coef is None:
+                return NotImplemented
+            return concrete_class(pauli_mask=self.pauli_mask, coefficient=new_coef)
+
+        if (other := self._attempt_value_to_dps(other)) is not None:
             if isinstance(other, MutableDensePauliString):
                 concrete_class = MutableDensePauliString
             max_len = max(len(self.pauli_mask), len(other.pauli_mask))
@@ -263,19 +268,13 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
                 pauli_mask=new_mask, coefficient=self.coefficient * other.coefficient * tweak
             )
 
-        if isinstance(other, (sympy.Basic, numbers.Number)):
-            new_coef = protocols.mul(self.coefficient, other, default=None)
-            if new_coef is None:
-                return NotImplemented
-            return concrete_class(pauli_mask=self.pauli_mask, coefficient=new_coef)
-
         return NotImplemented
 
     def __rmul__(self, other):
         if isinstance(other, (sympy.Basic, numbers.Number)):
             return self.__mul__(other)
 
-        if (other := self._try_coerce_to_dps(other)) is not None:
+        if (other := self._attempt_value_to_dps(other)) is not None:
             return other.__mul__(self)
 
         return NotImplemented
@@ -353,8 +352,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         )
 
     def _commutes_(self, other: Any, *, atol: float = 1e-8) -> bool | NotImplementedType | None:
-        other = self._try_coerce_to_dps(other) or other
-        if isinstance(other, BaseDensePauliString):
+        if (other := self._attempt_value_to_dps(other)) is not None:
             n = min(len(self.pauli_mask), len(other.pauli_mask))
             phase = _vectorized_pauli_mul_phase(self.pauli_mask[:n], other.pauli_mask[:n])
             return phase == 1 or phase == -1
@@ -390,7 +388,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         """
 
     @classmethod
-    def _try_coerce_to_dps(cls, v: Any) -> BaseDensePauliString | None:
+    def _attempt_value_to_dps(cls, v: Any) -> BaseDensePauliString | None:
         if isinstance(v, BaseDensePauliString):
             return v
 
@@ -519,8 +517,14 @@ class MutableDensePauliString(BaseDensePauliString):
         return NotImplemented
 
     def __imul__(self, other):
-        other = self._try_coerce_to_dps(other) or other
-        if isinstance(other, BaseDensePauliString):
+        if isinstance(other, (sympy.Basic, numbers.Number)):
+            new_coef = protocols.mul(self.coefficient, other, default=None)
+            if new_coef is None:
+                return NotImplemented
+            self._coefficient = new_coef if isinstance(new_coef, sympy.Basic) else complex(new_coef)
+            return self
+
+        if (other := self._attempt_value_to_dps(other)) is not None:
             if len(other) > len(self):
                 raise ValueError(
                     "The receiving dense pauli string is smaller than "
@@ -532,13 +536,6 @@ class MutableDensePauliString(BaseDensePauliString):
             self._coefficient *= _vectorized_pauli_mul_phase(self_mask, other.pauli_mask)
             self._coefficient *= other.coefficient
             self_mask ^= other.pauli_mask
-            return self
-
-        if isinstance(other, (sympy.Basic, numbers.Number)):
-            new_coef = protocols.mul(self.coefficient, other, default=None)
-            if new_coef is None:
-                return NotImplemented
-            self._coefficient = new_coef if isinstance(new_coef, sympy.Basic) else complex(new_coef)
             return self
 
         return NotImplemented
