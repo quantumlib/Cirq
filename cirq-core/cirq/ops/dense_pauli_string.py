@@ -585,7 +585,7 @@ def _as_pauli_mask(val: Iterable[cirq.PAULI_GATE_LIKE] | np.ndarray) -> np.ndarr
     return np.array([_pauli_index(v) for v in val], dtype=np.uint8)
 
 
-def _try_coerce_to_dps(v: Any) -> BaseDensePauliString | None:
+def _try_coerce_to_dps(v: cirq.Operation) -> BaseDensePauliString | None:
     if isinstance(v, BaseDensePauliString):
         return v
 
