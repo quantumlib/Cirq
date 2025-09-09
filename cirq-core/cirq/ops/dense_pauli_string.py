@@ -247,7 +247,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
     def __mul__(self, other):
         concrete_class = type(self)
-        other = _try_coerce_to_dps(other) or other
+        other = _try_interpret_as_dps(other) or other
         if isinstance(other, BaseDensePauliString):
             if isinstance(other, MutableDensePauliString):
                 concrete_class = MutableDensePauliString
@@ -275,7 +275,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         if isinstance(other, (sympy.Basic, numbers.Number)):
             return self.__mul__(other)
 
-        if (other := _try_coerce_to_dps(other)) is not None:
+        if other := _try_interpret_as_dps(other):
             return other.__mul__(self)
 
         return NotImplemented
@@ -353,7 +353,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         )
 
     def _commutes_(self, other: Any, *, atol: float = 1e-8) -> bool | NotImplementedType | None:
-        other = _try_coerce_to_dps(other) or other
+        other = _try_interpret_as_dps(other)
         if isinstance(other, BaseDensePauliString):
             n = min(len(self.pauli_mask), len(other.pauli_mask))
             phase = _vectorized_pauli_mul_phase(self.pauli_mask[:n], other.pauli_mask[:n])
@@ -496,7 +496,7 @@ class MutableDensePauliString(BaseDensePauliString):
         return NotImplemented
 
     def __imul__(self, other):
-        other = _try_coerce_to_dps(other) or other
+        other = _try_interpret_as_dps(other) or other
         if isinstance(other, BaseDensePauliString):
             if len(other) > len(self):
                 raise ValueError(
@@ -585,7 +585,7 @@ def _as_pauli_mask(val: Iterable[cirq.PAULI_GATE_LIKE] | np.ndarray) -> np.ndarr
     return np.array([_pauli_index(v) for v in val], dtype=np.uint8)
 
 
-def _try_coerce_to_dps(v: cirq.Operation) -> BaseDensePauliString | None:
+def _try_interpret_as_dps(v: cirq.Operation) -> BaseDensePauliString | None:
     if isinstance(v, BaseDensePauliString):
         return v
 
