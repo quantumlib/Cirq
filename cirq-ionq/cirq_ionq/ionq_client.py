@@ -128,6 +128,7 @@ class _IonQClient:
                 set, uses `default_target`.
             name: An optional name of the job. Different than the `job_id` of the job.
             extra_query_params: Specify any parameters to include in the request.
+            batch_mode: bool determines whether to submit a single circuit or a batch of circuits.
 
         Returns:
             The json body of the response as a dict. This does not contain populated information
