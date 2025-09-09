@@ -35,10 +35,13 @@ import sympy
 
 from cirq import linalg, protocols, value
 from cirq._compat import proper_repr
+from cirq._import import LazyLoader
 from cirq.ops import global_phase_op, identity, pauli_gates, pauli_string, raw_types
 
 if TYPE_CHECKING:
     import cirq
+
+devices = LazyLoader("devices", globals(), "cirq.devices")
 
 # Order is important! Index equals numeric value.
 PAULI_CHARS = 'IXYZ'
@@ -170,7 +173,6 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     def _apply_unitary_(self, args) -> np.ndarray | None | NotImplementedType:
         if not self._has_unitary_():
             return NotImplemented
-        from cirq import devices
 
         qubits = devices.LineQubit.range(len(self))
         decomposed_ops = cast(Iterable['cirq.OP_TREE'], self._decompose_(qubits))
@@ -321,8 +323,6 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
                 this instance.
         """
         if qubits is None:
-            from cirq import devices
-
             qubits = devices.LineQubit.range(len(self))
 
         if len(qubits) != len(self):
@@ -591,8 +591,6 @@ def _try_coerce_to_dps(v: cirq.Operation) -> BaseDensePauliString | None:
 
     if (ps := pauli_string._try_interpret_as_pauli_string(v)) is None:
         return None
-
-    from cirq import devices
 
     if not all(isinstance(q, devices.LineQubit) for q in ps.qubits):
         raise ValueError(
