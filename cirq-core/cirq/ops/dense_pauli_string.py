@@ -247,7 +247,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
     def __mul__(self, other):
         concrete_class = type(self)
-        other = self._try_coerce_to_dps(other) or other
+        other = _try_coerce_to_dps(other) or other
         if isinstance(other, BaseDensePauliString):
             if isinstance(other, MutableDensePauliString):
                 concrete_class = MutableDensePauliString
@@ -275,7 +275,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         if isinstance(other, (sympy.Basic, numbers.Number)):
             return self.__mul__(other)
 
-        if (other := self._try_coerce_to_dps(other)) is not None:
+        if (other := _try_coerce_to_dps(other)) is not None:
             return other.__mul__(self)
 
         return NotImplemented
@@ -353,7 +353,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         )
 
     def _commutes_(self, other: Any, *, atol: float = 1e-8) -> bool | NotImplementedType | None:
-        other = self._try_coerce_to_dps(other) or other
+        other = _try_coerce_to_dps(other) or other
         if isinstance(other, BaseDensePauliString):
             n = min(len(self.pauli_mask), len(other.pauli_mask))
             phase = _vectorized_pauli_mul_phase(self.pauli_mask[:n], other.pauli_mask[:n])
@@ -388,29 +388,6 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         Returns:
             A copied instance.
         """
-
-    @classmethod
-    def _try_coerce_to_dps(cls, v: Any) -> BaseDensePauliString | None:
-        if isinstance(v, BaseDensePauliString):
-            return v
-
-        if (ps := pauli_string._try_interpret_as_pauli_string(v)) is None:
-            return None
-
-        from cirq import devices
-
-        if not all(isinstance(q, devices.LineQubit) for q in ps.qubits):
-            raise ValueError(
-                'Got a Pauli operation, but it was applied to a qubit type '
-                'other than `cirq.LineQubit` so its dense index is ambiguous.\n'
-                f'v={repr(v)}.'
-            )
-
-        pauli_mask = np.zeros(max([q.x + 1 for q in ps.qubits], default=0), dtype=np.uint8)
-        for q in ps.qubits:
-            pauli_mask[q.x] = pauli_string.PAULI_GATE_LIKE_TO_INDEX_MAP[ps[q]]
-
-        return cls(pauli_mask)
 
 
 class DensePauliString(BaseDensePauliString):
@@ -519,7 +496,7 @@ class MutableDensePauliString(BaseDensePauliString):
         return NotImplemented
 
     def __imul__(self, other):
-        other = self._try_coerce_to_dps(other) or other
+        other = _try_coerce_to_dps(other) or other
         if isinstance(other, BaseDensePauliString):
             if len(other) > len(self):
                 raise ValueError(
@@ -606,6 +583,29 @@ def _as_pauli_mask(val: Iterable[cirq.PAULI_GATE_LIKE] | np.ndarray) -> np.ndarr
     if isinstance(val, np.ndarray):
         return np.asarray(val, dtype=np.uint8)
     return np.array([_pauli_index(v) for v in val], dtype=np.uint8)
+
+
+def _try_coerce_to_dps(v: Any) -> BaseDensePauliString | None:
+    if isinstance(v, BaseDensePauliString):
+        return v
+
+    if (ps := pauli_string._try_interpret_as_pauli_string(v)) is None:
+        return None
+
+    from cirq import devices
+
+    if not all(isinstance(q, devices.LineQubit) for q in ps.qubits):
+        raise ValueError(
+            'Got a Pauli operation, but it was applied to a qubit type '
+            'other than `cirq.LineQubit` so its dense index is ambiguous.\n'
+            f'v={repr(v)}.'
+        )
+
+    pauli_mask = np.zeros(max([q.x + 1 for q in ps.qubits], default=0), dtype=np.uint8)
+    for q in ps.qubits:
+        pauli_mask[q.x] = pauli_string.PAULI_GATE_LIKE_TO_INDEX_MAP[ps[q]]
+
+    return DensePauliString(pauli_mask)
 
 
 def _vectorized_pauli_mul_phase(lhs: int | np.ndarray, rhs: int | np.ndarray) -> complex:
