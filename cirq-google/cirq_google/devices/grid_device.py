@@ -19,7 +19,7 @@ from __future__ import annotations
 import re
 import warnings
 from dataclasses import dataclass
-from typing import Any, cast, Collection, Mapping, Sequence
+from typing import Any, cast, Collection, Iterator, Mapping, Sequence
 
 import cirq
 from cirq_google import ops, transformers
@@ -30,7 +30,6 @@ from cirq_google.experimental import ops as experimental_ops
 # Gate family constants used in various parts of GridDevice logic.
 _PHASED_XZ_GATE_FAMILY = cirq.GateFamily(cirq.PhasedXZGate)
 _MEASUREMENT_GATE_FAMILY = cirq.GateFamily(cirq.MeasurementGate)
-_WAIT_GATE_FAMILY = cirq.GateFamily(cirq.WaitGate)
 
 _SYC_FSIM_GATE_FAMILY = ops.FSimGateFamily(gates_to_accept=[ops.SYC])
 _SQRT_ISWAP_FSIM_GATE_FAMILY = ops.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP])
@@ -70,7 +69,7 @@ _SQRT_ISWAP_TARGET_GATES = [
 
 
 # Families of gates which can be applied to any subset of valid qubits.
-_VARIADIC_GATE_FAMILIES = [_MEASUREMENT_GATE_FAMILY, _WAIT_GATE_FAMILY]
+_VARIADIC_GATE_TYPES = (cirq.MeasurementGate, cirq.WaitGate)
 
 
 GateOrFamily = type[cirq.Gate] | cirq.Gate | cirq.GateFamily
@@ -156,6 +155,18 @@ _GATES: list[_GateRepresentations] = [
     ),
     _GateRepresentations(
         gate_spec_name='reset', supported_gates=[cirq.GateFamily(cirq.ResetChannel)]
+    ),
+    _GateRepresentations(
+        gate_spec_name='analog_detune_qubit',
+        supported_gates=[cirq.GateFamily(ops.AnalogDetuneQubit)],
+    ),
+    _GateRepresentations(
+        gate_spec_name='analog_detune_coupler_only',
+        supported_gates=[cirq.GateFamily(ops.AnalogDetuneCouplerOnly)],
+    ),
+    _GateRepresentations(
+        gate_spec_name='wait_gate_with_unit',
+        supported_gates=[cirq.GateFamily(ops.WaitGateWithUnit)],
     ),
 ]
 
@@ -593,6 +604,20 @@ class GridDevice(cirq.Device):
         """Get metadata information for the device."""
         return self._metadata
 
+    def validate_circuit(self, circuit: cirq.AbstractCircuit) -> None:
+        """Raises an exception if a circuit is not valid.
+
+        Optimized version of `validate_circuit` from cirq.Device that
+        is slightly faster.
+
+        Args:
+            circuit: The circuit to validate.
+
+        Raises:
+            ValueError: The circuit isn't valid for this device.
+        """
+        self._validate_operations(circuit.all_operations())
+
     def validate_operation(self, operation: cirq.Operation) -> None:
         """Raises an exception if an operation is not valid.
 
@@ -607,25 +632,44 @@ class GridDevice(cirq.Device):
         Raises:
             ValueError: The operation isn't valid for this device.
         """
+        return self._validate_operations(iter([operation]))
 
-        if operation not in self._metadata.gateset:
-            raise ValueError(f'Operation {operation} contains a gate which is not supported.')
+    def _validate_operations(self, operations: Iterator[cirq.Operation]) -> None:
+        """Raises an exception if any of the operations are not valid.
 
-        for q in operation.qubits:
-            if isinstance(q, ops.Coupler):
-                if any(qc not in self._metadata.qubit_set for qc in q.qubits):
-                    raise ValueError(f'Qubits on coupler not on device: {q.qubits}.')
-                if frozenset(q.qubits) not in self._metadata.qubit_pairs:
-                    raise ValueError(f'Coupler pair is not valid on device: {q.qubits}.')
-            elif q not in self._metadata.qubit_set:
-                raise ValueError(f'Qubit not on device: {q!r}.')
+        An operation is valid if
+            * The operation is in the device gateset.
+            * The operation targets a valid qubit
+            * The operation targets a valid qubit pair, if it is a two-qubit operation.
 
-        if (
-            len(operation.qubits) == 2
-            and not any(operation in gf for gf in _VARIADIC_GATE_FAMILIES)
-            and frozenset(operation.qubits) not in self._metadata.qubit_pairs
-        ):
-            raise ValueError(f'Qubit pair is not valid on device: {operation.qubits!r}.')
+        Args:
+            operation: The operation to validate.
+
+        Raises:
+            ValueError: The operation isn't valid for this device.
+        """
+        gateset = self._metadata.gateset
+        qubit_pairs = self._metadata.qubit_pairs
+        qubits = self._metadata.qubit_set
+        for operation in operations:
+            if operation not in gateset:
+                raise ValueError(f'Operation {operation} contains a gate which is not supported.')
+
+            for q in operation.qubits:
+                if isinstance(q, ops.Coupler):
+                    if any(qc not in qubits for qc in q.qubits):
+                        raise ValueError(f'Qubits on coupler not on device: {q.qubits}.')
+                    if frozenset(q.qubits) not in qubit_pairs:
+                        raise ValueError(f'Coupler pair is not valid on device: {q.qubits}.')
+                elif q not in qubits:
+                    raise ValueError(f'Qubit not on device: {q!r}.')
+
+            if (
+                len(operation.qubits) == 2
+                and not isinstance(operation.gate, _VARIADIC_GATE_TYPES)
+                and frozenset(operation.qubits) not in qubit_pairs
+            ):
+                raise ValueError(f'Qubit pair is not valid on device: {operation.qubits!r}.')
 
     def __str__(self) -> str:
         diagram = cirq.TextDiagramDrawer()

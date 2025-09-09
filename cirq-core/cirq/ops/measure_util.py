@@ -95,6 +95,7 @@ def measure(
     *target: raw_types.Qid,
     key: str | cirq.MeasurementKey | None = None,
     invert_mask: tuple[bool, ...] = (),
+    confusion_map: dict[tuple[int, ...], np.ndarray] | None = None,
 ) -> raw_types.Operation:
     pass
 
@@ -105,6 +106,7 @@ def measure(
     *,
     key: str | cirq.MeasurementKey | None = None,
     invert_mask: tuple[bool, ...] = (),
+    confusion_map: dict[tuple[int, ...], np.ndarray] | None = None,
 ) -> raw_types.Operation:
     pass
 

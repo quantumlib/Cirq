@@ -39,6 +39,7 @@ from typing import (
     Mapping,
     MutableSequence,
     overload,
+    Self,
     Sequence,
     TYPE_CHECKING,
     TypeVar,
@@ -47,7 +48,6 @@ from typing import (
 
 import networkx
 import numpy as np
-from typing_extensions import Self
 
 import cirq._version
 from cirq import _compat, devices, ops, protocols, qis
@@ -844,7 +844,9 @@ class AbstractCircuit(abc.ABC):
         return protocols.is_measurement(self)
 
     def _is_measurement_(self) -> bool:
-        return any(protocols.is_measurement(op) for op in self.all_operations())
+        # Measurements are most likely at the end of the circuit,
+        # so iterate from the end of the circuit
+        return any(protocols.is_measurement(op) for moment in reversed(self) for op in moment)
 
     def are_all_measurements_terminal(self) -> bool:
         """Whether all measurement gates are at the end of the circuit.
@@ -3011,13 +3013,15 @@ def get_earliest_accommodating_moment_index(
     mop_index = last_conflict + 1
 
     # Update our dicts with data from this `mop` placement. Note `mop_index` will always be greater
-    # than the existing value for all of these, by construction.
+    # than the existing value for qubits and measurement keys, by construction.
     for qubit in mop_qubits:
         qubit_indices[qubit] = mop_index
     for key in mop_mkeys:
         mkey_indices[key] = mop_index
+    # For control keys, keep the maximum moment index seen so far because ops with the same control
+    # keys can commute past each other.
     for key in mop_ckeys:
-        ckey_indices[key] = mop_index
+        ckey_indices[key] = max(mop_index, ckey_indices.get(key, -1))
 
     return mop_index
 

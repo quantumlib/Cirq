@@ -29,12 +29,12 @@ from typing import (
     Iterator,
     Mapping,
     overload,
+    Self,
     Sequence,
     TYPE_CHECKING,
 )
 
 import numpy as np
-from typing_extensions import Self
 
 from cirq import _compat, ops, protocols, qis
 from cirq._import import LazyLoader

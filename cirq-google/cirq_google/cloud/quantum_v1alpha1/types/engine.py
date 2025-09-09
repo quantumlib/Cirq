@@ -15,10 +15,11 @@
 #
 from __future__ import annotations
 
-from typing import MutableSequence
+from typing import MutableMapping, MutableSequence
 
-import proto
-from google.protobuf import duration_pb2, field_mask_pb2
+import proto  # type: ignore
+from google.protobuf import duration_pb2  # type: ignore
+from google.protobuf import field_mask_pb2  # type: ignore
 
 from cirq_google.cloud.quantum_v1alpha1.types import quantum
 
@@ -45,6 +46,8 @@ __protobuf__ = proto.module(
         'ListQuantumProcessorsResponse',
         'GetQuantumProcessorRequest',
         'GetQuantumProcessorConfigRequest',
+        'ListQuantumProcessorConfigsRequest',
+        'ListQuantumProcessorConfigsResponse',
         'ListQuantumCalibrationsRequest',
         'ListQuantumCalibrationsResponse',
         'GetQuantumCalibrationRequest',
@@ -404,6 +407,43 @@ class GetQuantumProcessorConfigRequest(proto.Message):
     name: str = proto.Field(proto.STRING, number=1)
 
 
+class ListQuantumProcessorConfigsRequest(proto.Message):
+    r"""-
+
+    Attributes:
+        parent (str):
+            Required. -
+        page_size (int):
+            Optional. -
+        page_token (str):
+            Optional. -
+    """
+
+    parent: str = proto.Field(proto.STRING, number=1)
+    page_size: int = proto.Field(proto.INT32, number=2)
+    page_token: str = proto.Field(proto.STRING, number=3)
+
+
+class ListQuantumProcessorConfigsResponse(proto.Message):
+    r"""-
+
+    Attributes:
+        quantum_processor_configs (MutableSequence[cirq_google.cloud.quantum_v1alpha1.types.QuantumProcessorConfig]):
+            -
+        next_page_token (str):
+            -
+    """
+
+    @property
+    def raw_page(self):
+        return self
+
+    quantum_processor_configs: MutableSequence[quantum.QuantumProcessorConfig] = (
+        proto.RepeatedField(proto.MESSAGE, number=1, message=quantum.QuantumProcessorConfig)
+    )
+    next_page_token: str = proto.Field(proto.STRING, number=2)
+
+
 class ListQuantumCalibrationsRequest(proto.Message):
     r"""-
 
@@ -418,7 +458,7 @@ class ListQuantumCalibrationsRequest(proto.Message):
             -
         filter (str):
             -
-    """  # noqa E501
+    """
 
     class QuantumCalibrationView(proto.Enum):
         r"""-
@@ -611,17 +651,17 @@ class QuantumRunStreamRequest(proto.Message):
             -
 
             This field is a member of `oneof`_ ``request``.
-    """  # noqa E501
+    """
 
     message_id: str = proto.Field(proto.STRING, number=1)
     parent: str = proto.Field(proto.STRING, number=2)
-    create_quantum_program_and_job: CreateQuantumProgramAndJobRequest = proto.Field(
+    create_quantum_program_and_job: 'CreateQuantumProgramAndJobRequest' = proto.Field(
         proto.MESSAGE, number=3, oneof='request', message='CreateQuantumProgramAndJobRequest'
     )
-    create_quantum_job: CreateQuantumJobRequest = proto.Field(
+    create_quantum_job: 'CreateQuantumJobRequest' = proto.Field(
         proto.MESSAGE, number=4, oneof='request', message='CreateQuantumJobRequest'
     )
-    get_quantum_result: GetQuantumResultRequest = proto.Field(
+    get_quantum_result: 'GetQuantumResultRequest' = proto.Field(
         proto.MESSAGE, number=5, oneof='request', message='GetQuantumResultRequest'
     )
 
@@ -675,7 +715,7 @@ class QuantumRunStreamResponse(proto.Message):
     """
 
     message_id: str = proto.Field(proto.STRING, number=1)
-    error: StreamError = proto.Field(
+    error: 'StreamError' = proto.Field(
         proto.MESSAGE, number=2, oneof='response', message='StreamError'
     )
     job: quantum.QuantumJob = proto.Field(
@@ -765,7 +805,7 @@ class ListQuantumReservationGrantsResponse(proto.Message):
             -
         next_page_token (str):
             -
-    """  # noqa E501
+    """
 
     @property
     def raw_page(self):
@@ -827,7 +867,7 @@ class ListQuantumReservationBudgetsResponse(proto.Message):
             -
         next_page_token (str):
             -
-    """  # noqa E501
+    """
 
     @property
     def raw_page(self):

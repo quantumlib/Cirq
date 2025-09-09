@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 from cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service.client import (
     QuantumEngineServiceClient,
 )
@@ -43,6 +42,8 @@ from cirq_google.cloud.quantum_v1alpha1.types.engine import ListQuantumJobEvents
 from cirq_google.cloud.quantum_v1alpha1.types.engine import ListQuantumJobEventsResponse
 from cirq_google.cloud.quantum_v1alpha1.types.engine import ListQuantumJobsRequest
 from cirq_google.cloud.quantum_v1alpha1.types.engine import ListQuantumJobsResponse
+from cirq_google.cloud.quantum_v1alpha1.types.engine import ListQuantumProcessorConfigsRequest
+from cirq_google.cloud.quantum_v1alpha1.types.engine import ListQuantumProcessorConfigsResponse
 from cirq_google.cloud.quantum_v1alpha1.types.engine import ListQuantumProcessorsRequest
 from cirq_google.cloud.quantum_v1alpha1.types.engine import ListQuantumProcessorsResponse
 from cirq_google.cloud.quantum_v1alpha1.types.engine import ListQuantumProgramsRequest
@@ -106,6 +107,8 @@ __all__ = (
     'ListQuantumJobEventsResponse',
     'ListQuantumJobsRequest',
     'ListQuantumJobsResponse',
+    'ListQuantumProcessorConfigsRequest',
+    'ListQuantumProcessorConfigsResponse',
     'ListQuantumProcessorsRequest',
     'ListQuantumProcessorsResponse',
     'ListQuantumProgramsRequest',

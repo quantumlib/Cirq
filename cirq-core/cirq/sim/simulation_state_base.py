@@ -18,9 +18,7 @@ from __future__ import annotations
 
 import abc
 from types import NotImplementedType
-from typing import Any, Generic, Iterator, Mapping, Sequence, TYPE_CHECKING, TypeVar
-
-from typing_extensions import Self
+from typing import Any, Generic, Iterator, Mapping, Self, Sequence, TYPE_CHECKING, TypeVar
 
 from cirq import protocols, value
 

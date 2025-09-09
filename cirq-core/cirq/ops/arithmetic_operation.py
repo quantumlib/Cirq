@@ -17,10 +17,9 @@ from __future__ import annotations
 
 import abc
 import itertools
-from typing import cast, Iterable, Sequence, TYPE_CHECKING
+from typing import cast, Iterable, Self, Sequence, TYPE_CHECKING
 
 import numpy as np
-from typing_extensions import Self
 
 from cirq.ops.raw_types import Gate
 

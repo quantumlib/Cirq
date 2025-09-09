@@ -20,6 +20,10 @@ message RunContext {
   // If the same parameter is supplied in both places, the provision here in
   // device_parameters_override will have no effect.
   DeviceParametersDiff device_parameters_override = 2;
+
+  // If compression is desired, this field stores the gzipped bytes
+  // of the RunContext
+  bytes compressed_run_context = 3;
 }
 
 // Specifies how to repeatedly sample a circuit, with or without sweeping over
@@ -199,6 +203,7 @@ message DeviceParametersDiff {
   repeated string strs = 4;
 }
 
+
 // A set of values to loop over for a particular parameter.
 message SingleSweep {
   // The parameter key being varied. This cannot be the empty string.
@@ -213,6 +218,8 @@ message SingleSweep {
     Linspace linspace = 3;
     // A constant value.
     ConstValue const_value = 5;
+    // Random Variable chosen from a finite list
+    FiniteRandomVariable random_variable = 7;
   }
 
   // Optional arguments for if this is a device parameter.
@@ -268,4 +275,11 @@ message ConstValue {
     string string_value = 4;
     tunits.Value with_unit_value = 5;
   }
+}
+
+// A message for a random variable with a finite distribution
+message FiniteRandomVariable {
+  map <string, double>  distribution = 1;
+  int32 length = 2;
+  int32 seed = 3;
 }

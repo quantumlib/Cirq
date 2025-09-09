@@ -115,7 +115,7 @@ class QPUResult:
         `cirq.Result` contains a less dense representation of results than that returned by
         the IonQ API.  Typically these results are also ordered by when they were run, though
         that contract is implicit.  Because the IonQ API does not retain that ordering information,
-        the order of these `cirq.Result` objects should *not* be interpetted as representing the
+        the order of these `cirq.Result` objects should *not* be interpreted as representing the
         order in which the circuit was repeated. Correlations between measurements keys are
         preserved.
 

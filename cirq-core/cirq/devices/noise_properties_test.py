@@ -34,7 +34,7 @@ class SampleNoiseProperties(NoiseProperties):
         self.qubits = system_qubits
         self.qubit_pairs = qubit_pairs
 
-    def build_noise_models(self):
+    def build_noise_models(self) -> list[cirq.NoiseModel]:
         add_h = InsertionNoiseModel({OpIdentifier(cirq.Gate, q): cirq.H(q) for q in self.qubits})
         add_iswap = InsertionNoiseModel(
             {OpIdentifier(cirq.Gate, *qs): cirq.ISWAP(*qs) for qs in self.qubit_pairs}
