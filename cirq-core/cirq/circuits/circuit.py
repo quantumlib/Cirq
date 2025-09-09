@@ -2569,8 +2569,6 @@ class Circuit(AbstractCircuit):
             # Keep moments aligned
             c_noisy += Circuit(op_tree)
         return c_noisy
-    
-    
 
 
 def _pick_inserted_ops_moment_indices(
