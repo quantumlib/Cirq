@@ -126,7 +126,7 @@ class Serializer:
 
         # IonQ API does not support measurements, so we pass the measurement keys through
         # the metadata field.  Here we split these out of the serialized ops.
-        input = {
+        program_input = {
             'gateset': gateset,
             'qubits': num_qubits,
             'circuit': [op for op in serialized_ops if op['gate'] != 'meas'],
@@ -141,7 +141,7 @@ class Serializer:
             )
 
         return SerializedProgram(
-            input=input,
+            input=program_input,
             settings=(job_settings or {}),
             compilation=(compilation or {}),
             error_mitigation=(error_mitigation or {}),
@@ -186,13 +186,13 @@ class Serializer:
 
         # IonQ API does not support measurements, so we pass the measurement keys through
         # the metadata field.  Here we split these out of the serialized ops.
-        input: dict[str, Any] = {'gateset': gateset, 'qubits': num_qubits, 'circuits': []}
+        program_input: dict[str, Any] = {'gateset': gateset, 'qubits': num_qubits, 'circuits': []}
 
         measurements = []
         qubit_numbers = []
         for circuit in circuits:
             serialized_ops = self._serialize_circuit(circuit)
-            input['circuits'].append(
+            program_input['circuits'].append(
                 {'circuit': [op for op in serialized_ops if op['gate'] != 'meas']}
             )
             measurements.append(
@@ -213,7 +213,7 @@ class Serializer:
             }
 
         return SerializedProgram(
-            input=input,
+            input=program_input,
             settings=(job_settings or {}),
             compilation=(compilation or {}),
             error_mitigation=(error_mitigation or {}),

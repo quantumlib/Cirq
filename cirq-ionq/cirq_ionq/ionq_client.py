@@ -21,9 +21,11 @@ import platform
 import sys
 import time
 import urllib
+import warnings
 from typing import Any, Callable, cast
 
 import requests
+from websocket import warning
 
 import cirq_ionq
 from cirq import __version__ as cirq_version
@@ -170,14 +172,13 @@ class _IonQClient:
 
         if serialized_program.dry_run:
             json['dry_run'] = serialized_program.dry_run
+            if json['backend'] == 'simulator':
+                warnings.warn(
+                    'Please note that the `dry_run` option has no effect on the simulator target.'
+                )
 
         if extra_query_params:
             json.update(extra_query_params)
-
-        # TODO: remove
-        print("Job url:", self.url)
-        print("Job headers:", self.headers)
-        print("Job json:", json)
 
         def request():
             return requests.post(f'{self.url}/jobs', json=json, headers=self.headers)
@@ -234,13 +235,13 @@ class _IonQClient:
             params.update(extra_query_params)
 
         def request():
-            if self.batch_mode == True:
+            if self.batch_mode:
                 return requests.get(
                     f'{self.url}/jobs/{job_id}/results/probabilities/aggregated',
                     params=params,
                     headers=self.headers,
                 )
-            elif self.batch_mode == False:
+            elif not self.batch_mode:
                 return requests.get(
                     f'{self.url}/jobs/{job_id}/results/probabilities',
                     params=params,

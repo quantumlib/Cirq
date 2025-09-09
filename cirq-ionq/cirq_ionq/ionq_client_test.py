@@ -17,6 +17,7 @@ from __future__ import annotations
 import contextlib
 import datetime
 import io
+import warnings
 from unittest import mock
 
 import pytest
@@ -182,10 +183,36 @@ def test_ionq_client_create_job_extra_params(mock_post):
     )
 
 
+@pytest.mark.parametrize("target, expect_warning", [("simulator", True), ("qpu", False)])
+@mock.patch("requests.post")
+def test_ionq_client_create_job_dry_run_warning_behavior(mock_post, target, expect_warning):
+
+    client = ionq.ionq_client._IonQClient(remote_host="http://example.com", api_key="to_my_heart")
+    program = ionq.SerializedProgram(
+        input={"job": "mine"},
+        metadata={},
+        settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=True,
+    )
+
+    if expect_warning:
+        with pytest.warns(
+            UserWarning,
+            match="Please note that the `dry_run` option has no effect on the simulator target.",
+        ):
+            client.create_job(serialized_program=program, target=target)
+    else:
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("error")
+            client.create_job(serialized_program=program, target=target)
+        assert len(w) == 0
+
+
 @mock.patch('requests.post')
 def test_ionq_client_create_job_default_target(mock_post):
-    mock_post.return_value.status_code.return_value = requests.codes.ok
-    mock_post.return_value.json.return_value = {'foo'}
 
     client = ionq.ionq_client._IonQClient(
         remote_host='http://example.com', api_key='to_my_heart', default_target='simulator'

@@ -74,7 +74,9 @@ class Service:
         )
 
         self.job_settings = job_settings or {}
-        self.api_key = api_key or os.getenv('CIRQ_IONQ_API_KEY') or os.getenv('IONQ_API_KEY')
+        self.api_key = (
+            api_key or os.getenv('CIRQ_IONQ_API_KEY') or os.getenv('IONQ_API_KEY')
+        )
 
         if not self.api_key:
             raise EnvironmentError(
@@ -137,7 +139,7 @@ class Service:
                 Useful for obtaining cost estimates. Defaults to False.
             metadata (dict): optional metadata to attach to the job. Defaults to None.
             extra_query_params: Specify any parameters to include in the request.
-            
+
         Returns:
             A `cirq.Result` for running the circuit.
         """
@@ -155,12 +157,16 @@ class Service:
             extra_query_params=extra_query_params,
         ).results(sharpen=sharpen)
         if isinstance(job_results[0], results.QPUResult):
-            return job_results[0].to_cirq_result(params=cirq.ParamResolver(param_resolver))
+            return job_results[0].to_cirq_result(
+                params=cirq.ParamResolver(param_resolver)
+            )
         if isinstance(job_results[0], results.SimulatorResult):
             return job_results[0].to_cirq_result(
                 params=cirq.ParamResolver(param_resolver), seed=seed
             )
-        raise NotImplementedError(f"Unrecognized job result type '{type(job_results[0])}'.")
+        raise NotImplementedError(
+            f"Unrecognized job result type '{type(job_results[0])}'."
+        )
 
     def run_batch(
         self,
@@ -237,13 +243,19 @@ class Service:
                 )
             elif isinstance(job_result, results.SimulatorResult):
                 cirq_results.append(
-                    job_result.to_cirq_result(params=cirq.ParamResolver(param_resolver), seed=seed)
+                    job_result.to_cirq_result(
+                        params=cirq.ParamResolver(param_resolver), seed=seed
+                    )
                 )
             else:
-                raise NotImplementedError(f"Unrecognized job result type '{type(job_result)}'.")
+                raise NotImplementedError(
+                    f"Unrecognized job result type '{type(job_result)}'."
+                )
         return cirq_results
 
-    def sampler(self, target: str | None = None, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None):
+    def sampler(
+        self, target: str | None = None, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
+    ):
         """Returns a `cirq.Sampler` object for accessing the sampler interface.
 
         Args:
@@ -424,8 +436,12 @@ class Service:
         Raises:
             IonQException: If there was an error accessing the API.
         """
-        job_dicts = self._client.list_jobs(status=status, limit=limit, batch_size=batch_size)
-        return tuple(job.Job(client=self._client, job_dict=job_dict) for job_dict in job_dicts)
+        job_dicts = self._client.list_jobs(
+            status=status, limit=limit, batch_size=batch_size
+        )
+        return tuple(
+            job.Job(client=self._client, job_dict=job_dict) for job_dict in job_dicts
+        )
 
     def get_current_calibration(self) -> calibration.Calibration:
         """Gets the most recent calbration via the API.
