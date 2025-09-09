@@ -16,9 +16,7 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import Any, TYPE_CHECKING
-
-from typing_extensions import Protocol
+from typing import Any, Protocol, TYPE_CHECKING
 
 from cirq._doc import doc_private
 from cirq.protocols import measurement_key_protocol

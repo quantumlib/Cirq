@@ -8,7 +8,7 @@
     "@types/looks-same": "^4.1.0",
     "gts": "^6.0.2",
     "live-server": "^1.2.2",
-    "tsc-watch": "^6.2.1",
+    "tsc-watch": "^7.1.1",
     "typescript": "^5.7.3"
   },
   "devDependencies": {
@@ -20,7 +20,7 @@
     "@types/pngjs": "^6.0.0",
     "@types/puppeteer": "^7.0.4",
     "@types/temp": "^0.9.0",
-    "@types/three": "^0.176.0",
+    "@types/three": "^0.179.0",
     "canvas": "^3.1.0",
     "chai": "^4.3.4",
     "concurrently": "^9.1.2",
