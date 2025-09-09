@@ -11,7 +11,7 @@
 # "x_test.py" in the arguments given to pytest. That's all it does.
 #
 # You can specify a base git revision to compare against (i.e. to use when
-# determining whether or not a line is considered to have "changed"). To make
+# determining whether or not a file is considered to have "changed"). To make
 # the tool more consistent, it actually diffs against the most recent common
 # ancestor of the specified id and HEAD. So if you choose 'origin/main' you're
 # actually diffing against the output of 'git merge-base origin/main HEAD'.
