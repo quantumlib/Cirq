@@ -20,7 +20,21 @@ import re
 import warnings
 from collections import OrderedDict
 from http import HTTPStatus
-from typing import Callable, cast, Iterable, Iterator, Optional, Sequence
+from typing import (
+    Callable,
+    cast,
+    Dict,
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    Union,
+)
 
 import google.protobuf
 from google.api_core import (
@@ -29,10 +43,29 @@ from google.api_core import (
     gapic_v1,
     retry as retries,
 )
-from google.auth import credentials as ga_credentials
-from google.auth.exceptions import MutualTLSChannelError
-from google.auth.transport import mtls
-from google.oauth2 import service_account
+from google.auth import credentials as ga_credentials  # type: ignore
+from google.auth.exceptions import MutualTLSChannelError  # type: ignore
+from google.auth.transport import mtls  # type: ignore
+from google.auth.transport.grpc import SslCredentials  # type: ignore
+from google.oauth2 import service_account  # type: ignore
+
+try:
+    OptionalRetry = Union[retries.Retry, gapic_v1.method._MethodDefault, None]
+except AttributeError:  # pragma: NO COVER
+    OptionalRetry = Union[retries.Retry, object, None]  # type: ignore
+
+try:
+    from google.api_core import client_logging  # type: ignore
+
+    CLIENT_LOGGING_SUPPORTED = True  # pragma: NO COVER
+except ImportError:  # pragma: NO COVER
+    CLIENT_LOGGING_SUPPORTED = False
+
+_LOGGER = std_logging.getLogger(__name__)
+
+from google.protobuf import any_pb2  # type: ignore
+from google.protobuf import duration_pb2  # type: ignore
+from google.protobuf import timestamp_pb2  # type: ignore
 
 import cirq_google
 from cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service import pagers
@@ -43,20 +76,6 @@ from .transports.grpc import QuantumEngineServiceGrpcTransport
 from .transports.grpc_asyncio import QuantumEngineServiceGrpcAsyncIOTransport
 from .transports.rest import QuantumEngineServiceRestTransport
 
-try:
-    OptionalRetry = retries.Retry | gapic_v1.method._MethodDefault | None
-except AttributeError:  # pragma: NO COVER
-    OptionalRetry = retries.Retry | object | None  # type: ignore
-
-try:
-    from google.api_core import client_logging
-
-    CLIENT_LOGGING_SUPPORTED = True  # pragma: NO COVER
-except ImportError:  # pragma: NO COVER
-    CLIENT_LOGGING_SUPPORTED = False
-
-_LOGGER = std_logging.getLogger(__name__)
-
 
 class QuantumEngineServiceClientMeta(type):
     """Metaclass for the QuantumEngineService client.
@@ -66,14 +85,14 @@ class QuantumEngineServiceClientMeta(type):
     objects.
     """
 
-    _transport_registry: dict[str, type[QuantumEngineServiceTransport]] = OrderedDict()
+    _transport_registry = OrderedDict()  # type: Dict[str, Type[QuantumEngineServiceTransport]]
     _transport_registry["grpc"] = QuantumEngineServiceGrpcTransport
     _transport_registry["grpc_asyncio"] = QuantumEngineServiceGrpcAsyncIOTransport
     _transport_registry["rest"] = QuantumEngineServiceRestTransport
 
     def get_transport_class(
         cls, label: Optional[str] = None
-    ) -> type[QuantumEngineServiceTransport]:
+    ) -> Type[QuantumEngineServiceTransport]:
         """Returns an appropriate transport class.
 
         Args:
@@ -185,7 +204,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         )
 
     @staticmethod
-    def parse_quantum_job_path(path: str) -> dict[str, str]:
+    def parse_quantum_job_path(path: str) -> Dict[str, str]:
         """Parses a quantum_job path into its component segments."""
         m = re.match(
             r"^projects/(?P<project>.+?)/programs/(?P<program>.+?)/jobs/(?P<job>.+?)$", path
@@ -200,7 +219,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         )
 
     @staticmethod
-    def parse_quantum_processor_path(path: str) -> dict[str, str]:
+    def parse_quantum_processor_path(path: str) -> Dict[str, str]:
         """Parses a quantum_processor path into its component segments."""
         m = re.match(r"^projects/(?P<project_id>.+?)/processors/(?P<processor_id>.+?)$", path)
         return m.groupdict() if m else {}
@@ -210,7 +229,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         project: str, processor: str, snapshot_id: str, quantum_processor_config: str
     ) -> str:
         """Returns a fully-qualified quantum_processor_config string."""
-        return "projects/{project}/processors/{processor}/configSnapshots/{snapshot_id}/configs/{quantum_processor_config}".format(  # noqa E501
+        return "projects/{project}/processors/{processor}/configSnapshots/{snapshot_id}/configs/{quantum_processor_config}".format(
             project=project,
             processor=processor,
             snapshot_id=snapshot_id,
@@ -218,7 +237,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         )
 
     @staticmethod
-    def parse_quantum_processor_config_path(path: str) -> dict[str, str]:
+    def parse_quantum_processor_config_path(path: str) -> Dict[str, str]:
         """Parses a quantum_processor_config path into its component segments."""
         m = re.match(
             r"^projects/(?P<project>.+?)/processors/(?P<processor>.+?)/configSnapshots/(?P<snapshot_id>.+?)/configs/(?P<quantum_processor_config>.+?)$",
@@ -232,7 +251,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return "projects/{project}/programs/{program}".format(project=project, program=program)
 
     @staticmethod
-    def parse_quantum_program_path(path: str) -> dict[str, str]:
+    def parse_quantum_program_path(path: str) -> Dict[str, str]:
         """Parses a quantum_program path into its component segments."""
         m = re.match(r"^projects/(?P<project>.+?)/programs/(?P<program>.+?)$", path)
         return m.groupdict() if m else {}
@@ -247,7 +266,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         )
 
     @staticmethod
-    def parse_quantum_reservation_path(path: str) -> dict[str, str]:
+    def parse_quantum_reservation_path(path: str) -> Dict[str, str]:
         """Parses a quantum_reservation path into its component segments."""
         m = re.match(
             r"^projects/(?P<project_id>.+?)/processors/(?P<processor_id>.+?)/reservations/(?P<reservation_id>.+?)$",
@@ -261,7 +280,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return "billingAccounts/{billing_account}".format(billing_account=billing_account)
 
     @staticmethod
-    def parse_common_billing_account_path(path: str) -> dict[str, str]:
+    def parse_common_billing_account_path(path: str) -> Dict[str, str]:
         """Parse a billing_account path into its component segments."""
         m = re.match(r"^billingAccounts/(?P<billing_account>.+?)$", path)
         return m.groupdict() if m else {}
@@ -272,7 +291,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return "folders/{folder}".format(folder=folder)
 
     @staticmethod
-    def parse_common_folder_path(path: str) -> dict[str, str]:
+    def parse_common_folder_path(path: str) -> Dict[str, str]:
         """Parse a folder path into its component segments."""
         m = re.match(r"^folders/(?P<folder>.+?)$", path)
         return m.groupdict() if m else {}
@@ -283,7 +302,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return "organizations/{organization}".format(organization=organization)
 
     @staticmethod
-    def parse_common_organization_path(path: str) -> dict[str, str]:
+    def parse_common_organization_path(path: str) -> Dict[str, str]:
         """Parse a organization path into its component segments."""
         m = re.match(r"^organizations/(?P<organization>.+?)$", path)
         return m.groupdict() if m else {}
@@ -294,7 +313,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return "projects/{project}".format(project=project)
 
     @staticmethod
-    def parse_common_project_path(path: str) -> dict[str, str]:
+    def parse_common_project_path(path: str) -> Dict[str, str]:
         """Parse a project path into its component segments."""
         m = re.match(r"^projects/(?P<project>.+?)$", path)
         return m.groupdict() if m else {}
@@ -305,7 +324,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return "projects/{project}/locations/{location}".format(project=project, location=location)
 
     @staticmethod
-    def parse_common_location_path(path: str) -> dict[str, str]:
+    def parse_common_location_path(path: str) -> Dict[str, str]:
         """Parse a location path into its component segments."""
         m = re.match(r"^projects/(?P<project>.+?)/locations/(?P<location>.+?)$", path)
         return m.groupdict() if m else {}
@@ -346,10 +365,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         """
 
         warnings.warn(
-            (
-                "get_mtls_endpoint_and_cert_source is deprecated. Use the api_endpoint property "
-                "instead."
-            ),
+            "get_mtls_endpoint_and_cert_source is deprecated. Use the api_endpoint property instead.",
             DeprecationWarning,
         )
         if client_options is None:
@@ -358,13 +374,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         use_mtls_endpoint = os.getenv("GOOGLE_API_USE_MTLS_ENDPOINT", "auto")
         if use_client_cert not in ("true", "false"):
             raise ValueError(
-                "Environment variable `GOOGLE_API_USE_CLIENT_CERTIFICATE` must be either `true` "
-                "or `false`"
+                "Environment variable `GOOGLE_API_USE_CLIENT_CERTIFICATE` must be either `true` or `false`"
             )
         if use_mtls_endpoint not in ("auto", "never", "always"):
             raise MutualTLSChannelError(
-                "Environment variable `GOOGLE_API_USE_MTLS_ENDPOINT` must be `never`, `auto` or "
-                "`always`"
+                "Environment variable `GOOGLE_API_USE_MTLS_ENDPOINT` must be `never`, `auto` or `always`"
             )
 
         # Figure out the client cert source to use.
@@ -404,13 +418,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         universe_domain_env = os.getenv("GOOGLE_CLOUD_UNIVERSE_DOMAIN")
         if use_client_cert not in ("true", "false"):
             raise ValueError(
-                "Environment variable `GOOGLE_API_USE_CLIENT_CERTIFICATE` must be either `true` or "
-                "`false`"
+                "Environment variable `GOOGLE_API_USE_CLIENT_CERTIFICATE` must be either `true` or `false`"
             )
         if use_mtls_endpoint not in ("auto", "never", "always"):
             raise MutualTLSChannelError(
-                "Environment variable `GOOGLE_API_USE_MTLS_ENDPOINT` must be `never`, `auto` or "
-                "`always`"
+                "Environment variable `GOOGLE_API_USE_MTLS_ENDPOINT` must be `never`, `auto` or `always`"
             )
         return use_client_cert == "true", use_mtls_endpoint, universe_domain_env
 
@@ -442,8 +454,8 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 the return value of this function and the other arguments are not used.
             client_cert_source (bytes): The client certificate source used by the client.
             universe_domain (str): The universe domain used by the client.
-            use_mtls_endpoint (str): How to use the mTLS endpoint, which depends also on the other
-                parameters. Possible values are "always", "auto", or "never".
+            use_mtls_endpoint (str): How to use the mTLS endpoint, which depends also on the other parameters.
+                Possible values are "always", "auto", or "never".
 
         Returns:
             str: The API endpoint to be used by the client.
@@ -470,10 +482,8 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         """Return the universe domain used by the client.
 
         Args:
-            client_universe_domain (Optional[str]): The universe domain configured via the client
-                options.
-            universe_domain_env (Optional[str]): The universe domain configured via the
-                "GOOGLE_CLOUD_UNIVERSE_DOMAIN" environment variable.
+            client_universe_domain (Optional[str]): The universe domain configured via the client options.
+            universe_domain_env (Optional[str]): The universe domain configured via the "GOOGLE_CLOUD_UNIVERSE_DOMAIN" environment variable.
 
         Returns:
             str: The universe domain to be used by the client.
@@ -547,9 +557,9 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         *,
         credentials: Optional[ga_credentials.Credentials] = None,
         transport: Optional[
-            str | QuantumEngineServiceTransport | Callable[..., QuantumEngineServiceTransport]
+            Union[str, QuantumEngineServiceTransport, Callable[..., QuantumEngineServiceTransport]]
         ] = None,
-        client_options: Optional[client_options_lib.ClientOptions | dict] = None,
+        client_options: Optional[Union[client_options_lib.ClientOptions, dict]] = None,
         client_info: gapic_v1.client_info.ClientInfo = DEFAULT_CLIENT_INFO,
     ) -> None:
         """Instantiates the quantum engine service client.
@@ -600,12 +610,14 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         Raises:
             google.auth.exceptions.MutualTLSChannelError: If mutual TLS transport
                 creation failed for any reason.
-        """  # noqa E501
+        """
         self._client_options = client_options
         if isinstance(self._client_options, dict):
             self._client_options = client_options_lib.from_dict(self._client_options)
         if self._client_options is None:
             self._client_options = client_options_lib.ClientOptions()
+        self._client_options = cast(client_options_lib.ClientOptions, self._client_options)
+
         universe_domain_opt = getattr(self._client_options, 'universe_domain', None)
 
         self._use_client_cert, self._use_mtls_endpoint, self._universe_domain_env = (
@@ -638,11 +650,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
             # transport is a QuantumEngineServiceTransport instance.
             if credentials or self._client_options.credentials_file or api_key_value:
                 raise ValueError(
-                    "When providing a transport instance, provide its credentials directly."
+                    "When providing a transport instance, " "provide its credentials directly."
                 )
             if self._client_options.scopes:
                 raise ValueError(
-                    "When providing a transport instance, provide its scopes directly."
+                    "When providing a transport instance, provide its scopes " "directly."
                 )
             self._transport = cast(QuantumEngineServiceTransport, transport)
             self._api_endpoint = self._transport.host
@@ -655,14 +667,14 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         )
 
         if not transport_provided:
-            import google.auth._default
+            import google.auth._default  # type: ignore
 
             if api_key_value and hasattr(google.auth._default, "get_api_key_credentials"):
                 credentials = google.auth._default.get_api_key_credentials(api_key_value)
 
-            transport_init: (
-                type[QuantumEngineServiceTransport] | Callable[..., QuantumEngineServiceTransport]
-            ) = (
+            transport_init: Union[
+                Type[QuantumEngineServiceTransport], Callable[..., QuantumEngineServiceTransport]
+            ] = (
                 QuantumEngineServiceClient.get_transport_class(transport)
                 if isinstance(transport, str) or transport is None
                 else cast(Callable[..., QuantumEngineServiceTransport], transport)
@@ -685,17 +697,14 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 std_logging.DEBUG
             ):  # pragma: NO COVER
                 _LOGGER.debug(
-                    (
-                        "Created client `cirq_google.cloud.quantum_v1alpha1."
-                        "QuantumEngineServiceClient`."
-                    ),
+                    "Created client `cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient`.",
                     extra=(
                         {
                             "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                             "universeDomain": getattr(
                                 self._transport._credentials, "universe_domain", ""
                             ),
-                            "credentialsType": f"{type(self._transport._credentials).__module__}.{type(self._transport._credentials).__qualname__}",  # noqa E501
+                            "credentialsType": f"{type(self._transport._credentials).__module__}.{type(self._transport._credentials).__qualname__}",
                             "credentialsInfo": getattr(
                                 self.transport._credentials, "get_cred_info", lambda: None
                             )(),
@@ -710,11 +719,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def create_quantum_program(
         self,
-        request: Optional[engine.CreateQuantumProgramRequest | dict] = None,
+        request: Optional[Union[engine.CreateQuantumProgramRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumProgram:
         r"""-
 
@@ -757,7 +766,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumProgram:
                 -
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -785,11 +794,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def get_quantum_program(
         self,
-        request: Optional[engine.GetQuantumProgramRequest | dict] = None,
+        request: Optional[Union[engine.GetQuantumProgramRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumProgram:
         r"""-
 
@@ -832,7 +841,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumProgram:
                 -
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -860,11 +869,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def list_quantum_programs(
         self,
-        request: Optional[engine.ListQuantumProgramsRequest | dict] = None,
+        request: Optional[Union[engine.ListQuantumProgramsRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> pagers.ListQuantumProgramsPager:
         r"""-
 
@@ -913,7 +922,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 results and resolve additional pages
                 automatically.
 
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -952,11 +961,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def delete_quantum_program(
         self,
-        request: Optional[engine.DeleteQuantumProgramRequest | dict] = None,
+        request: Optional[Union[engine.DeleteQuantumProgramRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> None:
         r"""-
 
@@ -992,7 +1001,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -1017,11 +1026,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def update_quantum_program(
         self,
-        request: Optional[engine.UpdateQuantumProgramRequest | dict] = None,
+        request: Optional[Union[engine.UpdateQuantumProgramRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumProgram:
         r"""-
 
@@ -1064,7 +1073,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumProgram:
                 -
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -1092,11 +1101,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def create_quantum_job(
         self,
-        request: Optional[engine.CreateQuantumJobRequest | dict] = None,
+        request: Optional[Union[engine.CreateQuantumJobRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumJob:
         r"""-
 
@@ -1167,11 +1176,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def get_quantum_job(
         self,
-        request: Optional[engine.GetQuantumJobRequest | dict] = None,
+        request: Optional[Union[engine.GetQuantumJobRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumJob:
         r"""-
 
@@ -1242,11 +1251,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def list_quantum_jobs(
         self,
-        request: Optional[engine.ListQuantumJobsRequest | dict] = None,
+        request: Optional[Union[engine.ListQuantumJobsRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> pagers.ListQuantumJobsPager:
         r"""-
 
@@ -1334,11 +1343,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def delete_quantum_job(
         self,
-        request: Optional[engine.DeleteQuantumJobRequest | dict] = None,
+        request: Optional[Union[engine.DeleteQuantumJobRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> None:
         r"""-
 
@@ -1399,11 +1408,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def update_quantum_job(
         self,
-        request: Optional[engine.UpdateQuantumJobRequest | dict] = None,
+        request: Optional[Union[engine.UpdateQuantumJobRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumJob:
         r"""-
 
@@ -1474,11 +1483,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def cancel_quantum_job(
         self,
-        request: Optional[engine.CancelQuantumJobRequest | dict] = None,
+        request: Optional[Union[engine.CancelQuantumJobRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> None:
         r"""-
 
@@ -1539,11 +1548,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def list_quantum_job_events(
         self,
-        request: Optional[engine.ListQuantumJobEventsRequest | dict] = None,
+        request: Optional[Union[engine.ListQuantumJobEventsRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> pagers.ListQuantumJobEventsPager:
         r"""-
 
@@ -1592,7 +1601,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 results and resolve additional pages
                 automatically.
 
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -1631,11 +1640,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def get_quantum_result(
         self,
-        request: Optional[engine.GetQuantumResultRequest | dict] = None,
+        request: Optional[Union[engine.GetQuantumResultRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumResult:
         r"""-
 
@@ -1706,11 +1715,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def list_quantum_processors(
         self,
-        request: Optional[engine.ListQuantumProcessorsRequest | dict] = None,
+        request: Optional[Union[engine.ListQuantumProcessorsRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> pagers.ListQuantumProcessorsPager:
         r"""-
 
@@ -1759,7 +1768,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 results and resolve additional pages
                 automatically.
 
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -1798,11 +1807,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def get_quantum_processor(
         self,
-        request: Optional[engine.GetQuantumProcessorRequest | dict] = None,
+        request: Optional[Union[engine.GetQuantumProcessorRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumProcessor:
         r"""-
 
@@ -1845,7 +1854,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumProcessor:
                 -
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -1873,12 +1882,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def get_quantum_processor_config(
         self,
-        request: Optional[engine.GetQuantumProcessorConfigRequest | dict] = None,
+        request: Optional[Union[engine.GetQuantumProcessorConfigRequest, dict]] = None,
         *,
         name: Optional[str] = None,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumProcessorConfig:
         r"""-
 
@@ -1927,7 +1936,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumProcessorConfig:
                 -
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Quick check: If we got a request object, we should *not* have
         #   gotten any keyword arguments that map to the request.
@@ -1967,13 +1976,126 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         # Done; return the response.
         return response
 
+    def list_quantum_processor_configs(
+        self,
+        request: Optional[Union[engine.ListQuantumProcessorConfigsRequest, dict]] = None,
+        *,
+        parent: Optional[str] = None,
+        retry: OptionalRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+    ) -> pagers.ListQuantumProcessorConfigsPager:
+        r"""-
+
+        .. code-block:: python
+
+            # This snippet has been automatically generated and should be regarded as a
+            # code template only.
+            # It will require modifications to work:
+            # - It may require correct/in-range values for request initialization.
+            # - It may require specifying regional endpoints when creating the service
+            #   client as shown in:
+            #   https://googleapis.dev/python/google-api-core/latest/client_options.html
+            from google.cloud import quantum_v1alpha1
+
+            def sample_list_quantum_processor_configs():
+                # Create a client
+                client = quantum_v1alpha1.QuantumEngineServiceClient()
+
+                # Initialize request argument(s)
+                request = quantum_v1alpha1.ListQuantumProcessorConfigsRequest(
+                    parent="parent_value",
+                )
+
+                # Make the request
+                page_result = client.list_quantum_processor_configs(request=request)
+
+                # Handle the response
+                for response in page_result:
+                    print(response)
+
+        Args:
+            request (Union[cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorConfigsRequest, dict]):
+                The request object. -
+            parent (str):
+                Required. -
+                This corresponds to the ``parent`` field
+                on the ``request`` instance; if ``request`` is provided, this
+                should not be set.
+            retry (google.api_core.retry.Retry): Designation of what errors, if any,
+                should be retried.
+            timeout (float): The timeout for this request.
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
+                sent along with the request as metadata. Normally, each value must be of type `str`,
+                but for metadata keys ending with the suffix `-bin`, the corresponding values must
+                be of type `bytes`.
+
+        Returns:
+            cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service.pagers.ListQuantumProcessorConfigsPager:
+                -
+
+                Iterating over this object will yield
+                results and resolve additional pages
+                automatically.
+
+        """
+        # Create or coerce a protobuf request object.
+        # - Quick check: If we got a request object, we should *not* have
+        #   gotten any keyword arguments that map to the request.
+        flattened_params = [parent]
+        has_flattened_params = len([param for param in flattened_params if param is not None]) > 0
+        if request is not None and has_flattened_params:
+            raise ValueError(
+                'If the `request` argument is set, then none of '
+                'the individual field arguments should be set.'
+            )
+
+        # - Use the request object if provided (there's no risk of modifying the input as
+        #   there are no flattened fields), or create one.
+        if not isinstance(request, engine.ListQuantumProcessorConfigsRequest):
+            request = engine.ListQuantumProcessorConfigsRequest(request)
+            # If we have keyword arguments corresponding to fields on the
+            # request, apply these.
+            if parent is not None:
+                request.parent = parent
+
+        # Wrap the RPC method; this adds retry and timeout information,
+        # and friendly error handling.
+        rpc = self._transport._wrapped_methods[self._transport.list_quantum_processor_configs]
+
+        # Certain fields should be provided within the metadata header;
+        # add these here.
+        metadata = tuple(metadata) + (
+            gapic_v1.routing_header.to_grpc_metadata((("parent", request.parent),)),
+        )
+
+        # Validate the universe domain.
+        self._validate_universe_domain()
+
+        # Send the request.
+        response = rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+
+        # This method is paged; wrap the response in a pager, which provides
+        # an `__iter__` convenience method.
+        response = pagers.ListQuantumProcessorConfigsPager(
+            method=rpc,
+            request=request,
+            response=response,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
+
+        # Done; return the response.
+        return response
+
     def list_quantum_calibrations(
         self,
-        request: Optional[engine.ListQuantumCalibrationsRequest | dict] = None,
+        request: Optional[Union[engine.ListQuantumCalibrationsRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> pagers.ListQuantumCalibrationsPager:
         r"""-
 
@@ -2022,7 +2144,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 results and resolve additional pages
                 automatically.
 
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -2061,11 +2183,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def get_quantum_calibration(
         self,
-        request: Optional[engine.GetQuantumCalibrationRequest | dict] = None,
+        request: Optional[Union[engine.GetQuantumCalibrationRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumCalibration:
         r"""-
 
@@ -2108,7 +2230,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumCalibration:
                 -
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -2136,11 +2258,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def create_quantum_reservation(
         self,
-        request: Optional[engine.CreateQuantumReservationRequest | dict] = None,
+        request: Optional[Union[engine.CreateQuantumReservationRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumReservation:
         r"""-
 
@@ -2183,7 +2305,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumReservation:
                 -
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -2211,11 +2333,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def cancel_quantum_reservation(
         self,
-        request: Optional[engine.CancelQuantumReservationRequest | dict] = None,
+        request: Optional[Union[engine.CancelQuantumReservationRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumReservation:
         r"""-
 
@@ -2258,7 +2380,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumReservation:
                 -
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -2286,11 +2408,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def delete_quantum_reservation(
         self,
-        request: Optional[engine.DeleteQuantumReservationRequest | dict] = None,
+        request: Optional[Union[engine.DeleteQuantumReservationRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> None:
         r"""-
 
@@ -2326,7 +2448,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -2351,11 +2473,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def get_quantum_reservation(
         self,
-        request: Optional[engine.GetQuantumReservationRequest | dict] = None,
+        request: Optional[Union[engine.GetQuantumReservationRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumReservation:
         r"""-
 
@@ -2398,7 +2520,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumReservation:
                 -
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -2426,11 +2548,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def list_quantum_reservations(
         self,
-        request: Optional[engine.ListQuantumReservationsRequest | dict] = None,
+        request: Optional[Union[engine.ListQuantumReservationsRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> pagers.ListQuantumReservationsPager:
         r"""-
 
@@ -2479,7 +2601,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 results and resolve additional pages
                 automatically.
 
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -2518,11 +2640,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def update_quantum_reservation(
         self,
-        request: Optional[engine.UpdateQuantumReservationRequest | dict] = None,
+        request: Optional[Union[engine.UpdateQuantumReservationRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumReservation:
         r"""-
 
@@ -2565,7 +2687,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumReservation:
                 -
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -2596,8 +2718,8 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         requests: Optional[Iterator[engine.QuantumRunStreamRequest]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> Iterable[engine.QuantumRunStreamResponse]:
         r"""-
 
@@ -2668,11 +2790,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def list_quantum_reservation_grants(
         self,
-        request: Optional[engine.ListQuantumReservationGrantsRequest | dict] = None,
+        request: Optional[Union[engine.ListQuantumReservationGrantsRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> pagers.ListQuantumReservationGrantsPager:
         r"""-
 
@@ -2721,7 +2843,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 results and resolve additional pages
                 automatically.
 
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -2760,11 +2882,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def reallocate_quantum_reservation_grant(
         self,
-        request: Optional[engine.ReallocateQuantumReservationGrantRequest | dict] = None,
+        request: Optional[Union[engine.ReallocateQuantumReservationGrantRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumReservationGrant:
         r"""-
 
@@ -2807,7 +2929,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumReservationGrant:
                 -
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -2835,11 +2957,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def list_quantum_reservation_budgets(
         self,
-        request: Optional[engine.ListQuantumReservationBudgetsRequest | dict] = None,
+        request: Optional[Union[engine.ListQuantumReservationBudgetsRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> pagers.ListQuantumReservationBudgetsPager:
         r"""-
 
@@ -2888,7 +3010,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 results and resolve additional pages
                 automatically.
 
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -2927,11 +3049,11 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
     def list_quantum_time_slots(
         self,
-        request: Optional[engine.ListQuantumTimeSlotsRequest | dict] = None,
+        request: Optional[Union[engine.ListQuantumTimeSlotsRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> pagers.ListQuantumTimeSlotsPager:
         r"""-
 
@@ -2980,7 +3102,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 results and resolve additional pages
                 automatically.
 
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -3020,7 +3142,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
     def __enter__(self) -> "QuantumEngineServiceClient":
         return self
 
-    def __exit__(self, typ, value, traceback):
+    def __exit__(self, type, value, traceback):
         """Releases underlying transport's resources.
 
         .. warning::

@@ -17,10 +17,9 @@ from __future__ import annotations
 import abc
 import functools
 import weakref
-from typing import Any, Iterable, TYPE_CHECKING
+from typing import Any, Iterable, Self, TYPE_CHECKING
 
 import numpy as np
-from typing_extensions import Self
 
 from cirq import ops, protocols
 

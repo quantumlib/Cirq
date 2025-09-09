@@ -14,9 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, TypeVar
-
-from typing_extensions import Protocol
+from typing import Any, Protocol, TypeVar
 
 # This is a special value to indicate that a type error should be returned.
 # This is used within phase_by to raise an error if no underlying

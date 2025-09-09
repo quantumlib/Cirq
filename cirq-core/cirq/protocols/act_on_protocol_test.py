@@ -14,11 +14,10 @@
 
 from __future__ import annotations
 
-from typing import Any, Sequence
+from typing import Any, Self, Sequence
 
 import numpy as np
 import pytest
-from typing_extensions import Self
 
 import cirq
 

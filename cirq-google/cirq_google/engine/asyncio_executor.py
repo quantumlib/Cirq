@@ -17,10 +17,9 @@ from __future__ import annotations
 import asyncio
 import errno
 import threading
-from typing import Awaitable, Callable, TYPE_CHECKING, TypeVar
+from typing import Awaitable, Callable, ParamSpec, TYPE_CHECKING, TypeVar
 
 import duet
-from typing_extensions import ParamSpec
 
 if TYPE_CHECKING:
     import concurrent
