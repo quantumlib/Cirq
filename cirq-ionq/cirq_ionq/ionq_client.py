@@ -105,7 +105,7 @@ class _IonQClient:
         self.default_target = default_target
         self.max_retry_seconds = max_retry_seconds
         self.verbose = verbose
-        self.batch_mode = None
+        self.batch_mode = False
 
     def create_job(
         self,
