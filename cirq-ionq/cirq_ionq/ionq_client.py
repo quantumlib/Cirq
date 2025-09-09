@@ -25,7 +25,6 @@ import warnings
 from typing import Any, Callable, cast
 
 import requests
-from websocket import warning
 
 import cirq_ionq
 from cirq import __version__ as cirq_version
