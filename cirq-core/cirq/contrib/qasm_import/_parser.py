@@ -1100,19 +1100,34 @@ class QasmParser:
 
         p[0] = [ops.ResetChannel().on(qreg[i]) for i in range(len(qreg))]
 
+    # condition list
+    # condition_list : carg EQ NATURAL_NUMBER
+    #                | condition_list AND carg EQ NATURAL_NUMBER
+
+    def p_condition_list_single(self, p):
+        """condition_list : carg EQ NATURAL_NUMBER"""
+        p[0] = [(p[1], p[3])]
+
+    def p_condition_list_and(self, p):
+        """condition_list : condition_list AND carg EQ NATURAL_NUMBER"""
+        p[0] = p[1] + [(p[3], p[5])]
+
     # if operations
     # if : IF '(' carg EQ NATURAL_NUMBER ')' ID qargs
 
     def p_if(self, p):
-        """if : IF '(' carg EQ NATURAL_NUMBER ')' gate_op"""
-        # We have to split the register into bits (since that's what measurement does above),
-        # and create one condition per bit, checking against that part of the binary value.
+        """if : IF '(' condition_list ')' gate_op"""
+        # For each condition, we have to split the register into bits (since that's what
+        # measurement does above), and create one condition per bit, checking against that part of
+        # the binary value.
         conditions = []
-        for i, key in enumerate(p[3]):
-            v = (p[5] >> i) & 1
-            conditions.append(sympy.Eq(sympy.Symbol(key), v))
+        for cond in p[3]:
+            carg, val = cond
+            for i, key in enumerate(carg):
+                v = (val >> i) & 1
+                conditions.append(sympy.Eq(sympy.Symbol(key), v))
         p[0] = [
-            ops.ClassicallyControlledOperation(conditions=conditions, sub_operation=tuple(p[7])[0])
+            ops.ClassicallyControlledOperation(conditions=conditions, sub_operation=tuple(p[5])[0])
         ]
 
     def p_gate_params_multiple(self, p):
