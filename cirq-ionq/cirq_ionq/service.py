@@ -192,7 +192,7 @@ class Service:
             seed: If the target is `simulation` the seed for generating results. If None, this
                 will be `np.random`, if an int, will be `np.random.RandomState(int)`, otherwise
                 must be a modulate similar to `np.random`.
-            compilation {"opt": int, "precision": str}: settings for compilation when creating a 
+            compilation {"opt": int, "precision": str}: settings for compilation when creating a
                 a job, default values: {"opt": 0, "precision": "1E-3"}
             error_mitigation (dict): settings for error mitigation when creating a job.
                 Defaults to None. Not available on all backends. Set by default on some hardware
