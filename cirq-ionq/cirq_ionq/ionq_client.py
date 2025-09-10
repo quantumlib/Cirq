@@ -82,7 +82,7 @@ class _IonQClient:
             api_key: The key used for authenticating against the IonQ API.
             default_target: The default target to run against. Supports one of 'qpu' and
                 'simulator'. Can be overridden by calls with target in their signature.
-            api_version: Which version fo the api to use. As of June, 2025, accepts 'v0.4' only,
+            api_version: Which version of the api to use. As of June, 2025, accepts 'v0.4' only,
                 which is the default.
             max_retry_seconds: The time to continue retriable responses. Defaults to 3600.
             verbose: Whether to print to stderr and stdio any retriable errors that are encountered.
