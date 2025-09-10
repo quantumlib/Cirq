@@ -1095,6 +1095,23 @@ def _try_interpret_as_pauli_string(op: Any) -> PauliString | None:
     if not isinstance(op, raw_types.Operation):
         return None
 
+    if isinstance(op, PauliString):
+        return op
+
+    # optimize for integer exponents of Pauli gates
+    cached_gates: dict[type[cirq.Gate | None], cirq.Pauli] = {
+        common_gates.XPowGate: pauli_gates.X,
+        common_gates.YPowGate: pauli_gates.Y,
+        common_gates.ZPowGate: pauli_gates.Z,
+    }
+    if (pauli := cached_gates.get(type(op.gate))) is not None:
+        exponent = op.gate.exponent  # type: ignore
+        if exponent % 2 == 0:
+            return PauliString()
+        if exponent % 2 == 1:
+            return pauli.on(op.qubits[0])
+        return None
+
     pauli_expansion_op = protocols.pauli_expansion(op, default=None)
     if pauli_expansion_op is None or len(pauli_expansion_op) != 1:
         return None
@@ -1132,6 +1149,12 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
     def qubit(self) -> raw_types.Qid:
         assert len(self.qubits) == 1
         return self.qubits[0]
+
+    def __mul__(self, other):
+        return PauliString.__mul__(self, other)
+
+    def __rmul__(self, other):
+        return PauliString.__rmul__(self, other)
 
     def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['pauli', 'qubit'])
