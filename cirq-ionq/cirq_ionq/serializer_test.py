@@ -187,6 +187,46 @@ def test_serialize_many_circuits_negative_line_qubit_invalid():
         _ = serializer.serialize_many_circuits([circuit])
 
 
+def test_serialize_single_circuit_metadata_is_updated():
+    q0 = cirq.LineQubit(0)
+    serializer = ionq.Serializer()
+    circuit = cirq.Circuit(cirq.X(q0), cirq.measure((q0), key='result'))
+    result = serializer.serialize_single_circuit(circuit, metadata={'foo': 'bar'})
+    assert result == ionq.SerializedProgram(
+        input={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': 'x', 'targets': [0]}]},
+        metadata={'foo': 'bar', 'measurement0': 'result\x1f0'},
+        settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
+    )
+
+
+def test_serialize_many_circuits_metadata_is_updated():
+    q0 = cirq.LineQubit(0)
+    serializer = ionq.Serializer()
+    circuit = cirq.Circuit(cirq.X(q0), cirq.measure((q0), key='result'))
+    result = serializer.serialize_many_circuits([circuit], metadata={'foo': 'bar'})
+    assert result == ionq.SerializedProgram(
+        input={
+            'gateset': 'qis',
+            'qubits': 1,
+            'circuits': [{'circuit': [{'gate': 'x', 'targets': [0]}]}],
+        },
+        metadata={
+            'foo': 'bar',
+            'measurements': '[{"measurement0": "result\\u001f0"}]',
+            'qubit_numbers': '[1]',
+        },
+        settings={},
+        compilation={},
+        error_mitigation={},
+        noise={},
+        dry_run=False,
+    )
+
+
 def test_serialize_single_circuit_pow_gates():
     q0 = cirq.LineQubit(0)
     serializer = ionq.Serializer()

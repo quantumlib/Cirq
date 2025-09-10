@@ -140,6 +140,96 @@ def test_ionq_client_create_job(mock_post):
 
 
 @mock.patch('requests.post')
+def test_ionq_client_create_job_error_mitigation_is_correctly_initialized(mock_post):
+    mock_post.return_value.status_code.return_value = requests.codes.ok
+    mock_post.return_value.json.return_value = {'foo': 'bar'}
+
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
+    program = ionq.SerializedProgram(
+        input={'job': 'mine'},
+        metadata={'a': '0,1'},
+        settings={},
+        error_mitigation={'debiasing': True},
+        compilation={},
+        noise={},
+        dry_run=False,
+    )
+    response = client.create_job(
+        serialized_program=program,
+        repetitions=200,
+        target='qpu',
+        name='bacon',
+        extra_query_params={'key': 'value'},
+    )
+    assert response == {'foo': 'bar'}
+
+    expected_json = {
+        'backend': 'qpu',
+        'type': 'ionq.circuit.v1',
+        'lang': 'json',
+        'input': {'job': 'mine'},
+        'name': 'bacon',
+        'shots': '200',
+        'key': 'value',
+        'metadata': {'shots': '200', 'a': '0,1'},
+        'settings': {'error_mitigation': {'debiasing': True}},
+    }
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json',
+        'User-Agent': client._user_agent(),
+    }
+    mock_post.assert_called_with(
+        'http://example.com/v0.4/jobs', json=expected_json, headers=expected_headers
+    )
+
+
+@mock.patch('requests.post')
+def test_ionq_client_create_job_compilation_is_correctly_initialized(mock_post):
+    mock_post.return_value.status_code.return_value = requests.codes.ok
+    mock_post.return_value.json.return_value = {'foo': 'bar'}
+
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
+    program = ionq.SerializedProgram(
+        input={'job': 'mine'},
+        metadata={'a': '0,1'},
+        settings={},
+        error_mitigation={},
+        compilation={"opt": 3, "precision": "1E-4"},
+        noise={},
+        dry_run=False,
+    )
+    response = client.create_job(
+        serialized_program=program,
+        repetitions=200,
+        target='qpu',
+        name='bacon',
+        extra_query_params={'key': 'value'},
+    )
+    assert response == {'foo': 'bar'}
+
+    expected_json = {
+        'backend': 'qpu',
+        'type': 'ionq.circuit.v1',
+        'lang': 'json',
+        'input': {'job': 'mine'},
+        'name': 'bacon',
+        'shots': '200',
+        'key': 'value',
+        'metadata': {'shots': '200', 'a': '0,1'},
+        'settings': {'compilation': {"opt": 3, "precision": "1E-4"}},
+    }
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json',
+        'User-Agent': client._user_agent(),
+    }
+    mock_post.assert_called_with(
+        'http://example.com/v0.4/jobs', json=expected_json, headers=expected_headers
+    )
+
+
+@mock.patch('requests.post')
 def test_ionq_client_create_job_extra_params(mock_post):
     mock_post.return_value.status_code.return_value = requests.codes.ok
     mock_post.return_value.json.return_value = {'foo': 'bar'}
