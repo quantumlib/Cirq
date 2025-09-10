@@ -256,6 +256,9 @@ class Moment:
         Raises:
             ValueError: If the contents given overlaps a current operation in the moment.
         """
+        if len(contents) == 1 and isinstance(contents[0], ops.Operation):
+            return self.with_operation(contents[0])
+
         flattened_contents = tuple(op_tree.flatten_to_ops(contents))
 
         if not flattened_contents:

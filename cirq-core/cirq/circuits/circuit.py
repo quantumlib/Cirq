@@ -1967,6 +1967,16 @@ class Circuit(AbstractCircuit):
         copied_circuit._parameter_names = copy.copy(self._parameter_names)
         return copied_circuit
 
+    def _copy_from(self, other: Circuit) -> None:
+        """Copies the contents of another circuit into this one."""
+        self._moments[:] = other._moments
+        self._placement_cache = copy.deepcopy(other._placement_cache)
+        self._tags = other.tags
+        self._all_qubits = other._all_qubits
+        self._is_measurement = other._is_measurement
+        self._is_parameterized = other._is_parameterized
+        self._parameter_names = copy.copy(other._parameter_names)
+
     @overload
     def __setitem__(self, key: int, value: cirq.Moment):
         pass
@@ -2017,13 +2027,10 @@ class Circuit(AbstractCircuit):
     def __imul__(self, repetitions: _INT_TYPE):
         if not isinstance(repetitions, (int, np.integer)):
             return NotImplemented
-        moment_len = len(self._moments)
+        num_moments_added = len(self._moments) * (repetitions - 1)
         self._moments *= int(repetitions)
         if self._placement_cache:
-            for _ in range(len(self._moments) - moment_len):
-                # todo: add "count"
-                self._placement_cache.insert_moment(0)
-        self._mutated(preserve_placement_cache=True)
+            self._placement_cache.insert_moment(0, num_moments_added)
         return self
 
     def __mul__(self, repetitions: _INT_TYPE):
@@ -2199,7 +2206,7 @@ class Circuit(AbstractCircuit):
         k = max(min(index if index >= 0 else len(self._moments) + index, len(self._moments)), 0)
         appending = strategy == InsertStrategy.EARLIEST and k == len(self._moments)
         mops = list(ops.flatten_to_ops_or_moments(moment_or_operation_tree))
-        if appending:
+        if self._placement_cache and appending:
             batches = [mops]  # Any grouping would work here; this just happens to be the fastest.
         elif strategy is InsertStrategy.NEW:
             batches = [[mop] for mop in mops]  # Each op goes into its own moment.
@@ -2236,7 +2243,7 @@ class Circuit(AbstractCircuit):
                     p = self.earliest_available_moment(moment_or_op, end_moment_index=k)
                 # Place
                 if isinstance(moment_or_op, Moment):
-                    self._insert_moment(p, moment_or_op)
+                    self._insert_moment(p, moment_or_op, skip_cache=appending)
                 else:
                     self._put_op(p, moment_or_op, skip_cache=appending)
                 # Iterate
@@ -2248,22 +2255,19 @@ class Circuit(AbstractCircuit):
         self._mutated(preserve_placement_cache=True)
         return k
 
-    def _insert_moment(self, k: int, *moments: Moment, count:int = 1):
-        # todo: *args are slow
+    def _insert_moment(self, k: int, *moments: Moment, count: int = 1, skip_cache: bool = False):
         if not moments:
-            moments = [Moment()]
+            moments = (Moment(),)
         moments *= count
         self._moments[k:k] = moments
-        if self._placement_cache:
+        if self._placement_cache and not skip_cache:
+            self._placement_cache.insert_moment(k, len(moments))
             for i, m in enumerate(moments):
-                # todo: overload with moments
-                self._placement_cache.insert_moment(k + i)
                 self._placement_cache.put(m, k + i)
 
-    def _put_op(self, k: int, *ops: cirq.Operation, skip_cache: bool=False):
-        # todo: *args are slow, need OP_TREE too
+    def _put_op(self, k: int, *ops: cirq.Operation, skip_cache: bool = False):
         if k == len(self._moments):
-            self._moments.append(Moment(ops))
+            self._moments.append(Moment.from_ops(*ops))
         else:
             self._moments[k] = self._moments[k].with_operations(*ops)
         if self._placement_cache and not skip_cache:
@@ -2485,11 +2489,8 @@ class Circuit(AbstractCircuit):
         """
         copy = self.copy()
         for i, insertions in insert_intos:
-            copy._put_op(i, insertions)
-        # todo: add self._copy_from()
-        self._moments = copy._moments
-        self._placement_cache = copy._placement_cache
-        self._mutated(preserve_placement_cache=True)
+            copy._put_op(i, *ops.flatten_to_ops(insertions))
+        self._copy_from(copy)
 
     def batch_insert(self, insertions: Iterable[tuple[int, cirq.OP_TREE]]) -> None:
         """Applies a batched insert operation to the circuit.
@@ -2523,9 +2524,7 @@ class Circuit(AbstractCircuit):
             next_index = copy.insert(insert_index, reversed(group), InsertStrategy.EARLIEST)
             if next_index > insert_index:
                 shift += next_index - insert_index
-        self._moments = copy._moments
-        self._placement_cache = copy._placement_cache
-        self._mutated(preserve_placement_cache=True)
+        self._copy_from(copy)
 
     def append(
         self,
@@ -2572,7 +2571,7 @@ class Circuit(AbstractCircuit):
             return self
         new_circuit = Circuit(tags=self.tags + new_tags)
         new_circuit._moments[:] = self._moments
-        new_circuit._placement_cache = copy.deepcopy(self._placement_cache) # todo: implement
+        new_circuit._placement_cache = copy.deepcopy(self._placement_cache)  # todo: implement
         return new_circuit
 
     def with_noise(self, noise: cirq.NOISE_MODEL_LIKE) -> cirq.Circuit:
@@ -3098,25 +3097,25 @@ class _PlacementCache:
         return index
 
     def put(self, moment_or_operation: _MOMENT_OR_OP, index: int):
-        self._update_index(self._qubit_indices, moment_or_operation.qubits, index)
-        self._update_index(self._mkey_indices, protocols.measurement_key_objs(moment_or_operation), index)
-        self._update_index(self._ckey_indices, protocols.control_keys(moment_or_operation), index)
+        self._put(self._qubit_indices, moment_or_operation.qubits, index)
+        self._put(self._mkey_indices, protocols.measurement_key_objs(moment_or_operation), index)
+        self._put(self._ckey_indices, protocols.control_keys(moment_or_operation), index)
         self._length = max(self._length, index + 1)
 
-    def insert_moment(self, index: int):
-        self._insert_moment(self._qubit_indices, index)
-        self._insert_moment(self._mkey_indices, index)
-        self._insert_moment(self._ckey_indices, index)
-        self._length += 1
+    def insert_moment(self, index: int, count: int = 1):
+        self._insert_moment(self._qubit_indices, index, count)
+        self._insert_moment(self._mkey_indices, index, count)
+        self._insert_moment(self._ckey_indices, index, count)
+        self._length += count
 
     @staticmethod
-    def _update_index(key_indices, mop_keys, mop_index):
+    def _put[T](key_indices: dict[T, int], mop_keys: Iterable[T], mop_index: int):
         for key in mop_keys:
             key_indices[key] = max(mop_index, key_indices.get(key, -1))
 
     @staticmethod
-    def _insert_moment(key_indices, index):
+    def _insert_moment[T](key_indices: dict[T, int], index: int, count: int):
         for key in key_indices:
             key_index = key_indices[key]
             if key_index >= index:
-                key_indices[key] = key_index + 1
+                key_indices[key] = key_index + count

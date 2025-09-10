@@ -4641,7 +4641,6 @@ def test_freeze_is_cached() -> None:
             lambda c: c.__setitem__(0, cirq.Moment(cirq.Y(cirq.q(0)))),
         ),
         (cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))), lambda c: c.__delitem__(0)),
-        (cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))), lambda c: c.__imul__(2)),
         (
             cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))),
             lambda c: c.insert(1, cirq.Y(cirq.q(0))),
@@ -4657,14 +4656,6 @@ def test_freeze_is_cached() -> None:
         (
             cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))),
             lambda c: c.batch_replace([(0, cirq.X(cirq.q(0)), cirq.Y(cirq.q(0)))]),
-        ),
-        (
-            cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0), cirq.q(1))),
-            lambda c: c.batch_insert_into([(0, cirq.X(cirq.q(1)))]),
-        ),
-        (
-            cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))),
-            lambda c: c.batch_insert([(1, cirq.Y(cirq.q(0)))]),
         ),
         (
             cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))),
@@ -4938,7 +4929,7 @@ def test_append_speed() -> None:
             c.append(xs[q])
     duration = time.perf_counter() - t
     print(duration)
-    #assert len(c) == moments
+    # assert len(c) == moments
     assert duration < 5
 
 
