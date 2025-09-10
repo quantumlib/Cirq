@@ -149,7 +149,7 @@ def spec_for(module_name: str) -> ModuleJsonTestSpec:
     return getattr(test_module, "TestSpec")
 
 
-def assert_json_roundtrip_works(obj, text_should_be=None, resolvers=None):
+def assert_json_roundtrip_works(obj, text_should_be=None, resolvers=None) -> None:
     """Tests that the given object can serialized and de-serialized
 
     Args:

@@ -30,7 +30,7 @@ def assert_optimizes(
     eject_parameterized: bool = False,
     *,
     with_context: bool = False,
-):
+) -> None:
     if cirq.has_unitary(before):
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
             before, expected, atol=1e-8
@@ -72,7 +72,7 @@ def assert_optimizes(
     cirq.testing.assert_same_circuits(c_nested, c_expected)
 
 
-def assert_removes_all_z_gates(circuit: cirq.Circuit, eject_parameterized: bool = True):
+def assert_removes_all_z_gates(circuit: cirq.Circuit, eject_parameterized: bool = True) -> None:
     optimized = cirq.eject_z(circuit, eject_parameterized=eject_parameterized)
     for op in optimized.all_operations():
         # assert _try_get_known_z_half_turns(op, eject_parameterized) is None
@@ -96,7 +96,7 @@ def assert_removes_all_z_gates(circuit: cirq.Circuit, eject_parameterized: bool 
         )
 
 
-def test_single_z_stays():
+def test_single_z_stays() -> None:
     q = cirq.NamedQubit('q')
     assert_optimizes(
         before=cirq.Circuit([cirq.Moment([cirq.Z(q) ** 0.5])]),
@@ -104,13 +104,13 @@ def test_single_z_stays():
     )
 
 
-def test_single_phased_xz_stays():
+def test_single_phased_xz_stays() -> None:
     gate = cirq.PhasedXZGate(axis_phase_exponent=0.2, x_exponent=0.3, z_exponent=0.4)
     q = cirq.NamedQubit('q')
     assert_optimizes(before=cirq.Circuit(gate(q)), expected=cirq.Circuit(gate(q)))
 
 
-def test_ignores_xz_and_cz():
+def test_ignores_xz_and_cz() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     assert_optimizes(
@@ -135,7 +135,7 @@ def test_ignores_xz_and_cz():
     )
 
 
-def test_early_z():
+def test_early_z() -> None:
     q = cirq.NamedQubit('q')
     assert_optimizes(
         before=cirq.Circuit([cirq.Moment([cirq.Z(q) ** 0.5]), cirq.Moment(), cirq.Moment()]),
@@ -143,7 +143,7 @@ def test_early_z():
     )
 
 
-def test_multi_z_merges():
+def test_multi_z_merges() -> None:
     q = cirq.NamedQubit('q')
     assert_optimizes(
         before=cirq.Circuit([cirq.Moment([cirq.Z(q) ** 0.5]), cirq.Moment([cirq.Z(q) ** 0.25])]),
@@ -151,7 +151,7 @@ def test_multi_z_merges():
     )
 
 
-def test_z_pushes_past_xy_and_phases_it():
+def test_z_pushes_past_xy_and_phases_it() -> None:
     q = cirq.NamedQubit('q')
     assert_optimizes(
         before=cirq.Circuit([cirq.Moment([cirq.Z(q) ** 0.5]), cirq.Moment([cirq.Y(q) ** 0.25])]),
@@ -161,7 +161,7 @@ def test_z_pushes_past_xy_and_phases_it():
     )
 
 
-def test_z_pushes_past_cz():
+def test_z_pushes_past_cz() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     assert_optimizes(
@@ -174,7 +174,7 @@ def test_z_pushes_past_cz():
     )
 
 
-def test_measurement_consumes_zs():
+def test_measurement_consumes_zs() -> None:
     q = cirq.NamedQubit('q')
     assert_optimizes(
         before=cirq.Circuit(
@@ -188,7 +188,7 @@ def test_measurement_consumes_zs():
     )
 
 
-def test_unphaseable_causes_earlier_merge_without_size_increase():
+def test_unphaseable_causes_earlier_merge_without_size_increase() -> None:
     class UnknownGate(cirq.testing.SingleQubitGate):
         pass
 
@@ -222,7 +222,7 @@ def test_unphaseable_causes_earlier_merge_without_size_increase():
 
 
 @pytest.mark.parametrize('sym', [sympy.Symbol('a'), sympy.Symbol('a') + 1])
-def test_symbols_block(sym):
+def test_symbols_block(sym) -> None:
     q = cirq.NamedQubit('q')
     assert_optimizes(
         before=cirq.Circuit(
@@ -239,7 +239,7 @@ def test_symbols_block(sym):
 
 
 @pytest.mark.parametrize('sym', [sympy.Symbol('a'), sympy.Symbol('a') + 1])
-def test_symbols_eject(sym):
+def test_symbols_eject(sym) -> None:
     q = cirq.NamedQubit('q')
     assert_optimizes(
         before=cirq.Circuit(
@@ -256,7 +256,7 @@ def test_symbols_eject(sym):
     )
 
 
-def test_removes_zs():
+def test_removes_zs() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
@@ -295,7 +295,7 @@ def test_removes_zs():
     )
 
 
-def test_unknown_operation_blocks():
+def test_unknown_operation_blocks() -> None:
     q = cirq.NamedQubit('q')
 
     class UnknownOp(cirq.Operation):
@@ -314,7 +314,7 @@ def test_unknown_operation_blocks():
     )
 
 
-def test_tagged_nocompile_operation_blocks():
+def test_tagged_nocompile_operation_blocks() -> None:
     q = cirq.NamedQubit('q')
     u = cirq.Z(q).with_tags("nocompile")
     assert_optimizes(
@@ -324,7 +324,7 @@ def test_tagged_nocompile_operation_blocks():
     )
 
 
-def test_swap():
+def test_swap() -> None:
     a, b = cirq.LineQubit.range(2)
     original = cirq.Circuit([cirq.rz(0.123).on(a), cirq.SWAP(a, b)])
     optimized = original.copy()
@@ -341,13 +341,13 @@ def test_swap():
 
 
 @pytest.mark.parametrize('exponent', (0, 2, 1.1, -2, -1.6))
-def test_not_a_swap(exponent):
+def test_not_a_swap(exponent) -> None:
     a, b = cirq.LineQubit.range(2)
     assert not _is_swaplike(cirq.SWAP(a, b) ** exponent)
 
 
 @pytest.mark.parametrize('theta', (np.pi / 2, -np.pi / 2, np.pi / 2 + 5 * np.pi))
-def test_swap_fsim(theta):
+def test_swap_fsim(theta) -> None:
     a, b = cirq.LineQubit.range(2)
     original = cirq.Circuit([cirq.rz(0.123).on(a), cirq.FSimGate(theta=theta, phi=0.123).on(a, b)])
     optimized = original.copy()
@@ -364,13 +364,12 @@ def test_swap_fsim(theta):
 
 
 @pytest.mark.parametrize('theta', (0, 5 * np.pi, -np.pi))
-def test_not_a_swap_fsim(theta):
-    a, b = cirq.LineQubit.range(2)
-    assert not _is_swaplike(cirq.FSimGate(theta=theta, phi=0.456).on(a, b))
+def test_not_a_swap_fsim(theta) -> None:
+    assert not _is_swaplike(cirq.FSimGate(theta=theta, phi=0.456))
 
 
 @pytest.mark.parametrize('exponent', (1, -1))
-def test_swap_iswap(exponent):
+def test_swap_iswap(exponent) -> None:
     a, b = cirq.LineQubit.range(2)
     original = cirq.Circuit([cirq.rz(0.123).on(a), cirq.ISWAP(a, b) ** exponent])
     optimized = original.copy()
