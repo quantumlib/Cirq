@@ -482,10 +482,18 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def _mul_with_qubits(self, qubits: tuple[cirq.Qid, ...], other):
         """cirq.GateOperation.__mul__ delegates to this method."""
+        from cirq.ops.pauli_string import _try_interpret_as_pauli_string
+
+        if (as_pauli_string := _try_interpret_as_pauli_string(self.on(*qubits))) is not None:
+            return as_pauli_string * other
         return NotImplemented
 
     def _rmul_with_qubits(self, qubits: tuple[cirq.Qid, ...], other):
         """cirq.GateOperation.__rmul__ delegates to this method."""
+        from cirq.ops.pauli_string import _try_interpret_as_pauli_string
+
+        if (as_pauli_string := _try_interpret_as_pauli_string(self.on(*qubits))) is not None:
+            return other * as_pauli_string
         return NotImplemented
 
     def _json_dict_(self) -> dict[str, Any]:

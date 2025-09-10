@@ -380,6 +380,20 @@ def test_final_density_matrix_noise():
     )
 
 
+def test_final_density_matrix_classical_control():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.H(q0),
+        cirq.measure(q0, key='a'),
+        cirq.H(q1).with_classical_controls('a'),
+        cirq.measure(q1, key='b'),
+    )
+    np.testing.assert_allclose(
+        cirq.final_density_matrix(circuit),
+        np.diag(np.array([0.5, 0.0, 0.25, 0.25], dtype=np.complex64)),
+    )
+
+
 def test_ps_initial_state_wfn():
     q0, q1 = cirq.LineQubit.range(2)
     s00 = cirq.KET_ZERO(q0) * cirq.KET_ZERO(q1)
