@@ -62,8 +62,8 @@ def _get_structure(active: list[tuple[int, bool]], min_length: int, n: int, gaug
     for i in range(len(active) - 1):
         left_pos, left_is_mergable = active[i]
         right_pos, right_is_mergable = active[i + 1]
-
-        structure.append((left_pos+1-left_is_mergable, right_pos-1+right_is_mergable))
+        if right_pos - left_pos - 1 >= min_length:
+            structure.append((left_pos+1-left_is_mergable, right_pos-1+right_is_mergable))
 
     if gauge_ending:
         stop, is_mergable = active[-1]
