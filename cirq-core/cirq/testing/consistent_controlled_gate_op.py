@@ -38,7 +38,7 @@ def assert_controlled_and_controlled_by_identical(
         _assert_gate_consistent(gate, num_control, control_value)
 
 
-def assert_controlled_unitary_consistent(gate: ops.Gate):
+def assert_controlled_unitary_consistent(gate: ops.Gate) -> None:
     """Checks that unitary of ControlledGate(gate) is consistent with gate.controlled()."""
 
     u_orig = protocols.unitary(ops.ControlledGate(gate))

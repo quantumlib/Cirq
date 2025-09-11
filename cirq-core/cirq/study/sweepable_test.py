@@ -24,66 +24,66 @@ import sympy
 import cirq
 
 
-def test_to_resolvers_none():
+def test_to_resolvers_none() -> None:
     assert list(cirq.to_resolvers(None)) == [cirq.ParamResolver({})]
 
 
-def test_to_resolvers_single():
+def test_to_resolvers_single() -> None:
     resolver = cirq.ParamResolver({})
     assert list(cirq.to_resolvers(resolver)) == [resolver]
     assert list(cirq.to_resolvers({})) == [resolver]
 
 
-def test_to_resolvers_sweep():
+def test_to_resolvers_sweep() -> None:
     sweep = cirq.Linspace('a', 0, 1, 10)
     assert list(cirq.to_resolvers(sweep)) == list(sweep)
 
 
-def test_to_resolvers_iterable():
+def test_to_resolvers_iterable() -> None:
     resolvers = [cirq.ParamResolver({'a': 2}), cirq.ParamResolver({'a': 1})]
     assert list(cirq.to_resolvers(resolvers)) == resolvers
     assert list(cirq.to_resolvers([{'a': 2}, {'a': 1}])) == resolvers
 
 
-def test_to_resolvers_iterable_sweeps():
+def test_to_resolvers_iterable_sweeps() -> None:
     sweeps = [cirq.Linspace('a', 0, 1, 10), cirq.Linspace('b', 0, 1, 10)]
     assert list(cirq.to_resolvers(sweeps)) == list(itertools.chain(*sweeps))
 
 
-def test_to_resolvers_bad():
+def test_to_resolvers_bad() -> None:
     with pytest.raises(TypeError, match='Unrecognized sweepable'):
         for _ in cirq.study.to_resolvers('nope'):
             pass
 
 
-def test_to_sweeps_none():
+def test_to_sweeps_none() -> None:
     assert cirq.study.to_sweeps(None) == [cirq.UnitSweep]
 
 
-def test_to_sweeps_single():
+def test_to_sweeps_single() -> None:
     resolver = cirq.ParamResolver({})
     assert cirq.study.to_sweeps(resolver) == [cirq.UnitSweep]
     assert cirq.study.to_sweeps({}) == [cirq.UnitSweep]
 
 
-def test_to_sweeps_sweep():
+def test_to_sweeps_sweep() -> None:
     sweep = cirq.Linspace('a', 0, 1, 10)
     assert cirq.study.to_sweeps(sweep) == [sweep]
 
 
-def test_to_sweeps_iterable():
+def test_to_sweeps_iterable() -> None:
     resolvers = [cirq.ParamResolver({'a': 2}), cirq.ParamResolver({'a': 1})]
     sweeps = [cirq.study.Zip(cirq.Points('a', [2])), cirq.study.Zip(cirq.Points('a', [1]))]
     assert cirq.study.to_sweeps(resolvers) == sweeps
     assert cirq.study.to_sweeps([{'a': 2}, {'a': 1}]) == sweeps
 
 
-def test_to_sweeps_iterable_sweeps():
+def test_to_sweeps_iterable_sweeps() -> None:
     sweeps = [cirq.Linspace('a', 0, 1, 10), cirq.Linspace('b', 0, 1, 10)]
     assert cirq.study.to_sweeps(sweeps) == sweeps
 
 
-def test_to_sweeps_dictionary_of_list():
+def test_to_sweeps_dictionary_of_list() -> None:
     with pytest.warns(DeprecationWarning, match='dict_to_product_sweep'):
         assert cirq.study.to_sweeps({'t': [0, 2, 3]}) == cirq.study.to_sweeps(
             [{'t': 0}, {'t': 2}, {'t': 3}]
@@ -98,12 +98,12 @@ def test_to_sweeps_dictionary_of_list():
         )
 
 
-def test_to_sweeps_invalid():
+def test_to_sweeps_invalid() -> None:
     with pytest.raises(TypeError, match='Unrecognized sweepable'):
         cirq.study.to_sweeps('nope')
 
 
-def test_to_sweep_sweep():
+def test_to_sweep_sweep() -> None:
     sweep = cirq.Linspace('a', 0, 1, 10)
     assert cirq.to_sweep(sweep) is sweep
 
@@ -117,7 +117,7 @@ def test_to_sweep_sweep():
         lambda: cirq.ParamResolver({sympy.Symbol('a'): 1}),
     ],
 )
-def test_to_sweep_single_resolver(r_gen):
+def test_to_sweep_single_resolver(r_gen) -> None:
     sweep = cirq.to_sweep(r_gen())
     assert isinstance(sweep, cirq.Sweep)
     assert list(sweep) == [cirq.ParamResolver({'a': 1})]
@@ -141,18 +141,18 @@ def test_to_sweep_single_resolver(r_gen):
         lambda: {object(): r for r in [{'a': 1}, {'a': 1.5}]}.values(),
     ],
 )
-def test_to_sweep_resolver_list(r_list_gen):
+def test_to_sweep_resolver_list(r_list_gen) -> None:
     sweep = cirq.to_sweep(r_list_gen())
     assert isinstance(sweep, cirq.Sweep)
     assert list(sweep) == [cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 1.5})]
 
 
-def test_to_sweep_type_error():
+def test_to_sweep_type_error() -> None:
     with pytest.raises(TypeError, match='Unexpected sweep'):
-        cirq.to_sweep(5)
+        cirq.to_sweep(5)  # type: ignore[arg-type]
 
 
-def test_to_sweeps_with_param_dict_appends_metadata():
+def test_to_sweeps_with_param_dict_appends_metadata() -> None:
     params = {'a': 1, 'b': 2, 'c': 3}
     unit_map = {'a': 'ns', 'b': 'ns'}
 
@@ -167,7 +167,7 @@ def test_to_sweeps_with_param_dict_appends_metadata():
     ]
 
 
-def test_to_sweeps_with_param_list_appends_metadata():
+def test_to_sweeps_with_param_list_appends_metadata() -> None:
     resolvers = [cirq.ParamResolver({'a': 2}), cirq.ParamResolver({'a': 1})]
     unit_map = {'a': 'ns'}
 

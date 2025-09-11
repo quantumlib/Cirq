@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Sequence, TYPE_CHECKING
+from typing import Any, Callable, Self, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -284,7 +284,7 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
         )
         super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
 
-    def add_qubits(self, qubits: Sequence[cirq.Qid]):
+    def add_qubits(self, qubits: Sequence[cirq.Qid]) -> Self:
         ret = super().add_qubits(qubits)
         return (
             self.kronecker_product(type(self)(qubits=qubits), inplace=True)
@@ -292,7 +292,7 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
             else ret
         )
 
-    def remove_qubits(self, qubits: Sequence[cirq.Qid]):
+    def remove_qubits(self, qubits: Sequence[cirq.Qid]) -> Self:
         ret = super().remove_qubits(qubits)
         if ret is not NotImplemented:
             return ret
@@ -332,15 +332,15 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
         )
 
     @property
-    def target_tensor(self):
+    def target_tensor(self) -> np.ndarray:
         return self._state._density_matrix
 
     @property
-    def available_buffer(self):
+    def available_buffer(self) -> list[np.ndarray]:
         return self._state._buffer
 
     @property
-    def qid_shape(self):
+    def qid_shape(self) -> tuple[int, ...]:
         return self._state._qid_shape
 
 

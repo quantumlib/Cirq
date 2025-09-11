@@ -258,7 +258,7 @@ class DensityMatrixStepResult(simulator_base.StepResultBase['cirq.DensityMatrixS
         self._dtype = dtype
         self._density_matrix: np.ndarray | None = None
 
-    def density_matrix(self, copy=True):
+    def density_matrix(self, copy=True) -> np.ndarray:
         """Returns the density matrix at this step in the simulation.
 
         The density matrix that is stored in this result is returned in the

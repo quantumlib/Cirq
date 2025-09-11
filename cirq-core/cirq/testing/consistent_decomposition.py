@@ -22,7 +22,9 @@ from cirq import circuits, devices, ops, protocols
 from cirq.testing import lin_alg_utils
 
 
-def assert_decompose_is_consistent_with_unitary(val: Any, ignoring_global_phase: bool = False):
+def assert_decompose_is_consistent_with_unitary(
+    val: Any, ignoring_global_phase: bool = False
+) -> None:
     """Uses `val._unitary_` to check `val._phase_by_`'s behavior."""
     __tracebackhide__ = True
 
@@ -76,7 +78,7 @@ def _known_gate_with_no_decomposition(val: Any):
     return False
 
 
-def assert_decompose_ends_at_default_gateset(val: Any, ignore_known_gates: bool = True):
+def assert_decompose_ends_at_default_gateset(val: Any, ignore_known_gates: bool = True) -> None:
     """Asserts that cirq.decompose(val) ends at default cirq gateset or a known gate."""
     args = () if isinstance(val, ops.Operation) else (tuple(devices.LineQid.for_gate(val)),)
     dec_once = protocols.decompose_once(val, [val(*args[0]) if args else val], *args)

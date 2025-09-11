@@ -23,7 +23,7 @@ from cirq import devices, linalg, ops, protocols
 from cirq.testing import lin_alg_utils
 
 
-def assert_qasm_is_consistent_with_unitary(val: Any):
+def assert_qasm_is_consistent_with_unitary(val: Any) -> None:
     """Uses `val._unitary_` to check `val._qasm_`'s behavior."""
 
     # Only test if qiskit is installed.
@@ -106,7 +106,7 @@ qreg q[{num_qubits}];
         )
 
 
-def assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, unitary):  # pragma: no cover
+def assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, unitary) -> None:  # pragma: no cover
     try:
         # We don't want to require qiskit as a dependency but
         # if Qiskit is installed, test QASM output against it.
