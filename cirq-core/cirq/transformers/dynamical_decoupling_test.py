@@ -19,8 +19,10 @@ from typing import Sequence
 import numpy as np
 import pytest
 
+from unittest import mock
 import cirq
 from cirq import add_dynamical_decoupling, CNOT, CZ, CZPowGate, H, X, Y, Z
+from cirq.transformers.dynamical_decoupling import _GateLabel, _LabeledCircuit
 
 
 def assert_sim_eq(circuit1: cirq.AbstractCircuit, circuit2: cirq.AbstractCircuit) -> None:
@@ -457,7 +459,8 @@ def test_scattered_circuit2() -> None:
 7: ───────────────@───@───
                       │
 8: ───────────────────@───
-""",        schema="XX_PAIR",
+""",
+        schema="XX_PAIR",
         single_qubit_gate_moments_only=False,
     )
 
@@ -556,7 +559,7 @@ b: ───@───X───────────────────
     )
 
 
-def test_absorb_remaining_dd_sequence():
+def test_absorb_remaining_dd_sequence() -> None:
     """Test case diagrams.
     Input:
     a: ───H───────H───@───@───────
@@ -675,11 +678,12 @@ def test_cross_clifford_pieces_filling_merge() -> None:
 
 def test_pull_through_phxz_gate_case1() -> None:
     """Test case diagrams.
-        Input:
+
+    Input:
     a: ───H───────PhXZ(a=0.25,x=-1,z=0)───────@───
                                               │
     b: ───H───H───H───────────────────────H───X───
-        Output: expected circuit diagram below.
+    Output: expected circuit diagram below.
     """
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -704,11 +708,12 @@ b: ───H───H───H───────────────�
 
 def test_pull_through_phxz_gate_case2() -> None:
     """Test case diagrams.
-        Input:
+
+    Input:
     a: ───H───────PhXZ(a=0.2,x=-1,z=0)───────@───
                                               │
     b: ───H───H───H───────────────────────H───X───
-        Output: expected circuit diagram below.
+    Output: expected circuit diagram below.
     """
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -763,3 +768,76 @@ def test_merge_before_non_cliffords() -> None:
         schema="XX_PAIR",
     )
 
+
+def test_runtime_error_if_pulled_through_not_empty_mocked() -> None:
+    """Tests that a RuntimeError is raised if pulled_through is not empty at the end.
+
+    This test explicitly mocks the internal state to simulate a scenario where
+    the `pulled_through` PauliString is not empty after processing all moments.
+    Under normal operation, the `_LabeledCircuit` and `add_dynamical_decoupling`
+    logic should ensure `pulled_through` is always empty at the end, making
+    this RuntimeError theoretically unreachable. This test verifies the
+    defensive check itself.
+    """
+    q0 = cirq.NamedQubit('q0')
+    circuit = cirq.FrozenCircuit(cirq.Moment(cirq.I(q0)))  # A minimal circuit
+
+    # Create a mock _LabeledCircuit instance that would lead to an unabsorbed Pauli.
+    # We need an INSERTABLE slot, but no STOP label, and no self-cancellation.
+    # To achieve this, we'll mock the `pulled_through.after` method to *not* clear it.
+    # This is a deep mock to hit the specific RuntimeError line.
+
+    # First, create a _LabeledCircuit that allows insertion but no stopping.
+    # This is a hypothetical scenario that `_LabeledCircuit.from_circuit` should prevent.
+    mock_gate_types = {q0: {0: _GateLabel.INSERTABLE}}
+    mock_need_to_stop = {q0: {0: False}}  # Crucially, no stop gate
+
+    mock_labeled_circuit = _LabeledCircuit(
+        gate_types=mock_gate_types, need_to_stop=mock_need_to_stop, circuit=circuit
+    )
+
+    # Mock _LabeledCircuit.from_circuit to return our custom mock
+    with mock.patch(
+        'cirq.transformers.dynamical_decoupling._LabeledCircuit.from_circuit',
+        return_value=mock_labeled_circuit,
+    ):
+        # Mock the PauliString.after method to ensure `pulled_through` remains non-empty.
+        with mock.patch('cirq.ops.PauliString.after', return_value=cirq.PauliString({q0: cirq.X})):
+            with pytest.raises(
+                RuntimeError, match="Expect empty remaining Paulis after the dd insertion."
+            ):
+                add_dynamical_decoupling(
+                    circuit, schema='XX_PAIR', single_qubit_gate_moments_only=True
+                )
+
+
+def test_labeled_circuit_str():
+    """Input circuit:
+    0: ───X──────────────────────────────────────────────────M───
+
+    1: ───X───────PhXZ(a=-1,x=0,z=-0.5)───FSim(0, 0.0637π)───M───
+                                          │
+    2: ───X───X───S───────────────────────FSim(0, 0.0637π)───M───
+    """
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    input_circuit = cirq.Circuit(
+        cirq.Moment([X(q) for q in [q0, q1, q2]]),
+        cirq.Moment(X(q2)),
+        cirq.Moment(
+            cirq.PhasedXZGate(axis_phase_exponent=-1, x_exponent=0, z_exponent=-0.5).on(q1),
+            (Z**0.5).on(q2),
+        ),
+        cirq.Moment(cirq.FSimGate(theta=0, phi=0.2).on(q1, q2)),
+        cirq.Moment([cirq.M(q) for q in [q0, q1, q2]]),
+    )
+    labeled_circuit = _LabeledCircuit.from_circuit(
+        input_circuit, single_qubit_gate_moments_only=True
+    )
+    assert str(labeled_circuit) == (
+        """Labeled Circuit:
+     |  0  |  1  |  2  |  3  |  4  |
+-----+-----+-----+-----+-----+-----+
+q(0) |  d  |  i  | i,s |  d  |  w  |
+q(1) |  d  |  i  | d,s |  w  |  w  |
+q(2) |  d  |  d  | d,s |  w  |  w  |"""
+    )

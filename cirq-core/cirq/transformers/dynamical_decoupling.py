@@ -148,23 +148,60 @@ def _merge_single_qubit_ops_to_phxz(
     return gate.on(q)
 
 
-@frozen
-class _CircuitRepr:
-    class _GateType(Enum):
-        UNKOWN = 0
-        WALL_GATE = 1
-        DOOR_GATE = 2
-        INSERTABLE_GATE = 3
+class _GateLabel(Enum):
+    UNKNOWN = 0
+    # Non-insertable gates that cannot be pulled through
+    WALL = 1
+    # Clifford gates where Pauli Gates can be pulled through
+    DOOR = 2
+    # An empty gate can be used to insert Pauli gates from the dd sequence
+    INSERTABLE = 3
 
-    gate_types: dict[ops.Qid, dict[int, _CircuitRepr._GateType]]
+    def __str__(self) -> str:
+        match self:
+            case _GateLabel.UNKNOWN:
+                return '?'
+            case _GateLabel.WALL:
+                return 'w'
+            case _GateLabel.DOOR:
+                return 'd'
+            case _GateLabel.INSERTABLE:
+                return 'i'
+
+
+@frozen
+class _LabeledCircuit:
+    """A circuit representation where each gate position is labeled for dynamical decoupling.
+
+    With this representation, a DD sequence can be automatically navigated in a
+    forward-only process. This avoids issues where a partially inserted DD
+    sequence encounters a "wall" and a new moment must be inserted because the
+    remaining DD sequence cannot be absorbed by nearby gates.
+
+    This labeled representation pre-calculates where DD pulses can be inserted
+    and where leftover DD sequences must be merged, avoiding the need for
+    backtracking.
+
+    An example labeled circuit is shown below:
+         |  0  |  1  |  2  |  3  |  4  |
+    -----+-----+-----+-----+-----+-----+
+    q(0) |  d  |  i  | i,s |  d  |  w  |
+    q(1) |  d  |  i  | d,s |  w  |  w  |
+    q(2) |  d  |  d  | d,s |  w  |  w  |
+    where `w`=WALL, `d`=DOOR, `i`=INSERTABLE. `s` represents a stop gate,
+    meaning that any unfinished DD sequences must be merged at this gate.
+    """
+
+    gate_types: dict[ops.Qid, dict[int, _GateLabel]]
     need_to_stop: dict[ops.Qid, dict[int, bool]]
     circuit: FrozenCircuit
 
-    def __init__(self, circuit: cirq.FrozenCircuit, single_qubit_gate_moments_only: bool):
-        object.__setattr__(self, 'circuit', circuit)
-
-        gate_types: dict[ops.Qid, dict[int, _CircuitRepr._GateType]] = {
-            q: {mid: _CircuitRepr._GateType.UNKOWN for mid in range(len(circuit))}
+    @classmethod
+    def from_circuit(
+        cls, circuit: cirq.FrozenCircuit, single_qubit_gate_moments_only: bool
+    ) -> _LabeledCircuit:
+        gate_types: dict[ops.Qid, dict[int, _GateLabel]] = {
+            q: {mid: _GateLabel.UNKNOWN for mid in range(len(circuit))}
             for q in circuit.all_qubits()
         }
         mergable: dict[ops.Qid, dict[int, bool]] = {
@@ -179,59 +216,64 @@ class _CircuitRepr:
             )
             for q in circuit.all_qubits():
                 if mid < busy_moment_range_by_qubit[q][0] or mid > busy_moment_range_by_qubit[q][1]:
-                    gate_types[q][mid] = _CircuitRepr._GateType.WALL_GATE
+                    gate_types[q][mid] = _GateLabel.WALL
                     continue
                 op_at_q = moment.operation_at(q)
                 if op_at_q is None:
                     if is_insertable_moment:
-                        gate_types[q][mid] = _CircuitRepr._GateType.INSERTABLE_GATE
+                        gate_types[q][mid] = _GateLabel.INSERTABLE
                         mergable[q][mid] = True
                     else:
-                        gate_types[q][mid] = _CircuitRepr._GateType.DOOR_GATE
+                        gate_types[q][mid] = _GateLabel.DOOR
                 else:
                     if _is_clifford_op(op_at_q):
-                        gate_types[q][mid] = _CircuitRepr._GateType.DOOR_GATE
+                        gate_types[q][mid] = _GateLabel.DOOR
                         mergable[q][mid] = _is_single_qubit_operation(op_at_q)
                     else:
-                        gate_types[q][mid] = _CircuitRepr._GateType.WALL_GATE
-        object.__setattr__(self, 'gate_types', gate_types)
+                        gate_types[q][mid] = _GateLabel.WALL
 
         need_to_stop: dict[ops.Qid, dict[int, bool]] = {
             q: {mid: False for mid in range(len(circuit))} for q in circuit.all_qubits()
         }
         # Reversely find the last mergeable gate of each qubit, set them as need_to_stop.
         for q in circuit.all_qubits():
-            self._backward_set_stopping_slots(q, len(circuit) - 1, mergable, need_to_stop)
+            cls._backward_set_stopping_slots(
+                q, len(circuit) - 1, mergable, need_to_stop, gate_types, circuit
+            )
         # Reversely check for each wall gate, mark the closest mergeable gate as need_to_stop.
         for mid in range(len(circuit)):
             for q in circuit.all_qubits():
-                if self.gate_types[q][mid] == _CircuitRepr._GateType.WALL_GATE:
-                    self._backward_set_stopping_slots(q, mid - 1, mergable, need_to_stop)
-        object.__setattr__(self, 'need_to_stop', need_to_stop)
+                if gate_types[q][mid] == _GateLabel.WALL:
+                    cls._backward_set_stopping_slots(
+                        q, mid - 1, mergable, need_to_stop, gate_types, circuit
+                    )
+        return cls(circuit=circuit, gate_types=gate_types, need_to_stop=need_to_stop)
 
+    @staticmethod
     def _backward_set_stopping_slots(
-        self,
         q: ops.Qid,
         from_mid: int,
         mergable: dict[ops.Qid, dict[int, bool]],
         need_to_stop: dict[ops.Qid, dict[int, bool]],
+        gate_types: dict[ops.Qid, dict[int, _GateLabel]],
+        circuit: FrozenCircuit,
     ):
         affected_qubits: set[ops.Qid] = {q}
         for back_mid in range(from_mid, -1, -1):
             for back_q in set(affected_qubits):
-                if self.gate_types[back_q][back_mid] == _CircuitRepr._GateType.WALL_GATE:
+                if gate_types[back_q][back_mid] == _GateLabel.WALL:
                     affected_qubits.remove(back_q)
                     continue
                 if mergable[back_q][back_mid]:
                     need_to_stop[back_q][back_mid] = True
                     affected_qubits.remove(back_q)
                     continue
-                op_at_q = self.circuit[back_mid].operation_at(back_q) or ops.I(q)
+                op_at_q = circuit[back_mid].operation_at(back_q) or ops.I(q)
                 affected_qubits.update(op_at_q.qubits)
             if not affected_qubits:
                 break
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         if not self.gate_types:
             return "CircuitRepr(empty)"
 
@@ -239,13 +281,6 @@ class _CircuitRepr:
         if not qubits:
             return "CircuitRepr(no qubits)"
         num_moments = len(self.gate_types[qubits[0]])
-
-        type_map = {
-            _CircuitRepr._GateType.WALL_GATE: 'w',
-            _CircuitRepr._GateType.DOOR_GATE: 'd',
-            _CircuitRepr._GateType.INSERTABLE_GATE: 'i',
-            _CircuitRepr._GateType.UNKOWN: 'u',
-        }
 
         max_qubit_len = max(len(str(q)) for q in qubits) if qubits else 0
 
@@ -256,15 +291,14 @@ class _CircuitRepr:
         separator = f"{'-' * max_qubit_len}-+"
         separator += '-----+' * num_moments
 
-        lines = ["CircuitRepr:", header, separator]
+        lines = ["Labeled Circuit:", header, separator]
 
         for q in qubits:
             row_str = f"{str(q):>{max_qubit_len}} |"
             for mid in range(num_moments):
-                gate_type = self.gate_types[q][mid]
-                char = type_map.get(gate_type, '?')
+                gate_type = str(self.gate_types[q][mid])
                 stop = self.need_to_stop[q][mid]
-                cell = f"{char},s" if stop else f" {char} "
+                cell = f"{gate_type},s" if stop else f" {gate_type} "
                 row_str += f" {cell} |"
             lines.append(row_str)
 
@@ -300,7 +334,9 @@ def add_dynamical_decoupling(
 
     orig_circuit = circuit.freeze()
 
-    repr = _CircuitRepr(orig_circuit, single_qubit_gate_moments_only)
+    labeled_circuit = _LabeledCircuit.from_circuit(orig_circuit, single_qubit_gate_moments_only)
+
+    print(f"Preprocessed input circuit repr:\n{repr}")
 
     base_dd_sequence, pauli_map = _parse_dd_sequence(schema)
     # Stores all the moments of the output circuit chronologically.
@@ -315,11 +351,11 @@ def add_dynamical_decoupling(
         updated_moment_ops: set[cirq.Operation] = set()
         for q in orig_circuit.all_qubits():
             new_op_at_q = moment.operation_at(q)
-            if repr.gate_types[q][moment_id] == _CircuitRepr._GateType.INSERTABLE_GATE:
+            if labeled_circuit.gate_types[q][moment_id] == _GateLabel.INSERTABLE:
                 new_gate = next(dd_iter_by_qubits[q])
                 new_op_at_q = new_gate.on(q)
                 pulled_through *= pauli_map[new_gate].on(q)
-            if repr.need_to_stop[q][moment_id]:
+            if labeled_circuit.need_to_stop[q][moment_id]:
                 to_be_merged = pulled_through.get(q)
                 if to_be_merged is not None:
                     new_op_at_q = _merge_single_qubit_ops_to_phxz(
@@ -334,8 +370,7 @@ def add_dynamical_decoupling(
         pulled_through = pulled_through.after(clifford_ops)
         transformed_moments.append(updated_moment)
 
-    # DO NOT SUBMIT
-    # if pulled_through.qubits() is not None:
-    #     raise RuntimeError("Expect empty pulled through after propogating all moments.")
+    if len(pulled_through) > 0:
+        raise RuntimeError("Expect empty remaining Paulis after the dd insertion.")
 
     return Circuit.from_moments(*transformed_moments)
