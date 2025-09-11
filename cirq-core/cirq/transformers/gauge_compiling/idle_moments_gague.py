@@ -45,7 +45,7 @@ def _repr_fn(gauges: tuple[cirq.Gate, ...]) -> str:
         return '"clifford"'
     if gauges is _INV_CLIFFORDS:
         return '"inv_clifford"'
-    return str(gauges)
+    return repr(gauges)
 
 
 def _get_structure(
