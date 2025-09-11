@@ -323,6 +323,7 @@ def test_constructor_flexibility() -> None:
 @pytest.mark.parametrize('qubit_pauli_map', _sample_qubit_pauli_maps())
 def test_getitem(qubit_pauli_map) -> None:
     other = cirq.NamedQubit('other')
+    pauli_string: cirq.PauliString[cirq.NamedQubit]
     pauli_string = cirq.PauliString(qubit_pauli_map=qubit_pauli_map)
     for key in qubit_pauli_map:
         assert qubit_pauli_map[key] == pauli_string[key]
