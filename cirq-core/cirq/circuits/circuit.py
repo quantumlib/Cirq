@@ -30,7 +30,6 @@ import math
 from collections import defaultdict
 from types import NotImplementedType
 from typing import (
-    AbstractSet,
     Any,
     Callable,
     cast,
@@ -1342,10 +1341,10 @@ class AbstractCircuit(abc.ABC):
             protocols.is_parameterized(tag) for tag in self.tags
         )
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> frozenset[str]:
         op_params = {name for op in self.all_operations() for name in protocols.parameter_names(op)}
         tag_params = {name for tag in self.tags for name in protocols.parameter_names(tag)}
-        return op_params | tag_params
+        return frozenset(op_params | tag_params)
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Self:
         changed = False
@@ -1840,7 +1839,7 @@ class Circuit(AbstractCircuit):
         self._frozen: cirq.FrozenCircuit | None = None
         self._is_measurement: bool | None = None
         self._is_parameterized: bool | None = None
-        self._parameter_names: AbstractSet[str] | None = None
+        self._parameter_names: frozenset[str] | None = None
         if not contents:
             return
         flattened_contents = tuple(ops.flatten_to_ops_or_moments(contents))
@@ -1949,7 +1948,7 @@ class Circuit(AbstractCircuit):
             self._is_parameterized = super()._is_parameterized_()
         return self._is_parameterized
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> frozenset[str]:
         if self._parameter_names is None:
             self._parameter_names = super()._parameter_names_()
         return self._parameter_names
@@ -1958,24 +1957,25 @@ class Circuit(AbstractCircuit):
         """Return a copy of this circuit."""
         copied_circuit = Circuit()
         copied_circuit._moments[:] = self._moments
-        copied_circuit._placement_cache = copy.deepcopy(self._placement_cache)
+        copied_circuit._placement_cache = copy.copy(self._placement_cache)
         copied_circuit._tags = self.tags
         copied_circuit._all_qubits = self._all_qubits
         copied_circuit._frozen = self._frozen
         copied_circuit._is_measurement = self._is_measurement
         copied_circuit._is_parameterized = self._is_parameterized
-        copied_circuit._parameter_names = copy.copy(self._parameter_names)
+        copied_circuit._parameter_names = self._parameter_names
         return copied_circuit
 
     def _copy_from(self, other: Circuit) -> None:
         """Copies the contents of another circuit into this one."""
         self._moments[:] = other._moments
-        self._placement_cache = copy.deepcopy(other._placement_cache)
+        self._placement_cache = other._placement_cache
         self._tags = other.tags
         self._all_qubits = other._all_qubits
+        self._frozen = other._frozen
         self._is_measurement = other._is_measurement
         self._is_parameterized = other._is_parameterized
-        self._parameter_names = copy.copy(other._parameter_names)
+        self._parameter_names = other._parameter_names
 
     @overload
     def __setitem__(self, key: int, value: cirq.Moment):
@@ -2252,7 +2252,6 @@ class Circuit(AbstractCircuit):
                     strategy = InsertStrategy.INLINE
                     k += 1
             k = max(k, max_p + 1)
-        self._mutated(preserve_placement_cache=True)
         return k
 
     def _insert_moment(self, k: int, *moments: Moment, count: int = 1, skip_cache: bool = False):
@@ -2264,6 +2263,7 @@ class Circuit(AbstractCircuit):
             self._placement_cache.insert_moment(k, len(moments))
             for i, m in enumerate(moments):
                 self._placement_cache.put(m, k + i)
+        self._mutated(preserve_placement_cache=True)
 
     def _put_op(self, k: int, *ops: cirq.Operation, skip_cache: bool = False):
         if k == len(self._moments):
@@ -2273,6 +2273,7 @@ class Circuit(AbstractCircuit):
         if self._placement_cache and not skip_cache:
             for op in ops:
                 self._placement_cache.put(op, k)
+        self._mutated(preserve_placement_cache=True)
 
     def insert_into_range(self, operations: cirq.OP_TREE, start: int, end: int) -> int:
         """Writes operations inline into an area of the circuit.
@@ -2308,7 +2309,6 @@ class Circuit(AbstractCircuit):
 
             self._put_op(i, op)
             op_index += 1
-        self._mutated(preserve_placement_cache=True)
 
         if op_index >= len(flat_ops):
             return end
@@ -2354,7 +2354,6 @@ class Circuit(AbstractCircuit):
         if n_new_moments > 0:
             insert_index = min(late_frontier.values())
             self._insert_moment(insert_index, count=n_new_moments)
-            self._mutated(preserve_placement_cache=True)
             for q in update_qubits:
                 if early_frontier.get(q, 0) > insert_index:
                     early_frontier[q] += n_new_moments
@@ -2380,8 +2379,7 @@ class Circuit(AbstractCircuit):
         """
         if len(operations) != len(insertion_indices):
             raise ValueError('operations and insertion_indices must have the same length.')
-        self._moments += [Moment() for _ in range(1 + max(insertion_indices) - len(self))]
-        self._mutated(preserve_placement_cache=True)
+        self._insert_moment(len(self), count=1 + max(insertion_indices) - len(self))
         moment_to_ops: dict[int, list[cirq.Operation]] = defaultdict(list)
         for op_index, moment_index in enumerate(insertion_indices):
             moment_to_ops[moment_index].append(operations[op_index])
@@ -2569,9 +2567,8 @@ class Circuit(AbstractCircuit):
         """Creates a new tagged `Circuit` with `self.tags` and `new_tags` combined."""
         if not new_tags:
             return self
-        new_circuit = Circuit(tags=self.tags + new_tags)
-        new_circuit._moments[:] = self._moments
-        new_circuit._placement_cache = copy.deepcopy(self._placement_cache)  # todo: implement
+        new_circuit = self.copy()
+        new_circuit._tags = self.tags + new_tags
         return new_circuit
 
     def with_noise(self, noise: cirq.NOISE_MODEL_LIKE) -> cirq.Circuit:
@@ -3096,26 +3093,34 @@ class _PlacementCache:
         self._length = max(self._length, index + 1)
         return index
 
-    def put(self, moment_or_operation: _MOMENT_OR_OP, index: int):
+    def put(self, moment_or_operation: _MOMENT_OR_OP, index: int) -> None:
         self._put(self._qubit_indices, moment_or_operation.qubits, index)
         self._put(self._mkey_indices, protocols.measurement_key_objs(moment_or_operation), index)
         self._put(self._ckey_indices, protocols.control_keys(moment_or_operation), index)
         self._length = max(self._length, index + 1)
 
-    def insert_moment(self, index: int, count: int = 1):
+    def insert_moment(self, index: int, count: int = 1) -> None:
         self._insert_moment(self._qubit_indices, index, count)
         self._insert_moment(self._mkey_indices, index, count)
         self._insert_moment(self._ckey_indices, index, count)
         self._length += count
 
     @staticmethod
-    def _put[T](key_indices: dict[T, int], mop_keys: Iterable[T], mop_index: int):
+    def _put[T](key_indices: dict[T, int], mop_keys: Iterable[T], mop_index: int) -> None:
         for key in mop_keys:
             key_indices[key] = max(mop_index, key_indices.get(key, -1))
 
     @staticmethod
-    def _insert_moment[T](key_indices: dict[T, int], index: int, count: int):
+    def _insert_moment[T](key_indices: dict[T, int], index: int, count: int) -> None:
         for key in key_indices:
             key_index = key_indices[key]
             if key_index >= index:
                 key_indices[key] = key_index + count
+
+    def __copy__(self) -> _PlacementCache:
+        cache = _PlacementCache()
+        cache._qubit_indices = self._qubit_indices.copy()
+        cache._mkey_indices = self._mkey_indices.copy()
+        cache._ckey_indices = self._ckey_indices.copy()
+        cache._length = self._length
+        return cache
