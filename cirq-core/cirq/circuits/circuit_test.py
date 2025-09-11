@@ -4978,6 +4978,13 @@ def test_create_speed() -> None:
 
 
 @pytest.mark.parametrize(
+    'contents',
+    [
+        cirq.X(cirq.q('init')),
+        cirq.Moment(cirq.X(cirq.q('init'))),
+    ],
+)
+@pytest.mark.parametrize(
     'mutate',
     [
         lambda c: c.insert(0, cirq.X(cirq.q('init'))),
@@ -4986,6 +4993,8 @@ def test_create_speed() -> None:
         lambda c: 2 * c,
         lambda c: 2 * (c.copy()),
         lambda c: (2 * c).copy(),
+        lambda c: (2 * c).freeze().unfreeze(),
+        lambda c: (2 * c.freeze()).unfreeze(),
         lambda c: c.__iadd__([cirq.X(cirq.q('init'))]),
         lambda c: c + [cirq.X(cirq.q('init'))],
         lambda c: [cirq.X(cirq.q('init'))] + c,
@@ -4995,7 +5004,7 @@ def test_create_speed() -> None:
         lambda c: c.batch_insert([(0, cirq.X(cirq.q('init')))]),
     ],
 )
-def test_append_speed(mutate) -> None:
+def test_append_speed(contents, mutate) -> None:
     # Previously this took ~17s to run. Now it should take ~150ms. However the coverage test can
     # run this slowly, so allowing 5 sec to account for things like that. Feel free to increase the
     # buffer time or delete the test entirely if it ends up causing flakes.
@@ -5005,7 +5014,7 @@ def test_append_speed(mutate) -> None:
     qs = 2
     moments = 10000
     xs = [cirq.X(cirq.LineQubit(i)) for i in range(qs)]
-    c = cirq.Circuit(cirq.X(cirq.q('init')))
+    c = cirq.Circuit(contents)
     result = mutate(c)
     if isinstance(result, cirq.Circuit):
         # For functional "mutations"

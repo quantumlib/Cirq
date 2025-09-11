@@ -1844,8 +1844,9 @@ class Circuit(AbstractCircuit):
             return
         flattened_contents = tuple(ops.flatten_to_ops_or_moments(contents))
         if all(isinstance(c, Moment) for c in flattened_contents):
-            self._placement_cache = None
             self._moments[:] = cast(Iterable[Moment], flattened_contents)
+            for i, moment in enumerate(self._moments):
+                self._placement_cache.put(i, moment)
             return
         with _compat.block_overlapping_deprecation('.*'):
             if strategy == InsertStrategy.EARLIEST:
@@ -1865,11 +1866,7 @@ class Circuit(AbstractCircuit):
 
     @classmethod
     def _from_moments(cls, moments: Iterable[cirq.Moment], tags: Sequence[Hashable]) -> Circuit:
-        new_circuit = Circuit()
-        new_circuit._moments[:] = moments
-        new_circuit._placement_cache = None
-        new_circuit._tags = tuple(tags)
-        return new_circuit
+        return Circuit(moments, tags=tags)
 
     def _load_contents_with_earliest_strategy(self, contents: cirq.OP_TREE):
         """Optimized algorithm to load contents quickly.
