@@ -237,13 +237,11 @@ def test_noise_properties_from_calibration():
         syc_angles,
         iswap_angles,
     )
-    with cirq.testing.assert_deprecated(
-        "noise_properties_from_calibration was called without the gate_times_ns", deadline="v1.7"
-    ):
-        prop = cirq_google.noise_properties_from_calibration(calibration)
-    assert prop == cirq_google.noise_properties_from_calibration(
-        calibration, gate_times_ns="legacy"
-    )
+    prop = cirq_google.noise_properties_from_calibration(calibration, gate_times_ns="legacy")
+
+    assert prop.gate_times_ns[cirq.ZPowGate] == 25
+    assert prop.gate_times_ns[cirq.ResetChannel] == 250
+    assert prop.gate_times_ns[cirq.FSimGate] == 32
 
     for i, q in enumerate(qubits):
         assert np.isclose(
