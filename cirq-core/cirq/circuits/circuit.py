@@ -1957,25 +1957,25 @@ class Circuit(AbstractCircuit):
         """Return a copy of this circuit."""
         copied_circuit = Circuit()
         copied_circuit._moments[:] = self._moments
-        copied_circuit._placement_cache = copy.copy(self._placement_cache)
         copied_circuit._tags = self.tags
         copied_circuit._all_qubits = self._all_qubits
         copied_circuit._frozen = self._frozen
         copied_circuit._is_measurement = self._is_measurement
         copied_circuit._is_parameterized = self._is_parameterized
         copied_circuit._parameter_names = self._parameter_names
+        copied_circuit._placement_cache = copy.copy(self._placement_cache)
         return copied_circuit
 
-    def _copy_from(self, other: Circuit) -> None:
+    def _copy_from_shallow(self, other: Circuit) -> None:
         """Copies the contents of another circuit into this one."""
         self._moments[:] = other._moments
-        self._placement_cache = other._placement_cache
         self._tags = other.tags
         self._all_qubits = other._all_qubits
         self._frozen = other._frozen
         self._is_measurement = other._is_measurement
         self._is_parameterized = other._is_parameterized
         self._parameter_names = other._parameter_names
+        self._placement_cache = other._placement_cache
 
     @overload
     def __setitem__(self, key: int, value: cirq.Moment):
@@ -2034,14 +2034,10 @@ class Circuit(AbstractCircuit):
         return self
 
     def __mul__(self, repetitions: _INT_TYPE):
-        if not isinstance(repetitions, (int, np.integer)):
-            return NotImplemented
-        return Circuit(self._moments * int(repetitions), tags=self.tags)
+        return self.copy().__imul__(repetitions)
 
     def __rmul__(self, repetitions: _INT_TYPE):
-        if not isinstance(repetitions, (int, np.integer)):
-            return NotImplemented
-        return self * int(repetitions)
+        return self.copy().__imul__(repetitions)
 
     def __pow__(self, exponent: int) -> cirq.Circuit:
         """A circuit raised to a power, only valid for exponent -1, the inverse.
@@ -2488,7 +2484,7 @@ class Circuit(AbstractCircuit):
         copy = self.copy()
         for i, insertions in insert_intos:
             copy._put_op(i, *ops.flatten_to_ops(insertions))
-        self._copy_from(copy)
+        self._copy_from_shallow(copy)
 
     def batch_insert(self, insertions: Iterable[tuple[int, cirq.OP_TREE]]) -> None:
         """Applies a batched insert operation to the circuit.
@@ -2522,7 +2518,7 @@ class Circuit(AbstractCircuit):
             next_index = copy.insert(insert_index, reversed(group), InsertStrategy.EARLIEST)
             if next_index > insert_index:
                 shift += next_index - insert_index
-        self._copy_from(copy)
+        self._copy_from_shallow(copy)
 
     def append(
         self,
