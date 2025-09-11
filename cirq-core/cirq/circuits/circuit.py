@@ -2018,7 +2018,7 @@ class Circuit(AbstractCircuit):
             return NotImplemented
         # Auto wrap OP_TREE inputs into a circuit.
         result = self.copy()
-        result._insert_moment(0, *Circuit(other)._moments)
+        result._insert_moments(0, *Circuit(other)._moments)
         return result
 
     # Needed for numpy to handle multiplication by np.int64 correctly.
@@ -2030,7 +2030,7 @@ class Circuit(AbstractCircuit):
         num_moments_added = len(self._moments) * (repetitions - 1)
         self._moments *= int(repetitions)
         if self._placement_cache:
-            self._placement_cache.insert_moment(0, num_moments_added)
+            self._placement_cache.insert_moments(0, num_moments_added)
         return self
 
     def __mul__(self, repetitions: _INT_TYPE):
@@ -2220,18 +2220,21 @@ class Circuit(AbstractCircuit):
                     for op in cast(list[cirq.Operation], batch)
                 )
             ):
-                self._insert_moment(k)
+                self._insert_moments(k)
                 if strategy is InsertStrategy.INLINE:
                     k += 1
             max_p = 0
             for moment_or_op in batch:
                 # Determine Placement
                 if self._placement_cache and appending:
+                    # This updates the cache and returns placement in a single step. It would be
+                    # cleaner to "check" placement here and avoid the special `skip_cache_update`
+                    # args below, but that adds about 15% latency to this perf-critical case.
                     p = self._placement_cache.append(moment_or_op)
                 elif isinstance(moment_or_op, Moment):
                     p = k
                 elif strategy in (InsertStrategy.NEW, InsertStrategy.NEW_THEN_INLINE):
-                    self._insert_moment(k)
+                    self._insert_moments(k)
                     p = k
                 elif strategy is InsertStrategy.INLINE:
                     p = k - 1
@@ -2239,9 +2242,9 @@ class Circuit(AbstractCircuit):
                     p = self.earliest_available_moment(moment_or_op, end_moment_index=k)
                 # Place
                 if isinstance(moment_or_op, Moment):
-                    self._insert_moment(p, moment_or_op, skip_cache=appending)
+                    self._insert_moments(p, moment_or_op, skip_cache_update=appending)
                 else:
-                    self._put_op(p, moment_or_op, skip_cache=appending)
+                    self._put_ops(p, moment_or_op, skip_cache_update=appending)
                 # Iterate
                 max_p = max(p, max_p)
                 if strategy is InsertStrategy.NEW_THEN_INLINE:
@@ -2250,25 +2253,49 @@ class Circuit(AbstractCircuit):
             k = max(k, max_p + 1)
         return k
 
-    def _insert_moment(self, k: int, *moments: Moment, count: int = 1, skip_cache: bool = False):
+    def _insert_moments(
+        self, index: int, *moments: Moment, count: int = 1, skip_cache_update: bool = False
+    ):
+        """Inserts moments directly to a circuit at index k and updates caches.
+
+        Args:
+            index: The moment index to insert the moment. If greater than the circuit length, the
+                moments will be appended.
+            moments: The moments to insert. If none are provided, a single empty moment will be
+                assumed.
+            count: The number of moments to insert. If both `moments` and `count` are provided,
+                the provided moments will be inserted `count` times.
+            skip_cache_update: Skips updates to the placement cache. Only use if the placement cache
+                has already been updated.
+        """
         if not moments:
             moments = (Moment(),)
         moments *= count
-        self._moments[k:k] = moments
-        if self._placement_cache and not skip_cache:
-            self._placement_cache.insert_moment(k, len(moments))
+        self._moments[index:index] = moments
+        if self._placement_cache and not skip_cache_update:
+            self._placement_cache.insert_moments(index, len(moments))
             for i, m in enumerate(moments):
-                self._placement_cache.put(m, k + i)
+                self._placement_cache.put(index + i, m)
         self._mutated(preserve_placement_cache=True)
 
-    def _put_op(self, k: int, *ops: cirq.Operation, skip_cache: bool = False):
-        if k == len(self._moments):
+    def _put_ops(self, index: int, *ops: cirq.Operation, skip_cache_update: bool = False):
+        """Adds operations directly to moment k and updates caches.
+
+        This is intended to be low-level and will fail if the moment does not exist or already has
+            conflicting operations.
+
+        Args:
+            index: The moment index to add operations to.
+            ops: The operations to add.
+            skip_cache_update: Skips updates to the placement cache. Only use if the placement cache
+                has already been updated.
+        """
+        if index == len(self._moments):
             self._moments.append(Moment.from_ops(*ops))
         else:
-            self._moments[k] = self._moments[k].with_operations(*ops)
-        if self._placement_cache and not skip_cache:
-            for op in ops:
-                self._placement_cache.put(op, k)
+            self._moments[index] = self._moments[index].with_operations(*ops)
+        if self._placement_cache and not skip_cache_update:
+            self._placement_cache.put(index, *ops)
         self._mutated(preserve_placement_cache=True)
 
     def insert_into_range(self, operations: cirq.OP_TREE, start: int, end: int) -> int:
@@ -2303,7 +2330,7 @@ class Circuit(AbstractCircuit):
             if i >= end:
                 break
 
-            self._put_op(i, op)
+            self._put_ops(i, op)
             op_index += 1
 
         if op_index >= len(flat_ops):
@@ -2349,7 +2376,7 @@ class Circuit(AbstractCircuit):
         )
         if n_new_moments > 0:
             insert_index = min(late_frontier.values())
-            self._insert_moment(insert_index, count=n_new_moments)
+            self._insert_moments(insert_index, count=n_new_moments)
             for q in update_qubits:
                 if early_frontier.get(q, 0) > insert_index:
                     early_frontier[q] += n_new_moments
@@ -2375,12 +2402,12 @@ class Circuit(AbstractCircuit):
         """
         if len(operations) != len(insertion_indices):
             raise ValueError('operations and insertion_indices must have the same length.')
-        self._insert_moment(len(self), count=1 + max(insertion_indices) - len(self))
+        self._insert_moments(len(self), count=1 + max(insertion_indices) - len(self))
         moment_to_ops: dict[int, list[cirq.Operation]] = defaultdict(list)
         for op_index, moment_index in enumerate(insertion_indices):
             moment_to_ops[moment_index].append(operations[op_index])
         for moment_index, new_ops in moment_to_ops.items():
-            self._put_op(moment_index, *new_ops)
+            self._put_ops(moment_index, *new_ops)
 
     def insert_at_frontier(
         self, operations: cirq.OP_TREE, start: int, frontier: dict[cirq.Qid, int] | None = None
@@ -2483,7 +2510,7 @@ class Circuit(AbstractCircuit):
         """
         copy = self.copy()
         for i, insertions in insert_intos:
-            copy._put_op(i, *ops.flatten_to_ops(insertions))
+            copy._put_ops(i, *ops.flatten_to_ops(insertions))
         self._copy_from_shallow(copy)
 
     def batch_insert(self, insertions: Iterable[tuple[int, cirq.OP_TREE]]) -> None:
@@ -3089,17 +3116,20 @@ class _PlacementCache:
         self._length = max(self._length, index + 1)
         return index
 
-    def put(self, moment_or_operation: _MOMENT_OR_OP, index: int) -> None:
-        self._put(self._qubit_indices, moment_or_operation.qubits, index)
-        self._put(self._mkey_indices, protocols.measurement_key_objs(moment_or_operation), index)
-        self._put(self._ckey_indices, protocols.control_keys(moment_or_operation), index)
-        self._length = max(self._length, index + 1)
-
-    def insert_moment(self, index: int, count: int = 1) -> None:
-        self._insert_moment(self._qubit_indices, index, count)
-        self._insert_moment(self._mkey_indices, index, count)
-        self._insert_moment(self._ckey_indices, index, count)
+    def insert_moments(self, index: int, count: int = 1) -> None:
+        """Updates cache to account for empty moments inserted at circuit[index]."""
+        self._insert_moments(self._qubit_indices, index, count)
+        self._insert_moments(self._mkey_indices, index, count)
+        self._insert_moments(self._ckey_indices, index, count)
         self._length += count
+
+    def put(self, index: int, *moments_or_operations: _MOMENT_OR_OP) -> None:
+        """Updates cache to account for ops added to circuit[index]."""
+        for mop in moments_or_operations:
+            self._put(self._qubit_indices, mop.qubits, index)
+            self._put(self._mkey_indices, protocols.measurement_key_objs(mop), index)
+            self._put(self._ckey_indices, protocols.control_keys(mop), index)
+        self._length = max(self._length, index + len(moments_or_operations))
 
     @staticmethod
     def _put[T](key_indices: dict[T, int], mop_keys: Iterable[T], mop_index: int) -> None:
@@ -3107,7 +3137,7 @@ class _PlacementCache:
             key_indices[key] = max(mop_index, key_indices.get(key, -1))
 
     @staticmethod
-    def _insert_moment[T](key_indices: dict[T, int], index: int, count: int) -> None:
+    def _insert_moments[T](key_indices: dict[T, int], index: int, count: int) -> None:
         for key in key_indices:
             key_index = key_indices[key]
             if key_index >= index:
