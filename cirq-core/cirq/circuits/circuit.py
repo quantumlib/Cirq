@@ -3143,12 +3143,12 @@ class _PlacementCache:
         self._length = max(self._length, index + len(moments_or_operations))
 
     @staticmethod
-    def _put[T](key_indices: dict[T, int], mop_keys: Iterable[T], mop_index: int) -> None:
+    def _put(key_indices: dict[_TKey, int], mop_keys: Iterable[_TKey], mop_index: int) -> None:
         for key in mop_keys:
             key_indices[key] = max(mop_index, key_indices.get(key, -1))
 
     @staticmethod
-    def _insert_moments[T](key_indices: dict[T, int], index: int, count: int) -> None:
+    def _insert_moments(key_indices: dict[_TKey, int], index: int, count: int) -> None:
         for key in key_indices:
             key_index = key_indices[key]
             if key_index >= index:
