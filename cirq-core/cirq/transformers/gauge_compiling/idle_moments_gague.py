@@ -88,21 +88,41 @@ def _merge(g1: cirq.Gate, g2: cirq.Gate) -> cirq.Gate:
 @transformer_api.transformer
 @attrs.frozen
 class IdleMomentsGauge:
-    """A Gauge that encloses idle moments with a gate selected from the provided gauge and its adjoint.
+    """A transformer that inserts identity-preserving "gauge" gates around idle qubit moments.
+
+    This transformer identifies sequences of consecutive idle moments on a single qubit
+    that meet a `min_length` threshold. For each such sequence, it inserts a randomly
+    selected gate `G` from `gauges` at the start of the idle period and its inverse `G^-1`
+    from `gauges_inverse` at the end. This ensures the logical circuit behavior remains
+    unchanged ($G \cdot G^{-1} = I$).
+
+    The primary goal is to introduce specific structure into idle periods, which is
+    useful for experiments.
 
     Attributes:
-        min_length: The transformer will gauge the idle sequence only if its length
-            is >= min_length.
-        gauges: A sequence of gates to sample from. This parameter can also be one
-            of "pauli", "clifford", and "inv_clifford".
-        gauges_inverse: The inverse of the given gauges. This is an optional argument
-            that defaults to computing the inverse of the given `gauges`.
-        gauge_beginning: Whether to apply the gauge to idle moments at the beginning
-            before any operation is applied to the qubit.
-        gauge_ending: Whether to apply the gauge to idle moments at the end after the
-            last operation is applied to the qubit.
-    """
+        min_length: Minimum number of consecutive idle moments for a gauge to be applied (>= 1).
 
+        gauges: A sequence of `cirq.Gate` objects to randomly select from.
+            Can be a custom tuple or a string alias:
+            - `"pauli"`: Uses single-qubit Pauli gates (I, X, Y, Z). 
+            - `"clifford"`: Uses all 24 single-qubit Clifford gates. 
+
+        gauges_inverse: An optional sequence of `cirq.Gate` objects representing
+            the inverses of gates in `gauges`. The `k`-th gate in `gauges_inverse`
+            must be the inverse of the `k`-th gate in `gauges`. If not provided,
+            it's automatically computed:
+            - `"pauli"` defaults to `"pauli"`.
+            - `"clifford"` defaults to `_INV_CLIFFORDS` (inverses of Clifford gates).
+            - Custom gate sequences have their inverses computed.
+            This positional correspondence is enforced by an internal assertion to
+            ensure $G \cdot G^{-1} = I$.
+
+        gauge_beginning: If `True`, applies a gauge to idle moments at the circuit's start,
+            before any other qubit operation. Defaults to `False`.
+
+        gauge_ending: If `True`, applies a gauge to idle moments at the circuit's end,
+            after the last qubit operation. Defaults to `False`.
+    """
     min_length: int = attrs.field(
         validator=(attrs.validators.instance_of(int), attrs.validators.ge(1))
     )
