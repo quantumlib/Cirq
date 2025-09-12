@@ -13,29 +13,54 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import importlib.util
 import logging as std_logging
-from typing import AsyncIterable, AsyncIterator, Awaitable, Callable, Optional, Sequence
+import re
+from collections import OrderedDict
+from typing import (
+    AsyncIterable,
+    AsyncIterator,
+    Awaitable,
+    Callable,
+    Dict,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    Union,
+)
 
 import google.protobuf
-from google.api_core import gapic_v1, retry_async as retries
+from google.api_core import exceptions as core_exceptions, gapic_v1, retry_async as retries
 from google.api_core.client_options import ClientOptions
-from google.auth import credentials as ga_credentials
-
-import cirq_google
+from google.auth import credentials as ga_credentials  # type: ignore
+from google.oauth2 import service_account  # type: ignore
 
 try:
-    OptionalRetry = retries.AsyncRetry | gapic_v1.method._MethodDefault | None
+    OptionalRetry = Union[retries.AsyncRetry, gapic_v1.method._MethodDefault, None]
 except AttributeError:  # pragma: NO COVER
-    OptionalRetry = retries.AsyncRetry, object, None  # type: ignore
+    OptionalRetry = Union[retries.AsyncRetry, object, None]  # type: ignore
 
+from google.protobuf import any_pb2  # type: ignore
+from google.protobuf import duration_pb2  # type: ignore
+from google.protobuf import timestamp_pb2  # type: ignore
+
+import cirq_google
 from cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service import pagers
 from cirq_google.cloud.quantum_v1alpha1.types import engine, quantum
 
 from .client import QuantumEngineServiceClient
 from .transports.base import DEFAULT_CLIENT_INFO, QuantumEngineServiceTransport
+from .transports.grpc_asyncio import QuantumEngineServiceGrpcAsyncIOTransport
 
-CLIENT_LOGGING_SUPPORTED = importlib.util.find_spec("google.api_core.client_logging") is not None
+try:
+    from google.api_core import client_logging  # type: ignore
+
+    CLIENT_LOGGING_SUPPORTED = True  # pragma: NO COVER
+except ImportError:  # pragma: NO COVER
+    CLIENT_LOGGING_SUPPORTED = False
 
 _LOGGER = std_logging.getLogger(__name__)
 
@@ -100,9 +125,7 @@ class QuantumEngineServiceAsyncClient:
         Returns:
             QuantumEngineServiceAsyncClient: The constructed client.
         """
-        return QuantumEngineServiceClient.from_service_account_info.__func__(  # type: ignore
-            QuantumEngineServiceAsyncClient, info, *args, **kwargs
-        )
+        return QuantumEngineServiceClient.from_service_account_info.__func__(QuantumEngineServiceAsyncClient, info, *args, **kwargs)  # type: ignore
 
     @classmethod
     def from_service_account_file(cls, filename: str, *args, **kwargs):
@@ -118,9 +141,7 @@ class QuantumEngineServiceAsyncClient:
         Returns:
             QuantumEngineServiceAsyncClient: The constructed client.
         """
-        return QuantumEngineServiceClient.from_service_account_file.__func__(  # type: ignore
-            QuantumEngineServiceAsyncClient, filename, *args, **kwargs
-        )
+        return QuantumEngineServiceClient.from_service_account_file.__func__(QuantumEngineServiceAsyncClient, filename, *args, **kwargs)  # type: ignore
 
     from_service_account_json = from_service_account_file
 
@@ -156,7 +177,7 @@ class QuantumEngineServiceAsyncClient:
         Raises:
             google.auth.exceptions.MutualTLSChannelError: If any errors happen.
         """
-        return QuantumEngineServiceClient.get_mtls_endpoint_and_cert_source(client_options)
+        return QuantumEngineServiceClient.get_mtls_endpoint_and_cert_source(client_options)  # type: ignore
 
     @property
     def transport(self) -> QuantumEngineServiceTransport:
@@ -193,7 +214,7 @@ class QuantumEngineServiceAsyncClient:
         *,
         credentials: Optional[ga_credentials.Credentials] = None,
         transport: Optional[
-            str | QuantumEngineServiceTransport | Callable[..., QuantumEngineServiceTransport]
+            Union[str, QuantumEngineServiceTransport, Callable[..., QuantumEngineServiceTransport]]
         ] = "grpc_asyncio",
         client_options: Optional[ClientOptions] = None,
         client_info: gapic_v1.client_info.ClientInfo = DEFAULT_CLIENT_INFO,
@@ -206,18 +227,12 @@ class QuantumEngineServiceAsyncClient:
                 credentials identify the application to the service; if none
                 are specified, the client will attempt to ascertain the
                 credentials from the environment.
-            transport (
-                Optional[
-                    str |
-                    QuantumEngineServiceTransport |
-                    Callable[..., QuantumEngineServiceTransport]
-                ]
-            ):
-                The transport to use, or a Callable that constructs and returns a new transport to
-                use. If a Callable is given, it will be called with the same set of initialization
+            transport (Optional[Union[str,QuantumEngineServiceTransport,Callable[..., QuantumEngineServiceTransport]]]):
+                The transport to use, or a Callable that constructs and returns a new transport to use.
+                If a Callable is given, it will be called with the same set of initialization
                 arguments as used in the QuantumEngineServiceTransport constructor.
                 If set to None, a transport is chosen automatically.
-            client_options (Optional[google.api_core.client_options.ClientOptions | dict]):
+            client_options (Optional[Union[google.api_core.client_options.ClientOptions, dict]]):
                 Custom options for the client.
 
                 1. The ``api_endpoint`` property can be used to override the
@@ -262,17 +277,14 @@ class QuantumEngineServiceAsyncClient:
 
         if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(std_logging.DEBUG):  # pragma: NO COVER
             _LOGGER.debug(
-                (
-                    "Created client `cirq_google.cloud.quantum_v1alpha1."
-                    "QuantumEngineServiceAsyncClient`."
-                ),
+                "Created client `cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceAsyncClient`.",
                 extra=(
                     {
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "universeDomain": getattr(
                             self._client._transport._credentials, "universe_domain", ""
                         ),
-                        "credentialsType": f"{type(self._client._transport._credentials).__module__}.{type(self._client._transport._credentials).__qualname__}",  # noqa E501
+                        "credentialsType": f"{type(self._client._transport._credentials).__module__}.{type(self._client._transport._credentials).__qualname__}",
                         "credentialsInfo": getattr(
                             self.transport._credentials, "get_cred_info", lambda: None
                         )(),
@@ -287,11 +299,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def create_quantum_program(
         self,
-        request: Optional[engine.CreateQuantumProgramRequest | dict] = None,
+        request: Optional[Union[engine.CreateQuantumProgramRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumProgram:
         r"""-
 
@@ -321,19 +333,15 @@ class QuantumEngineServiceAsyncClient:
                 print(response)
 
         Args:
-            request (
-                Optional[
-                    cirq_google.cloud.quantum_v1alpha1.types.CreateQuantumProgramRequest | dict
-                ]
-            ):
+            request (Optional[Union[cirq_google.cloud.quantum_v1alpha1.types.CreateQuantumProgramRequest, dict]]):
                 The request object. -
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
-                sent along with the request as metadata. Normally, each value must be of type
-                `str`, but for metadata keys ending with the suffix `-bin`, the corresponding
-                values must be of type `bytes`.
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
+                sent along with the request as metadata. Normally, each value must be of type `str`,
+                but for metadata keys ending with the suffix `-bin`, the corresponding values must
+                be of type `bytes`.
 
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumProgram:
@@ -368,11 +376,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def get_quantum_program(
         self,
-        request: Optional[engine.GetQuantumProgramRequest | dict] = None,
+        request: Optional[Union[engine.GetQuantumProgramRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumProgram:
         r"""-
 
@@ -402,12 +410,12 @@ class QuantumEngineServiceAsyncClient:
                 print(response)
 
         Args:
-            request (Optional[cirq_google.cloud.quantum_v1alpha1.types.GetQuantumProgramRequest | dict]):
+            request (Optional[Union[cirq_google.cloud.quantum_v1alpha1.types.GetQuantumProgramRequest, dict]]):
                 The request object. -
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
@@ -415,7 +423,7 @@ class QuantumEngineServiceAsyncClient:
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumProgram:
                 -
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -443,11 +451,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def list_quantum_programs(
         self,
-        request: Optional[engine.ListQuantumProgramsRequest | dict] = None,
+        request: Optional[Union[engine.ListQuantumProgramsRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> pagers.ListQuantumProgramsAsyncPager:
         r"""-
 
@@ -483,7 +491,7 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
@@ -496,7 +504,7 @@ class QuantumEngineServiceAsyncClient:
                 results and resolve additional pages
                 automatically.
 
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -537,11 +545,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def delete_quantum_program(
         self,
-        request: Optional[engine.DeleteQuantumProgramRequest | dict] = None,
+        request: Optional[Union[engine.DeleteQuantumProgramRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> None:
         r"""-
 
@@ -573,11 +581,11 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -604,11 +612,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def update_quantum_program(
         self,
-        request: Optional[engine.UpdateQuantumProgramRequest | dict] = None,
+        request: Optional[Union[engine.UpdateQuantumProgramRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumProgram:
         r"""-
 
@@ -643,7 +651,7 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
@@ -651,7 +659,7 @@ class QuantumEngineServiceAsyncClient:
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumProgram:
                 -
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -681,11 +689,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def create_quantum_job(
         self,
-        request: Optional[engine.CreateQuantumJobRequest | dict] = None,
+        request: Optional[Union[engine.CreateQuantumJobRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumJob:
         r"""-
 
@@ -720,7 +728,7 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
@@ -728,7 +736,7 @@ class QuantumEngineServiceAsyncClient:
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumJob:
                 -
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -756,11 +764,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def get_quantum_job(
         self,
-        request: Optional[engine.GetQuantumJobRequest | dict] = None,
+        request: Optional[Union[engine.GetQuantumJobRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumJob:
         r"""-
 
@@ -795,7 +803,7 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
@@ -803,7 +811,7 @@ class QuantumEngineServiceAsyncClient:
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumJob:
                 -
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -831,11 +839,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def list_quantum_jobs(
         self,
-        request: Optional[engine.ListQuantumJobsRequest | dict] = None,
+        request: Optional[Union[engine.ListQuantumJobsRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> pagers.ListQuantumJobsAsyncPager:
         r"""-
 
@@ -871,7 +879,7 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
@@ -884,7 +892,7 @@ class QuantumEngineServiceAsyncClient:
                 results and resolve additional pages
                 automatically.
 
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -923,11 +931,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def delete_quantum_job(
         self,
-        request: Optional[engine.DeleteQuantumJobRequest | dict] = None,
+        request: Optional[Union[engine.DeleteQuantumJobRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> None:
         r"""-
 
@@ -959,11 +967,11 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -988,11 +996,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def update_quantum_job(
         self,
-        request: Optional[engine.UpdateQuantumJobRequest | dict] = None,
+        request: Optional[Union[engine.UpdateQuantumJobRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumJob:
         r"""-
 
@@ -1027,7 +1035,7 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
@@ -1035,7 +1043,7 @@ class QuantumEngineServiceAsyncClient:
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumJob:
                 -
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -1063,11 +1071,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def cancel_quantum_job(
         self,
-        request: Optional[engine.CancelQuantumJobRequest | dict] = None,
+        request: Optional[Union[engine.CancelQuantumJobRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> None:
         r"""-
 
@@ -1099,11 +1107,11 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -1128,11 +1136,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def list_quantum_job_events(
         self,
-        request: Optional[engine.ListQuantumJobEventsRequest | dict] = None,
+        request: Optional[Union[engine.ListQuantumJobEventsRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> pagers.ListQuantumJobEventsAsyncPager:
         r"""-
 
@@ -1168,7 +1176,7 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
@@ -1181,7 +1189,7 @@ class QuantumEngineServiceAsyncClient:
                 results and resolve additional pages
                 automatically.
 
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -1222,11 +1230,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def get_quantum_result(
         self,
-        request: Optional[engine.GetQuantumResultRequest | dict] = None,
+        request: Optional[Union[engine.GetQuantumResultRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumResult:
         r"""-
 
@@ -1261,7 +1269,7 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
@@ -1269,7 +1277,7 @@ class QuantumEngineServiceAsyncClient:
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumResult:
                 -
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -1297,11 +1305,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def list_quantum_processors(
         self,
-        request: Optional[engine.ListQuantumProcessorsRequest | dict] = None,
+        request: Optional[Union[engine.ListQuantumProcessorsRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> pagers.ListQuantumProcessorsAsyncPager:
         r"""-
 
@@ -1337,7 +1345,7 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
@@ -1350,7 +1358,7 @@ class QuantumEngineServiceAsyncClient:
                 results and resolve additional pages
                 automatically.
 
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -1391,11 +1399,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def get_quantum_processor(
         self,
-        request: Optional[engine.GetQuantumProcessorRequest | dict] = None,
+        request: Optional[Union[engine.GetQuantumProcessorRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumProcessor:
         r"""-
 
@@ -1430,7 +1438,7 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
@@ -1438,7 +1446,7 @@ class QuantumEngineServiceAsyncClient:
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumProcessor:
                 -
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -1468,12 +1476,12 @@ class QuantumEngineServiceAsyncClient:
 
     async def get_quantum_processor_config(
         self,
-        request: Optional[engine.GetQuantumProcessorConfigRequest | dict] = None,
+        request: Optional[Union[engine.GetQuantumProcessorConfigRequest, dict]] = None,
         *,
         name: Optional[str] = None,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumProcessorConfig:
         r"""-
 
@@ -1514,7 +1522,7 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
@@ -1522,7 +1530,7 @@ class QuantumEngineServiceAsyncClient:
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumProcessorConfig:
                 -
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Quick check: If we got a request object, we should *not* have
         #   gotten any keyword arguments that map to the request.
@@ -1565,13 +1573,129 @@ class QuantumEngineServiceAsyncClient:
         # Done; return the response.
         return response
 
+    async def list_quantum_processor_configs(
+        self,
+        request: Optional[Union[engine.ListQuantumProcessorConfigsRequest, dict]] = None,
+        *,
+        parent: Optional[str] = None,
+        retry: OptionalRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+    ) -> pagers.ListQuantumProcessorConfigsAsyncPager:
+        r"""-
+
+        .. code-block:: python
+
+            # This snippet has been automatically generated and should be regarded as a
+            # code template only.
+            # It will require modifications to work:
+            # - It may require correct/in-range values for request initialization.
+            # - It may require specifying regional endpoints when creating the service
+            #   client as shown in:
+            #   https://googleapis.dev/python/google-api-core/latest/client_options.html
+            from google.cloud import quantum_v1alpha1
+
+            async def sample_list_quantum_processor_configs():
+                # Create a client
+                client = quantum_v1alpha1.QuantumEngineServiceAsyncClient()
+
+                # Initialize request argument(s)
+                request = quantum_v1alpha1.ListQuantumProcessorConfigsRequest(
+                    parent="parent_value",
+                )
+
+                # Make the request
+                page_result = client.list_quantum_processor_configs(request=request)
+
+                # Handle the response
+                async for response in page_result:
+                    print(response)
+
+        Args:
+            request (Optional[Union[cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorConfigsRequest, dict]]):
+                The request object. -
+            parent (:class:`str`):
+                Required. -
+                This corresponds to the ``parent`` field
+                on the ``request`` instance; if ``request`` is provided, this
+                should not be set.
+            retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
+                should be retried.
+            timeout (float): The timeout for this request.
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
+                sent along with the request as metadata. Normally, each value must be of type `str`,
+                but for metadata keys ending with the suffix `-bin`, the corresponding values must
+                be of type `bytes`.
+
+        Returns:
+            cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service.pagers.ListQuantumProcessorConfigsAsyncPager:
+                -
+
+                Iterating over this object will yield
+                results and resolve additional pages
+                automatically.
+
+        """
+        # Create or coerce a protobuf request object.
+        # - Quick check: If we got a request object, we should *not* have
+        #   gotten any keyword arguments that map to the request.
+        flattened_params = [parent]
+        has_flattened_params = len([param for param in flattened_params if param is not None]) > 0
+        if request is not None and has_flattened_params:
+            raise ValueError(
+                "If the `request` argument is set, then none of "
+                "the individual field arguments should be set."
+            )
+
+        # - Use the request object if provided (there's no risk of modifying the input as
+        #   there are no flattened fields), or create one.
+        if not isinstance(request, engine.ListQuantumProcessorConfigsRequest):
+            request = engine.ListQuantumProcessorConfigsRequest(request)
+
+        # If we have keyword arguments corresponding to fields on the
+        # request, apply these.
+        if parent is not None:
+            request.parent = parent
+
+        # Wrap the RPC method; this adds retry and timeout information,
+        # and friendly error handling.
+        rpc = self._client._transport._wrapped_methods[
+            self._client._transport.list_quantum_processor_configs
+        ]
+
+        # Certain fields should be provided within the metadata header;
+        # add these here.
+        metadata = tuple(metadata) + (
+            gapic_v1.routing_header.to_grpc_metadata((("parent", request.parent),)),
+        )
+
+        # Validate the universe domain.
+        self._client._validate_universe_domain()
+
+        # Send the request.
+        response = await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+
+        # This method is paged; wrap the response in a pager, which provides
+        # an `__aiter__` convenience method.
+        response = pagers.ListQuantumProcessorConfigsAsyncPager(
+            method=rpc,
+            request=request,
+            response=response,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
+
+        # Done; return the response.
+        return response
+
     async def list_quantum_calibrations(
         self,
-        request: Optional[engine.ListQuantumCalibrationsRequest | dict] = None,
+        request: Optional[Union[engine.ListQuantumCalibrationsRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> pagers.ListQuantumCalibrationsAsyncPager:
         r"""-
 
@@ -1607,7 +1731,7 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
@@ -1620,7 +1744,7 @@ class QuantumEngineServiceAsyncClient:
                 results and resolve additional pages
                 automatically.
 
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -1661,11 +1785,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def get_quantum_calibration(
         self,
-        request: Optional[engine.GetQuantumCalibrationRequest | dict] = None,
+        request: Optional[Union[engine.GetQuantumCalibrationRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumCalibration:
         r"""-
 
@@ -1700,7 +1824,7 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
@@ -1708,7 +1832,7 @@ class QuantumEngineServiceAsyncClient:
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumCalibration:
                 -
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -1738,11 +1862,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def create_quantum_reservation(
         self,
-        request: Optional[engine.CreateQuantumReservationRequest | dict] = None,
+        request: Optional[Union[engine.CreateQuantumReservationRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumReservation:
         r"""-
 
@@ -1777,7 +1901,7 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
@@ -1785,7 +1909,7 @@ class QuantumEngineServiceAsyncClient:
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumReservation:
                 -
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -1815,11 +1939,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def cancel_quantum_reservation(
         self,
-        request: Optional[engine.CancelQuantumReservationRequest | dict] = None,
+        request: Optional[Union[engine.CancelQuantumReservationRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumReservation:
         r"""-
 
@@ -1854,7 +1978,7 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
@@ -1862,7 +1986,7 @@ class QuantumEngineServiceAsyncClient:
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumReservation:
                 -
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -1892,11 +2016,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def delete_quantum_reservation(
         self,
-        request: Optional[engine.DeleteQuantumReservationRequest | dict] = None,
+        request: Optional[Union[engine.DeleteQuantumReservationRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> None:
         r"""-
 
@@ -1928,11 +2052,11 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -1959,11 +2083,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def get_quantum_reservation(
         self,
-        request: Optional[engine.GetQuantumReservationRequest | dict] = None,
+        request: Optional[Union[engine.GetQuantumReservationRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumReservation:
         r"""-
 
@@ -1998,7 +2122,7 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
@@ -2006,7 +2130,7 @@ class QuantumEngineServiceAsyncClient:
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumReservation:
                 -
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -2036,11 +2160,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def list_quantum_reservations(
         self,
-        request: Optional[engine.ListQuantumReservationsRequest | dict] = None,
+        request: Optional[Union[engine.ListQuantumReservationsRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> pagers.ListQuantumReservationsAsyncPager:
         r"""-
 
@@ -2076,7 +2200,7 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
@@ -2089,7 +2213,7 @@ class QuantumEngineServiceAsyncClient:
                 results and resolve additional pages
                 automatically.
 
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -2130,11 +2254,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def update_quantum_reservation(
         self,
-        request: Optional[engine.UpdateQuantumReservationRequest | dict] = None,
+        request: Optional[Union[engine.UpdateQuantumReservationRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumReservation:
         r"""-
 
@@ -2169,7 +2293,7 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
@@ -2177,7 +2301,7 @@ class QuantumEngineServiceAsyncClient:
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumReservation:
                 -
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -2210,8 +2334,8 @@ class QuantumEngineServiceAsyncClient:
         requests: Optional[AsyncIterator[engine.QuantumRunStreamRequest]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> Awaitable[AsyncIterable[engine.QuantumRunStreamResponse]]:
         r"""-
 
@@ -2257,7 +2381,7 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
@@ -2265,7 +2389,7 @@ class QuantumEngineServiceAsyncClient:
         Returns:
             AsyncIterable[cirq_google.cloud.quantum_v1alpha1.types.QuantumRunStreamResponse]:
                 -
-        """  # noqa E501
+        """
 
         # Wrap the RPC method; this adds retry and timeout information,
         # and friendly error handling.
@@ -2282,11 +2406,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def list_quantum_reservation_grants(
         self,
-        request: Optional[engine.ListQuantumReservationGrantsRequest | dict] = None,
+        request: Optional[Union[engine.ListQuantumReservationGrantsRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> pagers.ListQuantumReservationGrantsAsyncPager:
         r"""-
 
@@ -2322,7 +2446,7 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
@@ -2335,7 +2459,7 @@ class QuantumEngineServiceAsyncClient:
                 results and resolve additional pages
                 automatically.
 
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -2376,11 +2500,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def reallocate_quantum_reservation_grant(
         self,
-        request: Optional[engine.ReallocateQuantumReservationGrantRequest | dict] = None,
+        request: Optional[Union[engine.ReallocateQuantumReservationGrantRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> quantum.QuantumReservationGrant:
         r"""-
 
@@ -2415,7 +2539,7 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
@@ -2423,7 +2547,7 @@ class QuantumEngineServiceAsyncClient:
         Returns:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumReservationGrant:
                 -
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -2453,11 +2577,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def list_quantum_reservation_budgets(
         self,
-        request: Optional[engine.ListQuantumReservationBudgetsRequest | dict] = None,
+        request: Optional[Union[engine.ListQuantumReservationBudgetsRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> pagers.ListQuantumReservationBudgetsAsyncPager:
         r"""-
 
@@ -2493,7 +2617,7 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
@@ -2506,7 +2630,7 @@ class QuantumEngineServiceAsyncClient:
                 results and resolve additional pages
                 automatically.
 
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -2547,11 +2671,11 @@ class QuantumEngineServiceAsyncClient:
 
     async def list_quantum_time_slots(
         self,
-        request: Optional[engine.ListQuantumTimeSlotsRequest | dict] = None,
+        request: Optional[Union[engine.ListQuantumTimeSlotsRequest, dict]] = None,
         *,
         retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float | object = gapic_v1.method.DEFAULT,
-        metadata: Sequence[tuple[str, str | bytes]] = (),
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ) -> pagers.ListQuantumTimeSlotsAsyncPager:
         r"""-
 
@@ -2587,7 +2711,7 @@ class QuantumEngineServiceAsyncClient:
             retry (google.api_core.retry_async.AsyncRetry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str | bytes]]): Key/value pairs which should be
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
                 sent along with the request as metadata. Normally, each value must be of type `str`,
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
@@ -2600,7 +2724,7 @@ class QuantumEngineServiceAsyncClient:
                 results and resolve additional pages
                 automatically.
 
-        """  # noqa E501
+        """
         # Create or coerce a protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
@@ -2646,7 +2770,7 @@ class QuantumEngineServiceAsyncClient:
         await self.transport.close()
 
 
-DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo(cirq_google.__version__)
+DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo(gapic_version=cirq_google.__version__)
 
 if hasattr(DEFAULT_CLIENT_INFO, "protobuf_runtime_version"):  # pragma: NO COVER
     DEFAULT_CLIENT_INFO.protobuf_runtime_version = google.protobuf.__version__

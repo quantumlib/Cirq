@@ -247,7 +247,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
 
     def supported_languages(self) -> list[str]:
         """Returns the list of processor supported program languages."""
-        return self._inner_processor().supported_languages
+        return list(self._inner_processor().supported_languages)
 
     def get_device_specification(self) -> v2.device_pb2.DeviceSpecification | None:
         """Returns a device specification proto for use in determining

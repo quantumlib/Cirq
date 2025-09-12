@@ -141,7 +141,7 @@ def test_pauli_string_measurement_errors_no_noise() -> None:
                 _ideal_expectation_based_on_pauli_string(
                     pauli_string_measurement_results.pauli_string, final_state_vector
                 ),
-                atol=max(4 * pauli_string_measurement_results.mitigated_stddev, 0.1),
+                atol=10 * pauli_string_measurement_results.mitigated_stddev,
             )
             assert isinstance(
                 pauli_string_measurement_results.calibration_result,
@@ -189,7 +189,7 @@ def test_pauli_string_measurement_errors_with_coefficient_no_noise() -> None:
                 _ideal_expectation_based_on_pauli_string(
                     pauli_string_measurement_results.pauli_string, final_state_vector
                 ),
-                atol=max(4 * pauli_string_measurement_results.mitigated_stddev, 0.1),
+                atol=10 * pauli_string_measurement_results.mitigated_stddev,
             )
             assert isinstance(
                 pauli_string_measurement_results.calibration_result,
@@ -243,7 +243,7 @@ def test_group_pauli_string_measurement_errors_no_noise_with_coefficient() -> No
                 _ideal_expectation_based_on_pauli_string(
                     pauli_string_measurement_results.pauli_string, final_state_vector
                 ),
-                atol=max(4 * pauli_string_measurement_results.mitigated_stddev, 0.1),
+                atol=10 * pauli_string_measurement_results.mitigated_stddev,
             )
             assert isinstance(
                 pauli_string_measurement_results.calibration_result,
@@ -286,7 +286,7 @@ def test_pauli_string_measurement_errors_with_noise() -> None:
                 _ideal_expectation_based_on_pauli_string(
                     pauli_string_measurement_results.pauli_string, final_state_vector
                 ),
-                atol=max(4 * pauli_string_measurement_results.mitigated_stddev, 0.1),
+                atol=10 * pauli_string_measurement_results.mitigated_stddev,
             )
 
             assert isinstance(
@@ -337,7 +337,7 @@ def test_group_pauli_string_measurement_errors_with_noise() -> None:
                 _ideal_expectation_based_on_pauli_string(
                     pauli_string_measurement_results.pauli_string, final_state_vector
                 ),
-                atol=max(4 * pauli_string_measurement_results.mitigated_stddev, 0.1),
+                atol=10 * pauli_string_measurement_results.mitigated_stddev,
             )
 
             assert isinstance(
@@ -398,7 +398,7 @@ def test_many_circuits_input_measurement_with_noise() -> None:
                 _ideal_expectation_based_on_pauli_string(
                     pauli_string_measurement_results.pauli_string, final_state_vector
                 ),
-                atol=max(4 * pauli_string_measurement_results.mitigated_stddev, 0.1),
+                atol=10 * pauli_string_measurement_results.mitigated_stddev,
             )
             assert isinstance(
                 pauli_string_measurement_results.calibration_result,
@@ -517,7 +517,7 @@ def test_many_circuits_with_coefficient() -> None:
                 _ideal_expectation_based_on_pauli_string(
                     pauli_string_measurement_results.pauli_string, final_state_vector
                 ),
-                atol=max(4 * pauli_string_measurement_results.mitigated_stddev, 0.1),
+                atol=10 * pauli_string_measurement_results.mitigated_stddev,
             )
             assert isinstance(
                 pauli_string_measurement_results.calibration_result,
@@ -588,7 +588,7 @@ def test_many_group_pauli_in_circuits_with_coefficient() -> None:
                 _ideal_expectation_based_on_pauli_string(
                     pauli_string_measurement_results.pauli_string, final_state_vector
                 ),
-                atol=max(4 * pauli_string_measurement_results.mitigated_stddev, 0.1),
+                atol=10 * pauli_string_measurement_results.mitigated_stddev,
             )
             assert isinstance(
                 pauli_string_measurement_results.calibration_result,
