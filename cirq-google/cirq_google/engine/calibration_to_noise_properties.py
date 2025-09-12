@@ -31,7 +31,7 @@ from __future__ import annotations
 
 from typing import Literal, TYPE_CHECKING
 
-from cirq import _compat, ops
+from cirq import ops
 from cirq.devices import noise_utils
 from cirq_google import engine, ops as cg_ops
 from cirq_google.devices import google_noise_properties
@@ -93,7 +93,7 @@ def _unpack_2q_from_calibration(
 def noise_properties_from_calibration(
     calibration: engine.Calibration,
     *,
-    gate_times_ns: dict[type[cirq.Gate], float] | Literal['legacy'] | None = None,
+    gate_times_ns: dict[type[cirq.Gate], float] | Literal['legacy'],
     zphase_data: util.ZPhaseDataType | None = None,
 ) -> google_noise_properties.GoogleNoiseProperties:
     """Translates between `cirq_google.Calibration` and NoiseProperties.
@@ -126,15 +126,7 @@ def noise_properties_from_calibration(
         A `cirq_google.GoogleNoiseProperties` which represents the error
         present in the given Calibration object.
     """
-    if gate_times_ns is None:
-        _compat._warn_or_error(
-            'Function noise_properties_from_calibration was called without the '
-            'gate_times_ns argument.\n'
-            'This argument will become mandatory in cirq_google v1.7.\n'
-            'To continue using the old gate times default, please pass the "legacy" value.'
-        )
-        gate_times_ns = DEFAULT_GATE_NS
-    elif gate_times_ns == 'legacy':
+    if gate_times_ns == 'legacy':
         gate_times_ns = DEFAULT_GATE_NS
     if not isinstance(gate_times_ns, dict):
         raise TypeError(
