@@ -1964,7 +1964,11 @@ class Circuit(AbstractCircuit):
         return copied_circuit
 
     def _copy_from_shallow(self, other: Circuit) -> None:
-        """Copies the contents of another circuit into this one."""
+        """Copies the contents of another circuit into this one.
+
+        This performs a shallow copy from another circuit. It is primarily intended for reimporting
+        data from temporary copies that were created during multistep mutations to allow them to be
+        performed atomically."""
         self._moments[:] = other._moments
         self._tags = other.tags
         self._all_qubits = other._all_qubits
@@ -2027,9 +2031,9 @@ class Circuit(AbstractCircuit):
         num_moments_added = len(self._moments) * (repetitions - 1)
         self._moments *= int(repetitions)
         if self._placement_cache:
+            # Shift everything `num_moments_added` to the right.
             self._placement_cache.insert_moments(0, num_moments_added)
-        if self._frozen:
-            self._frozen = None
+        self._frozen = None  # All other cache values are resilient to mul.
         return self
 
     def __mul__(self, repetitions: _INT_TYPE):
@@ -2225,11 +2229,13 @@ class Circuit(AbstractCircuit):
             max_p = 0
             for moment_or_op in batch:
                 # Determine Placement
+                cache_updated = False
                 if self._placement_cache and appending:
                     # This updates the cache and returns placement in a single step. It would be
                     # cleaner to "check" placement here and avoid the special `skip_cache_update`
                     # args below, but that adds about 15% latency to this perf-critical case.
                     p = self._placement_cache.append(moment_or_op)
+                    cache_updated = True
                 elif isinstance(moment_or_op, Moment):
                     p = k
                 elif strategy in (InsertStrategy.NEW, InsertStrategy.NEW_THEN_INLINE):
@@ -2241,9 +2247,9 @@ class Circuit(AbstractCircuit):
                     p = self.earliest_available_moment(moment_or_op, end_moment_index=k)
                 # Place
                 if isinstance(moment_or_op, Moment):
-                    self._insert_moments(p, moment_or_op, skip_cache_update=appending)
+                    self._insert_moments(p, moment_or_op, skip_cache_update=cache_updated)
                 else:
-                    self._put_ops(p, moment_or_op, skip_cache_update=appending)
+                    self._put_ops(p, moment_or_op, skip_cache_update=cache_updated)
                 # Iterate
                 max_p = max(p, max_p)
                 if strategy is InsertStrategy.NEW_THEN_INLINE:
@@ -2255,7 +2261,7 @@ class Circuit(AbstractCircuit):
     def _insert_moments(
         self, index: int, *moments: Moment, count: int = 1, skip_cache_update: bool = False
     ):
-        """Inserts moments directly to a circuit at index k and updates caches.
+        """Inserts moments directly before circuit[index] and updates caches.
 
         Args:
             index: The moment index to insert the moment. If greater than the circuit length, the
@@ -2278,10 +2284,10 @@ class Circuit(AbstractCircuit):
         self._mutated(preserve_placement_cache=True)
 
     def _put_ops(self, index: int, *ops: cirq.Operation, skip_cache_update: bool = False):
-        """Adds operations directly to moment k and updates caches.
+        """Adds operations directly to circuit[index] and updates caches.
 
         This is intended to be low-level and will fail if the moment does not exist or already has
-            conflicting operations.
+        conflicting operations.
 
         Args:
             index: The moment index to add operations to.

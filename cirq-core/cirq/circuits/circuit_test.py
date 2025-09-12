@@ -4967,6 +4967,7 @@ def test_create_speed() -> None:
     'create_circuit',
     [
         lambda: cirq.Circuit(cirq.X(cirq.q('init'))),
+        lambda: cirq.Circuit(cirq.Moment(cirq.X(cirq.q('init')))),
         lambda: cirq.Circuit.from_moments(cirq.Moment(cirq.X(cirq.q('init')))),
     ],
 )
@@ -5006,9 +5007,8 @@ def test_append_speed(create_circuit, mutate) -> None:
         # For functional "mutations"
         c = result
     t = time.perf_counter()
-    # Iterating with the moments in the inner loop highlights the improvement: when filling in
-    # the second qubit, we no longer have to search backwards from moment 10000 for a placement
-    # index.
+    # Iterating with the moments in the inner loop highlights the improvement: when filling in the
+    # second qubit, we no longer have to search backwards from moment 10000 for a placement index.
     for q in range(qs):
         for _ in range(moments):
             c.append(xs[q])
