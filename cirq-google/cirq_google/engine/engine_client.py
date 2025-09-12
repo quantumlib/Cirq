@@ -1212,7 +1212,7 @@ class EngineClient:
         Raises:
             EngineException: If the request to get the config fails.
         """
-        name = _quantum_processor_name_with_snapshot_id(
+        name = _quantum_processor_config_name_from_snapshot_id(
             project_id=project_id,
             processor_id=processor_id,
             snapshot_id=snapshot_id,
@@ -1241,7 +1241,7 @@ class EngineClient:
         Raises:
             EngineException: If the request to get the config fails.
         """
-        name = _quantum_processor_name_with_run_name(
+        name = _quantum_processor_config_name_from_run_name(
             project_id=project_id,
             processor_id=processor_id,
             run_name=run_name,
@@ -1300,23 +1300,21 @@ def _ids_from_calibration_name(calibration_name: str) -> tuple[str, str, int]:
     return parts[1], parts[3], int(parts[5])
 
 
-def _quantum_processor_name_with_snapshot_id(
+def _quantum_processor_config_name_from_snapshot_id(
     project_id: str, processor_id: str, snapshot_id: str, config_name: str
 ) -> str:
     return (
-        f'projects/{project_id}/'
-        f'processors/{processor_id}/'
+        f'{_processor_name_from_ids(project_id, processor_id)}/'
         f'configSnapshots/{snapshot_id}/'
         f'configs/{config_name}'
     )
 
 
-def _quantum_processor_name_with_run_name(
+def _quantum_processor_config_name_from_run_name(
     project_id: str, processor_id: str, run_name: str, config_name: str
 ) -> str:
     return (
-        f'projects/{project_id}/'
-        f'processors/{processor_id}/'
+        f'{_processor_name_from_ids(project_id, processor_id)}/'
         f'configAutomationRuns/{run_name}/'
         f'configs/{config_name}'
     )
