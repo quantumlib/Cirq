@@ -2028,6 +2028,8 @@ class Circuit(AbstractCircuit):
         self._moments *= int(repetitions)
         if self._placement_cache:
             self._placement_cache.insert_moments(0, num_moments_added)
+        if self._frozen:
+            self._frozen = None
         return self
 
     def __mul__(self, repetitions: _INT_TYPE):

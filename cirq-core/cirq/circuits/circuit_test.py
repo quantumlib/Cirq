@@ -4634,93 +4634,75 @@ def test_freeze_is_cached() -> None:
 
 
 @pytest.mark.parametrize(
-    "circuit, mutate, inserts, replaces_or_deletes",
+    "circuit, mutate, action",
     [
         (
             cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))),
             lambda c: c.__setitem__(0, cirq.Moment(cirq.Y(cirq.q(0)))),
-            False,
-            True,
+            'update',
         ),
-        (
-            cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))),
-            lambda c: c.__delitem__(0),
-            False,
-            True,
-        ),
-        # Formally `mul` does insert, but in a way that doesn't affect caches.
-        (cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))), lambda c: c.__imul__(2), False, False),
-        (cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))), lambda c: c * 2, False, False),
-        (cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))), lambda c: 2 * c, False, False),
+        (cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))), lambda c: c.__delitem__(0), 'delete'),
+        (cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))), lambda c: c.__imul__(2), 'mul'),
+        (cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))), lambda c: c * 2, 'mul'),
+        (cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))), lambda c: 2 * c, 'mul'),
         (
             cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))),
             lambda c: c.insert(1, cirq.Y(cirq.q(0))),
-            True,
-            False,
+            'insert',
         ),
         (
             cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))),
             lambda c: c.__iadd__([cirq.Y(cirq.q(0))]),
-            True,
-            False,
+            'insert',
         ),
         (
             cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))),
             lambda c: c + [cirq.Y(cirq.q(0))],
-            True,
-            False,
+            'insert',
         ),
         (
             cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))),
             lambda c: [cirq.Y(cirq.q(0))] + c,
-            True,
-            False,
+            'insert',
         ),
         (
             cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))),
             lambda c: c.insert_into_range([cirq.Y(cirq.q(1)), cirq.M(cirq.q(1))], 0, 2),
-            True,
-            False,
+            'insert',
         ),
-        (cirq.Circuit(cirq.X(cirq.q(0))), lambda c: c.insert(1, []), False, False),
+        (cirq.Circuit(cirq.X(cirq.q(0))), lambda c: c.insert(1, []), 'none'),
         (
             cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))),
             lambda c: c.insert_at_frontier([cirq.Y(cirq.q(0)), cirq.Y(cirq.q(1))], 1),
-            True,
-            False,
+            'insert',
         ),
         (
             cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))),
             lambda c: c.batch_replace([(0, cirq.X(cirq.q(0)), cirq.Y(cirq.q(0)))]),
-            False,
-            True,
+            'update',
         ),
         (
             cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0), cirq.q(1))),
             lambda c: c.batch_insert_into([(0, cirq.X(cirq.q(1)))]),
-            True,
-            False,
+            'insert',
         ),
         (
             cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))),
             lambda c: c.batch_insert([(1, cirq.Y(cirq.q(0)))]),
-            True,
-            False,
+            'insert',
         ),
         (
             cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))),
             lambda c: c.clear_operations_touching([cirq.q(0)], [0]),
-            False,
-            True,
+            'delete',
         ),
-        (cirq.Circuit(cirq.X(cirq.q(0))), lambda c: c.copy(), False, False),
+        (cirq.Circuit(cirq.X(cirq.q(0))), lambda c: c.copy(), 'none'),
+        (cirq.Circuit(cirq.X(cirq.q(0))), lambda c: c.unfreeze(), 'none'),
+        (cirq.Circuit(cirq.X(cirq.q(0))), lambda c: c.freeze().unfreeze(), 'freeze_cycle'),
     ],
 )
 def test_mutation_clears_cached_attributes(
-    circuit: cirq.Circuit,
-    mutate: Callable[[cirq.Circuit], Any],
-    inserts: bool,
-    replaces_or_deletes: bool,
+    circuit: cirq.Circuit, mutate: Callable[[cirq.Circuit], Any], action: str
 ) -> None:
     standard_attributes = [
         "_all_qubits",
@@ -4761,7 +4743,11 @@ def test_mutation_clears_cached_attributes(
     for attr in all_attributes:
         # Standard attributes get cleared on any mutation (except `mul`), but placement cache only
         # gets cleared on replacements and deletes.
-        if replaces_or_deletes or (inserts and attr in standard_attributes):
+        if (
+            (action in ['update', 'delete'])
+            or (action in ['insert', 'freeze_cycle'] and attr in standard_attributes)
+            or (action == 'mul' and attr == '_frozen')
+        ):
             assert getattr(circuit, attr) is None, f"{attr=} is not None"
         else:
             assert getattr(circuit, attr) is not None, f"{attr=} is None"
@@ -4978,10 +4964,10 @@ def test_create_speed() -> None:
 
 
 @pytest.mark.parametrize(
-    'contents',
+    'create_circuit',
     [
-        cirq.X(cirq.q('init')),
-        cirq.Moment(cirq.X(cirq.q('init'))),
+        lambda: cirq.Circuit(cirq.X(cirq.q('init'))),
+        lambda: cirq.Circuit.from_moments(cirq.Moment(cirq.X(cirq.q('init')))),
     ],
 )
 @pytest.mark.parametrize(
@@ -5004,7 +4990,7 @@ def test_create_speed() -> None:
         lambda c: c.batch_insert([(0, cirq.X(cirq.q('init')))]),
     ],
 )
-def test_append_speed(contents, mutate) -> None:
+def test_append_speed(create_circuit, mutate) -> None:
     # Previously this took ~17s to run. Now it should take ~150ms. However the coverage test can
     # run this slowly, so allowing 5 sec to account for things like that. Feel free to increase the
     # buffer time or delete the test entirely if it ends up causing flakes.
@@ -5014,7 +5000,7 @@ def test_append_speed(contents, mutate) -> None:
     qs = 2
     moments = 10000
     xs = [cirq.X(cirq.LineQubit(i)) for i in range(qs)]
-    c = cirq.Circuit(contents)
+    c = create_circuit()
     result = mutate(c)
     if isinstance(result, cirq.Circuit):
         # For functional "mutations"
