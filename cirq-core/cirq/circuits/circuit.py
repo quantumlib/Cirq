@@ -1978,7 +1978,7 @@ class Circuit(AbstractCircuit):
         This performs a shallow copy from another circuit. It is primarily intended for reimporting
         data from temporary copies that were created during multistep mutations to allow them to be
         performed atomically."""
-        self._moments[:] = other._moments
+        self._moments = other._moments
         self._tags = other.tags
         self._all_qubits = other._all_qubits
         self._frozen = other._frozen
@@ -3143,7 +3143,7 @@ class _PlacementCache:
             self._put(self._qubit_indices, mop.qubits, index)
             self._put(self._mkey_indices, protocols.measurement_key_objs(mop), index)
             self._put(self._ckey_indices, protocols.control_keys(mop), index)
-        self._length = max(self._length, index + len(moments_or_operations))
+        self._length = max(self._length, index + 1)
 
     @staticmethod
     def _put(key_indices: dict[_TKey, int], mop_keys: Iterable[_TKey], mop_index: int) -> None:
