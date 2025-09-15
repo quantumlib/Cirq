@@ -323,6 +323,7 @@ def test_constructor_flexibility() -> None:
 @pytest.mark.parametrize('qubit_pauli_map', _sample_qubit_pauli_maps())
 def test_getitem(qubit_pauli_map) -> None:
     other = cirq.NamedQubit('other')
+    pauli_string: cirq.PauliString[cirq.NamedQubit]
     pauli_string = cirq.PauliString(qubit_pauli_map=qubit_pauli_map)
     for key in qubit_pauli_map:
         assert qubit_pauli_map[key] == pauli_string[key]
@@ -2085,12 +2086,13 @@ def test_resolve(resolve_fn) -> None:
     ids=str,
 )
 def test_pauli_ops_identity_gate_operation(gate1: cirq.Pauli, gate2: cirq.Pauli) -> None:
-    # TODO: Issue #7280 - Support addition and subtraction of identity gate operations.
-    if gate1 == gate2 == cirq.I:
-        pytest.skip('Not yet implemented per #7280')
     q = cirq.LineQubit(0)
     pauli1, pauli2 = gate1.on(q), gate2.on(q)
-    unitary1, unitary2 = cirq.unitary(gate1), cirq.unitary(gate2)
+    if gate1 == gate2 == cirq.I:
+        # PauliSum swallows I qubits, so resulting unitaries are dimensionless
+        unitary1 = unitary2 = np.array([[1]])
+    else:
+        unitary1, unitary2 = cirq.unitary(gate1), cirq.unitary(gate2)
     addition = pauli1 + pauli2
     assert isinstance(addition, cirq.PauliSum)
     assert np.array_equal(addition.matrix(), unitary1 + unitary2)

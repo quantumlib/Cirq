@@ -746,10 +746,6 @@ class PauliSum:
             other = PauliSum.from_pauli_strings([PauliString(coefficient=other)])
         elif isinstance(other, PauliString):
             other = PauliSum.from_pauli_strings([other])
-        elif isinstance(other, raw_types.Operation) and isinstance(
-            other.gate, identity.IdentityGate
-        ):
-            other = PauliSum.from_pauli_strings([PauliString()])
 
         if not isinstance(other, PauliSum):
             return NotImplemented
@@ -758,10 +754,9 @@ class PauliSum:
         return self
 
     def __add__(self, other):
-        if not isinstance(other, (numbers.Complex, PauliString, PauliSum, raw_types.Operation)):
-            return NotImplemented
         result = self.copy()
-        result += other
+        if result.__iadd__(other) is NotImplemented:
+            return NotImplemented
         return result
 
     def __radd__(self, other):
@@ -775,10 +770,6 @@ class PauliSum:
             other = PauliSum.from_pauli_strings([PauliString(coefficient=other)])
         elif isinstance(other, PauliString):
             other = PauliSum.from_pauli_strings([other])
-        elif isinstance(other, raw_types.Operation) and isinstance(
-            other.gate, identity.IdentityGate
-        ):
-            other = PauliSum.from_pauli_strings([PauliString()])
 
         if not isinstance(other, PauliSum):
             return NotImplemented
@@ -787,10 +778,9 @@ class PauliSum:
         return self
 
     def __sub__(self, other):
-        if not isinstance(other, (numbers.Complex, PauliString, PauliSum, raw_types.Operation)):
-            return NotImplemented
         result = self.copy()
-        result -= other
+        if result.__isub__(other) is NotImplemented:
+            return NotImplemented
         return result
 
     def __neg__(self):
