@@ -26,7 +26,7 @@ import cirq.transformers.transformer_api as transformer_api
 if TYPE_CHECKING:
     import cirq
 
-_PAULIS = (ops.I, ops.X, ops.Y, ops.Z)
+_PAULIS: tuple[cirq.Gate, ...] = (ops.I, ops.X, ops.Y, ops.Z)  # type: ignore[has-type]
 _CLIFFORDS = tuple(ops.SingleQubitCliffordGate.all_single_qubit_cliffords)
 _INV_CLIFFORDS = tuple(c**-1 for c in ops.SingleQubitCliffordGate.all_single_qubit_cliffords)
 
@@ -40,7 +40,7 @@ def _gauges_arg_converter(gauges: str | Sequence[cirq.Gate] = 'clifford') -> tup
 
 
 def _repr_fn(gauges: tuple[cirq.Gate, ...]) -> str:
-    if gauges is _PAULIS or gauges == _PAULIS:
+    if gauges is _PAULIS:
         return '"pauli"'
     if gauges is _CLIFFORDS:
         return '"clifford"'
@@ -197,7 +197,7 @@ class IdleMomentsGauge:
         tags_to_ignore = frozenset(context.tags_to_ignore)
         all_qubits = circuit.all_qubits()
 
-        active_moments = {q: [] for q in all_qubits}
+        active_moments: dict[cirq.Qid, list[tuple[int, bool]]] = {q: [] for q in all_qubits}
         for m_id, moment in enumerate(circuit):
             if tags_to_ignore & frozenset(moment.tags):
                 for q in all_qubits:
@@ -225,13 +225,17 @@ class IdleMomentsGauge:
                 gate_inv = self.gauges_inverse[gate_index]
 
                 if existing_op := single_qubit_moments[s].get(q, None):
-                    single_qubit_moments[s][q] = _merge(existing_op.gate, gate, q, existing_op.tags)
+                    existing_gate = existing_op.gate
+                    assert existing_gate is not None
+                    single_qubit_moments[s][q] = _merge(existing_gate, gate, q, existing_op.tags)
                 else:
                     single_qubit_moments[s][q] = gate(q)
 
                 if existing_op := single_qubit_moments[e].get(q, None):
+                    existing_gate = existing_op.gate
+                    assert existing_gate is not None
                     single_qubit_moments[e][q] = _merge(
-                        gate_inv, existing_op.gate, q, existing_op.tags
+                        gate_inv, existing_gate, q, existing_op.tags
                     )
                 else:
                     single_qubit_moments[e][q] = gate_inv(q)
