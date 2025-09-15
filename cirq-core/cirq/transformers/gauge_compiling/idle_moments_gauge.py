@@ -18,6 +18,7 @@ from typing import Iterator, Sequence, TYPE_CHECKING
 import attrs
 import numpy as np
 
+import cirq.circuits as circuits
 import cirq.ops as ops
 import cirq.protocols as protocols
 import cirq.transformers.transformer_api as transformer_api
@@ -79,16 +80,16 @@ def _get_structure(
                 yield (stop + 1, n - 1)
 
 
-def _merge(g1: cirq.Gate, g2: cirq.Gate) -> cirq.Gate:
+def _merge(g1: cirq.Gate, g2: cirq.Gate, q: cirq.Qid, tags: Sequence) -> cirq.Operation:
     u1 = protocols.unitary(g1)
     u2 = protocols.unitary(g2)
-    return ops.PhasedXZGate.from_matrix(u2 @ u1)
+    return ops.PhasedXZGate.from_matrix(u2 @ u1)(q).with_tags(*tags)
 
 
 @transformer_api.transformer
 @attrs.frozen
 class IdleMomentsGauge:
-    """A transformer that inserts identity-preserving "gauge" gates around idle qubit moments.
+    r"""A transformer that inserts identity-preserving "gauge" gates around idle qubit moments.
 
     This transformer identifies sequences of consecutive idle moments on a single qubit
     that meet a `min_length` threshold. For each such sequence, it inserts a randomly
@@ -104,8 +105,8 @@ class IdleMomentsGauge:
 
         gauges: A sequence of `cirq.Gate` objects to randomly select from.
             Can be a custom tuple or a string alias:
-            - `"pauli"`: Uses single-qubit Pauli gates (I, X, Y, Z). 
-            - `"clifford"`: Uses all 24 single-qubit Clifford gates. 
+            - `"pauli"`: Uses single-qubit Pauli gates (I, X, Y, Z).
+            - `"clifford"`: Uses all 24 single-qubit Clifford gates.
 
         gauges_inverse: An optional sequence of `cirq.Gate` objects representing
             the inverses of gates in `gauges`. The `k`-th gate in `gauges_inverse`
@@ -123,6 +124,7 @@ class IdleMomentsGauge:
         gauge_ending: If `True`, applies a gauge to idle moments at the circuit's end,
             after the last qubit operation. Defaults to `False`.
     """
+
     min_length: int = attrs.field(
         validator=(attrs.validators.instance_of(int), attrs.validators.ge(1))
     )
@@ -211,7 +213,7 @@ class IdleMomentsGauge:
                     for q in op.qubits:
                         active_moments[q].append((m_id, is_mergable))
 
-        single_qubit_moments = [{q: op.gate for op in m if len(op.qubits) == 1} for m in circuit]
+        single_qubit_moments = [{q: op for op in m if len(op.qubits) == 1} for m in circuit]
         non_single_qubit_moments = [[op for op in m if len(op.qubits) != 1] for m in circuit]
 
         for q, active in active_moments.items():
@@ -220,34 +222,23 @@ class IdleMomentsGauge:
             ):
                 gate_index = rng.choice(len(self.gauges))
                 gate = self.gauges[gate_index]
-                gate_inv = self.gauges[gate_index]
+                gate_inv = self.gauges_inverse[gate_index]
 
-                if existing_gate := single_qubit_moments[s].get(q, None):
-                    single_qubit_moments[s][q] = _merge(existing_gate, gate)
+                if existing_op := single_qubit_moments[s].get(q, None):
+                    single_qubit_moments[s][q] = _merge(existing_op.gate, gate, q, existing_op.tags)
                 else:
-                    single_qubit_moments[s][q] = gate
+                    single_qubit_moments[s][q] = gate(q)
 
-                if existing_gate := single_qubit_moments[e].get(q, None):
-                    single_qubit_moments[e][q] = _merge(gate_inv, existing_gate)
+                if existing_op := single_qubit_moments[e].get(q, None):
+                    single_qubit_moments[e][q] = _merge(
+                        gate_inv, existing_op.gate, q, existing_op.tags
+                    )
                 else:
-                    single_qubit_moments[e][q] = gate_inv
+                    single_qubit_moments[e][q] = gate_inv(q)
 
-        return cirq.Circuit.from_moments(
+        return circuits.Circuit.from_moments(
             *(
-                [g(q) for q, g in sq.items()] + nsq
+                [op for op in sq.values()] + nsq
                 for sq, nsq in zip(single_qubit_moments, non_single_qubit_moments, strict=True)
             )
         )
-
-
-if __name__ == '__main__':
-    tr = IdleMomentsGauge(2, gauges='pauli', gauge_beginning=True)
-    print(tr)
-
-    import cirq
-
-    # c = cirq.Circuit.from_moments(cirq.X(cirq.q(0)), [], [], cirq.X(cirq.q(0)))
-    # c = cirq.Circuit.from_moments([], [], cirq.X(cirq.q(0)))
-    c = cirq.Circuit.from_moments([], [], cirq.X(cirq.q(0)).with_tags('ignore'))
-    print(c)
-    print(tr(c, context=cirq.TransformerContext(tags_to_ignore=("ignore",))))
