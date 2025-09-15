@@ -122,7 +122,7 @@ def test_context_with_deep_raises():
     with pytest.raises(
         ValueError, match="IdleMomentsGauge doesn't support deep TransformerContext"
     ):
-        transformed_circuit = tr(circuit, context=cirq.TransformerContext(deep=True), rng_or_seed=0)
+        _ = tr(circuit, context=cirq.TransformerContext(deep=True), rng_or_seed=0)
 
 
 def test_repr():
