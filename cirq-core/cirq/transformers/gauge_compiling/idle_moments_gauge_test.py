@@ -88,6 +88,19 @@ def test_add_gauge_on_prefix():
     )
 
 
+def test_add_gauge_on_prefix_with_merge():
+    tr = gc.IdleMomentsGauge(3, gauges=[cirq.Y], gauge_beginning=True)
+
+    circuit = cirq.Circuit.from_moments([], [], [], cirq.X(cirq.q(0)))
+    transformed_circuit = tr(circuit, rng_or_seed=0)
+    assert transformed_circuit == cirq.Circuit.from_moments(
+        [cirq.Y(cirq.q(0))],
+        [],
+        [],
+        cirq.PhasedXZGate(axis_phase_exponent=0, x_exponent=0, z_exponent=1)(cirq.q(0)),
+    )
+
+
 def test_add_gauge_on_suffix():
     tr = gc.IdleMomentsGauge(3, gauges='inv_clifford', gauge_ending=True)
 
@@ -104,6 +117,19 @@ def test_add_gauge_on_suffix():
             cirq.SingleQubitCliffordGate.all_single_qubit_cliffords[20](cirq.q(0)),
             cirq.SingleQubitCliffordGate.all_single_qubit_cliffords[15](cirq.q(1)),
         ],
+    )
+
+
+def test_add_gauge_on_suffix_with_merge():
+    tr = gc.IdleMomentsGauge(3, gauges=[cirq.Y], gauge_ending=True)
+
+    circuit = cirq.Circuit.from_moments(cirq.X(cirq.q(0)), [], [], [])
+    transformed_circuit = tr(circuit, rng_or_seed=0)
+    assert transformed_circuit == cirq.Circuit.from_moments(
+        cirq.PhasedXZGate(axis_phase_exponent=0, x_exponent=0, z_exponent=1)(cirq.q(0)),
+        [],
+        [],
+        cirq.Y(cirq.q(0)),
     )
 
 
