@@ -405,6 +405,8 @@ def test_step_result_bloch_vector() -> None:
     bloch0 = np.array([0, 0, 1])
     np.testing.assert_array_almost_equal(bloch1, step_result.bloch_vector_of(q1))
     np.testing.assert_array_almost_equal(bloch0, step_result.bloch_vector_of(q0))
+    with pytest.raises(KeyError):
+        step_result.bloch_vector_of(cirq.LineQubit(2))
 
 
 def test_factor_validation() -> None:

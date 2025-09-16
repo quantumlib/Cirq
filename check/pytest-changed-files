@@ -11,11 +11,13 @@
 # "x_test.py" in the arguments given to pytest. That's all it does.
 #
 # You can specify a base git revision to compare against (i.e. to use when
-# determining whether or not a file is considered to have "changed"). For
-# example, you can compare against 'origin/main' or 'HEAD~1'.
+# determining whether or not a file is considered to have "changed"). To make
+# the tool more consistent, it actually diffs against the most recent common
+# ancestor of the specified id and HEAD. So if you choose 'origin/main' you're
+# actually diffing against the output of 'git merge-base origin/main HEAD'.
 #
-# If you don't specify a base revision, the following defaults will be tried, in
-# order, until one exists:
+# If you don't specify a base revision, the following defaults will be tried,
+# in order, until one exists:
 #
 #     1. upstream/main
 #     2. origin/main
@@ -32,7 +34,7 @@ thisdir=$(dirname "${BASH_SOURCE[0]:?}") || exit $?
 repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel) || exit $?
 cd "${repo_dir}" || exit $?
 
-# Figure out which branch to compare against.
+# Figure out which revision to compare against.
 rest=( "$@" )
 if [ -n "$1" ] && [[ $1 != -* ]]; then
     if ! git rev-parse --verify --quiet --no-revs "$1^{commit}"; then
@@ -51,7 +53,15 @@ else
     echo -e "\033[31mNo default revision found to compare against. Argument #1 must be what to diff against (e.g. 'origin/main' or 'HEAD~1').\033[0m" >&2
     exit 1
 fi
-echo "Comparing against revision '${rev}'." >&2
+# fall back to ${rev} if it has no common ancestor with our branch
+base=$(git merge-base "${rev}" HEAD) || base=$(git rev-parse "${rev}")
+
+if [ "$(git rev-parse "${rev}")" == "${base}" ]; then
+    echo -e "Comparing against revision '${rev}'." >&2
+else
+    echo -e "Comparing against revision '${rev}' (merge base ${base})." >&2
+    rev="${base}"
+fi
 
 # Get the _test version of changed python files.
 typeset -a changed

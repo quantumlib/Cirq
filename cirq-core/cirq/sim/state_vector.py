@@ -135,8 +135,7 @@ class StateVectorMixin:
 
         Raises:
             ValueError: if the size of the state represents more than 25 qubits.
-            IndexError: if the indices are out of range for the number of qubits
-                corresponding to the state.
+            KeyError: if some of the qubits provided are not in the quantum state.
         """
         return qis.density_matrix_from_state_vector(
             self.state_vector(),
@@ -160,8 +159,7 @@ class StateVectorMixin:
 
         Raises:
             ValueError: if the size of the state represents more than 25 qubits.
-            IndexError: if index is out of range for the number of qubits
-                corresponding to the state.
+            KeyError: if the specified qubit is not in the quantum state.
         """
         return qis.bloch_vector_from_state_vector(
             self.state_vector(), self.qubit_map[qubit], qid_shape=self._qid_shape
