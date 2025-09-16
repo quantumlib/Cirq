@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import Any, Mapping, Protocol, TYPE_CHECKING, TypeVar
+from typing import Any, Mapping, overload, Protocol, TYPE_CHECKING, TypeVar
 
 from cirq import value
 from cirq._doc import doc_private
@@ -25,6 +25,7 @@ from cirq._doc import doc_private
 if TYPE_CHECKING:
     import cirq
 
+T = TypeVar('T')
 TDefault = TypeVar('TDefault')
 
 # This is a special indicator value used by the inverse method to determine
@@ -106,9 +107,17 @@ class SupportsMeasurementKey(Protocol):
         """
 
 
-def measurement_key_obj(
-    val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
-) -> cirq.MeasurementKey | TDefault:
+@overload
+def measurement_key_obj(val: Any) -> cirq.MeasurementKey:
+    pass
+
+
+@overload
+def measurement_key_obj(val: Any, default: TDefault) -> cirq.MeasurementKey | TDefault:
+    pass
+
+
+def measurement_key_obj(val, default=RaiseTypeErrorIfNotProvided):
     """Get the single measurement key object for the given value.
 
     Args:
@@ -142,9 +151,17 @@ def measurement_key_obj(
     raise TypeError(f"Object of type '{type(val)}' had no measurement keys.")
 
 
-def measurement_key_name(
-    val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
-) -> str | TDefault:
+@overload
+def measurement_key_name(val: Any) -> str:
+    pass
+
+
+@overload
+def measurement_key_name(val: Any, default: TDefault) -> str | TDefault:
+    pass
+
+
+def measurement_key_name(val, default=RaiseTypeErrorIfNotProvided):
     """Get the single measurement key for the given value.
 
     Args:
@@ -284,7 +301,7 @@ def is_measurement(val: Any) -> bool:
     return keys is not NotImplemented and bool(keys)
 
 
-def with_measurement_key_mapping(val: Any, key_map: Mapping[str, str]) -> Any:
+def with_measurement_key_mapping(val: T, key_map: Mapping[str, str]) -> T:
     """Remaps the target's measurement keys according to the provided key_map.
 
     This method can be used to reassign measurement keys at runtime, or to
@@ -294,7 +311,7 @@ def with_measurement_key_mapping(val: Any, key_map: Mapping[str, str]) -> Any:
     return NotImplemented if getter is None else getter(key_map)
 
 
-def with_key_path(val: Any, path: tuple[str, ...]) -> Any:
+def with_key_path(val: T, path: tuple[str, ...]) -> T:
     """Adds the path to the target's measurement keys.
 
     The path usually refers to an identifier or a list of identifiers from a subcircuit that
@@ -305,7 +322,7 @@ def with_key_path(val: Any, path: tuple[str, ...]) -> Any:
     return NotImplemented if getter is None else getter(path)
 
 
-def with_key_path_prefix(val: Any, prefix: tuple[str, ...]) -> Any:
+def with_key_path_prefix(val: T, prefix: tuple[str, ...]) -> T:
     """Prefixes the path to the target's measurement keys.
 
     The path usually refers to an identifier or a list of identifiers from a subcircuit that
@@ -321,8 +338,8 @@ def with_key_path_prefix(val: Any, prefix: tuple[str, ...]) -> Any:
 
 
 def with_rescoped_keys(
-    val: Any, path: tuple[str, ...], bindable_keys: frozenset[cirq.MeasurementKey] | None = None
-) -> Any:
+    val: T, path: tuple[str, ...], bindable_keys: frozenset[cirq.MeasurementKey] | None = None
+) -> T:
     """Rescopes any measurement and control keys to the provided path, given the existing keys.
 
     The path usually refers to an identifier or a list of identifiers from a subcircuit that
