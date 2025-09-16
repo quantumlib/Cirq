@@ -217,7 +217,7 @@ class CirqEncoder(json.JSONEncoder):
         super().__init__(*args, **kwargs)
         self._memo: dict[Any, dict] = {}
 
-    def default(self, o) -> Any:
+    def default(self, o) -> dict[str, Any] | list[Any] | float | bool:
         # Object with custom method?
         if hasattr(o, '_json_dict_'):
             json_dict = _json_dict_with_cirq_type(o)
