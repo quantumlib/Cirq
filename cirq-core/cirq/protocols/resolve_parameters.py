@@ -196,6 +196,6 @@ def resolve_parameters(
         return val
 
 
-def resolve_parameters_once(val: Any, param_resolver: cirq.ParamResolverOrSimilarType):
+def resolve_parameters_once(val: T, param_resolver: cirq.ParamResolverOrSimilarType) -> T:
     """Performs a single parameter resolution step using the param resolver."""
     return resolve_parameters(val, param_resolver, False)

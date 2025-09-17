@@ -32,10 +32,10 @@ class Fixed(cirq.Operation):
         return self.unitary
 
     @property
-    def qubits(self):
-        return cirq.LineQubit.range(self.unitary.shape[0].bit_length() - 1)
+    def qubits(self) -> tuple[cirq.Qid, ...]:
+        return tuple(cirq.LineQubit.range(self.unitary.shape[0].bit_length() - 1))
 
-    def with_qubits(self, *new_qubits):
+    def with_qubits(self, *new_qubits) -> Fixed:
         raise NotImplementedError()
 
     def _qasm_(self, args: cirq.QasmArgs):
