@@ -46,7 +46,7 @@ def _gauges_arg_converter(gauges: str | Sequence[cirq.Gate] = 'clifford') -> tup
 def _repr_fn(gauges: tuple[cirq.Gate, ...]) -> str:
     if gauges is _PAULIS or gauges == _PAULIS:
         return '"pauli"'
-    if gauges is _CLIFFORDS or gauges == _PAULIS:
+    if gauges is _CLIFFORDS or gauges == _CLIFFORDS:
         return '"clifford"'
     if gauges is _INV_CLIFFORDS or gauges == _INV_CLIFFORDS:
         return '"inv_clifford"'
@@ -195,8 +195,6 @@ class IdleMomentsGauge:
                 active, self.min_length, len(circuit), self.gauge_beginning, self.gauge_ending
             ):
                 gate_index = rng.choice(len(self.gauges))
-                print(gate_index)
-                # assert False
                 gate = self.gauges[gate_index]
                 gate_inv = self.gauges_inverse[gate_index]
 
