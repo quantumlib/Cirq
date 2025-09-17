@@ -45,8 +45,8 @@
   "scripts": {
     "start": "webpack serve --mode development",
     "build": "webpack --mode production",
-    "test-e2e": "mocha -r ts-node/register 'e2e/**/*.ts' --timeout 10000",
-    "test": "mocha -r ts-node/register 'src/**/*_test.ts'",
+    "test-e2e": "TS_NODE_ESM=false mocha -r ts-node/register 'e2e/**/*.ts' --timeout 10000",
+    "test": "TS_NODE_ESM=false mocha -r ts-node/register 'src/**/*_test.ts'",
     "test-all": "npm run build && npm run test-e2e && npm run test",
     "coverage": "nyc npm run test && rm -rf .nyc_output",
     "lint": "gts lint",

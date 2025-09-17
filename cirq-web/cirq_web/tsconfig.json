@@ -15,11 +15,5 @@
   "include": [
     "e2e/**/*.ts",
     "src/**/*.ts"
-  ],
-  "ts-node": {
-    "esm": false,
-    "compilerOptions": {
-      "module": "commonjs"
-    }
-  }
+  ]
 }
