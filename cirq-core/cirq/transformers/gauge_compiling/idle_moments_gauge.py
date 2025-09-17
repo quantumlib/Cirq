@@ -61,7 +61,6 @@ def _get_structure(
     gauge_beginning: bool,
     gauge_ending: bool,
 ) -> Iterator[tuple[int, int]]:
-    assert active
     if gauge_beginning:
         stop, is_mergable = active[0]
         if min_length <= stop:
@@ -181,7 +180,11 @@ class IdleMomentsGauge:
                     active_moments[q].append((m_id, False))
             else:
                 for op in moment:
-                    is_mergable = len(op.qubits) == 1 and tags_to_ignore.isdisjoint(op.tags)
+                    is_mergable = (
+                        len(op.qubits) == 1
+                        and tags_to_ignore.isdisjoint(op.tags)
+                        and op.gate is not None
+                    )
                     for q in op.qubits:
                         active_moments[q].append((m_id, is_mergable))
 
