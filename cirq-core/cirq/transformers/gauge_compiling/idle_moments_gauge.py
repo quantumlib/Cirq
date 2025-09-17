@@ -48,7 +48,7 @@ def _repr_fn(gauges: tuple[cirq.Gate, ...]) -> str:
         return '"pauli"'
     if gauges is _CLIFFORDS or gauges == _PAULIS:
         return '"clifford"'
-    if gauges is _INV_CLIFFORDS:
+    if gauges is _INV_CLIFFORDS or gauges == _INV_CLIFFORDS:
         return '"inv_clifford"'
     return repr(gauges)
 
