@@ -1,0 +1,21 @@
+{
+  "reporter": [
+    "text",
+    "lcov",
+    "html"
+  ],
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "src/**/*_test.ts",
+    "src/**/main.ts",
+    "src/**/components/scene.ts",
+    "e2e/**",
+    "build/**",
+    "dist/**",
+    "node_modules/**"
+  ],
+  "check-coverage": false
+}
+

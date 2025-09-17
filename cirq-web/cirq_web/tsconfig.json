@@ -1,15 +1,17 @@
 {
   "extends": "./node_modules/gts/tsconfig-google.json",
   "compilerOptions": {
-    "lib": ["es5", "es6", "dom"],
-    "target": "es6",
-    "module": "commonjs",
+    "lib": ["es2022", "dom"],
+    "target": "es2022",
+    "module": "ESNext",
+    "moduleResolution": "node",
     "allowJs": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "downlevelIteration": true,
-    "sourceMap": false,
+    "sourceMap": true,
+    "inlineSources": true,
     "outDir": "build"
   },
   "include": [
