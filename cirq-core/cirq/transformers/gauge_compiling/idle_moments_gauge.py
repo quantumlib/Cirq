@@ -13,7 +13,8 @@
 # limitations under the License.
 from __future__ import annotations
 
-from typing import Iterator, Sequence, TYPE_CHECKING
+import functools
+from typing import Hashable, Iterator, Sequence, TYPE_CHECKING
 
 import attrs
 import numpy as np
@@ -35,14 +36,18 @@ _NAME_TO_GATES = {'pauli': _PAULIS, 'clifford': _CLIFFORDS, 'inv_clifford': _INV
 
 def _gauges_arg_converter(gauges: str | Sequence[cirq.Gate] = 'clifford') -> tuple[cirq.Gate, ...]:
     if isinstance(gauges, str):
+        if gauges not in _NAME_TO_GATES:
+            raise ValueError(
+                f"{gauges} is not a valid gauge name, valid names are {tuple(_NAME_TO_GATES.keys())}"
+            )
         return _NAME_TO_GATES[gauges]
     return tuple(gauges)
 
 
 def _repr_fn(gauges: tuple[cirq.Gate, ...]) -> str:
-    if gauges is _PAULIS:
+    if gauges is _PAULIS or gauges == _PAULIS:
         return '"pauli"'
-    if gauges is _CLIFFORDS:
+    if gauges is _CLIFFORDS or gauges == _PAULIS:
         return '"clifford"'
     if gauges is _INV_CLIFFORDS:
         return '"inv_clifford"'
@@ -80,7 +85,7 @@ def _get_structure(
                 yield (stop + 1, n - 1)
 
 
-def _merge(g1: cirq.Gate, g2: cirq.Gate, q: cirq.Qid, tags: Sequence) -> cirq.Operation:
+def _merge(g1: cirq.Gate, g2: cirq.Gate, q: cirq.Qid, tags: Sequence[Hashable]) -> cirq.Operation:
     u1 = protocols.unitary(g1)
     u2 = protocols.unitary(g2)
     return ops.PhasedXZGate.from_matrix(u2 @ u1)(q).with_tags(*tags)
@@ -94,8 +99,7 @@ class IdleMomentsGauge:
     This transformer identifies sequences of consecutive idle moments on a single qubit
     that meet a `min_length` threshold. For each such sequence, it inserts a randomly
     selected gate `G` from `gauges` at the start of the idle period and its inverse `G^-1`
-    from `gauges_inverse` at the end. This ensures the logical circuit behavior remains
-    unchanged ($G \cdot G^{-1} = I$).
+    at the end. This ensures the logical circuit behavior remains unchanged ($G \cdot G^{-1} = I$).
 
     The primary goal is to introduce specific structure into idle periods, which is
     useful for experiments.
@@ -107,16 +111,6 @@ class IdleMomentsGauge:
             Can be a custom tuple or a string alias:
             - `"pauli"`: Uses single-qubit Pauli gates (I, X, Y, Z).
             - `"clifford"`: Uses all 24 single-qubit Clifford gates.
-
-        gauges_inverse: An optional sequence of `cirq.Gate` objects representing
-            the inverses of gates in `gauges`. The `k`-th gate in `gauges_inverse`
-            must be the inverse of the `k`-th gate in `gauges`. If not provided,
-            it's automatically computed:
-            - `"pauli"` defaults to `"pauli"`.
-            - `"clifford"` defaults to `_INV_CLIFFORDS` (inverses of Clifford gates).
-            - Custom gate sequences have their inverses computed.
-            This positional correspondence is enforced by an internal assertion to
-            ensure $G \cdot G^{-1} = I$.
 
         gauge_beginning: If `True`, applies a gauge to idle moments at the circuit's start,
             before any other qubit operation. Defaults to `False`.
@@ -131,14 +125,11 @@ class IdleMomentsGauge:
     gauges: tuple[cirq.Gate, ...] = attrs.field(
         default='clifford', converter=_gauges_arg_converter, repr=_repr_fn
     )
-    gauges_inverse: tuple[cirq.Gate, ...] = attrs.field(
-        converter=_gauges_arg_converter, repr=_repr_fn
-    )
     gauge_beginning: bool = False
     gauge_ending: bool = False
 
-    @gauges_inverse.default
-    def _gauges_inverse_default(self) -> tuple[cirq.Gate, ...]:
+    @functools.cached_property
+    def gauges_inverse(self) -> tuple[cirq.Gate, ...]:
         if self.gauges is _PAULIS:
             return _PAULIS
         if self.gauges is _CLIFFORDS:
@@ -146,20 +137,6 @@ class IdleMomentsGauge:
         if self.gauges is _INV_CLIFFORDS:
             return _CLIFFORDS
         return tuple(g**-1 for g in self.gauges)
-
-    def __attrs_post_init__(self):
-        if self.gauges is _PAULIS:
-            assert self.gauges_inverse is _PAULIS
-        elif self.gauges is _CLIFFORDS:
-            assert self.gauges_inverse is _INV_CLIFFORDS
-        elif self.gauges is _INV_CLIFFORDS:
-            assert self.gauges_inverse is _CLIFFORDS
-        else:
-            identity = np.eye(2)
-            assert np.all(
-                np.all(protocols.unitary(g * g_adj), identity)
-                for g, g_adj in zip(self.gauges, self.gauges_inverse, strict=True)
-            )
 
     def __call__(
         self,
@@ -199,17 +176,12 @@ class IdleMomentsGauge:
 
         active_moments: dict[cirq.Qid, list[tuple[int, bool]]] = {q: [] for q in all_qubits}
         for m_id, moment in enumerate(circuit):
-            if tags_to_ignore & frozenset(moment.tags):
+            if not tags_to_ignore.isdisjoint(moment.tags):
                 for q in all_qubits:
                     active_moments[q].append((m_id, False))
             else:
                 for op in moment:
-                    if len(op.qubits) == 1:
-                        is_mergable = True
-                        if tags_to_ignore & frozenset(op.tags):
-                            is_mergable = False
-                    else:
-                        is_mergable = False
+                    is_mergable = len(op.qubits) == 1 and tags_to_ignore.isdisjoint(op.tags)
                     for q in op.qubits:
                         active_moments[q].append((m_id, is_mergable))
 

@@ -151,20 +151,25 @@ def test_context_with_deep_raises():
         _ = tr(circuit, context=cirq.TransformerContext(deep=True), rng_or_seed=0)
 
 
+def test_gauge_with_invalid_name_raises():
+    with pytest.raises(ValueError, match='valid gauge'):
+        _ = gc.IdleMomentsGauge(2, gauges='invalid')
+
+
 def test_repr():
     assert repr(gc.IdleMomentsGauge(3, gauges='pauli')) == (
-        'IdleMomentsGauge(min_length=3, gauges="pauli", gauges_inverse="pauli", '
+        'IdleMomentsGauge(min_length=3, gauges="pauli", '
         'gauge_beginning=False, gauge_ending=False)'
     )
     assert repr(gc.IdleMomentsGauge(4, gauges='clifford')) == (
-        'IdleMomentsGauge(min_length=4, gauges="clifford", gauges_inverse="inv_clifford", '
+        'IdleMomentsGauge(min_length=4, gauges="clifford", '
         'gauge_beginning=False, gauge_ending=False)'
     )
     assert repr(gc.IdleMomentsGauge(5, gauges='inv_clifford')) == (
-        'IdleMomentsGauge(min_length=5, gauges="inv_clifford", gauges_inverse="clifford", '
+        'IdleMomentsGauge(min_length=5, gauges="inv_clifford", '
         'gauge_beginning=False, gauge_ending=False)'
     )
     assert repr(gc.IdleMomentsGauge(6, gauges=[cirq.X])) == (
         'IdleMomentsGauge(min_length=6, gauges=(cirq.X,), '
-        'gauges_inverse=((cirq.X**-1),), gauge_beginning=False, gauge_ending=False)'
+        'gauge_beginning=False, gauge_ending=False)'
     )
