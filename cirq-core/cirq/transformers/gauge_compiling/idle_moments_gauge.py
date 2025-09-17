@@ -37,9 +37,8 @@ _NAME_TO_GATES = {'pauli': _PAULIS, 'clifford': _CLIFFORDS, 'inv_clifford': _INV
 def _gauges_arg_converter(gauges: str | Sequence[cirq.Gate] = 'clifford') -> tuple[cirq.Gate, ...]:
     if isinstance(gauges, str):
         if gauges not in _NAME_TO_GATES:
-            raise ValueError(
-                f"{gauges} is not a valid gauge name, valid names are {tuple(_NAME_TO_GATES.keys())}"
-            )
+            valid_names = tuple(_NAME_TO_GATES.keys())
+            raise ValueError(f"{gauges} is not a valid gauge name, valid names are {valid_names}")
         return _NAME_TO_GATES[gauges]
     return tuple(gauges)
 
