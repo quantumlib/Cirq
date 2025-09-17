@@ -35,3 +35,7 @@ export function renderBlochSphere(containerId: string, radius = 5, hMeridians = 
 
   return blochSphere;
 }
+
+// Ensure global access for legacy usage via <script> without modules
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(globalThis as any).renderBlochSphere = renderBlochSphere;

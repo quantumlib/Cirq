@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {Scene, PerspectiveCamera, WebGLRenderer, OrthographicCamera, Vector3, Box3} from 'three';
-import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
+import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {GridCircuit} from './grid_circuit';
 import {SymbolInformation} from './components/types';
 
@@ -176,3 +176,7 @@ export function createGridCircuit(
 
   return {circuit, scene};
 }
+
+// Ensure global access for legacy usage via <script> without modules
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(globalThis as any).createGridCircuit = createGridCircuit;
