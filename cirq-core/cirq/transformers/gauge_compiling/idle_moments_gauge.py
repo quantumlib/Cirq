@@ -195,6 +195,8 @@ class IdleMomentsGauge:
                 active, self.min_length, len(circuit), self.gauge_beginning, self.gauge_ending
             ):
                 gate_index = rng.choice(len(self.gauges))
+                print(gate_index)
+                # assert False
                 gate = self.gauges[gate_index]
                 gate_inv = self.gauges_inverse[gate_index]
 
