@@ -28,8 +28,8 @@ def test_sampler_qpu():
     job_dict = {
         'id': '1',
         'status': 'completed',
-        'qubits': '1',
-        'target': 'qpu',
+        'stats': {'qubits': '1'},
+        'backend': 'qpu',
         'metadata': {'shots': 4, 'measurement0': f'a{chr(31)}0'},
     }
 
@@ -52,8 +52,8 @@ def test_sampler_simulator():
     job_dict = {
         'id': '1',
         'status': 'completed',
-        'qubits': '1',
-        'target': 'simulator',
+        'stats': {'qubits': '1'},
+        'backend': 'simulator',
         'metadata': {'shots': 4, 'measurement0': f'a{chr(31)}0'},
     }
 
@@ -78,15 +78,15 @@ def test_sampler_multiple_jobs():
     job_dict0 = {
         'id': '1',
         'status': 'completed',
-        'qubits': '1',
-        'target': 'qpu',
+        'stats': {'qubits': '1'},
+        'backend': 'qpu',
         'metadata': {'shots': 4, 'measurement0': f'a{chr(31)}0'},
     }
     job_dict1 = {
         'id': '1',
         'status': 'completed',
-        'qubits': '1',
-        'target': 'qpu',
+        'stats': {'qubits': '1'},
+        'backend': 'qpu',
         'metadata': {'shots': 4, 'measurement0': f'a{chr(31)}0'},
     }
 
@@ -128,8 +128,8 @@ def test_sampler_run_sweep():
     job_dict = {
         'id': '1',
         'status': 'completed',
-        'qubits': '1',
-        'target': 'qpu',
+        'stats': {'qubits': '1'},
+        'backend': 'qpu',
         'metadata': {'shots': 4, 'measurement0': f'a{chr(31)}0'},
     }
 

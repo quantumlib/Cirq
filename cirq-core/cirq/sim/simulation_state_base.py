@@ -18,9 +18,7 @@ from __future__ import annotations
 
 import abc
 from types import NotImplementedType
-from typing import Any, Generic, Iterator, Mapping, Sequence, TYPE_CHECKING, TypeVar
-
-from typing_extensions import Self
+from typing import Any, Generic, Iterator, Mapping, Self, Sequence, TYPE_CHECKING, TypeVar
 
 from cirq import protocols, value
 
@@ -83,7 +81,7 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
         Returns:
             True if the fallback applies, else NotImplemented."""
 
-    def apply_operation(self, op: cirq.Operation):
+    def apply_operation(self, op: cirq.Operation) -> None:
         protocols.act_on(op, self)
 
     @abc.abstractmethod

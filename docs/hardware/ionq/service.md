@@ -82,7 +82,7 @@ when creating a `cirq_ionq.Service` object.
 then this instance will use the environment variable `IONQ_REMOTE_HOST`. If that
 variable is not set, then this uses `https://api.ionq.co/{api_version}`.
 * `default_target`: this is a string of either `simulator` or `qpu`. By setting this, you do not have to specify a target every time you run a job using `run`, `create_job` or via the `sampler` interface. A helpful pattern is to create two services with defaults for the simulator and for the QPU separately.
-* `api_version`: Version of the API to be used. Defaults to 'v0.3'.
+* `api_version`: Version of the API to be used. Defaults to 'v0.4'.
 * `max_retry_seconds`: The API will poll with exponential backoff for completed jobs. By specifying this, you can change the number of seconds before this retry gives up. It is common to set this to a very small number when, for example, wanting to fail fast, or to be set very high for long running jobs.
 
 ## Run parameters

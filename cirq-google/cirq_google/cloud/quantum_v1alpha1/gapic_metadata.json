@@ -100,6 +100,11 @@
                 "list_quantum_jobs"
               ]
             },
+            "ListQuantumProcessorConfigs": {
+              "methods": [
+                "list_quantum_processor_configs"
+              ]
+            },
             "ListQuantumProcessors": {
               "methods": [
                 "list_quantum_processors"
@@ -250,6 +255,11 @@
                 "list_quantum_jobs"
               ]
             },
+            "ListQuantumProcessorConfigs": {
+              "methods": [
+                "list_quantum_processor_configs"
+              ]
+            },
             "ListQuantumProcessors": {
               "methods": [
                 "list_quantum_processors"
@@ -398,6 +408,11 @@
             "ListQuantumJobs": {
               "methods": [
                 "list_quantum_jobs"
+              ]
+            },
+            "ListQuantumProcessorConfigs": {
+              "methods": [
+                "list_quantum_processor_configs"
               ]
             },
             "ListQuantumProcessors": {

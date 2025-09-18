@@ -208,6 +208,24 @@ def test_append_control_key() -> None:
     assert len(c) == 1
 
 
+def test_append_control_key_before_measure() -> None:
+    c = cirq.Circuit()
+    q1, q2 = cirq.LineQubit.range(2)
+    c.append(cirq.X(q1))
+    c.append(cirq.X(q1))
+    c.append(cirq.X(q1).with_classical_controls('a'))
+    c.append(cirq.X(q2).with_classical_controls('a'))
+    c.append(cirq.measure(q2, key='a'))
+    assert c == cirq.Circuit(
+        [
+            cirq.Moment(cirq.X(q1), cirq.X(q2).with_classical_controls('a')),
+            cirq.Moment(cirq.X(q1)),
+            cirq.Moment(cirq.X(q1).with_classical_controls('a')),
+            cirq.Moment(cirq.measure(q2, key='a')),
+        ]
+    )
+
+
 def test_append_multiple() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')

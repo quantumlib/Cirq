@@ -56,7 +56,7 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
         self._index = index
         self._name = name
 
-    def num_qubits(self):
+    def num_qubits(self) -> int:
         return 1
 
     def _commutes_(self, other: Any, *, atol: float = 1e-8) -> bool | NotImplementedType | None:

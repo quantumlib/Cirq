@@ -17,10 +17,9 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import Any, Sequence
+from typing import Any, Protocol, Sequence
 
 import numpy as np
-from typing_extensions import Protocol
 
 from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
@@ -149,7 +148,7 @@ def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
     return mixture(val, None) is not None
 
 
-def validate_mixture(supports_mixture: SupportsMixture):
+def validate_mixture(supports_mixture: SupportsMixture) -> None:
     """Validates that the mixture's tuple are valid probabilities."""
     mixture_tuple = mixture(supports_mixture, None)
     if mixture_tuple is None:
