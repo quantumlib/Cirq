@@ -26,15 +26,10 @@ Jupyter notebooks. It provides extensive customization options for the output
 format, file paths, and rendering parameters, including direct control over
 gate styling, circuit folding, and qubit labeling through arguments passed
 to the underlying `CircuitToQuantikz` converter.
-
-Additionally, the module includes `create_gif_from_ipython_images`, a utility
-function for animating sequences of images, which can be useful for visualizing
-dynamic quantum processes or circuit transformations.
 """
 
 from __future__ import annotations
 
-import io
 import shutil
 import subprocess
 import tempfile
@@ -43,7 +38,6 @@ import warnings
 from pathlib import Path
 from typing import Any
 
-import numpy as np
 from IPython import get_ipython
 from IPython.display import display, Image
 
@@ -52,8 +46,6 @@ from cirq import circuits, ops
 
 # Use absolute import for the sibling module
 from cirq.vis.circuit_to_latex_quantikz import CircuitToQuantikz
-
-__all__ = ["render_circuit", "create_gif_from_ipython_images"]
 
 
 # =============================================================================
@@ -457,113 +449,3 @@ def render_circuit(
         if debug:
             traceback.print_exc()
         return None
-
-
-def create_gif_from_ipython_images(
-    image_list: list[Image], output_filename: str, fps: int, **kwargs: Any
-) -> None:  # pragma: nocover
-    r"""Creates a GIF from a list of IPython.core.display.Image objects and saves it.
-
-    This utility requires `ImageMagick` to be installed and available in your
-    system's PATH, specifically the `convert` command. On Debian-based systems,
-    you can install it with `sudo apt-get install imagemagick`.
-    Additionally, if working with PDF inputs, `poppler-tools` might be needed
-    (`sudo apt-get install poppler-utils`).
-
-    The resulting GIF will loop indefinitely by default.
-
-    Args:
-        image_list: A list of `IPython.display.Image` objects. These objects
-            should contain image data (e.g., from `matplotlib` or `PIL`).
-        output_filename: The desired filename for the output GIF (e.g.,
-            "animation.gif").
-        fps: The frame rate (frames per second) for the GIF.
-        **kwargs: Additional keyword arguments passed directly to ImageMagick's
-            `convert` command. Common options include:
-            - `delay`: Time between frames (e.g., `delay=20` for 200ms).
-            - `loop`: Number of times to loop (e.g., `loop=0` for infinite).
-            - `duration`: Total duration of the animation in seconds (overrides delay).
-    """
-    try:
-        import imageio  # type: ignore
-    except ImportError:
-        print("You need to install imageio: `pip install imageio`")
-        return None
-    try:
-        from PIL import Image as PILImage
-    except ImportError:
-        print("You need to install PIL: pip install Pillow")
-        return None
-
-    frames = []
-    for ipython_image in image_list:
-        image_bytes = ipython_image.data
-        try:
-            pil_img_file = PILImage.open(io.BytesIO(image_bytes))
-            # Ensure image is in RGB/RGBA for broad compatibility before making it a numpy array.
-            # GIF supports palette ('P') directly, but converting to RGB first can be safer
-            # if complex palettes or transparency are involved and imageio's handling is unknown.
-            # However, for GIFs, 'P' mode with a good palette is often
-            # preferred for smaller file sizes. Let's try to keep 'P' if possible,
-            # but convert RGBA to RGB as GIFs don't support full alpha well.
-            if pil_img_file.mode == "RGBA":
-                # Create a white background image
-                background = PILImage.new("RGB", pil_img_file.size, (255, 255, 255))
-                # Paste the RGBA image onto the white background
-                background.paste(
-                    pil_img_file, mask=pil_img_file.split()[3]
-                )  # 3 is the alpha channel
-                pil_img = background
-            elif pil_img.mode not in ["RGB", "L", "P"]:  # L for grayscale, P for palette
-                pil_img = pil_img_file.convert("RGB")
-            frames.append(np.array(pil_img))
-        except Exception as e:
-            print(f"Warning: Could not process an image. Error: {e}")
-            continue
-
-    if not frames:
-        print("Warning: No frames were successfully extracted. GIF not created.")
-        return
-
-    # Set default loop to 0 (infinite) if not specified in kwargs
-    if "loop" not in kwargs:
-        kwargs["loop"] = 0
-
-    # The 'duration' check was deemed unneeded by reviewer.
-    # if "duration" in kwargs:
-    #     pass
-
-    try:
-        imageio.mimsave(output_filename, frames, fps=fps, **kwargs)
-        print(f"GIF saved as {output_filename} with {fps} FPS and options: {kwargs}")
-    except Exception as e:
-        print(f"Error saving GIF: {e}")
-        # Attempt saving with a more basic configuration if advanced options fail
-        try:
-            print("Attempting to save GIF with basic settings (RGB, default palette).")
-            rgb_frames = []
-            for frame_data in frames:
-                if frame_data.ndim == 2:  # Grayscale
-                    pil_frame = PILImage.fromarray(frame_data, mode="L")
-                elif frame_data.shape[2] == 3:  # RGB
-                    pil_frame = PILImage.fromarray(frame_data, mode="RGB")
-                elif frame_data.shape[2] == 4:  # RGBA
-                    pil_frame = PILImage.fromarray(frame_data, mode="RGBA")
-                    background = PILImage.new("RGB", pil_frame.size, (255, 255, 255))
-                    background.paste(pil_frame, mask=pil_frame.split()[3])
-                    pil_frame = background
-                else:
-                    pil_frame = PILImage.fromarray(frame_data)
-
-                if pil_frame.mode != "RGB":
-                    pil_frame = pil_frame.convert("RGB")
-                rgb_frames.append(np.array(pil_frame))
-
-            if rgb_frames:
-                imageio.mimsave(output_filename, rgb_frames, fps=fps, loop=kwargs.get("loop", 0))
-                print(f"GIF saved with basic RGB settings as {output_filename}")
-            else:
-                print("Could not convert frames to RGB for basic save.")  # pragma: nocover
-
-        except Exception as fallback_e:  # pragma: nocover
-            print(f"Fallback GIF saving also failed: {fallback_e}")
