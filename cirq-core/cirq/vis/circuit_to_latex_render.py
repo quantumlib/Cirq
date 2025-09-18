@@ -44,6 +44,8 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from IPython import get_ipython
+from IPython.display import display, Image
 
 # Import individual Cirq packages as recommended for internal Cirq code
 from cirq import circuits, ops
@@ -52,23 +54,6 @@ from cirq import circuits, ops
 from cirq.vis.circuit_to_latex_quantikz import CircuitToQuantikz
 
 __all__ = ["render_circuit", "create_gif_from_ipython_images"]
-
-try:
-    from IPython.display import display, Image  # pragma: nocover
-
-    _HAS_IPYTHON = True  # pragma: nocover
-except ImportError:  # pragma: nocover
-    _HAS_IPYTHON = False
-
-    class Image:  # type: ignore
-        def __init__(self, *args, **kwargs):
-            pass
-
-    def display(*args, **kwargs):
-        pass
-
-    def get_ipython(*args, **kwargs) -> Any:
-        pass
 
 
 # =============================================================================
@@ -420,39 +405,29 @@ def render_circuit(
                 _debug_print(
                     f"Attempting to display PNG in Jupyter: {final_output_path_for_display}"
                 )
-                if _HAS_IPYTHON:
-                    try:
-                        # Check if running in a Jupyter-like environment that supports display
-                        # get_ipython() returns a shell object if in IPython, None otherwise.
-                        # ZMQInteractiveShell is for Jupyter notebooks,
-                        # TerminalInteractiveShell for IPython console.
-                        # pylint: disable=assignment-from-no-return
-                        sh_obj = get_ipython()
-                        # pylint: enable=assignment-from-no-return
-                        if (
-                            sh_obj is not None
-                            and sh_obj.__class__.__name__ == "ZMQInteractiveShell"
-                        ):
-                            current_image_obj = Image(filename=str(final_output_path_for_display))
-                            display(current_image_obj)
-                            jupyter_image_object = current_image_obj
-                            _debug_print("PNG displayed in Jupyter notebook.")
-                        else:
-                            _debug_print(
-                                "Not in a ZMQInteractiveShell (Jupyter notebook). "
-                                "PNG not displayed inline."
-                            )
-                            # Still create Image object if it might be returned later
-                            jupyter_image_object = Image(
-                                filename=str(final_output_path_for_display)
-                            )
-                    except Exception as e_disp:
-                        print(f"Error displaying PNG in Jupyter: {e_disp}")
-                        if debug:
-                            traceback.print_exc()
-                        jupyter_image_object = None
-                else:
-                    _debug_print("IPython not available, cannot display PNG inline.")
+                try:
+                    # Check if running in a Jupyter-like environment that supports display
+                    # get_ipython() returns a shell object if in IPython, None otherwise.
+                    # ZMQInteractiveShell is for Jupyter notebooks,
+                    # TerminalInteractiveShell for IPython console.
+                    sh_obj = get_ipython()
+                    if sh_obj is not None and sh_obj.__class__.__name__ == "ZMQInteractiveShell":
+                        current_image_obj = Image(filename=str(final_output_path_for_display))
+                        display(current_image_obj)
+                        jupyter_image_object = current_image_obj
+                        _debug_print("PNG displayed in Jupyter notebook.")
+                    else:
+                        _debug_print(
+                            "Not in a ZMQInteractiveShell (Jupyter notebook). "
+                            "PNG not displayed inline."
+                        )
+                        # Still create Image object if it might be returned later
+                        jupyter_image_object = Image(filename=str(final_output_path_for_display))
+                except Exception as e_disp:
+                    print(f"Error displaying PNG in Jupyter: {e_disp}")
+                    if debug:
+                        traceback.print_exc()
+                    jupyter_image_object = None
             elif display_png_jupyter and (
                 not final_output_path_for_display or not final_output_path_for_display.is_file()
             ):  # pragma: nocover
