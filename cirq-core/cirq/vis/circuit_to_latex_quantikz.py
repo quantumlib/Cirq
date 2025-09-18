@@ -156,15 +156,12 @@ _GATE_NAME_MAP = {
     "CX": r"\mathrm{CX}",
     "iSwap": r"i\mathrm{SWAP}",
 }
-_param_gate_specs = [
-    ("Rx", getattr(ops, "Rx", None)),
-    ("Ry", getattr(ops, "Ry", None)),
-    ("Rz", getattr(ops, "Rz", None)),
-    ("PhasedXZ", getattr(ops, "PhasedXZGate", None)),
-    ("FSim", getattr(ops, "FSimGate", None)),
-]
 _PARAMETERIZED_GATE_BASE_NAMES: dict[type[ops.Gate], str] = {
-    _gate_cls: _name for _name, _gate_cls in _param_gate_specs if _gate_cls is not None
+    ops.Rx: "Rx",
+    ops.Ry: "Ry",
+    ops.Rz: "Rz",
+    ops.PhasedXZGate: "PhasedXZ",
+    ops.FSimGate: "FSim",
 }
 
 
