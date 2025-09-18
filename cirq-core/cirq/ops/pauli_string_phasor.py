@@ -73,9 +73,9 @@ class PauliStringPhasor(gate_operation.GateOperation):
                 `pauli_string` are acted upon by identity. The order of
                 these qubits must match the order in `pauli_string`.
             exponent_neg: How much to phase vectors in the negative eigenspace,
-                in the form of the t in (-1)**t = exp(i pi t).
+                in the form of the t in ``(-1)**t = exp(i*pi*t)``.
             exponent_pos: How much to phase vectors in the positive eigenspace,
-                in the form of the t in (-1)**t = exp(i pi t).
+                in the form of the t in ``(-1)**t = exp(i*pi*t)``.
 
         Raises:
             ValueError: If coefficient is not 1 or -1 or the qubits of

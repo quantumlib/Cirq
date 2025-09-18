@@ -130,9 +130,9 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
         1. The `apply` method is permitted to return values that have more bits
             than the registers they will be stored into. The extra bits are
             simply dropped. For example, if the value 5 is returned for a 2
-            qubit register then 5 % 2^2 = 1 will be used instead. Negative
+            qubit register then ``5 % 2**2 = 1`` will be used instead. Negative
             values are also permitted. For example, for a 3 qubit register the
-            value -2 becomes -2 % 2^3 = 6.
+            value -2 becomes ``-2 % 2**3 = 6``.
         2. When the value of the last `k` registers is not changed by the
             gate, the `apply` method is permitted to omit these values
             from the result. That is to say, when the length of the output is
