@@ -392,21 +392,15 @@ class CircuitToQuantikz:
             mapped_name = self.current_gate_name_map.get(param_base_key, param_base_key)
             if not self.show_parameters:
                 return mapped_name
-            try:
-                # Use protocols directly
-                info = protocols.circuit_diagram_info(gate, default=NotImplemented)
-                if info is not NotImplemented and info.wire_symbols:
-                    s_diag = info.wire_symbols[0]
-                    if (op_idx := s_diag.find("(")) != -1 and (
-                        cp_idx := s_diag.rfind(")")
-                    ) > op_idx:
-                        return (
-                            f"{mapped_name}"
-                            f"({self._format_exponent_for_display(s_diag[op_idx+1:cp_idx])})"
-                        )
-            except (ValueError, AttributeError, IndexError):  # pragma: nocover
-                # Fallback to default string representation if diagram info parsing fails.
-                pass
+            # Use protocols directly
+            info = protocols.circuit_diagram_info(gate, default=NotImplemented)
+            if info is not NotImplemented and info.wire_symbols:
+                s_diag = info.wire_symbols[0]
+                if (op_idx := s_diag.find("(")) != -1 and (cp_idx := s_diag.rfind(")")) > op_idx:
+                    return (
+                        f"{mapped_name}"
+                        f"({self._format_exponent_for_display(s_diag[op_idx+1:cp_idx])})"
+                    )
             if hasattr(gate, "exponent") and not math.isclose(
                 gate.exponent, 1.0
             ):  # pragma: nocover
