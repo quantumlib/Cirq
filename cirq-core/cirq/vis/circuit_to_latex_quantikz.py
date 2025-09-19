@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# -*- coding: utf-8 -*-
 r"""Converts Cirq circuits to Quantikz LaTeX (using modern quantikz syntax).
 
 This module provides a class, `CircuitToQuantikz`, to translate `cirq.Circuit`
@@ -504,11 +503,11 @@ class CircuitToQuantikz:
         style_key = gate_type.__name__  # Default style key
 
         # Determine style key based on gate type and properties
-        if isinstance(gate, ops.CNotPowGate) and hasattr(gate, "exponent") and gate.exponent == 1:
+        if isinstance(gate, ops.CNotPowGate) and gate.exponent == 1:
             style_key = "CXideal"
-        elif isinstance(gate, ops.CZPowGate) and hasattr(gate, "exponent") and gate.exponent == 1:
+        elif isinstance(gate, ops.CZPowGate) and gate.exponent == 1:
             style_key = "CZideal"
-        elif isinstance(gate, ops.SwapPowGate) and hasattr(gate, "exponent") and gate.exponent == 1:
+        elif isinstance(gate, ops.SwapPowGate) and gate.exponent == 1:
             style_key = "Swapideal"
         elif isinstance(gate, ops.MeasurementGate):
             style_key = "Measure"
@@ -540,7 +539,7 @@ class CircuitToQuantikz:
                 else:
                     q0 = q_indices[idx - 1]
                     output[q1] = f"\\meter{final_style_tikz}{{}} \\vqw{{{q0-q1}}}"
-        elif isinstance(gate, ops.CNotPowGate) and hasattr(gate, "exponent") and gate.exponent == 1:
+        elif isinstance(gate, ops.CNotPowGate) and gate.exponent == 1:
             c, t = (
                 (self.qubit_to_index[op.qubits[0]], self.qubit_to_index[op.qubits[1]])
                 if len(op.qubits) == 2
@@ -548,7 +547,7 @@ class CircuitToQuantikz:
             )
             output[c] = f"\\ctrl{final_style_tikz}{{{t-c}}}"
             output[t] = f"\\targ{final_style_tikz}{{}}"
-        elif isinstance(gate, ops.CZPowGate) and hasattr(gate, "exponent") and gate.exponent == 1:
+        elif isinstance(gate, ops.CZPowGate) and gate.exponent == 1:
             i1, i2 = (
                 (q_indices[0], q_indices[1])
                 if len(q_indices) >= 2
@@ -556,7 +555,7 @@ class CircuitToQuantikz:
             )
             output[i1] = f"\\ctrl{final_style_tikz}{{{i2-i1}}}"
             output[i2] = f"\\control{final_style_tikz}{{}}"
-        elif isinstance(gate, ops.SwapPowGate) and hasattr(gate, "exponent") and gate.exponent == 1:
+        elif isinstance(gate, ops.SwapPowGate) and gate.exponent == 1:
             i1, i2 = (
                 (q_indices[0], q_indices[1])
                 if len(q_indices) >= 2
