@@ -64,7 +64,7 @@ from __future__ import annotations
 
 import math
 import warnings
-from typing import Any, Optional
+from typing import Any
 
 import sympy
 
@@ -216,14 +216,14 @@ class CircuitToQuantikz:
         self,
         circuit: circuits.Circuit,
         *,
-        gate_styles: Optional[dict[str, str]] = None,
-        quantikz_options: Optional[str] = None,
-        fold_at: Optional[int] = None,
+        gate_styles: dict[str, str] | None = None,
+        quantikz_options: str | None = None,
+        fold_at: int | None = None,
         custom_preamble: str = "",
         custom_postamble: str = "",
         wire_labels: str = "qid",
         show_parameters: bool = True,
-        gate_name_map: Optional[dict[str, str]] = None,
+        gate_name_map: dict[str, str] | None = None,
         float_precision_exps: int = 2,
         float_precision_angles: int = 2,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -664,7 +664,7 @@ class CircuitToQuantikz:
 
         return "\n\n\\vspace{1em}\n\n".join(final_parts)
 
-    def generate_latex_document(self, preamble_template: Optional[str] = None) -> str:
+    def generate_latex_document(self, preamble_template: str | None = None) -> str:
         """Generates the complete LaTeX document string for the circuit.
 
         Combines the preamble, custom preamble, generated circuit body,
