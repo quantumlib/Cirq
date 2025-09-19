@@ -34,7 +34,7 @@ class ProcessorSampler(cirq.Sampler):
         run_name: str = "",
         snapshot_id: str = "",
         device_config_name: str = "",
-        max_concurrent_jobs: int = 10,
+        max_concurrent_jobs: int = 100,
     ):
         """Inits ProcessorSampler.
 
