@@ -589,26 +589,82 @@ class Engine(abstract_engine.AbstractEngine):
         """
         return engine_processor.EngineProcessor(self.project_id, processor_id, self.context)
 
-    def get_sampler(
+
+    def get_sampler_from_run_name(
         self,
-        processor_id: str | list[str],
-        run_name: str = "",
-        device_config_name: str = "",
-        snapshot_id: str = "",
+        processor_id: str,
+        device_config_name: str,
+        run_name: str = 'default',
         max_concurrent_jobs: int = 10,
     ) -> cirq_google.ProcessorSampler:
-        """Returns a sampler backed by the engine.
+        """Returns a sampler backed by the engine and given `run_name`.
 
         Args:
-            processor_id: String identifier of which processor should be used to sample.
             run_name: A unique identifier representing an automation run for the
                 processor. An Automation Run contains a collection of device
                 configurations for the processor.
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
-            snapshot_id: A unique identifier for an immutable snapshot reference. A
-                snapshot contains a collection of device configurations for the processor.
+            max_concurrent_jobs: The maximum number of jobs to be sent
+                simultaneously to the Engine. This client-side throttle can be
+                used to proactively reduce load to the backends and avoid quota
+                violations when pipelining circuit executions.
+
+        Returns:
+            A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
+            that will send circuits to the Quantum Computing Service
+            when sampled.
+        """
+        self.get_processor(processor_id).get_sampler_from_run_name(
+            run_name=run_name,
+            device_config_name=device_config_name,
+            max_concurrent_jobs=max_concurrent_jobs
+        )
+
+    def get_sampler_from_snapshot_id(
+        self,
+        processor_id: str,
+        snapshot_id: str,
+        device_config_name: str,
+        max_concurrent_jobs: int = 10,
+    ) -> cirq_google.ProcessorSampler:
+        """Returns a sampler backed by the engine.
+        Args:
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
+            snapshot_id: A unique identifier for an immutable snapshot reference.
+                A snapshot contains a collection of device configurations for the
+                processor.
+            max_concurrent_jobs: The maximum number of jobs to be sent
+                simultaneously to the Engine. This client-side throttle can be
+                used to proactively reduce load to the backends and avoid quota
+                violations when pipelining circuit executions.
+
+        Returns:
+            A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
+            that will send circuits to the Quantum Computing Service
+            when sampled.
+        """
+        return self.get_processor(processor_id).get_sampler_from_snapshot_id(
+            snapshot_id=snapshot_id,
+            device_config_name=device_config_name,
+            max_concurrent_jobs=10
+        )
+
+    def get_sampler(
+        self,
+        processor_id: str | list[str],
+        max_concurrent_jobs: int = 10,
+    ) -> cirq_google.ProcessorSampler:
+        """Returns a sampler backed by the engine.
+
+        Args:
+            processor_id: String identifier of which processor should be used to sample.
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
             max_concurrent_jobs: The maximum number of jobs to be sent
                 concurrently to the Engine. This client-side throttle can be
                 used to proactively reduce load to the backends and avoid quota
@@ -629,9 +685,6 @@ class Engine(abstract_engine.AbstractEngine):
                 'you need to specify a list.'
             )
         return self.get_processor(processor_id).get_sampler(
-            run_name=run_name,
-            device_config_name=device_config_name,
-            snapshot_id=snapshot_id,
             max_concurrent_jobs=max_concurrent_jobs,
         )
 

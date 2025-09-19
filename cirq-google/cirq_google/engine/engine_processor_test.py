@@ -310,6 +310,54 @@ def test_get_missing_device():
     with pytest.raises(ValueError, match='device specification'):
         _ = processor.get_device()
 
+def test_get_sampler_from_run_name() -> None:
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+    )
+    run_name = 'test_run_name'
+    device_config_name = 'test_device_name'
+
+    sampler = processor.get_sampler_from_run_name(
+        run_name=run_name,
+        device_config_name=device_config_name
+    )
+
+    assert sampler.run_name == run_name
+    assert sampler.device_config_name == device_config_name
+
+def test_get_sampler_from_run_name_with_default_run_name() -> None:
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+    )
+    device_config_name = 'test_device_name'
+
+    sampler = processor.get_sampler_from_run_name(
+        device_config_name=device_config_name
+    )
+
+    assert sampler.run_name == 'default'
+    assert sampler.device_config_name == device_config_name
+
+def test_get_sampler_from_snapshot_id() -> None:
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+    )
+    snapshot_id = 'test_snapshot'
+    device_config_name = 'test_device_name'
+
+    sampler = processor.get_sampler_from_snapshot_id(
+        snapshot_id=snapshot_id,
+        device_config_name=device_config_name
+    )
+
+    assert sampler.snapshot_id == snapshot_id
+    assert sampler.device_config_name == device_config_name
 
 def test_get_sampler_initializes_default_device_configuration() -> None:
     processor = cg.EngineProcessor(
@@ -326,56 +374,6 @@ def test_get_sampler_initializes_default_device_configuration() -> None:
 
     assert sampler.run_name == "run"
     assert sampler.device_config_name == "config_alias"
-
-
-def test_get_sampler_uses_custom_default_device_configuration_key() -> None:
-    processor = cg.EngineProcessor(
-        'a',
-        'p',
-        EngineContext(),
-        _processor=quantum.QuantumProcessor(
-            default_device_config_key=quantum.DeviceConfigKey(
-                run="default_run", config_alias="default_config_alias"
-            )
-        ),
-    )
-    sampler = processor.get_sampler(run_name="run1", device_config_name="config_alias1")
-
-    assert sampler.run_name == "run1"
-    assert sampler.device_config_name == "config_alias1"
-
-
-@pytest.mark.parametrize(
-    'run, snapshot_id, config_alias, error_message',
-    [
-        ('run', '', '', 'Cannot specify only one of top level identifier and `device_config_name`'),
-        (
-            '',
-            '',
-            'config',
-            'Cannot specify only one of top level identifier and `device_config_name`',
-        ),
-        ('run', 'snapshot_id', 'config', 'Cannot specify both `run_name` and `snapshot_id`'),
-    ],
-)
-def test_get_sampler_with_incomplete_device_configuration_errors(
-    run, snapshot_id, config_alias, error_message
-) -> None:
-    processor = cg.EngineProcessor(
-        'a',
-        'p',
-        EngineContext(),
-        _processor=quantum.QuantumProcessor(
-            default_device_config_key=quantum.DeviceConfigKey(
-                run="default_run", config_alias="default_config_alias"
-            )
-        ),
-    )
-
-    with pytest.raises(ValueError, match=error_message):
-        processor.get_sampler(
-            run_name=run, device_config_name=config_alias, snapshot_id=snapshot_id
-        )
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor_async')

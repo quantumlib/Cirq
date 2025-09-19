@@ -93,18 +93,46 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
 
         return engine_base.Engine(self.project_id, context=self.context)
 
-    def get_sampler(
+    def get_sampler_from_run_name(
         self,
-        run_name: str = "",
-        device_config_name: str = "",
-        snapshot_id: str = "",
+        device_config_name: str,
+        run_name: str = 'default',
         max_concurrent_jobs: int = 10,
     ) -> cg.engine.ProcessorSampler:
-        """Returns a sampler backed by the engine.
+        """Returns a sampler backed by the engine and given `run_name`.
+
         Args:
             run_name: A unique identifier representing an automation run for the
                 processor. An Automation Run contains a collection of device
                 configurations for the processor.
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
+            max_concurrent_jobs: The maximum number of jobs to be sent
+                simultaneously to the Engine. This client-side throttle can be
+                used to proactively reduce load to the backends and avoid quota
+                violations when pipelining circuit executions.
+
+        Returns:
+            A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
+            that will send circuits to the Quantum Computing Service
+            when sampled.
+        """
+        return processor_sampler.ProcessorSampler(
+            processor=self,
+            run_name=run_name,
+            device_config_name=device_config_name,
+            max_concurrent_jobs=max_concurrent_jobs,
+        )
+
+    def get_sampler_from_snapshot_id(
+        self,
+        snapshot_id: str,
+        device_config_name: str,
+        max_concurrent_jobs: int = 10,
+    ) -> cg.engine.ProcessorSampler:
+        """Returns a sampler backed by the engine.
+        Args:
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
@@ -120,29 +148,42 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
             that will send circuits to the Quantum Computing Service
             when sampled.
+        """
+        return processor_sampler.ProcessorSampler(
+            processor=self,
+            snapshot_id=snapshot_id,
+            device_config_name=device_config_name,
+            max_concurrent_jobs=max_concurrent_jobs,
+        )
 
-        Raises:
-            ValueError: If only one of `run_name` and `device_config_name` are specified.
-            ValueError: If both `run_name` and `snapshot_id` are specified.
+    def get_sampler(
+        self,
+        device_config_name: str | None = None,
+        max_concurrent_jobs: int = 10,
+    ) -> cg.engine.ProcessorSampler:
+        """Returns the default sampler backed by the engine.
+
+        Args:
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
+            max_concurrent_jobs: The maximum number of jobs to be sent
+                simultaneously to the Engine. This client-side throttle can be
+                used to proactively reduce load to the backends and avoid quota
+                violations when pipelining circuit executions.
+
+        Returns:
+            A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
+            that will send circuits to the Quantum Computing Service
+            when sampled.
 
         """
         processor = self._inner_processor()
-        if run_name and snapshot_id:
-            raise ValueError('Cannot specify both `run_name` and `snapshot_id`')
-        if (bool(run_name) or bool(snapshot_id)) ^ bool(device_config_name):
-            raise ValueError(
-                'Cannot specify only one of top level identifier and `device_config_name`'
-            )
-        # If not provided, initialize the sampler with the Processor's default values.
-        if not run_name and not device_config_name and not snapshot_id:
-            run_name = processor.default_device_config_key.run
-            device_config_name = processor.default_device_config_key.config_alias
-            snapshot_id = processor.default_device_config_key.snapshot_id
+        
         return processor_sampler.ProcessorSampler(
             processor=self,
-            run_name=run_name,
-            snapshot_id=snapshot_id,
-            device_config_name=device_config_name,
+            run_name=processor.default_device_config_key.run,
+            device_config_name=device_config_name if device_config_name else processor.default_device_config_key.config_alias,
             max_concurrent_jobs=max_concurrent_jobs,
         )
 
