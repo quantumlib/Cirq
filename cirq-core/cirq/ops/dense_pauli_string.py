@@ -247,35 +247,25 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
     def __mul__(self, other):
         concrete_class = type(self)
-        if isinstance(other, BaseDensePauliString):
-            if isinstance(other, MutableDensePauliString):
-                concrete_class = MutableDensePauliString
-            max_len = max(len(self.pauli_mask), len(other.pauli_mask))
-            min_len = min(len(self.pauli_mask), len(other.pauli_mask))
-            new_mask = np.zeros(max_len, dtype=np.uint8)
-            new_mask[: len(self.pauli_mask)] ^= self.pauli_mask
-            new_mask[: len(other.pauli_mask)] ^= other.pauli_mask
-            tweak = _vectorized_pauli_mul_phase(
-                self.pauli_mask[:min_len], other.pauli_mask[:min_len]
-            )
-            return concrete_class(
-                pauli_mask=new_mask, coefficient=self.coefficient * other.coefficient * tweak
-            )
-
         if isinstance(other, (sympy.Basic, numbers.Number)):
             new_coef = protocols.mul(self.coefficient, other, default=None)
             if new_coef is None:
                 return NotImplemented
             return concrete_class(pauli_mask=self.pauli_mask, coefficient=new_coef)
 
-        split = _attempt_value_to_pauli_index(other)
-        if split is not None:
-            p, i = split
-            mask = np.copy(self.pauli_mask)
-            mask[i] ^= p
+        if (other_dps := _try_interpret_as_dps(other)) is not None:
+            if isinstance(other_dps, MutableDensePauliString):
+                concrete_class = MutableDensePauliString
+            max_len = max(len(self.pauli_mask), len(other_dps.pauli_mask))
+            min_len = min(len(self.pauli_mask), len(other_dps.pauli_mask))
+            new_mask = np.zeros(max_len, dtype=np.uint8)
+            new_mask[: len(self.pauli_mask)] ^= self.pauli_mask
+            new_mask[: len(other_dps.pauli_mask)] ^= other_dps.pauli_mask
+            tweak = _vectorized_pauli_mul_phase(
+                self.pauli_mask[:min_len], other_dps.pauli_mask[:min_len]
+            )
             return concrete_class(
-                pauli_mask=mask,
-                coefficient=self.coefficient * _vectorized_pauli_mul_phase(self.pauli_mask[i], p),
+                pauli_mask=new_mask, coefficient=self.coefficient * other_dps.coefficient * tweak
             )
 
         return NotImplemented
@@ -284,15 +274,8 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         if isinstance(other, (sympy.Basic, numbers.Number)):
             return self.__mul__(other)
 
-        split = _attempt_value_to_pauli_index(other)
-        if split is not None:
-            p, i = split
-            mask = np.copy(self.pauli_mask)
-            mask[i] ^= p
-            return type(self)(
-                pauli_mask=mask,
-                coefficient=self.coefficient * _vectorized_pauli_mul_phase(p, self.pauli_mask[i]),
-            )
+        if other := _try_interpret_as_dps(other):
+            return other.__mul__(self)
 
         return NotImplemented
 
@@ -369,17 +352,10 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         )
 
     def _commutes_(self, other: Any, *, atol: float = 1e-8) -> bool | NotImplementedType | None:
-        if isinstance(other, BaseDensePauliString):
-            n = min(len(self.pauli_mask), len(other.pauli_mask))
-            phase = _vectorized_pauli_mul_phase(self.pauli_mask[:n], other.pauli_mask[:n])
+        if (other_dps := _try_interpret_as_dps(other)) is not None:
+            n = min(len(self.pauli_mask), len(other_dps.pauli_mask))
+            phase = _vectorized_pauli_mul_phase(self.pauli_mask[:n], other_dps.pauli_mask[:n])
             return phase == 1 or phase == -1
-
-        # Single qubit Pauli operation.
-        split = _attempt_value_to_pauli_index(other)
-        if split is not None:
-            p1, i = split
-            p2 = self.pauli_mask[i]
-            return (p1 or p2) == (p2 or p1)
 
         return NotImplemented
 
@@ -518,20 +494,6 @@ class MutableDensePauliString(BaseDensePauliString):
         return NotImplemented
 
     def __imul__(self, other):
-        if isinstance(other, BaseDensePauliString):
-            if len(other) > len(self):
-                raise ValueError(
-                    "The receiving dense pauli string is smaller than "
-                    "the dense pauli string being multiplied into it.\n"
-                    f"self={repr(self)}\n"
-                    f"other={repr(other)}"
-                )
-            self_mask = self.pauli_mask[: len(other.pauli_mask)]
-            self._coefficient *= _vectorized_pauli_mul_phase(self_mask, other.pauli_mask)
-            self._coefficient *= other.coefficient
-            self_mask ^= other.pauli_mask
-            return self
-
         if isinstance(other, (sympy.Basic, numbers.Number)):
             new_coef = protocols.mul(self.coefficient, other, default=None)
             if new_coef is None:
@@ -539,11 +501,18 @@ class MutableDensePauliString(BaseDensePauliString):
             self._coefficient = new_coef if isinstance(new_coef, sympy.Basic) else complex(new_coef)
             return self
 
-        split = _attempt_value_to_pauli_index(other)
-        if split is not None:
-            p, i = split
-            self._coefficient *= _vectorized_pauli_mul_phase(self.pauli_mask[i], p)
-            self.pauli_mask[i] ^= p
+        if (other_dps := _try_interpret_as_dps(other)) is not None:
+            if len(other_dps) > len(self):
+                raise ValueError(
+                    "The receiving dense pauli string is smaller than "
+                    "the dense pauli string being multiplied into it.\n"
+                    f"self={repr(self)}\n"
+                    f"other={repr(other)}"
+                )
+            self_mask = self.pauli_mask[: len(other_dps.pauli_mask)]
+            self._coefficient *= _vectorized_pauli_mul_phase(self_mask, other_dps.pauli_mask)
+            self._coefficient *= other_dps.coefficient
+            self_mask ^= other_dps.pauli_mask
             return self
 
         return NotImplemented
@@ -613,23 +582,27 @@ def _as_pauli_mask(val: Iterable[cirq.PAULI_GATE_LIKE] | np.ndarray) -> np.ndarr
     return np.array([_pauli_index(v) for v in val], dtype=np.uint8)
 
 
-def _attempt_value_to_pauli_index(v: cirq.Operation) -> tuple[int, int] | None:
+def _try_interpret_as_dps(v: cirq.Operation) -> BaseDensePauliString | None:
+    if isinstance(v, BaseDensePauliString):
+        return v
+
     if (ps := pauli_string._try_interpret_as_pauli_string(v)) is None:
         return None
 
-    if len(ps.qubits) != 1:
-        return None  # pragma: no cover
-
-    q = ps.qubits[0]
     from cirq import devices
 
-    if not isinstance(q, devices.LineQubit):
+    if not all(isinstance(q, devices.LineQubit) for q in ps.qubits):
         raise ValueError(
             'Got a Pauli operation, but it was applied to a qubit type '
             'other than `cirq.LineQubit` so its dense index is ambiguous.\n'
             f'v={repr(v)}.'
         )
-    return pauli_string.PAULI_GATE_LIKE_TO_INDEX_MAP[ps[q]], q.x
+
+    pauli_mask = np.zeros(max((q.x + 1 for q in ps.qubits), default=0), dtype=np.uint8)
+    for q in ps.qubits:
+        pauli_mask[q.x] = pauli_string.PAULI_GATE_LIKE_TO_INDEX_MAP[ps[q]]
+
+    return DensePauliString(pauli_mask)
 
 
 def _vectorized_pauli_mul_phase(lhs: int | np.ndarray, rhs: int | np.ndarray) -> complex:

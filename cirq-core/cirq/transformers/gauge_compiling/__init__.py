@@ -42,3 +42,8 @@ from cirq.transformers.gauge_compiling.sqrt_iswap_gauge import (
 from cirq.transformers.gauge_compiling.cphase_gauge import (
     CPhaseGaugeTransformer as CPhaseGaugeTransformer,
 )
+
+
+from cirq.transformers.gauge_compiling.idle_moments_gauge import (
+    IdleMomentsGauge as IdleMomentsGauge,
+)

@@ -173,6 +173,10 @@ def test_mul() -> None:
     with pytest.raises(ValueError, match='other than `cirq.LineQubit'):
         _ = f('III') * cirq.X(cirq.NamedQubit('tmp'))
 
+    # Parity operations.
+    assert f('IXYZ') * cirq.XX(*cirq.LineQubit.range(1, 3)) == -1j * f('IIZZ')
+    assert cirq.XX(*cirq.LineQubit.range(1, 3)) * f('IXYZ') == 1j * f('IIZZ')
+
     # Mixed types.
     m = cirq.MutableDensePauliString
     assert m('X') * m('Z') == -1j * m('Y')
@@ -187,6 +191,10 @@ def test_mul() -> None:
     assert f('I') * f('III') == f('III')
     assert f('X') * f('XXX') == f('IXX')
     assert f('XXX') * f('X') == f('IXX')
+    assert f('X') * cirq.Y(cirq.LineQubit(2)) == f('XIY')
+    assert f('XY') * cirq.YY(*cirq.LineQubit.range(1, 3)) == f('XIY')
+    assert cirq.X(cirq.LineQubit(2)) * f('Y') == f('YIX')
+    assert cirq.XX(*cirq.LineQubit.range(1, 3)) * f('YX') == f('YIX')
 
     with pytest.raises(TypeError):
         _ = f('I') * object()
@@ -235,8 +243,15 @@ def test_imul() -> None:
     p *= cirq.X(cirq.LineQubit(1))
     assert p == m('IZI')
 
+    p *= cirq.ZZ(*cirq.LineQubit.range(1, 3))
+    assert p == m('IIZ')
+
     with pytest.raises(ValueError, match='smaller than'):
         p *= f('XXXXXXXXXXXX')
+    with pytest.raises(ValueError, match='smaller than'):
+        p *= cirq.X(cirq.LineQubit(3))
+    with pytest.raises(ValueError, match='smaller than'):
+        p *= cirq.XX(*cirq.LineQubit.range(2, 4))
     with pytest.raises(TypeError):
         p *= object()
 
@@ -511,6 +526,8 @@ def test_commutes() -> None:
     assert cirq.commutes(f('IIIXII'), cirq.X(cirq.LineQubit(2)) ** 3)
     assert not cirq.commutes(f('IIIXII'), cirq.Z(cirq.LineQubit(3)) ** 3)
     assert cirq.commutes(f('IIIXII'), cirq.Z(cirq.LineQubit(2)) ** 3)
+    assert cirq.commutes(f('X'), cirq.Z(cirq.LineQubit(10)))
+    assert cirq.commutes(cirq.Z(cirq.LineQubit(10)), f('X'))
 
     assert cirq.commutes(f('XX'), "test", default=NotImplemented) is NotImplemented
 

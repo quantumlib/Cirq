@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import AbstractSet, Any, cast, Mapping, Sequence, TYPE_CHECKING
+from typing import AbstractSet, Any, Mapping, Sequence, TYPE_CHECKING
 
 import sympy
 
@@ -207,17 +207,13 @@ class ClassicallyControlledOperation(raw_types.Operation):
         conditions = [protocols.with_measurement_key_mapping(c, key_map) for c in self._conditions]
         sub_operation = protocols.with_measurement_key_mapping(self._sub_operation, key_map)
         sub_operation = self._sub_operation if sub_operation is NotImplemented else sub_operation
-        return cast(
-            ClassicallyControlledOperation, sub_operation.with_classical_controls(*conditions)
-        )
+        return sub_operation.with_classical_controls(*conditions)
 
     def _with_key_path_prefix_(self, prefix: tuple[str, ...]) -> ClassicallyControlledOperation:
         conditions = [protocols.with_key_path_prefix(c, prefix) for c in self._conditions]
         sub_operation = protocols.with_key_path_prefix(self._sub_operation, prefix)
         sub_operation = self._sub_operation if sub_operation is NotImplemented else sub_operation
-        return cast(
-            ClassicallyControlledOperation, sub_operation.with_classical_controls(*conditions)
-        )
+        return sub_operation.with_classical_controls(*conditions)
 
     def _with_rescoped_keys_(
         self, path: tuple[str, ...], bindable_keys: frozenset[cirq.MeasurementKey]
