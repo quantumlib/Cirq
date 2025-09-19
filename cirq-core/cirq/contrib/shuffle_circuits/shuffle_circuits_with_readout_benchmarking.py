@@ -141,7 +141,7 @@ def _generate_parameterized_readout_calibration_circuit_with_sweep(
     )
     sweep_params = []
     for bitstr in random_bitstrings:
-        sweep_params.append({exp: bit for exp, bit in zip(exp_symbols, bitstr)})
+        sweep_params.append({exp.name: bit for exp, bit in zip(exp_symbols, bitstr)})
 
     return parameterized_readout_calibration_circuit, sweep_params, random_bitstrings
 
