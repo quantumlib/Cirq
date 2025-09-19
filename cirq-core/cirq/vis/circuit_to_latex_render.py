@@ -30,6 +30,7 @@ to the underlying `CircuitToQuantikz` converter.
 
 from __future__ import annotations
 
+import pathlib
 import shutil
 import subprocess
 import tempfile
@@ -53,9 +54,9 @@ from cirq.vis.circuit_to_latex_quantikz import CircuitToQuantikz
 # =============================================================================
 def render_circuit(
     circuit: circuits.Circuit,
-    output_png_path: str | None = None,
-    output_pdf_path: str | None = None,
-    output_tex_path: str | None = None,
+    output_png_path: pathlib.Path | str | None = None,
+    output_pdf_path: pathlib.Path | str | None = None,
+    output_tex_path: pathlib.Path | str | None = None,
     dpi: int = 300,
     run_pdflatex: bool = True,
     run_pdftoppm: bool = True,

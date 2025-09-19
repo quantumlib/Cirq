@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pathlib
+
 import numpy as np
 
 import cirq
 from cirq.vis.circuit_to_latex_render import render_circuit
 
 
-def test_render_circuit() -> None:
+def test_render_circuit(tmp_path: pathlib.Path) -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.H(q0),
@@ -29,11 +31,14 @@ def test_render_circuit() -> None:
     # Render and display in Jupyter (if available), also save to a file
     img_or_path = render_circuit(
         circuit,
-        output_png_path="my_circuit.png",
-        output_tex_path="my_circuit.tex",
-        output_pdf_path="my_circuit.pdf",
+        output_png_path=tmp_path / "my_circuit.png",
+        output_tex_path=tmp_path / "my_circuit.tex",
+        output_pdf_path=tmp_path / "my_circuit.pdf",
         fold_at=2,
         debug=True,
         wire_labels="qid",
     )
     assert img_or_path is not None
+    assert (tmp_path / "my_circuit.png").is_file()
+    assert (tmp_path / "my_circuit.tex").is_file()
+    assert (tmp_path / "my_circuit.pdf").is_file()
