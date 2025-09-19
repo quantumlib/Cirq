@@ -81,7 +81,7 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
         Returns:
             True if the fallback applies, else NotImplemented."""
 
-    def apply_operation(self, op: cirq.Operation):
+    def apply_operation(self, op: cirq.Operation) -> None:
         protocols.act_on(op, self)
 
     @abc.abstractmethod

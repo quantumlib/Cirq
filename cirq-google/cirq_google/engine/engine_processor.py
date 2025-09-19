@@ -104,7 +104,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         run_name: str = "",
         device_config_name: str = "",
         snapshot_id: str = "",
-        max_concurrent_jobs: int = 10,
+        max_concurrent_jobs: int = 100,
     ) -> cg.engine.ProcessorSampler:
         """Returns a sampler backed by the engine.
         Args:

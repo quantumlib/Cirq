@@ -596,7 +596,7 @@ class Engine(abstract_engine.AbstractEngine):
         run_name: str = "",
         device_config_name: str = "",
         snapshot_id: str = "",
-        max_concurrent_jobs: int = 10,
+        max_concurrent_jobs: int = 100,
     ) -> cirq_google.ProcessorSampler:
         """Returns a sampler backed by the engine.
 

@@ -119,6 +119,7 @@ def eject_z(
             return []
 
         # Try to move the tracked phases over the operation via protocols.phase_by(op)
+        phased_op: cirq.Operation | None
         phased_op = op
         for i, p in enumerate([qubit_phase[q] for q in op.qubits]):
             if not single_qubit_decompositions.is_negligible_turn(p, atol):
