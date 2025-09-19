@@ -62,11 +62,11 @@ def test_classically_controlled_no_update_succeeds():
     """
     a = cirq.NamedQubit('a')
 
-    add_dynamical_decoupling(
-        cirq.Circuit(
-            cirq.Moment(measure(a, key="a")), cirq.Moment(I(a).with_classical_controls("a"))
-        )
+    input_circuit = cirq.Circuit(
+        cirq.Moment(measure(a, key="a")), cirq.Moment(I(a).with_classical_controls("a"))
     )
+    output_circuit = add_dynamical_decoupling(input_circuit)
+    cirq.testing.assert_same_circuits(input_circuit, output_circuit)
 
 
 def test_no_insertion():
