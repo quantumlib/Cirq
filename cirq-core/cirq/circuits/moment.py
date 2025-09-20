@@ -120,8 +120,6 @@ class Moment:
                     raise ValueError(f'Overlapping operations: {self.operations}')
                 self._qubit_to_op[q] = op
 
-        self._measurement_key_objs: frozenset[cirq.MeasurementKey] | None = None
-        self._control_keys: frozenset[cirq.MeasurementKey] | None = None
         self._tags = tags
 
     @classmethod
@@ -234,10 +232,8 @@ class Moment:
         m._sorted_operations = None
         m._qubit_to_op = {**self._qubit_to_op, **{q: operation for q in operation.qubits}}
 
-        m._measurement_key_objs = self._measurement_key_objs_().union(
-            protocols.measurement_key_objs(operation)
-        )
-        m._control_keys = self._control_keys_().union(protocols.control_keys(operation))
+        m.__setattr__('measurement_keys', self.measurement_keys | operation.measurement_keys)
+        m.__setattr__('control_keys', self.control_keys | operation.control_keys)
 
         return m
 
@@ -272,11 +268,12 @@ class Moment:
 
         m._operations = self._operations + flattened_contents
         m._sorted_operations = None
-        m._measurement_key_objs = self._measurement_key_objs_().union(
-            set(itertools.chain(*(protocols.measurement_key_objs(op) for op in flattened_contents)))
+        m.__setattr__(
+            'measurement_keys',
+            self.measurement_keys.union(*(op.measurement_keys for op in flattened_contents)),
         )
-        m._control_keys = self._control_keys_().union(
-            set(itertools.chain(*(protocols.control_keys(op) for op in flattened_contents)))
+        m.__setattr__(
+            'control_keys', self.control_keys.union(*(op.control_keys for op in flattened_contents))
         )
 
         return m
@@ -335,23 +332,13 @@ class Moment:
             for op in self.operations
         )
 
-    @_compat.cached_method()
-    def _measurement_key_names_(self) -> frozenset[str]:
-        return frozenset(str(key) for key in self._measurement_key_objs_())
+    @cached_property
+    def measurement_keys(self) -> frozenset[cirq.MeasurementKey]:
+        return frozenset().union(*(op.measurement_keys for op in self.operations))
 
-    def _measurement_key_objs_(self) -> frozenset[cirq.MeasurementKey]:
-        if self._measurement_key_objs is None:
-            self._measurement_key_objs = frozenset(
-                key for op in self.operations for key in protocols.measurement_key_objs(op)
-            )
-        return self._measurement_key_objs
-
-    def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
-        if self._control_keys is None:
-            self._control_keys = frozenset(
-                k for op in self.operations for k in protocols.control_keys(op)
-            )
-        return self._control_keys
+    @cached_property
+    def control_keys(self) -> frozenset[cirq.MeasurementKey]:
+        return frozenset().union(*(op.control_keys for op in self.operations))
 
     def _sorted_operations_(self) -> tuple[cirq.Operation, ...]:
         if self._sorted_operations is None:

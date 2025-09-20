@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+from functools import cached_property
 from typing import AbstractSet, Any, Mapping, Sequence, TYPE_CHECKING
 
 import sympy
@@ -89,7 +90,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
             ValueError: If an unsupported gate is being classically
                 controlled.
         """
-        if protocols.measurement_key_objs(sub_operation):
+        if sub_operation.measurement_keys:
             raise ValueError(
                 f'Cannot conditionally run operations with measurements: {sub_operation}'
             )
@@ -222,11 +223,10 @@ class ClassicallyControlledOperation(raw_types.Operation):
         sub_operation = protocols.with_rescoped_keys(self._sub_operation, path, bindable_keys)
         return sub_operation.with_classical_controls(*conds)
 
-    def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
-        local_keys: frozenset[cirq.MeasurementKey] = frozenset(
-            k for condition in self._conditions for k in condition.keys
-        )
-        return local_keys.union(protocols.control_keys(self._sub_operation))
+    @cached_property
+    def control_keys(self) -> frozenset[cirq.MeasurementKey]:
+        local_keys = frozenset(k for condition in self._conditions for k in condition.keys)
+        return local_keys | self._sub_operation.control_keys
 
     def _qasm_(self, args: cirq.QasmArgs) -> str | None:
         args.validate_version('2.0', '3.0')

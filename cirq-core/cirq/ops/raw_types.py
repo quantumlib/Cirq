@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import abc
 import functools
+from functools import cached_property
 from types import NotImplementedType
 from typing import (
     AbstractSet,
@@ -455,6 +456,10 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         """
         raise NotImplementedError
 
+    @cached_property
+    def measurement_keys(self) -> frozenset[cirq.MeasurementKey]:
+        return protocols.measurement_key_objs(self, _skip_property_check=True)
+
     def _equal_up_to_global_phase_(
         self, other: Any, atol: float = 1e-8
     ) -> NotImplementedType | bool:
@@ -749,6 +754,14 @@ class Operation(metaclass=abc.ABCMeta):
         """
         return self
 
+    @cached_property
+    def measurement_keys(self) -> frozenset[cirq.MeasurementKey]:
+        return protocols.measurement_key_objs(self, _skip_property_check=True)
+
+    @cached_property
+    def control_keys(self) -> frozenset[cirq.MeasurementKey]:
+        return protocols.control_keys(self, _skip_property_check=True)
+
 
 @value.value_equality
 class TaggedOperation(Operation):
@@ -981,8 +994,13 @@ class TaggedOperation(Operation):
             return self
         return self.sub_operation.with_classical_controls(*conditions)
 
-    def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
-        return protocols.control_keys(self.sub_operation)
+    @cached_property
+    def measurement_keys(self) -> frozenset[cirq.MeasurementKey]:
+        return self.sub_operation.measurement_keys
+
+    @cached_property
+    def control_keys(self) -> frozenset[cirq.MeasurementKey]:
+        return self.sub_operation.control_keys
 
 
 @value.value_equality
@@ -1099,10 +1117,10 @@ def _operations_commutes_impl(
         False: `ops1` and `ops2` do not commute.
         NotImplemented: The commutativity cannot be determined here.
     """
-    ops1_keys = frozenset(k for op in ops1 for k in protocols.measurement_key_objs(op))
-    ops2_keys = frozenset(k for op in ops2 for k in protocols.measurement_key_objs(op))
-    ops1_control_keys = frozenset(k for op in ops1 for k in protocols.control_keys(op))
-    ops2_control_keys = frozenset(k for op in ops2 for k in protocols.control_keys(op))
+    ops1_keys = frozenset(k for op in ops1 for k in op.measurement_keys)
+    ops2_keys = frozenset(k for op in ops2 for k in op.measurement_keys)
+    ops1_control_keys = frozenset(k for op in ops1 for k in op.control_keys)
+    ops2_control_keys = frozenset(k for op in ops2 for k in op.control_keys)
     if (
         not ops1_keys.isdisjoint(ops2_keys)
         or not ops1_control_keys.isdisjoint(ops2_keys)

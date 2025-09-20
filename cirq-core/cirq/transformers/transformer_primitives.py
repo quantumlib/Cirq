@@ -316,9 +316,9 @@ class _MergedCircuit:
                 self.qubit_indexes[q].append(moment_index)
             else:
                 bisect.insort(self.qubit_indexes[q], moment_index)
-        for mkey in protocols.measurement_key_objs(op):
+        for mkey in op.measurement_keys:
             bisect.insort(self.mkey_indexes[mkey], moment_index)
-        for ckey in protocols.control_keys(op):
+        for ckey in op.control_keys:
             bisect.insort(self.ckey_indexes[ckey], moment_index)
 
     def remove_op_from_moment(self, moment_index: int, op: cirq.Operation) -> None:
@@ -328,9 +328,9 @@ class _MergedCircuit:
                 self.qubit_indexes[q].pop()
             else:
                 self.qubit_indexes[q].remove(moment_index)
-        for mkey in protocols.measurement_key_objs(op):
+        for mkey in op.measurement_keys:
             self.mkey_indexes[mkey].remove(moment_index)
-        for ckey in protocols.control_keys(op):
+        for ckey in op.control_keys:
             self.ckey_indexes[ckey].remove(moment_index)
 
     def get_mergeable_ops(
@@ -338,10 +338,8 @@ class _MergedCircuit:
     ) -> tuple[int, list[cirq.Operation]]:
         # Find the index of previous moment which can be merged with `op`.
         idx = max([self.qubit_indexes[q][-1] for q in op_qs], default=-1)
-        idx = max([idx] + [self.mkey_indexes[ckey][-1] for ckey in protocols.control_keys(op)])
-        idx = max(
-            [idx] + [self.ckey_indexes[mkey][-1] for mkey in protocols.measurement_key_objs(op)]
-        )
+        idx = max([idx] + [self.mkey_indexes[ckey][-1] for ckey in op.control_keys])
+        idx = max([idx] + [self.ckey_indexes[mkey][-1] for mkey in op.measurement_keys])
         # Return the set of overlapping ops in moment with index `idx`.
         if idx == -1:
             return idx, []
