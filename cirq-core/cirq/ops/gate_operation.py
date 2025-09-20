@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import re
 import warnings
+from functools import cached_property
 from types import NotImplementedType
 from typing import (
     AbstractSet,
@@ -233,30 +234,6 @@ class GateOperation(raw_types.Operation):
         # Let the protocol handle the fallback.
         return NotImplemented
 
-    def _measurement_key_name_(self) -> str | None:
-        getter = getattr(self.gate, '_measurement_key_name_', None)
-        if getter is not None:
-            return getter()
-        return NotImplemented
-
-    def _measurement_key_names_(self) -> frozenset[str] | NotImplementedType | None:
-        getter = getattr(self.gate, '_measurement_key_names_', None)
-        if getter is not None:
-            return getter()
-        return NotImplemented
-
-    def _measurement_key_obj_(self) -> cirq.MeasurementKey | None:
-        getter = getattr(self.gate, '_measurement_key_obj_', None)
-        if getter is not None:
-            return getter()
-        return NotImplemented
-
-    def _measurement_key_objs_(self) -> frozenset[cirq.MeasurementKey] | NotImplementedType | None:
-        getter = getattr(self.gate, '_measurement_key_objs_', None)
-        if getter is not None:
-            return getter()
-        return NotImplemented
-
     def _act_on_(self, sim_state: cirq.SimulationStateBase):
         getter = getattr(self.gate, '_act_on_', None)
         if getter is not None:
@@ -379,6 +356,10 @@ class GateOperation(raw_types.Operation):
             control_values=control_values,
             control_qid_shape=tuple(q.dimension for q in qubits),
         ).on(*(qubits + self._qubits))
+
+    @cached_property
+    def measurement_keys(self) -> frozenset[cirq.MeasurementKey]:
+        return self.gate.measurement_keys
 
 
 TV = TypeVar('TV', bound=raw_types.Gate)

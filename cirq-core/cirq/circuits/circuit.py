@@ -988,18 +988,12 @@ class AbstractCircuit(abc.ABC):
         qids = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         return protocols.qid_shape(qids)
 
+    @property
+    def measurement_keys(self) -> frozenset[cirq.MeasurementKey]:
+        return frozenset(key for m in self.moments for key in m.measurement_keys)
+
     def all_measurement_key_objs(self) -> frozenset[cirq.MeasurementKey]:
-        return frozenset(
-            key for op in self.all_operations() for key in protocols.measurement_key_objs(op)
-        )
-
-    def _measurement_key_objs_(self) -> frozenset[cirq.MeasurementKey]:
-        """Returns the set of all measurement keys in this circuit.
-
-        Returns: frozenset of `cirq.MeasurementKey` objects that are
-            in this circuit.
-        """
-        return self.all_measurement_key_objs()
+        return self.measurement_keys
 
     def all_measurement_key_names(self) -> frozenset[str]:
         """Returns the set of all measurement key names in this circuit.
@@ -1010,9 +1004,6 @@ class AbstractCircuit(abc.ABC):
         return frozenset(
             key for op in self.all_operations() for key in protocols.measurement_key_names(op)
         )
-
-    def _measurement_key_names_(self) -> frozenset[str]:
-        return self.all_measurement_key_names()
 
     def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
         return self._from_moments(
@@ -1038,7 +1029,7 @@ class AbstractCircuit(abc.ABC):
         for moment in self.moments:
             new_moment = protocols.with_rescoped_keys(moment, path, bindable_keys)
             moments.append(new_moment)
-            bindable_keys |= protocols.measurement_key_objs(new_moment)
+            bindable_keys |= new_moment.measurement_keys
         return self._from_moments(moments, tags=self.tags)
 
     def _qid_shape_(self) -> tuple[int, ...]:
@@ -1279,10 +1270,7 @@ class AbstractCircuit(abc.ABC):
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         cbits = tuple(
-            sorted(
-                set(key for op in self.all_operations() for key in protocols.control_keys(op)),
-                key=str,
-            )
+            sorted(set(key for op in self.all_operations() for key in op.control_keys), key=str)
         )
         labels = qubits + cbits
         label_map = {labels[i]: i for i in range(len(labels))}
@@ -1665,14 +1653,15 @@ class AbstractCircuit(abc.ABC):
             for qubits in qubit_factors
         )
 
-    def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
+    @property
+    def control_keys(self) -> frozenset[cirq.MeasurementKey]:
         measures: set[cirq.MeasurementKey] = set()
         controls: set[cirq.MeasurementKey] = set()
         for op in self.all_operations():
             # Only require keys that haven't already been measured earlier
-            controls.update(k for k in protocols.control_keys(op) if k not in measures)
+            controls.update(op.control_keys - measures)
             # Record any measurement keys produced by this op
-            measures.update(protocols.measurement_key_objs(op))
+            measures.update(op.measurement_keys)
         return frozenset(controls)
 
 
@@ -2139,19 +2128,19 @@ class Circuit(AbstractCircuit):
             end_moment_index = len(self.moments)
         last_available = end_moment_index
         k = end_moment_index
-        op_control_keys = protocols.control_keys(op)
-        op_measurement_keys = protocols.measurement_key_objs(op)
+        op_control_keys = op.control_keys
+        op_measurement_keys = op.measurement_keys
         op_qubits = op.qubits
         while k > 0:
             k -= 1
             moment = self._moments[k]
             if moment.operates_on(op_qubits):
                 return last_available
-            moment_measurement_keys = moment._measurement_key_objs_()
+            moment_measurement_keys = moment.measurement_keys
             if (
                 not op_measurement_keys.isdisjoint(moment_measurement_keys)
                 or not op_control_keys.isdisjoint(moment_measurement_keys)
-                or not moment._control_keys_().isdisjoint(op_measurement_keys)
+                or not moment.control_keys.isdisjoint(op_measurement_keys)
             ):
                 return last_available
             if self._can_add_op_at(k, op):
@@ -2970,8 +2959,8 @@ def get_earliest_accommodating_moment_index(
         The integer index of the earliest moment that can accommodate the given moment or operation.
     """
     mop_qubits = moment_or_operation.qubits
-    mop_mkeys = protocols.measurement_key_objs(moment_or_operation)
-    mop_ckeys = protocols.control_keys(moment_or_operation)
+    mop_mkeys = moment_or_operation.measurement_keys
+    mop_ckeys = moment_or_operation.control_keys
 
     if isinstance(moment_or_operation, Moment):
         # For consistency with `Circuit.append`, moments always get placed at the end of a circuit.
