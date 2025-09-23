@@ -18,7 +18,6 @@ and a provided sampler to execute circuits."""
 from __future__ import annotations
 
 import concurrent.futures
-import datetime
 from typing import cast, Sequence
 
 import duet
