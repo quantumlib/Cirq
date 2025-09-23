@@ -317,7 +317,6 @@ class EngineJob(abstract_job.AbstractJob):
 
     def _get_job_results_v1(self, result: v1.program_pb2.Result) -> Sequence[EngineResult]:
         job_id = self.id()
-        job_finished = self.update_time()
 
         trial_results = []
         for sweep_result in result.sweep_results:
@@ -332,7 +331,6 @@ class EngineJob(abstract_job.AbstractJob):
                         params=cirq.ParamResolver(result.params.assignments),
                         measurements=measurements,
                         job_id=job_id,
-                        job_finished_time=job_finished,
                     )
                 )
         return trial_results
@@ -340,11 +338,10 @@ class EngineJob(abstract_job.AbstractJob):
     def _get_job_results_v2(self, result: v2.result_pb2.Result) -> Sequence[EngineResult]:
         sweep_results = v2.results_from_proto(result)
         job_id = self.id()
-        job_finished = datetime.datetime.now()
 
         # Flatten to single list to match to sampler api.
         return [
-            EngineResult.from_result(result, job_id=job_id, job_finished_time=job_finished)
+            EngineResult.from_result(result, job_id=job_id)
             for sweep_result in sweep_results
             for result in sweep_result
         ]

@@ -35,21 +35,12 @@ def _flatten_results(batch_results: Sequence[Sequence[EngineResult]]) -> list[En
 
 
 def _to_engine_results(
-    batch_results: Sequence[Sequence[cirq.Result]],
-    *,
-    job_id: str,
-    job_finished_time: datetime.datetime | None = None,
+    batch_results: Sequence[Sequence[cirq.Result]], *, job_id: str
 ) -> list[list[EngineResult]]:
     """Convert cirq.Result from simulators into (simulated) EngineResults."""
 
-    if job_finished_time is None:
-        job_finished_time = datetime.datetime.now(tz=datetime.timezone.utc)
-
     return [
-        [
-            EngineResult.from_result(result, job_id=job_id, job_finished_time=job_finished_time)
-            for result in batch
-        ]
+        [EngineResult.from_result(result, job_id=job_id) for result in batch]
         for batch in batch_results
     ]
 
