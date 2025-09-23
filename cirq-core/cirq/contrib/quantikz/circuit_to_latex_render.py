@@ -232,31 +232,14 @@ def render_circuit(
             **kwargs,  # Existing kwargs are merged, but explicit args take precedence
         }
 
-        try:
-            converter = CircuitToQuantikz(circuit, **converter_kwargs)
-        except Exception as e:  # pragma: nocover
-            print(f"Error initializing CircuitToQuantikz: {e}")  # pragma: nocover
-            if debug:
-                traceback.print_exc()
-            return None
+        converter = CircuitToQuantikz(circuit, **converter_kwargs)
 
         _debug_print("Generating LaTeX source...")
-        try:
-            latex_s = converter.generate_latex_document()
-        except Exception as e:  # pragma: nocover
-            print(f"Error generating LaTeX document: {e}")
-            if debug:
-                traceback.print_exc()
-            return None
-        if debug:
-            _debug_print("Generated LaTeX (first 500 chars):\n", latex_s[:500] + "...")
+        latex_s = converter.generate_latex_document()
+        _debug_print("Generated LaTeX (first 500 chars):\n", latex_s[:500] + "...")
 
-        try:
-            tmp_tex_path.write_text(latex_s, encoding="utf-8")
-            _debug_print(f"LaTeX saved to temporary file: {tmp_tex_path}")
-        except IOError as e:  # pragma: nocover
-            print(f"Error writing temporary LaTeX file {tmp_tex_path}: {e}")
-            return None
+        tmp_tex_path.write_text(latex_s, encoding="utf-8")
+        _debug_print(f"LaTeX saved to temporary file: {tmp_tex_path}")
 
         pdf_generated = False
         if run_pdflatex and pdflatex_exec:  # pragma: nocover
@@ -361,27 +344,18 @@ def render_circuit(
 
         # Copy files to final destinations if requested
         if final_tex_path and tmp_tex_path.exists():
-            try:
-                final_tex_path.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(tmp_tex_path, final_tex_path)
-                _debug_print(f"Copied .tex to: {final_tex_path}")
-            except Exception as e:  # pragma: nocover
-                print(f"Error copying .tex file to final path: {e}")
+            final_tex_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(tmp_tex_path, final_tex_path)
+            _debug_print(f"Copied .tex to: {final_tex_path}")
         if final_pdf_path and pdf_generated and tmp_pdf_path.exists():  # pragma: nocover
-            try:
-                final_pdf_path.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(tmp_pdf_path, final_pdf_path)
-                _debug_print(f"Copied .pdf to: {final_pdf_path}")
-            except Exception as e:
-                print(f"Error copying .pdf file to final path: {e}")
+            final_pdf_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(tmp_pdf_path, final_pdf_path)
+            _debug_print(f"Copied .pdf to: {final_pdf_path}")
         if final_png_path and png_generated and tmp_png_path.exists():  # pragma: nocover
-            try:
-                final_png_path.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(tmp_png_path, final_png_path)
-                _debug_print(f"Copied .png to: {final_png_path}")
-                final_output_path_for_display = final_png_path  # Use the final path for display
-            except Exception as e:
-                print(f"Error copying .png file to final path: {e}")
+            final_png_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(tmp_png_path, final_png_path)
+            _debug_print(f"Copied .png to: {final_png_path}")
+            final_output_path_for_display = final_png_path  # Use the final path for display
         elif png_generated and tmp_png_path.exists() and not final_png_path:  # pragma: nocover
             # If PNG was generated but no specific output_png_path,
             # use the temp path for display
