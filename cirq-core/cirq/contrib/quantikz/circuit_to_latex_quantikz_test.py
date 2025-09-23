@@ -19,7 +19,10 @@ import sympy
 import cirq
 
 # Import the class directly for testing
-from cirq.vis.circuit_to_latex_quantikz import CircuitToQuantikz, DEFAULT_PREAMBLE_TEMPLATE
+from cirq.contrib.quantikz.circuit_to_latex_quantikz import (
+    CircuitToQuantikz,
+    DEFAULT_PREAMBLE_TEMPLATE,
+)
 
 
 def test_empty_circuit_raises_value_error():

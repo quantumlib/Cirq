@@ -46,7 +46,7 @@ from IPython.display import display, Image
 from cirq import circuits, ops
 
 # Use absolute import for the sibling module
-from cirq.vis.circuit_to_latex_quantikz import CircuitToQuantikz
+from cirq.contrib.quantikz.circuit_to_latex_quantikz import CircuitToQuantikz
 
 
 # =============================================================================

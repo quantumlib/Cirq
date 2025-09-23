@@ -20,7 +20,7 @@ flexible customization for gate styles, wire labels, and circuit folding.
 
 Example:
     >>> import cirq
-    >>> from cirq.vis.circuit_to_latex_quantikz import CircuitToQuantikz
+    >>> from cirq.contrib.quantikz import CircuitToQuantikz
     >>> q0, q1 = cirq.LineQubit.range(2)
     >>> circuit = cirq.Circuit(
     ...     cirq.H(q0),

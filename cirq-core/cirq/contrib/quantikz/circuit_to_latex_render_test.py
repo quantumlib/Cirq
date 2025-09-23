@@ -17,7 +17,7 @@ import pathlib
 import numpy as np
 
 import cirq
-from cirq.vis.circuit_to_latex_render import render_circuit
+from cirq.contrib.quantikz.circuit_to_latex_render import render_circuit
 
 
 def test_render_circuit(tmp_path: pathlib.Path) -> None:
