@@ -27,12 +27,12 @@ import sympy
 import cirq.contrib.shuffle_circuits.shuffle_circuits_with_readout_benchmarking as sc_readout
 from cirq import circuits, ops, study, work
 from cirq.experiments.readout_confusion_matrix import TensoredConfusionMatrices
+from cirq.study import ResultDict
 
 if TYPE_CHECKING:
     from cirq.experiments.single_qubit_readout_calibration import (
         SingleQubitReadoutCalibrationResult,
     )
-    from cirq.study import ResultDict
 
 
 @attrs.frozen
@@ -285,7 +285,7 @@ def _generate_basis_change_circuits(
             basis_change_circuit = circuits.Circuit(
                 input_circuit_unfrozen,
                 _pauli_strings_to_basis_change_ops(pauli_strings, qid_list),
-                ops.measure(*qid_list, key="m"),
+                ops.measure(*qid_list, key="result"),
                 strategy=insert_strategy,
             )
             basis_change_circuits.append(basis_change_circuit)
@@ -311,7 +311,7 @@ def _generate_basis_change_circuits_with_sweep(
             ops.PhasedXPowGate(phase_exponent=(a - 1) / 2, exponent=b)(qubit)
             for a, b, qubit in zip(phi_symbols, theta_symbols, qid_list)
         ]
-        measurement_op = ops.M(*qid_list, key="m")
+        measurement_op = ops.M(*qid_list, key="result")
 
         parameterized_circuit = circuits.Circuit(
             input_circuit.unfreeze(), phased_gates, measurement_op, strategy=insert_strategy
@@ -406,7 +406,7 @@ def _process_pauli_measurement_results(
     pauli_measurement_results: list[PauliStringMeasurementResult] = []
 
     for pauli_group_index, circuit_result in enumerate(circuit_results):
-        measurement_results = circuit_result.measurements["m"]
+        measurement_results = circuit_result.measurements["result"]
         pauli_strs = pauli_string_groups[pauli_group_index]
         pauli_readout_qubits = _extract_readout_qubits(pauli_strs)
 
@@ -603,9 +603,9 @@ def measure_pauli_strings(
 
         circuits_results_for_group: Sequence[ResultDict] | Sequence[study.Result] = []
         if use_sweep:
-            circuits_results_for_group = circuits_results[i]
+            circuits_results_for_group = cast(Sequence[Sequence[study.Result]], circuits_results)[i]
         else:
-            circuits_results_for_group = circuits_results[
+            circuits_results_for_group = cast(Sequence[ResultDict], circuits_results)[
                 circuit_result_index : circuit_result_index + len(pauli_string_groups)
             ]
             circuit_result_index += len(pauli_string_groups)
