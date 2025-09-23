@@ -185,7 +185,7 @@ def render_circuit(
     pdflatex_exec = shutil.which("pdflatex")
     pdftoppm_exec = shutil.which("pdftoppm")
 
-    if run_pdflatex and not pdflatex_exec:
+    if run_pdflatex and not pdflatex_exec:  # pragma: no cover
         warnings.warn(
             "'pdflatex' not found. Cannot compile LaTeX. "
             "Please install a LaTeX distribution (e.g., TeX Live, MiKTeX) "
@@ -194,10 +194,10 @@ def render_circuit(
             "(or `texlive-base` for minimal). "
             "On macOS: `brew install --cask mactex` (or `brew install texlive` for minimal). "
             "On Windows: Download and install MiKTeX or TeX Live."
-        )  # pragma: no cover
+        )
         # Disable dependent steps
-        run_pdflatex = run_pdftoppm = False  # pragma: nocover
-    if run_pdftoppm and not pdftoppm_exec:
+        run_pdflatex = run_pdftoppm = False
+    if run_pdftoppm and not pdftoppm_exec:  # pragma: no cover
         warnings.warn(
             "'pdftoppm' not found. Cannot convert PDF to PNG. "
             "This tool is part of the Poppler utilities. "
@@ -206,9 +206,9 @@ def render_circuit(
             "On Windows: Download Poppler for Windows "
             "(e.g., from Poppler for Windows GitHub releases) "
             "and add its `bin` directory to your system PATH."
-        )  # pragma: nocover
+        )
         # Disable dependent step
-        run_pdftoppm = False  # pragma: nocover
+        run_pdftoppm = False
 
     # Use TemporaryDirectory for safe handling of temporary files
     with tempfile.TemporaryDirectory() as tmpdir_s:
@@ -242,7 +242,7 @@ def render_circuit(
         _debug_print(f"LaTeX saved to temporary file: {tmp_tex_path}")
 
         pdf_generated = False
-        if run_pdflatex and pdflatex_exec:  # pragma: nocover
+        if run_pdflatex and pdflatex_exec:
             _debug_print(f"Running pdflatex ({pdflatex_exec})...")
             # Run pdflatex twice for correct cross-references and layout
             cmd_latex = [
@@ -264,7 +264,7 @@ def render_circuit(
                     cwd=tmp_p,
                     timeout=timeout,
                 )
-                if proc.returncode != 0:  # pragma: nocover
+                if proc.returncode != 0:  # pragma: no cover
                     latex_failed = True
                     print(f"!!! pdflatex failed on run {i+1} (exit code {proc.returncode}) !!!")
                     log_file = tmp_tex_path.with_suffix(".log")
@@ -279,7 +279,7 @@ def render_circuit(
                         if proc.stderr:
                             print(f"--- pdflatex stderr ---\n{proc.stderr}")
                     break  # Exit loop if pdflatex failed
-                elif not tmp_pdf_path.is_file() and i == 1:  # pragma: nocover
+                elif not tmp_pdf_path.is_file() and i == 1:  # pragma: no cover
                     latex_failed = True
                     print("!!! pdflatex completed, but PDF file not found. Check logs. !!!")
                     log_file = tmp_tex_path.with_suffix(".log")
@@ -295,14 +295,14 @@ def render_circuit(
             if not latex_failed and tmp_pdf_path.is_file():
                 pdf_generated = True
                 _debug_print(f"PDF successfully generated at: {tmp_pdf_path}")
-            elif not latex_failed:  # pragma: nocover
+            elif not latex_failed:  # pragma: no cover
                 # pdflatex returned 0 but PDF not found
                 print("pdflatex reported success but PDF file was not found.")
-            if latex_failed:  # pragma: nocover
+            if latex_failed:  # pragma: no cover
                 return None  # Critical failure, return None
 
         png_generated, final_output_path_for_display = False, None
-        if run_pdftoppm and pdftoppm_exec and pdf_generated:  # pragma: nocover
+        if run_pdftoppm and pdftoppm_exec and pdf_generated:
             _debug_print(f"Running pdftoppm ({pdftoppm_exec})...")
             # pdftoppm outputs to <prefix>-<page_number>.png if multiple pages,
             # or <prefix>.png if single page with -singlefile.
@@ -331,15 +331,15 @@ def render_circuit(
                 else:
                     print(
                         f"!!! pdftoppm succeeded but PNG ({tmp_png_path}) not found. !!!"
-                    )  # pragma: nocover
-            except subprocess.CalledProcessError as e_ppm:  # pragma: nocover
+                    )  # pragma: no cover
+            except subprocess.CalledProcessError as e_ppm:  # pragma: no cover
                 print(
                     f"!!! pdftoppm failed (exit code {e_ppm.returncode}) !!!\n"
                     f"Stdout: {e_ppm.stdout}\nStderr: {e_ppm.stderr}"
                 )
-            except subprocess.TimeoutExpired:  # pragma: nocover
+            except subprocess.TimeoutExpired:  # pragma: no cover
                 print("!!! pdftoppm timed out. !!!")
-            except Exception as e_ppm_other:  # pragma: nocover
+            except Exception as e_ppm_other:  # pragma: no cover
                 print(f"An unexpected error occurred during pdftoppm: {e_ppm_other}")
 
         # Copy files to final destinations if requested
@@ -347,16 +347,16 @@ def render_circuit(
             final_tex_path.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(tmp_tex_path, final_tex_path)
             _debug_print(f"Copied .tex to: {final_tex_path}")
-        if final_pdf_path and pdf_generated and tmp_pdf_path.exists():  # pragma: nocover
+        if final_pdf_path and pdf_generated and tmp_pdf_path.exists():
             final_pdf_path.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(tmp_pdf_path, final_pdf_path)
             _debug_print(f"Copied .pdf to: {final_pdf_path}")
-        if final_png_path and png_generated and tmp_png_path.exists():  # pragma: nocover
+        if final_png_path and png_generated and tmp_png_path.exists():
             final_png_path.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(tmp_png_path, final_png_path)
             _debug_print(f"Copied .png to: {final_png_path}")
             final_output_path_for_display = final_png_path  # Use the final path for display
-        elif png_generated and tmp_png_path.exists() and not final_png_path:  # pragma: nocover
+        elif png_generated and tmp_png_path.exists() and not final_png_path:  # pragma: no cover
             # If PNG was generated but no specific output_png_path,
             # use the temp path for display
             final_output_path_for_display = tmp_png_path
@@ -367,7 +367,7 @@ def render_circuit(
             display_png_jupyter
             and final_output_path_for_display
             and final_output_path_for_display.is_file()
-        ):  # pragma: nocover
+        ):  # pragma: no cover
             _debug_print(f"Attempting to display PNG in Jupyter: {final_output_path_for_display}")
             try:
                 # Check if running in a Jupyter-like environment that supports display
@@ -394,19 +394,19 @@ def render_circuit(
                 jupyter_image_object = None
         elif display_png_jupyter and (
             not final_output_path_for_display or not final_output_path_for_display.is_file()
-        ):  # pragma: nocover
+        ):  # pragma: no cover
             if run_pdflatex and run_pdftoppm:
                 print("PNG display requested, but PNG not successfully created/found.")
 
         # Determine return value based on requested outputs
         if jupyter_image_object:
-            return jupyter_image_object  # pragma: nocover
-        elif final_png_path and final_png_path.is_file():
+            return jupyter_image_object
+        elif final_png_path and final_png_path.is_file():  # pragma: no cover
             # Return path to saved PNG
-            return str(final_png_path)  # pragma: nocover
-        elif output_tex_path and final_tex_path and final_tex_path.is_file():  # pragma: nocover
+            return str(final_png_path)
+        elif output_tex_path and final_tex_path and final_tex_path.is_file():  # pragma: no cover
             # If only LaTeX string was requested, read it back from the saved file
             # This is a bit indirect, but aligns with returning a string path
             return final_tex_path.read_text(encoding="utf-8")
         # Default return if no specific output is generated or requested as return
-        return None  # pragma: nocover
+        return None  # pragma: no cover

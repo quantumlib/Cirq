@@ -226,7 +226,7 @@ def test_custom_gate(show_parameters) -> None:
             return f"Custom_Gate()**{self.exponent}"
 
         def _unitary_(self):
-            return np.array([[1.0, 0.0], [0.0, 1.0]])  # pragma: nocover
+            raise NotImplementedError()
 
     circuit = cirq.Circuit(
         CustomGate(1.0).on(cirq.q(0)), CustomGate(1).on(cirq.q(0)), CustomGate(1.5).on(cirq.q(0))

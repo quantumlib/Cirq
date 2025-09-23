@@ -356,7 +356,7 @@ class CircuitToQuantikz:
                     ValueError,
                     AttributeError,
                     sympy.SympifyError,
-                ):  # pragma: nocover
+                ):  # pragma: no cover
                     # Fallback to Sympy's string representation if conversion fails
                     exp_str = s_exponent
             else:  # Symbolic expression
@@ -403,9 +403,9 @@ class CircuitToQuantikz:
                     )
             if hasattr(gate, "exponent") and not math.isclose(
                 gate.exponent, 1.0
-            ):  # pragma: nocover
+            ):  # pragma: no cover
                 return f"{mapped_name}({self._format_exponent_for_display(gate.exponent)})"
-            return mapped_name  # pragma: nocover
+            return mapped_name  # pragma: no cover
 
         try:
             # Use protocols directly
@@ -438,10 +438,10 @@ class CircuitToQuantikz:
 
                 fmt_name = self._escape_string(name_cand)
                 parts = fmt_name.split("**", 1)
-                if len(parts) == 2:  # pragma: nocover
+                if len(parts) == 2:  # pragma: no cover
                     fmt_name = f"{parts[0]}^{{{self._format_exponent_for_display(parts[1])}}}"
                 return fmt_name
-        except (ValueError, AttributeError, IndexError):  # pragma: nocover
+        except (ValueError, AttributeError, IndexError):  # pragma: no cover
             # Fallback to default string representation if diagram info parsing fails.
             pass
 
@@ -489,7 +489,7 @@ class CircuitToQuantikz:
         gate = op.gate
         if isinstance(op, ops.ClassicallyControlledOperation):
             gate = op.without_classical_controls().gate
-        if gate is None:  # pragma: nocover
+        if gate is None:  # pragma: no cover
             raise ValueError(f'Only GateOperations are supported {op}')
         gate_name_render = self._get_gate_name(gate)
 
@@ -649,7 +649,7 @@ class CircuitToQuantikz:
                             if lines[k_idx].endswith(" \\\\"):
                                 lines[k_idx] = lines[k_idx].rstrip()[:-3].rstrip()
                             break
-                        elif k_idx == len(lines) - 1:  # pragma: nocover
+                        elif k_idx == len(lines) - 1:  # pragma: no cover
                             lines[k_idx] = ""
             lines.append("\\end{quantikz}")
             final_parts.append("\n".join(filter(None, lines)))
