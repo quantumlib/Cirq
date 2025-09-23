@@ -97,7 +97,7 @@ DEFAULT_PREAMBLE_TEMPLATE = r"""
 _Pauli_gate_style = r"style={fill=blue!20}"
 _green_gate_style = r"style={fill=green!20}"
 _yellow_gate_style = r"style={fill=yellow!20}"  # For H
-_orange_gate_style = r"style={fill=orange!20}"  # For FSim, ISwap, etc.
+_orange_gate_style = r"style={fill=orange!20}"  # For FSim, iSwap, etc.
 _gray_gate_style = r"style={fill=gray!20}"  # For Measure
 _noisy_channel_style = r"style={fill=red!20}"
 
@@ -119,8 +119,8 @@ GATE_STYLES_COLORFUL = {
     "PhasedXZ": _green_gate_style,
     "FSimGate": _orange_gate_style,
     "FSim": _orange_gate_style,  # Alias for FSimGate
-    "ISwap": _orange_gate_style,  # For ISwapPowGate(exponent=1)
-    "iSWAP_pow": _orange_gate_style,  # For ISwapPowGate(exponent!=1)
+    "iSwap": _orange_gate_style,  # For ISwapPowGate(exponent=1)
+    "iSwap_pow": _orange_gate_style,  # For ISwapPowGate(exponent!=1)
     "CZ_pow": _orange_gate_style,  # For CZPowGate(exponent!=1)
     "CX_pow": _orange_gate_style,  # For CNotPowGate(exponent!=1)
     "CXideal": "",  # No fill for \ctrl \targ, let quantikz draw default
@@ -511,15 +511,7 @@ class CircuitToQuantikz:
             if getattr(gate, "exponent", 1) == 1:
                 style_key = base_key_for_pow
             else:
-                style_key = {
-                    "X": "X_pow",
-                    "Y": "Y_pow",
-                    "Z": "Z_pow",
-                    "H": "H_pow",
-                    "CZ": "CZ_pow",
-                    "CX": "CX_pow",
-                    "iSwap": "iSWAP_pow",
-                }.get(base_key_for_pow, f"{base_key_for_pow}_pow")
+                style_key = f"{base_key_for_pow}_pow"
 
         style_opts_str = self.gate_styles.get(style_key, "")
         final_style_tikz = f"[{style_opts_str}]" if style_opts_str else ""
