@@ -210,243 +210,229 @@ def render_circuit(
         # Disable dependent step
         run_pdftoppm = False  # pragma: nocover
 
-    try:
-        # Use TemporaryDirectory for safe handling of temporary files
-        with tempfile.TemporaryDirectory() as tmpdir_s:
-            tmp_p = Path(tmpdir_s)
-            _debug_print(f"Temporary directory created at: {tmp_p}")
-            base_name = "circuit_render"
-            tmp_tex_path = tmp_p / f"{base_name}.tex"
-            tmp_pdf_path = tmp_p / f"{base_name}.pdf"
-            tmp_png_path = tmp_p / f"{base_name}.png"  # Single PNG output from pdftoppm
+    # Use TemporaryDirectory for safe handling of temporary files
+    with tempfile.TemporaryDirectory() as tmpdir_s:
+        tmp_p = Path(tmpdir_s)
+        _debug_print(f"Temporary directory created at: {tmp_p}")
+        base_name = "circuit_render"
+        tmp_tex_path = tmp_p / f"{base_name}.tex"
+        tmp_pdf_path = tmp_p / f"{base_name}.pdf"
+        tmp_png_path = tmp_p / f"{base_name}.png"  # Single PNG output from pdftoppm
 
-            # Prepare kwargs for CircuitToQuantikz, prioritizing explicit args
-            converter_kwargs = {
-                "gate_styles": gate_styles,
-                "quantikz_options": quantikz_options,
-                "fold_at": fold_at,
-                "wire_labels": wire_labels,
-                "show_parameters": show_parameters,
-                "gate_name_map": gate_name_map,
-                "float_precision_exps": float_precision_exps,
-                "qubit_order": qubit_order,
-                **kwargs,  # Existing kwargs are merged, but explicit args take precedence
-            }
+        # Prepare kwargs for CircuitToQuantikz, prioritizing explicit args
+        converter_kwargs = {
+            "gate_styles": gate_styles,
+            "quantikz_options": quantikz_options,
+            "fold_at": fold_at,
+            "wire_labels": wire_labels,
+            "show_parameters": show_parameters,
+            "gate_name_map": gate_name_map,
+            "float_precision_exps": float_precision_exps,
+            "qubit_order": qubit_order,
+            **kwargs,  # Existing kwargs are merged, but explicit args take precedence
+        }
 
-            try:
-                converter = CircuitToQuantikz(circuit, **converter_kwargs)
-            except Exception as e:  # pragma: nocover
-                print(f"Error initializing CircuitToQuantikz: {e}")  # pragma: nocover
-                if debug:
-                    traceback.print_exc()
-                return None
-
-            _debug_print("Generating LaTeX source...")
-            try:
-                latex_s = converter.generate_latex_document()
-            except Exception as e:  # pragma: nocover
-                print(f"Error generating LaTeX document: {e}")
-                if debug:
-                    traceback.print_exc()
-                return None
+        try:
+            converter = CircuitToQuantikz(circuit, **converter_kwargs)
+        except Exception as e:  # pragma: nocover
+            print(f"Error initializing CircuitToQuantikz: {e}")  # pragma: nocover
             if debug:
-                _debug_print("Generated LaTeX (first 500 chars):\n", latex_s[:500] + "...")
+                traceback.print_exc()
+            return None
 
-            try:
-                tmp_tex_path.write_text(latex_s, encoding="utf-8")
-                _debug_print(f"LaTeX saved to temporary file: {tmp_tex_path}")
-            except IOError as e:  # pragma: nocover
-                print(f"Error writing temporary LaTeX file {tmp_tex_path}: {e}")
-                return None
+        _debug_print("Generating LaTeX source...")
+        try:
+            latex_s = converter.generate_latex_document()
+        except Exception as e:  # pragma: nocover
+            print(f"Error generating LaTeX document: {e}")
+            if debug:
+                traceback.print_exc()
+            return None
+        if debug:
+            _debug_print("Generated LaTeX (first 500 chars):\n", latex_s[:500] + "...")
 
-            pdf_generated = False
-            if run_pdflatex and pdflatex_exec:  # pragma: nocover
-                _debug_print(f"Running pdflatex ({pdflatex_exec})...")
-                # Run pdflatex twice for correct cross-references and layout
-                cmd_latex = [
-                    pdflatex_exec,
-                    "-interaction=nonstopmode",  # Don't prompt for input
-                    "-halt-on-error",  # Exit on first error
-                    "-output-directory",
-                    str(tmp_p),  # Output files to temp directory
-                    str(tmp_tex_path),
-                ]
-                latex_failed = False
-                for i in range(2):  # Run pdflatex twice
-                    _debug_print(f"  pdflatex run {i+1}/2...")
-                    proc = subprocess.run(
-                        cmd_latex,
-                        capture_output=True,
-                        text=True,
-                        check=False,  # Don't raise CalledProcessError immediately
-                        cwd=tmp_p,
-                        timeout=timeout,
-                    )
-                    if proc.returncode != 0:  # pragma: nocover
-                        latex_failed = True
-                        print(f"!!! pdflatex failed on run {i+1} (exit code {proc.returncode}) !!!")
-                        log_file = tmp_tex_path.with_suffix(".log")
-                        if log_file.exists():
-                            print(
-                                f"--- Tail of {log_file.name} ---\n"
-                                f"{log_file.read_text(errors='ignore')[-2000:]}"
-                            )
-                        else:
-                            if proc.stdout:
-                                print(f"--- pdflatex stdout ---\n{proc.stdout[-2000:]}")
-                            if proc.stderr:
-                                print(f"--- pdflatex stderr ---\n{proc.stderr}")
-                        break  # Exit loop if pdflatex failed
-                    elif not tmp_pdf_path.is_file() and i == 1:  # pragma: nocover
-                        latex_failed = True
-                        print("!!! pdflatex completed, but PDF file not found. Check logs. !!!")
-                        log_file = tmp_tex_path.with_suffix(".log")
-                        if log_file.exists():
-                            print(
-                                f"--- Tail of {log_file.name} ---\n"
-                                f"{log_file.read_text(errors='ignore')[-2000:]}"
-                            )
-                        break
-                    elif tmp_pdf_path.is_file():
-                        _debug_print(f"  pdflatex run {i+1}/2 successful (PDF exists).")
+        try:
+            tmp_tex_path.write_text(latex_s, encoding="utf-8")
+            _debug_print(f"LaTeX saved to temporary file: {tmp_tex_path}")
+        except IOError as e:  # pragma: nocover
+            print(f"Error writing temporary LaTeX file {tmp_tex_path}: {e}")
+            return None
 
-                if not latex_failed and tmp_pdf_path.is_file():
-                    pdf_generated = True
-                    _debug_print(f"PDF successfully generated at: {tmp_pdf_path}")
-                elif not latex_failed:  # pragma: nocover
-                    # pdflatex returned 0 but PDF not found
-                    print("pdflatex reported success but PDF file was not found.")
-                if latex_failed:  # pragma: nocover
-                    return None  # Critical failure, return None
-
-            png_generated, final_output_path_for_display = False, None
-            if run_pdftoppm and pdftoppm_exec and pdf_generated:  # pragma: nocover
-                _debug_print(f"Running pdftoppm ({pdftoppm_exec})...")
-                # pdftoppm outputs to <prefix>-<page_number>.png if multiple pages,
-                # or <prefix>.png if single page with -singlefile.
-                # We expect a single page output here.
-                cmd_ppm = [
-                    pdftoppm_exec,
-                    "-png",
-                    "-r",
-                    str(dpi),
-                    "-singlefile",  # Ensures single output file for single-page PDFs
-                    str(tmp_pdf_path),
-                    str(tmp_p / base_name),  # Output prefix for the PNG
-                ]
-                try:
-                    proc = subprocess.run(
-                        cmd_ppm,
-                        capture_output=True,
-                        text=True,
-                        check=True,  # Raise CalledProcessError for non-zero exit codes
-                        cwd=tmp_p,
-                        timeout=timeout,
-                    )
-                    if tmp_png_path.is_file():
-                        png_generated = True
-                        _debug_print(f"PNG successfully generated at: {tmp_png_path}")
-                    else:
-                        print(
-                            f"!!! pdftoppm succeeded but PNG ({tmp_png_path}) not found. !!!"
-                        )  # pragma: nocover
-                except subprocess.CalledProcessError as e_ppm:  # pragma: nocover
-                    print(
-                        f"!!! pdftoppm failed (exit code {e_ppm.returncode}) !!!\n"
-                        f"Stdout: {e_ppm.stdout}\nStderr: {e_ppm.stderr}"
-                    )
-                except subprocess.TimeoutExpired:  # pragma: nocover
-                    print("!!! pdftoppm timed out. !!!")
-                except Exception as e_ppm_other:  # pragma: nocover
-                    print(f"An unexpected error occurred during pdftoppm: {e_ppm_other}")
-
-            # Copy files to final destinations if requested
-            if final_tex_path and tmp_tex_path.exists():
-                try:
-                    final_tex_path.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copy2(tmp_tex_path, final_tex_path)
-                    _debug_print(f"Copied .tex to: {final_tex_path}")
-                except Exception as e:  # pragma: nocover
-                    print(f"Error copying .tex file to final path: {e}")
-            if final_pdf_path and pdf_generated and tmp_pdf_path.exists():  # pragma: nocover
-                try:
-                    final_pdf_path.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copy2(tmp_pdf_path, final_pdf_path)
-                    _debug_print(f"Copied .pdf to: {final_pdf_path}")
-                except Exception as e:
-                    print(f"Error copying .pdf file to final path: {e}")
-            if final_png_path and png_generated and tmp_png_path.exists():  # pragma: nocover
-                try:
-                    final_png_path.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copy2(tmp_png_path, final_png_path)
-                    _debug_print(f"Copied .png to: {final_png_path}")
-                    final_output_path_for_display = final_png_path  # Use the final path for display
-                except Exception as e:
-                    print(f"Error copying .png file to final path: {e}")
-            elif png_generated and tmp_png_path.exists() and not final_png_path:  # pragma: nocover
-                # If PNG was generated but no specific output_png_path,
-                # use the temp path for display
-                final_output_path_for_display = tmp_png_path
-
-            jupyter_image_object: Image | None = None
-
-            if (
-                display_png_jupyter
-                and final_output_path_for_display
-                and final_output_path_for_display.is_file()
-            ):  # pragma: nocover
-                _debug_print(
-                    f"Attempting to display PNG in Jupyter: {final_output_path_for_display}"
+        pdf_generated = False
+        if run_pdflatex and pdflatex_exec:  # pragma: nocover
+            _debug_print(f"Running pdflatex ({pdflatex_exec})...")
+            # Run pdflatex twice for correct cross-references and layout
+            cmd_latex = [
+                pdflatex_exec,
+                "-interaction=nonstopmode",  # Don't prompt for input
+                "-halt-on-error",  # Exit on first error
+                "-output-directory",
+                str(tmp_p),  # Output files to temp directory
+                str(tmp_tex_path),
+            ]
+            latex_failed = False
+            for i in range(2):  # Run pdflatex twice
+                _debug_print(f"  pdflatex run {i+1}/2...")
+                proc = subprocess.run(
+                    cmd_latex,
+                    capture_output=True,
+                    text=True,
+                    check=False,  # Don't raise CalledProcessError immediately
+                    cwd=tmp_p,
+                    timeout=timeout,
                 )
-                try:
-                    # Check if running in a Jupyter-like environment that supports display
-                    # get_ipython() returns a shell object if in IPython, None otherwise.
-                    # ZMQInteractiveShell is for Jupyter notebooks,
-                    # TerminalInteractiveShell for IPython console.
-                    sh_obj = get_ipython()
-                    if sh_obj is not None and sh_obj.__class__.__name__ == "ZMQInteractiveShell":
-                        current_image_obj = Image(filename=str(final_output_path_for_display))
-                        display(current_image_obj)
-                        jupyter_image_object = current_image_obj
-                        _debug_print("PNG displayed in Jupyter notebook.")
-                    else:
-                        _debug_print(
-                            "Not in a ZMQInteractiveShell (Jupyter notebook). "
-                            "PNG not displayed inline."
+                if proc.returncode != 0:  # pragma: nocover
+                    latex_failed = True
+                    print(f"!!! pdflatex failed on run {i+1} (exit code {proc.returncode}) !!!")
+                    log_file = tmp_tex_path.with_suffix(".log")
+                    if log_file.exists():
+                        print(
+                            f"--- Tail of {log_file.name} ---\n"
+                            f"{log_file.read_text(errors='ignore')[-2000:]}"
                         )
-                        # Still create Image object if it might be returned later
-                        jupyter_image_object = Image(filename=str(final_output_path_for_display))
-                except Exception as e_disp:
-                    print(f"Error displaying PNG in Jupyter: {e_disp}")
-                    if debug:
-                        traceback.print_exc()
-                    jupyter_image_object = None
-            elif display_png_jupyter and (
-                not final_output_path_for_display or not final_output_path_for_display.is_file()
-            ):  # pragma: nocover
-                if run_pdflatex and run_pdftoppm:
-                    print("PNG display requested, but PNG not successfully created/found.")
+                    else:
+                        if proc.stdout:
+                            print(f"--- pdflatex stdout ---\n{proc.stdout[-2000:]}")
+                        if proc.stderr:
+                            print(f"--- pdflatex stderr ---\n{proc.stderr}")
+                    break  # Exit loop if pdflatex failed
+                elif not tmp_pdf_path.is_file() and i == 1:  # pragma: nocover
+                    latex_failed = True
+                    print("!!! pdflatex completed, but PDF file not found. Check logs. !!!")
+                    log_file = tmp_tex_path.with_suffix(".log")
+                    if log_file.exists():
+                        print(
+                            f"--- Tail of {log_file.name} ---\n"
+                            f"{log_file.read_text(errors='ignore')[-2000:]}"
+                        )
+                    break
+                elif tmp_pdf_path.is_file():
+                    _debug_print(f"  pdflatex run {i+1}/2 successful (PDF exists).")
 
-            # Determine return value based on requested outputs
-            if jupyter_image_object:
-                return jupyter_image_object  # pragma: nocover
-            elif final_png_path and final_png_path.is_file():
-                # Return path to saved PNG
-                return str(final_png_path)  # pragma: nocover
-            elif output_tex_path and final_tex_path and final_tex_path.is_file():  # pragma: nocover
-                # If only LaTeX string was requested, read it back from the saved file
-                # This is a bit indirect, but aligns with returning a string path
-                return final_tex_path.read_text(encoding="utf-8")
-            # Default return if no specific output is generated or requested as return
-            return None  # pragma: nocover
+            if not latex_failed and tmp_pdf_path.is_file():
+                pdf_generated = True
+                _debug_print(f"PDF successfully generated at: {tmp_pdf_path}")
+            elif not latex_failed:  # pragma: nocover
+                # pdflatex returned 0 but PDF not found
+                print("pdflatex reported success but PDF file was not found.")
+            if latex_failed:  # pragma: nocover
+                return None  # Critical failure, return None
 
-    except subprocess.TimeoutExpired as e_timeout:  # pragma: nocover
-        print(f"!!! Process timed out: {e_timeout} !!!")
-        if debug:
-            traceback.print_exc()
-        return None
-    except Exception as e_crit:  # pragma: nocover
-        print(f"Critical error in render_circuit: {e_crit}")
-        if debug:
-            traceback.print_exc()
-        return None
+        png_generated, final_output_path_for_display = False, None
+        if run_pdftoppm and pdftoppm_exec and pdf_generated:  # pragma: nocover
+            _debug_print(f"Running pdftoppm ({pdftoppm_exec})...")
+            # pdftoppm outputs to <prefix>-<page_number>.png if multiple pages,
+            # or <prefix>.png if single page with -singlefile.
+            # We expect a single page output here.
+            cmd_ppm = [
+                pdftoppm_exec,
+                "-png",
+                "-r",
+                str(dpi),
+                "-singlefile",  # Ensures single output file for single-page PDFs
+                str(tmp_pdf_path),
+                str(tmp_p / base_name),  # Output prefix for the PNG
+            ]
+            try:
+                proc = subprocess.run(
+                    cmd_ppm,
+                    capture_output=True,
+                    text=True,
+                    check=True,  # Raise CalledProcessError for non-zero exit codes
+                    cwd=tmp_p,
+                    timeout=timeout,
+                )
+                if tmp_png_path.is_file():
+                    png_generated = True
+                    _debug_print(f"PNG successfully generated at: {tmp_png_path}")
+                else:
+                    print(
+                        f"!!! pdftoppm succeeded but PNG ({tmp_png_path}) not found. !!!"
+                    )  # pragma: nocover
+            except subprocess.CalledProcessError as e_ppm:  # pragma: nocover
+                print(
+                    f"!!! pdftoppm failed (exit code {e_ppm.returncode}) !!!\n"
+                    f"Stdout: {e_ppm.stdout}\nStderr: {e_ppm.stderr}"
+                )
+            except subprocess.TimeoutExpired:  # pragma: nocover
+                print("!!! pdftoppm timed out. !!!")
+            except Exception as e_ppm_other:  # pragma: nocover
+                print(f"An unexpected error occurred during pdftoppm: {e_ppm_other}")
+
+        # Copy files to final destinations if requested
+        if final_tex_path and tmp_tex_path.exists():
+            try:
+                final_tex_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(tmp_tex_path, final_tex_path)
+                _debug_print(f"Copied .tex to: {final_tex_path}")
+            except Exception as e:  # pragma: nocover
+                print(f"Error copying .tex file to final path: {e}")
+        if final_pdf_path and pdf_generated and tmp_pdf_path.exists():  # pragma: nocover
+            try:
+                final_pdf_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(tmp_pdf_path, final_pdf_path)
+                _debug_print(f"Copied .pdf to: {final_pdf_path}")
+            except Exception as e:
+                print(f"Error copying .pdf file to final path: {e}")
+        if final_png_path and png_generated and tmp_png_path.exists():  # pragma: nocover
+            try:
+                final_png_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(tmp_png_path, final_png_path)
+                _debug_print(f"Copied .png to: {final_png_path}")
+                final_output_path_for_display = final_png_path  # Use the final path for display
+            except Exception as e:
+                print(f"Error copying .png file to final path: {e}")
+        elif png_generated and tmp_png_path.exists() and not final_png_path:  # pragma: nocover
+            # If PNG was generated but no specific output_png_path,
+            # use the temp path for display
+            final_output_path_for_display = tmp_png_path
+
+        jupyter_image_object: Image | None = None
+
+        if (
+            display_png_jupyter
+            and final_output_path_for_display
+            and final_output_path_for_display.is_file()
+        ):  # pragma: nocover
+            _debug_print(f"Attempting to display PNG in Jupyter: {final_output_path_for_display}")
+            try:
+                # Check if running in a Jupyter-like environment that supports display
+                # get_ipython() returns a shell object if in IPython, None otherwise.
+                # ZMQInteractiveShell is for Jupyter notebooks,
+                # TerminalInteractiveShell for IPython console.
+                sh_obj = get_ipython()
+                if sh_obj is not None and sh_obj.__class__.__name__ == "ZMQInteractiveShell":
+                    current_image_obj = Image(filename=str(final_output_path_for_display))
+                    display(current_image_obj)
+                    jupyter_image_object = current_image_obj
+                    _debug_print("PNG displayed in Jupyter notebook.")
+                else:
+                    _debug_print(
+                        "Not in a ZMQInteractiveShell (Jupyter notebook). "
+                        "PNG not displayed inline."
+                    )
+                    # Still create Image object if it might be returned later
+                    jupyter_image_object = Image(filename=str(final_output_path_for_display))
+            except Exception as e_disp:
+                print(f"Error displaying PNG in Jupyter: {e_disp}")
+                if debug:
+                    traceback.print_exc()
+                jupyter_image_object = None
+        elif display_png_jupyter and (
+            not final_output_path_for_display or not final_output_path_for_display.is_file()
+        ):  # pragma: nocover
+            if run_pdflatex and run_pdftoppm:
+                print("PNG display requested, but PNG not successfully created/found.")
+
+        # Determine return value based on requested outputs
+        if jupyter_image_object:
+            return jupyter_image_object  # pragma: nocover
+        elif final_png_path and final_png_path.is_file():
+            # Return path to saved PNG
+            return str(final_png_path)  # pragma: nocover
+        elif output_tex_path and final_tex_path and final_tex_path.is_file():  # pragma: nocover
+            # If only LaTeX string was requested, read it back from the saved file
+            # This is a bit indirect, but aligns with returning a string path
+            return final_tex_path.read_text(encoding="utf-8")
+        # Default return if no specific output is generated or requested as return
+        return None  # pragma: nocover
