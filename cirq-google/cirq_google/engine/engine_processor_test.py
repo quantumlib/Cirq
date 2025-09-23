@@ -901,7 +901,6 @@ def test_run_sweep_params_with_unary_rpcs(client):
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
     for result in results:
         assert result.job_id == job.id()
-        assert result.job_finished_time is not None
     assert results == cirq.read_json(json_text=cirq.to_json(results))
 
     client().create_program_async.assert_called_once()
@@ -943,7 +942,6 @@ def test_run_sweep_params_with_stream_rpcs(client):
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
     for result in results:
         assert result.job_id == job.id()
-        assert result.job_finished_time is not None
     assert results == cirq.read_json(json_text=cirq.to_json(results))
 
     client().run_job_over_stream.assert_called_once()

@@ -39,7 +39,7 @@ class EngineResult(study.ResultDict):
         self,
         *,  # Forces keyword args.
         job_id: str,
-        job_finished_time: datetime.datetime,
+        job_finished_time: datetime.datetime | None = None,
         params: study.ParamResolver | None = None,
         measurements: Mapping[str, np.ndarray] | None = None,
         records: Mapping[str, np.ndarray] | None = None,
@@ -60,7 +60,9 @@ class EngineResult(study.ResultDict):
         self.job_finished_time = job_finished_time
 
     @classmethod
-    def from_result(cls, result: cirq.Result, *, job_id: str, job_finished_time: datetime.datetime):
+    def from_result(
+        cls, result: cirq.Result, *, job_id: str, job_finished_time: datetime.datetime | None = None
+    ):
         if isinstance(result, study.ResultDict):
             # optimize by using private methods
             return cls(
