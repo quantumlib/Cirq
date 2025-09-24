@@ -30,7 +30,7 @@ Example:
     ... )
     >>> converter = CircuitToQuantikz(circuit, fold_at=2)
     >>> latex_code = converter.generate_latex_document()
-    >>> print(latex_code) # doctest: +SKIP
+    >>> print(latex_code)
     \documentclass[preview, border=2pt]{standalone}
     % Core drawing packages
     \usepackage{tikz}
@@ -46,18 +46,18 @@ Example:
     % --- End Custom Preamble ---
     \begin{document}
     \begin{quantikz}
-    \lstick{$q_{0}$} & \gate[style={fill=yellow!20}]{H} & \ctrl{1} & \meter{$m0$} \\
-    \lstick{$q_{1}$} & \qw & \targ{} & \qw
+    \lstick{$q(0)$} & \gate[style={fill=yellow!20}]{H} & \qw & \rstick{$q(0)$} \\
+    \lstick{$q(1)$} & \qw & \qw & \rstick{$q(1)$}
     \end{quantikz}
-
+    <BLANKLINE>
     \vspace{1em}
-
+    <BLANKLINE>
     \begin{quantikz}
-    \lstick{$q_{0}$} & \qw & \rstick{$q_{0}$} \\
-    \lstick{$q_{1}$} & \gate[style={fill=green!20}]{R_{X}(0.5)} & \rstick{$q_{1}$}
+    \lstick{$q(0)$} & \ctrl{1} & \meter[style={fill=gray!20}]{m0} & \qw & \rstick{$q(0)$} \\
+    \lstick{$q(1)$} & \targ{} & \gate[style={fill=green!20}]{R_{X}(0.159\pi)} & \qw & \rstick{$q(1)$}
     \end{quantikz}
     \end{document}
-"""
+"""  # noqa: E501
 
 from __future__ import annotations
 
@@ -81,7 +81,7 @@ DEFAULT_PREAMBLE_TEMPLATE = r"""
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
-"""
+""".lstrip()
 
 # =============================================================================
 # Default Style Definitions
@@ -662,16 +662,19 @@ class CircuitToQuantikz:
             A string containing the full LaTeX document, ready to be compiled.
         """
         preamble = preamble_template or DEFAULT_PREAMBLE_TEMPLATE
-        preamble += "\n% --- Custom Preamble Injection Point ---\n"
-        preamble += f"{self.custom_preamble}\n% --- End Custom Preamble ---\n"
-        doc_parts = [preamble, "\\begin{document}", self._generate_latex_body()]
+        doc_parts = [
+            preamble.rstrip(),
+            "% --- Custom Preamble Injection Point ---",
+            *([self.custom_preamble.rstrip()] if self.custom_preamble else []),
+            "% --- End Custom Preamble ---",
+            "\\begin{document}",
+            self._generate_latex_body(),
+        ]
         if self.custom_postamble:
-            doc_parts.extend(
-                [
-                    "\n% --- Custom Postamble Start ---",
-                    self.custom_postamble,
-                    "% --- Custom Postamble End ---\n",
-                ]
+            doc_parts.append(
+                f"% --- Custom Postamble Start ---\n"
+                f"{self.custom_postamble.rstrip()}\n"
+                f"% --- Custom Postamble End ---"
             )
         doc_parts.append("\\end{document}")
         return "\n".join(doc_parts)
