@@ -323,9 +323,12 @@ def merge_single_qubit_gates_to_phxz_symbolized(
     )
 
     # Step 3, get N sets of parameterizations as new_sweep.
-    new_sweep = Zip(
-        _calc_phxz_sweeps(new_circuit, merged_circuits),  # phxz sweeps
-        _sweep_on_symbols(sweep, remaining_symbols),  # remaining sweeps
-    )
+    if remaining_symbols:
+        new_sweep = Zip(
+            _calc_phxz_sweeps(new_circuit, merged_circuits),  # phxz sweeps
+            _sweep_on_symbols(sweep, remaining_symbols),  # remaining sweeps
+        )
+    else:
+        new_sweep = _calc_phxz_sweeps(new_circuit, merged_circuits)
 
     return align.align_right(new_circuit), new_sweep
