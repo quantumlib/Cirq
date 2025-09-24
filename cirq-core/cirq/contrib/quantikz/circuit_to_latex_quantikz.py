@@ -42,7 +42,6 @@ Example:
     \usepackage{amsmath}
     \usepackage{amsfonts}
     \usepackage{amssymb}
-    % \usepackage{physics} % Removed
     % --- Custom Preamble Injection Point ---
     % --- End Custom Preamble ---
     \begin{document}
@@ -70,12 +69,6 @@ import sympy
 
 from cirq import circuits, ops, protocols, value
 
-__all__ = ["CircuitToQuantikz", "DEFAULT_PREAMBLE_TEMPLATE", "GATE_STYLES_COLORFUL"]
-
-
-# =============================================================================
-# Default Preamble Template (physics.sty removed)
-# =============================================================================
 DEFAULT_PREAMBLE_TEMPLATE = r"""
 \documentclass[preview, border=2pt]{standalone}
 % Core drawing packages
@@ -88,7 +81,6 @@ DEFAULT_PREAMBLE_TEMPLATE = r"""
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
-% \usepackage{physics} % Removed
 """
 
 # =============================================================================
