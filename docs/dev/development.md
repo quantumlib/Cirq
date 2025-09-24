@@ -54,7 +54,7 @@ This remote can be used to merge changes from Cirq's main repository into your l
     ```
 
     You can check the branches that are on the ```upstream``` remote by
-    running `git ls-remote --heads upstream` or `git branch -r`.
+    running `git ls-remote --branches upstream` or `git branch -r`.
 Most importantly you should see ```upstream/main``` listed.
 1. Merge the upstream main into your local main so that it is up to date.
 

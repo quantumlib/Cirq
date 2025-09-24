@@ -321,7 +321,7 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory) -> None:
         'git init --quiet --initial-branch main\n'
         'git config --local user.name \'Me\'\n'
         'git config --local user.email \'<>\'\n'
-        'git commit -m tes --quiet --allow-empty --no-gpg-sign\n'
+        'git commit -m test --quiet --allow-empty --no-gpg-sign\n'
         'cd ..\n'
         'git remote add origin alt\n'
         'git fetch origin main --quiet 2> /dev/null\n',

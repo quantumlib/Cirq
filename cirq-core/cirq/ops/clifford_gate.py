@@ -639,7 +639,7 @@ class SingleQubitCliffordGate(CliffordGate):
             return None
         # Find the entry with the largest magnitude in the input unitary, to find
         # the global phase difference between the input unitary and the gate unitary.
-        k = max(np.ndindex(*u.shape), key=lambda t: abs(u[t]))
+        k = max(np.ndindex(*u.shape), key=lambda t: abs(u[t].item()))
         return gate, u[k] / protocols.unitary(gate)[k]
 
     def pauli_tuple(self, pauli: Pauli) -> tuple[Pauli, bool]:
