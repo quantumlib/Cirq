@@ -28,6 +28,7 @@ from typing import (
     Hashable,
     Iterable,
     Mapping,
+    overload,
     Sequence,
     TYPE_CHECKING,
 )
@@ -687,9 +688,17 @@ class Operation(metaclass=abc.ABCMeta):
         """The classical controls gating this operation."""
         return frozenset()
 
+    @overload
+    def with_classical_controls(self) -> cirq.Operation:
+        pass
+
+    @overload
     def with_classical_controls(
         self, *conditions: str | cirq.MeasurementKey | cirq.Condition | sympy.Expr
-    ) -> cirq.Operation:
+    ) -> cirq.ClassicallyControlledOperation:
+        pass
+
+    def with_classical_controls(self, *conditions):
         """Returns a classically controlled version of this operation.
 
         An operation that is classically controlled is executed iff all
@@ -957,9 +966,17 @@ class TaggedOperation(Operation):
         new_sub_operation = self.sub_operation.without_classical_controls()
         return self if new_sub_operation is self.sub_operation else new_sub_operation
 
+    @overload
+    def with_classical_controls(self) -> cirq.Operation:
+        pass
+
+    @overload
     def with_classical_controls(
         self, *conditions: str | cirq.MeasurementKey | cirq.Condition | sympy.Expr
-    ) -> cirq.Operation:
+    ) -> cirq.ClassicallyControlledOperation:
+        pass
+
+    def with_classical_controls(self, *conditions):
         if not conditions:
             return self
         return self.sub_operation.with_classical_controls(*conditions)

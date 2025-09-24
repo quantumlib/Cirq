@@ -82,7 +82,7 @@ def match_global_phase(a: np.ndarray, b: np.ndarray) -> tuple[np.ndarray, np.nda
         return np.copy(a), np.copy(b)
 
     # Find the entry with the largest magnitude in one of the matrices.
-    k = max(np.ndindex(*a.shape), key=lambda t: abs(b[t]))
+    k = max(np.ndindex(*a.shape), key=lambda t: abs(b[t].item()))
 
     def dephase(v):
         r = np.real(v)
