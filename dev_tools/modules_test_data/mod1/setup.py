@@ -1,8 +1,10 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
+
+import runpy
+
 from setuptools import find_packages, setup
 
-# This reads the __version__ variable from cirq/_version.py
-__version__ = ''
-exec(open('pack1/_version.py').read())
+__version__ = runpy.run_path('pack1/_version.py')['__version__']
 
 name = 'module1'
 
