@@ -243,7 +243,7 @@ def so4_to_magic_su2s(
 
 @value.value_equality(approximate=True)
 class AxisAngleDecomposition:
-    """Represents a unitary operation as an axis, angle, and global phase.
+    r"""Represents a unitary operation as an axis, angle, and global phase.
 
     The unitary $U$ is decomposed as follows:
 
