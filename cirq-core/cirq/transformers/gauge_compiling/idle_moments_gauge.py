@@ -187,7 +187,9 @@ class IdleMomentsGauge:
                     for q in op.qubits:
                         active_moments[q].append((m_id, is_mergable))
 
-        single_qubit_moments = [{q: op for op in m if len(op.qubits) == 1} for m in circuit]
+        single_qubit_moments = [
+            {op.qubits[0]: op for op in m if len(op.qubits) == 1} for m in circuit
+        ]
         non_single_qubit_moments = [[op for op in m if len(op.qubits) != 1] for m in circuit]
 
         for q, active in active_moments.items():
