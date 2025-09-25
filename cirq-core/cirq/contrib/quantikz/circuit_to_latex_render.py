@@ -26,6 +26,11 @@ Jupyter notebooks. It provides extensive customization options for the output
 format, file paths, and rendering parameters, including direct control over
 gate styling, circuit folding, and qubit labeling through arguments passed
 to the underlying `CircuitToQuantikz` converter.
+
+Note: the creation of PDF or PNG output is done by invoking external software
+that must be installed separately on the user's system. The programs are
+`pdflatex` (included in many TeX distributions) and `pdftoppm` (part of the
+"poppler-utils" software package).
 """
 
 from __future__ import annotations
