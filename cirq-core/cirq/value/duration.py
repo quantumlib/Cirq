@@ -96,7 +96,7 @@ class Duration:
         self._time_vals = _add_time_vals(self._time_vals, input_vals)
 
     def _is_parameterized_(self) -> bool:
-        return any(isinstance(val, sympy.Expr) for val in self._time_vals)
+        return any(isinstance(val, sympy.Basic) for val in self._time_vals)
 
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self._time_vals)
