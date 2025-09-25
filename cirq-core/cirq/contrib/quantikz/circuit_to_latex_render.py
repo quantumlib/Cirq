@@ -146,7 +146,7 @@ def render_circuit(
     Example:
         >>> import cirq
         >>> import numpy as np
-        >>> from cirq.vis.circuit_to_latex_render import render_circuit
+        >>> from cirq.contrib.quantikz import render_circuit
         >>> q0, q1, q2 = cirq.LineQubit.range(3)
         >>> circuit = cirq.Circuit(
         ...     cirq.H(q0),
@@ -160,7 +160,7 @@ def render_circuit(
         ...     output_png_path="my_circuit.png",
         ...     fold_at=2,
         ...     wire_labels="qid",
-        ...     quantikz_options="[column sep=0.7em]",
+        ...     quantikz_options="column sep=0.7em",
         ...     show_parameters=False # Example of new parameter
         ... )
         >>> # To view the saved PNG outside Jupyter:
