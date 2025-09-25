@@ -35,8 +35,7 @@ def clifford_optimized_circuit(circuit: circuits.Circuit, atol: float = 1e-8) ->
 
     Args:
         circuit: The circuit to optimize.
-        atol: A limit on the amount of absolute error introduced by the
-        decomposition.
+        atol: A limit on the amount of absolute error introduced by the decomposition.
 
     Returns:
         The optimized circuit.
