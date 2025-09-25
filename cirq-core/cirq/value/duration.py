@@ -84,19 +84,19 @@ class Duration:
         """
         self._time_vals: list[_NUMERIC_INPUT_TYPE] = [0, 0, 0, 0]
         self._multipliers = [1, 1000, 1000_000, 1000_000_000]
-        if value is not None and value != 0:
+        if value is not None:
             if isinstance(value, datetime.timedelta):
                 # timedelta has microsecond resolution.
                 self._time_vals[2] = int(value / datetime.timedelta(microseconds=1))
             elif isinstance(value, Duration):
                 self._time_vals = value._time_vals
-            else:
+            elif value != 0:
                 raise TypeError(f'Not a `cirq.DURATION_LIKE`: {repr(value)}.')
         input_vals = [picos, nanos, micros, millis]
         self._time_vals = _add_time_vals(self._time_vals, input_vals)
 
     def _is_parameterized_(self) -> bool:
-        return protocols.is_parameterized(self._time_vals)
+        return any(isinstance(val, sympy.Expr) for val in self._time_vals)
 
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self._time_vals)
