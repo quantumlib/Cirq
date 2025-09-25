@@ -323,54 +323,42 @@ def test_get_missing_device():
     with pytest.raises(ValueError, match='device specification'):
         _ = processor.get_device()
 
+
 def test_get_sampler_from_run_name() -> None:
-    processor = cg.EngineProcessor(
-        'a',
-        'p',
-        EngineContext(),
-    )
+    processor = cg.EngineProcessor('a', 'p', EngineContext())
     run_name = 'test_run_name'
     device_config_name = 'test_device_name'
 
     sampler = processor.get_sampler_from_run_name(
-        run_name=run_name,
-        device_config_name=device_config_name
+        run_name=run_name, device_config_name=device_config_name
     )
 
     assert sampler.run_name == run_name
     assert sampler.device_config_name == device_config_name
 
+
 def test_get_sampler_from_run_name_with_default_run_name() -> None:
-    processor = cg.EngineProcessor(
-        'a',
-        'p',
-        EngineContext(),
-    )
+    processor = cg.EngineProcessor('a', 'p', EngineContext())
     device_config_name = 'test_device_name'
 
-    sampler = processor.get_sampler_from_run_name(
-        device_config_name=device_config_name
-    )
+    sampler = processor.get_sampler_from_run_name(device_config_name=device_config_name)
 
     assert sampler.run_name == 'default'
     assert sampler.device_config_name == device_config_name
 
+
 def test_get_sampler_from_snapshot_id() -> None:
-    processor = cg.EngineProcessor(
-        'a',
-        'p',
-        EngineContext(),
-    )
+    processor = cg.EngineProcessor('a', 'p', EngineContext())
     snapshot_id = 'test_snapshot'
     device_config_name = 'test_device_name'
 
     sampler = processor.get_sampler_from_snapshot_id(
-        snapshot_id=snapshot_id,
-        device_config_name=device_config_name
+        snapshot_id=snapshot_id, device_config_name=device_config_name
     )
 
     assert sampler.snapshot_id == snapshot_id
     assert sampler.device_config_name == device_config_name
+
 
 def test_get_sampler_initializes_default_device_configuration() -> None:
     processor = cg.EngineProcessor(

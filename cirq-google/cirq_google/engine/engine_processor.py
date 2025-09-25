@@ -133,10 +133,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         )
 
     def get_sampler_from_snapshot_id(
-        self,
-        snapshot_id: str,
-        device_config_name: str,
-        max_concurrent_jobs: int = 100,
+        self, snapshot_id: str, device_config_name: str, max_concurrent_jobs: int = 100
     ) -> cg.engine.ProcessorSampler:
         """Returns a sampler backed by the engine.
         Args:
@@ -164,9 +161,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         )
 
     def get_sampler(
-        self,
-        device_config_name: str | None = None,
-        max_concurrent_jobs: int = 100,
+        self, device_config_name: str | None = None, max_concurrent_jobs: int = 100
     ) -> cg.engine.ProcessorSampler:
         """Returns the default sampler backed by the engine.
 
@@ -186,11 +181,15 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
 
         """
         processor = self._inner_processor()
-        
+
         return processor_sampler.ProcessorSampler(
             processor=self,
             run_name=processor.default_device_config_key.run,
-            device_config_name=device_config_name if device_config_name else processor.default_device_config_key.config_alias,
+            device_config_name=(
+                device_config_name
+                if device_config_name
+                else processor.default_device_config_key.config_alias
+            ),
             max_concurrent_jobs=max_concurrent_jobs,
         )
 

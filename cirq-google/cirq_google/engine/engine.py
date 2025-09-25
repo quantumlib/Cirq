@@ -590,7 +590,6 @@ class Engine(abstract_engine.AbstractEngine):
         """
         return engine_processor.EngineProcessor(self.project_id, processor_id, self.context)
 
-
     def get_sampler_from_run_name(
         self,
         processor_id: str,
@@ -620,7 +619,7 @@ class Engine(abstract_engine.AbstractEngine):
         self.get_processor(processor_id).get_sampler_from_run_name(
             run_name=run_name,
             device_config_name=device_config_name,
-            max_concurrent_jobs=max_concurrent_jobs
+            max_concurrent_jobs=max_concurrent_jobs,
         )
 
     def get_sampler_from_snapshot_id(
@@ -649,9 +648,7 @@ class Engine(abstract_engine.AbstractEngine):
             when sampled.
         """
         return self.get_processor(processor_id).get_sampler_from_snapshot_id(
-            snapshot_id=snapshot_id,
-            device_config_name=device_config_name,
-            max_concurrent_jobs=10
+            snapshot_id=snapshot_id, device_config_name=device_config_name, max_concurrent_jobs=10
         )
 
     def get_sampler(
@@ -688,9 +685,7 @@ class Engine(abstract_engine.AbstractEngine):
                 'to get_sampler() no longer supported. Use Engine.run() instead if '
                 'you need to specify a list.'
             )
-        return self.get_processor(processor_id).get_sampler(
-            max_concurrent_jobs=max_concurrent_jobs,
-        )
+        return self.get_processor(processor_id).get_sampler(max_concurrent_jobs=max_concurrent_jobs)
 
     async def get_processor_config_from_snapshot_async(
         self, processor_id: str, snapshot_id: str, config_name: str = 'default'
