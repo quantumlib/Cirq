@@ -101,9 +101,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
 
     def get_sampler_from_run_name(
         self,
-        run_name: str = "",
-        device_config_name: str = "",
-        snapshot_id: str = "",
+        run_name: str = 'default',
+        device_config_name: str | None = None,
         max_concurrent_jobs: int = 100,
     ) -> cg.engine.ProcessorSampler:
         """Returns a sampler backed by the engine and given `run_name`.
@@ -125,15 +124,23 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             that will send circuits to the Quantum Computing Service
             when sampled.
         """
+        processor = self._inner_processor()
         return processor_sampler.ProcessorSampler(
             processor=self,
             run_name=run_name,
-            device_config_name=device_config_name,
+            device_config_name=(
+                device_config_name
+                if device_config_name
+                else processor.default_device_config_key.config_alias
+            ),
             max_concurrent_jobs=max_concurrent_jobs,
         )
 
     def get_sampler_from_snapshot_id(
-        self, snapshot_id: str, device_config_name: str, max_concurrent_jobs: int = 100
+        self,
+        snapshot_id: str,
+        device_config_name: str | None = None,
+        max_concurrent_jobs: int = 100,
     ) -> cg.engine.ProcessorSampler:
         """Returns a sampler backed by the engine.
         Args:
@@ -153,10 +160,15 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             that will send circuits to the Quantum Computing Service
             when sampled.
         """
+        processor = self._inner_processor()
         return processor_sampler.ProcessorSampler(
             processor=self,
             snapshot_id=snapshot_id,
-            device_config_name=device_config_name,
+            device_config_name=(
+                device_config_name
+                if device_config_name
+                else processor.default_device_config_key.config_alias
+            ),
             max_concurrent_jobs=max_concurrent_jobs,
         )
 
@@ -185,6 +197,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         return processor_sampler.ProcessorSampler(
             processor=self,
             run_name=processor.default_device_config_key.run,
+            snapshot_id=processor.default_device_config_key.snapshot_id,
             device_config_name=(
                 device_config_name
                 if device_config_name

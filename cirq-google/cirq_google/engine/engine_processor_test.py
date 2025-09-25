@@ -325,7 +325,16 @@ def test_get_missing_device():
 
 
 def test_get_sampler_from_run_name() -> None:
-    processor = cg.EngineProcessor('a', 'p', EngineContext())
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                run="run", config_alias="config_alias"
+            )
+        ),
+    )
     run_name = 'test_run_name'
     device_config_name = 'test_device_name'
 
@@ -338,7 +347,16 @@ def test_get_sampler_from_run_name() -> None:
 
 
 def test_get_sampler_from_run_name_with_default_run_name() -> None:
-    processor = cg.EngineProcessor('a', 'p', EngineContext())
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                run="run", config_alias="config_alias"
+            )
+        ),
+    )
     device_config_name = 'test_device_name'
 
     sampler = processor.get_sampler_from_run_name(device_config_name=device_config_name)
@@ -348,7 +366,16 @@ def test_get_sampler_from_run_name_with_default_run_name() -> None:
 
 
 def test_get_sampler_from_snapshot_id() -> None:
-    processor = cg.EngineProcessor('a', 'p', EngineContext())
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                run="run", config_alias="config_alias"
+            )
+        ),
+    )
     snapshot_id = 'test_snapshot'
     device_config_name = 'test_device_name'
 
