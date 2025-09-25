@@ -30,6 +30,7 @@ to the underlying `CircuitToQuantikz` converter.
 
 from __future__ import annotations
 
+import os
 import pathlib
 import shutil
 import subprocess
@@ -185,6 +186,10 @@ def render_circuit(
     pdflatex_exec = shutil.which("pdflatex")
     pdftoppm_exec = shutil.which("pdftoppm")
 
+    # Make the output PDF reproducible (independent of creation time)
+    env = dict(os.environ)
+    env.setdefault("SOURCE_DATE_EPOCH", "0")
+
     if run_pdflatex and not pdflatex_exec:  # pragma: no cover
         warnings.warn(
             "'pdflatex' not found. Cannot compile LaTeX. "
@@ -263,6 +268,7 @@ def render_circuit(
                     check=False,  # Don't raise CalledProcessError immediately
                     cwd=tmp_p,
                     timeout=timeout,
+                    env=env,
                 )
                 if proc.returncode != 0:  # pragma: no cover
                     latex_failed = True
@@ -324,6 +330,7 @@ def render_circuit(
                     check=True,  # Raise CalledProcessError for non-zero exit codes
                     cwd=tmp_p,
                     timeout=timeout,
+                    env=env,
                 )
                 if tmp_png_path.is_file():
                     png_generated = True
