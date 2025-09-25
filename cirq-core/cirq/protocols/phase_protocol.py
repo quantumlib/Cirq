@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Protocol, TypeVar
+from typing import Any, overload, Protocol, TypeVar
 
 # This is a special value to indicate that a type error should be returned.
 # This is used within phase_by to raise an error if no underlying
@@ -24,6 +24,7 @@ from cirq._doc import doc_private
 RaiseTypeErrorIfNotProvided: Any = ([],)
 
 TDefault = TypeVar('TDefault')
+T = TypeVar('T')
 
 
 class SupportsPhase(Protocol):
@@ -47,9 +48,17 @@ class SupportsPhase(Protocol):
         """
 
 
-def phase_by(
-    val: Any, phase_turns: float, qubit_index: int, default: TDefault = RaiseTypeErrorIfNotProvided
-):
+@overload
+def phase_by(val: T, phase_turns: float, qubit_index: int) -> T:
+    pass
+
+
+@overload
+def phase_by(val: T, phase_turns: float, qubit_index: int, default: TDefault) -> T | TDefault:
+    pass
+
+
+def phase_by(val, phase_turns, qubit_index, default=RaiseTypeErrorIfNotProvided):
     """Returns a phased version of the effect.
 
     For example, an X gate phased by 90 degrees would be a Y gate.
