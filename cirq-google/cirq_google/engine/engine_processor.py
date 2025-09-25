@@ -136,7 +136,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         self,
         snapshot_id: str,
         device_config_name: str,
-        max_concurrent_jobs: int = 10,
+        max_concurrent_jobs: int = 100,
     ) -> cg.engine.ProcessorSampler:
         """Returns a sampler backed by the engine.
         Args:
@@ -166,7 +166,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
     def get_sampler(
         self,
         device_config_name: str | None = None,
-        max_concurrent_jobs: int = 10,
+        max_concurrent_jobs: int = 100,
     ) -> cg.engine.ProcessorSampler:
         """Returns the default sampler backed by the engine.
 
