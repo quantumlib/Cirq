@@ -164,6 +164,7 @@ def render_circuit(
         ...     quantikz_options="column sep=0.7em",
         ...     show_parameters=False # Example of new parameter
         ... )
+        FAIL-HERE
         >>> # To view the saved PNG outside Jupyter:
         >>> # import matplotlib.pyplot as plt
         >>> # import matplotlib.image as mpimg

@@ -31,6 +31,7 @@ Example:
     >>> converter = CircuitToQuantikz(circuit, fold_at=2)
     >>> latex_code = converter.generate_latex_document()
     >>> print(latex_code)
+    FAIL-HERE
     \documentclass[preview, border=2pt]{standalone}
     % Core drawing packages
     \usepackage{tikz}
