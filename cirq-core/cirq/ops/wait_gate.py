@@ -55,7 +55,6 @@ class WaitGate(raw_types.Gate):
             duration if isinstance(duration, value.Duration) else value.Duration(duration)
         )
         if not self.duration._is_parameterized_() and self.duration.total_picos() < 0:
-            # if not protocols.is_parameterized(self.duration) and self.duration.total_picos() < 0:
             raise ValueError('duration < 0')
         if qid_shape is None:
             if num_qubits is None:
