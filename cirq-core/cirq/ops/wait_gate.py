@@ -57,7 +57,7 @@ class WaitGate(raw_types.Gate):
             duration if isinstance(duration, value.Duration) else value.Duration(duration)
         )
         total_picos = self.duration.total_picos()
-        if not isinstance(total_picos, sympy.Basic) and self.duration.total_picos() < 0:
+        if not isinstance(total_picos, sympy.Basic) and total_picos < 0:
             raise ValueError('duration < 0')
         if qid_shape is None:
             if num_qubits is None:
