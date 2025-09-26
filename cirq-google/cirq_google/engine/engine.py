@@ -600,6 +600,7 @@ class Engine(abstract_engine.AbstractEngine):
         """Returns a sampler backed by the engine and given `run_name`.
 
         Args:
+            processor_id: String identifier of which processor should be used to sample.
             run_name: A unique identifier representing an automation run for the
                 processor. An Automation Run contains a collection of device
                 configurations for the processor.
@@ -631,6 +632,7 @@ class Engine(abstract_engine.AbstractEngine):
     ) -> cirq_google.ProcessorSampler:
         """Returns a sampler backed by the engine.
         Args:
+            processor_id: String identifier of which processor should be used to sample.
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
