@@ -593,8 +593,8 @@ class Engine(abstract_engine.AbstractEngine):
     def get_sampler_from_run_name(
         self,
         processor_id: str,
+        run_name: str,
         device_config_name: str | None = None,
-        run_name: str = 'default',
         max_concurrent_jobs: int = 100,
     ) -> cirq_google.ProcessorSampler:
         """Returns a sampler backed by the engine and given `run_name`.

@@ -358,10 +358,11 @@ def test_get_sampler_from_run_name_with_default_values() -> None:
             )
         ),
     )
+    run_name = 'test_run'
 
-    sampler = processor.get_sampler_from_run_name()
+    sampler = processor.get_sampler_from_run_name(run_name=run_name)
 
-    assert sampler.run_name == 'default'
+    assert sampler.run_name == run_name
     assert sampler.device_config_name == default_config_alias
 
 

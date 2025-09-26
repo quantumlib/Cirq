@@ -100,10 +100,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         return engine_base.Engine(self.project_id, context=self.context)
 
     def get_sampler_from_run_name(
-        self,
-        run_name: str = 'default',
-        device_config_name: str | None = None,
-        max_concurrent_jobs: int = 100,
+        self, run_name: str, device_config_name: str | None = None, max_concurrent_jobs: int = 100
     ) -> cg.engine.ProcessorSampler:
         """Returns a sampler backed by the engine and given `run_name`.
 
