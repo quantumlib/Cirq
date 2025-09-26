@@ -296,7 +296,9 @@ def test_engine_get_sampler_with_snapshot_id_passes_to_unary_rpc(client):
         project_id='proj',
         context=EngineContext(service_args={'client_info': 1}, enable_streaming=False),
     )
-    sampler = engine.get_sampler('mysim', device_config_name="config", snapshot_id="123")
+    sampler = engine.get_sampler_from_snapshot_id(
+        'mysim', device_config_name="config", snapshot_id="123"
+    )
     _ = sampler.run_sweep(_CIRCUIT, params=[cirq.ParamResolver({'a': 1})])
 
     kwargs = client().create_job_async.call_args_list[0].kwargs
@@ -811,6 +813,44 @@ def test_get_sampler_initializes_max_concurrent_jobs():
     sampler = engine.get_sampler(processor_id='tmp', max_concurrent_jobs=max_concurrent_jobs)
 
     assert sampler.max_concurrent_jobs == max_concurrent_jobs
+
+
+def test_get_sampler_from_run_name():
+    processor_id = 'test_processor_id'
+    run_name = 'test_run_name'
+    device_config_name = 'test_config_alias'
+    project_id = 'test_proj'
+    engine = cg.Engine(project_id=project_id)
+    processor = engine.get_processor(processor_id=processor_id)
+
+    processor_sampler = processor.get_sampler_from_run_name(
+        run_name=run_name, device_config_name=device_config_name
+    )
+    engine_sampler = engine.get_sampler_from_run_name(
+        processor_id=processor_id, run_name=run_name, device_config_name=device_config_name
+    )
+
+    assert processor_sampler.run_name == engine_sampler.run_name
+    assert processor_sampler.device_config_name == engine_sampler.device_config_name
+
+
+def test_get_sampler_from_snapshot():
+    processor_id = 'test_processor_id'
+    snapshot_id = 'test_snapshot_id'
+    device_config_name = 'test_config_alias'
+    project_id = 'test_proj'
+    engine = cg.Engine(project_id=project_id)
+    processor = engine.get_processor(processor_id=processor_id)
+
+    processor_sampler = processor.get_sampler_from_snapshot_id(
+        snapshot_id=snapshot_id, device_config_name=device_config_name
+    )
+    engine_sampler = engine.get_sampler_from_snapshot_id(
+        processor_id=processor_id, snapshot_id=snapshot_id, device_config_name=device_config_name
+    )
+
+    assert processor_sampler.snapshot_id == engine_sampler.snapshot_id
+    assert processor_sampler.device_config_name == engine_sampler.device_config_name
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
