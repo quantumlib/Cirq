@@ -815,6 +815,44 @@ def test_get_sampler_initializes_max_concurrent_jobs():
     assert sampler.max_concurrent_jobs == max_concurrent_jobs
 
 
+def test_get_sampler_from_run_name():
+    processor_id = 'test_processor_id'
+    run_name = 'test_run_name'
+    device_config_name = 'test_config_alias'
+    project_id = 'test_proj'
+    engine = cg.Engine(project_id=project_id)
+    processor = engine.get_processor(processor_id=processor_id)
+
+    processor_sampler = processor.get_sampler_from_run_name(
+        run_name=run_name, device_config_name=device_config_name
+    )
+    engine_sampler = engine.get_sampler_from_run_name(
+        processor_id=processor_id, run_name=run_name, device_config_name=device_config_name
+    )
+
+    assert processor_sampler.run_name == engine_sampler.run_name
+    assert processor_sampler.device_config_name == engine_sampler.device_config_name
+
+
+def test_get_sampler_from_snapshot():
+    processor_id = 'test_processor_id'
+    snapshot_id = 'test_snapshot_id'
+    device_config_name = 'test_config_alias'
+    project_id = 'test_proj'
+    engine = cg.Engine(project_id=project_id)
+    processor = engine.get_processor(processor_id=processor_id)
+
+    processor_sampler = processor.get_sampler_from_snapshot_id(
+        snapshot_id=snapshot_id, device_config_name=device_config_name
+    )
+    engine_sampler = engine.get_sampler_from_snapshot_id(
+        processor_id=processor_id, snapshot_id=snapshot_id, device_config_name=device_config_name
+    )
+
+    assert processor_sampler.snapshot_id == engine_sampler.snapshot_id
+    assert processor_sampler.device_config_name == engine_sampler.device_config_name
+
+
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_sampler_with_unary_rpcs(client):
     setup_run_circuit_with_result_(client, _RESULTS)

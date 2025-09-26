@@ -593,7 +593,7 @@ class Engine(abstract_engine.AbstractEngine):
     def get_sampler_from_run_name(
         self,
         processor_id: str,
-        device_config_name: str,
+        device_config_name: str | None = None,
         run_name: str = 'default',
         max_concurrent_jobs: int = 100,
     ) -> cirq_google.ProcessorSampler:
@@ -616,7 +616,7 @@ class Engine(abstract_engine.AbstractEngine):
             that will send circuits to the Quantum Computing Service
             when sampled.
         """
-        self.get_processor(processor_id).get_sampler_from_run_name(
+        return self.get_processor(processor_id).get_sampler_from_run_name(
             run_name=run_name,
             device_config_name=device_config_name,
             max_concurrent_jobs=max_concurrent_jobs,
@@ -648,11 +648,16 @@ class Engine(abstract_engine.AbstractEngine):
             when sampled.
         """
         return self.get_processor(processor_id).get_sampler_from_snapshot_id(
-            snapshot_id=snapshot_id, device_config_name=device_config_name, max_concurrent_jobs=10
+            snapshot_id=snapshot_id,
+            device_config_name=device_config_name,
+            max_concurrent_jobs=max_concurrent_jobs,
         )
 
     def get_sampler(
-        self, processor_id: str | list[str], max_concurrent_jobs: int = 100
+        self,
+        processor_id: str | list[str],
+        device_config_name: str | None = None,
+        max_concurrent_jobs: int = 100,
     ) -> cirq_google.ProcessorSampler:
         """Returns a sampler backed by the engine.
 
@@ -680,7 +685,10 @@ class Engine(abstract_engine.AbstractEngine):
                 'to get_sampler() no longer supported. Use Engine.run() instead if '
                 'you need to specify a list.'
             )
-        return self.get_processor(processor_id).get_sampler(max_concurrent_jobs=max_concurrent_jobs)
+
+        return self.get_processor(processor_id).get_sampler(
+            device_config_name=device_config_name, max_concurrent_jobs=max_concurrent_jobs
+        )
 
     async def get_processor_config_from_snapshot_async(
         self, processor_id: str, snapshot_id: str, config_name: str = 'default'
