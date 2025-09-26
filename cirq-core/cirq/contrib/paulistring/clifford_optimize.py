@@ -21,8 +21,26 @@ from cirq.contrib.paulistring.clifford_target_gateset import CliffordTargetGates
 
 
 def clifford_optimized_circuit(circuit: circuits.Circuit, atol: float = 1e-8) -> circuits.Circuit:
-    # Convert to a circuit with SingleQubitCliffordGates,
-    # CZs and other ignored gates
+    """Optimizes a circuit composed of Clifford and CZ gates.
+
+    This function attempts to simplify a circuit by finding local optimizations.
+    It works in two stages:
+    1.  It converts the circuit to a target gateset consisting of
+        `cirq.SingleQubitCliffordGate` and `cirq.CZPowGate` gates.
+    2.  It then iterates through the circuit, applying the following rules:
+        -   Merges adjacent single-qubit Clifford gates.
+        -   Commutes single-qubit Clifford gates past CZ gates, attempting to
+            merge them with other single-qubit Clifford gates.
+        -   Cancels pairs of identical CZ gates.
+
+    Args:
+        circuit: The circuit to optimize.
+        atol: A limit on the amount of absolute error introduced by the decomposition.
+
+    Returns:
+        The optimized circuit.
+    """
+    # Convert to a circuit with SingleQubitCliffordGates, CZs and other ignored gates.
     c_cliff = transformers.optimize_for_target_gateset(
         circuit, gateset=CliffordTargetGateset(atol=atol)
     )
