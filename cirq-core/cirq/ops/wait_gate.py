@@ -16,6 +16,8 @@ from __future__ import annotations
 
 from typing import AbstractSet, Any, TYPE_CHECKING
 
+import sympy
+
 from cirq import protocols, value
 from cirq.ops import raw_types
 
@@ -54,7 +56,8 @@ class WaitGate(raw_types.Gate):
         self._duration = (
             duration if isinstance(duration, value.Duration) else value.Duration(duration)
         )
-        if not self.duration._is_parameterized_() and self.duration.total_picos() < 0:
+        total_picos = self.duration.total_picos()
+        if not isinstance(total_picos, sympy.Basic) and self.duration.total_picos() < 0:
             raise ValueError('duration < 0')
         if qid_shape is None:
             if num_qubits is None:
