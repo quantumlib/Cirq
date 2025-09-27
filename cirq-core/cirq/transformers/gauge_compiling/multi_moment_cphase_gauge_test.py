@@ -108,6 +108,7 @@ def test_is_target_moment():
         cirq.Moment(cirq.X(q0), cirq.Y(q1)),
         cirq.Moment(cirq.CZ(q0, q1) ** 0.2, cirq.Rz(rads=-0.8).on(q2)),
         cirq.Moment(cirq.CZ(q0, q1).with_tags("ignore")),
+        cirq.Moment(cirq.CZ(q0, q1)).with_tags("ignore"),
     ]
     cphase_transformer = CPhaseGaugeTransformerMM(supported_gates=cirq.Gateset(cirq.Pauli))
     for m in target_moments:
