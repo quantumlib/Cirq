@@ -338,7 +338,7 @@ class _IonQClient:
         """
 
         params = {}
-        epoch = datetime.datetime.utcfromtimestamp(0)
+        epoch = datetime.datetime.fromtimestamp(0, datetime.UTC)
         if start:
             params['start'] = int((start - epoch).total_seconds() * 1000)
         if end:

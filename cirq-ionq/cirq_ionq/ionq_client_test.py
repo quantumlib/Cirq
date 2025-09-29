@@ -1050,8 +1050,8 @@ def test_ionq_client_list_calibrations_dates(mock_get):
     mock_get.return_value.json.return_value = {'calibrations': [{'id': '1'}, {'id': '2'}]}
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
     response = client.list_calibrations(
-        start=datetime.datetime.utcfromtimestamp(1284286794),
-        end=datetime.datetime.utcfromtimestamp(1284286795),
+        start=datetime.datetime.fromtimestamp(1284286794, datetime.UTC),
+        end=datetime.datetime.fromtimestamp(1284286795, datetime.UTC),
     )
     assert response == [{'id': '1'}, {'id': '2'}]
 

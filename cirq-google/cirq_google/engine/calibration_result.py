@@ -55,7 +55,7 @@ class CalibrationResult:
     ) -> CalibrationResult:
         """Magic method for the JSON serialization protocol."""
         valid_until = (
-            datetime.datetime.utcfromtimestamp(utc_valid_until)
+            datetime.datetime.fromtimestamp(utc_valid_until, datetime.UTC)
             if utc_valid_until is not None
             else None
         )
