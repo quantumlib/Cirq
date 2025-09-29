@@ -105,7 +105,7 @@ def _generate_readout_calibration_circuits(
         readout_calibration_circuits.append(
             circuits.Circuit(
                 [bit_to_gate[bit](qubit) for bit, qubit in zip(bitstr, qubits)]
-                + [ops.M(qubits, key="m")]
+                + [ops.M(qubits, key="result")]
             )
         )
     return readout_calibration_circuits, random_bitstrings
@@ -137,11 +137,12 @@ def _generate_parameterized_readout_calibration_circuit_with_sweep(
 
     exp_symbols = [sympy.Symbol(f'exp_{qubit}') for qubit in qubits]
     parameterized_readout_calibration_circuit = circuits.Circuit(
-        [ops.X(qubit) ** exp for exp, qubit in zip(exp_symbols, qubits)], ops.M(*qubits, key="m")
+        [ops.X(qubit) ** exp for exp, qubit in zip(exp_symbols, qubits)],
+        ops.M(*qubits, key="result"),
     )
     sweep_params = []
     for bitstr in random_bitstrings:
-        sweep_params.append({exp: bit for exp, bit in zip(exp_symbols, bitstr)})
+        sweep_params.append({str(exp): bit for exp, bit in zip(exp_symbols, bitstr)})
 
     return parameterized_readout_calibration_circuit, sweep_params, random_bitstrings
 

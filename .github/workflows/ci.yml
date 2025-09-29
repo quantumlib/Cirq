@@ -99,6 +99,10 @@ jobs:
         with:
           python-version: '3.11'
           architecture: 'x64'
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install latexmk texlive-latex-base texlive-latex-extra
       - name: Install changed files test dependencies
         run: dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
       - name: Changed files test
@@ -203,6 +207,10 @@ jobs:
           cache-dependency-path: |
             **/requirements.txt
             dev_tools/requirements/**/*.txt
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install latexmk texlive-latex-base texlive-latex-extra
       - name: Install requirements
         run: |
           pip install --upgrade setuptools wheel
@@ -263,6 +271,10 @@ jobs:
           cache-dependency-path: |
             **/requirements.txt
             dev_tools/requirements/**/*.txt
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install latexmk texlive-latex-base texlive-latex-extra
       - name: Install requirements
         run: |
           pip install --upgrade setuptools wheel

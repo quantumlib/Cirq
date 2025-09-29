@@ -109,7 +109,7 @@ class TwoQubitGateTabulation:
         success = infidelities[nearest_ind] < self.max_expected_infidelity
 
         # shape (n,2,2,2)
-        inner_gates = np.array(self.single_qubit_gates[nearest_ind])
+        inner_gates: np.ndarray = np.array(self.single_qubit_gates[nearest_ind])
 
         if inner_gates.size == 0:  # Only need base gate
             kR, kL, actual = _outer_locals_for_unitary(unitary, self.base_gate)
