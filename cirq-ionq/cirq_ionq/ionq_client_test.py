@@ -40,7 +40,7 @@ def test_ionq_client_invalid_remote_host():
     for invalid_url in ('', 'url', 'http://', 'ftp://', 'http://'):
         with pytest.raises(AssertionError, match='not a valid url'):
             _ = ionq.ionq_client._IonQClient(remote_host=invalid_url, api_key='a')
-        with pytest.raises(AssertionError, match=invalid_url):
+        with pytest.raises(AssertionError, match=invalid_url or None):
             _ = ionq.ionq_client._IonQClient(remote_host=invalid_url, api_key='a')
 
 
