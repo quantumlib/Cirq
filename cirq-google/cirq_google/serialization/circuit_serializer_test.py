@@ -1415,3 +1415,42 @@ def test_stimcirq_gates():
     msg = serializer.serialize(c)
     deserialized_circuit = serializer.deserialize(msg)
     assert deserialized_circuit == c
+
+
+def _create_circuit(num_x: int, exponent: float):
+    q = cirq.q(1, 2)
+    circuit = cirq.Circuit()
+    for i in range(num_x):
+        circuit.append(cirq.X(q) ** exponent)
+    return circuit
+
+
+def test_multi_programs_list() -> None:
+    serializer = cg.CircuitSerializer()
+    circuits = list(_create_circuit(i, 1.0) for i in range(10))
+    proto = serializer.serialize_multi_program(circuits)
+    circuit_tuples = serializer.deserialize_multi_program(proto)
+    assert circuit_tuples == list(("", (), circuit) for circuit in circuits)
+
+
+def test_multi_programs_map() -> None:
+    serializer = cg.CircuitSerializer()
+    circuits = {f"circuit_{i}": _create_circuit(i, 1.0) for i in range(10)}
+    proto = serializer.serialize_multi_program(circuits)
+    circuit_tuples = serializer.deserialize_multi_program(proto)
+    assert circuit_tuples == list((key, (), circuit) for key, circuit in circuits.items())
+
+
+def test_multi_programs_function() -> None:
+    serializer = cg.CircuitSerializer()
+    sweep = cirq.Points('num_x', [1, 2, 4, 8, 16]) * cirq.Points('exponent', [0.25, 0.5, 0.75, 1.0])
+    proto = serializer.serialize_multi_program(_create_circuit, sweep)
+    circuit_tuples = list(serializer.deserialize_multi_program(proto))
+    assert len(circuit_tuples) == 20
+    for param_tuple, circuit_tuple in zip(sweep.param_tuples(), circuit_tuples):
+        assert circuit_tuple[0] == ""
+        param_dict = dict(circuit_tuple[1])
+        assert param_dict == dict(param_tuple)
+        assert circuit_tuple[2] == _create_circuit(
+            num_x=param_dict['num_x'], exponent=param_dict['exponent']
+        )

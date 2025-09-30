@@ -28,6 +28,12 @@ message Program {
   // List to store global constants, such as strings used in many places.
   // constants are referred to their index in this list, starting at zero.
   repeated Constant constants = 4;
+
+  // A batch of circuits organized by a set of parameters.  These
+  // parameters should also be specified in the sweep as well.
+  // This field can be used for efficient packing of circuit functions
+  // that change based on parameters, or for batch sending of circuits.
+  repeated KeyedCircuit keyed_circuits = 5;
 }
 
 // Constants, such as long strings, that are used throughout the circuit.
@@ -52,6 +58,29 @@ message Constant {
     // Tags used multiple times in a circuit
     Tag tag_value = 6;
   }
+}
+
+
+// A batch of circuits organized by a set of parameters.  These
+// parameters should also be specified in the sweep as well.
+// This field can be used for efficient packing of circuit functions
+// that change based on parameters, or for batch sending of circuits.
+message KeyedCircuit {
+
+   // Arguments for a cirq circuit which comes from run_context.
+   // The key will be the name of the argument, and the value
+   // will be the value passed into the function.
+   // e.g. Arguments for a circuit function such as:
+   // def circuit_fn(freq_GHz: float, num_cycles: int) -> Circuit
+   // would have the two entries: "freq_GHz" and "num_cycles"
+   map<string, Arg> args = 1;
+       
+   // The cirq circuit corresponding to the arguments args.
+   Circuit circuit = 2;
+
+   // Optional key for program. 
+   // If provided, will be used as a key in a Mapping from string to Circuit.
+   string key = 3;
 }
 
 // The quantum circuit, specified as a series of moments (abstract
