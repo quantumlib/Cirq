@@ -123,6 +123,7 @@ class CircuitSerializer(serializer.Serializer):
         multi_program: (
             Sequence[cirq.AbstractCircuit]
             | Callable[..., cirq.AbstractCircuit]
+            | Callable[..., Mapping[str, cirq.AbstractCircuit]]
             | Mapping[str, cirq.AbstractCircuit]
         ),
         sweep: cirq.Sweep | None = None,
@@ -179,15 +180,20 @@ class CircuitSerializer(serializer.Serializer):
                 # func accepts **kwds, call with all parameters from resolver.
                 names = None
             if sweep is None:
-                sweep = cirq.UnitSweep
+                raise ValueError("No sweep provided for circuit function")
             for param_tuple in sweep.param_tuples():
-                circuit_or_map = multi_program(**dict(param_tuple))
+                if names is None:
+                    circuit_or_map = multi_program(**dict(param_tuple))
+                else:
+                    circuit_or_map = multi_program(
+                        **dict({k: v for k, v in param_tuple if k in names})
+                    )
                 if isinstance(circuit_or_map, cirq.AbstractCircuit):
                     circuit_tuples: Sequence[tuple[str, cirq.AbstractCircuit]] = [
                         ("", circuit_or_map)
                     ]
                 elif isinstance(circuit_or_map, Mapping):
-                    circuit_tuples = circuit_or_map.items()
+                    circuit_tuples = list(circuit_or_map.items())
                 else:
                     raise ValueError(f'Function returned unrecognized type: {type(circuit_or_map)}')
                 for key, circuit in circuit_tuples:
