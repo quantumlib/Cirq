@@ -585,7 +585,8 @@ class CircuitSerializer(serializer.Serializer):
         for constant in proto.constants:
             which_const = constant.WhichOneof('const_value')
             if which_const == 'string_value':
-                deserialized_constants.append(constant.string_value)
+                # No longer used, but kept for backwards compatibility.
+                deserialized_constants.append(constant.string_value)  # pragma: nocover
             elif which_const == 'circuit_value':
                 circuit = self._deserialize_circuit(
                     constant.circuit_value,
