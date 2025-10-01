@@ -177,6 +177,8 @@ export function createGridCircuit(
   return {circuit, scene};
 }
 
-// Ensure global access for legacy usage via <script> without modules
+// NOTE: This allows for backwards compability with existing usage, 
+// allowing for createGridCircuit to be called in <script> tags,
+// and avoiding changes in the get_client_code() python method.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (globalThis as any).createGridCircuit = createGridCircuit;
