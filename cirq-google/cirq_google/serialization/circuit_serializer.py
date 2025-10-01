@@ -20,7 +20,7 @@ import functools
 import inspect
 import warnings
 from collections.abc import Mapping, Sequence
-from typing import Any, Callable, Hashable
+from typing import Any, Callable, Hashable, Iterable
 
 import sympy
 
