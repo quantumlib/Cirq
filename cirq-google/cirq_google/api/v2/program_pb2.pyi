@@ -154,7 +154,7 @@ class KeyedCircuit(google.protobuf.message.Message):
     CIRCUIT_FIELD_NUMBER: builtins.int
     KEY_FIELD_NUMBER: builtins.int
     key: builtins.str
-    """Optional key for program. 
+    """Optional key for program.
     If provided, will be used as a key in a Mapping from string to Circuit.
     """
     @property

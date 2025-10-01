@@ -1443,10 +1443,10 @@ def _create_circuit_kwargs(**kwargs) -> cirq.Circuit:
 def test_multi_programs_list() -> None:
     """Test serialize_multi_program with a list of circuits."""
     serializer = cg.CircuitSerializer()
-    circuits = list(_create_circuit(i, 1.0) for i in range(10))
+    circuits = [_create_circuit(i, 1.0) for i in range(10)]
     proto = serializer.serialize_multi_program(circuits)
     circuit_tuples = serializer.deserialize_multi_program(proto)
-    assert circuit_tuples == list(("", (), circuit) for circuit in circuits)
+    assert circuit_tuples == [("", (), circuit) for circuit in circuits]
 
 
 def test_multi_programs_map() -> None:
@@ -1455,15 +1455,15 @@ def test_multi_programs_map() -> None:
     circuits = {f"circuit_{i}": _create_circuit(i, 1.0) for i in range(10)}
     proto = serializer.serialize_multi_program(circuits)
     circuit_tuples = serializer.deserialize_multi_program(proto)
-    assert circuit_tuples == list((key, (), circuit) for key, circuit in circuits.items())
+    assert circuit_tuples == [(key, (), circuit) for key, circuit in circuits.items()]
 
 
 @pytest.mark.parametrize('circuit_func', [_create_circuit, _create_circuit_kwargs])
 def test_multi_programs_function(circuit_func) -> None:
-    """Test serialize_multi_program with a function that returns a circuit."""
+    """Test serialize_circuit_function with a function that returns a circuit."""
     serializer = cg.CircuitSerializer()
     sweep = cirq.Points('num_x', [1, 2, 4, 8, 16]) * cirq.Points('exponent', [0.25, 0.5, 0.75, 1.0])
-    proto = serializer.serialize_multi_program(circuit_func, sweep)
+    proto = serializer.serialize_circuit_function(circuit_func, sweep)
     circuit_tuples = list(serializer.deserialize_multi_program(proto))
     assert len(circuit_tuples) == 20
     for param_tuple, circuit_tuple in zip(sweep.param_tuples(), circuit_tuples):
@@ -1476,10 +1476,10 @@ def test_multi_programs_function(circuit_func) -> None:
 
 
 def test_multi_programs_function_map() -> None:
-    """Test serialize_multi_program with a function that returns a dict of circuits."""
+    """Test serialize_circuit_function with a function that returns a dict of circuits."""
     serializer = cg.CircuitSerializer()
     sweep = cirq.Points('num_x', [1, 2])
-    proto = serializer.serialize_multi_program(_create_circuit_returns_map, sweep)
+    proto = serializer.serialize_circuit_function(_create_circuit_returns_map, sweep)
     circuit_tuples = list(serializer.deserialize_multi_program(proto))
     assert len(circuit_tuples) == 6
     q = cirq.q(1, 2)
@@ -1494,7 +1494,7 @@ def test_multi_programs_function_map() -> None:
 
 
 def test_multi_programs_bad_function() -> None:
-    """Test serialize_multi_program with a function that returns something besides circuits."""
+    """Test serialize_circuit_function with a function that returns something besides circuits."""
     serializer = cg.CircuitSerializer()
 
     def _bad_function(num_x: int) -> float:
@@ -1502,10 +1502,4 @@ def test_multi_programs_bad_function() -> None:
 
     sweep = cirq.Points('num_x', [1, 2])
     with pytest.raises(ValueError, match="Function returned unrecognized type"):
-        _ = serializer.serialize_multi_program(_bad_function, sweep)  # type: ignore
-
-
-def test_multi_programs_missing_sweep() -> None:
-    serializer = cg.CircuitSerializer()
-    with pytest.raises(ValueError, match="No sweep provided for circuit function"):
-        _ = serializer.serialize_multi_program(_create_circuit)
+        _ = serializer.serialize_circuit_function(_bad_function, sweep)  # type: ignore

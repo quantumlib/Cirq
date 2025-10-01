@@ -74,11 +74,11 @@ message KeyedCircuit {
    // def circuit_fn(freq_GHz: float, num_cycles: int) -> Circuit
    // would have the two entries: "freq_GHz" and "num_cycles"
    map<string, Arg> args = 1;
-       
+
    // The cirq circuit corresponding to the arguments args.
    Circuit circuit = 2;
 
-   // Optional key for program. 
+   // Optional key for program.
    // If provided, will be used as a key in a Mapping from string to Circuit.
    string key = 3;
 }

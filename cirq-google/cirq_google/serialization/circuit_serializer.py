@@ -103,7 +103,7 @@ class CircuitSerializer(serializer.Serializer):
                 results.
 
         Raises:
-            NotImplementedError: If the program is of a type that is supported.
+            NotImplementedError: If the program is of a type that is not supported.
         """
         if not isinstance(program, (cirq.Circuit, cirq.FrozenCircuit)):
             raise NotImplementedError(f'Unrecognized program type: {type(program)}')
@@ -120,26 +120,15 @@ class CircuitSerializer(serializer.Serializer):
 
     def serialize_multi_program(
         self,
-        multi_program: (
-            Sequence[cirq.AbstractCircuit]
-            | Callable[..., cirq.AbstractCircuit]
-            | Callable[..., Mapping[str, cirq.AbstractCircuit]]
-            | Mapping[str, cirq.AbstractCircuit]
-        ),
-        sweep: cirq.Sweep | None = None,
+        multi_program: Iterable[cirq.AbstractCircuit] | Mapping[str, cirq.AbstractCircuit],
         msg: v2.program_pb2.Program | None = None,
     ) -> v2.program_pb2.Program:
         """Serialize multiple related circuits to cirq_google.api.v2.Program proto.
 
         Args:
             multi_program: A collection of circuits to serialize.  This
-                should take the form of either a sequence of circuits (such as a list),
-                a mapping from a key string to circuits, or a function that returns
-                a circuit.  The arguments in this function should match a (subset of)
-                the parameters in the accompanied sweep call.  The function will
-                be unrolled for each combination of sweep parameters.
-            sweep:  If a function is passed in, this will be the sweep to call on the
-                function.
+                should take the form of either a sequence of circuits (such as a list)
+                or a mapping from a key string to circuits.
             msg: An optional proto object to populate with the serialization
                 results.
 
@@ -171,45 +160,74 @@ class CircuitSerializer(serializer.Serializer):
                     constants=msg.constants,
                     raw_constants=raw_constants,
                 )
-        elif callable(multi_program):
-            sig = inspect.signature(multi_program)
-            if all(p.kind != inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()):
-                # func does not accept **kwds, call with named parameters only.
-                names = set(sig.parameters)
-            else:
-                # func accepts **kwds, call with all parameters from resolver.
-                names = None
-            if sweep is None:
-                raise ValueError("No sweep provided for circuit function")
-            for param_tuple in sweep.param_tuples():
-                if names is None:
-                    circuit_or_map = multi_program(**dict(param_tuple))
-                else:
-                    circuit_or_map = multi_program(
-                        **dict({k: v for k, v in param_tuple if k in names})
-                    )
-                if isinstance(circuit_or_map, cirq.AbstractCircuit):
-                    circuit_tuples: Sequence[tuple[str, cirq.AbstractCircuit]] = [
-                        ("", circuit_or_map)
-                    ]
-                elif isinstance(circuit_or_map, Mapping):
-                    circuit_tuples = list(circuit_or_map.items())
-                else:
-                    raise ValueError(f'Function returned unrecognized type: {type(circuit_or_map)}')
-                for key, circuit in circuit_tuples:
-                    new_program = msg.keyed_circuits.add()
-                    if key is not None:
-                        new_program.key = key
-                    for key, val in param_tuple:
-                        arg_func_langs.arg_to_proto(val, out=new_program.args[key])
-                    self._serialize_circuit(
-                        circuit,
-                        new_program.circuit,
-                        constants=msg.constants,
-                        raw_constants=raw_constants,
-                    )
         else:
             raise NotImplementedError(f'Unrecognized program type: {type(multi_program)}')
+        return msg
+
+    def serialize_circuit_function(
+        self,
+        circuit_function: (
+            Callable[..., cirq.AbstractCircuit] | Callable[..., Mapping[str, cirq.AbstractCircuit]]
+        ),
+        sweep: cirq.Sweep,
+        msg: v2.program_pb2.Program | None = None,
+    ) -> v2.program_pb2.Program:
+        """Serialize multiple related circuits to cirq_google.api.v2.Program proto.
+
+        Args:
+            circuit_function: A function returning circuits to serialize.
+                This function should return a circuit or mapping from string to
+                a circuit.  The arguments in this function should match a (subset of)
+                the parameters in the accompanied sweep call.  The function will
+                be unrolled for each combination of sweep parameters.
+            sweep:  If a function is passed in, this will be the sweep to call on the
+                function.
+            msg: An optional proto object to populate with the serialization
+                results.
+
+        Raises:
+            NotImplementedError: If the program is of a type that is supported.
+            ValueError: If the function returns something not a circuit.
+        """
+        raw_constants: dict[Any, int] = {}
+        if msg is None:
+            msg = v2.program_pb2.Program()
+        msg.language.gate_set = self.name
+        msg.language.arg_function_language = 'exp'
+        if not callable(circuit_function):
+            raise NotImplementedError(f'Unrecognized program type: {type(circuit_function)}')
+
+        sig = inspect.signature(circuit_function)
+        if all(p.kind != inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()):
+            # func does not accept **kwds, call with named parameters only.
+            names = set(sig.parameters)
+        else:
+            # func accepts **kwds, call with all parameters from resolver.
+            names = None
+        for param_tuple in sweep.param_tuples():
+            if names is None:
+                circuit_or_map = circuit_function(**dict(param_tuple))
+            else:
+                circuit_or_map = circuit_function(
+                    **dict({k: v for k, v in param_tuple if k in names})
+                )
+            if isinstance(circuit_or_map, cirq.AbstractCircuit):
+                circuit_tuples: Sequence[tuple[str, cirq.AbstractCircuit]] = [("", circuit_or_map)]
+            elif isinstance(circuit_or_map, Mapping):
+                circuit_tuples = list(circuit_or_map.items())
+            else:
+                raise ValueError(f'Function returned unrecognized type: {type(circuit_or_map)}')
+            for key, circuit in circuit_tuples:
+                new_program = msg.keyed_circuits.add()
+                new_program.key = key
+                for key, val in param_tuple:
+                    arg_func_langs.arg_to_proto(val, out=new_program.args[key])
+                self._serialize_circuit(
+                    circuit,
+                    new_program.circuit,
+                    constants=msg.constants,
+                    raw_constants=raw_constants,
+                )
         return msg
 
     def _serialize_circuit(
