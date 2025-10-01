@@ -49,16 +49,15 @@ function htmlContent(clientCode: string) {
 temp.track();
 
 describe('Circuit', () => {
-  temp.mkdir('tmp', (err, dirPath) => {
-    const outputPath = path.join(dirPath, 'circuit');
+  const dirPath = temp.mkdirSync('tmp');
+  const outputPath = path.join(dirPath, 'circuit');
 
-    beforeAll(async () => {
-      const browser = await puppeteer.launch({args: ['--app']});
-      const page = await browser.newPage();
+  beforeAll(async () => {
+    const browser = await puppeteer.launch({args: ['--app']});
+    const page = await browser.newPage();
 
-      // Take a screenshot of the first image
-      await page.setContent(
-        htmlContent(`
+    await page.setContent(
+      htmlContent(`
       const circuit = createGridCircuit(
         [
             {
@@ -82,22 +81,21 @@ describe('Circuit', () => {
         ], 5, 'mycircuitdiv'
         );
       `),
-      );
-      await page.screenshot({path: `${outputPath}.png`});
-      await browser.close();
+    );
+    await page.screenshot({path: `${outputPath}.png`});
+    await browser.close();
+  });
+
+  it('with limited gates matches the gold copy', () => {
+    const expected = PNG.PNG.sync.read(readFileSync('e2e/circuit/circuit_expected.png'));
+    const actual = PNG.PNG.sync.read(readFileSync(`${outputPath}.png`));
+    const {width, height} = expected;
+    const diff = new PNG.PNG({width, height});
+
+    const pixels = pixelmatch(expected.data, actual.data, diff.data, width, height, {
+      threshold: 0.1,
     });
 
-    it('with limited gates matches the gold copy', () => {
-      const expected = PNG.PNG.sync.read(readFileSync('e2e/circuit/circuit_expected.png'));
-      const actual = PNG.PNG.sync.read(readFileSync(`${outputPath}.png`));
-      const {width, height} = expected;
-      const diff = new PNG.PNG({width, height});
-
-      const pixels = pixelmatch(expected.data, actual.data, diff.data, width, height, {
-        threshold: 0.1,
-      });
-
-      expect(pixels).toBe(0);
-    });
+    expect(pixels).toBe(0);
   });
 });

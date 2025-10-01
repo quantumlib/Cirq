@@ -53,65 +53,57 @@ function htmlContent(clientCode: string) {
 temp.track();
 
 describe('Bloch sphere', () => {
-  // Create the temporary directory first, then run everything.
-  temp.mkdir('tmp', (err, dirPath) => {
-    const outputPath = path.join(dirPath, 'bloch_sphere');
-    const newVectorOutputPath = path.join(dirPath, 'bloch_sphere_vec');
+  const dirPath = temp.mkdirSync('tmp');
+  const outputPath = path.join(dirPath, 'bloch_sphere');
+  const newVectorOutputPath = path.join(dirPath, 'bloch_sphere_vec');
 
-    beforeAll(async () => {
-      // Opens a headless browser with the generated HTML file and takes a screenshot.
-      // The '--app' flag ensures that chromium does capture any
-      // excess browser input
-      const browser = await puppeteer.launch({args: ['--app']});
-      const page = await browser.newPage();
+  beforeAll(async () => {
+    const browser = await puppeteer.launch({args: ['--app']});
+    const page = await browser.newPage();
 
-      // Take a screenshot of the first image
-      await page.setContent(htmlContent("renderBlochSphere('container')"));
-      await page.screenshot({path: `${outputPath}.png`});
-      await browser.close();
+    await page.setContent(htmlContent("renderBlochSphere('container')"));
+    await page.screenshot({path: `${outputPath}.png`});
+    await browser.close();
+  });
+
+  it('with no vector matches the gold PNG', () => {
+    const expected = PNG.PNG.sync.read(
+      readFileSync('e2e/bloch_sphere/bloch_sphere_expected.png'),
+    );
+    const actual = PNG.PNG.sync.read(readFileSync(`${outputPath}.png`));
+    const {width, height} = expected;
+    const diff = new PNG.PNG({width, height});
+
+    const pixels = pixelmatch(expected.data, actual.data, diff.data, width, height, {
+      threshold: 0.1,
     });
 
-    it('with no vector matches the gold PNG', () => {
-      const expected = PNG.PNG.sync.read(
-        readFileSync('e2e/bloch_sphere/bloch_sphere_expected.png'),
-      );
-      const actual = PNG.PNG.sync.read(readFileSync(`${outputPath}.png`));
-      const {width, height} = expected;
-      const diff = new PNG.PNG({width, height});
+    expect(pixels).toBe(0);
+  });
 
-      const pixels = pixelmatch(expected.data, actual.data, diff.data, width, height, {
-        threshold: 0.1,
-      });
+  beforeAll(async () => {
+    const browser = await puppeteer.launch({args: ['--app']});
+    const page = await browser.newPage();
 
-      expect(pixels).toBe(0);
+    await page.setContent(
+      htmlContent("renderBlochSphere('container').addVector(0.5, 0.5, 0.5);"),
+    );
+    await page.screenshot({path: `${newVectorOutputPath}.png`});
+    await browser.close();
+  });
+
+  it('with custom statevector matches the gold PNG', () => {
+    const expected = PNG.PNG.sync.read(
+      readFileSync('e2e/bloch_sphere/bloch_sphere_expected_custom.png'),
+    );
+    const actual = PNG.PNG.sync.read(readFileSync(`${newVectorOutputPath}.png`));
+    const {width, height} = expected;
+    const diff = new PNG.PNG({width, height});
+
+    const pixels = pixelmatch(expected.data, actual.data, diff.data, width, height, {
+      threshold: 0.1,
     });
 
-    beforeAll(async () => {
-      //Opens a headless browser with the generated HTML file and takes a screenshot.
-      const browser = await puppeteer.launch({args: ['--app']});
-      const page = await browser.newPage();
-
-      // Take a screenshot of the second image, adding the vector
-      await page.setContent(
-        htmlContent("renderBlochSphere('container').addVector(0.5, 0.5, 0.5);"),
-      );
-      await page.screenshot({path: `${newVectorOutputPath}.png`});
-      await browser.close();
-    });
-
-    it('with custom statevector matches the gold PNG', () => {
-      const expected = PNG.PNG.sync.read(
-        readFileSync('e2e/bloch_sphere/bloch_sphere_expected_custom.png'),
-      );
-      const actual = PNG.PNG.sync.read(readFileSync(`${newVectorOutputPath}.png`));
-      const {width, height} = expected;
-      const diff = new PNG.PNG({width, height});
-
-      const pixels = pixelmatch(expected.data, actual.data, diff.data, width, height, {
-        threshold: 0.1,
-      });
-
-      expect(pixels).toBe(0);
-    });
+    expect(pixels).toBe(0);
   });
 });

@@ -34,8 +34,8 @@
   "scripts": {
     "build": "vite build",
     "test": "vitest --run",
-    "test-all": "npm run build && npm run test",
     "coverage": "vitest --run --coverage && rm -rf coverage/",
+    "test-e2e": "vitest --run --config vitest.e2e.config.ts",
     "lint": "gts lint",
     "clean": "gts clean",
     "compile": "tsc --noEmit",
