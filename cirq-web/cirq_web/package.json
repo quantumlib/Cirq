@@ -16,7 +16,7 @@
     "@types/pngjs": "^6.0.0",
     "@types/temp": "^0.9.0",
     "@types/three": "^0.179.0",
-    "@vitest/coverage-v8": "^2.1.1",
+    "@vitest/coverage-v8": "2.1.9",
     "canvas": "^3.2.0",
     "gts": "^6.0.2",
     "jsdom": "^26.0.0",
@@ -29,7 +29,7 @@
     "ts-mock-imports": "^1.3.7",
     "typescript": "^5.7.3",
     "vite": "^5.4.0",
-    "vitest": "^2.1.1"
+    "vitest": "2.1.9"
   },
   "scripts": {
     "build": "vite build",
