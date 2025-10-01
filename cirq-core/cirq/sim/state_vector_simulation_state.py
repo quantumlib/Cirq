@@ -55,7 +55,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         *,
         initial_state: np.ndarray | cirq.STATE_VECTOR_LIKE = 0,
         qid_shape: tuple[int, ...] | None = None,
-        dtype: type[np.complexfloating] | None = None,
+        dtype: type[np.complexfloating] | np.dtype[np.complexfloating] | None = None,
         buffer: np.ndarray | None = None,
     ):
         """Initializes the object with the inputs.
@@ -324,7 +324,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
         prng: np.random.RandomState | None = None,
         qubits: Sequence[cirq.Qid] | None = None,
         initial_state: np.ndarray | cirq.STATE_VECTOR_LIKE = 0,
-        dtype: type[np.complexfloating] = np.complex64,
+        dtype: type[np.complexfloating] | np.dtype[np.complexfloating] = np.complex64,
         classical_data: cirq.ClassicalDataStore | None = None,
     ):
         """Inits StateVectorSimulationState.
