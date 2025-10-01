@@ -67,9 +67,7 @@ describe('Bloch sphere', () => {
   });
 
   it('with no vector matches the gold PNG', () => {
-    const expected = PNG.PNG.sync.read(
-      readFileSync('e2e/bloch_sphere/bloch_sphere_expected.png'),
-    );
+    const expected = PNG.PNG.sync.read(readFileSync('e2e/bloch_sphere/bloch_sphere_expected.png'));
     const actual = PNG.PNG.sync.read(readFileSync(`${outputPath}.png`));
     const {width, height} = expected;
     const diff = new PNG.PNG({width, height});
@@ -85,9 +83,7 @@ describe('Bloch sphere', () => {
     const browser = await puppeteer.launch({args: ['--app']});
     const page = await browser.newPage();
 
-    await page.setContent(
-      htmlContent("renderBlochSphere('container').addVector(0.5, 0.5, 0.5);"),
-    );
+    await page.setContent(htmlContent("renderBlochSphere('container').addVector(0.5, 0.5, 0.5);"));
     await page.screenshot({path: `${newVectorOutputPath}.png`});
     await browser.close();
   });
