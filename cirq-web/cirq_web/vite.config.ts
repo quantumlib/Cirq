@@ -4,7 +4,7 @@ const common = {
   build: {
     outDir: 'dist',
     emptyOutDir: false,
-    minify: 'terser' as const,
+    minify: true,
     sourcemap: false,
     rollupOptions: {
       output: {

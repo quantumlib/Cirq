@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import puppeteer from 'puppeteer';
-import {expect} from 'chai';
+import {expect} from 'vitest';
 import {readFileSync} from 'fs';
 import pixelmatch from 'pixelmatch';
 import * as PNG from 'pngjs';

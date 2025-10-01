@@ -36,9 +36,9 @@ export function renderBlochSphere(containerId: string, radius = 5, hMeridians = 
   return blochSphere;
 }
 
-// NOTE: This allows for backwards compability with existing usage, 
+// NOTE: This allows for backwards compability with existing usage,
 // allowing for renderBlochSphere to be called in <script> tags,
-// ie. 
+// ie.
 // <script>
 // renderBlochSphere('containerId', 5).addVector(1, 0, 0);
 // </script>

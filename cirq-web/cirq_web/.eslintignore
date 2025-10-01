@@ -1,3 +1,6 @@
 build/
 **/node_modules
 **/dist
+vitest.config.ts
+vitest.setup.ts
+vite.config.ts

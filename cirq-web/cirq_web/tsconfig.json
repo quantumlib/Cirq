@@ -15,6 +15,7 @@
     "types": ["vitest/globals"]
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "e2e/**/*.ts"
   ]
 }
