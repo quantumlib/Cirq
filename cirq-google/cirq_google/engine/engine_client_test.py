@@ -1884,3 +1884,81 @@ def test_get_quantum_processor_config_from_run_exception(client_constructor, def
             config_name="test_config_name",
             run_name="test_run_name",
         )
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_list_quantum_processor_configs_from_run(client_constructor, default_engine_client):
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    run_name = "test_run_name"
+    parent_resource_name = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configAutomationRuns/{run_name}'
+    )
+    response_parent_resource = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configSnapshots/test_snapshot'
+    )
+    expected_configs = [
+        quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_1'),
+        quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_2'),
+    ]
+
+    grpc_client = _setup_client_mock(client_constructor)
+    grpc_client.list_quantum_processor_configs.return_value = Pager(expected_configs)
+
+    results = default_engine_client.list_quantum_processor_configs_from_run(
+        project_id=project_id, processor_id=processor_id, run_name=run_name
+    )
+
+    assert results == expected_configs
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_list_quantum_processor_configs_from_run_default(client_constructor, default_engine_client):
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    response_parent_resource = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configSnapshots/test_snapshot'
+    )
+    expected_configs = [
+        quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_1'),
+        quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_2'),
+    ]
+
+    grpc_client = _setup_client_mock(client_constructor)
+    grpc_client.list_quantum_processor_configs.return_value = Pager(expected_configs)
+
+    results = default_engine_client.list_quantum_processor_configs_from_run(
+        project_id=project_id, processor_id=processor_id
+    )
+
+    assert results == expected_configs
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_list_quantum_processor_configs_from_snapshot(client_constructor, default_engine_client):
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    snapshot_id = "test_snap_name"
+    response_parent_resource = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configSnapshots/test_snapshot'
+    )
+    expected_configs = [
+        quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_1'),
+        quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_2'),
+    ]
+
+    grpc_client = _setup_client_mock(client_constructor)
+    grpc_client.list_quantum_processor_configs.return_value = Pager(expected_configs)
+
+    results = default_engine_client.list_quantum_processor_configs_from_snapshot(
+        project_id=project_id, processor_id=processor_id, snapshot_id=snapshot_id
+    )
+
+    assert results == expected_configs
