@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import puppeteer from 'puppeteer';
-import {expect} from 'vitest';
+import {beforeAll, describe, it, expect} from 'vitest';
 import {readFileSync} from 'fs';
 import pixelmatch from 'pixelmatch';
 import * as PNG from 'pngjs';
@@ -52,7 +52,7 @@ describe('Circuit', () => {
   temp.mkdir('tmp', (err, dirPath) => {
     const outputPath = path.join(dirPath, 'circuit');
 
-    before(async () => {
+    beforeAll(async () => {
       const browser = await puppeteer.launch({args: ['--app']});
       const page = await browser.newPage();
 
@@ -97,7 +97,7 @@ describe('Circuit', () => {
         threshold: 0.1,
       });
 
-      expect(pixels).to.equal(0);
+      expect(pixels).toBe(0);
     });
   });
 });

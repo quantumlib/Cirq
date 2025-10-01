@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import puppeteer from 'puppeteer';
-import {expect} from 'vitest';
+import {beforeAll, describe, it, expect} from 'vitest';
 import {readFileSync} from 'fs';
 import pixelmatch from 'pixelmatch';
 import * as PNG from 'pngjs';
@@ -58,7 +58,7 @@ describe('Bloch sphere', () => {
     const outputPath = path.join(dirPath, 'bloch_sphere');
     const newVectorOutputPath = path.join(dirPath, 'bloch_sphere_vec');
 
-    before(async () => {
+    beforeAll(async () => {
       // Opens a headless browser with the generated HTML file and takes a screenshot.
       // The '--app' flag ensures that chromium does capture any
       // excess browser input
@@ -83,10 +83,10 @@ describe('Bloch sphere', () => {
         threshold: 0.1,
       });
 
-      expect(pixels).to.equal(0);
+      expect(pixels).toBe(0);
     });
 
-    before(async () => {
+    beforeAll(async () => {
       //Opens a headless browser with the generated HTML file and takes a screenshot.
       const browser = await puppeteer.launch({args: ['--app']});
       const page = await browser.newPage();
@@ -111,7 +111,7 @@ describe('Bloch sphere', () => {
         threshold: 0.1,
       });
 
-      expect(pixels).to.equal(0);
+      expect(pixels).toBe(0);
     });
   });
 });
