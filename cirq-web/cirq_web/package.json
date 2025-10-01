@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "@types/chai": "^4.2.18",
-    "@types/jsdom": "^21.1.7",
+    "@types/jsdom": "^27.0.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "^24.0.8",
     "@types/pixelmatch": "^5.2.4",
@@ -26,7 +26,7 @@
     "concurrently": "^9.1.2",
     "gts": "^6.0.2",
     "install": "^0.13.0",
-    "jsdom": "^26.0.0",
+    "jsdom": "^27.0.0",
     "mocha": "^11.1.0",
     "npm": "^11.0.0",
     "nyc": "^17.1.0",
