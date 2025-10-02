@@ -341,9 +341,8 @@ def test_swap() -> None:
 
 
 @pytest.mark.parametrize('exponent', (0, 2, 1.1, -2, -1.6))
-def test_not_a_swap(exponent) -> None:
-    a, b = cirq.LineQubit.range(2)
-    assert not _is_swaplike(cirq.SWAP(a, b) ** exponent)
+def test_not_a_swap(exponent: float) -> None:
+    assert not _is_swaplike(cirq.SWAP**exponent)
 
 
 @pytest.mark.parametrize('theta', (np.pi / 2, -np.pi / 2, np.pi / 2 + 5 * np.pi))
