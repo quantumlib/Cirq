@@ -293,7 +293,7 @@ PNG screenshot, and comparing it to an expected PNG.
 
 We use [Mocha](https://mochajs.org) and [Chai](https://www.chaijs.com/) as our
 main testing tools. For comparing image diffs, we use
-[Pixelmatch](https://github.com/mapbox/pixelmatch) and
+[BlazeDiff](https://www.blazediff.dev/) and
 [pngjs](https://github.com/lukeapage/pngjs).
 
 #### Unit testing
