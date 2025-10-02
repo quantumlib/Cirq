@@ -120,7 +120,7 @@ class CircuitSerializer(serializer.Serializer):
 
     def serialize_multi_program(
         self,
-        multi_program: Iterable[cirq.AbstractCircuit] | Mapping[str, cirq.AbstractCircuit],
+        multi_program: Sequence[cirq.AbstractCircuit] | Mapping[str, cirq.AbstractCircuit],
         msg: v2.program_pb2.Program | None = None,
     ) -> v2.program_pb2.Program:
         """Serialize multiple related circuits to cirq_google.api.v2.Program proto.
@@ -151,7 +151,7 @@ class CircuitSerializer(serializer.Serializer):
                     constants=msg.constants,
                     raw_constants=raw_constants,
                 )
-        elif isinstance(multi_program, Iterable):
+        elif isinstance(multi_program, Sequence):
             for program in multi_program:
                 new_program = msg.keyed_circuits.add()
                 self._serialize_circuit(
