@@ -15,7 +15,7 @@
 import puppeteer from 'puppeteer';
 import {beforeAll, describe, it, expect} from 'vitest';
 import {readFileSync} from 'fs';
-import pixelmatch from 'pixelmatch';
+import blazediff from '@blazediff/core';
 import * as PNG from 'pngjs';
 import * as temp from 'temp';
 import * as path from 'path';
@@ -61,21 +61,21 @@ describe('Circuit', () => {
       const circuit = createGridCircuit(
         [
             {
-                'wire_symbols': ['Z'], 
-                'location_info': [{'row': 2, 'col': 3}], 
-                'color_info': ['cyan'], 
+                'wire_symbols': ['Z'],
+                'location_info': [{'row': 2, 'col': 3}],
+                'color_info': ['cyan'],
                 'moment': 0
             },
-            {   
-                'wire_symbols': ['X'], 
-                'location_info': [{'row': 2, 'col': 3}], 
-                'color_info': ['black'], 
+            {
+                'wire_symbols': ['X'],
+                'location_info': [{'row': 2, 'col': 3}],
+                'color_info': ['black'],
                 'moment': 1
             },
-            {   
-                'wire_symbols': ['@', 'X'], 
-                'location_info': [{'row': 3, 'col': 0}, {'row': 0, 'col': 0}], 
-                'color_info': ['black', 'black'], 
+            {
+                'wire_symbols': ['@', 'X'],
+                'location_info': [{'row': 3, 'col': 0}, {'row': 0, 'col': 0}],
+                'color_info': ['black', 'black'],
                 'moment': 0
             },
         ], 5, 'mycircuitdiv'
@@ -92,7 +92,7 @@ describe('Circuit', () => {
     const {width, height} = expected;
     const diff = new PNG.PNG({width, height});
 
-    const pixels = pixelmatch(expected.data, actual.data, diff.data, width, height, {
+    const pixels = blazediff(expected.data, actual.data, diff.data, width, height, {
       threshold: 0.1,
     });
 

@@ -15,7 +15,7 @@
 import puppeteer from 'puppeteer';
 import {beforeAll, describe, it, expect} from 'vitest';
 import {readFileSync} from 'fs';
-import pixelmatch from 'pixelmatch';
+import blazediff from '@blazediff/core';
 import * as PNG from 'pngjs';
 import * as temp from 'temp';
 import * as path from 'path';
@@ -72,7 +72,7 @@ describe('Bloch sphere', () => {
     const {width, height} = expected;
     const diff = new PNG.PNG({width, height});
 
-    const pixels = pixelmatch(expected.data, actual.data, diff.data, width, height, {
+    const pixels = blazediff(expected.data, actual.data, diff.data, width, height, {
       threshold: 0.1,
     });
 
@@ -96,7 +96,7 @@ describe('Bloch sphere', () => {
     const {width, height} = expected;
     const diff = new PNG.PNG({width, height});
 
-    const pixels = pixelmatch(expected.data, actual.data, diff.data, width, height, {
+    const pixels = blazediff(expected.data, actual.data, diff.data, width, height, {
       threshold: 0.1,
     });
 

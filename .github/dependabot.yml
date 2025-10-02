@@ -48,8 +48,6 @@ updates:
     ignore:
       - dependency-name: "chai"
         versions: [">= 5.0.0"]
-      - dependency-name: "pixelmatch"
-        versions: ["> 5.3.0"]
     groups:
       # Group non-security version minor & patch updates into one PR.
       # Security and major update versions will be done as individual PRs.
