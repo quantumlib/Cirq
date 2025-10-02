@@ -133,7 +133,7 @@ class CircuitSerializer(serializer.Serializer):
                 results.
 
         Raises:
-            NotImplementedError: If the program is of a type that is supported.
+            NotImplementedError: If the program is of a type that is not supported.
             ValueError: If the function returns something not a circuit.
         """
         raw_constants: dict[Any, int] = {}
@@ -151,7 +151,7 @@ class CircuitSerializer(serializer.Serializer):
                     constants=msg.constants,
                     raw_constants=raw_constants,
                 )
-        elif isinstance(multi_program, Sequence):
+        elif isinstance(multi_program, Iterable):
             for program in multi_program:
                 new_program = msg.keyed_circuits.add()
                 self._serialize_circuit(
@@ -186,7 +186,7 @@ class CircuitSerializer(serializer.Serializer):
                 results.
 
         Raises:
-            NotImplementedError: If the program is of a type that is supported.
+            NotImplementedError: If the program is of a type that is not supported.
             ValueError: If the function returns something not a circuit.
         """
         raw_constants: dict[Any, int] = {}
