@@ -44,7 +44,6 @@ from cirq_google.engine import (
     engine_processor,
     engine_program,
     processor_config,
-    processor_config,
     util,
 )
 from cirq_google.serialization import CIRCUIT_SERIALIZER, Serializer
@@ -694,7 +693,7 @@ class Engine(abstract_engine.AbstractEngine):
     get_processor_config_from_run = duet.sync(get_processor_config_from_run_async)
 
     async def list_configs_from_run_async(
-            self, processor_id: str, run_name: str = 'default'
+        self, processor_id: str, run_name: str = 'default'
     ) -> list[processor_config.ProcessorConfig]:
         """Returns list of ProcessorConfigs from an automation run.
 
@@ -708,22 +707,20 @@ class Engine(abstract_engine.AbstractEngine):
             List of ProcessorConfigs.
         """
         configs = await self.context.client.list_quantum_processor_configs_from_run_async(
-            project_id=self.project_id,
-            processor_id=processor_id,
-            run_name=run_name
+            project_id=self.project_id, processor_id=processor_id, run_name=run_name
         )
 
         return [
             processor_config.ProcessorConfig(
                 quantum_processor_config=quantum_config, run_name=run_name
-            ) 
+            )
             for quantum_config in configs
         ]
-    
+
     list_configs_from_run = duet.sync(list_configs_from_run_async)
 
     async def list_configs_from_snapshot_async(
-            self, processor_id: str, snapshot_id: str
+        self, processor_id: str, snapshot_id: str
     ) -> list[processor_config.ProcessorConfig]:
         """Returns list of ProcessorConfigs from the given snapshot.
 
@@ -735,16 +732,14 @@ class Engine(abstract_engine.AbstractEngine):
            The ProcessorConfig from this project and processor.
         """
         configs = await self.context.client.list_quantum_processor_configs_from_snapshot_async(
-            project_id=self.project_id,
-            processor_id=processor_id,
-            snapshot_id=snapshot_id
+            project_id=self.project_id, processor_id=processor_id, snapshot_id=snapshot_id
         )
 
         return [
-            processor_config.ProcessorConfig(quantum_processor_config=quantum_config) 
+            processor_config.ProcessorConfig(quantum_processor_config=quantum_config)
             for quantum_config in configs
         ]
-    
+
     list_configs_from_snapshot = duet.sync(list_configs_from_snapshot_async)
 
 

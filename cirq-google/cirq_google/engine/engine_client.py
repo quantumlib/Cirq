@@ -1252,10 +1252,7 @@ class EngineClient:
     get_quantum_processor_config_from_run = duet.sync(get_quantum_processor_config_from_run_async)
 
     async def list_quantum_processor_configs_from_run_async(
-        self,
-        project_id: str,
-        processor_id: str,
-        run_name: str = 'default'
+        self, project_id: str, processor_id: str, run_name: str = 'default'
     ) -> list[quantum.QuantumProcessorConfig]:
         """Returns list of QuantumProcessorConfigs.
 
@@ -1263,14 +1260,12 @@ class EngineClient:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
             run_name: The run_name that contains the quantum processor config.
-        
+
         Returns:
             List of quantum processor configs
         """
         parent_resource = _quantum_processor_config_name_from_run_name(
-            project_id=project_id,
-            processor_id=processor_id,
-            run_name=run_name
+            project_id=project_id, processor_id=processor_id, run_name=run_name
         )
         request = quantum.ListQuantumProcessorConfigsRequest(parent=parent_resource)
 
@@ -1283,10 +1278,7 @@ class EngineClient:
     )
 
     async def list_quantum_processor_configs_from_snapshot_async(
-        self,
-        project_id: str,
-        processor_id: str,
-        snapshot_id: str
+        self, project_id: str, processor_id: str, snapshot_id: str
     ) -> list[quantum.QuantumProcessorConfig]:
         """Returns list of QuantumProcessorConfigs.
 
@@ -1294,14 +1286,12 @@ class EngineClient:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
             snapshot_id: The id of the snapshot that contains the quantum processor config.
-        
+
         Returns:
             List of quantum processor configs
         """
         parent_resource = _quantum_processor_config_name_from_snapshot_id(
-            project_id=project_id,
-            processor_id=processor_id,
-            snapshot_id=snapshot_id
+            project_id=project_id, processor_id=processor_id, snapshot_id=snapshot_id
         )
         request = quantum.ListQuantumProcessorConfigsRequest(parent=parent_resource)
 
@@ -1368,7 +1358,9 @@ def _quantum_processor_config_name_from_snapshot_id(
     return (
         f'{_processor_name_from_ids(project_id, processor_id)}/'
         f'configSnapshots/{snapshot_id}'
-        f'/configs/{config_name}' if config_name else ''
+        f'/configs/{config_name}'
+        if config_name
+        else ''
     )
 
 
@@ -1378,7 +1370,9 @@ def _quantum_processor_config_name_from_run_name(
     return (
         f'{_processor_name_from_ids(project_id, processor_id)}/'
         f'configAutomationRuns/{run_name}'
-        f'/configs/{config_name}' if config_name else ''
+        f'/configs/{config_name}'
+        if config_name
+        else ''
     )
 
 

@@ -1892,14 +1892,10 @@ def test_list_quantum_processor_configs_from_run(client_constructor, default_eng
     processor_id = "test_processor_id"
     run_name = "test_run_name"
     parent_resource_name = (
-        f'projects/{project_id}/'
-        f'processors/{processor_id}/'
-        f'configAutomationRuns/{run_name}'
+        f'projects/{project_id}/' f'processors/{processor_id}/' f'configAutomationRuns/{run_name}'
     )
     response_parent_resource = (
-        f'projects/{project_id}/'
-        f'processors/{processor_id}/'
-        f'configSnapshots/test_snapshot'
+        f'projects/{project_id}/' f'processors/{processor_id}/' 'configSnapshots/test_snapshot'
     )
     expected_configs = [
         quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_1'),
@@ -1915,14 +1911,13 @@ def test_list_quantum_processor_configs_from_run(client_constructor, default_eng
 
     assert results == expected_configs
 
+
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_list_quantum_processor_configs_from_run_default(client_constructor, default_engine_client):
     project_id = "test_project_id"
     processor_id = "test_processor_id"
     response_parent_resource = (
-        f'projects/{project_id}/'
-        f'processors/{processor_id}/'
-        f'configSnapshots/test_snapshot'
+        f'projects/{project_id}/' f'processors/{processor_id}/' 'configSnapshots/test_snapshot'
     )
     expected_configs = [
         quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_1'),
@@ -1945,9 +1940,7 @@ def test_list_quantum_processor_configs_from_snapshot(client_constructor, defaul
     processor_id = "test_processor_id"
     snapshot_id = "test_snap_name"
     response_parent_resource = (
-        f'projects/{project_id}/'
-        f'processors/{processor_id}/'
-        f'configSnapshots/test_snapshot'
+        f'projects/{project_id}/' f'processors/{processor_id}/' 'configSnapshots/test_snapshot'
     )
     expected_configs = [
         quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_1'),

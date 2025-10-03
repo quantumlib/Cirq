@@ -750,8 +750,6 @@ def test_get_schedule_filter_by_time_slot(list_time_slots):
     )
 
 
-
-
 def _allow_deprecated_freezegun(func):
     # a local hack, as freeze_time walks through all the sys.modules, and retrieves all the
     # attributes for all modules when it reaches deprecated module attributes, we throw an error
@@ -1069,7 +1067,7 @@ def test_get_default_config_from_run(client):
     name = (
         f'projects/{project_id}/'
         f'processors/{processor_id}/'
-        f'configAutomationRuns/default/configs/default'
+        'configAutomationRuns/default/configs/default'
     )
 
     device_spec = v2.device_pb2.DeviceSpecification(
@@ -1160,7 +1158,7 @@ def test_get_default_config_from_snapshot(client):
         f'projects/{project_id}/'
         f'processors/{processor_id}/'
         f'configSnapshots/{snapshot_id}/'
-        f'configs/default'
+        'configs/default'
     )
 
     device_spec = v2.device_pb2.DeviceSpecification(
@@ -1245,6 +1243,7 @@ def test_get_current_config_from_run_not_found(client):
     )
     assert result is None
 
+
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_get_list_configs_from_run(client):
     project_id = "test_project_id"
@@ -1252,9 +1251,7 @@ def test_get_list_configs_from_run(client):
     run_name = "test_run_name"
     snapshot_id = 'test_snapshot_id'
     response_parent_resource = (
-        f'projects/{project_id}/'
-        f'processors/{processor_id}/'
-        f'configSnapshots/{snapshot_id}'
+        f'projects/{project_id}/' f'processors/{processor_id}/' f'configSnapshots/{snapshot_id}'
     )
     expected_configs = [
         quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_1'),
@@ -1270,17 +1267,16 @@ def test_get_list_configs_from_run(client):
     results = processor.list_configs_from_run(run_name=run_name)
 
     list_configs_fom_run_mock.assert_called_once_with(
-        project_id=project_id,
-        processor_id=processor_id,
-        run_name=run_name
+        project_id=project_id, processor_id=processor_id, run_name=run_name
     )
     assert [
         (config.config_name, config.processor_id, config.run_name, config.snapshot_id)
         for config in results
     ] == [
         ('test_config_1', processor_id, run_name, snapshot_id),
-        ('test_config_2', processor_id, run_name, snapshot_id)
+        ('test_config_2', processor_id, run_name, snapshot_id),
     ]
+
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_get_list_configs_from_run_default(client):
@@ -1289,9 +1285,7 @@ def test_get_list_configs_from_run_default(client):
     default_run_name = "default"
     snapshot_id = 'test_snapshot_id'
     response_parent_resource = (
-        f'projects/{project_id}/'
-        f'processors/{processor_id}/'
-        f'configSnapshots/{snapshot_id}'
+        f'projects/{project_id}/' f'processors/{processor_id}/' f'configSnapshots/{snapshot_id}'
     )
     expected_configs = [
         quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_1'),
@@ -1307,17 +1301,16 @@ def test_get_list_configs_from_run_default(client):
     results = processor.list_configs_from_run()
 
     list_configs_fom_run_mock.assert_called_once_with(
-        project_id=project_id,
-        processor_id=processor_id,
-        run_name=default_run_name
+        project_id=project_id, processor_id=processor_id, run_name=default_run_name
     )
     assert [
         (config.config_name, config.processor_id, config.run_name, config.snapshot_id)
         for config in results
     ] == [
         ('test_config_1', processor_id, default_run_name, snapshot_id),
-        ('test_config_2', processor_id, default_run_name, snapshot_id)
+        ('test_config_2', processor_id, default_run_name, snapshot_id),
     ]
+
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_get_list_configs_from_snapshot(client):
@@ -1325,9 +1318,7 @@ def test_get_list_configs_from_snapshot(client):
     processor_id = "test_processor_id"
     snapshot_id = 'test_snapshot_id'
     response_parent_resource = (
-        f'projects/{project_id}/'
-        f'processors/{processor_id}/'
-        f'configSnapshots/{snapshot_id}'
+        f'projects/{project_id}/' f'processors/{processor_id}/' f'configSnapshots/{snapshot_id}'
     )
     expected_configs = [
         quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_1'),
@@ -1343,14 +1334,12 @@ def test_get_list_configs_from_snapshot(client):
     results = processor.list_configs_from_snapshot(snapshot_id=snapshot_id)
 
     list_configs_fom_run_mock.assert_called_once_with(
-        project_id=project_id,
-        processor_id=processor_id,
-        snapshot_id=snapshot_id
+        project_id=project_id, processor_id=processor_id, snapshot_id=snapshot_id
     )
     assert [
         (config.config_name, config.processor_id, config.run_name, config.snapshot_id)
         for config in results
     ] == [
         ('test_config_1', processor_id, '', snapshot_id),
-        ('test_config_2', processor_id, '', snapshot_id)
+        ('test_config_2', processor_id, '', snapshot_id),
     ]
