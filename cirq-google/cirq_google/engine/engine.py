@@ -44,6 +44,7 @@ from cirq_google.engine import (
     engine_processor,
     engine_program,
     processor_config,
+    processor_config,
     util,
 )
 from cirq_google.serialization import CIRCUIT_SERIALIZER, Serializer

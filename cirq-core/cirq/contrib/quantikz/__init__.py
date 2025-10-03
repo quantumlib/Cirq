@@ -12,17 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import annotations
+"""Converts Cirq circuits to LaTeX diagrams using the Quantikz package."""
 
-import pathlib
-
-import cirq
-import cirq.contrib.qcircuit.qcircuit_pdf as qcircuit_pdf
-
-
-def test_qcircuit_pdf(tmp_path: pathlib.Path) -> None:
-    circuit = cirq.Circuit(cirq.X(cirq.q(0)), cirq.CZ(cirq.q(0), cirq.q(1)))
-    qcircuit_pdf.circuit_to_pdf_using_qcircuit_via_tex(circuit, f"{tmp_path}/test_file")
-    assert (tmp_path / "test_file.pdf").is_file()
-    assert not (tmp_path / "test_file.dvi").exists()
-    assert not (tmp_path / "test_file.ps").exists()
+from cirq.contrib.quantikz.circuit_to_latex_quantikz import (
+    CircuitToQuantikz as CircuitToQuantikz,
+    GATE_STYLES_COLORFUL as GATE_STYLES_COLORFUL,
+)
+from cirq.contrib.quantikz.circuit_to_latex_render import render_circuit as render_circuit

@@ -27,6 +27,13 @@ from cirq_google.engine import (
     processor_sampler,
     util,
 )
+from cirq_google.engine import (
+    abstract_processor,
+    calibration,
+    processor_config,
+    processor_sampler,
+    util,
+)
 
 if TYPE_CHECKING:
     from google.protobuf import any_pb2

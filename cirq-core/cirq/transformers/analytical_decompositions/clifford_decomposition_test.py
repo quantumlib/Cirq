@@ -21,14 +21,14 @@ import cirq
 from cirq.testing import assert_allclose_up_to_global_phase
 
 
-def test_misaligned_qubits():
+def test_misaligned_qubits() -> None:
     qubits = cirq.LineQubit.range(1)
     tableau = cirq.CliffordTableau(num_qubits=2)
     with pytest.raises(ValueError):
         cirq.decompose_clifford_tableau_to_operations(qubits, tableau)
 
 
-def test_clifford_decompose_one_qubit():
+def test_clifford_decompose_one_qubit() -> None:
     """Two random instance for one qubit decomposition."""
     qubits = cirq.LineQubit.range(1)
     args = cirq.CliffordTableauSimulationState(
@@ -63,7 +63,7 @@ def test_clifford_decompose_one_qubit():
     assert_allclose_up_to_global_phase(cirq.unitary(expect_circ), cirq.unitary(circ), atol=1e-7)
 
 
-def test_clifford_decompose_two_qubits():
+def test_clifford_decompose_two_qubits() -> None:
     """Two random instance for two qubits decomposition."""
     qubits = cirq.LineQubit.range(2)
     args = cirq.CliffordTableauSimulationState(
@@ -98,7 +98,7 @@ def test_clifford_decompose_two_qubits():
     assert_allclose_up_to_global_phase(cirq.unitary(expect_circ), cirq.unitary(circ), atol=1e-7)
 
 
-def test_clifford_decompose_by_unitary():
+def test_clifford_decompose_by_unitary() -> None:
     """Validate the decomposition of random Clifford Tableau by unitary matrix.
 
     Due to the exponential growth in dimension, it cannot validate very large number of qubits.
@@ -125,7 +125,7 @@ def test_clifford_decompose_by_unitary():
         assert_allclose_up_to_global_phase(cirq.unitary(expect_circ), cirq.unitary(circ), atol=1e-7)
 
 
-def test_clifford_decompose_by_reconstruction():
+def test_clifford_decompose_by_reconstruction() -> None:
     """Validate the decomposition of random Clifford Tableau by reconstruction.
 
     This approach can validate large number of qubits compared with the unitary one.

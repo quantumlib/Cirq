@@ -100,7 +100,7 @@ def decompose_cphase_into_two_fsim(
     fsim_gate: cirq.FSimGate,
     qubits: Sequence[cirq.Qid] | None = None,
     atol: float = 1e-8,
-) -> cirq.OP_TREE:
+) -> Sequence[cirq.Operation]:
     """Decomposes CZPowGate into two FSimGates.
 
     This function implements the decomposition described in section VII F I
