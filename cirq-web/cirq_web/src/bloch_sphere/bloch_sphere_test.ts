@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {expect} from 'chai';
+import {expect} from 'vitest';
 import {BlochSphere} from './bloch_sphere';
 import {Scene, Vector3} from 'three';
 import {JSDOM} from 'jsdom';
@@ -57,58 +57,58 @@ describe('BlochSphere (with empty constructor)', () => {
 
   it('adds a single BlochSphere of type Group', () => {
     const children = scene.children;
-    expect(children.length).to.equal(1);
-    expect(children[0].type).to.equal('Group');
+    expect(children.length).toBe(1);
+    expect(children[0].type).toBe('Group');
     // Sanity check to make sure it works as BlochSphere
-    expect(children[0] as BlochSphere).to.be.instanceOf(BlochSphere);
+    expect(children[0] instanceof BlochSphere).toBe(true);
   });
 
   describe('child group (Sphere, Meridians, etc.)', () => {
     it('Sphere contains the correct number of components', () => {
       const sphereExists = children.find(child => child.constructor.name === 'Sphere');
-      expect(sphereExists).to.not.equal(undefined);
+      expect(sphereExists).not.toBe(undefined);
     });
 
     it('Meridians appear in 2 sets', () => {
       const numOfMeridians = children.filter(
         child => child.constructor.name === 'Meridians',
       ).length;
-      expect(numOfMeridians).to.equal(2);
+      expect(numOfMeridians).toBe(2);
     });
 
     it('Axes exist', () => {
       const axesExists = children.some(child => child.constructor.name === 'Axes');
-      expect(axesExists).to.equal(true);
+      expect(axesExists).toBe(true);
     });
 
     it('Labels exist', () => {
       const labelsExists = children.some(child => child.constructor.name === 'Labels');
-      expect(labelsExists).to.equal(true);
+      expect(labelsExists).toBe(true);
     });
   });
 
   describe('child group Sphere', () => {
     it('has a radius of 5 by default', () => {
-      expect(sphere.radius).to.equal(5);
+      expect(sphere.radius).toBe(5);
     });
   });
 
   describe('child groups Meridians', () => {
     describe('by default', () => {
       it('contains 7 horizontal chord meridians', () => {
-        expect(horizontalMeridians.numCircles).to.equal(7);
+        expect(horizontalMeridians.numCircles).toBe(7);
       });
 
       it('contains 4 vertical meridians', () => {
-        expect(verticalMeridians.numCircles).to.equal(4);
+        expect(verticalMeridians.numCircles).toBe(4);
       });
 
       it('has horizontal chord meridians that share the same radius of the sphere', () => {
-        expect(horizontalMeridians.radius).to.equal(sphere.radius);
+        expect(horizontalMeridians.radius).toBe(sphere.radius);
       });
 
       it('has vertical meridians that share the same radius of the sphere', () => {
-        expect(verticalMeridians.radius).to.equal(sphere.radius);
+        expect(verticalMeridians.radius).toBe(sphere.radius);
       });
     });
   });
@@ -116,16 +116,16 @@ describe('BlochSphere (with empty constructor)', () => {
   describe('child group Axes', () => {
     it('contains the 3 axes by default', () => {
       const numberOfAxisLines = axes.children.length;
-      expect(numberOfAxisLines).to.equal(3);
+      expect(numberOfAxisLines).toBe(3);
     });
 
     it('has axes lines with half-length equal to the radius of the sphere', () => {
-      expect(axes.halfLength).to.equal(sphere.radius);
+      expect(axes.halfLength).toBe(sphere.radius);
     });
 
     it('does not have any 2 lines with the same color', () => {
       const colors = [axes.xAxisColor, axes.yAxisColor, axes.zAxisColor];
-      expect(new Set(colors).size).to.equal(colors.length);
+      expect(new Set(colors).size).toBe(colors.length);
     });
   });
 
@@ -139,7 +139,7 @@ describe('BlochSphere (with empty constructor)', () => {
         '|0⟩': new Vector3(0, sphere.radius + 0.5, 0),
         '|1⟩': new Vector3(0, -(sphere.radius + 0.5), 0),
       };
-      expect(labels.labels).to.eql(expectedBlochSphereLabels);
+      expect(labels.labels).toEqual(expectedBlochSphereLabels);
     });
   });
 });
@@ -162,20 +162,20 @@ describe('BlochSphere (with valid custom constructor values)', () => {
 
   describe('has a child group Sphere', () => {
     it('with a configured radius of 3', () => {
-      expect(sphere.radius).to.equal(3);
+      expect(sphere.radius).toBe(3);
     });
   });
 
   describe('has a child group Meridians', () => {
     describe('with a horizontal set of meridians that', () => {
       it('accepts the configured number of meridians', () => {
-        expect(horizontalMeridians.numCircles).to.equal(9);
+        expect(horizontalMeridians.numCircles).toBe(9);
       });
     });
 
     describe('with a vertical set of meridians that', () => {
       it('accepts the configured number of meridians', () => {
-        expect(verticalMeridians.numCircles).to.equal(6);
+        expect(verticalMeridians.numCircles).toBe(6);
       });
     });
   });
@@ -199,10 +199,10 @@ describe('BlochSphere (with valid custom constructor values)', () => {
       const expectedVectorZ = [0, 2, 5];
 
       vectors.forEach((vector, index) => {
-        expect(vector.x).to.equal(expectedVectorX[index]);
-        expect(vector.y).to.equal(expectedVectorY[index]);
-        expect(vector.z).to.equal(expectedVectorZ[index]);
-        expect(vector.blochSphereRadius).to.equal(sphere.radius);
+        expect(vector.x).toBe(expectedVectorX[index]);
+        expect(vector.y).toBe(expectedVectorY[index]);
+        expect(vector.z).toBe(expectedVectorZ[index]);
+        expect(vector.blochSphereRadius).toBe(sphere.radius);
       });
     });
   });
@@ -214,7 +214,7 @@ describe('BlochSphere (with invalid custom constructor values)', () => {
     const errorMessage = 'The radius of a Sphere must be greater than or equal to 1';
 
     inputs.forEach(input => {
-      expect(() => new BlochSphere(input)).to.throw(errorMessage);
+      expect(() => new BlochSphere(input)).toThrow(errorMessage);
     });
   });
 
@@ -226,7 +226,7 @@ describe('BlochSphere (with invalid custom constructor values)', () => {
     ];
 
     inputs.forEach((input, i) => {
-      expect(() => new BlochSphere(5, input)).to.throw(errorMessages[i]);
+      expect(() => new BlochSphere(5, input)).toThrow(errorMessages[i]);
     });
   });
 
@@ -238,7 +238,7 @@ describe('BlochSphere (with invalid custom constructor values)', () => {
     ];
 
     inputs.forEach((input, i) => {
-      expect(() => new BlochSphere(5, 0, input)).to.throw(errorMessages[i]);
+      expect(() => new BlochSphere(5, 0, input)).toThrow(errorMessages[i]);
     });
   });
 });

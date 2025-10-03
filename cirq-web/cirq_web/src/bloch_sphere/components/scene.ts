@@ -14,7 +14,7 @@
 // limitations under the License.
 
 import {Scene, PerspectiveCamera, WebGLRenderer, Camera} from 'three';
-import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
+import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 
 export class BlochSphereScene extends Scene {
   private static readonly VIZ_WIDTH: number = 500;

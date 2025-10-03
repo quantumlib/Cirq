@@ -14,7 +14,7 @@
 
 import {GridCircuit} from './grid_circuit';
 import {Symbol3D, SymbolInformation} from './components/types';
-import {expect} from 'chai';
+import {expect} from 'vitest';
 
 describe('GridCircuit', () => {
   describe('with an empty input and no moments', () => {
@@ -24,7 +24,7 @@ describe('GridCircuit', () => {
     const circuit = new GridCircuit(moments, symbols);
 
     it('does not create any GridQubit objects', () => {
-      expect(circuit.children.length).to.equal(0);
+      expect(circuit.children.length).toBe(0);
     });
   });
 
@@ -78,7 +78,7 @@ describe('GridCircuit', () => {
       const symbol = qubit.children.find(
         child => child.constructor.name === 'Symbol3D',
       ) as Symbol3D;
-      expect(symbol.moment).to.equal(1);
+      expect(symbol.moment).toBe(1);
     });
 
     it('correctly handles gates overlapping on the same qubit', () => {
@@ -88,16 +88,16 @@ describe('GridCircuit', () => {
       const symbol = qubit.children.filter(
         child => child.constructor.name === 'Symbol3D',
       ) as Symbol3D[];
-      expect(symbol[0].moment).to.equal(1);
-      expect(symbol[1].moment).to.equal(2);
+      expect(symbol[0].moment).toBe(1);
+      expect(symbol[1].moment).toBe(2);
     });
 
     it('throws an error if given a valid symbol at the wrong moments', () => {
-      expect(() => new GridCircuit(moments, [symbols[3]])).to.throw(
+      expect(() => new GridCircuit(moments, [symbols[3]])).toThrow(
         `The SymbolInformation object ${symbols[3]} has an invalid moment 3`,
       );
 
-      expect(() => new GridCircuit(moments, [symbols[4]])).to.throw(
+      expect(() => new GridCircuit(moments, [symbols[4]])).toThrow(
         `The SymbolInformation object ${symbols[4]} has an invalid moment -1`,
       );
     });
@@ -106,7 +106,7 @@ describe('GridCircuit', () => {
       const circuit = new GridCircuit(moments, [symbols[0], symbols[1], symbols[5]]);
 
       const qubits = circuit.children;
-      expect(qubits.length).to.equal(3);
+      expect(qubits.length).toBe(3);
     });
   });
 });
