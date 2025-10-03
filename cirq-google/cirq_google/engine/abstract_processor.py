@@ -180,17 +180,8 @@ class AbstractProcessor(abc.ABC):
     run_sweep = duet.sync(run_sweep_async)
 
     @abc.abstractmethod
-    def get_sampler(self, run_name: str = "", device_config_name: str = "") -> cg.ProcessorSampler:
-        """Returns a sampler backed by the processor.
-
-        Args:
-            run_name: A unique identifier representing an automation run for the
-                processor. An Automation Run contains a collection of device
-                configurations for the processor.
-            device_config_name: An identifier used to select the processor configuration
-                utilized to run the job. A configuration identifies the set of
-                available qubits, couplers, and supported gates in the processor.
-        """
+    def get_sampler(self) -> cg.ProcessorSampler:
+        """Returns a sampler backed by the processor."""
 
     @abc.abstractmethod
     def engine(self) -> abstract_engine.AbstractEngine | None:
