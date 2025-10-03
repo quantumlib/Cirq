@@ -529,7 +529,7 @@ class Operation(metaclass=abc.ABCMeta):
         return protocols.qid_shape(self.qubits)
 
     def __pow__(self, exponent: Any) -> Operation:
-        return NotImplemented
+        return NotImplemented  # pragma: no cover
 
     @abc.abstractmethod
     def with_qubits(self, *new_qubits: cirq.Qid) -> cirq.Operation:
