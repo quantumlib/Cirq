@@ -32,7 +32,7 @@ import cirq_google as cg
 from cirq_google.api import v1, v2
 from cirq_google.cloud import quantum
 from cirq_google.engine import util
-from cirq_google.engine.engine import EngineContext
+from cirq_google.engine.engine import EngineContext, processor_config
 
 _CIRCUIT = cirq.Circuit(
     cirq.X(cirq.GridQubit(5, 2)) ** 0.5, cirq.measure(cirq.GridQubit(5, 2), key='result')
@@ -1001,7 +1001,7 @@ def test_get_processor_config_from_snapshot_none(get_quantum_config_async):
 @mock.patch(
     'cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_from_run_async'
 )
-def test_get_processor_config_from_run_nine(get_quantum_config_async):
+def test_get_processor_config_from_run_none(get_quantum_config_async):
     project_id = "test_project_id"
     processor_id = "test_processor_id"
     config_name = "test_config_name"
@@ -1014,3 +1014,116 @@ def test_get_processor_config_from_run_nine(get_quantum_config_async):
     )
 
     assert result is None
+
+
+@mock.patch(
+    'cirq_google.engine.engine_client.EngineClient.list_quantum_processor_configs_from_run_async'
+)
+def test_list_configs_from_run(list_configs_async):
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    run_name = "test_run_name"
+    snapshot_id = 'test_snapshot_id'
+    response_parent_resource = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configSnapshots/{snapshot_id}'
+    )
+    returned_configs = [
+        quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_1'),
+        quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_2'),
+    ]
+
+    list_configs_async.return_value = returned_configs
+
+    results = cg.Engine(project_id=project_id).list_configs_from_run(
+        processor_id=processor_id, run_name=run_name
+    )
+
+    list_configs_async.assert_called_once_with(
+        project_id=project_id,
+        processor_id=processor_id,
+        run_name=run_name
+    )
+    assert [
+        (config.config_name, config.processor_id, config.run_name, config.snapshot_id)
+        for config in results
+    ] == [
+        ('test_config_1', processor_id, run_name, snapshot_id),
+        ('test_config_2', processor_id, run_name, snapshot_id)
+    ]
+
+
+@mock.patch(
+    'cirq_google.engine.engine_client.EngineClient.list_quantum_processor_configs_from_run_async'
+)
+def test_list_configs_from_run_default(list_configs_async):
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    default_run_name = "default"
+    snapshot_id = "test_snapshot_id"
+    response_parent_resource = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configSnapshots/{snapshot_id}'
+    )
+    returned_configs = [
+        quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_1'),
+        quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_2'),
+    ]
+
+    list_configs_async.return_value = returned_configs
+
+    results = cg.Engine(project_id=project_id).list_configs_from_run(
+        processor_id=processor_id
+    )
+
+    list_configs_async.assert_called_once_with(
+        project_id=project_id,
+        processor_id=processor_id,
+        run_name=default_run_name
+    )
+    assert [
+        (config.config_name, config.processor_id, config.run_name, config.snapshot_id)
+        for config in results
+    ] == [
+        ('test_config_1', processor_id, default_run_name, snapshot_id),
+        ('test_config_2', processor_id, default_run_name, snapshot_id)
+    ]
+
+@mock.patch(
+    'cirq_google.engine.engine_client.EngineClient.list_quantum_processor_configs_from_snapshot_async'
+)
+def test_list_configs_from_snapshot(list_configs_async):
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    snapshot_id = "test_snapshot_id"
+    response_parent_resource = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configSnapshots/{snapshot_id}'
+    )
+    returned_configs = [
+        quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_1'),
+        quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_2'),
+    ]
+
+    list_configs_async.return_value = returned_configs
+
+    results = cg.Engine(project_id=project_id).list_configs_from_snapshot(
+        processor_id=processor_id, snapshot_id=snapshot_id
+    )
+
+    list_configs_async.assert_called_once_with(
+        project_id=project_id,
+        processor_id=processor_id,
+        snapshot_id=snapshot_id
+    )
+    assert [
+        (config.config_name, config.processor_id, config.run_name, config.snapshot_id)
+        for config in results
+    ] == [
+        ('test_config_1', processor_id, '', snapshot_id),
+        ('test_config_2', processor_id, '', snapshot_id)
+    ]
+
