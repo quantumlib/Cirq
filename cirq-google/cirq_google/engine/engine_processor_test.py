@@ -750,6 +750,8 @@ def test_get_schedule_filter_by_time_slot(list_time_slots):
     )
 
 
+
+
 def _allow_deprecated_freezegun(func):
     # a local hack, as freeze_time walks through all the sys.modules, and retrieves all the
     # attributes for all modules when it reaches deprecated module attributes, we throw an error
@@ -1244,3 +1246,113 @@ def test_get_current_config_from_run_not_found(client):
         project_id=project_id, processor_id=processor_id, run_name=run_name, config_name=config_name
     )
     assert result is None
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_get_list_configs_from_run(client):
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    run_name = "test_run_name"
+    snapshot_id = 'test_snapshot_id'
+    response_parent_resource = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configSnapshots/{snapshot_id}'
+    )
+    expected_configs = [
+        quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_1'),
+        quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_2'),
+    ]
+
+    list_configs_fom_run_mock = client().list_quantum_processor_configs_from_run_async
+    list_configs_fom_run_mock.return_value = expected_configs
+
+    processor = cg.EngineProcessor(
+        project_id=project_id, processor_id=processor_id, context=EngineContext()
+    )
+    results = processor.list_configs_from_run(run_name=run_name)
+
+    list_configs_fom_run_mock.assert_called_once_with(
+        project_id=project_id,
+        processor_id=processor_id,
+        run_name=run_name
+    )
+    assert [
+        (config.config_name, config.processor_id, config.run_name, config.snapshot_id)
+        for config in results
+    ] == [
+        ('test_config_1', processor_id, run_name, snapshot_id),
+        ('test_config_2', processor_id, run_name, snapshot_id)
+    ]
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_get_list_configs_from_run_default(client):
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    default_run_name = "default"
+    snapshot_id = 'test_snapshot_id'
+    response_parent_resource = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configSnapshots/{snapshot_id}'
+    )
+    expected_configs = [
+        quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_1'),
+        quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_2'),
+    ]
+
+    list_configs_fom_run_mock = client().list_quantum_processor_configs_from_run_async
+    list_configs_fom_run_mock.return_value = expected_configs
+
+    processor = cg.EngineProcessor(
+        project_id=project_id, processor_id=processor_id, context=EngineContext()
+    )
+    results = processor.list_configs_from_run()
+
+    list_configs_fom_run_mock.assert_called_once_with(
+        project_id=project_id,
+        processor_id=processor_id,
+        run_name=default_run_name
+    )
+    assert [
+        (config.config_name, config.processor_id, config.run_name, config.snapshot_id)
+        for config in results
+    ] == [
+        ('test_config_1', processor_id, default_run_name, snapshot_id),
+        ('test_config_2', processor_id, default_run_name, snapshot_id)
+    ]
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_get_list_configs_from_snapshot(client):
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    snapshot_id = 'test_snapshot_id'
+    response_parent_resource = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configSnapshots/{snapshot_id}'
+    )
+    expected_configs = [
+        quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_1'),
+        quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_2'),
+    ]
+
+    list_configs_fom_run_mock = client().list_quantum_processor_configs_from_snapshot_async
+    list_configs_fom_run_mock.return_value = expected_configs
+
+    processor = cg.EngineProcessor(
+        project_id=project_id, processor_id=processor_id, context=EngineContext()
+    )
+    results = processor.list_configs_from_snapshot(snapshot_id=snapshot_id)
+
+    list_configs_fom_run_mock.assert_called_once_with(
+        project_id=project_id,
+        processor_id=processor_id,
+        snapshot_id=snapshot_id
+    )
+    assert [
+        (config.config_name, config.processor_id, config.run_name, config.snapshot_id)
+        for config in results
+    ] == [
+        ('test_config_1', processor_id, '', snapshot_id),
+        ('test_config_2', processor_id, '', snapshot_id)
+    ]

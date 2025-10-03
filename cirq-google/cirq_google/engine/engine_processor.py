@@ -543,6 +543,40 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         return self.engine().get_processor_config_from_snapshot(
             processor_id=self.processor_id, snapshot_id=snapshot_id, config_name=config_name
         )
+    
+    def list_configs_from_snapshot(
+            self, snapshot_id: str
+    ) -> list[processor_config.ProcessorConfig]:
+        """Returns list of ProcessorConfigs from the given snapshot.
+
+        Args:
+           processor_id: The processor unique identifier.
+           snapshot_id: The unique identifier for the snapshot.
+
+        Returns:
+           The ProcessorConfig from this project and processor.
+        """
+        return self.engine().list_configs_from_snapshot(
+            processor_id=self.processor_id, snapshot_id=snapshot_id
+        )
+    
+    def list_configs_from_run(
+            self, run_name: str = 'default'
+    ) -> list[processor_config.ProcessorConfig]:
+        """Returns list of ProcessorConfigs from an automation run.
+
+        If no run_name is specified, `default` is used.
+
+        Args:
+            processor_id: The processor unique identifier.
+            run_name: The unique identifier for the automation run.
+
+        Returns:
+            List of ProcessorConfigs.
+        """
+        return self.engine().list_configs_from_run(
+            processor_id=self.processor_id, run_name=run_name
+        )
 
     def __str__(self):
         return (

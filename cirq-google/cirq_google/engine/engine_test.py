@@ -1029,12 +1029,12 @@ def test_list_configs_from_run(list_configs_async):
         f'processors/{processor_id}/'
         f'configSnapshots/{snapshot_id}'
     )
-    returned_configs = [
+    expected_configs = [
         quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_1'),
         quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_2'),
     ]
 
-    list_configs_async.return_value = returned_configs
+    list_configs_async.return_value = expected_configs
 
     results = cg.Engine(project_id=project_id).list_configs_from_run(
         processor_id=processor_id, run_name=run_name
@@ -1067,12 +1067,12 @@ def test_list_configs_from_run_default(list_configs_async):
         f'processors/{processor_id}/'
         f'configSnapshots/{snapshot_id}'
     )
-    returned_configs = [
+    expected_configs = [
         quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_1'),
         quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_2'),
     ]
 
-    list_configs_async.return_value = returned_configs
+    list_configs_async.return_value = expected_configs
 
     results = cg.Engine(project_id=project_id).list_configs_from_run(
         processor_id=processor_id
@@ -1103,12 +1103,12 @@ def test_list_configs_from_snapshot(list_configs_async):
         f'processors/{processor_id}/'
         f'configSnapshots/{snapshot_id}'
     )
-    returned_configs = [
+    expected_configs = [
         quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_1'),
         quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_2'),
     ]
 
-    list_configs_async.return_value = returned_configs
+    list_configs_async.return_value = expected_configs
 
     results = cg.Engine(project_id=project_id).list_configs_from_snapshot(
         processor_id=processor_id, snapshot_id=snapshot_id
