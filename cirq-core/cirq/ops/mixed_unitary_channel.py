@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from functools import cached_property
 from typing import Any, Iterable, Mapping, TYPE_CHECKING
 
 import numpy as np
@@ -83,15 +84,11 @@ class MixedUnitaryChannel(raw_types.Gate):
     def _mixture_(self):
         return self._mixture
 
-    def _measurement_key_name_(self) -> str:
+    @cached_property
+    def measurement_keys(self) -> frozenset[cirq.MeasurementKey]:
         if self._key is None:
-            return NotImplemented
-        return str(self._key)
-
-    def _measurement_key_obj_(self) -> cirq.MeasurementKey:
-        if self._key is None:
-            return NotImplemented
-        return self._key
+            return frozenset()
+        return frozenset([self._key])
 
     def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
         if self._key is None:
