@@ -3,17 +3,17 @@ import {createCanvas} from 'canvas';
 /**
  * This is a workaround for the fact that canvas is not supported in jsdom,
  * which does not allow for calling methods like canvas.getContext(), which
- * is used in three.js components. 
- * 
+ * is used in three.js components.
+ *
  * We implement this working using a lightweight, test-only
  * polyfill (https://developer.mozilla.org/en-US/docs/Glossary/Polyfill).
  * Node-canvas is used as the backend drawing "surface", overriding
  * the <canvas> that we'd really like.
- * 
- * See a Github convesation about this
+ *
+ * See a Github conversation about this
  * https://github.com/vitest-dev/vitest/issues/274
- * 
- * Rather than relying on an external package and its dependencies, 
+ *
+ * Rather than relying on an external package and its dependencies,
  * we offer a simple implementation for our own use cases.
  */
 function installNodeCanvas2D(doc: Document | undefined | null) {
