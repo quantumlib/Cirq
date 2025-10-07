@@ -240,6 +240,7 @@ def test_apply_unitary_args_tensor_manipulation() -> None:
             op_indices, tuple(qid_shape[i] for i in op_indices)
         )
         sub_result = val._apply_unitary_(sub_args)
+        assert isinstance(sub_result, np.ndarray)
         result = _incorporate_result_into_target(args, sub_args, sub_result)
         np.testing.assert_allclose(result, expected, atol=1e-8)
 
@@ -258,6 +259,7 @@ def test_apply_unitary_args_tensor_manipulation() -> None:
             op_indices, tuple(qid_shape[i] for i in op_indices)
         )
         sub_result = val._apply_unitary_(sub_args)
+        assert isinstance(sub_result, np.ndarray)
         result = _incorporate_result_into_target(args, sub_args, sub_result)
         np.testing.assert_allclose(result, expected, atol=1e-8, verbose=True)
 
