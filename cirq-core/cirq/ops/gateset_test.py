@@ -329,9 +329,6 @@ def test_gateset_repr_and_str(g) -> None:
     ],
 )
 def test_gateset_contains(gate, result) -> None:
-    print(gateset._gate_families_with_tags)
-    for g in gateset.gates:
-        print(f"{g} {gate in g}")
     assert (gate in gateset) is result
     op = gate(*cirq.LineQubit.range(gate.num_qubits()))
     assert (op in gateset) is result
