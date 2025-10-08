@@ -26,4 +26,5 @@ thisdir=$(dirname "${BASH_SOURCE[0]:?}") || exit $?
 repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel) || exit $?
 cd "${repo_dir}" || exit $?
 
-check/npx webpack --mode production "$@"
+check/npx vite build --mode bloch_sphere "$@" || exit $?
+check/npx vite build --mode circuit "$@" || exit $?
