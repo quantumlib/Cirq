@@ -453,7 +453,10 @@ class Gateset:
         # Lastly, do a final exhaustive check to make sure this is not equivalent
         # to another type of gate. This will catch things like:
         # cirq.XPowGate(exponent=0) in cirq.GateFamily(cirq.I)
-        return any(item in gate_family for gate_family in self._gates)
+        return any(
+            item in gate_family
+            for gate_family in self._gates.difference(self._gate_families_with_tags)
+        )
 
     def validate(self, circuit_or_optree: cirq.AbstractCircuit | op_tree.OP_TREE) -> bool:
         """Validates gates forming `circuit_or_optree` should be contained in Gateset.
