@@ -29,11 +29,11 @@ if TYPE_CHECKING:
     import cirq
 
 
-def _is_integer(n):
+def _is_integer(n) -> bool:
     return np.isclose(n, np.round(n))
 
 
-def _is_swaplike(gate: cirq.Gate):
+def _is_swaplike(gate: cirq.Gate) -> bool:
     if isinstance(gate, ops.SwapPowGate):
         return gate.exponent == 1
 

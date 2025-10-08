@@ -400,7 +400,7 @@ jobs:
       - name: Set up Node environment
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
-          node-version: '20.17.0'
+          node-version: '22.16.0'
       - name: Install node dependencies
         run: check/npm ci
       - name: Check build matches the current
@@ -415,7 +415,7 @@ jobs:
       - name: Set up Node environment
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
-          node-version: '20.17.0'
+          node-version: '22.16.0'
       - name: Install node dependencies
         run: check/npm ci
       - name: Lint Typescript files
@@ -430,7 +430,7 @@ jobs:
       - name: Set up Node environment
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
-          node-version: '20.17.0'
+          node-version: '22.16.0'
       - name: Install node dependencies
         run: check/npm ci
       - name: Run unit tests
@@ -447,7 +447,7 @@ jobs:
       - name: Set up Node environment
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
-          node-version: '20.17.0'
+          node-version: '22.16.0'
       - name: Install node dependencies
         run: check/npm ci
       - name: Run coverage test

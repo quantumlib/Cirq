@@ -30,6 +30,7 @@ class Program(google.protobuf.message.Message):
     LANGUAGE_FIELD_NUMBER: builtins.int
     CIRCUIT_FIELD_NUMBER: builtins.int
     CONSTANTS_FIELD_NUMBER: builtins.int
+    KEYED_CIRCUITS_FIELD_NUMBER: builtins.int
     @property
     def language(self) -> global___Language:
         """The language in which the program is written."""
@@ -47,15 +48,24 @@ class Program(google.protobuf.message.Message):
         constants are referred to their index in this list, starting at zero.
         """
 
+    @property
+    def keyed_circuits(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___KeyedCircuit]:
+        """A batch of circuits organized by a set of parameters.  These
+        parameters should also be specified in the sweep as well.
+        This field can be used for efficient packing of circuit functions
+        that change based on parameters, or for batch sending of circuits.
+        """
+
     def __init__(
         self,
         *,
         language: global___Language | None = ...,
         circuit: global___Circuit | None = ...,
         constants: collections.abc.Iterable[global___Constant] | None = ...,
+        keyed_circuits: collections.abc.Iterable[global___KeyedCircuit] | None = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["circuit", b"circuit", "language", b"language", "program", b"program"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["circuit", b"circuit", "constants", b"constants", "language", b"language", "program", b"program"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["circuit", b"circuit", "constants", b"constants", "keyed_circuits", b"keyed_circuits", "language", b"language", "program", b"program"]) -> None: ...
     def WhichOneof(self, oneof_group: typing.Literal["program", b"program"]) -> typing.Literal["circuit"] | None: ...
 
 global___Program = Program
@@ -111,6 +121,67 @@ class Constant(google.protobuf.message.Message):
     def WhichOneof(self, oneof_group: typing.Literal["const_value", b"const_value"]) -> typing.Literal["string_value", "circuit_value", "qubit", "moment_value", "operation_value", "tag_value"] | None: ...
 
 global___Constant = Constant
+
+@typing.final
+class KeyedCircuit(google.protobuf.message.Message):
+    """A batch of circuits organized by a set of parameters.  These
+    parameters should also be specified in the sweep as well.
+    This field can be used for efficient packing of circuit functions
+    that change based on parameters, or for batch sending of circuits.
+    """
+
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    @typing.final
+    class ArgsEntry(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        KEY_FIELD_NUMBER: builtins.int
+        VALUE_FIELD_NUMBER: builtins.int
+        key: builtins.str
+        @property
+        def value(self) -> global___Arg: ...
+        def __init__(
+            self,
+            *,
+            key: builtins.str = ...,
+            value: global___Arg | None = ...,
+        ) -> None: ...
+        def HasField(self, field_name: typing.Literal["value", b"value"]) -> builtins.bool: ...
+        def ClearField(self, field_name: typing.Literal["key", b"key", "value", b"value"]) -> None: ...
+
+    ARGS_FIELD_NUMBER: builtins.int
+    CIRCUIT_FIELD_NUMBER: builtins.int
+    KEY_FIELD_NUMBER: builtins.int
+    key: builtins.str
+    """Optional key for program.
+    If provided, will be used as a key in a Mapping from string to Circuit.
+    """
+    @property
+    def args(self) -> google.protobuf.internal.containers.MessageMap[builtins.str, global___Arg]:
+        """Arguments for a cirq circuit which comes from run_context.
+        The key will be the name of the argument, and the value
+        will be the value passed into the function.
+        e.g. Arguments for a circuit function such as:
+        def circuit_fn(freq_GHz: float, num_cycles: int) -> Circuit
+        would have the two entries: "freq_GHz" and "num_cycles"
+        """
+
+    @property
+    def circuit(self) -> global___Circuit:
+        """The cirq circuit corresponding to the arguments args."""
+
+    def __init__(
+        self,
+        *,
+        args: collections.abc.Mapping[builtins.str, global___Arg] | None = ...,
+        circuit: global___Circuit | None = ...,
+        key: builtins.str = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing.Literal["circuit", b"circuit"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["args", b"args", "circuit", b"circuit", "key", b"key"]) -> None: ...
+
+global___KeyedCircuit = KeyedCircuit
 
 @typing.final
 class Circuit(google.protobuf.message.Message):

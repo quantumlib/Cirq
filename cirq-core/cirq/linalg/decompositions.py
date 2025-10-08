@@ -472,6 +472,9 @@ class KakDecomposition:
             f'    global_phase={self.global_phase!r})'
         )
 
+    def _has_unitary_(self) -> bool:
+        return True
+
     def _unitary_(self) -> np.ndarray:
         """Returns the decomposition's two-qubit unitary matrix.
 
