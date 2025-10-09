@@ -9,7 +9,7 @@ const common = {
     rollupOptions: {
       output: {
         inlineDynamicImports: true,
-        format: 'iife',
+        formats: ['iife'],
       },
     },
   },
