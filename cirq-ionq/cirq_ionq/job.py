@@ -249,7 +249,7 @@ class Job:
             job_id=self.job_id(), sharpen=sharpen, extra_query_params=extra_query_params
         )
 
-        # is this a batch run (dict‑of‑dicts) or a single circuit?
+        # is this a batch run (dict-of-dicts) or a single circuit?
         some_inner_value = next(iter(backend_results.values()))
         is_batch = isinstance(some_inner_value, dict)
         histograms = list(backend_results.values()) if is_batch else [backend_results]

@@ -301,19 +301,19 @@ def test_service_remote_host_from_env_var_cirq_ionq_precedence():
 
 def test_service_run_unwraps_single_result_list():
     """`Service.run` should unwrap `[result]` to `result`."""
-    # set up a real Service object (we'll monkey‑patch its create_job)
+    # set up a real Service object (we'll monkey-patch its create_job)
     service = ionq.Service(remote_host="http://example.com", api_key="key")
 
-    # simple 1‑qubit circuit
+    # simple 1-qubit circuit
     q = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.X(q), cirq.measure(q, key="m"))
 
     # fabricate a QPUResult and wrap it in a list to mimic an erroneous behavior
     qpu_result = ionq.QPUResult(counts={1: 1}, num_qubits=1, measurement_dict={"m": [0]})
     mock_job = mock.MagicMock()
-    mock_job.results.return_value = [qpu_result]  # <- list of length‑1
+    mock_job.results.return_value = [qpu_result]  # <- list of length-1
 
-    # monkey‑patch create_job so Service.run sees our mock_job
+    # monkey-patch create_job so Service.run sees our mock_job
     with mock.patch.object(service, "create_job", return_value=mock_job):
         out = service.run(circuit=circuit, repetitions=1, target="qpu")
 
@@ -328,7 +328,7 @@ def test_service_run_unwraps_single_result_list():
 def test_run_batch_preserves_order(target):
     """``Service.run_batch`` must return results in the same order as the
     input ``circuits`` list, regardless of how the IonQ API happens to order
-    its per‑circuit results.
+    its per-circuit results.
     """
 
     # Service with a fully mocked HTTP client.
@@ -336,7 +336,7 @@ def test_run_batch_preserves_order(target):
     client = mock.MagicMock()
     service._client = client
 
-    # Three trivial 1‑qubit circuits, each measuring under a unique key.
+    # Three trivial 1-qubit circuits, each measuring under a unique key.
     keys = ["a", "b", "c"]
     q = cirq.LineQubit(0)
     circuits = [cirq.Circuit(cirq.measure(q, key=k)) for k in keys]
@@ -346,7 +346,7 @@ def test_run_batch_preserves_order(target):
     client.get_job.return_value = {
         "id": "job_id",
         "status": "completed",
-        "target": target,
+        "backend": target,
         "qubits": "1",
         "metadata": {
             "shots": "1",
@@ -368,6 +368,6 @@ def test_run_batch_preserves_order(target):
     # circuit order exactly (a, b, c).
     assert [next(iter(r.measurements)) for r in results] == keys
 
-    # Smoke‑test on the mocked client usage.
+    # Smoke-test on the mocked client usage.
     client.create_job.assert_called_once()
     client.get_results.assert_called_once()
