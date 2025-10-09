@@ -115,15 +115,18 @@ return data from the IonQ API. They are of types `ionq.QPUResult` or
 `ionq.SimulatorResult`. If you wish to convert these into the
 `cirq.Result` format, you can use `to_cirq_result` on both of these.
 
-> **Note (result shape):** > `job.results()` now returns **either** a single `ionq.QPUResult`/`ionq.SimulatorResult` (for a single-circuit job) **or** a **list** of such results (for a batch job).
-> For batch jobs, the list order matches the order of the input circuits.
-> To write code that works with both shapes:
+> **Note - result shape of `Job.results()`:** For jobs created from a **single circuit**,  
+> `job.results()` returns a **single** `ionq.QPUResult` or `ionq.SimulatorResult`.  
+> For **batch** jobs, it returns a **list** of those results. To write code that
+> works with either shape:
 >
 > ```python
 > r = job.results()
 > results_list = r if isinstance(r, list) else [r]
-> cirq_results = [res.to_cirq_result() for res in results_list]
 > ```
+>
+> Each entry can be converted to a `cirq.Result` via `.to_cirq_result(...)`.
+> (`Service.run(...)` continues to return a single `cirq.Result`.)
 
 Another useful feature of working with jobs directly is that you can
 directly cancel or delete jobs. In particular, the `ionq.Job` object
