@@ -15,8 +15,7 @@
 
 from __future__ import annotations
 
-import itertools
-from typing import Optional, Sequence, TYPE_CHECKING, Union
+from typing import Sequence, TYPE_CHECKING, Union
 
 import cirq
 from cirq_ionq import results
@@ -109,7 +108,7 @@ class Sampler(cirq.Sampler):
             raw_results = [j.results() for j in jobs]
 
         # each element of `raw_results` might be a single result or a list
-        flattened_job_results: list[Union[results.QPUResult, results.SimulatorResult]] = []
+        flattened_job_results: list[results.QPUResult | results.SimulatorResult] = []
         for r in raw_results:
             flattened_job_results.extend(r if isinstance(r, list) else [r])
         cirq_results = []

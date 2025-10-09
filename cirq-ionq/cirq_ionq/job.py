@@ -18,7 +18,7 @@ from __future__ import annotations
 import json
 import time
 import warnings
-from typing import Dict, List, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Sequence, TYPE_CHECKING
 
 import cirq
 from cirq._doc import document
@@ -195,14 +195,14 @@ class Job:
         self,
         timeout_seconds: int = 7200,
         polling_seconds: int = 1,
-        sharpen: Optional[bool] = None,
-        extra_query_params: Optional[dict] = None,
-    ) -> Union[
-        results.QPUResult,
-        results.SimulatorResult,
-        List[results.QPUResult],
-        List[results.SimulatorResult],
-    ]:
+        sharpen: bool | None = None,
+        extra_query_params: dict | None = None,
+    ) -> (
+        results.QPUResult
+        | results.SimulatorResult
+        | list[results.QPUResult]
+        | list[results.SimulatorResult]
+    ):
         """Polls the IonQ api for results.
 
         Args:
