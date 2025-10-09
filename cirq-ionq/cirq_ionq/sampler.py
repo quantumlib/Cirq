@@ -89,8 +89,11 @@ class Sampler(cirq.Sampler):
             repetitions: The number of times to sample.
 
         Returns:
-            Either a single scalar or list of `cirq_ionq.QPUResult` or `cirq_ionq.SimulatorResult`
-            depending on whether the job or jobs ran on an actual quantum processor or a simulator.
+            A list of `cirq.Result` objects, one per parameter resolver in
+            `params`, converted from IonQ results.
+
+        Notes:
+            This method blocks until all jobs in the sweep complete.
         """
         resolvers = [r for r in cirq.to_resolvers(params)]
         jobs = [

@@ -213,9 +213,10 @@ class Job:
             extra_query_params: Specify any parameters to include in the request.
 
         Returns:
-            Either a list of `cirq_ionq.QPUResult` or a list of `cirq_ionq.SimulatorResult`
-            depending on whether the job was running on an actual quantum processor or a
-            simulator.
+            Either a single `cirq_ionq.QPUResult` / `cirq_ionq.SimulatorResult`
+            (for a single-circuit job) or a `list` of such results (for a
+            batch job). The list order for batch jobs corresponds to the
+            order of the input circuits.
 
         Raises:
             IonQUnsuccessfulJob: If the job has failed, been canceled, or deleted.
@@ -223,6 +224,16 @@ class Job:
             RuntimeError: If the job reported that it had failed on the server, or
                 the job had an unknown status.
             TimeoutError: If the job timed out at the server.
+
+        Notes:
+            * IonQ returns results in little endian; Cirq presents them in
+            big endian.
+            * If your code previously assumed a list, use:
+                r = job.results()
+                results_list = r if isinstance(r, list) else [r]
+            If your code previously assumed a single result, use:
+                r = job.results()
+                r0 = r[0] if isinstance(r, list) else r
         """
         time_waited_seconds = 0
         while time_waited_seconds < timeout_seconds:

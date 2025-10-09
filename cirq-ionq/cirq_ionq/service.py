@@ -143,7 +143,11 @@ class Service:
             extra_query_params: Specify any parameters to include in the request.
 
         Returns:
-            A `cirq.Result` for running the circuit.
+            A `cirq.Result` for the circuit.
+
+        Notes:
+            The IonQ backend may return a list of length 1 for single-circuit
+            jobs. Cirq unwraps that to a single result for `Service.run(...)`.
         """
         resolved_circuit = cirq.resolve_parameters(circuit, param_resolver)
         job_out = self.create_job(
@@ -222,7 +226,11 @@ class Service:
             extra_query_params: Specify any parameters to include in the request.
 
         Returns:
-            A a list of `cirq.Result` for running the circuit.
+            A list of `cirq.Result` objects, one per circuit.
+
+        Notes:
+            The output list preserves the order of the input `circuits`
+            argument, regardless of how the IonQ API orders per-circuit results.
         """
         resolved_circuits = []
         for circuit in circuits:
