@@ -1,4 +1,7 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
+from __future__ import annotations
+
 import cirq
 from cirq.contrib.acquaintance import SwapPermutationGate
 from cirq.contrib.bayesian_network import BayesianNetworkGate
@@ -7,14 +10,14 @@ from cirq.contrib.quantum_volume import QuantumVolumeResult
 from cirq.testing import assert_json_roundtrip_works
 
 
-def test_bayesian_network_gate():
+def test_bayesian_network_gate() -> None:
     gate = BayesianNetworkGate(
         init_probs=[('q0', 0.125), ('q1', None)], arc_probs=[('q1', ('q0',), [0.25, 0.5])]
     )
     assert_json_roundtrip_works(gate, resolvers=DEFAULT_CONTRIB_RESOLVERS)
 
 
-def test_quantum_volume():
+def test_quantum_volume() -> None:
     qubits = cirq.LineQubit.range(5)
     qvr = QuantumVolumeResult(
         model_circuit=cirq.Circuit(cirq.H.on_each(qubits)),
@@ -25,6 +28,6 @@ def test_quantum_volume():
     assert_json_roundtrip_works(qvr, resolvers=DEFAULT_CONTRIB_RESOLVERS)
 
 
-def test_swap_permutation_gate():
+def test_swap_permutation_gate() -> None:
     gate = SwapPermutationGate(swap_gate=cirq.SWAP)
     assert_json_roundtrip_works(gate, resolvers=DEFAULT_CONTRIB_RESOLVERS)

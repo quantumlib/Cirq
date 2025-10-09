@@ -18,18 +18,7 @@ from __future__ import annotations
 
 import cmath
 import math
-from typing import (
-    Any,
-    Callable,
-    cast,
-    Iterable,
-    List,
-    Optional,
-    Tuple,
-    TYPE_CHECKING,
-    TypeVar,
-    Union,
-)
+from typing import Any, Callable, cast, Iterable, TYPE_CHECKING, TypeVar
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -70,7 +59,7 @@ def _rotation_matrix(angle: float) -> np.ndarray:
     return np.array([[c, -s], [s, c]])
 
 
-def deconstruct_single_qubit_matrix_into_angles(mat: np.ndarray) -> Tuple[float, float, float]:
+def deconstruct_single_qubit_matrix_into_angles(mat: np.ndarray) -> tuple[float, float, float]:
     r"""Breaks down a 2x2 unitary into ZYZ angle parameters.
 
     Given a unitary U, this function returns three angles: $\phi_0, \phi_1, \phi_2$,
@@ -108,7 +97,7 @@ def deconstruct_single_qubit_matrix_into_angles(mat: np.ndarray) -> Tuple[float,
 
 def unitary_eig(
     matrix: np.ndarray, check_preconditions: bool = True, atol: float = 1e-8
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     r"""Gives the guaranteed unitary eigendecomposition of a normal matrix.
 
     All hermitian and unitary matrices are normal matrices. This method was
@@ -127,7 +116,7 @@ def unitary_eig(
             was unitary.
 
     Returns:
-        A Tuple of
+        A tuple of
             eigvals: The eigenvalues of `matrix`.
             V: The unitary matrix with the eigenvectors as columns.
 
@@ -141,7 +130,6 @@ def unitary_eig(
     return R.diagonal(), V
 
 
-# pylint: enable=missing-raises-doc
 def map_eigenvalues(
     matrix: np.ndarray, func: Callable[[complex], complex], *, atol: float = 1e-8
 ) -> np.ndarray:
@@ -169,7 +157,7 @@ def map_eigenvalues(
 
 def kron_factor_4x4_to_2x2s(
     matrix: np.ndarray, rtol=1e-5, atol=1e-8
-) -> Tuple[complex, np.ndarray, np.ndarray]:
+) -> tuple[complex, np.ndarray, np.ndarray]:
     """Splits a 4x4 matrix U = kron(A, B) into A, B, and a global factor.
 
     Requires the matrix to be the kronecker product of two 2x2 unitaries.
@@ -219,7 +207,7 @@ def kron_factor_4x4_to_2x2s(
 
 def so4_to_magic_su2s(
     mat: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8, check_preconditions: bool = True
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """Finds 2x2 special-unitaries A, B where mat = Mag.H @ kron(A, B) @ Mag.
 
     Mag is the magic basis matrix:
@@ -255,7 +243,7 @@ def so4_to_magic_su2s(
 
 @value.value_equality(approximate=True)
 class AxisAngleDecomposition:
-    """Represents a unitary operation as an axis, angle, and global phase.
+    r"""Represents a unitary operation as an axis, angle, and global phase.
 
     The unitary $U$ is decomposed as follows:
 
@@ -265,7 +253,7 @@ class AxisAngleDecomposition:
     rotation axis, and g is the global phase.
     """
 
-    def __init__(self, *, angle: float, axis: Tuple[float, float, float], global_phase: complex):
+    def __init__(self, *, angle: float, axis: tuple[float, float, float], global_phase: complex):
         if not np.isclose(np.linalg.norm(axis, 2), 1, atol=1e-8):
             raise ValueError('Axis vector must be normalized.')
         self.global_phase = complex(global_phase)
@@ -413,9 +401,9 @@ class KakDecomposition:
         self,
         *,
         global_phase: complex = complex(1),
-        single_qubit_operations_before: Optional[Tuple[np.ndarray, np.ndarray]] = None,
-        interaction_coefficients: Tuple[float, float, float],
-        single_qubit_operations_after: Optional[Tuple[np.ndarray, np.ndarray]] = None,
+        single_qubit_operations_before: tuple[np.ndarray, np.ndarray] | None = None,
+        interaction_coefficients: tuple[float, float, float],
+        single_qubit_operations_after: tuple[np.ndarray, np.ndarray] | None = None,
     ):
         """Initializes a decomposition for a two-qubit operation U.
 
@@ -428,12 +416,12 @@ class KakDecomposition:
             single_qubit_operations_after: a0, a1 from the above equation.
         """
         self.global_phase: complex = global_phase
-        self.single_qubit_operations_before: Tuple[np.ndarray, np.ndarray] = (
+        self.single_qubit_operations_before: tuple[np.ndarray, np.ndarray] = (
             single_qubit_operations_before
             or (np.eye(2, dtype=np.complex64), np.eye(2, dtype=np.complex64))
         )
         self.interaction_coefficients = interaction_coefficients
-        self.single_qubit_operations_after: Tuple[np.ndarray, np.ndarray] = (
+        self.single_qubit_operations_after: tuple[np.ndarray, np.ndarray] = (
             single_qubit_operations_after
             or (np.eye(2, dtype=np.complex64), np.eye(2, dtype=np.complex64))
         )
@@ -484,6 +472,9 @@ class KakDecomposition:
             f'    global_phase={self.global_phase!r})'
         )
 
+    def _has_unitary_(self) -> bool:
+        return True
+
     def _unitary_(self) -> np.ndarray:
         """Returns the decomposition's two-qubit unitary matrix.
 
@@ -525,12 +516,12 @@ class KakDecomposition:
 
 
 def scatter_plot_normalized_kak_interaction_coefficients(
-    interactions: Iterable[Union[np.ndarray, cirq.SupportsUnitary, KakDecomposition]],
+    interactions: Iterable[np.ndarray | cirq.SupportsUnitary | KakDecomposition],
     *,
     include_frame: bool = True,
-    ax: Optional[mplot3d.axes3d.Axes3D] = None,
+    ax: mplot3d.axes3d.Axes3D | None = None,
     **kwargs,
-):
+) -> mplot3d.axes3d.Axes3D:
     r"""Plots the interaction coefficients of many two-qubit operations.
 
     Plots:
@@ -610,8 +601,8 @@ def scatter_plot_normalized_kak_interaction_coefficients(
         ax = cast(mplot3d.axes3d.Axes3D, fig.add_subplot(1, 1, 1, projection='3d'))
 
     def coord_transform(
-        pts: Union[List[Tuple[int, int, int]], np.ndarray],
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        pts: list[tuple[int, int, int]] | np.ndarray,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         if len(pts) == 0:
             return np.array([]), np.array([]), np.array([])
         xs, ys, zs = np.transpose(pts)
@@ -637,7 +628,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
 
     # parse input and extract KAK vector
     if not isinstance(interactions, np.ndarray):
-        interactions_extracted: List[np.ndarray] = [
+        interactions_extracted: list[np.ndarray] = [
             a if isinstance(a, np.ndarray) else protocols.unitary(a) for a in interactions
         ]
     else:
@@ -786,9 +777,9 @@ KAK_GAMMA = np.array([[1, 1, 1, 1],
 
 
 def kak_decomposition(
-    unitary_object: Union[
-        np.ndarray, cirq.SupportsUnitary, cirq.Gate, cirq.Operation, KakDecomposition
-    ],
+    unitary_object: (
+        np.ndarray | cirq.SupportsUnitary | cirq.Gate | cirq.Operation | KakDecomposition
+    ),
     *,
     rtol: float = 1e-5,
     atol: float = 1e-8,
@@ -858,7 +849,7 @@ def kak_decomposition(
 
 
 def kak_vector(
-    unitary: Union[Iterable[np.ndarray], np.ndarray],
+    unitary: Iterable[np.ndarray] | np.ndarray,
     *,
     rtol: float = 1e-5,
     atol: float = 1e-8,

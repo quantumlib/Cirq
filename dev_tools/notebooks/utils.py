@@ -12,54 +12,53 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 
-import functools
-import glob
 import os
+import pathlib
 import re
 import subprocess
 import tempfile
 from logging import warning
-from typing import List, Set
+
+REPO_ROOT = pathlib.Path(__file__).parent.parent.parent
 
 
-def list_all_notebooks() -> Set[str]:
-    """Returns the relative paths to all notebooks in the git repo.
+def list_all_notebooks() -> list[str]:
+    """Returns sorted absolute paths to all notebooks in the git repo.
 
-    In case the folder is not a git repo, it returns an empty set.
+    In case the folder is not a git repo, it returns an empty list.
     """
     try:
-        output = subprocess.check_output(['git', 'ls-files', '*.ipynb'])
-        return set(output.decode('utf-8').splitlines())
+        output = subprocess.check_output(['git', 'ls-files', '*.ipynb'], cwd=REPO_ROOT, text=True)
+        return [str(REPO_ROOT.joinpath(f)) for f in output.splitlines()]
     except subprocess.CalledProcessError as ex:
         warning("It seems that tests are not running in a git repo, skipping notebook tests", ex)
-        return set()
+        return []
 
 
-def filter_notebooks(all_notebooks: Set[str], skip_list: List[str]):
+def filter_notebooks(all_notebooks: list[str], skip_list: list[str]) -> list[str]:
     """Returns the absolute path for notebooks except those that are skipped.
 
     Args:
-        all_notebooks: set of interesting relative notebook paths.
-        skip_list: list of glob patterns. Notebooks matching any of these glob
-            in `all_notebooks` will not be returned.
+        all_notebooks: list of interesting notebook paths.
+        skip_list: list of glob patterns defined with respect to the repository root.
+            Notebooks in `all_notebooks` matching any of these patterns will not be returned.
 
     Returns:
-        a sorted list of absolute paths to the notebooks that don't match any of
+        A sorted list of absolute paths to the notebooks that don't match any of
         the `skip_list` glob patterns.
     """
 
-    skipped_notebooks = functools.reduce(
-        lambda a, b: a.union(b), list(set(glob.glob(g, recursive=True)) for g in skip_list)
-    )
+    skipped_notebooks = set(str(f) for g in skip_list for f in REPO_ROOT.glob(g))
 
     # sorted is important otherwise pytest-xdist will complain that
     # the workers have different parametrization:
     # https://github.com/pytest-dev/pytest-xdist/issues/432
-    return sorted(os.path.abspath(n) for n in all_notebooks.difference(skipped_notebooks))
+    return sorted(set(map(os.path.abspath, all_notebooks)).difference(skipped_notebooks))
 
 
-def rewrite_notebook(notebook_path):
+def rewrite_notebook(notebook_path: str) -> str:
     """Rewrites a notebook given an extra file describing the replacements.
 
     This rewrites a notebook of a given path, by looking for a file corresponding to the given

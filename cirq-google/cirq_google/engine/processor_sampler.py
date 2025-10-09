@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Optional, Sequence, TYPE_CHECKING, Union
+from __future__ import annotations
+
+from typing import cast, Sequence, TYPE_CHECKING
 
 import duet
 
@@ -28,11 +30,11 @@ class ProcessorSampler(cirq.Sampler):
     def __init__(
         self,
         *,
-        processor: 'cg.engine.AbstractProcessor',
+        processor: cg.engine.AbstractProcessor,
         run_name: str = "",
         snapshot_id: str = "",
         device_config_name: str = "",
-        max_concurrent_jobs: int = 10,
+        max_concurrent_jobs: int = 100,
     ):
         """Inits ProcessorSampler.
 
@@ -67,8 +69,8 @@ class ProcessorSampler(cirq.Sampler):
         self._concurrent_job_limiter = duet.Limiter(max_concurrent_jobs)
 
     async def run_sweep_async(
-        self, program: 'cirq.AbstractCircuit', params: cirq.Sweepable, repetitions: int = 1
-    ) -> Sequence['cg.EngineResult']:
+        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+    ) -> Sequence[cg.EngineResult]:
         async with self._concurrent_job_limiter:
             job = await self._processor.run_sweep_async(
                 program=program,
@@ -86,9 +88,9 @@ class ProcessorSampler(cirq.Sampler):
     async def run_batch_async(
         self,
         programs: Sequence[cirq.AbstractCircuit],
-        params_list: Optional[Sequence[cirq.Sweepable]] = None,
-        repetitions: Union[int, Sequence[int]] = 1,
-    ) -> Sequence[Sequence['cg.EngineResult']]:
+        params_list: Sequence[cirq.Sweepable] | None = None,
+        repetitions: int | Sequence[int] = 1,
+    ) -> Sequence[Sequence[cg.EngineResult]]:
         return cast(
             Sequence[Sequence['cg.EngineResult']],
             await super().run_batch_async(programs, params_list, repetitions),
@@ -97,7 +99,7 @@ class ProcessorSampler(cirq.Sampler):
     run_batch = duet.sync(run_batch_async)
 
     @property
-    def processor(self) -> 'cg.engine.AbstractProcessor':
+    def processor(self) -> cg.engine.AbstractProcessor:
         return self._processor
 
     @property
@@ -111,3 +113,8 @@ class ProcessorSampler(cirq.Sampler):
     @property
     def device_config_name(self) -> str:
         return self._device_config_name
+
+    @property
+    def max_concurrent_jobs(self) -> int:
+        assert self._concurrent_job_limiter.capacity is not None
+        return self._concurrent_job_limiter.capacity

@@ -14,6 +14,8 @@
 
 """Tests for parameter resolvers."""
 
+from __future__ import annotations
+
 import fractions
 
 import numpy as np
@@ -39,7 +41,7 @@ import cirq
         fractions.Fraction(3, 2),
     ],
 )
-def test_value_of_pass_through_types(val):
+def test_value_of_pass_through_types(val) -> None:
     _assert_consistent_resolution(val, val)
 
 
@@ -47,12 +49,12 @@ def test_value_of_pass_through_types(val):
     'val,resolved',
     [(sympy.pi, np.pi), (sympy.S.NegativeOne, -1), (sympy.S.Half, 0.5), (sympy.S.One, 1)],
 )
-def test_value_of_transformed_types(val, resolved):
+def test_value_of_transformed_types(val, resolved) -> None:
     _assert_consistent_resolution(val, resolved)
 
 
 @pytest.mark.parametrize('val,resolved', [(sympy.I, 1j)])
-def test_value_of_substituted_types(val, resolved):
+def test_value_of_substituted_types(val, resolved) -> None:
     _assert_consistent_resolution(val, resolved)
 
 
@@ -112,11 +114,11 @@ def _assert_consistent_resolution(v, resolved):
     ), f"expected {type(resolved)} got {type(r.value_of(v))}"
 
 
-def test_value_of_strings():
+def test_value_of_strings() -> None:
     assert cirq.ParamResolver().value_of('x') == sympy.Symbol('x')
 
 
-def test_value_of_calculations():
+def test_value_of_calculations() -> None:
     assert not bool(cirq.ParamResolver())
 
     r = cirq.ParamResolver({'a': 0.5, 'b': 0.1, 'c': 1 + 1j})
@@ -129,34 +131,34 @@ def test_value_of_calculations():
     assert r.value_of(sympy.Symbol('b') / 0.1 - sympy.Symbol('a')) == 0.5
 
 
-def test_resolve_integer_division():
+def test_resolve_integer_division() -> None:
     r = cirq.ParamResolver({'a': 1, 'b': 2})
     resolved = r.value_of(sympy.Symbol('a') / sympy.Symbol('b'))
     assert resolved == 0.5
 
 
-def test_resolve_symbol_division():
+def test_resolve_symbol_division() -> None:
     B = sympy.Symbol('B')
     r = cirq.ParamResolver({'a': 1, 'b': B})
     resolved = r.value_of(sympy.Symbol('a') / sympy.Symbol('b'))
     assert resolved == sympy.core.power.Pow(B, -1)
 
 
-def test_param_dict():
+def test_param_dict() -> None:
     r = cirq.ParamResolver({'a': 0.5, 'b': 0.1})
     r2 = cirq.ParamResolver(r)
     assert r2 is r
     assert r.param_dict == {'a': 0.5, 'b': 0.1}
 
 
-def test_param_dict_iter():
+def test_param_dict_iter() -> None:
     r = cirq.ParamResolver({'a': 0.5, 'b': 0.1})
     assert [key for key in r] == ['a', 'b']
     assert [r.value_of(key) for key in r] == [0.5, 0.1]
     assert list(r) == ['a', 'b']
 
 
-def test_formulas_in_param_dict():
+def test_formulas_in_param_dict() -> None:
     """Tests that formula keys are rejected in a `param_dict`."""
     a = sympy.Symbol('a')
     b = sympy.Symbol('b')
@@ -166,7 +168,7 @@ def test_formulas_in_param_dict():
         _ = cirq.ParamResolver({a: b + 1, b: 2, b + c: 101, 'd': 2 * e})
 
 
-def test_recursive_evaluation():
+def test_recursive_evaluation() -> None:
     a = sympy.Symbol('a')
     b = sympy.Symbol('b')
     c = sympy.Symbol('c')
@@ -184,7 +186,7 @@ def test_recursive_evaluation():
     assert sympy.Eq(r.value_of(e), 0)
 
 
-def test_resolution_of_unknown_formulas():
+def test_resolution_of_unknown_formulas() -> None:
     a = sympy.Symbol('a')
     b = sympy.Symbol('b')
 
@@ -192,7 +194,7 @@ def test_resolution_of_unknown_formulas():
     assert r.value_of(sympy.sin(a), recursive=False) == sympy.sin(b - 2)
 
 
-def test_unbound_recursion_halted():
+def test_unbound_recursion_halted() -> None:
     a = sympy.Symbol('a')
     b = sympy.Symbol('b')
     c = sympy.Symbol('c')
@@ -223,14 +225,14 @@ def test_unbound_recursion_halted():
         _ = r.value_of(a)
 
 
-def test_resolve_unknown_type():
+def test_resolve_unknown_type() -> None:
     a = sympy.Symbol('a')
     b = sympy.Symbol('b')
     r = cirq.ParamResolver({a: b})
     assert r.value_of(cirq.X) == cirq.X
 
 
-def test_custom_resolved_value():
+def test_custom_resolved_value() -> None:
     class Foo:
         def _resolved_value_(self):
             return self
@@ -249,7 +251,7 @@ def test_custom_resolved_value():
     assert r.value_of(b) == 'Baz'
 
 
-def test_custom_value_not_implemented():
+def test_custom_value_not_implemented() -> None:
     class BarImplicit:
         pass
 
@@ -264,7 +266,7 @@ def test_custom_value_not_implemented():
         assert r.value_of(b) == b
 
 
-def test_compose():
+def test_compose() -> None:
     """Tests that cirq.resolve_parameters on a ParamResolver composes."""
     a = sympy.Symbol('a')
     b = sympy.Symbol('b')
@@ -301,7 +303,7 @@ def test_compose():
     ],
 )
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
-def test_compose_associative(p1, p2, p3, resolve_fn):
+def test_compose_associative(p1, p2, p3, resolve_fn) -> None:
     r1, r2, r3 = [
         cirq.ParamResolver(
             {sympy.Symbol(k): (sympy.Symbol(v) if isinstance(v, str) else v) for k, v in pd.items()}
@@ -313,7 +315,7 @@ def test_compose_associative(p1, p2, p3, resolve_fn):
     )
 
 
-def test_equals():
+def test_equals() -> None:
     et = cirq.testing.EqualsTester()
     et.add_equality_group(
         cirq.ParamResolver(),
@@ -329,7 +331,7 @@ def test_equals():
     et.add_equality_group(cirq.ParamResolver({'c': 0.1}))
 
 
-def test_repr():
+def test_repr() -> None:
     cirq.testing.assert_equivalent_repr(cirq.ParamResolver())
     cirq.testing.assert_equivalent_repr(cirq.ParamResolver({'a': 2.0}))
     cirq.testing.assert_equivalent_repr(cirq.ParamResolver({'a': sympy.Symbol('a')}))

@@ -32,13 +32,7 @@ requirements = open('requirements.txt').readlines()
 requirements = [r.strip() for r in requirements]
 requirements += [f'cirq-core=={__version__}']
 
-# Gather all packages from cirq_web, and the dist/ folder from cirq_ts
-# which contains all of the bundle files
-packs = (
-    ['cirq_web']
-    + ['cirq_web.' + package for package in find_packages(where='cirq_web')]
-    + ['cirq_ts']
-)
+packs = ['cirq_web'] + ['cirq_web.' + package for package in find_packages(where='cirq_web')]
 
 setup(
     name=name,
@@ -48,25 +42,23 @@ setup(
     author_email='cirq-dev@googlegroups.com',
     maintainer="Google Quantum AI open-source maintainers",
     maintainer_email="quantum-oss-maintainers@google.com",
-    python_requires='>=3.10.0',
+    python_requires='>=3.11.0',
     install_requires=requirements,
-    license='Apache 2',
+    license='Apache-2.0',
     description=description,
     long_description=long_description,
     long_description_content_type='text/markdown',
     packages=packs,
-    package_data={'cirq_web': ['dist/*'], 'cirq_ts': ['dist/*.bundle.js']},
+    package_data={'cirq_web': ['dist/*.bundle.js']},
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "Intended Audience :: Education",
         "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: Apache Software License",
         "Operating System :: MacOS :: MacOS X",
         "Operating System :: Microsoft :: Windows",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",

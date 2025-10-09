@@ -94,17 +94,3 @@ landing_page:
     - heading: Pasqal sampler
       description: Sampler objects to run on Pasqal hardware.
       path: /cirq/hardware/pasqal/sampler
-
-  - heading: Rigetti hardware
-    description: >-
-      Cirq's interface with Rigetti hardware. (Note: this module was
-      deprecated in Cirq version 1.5.)
-    options:
-    - cards
-    items:
-    - heading: Access and authentication
-      description: How to gain access.
-      path: /cirq/hardware/rigetti/access
-    - heading: Getting started with Rigetti hardware
-      description: How to run your first circuit.
-      path: /cirq/hardware/rigetti/getting_started

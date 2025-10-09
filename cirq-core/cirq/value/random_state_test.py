@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 
 import cirq
 
 
-def test_parse_random_state():
+def test_parse_random_state() -> None:
     global_state = np.random.get_state()
 
     def rand(prng):
@@ -34,11 +36,11 @@ def test_parse_random_state():
     eq.add_equality_group(*vals)
 
     seed = np.random.randint(2**31)
-    prngs = [
+    prngs1 = [
         np.random.RandomState(seed),
         cirq.value.parse_random_state(np.random.RandomState(seed)),
         cirq.value.parse_random_state(seed),
     ]
-    vals = [prng.rand() for prng in prngs]
+    vals = [prng.rand() for prng in prngs1]
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(*vals)

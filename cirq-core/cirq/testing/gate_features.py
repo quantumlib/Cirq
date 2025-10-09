@@ -14,6 +14,8 @@
 
 """Simple gates used for testing purposes."""
 
+from __future__ import annotations
+
 from cirq.ops import raw_types
 
 

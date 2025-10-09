@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
 
 import numpy as np
@@ -20,14 +22,14 @@ import pytest
 import cirq
 
 
-def test_equals():
+def test_equals() -> None:
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.X, cirq.ops.pauli_gates.X, cirq.XPowGate())
     eq.add_equality_group(cirq.Y, cirq.ops.pauli_gates.Y, cirq.YPowGate())
     eq.add_equality_group(cirq.Z, cirq.ops.pauli_gates.Z, cirq.ZPowGate())
 
 
-def test_phased_pauli_product():
+def test_phased_pauli_product() -> None:
     assert cirq.X.phased_pauli_product(cirq.I) == (1, cirq.X)
     assert cirq.X.phased_pauli_product(cirq.X) == (1, cirq.I)
     assert cirq.X.phased_pauli_product(cirq.Y) == (1j, cirq.Z)
@@ -44,7 +46,7 @@ def test_phased_pauli_product():
     assert cirq.Z.phased_pauli_product(cirq.Z) == (1, cirq.I)
 
 
-def test_isinstance():
+def test_isinstance() -> None:
     assert isinstance(cirq.X, cirq.XPowGate)
     assert isinstance(cirq.Y, cirq.YPowGate)
     assert isinstance(cirq.Z, cirq.ZPowGate)
@@ -59,14 +61,14 @@ def test_isinstance():
     assert not isinstance(cirq.Z, cirq.YPowGate)
 
 
-def test_by_index():
+def test_by_index() -> None:
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.X, *[cirq.Pauli.by_index(i) for i in (-3, 0, 3, 6)])
     eq.add_equality_group(cirq.Y, *[cirq.Pauli.by_index(i) for i in (-2, 1, 4, 7)])
     eq.add_equality_group(cirq.Z, *[cirq.Pauli.by_index(i) for i in (-1, 2, 5, 8)])
 
 
-def test_relative_index():
+def test_relative_index() -> None:
     assert cirq.X.relative_index(cirq.X) == 0
     assert cirq.X.relative_index(cirq.Y) == -1
     assert cirq.X.relative_index(cirq.Z) == 1
@@ -78,7 +80,7 @@ def test_relative_index():
     assert cirq.Z.relative_index(cirq.Z) == 0
 
 
-def test_by_relative_index():
+def test_by_relative_index() -> None:
     assert cirq.Pauli.by_relative_index(cirq.X, -1) == cirq.Z
     assert cirq.Pauli.by_relative_index(cirq.X, 0) == cirq.X
     assert cirq.Pauli.by_relative_index(cirq.X, 1) == cirq.Y
@@ -96,7 +98,7 @@ def test_by_relative_index():
     assert cirq.Pauli.by_relative_index(cirq.Z, 3) == cirq.Z
 
 
-def test_too_many_qubits():
+def test_too_many_qubits() -> None:
     a, b = cirq.LineQubit.range(2)
     with pytest.raises(ValueError, match='single qubit'):
         _ = cirq.X.on(a, b)
@@ -106,14 +108,14 @@ def test_too_many_qubits():
         _ = x.with_qubits(a, b)
 
 
-def test_relative_index_consistency():
+def test_relative_index_consistency() -> None:
     for pauli_1 in (cirq.X, cirq.Y, cirq.Z):
         for pauli_2 in (cirq.X, cirq.Y, cirq.Z):
             shift = pauli_2.relative_index(pauli_1)
             assert cirq.Pauli.by_relative_index(pauli_1, shift) == pauli_2
 
 
-def test_gt():
+def test_gt() -> None:
     assert not cirq.X > cirq.X
     assert not cirq.X > cirq.Y
     assert cirq.X > cirq.Z
@@ -125,12 +127,12 @@ def test_gt():
     assert not cirq.Z > cirq.Z
 
 
-def test_gt_other_type():
+def test_gt_other_type() -> None:
     with pytest.raises(TypeError):
         _ = cirq.X > object()
 
 
-def test_lt():
+def test_lt() -> None:
     assert not cirq.X < cirq.X
     assert cirq.X < cirq.Y
     assert not cirq.X < cirq.Z
@@ -142,24 +144,24 @@ def test_lt():
     assert not cirq.Z < cirq.Z
 
 
-def test_lt_other_type():
+def test_lt_other_type() -> None:
     with pytest.raises(TypeError):
         _ = cirq.X < object()
 
 
-def test_str():
+def test_str() -> None:
     assert str(cirq.X) == 'X'
     assert str(cirq.Y) == 'Y'
     assert str(cirq.Z) == 'Z'
 
 
-def test_repr():
+def test_repr() -> None:
     assert repr(cirq.X) == 'cirq.X'
     assert repr(cirq.Y) == 'cirq.Y'
     assert repr(cirq.Z) == 'cirq.Z'
 
 
-def test_third():
+def test_third() -> None:
     assert cirq.X.third(cirq.Y) == cirq.Z
     assert cirq.Y.third(cirq.X) == cirq.Z
     assert cirq.Y.third(cirq.Z) == cirq.X
@@ -172,7 +174,7 @@ def test_third():
     assert cirq.Z.third(cirq.Z) == cirq.Z
 
 
-def test_commutes():
+def test_commutes() -> None:
     for A, B in itertools.product([cirq.X, cirq.Y, cirq.Z], repeat=2):
         assert cirq.commutes(A, B) == (A == B)
     with pytest.raises(TypeError):
@@ -181,19 +183,19 @@ def test_commutes():
     assert cirq.commutes(cirq.Z, cirq.read_json(json_text=cirq.to_json(cirq.Z)))
 
 
-def test_unitary():
+def test_unitary() -> None:
     np.testing.assert_equal(cirq.unitary(cirq.X), cirq.unitary(cirq.X))
     np.testing.assert_equal(cirq.unitary(cirq.Y), cirq.unitary(cirq.Y))
     np.testing.assert_equal(cirq.unitary(cirq.Z), cirq.unitary(cirq.Z))
 
 
-def test_apply_unitary():
+def test_apply_unitary() -> None:
     cirq.testing.assert_has_consistent_apply_unitary(cirq.X)
     cirq.testing.assert_has_consistent_apply_unitary(cirq.Y)
     cirq.testing.assert_has_consistent_apply_unitary(cirq.Z)
 
 
-def test_identity_multiplication():
+def test_identity_multiplication() -> None:
     a, b, c = cirq.LineQubit.range(3)
     assert cirq.X(a) * cirq.I(a) == cirq.X(a)
     assert cirq.X(a) * cirq.I(b) == cirq.X(a)
@@ -207,7 +209,7 @@ def test_identity_multiplication():
         _ = cirq.I(a) * str(cirq.Y(b))
 
 
-def test_powers():
+def test_powers() -> None:
     assert isinstance(cirq.X, cirq.Pauli)
     assert isinstance(cirq.Y, cirq.Pauli)
     assert isinstance(cirq.Z, cirq.Pauli)
@@ -221,3 +223,10 @@ def test_powers():
     assert isinstance(cirq.X**1, cirq.Pauli)
     assert isinstance(cirq.Y**1, cirq.Pauli)
     assert isinstance(cirq.Z**1, cirq.Pauli)
+
+    with pytest.raises(TypeError, match="Gate exponent must be a number or sympy expression."):
+        assert cirq.X ** 'text'
+    with pytest.raises(TypeError, match="Gate exponent must be a number or sympy expression."):
+        assert cirq.Y ** 'text'
+    with pytest.raises(TypeError, match="Gate exponent must be a number or sympy expression."):
+        assert cirq.Z ** 'text'

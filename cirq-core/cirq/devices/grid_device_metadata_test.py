@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Tests for GridDevicemetadata."""
+
+from __future__ import annotations
 
 import networkx as nx
 import pytest
@@ -19,15 +22,15 @@ import pytest
 import cirq
 
 
-def test_griddevice_metadata():
+def test_griddevice_metadata() -> None:
     qubits = cirq.GridQubit.rect(2, 3)
     qubit_pairs = [(a, b) for a in qubits for b in qubits if a != b and a.is_adjacent(b)]
     isolated_qubits = [cirq.GridQubit(9, 9), cirq.GridQubit(10, 10)]
     gateset = cirq.Gateset(cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate, cirq.CZ)
     gate_durations = {
-        cirq.GateFamily(cirq.XPowGate): 1_000,
-        cirq.GateFamily(cirq.YPowGate): 1_000,
-        cirq.GateFamily(cirq.ZPowGate): 1_000,
+        cirq.GateFamily(cirq.XPowGate): cirq.Duration(nanos=10),
+        cirq.GateFamily(cirq.YPowGate): cirq.Duration(nanos=10),
+        cirq.GateFamily(cirq.ZPowGate): cirq.Duration(nanos=10),
         # omitting cirq.CZ
     }
     target_gatesets = (cirq.CZTargetGateset(),)
@@ -62,8 +65,8 @@ def test_griddevice_metadata():
     assert metadata.compilation_target_gatesets == target_gatesets
 
 
-def test_griddevice_metadata_bad_durations():
-    qubits = tuple(cirq.GridQubit.rect(1, 2))
+def test_griddevice_metadata_bad_durations() -> None:
+    qubits: tuple[cirq.GridQubit, cirq.GridQubit] = (cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))
 
     gateset = cirq.Gateset(cirq.XPowGate, cirq.YPowGate)
     invalid_duration = {
@@ -74,7 +77,7 @@ def test_griddevice_metadata_bad_durations():
         cirq.GridDeviceMetadata([qubits], gateset, gate_durations=invalid_duration)
 
 
-def test_griddevice_metadata_bad_isolated():
+def test_griddevice_metadata_bad_isolated() -> None:
     qubits = cirq.GridQubit.rect(2, 3)
     qubit_pairs = [(a, b) for a in qubits for b in qubits if a != b and a.is_adjacent(b)]
     fewer_qubits = [cirq.GridQubit(0, 0)]
@@ -83,7 +86,7 @@ def test_griddevice_metadata_bad_isolated():
         _ = cirq.GridDeviceMetadata(qubit_pairs, gateset, all_qubits=fewer_qubits)
 
 
-def test_griddevice_self_loop():
+def test_griddevice_self_loop() -> None:
     bad_pairs = [
         (cirq.GridQubit(0, 0), cirq.GridQubit(0, 0)),
         (cirq.GridQubit(1, 0), cirq.GridQubit(1, 1)),
@@ -92,7 +95,7 @@ def test_griddevice_self_loop():
         _ = cirq.GridDeviceMetadata(bad_pairs, cirq.Gateset(cirq.XPowGate))
 
 
-def test_griddevice_json_load():
+def test_griddevice_json_load() -> None:
     qubits = cirq.GridQubit.rect(2, 3)
     qubit_pairs = [(a, b) for a in qubits for b in qubits if a != b and a.is_adjacent(b)]
     gateset = cirq.Gateset(cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate, cirq.CZ)
@@ -115,7 +118,7 @@ def test_griddevice_json_load():
     assert metadata == cirq.read_json(json_text=rep_str)
 
 
-def test_griddevice_json_load_with_defaults():
+def test_griddevice_json_load_with_defaults() -> None:
     qubits = cirq.GridQubit.rect(2, 3)
     qubit_pairs = [(a, b) for a in qubits for b in qubits if a != b and a.is_adjacent(b)]
     gateset = cirq.Gateset(cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate, cirq.CZ)
@@ -127,7 +130,7 @@ def test_griddevice_json_load_with_defaults():
     assert metadata == cirq.read_json(json_text=rep_str)
 
 
-def test_griddevice_metadata_equality():
+def test_griddevice_metadata_equality() -> None:
     qubits = cirq.GridQubit.rect(2, 3)
     qubit_pairs = [(a, b) for a in qubits for b in qubits if a != b and a.is_adjacent(b)]
     gateset = cirq.Gateset(cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate, cirq.CZ, cirq.SQRT_ISWAP)
@@ -179,7 +182,7 @@ def test_griddevice_metadata_equality():
     assert metadata == metadata5
 
 
-def test_repr():
+def test_repr() -> None:
     qubits = cirq.GridQubit.rect(2, 3)
     qubit_pairs = [(a, b) for a in qubits for b in qubits if a != b and a.is_adjacent(b)]
     gateset = cirq.Gateset(cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate, cirq.CZ)

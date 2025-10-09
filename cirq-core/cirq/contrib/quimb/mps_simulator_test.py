@@ -1,4 +1,7 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
+from __future__ import annotations
+
 import itertools
 import math
 
@@ -12,7 +15,7 @@ import cirq.testing
 from cirq import value
 
 
-def assert_same_output_as_dense(circuit, qubit_order, initial_state=0, grouping=None):
+def assert_same_output_as_dense(circuit, qubit_order, initial_state=0, grouping=None) -> None:
     mps_simulator = ccq.mps_simulator.MPSSimulator(grouping=grouping)
     ref_simulator = cirq.Simulator()
 
@@ -24,7 +27,7 @@ def assert_same_output_as_dense(circuit, qubit_order, initial_state=0, grouping=
     assert len(actual.measurements) == 0
 
 
-def test_various_gates_1d():
+def test_various_gates_1d() -> None:
     gate_op_cls = [cirq.I, cirq.H, cirq.X, cirq.Y, cirq.Z, cirq.T]
     cross_gate_op_cls = [cirq.CNOT, cirq.SWAP]
 
@@ -40,7 +43,7 @@ def test_various_gates_1d():
                     )
 
 
-def test_various_gates_1d_flip():
+def test_various_gates_1d_flip() -> None:
     q0, q1 = cirq.LineQubit.range(2)
 
     circuit = cirq.Circuit(cirq.H(q1), cirq.CNOT(q1, q0))
@@ -49,7 +52,7 @@ def test_various_gates_1d_flip():
     assert_same_output_as_dense(circuit=circuit, qubit_order=[q1, q0])
 
 
-def test_various_gates_2d():
+def test_various_gates_2d() -> None:
     gate_op_cls = [cirq.I, cirq.H]
     cross_gate_op_cls = [cirq.CNOT, cirq.SWAP]
 
@@ -74,7 +77,7 @@ def test_various_gates_2d():
                             )
 
 
-def test_grouping():
+def test_grouping() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
 
     circuit = cirq.Circuit(
@@ -104,7 +107,7 @@ def test_grouping():
             )
 
 
-def test_grouping_does_not_overlap():
+def test_grouping_does_not_overlap() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     mps_simulator = ccq.mps_simulator.MPSSimulator(grouping={q0: 0})
 
@@ -112,7 +115,7 @@ def test_grouping_does_not_overlap():
         mps_simulator.simulate(cirq.Circuit(), qubit_order={q0: 0, q1: 1})
 
 
-def test_same_partial_trace():
+def test_same_partial_trace() -> None:
     qubit_order = cirq.LineQubit.range(2)
     q0, q1 = qubit_order
 
@@ -131,14 +134,14 @@ def test_same_partial_trace():
             final_state = mps_simulator.simulate(
                 circuit, qubit_order=qubit_order, initial_state=initial_state
             ).final_state
-            actual_density_matrix = final_state.partial_trace([q0, q1])
-            actual_partial_trace = final_state.partial_trace([q0])
+            actual_density_matrix = final_state.partial_trace({q0, q1})
+            actual_partial_trace = final_state.partial_trace({q0})
 
             np.testing.assert_allclose(actual_density_matrix, expected_density_matrix, atol=1e-4)
             np.testing.assert_allclose(actual_partial_trace, expected_partial_trace, atol=1e-4)
 
 
-def test_probs_dont_sum_up_to_one():
+def test_probs_dont_sum_up_to_one() -> None:
     q0 = cirq.NamedQid('q0', dimension=2)
     circuit = cirq.Circuit(cirq.measure(q0))
 
@@ -150,7 +153,7 @@ def test_probs_dont_sum_up_to_one():
         simulator.run(circuit, repetitions=1)
 
 
-def test_empty():
+def test_empty() -> None:
     q0 = cirq.NamedQid('q0', dimension=2)
     q1 = cirq.NamedQid('q1', dimension=3)
     q2 = cirq.NamedQid('q2', dimension=5)
@@ -162,7 +165,7 @@ def test_empty():
         )
 
 
-def test_cnot():
+def test_cnot() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.CNOT(q0, q1))
 
@@ -172,7 +175,7 @@ def test_cnot():
         )
 
 
-def test_cnot_flipped():
+def test_cnot_flipped() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.CNOT(q1, q0))
 
@@ -182,7 +185,7 @@ def test_cnot_flipped():
         )
 
 
-def test_simulation_state():
+def test_simulation_state() -> None:
     q0, q1 = qubit_order = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.CNOT(q1, q0))
     mps_simulator = ccq.mps_simulator.MPSSimulator()
@@ -199,7 +202,7 @@ def test_simulation_state():
         assert len(actual.measurements) == 0
 
 
-def test_three_qubits():
+def test_three_qubits() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(cirq.CCX(q0, q1, q2))
 
@@ -207,7 +210,7 @@ def test_three_qubits():
         assert_same_output_as_dense(circuit=circuit, qubit_order=[q0, q1, q2])
 
 
-def test_measurement_1qubit():
+def test_measurement_1qubit() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.X(q0), cirq.H(q1), cirq.measure(q1))
 
@@ -218,7 +221,7 @@ def test_measurement_1qubit():
     assert sum(result.measurements['q(1)'])[0] > 20
 
 
-def test_reset():
+def test_reset() -> None:
     q = cirq.LineQubit(0)
     simulator = ccq.mps_simulator.MPSSimulator()
     c = cirq.Circuit(cirq.X(q), cirq.reset(q), cirq.measure(q))
@@ -229,7 +232,7 @@ def test_reset():
     assert simulator.sample(c)['q(0)'][0] == 0
 
 
-def test_measurement_2qubits():
+def test_measurement_2qubits() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.H(q2), cirq.measure(q0, q2))
 
@@ -249,7 +252,7 @@ def test_measurement_2qubits():
         assert result_count < repetitions * 0.35
 
 
-def test_measurement_str():
+def test_measurement_str() -> None:
     q0 = cirq.NamedQid('q0', dimension=3)
     circuit = cirq.Circuit(cirq.measure(q0))
 
@@ -259,7 +262,7 @@ def test_measurement_str():
     assert str(result) == "q0 (d=3)=0000000"
 
 
-def test_trial_result_str():
+def test_trial_result_str() -> None:
     q0 = cirq.LineQubit(0)
     final_simulator_state = ccq.mps_simulator.MPSState(
         qubits=(q0,),
@@ -274,7 +277,7 @@ def test_trial_result_str():
     assert 'output state: TensorNetwork' in str(result)
 
 
-def test_trial_result_repr_pretty():
+def test_trial_result_repr_pretty() -> None:
     q0 = cirq.LineQubit(0)
     final_simulator_state = ccq.mps_simulator.MPSState(
         qubits=(q0,),
@@ -290,14 +293,14 @@ def test_trial_result_repr_pretty():
     cirq.testing.assert_repr_pretty(result, "cirq.MPSTrialResult(...)", cycle=True)
 
 
-def test_empty_step_result():
+def test_empty_step_result() -> None:
     q0 = cirq.LineQubit(0)
     sim = ccq.mps_simulator.MPSSimulator()
     step_result = next(sim.simulate_moment_steps(cirq.Circuit(cirq.measure(q0))))
     assert 'TensorNetwork' in str(step_result)
 
 
-def test_step_result_repr_pretty():
+def test_step_result_repr_pretty() -> None:
     q0 = cirq.LineQubit(0)
     sim = ccq.mps_simulator.MPSSimulator()
     step_result = next(sim.simulate_moment_steps(cirq.Circuit(cirq.measure(q0))))
@@ -305,7 +308,7 @@ def test_step_result_repr_pretty():
     cirq.testing.assert_repr_pretty(step_result, "cirq.MPSSimulatorStepResult(...)", cycle=True)
 
 
-def test_state_equal():
+def test_state_equal() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     state0 = ccq.mps_simulator.MPSState(
         qubits=(q0,),
@@ -327,7 +330,7 @@ def test_state_equal():
     assert state1a != state1b
 
 
-def test_random_circuits_equal_more_rows():
+def test_random_circuits_equal_more_rows() -> None:
     circuit = cirq.testing.random_circuit(
         qubits=cirq.GridQubit.rect(3, 2), n_moments=6, op_density=1.0
     )
@@ -335,7 +338,7 @@ def test_random_circuits_equal_more_rows():
     assert_same_output_as_dense(circuit, qubits)
 
 
-def test_random_circuits_equal_more_cols():
+def test_random_circuits_equal_more_cols() -> None:
     circuit = cirq.testing.random_circuit(
         qubits=cirq.GridQubit.rect(2, 3), n_moments=6, op_density=1.0
     )
@@ -343,10 +346,9 @@ def test_random_circuits_equal_more_cols():
     assert_same_output_as_dense(circuit, qubits)
 
 
-def test_tensor_index_names():
+def test_tensor_index_names() -> None:
     qubits = cirq.LineQubit.range(12)
-    qubit_map = {qubit: i for i, qubit in enumerate(qubits)}
-    state = ccq.mps_simulator.MPSState(qubits=qubit_map, prng=value.parse_random_state(0))
+    state = ccq.mps_simulator.MPSState(qubits=qubits, prng=value.parse_random_state(0))
 
     assert state.i_str(0) == "i_00"
     assert state.i_str(11) == "i_11"
@@ -354,7 +356,7 @@ def test_tensor_index_names():
     assert state.mu_str(3, 0) == "mu_0_3"
 
 
-def test_simulate_moment_steps_sample():
+def test_simulate_moment_steps_sample() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1))
 
@@ -363,7 +365,7 @@ def test_simulate_moment_steps_sample():
     for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
         if i == 0:
             np.testing.assert_almost_equal(
-                step._simulator_state().to_numpy(),
+                step._simulator_state().to_numpy(),  # type: ignore[attr-defined]
                 np.asarray([1.0 / math.sqrt(2), 0.0, 1.0 / math.sqrt(2), 0.0]),
             )
             # There are two "Tensor()" copies in the string.
@@ -374,12 +376,12 @@ def test_simulate_moment_steps_sample():
                     sample, [False, False]
                 )
             np.testing.assert_almost_equal(
-                step._simulator_state().to_numpy(),
+                step._simulator_state().to_numpy(),  # type: ignore[attr-defined]
                 np.asarray([1.0 / math.sqrt(2), 0.0, 1.0 / math.sqrt(2), 0.0]),
             )
         else:
             np.testing.assert_almost_equal(
-                step._simulator_state().to_numpy(),
+                step._simulator_state().to_numpy(),  # type: ignore[attr-defined]
                 np.asarray([1.0 / math.sqrt(2), 0.0, 0.0, 1.0 / math.sqrt(2)]),
             )
             # There are two "Tensor()" copies in the string.
@@ -391,7 +393,7 @@ def test_simulate_moment_steps_sample():
                 )
 
 
-def test_sample_seed():
+def test_sample_seed() -> None:
     q = cirq.NamedQubit('q')
     circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
     simulator = ccq.mps_simulator.MPSSimulator(seed=1234)
@@ -401,7 +403,7 @@ def test_sample_seed():
     assert result_string == '01011001110111011011'
 
 
-def test_run_no_repetitions():
+def test_run_no_repetitions() -> None:
     q0 = cirq.LineQubit(0)
     simulator = ccq.mps_simulator.MPSSimulator()
     circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
@@ -409,7 +411,7 @@ def test_run_no_repetitions():
     assert len(result.measurements['q(0)']) == 0
 
 
-def test_run_parameters_not_resolved():
+def test_run_parameters_not_resolved() -> None:
     a = cirq.LineQubit(0)
     simulator = ccq.mps_simulator.MPSSimulator()
     circuit = cirq.Circuit(cirq.XPowGate(exponent=sympy.Symbol('a'))(a), cirq.measure(a))
@@ -417,7 +419,7 @@ def test_run_parameters_not_resolved():
         _ = simulator.run_sweep(circuit, cirq.ParamResolver({}))
 
 
-def test_deterministic_gate_noise():
+def test_deterministic_gate_noise() -> None:
     q = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.I(q), cirq.measure(q))
 
@@ -435,7 +437,7 @@ def test_deterministic_gate_noise():
     assert result1 != result3
 
 
-def test_nondeterministic_mixture_noise():
+def test_nondeterministic_mixture_noise() -> None:
     q = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.I(q), cirq.measure(q))
 
@@ -448,12 +450,12 @@ def test_nondeterministic_mixture_noise():
     assert result1 != result2
 
 
-def test_unsupported_noise_fails():
+def test_unsupported_noise_fails() -> None:
     with pytest.raises(ValueError, match='noise must be unitary or mixture but was'):
         ccq.mps_simulator.MPSSimulator(noise=cirq.amplitude_damp(0.5))
 
 
-def test_state_copy():
+def test_state_copy() -> None:
     sim = ccq.mps_simulator.MPSSimulator()
 
     q = cirq.LineQubit(0)
@@ -468,7 +470,7 @@ def test_state_copy():
             assert not np.shares_memory(x[i], y[i])
 
 
-def test_simulation_state_initializer():
+def test_simulation_state_initializer() -> None:
     expected_classical_data = cirq.ClassicalDataDictionaryStore(
         _records={cirq.MeasurementKey('test'): [(4,)]}
     )
@@ -486,7 +488,7 @@ def test_simulation_state_initializer():
     }
 
 
-def test_act_on_gate():
+def test_act_on_gate() -> None:
     args = ccq.mps_simulator.MPSState(qubits=cirq.LineQubit.range(3), prng=np.random.RandomState(0))
 
     cirq.act_on(cirq.X, args, [cirq.LineQubit(1)])

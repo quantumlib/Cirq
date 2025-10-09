@@ -14,28 +14,30 @@
 
 """Tests for the simulator benchmarker."""
 
+from __future__ import annotations
+
 from dev_tools.profiling import benchmark_serializers
 
 
-def test_gzip_serializer():
+def test_gzip_serializer() -> None:
     for num_gates in (10, 20):
         for nesting_depth in (1, 8):
             benchmark_serializers.serialize('json_gzip', num_gates, nesting_depth)
 
 
-def test_json_serializer():
+def test_json_serializer() -> None:
     for num_gates in (10, 20):
         for nesting_depth in (1, 8):
             benchmark_serializers.serialize('json', num_gates, nesting_depth)
 
 
-def test_args_have_defaults():
+def test_args_have_defaults() -> None:
     kwargs = benchmark_serializers.parse_arguments([])
     for _, v in kwargs.items():
         assert v is not None
 
 
-def test_main_loop():
+def test_main_loop() -> None:
     # Keep test from taking a long time by lowering max qubits.
     benchmark_serializers.main(
         **benchmark_serializers.parse_arguments({}),
@@ -43,7 +45,7 @@ def test_main_loop():
     )
 
 
-def test_parse_args():
+def test_parse_args() -> None:
     args = ('--num_gates 5 --nesting_depth 8 --num_repetitions 2').split()
     kwargs = benchmark_serializers.parse_arguments(args)
     assert kwargs == {'num_gates': 5, 'nesting_depth': 8, 'num_repetitions': 2}

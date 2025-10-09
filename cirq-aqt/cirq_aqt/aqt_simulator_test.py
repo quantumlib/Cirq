@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 
 import cirq
@@ -19,13 +21,13 @@ from cirq_aqt import AQTSimulator
 from cirq_aqt.aqt_device import AQTNoiseModel, get_aqt_device
 
 
-def test_simulator_no_circ():
+def test_simulator_no_circ() -> None:
     with pytest.raises(RuntimeError):
         sim = AQTSimulator(num_qubits=1)
         sim.simulate_samples(1)
 
 
-def test_ms_crosstalk_n_noise():
+def test_ms_crosstalk_n_noise() -> None:
     num_qubits = 4
     noise_mod = AQTNoiseModel()
     _, qubits = get_aqt_device(num_qubits)

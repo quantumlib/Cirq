@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
 
 import numpy as np
@@ -22,7 +24,7 @@ import cirq
 
 
 @pytest.mark.parametrize('eigen_gate_type', [cirq.CCXPowGate, cirq.CCZPowGate])
-def test_eigen_gates_consistent_protocols(eigen_gate_type):
+def test_eigen_gates_consistent_protocols(eigen_gate_type) -> None:
     cirq.testing.assert_eigengate_implements_consistent_protocols(eigen_gate_type)
 
 
@@ -36,18 +38,18 @@ def test_eigen_gates_consistent_protocols(eigen_gate_type):
         (cirq.CCZ),
     ),
 )
-def test_consistent_protocols(gate):
+def test_consistent_protocols(gate) -> None:
     cirq.testing.assert_implements_consistent_protocols(gate)
 
 
-def test_init():
+def test_init() -> None:
     assert (cirq.CCZ**0.5).exponent == 0.5
     assert (cirq.CCZ**0.25).exponent == 0.25
     assert (cirq.CCX**0.5).exponent == 0.5
     assert (cirq.CCX**0.25).exponent == 0.25
 
 
-def test_unitary():
+def test_unitary() -> None:
     assert cirq.has_unitary(cirq.CCX)
     np.testing.assert_allclose(
         cirq.unitary(cirq.CCX),
@@ -123,7 +125,7 @@ def test_unitary():
     )
 
 
-def test_str():
+def test_str() -> None:
     assert str(cirq.CCX) == 'TOFFOLI'
     assert str(cirq.TOFFOLI) == 'TOFFOLI'
     assert str(cirq.CSWAP) == 'FREDKIN'
@@ -134,7 +136,7 @@ def test_str():
     assert str(cirq.CCZ**0.5) == 'CCZ**0.5'
 
 
-def test_repr():
+def test_repr() -> None:
     assert repr(cirq.CCX) == 'cirq.TOFFOLI'
     assert repr(cirq.TOFFOLI) == 'cirq.TOFFOLI'
     assert repr(cirq.CSWAP) == 'cirq.FREDKIN'
@@ -145,7 +147,7 @@ def test_repr():
     assert repr(cirq.CCZ**0.5) == '(cirq.CCZ**0.5)'
 
 
-def test_eq():
+def test_eq() -> None:
     a, b, c, d = cirq.LineQubit.range(4)
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.CCZ(a, b, c), cirq.CCZ(a, c, b), cirq.CCZ(b, c, a))
@@ -163,7 +165,7 @@ def test_eq():
     eq.add_equality_group(cirq.CSWAP(b, a, c), cirq.CSWAP(b, c, a))
 
 
-def test_gate_equality():
+def test_gate_equality() -> None:
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.CSwapGate(), cirq.CSwapGate())
     eq.add_equality_group(cirq.CZPowGate(), cirq.CZPowGate())
@@ -171,7 +173,7 @@ def test_gate_equality():
     eq.add_equality_group(cirq.CCZPowGate(), cirq.CCZPowGate())
 
 
-def test_identity_multiplication():
+def test_identity_multiplication() -> None:
     a, b, c = cirq.LineQubit.range(3)
     assert cirq.CCX(a, b, c) * cirq.I(a) == cirq.CCX(a, b, c)
     assert cirq.CCX(a, b, c) * cirq.I(b) == cirq.CCX(a, b, c)
@@ -197,7 +199,7 @@ def test_identity_multiplication():
         ),
     ],
 )
-def test_decomposition_cost(op: cirq.Operation, max_two_cost: int):
+def test_decomposition_cost(op: cirq.Operation, max_two_cost: int) -> None:
     ops = tuple(cirq.flatten_op_tree(cirq.decompose(op)))
     two_cost = len([e for e in ops if len(e.qubits) == 2])
     over_cost = len([e for e in ops if len(e.qubits) > 2])
@@ -205,12 +207,12 @@ def test_decomposition_cost(op: cirq.Operation, max_two_cost: int):
     assert two_cost == max_two_cost
 
 
-def test_parameterized_ccz_decompose_no_global_phase():
+def test_parameterized_ccz_decompose_no_global_phase() -> None:
     decomposed_ops = cirq.decompose(cirq.CCZ(*cirq.LineQubit.range(3)) ** sympy.Symbol("theta"))
     assert not any(isinstance(op.gate, cirq.GlobalPhaseGate) for op in decomposed_ops)
 
 
-def test_diagonal_gate_property():
+def test_diagonal_gate_property() -> None:
     assert cirq.ThreeQubitDiagonalGate([2, 3, 5, 7, 0, 0, 0, 1]).diag_angles_radians == (
         (2, 3, 5, 7, 0, 0, 0, 1)
     )
@@ -220,7 +222,7 @@ def test_diagonal_gate_property():
     'gate',
     [cirq.CCX, cirq.CSWAP, cirq.CCZ, cirq.ThreeQubitDiagonalGate([2, 3, 5, 7, 11, 13, 17, 19])],
 )
-def test_decomposition_respects_locality(gate):
+def test_decomposition_respects_locality(gate) -> None:
     a = cirq.GridQubit(0, 0)
     b = cirq.GridQubit(1, 0)
     c = cirq.GridQubit(0, 1)
@@ -231,7 +233,7 @@ def test_decomposition_respects_locality(gate):
         dev.validate_circuit(circuit)
 
 
-def test_diagram():
+def test_diagram() -> None:
     a, b, c, d = cirq.LineQubit.range(4)
     circuit = cirq.Circuit(
         cirq.TOFFOLI(a, b, c),
@@ -295,7 +297,7 @@ def test_diagram():
     )
 
 
-def test_diagonal_exponent():
+def test_diagonal_exponent() -> None:
     diagonal_angles = [2, 3, 5, 7, 11, 13, 17, 19]
     diagonal_gate = cirq.ThreeQubitDiagonalGate(diagonal_angles)
 
@@ -308,7 +310,7 @@ def test_diagonal_exponent():
 
 
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
-def test_resolve(resolve_fn):
+def test_resolve(resolve_fn) -> None:
     diagonal_angles = [2, 3, 5, 7, 11, 13, 17, 19]
     diagonal_gate = cirq.ThreeQubitDiagonalGate(
         diagonal_angles[:6] + [sympy.Symbol('a'), sympy.Symbol('b')]
@@ -325,7 +327,7 @@ def test_resolve(resolve_fn):
 
 
 @pytest.mark.parametrize('gate', [cirq.CCX, cirq.CCZ, cirq.CSWAP])
-def test_controlled_ops_consistency(gate):
+def test_controlled_ops_consistency(gate) -> None:
     a, b, c, d = cirq.LineQubit.range(4)
     assert gate.controlled(0) is gate
     assert gate(a, b, c).controlled_by(d) == gate(d, b, c).controlled_by(a)

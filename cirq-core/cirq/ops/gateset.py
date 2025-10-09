@@ -16,20 +16,7 @@
 
 from __future__ import annotations
 
-from typing import (
-    Any,
-    Callable,
-    cast,
-    Dict,
-    FrozenSet,
-    Hashable,
-    List,
-    Optional,
-    Sequence,
-    Type,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import Any, Callable, cast, Hashable, Iterable, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq.ops import global_phase_op, op_tree, raw_types
@@ -39,8 +26,7 @@ if TYPE_CHECKING:
 
 
 def _gate_str(
-    gate: Union[raw_types.Gate, Type[raw_types.Gate], cirq.GateFamily],
-    gettr: Callable[[Any], str] = str,
+    gate: raw_types.Gate | type[raw_types.Gate] | cirq.GateFamily, gettr: Callable[[Any], str] = str
 ) -> str:
     return gettr(gate) if not isinstance(gate, type) else f'{gate.__module__}.{gate.__name__}'
 
@@ -114,13 +100,13 @@ class GateFamily:
 
     def __init__(
         self,
-        gate: Union[Type[raw_types.Gate], raw_types.Gate],
+        gate: type[raw_types.Gate] | raw_types.Gate,
         *,
-        name: Optional[str] = None,
-        description: Optional[str] = None,
+        name: str | None = None,
+        description: str | None = None,
         ignore_global_phase: bool = True,
-        tags_to_accept: Sequence[Hashable] = (),
-        tags_to_ignore: Sequence[Hashable] = (),
+        tags_to_accept: Iterable[Hashable] = (),
+        tags_to_ignore: Iterable[Hashable] = (),
     ) -> None:
         """Init GateFamily.
 
@@ -153,6 +139,8 @@ class GateFamily:
         self._gate = gate
         self._tags_to_accept = frozenset(tags_to_accept)
         self._tags_to_ignore = frozenset(tags_to_ignore)
+        self._should_check_tags = self._tags_to_accept or self._tags_to_ignore
+        self._is_instance_gate_family = isinstance(self._gate, raw_types.Gate)
         self._name = name if name else self._default_name()
         self._description = description if description else self._default_description()
         self._ignore_global_phase = ignore_global_phase
@@ -166,7 +154,7 @@ class GateFamily:
     def _gate_str(self, gettr: Callable[[Any], str] = str) -> str:
         return _gate_str(self.gate, gettr)
 
-    def _gate_json(self) -> Union[raw_types.Gate, str]:
+    def _gate_json(self) -> raw_types.Gate | str:
         return self.gate if not isinstance(self.gate, type) else protocols.json_cirq_type(self.gate)
 
     def _default_name(self) -> str:
@@ -188,7 +176,7 @@ class GateFamily:
         )
 
     @property
-    def gate(self) -> Union[Type[raw_types.Gate], raw_types.Gate]:
+    def gate(self) -> type[raw_types.Gate] | raw_types.Gate:
         return self._gate
 
     @property
@@ -200,11 +188,11 @@ class GateFamily:
         return self._description
 
     @property
-    def tags_to_accept(self) -> FrozenSet[Hashable]:
+    def tags_to_accept(self) -> frozenset[Hashable]:
         return self._tags_to_accept
 
     @property
-    def tags_to_ignore(self) -> FrozenSet[Hashable]:
+    def tags_to_ignore(self) -> frozenset[Hashable]:
         return self._tags_to_ignore
 
     def _predicate(self, gate: raw_types.Gate) -> bool:
@@ -219,26 +207,30 @@ class GateFamily:
         Args:
             gate: `cirq.Gate` instance which should be checked for containment.
         """
-        if isinstance(self.gate, raw_types.Gate):
+        if self._is_instance_gate_family:
             return (
                 protocols.equal_up_to_global_phase(gate, self.gate)
                 if self._ignore_global_phase
                 else gate == self._gate
             )
-        return isinstance(gate, self.gate)
+        return isinstance(gate, self.gate)  # type: ignore
 
-    def __contains__(self, item: Union[raw_types.Gate, raw_types.Operation]) -> bool:
-        if self._tags_to_accept and (
-            not isinstance(item, raw_types.Operation) or self._tags_to_accept.isdisjoint(item.tags)
-        ):
-            return False
-        if isinstance(item, raw_types.Operation) and not self._tags_to_ignore.isdisjoint(item.tags):
-            return False
+    def __contains__(self, item: raw_types.Gate | raw_types.Operation) -> bool:
+        if self._should_check_tags:
+            if self._tags_to_accept and (
+                not isinstance(item, raw_types.Operation)
+                or self._tags_to_accept.isdisjoint(item.tags)
+            ):
+                return False
+            if isinstance(item, raw_types.Operation) and not self._tags_to_ignore.isdisjoint(
+                item.tags
+            ):
+                return False
 
         if isinstance(item, raw_types.Operation):
-            if item.gate is None:
+            if (gate := item.gate) is None:
                 return False
-            item = item.gate
+            return self._predicate(gate)
         return self._predicate(item)
 
     def __str__(self) -> str:
@@ -270,8 +262,8 @@ class GateFamily:
             self._tags_to_ignore,
         )
 
-    def _json_dict_(self) -> Dict[str, Any]:
-        d: Dict[str, Any] = {
+    def _json_dict_(self) -> dict[str, Any]:
+        d: dict[str, Any] = {
             'gate': self._gate_json(),
             'name': self.name,
             'description': self.description,
@@ -321,8 +313,8 @@ class Gateset:
 
     def __init__(
         self,
-        *gates: Union[Type[raw_types.Gate], raw_types.Gate, GateFamily],
-        name: Optional[str] = None,
+        *gates: type[raw_types.Gate] | raw_types.Gate | GateFamily,
+        name: str | None = None,
         unroll_circuit_op: bool = True,
     ) -> None:
         """Init Gateset.
@@ -346,10 +338,11 @@ class Gateset:
         """
         self._name = name
         self._unroll_circuit_op = unroll_circuit_op
-        self._instance_gate_families: Dict[raw_types.Gate, GateFamily] = {}
-        self._type_gate_families: Dict[Type[raw_types.Gate], GateFamily] = {}
+        self._instance_gate_families: dict[raw_types.Gate, GateFamily] = {}
+        self._type_gate_families: dict[type[raw_types.Gate], GateFamily] = {}
+        self._gate_families_with_tags: list[GateFamily] = []
         self._gates_repr_str = ", ".join([_gate_str(g, repr) for g in gates])
-        unique_gate_list: List[GateFamily] = list(
+        unique_gate_list: list[GateFamily] = list(
             dict.fromkeys(g if isinstance(g, GateFamily) else GateFamily(gate=g) for g in gates)
         )
 
@@ -359,19 +352,25 @@ class Gateset:
                     self._instance_gate_families[g.gate] = g
                 else:
                     self._type_gate_families[g.gate] = g
+            else:
+                if isinstance(g.gate, raw_types.Gate):
+                    self._gate_families_with_tags.append(g)
+                else:
+                    # Instance checks are faster, so test them first.
+                    self._gate_families_with_tags.insert(0, g)
         self._unique_gate_list = unique_gate_list
         self._gates = frozenset(unique_gate_list)
 
     @property
-    def name(self) -> Optional[str]:
+    def name(self) -> str | None:
         return self._name
 
     @property
-    def gates(self) -> FrozenSet[GateFamily]:
+    def gates(self) -> frozenset[GateFamily]:
         return self._gates
 
     def with_params(
-        self, *, name: Optional[str] = None, unroll_circuit_op: Optional[bool] = None
+        self, *, name: str | None = None, unroll_circuit_op: bool | None = None
     ) -> Gateset:
         """Returns a copy of this Gateset with identical gates and new values for named arguments.
 
@@ -397,7 +396,7 @@ class Gateset:
         gates = self.gates
         return Gateset(*gates, name=name, unroll_circuit_op=cast(bool, unroll_circuit_op))
 
-    def __contains__(self, item: Union[raw_types.Gate, raw_types.Operation]) -> bool:
+    def __contains__(self, item: raw_types.Gate | raw_types.Operation) -> bool:
         r"""Check for containment of a given Gate/Operation in this Gateset.
 
         Containment checks are handled as follows:
@@ -430,13 +429,7 @@ class Gateset:
         g = item if isinstance(item, raw_types.Gate) else item.gate
         assert g is not None, f'`item`: {item} must be a gate or have a valid `item.gate`'
 
-        if g in self._instance_gate_families:
-            assert item in self._instance_gate_families[g], (
-                f"{item} instance matches {self._instance_gate_families[g]} but "
-                f"is not accepted by it."
-            )
-            return True
-
+        # Check "type" based GateFamily since isinstance is fast
         for gate_mro_type in type(g).mro():
             if gate_mro_type in self._type_gate_families:
                 assert item in self._type_gate_families[gate_mro_type], (
@@ -445,9 +438,27 @@ class Gateset:
                 )
                 return True
 
-        return any(item in gate_family for gate_family in self._gates)
+        # Check exact instance equality next
+        if g in self._instance_gate_families:
+            assert item in self._instance_gate_families[g], (
+                f"{item} instance matches {self._instance_gate_families[g]} but "
+                f"is not accepted by it."
+            )
+            return True
 
-    def validate(self, circuit_or_optree: Union[cirq.AbstractCircuit, op_tree.OP_TREE]) -> bool:
+        # Check other GateFamilies next
+        if any(item in gate_family for gate_family in self._gate_families_with_tags):
+            return True
+
+        # Lastly, do a final exhaustive check to make sure this is not equivalent
+        # to another type of gate. This will catch things like:
+        # cirq.XPowGate(exponent=0) in cirq.GateFamily(cirq.I)
+        return any(
+            item in gate_family
+            for gate_family in self._gates.difference(self._gate_families_with_tags)
+        )
+
+    def validate(self, circuit_or_optree: cirq.AbstractCircuit | op_tree.OP_TREE) -> bool:
         """Validates gates forming `circuit_or_optree` should be contained in Gateset.
 
         Args:
@@ -512,7 +523,7 @@ class Gateset:
             header += self.name
         return f'{header}\n' + "\n\n".join([str(g) for g in self._unique_gate_list])
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             'gates': self._unique_gate_list,
             'name': self.name,

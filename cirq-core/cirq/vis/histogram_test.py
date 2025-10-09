@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Tests for Histogram."""
+
+from __future__ import annotations
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,7 +25,7 @@ from cirq.vis import integrated_histogram
 
 @pytest.mark.usefixtures('closefigures')
 @pytest.mark.parametrize('data', [range(10), {f'key_{i}': i for i in range(10)}])
-def test_integrated_histogram(data):
+def test_integrated_histogram(data) -> None:
     ax = integrated_histogram(
         data,
         title='Test Plot',
@@ -40,7 +43,7 @@ def test_integrated_histogram(data):
 
 
 @pytest.mark.usefixtures('closefigures')
-def test_multiple_plots():
+def test_multiple_plots() -> None:
     _, ax = plt.subplots(1, 1)
     n = 53
     data = np.random.random_sample((2, n))

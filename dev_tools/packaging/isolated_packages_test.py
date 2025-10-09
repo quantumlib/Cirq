@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import os
 import shutil
 import subprocess
@@ -32,7 +34,7 @@ PACKAGES = ["-r", "dev_tools/requirements/isolated-base.env.txt"]
 # the "isolation" fails and for example cirq-core would be on the PATH
 @mock.patch.dict(os.environ, {"PYTHONPATH": ""})
 @pytest.mark.parametrize('module', list_modules(), ids=[m.name for m in list_modules()])
-def test_isolated_packages(cloned_env, module, tmp_path):
+def test_isolated_packages(cloned_env, module, tmp_path) -> None:
     env = cloned_env("isolated_packages", *PACKAGES)
 
     if str(module.root) != "cirq-core":

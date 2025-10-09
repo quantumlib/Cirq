@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numbers
 from collections.abc import Iterable
-from typing import Any
+from typing import Any, Protocol
 
 import numpy as np
-from typing_extensions import Protocol
 
 from cirq import linalg
 from cirq._doc import doc_private

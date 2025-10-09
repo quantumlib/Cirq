@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from datetime import timedelta
-from typing import List
 
 import pytest
 
@@ -22,7 +23,7 @@ from cirq_aqt import aqt_device, aqt_device_metadata
 
 
 @pytest.fixture
-def qubits() -> List[cirq.LineQubit]:
+def qubits() -> list[cirq.LineQubit]:
     return cirq.LineQubit.range(3)
 
 
@@ -38,15 +39,15 @@ def device(qubits) -> aqt_device.AQTDevice:
 
 
 class NotImplementedOperation(cirq.Operation):
-    def with_qubits(self, *new_qubits) -> 'NotImplementedOperation':
+    def with_qubits(self, *new_qubits) -> NotImplementedOperation:
         raise NotImplementedError()
 
     @property
-    def qubits(self):
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         raise NotImplementedError()
 
 
-def test_init_qubits(device, qubits):
+def test_init_qubits(device, qubits) -> None:
     ms = cirq.Duration(millis=1)
     assert device.qubits == frozenset(qubits)
     with pytest.raises(TypeError, match="NamedQubit"):
@@ -54,12 +55,12 @@ def test_init_qubits(device, qubits):
             measurement_duration=100 * ms,
             twoq_gates_duration=200 * ms,
             oneq_gates_duration=10 * ms,
-            qubits=[cirq.LineQubit(0), cirq.NamedQubit("a")],
+            qubits=[cirq.LineQubit(0), cirq.NamedQubit("a")],  # type: ignore[list-item]
         )
 
 
 @pytest.mark.parametrize('ms', [cirq.Duration(millis=1), timedelta(milliseconds=1)])
-def test_init_durations(ms, qubits):
+def test_init_durations(ms, qubits) -> None:
     dev = aqt_device.AQTDevice(
         qubits=qubits,
         measurement_duration=100 * ms,
@@ -71,12 +72,12 @@ def test_init_durations(ms, qubits):
     assert dev.metadata.measurement_duration == cirq.Duration(millis=100)
 
 
-def test_metadata(device, qubits):
+def test_metadata(device, qubits) -> None:
     assert isinstance(device.metadata, aqt_device_metadata.AQTDeviceMetadata)
     assert device.metadata.qubit_set == frozenset(qubits)
 
 
-def test_repr(device):
+def test_repr(device) -> None:
     assert repr(device) == (
         "cirq_aqt.aqt_device.AQTDevice("
         "measurement_duration=cirq.Duration(millis=100), "
@@ -88,13 +89,13 @@ def test_repr(device):
     cirq.testing.assert_equivalent_repr(device, setup_code='import cirq\nimport cirq_aqt\n')
 
 
-def test_validate_measurement_non_adjacent_qubits_ok(device):
+def test_validate_measurement_non_adjacent_qubits_ok(device) -> None:
     device.validate_operation(
         cirq.GateOperation(cirq.MeasurementGate(2, 'key'), (cirq.LineQubit(0), cirq.LineQubit(1)))
     )
 
 
-def test_validate_operation_existing_qubits(device):
+def test_validate_operation_existing_qubits(device) -> None:
     device.validate_operation(cirq.GateOperation(cirq.XX, (cirq.LineQubit(0), cirq.LineQubit(1))))
     device.validate_operation(cirq.Z(cirq.LineQubit(0)))
     device.validate_operation(
@@ -113,7 +114,7 @@ def test_validate_operation_existing_qubits(device):
         device.validate_operation(cirq.X(cirq.NamedQubit("q1")))
 
 
-def test_validate_operation_supported_gate(device):
+def test_validate_operation_supported_gate(device) -> None:
     class MyGate(cirq.Gate):
         def num_qubits(self):
             return 1
@@ -127,12 +128,12 @@ def test_validate_operation_supported_gate(device):
         device.validate_operation(NotImplementedOperation())
 
 
-def test_aqt_device_eq(device):
+def test_aqt_device_eq(device) -> None:
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(lambda: device)
 
 
-def test_validate_circuit_repeat_measurement_keys(device):
+def test_validate_circuit_repeat_measurement_keys(device) -> None:
     circuit = cirq.Circuit()
     circuit.append(
         [cirq.measure(cirq.LineQubit(0), key='a'), cirq.measure(cirq.LineQubit(1), key='a')]
@@ -142,16 +143,16 @@ def test_validate_circuit_repeat_measurement_keys(device):
         device.validate_circuit(circuit)
 
 
-def test_aqt_device_str(device):
+def test_aqt_device_str(device) -> None:
     assert str(device) == "q(0)───q(1)───q(2)"
 
 
-def test_aqt_device_pretty_repr(device):
+def test_aqt_device_pretty_repr(device) -> None:
     cirq.testing.assert_repr_pretty(device, "q(0)───q(1)───q(2)")
     cirq.testing.assert_repr_pretty(device, "AQTDevice(...)", cycle=True)
 
 
-def test_at(device):
+def test_at(device) -> None:
     assert device.at(-1) is None
     assert device.at(0) == cirq.LineQubit(0)
     assert device.at(2) == cirq.LineQubit(2)

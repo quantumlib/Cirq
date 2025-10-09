@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import datetime
 from unittest import mock
 
@@ -27,7 +29,7 @@ import cirq
 import cirq_google as cg
 from cirq_google.api import v2
 from cirq_google.cloud import quantum
-from cirq_google.engine import engine_client, util
+from cirq_google.engine import engine_client, ProcessorConfig, util
 from cirq_google.engine.engine import EngineContext
 
 
@@ -176,6 +178,19 @@ _RESULTS2_V2 = v2.result_pb2.Result(
             ],
         )
     ]
+)
+
+
+_METRIC_SNAPSHOT = v2.metrics_pb2.MetricsSnapshot(
+    timestamp_ms=1562544000021,
+    metrics=[
+        v2.metrics_pb2.Metric(
+            name='xeb', targets=['0_0', '0_1'], values=[v2.metrics_pb2.Value(double_val=0.9999)]
+        ),
+        v2.metrics_pb2.Metric(
+            name='xeb', targets=['0_0', '1_0'], values=[v2.metrics_pb2.Value(double_val=0.9998)]
+        ),
+    ],
 )
 
 
@@ -463,7 +478,7 @@ def test_create_reservation(create_reservation):
         name=name,
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000003600),
-        whitelisted_users=['dstrain@google.com'],
+        allowlisted_users=['dstrain@google.com'],
     )
     create_reservation.return_value = result
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
@@ -479,6 +494,12 @@ def test_create_reservation(create_reservation):
         datetime.datetime.fromtimestamp(1000003600),
         ['dstrain@google.com'],
     )
+    with cirq.testing.assert_deprecated('Change whitelisted_users', deadline='v1.7'):
+        _ = processor.create_reservation(
+            datetime.datetime.fromtimestamp(1000000000),
+            datetime.datetime.fromtimestamp(1000003600),
+            whitelisted_users=['dstrain@google.com'],
+        )
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.delete_reservation_async')
@@ -488,7 +509,7 @@ def test_delete_reservation(delete_reservation):
         name=name,
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000003600),
-        whitelisted_users=['dstrain@google.com'],
+        allowlisted_users=['dstrain@google.com'],
     )
     delete_reservation.return_value = result
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
@@ -503,7 +524,7 @@ def test_cancel_reservation(cancel_reservation):
         name=name,
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000003600),
-        whitelisted_users=['dstrain@google.com'],
+        allowlisted_users=['dstrain@google.com'],
     )
     cancel_reservation.return_value = result
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
@@ -520,7 +541,7 @@ def test_remove_reservation_delete(delete_reservation, get_reservation):
         name=name,
         start_time=Timestamp(seconds=now + 20000),
         end_time=Timestamp(seconds=now + 23610),
-        whitelisted_users=['dstrain@google.com'],
+        allowlisted_users=['dstrain@google.com'],
     )
     get_reservation.return_value = result
     delete_reservation.return_value = result
@@ -543,7 +564,7 @@ def test_remove_reservation_cancel(cancel_reservation, get_reservation):
         name=name,
         start_time=Timestamp(seconds=now + 10),
         end_time=Timestamp(seconds=now + 3610),
-        whitelisted_users=['dstrain@google.com'],
+        allowlisted_users=['dstrain@google.com'],
     )
     get_reservation.return_value = result
     cancel_reservation.return_value = result
@@ -579,7 +600,7 @@ def test_remove_reservation_failures(get_reservation, get_processor):
         name=name,
         start_time=Timestamp(seconds=now + 10),
         end_time=Timestamp(seconds=now + 3610),
-        whitelisted_users=['dstrain@google.com'],
+        allowlisted_users=['dstrain@google.com'],
     )
     get_reservation.return_value = result
     get_processor.return_value = None
@@ -602,7 +623,7 @@ def test_get_reservation(get_reservation):
         name=name,
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000003600),
-        whitelisted_users=['dstrain@google.com'],
+        allowlisted_users=['dstrain@google.com'],
     )
     get_reservation.return_value = result
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
@@ -617,7 +638,7 @@ def test_update_reservation(update_reservation):
         name=name,
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000003600),
-        whitelisted_users=['dstrain@google.com'],
+        allowlisted_users=['dstrain@google.com'],
     )
     start = datetime.datetime.fromtimestamp(1000000000)
     end = datetime.datetime.fromtimestamp(1000003600)
@@ -625,8 +646,12 @@ def test_update_reservation(update_reservation):
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
     assert processor.update_reservation('rid', start, end, ['dstrain@google.com']) == result
     update_reservation.assert_called_once_with(
-        'proj', 'p0', 'rid', start=start, end=end, whitelisted_users=['dstrain@google.com']
+        'proj', 'p0', 'rid', start=start, end=end, allowlisted_users=['dstrain@google.com']
     )
+    with cirq.testing.assert_deprecated('Change whitelisted_users', deadline='v1.7'):
+        _ = processor.update_reservation(
+            'rid', start, end, whitelisted_users=['dstrain@google.com']
+        )
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_reservations_async')
@@ -637,13 +662,13 @@ def test_list_reservation(list_reservations):
             name=name,
             start_time=Timestamp(seconds=1000000000),
             end_time=Timestamp(seconds=1000003600),
-            whitelisted_users=['dstrain@google.com'],
+            allowlisted_users=['dstrain@google.com'],
         ),
         quantum.QuantumReservation(
             name=name + '2',
             start_time=Timestamp(seconds=1000003600),
             end_time=Timestamp(seconds=1000007200),
-            whitelisted_users=['wcourtney@google.com'],
+            allowlisted_users=['wcourtney@google.com'],
         ),
     ]
     list_reservations.return_value = results
@@ -783,7 +808,7 @@ def test_get_schedule_time_filter_behavior(list_time_slots):
     processor.get_schedule(from_time=datetime.timedelta(seconds=200), to_time=None)
     list_time_slots.assert_called_with('proj', 'p0', f'end_time > {now + 200}')
 
-    test_timestamp = datetime.datetime.utcfromtimestamp(52)
+    test_timestamp = datetime.datetime.fromtimestamp(52, datetime.UTC)
     utc_ts = int(test_timestamp.timestamp())
     processor.get_schedule(from_time=test_timestamp, to_time=None)
     list_time_slots.assert_called_with('proj', 'p0', f'end_time > {utc_ts}')
@@ -827,7 +852,7 @@ def test_list_reservations_time_filter_behavior(list_reservations):
     processor.list_reservations(from_time=datetime.timedelta(seconds=200), to_time=None)
     list_reservations.assert_called_with('proj', 'p0', f'end_time > {now + 200}')
 
-    test_timestamp = datetime.datetime.utcfromtimestamp(52)
+    test_timestamp = datetime.datetime.fromtimestamp(52, datetime.UTC)
     utc_ts = int(test_timestamp.timestamp())
     processor.list_reservations(from_time=test_timestamp, to_time=None)
     list_reservations.assert_called_with('proj', 'p0', f'end_time > {utc_ts}')
@@ -876,7 +901,6 @@ def test_run_sweep_params_with_unary_rpcs(client):
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
     for result in results:
         assert result.job_id == job.id()
-        assert result.job_finished_time is not None
     assert results == cirq.read_json(json_text=cirq.to_json(results))
 
     client().create_program_async.assert_called_once()
@@ -918,7 +942,6 @@ def test_run_sweep_params_with_stream_rpcs(client):
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
     for result in results:
         assert result.job_id == job.id()
-        assert result.job_finished_time is not None
     assert results == cirq.read_json(json_text=cirq.to_json(results))
 
     client().run_job_over_stream.assert_called_once()
@@ -989,3 +1012,233 @@ def test_sampler_with_stream_rpcs(client):
 def test_str():
     processor = cg.EngineProcessor('a', 'p', EngineContext())
     assert str(processor) == 'EngineProcessor(project_id=\'a\', processor_id=\'p\')'
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_get_config_from_run(client):
+    project_id = "test_project_id"
+    processor_id = "test_proc_id"
+    run_name = "test_run_name"
+    config_name = "test_config_name"
+    name = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configAutomationRuns/{run_name}/'
+        f'configs/{config_name}'
+    )
+
+    device_spec = v2.device_pb2.DeviceSpecification(
+        valid_qubits=["0_0", "1_1", "2_2"],
+        valid_targets=[
+            v2.device_pb2.TargetSet(
+                name="2_quibit_targets",
+                target_ordering=v2.device_pb2.TargetSet.SYMMETRIC,
+                targets=[v2.device_pb2.Target(ids=["0_0", "1_1"])],
+            )
+        ],
+    )
+    quantum_config = quantum.QuantumProcessorConfig(
+        name=name,
+        device_specification=util.pack_any(device_spec),
+        characterization=util.pack_any(_METRIC_SNAPSHOT),
+    )
+    client().get_quantum_processor_config_from_run_async.return_value = quantum_config
+    expected_config = ProcessorConfig(quantum_processor_config=quantum_config, run_name=run_name)
+    processor = cg.EngineProcessor(
+        project_id=project_id, processor_id=processor_id, context=EngineContext()
+    )
+
+    actual_config = processor.get_config_from_run(config_name=config_name, run_name=run_name)
+
+    client().get_quantum_processor_config_from_run_async.assert_called_once_with(
+        project_id=project_id, processor_id=processor_id, run_name=run_name, config_name=config_name
+    )
+    assert actual_config.processor_id == expected_config.processor_id
+    assert actual_config.config_name == config_name
+    assert actual_config.run_name == run_name
+    assert actual_config.effective_device == expected_config.effective_device
+    assert actual_config.calibration == expected_config.calibration
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_get_default_config_from_run(client):
+    project_id = "test_project_id"
+    processor_id = "test_proc_id"
+    name = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configAutomationRuns/default/configs/default'
+    )
+
+    device_spec = v2.device_pb2.DeviceSpecification(
+        valid_qubits=["0_0", "1_1", "2_2"],
+        valid_targets=[
+            v2.device_pb2.TargetSet(
+                name="2_quibit_targets",
+                target_ordering=v2.device_pb2.TargetSet.SYMMETRIC,
+                targets=[v2.device_pb2.Target(ids=["0_0", "1_1"])],
+            )
+        ],
+    )
+    quantum_config = quantum.QuantumProcessorConfig(
+        name=name,
+        device_specification=util.pack_any(device_spec),
+        characterization=util.pack_any(_METRIC_SNAPSHOT),
+    )
+    client().get_quantum_processor_config_from_run_async.return_value = quantum_config
+    processor = cg.EngineProcessor(
+        project_id=project_id, processor_id=processor_id, context=EngineContext()
+    )
+
+    _ = processor.get_config_from_run()
+
+    client().get_quantum_processor_config_from_run_async.assert_called_once_with(
+        project_id=project_id, processor_id=processor_id, run_name='current', config_name='default'
+    )
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_get_config_from_snapshot(client):
+    project_id = "test_project_id"
+    processor_id = "test_proc_id"
+    snapshot_id = "test_snapshot_id"
+    config_name = "test_config_name"
+    name = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configSnapshots/{snapshot_id}/'
+        f'configs/{config_name}'
+    )
+
+    device_spec = v2.device_pb2.DeviceSpecification(
+        valid_qubits=["0_0", "1_1", "2_2"],
+        valid_targets=[
+            v2.device_pb2.TargetSet(
+                name="2_quibit_targets",
+                target_ordering=v2.device_pb2.TargetSet.SYMMETRIC,
+                targets=[v2.device_pb2.Target(ids=["0_0", "1_1"])],
+            )
+        ],
+    )
+    quantum_config = quantum.QuantumProcessorConfig(
+        name=name,
+        device_specification=util.pack_any(device_spec),
+        characterization=util.pack_any(_METRIC_SNAPSHOT),
+    )
+    client().get_quantum_processor_config_from_snapshot_async.return_value = quantum_config
+    expected_config = ProcessorConfig(quantum_processor_config=quantum_config)
+    processor = cg.EngineProcessor(
+        project_id=project_id, processor_id=processor_id, context=EngineContext()
+    )
+
+    actual_config = processor.get_config_from_snapshot(
+        config_name=config_name, snapshot_id=snapshot_id
+    )
+
+    client().get_quantum_processor_config_from_snapshot_async.assert_called_once_with(
+        project_id=project_id,
+        processor_id=processor_id,
+        snapshot_id=snapshot_id,
+        config_name=config_name,
+    )
+    assert actual_config.processor_id == expected_config.processor_id
+    assert actual_config.config_name == config_name
+    assert actual_config.run_name == ''
+    assert actual_config.snapshot_id == snapshot_id
+    assert actual_config.effective_device == expected_config.effective_device
+    assert actual_config.calibration == expected_config.calibration
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_get_default_config_from_snapshot(client):
+    project_id = "test_project_id"
+    processor_id = "test_proc_id"
+    snapshot_id = "test_snapshot_id"
+    name = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configSnapshots/{snapshot_id}/'
+        f'configs/default'
+    )
+
+    device_spec = v2.device_pb2.DeviceSpecification(
+        valid_qubits=["0_0", "1_1", "2_2"],
+        valid_targets=[
+            v2.device_pb2.TargetSet(
+                name="2_quibit_targets",
+                target_ordering=v2.device_pb2.TargetSet.SYMMETRIC,
+                targets=[v2.device_pb2.Target(ids=["0_0", "1_1"])],
+            )
+        ],
+    )
+    quantum_config = quantum.QuantumProcessorConfig(
+        name=name,
+        device_specification=util.pack_any(device_spec),
+        characterization=util.pack_any(_METRIC_SNAPSHOT),
+    )
+    client().get_quantum_processor_config_from_snapshot_async.return_value = quantum_config
+    expected_config = ProcessorConfig(quantum_processor_config=quantum_config)
+    processor = cg.EngineProcessor(
+        project_id=project_id, processor_id=processor_id, context=EngineContext()
+    )
+
+    actual_config = processor.get_config_from_snapshot(snapshot_id=snapshot_id)
+
+    client().get_quantum_processor_config_from_snapshot_async.assert_called_once_with(
+        project_id=project_id,
+        processor_id=processor_id,
+        snapshot_id=snapshot_id,
+        config_name='default',
+    )
+    assert actual_config.processor_id == expected_config.processor_id
+    assert actual_config.config_name == 'default'
+    assert actual_config.run_name == ''
+    assert actual_config.snapshot_id == snapshot_id
+    assert actual_config.effective_device == expected_config.effective_device
+    assert actual_config.calibration == expected_config.calibration
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_get_config_from_snapshot_not_found(client):
+    project_id = "test_project_id"
+    processor_id = "test_proc_id"
+    snapshot_id = "test_snapshot_id"
+    config_name = "test_config_name"
+
+    client().get_quantum_processor_config_from_snapshot_async.return_value = None
+
+    processor = cg.EngineProcessor(
+        project_id=project_id, processor_id=processor_id, context=EngineContext()
+    )
+
+    result = processor.get_config_from_snapshot(config_name=config_name, snapshot_id=snapshot_id)
+
+    client().get_quantum_processor_config_from_snapshot_async.assert_called_once_with(
+        project_id=project_id,
+        processor_id=processor_id,
+        snapshot_id=snapshot_id,
+        config_name=config_name,
+    )
+
+    assert result is None
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_get_current_config_from_run_not_found(client):
+    project_id = "test_project_id"
+    processor_id = "test_proc_id"
+    config_name = "test_config_name"
+    run_name = 'test_run_name'
+
+    client().get_quantum_processor_config_from_run_async.return_value = None
+
+    processor = cg.EngineProcessor(
+        project_id=project_id, processor_id=processor_id, context=EngineContext()
+    )
+
+    result = processor.get_config_from_run(config_name=config_name, run_name=run_name)
+
+    client().get_quantum_processor_config_from_run_async.assert_called_once_with(
+        project_id=project_id, processor_id=processor_id, run_name=run_name, config_name=config_name
+    )
+    assert result is None

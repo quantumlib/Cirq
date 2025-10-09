@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 import sympy
 
@@ -50,7 +52,7 @@ class MulSevenRMulEight:
         return 8
 
 
-def test_equivalent_to_builtin_mul():
+def test_equivalent_to_builtin_mul() -> None:
     test_vals = [
         0,
         1,
@@ -74,14 +76,14 @@ def test_equivalent_to_builtin_mul():
             c = cirq.mul(a, b, default=None)
             if c is None:
                 with pytest.raises(TypeError):
-                    _ = a * b
+                    _ = a * b  # type: ignore[operator]
                 with pytest.raises(TypeError):
                     _ = cirq.mul(a, b)
             else:
-                assert c == a * b
+                assert c == a * b  # type: ignore[operator]
 
 
-def test_symbol_special_case():
+def test_symbol_special_case() -> None:
     x = sympy.Symbol('x')
     assert cirq.mul(x, 1.0) is x
     assert cirq.mul(1.0, x) is x

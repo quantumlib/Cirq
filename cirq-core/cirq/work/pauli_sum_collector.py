@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import collections
-from typing import cast, Dict, Optional, TYPE_CHECKING, Union
+from typing import cast, TYPE_CHECKING
 
 import numpy as np
 
@@ -60,12 +60,12 @@ class PauliSumCollector(collector.Collector):
             if not p:
                 self._identity_offset += p.coefficient
 
-        self._zeros: Dict[ops.PauliString, int] = collections.defaultdict(lambda: 0)
-        self._ones: Dict[ops.PauliString, int] = collections.defaultdict(lambda: 0)
+        self._zeros: dict[ops.PauliString, int] = collections.defaultdict(lambda: 0)
+        self._ones: dict[ops.PauliString, int] = collections.defaultdict(lambda: 0)
         self._samples_per_term = samples_per_term
         self._total_samples_requested = 0
 
-    def next_job(self) -> Optional[cirq.CircuitSampleJob]:
+    def next_job(self) -> cirq.CircuitSampleJob | None:
         i = self._total_samples_requested // self._samples_per_term
         if i >= len(self._pauli_coef_terms):
             return None
@@ -85,7 +85,7 @@ class PauliSumCollector(collector.Collector):
         self._zeros[job_id] += parities[0]
         self._ones[job_id] += parities[1]
 
-    def estimated_energy(self) -> Union[float, complex]:
+    def estimated_energy(self) -> float | complex:
         """Sums up the sampled expectations, weighted by their coefficients."""
         energy = 0j
         for pauli_string, coef in self._pauli_coef_terms:

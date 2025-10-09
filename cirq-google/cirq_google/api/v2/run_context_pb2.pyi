@@ -29,6 +29,11 @@ class RunContext(google.protobuf.message.Message):
 
     PARAMETER_SWEEPS_FIELD_NUMBER: builtins.int
     DEVICE_PARAMETERS_OVERRIDE_FIELD_NUMBER: builtins.int
+    COMPRESSED_RUN_CONTEXT_FIELD_NUMBER: builtins.int
+    compressed_run_context: builtins.bytes
+    """If compression is desired, this field stores the gzipped bytes
+    of the RunContext
+    """
     @property
     def parameter_sweeps(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___ParameterSweep]:
         """The parameters for operations in a program."""
@@ -47,9 +52,10 @@ class RunContext(google.protobuf.message.Message):
         *,
         parameter_sweeps: collections.abc.Iterable[global___ParameterSweep] | None = ...,
         device_parameters_override: global___DeviceParametersDiff | None = ...,
+        compressed_run_context: builtins.bytes = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["device_parameters_override", b"device_parameters_override"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["device_parameters_override", b"device_parameters_override", "parameter_sweeps", b"parameter_sweeps"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["compressed_run_context", b"compressed_run_context", "device_parameters_override", b"device_parameters_override", "parameter_sweeps", b"parameter_sweeps"]) -> None: ...
 
 global___RunContext = RunContext
 
@@ -455,6 +461,7 @@ class SingleSweep(google.protobuf.message.Message):
     POINTS_FIELD_NUMBER: builtins.int
     LINSPACE_FIELD_NUMBER: builtins.int
     CONST_VALUE_FIELD_NUMBER: builtins.int
+    RANDOM_VARIABLE_FIELD_NUMBER: builtins.int
     PARAMETER_FIELD_NUMBER: builtins.int
     METADATA_FIELD_NUMBER: builtins.int
     parameter_key: builtins.str
@@ -474,6 +481,10 @@ class SingleSweep(google.protobuf.message.Message):
         """A constant value."""
 
     @property
+    def random_variable(self) -> global___FiniteRandomVariable:
+        """Random Variable chosen from a finite list"""
+
+    @property
     def parameter(self) -> global___DeviceParameter:
         """Optional arguments for if this is a device parameter.
         (as opposed to a circuit symbol)
@@ -490,12 +501,13 @@ class SingleSweep(google.protobuf.message.Message):
         points: global___Points | None = ...,
         linspace: global___Linspace | None = ...,
         const_value: global___ConstValue | None = ...,
+        random_variable: global___FiniteRandomVariable | None = ...,
         parameter: global___DeviceParameter | None = ...,
         metadata: global___Metadata | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["const_value", b"const_value", "linspace", b"linspace", "metadata", b"metadata", "parameter", b"parameter", "points", b"points", "sweep", b"sweep"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["const_value", b"const_value", "linspace", b"linspace", "metadata", b"metadata", "parameter", b"parameter", "parameter_key", b"parameter_key", "points", b"points", "sweep", b"sweep"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["sweep", b"sweep"]) -> typing.Literal["points", "linspace", "const_value"] | None: ...
+    def HasField(self, field_name: typing.Literal["const_value", b"const_value", "linspace", b"linspace", "metadata", b"metadata", "parameter", b"parameter", "points", b"points", "random_variable", b"random_variable", "sweep", b"sweep"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["const_value", b"const_value", "linspace", b"linspace", "metadata", b"metadata", "parameter", b"parameter", "parameter_key", b"parameter_key", "points", b"points", "random_variable", b"random_variable", "sweep", b"sweep"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["sweep", b"sweep"]) -> typing.Literal["points", "linspace", "const_value", "random_variable"] | None: ...
 
 global___SingleSweep = SingleSweep
 
@@ -506,9 +518,14 @@ class Points(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
     POINTS_FIELD_NUMBER: builtins.int
+    POINTS_DOUBLE_FIELD_NUMBER: builtins.int
     UNIT_FIELD_NUMBER: builtins.int
     @property
     def points(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
+        """The values.  Deprecated, superseded by points_double (assign both fields during transition)."""
+
+    @property
+    def points_double(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
         """The values."""
 
     @property
@@ -517,10 +534,11 @@ class Points(google.protobuf.message.Message):
         self,
         *,
         points: collections.abc.Iterable[builtins.float] | None = ...,
+        points_double: collections.abc.Iterable[builtins.float] | None = ...,
         unit: tunits.proto.tunits_pb2.Value | None = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["unit", b"unit"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["points", b"points", "unit", b"unit"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["points", b"points", "points_double", b"points_double", "unit", b"unit"]) -> None: ...
 
 global___Points = Points
 
@@ -536,13 +554,19 @@ class Linspace(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
     FIRST_POINT_FIELD_NUMBER: builtins.int
+    FIRST_POINT_DOUBLE_FIELD_NUMBER: builtins.int
     LAST_POINT_FIELD_NUMBER: builtins.int
+    LAST_POINT_DOUBLE_FIELD_NUMBER: builtins.int
     NUM_POINTS_FIELD_NUMBER: builtins.int
     UNIT_FIELD_NUMBER: builtins.int
     first_point: builtins.float
-    """The start of the range."""
+    """The start of the range.
+    Deprecated: superseded by first_point_double (assign both fields during transition).
+    """
+    first_point_double: builtins.float
     last_point: builtins.float
-    """The end of the range."""
+    """The end of the range. (float32 should be avoided.)"""
+    last_point_double: builtins.float
     num_points: builtins.int
     """The number of points in the range (including first and last). Must be
     greater than zero. If it is 1, the first_point and last_point must be
@@ -554,12 +578,14 @@ class Linspace(google.protobuf.message.Message):
         self,
         *,
         first_point: builtins.float = ...,
+        first_point_double: builtins.float = ...,
         last_point: builtins.float = ...,
+        last_point_double: builtins.float = ...,
         num_points: builtins.int = ...,
         unit: tunits.proto.tunits_pb2.Value | None = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["unit", b"unit"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["first_point", b"first_point", "last_point", b"last_point", "num_points", b"num_points", "unit", b"unit"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["first_point", b"first_point", "first_point_double", b"first_point_double", "last_point", b"last_point", "last_point_double", b"last_point_double", "num_points", b"num_points", "unit", b"unit"]) -> None: ...
 
 global___Linspace = Linspace
 
@@ -571,6 +597,7 @@ class ConstValue(google.protobuf.message.Message):
 
     IS_NONE_FIELD_NUMBER: builtins.int
     FLOAT_VALUE_FIELD_NUMBER: builtins.int
+    DOUBLE_VALUE_FIELD_NUMBER: builtins.int
     INT_VALUE_FIELD_NUMBER: builtins.int
     STRING_VALUE_FIELD_NUMBER: builtins.int
     WITH_UNIT_VALUE_FIELD_NUMBER: builtins.int
@@ -579,6 +606,7 @@ class ConstValue(google.protobuf.message.Message):
     object.
     """
     float_value: builtins.float
+    double_value: builtins.float
     int_value: builtins.int
     string_value: builtins.str
     @property
@@ -588,12 +616,53 @@ class ConstValue(google.protobuf.message.Message):
         *,
         is_none: builtins.bool = ...,
         float_value: builtins.float = ...,
+        double_value: builtins.float = ...,
         int_value: builtins.int = ...,
         string_value: builtins.str = ...,
         with_unit_value: tunits.proto.tunits_pb2.Value | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["float_value", b"float_value", "int_value", b"int_value", "is_none", b"is_none", "string_value", b"string_value", "value", b"value", "with_unit_value", b"with_unit_value"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["float_value", b"float_value", "int_value", b"int_value", "is_none", b"is_none", "string_value", b"string_value", "value", b"value", "with_unit_value", b"with_unit_value"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["value", b"value"]) -> typing.Literal["is_none", "float_value", "int_value", "string_value", "with_unit_value"] | None: ...
+    def HasField(self, field_name: typing.Literal["double_value", b"double_value", "float_value", b"float_value", "int_value", b"int_value", "is_none", b"is_none", "string_value", b"string_value", "value", b"value", "with_unit_value", b"with_unit_value"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["double_value", b"double_value", "float_value", b"float_value", "int_value", b"int_value", "is_none", b"is_none", "string_value", b"string_value", "value", b"value", "with_unit_value", b"with_unit_value"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["value", b"value"]) -> typing.Literal["is_none", "float_value", "double_value", "int_value", "string_value", "with_unit_value"] | None: ...
 
 global___ConstValue = ConstValue
+
+@typing.final
+class FiniteRandomVariable(google.protobuf.message.Message):
+    """A message for a random variable with a finite distribution"""
+
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    @typing.final
+    class DistributionEntry(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        KEY_FIELD_NUMBER: builtins.int
+        VALUE_FIELD_NUMBER: builtins.int
+        key: builtins.str
+        value: builtins.float
+        def __init__(
+            self,
+            *,
+            key: builtins.str = ...,
+            value: builtins.float = ...,
+        ) -> None: ...
+        def ClearField(self, field_name: typing.Literal["key", b"key", "value", b"value"]) -> None: ...
+
+    DISTRIBUTION_FIELD_NUMBER: builtins.int
+    LENGTH_FIELD_NUMBER: builtins.int
+    SEED_FIELD_NUMBER: builtins.int
+    length: builtins.int
+    seed: builtins.int
+    @property
+    def distribution(self) -> google.protobuf.internal.containers.ScalarMap[builtins.str, builtins.float]: ...
+    def __init__(
+        self,
+        *,
+        distribution: collections.abc.Mapping[builtins.str, builtins.float] | None = ...,
+        length: builtins.int = ...,
+        seed: builtins.int = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing.Literal["distribution", b"distribution", "length", b"length", "seed", b"seed"]) -> None: ...
+
+global___FiniteRandomVariable = FiniteRandomVariable

@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import json
 import urllib
 
@@ -22,7 +25,7 @@ from cirq import quirk_json_to_circuit, quirk_url_to_circuit
 from cirq.interop.quirk.cells.testing import assert_url_to_circuit_returns
 
 
-def test_parse_simple_cases():
+def test_parse_simple_cases() -> None:
     a, b = cirq.LineQubit.range(2)
 
     assert quirk_url_to_circuit('http://algassert.com/quirk') == cirq.Circuit()
@@ -44,7 +47,7 @@ def test_parse_simple_cases():
         ('http://algassert.com/quirk#circuit=', json.JSONDecodeError, None),
     ],
 )
-def test_parse_url_failures(url, error_cls, msg):
+def test_parse_url_failures(url, error_cls, msg) -> None:
     with pytest.raises(error_cls, match=msg):
         _ = quirk_url_to_circuit(url)
 
@@ -67,7 +70,7 @@ def test_parse_url_failures(url, error_cls, msg):
         ),
     ],
 )
-def test_parse_failures(url, msg):
+def test_parse_failures(url, msg) -> None:
     parsed_url = urllib.parse.urlparse(url)
     data = json.loads(parsed_url.fragment[len('circuit=') :])
 
@@ -78,7 +81,7 @@ def test_parse_failures(url, msg):
         _ = quirk_json_to_circuit(data)
 
 
-def test_parse_with_qubits():
+def test_parse_with_qubits() -> None:
     a = cirq.GridQubit(0, 0)
     b = cirq.GridQubit(0, 1)
     c = cirq.GridQubit(0, 2)
@@ -100,7 +103,7 @@ def test_parse_with_qubits():
         )
 
 
-def test_extra_cell_makers():
+def test_extra_cell_makers() -> None:
     assert cirq.quirk_url_to_circuit(
         'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
         extra_cell_makers=[
@@ -137,7 +140,7 @@ def test_extra_cell_makers():
     )
 
 
-def test_init():
+def test_init() -> None:
     b, c, d, e, f = cirq.LineQubit.range(1, 6)
     assert_url_to_circuit_returns(
         '{"cols":[],"init":[0,1,"+","-","i","-i"]}',
@@ -173,7 +176,7 @@ def test_init():
         _ = cirq.quirk_url_to_circuit('http://algassert.com/quirk#circuit={"cols":[],"init":[2]}')
 
 
-def test_custom_gate_parse_failures():
+def test_custom_gate_parse_failures() -> None:
     with pytest.raises(ValueError, match='must be a list'):
         _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":[],"gates":5}')
 
@@ -226,7 +229,7 @@ def test_custom_gate_parse_failures():
         )
 
 
-def test_custom_matrix_gate():
+def test_custom_matrix_gate() -> None:
     a, b = cirq.LineQubit.range(2)
 
     # Without name.
@@ -256,7 +259,7 @@ def test_custom_matrix_gate():
     )
 
 
-def test_survives_a_billion_laughs():
+def test_survives_a_billion_laughs() -> None:
     # If this test is timing out, it means you made a change that accidentally
     # iterated over the circuit contents before they were counted and checked
     # against the maximum. It is not possible to test for the billion laughs
@@ -298,7 +301,7 @@ def test_survives_a_billion_laughs():
         )
 
 
-def test_completes_weight_zero_billion_laughs():
+def test_completes_weight_zero_billion_laughs() -> None:
     circuit = cirq.quirk_url_to_circuit(
         'https://algassert.com/quirk#circuit={'
         '"cols":[["~z"]],'
@@ -336,7 +339,7 @@ def test_completes_weight_zero_billion_laughs():
     assert circuit == cirq.Circuit()
 
 
-def test_example_qft_circuit():
+def test_example_qft_circuit() -> None:
     qft_example_diagram = """
 0: ───×───────────────H───@───────────@────────────────────@──────────────────────────────@─────────────────────────────────────────@───────────────────────────────────────────────────@─────────────────────────────────────────────────────────────@───────────────────────────────────────────────────────────────────────
       │                   │           │                    │                              │                                         │                                                   │                                                             │
@@ -353,7 +356,7 @@ def test_example_qft_circuit():
 6: ───┼───×─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────@^0.016───@^0.031───@^(1/16)───@^(1/8)───@^0.25───@^0.5───H───┼─────────┼─────────┼─────────┼──────────┼─────────┼────────@───────────
       │                                                                                                                                                                                                                                               │         │         │         │          │         │        │
 7: ───×───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────@^0.008───@^0.016───@^0.031───@^(1/16)───@^(1/8)───@^0.25───@^0.5───H───
-    """
+    """  # noqa: E501
 
     qft_example_json = (
         '{"cols":['

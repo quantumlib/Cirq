@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from typing import Sequence
+
 import numpy as np
 import pytest
 
@@ -47,7 +51,7 @@ def add_readout_error(
     return noisy_measurements.astype(int)
 
 
-def get_expected_cm(num_qubits: int, p0: float, p1: float):
+def get_expected_cm(num_qubits: int, p0: float, p1: float) -> np.ndarray:
     expected_cm = np.zeros((2**num_qubits,) * 2)
     for i in range(2**num_qubits):
         for j in range(2**num_qubits):
@@ -64,7 +68,7 @@ def get_expected_cm(num_qubits: int, p0: float, p1: float):
 
 
 @pytest.mark.parametrize('p0, p1', [(0, 0), (0.2, 0.4), (0.5, 0.5), (0.6, 0.3), (1.0, 1.0)])
-def test_measure_confusion_matrix_with_noise(p0, p1):
+def test_measure_confusion_matrix_with_noise(p0, p1) -> None:
     sampler = NoisySingleQubitReadoutSampler(p0, p1, seed=1234)
     num_qubits = 4
     qubits = cirq.LineQubit.range(num_qubits)
@@ -111,8 +115,8 @@ def test_measure_confusion_matrix_with_noise(p0, p1):
     assert l2norm(corrected_result) <= l2norm(sampled_result)
 
 
-def test_from_measurement():
-    qubits = cirq.LineQubit.range(3)
+def test_from_measurement() -> None:
+    qubits: Sequence[cirq.Qid] = cirq.LineQubit.range(3)
     confuse_02 = np.array([[0, 1, 0, 0], [0, 0, 0, 1], [1, 0, 0, 0], [0, 0, 1, 0]])
     confuse_1 = np.array([[0, 1], [1, 0]])
     op = cirq.measure(
@@ -121,6 +125,7 @@ def test_from_measurement():
         invert_mask=(True, False),
         confusion_map={(0, 2): confuse_02, (1,): confuse_1},
     )
+    assert isinstance(op.gate, cirq.MeasurementGate)
     tcm = cirq.TensoredConfusionMatrices.from_measurement(op.gate, op.qubits)
     expected_tcm = cirq.TensoredConfusionMatrices(
         [confuse_02, confuse_1], ((qubits[0], qubits[2]), (qubits[1],)), repetitions=0, timestamp=0
@@ -128,11 +133,12 @@ def test_from_measurement():
     assert tcm == expected_tcm
 
     no_cm_op = cirq.measure(*qubits, key='a')
+    assert isinstance(no_cm_op.gate, cirq.MeasurementGate)
     with pytest.raises(ValueError, match="Measurement has no confusion matrices"):
         _ = cirq.TensoredConfusionMatrices.from_measurement(no_cm_op.gate, no_cm_op.qubits)
 
 
-def test_readout_confusion_matrix_raises():
+def test_readout_confusion_matrix_raises() -> None:
     num_qubits = 2
     confusion_matrix = get_expected_cm(num_qubits, 0.1, 0.2)
     qubits = cirq.LineQubit.range(4)
@@ -172,7 +178,7 @@ def test_readout_confusion_matrix_raises():
         _ = readout_cm.apply(np.asarray([1 / 16] * 16), method='l1norm')
 
 
-def test_readout_confusion_matrix_repr_and_equality():
+def test_readout_confusion_matrix_repr_and_equality() -> None:
     mat1 = cirq.testing.random_orthogonal(4, random_state=1234)
     mat2 = cirq.testing.random_orthogonal(2, random_state=1234)
     q = cirq.LineQubit.range(3)
@@ -243,8 +249,8 @@ def _add_noise_and_mitigate_ghz(
     return (*tcm.readout_mitigation_pauli_uncorrelated(qubits, noisy_measurements), z, dz)
 
 
-def test_uncorrelated_readout_mitigation_pauli():
-    n_all = np.arange(2, 35)
+def test_uncorrelated_readout_mitigation_pauli() -> None:
+    n_all = list(range(2, 35))
     z_all_mit = []
     dz_all_mit = []
     z_all_raw = []

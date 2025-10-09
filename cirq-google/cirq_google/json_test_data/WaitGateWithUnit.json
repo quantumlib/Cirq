@@ -1,0 +1,7 @@
+{
+    "cirq_type": "WaitGateWithUnit",
+    "duration": {
+        "cirq_type": "sympy.Symbol",
+        "name": "d"
+    }
+}

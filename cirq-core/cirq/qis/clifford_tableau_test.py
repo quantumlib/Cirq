@@ -14,6 +14,8 @@
 
 """Tests for clifford tableau."""
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
@@ -45,7 +47,7 @@ def _CNOT(table, q1, q2):
 
 
 @pytest.mark.parametrize('num_qubits', range(1, 4))
-def test_tableau_initial_state_string(num_qubits):
+def test_tableau_initial_state_string(num_qubits) -> None:
     for i in range(2**num_qubits):
         t = cirq.CliffordTableau(initial_state=i, num_qubits=num_qubits)
         splitted_represent_string = str(t).split('\n')
@@ -56,7 +58,7 @@ def test_tableau_initial_state_string(num_qubits):
             assert splitted_represent_string[n] == expected_string
 
 
-def test_tableau_invalid_initial_state():
+def test_tableau_invalid_initial_state() -> None:
     with pytest.raises(ValueError, match="2*num_qubits columns and of type bool."):
         cirq.CliffordTableau(1, rs=np.zeros(1, dtype=bool))
 
@@ -71,7 +73,7 @@ def test_tableau_invalid_initial_state():
         cirq.CliffordTableau(1, zs=np.zeros(1, dtype=bool))
 
 
-def test_stabilizers():
+def test_stabilizers() -> None:
     # Note: the stabilizers are not unique for one state. We just use the one
     # produced by the tableau algorithm.
     # 1. Final state is |1>: Stabalized by -Z.
@@ -99,7 +101,7 @@ def test_stabilizers():
     assert stabilizers[1] == cirq.DensePauliString('IX', coefficient=1)
 
 
-def test_destabilizers():
+def test_destabilizers() -> None:
     # Note: Like stablizers, the destabilizers are not unique for one state, too.
     # We just use the one produced by the tableau algorithm.
     # Under the clifford tableau algorithm, there are several properties that the
@@ -133,7 +135,7 @@ def test_destabilizers():
     assert destabilizers[1] == cirq.DensePauliString('IZ', coefficient=1)
 
 
-def test_measurement():
+def test_measurement() -> None:
     repetitions = 500
     prng = np.random.RandomState(seed=123456)
 
@@ -193,7 +195,7 @@ def test_measurement():
     assert sum(np.asarray(res) == 3) >= (repetitions / 4 * 0.9)
 
 
-def test_validate_tableau():
+def test_validate_tableau() -> None:
     num_qubits = 4
     for i in range(2**num_qubits):
         t = cirq.CliffordTableau(initial_state=i, num_qubits=num_qubits)
@@ -216,7 +218,7 @@ def test_validate_tableau():
     assert not t._validate()
 
 
-def test_rowsum():
+def test_rowsum() -> None:
     # Note: rowsum should not apply on two rows that anti-commute each other.
     t = cirq.CliffordTableau(num_qubits=2)
     # XI * IX ==> XX
@@ -244,7 +246,7 @@ def test_rowsum():
     assert t.stabilizers()[1] == cirq.DensePauliString('YX', coefficient=1)
 
 
-def test_json_dict():
+def test_json_dict() -> None:
     t = cirq.CliffordTableau._from_json_dict_(n=1, rs=[0, 0], xs=[[1], [0]], zs=[[0], [1]])
     assert t.destabilizers()[0] == cirq.DensePauliString('X', coefficient=1)
     assert t.stabilizers()[0] == cirq.DensePauliString('Z', coefficient=1)
@@ -264,7 +266,7 @@ def test_json_dict():
             assert json_dict[k] == v
 
 
-def test_str():
+def test_str() -> None:
     t = cirq.CliffordTableau(num_qubits=2)
     splitted_represent_string = str(t).split('\n')
     assert len(splitted_represent_string) == 2
@@ -286,11 +288,11 @@ def test_str():
     assert splitted_represent_string[1] == '+ I Y '
 
 
-def test_repr():
+def test_repr() -> None:
     cirq.testing.assert_equivalent_repr(cirq.CliffordTableau(num_qubits=1))
 
 
-def test_str_full():
+def test_str_full() -> None:
     t = cirq.CliffordTableau(num_qubits=1)
     expected_str = r"""stable | destable
 -------+----------
@@ -315,7 +317,7 @@ def test_str_full():
     assert t._str_full_() == expected_str
 
 
-def test_copy():
+def test_copy() -> None:
     t = cirq.CliffordTableau(num_qubits=3, initial_state=3)
     new_t = t.copy()
 
@@ -338,7 +340,7 @@ def _three_identical_table(num_qubits):
     return t1, t2, t3
 
 
-def test_tableau_then():
+def test_tableau_then() -> None:
 
     t1, t2, expected_t = _three_identical_table(1)
     assert expected_t == t1.then(t2)
@@ -425,7 +427,7 @@ def test_tableau_then():
     assert expected_t == t1.then(t2)
 
 
-def test_tableau_matmul():
+def test_tableau_matmul() -> None:
     t1, t2, expected_t = _three_identical_table(1)
     _ = [_H(t, 0) for t in (t1, expected_t)]
     _ = [_H(t, 0) for t in (t2, expected_t)]
@@ -438,22 +440,20 @@ def test_tableau_matmul():
     assert expected_t != t1 @ t2
 
     with pytest.raises(TypeError):
-        # pylint: disable=pointless-statement
         t1 @ 21
-        # pylint: enable=pointless-statement
 
 
-def test_tableau_then_with_bad_input():
+def test_tableau_then_with_bad_input() -> None:
     t1 = cirq.CliffordTableau(1)
     t2 = cirq.CliffordTableau(2)
     with pytest.raises(ValueError, match="Mismatched number of qubits of two tableaux: 1 vs 2."):
         t1.then(t2)
 
     with pytest.raises(TypeError):
-        t1.then(cirq.X)
+        t1.then(cirq.X)  # type: ignore[arg-type]
 
 
-def test_inverse():
+def test_inverse() -> None:
     t = cirq.CliffordTableau(num_qubits=1)
     assert t.inverse() == t
 

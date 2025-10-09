@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 
 from unittest.mock import patch
 
@@ -32,7 +33,7 @@ class GaugeTester:
         ['generation_seed', 'transformation_seed'],
         np.random.RandomState(0).randint(2**31, size=(5, 2)).tolist(),
     )
-    def test_gauge_transformer(self, generation_seed, transformation_seed):
+    def test_gauge_transformer(self, generation_seed, transformation_seed) -> None:
         c = cirq.Circuit()
         while not any(op.gate == self.two_qubit_gate for op in c.all_operations()):
             c = cirq.testing.random_circuit(
@@ -56,7 +57,7 @@ class GaugeTester:
 
     @patch('cirq.transformers.gauge_compiling.gauge_compiling._select', autospec=True)
     @pytest.mark.parametrize('seed', range(5))
-    def test_all_gauges(self, mock_select, seed):
+    def test_all_gauges(self, mock_select, seed) -> None:
         assert isinstance(
             self.gauge_transformer.gauge_selector, GaugeSelector
         ), 'When using a custom selector, please override this method to properly test all gauges'
@@ -73,7 +74,7 @@ class GaugeTester:
             else:
                 _check_equivalent_with_error_message(c, nc, gauge)
 
-    def test_sweep(self):
+    def test_sweep(self) -> None:
         qubits = cirq.LineQubit.range(3)
 
         input_circuit = cirq.Circuit(

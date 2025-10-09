@@ -1,6 +1,8 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 """Tests for the Quantum Volume utilities."""
 
+from __future__ import annotations
+
 import io
 from unittest.mock import MagicMock, Mock
 
@@ -16,7 +18,7 @@ class FakeDevice(cirq.Device):
     qubits = cirq.GridQubit.rect(5, 5)
 
 
-def test_generate_model_circuit():
+def test_generate_model_circuit() -> None:
     """Test that a model circuit is randomly generated."""
     model_circuit = cirq.contrib.quantum_volume.generate_model_circuit(
         3, 3, random_state=np.random.RandomState(1)
@@ -27,7 +29,7 @@ def test_generate_model_circuit():
     assert list(model_circuit.findall_operations_with_gate_type(cirq.MeasurementGate)) == []
 
 
-def test_generate_model_circuit_without_seed():
+def test_generate_model_circuit_without_seed() -> None:
     """Test that a model circuit is randomly generated without a seed."""
     model_circuit = cirq.contrib.quantum_volume.generate_model_circuit(3, 3)
 
@@ -36,7 +38,7 @@ def test_generate_model_circuit_without_seed():
     assert list(model_circuit.findall_operations_with_gate_type(cirq.MeasurementGate)) == []
 
 
-def test_generate_model_circuit_seed():
+def test_generate_model_circuit_seed() -> None:
     """Test that a model circuit is determined by its seed ."""
     model_circuit_1 = cirq.contrib.quantum_volume.generate_model_circuit(
         3, 3, random_state=np.random.RandomState(1)
@@ -52,7 +54,7 @@ def test_generate_model_circuit_seed():
     assert model_circuit_2 != model_circuit_3
 
 
-def test_compute_heavy_set():
+def test_compute_heavy_set() -> None:
     """Test that the heavy set can be computed from a given circuit."""
     a, b, c = cirq.LineQubit.range(3)
     model_circuit = cirq.Circuit(
@@ -67,7 +69,7 @@ def test_compute_heavy_set():
     assert cirq.contrib.quantum_volume.compute_heavy_set(model_circuit) == [5, 7]
 
 
-def test_sample_heavy_set():
+def test_sample_heavy_set() -> None:
     """Test that we correctly sample a circuit's heavy set"""
 
     sampler = Mock(spec=cirq.Simulator)
@@ -87,7 +89,7 @@ def test_sample_heavy_set():
     assert probability == 0.75
 
 
-def test_sample_heavy_set_with_parity():
+def test_sample_heavy_set_with_parity() -> None:
     """Test that we correctly sample a circuit's heavy set with a parity map"""
 
     sampler = Mock(spec=cirq.Simulator)
@@ -120,7 +122,7 @@ def test_sample_heavy_set_with_parity():
     assert probability == 0.5
 
 
-def test_compile_circuit_router():
+def test_compile_circuit_router() -> None:
     """Tests that the given router is used."""
     router_mock = MagicMock()
     cirq.contrib.quantum_volume.compile_circuit(
@@ -132,7 +134,7 @@ def test_compile_circuit_router():
     router_mock.assert_called()
 
 
-def test_compile_circuit():
+def test_compile_circuit() -> None:
     """Tests that we are able to compile a model circuit."""
     compiler_mock = MagicMock(side_effect=lambda circuit: circuit)
     a, b, c = cirq.LineQubit.range(3)
@@ -152,7 +154,7 @@ def test_compile_circuit():
     compiler_mock.assert_called_with(compilation_result.circuit)
 
 
-def test_compile_circuit_replaces_swaps():
+def test_compile_circuit_replaces_swaps() -> None:
     """Tests that the compiler never sees the SwapPermutationGates from the
     router."""
     compiler_mock = MagicMock(side_effect=lambda circuit: circuit)
@@ -193,7 +195,7 @@ def test_compile_circuit_replaces_swaps():
     )
 
 
-def test_compile_circuit_with_readout_correction():
+def test_compile_circuit_with_readout_correction() -> None:
     """Tests that we are able to compile a model circuit with readout error
     correction."""
     compiler_mock = MagicMock(side_effect=lambda circuit: circuit)
@@ -220,9 +222,10 @@ def test_compile_circuit_with_readout_correction():
     )
 
 
-def test_compile_circuit_multiple_routing_attempts():
+def test_compile_circuit_multiple_routing_attempts() -> None:
     """Tests that we make multiple attempts at routing and keep the best one."""
     qubits = cirq.LineQubit.range(3)
+    initial_mapping: dict[cirq.Qid, cirq.Qid]
     initial_mapping = dict(zip(qubits, qubits))
     more_operations = cirq.Circuit([cirq.X.on_each(qubits), cirq.Y.on_each(qubits)])
     more_qubits = cirq.Circuit([cirq.X.on_each(cirq.LineQubit.range(4))])
@@ -250,7 +253,7 @@ def test_compile_circuit_multiple_routing_attempts():
     compiler_mock.assert_called_with(well_routed)
 
 
-def test_compile_circuit_no_routing_attempts():
+def test_compile_circuit_no_routing_attempts() -> None:
     """Tests that setting no routing attempts throws an error."""
     a, b, c = cirq.LineQubit.range(3)
     model_circuit = cirq.Circuit([cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)])])
@@ -264,7 +267,7 @@ def test_compile_circuit_no_routing_attempts():
     assert e.match('Unable to get routing for circuit')
 
 
-def test_calculate_quantum_volume_result():
+def test_calculate_quantum_volume_result() -> None:
     """Test that running the main loop returns the desired result"""
     results = cirq.contrib.quantum_volume.calculate_quantum_volume(
         num_qubits=3,
@@ -285,7 +288,7 @@ def test_calculate_quantum_volume_result():
     cirq.to_json(results, buffer)
 
 
-def test_calculate_quantum_volume_result_with_device_graph():
+def test_calculate_quantum_volume_result_with_device_graph() -> None:
     """Test that running the main loop routes the circuit onto the given device
     graph"""
     device_qubits = [cirq.GridQubit(i, j) for i in range(2) for j in range(3)]
@@ -306,7 +309,7 @@ def test_calculate_quantum_volume_result_with_device_graph():
     )
 
 
-def test_calculate_quantum_volume_loop():
+def test_calculate_quantum_volume_loop() -> None:
     """Test that calculate_quantum_volume is able to run without erring."""
     # Keep test from taking a long time by lowering circuits and routing
     # attempts.
@@ -321,7 +324,7 @@ def test_calculate_quantum_volume_loop():
     )
 
 
-def test_calculate_quantum_volume_loop_with_readout_correction():
+def test_calculate_quantum_volume_loop_with_readout_correction() -> None:
     """Test that calculate_quantum_volume is able to run without erring with
     readout error correction."""
     # Keep test from taking a long time by lowering circuits and routing

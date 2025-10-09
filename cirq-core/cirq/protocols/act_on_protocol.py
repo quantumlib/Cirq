@@ -15,9 +15,7 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import Any, Optional, Sequence, TYPE_CHECKING, Union
-
-from typing_extensions import Protocol
+from typing import Any, Protocol, Sequence, TYPE_CHECKING
 
 from cirq import ops
 from cirq._doc import doc_private
@@ -30,7 +28,7 @@ class SupportsActOn(Protocol):
     """An object that explicitly specifies how to act on simulator states."""
 
     @doc_private
-    def _act_on_(self, sim_state: cirq.SimulationStateBase) -> Union[NotImplementedType, bool]:
+    def _act_on_(self, sim_state: cirq.SimulationStateBase) -> NotImplementedType | bool:
         """Applies an action to the given argument, if it is a supported type.
 
         For example, unitary operations can implement an `_act_on_` method that
@@ -62,7 +60,7 @@ class SupportsActOnQubits(Protocol):
     @doc_private
     def _act_on_(
         self, sim_state: cirq.SimulationStateBase, qubits: Sequence[cirq.Qid]
-    ) -> Union[NotImplementedType, bool]:
+    ) -> NotImplementedType | bool:
         """Applies an action to the given argument, if it is a supported type.
 
         For example, unitary operations can implement an `_act_on_` method that
@@ -91,10 +89,10 @@ class SupportsActOnQubits(Protocol):
 def act_on(
     action: Any,
     sim_state: cirq.SimulationStateBase,
-    qubits: Optional[Sequence[cirq.Qid]] = None,
+    qubits: Sequence[cirq.Qid] | None = None,
     *,
     allow_decompose: bool = True,
-):
+) -> None:
     """Applies an action to a state argument.
 
     For example, the action may be a `cirq.Operation` and the state argument may

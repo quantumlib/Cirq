@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import Any, Dict, Iterator, Sequence, Tuple, TYPE_CHECKING
+from typing import Any, Iterator, Sequence, TYPE_CHECKING
 
 from cirq import ops, value
 from cirq.contrib.acquaintance.permutation import PermutationGate, SwapPermutationGate
@@ -36,7 +36,7 @@ class CircularShiftGate(PermutationGate):
             shift: The number of positions to circularly left shift the qubits.
             swap_gate: The gate to use when decomposing.
         """
-        super(CircularShiftGate, self).__init__(num_qubits, swap_gate)
+        super().__init__(num_qubits, swap_gate)
         self.shift = shift
 
     def __repr__(self) -> str:
@@ -60,7 +60,7 @@ class CircularShiftGate(PermutationGate):
             for k in range(i, j, 2):
                 yield swap_gate(*qubits[k : k + 2])
 
-    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> Tuple[str, ...]:
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> tuple[str, ...]:
         if args.known_qubit_count is None:
             return NotImplemented  # pragma: no cover
         direction_symbols = ('╲', '╱') if args.use_unicode_characters else ('\\', '/')
@@ -72,7 +72,7 @@ class CircularShiftGate(PermutationGate):
         )
         return wire_symbols
 
-    def permutation(self) -> Dict[int, int]:
+    def permutation(self) -> dict[int, int]:
         shift = self.shift % self.num_qubits()
         permuted_indices = itertools.chain(range(shift, self.num_qubits()), range(shift))
         return {s: i for i, s in enumerate(permuted_indices)}

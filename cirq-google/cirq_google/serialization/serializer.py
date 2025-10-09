@@ -12,11 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import abc
-from typing import Optional
+from __future__ import annotations
 
-import cirq
-from cirq_google.api import v2
+import abc
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import cirq
+    from cirq_google.api import v2
 
 
 class Serializer(metaclass=abc.ABCMeta):
@@ -32,7 +35,7 @@ class Serializer(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def serialize(
-        self, program: cirq.AbstractCircuit, msg: Optional[v2.program_pb2.Program] = None
+        self, program: cirq.AbstractCircuit, msg: v2.program_pb2.Program | None = None
     ) -> v2.program_pb2.Program:
         """Serialize a Circuit to cirq_google.api.v2.Program proto.
 

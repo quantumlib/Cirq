@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
@@ -21,7 +23,7 @@ from cirq.qis.entropy import process_renyi_entropy_from_bitstrings
 
 
 @pytest.mark.parametrize('pool', [None, ThreadPoolExecutor(max_workers=1)])
-def test_process_renyi_entropy_from_bitstrings(pool):
+def test_process_renyi_entropy_from_bitstrings(pool) -> None:
     bitstrings = np.array(
         [
             [[0, 1, 1, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 1, 1, 1]],
@@ -36,7 +38,7 @@ def test_process_renyi_entropy_from_bitstrings(pool):
     assert entropy == 0.5145731728297583
 
 
-def test_process_renyi_entropy_from_bitstrings_safeguards_against_divide_by_0_error():
+def test_process_renyi_entropy_from_bitstrings_safeguards_against_divide_by_0_error() -> None:
     bitstrings = np.array([[[0, 1, 1, 0]], [[0, 1, 1, 0]], [[0, 0, 1, 1]]])
 
     entropy = process_renyi_entropy_from_bitstrings(bitstrings)

@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 import sympy
 
 import cirq
 
 
-def test_periodic_value_equality():
+def test_periodic_value_equality() -> None:
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(
         cirq.PeriodicValue(1, 2),
@@ -34,7 +36,7 @@ def test_periodic_value_equality():
     eq.add_equality_group(cirq.PeriodicValue(2, 4))
 
 
-def test_periodic_value_approx_eq_basic():
+def test_periodic_value_approx_eq_basic() -> None:
     assert cirq.approx_eq(cirq.PeriodicValue(1.0, 2.0), cirq.PeriodicValue(1.0, 2.0), atol=0.1)
     assert cirq.approx_eq(cirq.PeriodicValue(1.0, 2.0), cirq.PeriodicValue(1.2, 2.0), atol=0.3)
     assert not cirq.approx_eq(cirq.PeriodicValue(1.0, 2.0), cirq.PeriodicValue(1.2, 2.0), atol=0.1)
@@ -49,12 +51,12 @@ def test_periodic_value_approx_eq_basic():
     )
 
 
-def test_periodic_value_approx_eq_normalized():
+def test_periodic_value_approx_eq_normalized() -> None:
     assert cirq.approx_eq(cirq.PeriodicValue(1.0, 3.0), cirq.PeriodicValue(4.1, 3.0), atol=0.2)
     assert cirq.approx_eq(cirq.PeriodicValue(1.0, 3.0), cirq.PeriodicValue(-2.1, 3.0), atol=0.2)
 
 
-def test_periodic_value_approx_eq_boundary():
+def test_periodic_value_approx_eq_boundary() -> None:
     assert cirq.approx_eq(cirq.PeriodicValue(0.0, 2.0), cirq.PeriodicValue(1.9, 2.0), atol=0.2)
     assert cirq.approx_eq(cirq.PeriodicValue(0.1, 2.0), cirq.PeriodicValue(1.9, 2.0), atol=0.3)
     assert cirq.approx_eq(cirq.PeriodicValue(1.9, 2.0), cirq.PeriodicValue(0.1, 2.0), atol=0.3)
@@ -64,7 +66,7 @@ def test_periodic_value_approx_eq_boundary():
     assert cirq.approx_eq(cirq.PeriodicValue(0.4, 1.0), cirq.PeriodicValue(0.6, 1.0), atol=0.3)
 
 
-def test_periodic_value_types_mismatch():
+def test_periodic_value_types_mismatch() -> None:
     assert not cirq.approx_eq(cirq.PeriodicValue(0.0, 2.0), 0.0, atol=0.2)
     assert not cirq.approx_eq(0.0, cirq.PeriodicValue(0.0, 2.0), atol=0.2)
 
@@ -79,7 +81,9 @@ def test_periodic_value_types_mismatch():
     ],
 )
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
-def test_periodic_value_is_parameterized(value, is_parameterized, parameter_names, resolve_fn):
+def test_periodic_value_is_parameterized(
+    value, is_parameterized, parameter_names, resolve_fn
+) -> None:
     assert cirq.is_parameterized(value) == is_parameterized
     assert cirq.parameter_names(value) == parameter_names
     resolved = resolve_fn(value, {p: 1 for p in parameter_names})
@@ -98,5 +102,5 @@ def test_periodic_value_is_parameterized(value, is_parameterized, parameter_name
         cirq.PeriodicValue(sympy.Symbol('v'), 3),
     ],
 )
-def test_periodic_value_repr(val):
+def test_periodic_value_repr(val) -> None:
     cirq.testing.assert_equivalent_repr(val)

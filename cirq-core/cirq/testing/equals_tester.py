@@ -20,16 +20,18 @@ group are all equal to each other, but that items between each group are never
 equal to each other. It will also check that a==b implies hash(a)==hash(b).
 """
 
+from __future__ import annotations
+
 import collections
 import itertools
-from typing import Any, Callable, List, Tuple, Union
+from typing import Any, Callable
 
 
 class EqualsTester:
     """Tests equality against user-provided disjoint equivalence groups."""
 
     def __init__(self) -> None:
-        self._groups: List[Tuple[Union[Any, _ClassUnknownToSubjects], ...]] = [
+        self._groups: list[tuple[Any | _ClassUnknownToSubjects, ...]] = [
             (_ClassUnknownToSubjects(),)
         ]
 
@@ -91,7 +93,7 @@ class EqualsTester:
                 "Common problem: returning NotImplementedError instead of NotImplemented. "
             )
 
-    def add_equality_group(self, *group_items: Any):
+    def add_equality_group(self, *group_items: Any) -> None:
         """Tries to add a disjoint equivalence group to the equality tester.
 
         This methods asserts that items within the group must all be equal to
@@ -112,7 +114,7 @@ class EqualsTester:
         # Remember this group, to enable disjoint checks vs later groups.
         self._groups.append(group_items)
 
-    def make_equality_group(self, *factories: Callable[[], Any]):
+    def make_equality_group(self, *factories: Callable[[], Any]) -> None:
         """Tries to add a disjoint equivalence group to the equality tester.
 
         Uses the factory methods to produce two different objects with the same

@@ -15,12 +15,11 @@
 """Utilities for testing code."""
 
 from cirq.testing.circuit_compare import (
-    # pylint: disable=line-too-long
-    assert_circuits_with_terminal_measurements_are_equivalent as assert_circuits_with_terminal_measurements_are_equivalent,
-    assert_circuits_have_same_unitary_given_final_permutation as assert_circuits_have_same_unitary_given_final_permutation,
+    assert_circuits_with_terminal_measurements_are_equivalent as assert_circuits_with_terminal_measurements_are_equivalent,  # noqa: E501
+    assert_circuits_have_same_unitary_given_final_permutation as assert_circuits_have_same_unitary_given_final_permutation,  # noqa: E501
     assert_has_consistent_apply_channel as assert_has_consistent_apply_channel,
     assert_has_consistent_apply_unitary as assert_has_consistent_apply_unitary,
-    assert_has_consistent_apply_unitary_for_various_exponents as assert_has_consistent_apply_unitary_for_various_exponents,
+    assert_has_consistent_apply_unitary_for_various_exponents as assert_has_consistent_apply_unitary_for_various_exponents,  # noqa: E501
     assert_has_diagram as assert_has_diagram,
     assert_same_circuits as assert_same_circuits,
     highlight_text_differences as highlight_text_differences,
@@ -28,8 +27,7 @@ from cirq.testing.circuit_compare import (
 )
 
 from cirq.testing.consistent_act_on import (
-    # pylint: disable=line-too-long
-    assert_all_implemented_act_on_effects_match_unitary as assert_all_implemented_act_on_effects_match_unitary,
+    assert_all_implemented_act_on_effects_match_unitary as assert_all_implemented_act_on_effects_match_unitary,  # noqa: E501
 )
 
 from cirq.testing.consistent_channels import (
@@ -48,8 +46,7 @@ from cirq.testing.consistent_decomposition import (
 )
 
 from cirq.testing.consistent_pauli_expansion import (
-    # pylint: disable=line-too-long
-    assert_pauli_expansion_is_consistent_with_unitary as assert_pauli_expansion_is_consistent_with_unitary,
+    assert_pauli_expansion_is_consistent_with_unitary as assert_pauli_expansion_is_consistent_with_unitary,  # noqa: E501
 )
 
 from cirq.testing.consistent_phase_by import (
@@ -57,11 +54,10 @@ from cirq.testing.consistent_phase_by import (
 )
 
 from cirq.testing.consistent_protocols import (
-    # pylint: disable=line-too-long
-    assert_eigengate_implements_consistent_protocols as assert_eigengate_implements_consistent_protocols,
+    assert_eigengate_implements_consistent_protocols as assert_eigengate_implements_consistent_protocols,  # noqa: E501
     assert_has_consistent_trace_distance_bound as assert_has_consistent_trace_distance_bound,
     assert_implements_consistent_protocols as assert_implements_consistent_protocols,
-    assert_commutes_magic_method_consistent_with_unitaries as assert_commutes_magic_method_consistent_with_unitaries,
+    assert_commutes_magic_method_consistent_with_unitaries as assert_commutes_magic_method_consistent_with_unitaries,  # noqa: E501
 )
 
 from cirq.testing.consistent_qasm import (

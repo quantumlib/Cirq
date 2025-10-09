@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import Any
 
 import numpy as np
@@ -19,7 +21,7 @@ import numpy as np
 import cirq
 
 
-def assert_consistent_channel(gate: Any, rtol: float = 1e-5, atol: float = 1e-8):
+def assert_consistent_channel(gate: Any, rtol: float = 1e-5, atol: float = 1e-8) -> None:
     """Asserts that a given gate has Kraus operators and that they are properly normalized."""
     assert cirq.has_kraus(gate), f"Given gate {gate!r} does not return True for cirq.has_kraus."
     kraus_ops = cirq.kraus(gate)
@@ -29,7 +31,7 @@ def assert_consistent_channel(gate: Any, rtol: float = 1e-5, atol: float = 1e-8)
     )
 
 
-def assert_consistent_mixture(gate: Any, rtol: float = 1e-5, atol: float = 1e-8):
+def assert_consistent_mixture(gate: Any, rtol: float = 1e-5, atol: float = 1e-8) -> None:
     """Asserts that a given gate is a mixture and the mixture probabilities sum to one."""
     assert cirq.has_mixture(gate), f"Give gate {gate!r} does not return for cirq.has_mixture."
     mixture = cirq.mixture(gate)

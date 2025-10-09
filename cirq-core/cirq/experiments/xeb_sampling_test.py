@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import glob
 import itertools
 from typing import Iterable
@@ -25,7 +28,7 @@ import cirq.experiments.random_quantum_circuit_generation as rqcg
 from cirq.experiments.xeb_sampling import sample_2q_xeb_circuits
 
 
-def test_sample_2q_xeb_circuits():
+def test_sample_2q_xeb_circuits() -> None:
     q0 = cirq.NamedQubit('a')
     q1 = cirq.NamedQubit('b')
     circuits = [
@@ -34,7 +37,7 @@ def test_sample_2q_xeb_circuits():
         )
         for _ in range(2)
     ]
-    cycle_depths = np.arange(3, 20, 6)
+    cycle_depths = list(range(3, 20, 6))
 
     df = sample_2q_xeb_circuits(
         sampler=cirq.Simulator(),
@@ -50,20 +53,20 @@ def test_sample_2q_xeb_circuits():
         assert np.isclose(np.sum(row['sampled_probs']), 1)
 
 
-def test_sample_2q_xeb_circuits_error():
+def test_sample_2q_xeb_circuits_error() -> None:
     qubits = cirq.LineQubit.range(3)
     circuits = [cirq.testing.random_circuit(qubits, n_moments=5, op_density=0.8, random_state=52)]
-    cycle_depths = np.arange(3, 50, 9)
+    cycle_depths = list(range(3, 50, 9))
     with pytest.raises(ValueError):  # three qubit circuits
         _ = sample_2q_xeb_circuits(
             sampler=cirq.Simulator(), circuits=circuits, cycle_depths=cycle_depths
         )
 
 
-def test_sample_2q_xeb_circuits_no_progress(capsys):
+def test_sample_2q_xeb_circuits_no_progress(capsys) -> None:
     qubits = cirq.LineQubit.range(2)
     circuits = [cirq.testing.random_circuit(qubits, n_moments=7, op_density=0.8, random_state=52)]
-    cycle_depths = np.arange(3, 4)
+    cycle_depths = [3]
     _ = sample_2q_xeb_circuits(
         sampler=cirq.Simulator(), circuits=circuits, cycle_depths=cycle_depths, progress_bar=None
     )
@@ -95,7 +98,7 @@ def _assert_frame_approx_equal(df, df2, *, atol):
                 assert v1 == v2, k
 
 
-def test_sample_2q_parallel_xeb_circuits(tmpdir):
+def test_sample_2q_parallel_xeb_circuits(tmpdir) -> None:
     circuits = rqcg.generate_library_of_2q_circuits(
         n_library_circuits=5, two_qubit_gate=cirq.ISWAP**0.5, max_cycle_depth=10
     )
@@ -136,7 +139,7 @@ def test_sample_2q_parallel_xeb_circuits(tmpdir):
     )
 
 
-def test_sample_2q_parallel_xeb_circuits_bad_circuit_library():
+def test_sample_2q_parallel_xeb_circuits_bad_circuit_library() -> None:
     circuits = rqcg.generate_library_of_2q_circuits(
         n_library_circuits=5, two_qubit_gate=cirq.ISWAP**0.5, max_cycle_depth=10
     )
@@ -158,7 +161,7 @@ def test_sample_2q_parallel_xeb_circuits_bad_circuit_library():
         )
 
 
-def test_sample_2q_parallel_xeb_circuits_error_bad_qubits():
+def test_sample_2q_parallel_xeb_circuits_error_bad_qubits() -> None:
     circuits = rqcg.generate_library_of_2q_circuits(
         n_library_circuits=5,
         two_qubit_gate=cirq.ISWAP**0.5,

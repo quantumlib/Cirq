@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pickle
 
 import pytest
@@ -19,7 +21,7 @@ import pytest
 import cirq
 
 
-def test_repr():
+def test_repr() -> None:
     assert repr(cirq.InsertStrategy.NEW) == 'cirq.InsertStrategy.NEW'
     assert str(cirq.InsertStrategy.NEW) == 'NEW'
 
@@ -34,6 +36,6 @@ def test_repr():
     ],
     ids=lambda strategy: strategy.name,
 )
-def test_identity_after_pickling(strategy: cirq.InsertStrategy):
+def test_identity_after_pickling(strategy: cirq.InsertStrategy) -> None:
     unpickled_strategy = pickle.loads(pickle.dumps(strategy))
     assert unpickled_strategy is strategy

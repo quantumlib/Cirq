@@ -14,6 +14,8 @@
 
 """A gauge transformer for the Sycamore gate."""
 
+from __future__ import annotations
+
 import math
 
 from cirq import ops

@@ -11,11 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Protocol for obtaining expansion of linear operators in Pauli basis."""
 
-from typing import Any, TypeVar, Union
+from __future__ import annotations
 
-from typing_extensions import Protocol
+from typing import Any, Protocol, TypeVar
 
 from cirq import value
 from cirq._doc import doc_private
@@ -45,9 +46,9 @@ class SupportsPauliExpansion(Protocol):
 def pauli_expansion(
     val: Any,
     *,
-    default: Union[value.LinearDict[str], TDefault] = RaiseTypeErrorIfNotProvided,
+    default: value.LinearDict[str] | TDefault = RaiseTypeErrorIfNotProvided,
     atol: float = 1e-9,
-) -> Union[value.LinearDict[str], TDefault]:
+) -> value.LinearDict[str] | TDefault:
     """Returns coefficients of the expansion of val in the Pauli basis.
 
     Args:

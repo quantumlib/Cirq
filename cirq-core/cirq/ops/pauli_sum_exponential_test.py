@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 import sympy
@@ -22,12 +24,12 @@ import cirq.testing
 q0, q1, q2, q3 = cirq.LineQubit.range(4)
 
 
-def test_raises_for_non_commuting_paulis():
+def test_raises_for_non_commuting_paulis() -> None:
     with pytest.raises(ValueError, match='commuting'):
         cirq.PauliSumExponential(cirq.X(q0) + cirq.Z(q0), np.pi / 2)
 
 
-def test_raises_for_non_hermitian_pauli():
+def test_raises_for_non_hermitian_pauli() -> None:
     with pytest.raises(ValueError, match='hermitian'):
         cirq.PauliSumExponential(cirq.X(q0) + 1j * cirq.Z(q1), np.pi / 2)
 
@@ -46,7 +48,7 @@ def test_raises_for_non_hermitian_pauli():
         ),
     ),
 )
-def test_pauli_sum_exponential_qubits(psum_exp, expected_qubits):
+def test_pauli_sum_exponential_qubits(psum_exp, expected_qubits) -> None:
     assert psum_exp.qubits == expected_qubits
 
 
@@ -67,7 +69,7 @@ def test_pauli_sum_exponential_qubits(psum_exp, expected_qubits):
         ),
     ),
 )
-def test_pauli_sum_exponential_with_qubits(psum_exp, expected_psum_exp):
+def test_pauli_sum_exponential_with_qubits(psum_exp, expected_psum_exp) -> None:
     assert psum_exp.with_qubits(*expected_psum_exp.qubits) == expected_psum_exp
 
 
@@ -79,7 +81,7 @@ def test_pauli_sum_exponential_with_qubits(psum_exp, expected_psum_exp):
         (cirq.X(q0) * cirq.Y(q1) + cirq.Y(q1) * cirq.Z(q3), np.pi),
     ),
 )
-def test_with_parameters_resolved_by(psum, exp):
+def test_with_parameters_resolved_by(psum, exp) -> None:
     psum_exp = cirq.PauliSumExponential(psum, sympy.Symbol("theta"))
     resolver = cirq.ParamResolver({"theta": exp})
     actual = cirq.resolve_parameters(psum_exp, resolver)
@@ -87,7 +89,7 @@ def test_with_parameters_resolved_by(psum, exp):
     assert actual == expected
 
 
-def test_pauli_sum_exponential_parameterized_matrix_raises():
+def test_pauli_sum_exponential_parameterized_matrix_raises() -> None:
     with pytest.raises(ValueError, match='parameterized'):
         cirq.PauliSumExponential(cirq.X(q0) + cirq.Z(q1), sympy.Symbol("theta")).matrix()
 
@@ -102,7 +104,7 @@ def test_pauli_sum_exponential_parameterized_matrix_raises():
         ),
     ),
 )
-def test_pauli_sum_exponential_has_correct_unitary(psum_exp, expected_unitary):
+def test_pauli_sum_exponential_has_correct_unitary(psum_exp, expected_unitary) -> None:
     assert cirq.has_unitary(psum_exp)
     assert np.allclose(cirq.unitary(psum_exp), expected_unitary)
 
@@ -127,7 +129,7 @@ def test_pauli_sum_exponential_has_correct_unitary(psum_exp, expected_unitary):
         ),
     ),
 )
-def test_pauli_sum_exponential_pow(psum_exp, power, expected_psum):
+def test_pauli_sum_exponential_pow(psum_exp, power, expected_psum) -> None:
     assert psum_exp**power == expected_psum
 
 
@@ -138,7 +140,7 @@ def test_pauli_sum_exponential_pow(psum_exp, power, expected_psum):
         (cirq.PauliSumExponential(2j * cirq.X(q0) + 3j * cirq.Z(q1), np.pi / 2)),
     ),
 )
-def test_pauli_sum_exponential_repr(psum_exp):
+def test_pauli_sum_exponential_repr(psum_exp) -> None:
     cirq.testing.assert_equivalent_repr(psum_exp)
 
 
@@ -156,5 +158,5 @@ def test_pauli_sum_exponential_repr(psum_exp):
         ),
     ),
 )
-def test_pauli_sum_exponential_formatting(psum_exp, expected_str):
+def test_pauli_sum_exponential_formatting(psum_exp, expected_str) -> None:
     assert str(psum_exp) == expected_str

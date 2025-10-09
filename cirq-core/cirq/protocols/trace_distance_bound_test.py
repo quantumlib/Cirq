@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 
 import cirq
 
 
-def test_trace_distance_bound():
+def test_trace_distance_bound() -> None:
     class NoMethod:
         pass
 

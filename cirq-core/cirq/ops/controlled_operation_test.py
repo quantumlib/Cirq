@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
 import re
-from types import NotImplementedType
-from typing import cast, Tuple, Union
+from types import EllipsisType, NotImplementedType
+from typing import cast, Sequence
 
 import numpy as np
 import pytest
@@ -26,7 +28,7 @@ from cirq import protocols
 
 
 class GateUsingWorkspaceForApplyUnitary(cirq.testing.SingleQubitGate):
-    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray | NotImplementedType:
         args.available_buffer[...] = args.target_tensor
         args.target_tensor[...] = 0
         return args.available_buffer
@@ -45,10 +47,10 @@ class GateAllocatingNewSpaceForResult(cirq.testing.SingleQubitGate):
     def __init__(self):
         self._matrix = cirq.testing.random_unitary(2, random_state=1234)
 
-    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray | NotImplementedType:
         assert len(args.axes) == 1
         a = args.axes[0]
-        seed = cast(Tuple[Union[int, slice, 'ellipsis'], ...], (slice(None),))
+        seed = cast(tuple[int | slice | EllipsisType, ...], (slice(None),))
         zero = seed * a + (0, Ellipsis)
         one = seed * a + (1, Ellipsis)
         result = np.zeros(args.target_tensor.shape, args.target_tensor.dtype)
@@ -72,7 +74,7 @@ class GateAllocatingNewSpaceForResult(cirq.testing.SingleQubitGate):
         return 'cirq.ops.controlled_operation_test.GateAllocatingNewSpaceForResult()'
 
 
-def test_controlled_operation_init():
+def test_controlled_operation_init() -> None:
     class G(cirq.testing.SingleQubitGate):
         def _has_mixture_(self):
             return True
@@ -121,7 +123,7 @@ def test_controlled_operation_init():
         _ = cirq.ControlledOperation([cb], cirq.PhaseDampingChannel(1)(q))
 
 
-def test_controlled_operation_eq():
+def test_controlled_operation_eq() -> None:
     c1 = cirq.NamedQubit('c1')
     q1 = cirq.NamedQubit('q1')
     c2 = cirq.NamedQubit('c2')
@@ -146,7 +148,7 @@ def test_controlled_operation_eq():
     )
 
 
-def test_str():
+def test_str() -> None:
     c1 = cirq.NamedQubit('c1')
     c2 = cirq.NamedQubit('c2')
     q2 = cirq.NamedQubit('q2')
@@ -155,7 +157,7 @@ def test_str():
 
     class SingleQubitOp(cirq.Operation):
         @property
-        def qubits(self) -> Tuple[cirq.Qid, ...]:
+        def qubits(self) -> tuple[cirq.Qid, ...]:
             return ()
 
         def with_qubits(self, *new_qubits: cirq.Qid):
@@ -188,7 +190,7 @@ def test_str():
     )
 
 
-def test_repr():
+def test_repr() -> None:
     a, b, c, d = cirq.LineQubit.range(4)
 
     ch = cirq.H(a).controlled_by(b)
@@ -229,7 +231,8 @@ class MultiH(cirq.Gate):
         return True
 
 
-def test_circuit_diagram():
+def test_circuit_diagram() -> None:
+    qubits: Sequence[cirq.Qid]
     qubits = cirq.LineQubit.range(3)
     c = cirq.Circuit()
     c.append(cirq.ControlledOperation(qubits[:1], MultiH(2)(*qubits[1:])))
@@ -300,7 +303,7 @@ class MockGate(cirq.testing.TwoQubitGate):
         return True
 
 
-def test_controlled_diagram_exponent():
+def test_controlled_diagram_exponent() -> None:
     for q in itertools.permutations(cirq.LineQubit.range(5)):
         for idx in [None, 0, 1]:
             op = MockGate(idx)(*q[:2]).controlled_by(*q[2:])
@@ -308,7 +311,7 @@ def test_controlled_diagram_exponent():
             assert cirq.circuit_diagram_info(op).exponent_qubit_index == len(q[2:]) + add
 
 
-def test_uninformed_circuit_diagram_info():
+def test_uninformed_circuit_diagram_info() -> None:
     qbits = cirq.LineQubit.range(3)
     mock_gate = MockGate()
     c_op = cirq.ControlledOperation(qbits[:1], mock_gate(*qbits[1:]))
@@ -321,7 +324,7 @@ def test_uninformed_circuit_diagram_info():
     assert mock_gate.captured_diagram_args == args
 
 
-def test_non_diagrammable_subop():
+def test_non_diagrammable_subop() -> None:
     qbits = cirq.LineQubit.range(2)
 
     class UndiagrammableGate(cirq.testing.SingleQubitGate):
@@ -367,7 +370,7 @@ def test_non_diagrammable_subop():
 )
 def test_controlled_operation_is_consistent(
     gate: cirq.GateOperation, should_decompose_to_target: bool
-):
+) -> None:
     cb = cirq.NamedQubit('ctr')
     cgate = cirq.ControlledOperation([cb], gate)
     cirq.testing.assert_implements_consistent_protocols(cgate)
@@ -393,7 +396,7 @@ def test_controlled_operation_is_consistent(
     cirq.testing.assert_decompose_ends_at_default_gateset(cgate)
 
 
-def test_controlled_circuit_operation_is_consistent():
+def test_controlled_circuit_operation_is_consistent() -> None:
     op = cirq.CircuitOperation(
         cirq.FrozenCircuit(
             cirq.XXPowGate(exponent=0.25, global_shift=-0.5).on(*cirq.LineQubit.range(2))
@@ -414,7 +417,7 @@ def test_controlled_circuit_operation_is_consistent():
 
 
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
-def test_parameterizable(resolve_fn):
+def test_parameterizable(resolve_fn) -> None:
     a = sympy.Symbol('a')
     qubits = cirq.LineQubit.range(3)
 
@@ -432,7 +435,7 @@ def test_parameterizable(resolve_fn):
         resolve_fn(cchan, cirq.ParamResolver({'a': 0.1}))
 
 
-def test_bounded_effect():
+def test_bounded_effect() -> None:
     qubits = cirq.LineQubit.range(3)
     cy = cirq.ControlledOperation(qubits[:1], cirq.Y(qubits[1]))
     assert cirq.trace_distance_bound(cy**0.001) < 0.01
@@ -442,8 +445,8 @@ def test_bounded_effect():
     assert cirq.approx_eq(cirq.trace_distance_bound(cy), 1.0)
 
 
-def test_controlled_operation_gate():
-    gate = cirq.X.controlled(control_values=[0, 1], control_qid_shape=[2, 3])
+def test_controlled_operation_gate() -> None:
+    gate = cirq.X.controlled(control_values=[0, 1], control_qid_shape=(2, 3))
     op = gate.on(cirq.LineQubit(0), cirq.LineQid(1, 3), cirq.LineQubit(2))
     assert op.gate == gate
 
@@ -462,7 +465,7 @@ def test_controlled_operation_gate():
     assert op.gate is None
 
 
-def test_controlled_mixture():
+def test_controlled_mixture() -> None:
     a, b = cirq.LineQubit.range(2)
     c_yes = cirq.ControlledOperation(controls=[b], sub_operation=cirq.phase_flip(0.25).on(a))
     assert cirq.has_mixture(c_yes)

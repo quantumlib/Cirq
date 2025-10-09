@@ -12,13 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import os
 import sys
-from typing import Callable, cast, Iterable, Optional
+from typing import Callable, cast, Iterable, TYPE_CHECKING
 
 from dev_tools import git_env_tools, shell_tools
-from dev_tools.github_repository import GithubRepository
 from dev_tools.prepared_env import PreparedEnv
+
+if TYPE_CHECKING:
+    from dev_tools.github_repository import GithubRepository
 
 
 def get_unhidden_ungenerated_python_files(directory: str) -> Iterable[str]:
@@ -63,11 +67,11 @@ def create_virtual_env(
 def prepare_temporary_test_environment(
     destination_directory: str,
     repository: GithubRepository,
-    pull_request_number: Optional[int],
+    pull_request_number: int | None,
     verbose: bool,
     env_name: str = '.test_virtualenv',
     python_path: str = sys.executable,
-    commit_ids_known_callback: Optional[Callable[[PreparedEnv], None]] = None,
+    commit_ids_known_callback: Callable[[PreparedEnv], None] | None = None,
 ) -> PreparedEnv:
     """Prepares a temporary test environment at the (existing empty) directory.
 

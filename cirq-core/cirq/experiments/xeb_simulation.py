@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
+from typing import Any, Sequence, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -46,7 +46,7 @@ class _Simulate_2q_XEB_Circuit:
     def __init__(self, simulator: cirq.SimulatesIntermediateState):
         self.simulator = simulator
 
-    def __call__(self, task: _Simulate2qXEBTask) -> List[Dict[str, Any]]:
+    def __call__(self, task: _Simulate2qXEBTask) -> list[dict[str, Any]]:
         """Helper function for simulating a given (circuit, cycle_depth)."""
         circuit_i = task.circuit_i
         cycle_depths = set(task.cycle_depths)
@@ -57,7 +57,7 @@ class _Simulate_2q_XEB_Circuit:
         if max(cycle_depths) > circuit_max_cycle_depth:
             raise ValueError("`circuit` was not long enough to compute all `cycle_depths`.")
 
-        records: List[Dict[str, Any]] = []
+        records: list[dict[str, Any]] = []
         for moment_i, step_result in enumerate(
             self.simulator.simulate_moment_steps(circuit=circuit, param_resolver=param_resolver)
         ):
@@ -84,9 +84,9 @@ def simulate_2q_xeb_circuits(
     circuits: Sequence[cirq.Circuit],
     cycle_depths: Sequence[int],
     param_resolver: cirq.ParamResolverOrSimilarType = None,
-    pool: Optional[multiprocessing.pool.Pool] = None,
-    simulator: Optional[cirq.SimulatesIntermediateState] = None,
-):
+    pool: multiprocessing.pool.Pool | None = None,
+    simulator: cirq.SimulatesIntermediateState | None = None,
+) -> pd.DataFrame:
     """Simulate two-qubit XEB circuits.
 
     These ideal probabilities can be benchmarked against potentially noisy

@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, Optional, Set, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from cirq import circuits, ops
 
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 def _get_qubit_mapping_first_and_last_moment(
     circuit: cirq.AbstractCircuit,
-) -> Dict[cirq.Qid, Tuple[int, int]]:
+) -> dict[cirq.Qid, tuple[int, int]]:
     """Computes `(first_moment_idx, last_moment_idx)` tuple for each qubit in the input circuit.
 
     Args:
@@ -48,7 +48,7 @@ def _is_temp(q: cirq.Qid) -> bool:
 
 
 def map_clean_and_borrowable_qubits(
-    circuit: cirq.AbstractCircuit, *, qm: Optional[cirq.QubitManager] = None
+    circuit: cirq.AbstractCircuit, *, qm: cirq.QubitManager | None = None
 ) -> cirq.Circuit:
     """Uses `qm: QubitManager` to map all `CleanQubit`/`BorrowableQubit`s to system qubits.
 
@@ -58,7 +58,7 @@ def map_clean_and_borrowable_qubits(
     This transformer uses the `QubitManager` provided in the input to:
      - Allocate clean ancilla qubits by delegating to `qm.qalloc` for all `CleanQubit`s.
      - Allocate dirty qubits for all `BorrowableQubit` types via the following two steps:
-         1. First analyse the input circuit and check if there are any suitable system qubits
+         1. First analyze the input circuit and check if there are any suitable system qubits
             that can be borrowed, i.e. ones which do not have any overlapping operations
             between circuit[start_index : end_index] where `(start_index, end_index)` is the
             lifespan of temporary borrowable qubit under consideration. If yes, borrow the system
@@ -84,7 +84,7 @@ def map_clean_and_borrowable_qubits(
         circuit: Input `cirq.Circuit` containing temporarily allocated
             `CleanQubit`/`BorrowableQubit`s.
         qm: An instance of `cirq.QubitManager` specifying the strategy to use for allocating /
-            / deallocating new ancilla qubits to replace the temporary qubits.
+            deallocating new ancilla qubits to replace the temporary qubits.
 
     Returns:
         An updated `cirq.Circuit` with all `CleanQubit`/`BorrowableQubit` mapped to either existing
@@ -99,8 +99,8 @@ def map_clean_and_borrowable_qubits(
     trivial_map = {q: q for q in all_qubits}
     # `allocated_map` maintains the mapping of all temporary qubits seen so far, mapping each of
     # them to either a newly allocated managed ancilla or an existing borrowed system qubit.
-    allocated_map: Dict[cirq.Qid, cirq.Qid] = {}
-    to_free: Set[cirq.Qid] = set()
+    allocated_map: dict[cirq.Qid, cirq.Qid] = {}
+    to_free: set[cirq.Qid] = set()
     last_op_idx = -1
 
     def map_func(op: cirq.Operation, idx: int) -> cirq.OP_TREE:

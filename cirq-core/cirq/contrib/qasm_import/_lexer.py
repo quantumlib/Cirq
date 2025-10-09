@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import re
-from typing import Optional
 
 import ply.lex as lex
 
@@ -47,6 +48,7 @@ class QasmLexer:
         'ID',
         'ARROW',
         'EQ',
+        'AND',
     ] + list(reserved.values())
 
     def t_newline(self, t):
@@ -100,8 +102,12 @@ class QasmLexer:
         """=="""
         return t
 
+    def t_AND(self, t):
+        """&&"""
+        return t
+
     def t_ID(self, t):
-        r"""[a-zA-Z][a-zA-Z\d_]*"""
+        r"""[a-zA-Z_][a-zA-Z\d_]*"""
         if t.value in QasmLexer.reserved:
             t.type = QasmLexer.reserved[t.value]
         return t
@@ -115,5 +121,5 @@ class QasmLexer:
     def input(self, qasm):
         self.lex.input(qasm)
 
-    def token(self) -> Optional[lex.Token]:
+    def token(self) -> lex.Token | None:
         return self.lex.token()

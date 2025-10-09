@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 import scipy
@@ -22,7 +24,7 @@ import cirq
 np.set_printoptions(linewidth=300)
 
 
-def test_phased_iswap_init():
+def test_phased_iswap_init() -> None:
     p = -0.25
     t = 0.75
     s = 0.5
@@ -32,7 +34,7 @@ def test_phased_iswap_init():
     assert gate.global_shift == s
 
 
-def test_phased_iswap_equality():
+def test_phased_iswap_equality() -> None:
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.PhasedISwapPowGate(phase_exponent=0, exponent=0.4))
     eq.add_equality_group(cirq.ISWAP**0.4)
@@ -40,7 +42,7 @@ def test_phased_iswap_equality():
     eq.add_equality_group(cirq.ISwapPowGate(global_shift=0.3) ** 0.4)
 
 
-def test_repr():
+def test_repr() -> None:
     p = -0.25
     t = 0.75
     s = 0.3
@@ -48,7 +50,7 @@ def test_repr():
     cirq.testing.assert_equivalent_repr(gate)
 
 
-def test_phased_iswap_unitary():
+def test_phased_iswap_unitary() -> None:
     p = 0.3
     t = 0.4
     actual = cirq.unitary(cirq.PhasedISwapPowGate(phase_exponent=p, exponent=t))
@@ -64,7 +66,7 @@ def test_phased_iswap_unitary():
     assert np.allclose(actual, expected)
 
 
-def test_phased_iswap_equivalent_circuit():
+def test_phased_iswap_equivalent_circuit() -> None:
     p = 0.7
     t = -0.4
     gate = cirq.PhasedISwapPowGate(phase_exponent=p, exponent=t)
@@ -81,7 +83,7 @@ def test_phased_iswap_equivalent_circuit():
     assert np.allclose(cirq.unitary(gate), cirq.unitary(equivalent_circuit))
 
 
-def test_phased_iswap_str():
+def test_phased_iswap_str() -> None:
     assert str(cirq.PhasedISwapPowGate(exponent=1)) == 'PhasedISWAP'
     assert str(cirq.PhasedISwapPowGate(exponent=0.5)) == 'PhasedISWAP**0.5'
     assert (
@@ -90,7 +92,7 @@ def test_phased_iswap_str():
     )
 
 
-def test_phased_iswap_pow():
+def test_phased_iswap_pow() -> None:
     gate1 = cirq.PhasedISwapPowGate(phase_exponent=0.1, exponent=0.25)
     gate2 = cirq.PhasedISwapPowGate(phase_exponent=0.1, exponent=0.5)
     assert gate1**2 == gate2
@@ -108,7 +110,7 @@ def test_phased_iswap_pow():
     assert np.allclose(u1 @ u1, u2)
 
 
-def test_decompose_invalid_qubits():
+def test_decompose_invalid_qubits() -> None:
     qs = cirq.LineQubit.range(3)
     with pytest.raises(ValueError):
         cirq.protocols.decompose_once_with_qubits(cirq.PhasedISwapPowGate(), qs)
@@ -134,7 +136,7 @@ def test_decompose_invalid_qubits():
         (sympy.Symbol('t'), sympy.Symbol('p'), 1),
     ],
 )
-def test_phased_iswap_has_consistent_protocols(phase_exponent, exponent, global_shift):
+def test_phased_iswap_has_consistent_protocols(phase_exponent, exponent, global_shift) -> None:
     cirq.testing.assert_implements_consistent_protocols(
         cirq.PhasedISwapPowGate(
             phase_exponent=phase_exponent, exponent=exponent, global_shift=global_shift
@@ -142,7 +144,7 @@ def test_phased_iswap_has_consistent_protocols(phase_exponent, exponent, global_
     )
 
 
-def test_diagram():
+def test_diagram() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     c = cirq.Circuit(
         cirq.PhasedISwapPowGate(phase_exponent=sympy.Symbol('p'), exponent=sympy.Symbol('t')).on(
@@ -165,7 +167,7 @@ def test_diagram():
 
 
 @pytest.mark.parametrize('angle_rads', (-np.pi, -np.pi / 3, -0.1, np.pi / 5))
-def test_givens_rotation_unitary(angle_rads):
+def test_givens_rotation_unitary(angle_rads) -> None:
     actual = cirq.unitary(cirq.givens(angle_rads))
     c = np.cos(angle_rads)
     s = np.sin(angle_rads)
@@ -179,7 +181,7 @@ def test_givens_rotation_unitary(angle_rads):
 
 
 @pytest.mark.parametrize('angle_rads', (-2 * np.pi / 3, -0.2, 0.4, np.pi / 4))
-def test_givens_rotation_hamiltonian(angle_rads):
+def test_givens_rotation_hamiltonian(angle_rads) -> None:
     actual = cirq.unitary(cirq.givens(angle_rads))
     x = np.array([[0, 1], [1, 0]])
     y = np.array([[0, -1j], [1j, 0]])
@@ -189,7 +191,7 @@ def test_givens_rotation_hamiltonian(angle_rads):
     assert np.allclose(actual, expected)
 
 
-def test_givens_rotation_equivalent_circuit():
+def test_givens_rotation_equivalent_circuit() -> None:
     angle_rads = 3 * np.pi / 7
     t = 2 * angle_rads / np.pi
     gate = cirq.givens(angle_rads)
@@ -201,11 +203,11 @@ def test_givens_rotation_equivalent_circuit():
 
 
 @pytest.mark.parametrize('angle_rads', (-np.pi / 5, 0.4, 2, np.pi))
-def test_givens_rotation_has_consistent_protocols(angle_rads):
+def test_givens_rotation_has_consistent_protocols(angle_rads) -> None:
     cirq.testing.assert_implements_consistent_protocols(cirq.givens(angle_rads))
 
 
-def test_approx_eq():
+def test_approx_eq() -> None:
     gate0 = cirq.PhasedISwapPowGate(phase_exponent=0)
     gate1 = cirq.PhasedISwapPowGate(phase_exponent=1e-12)
     gate2 = cirq.PhasedISwapPowGate(phase_exponent=2e-12)

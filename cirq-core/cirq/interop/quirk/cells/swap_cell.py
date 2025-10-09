@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterable, Iterator, List, Optional, TYPE_CHECKING
+from typing import Any, Iterable, Iterator, TYPE_CHECKING
 
 from cirq import ops, value
 from cirq.interop.quirk.cells.cell import Cell, CellMaker
@@ -32,13 +32,13 @@ class SwapCell(Cell):
     def gate_count(self) -> int:
         return 1
 
-    def with_line_qubits_mapped_to(self, qubits: List[cirq.Qid]) -> Cell:
+    def with_line_qubits_mapped_to(self, qubits: list[cirq.Qid]) -> Cell:
         return SwapCell(
             qubits=Cell._replace_qubits(self._qubits, qubits),
             controls=Cell._replace_qubits(self._controls, qubits),
         )
 
-    def modify_column(self, column: List[Optional[Cell]]):
+    def modify_column(self, column: list[Cell | None]) -> None:
         # Swallow other swap cells.
         for i in range(len(column)):
             gate = column[i]
@@ -52,7 +52,7 @@ class SwapCell(Cell):
             raise ValueError('Wrong number of swap gates in a column.')
         return ops.SWAP(*self._qubits).controlled_by(*self._controls)
 
-    def controlled_by(self, qubit: cirq.Qid):
+    def controlled_by(self, qubit: cirq.Qid) -> SwapCell:
         return SwapCell(self._qubits, self._controls + [qubit])
 
     def _value_equality_values_(self) -> Any:

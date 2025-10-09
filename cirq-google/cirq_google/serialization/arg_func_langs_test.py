@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import base64
 import inspect
-from typing import cast, Dict
+from typing import cast
 
 import numpy as np
 import pytest
@@ -34,6 +36,8 @@ from cirq_google.serialization.arg_func_langs import (
     clifford_tableau_from_proto,
     condition_from_proto,
     condition_to_proto,
+    dict_from_arg_mapping_proto,
+    dict_to_arg_mapping_proto,
     float_arg_from_proto,
     float_arg_to_proto,
     internal_gate_arg_to_proto,
@@ -41,7 +45,7 @@ from cirq_google.serialization.arg_func_langs import (
 )
 
 
-def _json_format_kwargs() -> Dict[str, bool]:
+def _json_format_kwargs() -> dict[str, bool]:
     """Determine kwargs to pass to json_format.MessageToDict.
 
     Protobuf v5 has a different signature for MessageToDict. If we ever move to requiring
@@ -57,6 +61,7 @@ def _json_format_kwargs() -> Dict[str, bool]:
 @pytest.mark.parametrize(
     'value,proto',
     [
+        (None, {}),
         (1.0, {'arg_value': {'float_value': 1.0}}),
         (1.5, {'arg_value': {'float_value': 1.5}}),
         (1, {'arg_value': {'float_value': 1.0}}),
@@ -193,6 +198,10 @@ def test_correspondence(value: ARG_LIKE, proto: v2.program_pb2.Arg):
     assert packed == proto
 
 
+def test_none_to_none_arg_roundtrip():
+    assert arg_from_proto(arg_to_proto(None)) is None
+
+
 def test_double_value():
     """Note: due to backwards compatibility, double_val conversion is one-way.
     double_val can be converted to python float,
@@ -266,6 +275,22 @@ def test_ndarray_roundtrip(value: np.ndarray):
     msg = arg_to_proto(value)
     deserialized_value = cast(np.ndarray, arg_from_proto(msg))
     np.testing.assert_array_equal(value, deserialized_value)
+
+
+@pytest.mark.parametrize(
+    "d",
+    [
+        None,
+        {'a': 1},
+        {'a': 1 * tunits.units.ns},
+        {'a': 1.25},
+        {'a': "str"},
+        {'a': [1, 2]},
+        {'a': 1, 'b': 1 * tunits.units.ns, 'c': 1.25, 'd': "str", 'e': [1, 2]},
+    ],
+)
+def test_dict_from_arg_mapping_proto(d):
+    assert dict_from_arg_mapping_proto(dict_to_arg_mapping_proto(d)) == d
 
 
 @pytest.mark.parametrize('value', [[], (), set(), frozenset()])

@@ -12,16 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 
 import cirq
 
 
-def _make_qubits(n):
+def _make_qubits(n) -> list[cirq.Qid]:
     return [cirq.NamedQubit(f'q{i}') for i in range(n)]
 
 
-def test_op_calls_validate():
+def test_op_calls_validate() -> None:
     q0, q1, q2 = _make_qubits(3)
     bad_qubit = cirq.NamedQubit('bad')
 
@@ -45,7 +47,7 @@ def test_op_calls_validate():
         _ = g.with_qubits(q0, q1, bad_qubit)
 
 
-def test_on_wrong_number_qubits():
+def test_on_wrong_number_qubits() -> None:
     q0, q1, q2 = _make_qubits(3)
 
     class ExampleGate(cirq.PauliStringGateOperation):
@@ -64,7 +66,7 @@ def test_on_wrong_number_qubits():
         _ = g.with_qubits(q0, q1, q2)
 
 
-def test_default_text_diagram():
+def test_default_text_diagram() -> None:
     class DiagramGate(cirq.PauliStringGateOperation):
         def map_qubits(self, qubit_map):
             pass
@@ -74,6 +76,7 @@ def test_default_text_diagram():
         ) -> cirq.CircuitDiagramInfo:
             return self._pauli_string_diagram_info(args)
 
+    ps: cirq.PauliString[cirq.Qid]
     q0, q1, q2 = _make_qubits(3)
     ps = cirq.PauliString({q0: cirq.X, q1: cirq.Y, q2: cirq.Z})
 

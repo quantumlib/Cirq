@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 
 import cirq
 
 
-def test_directed_device():
+def test_directed_device() -> None:
     device = cirq.testing.construct_ring_device(10, directed=True)
     device_graph = device.metadata.nx_graph
     with pytest.raises(ValueError, match="Device graph must be undirected."):
@@ -33,7 +35,7 @@ def test_directed_device():
         for op_density in [0.3, 0.5, 0.7]
     ],
 )
-def test_route_small_circuit_random(n_qubits, n_moments, op_density, seed):
+def test_route_small_circuit_random(n_qubits, n_moments, op_density, seed) -> None:
     c_orig = cirq.testing.random_circuit(
         qubits=n_qubits, n_moments=n_moments, op_density=op_density, random_state=seed
     )
@@ -47,7 +49,7 @@ def test_route_small_circuit_random(n_qubits, n_moments, op_density, seed):
     )
 
 
-def test_high_qubit_count():
+def test_high_qubit_count() -> None:
     c_orig = cirq.testing.random_circuit(qubits=40, n_moments=350, op_density=0.4, random_state=0)
     device = cirq.testing.construct_grid_device(7, 7)
     device_graph = device.metadata.nx_graph
@@ -56,7 +58,7 @@ def test_high_qubit_count():
     device.validate_circuit(c_routed)
 
 
-def test_multi_qubit_gate_inputs():
+def test_multi_qubit_gate_inputs() -> None:
     device = cirq.testing.construct_grid_device(4, 4)
     device_graph = device.metadata.nx_graph
     router = cirq.RouteCQC(device_graph)
@@ -97,7 +99,7 @@ def test_multi_qubit_gate_inputs():
     device.validate_circuit(c_routed)
 
 
-def test_circuit_with_measurement_gates():
+def test_circuit_with_measurement_gates() -> None:
     device = cirq.testing.construct_ring_device(3)
     device_graph = device.metadata.nx_graph
     q = cirq.LineQubit.range(3)
@@ -108,7 +110,7 @@ def test_circuit_with_measurement_gates():
     cirq.testing.assert_same_circuits(routed_circuit, circuit)
 
 
-def test_circuit_with_two_qubit_intermediate_measurement_gate():
+def test_circuit_with_two_qubit_intermediate_measurement_gate() -> None:
     device = cirq.testing.construct_ring_device(2)
     device_graph = device.metadata.nx_graph
     router = cirq.RouteCQC(device_graph)
@@ -121,7 +123,7 @@ def test_circuit_with_two_qubit_intermediate_measurement_gate():
     device.validate_circuit(routed_circuit)
 
 
-def test_circuit_with_multi_qubit_intermediate_measurement_gate_and_with_default_key():
+def test_circuit_with_multi_qubit_intermediate_measurement_gate_and_with_default_key() -> None:
     device = cirq.testing.construct_ring_device(3)
     device_graph = device.metadata.nx_graph
     router = cirq.RouteCQC(device_graph)
@@ -135,7 +137,7 @@ def test_circuit_with_multi_qubit_intermediate_measurement_gate_and_with_default
     cirq.testing.assert_same_circuits(routed_circuit, expected)
 
 
-def test_circuit_with_multi_qubit_intermediate_measurement_gate_with_custom_key():
+def test_circuit_with_multi_qubit_intermediate_measurement_gate_with_custom_key() -> None:
     device = cirq.testing.construct_ring_device(3)
     device_graph = device.metadata.nx_graph
     router = cirq.RouteCQC(device_graph)
@@ -150,7 +152,7 @@ def test_circuit_with_multi_qubit_intermediate_measurement_gate_with_custom_key(
         )
 
 
-def test_circuit_with_non_unitary_and_global_phase():
+def test_circuit_with_non_unitary_and_global_phase() -> None:
     device = cirq.testing.construct_ring_device(4)
     device_graph = device.metadata.nx_graph
     q = cirq.LineQubit.range(3)
@@ -176,7 +178,7 @@ def test_circuit_with_non_unitary_and_global_phase():
     cirq.testing.assert_same_circuits(routed_circuit, expected)
 
 
-def test_circuit_with_tagged_ops():
+def test_circuit_with_tagged_ops() -> None:
     device = cirq.testing.construct_ring_device(4)
     device_graph = device.metadata.nx_graph
     q = cirq.LineQubit.range(3)
@@ -205,7 +207,7 @@ def test_circuit_with_tagged_ops():
     cirq.testing.assert_same_circuits(routed_circuit, expected)
 
 
-def test_already_valid_circuit():
+def test_already_valid_circuit() -> None:
     device = cirq.testing.construct_ring_device(10)
     device_graph = device.metadata.nx_graph
     circuit = cirq.Circuit(
@@ -222,7 +224,7 @@ def test_already_valid_circuit():
     cirq.testing.assert_same_circuits(routed_circuit, circuit)
 
 
-def test_empty_circuit():
+def test_empty_circuit() -> None:
     device = cirq.testing.construct_grid_device(5, 5)
     device_graph = device.metadata.nx_graph
     empty_circuit = cirq.Circuit()
@@ -235,7 +237,7 @@ def test_empty_circuit():
     )
 
 
-def test_repr():
+def test_repr() -> None:
     device = cirq.testing.construct_ring_device(10)
     device_graph = device.metadata.nx_graph
     router = cirq.RouteCQC(device_graph)

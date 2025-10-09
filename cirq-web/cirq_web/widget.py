@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import os
 import uuid
 import webbrowser
@@ -22,7 +24,7 @@ from pathlib import Path
 import cirq_web
 
 # Resolve the path so the bundle file can be accessed properly
-_DIST_PATH = Path(cirq_web.__file__).parents[1] / "cirq_ts" / "dist"
+_DIST_PATH = Path(cirq_web.__file__).parents[1] / "cirq_web" / "dist"
 
 
 class Env(Enum):

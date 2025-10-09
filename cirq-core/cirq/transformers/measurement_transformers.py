@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import itertools
 from collections import defaultdict
-from typing import Any, cast, Dict, Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import Any, cast, Iterable, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -35,7 +35,7 @@ class _MeasurementQid(ops.Qid):
     Exactly one qubit will be created per qubit in the measurement gate.
     """
 
-    def __init__(self, key: Union[str, cirq.MeasurementKey], qid: cirq.Qid, index: int = 0):
+    def __init__(self, key: str | cirq.MeasurementKey, qid: cirq.Qid, index: int = 0):
         """Initializes the qubit.
 
         Args:
@@ -65,7 +65,7 @@ class _MeasurementQid(ops.Qid):
 
 @transformer_api.transformer
 def defer_measurements(
-    circuit: cirq.AbstractCircuit, *, context: Optional[cirq.TransformerContext] = None
+    circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
 ) -> cirq.Circuit:
     """Implements the Deferred Measurement Principle.
 
@@ -96,7 +96,7 @@ def defer_measurements(
 
     circuit = transformer_primitives.unroll_circuit_op(circuit, deep=True, tags_to_check=None)
     terminal_measurements = {op for _, op in find_terminal_measurements(circuit)}
-    measurement_qubits: Dict[cirq.MeasurementKey, List[Tuple[cirq.Qid, ...]]] = defaultdict(list)
+    measurement_qubits: dict[cirq.MeasurementKey, list[tuple[cirq.Qid, ...]]] = defaultdict(list)
 
     def defer(op: cirq.Operation, _) -> cirq.OP_TREE:
         if op in terminal_measurements:
@@ -169,10 +169,10 @@ def defer_measurements(
 
 
 def _all_possible_datastore_states(
-    keys: Iterable[Tuple[cirq.MeasurementKey, int]],
-    measurement_qubits: Dict[cirq.MeasurementKey, List[Tuple[cirq.Qid, ...]]],
+    keys: Iterable[tuple[cirq.MeasurementKey, int]],
+    measurement_qubits: dict[cirq.MeasurementKey, list[tuple[cirq.Qid, ...]]],
 ) -> Iterable[cirq.ClassicalDataStoreReader]:
-    """The cartesian product of all possible DataStore states for the given keys."""
+    """The Cartesian product of all possible DataStore states for the given keys."""
     # First we get the list of all possible values. So if we have a key mapped to qubits of shape
     # (2, 2) and a key mapped to a qutrit, the possible measurement values are:
     # [((0, 0), (0,)),
@@ -216,7 +216,7 @@ def _all_possible_datastore_states(
 def dephase_measurements(
     circuit: cirq.AbstractCircuit,
     *,
-    context: Optional[cirq.TransformerContext] = transformer_api.TransformerContext(deep=True),
+    context: cirq.TransformerContext | None = transformer_api.TransformerContext(deep=True),
 ) -> cirq.Circuit:
     """Changes all measurements to a dephase operation.
 
@@ -259,7 +259,7 @@ def dephase_measurements(
 def drop_terminal_measurements(
     circuit: cirq.AbstractCircuit,
     *,
-    context: Optional[cirq.TransformerContext] = transformer_api.TransformerContext(deep=True),
+    context: cirq.TransformerContext | None = transformer_api.TransformerContext(deep=True),
 ) -> cirq.Circuit:
     """Removes terminal measurements from a circuit.
 
@@ -426,20 +426,20 @@ class _ConfusionChannel(ops.Gate):
         self._confusion_map = confusion_map.copy()
         self._kraus = tuple(kraus)
 
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         return self._shape
 
-    def _kraus_(self) -> Tuple[np.ndarray, ...]:
+    def _kraus_(self) -> tuple[np.ndarray, ...]:
         return self._kraus
 
     def _apply_channel_(self, args: cirq.ApplyChannelArgs):
-        configs: List[transformations._BuildFromSlicesArgs] = []
+        configs: list[transformations._BuildFromSlicesArgs] = []
         for i in range(np.prod(self._shape) ** 2):
             scale = cast(complex, self._confusion_map.flat[i])
             if scale == 0:
                 continue
             index: Any = np.unravel_index(i, self._shape * 2)
-            slices: List[transformations._SliceConfig] = []
+            slices: list[transformations._SliceConfig] = []
             axis_count = len(args.left_axes)
             for j in range(axis_count):
                 s1 = transformations._SliceConfig(
@@ -469,13 +469,13 @@ class _ModAdd(ops.ArithmeticGate):
     def __init__(self, dimension: int):
         self._dimension = dimension
 
-    def registers(self) -> Tuple[Tuple[int], Tuple[int]]:
+    def registers(self) -> tuple[tuple[int], tuple[int]]:
         return (self._dimension,), (self._dimension,)
 
     def with_registers(self, *new_registers) -> _ModAdd:
         raise NotImplementedError()
 
-    def apply(self, *register_values: int) -> Tuple[int, int]:
+    def apply(self, *register_values: int) -> tuple[int, int]:
         return register_values[0], sum(register_values)
 
     def _value_equality_values_(self) -> int:

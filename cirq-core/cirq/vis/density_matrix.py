@@ -14,7 +14,7 @@
 
 """Tool to visualize the magnitudes and phases in the density matrix"""
 
-from typing import Optional
+from __future__ import annotations
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -79,12 +79,12 @@ def _plot_element_of_density_matrix(ax, x, y, r, phase, show_rect=False, show_te
 
 def plot_density_matrix(
     matrix: np.ndarray,
-    ax: Optional[plt.Axes] = None,
+    ax: plt.Axes | None = None,
     *,
     show_text: bool = False,
-    title: Optional[str] = None,
+    title: str | None = None,
 ) -> plt.Axes:
-    """Generates a plot for a given density matrix.
+    r"""Generates a plot for a given density matrix.
 
     1. Each entry of the density matrix, a complex number, is plotted as an
     Argand Diagram where the partially filled red circle represents the magnitude

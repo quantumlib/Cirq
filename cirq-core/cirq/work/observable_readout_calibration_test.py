@@ -33,7 +33,7 @@ class DepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
             return [moment, cirq.Moment(self.qubit_noise_gate(q) for q in system_qubits)]
 
 
-def test_calibrate_readout_error():
+def test_calibrate_readout_error() -> None:
     sampler = cirq.DensityMatrixSimulator(
         noise=DepolarizingWithDampedReadoutNoiseModel(
             depol_prob=1e-3, bitflip_prob=0.03, decay_prob=0.03

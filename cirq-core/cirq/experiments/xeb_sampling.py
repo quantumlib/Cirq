@@ -20,18 +20,7 @@ import os
 import time
 import uuid
 from dataclasses import dataclass
-from typing import (
-    Any,
-    Callable,
-    ContextManager,
-    Dict,
-    List,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
-    TYPE_CHECKING,
-)
+from typing import Any, Callable, ContextManager, Sequence, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -57,7 +46,7 @@ class _Sample2qXEBTask:
     layer_i: int
     combination_i: int
     prepared_circuit: cirq.AbstractCircuit
-    combination: List[int]
+    combination: list[int]
 
 
 class _SampleInBatches:
@@ -65,7 +54,7 @@ class _SampleInBatches:
         self,
         sampler: cirq.Sampler,
         repetitions: int,
-        combinations_by_layer: List[CircuitLibraryCombination],
+        combinations_by_layer: list[CircuitLibraryCombination],
     ):
         """This closure will execute a list of `tasks` with one call to
         `run_batch` on the provided sampler for a given number of repetitions.
@@ -80,7 +69,7 @@ class _SampleInBatches:
         self.repetitions = repetitions
         self.combinations_by_layer = combinations_by_layer
 
-    def __call__(self, tasks: List[_Sample2qXEBTask]) -> List[Dict[str, Any]]:
+    def __call__(self, tasks: list[_Sample2qXEBTask]) -> list[dict[str, Any]]:
         prepared_circuits = [task.prepared_circuit for task in tasks]
         results = self.sampler.run_batch(prepared_circuits, repetitions=self.repetitions)
         timestamp = time.time()
@@ -113,7 +102,7 @@ class _SampleInBatches:
 
 def _verify_and_get_two_qubits_from_circuits(circuits: Sequence[cirq.Circuit]):
     """Make sure each of the provided circuits uses the same two qubits and return them."""
-    all_qubits_set: Set[cirq.Qid] = set()
+    all_qubits_set: set[cirq.Qid] = set()
     all_qubits_set = all_qubits_set.union(*(circuit.all_qubits() for circuit in circuits))
     all_qubits_list = sorted(all_qubits_set)
     if len(all_qubits_list) != 2:
@@ -170,15 +159,15 @@ class _ZippedCircuit:
     """
 
     wide_circuit: cirq.Circuit
-    pairs: List[Tuple[cirq.Qid, cirq.Qid]]
-    combination: List[int]
+    pairs: Sequence[tuple[cirq.Qid, cirq.Qid]]
+    combination: list[int]
     layer_i: int
     combination_i: int
 
 
 def _get_combinations_by_layer_for_isolated_xeb(
     circuits: Sequence[cirq.Circuit],
-) -> Tuple[List[CircuitLibraryCombination], List[cirq.Circuit]]:
+) -> tuple[list[CircuitLibraryCombination], list[cirq.Circuit]]:
     """Helper function used in `sample_2q_xeb_circuits`.
 
     This creates a CircuitLibraryCombination object for isolated XEB. First, the qubits
@@ -199,8 +188,8 @@ def _get_combinations_by_layer_for_isolated_xeb(
 
 
 def _zip_circuits(
-    circuits: Sequence[cirq.Circuit], combinations_by_layer: List[CircuitLibraryCombination]
-) -> List[_ZippedCircuit]:
+    circuits: Sequence[cirq.Circuit], combinations_by_layer: list[CircuitLibraryCombination]
+) -> list[_ZippedCircuit]:
     """Helper function used in `sample_2q_xeb_circuits` to zip together circuits.
 
     This takes a sequence of narrow `circuits` and "zips" them together according to the
@@ -214,7 +203,7 @@ def _zip_circuits(
         ):
             raise ValueError("`combinations_by_layer` has invalid indices.")
 
-    zipped_circuits: List[_ZippedCircuit] = []
+    zipped_circuits: list[_ZippedCircuit] = []
     for layer_i, layer_combinations in enumerate(combinations_by_layer):
         for combination_i, combination in enumerate(layer_combinations.combinations):
             wide_circuit = Circuit.zip(
@@ -236,10 +225,10 @@ def _zip_circuits(
 
 
 def _generate_sample_2q_xeb_tasks(
-    zipped_circuits: List[_ZippedCircuit], cycle_depths: Sequence[int]
-) -> List[_Sample2qXEBTask]:
+    zipped_circuits: list[_ZippedCircuit], cycle_depths: Sequence[int]
+) -> list[_Sample2qXEBTask]:
     """Helper function used in `sample_2q_xeb_circuits` to prepare circuits in sampling tasks."""
-    tasks: List[_Sample2qXEBTask] = []
+    tasks: list[_Sample2qXEBTask] = []
     for cycle_depth in cycle_depths:
         for zipped_circuit in zipped_circuits:
             circuit_depth = cycle_depth * 2 + 1
@@ -263,14 +252,14 @@ def _generate_sample_2q_xeb_tasks(
 
 
 def _execute_sample_2q_xeb_tasks_in_batches(
-    tasks: List[_Sample2qXEBTask],
+    tasks: list[_Sample2qXEBTask],
     sampler: cirq.Sampler,
-    combinations_by_layer: List[CircuitLibraryCombination],
+    combinations_by_layer: list[CircuitLibraryCombination],
     repetitions: int,
     batch_size: int,
     progress_bar: Callable[..., ContextManager],
-    dataset_directory: Optional[str] = None,
-) -> List[Dict[str, Any]]:
+    dataset_directory: str | None = None,
+) -> list[dict[str, Any]]:
     """Helper function used in `sample_2q_xeb_circuits` to batch and execute sampling tasks."""
     n_tasks = len(tasks)
     batched_tasks = [tasks[i : i + batch_size] for i in range(0, n_tasks, batch_size)]
@@ -298,11 +287,11 @@ def sample_2q_xeb_circuits(
     *,
     repetitions: int = 10_000,
     batch_size: int = 9,
-    progress_bar: Optional[Callable[..., ContextManager]] = tqdm.tqdm,
-    combinations_by_layer: Optional[List[CircuitLibraryCombination]] = None,
-    shuffle: Optional[cirq.RANDOM_STATE_OR_SEED_LIKE] = None,
-    dataset_directory: Optional[str] = None,
-):
+    progress_bar: Callable[..., ContextManager] | None = tqdm.tqdm,
+    combinations_by_layer: list[CircuitLibraryCombination] | None = None,
+    shuffle: cirq.RANDOM_STATE_OR_SEED_LIKE | None = None,
+    dataset_directory: str | None = None,
+) -> pd.DataFrame:
     """Sample two-qubit XEB circuits given a sampler.
 
     Args:
@@ -352,8 +341,8 @@ def sample_2q_xeb_circuits(
     # Construct truncated-with-measurement circuits to run.
     tasks = _generate_sample_2q_xeb_tasks(zipped_circuits, cycle_depths)
     if shuffle is not None:
-        shuffle = value.parse_random_state(shuffle)
-        shuffle.shuffle(tasks)
+        prng = value.parse_random_state(shuffle)
+        prng.shuffle(tasks)  # type: ignore[arg-type]
 
     # Batch and run tasks.
     records = _execute_sample_2q_xeb_tasks_in_batches(

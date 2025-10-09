@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from datetime import timedelta
 
 import pytest
@@ -20,7 +22,7 @@ import cirq
 from cirq import Duration, Timestamp
 
 
-def test_init():
+def test_init() -> None:
     assert Timestamp().raw_picos() == 0
     assert Timestamp(picos=513).raw_picos() == 513
     assert Timestamp(picos=-5).raw_picos() == -5
@@ -33,13 +35,13 @@ def test_init():
     assert isinstance(Timestamp(nanos=1.0).raw_picos(), float)
 
 
-def test_str():
+def test_str() -> None:
     assert str(Timestamp(picos=1000, nanos=1000)) == 't=1001000'
     assert str(Timestamp(nanos=5.0)) == 't=5000.0'
     assert str(Timestamp(picos=-100)) == 't=-100'
 
 
-def test_repr():
+def test_repr() -> None:
     a = Timestamp(picos=1000, nanos=1000)
     cirq.testing.assert_equivalent_repr(a)
     b = Timestamp(nanos=5.0)
@@ -48,14 +50,14 @@ def test_repr():
     cirq.testing.assert_equivalent_repr(c)
 
 
-def test_eq():
+def test_eq() -> None:
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(Timestamp(), Timestamp(picos=0), Timestamp(nanos=0.0))
     eq.add_equality_group(Timestamp(picos=1000), Timestamp(nanos=1))
     eq.make_equality_group(lambda: Timestamp(picos=-1))
 
 
-def test_cmp():
+def test_cmp() -> None:
     ordered_groups = [
         Timestamp(picos=-1),
         Timestamp(),
@@ -75,13 +77,13 @@ def test_cmp():
             assert (i >= j) == (a >= b)
             assert (i > j) == (a > b)
 
-    assert not (Timestamp() == 0)
+    assert not (Timestamp() == 0)  # noqa: SIM201
     assert Timestamp() != 0
-    assert not (Timestamp() == Duration())
+    assert not (Timestamp() == Duration())  # noqa: SIM201
     assert Timestamp() != Duration()
 
 
-def test_cmp_vs_other_type():
+def test_cmp_vs_other_type() -> None:
     with pytest.raises(TypeError):
         _ = Timestamp() < Duration()
     with pytest.raises(TypeError):
@@ -94,7 +96,7 @@ def test_cmp_vs_other_type():
         _ = Timestamp() > 0
 
 
-def test_add():
+def test_add() -> None:
     assert Timestamp(picos=1) + Duration(picos=2) == Timestamp(picos=3)
     assert Duration(picos=3) + Timestamp(picos=-5) == Timestamp(picos=-2)
 
@@ -109,7 +111,7 @@ def test_add():
         _ = Timestamp() + 1
 
 
-def test_sub():
+def test_sub() -> None:
     assert Timestamp() - Timestamp() == Duration()
     assert Timestamp(picos=1) - Timestamp(picos=2) == Duration(picos=-1)
     assert Timestamp(picos=5) - Duration(picos=2) == Timestamp(picos=3)
@@ -118,6 +120,6 @@ def test_sub():
     with pytest.raises(TypeError):
         _ = Duration() - Timestamp()
     with pytest.raises(TypeError):
-        _ = 1 - Timestamp()
+        _ = 1 - Timestamp()  # type: ignore[operator]
     with pytest.raises(TypeError):
-        _ = Timestamp() - 1
+        _ = Timestamp() - 1  # type: ignore[operator]

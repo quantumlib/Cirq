@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 
 from cirq.experiments import purity_from_probabilities
 
 
-def test_purity_from_probabilities():
+def test_purity_from_probabilities() -> None:
     probabilities = np.random.uniform(0, 1, size=4)
     probabilities /= np.sum(probabilities)
     purity = purity_from_probabilities(4, probabilities)

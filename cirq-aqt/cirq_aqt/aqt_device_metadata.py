@@ -14,6 +14,8 @@
 
 """DeviceMetadata for ion trap device with mutually linked qubits placed on a line."""
 
+from __future__ import annotations
+
 from typing import Any, Iterable, Mapping
 
 import networkx as nx
@@ -54,9 +56,9 @@ class AQTDeviceMetadata(cirq.DeviceMetadata):
             cirq.GateFamily(cirq.ZPowGate): self._oneq_gates_duration,
             cirq.GateFamily(cirq.PhasedXPowGate): self._oneq_gates_duration,
         }
-        assert not self._gateset.gates.symmetric_difference(self._gate_durations.keys()), (
-            "AQTDeviceMetadata.gate_durations must have the same Gates " "as AQTTargetGateset."
-        )
+        assert not self._gateset.gates.symmetric_difference(
+            self._gate_durations.keys()
+        ), "AQTDeviceMetadata.gate_durations must have the same Gates as AQTTargetGateset."
 
     @property
     def gateset(self) -> cirq.Gateset:

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import Sequence
 
 import numpy as np
@@ -55,7 +57,7 @@ class UnimplementedUnitaryGate(cirq.testing.TwoQubitGate):
         return np.array([[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]])
 
 
-def test_assert_act_on_clifford_tableau_effect_matches_unitary():
+def test_assert_act_on_clifford_tableau_effect_matches_unitary() -> None:
     cirq.testing.assert_all_implemented_act_on_effects_match_unitary(GoodGate())
     cirq.testing.assert_all_implemented_act_on_effects_match_unitary(
         GoodGate().on(cirq.LineQubit(1))

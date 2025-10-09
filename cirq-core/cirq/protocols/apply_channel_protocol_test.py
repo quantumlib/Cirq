@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
 import cirq
 
 
-def make_buffers(shape, dtype):
+def make_buffers(shape, dtype) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     return (
         np.empty(shape, dtype=dtype),
         np.empty(shape, dtype=dtype),
@@ -26,7 +28,7 @@ def make_buffers(shape, dtype):
     )
 
 
-def apply_channel(val, rho, left_axes, right_axes, assert_result_is_out_buf=False):
+def apply_channel(val, rho, left_axes, right_axes, assert_result_is_out_buf=False) -> np.ndarray:
     out_buf, buf0, buf1 = make_buffers(rho.shape, rho.dtype)
     result = cirq.apply_channel(
         val,
@@ -46,7 +48,7 @@ def apply_channel(val, rho, left_axes, right_axes, assert_result_is_out_buf=Fals
     return result
 
 
-def test_apply_channel_bad_args():
+def test_apply_channel_bad_args() -> None:
     target = np.zeros((3,) + (1, 2, 3) + (3, 1, 2) + (3,))
     with pytest.raises(ValueError, match='Invalid target_tensor shape'):
         cirq.apply_channel(
@@ -75,7 +77,7 @@ def test_apply_channel_bad_args():
         )
 
 
-def test_apply_channel_simple():
+def test_apply_channel_simple() -> None:
     x = np.array([[0, 1], [1, 0]], dtype=np.complex128)
 
     class HasApplyChannel:
@@ -106,7 +108,7 @@ def test_apply_channel_simple():
     np.testing.assert_almost_equal(result, x)
 
 
-def test_apply_channel_inline():
+def test_apply_channel_inline() -> None:
     x = np.array([[0, 1], [1, 0]], dtype=np.complex128)
 
     class HasApplyChannel:
@@ -121,7 +123,7 @@ def test_apply_channel_inline():
     np.testing.assert_almost_equal(result, x)
 
 
-def test_apply_channel_returns_aux_buffer():
+def test_apply_channel_returns_aux_buffer() -> None:
     rho = np.array([[1, 0], [0, 0]], dtype=np.complex128)
 
     class ReturnsAuxBuffer0:
@@ -139,7 +141,7 @@ def test_apply_channel_returns_aux_buffer():
         _ = apply_channel(ReturnsAuxBuffer1(), rho, [0], [1])
 
 
-def test_apply_channel_channel_fallback_simple():
+def test_apply_channel_channel_fallback_simple() -> None:
     x = np.array([[0, 1], [1, 0]], dtype=np.complex128)
 
     class HasChannel:
@@ -151,7 +153,7 @@ def test_apply_channel_channel_fallback_simple():
     np.testing.assert_almost_equal(result, x)
 
 
-def test_apply_channel_channel_fallback_one_qubit_random_on_qubit():
+def test_apply_channel_channel_fallback_one_qubit_random_on_qubit() -> None:
     for _ in range(25):
         state = cirq.testing.random_superposition(2)
         rho = np.outer(np.conjugate(state), state)
@@ -169,7 +171,7 @@ def test_apply_channel_channel_fallback_one_qubit_random_on_qubit():
         np.testing.assert_almost_equal(result, expected)
 
 
-def test_apply_channel_channel_fallback_one_qubit_random_on_two_qubits():
+def test_apply_channel_channel_fallback_one_qubit_random_on_two_qubits() -> None:
     for _ in range(25):
         state = cirq.testing.random_superposition(4)
         rho = np.outer(np.conjugate(state), state)
@@ -191,7 +193,7 @@ def test_apply_channel_channel_fallback_one_qubit_random_on_two_qubits():
         np.testing.assert_almost_equal(result, expected)
 
 
-def test_apply_channel_channel_fallback_two_qubit_random():
+def test_apply_channel_channel_fallback_two_qubit_random() -> None:
     for _ in range(25):
         state = cirq.testing.random_superposition(4)
         rho = np.outer(np.conjugate(state), state)
@@ -212,7 +214,7 @@ def test_apply_channel_channel_fallback_two_qubit_random():
         np.testing.assert_almost_equal(result, expected)
 
 
-def test_apply_channel_no_protocols_implemented():
+def test_apply_channel_no_protocols_implemented() -> None:
     class NoProtocols:
         pass
 
@@ -222,23 +224,24 @@ def test_apply_channel_no_protocols_implemented():
         apply_channel(NoProtocols(), rho, left_axes=[1], right_axes=[1])
 
 
-def test_apply_channel_no_protocols_implemented_default():
+def test_apply_channel_no_protocols_implemented_default() -> None:
     class NoProtocols:
         pass
 
+    out_buffer, auxiliary_buffer0, auxiliary_buffer1 = make_buffers((2, 2), float)
     args = cirq.ApplyChannelArgs(
         target_tensor=np.eye(2),
         left_axes=[0],
         right_axes=[1],
-        out_buffer=None,
-        auxiliary_buffer0=None,
-        auxiliary_buffer1=None,
+        out_buffer=out_buffer,
+        auxiliary_buffer0=auxiliary_buffer0,
+        auxiliary_buffer1=auxiliary_buffer1,
     )
     result = cirq.apply_channel(NoProtocols(), args, 'cirq')
     assert result == 'cirq'
 
 
-def test_apply_channel_unitary():
+def test_apply_channel_unitary() -> None:
     m = np.diag([1, 1j])
 
     shape = (2, 2, 2, 2)
@@ -261,7 +264,7 @@ def test_apply_channel_unitary():
         )
 
 
-def test_apply_channel_apply_unitary():
+def test_apply_channel_apply_unitary() -> None:
     shape = (2, 2, 2, 2)
     rho = np.ones(shape, dtype=np.complex128)
 
@@ -289,7 +292,7 @@ def test_apply_channel_apply_unitary():
         )
 
 
-def test_apply_channel_apply_unitary_not_implemented():
+def test_apply_channel_apply_unitary_not_implemented() -> None:
     class ApplyUnitaryNotImplemented:
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs):
             return NotImplemented

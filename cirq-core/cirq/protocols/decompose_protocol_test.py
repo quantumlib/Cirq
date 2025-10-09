@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import Optional
+from types import NotImplementedType
 from unittest import mock
 
 import pytest
@@ -64,7 +64,7 @@ class DecomposeQuditGate:
         yield cirq.identity_each(*qids)
 
 
-def test_decompose_once():
+def test_decompose_once() -> None:
     # No default value results in descriptive error.
     with pytest.raises(TypeError, match='no _decompose_with_context_ or _decompose_ method'):
         _ = cirq.decompose_once(NoMethod())
@@ -91,7 +91,7 @@ def test_decompose_once():
     ]
 
 
-def test_decompose_once_with_qubits():
+def test_decompose_once_with_qubits() -> None:
     qs = cirq.LineQubit.range(3)
 
     # No default value results in descriptive error.
@@ -137,7 +137,7 @@ def test_decompose_once_with_qubits():
     ) == list(cirq.X.on_each(*qs)) + list(cirq.Y.on_each(*qs))
 
 
-def test_decompose_general():
+def test_decompose_general() -> None:
     a, b, c = cirq.LineQubit.range(3)
     no_method = NoMethod()
     assert cirq.decompose(no_method) == [no_method]
@@ -152,7 +152,7 @@ def test_decompose_general():
     )
 
 
-def test_decompose_keep():
+def test_decompose_keep() -> None:
     a, b = cirq.LineQubit.range(2)
 
     # Recursion can be stopped.
@@ -180,7 +180,7 @@ def test_decompose_keep():
     assert cirq.decompose([[[cirq.SWAP(a, b)]]], keep=lambda _: True) == [cirq.SWAP(a, b)]
 
 
-def test_decompose_on_stuck_raise():
+def test_decompose_on_stuck_raise() -> None:
     a, b = cirq.LineQubit.range(2)
     no_method = NoMethod()
 
@@ -210,7 +210,7 @@ def test_decompose_on_stuck_raise():
         assert cirq.decompose([], on_stuck_raise=TypeError('x'))
 
 
-def test_decompose_intercept():
+def test_decompose_intercept() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
@@ -231,7 +231,7 @@ def test_decompose_intercept():
 
     # Accepts a context, when provided.
     def _intercept_with_context(
-        op: cirq.Operation, context: Optional[cirq.DecompositionContext] = None
+        op: cirq.Operation, context: cirq.DecompositionContext | None = None
     ):
         assert context is not None
         if op.gate == cirq.SWAP:
@@ -247,7 +247,7 @@ def test_decompose_intercept():
     assert actual == [cirq.X(a), cirq.X(cirq.ops.CleanQubit(0)), cirq.X(b)]
 
 
-def test_decompose_preserving_structure():
+def test_decompose_preserving_structure() -> None:
     a, b = cirq.LineQubit.range(2)
     fc1 = cirq.FrozenCircuit(cirq.SWAP(a, b), cirq.FSimGate(0.1, 0.2).on(a, b))
     cop1_1 = cirq.CircuitOperation(fc1).with_tags('test_tag')
@@ -275,7 +275,7 @@ def test_decompose_preserving_structure():
 
 # Test both intercepting and fallback decomposers.
 @pytest.mark.parametrize('decompose_mode', ['intercept', 'fallback'])
-def test_decompose_preserving_structure_forwards_args(decompose_mode):
+def test_decompose_preserving_structure_forwards_args(decompose_mode) -> None:
     a, b = cirq.LineQubit.range(2)
     fc1 = cirq.FrozenCircuit(cirq.SWAP(a, b), cirq.FSimGate(0.1, 0.2).on(a, b))
     cop1_1 = cirq.CircuitOperation(fc1).with_tags('test_tag')
@@ -322,7 +322,7 @@ def test_decompose_preserving_structure_forwards_args(decompose_mode):
     assert actual == expected
 
 
-def test_decompose_tagged_operation():
+def test_decompose_tagged_operation() -> None:
     op = cirq.TaggedOperation(
         cirq.CircuitOperation(
             circuit=cirq.FrozenCircuit(
@@ -377,7 +377,7 @@ class RecursiveDecompose(cirq.Gate):
 
 
 @pytest.mark.parametrize('with_context', [True, False])
-def test_decompose_recursive_dfs(with_context: bool):
+def test_decompose_recursive_dfs(with_context: bool) -> None:
     expected_calls = [
         mock.call.qalloc(True),
         mock.call.qalloc(False),
@@ -426,7 +426,7 @@ class G2(cirq.Gate):
 
 
 @mock.patch('cirq.protocols.decompose_protocol._CONTEXT_COUNTER', itertools.count())
-def test_successive_decompose_once_succeed():
+def test_successive_decompose_once_succeed() -> None:
     op = G2()(cirq.NamedQubit('q'))
     d1 = cirq.decompose_once(op)
     d2 = cirq.decompose_once(d1[0])
@@ -438,7 +438,7 @@ def test_successive_decompose_once_succeed():
     ]
 
 
-def test_decompose_without_context_succeed():
+def test_decompose_without_context_succeed() -> None:
     op = G2()(cirq.NamedQubit('q'))
     assert cirq.decompose(op, keep=lambda op: op.gate is cirq.CNOT) == [
         cirq.CNOT(
@@ -446,3 +446,55 @@ def test_decompose_without_context_succeed():
             cirq.ops.CleanQubit(1, prefix='_decompose_protocol'),
         )
     ]
+
+
+def test_extracting_global_phases() -> None:
+    qm = cirq.SimpleQubitManager()
+    context = cirq.DecompositionContext(qm)
+    new_context = context.extracting_global_phases()
+    assert not context.extract_global_phases
+    assert new_context.extract_global_phases
+    assert new_context.qubit_manager is qm
+
+
+def test_handling_of_none_vs_notimplemented_return_values() -> None:
+
+    class TestOp:
+        called_decompose = False
+        called_decompose_with_context = False
+        return_value: NotImplementedType | None = None
+
+        def _decompose_(self):
+            self.called_decompose = True
+            return self.return_value
+
+        def _decompose_with_context_(self, *, context):
+            assert context is not None, 'A default context should be provided'
+            self.called_decompose_with_context = True
+            return self.return_value
+
+    op = TestOp()
+    result = cirq.decompose(op)
+    assert op.called_decompose_with_context, 'Should always call _decompose_with_context_'
+    assert not op.called_decompose, 'Should not fall back to _decompose_'
+    assert result == [op]
+
+    op = TestOp()
+    result = cirq.decompose_once(op, default='dummy')
+    assert op.called_decompose_with_context, 'Should always call _decompose_with_context_'
+    assert not op.called_decompose, 'Should not fall back to _decompose_'
+    assert result == 'dummy'
+
+    op = TestOp()
+    op.return_value = NotImplemented
+    result = cirq.decompose(op)
+    assert op.called_decompose_with_context, 'Should always call _decompose_with_context_'
+    assert op.called_decompose, 'Should fall back to _decompose_'
+    assert result == [op]
+
+    op = TestOp()
+    op.return_value = NotImplemented
+    result = cirq.decompose_once(op, default='dummy')
+    assert op.called_decompose_with_context, 'Should always call _decompose_with_context_'
+    assert op.called_decompose, 'Should fall back to _decompose_'
+    assert result == 'dummy'

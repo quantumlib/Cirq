@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 
 import cirq
 
 
-def test_routed_circuit_with_mapping_simple():
+def test_routed_circuit_with_mapping_simple() -> None:
     q = cirq.LineQubit.range(2)
     circuit = cirq.Circuit([cirq.Moment(cirq.SWAP(q[0], q[1]).with_tags(cirq.RoutingSwapTag()))])
     expected_diagram = """
@@ -57,7 +59,7 @@ def test_routed_circuit_with_mapping_simple():
         cirq.routed_circuit_with_mapping(circuit)
 
 
-def test_routed_circuit_with_mapping_multi_swaps():
+def test_routed_circuit_with_mapping_multi_swaps() -> None:
     q = cirq.LineQubit.range(6)
     circuit = cirq.Circuit(
         [

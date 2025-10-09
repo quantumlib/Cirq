@@ -13,28 +13,31 @@
 # limitations under the License.
 
 """Tests for the simulator benchmarker."""
+
+from __future__ import annotations
+
 from dev_tools.profiling import benchmark_simulators
 
 
-def test_unitary_simulator():
+def test_unitary_simulator() -> None:
     for num_qubits in (4, 10):
         for num_gates in (10, 20):
             benchmark_simulators.simulate('unitary', num_qubits, num_gates)
 
 
-def test_density_matrix_simulator():
+def test_density_matrix_simulator() -> None:
     for num_qubits in (3, 8):
         for num_gates in (10, 20):
             benchmark_simulators.simulate('density_matrix', num_qubits, num_gates)
 
 
-def test_args_have_defaults():
+def test_args_have_defaults() -> None:
     kwargs = benchmark_simulators.parse_arguments([])
     for _, v in kwargs.items():
         assert v is not None
 
 
-def test_main_loop():
+def test_main_loop() -> None:
     # Keep test from taking a long time by lowering max qubits.
     args = '--max_num_qubits 5'.split()
     benchmark_simulators.main(
@@ -43,7 +46,7 @@ def test_main_loop():
     )
 
 
-def test_parse_args():
+def test_parse_args() -> None:
     args = (
         '--sim_type unitary --min_num_qubits 5 --max_num_qubits 10 '
         '--num_gates 5 --num_repetitions 2 --run_repetitions 10'

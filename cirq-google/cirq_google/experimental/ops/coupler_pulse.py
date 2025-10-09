@@ -11,13 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 
-from typing import AbstractSet, Any, Optional, Tuple
-
-import numpy as np
+from typing import AbstractSet, Any, TYPE_CHECKING
 
 import cirq
 from cirq._compat import proper_repr
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 @cirq.value_equality(approximate=True)
@@ -55,8 +57,8 @@ class CouplerPulse(cirq.ops.Gate):
         self,
         hold_time: cirq.Duration,
         coupling_mhz: cirq.TParamVal,
-        rise_time: Optional[cirq.Duration] = cirq.Duration(nanos=8),
-        padding_time: Optional[cirq.Duration] = cirq.Duration(nanos=2.5),
+        rise_time: cirq.Duration | None = cirq.Duration(nanos=8),
+        padding_time: cirq.Duration | None = cirq.Duration(nanos=2.5),
         q0_detune_mhz: cirq.TParamVal = 0.0,
         q1_detune_mhz: cirq.TParamVal = 0.0,
     ):
@@ -127,7 +129,7 @@ class CouplerPulse(cirq.ops.Gate):
 
     def _resolve_parameters_(
         self, resolver: cirq.ParamResolverOrSimilarType, recursive: bool
-    ) -> 'CouplerPulse':
+    ) -> CouplerPulse:
         return CouplerPulse(
             hold_time=cirq.resolve_parameters(self.hold_time, resolver, recursive=recursive),
             coupling_mhz=cirq.resolve_parameters(self.coupling_mhz, resolver, recursive=recursive),
@@ -151,7 +153,7 @@ class CouplerPulse(cirq.ops.Gate):
             self.q1_detune_mhz,
         )
 
-    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> Tuple[str, ...]:
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> tuple[str, ...]:
         s = f'/‾‾({self.hold_time}@{self.coupling_mhz}MHz)‾‾\\'
         return (s, s)
 

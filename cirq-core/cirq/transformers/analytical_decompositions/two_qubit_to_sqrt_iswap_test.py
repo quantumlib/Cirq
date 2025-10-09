@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
+from typing import Iterator
 
 import numpy as np
 import pytest
@@ -21,11 +24,11 @@ import sympy
 import cirq
 
 
-def random_unitary(seed):
+def random_unitary(seed: cirq.RANDOM_STATE_OR_SEED_LIKE) -> np.ndarray:
     return cirq.testing.random_unitary(4, random_state=seed)
 
 
-def random_locals(x, y, z, seed=None):
+def random_locals(x: float, y: float, z: float, seed=None) -> np.ndarray:
     rng = np.random.RandomState(seed)
     a0 = cirq.testing.random_unitary(2, random_state=rng)
     a1 = cirq.testing.random_unitary(2, random_state=rng)
@@ -40,15 +43,14 @@ def random_locals(x, y, z, seed=None):
     )
 
 
-def perturbations_unitary(u, amount=1e-10):
+def perturbations_unitary(u: np.ndarray, amount=1e-10) -> Iterator[np.ndarray]:
     """Returns several unitaries in the neighborhood of u to test for numerical
     corner cases near critical values."""
     kak = cirq.kak_decomposition(u)
     yield u
     for i in range(3):
         for neg in (-1, 1):
-            perturb_xyz = list(kak.interaction_coefficients)
-            perturb_xyz[i] += neg * amount
+            perturb_xyz = tuple(c + neg * amount for c in kak.interaction_coefficients)
             yield cirq.unitary(
                 cirq.KakDecomposition(
                     global_phase=kak.global_phase,
@@ -59,11 +61,11 @@ def perturbations_unitary(u, amount=1e-10):
             )
 
 
-def perturbations_gate(gate, amount=1e-10):
+def perturbations_gate(gate: cirq.SupportsUnitary, amount=1e-10) -> Iterator[np.ndarray]:
     return perturbations_unitary(cirq.unitary(gate), amount)
 
 
-def perturbations_weyl(x, y, z, amount=1e-10):
+def perturbations_weyl(x: float, y: float, z: float, amount: float = 1e-10) -> Iterator[np.ndarray]:
     return perturbations_gate(cirq.KakDecomposition(interaction_coefficients=(x, y, z)), amount)
 
 
@@ -209,7 +211,7 @@ def assert_valid_decomp(
     atol=1e-6,
     rtol=0,
     qubit_order=cirq.LineQubit.range(2),
-):
+) -> None:
     # Check expected gates
     for op in operations:
         if len(op.qubits) == 0 and isinstance(op.gate, cirq.GlobalPhaseGate):
@@ -240,7 +242,7 @@ def assert_valid_decomp(
         )
 
 
-def assert_specific_sqrt_iswap_count(operations, count):
+def assert_specific_sqrt_iswap_count(operations, count) -> None:
     actual = sum(len(op.qubits) == 2 for op in operations)
     assert actual == count, f'Incorrect sqrt-iSWAP count.  Expected {count} but got {actual}.'
 
@@ -253,7 +255,7 @@ def assert_specific_sqrt_iswap_count(operations, count):
         cirq.CZPowGate(exponent=sympy.Symbol('t')),
     ],
 )
-def test_two_qubit_gates_with_symbols(gate: cirq.Gate):
+def test_two_qubit_gates_with_symbols(gate: cirq.Gate) -> None:
     op = gate(*cirq.LineQubit.range(2))
     c_new_sqrt_iswap = cirq.Circuit(
         cirq.parameterized_2q_op_to_sqrt_iswap_operations(op)  # type: ignore
@@ -277,12 +279,14 @@ def test_two_qubit_gates_with_symbols(gate: cirq.Gate):
         )
 
 
-def test_fsim_gate_with_symbols():
+def test_fsim_gate_with_symbols() -> None:
     theta, phi = sympy.symbols(['theta', 'phi'])
     op = cirq.FSimGate(theta=theta, phi=phi).on(*cirq.LineQubit.range(2))
-    c_new_sqrt_iswap = cirq.Circuit(cirq.parameterized_2q_op_to_sqrt_iswap_operations(op))
+    c_new_sqrt_iswap = cirq.Circuit(
+        cirq.parameterized_2q_op_to_sqrt_iswap_operations(op)  # type: ignore[arg-type]
+    )
     c_new_sqrt_iswap_inv = cirq.Circuit(
-        cirq.parameterized_2q_op_to_sqrt_iswap_operations(op, use_sqrt_iswap_inv=True)
+        cirq.parameterized_2q_op_to_sqrt_iswap_operations(op, use_sqrt_iswap_inv=True)  # type: ignore[arg-type]
     )
     for theta_val in np.linspace(0, 2 * np.pi, 4):
         for phi_val in np.linspace(0, 2 * np.pi, 6):
@@ -305,7 +309,7 @@ def test_fsim_gate_with_symbols():
 
 
 @pytest.mark.parametrize('cnt', [-1, 4, 10])
-def test_invalid_required_sqrt_iswap_count(cnt):
+def test_invalid_required_sqrt_iswap_count(cnt) -> None:
     u = TWO_SQRT_ISWAP_UNITARIES[0]
     q0, q1 = cirq.LineQubit.range(2)
     with pytest.raises(ValueError, match='required_sqrt_iswap_count'):
@@ -313,7 +317,7 @@ def test_invalid_required_sqrt_iswap_count(cnt):
 
 
 @pytest.mark.parametrize('u', ZERO_UNITARIES)
-def test_decomp0(u):
+def test_decomp0(u) -> None:
     # Decompose unitaries into zero sqrt-iSWAP gates
     q0, q1 = cirq.LineQubit.range(2)
     ops = cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u, required_sqrt_iswap_count=0)
@@ -324,7 +328,7 @@ def test_decomp0(u):
 @pytest.mark.parametrize(
     'u', ONE_SQRT_ISWAP_UNITARIES + TWO_SQRT_ISWAP_UNITARIES + THREE_SQRT_ISWAP_UNITARIES
 )
-def test_decomp0_invalid(u):
+def test_decomp0_invalid(u) -> None:
     # Attempt to decompose other unitaries into zero SQRT_ISWAP gates
     q0, q1 = cirq.LineQubit.range(2)
     with pytest.raises(ValueError, match='cannot be decomposed into exactly 0 sqrt-iSWAP gates'):
@@ -332,7 +336,7 @@ def test_decomp0_invalid(u):
 
 
 @pytest.mark.parametrize('u', ONE_SQRT_ISWAP_UNITARIES)
-def test_decomp1(u):
+def test_decomp1(u) -> None:
     q0, q1 = cirq.LineQubit.range(2)
     ops = cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u, required_sqrt_iswap_count=1)
     assert_valid_decomp(u, ops)
@@ -342,14 +346,14 @@ def test_decomp1(u):
 @pytest.mark.parametrize(
     'u', ZERO_UNITARIES + TWO_SQRT_ISWAP_UNITARIES + THREE_SQRT_ISWAP_UNITARIES
 )
-def test_decomp1_invalid(u):
+def test_decomp1_invalid(u) -> None:
     q0, q1 = cirq.LineQubit.range(2)
     with pytest.raises(ValueError, match='cannot be decomposed into exactly 1 sqrt-iSWAP gates'):
         cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u, required_sqrt_iswap_count=1)
 
 
 @pytest.mark.parametrize('u', ZERO_UNITARIES + ONE_SQRT_ISWAP_UNITARIES + TWO_SQRT_ISWAP_UNITARIES)
-def test_decomp2(u):
+def test_decomp2(u) -> None:
     q0, q1 = cirq.LineQubit.range(2)
     ops = cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u, required_sqrt_iswap_count=2)
     assert_valid_decomp(u, ops)
@@ -357,7 +361,7 @@ def test_decomp2(u):
 
 
 @pytest.mark.parametrize('u', THREE_SQRT_ISWAP_UNITARIES)
-def test_decomp2_invalid(u):
+def test_decomp2_invalid(u) -> None:
     q0, q1 = cirq.LineQubit.range(2)
     with pytest.raises(ValueError, match='cannot be decomposed into exactly 2 sqrt-iSWAP gates'):
         cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u, required_sqrt_iswap_count=2)
@@ -370,14 +374,14 @@ def test_decomp2_invalid(u):
     + TWO_SQRT_ISWAP_UNITARIES
     + THREE_SQRT_ISWAP_UNITARIES,
 )
-def test_decomp3(u):
+def test_decomp3(u) -> None:
     q0, q1 = cirq.LineQubit.range(2)
     ops = cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u, required_sqrt_iswap_count=3)
     assert_valid_decomp(u, ops)
     assert_specific_sqrt_iswap_count(ops, 3)
 
 
-def test_decomp3_invalid():
+def test_decomp3_invalid() -> None:
     # All two-qubit gates can be synthesized with three SQRT_ISWAP gates
     u = cirq.unitary(cirq.X**0.2)  # Pass an invalid size unitary
     q0, q1 = cirq.LineQubit.range(2)
@@ -386,7 +390,7 @@ def test_decomp3_invalid():
 
 
 @pytest.mark.parametrize('u', TWO_SQRT_ISWAP_UNITARIES[:1])
-def test_qubit_order(u):
+def test_qubit_order(u) -> None:
     q0, q1 = cirq.LineQubit.range(2)
     ops = cirq.two_qubit_matrix_to_sqrt_iswap_operations(q1, q0, u, required_sqrt_iswap_count=2)
     assert_valid_decomp(u, ops, qubit_order=(q1, q0))
@@ -394,7 +398,7 @@ def test_qubit_order(u):
 
 
 @pytest.mark.parametrize('u', ZERO_UNITARIES)
-def test_decomp_optimal0(u):
+def test_decomp_optimal0(u) -> None:
     q0, q1 = cirq.LineQubit.range(2)
     ops = cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u)
     assert_valid_decomp(u, ops)
@@ -402,7 +406,7 @@ def test_decomp_optimal0(u):
 
 
 @pytest.mark.parametrize('u', ONE_SQRT_ISWAP_UNITARIES)
-def test_decomp_optimal1(u):
+def test_decomp_optimal1(u) -> None:
     q0, q1 = cirq.LineQubit.range(2)
     ops = cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u)
     assert_valid_decomp(u, ops)
@@ -410,7 +414,7 @@ def test_decomp_optimal1(u):
 
 
 @pytest.mark.parametrize('u', TWO_SQRT_ISWAP_UNITARIES)
-def test_decomp_optimal2(u):
+def test_decomp_optimal2(u) -> None:
     q0, q1 = cirq.LineQubit.range(2)
     ops = cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u)
     assert_valid_decomp(u, ops)
@@ -418,7 +422,7 @@ def test_decomp_optimal2(u):
 
 
 @pytest.mark.parametrize('u', THREE_SQRT_ISWAP_UNITARIES)
-def test_decomp_optimal3(u):
+def test_decomp_optimal3(u) -> None:
     q0, q1 = cirq.LineQubit.range(2)
     ops = cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u)
     assert_valid_decomp(u, ops)
@@ -426,7 +430,7 @@ def test_decomp_optimal3(u):
 
 
 @pytest.mark.parametrize('u', ALL_REGION_UNITARIES)
-def test_all_weyl_regions(u):
+def test_all_weyl_regions(u) -> None:
     q0, q1 = cirq.LineQubit.range(2)
     ops = cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u, clean_operations=True)
     assert_valid_decomp(u, ops, single_qubit_gate_types=(cirq.PhasedXZGate,))
@@ -443,13 +447,13 @@ def test_all_weyl_regions(u):
         THREE_SQRT_ISWAP_UNITARIES[0],
     ],
 )
-def test_decomp_sqrt_iswap_inv(u):
+def test_decomp_sqrt_iswap_inv(u) -> None:
     q0, q1 = cirq.LineQubit.range(2)
     ops = cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u, use_sqrt_iswap_inv=True)
     assert_valid_decomp(u, ops, two_qubit_gate=cirq.SQRT_ISWAP_INV)
 
 
-def test_valid_check_raises():
+def test_valid_check_raises() -> None:
     q0 = cirq.LineQubit(0)
     with pytest.raises(AssertionError, match='Unitaries are completely different'):
         assert_valid_decomp(np.eye(4), [cirq.X(q0)], single_qubit_gate_types=(cirq.XPowGate,))

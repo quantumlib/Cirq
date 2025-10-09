@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import time
-from typing import Any, cast, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import Any, cast, Sequence, TYPE_CHECKING
 
 import numpy as np
 import scipy.optimize
@@ -61,8 +61,8 @@ class TensoredConfusionMatrices:
 
     def __init__(
         self,
-        confusion_matrices: Union[np.ndarray, Sequence[np.ndarray]],
-        measure_qubits: Union[Sequence[cirq.Qid], Sequence[Sequence[cirq.Qid]]],
+        confusion_matrices: np.ndarray | Sequence[np.ndarray],
+        measure_qubits: Sequence[cirq.Qid] | Sequence[Sequence[cirq.Qid]],
         *,
         repetitions: int,
         timestamp: float,
@@ -114,7 +114,7 @@ class TensoredConfusionMatrices:
         self._measure_qubits = tuple(tuple(q) for q in measure_qubits)
         self._qubits = tuple(sorted(set(q for ql in measure_qubits for q in ql)))
         self._qubits_to_idx = {q: i for i, q in enumerate(self._qubits)}
-        self._cache: Dict[Tuple[cirq.Qid, ...], np.ndarray] = {}
+        self._cache: dict[tuple[cirq.Qid, ...], np.ndarray] = {}
         if sum(len(q) for q in self._measure_qubits) != len(self._qubits):
             raise ValueError(f"Repeated qubits not allowed in measure_qubits: {measure_qubits}.")
 
@@ -157,27 +157,27 @@ class TensoredConfusionMatrices:
         return self._timestamp
 
     @property
-    def confusion_matrices(self) -> Tuple[np.ndarray, ...]:
+    def confusion_matrices(self) -> tuple[np.ndarray, ...]:
         """List of confusion matrices corresponding to `measure_qubits` qubit pattern."""
         return self._confusion_matrices
 
     @property
-    def measure_qubits(self) -> Tuple[Tuple[cirq.Qid, ...], ...]:
+    def measure_qubits(self) -> tuple[tuple[cirq.Qid, ...], ...]:
         """Calibrated qubit pattern for which individual confusion matrices were computed."""
         return self._measure_qubits
 
     @property
-    def qubits(self) -> Tuple[cirq.Qid, ...]:
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         """Sorted list of all calibrated qubits."""
         return self._qubits
 
-    def _get_vars(self, qubit_pattern: Sequence[cirq.Qid]) -> List[int]:
+    def _get_vars(self, qubit_pattern: Sequence[cirq.Qid]) -> list[int]:
         in_vars = [2 * self._qubits_to_idx[q] for q in qubit_pattern]
         out_vars = [2 * self._qubits_to_idx[q] + 1 for q in qubit_pattern]
         return in_vars + out_vars
 
     def _confusion_matrix(self, qubits: Sequence[cirq.Qid]) -> np.ndarray:
-        ein_input: List[np.ndarray | List[int]] = []
+        ein_input: list[np.ndarray | list[int]] = []
         for qs, cm in zip(self.measure_qubits, self.confusion_matrices):
             ein_input.extend([cm.reshape((2, 2) * len(qs)), self._get_vars(qs)])
         ein_out = self._get_vars(qubits)
@@ -185,7 +185,7 @@ class TensoredConfusionMatrices:
         ret = np.einsum(*ein_input, ein_out).reshape((2 ** len(qubits),) * 2)
         return ret / ret.sum(axis=1)
 
-    def confusion_matrix(self, qubits: Optional[Sequence[cirq.Qid]] = None) -> np.ndarray:
+    def confusion_matrix(self, qubits: Sequence[cirq.Qid] | None = None) -> np.ndarray:
         """Returns a single confusion matrix constructed for the given set of qubits.
 
         The single `2 ** len(qubits) x 2 ** len(qubits)` confusion matrix is constructed
@@ -213,7 +213,7 @@ class TensoredConfusionMatrices:
             self._cache[key] = self._confusion_matrix(qubits)
         return self._cache[key]
 
-    def correction_matrix(self, qubits: Optional[Sequence[cirq.Qid]] = None) -> np.ndarray:
+    def correction_matrix(self, qubits: Sequence[cirq.Qid] | None = None) -> np.ndarray:
         """Returns a single correction matrix constructed for the given set of qubits.
 
         A correction matrix is the inverse of confusion matrix and can be used to apply corrections
@@ -242,7 +242,7 @@ class TensoredConfusionMatrices:
     def apply(
         self,
         result: np.ndarray,
-        qubits: Optional[Sequence[cirq.Qid]] = None,
+        qubits: Sequence[cirq.Qid] | None = None,
         *,
         method='least_squares',
     ) -> np.ndarray:
@@ -347,8 +347,8 @@ class TensoredConfusionMatrices:
                 idx = self.measure_qubits.index((qubit,))
             except:  # pragma: no cover
                 raise NotImplementedError(
-                    "The response matrix must be a tensor product of single-qu"
-                    + f"bit response matrices, including that of qubit {qubit}."
+                    "The response matrix must be a tensor product of single-qubit "
+                    f"response matrices, including that of qubit {qubit}."
                 )
             cm_all.append(self.confusion_matrices[idx])
 
@@ -375,7 +375,7 @@ class TensoredConfusionMatrices:
             f")"
         )
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             'confusion_matrices': self.confusion_matrices,
             'measure_qubits': self.measure_qubits,
@@ -426,7 +426,7 @@ class TensoredConfusionMatrices:
 
 def measure_confusion_matrix(
     sampler: cirq.Sampler,
-    qubits: Union[Sequence[cirq.Qid], Sequence[Sequence[cirq.Qid]]],
+    qubits: Sequence[cirq.Qid] | Sequence[Sequence[cirq.Qid]],
     repetitions: int = 1000,
 ) -> TensoredConfusionMatrices:
     """Prepares `TensoredConfusionMatrices` for the n qubits in the input.

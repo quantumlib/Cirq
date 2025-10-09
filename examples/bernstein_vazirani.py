@@ -40,6 +40,8 @@ Most common matches secret factors:
 True
 """
 
+from __future__ import annotations
+
 import random
 
 import cirq

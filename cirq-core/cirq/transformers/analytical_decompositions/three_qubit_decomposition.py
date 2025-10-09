@@ -14,9 +14,12 @@
 
 """Utility methods for decomposing three-qubit unitaries."""
 
-from typing import List, Optional, Sequence, Tuple, Union
+from __future__ import annotations
+
+from typing import Sequence
 
 import numpy as np
+import scipy.linalg
 
 import cirq
 from cirq import ops, transformers as opt
@@ -24,7 +27,7 @@ from cirq import ops, transformers as opt
 
 def three_qubit_matrix_to_operations(
     q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, u: np.ndarray, atol: float = 1e-8
-) -> List[ops.Operation]:
+) -> list[ops.Operation]:
     """Returns operations for a 3 qubit unitary.
 
     The algorithm is described in Shende et al.:
@@ -45,24 +48,13 @@ def three_qubit_matrix_to_operations(
 
     Raises:
         ValueError: If the u matrix is non-unitary or not of shape (8,8).
-        ImportError: If the decomposition cannot be done because the SciPy version is less than
-            1.5.0 and so does not contain the required `cossin` method.
     """
     if np.shape(u) != (8, 8):
         raise ValueError(f"Expected unitary matrix with shape (8,8) got {np.shape(u)}")
     if not cirq.is_unitary(u, atol=atol):
         raise ValueError(f"Matrix is not unitary: {u}")
 
-    try:
-        from scipy.linalg import cossin
-    except ImportError:  # pragma: no cover
-        raise ImportError(
-            "cirq.three_qubit_unitary_to_operations requires "
-            "SciPy 1.5.0+, as it uses the cossin function. Please"
-            " upgrade scipy in your environment to use this "
-            "function!"
-        )
-    (u1, u2), theta, (v1h, v2h) = cossin(u, 4, 4, separate=True)
+    (u1, u2), theta, (v1h, v2h) = scipy.linalg.cossin(u, 4, 4, separate=True)
 
     cs_ops = _cs_to_ops(q0, q1, q2, theta)
     if len(cs_ops) > 0 and cs_ops[-1] == cirq.CZ(q2, q0):
@@ -85,7 +77,7 @@ def three_qubit_matrix_to_operations(
     return list(cirq.Circuit(vdh_ops + cs_ops + ud_ops).all_operations())
 
 
-def _cs_to_ops(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, theta: np.ndarray) -> List[ops.Operation]:
+def _cs_to_ops(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, theta: np.ndarray) -> list[ops.Operation]:
     """Converts theta angles based Cosine Sine matrix to operations.
 
     Using the optimization as per Appendix A.1, it uses CZ gates instead of
@@ -124,9 +116,9 @@ def _two_qubit_multiplexor_to_ops(
     u1: np.ndarray,
     u2: np.ndarray,
     shift_left: bool = True,
-    diagonal: Optional[np.ndarray] = None,
+    diagonal: np.ndarray | None = None,
     atol: float = 1e-8,
-) -> Tuple[Optional[np.ndarray], List[ops.Operation]]:
+) -> tuple[np.ndarray | None, list[ops.Operation]]:
     r"""Converts a two qubit double multiplexor to circuit.
     Input: U_1 ⊕ U_2, with select qubit a (i.e. a = |0> => U_1(b,c),
     a = |1> => U_2(b,c).
@@ -185,7 +177,7 @@ def _two_qubit_multiplexor_to_ops(
 
     w = d_v @ w
 
-    d_w: Optional[np.ndarray]
+    d_w: np.ndarray | None
 
     # if it's interesting to extract the diagonal then let's do it
     if shift_left:
@@ -258,7 +250,7 @@ def _middle_multiplexor_to_ops(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, eigvals: n
     return _optimize_multiplexed_angles_circuit(ops)
 
 
-def _multiplexed_angles(theta: Union[Sequence[float], np.ndarray]) -> np.ndarray:
+def _multiplexed_angles(theta: Sequence[float] | np.ndarray) -> np.ndarray:
     """Calculates the angles for a 4-way multiplexed rotation.
 
     For example, if we want rz(theta[i]) if the select qubits are in state

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 import sympy
@@ -19,7 +21,7 @@ import sympy
 import cirq
 
 
-def test_fsim_init():
+def test_fsim_init() -> None:
     f = cirq.FSimGate(1, 2)
     assert f.theta == 1
     assert f.phi == 2
@@ -33,7 +35,7 @@ def test_fsim_init():
     assert f3.phi == -5 + 2 * np.pi
 
 
-def test_fsim_eq():
+def test_fsim_eq() -> None:
     eq = cirq.testing.EqualsTester()
     a, b = cirq.LineQubit.range(2)
 
@@ -45,7 +47,7 @@ def test_fsim_eq():
     eq.add_equality_group(cirq.FSimGate(np.pi, np.pi), cirq.FSimGate(-np.pi, -np.pi))
 
 
-def test_fsim_approx_eq():
+def test_fsim_approx_eq() -> None:
     assert cirq.approx_eq(cirq.FSimGate(1, 2), cirq.FSimGate(1.00001, 2.00001), atol=0.01)
 
 
@@ -60,12 +62,12 @@ def test_fsim_approx_eq():
         (np.pi / 2, 0.5),
     ],
 )
-def test_fsim_consistent(theta, phi):
+def test_fsim_consistent(theta, phi) -> None:
     gate = cirq.FSimGate(theta=theta, phi=phi)
     cirq.testing.assert_implements_consistent_protocols(gate)
 
 
-def test_fsim_circuit():
+def test_fsim_circuit() -> None:
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(
         cirq.FSimGate(np.pi / 2, np.pi).on(a, b), cirq.FSimGate(-np.pi, np.pi / 2).on(a, b)
@@ -109,7 +111,7 @@ def test_fsim_circuit():
 
 
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
-def test_fsim_resolve(resolve_fn):
+def test_fsim_resolve(resolve_fn) -> None:
     f = cirq.FSimGate(sympy.Symbol('a'), sympy.Symbol('b'))
     assert cirq.is_parameterized(f)
 
@@ -122,7 +124,7 @@ def test_fsim_resolve(resolve_fn):
     assert not cirq.is_parameterized(f)
 
 
-def test_fsim_unitary():
+def test_fsim_unitary() -> None:
     # fmt: off
     np.testing.assert_allclose(
         cirq.unitary(cirq.FSimGate(theta=0, phi=0)),
@@ -265,7 +267,7 @@ def test_fsim_unitary():
         (3.5 * np.pi, 4 * np.pi),
     ),
 )
-def test_fsim_iswap_cphase(theta, phi):
+def test_fsim_iswap_cphase(theta, phi) -> None:
     q0, q1 = cirq.NamedQubit('q0'), cirq.NamedQubit('q1')
     iswap = cirq.ISWAP ** (-theta * 2 / np.pi)
     cphase = cirq.CZPowGate(exponent=-phi / np.pi)
@@ -274,16 +276,16 @@ def test_fsim_iswap_cphase(theta, phi):
     assert np.allclose(cirq.unitary(iswap_cphase), cirq.unitary(fsim))
 
 
-def test_fsim_repr():
+def test_fsim_repr() -> None:
     f = cirq.FSimGate(sympy.Symbol('a'), sympy.Symbol('b'))
     cirq.testing.assert_equivalent_repr(f)
 
 
-def test_fsim_json_dict():
+def test_fsim_json_dict() -> None:
     assert cirq.FSimGate(theta=0.123, phi=0.456)._json_dict_() == {'theta': 0.123, 'phi': 0.456}
 
 
-def test_phased_fsim_init():
+def test_phased_fsim_init() -> None:
     f = cirq.PhasedFSimGate(1, 2, 3, 4, 5)
     assert f.theta == 1
     assert f.zeta == 2
@@ -307,7 +309,7 @@ def test_phased_fsim_init():
         (np.pi / 5, np.pi / 6, (0.1, 0.2), (0.3, 0.5)),
     ),
 )
-def test_phased_fsim_from_fsim_rz(theta, phi, rz_angles_before, rz_angles_after):
+def test_phased_fsim_from_fsim_rz(theta, phi, rz_angles_before, rz_angles_after) -> None:
     f = cirq.PhasedFSimGate.from_fsim_rz(theta, phi, rz_angles_before, rz_angles_after)
     q0, q1 = cirq.LineQubit.range(2)
     c = cirq.Circuit(
@@ -330,7 +332,7 @@ def test_phased_fsim_from_fsim_rz(theta, phi, rz_angles_before, rz_angles_after)
         ((np.pi / 5, -np.pi / 3), (0, np.pi / 2)),
     ),
 )
-def test_phased_fsim_recreate_from_phase_angles(rz_angles_before, rz_angles_after):
+def test_phased_fsim_recreate_from_phase_angles(rz_angles_before, rz_angles_after) -> None:
     f = cirq.PhasedFSimGate.from_fsim_rz(np.pi / 3, np.pi / 5, rz_angles_before, rz_angles_after)
     f2 = cirq.PhasedFSimGate.from_fsim_rz(f.theta, f.phi, f.rz_angles_before, f.rz_angles_after)
     assert cirq.approx_eq(f, f2)
@@ -346,7 +348,7 @@ def test_phased_fsim_recreate_from_phase_angles(rz_angles_before, rz_angles_afte
         ((np.pi, np.pi / 6), (-np.pi / 2, 0)),
     ),
 )
-def test_phased_fsim_phase_angle_symmetry(rz_angles_before, rz_angles_after):
+def test_phased_fsim_phase_angle_symmetry(rz_angles_before, rz_angles_after) -> None:
     f = cirq.PhasedFSimGate.from_fsim_rz(np.pi / 3, np.pi / 5, rz_angles_before, rz_angles_after)
     for d in (-10, -7, -2 * np.pi, -0.2, 0, 0.1, 0.2, np.pi, 8, 20):
         rz_angles_before2 = (rz_angles_before[0] + d, rz_angles_before[1] + d)
@@ -357,7 +359,7 @@ def test_phased_fsim_phase_angle_symmetry(rz_angles_before, rz_angles_after):
         assert cirq.approx_eq(f, f2)
 
 
-def test_phased_fsim_eq():
+def test_phased_fsim_eq() -> None:
     eq = cirq.testing.EqualsTester()
     a, b = cirq.LineQubit.range(2)
     r, s = sympy.Symbol('r'), sympy.Symbol('s')
@@ -435,7 +437,7 @@ def test_phased_fsim_eq():
         (cirq.PhasedFSimGate(1, np.pi / 2, 0, 4, 5), False),
     ),
 )
-def test_qubit_interchangeability(gate, interchangeable):
+def test_qubit_interchangeability(gate, interchangeable) -> None:
     a, b = cirq.LineQubit.range(2)
     c1 = cirq.Circuit(gate.on(a, b))
     c2 = cirq.Circuit(cirq.SWAP(a, b), gate.on(a, b), cirq.SWAP(a, b))
@@ -444,7 +446,7 @@ def test_qubit_interchangeability(gate, interchangeable):
     assert np.all(u1 == u2) == interchangeable
 
 
-def test_phased_fsim_approx_eq():
+def test_phased_fsim_approx_eq() -> None:
     assert cirq.approx_eq(
         cirq.PhasedFSimGate(1, 2, 3, 4, 5),
         cirq.PhasedFSimGate(1.00001, 2.00001, 3.00001, 4.00004, 5.00005),
@@ -469,12 +471,12 @@ def test_phased_fsim_approx_eq():
         (np.pi, 0, 0, sympy.Symbol('a'), 0),
     ],
 )
-def test_phased_fsim_consistent(theta, zeta, chi, gamma, phi):
+def test_phased_fsim_consistent(theta, zeta, chi, gamma, phi) -> None:
     gate = cirq.PhasedFSimGate(theta=theta, zeta=zeta, chi=chi, gamma=gamma, phi=phi)
     cirq.testing.assert_implements_consistent_protocols(gate)
 
 
-def test_phased_fsim_circuit():
+def test_phased_fsim_circuit() -> None:
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(
         cirq.PhasedFSimGate(np.pi / 2, np.pi, np.pi / 2, 0, -np.pi / 4).on(a, b),
@@ -488,7 +490,6 @@ def test_phased_fsim_circuit():
 1: ───PhFSim(0.5π, -π, 0.5π, 0, -0.25π)───PhFSim(-π, 0.5π, 0.1π, 0.2π, 0.3π)───
     """,
     )
-    # pylint: disable=line-too-long
     cirq.testing.assert_has_diagram(
         c,
         """
@@ -504,11 +505,10 @@ def test_phased_fsim_circuit():
 0: ---PhFSim(1.5707963267948966, -pi, 1.5707963267948966, 0, -0.7853981633974483)---PhFSim(-pi, 1.5707963267948966, 0.3141592653589793, 0.6283185307179586, 0.9424777960769379)---
       |                                                                             |
 1: ---PhFSim(1.5707963267948966, -pi, 1.5707963267948966, 0, -0.7853981633974483)---PhFSim(-pi, 1.5707963267948966, 0.3141592653589793, 0.6283185307179586, 0.9424777960769379)---
-""",
+""",  # noqa: E501
         use_unicode_characters=False,
         precision=None,
     )
-    # pylint: enable=line-too-long
     c = cirq.Circuit(
         cirq.PhasedFSimGate(
             sympy.Symbol('a') + sympy.Symbol('b'),
@@ -529,7 +529,7 @@ def test_phased_fsim_circuit():
 
 
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
-def test_phased_fsim_resolve(resolve_fn):
+def test_phased_fsim_resolve(resolve_fn) -> None:
     f = cirq.PhasedFSimGate(
         sympy.Symbol('a'),
         sympy.Symbol('b'),
@@ -562,7 +562,7 @@ def test_phased_fsim_resolve(resolve_fn):
     assert not cirq.is_parameterized(f)
 
 
-def test_phased_fsim_unitary():
+def test_phased_fsim_unitary() -> None:
     # fmt: off
     np.testing.assert_allclose(
         cirq.unitary(cirq.PhasedFSimGate(theta=0, phi=0)),
@@ -776,13 +776,13 @@ def test_phased_fsim_unitary():
         (3.5 * np.pi, 4 * np.pi),
     ),
 )
-def test_phased_fsim_vs_fsim(theta, phi):
+def test_phased_fsim_vs_fsim(theta, phi) -> None:
     g1 = cirq.FSimGate(theta, phi)
     g2 = cirq.PhasedFSimGate(theta, 0, 0, 0, phi)
     assert np.allclose(cirq.unitary(g1), cirq.unitary(g2))
 
 
-def test_phased_fsim_repr():
+def test_phased_fsim_repr() -> None:
     f = cirq.PhasedFSimGate(
         sympy.Symbol('a'),
         sympy.Symbol('b'),
@@ -793,7 +793,7 @@ def test_phased_fsim_repr():
     cirq.testing.assert_equivalent_repr(f)
 
 
-def test_phased_fsim_json_dict():
+def test_phased_fsim_json_dict() -> None:
     assert cirq.PhasedFSimGate(
         theta=0.12, zeta=0.34, chi=0.56, gamma=0.78, phi=0.9
     )._json_dict_() == {'theta': 0.12, 'zeta': 0.34, 'chi': 0.56, 'gamma': 0.78, 'phi': 0.9}
@@ -811,10 +811,10 @@ def test_phased_fsim_json_dict():
         cirq.CZ**0.2,
     ],
 )
-def test_phase_fsim_from_matrix(gate):
+def test_phase_fsim_from_matrix(gate) -> None:
     u = cirq.unitary(gate)
     np.testing.assert_allclose(cirq.unitary(cirq.PhasedFSimGate.from_matrix(u)), u, atol=1e-8)
 
 
-def test_phase_fsim_from_matrix_not_fsim_returns_none():
+def test_phase_fsim_from_matrix_not_fsim_returns_none() -> None:
     assert cirq.PhasedFSimGate.from_matrix(np.ones((4, 4))) is None

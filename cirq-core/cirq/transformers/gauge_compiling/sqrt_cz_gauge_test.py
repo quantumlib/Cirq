@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cirq
 from cirq.transformers.gauge_compiling import SqrtCZGaugeTransformer
 from cirq.transformers.gauge_compiling.gauge_compiling_test_utils import GaugeTester

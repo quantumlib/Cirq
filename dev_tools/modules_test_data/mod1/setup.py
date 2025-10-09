@@ -1,8 +1,10 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
+
+import runpy
+
 from setuptools import find_packages, setup
 
-# This reads the __version__ variable from cirq/_version.py
-__version__ = ''
-exec(open('pack1/_version.py').read())
+__version__ = runpy.run_path('pack1/_version.py')['__version__']
 
 name = 'module1'
 
@@ -24,7 +26,7 @@ setup(
     author_email='cirq-dev@googlegroups.com',
     maintainer="The Quantum AI open-source software maintainers",
     maintainer_email="quantum-oss-maintainers@google.com",
-    python_requires=('>=3.10.0'),
+    python_requires='>=3.11.0',
     install_requires=requirements,
     license='Apache 2',
     packages=pack1_packages,

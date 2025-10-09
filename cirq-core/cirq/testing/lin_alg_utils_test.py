@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
@@ -28,14 +30,14 @@ from cirq.testing import (
 
 
 @pytest.mark.parametrize('dim', range(1, 10))
-def test_random_superposition(dim):
+def test_random_superposition(dim) -> None:
     state = random_superposition(dim)
 
     assert dim == len(state)
     assert np.isclose(np.linalg.norm(state), 1.0)
 
 
-def test_random_superposition_deterministic_given_seed():
+def test_random_superposition_deterministic_given_seed() -> None:
     state1 = random_superposition(10, random_state=1234)
     state2 = random_superposition(10, random_state=1234)
 
@@ -43,7 +45,7 @@ def test_random_superposition_deterministic_given_seed():
 
 
 @pytest.mark.parametrize('dim', range(1, 10))
-def test_random_density_matrix(dim):
+def test_random_density_matrix(dim) -> None:
     state = random_density_matrix(dim)
 
     assert state.shape == (dim, dim)
@@ -53,14 +55,14 @@ def test_random_density_matrix(dim):
     assert np.all(eigs >= 0)
 
 
-def test_random_density_matrix_deterministic_given_seed():
+def test_random_density_matrix_deterministic_given_seed() -> None:
     state1 = random_density_matrix(10, random_state=1234)
     state2 = random_density_matrix(10, random_state=1234)
 
     np.testing.assert_equal(state1, state2)
 
 
-def test_random_unitary():
+def test_random_unitary() -> None:
     u1 = random_unitary(2)
     u2 = random_unitary(2)
     assert is_unitary(u1)
@@ -68,7 +70,7 @@ def test_random_unitary():
     assert not np.allclose(u1, u2)
 
 
-def test_random_orthogonal():
+def test_random_orthogonal() -> None:
     o1 = random_orthogonal(2)
     o2 = random_orthogonal(2)
     assert is_orthogonal(o1)
@@ -76,14 +78,14 @@ def test_random_orthogonal():
     assert not np.allclose(o1, o2)
 
 
-def test_random_orthogonal_deterministic_given_seed():
+def test_random_orthogonal_deterministic_given_seed() -> None:
     o1 = random_orthogonal(2, random_state=1234)
     o2 = random_orthogonal(2, random_state=1234)
 
     np.testing.assert_equal(o1, o2)
 
 
-def test_random_special_unitary():
+def test_random_special_unitary() -> None:
     u1 = random_special_unitary(2)
     u2 = random_special_unitary(2)
     assert is_special_unitary(u1)
@@ -91,7 +93,7 @@ def test_random_special_unitary():
     assert not np.allclose(u1, u2)
 
 
-def test_seeded_special_unitary():
+def test_seeded_special_unitary() -> None:
     u1 = random_special_unitary(2, random_state=np.random.RandomState(1))
     u2 = random_special_unitary(2, random_state=np.random.RandomState(1))
     u3 = random_special_unitary(2, random_state=np.random.RandomState(2))
@@ -99,7 +101,7 @@ def test_seeded_special_unitary():
     assert not np.allclose(u1, u3)
 
 
-def test_random_special_orthogonal():
+def test_random_special_orthogonal() -> None:
     o1 = random_special_orthogonal(2)
     o2 = random_special_orthogonal(2)
     assert is_special_orthogonal(o1)
@@ -107,14 +109,14 @@ def test_random_special_orthogonal():
     assert not np.allclose(o1, o2)
 
 
-def test_random_special_orthogonal_deterministic_given_seed():
+def test_random_special_orthogonal_deterministic_given_seed() -> None:
     o1 = random_special_orthogonal(2, random_state=1234)
     o2 = random_special_orthogonal(2, random_state=1234)
 
     np.testing.assert_equal(o1, o2)
 
 
-def test_assert_allclose_up_to_global_phase():
+def test_assert_allclose_up_to_global_phase() -> None:
     assert_allclose_up_to_global_phase(np.array([[1]]), np.array([[1j]]), atol=0)
 
     with pytest.raises(AssertionError):

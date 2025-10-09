@@ -11,12 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import numpy as np
 
 import cirq
 
 
-def test_relative_luminance():
+def test_relative_luminance() -> None:
     rl = cirq.vis.relative_luminance([100, 100, 100])
     assert np.isclose(rl, 55560.6360)
     rl = cirq.vis.relative_luminance([0, 1, 2])

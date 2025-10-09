@@ -12,21 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import pytest
 
 import cirq
 import cirq.contrib.graph_device as ccgd
 
+if TYPE_CHECKING:
+    from cirq.contrib.graph_device.graph_device import UndirectedGraphDeviceEdge
 
-def test_empty_uniform_undirected_linear_device():
+
+def test_empty_uniform_undirected_linear_device() -> None:
     n_qubits = 4
+    edge_labels: dict[int, UndirectedGraphDeviceEdge | None]
     edge_labels = {}
     device = ccgd.uniform_undirected_linear_device(n_qubits, edge_labels)
     assert device.qubits == tuple()
     assert device.edges == tuple()
 
 
-def test_negative_arity_arg_uniform_undirected_linear_device():
+def test_negative_arity_arg_uniform_undirected_linear_device() -> None:
     with pytest.raises(ValueError):
         ccgd.uniform_undirected_linear_device(5, {-1: None})
     with pytest.raises(ValueError):
@@ -34,7 +42,7 @@ def test_negative_arity_arg_uniform_undirected_linear_device():
 
 
 @pytest.mark.parametrize('arity', range(1, 5))
-def test_regular_uniform_undirected_linear_device(arity):
+def test_regular_uniform_undirected_linear_device(arity) -> None:
     n_qubits = 10
     edge_labels = {arity: None}
     device = ccgd.uniform_undirected_linear_device(n_qubits, edge_labels)

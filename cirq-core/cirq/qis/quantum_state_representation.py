@@ -15,10 +15,9 @@
 from __future__ import annotations
 
 import abc
-from typing import List, Sequence, Tuple, TYPE_CHECKING
+from typing import Self, Sequence, TYPE_CHECKING
 
 import numpy as np
-from typing_extensions import Self
 
 from cirq import value
 
@@ -41,7 +40,7 @@ class QuantumStateRepresentation(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def measure(
         self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
-    ) -> List[int]:
+    ) -> list[int]:
         """Measures the state.
 
         Args:
@@ -74,7 +73,7 @@ class QuantumStateRepresentation(metaclass=abc.ABCMeta):
         """Joins two state spaces together."""
         raise NotImplementedError()
 
-    def factor(self, axes: Sequence[int], *, validate=True, atol=1e-07) -> Tuple[Self, Self]:
+    def factor(self, axes: Sequence[int], *, validate=True, atol=1e-07) -> tuple[Self, Self]:
         """Splits two state spaces after a measurement or reset."""
         raise NotImplementedError()
 

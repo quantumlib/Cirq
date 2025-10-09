@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Dict, Generic, List, Sequence, Union
+from typing import Any, Generic, Iterator, Sequence
 from unittest import mock
 
 import duet
@@ -41,10 +41,10 @@ from cirq.sim.simulator import (
 class FakeSimulatesSamples(SimulatesSamples):
     """A SimulatesSamples that returns specified values from _run."""
 
-    def __init__(self, run_output: Dict[str, np.ndarray]):
+    def __init__(self, run_output: dict[str, np.ndarray]):
         self._run_output = run_output
 
-    def _run(self, *args, **kwargs) -> Dict[str, np.ndarray]:
+    def _run(self, *args, **kwargs) -> dict[str, np.ndarray]:
         return self._run_output
 
 
@@ -56,13 +56,13 @@ class FakeStepResult(cirq.StepResult):
     def _simulator_state(self):
         return self._final_state  # pragma: no cover
 
-    def state_vector(self):
+    def state_vector(self) -> None:
         pass
 
     def __setstate__(self, state):
         pass
 
-    def sample(self, qubits, repetitions=1, seed=None):
+    def sample(self, qubits, repetitions=1, seed=None) -> np.ndarray:
         return np.array([[qubit in self._ones_qubits for qubit in qubits]] * repetitions)
 
 
@@ -73,10 +73,15 @@ class SimulatesIntermediateStateImpl(
 ):
     """A SimulatesIntermediateState that uses the default SimulationTrialResult type."""
 
+    def _base_iterator(
+        self, circuit: cirq.AbstractCircuit, qubits: tuple[cirq.Qid, ...], initial_state: Any
+    ) -> Iterator[TStepResult]:
+        raise NotImplementedError
+
     def _create_simulator_trial_result(
         self,
         params: study.ParamResolver,
-        measurements: Dict[str, np.ndarray],
+        measurements: dict[str, np.ndarray],
         final_simulator_state: cirq.SimulationStateBase[TSimulationState],
     ) -> SimulationTrialResult:
         """This method creates a default trial result.
@@ -94,7 +99,7 @@ class SimulatesIntermediateStateImpl(
         )
 
 
-def test_run_simulator_run():
+def test_run_simulator_run() -> None:
     expected_records = {'a': np.array([[[1]]])}
     simulator = FakeSimulatesSamples(expected_records)
     circuit = cirq.Circuit(cirq.measure(cirq.LineQubit(0), key='k'))
@@ -105,7 +110,7 @@ def test_run_simulator_run():
     )
 
 
-def test_run_simulator_sweeps():
+def test_run_simulator_sweeps() -> None:
     expected_records = {'a': np.array([[[1]]])}
     simulator = FakeSimulatesSamples(expected_records)
     circuit = cirq.Circuit(cirq.measure(cirq.LineQubit(0), key='k'))
@@ -122,8 +127,8 @@ def test_run_simulator_sweeps():
 @mock.patch.multiple(
     SimulatesIntermediateStateImpl, __abstractmethods__=set(), simulate_moment_steps=mock.Mock()
 )
-def test_intermediate_simulator():
-    simulator = SimulatesIntermediateStateImpl()
+def test_intermediate_simulator() -> None:
+    simulator: SimulatesIntermediateStateImpl = SimulatesIntermediateStateImpl()
 
     final_simulator_state = np.array([1, 0, 0, 0])
 
@@ -136,7 +141,7 @@ def test_intermediate_simulator():
         result._simulator_state.return_value = final_simulator_state
         yield result
 
-    simulator.simulate_moment_steps.side_effect = steps
+    simulator.simulate_moment_steps.side_effect = steps  # type: ignore[attr-defined]
     circuit = mock.Mock(cirq.Circuit)
     param_resolver = cirq.ParamResolver({})
     qubit_order = mock.Mock(cirq.QubitOrder)
@@ -153,8 +158,8 @@ def test_intermediate_simulator():
 @mock.patch.multiple(
     SimulatesIntermediateStateImpl, __abstractmethods__=set(), simulate_moment_steps=mock.Mock()
 )
-def test_intermediate_sweeps():
-    simulator = SimulatesIntermediateStateImpl()
+def test_intermediate_sweeps() -> None:
+    simulator: SimulatesIntermediateStateImpl = SimulatesIntermediateStateImpl()
 
     final_state = np.array([1, 0, 0, 0])
 
@@ -164,7 +169,7 @@ def test_intermediate_sweeps():
         result._simulator_state.return_value = final_state
         yield result
 
-    simulator.simulate_moment_steps.side_effect = steps
+    simulator.simulate_moment_steps.side_effect = steps  # type: ignore[attr-defined]
     circuit = mock.Mock(cirq.Circuit)
     param_resolvers = [cirq.ParamResolver({}), cirq.ParamResolver({})]
     qubit_order = mock.Mock(cirq.QubitOrder)
@@ -187,7 +192,7 @@ def test_intermediate_sweeps():
     assert results == expected_results
 
 
-def test_step_sample_measurement_ops():
+def test_step_sample_measurement_ops() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     measurement_ops = [cirq.measure(q0, q1), cirq.measure(q2)]
     step_result = FakeStepResult(ones_qubits=[q1])
@@ -196,7 +201,7 @@ def test_step_sample_measurement_ops():
     np.testing.assert_equal(measurements, {'q(0),q(1)': [[False, True]], 'q(2)': [[False]]})
 
 
-def test_step_sample_measurement_ops_repetitions():
+def test_step_sample_measurement_ops_repetitions() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     measurement_ops = [cirq.measure(q0, q1), cirq.measure(q2)]
     step_result = FakeStepResult(ones_qubits=[q1])
@@ -205,7 +210,7 @@ def test_step_sample_measurement_ops_repetitions():
     np.testing.assert_equal(measurements, {'q(0),q(1)': [[False, True]] * 3, 'q(2)': [[False]] * 3})
 
 
-def test_step_sample_measurement_ops_invert_mask():
+def test_step_sample_measurement_ops_invert_mask() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     measurement_ops = [
         cirq.measure(q0, q1, invert_mask=(True,)),
@@ -217,9 +222,11 @@ def test_step_sample_measurement_ops_invert_mask():
     np.testing.assert_equal(measurements, {'q(0),q(1)': [[True, True]], 'q(2)': [[False]]})
 
 
-def test_step_sample_measurement_ops_confusion_map():
+def test_step_sample_measurement_ops_confusion_map() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
+    cmap_01: dict[tuple[int, ...], np.ndarray]
     cmap_01 = {(0, 1): np.array([[0, 1, 0, 0], [0, 0, 0, 1], [1, 0, 0, 0], [0, 0, 1, 0]])}
+    cmap_2: dict[tuple[int, ...], np.ndarray]
     cmap_2 = {(0,): np.array([[0, 1], [1, 0]])}
     measurement_ops = [
         cirq.measure(q0, q1, confusion_map=cmap_01),
@@ -231,21 +238,21 @@ def test_step_sample_measurement_ops_confusion_map():
     np.testing.assert_equal(measurements, {'q(0),q(1)': [[False, True]], 'q(2)': [[False]]})
 
 
-def test_step_sample_measurement_ops_no_measurements():
+def test_step_sample_measurement_ops_no_measurements() -> None:
     step_result = FakeStepResult(ones_qubits=[])
 
     measurements = step_result.sample_measurement_ops([])
     assert measurements == {}
 
 
-def test_step_sample_measurement_ops_not_measurement():
+def test_step_sample_measurement_ops_not_measurement() -> None:
     q0 = cirq.LineQubit(0)
     step_result = FakeStepResult(ones_qubits=[q0])
     with pytest.raises(ValueError, match='MeasurementGate'):
         step_result.sample_measurement_ops([cirq.X(q0)])
 
 
-def test_step_sample_measurement_ops_repeated_qubit():
+def test_step_sample_measurement_ops_repeated_qubit() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     step_result = FakeStepResult(ones_qubits=[q0])
     with pytest.raises(ValueError, match=r'Measurement key q\(0\) repeated'):
@@ -254,7 +261,7 @@ def test_step_sample_measurement_ops_repeated_qubit():
         )
 
 
-def test_simulation_trial_result_equality():
+def test_simulation_trial_result_equality() -> None:
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(
         cirq.SimulationTrialResult(
@@ -285,7 +292,7 @@ def test_simulation_trial_result_equality():
     )
 
 
-def test_simulation_trial_result_repr():
+def test_simulation_trial_result_repr() -> None:
     assert repr(
         cirq.SimulationTrialResult(
             params=cirq.ParamResolver({'s': 1}),
@@ -300,7 +307,7 @@ def test_simulation_trial_result_repr():
     )
 
 
-def test_simulation_trial_result_str():
+def test_simulation_trial_result_str() -> None:
     assert (
         str(
             cirq.SimulationTrialResult(
@@ -344,7 +351,7 @@ def test_simulation_trial_result_str():
     )
 
 
-def test_pretty_print():
+def test_pretty_print() -> None:
     result = cirq.SimulationTrialResult(cirq.ParamResolver(), {}, np.array([1]))
 
     # Test Jupyter console output from
@@ -366,7 +373,7 @@ def test_pretty_print():
 
 
 @duet.sync
-async def test_async_sample():
+async def test_async_sample() -> None:
     m = {'mock': np.array([[[0]], [[1]]])}
     simulator = FakeSimulatesSamples(m)
 
@@ -376,16 +383,16 @@ async def test_async_sample():
     np.testing.assert_equal(result.records, m)
 
 
-def test_simulation_trial_result_qubit_map():
+def test_simulation_trial_result_qubit_map() -> None:
     q = cirq.LineQubit.range(2)
     result = cirq.Simulator().simulate(cirq.Circuit([cirq.CZ(q[0], q[1])]))
     assert result.qubit_map == {q[0]: 0, q[1]: 1}
 
-    result = cirq.DensityMatrixSimulator().simulate(cirq.Circuit([cirq.CZ(q[0], q[1])]))
-    assert result.qubit_map == {q[0]: 0, q[1]: 1}
+    result2 = cirq.DensityMatrixSimulator().simulate(cirq.Circuit([cirq.CZ(q[0], q[1])]))
+    assert result2.qubit_map == {q[0]: 0, q[1]: 1}
 
 
-def test_sample_repeated_measurement_keys():
+def test_sample_repeated_measurement_keys() -> None:
     q = cirq.LineQubit.range(2)
     circuit = cirq.Circuit()
     circuit.append(
@@ -403,7 +410,7 @@ def test_sample_repeated_measurement_keys():
     assert len(result.records['b'][0]) == 2
 
 
-def test_classical_controls_go_to_suffix_if_corresponding_measurement_does():
+def test_classical_controls_go_to_suffix_if_corresponding_measurement_does() -> None:
     subcircuit = cirq.CircuitOperation(cirq.FrozenCircuit()).with_classical_controls('a')
     m = cirq.measure(cirq.LineQubit(0), key='a')
     circuit = cirq.Circuit(m, subcircuit)
@@ -414,7 +421,7 @@ def test_classical_controls_go_to_suffix_if_corresponding_measurement_does():
     assert suffix == circuit
 
 
-def test_simulate_with_invert_mask():
+def test_simulate_with_invert_mask() -> None:
     q0, q1, q2, q3, q4 = cirq.LineQid.for_qid_shape((2, 3, 3, 3, 4))
     c = cirq.Circuit(
         cirq.XPowGate(dimension=2)(q0),
@@ -426,7 +433,7 @@ def test_simulate_with_invert_mask():
     assert np.all(cirq.Simulator().run(c).measurements['a'] == [[0, 1, 0, 2, 3]])
 
 
-def test_monte_carlo_on_unknown_channel():
+def test_monte_carlo_on_unknown_channel() -> None:
     class Reset11To00(cirq.Gate):
         def num_qubits(self) -> int:
             return 2
@@ -446,8 +453,10 @@ def test_monte_carlo_on_unknown_channel():
         )
 
 
-def test_iter_definitions():
-    mock_trial_result = SimulationTrialResult(params={}, measurements={}, final_simulator_state=[])
+def test_iter_definitions() -> None:
+    mock_trial_result: SimulationTrialResult = SimulationTrialResult(
+        params=cirq.ParamResolver(), measurements={}, final_simulator_state=[]
+    )
 
     class FakeNonIterSimulatorImpl(
         SimulatesAmplitudes, SimulatesExpectationValues, SimulatesFinalState
@@ -469,12 +478,12 @@ def test_iter_definitions():
         def simulate_expectation_values_sweep(
             self,
             program: cirq.AbstractCircuit,
-            observables: Union[cirq.PauliSumLike, List[cirq.PauliSumLike]],
+            observables: cirq.PauliSumLike | list[cirq.PauliSumLike],
             params: study.Sweepable,
             qubit_order: cirq.QubitOrderOrList = cirq.QubitOrder.DEFAULT,
             initial_state: Any = None,
             permit_terminal_measurements: bool = False,
-        ) -> List[List[float]]:
+        ) -> list[list[float]]:
             return [[1.0]]
 
         def simulate_sweep(
@@ -483,14 +492,14 @@ def test_iter_definitions():
             params: study.Sweepable,
             qubit_order: cirq.QubitOrderOrList = cirq.QubitOrder.DEFAULT,
             initial_state: Any = None,
-        ) -> List[SimulationTrialResult]:
+        ) -> list[SimulationTrialResult]:
             return [mock_trial_result]
 
     non_iter_sim = FakeNonIterSimulatorImpl()
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.X(q0))
     bitstrings = [0b0]
-    params = {}
+    params: cirq.ParamMappingType = {}
     assert non_iter_sim.compute_amplitudes_sweep(circuit, bitstrings, params) == [[1.0]]
     amp_iter = non_iter_sim.compute_amplitudes_sweep_iter(circuit, bitstrings, params)
     assert next(amp_iter) == [1.0]
@@ -505,7 +514,7 @@ def test_iter_definitions():
     assert next(state_iter) == mock_trial_result
 
 
-def test_missing_iter_definitions():
+def test_missing_iter_definitions() -> None:
     class FakeMissingIterSimulatorImpl(
         SimulatesAmplitudes, SimulatesExpectationValues, SimulatesFinalState
     ):
@@ -515,7 +524,7 @@ def test_missing_iter_definitions():
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.X(q0))
     bitstrings = [0b0]
-    params = {}
+    params: cirq.ParamMappingType = {}
     with pytest.raises(RecursionError):
         missing_iter_sim.compute_amplitudes_sweep(circuit, bitstrings, params)
     with pytest.raises(RecursionError):
@@ -536,7 +545,7 @@ def test_missing_iter_definitions():
         next(state_iter)
 
 
-def test_trial_result_initializer():
+def test_trial_result_initializer() -> None:
     resolver = cirq.ParamResolver()
     state = 3
     x = SimulationTrialResult(resolver, {}, state)

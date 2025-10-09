@@ -24,9 +24,11 @@ arbitrary connectivity. For more information see:
 The native gate set consists of the local gates: X, Y, and XX entangling gates
 """
 
+from __future__ import annotations
+
 import json
 from enum import Enum
-from typing import Any, cast, Dict, Iterable, List, Optional, Sequence, Set, Tuple, Union
+from typing import Any, cast, Iterable, Sequence
 
 import networkx as nx
 import numpy as np
@@ -87,7 +89,7 @@ class AQTNoiseModel(cirq.NoiseModel):
 
     def noisy_moment(
         self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]
-    ) -> List[cirq.Operation]:
+    ) -> list[cirq.Operation]:
         """Returns a list of noisy moments.
 
         The model includes
@@ -115,7 +117,7 @@ class AQTNoiseModel(cirq.NoiseModel):
 
     def get_crosstalk_operation(
         self, operation: cirq.Operation, system_qubits: Sequence[cirq.Qid]
-    ) -> List[cirq.Operation]:
+    ) -> list[cirq.Operation]:
         """Returns a list of operations including crosstalk
 
         Args:
@@ -125,7 +127,7 @@ class AQTNoiseModel(cirq.NoiseModel):
         Returns:
             List of operations including crosstalk
         """
-        cast(Tuple[cirq.LineQubit], system_qubits)
+        cast(tuple[cirq.LineQubit], system_qubits)
         num_qubits = len(system_qubits)
         xtlk_arr = np.zeros(num_qubits)
         idx_list = []
@@ -167,7 +169,7 @@ class AQTSimulator:
         num_qubits: int,
         circuit: cirq.Circuit = cirq.Circuit(),
         simulate_ideal: bool = False,
-        noise_dict: Optional[Dict] = None,
+        noise_dict: dict | None = None,
     ):
         """Initializes the AQT simulator.
 
@@ -187,7 +189,7 @@ class AQTSimulator:
         self.noise_dict = noise_dict
         self.simulate_ideal = simulate_ideal
 
-    def generate_circuit_from_list(self, json_string: str):
+    def generate_circuit_from_list(self, json_string: str) -> None:
         """Generates a list of cirq operations from a json string.
 
         The default behavior is to add a measurement to any qubit at the end
@@ -198,7 +200,7 @@ class AQTSimulator:
         """
         self.circuit = cirq.Circuit()
         json_obj = json.loads(json_string)
-        gate: Union[cirq.PhasedXPowGate, cirq.EigenGate]
+        gate: cirq.PhasedXPowGate | cirq.EigenGate
         for circuit_list in json_obj:
             op_str = circuit_list[0]
             if op_str == 'R':
@@ -286,11 +288,11 @@ class AQTDevice(cirq.Device):
     def metadata(self) -> aqt_device_metadata.AQTDeviceMetadata:
         return self._metadata
 
-    def validate_gate(self, gate: cirq.Gate):
+    def validate_gate(self, gate: cirq.Gate) -> None:
         if gate not in self.metadata.gateset:
             raise ValueError(f'Unsupported gate type: {gate!r}')
 
-    def validate_operation(self, operation):
+    def validate_operation(self, operation) -> None:
         if not isinstance(operation, cirq.GateOperation):
             raise ValueError(f'Unsupported operation: {operation!r}')
 
@@ -302,11 +304,11 @@ class AQTDevice(cirq.Device):
             if q not in self.qubits:
                 raise ValueError(f'Qubit not on device: {q!r}')
 
-    def validate_circuit(self, circuit: cirq.AbstractCircuit):
+    def validate_circuit(self, circuit: cirq.AbstractCircuit) -> None:
         super().validate_circuit(circuit)
         _verify_unique_measurement_keys(circuit.all_operations())
 
-    def at(self, position: int) -> Optional[cirq.LineQubit]:
+    def at(self, position: int) -> cirq.LineQubit | None:
         """Returns the qubit at the given position, if there is one, else None."""
         q = cirq.LineQubit(position)
         return q if q in self.qubits else None
@@ -339,7 +341,7 @@ class AQTDevice(cirq.Device):
         p.text("AQTDevice(...)" if cycle else self.__str__())
 
 
-def get_aqt_device(num_qubits: int) -> Tuple[AQTDevice, List[cirq.LineQubit]]:
+def get_aqt_device(num_qubits: int) -> tuple[AQTDevice, list[cirq.LineQubit]]:
     """Returns an AQT ion device
 
     Args:
@@ -359,7 +361,7 @@ def get_aqt_device(num_qubits: int) -> Tuple[AQTDevice, List[cirq.LineQubit]]:
     return ion_device, qubit_list
 
 
-def get_default_noise_dict() -> Dict[str, Any]:
+def get_default_noise_dict() -> dict[str, Any]:
     """Returns the current noise parameters"""
     default_noise_dict = {
         OperationString.R.value: cirq.depolarize(1e-3),
@@ -371,7 +373,7 @@ def get_default_noise_dict() -> Dict[str, Any]:
 
 
 def _verify_unique_measurement_keys(operations: Iterable[cirq.Operation]):
-    seen: Set[str] = set()
+    seen: set[str] = set()
     for op in operations:
         if isinstance(op.gate, cirq.MeasurementGate):
             meas = op.gate

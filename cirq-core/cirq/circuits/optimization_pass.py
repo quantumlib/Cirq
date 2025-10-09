@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import abc
 from collections import defaultdict
-from typing import Callable, cast, Dict, Iterable, Optional, Sequence, Tuple, TYPE_CHECKING
+from typing import Callable, cast, Iterable, Sequence, TYPE_CHECKING
 
 from cirq import ops
 
@@ -106,7 +106,7 @@ class PointOptimizer:
     @abc.abstractmethod
     def optimization_at(
         self, circuit: cirq.Circuit, index: int, op: cirq.Operation
-    ) -> Optional[cirq.PointOptimizationSummary]:
+    ) -> cirq.PointOptimizationSummary | None:
         """Describes how to change operations near the given location.
 
         For example, this method could realize that the given operation is an
@@ -126,8 +126,8 @@ class PointOptimizer:
             change should be made.
         """
 
-    def optimize_circuit(self, circuit: cirq.Circuit):
-        frontier: Dict[cirq.Qid, int] = defaultdict(lambda: 0)
+    def optimize_circuit(self, circuit: cirq.Circuit) -> None:
+        frontier: dict[cirq.Qid, int] = defaultdict(lambda: 0)
         i = 0
         while i < len(circuit):  # Note: circuit may mutate as we go.
             for op in circuit[i].operations:
@@ -150,7 +150,7 @@ class PointOptimizer:
                 circuit.clear_operations_touching(
                     opt.clear_qubits, [e for e in range(i, i + opt.clear_span)]
                 )
-                new_operations = self.post_clean_up(cast(Tuple[ops.Operation], opt.new_operations))
+                new_operations = self.post_clean_up(cast(tuple[ops.Operation], opt.new_operations))
 
                 flat_new_operations = tuple(ops.flatten_to_ops(new_operations))
 

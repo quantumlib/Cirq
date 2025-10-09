@@ -17,20 +17,7 @@ from __future__ import annotations
 import abc
 import collections
 import itertools
-from typing import (
-    Any,
-    cast,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
-    overload,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import Any, cast, Iterable, Iterator, overload, Sequence, TYPE_CHECKING, Union
 
 import sympy
 
@@ -41,16 +28,18 @@ from cirq.study import resolver
 if TYPE_CHECKING:
     import cirq
 
-Params = Iterable[Tuple['cirq.TParamKey', 'cirq.TParamVal']]
-ProductOrZipSweepLike = Dict['cirq.TParamKey', Union['cirq.TParamVal', Sequence['cirq.TParamVal']]]
+Params = Iterable[tuple['cirq.TParamKey', 'cirq.TParamVal']]
+ProductOrZipSweepLike = dict['cirq.TParamKey', Union['cirq.TParamVal', Sequence['cirq.TParamVal']]]
 
 
 def _check_duplicate_keys(sweeps):
-    keys = set()
-    for sweep in sweeps:
-        if any(key in keys for key in sweep.keys):
-            raise ValueError('duplicate keys')
-        keys.update(sweep.keys)
+    keys = set(itertools.chain.from_iterable(sweep.keys for sweep in sweeps))
+    key_count = sum(len(sweep.keys) for sweep in sweeps)
+    # If the total length of the sweep keys
+    # is not the same as the size of the set,
+    # then there is a duplicate key.
+    if key_count != len(keys):
+        raise ValueError('duplicate keys')
 
 
 class Sweep(metaclass=abc.ABCMeta):
@@ -75,7 +64,7 @@ class Sweep(metaclass=abc.ABCMeta):
     """
 
     def __mul__(self, other: Sweep) -> Sweep:
-        factors: List[Sweep] = []
+        factors: list[Sweep] = []
         if isinstance(self, Product):
             factors.extend(self.factors)
         else:
@@ -89,7 +78,7 @@ class Sweep(metaclass=abc.ABCMeta):
         return Product(*factors)
 
     def __add__(self, other: Sweep) -> Sweep:
-        sweeps: List[Sweep] = []
+        sweeps: list[Sweep] = []
         if isinstance(self, Zip):
             sweeps.extend(self.sweeps)
         else:
@@ -111,7 +100,7 @@ class Sweep(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def keys(self) -> List[cirq.TParamKey]:
+    def keys(self) -> list[cirq.TParamKey]:
         """The keys for the all of the sympy.Symbols that are resolved."""
 
     @abc.abstractmethod
@@ -122,7 +111,6 @@ class Sweep(metaclass=abc.ABCMeta):
         for params in self.param_tuples():
             yield resolver.ParamResolver(collections.OrderedDict(params))
 
-    # pylint: disable=function-redefined
     @overload
     def __getitem__(self, val: int) -> resolver.ParamResolver:
         pass
@@ -131,7 +119,7 @@ class Sweep(metaclass=abc.ABCMeta):
     def __getitem__(self, val: slice) -> Sweep:
         pass
 
-    def __getitem__(self, val: Union[int, slice]) -> Union[resolver.ParamResolver, Sweep]:
+    def __getitem__(self, val: int | slice) -> resolver.ParamResolver | Sweep:
         n = len(self)
         if isinstance(val, int):
             if val < -n or val >= n:
@@ -142,7 +130,7 @@ class Sweep(metaclass=abc.ABCMeta):
         if not isinstance(val, slice):
             raise TypeError(f'Sweep indices must be either int or slices, not {type(val)}')
 
-        inds_map: Dict[int, int] = {
+        inds_map: dict[int, int] = {
             sweep_i: slice_i for slice_i, sweep_i in enumerate(range(n)[val])
         }
         results = [resolver.ParamResolver()] * len(inds_map)
@@ -151,8 +139,6 @@ class Sweep(metaclass=abc.ABCMeta):
                 results[inds_map[i]] = item
 
         return ListSweep(results)
-
-    # pylint: enable=function-redefined
 
     @abc.abstractmethod
     def param_tuples(self) -> Iterator[Params]:
@@ -189,7 +175,7 @@ class _Unit(Sweep):
         return True
 
     @property
-    def keys(self) -> List[cirq.TParamKey]:
+    def keys(self) -> list[cirq.TParamKey]:
         return []
 
     def __len__(self) -> int:
@@ -201,7 +187,7 @@ class _Unit(Sweep):
     def __repr__(self) -> str:
         return 'cirq.UnitSweep'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {}
 
 
@@ -236,8 +222,8 @@ class Product(Sweep):
         return hash(tuple(self.factors))
 
     @property
-    def keys(self) -> List[cirq.TParamKey]:
-        return sum((factor.keys for factor in self.factors), [])
+    def keys(self) -> list[cirq.TParamKey]:
+        return list(itertools.chain.from_iterable(factor.keys for factor in self.factors))
 
     def __len__(self) -> int:
         length = 1
@@ -246,16 +232,10 @@ class Product(Sweep):
         return length
 
     def param_tuples(self) -> Iterator[Params]:
-        def _gen(factors):
-            if not factors:
-                yield ()
-            else:
-                first, rest = factors[0], factors[1:]
-                for first_values in first.param_tuples():
-                    for rest_values in _gen(rest):
-                        yield first_values + rest_values
-
-        return _gen(self.factors)
+        yield from map(
+            lambda values: tuple(itertools.chain.from_iterable(values)),
+            itertools.product(*(factor.param_tuples() for factor in self.factors)),
+        )
 
     def __repr__(self) -> str:
         factors_repr = ', '.join(repr(f) for f in self.factors)
@@ -272,7 +252,7 @@ class Product(Sweep):
             factor_strs.append(factor_str)
         return ' * '.join(factor_strs)
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['factors'])
 
     @classmethod
@@ -311,7 +291,7 @@ class Concat(Sweep):
         return hash(tuple(self.sweeps))
 
     @property
-    def keys(self) -> List[cirq.TParamKey]:
+    def keys(self) -> list[cirq.TParamKey]:
         return self.sweeps[0].keys
 
     def __len__(self) -> int:
@@ -329,7 +309,7 @@ class Concat(Sweep):
         sweeps_repr = ', '.join(repr(s) for s in self.sweeps)
         return f'Concat({sweeps_repr})'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['sweeps'])
 
     @classmethod
@@ -364,8 +344,8 @@ class Zip(Sweep):
         return hash(tuple(self.sweeps))
 
     @property
-    def keys(self) -> List[cirq.TParamKey]:
-        return sum((sweep.keys for sweep in self.sweeps), [])
+    def keys(self) -> list[cirq.TParamKey]:
+        return list(itertools.chain.from_iterable(sweep.keys for sweep in self.sweeps))
 
     def __len__(self) -> int:
         if not self.sweeps:
@@ -386,7 +366,7 @@ class Zip(Sweep):
             return 'Zip()'
         return ' + '.join(str(s) if isinstance(s, Product) else repr(s) for s in self.sweeps)
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['sweeps'])
 
     @classmethod
@@ -466,11 +446,11 @@ class SingleSweep(Sweep):
         return hash((self.__class__, self._tuple()))
 
     @abc.abstractmethod
-    def _tuple(self) -> Tuple[Any, ...]:
+    def _tuple(self) -> tuple[Any, ...]:
         pass
 
     @property
-    def keys(self) -> List[cirq.TParamKey]:
+    def keys(self) -> list[cirq.TParamKey]:
         return [self.key]
 
     def param_tuples(self) -> Iterator[Params]:
@@ -486,7 +466,7 @@ class Points(SingleSweep):
     """A simple sweep with explicitly supplied values."""
 
     def __init__(
-        self, key: cirq.TParamKey, points: Sequence[float], metadata: Optional[Any] = None
+        self, key: cirq.TParamKey, points: Sequence[float], metadata: Any | None = None
     ) -> None:
         """Creates a sweep on a variable with supplied values.
 
@@ -503,7 +483,7 @@ class Points(SingleSweep):
         self.points = points
         self.metadata = metadata
 
-    def _tuple(self) -> Tuple[Union[str, sympy.Expr], Sequence[float]]:
+    def _tuple(self) -> tuple[str | sympy.Expr, Sequence[float]]:
         return self.key, tuple(self.points)
 
     def __len__(self) -> int:
@@ -516,7 +496,7 @@ class Points(SingleSweep):
         metadata_repr = f', metadata={self.metadata!r}' if self.metadata is not None else ""
         return f'cirq.Points({self.key!r}, {self.points!r}{metadata_repr})'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         if self.metadata is not None:
             return protocols.obj_to_dict_helper(self, ["key", "points", "metadata"])
         return protocols.obj_to_dict_helper(self, ["key", "points"])
@@ -531,7 +511,7 @@ class Linspace(SingleSweep):
         start: float,
         stop: float,
         length: int,
-        metadata: Optional[Any] = None,
+        metadata: Any | None = None,
     ) -> None:
         """Creates a linear-spaced sweep for a given key.
 
@@ -552,7 +532,7 @@ class Linspace(SingleSweep):
         self.length = length
         self.metadata = metadata
 
-    def _tuple(self) -> Tuple[Union[str, sympy.Expr], float, float, int]:
+    def _tuple(self) -> tuple[str | sympy.Expr, float, float, int]:
         return (self.key, self.start, self.stop, self.length)
 
     def __len__(self) -> int:
@@ -573,7 +553,7 @@ class Linspace(SingleSweep):
             f'stop={self.stop!r}, length={self.length!r}{metadata_repr})'
         )
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         if self.metadata is not None:
             return protocols.obj_to_dict_helper(
                 self, ["key", "start", "stop", "length", "metadata"]
@@ -595,7 +575,7 @@ class ListSweep(Sweep):
             TypeError: If `resolver_list` is not a `cirq.ParamResolver` or a
                 dict.
         """
-        self.resolver_list: List[resolver.ParamResolver] = []
+        self.resolver_list: list[resolver.ParamResolver] = []
         for r in resolver_list:
             if not isinstance(r, (dict, resolver.ParamResolver)):
                 raise TypeError(f'Not a ParamResolver or dict: <{r!r}>')
@@ -610,7 +590,7 @@ class ListSweep(Sweep):
         return not self == other
 
     @property
-    def keys(self) -> List[cirq.TParamKey]:
+    def keys(self) -> list[cirq.TParamKey]:
         if not self.resolver_list:
             return []
         return list(map(str, self.resolver_list[0].param_dict))
@@ -625,7 +605,7 @@ class ListSweep(Sweep):
     def __repr__(self) -> str:
         return f'cirq.ListSweep({self.resolver_list!r})'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ["resolver_list"])
 
 

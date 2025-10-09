@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 import sympy
@@ -21,7 +23,7 @@ import cirq
 from cirq.transformers.measurement_transformers import _ConfusionChannel, _MeasurementQid, _mod_add
 
 
-def assert_equivalent_to_deferred(circuit: cirq.Circuit):
+def assert_equivalent_to_deferred(circuit: cirq.Circuit) -> None:
     qubits = list(circuit.all_qubits())
     sim = cirq.Simulator()
     num_qubits = len(qubits)
@@ -38,7 +40,7 @@ def assert_equivalent_to_deferred(circuit: cirq.Circuit):
         np.testing.assert_equal(result.measurements, result1.measurements)
 
 
-def test_basic():
+def test_basic() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
@@ -59,7 +61,7 @@ def test_basic():
     )
 
 
-def test_qudits():
+def test_qudits() -> None:
     q0, q1 = cirq.LineQid.range(2, dimension=3)
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
@@ -80,7 +82,7 @@ def test_qudits():
     )
 
 
-def test_sympy_control():
+def test_sympy_control() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
@@ -101,7 +103,7 @@ def test_sympy_control():
     )
 
 
-def test_sympy_qudits():
+def test_sympy_qudits() -> None:
     q0, q1 = cirq.LineQid.range(2, dimension=3)
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
@@ -122,7 +124,7 @@ def test_sympy_qudits():
     )
 
 
-def test_sympy_control_complex():
+def test_sympy_control_complex() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
@@ -149,7 +151,7 @@ def test_sympy_control_complex():
     )
 
 
-def test_sympy_control_complex_qudit():
+def test_sympy_control_complex_qudit() -> None:
     q0, q1, q2 = cirq.LineQid.for_qid_shape((4, 2, 2))
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
@@ -178,7 +180,7 @@ def test_sympy_control_complex_qudit():
     )
 
 
-def test_multiple_sympy_control_complex():
+def test_multiple_sympy_control_complex() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
@@ -207,7 +209,7 @@ def test_multiple_sympy_control_complex():
     )
 
 
-def test_sympy_and_key_control():
+def test_sympy_and_key_control() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
@@ -228,7 +230,7 @@ def test_sympy_and_key_control():
     )
 
 
-def test_sympy_control_multiqubit():
+def test_sympy_control_multiqubit() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(
         cirq.measure(q0, q1, key='a'),
@@ -253,7 +255,7 @@ def test_sympy_control_multiqubit():
     )
 
 
-def test_nocompile_context():
+def test_nocompile_context() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a').with_tags('nocompile'),
@@ -266,7 +268,7 @@ def test_nocompile_context():
     cirq.testing.assert_same_circuits(deferred, circuit)
 
 
-def test_nocompile_context_leaves_invalid_circuit():
+def test_nocompile_context_leaves_invalid_circuit() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a').with_tags('nocompile'),
@@ -279,7 +281,7 @@ def test_nocompile_context_leaves_invalid_circuit():
         )
 
 
-def test_pauli():
+def test_pauli() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.PauliMeasurementGate(cirq.DensePauliString('Y'), key='a').on(q0),
@@ -301,7 +303,7 @@ def test_pauli():
     )
 
 
-def test_extra_measurements():
+def test_extra_measurements() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
@@ -324,7 +326,7 @@ def test_extra_measurements():
     )
 
 
-def test_extra_controlled_bits():
+def test_extra_controlled_bits() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
@@ -345,7 +347,7 @@ def test_extra_controlled_bits():
     )
 
 
-def test_extra_control_bits():
+def test_extra_control_bits() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
@@ -370,7 +372,7 @@ def test_extra_control_bits():
     )
 
 
-def test_subcircuit():
+def test_subcircuit() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.CircuitOperation(
@@ -395,7 +397,7 @@ def test_subcircuit():
     )
 
 
-def test_multi_qubit_measurements():
+def test_multi_qubit_measurements() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.measure(q0, q1, key='a'),
@@ -420,7 +422,7 @@ def test_multi_qubit_measurements():
     )
 
 
-def test_multi_qubit_control():
+def test_multi_qubit_control() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(
         cirq.measure(q0, q1, key='a'),
@@ -446,7 +448,7 @@ def test_multi_qubit_control():
 
 
 @pytest.mark.parametrize('index', [-3, -2, -1, 0, 1, 2])
-def test_repeated(index: int):
+def test_repeated(index: int) -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),  # The control measurement when `index` is 0 or -2
@@ -479,7 +481,7 @@ def test_repeated(index: int):
     )
 
 
-def test_diagram():
+def test_diagram() -> None:
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     circuit = cirq.Circuit(
         cirq.measure(q0, q2, key='a'),
@@ -513,7 +515,7 @@ M('b[0]', q=q(3)): ───────X────M────────�
     )
 
 
-def test_repr():
+def test_repr() -> None:
     def test_repr(qid: _MeasurementQid):
         cirq.testing.assert_equivalent_repr(qid, global_vals={'_MeasurementQid': _MeasurementQid})
 
@@ -524,7 +526,7 @@ def test_repr():
     test_repr(_MeasurementQid('0:1:a', cirq.LineQid(9, 4)))
 
 
-def test_confusion_map():
+def test_confusion_map() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.H(q0),
@@ -547,7 +549,7 @@ def test_confusion_map():
     assert np.all(result['a'] == result['b'])
 
 
-def test_confusion_map_density_matrix():
+def test_confusion_map_density_matrix() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     p_q0 = 0.3  # probability to measure 1 for q0
     confusion = np.array([[0.8, 0.2], [0.1, 0.9]])
@@ -571,20 +573,20 @@ def test_confusion_map_density_matrix():
     assert np.allclose(cirq.partial_trace(rho, [2]), expected)
 
 
-def test_confusion_map_invert_mask_ordering():
+def test_confusion_map_invert_mask_ordering() -> None:
     q0 = cirq.LineQubit(0)
     # Confusion map sets the measurement to zero, and the invert mask changes it to one.
     # If these are run out of order then the result would be zero.
     circuit = cirq.Circuit(
         cirq.measure(
-            q0, key='a', confusion_map={(0,): np.array([[1, 0], [1, 0]])}, invert_mask=(1,)
+            q0, key='a', confusion_map={(0,): np.array([[1, 0], [1, 0]])}, invert_mask=(True,)
         ),
         cirq.I(q0),
     )
     assert_equivalent_to_deferred(circuit)
 
 
-def test_confusion_map_qudits():
+def test_confusion_map_qudits() -> None:
     q0 = cirq.LineQid(0, dimension=3)
     # First op takes q0 to superposed state, then confusion map measures 2 regardless.
     circuit = cirq.Circuit(
@@ -597,7 +599,7 @@ def test_confusion_map_qudits():
     assert_equivalent_to_deferred(circuit)
 
 
-def test_multi_qubit_confusion_map():
+def test_multi_qubit_confusion_map() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(
         cirq.measure(
@@ -636,7 +638,7 @@ def test_multi_qubit_confusion_map():
     assert np.sum(result['b']) == 100
 
 
-def test_confusion_map_errors():
+def test_confusion_map_errors() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a', confusion_map={(0,): np.array([1])}),
@@ -674,7 +676,7 @@ def test_confusion_map_errors():
         _ = cirq.defer_measurements(circuit)
 
 
-def test_dephase():
+def test_dephase() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.CircuitOperation(
@@ -702,7 +704,7 @@ def test_dephase():
     )
 
 
-def test_dephase_classical_conditions():
+def test_dephase_classical_conditions() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
@@ -713,7 +715,7 @@ def test_dephase_classical_conditions():
         _ = cirq.dephase_measurements(circuit)
 
 
-def test_dephase_nocompile_context():
+def test_dephase_nocompile_context() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.CircuitOperation(
@@ -743,11 +745,13 @@ def test_dephase_nocompile_context():
     )
 
 
-def test_drop_terminal():
+def test_drop_terminal() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.CircuitOperation(
-            cirq.FrozenCircuit(cirq.CX(q0, q1), cirq.measure(q0, q1, key='a~b', invert_mask=[0, 1]))
+            cirq.FrozenCircuit(
+                cirq.CX(q0, q1), cirq.measure(q0, q1, key='a~b', invert_mask=(False, True))
+            )
         )
     )
     dropped = cirq.drop_terminal_measurements(circuit)
@@ -759,10 +763,12 @@ def test_drop_terminal():
     )
 
 
-def test_drop_terminal_qudit():
+def test_drop_terminal_qudit() -> None:
     q0, q1 = cirq.LineQid.range(2, dimension=3)
     circuit = cirq.Circuit(
-        cirq.CircuitOperation(cirq.FrozenCircuit(cirq.measure(q0, q1, key='m', invert_mask=[0, 1])))
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.measure(q0, q1, key='m', invert_mask=(False, True)))
+        )
     )
     dropped = cirq.drop_terminal_measurements(circuit)
     expected_inversion_matrix = np.array([[0, 1, 0], [1, 0, 0], [0, 0, 1]])
@@ -794,11 +800,13 @@ def test_drop_terminal_qudit():
     assert np.all(d2.measurements['m'] == [2, 2])
 
 
-def test_drop_terminal_nonterminal_error():
+def test_drop_terminal_nonterminal_error() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.CircuitOperation(
-            cirq.FrozenCircuit(cirq.measure(q0, q1, key='a~b', invert_mask=[0, 1]), cirq.CX(q0, q1))
+            cirq.FrozenCircuit(
+                cirq.measure(q0, q1, key='a~b', invert_mask=(False, True)), cirq.CX(q0, q1)
+            )
         )
     )
     with pytest.raises(ValueError, match='Circuit contains a non-terminal measurement'):
@@ -811,7 +819,7 @@ def test_drop_terminal_nonterminal_error():
         _ = cirq.drop_terminal_measurements(circuit, context=None)
 
 
-def test_confusion_channel_consistency():
+def test_confusion_channel_consistency() -> None:
     two_d_chan = _ConfusionChannel(np.array([[0.5, 0.5], [0.4, 0.6]]), shape=(2,))
     cirq.testing.assert_has_consistent_apply_channel(two_d_chan)
     three_d_chan = _ConfusionChannel(

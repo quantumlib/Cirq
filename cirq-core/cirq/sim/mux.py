@@ -19,12 +19,13 @@ Filename is a reference to multiplexing.
 
 from __future__ import annotations
 
-from typing import List, Optional, Sequence, Type, TYPE_CHECKING, Union
+from typing import Sequence, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import circuits, devices, ops, protocols, study, value
 from cirq._doc import document
+from cirq.linalg import transformations
 from cirq.sim import density_matrix_simulator, sparse_simulator
 from cirq.sim.clifford import clifford_simulator
 from cirq.transformers import measurement_transformers
@@ -32,7 +33,7 @@ from cirq.transformers import measurement_transformers
 if TYPE_CHECKING:
     import cirq
 
-CIRCUIT_LIKE = Union[circuits.Circuit, ops.Gate, ops.OP_TREE]
+CIRCUIT_LIKE = circuits.Circuit | ops.Gate | ops.OP_TREE
 document(
     CIRCUIT_LIKE,
     """A `circuits.Circuit` or a value that can be trivially converted into it:
@@ -52,9 +53,9 @@ def sample(
     program: cirq.Circuit,
     *,
     noise: cirq.NOISE_MODEL_LIKE = None,
-    param_resolver: Optional[cirq.ParamResolver] = None,
+    param_resolver: cirq.ParamResolver | None = None,
     repetitions: int = 1,
-    dtype: Type[np.complexfloating] = np.complex64,
+    dtype: type[np.complexfloating] = np.complex64,
     seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> cirq.Result:
     """Simulates sampling from the given circuit.
@@ -111,7 +112,7 @@ def final_state_vector(
     param_resolver: cirq.ParamResolverOrSimilarType = None,
     qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ignore_terminal_measurements: bool = False,
-    dtype: Type[np.complexfloating] = np.complex64,
+    dtype: type[np.complexfloating] = np.complex64,
     seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> np.ndarray:
     """Returns the state vector resulting from acting operations on a state.
@@ -181,7 +182,7 @@ def sample_sweep(
     *,
     noise: cirq.NOISE_MODEL_LIKE = None,
     repetitions: int = 1,
-    dtype: Type[np.complexfloating] = np.complex64,
+    dtype: type[np.complexfloating] = np.complex64,
     seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> Sequence[cirq.Result]:
     """Runs the supplied Circuit, mimicking quantum hardware.
@@ -206,7 +207,7 @@ def sample_sweep(
     """
     prng = value.parse_random_state(seed)
 
-    trial_results: List[study.Result] = []
+    trial_results: list[study.Result] = []
     for param_resolver in study.to_resolvers(params):
         measurements = sample(
             program,
@@ -227,8 +228,8 @@ def final_density_matrix(
     initial_state: cirq.STATE_VECTOR_LIKE = 0,
     param_resolver: cirq.ParamResolverOrSimilarType = None,
     qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-    dtype: Type[np.complexfloating] = np.complex64,
-    seed: Optional[Union[int, np.random.RandomState]] = None,
+    dtype: type[np.complexfloating] = np.complex64,
+    seed: int | np.random.RandomState | None = None,
     ignore_measurement_results: bool = True,
 ) -> np.ndarray:
     """Returns the density matrix resulting from simulating the circuit.
@@ -291,16 +292,41 @@ def final_density_matrix(
         return sparse_result.density_matrix_of()
     else:
         # noisy case: use DensityMatrixSimulator with dephasing
+        has_classical_control = circuit_like != measurement_transformers.defer_measurements(
+            circuit_like
+        )
+        handling_classical_control = ignore_measurement_results and has_classical_control
+
+        if handling_classical_control:
+            # case 1: classical control
+            noise_applied = circuit_like.with_noise(noise) if noise is not None else circuit_like
+            defered = measurement_transformers.defer_measurements(noise_applied)
+            dephased = measurement_transformers.dephase_measurements(defered)
+            program = dephased
+        elif ignore_measurement_results:
+            # case 2: no classical control, only terminal measurement
+            program = measurement_transformers.dephase_measurements(circuit_like)
+        else:
+            # case 3: no measurement
+            program = circuit_like
+
         density_result = density_matrix_simulator.DensityMatrixSimulator(
-            dtype=dtype, noise=noise, seed=seed
+            dtype=dtype, noise=None if handling_classical_control else noise, seed=seed
         ).simulate(
-            program=(
-                measurement_transformers.dephase_measurements(circuit_like)
-                if ignore_measurement_results
-                else circuit_like
-            ),
+            program,
             initial_state=initial_state,
             qubit_order=qubit_order,
             param_resolver=param_resolver,
         )
-        return density_result.final_density_matrix
+        result = density_result.final_density_matrix
+
+        if handling_classical_control:
+            # assuming that the ancilla qubits from the transformations are at the end
+            keep = list(range(protocols.num_qubits(circuit_like)))
+            dephased_qid_shape = protocols.qid_shape(dephased)
+            tensor_form = np.reshape(result, dephased_qid_shape + dephased_qid_shape)
+            reduced_form = transformations.partial_trace(tensor_form, keep)
+            width = np.prod(protocols.qid_shape(circuit_like))
+            result = np.reshape(reduced_form, (width, width))
+
+        return result

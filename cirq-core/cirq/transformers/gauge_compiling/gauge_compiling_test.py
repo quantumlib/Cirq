@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import unittest.mock
 
 import numpy as np
@@ -31,29 +33,31 @@ from cirq.transformers.gauge_compiling import (
 from cirq.transformers.gauge_compiling.sqrt_cz_gauge import SqrtCZGauge
 
 
-def test_deep_transformation_not_supported():
+def test_deep_transformation_not_supported() -> None:
+
+    empty_selector = GaugeSelector(gauges=())
 
     with pytest.raises(ValueError, match="cannot be used with deep=True"):
-        _ = GaugeTransformer(target=cirq.CZ, gauge_selector=lambda _: None)(
+        _ = GaugeTransformer(target=cirq.CZ, gauge_selector=empty_selector)(
             cirq.Circuit(), context=cirq.TransformerContext(deep=True)
         )
 
     with pytest.raises(ValueError, match="cannot be used with deep=True"):
-        _ = GaugeTransformer(target=cirq.CZ, gauge_selector=lambda _: None).as_sweep(
+        _ = GaugeTransformer(target=cirq.CZ, gauge_selector=empty_selector).as_sweep(
             cirq.Circuit(), context=cirq.TransformerContext(deep=True), N=1
         )
 
 
-def test_ignore_tags():
+def test_ignore_tags() -> None:
     c = cirq.Circuit(cirq.CZ(*cirq.LineQubit.range(2)).with_tags('foo'))
-    assert c == CZGaugeTransformer(c, context=cirq.TransformerContext(tags_to_ignore={"foo"}))
+    assert c == CZGaugeTransformer(c, context=cirq.TransformerContext(tags_to_ignore=("foo",)))
     parameterized_circuit, _ = CZGaugeTransformer.as_sweep(
-        c, context=cirq.TransformerContext(tags_to_ignore={"foo"}), N=1
+        c, context=cirq.TransformerContext(tags_to_ignore=("foo",)), N=1
     )
     assert c == parameterized_circuit
 
 
-def test_target_can_be_gateset():
+def test_target_can_be_gateset() -> None:
     qs = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.CZ(*qs))
     transformer = GaugeTransformer(
@@ -63,7 +67,7 @@ def test_target_can_be_gateset():
     assert transformer(c, prng=np.random.default_rng(0)) == want
 
 
-def test_as_sweep_multi_pre_or_multi_post():
+def test_as_sweep_multi_pre_or_multi_post() -> None:
     transformer = GaugeTransformer(
         target=cirq.CZ,
         gauge_selector=GaugeSelector(
@@ -89,7 +93,7 @@ def test_as_sweep_multi_pre_or_multi_post():
         )
 
 
-def test_as_sweep_invalid_gauge_sequence():
+def test_as_sweep_invalid_gauge_sequence() -> None:
     transfomer = GaugeTransformer(
         target=cirq.CZ,
         gauge_selector=GaugeSelector(
@@ -110,7 +114,7 @@ def test_as_sweep_invalid_gauge_sequence():
         transfomer.as_sweep(c, N=1)
 
 
-def test_as_sweep_convert_to_phxz_failed():
+def test_as_sweep_convert_to_phxz_failed() -> None:
     qs = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.CZ(*qs))
 
@@ -126,7 +130,7 @@ def test_as_sweep_convert_to_phxz_failed():
             _ = CZGaugeTransformer.as_sweep(c, context=cirq.TransformerContext(), N=1)
 
 
-def test_symbolize_2_qubits_gate_failed():
+def test_symbolize_2_qubits_gate_failed() -> None:
     qs = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.CZPowGate(exponent=0.5).on(*qs))
 
@@ -140,7 +144,7 @@ def test_symbolize_2_qubits_gate_failed():
             _ = SqrtCZGaugeTransformer.as_sweep(c, N=1)
 
 
-def test_symbolize_2_qubits_gate_failed_unmatched_symbol_length():
+def test_symbolize_2_qubits_gate_failed_unmatched_symbol_length() -> None:
     symbolizer = TwoQubitGateSymbolizer(symbolizer_fn=lambda gate, _: (gate, {}), n_symbols=2)
     with pytest.raises(ValueError, match="Expect 2 symbols, but got 1 symbols"):
         symbolizer(cirq.CZ, [sympy.Symbol('x')])

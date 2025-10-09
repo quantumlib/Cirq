@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Tests for grid_qubit."""
+
+from __future__ import annotations
 
 import pickle
 
@@ -21,18 +24,18 @@ import pytest
 import cirq
 
 
-def test_init():
+def test_init() -> None:
     q = cirq.GridQubit(3, 4)
     assert q.row == 3
     assert q.col == 4
 
-    q = cirq.GridQid(1, 2, dimension=3)
-    assert q.row == 1
-    assert q.col == 2
-    assert q.dimension == 3
+    qid = cirq.GridQid(1, 2, dimension=3)
+    assert qid.row == 1
+    assert qid.col == 2
+    assert qid.dimension == 3
 
 
-def test_eq():
+def test_eq() -> None:
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(lambda: cirq.GridQubit(0, 0), lambda: cirq.GridQid(0, 0, dimension=2))
     eq.make_equality_group(lambda: cirq.GridQubit(1, 0), lambda: cirq.GridQid(1, 0, dimension=2))
@@ -40,7 +43,7 @@ def test_eq():
     eq.make_equality_group(lambda: cirq.GridQid(0, 0, dimension=3))
 
 
-def test_grid_qubit_pickled_hash():
+def test_grid_qubit_pickled_hash() -> None:
     # Use a large number that is unlikely to be used by any other tests.
     row, col = 123456789, 2345678910
     q_bad = cirq.GridQubit(row, col)
@@ -49,7 +52,7 @@ def test_grid_qubit_pickled_hash():
     _test_qid_pickled_hash(q, q_bad)
 
 
-def test_grid_qid_pickled_hash():
+def test_grid_qid_pickled_hash() -> None:
     # Use a large number that is unlikely to be used by any other tests.
     row, col = 123456789, 2345678910
     q_bad = cirq.GridQid(row, col, dimension=3)
@@ -71,12 +74,12 @@ def _test_qid_pickled_hash(q: cirq.Qid, q_bad: cirq.Qid) -> None:
     assert hash(q_ok) == hash(q)
 
 
-def test_str():
+def test_str() -> None:
     assert str(cirq.GridQubit(5, 2)) == 'q(5, 2)'
     assert str(cirq.GridQid(5, 2, dimension=3)) == 'q(5, 2) (d=3)'
 
 
-def test_circuit_info():
+def test_circuit_info() -> None:
     assert cirq.circuit_diagram_info(cirq.GridQubit(5, 2)) == cirq.CircuitDiagramInfo(
         wire_symbols=('(5, 2)',)
     )
@@ -85,12 +88,12 @@ def test_circuit_info():
     )
 
 
-def test_repr():
+def test_repr() -> None:
     cirq.testing.assert_equivalent_repr(cirq.GridQubit(5, 2))
     cirq.testing.assert_equivalent_repr(cirq.GridQid(5, 2, dimension=3))
 
 
-def test_cmp():
+def test_cmp() -> None:
     order = cirq.testing.OrderTester()
     order.add_ascending_equivalence_group(cirq.GridQubit(0, 0), cirq.GridQid(0, 0, dimension=2))
     order.add_ascending(
@@ -107,7 +110,7 @@ def test_cmp():
     )
 
 
-def test_cmp_failure():
+def test_cmp_failure() -> None:
     with pytest.raises(TypeError, match='not supported between instances'):
         _ = 0 < cirq.GridQubit(0, 0)
     with pytest.raises(TypeError, match='not supported between instances'):
@@ -118,7 +121,7 @@ def test_cmp_failure():
         _ = cirq.GridQid(1, 1, dimension=3) < 0
 
 
-def test_is_adjacent():
+def test_is_adjacent() -> None:
     assert cirq.GridQubit(0, 0).is_adjacent(cirq.GridQubit(0, 1))
     assert cirq.GridQubit(0, 0).is_adjacent(cirq.GridQubit(0, -1))
     assert cirq.GridQubit(0, 0).is_adjacent(cirq.GridQubit(1, 0))
@@ -135,7 +138,7 @@ def test_is_adjacent():
     assert not cirq.GridQubit(500, 999).is_adjacent(cirq.GridQubit(5034, 999))
 
 
-def test_neighbors():
+def test_neighbors() -> None:
     assert cirq.GridQubit(1, 1).neighbors() == {
         cirq.GridQubit(1, 2),
         cirq.GridQubit(2, 1),
@@ -148,7 +151,7 @@ def test_neighbors():
     assert cirq.GridQubit(1, 1).neighbors(restricted_qubits) == {cirq.GridQubit(2, 1)}
 
 
-def test_square():
+def test_square() -> None:
     assert cirq.GridQubit.square(2, top=1, left=1) == [
         cirq.GridQubit(1, 1),
         cirq.GridQubit(1, 2),
@@ -176,7 +179,7 @@ def test_square():
     ]
 
 
-def test_rect():
+def test_rect() -> None:
     assert cirq.GridQubit.rect(1, 2, top=5, left=6) == [cirq.GridQubit(5, 6), cirq.GridQubit(5, 7)]
     assert cirq.GridQubit.rect(2, 2) == [
         cirq.GridQubit(0, 0),
@@ -197,7 +200,7 @@ def test_rect():
     ]
 
 
-def test_diagram():
+def test_diagram() -> None:
     s = """
 -----AB-----
 ----ABCD----
@@ -234,7 +237,7 @@ BA"""
         cirq.GridQubit.from_diagram('@')
 
 
-def test_addition_subtraction():
+def test_addition_subtraction() -> None:
     # GridQubits
     assert cirq.GridQubit(1, 2) + (2, 5) == cirq.GridQubit(3, 7)
     assert cirq.GridQubit(1, 2) + (0, 0) == cirq.GridQubit(1, 2)
@@ -273,7 +276,7 @@ def test_addition_subtraction():
 
 
 @pytest.mark.parametrize('dtype', (np.int8, np.int16, np.int32, np.int64, int))
-def test_addition_subtraction_numpy_array(dtype):
+def test_addition_subtraction_numpy_array(dtype) -> None:
     assert cirq.GridQubit(1, 2) + np.array([1, 2], dtype=dtype) == cirq.GridQubit(2, 4)
     assert cirq.GridQubit(1, 2) + np.array([0, 0], dtype=dtype) == cirq.GridQubit(1, 2)
     assert cirq.GridQubit(1, 2) + np.array([-1, 0], dtype=dtype) == cirq.GridQubit(0, 2)
@@ -303,18 +306,18 @@ def test_addition_subtraction_numpy_array(dtype):
     )
 
 
-def test_unsupported_add():
+def test_unsupported_add() -> None:
     with pytest.raises(TypeError, match='1'):
-        _ = cirq.GridQubit(1, 1) + 1
+        _ = cirq.GridQubit(1, 1) + 1  # type: ignore[operator]
     with pytest.raises(TypeError, match='(1,)'):
-        _ = cirq.GridQubit(1, 1) + (1,)
+        _ = cirq.GridQubit(1, 1) + (1,)  # type: ignore[operator]
     with pytest.raises(TypeError, match='(1, 2, 3)'):
-        _ = cirq.GridQubit(1, 1) + (1, 2, 3)
+        _ = cirq.GridQubit(1, 1) + (1, 2, 3)  # type: ignore[operator]
     with pytest.raises(TypeError, match='(1, 2.0)'):
-        _ = cirq.GridQubit(1, 1) + (1, 2.0)
+        _ = cirq.GridQubit(1, 1) + (1, 2.0)  # type: ignore[operator]
 
     with pytest.raises(TypeError, match='1'):
-        _ = cirq.GridQubit(1, 1) - 1
+        _ = cirq.GridQubit(1, 1) - 1  # type: ignore[operator]
 
     with pytest.raises(TypeError, match='[1., 2.]'):
         _ = cirq.GridQubit(1, 1) + np.array([1.0, 2.0])
@@ -322,16 +325,16 @@ def test_unsupported_add():
         _ = cirq.GridQubit(1, 1) + np.array([1, 2, 3], dtype=int)
 
 
-def test_addition_subtraction_type_error():
+def test_addition_subtraction_type_error() -> None:
     with pytest.raises(TypeError, match="bort"):
-        _ = cirq.GridQubit(5, 3) + "bort"
+        _ = cirq.GridQubit(5, 3) + "bort"  # type: ignore[operator]
     with pytest.raises(TypeError, match="bort"):
-        _ = cirq.GridQubit(5, 3) - "bort"
+        _ = cirq.GridQubit(5, 3) - "bort"  # type: ignore[operator]
 
     with pytest.raises(TypeError, match="bort"):
-        _ = cirq.GridQid(5, 3, dimension=3) + "bort"
+        _ = cirq.GridQid(5, 3, dimension=3) + "bort"  # type: ignore[operator]
     with pytest.raises(TypeError, match="bort"):
-        _ = cirq.GridQid(5, 3, dimension=3) - "bort"
+        _ = cirq.GridQid(5, 3, dimension=3) - "bort"  # type: ignore[operator]
 
     with pytest.raises(TypeError, match="Can only add GridQids with identical dimension."):
         _ = cirq.GridQid(5, 3, dimension=3) + cirq.GridQid(3, 5, dimension=4)
@@ -339,62 +342,62 @@ def test_addition_subtraction_type_error():
         _ = cirq.GridQid(5, 3, dimension=3) - cirq.GridQid(3, 5, dimension=4)
 
 
-def test_neg():
+def test_neg() -> None:
     assert -cirq.GridQubit(1, 2) == cirq.GridQubit(-1, -2)
     assert -cirq.GridQid(1, 2, dimension=3) == cirq.GridQid(-1, -2, dimension=3)
 
 
-def test_to_json():
+def test_to_json() -> None:
     assert cirq.GridQubit(5, 6)._json_dict_() == {'row': 5, 'col': 6}
 
     assert cirq.GridQid(5, 6, dimension=3)._json_dict_() == {'row': 5, 'col': 6, 'dimension': 3}
 
 
-def test_immutable():
+def test_immutable() -> None:
     # Match one of two strings. The second one is message returned since python 3.11.
     with pytest.raises(
         AttributeError,
         match="(can't set attribute)|(property 'col' of 'GridQubit' object has no setter)",
     ):
         q = cirq.GridQubit(1, 2)
-        q.col = 3
+        q.col = 3  # type: ignore[misc]
 
     with pytest.raises(
         AttributeError,
         match="(can't set attribute)|(property 'row' of 'GridQubit' object has no setter)",
     ):
         q = cirq.GridQubit(1, 2)
-        q.row = 3
+        q.row = 3  # type: ignore[misc]
 
     with pytest.raises(
         AttributeError,
         match="(can't set attribute)|(property 'col' of 'GridQid' object has no setter)",
     ):
-        q = cirq.GridQid(1, 2, dimension=3)
-        q.col = 3
+        qid = cirq.GridQid(1, 2, dimension=3)
+        qid.col = 3  # type: ignore[misc]
 
     with pytest.raises(
         AttributeError,
         match="(can't set attribute)|(property 'row' of 'GridQid' object has no setter)",
     ):
-        q = cirq.GridQid(1, 2, dimension=3)
-        q.row = 3
+        qid = cirq.GridQid(1, 2, dimension=3)
+        qid.row = 3  # type: ignore[misc]
 
     with pytest.raises(
         AttributeError,
         match="(can't set attribute)|(property 'dimension' of 'GridQid' object has no setter)",
     ):
-        q = cirq.GridQid(1, 2, dimension=3)
-        q.dimension = 3
+        qid = cirq.GridQid(1, 2, dimension=3)
+        qid.dimension = 3  # type: ignore[misc]
 
 
-def test_complex():
+def test_complex() -> None:
     assert complex(cirq.GridQubit(row=1, col=2)) == 2 + 1j
     assert isinstance(complex(cirq.GridQubit(row=1, col=2)), complex)
 
 
 @pytest.mark.parametrize('dtype', (np.int8, np.int64, float, np.float64))
-def test_numpy_index(dtype):
+def test_numpy_index(dtype) -> None:
     np5, np6, np3 = [dtype(i) for i in [5, 6, 3]]
     q = cirq.GridQubit(np5, np6)
     assert hash(q) == hash(cirq.GridQubit(5, 6))
@@ -403,19 +406,19 @@ def test_numpy_index(dtype):
     assert q.dimension == 2
     assert isinstance(q.dimension, int)
 
-    q = cirq.GridQid(np5, np6, dimension=np3)
-    assert hash(q) == hash(cirq.GridQid(5, 6, dimension=3))
-    assert q.row == 5
-    assert q.col == 6
-    assert q.dimension == 3
-    assert isinstance(q.dimension, int)
+    qid = cirq.GridQid(np5, np6, dimension=np3)
+    assert hash(qid) == hash(cirq.GridQid(5, 6, dimension=3))
+    assert qid.row == 5
+    assert qid.col == 6
+    assert qid.dimension == 3
+    assert isinstance(qid.dimension, int)
 
 
 @pytest.mark.parametrize('dtype', (float, np.float64))
-def test_non_integer_index(dtype):
+def test_non_integer_index(dtype) -> None:
     # Not supported type-wise, but is used in practice, so behavior needs to be preserved.
     q = cirq.GridQubit(dtype(5.5), dtype(6.5))
-    assert hash(q) == hash(cirq.GridQubit(5.5, 6.5))
+    assert hash(q) == hash(cirq.GridQubit(5.5, 6.5))  # type: ignore[arg-type]
     assert q.row == 5.5
     assert q.col == 6.5
     assert isinstance(q.row, dtype)

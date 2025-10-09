@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterable, Iterator, List, Optional, Sequence, Tuple, Union
+from typing import Any, Iterable, Iterator, Sequence
 
 import numpy as np
 
@@ -30,7 +30,7 @@ class InputRotationCell(Cell):
     def __init__(
         self,
         identifier: str,
-        register: Optional[Sequence[cirq.Qid]],
+        register: Sequence[cirq.Qid] | None,
         base_operation: cirq.Operation,
         exponent_sign: int,
     ):
@@ -54,7 +54,7 @@ class InputRotationCell(Cell):
     def gate_count(self) -> int:
         return 1
 
-    def with_line_qubits_mapped_to(self, qubits: List[cirq.Qid]) -> Cell:
+    def with_line_qubits_mapped_to(self, qubits: list[cirq.Qid]) -> Cell:
         return InputRotationCell(
             self.identifier,
             None if self.register is None else Cell._replace_qubits(self.register, qubits),
@@ -64,7 +64,7 @@ class InputRotationCell(Cell):
             exponent_sign=self.exponent_sign,
         )
 
-    def with_input(self, letter: str, register: Union[Sequence[cirq.Qid], int]) -> Cell:
+    def with_input(self, letter: str, register: Sequence[cirq.Qid] | int) -> Cell:
         # Parameterized rotations use input A as their parameter.
         if self.register is None and letter == 'a':
             if isinstance(register, int):
@@ -77,7 +77,7 @@ class InputRotationCell(Cell):
             )
         return self
 
-    def controlled_by(self, qubit: cirq.Qid):
+    def controlled_by(self, qubit: cirq.Qid) -> InputRotationCell:
         return InputRotationCell(
             self.identifier,
             self.register,
@@ -115,10 +115,10 @@ class QuirkInputRotationOperation(ops.Operation):
         return (self.identifier, self.register, self.base_operation, self.exponent_sign)
 
     @property
-    def qubits(self) -> Tuple[cirq.Qid, ...]:
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         return tuple(self.base_operation.qubits) + self.register
 
-    def with_qubits(self, *new_qubits):
+    def with_qubits(self, *new_qubits) -> QuirkInputRotationOperation:
         k = len(self.base_operation.qubits)
         new_op_qubits = new_qubits[:k]
         new_register = new_qubits[k:]

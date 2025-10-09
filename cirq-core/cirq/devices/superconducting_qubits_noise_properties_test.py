@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Set, Tuple
+from __future__ import annotations
+
+from typing import Any, Sequence
 
 import numpy as np
 import pytest
@@ -24,7 +26,7 @@ from cirq.devices.superconducting_qubits_noise_properties import (
     SuperconductingQubitsNoiseProperties,
 )
 
-DEFAULT_GATE_NS: Dict[type, float] = {
+DEFAULT_GATE_NS: dict[type, float] = {
     cirq.ZPowGate: 25.0,
     cirq.MeasurementGate: 4000.0,
     cirq.ResetChannel: 250.0,
@@ -37,7 +39,9 @@ DEFAULT_GATE_NS: Dict[type, float] = {
 }
 
 
-def default_props(system_qubits: List[cirq.Qid], qubit_pairs: List[Tuple[cirq.Qid, cirq.Qid]]):
+def default_props(
+    system_qubits: Sequence[cirq.Qid], qubit_pairs: Sequence[tuple[cirq.Qid, cirq.Qid]]
+) -> dict[str, Any]:
     return {
         'gate_times_ns': DEFAULT_GATE_NS,
         't1_ns': {q: 1e5 for q in system_qubits},
@@ -63,19 +67,19 @@ class ExampleNoiseProperties(SuperconductingQubitsNoiseProperties):
         super().__init__(*args, **kwargs)
 
     @classmethod
-    def single_qubit_gates(cls) -> Set[type]:
+    def single_qubit_gates(cls) -> set[type]:
         return {cirq.ZPowGate, cirq.PhasedXZGate, cirq.MeasurementGate, cirq.ResetChannel}
 
     @classmethod
-    def symmetric_two_qubit_gates(cls) -> Set[type]:
+    def symmetric_two_qubit_gates(cls) -> set[type]:
         return {cirq.FSimGate, cirq.PhasedFSimGate, cirq.ISwapPowGate, cirq.CZPowGate}
 
     @classmethod
-    def asymmetric_two_qubit_gates(cls) -> Set[type]:
+    def asymmetric_two_qubit_gates(cls) -> set[type]:
         return set()
 
 
-def test_init_validation():
+def test_init_validation() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     with pytest.raises(ValueError, match='Keys specified for T1 and Tphi are not identical.'):
         _ = ExampleNoiseProperties(
@@ -92,7 +96,7 @@ def test_init_validation():
             t1_ns={q0: 1},
             tphi_ns={q0: 1},
             readout_errors={q0: [0.1, 0.2]},
-            gate_pauli_errors={OpIdentifier(cirq.CCNOT, q0, q1, q2): 0.1},
+            gate_pauli_errors={OpIdentifier(type(cirq.CCNOT), q0, q1, q2): 0.1},
         )
 
     with pytest.raises(ValueError, match='does not appear in the symmetric or asymmetric'):
@@ -102,8 +106,8 @@ def test_init_validation():
             tphi_ns={q0: 1},
             readout_errors={q0: [0.1, 0.2]},
             gate_pauli_errors={
-                OpIdentifier(cirq.CNOT, q0, q1): 0.1,
-                OpIdentifier(cirq.CNOT, q1, q0): 0.1,
+                OpIdentifier(cirq.CNotPowGate, q0, q1): 0.1,
+                OpIdentifier(cirq.CNotPowGate, q1, q0): 0.1,
             },
         )
 
@@ -136,18 +140,19 @@ def test_init_validation():
     # All errors are ignored if validation is disabled.
     _ = ExampleNoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
-        t1_ns={},
+        # t1_ns={},
+        t1_ns={q0: 1},
         tphi_ns={q0: 1},
         readout_errors={q0: [0.1, 0.2]},
         gate_pauli_errors={
-            OpIdentifier(cirq.CCNOT, q0, q1, q2): 0.1,
-            OpIdentifier(cirq.CNOT, q0, q1): 0.1,
+            OpIdentifier(type(cirq.CCNOT), q0, q1, q2): 0.1,
+            OpIdentifier(type(cirq.CNOT), q0, q1): 0.1,
         },
         validate=False,
     )
 
 
-def test_qubits():
+def test_qubits() -> None:
     q0 = cirq.LineQubit(0)
     props = ExampleNoiseProperties(**default_props([q0], []))
     assert props.qubits == [q0]
@@ -155,7 +160,7 @@ def test_qubits():
     assert props.qubits == [q0]
 
 
-def test_depol_memoization():
+def test_depol_memoization() -> None:
     # Verify that depolarizing error is memoized.
     q0 = cirq.LineQubit(0)
     props = ExampleNoiseProperties(**default_props([q0], []))
@@ -165,7 +170,7 @@ def test_depol_memoization():
     assert depol_error_a is depol_error_b
 
 
-def test_depol_validation():
+def test_depol_validation() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     # Create unvalidated properties with too many qubits on a Z gate.
     z_2q_props = ExampleNoiseProperties(
@@ -213,7 +218,7 @@ def test_depol_validation():
         ),
     ],
 )
-def test_single_qubit_gates(op):
+def test_single_qubit_gates(op) -> None:
     q0 = cirq.LineQubit(0)
     props = ExampleNoiseProperties(**default_props([q0], []))
     model = NoiseModelFromNoiseProperties(props)
@@ -237,10 +242,10 @@ def test_single_qubit_gates(op):
     assert np.allclose(
         thermal_choi,
         [
-            [1, 0, 0, 9.99750031e-01],
-            [0, 2.49968753e-04, 0, 0],
-            [0, 0, 0, 0],
-            [9.99750031e-01, 0, 0, 9.99750031e-01],
+            [1.0, 0.0, 0.0, 9.99750031e-01],
+            [0.0, 2.49968753e-04, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0],
+            [9.99750031e-01, 0.0, 0.0, 9.99750031e-01],
         ],
     )
 
@@ -248,7 +253,7 @@ def test_single_qubit_gates(op):
 @pytest.mark.parametrize(
     'op', [cirq.ISWAP(*cirq.LineQubit.range(2)) ** 0.6, cirq.CZ(*cirq.LineQubit.range(2)) ** 0.3]
 )
-def test_two_qubit_gates(op):
+def test_two_qubit_gates(op) -> None:
     q0, q1 = cirq.LineQubit.range(2)
     props = ExampleNoiseProperties(**default_props([q0, q1], [(q0, q1), (q1, q0)]))
     model = NoiseModelFromNoiseProperties(props)
@@ -268,6 +273,8 @@ def test_two_qubit_gates(op):
     assert len(noisy_circuit.moments[2].operations) == 2
     thermal_op_0 = noisy_circuit.moments[2].operation_at(q0)
     thermal_op_1 = noisy_circuit.moments[2].operation_at(q1)
+    assert thermal_op_0 is not None
+    assert thermal_op_1 is not None
     assert isinstance(thermal_op_0.gate, cirq.KrausChannel)
     assert isinstance(thermal_op_1.gate, cirq.KrausChannel)
     thermal_choi_0 = cirq.kraus_to_choi(cirq.kraus(thermal_op_0))
@@ -284,7 +291,7 @@ def test_two_qubit_gates(op):
     assert np.allclose(thermal_choi_1, expected_thermal_choi)
 
 
-def test_measure_gates():
+def test_measure_gates() -> None:
     q00, q01, q10, q11 = cirq.GridQubit.rect(2, 2)
     qubits = [q00, q01, q10, q11]
     props = ExampleNoiseProperties(
@@ -311,7 +318,7 @@ def test_measure_gates():
     # Amplitude damping before measurement
     assert len(noisy_circuit.moments[0].operations) == 4
     for q in qubits:
-        op = noisy_circuit.moments[0].operation_at(q)
+        op = noisy_circuit.moments[0].operation_at(q)  # type: ignore[assignment]
         assert isinstance(op.gate, cirq.GeneralizedAmplitudeDampingChannel), q
         assert np.isclose(op.gate.p, 0.90909090), q
         assert np.isclose(op.gate.gamma, 0.011), q
@@ -322,7 +329,7 @@ def test_measure_gates():
     assert noisy_circuit.moments[1] == circuit.moments[0]
 
 
-def test_wait_gates():
+def test_wait_gates() -> None:
     q0 = cirq.LineQubit(0)
     props = ExampleNoiseProperties(**default_props([q0], []))
     model = NoiseModelFromNoiseProperties(props)
@@ -341,9 +348,9 @@ def test_wait_gates():
     assert np.allclose(
         thermal_choi,
         [
-            [1, 0, 0, 9.990005e-01],
-            [0, 9.99500167e-04, 0, 0],
-            [0, 0, 0, 0],
-            [9.990005e-01, 0, 0, 9.990005e-01],
+            [1.0, 0.0, 0.0, 9.990005e-01],
+            [0.0, 9.99500167e-04, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0],
+            [9.990005e-01, 0.0, 0.0, 9.990005e-01],
         ],
     )

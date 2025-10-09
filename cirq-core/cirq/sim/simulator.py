@@ -31,22 +31,7 @@ from __future__ import annotations
 
 import abc
 import collections
-from typing import (
-    Any,
-    Callable,
-    cast,
-    Dict,
-    Generic,
-    Iterator,
-    List,
-    Mapping,
-    Sequence,
-    Set,
-    Tuple,
-    TYPE_CHECKING,
-    TypeVar,
-    Union,
-)
+from typing import Any, Callable, cast, Generic, Iterator, Mapping, Sequence, TYPE_CHECKING, TypeVar
 
 import numpy as np
 
@@ -110,7 +95,7 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def _run(
         self, circuit: cirq.AbstractCircuit, param_resolver: cirq.ParamResolver, repetitions: int
-    ) -> Dict[str, np.ndarray]:
+    ) -> dict[str, np.ndarray]:
         """Run a simulation, mimicking quantum hardware.
 
         Args:
@@ -232,11 +217,11 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
     def sample_from_amplitudes(
         self,
         circuit: cirq.AbstractCircuit,
-        param_resolver: cirq.ParamResolver,
+        param_resolver: cirq.ParamResolverOrSimilarType,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE,
         repetitions: int = 1,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-    ) -> Dict[int, int]:
+    ) -> dict[int, int]:
         """Uses amplitude simulation to sample from the given circuit.
 
         This implements the algorithm outlined by Bravyi, Gosset, and Liu in
@@ -279,7 +264,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
         for m_id, moment in enumerate(solved_circuit[1:]):
             circuit_prefix = solved_circuit[: m_id + 1]
             for t, op in enumerate(moment.operations):
-                new_samples: Dict[Tuple[int, ...], int] = collections.defaultdict(int)
+                new_samples: dict[tuple[int, ...], int] = collections.defaultdict(int)
                 qubit_indices = {qmap[q] for q in op.qubits}
                 subcircuit = circuit_prefix + circuits.Moment(moment.operations[: t + 1])
                 for current_sample, count in current_samples.items():
@@ -315,12 +300,12 @@ class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
     def simulate_expectation_values(
         self,
         program: cirq.AbstractCircuit,
-        observables: Union[cirq.PauliSumLike, List[cirq.PauliSumLike]],
+        observables: cirq.PauliSumLike | list[cirq.PauliSumLike],
         param_resolver: cirq.ParamResolverOrSimilarType = None,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
         permit_terminal_measurements: bool = False,
-    ) -> List[float]:
+    ) -> list[float]:
         """Simulates the supplied circuit and calculates exact expectation
         values for the given observables on its final state.
 
@@ -363,12 +348,12 @@ class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
     def simulate_expectation_values_sweep(
         self,
         program: cirq.AbstractCircuit,
-        observables: Union[cirq.PauliSumLike, List[cirq.PauliSumLike]],
+        observables: cirq.PauliSumLike | list[cirq.PauliSumLike],
         params: cirq.Sweepable,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
         permit_terminal_measurements: bool = False,
-    ) -> List[List[float]]:
+    ) -> list[list[float]]:
         """Wraps computed expectation values in a list.
 
         Prefer overriding `simulate_expectation_values_sweep_iter`.
@@ -387,12 +372,12 @@ class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
     def _simulate_expectation_values_sweep_to_iter(
         self,
         program: cirq.AbstractCircuit,
-        observables: Union[cirq.PauliSumLike, List[cirq.PauliSumLike]],
+        observables: cirq.PauliSumLike | list[cirq.PauliSumLike],
         params: cirq.Sweepable,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
         permit_terminal_measurements: bool = False,
-    ) -> Iterator[List[float]]:
+    ) -> Iterator[list[float]]:
         if (
             type(self).simulate_expectation_values_sweep
             == SimulatesExpectationValues.simulate_expectation_values_sweep
@@ -412,12 +397,12 @@ class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
     def simulate_expectation_values_sweep_iter(
         self,
         program: cirq.AbstractCircuit,
-        observables: Union[cirq.PauliSumLike, List[cirq.PauliSumLike]],
+        observables: cirq.PauliSumLike | list[cirq.PauliSumLike],
         params: cirq.Sweepable,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
         permit_terminal_measurements: bool = False,
-    ) -> Iterator[List[float]]:
+    ) -> Iterator[list[float]]:
         """Simulates the supplied circuit and calculates exact expectation
         values for the given observables on its final state, sweeping over the
         given params.
@@ -502,7 +487,7 @@ class SimulatesFinalState(
         params: cirq.Sweepable,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
-    ) -> List[TSimulationTrialResult]:
+    ) -> list[TSimulationTrialResult]:
         """Wraps computed states in a list.
 
         Prefer overriding `simulate_sweep_iter`.
@@ -608,7 +593,7 @@ class SimulatesIntermediateState(
             all_step_results = self.simulate_moment_steps(
                 program, param_resolver, qubit_order, state
             )
-            measurements: Dict[str, np.ndarray] = {}
+            measurements: dict[str, np.ndarray] = {}
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
                     measurements[k] = np.array(v, dtype=np.uint8)
@@ -654,7 +639,7 @@ class SimulatesIntermediateState(
 
     @abc.abstractmethod
     def _base_iterator(
-        self, circuit: cirq.AbstractCircuit, qubits: Tuple[cirq.Qid, ...], initial_state: Any
+        self, circuit: cirq.AbstractCircuit, qubits: tuple[cirq.Qid, ...], initial_state: Any
     ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
 
@@ -675,7 +660,7 @@ class SimulatesIntermediateState(
     def _create_simulator_trial_result(
         self,
         params: cirq.ParamResolver,
-        measurements: Dict[str, np.ndarray],
+        measurements: dict[str, np.ndarray],
         final_simulator_state: TSimulatorState,
     ) -> TSimulationTrialResult:
         """This method can be implemented to create a trial result.
@@ -722,7 +707,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def sample(
         self,
-        qubits: List[cirq.Qid],
+        qubits: list[cirq.Qid],
         repetitions: int = 1,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> np.ndarray:
@@ -746,12 +731,12 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
 
     def sample_measurement_ops(
         self,
-        measurement_ops: List[cirq.GateOperation],
+        measurement_ops: list[cirq.GateOperation],
         repetitions: int = 1,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         *,
         _allow_repeated=False,
-    ) -> Dict[str, np.ndarray]:
+    ) -> dict[str, np.ndarray]:
         """Samples from the system at this point in the computation.
 
         Note that this does not collapse the state vector.
@@ -797,7 +782,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
 
         # Find measured qubits, ensuring a consistent ordering.
         measured_qubits = []
-        seen_qubits: Set[cirq.Qid] = set()
+        seen_qubits: set[cirq.Qid] = set()
         for op in measurement_ops:
             for q in op.qubits:
                 if q not in seen_qubits:
@@ -808,7 +793,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
         indexed_sample = self.sample(measured_qubits, repetitions, seed=seed)
 
         # Extract results for each measurement.
-        results: Dict[str, Any] = {}
+        results: dict[str, Any] = {}
         qubits_to_index = {q: i for i, q in enumerate(measured_qubits)}
         for op in measurement_ops:
             gate = cast(ops.MeasurementGate, op.gate)
@@ -837,7 +822,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
         self,
         bits: np.ndarray,
         qubits: Sequence[cirq.Qid],
-        confusion_map: Dict[Tuple[int, ...], np.ndarray],
+        confusion_map: dict[tuple[int, ...], np.ndarray],
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> None:
         """Mutates `bits` using the confusion_map.
@@ -937,12 +922,12 @@ class SimulationTrialResult(Generic[TSimulatorState]):
         """
         return self._final_simulator_state.qubit_map
 
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         return _qubit_map_to_shape(self.qubit_map)
 
 
-def _qubit_map_to_shape(qubit_map: Mapping[cirq.Qid, int]) -> Tuple[int, ...]:
-    qid_shape: List[int] = [-1] * len(qubit_map)
+def _qubit_map_to_shape(qubit_map: Mapping[cirq.Qid, int]) -> tuple[int, ...]:
+    qid_shape: list[int] = [-1] * len(qubit_map)
     try:
         for q, i in qubit_map.items():
             qid_shape[i] = q.dimension
@@ -953,7 +938,7 @@ def _qubit_map_to_shape(qubit_map: Mapping[cirq.Qid, int]) -> Tuple[int, ...]:
     return tuple(qid_shape)
 
 
-def check_all_resolved(circuit):
+def check_all_resolved(circuit) -> None:
     """Raises if the circuit contains unresolved symbols."""
     if protocols.is_parameterized(circuit):
         unresolved = [op for moment in circuit for op in moment if protocols.is_parameterized(op)]
@@ -965,7 +950,7 @@ def check_all_resolved(circuit):
 
 def split_into_matching_protocol_then_general(
     circuit: cirq.AbstractCircuit, predicate: Callable[[cirq.Operation], bool]
-) -> Tuple[cirq.AbstractCircuit, cirq.AbstractCircuit]:
+) -> tuple[cirq.AbstractCircuit, cirq.AbstractCircuit]:
     """Splits the circuit into a matching prefix and non-matching suffix.
 
     The splitting happens in a per-qubit fashion. A non-matching operation on
@@ -974,8 +959,8 @@ def split_into_matching_protocol_then_general(
     the matching part (as long as those qubits have had no non-matching operation
     up to that point). Measurement keys are handled equivalently.
     """
-    blocked_qubits: Set[cirq.Qid] = set()
-    blocked_keys: Set[cirq.MeasurementKey] = set()
+    blocked_qubits: set[cirq.Qid] = set()
+    blocked_keys: set[cirq.MeasurementKey] = set()
     matching_prefix = circuits.Circuit()
     general_suffix = circuits.Circuit()
     for moment in circuit:

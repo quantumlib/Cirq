@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cirq
 
 
-def test_align_basic_no_context():
+def test_align_basic_no_context() -> None:
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
     c = cirq.Circuit(
@@ -43,7 +45,7 @@ def test_align_basic_no_context():
     )
 
 
-def test_align_left_no_compile_context():
+def test_align_left_no_compile_context() -> None:
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
     cirq.testing.assert_same_circuits(
@@ -57,7 +59,7 @@ def test_align_left_no_compile_context():
                     cirq.measure(*[q1, q2], key='a'),
                 ]
             ),
-            context=cirq.TransformerContext(tags_to_ignore=["nocompile"]),
+            context=cirq.TransformerContext(tags_to_ignore=("nocompile",)),
         ),
         cirq.Circuit(
             [
@@ -71,7 +73,7 @@ def test_align_left_no_compile_context():
     )
 
 
-def test_align_left_deep():
+def test_align_left_deep() -> None:
     q1, q2 = cirq.LineQubit.range(2)
     c_nested = cirq.FrozenCircuit(
         [
@@ -102,11 +104,11 @@ def test_align_left_deep():
         c_nested_aligned,
         cirq.CircuitOperation(c_nested_aligned).repeat(5).with_tags("preserve_tag"),
     )
-    context = cirq.TransformerContext(tags_to_ignore=["nocompile"], deep=True)
+    context = cirq.TransformerContext(tags_to_ignore=("nocompile",), deep=True)
     cirq.testing.assert_same_circuits(cirq.align_left(c_orig, context=context), c_expected)
 
 
-def test_align_left_subset_of_operations():
+def test_align_left_subset_of_operations() -> None:
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
     tag = "op_to_align"
@@ -132,7 +134,7 @@ def test_align_left_subset_of_operations():
         cirq.toggle_tags(
             cirq.align_left(
                 cirq.toggle_tags(c_orig, [tag]),
-                context=cirq.TransformerContext(tags_to_ignore=[tag]),
+                context=cirq.TransformerContext(tags_to_ignore=(tag,)),
             ),
             [tag],
         ),
@@ -140,7 +142,7 @@ def test_align_left_subset_of_operations():
     )
 
 
-def test_align_right_no_compile_context():
+def test_align_right_no_compile_context() -> None:
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
     cirq.testing.assert_same_circuits(
@@ -154,7 +156,7 @@ def test_align_right_no_compile_context():
                     cirq.measure(*[q1, q2], key='a'),
                 ]
             ),
-            context=cirq.TransformerContext(tags_to_ignore=["nocompile"]),
+            context=cirq.TransformerContext(tags_to_ignore=("nocompile",)),
         ),
         cirq.Circuit(
             [
@@ -168,7 +170,7 @@ def test_align_right_no_compile_context():
     )
 
 
-def test_align_right_deep():
+def test_align_right_deep() -> None:
     q1, q2 = cirq.LineQubit.range(2)
     c_nested = cirq.FrozenCircuit(
         cirq.Moment([cirq.X(q1)]),
@@ -197,11 +199,11 @@ def test_align_right_deep():
         c_nested_aligned,
         cirq.CircuitOperation(c_nested_aligned).repeat(5).with_tags("preserve_tag"),
     )
-    context = cirq.TransformerContext(tags_to_ignore=["nocompile"], deep=True)
+    context = cirq.TransformerContext(tags_to_ignore=("nocompile",), deep=True)
     cirq.testing.assert_same_circuits(cirq.align_right(c_orig, context=context), c_expected)
 
 
-def test_classical_control():
+def test_classical_control() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.H(q0), cirq.measure(q0, key='m'), cirq.X(q1).with_classical_controls('m')
@@ -210,7 +212,7 @@ def test_classical_control():
     cirq.testing.assert_same_circuits(cirq.align_right(circuit), circuit)
 
 
-def test_measurement_and_classical_control_same_moment_preserve_order():
+def test_measurement_and_classical_control_same_moment_preserve_order() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit()
     op_measure = cirq.measure(q0, key='m')

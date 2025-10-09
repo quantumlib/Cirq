@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, cast, Dict, Optional, Union
+from __future__ import annotations
+
+from typing import Any, Callable, cast
 
 import numpy as np
 import sympy
@@ -46,7 +48,7 @@ class QuirkOp:
         self.keys = keys
         self.can_merge = can_merge
 
-    def controlled(self, control_count: int = 1) -> 'QuirkOp':
+    def controlled(self, control_count: int = 1) -> QuirkOp:
         return QuirkOp(*['•'] * control_count, *self.keys, can_merge=False)
 
 
@@ -68,7 +70,7 @@ def _is_supported_formula(formula: sympy.Basic) -> bool:
     return False
 
 
-def _val_to_quirk_formula(t: Union[float, sympy.Basic]) -> str:
+def _val_to_quirk_formula(t: float | sympy.Basic) -> str:
     if isinstance(t, sympy.Basic):
         if not set(t.free_symbols) <= {sympy.Symbol('t')}:
             raise ValueError(f'Symbol other than "t": {t!r}.')
@@ -79,7 +81,7 @@ def _val_to_quirk_formula(t: Union[float, sympy.Basic]) -> str:
     return f'{float(t):.4f}'
 
 
-def angle_to_exponent_key(t: Union[float, sympy.Basic]) -> Optional[str]:
+def angle_to_exponent_key(t: float | sympy.Basic) -> str | None:
     if isinstance(t, sympy.Basic):
         if t == sympy.Symbol('t'):
             return '^t'
@@ -107,11 +109,10 @@ def angle_to_exponent_key(t: Union[float, sympy.Basic]) -> Optional[str]:
     return None
 
 
-def single_qubit_matrix_gate(matrix: Optional[np.ndarray]) -> Optional[QuirkOp]:
+def single_qubit_matrix_gate(matrix: np.ndarray | None) -> QuirkOp | None:
     if matrix is None or matrix.shape[0] != 2:
         return None
 
-    # pylint: disable=consider-using-f-string
     matrix = matrix.round(6)
     matrix_repr = '{{%s+%si,%s+%si},{%s+%si,%s+%si}}' % (
         np.real(matrix[0, 0]),
@@ -135,7 +136,7 @@ def single_qubit_matrix_gate(matrix: Optional[np.ndarray]) -> Optional[QuirkOp]:
     return QuirkOp({'id': '?', 'matrix': matrix_repr})
 
 
-def known_quirk_op_for_operation(op: ops.Operation) -> Optional[QuirkOp]:
+def known_quirk_op_for_operation(op: ops.Operation) -> QuirkOp | None:
     if isinstance(op, ops.GateOperation):
         return _gate_to_quirk_op(op.gate)
     if isinstance(op, ops.ControlledOperation):
@@ -143,7 +144,7 @@ def known_quirk_op_for_operation(op: ops.Operation) -> Optional[QuirkOp]:
     return None
 
 
-def _gate_to_quirk_op(gate: ops.Gate) -> Optional[QuirkOp]:
+def _gate_to_quirk_op(gate: ops.Gate) -> QuirkOp | None:
     for gate_type, func in _known_gate_conversions.items():
         if isinstance(gate, gate_type):
             return func(gate)
@@ -176,45 +177,45 @@ def z_to_quirk_op(gate: ops.ZPowGate) -> QuirkOp:
     return xyz_to_quirk_op('z', gate)
 
 
-def cz_to_quirk_op(gate: ops.CZPowGate) -> Optional[QuirkOp]:
+def cz_to_quirk_op(gate: ops.CZPowGate) -> QuirkOp | None:
     return z_to_quirk_op(ops.Z**gate.exponent).controlled()
 
 
-def cnot_to_quirk_op(gate: ops.CXPowGate) -> Optional[QuirkOp]:
+def cnot_to_quirk_op(gate: ops.CXPowGate) -> QuirkOp | None:
     return x_to_quirk_op(ops.X**gate.exponent).controlled()
 
 
-def h_to_quirk_op(gate: ops.HPowGate) -> Optional[QuirkOp]:
+def h_to_quirk_op(gate: ops.HPowGate) -> QuirkOp | None:
     if gate.exponent == 1:
         return QuirkOp('H')
     return None
 
 
-def swap_to_quirk_op(gate: ops.SwapPowGate) -> Optional[QuirkOp]:
+def swap_to_quirk_op(gate: ops.SwapPowGate) -> QuirkOp | None:
     if gate.exponent == 1:
         return QuirkOp('Swap', 'Swap', can_merge=False)
     return None
 
 
-def cswap_to_quirk_op(gate: ops.CSwapGate) -> Optional[QuirkOp]:
+def cswap_to_quirk_op(gate: ops.CSwapGate) -> QuirkOp | None:
     return QuirkOp('•', 'Swap', 'Swap', can_merge=False)
 
 
-def ccx_to_quirk_op(gate: ops.CCXPowGate) -> Optional[QuirkOp]:
+def ccx_to_quirk_op(gate: ops.CCXPowGate) -> QuirkOp | None:
     e = angle_to_exponent_key(gate.exponent)
     if e is None:
         return None
     return QuirkOp('•', '•', 'X' + e, can_merge=False)
 
 
-def ccz_to_quirk_op(gate: ops.CCZPowGate) -> Optional[QuirkOp]:
+def ccz_to_quirk_op(gate: ops.CCZPowGate) -> QuirkOp | None:
     e = angle_to_exponent_key(gate.exponent)
     if e is None:
         return None
     return QuirkOp('•', '•', 'Z' + e, can_merge=False)
 
 
-def controlled_unwrap(op: ops.ControlledOperation) -> Optional[QuirkOp]:
+def controlled_unwrap(op: ops.ControlledOperation) -> QuirkOp | None:
     sub = known_quirk_op_for_operation(op.sub_operation)
     if sub is None:
         return None
@@ -222,7 +223,7 @@ def controlled_unwrap(op: ops.ControlledOperation) -> Optional[QuirkOp]:
 
 
 _known_gate_conversions = cast(
-    Dict[type, Callable[[ops.Gate], Optional[QuirkOp]]],
+    dict[type, Callable[[ops.Gate], QuirkOp | None]],
     {
         ops.CCXPowGate: ccx_to_quirk_op,
         ops.CCZPowGate: ccz_to_quirk_op,

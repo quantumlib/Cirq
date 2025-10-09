@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
 import cirq
 
-a = np.array([1])
-b = np.array([1j])
+a = np.array([[1]])
+b = np.array([[1j]])
 
 
 class NoMethod:
@@ -91,7 +93,7 @@ class ReturnsMixtureOfReturnsUnitary:
         (ReturnsMixtureOfReturnsUnitary(), ((0.4, np.eye(2)), (0.6, np.eye(2)))),
     ),
 )
-def test_objects_with_mixture(val, mixture):
+def test_objects_with_mixture(val, mixture) -> None:
     expected_keys, expected_values = zip(*mixture)
     keys, values = zip(*cirq.mixture(val))
     np.testing.assert_almost_equal(keys, expected_keys)
@@ -105,7 +107,7 @@ def test_objects_with_mixture(val, mixture):
 @pytest.mark.parametrize(
     'val', (NoMethod(), ReturnsNotImplemented(), ReturnsNotImplementedUnitary())
 )
-def test_objects_with_no_mixture(val):
+def test_objects_with_no_mixture(val) -> None:
     with pytest.raises(TypeError, match="mixture"):
         _ = cirq.mixture(val)
     assert cirq.mixture(val, None) is None
@@ -114,7 +116,7 @@ def test_objects_with_no_mixture(val):
     assert cirq.mixture(val, default) == default
 
 
-def test_has_mixture():
+def test_has_mixture() -> None:
     assert cirq.has_mixture(ReturnsValidTuple())
     assert not cirq.has_mixture(ReturnsNotImplemented())
     assert cirq.has_mixture(ReturnsMixtureButNoHasMixture())
@@ -122,7 +124,7 @@ def test_has_mixture():
     assert not cirq.has_mixture(ReturnsNotImplementedUnitary())
 
 
-def test_valid_mixture():
+def test_valid_mixture() -> None:
     cirq.validate_mixture(ReturnsValidTuple())
 
 
@@ -134,11 +136,11 @@ def test_valid_mixture():
         (ReturnsGreaterThanUnityProbability(), 'greater than 1'),
     ),
 )
-def test_invalid_mixture(val, message):
+def test_invalid_mixture(val, message) -> None:
     with pytest.raises(ValueError, match=message):
         cirq.validate_mixture(val)
 
 
-def test_missing_mixture():
+def test_missing_mixture() -> None:
     with pytest.raises(TypeError, match='_mixture_'):
-        cirq.validate_mixture(NoMethod)
+        cirq.validate_mixture(NoMethod)  # type: ignore[arg-type]

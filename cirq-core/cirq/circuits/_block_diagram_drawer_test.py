@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
 
 import pytest
@@ -54,7 +56,7 @@ def _curve_pieces_diagram(chars: BoxDrawCharacterSet) -> BlockDiagramDrawer:
     return d
 
 
-def test_block_curve():
+def test_block_curve() -> None:
     d = _curve_pieces_diagram(NORMAL_BOX_CHARS)
     actual = d.render(min_block_width=5, min_block_height=5)
     expected = """
@@ -177,7 +179,7 @@ def test_block_curve():
     _assert_same_diagram(actual, expected)
 
 
-def test_mixed_block_curve():
+def test_mixed_block_curve() -> None:
     diagram = BlockDiagramDrawer()
     for a, b, c, d in itertools.product(range(3), repeat=4):
         x = (a * 3 + b) * 2
@@ -244,7 +246,7 @@ def test_mixed_block_curve():
     _assert_same_diagram(actual, expected)
 
 
-def test_lines_meet_content():
+def test_lines_meet_content() -> None:
     d = BlockDiagramDrawer()
     b = d.mutable_block(0, 0)
     b.content = 'long text\nwith multiple lines'
@@ -409,7 +411,7 @@ with multiple lines
     )
 
 
-def test_content_stretches_other_blocks():
+def test_content_stretches_other_blocks() -> None:
     d = BlockDiagramDrawer()
     d.mutable_block(0, 0).horizontal_alignment = 0.5
     d.mutable_block(1, 0).horizontal_alignment = 0.5
@@ -430,7 +432,7 @@ with multiple lines│
     )
 
 
-def test_lines_stretch_content():
+def test_lines_stretch_content() -> None:
     d = BlockDiagramDrawer()
     d.mutable_block(0, 0).left = 'l'
     d.mutable_block(2, 4).right = 'r'
@@ -449,7 +451,7 @@ def test_lines_stretch_content():
     )
 
 
-def test_indices():
+def test_indices() -> None:
     d = BlockDiagramDrawer()
     with pytest.raises(IndexError):
         d.mutable_block(-1, -1)

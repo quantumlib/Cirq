@@ -13,6 +13,8 @@
 # limitations under the License.
 """Represents a job created via the IonQ API."""
 
+from __future__ import annotations
+
 import json
 import time
 import warnings
@@ -65,7 +67,7 @@ class Job:
         'data associated with it beyond an id and a status.',
     )
 
-    def __init__(self, client: 'cirq_ionq.ionq_client._IonQClient', job_dict: dict):
+    def __init__(self, client: cirq_ionq.ionq_client._IonQClient, job_dict: dict):
         """Construct an IonQJob.
 
         Users should not call this themselves. If you only know the `job_id`, use `get_job`
@@ -120,7 +122,7 @@ class Job:
             IonQException: If unable to get the status of the job from the API.
         """
         self._check_if_unsuccessful()
-        return self._job['target']
+        return self._job['backend']
 
     def name(self) -> str:
         """Returns the name of the job which was supplied during job creation.
@@ -149,7 +151,7 @@ class Job:
                     if index == circuit_index:
                         return qubit_number
 
-        return int(self._job['qubits'])
+        return int(self._job['stats']['qubits'])
 
     def repetitions(self) -> int:
         """Returns the number of repetitions for the job.
@@ -161,9 +163,9 @@ class Job:
         self._check_if_unsuccessful()
         return int(self._job['metadata']['shots'])
 
-    def measurement_dict(self, circuit_index=0) -> Dict[str, Sequence[int]]:
+    def measurement_dict(self, circuit_index=0) -> dict[str, Sequence[int]]:
         """Returns a dictionary of measurement keys to target qubit index."""
-        measurement_dict: Dict[str, Sequence[int]] = {}
+        measurement_dict: dict[str, Sequence[int]] = {}
         if 'metadata' in self._job:
             measurement_matadata = None
             if 'measurements' in self._job['metadata'].keys():

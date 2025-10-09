@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import datetime
 from unittest import mock
 
@@ -150,7 +152,6 @@ def test_run_delegation(create_job_async, get_results_async):
         params=cirq.ParamResolver({'a': 1.0}),
         measurements={'q': np.array([[False], [True], [True], [False]], dtype=bool)},
         job_id='steve',
-        job_finished_time=dt,
     )
 
 

@@ -23,19 +23,19 @@ In order to run on must have access to the Quantum Engine API. Access to this
 API is (as of June 22, 2018) restricted to invitation only.
 """
 
+from __future__ import annotations
+
 import datetime
 import enum
 import random
 import string
-from typing import Dict, List, Optional, Set, TYPE_CHECKING, TypeVar, Union
+from typing import TYPE_CHECKING, TypeVar
 
 import duet
 import google.auth
-from google.protobuf import any_pb2
 
 import cirq
 from cirq_google.api import v2
-from cirq_google.cloud import quantum
 from cirq_google.engine import (
     abstract_engine,
     abstract_program,
@@ -43,14 +43,17 @@ from cirq_google.engine import (
     engine_job,
     engine_processor,
     engine_program,
+    processor_config,
     util,
 )
 from cirq_google.serialization import CIRCUIT_SERIALIZER, Serializer
 
 if TYPE_CHECKING:
     import google.protobuf
+    from google.protobuf import any_pb2
 
     import cirq_google
+    from cirq_google.cloud import quantum
 
 TYPE_PREFIX = 'type.googleapis.com/'
 
@@ -80,14 +83,15 @@ class EngineContext:
 
     def __init__(
         self,
-        proto_version: Optional[ProtoVersion] = None,
-        service_args: Optional[Dict] = None,
-        verbose: Optional[bool] = None,
-        client: 'Optional[engine_client.EngineClient]' = None,
-        timeout: Optional[int] = None,
+        proto_version: ProtoVersion | None = None,
+        service_args: dict | None = None,
+        verbose: bool | None = None,
+        client: engine_client.EngineClient | None = None,
+        timeout: int | None = None,
         serializer: Serializer = CIRCUIT_SERIALIZER,
         # TODO(#5996) Remove enable_streaming once the feature is stable.
         enable_streaming: bool = True,
+        compress_run_context: bool = False,
     ) -> None:
         """Context and client for using Quantum Engine.
 
@@ -106,6 +110,9 @@ class EngineContext:
             enable_streaming: Feature gate for making Quantum Engine requests using the stream RPC.
                 If True, the Quantum Engine streaming RPC is used for creating jobs
                 and getting results. Otherwise, unary RPCs are used.
+            compress_run_context:  If true, the run context (i.e. sweep information)
+                will be compressed using gzip in transit.  This will save on data transfer size
+                but will add a small overhead client-side.
 
         Raises:
             ValueError: If either `service_args` and `verbose` were supplied
@@ -119,13 +126,14 @@ class EngineContext:
             raise ValueError('ProtoVersion V1 no longer supported')
         self.serializer = serializer
         self.enable_streaming = enable_streaming
+        self.compress_run_context = compress_run_context
 
         if not client:
             client = engine_client.EngineClient(service_args=service_args, verbose=verbose)
         self.client = client
         self.timeout = timeout
 
-    def copy(self) -> 'EngineContext':
+    def copy(self) -> EngineContext:
         return EngineContext(proto_version=self.proto_version, client=self.client)
 
     def _value_equality_values_(self):
@@ -138,10 +146,12 @@ class EngineContext:
             raise ValueError(f'invalid program proto version: {self.proto_version}')
         return util.pack_any(self.serializer.serialize(program))
 
-    def _serialize_run_context(self, sweeps: 'cirq.Sweepable', repetitions: int) -> any_pb2.Any:
+    def _serialize_run_context(self, sweeps: cirq.Sweepable, repetitions: int) -> any_pb2.Any:
         if self.proto_version != ProtoVersion.V2:
             raise ValueError(f'invalid run context proto version: {self.proto_version}')
-        return util.pack_any(v2.run_context_to_proto(sweeps, repetitions))
+        return util.pack_any(
+            v2.run_context_to_proto(sweeps, repetitions, compress_proto=self.compress_run_context)
+        )
 
 
 class Engine(abstract_engine.AbstractEngine):
@@ -167,11 +177,12 @@ class Engine(abstract_engine.AbstractEngine):
     def __init__(
         self,
         project_id: str,
-        proto_version: Optional[ProtoVersion] = None,
-        service_args: Optional[Dict] = None,
-        verbose: Optional[bool] = None,
-        timeout: Optional[int] = None,
-        context: Optional[EngineContext] = None,
+        proto_version: ProtoVersion | None = None,
+        service_args: dict | None = None,
+        verbose: bool | None = None,
+        timeout: int | None = None,
+        context: EngineContext | None = None,
+        compress_run_context: bool = False,
     ) -> None:
         """Supports creating and running programs against the Quantum Engine.
 
@@ -190,6 +201,9 @@ class Engine(abstract_engine.AbstractEngine):
                 to never timeout.
             context: Engine configuration and context to use. For most users
                 this should never be specified.
+            compress_run_context:  If true, the run context (i.e. sweep information
+                will be compressed using gzip in transit.  This will save on data transfer size
+                but will add a small overhead client-side.
 
         Raises:
             ValueError: If context is provided and one of proto_version, service_args, or verbose.
@@ -204,6 +218,7 @@ class Engine(abstract_engine.AbstractEngine):
                 service_args=service_args,
                 verbose=verbose,
                 timeout=timeout,
+                compress_run_context=compress_run_context,
             )
         self.context = context
 
@@ -214,14 +229,14 @@ class Engine(abstract_engine.AbstractEngine):
         self,
         program: cirq.AbstractCircuit,
         processor_id: str,
-        program_id: Optional[str] = None,
-        job_id: Optional[str] = None,
+        program_id: str | None = None,
+        job_id: str | None = None,
         param_resolver: cirq.ParamResolver = cirq.ParamResolver({}),
         repetitions: int = 1,
-        program_description: Optional[str] = None,
-        program_labels: Optional[Dict[str, str]] = None,
-        job_description: Optional[str] = None,
-        job_labels: Optional[Dict[str, str]] = None,
+        program_description: str | None = None,
+        program_labels: dict[str, str] | None = None,
+        job_description: str | None = None,
+        job_labels: dict[str, str] | None = None,
         *,
         run_name: str = "",
         snapshot_id: str = "",
@@ -291,14 +306,14 @@ class Engine(abstract_engine.AbstractEngine):
         self,
         program: cirq.AbstractCircuit,
         processor_id: str,
-        program_id: Optional[str] = None,
-        job_id: Optional[str] = None,
+        program_id: str | None = None,
+        job_id: str | None = None,
         params: cirq.Sweepable = None,
         repetitions: int = 1,
-        program_description: Optional[str] = None,
-        program_labels: Optional[Dict[str, str]] = None,
-        job_description: Optional[str] = None,
-        job_labels: Optional[Dict[str, str]] = None,
+        program_description: str | None = None,
+        program_labels: dict[str, str] | None = None,
+        job_description: str | None = None,
+        job_labels: dict[str, str] | None = None,
         *,
         run_name: str = "",
         snapshot_id: str = "",
@@ -401,9 +416,9 @@ class Engine(abstract_engine.AbstractEngine):
     async def create_program_async(
         self,
         program: cirq.AbstractCircuit,
-        program_id: Optional[str] = None,
-        description: Optional[str] = None,
-        labels: Optional[Dict[str, str]] = None,
+        program_id: str | None = None,
+        description: str | None = None,
+        labels: dict[str, str] | None = None,
     ) -> engine_program.EngineProgram:
         """Wraps a Circuit for use with the Quantum Engine.
 
@@ -453,10 +468,10 @@ class Engine(abstract_engine.AbstractEngine):
 
     async def list_programs_async(
         self,
-        created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
-        created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[Dict[str, str]] = None,
-    ) -> List[abstract_program.AbstractProgram]:
+        created_before: datetime.datetime | datetime.date | None = None,
+        created_after: datetime.datetime | datetime.date | None = None,
+        has_labels: dict[str, str] | None = None,
+    ) -> list[abstract_program.AbstractProgram]:
         """Returns a list of previously executed quantum programs.
 
         Args:
@@ -493,10 +508,10 @@ class Engine(abstract_engine.AbstractEngine):
 
     async def list_jobs_async(
         self,
-        created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
-        created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[Dict[str, str]] = None,
-        execution_states: Optional[Set[quantum.ExecutionStatus.State]] = None,
+        created_before: datetime.datetime | datetime.date | None = None,
+        created_after: datetime.datetime | datetime.date | None = None,
+        has_labels: dict[str, str] | None = None,
+        execution_states: set[quantum.ExecutionStatus.State] | None = None,
     ):
         """Returns the list of jobs in the project.
 
@@ -545,7 +560,7 @@ class Engine(abstract_engine.AbstractEngine):
 
     list_jobs = duet.sync(list_jobs_async)
 
-    async def list_processors_async(self) -> List[engine_processor.EngineProcessor]:
+    async def list_processors_async(self) -> list[engine_processor.EngineProcessor]:
         """Returns a list of Processors that the user has visibility to in the
         current Engine project. The names of these processors are used to
         identify devices when scheduling jobs and gathering calibration metrics.
@@ -577,11 +592,12 @@ class Engine(abstract_engine.AbstractEngine):
 
     def get_sampler(
         self,
-        processor_id: Union[str, List[str]],
+        processor_id: str | list[str],
         run_name: str = "",
         device_config_name: str = "",
         snapshot_id: str = "",
-    ) -> 'cirq_google.ProcessorSampler':
+        max_concurrent_jobs: int = 100,
+    ) -> cirq_google.ProcessorSampler:
         """Returns a sampler backed by the engine.
 
         Args:
@@ -594,6 +610,10 @@ class Engine(abstract_engine.AbstractEngine):
                 available qubits, couplers, and supported gates in the processor.
             snapshot_id: A unique identifier for an immutable snapshot reference. A
                 snapshot contains a collection of device configurations for the processor.
+            max_concurrent_jobs: The maximum number of jobs to be sent
+                concurrently to the Engine. This client-side throttle can be
+                used to proactively reduce load to the backends and avoid quota
+                violations when pipelining circuit executions.
 
         Returns:
             A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
@@ -610,11 +630,70 @@ class Engine(abstract_engine.AbstractEngine):
                 'you need to specify a list.'
             )
         return self.get_processor(processor_id).get_sampler(
-            run_name=run_name, device_config_name=device_config_name, snapshot_id=snapshot_id
+            run_name=run_name,
+            device_config_name=device_config_name,
+            snapshot_id=snapshot_id,
+            max_concurrent_jobs=max_concurrent_jobs,
         )
 
+    async def get_processor_config_from_snapshot_async(
+        self, processor_id: str, snapshot_id: str, config_name: str = 'default'
+    ) -> processor_config.ProcessorConfig | None:
+        """Returns a ProcessorConfig from this project and the given processor id.
 
-def get_engine(project_id: Optional[str] = None) -> Engine:
+        Args:
+           processor_id: The processor unique identifier.
+           snapshot_id: The unique identifier for the snapshot.
+           config_name: The identifier for the config.
+
+        Returns:
+           The ProcessorConfig from this project and processor.
+        """
+        client = self.context.client
+        quantum_config = await client.get_quantum_processor_config_from_snapshot_async(
+            project_id=self.project_id,
+            processor_id=processor_id,
+            snapshot_id=snapshot_id,
+            config_name=config_name,
+        )
+        if quantum_config:
+            return processor_config.ProcessorConfig(quantum_processor_config=quantum_config)
+        return None
+
+    get_processor_config_from_snapshot = duet.sync(get_processor_config_from_snapshot_async)
+
+    async def get_processor_config_from_run_async(
+        self, processor_id: str, run_name: str = 'current', config_name: str = 'default'
+    ) -> processor_config.ProcessorConfig | None:
+        """Returns a ProcessorConfig from this project and the given processor id.
+
+        If no `run_name` and `config_name` are specified, the inernally configured default config
+        is returned.
+
+        Args:
+            processor_id: The processor unique identifier.
+            run_name: The unique identifier for the automation run.
+            config_name: The identifier for the config.
+
+        Returns:
+            The ProcessorConfig from this project and processor.
+        """
+        quantum_config = await self.context.client.get_quantum_processor_config_from_run_async(
+            project_id=self.project_id,
+            processor_id=processor_id,
+            run_name=run_name,
+            config_name=config_name,
+        )
+        if quantum_config:
+            return processor_config.ProcessorConfig(
+                quantum_processor_config=quantum_config, run_name=run_name
+            )
+        return None
+
+    get_processor_config_from_run = duet.sync(get_processor_config_from_run_async)
+
+
+def get_engine(project_id: str | None = None) -> Engine:
     """Get an Engine instance assuming some sensible defaults.
 
     This uses the environment variable GOOGLE_CLOUD_PROJECT for the Engine
@@ -648,7 +727,7 @@ def get_engine(project_id: Optional[str] = None) -> Engine:
     return Engine(project_id=project_id, service_args=service_args)
 
 
-def get_engine_device(processor_id: str, project_id: Optional[str] = None) -> cirq.Device:
+def get_engine_device(processor_id: str, project_id: str | None = None) -> cirq.Device:
     """Returns a `Device` object for a given processor.
 
     This is a short-cut for creating an engine object, getting the
@@ -658,8 +737,8 @@ def get_engine_device(processor_id: str, project_id: Optional[str] = None) -> ci
 
 
 def get_engine_calibration(
-    processor_id: str, project_id: Optional[str] = None
-) -> Optional['cirq_google.Calibration']:
+    processor_id: str, project_id: str | None = None
+) -> cirq_google.Calibration | None:
     """Returns calibration metrics for a given processor.
 
     This is a short-cut for creating an engine object, getting the
@@ -670,8 +749,8 @@ def get_engine_calibration(
 
 
 def get_engine_sampler(
-    processor_id: str, project_id: Optional[str] = None
-) -> 'cirq_google.ProcessorSampler':
+    processor_id: str, project_id: str | None = None
+) -> cirq_google.ProcessorSampler:
     """Get an EngineSampler assuming some sensible defaults.
 
     This uses the environment variable GOOGLE_CLOUD_PROJECT for the Engine

@@ -14,7 +14,13 @@
 
 """Qubit Gates, Operations, and Tags useful for Google devices."""
 
+from cirq_google.ops.analog_detune_gates import AnalogDetuneQubit as AnalogDetuneQubit
+
+from cirq_google.ops.analog_detune_gates import AnalogDetuneCouplerOnly as AnalogDetuneCouplerOnly
+
 from cirq_google.ops.calibration_tag import CalibrationTag as CalibrationTag
+
+from cirq_google.ops.compress_duration_tag import CompressDurationTag as CompressDurationTag
 
 from cirq_google.ops.coupler import Coupler as Coupler
 
@@ -33,5 +39,7 @@ from cirq_google.ops.internal_tag import InternalTag as InternalTag
 from cirq_google.ops.dynamical_decoupling_tag import (
     DynamicalDecouplingTag as DynamicalDecouplingTag,
 )
+
+from cirq_google.ops.wait_gate import WaitGateWithUnit as WaitGateWithUnit
 
 from cirq_google.ops.willow_gate import WillowGate as WillowGate, WILLOW as WILLOW

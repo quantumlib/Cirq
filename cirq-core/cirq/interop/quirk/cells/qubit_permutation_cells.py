@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, Iterator, Sequence, Tuple, TYPE_CHECKING
+from typing import Callable, Iterator, Sequence, TYPE_CHECKING
 
 from cirq import ops, value
 from cirq.interop.quirk.cells.cell import CELL_SIZES, CellMaker
@@ -44,7 +44,7 @@ class QuirkQubitPermutationGate(ops.QubitPermutationGate):
     def _value_equality_values_(self):
         return self.identifier, self.name, self.permutation
 
-    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> Tuple[str, ...]:
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> tuple[str, ...]:
         return tuple(
             f'{self.name}[{i}>{self.permutation[i]}]' for i in range(len(self.permutation))
         )
@@ -74,7 +74,7 @@ def _permutation_family(
         yield _permutation(identifier_prefix + str(n), name, permutation)
 
 
-def _permutation(identifier: str, name: str, permutation: Tuple[int, ...]) -> CellMaker:
+def _permutation(identifier: str, name: str, permutation: tuple[int, ...]) -> CellMaker:
     return CellMaker(
         identifier,
         size=len(permutation),

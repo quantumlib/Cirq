@@ -19,7 +19,7 @@ from __future__ import annotations
 import math
 import numbers
 from types import NotImplementedType
-from typing import AbstractSet, Any, cast, Dict, Optional, Sequence, Tuple, Union
+from typing import AbstractSet, Any, cast, Sequence
 
 import numpy as np
 import sympy
@@ -51,8 +51,8 @@ class PhasedXPowGate(raw_types.Gate):
     def __init__(
         self,
         *,
-        phase_exponent: Union[float, sympy.Expr],
-        exponent: Union[float, sympy.Expr] = 1.0,
+        phase_exponent: float | sympy.Expr,
+        exponent: float | sympy.Expr = 1.0,
         global_shift: float = 0.0,
     ) -> None:
         """Inits PhasedXPowGate.
@@ -67,7 +67,7 @@ class PhasedXPowGate(raw_types.Gate):
         self._exponent = exponent
         self._global_shift = global_shift
 
-    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> str | None:
         if cirq.is_parameterized(self):
             return None
 
@@ -103,12 +103,12 @@ class PhasedXPowGate(raw_types.Gate):
         return z**-1, x, z
 
     @property
-    def exponent(self) -> Union[float, sympy.Expr]:
+    def exponent(self) -> float | sympy.Expr:
         """The exponent on the central X gate conjugated by the Z gates."""
         return self._exponent
 
     @property
-    def phase_exponent(self) -> Union[float, sympy.Expr]:
+    def phase_exponent(self) -> float | sympy.Expr:
         """The exponent on the Z gates conjugating the X gate."""
         return self._phase_exponent
 
@@ -116,7 +116,7 @@ class PhasedXPowGate(raw_types.Gate):
     def global_shift(self) -> float:
         return self._global_shift
 
-    def __pow__(self, exponent: Union[float, sympy.Expr]) -> PhasedXPowGate:
+    def __pow__(self, exponent: float | sympy.Expr) -> PhasedXPowGate:
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             return NotImplemented  # pragma: no cover
@@ -126,7 +126,7 @@ class PhasedXPowGate(raw_types.Gate):
             global_shift=self._global_shift,
         )
 
-    def _trace_distance_bound_(self) -> Optional[float]:
+    def _trace_distance_bound_(self) -> float | None:
         if self._is_parameterized_():
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
@@ -134,7 +134,7 @@ class PhasedXPowGate(raw_types.Gate):
     def _has_unitary_(self):
         return not self._is_parameterized_()
 
-    def _unitary_(self) -> Optional[Union[np.ndarray, NotImplementedType]]:
+    def _unitary_(self) -> np.ndarray | NotImplementedType | None:
         """See `cirq.SupportsUnitary`."""
         if self._is_parameterized_():
             return None
@@ -243,5 +243,5 @@ class PhasedXPowGate(raw_types.Gate):
     def _value_equality_values_(self):
         return self.phase_exponent, self._canonical_exponent, self._global_shift
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['phase_exponent', 'exponent', 'global_shift'])

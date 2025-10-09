@@ -17,15 +17,16 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import Any, FrozenSet, Mapping, Optional, Tuple, TYPE_CHECKING, Union
-
-from typing_extensions import Protocol
+from typing import Any, Mapping, overload, Protocol, TYPE_CHECKING, TypeVar
 
 from cirq import value
 from cirq._doc import doc_private
 
 if TYPE_CHECKING:
     import cirq
+
+T = TypeVar('T')
+TDefault = TypeVar('TDefault')
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
@@ -72,9 +73,7 @@ class SupportsMeasurementKey(Protocol):
         """
 
     @doc_private
-    def _measurement_key_objs_(
-        self,
-    ) -> Union[FrozenSet[cirq.MeasurementKey], NotImplementedType, None]:
+    def _measurement_key_objs_(self) -> frozenset[cirq.MeasurementKey] | NotImplementedType | None:
         """Return the key objects for measurements performed by the receiving object.
 
         When a measurement occurs, either on hardware, or in a simulation,
@@ -92,7 +91,7 @@ class SupportsMeasurementKey(Protocol):
         """
 
     @doc_private
-    def _measurement_key_names_(self) -> Union[FrozenSet[str], NotImplementedType, None]:
+    def _measurement_key_names_(self) -> frozenset[str] | NotImplementedType | None:
         """Return the string keys for measurements performed by the receiving object.
 
         When a measurement occurs, either on hardware, or in a simulation,
@@ -108,7 +107,17 @@ class SupportsMeasurementKey(Protocol):
         """
 
 
-def measurement_key_obj(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
+@overload
+def measurement_key_obj(val: Any) -> cirq.MeasurementKey:
+    pass
+
+
+@overload
+def measurement_key_obj(val: Any, default: TDefault) -> cirq.MeasurementKey | TDefault:
+    pass
+
+
+def measurement_key_obj(val, default=RaiseTypeErrorIfNotProvided):
     """Get the single measurement key object for the given value.
 
     Args:
@@ -142,7 +151,17 @@ def measurement_key_obj(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
     raise TypeError(f"Object of type '{type(val)}' had no measurement keys.")
 
 
-def measurement_key_name(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
+@overload
+def measurement_key_name(val: Any) -> str:
+    pass
+
+
+@overload
+def measurement_key_name(val: Any, default: TDefault) -> str | TDefault:
+    pass
+
+
+def measurement_key_name(val, default=RaiseTypeErrorIfNotProvided):
     """Get the single measurement key for the given value.
 
     Args:
@@ -178,7 +197,7 @@ def measurement_key_name(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
 
 def _measurement_key_objs_from_magic_methods(
     val: Any,
-) -> Union[FrozenSet[cirq.MeasurementKey], NotImplementedType, None]:
+) -> frozenset[cirq.MeasurementKey] | NotImplementedType | None:
     """Uses the measurement key related magic methods to get the `MeasurementKey`s for this
     object."""
 
@@ -196,7 +215,7 @@ def _measurement_key_objs_from_magic_methods(
 
 def _measurement_key_names_from_magic_methods(
     val: Any,
-) -> Union[FrozenSet[str], NotImplementedType, None]:
+) -> frozenset[str] | NotImplementedType | None:
     """Uses the measurement key related magic methods to get the key strings for this object."""
 
     getter = getattr(val, '_measurement_key_names_', None)
@@ -212,7 +231,7 @@ def _measurement_key_names_from_magic_methods(
     return result
 
 
-def measurement_key_objs(val: Any) -> FrozenSet[cirq.MeasurementKey]:
+def measurement_key_objs(val: Any) -> frozenset[cirq.MeasurementKey]:
     """Gets the measurement key objects of measurements within the given value.
 
     Args:
@@ -231,7 +250,7 @@ def measurement_key_objs(val: Any) -> FrozenSet[cirq.MeasurementKey]:
     return frozenset()
 
 
-def measurement_key_names(val: Any) -> FrozenSet[str]:
+def measurement_key_names(val: Any) -> frozenset[str]:
     """Gets the measurement key strings of measurements within the given value.
 
     Args:
@@ -256,7 +275,7 @@ def measurement_key_names(val: Any) -> FrozenSet[str]:
     return frozenset()
 
 
-def _is_measurement_from_magic_method(val: Any) -> Optional[bool]:
+def _is_measurement_from_magic_method(val: Any) -> bool | None:
     """Uses `is_measurement` magic method to determine if this object is a measurement."""
     getter = getattr(val, '_is_measurement_', None)
     return NotImplemented if getter is None else getter()
@@ -282,7 +301,7 @@ def is_measurement(val: Any) -> bool:
     return keys is not NotImplemented and bool(keys)
 
 
-def with_measurement_key_mapping(val: Any, key_map: Mapping[str, str]):
+def with_measurement_key_mapping(val: T, key_map: Mapping[str, str]) -> T:
     """Remaps the target's measurement keys according to the provided key_map.
 
     This method can be used to reassign measurement keys at runtime, or to
@@ -292,7 +311,7 @@ def with_measurement_key_mapping(val: Any, key_map: Mapping[str, str]):
     return NotImplemented if getter is None else getter(key_map)
 
 
-def with_key_path(val: Any, path: Tuple[str, ...]):
+def with_key_path(val: T, path: tuple[str, ...]) -> T:
     """Adds the path to the target's measurement keys.
 
     The path usually refers to an identifier or a list of identifiers from a subcircuit that
@@ -303,7 +322,7 @@ def with_key_path(val: Any, path: Tuple[str, ...]):
     return NotImplemented if getter is None else getter(path)
 
 
-def with_key_path_prefix(val: Any, prefix: Tuple[str, ...]):
+def with_key_path_prefix(val: T, prefix: tuple[str, ...]) -> T:
     """Prefixes the path to the target's measurement keys.
 
     The path usually refers to an identifier or a list of identifiers from a subcircuit that
@@ -319,8 +338,8 @@ def with_key_path_prefix(val: Any, prefix: Tuple[str, ...]):
 
 
 def with_rescoped_keys(
-    val: Any, path: Tuple[str, ...], bindable_keys: Optional[FrozenSet[cirq.MeasurementKey]] = None
-):
+    val: T, path: tuple[str, ...], bindable_keys: frozenset[cirq.MeasurementKey] | None = None
+) -> T:
     """Rescopes any measurement and control keys to the provided path, given the existing keys.
 
     The path usually refers to an identifier or a list of identifiers from a subcircuit that

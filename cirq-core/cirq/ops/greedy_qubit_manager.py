@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Iterable, List, Set, TYPE_CHECKING
+from typing import Iterable, TYPE_CHECKING
 
 from cirq.ops import named_qubit, qid_util, qubit_manager
 
@@ -51,8 +51,8 @@ class GreedyQubitManager(qubit_manager.QubitManager):
             maximize_reuse: Flag to control a FIFO vs LIFO strategy, defaults to False (FIFO).
         """
         self._prefix = prefix
-        self._used_qubits: Set[cirq.Qid] = set()
-        self._free_qubits: List[cirq.Qid] = []
+        self._used_qubits: set[cirq.Qid] = set()
+        self._free_qubits: list[cirq.Qid] = []
         self._size = 0
         self.maximize_reuse = maximize_reuse
         self.resize(size)
@@ -63,13 +63,13 @@ class GreedyQubitManager(qubit_manager.QubitManager):
     def resize(self, new_size: int, dim: int = 2) -> None:
         if new_size <= self._size:
             return
-        new_qubits: List[cirq.Qid] = [
+        new_qubits: list[cirq.Qid] = [
             self._allocate_qid(f'{self._prefix}_{s}', dim) for s in range(self._size, new_size)
         ]
         self._free_qubits = new_qubits + self._free_qubits
         self._size = new_size
 
-    def qalloc(self, n: int, dim: int = 2) -> List[cirq.Qid]:
+    def qalloc(self, n: int, dim: int = 2) -> list[cirq.Qid]:
         if not n:
             return []
         self.resize(self._size + n - len(self._free_qubits), dim=dim)
@@ -84,5 +84,5 @@ class GreedyQubitManager(qubit_manager.QubitManager):
         self._used_qubits = self._used_qubits.difference(qs)
         self._free_qubits.extend(qs)
 
-    def qborrow(self, n: int, dim: int = 2) -> List[cirq.Qid]:
+    def qborrow(self, n: int, dim: int = 2) -> list[cirq.Qid]:
         return self.qalloc(n, dim)

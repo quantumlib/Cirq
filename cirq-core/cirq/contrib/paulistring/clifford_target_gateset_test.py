@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 import sympy
 
@@ -41,7 +43,7 @@ from cirq.contrib.paulistring.clifford_target_gateset import CliffordTargetGates
         )
     )(cirq.LineQubit(0), cirq.LineQubit(1)),
 )
-def test_converts_various_ops(op, expected_ops):
+def test_converts_various_ops(op, expected_ops) -> None:
     before = cirq.Circuit(op)
     expected = cirq.Circuit(expected_ops, strategy=cirq.InsertStrategy.EARLIEST)
     after = cirq.optimize_for_target_gateset(
@@ -58,7 +60,7 @@ def test_converts_various_ops(op, expected_ops):
     )
 
 
-def test_degenerate_single_qubit_decompose():
+def test_degenerate_single_qubit_decompose() -> None:
     q0 = cirq.LineQubit(0)
 
     before = cirq.Circuit(cirq.Z(q0) ** 0.1, cirq.X(q0) ** 1.0000000001, cirq.Z(q0) ** 0.1)
@@ -72,7 +74,7 @@ def test_degenerate_single_qubit_decompose():
     cirq.testing.assert_allclose_up_to_global_phase(after.unitary(), expected.unitary(), atol=1e-7)
 
 
-def test_converts_single_qubit_series():
+def test_converts_single_qubit_series() -> None:
     q0 = cirq.LineQubit(0)
 
     before = cirq.Circuit(
@@ -96,7 +98,7 @@ def test_converts_single_qubit_series():
     cirq.testing.assert_allclose_up_to_global_phase(before.unitary(), after.unitary(), atol=1e-7)
 
 
-def test_converts_single_qubit_then_two():
+def test_converts_single_qubit_then_two() -> None:
     q0, q1 = cirq.LineQubit.range(2)
 
     before = cirq.Circuit(cirq.X(q0), cirq.Y(q0), cirq.CZ(q0, q1))
@@ -107,7 +109,7 @@ def test_converts_single_qubit_then_two():
     cirq.testing.assert_allclose_up_to_global_phase(before.unitary(), after.unitary(), atol=1e-7)
 
 
-def test_converts_large_circuit():
+def test_converts_large_circuit() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
 
     before = cirq.Circuit(
@@ -147,7 +149,7 @@ def test_converts_large_circuit():
     )
 
 
-def test_convert_to_pauli_string_phasors():
+def test_convert_to_pauli_string_phasors() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     c_orig = cirq.Circuit(cirq.X(q0), cirq.Y(q1) ** 0.25, cirq.Z(q0) ** 0.125, cirq.H(q1))
     c_new = cirq.optimize_for_target_gateset(
@@ -168,7 +170,7 @@ def test_convert_to_pauli_string_phasors():
     )
 
 
-def test_already_converted():
+def test_already_converted() -> None:
     q0 = cirq.LineQubit(0)
     c_orig = cirq.Circuit(cirq.PauliStringPhasor(cirq.X.on(q0)))
     c_new = cirq.optimize_for_target_gateset(
@@ -181,7 +183,7 @@ def test_already_converted():
     assert c_new == c_orig
 
 
-def test_ignore_unsupported_gate():
+def test_ignore_unsupported_gate() -> None:
     class UnsupportedGate(cirq.testing.TwoQubitGate):
         pass
 
@@ -193,7 +195,7 @@ def test_ignore_unsupported_gate():
     assert c_new == c_orig
 
 
-def test_fail_unsupported_gate():
+def test_fail_unsupported_gate() -> None:
     class UnsupportedGate(cirq.testing.TwoQubitGate):
         pass
 
@@ -205,7 +207,7 @@ def test_fail_unsupported_gate():
         )
 
 
-def test_convert_to_single_qubit_cliffords():
+def test_convert_to_single_qubit_cliffords() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     c_orig = cirq.Circuit(
         cirq.X(q0), cirq.Y(q1) ** 0.5, cirq.Z(q0) ** -0.5, cirq.Z(q1) ** 0, cirq.H(q0)
@@ -232,7 +234,7 @@ def test_convert_to_single_qubit_cliffords():
     )
 
 
-def test_convert_to_single_qubit_cliffords_ignores_non_clifford():
+def test_convert_to_single_qubit_cliffords_ignores_non_clifford() -> None:
     q0 = cirq.LineQubit(0)
     c_orig = cirq.Circuit(cirq.Z(q0) ** 0.25)
     c_new = cirq.optimize_for_target_gateset(
