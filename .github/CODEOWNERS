@@ -8,7 +8,7 @@
 # vendor maintainers
 ####################
 
-cirq-google/**/*.* @wcourtney @quantumlib/cirq-maintainers @vtomole @verult
+cirq-google/**/*.* @wcourtney @quantumlib/cirq-maintainers @vtomole @verult @hoisinberg
 
 cirq-ionq/**/*.* @dabacon @ColemanCollins @nakardo @gmauricio @Cynocracy @quantumlib/cirq-maintainers @vtomole @splch
 
