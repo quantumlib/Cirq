@@ -9,33 +9,38 @@ const common = {
     rollupOptions: {
       output: {
         inlineDynamicImports: true,
-        format: 'iife',
+        formats: ['iife'],
       },
     },
   },
 };
 
-export default [
-  defineConfig({
-    build: {
-      ...common.build,
-      lib: {
-        entry: 'src/bloch_sphere/main.ts',
-        formats: ['iife'],
-        name: 'BlochSphereBundle',
-        fileName: () => 'bloch_sphere.bundle.js',
+export default defineConfig(({mode}) => {
+  if (mode === 'bloch_sphere') {
+    return {
+      build: {
+        ...common.build,
+        lib: {
+          entry: 'src/bloch_sphere/main.ts',
+          formats: ['iife'],
+          name: 'BlochSphereBundle',
+          fileName: () => 'bloch_sphere.bundle.js',
+        },
       },
-    },
-  }),
-  defineConfig({
-    build: {
-      ...common.build,
-      lib: {
-        entry: 'src/circuit/main.ts',
-        formats: ['iife'],
-        name: 'CircuitBundle',
-        fileName: () => 'circuit.bundle.js',
+    };
+  }
+
+  if (mode === 'circuit') {
+    return {
+      build: {
+        ...common.build,
+        lib: {
+          entry: 'src/circuit/main.ts',
+          formats: ['iife'],
+          name: 'CircuitBundle',
+          fileName: () => 'circuit.bundle.js',
+        },
       },
-    },
-  }),
-];
+    };
+  }
+});
