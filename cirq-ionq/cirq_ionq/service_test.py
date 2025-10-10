@@ -209,8 +209,8 @@ def test_service_list_calibrations():
     calibrations = [{'id': '1', 'qubits': '1'}, {'id': '2', 'qubits': 2}]
     mock_client.list_calibrations.return_value = calibrations
     service._client = mock_client
-    start = datetime.datetime.utcfromtimestamp(1284286794)
-    end = datetime.datetime.utcfromtimestamp(1284286795)
+    start = datetime.datetime.fromtimestamp(1284286794, datetime.UTC)
+    end = datetime.datetime.fromtimestamp(1284286795, datetime.UTC)
 
     listed_calibrations = service.list_calibrations(start=start, end=end, limit=10, batch_size=2)
     assert listed_calibrations[0].num_qubits() == 1

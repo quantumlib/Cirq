@@ -259,6 +259,7 @@ def test_kak_plot_empty() -> None:
 )
 def test_kak_decomposition(target) -> None:
     kak = cirq.kak_decomposition(target)
+    assert cirq.has_unitary(kak)
     np.testing.assert_allclose(cirq.unitary(kak), target, atol=1e-8)
 
 

@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import TYPE_CHECKING
+from typing import Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -114,7 +114,7 @@ def _ccnot_congruent(c0: cirq.Qid, c1: cirq.Qid, target: cirq.Qid) -> list[cirq.
 
 
 def decompose_multi_controlled_x(
-    controls: list[cirq.Qid], target: cirq.Qid, free_qubits: list[cirq.Qid]
+    controls: Sequence[cirq.Qid], target: cirq.Qid, free_qubits: Sequence[cirq.Qid]
 ) -> list[cirq.Operation]:
     """Implements action of multi-controlled Pauli X gate.
 
@@ -152,11 +152,11 @@ def decompose_multi_controlled_x(
     elif len(free_qubits) >= 1:
         # See [1], Lemma 7.3.
         m1 = n // 2
-        free1 = controls[m1:] + [target] + free_qubits[1:]
+        free1 = [*controls[m1:], target, *free_qubits[1:]]
         ctrl1 = controls[:m1]
         part1 = decompose_multi_controlled_x(ctrl1, free_qubits[0], free1)
-        free2 = controls[:m1] + free_qubits[1:]
-        ctrl2 = controls[m1:] + [free_qubits[0]]
+        free2 = [*controls[:m1], *free_qubits[1:]]
+        ctrl2 = [*controls[m1:], free_qubits[0]]
         part2 = decompose_multi_controlled_x(ctrl2, target, free2)
         return [*part1, *part2, *part1, *part2]
     else:
@@ -167,7 +167,7 @@ def decompose_multi_controlled_x(
 
 
 def _decompose_su(
-    matrix: np.ndarray, controls: list[cirq.Qid], target: cirq.Qid
+    matrix: np.ndarray, controls: Sequence[cirq.Qid], target: cirq.Qid
 ) -> list[cirq.Operation]:
     """Decomposes controlled special unitary gate into elementary gates.
 
@@ -193,9 +193,9 @@ def _decompose_su(
 def _decompose_recursive(
     matrix: np.ndarray,
     power: float,
-    controls: list[cirq.Qid],
+    controls: Sequence[cirq.Qid],
     target: cirq.Qid,
-    free_qubits: list[cirq.Qid],
+    free_qubits: Sequence[cirq.Qid],
 ) -> list[cirq.Operation]:
     """Decomposes controlled unitary gate into elementary gates.
 
@@ -205,20 +205,20 @@ def _decompose_recursive(
     if len(controls) == 1:
         return _decompose_single_ctrl(_unitary_power(matrix, power), controls[0], target)
 
-    cnots = decompose_multi_controlled_x(controls[:-1], controls[-1], free_qubits + [target])
+    cnots = decompose_multi_controlled_x(controls[:-1], controls[-1], [*free_qubits, target])
     return [
         *_decompose_single_ctrl(_unitary_power(matrix, 0.5 * power), controls[-1], target),
         *cnots,
         *_decompose_single_ctrl(_unitary_power(matrix, -0.5 * power), controls[-1], target),
         *cnots,
         *_decompose_recursive(
-            matrix, 0.5 * power, controls[:-1], target, [controls[-1]] + free_qubits
+            matrix, 0.5 * power, controls[:-1], target, [controls[-1], *free_qubits]
         ),
     ]
 
 
 def decompose_multi_controlled_rotation(
-    matrix: np.ndarray, controls: list[cirq.Qid], target: cirq.Qid
+    matrix: np.ndarray, controls: Sequence[cirq.Qid], target: cirq.Qid
 ) -> list[cirq.Operation]:
     """Implements action of multi-controlled unitary gate.
 
