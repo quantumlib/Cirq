@@ -28,7 +28,7 @@
     "three": "^0.179.1",
     "ts-mock-imports": "^1.3.7",
     "typescript": "^5.7.3",
-    "vite": "^5.4.0",
+    "vite": "^7.1.9",
     "vitest": "^2.1.1"
   },
   "scripts": {
