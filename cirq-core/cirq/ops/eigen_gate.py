@@ -346,7 +346,7 @@ class EigenGate(raw_types.Gate):
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> EigenGate:
         exponent = resolver.value_of(self._exponent, recursive)
-        if isinstance(exponent, numbers.Complex):
+        if not isinstance(exponent, float) and isinstance(exponent, numbers.Complex):
             if isinstance(exponent, numbers.Real):
                 exponent = float(exponent)
             else:

@@ -176,12 +176,12 @@ class PhasedXPowGate(raw_types.Gate):
         """See `cirq.SupportsParameterization`."""
         phase_exponent = resolver.value_of(self._phase_exponent, recursive)
         exponent = resolver.value_of(self._exponent, recursive)
-        if isinstance(phase_exponent, numbers.Complex):
+        if not isinstance(phase_exponent, float) and isinstance(phase_exponent, numbers.Complex):
             if isinstance(phase_exponent, numbers.Real):
                 phase_exponent = float(phase_exponent)
             else:
                 raise ValueError(f'PhasedXPowGate does not support complex value {phase_exponent}')
-        if isinstance(exponent, numbers.Complex):
+        if not isinstance(exponent, float) and isinstance(exponent, numbers.Complex):
             if isinstance(exponent, numbers.Real):
                 exponent = float(exponent)
             else:
