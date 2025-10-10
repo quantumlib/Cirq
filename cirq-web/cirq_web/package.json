@@ -32,7 +32,7 @@
     "vitest": "^2.1.1"
   },
   "scripts": {
-    "build": "vite build",
+    "build": "vite build --mode bloch_sphere && vite build --mode circuit",
     "test": "vitest --run",
     "coverage": "vitest --run --coverage && rm -rf coverage/",
     "test-e2e": "vitest --run --config vitest.e2e.config.ts",
