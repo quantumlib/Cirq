@@ -32,8 +32,8 @@ docs/**/*.* @aasfaw @rmlarose @quantumlib/cirq-maintainers @vtomole
 # vendor docs maintainers: vendor maintainers + @aasfaw + @rmlarose
 ###################################################################
 
-docs/google/**/*.* @wcourtney @aasfaw @rmlarose @quantumlib/cirq-maintainers @vtomole @verult
-docs/tutorials/google/**/*.* @wcourtney @aasfaw @rmlarose @quantumlib/cirq-maintainers @vtomole @verult
+docs/google/**/*.* @wcourtney @aasfaw @rmlarose @quantumlib/cirq-maintainers @vtomole @verult @hoisinberg
+docs/tutorials/google/**/*.* @wcourtney @aasfaw @rmlarose @quantumlib/cirq-maintainers @vtomole @verult @hoisinberg
 
 docs/hardware/ionq/**/*.* @dabacon @ColemanCollins @nakardo @gmauricio @aasfaw @rmlarose @Cynocracy @quantumlib/cirq-maintainers @vtomole @splch
 
