@@ -43,7 +43,7 @@ INVALID_INITIAL_STATES = [
 @pytest.mark.parametrize('allow_partial_czs', [True, False])
 def test_two_qubit_matrix_to_cz_isometry(
     initial_state, is_valid, unitary_matrix, allow_partial_czs
-):
+) -> None:
     a, b, c = cirq.LineQubit.range(3)
     decomposed_ops = cirq.two_qubit_matrix_to_cz_isometry(
         a, b, unitary_matrix, allow_partial_czs=allow_partial_czs

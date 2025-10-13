@@ -21,7 +21,7 @@
 #     check/ts-build-changes
 ################################################################################
 
-check/ts-build 
+check/ts-build || exit $?
 
 # Find the changed bundle.js files, if any
 untracked=$(git diff --name-only HEAD -- "*.bundle.js" "*.bundle.js.*txt")
