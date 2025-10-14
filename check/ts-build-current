@@ -21,18 +21,43 @@
 #     check/ts-build-changes
 ################################################################################
 
-check/ts-build || exit $?
+set -o errexit
+set -o nounset
 
-# Find the changed bundle.js files, if any
-untracked=$(git diff --name-only HEAD -- "*.bundle.js" "*.bundle.js.*txt")
+thisdir=$(dirname "${BASH_SOURCE[0]:?}")
+repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel)
+cd "${repo_dir}"
 
-if [[ -n "$untracked" ]]; then
-    echo -e "\033[31mERROR: Uncommitted changes to bundle file(s) found! Please commit these files:\033[0m"
-    for generated in $untracked
-    do
-        echo -e "\033[31m ${generated}\033[0m"
-    done
-    exit 1
+git_status=$(git status --short)
+if [[ -n "${git_status}" ]]; then
+    echo "$0 requires a pristine worktree, but 'git status' shows"
+    echo "some changes or untracked files."
+    echo
+    echo "Please commit or clean these up to try again."
+    exit 2
 fi
 
-exit 0
+echo "Removing generated bundle files.  If not restored by this script use"
+echo 'git restore "*.bundle.js"    to recover them back.'
+echo
+
+git rm --quiet "cirq-web/*.bundle.js"
+# restore deleted files in git index
+git reset --quiet
+
+echo "Building JavaScript bundle files"
+echo
+
+check/ts-build
+
+git_status=$(git status --short)
+if [[ -n "${git_status}" ]]; then
+    echo
+    echo -e "\033[31mERROR: check/ts-build changed generated files!\033[0m"
+    echo -e "\033[31mPlease update and commit these files using check/ts-build\033[0m"
+    echo
+    echo "Output of 'git status':"
+    echo
+    git status
+    exit 1
+fi
