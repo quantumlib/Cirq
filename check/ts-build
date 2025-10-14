@@ -21,10 +21,13 @@
 #     check/ts-build
 ################################################################################
 
-# Get the working directory to the repo root.
-thisdir=$(dirname "${BASH_SOURCE[0]:?}") || exit $?
-repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel) || exit $?
-cd "${repo_dir}" || exit $?
+set -o errexit
+set -o nounset
 
-check/npx vite build --mode bloch_sphere "$@" || exit $?
-check/npx vite build --mode circuit "$@" || exit $?
+# Get the working directory to the repo root.
+thisdir=$(dirname "${BASH_SOURCE[0]:?}")
+repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel)
+cd "${repo_dir}"
+
+check/npx vite build --mode bloch_sphere "$@"
+check/npx vite build --mode circuit "$@"
