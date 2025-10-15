@@ -196,10 +196,14 @@ def measurement_key_name(val, default=RaiseTypeErrorIfNotProvided):
 
 
 def _measurement_key_objs_from_magic_methods(
-    val: Any,
+    val: Any, _skip_property_check=False
 ) -> frozenset[cirq.MeasurementKey] | NotImplementedType | None:
     """Uses the measurement key related magic methods to get the `MeasurementKey`s for this
     object."""
+    if not _skip_property_check:
+        attr = getattr(val, 'measurement_keys', None)
+        if attr is not None:
+            return attr
 
     getter = getattr(val, '_measurement_key_objs_', None)
     result = NotImplemented if getter is None else getter()
@@ -231,7 +235,7 @@ def _measurement_key_names_from_magic_methods(
     return result
 
 
-def measurement_key_objs(val: Any) -> frozenset[cirq.MeasurementKey]:
+def measurement_key_objs(val: Any, _skip_property_check=False) -> frozenset[cirq.MeasurementKey]:
     """Gets the measurement key objects of measurements within the given value.
 
     Args:
@@ -241,7 +245,7 @@ def measurement_key_objs(val: Any) -> frozenset[cirq.MeasurementKey]:
         The measurement key objects of the value. If the value has no measurement,
         the result is the empty set.
     """
-    result = _measurement_key_objs_from_magic_methods(val)
+    result = _measurement_key_objs_from_magic_methods(val, _skip_property_check)
     if result is not NotImplemented and result is not None:
         return result
     key_strings = _measurement_key_names_from_magic_methods(val)
