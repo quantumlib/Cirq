@@ -346,9 +346,9 @@ class EigenGate(raw_types.Gate):
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> EigenGate:
         exponent = resolver.value_of(self._exponent, recursive)
-        # Note that int/float checking is done first,
+        # Note that int/float checking is purposely done first,
         # since numbers instance checking is somewhat slow.
-        if isinstance(exponent, (int, float)) or isinstance(exponent, numbers.Real):
+        if isinstance(exponent, (int, float)) or isinstance(exponent, numbers.Real):  # noqa: SIM101
             exponent = float(exponent)
         elif isinstance(exponent, numbers.Complex):
             raise ValueError(f'Complex exponent {exponent} not supported for EigenGate')
