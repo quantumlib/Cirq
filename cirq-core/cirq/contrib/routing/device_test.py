@@ -22,33 +22,35 @@ import cirq.contrib.routing as ccr
 
 
 @pytest.mark.parametrize('n_qubits', (2, 5, 11))
-def test_get_linear_device_graph(n_qubits):
+def test_get_linear_device_graph(n_qubits) -> None:
     graph = ccr.get_linear_device_graph(n_qubits)
     assert sorted(graph) == cirq.LineQubit.range(n_qubits)
     assert len(graph.edges()) == n_qubits - 1
     assert all(abs(a.x - b.x) == 1 for a, b in graph.edges())
 
 
-def test_nx_qubit_layout():
+def test_nx_qubit_layout() -> None:
     grid_qubit_graph = ccr.gridqubits_to_graph_device(cirq.GridQubit.rect(5, 5))
     pos = ccr.nx_qubit_layout(grid_qubit_graph)
     assert len(pos) == len(grid_qubit_graph)
     for k, (x, y) in pos.items():
+        assert isinstance(k, cirq.GridQubit)
         assert x == k.col
         assert y == -k.row
 
 
-def test_nx_qubit_layout_2():
+def test_nx_qubit_layout_2() -> None:
     g = nx.from_edgelist(
         [(cirq.LineQubit(0), cirq.LineQubit(1)), (cirq.LineQubit(1), cirq.LineQubit(2))]
     )
     pos = ccr.nx_qubit_layout(g)
     for k, (x, y) in pos.items():
+        assert isinstance(k, cirq.LineQubit)
         assert x == k.x
         assert y == 0.5
 
 
-def test_nx_qubit_layout_3():
+def test_nx_qubit_layout_3() -> None:
     g = nx.from_edgelist(
         [(cirq.NamedQubit('a'), cirq.NamedQubit('b')), (cirq.NamedQubit('b'), cirq.NamedQubit('c'))]
     )
@@ -57,4 +59,4 @@ def test_nx_qubit_layout_3():
     pos = ccr.nx_qubit_layout(g)
     for k, (x, y) in pos.items():
         assert x == 0.5
-        assert y == node_to_i[k] + 1
+        assert y == node_to_i[k] + 1  # type: ignore[index]

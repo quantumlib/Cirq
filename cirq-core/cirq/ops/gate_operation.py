@@ -19,9 +19,17 @@ from __future__ import annotations
 import re
 import warnings
 from types import NotImplementedType
-from typing import AbstractSet, Any, cast, Collection, Mapping, Sequence, TYPE_CHECKING, TypeVar
-
-from typing_extensions import Self
+from typing import (
+    AbstractSet,
+    Any,
+    cast,
+    Collection,
+    Mapping,
+    Self,
+    Sequence,
+    TYPE_CHECKING,
+    TypeVar,
+)
 
 from cirq import ops, protocols, value
 from cirq.ops import control_values as cv, gate_features, raw_types
@@ -148,14 +156,9 @@ class GateOperation(raw_types.Operation):
     def _num_qubits_(self):
         return len(self._qubits)
 
-    def _decompose_(self) -> cirq.OP_TREE:
-        return self._decompose_with_context_()
-
-    def _decompose_with_context_(
-        self, context: cirq.DecompositionContext | None = None
-    ) -> cirq.OP_TREE:
+    def _decompose_with_context_(self, *, context: cirq.DecompositionContext) -> cirq.OP_TREE:
         return protocols.decompose_once_with_qubits(
-            self.gate, self.qubits, NotImplemented, flatten=False, context=context
+            self.gate, self.qubits, None, flatten=False, context=context
         )
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
@@ -327,6 +330,21 @@ class GateOperation(raw_types.Operation):
 
     def __rmul__(self, other: Any) -> Any:
         return self.gate._rmul_with_qubits(self._qubits, other)
+
+    def __add__(self, other):
+        return 1 * self + other
+
+    def __radd__(self, other):
+        return other + 1 * self
+
+    def __sub__(self, other):
+        return 1 * self - other
+
+    def __rsub__(self, other):
+        return other + -self
+
+    def __neg__(self):
+        return -1 * self
 
     def _qasm_(self, args: protocols.QasmArgs) -> str | None:
         if isinstance(self.gate, ops.GlobalPhaseGate):

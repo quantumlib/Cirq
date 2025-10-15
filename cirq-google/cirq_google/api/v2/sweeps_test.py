@@ -27,7 +27,7 @@ import tunits
 import cirq
 from cirq.study import sweeps
 from cirq_google.api import v2
-from cirq_google.study import DeviceParameter, Metadata
+from cirq_google.study import DeviceParameter, FiniteRandomVariable, Metadata
 
 
 class UnknownSweep(sweeps.SingleSweep):
@@ -109,6 +109,24 @@ class UnknownSweep(sweeps.SingleSweep):
             + cirq.Points('c', ["abc"]) * cirq.Points("d", [1, 2, 3, 4])  # type: ignore[list-item]
         ),
         cirq.Concat(cirq.Points('a', [1.0, 2.0, 3.0]), cirq.Points('a', [4.0])),
+        FiniteRandomVariable('r', {0: 0.25, 0.5: 0.5, 1: 0.25}, 100, 42),
+        FiniteRandomVariable(
+            'r',
+            {0.0: 0.25, 0.5: 0.5, 1.0: 0.25},
+            200,
+            999,
+            metadata=DeviceParameter(path=['path', 'to', 'parameter'], idx=4, units='ns'),
+        ),
+        FiniteRandomVariable(
+            'r',
+            {0.0: 0.25, 0.5: 0.5, 1.0: 0.25},
+            200,
+            999,
+            metadata=Metadata(
+                device_parameters=[DeviceParameter(path=['path', 'to', 'parameter'], idx=2)],
+                label="bb",
+            ),
+        ),
     ],
 )
 def test_sweep_to_proto_roundtrip(sweep):
@@ -146,7 +164,9 @@ def test_sweep_to_proto_linspace():
 
 @pytest.mark.parametrize("val", [None, 1, 1.5, 's'])
 def test_build_recover_const(val):
-    val2 = v2.sweeps._recover_sweep_const(v2.sweeps._build_sweep_const(val))
+    sweep = v2.run_context_pb2.SingleSweep()
+    v2.sweeps._add_sweep_const(sweep, val)
+    val2 = v2.sweeps._recover_sweep_const(sweep.const_value)
     if isinstance(val, float):
         assert math.isclose(val, val2)  # avoid the floating precision issue.
     else:
@@ -161,7 +181,7 @@ def test_build_covert_const_double():
 
 def test_build_const_unsupported_type():
     with pytest.raises(ValueError, match='Unsupported type for serializing const sweep'):
-        v2.sweeps._build_sweep_const((1, 2))
+        v2.sweeps._add_sweep_const(v2.run_context_pb2.SingleSweep(), (1, 2))
 
 
 def test_list_sweep_bad_expression():
@@ -455,3 +475,41 @@ def test_tunits_round_trip(sweep, use_float64):
 def test_const_sweep_with_numpy_types_roundtrip(value):
     sweep = cirq.Points('const', [value])
     assert v2.sweep_from_proto(v2.sweep_to_proto(sweep)) == sweep
+
+
+@pytest.mark.parametrize(
+    'sweepable', [{'a': 4}, {'a': 2, 'b': 8}, [{'a': 1, 'b': 2}, {'a': 3, 'b': 4}]]
+)
+@pytest.mark.parametrize('use_resolver', [True, False])
+def test_run_context_to_proto_sweepable(sweepable: cirq.Sweepable, use_resolver: bool) -> None:
+    """Sweepable objects are accepted by run_context_to_proto.
+
+    These, like lists of dictionaries and ParamResolvers should be
+    converted to sweeps by the serializer.
+
+    This test ensures that the sweepable is serialized the same
+    as the corresponding sweep.
+    """
+    if use_resolver:
+        if isinstance(sweepable, list):
+            sweepable = [cirq.ParamResolver(element) for element in sweepable]
+        else:
+            assert isinstance(sweepable, dict)
+            sweepable = cirq.ParamResolver(sweepable)
+
+    # Previous behavior: convert sweepable to sweep
+    sweeps = cirq.to_sweeps(sweepable)
+    expected_sweep = v2.run_context_pb2.RunContext()
+    for sweep in sweeps:
+        sweep_proto = expected_sweep.parameter_sweeps.add()
+        sweep_proto.repetitions = 1000
+        v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
+
+    # New behavior: directly convert sweepable to proto
+    actual_sweep = v2.run_context_to_proto(sweepable, 1000, compress_proto=False)
+    assert expected_sweep == actual_sweep
+
+
+def test_invalid_sweepable_raises() -> None:
+    with pytest.raises(TypeError):
+        _ = v2.run_context_to_proto(cirq.X, 1000, compress_proto=False)  # type: ignore[arg-type]

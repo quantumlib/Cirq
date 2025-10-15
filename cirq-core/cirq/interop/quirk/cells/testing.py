@@ -28,7 +28,7 @@ def assert_url_to_circuit_returns(
     diagram: str | None = None,
     output_amplitudes_from_quirk: list[dict[str, float]] | None = None,
     maps: dict[int, int] | None = None,
-):
+) -> None:
     """Assert that `quirk_url_to_circuit` functions correctly.
 
     Args:

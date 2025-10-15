@@ -53,7 +53,7 @@ class ControlCell(Cell):
             ),
         )
 
-    def modify_column(self, column: list[Cell | None]):
+    def modify_column(self, column: list[Cell | None]) -> None:
         for i in range(len(column)):
             gate = column[i]
             if gate is not None:
@@ -97,7 +97,7 @@ class ParityControlCell(Cell):
             ),
         )
 
-    def modify_column(self, column: list[Cell | None]):
+    def modify_column(self, column: list[Cell | None]) -> None:
         for i in range(len(column)):
             gate = column[i]
             if gate is self:

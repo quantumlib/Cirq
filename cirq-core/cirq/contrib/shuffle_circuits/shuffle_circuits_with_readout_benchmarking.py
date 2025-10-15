@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import time
-from typing import Optional, Sequence, TYPE_CHECKING
+from typing import Sequence, TYPE_CHECKING
 
 import attrs
 import numpy as np
@@ -64,7 +64,7 @@ class ReadoutBenchmarkingParams:
 def _validate_experiment_input(
     input_circuits: Sequence[circuits.Circuit],
     circuit_repetitions: int | list[int],
-    rng_or_seed: Optional[np.random.Generator | int] = None,
+    rng_or_seed: np.random.Generator | int | None = None,
 ):
     if not input_circuits:
         raise ValueError("Input circuits must not be empty.")
@@ -84,7 +84,7 @@ def _validate_experiment_input_with_sweep(
     input_circuits: Sequence[circuits.Circuit],
     sweep_params: Sequence[study.Sweepable],
     circuit_repetitions: int | list[int],
-    rng_or_seed: Optional[np.random.Generator | int] = None,
+    rng_or_seed: np.random.Generator | int | None = None,
 ):
     """Validates the input for the run_sweep_with_readout_benchmarking function."""
     if not sweep_params:
@@ -105,7 +105,7 @@ def _generate_readout_calibration_circuits(
         readout_calibration_circuits.append(
             circuits.Circuit(
                 [bit_to_gate[bit](qubit) for bit, qubit in zip(bitstr, qubits)]
-                + [ops.M(qubits, key="m")]
+                + [ops.M(qubits, key="result")]
             )
         )
     return readout_calibration_circuits, random_bitstrings
@@ -137,11 +137,12 @@ def _generate_parameterized_readout_calibration_circuit_with_sweep(
 
     exp_symbols = [sympy.Symbol(f'exp_{qubit}') for qubit in qubits]
     parameterized_readout_calibration_circuit = circuits.Circuit(
-        [ops.X(qubit) ** exp for exp, qubit in zip(exp_symbols, qubits)], ops.M(*qubits, key="m")
+        [ops.X(qubit) ** exp for exp, qubit in zip(exp_symbols, qubits)],
+        ops.M(*qubits, key="result"),
     )
     sweep_params = []
     for bitstr in random_bitstrings:
-        sweep_params.append({exp: bit for exp, bit in zip(exp_symbols, bitstr)})
+        sweep_params.append({str(exp): bit for exp, bit in zip(exp_symbols, bitstr)})
 
     return parameterized_readout_calibration_circuit, sweep_params, random_bitstrings
 
@@ -183,7 +184,7 @@ def _generate_all_readout_calibration_circuits(
 
 def _determine_qubits_to_measure(
     input_circuits: Sequence[circuits.Circuit],
-    qubits: Optional[Sequence[ops.Qid] | Sequence[Sequence[ops.Qid]]],
+    qubits: Sequence[ops.Qid] | Sequence[Sequence[ops.Qid]] | None,
 ) -> list[list[ops.Qid]]:
     """Determine the qubits to measure based on the input circuits and provided qubits."""
     # If input qubits is None, extract qubits from input circuits
@@ -280,7 +281,7 @@ def run_shuffled_with_readout_benchmarking(
     rng_or_seed: np.random.Generator | int,
     num_random_bitstrings: int = 100,
     readout_repetitions: int = 1000,
-    qubits: Optional[Sequence[ops.Qid] | Sequence[Sequence[ops.Qid]]] = None,
+    qubits: Sequence[ops.Qid] | Sequence[Sequence[ops.Qid]] | None = None,
 ) -> tuple[Sequence[ResultDict], dict[tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult]]:
     """Run the circuits in a shuffled order with readout error benchmarking.
 
@@ -373,8 +374,8 @@ def run_shuffled_circuits_with_readout_benchmarking(
     sampler: work.Sampler,
     input_circuits: list[circuits.Circuit],
     parameters: ReadoutBenchmarkingParams,
-    qubits: Optional[Sequence[ops.Qid] | Sequence[Sequence[ops.Qid]]] = None,
-    rng_or_seed: Optional[np.random.Generator | int] = None,
+    qubits: Sequence[ops.Qid] | Sequence[Sequence[ops.Qid]] | None = None,
+    rng_or_seed: np.random.Generator | int | None = None,
 ) -> tuple[Sequence[ResultDict], dict[tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult]]:
     """Run the circuits in a shuffled order with readout error benchmarking.
 
@@ -458,8 +459,8 @@ def run_sweep_with_readout_benchmarking(
     input_circuits: list[circuits.Circuit],
     sweep_params: Sequence[study.Sweepable],
     parameters: ReadoutBenchmarkingParams,
-    qubits: Optional[Sequence[ops.Qid] | Sequence[Sequence[ops.Qid]]] = None,
-    rng_or_seed: Optional[np.random.Generator | int] = None,
+    qubits: Sequence[ops.Qid] | Sequence[Sequence[ops.Qid]] | None = None,
+    rng_or_seed: np.random.Generator | int | None = None,
 ) -> tuple[
     Sequence[Sequence[study.Result]], dict[tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult]
 ]:

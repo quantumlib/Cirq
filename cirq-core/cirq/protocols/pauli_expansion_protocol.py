@@ -16,9 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Any, TypeVar
-
-from typing_extensions import Protocol
+from typing import Any, Protocol, TypeVar
 
 from cirq import value
 from cirq._doc import doc_private

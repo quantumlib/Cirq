@@ -17,9 +17,7 @@ from __future__ import annotations
 import abc
 import functools
 import weakref
-from typing import Any, Iterable, Sequence, TYPE_CHECKING
-
-from typing_extensions import Self
+from typing import Any, Iterable, Self, Sequence, TYPE_CHECKING
 
 from cirq import ops, protocols
 

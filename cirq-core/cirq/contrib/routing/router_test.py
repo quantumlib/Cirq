@@ -14,7 +14,6 @@
 
 from __future__ import annotations
 
-import itertools
 import random
 
 import numpy as np
@@ -25,7 +24,7 @@ import cirq.contrib.acquaintance as cca
 import cirq.contrib.routing as ccr
 
 
-def random_seed():
+def random_seed() -> int:
     return random.randint(0, 2**32)
 
 
@@ -35,7 +34,7 @@ def random_seed():
     + [(0, 'greedy', random_seed(), random_seed())]
     + [(10, 'greedy', random_seed(), None)],
 )
-def test_route_circuit(n_moments, algo, circuit_seed, routing_seed):
+def test_route_circuit(n_moments, algo, circuit_seed, routing_seed) -> None:
     circuit = cirq.testing.random_circuit(10, n_moments, 0.5, random_state=circuit_seed)
     device_graph = ccr.get_grid_device_graph(4, 3)
     swap_network = ccr.route_circuit(
@@ -52,15 +51,15 @@ def test_route_circuit(n_moments, algo, circuit_seed, routing_seed):
 @pytest.mark.parametrize(
     'algo,seed', [(algo, random_seed()) for algo in ccr.ROUTERS for _ in range(3)]
 )
-def test_route_circuit_reproducible_with_seed(algo, seed):
+def test_route_circuit_reproducible_with_seed(algo, seed) -> None:
     circuit = cirq.testing.random_circuit(8, 20, 0.5, random_state=seed)
     device_graph = ccr.get_grid_device_graph(4, 3)
-    wrappers = (lambda s: s, np.random.RandomState)
+    random_states = [seed, seed, seed] + [np.random.RandomState(seed) for _ in range(3)]
 
     swap_networks = []
-    for wrapper, _ in itertools.product(wrappers, range(3)):
+    for random_state in random_states:
         swap_network = ccr.route_circuit(
-            circuit, device_graph, algo_name=algo, random_state=wrapper(seed)
+            circuit, device_graph, algo_name=algo, random_state=random_state
         )
         swap_networks.append(swap_network)
 
@@ -69,7 +68,7 @@ def test_route_circuit_reproducible_with_seed(algo, seed):
 
 
 @pytest.mark.parametrize('algo', ccr.ROUTERS.keys())
-def test_route_circuit_reproducible_between_runs(algo):
+def test_route_circuit_reproducible_between_runs(algo) -> None:
     seed = 23
     circuit = cirq.testing.random_circuit(6, 5, 0.5, random_state=seed)
     device_graph = ccr.get_grid_device_graph(2, 3)
@@ -106,7 +105,7 @@ def test_route_circuit_reproducible_between_runs(algo):
     ]
     + [(0, 'greedy', random_seed(), False)],
 )
-def test_route_circuit_via_unitaries(n_moments, algo, seed, make_bad):
+def test_route_circuit_via_unitaries(n_moments, algo, seed, make_bad) -> None:
     circuit = cirq.testing.random_circuit(4, n_moments, 0.5, random_state=seed)
     device_graph = ccr.get_grid_device_graph(3, 2)
 
@@ -132,7 +131,7 @@ def test_route_circuit_via_unitaries(n_moments, algo, seed, make_bad):
     assert np.allclose(physical_unitary, logical_unitary) == (not make_bad)
 
 
-def test_router_bad_args():
+def test_router_bad_args() -> None:
     circuit = cirq.Circuit()
     device_graph = ccr.get_linear_device_graph(5)
     with pytest.raises(ValueError):

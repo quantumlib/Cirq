@@ -43,6 +43,7 @@ from cirq_google.engine import (
     engine_job,
     engine_processor,
     engine_program,
+    processor_config,
     util,
 )
 from cirq_google.serialization import CIRCUIT_SERIALIZER, Serializer
@@ -90,6 +91,7 @@ class EngineContext:
         serializer: Serializer = CIRCUIT_SERIALIZER,
         # TODO(#5996) Remove enable_streaming once the feature is stable.
         enable_streaming: bool = True,
+        compress_run_context: bool = False,
     ) -> None:
         """Context and client for using Quantum Engine.
 
@@ -108,6 +110,9 @@ class EngineContext:
             enable_streaming: Feature gate for making Quantum Engine requests using the stream RPC.
                 If True, the Quantum Engine streaming RPC is used for creating jobs
                 and getting results. Otherwise, unary RPCs are used.
+            compress_run_context:  If true, the run context (i.e. sweep information)
+                will be compressed using gzip in transit.  This will save on data transfer size
+                but will add a small overhead client-side.
 
         Raises:
             ValueError: If either `service_args` and `verbose` were supplied
@@ -121,6 +126,7 @@ class EngineContext:
             raise ValueError('ProtoVersion V1 no longer supported')
         self.serializer = serializer
         self.enable_streaming = enable_streaming
+        self.compress_run_context = compress_run_context
 
         if not client:
             client = engine_client.EngineClient(service_args=service_args, verbose=verbose)
@@ -143,7 +149,9 @@ class EngineContext:
     def _serialize_run_context(self, sweeps: cirq.Sweepable, repetitions: int) -> any_pb2.Any:
         if self.proto_version != ProtoVersion.V2:
             raise ValueError(f'invalid run context proto version: {self.proto_version}')
-        return util.pack_any(v2.run_context_to_proto(sweeps, repetitions))
+        return util.pack_any(
+            v2.run_context_to_proto(sweeps, repetitions, compress_proto=self.compress_run_context)
+        )
 
 
 class Engine(abstract_engine.AbstractEngine):
@@ -174,6 +182,7 @@ class Engine(abstract_engine.AbstractEngine):
         verbose: bool | None = None,
         timeout: int | None = None,
         context: EngineContext | None = None,
+        compress_run_context: bool = False,
     ) -> None:
         """Supports creating and running programs against the Quantum Engine.
 
@@ -192,6 +201,9 @@ class Engine(abstract_engine.AbstractEngine):
                 to never timeout.
             context: Engine configuration and context to use. For most users
                 this should never be specified.
+            compress_run_context:  If true, the run context (i.e. sweep information
+                will be compressed using gzip in transit.  This will save on data transfer size
+                but will add a small overhead client-side.
 
         Raises:
             ValueError: If context is provided and one of proto_version, service_args, or verbose.
@@ -206,6 +218,7 @@ class Engine(abstract_engine.AbstractEngine):
                 service_args=service_args,
                 verbose=verbose,
                 timeout=timeout,
+                compress_run_context=compress_run_context,
             )
         self.context = context
 
@@ -583,7 +596,7 @@ class Engine(abstract_engine.AbstractEngine):
         run_name: str = "",
         device_config_name: str = "",
         snapshot_id: str = "",
-        max_concurrent_jobs: int = 10,
+        max_concurrent_jobs: int = 100,
     ) -> cirq_google.ProcessorSampler:
         """Returns a sampler backed by the engine.
 
@@ -622,6 +635,62 @@ class Engine(abstract_engine.AbstractEngine):
             snapshot_id=snapshot_id,
             max_concurrent_jobs=max_concurrent_jobs,
         )
+
+    async def get_processor_config_from_snapshot_async(
+        self, processor_id: str, snapshot_id: str, config_name: str = 'default'
+    ) -> processor_config.ProcessorConfig | None:
+        """Returns a ProcessorConfig from this project and the given processor id.
+
+        Args:
+           processor_id: The processor unique identifier.
+           snapshot_id: The unique identifier for the snapshot.
+           config_name: The identifier for the config.
+
+        Returns:
+           The ProcessorConfig from this project and processor.
+        """
+        client = self.context.client
+        quantum_config = await client.get_quantum_processor_config_from_snapshot_async(
+            project_id=self.project_id,
+            processor_id=processor_id,
+            snapshot_id=snapshot_id,
+            config_name=config_name,
+        )
+        if quantum_config:
+            return processor_config.ProcessorConfig(quantum_processor_config=quantum_config)
+        return None
+
+    get_processor_config_from_snapshot = duet.sync(get_processor_config_from_snapshot_async)
+
+    async def get_processor_config_from_run_async(
+        self, processor_id: str, run_name: str = 'current', config_name: str = 'default'
+    ) -> processor_config.ProcessorConfig | None:
+        """Returns a ProcessorConfig from this project and the given processor id.
+
+        If no `run_name` and `config_name` are specified, the inernally configured default config
+        is returned.
+
+        Args:
+            processor_id: The processor unique identifier.
+            run_name: The unique identifier for the automation run.
+            config_name: The identifier for the config.
+
+        Returns:
+            The ProcessorConfig from this project and processor.
+        """
+        quantum_config = await self.context.client.get_quantum_processor_config_from_run_async(
+            project_id=self.project_id,
+            processor_id=processor_id,
+            run_name=run_name,
+            config_name=config_name,
+        )
+        if quantum_config:
+            return processor_config.ProcessorConfig(
+                quantum_processor_config=quantum_config, run_name=run_name
+            )
+        return None
+
+    get_processor_config_from_run = duet.sync(get_processor_config_from_run_async)
 
 
 def get_engine(project_id: str | None = None) -> Engine:

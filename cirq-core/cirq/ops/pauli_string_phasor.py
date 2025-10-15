@@ -73,9 +73,9 @@ class PauliStringPhasor(gate_operation.GateOperation):
                 `pauli_string` are acted upon by identity. The order of
                 these qubits must match the order in `pauli_string`.
             exponent_neg: How much to phase vectors in the negative eigenspace,
-                in the form of the t in (-1)**t = exp(i pi t).
+                in the form of the t in ``(-1)**t = exp(i*pi*t)``.
             exponent_pos: How much to phase vectors in the positive eigenspace,
-                in the form of the t in (-1)**t = exp(i pi t).
+                in the form of the t in ``(-1)**t = exp(i*pi*t)``.
 
         Raises:
             ValueError: If coefficient is not 1 or -1 or the qubits of
@@ -200,7 +200,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
         pn = self.exponent_neg
         return PauliStringPhasor(new_pauli_string, exponent_pos=pp, exponent_neg=pn)
 
-    @deprecated(deadline="v2.0", fix="Use conjuagetd_by() instead.")
+    @deprecated(deadline="v2.0", fix="Use conjugated_by() instead.")
     def pass_operations_over(
         self, ops: Iterable[raw_types.Operation], after_to_before: bool = False
     ) -> PauliStringPhasor:  # pragma: no cover

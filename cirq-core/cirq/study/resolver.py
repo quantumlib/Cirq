@@ -202,7 +202,7 @@ class ParamResolver:
         if value in self._deep_eval_map:
             v = self._deep_eval_map[value]
             if v is _RECURSION_FLAG:
-                raise RecursionError('Evaluation of {value} indirectly contains itself.')
+                raise RecursionError(f'Evaluation of {value} indirectly contains itself.')
             return v
 
         # There isn't a full evaluation for 'value' yet. Until it's ready,

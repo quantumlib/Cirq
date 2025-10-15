@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {expect} from 'chai';
+import {expect} from 'vitest';
 import {Labels, Label} from './text';
 import {JSDOM} from 'jsdom';
 import {Vector3} from 'three';
@@ -36,7 +36,7 @@ describe('Labels', () => {
 
   it('successfully generates an arbitrary label at the correct position', () => {
     const label = labels.children[0] as Label;
-    expect(label.position).to.eql(new Vector3(0, 0, 0));
-    expect(label.text).to.equal(Object.keys(mock_label)[0]);
+    expect(label.position).toEqual(new Vector3(0, 0, 0));
+    expect(label.text).toBe(Object.keys(mock_label)[0]);
   });
 });

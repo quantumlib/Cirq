@@ -147,7 +147,7 @@ def _parse_formula_using_token_map(
     def apply(op: str | _HangingNode) -> None:
         assert isinstance(op, _HangingNode)
         if len(vals) < 2:
-            raise ValueError("Bad expression: operated on nothing.\ntext={text!r}")
+            raise ValueError(f"Bad expression: operated on nothing.\ntext={text!r}")
         b = vals.pop()
         a = vals.pop()
         # Note: vals seems to be _HangingToken
@@ -157,7 +157,7 @@ def _parse_formula_using_token_map(
     def close_paren() -> None:
         while True:
             if len(ops) == 0:
-                raise ValueError("Bad expression: unmatched ')'.\ntext={text!r}")
+                raise ValueError(f"Bad expression: unmatched ')'.\ntext={text!r}")
             op = ops.pop()
             if op == "(":
                 break
@@ -193,7 +193,7 @@ def _parse_formula_using_token_map(
                 token_unary_action = token.unary_action
                 ops.append(_HangingNode(func=lambda _, b: token_unary_action(b), weight=np.inf))
             elif token.binary_action is not None:
-                raise ValueError("Bad expression: binary op in bad spot.\ntext={text!r}")
+                raise ValueError(f"Bad expression: binary op in bad spot.\ntext={text!r}")
 
     was_valid_end_token = False
     for token in tokens:
