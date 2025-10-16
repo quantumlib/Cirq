@@ -478,7 +478,7 @@ def _merge_operations_impl(
     tags_to_ignore_set = set(tags_to_ignore)
 
     merged_circuit = _MergedCircuit()
-    for moment_idx, current_moment in enumerate(cast(list['cirq.Moment'], circuit)):
+    for moment_idx, current_moment in enumerate(circuit):
         merged_circuit.append_empty_moment()
         for op in sorted(current_moment.operations, key=lambda op: op.qubits):
             if (
