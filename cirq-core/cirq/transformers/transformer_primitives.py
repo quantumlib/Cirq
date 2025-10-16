@@ -19,6 +19,7 @@ from __future__ import annotations
 import bisect
 import copy
 import dataclasses
+import itertools
 from collections import defaultdict
 from typing import Callable, cast, Hashable, Sequence, TYPE_CHECKING
 
@@ -383,9 +384,14 @@ class _MergedCircuit:
             List of mergeable components.
         """
         # Find the index of previous moment which can be merged with `c`.
-        idx = max([self.qubit_indexes[q][-1] for q in c_qs], default=-1)
-        idx = max([idx] + [self.mkey_indexes[ckey][-1] for ckey in c.ckeys])
-        idx = max([idx] + [self.ckey_indexes[mkey][-1] for mkey in c.mkeys])
+        idx = max(
+            itertools.chain(
+                (self.qubit_indexes[q][-1] for q in c_qs),
+                (self.mkey_indexes[ckey][-1] for ckey in c.ckeys),
+                (self.ckey_indexes[mkey][-1] for mkey in c.mkeys),
+            ),
+            default=-1,
+        )
         # Return the set of overlapping components in moment with index `idx`.
         if idx == -1:
             return []
