@@ -28,6 +28,12 @@ message Program {
   // List to store global constants, such as strings used in many places.
   // constants are referred to their index in this list, starting at zero.
   repeated Constant constants = 4;
+
+  // A batch of circuits organized by a set of parameters.  These
+  // parameters should also be specified in the sweep as well.
+  // This field can be used for efficient packing of circuit functions
+  // that change based on parameters, or for batch sending of circuits.
+  repeated KeyedCircuit keyed_circuits = 5;
 }
 
 // Constants, such as long strings, that are used throughout the circuit.
@@ -52,6 +58,29 @@ message Constant {
     // Tags used multiple times in a circuit
     Tag tag_value = 6;
   }
+}
+
+
+// A batch of circuits organized by a set of parameters.  These
+// parameters should also be specified in the sweep as well.
+// This field can be used for efficient packing of circuit functions
+// that change based on parameters, or for batch sending of circuits.
+message KeyedCircuit {
+
+   // Arguments for a cirq circuit which comes from run_context.
+   // The key will be the name of the argument, and the value
+   // will be the value passed into the function.
+   // e.g. Arguments for a circuit function such as:
+   // def circuit_fn(freq_GHz: float, num_cycles: int) -> Circuit
+   // would have the two entries: "freq_GHz" and "num_cycles"
+   map<string, Arg> args = 1;
+
+   // The cirq circuit corresponding to the arguments args.
+   Circuit circuit = 2;
+
+   // Optional key for program.
+   // If provided, will be used as a key in a Mapping from string to Circuit.
+   string key = 3;
 }
 
 // The quantum circuit, specified as a series of moments (abstract
@@ -248,8 +277,47 @@ message NoiseChannel {
   }
 }
 
+// Representation of cirq_google.ops.AnalogDetuneCouplerOnly
+// All the following fields should be specified as the tunit.Value.
+message AnalogDetuneCouplerOnly{
+  Arg length= 1;  // The duration of gate 
+  Arg w = 2;  // Width of the step envelope raising edge
+  // Coupler strength specified with the equation g(t) = g_0+A*t^g_exp.
+  // See AnalogDetuneCouplerOnly for details.
+  Arg g_0 = 3;
+  Arg g_max = 4;
+  Arg g_ramp_exponent = 5;
+  // Two frequencies of the neighbor qubits at the moment.
+  repeated Arg neighbor_qubits_freq = 6;
+  // Two frequencies of the neighbor qubits at preivous moment.
+  repeated Arg prev_neighbor_qubits_freq =7;
+  bool interpolate_coupling_cal = 8;
+  bool analog_cal_for_pulseshaping = 9;
+}
+
+// Representation of cirq_google.ops.AnalogDetuneQubit
+// All the following fields should be specified as the tunit.Value.
+message AnalogDetuneQubit{
+  Arg length= 1; // The duration of gate 
+  Arg w = 2;   // Width of the step envelope raising edge
+  Arg target_freq = 3;  // The target frequency for the qubit at end of detune gate.
+  Arg prev_freq = 4; // Previous detuning frequency to compensate beginning of detune gate.
+
+  //A dictionary has coupler name like "c_q0_0_q1_0" as key and the coupling strength `g` as the value.
+  ArgMapping neighbor_coupler_g_dict = 5;
+  ArgMapping prev_neighbor_coupler_g_dict = 6;
+  // If True, the rising edge will be a linear function.
+  bool linear_rise =7;
+}
+
+// Representation of cirq_google.ops.WaitGateWithUnit
+message WaitGateWithUnit{
+  Arg duration = 1;
+  repeated int32 qid_shape = 2;
+}
+
 // An operation acts on a set of qubits.
-// next available id = 28
+// next available id = 31
 message Operation {
   // Previously deprecated fields.  Do not use.
   reserved 1, 2;
@@ -275,6 +343,9 @@ message Operation {
     ResetGate resetgate = 24;
     ISwapLikeGate iswaplikegate = 26;
     NoiseChannel noisechannel = 27;
+    AnalogDetuneCouplerOnly analog_detune_coupler_only = 28;
+    AnalogDetuneQubit analog_detune_qubit = 29;
+    WaitGateWithUnit wait_gate_with_unit = 30;
   }
 
   // Which qubits the operation acts on.
@@ -354,6 +425,9 @@ message Tag {
     // Catch-all for all gates that do not fit into the
     // above tags.
     InternalTag internal_tag = 8;
+
+    // Raw Types such as strings and other values
+    Arg raw_value = 11;
   }
 }
 

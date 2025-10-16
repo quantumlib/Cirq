@@ -48,6 +48,7 @@ class QasmLexer:
         'ID',
         'ARROW',
         'EQ',
+        'AND',
     ] + list(reserved.values())
 
     def t_newline(self, t):
@@ -101,8 +102,12 @@ class QasmLexer:
         """=="""
         return t
 
+    def t_AND(self, t):
+        """&&"""
+        return t
+
     def t_ID(self, t):
-        r"""[a-zA-Z][a-zA-Z\d_]*"""
+        r"""[a-zA-Z_][a-zA-Z\d_]*"""
         if t.value in QasmLexer.reserved:
             t.type = QasmLexer.reserved[t.value]
         return t

@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Iterable, Iterator, TYPE_CHECKING
+from typing import Callable, Iterable, Iterator, TYPE_CHECKING
 
 from cirq.interop.quirk.cells.cell import Cell, CELL_SIZES, CellMaker
 
@@ -35,7 +35,7 @@ class InputCell(Cell):
     def with_line_qubits_mapped_to(self, qubits: list[cirq.Qid]) -> Cell:
         return InputCell(qubits=Cell._replace_qubits(self.qubits, qubits), letter=self.letter)
 
-    def modify_column(self, column: list[Cell | None]):
+    def modify_column(self, column: list[Cell | None]) -> None:
         for i in range(len(column)):
             cell = column[i]
             if cell is not None:
@@ -55,7 +55,7 @@ class SetDefaultInputCell(Cell):
     def with_line_qubits_mapped_to(self, qubits: list[cirq.Qid]) -> Cell:
         return self
 
-    def persistent_modifiers(self):
+    def persistent_modifiers(self) -> dict[str, Callable[[Cell], Cell]]:
         return {f'set_default_{self.letter}': lambda cell: cell.with_input(self.letter, self.value)}
 
 

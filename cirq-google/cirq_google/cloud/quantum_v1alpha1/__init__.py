@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 from .services.quantum_engine_service import QuantumEngineServiceClient
 from .services.quantum_engine_service import QuantumEngineServiceAsyncClient
 
@@ -39,6 +38,8 @@ from .types.engine import ListQuantumJobEventsRequest
 from .types.engine import ListQuantumJobEventsResponse
 from .types.engine import ListQuantumJobsRequest
 from .types.engine import ListQuantumJobsResponse
+from .types.engine import ListQuantumProcessorConfigsRequest
+from .types.engine import ListQuantumProcessorConfigsResponse
 from .types.engine import ListQuantumProcessorsRequest
 from .types.engine import ListQuantumProcessorsResponse
 from .types.engine import ListQuantumProgramsRequest
@@ -106,6 +107,8 @@ __all__ = (
     'ListQuantumJobEventsResponse',
     'ListQuantumJobsRequest',
     'ListQuantumJobsResponse',
+    'ListQuantumProcessorConfigsRequest',
+    'ListQuantumProcessorConfigsResponse',
     'ListQuantumProcessorsRequest',
     'ListQuantumProcessorsResponse',
     'ListQuantumProgramsRequest',

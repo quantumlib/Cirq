@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {expect} from 'chai';
+import {expect} from 'vitest';
 import {Meridians} from './meridians';
 import {Orientation} from './enums';
 import {Vector3} from 'three';
@@ -26,13 +26,13 @@ describe('Meridians', () => {
     it(`generates the correct number of lines given 
     the default number (7)`, () => {
       const meridians = new Meridians(DEFAULT_RADIUS, DEFAULT_H_MERIDIANS, Orientation.HORIZONTAL);
-      expect(meridians.children.length).to.equal(DEFAULT_H_MERIDIANS);
+      expect(meridians.children.length).toBe(DEFAULT_H_MERIDIANS);
     });
 
     it(`generates the correct number of lines given 
     the default number (4)`, () => {
       const meridians = new Meridians(DEFAULT_RADIUS, DEFAULT_V_MERIDIANS, Orientation.VERTICAL);
-      expect(meridians.children.length).to.equal(DEFAULT_V_MERIDIANS);
+      expect(meridians.children.length).toBe(DEFAULT_V_MERIDIANS);
     });
 
     it(`generates lines at the correct positions 
@@ -50,7 +50,7 @@ describe('Meridians', () => {
       ];
 
       meridians.children.forEach((el, index) => {
-        expect(el.position).to.eql(positions[index]);
+        expect(el.position).toEqual(positions[index]);
       });
     });
   });
@@ -64,7 +64,7 @@ describe('Meridians', () => {
       const expectedLineNumbers = [5, 0, 17, 299, 5, 1];
       lineValues.forEach((el, index) => {
         const meridians = new Meridians(DEFAULT_RADIUS, el, Orientation.HORIZONTAL);
-        expect(meridians.children.length).to.equal(expectedLineNumbers[index]);
+        expect(meridians.children.length).toBe(expectedLineNumbers[index]);
       });
     });
 
@@ -73,7 +73,7 @@ describe('Meridians', () => {
       const expectedLineNumbers = [4, 0, 18, 299, 4];
       lineValues.forEach((el, index) => {
         const meridians = new Meridians(DEFAULT_RADIUS, el, Orientation.VERTICAL);
-        expect(meridians.children.length).to.equal(expectedLineNumbers[index]);
+        expect(meridians.children.length).toBe(expectedLineNumbers[index]);
       });
     });
 
@@ -93,7 +93,7 @@ describe('Meridians', () => {
       ];
 
       meridians.children.forEach((el, index) => {
-        expect(el.position).to.eql(positions[index]);
+        expect(el.position).toEqual(positions[index]);
       });
     });
 
@@ -107,7 +107,7 @@ describe('Meridians', () => {
         lineValues.forEach((el, index) => {
           expect(() => {
             new Meridians(DEFAULT_RADIUS, el, Orientation.HORIZONTAL);
-          }).to.throw(expectedErrorMessage[index]);
+          }).toThrow(expectedErrorMessage[index]);
         });
       });
 
@@ -120,14 +120,14 @@ describe('Meridians', () => {
         lineValues.forEach((el, index) => {
           expect(() => {
             new Meridians(DEFAULT_RADIUS, el, Orientation.VERTICAL);
-          }).to.throw(expectedErrorMessage[index]);
+          }).toThrow(expectedErrorMessage[index]);
         });
       });
 
       it('throws an error correctly if given a bad orientation enum in the constructor', () => {
         expect(() => {
           new Meridians(DEFAULT_RADIUS, DEFAULT_V_MERIDIANS, undefined!);
-        }).to.throw('Invalid orientation input in Meridians constructor');
+        }).toThrow('Invalid orientation input in Meridians constructor');
       });
     });
   });

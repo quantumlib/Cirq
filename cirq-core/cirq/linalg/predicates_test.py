@@ -23,7 +23,7 @@ import cirq
 from cirq.linalg import matrix_commutes
 
 
-def test_is_diagonal():
+def test_is_diagonal() -> None:
     assert cirq.is_diagonal(np.empty((0, 0)))
     assert cirq.is_diagonal(np.empty((1, 0)))
     assert cirq.is_diagonal(np.empty((0, 1)))
@@ -48,7 +48,7 @@ def test_is_diagonal():
     assert cirq.is_diagonal(np.array([[1, 1e-11], [1e-10, 1]]))
 
 
-def test_is_diagonal_tolerance():
+def test_is_diagonal_tolerance() -> None:
     atol = 0.5
 
     # Pays attention to specified tolerance.
@@ -60,7 +60,7 @@ def test_is_diagonal_tolerance():
     assert not cirq.is_diagonal(np.array([[1, 0.5], [-0.6, 1]]), atol=atol)
 
 
-def test_is_hermitian():
+def test_is_hermitian() -> None:
     assert cirq.is_hermitian(np.empty((0, 0)))
     assert not cirq.is_hermitian(np.empty((1, 0)))
     assert not cirq.is_hermitian(np.empty((0, 1)))
@@ -87,7 +87,7 @@ def test_is_hermitian():
     assert cirq.is_hermitian(np.array([[1, 1j + 1e-11], [-1j, 1 + 1j * 1e-9]]))
 
 
-def test_is_hermitian_tolerance():
+def test_is_hermitian_tolerance() -> None:
     atol = 0.5
 
     # Pays attention to specified tolerance.
@@ -102,7 +102,7 @@ def test_is_hermitian_tolerance():
     assert not cirq.is_hermitian(np.array([[1, 0, 0.6], [0, 1, 0], [0, 0, 1]]), atol=atol)
 
 
-def test_is_unitary():
+def test_is_unitary() -> None:
     assert not cirq.is_unitary(np.empty((0,)))
     assert cirq.is_unitary(np.empty((0, 0)))
     assert not cirq.is_unitary(np.empty((1, 0)))
@@ -133,7 +133,7 @@ def test_is_unitary():
     assert cirq.is_unitary(np.array([[1, 1j + 1e-11], [1j, 1 + 1j * 1e-9]]) * np.sqrt(0.5))
 
 
-def test_is_unitary_tolerance():
+def test_is_unitary_tolerance() -> None:
     atol = 0.5
 
     # Pays attention to specified tolerance.
@@ -145,7 +145,7 @@ def test_is_unitary_tolerance():
     assert not cirq.is_unitary(np.array([[1.2, 0, 0], [0, 1.3, 0], [0, 0, 1.2]]), atol=atol)
 
 
-def test_is_orthogonal():
+def test_is_orthogonal() -> None:
     assert cirq.is_orthogonal(np.empty((0, 0)))
     assert not cirq.is_orthogonal(np.empty((1, 0)))
     assert not cirq.is_orthogonal(np.empty((0, 1)))
@@ -173,7 +173,7 @@ def test_is_orthogonal():
     assert cirq.is_orthogonal(np.array([[1, 1e-11], [0, 1 + 1e-11]]))
 
 
-def test_is_orthogonal_tolerance():
+def test_is_orthogonal_tolerance() -> None:
     atol = 0.5
 
     # Pays attention to specified tolerance.
@@ -185,7 +185,7 @@ def test_is_orthogonal_tolerance():
     assert not cirq.is_orthogonal(np.array([[1.2, 0, 0], [0, 1.3, 0], [0, 0, 1.2]]), atol=atol)
 
 
-def test_is_special_orthogonal():
+def test_is_special_orthogonal() -> None:
     assert cirq.is_special_orthogonal(np.empty((0, 0)))
     assert not cirq.is_special_orthogonal(np.empty((1, 0)))
     assert not cirq.is_special_orthogonal(np.empty((0, 1)))
@@ -215,7 +215,7 @@ def test_is_special_orthogonal():
     assert cirq.is_special_orthogonal(np.array([[1, 1e-11], [0, 1 + 1e-11]]))
 
 
-def test_is_special_orthogonal_tolerance():
+def test_is_special_orthogonal_tolerance() -> None:
     atol = 0.5
 
     # Pays attention to specified tolerance.
@@ -234,7 +234,7 @@ def test_is_special_orthogonal_tolerance():
     )
 
 
-def test_is_special_unitary():
+def test_is_special_unitary() -> None:
     assert cirq.is_special_unitary(np.empty((0, 0)))
     assert not cirq.is_special_unitary(np.empty((1, 0)))
     assert not cirq.is_special_unitary(np.empty((0, 1)))
@@ -260,7 +260,7 @@ def test_is_special_unitary():
     assert cirq.is_special_unitary(np.array([[1, 1j + 1e-11], [1j, 1 + 1j * 1e-9]]) * np.sqrt(0.5))
 
 
-def test_is_special_unitary_tolerance():
+def test_is_special_unitary_tolerance() -> None:
     atol = 0.5
 
     # Pays attention to specified tolerance.
@@ -277,7 +277,7 @@ def test_is_special_unitary_tolerance():
     )
 
 
-def test_is_normal():
+def test_is_normal() -> None:
     assert cirq.is_normal(np.array([[1]]))
     assert cirq.is_normal(np.array([[3j]]))
     assert cirq.is_normal(cirq.testing.random_density_matrix(4))
@@ -286,7 +286,7 @@ def test_is_normal():
     assert not cirq.is_normal(np.zeros((1, 0)))
 
 
-def test_is_normal_tolerance():
+def test_is_normal_tolerance() -> None:
     atol = 0.25
 
     # Pays attention to specified tolerance.
@@ -298,7 +298,7 @@ def test_is_normal_tolerance():
     assert not cirq.is_normal(np.array([[0, 0.5, 0], [0, 0, 0.6], [0, 0, 0]]), atol=atol)
 
 
-def test_is_cptp():
+def test_is_cptp() -> None:
     rt2 = np.sqrt(0.5)
     # Amplitude damping with gamma=0.5.
     assert cirq.is_cptp(kraus_ops=[np.array([[1, 0], [0, rt2]]), np.array([[0, rt2], [0, 0]])])
@@ -325,15 +325,15 @@ def test_is_cptp():
     # Makes 4 2x2 kraus ops.
     one_qubit_u = cirq.testing.random_unitary(8)
     one_qubit_kraus = np.reshape(one_qubit_u[:, :2], (-1, 2, 2))
-    assert cirq.is_cptp(kraus_ops=one_qubit_kraus)
+    assert cirq.is_cptp(kraus_ops=one_qubit_kraus)  # type: ignore[arg-type]
 
     # Makes 16 4x4 kraus ops.
     two_qubit_u = cirq.testing.random_unitary(64)
     two_qubit_kraus = np.reshape(two_qubit_u[:, :4], (-1, 4, 4))
-    assert cirq.is_cptp(kraus_ops=two_qubit_kraus)
+    assert cirq.is_cptp(kraus_ops=two_qubit_kraus)  # type: ignore[arg-type]
 
 
-def test_is_cptp_tolerance():
+def test_is_cptp_tolerance() -> None:
     rt2_ish = np.sqrt(0.5) - 0.01
     atol = 0.25
     # Moderately-incorrect amplitude damping with gamma=0.5.
@@ -345,7 +345,7 @@ def test_is_cptp_tolerance():
     )
 
 
-def test_commutes():
+def test_commutes() -> None:
     assert matrix_commutes(np.empty((0, 0)), np.empty((0, 0)))
     assert not matrix_commutes(np.empty((1, 0)), np.empty((0, 1)))
     assert not matrix_commutes(np.empty((0, 1)), np.empty((1, 0)))
@@ -372,7 +372,7 @@ def test_commutes():
     assert matrix_commutes(xx, np.diag([1, -1, -1, 1 + 1e-9]))
 
 
-def test_commutes_tolerance():
+def test_commutes_tolerance() -> None:
     atol = 0.5
 
     x = np.array([[0, 1], [1, 0]])
@@ -383,7 +383,7 @@ def test_commutes_tolerance():
     assert not matrix_commutes(x, x + z * 0.5, atol=atol)
 
 
-def test_allclose_up_to_global_phase():
+def test_allclose_up_to_global_phase() -> None:
     assert cirq.allclose_up_to_global_phase(np.array([1]), np.array([1j]))
 
     assert not cirq.allclose_up_to_global_phase(np.array([[[1]]]), np.array([1]))
@@ -402,7 +402,7 @@ def test_allclose_up_to_global_phase():
     assert not cirq.allclose_up_to_global_phase(np.array([[1]]), np.array([[2]]))
 
 
-def test_binary_sub_tensor_slice():
+def test_binary_sub_tensor_slice() -> None:
     a = slice(None)
     e = Ellipsis
 
@@ -437,7 +437,7 @@ def test_binary_sub_tensor_slice():
     assert cirq.slice_for_qubits_equal_to([2], 0b0, num_qubits=3) == (a, a, 0)
 
 
-def test_binary_sub_tensor_slice_big_endian():
+def test_binary_sub_tensor_slice_big_endian() -> None:
     a = slice(None)
     e = Ellipsis
     sfqet = cirq.slice_for_qubits_equal_to
@@ -473,7 +473,7 @@ def test_binary_sub_tensor_slice_big_endian():
     assert sfqet([2], big_endian_qureg_value=0b0, num_qubits=3) == (a, a, 0)
 
 
-def test_qudit_sub_tensor_slice():
+def test_qudit_sub_tensor_slice() -> None:
     a = slice(None)
     sfqet = cirq.slice_for_qubits_equal_to
 

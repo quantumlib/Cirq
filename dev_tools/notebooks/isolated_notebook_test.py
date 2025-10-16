@@ -37,21 +37,15 @@ import pytest
 from dev_tools import shell_tools
 from dev_tools.notebooks import filter_notebooks, list_all_notebooks, REPO_ROOT, rewrite_notebook
 
-# these notebooks rely on features that are not released yet
-# after every release we should raise a PR and empty out this list
-# note that these notebooks are still tested in dev_tools/notebook_test.py
-# Please, always indicate in comments the feature used for easier bookkeeping.
+# The notebooks in the following list rely on features that are not yet released.
+# They are excluded from isolated notebook tests in this file; however, they are still tested
+# in dev_tools/notebook_test.py.
+# After every release of Cirq, we should open a new PR to empty out this list.
+# For easier bookkeeping, please always add comments that indicate the pre-release feature(s) used
+# by the notebooks in question when adding notebooks to this list.
+# For more information, please see the section "Lifecycle" in docs/dev/notebooks.md.
 
-NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = [
-    # Requires `load_device_noise_properties` from #7369
-    'docs/hardware/qubit_picking.ipynb',
-    'docs/simulate/noisy_simulation.ipynb',
-    'docs/simulate/quantum_virtual_machine.ipynb',
-    'docs/simulate/qvm_basic_example.ipynb',
-    # Remove once the renaming of `whitelisted_users` -> `allowlisted_users`
-    # throughout cirq_google is released.
-    'docs/simulate/virtual_engine_interface.ipynb',
-]
+NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = []
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
 # please always add a reason for skipping.

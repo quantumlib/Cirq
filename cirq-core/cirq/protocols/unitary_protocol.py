@@ -15,12 +15,10 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import Any, TypeVar
+from typing import Any, Protocol, TypeVar
 
 import numpy as np
-from typing_extensions import Protocol
 
-from cirq import linalg
 from cirq._doc import doc_private
 from cirq.protocols import qid_shape_protocol
 from cirq.protocols.apply_unitary_protocol import apply_unitaries, ApplyUnitaryArgs
@@ -40,7 +38,7 @@ class SupportsUnitary(Protocol):
     """An object that may be describable by a unitary matrix."""
 
     @doc_private
-    def _unitary_(self) -> np.ndarray | NotImplementedType:
+    def _unitary_(self) -> np.ndarray | NotImplementedType | None:
         """A unitary matrix describing this value, e.g. the matrix of a gate.
 
         This method is used by the global `cirq.unitary` method. If this method
@@ -112,11 +110,8 @@ def unitary(
     Raises:
         TypeError: `val` doesn't have a unitary effect and no default value was
             specified.
-        ValueError: `val` is a numpy array that is not unitary.
     """
     if isinstance(val, np.ndarray):
-        if not linalg.is_unitary(val):
-            raise ValueError("The provided numpy array is not unitary.")
         return val
 
     strats = [

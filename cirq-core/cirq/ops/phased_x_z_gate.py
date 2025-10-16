@@ -231,17 +231,19 @@ class PhasedXZGate(raw_types.Gate):
         z_exponent = resolver.value_of(self._z_exponent, recursive)
         x_exponent = resolver.value_of(self._x_exponent, recursive)
         axis_phase_exponent = resolver.value_of(self._axis_phase_exponent, recursive)
-        if isinstance(z_exponent, numbers.Complex):
+        if not isinstance(z_exponent, float) and isinstance(z_exponent, numbers.Complex):
             if isinstance(z_exponent, numbers.Real):
                 z_exponent = float(z_exponent)
             else:
                 raise ValueError(f'Complex exponent {z_exponent} not allowed in cirq.PhasedXZGate')
-        if isinstance(x_exponent, numbers.Complex):
+        if not isinstance(x_exponent, float) and isinstance(x_exponent, numbers.Complex):
             if isinstance(x_exponent, numbers.Real):
                 x_exponent = float(x_exponent)
             else:
                 raise ValueError(f'Complex exponent {x_exponent} not allowed in cirq.PhasedXZGate')
-        if isinstance(axis_phase_exponent, numbers.Complex):
+        if not isinstance(axis_phase_exponent, float) and isinstance(
+            axis_phase_exponent, numbers.Complex
+        ):
             if isinstance(axis_phase_exponent, numbers.Real):
                 axis_phase_exponent = float(axis_phase_exponent)
             else:

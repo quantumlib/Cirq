@@ -274,7 +274,7 @@ class XPowGate(eigen_gate.EigenGate):
         return args.format('rx({0:half_turns}) {1};\n', self._exponent, qubits[0])
 
     @property
-    def phase_exponent(self):
+    def phase_exponent(self) -> float:
         return 0.0
 
     def _phase_by_(self, phase_turns, qubit_index):
@@ -391,7 +391,7 @@ class YPowGate(eigen_gate.EigenGate):
     Unlike `cirq.XPowGate` and `cirq.ZPowGate`, this gate has no generalization
     to qudits and hence does not take the dimension argument. Ignoring the
     global phase all generalized Pauli operators on a d-level system may be
-    written as X**a Z**b for a,b=0,1,...,d-1. For a qubit, there is only one
+    written as ``X**a Z**b`` for a,b=0,1,...,d-1. For a qubit, there is only one
     "mixed" operator: XZ, conventionally denoted -iY. However, when d > 2 there
     are (d-1)*(d-1) > 1 such "mixed" operators (still ignoring the global phase).
     Due to this ambiguity, qudit Y gate is not well defined. The "mixed" operators
@@ -467,7 +467,7 @@ class YPowGate(eigen_gate.EigenGate):
         return args.format('ry({0:half_turns}) {1};\n', self._exponent, qubits[0])
 
     @property
-    def phase_exponent(self):
+    def phase_exponent(self) -> float:
         return 0.5
 
     def _phase_by_(self, phase_turns, qubit_index):
