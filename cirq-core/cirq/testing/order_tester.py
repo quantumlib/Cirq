@@ -78,7 +78,7 @@ class OrderTester:
                 f"That rule is being violated by this value: {item!r}"
             ) from ex
 
-    def add_ascending(self, *items: Any):
+    def add_ascending(self, *items: Any) -> None:
         """Tries to add a sequence of ascending items to the order tester.
 
         This methods asserts that items must all be ascending
@@ -98,7 +98,7 @@ class OrderTester:
         for item in items:
             self.add_ascending_equivalence_group(item)
 
-    def add_ascending_equivalence_group(self, *group_items: Any):
+    def add_ascending_equivalence_group(self, *group_items: Any) -> None:
         """Tries to add an ascending equivalence group to the order tester.
 
         Asserts that the group items are equal to each other, but strictly

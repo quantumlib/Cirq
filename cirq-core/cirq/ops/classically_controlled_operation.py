@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import AbstractSet, Any, cast, Mapping, Sequence, TYPE_CHECKING
+from typing import AbstractSet, Any, Mapping, Sequence, TYPE_CHECKING
 
 import sympy
 
@@ -117,10 +117,10 @@ class ClassicallyControlledOperation(raw_types.Operation):
         return self._sub_operation.without_classical_controls()
 
     @property
-    def qubits(self):
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         return self._sub_operation.qubits
 
-    def with_qubits(self, *new_qubits):
+    def with_qubits(self, *new_qubits) -> cirq.Operation:
         return self._sub_operation.with_qubits(*new_qubits).with_classical_controls(
             *self._conditions
         )
@@ -207,17 +207,13 @@ class ClassicallyControlledOperation(raw_types.Operation):
         conditions = [protocols.with_measurement_key_mapping(c, key_map) for c in self._conditions]
         sub_operation = protocols.with_measurement_key_mapping(self._sub_operation, key_map)
         sub_operation = self._sub_operation if sub_operation is NotImplemented else sub_operation
-        return cast(
-            ClassicallyControlledOperation, sub_operation.with_classical_controls(*conditions)
-        )
+        return sub_operation.with_classical_controls(*conditions)
 
     def _with_key_path_prefix_(self, prefix: tuple[str, ...]) -> ClassicallyControlledOperation:
         conditions = [protocols.with_key_path_prefix(c, prefix) for c in self._conditions]
         sub_operation = protocols.with_key_path_prefix(self._sub_operation, prefix)
         sub_operation = self._sub_operation if sub_operation is NotImplemented else sub_operation
-        return cast(
-            ClassicallyControlledOperation, sub_operation.with_classical_controls(*conditions)
-        )
+        return sub_operation.with_classical_controls(*conditions)
 
     def _with_rescoped_keys_(
         self, path: tuple[str, ...], bindable_keys: frozenset[cirq.MeasurementKey]
@@ -234,9 +230,12 @@ class ClassicallyControlledOperation(raw_types.Operation):
 
     def _qasm_(self, args: cirq.QasmArgs) -> str | None:
         args.validate_version('2.0', '3.0')
-        if len(self._conditions) > 1:
-            raise ValueError('QASM does not support multiple conditions.')
+        if args.version == "2.0" and len(self._conditions) > 1:
+            raise ValueError(
+                'QASM 2.0 does not support multiple conditions. Consider exporting with QASM 3.0.'
+            )
         subop_qasm = protocols.qasm(self._sub_operation, args=args)
         if not self._conditions:
             return subop_qasm
-        return f'if ({protocols.qasm(self._conditions[0], args=args)}) {subop_qasm}'
+        condition_qasm = " && ".join(protocols.qasm(c, args=args) for c in self._conditions)
+        return f'if ({condition_qasm}) {subop_qasm}'

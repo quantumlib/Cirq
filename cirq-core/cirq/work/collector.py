@@ -15,11 +15,10 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Iterator, TYPE_CHECKING
+from typing import Any, Iterator, Protocol, TYPE_CHECKING
 
 import duet
 import numpy as np
-from typing_extensions import Protocol
 
 from cirq import study, value
 

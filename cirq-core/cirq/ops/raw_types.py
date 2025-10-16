@@ -28,12 +28,12 @@ from typing import (
     Hashable,
     Iterable,
     Mapping,
+    overload,
     Sequence,
     TYPE_CHECKING,
 )
 
 import numpy as np
-from typing_extensions import Self
 
 from cirq import protocols, value
 from cirq._compat import __cirq_debug__, _method_cache_name, cached_method
@@ -483,10 +483,18 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def _mul_with_qubits(self, qubits: tuple[cirq.Qid, ...], other):
         """cirq.GateOperation.__mul__ delegates to this method."""
+        from cirq.ops.pauli_string import _try_interpret_as_pauli_string
+
+        if (as_pauli_string := _try_interpret_as_pauli_string(self.on(*qubits))) is not None:
+            return as_pauli_string * other
         return NotImplemented
 
     def _rmul_with_qubits(self, qubits: tuple[cirq.Qid, ...], other):
         """cirq.GateOperation.__rmul__ delegates to this method."""
+        from cirq.ops.pauli_string import _try_interpret_as_pauli_string
+
+        if (as_pauli_string := _try_interpret_as_pauli_string(self.on(*qubits))) is not None:
+            return other * as_pauli_string
         return NotImplemented
 
     def _json_dict_(self) -> dict[str, Any]:
@@ -520,8 +528,11 @@ class Operation(metaclass=abc.ABCMeta):
     def _qid_shape_(self) -> tuple[int, ...]:
         return protocols.qid_shape(self.qubits)
 
+    def __pow__(self, exponent: Any) -> Operation:
+        return NotImplemented  # pragma: no cover
+
     @abc.abstractmethod
-    def with_qubits(self, *new_qubits: cirq.Qid) -> Self:
+    def with_qubits(self, *new_qubits: cirq.Qid) -> cirq.Operation:
         """Returns the same operation, but applied to different qubits.
 
         Args:
@@ -567,7 +578,7 @@ class Operation(metaclass=abc.ABCMeta):
 
     def transform_qubits(
         self, qubit_map: dict[cirq.Qid, cirq.Qid] | Callable[[cirq.Qid], cirq.Qid]
-    ) -> Self:
+    ) -> cirq.Operation:
         """Returns the same operation, but with different qubits.
 
         This function will return a new operation with the same gate but
@@ -680,9 +691,17 @@ class Operation(metaclass=abc.ABCMeta):
         """The classical controls gating this operation."""
         return frozenset()
 
+    @overload
+    def with_classical_controls(self) -> cirq.Operation:
+        pass
+
+    @overload
     def with_classical_controls(
         self, *conditions: str | cirq.MeasurementKey | cirq.Condition | sympy.Expr
-    ) -> cirq.Operation:
+    ) -> cirq.ClassicallyControlledOperation:
+        pass
+
+    def with_classical_controls(self, *conditions):
         """Returns a classically controlled version of this operation.
 
         An operation that is classically controlled is executed iff all
@@ -769,7 +788,7 @@ class TaggedOperation(Operation):
     def gate(self) -> cirq.Gate | None:
         return self.sub_operation.gate
 
-    def with_qubits(self, *new_qubits: cirq.Qid):
+    def with_qubits(self, *new_qubits: cirq.Qid) -> TaggedOperation:
         return TaggedOperation(self.sub_operation.with_qubits(*new_qubits), *self._tags)
 
     def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
@@ -950,9 +969,17 @@ class TaggedOperation(Operation):
         new_sub_operation = self.sub_operation.without_classical_controls()
         return self if new_sub_operation is self.sub_operation else new_sub_operation
 
+    @overload
+    def with_classical_controls(self) -> cirq.Operation:
+        pass
+
+    @overload
     def with_classical_controls(
         self, *conditions: str | cirq.MeasurementKey | cirq.Condition | sympy.Expr
-    ) -> cirq.Operation:
+    ) -> cirq.ClassicallyControlledOperation:
+        pass
+
+    def with_classical_controls(self, *conditions):
         if not conditions:
             return self
         return self.sub_operation.with_classical_controls(*conditions)

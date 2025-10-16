@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools >= 70.0.0"]
+build-backend = "setuptools.build_meta"
+
 [tool.black]
 line-length = 100
 target_version = ['py311', 'py312', 'py313']
@@ -52,7 +56,10 @@ asyncio_default_fixture_loop_scope = "function"
 line-length = 100
 preview = true
 target-version = "py311"
-extend-exclude = ["*_pb2.py*"]
+extend-exclude = [
+    "*_pb2.py*",
+    "cirq-google/cirq_google/cloud/*.py",  # contains only generated code
+]
 
 [tool.ruff.lint]
 select = [
@@ -67,6 +74,7 @@ select = [
              # pylint expression-not-assigned, pointless-exception-statement,
              # pointless-statement, pointless-string-statement
     "B033",  # duplicate-value, pylint duplicate-value
+    "D301",  # escape-sequence-in-docstring
     "D419",  # empty-docstring, pylint empty-docstring
     "E402",  # module-import-not-at-top-of-file, pylint wrong-import-position
     "E501",  # line-too-long, pylint line-too-long

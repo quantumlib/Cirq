@@ -73,25 +73,25 @@ class CountingSimulationState(cirq.SimulationState[CountingState]):
         return True
 
     @property
-    def data(self):
+    def data(self) -> Any:
         return self._state.data
 
     @property
-    def gate_count(self):
+    def gate_count(self) -> int:
         return self._state.gate_count
 
     @property
-    def measurement_count(self):
+    def measurement_count(self) -> int:
         return self._state.measurement_count
 
     @property
-    def copy_count(self):
+    def copy_count(self) -> int:
         return self._state.copy_count
 
 
 class SplittableCountingSimulationState(CountingSimulationState):
     @property
-    def allows_factoring(self):
+    def allows_factoring(self) -> bool:
         return True
 
 
@@ -167,59 +167,64 @@ entangled_state_repr = np.array([[math.sqrt(0.5), 0], [0, math.sqrt(0.5)]])
 
 
 class TestOp(cirq.Operation):
-    def with_qubits(self, *new_qubits):
-        pass
+    def with_qubits(self, *new_qubits) -> cirq.Operation:
+        raise NotImplementedError()
 
     @property
-    def qubits(self):
-        return [q0]
+    def qubits(self) -> tuple[cirq.Qid, ...]:
+        return (q0,)
 
 
-def test_simulate_empty_circuit():
+def test_simulate_empty_circuit() -> None:
     sim = CountingSimulator()
     r = sim.simulate(cirq.Circuit())
+    assert isinstance(r._final_simulator_state, CountingSimulationState)
     assert r._final_simulator_state.gate_count == 0
     assert r._final_simulator_state.measurement_count == 0
     assert r._final_simulator_state.copy_count == 0
 
 
-def test_simulate_one_gate_circuit():
+def test_simulate_one_gate_circuit() -> None:
     sim = CountingSimulator()
     r = sim.simulate(cirq.Circuit(cirq.X(q0)))
+    assert isinstance(r._final_simulator_state, CountingSimulationState)
     assert r._final_simulator_state.gate_count == 1
     assert r._final_simulator_state.copy_count == 0
 
 
-def test_simulate_one_measurement_circuit():
+def test_simulate_one_measurement_circuit() -> None:
     sim = CountingSimulator()
     r = sim.simulate(cirq.Circuit(cirq.measure(q0)))
+    assert isinstance(r._final_simulator_state, CountingSimulationState)
     assert r._final_simulator_state.gate_count == 0
     assert r._final_simulator_state.measurement_count == 1
     assert r._final_simulator_state.copy_count == 0
 
 
-def test_empty_circuit_simulation_has_moment():
+def test_empty_circuit_simulation_has_moment() -> None:
     sim = CountingSimulator()
     steps = list(sim.simulate_moment_steps(cirq.Circuit()))
     assert len(steps) == 1
 
 
-def test_noise_applied():
+def test_noise_applied() -> None:
     sim = CountingSimulator(noise=cirq.X)
     r = sim.simulate(cirq.Circuit(cirq.X(q0)))
+    assert isinstance(r._final_simulator_state, CountingSimulationState)
     assert r._final_simulator_state.gate_count == 2
     assert r._final_simulator_state.copy_count == 0
 
 
-def test_noise_applied_measurement_gate():
+def test_noise_applied_measurement_gate() -> None:
     sim = CountingSimulator(noise=cirq.X)
     r = sim.simulate(cirq.Circuit(cirq.measure(q0)))
+    assert isinstance(r._final_simulator_state, CountingSimulationState)
     assert r._final_simulator_state.gate_count == 1
     assert r._final_simulator_state.measurement_count == 1
     assert r._final_simulator_state.copy_count == 0
 
 
-def test_parameterized_copies_all_but_last():
+def test_parameterized_copies_all_but_last() -> None:
     sim = CountingSimulator()
     n = 4
     rs = sim.simulate_sweep(
@@ -227,12 +232,13 @@ def test_parameterized_copies_all_but_last():
     )
     for i in range(n):
         r = rs[i]
+        assert isinstance(r._final_simulator_state, CountingSimulationState)
         assert r._final_simulator_state.gate_count == 1
         assert r._final_simulator_state.measurement_count == 0
         assert r._final_simulator_state.copy_count == 0 if i == n - 1 else 1
 
 
-def test_cannot_act():
+def test_cannot_act() -> None:
     class BadOp(TestOp):
         def _act_on_(self, sim_state):
             raise TypeError()
@@ -242,25 +248,25 @@ def test_cannot_act():
         sim.simulate(cirq.Circuit(BadOp()))
 
 
-def test_run_one_gate_circuit():
+def test_run_one_gate_circuit() -> None:
     sim = CountingSimulator()
     r = sim.run(cirq.Circuit(cirq.X(q0), cirq.measure(q0)), repetitions=2)
     assert np.allclose(r.measurements['q(0)'], [[1], [1]])
 
 
-def test_run_one_gate_circuit_noise():
+def test_run_one_gate_circuit_noise() -> None:
     sim = CountingSimulator(noise=cirq.X)
     r = sim.run(cirq.Circuit(cirq.X(q0), cirq.measure(q0)), repetitions=2)
     assert np.allclose(r.measurements['q(0)'], [[2], [2]])
 
 
-def test_run_non_unitary_circuit():
+def test_run_non_unitary_circuit() -> None:
     sim = CountingSimulator()
     r = sim.run(cirq.Circuit(cirq.phase_damp(1).on(q0), cirq.measure(q0)), repetitions=2)
     assert np.allclose(r.measurements['q(0)'], [[1], [1]])
 
 
-def test_run_non_unitary_circuit_non_unitary_state():
+def test_run_non_unitary_circuit_non_unitary_state() -> None:
     class DensityCountingSimulator(CountingSimulator):
         def _can_be_in_run_prefix(self, val):
             return not cirq.is_measurement(val)
@@ -270,15 +276,16 @@ def test_run_non_unitary_circuit_non_unitary_state():
     assert np.allclose(r.measurements['q(0)'], [[1], [1]])
 
 
-def test_run_non_terminal_measurement():
+def test_run_non_terminal_measurement() -> None:
     sim = CountingSimulator()
     r = sim.run(cirq.Circuit(cirq.X(q0), cirq.measure(q0), cirq.X(q0)), repetitions=2)
     assert np.allclose(r.measurements['q(0)'], [[1], [1]])
 
 
-def test_integer_initial_state_is_split():
+def test_integer_initial_state_is_split() -> None:
     sim = SplittableCountingSimulator()
     state = sim._create_simulation_state(2, (q0, q1))
+    assert isinstance(state, cirq.SimulationProductState)
     assert len(set(state.values())) == 3
     assert state[q0] is not state[q1]
     assert state[q0].data == 1
@@ -286,7 +293,7 @@ def test_integer_initial_state_is_split():
     assert state[None].data == 0
 
 
-def test_integer_initial_state_is_not_split_if_disabled():
+def test_integer_initial_state_is_not_split_if_disabled() -> None:
     sim = SplittableCountingSimulator(split_untangled_states=False)
     state = sim._create_simulation_state(2, (q0, q1))
     assert isinstance(state, SplittableCountingSimulationState)
@@ -294,7 +301,7 @@ def test_integer_initial_state_is_not_split_if_disabled():
     assert state.data == 2
 
 
-def test_integer_initial_state_is_not_split_if_impossible():
+def test_integer_initial_state_is_not_split_if_impossible() -> None:
     sim = CountingSimulator()
     state = sim._create_simulation_state(2, (q0, q1))
     assert isinstance(state, CountingSimulationState)
@@ -303,18 +310,20 @@ def test_integer_initial_state_is_not_split_if_impossible():
     assert state.data == 2
 
 
-def test_non_integer_initial_state_is_not_split():
+def test_non_integer_initial_state_is_not_split() -> None:
     sim = SplittableCountingSimulator()
     state = sim._create_simulation_state(entangled_state_repr, (q0, q1))
+    assert isinstance(state, cirq.SimulationProductState)
     assert len(set(state.values())) == 2
     assert (state[q0].data == entangled_state_repr).all()
     assert state[q1] is state[q0]
     assert state[None].data == 0
 
 
-def test_entanglement_causes_join():
+def test_entanglement_causes_join() -> None:
     sim = SplittableCountingSimulator()
     state = sim._create_simulation_state(2, (q0, q1))
+    assert isinstance(state, cirq.SimulationProductState)
     assert len(set(state.values())) == 3
     state.apply_operation(cirq.CNOT(q0, q1))
     assert len(set(state.values())) == 2
@@ -322,9 +331,10 @@ def test_entanglement_causes_join():
     assert state[None] is not state[q0]
 
 
-def test_measurement_causes_split():
+def test_measurement_causes_split() -> None:
     sim = SplittableCountingSimulator()
     state = sim._create_simulation_state(entangled_state_repr, (q0, q1))
+    assert isinstance(state, cirq.SimulationProductState)
     assert len(set(state.values())) == 2
     state.apply_operation(cirq.measure(q0))
     assert len(set(state.values())) == 3
@@ -332,7 +342,7 @@ def test_measurement_causes_split():
     assert state[q0] is not state[None]
 
 
-def test_measurement_does_not_split_if_disabled():
+def test_measurement_does_not_split_if_disabled() -> None:
     sim = SplittableCountingSimulator(split_untangled_states=False)
     state = sim._create_simulation_state(2, (q0, q1))
     assert isinstance(state, SplittableCountingSimulationState)
@@ -341,7 +351,7 @@ def test_measurement_does_not_split_if_disabled():
     assert state[q0] is state[q1]
 
 
-def test_measurement_does_not_split_if_impossible():
+def test_measurement_does_not_split_if_impossible() -> None:
     sim = CountingSimulator()
     state = sim._create_simulation_state(2, (q0, q1))
     assert isinstance(state, CountingSimulationState)
@@ -352,7 +362,7 @@ def test_measurement_does_not_split_if_impossible():
     assert state[q0] is state[q1]
 
 
-def test_reorder_succeeds():
+def test_reorder_succeeds() -> None:
     sim = SplittableCountingSimulator()
     state = sim._create_simulation_state(entangled_state_repr, (q0, q1))
     reordered = state[q0].transpose_to_qubit_order([q1, q0])
@@ -360,7 +370,7 @@ def test_reorder_succeeds():
 
 
 @pytest.mark.parametrize('split', [True, False])
-def test_sim_state_instance_unchanged_during_normal_sim(split: bool):
+def test_sim_state_instance_unchanged_during_normal_sim(split: bool) -> None:
     sim = SplittableCountingSimulator(split_untangled_states=split)
     state = sim._create_simulation_state(0, (q0, q1))
     circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1), cirq.reset(q1))
@@ -369,7 +379,7 @@ def test_sim_state_instance_unchanged_during_normal_sim(split: bool):
         assert (step._merged_sim_state is not state) == split
 
 
-def test_measurements_retained_in_step_results():
+def test_measurements_retained_in_step_results() -> None:
     sim = SplittableCountingSimulator()
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'), cirq.measure(q0, key='b'), cirq.measure(q0, key='c')
@@ -381,7 +391,7 @@ def test_measurements_retained_in_step_results():
     assert not any(iterator)
 
 
-def test_sweep_unparameterized_prefix_not_repeated_iff_unitary():
+def test_sweep_unparameterized_prefix_not_repeated_iff_unitary() -> None:
     q = cirq.LineQubit(0)
 
     class TestOp(cirq.Operation):
@@ -410,6 +420,8 @@ def test_sweep_unparameterized_prefix_not_repeated_iff_unitary():
     op2 = TestOp(has_unitary=True)
     circuit = cirq.Circuit(op1, cirq.XPowGate(exponent=sympy.Symbol('a'))(q), op2)
     rs = simulator.simulate_sweep(program=circuit, params=params)
+    assert isinstance(rs[0]._final_simulator_state, CountingSimulationState)
+    assert isinstance(rs[1]._final_simulator_state, CountingSimulationState)
     assert rs[0]._final_simulator_state.copy_count == 1
     assert rs[1]._final_simulator_state.copy_count == 0
     assert op1.count == 1
@@ -419,13 +431,15 @@ def test_sweep_unparameterized_prefix_not_repeated_iff_unitary():
     op2 = TestOp(has_unitary=False)
     circuit = cirq.Circuit(op1, cirq.XPowGate(exponent=sympy.Symbol('a'))(q), op2)
     rs = simulator.simulate_sweep(program=circuit, params=params)
+    assert isinstance(rs[0]._final_simulator_state, CountingSimulationState)
+    assert isinstance(rs[1]._final_simulator_state, CountingSimulationState)
     assert rs[0]._final_simulator_state.copy_count == 1
     assert rs[1]._final_simulator_state.copy_count == 0
     assert op1.count == 2
     assert op2.count == 2
 
 
-def test_inhomogeneous_measurement_count_padding():
+def test_inhomogeneous_measurement_count_padding() -> None:
     q = cirq.LineQubit(0)
     key = cirq.MeasurementKey('m')
     sim = cirq.Simulator()

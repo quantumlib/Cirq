@@ -34,10 +34,6 @@ class CExpZinGate(cirq.EigenGate, cirq.testing.TwoQubitGate):
     def __init__(self, quarter_turns: value.TParamVal) -> None:
         super().__init__(exponent=quarter_turns)
 
-    @property
-    def exponent(self):
-        return self._exponent
-
     def _with_exponent(self, exponent):
         return CExpZinGate(exponent)
 
@@ -50,9 +46,6 @@ class CExpZinGate(cirq.EigenGate, cirq.testing.TwoQubitGate):
 
 
 class ZGateDef(cirq.EigenGate, cirq.testing.SingleQubitGate):
-    @property
-    def exponent(self):
-        return self._exponent
 
     def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
         return [(0, np.diag([1, 0])), (1, np.diag([0, 1]))]

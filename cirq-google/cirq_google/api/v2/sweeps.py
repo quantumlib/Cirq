@@ -30,36 +30,38 @@ if TYPE_CHECKING:
     from cirq.study import sweeps
 
 
-def _build_sweep_const(value: Any, use_float64: bool = False) -> run_context_pb2.ConstValue:
+def _add_sweep_const(
+    sweep: run_context_pb2.SingleSweep, value: Any, use_float64: bool = False
+) -> None:
     """Build the sweep const message from a value."""
     if isinstance(value, float):
         # comparing to float is ~5x than testing numbers.Real
         # if modifying the below, also modify the block below for numbers.Real
         if use_float64:
-            return run_context_pb2.ConstValue(double_value=value)
+            sweep.const_value.double_value = value
         else:
             # Note: A loss of precision for floating-point numbers may occur here.
-            return run_context_pb2.ConstValue(float_value=value)
+            sweep.const_value.float_value = value
     elif isinstance(value, int):
         # comparing to int is ~5x than testing numbers.Integral
         # if modifying the below, also modify the block below for numbers.Integral
-        return run_context_pb2.ConstValue(int_value=value)
+        sweep.const_value.int_value = value
     elif value is None:
-        return run_context_pb2.ConstValue(is_none=True)
+        sweep.const_value.is_none = True
     elif isinstance(value, str):
-        return run_context_pb2.ConstValue(string_value=value)
+        sweep.const_value.string_value = value
     elif isinstance(value, numbers.Integral):
         # more general than isinstance(int) but also slower
-        return run_context_pb2.ConstValue(int_value=int(value))
+        sweep.const_value.int_value = int(value)
     elif isinstance(value, numbers.Real):
         # more general than isinstance(float) but also slower
         if use_float64:
-            return run_context_pb2.ConstValue(double_value=float(value))
+            sweep.const_value.double_value = float(value)  # pragma: no cover
         else:
             # Note: A loss of precision for floating-point numbers may occur here.
-            return run_context_pb2.ConstValue(float_value=float(value))
+            sweep.const_value.float_value = float(value)
     elif isinstance(value, tunits.Value):
-        return run_context_pb2.ConstValue(with_unit_value=value.to_proto())
+        value.to_proto(sweep.const_value.with_unit_value)
     else:
         raise ValueError(
             f"Unsupported type for serializing const sweep: {value=} and {type(value)=}"
@@ -68,17 +70,18 @@ def _build_sweep_const(value: Any, use_float64: bool = False) -> run_context_pb2
 
 def _recover_sweep_const(const_pb: run_context_pb2.ConstValue) -> Any:
     """Recover a const value from the sweep const message."""
-    if const_pb.WhichOneof('value') == 'is_none':
+    which = const_pb.WhichOneof('value')
+    if which == 'is_none':
         return None
-    if const_pb.WhichOneof('value') == 'double_value':
+    if which == 'double_value':
         return const_pb.double_value
-    if const_pb.WhichOneof('value') == 'float_value':
+    if which == 'float_value':
         return const_pb.float_value
-    if const_pb.WhichOneof('value') == 'int_value':
+    if which == 'int_value':
         return const_pb.int_value
-    if const_pb.WhichOneof('value') == 'string_value':
+    if which == 'string_value':
         return const_pb.string_value
-    if const_pb.WhichOneof('value') == 'with_unit_value':
+    if which == 'with_unit_value':
         return tunits.Value.from_proto(const_pb.with_unit_value)
 
 
@@ -190,7 +193,7 @@ def sweep_to_proto(
         sweep = cast(cirq.Points, sweep_transformer(sweep))
         out.single_sweep.parameter_key = sweep.key
         if len(sweep.points) == 1:
-            out.single_sweep.const_value.MergeFrom(_build_sweep_const(sweep.points[0], use_float64))
+            _add_sweep_const(out.single_sweep, sweep.points[0], use_float64)
         else:
             if isinstance(sweep.points[0], tunits.Value):
                 unit = sweep.points[0].unit
@@ -263,73 +266,74 @@ def sweep_from_proto(
 
         raise ValueError(f'invalid sweep function type: {func_type}')
     if which == 'single_sweep':
-        key = msg.single_sweep.parameter_key
+        single_sweep = msg.single_sweep
+        key = single_sweep.parameter_key
         metadata: DeviceParameter | Metadata | None
-        if msg.single_sweep.HasField("parameter"):
+        if single_sweep.HasField("parameter"):
             metadata = DeviceParameter(
-                path=msg.single_sweep.parameter.path,
+                path=single_sweep.parameter.path,
                 idx=(
-                    msg.single_sweep.parameter.idx
-                    if msg.single_sweep.parameter.HasField("idx")
-                    else None
+                    single_sweep.parameter.idx if single_sweep.parameter.HasField("idx") else None
                 ),
                 units=(
-                    msg.single_sweep.parameter.units
-                    if msg.single_sweep.parameter.HasField("units")
+                    single_sweep.parameter.units
+                    if single_sweep.parameter.HasField("units")
                     else None
                 ),
             )
-        elif msg.single_sweep.HasField("metadata"):
-            metadata = metadata_from_proto(msg.single_sweep.metadata)
+        elif single_sweep.HasField("metadata"):
+            metadata = metadata_from_proto(single_sweep.metadata)
         else:
             metadata = None
 
-        if msg.single_sweep.WhichOneof('sweep') == 'linspace':
+        single_sweep_which = single_sweep.WhichOneof('sweep')
+        if single_sweep_which == 'linspace':
             unit: float | tunits.Value = 1.0
-            if msg.single_sweep.linspace.HasField('unit'):
-                unit = tunits.Value.from_proto(msg.single_sweep.linspace.unit)
+            if single_sweep.linspace.HasField('unit'):
+                unit = tunits.Value.from_proto(single_sweep.linspace.unit)
             # If float 64 field is presented, we use it first.
-            if msg.single_sweep.linspace.first_point_double:
-                first_point = msg.single_sweep.linspace.first_point_double
+            if single_sweep.linspace.first_point_double:
+                first_point = single_sweep.linspace.first_point_double
             else:
-                first_point = msg.single_sweep.linspace.first_point
+                first_point = single_sweep.linspace.first_point
 
-            if msg.single_sweep.linspace.last_point_double:
-                last_point = msg.single_sweep.linspace.last_point_double
+            if single_sweep.linspace.last_point_double:
+                last_point = single_sweep.linspace.last_point_double
             else:
-                last_point = msg.single_sweep.linspace.last_point  # pragma: no cover
+                last_point = single_sweep.linspace.last_point  # pragma: no cover
             return sweep_transformer(
                 cirq.Linspace(
                     key=key,
                     start=first_point * unit,  # type: ignore[arg-type]
                     stop=last_point * unit,  # type: ignore[arg-type]
-                    length=msg.single_sweep.linspace.num_points,
+                    length=single_sweep.linspace.num_points,
                     metadata=metadata,
                 )
             )
-        if msg.single_sweep.WhichOneof('sweep') == 'points':
-            unit = 1.0
-            if msg.single_sweep.points.HasField('unit'):
-                unit = tunits.Value.from_proto(msg.single_sweep.points.unit)
+        if single_sweep_which == 'points':
             # points_double is the double floating number instead of single one.
             # if points_double is presented, we use this value first.
-            if msg.single_sweep.points.points_double:
-                points = msg.single_sweep.points.points_double
+            points_proto = single_sweep.points
+            if points_proto.points_double:
+                points = points_proto.points_double
             else:
-                points = msg.single_sweep.points.points  # pragma: no cover
-            return sweep_transformer(
-                cirq.Points(key=key, points=[p * unit for p in points], metadata=metadata)
-            )
-        if msg.single_sweep.WhichOneof('sweep') == 'const_value':
+                points = points_proto.points  # pragma: no cover
+            if points_proto.HasField('unit'):
+                unit = tunits.Value.from_proto(points_proto.unit)
+                return sweep_transformer(
+                    cirq.Points(key=key, points=[p * unit for p in points], metadata=metadata)
+                )
+            return sweep_transformer(cirq.Points(key=key, points=points, metadata=metadata))
+        if single_sweep_which == 'const_value':
             return sweep_transformer(
                 cirq.Points(
                     key=key,
-                    points=[_recover_sweep_const(msg.single_sweep.const_value)],
+                    points=[_recover_sweep_const(single_sweep.const_value)],
                     metadata=metadata,
                 )
             )
-        if msg.single_sweep.WhichOneof('sweep') == 'random_variable':
-            sweep_msg = msg.single_sweep.random_variable
+        if single_sweep_which == 'random_variable':
+            sweep_msg = single_sweep.random_variable
             distribution = {float(key): val for key, val in sweep_msg.distribution.items()}
             return sweep_transformer(
                 FiniteRandomVariable(
@@ -402,7 +406,7 @@ def sweepable_to_proto(
         for key, val in sweepable.items():
             single_sweep = zip_proto.sweeps.add().single_sweep
             single_sweep.parameter_key = key
-            single_sweep.const_value.MergeFrom(_build_sweep_const(val, use_float64))
+            _add_sweep_const(single_sweep, val, use_float64)
         return out
     if isinstance(sweepable, Iterable):
         for sweepable_element in sweepable:

@@ -31,7 +31,7 @@ def assert_optimizes(
     eject_parameterized: bool = False,
     *,
     with_context: bool = False,
-):
+) -> None:
     context = cirq.TransformerContext(tags_to_ignore=("nocompile",)) if with_context else None
     circuit = cirq.eject_phased_paulis(
         before, eject_parameterized=eject_parameterized, context=context

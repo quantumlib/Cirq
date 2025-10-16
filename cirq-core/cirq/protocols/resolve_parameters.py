@@ -15,10 +15,9 @@
 from __future__ import annotations
 
 import numbers
-from typing import AbstractSet, Any, cast, TYPE_CHECKING, TypeVar
+from typing import AbstractSet, Any, cast, Protocol, Self, TYPE_CHECKING, TypeVar
 
 import sympy
-from typing_extensions import Protocol, Self
 
 from cirq import study
 from cirq._doc import doc_private
@@ -170,14 +169,8 @@ def resolve_parameters(
         return val
 
     # Ensure it is a dictionary wrapped in a ParamResolver.
-    param_resolver = study.ParamResolver(param_resolver)
-
-    # Handle special cases for sympy expressions and sequences.
-    # These may not in fact preserve types, but we pretend they do by casting.
-    if isinstance(val, sympy.Expr):
-        return cast(T, param_resolver.value_of(val, recursive))
-    if isinstance(val, (list, tuple)):
-        return cast(T, type(val)(resolve_parameters(e, param_resolver, recursive) for e in val))
+    if not isinstance(param_resolver, study.ParamResolver):
+        param_resolver = study.ParamResolver(param_resolver)
 
     is_parameterized = (
         val._is_parameterized_() if hasattr(val, '_is_parameterized_') else NotImplemented
@@ -193,10 +186,17 @@ def resolve_parameters(
 
     if result is not NotImplemented:
         return result
-    else:
-        return val
+
+    # Handle special cases for sympy expressions and sequences.
+    # These may not in fact preserve types, but we pretend they do by casting.
+    if isinstance(val, sympy.Expr):
+        return cast(T, param_resolver.value_of(val, recursive))
+    if isinstance(val, (list, tuple)):
+        return cast(T, type(val)(resolve_parameters(e, param_resolver, recursive) for e in val))
+
+    return val
 
 
-def resolve_parameters_once(val: Any, param_resolver: cirq.ParamResolverOrSimilarType):
+def resolve_parameters_once(val: T, param_resolver: cirq.ParamResolverOrSimilarType) -> T:
     """Performs a single parameter resolution step using the param resolver."""
     return resolve_parameters(val, param_resolver, False)

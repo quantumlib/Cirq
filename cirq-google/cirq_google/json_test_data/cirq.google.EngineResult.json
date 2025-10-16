@@ -24,9 +24,5 @@
       ]
     }
   },
-  "job_id": "my_job_id",
-  "job_finished_time": {
-    "cirq_type": "datetime.datetime",
-    "timestamp": 1648801425.0
-  }
+  "job_id": "my_job_id"
 }

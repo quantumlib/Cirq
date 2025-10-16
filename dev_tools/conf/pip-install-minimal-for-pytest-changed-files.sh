@@ -17,8 +17,9 @@
 set -e
 
 # Get the working directory to the repo root.
-cd "$( dirname "${BASH_SOURCE[0]}" )"
-cd "$(git rev-parse --show-toplevel)"
+thisdir=$(dirname "${BASH_SOURCE[0]:?}")
+repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel)
+cd "${repo_dir}"
 
 reqs=(
     -r dev_tools/requirements/pytest-minimal.env.txt

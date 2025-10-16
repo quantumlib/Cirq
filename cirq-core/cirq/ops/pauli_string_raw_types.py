@@ -15,9 +15,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Sequence, TYPE_CHECKING
-
-from typing_extensions import Self
+from typing import Any, Self, Sequence, TYPE_CHECKING
 
 from cirq import protocols
 from cirq.ops import pauli_string as ps, raw_types

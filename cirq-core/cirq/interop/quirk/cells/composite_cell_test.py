@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+from typing import Iterable
+
 import pytest
 
 import cirq
@@ -22,7 +24,7 @@ from cirq.interop.quirk.cells.composite_cell import _iterator_to_iterable
 from cirq.interop.quirk.cells.testing import assert_url_to_circuit_returns
 
 
-def test_iterator_to_iterable():
+def test_iterator_to_iterable() -> None:
     k = 0
 
     def counter():
@@ -32,7 +34,7 @@ def test_iterator_to_iterable():
 
     # Normal iterator usage.
     k = 0
-    generator = (counter() for _ in range(10))
+    generator: Iterable[int] = (counter() for _ in range(10))
     assert k == 0
     assert list(generator) == list(range(10))
     assert k == 10
@@ -73,7 +75,7 @@ def test_iterator_to_iterable():
     assert k == 10
 
 
-def test_custom_circuit_gate():
+def test_custom_circuit_gate() -> None:
     a, b, c, d, e = cirq.LineQubit.range(5)
 
     # Without name.

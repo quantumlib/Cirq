@@ -152,7 +152,7 @@ def _enumerate_all_from_stabilizer_bases(
 
 @dataclass
 class PauliTrace:
-    """Holder of a description fo Pauli states.
+    """Holder of a description of Pauli states.
 
     This class contains the Pauli states as described on page 2 of: https://arxiv.org/abs/1104.3835
     """

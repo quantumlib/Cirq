@@ -16,9 +16,7 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import Any, TYPE_CHECKING
-
-from typing_extensions import Protocol
+from typing import Any, Protocol, TYPE_CHECKING
 
 from cirq._doc import doc_private
 from cirq.protocols import measurement_key_protocol
@@ -55,6 +53,13 @@ def control_keys(val: Any) -> frozenset[cirq.MeasurementKey]:
     Returns:
         The measurement keys the value is controlled by. If the value is not
         classically controlled, the result is the empty tuple.
+
+    Notes:
+        For composite operations (e.g. CircuitOperation), only control keys that
+        have not already been measured earlier in the subcircuit are returned.
+        Control keys that are satisfied by measurements **after** their use in
+        the subcircuit are still required externally and thus appear in the
+        result.
     """
     getter = getattr(val, '_control_keys_', None)
     result = NotImplemented if getter is None else getter()

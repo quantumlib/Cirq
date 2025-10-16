@@ -18,10 +18,9 @@ from __future__ import annotations
 
 import abc
 import copy
-from typing import Any, cast, Generic, Iterator, Sequence, TYPE_CHECKING, TypeVar
+from typing import Any, cast, Generic, Iterator, Self, Sequence, TYPE_CHECKING, TypeVar
 
 import numpy as np
-from typing_extensions import Self
 
 from cirq import ops, protocols, value
 from cirq.sim.simulation_state_base import SimulationStateBase
@@ -74,7 +73,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         key: str,
         invert_mask: Sequence[bool],
         confusion_map: dict[tuple[int, ...], np.ndarray],
-    ):
+    ) -> None:
         """Measures the qubits and records to `log_of_measurement_results`.
 
         Any bitmasks will be applied to the measurement record.
@@ -210,7 +209,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         return extracted, remainder
 
     @property
-    def allows_factoring(self):
+    def allows_factoring(self) -> bool:
         """Subclasses that allow factorization should override this."""
         return self._state.supports_factor if self._state is not None else False
 
@@ -239,7 +238,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
     def qubits(self) -> tuple[cirq.Qid, ...]:
         return self._qubits
 
-    def swap(self, q1: cirq.Qid, q2: cirq.Qid, *, inplace=False):
+    def swap(self, q1: cirq.Qid, q2: cirq.Qid, *, inplace=False) -> Self:
         """Swaps two qubits.
 
         This only affects the index, and does not modify the underlying
@@ -270,7 +269,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         args._set_qubits(qubits)
         return args
 
-    def rename(self, q1: cirq.Qid, q2: cirq.Qid, *, inplace=False):
+    def rename(self, q1: cirq.Qid, q2: cirq.Qid, *, inplace=False) -> Self:
         """Renames `q1` to `q2`.
 
         Args:
