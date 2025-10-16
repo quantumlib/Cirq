@@ -98,7 +98,7 @@ class ComponentSet:
 
     def new_component(self, op: cirq.Operation, moment_id: int, is_mergeable=True) -> Component:
         """Creates a new component and adds it to the set."""
-        c = self._comp_type(op, moment_id, self._is_mergeable(op) and is_mergeable)
+        c = self._comp_type(op, moment_id, is_mergeable and self._is_mergeable(op))
         self._disjoint_set.add(c)
         self._components.append(c)
         return c
