@@ -180,11 +180,9 @@ class ComponentWithOpsSet(ComponentSet):
 
         root = cast(ComponentWithOps, super().merge(x, y, merge_left))
         root.ops = x.ops + y.ops
-        # Clear the ops list in the non-representative component to avoid memory consumption
-        if x != root:
-            x.ops = []
-        else:
-            y.ops = []
+        # Clear the ops list in the non-representative component to avoid duplication
+        other = y if x is root else x
+        other.ops = []
         return root
 
 
@@ -232,9 +230,4 @@ class ComponentWithCircuitOpSet(ComponentSet):
         root.mkeys = protocols.measurement_key_objs(new_op)
         root.ckeys = protocols.control_keys(new_op)
 
-        # Clear the circuit op in the non-representative component to avoid memory consumption
-        if x != root:
-            del x.circuit_op
-        else:
-            del y.circuit_op
         return root
