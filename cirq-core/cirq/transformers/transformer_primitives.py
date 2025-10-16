@@ -73,12 +73,14 @@ def _remove_last(indices: list[int], value: int) -> None:
     """Remove value from a sorted list of indices.
 
     Optimized for the majority case when the value is the last in the list.
+
+    Raises:
+        ValueError: If the value is not in the list.
     """
-    indices.reverse()
-    try:
+    if indices[-1] == value:
+        indices.pop()
+    else:
         indices.remove(value)
-    finally:
-        indices.reverse()
 
 
 def map_moments(
@@ -342,14 +344,14 @@ class _MergedCircuit:
     ckey_indexes: dict[cirq.MeasurementKey, list[int]] = dataclasses.field(
         default_factory=lambda: defaultdict(lambda: [-1])
     )
-    components_by_index: list[dict[Component, int]] = dataclasses.field(default_factory=list)
+    components_by_index: list[dict[Component, None]] = dataclasses.field(default_factory=list)
 
     def append_empty_moment(self) -> None:
         self.components_by_index.append({})
 
     def add_component(self, c: Component) -> None:
         """Adds a new components to merged circuit."""
-        self.components_by_index[c.moment_id][c] = 0
+        self.components_by_index[c.moment_id][c] = None
         for q in c.qubits:
             _insort_last(self.qubit_indexes[q], c.moment_id)
         for mkey in c.mkeys:
