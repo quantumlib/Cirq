@@ -122,20 +122,10 @@ def test_component_with_ops_merge():
     q = cirq.LineQubit.range(3)
     ops = [cirq.X(q[i]) for i in range(3)]
     c = [cset.new_component(op=ops[i], moment_id=i) for i in range(3)]
-
     cset.merge(c[0], c[1])
     cset.merge(c[1], c[2])
     assert cset.find(c[0]).ops == ops
-
-
-def test_component_with_ops_merge_same_component():
-    cset = ComponentWithOpsSet(_always_mergeable, _always_can_merge)
-
-    q = cirq.LineQubit.range(3)
-    ops = [cirq.X(q[i]) for i in range(3)]
-    c = [cset.new_component(op=ops[i], moment_id=i) for i in range(3)]
-    cset.merge(c[0], c[1])
-    cset.merge(c[1], c[2])
+    # check merge of indirectly merged components does not make a difference
     assert cset.merge(c[0], c[2]).ops == ops
 
 
@@ -178,15 +168,7 @@ def test_component_with_circuit_op_merge():
     cset.merge(c[1], c[2])
     for i in range(3):
         assert cset.find(c[i]).circuit_op == ops[0]
-
-
-def test_component_with_circuit_op_merge_same_component():
-    cset = ComponentWithCircuitOpSet(_always_mergeable, _merge_as_first_operation)
-
-    q = cirq.NamedQubit('x')
-    c = [cset.new_component(op=cirq.X(q), moment_id=i) for i in range(3)]
-    cset.merge(c[1], c[0])
-    cset.merge(c[2], c[1])
+    # check merge of indirectly merged components does not make a difference
     assert cset.merge(c[0], c[2]) is cset.find(c[1])
 
 
