@@ -57,6 +57,29 @@ def _create_target_circuit_type(ops: ops.OP_TREE, target_circuit: CIRCUIT_TYPE) 
     return cast(CIRCUIT_TYPE, circuits.Circuit(ops))
 
 
+def _insort_last(indices: list[int], value: int) -> None:
+    """Insert value to a sorted list of indices.
+
+    Optimized for the majority case when the value is the last in the list.
+    """
+    if indices and value < indices[-1]:
+        bisect.insort(indices, value)
+    else:
+        indices.append(value)
+
+
+def _remove_last(indices: list[int], value: int) -> None:
+    """Remove value from a sorted list of indices.
+
+    Optimized for the majority case when the value is the last in the list.
+    """
+    indices.reverse()
+    try:
+        indices.remove(value)
+    finally:
+        indices.reverse()
+
+
 def map_moments(
     circuit: CIRCUIT_TYPE,
     map_func: Callable[[circuits.Moment, int], circuits.Moment | Sequence[circuits.Moment]],
@@ -323,35 +346,15 @@ class _MergedCircuit:
     def append_empty_moment(self) -> None:
         self.components_by_index.append({})
 
-    def add_moment(self, index: list[int], moment_id: int) -> None:
-        """Adds a moment to a sorted list of moment indexes.
-
-        Optimized for the majority case when the new moment is higher than any moment in the list.
-        """
-        if index[-1] < moment_id:
-            index.append(moment_id)
-        else:
-            bisect.insort(index, moment_id)
-
-    def remove_moment(self, index: list[int], moment_id: int) -> None:
-        """Removes a moment from a sorted list of moment indexes.
-
-        Optimized for the majority case when the moment is last in the list.
-        """
-        if index[-1] == moment_id:
-            index.pop()
-        else:
-            index.remove(moment_id)
-
     def add_component(self, c: Component) -> None:
         """Adds a new components to merged circuit."""
         self.components_by_index[c.moment_id][c] = 0
         for q in c.qubits:
-            self.add_moment(self.qubit_indexes[q], c.moment_id)
+            _insort_last(self.qubit_indexes[q], c.moment_id)
         for mkey in c.mkeys:
-            self.add_moment(self.mkey_indexes[mkey], c.moment_id)
+            _insort_last(self.mkey_indexes[mkey], c.moment_id)
         for ckey in c.ckeys:
-            self.add_moment(self.ckey_indexes[ckey], c.moment_id)
+            _insort_last(self.ckey_indexes[ckey], c.moment_id)
 
     def remove_component(self, c: Component, c_data: Component) -> None:
         """Removes a component from the merged circuit.
@@ -363,11 +366,11 @@ class _MergedCircuit:
         """
         self.components_by_index[c_data.moment_id].pop(c)
         for q in c_data.qubits:
-            self.remove_moment(self.qubit_indexes[q], c_data.moment_id)
+            _remove_last(self.qubit_indexes[q], c_data.moment_id)
         for mkey in c_data.mkeys:
-            self.remove_moment(self.mkey_indexes[mkey], c_data.moment_id)
+            _remove_last(self.mkey_indexes[mkey], c_data.moment_id)
         for ckey in c_data.ckeys:
-            self.remove_moment(self.ckey_indexes[ckey], c_data.moment_id)
+            _remove_last(self.ckey_indexes[ckey], c_data.moment_id)
 
     def get_mergeable_components(self, c: Component, c_qs: set[cirq.Qid]) -> list[Component]:
         """Finds all components that can be merged with c.
