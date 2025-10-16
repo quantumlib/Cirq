@@ -22,11 +22,32 @@ from cirq.transformers.connected_component import (
 )
 
 
-def test_find_returns_itself_for_singleton():
-    def is_mergeable(_: cirq.Operation) -> bool:
-        return True
+def _always_mergeable(_: cirq.Operation) -> bool:
+    return True
 
-    cset = ComponentSet(is_mergeable)
+
+def _never_mergeable(_: cirq.Operation) -> bool:
+    return False
+
+
+def _always_can_merge(_ops1: list[cirq.Operation], _ops2: list[cirq.Operation]) -> bool:
+    return True
+
+
+def _never_can_merge(_ops1: list[cirq.Operation], _ops2: list[cirq.Operation]) -> bool:
+    return False
+
+
+def _merge_as_first_operation(op1: cirq.Operation, _op2: cirq.Operation) -> cirq.Operation:
+    return op1
+
+
+def _merge_never_successful(op1: cirq.Operation, _op2: cirq.Operation) -> None:
+    return None
+
+
+def test_find_returns_itself_for_singleton():
+    cset = ComponentSet(_always_mergeable)
 
     q = cirq.NamedQubit('x')
     c = cset.new_component(op=cirq.X(q), moment_id=0)
@@ -34,10 +55,7 @@ def test_find_returns_itself_for_singleton():
 
 
 def test_merge_components():
-    def is_mergeable(_: cirq.Operation) -> bool:
-        return True
-
-    cset = ComponentSet(is_mergeable)
+    cset = ComponentSet(_always_mergeable)
 
     q = cirq.NamedQubit('x')
     c = [cset.new_component(op=cirq.X(q), moment_id=i) for i in range(5)]
@@ -51,10 +69,7 @@ def test_merge_components():
 
 
 def test_merge_same_component():
-    def is_mergeable(_: cirq.Operation) -> bool:
-        return True
-
-    cset = ComponentSet(is_mergeable)
+    cset = ComponentSet(_always_mergeable)
 
     q = cirq.NamedQubit('x')
     c = [cset.new_component(op=cirq.X(q), moment_id=i) for i in range(3)]
@@ -67,10 +82,7 @@ def test_merge_same_component():
 
 
 def test_merge_returns_None_if_one_component_is_not_mergeable():
-    def is_mergeable(_: cirq.Operation) -> bool:
-        return True
-
-    cset = ComponentSet(is_mergeable)
+    cset = ComponentSet(_always_mergeable)
 
     q = cirq.NamedQubit('x')
     c0 = cset.new_component(op=cirq.X(q), moment_id=0, is_mergeable=True)
@@ -80,11 +92,7 @@ def test_merge_returns_None_if_one_component_is_not_mergeable():
 
 def test_cset_merge_returns_None_if_is_mergeable_is_false():
     q = cirq.NamedQubit('x')
-
-    def is_mergeable(_: cirq.Operation) -> bool:
-        return False
-
-    cset = ComponentSet(is_mergeable=is_mergeable)
+    cset = ComponentSet(is_mergeable=_never_mergeable)
 
     c0 = cset.new_component(op=cirq.X(q), moment_id=0, is_mergeable=True)
     c1 = cset.new_component(op=cirq.X(q), moment_id=1, is_mergeable=True)
@@ -92,10 +100,7 @@ def test_cset_merge_returns_None_if_is_mergeable_is_false():
 
 
 def test_merge_qubits_with_merge_left_true():
-    def is_mergeable(_: cirq.Operation) -> bool:
-        return True
-
-    cset = ComponentSet(is_mergeable)
+    cset = ComponentSet(_always_mergeable)
 
     q0 = cirq.NamedQubit('x')
     q1 = cirq.NamedQubit('y')
@@ -108,10 +113,7 @@ def test_merge_qubits_with_merge_left_true():
 
 
 def test_merge_qubits_with_merge_left_false():
-    def is_mergeable(_: cirq.Operation) -> bool:
-        return True
-
-    cset = ComponentSet(is_mergeable)
+    cset = ComponentSet(_always_mergeable)
 
     q0 = cirq.NamedQubit('x')
     q1 = cirq.NamedQubit('y')
@@ -124,10 +126,7 @@ def test_merge_qubits_with_merge_left_false():
 
 
 def test_merge_moment_with_merge_left_true():
-    def is_mergeable(_: cirq.Operation) -> bool:
-        return True
-
-    cset = ComponentSet(is_mergeable)
+    cset = ComponentSet(_always_mergeable)
 
     q0 = cirq.NamedQubit('x')
     q1 = cirq.NamedQubit('y')
@@ -141,10 +140,7 @@ def test_merge_moment_with_merge_left_true():
 
 
 def test_merge_moment_with_merge_left_false():
-    def is_mergeable(_: cirq.Operation) -> bool:
-        return True
-
-    cset = ComponentSet(is_mergeable)
+    cset = ComponentSet(_always_mergeable)
 
     q0 = cirq.NamedQubit('x')
     q1 = cirq.NamedQubit('y')
@@ -158,13 +154,7 @@ def test_merge_moment_with_merge_left_false():
 
 
 def test_component_with_ops_merge():
-    def is_mergeable(_: cirq.Operation) -> bool:
-        return True
-
-    def can_merge(_ops1: list[cirq.Operation], _ops2: list[cirq.Operation]) -> bool:
-        return True
-
-    cset = ComponentWithOpsSet(is_mergeable, can_merge)
+    cset = ComponentWithOpsSet(_always_mergeable, _always_can_merge)
 
     q = cirq.LineQubit.range(3)
     ops = [cirq.X(q[i]) for i in range(3)]
@@ -176,13 +166,7 @@ def test_component_with_ops_merge():
 
 
 def test_component_with_ops_merge_same_component():
-    def is_mergeable(_: cirq.Operation) -> bool:
-        return True
-
-    def can_merge(_ops1: list[cirq.Operation], _ops2: list[cirq.Operation]) -> bool:
-        return True
-
-    cset = ComponentWithOpsSet(is_mergeable, can_merge)
+    cset = ComponentWithOpsSet(_always_mergeable, _always_can_merge)
 
     q = cirq.LineQubit.range(3)
     ops = [cirq.X(q[i]) for i in range(3)]
@@ -193,13 +177,7 @@ def test_component_with_ops_merge_same_component():
 
 
 def test_component_with_ops_merge_when_merge_fails():
-    def is_mergeable(_: cirq.Operation) -> bool:
-        return True
-
-    def can_merge(_ops1: list[cirq.Operation], _ops2: list[cirq.Operation]) -> bool:
-        return False
-
-    cset = ComponentWithOpsSet(is_mergeable, can_merge)
+    cset = ComponentWithOpsSet(_always_mergeable, _never_can_merge)
 
     q = cirq.LineQubit.range(3)
     ops = [cirq.X(q[i]) for i in range(3)]
@@ -213,13 +191,7 @@ def test_component_with_ops_merge_when_merge_fails():
 
 
 def test_component_with_ops_merge_when_is_mergeable_is_false():
-    def is_mergeable(_: cirq.Operation) -> bool:
-        return False
-
-    def can_merge(_ops1: list[cirq.Operation], _ops2: list[cirq.Operation]) -> bool:
-        raise NotImplementedError()
-
-    cset = ComponentWithOpsSet(is_mergeable, can_merge)
+    cset = ComponentWithOpsSet(_never_mergeable, _always_can_merge)
 
     q = cirq.LineQubit.range(3)
     ops = [cirq.X(q[i]) for i in range(3)]
@@ -233,13 +205,7 @@ def test_component_with_ops_merge_when_is_mergeable_is_false():
 
 
 def test_component_with_circuit_op_merge():
-    def is_mergeable(_: cirq.Operation) -> bool:
-        return True
-
-    def merge_func(op1: cirq.Operation, _: cirq.Operation) -> cirq.Operation:
-        return op1
-
-    cset = ComponentWithCircuitOpSet(is_mergeable, merge_func)
+    cset = ComponentWithCircuitOpSet(_always_mergeable, _merge_as_first_operation)
 
     q = cirq.LineQubit.range(3)
     ops = [cirq.X(q[i]) for i in range(3)]
@@ -252,13 +218,7 @@ def test_component_with_circuit_op_merge():
 
 
 def test_component_with_circuit_op_merge_same_component():
-    def is_mergeable(_: cirq.Operation) -> bool:
-        return True
-
-    def merge_func(op1: cirq.Operation, _: cirq.Operation) -> cirq.Operation:
-        return op1
-
-    cset = ComponentWithCircuitOpSet(is_mergeable, merge_func)
+    cset = ComponentWithCircuitOpSet(_always_mergeable, _merge_as_first_operation)
 
     q = cirq.NamedQubit('x')
     c = [cset.new_component(op=cirq.X(q), moment_id=i) for i in range(3)]
@@ -268,13 +228,7 @@ def test_component_with_circuit_op_merge_same_component():
 
 
 def test_component_with_circuit_op_merge_func_is_none():
-    def is_mergeable(_: cirq.Operation) -> bool:
-        return True
-
-    def merge_func(_op1: cirq.Operation, _op2: cirq.Operation) -> None:
-        return None
-
-    cset = ComponentWithCircuitOpSet(is_mergeable, merge_func)
+    cset = ComponentWithCircuitOpSet(_always_mergeable, _merge_never_successful)
 
     q = cirq.LineQubit.range(3)
     ops = [cirq.X(q[i]) for i in range(3)]
@@ -288,13 +242,7 @@ def test_component_with_circuit_op_merge_func_is_none():
 
 
 def test_component_with_circuit_op_merge_when_is_mergeable_is_false():
-    def is_mergeable(_: cirq.Operation) -> bool:
-        return False
-
-    def merge_func(op1: cirq.Operation, _op2: cirq.Operation) -> cirq.Operation:
-        raise NotImplementedError()
-
-    cset = ComponentWithCircuitOpSet(is_mergeable, merge_func)
+    cset = ComponentWithCircuitOpSet(_never_mergeable, _merge_as_first_operation)
 
     q = cirq.LineQubit.range(3)
     ops = [cirq.X(q[i]) for i in range(3)]
