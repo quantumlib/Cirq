@@ -172,7 +172,7 @@ class ComponentWithOpsSet(ComponentSet):
         x = cast(ComponentWithOps, self._disjoint_set[x])
         y = cast(ComponentWithOps, self._disjoint_set[y])
 
-        if x == y:
+        if x is y:
             return x
 
         if not x.is_mergeable or not y.is_mergeable or not self._can_merge(x.ops, y.ops):
@@ -212,7 +212,7 @@ class ComponentWithCircuitOpSet(ComponentSet):
         x = cast(ComponentWithCircuitOp, self._disjoint_set[x])
         y = cast(ComponentWithCircuitOp, self._disjoint_set[y])
 
-        if x == y:
+        if x is y:
             return x
 
         if not x.is_mergeable or not y.is_mergeable:

@@ -30,7 +30,7 @@ def test_find_returns_itself_for_singleton():
 
     q = cirq.NamedQubit('x')
     c = cset.new_component(op=cirq.X(q), moment_id=0)
-    assert cset.find(c) == c
+    assert cset.find(c) is c
 
 
 def test_merge_components():
@@ -47,7 +47,7 @@ def test_merge_components():
     cset.merge(c[3], c[0])
 
     for i in range(5):
-        assert cset.find(c[i]) == cset.find(c[0])
+        assert cset.find(c[i]) is cset.find(c[0])
 
 
 def test_merge_same_component():
@@ -63,7 +63,7 @@ def test_merge_same_component():
 
     root = cset.find(c[0])
 
-    assert cset.merge(c[0], c[2]) == root
+    assert cset.merge(c[0], c[2]) is root
 
 
 def test_merge_returns_None_if_one_component_is_not_mergeable():
@@ -209,7 +209,7 @@ def test_component_with_ops_merge_when_merge_fails():
     cset.merge(c[1], c[2])
     # No merge happened
     for i in range(3):
-        assert cset.find(c[i]) == c[i]
+        assert cset.find(c[i]) is c[i]
 
 
 def test_component_with_ops_merge_when_is_mergeable_is_false():
@@ -229,7 +229,7 @@ def test_component_with_ops_merge_when_is_mergeable_is_false():
     cset.merge(c[1], c[2])
     # No merge happened
     for i in range(3):
-        assert cset.find(c[i]) == c[i]
+        assert cset.find(c[i]) is c[i]
 
 
 def test_component_with_circuit_op_merge():
@@ -264,7 +264,7 @@ def test_component_with_circuit_op_merge_same_component():
     c = [cset.new_component(op=cirq.X(q), moment_id=i) for i in range(3)]
     cset.merge(c[1], c[0])
     cset.merge(c[2], c[1])
-    assert cset.merge(c[0], c[2]) == cset.find(c[1])
+    assert cset.merge(c[0], c[2]) is cset.find(c[1])
 
 
 def test_component_with_circuit_op_merge_func_is_none():
@@ -284,7 +284,7 @@ def test_component_with_circuit_op_merge_func_is_none():
     cset.merge(c[1], c[2])
     # No merge happened
     for i in range(3):
-        assert cset.find(c[i]) == c[i]
+        assert cset.find(c[i]) is c[i]
 
 
 def test_component_with_circuit_op_merge_when_is_mergeable_is_false():
@@ -304,4 +304,4 @@ def test_component_with_circuit_op_merge_when_is_mergeable_is_false():
     cset.merge(c[1], c[2])
     # No merge happened
     for i in range(3):
-        assert cset.find(c[i]) == c[i]
+        assert cset.find(c[i]) is c[i]
