@@ -217,7 +217,7 @@ def test_component_with_ops_merge_when_is_mergeable_is_false():
         return False
 
     def can_merge(_ops1: list[cirq.Operation], _ops2: list[cirq.Operation]) -> bool:
-        return True
+        raise NotImplementedError()
 
     cset = ComponentWithOpsSet(is_mergeable, can_merge)
 
@@ -291,8 +291,8 @@ def test_component_with_circuit_op_merge_when_is_mergeable_is_false():
     def is_mergeable(_: cirq.Operation) -> bool:
         return False
 
-    def merge_func(op1: cirq.Operation, _: cirq.Operation) -> cirq.Operation:
-        return op1
+    def merge_func(op1: cirq.Operation, _op2: cirq.Operation) -> cirq.Operation:
+        raise NotImplementedError()
 
     cset = ComponentWithCircuitOpSet(is_mergeable, merge_func)
 
