@@ -25,7 +25,7 @@ from typing import Callable, cast, Hashable, Sequence, TYPE_CHECKING
 
 from cirq import circuits, ops, protocols
 from cirq.circuits.circuit import CIRCUIT_TYPE
-from cirq.transformers.connected_component import (
+from cirq.transformers._connected_component import (
     Component,
     ComponentSet,
     ComponentWithCircuitOp,

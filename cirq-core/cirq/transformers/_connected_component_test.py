@@ -17,7 +17,7 @@ from __future__ import annotations
 import pytest
 
 import cirq
-from cirq.transformers.connected_component import (
+from cirq.transformers._connected_component import (
     ComponentSet,
     ComponentWithCircuitOpSet,
     ComponentWithOpsSet,
