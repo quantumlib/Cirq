@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 import cirq
 from cirq.transformers.connected_component import (
     ComponentSet,
@@ -99,58 +101,19 @@ def test_cset_merge_returns_None_if_is_mergeable_is_false():
     assert cset.merge(c0, c1) is None
 
 
-def test_merge_qubits_with_merge_left_true():
-    cset = ComponentSet(_always_mergeable)
-
-    q0 = cirq.NamedQubit('x')
-    q1 = cirq.NamedQubit('y')
-    c0 = cset.new_component(op=cirq.X(q0), moment_id=0)
-    c1 = cset.new_component(op=cirq.X(q1), moment_id=0)
-    c2 = cset.new_component(op=cirq.X(q1), moment_id=1)
-    cset.merge(c1, c2)
-    cset.merge(c0, c1, merge_left=True)
-    assert cset.find(c1).qubits == frozenset([q0, q1])
-
-
-def test_merge_qubits_with_merge_left_false():
-    cset = ComponentSet(_always_mergeable)
-
-    q0 = cirq.NamedQubit('x')
-    q1 = cirq.NamedQubit('y')
-    c0 = cset.new_component(op=cirq.X(q0), moment_id=0)
-    c1 = cset.new_component(op=cirq.X(q0), moment_id=0)
-    c2 = cset.new_component(op=cirq.X(q1), moment_id=1)
-    cset.merge(c0, c1)
-    cset.merge(c1, c2, merge_left=False)
-    assert cset.find(c0).qubits == frozenset([q0, q1])
-
-
-def test_merge_moment_with_merge_left_true():
+@pytest.mark.parametrize("merge_left,expected_moment_id", [(True, 0), (False, 1)])
+def test_merge_qubits_with_merge_left(merge_left: bool, expected_moment_id: int) -> None:
     cset = ComponentSet(_always_mergeable)
 
     q0 = cirq.NamedQubit('x')
     q1 = cirq.NamedQubit('y')
     c0 = cset.new_component(op=cirq.X(q0), moment_id=0)
     c1 = cset.new_component(op=cirq.X(q1), moment_id=1)
-    c2 = cset.new_component(op=cirq.X(q1), moment_id=1)
+    c2 = cset.new_component(op=cirq.X(q1), moment_id=2)
     cset.merge(c1, c2)
-    cset.merge(c0, c1, merge_left=True)
-    # the set representative kept c0's moment
-    assert cset.find(c1).moment_id == 0
-
-
-def test_merge_moment_with_merge_left_false():
-    cset = ComponentSet(_always_mergeable)
-
-    q0 = cirq.NamedQubit('x')
-    q1 = cirq.NamedQubit('y')
-    c0 = cset.new_component(op=cirq.X(q0), moment_id=0)
-    c1 = cset.new_component(op=cirq.X(q0), moment_id=0)
-    c2 = cset.new_component(op=cirq.X(q1), moment_id=1)
-    cset.merge(c0, c1)
-    cset.merge(c1, c2, merge_left=False)
-    # the set representative kept c2's moment
-    assert cset.find(c0).moment_id == 1
+    cset.merge(c0, c1, merge_left=merge_left)
+    assert cset.find(c1).qubits == frozenset([q0, q1])
+    assert cset.find(c1).moment_id == expected_moment_id
 
 
 def test_component_with_ops_merge():
