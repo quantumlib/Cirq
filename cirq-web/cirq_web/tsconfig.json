@@ -12,7 +12,7 @@
     "sourceMap": false,
     "outDir": "build",
     "moduleResolution": "Bundler",
-    "types": ["vitest/globals"]
+    "types": ["vitest/globals", "@webgpu/types"]
   },
   "include": [
     "e2e/**/*.ts",
