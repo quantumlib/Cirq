@@ -19,7 +19,6 @@ from __future__ import annotations
 from typing import Callable, cast, Sequence, TYPE_CHECKING
 
 from scipy.cluster.hierarchy import DisjointSet
-from typing_extensions import override
 
 from cirq import ops, protocols
 
@@ -161,7 +160,6 @@ class ComponentWithOpsSet(ComponentSet):
         self._can_merge = can_merge
         self._comp_type = ComponentWithOps
 
-    @override
     def merge(self, x: Component, y: Component, merge_left=True) -> Component | None:
         """Attempts to merge two components.
 
@@ -201,7 +199,6 @@ class ComponentWithCircuitOpSet(ComponentSet):
         self._merge_func = merge_func
         self._comp_type = ComponentWithCircuitOp
 
-    @override
     def merge(self, x: Component, y: Component, merge_left=True) -> Component | None:
         """Attempts to merge two components.
 
