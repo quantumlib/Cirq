@@ -30,7 +30,7 @@ import cirq_google as cg
 from cirq_google.api import v2
 from cirq_google.cloud import quantum
 from cirq_google.engine import engine_client, ProcessorConfig, util
-from cirq_google.engine.engine import EngineContext
+from cirq_google.engine.engine import EngineContext, Run, Snapshot
 
 
 def _to_timestamp(json_string):
@@ -335,19 +335,17 @@ def test_get_sampler_from_run_name() -> None:
             )
         ),
     )
-    run_name = 'test_run_name'
+    run = Run(id='test_run_name')
     device_config_name = 'test_device_name'
 
-    sampler = processor.get_sampler_from_run_name(
-        run_name=run_name, device_config_name=device_config_name
-    )
+    sampler = processor.get_sampler(device_version=run, device_config_name=device_config_name)
 
-    assert sampler.run_name == run_name
+    assert sampler.run_name == run.id
     assert sampler.device_config_name == device_config_name
 
 
-def test_get_sampler_from_run_name_with_default_values() -> None:
-    default_config_alias = 'test_alias'
+def test_get_sampler_from_run_name_with_defaults() -> None:
+    default_config_alias = 'default_alias'
     processor = cg.EngineProcessor(
         'a',
         'p',
@@ -358,73 +356,54 @@ def test_get_sampler_from_run_name_with_default_values() -> None:
             )
         ),
     )
-    run_name = 'test_run'
+    run = Run(id='test_run_name')
 
-    sampler = processor.get_sampler_from_run_name(run_name=run_name)
+    sampler = processor.get_sampler(device_version=run)
 
-    assert sampler.run_name == run_name
+    assert sampler.run_name == run.id
     assert sampler.device_config_name == default_config_alias
 
 
 def test_get_sampler_from_snapshot_id() -> None:
+    default_snapshot_id = 'default_snap'
     processor = cg.EngineProcessor(
         'a',
         'p',
         EngineContext(),
         _processor=quantum.QuantumProcessor(
             default_device_config_key=quantum.DeviceConfigKey(
-                run="run", config_alias="config_alias"
+                config_alias="config_alias", snapshot_id=default_snapshot_id
             )
         ),
     )
-    snapshot_id = 'test_snapshot'
+    snapshot = Snapshot(id='test_snapshot')
     device_config_name = 'test_device_name'
 
-    sampler = processor.get_sampler_from_snapshot_id(
-        snapshot_id=snapshot_id, device_config_name=device_config_name
-    )
+    sampler = processor.get_sampler(device_version=snapshot, device_config_name=device_config_name)
 
-    assert sampler.snapshot_id == snapshot_id
+    assert sampler.snapshot_id == snapshot.id
     assert sampler.device_config_name == device_config_name
 
 
-def test_get_sampler_from_snapshot_id_with_default_device() -> None:
+def test_get_sampler_from_snapshot_id_with_defaults() -> None:
     default_config_alias = 'test_alias'
+    default_snapshot_id = 'default_snapshot'
     processor = cg.EngineProcessor(
         'a',
         'p',
         EngineContext(),
         _processor=quantum.QuantumProcessor(
             default_device_config_key=quantum.DeviceConfigKey(
-                run="run", config_alias=default_config_alias
+                config_alias=default_config_alias, snapshot_id=default_snapshot_id
             )
         ),
     )
-    snapshot_id = 'test_snapshot'
+    snapshot = Snapshot(id='test_snapshot')
 
-    sampler = processor.get_sampler_from_snapshot_id(
-        snapshot_id=snapshot_id, device_config_name=default_config_alias
-    )
+    sampler = processor.get_sampler(device_version=snapshot)
 
-    assert sampler.snapshot_id == snapshot_id
+    assert sampler.snapshot_id == snapshot.id
     assert sampler.device_config_name == default_config_alias
-
-
-def test_get_sampler_initializes_default_device_configuration() -> None:
-    processor = cg.EngineProcessor(
-        'a',
-        'p',
-        EngineContext(),
-        _processor=quantum.QuantumProcessor(
-            default_device_config_key=quantum.DeviceConfigKey(
-                run="run", config_alias="config_alias"
-            )
-        ),
-    )
-    sampler = processor.get_sampler()
-
-    assert sampler.run_name == "run"
-    assert sampler.device_config_name == "config_alias"
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor_async')

@@ -32,7 +32,7 @@ import cirq_google as cg
 from cirq_google.api import v1, v2
 from cirq_google.cloud import quantum
 from cirq_google.engine import util
-from cirq_google.engine.engine import EngineContext
+from cirq_google.engine.engine import EngineContext, Run, Snapshot
 
 _CIRCUIT = cirq.Circuit(
     cirq.X(cirq.GridQubit(5, 2)) ** 0.5, cirq.measure(cirq.GridQubit(5, 2), key='result')
@@ -296,9 +296,8 @@ def test_engine_get_sampler_with_snapshot_id_passes_to_unary_rpc(client):
         project_id='proj',
         context=EngineContext(service_args={'client_info': 1}, enable_streaming=False),
     )
-    sampler = engine.get_sampler_from_snapshot_id(
-        'mysim', device_config_name="config", snapshot_id="123"
-    )
+    snapshot_id = Snapshot(id="123")
+    sampler = engine.get_sampler('mysim', device_config_name="config", device_version=snapshot_id)
     _ = sampler.run_sweep(_CIRCUIT, params=[cirq.ParamResolver({'a': 1})])
 
     kwargs = client().create_job_async.call_args_list[0].kwargs
@@ -817,17 +816,17 @@ def test_get_sampler_initializes_max_concurrent_jobs():
 
 def test_get_sampler_from_run_name():
     processor_id = 'test_processor_id'
-    run_name = 'test_run_name'
+    run = Run(id="test_run_name")
     device_config_name = 'test_config_alias'
     project_id = 'test_proj'
     engine = cg.Engine(project_id=project_id)
     processor = engine.get_processor(processor_id=processor_id)
 
-    processor_sampler = processor.get_sampler_from_run_name(
-        run_name=run_name, device_config_name=device_config_name
+    processor_sampler = processor.get_sampler(
+        device_version=run, device_config_name=device_config_name
     )
-    engine_sampler = engine.get_sampler_from_run_name(
-        processor_id=processor_id, run_name=run_name, device_config_name=device_config_name
+    engine_sampler = engine.get_sampler(
+        processor_id=processor_id, device_version=run, device_config_name=device_config_name
     )
 
     assert processor_sampler.run_name == engine_sampler.run_name
@@ -836,17 +835,17 @@ def test_get_sampler_from_run_name():
 
 def test_get_sampler_from_snapshot():
     processor_id = 'test_processor_id'
-    snapshot_id = 'test_snapshot_id'
+    snapshot_id = Snapshot(id='test_snapshot_id')
     device_config_name = 'test_config_alias'
     project_id = 'test_proj'
     engine = cg.Engine(project_id=project_id)
     processor = engine.get_processor(processor_id=processor_id)
 
-    processor_sampler = processor.get_sampler_from_snapshot_id(
-        snapshot_id=snapshot_id, device_config_name=device_config_name
+    processor_sampler = processor.get_sampler(
+        device_version=snapshot_id, device_config_name=device_config_name
     )
-    engine_sampler = engine.get_sampler_from_snapshot_id(
-        processor_id=processor_id, snapshot_id=snapshot_id, device_config_name=device_config_name
+    engine_sampler = engine.get_sampler(
+        processor_id=processor_id, device_config_name=device_config_name, device_version=snapshot_id
     )
 
     assert processor_sampler.snapshot_id == engine_sampler.snapshot_id

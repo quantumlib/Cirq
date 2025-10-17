@@ -17,6 +17,7 @@ from __future__ import annotations
 import datetime
 from typing import Any, TYPE_CHECKING
 
+import cirq_google.engine.engine as engine_base
 from cirq import _compat
 from cirq_google.api import v2
 from cirq_google.devices import grid_device
@@ -35,7 +36,6 @@ if TYPE_CHECKING:
     import cirq_google as cg
     import cirq_google.cloud.quantum as quantum
     import cirq_google.engine.abstract_job as abstract_job
-    import cirq_google.engine.engine as engine_base
 
 
 def _date_to_timestamp(union_time: datetime.datetime | datetime.date | int | None) -> int | None:
@@ -99,78 +99,11 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
 
         return engine_base.Engine(self.project_id, context=self.context)
 
-    def get_sampler_from_run_name(
-        self, run_name: str, device_config_name: str | None = None, max_concurrent_jobs: int = 100
-    ) -> cg.engine.ProcessorSampler:
-        """Returns a sampler backed by the engine and given `run_name`.
-
-        Args:
-            run_name: A unique identifier representing an automation run for the
-                processor. An Automation Run contains a collection of device
-                configurations for the processor.
-            device_config_name: An identifier used to select the processor configuration
-                utilized to run the job. A configuration identifies the set of
-                available qubits, couplers, and supported gates in the processor.
-            max_concurrent_jobs: The maximum number of jobs to be sent
-                simultaneously to the Engine. This client-side throttle can be
-                used to proactively reduce load to the backends and avoid quota
-                violations when pipelining circuit executions.
-
-        Returns:
-            A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
-            that will send circuits to the Quantum Computing Service
-            when sampled.
-        """
-        processor = self._inner_processor()
-        return processor_sampler.ProcessorSampler(
-            processor=self,
-            run_name=run_name,
-            device_config_name=(
-                device_config_name
-                if device_config_name
-                else processor.default_device_config_key.config_alias
-            ),
-            max_concurrent_jobs=max_concurrent_jobs,
-        )
-
-    def get_sampler_from_snapshot_id(
-        self,
-        snapshot_id: str,
-        device_config_name: str | None = None,
-        max_concurrent_jobs: int = 100,
-    ) -> cg.engine.ProcessorSampler:
-        """Returns a sampler backed by the engine.
-        Args:
-            device_config_name: An identifier used to select the processor configuration
-                utilized to run the job. A configuration identifies the set of
-                available qubits, couplers, and supported gates in the processor.
-            snapshot_id: A unique identifier for an immutable snapshot reference.
-                A snapshot contains a collection of device configurations for the
-                processor.
-            max_concurrent_jobs: The maximum number of jobs to be sent
-                simultaneously to the Engine. This client-side throttle can be
-                used to proactively reduce load to the backends and avoid quota
-                violations when pipelining circuit executions.
-
-        Returns:
-            A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
-            that will send circuits to the Quantum Computing Service
-            when sampled.
-        """
-        processor = self._inner_processor()
-        return processor_sampler.ProcessorSampler(
-            processor=self,
-            snapshot_id=snapshot_id,
-            device_config_name=(
-                device_config_name
-                if device_config_name
-                else processor.default_device_config_key.config_alias
-            ),
-            max_concurrent_jobs=max_concurrent_jobs,
-        )
-
     def get_sampler(
-        self, device_config_name: str | None = None, max_concurrent_jobs: int = 100
+        self,
+        device_config_name: str | None = None,
+        device_version: engine_base.DeviceVersion | None = None,
+        max_concurrent_jobs: int = 100,
     ) -> cg.engine.ProcessorSampler:
         """Returns the default sampler backed by the engine.
 
@@ -178,6 +111,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
+            device_version: Specifies either the snapshot_id or the run_name.
             max_concurrent_jobs: The maximum number of jobs to be sent
                 simultaneously to the Engine. This client-side throttle can be
                 used to proactively reduce load to the backends and avoid quota
@@ -191,15 +125,31 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         """
         processor = self._inner_processor()
 
+        device_config_name = (
+            device_config_name
+            if device_config_name
+            else processor.default_device_config_key.config_alias
+        )
+
+        if isinstance(device_version, engine_base.Snapshot):
+            return processor_sampler.ProcessorSampler(
+                processor=self,
+                snapshot_id=device_version.id,
+                device_config_name=device_config_name,
+                max_concurrent_jobs=max_concurrent_jobs,
+            )
+        if isinstance(device_version, engine_base.Run):
+            return processor_sampler.ProcessorSampler(
+                processor=self,
+                run_name=device_version.id,
+                device_config_name=device_config_name,
+                max_concurrent_jobs=max_concurrent_jobs,
+            )
+
         return processor_sampler.ProcessorSampler(
             processor=self,
             run_name=processor.default_device_config_key.run,
-            snapshot_id=processor.default_device_config_key.snapshot_id,
-            device_config_name=(
-                device_config_name
-                if device_config_name
-                else processor.default_device_config_key.config_alias
-            ),
+            device_config_name=device_config_name,
             max_concurrent_jobs=max_concurrent_jobs,
         )
 
