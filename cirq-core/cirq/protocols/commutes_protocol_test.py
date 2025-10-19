@@ -21,7 +21,7 @@ import sympy
 import cirq
 
 
-def test_commutes_on_matrices():
+def test_commutes_on_matrices() -> None:
     I, X, Y, Z = (cirq.unitary(A) for A in (cirq.I, cirq.X, cirq.Y, cirq.Z))
     IX, IY = (np.kron(I, A) for A in (X, Y))
     XI, YI, ZI = (np.kron(A, I) for A in (X, Y, Z))
@@ -38,14 +38,14 @@ def test_commutes_on_matrices():
         assert cirq.commutes(A, B)
 
 
-def test_commutes_on_gates_and_gate_operations():
+def test_commutes_on_gates_and_gate_operations() -> None:
     X, Y, Z = tuple(cirq.unitary(A) for A in (cirq.X, cirq.Y, cirq.Z))
     XGate, YGate, ZGate = (cirq.MatrixGate(A) for A in (X, Y, Z))
     XXGate, YYGate, ZZGate = (cirq.MatrixGate(cirq.kron(A, A)) for A in (X, Y, Z))
     a, b = cirq.LineQubit.range(2)
     for A in (XGate, YGate, ZGate):
         assert cirq.commutes(A, A)
-        assert A._commutes_on_qids_(a, A, atol=1e-8) is NotImplemented
+        assert A._commutes_on_qids_([a], A, atol=1e-8) is NotImplemented
         with pytest.raises(TypeError):
             cirq.commutes(A(a), A)
         with pytest.raises(TypeError):
@@ -91,7 +91,7 @@ def test_commutes_on_gates_and_gate_operations():
     assert cirq.commutes(XGate(a), 'Gate', default='default') == 'default'
 
 
-def test_operation_commutes_using_overlap_and_unitary():
+def test_operation_commutes_using_overlap_and_unitary() -> None:
     class CustomCnotGate(cirq.Gate):
         def num_qubits(self) -> int:
             return 2

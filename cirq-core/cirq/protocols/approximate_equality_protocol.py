@@ -17,11 +17,10 @@ from __future__ import annotations
 import numbers
 from decimal import Decimal
 from fractions import Fraction
-from typing import Any, Iterable
+from typing import Any, Iterable, Protocol
 
 import numpy as np
 import sympy
-from typing_extensions import Protocol
 
 from cirq._doc import doc_private
 

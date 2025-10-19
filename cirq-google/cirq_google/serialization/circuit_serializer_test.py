@@ -99,6 +99,16 @@ OPERATIONS = [
         op_proto({'xpowgate': {'exponent': {'symbol': 'a'}}, 'qubit_constant_index': [0]}),
     ),
     (
+        cirq.XPowGate(exponent=0)(Q1).with_tags(cg.CompressDurationTag()),
+        op_proto(
+            {
+                'xpowgate': {'exponent': {'float_value': 0.0}},
+                'qubit_constant_index': [0],
+                'tag_indices': [1],
+            }
+        ),
+    ),
+    (
         cirq.XPowGate(exponent=0.25 + sympy.Symbol('t'))(Q1),
         op_proto(
             {
@@ -390,8 +400,21 @@ OPERATIONS = [
         cirq.depolarize(0.5)(Q0),
         op_proto(
             {
-                'noisechannel': {'depolarizingchannel': {'probability': {'float_value': 0.5}}},
+                'noisechannel': {
+                    'depolarizingchannel': {'probability': {'float_value': 0.5}, 'num_qubits': 1}
+                },
                 'qubit_constant_index': [0],
+            }
+        ),
+    ),
+    (
+        cirq.depolarize(0.5, n_qubits=2)(Q0, Q1),
+        op_proto(
+            {
+                'noisechannel': {
+                    'depolarizingchannel': {'probability': {'float_value': 0.5}, 'num_qubits': 2}
+                },
+                'qubit_constant_index': [0, 1],
             }
         ),
     ),
@@ -409,6 +432,82 @@ OPERATIONS = [
                     }
                 },
                 'qubit_constant_index': [0],
+            }
+        ),
+    ),
+    (
+        cg.AnalogDetuneQubit(
+            length=5 * tunits.units.ns,
+            w=5 * tunits.units.ns,
+            target_freq=5 * tunits.units.GHz,
+            prev_freq=None,
+            neighbor_coupler_g_dict={'c_q0_0_q0_1': 5 * tunits.units.MHz},
+            prev_neighbor_coupler_g_dict=None,
+        ).on(Q0),
+        op_proto(
+            {
+                "analog_detune_qubit": {
+                    "length": {
+                        "arg_value": {
+                            "value_with_unit": {
+                                "units": [{"unit": "SECOND", "scale": "NANO"}],
+                                "real_value": 5,
+                            }
+                        }
+                    },
+                    "w": {
+                        "arg_value": {
+                            "value_with_unit": {
+                                "units": [{"unit": "SECOND", "scale": "NANO"}],
+                                "real_value": 5,
+                            }
+                        }
+                    },
+                    "target_freq": {
+                        "arg_value": {
+                            "value_with_unit": {
+                                "units": [{"unit": "HERTZ", "scale": "GIGA"}],
+                                "real_value": 5,
+                            }
+                        }
+                    },
+                    "neighbor_coupler_g_dict": {
+                        "entries": [
+                            {
+                                "key": {"arg_value": {"string_value": "c_q0_0_q0_1"}},
+                                "value": {
+                                    "arg_value": {
+                                        "value_with_unit": {
+                                            "units": [{"unit": "HERTZ", "scale": "MEGA"}],
+                                            "real_value": 5,
+                                        }
+                                    }
+                                },
+                            }
+                        ]
+                    },
+                    "linear_rise": True,
+                },
+                'qubit_constant_index': [0],
+            }
+        ),
+    ),
+    (
+        cg.WaitGateWithUnit(5 * tunits.units.ns, qid_shape=(2, 2))(Q0, Q1),
+        op_proto(
+            {
+                'wait_gate_with_unit': {
+                    "duration": {
+                        "arg_value": {
+                            "value_with_unit": {
+                                "units": [{"unit": "SECOND", "scale": "NANO"}],
+                                "real_value": 5,
+                            }
+                        }
+                    },
+                    "qid_shape": [2, 2],
+                },
+                'qubit_constant_index': [0, 1],
             }
         ),
     ),
@@ -936,6 +1035,20 @@ def test_circuit_with_couplerpulse():
     assert cg.CIRCUIT_SERIALIZER.deserialize(msg) == circuit
 
 
+def test_circuit_with_analog_detune_coupler_only():
+    circuit = cirq.Circuit(
+        cg.AnalogDetuneCouplerOnly(
+            length=5 * tunits.units.ns,
+            w=5 * tunits.units.ns,
+            g_0=None,
+            g_max=4 * tunits.units.MHz,
+            neighbor_qubits_freq={'q0_1': 5 * tunits.units.GHz, 'q1_0': 6 * tunits.units.GHz},
+        ).on(Q0, Q1)
+    )
+    msg = cg.CIRCUIT_SERIALIZER.serialize(circuit)
+    assert cg.CIRCUIT_SERIALIZER.deserialize(msg) == circuit
+
+
 @pytest.mark.parametrize(
     'tag',
     [
@@ -953,15 +1066,13 @@ def test_circuit_with_tag(tag):
     assert nc[0].operations[0].tags == (tag,)
 
 
-@pytest.mark.filterwarnings('ignore:Unrecognized Tag .*DingDongTag')
 def test_unrecognized_tag_is_ignored():
     class DingDongTag:
         pass
 
     c = cirq.Circuit(cirq.X(cirq.q(0)).with_tags(DingDongTag()))
-    msg = cg.CIRCUIT_SERIALIZER.serialize(c)
-    nc = cg.CIRCUIT_SERIALIZER.deserialize(msg)
-    assert cirq.Circuit(cirq.X(cirq.q(0))) == nc
+    with pytest.raises(ValueError, match="Unrecognized Tag"):
+        _ = cg.CIRCUIT_SERIALIZER.serialize(c)
 
 
 @pytest.mark.filterwarnings('ignore:Unknown tag msg=phase_match')
@@ -1204,6 +1315,31 @@ def test_custom_tag_serializer_with_tags_outside_constants():
     assert serializer.deserialize(circuit_proto) == expected_circuit
 
 
+def test_moments_with_tags():
+    serializer = cg.CircuitSerializer(
+        tag_serializer=DiscountTagSerializer(), tag_deserializer=DiscountTagDeserializer()
+    )
+    original_circuit = cirq.Circuit(
+        cirq.Moment(cirq.X(cirq.GridQubit(1, 1))).with_tags(DiscountTag(0.50)),
+        cirq.Moment(cirq.Z(cirq.GridQubit(2, 2))).with_tags(cg.CalibrationTag("abc")),
+    )
+    deserialized_circuit = serializer.deserialize(serializer.serialize(original_circuit))
+    assert original_circuit == deserialized_circuit
+    assert deserialized_circuit[0].tags == (DiscountTag(0.50),)
+    assert deserialized_circuit[1].tags == (cg.CalibrationTag("abc"),)
+
+
+def test_op_with_raw_tags() -> None:
+    serializer = cg.CircuitSerializer()
+    original_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(1, 2)).with_tags("just_a_string_tag"))
+    deserialized_circuit = serializer.deserialize(serializer.serialize(original_circuit))
+    assert original_circuit == deserialized_circuit
+
+    op = deserialized_circuit.operation_at(cirq.GridQubit(1, 2), moment_index=0)
+    assert isinstance(op, cirq.TaggedOperation)
+    assert op.tags == ("just_a_string_tag",)
+
+
 def test_reset_gate_with_improper_argument():
     serializer = cg.CircuitSerializer()
 
@@ -1279,3 +1415,91 @@ def test_stimcirq_gates():
     msg = serializer.serialize(c)
     deserialized_circuit = serializer.deserialize(msg)
     assert deserialized_circuit == c
+
+
+def _create_circuit(num_x: int, exponent: float) -> cirq.Circuit:
+    q = cirq.q(1, 2)
+    circuit = cirq.Circuit()
+    for i in range(num_x):
+        circuit.append(cirq.X(q) ** exponent)
+    return circuit
+
+
+def _create_circuit_returns_map(num_x: int) -> dict[str, cirq.Circuit]:
+    q = cirq.q(1, 2)
+    rtn_map = {}
+    for key, gate in [("X", cirq.X), ("Y", cirq.Y), ("Z", cirq.Z)]:
+        circuit = cirq.Circuit()
+        for i in range(num_x):
+            circuit.append(gate(q))
+        rtn_map[key] = circuit
+    return rtn_map
+
+
+def _create_circuit_kwargs(**kwargs) -> cirq.Circuit:
+    return _create_circuit(kwargs['num_x'], kwargs['exponent'])
+
+
+def test_multi_programs_list() -> None:
+    """Test serialize_multi_program with a list of circuits."""
+    serializer = cg.CircuitSerializer()
+    circuits = [_create_circuit(i, 1.0) for i in range(10)]
+    proto = serializer.serialize_multi_program(circuits)
+    circuit_tuples = serializer.deserialize_multi_program(proto)
+    assert circuit_tuples == [("", (), circuit) for circuit in circuits]
+
+
+def test_multi_programs_map() -> None:
+    """Test serialize_multi_program with a dictionary of circuits."""
+    serializer = cg.CircuitSerializer()
+    circuits = {f"circuit_{i}": _create_circuit(i, 1.0) for i in range(10)}
+    proto = serializer.serialize_multi_program(circuits)
+    circuit_tuples = serializer.deserialize_multi_program(proto)
+    assert circuit_tuples == [(key, (), circuit) for key, circuit in circuits.items()]
+
+
+@pytest.mark.parametrize('circuit_func', [_create_circuit, _create_circuit_kwargs])
+def test_multi_programs_function(circuit_func) -> None:
+    """Test serialize_circuit_function with a function that returns a circuit."""
+    serializer = cg.CircuitSerializer()
+    sweep = cirq.Points('num_x', [1, 2, 4, 8, 16]) * cirq.Points('exponent', [0.25, 0.5, 0.75, 1.0])
+    proto = serializer.serialize_circuit_function(circuit_func, sweep)
+    circuit_tuples = list(serializer.deserialize_multi_program(proto))
+    assert len(circuit_tuples) == 20
+    for param_tuple, circuit_tuple in zip(sweep.param_tuples(), circuit_tuples):
+        assert circuit_tuple[0] == ""
+        param_dict = dict(circuit_tuple[1])
+        assert param_dict == dict(param_tuple)
+        assert circuit_tuple[2] == _create_circuit(
+            num_x=param_dict['num_x'], exponent=param_dict['exponent']
+        )
+
+
+def test_multi_programs_function_map() -> None:
+    """Test serialize_circuit_function with a function that returns a dict of circuits."""
+    serializer = cg.CircuitSerializer()
+    sweep = cirq.Points('num_x', [1, 2])
+    proto = serializer.serialize_circuit_function(_create_circuit_returns_map, sweep)
+    circuit_tuples = list(serializer.deserialize_multi_program(proto))
+    assert len(circuit_tuples) == 6
+    q = cirq.q(1, 2)
+    assert circuit_tuples == [
+        ("X", (("num_x", 1),), cirq.Circuit(cirq.X(q))),
+        ("Y", (("num_x", 1),), cirq.Circuit(cirq.Y(q))),
+        ("Z", (("num_x", 1),), cirq.Circuit(cirq.Z(q))),
+        ("X", (("num_x", 2),), cirq.Circuit(cirq.X(q), cirq.X(q))),
+        ("Y", (("num_x", 2),), cirq.Circuit(cirq.Y(q), cirq.Y(q))),
+        ("Z", (("num_x", 2),), cirq.Circuit(cirq.Z(q), cirq.Z(q))),
+    ]
+
+
+def test_multi_programs_bad_function() -> None:
+    """Test serialize_circuit_function with a function that returns something besides circuits."""
+    serializer = cg.CircuitSerializer()
+
+    def _bad_function(num_x: int) -> float:
+        return num_x * 2.25
+
+    sweep = cirq.Points('num_x', [1, 2])
+    with pytest.raises(ValueError, match="Function returned unrecognized type"):
+        _ = serializer.serialize_circuit_function(_bad_function, sweep)  # type: ignore

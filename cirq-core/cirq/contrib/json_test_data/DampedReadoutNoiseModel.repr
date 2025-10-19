@@ -1,0 +1,4 @@
+[
+    cirq.contrib.noise_models.DampedReadoutNoiseModel(0.3, prepend=True),
+    cirq.contrib.noise_models.DampedReadoutNoiseModel(0.4, prepend=False),
+]

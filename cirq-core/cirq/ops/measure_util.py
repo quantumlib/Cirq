@@ -14,12 +14,12 @@
 
 from __future__ import annotations
 
-from typing import Callable, Iterable, overload, TYPE_CHECKING
+from typing import Callable, cast, Iterable, overload, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import protocols
-from cirq.ops import pauli_string, raw_types
+from cirq.ops import gate_operation, pauli_string, raw_types
 from cirq.ops.measurement_gate import MeasurementGate
 from cirq.ops.pauli_measurement_gate import PauliMeasurementGate
 
@@ -95,7 +95,8 @@ def measure(
     *target: raw_types.Qid,
     key: str | cirq.MeasurementKey | None = None,
     invert_mask: tuple[bool, ...] = (),
-) -> raw_types.Operation:
+    confusion_map: dict[tuple[int, ...], np.ndarray] | None = None,
+) -> gate_operation.GateOperation:
     pass
 
 
@@ -105,7 +106,8 @@ def measure(
     *,
     key: str | cirq.MeasurementKey | None = None,
     invert_mask: tuple[bool, ...] = (),
-) -> raw_types.Operation:
+    confusion_map: dict[tuple[int, ...], np.ndarray] | None = None,
+) -> gate_operation.GateOperation:
     pass
 
 
@@ -114,7 +116,7 @@ def measure(
     key: str | cirq.MeasurementKey | None = None,
     invert_mask: tuple[bool, ...] = (),
     confusion_map: dict[tuple[int, ...], np.ndarray] | None = None,
-) -> raw_types.Operation:
+) -> gate_operation.GateOperation:
     """Returns a single MeasurementGate applied to all the given qubits.
 
     The qubits are measured in the computational basis. This can also be
@@ -159,7 +161,8 @@ def measure(
     if key is None:
         key = _default_measurement_key(targets)
     qid_shape = protocols.qid_shape(targets)
-    return MeasurementGate(len(targets), key, invert_mask, qid_shape, confusion_map).on(*targets)
+    gate = MeasurementGate(len(targets), key, invert_mask, qid_shape, confusion_map)
+    return cast(gate_operation.GateOperation, gate.on(*targets))
 
 
 M = measure

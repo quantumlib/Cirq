@@ -69,7 +69,7 @@ class QubitPermutationGate(raw_types.Gate):
     def _value_equality_values_(self):
         return self.permutation
 
-    def num_qubits(self):
+    def num_qubits(self) -> int:
         return len(self.permutation)
 
     def _has_unitary_(self):

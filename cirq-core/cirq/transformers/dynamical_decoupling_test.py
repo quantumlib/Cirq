@@ -23,7 +23,7 @@ import cirq
 from cirq import add_dynamical_decoupling, CNOT, CZ, CZPowGate, H, X, Y, Z
 
 
-def assert_sim_eq(circuit1: cirq.AbstractCircuit, circuit2: cirq.AbstractCircuit):
+def assert_sim_eq(circuit1: cirq.AbstractCircuit, circuit2: cirq.AbstractCircuit) -> None:
     # Simulate 2 circuits and compare final states.
     sampler = cirq.Simulator(dtype=np.complex128)
     psi0 = sampler.simulate(cirq.drop_terminal_measurements(circuit1)).final_state_vector
@@ -37,7 +37,7 @@ def assert_dd(
     expected_circuit: str | cirq.AbstractCircuit,
     schema: str | tuple[cirq.Gate, ...] = 'DEFAULT',
     single_qubit_gate_moments_only: bool = True,
-):
+) -> None:
     transformed_circuit = add_dynamical_decoupling(
         input_circuit, schema=schema, single_qubit_gate_moments_only=single_qubit_gate_moments_only
     ).freeze()
@@ -53,7 +53,7 @@ def assert_dd(
     assert_sim_eq(input_circuit, transformed_circuit)
 
 
-def test_no_insertion():
+def test_no_insertion() -> None:
     """Test case diagrams.
     Input:
     a: ───H───@───────
@@ -81,7 +81,7 @@ def test_no_insertion():
     'schema,inserted_gates',
     [('XX_PAIR', (X, X)), ('X_XINV', (X, X**-1)), ('YY_PAIR', (Y, Y)), ('Y_YINV', (Y, Y**-1))],
 )
-def test_insert_provided_schema(schema: str, inserted_gates: Sequence[cirq.Gate]):
+def test_insert_provided_schema(schema: str, inserted_gates: Sequence[cirq.Gate]) -> None:
     """Test case diagrams.
     Input:
     a: ───H───@───────────M───
@@ -113,7 +113,7 @@ def test_insert_provided_schema(schema: str, inserted_gates: Sequence[cirq.Gate]
     assert_dd(input_circuit, expected_circuit, schema=schema, single_qubit_gate_moments_only=False)
 
 
-def test_insert_by_customized_dd_sequence():
+def test_insert_by_customized_dd_sequence() -> None:
     """Test case diagrams.
         Input:
     a: ───H───@───────────────────H───
@@ -151,13 +151,13 @@ def test_insert_by_customized_dd_sequence():
             cirq.Moment(CNOT(b, c), Y(a)),
             cirq.Moment([H(qubit) for qubit in [a, b, c]]),
         ),
-        schema=[X, X, Y, Y],
+        schema=(X, X, Y, Y),
         single_qubit_gate_moments_only=False,
     )
 
 
 @pytest.mark.parametrize('single_qubit_gate_moments_only', [True, False])
-def test_pull_through_h_gate_case1(single_qubit_gate_moments_only: bool):
+def test_pull_through_h_gate_case1(single_qubit_gate_moments_only: bool) -> None:
     """Test case diagrams.
     Input:
     a: ───H───────H───────@───
@@ -193,7 +193,7 @@ def test_pull_through_h_gate_case1(single_qubit_gate_moments_only: bool):
 
 
 @pytest.mark.parametrize('single_qubit_gate_moments_only', [True, False])
-def test_pull_through_h_gate_case2(single_qubit_gate_moments_only: bool):
+def test_pull_through_h_gate_case2(single_qubit_gate_moments_only: bool) -> None:
     """Test case diagrams.
     Input:
     a: ───H───────H───────H───
@@ -246,14 +246,14 @@ def test_pull_through_h_gate_case2(single_qubit_gate_moments_only: bool):
         ),
     ],
 )
-def test_invalid_dd_schema(schema: str | tuple[cirq.Gate, ...], error_msg_regex):
+def test_invalid_dd_schema(schema: str | tuple[cirq.Gate, ...], error_msg_regex) -> None:
     a = cirq.NamedQubit('a')
     input_circuit = cirq.Circuit(H(a))
     with pytest.raises(ValueError, match=error_msg_regex):
         add_dynamical_decoupling(input_circuit, schema=schema, single_qubit_gate_moments_only=False)
 
 
-def test_single_qubit_gate_moments_only_no_updates_succeeds():
+def test_single_qubit_gate_moments_only_no_updates_succeeds() -> None:
     qubits = cirq.LineQubit.range(9)
     input_circuit = cirq.Circuit(
         cirq.Moment([H(qubits[i]) for i in [3, 4, 5]]),
@@ -269,7 +269,7 @@ def test_single_qubit_gate_moments_only_no_updates_succeeds():
     add_dynamical_decoupling(input_circuit, schema='X_XINV', single_qubit_gate_moments_only=True)
 
 
-def test_scattered_circuit():
+def test_scattered_circuit() -> None:
     """Test case diagrams.
     Input:
     0: ───────────────────────────────H───@───H───
@@ -424,7 +424,7 @@ def test_scattered_circuit():
     )
 
 
-def test_scattered_circuit2():
+def test_scattered_circuit2() -> None:
     """Test case diagrams.
     Input:
     0: ───────────────────@───
@@ -484,7 +484,7 @@ def test_scattered_circuit2():
     )
 
 
-def test_pull_through_chain():
+def test_pull_through_chain() -> None:
     """Test case diagrams.
     Input:
     0: ───X───────×───────────X───
@@ -526,16 +526,16 @@ def test_pull_through_chain():
     )
 
 
-def test_multiple_clifford_pieces_case1():
+def test_multiple_clifford_pieces_case1() -> None:
     """Test case diagrams.
     Input:
     a: ───H───────H───────@───────────H───────H───
                           │
     b: ───H───H───H───H───@^0.5───H───H───H───H───
     Output:
-    a: ───H───X───H───PhXZ(a=0.5,x=0,z=-1)───@───────X───H───X───PhXZ(a=0.5,x=0.5,z=-1)───
-                                             │
-    b: ───H───H───H───H──────────────────────@^0.5───H───H───H───H────────────────────────
+    a: ───H───X───H───X───Y───@───────X───H───X───PhXZ(a=0.5,x=0.5,z=-1)───
+                              │
+    b: ───H───H───H───H───────@^0.5───H───H───H───H────────────────────────
     """
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -551,27 +551,16 @@ def test_multiple_clifford_pieces_case1():
             cirq.Moment(H(b)),
             cirq.Moment(H(a), H(b)),
         ),
-        expected_circuit=cirq.Circuit(
-            cirq.Moment(H(a), H(b)),
-            cirq.Moment(H(b), X(a)),
-            cirq.Moment(H(a), H(b)),
-            cirq.Moment(
-                H(b), cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=0, z_exponent=-1).on(a)
-            ),
-            cirq.Moment(CZPowGate(exponent=0.5).on(a, b)),
-            cirq.Moment(H(b), X(a)),
-            cirq.Moment(H(a), H(b)),
-            cirq.Moment(H(b), X(a)),
-            cirq.Moment(
-                H(b),
-                cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=0.5, z_exponent=-1).on(a),
-            ),
-        ),
+        expected_circuit="""
+a: ───H───X───H───X───Y───@───────X───H───X───PhXZ(a=0.5,x=0.5,z=-1)───
+                          │
+b: ───H───H───H───H───────@^0.5───H───H───H───H────────────────────────
+""",
         schema="XX_PAIR",
     )
 
 
-def test_multiple_clifford_pieces_case2():
+def test_multiple_clifford_pieces_case2() -> None:
     """Test case diagrams.
     Input:
     a: ───@───PhXZ(a=0.3,x=0.2,z=0)───PhXZ(a=0.3,x=0.2,z=0)───PhXZ(a=0.3,x=0.2,z=0)───@───
@@ -607,7 +596,7 @@ def test_multiple_clifford_pieces_case2():
     )
 
 
-def test_insert_new_moment():
+def test_insert_new_moment() -> None:
     """Test case diagrams.
     Input:
     a: ───H───────H───@───@───────
@@ -648,7 +637,7 @@ def test_insert_new_moment():
     )
 
 
-def test_with_non_clifford_measurements():
+def test_with_non_clifford_measurements() -> None:
     """Test case diagrams.
     Input:
     0: ───────────H───@───H───M───
@@ -658,14 +647,6 @@ def test_with_non_clifford_measurements():
     2: ───H───@───H───@───────M───
                       │
     3: ───────────H───@───H───M───
-    Output:
-    0: ───────────H───@───PhXZ(a=0.5,x=0.5,z=0)───M───
-                      │
-    1: ───H───@───X───@───X───────────────────────M───
-              │
-    2: ───H───@───H───@───I───────────────────────M───
-                      │
-    3: ───────────H───@───H───────────────────────M───
     """
     qubits = cirq.LineQubit.range(4)
     assert_dd(
@@ -677,27 +658,21 @@ def test_with_non_clifford_measurements():
             cirq.Moment([H(qubits[i]) for i in [0, 3]]),
             cirq.Moment([cirq.M(qubits[i]) for i in [0, 1, 2, 3]]),
         ),
-        expected_circuit=cirq.Circuit(
-            cirq.Moment([H(qubits[i]) for i in [1, 2]]),
-            cirq.Moment(CZ(*qubits[1:3])),
-            cirq.Moment([H(qubits[i]) for i in [0, 2, 3]] + [X(qubits[1])]),
-            cirq.Moment(CZ(*qubits[0:2]), CZ(*qubits[2:])),
-            cirq.Moment(
-                H(qubits[3]),
-                cirq.I(qubits[2]),
-                X(qubits[1]),
-                cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=0.5, z_exponent=0).on(
-                    qubits[0]
-                ),
-            ),
-            cirq.Moment([cirq.M(qubits[i]) for i in [0, 1, 2, 3]]),
-        ),
+        expected_circuit="""
+0: ───────────H───@───H───X───M───
+                  │
+1: ───H───@───X───@───X───────M───
+          │
+2: ───H───@───H───@───X───X───M───
+                  │
+3: ───────────H───@───H───────M───
+""",
         schema="XX_PAIR",
         single_qubit_gate_moments_only=True,
     )
 
 
-def test_cross_clifford_pieces_filling_merge():
+def test_cross_clifford_pieces_filling_merge() -> None:
     """Test case diagrams.
     Input:
     0: ─────────────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───@─────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───@───PhXZ(a=0.2,x=0.2,z=0.1)───H───
@@ -763,7 +738,7 @@ def test_cross_clifford_pieces_filling_merge():
     )
 
 
-def test_pull_through_phxz_gate_case1():
+def test_pull_through_phxz_gate_case1() -> None:
     """Test case diagrams.
         Input:
     a: ───H───────PhXZ(a=0.25,x=-1,z=0)───────@───
@@ -792,7 +767,7 @@ b: ───H───H───H───────────────�
     )
 
 
-def test_pull_through_phxz_gate_case2():
+def test_pull_through_phxz_gate_case2() -> None:
     """Test case diagrams.
         Input:
     a: ───H───────PhXZ(a=0.2,x=-1,z=0)───────@───
@@ -821,7 +796,7 @@ b: ───H───H───H───────────────�
     )
 
 
-def test_merge_before_non_cliffords():
+def test_merge_before_non_cliffords() -> None:
     """Test case diagrams.
     Input circuit:
     0: ───X──────────────────────────────────────────────────M───
@@ -844,11 +819,58 @@ def test_merge_before_non_cliffords():
     assert_dd(
         input_circuit=input_circuit,
         expected_circuit="""
-0: ───X───X───X──────────────────────────────────────────M───
+0: ───X───X───X───────────────────────X──────────────────────X───M───
 
-1: ───X───X───PhXZ(a=-1.25,x=1,z=0)───FSim(0, 0.0637π)───M───
-                                      │
-2: ───X───X───S───────────────────────FSim(0, 0.0637π)───M───
+1: ───X───X───PhXZ(a=-1,x=0,z=-0.5)───Y───FSim(0, 0.0637π)───────M───
+                                          │
+2: ───X───X───S───────────────────────────FSim(0, 0.0637π)───────M───
 """,
         schema="XX_PAIR",
+    )
+
+
+@pytest.mark.parametrize(
+    'single_qubit_gate_moments_only, expected_diagram',
+    [
+        (
+            True,
+            # With single_qubit_gate_moments_only=True, the second DD gate on q2
+            # is inserted in a new moment after the CZ gate.
+            """
+0: ───X───X───@───────M───
+              │
+1: ───X───X───@───────M───
+
+2: ───X───X───────X───M───
+""",
+        ),
+        (
+            False,
+            # With single_qubit_gate_moments_only=False, the second DD gate on q2
+            # is inserted in the same moment as the CZ gate.
+            """
+0: ───X───X───@───M───
+              │
+1: ───X───X───@───M───
+
+2: ───X───X───X───M───
+""",
+        ),
+    ],
+)
+def test_single_qubit_gate_moments_only_true_vs_false(
+    single_qubit_gate_moments_only, expected_diagram
+) -> None:
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    input_circuit = cirq.Circuit(
+        cirq.Moment([X(q) for q in [q0, q1, q2]]),
+        cirq.Moment([X(q) for q in [q0, q1]]),
+        cirq.Moment(CZ(q0, q1)),
+        cirq.Moment([cirq.M(q) for q in [q0, q1, q2]]),
+    )
+    assert_dd(
+        input_circuit=input_circuit,
+        expected_circuit=expected_diagram,
+        schema="XX_PAIR",
+        single_qubit_gate_moments_only=single_qubit_gate_moments_only,
     )

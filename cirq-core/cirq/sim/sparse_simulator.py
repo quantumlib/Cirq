@@ -239,7 +239,7 @@ class SparseSimulatorStep(
         self._dtype = dtype
         self._state_vector: np.ndarray | None = None
 
-    def state_vector(self, copy: bool = False):
+    def state_vector(self, copy: bool = False) -> np.ndarray:
         """Return the state vector at this point in the computation.
 
         The state is returned in the computational basis with these basis

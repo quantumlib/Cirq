@@ -37,18 +37,15 @@ import pytest
 from dev_tools import shell_tools
 from dev_tools.notebooks import filter_notebooks, list_all_notebooks, REPO_ROOT, rewrite_notebook
 
-# these notebooks rely on features that are not released yet
-# after every release we should raise a PR and empty out this list
-# note that these notebooks are still tested in dev_tools/notebook_test.py
-# Please, always indicate in comments the feature used for easier bookkeeping.
+# The notebooks in the following list rely on features that are not yet released.
+# They are excluded from isolated notebook tests in this file; however, they are still tested
+# in dev_tools/notebook_test.py.
+# After every release of Cirq, we should open a new PR to empty out this list.
+# For easier bookkeeping, please always add comments that indicate the pre-release feature(s) used
+# by the notebooks in question when adding notebooks to this list.
+# For more information, please see the section "Lifecycle" in docs/dev/notebooks.md.
 
-NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = [
-    # Requires `load_device_noise_properties` from #7369
-    'docs/hardware/qubit_picking.ipynb',
-    'docs/simulate/noisy_simulation.ipynb',
-    'docs/simulate/quantum_virtual_machine.ipynb',
-    'docs/simulate/qvm_basic_example.ipynb',
-]
+NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = []
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
 # please always add a reason for skipping.
@@ -58,13 +55,11 @@ SKIP_NOTEBOOKS = [
     '**/azure-quantum/*.ipynb',
     '**/ionq/*.ipynb',
     '**/pasqal/*.ipynb',
-    '**/rigetti/*.ipynb',
     # skipping quantum utility simulation (too large)
     'examples/advanced/*quantum_utility*',
     # tutorials that use QCS and arent skipped due to one or more cleared output cells
     'docs/tutorials/google/identifying_hardware_changes.ipynb',
     'docs/tutorials/google/echoes.ipynb',
-    'docs/noise/qcvv/xeb_calibration_example.ipynb',
     # temporary: need to fix QVM metrics and device spec
     'docs/tutorials/google/spin_echoes.ipynb',
     'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
@@ -86,9 +81,6 @@ PACKAGES = [
     "jupyter",
     # assumed to be part of colab
     "seaborn~=0.12",
-    # TODO: remove after the fix of https://github.com/rigetti/qcs-sdk-rust/issues/531
-    "qcs-sdk-python<=0.21.12",
-    "numpy~=1.25",
 ]
 
 
@@ -142,7 +134,7 @@ def _partitioned_test_cases(notebooks):
 
 def _rewrite_and_run_notebook(notebook_path, cloned_env):
     notebook_file = os.path.basename(notebook_path)
-    notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, "."))
+    notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, REPO_ROOT))
     out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"
     notebook_env = cloned_env("isolated_notebook_tests", *PACKAGES)
 
@@ -150,17 +142,17 @@ def _rewrite_and_run_notebook(notebook_path, cloned_env):
 
     rewritten_notebook_path = rewrite_notebook(notebook_path)
 
+    REPO_ROOT.joinpath("out", notebook_rel_dir).mkdir(parents=True, exist_ok=True)
     cmd = f"""
-mkdir -p out/{notebook_rel_dir}
-cd {notebook_env}
 . ./bin/activate
 pip list
-papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
+papermill {rewritten_notebook_path} {REPO_ROOT/out_path}"""
     result = shell_tools.run(
         cmd,
         log_run_to_stderr=False,
         shell=True,
         check=False,
+        cwd=notebook_env,
         capture_output=True,
         # important to get rid of PYTHONPATH specifically, which contains
         # the Cirq repo path due to check/pytest

@@ -1,0 +1,4 @@
+[
+    cirq.contrib.noise_models.DepolarizingNoiseModel(0.1, prepend=False),
+    cirq.contrib.noise_models.DepolarizingNoiseModel(0.15, prepend=True),
+]

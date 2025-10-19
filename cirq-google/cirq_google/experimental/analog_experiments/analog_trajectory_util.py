@@ -36,11 +36,13 @@ class FrequencyMap:
         duration: duration of step
         qubit_freqs: dict describing qubit frequencies at end of step (None if idle)
         couplings: dict describing coupling rates at end of step
+        is_wait_step: a bool indicating only wait gate should be added.
     """
 
     duration: su.ValueOrSymbol
     qubit_freqs: dict[str, su.ValueOrSymbol | None]
     couplings: dict[tuple[str, str], su.ValueOrSymbol]
+    is_wait_step: bool
 
     def _is_parameterized_(self) -> bool:
         return (
@@ -68,6 +70,7 @@ class FrequencyMap:
             couplings={
                 k: su.direct_symbol_replacement(v, resolver_) for k, v in self.couplings.items()
             },
+            is_wait_step=self.is_wait_step,
         )
 
 
@@ -129,9 +132,11 @@ class AnalogTrajectory:
         full_trajectory: list[FrequencyMap] = []
         init_qubit_freq_dict: dict[str, tu.Value | None] = {q: None for q in qubits}
         init_g_dict: dict[tuple[str, str], tu.Value] = {p: 0 * tu.MHz for p in pairs}
-        full_trajectory.append(FrequencyMap(0 * tu.ns, init_qubit_freq_dict, init_g_dict))
+        full_trajectory.append(FrequencyMap(0 * tu.ns, init_qubit_freq_dict, init_g_dict, False))
 
         for dt, qubit_freq_dict, g_dict in sparse_trajectory:
+            # When both qubit_freq_dict and g_dict is empty, it is a wait step.
+            is_wait_step = not (qubit_freq_dict or g_dict)
             # If no freq provided, set equal to previous
             new_qubit_freq_dict = {
                 q: qubit_freq_dict.get(q, full_trajectory[-1].qubit_freqs.get(q)) for q in qubits
@@ -141,7 +146,7 @@ class AnalogTrajectory:
                 p: g_dict.get(p, full_trajectory[-1].couplings.get(p)) for p in pairs  # type: ignore[misc]
             }
 
-            full_trajectory.append(FrequencyMap(dt, new_qubit_freq_dict, new_g_dict))
+            full_trajectory.append(FrequencyMap(dt, new_qubit_freq_dict, new_g_dict, is_wait_step))
         return cls(full_trajectory=full_trajectory, qubits=qubits, pairs=pairs)
 
     def get_full_trajectory_with_resolved_idles(

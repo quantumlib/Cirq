@@ -58,7 +58,7 @@ class DepolarizingNoiseTransformer:
         if not isinstance(p, (Mapping, float)):
             raise TypeError(  # pragma: no cover
                 "p must either be a float or a mapping from"  # pragma: no cover
-                + "sorted qubit pairs to floats"  # pragma: no cover
+                "sorted qubit pairs to floats"  # pragma: no cover
             )  # pragma: no cover
         self.p = p
         self.p_func = (

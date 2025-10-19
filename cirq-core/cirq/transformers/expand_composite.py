@@ -31,7 +31,7 @@ def expand_composite(
     *,
     context: cirq.TransformerContext | None = None,
     no_decomp: Callable[[ops.Operation], bool] = (lambda _: False),
-):
+) -> cirq.Circuit:
     """A transformer that expands composite operations via `cirq.decompose`.
 
     For each operation in the circuit, this pass examines if the operation can

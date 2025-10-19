@@ -205,7 +205,7 @@ class ArithmeticCell(Cell):
         )
 
     @property
-    def operation(self):
+    def operation(self) -> _QuirkArithmeticCallable:
         return ARITHMETIC_OP_TABLE[self.identifier]
 
     def with_input(self, letter: str, register: Sequence[cirq.Qid] | int) -> ArithmeticCell:

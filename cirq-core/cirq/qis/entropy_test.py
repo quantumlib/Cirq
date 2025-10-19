@@ -23,7 +23,7 @@ from cirq.qis.entropy import process_renyi_entropy_from_bitstrings
 
 
 @pytest.mark.parametrize('pool', [None, ThreadPoolExecutor(max_workers=1)])
-def test_process_renyi_entropy_from_bitstrings(pool):
+def test_process_renyi_entropy_from_bitstrings(pool) -> None:
     bitstrings = np.array(
         [
             [[0, 1, 1, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 1, 1, 1]],

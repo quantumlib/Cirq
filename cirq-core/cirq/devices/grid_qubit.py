@@ -17,10 +17,9 @@ from __future__ import annotations
 import abc
 import functools
 import weakref
-from typing import Any, Iterable, TYPE_CHECKING
+from typing import Any, Iterable, Self, TYPE_CHECKING
 
 import numpy as np
-from typing_extensions import Self
 
 from cirq import ops, protocols
 
@@ -117,7 +116,15 @@ class _BaseGridQid(ops.Qid):
         )
 
     def neighbors(self, qids: Iterable[ops.Qid] | None = None) -> set[_BaseGridQid]:
-        """Returns qubits that are potential neighbors to this GridQid
+        """Returns qubits that are potential neighbors to this GridQid.
+
+        Note that this returns _potential_ neighbors.  That is, if no arguments
+        are given, this returns the qubits above, below, to the right and left of
+        the Qid in the grid.  It does not take into account any hardware device
+        layout.
+
+        If you want to take into account the device layout, you must pass in the
+        device's qubit set as the `qids` parameter.
 
         Args:
             qids: optional Iterable of qubits to constrain neighbors to.
@@ -278,7 +285,7 @@ class GridQid(_BaseGridQid):
 
     @staticmethod
     def from_diagram(diagram: str, dimension: int) -> list[GridQid]:
-        """Parse ASCII art device layout into a device.
+        r"""Parse ASCII art device layout into a device.
 
         As an example, the below diagram will create a list of GridQid in a
         pyramid structure.
@@ -315,7 +322,7 @@ class GridQid(_BaseGridQid):
                 a row. Alphanumeric characters are assigned as qid.
                 Dots ('.'), dashes ('-'), and spaces (' ') are treated as
                 empty locations in the grid. If diagram has characters other
-                than alphanumerics, spacers, and newlines ('\\n'), an error will
+                than alphanumerics, spacers, and newlines ('\n'), an error will
                 be thrown. The top-left corner of the diagram will be have
                 coordinate (0, 0).
 
@@ -432,7 +439,7 @@ class GridQubit(_BaseGridQid):
 
     @staticmethod
     def from_diagram(diagram: str) -> list[GridQubit]:
-        """Parse ASCII art into device layout info.
+        r"""Parse ASCII art into device layout info.
 
         As an example, the below diagram will create a list of
         GridQubit in a pyramid structure.
@@ -469,7 +476,7 @@ class GridQubit(_BaseGridQid):
                 a row. Alphanumeric characters are assigned as qid.
                 Dots ('.'), dashes ('-'), and spaces (' ') are treated as
                 empty locations in the grid. If diagram has characters other
-                than alphanumerics, spacers, and newlines ('\\n'), an error will
+                than alphanumerics, spacers, and newlines ('\n'), an error will
                 be thrown. The top-left corner of the diagram will be have
                 coordinate (0,0).
 
@@ -496,7 +503,7 @@ class GridQubit(_BaseGridQid):
 
 
 def _ascii_diagram_to_coords(diagram: str) -> list[tuple[int, int]]:
-    """Parse ASCII art device layout into info about qids coordinates
+    r"""Parse ASCII art device layout into info about qids coordinates
 
     Args:
         diagram: String representing the qid layout. Each line represents
