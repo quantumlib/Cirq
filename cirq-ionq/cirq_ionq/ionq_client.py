@@ -39,6 +39,7 @@ RETRIABLE_FOR_GETS = {requests.codes.conflict}
 # Handle 52x responses from cloudflare.
 # See https://support.cloudflare.com/hc/en-us/articles/115003011431/
 RETRIABLE_STATUS_CODES = {
+    requests.codes.too_many_requests,
     requests.codes.internal_server_error,
     requests.codes.bad_gateway,
     requests.codes.service_unavailable,
