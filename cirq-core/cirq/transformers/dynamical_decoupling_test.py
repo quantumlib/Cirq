@@ -15,11 +15,11 @@
 from __future__ import annotations
 
 from typing import Sequence
+from unittest import mock
 
 import numpy as np
 import pytest
 
-from unittest import mock
 import cirq
 from cirq import add_dynamical_decoupling, CNOT, CZ, CZPowGate, H, X, Y, Z
 from cirq.transformers.dynamical_decoupling import _GateLabel, _LabeledCircuit
@@ -779,7 +779,7 @@ def test_runtime_error_if_pulled_through_not_empty_mocked() -> None:
     this RuntimeError theoretically unreachable. This test verifies the
     defensive check itself.
     """
-    q0 = cirq.NamedQubit('q0')
+    q0: cirq.Qid = cirq.NamedQubit('q0')
     circuit = cirq.FrozenCircuit(cirq.Moment(cirq.I(q0)))  # A minimal circuit
 
     # Create a mock _LabeledCircuit instance that would lead to an unabsorbed Pauli.
@@ -841,3 +841,28 @@ q(0) |  d  |  i  | i,s |  d  |  w  |
 q(1) |  d  |  i  | d,s |  w  |  w  |
 q(2) |  d  |  d  | d,s |  w  |  w  |"""
     )
+
+
+def test_labeled_circuit_str_empty():
+    """Tests the __str__ method of _LabeledCircuit for empty and no-qubit circuits."""
+    # Test case for an empty circuit (no moments, no qubits)
+    empty_circuit = cirq.Circuit()
+    labeled_empty = _LabeledCircuit.from_circuit(empty_circuit, single_qubit_gate_moments_only=True)
+    assert str(labeled_empty) == "CircuitRepr(empty)"
+
+
+def test_gate_label_str():
+    """Tests the __str__ method of _GateLabel enum."""
+    assert str(_GateLabel.UNKNOWN) == '?'
+    assert str(_GateLabel.WALL) == 'w'
+    assert str(_GateLabel.DOOR) == 'd'
+    assert str(_GateLabel.INSERTABLE) == 'i'
+
+
+def test_add_dynamical_decoupling_with_deep_context_raises_error():
+    """Tests that add_dynamical_decoupling raises an error with deep context."""
+    q = cirq.NamedQubit('q')
+    circuit = cirq.Circuit(cirq.H(q))
+    context = cirq.TransformerContext(deep=True)
+    with pytest.raises(ValueError, match="Deep transformation is not supported."):
+        add_dynamical_decoupling(circuit, context=context)

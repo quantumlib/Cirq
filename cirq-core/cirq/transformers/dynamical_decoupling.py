@@ -16,14 +16,13 @@
 
 from __future__ import annotations
 
+from enum import Enum
 from functools import reduce
 from itertools import cycle
-from enum import Enum
 from typing import TYPE_CHECKING
 
-from attrs import frozen
-
 import numpy as np
+from attrs import frozen
 
 from cirq import ops, protocols
 from cirq.circuits import Circuit, FrozenCircuit, Moment
@@ -278,8 +277,6 @@ class _LabeledCircuit:
             return "CircuitRepr(empty)"
 
         qubits = sorted(list(self.gate_types.keys()))
-        if not qubits:
-            return "CircuitRepr(no qubits)"
         num_moments = len(self.gate_types[qubits[0]])
 
         max_qubit_len = max(len(str(q)) for q in qubits) if qubits else 0
@@ -359,7 +356,7 @@ def add_dynamical_decoupling(
                 to_be_merged = pulled_through.get(q)
                 if to_be_merged is not None:
                     new_op_at_q = _merge_single_qubit_ops_to_phxz(
-                        q, [to_be_merged, new_op_at_q or ops.I(q)]
+                        q, (to_be_merged.on(q), new_op_at_q or ops.I(q))
                     )
                     pulled_through *= to_be_merged.on(q)
             if new_op_at_q is not None:
