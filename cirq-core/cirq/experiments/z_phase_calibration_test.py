@@ -14,6 +14,9 @@
 
 from __future__ import annotations
 
+import multiprocessing
+from typing import Iterator
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -30,6 +33,15 @@ from cirq.experiments.z_phase_calibration import (
 _ANGLES = ['theta', 'phi', 'chi', 'zeta', 'gamma']
 # fix random generator seed to ensure reproducibility and faster convergence
 _SEED = 276154030
+
+_POOL_NUM_PROCESSES = min(4, multiprocessing.cpu_count())
+
+
+@pytest.fixture
+def pool() -> Iterator[multiprocessing.pool.Pool]:
+    ctx = multiprocessing.get_context()
+    with ctx.Pool(_POOL_NUM_PROCESSES) as pool:
+        yield pool
 
 
 def _create_tests(n, with_options: bool = False):
@@ -88,7 +100,7 @@ class _TestSimulator(cirq.Simulator):
 @pytest.mark.parametrize(
     ['angles', 'error', 'characterization_flags'], _create_tests(n=10, with_options=True)
 )
-def test_calibrate_z_phases(angles, error, characterization_flags) -> None:
+def test_calibrate_z_phases(pool, angles, error, characterization_flags) -> None:
 
     original_gate = cirq.PhasedFSimGate(**{k: v for k, v in zip(_ANGLES, angles)})
     actual_gate = cirq.PhasedFSimGate(**{k: v + e for k, v, e in zip(_ANGLES, angles, error)})
@@ -109,6 +121,7 @@ def test_calibrate_z_phases(angles, error, characterization_flags) -> None:
         n_circuits=10,
         cycle_depths=range(3, 10),
         random_state=_SEED,
+        num_workers_or_pool=pool,
     )[qubits]
 
     initial_unitary = cirq.unitary(original_gate)
@@ -127,7 +140,7 @@ def test_calibrate_z_phases(angles, error, characterization_flags) -> None:
 
 
 @pytest.mark.parametrize(['angles', 'error'], _create_tests(n=3))
-def test_calibrate_z_phases_no_options(angles, error) -> None:
+def test_calibrate_z_phases_no_options(pool, angles, error) -> None:
 
     original_gate = cirq.PhasedFSimGate(**{k: v for k, v in zip(_ANGLES, angles)})
     actual_gate = cirq.PhasedFSimGate(**{k: v + e for k, v, e in zip(_ANGLES, angles, error)})
@@ -144,6 +157,7 @@ def test_calibrate_z_phases_no_options(angles, error) -> None:
         n_circuits=10,
         cycle_depths=range(3, 10),
         random_state=_SEED,
+        num_workers_or_pool=pool,
     )[qubits]
 
     initial_unitary = cirq.unitary(original_gate)
@@ -162,7 +176,7 @@ def test_calibrate_z_phases_no_options(angles, error) -> None:
 
 
 @pytest.mark.parametrize(['angles', 'error'], _create_tests(n=3))
-def test_calibrate_z_phases_workflow_no_options(angles, error) -> None:
+def test_calibrate_z_phases_workflow_no_options(pool, angles, error) -> None:
 
     original_gate = cirq.PhasedFSimGate(**{k: v for k, v in zip(_ANGLES, angles)})
     actual_gate = cirq.PhasedFSimGate(**{k: v + e for k, v, e in zip(_ANGLES, angles, error)})
@@ -179,6 +193,7 @@ def test_calibrate_z_phases_workflow_no_options(angles, error) -> None:
         n_circuits=1,
         cycle_depths=(1, 2),
         random_state=_SEED,
+        num_workers_or_pool=pool,
     )
 
     for params in result.final_params.values():
