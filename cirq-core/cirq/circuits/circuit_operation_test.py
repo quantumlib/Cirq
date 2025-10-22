@@ -254,12 +254,12 @@ def test_recursive_params() -> None:
     outer_params = {a: a2, a2: 0, b: b2, b2: 1}
     resolved = cirq.resolve_parameters(circuitop, outer_params)
     # Combined, a->b->b2->1, and b->a->a2->0.
-    assert resolved.param_resolver.param_dict == {'a': 1, 'b': 0}
+    assert resolved.param_resolver.param_dict == {a: 1, b: 0}
 
     # Non-recursive, so a->a2 and b->b2.
     resolved = cirq.resolve_parameters(circuitop, outer_params, recursive=False)
     # Combined, a->b->b2, and b->a->a2.
-    assert resolved.param_resolver.param_dict == {'a': b2, 'b': a2}
+    assert resolved.param_resolver.param_dict == {a: b2, b: a2}
 
     with pytest.raises(RecursionError):
         cirq.resolve_parameters(circuitop, {a: a2, a2: a})
@@ -662,7 +662,7 @@ cirq.CircuitOperation(
         str(op3)
         == """\
 [ 0: ───X^b───M('m')─── ](qubit_map={q(0): q(1)}, \
-key_map={m: p}, params={'b': 2})"""
+key_map={m: p}, params={b: 2})"""
     )
     assert (
         repr(op3)
@@ -671,7 +671,7 @@ cirq.CircuitOperation(
     circuit={indented_fc3_repr},
     qubit_map={{cirq.LineQubit(0): cirq.LineQubit(1)}},
     measurement_key_map={{'m': 'p'}},
-    param_resolver=cirq.ParamResolver({{'b': 2}}),
+    param_resolver=cirq.ParamResolver({{sympy.Symbol('b'): 2}}),
 )"""
     )
 

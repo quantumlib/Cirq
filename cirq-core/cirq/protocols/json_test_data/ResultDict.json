@@ -5,7 +5,10 @@
       "cirq_type": "ParamResolver",
       "param_dict": [
         [
-	  "a",
+          {
+            "cirq_type": "sympy.Symbol",
+            "name": "a"
+          },
           0.5
         ]
       ]
@@ -29,7 +32,10 @@
       "cirq_type": "ParamResolver",
       "param_dict": [
         [
-	  "a",
+          {
+            "cirq_type": "sympy.Symbol",
+            "name": "a"
+          },
           0.5
         ]
       ]
@@ -53,7 +59,10 @@
       "cirq_type": "ParamResolver",
       "param_dict": [
         [
-          "a",
+          {
+            "cirq_type": "sympy.Symbol",
+            "name": "a"
+          },
           0.5
         ]
       ]
@@ -77,7 +86,10 @@
       "cirq_type": "ParamResolver",
       "param_dict": [
         [
-          "a",
+          {
+            "cirq_type": "sympy.Symbol",
+            "name": "a"
+          },
           0.5
         ]
       ]
@@ -101,7 +113,10 @@
       "cirq_type": "ParamResolver",
       "param_dict": [
         [
-	  "a",
+          {
+            "cirq_type": "sympy.Symbol",
+            "name": "a"
+          },
           0.5
         ]
       ]
@@ -125,7 +140,10 @@
       "cirq_type": "ParamResolver",
       "param_dict": [
         [
-          "a",
+          {
+            "cirq_type": "sympy.Symbol",
+            "name": "a"
+          },
           0.5
         ]
       ]
@@ -149,7 +167,10 @@
       "cirq_type": "ParamResolver",
       "param_dict": [
         [
-          "a",
+          {
+            "cirq_type": "sympy.Symbol",
+            "name": "a"
+          },
           0.5
         ]
       ]
@@ -173,7 +194,10 @@
       "cirq_type": "ParamResolver",
       "param_dict": [
         [
-          "a",
+          {
+            "cirq_type": "sympy.Symbol",
+            "name": "a"
+          },
           0.5
         ]
       ]
@@ -197,7 +221,10 @@
       "cirq_type": "ParamResolver",
       "param_dict": [
         [
-          "a",
+          {
+            "cirq_type": "sympy.Symbol",
+            "name": "a"
+          },
           0.5
         ]
       ]
@@ -221,7 +248,10 @@
       "cirq_type": "ParamResolver",
       "param_dict": [
         [
-          "a",
+          {
+            "cirq_type": "sympy.Symbol",
+            "name": "a"
+          },
           0.5
         ]
       ]
@@ -245,7 +275,10 @@
       "cirq_type": "ParamResolver",
       "param_dict": [
         [
-          "a",
+          {
+            "cirq_type": "sympy.Symbol",
+            "name": "a"
+          },
           0.5
         ]
       ]
