@@ -75,16 +75,17 @@ class ParamResolver:
 
         self._param_hash: int | None = None
         self._param_dict = cast(ParamDictType, {} if param_dict is None else param_dict)
-        remake = False
+        self._param_dict_with_str_keys = self._param_dict
+        generate_str_keys = False
         for key in self._param_dict:
             if isinstance(key, sympy.Expr):
                 if isinstance(key, sympy.Symbol):
-                    remake = True
+                    generate_str_keys = True
                 else:
                     raise TypeError(f'ParamResolver keys cannot be (non-symbol) formulas ({key})')
-        if remake:
+        if generate_str_keys:
             # Remake dictionary with string keys for faster access
-            self._param_dict = {
+            self._param_dict_with_str_keys = {
                 (key.name if isinstance(key, sympy.Symbol) else key): value
                 for key, value in self._param_dict.items()
             }
@@ -133,7 +134,7 @@ class ParamResolver:
         if isinstance(value, sympy.Symbol):
             value = value.name
         if isinstance(value, str):
-            param_value = self._param_dict.get(value, _NOT_FOUND)
+            param_value = self._param_dict_with_str_keys.get(value, _NOT_FOUND)
             if isinstance(param_value, float):
                 return param_value
             if param_value is _NOT_FOUND:
