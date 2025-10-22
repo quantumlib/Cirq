@@ -4,10 +4,7 @@
     "cirq_type": "ParamResolver",
     "param_dict": [
       [
-        {
-          "cirq_type": "sympy.Symbol",
-          "name": "a"
-        },
+	"a",
         0.5
       ]
     ]
