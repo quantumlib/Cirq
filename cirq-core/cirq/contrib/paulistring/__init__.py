@@ -45,4 +45,5 @@ from cirq.contrib.paulistring.optimize import optimized_circuit as optimized_cir
 
 from cirq.contrib.paulistring.pauli_string_measurement_with_readout_mitigation import (
     measure_pauli_strings as measure_pauli_strings,
+    CircuitToPauliStringsParameters as CircuitToPauliStringsParameters,
 )
