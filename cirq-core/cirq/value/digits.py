@@ -171,6 +171,11 @@ def big_endian_int_to_digits(
     if isinstance(base, int):
         if digit_count is None:
             raise ValueError('No digit count. Provide `digit_count` when base is an int.')
+        if base == 2:
+            binary_chars = bin(val).removeprefix('0b')
+            zeros_count = digit_count - len(binary_chars)
+            if zeros_count >= 0:
+                return [0] * zeros_count + [1 if c == "1" else 0 for c in binary_chars]
         base = (base,) * digit_count
     else:
         base = tuple(base)
