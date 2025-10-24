@@ -87,3 +87,20 @@ def test_big_endian_int_to_digits():
         3,
     ]
     assert cirq.big_endian_int_to_digits(11, base=(e for e in [2, 3, 4])) == [0, 2, 3]
+
+
+@pytest.mark.benchmark(group="beitd")
+def test_big_endian_int_to_digits_bench_scalar_base(benchmark):
+    def _f():
+        for x in reversed(range(60000)):
+            cirq.big_endian_int_to_digits(x, base=2, digit_count=16)
+    benchmark(_f)
+
+
+@pytest.mark.benchmark(group="beitd")
+def test_big_endian_int_to_digits_bench_seqeunce_base(benchmark):
+    base = (2,) * 16
+    def _f():
+        for x in reversed(range(60000)):
+            cirq.big_endian_int_to_digits(x, base=base, digit_count=16)
+    benchmark(_f)
