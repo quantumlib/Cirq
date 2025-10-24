@@ -1090,19 +1090,9 @@ def test_get_default_config(client):
     name = (
         f'projects/{project_id}/'
         f'processors/{processor_id}/'
-        f'configAutomationRuns/default/configs/default'
+        'configAutomationRuns/default/configs/default'
     )
 
-    device_spec = v2.device_pb2.DeviceSpecification(
-        valid_qubits=["0_0", "1_1", "2_2"],
-        valid_targets=[
-            v2.device_pb2.TargetSet(
-                name="2_quibit_targets",
-                target_ordering=v2.device_pb2.TargetSet.SYMMETRIC,
-                targets=[v2.device_pb2.Target(ids=["0_0", "1_1"])],
-            )
-        ],
-    )
     quantum_config = quantum.QuantumProcessorConfig(
         name=name,
         device_specification=util.pack_any(_DEVICE_SPEC),

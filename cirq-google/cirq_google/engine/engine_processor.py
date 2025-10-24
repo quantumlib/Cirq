@@ -17,7 +17,6 @@ from __future__ import annotations
 import datetime
 from typing import Any, TYPE_CHECKING
 
-import cirq_google.engine.engine as engine_base
 from cirq import _compat
 from cirq_google.api import v2
 from cirq_google.devices import grid_device
@@ -36,6 +35,7 @@ if TYPE_CHECKING:
     import cirq_google as cg
     import cirq_google.cloud.quantum as quantum
     import cirq_google.engine.abstract_job as abstract_job
+    import cirq_google.engine.engine as engine_base
 
 
 def _date_to_timestamp(union_time: datetime.datetime | datetime.date | int | None) -> int | None:

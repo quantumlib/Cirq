@@ -1283,9 +1283,10 @@ def _quantum_processor_config_name_from_device_version(
             f'configSnapshots/{device_version.id}/'
             f'configs/{config_name}'
         )
+    default_run_name = 'default'
     return (
         f'{processor_resource_name}/'
-        f'configAutomationRuns/{device_version.id if device_version else 'default'}/'
+        f'configAutomationRuns/{device_version.id if device_version else default_run_name}/'
         f'configs/{config_name}'
     )
 

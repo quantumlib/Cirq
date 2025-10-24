@@ -29,7 +29,7 @@ import datetime
 import enum
 import random
 import string
-from typing import TYPE_CHECKING, TypeAlias, TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 import duet
 import google.auth
