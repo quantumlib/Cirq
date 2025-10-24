@@ -192,4 +192,5 @@ def big_endian_int_to_digits(
             f'left behind {val!r} instead of 0.'
         )
 
-    return result[::-1]
+    result.reverse()
+    return result
