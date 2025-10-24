@@ -29,8 +29,7 @@ import datetime
 import enum
 import random
 import string
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, TypeAlias, TypeVar
 
 import duet
 import google.auth
@@ -67,19 +66,6 @@ class ProtoVersion(enum.Enum):
     UNDEFINED = 0
     V1 = 1
     V2 = 2
-
-
-@dataclass
-class Snapshot:
-    id: str
-
-
-@dataclass
-class Run:
-    id: str
-
-
-type DeviceVersion = Snapshot | Run
 
 
 def _make_random_id(prefix: str, length: int = 16):
@@ -608,7 +594,7 @@ class Engine(abstract_engine.AbstractEngine):
         self,
         processor_id: str | list[str],
         device_config_name: str | None = None,
-        device_version: DeviceVersion | None = None,
+        device_version: processor_config.DeviceVersion | None = None,
         max_concurrent_jobs: int = 100,
     ) -> cirq_google.ProcessorSampler:
         """Returns a sampler backed by the engine.
@@ -645,34 +631,11 @@ class Engine(abstract_engine.AbstractEngine):
             max_concurrent_jobs=max_concurrent_jobs,
         )
 
-    async def get_processor_config_from_snapshot_async(
-        self, processor_id: str, snapshot_id: str, config_name: str = 'default'
-    ) -> processor_config.ProcessorConfig | None:
-        """Returns a ProcessorConfig from this project and the given processor id.
-
-        Args:
-           processor_id: The processor unique identifier.
-           snapshot_id: The unique identifier for the snapshot.
-           config_name: The identifier for the config.
-
-        Returns:
-           The ProcessorConfig from this project and processor.
-        """
-        client = self.context.client
-        quantum_config = await client.get_quantum_processor_config_from_snapshot_async(
-            project_id=self.project_id,
-            processor_id=processor_id,
-            snapshot_id=snapshot_id,
-            config_name=config_name,
-        )
-        if quantum_config:
-            return processor_config.ProcessorConfig(quantum_processor_config=quantum_config)
-        return None
-
-    get_processor_config_from_snapshot = duet.sync(get_processor_config_from_snapshot_async)
-
-    async def get_processor_config_from_run_async(
-        self, processor_id: str, run_name: str = 'current', config_name: str = 'default'
+    async def get_processor_config_async(
+        self,
+        processor_id: str,
+        device_version: processor_config.DeviceVersion = processor_config.Run(id='current'),
+        config_name: str = 'default',
     ) -> processor_config.ProcessorConfig | None:
         """Returns a ProcessorConfig from this project and the given processor id.
 
@@ -681,25 +644,27 @@ class Engine(abstract_engine.AbstractEngine):
 
         Args:
             processor_id: The processor unique identifier.
-            run_name: The unique identifier for the automation run.
+            device_version: Specifies either the snapshot_id or the run_name.
             config_name: The identifier for the config.
 
         Returns:
             The ProcessorConfig from this project and processor.
         """
-        quantum_config = await self.context.client.get_quantum_processor_config_from_run_async(
+        quantum_config = await self.context.client.get_quantum_processor_config_async(
             project_id=self.project_id,
             processor_id=processor_id,
-            run_name=run_name,
+            device_version=device_version,
             config_name=config_name,
         )
         if quantum_config:
             return processor_config.ProcessorConfig(
-                quantum_processor_config=quantum_config, run_name=run_name
+                processor=self.get_processor(processor_id),
+                quantum_processor_config=quantum_config,
+                device_version=device_version,
             )
         return None
 
-    get_processor_config_from_run = duet.sync(get_processor_config_from_run_async)
+    get_processor_config = duet.sync(get_processor_config_async)
 
 
 def get_engine(project_id: str | None = None) -> Engine:

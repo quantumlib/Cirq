@@ -102,7 +102,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
     def get_sampler(
         self,
         device_config_name: str | None = None,
-        device_version: engine_base.DeviceVersion | None = None,
+        device_version: processor_config.DeviceVersion | None = None,
         max_concurrent_jobs: int = 100,
     ) -> cg.engine.ProcessorSampler:
         """Returns the default sampler backed by the engine.
@@ -131,14 +131,14 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             else processor.default_device_config_key.config_alias
         )
 
-        if isinstance(device_version, engine_base.Snapshot):
+        if isinstance(device_version, processor_config.Snapshot):
             return processor_sampler.ProcessorSampler(
                 processor=self,
                 snapshot_id=device_version.id,
                 device_config_name=device_config_name,
                 max_concurrent_jobs=max_concurrent_jobs,
             )
-        if isinstance(device_version, engine_base.Run):
+        if isinstance(device_version, processor_config.Run):
             return processor_sampler.ProcessorSampler(
                 processor=self,
                 run_name=device_version.id,
@@ -504,8 +504,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         filter_str = ' AND '.join(filters)
         return self.context.client.list_time_slots(self.project_id, self.processor_id, filter_str)
 
-    def get_config_from_run(
-        self, run_name: str = 'current', config_name: str = 'default'
+    def get_config(
+        self, device_version: processor_config.DeviceVersion | None = None, config_name: str = ''
     ) -> processor_config.ProcessorConfig | None:
         """Retrieves a ProcessorConfig from an automation run.
 
@@ -514,35 +514,20 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
 
         Args:
             processor_id: The processor unique identifier.
+            device_version: Specifies either the snapshot_id or the run_name.
             config_name: The quantum processor's unique identifier.
             run_name: The automation run name.  Use 'default'
                       if none id provided.
 
         Returns: The quantum processor config.
         """
-        return self.engine().get_processor_config_from_run(
-            processor_id=self.processor_id, run_name=run_name, config_name=config_name
-        )
-
-    def get_config_from_snapshot(
-        self, snapshot_id: str, config_name: str = 'default'
-    ) -> processor_config.ProcessorConfig | None:
-        """Retrieves a ProcessorConfig from a given snapshot id.
-
-        If not `config_name` is specified, the internally configured default is returned.
-
-        Args:
-            processor_id: The processor unique identifier.
-            config_name: The quantum processor's unique identifier.
-            snapshot_id: The snapshot's unique identifier.
-
-        Returns: The quantum processor config.
-
-        Raises:
-            EngineException: If the request to get the config fails.
-        """
-        return self.engine().get_processor_config_from_snapshot(
-            processor_id=self.processor_id, snapshot_id=snapshot_id, config_name=config_name
+        default_device_key = self._inner_processor().default_device_config_key
+        return self.engine().get_processor_config(
+            processor_id=self.processor_id,
+            device_version=(
+                device_version if device_version else processor_config.Run(default_device_key.run)
+            ),
+            config_name=config_name if config_name else default_device_key.config_alias,
         )
 
     def __str__(self):
