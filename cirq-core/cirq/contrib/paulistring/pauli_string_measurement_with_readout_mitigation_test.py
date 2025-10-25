@@ -308,9 +308,8 @@ def test_group_pauli_string_measurement_errors_with_noise(use_sweep: bool) -> No
                 assert 0.0045 < error < 0.0055
 
 
-@pytest.mark.benchmark(group="psmwrm", min_rounds=5, max_time=10, disable_gc=True, warmup=False)
 @pytest.mark.parametrize("use_sweep", [True, False])
-def test_many_circuits_input_measurement_with_noise(benchmark, use_sweep: bool) -> None:
+def test_many_circuits_input_measurement_with_noise(use_sweep: bool) -> None:
     """Test that the mitigated expectation is close to the ideal expectation
     based on the Pauli string for multiple circuits"""
     qubits_1 = cirq.LineQubit.range(3)
@@ -335,15 +334,8 @@ def test_many_circuits_input_measurement_with_noise(benchmark, use_sweep: bool) 
     sampler = NoisySingleQubitReadoutSampler(p0=0.003, p1=0.005, seed=1234)
     simulator = cirq.Simulator()
 
-    circuits_with_pauli_expectations = benchmark(
-        measure_pauli_strings,
-        circuits_to_pauli,
-        sampler,
-        1000,
-        1000,
-        1000,
-        np.random.default_rng(),
-        use_sweep,
+    circuits_with_pauli_expectations = measure_pauli_strings(
+        circuits_to_pauli, sampler, 1000, 1000, 1000, np.random.default_rng(), use_sweep
     )
 
     for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
