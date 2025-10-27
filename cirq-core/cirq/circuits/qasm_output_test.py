@@ -200,7 +200,7 @@ ry(pi*-0.25) q[0];
     )
 
 
-def test_qasm_global_pahse() -> None:
+def test_qasm_global_phase() -> None:
     output = cirq.QasmOutput((cirq.global_phase_operation(np.exp(1j * 5))), ())
     assert (
         str(output)
