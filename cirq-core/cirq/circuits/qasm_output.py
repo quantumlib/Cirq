@@ -94,9 +94,7 @@ class QasmUGate(ops.Gate):
             ops.rz(self.lmda * np.pi).on(q),
             ops.ry(self.theta * np.pi).on(q),
             ops.rz(self.phi * np.pi).on(q),
-            ops.GlobalPhaseGate(
-                np.exp(1j * -self._calculate_global_phase())
-            ).on()
+            ops.GlobalPhaseGate(np.exp(1j * -self._calculate_global_phase())).on(),
         ]
 
     def _value_equality_values_(self):
