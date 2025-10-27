@@ -127,7 +127,7 @@ def sample_heavy_set(
     # Add measure gates to the end of (a copy of) the circuit. Ensure that those
     # gates measure those in the given mapping, preserving this order.
     qubits = circuit.all_qubits()
-    key = None
+    key: Callable[[cirq.Qid], cirq.Qid] | None = None
     if mapping:
         # Add any qubits that were not explicitly mapped, so they aren't lost in
         # the sorting.
@@ -137,7 +137,7 @@ def sample_heavy_set(
     # Don't do a single large measurement gate because then the key will be one
     # large string. Instead, do a bunch of single-qubit measurement gates so we
     # preserve the qubit keys.
-    sorted_qubits = sorted(qubits, key=key)  # type: ignore[arg-type]
+    sorted_qubits = sorted(qubits, key=key)
     circuit_copy = circuit + [cirq.measure(q) for q in sorted_qubits]
 
     # Run the sampler to compare each output against the Heavy Set.

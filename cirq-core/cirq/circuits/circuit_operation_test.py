@@ -22,7 +22,7 @@ import sympy
 
 import cirq
 import cirq.circuits.circuit_operation as circuit_operation
-from cirq import _compat
+from cirq import _compat, protocols
 from cirq.circuits.circuit_operation import _full_join_string_lists
 
 ALL_SIMULATORS = (cirq.Simulator(), cirq.DensityMatrixSimulator(), cirq.CliffordSimulator())
@@ -611,7 +611,7 @@ cirq.CircuitOperation(
             cirq.measure(cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2), key=cirq.MeasurementKey(name='m')),
         ),
     ]),
-)"""
+)"""  # noqa: E501
     )
 
     fc2 = cirq.FrozenCircuit(cirq.X(x), cirq.H(y), cirq.CX(y, x))
@@ -1253,22 +1253,27 @@ def test_repeat_until_protocols() -> None:
     # Ensure the _repeat_until has been mapped, the measurement has been mapped to the same key,
     # and the control keys of the subcircuit is empty (because the control key of the condition is
     # bound to the measurement).
+    assert scoped._mapped_repeat_until is not None
     assert scoped._mapped_repeat_until.keys == (cirq.MeasurementKey('a', ('0',)),)
     assert cirq.measurement_key_objs(scoped) == {cirq.MeasurementKey('a', ('0',))}
     assert not cirq.control_keys(scoped)
     mapped = cirq.with_measurement_key_mapping(scoped, {'a': 'b'})
+    assert mapped._mapped_repeat_until is not None
     assert mapped._mapped_repeat_until.keys == (cirq.MeasurementKey('b', ('0',)),)
     assert cirq.measurement_key_objs(mapped) == {cirq.MeasurementKey('b', ('0',))}
     assert not cirq.control_keys(mapped)
     prefixed = cirq.with_key_path_prefix(mapped, ('1',))
+    assert prefixed._mapped_repeat_until is not None
     assert prefixed._mapped_repeat_until.keys == (cirq.MeasurementKey('b', ('1', '0')),)
     assert cirq.measurement_key_objs(prefixed) == {cirq.MeasurementKey('b', ('1', '0'))}
     assert not cirq.control_keys(prefixed)
     setpath = cirq.with_key_path(prefixed, ('2',))
+    assert setpath._mapped_repeat_until is not None
     assert setpath._mapped_repeat_until.keys == (cirq.MeasurementKey('b', ('2',)),)
     assert cirq.measurement_key_objs(setpath) == {cirq.MeasurementKey('b', ('2',))}
     assert not cirq.control_keys(setpath)
     resolved = cirq.resolve_parameters(setpath, {'p': 1})
+    assert resolved._mapped_repeat_until is not None
     assert resolved._mapped_repeat_until.keys == (cirq.MeasurementKey('b', ('2',)),)
     assert cirq.measurement_key_objs(resolved) == {cirq.MeasurementKey('b', ('2',))}
     assert not cirq.control_keys(resolved)
@@ -1297,3 +1302,44 @@ def test_inner_repeat_until_simulate() -> None:
 
 
 # TODO: Operation has a "gate" property. What is this for a CircuitOperation?
+
+
+def test_has_unitary_protocol_returns_true_if_all_common_gates() -> None:
+    q = cirq.LineQubit(0)
+    op = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q), cirq.Y(q), cirq.Z(q)))
+    assert protocols.has_unitary(op)
+
+
+def test_has_unitary_protocol_returns_false_if_measurement_gate() -> None:
+    q = cirq.LineQubit(0)
+    key = cirq.MeasurementKey('m')
+    op = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q) ** 0.2, cirq.measure(q, key=key)))
+    assert not protocols.has_unitary(op)
+
+
+def test_has_unitary_protocol_returns_false_if_parametrized() -> None:
+    q = cirq.LineQubit(0)
+    exp = sympy.Symbol('exp')
+    op = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q) ** exp))
+    assert not protocols.has_unitary(op)
+
+
+def test_has_unitary_protocol_returns_true_if_all_params_resolve() -> None:
+    q = cirq.LineQubit(0)
+    exp = sympy.Symbol('exp')
+    op = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q) ** exp), param_resolver={exp: 0.5})
+    assert protocols.has_unitary(op)
+
+
+def test_control_keys_respects_internal_measurement_order() -> None:
+    q = cirq.LineQubit(0)
+
+    # Control BEFORE measurement inside the subcircuit: external key required
+    fc_before = cirq.FrozenCircuit(cirq.X(q).with_classical_controls('a'), cirq.measure(q, key='a'))
+    op_before = cirq.CircuitOperation(fc_before)
+    assert cirq.control_keys(op_before) == {cirq.MeasurementKey('a')}
+
+    # Measurement BEFORE control inside the subcircuit: no external key required
+    fc_after = cirq.FrozenCircuit(cirq.measure(q, key='a'), cirq.X(q).with_classical_controls('a'))
+    op_after = cirq.CircuitOperation(fc_after)
+    assert cirq.control_keys(op_after) == set()

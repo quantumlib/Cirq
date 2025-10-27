@@ -48,7 +48,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
     import pandas as pd
 
     import cirq
-    from cirq.devices import InsertionNoiseModel
+    from cirq.devices import InsertionNoiseModel, NoiseModelFromNoiseProperties, ThermalNoiseModel
     from cirq.devices.noise_model import _NoNoiseModel
     from cirq.experiments import GridInteractionLayer
     from cirq.ops import raw_types
@@ -175,6 +175,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'NamedQubit': cirq.NamedQubit,
         'NamedQid': cirq.NamedQid,
         'NoIdentifierQubit': cirq.testing.NoIdentifierQubit,
+        'NoiseModelFromNoiseProperties': NoiseModelFromNoiseProperties,
         'ObservableMeasuredResult': cirq.work.ObservableMeasuredResult,
         'OpIdentifier': cirq.OpIdentifier,
         'ParamResolver': cirq.ParamResolver,
@@ -226,6 +227,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'SympyCondition': cirq.SympyCondition,
         'TaggedOperation': cirq.TaggedOperation,
         'TensoredConfusionMatrices': cirq.TensoredConfusionMatrices,
+        'ThermalNoiseModel': ThermalNoiseModel,
         'TiltedSquareLattice': cirq.TiltedSquareLattice,
         'ThreeQubitDiagonalGate': cirq.ThreeQubitDiagonalGate,
         'TrialResult': cirq.ResultDict,  # keep support for Cirq < 0.11.
@@ -237,9 +239,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'VirtualTag': cirq.VirtualTag,
         'WaitGate': cirq.WaitGate,
         # The formatter keeps putting this back
-        # pylint: disable=line-too-long
-        'XEBPhasedFSimCharacterizationOptions': cirq.experiments.XEBPhasedFSimCharacterizationOptions,
-        # pylint: enable=line-too-long
+        'XEBPhasedFSimCharacterizationOptions': cirq.experiments.XEBPhasedFSimCharacterizationOptions,  # noqa: E501
         '_XEigenState': cirq.value.product_state._XEigenState,
         'XPowGate': cirq.XPowGate,
         'XXPowGate': cirq.XXPowGate,

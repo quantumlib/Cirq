@@ -18,17 +18,23 @@ from __future__ import annotations
 
 import dataclasses
 import json
+import math
 from typing import Any, Callable, cast, Collection, Iterator, Sequence, TYPE_CHECKING
 
 import numpy as np
 
 import cirq
 from cirq.devices import line_qubit
-from cirq_ionq.ionq_exceptions import IonQSerializerMixedGatesetsException
+from cirq_ionq.ionq_exceptions import (
+    IonQSerializerMixedGatesetsException,
+    NotSupportedPauliexpParameters,
+)
 from cirq_ionq.ionq_native_gates import GPI2Gate, GPIGate, MSGate, ZZGate
 
 if TYPE_CHECKING:
     import sympy
+
+    from cirq.ops.pauli_string_phasor import PauliStringPhasorGate
 
 _NATIVE_GATES = cirq.Gateset(
     GPIGate, GPI2Gate, MSGate, ZZGate, cirq.MeasurementGate, unroll_circuit_op=False
@@ -40,17 +46,24 @@ class SerializedProgram:
     """A container for the serialized portions of a `cirq.Circuit`.
 
     Attributes:
-        body: A dictionary which contains the number of qubits and the serialized circuit
+        input: A dictionary which contains the number of qubits and the serialized circuit
             minus the measurements.
         settings: A dictionary of settings which can override behavior for this circuit when
             run on IonQ hardware.
         metadata: A dictionary whose keys store information about the measurements in the circuit.
+        compilation: {"opt": int, "precision": str}, settings for compilation when creating a job
+        error_mitigation: {'debiasing': bool} settings for error mitigation when creating a job
+        noise: Dictionary, {"model": str (required), "seed": int (optional)}
+        dry_run: If True, the job will be submitted by the API client but not processed remotely.
     """
 
-    body: dict
+    input: dict
     settings: dict
     metadata: dict
-    error_mitigation: dict | None = None
+    compilation: dict
+    error_mitigation: dict
+    noise: dict
+    dry_run: bool
 
 
 class Serializer:
@@ -79,6 +92,7 @@ class Serializer:
             cirq.HPowGate: self._serialize_h_pow_gate,
             cirq.SwapPowGate: self._serialize_swap_gate,
             cirq.MeasurementGate: self._serialize_measurement_gate,
+            cirq.ops.pauli_string_phasor.PauliStringPhasorGate: self._serialize_pauli_string_phasor_gate,  # noqa: E501
             # These gates can't be used with any of the non-measurement gates above
             # Rather than validating this here, we rely on the IonQ API to report failure.
             GPIGate: self._serialize_gpi_gate,
@@ -91,7 +105,11 @@ class Serializer:
         self,
         circuit: cirq.AbstractCircuit,
         job_settings: dict | None = None,
+        compilation: dict | None = None,
         error_mitigation: dict | None = None,
+        noise: dict | None = None,
+        metadata: dict | None = None,
+        dry_run: bool = False,
     ) -> SerializedProgram:
         """Serialize the given circuit.
 
@@ -108,25 +126,39 @@ class Serializer:
 
         # IonQ API does not support measurements, so we pass the measurement keys through
         # the metadata field.  Here we split these out of the serialized ops.
-        body = {
+        program_input = {
             'gateset': gateset,
             'qubits': num_qubits,
             'circuit': [op for op in serialized_ops if op['gate'] != 'meas'],
         }
-        metadata = self._serialize_measurements(op for op in serialized_ops if op['gate'] == 'meas')
+        if metadata is not None:
+            metadata.update(
+                self._serialize_measurements(op for op in serialized_ops if op['gate'] == 'meas')
+            )
+        else:
+            metadata = self._serialize_measurements(
+                op for op in serialized_ops if op['gate'] == 'meas'
+            )
 
         return SerializedProgram(
-            body=body,
-            metadata=metadata,
+            input=program_input,
             settings=(job_settings or {}),
-            error_mitigation=error_mitigation,
+            compilation=(compilation or {}),
+            error_mitigation=(error_mitigation or {}),
+            noise=(noise or {}),
+            metadata=(metadata or {}),
+            dry_run=dry_run,
         )
 
     def serialize_many_circuits(
         self,
         circuits: list[cirq.AbstractCircuit],
         job_settings: dict | None = None,
+        compilation: dict | None = None,
         error_mitigation: dict | None = None,
+        noise: dict | None = None,
+        metadata: dict | None = None,
+        dry_run: bool = False,
     ) -> SerializedProgram:
         """Serialize the given array of circuits.
 
@@ -154,13 +186,13 @@ class Serializer:
 
         # IonQ API does not support measurements, so we pass the measurement keys through
         # the metadata field.  Here we split these out of the serialized ops.
-        body: dict[str, Any] = {'gateset': gateset, 'qubits': num_qubits, 'circuits': []}
+        program_input: dict[str, Any] = {'gateset': gateset, 'qubits': num_qubits, 'circuits': []}
 
         measurements = []
         qubit_numbers = []
         for circuit in circuits:
             serialized_ops = self._serialize_circuit(circuit)
-            body['circuits'].append(
+            program_input['circuits'].append(
                 {'circuit': [op for op in serialized_ops if op['gate'] != 'meas']}
             )
             measurements.append(
@@ -168,14 +200,26 @@ class Serializer:
             )
             qubit_numbers.append(self._num_qubits(circuit))
 
-        return SerializedProgram(
-            body=body,
-            metadata={
+        if metadata is not None:
+            new_entries = {
                 "measurements": json.dumps(measurements),
                 "qubit_numbers": json.dumps(qubit_numbers),
-            },
+            }
+            metadata.update(new_entries)
+        else:
+            metadata = {
+                "measurements": json.dumps(measurements),
+                "qubit_numbers": json.dumps(qubit_numbers),
+            }
+
+        return SerializedProgram(
+            input=program_input,
             settings=(job_settings or {}),
-            error_mitigation=error_mitigation,
+            compilation=(compilation or {}),
+            error_mitigation=(error_mitigation or {}),
+            noise=(noise or {}),
+            metadata=(metadata or {}),
+            dry_run=dry_run,
         )
 
     def _validate_circuit(self, circuit: cirq.AbstractCircuit):
@@ -201,8 +245,14 @@ class Serializer:
         all_qubits = circuit.all_qubits()
         return cast(line_qubit.LineQubit, max(all_qubits)).x + 1
 
-    def _serialize_circuit(self, circuit: cirq.AbstractCircuit) -> list:
-        return [self._serialize_op(op) for moment in circuit for op in moment]
+    def _serialize_circuit(self, circuit: cirq.AbstractCircuit) -> list[dict]:
+        return [
+            serialized_op
+            for moment in circuit
+            for op in moment
+            for serialized_op in [self._serialize_op(op)]
+            if serialized_op != {}
+        ]
 
     def _serialize_op(self, op: cirq.Operation) -> dict:
         if op.gate is None:
@@ -222,7 +272,9 @@ class Serializer:
         for gate_mro_type in gate_type.mro():
             if gate_mro_type in self._dispatch:
                 serialized_op = self._dispatch[gate_mro_type](gate, targets)
-                if serialized_op:
+                # serialized_op {} results when serializing a PauliStringPhasorGate
+                # where the exponentiated term is identity or the evolution time is 0.
+                if serialized_op == {} or serialized_op:
                     return serialized_op
         raise ValueError(f'Gate {gate} acting on {targets} cannot be serialized by IonQ API.')
 
@@ -276,6 +328,38 @@ class Serializer:
         if self._near_mod_n(gate.exponent, 1, 2):
             return {'gate': 'h', 'targets': targets}
         return None
+
+    def _serialize_pauli_string_phasor_gate(
+        self, gate: PauliStringPhasorGate, targets: Sequence[int]
+    ) -> dict[str, Any] | None:
+        PAULIS = {0: "I", 1: "X", 2: "Y", 3: "Z"}
+        # Cirq uses big-endian ordering while IonQ API uses little-endian ordering.
+        big_endian_pauli_string = ''.join(
+            [PAULIS[pindex] for pindex in gate.dense_pauli_string.pauli_mask]
+        )
+        little_endian_pauli_string = big_endian_pauli_string[::-1]
+        pauli_string_coefficient = gate.dense_pauli_string.coefficient
+        coefficients = [pauli_string_coefficient.real]
+
+        # I am ignoring here the global phase of:
+        # i * pi * (gate.exponent_neg + gate.exponent_pos) / 2
+        time = math.pi * (gate.exponent_neg - gate.exponent_pos) / 2
+        if time < 0:
+            raise NotSupportedPauliexpParameters(
+                'IonQ `pauliexp` gates does not support negative evolution times. '
+                f'Found in a PauliStringPhasorGate a negative evolution time {time}.'
+            )
+        if little_endian_pauli_string == "" or time == 0:
+            seralized_gate = {}
+        else:
+            seralized_gate = {
+                'gate': 'pauliexp',
+                'terms': [little_endian_pauli_string],
+                "coefficients": coefficients,
+                'targets': targets,
+                'time': time,
+            }
+        return seralized_gate
 
     # These could potentially be using serialize functions on the gates themselves.
     def _serialize_gpi_gate(self, gate: GPIGate, targets: Sequence[int]) -> dict | None:

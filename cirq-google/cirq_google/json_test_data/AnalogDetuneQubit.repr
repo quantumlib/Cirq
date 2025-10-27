@@ -1,0 +1,1 @@
+cirq_google.AnalogDetuneQubit(length=10, w=5, target_freq=8)

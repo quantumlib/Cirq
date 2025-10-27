@@ -26,7 +26,6 @@ from cirq.linalg.combinators import (
 )
 
 from cirq.linalg.decompositions import (
-    # pylint: disable=line-too-long
     axis_angle as axis_angle,
     AxisAngleDecomposition as AxisAngleDecomposition,
     deconstruct_single_qubit_matrix_into_angles as deconstruct_single_qubit_matrix_into_angles,
@@ -39,15 +38,14 @@ from cirq.linalg.decompositions import (
     map_eigenvalues as map_eigenvalues,
     num_cnots_required as num_cnots_required,
     unitary_eig as unitary_eig,
-    scatter_plot_normalized_kak_interaction_coefficients as scatter_plot_normalized_kak_interaction_coefficients,
+    scatter_plot_normalized_kak_interaction_coefficients as scatter_plot_normalized_kak_interaction_coefficients,  # noqa: E501
     so4_to_magic_su2s as so4_to_magic_su2s,
 )
 
 from cirq.linalg.diagonalize import (
-    # pylint: disable=line-too-long
-    bidiagonalize_real_matrix_pair_with_symmetric_products as bidiagonalize_real_matrix_pair_with_symmetric_products,
-    bidiagonalize_unitary_with_special_orthogonals as bidiagonalize_unitary_with_special_orthogonals,
-    diagonalize_real_symmetric_and_sorted_diagonal_matrices as diagonalize_real_symmetric_and_sorted_diagonal_matrices,
+    bidiagonalize_real_matrix_pair_with_symmetric_products as bidiagonalize_real_matrix_pair_with_symmetric_products,  # noqa: E501
+    bidiagonalize_unitary_with_special_orthogonals as bidiagonalize_unitary_with_special_orthogonals,  # noqa: E501
+    diagonalize_real_symmetric_and_sorted_diagonal_matrices as diagonalize_real_symmetric_and_sorted_diagonal_matrices,  # noqa: E501
     diagonalize_real_symmetric_matrix as diagonalize_real_symmetric_matrix,
 )
 

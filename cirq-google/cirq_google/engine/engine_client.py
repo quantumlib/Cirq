@@ -18,7 +18,7 @@ import datetime
 import sys
 import warnings
 from functools import cached_property
-from typing import AsyncIterable, Awaitable, Callable, TypeVar
+from typing import Any, AsyncIterable, Awaitable, Callable, TypeVar
 
 import duet
 import proto
@@ -26,12 +26,20 @@ from google.api_core.exceptions import GoogleAPICallError, NotFound
 from google.protobuf import any_pb2, field_mask_pb2
 from google.protobuf.timestamp_pb2 import Timestamp
 
+from cirq import _compat
 from cirq_google.cloud import quantum
 from cirq_google.engine import stream_manager
 from cirq_google.engine.asyncio_executor import AsyncioExecutor
 
 _M = TypeVar('_M', bound=proto.Message)
 _R = TypeVar('_R')
+
+
+def _fix_deprecated_allowlisted_users_args(
+    args: tuple[Any, ...], kwargs: dict[str, Any]
+) -> tuple[tuple[Any, ...], dict[str, Any]]:
+    kwargs['allowlisted_users'] = kwargs.pop('whitelisted_users')
+    return args, kwargs
 
 
 class EngineException(Exception):
@@ -945,13 +953,20 @@ class EngineClient:
 
     get_current_calibration = duet.sync(get_current_calibration_async)
 
+    @_compat.deprecated_parameter(
+        deadline='v1.7',
+        fix='Change whitelisted_users to allowlisted_users.',
+        parameter_desc='whitelisted_users',
+        match=lambda args, kwargs: 'whitelisted_users' in kwargs,
+        rewrite=_fix_deprecated_allowlisted_users_args,
+    )
     async def create_reservation_async(
         self,
         project_id: str,
         processor_id: str,
         start: datetime.datetime,
         end: datetime.datetime,
-        whitelisted_users: list[str] | None = None,
+        allowlisted_users: list[str] | None = None,
     ):
         """Creates a quantum reservation and returns the created object.
 
@@ -962,7 +977,7 @@ class EngineClient:
                 or None if the engine should generate an id
             start: the starting time of the reservation as a datetime object
             end: the ending time of the reservation as a datetime object
-            whitelisted_users: a list of emails that can use the reservation.
+            allowlisted_users: a list of emails that can use the reservation.
         """
         parent = _processor_name_from_ids(project_id, processor_id)
         reservation = quantum.QuantumReservation(
@@ -970,14 +985,14 @@ class EngineClient:
             start_time=Timestamp(seconds=int(start.timestamp())),
             end_time=Timestamp(seconds=int(end.timestamp())),
         )
-        if whitelisted_users:
-            reservation.whitelisted_users.extend(whitelisted_users)
+        if allowlisted_users:
+            reservation.allowlisted_users.extend(allowlisted_users)
         request = quantum.CreateQuantumReservationRequest(
             parent=parent, quantum_reservation=reservation
         )
         return await self._send_request_async(self.grpc_client.create_quantum_reservation, request)
 
-    create_reservation = duet.sync(create_reservation_async)
+    create_reservation = duet.sync(create_reservation_async)  # type: ignore[misc]
 
     async def cancel_reservation_async(
         self, project_id: str, processor_id: str, reservation_id: str
@@ -1083,6 +1098,13 @@ class EngineClient:
 
     list_reservations = duet.sync(list_reservations_async)
 
+    @_compat.deprecated_parameter(
+        deadline='v1.7',
+        fix='Change whitelisted_users to allowlisted_users.',
+        parameter_desc='whitelisted_users',
+        match=lambda args, kwargs: 'whitelisted_users' in kwargs,
+        rewrite=_fix_deprecated_allowlisted_users_args,
+    )
     async def update_reservation_async(
         self,
         project_id: str,
@@ -1090,12 +1112,12 @@ class EngineClient:
         reservation_id: str,
         start: datetime.datetime | None = None,
         end: datetime.datetime | None = None,
-        whitelisted_users: list[str] | None = None,
+        allowlisted_users: list[str] | None = None,
     ):
         """Updates a quantum reservation.
 
         This will update a quantum reservation's starting time, ending time,
-        and list of whitelisted users.  If any field is not filled, it will
+        and list of allowlisted users.  If any field is not filled, it will
         not be updated.
 
         Args:
@@ -1104,8 +1126,8 @@ class EngineClient:
             reservation_id: Unique ID of the reservation in the parent project,
             start: the new starting time of the reservation as a datetime object
             end: the new ending time of the reservation as a datetime object
-            whitelisted_users: a list of emails that can use the reservation.
-                The empty list, [], will clear the whitelisted_users while None
+            allowlisted_users: a list of emails that can use the reservation.
+                The empty list, [], will clear the allowlisted_users while None
                 will leave the value unchanged.
         """
         name = (
@@ -1122,9 +1144,9 @@ class EngineClient:
         if end:
             reservation.end_time = end
             paths.append('end_time')
-        if whitelisted_users is not None:
-            reservation.whitelisted_users.extend(whitelisted_users)
-            paths.append('whitelisted_users')
+        if allowlisted_users is not None:
+            reservation.allowlisted_users.extend(allowlisted_users)
+            paths.append('allowlisted_users')
 
         request = quantum.UpdateQuantumReservationRequest(
             name=name,
@@ -1133,7 +1155,7 @@ class EngineClient:
         )
         return await self._send_request_async(self.grpc_client.update_quantum_reservation, request)
 
-    update_reservation = duet.sync(update_reservation_async)
+    update_reservation = duet.sync(update_reservation_async)  # type: ignore[misc]
 
     async def list_time_slots_async(
         self, project_id: str, processor_id: str, filter_str: str = ''
@@ -1158,6 +1180,76 @@ class EngineClient:
         )
 
     list_time_slots = duet.sync(list_time_slots_async)
+
+    async def _get_quantum_processor_config(
+        self, name: str
+    ) -> quantum.QuantumProcessorConfig | None:
+        """Runs get_quantum_processor_config with the given resource name."""
+        try:
+            request = quantum.GetQuantumProcessorConfigRequest(name=name)
+            return await self._send_request_async(
+                self.grpc_client.get_quantum_processor_config, request
+            )
+        except EngineException as err:
+            if isinstance(err.__cause__, NotFound):
+                return None
+            raise
+
+    async def get_quantum_processor_config_from_snapshot_async(
+        self, project_id: str, processor_id: str, snapshot_id: str, config_name: str
+    ) -> quantum.QuantumProcessorConfig | None:
+        """Returns the QuantumProcessorConfig for the given snapshot id.
+
+        Args:
+            project_id: A project_id of the parent Google Cloud Project.
+            processor_id: The processor unique identifier.
+            snapshot_id: The id of the snapshot that contains the quantum processor config.
+            config_name: The id of the quantum processor config.
+
+        Returns:
+            The quantum procesor config or None if it does not exist.
+
+        Raises:
+            EngineException: If the request to get the config fails.
+        """
+        name = _quantum_processor_config_name_from_snapshot_id(
+            project_id=project_id,
+            processor_id=processor_id,
+            snapshot_id=snapshot_id,
+            config_name=config_name,
+        )
+        return await self._get_quantum_processor_config(name)
+
+    get_quantum_processor_config_from_snapshot = duet.sync(
+        get_quantum_processor_config_from_snapshot_async
+    )
+
+    async def get_quantum_processor_config_from_run_async(
+        self, project_id: str, processor_id: str, run_name: str, config_name: str
+    ) -> quantum.QuantumProcessorConfig | None:
+        """Returns the QuantumProcessorConfig for the given run_name.
+
+        Args:
+            project_id: A project_id of the parent Google Cloud Project.
+            processor_id: The processor unique identifier.
+            config_name: The id of the quantum processor config.
+            run_name: The run_name that contains the quantum processor config.
+
+        Returns:
+            The quantum procesor config or None if it does not exist.
+
+        Raises:
+            EngineException: If the request to get the config fails.
+        """
+        name = _quantum_processor_config_name_from_run_name(
+            project_id=project_id,
+            processor_id=processor_id,
+            run_name=run_name,
+            config_name=config_name,
+        )
+        return await self._get_quantum_processor_config(name)
+
+    get_quantum_processor_config_from_run = duet.sync(get_quantum_processor_config_from_run_async)
 
 
 def _project_name(project_id: str) -> str:
@@ -1206,6 +1298,26 @@ def _ids_from_processor_name(processor_name: str) -> tuple[str, str]:
 def _ids_from_calibration_name(calibration_name: str) -> tuple[str, str, int]:
     parts = calibration_name.split('/')
     return parts[1], parts[3], int(parts[5])
+
+
+def _quantum_processor_config_name_from_snapshot_id(
+    project_id: str, processor_id: str, snapshot_id: str, config_name: str
+) -> str:
+    return (
+        f'{_processor_name_from_ids(project_id, processor_id)}/'
+        f'configSnapshots/{snapshot_id}/'
+        f'configs/{config_name}'
+    )
+
+
+def _quantum_processor_config_name_from_run_name(
+    project_id: str, processor_id: str, run_name: str, config_name: str
+) -> str:
+    return (
+        f'{_processor_name_from_ids(project_id, processor_id)}/'
+        f'configAutomationRuns/{run_name}/'
+        f'configs/{config_name}'
+    )
 
 
 def _date_or_time_to_filter_expr(param_name: str, param: datetime.datetime | datetime.date):

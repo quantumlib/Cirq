@@ -394,12 +394,10 @@ def test_deprecated_class():
         OldClass('1')
 
     with pytest.raises(AssertionError, match='deadline should match vX.Y'):
-        # pylint: disable=unused-variable
+
         @deprecated_class(deadline='invalid', fix='theFix', name='foo')
         class BadlyDeprecatedClass(NewClass):  # pragma: no cover
             ...
-
-        # pylint: enable=unused-variable
 
 
 def _from_parent_import_deprecated():
@@ -566,8 +564,7 @@ def _import_top_level_deprecated():
 def _repeated_import_path():
     """to ensure that the highly unlikely repeated subpath import doesn't interfere"""
 
-    # pylint: disable=line-too-long
-    from cirq.testing._compat_test_data.repeated_child.cirq.testing._compat_test_data.repeated_child import (  # type: ignore
+    from cirq.testing._compat_test_data.repeated_child.cirq.testing._compat_test_data.repeated_child import (  # type: ignore  # noqa: E501
         child,
     )
 
@@ -812,7 +809,6 @@ def _test_broken_module_1_inner():
     with pytest.raises(
         DeprecatedModuleImportError, match="missing_module cannot be imported. The typical reasons"
     ):
-        # pylint: disable=unused-import
         import cirq.testing._compat_test_data.broken_ref as br  # type: ignore # noqa: F401
 
 

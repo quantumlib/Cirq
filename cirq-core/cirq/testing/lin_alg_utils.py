@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 def random_superposition(
     dim: int, *, random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None
-) -> np.ndarray:
+) -> np.ndarray[tuple[int], np.dtype[np.complex128]]:
     """Returns a random unit-length vector from the uniform distribution.
 
     Args:
@@ -186,9 +186,7 @@ def assert_allclose_up_to_global_phase(
     Raises:
         AssertionError: The matrices aren't nearly equal up to global phase.
     """
-    # pylint: disable=unused-variable
     __tracebackhide__ = True
-    # pylint: enable=unused-variable
 
     actual, desired = linalg.match_global_phase(actual, desired)
     np.testing.assert_allclose(

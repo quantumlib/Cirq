@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from cirq.protocols.decompose_protocol import DecomposeResult
 
 
-def test_decompose_operations_raises_on_stuck():
+def test_decompose_operations_raises_on_stuck() -> None:
     c_orig = cirq.Circuit(cirq.X(cirq.NamedQubit("q")).with_tags("ignore"))
     gateset = cirq.Gateset(cirq.Y)
     with pytest.raises(ValueError, match="Unable to convert"):
@@ -41,8 +41,7 @@ def test_decompose_operations_raises_on_stuck():
     cirq.testing.assert_same_circuits(c_orig, c_new)
 
 
-# pylint: disable=line-too-long
-def test_decompose_operations_to_target_gateset_default():
+def test_decompose_operations_to_target_gateset_default() -> None:
     q = cirq.LineQubit.range(2)
     c_orig = cirq.Circuit(
         cirq.T(q[0]),
@@ -74,11 +73,11 @@ m: ═════════════════════════�
 1: ───────Y^-0.5───@───Y^0.5────@───Y^-0.5───@───Y^0.5───────×───────────╫───X───T───Y^-0.5───@───Y^0.5────@───Y^-0.5───@───Y^0.5───T───
                                                                          ║   ║
 m: ══════════════════════════════════════════════════════════════════════@═══^══════════════════════════════════════════════════════════
-''',
+''',  # noqa: E501
     )
 
 
-def test_decompose_operations_to_target_gateset():
+def test_decompose_operations_to_target_gateset() -> None:
     q = cirq.LineQubit.range(2)
     c_orig = cirq.Circuit(
         cirq.T(q[0]),
@@ -131,7 +130,7 @@ class MatrixGateTargetGateset(cirq.CompilationTargetGateset):
         return cirq.MatrixGate(cirq.unitary(op), name="M").on(*op.qubits)
 
 
-def test_optimize_for_target_gateset_default():
+def test_optimize_for_target_gateset_default() -> None:
     q = cirq.LineQubit.range(2)
     c_orig = cirq.Circuit(
         cirq.T(q[0]), cirq.SWAP(*q), cirq.T(q[0]), cirq.SWAP(*q).with_tags("ignore")
@@ -149,7 +148,7 @@ def test_optimize_for_target_gateset_default():
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(c_orig, c_new, atol=1e-6)
 
 
-def test_optimize_for_target_gateset():
+def test_optimize_for_target_gateset() -> None:
     q = cirq.LineQubit.range(4)
     c_orig = cirq.Circuit(
         cirq.QuantumFourierTransformGate(4).on(*q),
@@ -192,7 +191,7 @@ m: ═════════════════════@═══^═
                                                                   ║   ║
 m: ═══════════════════════════════════════════════════════════════@═══^═════════════════════════════════════════════════════════
                                          └────────┘                       └────────┘                 └────────┘
-       ''',
+       ''',  # noqa: E501
     )
 
     with pytest.raises(ValueError, match="Unable to convert"):
@@ -202,7 +201,7 @@ m: ═════════════════════════�
         )
 
 
-def test_optimize_for_target_gateset_deep():
+def test_optimize_for_target_gateset_deep() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     c_nested = cirq.FrozenCircuit(cirq.CX(q0, q1))
     c_orig = cirq.Circuit(
@@ -210,10 +209,12 @@ def test_optimize_for_target_gateset_deep():
             cirq.FrozenCircuit(cirq.H(q0), cirq.CircuitOperation(c_nested).repeat(3))
         ).repeat(5)
     )
+    phxz_from_h_unitary = cirq.single_qubit_matrix_to_phxz(cirq.unitary(cirq.H(q0)))
+    assert phxz_from_h_unitary is not None
     c_expected = cirq.Circuit(
         cirq.CircuitOperation(
             cirq.FrozenCircuit(
-                cirq.single_qubit_matrix_to_phxz(cirq.unitary(cirq.H(q0))).on(q0),
+                phxz_from_h_unitary.on(q0),
                 cirq.CircuitOperation(
                     cirq.FrozenCircuit(
                         cirq.MatrixGate(c_nested.unitary(qubit_order=[q0, q1]), name="M").on(q0, q1)
@@ -253,7 +254,7 @@ def test_optimize_for_target_gateset_deep():
 
 
 @pytest.mark.parametrize('max_num_passes', [2, None])
-def test_optimize_for_target_gateset_multiple_passes(max_num_passes: int | None):
+def test_optimize_for_target_gateset_multiple_passes(max_num_passes: int | None) -> None:
     gateset = cirq.CZTargetGateset()
 
     input_circuit = cirq.Circuit(
@@ -333,7 +334,7 @@ def test_optimize_for_target_gateset_multiple_passes(max_num_passes: int | None)
 @pytest.mark.parametrize('max_num_passes', [2, None])
 def test_optimize_for_target_gateset_multiple_passes_dont_preserve_moment_structure(
     max_num_passes: int | None,
-):
+) -> None:
     gateset = cirq.CZTargetGateset(preserve_moment_structure=False)
 
     input_circuit = cirq.Circuit(

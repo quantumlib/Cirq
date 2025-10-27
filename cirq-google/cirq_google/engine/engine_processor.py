@@ -15,11 +15,18 @@
 from __future__ import annotations
 
 import datetime
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
+from cirq import _compat
 from cirq_google.api import v2
 from cirq_google.devices import grid_device
-from cirq_google.engine import abstract_processor, calibration, processor_sampler, util
+from cirq_google.engine import (
+    abstract_processor,
+    calibration,
+    processor_config,
+    processor_sampler,
+    util,
+)
 
 if TYPE_CHECKING:
     from google.protobuf import any_pb2
@@ -39,6 +46,13 @@ def _date_to_timestamp(union_time: datetime.datetime | datetime.date | int | Non
     elif isinstance(union_time, datetime.date):
         return int(datetime.datetime.combine(union_time, datetime.datetime.min.time()).timestamp())
     return None
+
+
+def _fix_deprecated_allowlisted_users_args(
+    args: tuple[Any, ...], kwargs: dict[str, Any]
+) -> tuple[tuple[Any, ...], dict[str, Any]]:
+    kwargs['allowlisted_users'] = kwargs.pop('whitelisted_users')
+    return args, kwargs
 
 
 class EngineProcessor(abstract_processor.AbstractProcessor):
@@ -90,7 +104,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         run_name: str = "",
         device_config_name: str = "",
         snapshot_id: str = "",
-        max_concurrent_jobs: int = 10,
+        max_concurrent_jobs: int = 100,
     ) -> cg.engine.ProcessorSampler:
         """Returns a sampler backed by the engine.
         Args:
@@ -233,7 +247,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
 
     def supported_languages(self) -> list[str]:
         """Returns the list of processor supported program languages."""
-        return self._inner_processor().supported_languages
+        return list(self._inner_processor().supported_languages)
 
     def get_device_specification(self) -> v2.device_pb2.DeviceSpecification | None:
         """Returns a device specification proto for use in determining
@@ -320,23 +334,30 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         else:
             return None
 
+    @_compat.deprecated_parameter(
+        deadline='v1.7',
+        fix='Change whitelisted_users to allowlisted_users.',
+        parameter_desc='whitelisted_users',
+        match=lambda args, kwargs: 'whitelisted_users' in kwargs,
+        rewrite=_fix_deprecated_allowlisted_users_args,
+    )
     def create_reservation(
         self,
         start_time: datetime.datetime,
         end_time: datetime.datetime,
-        whitelisted_users: list[str] | None = None,
+        allowlisted_users: list[str] | None = None,
     ):
         """Creates a reservation on this processor.
 
         Args:
             start_time: the starting date/time of the reservation.
             end_time: the ending date/time of the reservation.
-            whitelisted_users: a list of emails that are allowed
+            allowlisted_users: a list of emails that are allowed
               to send programs during this reservation (in addition to users
               with permission "quantum.reservations.use" on the project).
         """
         response = self.context.client.create_reservation(
-            self.project_id, self.processor_id, start_time, end_time, whitelisted_users
+            self.project_id, self.processor_id, start_time, end_time, allowlisted_users
         )
         return response
 
@@ -388,12 +409,19 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             self.project_id, self.processor_id, reservation_id
         )
 
+    @_compat.deprecated_parameter(
+        deadline='v1.7',
+        fix='Change whitelisted_users to allowlisted_users.',
+        parameter_desc='whitelisted_users',
+        match=lambda args, kwargs: 'whitelisted_users' in kwargs,
+        rewrite=_fix_deprecated_allowlisted_users_args,
+    )
     def update_reservation(
         self,
         reservation_id: str,
         start_time: datetime.datetime | None = None,
         end_time: datetime.datetime | None = None,
-        whitelisted_users: list[str] | None = None,
+        allowlisted_users: list[str] | None = None,
     ):
         """Updates a reservation with new information.
 
@@ -407,7 +435,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             reservation_id,
             start=start_time,
             end=end_time,
-            whitelisted_users=whitelisted_users,
+            allowlisted_users=allowlisted_users,
         )
 
     def list_reservations(
@@ -474,6 +502,47 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             filters.append(f'time_slot_type = {time_slot_type.name}')
         filter_str = ' AND '.join(filters)
         return self.context.client.list_time_slots(self.project_id, self.processor_id, filter_str)
+
+    def get_config_from_run(
+        self, run_name: str = 'current', config_name: str = 'default'
+    ) -> processor_config.ProcessorConfig | None:
+        """Retrieves a ProcessorConfig from an automation run.
+
+        If no `run_name` and `config_name` are specified, the inernally configured default config
+        is returned.
+
+        Args:
+            processor_id: The processor unique identifier.
+            config_name: The quantum processor's unique identifier.
+            run_name: The automation run name.  Use 'default'
+                      if none id provided.
+
+        Returns: The quantum processor config.
+        """
+        return self.engine().get_processor_config_from_run(
+            processor_id=self.processor_id, run_name=run_name, config_name=config_name
+        )
+
+    def get_config_from_snapshot(
+        self, snapshot_id: str, config_name: str = 'default'
+    ) -> processor_config.ProcessorConfig | None:
+        """Retrieves a ProcessorConfig from a given snapshot id.
+
+        If not `config_name` is specified, the internally configured default is returned.
+
+        Args:
+            processor_id: The processor unique identifier.
+            config_name: The quantum processor's unique identifier.
+            snapshot_id: The snapshot's unique identifier.
+
+        Returns: The quantum processor config.
+
+        Raises:
+            EngineException: If the request to get the config fails.
+        """
+        return self.engine().get_processor_config_from_snapshot(
+            processor_id=self.processor_id, snapshot_id=snapshot_id, config_name=config_name
+        )
 
     def __str__(self):
         return (

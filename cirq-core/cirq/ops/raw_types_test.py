@@ -48,7 +48,7 @@ class ValidQid(cirq.Qid):
         self.validate_dimension(dimension)
 
     @property
-    def dimension(self):
+    def dimension(self) -> int:
         return self._dimension
 
     def with_dimension(self, dimension) -> ValidQid:
@@ -79,8 +79,7 @@ def test_wrapped_qid() -> None:
         'dimension': 3,
     }
 
-    # pylint: disable=unnecessary-negation
-    assert not ValidQubit('zz') == 4
+    assert not ValidQubit('zz') == 4  # noqa: SIM201
     assert ValidQubit('zz') != 4
     assert ValidQubit('zz') > ValidQubit('aa')
     assert ValidQubit('zz') <= ValidQubit('zz')
@@ -211,10 +210,10 @@ def test_default_validation_and_inverse() -> None:
     assert i**-1 == t
     assert t**-1 == i
     assert cirq.decompose(i) == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]
-    assert [*i._decompose_()] == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]  # type: ignore[misc]
+    assert cirq.decompose_once(i) == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]
     gate = i.gate
     assert gate is not None
-    assert [*gate._decompose_([a, b])] == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]  # type: ignore
+    assert cirq.decompose_once_with_qubits(gate, [a, b]) == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(i), cirq.unitary(t).conj().T, atol=1e-8
     )
@@ -555,6 +554,8 @@ def test_circuit_diagram() -> None:
     diagram_with_non_string_tag = "(1, 1): ───H[<taggy>]───"
     assert c.to_text_diagram() == diagram_with_non_string_tag
     assert c.to_text_diagram(include_tags=False) == diagram_without_tags
+    assert c.to_text_diagram(include_tags={str}) == diagram_without_tags
+    assert c.to_text_diagram(include_tags={TaggyTag}) == diagram_with_non_string_tag
 
 
 def test_circuit_diagram_tagged_global_phase() -> None:
@@ -652,7 +653,7 @@ def test_tagged_operation_forwards_protocols() -> None:
     np.testing.assert_equal(cirq.unitary(tagged_h), cirq.unitary(h))
     assert cirq.has_unitary(tagged_h)
     assert cirq.decompose(tagged_h) == cirq.decompose(h)
-    assert [*tagged_h._decompose_()] == cirq.decompose(h)
+    assert cirq.decompose_once(tagged_h) == cirq.decompose_once(h)
     assert cirq.pauli_expansion(tagged_h) == cirq.pauli_expansion(h)
     assert cirq.equal_up_to_global_phase(h, tagged_h)
     assert np.isclose(cirq.kraus(h), cirq.kraus(tagged_h)).all()
@@ -786,9 +787,7 @@ def test_inverse_composite_standards() -> None:
         def _is_parameterized_(self) -> bool:
             return cirq.is_parameterized(self._param)
 
-        def _resolve_parameters_(
-            self, resolver: cirq.ParamResolver, recursive: bool
-        ) -> Gate:  # pylint: disable=undefined-variable
+        def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Gate:
             return Gate(cirq.resolve_parameters(self._param, resolver, recursive))
 
         def __repr__(self):

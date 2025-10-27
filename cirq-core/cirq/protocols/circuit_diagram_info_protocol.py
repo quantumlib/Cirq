@@ -16,11 +16,10 @@ from __future__ import annotations
 
 import re
 from fractions import Fraction
-from typing import Any, Iterable, overload, Sequence, TYPE_CHECKING, TypeVar, Union
+from typing import Any, Iterable, overload, Protocol, Self, Sequence, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
 import sympy
-from typing_extensions import Protocol
 
 from cirq import protocols, value
 from cirq._doc import doc_private
@@ -76,7 +75,7 @@ class CircuitDiagramInfo:
         self.exponent_qubit_index = exponent_qubit_index
         self.auto_exponent_parens = auto_exponent_parens
 
-    def with_wire_symbols(self, new_wire_symbols: Iterable[str]):
+    def with_wire_symbols(self, new_wire_symbols: Iterable[str]) -> CircuitDiagramInfo:
         return CircuitDiagramInfo(
             wire_symbols=new_wire_symbols,
             exponent=self.exponent,
@@ -181,7 +180,10 @@ class CircuitDiagramInfoArgs:
         precision: The number of digits after the decimal to show for numbers in
             the text diagram. None means use full precision.
         label_map: The map from label entities to diagram positions.
-        include_tags: Whether to print tags from TaggedOperations.
+        include_tags: If ``True`` all tags from ``TaggedOperations`` will be
+            printed.  If ``False`` no tags will be printed.  Alternatively a
+            collection of tag classes can be provided.  In this case only tags
+            whose type is contained in the collection will be shown.
         transpose: Whether the circuit is to be drawn with time from left to
             right (transpose is False), or from top to bottom.
     """
@@ -195,7 +197,7 @@ class CircuitDiagramInfoArgs:
         use_unicode_characters: bool,
         precision: int | None,
         label_map: dict[LabelEntity, int] | None,
-        include_tags: bool = True,
+        include_tags: bool | Iterable[type] = True,
         transpose: bool = False,
     ) -> None:
         self.known_qubits = None if known_qubits is None else tuple(known_qubits)
@@ -203,7 +205,11 @@ class CircuitDiagramInfoArgs:
         self.use_unicode_characters = use_unicode_characters
         self.precision = precision
         self.label_map = label_map
-        self.include_tags = include_tags
+        self.include_tags: bool | frozenset[type]
+        if isinstance(include_tags, bool):
+            self.include_tags = include_tags
+        else:
+            self.include_tags = frozenset(include_tags)
         self.transpose = transpose
 
     def _value_equality_values_(self) -> Any:
@@ -217,7 +223,11 @@ class CircuitDiagramInfoArgs:
                 if self.label_map is None
                 else tuple(sorted(self.label_map.items(), key=lambda e: e[0]))
             ),
-            self.include_tags,
+            (
+                self.include_tags
+                if isinstance(self.include_tags, bool)
+                else tuple(sorted(self.include_tags, key=lambda c: c.__name__))
+            ),
             self.transpose,
         )
 
@@ -229,9 +239,26 @@ class CircuitDiagramInfoArgs:
             f'use_unicode_characters={self.use_unicode_characters!r}, '
             f'precision={self.precision!r}, '
             f'label_map={self.label_map!r}, '
-            f'include_tags={self.include_tags!r}, '
+            f'include_tags={self._include_tags_repr()}, '
             f'transpose={self.transpose!r})'
         )
+
+    def _include_tags_repr(self) -> str:
+        if isinstance(self.include_tags, bool):
+            return repr(self.include_tags)
+        items = []
+        for cls in self.include_tags:
+            if cls.__module__ == 'builtins':
+                items.append(cls.__qualname__)
+            else:
+                items.append(f"{cls.__module__}.{cls.__qualname__}")
+        joined = ', '.join(items)
+        return f'frozenset({{{joined}}})'
+
+    def tags_to_include(self, tags: Iterable[Any]) -> list[Any]:
+        if isinstance(self.include_tags, bool):
+            return list(tags) if self.include_tags else []
+        return [t for t in tags if any(isinstance(t, cls) for cls in self.include_tags)]
 
     def format_real(self, val: sympy.Basic | int | float) -> str:
         if isinstance(val, sympy.Basic):
@@ -272,17 +299,18 @@ class CircuitDiagramInfoArgs:
             return str(radians)
         return repr(radians)
 
-    def copy(self):
+    def copy(self) -> Self:
         return self.__class__(
             known_qubits=self.known_qubits,
             known_qubit_count=self.known_qubit_count,
             use_unicode_characters=self.use_unicode_characters,
             precision=self.precision,
             label_map=self.label_map,
+            include_tags=self.include_tags,
             transpose=self.transpose,
         )
 
-    def with_args(self, **kwargs):
+    def with_args(self, **kwargs) -> Self:
         args = self.copy()
         for arg_name, val in kwargs.items():
             setattr(args, arg_name, val)

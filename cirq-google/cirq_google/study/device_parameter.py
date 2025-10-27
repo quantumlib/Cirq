@@ -15,9 +15,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Any, Sequence
-
-from typing_extensions import Protocol
+from typing import Any, Protocol, Sequence
 
 import cirq
 

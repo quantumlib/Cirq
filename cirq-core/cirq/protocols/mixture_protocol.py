@@ -17,10 +17,9 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import Any, Sequence
+from typing import Any, Protocol, Sequence
 
 import numpy as np
-from typing_extensions import Protocol
 
 from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
@@ -94,7 +93,7 @@ def mixture(
     mixture_getter = getattr(val, '_mixture_', None)
     result = NotImplemented if mixture_getter is None else mixture_getter()
     if result is not NotImplemented and result is not None:
-        return tuple((p, u if isinstance(u, np.ndarray) else unitary(u)) for p, u in result)
+        return tuple((p, unitary(u)) for p, u in result)
 
     unitary_getter = getattr(val, '_unitary_', None)
     result = NotImplemented if unitary_getter is None else unitary_getter()
@@ -149,7 +148,7 @@ def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
     return mixture(val, None) is not None
 
 
-def validate_mixture(supports_mixture: SupportsMixture):
+def validate_mixture(supports_mixture: SupportsMixture) -> None:
     """Validates that the mixture's tuple are valid probabilities."""
     mixture_tuple = mixture(supports_mixture, None)
     if mixture_tuple is None:

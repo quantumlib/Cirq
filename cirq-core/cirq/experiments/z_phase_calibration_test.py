@@ -14,6 +14,9 @@
 
 from __future__ import annotations
 
+import multiprocessing
+from typing import Iterator
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -30,6 +33,15 @@ from cirq.experiments.z_phase_calibration import (
 _ANGLES = ['theta', 'phi', 'chi', 'zeta', 'gamma']
 # fix random generator seed to ensure reproducibility and faster convergence
 _SEED = 276154030
+
+_POOL_NUM_PROCESSES = min(4, multiprocessing.cpu_count())
+
+
+@pytest.fixture
+def pool() -> Iterator[multiprocessing.pool.Pool]:
+    ctx = multiprocessing.get_context()
+    with ctx.Pool(_POOL_NUM_PROCESSES) as pool:
+        yield pool
 
 
 def _create_tests(n, with_options: bool = False):
@@ -88,7 +100,7 @@ class _TestSimulator(cirq.Simulator):
 @pytest.mark.parametrize(
     ['angles', 'error', 'characterization_flags'], _create_tests(n=10, with_options=True)
 )
-def test_calibrate_z_phases(angles, error, characterization_flags):
+def test_calibrate_z_phases(pool, angles, error, characterization_flags) -> None:
 
     original_gate = cirq.PhasedFSimGate(**{k: v for k, v in zip(_ANGLES, angles)})
     actual_gate = cirq.PhasedFSimGate(**{k: v + e for k, v, e in zip(_ANGLES, angles, error)})
@@ -109,6 +121,7 @@ def test_calibrate_z_phases(angles, error, characterization_flags):
         n_circuits=10,
         cycle_depths=range(3, 10),
         random_state=_SEED,
+        num_workers_or_pool=pool,
     )[qubits]
 
     initial_unitary = cirq.unitary(original_gate)
@@ -127,7 +140,7 @@ def test_calibrate_z_phases(angles, error, characterization_flags):
 
 
 @pytest.mark.parametrize(['angles', 'error'], _create_tests(n=3))
-def test_calibrate_z_phases_no_options(angles, error):
+def test_calibrate_z_phases_no_options(pool, angles, error) -> None:
 
     original_gate = cirq.PhasedFSimGate(**{k: v for k, v in zip(_ANGLES, angles)})
     actual_gate = cirq.PhasedFSimGate(**{k: v + e for k, v, e in zip(_ANGLES, angles, error)})
@@ -144,6 +157,7 @@ def test_calibrate_z_phases_no_options(angles, error):
         n_circuits=10,
         cycle_depths=range(3, 10),
         random_state=_SEED,
+        num_workers_or_pool=pool,
     )[qubits]
 
     initial_unitary = cirq.unitary(original_gate)
@@ -162,7 +176,7 @@ def test_calibrate_z_phases_no_options(angles, error):
 
 
 @pytest.mark.parametrize(['angles', 'error'], _create_tests(n=3))
-def test_calibrate_z_phases_workflow_no_options(angles, error):
+def test_calibrate_z_phases_workflow_no_options(pool, angles, error) -> None:
 
     original_gate = cirq.PhasedFSimGate(**{k: v for k, v in zip(_ANGLES, angles)})
     actual_gate = cirq.PhasedFSimGate(**{k: v + e for k, v, e in zip(_ANGLES, angles, error)})
@@ -179,6 +193,7 @@ def test_calibrate_z_phases_workflow_no_options(angles, error):
         n_circuits=1,
         cycle_depths=(1, 2),
         random_state=_SEED,
+        num_workers_or_pool=pool,
     )
 
     for params in result.final_params.values():
@@ -189,7 +204,7 @@ def test_calibrate_z_phases_workflow_no_options(angles, error):
         assert 'theta' not in params
 
 
-def test_plot_z_phase_calibration_result():
+def test_plot_z_phase_calibration_result() -> None:
     df = pd.DataFrame()
     qs = cirq.q(0, 0), cirq.q(0, 1), cirq.q(0, 2)
     df.index = [qs[:2], qs[-2:]]
@@ -211,13 +226,14 @@ def test_plot_z_phase_calibration_result():
 
 
 @pytest.mark.parametrize('angles', 2 * np.pi * np.random.random((10, 10)))
-def test_transform_circuit(angles):
+def test_transform_circuit(angles) -> None:
     theta, phi = angles[:2]
     old_zs = angles[2:6]
     new_zs = angles[6:]
     gate = cirq.PhasedFSimGate.from_fsim_rz(theta, phi, old_zs[:2], old_zs[2:])
     fsim = cirq.PhasedFSimGate.from_fsim_rz(theta, phi, new_zs[:2], new_zs[2:])
     c = cirq.Circuit(gate(cirq.q(0), cirq.q(1)))
+    replacement_map: dict[tuple[cirq.Qid, cirq.Qid], cirq.PhasedFSimGate]
     replacement_map = {(cirq.q(1), cirq.q(0)): fsim}
 
     new_circuit = CalibrationTransformer(gate, replacement_map)(c)
@@ -230,11 +246,11 @@ def test_transform_circuit(angles):
     np.testing.assert_allclose(cirq.unitary(circuit_with_replacement_gate), cirq.unitary(c))
 
 
-def test_transform_circuit_invalid_gate_raises():
+def test_transform_circuit_invalid_gate_raises() -> None:
     with pytest.raises(ValueError, match="is not equivalent to a PhasedFSimGate"):
         _ = CalibrationTransformer(cirq.XX, {})
 
 
-def test_transform_circuit_uncalibrated_gates_pass():
+def test_transform_circuit_uncalibrated_gates_pass() -> None:
     c = cirq.Circuit(cirq.CZ(cirq.q(0), cirq.q(1)), cirq.measure(cirq.q(0)))
     assert c == CalibrationTransformer(cirq.CZ, {})(c)

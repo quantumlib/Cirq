@@ -33,7 +33,7 @@ def circuit_to_pdf_using_qcircuit_via_tex(
     qcircuit_kwargs=None,
     clean_ext=('dvi', 'ps'),
     documentclass='article',
-):
+) -> None:
     """Compiles the QCircuit-based latex diagram of the given circuit.
 
     Args:

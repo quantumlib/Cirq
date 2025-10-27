@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools >= 70.0.0"]
+build-backend = "setuptools.build_meta"
+
 [tool.black]
 line-length = 100
 target_version = ['py311', 'py312', 'py313']
@@ -41,7 +45,6 @@ filterwarnings = [
     "ignore::UserWarning:cotengra.hyperoptimizers.hyper",
 ]
 markers = [
-    "rigetti_integration: tests that connect to Quil compiler or QVM.",
     "slow: slow tests that should be skipped by default.",
     "weekly: tests to be run only by weekly CI automation.",
 ]
@@ -51,20 +54,95 @@ asyncio_default_fixture_loop_scope = "function"
 
 [tool.ruff]
 line-length = 100
+preview = true
 target-version = "py311"
-extend-exclude = ["*_pb2.py*"]
+extend-exclude = [
+    "*_pb2.py*",
+    "cirq-google/cirq_google/cloud/*.py",  # contains only generated code
+]
 
 [tool.ruff.lint]
 select = [
+    "A001",  # builtin-variable-shadowing, pylint redefined-builtin
+    "A002",  # builtin-argument-shadowing, pylint redefined-builtin
     # "ANN201",  # missing-return-type-undocumented-public-function
-    "F401",  # unused-import
-    "F601",  # multi-value-repeated-key-literal
-    "F821",  # undefined-name
+    "B002",  # unary-prefix-increment-decrement, pylint nonexistent-operator
+    "B005",  # strip-with-multi-characters
+    "B006",  # mutable-argument-default, pylint dangerous-default-value
+    "B012",  # jump-statement-in-finally, pylint lost-exception
+    "B018",  # useless-expression,
+             # pylint expression-not-assigned, pointless-exception-statement,
+             # pointless-statement, pointless-string-statement
+    "B033",  # duplicate-value, pylint duplicate-value
+    "D301",  # escape-sequence-in-docstring
+    "D419",  # empty-docstring, pylint empty-docstring
+    "E402",  # module-import-not-at-top-of-file, pylint wrong-import-position
+    "E501",  # line-too-long, pylint line-too-long
+    "E711",  # none-comparison, pylint singleton-comparison
+    "E712",  # true-false-comparison, pylint singleton-comparison
+    "F401",  # unused-import, pylint unused-import
+    "F403",  # undefined-local-with-import-star, pylint wildcard-import
+    "F405",  # undefined-local-with-import-star-usage, pylint unused-wildcard-import
+    "F406",  # undefined-local-with-nested-import-star-usage, pylint wildcard-import
+    "F541",  # f-string-missing-placeholders, pylint f-string-without-interpolation
+    "F601",  # multi-value-repeated-key-literal, pylint duplicate-key
+    "F602",  # multi-value-repeated-key-variable, pylint duplicate-key
+    "F632",  # is-literal, pylint literal-comparison
+    "F701",  # break-outside-loop, pylint not-in-loop
+    "F702",  # continue-outside-loop, pylint not-in-loop
+    "F704",  # yield-outside-function, pylint yield-outside-function
+    "F706",  # return-in-init, pylint return-outside-function
+    "F811",  # redefined-while-unused, pylint function-redefined
+    "F821",  # undefined-name, pylint undefined-variable, unexpected-keyword-arg
+    "F841",  # unused-variable, pylint unused-variable
+    "F901",  # raise-not-implemented, pylint notimplemented-raised
+    "FURB131",  # delete-full-slice
+    "FURB136",  # if-expr-min-max
+    "FURB145",  # slice-copy
+    "FURB148",  # unnecessary-enumerate
+    "FURB166",  # int-on-sliced-str
+    "FURB167",  # regex-flag-alias
+    "FURB168",  # isinstance-type-none
+    "FURB169",  # type-none-comparison
+    "FURB192",  # sorted-min-max
+    "ISC",  # flake8-implicit-str-concat
+    "N804",  # invalid-first-argument-name-for-class-method, pylint bad-classmethod-argument
+    "NPY201",  # numpy2-deprecation
+    "PERF101",  # unnecessary-list-cast
+    "PIE790",  # unnecessary-placeholder, pylint unnecessary-pass
+    "PLE0100",  # yield-in-init, pylint init-is-generator
+    "PLE0101",  # return-in-init, pylint return-in-init
+    "PLE0116",  # continue-in-finally, pylint continue-in-finally
+    "PLE0302",  # unexpected-special-method-signature, unexpected-special-method-signature
+    "PLE1206",  # logging-too-few-args
+    "PLE1310",  # bad-str-strip-call, pylint bad-str-strip-call
+    "PLR0206",  # property-with-parameters, pylint property-with-parameters
+    "PLR1736",  # unnecessary-list-index-lookup
+    "PLW0245",  # super-without-brackets, pylint super-without-brackets
+    "PLW1501",  # bad-open-mode
+    "RUF013",  # implicit-optional
+    "RUF019",  # unnecessary-key-check
+    "RUF027",  # missing-f-string-syntax
     "RUF100",  # unused-noqa
+    "RUF200",  # invalid-pyproject-toml
+    "SIM101",  # duplicate-isinstance-call, pylint consider-merging-isinstance
+    "SIM116",  # if-else-block-instead-of-dict-lookup
+    "SIM201",  # negate-equal-op, pylint unneeded-not, unnecessary-negation
+    "SIM202",  # negate-not-equal-op, pylint unneeded-not, unnecessary-negation
+    "SIM208",  # double-negation, pylint unneeded-not, unnecessary-negation
+    "SIM210",  # if-expr-with-true-false
+    "SIM222",  # expr-or-true
+    "SIM223",  # expr-and-false
     "TC001",  # typing-only-first-party-import
     "TC002",  # typing-only-third-party-import
     # "TC003",  # typing-only-standard-library-import
     "UP006",  # non-pep585-annotation
     "UP007",  # non-pep604-annotation-union
+    "UP008",  # super-call-with-parameters, pylint super-with-arguments
+    "UP010",  # unnecessary-future-import
     "UP037",  # quoted-annotation
+    "W605",  # invalid-escape-sequence, pylint anomalous-backslash-in-string
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"*.ipynb" = ["E402"]

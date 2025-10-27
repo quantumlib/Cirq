@@ -28,6 +28,7 @@ from typing import (
     Mapping,
     MutableMapping,
     overload,
+    Self,
     TYPE_CHECKING,
     TypeVar,
     ValuesView,
@@ -35,7 +36,6 @@ from typing import (
 
 import numpy as np
 import sympy
-from typing_extensions import Self
 
 from cirq import protocols
 
@@ -177,24 +177,6 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
     def items(self) -> ItemsView[TVector, cirq.TParamValComplex]:
         snapshot = self.copy().clean(atol=0)
         return snapshot._terms.items()
-
-    @overload
-    def update(
-        self, other: Mapping[TVector, cirq.TParamValComplex], **kwargs: cirq.TParamValComplex
-    ) -> None:
-        pass
-
-    @overload
-    def update(
-        self,
-        other: Iterable[tuple[TVector, cirq.TParamValComplex]],
-        **kwargs: cirq.TParamValComplex,
-    ) -> None:
-        pass
-
-    @overload
-    def update(self, *args: Any, **kwargs: cirq.TParamValComplex) -> None:
-        pass
 
     def update(self, *args, **kwargs):
         terms = dict()

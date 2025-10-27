@@ -85,9 +85,7 @@ def assert_all_implemented_act_on_effects_match_unitary(
           val and StabilizerChFormSimulationState inputs.
     """
 
-    # pylint: disable=unused-variable
     __tracebackhide__ = True
-    # pylint: enable=unused-variable
 
     num_qubits_val = protocols.num_qubits(val)
 

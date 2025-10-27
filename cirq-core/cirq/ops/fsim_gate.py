@@ -350,7 +350,7 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
 
     @staticmethod
     def from_matrix(u: np.ndarray) -> PhasedFSimGate | None:
-        """Contruct a PhasedFSimGate from unitary.
+        """Constructs a PhasedFSimGate from unitary.
 
         Args:
             u: A unitary matrix representing a PhasedFSimGate.

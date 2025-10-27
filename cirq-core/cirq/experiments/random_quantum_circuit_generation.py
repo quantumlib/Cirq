@@ -297,7 +297,7 @@ class CircuitLibraryCombination:
 
     layer: Any | None
     combinations: np.ndarray
-    pairs: list[QidPairT]
+    pairs: Sequence[QidPairT]
 
 
 def _get_random_combinations(

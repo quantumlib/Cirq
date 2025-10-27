@@ -103,7 +103,6 @@ def test_with_measurement_key_mapping():
 
 
 def test_compare():
-    # pylint: disable=unnecessary-negation
     assert cirq.MeasurementKey('a') < cirq.MeasurementKey('b')
     assert cirq.MeasurementKey('a') <= cirq.MeasurementKey('b')
     assert cirq.MeasurementKey('a') <= cirq.MeasurementKey('a')

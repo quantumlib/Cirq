@@ -40,9 +40,8 @@ def eject_phased_paulis(
     """Transformer pass to push X, Y, PhasedX & (certain) PhasedXZ gates to the end of the circuit.
 
     As the gates get pushed, they may absorb Z gates, cancel against other
-    X, Y, or PhasedX gates with exponent=1, get merged into measurements (as
-    output bit flips), and cause phase kickback operations across CZs (which can
-    then be removed by the `cirq.eject_z` transformation).
+    X, Y, or PhasedX gates with exponent=1, and cause phase kickback operations
+    across CZs (which can then be removed by the `cirq.eject_z` transformation).
 
     `cirq.PhasedXZGate` with `z_exponent=0` (i.e. equivalent to PhasedXPow) or with `x_exponent=0`
     and `axis_phase_exponent=0` (i.e. equivalent to ZPowGate) are also supported.
@@ -84,10 +83,6 @@ def eject_phased_paulis(
         t = _try_get_known_z_half_turns(op, no_symbolic=not eject_parameterized)
         if t is not None:
             return _absorb_z_into_w(op, held_w_phases)
-
-        # Dump coherent flips into measurement bit flips.
-        if isinstance(op.gate, ops.MeasurementGate):
-            return _dump_into_measurement(op, held_w_phases)
 
         # Cross CZs using kickback.
         if _try_get_known_cz_half_turns(op, no_symbolic=not eject_parameterized) is not None:
@@ -138,18 +133,6 @@ def _dump_held(
             gate = _phased_x_or_pauli_gate(exponent=1.0, phase_exponent=p, atol=atol)
             yield gate.on(q)
         held_w_phases.pop(q, None)
-
-
-def _dump_into_measurement(
-    op: ops.Operation, held_w_phases: dict[ops.Qid, value.TParamVal]
-) -> cirq.OP_TREE:
-    measurement = cast(ops.MeasurementGate, cast(ops.GateOperation, op).gate)
-    new_measurement = measurement.with_bits_flipped(
-        *[i for i, q in enumerate(op.qubits) if q in held_w_phases]
-    ).on(*op.qubits)
-    for q in op.qubits:
-        held_w_phases.pop(q, None)
-    return new_measurement
 
 
 def _potential_cross_whole_w(

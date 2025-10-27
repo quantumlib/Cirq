@@ -92,6 +92,13 @@ class GlobalPhaseGate(raw_types.Gate):
         coefficient = protocols.resolve_parameters(self.coefficient, resolver, recursive)
         return GlobalPhaseGate(coefficient=coefficient)
 
+    def is_identity(self) -> bool:
+        """Checks if gate is equivalent to an identity.
+
+        Returns: True if the coefficient is within rounding error of 1.
+        """
+        return not protocols.is_parameterized(self._coefficient) and np.isclose(self.coefficient, 1)
+
     def controlled(
         self,
         num_controls: int | None = None,
@@ -122,3 +129,23 @@ def global_phase_operation(
 ) -> cirq.GateOperation:
     """Creates an operation that represents a global phase on the state."""
     return GlobalPhaseGate(coefficient, atol)()
+
+
+def from_phase_and_exponent(
+    half_turns: cirq.TParamVal, exponent: cirq.TParamVal
+) -> cirq.GlobalPhaseGate:
+    """Creates a GlobalPhaseGate from the global phase and exponent.
+
+    Args:
+        half_turns: The number of half turns to rotate by.
+        exponent: The power to raise the phase to.
+
+    Returns: A `GlobalPhaseGate` with the corresponding coefficient.
+    """
+    coefficient = 1j ** (2 * half_turns * exponent)
+    coefficient = (
+        complex(coefficient)
+        if isinstance(coefficient, sympy.Expr) and coefficient.is_complex
+        else coefficient
+    )
+    return GlobalPhaseGate(coefficient)

@@ -374,7 +374,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         object.__setattr__(self, '_clifford_tableau', _clifford_tableau.copy())
 
     @property
-    def clifford_tableau(self):
+    def clifford_tableau(self) -> qis.CliffordTableau:
         return self._clifford_tableau
 
     def _json_dict_(self) -> dict[str, Any]:
@@ -639,7 +639,7 @@ class SingleQubitCliffordGate(CliffordGate):
             return None
         # Find the entry with the largest magnitude in the input unitary, to find
         # the global phase difference between the input unitary and the gate unitary.
-        k = max(np.ndindex(*u.shape), key=lambda t: abs(u[t]))
+        k = max(np.ndindex(*u.shape), key=lambda t: abs(u[t].item()))
         return gate, u[k] / protocols.unitary(gate)[k]
 
     def pauli_tuple(self, pauli: Pauli) -> tuple[Pauli, bool]:

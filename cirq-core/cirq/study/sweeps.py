@@ -33,11 +33,13 @@ ProductOrZipSweepLike = dict['cirq.TParamKey', Union['cirq.TParamVal', Sequence[
 
 
 def _check_duplicate_keys(sweeps):
-    keys = set()
-    for sweep in sweeps:
-        if any(key in keys for key in sweep.keys):
-            raise ValueError('duplicate keys')
-        keys.update(sweep.keys)
+    keys = set(itertools.chain.from_iterable(sweep.keys for sweep in sweeps))
+    key_count = sum(len(sweep.keys) for sweep in sweeps)
+    # If the total length of the sweep keys
+    # is not the same as the size of the set,
+    # then there is a duplicate key.
+    if key_count != len(keys):
+        raise ValueError('duplicate keys')
 
 
 class Sweep(metaclass=abc.ABCMeta):
@@ -230,16 +232,10 @@ class Product(Sweep):
         return length
 
     def param_tuples(self) -> Iterator[Params]:
-        def _gen(factors):
-            if not factors:
-                yield ()
-            else:
-                first, rest = factors[0], factors[1:]
-                for first_values in first.param_tuples():
-                    for rest_values in _gen(rest):
-                        yield first_values + rest_values
-
-        return _gen(self.factors)
+        yield from map(
+            lambda values: tuple(itertools.chain.from_iterable(values)),
+            itertools.product(*(factor.param_tuples() for factor in self.factors)),
+        )
 
     def __repr__(self) -> str:
         factors_repr = ', '.join(repr(f) for f in self.factors)

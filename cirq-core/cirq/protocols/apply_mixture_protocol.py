@@ -17,12 +17,10 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import Any, cast, Iterable, TypeVar
+from typing import Any, cast, Iterable, Protocol, TypeVar
 
 import numpy as np
-from typing_extensions import Protocol
 
-from cirq import linalg
 from cirq._doc import doc_private
 from cirq.protocols import qid_shape_protocol
 from cirq.protocols.apply_unitary_protocol import apply_unitary, ApplyUnitaryArgs
@@ -332,32 +330,6 @@ def _apply_unitary_strat(
     return right_result
 
 
-def _apply_unitary_from_matrix_strat(
-    val: np.ndarray, args: ApplyMixtureArgs, is_density_matrix: bool
-) -> np.ndarray | None:
-    """Used to enact mixture tuples that are given as (probability, np.ndarray)
-
-    If `val` does not support `apply_unitary` returns None.
-    """
-    qid_shape = tuple(args.target_tensor.shape[i] for i in args.left_axes)
-    matrix_tensor = np.reshape(val.astype(args.target_tensor.dtype), qid_shape * 2)
-    linalg.targeted_left_multiply(
-        matrix_tensor, args.target_tensor, args.left_axes, out=args.auxiliary_buffer0
-    )
-
-    if not is_density_matrix:
-        return args.auxiliary_buffer0
-    # No need to transpose as we are acting on the tensor
-    # representation of matrix, so transpose is done for us.
-    linalg.targeted_left_multiply(
-        np.conjugate(matrix_tensor),
-        args.auxiliary_buffer0,
-        cast(tuple[int], args.right_axes),
-        out=args.target_tensor,
-    )
-    return args.target_tensor
-
-
 def _apply_mixture_from_mixture_strat(
     val: Any, args: ApplyMixtureArgs, is_density_matrix: bool
 ) -> np.ndarray | None:
@@ -373,8 +345,6 @@ def _apply_mixture_from_mixture_strat(
     for prob, op in prob_mix:
         np.copyto(dst=args.target_tensor, src=args.auxiliary_buffer1)
         right_result = _apply_unitary_strat(op, args, is_density_matrix)
-        if right_result is None:
-            right_result = _apply_unitary_from_matrix_strat(op, args, is_density_matrix)
 
         args.out_buffer += prob * right_result
 

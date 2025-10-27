@@ -21,9 +21,7 @@ import enum
 import functools
 import inspect
 import textwrap
-from typing import Any, Callable, cast, Hashable, overload, TYPE_CHECKING, TypeVar
-
-from typing_extensions import Protocol
+from typing import Any, Callable, cast, Hashable, overload, Protocol, TYPE_CHECKING, TypeVar
 
 from cirq import circuits
 
@@ -88,8 +86,8 @@ class TransformerLogger:
 
     The logger assumes that
         - Transformers are run sequentially.
-        - Nested transformers are allowed, in which case the behavior would be similar to a
-          doing a depth first search on the graph of transformers -- i.e. the top level transformer
+        - Nested transformers are allowed, in which case the behavior would be similar to
+          doing a depth-first search on the graph of transformers -- i.e. the top level transformer
           would end (i.e. receive a `register_final` call) once all nested transformers (i.e. all
           `register_initial` calls received while the top level transformer was active) have
           finished (i.e. corresponding `register_final` calls have also been received).

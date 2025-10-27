@@ -106,19 +106,11 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             elif not b.is_adjacent(c):
                 a, b = b, a
 
-        p = common_gates.T**self._exponent
+        exp = self._exponent
+        p = common_gates.T**exp
         sweep_abc = [common_gates.CNOT(a, b), common_gates.CNOT(b, c)]
-        global_phase = 1j ** (2 * self.global_shift * self._exponent)
-        global_phase = (
-            complex(global_phase)
-            if protocols.is_parameterized(global_phase) and global_phase.is_complex
-            else global_phase
-        )
-        global_phase_operation = (
-            [global_phase_op.global_phase_operation(global_phase)]
-            if protocols.is_parameterized(global_phase) or abs(global_phase - 1.0) > 0
-            else []
-        )
+        global_phase_gate = global_phase_op.from_phase_and_exponent(self.global_shift, exp)
+        global_phase_operation = [] if global_phase_gate.is_identity() else [global_phase_gate()]
         return global_phase_operation + [
             p(a),
             p(b),
@@ -431,8 +423,8 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             }
         )
 
-    def qubit_index_to_equivalence_group_key(self, index):
-        return index < 2
+    def qubit_index_to_equivalence_group_key(self, index) -> int:
+        return 1 if index < 2 else 0
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         if protocols.is_parameterized(self):
@@ -516,7 +508,7 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     """A controlled swap gate. The Fredkin gate."""
 
-    def qubit_index_to_equivalence_group_key(self, index):
+    def qubit_index_to_equivalence_group_key(self, index) -> int:
         return 0 if index == 0 else 1
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:

@@ -46,9 +46,9 @@ def _decompose_operations_to_target_gateset(
     """Decomposes every operation to `gateset` using `cirq.decompose` and `decomposer`.
 
     This transformer attempts to decompose every operation `op` in the given circuit to `gateset`
-    using `cirq.decompose` protocol with `decomposer` used as an intercepting decomposer. This
-    ensures that `op` is recursively decomposed using implicitly defined known decompositions
-    (eg: in `_decompose_` magic method on the gaet class) till either `decomposer` knows how to
+    using the `cirq.decompose` protocol with `decomposer` used as an intercepting decomposer. This
+    ensures that `op` is recursively decomposed using implicitly defined known decompositions (e.g.
+    in the `_decompose_` magic method on the gate class) until either `decomposer` knows how to
     decompose the given operation or the given operation belongs to `gateset`.
 
     Args:

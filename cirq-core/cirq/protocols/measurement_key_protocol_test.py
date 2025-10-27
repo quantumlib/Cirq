@@ -101,7 +101,6 @@ def test_is_measurement() -> None:
     assert not cirq.is_measurement(cirq.bit_flip(1))
 
     class NotImplementedOperation(cirq.Operation):
-        # pylint: disable=undefined-variable
         def with_qubits(self, *new_qubits) -> NotImplementedOperation:
             raise NotImplementedError()
 
