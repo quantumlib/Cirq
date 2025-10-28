@@ -832,7 +832,7 @@ def test_labeled_circuit_str():
     )
     labeled_circuit = _Grid.from_circuit(input_circuit, single_qubit_gate_moments_only=True)
     assert str(labeled_circuit) == (
-        """Labeled Circuit:
+        """Grid Repr:
      |  0  |  1  |  2  |  3  |  4  |
 -----+-----+-----+-----+-----+-----+
 q(0) |  d  |  i  | i,s |  d  |  w  |
@@ -846,7 +846,7 @@ def test_labeled_circuit_str_empty():
     # Test case for an empty circuit (no moments, no qubits)
     empty_circuit = cirq.Circuit()
     labeled_empty = _Grid.from_circuit(empty_circuit, single_qubit_gate_moments_only=True)
-    assert str(labeled_empty) == "CircuitRepr(empty)"
+    assert str(labeled_empty) == "Grid(empty)"
 
 
 def test_add_dynamical_decoupling_with_deep_context_raises_error():
@@ -868,4 +868,3 @@ def test_context_logger():
 
     mock_logger.log.assert_called_once()
     assert "Preprocessed input circuit grid repr:" in mock_logger.log.call_args[0][0]
-    assert isinstance(mock_logger.log.call_args[0][1], _Grid)

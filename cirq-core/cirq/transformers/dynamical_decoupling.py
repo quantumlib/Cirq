@@ -277,7 +277,7 @@ class _Grid:
 
     def __str__(self) -> str:
         if not self.gate_types:
-            return "CircuitRepr(empty)"
+            return "Grid(empty)"
 
         qubits = sorted(list(self.gate_types.keys()))
         num_moments = len(self.gate_types[qubits[0]])
@@ -291,7 +291,7 @@ class _Grid:
         separator = f"{'-' * max_qubit_len}-+"
         separator += '-----+' * num_moments
 
-        lines = ["Labeled Circuit:", header, separator]
+        lines = ["Grid Repr:", header, separator]
 
         for q in qubits:
             row_str = f"{str(q):>{max_qubit_len}} |"
