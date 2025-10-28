@@ -53,14 +53,17 @@ class QasmUGate(ops.Gate):
         return QasmUGate(rotation / np.pi, post_phase / np.pi, pre_phase / np.pi)
 
     def _calculate_global_phase(self) -> float:
-        import cirq # local import to avoid circular dependency
+        import cirq  # local import to avoid circular dependency
+
         q = cirq.LineQubit.range(1)
 
-        mat = cirq.unitary(cirq.Circuit(
-            ops.rz(self.lmda * np.pi).on(q[0]),
-            ops.ry(self.theta * np.pi).on(q[0]),
-            ops.rz(self.phi * np.pi).on(q[0]),
-        ))
+        mat = cirq.unitary(
+            cirq.Circuit(
+                ops.rz(self.lmda * np.pi).on(q[0]),
+                ops.ry(self.theta * np.pi).on(q[0]),
+                ops.rz(self.phi * np.pi).on(q[0]),
+            )
+        )
 
         det_arg = np.linalg.det(mat)
         det_arg = np.arctan2(det_arg.imag, det_arg.real)
