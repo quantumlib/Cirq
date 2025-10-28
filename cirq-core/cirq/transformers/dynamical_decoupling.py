@@ -337,7 +337,7 @@ def add_dynamical_decoupling(
     grid = _Grid.from_circuit(orig_circuit, single_qubit_gate_moments_only)
 
     if context is not None and context.logger is not None:
-        context.logger.log("Preprocessed input circuit grid repr:\n%s", grid)
+        context.logger.log("Preprocessed input circuit grid repr:\n%s", str(grid))
 
     base_dd_sequence, pauli_map = _parse_dd_sequence(schema)
     # Stores all the moments of the output circuit chronologically.
