@@ -21,7 +21,6 @@ import numpy as np
 import pytest
 
 import cirq
-
 from cirq import add_dynamical_decoupling, CNOT, CZ, CZPowGate, H, I, measure, X, Y, Z
 from cirq.transformers.dynamical_decoupling import _CellType, _Grid
 
