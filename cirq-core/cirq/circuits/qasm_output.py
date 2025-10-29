@@ -52,24 +52,6 @@ class QasmUGate(ops.Gate):
         pre_phase, rotation, post_phase = linalg.deconstruct_single_qubit_matrix_into_angles(mat)
         return QasmUGate(rotation / np.pi, post_phase / np.pi, pre_phase / np.pi)
 
-    def _calculate_global_phase(self) -> float:
-        import cirq  # local import to avoid circular dependency
-
-        q = cirq.LineQubit.range(1)
-
-        mat = cirq.unitary(
-            cirq.Circuit(
-                ops.rz(self.lmda * np.pi).on(q[0]),
-                ops.ry(self.theta * np.pi).on(q[0]),
-                ops.rz(self.phi * np.pi).on(q[0]),
-            )
-        )
-
-        det_arg = np.linalg.det(mat)
-        det_arg = np.arctan2(det_arg.imag, det_arg.real)
-        phase = (det_arg - self.phi * np.pi - self.lmda * np.pi) / 2
-        return phase
-
     def _has_unitary_(self):
         return True
 
@@ -93,11 +75,12 @@ class QasmUGate(ops.Gate):
 
     def _decompose_(self, qubits):
         q = qubits[0]
+        phase_correction_half_turns = (self.phi + self.lmda) / 2
         return [
             ops.rz(self.lmda * np.pi).on(q),
             ops.ry(self.theta * np.pi).on(q),
             ops.rz(self.phi * np.pi).on(q),
-            ops.GlobalPhaseGate(np.exp(1j * -self._calculate_global_phase())).on(),
+            ops.global_phase_operation(1j ** (2 * phase_correction_half_turns)),
         ]
 
     def _value_equality_values_(self):
