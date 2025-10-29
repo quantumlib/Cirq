@@ -26,7 +26,6 @@ from cirq import add_dynamical_decoupling, CNOT, CZ, CZPowGate, H, I, measure, X
 from cirq.transformers.dynamical_decoupling import _CellType, _Grid
 
 
-
 def assert_sim_eq(circuit1: cirq.AbstractCircuit, circuit2: cirq.AbstractCircuit) -> None:
     # Simulate 2 circuits and compare final states.
     sampler = cirq.Simulator(dtype=np.complex128)
