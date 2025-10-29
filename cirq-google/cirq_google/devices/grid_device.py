@@ -36,9 +36,13 @@ _SQRT_ISWAP_FSIM_GATE_FAMILY = ops.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISW
 _SQRT_ISWAP_INV_FSIM_GATE_FAMILY = ops.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP_INV])
 _CZ_FSIM_GATE_FAMILY = ops.FSimGateFamily(gates_to_accept=[cirq.CZ])
 _SYC_GATE_FAMILY = cirq.GateFamily(ops.SYC)
+_SYC_IGNORE_PHASE = cirq.GateFamily(ops.SYC, ignore_global_phase=False)
 _SQRT_ISWAP_GATE_FAMILY = cirq.GateFamily(cirq.SQRT_ISWAP)
+_SQRT_ISWAP_IGNORE_PHASE = cirq.GateFamily(cirq.SQRT_ISWAP, ignore_global_phase=False)
 _SQRT_ISWAP_INV_GATE_FAMILY = cirq.GateFamily(cirq.SQRT_ISWAP_INV)
+_SQRT_ISWAP_INV_IGNORE_PHASE = cirq.GateFamily(cirq.SQRT_ISWAP_INV, ignore_global_phase=False)
 _CZ_GATE_FAMILY = cirq.GateFamily(cirq.CZ)
+_CZ_IGNORE_PHASE = cirq.GateFamily(cirq.CZ, ignore_global_phase=False)
 _CZ_POW_GATE_FAMILY = cirq.GateFamily(cirq.CZPowGate)
 
 
@@ -47,6 +51,7 @@ _CZ_POW_GATE_FAMILY = cirq.GateFamily(cirq.CZPowGate)
 _CZ_TARGET_GATES = [
     _CZ_FSIM_GATE_FAMILY,
     _CZ_GATE_FAMILY,
+    _CZ_IGNORE_PHASE,
     _PHASED_XZ_GATE_FAMILY,
     _MEASUREMENT_GATE_FAMILY,
 ]
@@ -56,6 +61,7 @@ _CZ_POW_TARGET_GATES = [_CZ_POW_GATE_FAMILY, _PHASED_XZ_GATE_FAMILY, _MEASUREMEN
 _SYC_TARGET_GATES = [
     _SYC_FSIM_GATE_FAMILY,
     _SYC_GATE_FAMILY,
+    _SYC_IGNORE_PHASE,
     _PHASED_XZ_GATE_FAMILY,
     _MEASUREMENT_GATE_FAMILY,
 ]
@@ -63,6 +69,7 @@ _SYC_TARGET_GATES = [
 _SQRT_ISWAP_TARGET_GATES = [
     _SQRT_ISWAP_FSIM_GATE_FAMILY,
     _SQRT_ISWAP_GATE_FAMILY,
+    _SQRT_ISWAP_IGNORE_PHASE,
     _PHASED_XZ_GATE_FAMILY,
     _MEASUREMENT_GATE_FAMILY,
 ]
@@ -103,25 +110,34 @@ class _GateRepresentations:
 # allow users to transform their circuits that include your gate.
 _GATES: list[_GateRepresentations] = [
     _GateRepresentations(
-        gate_spec_name='syc', supported_gates=[_SYC_FSIM_GATE_FAMILY, _SYC_GATE_FAMILY]
+        gate_spec_name='syc',
+        supported_gates=[_SYC_FSIM_GATE_FAMILY, _SYC_GATE_FAMILY, _SYC_IGNORE_PHASE],
     ),
     _GateRepresentations(
         gate_spec_name='sqrt_iswap',
-        supported_gates=[_SQRT_ISWAP_FSIM_GATE_FAMILY, _SQRT_ISWAP_GATE_FAMILY],
+        supported_gates=[
+            _SQRT_ISWAP_FSIM_GATE_FAMILY,
+            _SQRT_ISWAP_GATE_FAMILY,
+            _SQRT_ISWAP_IGNORE_PHASE,
+        ],
     ),
     _GateRepresentations(
         gate_spec_name='sqrt_iswap_inv',
-        supported_gates=[_SQRT_ISWAP_INV_FSIM_GATE_FAMILY, _SQRT_ISWAP_INV_GATE_FAMILY],
+        supported_gates=[
+            _SQRT_ISWAP_INV_FSIM_GATE_FAMILY,
+            _SQRT_ISWAP_INV_GATE_FAMILY,
+            _SQRT_ISWAP_INV_IGNORE_PHASE,
+        ],
     ),
     _GateRepresentations(
-        gate_spec_name='cz', supported_gates=[_CZ_FSIM_GATE_FAMILY, _CZ_GATE_FAMILY]
+        gate_spec_name='cz',
+        supported_gates=[_CZ_FSIM_GATE_FAMILY, _CZ_GATE_FAMILY, _CZ_IGNORE_PHASE],
     ),
     _GateRepresentations(gate_spec_name='cz_pow_gate', supported_gates=[_CZ_POW_GATE_FAMILY]),
     _GateRepresentations(
         gate_spec_name='phased_xz',
         supported_gates=[
-            # TODO: Extend support to cirq.IdentityGate.
-            cirq.GateFamily(cirq.I),
+            cirq.GateFamily(cirq.IdentityGate),
             cirq.GateFamily(cirq.PhasedXZGate),
             cirq.GateFamily(cirq.XPowGate),
             cirq.GateFamily(cirq.YPowGate),
@@ -230,7 +246,7 @@ def _serialize_gateset_and_gate_durations(
             (gr for gr in _GATES for gf in gr.supported_gates if gf == gate_family), None
         )
         if gate_rep is None:
-            raise ValueError(f'Unrecognized gate: {gate_family}.')
+            raise ValueError(f'Unrecognized gate: {repr(gate_family)}.')
         gate_name = gate_rep.gate_spec_name
 
         # Set gate
@@ -652,22 +668,24 @@ class GridDevice(cirq.Device):
         qubit_pairs = self._metadata.qubit_pairs
         qubits = self._metadata.qubit_set
         for operation in operations:
+            op_qubits = operation.qubits
             if operation not in gateset:
                 raise ValueError(f'Operation {operation} contains a gate which is not supported.')
 
-            for q in operation.qubits:
-                if isinstance(q, ops.Coupler):
-                    if any(qc not in qubits for qc in q.qubits):
-                        raise ValueError(f'Qubits on coupler not on device: {q.qubits}.')
-                    if frozenset(q.qubits) not in qubit_pairs:
-                        raise ValueError(f'Coupler pair is not valid on device: {q.qubits}.')
-                elif q not in qubits:
-                    raise ValueError(f'Qubit not on device: {q!r}.')
+            for q in op_qubits:
+                if q not in qubits:
+                    if isinstance(q, ops.Coupler):
+                        if any(qc not in qubits for qc in q.qubits):
+                            raise ValueError(f'Qubits on coupler not on device: {q.qubits}.')
+                        if frozenset(q.qubits) not in qubit_pairs:
+                            raise ValueError(f'Coupler pair is not valid on device: {q.qubits}.')
+                    else:
+                        raise ValueError(f'Qubit not on device: {q!r}.')
 
             if (
-                len(operation.qubits) == 2
+                len(op_qubits) == 2
                 and not isinstance(operation.gate, _VARIADIC_GATE_TYPES)
-                and frozenset(operation.qubits) not in qubit_pairs
+                and frozenset(op_qubits) not in qubit_pairs
             ):
                 raise ValueError(f'Qubit pair is not valid on device: {operation.qubits!r}.')
 

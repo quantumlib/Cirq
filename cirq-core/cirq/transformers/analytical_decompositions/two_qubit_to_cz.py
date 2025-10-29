@@ -181,7 +181,9 @@ def _xx_yy_zz_interaction_via_full_czs(q0: cirq.Qid, q1: cirq.Qid, x: float, y: 
     yield ops.H(q1)
 
 
-def cleanup_operations(operations: Sequence[ops.Operation], atol: float = 1e-8):
+def cleanup_operations(
+    operations: Sequence[ops.Operation], atol: float = 1e-8
+) -> list[ops.Operation]:
     operations = _merge_single_qubit_gates(operations, atol=atol)
     circuit = circuits.Circuit(operations)
     circuit = eject_phased_paulis(circuit)

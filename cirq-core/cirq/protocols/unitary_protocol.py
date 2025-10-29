@@ -38,7 +38,7 @@ class SupportsUnitary(Protocol):
     """An object that may be describable by a unitary matrix."""
 
     @doc_private
-    def _unitary_(self) -> np.ndarray | NotImplementedType:
+    def _unitary_(self) -> np.ndarray | NotImplementedType | None:
         """A unitary matrix describing this value, e.g. the matrix of a gate.
 
         This method is used by the global `cirq.unitary` method. If this method

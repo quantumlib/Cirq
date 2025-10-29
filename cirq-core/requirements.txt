@@ -2,10 +2,10 @@
 
 attrs>=21.3.0
 duet>=0.2.8
-matplotlib~=3.8
+matplotlib~=3.9
 networkx~=3.4
-numpy>=1.26
-pandas~=2.1
+numpy~=2.0
+pandas~=2.2
 sortedcontainers~=2.0
 scipy~=1.12
 sympy

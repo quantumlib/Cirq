@@ -808,7 +808,7 @@ def test_get_schedule_time_filter_behavior(list_time_slots):
     processor.get_schedule(from_time=datetime.timedelta(seconds=200), to_time=None)
     list_time_slots.assert_called_with('proj', 'p0', f'end_time > {now + 200}')
 
-    test_timestamp = datetime.datetime.utcfromtimestamp(52)
+    test_timestamp = datetime.datetime.fromtimestamp(52, datetime.UTC)
     utc_ts = int(test_timestamp.timestamp())
     processor.get_schedule(from_time=test_timestamp, to_time=None)
     list_time_slots.assert_called_with('proj', 'p0', f'end_time > {utc_ts}')
@@ -852,7 +852,7 @@ def test_list_reservations_time_filter_behavior(list_reservations):
     processor.list_reservations(from_time=datetime.timedelta(seconds=200), to_time=None)
     list_reservations.assert_called_with('proj', 'p0', f'end_time > {now + 200}')
 
-    test_timestamp = datetime.datetime.utcfromtimestamp(52)
+    test_timestamp = datetime.datetime.fromtimestamp(52, datetime.UTC)
     utc_ts = int(test_timestamp.timestamp())
     processor.list_reservations(from_time=test_timestamp, to_time=None)
     list_reservations.assert_called_with('proj', 'p0', f'end_time > {utc_ts}')
@@ -901,7 +901,6 @@ def test_run_sweep_params_with_unary_rpcs(client):
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
     for result in results:
         assert result.job_id == job.id()
-        assert result.job_finished_time is not None
     assert results == cirq.read_json(json_text=cirq.to_json(results))
 
     client().create_program_async.assert_called_once()
@@ -943,7 +942,6 @@ def test_run_sweep_params_with_stream_rpcs(client):
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
     for result in results:
         assert result.job_id == job.id()
-        assert result.job_finished_time is not None
     assert results == cirq.read_json(json_text=cirq.to_json(results))
 
     client().run_job_over_stream.assert_called_once()

@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+from typing import Callable
+
 import cirq
 
 
@@ -57,8 +59,10 @@ class GateAllocAndBorrowInDecompose(cirq.Gate):
         qm.qfree(qa + qb)
 
 
-def get_decompose_func(gate_type, qm):
-    def decompose_func(op: cirq.Operation, _):
+def get_decompose_func(
+    gate_type: type[cirq.Gate], qm: cirq.QubitManager
+) -> Callable[[cirq.Operation, int], cirq.OP_TREE]:
+    def decompose_func(op: cirq.Operation, _: int) -> cirq.OP_TREE:
         return (
             cirq.decompose_once(op, context=cirq.DecompositionContext(qm))
             if isinstance(op.gate, gate_type)

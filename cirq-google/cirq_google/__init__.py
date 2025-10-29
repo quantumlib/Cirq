@@ -29,7 +29,6 @@ from cirq_google.devices import (
 from cirq_google.engine import (
     Calibration as Calibration,
     CalibrationLayer as CalibrationLayer,
-    CalibrationResult as CalibrationResult,
     Engine as Engine,
     EngineJob as EngineJob,
     EngineProgram as EngineProgram,

@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Iterable, Sequence
+from typing import Iterable
 
 import numpy as np
 import pytest
@@ -89,7 +89,7 @@ def test_explicit_kraus() -> None:
     c = (a0, a1)
 
     class ReturnsKraus:
-        def _kraus_(self) -> Sequence[np.ndarray]:
+        def _kraus_(self) -> Iterable[np.ndarray]:
             return c
 
     assert cirq.kraus(ReturnsKraus()) is c

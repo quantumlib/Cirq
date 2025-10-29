@@ -47,3 +47,11 @@ from cirq.transformers.gauge_compiling.cphase_gauge import (
 from cirq.transformers.gauge_compiling.idle_moments_gauge import (
     IdleMomentsGauge as IdleMomentsGauge,
 )
+
+from cirq.transformers.gauge_compiling.multi_moment_gauge_compiling import (
+    MultiMomentGaugeTransformer as MultiMomentGaugeTransformer,
+)
+
+from cirq.transformers.gauge_compiling.multi_moment_cphase_gauge import (
+    CPhaseGaugeTransformerMM as CPhaseGaugeTransformerMM,
+)

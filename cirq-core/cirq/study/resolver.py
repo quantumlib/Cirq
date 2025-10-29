@@ -118,21 +118,16 @@ class ParamResolver:
             sympy.SympifyError: If the resulting value cannot be interpreted.
         """
 
-        # Input is a pass through type, no resolution needed: return early
-        v = _resolve_value(value)
-        if v is not NotImplemented:
-            return v
-
         # Handle string or symbol
         if isinstance(value, (str, sympy.Symbol)):
             string = value if isinstance(value, str) else value.name
-            symbol = value if isinstance(value, sympy.Symbol) else sympy.Symbol(value)
             param_value = self._param_dict.get(string, _NOT_FOUND)
             if param_value is _NOT_FOUND:
+                symbol = value if isinstance(value, sympy.Symbol) else sympy.Symbol(value)
                 param_value = self._param_dict.get(symbol, _NOT_FOUND)
-            if param_value is _NOT_FOUND:
-                # Symbol or string cannot be resolved if not in param dict; return as symbol.
-                return symbol
+                if param_value is _NOT_FOUND:
+                    # Symbol or string cannot be resolved if not in param dict; return as symbol.
+                    return symbol
             v = _resolve_value(param_value)
             if v is not NotImplemented:
                 return v
@@ -143,6 +138,11 @@ class ParamResolver:
             if recursive:
                 param_value = self._value_of_recursive(value)
             return param_value
+
+        # Input is a pass through type, no resolution needed: return early
+        v = _resolve_value(value)
+        if v is not NotImplemented:
+            return v
 
         if not isinstance(value, sympy.Basic):
             # No known way to resolve this variable, return unchanged.
@@ -278,7 +278,7 @@ class ParamResolver:
 
 
 def _resolve_value(val: Any) -> Any:
-    if val is None:
+    if val is None or isinstance(val, float):
         return val
     if isinstance(val, numbers.Number) and not isinstance(val, sympy.Basic):
         return val
