@@ -1089,8 +1089,8 @@ two_qubit_gates = [
 # Mapping of two-qubit gates and `num_params`
 two_qubit_param_gates = {
     # TODO: fix and enable commented gates below
-    # ('cu1', cirq.ControlledGate(QasmUGate(0, 0, 0.1 / np.pi))): 1,
-    # ('cu3', cirq.ControlledGate(QasmUGate(0.1 / np.pi, 0.2 / np.pi, 0.3 / np.pi))): 3,
+    ('cu1', cirq.ControlledGate(QasmUGate(0, 0, 0.1 / np.pi))): 1,
+    ('cu3', cirq.ControlledGate(QasmUGate(0.1 / np.pi, 0.2 / np.pi, 0.3 / np.pi))): 3,
     # ('cu', cirq.ControlledGate(QasmUGate(0.1 / np.pi, 0.2 / np.pi, 0.3 / np.pi))): 3,
     ('crx', cirq.ControlledGate(cirq.rx(0.1))): 1,
     ('cry', cirq.ControlledGate(cirq.ry(0.1))): 1,
