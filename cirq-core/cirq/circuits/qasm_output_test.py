@@ -29,7 +29,7 @@ def _make_qubits(n):
     return [cirq.NamedQubit(f'q{i}') for i in range(n)]
 
 
-def _qiskit_unitary(gate: QasmUGate) -> np.ndarray:
+def _qiskit_ugate_unitary(gate: QasmUGate) -> np.ndarray:
     # Ref: https://quantum.cloud.ibm.com/docs/en/api/qiskit/qiskit.circuit.library.U3Gate#u3gate
     th, ph, lm = np.pi * np.array([gate.theta, gate.phi, gate.lmda])
     return np.array(
@@ -65,13 +65,13 @@ def test_qasm_u_qubit_gate_unitary() -> None:
     g = QasmUGate.from_matrix(u)
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(g), u, atol=1e-7)
     cirq.testing.assert_implements_consistent_protocols(g)
-    np.testing.assert_allclose(cirq.unitary(g), _qiskit_unitary(g), atol=1e-7)
+    np.testing.assert_allclose(cirq.unitary(g), _qiskit_ugate_unitary(g), atol=1e-7)
 
     u = cirq.unitary(cirq.Y)
     g = QasmUGate.from_matrix(u)
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(g), u, atol=1e-7)
     cirq.testing.assert_implements_consistent_protocols(g)
-    np.testing.assert_allclose(cirq.unitary(g), _qiskit_unitary(g), atol=1e-7)
+    np.testing.assert_allclose(cirq.unitary(g), _qiskit_ugate_unitary(g), atol=1e-7)
 
 
 def test_qasm_two_qubit_gate_unitary() -> None:
