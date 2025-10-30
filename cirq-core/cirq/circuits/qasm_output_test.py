@@ -54,6 +54,20 @@ def test_u_gate_eq() -> None:
     cirq.approx_eq(gate4, gate3, atol=1e-16)
 
 
+@pytest.mark.parametrize("_", range(10))
+def test_u_gate_from_qiskit_ugate_unitary(_) -> None:
+    # QasmUGate at (theta, phi, lmda) is the same as QasmUGate at
+    # (2 - theta, phi + 1, lmda + 1) and a global phase factor of -1.
+    # QasmUGate.from_matrix resolves theta at [0, 1] and ignores possible global
+    # phase.  To avoid phase discrepancy we limit theta to the [0, 1] interval.
+    theta = np.random.uniform(0, 1)
+    phi = np.random.uniform(0, 2)
+    lmda = np.random.uniform(0, 2)
+    u = _qiskit_ugate_unitary(QasmUGate(theta, phi, lmda))
+    g = QasmUGate.from_matrix(u)
+    np.testing.assert_allclose(cirq.unitary(g), u, atol=1e-7)
+
+
 def test_qasm_two_qubit_gate_repr() -> None:
     cirq.testing.assert_equivalent_repr(
         QasmTwoQubitGate.from_matrix(cirq.testing.random_unitary(4))
