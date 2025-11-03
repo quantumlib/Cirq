@@ -109,7 +109,7 @@ class MultiMomentGaugeTransformer(abc.ABC):
         circuit: circuits.AbstractCircuit,
         *,
         context: transformer_api.TransformerContext | None = None,
-        prng: np.random.Generator | None = None,
+        rng_or_seedprng: np.random.Generator | int | None = None,
     ) -> circuits.AbstractCircuit:
         """Apply the transformer to the given circuit.
 
