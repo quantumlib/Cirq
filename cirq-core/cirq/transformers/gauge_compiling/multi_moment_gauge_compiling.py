@@ -129,7 +129,7 @@ class MultiMomentGaugeTransformer(abc.ABC):
             context = transformer_api.TransformerContext(deep=False)
         if context.deep:
             raise ValueError('GaugeTransformer cannot be used with deep=True')
-        rng = np.random.default_rng() if prng is None else prng
+        rng = rng_or_seed if isinstance(rng_or_seed, np.random.Generator) else np.random.default_rng(rng_or_seed)
 
         output_moments: list[circuits.Moment] = []
         moments_to_gauge: list[circuits.Moment] = []
