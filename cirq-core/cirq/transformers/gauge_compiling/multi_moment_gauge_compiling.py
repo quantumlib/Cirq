@@ -109,7 +109,7 @@ class MultiMomentGaugeTransformer(abc.ABC):
         circuit: circuits.AbstractCircuit,
         *,
         context: transformer_api.TransformerContext | None = None,
-        rng_or_seedprng: np.random.Generator | int | None = None,
+        rng_or_seed: np.random.Generator | int | None = None,
     ) -> circuits.AbstractCircuit:
         """Apply the transformer to the given circuit.
 
@@ -129,7 +129,11 @@ class MultiMomentGaugeTransformer(abc.ABC):
             context = transformer_api.TransformerContext(deep=False)
         if context.deep:
             raise ValueError('GaugeTransformer cannot be used with deep=True')
-        rng = rng_or_seed if isinstance(rng_or_seed, np.random.Generator) else np.random.default_rng(rng_or_seed)
+        rng = (
+            rng_or_seed
+            if isinstance(rng_or_seed, np.random.Generator)
+            else np.random.default_rng(rng_or_seed)
+        )
 
         output_moments: list[circuits.Moment] = []
         moments_to_gauge: list[circuits.Moment] = []
