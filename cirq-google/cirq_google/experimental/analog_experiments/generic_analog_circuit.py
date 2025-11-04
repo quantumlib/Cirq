@@ -22,10 +22,10 @@ from cirq_google.study import symbol_util as su
 
 
 def _get_neighbor_freqs(
-    qubit_pair: tuple[str, str], qubit_freq_dict: dict[str, su.ValueOrSymbol | None]
+    qubit_pair: tuple[cirq.Qid, cirq.Qid], qubit_freq_dict: dict[cirq.Qid, su.ValueOrSymbol | None]
 ) -> tuple[su.ValueOrSymbol | None, su.ValueOrSymbol | None]:
     """Get neighbor freqs from qubit_freq_dict given the pair."""
-    sorted_pair = sorted(qubit_pair, key=_to_grid_qubit)
+    sorted_pair = sorted(qubit_pair)
     return (qubit_freq_dict[sorted_pair[0]], qubit_freq_dict[sorted_pair[1]])
 
 
@@ -43,14 +43,10 @@ def _coupler_name_from_qubit_pair(qubit_pair: tuple[str, str]) -> str:
 
 
 def _get_neighbor_coupler_freqs(
-    qubit_name: str, coupler_g_dict: dict[tuple[str, str], su.ValueOrSymbol]
+    qubit: cirq.Qid, coupler_g_dict: dict[tuple[cirq.Qid, cirq.Qid], su.ValueOrSymbol]
 ) -> dict[str, su.ValueOrSymbol]:
     """Get neighbor coupler coupling strength g given qubit name."""
-    return {
-        _coupler_name_from_qubit_pair(pair): g
-        for pair, g in coupler_g_dict.items()
-        if qubit_name in pair
-    }
+    return {pair: g for pair, g in coupler_g_dict.items() if qubit in pair}
 
 
 class GenericAnalogCircuitBuilder:
@@ -90,7 +86,7 @@ class GenericAnalogCircuitBuilder:
         moments = []
         for freq_map in self.trajectory.full_trajectory[1:]:
             if freq_map.is_wait_step:
-                targets = [_to_grid_qubit(q) for q in self.trajectory.qubits]
+                targets = self.trajectory.qubits
                 wait_gate = wg.WaitGateWithUnit(
                     freq_map.duration, qid_shape=cirq.qid_shape(targets)
                 )
@@ -119,7 +115,7 @@ class GenericAnalogCircuitBuilder:
                         q, prev_freq_map.couplings
                     ),
                     linear_rise=self.linear_qubit_ramp,
-                ).on(_to_grid_qubit(q))
+                ).on(q)
             )
         coupler_gates = []
         for p, g_max in freq_map.couplings.items():
@@ -138,7 +134,7 @@ class GenericAnalogCircuitBuilder:
                     neighbor_qubits_freq=_get_neighbor_freqs(p, freq_map.qubit_freqs),
                     prev_neighbor_qubits_freq=_get_neighbor_freqs(p, prev_freq_map.qubit_freqs),
                     interpolate_coupling_cal=self.interpolate_coupling_cal,
-                ).on(*sorted([_to_grid_qubit(p[0]), _to_grid_qubit(p[1])]))
+                ).on(*sorted([p[0], p[1]]))
             )
 
         return cirq.Moment(qubit_gates + coupler_gates)

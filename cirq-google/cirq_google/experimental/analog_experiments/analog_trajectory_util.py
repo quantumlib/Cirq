@@ -40,8 +40,8 @@ class FrequencyMap:
     """
 
     duration: su.ValueOrSymbol
-    qubit_freqs: dict[str, su.ValueOrSymbol | None]
-    couplings: dict[tuple[str, str], su.ValueOrSymbol]
+    qubit_freqs: dict[cirq.Qid, su.ValueOrSymbol | None]
+    couplings: dict[tuple[cirq.Qid, cirq.Qid], su.ValueOrSymbol]
     is_wait_step: bool
 
     def _is_parameterized_(self) -> bool:
@@ -86,8 +86,8 @@ class AnalogTrajectory:
         self,
         *,
         full_trajectory: list[FrequencyMap],
-        qubits: list[str],
-        pairs: list[tuple[str, str]],
+        qubits: list[cirq.Qid],
+        pairs: list[tuple[cirq.Qid, cirq.Qid]],
     ):
         self.full_trajectory = full_trajectory
         self.qubits = qubits
@@ -99,12 +99,12 @@ class AnalogTrajectory:
         sparse_trajectory: list[
             tuple[
                 tu.Value,
-                dict[str, su.ValueOrSymbol | None],
-                dict[tuple[str, str], su.ValueOrSymbol],
+                dict[cirq.Qid, su.ValueOrSymbol | None],
+                dict[cirq.Coupler, su.ValueOrSymbol],
             ],
         ],
-        qubits: list[str] | None = None,
-        pairs: list[tuple[str, str]] | None = None,
+        qubits: list[cirq.Qid] | None = None,
+        pairs: list[cirq.Coupler | tuple[cirq.Qid, cirq.Qid]] | None = None,
     ):
         """Construct AnalogTrajectory from sparse trajectory.
 
@@ -121,8 +121,8 @@ class AnalogTrajectory:
             pairs: The pairs in interest. If not provided, automatically parsed from trajectory.
         """
         if qubits is None or pairs is None:
-            qubits_in_traj: list[str] = []
-            pairs_in_traj: list[tuple[str, str]] = []
+            qubits_in_traj: list[cirq.Qid] = []
+            pairs_in_traj: list[tuple[cirq.Qid, cirq.Qid]] = []
             for _, q, p in sparse_trajectory:
                 qubits_in_traj.extend(q.keys())
                 pairs_in_traj.extend(p.keys())
@@ -130,8 +130,8 @@ class AnalogTrajectory:
             pairs = list(set(pairs_in_traj))
 
         full_trajectory: list[FrequencyMap] = []
-        init_qubit_freq_dict: dict[str, tu.Value | None] = {q: None for q in qubits}
-        init_g_dict: dict[tuple[str, str], tu.Value] = {p: 0 * tu.MHz for p in pairs}
+        init_qubit_freq_dict: dict[cirq.Qid, tu.Value | None] = {q: None for q in qubits}
+        init_g_dict: dict[tuple[cirq.Qid, cirq.Qid], tu.Value] = {p: 0 * tu.MHz for p in pairs}
         full_trajectory.append(FrequencyMap(0 * tu.ns, init_qubit_freq_dict, init_g_dict, False))
 
         for dt, qubit_freq_dict, g_dict in sparse_trajectory:
@@ -142,7 +142,7 @@ class AnalogTrajectory:
                 q: qubit_freq_dict.get(q, full_trajectory[-1].qubit_freqs.get(q)) for q in qubits
             }
             # If no g provided, set equal to previous
-            new_g_dict: dict[tuple[str, str], tu.Value] = {
+            new_g_dict: dict[tuple[cirq.Qid, cirq.Qid], tu.Value] = {
                 p: g_dict.get(p, full_trajectory[-1].couplings.get(p)) for p in pairs  # type: ignore[misc]
             }
 

@@ -24,8 +24,11 @@ from cirq_google.experimental.analog_experiments import analog_trajectory_util a
 def freq_map() -> atu.FrequencyMap:
     return atu.FrequencyMap(
         10 * tu.ns,
-        {"q0_0": 5 * tu.GHz, "q0_1": 6 * tu.GHz, "q0_2": sympy.Symbol("f_q0_2")},
-        {("q0_0", "q0_1"): 5 * tu.MHz, ("q0_1", "q0_2"): sympy.Symbol("g_q0_1_q0_2")},
+        {cirq.q(0, 0): 5 * tu.GHz, cirq.q(0, 1): 6 * tu.GHz, cirq.q(0, 2): sympy.Symbol("f_q0_2")},
+        {
+            (cirq.q(0, 0), cirq.q(0, 1)): 5 * tu.MHz,
+            (cirq.q(0, 1), cirq.q(0, 2)): sympy.Symbol("g_q0_1_q0_2"),
+        },
         False,
     )
 
@@ -41,24 +44,26 @@ def test_freq_map_resolve(freq_map: atu.FrequencyMap) -> None:
     )
     assert resolved_freq_map == atu.FrequencyMap(
         10 * tu.ns,
-        {"q0_0": 5 * tu.GHz, "q0_1": 6 * tu.GHz, "q0_2": 6 * tu.GHz},
-        {("q0_0", "q0_1"): 5 * tu.MHz, ("q0_1", "q0_2"): 7 * tu.MHz},
+        {cirq.q(0, 0): 5 * tu.GHz, cirq.q(0, 1): 6 * tu.GHz, cirq.q(0, 2): 6 * tu.GHz},
+        {(cirq.q(0, 0), cirq.q(0, 1)): 5 * tu.MHz, (cirq.q(0, 1), cirq.q(0, 2)): 7 * tu.MHz},
         False,
     )
 
 
-FreqMapType = tuple[tu.Value, dict[str, tu.Value | None], dict[tuple[str, str], tu.Value]]
+FreqMapType = tuple[
+    tu.Value, dict[cirq.Qid, tu.Value | None], dict[tuple[cirq.Qid, cirq.Qid], tu.Value]
+]
 
 
 @pytest.fixture
 def sparse_trajectory() -> list[FreqMapType]:
-    traj1: FreqMapType = (20 * tu.ns, {"q0_1": 5 * tu.GHz}, {})
-    traj2: FreqMapType = (30 * tu.ns, {"q0_2": 8 * tu.GHz}, {})
+    traj1: FreqMapType = (20 * tu.ns, {cirq.q(0, 1): 5 * tu.GHz}, {})
+    traj2: FreqMapType = (30 * tu.ns, {cirq.q(0, 2): 8 * tu.GHz}, {})
     traj3: FreqMapType = (35 * tu.ns, {}, {})
     traj4: FreqMapType = (
         40 * tu.ns,
-        {"q0_0": 8 * tu.GHz, "q0_1": None, "q0_2": None},
-        {("q0_0", "q0_1"): 5 * tu.MHz, ("q0_1", "q0_2"): 8 * tu.MHz},
+        {cirq.q(0, 0): 8 * tu.GHz, cirq.q(0, 1): None, cirq.q(0, 2): None},
+        {(cirq.q(0, 0), cirq.q(0, 1)): 5 * tu.MHz, (cirq.q(0, 1), cirq.q(0, 2)): 8 * tu.MHz},
     )
     return [traj1, traj2, traj3, traj4]
 
@@ -68,32 +73,32 @@ def test_full_traj(sparse_trajectory: list[FreqMapType]) -> None:
     assert len(analog_traj.full_trajectory) == 5
     assert analog_traj.full_trajectory[0] == atu.FrequencyMap(
         0 * tu.ns,
-        {"q0_0": None, "q0_1": None, "q0_2": None},
-        {("q0_0", "q0_1"): 0 * tu.MHz, ("q0_1", "q0_2"): 0 * tu.MHz},
+        {cirq.q(0, 0): None, cirq.q(0, 1): None, cirq.q(0, 2): None},
+        {(cirq.q(0, 0), cirq.q(0, 1)): 0 * tu.MHz, (cirq.q(0, 1), cirq.q(0, 2)): 0 * tu.MHz},
         False,
     )
     assert analog_traj.full_trajectory[1] == atu.FrequencyMap(
         20 * tu.ns,
-        {"q0_0": None, "q0_1": 5 * tu.GHz, "q0_2": None},
-        {("q0_0", "q0_1"): 0 * tu.MHz, ("q0_1", "q0_2"): 0 * tu.MHz},
+        {cirq.q(0, 0): None, cirq.q(0, 1): 5 * tu.GHz, cirq.q(0, 2): None},
+        {(cirq.q(0, 0), cirq.q(0, 1)): 0 * tu.MHz, (cirq.q(0, 1), cirq.q(0, 2)): 0 * tu.MHz},
         False,
     )
     assert analog_traj.full_trajectory[2] == atu.FrequencyMap(
         30 * tu.ns,
-        {"q0_0": None, "q0_1": 5 * tu.GHz, "q0_2": 8 * tu.GHz},
-        {("q0_0", "q0_1"): 0 * tu.MHz, ("q0_1", "q0_2"): 0 * tu.MHz},
+        {cirq.q(0, 0): None, cirq.q(0, 1): 5 * tu.GHz, cirq.q(0, 2): 8 * tu.GHz},
+        {(cirq.q(0, 0), cirq.q(0, 1)): 0 * tu.MHz, (cirq.q(0, 1), cirq.q(0, 2)): 0 * tu.MHz},
         False,
     )
     assert analog_traj.full_trajectory[3] == atu.FrequencyMap(
         35 * tu.ns,
-        {"q0_0": None, "q0_1": 5 * tu.GHz, "q0_2": 8 * tu.GHz},
-        {("q0_0", "q0_1"): 0 * tu.MHz, ("q0_1", "q0_2"): 0 * tu.MHz},
+        {cirq.q(0, 0): None, cirq.q(0, 1): 5 * tu.GHz, cirq.q(0, 2): 8 * tu.GHz},
+        {(cirq.q(0, 0), cirq.q(0, 1)): 0 * tu.MHz, (cirq.q(0, 1), cirq.q(0, 2)): 0 * tu.MHz},
         True,
     )
     assert analog_traj.full_trajectory[4] == atu.FrequencyMap(
         40 * tu.ns,
-        {"q0_0": 8 * tu.GHz, "q0_1": None, "q0_2": None},
-        {("q0_0", "q0_1"): 5 * tu.MHz, ("q0_1", "q0_2"): 8 * tu.MHz},
+        {cirq.q(0, 0): 8 * tu.GHz, cirq.q(0, 1): None, cirq.q(0, 2): None},
+        {(cirq.q(0, 0), cirq.q(0, 1)): 5 * tu.MHz, (cirq.q(0, 1), cirq.q(0, 2)): 8 * tu.MHz},
         False,
     )
 
@@ -102,45 +107,45 @@ def test_get_full_trajectory_with_resolved_idles(sparse_trajectory: list[FreqMap
 
     analog_traj = atu.AnalogTrajectory.from_sparse_trajectory(sparse_trajectory)
     resolved_full_traj = analog_traj.get_full_trajectory_with_resolved_idles(
-        {"q0_0": 5 * tu.GHz, "q0_1": 6 * tu.GHz, "q0_2": 7 * tu.GHz}
+        {cirq.q(0, 0): 5 * tu.GHz, cirq.q(0, 1): 6 * tu.GHz, cirq.q(0, 2): 7 * tu.GHz}
     )
 
     assert len(resolved_full_traj) == 5
     assert resolved_full_traj[0] == atu.FrequencyMap(
         0 * tu.ns,
-        {"q0_0": 5 * tu.GHz, "q0_1": 6 * tu.GHz, "q0_2": 7 * tu.GHz},
-        {("q0_0", "q0_1"): 0 * tu.MHz, ("q0_1", "q0_2"): 0 * tu.MHz},
+        {cirq.q(0, 0): 5 * tu.GHz, cirq.q(0, 1): 6 * tu.GHz, cirq.q(0, 2): 7 * tu.GHz},
+        {(cirq.q(0, 0), cirq.q(0, 1)): 0 * tu.MHz, (cirq.q(0, 1), cirq.q(0, 2)): 0 * tu.MHz},
         False,
     )
     assert resolved_full_traj[1] == atu.FrequencyMap(
         20 * tu.ns,
-        {"q0_0": 5 * tu.GHz, "q0_1": 5 * tu.GHz, "q0_2": 7 * tu.GHz},
-        {("q0_0", "q0_1"): 0 * tu.MHz, ("q0_1", "q0_2"): 0 * tu.MHz},
+        {cirq.q(0, 0): 5 * tu.GHz, cirq.q(0, 1): 5 * tu.GHz, cirq.q(0, 2): 7 * tu.GHz},
+        {(cirq.q(0, 0), cirq.q(0, 1)): 0 * tu.MHz, (cirq.q(0, 1), cirq.q(0, 2)): 0 * tu.MHz},
         False,
     )
     assert resolved_full_traj[2] == atu.FrequencyMap(
         30 * tu.ns,
-        {"q0_0": 5 * tu.GHz, "q0_1": 5 * tu.GHz, "q0_2": 8 * tu.GHz},
-        {("q0_0", "q0_1"): 0 * tu.MHz, ("q0_1", "q0_2"): 0 * tu.MHz},
+        {cirq.q(0, 0): 5 * tu.GHz, cirq.q(0, 1): 5 * tu.GHz, cirq.q(0, 2): 8 * tu.GHz},
+        {(cirq.q(0, 0), cirq.q(0, 1)): 0 * tu.MHz, (cirq.q(0, 1), cirq.q(0, 2)): 0 * tu.MHz},
         False,
     )
     assert resolved_full_traj[3] == atu.FrequencyMap(
         35 * tu.ns,
-        {"q0_0": 5 * tu.GHz, "q0_1": 5 * tu.GHz, "q0_2": 8 * tu.GHz},
-        {("q0_0", "q0_1"): 0 * tu.MHz, ("q0_1", "q0_2"): 0 * tu.MHz},
+        {cirq.q(0, 0): 5 * tu.GHz, cirq.q(0, 1): 5 * tu.GHz, cirq.q(0, 2): 8 * tu.GHz},
+        {(cirq.q(0, 0), cirq.q(0, 1)): 0 * tu.MHz, (cirq.q(0, 1), cirq.q(0, 2)): 0 * tu.MHz},
         True,
     )
     assert resolved_full_traj[4] == atu.FrequencyMap(
         40 * tu.ns,
-        {"q0_0": 8 * tu.GHz, "q0_1": 6 * tu.GHz, "q0_2": 7 * tu.GHz},
-        {("q0_0", "q0_1"): 5 * tu.MHz, ("q0_1", "q0_2"): 8 * tu.MHz},
+        {cirq.q(0, 0): 8 * tu.GHz, cirq.q(0, 1): 6 * tu.GHz, cirq.q(0, 2): 7 * tu.GHz},
+        {(cirq.q(0, 0), cirq.q(0, 1)): 5 * tu.MHz, (cirq.q(0, 1), cirq.q(0, 2)): 8 * tu.MHz},
         False,
     )
 
 
 def test_plot_with_unresolved_parameters() -> None:
-    traj1: FreqMapType = (20 * tu.ns, {"q0_1": sympy.Symbol("qf")}, {})
-    traj2: FreqMapType = (sympy.Symbol("t"), {"q0_2": 8 * tu.GHz}, {})
+    traj1: FreqMapType = (20 * tu.ns, {cirq.q(0, 1): sympy.Symbol("qf")}, {})
+    traj2: FreqMapType = (sympy.Symbol("t"), {cirq.q(0, 2): 8 * tu.GHz}, {})
     analog_traj = atu.AnalogTrajectory.from_sparse_trajectory([traj1, traj2])
 
     with pytest.raises(ValueError):
@@ -148,7 +153,11 @@ def test_plot_with_unresolved_parameters() -> None:
 
 
 def test_analog_traj_plot() -> None:
-    traj1: FreqMapType = (5 * tu.ns, {"q0_1": sympy.Symbol("qf")}, {("q0_0", "q0_1"): 2 * tu.MHz})
-    traj2: FreqMapType = (sympy.Symbol("t"), {"q0_2": 8 * tu.GHz}, {})
+    traj1: FreqMapType = (
+        5 * tu.ns,
+        {cirq.q(0, 1): sympy.Symbol("qf")},
+        {(cirq.q(0, 0), cirq.q(0, 1)): 2 * tu.MHz},
+    )
+    traj2: FreqMapType = (sympy.Symbol("t"), {cirq.q(0, 2): 8 * tu.GHz}, {})
     analog_traj = atu.AnalogTrajectory.from_sparse_trajectory([traj1, traj2])
     analog_traj.plot(resolver={"t": 10 * tu.ns, "qf": 5 * tu.GHz})
