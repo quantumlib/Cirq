@@ -48,7 +48,7 @@ jobs:
           # disregard errors from building wheels at the previous commit
           SOURCE_DATE_EPOCH=${THIS_DATE_EPOCH} dev_tools/packaging/produce-package.sh \
             --commit="HEAD~1" "${out_dir_last}" "${CIRQ_PRE_RELEASE_VERSION}" || true
-          echo "Comparing wheels with the previous version"
+          echo "Comparing wheels with the build at previous commit"
           if diff -q -r "${out_dir_last}" "${out_dir}"; then
             echo "Wheels are identical - skipping the release"
             echo "### Skipped identical release"  >> ${GITHUB_STEP_SUMMARY}
