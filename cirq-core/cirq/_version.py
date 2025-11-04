@@ -28,5 +28,4 @@ if sys.version_info < (3, 11, 0):  # pragma: no cover
         'of Cirq (e.g. "python -m pip install cirq==1.5.0")'
     )
 
-# FIXME - temporary comment
 __version__ = "1.7.0.dev0"
