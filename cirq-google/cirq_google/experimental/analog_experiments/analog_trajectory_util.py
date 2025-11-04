@@ -100,11 +100,11 @@ class AnalogTrajectory:
             tuple[
                 tu.Value,
                 dict[cirq.Qid, su.ValueOrSymbol | None],
-                dict[cirq.Coupler, su.ValueOrSymbol],
+                dict[tuple[cirq.Qid, cirq.Qid], su.ValueOrSymbol],
             ],
         ],
         qubits: list[cirq.Qid] | None = None,
-        pairs: list[cirq.Coupler | tuple[cirq.Qid, cirq.Qid]] | None = None,
+        pairs: list[tuple[cirq.Qid, cirq.Qid]] | None = None,
     ):
         """Construct AnalogTrajectory from sparse trajectory.
 
@@ -150,7 +150,7 @@ class AnalogTrajectory:
         return cls(full_trajectory=full_trajectory, qubits=qubits, pairs=pairs)
 
     def get_full_trajectory_with_resolved_idles(
-        self, idle_freq_map: dict[str, tu.Value]
+        self, idle_freq_map: dict[cirq.Qid, tu.Value]
     ) -> list[FrequencyMap]:
         """Insert idle frequencies instead of None in trajectory."""
 
@@ -164,7 +164,7 @@ class AnalogTrajectory:
 
     def plot(
         self,
-        idle_freq_map: dict[str, tu.Value] | None = None,
+        idle_freq_map: dict[cirq.Qid, tu.Value] | None = None,
         default_idle_freq: tu.Value = 6.5 * tu.GHz,
         resolver: cirq.ParamResolverOrSimilarType | None = None,
         axes: tuple[Axes, Axes] | None = None,

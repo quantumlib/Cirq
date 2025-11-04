@@ -44,7 +44,7 @@ def _coupler_name_from_qubit_pair(qubit_pair: tuple[str, str]) -> str:
 
 def _get_neighbor_coupler_freqs(
     qubit: cirq.Qid, coupler_g_dict: dict[tuple[cirq.Qid, cirq.Qid], su.ValueOrSymbol]
-) -> dict[str, su.ValueOrSymbol]:
+) -> dict[cirq.Qid, su.ValueOrSymbol]:
     """Get neighbor coupler coupling strength g given qubit name."""
     return {pair: g for pair, g in coupler_g_dict.items() if qubit in pair}
 
