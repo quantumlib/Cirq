@@ -46,8 +46,8 @@ jobs:
           fi
           echo "Building wheels for the dev version '${CIRQ_PRE_RELEASE_VERSION}'"
           THIS_DATE_EPOCH=$(git log -1 --pretty="%ct")
-          out_dir="${PWD}/dist"
-          out_dir_last="${PWD}/dist-last"
+          out_dir="${HOME}/cirq-dist"
+          out_dir_last="${HOME}/cirq-dist-last"
           dev_tools/packaging/produce-package.sh "${out_dir}" "${CIRQ_PRE_RELEASE_VERSION}"
           # disregard errors from building wheels at the previous commit
           SOURCE_DATE_EPOCH=${THIS_DATE_EPOCH} dev_tools/packaging/produce-package.sh \
