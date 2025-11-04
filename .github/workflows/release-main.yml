@@ -56,8 +56,8 @@ jobs:
           if diff -q -r "${out_dir_last}" "${out_dir}"; then
             echo "Wheels are identical - skipping the release"
             echo "### Skipped identical release"  >> ${GITHUB_STEP_SUMMARY}
-            echo "Cirq release wheels for ${CIRQ_PRE_RELEASE_VERSION} (${GITHUB_SHA:0:10})" \
-              "are identical to their build at previous commit."  >> ${GITHUB_STEP_SUMMARY}
+            echo "Cirq wheels for ${CIRQ_PRE_RELEASE_VERSION} (${GITHUB_SHA})" \
+              "are identical to their build at the previous commit." >> ${GITHUB_STEP_SUMMARY}
             exit 0
           fi
           echo "Deploying dev version '$CIRQ_PRE_RELEASE_VERSION'"
