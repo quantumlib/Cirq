@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+  # FIXME - for PR testing only, remove before merge
+  pull_request:
+    branches:
+      - main
 
 # Declare default permissions as read only.
 permissions: read-all
@@ -54,4 +58,4 @@ jobs:
             exit 0
           fi
           echo "Deploying dev version '$CIRQ_PRE_RELEASE_VERSION'"
-          twine upload "${out_dir}/*"
+          echo "[would execute]" twine upload "${out_dir}/*"
