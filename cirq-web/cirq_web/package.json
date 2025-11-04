@@ -17,7 +17,7 @@
     "@types/temp": "^0.9.0",
     "@types/three": "^0.181.0",
     "@webgpu/types": "^0.1.63",
-    "@vitest/coverage-v8": "^2.1.1",
+    "@vitest/coverage-v8": "^4.0.6",
     "canvas": "^3.2.0",
     "gts": "^6.0.2",
     "jsdom": "^27.1.0",
@@ -30,7 +30,7 @@
     "ts-mock-imports": "^1.3.7",
     "typescript": "^5.7.3",
     "vite": "^7.1.9",
-    "vitest": "^2.1.1"
+    "vitest": "^4.0.6"
   },
   "scripts": {
     "build": "vite build --mode bloch_sphere && vite build --mode circuit",
