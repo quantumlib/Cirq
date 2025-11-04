@@ -54,9 +54,10 @@ jobs:
             --commit="HEAD~1" "${out_dir_last}" "${CIRQ_PRE_RELEASE_VERSION}" || true
           echo "Comparing wheels with the previous version"
           if diff -q -r "${out_dir_last}" "${out_dir}"; then
-            echo "### Skipping identical release"  >> ${GITHUB_STEP_SUMMARY}
-            echo "Cirq release wheels at '${CIRQ_PRE_RELEASE_VERSION}' (${GITHUB_SHA})" \
-              "are identical to those at the previous commit."  >> ${GITHUB_STEP_SUMMARY}
+            echo "Wheels are identical - skipping the release"
+            echo "### Skipped identical release"  >> ${GITHUB_STEP_SUMMARY}
+            echo "Cirq release wheels for ${CIRQ_PRE_RELEASE_VERSION} (${GITHUB_SHA:0:10})" \
+              "are identical to wheels at the previous commit."  >> ${GITHUB_STEP_SUMMARY}
             exit 0
           fi
           echo "Deploying dev version '$CIRQ_PRE_RELEASE_VERSION'"
