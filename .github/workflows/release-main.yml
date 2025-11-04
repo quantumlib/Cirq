@@ -34,7 +34,24 @@ jobs:
       - name: Build and publish
         run: |
           CIRQ_PRE_RELEASE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
-          [[ "$CIRQ_PRE_RELEASE_VERSION" =~ .*dev.* ]] && echo "Deploying dev version '$CIRQ_PRE_RELEASE_VERSION'" || (echo "not dev version"; exit 1)
+          if [[ "${CIRQ_PRE_RELEASE_VERSION}" != *.dev* ]]; then
+            echo "Not a dev version"
+            exit 1
+          fi
+          echo "Building wheels for the dev version '${CIRQ_PRE_RELEASE_VERSION}'"
+          THIS_DATE_EPOCH=$(git log -1 --pretty="%ct")
           out_dir="${PWD}/dist"
-          dev_tools/packaging/produce-package.sh ${out_dir} $CIRQ_PRE_RELEASE_VERSION
+          out_dir_last="${PWD}/dist-last"
+          dev_tools/packaging/produce-package.sh "${out_dir}" "${CIRQ_PRE_RELEASE_VERSION}"
+          # disregard errors from building wheels at the previous commit
+          SOURCE_DATE_EPOCH=${THIS_DATE_EPOCH} dev_tools/packaging/produce-package.sh \
+            --commit="HEAD~1" "${out_dir_last}" "${CIRQ_PRE_RELEASE_VERSION}" || true
+          echo "Comparing wheels with the previous version"
+          if diff -q -r "${out_dir_last}" "${out_dir}"; then
+            echo "### Skipping identical release"  >> ${GITHUB_STEP_SUMMARY}
+            echo "Cirq release wheels at '${CIRQ_PRE_RELEASE_VERSION}' (${GITHUB_SHA})" \
+              "are identical to those at the previous commit."  >> ${GITHUB_STEP_SUMMARY}
+            exit 0
+          fi
+          echo "Deploying dev version '$CIRQ_PRE_RELEASE_VERSION'"
           twine upload "${out_dir}/*"
