@@ -123,7 +123,7 @@ class AnalogTrajectory:
         """
         if qubits is None or pairs is None:
             qubits_in_traj: list[cirq.Qid] = []
-            pairs_in_traj: list[tuple[cirq.Qid, cirq.Qid]] = []
+            pairs_in_traj: list[tuple[cirq.Qid, cirq.Qid] | cgc.Coupler] = []
             for _, q, p in sparse_trajectory:
                 qubits_in_traj.extend(q.keys())
                 pairs_in_traj.extend(p.keys())
@@ -133,11 +133,11 @@ class AnalogTrajectory:
         def _to_coupler(pair: tuple[cirq.Qid, cirq.Qid] | cgc.Coupler) -> cgc.Coupler:
             return pair if isinstance(pair, cgc.Coupler) else cgc.Coupler(*pair)
 
-        pairs = [_to_coupler(pair) for pair in pairs]  # Convert to coupler always.
+        couplers = [_to_coupler(c) for c in pairs]  # Convert to coupler always.
 
         full_trajectory: list[FrequencyMap] = []
         init_qubit_freq_dict: dict[cirq.Qid, tu.Value | None] = {q: None for q in qubits}
-        init_g_dict: dict[cgc.Coupler, tu.Value] = {p: 0 * tu.MHz for p in pairs}
+        init_g_dict: dict[cgc.Coupler, tu.Value] = {c: 0 * tu.MHz for c in couplers}
         full_trajectory.append(FrequencyMap(0 * tu.ns, init_qubit_freq_dict, init_g_dict, False))
 
         for dt, qubit_freq_dict, g_dict in sparse_trajectory:
@@ -150,11 +150,11 @@ class AnalogTrajectory:
             }
             # If no g provided, set equal to previous
             new_g_dict: dict[cgc.Coupler, tu.Value] = {
-                _to_coupler(p): g_dict.get(p, full_trajectory[-1].couplings.get(p)) for p in pairs
+                _to_coupler(p): g_dict.get(p, full_trajectory[-1].couplings.get(p)) for p in pairs  # type: ignore[arg-type]
             }
 
             full_trajectory.append(FrequencyMap(dt, new_qubit_freq_dict, new_g_dict, is_wait_step))
-        return cls(full_trajectory=full_trajectory, qubits=qubits, pairs=pairs)
+        return cls(full_trajectory=full_trajectory, qubits=qubits, pairs=couplers)
 
     def get_full_trajectory_with_resolved_idles(
         self, idle_freq_map: dict[cirq.Qid, tu.Value]

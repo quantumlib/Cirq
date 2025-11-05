@@ -44,9 +44,13 @@ def _coupler_name_from_qubit_pair(qubit_pair: tuple[str, str]) -> str:
 
 def _get_neighbor_coupler_freqs(
     qubit: cirq.Qid, coupler_g_dict: dict[cgc.Coupler, su.ValueOrSymbol]
-) -> dict[cirq.Qid, su.ValueOrSymbol]:
+) -> dict[str, su.ValueOrSymbol]:
     """Get neighbor coupler coupling strength g given qubit name."""
-    return {coupler: g for coupler, g in coupler_g_dict.items() if qubit in coupler.qubits}
+    return {
+        _coupler_name_from_qubit_pair(coupler.qubits): g
+        for coupler, g in coupler_g_dict.items()
+        if qubit in coupler.qubits
+    }
 
 
 class GenericAnalogCircuitBuilder:
