@@ -22,11 +22,12 @@ import numpy as np
 import tunits as tu
 
 import cirq
-from cirq_google.ops import coupler as cgc
 from cirq_google.study import symbol_util as su
 
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
+
+    from cirq_google.ops import coupler as cgc
 
 
 @attrs.mutable

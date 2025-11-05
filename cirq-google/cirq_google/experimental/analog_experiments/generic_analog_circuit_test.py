@@ -31,7 +31,7 @@ def test_get_neighbor_freqs() -> None:
     q2 = cirq.GridQubit(0, 2)
     pair = cg.Coupler(q0, q1)
     qubit_freq_dict = {q0: 5 * tu.GHz, q1: sympy.Symbol("f_q"), q2: 6 * tu.GHz}
-    neighbor_freqs = gac._get_neighbor_freqs(pair, qubit_freq_dict)
+    neighbor_freqs = gac._get_neighbor_freqs(pair, qubit_freq_dict)  # type: ignore[arg-type]
     assert neighbor_freqs == (5 * tu.GHz, sympy.Symbol("f_q"))
 
 
