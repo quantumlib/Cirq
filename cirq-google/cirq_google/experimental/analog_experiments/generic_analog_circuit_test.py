@@ -17,6 +17,7 @@ import sympy
 import tunits as tu
 
 import cirq
+import cirq_google as cg
 from cirq_google.experimental.analog_experiments import (
     analog_trajectory_util as atu,
     generic_analog_circuit as gac,
@@ -28,7 +29,7 @@ def test_get_neighbor_freqs() -> None:
     q0 = cirq.GridQubit(0, 0)
     q1 = cirq.GridQubit(0, 1)
     q2 = cirq.GridQubit(0, 2)
-    pair = (q0, q1)
+    pair = cg.Coupler(q0, q1)
     qubit_freq_dict = {q0: 5 * tu.GHz, q1: sympy.Symbol("f_q"), q2: 6 * tu.GHz}
     neighbor_freqs = gac._get_neighbor_freqs(pair, qubit_freq_dict)
     assert neighbor_freqs == (5 * tu.GHz, sympy.Symbol("f_q"))
@@ -60,8 +61,8 @@ def test_make_one_moment_of_generic_analog_circuit() -> None:
     q0 = cirq.GridQubit(0, 0)
     q1 = cirq.GridQubit(0, 1)
     q2 = cirq.GridQubit(0, 2)
-    pair1 = (q0, q1)
-    pair2 = (q1, q2)
+    pair1 = cg.Coupler(q0, q1)
+    pair2 = cg.Coupler(q1, q2)
     freq_map = atu.FrequencyMap(
         duration=3 * tu.ns,
         qubit_freqs={q0: 5 * tu.GHz, q1: 6 * tu.GHz, q2: sympy.Symbol("f_q0_2")},
@@ -119,7 +120,7 @@ def test_make_one_moment_of_generic_analog_circuit() -> None:
         neighbor_qubits_freq=(5 * tu.GHz, 6 * tu.GHz),
         prev_neighbor_qubits_freq=(4 * tu.GHz, 6 * tu.GHz),
         interpolate_coupling_cal=False,
-    ).on(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))
+    ).on(pair1)
     assert moment.operations[4] == AnalogDetuneCouplerOnly(
         length=3 * tu.ns,
         w=3 * tu.ns,
@@ -129,7 +130,7 @@ def test_make_one_moment_of_generic_analog_circuit() -> None:
         neighbor_qubits_freq=(6 * tu.GHz, sympy.Symbol("f_q0_2")),
         prev_neighbor_qubits_freq=(6 * tu.GHz, sympy.Symbol("f_q0_2")),
         interpolate_coupling_cal=False,
-    ).on(cirq.GridQubit(0, 1), cirq.GridQubit(0, 2))
+    ).on(pair2)
 
 
 def test_generic_analog_make_circuit() -> None:
@@ -153,7 +154,6 @@ def test_generic_analog_make_circuit() -> None:
         assert isinstance(op.gate, AnalogDetuneQubit)
     for op in circuit[1].operations:
         assert isinstance(op.gate, cirq.WaitGate)
-
     assert isinstance(circuit[2].operations[0].gate, AnalogDetuneQubit)
     assert isinstance(circuit[2].operations[1].gate, AnalogDetuneQubit)
     assert isinstance(circuit[2].operations[2].gate, AnalogDetuneCouplerOnly)

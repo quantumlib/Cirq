@@ -17,15 +17,15 @@ import re
 
 import cirq
 from cirq_google.experimental.analog_experiments import analog_trajectory_util as atu
-from cirq_google.ops import analog_detune_gates as adg, wait_gate as wg
+from cirq_google.ops import analog_detune_gates as adg, coupler as cgc, wait_gate as wg
 from cirq_google.study import symbol_util as su
 
 
 def _get_neighbor_freqs(
-    qubit_pair: tuple[cirq.Qid, cirq.Qid], qubit_freq_dict: dict[cirq.Qid, su.ValueOrSymbol | None]
+    coupler: cgc.Coupler, qubit_freq_dict: dict[cirq.Qid, su.ValueOrSymbol | None]
 ) -> tuple[su.ValueOrSymbol | None, su.ValueOrSymbol | None]:
     """Get neighbor freqs from qubit_freq_dict given the pair."""
-    sorted_pair = sorted(qubit_pair)
+    sorted_pair = sorted(coupler.qubits)
     return (qubit_freq_dict[sorted_pair[0]], qubit_freq_dict[sorted_pair[1]])
 
 
@@ -43,10 +43,10 @@ def _coupler_name_from_qubit_pair(qubit_pair: tuple[str, str]) -> str:
 
 
 def _get_neighbor_coupler_freqs(
-    qubit: cirq.Qid, coupler_g_dict: dict[tuple[cirq.Qid, cirq.Qid], su.ValueOrSymbol]
+    qubit: cirq.Qid, coupler_g_dict: dict[cgc.Coupler, su.ValueOrSymbol]
 ) -> dict[cirq.Qid, su.ValueOrSymbol]:
     """Get neighbor coupler coupling strength g given qubit name."""
-    return {pair: g for pair, g in coupler_g_dict.items() if qubit in pair}
+    return {coupler: g for coupler, g in coupler_g_dict.items() if qubit in coupler.qubits}
 
 
 class GenericAnalogCircuitBuilder:
@@ -134,7 +134,7 @@ class GenericAnalogCircuitBuilder:
                     neighbor_qubits_freq=_get_neighbor_freqs(p, freq_map.qubit_freqs),
                     prev_neighbor_qubits_freq=_get_neighbor_freqs(p, prev_freq_map.qubit_freqs),
                     interpolate_coupling_cal=self.interpolate_coupling_cal,
-                ).on(*sorted([p[0], p[1]]))
+                ).on(p)
             )
 
         return cirq.Moment(qubit_gates + coupler_gates)

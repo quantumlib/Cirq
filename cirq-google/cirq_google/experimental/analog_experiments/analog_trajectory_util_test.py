@@ -17,6 +17,7 @@ import sympy
 import tunits as tu
 
 import cirq
+import cirq_google as cg
 from cirq_google.experimental.analog_experiments import analog_trajectory_util as atu
 
 
@@ -63,42 +64,48 @@ def sparse_trajectory() -> list[FreqMapType]:
     traj4: FreqMapType = (
         40 * tu.ns,
         {cirq.q(0, 0): 8 * tu.GHz, cirq.q(0, 1): None, cirq.q(0, 2): None},
-        {(cirq.q(0, 0), cirq.q(0, 1)): 5 * tu.MHz, (cirq.q(0, 1), cirq.q(0, 2)): 8 * tu.MHz},
+        {
+            cg.Coupler(cirq.q(0, 0), cirq.q(0, 1)): 5 * tu.MHz,
+            cg.Coupler(cirq.q(0, 1), cirq.q(0, 2)): 8 * tu.MHz,
+        },
     )
     return [traj1, traj2, traj3, traj4]
 
 
 def test_full_traj(sparse_trajectory: list[FreqMapType]) -> None:
     analog_traj = atu.AnalogTrajectory.from_sparse_trajectory(sparse_trajectory)
+    coupler1 = cg.Coupler(cirq.q(0, 0), cirq.q(0, 1))
+    coupler2 = cg.Coupler(cirq.q(0, 1), cirq.q(0, 2))
+
     assert len(analog_traj.full_trajectory) == 5
     assert analog_traj.full_trajectory[0] == atu.FrequencyMap(
         0 * tu.ns,
         {cirq.q(0, 0): None, cirq.q(0, 1): None, cirq.q(0, 2): None},
-        {(cirq.q(0, 0), cirq.q(0, 1)): 0 * tu.MHz, (cirq.q(0, 1), cirq.q(0, 2)): 0 * tu.MHz},
+        {coupler1: 0 * tu.MHz, coupler2: 0 * tu.MHz},
         False,
     )
     assert analog_traj.full_trajectory[1] == atu.FrequencyMap(
         20 * tu.ns,
         {cirq.q(0, 0): None, cirq.q(0, 1): 5 * tu.GHz, cirq.q(0, 2): None},
-        {(cirq.q(0, 0), cirq.q(0, 1)): 0 * tu.MHz, (cirq.q(0, 1), cirq.q(0, 2)): 0 * tu.MHz},
+        {coupler1: 0 * tu.MHz, coupler2: 0 * tu.MHz},
         False,
     )
     assert analog_traj.full_trajectory[2] == atu.FrequencyMap(
         30 * tu.ns,
         {cirq.q(0, 0): None, cirq.q(0, 1): 5 * tu.GHz, cirq.q(0, 2): 8 * tu.GHz},
-        {(cirq.q(0, 0), cirq.q(0, 1)): 0 * tu.MHz, (cirq.q(0, 1), cirq.q(0, 2)): 0 * tu.MHz},
+        {coupler1: 0 * tu.MHz, coupler2: 0 * tu.MHz},
         False,
     )
     assert analog_traj.full_trajectory[3] == atu.FrequencyMap(
         35 * tu.ns,
         {cirq.q(0, 0): None, cirq.q(0, 1): 5 * tu.GHz, cirq.q(0, 2): 8 * tu.GHz},
-        {(cirq.q(0, 0), cirq.q(0, 1)): 0 * tu.MHz, (cirq.q(0, 1), cirq.q(0, 2)): 0 * tu.MHz},
+        {coupler1: 0 * tu.MHz, coupler2: 0 * tu.MHz},
         True,
     )
     assert analog_traj.full_trajectory[4] == atu.FrequencyMap(
         40 * tu.ns,
         {cirq.q(0, 0): 8 * tu.GHz, cirq.q(0, 1): None, cirq.q(0, 2): None},
-        {(cirq.q(0, 0), cirq.q(0, 1)): 5 * tu.MHz, (cirq.q(0, 1), cirq.q(0, 2)): 8 * tu.MHz},
+        {coupler1: 5 * tu.MHz, coupler2: 8 * tu.MHz},
         False,
     )
 
@@ -109,36 +116,38 @@ def test_get_full_trajectory_with_resolved_idles(sparse_trajectory: list[FreqMap
     resolved_full_traj = analog_traj.get_full_trajectory_with_resolved_idles(
         {cirq.q(0, 0): 5 * tu.GHz, cirq.q(0, 1): 6 * tu.GHz, cirq.q(0, 2): 7 * tu.GHz}
     )
+    coupler1 = cg.Coupler(cirq.q(0, 0), cirq.q(0, 1))
+    coupler2 = cg.Coupler(cirq.q(0, 1), cirq.q(0, 2))
 
     assert len(resolved_full_traj) == 5
     assert resolved_full_traj[0] == atu.FrequencyMap(
         0 * tu.ns,
         {cirq.q(0, 0): 5 * tu.GHz, cirq.q(0, 1): 6 * tu.GHz, cirq.q(0, 2): 7 * tu.GHz},
-        {(cirq.q(0, 0), cirq.q(0, 1)): 0 * tu.MHz, (cirq.q(0, 1), cirq.q(0, 2)): 0 * tu.MHz},
+        {coupler1: 0 * tu.MHz, coupler2: 0 * tu.MHz},
         False,
     )
     assert resolved_full_traj[1] == atu.FrequencyMap(
         20 * tu.ns,
         {cirq.q(0, 0): 5 * tu.GHz, cirq.q(0, 1): 5 * tu.GHz, cirq.q(0, 2): 7 * tu.GHz},
-        {(cirq.q(0, 0), cirq.q(0, 1)): 0 * tu.MHz, (cirq.q(0, 1), cirq.q(0, 2)): 0 * tu.MHz},
+        {coupler1: 0 * tu.MHz, coupler2: 0 * tu.MHz},
         False,
     )
     assert resolved_full_traj[2] == atu.FrequencyMap(
         30 * tu.ns,
         {cirq.q(0, 0): 5 * tu.GHz, cirq.q(0, 1): 5 * tu.GHz, cirq.q(0, 2): 8 * tu.GHz},
-        {(cirq.q(0, 0), cirq.q(0, 1)): 0 * tu.MHz, (cirq.q(0, 1), cirq.q(0, 2)): 0 * tu.MHz},
+        {coupler1: 0 * tu.MHz, coupler2: 0 * tu.MHz},
         False,
     )
     assert resolved_full_traj[3] == atu.FrequencyMap(
         35 * tu.ns,
         {cirq.q(0, 0): 5 * tu.GHz, cirq.q(0, 1): 5 * tu.GHz, cirq.q(0, 2): 8 * tu.GHz},
-        {(cirq.q(0, 0), cirq.q(0, 1)): 0 * tu.MHz, (cirq.q(0, 1), cirq.q(0, 2)): 0 * tu.MHz},
+        {coupler1: 0 * tu.MHz, coupler2: 0 * tu.MHz},
         True,
     )
     assert resolved_full_traj[4] == atu.FrequencyMap(
         40 * tu.ns,
         {cirq.q(0, 0): 8 * tu.GHz, cirq.q(0, 1): 6 * tu.GHz, cirq.q(0, 2): 7 * tu.GHz},
-        {(cirq.q(0, 0), cirq.q(0, 1)): 5 * tu.MHz, (cirq.q(0, 1), cirq.q(0, 2)): 8 * tu.MHz},
+        {coupler1: 5 * tu.MHz, coupler2: 8 * tu.MHz},
         False,
     )
 

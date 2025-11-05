@@ -22,6 +22,7 @@ import numpy as np
 import tunits as tu
 
 import cirq
+from cirq_google.ops import coupler as cgc
 from cirq_google.study import symbol_util as su
 
 if TYPE_CHECKING:
@@ -41,7 +42,7 @@ class FrequencyMap:
 
     duration: su.ValueOrSymbol
     qubit_freqs: dict[cirq.Qid, su.ValueOrSymbol | None]
-    couplings: dict[tuple[cirq.Qid, cirq.Qid], su.ValueOrSymbol]
+    couplings: dict[cgc.Coupler, su.ValueOrSymbol]
     is_wait_step: bool
 
     def _is_parameterized_(self) -> bool:
@@ -87,7 +88,7 @@ class AnalogTrajectory:
         *,
         full_trajectory: list[FrequencyMap],
         qubits: list[cirq.Qid],
-        pairs: list[tuple[cirq.Qid, cirq.Qid]],
+        pairs: list[cgc.Coupler],
     ):
         self.full_trajectory = full_trajectory
         self.qubits = qubits
@@ -100,11 +101,11 @@ class AnalogTrajectory:
             tuple[
                 tu.Value,
                 dict[cirq.Qid, su.ValueOrSymbol | None],
-                dict[tuple[cirq.Qid, cirq.Qid], su.ValueOrSymbol],
+                dict[tuple[cirq.Qid, cirq.Qid] | cgc.Coupler, su.ValueOrSymbol],
             ],
         ],
         qubits: list[cirq.Qid] | None = None,
-        pairs: list[tuple[cirq.Qid, cirq.Qid]] | None = None,
+        pairs: list[tuple[cirq.Qid, cirq.Qid] | cgc.Coupler] | None = None,
     ):
         """Construct AnalogTrajectory from sparse trajectory.
 
@@ -129,12 +130,18 @@ class AnalogTrajectory:
             qubits = list(set(qubits_in_traj))
             pairs = list(set(pairs_in_traj))
 
+        def _to_coupler(pair: tuple[cirq.Qid, cirq.Qid] | cgc.Coupler) -> cgc.Coupler:
+            return pair if isinstance(pair, cgc.Coupler) else cgc.Coupler(*pair)
+
+        pairs = [_to_coupler(pair) for pair in pairs]  # Convert to coupler always.
+
         full_trajectory: list[FrequencyMap] = []
         init_qubit_freq_dict: dict[cirq.Qid, tu.Value | None] = {q: None for q in qubits}
-        init_g_dict: dict[tuple[cirq.Qid, cirq.Qid], tu.Value] = {p: 0 * tu.MHz for p in pairs}
+        init_g_dict: dict[cgc.Coupler, tu.Value] = {p: 0 * tu.MHz for p in pairs}
         full_trajectory.append(FrequencyMap(0 * tu.ns, init_qubit_freq_dict, init_g_dict, False))
 
         for dt, qubit_freq_dict, g_dict in sparse_trajectory:
+            g_dict = {_to_coupler(p): g for p, g in g_dict.items()}  # Convert to coupler always.
             # When both qubit_freq_dict and g_dict is empty, it is a wait step.
             is_wait_step = not (qubit_freq_dict or g_dict)
             # If no freq provided, set equal to previous
@@ -142,8 +149,8 @@ class AnalogTrajectory:
                 q: qubit_freq_dict.get(q, full_trajectory[-1].qubit_freqs.get(q)) for q in qubits
             }
             # If no g provided, set equal to previous
-            new_g_dict: dict[tuple[cirq.Qid, cirq.Qid], tu.Value] = {
-                p: g_dict.get(p, full_trajectory[-1].couplings.get(p)) for p in pairs  # type: ignore[misc]
+            new_g_dict: dict[cgc.Coupler, tu.Value] = {
+                _to_coupler(p): g_dict.get(p, full_trajectory[-1].couplings.get(p)) for p in pairs
             }
 
             full_trajectory.append(FrequencyMap(dt, new_qubit_freq_dict, new_g_dict, is_wait_step))
