@@ -166,7 +166,7 @@ def test_analog_traj_plot() -> None:
     traj1: FreqMapType = (
         5 * tu.ns,
         {cirq.q(0, 1): sympy.Symbol("qf")},
-        {(cirq.q(0, 0), cirq.q(0, 1)): 2 * tu.MHz},
+        {cg.Coupler(cirq.q(0, 0), cirq.q(0, 1)): 2 * tu.MHz},
     )
     traj2: FreqMapType = (sympy.Symbol("t"), {cirq.q(0, 2): 8 * tu.GHz}, {})
     analog_traj = atu.AnalogTrajectory.from_sparse_trajectory([traj1, traj2])

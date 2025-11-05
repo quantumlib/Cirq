@@ -37,9 +37,9 @@ def _to_grid_qubit(qubit_name: str) -> cirq.GridQubit:
     return cirq.GridQubit(int(match[1]), int(match[2]))
 
 
-def _coupler_name_from_qubit_pair(qubit_pair: tuple[str, str]) -> str:
-    sorted_pair = sorted(qubit_pair, key=_to_grid_qubit)
-    return f"c_{sorted_pair[0]}_{sorted_pair[1]}"
+def _coupler_name(coupler: cgc.Coupler) -> str:
+    q1, q2 = sorted(coupler.qubits)
+    return f"c_q{q1.row}_{q1.col}_q{q2.row}_{q2.col}"
 
 
 def _get_neighbor_coupler_freqs(
@@ -47,7 +47,7 @@ def _get_neighbor_coupler_freqs(
 ) -> dict[str, su.ValueOrSymbol]:
     """Get neighbor coupler coupling strength g given qubit name."""
     return {
-        _coupler_name_from_qubit_pair(coupler.qubits): g
+        _coupler_name(coupler): g
         for coupler, g in coupler_g_dict.items()
         if qubit in coupler.qubits
     }

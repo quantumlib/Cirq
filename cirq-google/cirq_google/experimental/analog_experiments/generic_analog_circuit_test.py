@@ -44,16 +44,16 @@ def test_to_grid_qubit() -> None:
 
 
 def test_coupler_name_from_qubit_pair() -> None:
-    pair = ("q0_0", "q0_1")
-    coupler_name = gac._coupler_name_from_qubit_pair(pair)
+    pair = cg.Coupler(cirq.q(0, 0), cirq.q(0, 1))
+    coupler_name = gac._coupler_name(pair)
     assert coupler_name == "c_q0_0_q0_1"
 
-    pair = ("q9_0", "q10_0")
-    coupler_name = gac._coupler_name_from_qubit_pair(pair)
+    pair = cg.Coupler(cirq.q(9, 0), cirq.q(10, 0))
+    coupler_name = gac._coupler_name(pair)
     assert coupler_name == "c_q9_0_q10_0"
 
-    pair = ("q7_8", "q7_7")
-    coupler_name = gac._coupler_name_from_qubit_pair(pair)
+    pair = cg.Coupler(cirq.q(7, 8), cirq.q(7, 7))
+    coupler_name = gac._coupler_name(pair)
     assert coupler_name == "c_q7_7_q7_8"
 
 
@@ -141,7 +141,11 @@ def test_generic_analog_make_circuit() -> None:
         [
             (5 * tu.ns, {q0: 5 * tu.GHz}, {}),
             (sympy.Symbol('t'), {}, {}),
-            (10 * tu.ns, {q0: 8 * tu.GHz, q1: sympy.Symbol('f')}, {(q0, q1): -5 * tu.MHz}),
+            (
+                10 * tu.ns,
+                {q0: 8 * tu.GHz, q1: sympy.Symbol('f')},
+                {cg.Coupler(q0, q1): -5 * tu.MHz},
+            ),
             (3 * tu.ns, {}, {}),
             (2 * tu.ns, {q1: 4 * tu.GHz}, {}),
         ]
