@@ -39,7 +39,7 @@ def _to_grid_qubit(qubit_name: str) -> cirq.GridQubit:
 
 def _coupler_name(coupler: cgc.Coupler) -> str:
     q1, q2 = sorted(coupler.qubits)
-    return f"c_q{q1.row}_{q1.col}_q{q2.row}_{q2.col}"  # type: ignore[return-value]
+    return f"c_q{q1.row}_{q1.col}_q{q2.row}_{q2.col}"  # type: ignore[attr-defined]
 
 
 def _get_neighbor_coupler_freqs(
