@@ -150,7 +150,7 @@ class AnalogTrajectory:
             }
             # If no g provided, set equal to previous
             new_g_dict: dict[cgc.Coupler, tu.Value] = {
-                _to_coupler(p): g_dict.get(p, full_trajectory[-1].couplings.get(p)) for p in pairs  # type: ignore[arg-type]
+                _to_coupler(p): g_dict.get(p, full_trajectory[-1].couplings.get(p)) for p in pairs  # type: ignore[misc]
             }
 
             full_trajectory.append(FrequencyMap(dt, new_qubit_freq_dict, new_g_dict, is_wait_step))

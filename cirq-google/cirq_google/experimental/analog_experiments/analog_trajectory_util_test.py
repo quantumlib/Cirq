@@ -27,8 +27,8 @@ def freq_map() -> atu.FrequencyMap:
         10 * tu.ns,
         {cirq.q(0, 0): 5 * tu.GHz, cirq.q(0, 1): 6 * tu.GHz, cirq.q(0, 2): sympy.Symbol("f_q0_2")},
         {
-            (cirq.q(0, 0), cirq.q(0, 1)): 5 * tu.MHz,
-            (cirq.q(0, 1), cirq.q(0, 2)): sympy.Symbol("g_q0_1_q0_2"),
+            cg.Coupler(cirq.q(0, 0), cirq.q(0, 1)): 5 * tu.MHz,
+            cg.Coupler(cirq.q(0, 1), cirq.q(0, 2)): sympy.Symbol("g_q0_1_q0_2"),
         },
         False,
     )
@@ -46,14 +46,15 @@ def test_freq_map_resolve(freq_map: atu.FrequencyMap) -> None:
     assert resolved_freq_map == atu.FrequencyMap(
         10 * tu.ns,
         {cirq.q(0, 0): 5 * tu.GHz, cirq.q(0, 1): 6 * tu.GHz, cirq.q(0, 2): 6 * tu.GHz},
-        {(cirq.q(0, 0), cirq.q(0, 1)): 5 * tu.MHz, (cirq.q(0, 1), cirq.q(0, 2)): 7 * tu.MHz},
+        {
+            cg.Coupler(cirq.q(0, 0), cirq.q(0, 1)): 5 * tu.MHz,
+            cg.Coupler(cirq.q(0, 1), cirq.q(0, 2)): 7 * tu.MHz,
+        },
         False,
     )
 
 
-FreqMapType = tuple[
-    tu.Value, dict[cirq.Qid, tu.Value | None], dict[tuple[cirq.Qid, cirq.Qid], tu.Value]
-]
+FreqMapType = tuple[tu.Value, dict[cirq.Qid, tu.Value | None], dict[cg.Coupler, tu.Value]]
 
 
 @pytest.fixture

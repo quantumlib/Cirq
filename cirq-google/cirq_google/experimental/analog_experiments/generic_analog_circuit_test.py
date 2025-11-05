@@ -87,8 +87,8 @@ def test_make_one_moment_of_generic_analog_circuit() -> None:
         w=3 * tu.ns,
         target_freq=5 * tu.GHz,
         prev_freq=4 * tu.GHz,
-        neighbor_coupler_g_dict={pair1: 5 * tu.MHz},
-        prev_neighbor_coupler_g_dict={pair1: 2 * tu.MHz},
+        neighbor_coupler_g_dict={"c_q0_0_q0_1": 5 * tu.MHz},
+        prev_neighbor_coupler_g_dict={"c_q0_0_q0_1": 2 * tu.MHz},
         linear_rise=True,
     ).on(cirq.GridQubit(0, 0))
     assert moment.operations[1] == AnalogDetuneQubit(
@@ -96,8 +96,8 @@ def test_make_one_moment_of_generic_analog_circuit() -> None:
         w=3 * tu.ns,
         target_freq=6 * tu.GHz,
         prev_freq=6 * tu.GHz,
-        neighbor_coupler_g_dict={pair1: 5 * tu.MHz, pair2: 6 * tu.MHz},
-        prev_neighbor_coupler_g_dict={pair1: 2 * tu.MHz, pair2: 3 * tu.MHz},
+        neighbor_coupler_g_dict={"c_q0_0_q0_1": 5 * tu.MHz, "c_q0_1_q0_2": 6 * tu.MHz},
+        prev_neighbor_coupler_g_dict={"c_q0_0_q0_1": 2 * tu.MHz, "c_q0_1_q0_2": 3 * tu.MHz},
         linear_rise=True,
     ).on(cirq.GridQubit(0, 1))
     assert moment.operations[2] == AnalogDetuneQubit(
@@ -105,8 +105,8 @@ def test_make_one_moment_of_generic_analog_circuit() -> None:
         w=3 * tu.ns,
         target_freq=sympy.Symbol("f_q0_2"),
         prev_freq=sympy.Symbol("f_q0_2"),
-        neighbor_coupler_g_dict={pair2: 6 * tu.MHz},
-        prev_neighbor_coupler_g_dict={pair2: 3 * tu.MHz},
+        neighbor_coupler_g_dict={"c_q0_1_q0_2": 6 * tu.MHz},
+        prev_neighbor_coupler_g_dict={"c_q0_1_q0_2": 3 * tu.MHz},
         linear_rise=True,
     ).on(cirq.GridQubit(0, 2))
 
