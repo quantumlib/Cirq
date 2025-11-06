@@ -110,7 +110,7 @@ if [[ -n "${specified_version}" ]]; then
 fi
 
 # Python 3 wheel.
-echo "Producing python 3 package files."
+echo "Producing Python 3 package files."
 
 # Reuse SOURCE_DATE_EPOCH if specified in the caller environment
 date_epoch=${SOURCE_DATE_EPOCH:-$(git log -1 --pretty="%ct")}
