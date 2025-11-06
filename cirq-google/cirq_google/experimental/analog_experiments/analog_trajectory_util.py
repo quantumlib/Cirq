@@ -167,12 +167,18 @@ class AnalogTrajectory:
     def plot(
         self,
         idle_freq_map: dict[cirq.Qid, tu.Value] | None = None,
-        default_idle_freq: tu.Value = 6.5 * tu.GHz,
         resolver: cirq.ParamResolverOrSimilarType | None = None,
         axes: tuple[Axes, Axes] | None = None,
     ) -> tuple[Axes, Axes]:
         if idle_freq_map is None:
-            idle_freq_map = {q: default_idle_freq for q in self.qubits}
+            # Because we use relative frequencies and we do not expose the idle frequencies,
+            # we randomly assign idle frequencies for plotting purposes only.
+            idle_freq_map = {q: np.random.randn() * 50 * tu.MHz for q in self.qubits}
+        else:
+            for q in self.qubits:
+                if q not in idle_freq_map:  # Fill in missing idle freqs
+                    idle_freq_map[q] = np.random.randn() * 50 * tu.MHz
+
         full_trajectory_resolved = cirq.resolve_parameters(
             self.get_full_trajectory_with_resolved_idles(idle_freq_map), resolver
         )
