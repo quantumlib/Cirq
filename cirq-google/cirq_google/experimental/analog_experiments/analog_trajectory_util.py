@@ -174,7 +174,7 @@ class AnalogTrajectory:
             # Because we use relative frequencies and we do not expose the idle frequencies,
             # we randomly assign idle frequencies for plotting purposes only.
             idle_freq_map = {q: np.random.randn() * 50 * tu.MHz for q in self.qubits}
-        else:
+        else:  # pragma: no cover
             for q in self.qubits:
                 if q not in idle_freq_map:  # Fill in missing idle freqs
                     idle_freq_map[q] = np.random.randn() * 50 * tu.MHz
