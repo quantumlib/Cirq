@@ -665,55 +665,33 @@ class Engine(abstract_engine.AbstractEngine):
 
     get_processor_config = duet.sync(get_processor_config_async)
 
-    async def list_configs_from_run_async(
-        self, processor_id: str, run_name: str = 'default'
+    async def list_configs_async(
+        self, processor_id: str,
+        device_version: processor_config.DeviceVersion = processor_config.Run(id='current'),
     ) -> list[processor_config.ProcessorConfig]:
         """Returns list of ProcessorConfigs from an automation run.
 
-        If no run_name is specified, `default` is used.
-
         Args:
             processor_id: The processor unique identifier.
-            run_name: The unique identifier for the automation run.
+            device_version: Specifies either the snapshot_id or the run_name.
 
         Returns:
             List of ProcessorConfigs.
         """
-        configs = await self.context.client.list_quantum_processor_configs_from_run_async(
-            project_id=self.project_id, processor_id=processor_id, run_name=run_name
+        configs = await self.context.client.list_quantum_processor_configs_async(
+            project_id=self.project_id, processor_id=processor_id, device_version=device_version
         )
 
         return [
             processor_config.ProcessorConfig(
-                quantum_processor_config=quantum_config, run_name=run_name
+                quantum_processor_config=quantum_config,
+                processor=self.get_processor(processor_id=processor_id),
+                device_version=device_version
             )
             for quantum_config in configs
         ]
 
-    list_configs_from_run = duet.sync(list_configs_from_run_async)
-
-    async def list_configs_from_snapshot_async(
-        self, processor_id: str, snapshot_id: str
-    ) -> list[processor_config.ProcessorConfig]:
-        """Returns list of ProcessorConfigs from the given snapshot.
-
-        Args:
-           processor_id: The processor unique identifier.
-           snapshot_id: The unique identifier for the snapshot.
-
-        Returns:
-           The ProcessorConfig from this project and processor.
-        """
-        configs = await self.context.client.list_quantum_processor_configs_from_snapshot_async(
-            project_id=self.project_id, processor_id=processor_id, snapshot_id=snapshot_id
-        )
-
-        return [
-            processor_config.ProcessorConfig(quantum_processor_config=quantum_config)
-            for quantum_config in configs
-        ]
-
-    list_configs_from_snapshot = duet.sync(list_configs_from_snapshot_async)
+    list_configs = duet.sync(list_configs_async)
 
 
 def get_engine(project_id: str | None = None) -> Engine:

@@ -1221,6 +1221,34 @@ class EngineClient:
 
     get_quantum_processor_config = duet.sync(get_quantum_processor_config_async)
 
+    async def list_quantum_processor_configs_async (
+        self,
+        project_id: str,
+        processor_id: str,
+        device_version: DeviceVersion = Run(id='current'),
+    ) -> list[quantum.QuantumProcessorConfig]:
+        """Returns the QuantumProcessorConfig for the given snapshot id.
+
+        Args:
+            project_id: A project_id of the parent Google Cloud Project.
+            processor_id: The processor unique identifier.
+            device_version: Specifies either the snapshot_id or the run_name.
+
+        Returns:
+            List of quantum procesor configs.
+        """
+        parent_resource_name = _quantum_processor_config_name_from_device_version(
+            project_id=project_id,
+            processor_id=processor_id,
+            device_version=device_version,
+        )
+        request = quantum.ListQuantumProcessorConfigsRequest(parent=parent_resource_name)
+        return await self._send_list_request_async(
+            self.grpc_client.list_quantum_processor_configs, request=request
+        )
+
+    list_quantum_processor_configs = duet.sync(list_quantum_processor_configs_async)
+    
 
 def _project_name(project_id: str) -> str:
     return f'projects/{project_id}'
@@ -1273,7 +1301,7 @@ def _ids_from_calibration_name(calibration_name: str) -> tuple[str, str, int]:
 def _quantum_processor_config_name_from_device_version(
     project_id: str,
     processor_id: str,
-    config_name: str,
+    config_name: str | None = None,
     device_version: DeviceVersion | None = None,
 ) -> str:
     processor_resource_name = _processor_name_from_ids(project_id, processor_id)
@@ -1287,7 +1315,7 @@ def _quantum_processor_config_name_from_device_version(
     return (
         f'{processor_resource_name}/'
         f'configAutomationRuns/{device_version.id if device_version else default_run_name}/'
-        f'configs/{config_name}'
+        f'configs/{config_name}' if config_name else ''
     )
 
 

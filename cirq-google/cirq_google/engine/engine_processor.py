@@ -530,38 +530,23 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             config_name=config_name if config_name else default_device_key.config_alias,
         )
 
-    def list_configs_from_snapshot(
-        self, snapshot_id: str
+    def list_configs(
+        self, device_version: processor_config.DeviceVersion | None = None
     ) -> list[processor_config.ProcessorConfig]:
         """Returns list of ProcessorConfigs from the given snapshot.
 
         Args:
            processor_id: The processor unique identifier.
-           snapshot_id: The unique identifier for the snapshot.
+           device_version: Specifies either the snapshot_id or the run_name.
 
         Returns:
-           The ProcessorConfig from this project and processor.
+           List of ProcessorConfigs for this processor.
         """
-        return self.engine().list_configs_from_snapshot(
-            processor_id=self.processor_id, snapshot_id=snapshot_id
-        )
-
-    def list_configs_from_run(
-        self, run_name: str = 'default'
-    ) -> list[processor_config.ProcessorConfig]:
-        """Returns list of ProcessorConfigs from an automation run.
-
-        If no run_name is specified, `default` is used.
-
-        Args:
-            processor_id: The processor unique identifier.
-            run_name: The unique identifier for the automation run.
-
-        Returns:
-            List of ProcessorConfigs.
-        """
-        return self.engine().list_configs_from_run(
-            processor_id=self.processor_id, run_name=run_name
+        return self.engine().list_configs(
+            processor_id=self.processor_id,
+            device_version=(
+                device_version if device_version else processor_config.Run(default_device_key.run)
+            )
         )
 
     def __str__(self):

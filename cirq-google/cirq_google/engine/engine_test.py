@@ -1035,12 +1035,12 @@ def test_get_processor_config_from_snapshot_none(get_quantum_config_async):
 
 
 @mock.patch(
-    'cirq_google.engine.engine_client.EngineClient.list_quantum_processor_configs_from_run_async'
+    'cirq_google.engine.engine_client.EngineClient.list_quantum_processor_configs_async'
 )
 def test_list_configs_from_run(list_configs_async):
     project_id = "test_project_id"
     processor_id = "test_processor_id"
-    run_name = "test_run_name"
+    run = Run(id="test_run_name")
     snapshot_id = 'test_snapshot_id'
     response_parent_resource = (
         f'projects/{project_id}/' f'processors/{processor_id}/' f'configSnapshots/{snapshot_id}'
@@ -1052,29 +1052,28 @@ def test_list_configs_from_run(list_configs_async):
 
     list_configs_async.return_value = expected_configs
 
-    results = cg.Engine(project_id=project_id).list_configs_from_run(
-        processor_id=processor_id, run_name=run_name
-    )
+    results = cg.Engine(project_id=project_id).list_configs(
+        processor_id=processor_id, device_version=run)
 
     list_configs_async.assert_called_once_with(
-        project_id=project_id, processor_id=processor_id, run_name=run_name
+        project_id=project_id, processor_id=processor_id, device_version=run
     )
     assert [
         (config.config_name, config.processor_id, config.run_name, config.snapshot_id)
         for config in results
     ] == [
-        ('test_config_1', processor_id, run_name, snapshot_id),
-        ('test_config_2', processor_id, run_name, snapshot_id),
+        ('test_config_1', processor_id, run.id, snapshot_id),
+        ('test_config_2', processor_id, run.id, snapshot_id),
     ]
 
 
 @mock.patch(
-    'cirq_google.engine.engine_client.EngineClient.list_quantum_processor_configs_from_run_async'
+    'cirq_google.engine.engine_client.EngineClient.list_quantum_processor_configs_async'
 )
 def test_list_configs_from_run_default(list_configs_async):
     project_id = "test_project_id"
     processor_id = "test_processor_id"
-    default_run_name = "default"
+    default_run = Run(id="current")
     snapshot_id = "test_snapshot_id"
     response_parent_resource = (
         f'projects/{project_id}/' f'processors/{processor_id}/' f'configSnapshots/{snapshot_id}'
@@ -1086,29 +1085,29 @@ def test_list_configs_from_run_default(list_configs_async):
 
     list_configs_async.return_value = expected_configs
 
-    results = cg.Engine(project_id=project_id).list_configs_from_run(processor_id=processor_id)
+    results = cg.Engine(project_id=project_id).list_configs(processor_id=processor_id)
 
     list_configs_async.assert_called_once_with(
-        project_id=project_id, processor_id=processor_id, run_name=default_run_name
+        project_id=project_id, processor_id=processor_id, device_version=default_run
     )
     assert [
         (config.config_name, config.processor_id, config.run_name, config.snapshot_id)
         for config in results
     ] == [
-        ('test_config_1', processor_id, default_run_name, snapshot_id),
-        ('test_config_2', processor_id, default_run_name, snapshot_id),
+        ('test_config_1', processor_id, default_run.id, snapshot_id),
+        ('test_config_2', processor_id, default_run.id, snapshot_id),
     ]
 
 
 @mock.patch(
-    'cirq_google.engine.engine_client.EngineClient.list_quantum_processor_configs_from_snapshot_async'
+    'cirq_google.engine.engine_client.EngineClient.list_quantum_processor_configs_async'
 )
 def test_list_configs_from_snapshot(list_configs_async):
     project_id = "test_project_id"
     processor_id = "test_processor_id"
-    snapshot_id = "test_snapshot_id"
+    snapshot = Snapshot(id="test_snapshot_id")
     response_parent_resource = (
-        f'projects/{project_id}/' f'processors/{processor_id}/' f'configSnapshots/{snapshot_id}'
+        f'projects/{project_id}/' f'processors/{processor_id}/' f'configSnapshots/{snapshot.id}'
     )
     expected_configs = [
         quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_1'),
@@ -1117,17 +1116,17 @@ def test_list_configs_from_snapshot(list_configs_async):
 
     list_configs_async.return_value = expected_configs
 
-    results = cg.Engine(project_id=project_id).list_configs_from_snapshot(
-        processor_id=processor_id, snapshot_id=snapshot_id
+    results = cg.Engine(project_id=project_id).list_configs(
+        processor_id=processor_id, device_version=snapshot
     )
 
     list_configs_async.assert_called_once_with(
-        project_id=project_id, processor_id=processor_id, snapshot_id=snapshot_id
+        project_id=project_id, processor_id=processor_id, device_version=snapshot
     )
     assert [
         (config.config_name, config.processor_id, config.run_name, config.snapshot_id)
         for config in results
     ] == [
-        ('test_config_1', processor_id, '', snapshot_id),
-        ('test_config_2', processor_id, '', snapshot_id),
+        ('test_config_1', processor_id, '', snapshot.id),
+        ('test_config_2', processor_id, '', snapshot.id),
     ]
