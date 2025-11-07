@@ -666,7 +666,8 @@ class Engine(abstract_engine.AbstractEngine):
     get_processor_config = duet.sync(get_processor_config_async)
 
     async def list_configs_async(
-        self, processor_id: str,
+        self,
+        processor_id: str,
         device_version: processor_config.DeviceVersion = processor_config.Run(id='current'),
     ) -> list[processor_config.ProcessorConfig]:
         """Returns list of ProcessorConfigs from an automation run.
@@ -686,7 +687,7 @@ class Engine(abstract_engine.AbstractEngine):
             processor_config.ProcessorConfig(
                 quantum_processor_config=quantum_config,
                 processor=self.get_processor(processor_id=processor_id),
-                device_version=device_version
+                device_version=device_version,
             )
             for quantum_config in configs
         ]

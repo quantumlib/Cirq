@@ -1034,9 +1034,7 @@ def test_get_processor_config_from_snapshot_none(get_quantum_config_async):
     assert result is None
 
 
-@mock.patch(
-    'cirq_google.engine.engine_client.EngineClient.list_quantum_processor_configs_async'
-)
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_quantum_processor_configs_async')
 def test_list_configs_from_run(list_configs_async):
     project_id = "test_project_id"
     processor_id = "test_processor_id"
@@ -1053,7 +1051,8 @@ def test_list_configs_from_run(list_configs_async):
     list_configs_async.return_value = expected_configs
 
     results = cg.Engine(project_id=project_id).list_configs(
-        processor_id=processor_id, device_version=run)
+        processor_id=processor_id, device_version=run
+    )
 
     list_configs_async.assert_called_once_with(
         project_id=project_id, processor_id=processor_id, device_version=run
@@ -1067,9 +1066,7 @@ def test_list_configs_from_run(list_configs_async):
     ]
 
 
-@mock.patch(
-    'cirq_google.engine.engine_client.EngineClient.list_quantum_processor_configs_async'
-)
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_quantum_processor_configs_async')
 def test_list_configs_from_run_default(list_configs_async):
     project_id = "test_project_id"
     processor_id = "test_processor_id"
@@ -1099,9 +1096,7 @@ def test_list_configs_from_run_default(list_configs_async):
     ]
 
 
-@mock.patch(
-    'cirq_google.engine.engine_client.EngineClient.list_quantum_processor_configs_async'
-)
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_quantum_processor_configs_async')
 def test_list_configs_from_snapshot(list_configs_async):
     project_id = "test_project_id"
     processor_id = "test_processor_id"

@@ -542,11 +542,12 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         Returns:
            List of ProcessorConfigs for this processor.
         """
+        default_device_key = self._inner_processor().default_device_config_key
         return self.engine().list_configs(
             processor_id=self.processor_id,
             device_version=(
                 device_version if device_version else processor_config.Run(default_device_key.run)
-            )
+            ),
         )
 
     def __str__(self):
