@@ -49,7 +49,6 @@ from cirq_google.engine import (
 from cirq_google.serialization import CIRCUIT_SERIALIZER, Serializer
 
 if TYPE_CHECKING:
-    import google.protobuf
     from google.protobuf import any_pb2
 
     import cirq_google
@@ -593,23 +592,18 @@ class Engine(abstract_engine.AbstractEngine):
     def get_sampler(
         self,
         processor_id: str | list[str],
-        run_name: str = "",
-        device_config_name: str = "",
-        snapshot_id: str = "",
+        device_config_name: str | None = None,
+        device_version: processor_config.DeviceVersion | None = None,
         max_concurrent_jobs: int = 100,
     ) -> cirq_google.ProcessorSampler:
         """Returns a sampler backed by the engine.
 
         Args:
             processor_id: String identifier of which processor should be used to sample.
-            run_name: A unique identifier representing an automation run for the
-                processor. An Automation Run contains a collection of device
-                configurations for the processor.
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
-            snapshot_id: A unique identifier for an immutable snapshot reference. A
-                snapshot contains a collection of device configurations for the processor.
+            device_version: Specifies either the snapshot_id or the run_name.
             max_concurrent_jobs: The maximum number of jobs to be sent
                 concurrently to the Engine. This client-side throttle can be
                 used to proactively reduce load to the backends and avoid quota
@@ -629,41 +623,18 @@ class Engine(abstract_engine.AbstractEngine):
                 'to get_sampler() no longer supported. Use Engine.run() instead if '
                 'you need to specify a list.'
             )
+
         return self.get_processor(processor_id).get_sampler(
-            run_name=run_name,
             device_config_name=device_config_name,
-            snapshot_id=snapshot_id,
+            device_version=device_version,
             max_concurrent_jobs=max_concurrent_jobs,
         )
 
-    async def get_processor_config_from_snapshot_async(
-        self, processor_id: str, snapshot_id: str, config_name: str = 'default'
-    ) -> processor_config.ProcessorConfig | None:
-        """Returns a ProcessorConfig from this project and the given processor id.
-
-        Args:
-           processor_id: The processor unique identifier.
-           snapshot_id: The unique identifier for the snapshot.
-           config_name: The identifier for the config.
-
-        Returns:
-           The ProcessorConfig from this project and processor.
-        """
-        client = self.context.client
-        quantum_config = await client.get_quantum_processor_config_from_snapshot_async(
-            project_id=self.project_id,
-            processor_id=processor_id,
-            snapshot_id=snapshot_id,
-            config_name=config_name,
-        )
-        if quantum_config:
-            return processor_config.ProcessorConfig(quantum_processor_config=quantum_config)
-        return None
-
-    get_processor_config_from_snapshot = duet.sync(get_processor_config_from_snapshot_async)
-
-    async def get_processor_config_from_run_async(
-        self, processor_id: str, run_name: str = 'current', config_name: str = 'default'
+    async def get_processor_config_async(
+        self,
+        processor_id: str,
+        device_version: processor_config.DeviceVersion = processor_config.Run(id='current'),
+        config_name: str = 'default',
     ) -> processor_config.ProcessorConfig | None:
         """Returns a ProcessorConfig from this project and the given processor id.
 
@@ -672,25 +643,27 @@ class Engine(abstract_engine.AbstractEngine):
 
         Args:
             processor_id: The processor unique identifier.
-            run_name: The unique identifier for the automation run.
+            device_version: Specifies either the snapshot_id or the run_name.
             config_name: The identifier for the config.
 
         Returns:
             The ProcessorConfig from this project and processor.
         """
-        quantum_config = await self.context.client.get_quantum_processor_config_from_run_async(
+        quantum_config = await self.context.client.get_quantum_processor_config_async(
             project_id=self.project_id,
             processor_id=processor_id,
-            run_name=run_name,
+            device_version=device_version,
             config_name=config_name,
         )
         if quantum_config:
             return processor_config.ProcessorConfig(
-                quantum_processor_config=quantum_config, run_name=run_name
+                processor=self.get_processor(processor_id),
+                quantum_processor_config=quantum_config,
+                device_version=device_version,
             )
         return None
 
-    get_processor_config_from_run = duet.sync(get_processor_config_from_run_async)
+    get_processor_config = duet.sync(get_processor_config_async)
 
     async def list_configs_from_run_async(
         self, processor_id: str, run_name: str = 'default'

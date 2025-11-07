@@ -144,7 +144,7 @@ def test_gauge_on_cphase_moments():
     """  # noqa: E501
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     cphase_transformer = CPhaseGaugeTransformerMM()
-    for _ in range(5):
+    for seed in range(5):
         input_circuit = cirq.Circuit(
             cirq.Moment(cirq.CZ(q0, q1) ** 0.2, cirq.CZ(q2, q3)),
             cirq.Moment(cirq.CZ(q0, q2), cirq.CZ(q1, q3)),
@@ -155,7 +155,7 @@ def test_gauge_on_cphase_moments():
             cirq.Moment(cirq.CZ(q0, q1), cirq.CZ(q2, q3) ** 0.2),
         )
 
-        output_circuit = cphase_transformer(input_circuit)
+        output_circuit = cphase_transformer(input_circuit, rng_or_seed=seed)
         cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
             input_circuit, output_circuit, {q: q for q in input_circuit.all_qubits()}
         )

@@ -18,7 +18,6 @@ import numpy as np
 import pytest
 
 import cirq
-import cirq.testing
 
 # TODO: This and clifford tableau need tests.
 # Github issue: https://github.com/quantumlib/Cirq/issues/3021
