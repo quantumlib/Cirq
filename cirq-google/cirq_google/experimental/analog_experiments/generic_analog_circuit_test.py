@@ -43,7 +43,7 @@ def test_to_grid_qubit() -> None:
         gac._to_grid_qubit("q1")
 
 
-def test_coupler_name_from_qubit_pair() -> None:
+def test_get_coupler_name() -> None:
     pair = cg.Coupler(cirq.q(0, 0), cirq.q(0, 1))
     coupler_name = gac._coupler_name(pair)
     assert coupler_name == "c_q0_0_q0_1"
