@@ -120,7 +120,7 @@ class AnalogTrajectory:
                 detuning frequency or coupling strength will be set to the same value as the
                 previous value in the list.
             qubits: The qubits in interest. If not provided, automatically parsed from trajectory.
-            couplers: The couplers in interest. If not provided, automatically parsed from trajectory.
+            couplers: The couplers in interest. If not provided, auto. parsed from trajectory.
         """
         if qubits is None or couplers is None:
             qubits_in_traj: list[cirq.Qid] = []
