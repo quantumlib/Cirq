@@ -24,7 +24,7 @@ from cirq_google.study import symbol_util as su
 def _get_neighbor_freqs(
     coupler: cgc.Coupler, qubit_freq_dict: dict[cirq.Qid, su.ValueOrSymbol | None]
 ) -> tuple[su.ValueOrSymbol | None, su.ValueOrSymbol | None]:
-    """Get neighbor freqs from qubit_freq_dict given the pair."""
+    """Get neighbor freqs from qubit_freq_dict given the coupler."""
     sorted_pair = sorted(coupler.qubits)
     return (qubit_freq_dict[sorted_pair[0]], qubit_freq_dict[sorted_pair[1]])
 
@@ -60,12 +60,10 @@ class GenericAnalogCircuitBuilder:
     and couplers, using tu.Values from analog calibration whenever available.
 
     Attributes:
-        trajectory: AnalogTrajectory object defining the circuit
-        g_ramp_shaping: coupling ramps are shaped according to ramp_shape_exp if True
-        qubits: list of qubits in the circuit
-        pairs: list of couplers in the circuit
-        ramp_shape_exp: exponent of g_ramp (g proportional to t^ramp_shape_exp)
-        interpolate_coupling_cal: interpolates between calibrated coupling tu.Values if True
+        trajectory: AnalogTrajectory object defining the circuit.
+        g_ramp_shaping: coupling ramps are shaped according to ramp_shape_exp if True.
+        ramp_shape_exp: exponent of g_ramp (g proportional to t^ramp_shape_exp).
+        interpolate_coupling_cal: interpolates between calibrated coupling tu.Values if True.
         linear_qubit_ramp: if True, the qubit ramp is linear. if false, a cosine shaped
             ramp is used.
     """
@@ -122,23 +120,23 @@ class GenericAnalogCircuitBuilder:
                 ).on(q)
             )
         coupler_gates = []
-        for p, g_max in freq_map.couplings.items():
+        for c, g_max in freq_map.couplings.items():
             # Currently skipping the step if these are the same.
             # However, change in neighbor qubit freq could potentially change coupler amp
-            if g_max == prev_freq_map.couplings[p]:
+            if g_max == prev_freq_map.couplings[c]:
                 continue
 
             coupler_gates.append(
                 adg.AnalogDetuneCouplerOnly(
                     length=freq_map.duration,
                     w=freq_map.duration,
-                    g_0=prev_freq_map.couplings[p],
+                    g_0=prev_freq_map.couplings[c],
                     g_max=g_max,
                     g_ramp_exponent=self.ramp_shape_exp,
-                    neighbor_qubits_freq=_get_neighbor_freqs(p, freq_map.qubit_freqs),
-                    prev_neighbor_qubits_freq=_get_neighbor_freqs(p, prev_freq_map.qubit_freqs),
+                    neighbor_qubits_freq=_get_neighbor_freqs(c, freq_map.qubit_freqs),
+                    prev_neighbor_qubits_freq=_get_neighbor_freqs(c, prev_freq_map.qubit_freqs),
                     interpolate_coupling_cal=self.interpolate_coupling_cal,
-                ).on(p)
+                ).on(c)
             )
 
         return cirq.Moment(qubit_gates + coupler_gates)

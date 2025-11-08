@@ -89,11 +89,11 @@ class AnalogTrajectory:
         *,
         full_trajectory: list[FrequencyMap],
         qubits: list[cirq.Qid],
-        pairs: list[cgc.Coupler],
+        couplers: list[cgc.Coupler],
     ):
         self.full_trajectory = full_trajectory
         self.qubits = qubits
-        self.pairs = pairs
+        self.couplers = couplers
 
     @classmethod
     def from_sparse_trajectory(
@@ -106,34 +106,34 @@ class AnalogTrajectory:
             ],
         ],
         qubits: list[cirq.Qid] | None = None,
-        pairs: list[cgc.Coupler] | None = None,
+        couplers: list[cgc.Coupler] | None = None,
     ):
         """Construct AnalogTrajectory from sparse trajectory.
 
         Args:
             sparse_trajectory: A list of tuples, where each tuple defines a `FrequencyMap`
                 and contains three elements: (duration, qubit_freqs, coupling_strengths).
-                `duration` is a tunits value, `qubit_freqs` is a dictionary mapping qubit strings
+                `duration` is a tunits value, `qubit_freqs` is a dictionary mapping cirq qubits
                 to detuning frequencies, and `coupling_strengths` is a dictionary mapping
-                coupler to their coupling strength. This format is considered "sparse" because each
+                couplers to their coupling strength. This format is considered "sparse" because each
                 tuple does not need to fully specify all qubits and coupling pairs; any missing
                 detuning frequency or coupling strength will be set to the same value as the
                 previous value in the list.
             qubits: The qubits in interest. If not provided, automatically parsed from trajectory.
-            pairs: The pairs in interest. If not provided, automatically parsed from trajectory.
+            couplers: The couplers in interest. If not provided, automatically parsed from trajectory.
         """
-        if qubits is None or pairs is None:
+        if qubits is None or couplers is None:
             qubits_in_traj: list[cirq.Qid] = []
-            pairs_in_traj: list[cgc.Coupler] = []
+            couplers_in_traj: list[cgc.Coupler] = []
             for _, q, p in sparse_trajectory:
                 qubits_in_traj.extend(q.keys())
-                pairs_in_traj.extend(p.keys())
+                couplers_in_traj.extend(p.keys())
             qubits = list(set(qubits_in_traj))
-            pairs = list(set(pairs_in_traj))
+            couplers = list(set(couplers_in_traj))
 
         full_trajectory: list[FrequencyMap] = []
         init_qubit_freq_dict: dict[cirq.Qid, tu.Value | None] = {q: None for q in qubits}
-        init_g_dict: dict[cgc.Coupler, tu.Value] = {c: 0 * tu.MHz for c in pairs}
+        init_g_dict: dict[cgc.Coupler, tu.Value] = {c: 0 * tu.MHz for c in couplers}
         full_trajectory.append(FrequencyMap(0 * tu.ns, init_qubit_freq_dict, init_g_dict, False))
 
         for dt, qubit_freq_dict, g_dict in sparse_trajectory:
@@ -145,11 +145,11 @@ class AnalogTrajectory:
             }
             # If no g provided, set equal to previous
             new_g_dict: dict[cgc.Coupler, tu.Value] = {
-                c: g_dict.get(c, full_trajectory[-1].couplings.get(c)) for c in pairs  # type: ignore[misc]
+                c: g_dict.get(c, full_trajectory[-1].couplings.get(c)) for c in couplers  # type: ignore[misc]
             }
 
             full_trajectory.append(FrequencyMap(dt, new_qubit_freq_dict, new_g_dict, is_wait_step))
-        return cls(full_trajectory=full_trajectory, qubits=qubits, pairs=pairs)
+        return cls(full_trajectory=full_trajectory, qubits=qubits, couplers=couplers)
 
     def get_full_trajectory_with_resolved_idles(
         self, idle_freq_map: dict[cirq.Qid, tu.Value]
@@ -193,17 +193,17 @@ class AnalogTrajectory:
         if axes is None:
             _, axes = plt.subplots(1, 2, figsize=(10, 4))
 
-        for qubit_agent in self.qubits:
+        for qubit in self.qubits:
             axes[0].plot(
                 times,
-                [step.qubit_freqs[qubit_agent][tu.GHz] for step in full_trajectory_resolved],  # type: ignore[index]
-                label=qubit_agent,
+                [step.qubit_freqs[qubit][tu.GHz] for step in full_trajectory_resolved],  # type: ignore[index]
+                label=qubit,
             )
-        for pair_agent in self.pairs:
+        for coupler in self.couplers:
             axes[1].plot(
                 times,
-                [step.couplings[pair_agent][tu.MHz] for step in full_trajectory_resolved],
-                label=pair_agent,
+                [step.couplings[coupler][tu.MHz] for step in full_trajectory_resolved],
+                label=coupler,
             )
 
         for ax, ylabel in zip(axes, ["Qubit freq. (GHz)", "Coupling (MHz)"]):
