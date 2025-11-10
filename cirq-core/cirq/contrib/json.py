@@ -2,8 +2,10 @@
 """Functions for JSON serialization and de-serialization for classes in Contrib."""
 
 from __future__ import annotations
+
 import functools
 
+from cirq import _compat
 from cirq.protocols.json_serialization import _register_resolver, DEFAULT_RESOLVERS, ObjectFactory
 
 
@@ -37,20 +39,18 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
     ]
     return {cls.__name__: cls for cls in classes}
 
+
 _register_resolver(_class_resolver_dictionary)
 
 DEFAULT_CONTRIB_RESOLVERS = [contrib_class_resolver, *DEFAULT_RESOLVERS]
 
-_DEFAULT_CONTRIB_RESOLVERS_DEPRECATION_MESSAGE = (
-    'DEFAULT_CONTRIB_RESOLVERS will no longer be supported.'
-    'Contrib classes are now automatically resolved through the standard JSON resolver.'
-    'You can remove the "resolvers" parameter from assert_json_roundtrip_works calls.'
-)
-from cirq import _compat
-
 _compat.deprecate_attributes(
     __name__,
     {
-        'DEFAULT_CONTRIB_RESOLVERS': ('v1.8', _DEFAULT_CONTRIB_RESOLVERS_DEPRECATION_MESSAGE),
+        'DEFAULT_CONTRIB_RESOLVERS': (
+            'v1.8',
+            'DEFAULT_CONTRIB_RESOLVERS is no longer necessary as contrib classes are now '
+            'automatically recognized and resolved with an import of cirq.contrib.',
+        )
     },
 )
