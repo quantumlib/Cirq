@@ -70,7 +70,7 @@ def _generate_got_set_for_init_prob(qubit, init_prob):
         yield common_gates.ry(_prob_to_angle(init_prob)).on(qubit)
 
 
-@value.value_equality
+@value.value_equality(unhashable=True)
 class BayesianNetworkGate(raw_types.Gate):
     """A gate that represents a Bayesian network.
 
