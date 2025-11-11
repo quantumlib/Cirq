@@ -66,10 +66,8 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
         """
         if len(args) < 1 or not isinstance(args[0], circuits.AbstractCircuit):
             raise ValueError(
-                (
-                    "To call ExecutionStrategy, an argument of type "
-                    "circuits.AbstractCircuit must be passed in as the first non-keyword argument"
-                )
+                "To call ExecutionStrategy, an argument of type "
+                "circuits.AbstractCircuit must be passed in as the first non-keyword argument"
             )
         input_circuit = args[0]
         strategy = StrategyExecutorTransformer(self)

@@ -1191,7 +1191,7 @@ def test_expectation_from_density_matrix_invalid_input() -> None:
     with pytest.raises(ValueError, match='shape'):
         ps.expectation_from_density_matrix(rho.reshape((4, 4, 1)), q_map_2)
     with pytest.raises(ValueError, match='shape'):
-        ps.expectation_from_density_matrix(rho.reshape((-1)), q_map_2)
+        ps.expectation_from_density_matrix(rho.reshape((-1,)), q_map_2)
 
     # Correctly shaped state_vectors.
     with pytest.raises(ValueError, match='shape'):

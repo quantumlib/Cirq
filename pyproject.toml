@@ -143,6 +143,7 @@ select = [
     "UP010",  # unnecessary-future-import
     "UP018",  # native-literals
     "UP028",  # yield-in-for-loop
+    "UP034",  # extraneous-parentheses
     "UP037",  # quoted-annotation
     "W605",  # invalid-escape-sequence, pylint anomalous-backslash-in-string
 ]
