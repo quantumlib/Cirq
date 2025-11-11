@@ -44,49 +44,6 @@ ClientProvider: TypeAlias = Callable[
     [AsyncioExecutor], Awaitable[quantum.QuantumEngineServiceAsyncClient]
 ]
 
-class StreamProvider:
-    """Stores a singleton of the ProcessorManagerClient and aio Executor.
-
-    Provides a static `create` method for create new duet Channels for
-    sending and receiving messages over a stream.
-    """
-
-    def __init__(
-        self,
-        client: quantum.QuantumEngineServiceAsyncClient,
-        executor: AsyncioExecutor,
-    ):
-        self._client = client
-        self._executor = executor
-
-    def get(self) -> tuple[channels.Send, channels.Recv]:
-        """Creates new duet channels for sending and receiving stream messages.
-
-        Note that duet channels come in pairs
-        `e.g  (send, recv) = channels.Channels.new(limit=None)` where `send` and
-        `recv` are the ends of a stream recieiving and sending the same type messages.
-
-        The channels returned by this method do not encapsulate the same type message, and should
-        not be confused as coming from a single `Channels.new` calls. They are each rogue
-        components from two separate `Channels.new` calls that encapsulate different message types.
-
-        Returns:
-            response_tx:
-                a Send duet channel for sending response messages to the ProcessorManager.
-                This channel sends messages of type `ProcessorCommandResponse`.
-            request_tx:
-                a Recv duet channel for receiving messages from the ProcessorManager.
-                This channels receives messages of type `ProcessorCommandRequest`.
-        """
-        response_tx: channels.Send
-        response_rx: channels.Recv
-        (response_tx, response_rx) = channels.Channels.new(limit=None)
-
-        request_rx = self._executor.submit_stream(
-            lambda: self._client.quantum_run_stream(response_rx.aio)
-        )
-
-        return (response_tx, request_rx)
 
 class ResponseDemux:
     """An event demultiplexer for QuantumRunStreamResponses, as part of the async reactor pattern.
@@ -172,7 +129,6 @@ class StreamManager:
         # Construct queue in AsyncioExecutor to ensure it binds to the correct event loop, since it
         # is used by asyncio coroutines.
         self._request_queue = self._executor.submit(self._make_request_queue).result()
-        self._stream_provider = StreamProvider(grpc_client, self._executor)
 
 
     async def _make_request_queue(self) -> asyncio.Queue[quantum.QuantumRunStreamRequest | None]:
