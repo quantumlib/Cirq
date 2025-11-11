@@ -334,8 +334,8 @@ def _get_gates_from_hamiltonians(
 
         cnots = _simplify_cnots(cnots)
 
-        for gate in (cirq.CNOT(qubits[c], qubits[t]) for c, t in cnots):
-            yield gate
+        for c, t in cnots:
+            yield cirq.CNOT(qubits[c], qubits[t])
 
     sorted_hamiltonian_keys = sorted(
         hamiltonians.keys(), key=functools.cmp_to_key(_gray_code_comparator)
