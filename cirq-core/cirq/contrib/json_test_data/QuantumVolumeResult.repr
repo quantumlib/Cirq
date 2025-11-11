@@ -1,0 +1,22 @@
+cirq.contrib.quantum_volume.QuantumVolumeResult(
+    model_circuit=cirq.Circuit(
+        cirq.Moment(
+            cirq.H(cirq.LineQubit(0)),
+            cirq.H(cirq.LineQubit(1)),
+            cirq.H(cirq.LineQubit(2)),
+            cirq.H(cirq.LineQubit(3)),
+            cirq.H(cirq.LineQubit(4)),
+        )
+    ),
+    heavy_set=[1, 2, 3],
+    compiled_circuit=cirq.Circuit(
+        cirq.Moment(
+            cirq.H(cirq.LineQubit(0)),
+            cirq.H(cirq.LineQubit(1)),
+            cirq.H(cirq.LineQubit(2)),
+            cirq.H(cirq.LineQubit(3)),
+            cirq.H(cirq.LineQubit(4)),
+        )
+    ),
+    sampler_result=0.1,
+)

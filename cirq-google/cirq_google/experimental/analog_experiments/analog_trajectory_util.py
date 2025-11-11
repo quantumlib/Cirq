@@ -27,6 +27,8 @@ from cirq_google.study import symbol_util as su
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
+    from cirq_google.ops import coupler as cgc
+
 
 @attrs.mutable
 class FrequencyMap:
@@ -40,8 +42,8 @@ class FrequencyMap:
     """
 
     duration: su.ValueOrSymbol
-    qubit_freqs: dict[str, su.ValueOrSymbol | None]
-    couplings: dict[tuple[str, str], su.ValueOrSymbol]
+    qubit_freqs: dict[cirq.Qid, su.ValueOrSymbol | None]
+    couplings: dict[cgc.Coupler, su.ValueOrSymbol]
     is_wait_step: bool
 
     def _is_parameterized_(self) -> bool:
@@ -86,12 +88,12 @@ class AnalogTrajectory:
         self,
         *,
         full_trajectory: list[FrequencyMap],
-        qubits: list[str],
-        pairs: list[tuple[str, str]],
+        qubits: list[cirq.Qid],
+        couplers: list[cgc.Coupler],
     ):
         self.full_trajectory = full_trajectory
         self.qubits = qubits
-        self.pairs = pairs
+        self.couplers = couplers
 
     @classmethod
     def from_sparse_trajectory(
@@ -99,39 +101,39 @@ class AnalogTrajectory:
         sparse_trajectory: list[
             tuple[
                 tu.Value,
-                dict[str, su.ValueOrSymbol | None],
-                dict[tuple[str, str], su.ValueOrSymbol],
+                dict[cirq.Qid, su.ValueOrSymbol | None],
+                dict[cgc.Coupler, su.ValueOrSymbol],
             ],
         ],
-        qubits: list[str] | None = None,
-        pairs: list[tuple[str, str]] | None = None,
+        qubits: list[cirq.Qid] | None = None,
+        couplers: list[cgc.Coupler] | None = None,
     ):
         """Construct AnalogTrajectory from sparse trajectory.
 
         Args:
             sparse_trajectory: A list of tuples, where each tuple defines a `FrequencyMap`
                 and contains three elements: (duration, qubit_freqs, coupling_strengths).
-                `duration` is a tunits value, `qubit_freqs` is a dictionary mapping qubit strings
-                to detuning frequencies, and `coupling_strengths` is a dictionary mapping qubit
-                pairs to their coupling strength. This format is considered "sparse" because each
+                `duration` is a tunits value, `qubit_freqs` is a dictionary mapping cirq qubits
+                to detuning frequencies, and `coupling_strengths` is a dictionary mapping
+                couplers to their coupling strength. This format is considered "sparse" because each
                 tuple does not need to fully specify all qubits and coupling pairs; any missing
                 detuning frequency or coupling strength will be set to the same value as the
                 previous value in the list.
             qubits: The qubits in interest. If not provided, automatically parsed from trajectory.
-            pairs: The pairs in interest. If not provided, automatically parsed from trajectory.
+            couplers: The couplers in interest. If not provided, auto. parsed from trajectory.
         """
-        if qubits is None or pairs is None:
-            qubits_in_traj: list[str] = []
-            pairs_in_traj: list[tuple[str, str]] = []
+        if qubits is None or couplers is None:
+            qubits_in_traj: list[cirq.Qid] = []
+            couplers_in_traj: list[cgc.Coupler] = []
             for _, q, p in sparse_trajectory:
                 qubits_in_traj.extend(q.keys())
-                pairs_in_traj.extend(p.keys())
+                couplers_in_traj.extend(p.keys())
             qubits = list(set(qubits_in_traj))
-            pairs = list(set(pairs_in_traj))
+            couplers = list(set(couplers_in_traj))
 
         full_trajectory: list[FrequencyMap] = []
-        init_qubit_freq_dict: dict[str, tu.Value | None] = {q: None for q in qubits}
-        init_g_dict: dict[tuple[str, str], tu.Value] = {p: 0 * tu.MHz for p in pairs}
+        init_qubit_freq_dict: dict[cirq.Qid, tu.Value | None] = {q: None for q in qubits}
+        init_g_dict: dict[cgc.Coupler, tu.Value] = {c: 0 * tu.MHz for c in couplers}
         full_trajectory.append(FrequencyMap(0 * tu.ns, init_qubit_freq_dict, init_g_dict, False))
 
         for dt, qubit_freq_dict, g_dict in sparse_trajectory:
@@ -142,15 +144,15 @@ class AnalogTrajectory:
                 q: qubit_freq_dict.get(q, full_trajectory[-1].qubit_freqs.get(q)) for q in qubits
             }
             # If no g provided, set equal to previous
-            new_g_dict: dict[tuple[str, str], tu.Value] = {
-                p: g_dict.get(p, full_trajectory[-1].couplings.get(p)) for p in pairs  # type: ignore[misc]
+            new_g_dict: dict[cgc.Coupler, tu.Value] = {
+                c: g_dict.get(c, full_trajectory[-1].couplings.get(c)) for c in couplers  # type: ignore[misc]
             }
 
             full_trajectory.append(FrequencyMap(dt, new_qubit_freq_dict, new_g_dict, is_wait_step))
-        return cls(full_trajectory=full_trajectory, qubits=qubits, pairs=pairs)
+        return cls(full_trajectory=full_trajectory, qubits=qubits, couplers=couplers)
 
     def get_full_trajectory_with_resolved_idles(
-        self, idle_freq_map: dict[str, tu.Value]
+        self, idle_freq_map: dict[cirq.Qid, tu.Value]
     ) -> list[FrequencyMap]:
         """Insert idle frequencies instead of None in trajectory."""
 
@@ -164,13 +166,19 @@ class AnalogTrajectory:
 
     def plot(
         self,
-        idle_freq_map: dict[str, tu.Value] | None = None,
-        default_idle_freq: tu.Value = 6.5 * tu.GHz,
+        idle_freq_map: dict[cirq.Qid, tu.Value] | None = None,
         resolver: cirq.ParamResolverOrSimilarType | None = None,
         axes: tuple[Axes, Axes] | None = None,
     ) -> tuple[Axes, Axes]:
         if idle_freq_map is None:
-            idle_freq_map = {q: default_idle_freq for q in self.qubits}
+            # Because we use relative frequencies and we do not expose the idle frequencies,
+            # we randomly assign idle frequencies for plotting purposes only.
+            idle_freq_map = {q: np.random.randn() * 50 * tu.MHz for q in self.qubits}
+        else:  # pragma: no cover
+            for q in self.qubits:
+                if q not in idle_freq_map:  # Fill in missing idle freqs
+                    idle_freq_map[q] = np.random.randn() * 50 * tu.MHz
+
         full_trajectory_resolved = cirq.resolve_parameters(
             self.get_full_trajectory_with_resolved_idles(idle_freq_map), resolver
         )
@@ -185,17 +193,17 @@ class AnalogTrajectory:
         if axes is None:
             _, axes = plt.subplots(1, 2, figsize=(10, 4))
 
-        for qubit_agent in self.qubits:
+        for qubit in self.qubits:
             axes[0].plot(
                 times,
-                [step.qubit_freqs[qubit_agent][tu.GHz] for step in full_trajectory_resolved],  # type: ignore[index]
-                label=qubit_agent,
+                [step.qubit_freqs[qubit][tu.GHz] for step in full_trajectory_resolved],  # type: ignore[index]
+                label=qubit,
             )
-        for pair_agent in self.pairs:
+        for coupler in self.couplers:
             axes[1].plot(
                 times,
-                [step.couplings[pair_agent][tu.MHz] for step in full_trajectory_resolved],
-                label=pair_agent,
+                [step.couplings[coupler][tu.MHz] for step in full_trajectory_resolved],
+                label=coupler,
             )
 
         for ax, ylabel in zip(axes, ["Qubit freq. (GHz)", "Coupling (MHz)"]):
