@@ -22,7 +22,7 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.contrib.paulistring import measure_pauli_strings
+from cirq.contrib.paulistring import measure_pauli_strings, CircuitToPauliStringsParameters
 from cirq.experiments import SingleQubitReadoutCalibrationResult
 from cirq.experiments.single_qubit_readout_calibration_test import NoisySingleQubitReadoutSampler
 
@@ -326,8 +326,16 @@ def test_many_circuits_input_measurement_with_noise(use_sweep: bool) -> None:
     circuit_2 = cirq.FrozenCircuit(_create_ghz(5, qubits_2))
     circuit_3 = cirq.FrozenCircuit(_create_ghz(8, qubits_3))
 
-    circuits_to_pauli: dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
-    circuits_to_pauli[circuit_1] = [_generate_random_pauli_string(qubits_1) for _ in range(3)]
+    circuits_to_pauli: dict[
+        cirq.FrozenCircuit, list[cirq.PauliString] | list[list[cirq.PauliString]]
+    ] = {}
+    # This is to test mixed types could be handled.
+    circuits_to_pauli[circuit_1] = [
+        _generate_qwc_paulis(
+            _generate_random_pauli_string(qubits_1, enable_coeff=True, allow_pauli_i=False), 6
+        )
+        for _ in range(3)
+    ]
     circuits_to_pauli[circuit_2] = [_generate_random_pauli_string(qubits_2) for _ in range(3)]
     circuits_to_pauli[circuit_3] = [_generate_random_pauli_string(qubits_3) for _ in range(3)]
 
@@ -335,7 +343,13 @@ def test_many_circuits_input_measurement_with_noise(use_sweep: bool) -> None:
     simulator = cirq.Simulator()
 
     circuits_with_pauli_expectations = measure_pauli_strings(
-        circuits_to_pauli, sampler, 300, 300, 300, np.random.default_rng(), use_sweep
+        circuits_to_pauli,  # type: ignore
+        sampler,
+        300,
+        300,
+        300,
+        np.random.default_rng(),
+        use_sweep,
     )
 
     for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
@@ -570,10 +584,8 @@ def test_coefficient_not_real_number() -> None:
 def test_empty_input_circuits_to_pauli_mapping() -> None:
     """Test that the input circuits are empty."""
 
-    with pytest.raises(ValueError, match="Input circuits must not be empty."):
-        measure_pauli_strings(
-            [], cirq.Simulator(), 300, 300, 300, np.random.default_rng()  # type: ignore[arg-type]
-        )
+    with pytest.raises(ValueError, match="must not be empty."):
+        measure_pauli_strings([], cirq.Simulator(), 300, 300, 300, np.random.default_rng())
 
 
 def test_invalid_input_circuit_type() -> None:
@@ -583,7 +595,7 @@ def test_invalid_input_circuit_type() -> None:
     qubits_to_pauli: dict[tuple, list[cirq.PauliString]] = {}
     qubits_to_pauli[tuple(qubits)] = [cirq.PauliString({q: cirq.X for q in qubits})]
     with pytest.raises(
-        TypeError, match="All keys in 'circuits_to_pauli' must be FrozenCircuit instances."
+        TypeError, match="Expected circuit to be FrozenCircuit, got <class 'tuple'>"
     ):
         measure_pauli_strings(
             qubits_to_pauli,  # type: ignore[arg-type]
@@ -615,8 +627,7 @@ def test_invalid_input_pauli_string_type() -> None:
 
     with pytest.raises(
         TypeError,
-        match="All elements in the Pauli string lists must be cirq.PauliString "
-        "instances, got <class 'cirq.circuits.frozen_circuit.FrozenCircuit'>.",
+        match="Expected elements to be ops.PauliString, but found <class 'cirq.circuits.moment.Moment'>.",
     ):
         measure_pauli_strings(
             circuits_to_pauli,  # type: ignore[arg-type]
@@ -747,9 +758,7 @@ def test_group_paulis_are_not_qwc() -> None:
 
     circuits_to_pauli: dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
     circuits_to_pauli[circuit] = [[pauli_str1, pauli_str2]]  # type: ignore
-    with pytest.raises(
-        ValueError, match="The group of Pauli strings are not Qubit-Wise Commuting with each other."
-    ):
+    with pytest.raises(ValueError, match="is not Qubit-Wise Commuting."):
         measure_pauli_strings(
             circuits_to_pauli, cirq.Simulator(), 300, 300, 300, np.random.default_rng()
         )
@@ -764,42 +773,6 @@ def test_empty_group_paulis_not_allowed() -> None:
     circuits_to_pauli: dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
     circuits_to_pauli[circuit] = [[]]  # type: ignore
     with pytest.raises(ValueError, match="Empty group of Pauli strings is not allowed"):
-        measure_pauli_strings(
-            circuits_to_pauli, cirq.Simulator(), 300, 300, 300, np.random.default_rng()
-        )
-
-
-def test_group_paulis_type_mismatch() -> None:
-    """Test that the group paulis type is not correct"""
-    qubits_1 = cirq.LineQubit.range(3)
-    qubits_2 = [
-        cirq.GridQubit(0, 1),
-        cirq.GridQubit(1, 1),
-        cirq.GridQubit(1, 0),
-        cirq.GridQubit(1, 2),
-        cirq.GridQubit(2, 1),
-    ]
-    qubits_3 = cirq.LineQubit.range(8)
-
-    circuit_1 = cirq.FrozenCircuit(_create_ghz(3, qubits_1))
-    circuit_2 = cirq.FrozenCircuit(_create_ghz(5, qubits_2))
-    circuit_3 = cirq.FrozenCircuit(_create_ghz(8, qubits_3))
-
-    circuits_to_pauli: dict[cirq.FrozenCircuit, list[list[cirq.PauliString]]] = {}
-    circuits_to_pauli[circuit_1] = [
-        _generate_qwc_paulis(
-            _generate_random_pauli_string(qubits_1, enable_coeff=True, allow_pauli_i=False), 6
-        )
-        for _ in range(3)
-    ]
-    circuits_to_pauli[circuit_2] = [_generate_random_pauli_string(qubits_2, True) for _ in range(3)]
-    circuits_to_pauli[circuit_3] = [_generate_random_pauli_string(qubits_3, True) for _ in range(3)]
-
-    with pytest.raises(
-        TypeError,
-        match="Expected all elements to be sequences of ops.PauliString, "
-        "but found <class 'cirq.ops.pauli_string.PauliString'>.",
-    ):
         measure_pauli_strings(
             circuits_to_pauli, cirq.Simulator(), 300, 300, 300, np.random.default_rng()
         )

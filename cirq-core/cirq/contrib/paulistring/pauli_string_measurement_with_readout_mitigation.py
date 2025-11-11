@@ -36,6 +36,40 @@ if TYPE_CHECKING:
 
 
 @attrs.frozen
+class CircuitToPauliStringsParameters:
+    """
+    Parameters for measuring Pauli strings on a circuit.
+    Attributes:
+        circuit: The circuit to measure.
+        pauli_strings:
+            - A list of QWC groups (list[list[ops.PauliString]]). Each QWC group
+              is a list of PauliStrings that are mutually Qubit-Wise Commuting.
+              Pauli strings within the same group will be calculated using the
+              same measurement results.
+        postselection_symmetries: A tuple mapping Pauli strings or Pauli sums to
+                                  expected values for postselection symmetries.
+                                  Measured bitstrings which do not have the indicated
+                                  values of the symmetry operators are postselected out.
+    """
+
+    circuit: circuits.FrozenCircuit
+    pauli_strings: list[list[ops.PauliString]]
+    postselection_symmetries: list[tuple[ops.PauliString | ops.PauliSum, int]]
+
+
+@attrs.frozen
+class PostFilteringSymmetryCalibrationResult:
+    """Result of post-selection symmetry calibration.
+    Attributes:
+        raw_bitstrings: The raw bitstrings obtained from the measurement.
+        filtered_bitstrings: The bitstrings after applying post-selection symmetries.
+    """
+
+    raw_bitstrings: np.ndarray
+    filtered_bitstrings: np.ndarray
+
+
+@attrs.frozen
 class PauliStringMeasurementResult:
     """Result of measuring a Pauli string.
 
@@ -45,7 +79,11 @@ class PauliStringMeasurementResult:
         mitigated_stddev: The standard deviation of the error-mitigated expectation value.
         unmitigated_expectation: The unmitigated expectation value of the Pauli string.
         unmitigated_stddev: The standard deviation of the unmitigated expectation value.
-        calibration_result: The calibration result for single-qubit readout errors.
+        calibration_result: The calibration result for readout errors. It can be either
+           a SingleQubitReadoutCalibrationResult (in the case of mitigating with confusion
+           matrices) or a PostFilteringSymmetryCalibrationResult (in the case of mitigating
+           with post-selection symmetries).
+
     """
 
     pauli_string: ops.PauliString
@@ -53,7 +91,9 @@ class PauliStringMeasurementResult:
     mitigated_stddev: float
     unmitigated_expectation: float
     unmitigated_stddev: float
-    calibration_result: SingleQubitReadoutCalibrationResult | None = None
+    calibration_result: (
+        SingleQubitReadoutCalibrationResult | PostFilteringSymmetryCalibrationResult | None
+    ) = None
 
 
 @attrs.frozen
@@ -89,6 +129,40 @@ def _are_two_pauli_strings_qubit_wise_commuting(
         if not _commute_or_identity(op1, op2):
             return False
     return True
+
+
+def _are_pauli_sum_and_pauli_string_qubit_wise_commuting(
+    pauli_sum: ops.PauliSum,
+    pauli_str: ops.PauliString,
+    all_qubits: list[ops.Qid] | frozenset[ops.Qid],
+) -> bool:
+    """Checks if a Pauli sum and a Pauli string are Qubit-Wise Commuting."""
+    for pauli_sum_term in pauli_sum:
+        for qubit in all_qubits:
+            op1 = pauli_sum_term.get(qubit, default=ops.I)
+            op2 = pauli_str.get(qubit, default=ops.I)
+
+            if not _commute_or_identity(op1, op2):
+                return False
+    return True
+
+
+def _are_symmetry_and_pauli_string_qubit_wise_commuting(
+    symmetry: ops.PauliString | ops.PauliSum,
+    pauli_str: ops.PauliString,
+    all_qubits: list[ops.Qid] | frozenset[ops.Qid],
+) -> bool:
+    """
+    Checks if a symmetry (Pauli string or Pauli sum) and a Pauli string are Qubit-Wise Commuting.
+    This is neccessary because the code's post-selection method relies on measuring both the symmetry
+    and the Pauli string at the same time, using a single experimental shot.
+    """
+    if isinstance(symmetry, ops.PauliSum):
+        return _are_pauli_sum_and_pauli_string_qubit_wise_commuting(symmetry, pauli_str, all_qubits)
+    elif isinstance(symmetry, ops.PauliString):
+        return _are_two_pauli_strings_qubit_wise_commuting(symmetry, pauli_str, all_qubits)
+    else:
+        return False
 
 
 def _validate_group_paulis_qwc(
@@ -132,10 +206,89 @@ def _validate_single_pauli_string(pauli_str: ops.PauliString):
         )
 
 
+def _validate_circuit_to_pauli_strings_parameters(
+    circuits_to_pauli: list[CircuitToPauliStringsParameters],
+):
+    """Validates the input parameters for measuring Pauli strings.
+
+
+    Args:
+        circuits_to_pauli: A list of CircuitToPauliStringsParameters objects.
+
+
+    Raises:
+        ValueError: If any of the input parameters are invalid.
+        TypeError: If the types of the input parameters are incorrect.
+    """
+    for i, params in enumerate(circuits_to_pauli):
+        # 1. Validate Circuit
+        if not params.circuit:
+            raise ValueError(f"Item {i}: Circuit must not be empty.")
+        if not isinstance(params.circuit, circuits.FrozenCircuit):
+            raise TypeError(
+                f"Item {i}: Expected circuit to be FrozenCircuit, got {type(params.circuit)}."
+            )
+
+        # 2. Validate Pauli strings
+        if not params.pauli_strings:
+            raise ValueError(f"Item {i}: Pauli strings list must not be empty.")
+
+        for j, pauli_group in enumerate(params.pauli_strings):
+            if not pauli_group:
+                raise ValueError(
+                    f"Item {i}, group {j}: Empty group of Pauli strings is not allowed."
+                )
+            if not isinstance(pauli_group[0], ops.PauliString):
+                raise TypeError(
+                    f"Item {i}, group {j}: Expected elements to be ops.PauliString, "
+                    f"but found {type(pauli_group[0])}."
+                )
+            if not _validate_group_paulis_qwc(pauli_group, params.circuit.all_qubits()):
+                raise ValueError(
+                    f"Item {i}, group {j}: Pauli group {pauli_group} is not "
+                    "Qubit-Wise Commuting."
+                )
+            for pauli_str in pauli_group:
+                _validate_single_pauli_string(pauli_str)
+
+        # 3. Validate postselection symmetries
+        for sym, _ in params.postselection_symmetries:
+            if isinstance(sym, ops.PauliSum):
+                terms = list(sym)
+                if not _validate_group_paulis_qwc(terms, params.circuit.all_qubits()):
+                    raise ValueError(
+                        f"Pauli sum {sym} for circuit {params.circuit} is invalid: "
+                        "Terms are not Qubit-Wise Commuting."
+                    )
+                for term in terms:
+                    _validate_single_pauli_string(term)
+            elif isinstance(sym, ops.PauliString):
+                _validate_single_pauli_string(sym)
+            else:
+                raise TypeError(
+                    f"Postselection symmetry keys must be cirq.PauliString or cirq.PauliSum, "
+                    f"got {type(sym)}."
+                )
+
+        # Check if input symmetries are commuting with all Pauli strings in the circuit
+        qubits_in_circuit = list(sorted(params.circuit.all_qubits()))
+
+        if not all(
+            _are_symmetry_and_pauli_string_qubit_wise_commuting(sym, pauli_str, qubits_in_circuit)
+            for pauli_strs in params.pauli_strings
+            for pauli_str in pauli_strs
+            for sym, _ in params.postselection_symmetries
+        ):
+            raise ValueError(
+                f"Postselection symmetries of {params.circuit} are not commuting with all Pauli strings."
+            )
+
+
 def _validate_input(
     circuits_to_pauli: (
         dict[circuits.FrozenCircuit, list[ops.PauliString]]
         | dict[circuits.FrozenCircuit, list[list[ops.PauliString]]]
+        | list[CircuitToPauliStringsParameters]
     ),
     pauli_repetitions: int,
     readout_repetitions: int,
@@ -143,45 +296,11 @@ def _validate_input(
     rng_or_seed: np.random.Generator | int,
 ):
     if not circuits_to_pauli:
-        raise ValueError("Input circuits must not be empty.")
+        raise ValueError("Input circuits_to_pauli parameter must not be empty.")
 
-    for circuit in circuits_to_pauli.keys():
-        if not isinstance(circuit, circuits.FrozenCircuit):
-            raise TypeError("All keys in 'circuits_to_pauli' must be FrozenCircuit instances.")
+    normalized_circuits_to_pauli = _validate_and_normalize_unformatted_input(circuits_to_pauli)
 
-    first_value: list[ops.PauliString] | list[list[ops.PauliString]] = next(
-        iter(circuits_to_pauli.values())  # type: ignore
-    )
-    for circuit, pauli_strs_list in circuits_to_pauli.items():
-        if isinstance(pauli_strs_list, Sequence) and isinstance(first_value[0], Sequence):
-            for pauli_strs in pauli_strs_list:
-                if not pauli_strs:
-                    raise ValueError("Empty group of Pauli strings is not allowed")
-                if not (
-                    isinstance(pauli_strs, Sequence) and isinstance(pauli_strs[0], ops.PauliString)
-                ):
-                    raise TypeError(
-                        f"Inconsistent type in list for circuit {circuit}. "
-                        f"Expected all elements to be sequences of ops.PauliString, "
-                        f"but found {type(pauli_strs)}."
-                    )
-                if not _validate_group_paulis_qwc(pauli_strs, circuit.all_qubits()):
-                    raise ValueError(
-                        f"Pauli group containing {pauli_strs} is invalid: "
-                        f"The group of Pauli strings are not "
-                        f"Qubit-Wise Commuting with each other."
-                    )
-                for pauli_str in pauli_strs:
-                    _validate_single_pauli_string(pauli_str)
-        elif isinstance(pauli_strs_list, Sequence) and isinstance(first_value[0], ops.PauliString):
-            for pauli_str in pauli_strs_list:  # type: ignore
-                _validate_single_pauli_string(pauli_str)
-        else:
-            raise TypeError(
-                f"Expected all elements to be either a sequence of PauliStrings"
-                f" or sequences of ops.PauliStrings. "
-                f"Got {type(pauli_strs_list)} instead."
-            )
+    _validate_circuit_to_pauli_strings_parameters(normalized_circuits_to_pauli)
 
     # Check rng is a numpy random generator
     if not isinstance(rng_or_seed, np.random.Generator) and not isinstance(rng_or_seed, int):
@@ -199,25 +318,50 @@ def _validate_input(
     if readout_repetitions <= 0:
         raise ValueError("Must provide positive readout_repetitions for readout calibration.")
 
+    return normalized_circuits_to_pauli
 
-def _normalize_input_paulis(
-    circuits_to_pauli: (
+
+def _validate_and_normalize_unformatted_input(
+    circuits_input: (
         dict[circuits.FrozenCircuit, list[ops.PauliString]]
         | dict[circuits.FrozenCircuit, list[list[ops.PauliString]]]
+        | list[CircuitToPauliStringsParameters]
     ),
-) -> dict[circuits.FrozenCircuit, list[list[ops.PauliString]]]:
-    first_value = next(iter(circuits_to_pauli.values()))
-    if (
-        first_value
-        and isinstance(first_value, list)
-        and isinstance(first_value[0], ops.PauliString)
-    ):
-        input_dict = cast(dict[circuits.FrozenCircuit, list[ops.PauliString]], circuits_to_pauli)
-        normalized_circuits_to_pauli: dict[circuits.FrozenCircuit, list[list[ops.PauliString]]] = {}
-        for circuit, paulis in input_dict.items():
-            normalized_circuits_to_pauli[circuit] = [[ps] for ps in paulis]
-        return normalized_circuits_to_pauli
-    return cast(dict[circuits.FrozenCircuit, list[list[ops.PauliString]]], circuits_to_pauli)
+) -> list[CircuitToPauliStringsParameters]:
+    """Converts any valid input format into a standardized list of parameters
+    where pauli_strings is always list[list[PauliString]]."""
+
+    param_list: list[CircuitToPauliStringsParameters] = []
+
+    # 1. Standardize to list[CircuitToPauliStringsParameters]
+    if isinstance(circuits_input, dict):
+        for circuit, paulis in circuits_input.items():
+            # Normalize flat lists to nested lists
+            normalized_paulis = paulis
+            if paulis and isinstance(paulis, list) and isinstance(paulis[0], ops.PauliString):
+                # Convert [PS, PS] -> [[PS], [PS]]
+                normalized_paulis = [[cast(ops.PauliString, ps)] for ps in paulis]
+
+            param_list.append(
+                CircuitToPauliStringsParameters(
+                    circuit=circuit,
+                    pauli_strings=cast(list[list[ops.PauliString]], normalized_paulis),
+                    postselection_symmetries=[],
+                )
+            )
+    elif isinstance(circuits_input, list):
+        param_list = circuits_input
+    else:
+        raise TypeError("Input must be a dict or a list of CircuitToPauliStringsParameters.")
+
+    for params in param_list:
+        if params.pauli_strings and isinstance(params.pauli_strings[0], ops.PauliString):
+            raise TypeError(
+                "CircuitToPauliStringsParameters was initialized with a flat list "
+                "of PauliStrings. It must be initialized with a list of lists (groups)."
+            )
+
+    return param_list
 
 
 def _extract_readout_qubits(pauli_strings: list[ops.PauliString]) -> list[ops.Qid]:
@@ -271,13 +415,16 @@ def _pauli_strings_to_basis_change_with_sweep(
 
 
 def _generate_basis_change_circuits(
-    normalized_circuits_to_pauli: dict[circuits.FrozenCircuit, list[list[ops.PauliString]]],
+    normalized_circuits_to_pauli: list[CircuitToPauliStringsParameters],
     insert_strategy: circuits.InsertStrategy,
 ) -> list[circuits.Circuit]:
     """Generates basis change circuits for each group of Pauli strings."""
     pauli_measurement_circuits = list[circuits.Circuit]()
 
-    for input_circuit, pauli_string_groups in normalized_circuits_to_pauli.items():
+    for params in normalized_circuits_to_pauli:
+        input_circuit = params.circuit
+        pauli_string_groups = params.pauli_strings
+
         qid_list = list(sorted(input_circuit.all_qubits()))
         basis_change_circuits = []
         input_circuit_unfrozen = input_circuit.unfreeze()
@@ -295,13 +442,16 @@ def _generate_basis_change_circuits(
 
 
 def _generate_basis_change_circuits_with_sweep(
-    normalized_circuits_to_pauli: dict[circuits.FrozenCircuit, list[list[ops.PauliString]]],
+    normalized_circuits_to_pauli: list[CircuitToPauliStringsParameters],
     insert_strategy: circuits.InsertStrategy,
 ) -> tuple[list[circuits.Circuit], list[study.Sweepable]]:
     """Generates basis change circuits for each group of Pauli strings with sweep."""
     parameterized_circuits = list[circuits.Circuit]()
     sweep_params = list[study.Sweepable]()
-    for input_circuit, pauli_string_groups in normalized_circuits_to_pauli.items():
+    for params in normalized_circuits_to_pauli:
+        input_circuit = params.circuit
+        pauli_string_groups = params.pauli_strings
+
         qid_list = list(sorted(input_circuit.all_qubits()))
         phi_symbols = sympy.symbols(f"phi:{len(qid_list)}")
         theta_symbols = sympy.symbols(f"theta:{len(qid_list)}")
@@ -482,6 +632,7 @@ def measure_pauli_strings(
     circuits_to_pauli: (
         dict[circuits.FrozenCircuit, list[ops.PauliString]]
         | dict[circuits.FrozenCircuit, list[list[ops.PauliString]]]
+        | list[CircuitToPauliStringsParameters]
     ),
     sampler: work.Sampler,
     pauli_repetitions: int,
@@ -494,7 +645,6 @@ def measure_pauli_strings(
     """Measures expectation values of Pauli strings on given circuits with/without
     readout error mitigation.
 
-    This function takes a dictionary mapping circuits to lists of QWC Pauli string groups.
     For each circuit and its associated list of QWC pauli string group, it:
     1.  Constructs circuits to measure the Pauli string expectation value by
         adding basis change moments and measurement operations.
@@ -512,6 +662,10 @@ def measure_pauli_strings(
               same measurement results.
             - A list of PauliStrings (list[ops.PauliString]). In this case, each
               PauliString is treated as its own measurement group.
+            - Or a list of CircuitToPauliStringsParameters objects. Each object contains
+             a circuit and its associated Pauli strings to measure. It could also contain
+             a dictionary mapping Pauli strings or Pauli sums to expected eigen value
+             for postselection symmetries.
         sampler: The sampler to use.
         pauli_repetitions: The number of repetitions for each circuit when measuring
             Pauli strings.
@@ -532,7 +686,7 @@ def measure_pauli_strings(
             - The calibration result for single-qubit readout errors.
     """
 
-    _validate_input(
+    normalized_circuits_to_pauli = _validate_input(
         circuits_to_pauli,
         pauli_repetitions,
         readout_repetitions,
@@ -540,13 +694,11 @@ def measure_pauli_strings(
         rng_or_seed,
     )
 
-    normalized_circuits_to_pauli = _normalize_input_paulis(circuits_to_pauli)
-
     # Extract unique qubit tuples from input pauli strings
     unique_qubit_tuples = set()
-    for pauli_string_groups in normalized_circuits_to_pauli.values():
-        for pauli_strings in pauli_string_groups:
-            unique_qubit_tuples.add(tuple(_extract_readout_qubits(pauli_strings)))
+    for circuit_to_pauli in normalized_circuits_to_pauli:
+        for pauli_string_groups in circuit_to_pauli.pauli_strings:
+            unique_qubit_tuples.add(tuple(_extract_readout_qubits(pauli_string_groups)))
     # qubits_list is a list of qubit tuples
     qubits_list = sorted(unique_qubit_tuples)
 
@@ -596,7 +748,10 @@ def measure_pauli_strings(
     # Process the results to calculate expectation values
     results: list[CircuitToPauliStringsMeasurementResult] = []
     circuit_result_index = 0
-    for i, (input_circuit, pauli_string_groups) in enumerate(normalized_circuits_to_pauli.items()):
+    for i, circuit_to_pauli in enumerate(normalized_circuits_to_pauli):
+        input_circuit = circuit_to_pauli.circuit
+        pauli_string_groups = circuit_to_pauli.pauli_strings
+
         qubits_in_circuit = tuple(sorted(input_circuit.all_qubits()))
 
         disable_readout_mitigation = False if num_random_bitstrings != 0 else True
