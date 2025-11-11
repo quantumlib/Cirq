@@ -159,7 +159,7 @@ def test_deprecated_with_name():
 
 
 def test_deprecated_with_property():
-    class AClass(object):
+    class AClass:
         def __init__(self, a):
             self.a = a
 
