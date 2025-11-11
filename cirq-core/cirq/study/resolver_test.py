@@ -31,7 +31,7 @@ import cirq
         None,
         3.2,
         np.float32(3.2),
-        int(1),
+        1,
         np.int32(45),
         np.float64(6.3),
         np.int32(2),
