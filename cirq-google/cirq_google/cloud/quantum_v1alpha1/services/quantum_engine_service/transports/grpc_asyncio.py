@@ -286,6 +286,7 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
         if not self._grpc_channel:
             # initialize with the provided callable or the default channel
             channel_init = channel or type(self).create_channel
+            print("creating channel with short keepalive")
             self._grpc_channel = channel_init(
                 self._host,
                 # use the credentials which are saved
@@ -299,6 +300,7 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
                 options=[
                     ("grpc.max_send_message_length", -1),
                     ("grpc.max_receive_message_length", -1),
+                    #("grpc.keepalive_time_ms", 100),
                 ],
             )
 

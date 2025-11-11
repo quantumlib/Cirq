@@ -15,15 +15,17 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Awaitable, Callable
 from typing import AsyncIterator, TYPE_CHECKING
 
 import google.api_core.exceptions as google_exceptions
+import pyle.util.time as utime
 
 from cirq_google.cloud import quantum
 from cirq_google.engine.asyncio_executor import AsyncioExecutor
 
-if TYPE_CHECKING:
-    import duet
+import duet
+import pyle.duet.executors as executors
 
 Code = quantum.StreamError.Code
 
@@ -38,6 +40,53 @@ RETRYABLE_GOOGLE_API_EXCEPTIONS = [
 class StreamError(Exception):
     pass
 
+ClientProvider: TypeAlias = Callable[
+    [AsyncioExecutor], Awaitable[quantum.QuantumEngineServiceAsyncClient]
+]
+
+class StreamProvider:
+    """Stores a singleton of the ProcessorManagerClient and aio Executor.
+
+    Provides a static `create` method for create new duet Channels for
+    sending and receiving messages over a stream.
+    """
+
+    def __init__(
+        self,
+        client: quantum.QuantumEngineServiceAsyncClient,
+        executor: AsyncioExecutor,
+    ):
+        self._client = client
+        self._executor = executor
+
+    def get(self) -> tuple[channels.Send, channels.Recv]:
+        """Creates new duet channels for sending and receiving stream messages.
+
+        Note that duet channels come in pairs
+        `e.g  (send, recv) = channels.Channels.new(limit=None)` where `send` and
+        `recv` are the ends of a stream recieiving and sending the same type messages.
+
+        The channels returned by this method do not encapsulate the same type message, and should
+        not be confused as coming from a single `Channels.new` calls. They are each rogue
+        components from two separate `Channels.new` calls that encapsulate different message types.
+
+        Returns:
+            response_tx:
+                a Send duet channel for sending response messages to the ProcessorManager.
+                This channel sends messages of type `ProcessorCommandResponse`.
+            request_tx:
+                a Recv duet channel for receiving messages from the ProcessorManager.
+                This channels receives messages of type `ProcessorCommandRequest`.
+        """
+        response_tx: channels.Send
+        response_rx: channels.Recv
+        (response_tx, response_rx) = channels.Channels.new(limit=None)
+
+        request_rx = self._executor.submit_stream(
+            lambda: self._client.quantum_run_stream(response_rx.aio)
+        )
+
+        return (response_tx, request_rx)
 
 class ResponseDemux:
     """An event demultiplexer for QuantumRunStreamResponses, as part of the async reactor pattern.
@@ -81,12 +130,14 @@ class ResponseDemux:
 
         If there are no subscribers waiting for the response, nothing happens.
         """
+        print(f"[{utime.now()}] publishing {response.message_id}")
         future = self._subscribers.pop(response.message_id, None)
         if future and not future.done():
             future.set_result(response)
 
     def publish_exception(self, exception: BaseException) -> None:
         """Publishes an exception to all outstanding futures."""
+        print(f"[{utime.now()}] publishing exception {exception}")
         for future in self._subscribers.values():
             if not future.done():
                 future.set_exception(exception)
@@ -121,6 +172,8 @@ class StreamManager:
         # Construct queue in AsyncioExecutor to ensure it binds to the correct event loop, since it
         # is used by asyncio coroutines.
         self._request_queue = self._executor.submit(self._make_request_queue).result()
+        self._stream_provider = StreamProvider(grpc_client, self._executor)
+
 
     async def _make_request_queue(self) -> asyncio.Queue[quantum.QuantumRunStreamRequest | None]:
         """Returns a queue used to back the request iterator passed to the stream.
@@ -159,25 +212,63 @@ class StreamManager:
             raise ValueError('Program name must be set.')
 
         if self._manage_stream_loop_future is None or self._manage_stream_loop_future.done():
+            print(f"[{utime.now()}] Starting stream loop future")
             self._manage_stream_loop_future = self._executor.submit(
                 self._manage_stream, self._request_queue
             )
+            self._schedule_periodic_task(self._get_result, "Ping", 60 * utime.SECOND)
         return self._executor.submit(
             self._manage_execution, self._request_queue, project_name, program, job
         )
 
+    async def _get_result(self) -> str:
+        print(f"[{utime.now()}] getting result")
+        message_id = self._generate_message_id()
+        request = quantum.QuantumRunStreamRequest(
+            message_id=message_id,
+            parent='projects/cirqv2',
+            get_quantum_result=quantum.GetQuantumResultRequest(parent='projects/cirqv2/programs/prog-QRW53BEIB2M58EN7251030-202503/jobs/job-XWY8S3H2GK2XK47P251030-202503'),
+        )
+        #print(f'request: {request}')
+        response = self._response_demux.subscribe(message_id)
+        await self._request_queue.put(request)
+        print(f"[{utime.now()}] awaiting ping.")
+        result = await response
+        print(f"[{utime.now()}] got ping: {result.message_id}")
+        return result.message_id
+
+
+    def _schedule_periodic_task(
+        self, task: Callable[[], Awaitable[None]], task_label: str, period: utime.Duration
+    ) -> None:
+        async def task_wrapper():
+            while True:
+                print(f"Running task '{task_label}'")
+                try:
+                    await task()
+                    print(f"Task complete: '{task_label}'.")
+                    await asyncio.sleep(period.as_seconds())
+                except Exception as e:
+                    print(f"Failed to execute periodic task '{task_label}': {e}.")
+
+        self._executor.submit(task_wrapper)
+
+
     def stop(self) -> None:
         """Closes the open stream and resets all management resources."""
+        print(f"[{utime.now()}] Stopping stream manager")
         if (
             self._manage_stream_loop_future is not None
             and not self._manage_stream_loop_future.done()
         ):
+            print(f"[{utime.now()}] Stopping stream loop future")
             self._manage_stream_loop_future.cancel()
         self._response_demux.publish_exception(asyncio.CancelledError())
         self._reset()
 
     def _reset(self):
         """Resets the manager state."""
+        print(f"[{utime.now()}] Resetting stream m anager")
         self._manage_stream_loop_future = None
         self._response_demux = ResponseDemux()
         self._request_queue = self._executor.submit(self._make_request_queue).result()
@@ -205,19 +296,25 @@ class StreamManager:
         """
         while True:
             try:
+                # The default gRPC client timeout is used.
+                print(f"[{utime.now()}] Opening new stream")
                 response_iterable = await self._grpc_client.quantum_run_stream(
                     _request_iterator(request_queue),
                     timeout=None,  # Persist the stream indefinitely.
                 )
                 async for response in response_iterable:
+                    print(f"[{utime.now()}] got response in iterable: {response.message_id}")
                     self._response_demux.publish(response)
             except asyncio.CancelledError:
+                print(f"[{utime.now()}] Stream cancelled (in manage stream)")
                 await request_queue.put(None)
                 break
             except BaseException as e:
                 # Note: the message ID counter is not reset upon a new stream.
+                print(f"[{utime.now()}] Caught exception in stream: {e}")
                 await request_queue.put(None)
                 self._response_demux.publish_exception(e)  # Raise to all request tasks
+
 
     async def _manage_execution(
         self,
@@ -261,11 +358,15 @@ class StreamManager:
             try:
                 current_request.message_id = self._generate_message_id()
                 response_future = self._response_demux.subscribe(current_request.message_id)
+                print(f"[{utime.now()}] awaiting enqueue.")
                 await request_queue.put(current_request)
+                print(f"[{utime.now()}] awaiting response for message {current_request.message_id}.")
                 response = await response_future
+                print(f"[{utime.now()}] done awaiting response {current_request.message_id}.")
 
             # Broken stream
             except google_exceptions.GoogleAPICallError as e:
+                print(f"[{utime.now()}] Stream broke with exception '{e}'")
                 if not _is_retryable_error(e):
                     raise e
 
@@ -276,6 +377,7 @@ class StreamManager:
 
             # Either when this request is canceled or the _manage_stream() loop is canceled.
             except asyncio.CancelledError:
+                print(f"[{utime.now()}] Stream cancelled (in manage_execution).")
                 # TODO(#5996) Consider moving the request future cancellation logic into a future
                 # done callback, so that the the cancellation caller can wait for it to complete.
                 # TODO(#5996) Check the condition that response_future is not done before
@@ -287,10 +389,13 @@ class StreamManager:
 
             # Response handling
             if 'result' in response:
+                #print(f"[{utime.now()}] got result response: {response.result.parent}")
                 return response.result
             elif 'job' in response:
+                print(f"[{utime.now()}] got job response: {response.job.name}")
                 return response.job
             elif 'error' in response:
+                print(f"[{utime.now()}] got job response: {response.error}")
                 current_request = _get_retry_request_or_raise(
                     response.error,
                     current_request,
