@@ -85,14 +85,22 @@ package manager.
 
     There are some extra steps if Protocol Buffers are changed; see the next section.
 
+2. Setup virtualenvwrapper
 
-2.  One of the system dependencies we installed was `virtualenvwrapper`, which makes it easy to create virtual environments. If you did not have `virtualenvwrapper` previously then to complete the setup of virtualenvwrapper,  the following lines must be added to your ~/.bashrc or ~/.zshrc file. Once the file is saved, you will need to either open a new terminal session or execute source ~/.bashrc to activate the new configuration.
+    One of the system dependencies we installed was `virtualenvwrapper`, which makes it easy to
+    create virtual environments.  If you did not have `virtualenvwrapper` previously, then to
+    complete the setup of virtualenvwrapper, the following lines must be added to your ~/.bashrc or
+    ~/.zshrc file.  Once the file is saved, you will need to either open a new terminal session or
+    execute `source ~/.bashrc` to activate the new configuration.
 
     ```bash
     export WORKON_HOME=$HOME/.virtualenvs
     export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
     source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
     ```
+
+    For a complete reference see the [virtualenvwrapper documentation](
+    https://virtualenvwrapper.readthedocs.io).
 
 3. Prepare a Python virtual environment that includes the Cirq dev tools (such as Mypy).
 
