@@ -154,8 +154,8 @@ def _are_symmetry_and_pauli_string_qubit_wise_commuting(
 ) -> bool:
     """
     Checks if a symmetry (Pauli string or Pauli sum) and a Pauli string are Qubit-Wise Commuting.
-    This is neccessary because the code's post-selection method relies on measuring both the symmetry
-    and the Pauli string at the same time, using a single experimental shot.
+    This is neccessary because the code's post-selection method relies on measuring both the
+    symmetry and the Pauli string at the same time, using a single experimental shot.
     """
     if isinstance(symmetry, ops.PauliSum):
         return _are_pauli_sum_and_pauli_string_qubit_wise_commuting(symmetry, pauli_str, all_qubits)
@@ -230,18 +230,10 @@ def _validate_circuit_to_pauli_strings_parameters(
             )
 
         # 2. Validate Pauli strings
-        if not params.pauli_strings:
-            raise ValueError(f"Item {i}: Pauli strings list must not be empty.")
-
         for j, pauli_group in enumerate(params.pauli_strings):
             if not pauli_group:
                 raise ValueError(
                     f"Item {i}, group {j}: Empty group of Pauli strings is not allowed."
-                )
-            if not isinstance(pauli_group[0], ops.PauliString):
-                raise TypeError(
-                    f"Item {i}, group {j}: Expected elements to be ops.PauliString, "
-                    f"but found {type(pauli_group[0])}."
                 )
             if not _validate_group_paulis_qwc(pauli_group, params.circuit.all_qubits()):
                 raise ValueError(
@@ -280,7 +272,7 @@ def _validate_circuit_to_pauli_strings_parameters(
             for sym, _ in params.postselection_symmetries
         ):
             raise ValueError(
-                f"Postselection symmetries of {params.circuit} are not commuting with all Pauli strings."
+                f"Postselection symmetries of {params.circuit} are not commuting with all Pauli"
             )
 
 
@@ -355,10 +347,19 @@ def _validate_and_normalize_unformatted_input(
         raise TypeError("Input must be a dict or a list of CircuitToPauliStringsParameters.")
 
     for params in param_list:
-        if params.pauli_strings and isinstance(params.pauli_strings[0], ops.PauliString):
+        if not (
+            params.pauli_strings
+            and isinstance(params.pauli_strings, list)
+            and all(isinstance(params.pauli_strings, list) for _ in params.pauli_strings)
+            and all(
+                isinstance(ps, ops.PauliString)
+                for ps_list in params.pauli_strings
+                for ps in ps_list
+            )
+        ):
             raise TypeError(
-                "CircuitToPauliStringsParameters was initialized with a flat list "
-                "of PauliStrings. It must be initialized with a list of lists (groups)."
+                "Expected all elements to be list[list[ops.PauliString]], "
+                f"but got {type(params.pauli_strings)}."
             )
 
     return param_list
