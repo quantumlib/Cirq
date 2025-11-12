@@ -17,8 +17,9 @@ from __future__ import annotations
 import datetime
 import sys
 import warnings
+from collections.abc import AsyncIterable, Awaitable, Callable
 from functools import cached_property
-from typing import Any, AsyncIterable, Awaitable, Callable, TypeVar
+from typing import Any, TypeVar
 
 import duet
 import proto

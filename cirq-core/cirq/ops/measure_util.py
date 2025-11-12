@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Callable, cast, Iterable, overload, TYPE_CHECKING
+from collections.abc import Callable, Iterable
+from typing import cast, overload, TYPE_CHECKING
 
 import numpy as np
 

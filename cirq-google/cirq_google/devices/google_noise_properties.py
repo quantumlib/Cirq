@@ -17,8 +17,9 @@
 from __future__ import annotations
 
 import dataclasses
+from collections.abc import Sequence
 from functools import cached_property
-from typing import Any, Sequence, TypeVar
+from typing import Any, TypeVar
 
 import numpy as np
 

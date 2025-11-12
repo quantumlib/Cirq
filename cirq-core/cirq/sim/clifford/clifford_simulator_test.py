@@ -470,7 +470,7 @@ def test_swap() -> None:
     assert r["b"][0]
 
     with pytest.raises(TypeError, match="CliffordSimulator doesn't support"):
-        cirq.CliffordSimulator().simulate((cirq.Circuit(cirq.SWAP(a, b) ** 3.5)))
+        cirq.CliffordSimulator().simulate(cirq.Circuit(cirq.SWAP(a, b) ** 3.5))
 
 
 def test_sample_seed() -> None:

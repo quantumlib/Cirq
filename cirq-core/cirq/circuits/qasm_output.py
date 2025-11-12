@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import re
-from typing import Callable, Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Callable, Iterator, Sequence
+from typing import TYPE_CHECKING
 
 import numpy as np
 

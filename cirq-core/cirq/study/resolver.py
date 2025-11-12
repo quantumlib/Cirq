@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import numbers
-from typing import Any, cast, Iterator, Mapping, TYPE_CHECKING, Union
+from collections.abc import Iterator, Mapping
+from typing import Any, cast, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy

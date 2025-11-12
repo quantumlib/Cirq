@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import AbstractSet, TYPE_CHECKING
+from collections.abc import Set
+from typing import TYPE_CHECKING
 
 import attrs
 import matplotlib.pyplot as plt
@@ -53,7 +54,7 @@ class FrequencyMap:
             or su.is_parameterized_dict(self.couplings)
         )
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return (
             cirq.parameter_names(self.duration)
             | su.dict_param_name(self.qubit_freqs)

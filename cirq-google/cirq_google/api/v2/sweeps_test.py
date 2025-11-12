@@ -16,8 +16,8 @@ from __future__ import annotations
 
 import gzip
 import math
+from collections.abc import Iterator
 from copy import deepcopy
-from typing import Iterator
 
 import numpy as np
 import pytest

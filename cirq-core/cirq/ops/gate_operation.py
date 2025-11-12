@@ -18,18 +18,9 @@ from __future__ import annotations
 
 import re
 import warnings
+from collections.abc import Collection, Mapping, Sequence, Set
 from types import NotImplementedType
-from typing import (
-    AbstractSet,
-    Any,
-    cast,
-    Collection,
-    Mapping,
-    Self,
-    Sequence,
-    TYPE_CHECKING,
-    TypeVar,
-)
+from typing import Any, cast, Self, TYPE_CHECKING, TypeVar
 
 from cirq import ops, protocols, value
 from cirq.ops import control_values as cv, gate_features, raw_types
@@ -269,7 +260,7 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         getter = getattr(self.gate, '_parameter_names_', None)
         if getter is not None:
             return getter()

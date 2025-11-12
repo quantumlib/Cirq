@@ -16,12 +16,13 @@ from __future__ import annotations
 
 import importlib
 import sys
+from collections.abc import Callable
 from contextlib import contextmanager
 from importlib import abc
 from importlib.abc import Loader
 from importlib.machinery import ModuleSpec
 from types import ModuleType
-from typing import Any, Callable, cast
+from typing import Any, cast
 
 
 class InstrumentedFinder(abc.MetaPathFinder):

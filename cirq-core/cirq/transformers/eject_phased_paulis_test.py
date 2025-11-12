@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import cast, Iterable
+from collections.abc import Iterable
+from typing import cast
 
 import numpy as np
 import pytest

@@ -31,7 +31,8 @@ from __future__ import annotations
 
 import abc
 import collections
-from typing import Any, Callable, cast, Generic, Iterator, Mapping, Sequence, TYPE_CHECKING, TypeVar
+from collections.abc import Callable, Iterator, Mapping, Sequence
+from typing import Any, cast, Generic, TYPE_CHECKING, TypeVar
 
 import numpy as np
 
