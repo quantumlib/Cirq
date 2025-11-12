@@ -23,6 +23,7 @@ import pytest
 
 import cirq
 from cirq.contrib.paulistring import CircuitToPauliStringsParameters, measure_pauli_strings
+from cirq.experiments import SingleQubitReadoutCalibrationResult
 from cirq.experiments.single_qubit_readout_calibration_test import NoisySingleQubitReadoutSampler
 
 
