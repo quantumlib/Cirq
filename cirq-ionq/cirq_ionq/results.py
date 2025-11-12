@@ -27,7 +27,11 @@ class QPUResult:
     """The results of running on an IonQ QPU."""
 
     def __init__(
-        self, counts: dict[int, int], num_qubits: int, measurement_dict: dict[str, Sequence[int]]
+        self,
+        counts: dict[int, int],
+        num_qubits: int,
+        measurement_dict: dict[str, Sequence[int]],
+        shotwise_results: list[int] | None = None,
     ):
         # We require a consistent ordering, and here we use bitvector as such.
         # OrderedDict can be removed in python 3.7, where it is part of the contract.
@@ -35,6 +39,7 @@ class QPUResult:
         self._num_qubits = num_qubits
         self._measurement_dict = measurement_dict
         self._repetitions = sum(self._counts.values())
+        self._shotwise_results = shotwise_results
 
     def num_qubits(self) -> int:
         """Returns the number of qubits the circuit was run on."""
@@ -169,11 +174,13 @@ class SimulatorResult:
         num_qubits: int,
         measurement_dict: dict[str, Sequence[int]],
         repetitions: int,
+        shotwise_results: list[int] | None = None,
     ):
         self._probabilities = probabilities
         self._num_qubits = num_qubits
         self._measurement_dict = measurement_dict
         self._repetitions = repetitions
+        self._shotwise_results = shotwise_results
 
     def num_qubits(self) -> int:
         """Returns the number of qubits the circuit was run on."""
@@ -264,26 +271,43 @@ class SimulatorResult:
                 'Can convert to cirq results only if the circuit had measurement gates '
                 'with measurement keys.'
             )
-        rand = cirq.value.parse_random_state(seed)
+
         measurements = {}
-        values, weights = zip(*list(self.probabilities().items()))
+        print("SHOTWISE RESULTS:", self._shotwise_results)
 
-        # normalize weights to sum to 1 if within tolerance because
-        # IonQ's pauliexp gates results are not extremely precise
-        total = sum(weights)
-        if np.isclose(total, 1.0, rtol=0, atol=1e-5):
-            weights = tuple((w / total for w in weights))
+        if self._shotwise_results is not None:
+            for key, targets in self.measurement_dict().items():
+                # why do we need to reverse here? In QpuResult we don't do that ..
+                bits = [
+                    list(cirq.big_endian_int_to_bits(int(x), bit_count=len(targets)))[::-1]
+                    for x in self._shotwise_results
+                ]
+                measurements[key] = np.array(bits)
+        else:
+            rand = cirq.value.parse_random_state(seed)
+            values, weights = zip(*list(self.probabilities().items()))
+            print("--------------------------------- Values:", values)
+            print("--------------------------------- Weights:", weights)
+            # normalize weights to sum to 1 if within tolerance because
+            # IonQ's pauliexp gates results are not extremely precise
+            total = sum(weights)
+            if np.isclose(total, 1.0, rtol=0, atol=1e-5):
+                weights = tuple((w / total for w in weights))
 
-        indices = rand.choice(
-            range(len(values)), p=weights, size=override_repetitions or self.repetitions()
-        )
-        rand_values = np.array(values)[indices]
-        for key, targets in self.measurement_dict().items():
-            bits = [
-                [(value >> (self.num_qubits() - target - 1)) & 1 for target in targets]
-                for value in rand_values
-            ]
-            measurements[key] = np.array(bits)
+            indices = rand.choice(
+                range(len(values)), p=weights, size=override_repetitions or self.repetitions()
+            )
+            print("INDICES:", indices)
+            rand_values = np.array(values)[indices]
+            print("RANDOM VALUES:", rand_values)
+            for key, targets in self.measurement_dict().items():
+                print(" **************** Key:", key, " targets:", targets)
+                bits = [
+                    [(value >> (self.num_qubits() - target - 1)) & 1 for target in targets]
+                    for value in rand_values
+                ]
+                measurements[key] = np.array(bits)
+        print("Here are the measurement results: ", measurements)
         return cirq.ResultDict(params=params or cirq.ParamResolver({}), measurements=measurements)
 
     def __eq__(self, other):
