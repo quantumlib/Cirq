@@ -37,8 +37,8 @@ if TYPE_CHECKING:
 
 @attrs.frozen
 class CircuitToPauliStringsParameters:
-    """
-    Parameters for measuring Pauli strings on a circuit.
+    """Parameters for measuring Pauli strings on a circuit.
+
     Attributes:
         circuit: The circuit to measure.
         pauli_strings:
@@ -152,10 +152,10 @@ def _are_symmetry_and_pauli_string_qubit_wise_commuting(
     pauli_str: ops.PauliString,
     all_qubits: list[ops.Qid] | frozenset[ops.Qid],
 ) -> bool:
-    """
-    Checks if a symmetry (Pauli string or Pauli sum) and a Pauli string are Qubit-Wise Commuting.
-    This is neccessary because the code's post-selection method relies on measuring both the
-    symmetry and the Pauli string at the same time, using a single experimental shot.
+    """Checks if a symmetry (Pauli string or Pauli sum) and a Pauli string
+    are Qubit-Wise Commuting. This is necessary because the code's
+    post-selection method relies on measuring both the symmetry and the
+    Pauli string at the same time, using a single experimental shot.
     """
     if isinstance(symmetry, ops.PauliSum):
         return _are_pauli_sum_and_pauli_string_qubit_wise_commuting(symmetry, pauli_str, all_qubits)
@@ -211,10 +211,8 @@ def _validate_circuit_to_pauli_strings_parameters(
 ):
     """Validates the input parameters for measuring Pauli strings.
 
-
     Args:
         circuits_to_pauli: A list of CircuitToPauliStringsParameters objects.
-
 
     Raises:
         ValueError: If any of the input parameters are invalid.

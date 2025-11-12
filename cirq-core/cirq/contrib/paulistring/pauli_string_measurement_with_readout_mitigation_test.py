@@ -605,7 +605,7 @@ def test_circuit_parameters_validation_errors() -> None:
     """Test validation errors specific to CircuitToPauliStringsParameters attributes."""
     q0 = cirq.LineQubit(0)
     valid_circuit = cirq.FrozenCircuit(cirq.Circuit(cirq.X(q0)))
-    valid_pauli = [[cirq.PauliString(cirq.Z(q0))]]
+    valid_pauli: list[list[cirq.PauliString]] = [[cirq.PauliString(cirq.Z(q0))]]
 
     sampler = cirq.Simulator()
     rng = np.random.default_rng()
@@ -767,7 +767,7 @@ def test_postselection_symmetry_validation_and_logic() -> None:
     circuit = cirq.FrozenCircuit(cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1)))
 
     # Target Pauli String to measure: Z0 * Z1
-    target_paulis = [[cirq.PauliString(cirq.Z(q0) * cirq.Z(q1))]]
+    target_paulis: list[list[cirq.PauliString]] = [[cirq.PauliString(cirq.Z(q0) * cirq.Z(q1))]]
 
     sampler = cirq.Simulator()
     rng = np.random.default_rng()
@@ -777,7 +777,7 @@ def test_postselection_symmetry_validation_and_logic() -> None:
     valid_sum_sym = cirq.PauliSum.from_pauli_strings(
         [cirq.PauliString(cirq.Z(q0)), cirq.PauliString(cirq.Z(q1))]
     )
-    valid_pauli_sym = cirq.PauliString(cirq.Z(q0))
+    valid_pauli_sym: cirq.PauliString = cirq.PauliString(cirq.Z(q0))
     params_valid_sum = CircuitToPauliStringsParameters(
         circuit=circuit,
         pauli_strings=target_paulis,
