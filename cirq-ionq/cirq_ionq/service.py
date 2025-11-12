@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import datetime
 import os
+from collections.abc import Iterable
 from typing import Sequence
 
 import cirq
@@ -142,10 +143,14 @@ class Service:
             extra_query_params: Specify any parameters to include in the request.
 
         Returns:
-            A `cirq.Result` for running the circuit.
+            A `cirq.Result` for the circuit.
+
+        Notes:
+            The IonQ backend may return a list of length 1 for single-circuit
+            jobs. Cirq unwraps that to a single result for `Service.run(...)`.
         """
         resolved_circuit = cirq.resolve_parameters(circuit, param_resolver)
-        job_results = self.create_job(
+        job_out = self.create_job(
             circuit=resolved_circuit,
             repetitions=repetitions,
             name=name,
@@ -157,13 +162,19 @@ class Service:
             dry_run=dry_run,
             extra_query_params=extra_query_params,
         ).results(sharpen=sharpen)
-        if isinstance(job_results[0], results.QPUResult):
-            return job_results[0].to_cirq_result(params=cirq.ParamResolver(param_resolver))
-        if isinstance(job_results[0], results.SimulatorResult):
-            return job_results[0].to_cirq_result(
-                params=cirq.ParamResolver(param_resolver), seed=seed
-            )
-        raise NotImplementedError(f"Unrecognized job result type '{type(job_results[0])}'.")
+
+        # `create_job()` always submits a single circuit, so the API either gives us:
+        #   - a QPUResult / SimulatorResult, or
+        #   - a list of length-1 (the batch logic in Job.results still wraps it in a list).
+        #   In the latter case we unwrap it here.
+        if isinstance(job_out, list):
+            job_out = job_out[0]
+
+        if isinstance(job_out, results.QPUResult):
+            return job_out.to_cirq_result(params=cirq.ParamResolver(param_resolver))
+        if isinstance(job_out, results.SimulatorResult):
+            return job_out.to_cirq_result(params=cirq.ParamResolver(param_resolver), seed=seed)
+        raise NotImplementedError(f"Unrecognized job result type '{type(job_out)}'.")
 
     def run_batch(
         self,
@@ -215,7 +226,11 @@ class Service:
             extra_query_params: Specify any parameters to include in the request.
 
         Returns:
-            A a list of `cirq.Result` for running the circuit.
+            A list of `cirq.Result` objects, one per circuit.
+
+        Notes:
+            The output list preserves the order of the input `circuits`
+            argument, regardless of how the IonQ API orders per-circuit results.
         """
         resolved_circuits = []
         for circuit in circuits:
@@ -233,6 +248,10 @@ class Service:
             dry_run=dry_run,
             extra_query_params=extra_query_params,
         ).results(sharpen=sharpen)
+        assert isinstance(job_results, Iterable), (
+            "Expected job results to be iterable, but got type "
+            f"{type(job_results)}. This is a bug in the IonQ API."
+        )
 
         cirq_results = []
         for job_result in job_results:
