@@ -16,17 +16,8 @@ from __future__ import annotations
 
 import cmath
 import re
-from typing import (
-    Any,
-    Callable,
-    cast,
-    Iterable,
-    Iterator,
-    Mapping,
-    SupportsFloat,
-    TypeAlias,
-    TypeVar,
-)
+from collections.abc import Callable, Iterable, Iterator, Mapping
+from typing import Any, cast, SupportsFloat, TypeAlias, TypeVar
 
 import numpy as np
 import sympy

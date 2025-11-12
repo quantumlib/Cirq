@@ -16,7 +16,8 @@
 from __future__ import annotations
 
 import collections
-from typing import Counter, Sequence
+from collections import Counter
+from collections.abc import Sequence
 
 import numpy as np
 

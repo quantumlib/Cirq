@@ -27,8 +27,9 @@ raised to a power (i.e. cirq.H**0.5). See the definition in EigenGate.
 
 from __future__ import annotations
 
+from collections.abc import Collection, Sequence
 from types import NotImplementedType
-from typing import Any, cast, Collection, Sequence
+from typing import Any, cast
 
 import numpy as np
 import sympy

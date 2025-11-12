@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, cast, Iterable, Mapping, NamedTuple, Self, Sequence, TYPE_CHECKING
+from collections.abc import Callable, Iterable, Mapping, Sequence
+from typing import Any, cast, NamedTuple, Self, TYPE_CHECKING
 
 import numpy as np
 

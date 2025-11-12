@@ -18,7 +18,8 @@ from __future__ import annotations
 
 import abc
 from collections import defaultdict
-from typing import Callable, cast, Iterable, Sequence, TYPE_CHECKING
+from collections.abc import Callable, Iterable, Sequence
+from typing import cast, TYPE_CHECKING
 
 from cirq import ops
 

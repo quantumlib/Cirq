@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import functools
-from typing import Sequence
+from collections.abc import Sequence
 
 from cirq_google.api.v2 import program_pb2, run_context_pb2
 

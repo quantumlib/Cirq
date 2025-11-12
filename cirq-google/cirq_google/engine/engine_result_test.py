@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import datetime
-from typing import Mapping, TYPE_CHECKING
+from collections.abc import Mapping
+from typing import TYPE_CHECKING
 
 import numpy as np
 

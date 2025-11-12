@@ -27,7 +27,8 @@ from __future__ import annotations
 
 import functools
 import itertools
-from typing import Any, Generator, Sequence
+from collections.abc import Generator, Sequence
+from typing import Any
 
 import sympy.parsing.sympy_parser as sympy_parser
 

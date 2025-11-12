@@ -16,8 +16,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from types import NotImplementedType
-from typing import Any, Mapping, overload, Protocol, TYPE_CHECKING, TypeVar
+from typing import Any, overload, Protocol, TYPE_CHECKING, TypeVar
 
 from cirq import value
 from cirq._doc import doc_private

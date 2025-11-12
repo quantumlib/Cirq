@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import abc
 from collections import defaultdict
-from typing import Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Iterator, Sequence
+from typing import TYPE_CHECKING
 
 from cirq import circuits, devices, ops, protocols, transformers
 from cirq.contrib.acquaintance.gates import AcquaintanceOpportunityGate

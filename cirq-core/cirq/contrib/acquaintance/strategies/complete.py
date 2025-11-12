@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 from cirq import circuits, ops
 from cirq.contrib.acquaintance.gates import acquaint
