@@ -975,8 +975,7 @@ def test_paulisum_validation() -> None:
     ps += cirq.I(cirq.LineQubit(0))
     assert ps == cirq.PauliSum(cirq.LinearDict({frozenset(): complex(1)}))
 
-    ps = cirq.PauliSum()
-    ps = cirq.I(cirq.LineQubit(0)) + ps
+    ps = cirq.I(cirq.LineQubit(0)) + cirq.PauliSum()
     assert ps == cirq.PauliSum(cirq.LinearDict({frozenset(): complex(1)}))
 
     ps = cirq.PauliSum()
