@@ -27,8 +27,9 @@ The native gate set consists of the local gates: X, Y, and XX entangling gates
 from __future__ import annotations
 
 import json
+from collections.abc import Iterable, Sequence
 from enum import Enum
-from typing import Any, cast, Iterable, Sequence
+from typing import Any, cast
 
 import networkx as nx
 import numpy as np

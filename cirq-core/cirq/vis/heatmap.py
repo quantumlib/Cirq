@@ -15,8 +15,9 @@
 from __future__ import annotations
 
 import copy
+from collections.abc import Mapping, Sequence
 from dataclasses import astuple, dataclass
-from typing import Any, cast, Mapping, overload, Sequence, SupportsFloat
+from typing import Any, cast, overload, SupportsFloat
 
 import matplotlib as mpl
 import matplotlib.collections as mpl_collections

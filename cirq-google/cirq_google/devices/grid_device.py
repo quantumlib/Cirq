@@ -18,8 +18,9 @@ from __future__ import annotations
 
 import re
 import warnings
+from collections.abc import Collection, Iterator, Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any, cast, Collection, Iterator, Mapping, Sequence
+from typing import Any, cast
 
 import cirq
 from cirq_google import ops, transformers

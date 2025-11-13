@@ -20,7 +20,8 @@ import itertools
 import os
 import tempfile
 import warnings
-from typing import Any, Iterable, Mapping, Sequence, TYPE_CHECKING
+from collections.abc import Iterable, Mapping, Sequence
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd

@@ -21,7 +21,8 @@ Gate compilation methods implemented here are following the paper below:
 
 from __future__ import annotations
 
-from typing import cast, Iterable, TYPE_CHECKING
+from collections.abc import Iterable
+from typing import cast, TYPE_CHECKING
 
 from cirq import linalg, ops, protocols
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions, two_qubit_to_cz

@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import asyncio
 import concurrent
-from typing import AsyncIterable, AsyncIterator, Awaitable, Sequence
+from collections.abc import AsyncIterable, AsyncIterator, Awaitable, Sequence
 from unittest import mock
 
 import duet

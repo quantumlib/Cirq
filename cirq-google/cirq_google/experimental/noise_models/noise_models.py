@@ -14,8 +14,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from math import exp
-from typing import Any, Sequence, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import cirq
 from cirq._compat import proper_repr

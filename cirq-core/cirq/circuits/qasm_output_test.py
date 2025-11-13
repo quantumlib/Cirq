@@ -29,6 +29,17 @@ def _make_qubits(n):
     return [cirq.NamedQubit(f'q{i}') for i in range(n)]
 
 
+def _qiskit_ugate_unitary(gate: QasmUGate) -> np.ndarray:
+    # Ref: https://quantum.cloud.ibm.com/docs/en/api/qiskit/qiskit.circuit.library.U3Gate#u3gate
+    th, ph, lm = np.pi * np.array([gate.theta, gate.phi, gate.lmda])
+    return np.array(
+        [
+            [np.cos(th / 2), -np.exp(1j * lm) * np.sin(th / 2)],
+            [np.exp(1j * ph) * np.sin(th / 2), np.exp(1j * (ph + lm)) * np.cos(th / 2)],
+        ]
+    )
+
+
 def test_u_gate_repr() -> None:
     gate = QasmUGate(0.1, 0.2, 0.3)
     assert repr(gate) == 'cirq.circuits.qasm_output.QasmUGate(theta=0.1, phi=0.2, lmda=0.3)'
@@ -43,6 +54,20 @@ def test_u_gate_eq() -> None:
     cirq.approx_eq(gate4, gate3, atol=1e-16)
 
 
+@pytest.mark.parametrize("_", range(10))
+def test_u_gate_from_qiskit_ugate_unitary(_) -> None:
+    # QasmUGate at (theta, phi, lmda) is the same as QasmUGate at
+    # (2 - theta, phi + 1, lmda + 1) and a global phase factor of -1.
+    # QasmUGate.from_matrix resolves theta at [0, 1] and ignores possible global
+    # phase.  To avoid phase discrepancy we limit theta to the [0, 1] interval.
+    theta = np.random.uniform(0, 1)
+    phi = np.random.uniform(0, 2)
+    lmda = np.random.uniform(0, 2)
+    u = _qiskit_ugate_unitary(QasmUGate(theta, phi, lmda))
+    g = QasmUGate.from_matrix(u)
+    np.testing.assert_allclose(cirq.unitary(g), u, atol=1e-7)
+
+
 def test_qasm_two_qubit_gate_repr() -> None:
     cirq.testing.assert_equivalent_repr(
         QasmTwoQubitGate.from_matrix(cirq.testing.random_unitary(4))
@@ -53,13 +78,14 @@ def test_qasm_u_qubit_gate_unitary() -> None:
     u = cirq.testing.random_unitary(2)
     g = QasmUGate.from_matrix(u)
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(g), u, atol=1e-7)
-
     cirq.testing.assert_implements_consistent_protocols(g)
+    np.testing.assert_allclose(cirq.unitary(g), _qiskit_ugate_unitary(g), atol=1e-7)
 
     u = cirq.unitary(cirq.Y)
     g = QasmUGate.from_matrix(u)
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(g), u, atol=1e-7)
     cirq.testing.assert_implements_consistent_protocols(g)
+    np.testing.assert_allclose(cirq.unitary(g), _qiskit_ugate_unitary(g), atol=1e-7)
 
 
 def test_qasm_two_qubit_gate_unitary() -> None:
@@ -200,7 +226,7 @@ ry(pi*-0.25) q[0];
     )
 
 
-def test_qasm_global_pahse() -> None:
+def test_qasm_global_phase() -> None:
     output = cirq.QasmOutput((cirq.global_phase_operation(np.exp(1j * 5))), ())
     assert (
         str(output)

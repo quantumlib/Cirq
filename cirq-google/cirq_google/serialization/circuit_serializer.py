@@ -19,8 +19,8 @@ from __future__ import annotations
 import functools
 import inspect
 import warnings
-from collections.abc import Mapping, Sequence
-from typing import Any, Callable, Hashable
+from collections.abc import Callable, Hashable, Mapping, Sequence
+from typing import Any
 
 import sympy
 

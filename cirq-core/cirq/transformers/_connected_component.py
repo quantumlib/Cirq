@@ -16,7 +16,8 @@
 
 from __future__ import annotations
 
-from typing import Callable, cast, Sequence, TYPE_CHECKING
+from collections.abc import Callable, Sequence
+from typing import cast, TYPE_CHECKING
 
 from scipy.cluster.hierarchy import DisjointSet
 

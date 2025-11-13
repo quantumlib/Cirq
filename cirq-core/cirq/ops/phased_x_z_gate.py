@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import numbers
-from typing import AbstractSet, Any, Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Iterator, Sequence, Set
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -220,7 +221,7 @@ class PhasedXZGate(raw_types.Gate):
             or protocols.is_parameterized(self._axis_phase_exponent)
         )
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         """See `cirq.SupportsParameterization`."""
         return (
             protocols.parameter_names(self._x_exponent)

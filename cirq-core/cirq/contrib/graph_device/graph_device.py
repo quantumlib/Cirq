@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import abc
 import itertools
-from typing import Any, cast, Hashable, Iterable, NoReturn, TYPE_CHECKING
+from collections.abc import Hashable, Iterable
+from typing import Any, cast, NoReturn, TYPE_CHECKING
 
 from cirq import devices, ops, value
 from cirq.contrib.graph_device.hypergraph import UndirectedHypergraph
