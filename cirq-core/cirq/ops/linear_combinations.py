@@ -743,6 +743,8 @@ class PauliSum:
         return len(self._linear_dict)
 
     def __iadd__(self, other):
+        if isinstance(other, raw_types.Operation):
+            other = pauli_string._try_interpret_as_pauli_string(other)
         if isinstance(other, numbers.Complex):
             other = PauliSum.from_pauli_strings([PauliString(coefficient=other)])
         elif isinstance(other, PauliString):
@@ -767,6 +769,8 @@ class PauliSum:
         return -self.__sub__(other)
 
     def __isub__(self, other):
+        if isinstance(other, raw_types.Operation):
+            other = pauli_string._try_interpret_as_pauli_string(other)
         if isinstance(other, numbers.Complex):
             other = PauliSum.from_pauli_strings([PauliString(coefficient=other)])
         elif isinstance(other, PauliString):

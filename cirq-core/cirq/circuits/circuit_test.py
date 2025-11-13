@@ -356,20 +356,21 @@ def test_add_op_tree(circuit_cls) -> None:
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
-def test_radd_op_tree(circuit_cls) -> None:
+@pytest.mark.parametrize('gate', [cirq.X, cirq.H])
+def test_radd_op_tree(circuit_cls, gate) -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
     c = circuit_cls()
-    assert [cirq.X(a), cirq.Y(b)] + c == circuit_cls([cirq.Moment([cirq.X(a), cirq.Y(b)])])
+    assert [gate(a), cirq.Y(b)] + c == circuit_cls([cirq.Moment([gate(a), cirq.Y(b)])])
 
-    assert cirq.X(a) + c == circuit_cls(cirq.X(a))
-    assert [cirq.X(a)] + c == circuit_cls(cirq.X(a))
-    assert [[[cirq.X(a)], []]] + c == circuit_cls(cirq.X(a))
-    assert (cirq.X(a),) + c == circuit_cls(cirq.X(a))
-    assert (cirq.X(a) for _ in range(1)) + c == circuit_cls(cirq.X(a))
+    assert gate(a) + c == circuit_cls(gate(a))
+    assert [gate(a)] + c == circuit_cls(gate(a))
+    assert [[[gate(a)], []]] + c == circuit_cls(gate(a))
+    assert (gate(a),) + c == circuit_cls(gate(a))
+    assert (gate(a) for _ in range(1)) + c == circuit_cls(gate(a))
     with pytest.raises(AttributeError):
-        _ = cirq.X + c
+        _ = gate + c
     with pytest.raises(TypeError):
         _ = 0 + c
 
@@ -380,9 +381,9 @@ def test_radd_op_tree(circuit_cls) -> None:
     else:
         d = cirq.Circuit()
         d.append(cirq.Y(b))
-    assert [cirq.X(a)] + d == circuit_cls([cirq.Moment([cirq.X(a)]), cirq.Moment([cirq.Y(b)])])
-    assert cirq.Moment([cirq.X(a)]) + d == circuit_cls(
-        [cirq.Moment([cirq.X(a)]), cirq.Moment([cirq.Y(b)])]
+    assert [gate(a)] + d == circuit_cls([cirq.Moment([gate(a)]), cirq.Moment([cirq.Y(b)])])
+    assert cirq.Moment([gate(a)]) + d == circuit_cls(
+        [cirq.Moment([gate(a)]), cirq.Moment([cirq.Y(b)])]
     )
 
 
