@@ -194,7 +194,7 @@ def test_serialize_single_circuit_metadata_is_updated():
     result = serializer.serialize_single_circuit(circuit, metadata={'foo': 'bar'})
     assert result == ionq.SerializedProgram(
         input={'gateset': 'qis', 'qubits': 1, 'circuit': [{'gate': 'x', 'targets': [0]}]},
-        metadata={'foo': 'bar', 'measurement0': 'result\x1f0'},
+        metadata={'foo': 'bar', 'measurement0': f'result{chr(31)}0'},
         settings={},
         compilation={},
         error_mitigation={},
@@ -216,8 +216,8 @@ def test_serialize_many_circuits_metadata_is_updated():
         },
         metadata={
             'foo': 'bar',
-            'measurements': '[{"measurement0": "result\\u001f0"}]',
-            'qubit_numbers': '[1]',
+            'measurements': json.dumps([{"measurement0": f"result{chr(31)}0"}]),
+            'qubit_numbers': json.dumps([1]),
         },
         settings={},
         compilation={},
@@ -824,8 +824,8 @@ def test_serialize_many_circuits_measurement_gate():
     assert result == ionq.SerializedProgram(
         input={'gateset': 'native', 'qubits': 1, 'circuits': [{'circuit': []}]},
         metadata={
-            'measurements': '[{"measurement0": "tomyheart\\u001f0"}]',
-            'qubit_numbers': '[1]',
+            'measurements': json.dumps([{"measurement0": f"tomyheart{chr(31)}0"}]),
+            'qubit_numbers': json.dumps([1]),
         },
         settings={},
         compilation={},
@@ -859,8 +859,8 @@ def test_serialize_many_circuits_measurement_gate_target_order():
     assert result == ionq.SerializedProgram(
         input={'gateset': 'native', 'qubits': 3, 'circuits': [{'circuit': []}]},
         metadata={
-            'measurements': '[{"measurement0": "tomyheart\\u001f2,0"}]',
-            'qubit_numbers': '[3]',
+            'measurements': json.dumps([{"measurement0": f"tomyheart{chr(31)}2,0"}]),
+            'qubit_numbers': json.dumps([3]),
         },
         settings={},
         compilation={},
@@ -991,8 +991,8 @@ def test_serialize_many_circuits_measurement_gate_multiple_keys():
     assert result == ionq.SerializedProgram(
         input={'gateset': 'native', 'qubits': 2, 'circuits': [{'circuit': []}]},
         metadata={
-            'measurements': '[{"measurement0": "a\\u001f0\\u001eb\\u001f1"}]',
-            'qubit_numbers': '[2]',
+            'measurements': json.dumps([{"measurement0": f"a{chr(31)}0{chr(30)}b{chr(31)}1"}]),
+            'qubit_numbers': json.dumps([2]),
         },
         settings={},
         compilation={},
