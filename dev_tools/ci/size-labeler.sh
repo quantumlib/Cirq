@@ -114,7 +114,7 @@ function compute_changes() {
     local response
     local change_info
     local -r keys_filter='with_entries(select([.key] | inside(["changes", "filename"])))'
-    response="$(api_call "pulls/${pr}/files")"
+    response="$(api_call "pulls/${pr}/files?per_page=100")"
     change_info="$(jq_stdin "map(${keys_filter})" <<<"${response}")"
 
     local files total_changes

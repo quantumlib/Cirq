@@ -5,8 +5,9 @@ https://arxiv.org/abs/1811.12926.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import numpy as np
 

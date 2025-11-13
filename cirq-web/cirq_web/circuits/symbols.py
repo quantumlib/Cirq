@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import abc
 import dataclasses
-from typing import Iterable
+from collections.abc import Iterable
 
 import cirq
 from cirq.protocols.circuit_diagram_info_protocol import CircuitDiagramInfoArgs

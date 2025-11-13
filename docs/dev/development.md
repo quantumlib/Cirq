@@ -85,10 +85,24 @@ package manager.
 
     There are some extra steps if Protocol Buffers are changed; see the next section.
 
-2. Prepare a Python virtual environment that includes the Cirq dev tools (such as Mypy).
+2. Setup virtualenvwrapper
 
-    One of the system dependencies we installed was `virtualenvwrapper`, which makes it easy to create virtual environments.
-    If you did not have `virtualenvwrapper` previously, you may need to re-open your terminal or run `source ~/.bashrc` before these commands will work:
+    One of the system dependencies we installed was `virtualenvwrapper`, which makes it easy to
+    create virtual environments.  If you did not have `virtualenvwrapper` previously, then to
+    complete the setup of virtualenvwrapper, the following lines must be added to your ~/.bashrc or
+    ~/.zshrc file.  Once the file is saved, you will need to either open a new terminal session or
+    execute `source ~/.bashrc` to activate the new configuration.
+
+    ```bash
+    export WORKON_HOME=$HOME/.virtualenvs
+    export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
+    source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
+    ```
+
+    For a complete reference see the [virtualenvwrapper documentation](
+    https://virtualenvwrapper.readthedocs.io).
+
+3. Prepare a Python virtual environment that includes the Cirq dev tools (such as Mypy).
 
     ```bash
     mkvirtualenv cirq-py3 --python=/usr/bin/python3
@@ -102,13 +116,13 @@ package manager.
     **Note**: Some highly managed or customized devices have configurations that interfere with `virtualenv`.
     In that case, [anaconda](https://www.anaconda.com/) environments may be a better choice.
 
-3. Check that the tests pass.
+4. Check that the tests pass.
 
     ```bash
     ./check/pytest .
     ```
 
-4. (**OPTIONAL**) include your development copy of Cirq and its subpackages in your Python path.
+5. (**OPTIONAL**) include your development copy of Cirq and its subpackages in your Python path.
 
     ```bash
     source dev_tools/pypath

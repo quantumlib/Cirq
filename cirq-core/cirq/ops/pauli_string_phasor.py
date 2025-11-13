@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import numbers
-from typing import AbstractSet, cast, Iterable, Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Iterable, Iterator, Sequence, Set
+from typing import cast, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq._compat import deprecated, proper_repr
@@ -388,7 +389,7 @@ class PauliStringPhasorGate(raw_types.Gate):
             self.exponent_pos
         )
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self.exponent_neg) | protocols.parameter_names(
             self.exponent_pos
         )

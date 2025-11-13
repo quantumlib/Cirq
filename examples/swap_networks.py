@@ -23,7 +23,8 @@ from __future__ import annotations
 
 import itertools
 import random
-from typing import Sequence, TypeVar
+from collections.abc import Sequence
+from typing import TypeVar
 
 import cirq
 import cirq.contrib.acquaintance as cca

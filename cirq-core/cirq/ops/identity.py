@@ -16,8 +16,9 @@
 from __future__ import annotations
 
 import numbers
+from collections.abc import Sequence
 from types import NotImplementedType
-from typing import Any, Sequence, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 import sympy

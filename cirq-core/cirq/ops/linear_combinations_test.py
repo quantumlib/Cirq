@@ -1452,7 +1452,7 @@ def test_expectation_from_density_matrix_invalid_input() -> None:
     with pytest.raises(ValueError, match='shape'):
         psum.expectation_from_density_matrix(rho.reshape((8, 8, 1)), q_map)
     with pytest.raises(ValueError, match='shape'):
-        psum.expectation_from_density_matrix(rho.reshape((-1)), q_map)
+        psum.expectation_from_density_matrix(rho.reshape((-1,)), q_map)
 
 
 def test_expectation_from_density_matrix_check_preconditions() -> None:

@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import itertools
 import multiprocessing
-from typing import Iterable, Iterator, Sequence
+from collections.abc import Iterable, Iterator, Sequence
 
 import networkx as nx
 import numpy as np
