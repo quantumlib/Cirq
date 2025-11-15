@@ -303,7 +303,7 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
                     ("grpc.keepalive_time_ms", 60 * 1000),
                     # Allow unlimited keepalive pings in between data frames
                     ('grpc.http2.max_pings_without_data', 0),
-                ]
+                ],
             )
 
         self._interceptor = _LoggingClientAIOInterceptor()
