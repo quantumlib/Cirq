@@ -17,12 +17,15 @@
 from __future__ import annotations
 
 import logging
-from typing import Literal
+from typing import Literal, TYPE_CHECKING
+
+import numpy as np
+import quimb.tensor as qtn
 
 import cirq
-import numpy as np
-from numpy.typing import NDArray
-import quimb.tensor as qtn  # type: ignore
+
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +65,7 @@ def gram_schmidt(matrix: NDArray[np.complex128]) -> NDArray[np.complex128]:
 
         # Handle near-zero vectors (linear dependence)
         norm = np.linalg.norm(column)
-        if norm < 1e-12:
+        if norm < 1e-12: # pragma: no cover
             is_complex = np.iscomplexobj(matrix)
             column = np.random.uniform(-1, 1, num_rows)  # type: ignore
             if is_complex:
@@ -78,9 +81,7 @@ def gram_schmidt(matrix: NDArray[np.complex128]) -> NDArray[np.complex128]:
 
 class Sequential:
     def __init__(
-        self,
-        max_fidelity_threshold: float = 0.95,
-        convention: Literal["lsb", "msb"]="lsb"
+        self, max_fidelity_threshold: float = 0.95, convention: Literal["lsb", "msb"] = "lsb"
     ) -> None:
         """Initialize the Sequential class.
 
@@ -129,8 +130,8 @@ class Sequential:
 
             tensor = np.swapaxes(tensor, 1, 2)
 
-            # Combine the physical index and right-virtual index of the tensor to construct an isometry
-            # matrix
+            # Combine the physical index and right-virtual index of the tensor to construct
+            # an isometry matrix
             d_left, d, d_right = tensor.shape
             isometry = tensor.reshape((d * d_left, d_right))
 
@@ -140,9 +141,7 @@ class Sequential:
                 qubits = [abs(qubit - num_sites + 1) for qubit in qubits]  # type: ignore
 
             # Create all-zero matrix and add the isometry columns
-            matrix = np.zeros(
-                (isometry.shape[0], isometry.shape[0]), dtype=isometry.dtype
-            )
+            matrix = np.zeros((isometry.shape[0], isometry.shape[0]), dtype=isometry.dtype)
 
             # Keep columns for which all ancillas are in the zero state
             matrix[:, : isometry.shape[1]] = isometry
@@ -155,10 +154,7 @@ class Sequential:
         return unitary_layer
 
     def mps_to_circuit_approx(
-        self,
-        statevector: NDArray[np.complex128],
-        max_num_layers: int,
-        chi_max: int,
+        self, statevector: NDArray[np.complex128], max_num_layers: int, chi_max: int
     ) -> cirq.Circuit:
         r"""Approximately encodes the MPS into a circuit via multiple layers
         of exact encoding of bond 2 truncated MPS.
@@ -181,12 +177,10 @@ class Sequential:
         Returns:
             cirq.Circuit: The generated quantum circuit that encodes the MPS.
         """
-        mps = qtn.MatrixProductState.from_dense(statevector)
-        mps: qtn.MatrixProductState = (
-            qtn.tensor_1d_compress.tensor_network_1d_compress(
-                mps, max_bond=chi_max
-            )
-        )  # type: ignore
+        mps_dense = qtn.MatrixProductState.from_dense(statevector)
+        mps: qtn.MatrixProductState = qtn.tensor_1d_compress.tensor_network_1d_compress(
+            mps_dense, max_bond=chi_max
+        )
         mps.permute_arrays()
 
         mps.compress(form="left", max_bond=chi_max)
@@ -236,28 +230,22 @@ class Sequential:
             # Compress the disentangled MPS to a maximum bond dimension of chi_max
             # This is to ensure that the disentangled MPS does not grow too large
             # and improves the fidelity of the encoding
-            disentangled_mps: qtn.MatrixProductState = (
-                qtn.tensor_1d_compress.tensor_network_1d_compress(  # type: ignore
+            disentangled_mps: qtn.MatrixProductState = ( # type: ignore
+                qtn.tensor_1d_compress.tensor_network_1d_compress(
                     disentangled_mps, max_bond=chi_max
                 )
             )
 
-            fidelity = np.abs(
-                np.vdot(disentangled_mps.to_dense(), zero_state)
-            ) ** 2
+            fidelity = np.abs(np.vdot(disentangled_mps.to_dense(), zero_state)) ** 2
             fidelity = float(np.real(fidelity))
 
             if fidelity >= self.max_fidelity_threshold:
-                logger.info(
-                    f"Reached target fidelity {fidelity}. "
-                    f"{layer_index + 1} layers used."
-                )
+                logger.info(f"Reached target fidelity {fidelity}. {layer_index + 1} layers used.")
                 break
 
         if layer_index == max_num_layers - 1:
             logger.info(
-                f"Reached fidelity {fidelity} with "
-                f"maximum number of layers {max_num_layers}."
+                f"Reached fidelity {fidelity} with maximum number of layers {max_num_layers}."
             )
 
         # The layers disentangle the MPS to a state close to |00...0>
@@ -269,7 +257,7 @@ class Sequential:
 
         for unitary_layer in unitary_layers:
             for qubits, unitary in unitary_layer:
-                qubits = reversed([mps.L - 1 - q for q in qubits])
+                qubits = list(reversed([mps.L - 1 - q for q in qubits]))
 
                 # In certain cases, floating point errors can cause `unitary`
                 # to not be unitary
@@ -283,9 +271,7 @@ class Sequential:
         return circuit
 
     def __call__(
-        self,
-        statevector: NDArray[np.complex128],
-        max_num_layers: int = 10
+        self, statevector: NDArray[np.complex128], max_num_layers: int = 10
     ) -> cirq.Circuit:
         """Call the instance to create the circuit that encodes the statevector.
 
@@ -302,16 +288,24 @@ class Sequential:
         if num_qubits == 1:
             circuit = cirq.Circuit()
             q = cirq.LineQubit.range(1)
-            circuit.append(cirq.StatePreparationChannel(statevector)(q[0]))
+
+            magnitude = abs(statevector)
+            phase = np.angle(statevector)
+
+            divisor = magnitude[0]**2 + magnitude[1]**2
+            alpha_y = 2 * np.arcsin(np.sqrt(magnitude[1]**2 / divisor)) if divisor != 0 else 0.0
+            alpha_z = phase[1] - phase[0]
+            global_phase = sum(phase / len(statevector))
+
+            circuit.append(cirq.ops.Ry(rads=alpha_y)(q[0]))
+            circuit.append(cirq.ops.Rz(rads=alpha_z)(q[0]))
+            circuit.append(cirq.GlobalPhaseGate(np.exp(1j*global_phase))())
+
             return circuit
 
-        circuit = self.mps_to_circuit_approx(
-            statevector, max_num_layers, 2**num_qubits
-        )
+        circuit = self.mps_to_circuit_approx(statevector, max_num_layers, 2**num_qubits)
 
-        fidelity = np.abs(
-            np.vdot(cirq.final_state_vector(circuit), statevector)
-        ) ** 2
+        fidelity = np.abs(np.vdot(cirq.final_state_vector(circuit), statevector)) ** 2
         fidelity = float(np.real(fidelity))
 
         logger.info(

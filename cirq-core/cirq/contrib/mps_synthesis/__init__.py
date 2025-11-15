@@ -14,4 +14,4 @@
 
 """Synthesis for compiling a MPS to a circuit."""
 
-from cirq.contrib.mps_synthesis.mps_sequential import Sequential as MPS_StatePrep
+from cirq.contrib.mps_synthesis.mps_sequential import Sequential as Sequential

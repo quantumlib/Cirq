@@ -14,12 +14,23 @@
 
 from __future__ import annotations
 
+import numpy as np
 import pytest
 
 import cirq
-from cirq.contrib.mps_synthesis import MPS_StatePrep
-import numpy as np
+from cirq.contrib.mps_synthesis import Sequential
 
+
+def test_compile_single_qubit_state() -> None:
+    state = np.random.rand(2) + 1j * np.random.rand(2)
+    state /= np.linalg.norm(state)
+
+    encoder = Sequential()
+    circuit: cirq.Circuit = encoder(state, max_num_layers=1)
+
+    fidelity = np.vdot(cirq.final_state_vector(circuit), state)
+
+    assert np.round(np.abs(fidelity), decimals=6) == 1.0
 
 @pytest.mark.parametrize("N", [5, 8, 10, 11])
 def test_compile_with_mps_pass(N: int) -> None:
@@ -27,16 +38,15 @@ def test_compile_with_mps_pass(N: int) -> None:
     state = np.random.rand(2**N) + 1j * np.random.rand(2**N)
     state /= np.linalg.norm(state)
 
-    encoder = MPS_StatePrep()
+    encoder = Sequential()
     circuit: cirq.Circuit = encoder(state, max_num_layers=6)
 
-    fidelity = np.vdot(
-        cirq.final_state_vector(circuit), state
-    )
+    fidelity = np.vdot(cirq.final_state_vector(circuit), state)
 
     assert np.abs(fidelity) > 0.85
 
     # TODO: Assert circuit depth being lower than exact
+
 
 def test_compile_trivial_state_with_mps_pass() -> None:
     from cirq.contrib.qasm_import import circuit_from_qasm
@@ -312,12 +322,10 @@ def test_compile_trivial_state_with_mps_pass() -> None:
     state = cirq.final_state_vector(trivial_circuit)
     state /= np.linalg.norm(state)
 
-    encoder = MPS_StatePrep()
+    encoder = Sequential()
     circuit: cirq.Circuit = encoder(state, max_num_layers=1)
 
-    fidelity = np.vdot(
-        cirq.final_state_vector(circuit), state
-    )
+    fidelity = np.vdot(cirq.final_state_vector(circuit), state)
 
     assert np.round(np.abs(fidelity), decimals=6) == 1.0
 
