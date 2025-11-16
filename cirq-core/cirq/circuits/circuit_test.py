@@ -18,9 +18,9 @@ import itertools
 import os
 import time
 from collections import defaultdict
-from collections.abc import Iterator, Sequence
+from collections.abc import Callable, Iterator, Sequence
 from random import randint, random, randrange, sample
-from typing import Any, Callable
+from typing import Any
 
 import numpy as np
 import pytest
