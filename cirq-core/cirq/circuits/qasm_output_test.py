@@ -73,6 +73,8 @@ def test_u_gate_params() -> None:
     q = cirq.LineQubit(0)
     a, b, c = sympy.symbols('a b c')
     u_gate = QasmUGate(a, b, c)
+    assert u_gate == QasmUGate(a, b + 2, c - 2)
+    assert u_gate != QasmUGate(a, b + 1, c - 1)
     assert cirq.is_parameterized(u_gate)
     assert cirq.parameter_names(u_gate) == {'a', 'b', 'c'}
     assert not cirq.has_unitary(u_gate)
