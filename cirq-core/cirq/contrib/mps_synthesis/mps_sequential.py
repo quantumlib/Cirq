@@ -65,7 +65,7 @@ def gram_schmidt(matrix: NDArray[np.complex128]) -> NDArray[np.complex128]:
 
         # Handle near-zero vectors (linear dependence)
         norm = np.linalg.norm(column)
-        if norm < 1e-12: # pragma: no cover
+        if norm < 1e-12:  # pragma: no cover
             is_complex = np.iscomplexobj(matrix)
             column = np.random.uniform(-1, 1, num_rows)  # type: ignore
             if is_complex:
@@ -230,7 +230,7 @@ class Sequential:
             # Compress the disentangled MPS to a maximum bond dimension of chi_max
             # This is to ensure that the disentangled MPS does not grow too large
             # and improves the fidelity of the encoding
-            disentangled_mps: qtn.MatrixProductState = ( # type: ignore
+            disentangled_mps: qtn.MatrixProductState = (  # type: ignore
                 qtn.tensor_1d_compress.tensor_network_1d_compress(
                     disentangled_mps, max_bond=chi_max
                 )
@@ -292,14 +292,14 @@ class Sequential:
             magnitude = abs(statevector)
             phase = np.angle(statevector)
 
-            divisor = magnitude[0]**2 + magnitude[1]**2
-            alpha_y = 2 * np.arcsin(np.sqrt(magnitude[1]**2 / divisor)) if divisor != 0 else 0.0
+            divisor = magnitude[0] ** 2 + magnitude[1] ** 2
+            alpha_y = 2 * np.arcsin(np.sqrt(magnitude[1] ** 2 / divisor)) if divisor != 0 else 0.0
             alpha_z = phase[1] - phase[0]
             global_phase = sum(phase / len(statevector))
 
             circuit.append(cirq.ops.Ry(rads=alpha_y)(q[0]))
             circuit.append(cirq.ops.Rz(rads=alpha_z)(q[0]))
-            circuit.append(cirq.GlobalPhaseGate(np.exp(1j*global_phase))())
+            circuit.append(cirq.GlobalPhaseGate(np.exp(1j * global_phase))())
 
             return circuit
 

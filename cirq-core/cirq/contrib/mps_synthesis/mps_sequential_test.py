@@ -32,6 +32,7 @@ def test_compile_single_qubit_state() -> None:
 
     assert np.round(np.abs(fidelity), decimals=6) == 1.0
 
+
 @pytest.mark.parametrize("N", [5, 8, 10, 11])
 def test_compile_with_mps_pass(N: int) -> None:
     # Generate area-law entangled states for the test
