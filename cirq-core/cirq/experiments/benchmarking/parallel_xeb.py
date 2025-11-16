@@ -16,8 +16,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping, Sequence
 from concurrent import futures
-from typing import Iterable, Mapping, overload, Sequence, TYPE_CHECKING, Union
+from typing import overload, TYPE_CHECKING, Union
 
 import attrs
 import networkx as nx

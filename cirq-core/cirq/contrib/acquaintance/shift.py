@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import itertools
-from typing import Any, Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Iterator, Sequence
+from typing import Any, TYPE_CHECKING
 
 from cirq import ops, value
 from cirq.contrib.acquaintance.permutation import PermutationGate, SwapPermutationGate

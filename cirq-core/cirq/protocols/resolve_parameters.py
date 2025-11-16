@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import numbers
-from typing import AbstractSet, Any, cast, Protocol, Self, TYPE_CHECKING, TypeVar
+from collections.abc import Set
+from typing import Any, cast, Protocol, Self, TYPE_CHECKING, TypeVar
 
 import sympy
 
@@ -40,7 +41,7 @@ class SupportsParameterization(Protocol):
         and False otherwise."""
 
     @doc_private
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         """Returns a collection of string names of parameters that require
         resolution. If _is_parameterized_ is False, the collection is empty.
         The converse is not necessarily true, because some objects may report
@@ -92,7 +93,7 @@ def is_parameterized(val: Any) -> bool:
     return bool(parameter_names(val))
 
 
-def parameter_names(val: Any) -> AbstractSet[str]:
+def parameter_names(val: Any) -> Set[str]:
     """Returns parameter names for this object.
 
     Args:
@@ -119,7 +120,7 @@ def parameter_names(val: Any) -> AbstractSet[str]:
     return set()
 
 
-def parameter_symbols(val: Any) -> AbstractSet[sympy.Symbol]:
+def parameter_symbols(val: Any) -> Set[sympy.Symbol]:
     """Returns parameter symbols for this object.
 
     Args:
@@ -169,14 +170,8 @@ def resolve_parameters(
         return val
 
     # Ensure it is a dictionary wrapped in a ParamResolver.
-    param_resolver = study.ParamResolver(param_resolver)
-
-    # Handle special cases for sympy expressions and sequences.
-    # These may not in fact preserve types, but we pretend they do by casting.
-    if isinstance(val, sympy.Expr):
-        return cast(T, param_resolver.value_of(val, recursive))
-    if isinstance(val, (list, tuple)):
-        return cast(T, type(val)(resolve_parameters(e, param_resolver, recursive) for e in val))
+    if not isinstance(param_resolver, study.ParamResolver):
+        param_resolver = study.ParamResolver(param_resolver)
 
     is_parameterized = (
         val._is_parameterized_() if hasattr(val, '_is_parameterized_') else NotImplemented
@@ -192,8 +187,15 @@ def resolve_parameters(
 
     if result is not NotImplemented:
         return result
-    else:
-        return val
+
+    # Handle special cases for sympy expressions and sequences.
+    # These may not in fact preserve types, but we pretend they do by casting.
+    if isinstance(val, sympy.Expr):
+        return cast(T, param_resolver.value_of(val, recursive))
+    if isinstance(val, (list, tuple)):
+        return cast(T, type(val)(resolve_parameters(e, param_resolver, recursive) for e in val))
+
+    return val
 
 
 def resolve_parameters_once(val: T, param_resolver: cirq.ParamResolverOrSimilarType) -> T:

@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import AbstractSet, Any, TYPE_CHECKING
+from collections.abc import Set
+from typing import Any, TYPE_CHECKING
 
 import sympy
 
@@ -80,7 +81,7 @@ class WaitGate(raw_types.Gate):
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.duration)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self.duration)
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> WaitGate:

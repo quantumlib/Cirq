@@ -22,7 +22,8 @@ noise models to produce a single noise model which replicates device noise.
 from __future__ import annotations
 
 import abc
-from typing import Iterable, Sequence, TYPE_CHECKING
+from collections.abc import Iterable, Sequence
+from typing import TYPE_CHECKING
 
 from cirq import _import, devices, ops, protocols, value
 from cirq.devices.noise_utils import PHYSICAL_GATE_TAG

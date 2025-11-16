@@ -177,15 +177,12 @@ class CPhaseGaugeTransformerMM(MultiMomentGaugeTransformer):
     supported_gates: ops.GateFamily | ops.Gateset = field(default=_SUPPORTED_GATESET)
 
     def sample_left_moment(
-        self, active_qubits: frozenset[ops.Qid], rng: np.random.Generator
+        self, active_qubits: frozenset[ops.Qid], prng: np.random.Generator
     ) -> circuits.Moment:
-        """Samples a random single-qubit moment to be inserted before the target block."""
-        return circuits.Moment([cast(ops.Gate, rng.choice(_PAULIS)).on(q) for q in active_qubits])
+        return circuits.Moment([cast(ops.Gate, prng.choice(_PAULIS)).on(q) for q in active_qubits])
 
     def gauge_on_moments(
-        self,
-        moments_to_gauge: list[circuits.Moment],
-        prng: np.random.Generator = np.random.default_rng(),
+        self, moments_to_gauge: list[circuits.Moment], prng: np.random.Generator
     ) -> list[circuits.Moment]:
         """Gauges a block of moments that contains at least a cphase gate in each of the moment.
 

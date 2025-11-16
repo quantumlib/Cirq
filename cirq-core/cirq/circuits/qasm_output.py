@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import re
-from typing import Callable, Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Callable, Iterator, Sequence
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -75,10 +76,12 @@ class QasmUGate(ops.Gate):
 
     def _decompose_(self, qubits):
         q = qubits[0]
+        phase_correction_half_turns = (self.phi + self.lmda) / 2
         return [
             ops.rz(self.lmda * np.pi).on(q),
             ops.ry(self.theta * np.pi).on(q),
             ops.rz(self.phi * np.pi).on(q),
+            ops.global_phase_operation(1j ** (2 * phase_correction_half_turns)),
         ]
 
     def _value_equality_values_(self):

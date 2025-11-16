@@ -16,7 +16,8 @@
 
 from __future__ import annotations
 
-from typing import Callable, cast, Hashable, TYPE_CHECKING
+from collections.abc import Callable, Hashable
+from typing import cast, TYPE_CHECKING
 
 from cirq import circuits, ops, protocols
 from cirq.study.resolver import ParamResolver

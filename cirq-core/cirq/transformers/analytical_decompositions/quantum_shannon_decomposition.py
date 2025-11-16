@@ -21,7 +21,8 @@ https://arxiv.org/abs/quant-ph/0406176
 
 from __future__ import annotations
 
-from typing import Callable, cast, Iterable, Sequence, TYPE_CHECKING
+from collections.abc import Callable, Iterable, Sequence
+from typing import cast, TYPE_CHECKING
 
 import numpy as np
 from attr import define
