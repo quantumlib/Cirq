@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Hashable, Iterable, Iterator, Sequence, Set
+from collections.abc import Hashable, Iterable, Iterator, Sequence
 from functools import cached_property
 from types import NotImplementedType
 from typing import TYPE_CHECKING
