@@ -27,7 +27,8 @@ from __future__ import annotations
 import json
 import time
 import uuid
-from typing import Callable, cast, Literal, Sequence, TypedDict
+from collections.abc import Callable, Sequence
+from typing import cast, Literal, TypedDict
 from urllib.parse import urljoin
 
 import numpy as np

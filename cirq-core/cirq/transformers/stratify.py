@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import itertools
-from typing import Callable, Iterable, Sequence, TYPE_CHECKING, Union
+from collections.abc import Callable, Iterable, Sequence
+from typing import TYPE_CHECKING, Union
 
 from cirq import _import, circuits, ops, protocols
 from cirq.transformers import transformer_api

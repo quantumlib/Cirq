@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import functools
-from typing import Any, Callable, cast, Generic, Iterator, TypeVar
+from collections.abc import Callable, Iterator
+from typing import Any, cast, Generic, TypeVar
 
 import networkx
 

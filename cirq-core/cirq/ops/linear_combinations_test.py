@@ -975,9 +975,15 @@ def test_paulisum_validation() -> None:
     ps += cirq.I(cirq.LineQubit(0))
     assert ps == cirq.PauliSum(cirq.LinearDict({frozenset(): complex(1)}))
 
+    ps = cirq.I(cirq.LineQubit(0)) + cirq.PauliSum()
+    assert ps == cirq.PauliSum(cirq.LinearDict({frozenset(): complex(1)}))
+
     ps = cirq.PauliSum()
     ps -= cirq.I(cirq.LineQubit(0))
     assert ps == cirq.PauliSum(cirq.LinearDict({frozenset(): complex(-1)}))
+
+    ps = cirq.I(cirq.LineQubit(0)) - cirq.PauliSum()
+    assert ps == cirq.PauliSum(cirq.LinearDict({frozenset(): complex(1)}))
 
 
 def test_add_number_paulisum() -> None:
@@ -1006,6 +1012,22 @@ def test_add_number_paulistring() -> None:
         cirq.X(a) + 2
         == 2 + cirq.X(a)
         == cirq.PauliSum.from_pauli_strings([cirq.PauliString() * 2, cirq.PauliString({a: cirq.X})])
+    )
+
+    assert (
+        cirq.X(a) - 2
+        == -2 + cirq.X(a)
+        == cirq.PauliSum.from_pauli_strings(
+            [cirq.PauliString() * -2, cirq.PauliString({a: cirq.X})]
+        )
+    )
+
+    assert (
+        2 - cirq.X(a)
+        == 2 + -cirq.X(a)
+        == cirq.PauliSum.from_pauli_strings(
+            [cirq.PauliString() * 2, -cirq.PauliString({a: cirq.X})]
+        )
     )
 
 
@@ -1430,7 +1452,7 @@ def test_expectation_from_density_matrix_invalid_input() -> None:
     with pytest.raises(ValueError, match='shape'):
         psum.expectation_from_density_matrix(rho.reshape((8, 8, 1)), q_map)
     with pytest.raises(ValueError, match='shape'):
-        psum.expectation_from_density_matrix(rho.reshape((-1)), q_map)
+        psum.expectation_from_density_matrix(rho.reshape((-1,)), q_map)
 
 
 def test_expectation_from_density_matrix_check_preconditions() -> None:

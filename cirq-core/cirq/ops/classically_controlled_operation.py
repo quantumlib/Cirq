@@ -14,8 +14,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence, Set
 from functools import cached_property
-from typing import AbstractSet, Any, Mapping, Sequence, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import sympy
 
@@ -151,7 +152,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._sub_operation)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self._sub_operation)
 
     def _resolve_parameters_(

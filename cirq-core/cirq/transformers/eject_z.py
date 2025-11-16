@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Iterable, Iterator, TYPE_CHECKING
+from collections.abc import Iterable, Iterator
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -29,11 +30,11 @@ if TYPE_CHECKING:
     import cirq
 
 
-def _is_integer(n):
+def _is_integer(n) -> bool:
     return np.isclose(n, np.round(n))
 
 
-def _is_swaplike(gate: cirq.Gate):
+def _is_swaplike(gate: cirq.Gate) -> bool:
     if isinstance(gate, ops.SwapPowGate):
         return gate.exponent == 1
 

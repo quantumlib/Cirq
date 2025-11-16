@@ -16,9 +16,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Hashable, Iterable, Iterator, Sequence, Set
 from functools import cached_property
 from types import NotImplementedType
-from typing import AbstractSet, Hashable, Iterable, Iterator, Sequence, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from cirq import _compat, protocols
 from cirq.circuits import AbstractCircuit, Alignment, Circuit
@@ -168,7 +169,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return super()._is_parameterized_()
 
     @_compat.cached_method
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return super()._parameter_names_()
 
     def _measurement_key_names_(self) -> frozenset[str]:

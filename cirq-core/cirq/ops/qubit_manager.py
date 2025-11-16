@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import abc
 import dataclasses
-from typing import Iterable, TYPE_CHECKING
+from collections.abc import Iterable
+from typing import TYPE_CHECKING
 
 from cirq.ops import raw_types
 

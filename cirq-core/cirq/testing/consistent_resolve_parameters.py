@@ -21,7 +21,7 @@ import sympy
 import cirq
 
 
-def assert_consistent_resolve_parameters(val: Any):
+def assert_consistent_resolve_parameters(val: Any) -> None:
     names = cirq.parameter_names(val)
     symbols = cirq.parameter_symbols(val)
 

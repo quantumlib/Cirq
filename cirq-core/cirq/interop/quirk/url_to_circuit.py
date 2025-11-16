@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import json
 import urllib.parse
-from typing import Any, cast, Iterable, Mapping, Sequence, TYPE_CHECKING
+from collections.abc import Iterable, Mapping, Sequence
+from typing import Any, cast, TYPE_CHECKING
 
 import numpy as np
 

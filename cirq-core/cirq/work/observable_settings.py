@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import dataclasses
 import numbers
-from typing import Iterable, Mapping, TYPE_CHECKING
+from collections.abc import Iterable, Mapping
+from typing import TYPE_CHECKING
 
 import sympy
 

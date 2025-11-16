@@ -14,8 +14,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping, Sequence
 from functools import cached_property
-from typing import Any, Iterable, Mapping, Sequence, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 

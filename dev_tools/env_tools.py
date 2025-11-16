@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import Callable, cast, Iterable, TYPE_CHECKING
+from collections.abc import Callable, Iterable
+from typing import cast, TYPE_CHECKING
 
 from dev_tools import git_env_tools, shell_tools
 from dev_tools.prepared_env import PreparedEnv

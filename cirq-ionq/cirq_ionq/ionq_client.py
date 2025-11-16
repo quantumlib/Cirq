@@ -22,7 +22,8 @@ import sys
 import time
 import urllib
 import warnings
-from typing import Any, Callable, cast
+from collections.abc import Callable
+from typing import Any, cast
 
 import requests
 
@@ -39,6 +40,7 @@ RETRIABLE_FOR_GETS = {requests.codes.conflict}
 # Handle 52x responses from cloudflare.
 # See https://support.cloudflare.com/hc/en-us/articles/115003011431/
 RETRIABLE_STATUS_CODES = {
+    requests.codes.too_many_requests,
     requests.codes.internal_server_error,
     requests.codes.bad_gateway,
     requests.codes.service_unavailable,
@@ -338,7 +340,7 @@ class _IonQClient:
         """
 
         params = {}
-        epoch = datetime.datetime.utcfromtimestamp(0)
+        epoch = datetime.datetime.fromtimestamp(0, datetime.UTC)
         if start:
             params['start'] = int((start - epoch).total_seconds() * 1000)
         if end:

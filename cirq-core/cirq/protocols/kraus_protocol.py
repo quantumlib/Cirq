@@ -17,8 +17,9 @@
 from __future__ import annotations
 
 import warnings
+from collections.abc import Iterable
 from types import NotImplementedType
-from typing import Any, Protocol, Sequence, TypeVar
+from typing import Any, Protocol, TypeVar
 
 import numpy as np
 
@@ -31,7 +32,7 @@ from cirq.protocols.unitary_protocol import unitary
 
 # This is a special indicator value used by the channel method to determine
 # whether or not the caller provided a 'default' argument. It must be of type
-# Sequence[np.ndarray] to ensure the method has the correct type signature in
+# Iterable[np.ndarray] to ensure the method has the correct type signature in
 # that case. It is checked for using `is`, so it won't have a false positive
 # if the user provides a different (np.array([]),) value.
 RaiseTypeErrorIfNotProvided: tuple[np.ndarray] = (np.array([]),)
@@ -44,7 +45,7 @@ class SupportsKraus(Protocol):
     """An object that may be describable as a quantum channel."""
 
     @doc_private
-    def _kraus_(self) -> Sequence[np.ndarray] | NotImplementedType:
+    def _kraus_(self) -> Iterable[np.ndarray] | NotImplementedType:
         r"""A list of Kraus matrices describing the quantum channel.
 
         These matrices are the terms in the operator sum representation of a

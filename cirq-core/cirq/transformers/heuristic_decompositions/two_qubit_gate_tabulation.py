@@ -17,9 +17,10 @@ with a product A k A."""
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import reduce
-from typing import NamedTuple, Sequence
+from typing import NamedTuple
 
 import numpy as np
 

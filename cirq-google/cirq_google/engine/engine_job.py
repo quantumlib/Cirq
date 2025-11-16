@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import datetime
-from typing import Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 import duet
 
@@ -31,7 +32,6 @@ if TYPE_CHECKING:
     from google.protobuf import any_pb2
 
     import cirq_google.engine.engine as engine_base
-    from cirq_google.engine.calibration_result import CalibrationResult
     from cirq_google.engine.engine import engine_processor, engine_program
 
 TERMINAL_STATES = [
@@ -91,7 +91,6 @@ class EngineJob(abstract_job.AbstractJob):
         self.context = context
         self._job = _job
         self._results: Sequence[EngineResult] | None = None
-        self._calibration_results: Sequence[CalibrationResult] | None = None
         self._batched_results: Sequence[Sequence[EngineResult]] | None = None
         self._job_result_future = job_result_future
 

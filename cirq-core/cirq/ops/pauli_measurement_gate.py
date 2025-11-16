@@ -14,8 +14,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Iterator, Mapping, Sequence
 from functools import cached_property
-from typing import Any, cast, Iterable, Iterator, Mapping, Sequence, TYPE_CHECKING
+from typing import Any, cast, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq.ops import (

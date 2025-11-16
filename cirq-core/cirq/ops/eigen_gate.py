@@ -18,8 +18,9 @@ import abc
 import fractions
 import math
 import numbers
+from collections.abc import Iterable, Set
 from types import NotImplementedType
-from typing import AbstractSet, Any, cast, Iterable, NamedTuple, TYPE_CHECKING
+from typing import Any, cast, NamedTuple, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -341,16 +342,17 @@ class EigenGate(raw_types.Gate):
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._exponent)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self._exponent)
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> EigenGate:
         exponent = resolver.value_of(self._exponent, recursive)
-        if isinstance(exponent, numbers.Complex):
-            if isinstance(exponent, numbers.Real):
-                exponent = float(exponent)
-            else:
-                raise ValueError(f'Complex exponent {exponent} not supported for EigenGate')
+        # Note that int/float checking is purposely done first,
+        # since numbers instance checking is somewhat slow.
+        if isinstance(exponent, (int, float)) or isinstance(exponent, numbers.Real):  # noqa: SIM101
+            exponent = float(exponent)
+        elif isinstance(exponent, numbers.Complex):
+            raise ValueError(f'Complex exponent {exponent} not supported for EigenGate')
         return self._with_exponent(exponent=exponent)
 
     def _equal_up_to_global_phase_(self, other, atol):

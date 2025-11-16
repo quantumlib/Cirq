@@ -2,7 +2,7 @@
 
 notebook~=7.0
 
-ipykernel~=6.29
+ipykernel~=7.1
 
 # for executing notebooks in tests
 papermill~=2.6

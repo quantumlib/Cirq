@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import cast, Collection
+from collections.abc import Collection
+from typing import cast
 
 import cirq
 from cirq_google.api import v2
