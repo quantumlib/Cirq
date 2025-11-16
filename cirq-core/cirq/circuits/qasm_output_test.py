@@ -82,13 +82,13 @@ def test_u_gate_params() -> None:
     cirq.testing.assert_implements_consistent_protocols(u_gate)
     u_gate_caps = cirq.resolve_parameters(u_gate, {'a': 'A', 'b': 'B', 'c': 'C'})
     assert u_gate_caps == QasmUGate(*sympy.symbols('A B C'))
-    decomposed = cirq.decompose_once_with_qubits(u_gate_caps, [q])
     resolver = {'A': 0.1, 'B': 2.2, 'C': -1.7}
     resolved = cirq.resolve_parameters(u_gate_caps, resolver)
     assert cirq.approx_eq(resolved, QasmUGate(0.1, 0.2, 0.3))
-    decomposed_resolved = cirq.decompose_once_with_qubits(resolved, [q])
-    resolved_decomposed = [cirq.resolve_parameters(g, resolver) for g in decomposed]
-    assert decomposed_resolved == resolved_decomposed
+    resolved_then_decomposed = cirq.decompose_once_with_qubits(resolved, [q])
+    decomposed = cirq.decompose_once_with_qubits(u_gate_caps, [q])
+    decomposed_then_resolved = [cirq.resolve_parameters(g, resolver) for g in decomposed]
+    assert resolved_then_decomposed == decomposed_then_resolved
 
 
 def test_qasm_two_qubit_gate_repr() -> None:
