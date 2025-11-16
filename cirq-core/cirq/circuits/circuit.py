@@ -28,23 +28,18 @@ import html
 import itertools
 import math
 from collections import defaultdict
-from types import NotImplementedType
-from typing import (
-    Any,
+from collections.abc import (
     Callable,
-    cast,
     Hashable,
     Iterable,
     Iterator,
     Mapping,
     MutableSequence,
-    overload,
-    Self,
     Sequence,
-    TYPE_CHECKING,
-    TypeVar,
-    Union,
+    Set,
 )
+from types import NotImplementedType
+from typing import Any, cast, overload, Self, TYPE_CHECKING, TypeVar, Union
 
 import networkx
 import numpy as np

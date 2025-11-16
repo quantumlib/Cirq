@@ -25,12 +25,12 @@ import cirq.testing
 from cirq.study.result import _pack_digits
 
 
-def test_result_init():
+def test_result_init() -> None:
     assert cirq.ResultDict(params=cirq.ParamResolver({}), measurements=None).repetitions == 0
     assert cirq.ResultDict(params=cirq.ParamResolver({}), measurements={}).repetitions == 0
 
 
-def test_default_repetitions():
+def test_default_repetitions() -> None:
     class MyResult(cirq.Result):
         def __init__(self, records):
             self._records = records
@@ -55,7 +55,7 @@ def test_default_repetitions():
     assert MyResult({'a': np.zeros((5, 2, 3))}).repetitions == 5
 
 
-def test_repr():
+def test_repr() -> None:
     v = cirq.ResultDict(
         params=cirq.ParamResolver({'a': 2}), measurements={'xy': np.array([[1, 0], [0, 1]])}
     )
@@ -68,7 +68,7 @@ def test_repr():
     cirq.testing.assert_equivalent_repr(v)
 
 
-def test_construct_from_measurements():
+def test_construct_from_measurements() -> None:
     r = cirq.ResultDict(
         params=None,
         measurements={'a': np.array([[0, 0], [1, 1]]), 'b': np.array([[0, 0, 0], [1, 1, 1]])},
@@ -79,7 +79,7 @@ def test_construct_from_measurements():
     assert np.all(r.records['b'] == np.array([[[0, 0, 0]], [[1, 1, 1]]]))
 
 
-def test_construct_from_repeated_measurements():
+def test_construct_from_repeated_measurements() -> None:
     r = cirq.ResultDict(
         params=None,
         records={
@@ -104,13 +104,13 @@ def test_construct_from_repeated_measurements():
     assert r2.repetitions == 2
 
 
-def test_empty_measurements():
+def test_empty_measurements() -> None:
     assert cirq.ResultDict(params=None).repetitions == 0
     assert cirq.ResultDict(params=None, measurements={}).repetitions == 0
     assert cirq.ResultDict(params=None, records={}).repetitions == 0
 
 
-def test_str():
+def test_str() -> None:
     result = cirq.ResultDict(
         params=cirq.ParamResolver({}),
         measurements={
@@ -136,7 +136,7 @@ def test_str():
     assert str(result) == 'c=1, 0\nc=0, 1'
 
 
-def test_df():
+def test_df() -> None:
     result = cirq.ResultDict(
         params=cirq.ParamResolver({}),
         measurements={
@@ -156,7 +156,7 @@ def test_df():
     assert df.c.value_counts().to_dict() == {0: 3, 1: 2}
 
 
-def test_df_large():
+def test_df_large() -> None:
     result = cirq.ResultDict(
         params=cirq.ParamResolver({}),
         measurements={
@@ -171,7 +171,7 @@ def test_df_large():
     assert result.data['d'].dtype == object
 
 
-def test_histogram():
+def test_histogram() -> None:
     result = cirq.ResultDict(
         params=cirq.ParamResolver({}),
         measurements={
@@ -188,7 +188,7 @@ def test_histogram():
     assert result.histogram(key='c') == collections.Counter({0: 3, 1: 2})
 
 
-def test_multi_measurement_histogram():
+def test_multi_measurement_histogram() -> None:
     result = cirq.ResultDict(
         params=cirq.ParamResolver({}),
         measurements={
@@ -222,7 +222,7 @@ def test_multi_measurement_histogram():
     )
 
 
-def test_result_equality():
+def test_result_equality() -> None:
     et = cirq.testing.EqualsTester()
     et.add_equality_group(
         cirq.ResultDict(params=cirq.ParamResolver({}), measurements={'a': np.array([[0]] * 5)}),
@@ -239,7 +239,7 @@ def test_result_equality():
     )
 
 
-def test_result_addition_valid():
+def test_result_addition_valid() -> None:
     a = cirq.ResultDict(
         params=cirq.ParamResolver({'ax': 1}),
         measurements={
@@ -278,7 +278,7 @@ def test_result_addition_valid():
     )
 
 
-def test_result_addition_invalid():
+def test_result_addition_invalid() -> None:
     a = cirq.ResultDict(
         params=cirq.ParamResolver({'ax': 1}),
         measurements={
@@ -324,10 +324,10 @@ def test_result_addition_invalid():
     with pytest.raises(ValueError, match='different measurement shapes'):
         _ = a + e
     with pytest.raises(TypeError):
-        _ = a + 'junk'
+        _ = a + 'junk'  # type: ignore[operator]
 
 
-def test_qubit_keys_for_histogram():
+def test_qubit_keys_for_histogram() -> None:
     a, b, c = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(cirq.measure(a, b), cirq.X(c), cirq.measure(c))
     results = cirq.Simulator().run(program=circuit, repetitions=100)
@@ -339,7 +339,7 @@ def test_qubit_keys_for_histogram():
     assert results.histogram(key=[c]) == collections.Counter({1: 100})
 
 
-def test_text_diagram_jupyter():
+def test_text_diagram_jupyter() -> None:
     result = cirq.ResultDict(
         params=cirq.ParamResolver({}),
         measurements={
@@ -397,12 +397,12 @@ def test_json_bit_packing_and_dtype(use_records: bool) -> None:
     np.testing.assert_allclose(len(bits_json), len(digits_json) / 8, rtol=0.02)
 
 
-def test_json_bit_packing_error():
+def test_json_bit_packing_error() -> None:
     with pytest.raises(ValueError):
         _pack_digits(np.ones(10), pack_bits='hi mom')
 
 
-def test_json_bit_packing_force():
+def test_json_bit_packing_force() -> None:
     assert _pack_digits(np.ones(10, dtype=int), pack_bits='force') == _pack_digits(
         np.ones(10), pack_bits='auto'
     )
@@ -418,7 +418,7 @@ def test_json_bit_packing_force():
     )
 
 
-def test_json_unpack_compat():
+def test_json_unpack_compat() -> None:
     """Test reading old json with serialized measurements array."""
     old_json = """
         {

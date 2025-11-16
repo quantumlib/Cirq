@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import cast, Iterable
+from collections.abc import Iterable
+from typing import cast
 
 import numpy as np
 import pytest
@@ -31,7 +32,7 @@ def assert_optimizes(
     eject_parameterized: bool = False,
     *,
     with_context: bool = False,
-):
+) -> None:
     context = cirq.TransformerContext(tags_to_ignore=("nocompile",)) if with_context else None
     circuit = cirq.eject_phased_paulis(
         before, eject_parameterized=eject_parameterized, context=context

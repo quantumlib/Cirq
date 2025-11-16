@@ -16,7 +16,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Sequence, TYPE_CHECKING
+from collections.abc import Callable, Sequence
+from typing import Any, Self, TYPE_CHECKING
 
 import numpy as np
 
@@ -55,7 +56,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         *,
         initial_state: np.ndarray | cirq.STATE_VECTOR_LIKE = 0,
         qid_shape: tuple[int, ...] | None = None,
-        dtype: type[np.complexfloating] | None = None,
+        dtype: type[np.complexfloating] | np.dtype[np.complexfloating] | None = None,
         buffer: np.ndarray | None = None,
     ):
         """Initializes the object with the inputs.
@@ -324,7 +325,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
         prng: np.random.RandomState | None = None,
         qubits: Sequence[cirq.Qid] | None = None,
         initial_state: np.ndarray | cirq.STATE_VECTOR_LIKE = 0,
-        dtype: type[np.complexfloating] = np.complex64,
+        dtype: type[np.complexfloating] | np.dtype[np.complexfloating] = np.complex64,
         classical_data: cirq.ClassicalDataStore | None = None,
     ):
         """Inits StateVectorSimulationState.
@@ -356,7 +357,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
         )
         super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
 
-    def add_qubits(self, qubits: Sequence[cirq.Qid]):
+    def add_qubits(self, qubits: Sequence[cirq.Qid]) -> Self:
         ret = super().add_qubits(qubits)
         return (
             self.kronecker_product(type(self)(qubits=qubits), inplace=True)
@@ -364,7 +365,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
             else ret
         )
 
-    def remove_qubits(self, qubits: Sequence[cirq.Qid]):
+    def remove_qubits(self, qubits: Sequence[cirq.Qid]) -> Self:
         ret = super().remove_qubits(qubits)
         if ret is not NotImplemented:
             return ret
@@ -406,11 +407,11 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
         )
 
     @property
-    def target_tensor(self):
+    def target_tensor(self) -> np.ndarray:
         return self._state._state_vector
 
     @property
-    def available_buffer(self):
+    def available_buffer(self) -> np.ndarray:
         return self._state._buffer
 
 
@@ -429,7 +430,7 @@ def _strat_act_on_state_vector_from_mixture(
     if index is None:
         return NotImplemented
     if protocols.is_measurement(action):
-        key = protocols.measurement_key_name(action)
+        key = protocols.measurement_key_obj(action)
         args._classical_data.record_channel_measurement(key, index)
     return True
 
@@ -441,6 +442,6 @@ def _strat_act_on_state_vector_from_channel(
     if index is None:
         return NotImplemented
     if protocols.is_measurement(action):
-        key = protocols.measurement_key_name(action)
+        key = protocols.measurement_key_obj(action)
         args._classical_data.record_channel_measurement(key, index)
     return True

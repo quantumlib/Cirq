@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import numbers
 from collections import defaultdict
-from typing import AbstractSet, Any, Iterable, Mapping, TYPE_CHECKING, Union
+from collections.abc import Iterable, Mapping, Set
+from typing import Any, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy
@@ -136,7 +137,7 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
     def _is_parameterized_(self) -> bool:
         return any(protocols.is_parameterized(item) for item in self.items())
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return {name for item in self.items() for name in protocols.parameter_names(item)}
 
     def _resolve_parameters_(
@@ -253,7 +254,7 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
     def _is_parameterized_(self) -> bool:
         return any(protocols.is_parameterized(item) for item in self.items())
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return {name for item in self.items() for name in protocols.parameter_names(item)}
 
     def _resolve_parameters_(
@@ -742,14 +743,12 @@ class PauliSum:
         return len(self._linear_dict)
 
     def __iadd__(self, other):
+        if isinstance(other, raw_types.Operation):
+            other = pauli_string._try_interpret_as_pauli_string(other)
         if isinstance(other, numbers.Complex):
             other = PauliSum.from_pauli_strings([PauliString(coefficient=other)])
         elif isinstance(other, PauliString):
             other = PauliSum.from_pauli_strings([other])
-        elif isinstance(other, raw_types.Operation) and isinstance(
-            other.gate, identity.IdentityGate
-        ):
-            other = PauliSum.from_pauli_strings([PauliString()])
 
         if not isinstance(other, PauliSum):
             return NotImplemented
@@ -758,10 +757,9 @@ class PauliSum:
         return self
 
     def __add__(self, other):
-        if not isinstance(other, (numbers.Complex, PauliString, PauliSum, raw_types.Operation)):
-            return NotImplemented
         result = self.copy()
-        result += other
+        if result.__iadd__(other) is NotImplemented:
+            return NotImplemented
         return result
 
     def __radd__(self, other):
@@ -771,14 +769,12 @@ class PauliSum:
         return -self.__sub__(other)
 
     def __isub__(self, other):
+        if isinstance(other, raw_types.Operation):
+            other = pauli_string._try_interpret_as_pauli_string(other)
         if isinstance(other, numbers.Complex):
             other = PauliSum.from_pauli_strings([PauliString(coefficient=other)])
         elif isinstance(other, PauliString):
             other = PauliSum.from_pauli_strings([other])
-        elif isinstance(other, raw_types.Operation) and isinstance(
-            other.gate, identity.IdentityGate
-        ):
-            other = PauliSum.from_pauli_strings([PauliString()])
 
         if not isinstance(other, PauliSum):
             return NotImplemented
@@ -787,10 +783,9 @@ class PauliSum:
         return self
 
     def __sub__(self, other):
-        if not isinstance(other, (numbers.Complex, PauliString, PauliSum, raw_types.Operation)):
-            return NotImplemented
         result = self.copy()
-        result -= other
+        if result.__isub__(other) is NotImplemented:
+            return NotImplemented
         return result
 
     def __neg__(self):

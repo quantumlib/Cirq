@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import itertools
 import math
-from typing import Iterator
+from collections.abc import Iterator
 
 import numpy as np
 import pytest
@@ -1191,7 +1191,7 @@ def test_expectation_from_density_matrix_invalid_input() -> None:
     with pytest.raises(ValueError, match='shape'):
         ps.expectation_from_density_matrix(rho.reshape((4, 4, 1)), q_map_2)
     with pytest.raises(ValueError, match='shape'):
-        ps.expectation_from_density_matrix(rho.reshape((-1)), q_map_2)
+        ps.expectation_from_density_matrix(rho.reshape((-1,)), q_map_2)
 
     # Correctly shaped state_vectors.
     with pytest.raises(ValueError, match='shape'):
@@ -2086,12 +2086,13 @@ def test_resolve(resolve_fn) -> None:
     ids=str,
 )
 def test_pauli_ops_identity_gate_operation(gate1: cirq.Pauli, gate2: cirq.Pauli) -> None:
-    # TODO: Issue #7280 - Support addition and subtraction of identity gate operations.
-    if gate1 == gate2 == cirq.I:
-        pytest.skip('Not yet implemented per #7280')
     q = cirq.LineQubit(0)
     pauli1, pauli2 = gate1.on(q), gate2.on(q)
-    unitary1, unitary2 = cirq.unitary(gate1), cirq.unitary(gate2)
+    if gate1 == gate2 == cirq.I:
+        # PauliSum swallows I qubits, so resulting unitaries are dimensionless
+        unitary1 = unitary2 = np.array([[1]])
+    else:
+        unitary1, unitary2 = cirq.unitary(gate1), cirq.unitary(gate2)
     addition = pauli1 + pauli2
     assert isinstance(addition, cirq.PauliSum)
     assert np.array_equal(addition.matrix(), unitary1 + unitary2)
@@ -2100,7 +2101,7 @@ def test_pauli_ops_identity_gate_operation(gate1: cirq.Pauli, gate2: cirq.Pauli)
     assert np.array_equal(subtraction.matrix(), unitary1 - unitary2)
 
 
-def test_pauli_gate_multiplication_with_power():
+def test_pauli_gate_multiplication_with_power() -> None:
     q = cirq.LineQubit(0)
 
     # Test all Pauli gates (X, Y, Z)
@@ -2123,7 +2124,7 @@ def test_pauli_gate_multiplication_with_power():
         assert gate**5 * gate**0 == gate**5
 
 
-def test_try_interpret_as_pauli_string():
+def test_try_interpret_as_pauli_string() -> None:
     from cirq.ops.pauli_string import _try_interpret_as_pauli_string
 
     q = cirq.LineQubit(0)

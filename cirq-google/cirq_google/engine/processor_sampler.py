@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import cast, Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import cast, TYPE_CHECKING
 
 import duet
 
@@ -34,7 +35,7 @@ class ProcessorSampler(cirq.Sampler):
         run_name: str = "",
         snapshot_id: str = "",
         device_config_name: str = "",
-        max_concurrent_jobs: int = 10,
+        max_concurrent_jobs: int = 100,
     ):
         """Inits ProcessorSampler.
 

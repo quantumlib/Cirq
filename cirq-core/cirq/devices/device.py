@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import abc
-from typing import Iterable, TYPE_CHECKING
+from collections.abc import Iterable
+from typing import TYPE_CHECKING
 
 import networkx as nx
 

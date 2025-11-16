@@ -16,9 +16,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Hashable, Iterable, Iterator, Sequence, Set
 from functools import cached_property
 from types import NotImplementedType
-from typing import Hashable, Iterable, Iterator, Sequence, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from cirq import _compat, protocols
 from cirq.circuits import AbstractCircuit, Alignment, Circuit

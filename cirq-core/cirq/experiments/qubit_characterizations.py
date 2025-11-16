@@ -18,7 +18,8 @@ import dataclasses
 import functools
 import itertools
 import uuid
-from typing import Any, cast, Iterator, Mapping, Optional, Sequence, TYPE_CHECKING
+from collections.abc import Iterator, Mapping, Sequence
+from typing import Any, cast, Optional, TYPE_CHECKING
 
 import attrs
 import numpy as np

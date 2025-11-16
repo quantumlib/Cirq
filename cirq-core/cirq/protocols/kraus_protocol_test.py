@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Iterable, Sequence
+from collections.abc import Iterable
 
 import numpy as np
 import pytest
@@ -42,7 +42,7 @@ def test_kraus_no_methods() -> None:
     assert not cirq.has_kraus(NoMethod())
 
 
-def assert_not_implemented(val):
+def assert_not_implemented(val) -> None:
     with pytest.raises(TypeError, match='returned NotImplemented'):
         _ = cirq.kraus(val)
 
@@ -89,7 +89,7 @@ def test_explicit_kraus() -> None:
     c = (a0, a1)
 
     class ReturnsKraus:
-        def _kraus_(self) -> Sequence[np.ndarray]:
+        def _kraus_(self) -> Iterable[np.ndarray]:
             return c
 
     assert cirq.kraus(ReturnsKraus()) is c
@@ -174,7 +174,7 @@ def test_has_kraus_when_decomposed(decomposed_cls) -> None:
     assert not cirq.has_kraus(op, allow_decompose=False)
 
 
-def test_strat_kraus_from_apply_channel_returns_none():
+def test_strat_kraus_from_apply_channel_returns_none() -> None:
     # Remove _kraus_ and _apply_channel_ methods
     class NoApplyChannelReset(cirq.ResetChannel):
         def _kraus_(self):
@@ -228,7 +228,7 @@ def test_kraus_fallback_to_apply_channel(channel_cls, params) -> None:
     np.testing.assert_allclose(actual_super, expected_super, atol=1e-8)
 
 
-def test_reset_channel_kraus_apply_channel_consistency():
+def test_reset_channel_kraus_apply_channel_consistency() -> None:
     Reset = cirq.ResetChannel
     # Original gate
     gate = Reset()
@@ -236,7 +236,7 @@ def test_reset_channel_kraus_apply_channel_consistency():
     cirq.testing.assert_consistent_channel(gate)
 
     # Remove _kraus_ method
-    class NoKrausReset(Reset):
+    class NoKrausReset(cirq.ResetChannel):
         def _kraus_(self):
             return NotImplemented
 
@@ -245,7 +245,7 @@ def test_reset_channel_kraus_apply_channel_consistency():
     np.testing.assert_allclose(cirq.kraus(gate), cirq.kraus(gate_no_kraus), atol=1e-8)
 
 
-def test_kraus_channel_with_has_unitary():
+def test_kraus_channel_with_has_unitary() -> None:
     """CZSWAP has no unitary dunder method but has_unitary returns True."""
     op = cirq.CZSWAP.on(cirq.q(1), cirq.q(2))
     channels = cirq.kraus(op)

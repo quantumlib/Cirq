@@ -15,8 +15,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Collection, Sequence, Set
 from types import NotImplementedType
-from typing import AbstractSet, Any, cast, Collection, Sequence
+from typing import Any, cast
 
 import numpy as np
 import sympy
@@ -83,7 +84,7 @@ class GlobalPhaseGate(raw_types.Gate):
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.coefficient)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self.coefficient)
 
     def _resolve_parameters_(

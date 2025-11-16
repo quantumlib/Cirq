@@ -17,8 +17,10 @@
 from __future__ import annotations
 
 import functools
+import inspect
 import warnings
-from typing import Any, Hashable
+from collections.abc import Callable, Hashable, Mapping, Sequence
+from typing import Any
 
 import sympy
 
@@ -101,7 +103,7 @@ class CircuitSerializer(serializer.Serializer):
                 results.
 
         Raises:
-            NotImplementedError: If the program is of a type that is supported.
+            NotImplementedError: If the program is of a type that is not supported.
         """
         if not isinstance(program, (cirq.Circuit, cirq.FrozenCircuit)):
             raise NotImplementedError(f'Unrecognized program type: {type(program)}')
@@ -114,6 +116,118 @@ class CircuitSerializer(serializer.Serializer):
         self._serialize_circuit(
             program, msg.circuit, constants=msg.constants, raw_constants=raw_constants
         )
+        return msg
+
+    def serialize_multi_program(
+        self,
+        multi_program: Sequence[cirq.AbstractCircuit] | Mapping[str, cirq.AbstractCircuit],
+        msg: v2.program_pb2.Program | None = None,
+    ) -> v2.program_pb2.Program:
+        """Serialize multiple related circuits to cirq_google.api.v2.Program proto.
+
+        Args:
+            multi_program: A collection of circuits to serialize.  This
+                should take the form of either a sequence of circuits (such as a list)
+                or a mapping from a key string to circuits.
+            msg: An optional proto object to populate with the serialization
+                results.
+
+        Raises:
+            NotImplementedError: If the program is of a type that is not supported.
+            ValueError: If the function returns something not a circuit.
+        """
+        raw_constants: dict[Any, int] = {}
+        if msg is None:
+            msg = v2.program_pb2.Program()
+        msg.language.gate_set = self.name
+        msg.language.arg_function_language = 'exp'
+        if isinstance(multi_program, Mapping):
+            for key, program in multi_program.items():
+                new_program = msg.keyed_circuits.add()
+                new_program.key = key
+                self._serialize_circuit(
+                    program,
+                    new_program.circuit,
+                    constants=msg.constants,
+                    raw_constants=raw_constants,
+                )
+        elif isinstance(multi_program, Sequence):
+            for program in multi_program:
+                new_program = msg.keyed_circuits.add()
+                self._serialize_circuit(
+                    program,
+                    new_program.circuit,
+                    constants=msg.constants,
+                    raw_constants=raw_constants,
+                )
+        else:
+            raise NotImplementedError(f'Unrecognized program type: {type(multi_program)}')
+        return msg
+
+    def serialize_circuit_function(
+        self,
+        circuit_function: (
+            Callable[..., cirq.AbstractCircuit] | Callable[..., Mapping[str, cirq.AbstractCircuit]]
+        ),
+        sweep: cirq.Sweep,
+        msg: v2.program_pb2.Program | None = None,
+    ) -> v2.program_pb2.Program:
+        """Serialize multiple related circuits to cirq_google.api.v2.Program proto.
+
+        Args:
+            circuit_function: A function returning circuits to serialize.
+                This function should return a circuit or mapping from string to
+                a circuit.  The arguments in this function should match a (subset of)
+                the parameters in the accompanied sweep call.  The function will
+                be unrolled for each combination of sweep parameters.
+            sweep:  If a function is passed in, this will be the sweep to call on the
+                function.
+            msg: An optional proto object to populate with the serialization
+                results.
+
+        Raises:
+            NotImplementedError: If the program is of a type that is not supported.
+            ValueError: If the function returns something not a circuit.
+        """
+        raw_constants: dict[Any, int] = {}
+        if msg is None:
+            msg = v2.program_pb2.Program()
+        msg.language.gate_set = self.name
+        msg.language.arg_function_language = 'exp'
+        if not callable(circuit_function):
+            raise NotImplementedError(f'Unrecognized program type: {type(circuit_function)}')
+
+        sig = inspect.signature(circuit_function)
+        if all(p.kind != inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()):
+            # func does not accept **kwds, call with named parameters only.
+            names = set(sig.parameters)
+        else:
+            # func accepts **kwds, call with all parameters from resolver.
+            names = None
+        for param_tuple in sweep.param_tuples():
+            if names is None:
+                circuit_or_map = circuit_function(**dict(param_tuple))
+            else:
+                circuit_or_map = circuit_function(
+                    **dict({k: v for k, v in param_tuple if k in names})
+                )
+            if isinstance(circuit_or_map, cirq.AbstractCircuit):
+                circuit_tuples: Sequence[tuple[str, cirq.AbstractCircuit]] = [("", circuit_or_map)]
+            elif isinstance(circuit_or_map, Mapping):
+                circuit_tuples = list(circuit_or_map.items())
+            else:
+                raise ValueError(f'Function returned unrecognized type: {type(circuit_or_map)}')
+            for key, circuit in circuit_tuples:
+                new_program = msg.keyed_circuits.add()
+                new_program.key = key
+                for key, val in param_tuple:
+                    arg_func_langs.arg_to_proto(val, out=new_program.args[key])
+                self._serialize_circuit(
+                    circuit,
+                    new_program.circuit,
+                    constants=msg.constants,
+                    raw_constants=raw_constants,
+                )
         return msg
 
     def _serialize_circuit(
@@ -426,6 +540,35 @@ class CircuitSerializer(serializer.Serializer):
             raw_constants[circuit] = len(constants) - 1
         return serializer.to_proto(op, msg, constants=constants, raw_constants=raw_constants)
 
+    def deserialize_multi_program(
+        self, proto: v2.program_pb2.Program
+    ) -> Sequence[tuple[str, tuple[tuple[str, Any], ...], cirq.AbstractCircuit]]:
+        """Deserialize multiple circuits from a KeyedCircuit in a Program proto.
+
+        This unrolls the KeyedCircuit message with a Program proto into a list
+        of circuits.  Returned is a list of tuples in the form:
+        (key, (args,...), circuit).
+
+        If the original input was a map, key will be populated.
+        If the input was a function, args will be populated with the input parameters.
+        If the input was a function that returned a map of circuits, then both
+        will be populated."""
+        deserialized_constants: list[Any] = self._deserialize_constants(proto)
+        return_circuits: list[tuple[str, tuple[tuple[str, Any], ...], cirq.AbstractCircuit]] = []
+        for keyed_circuit in proto.keyed_circuits:
+            key = keyed_circuit.key
+            param_tuples = tuple(
+                (param, arg_func_langs.arg_from_proto(arg))
+                for param, arg in keyed_circuit.args.items()
+            )
+            circuit = self._deserialize_circuit(
+                keyed_circuit.circuit,
+                constants=proto.constants,
+                deserialized_constants=deserialized_constants,
+            )
+            return_circuits.append((key, param_tuples, circuit))
+        return return_circuits
+
     def deserialize(self, proto: v2.program_pb2.Program) -> cirq.Circuit:
         """Deserialize a Circuit from a cirq_google.api.v2.Program.
 
@@ -442,69 +585,8 @@ class CircuitSerializer(serializer.Serializer):
             NotImplementedError: If the program proto does not contain a circuit or schedule.
         """
         which = proto.WhichOneof('program')
-
         if which == 'circuit':
-            deserialized_constants: list[Any] = []
-            for constant in proto.constants:
-                which_const = constant.WhichOneof('const_value')
-                if which_const == 'string_value':
-                    deserialized_constants.append(constant.string_value)
-                elif which_const == 'circuit_value':
-                    circuit = self._deserialize_circuit(
-                        constant.circuit_value,
-                        constants=proto.constants,
-                        deserialized_constants=deserialized_constants,
-                    )
-                    deserialized_constants.append(circuit.freeze())
-                elif which_const == 'qubit':
-                    deserialized_constants.append(v2.qubit_from_proto_id(constant.qubit.id))
-                elif which_const == 'operation_value':
-                    if self.op_deserializer and self.op_deserializer.can_deserialize_proto(
-                        constant.operation_value
-                    ):
-                        op_pb = self.op_deserializer.from_proto(
-                            constant.operation_value,
-                            constants=proto.constants,
-                            deserialized_constants=deserialized_constants,
-                        )
-                    elif self.stimcirq_deserializer.can_deserialize_proto(constant.operation_value):
-                        op_pb = self.stimcirq_deserializer.from_proto(
-                            constant.operation_value,
-                            constants=proto.constants,
-                            deserialized_constants=deserialized_constants,
-                        )
-                    else:
-                        op_pb = self._deserialize_gate_op(
-                            constant.operation_value,
-                            constants=proto.constants,
-                            deserialized_constants=deserialized_constants,
-                        )
-                    deserialized_constants.append(op_pb)
-                elif which_const == 'moment_value':
-                    deserialized_constants.append(
-                        self._deserialize_moment(
-                            constant.moment_value,
-                            constants=proto.constants,
-                            deserialized_constants=deserialized_constants,
-                        )
-                    )
-                elif which_const == 'tag_value':
-                    if self.tag_deserializer and self.tag_deserializer.can_deserialize_proto(
-                        constant.tag_value
-                    ):
-                        deserialized_constants.append(
-                            self.tag_deserializer.from_proto(
-                                constant.tag_value,
-                                constants=proto.constants,
-                                deserialized_constants=deserialized_constants,
-                            )
-                        )
-                    else:
-                        deserialized_constants.append(self._deserialize_tag(constant.tag_value))
-                else:
-                    msg = f'Unrecognized constant type {which_const}, ignoring.'  # pragma: no cover
-                    warnings.warn(msg)  # pragma: no cover
-                    deserialized_constants.append(None)  # pragma: no cover
+            deserialized_constants: list[Any] = self._deserialize_constants(proto)
             circuit = self._deserialize_circuit(
                 proto.circuit,
                 constants=proto.constants,
@@ -515,6 +597,71 @@ class CircuitSerializer(serializer.Serializer):
             raise ValueError('Deserializing a schedule is no longer supported.')
 
         raise NotImplementedError('Program proto does not contain a circuit.')
+
+    def _deserialize_constants(self, proto: v2.program_pb2.Program) -> list[Any]:
+        deserialized_constants: list[Any] = []
+        for constant in proto.constants:
+            which_const = constant.WhichOneof('const_value')
+            if which_const == 'string_value':
+                # No longer used, but kept for backwards compatibility.
+                deserialized_constants.append(constant.string_value)  # pragma: nocover
+            elif which_const == 'circuit_value':
+                circuit = self._deserialize_circuit(
+                    constant.circuit_value,
+                    constants=proto.constants,
+                    deserialized_constants=deserialized_constants,
+                )
+                deserialized_constants.append(circuit.freeze())
+            elif which_const == 'qubit':
+                deserialized_constants.append(v2.qubit_from_proto_id(constant.qubit.id))
+            elif which_const == 'operation_value':
+                if self.op_deserializer and self.op_deserializer.can_deserialize_proto(
+                    constant.operation_value
+                ):
+                    op_pb = self.op_deserializer.from_proto(
+                        constant.operation_value,
+                        constants=proto.constants,
+                        deserialized_constants=deserialized_constants,
+                    )
+                elif self.stimcirq_deserializer.can_deserialize_proto(constant.operation_value):
+                    op_pb = self.stimcirq_deserializer.from_proto(
+                        constant.operation_value,
+                        constants=proto.constants,
+                        deserialized_constants=deserialized_constants,
+                    )
+                else:
+                    op_pb = self._deserialize_gate_op(
+                        constant.operation_value,
+                        constants=proto.constants,
+                        deserialized_constants=deserialized_constants,
+                    )
+                deserialized_constants.append(op_pb)
+            elif which_const == 'moment_value':
+                deserialized_constants.append(
+                    self._deserialize_moment(
+                        constant.moment_value,
+                        constants=proto.constants,
+                        deserialized_constants=deserialized_constants,
+                    )
+                )
+            elif which_const == 'tag_value':
+                if self.tag_deserializer and self.tag_deserializer.can_deserialize_proto(
+                    constant.tag_value
+                ):
+                    deserialized_constants.append(
+                        self.tag_deserializer.from_proto(
+                            constant.tag_value,
+                            constants=proto.constants,
+                            deserialized_constants=deserialized_constants,
+                        )
+                    )
+                else:
+                    deserialized_constants.append(self._deserialize_tag(constant.tag_value))
+            else:
+                msg = f'Unrecognized constant type {which_const}, ignoring.'  # pragma: no cover
+                warnings.warn(msg)  # pragma: no cover
+                deserialized_constants.append(None)  # pragma: no cover
+        return deserialized_constants
 
     def _deserialize_circuit(
         self,

@@ -20,8 +20,9 @@ import gzip
 import json
 import numbers
 import pathlib
+from collections.abc import Callable, Iterable, Sequence
 from types import NotImplementedType
-from typing import Any, Callable, cast, IO, Iterable, overload, Protocol, Sequence
+from typing import Any, cast, IO, overload, Protocol
 
 import attrs
 import numpy as np
@@ -217,7 +218,7 @@ class CirqEncoder(json.JSONEncoder):
         super().__init__(*args, **kwargs)
         self._memo: dict[Any, dict] = {}
 
-    def default(self, o):
+    def default(self, o) -> dict[str, Any] | list[Any] | float | bool:
         # Object with custom method?
         if hasattr(o, '_json_dict_'):
             json_dict = _json_dict_with_cirq_type(o)
@@ -519,7 +520,7 @@ def read_json(
     *,
     json_text: str | None = None,
     resolvers: Sequence[JsonResolver] | None = None,
-):
+) -> Any:
     """Read a JSON file that optionally contains cirq objects.
 
     Args:
@@ -605,7 +606,7 @@ def read_json_gzip(
     *,
     gzip_raw: bytes | None = None,
     resolvers: Sequence[JsonResolver] | None = None,
-):
+) -> Any:
     """Read a gzipped JSON file that optionally contains cirq objects.
 
     Args:

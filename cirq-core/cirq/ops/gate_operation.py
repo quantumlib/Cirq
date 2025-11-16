@@ -16,20 +16,12 @@
 
 from __future__ import annotations
 
+import numbers
 import re
 import warnings
+from collections.abc import Collection, Mapping, Sequence, Set
 from types import NotImplementedType
-from typing import (
-    AbstractSet,
-    Any,
-    cast,
-    Collection,
-    Mapping,
-    Self,
-    Sequence,
-    TYPE_CHECKING,
-    TypeVar,
-)
+from typing import Any, cast, Self, TYPE_CHECKING, TypeVar
 
 from cirq import ops, protocols, value
 from cirq.ops import control_values as cv, gate_features, raw_types
@@ -269,7 +261,7 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         getter = getattr(self.gate, '_parameter_names_', None)
         if getter is not None:
             return getter()
@@ -330,6 +322,25 @@ class GateOperation(raw_types.Operation):
 
     def __rmul__(self, other: Any) -> Any:
         return self.gate._rmul_with_qubits(self._qubits, other)
+
+    def __add__(self, other):
+        if not isinstance(other, (ops.Operation, numbers.Number)):
+            return NotImplemented
+        return 1 * self + other
+
+    def __radd__(self, other):
+        return other + 1 * self
+
+    def __sub__(self, other):
+        if not isinstance(other, (ops.Operation, numbers.Number)):
+            return NotImplemented
+        return 1 * self - other
+
+    def __rsub__(self, other):
+        return other + -self
+
+    def __neg__(self):
+        return -1 * self
 
     def _qasm_(self, args: protocols.QasmArgs) -> str | None:
         if isinstance(self.gate, ops.GlobalPhaseGate):

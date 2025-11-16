@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import abc
-from typing import Mapping, Sequence, TYPE_CHECKING
+from collections.abc import Mapping, Sequence
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -105,7 +106,7 @@ class StateVectorMixin:
             and non-zero floats of the specified accuracy."""
         return qis.dirac_notation(self.state_vector(), decimals, qid_shape=self._qid_shape)
 
-    def density_matrix_of(self, qubits: list[cirq.Qid] | None = None) -> np.ndarray:
+    def density_matrix_of(self, qubits: Sequence[cirq.Qid] | None = None) -> np.ndarray:
         r"""Returns the density matrix of the state.
 
         Calculate the density matrix for the system on the qubits provided.

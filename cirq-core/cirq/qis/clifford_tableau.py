@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -38,7 +39,7 @@ class StabilizerState(
     """
 
     @abc.abstractmethod
-    def apply_x(self, axis: int, exponent: float = 1, global_shift: float = 0):
+    def apply_x(self, axis: int, exponent: float = 1, global_shift: float = 0) -> None:
         """Apply an X operation to the state.
 
         Args:
@@ -51,7 +52,7 @@ class StabilizerState(
         """
 
     @abc.abstractmethod
-    def apply_y(self, axis: int, exponent: float = 1, global_shift: float = 0):
+    def apply_y(self, axis: int, exponent: float = 1, global_shift: float = 0) -> None:
         """Apply an Y operation to the state.
 
         Args:
@@ -64,7 +65,7 @@ class StabilizerState(
         """
 
     @abc.abstractmethod
-    def apply_z(self, axis: int, exponent: float = 1, global_shift: float = 0):
+    def apply_z(self, axis: int, exponent: float = 1, global_shift: float = 0) -> None:
         """Apply a Z operation to the state.
 
         Args:
@@ -77,7 +78,7 @@ class StabilizerState(
         """
 
     @abc.abstractmethod
-    def apply_h(self, axis: int, exponent: float = 1, global_shift: float = 0):
+    def apply_h(self, axis: int, exponent: float = 1, global_shift: float = 0) -> None:
         """Apply an H operation to the state.
 
         Args:
@@ -92,7 +93,7 @@ class StabilizerState(
     @abc.abstractmethod
     def apply_cz(
         self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
-    ):
+    ) -> None:
         """Apply a CZ operation to the state.
 
         Args:
@@ -108,7 +109,7 @@ class StabilizerState(
     @abc.abstractmethod
     def apply_cx(
         self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
-    ):
+    ) -> None:
         """Apply a CX operation to the state.
 
         Args:
@@ -122,7 +123,7 @@ class StabilizerState(
         """
 
     @abc.abstractmethod
-    def apply_global_phase(self, coefficient: linear_dict.Scalar):
+    def apply_global_phase(self, coefficient: linear_dict.Scalar) -> None:
         """Apply a global phase to the state.
 
         Args:
@@ -561,7 +562,7 @@ class CliffordTableau(StabilizerState):
 
         return int(self.rs[p])
 
-    def apply_x(self, axis: int, exponent: float = 1, global_shift: float = 0):
+    def apply_x(self, axis: int, exponent: float = 1, global_shift: float = 0) -> None:
         if exponent % 2 == 0:
             return
         if exponent % 0.5 != 0.0:
@@ -576,7 +577,7 @@ class CliffordTableau(StabilizerState):
             self.rs[:] ^= self.xs[:, axis] & self.zs[:, axis]
             self.xs[:, axis] ^= self.zs[:, axis]
 
-    def apply_y(self, axis: int, exponent: float = 1, global_shift: float = 0):
+    def apply_y(self, axis: int, exponent: float = 1, global_shift: float = 0) -> None:
         if exponent % 2 == 0:
             return
         if exponent % 0.5 != 0.0:
@@ -597,7 +598,7 @@ class CliffordTableau(StabilizerState):
                 self.xs[:, axis].copy(),
             )
 
-    def apply_z(self, axis: int, exponent: float = 1, global_shift: float = 0):
+    def apply_z(self, axis: int, exponent: float = 1, global_shift: float = 0) -> None:
         if exponent % 2 == 0:
             return
         if exponent % 0.5 != 0.0:
@@ -612,7 +613,7 @@ class CliffordTableau(StabilizerState):
             self.rs[:] ^= self.xs[:, axis] & (~self.zs[:, axis])
             self.zs[:, axis] ^= self.xs[:, axis]
 
-    def apply_h(self, axis: int, exponent: float = 1, global_shift: float = 0):
+    def apply_h(self, axis: int, exponent: float = 1, global_shift: float = 0) -> None:
         if exponent % 2 == 0:
             return
         if exponent % 1 != 0:
@@ -622,7 +623,7 @@ class CliffordTableau(StabilizerState):
 
     def apply_cz(
         self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
-    ):
+    ) -> None:
         if exponent % 2 == 0:
             return
         if exponent % 1 != 0:
@@ -647,7 +648,7 @@ class CliffordTableau(StabilizerState):
 
     def apply_cx(
         self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
-    ):
+    ) -> None:
         if exponent % 2 == 0:
             return
         if exponent % 1 != 0:
@@ -660,7 +661,7 @@ class CliffordTableau(StabilizerState):
         self.xs[:, target_axis] ^= self.xs[:, control_axis]
         self.zs[:, control_axis] ^= self.zs[:, target_axis]
 
-    def apply_global_phase(self, coefficient: linear_dict.Scalar):
+    def apply_global_phase(self, coefficient: linear_dict.Scalar) -> None:
         pass
 
     def measure(

@@ -14,8 +14,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from types import EllipsisType, NotImplementedType
-from typing import Any, cast, Sequence
+from typing import Any, cast
 
 import numpy as np
 import pytest

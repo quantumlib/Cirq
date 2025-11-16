@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -22,7 +22,9 @@ import cirq
 from cirq import circuits
 
 
-def assert_equivalent_computational_basis_map(maps: dict[int, int], circuit: circuits.Circuit):
+def assert_equivalent_computational_basis_map(
+    maps: dict[int, int], circuit: circuits.Circuit
+) -> None:
     """Ensure equivalence of basis state mapping.
 
     Args:

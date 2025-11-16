@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, cast, Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
+from typing import Any, cast
 
 from cirq import circuits, ops, protocols
 from cirq.contrib import circuitdag

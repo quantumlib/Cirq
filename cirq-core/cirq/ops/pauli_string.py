@@ -17,25 +17,19 @@ from __future__ import annotations
 import cmath
 import math
 import numbers
-from types import NotImplementedType
-from typing import (
-    AbstractSet,
-    Any,
+from collections.abc import (
     Callable,
-    cast,
-    Generic,
     ItemsView,
     Iterable,
     Iterator,
     KeysView,
     Mapping,
-    overload,
     Sequence,
-    TYPE_CHECKING,
-    TypeVar,
-    Union,
+    Set,
     ValuesView,
 )
+from types import NotImplementedType
+from typing import Any, cast, Generic, overload, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
 import sympy
@@ -1040,7 +1034,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.coefficient)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self.coefficient)
 
     def _resolve_parameters_(
@@ -1233,7 +1227,7 @@ class MutablePauliString(Generic[TKey]):
             return sign
         return -sign
 
-    def keys(self) -> AbstractSet[TKey]:
+    def keys(self) -> Set[TKey]:
         """Returns the sequence of qubits on which this pauli string acts."""
         return self.pauli_int_dict.keys()
 

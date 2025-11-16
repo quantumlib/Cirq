@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import itertools
-from typing import Any, Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import Any, TYPE_CHECKING
 
 import cirq
 from cirq_google import ops
