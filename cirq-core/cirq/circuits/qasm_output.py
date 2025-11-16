@@ -102,11 +102,12 @@ class QasmUGate(ops.Gate):
             return x * (sympy.pi if protocols.is_parameterized(x) else np.pi)
 
         q = qubits[0]
+        phase_correction_half_turns = (self.phi + self.lmda) / 2
         return [
             ops.rz(mul_pi(self.lmda)).on(q),
             ops.ry(mul_pi(self.theta)).on(q),
             ops.rz(mul_pi(self.phi)).on(q),
-            ops.global_phase_operation(1j ** ((self.phi + self.lmda) % 2)),
+            ops.global_phase_operation(1j ** (2 * phase_correction_half_turns)),
         ]
 
     def _value_equality_values_(self):
