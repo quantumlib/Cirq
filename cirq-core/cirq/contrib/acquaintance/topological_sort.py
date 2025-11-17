@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import operator
 import random
-from typing import Any, Callable, cast, Iterable, TYPE_CHECKING
+from collections.abc import Callable, Iterable
+from typing import Any, cast, TYPE_CHECKING
 
 from cirq import ops
 

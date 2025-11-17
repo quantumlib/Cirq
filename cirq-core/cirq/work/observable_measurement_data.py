@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import dataclasses
 import datetime
-from typing import Any, Iterable, Mapping, TYPE_CHECKING
+from collections.abc import Iterable, Mapping
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 import sympy

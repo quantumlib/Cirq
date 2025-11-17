@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import numbers
-from typing import Any, Callable, TYPE_CHECKING
+from collections.abc import Callable
+from typing import Any, TYPE_CHECKING
 
 import sympy
 

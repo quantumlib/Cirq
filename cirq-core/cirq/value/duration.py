@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import datetime
-from typing import AbstractSet, Any, TYPE_CHECKING, TypeAlias, Union
+from collections.abc import Set
+from typing import Any, TYPE_CHECKING, TypeAlias, Union
 
 import numpy as np
 import sympy
@@ -98,7 +99,7 @@ class Duration:
     def _is_parameterized_(self) -> bool:
         return any(isinstance(val, sympy.Basic) for val in self._time_vals)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self._time_vals)
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Duration:

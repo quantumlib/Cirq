@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import time
-from typing import Any, cast, Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import Any, cast, TYPE_CHECKING
 
 import numpy as np
 import scipy.optimize

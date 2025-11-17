@@ -17,7 +17,8 @@ from __future__ import annotations
 import abc
 import functools
 import weakref
-from typing import Any, Iterable, Self, TYPE_CHECKING
+from collections.abc import Iterable
+from typing import Any, Self, TYPE_CHECKING
 
 import numpy as np
 

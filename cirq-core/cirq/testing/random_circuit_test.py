@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import random
-from typing import cast, Sequence
+from collections.abc import Sequence
+from typing import cast
 
 import numpy as np
 import pytest

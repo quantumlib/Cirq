@@ -17,8 +17,9 @@
 from __future__ import annotations
 
 import warnings
+from collections.abc import Iterable
 from types import NotImplementedType
-from typing import Any, Iterable, Protocol, TypeVar
+from typing import Any, Protocol, TypeVar
 
 import numpy as np
 

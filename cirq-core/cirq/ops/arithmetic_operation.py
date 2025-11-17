@@ -17,7 +17,8 @@ from __future__ import annotations
 
 import abc
 import itertools
-from typing import cast, Iterable, Self, Sequence, TYPE_CHECKING
+from collections.abc import Iterable, Sequence
+from typing import cast, Self, TYPE_CHECKING
 
 import numpy as np
 
