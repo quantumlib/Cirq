@@ -11,7 +11,13 @@ import collections.abc
 import google.protobuf.descriptor
 import google.protobuf.internal.containers
 import google.protobuf.message
+import sys
 import typing
+
+if sys.version_info >= (3, 10):
+    import typing as typing_extensions
+else:
+    import typing_extensions
 
 DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
 
@@ -40,7 +46,7 @@ class BatchProgram(google.protobuf.message.Message):
     ) -> None: ...
     def ClearField(self, field_name: typing.Literal["programs", b"programs"]) -> None: ...
 
-global___BatchProgram = BatchProgram
+Global___BatchProgram: typing_extensions.TypeAlias = BatchProgram
 
 @typing.final
 class BatchRunContext(google.protobuf.message.Message):
@@ -69,7 +75,7 @@ class BatchRunContext(google.protobuf.message.Message):
     ) -> None: ...
     def ClearField(self, field_name: typing.Literal["run_contexts", b"run_contexts"]) -> None: ...
 
-global___BatchRunContext = BatchRunContext
+Global___BatchRunContext: typing_extensions.TypeAlias = BatchRunContext
 
 @typing.final
 class BatchResult(google.protobuf.message.Message):
@@ -101,4 +107,4 @@ class BatchResult(google.protobuf.message.Message):
     ) -> None: ...
     def ClearField(self, field_name: typing.Literal["results", b"results"]) -> None: ...
 
-global___BatchResult = BatchResult
+Global___BatchResult: typing_extensions.TypeAlias = BatchResult
