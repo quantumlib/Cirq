@@ -34,7 +34,7 @@ class SycamoreGate(cirq.FSimGate):
 
     This gate can be performed on the Google's Sycamore chip and
     is close to the gates that were used to demonstrate beyond
-    classical resuts used in this paper:
+    classical results used in this paper:
     https://www.nature.com/articles/s41586-019-1666-5
 
     Note that this gate will be transformed to a "ISWAP-like" gate
