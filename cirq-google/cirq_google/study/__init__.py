@@ -14,7 +14,6 @@
 
 """Classes for running sweeps particular to Google hardware."""
 
-from cirq_google.study.convert_to_zip import convert_to_zip as convert_to_zip
 from cirq_google.study.device_parameter import DeviceParameter as DeviceParameter
 from cirq_google.study.device_parameter import Metadata as Metadata
 from cirq_google.study.finite_random_variable import FiniteRandomVariable as FiniteRandomVariable
