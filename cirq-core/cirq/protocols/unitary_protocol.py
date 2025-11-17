@@ -83,9 +83,7 @@ def unitary(
 
     The matrix is determined by the first of these strategies that succeeds:
 
-    - If the value is a NumPy array, it is tested using `linalg.is_unitary()`.
-        If the result is `True`, the array is returned directly; if `is_unitary()`
-        returns `False`, a `ValueError` exception is raised.
+    - If the value is a NumPy array, it is returned directly.
     - The value has a `_unitary_` method that returns something besides `None` or
         `NotImplemented`. The matrix is whatever the method returned.
     - The value has an `_apply_unitary_` method, and it returns something
