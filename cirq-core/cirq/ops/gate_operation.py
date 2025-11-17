@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+import numbers
 import re
 import warnings
 from collections.abc import Collection, Mapping, Sequence, Set
@@ -323,12 +324,16 @@ class GateOperation(raw_types.Operation):
         return self.gate._rmul_with_qubits(self._qubits, other)
 
     def __add__(self, other):
+        if not isinstance(other, (ops.Operation, numbers.Number)):
+            return NotImplemented
         return 1 * self + other
 
     def __radd__(self, other):
         return other + 1 * self
 
     def __sub__(self, other):
+        if not isinstance(other, (ops.Operation, numbers.Number)):
+            return NotImplemented
         return 1 * self - other
 
     def __rsub__(self, other):
