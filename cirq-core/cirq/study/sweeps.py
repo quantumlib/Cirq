@@ -17,7 +17,7 @@ from __future__ import annotations
 import abc
 import collections
 import itertools
-from collections.abc import Iterable, Iterator, Sequence
+from collections.abc import Iterable, Iterator, Mapping, Sequence
 from typing import Any, cast, overload, TYPE_CHECKING, Union
 
 import sympy
