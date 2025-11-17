@@ -136,7 +136,6 @@ def unitary(
         f"value: {val!r}\n"
         "\n"
         "The given value failed to satisfy any of the following criteria:\n"
-        "- A NumPy array for which `linalg.is_unitary()` returned `True`.\n"
         "- A `_unitary_(self)` method that returned a value "
         "besides `None` or `NotImplemented`.\n"
         "- A `_decompose_(self)` method that returned a "
