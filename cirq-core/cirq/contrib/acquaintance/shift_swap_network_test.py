@@ -42,7 +42,7 @@ def test_shift_swap_network_gate_acquaintance_opps(left_part_lens, right_part_le
     initial_mapping = {q: i for i, q in enumerate(qubits)}
     actual_opps = cca.get_logical_acquaintance_opportunities(strategy, initial_mapping)
 
-    # expected oops
+    # expected opps
     i = 0
     sides = ('left', 'right')
     parts: dict[str, list[set[int]]]
