@@ -536,12 +536,12 @@ def test_list_of_dicts_to_zip_empty() -> None:
         cirq.list_of_dicts_to_zip([])
 
 
-def test_convert_to_zip_mismatched_keys() -> None:
+def test_list_of_dicts_to_zip_mismatched_keys() -> None:
     with pytest.raises(ValueError, match="Keys must be the same"):
         cirq.list_of_dicts_to_zip([{'a': 4.0}, {'a': 2.0, 'b': 1.0}])
 
 
-def test_convert_to_zip() -> None:
+def test_list_of_dicts_to_zip() -> None:
     param_dict = [
         {'a': 1.0, 'b': 2.0, 'c': 10.0},
         {'a': 2.0, 'b': 4.0, 'c': 9.0},
