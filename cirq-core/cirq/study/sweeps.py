@@ -667,7 +667,6 @@ def list_of_dicts_to_zip(params: Sequence[Mapping[str, float]]) -> cirq.Zip:
 
     Raises:
         ValueError if the keys in any of the list items are not the same.
-
     """
     param_keys: dict[str, list[float]] = collections.defaultdict(list)
     if len(params) < 1:
