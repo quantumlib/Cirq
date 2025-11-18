@@ -531,7 +531,7 @@ def test_concat_empty_sweep_raises() -> None:
         _ = cirq.Concat()
 
 
-def test_convert_to_zip_empty() -> None:
+def test_list_of_dicts_to_zip_empty() -> None:
     with pytest.raises(ValueError, match="empty"):
         cirq.list_of_dicts_to_zip([])
 
