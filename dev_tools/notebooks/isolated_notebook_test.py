@@ -63,6 +63,7 @@ SKIP_NOTEBOOKS = [
     # temporary: need to fix QVM metrics and device spec
     'docs/tutorials/google/spin_echoes.ipynb',
     'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
+    'cirq-google/cirq_google/experimental/analog_experiments/Analog_Experiment_Tutorial_through_Example.ipynb',
 ]
 SKIP_NOTEBOOKS += [
     # notebooks that import the examples module which is not installed with cirq
