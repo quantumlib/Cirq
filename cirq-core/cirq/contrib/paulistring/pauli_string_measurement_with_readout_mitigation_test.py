@@ -783,8 +783,9 @@ def test_postselection_symmetry_validation_and_logic() -> None:
         pauli_strings=target_paulis,
         postselection_symmetries=[(valid_sum_sym, 1), (valid_pauli_sym, 1)],
     )
-    # Should not raise any error
-    measure_pauli_strings([params_valid_sum], sampler, 10, 10, 0, rng)
+    # Postselection is not implemented; providing symmetries should raise.
+    with pytest.raises(NotImplementedError, match="Postselection symmetries are not implemented"):
+        measure_pauli_strings([params_valid_sum], sampler, 10, 10, 0, rng)
 
     # Test PauliSum with Non-QWC Terms
     # X0 and Z0 do not commute. This is an invalid PauliSum *structure* for this context.
@@ -796,7 +797,7 @@ def test_postselection_symmetry_validation_and_logic() -> None:
         pauli_strings=target_paulis,
         postselection_symmetries=[(invalid_structure_sum, 1)],
     )
-    with pytest.raises(ValueError, match="Terms are not Qubit-Wise Commuting"):
+    with pytest.raises(NotImplementedError, match="Postselection symmetries are not implemented"):
         measure_pauli_strings([params_bad_sum_structure], sampler, 10, 10, 0, rng)
 
     # Test Invalid Symmetry Type
@@ -805,7 +806,7 @@ def test_postselection_symmetry_validation_and_logic() -> None:
         pauli_strings=target_paulis,
         postselection_symmetries=[("NotASymmetry", 1)],  # type: ignore
     )
-    with pytest.raises(TypeError, match="must be cirq.PauliString or cirq.PauliSum"):
+    with pytest.raises(NotImplementedError, match="Postselection symmetries are not implemented"):
         measure_pauli_strings([params_bad_type], sampler, 10, 10, 0, rng)
 
     # Test PauliSum NOT Commuting with Target
@@ -816,5 +817,5 @@ def test_postselection_symmetry_validation_and_logic() -> None:
         pauli_strings=target_paulis,
         postselection_symmetries=[(non_commuting_sum, 1)],
     )
-    with pytest.raises(ValueError, match="not commuting with all Pauli"):
+    with pytest.raises(NotImplementedError, match="Postselection symmetries are not implemented"):
         measure_pauli_strings([params_non_commute], sampler, 10, 10, 0, rng)

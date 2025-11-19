@@ -242,6 +242,17 @@ def _validate_circuit_to_pauli_strings_parameters(
                 _validate_single_pauli_string(pauli_str)
 
         # 3. Validate postselection symmetries
+        # Postselection symmetries are parsed and validated below, however
+        # the functionality to actually apply postselection filtering is not
+        # implemented in this PR. Raise a clear error if the user attempts to
+        # provide postselection symmetries so users do not assume they are
+        # applied.
+        if params.postselection_symmetries:
+            raise NotImplementedError(
+                "Postselection symmetries are not implemented. "
+                "Please use readout mitigation via confusion matrices instead."
+            )
+
         for sym, _ in params.postselection_symmetries:
             if isinstance(sym, ops.PauliSum):
                 terms = list(sym)
