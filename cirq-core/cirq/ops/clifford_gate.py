@@ -396,32 +396,40 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
             return NotImplemented  # pragma: no cover
         exponent = int(exponent)
 
-        if exponent == -1:
-            return CliffordGate.from_clifford_tableau(self.clifford_tableau.inverse())
+        # quick return for Identity
         if exponent == 0:
             return CliffordGate.from_clifford_tableau(
-                qis.CliffordTableau(num_qubits=self._num_qubits_())
+                qis.CliffordTableau(num_qubits=self.clifford_tableau.n)
             )
+
+        # quick return for Self
         if exponent == 1:
             return self
 
-        base_tableau = self.clifford_tableau.copy()
+        # Handle Negative Exponents
+        # A^-n is equivalent to (A^-1)^n
         if exponent < 0:
-            base_tableau = base_tableau.inverse()
+            base_tableau = self.clifford_tableau.inverse()
             exponent = abs(exponent)
+        else:
+            base_tableau = self.clifford_tableau.copy()
+        # optimized Binary Exponentiation
+        # we initialize result as fresh identity Tableau.
+        # This prevents any possibility of reference aliasing with base_tableau.
+        result_tableau = qis.CliffordTableau(num_qubits=self.clifford_tableau.n)
 
-        # https://cp-algorithms.com/algebra/binary-exp.html
-        aux = qis.CliffordTableau(
-            num_qubits=self.clifford_tableau.n
-        )  # this tableau collects the odd terms
-        while exponent > 1:
-            if exponent & 1:
-                aux = aux.then(base_tableau)
-            base_tableau = base_tableau.then(base_tableau)
-            exponent >>= 1
+        while exponent > 0:
+            if exponent & 1:  # if the current bit is 1
+                # standard A = A * B logic
+                result_tableau = result_tableau.then(base_tableau)
 
-        base_tableau = base_tableau.then(aux)
-        return CliffordGate.from_clifford_tableau(base_tableau)
+            exponent >>= 1  # Bitwise shift to divide by 2
+
+            # only square the base if we still have exponent left to process
+            if exponent > 0:
+                base_tableau = base_tableau.then(base_tableau)
+
+        return CliffordGate.from_clifford_tableau(result_tableau)
 
     def __repr__(self) -> str:
         return f"Clifford Gate with Tableau:\n{self.clifford_tableau._str_full_()}"
@@ -730,20 +738,43 @@ class SingleQubitCliffordGate(CliffordGate):
         return phased_x_z_gate.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
 
     def __pow__(self, exponent: float) -> SingleQubitCliffordGate:
+        # safety check : if it's not a number, we can't do the math.
+        if not isinstance(exponent,(int, float)):
+            return NotImplemented
+
+        # Integer Exponents (Mod 24 Optimization)
         if int(exponent) == exponent:
             # The single qubit Clifford gates are a group of size 24
+            #gate^25 is the same as gate^1
             exp = int(exponent) % 24
-            ret_gate = super().__pow__(exp if exp != 23 else -1)
+
+            # optimization: gate^23 is equivalent to gate^-1.
+            # Inverting (O(1)) is faster than 23 multiplications.
+            effective_exponent = -1 if exp == 23 else exp
+
+            # we rely on the ClifforddGate implementation
+            # to handle the actual matrix multiplication or inversion.
+            ret_gate = super().__pow__(effective_exponent)
+
             return SingleQubitCliffordGate.from_clifford_tableau(ret_gate.clifford_tableau)
-        elif int(2 * exponent) == 2 * exponent:
-            # If exponent = k/2 for integer k, then we compute the k-th power of the square root
-            if exponent < 0:
-                sqrt_exp = -0.5
-            else:
-                sqrt_exp = 0.5
-            pow_gate = self._get_sqrt_map()[sqrt_exp].get(self, None)
-            if pow_gate:
-                return pow_gate ** (abs(2 * exponent))
+
+        # half-Integer Exponents (Rational powers)
+        # check if exponent is something like 0.5, 1.5, -2.5, etc.
+        double_exp = 2 * exponent
+        if int(double_exp) == double_exp:
+            # we want to find G^(k/2). we transform this into (G^0.5)^k
+            # Determine if we need the positive or negative square root
+            sqrt_exp = 0.5 if exponent > 0 else -0.5
+
+            # safe Dictionary access:
+            # chained .get() prevents crashing if the map is missing keys
+            sqrt_gate = self._get_sqrt_map().get(sqrt_exp, {}).get(self)
+
+            if sqrt_gate is not None:
+                # If we want g^2.5, we found sqrt_gate (G^0.5).
+                # we now return (sqrt_gate)^5.
+                # Since 5 is an integer , this recursive call hits the logic in above Block.
+                return sqrt_gate ** int(abs(double_exp))
 
         return NotImplemented
 
