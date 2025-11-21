@@ -230,10 +230,10 @@ jobs:
           python-version: '3.11'
           architecture: 'x64'
       - name: Install requirements
-        run: pip install pip-tools
-      - name: Test dependencies with pip-compile
+        run: pip install uv
+      - name: Test dependencies with uv pip compile
         run: |
-          pip-compile --resolver=backtracking dev_tools/requirements/deps/cirq-all.txt -o-
+          uv pip compile dev_tools/requirements/deps/cirq-all.txt
   build_protos:
     if: github.repository_owner == 'quantumlib'
     name: Build protos
@@ -363,7 +363,7 @@ jobs:
       - name: Notebook tests
         run: check/pytest -n auto -m slow dev_tools/notebooks/isolated_notebook_test.py -k ${{matrix.partition}}
       - name: Persist the outputs
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         if: failure()
         with:
           name: notebook-outputs-${{ matrix.partition }}
@@ -385,7 +385,7 @@ jobs:
       - name: Notebook tests
         run: check/pytest -n auto -m slow dev_tools/notebooks/notebook_test.py
       - name: Persist the outputs
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         if: failure()
         with:
           name: notebook-outputs
@@ -398,7 +398,7 @@ jobs:
       - name: Check out source repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Set up Node environment
-        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
         with:
           node-version: '22.16.0'
       - name: Install node dependencies
@@ -413,7 +413,7 @@ jobs:
       - name: Check out source repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Set up Node environment
-        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
         with:
           node-version: '22.16.0'
       - name: Install node dependencies
@@ -428,7 +428,7 @@ jobs:
       - name: Check out source repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Set up Node environment
-        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
         with:
           node-version: '22.16.0'
       - name: Install node dependencies
@@ -445,7 +445,7 @@ jobs:
       - name: Check out source repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Set up Node environment
-        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
         with:
           node-version: '22.16.0'
       - name: Install node dependencies

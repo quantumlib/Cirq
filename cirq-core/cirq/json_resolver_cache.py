@@ -21,8 +21,6 @@ from typing import NamedTuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
     import cirq
-    import cirq.devices.unconstrained_device
-    import cirq.ops.pauli_gates
     from cirq.protocols.json_serialization import ObjectFactory
 
 

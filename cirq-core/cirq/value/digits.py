@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterable, overload
+from collections.abc import Iterable
+from typing import Any, overload
 
 
 def big_endian_bits_to_int(bits: Iterable[Any]) -> int:

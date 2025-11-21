@@ -15,7 +15,8 @@
 
 from __future__ import annotations
 
-from typing import AbstractSet, Any, cast, Iterator, Sequence
+from collections.abc import Iterator, Sequence, Set
+from typing import Any, cast
 
 import numpy as np
 import sympy
@@ -108,7 +109,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
             self._phase_exponent
         )
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self._iswap) | protocols.parameter_names(
             self._phase_exponent
         )

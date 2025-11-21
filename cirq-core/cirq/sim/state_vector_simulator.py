@@ -18,8 +18,9 @@ from __future__ import annotations
 
 import abc
 import warnings
+from collections.abc import Iterator, Sequence
 from functools import cached_property
-from typing import Any, Generic, Iterator, Sequence, TYPE_CHECKING, TypeVar
+from typing import Any, Generic, TYPE_CHECKING, TypeVar
 
 import numpy as np
 

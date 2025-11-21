@@ -18,9 +18,10 @@ import dataclasses
 import inspect
 import io
 import pathlib
+from collections.abc import Iterator
 from dataclasses import dataclass
 from types import ModuleType
-from typing import Iterator, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd

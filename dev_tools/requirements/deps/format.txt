@@ -1,2 +1,2 @@
 black[jupyter]==25.9.0
-isort[colors]~=6.0.1
+isort[colors]~=7.0.0

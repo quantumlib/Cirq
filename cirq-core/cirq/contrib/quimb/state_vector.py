@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import warnings
-from typing import cast, Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import cast, TYPE_CHECKING
 
 import quimb
 import quimb.tensor as qtn

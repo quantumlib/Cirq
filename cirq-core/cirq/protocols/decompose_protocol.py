@@ -18,19 +18,9 @@ import dataclasses
 import inspect
 import itertools
 from collections import defaultdict
+from collections.abc import Callable, Iterable, Iterator, Sequence
 from types import NotImplementedType
-from typing import (
-    Any,
-    Callable,
-    Iterable,
-    Iterator,
-    overload,
-    Protocol,
-    Sequence,
-    TYPE_CHECKING,
-    TypeVar,
-    Union,
-)
+from typing import Any, overload, Protocol, TYPE_CHECKING, TypeVar, Union
 
 from cirq import devices, ops
 from cirq._doc import doc_private

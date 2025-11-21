@@ -16,7 +16,8 @@
 
 from __future__ import annotations
 
-from typing import AbstractSet, Any, Collection, Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Collection, Iterator, Sequence, Set
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -224,7 +225,7 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
     def _is_parameterized_(self) -> bool:
         return any(protocols.is_parameterized(angle) for angle in self._diag_angles_radians)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return {
             name for angle in self._diag_angles_radians for name in protocols.parameter_names(angle)
         }
