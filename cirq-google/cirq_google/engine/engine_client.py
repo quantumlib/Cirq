@@ -31,7 +31,7 @@ from cirq import _compat
 from cirq_google.cloud import quantum
 from cirq_google.engine import stream_manager
 from cirq_google.engine.asyncio_executor import AsyncioExecutor
-from cirq_google.engine.processor_config import DeviceVersion, Run, Snapshot
+from cirq_google.engine.processor_config import DeviceConfigRevision, Run, Snapshot
 
 _M = TypeVar('_M', bound=proto.Message)
 _R = TypeVar('_R')
@@ -1188,7 +1188,7 @@ class EngineClient:
         project_id: str,
         processor_id: str,
         config_name: str = 'default',
-        device_version: DeviceVersion = Run(id='current'),
+        device_version: DeviceConfigRevision = Run(id='current'),
     ) -> quantum.QuantumProcessorConfig | None:
         """Returns the QuantumProcessorConfig for the given snapshot id.
 
@@ -1275,7 +1275,7 @@ def _quantum_processor_config_name_from_device_version(
     project_id: str,
     processor_id: str,
     config_name: str,
-    device_version: DeviceVersion | None = None,
+    device_version: DeviceConfigRevision | None = None,
 ) -> str:
     processor_resource_name = _processor_name_from_ids(project_id, processor_id)
     if isinstance(device_version, Snapshot):

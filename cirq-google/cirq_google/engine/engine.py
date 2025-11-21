@@ -593,7 +593,7 @@ class Engine(abstract_engine.AbstractEngine):
         self,
         processor_id: str | list[str],
         device_config_name: str | None = None,
-        device_version: processor_config.DeviceVersion | None = None,
+        device_version: processor_config.DeviceConfigRevision | None = None,
         max_concurrent_jobs: int = 100,
     ) -> cirq_google.ProcessorSampler:
         """Returns a sampler backed by the engine.
@@ -633,7 +633,7 @@ class Engine(abstract_engine.AbstractEngine):
     async def get_processor_config_async(
         self,
         processor_id: str,
-        device_version: processor_config.DeviceVersion = processor_config.Run(id='current'),
+        device_version: processor_config.DeviceConfigRevision = processor_config.Run(id='current'),
         config_name: str = 'default',
     ) -> processor_config.ProcessorConfig | None:
         """Returns a ProcessorConfig from this project and the given processor id.

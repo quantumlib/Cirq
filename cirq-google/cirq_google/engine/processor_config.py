@@ -36,7 +36,7 @@ class Run:
     id: str
 
 
-DeviceVersion: TypeAlias = Snapshot | Run
+DeviceConfigRevision: TypeAlias = Snapshot | Run
 
 
 class ProcessorConfig:
@@ -51,7 +51,7 @@ class ProcessorConfig:
         *,
         quantum_processor_config: quantum.QuantumProcessorConfig,
         processor: cg.engine.AbstractProcessor,
-        device_version: DeviceVersion | None = None,
+        device_version: DeviceConfigRevision | None = None,
     ) -> None:
         """Contructs a Processor Config.
 

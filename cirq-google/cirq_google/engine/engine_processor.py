@@ -102,7 +102,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
     def get_sampler(
         self,
         device_config_name: str | None = None,
-        device_version: processor_config.DeviceVersion | None = None,
+        device_version: processor_config.DeviceConfigRevision | None = None,
         max_concurrent_jobs: int = 100,
     ) -> cg.engine.ProcessorSampler:
         """Returns the default sampler backed by the engine.
@@ -505,7 +505,9 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         return self.context.client.list_time_slots(self.project_id, self.processor_id, filter_str)
 
     def get_config(
-        self, device_version: processor_config.DeviceVersion | None = None, config_name: str = ''
+        self,
+        device_version: processor_config.DeviceConfigRevision | None = None,
+        config_name: str = '',
     ) -> processor_config.ProcessorConfig | None:
         """Retrieves a ProcessorConfig from an automation run.
 

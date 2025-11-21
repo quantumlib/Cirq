@@ -1780,9 +1780,10 @@ def test_get_quantum_processor_config_from_snapshot(client_constructor, default_
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_get_quantum_processor_exception(client_constructor, default_engine_client):
     grpc_client = _setup_client_mock(client_constructor)
-    grpc_client.get_quantum_processor_config.side_effect = exceptions.BadRequest('invalid_reueust')
+    error_msg = 'invalid_request'
+    grpc_client.get_quantum_processor_config.side_effect = exceptions.BadRequest(error_msg)
 
-    with pytest.raises(EngineException, match='invalid_reueust'):
+    with pytest.raises(EngineException, match=error_msg):
         _ = default_engine_client.get_quantum_processor_config(
             project_id="test_project_id",
             processor_id="test_processor_id",
