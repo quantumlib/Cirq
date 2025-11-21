@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import AbstractSet, Any
+from collections.abc import Set
+from typing import Any
 
 import numpy as np
 import sympy
@@ -163,7 +164,7 @@ class PhaseGradientGate(raw_types.Gate):
     def _is_parameterized_(self) -> bool:
         return cirq.is_parameterized(self.exponent)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return cirq.parameter_names(self.exponent)
 
     def _resolve_parameters_(

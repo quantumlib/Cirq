@@ -25,9 +25,10 @@ import sys
 import traceback
 import types
 import warnings
+from collections.abc import Callable
 from importlib.machinery import ModuleSpec
 from types import ModuleType
-from typing import Any, Callable
+from typing import Any
 from unittest import mock
 
 import duet
@@ -159,7 +160,7 @@ def test_deprecated_with_name():
 
 
 def test_deprecated_with_property():
-    class AClass(object):
+    class AClass:
         def __init__(self, a):
             self.a = a
 

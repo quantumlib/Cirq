@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import json
-from typing import Any, cast, Iterator, Sequence
+from collections.abc import Iterator, Sequence
+from typing import Any, cast
 
 import numpy as np
 import sympy

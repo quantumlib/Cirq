@@ -17,7 +17,7 @@ from __future__ import annotations
 import contextlib
 import logging
 import os
-from typing import Iterator
+from collections.abc import Iterator
 
 from cirq._compat import ALLOW_DEPRECATION_IN_TEST
 

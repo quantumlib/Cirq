@@ -14,8 +14,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-from typing import Any, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 import numpy as np
 

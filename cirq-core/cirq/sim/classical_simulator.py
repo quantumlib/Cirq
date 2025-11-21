@@ -14,8 +14,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from copy import copy, deepcopy
-from typing import Any, Generic, Sequence, TYPE_CHECKING
+from typing import Any, Generic, TYPE_CHECKING
 
 import numpy as np
 

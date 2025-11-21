@@ -27,8 +27,9 @@ import re
 import sys
 import traceback
 import warnings
+from collections.abc import Callable, Iterator
 from types import ModuleType
-from typing import Any, Callable, Iterator, overload, TypeVar
+from typing import Any, overload, TypeVar
 
 import numpy as np
 import pandas as pd

@@ -18,8 +18,9 @@ from __future__ import annotations
 
 import abc
 import dataclasses
+from collections.abc import Callable, Hashable
 from functools import lru_cache
-from typing import Any, Callable, Hashable, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import cirq
 from cirq import _compat

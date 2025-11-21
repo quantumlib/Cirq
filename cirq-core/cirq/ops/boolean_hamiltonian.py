@@ -27,7 +27,8 @@ from __future__ import annotations
 
 import functools
 import itertools
-from typing import Any, Generator, Sequence
+from collections.abc import Generator, Sequence
+from typing import Any
 
 import sympy.parsing.sympy_parser as sympy_parser
 
@@ -334,8 +335,8 @@ def _get_gates_from_hamiltonians(
 
         cnots = _simplify_cnots(cnots)
 
-        for gate in (cirq.CNOT(qubits[c], qubits[t]) for c, t in cnots):
-            yield gate
+        for c, t in cnots:
+            yield cirq.CNOT(qubits[c], qubits[t])
 
     sorted_hamiltonian_keys = sorted(
         hamiltonians.keys(), key=functools.cmp_to_key(_gray_code_comparator)

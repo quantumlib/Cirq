@@ -15,7 +15,8 @@
 """Provides test devices that can validate circuits."""
 from __future__ import annotations
 
-from typing import AbstractSet, cast
+from collections.abc import Set
+from typing import cast
 
 from cirq import devices, ops
 
@@ -38,7 +39,7 @@ class ValidatingTestDevice(devices.Device):
 
     def __init__(
         self,
-        qubits: AbstractSet[ops.Qid],
+        qubits: Set[ops.Qid],
         name: str = "ValidatingTestDevice",
         allowed_gates: tuple[type, ...] = (ops.Gate,),
         allowed_qubit_types: tuple[type, ...] = (devices.GridQubit,),
