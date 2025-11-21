@@ -17,10 +17,14 @@
 import networkx as nx
 import numpy as np
 
-import cirq
+import cirq.circuits as circuits
+import cirq.devices as devices
+import cirq.ops as ops
+import cirq.protocols as protocols
+import cirq.transformers as transformers
 
 
-def _transform_circuit(circuit: cirq.Circuit) -> cirq.Circuit:
+def _transform_circuit(circuit: circuits.Circuit) -> circuits.Circuit:
     """Transforms a Cirq circuit by applying a series of modifications.
 
     This is an internal helper function used exclusively by
@@ -43,26 +47,26 @@ def _transform_circuit(circuit: cirq.Circuit) -> cirq.Circuit:
         The modified cirq.Circuit object.
     """
     qubits = list(circuit.all_qubits())
-    circuit = circuit + cirq.Circuit(cirq.M(*qubits, key="m"))
-    circuit = cirq.align_right(cirq.merge_single_qubit_gates_to_phxz(circuit))
-    circuit = cirq.stratified_circuit(
-        circuit[::-1], categories=[lambda op: cirq.num_qubits(op) == k for k in (1, 2)]
+    circuit = circuit + circuits.Circuit(ops.measure(*qubits, key="m"))
+    circuit = transformers.align_right(transformers.merge_single_qubit_gates_to_phxz(circuit))
+    circuit = transformers.stratified_circuit(
+        circuit[::-1], categories=[lambda op: protocols.num_qubits(op) == k for k in (1, 2)]
     )[::-1]
-    circuit = cirq.add_dynamical_decoupling(circuit)
-    circuit = cirq.Circuit(circuit[:-1])
+    circuit = transformers.add_dynamical_decoupling(circuit)
+    circuit = circuits.Circuit(circuit[:-1])
     return circuit
 
 
 def generate_2d_ghz_circuit(
-    center: cirq.GridQubit,
+    center: devices.GridQubit,
     graph: nx.Graph,
     num_qubits: int,
     randomized: bool = False,
     rng_or_seed: int | np.random.Generator | None = None,
     add_dd_and_align_right: bool = False,
-) -> cirq.Circuit:
-    """Generates a 2D GHZ state circuit with 'num_qubits'
-    qubits using BFS method leveraged by NetworkX.
+) -> circuits.Circuit:
+    """Generates a 2D GHZ state circuit with 'num_qubits' qubits using BFS.
+
     The circuit is constructed by connecting qubits
     sequentially based on graph connectivity,
     starting from the 'center' qubit.
@@ -81,7 +85,7 @@ def generate_2d_ghz_circuit(
         randomized:  If True, neighbors are
                      added to the circuit in a random order.
                      If False, they are
-                     are added by distance from the center.
+                     added by distance from the center.
         rng_or_seed: An optional seed or numpy random number
                      generator. Used only when randomized is True
         add_dd_and_align_right: If True, adds dynamical
@@ -127,18 +131,18 @@ def generate_2d_ghz_circuit(
     qubits_to_include = list(bfs_tree.nodes)[:num_qubits]
     final_tree = bfs_tree.subgraph(qubits_to_include)
 
-    ops = []
+    ghz_ops = []
 
     for node in nx.topological_sort(final_tree):
         # Handling the center qubit first
         if node == center:
-            ops.append(cirq.H(node))
+            ghz_ops.append(ops.H(node))
             continue
 
         for parent in final_tree.predecessors(node):
-            ops.extend([cirq.H(node), cirq.CZ(parent, node), cirq.H(node)])
+            ghz_ops.extend([ops.H(node), ops.CZ(parent, node), ops.H(node)])
 
-    circuit = cirq.Circuit(ops)
+    circuit = circuits.Circuit(ghz_ops)
 
     if add_dd_and_align_right:
         return _transform_circuit(circuit)

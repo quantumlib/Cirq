@@ -16,15 +16,27 @@
 
 from typing import cast
 
+import networkx as nx
 import numpy as np
 import pytest
 
 import cirq
 import cirq.experiments.ghz_2d as ghz_2d
-import cirq_google
 
-graph = cirq_google.Sycamore.metadata.nx_graph
-center_qubit = cirq.GridQubit(4, 5)
+
+def _create_moch_graph():
+    qubits = cirq.GridQubit.rect(6, 6)
+    g = nx.Graph()
+    for q in qubits:
+        g.add_node(q)
+        if q.col + 1 < 6:
+            g.add_edge(q, cirq.GridQubit(q.row, q.col + 1))
+        if q.row + 1 < 6:
+            g.add_edge(q, cirq.GridQubit(q.row + 1, q.col))
+    return g, cirq.GridQubit(3, 3)
+
+
+graph, center_qubit = _create_moch_graph()
 
 
 @pytest.mark.parametrize("num_qubits", list(range(1, len(graph.nodes) + 1)))
@@ -93,10 +105,7 @@ def manhattan_distance(q1: cirq.GridQubit, q2: cirq.GridQubit) -> int:
 
 @pytest.mark.parametrize("num_qubits", [2, 4, 9, 15, 20])
 def test_ghz_circuits_bfs_order(num_qubits: int) -> None:
-    """Verifies that the circuit construction maintains BFS order by ensuring
-    the maximum Manhattan distance of entangled qubits is non-decreasing
-    across the circuit moments.
-    """
+    """Verifies that the circuit construction maintains BFS order"""
 
     circuit = ghz_2d.generate_2d_ghz_circuit(
         center_qubit,
