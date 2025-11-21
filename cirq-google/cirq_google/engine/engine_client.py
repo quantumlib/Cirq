@@ -1188,14 +1188,14 @@ class EngineClient:
         project_id: str,
         processor_id: str,
         config_name: str = 'default',
-        device_version: DeviceConfigRevision = Run(id='current'),
+        device_config_revision: DeviceConfigRevision = Run(id='current'),
     ) -> quantum.QuantumProcessorConfig | None:
         """Returns the QuantumProcessorConfig for the given snapshot id.
 
         Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
-            device_version: Specifies either the snapshot_id or the run_name.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
             config_name: The id of the quantum processor config.
 
         Returns:
@@ -1205,11 +1205,11 @@ class EngineClient:
             EngineException: If the request to get the config fails.
         """
         try:
-            name = _quantum_processor_config_name_from_device_version(
+            name = _quantum_processor_config_name_from_device_config_revision(
                 project_id=project_id,
                 processor_id=processor_id,
                 config_name=config_name,
-                device_version=device_version,
+                device_config_revision=device_config_revision,
             )
             request = quantum.GetQuantumProcessorConfigRequest(name=name)
             return await self._send_request_async(
@@ -1271,23 +1271,23 @@ def _ids_from_calibration_name(calibration_name: str) -> tuple[str, str, int]:
     return parts[1], parts[3], int(parts[5])
 
 
-def _quantum_processor_config_name_from_device_version(
+def _quantum_processor_config_name_from_device_config_revision(
     project_id: str,
     processor_id: str,
     config_name: str,
-    device_version: DeviceConfigRevision | None = None,
+    device_config_revision: DeviceConfigRevision | None = None,
 ) -> str:
     processor_resource_name = _processor_name_from_ids(project_id, processor_id)
-    if isinstance(device_version, Snapshot):
+    if isinstance(device_config_revision, Snapshot):
         return (
             f'{processor_resource_name}/'
-            f'configSnapshots/{device_version.id}/'
+            f'configSnapshots/{device_config_revision.id}/'
             f'configs/{config_name}'
         )
     default_run_name = 'default'
     return (
         f'{processor_resource_name}/'
-        f'configAutomationRuns/{device_version.id if device_version else default_run_name}/'
+        f'configAutomationRuns/{device_config_revision.id if device_config_revision else default_run_name}/'
         f'configs/{config_name}'
     )
 

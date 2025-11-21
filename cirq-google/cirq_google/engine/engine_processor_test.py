@@ -339,7 +339,7 @@ def test_get_sampler_from_run_name() -> None:
     run = Run(id='test_run_name')
     device_config_name = 'test_device_name'
 
-    sampler = processor.get_sampler(device_version=run, device_config_name=device_config_name)
+    sampler = processor.get_sampler(device_config_revision=run, device_config_name=device_config_name)
 
     assert sampler.run_name == run.id
     assert sampler.device_config_name == device_config_name
@@ -380,7 +380,7 @@ def test_get_sampler_from_snapshot_id() -> None:
     snapshot = Snapshot(id='test_snapshot')
     device_config_name = 'test_device_name'
 
-    sampler = processor.get_sampler(device_version=snapshot, device_config_name=device_config_name)
+    sampler = processor.get_sampler(device_config_revision=snapshot, device_config_name=device_config_name)
 
     assert sampler.snapshot_id == snapshot.id
     assert sampler.device_config_name == device_config_name
@@ -401,7 +401,7 @@ def test_get_sampler_from_snapshot_id_with_defaults() -> None:
     )
     snapshot = Snapshot(id='test_snapshot')
 
-    sampler = processor.get_sampler(device_version=snapshot)
+    sampler = processor.get_sampler(device_config_revision=snapshot)
 
     assert sampler.snapshot_id == snapshot.id
     assert sampler.device_config_name == default_config_alias
@@ -1065,15 +1065,15 @@ def test_get_config_from_run(client):
 
     client().get_quantum_processor_config_async.return_value = quantum_config
     expected_config = ProcessorConfig(
-        processor=processor, quantum_processor_config=quantum_config, device_version=run
+        processor=processor, quantum_processor_config=quantum_config, device_config_revision=run
     )
 
-    actual_config = processor.get_config(config_name=config_name, device_version=run)
+    actual_config = processor.get_config(config_name=config_name, device_config_revision=run)
 
     client().get_quantum_processor_config_async.assert_called_once_with(
         project_id=project_id,
         processor_id=processor_id,
-        device_version=run,
+        device_config_revision=run,
         config_name=config_name,
     )
     assert actual_config.processor_id == expected_config.processor_id
@@ -1118,7 +1118,7 @@ def test_get_default_config(client):
     client().get_quantum_processor_config_async.assert_called_once_with(
         project_id=project_id,
         processor_id=processor_id,
-        device_version=Run(id=default_run),
+        device_config_revision=Run(id=default_run),
         config_name=default_config,
     )
 
@@ -1157,15 +1157,15 @@ def test_get_config_from_snapshot(client):
 
     client().get_quantum_processor_config_async.return_value = quantum_config
     expected_config = ProcessorConfig(
-        processor=processor, quantum_processor_config=quantum_config, device_version=snapshot
+        processor=processor, quantum_processor_config=quantum_config, device_config_revision=snapshot
     )
 
-    actual_config = processor.get_config(config_name=config_name, device_version=snapshot)
+    actual_config = processor.get_config(config_name=config_name, device_config_revision=snapshot)
 
     client().get_quantum_processor_config_async.assert_called_once_with(
         project_id=project_id,
         processor_id=processor_id,
-        device_version=snapshot,
+        device_config_revision=snapshot,
         config_name=config_name,
     )
     assert actual_config.processor_id == expected_config.processor_id
@@ -1194,7 +1194,7 @@ def test_get_config_not_found(client):
     client().get_quantum_processor_config_async.assert_called_once_with(
         project_id=project_id,
         processor_id=processor_id,
-        device_version=default_run,
+        device_config_revision=default_run,
         config_name=config_name,
     )
 

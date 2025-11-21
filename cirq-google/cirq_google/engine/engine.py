@@ -593,7 +593,7 @@ class Engine(abstract_engine.AbstractEngine):
         self,
         processor_id: str | list[str],
         device_config_name: str | None = None,
-        device_version: processor_config.DeviceConfigRevision | None = None,
+        device_config_revision: processor_config.DeviceConfigRevision | None = None,
         max_concurrent_jobs: int = 100,
     ) -> cirq_google.ProcessorSampler:
         """Returns a sampler backed by the engine.
@@ -603,7 +603,7 @@ class Engine(abstract_engine.AbstractEngine):
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
-            device_version: Specifies either the snapshot_id or the run_name.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
             max_concurrent_jobs: The maximum number of jobs to be sent
                 concurrently to the Engine. This client-side throttle can be
                 used to proactively reduce load to the backends and avoid quota
@@ -626,14 +626,14 @@ class Engine(abstract_engine.AbstractEngine):
 
         return self.get_processor(processor_id).get_sampler(
             device_config_name=device_config_name,
-            device_version=device_version,
+            device_config_revision=device_config_revision,
             max_concurrent_jobs=max_concurrent_jobs,
         )
 
     async def get_processor_config_async(
         self,
         processor_id: str,
-        device_version: processor_config.DeviceConfigRevision = processor_config.Run(id='current'),
+        device_config_revision: processor_config.DeviceConfigRevision = processor_config.Run(id='current'),
         config_name: str = 'default',
     ) -> processor_config.ProcessorConfig | None:
         """Returns a ProcessorConfig from this project and the given processor id.
@@ -643,7 +643,7 @@ class Engine(abstract_engine.AbstractEngine):
 
         Args:
             processor_id: The processor unique identifier.
-            device_version: Specifies either the snapshot_id or the run_name.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
             config_name: The identifier for the config.
 
         Returns:
@@ -652,14 +652,14 @@ class Engine(abstract_engine.AbstractEngine):
         quantum_config = await self.context.client.get_quantum_processor_config_async(
             project_id=self.project_id,
             processor_id=processor_id,
-            device_version=device_version,
+            device_config_revision=device_config_revision,
             config_name=config_name,
         )
         if quantum_config:
             return processor_config.ProcessorConfig(
                 processor=self.get_processor(processor_id),
                 quantum_processor_config=quantum_config,
-                device_version=device_version,
+                device_config_revision=device_config_revision,
             )
         return None
 

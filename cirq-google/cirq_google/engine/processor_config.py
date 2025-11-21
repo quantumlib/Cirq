@@ -51,7 +51,7 @@ class ProcessorConfig:
         *,
         quantum_processor_config: quantum.QuantumProcessorConfig,
         processor: cg.engine.AbstractProcessor,
-        device_version: DeviceConfigRevision | None = None,
+        device_config_revision: DeviceConfigRevision | None = None,
     ) -> None:
         """Contructs a Processor Config.
 
@@ -71,7 +71,7 @@ class ProcessorConfig:
                 self._quantum_processor_config.characterization, v2.metrics_pb2.MetricsSnapshot()
             )
         )
-        self._device_vesion = device_version
+        self._device_vesion = device_config_revision
         self._processor = processor
 
     @property

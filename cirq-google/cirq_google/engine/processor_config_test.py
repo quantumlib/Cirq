@@ -80,7 +80,7 @@ def test_processor_config_snapshot_id_empty():
 def test_processor_config_run_name():
     run = Run(id='test_run_name')
     config = cg.engine.ProcessorConfig(
-        processor=None, quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG, device_version=run
+        processor=None, quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG, device_config_revision=run
     )
 
     assert config.run_name == run.id
@@ -136,7 +136,7 @@ def test_processor_config_repr():
 def test_processor_config_repr_with_run_name():
     run = Run(id='test_run_name')
     config = cg.engine.ProcessorConfig(
-        processor=None, quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG, device_version=run
+        processor=None, quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG, device_config_revision=run
     )
     expected_repr = (
         'cirq_google.ProcessorConfig'
@@ -152,7 +152,7 @@ def test_processor_config_repr_with_run_name():
 def test_sampler():
     run = Run(id='test_run_name')
     config = cg.engine.ProcessorConfig(
-        processor=None, quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG, device_version=run
+        processor=None, quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG, device_config_revision=run
     )
     sampler = config.sampler()
 

@@ -102,7 +102,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
     def get_sampler(
         self,
         device_config_name: str | None = None,
-        device_version: processor_config.DeviceConfigRevision | None = None,
+        device_config_revision: processor_config.DeviceConfigRevision | None = None,
         max_concurrent_jobs: int = 100,
     ) -> cg.engine.ProcessorSampler:
         """Returns the default sampler backed by the engine.
@@ -111,7 +111,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
-            device_version: Specifies either the snapshot_id or the run_name.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
             max_concurrent_jobs: The maximum number of jobs to be sent
                 simultaneously to the Engine. This client-side throttle can be
                 used to proactively reduce load to the backends and avoid quota
@@ -131,17 +131,17 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             else processor.default_device_config_key.config_alias
         )
 
-        if isinstance(device_version, processor_config.Snapshot):
+        if isinstance(device_config_revision, processor_config.Snapshot):
             return processor_sampler.ProcessorSampler(
                 processor=self,
-                snapshot_id=device_version.id,
+                snapshot_id=device_config_revision.id,
                 device_config_name=device_config_name,
                 max_concurrent_jobs=max_concurrent_jobs,
             )
-        if isinstance(device_version, processor_config.Run):
+        if isinstance(device_config_revision, processor_config.Run):
             return processor_sampler.ProcessorSampler(
                 processor=self,
-                run_name=device_version.id,
+                run_name=device_config_revision.id,
                 device_config_name=device_config_name,
                 max_concurrent_jobs=max_concurrent_jobs,
             )
@@ -506,7 +506,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
 
     def get_config(
         self,
-        device_version: processor_config.DeviceConfigRevision | None = None,
+        device_config_revision: processor_config.DeviceConfigRevision | None = None,
         config_name: str = '',
     ) -> processor_config.ProcessorConfig | None:
         """Retrieves a ProcessorConfig from an automation run.
@@ -516,7 +516,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
 
         Args:
             processor_id: The processor unique identifier.
-            device_version: Specifies either the snapshot_id or the run_name.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
             config_name: The quantum processor's unique identifier.
             run_name: The automation run name.  Use 'default'
                       if none id provided.
@@ -526,8 +526,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         default_device_key = self._inner_processor().default_device_config_key
         return self.engine().get_processor_config(
             processor_id=self.processor_id,
-            device_version=(
-                device_version if device_version else processor_config.Run(default_device_key.run)
+            device_config_revision=(
+                device_config_revision if device_config_revision else processor_config.Run(default_device_key.run)
             ),
             config_name=config_name if config_name else default_device_key.config_alias,
         )

@@ -1768,7 +1768,7 @@ def test_get_quantum_processor_config_from_snapshot(client_constructor, default_
             project_id=project_id,
             processor_id=processor_id,
             config_name=config_name,
-            device_version=snapshot,
+            device_config_revision=snapshot,
         )
         == expected_result
     )
@@ -1814,7 +1814,7 @@ def test_get_quantum_processor_config_from_run(client_constructor, default_engin
             project_id=project_id,
             processor_id=processor_id,
             config_name=config_name,
-            device_version=run,
+            device_config_revision=run,
         )
         == expected_result
     )

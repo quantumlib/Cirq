@@ -298,7 +298,7 @@ def test_engine_get_sampler_with_snapshot_id_passes_to_unary_rpc(client):
         context=EngineContext(service_args={'client_info': 1}, enable_streaming=False),
     )
     snapshot_id = Snapshot(id="123")
-    sampler = engine.get_sampler('mysim', device_config_name="config", device_version=snapshot_id)
+    sampler = engine.get_sampler('mysim', device_config_name="config", device_config_revision=snapshot_id)
     _ = sampler.run_sweep(_CIRCUIT, params=[cirq.ParamResolver({'a': 1})])
 
     kwargs = client().create_job_async.call_args_list[0].kwargs
@@ -824,10 +824,10 @@ def test_get_sampler_from_run_name():
     processor = engine.get_processor(processor_id=processor_id)
 
     processor_sampler = processor.get_sampler(
-        device_version=run, device_config_name=device_config_name
+        device_config_revision=run, device_config_name=device_config_name
     )
     engine_sampler = engine.get_sampler(
-        processor_id=processor_id, device_version=run, device_config_name=device_config_name
+        processor_id=processor_id, device_config_revision=run, device_config_name=device_config_name
     )
 
     assert processor_sampler.run_name == engine_sampler.run_name
@@ -843,10 +843,10 @@ def test_get_sampler_from_snapshot():
     processor = engine.get_processor(processor_id=processor_id)
 
     processor_sampler = processor.get_sampler(
-        device_version=snapshot_id, device_config_name=device_config_name
+        device_config_revision=snapshot_id, device_config_name=device_config_name
     )
     engine_sampler = engine.get_sampler(
-        processor_id=processor_id, device_config_name=device_config_name, device_version=snapshot_id
+        processor_id=processor_id, device_config_name=device_config_name, device_config_revision=snapshot_id
     )
 
     assert processor_sampler.snapshot_id == engine_sampler.snapshot_id
@@ -971,13 +971,13 @@ def test_get_processor_config_from_snapshot(get_quantum_config_async):
     get_quantum_config_async.return_value = quantum_confg
 
     result = cg.Engine(project_id=project_id).get_processor_config(
-        processor_id=processor_id, device_version=snapshot, config_name=config_name
+        processor_id=processor_id, device_config_revision=snapshot, config_name=config_name
     )
 
     get_quantum_config_async.assert_called_with(
         project_id=project_id,
         processor_id=processor_id,
-        device_version=snapshot,
+        device_config_revision=snapshot,
         config_name=config_name,
     )
     assert result.processor_id == processor_id
@@ -1004,13 +1004,13 @@ def test_get_processor_config_from_run(get_quantum_config_async):
     get_quantum_config_async.return_value = quantum_confg
 
     result = cg.Engine(project_id=project_id).get_processor_config(
-        processor_id=processor_id, device_version=run, config_name=config_name
+        processor_id=processor_id, device_config_revision=run, config_name=config_name
     )
 
     get_quantum_config_async.assert_called_with(
         project_id=project_id,
         processor_id=processor_id,
-        device_version=run,
+        device_config_revision=run,
         config_name=config_name,
     )
     assert result.processor_id == processor_id
