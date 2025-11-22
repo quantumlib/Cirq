@@ -24,7 +24,7 @@ import cirq
 import cirq.experiments.ghz_2d as ghz_2d
 
 
-def _create_moch_graph():
+def _create_mock_graph():
     qubits = cirq.GridQubit.rect(6, 6)
     g = nx.Graph()
     for q in qubits:
@@ -36,7 +36,7 @@ def _create_moch_graph():
     return g, cirq.GridQubit(3, 3)
 
 
-graph, center_qubit = _create_moch_graph()
+graph, center_qubit = _create_mock_graph()
 
 
 @pytest.mark.parametrize("num_qubits", list(range(1, len(graph.nodes) + 1)))
