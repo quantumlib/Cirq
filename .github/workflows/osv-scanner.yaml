@@ -62,7 +62,7 @@ jobs:
       SHELLOPTS: ${{inputs.debug && 'xtrace' || '' }}
     steps:
       - name: Check out a copy of the git repository
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
         with:
           fetch-depth: 0
 
@@ -73,7 +73,7 @@ jobs:
 
       - name: Run OSV scanner on existing code
         # yamllint disable rule:line-length
-        uses: google/osv-scanner-action/osv-scanner-action@9bb69575e74019c2ad085a1860787043adf47ccb # v2.2.4
+        uses: google/osv-scanner-action/osv-scanner-action@b77c075a1235514558f0eb88dbd31e22c45e0cd2 # v2.3.0
         continue-on-error: true
         with:
           scan-args: |-
@@ -91,7 +91,7 @@ jobs:
 
       - name: Run OSV scanner on new code
         # yamllint disable rule:line-length
-        uses: google/osv-scanner-action/osv-scanner-action@9bb69575e74019c2ad085a1860787043adf47ccb # v2.2.4
+        uses: google/osv-scanner-action/osv-scanner-action@b77c075a1235514558f0eb88dbd31e22c45e0cd2 # v2.3.0
         continue-on-error: true
         with:
           scan-args: |-
@@ -103,7 +103,7 @@ jobs:
 
       - name: Run the OSV scanner reporter for the job summary page
         # yamllint disable rule:line-length
-        uses: google/osv-scanner-action/osv-reporter-action@9bb69575e74019c2ad085a1860787043adf47ccb # v2.2.4
+        uses: google/osv-scanner-action/osv-reporter-action@b77c075a1235514558f0eb88dbd31e22c45e0cd2 # v2.3.0
         with:
           scan-args: |-
             --output=markdown:output.md
@@ -116,7 +116,7 @@ jobs:
 
       - name: Run the OSV scanner reporter for the code-scanning dashboard
         # yamllint disable rule:line-length
-        uses: google/osv-scanner-action/osv-reporter-action@9bb69575e74019c2ad085a1860787043adf47ccb # v2.2.4
+        uses: google/osv-scanner-action/osv-reporter-action@b77c075a1235514558f0eb88dbd31e22c45e0cd2 # v2.3.0
         with:
           scan-args: |-
             --output=osv-results.sarif
@@ -128,7 +128,7 @@ jobs:
       - name: Upload results to the code-scanning results dashboard
         id: upload_artifact
         # yamllint disable rule:line-length
-        uses: github/codeql-action/upload-sarif@0499de31b99561a6d14a36a5f662c2a54f91beee # v3.29.5
+        uses: github/codeql-action/upload-sarif@ba454b8ab46733eb6145342877cd148270bb77ab # codeql-bundle-v2.23.5
         with:
           sarif_file: osv-results.sarif
 
