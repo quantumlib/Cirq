@@ -91,11 +91,8 @@ class Sampler(cirq.Sampler):
             repetitions: The number of times to sample.
 
         Returns:
-            A list of `cirq.Result` objects, one per parameter resolver in
-            `params`, converted from IonQ results.
-
-        Notes:
-            This method blocks until all jobs in the sweep complete.
+            Either a list of `cirq_ionq.QPUResult` or a list of `cirq_ionq.SimulatorResult`
+            depending on whether the job was running on an actual quantum processor or a simulator.
         """
         resolvers = [r for r in cirq.to_resolvers(params)]
         jobs = [
@@ -106,16 +103,11 @@ class Sampler(cirq.Sampler):
             )
             for resolver in resolvers
         ]
-        # collect results
         if self._timeout_seconds is not None:
-            raw_results = [j.results(timeout_seconds=self._timeout_seconds) for j in jobs]
+            job_results = [job.results(timeout_seconds=self._timeout_seconds) for job in jobs]
         else:
-            raw_results = [j.results() for j in jobs]
-
-        # each element of `raw_results` might be a single result or a list
-        flattened_job_results: list[results.QPUResult | results.SimulatorResult] = []
-        for r in raw_results:
-            flattened_job_results.extend(r if isinstance(r, list) else [r])
+            job_results = [job.results() for job in jobs]
+        flattened_job_results = list(itertools.chain.from_iterable(job_results))
         cirq_results = []
         for result, params in zip(flattened_job_results, resolvers):
             if isinstance(result, results.QPUResult):
