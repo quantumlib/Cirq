@@ -24,8 +24,8 @@ import pandas as pd
 import pytest
 import sympy
 
-import cirq
 import cirq_ionq as ionq
+import cirq
 
 
 @pytest.mark.parametrize(
@@ -371,3 +371,57 @@ def test_run_batch_preserves_order(target):
     # Smoke-test on the mocked client usage.
     client.create_job.assert_called_once()
     client.get_results.assert_called_once()
+
+
+def test_service_run_seed():
+    """Test create_job in another way, for more complete coverage."""
+    # Set up a real Service object (we'll monkey-patch its create_job).
+    service = ionq.Service(remote_host="http://example.com", api_key="key")
+
+    # Setup the job to return a SimulatorResult.
+    mock_job = mock.MagicMock()
+    mock_simulator_result = mock.MagicMock(spec=ionq.SimulatorResult)
+    mock_job.results.return_value = mock_simulator_result
+
+    # We need to mock create_job on the service because service.run calls self.create_job.
+    with mock.patch.object(service, 'create_job', return_value=mock_job):
+        circuit = cirq.Circuit(cirq.X(cirq.LineQubit(0)))
+        service.run(circuit, repetitions=1, target='simulator', seed=123)
+
+        mock_simulator_result.to_cirq_result.assert_called_once()
+        kwargs = mock_simulator_result.to_cirq_result.call_args[1]
+        assert kwargs['seed'] == 123
+
+
+def test_service_run_returns_list_defensive():
+    """Cover the case where job.results() returns a list for a single run."""
+    service = ionq.Service(remote_host="http://example.com", api_key="key")
+    mock_job = mock.MagicMock()
+    # Return a list containing one QPUResult
+    qpu_result = ionq.QPUResult(counts={1: 1}, num_qubits=1, measurement_dict={"m": [0]})
+    mock_job.results.return_value = [qpu_result]
+
+    with mock.patch.object(service, 'create_job', return_value=mock_job):
+        circuit = cirq.Circuit(cirq.X(cirq.LineQubit(0)))
+        # This should handle the list and extract the first element
+        result = service.run(circuit, repetitions=1, target='qpu')
+
+    assert result == qpu_result.to_cirq_result(params=cirq.ParamResolver({}))
+
+
+def test_service_run_batch_returns_single_defensive():
+    """Cover the case where job.results() returns a single item for a batch run."""
+    service = ionq.Service(remote_host="http://example.com", api_key="key")
+    mock_job = mock.MagicMock()
+    # Return a single QPUResult (not a list)
+    qpu_result = ionq.QPUResult(counts={1: 1}, num_qubits=1, measurement_dict={"m": [0]})
+    mock_job.results.return_value = qpu_result
+
+    with mock.patch.object(service, 'create_batch_job', return_value=mock_job):
+        circuit = cirq.Circuit(cirq.X(cirq.LineQubit(0)))
+        # run_batch expects a list of circuits
+        results = service.run_batch([circuit], repetitions=1, target='qpu')
+
+    # Should wrap the single result in a list
+    assert len(results) == 1
+    assert results[0] == qpu_result.to_cirq_result(params=cirq.ParamResolver({}))
