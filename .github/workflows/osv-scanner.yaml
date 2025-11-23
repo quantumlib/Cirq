@@ -1,0 +1,145 @@
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: OSV scan
+run-name: Run open-source vulnerabilities (OSV) scanner
+
+# The OSV scanner is a dependency vulnerability scanner that identifies known
+# vulnerabilities in a project's dependencies. It supports C/C++, Python, Java,
+# JavaScript, and others. The findings are reported in the repo's code-scanning
+# results page, https://github.com/quantumlib/REPO/security/code-scanning/.
+# For more OSV scanner examples and options, including how to ignore specific
+# vulnerabilities, see https://google.github.io/osv-scanner/github-action/.
+
+on:
+  schedule:
+    # Run weekly on Saturdays.
+    - cron: '30 10 * * 6'
+
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - main
+
+  # Allow manual invocation.
+  workflow_dispatch:
+    inputs:
+      debug:
+        description: 'Run with debugging options'
+        type: boolean
+        default: true
+
+concurrency:
+  # Cancel any previously-started but still active runs on the same branch.
+  cancel-in-progress: true
+  group: ${{github.workflow}}-${{github.event.pull_request.number||github.ref}}
+
+# Declare default workflow permissions as read only.
+permissions: read-all
+
+jobs:
+  osv-scan:
+    if: github.repository_owner == 'quantumlib'
+    name: OSV scanner
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      # Needed to upload the results to code-scanning dashboard:
+      security-events: write
+    env:
+      # Setting Bash SHELLOPTS here takes effect for all shell commands below.
+      SHELLOPTS: ${{inputs.debug && 'xtrace' || '' }}
+    steps:
+      - name: Check out a copy of the git repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Check out the target branch
+        run: |
+          git checkout ${{github.base_ref || github.ref_name}}
+          git submodule update --recursive
+
+      - name: Run OSV scanner on existing code
+        # yamllint disable rule:line-length
+        uses: google/osv-scanner-action/osv-scanner-action@9bb69575e74019c2ad085a1860787043adf47ccb # v2.2.4
+        continue-on-error: true
+        with:
+          scan-args: |-
+            --include-git-root
+            --format=json
+            --output=old-results.json
+            --recursive
+            ./
+
+      - name: Check out current branch
+        # Use -f in case any changes were made by osv-scanner.
+        run: |
+          git checkout -f "$GITHUB_SHA"
+          git submodule update --recursive
+
+      - name: Run OSV scanner on new code
+        # yamllint disable rule:line-length
+        uses: google/osv-scanner-action/osv-scanner-action@9bb69575e74019c2ad085a1860787043adf47ccb # v2.2.4
+        continue-on-error: true
+        with:
+          scan-args: |-
+            --include-git-root
+            --format=json
+            --output=new-results.json
+            --recursive
+            ./
+
+      - name: Run the OSV scanner reporter for the job summary page
+        # yamllint disable rule:line-length
+        uses: google/osv-scanner-action/osv-reporter-action@9bb69575e74019c2ad085a1860787043adf47ccb # v2.2.4
+        with:
+          scan-args: |-
+            --output=markdown:output.md
+            --old=old-results.json
+            --new=new-results.json
+            --fail-on-vuln=false
+
+      - name: Write the results to the job summary page
+        run: cat output.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Run the OSV scanner reporter for the code-scanning dashboard
+        # yamllint disable rule:line-length
+        uses: google/osv-scanner-action/osv-reporter-action@9bb69575e74019c2ad085a1860787043adf47ccb # v2.2.4
+        with:
+          scan-args: |-
+            --output=osv-results.sarif
+            --old=old-results.json
+            --new=new-results.json
+            --gh-annotations=true
+            --fail-on-vuln=true
+
+      - name: Upload results to the code-scanning results dashboard
+        id: upload_artifact
+        # yamllint disable rule:line-length
+        uses: github/codeql-action/upload-sarif@0499de31b99561a6d14a36a5f662c2a54f91beee # v3.29.5
+        with:
+          sarif_file: osv-results.sarif
+
+      - if: github.event.inputs.debug == true
+        name: Upload results as artifacts to the workflow Summary page
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: SARIF file
+          path: osv-results.sarif
+          retention-days: 5
+
+      - name: Print an alert message if an error occurred
+        if: ${{always() && steps.upload_artifact.outcome == 'failure'}}
+        run: echo '::error::Artifact upload failed. Check the workflow logs.'
