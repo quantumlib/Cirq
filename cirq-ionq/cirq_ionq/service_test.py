@@ -24,8 +24,8 @@ import pandas as pd
 import pytest
 import sympy
 
-import cirq_ionq as ionq
 import cirq
+import cirq_ionq as ionq
 
 
 @pytest.mark.parametrize(

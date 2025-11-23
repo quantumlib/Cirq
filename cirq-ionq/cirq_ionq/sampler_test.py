@@ -181,9 +181,7 @@ def test_sampler_run_sweep_batched_job_results():
 
         # We pass 1 resolver, but job returns 2 results (list).
         # This triggers `flattened_job_results.extend(res)`.
-        results = sampler.run_sweep(
-            program=circuit, params=[cirq.ParamResolver({})], repetitions=4
-        )
+        results = sampler.run_sweep(program=circuit, params=[cirq.ParamResolver({})], repetitions=4)
 
         # Even though we got 2 results from the job, we only have 1 resolver,
         # so zip() truncates to 1 result.
