@@ -18,8 +18,9 @@ import abc
 import fractions
 import math
 import numbers
+from collections.abc import Iterable, Set
 from types import NotImplementedType
-from typing import AbstractSet, Any, cast, Iterable, NamedTuple, TYPE_CHECKING
+from typing import Any, cast, NamedTuple, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -341,7 +342,7 @@ class EigenGate(raw_types.Gate):
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._exponent)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self._exponent)
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> EigenGate:

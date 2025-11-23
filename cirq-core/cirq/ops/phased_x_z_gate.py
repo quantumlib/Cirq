@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import numbers
-from typing import AbstractSet, Any, Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Iterator, Sequence, Set
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -140,6 +141,10 @@ class PhasedXZGate(raw_types.Gate):
         return self._axis_phase_exponent
 
     def _value_equality_values_(self):
+        if self._is_parameterized_():
+            # If this is parameterized, do not try to calculate the canonical exponents
+            # as this results in some slow sympy operations.
+            return (self._x_exponent, self._z_exponent, self._axis_phase_exponent)
         c = self._canonical()
         return (
             value.PeriodicValue(c._x_exponent, 2),
@@ -216,7 +221,7 @@ class PhasedXZGate(raw_types.Gate):
             or protocols.is_parameterized(self._axis_phase_exponent)
         )
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         """See `cirq.SupportsParameterization`."""
         return (
             protocols.parameter_names(self._x_exponent)

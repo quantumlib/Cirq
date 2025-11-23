@@ -15,9 +15,10 @@
 from __future__ import annotations
 
 import numbers
+from collections.abc import Iterable
 from decimal import Decimal
 from fractions import Fraction
-from typing import Any, Iterable, Protocol
+from typing import Any, Protocol
 
 import numpy as np
 import sympy

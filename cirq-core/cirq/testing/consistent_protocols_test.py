@@ -14,8 +14,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence, Set
 from types import NotImplementedType
-from typing import AbstractSet, Sequence
 
 import numpy as np
 import pytest
@@ -100,7 +100,7 @@ class GoodGate(cirq.testing.SingleQubitGate):
     def _is_parameterized_(self) -> bool:
         return cirq.is_parameterized(self.exponent) or cirq.is_parameterized(self.phase_exponent)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return cirq.parameter_names(self.exponent) | cirq.parameter_names(self.phase_exponent)
 
     def _resolve_parameters_(self, resolver, recursive) -> GoodGate:
@@ -124,7 +124,7 @@ class BadGateIsParameterized(GoodGate):
 
 
 class BadGateParameterNames(GoodGate):
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return super()._parameter_names_() | {'not_a_param'}
 
 

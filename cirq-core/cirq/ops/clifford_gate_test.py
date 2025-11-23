@@ -48,8 +48,7 @@ def _assert_no_collision(gate) -> None:
 
 
 def _all_rotations():
-    for pauli, flip in itertools.product(_paulis, _bools):
-        yield (pauli, flip)
+    yield from itertools.product(_paulis, _bools)
 
 
 def _all_rotation_pairs():

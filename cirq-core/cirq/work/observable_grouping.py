@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Callable, cast, Iterable
+from collections.abc import Callable, Iterable
+from typing import cast
 
 from cirq import ops, value
 from cirq.work.observable_settings import _max_weight_observable, _max_weight_state, InitObsSetting

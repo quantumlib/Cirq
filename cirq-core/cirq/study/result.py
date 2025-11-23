@@ -19,7 +19,8 @@ from __future__ import annotations
 import abc
 import collections
 import io
-from typing import Any, Callable, cast, Iterable, Mapping, Sequence, TYPE_CHECKING, TypeVar, Union
+from collections.abc import Callable, Iterable, Mapping, Sequence
+from typing import Any, cast, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
 import pandas as pd

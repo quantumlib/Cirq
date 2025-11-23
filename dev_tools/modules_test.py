@@ -20,9 +20,9 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from collections.abc import Iterator
 from io import StringIO
 from pathlib import Path
-from typing import Iterator
 from unittest import mock
 
 import pytest
