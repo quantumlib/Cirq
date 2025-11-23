@@ -285,7 +285,7 @@ class XPowGate(eigen_gate.EigenGate):
     def _has_stabilizer_effect_(self) -> bool | None:
         if self._is_parameterized_() or self._dimension != 2:
             return None
-        return self.exponent % 0.5 == 0
+        return abs(self.exponent % 0.5) < 1e-8
 
     def __str__(self) -> str:
         if self._global_shift == 0:
@@ -480,7 +480,7 @@ class YPowGate(eigen_gate.EigenGate):
     def _has_stabilizer_effect_(self) -> bool | None:
         if self._is_parameterized_():
             return None
-        return self.exponent % 0.5 == 0
+        return abs(self.exponent % 0.5) < 1e-8
 
     def __str__(self) -> str:
         if self._global_shift == 0:
@@ -760,7 +760,7 @@ class ZPowGate(eigen_gate.EigenGate):
     def _has_stabilizer_effect_(self) -> bool | None:
         if self._is_parameterized_() or self._dimension != 2:
             return None
-        return self.exponent % 0.5 == 0
+        return abs(self.exponent % 0.5) < 1e-8
 
     def _circuit_diagram_info_(
         self, args: cirq.CircuitDiagramInfoArgs
