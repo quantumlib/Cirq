@@ -161,9 +161,7 @@ class Service:
         if isinstance(result, results.QPUResult):
             return result.to_cirq_result(params=cirq.ParamResolver(param_resolver))
         if isinstance(result, results.SimulatorResult):
-            return result.to_cirq_result(
-                params=cirq.ParamResolver(param_resolver), seed=seed
-            )
+            return result.to_cirq_result(params=cirq.ParamResolver(param_resolver), seed=seed)
         raise NotImplementedError(f"Unrecognized job result type '{type(result)}'.")
 
     def run_batch(
