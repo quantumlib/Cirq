@@ -115,22 +115,25 @@ return data from the IonQ API. They are of types `ionq.QPUResult` or
 `ionq.SimulatorResult`. If you wish to convert these into the
 `cirq.Result` format, you can use `to_cirq_result` on both of these.
 
-**Note - result shape of `Job.results()`:** For jobs created from a **single circuit**,  
-`job.results()` returns a **single** `ionq.QPUResult` or `ionq.SimulatorResult`.  
-For **batch** jobs, it returns a **list** of those results. To write code that
-works with either shape:
+Another useful feature of working with jobs directly is that you can
+directly cancel or delete jobs. In particular, the `ionq.Job` object
+returned by `create_job` has `cancel` and `delete` methods.
+
+### Format of values returned by `Job.results()`
+
+In contrast to `Service.run(...)`, which always returns a single `cirq.Result`,
+the value returned by `Job.results()` depends on the type of input. For jobs
+created from a _single circuit_, `job.results()` returns a **single**
+`ionq.QPUResult` or `ionq.SimulatorResult`; for _batch_ jobs, it returns a
+**list** of those results. An example of how you can write code that works with
+beither shape is this approach:
 
 ```python
 r = job.results()
 results_list = r if isinstance(r, list) else [r]
 ```
 
-Each entry can be converted to a `cirq.Result` via `.to_cirq_result(...)`.
-(`Service.run(...)` continues to return a single `cirq.Result`.)
-
-Another useful feature of working with jobs directly is that you can
-directly cancel or delete jobs. In particular, the `ionq.Job` object
-returned by `create_job` has `cancel` and `delete` methods.
+Each entry can then be converted to a `cirq.Result` via `.to_cirq_result(...)`.
 
 ## Next steps
 
