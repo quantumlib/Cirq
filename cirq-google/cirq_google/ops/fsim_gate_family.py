@@ -16,7 +16,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, cast, Iterable, Sequence, TypeVar
+from collections.abc import Callable, Iterable, Sequence
+from typing import Any, cast, TypeVar
 
 import numpy as np
 import sympy

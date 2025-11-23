@@ -18,9 +18,10 @@ from __future__ import annotations
 
 import functools
 import itertools
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Any, cast, Mapping, Sequence, TYPE_CHECKING
+from typing import Any, cast, TYPE_CHECKING
 
 import networkx as nx
 import numpy as np

@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Iterator, Sequence
+from typing import TYPE_CHECKING
 
 from cirq import devices
 from cirq.contrib import circuitdag

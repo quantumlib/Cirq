@@ -31,7 +31,6 @@ from cirq.transformers.analytical_decompositions.quantum_shannon_decomposition i
 )
 
 
-@pytest.mark.xfail(reason='#6765')
 @pytest.mark.parametrize('n_qubits', list(range(1, 8)))
 def test_random_qsd_n_qubit(n_qubits) -> None:
     U = unitary_group.rvs(2**n_qubits)
@@ -211,7 +210,6 @@ def test_three_qubit_gate(gate) -> None:
     np.testing.assert_allclose(new_unitary, desired_unitary, atol=1e-6)
 
 
-@pytest.mark.xfail(reason='#6765')
 def test_qft5() -> None:
     global_phase = np.exp(1j * np.random.choice(np.linspace(0, 2 * np.pi, 10)))
     desired_unitary = cirq.unitary(cirq.qft(*cirq.LineQubit.range(5))) * global_phase

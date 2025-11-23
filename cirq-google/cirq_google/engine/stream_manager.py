@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import asyncio
-from typing import AsyncIterator, TYPE_CHECKING
+from collections.abc import AsyncIterator
+from typing import TYPE_CHECKING
 
 import google.api_core.exceptions as google_exceptions
 

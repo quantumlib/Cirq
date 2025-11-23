@@ -16,8 +16,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from types import EllipsisType
-from typing import cast, Sequence
+from typing import cast
 
 import numpy as np
 

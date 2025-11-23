@@ -17,22 +17,10 @@
 from __future__ import annotations
 
 import itertools
+from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping, Sequence, Set
 from functools import cached_property
 from types import NotImplementedType
-from typing import (
-    AbstractSet,
-    Any,
-    Callable,
-    cast,
-    Hashable,
-    Iterable,
-    Iterator,
-    Mapping,
-    overload,
-    Self,
-    Sequence,
-    TYPE_CHECKING,
-)
+from typing import Any, cast, overload, Self, TYPE_CHECKING
 
 import numpy as np
 
@@ -307,7 +295,7 @@ class Moment:
         return any(protocols.is_parameterized(op) for op in self)
 
     @_compat.cached_method()
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return {name for op in self for name in protocols.parameter_names(op)}
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> cirq.Moment:

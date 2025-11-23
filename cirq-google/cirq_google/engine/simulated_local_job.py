@@ -18,7 +18,8 @@ and a provided sampler to execute circuits."""
 from __future__ import annotations
 
 import concurrent.futures
-from typing import cast, Sequence
+from collections.abc import Sequence
+from typing import cast
 
 import duet
 

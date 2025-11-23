@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterable, overload, TYPE_CHECKING, TypeVar
+from collections.abc import Iterable
+from typing import Any, overload, TYPE_CHECKING, TypeVar
 
 from cirq import ops
 

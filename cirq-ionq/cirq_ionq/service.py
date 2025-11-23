@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import datetime
 import os
-from typing import Sequence
+from collections.abc import Sequence
 
 import cirq
 from cirq_ionq import calibration, ionq_client, job, results, sampler, serializer

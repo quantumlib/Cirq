@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Generic, Iterator, Sequence
+from collections.abc import Iterator, Sequence
+from typing import Any, Generic
 from unittest import mock
 
 import duet

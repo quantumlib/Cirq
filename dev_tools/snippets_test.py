@@ -54,7 +54,9 @@ import inspect
 import os
 import pathlib
 import re
-from typing import Any, Iterator, Pattern
+from collections.abc import Iterator
+from re import Pattern
+from typing import Any
 
 import pytest
 
