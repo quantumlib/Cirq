@@ -555,11 +555,11 @@ def _import_deprecated_same_name_in_earlier_subtree():
 
 
 def _import_top_level_deprecated():
-    import time
+    import numpy.random
 
-    from cirq.testing._compat_test_data.fake_freezegun import api  # type: ignore
+    from cirq.testing._compat_test_data.fake_numpy import random  # type: ignore
 
-    assert api.real_time == time.time
+    assert random.normal is numpy.random.normal
 
 
 def _repeated_import_path():
@@ -612,9 +612,9 @@ _fake_ops_deprecation_msg = [
 
 
 # see cirq_compat_test_data/__init__.py for the setup code
-_fake_freezegun_deprecation_msg = [
-    f'{old_parent}.fake_freezegun was used but is deprecated',
-    'Use freezegun instead',
+_fake_numpy_deprecation_msg = [
+    f'{old_parent}.fake_numpy was used but is deprecated',
+    'Use numpy instead',
 ] + _deprecation_origin
 
 # see cirq_compat_test_data/__init__.py for the setup code
@@ -687,7 +687,7 @@ def run_in_subprocess(test_func, *args):
         (_import_parent_use_constant_from_deprecated_module_attribute, [_fake_a_deprecation_msg]),
         (_import_deprecated_sub_use_constant, [_fake_a_deprecation_msg]),
         (_import_deprecated_same_name_in_earlier_subtree, [_fake_a_deprecation_msg]),
-        (_import_top_level_deprecated, [_fake_freezegun_deprecation_msg]),
+        (_import_top_level_deprecated, [_fake_numpy_deprecation_msg]),
         (_from_deprecated_import_sub_of_sub, [_fake_a_deprecation_msg]),
         (_repeated_import_path, [_repeated_child_deprecation_msg]),
         (_type_repr_in_deprecated_module, [_fake_a_deprecation_msg]),
@@ -856,13 +856,13 @@ def test_new_module_is_top_level():
 
 
 def _test_new_module_is_top_level_inner():
+    from numpy.random import normal
+
     # sets up the DeprecationFinders
-    import time
+    import cirq.testing._compat_test_data  # noqa: F401
 
-    # imports a top level module that was also deprecated
-    from freezegun import api
-
-    assert api.real_time == time.time
+    # imports a top level new module replacing deprecated module
+    assert normal is importlib.import_module('numpy').random.normal
 
 
 def test_import_deprecated_with_no_attribute():
