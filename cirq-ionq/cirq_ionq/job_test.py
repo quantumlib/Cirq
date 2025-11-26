@@ -15,9 +15,10 @@
 from __future__ import annotations
 
 import json
-import pytest
 import warnings
 from unittest import mock
+
+import pytest
 
 import cirq_ionq as ionq
 
