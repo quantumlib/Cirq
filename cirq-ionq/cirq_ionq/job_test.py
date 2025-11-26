@@ -15,11 +15,9 @@
 from __future__ import annotations
 
 import json
+import pytest
 import warnings
 from unittest import mock
-
-from numpy import array
-import pytest
 
 import cirq_ionq as ionq
 
@@ -503,7 +501,7 @@ def test_shotwise_job_results_noisy_simulator():
     assert cirq_result.measurements["results"].tolist() == [[0, 1], [1, 0], [1, 1], [1, 0], [0, 0]]
 
 
-def test_job_results_qpu():
+def test_shotwise_job_results_qpu():
     mock_client = mock.MagicMock()
     mock_client.get_results.return_value = {'0': '0.6', '3': '0.4'}
     mock_client.get_shots.return_value = [2, 1, 3, 1, 0]
