@@ -747,7 +747,7 @@ def test_metadata_search_path():
     run_in_subprocess(_test_metadata_search_path_inner)
 
 
-def _test_metadata_search_path_inner():  # pragma: no cover
+def _test_metadata_search_path_inner():
     # initialize the DeprecatedModuleFinders
     assert importlib.metadata.metadata('numpy')
 
