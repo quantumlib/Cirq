@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Hashable, Iterable, Iterator, Sequence, Set
+from collections.abc import Hashable, Iterable, Iterator, Sequence
 from functools import cached_property
 from types import NotImplementedType
 from typing import TYPE_CHECKING
@@ -173,7 +173,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return super()._is_parameterized_()
 
     @_compat.cached_method
-    def _parameter_names_(self) -> Set[str]:
+    def _parameter_names_(self) -> frozenset[str]:
         return super()._parameter_names_()
 
     def _measurement_key_names_(self) -> frozenset[str]:
