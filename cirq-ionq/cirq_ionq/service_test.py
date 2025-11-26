@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import datetime
+import json
 import os
 from unittest import mock
 
@@ -79,10 +80,10 @@ def test_service_run_batch(target, expected_results1, expected_results2):
         'backend': target,
         'metadata': {
             'shots': '4',
-            'measurements': (
-                "[{\"measurement0\": \"a\\u001f0\"}, {\"measurement0\": \"b\\u001f0\"}]"
+            'measurements': json.dumps(
+                [{"measurement0": f"a{chr(31)}0"}, {"measurement0": f"b{chr(31)}0"}]
             ),
-            'qubit_numbers': '[1, 1]',
+            'qubit_numbers': json.dumps([1, 1]),
         },
         'stats': {'qubits': '1'},
     }
@@ -114,8 +115,10 @@ def test_service_run_batch(target, expected_results1, expected_results2):
     # Serialization induces a float, so we don't validate full circuit.
     assert create_job_kwargs['serialized_program'].input['qubits'] == 1
     assert create_job_kwargs['serialized_program'].metadata == {
-        'measurements': "[{\"measurement0\": \"a\\u001f0\"}, {\"measurement0\": \"b\\u001f0\"}]",
-        'qubit_numbers': '[1, 1]',
+        'measurements': json.dumps(
+            [{"measurement0": f"a{chr(31)}0"}, {"measurement0": f"b{chr(31)}0"}]
+        ),
+        'qubit_numbers': json.dumps([1, 1]),
     }
     assert create_job_kwargs['repetitions'] == 4
     assert create_job_kwargs['target'] == target
