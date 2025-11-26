@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Iterator, TYPE_CHECKING
+from collections.abc import Iterator
+from typing import TYPE_CHECKING
 
 from cirq.interop.quirk.cells.arithmetic_cells import generate_all_arithmetic_cell_makers
 from cirq.interop.quirk.cells.control_cells import generate_all_control_cell_makers

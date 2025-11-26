@@ -18,8 +18,9 @@ from __future__ import annotations
 
 import datetime
 from collections import abc, defaultdict
+from collections.abc import Iterator, Sequence
 from itertools import cycle
-from typing import Any, cast, Iterator, Sequence
+from typing import Any, cast
 
 import google.protobuf.json_format as json_format
 import matplotlib as mpl

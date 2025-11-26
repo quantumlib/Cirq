@@ -15,8 +15,8 @@
 
 import numbers
 import random
-from collections.abc import Mapping
-from typing import Any, cast, Iterator
+from collections.abc import Iterator, Mapping
+from typing import Any, cast
 
 import cirq
 from cirq.study.sweeps import SingleSweep

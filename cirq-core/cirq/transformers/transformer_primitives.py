@@ -21,7 +21,8 @@ import copy
 import dataclasses
 import itertools
 from collections import defaultdict
-from typing import Callable, cast, Hashable, Sequence, TYPE_CHECKING
+from collections.abc import Callable, Hashable, Sequence
+from typing import cast, TYPE_CHECKING
 
 from cirq import circuits, ops, protocols
 from cirq.circuits.circuit import CIRCUIT_TYPE

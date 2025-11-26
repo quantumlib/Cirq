@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import gzip
 import numbers
-from typing import Any, Callable, cast, Iterable, TYPE_CHECKING
+from collections.abc import Callable, Iterable
+from typing import Any, cast, TYPE_CHECKING
 
 import sympy
 import tunits

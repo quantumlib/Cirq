@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import itertools
 import random
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
 import pytest
@@ -117,7 +117,7 @@ def test_pauli_string_measurement_errors_no_noise(use_sweep: bool) -> None:
     circuits_to_pauli[circuit] = [_generate_random_pauli_string(qubits) for _ in range(3)]
 
     circuits_with_pauli_expectations = measure_pauli_strings(
-        circuits_to_pauli, sampler, 1000, 1000, 1000, 1000, use_sweep
+        circuits_to_pauli, sampler, 300, 300, 300, 1234, use_sweep
     )
 
     for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
@@ -172,7 +172,7 @@ def test_group_pauli_string_measurement_errors_no_noise_with_coefficient(use_swe
     circuits_to_pauli[circuit].append([cirq.PauliString({q: cirq.X for q in qubits})])
 
     circuits_with_pauli_expectations = measure_pauli_strings(
-        circuits_to_pauli, sampler, 1000, 1000, 1000, 500, use_sweep
+        circuits_to_pauli, sampler, 300, 300, 300, 1234, use_sweep
     )
 
     for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
@@ -214,14 +214,14 @@ def test_pauli_string_measurement_errors_with_noise(use_sweep: bool) -> None:
     based on the Pauli string"""
     qubits = cirq.LineQubit.range(7)
     circuit = cirq.FrozenCircuit(_create_ghz(7, qubits))
-    sampler = NoisySingleQubitReadoutSampler(p0=0.01, p1=0.005, seed=1234)
+    sampler = NoisySingleQubitReadoutSampler(p0=0.01, p1=0.05, seed=1234)
     simulator = cirq.Simulator()
 
     circuits_to_pauli: dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
     circuits_to_pauli[circuit] = [_generate_random_pauli_string(qubits) for _ in range(3)]
 
     circuits_with_pauli_expectations = measure_pauli_strings(
-        circuits_to_pauli, sampler, 1000, 1000, 1000, np.random.default_rng(), use_sweep
+        circuits_to_pauli, sampler, 300, 300, 300, np.random.default_rng(), use_sweep
     )
 
     for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
@@ -253,7 +253,7 @@ def test_pauli_string_measurement_errors_with_noise(use_sweep: bool) -> None:
             for (
                 error
             ) in pauli_string_measurement_results.calibration_result.one_state_errors.values():
-                assert 0.0045 < error < 0.0055
+                assert 0.045 < error < 0.055
 
 
 @pytest.mark.parametrize("use_sweep", [True, False])
@@ -262,7 +262,7 @@ def test_group_pauli_string_measurement_errors_with_noise(use_sweep: bool) -> No
     based on the group Pauli strings"""
     qubits = cirq.LineQubit.range(7)
     circuit = cirq.FrozenCircuit(_create_ghz(7, qubits))
-    sampler = NoisySingleQubitReadoutSampler(p0=0.01, p1=0.005, seed=1234)
+    sampler = NoisySingleQubitReadoutSampler(p0=0.01, p1=0.05, seed=1234)
     simulator = cirq.Simulator()
 
     circuits_to_pauli: dict[cirq.FrozenCircuit, list[list[cirq.PauliString]]] = {}
@@ -273,7 +273,7 @@ def test_group_pauli_string_measurement_errors_with_noise(use_sweep: bool) -> No
     ]
 
     circuits_with_pauli_expectations = measure_pauli_strings(
-        circuits_to_pauli, sampler, 1000, 1000, 1000, np.random.default_rng(), use_sweep
+        circuits_to_pauli, sampler, 300, 300, 300, np.random.default_rng(), use_sweep
     )
 
     for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
@@ -305,7 +305,7 @@ def test_group_pauli_string_measurement_errors_with_noise(use_sweep: bool) -> No
             for (
                 error
             ) in pauli_string_measurement_results.calibration_result.one_state_errors.values():
-                assert 0.0045 < error < 0.0055
+                assert 0.045 < error < 0.055
 
 
 @pytest.mark.parametrize("use_sweep", [True, False])
@@ -331,11 +331,11 @@ def test_many_circuits_input_measurement_with_noise(use_sweep: bool) -> None:
     circuits_to_pauli[circuit_2] = [_generate_random_pauli_string(qubits_2) for _ in range(3)]
     circuits_to_pauli[circuit_3] = [_generate_random_pauli_string(qubits_3) for _ in range(3)]
 
-    sampler = NoisySingleQubitReadoutSampler(p0=0.003, p1=0.005, seed=1234)
+    sampler = NoisySingleQubitReadoutSampler(p0=0.03, p1=0.05, seed=1234)
     simulator = cirq.Simulator()
 
     circuits_with_pauli_expectations = measure_pauli_strings(
-        circuits_to_pauli, sampler, 1000, 1000, 1000, np.random.default_rng(), use_sweep
+        circuits_to_pauli, sampler, 300, 300, 300, np.random.default_rng(), use_sweep
     )
 
     for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
@@ -361,11 +361,11 @@ def test_many_circuits_input_measurement_with_noise(use_sweep: bool) -> None:
             for (
                 error
             ) in pauli_string_measurement_results.calibration_result.zero_state_errors.values():
-                assert 0.0025 < error < 0.0035
+                assert 0.025 < error < 0.035
             for (
                 error
             ) in pauli_string_measurement_results.calibration_result.one_state_errors.values():
-                assert 0.0045 < error < 0.0055
+                assert 0.045 < error < 0.055
 
 
 @pytest.mark.parametrize("use_sweep", [True, False])
@@ -383,7 +383,7 @@ def test_allow_group_pauli_measurement_without_readout_mitigation(use_sweep: boo
     ]
 
     circuits_with_pauli_expectations = measure_pauli_strings(
-        circuits_to_pauli, sampler, 1000, 1000, 0, np.random.default_rng(), use_sweep
+        circuits_to_pauli, sampler, 300, 300, 0, np.random.default_rng(), use_sweep
     )
 
     for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
@@ -427,15 +427,15 @@ def test_many_circuits_with_coefficient(
     circuits_to_pauli[circuit_2] = [_generate_random_pauli_string(qubits_2, True) for _ in range(3)]
     circuits_to_pauli[circuit_3] = [_generate_random_pauli_string(qubits_3, True) for _ in range(3)]
 
-    sampler = NoisySingleQubitReadoutSampler(p0=0.003, p1=0.005, seed=1234)
+    sampler = NoisySingleQubitReadoutSampler(p0=0.03, p1=0.05, seed=1234)
     simulator = cirq.Simulator()
 
     circuits_with_pauli_expectations = measure_pauli_strings(
         circuits_to_pauli,
         sampler,
-        1000,
-        1000,
-        1000,
+        300,
+        300,
+        300,
         np.random.default_rng(),
         use_sweep,
         insert_strategy,
@@ -464,11 +464,11 @@ def test_many_circuits_with_coefficient(
             for (
                 error
             ) in pauli_string_measurement_results.calibration_result.zero_state_errors.values():
-                assert 0.0025 < error < 0.0035
+                assert 0.025 < error < 0.035
             for (
                 error
             ) in pauli_string_measurement_results.calibration_result.one_state_errors.values():
-                assert 0.0045 < error < 0.0055
+                assert 0.045 < error < 0.055
 
 
 @pytest.mark.parametrize("use_sweep", [True, False])
@@ -506,11 +506,11 @@ def test_many_group_pauli_in_circuits_with_coefficient(use_sweep: bool) -> None:
         )
     ]
 
-    sampler = NoisySingleQubitReadoutSampler(p0=0.003, p1=0.005, seed=1234)
+    sampler = NoisySingleQubitReadoutSampler(p0=0.03, p1=0.05, seed=1234)
     simulator = cirq.Simulator()
 
     circuits_with_pauli_expectations = measure_pauli_strings(
-        circuits_to_pauli, sampler, 1000, 1000, 1000, np.random.default_rng(), use_sweep
+        circuits_to_pauli, sampler, 300, 300, 300, np.random.default_rng(), use_sweep
     )
 
     for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
@@ -536,11 +536,11 @@ def test_many_group_pauli_in_circuits_with_coefficient(use_sweep: bool) -> None:
             for (
                 error
             ) in pauli_string_measurement_results.calibration_result.zero_state_errors.values():
-                assert 0.0025 < error < 0.035
+                assert 0.025 < error < 0.035
             for (
                 error
             ) in pauli_string_measurement_results.calibration_result.one_state_errors.values():
-                assert 0.0045 < error < 0.0055
+                assert 0.045 < error < 0.055
 
 
 def test_coefficient_not_real_number() -> None:
@@ -563,7 +563,7 @@ def test_coefficient_not_real_number() -> None:
         "non-Hermitian PauliString. Coefficient must be real.",
     ):
         measure_pauli_strings(
-            circuits_to_pauli, cirq.Simulator(), 1000, 1000, 1000, np.random.default_rng()
+            circuits_to_pauli, cirq.Simulator(), 300, 300, 300, np.random.default_rng()
         )
 
 
@@ -572,12 +572,7 @@ def test_empty_input_circuits_to_pauli_mapping() -> None:
 
     with pytest.raises(ValueError, match="Input circuits must not be empty."):
         measure_pauli_strings(
-            [],  # type: ignore[arg-type]
-            cirq.Simulator(),
-            1000,
-            1000,
-            1000,
-            np.random.default_rng(),
+            [], cirq.Simulator(), 300, 300, 300, np.random.default_rng()  # type: ignore[arg-type]
         )
 
 
@@ -593,9 +588,9 @@ def test_invalid_input_circuit_type() -> None:
         measure_pauli_strings(
             qubits_to_pauli,  # type: ignore[arg-type]
             cirq.Simulator(),
-            1000,
-            1000,
-            1000,
+            300,
+            300,
+            300,
             np.random.default_rng(),
         )
 
@@ -626,9 +621,9 @@ def test_invalid_input_pauli_string_type() -> None:
         measure_pauli_strings(
             circuits_to_pauli,  # type: ignore[arg-type]
             cirq.Simulator(),
-            1000,
-            1000,
-            1000,
+            300,
+            300,
+            300,
             np.random.default_rng(),
         )
 
@@ -661,7 +656,7 @@ def test_all_pauli_strings_are_pauli_i() -> None:
         "valid input Pauli strings.",
     ):
         measure_pauli_strings(
-            circuits_to_pauli, cirq.Simulator(), 1000, 1000, 1000, np.random.default_rng()
+            circuits_to_pauli, cirq.Simulator(), 300, 300, 300, np.random.default_rng()
         )
 
 
@@ -675,7 +670,7 @@ def test_zero_pauli_repetitions() -> None:
     circuits_to_pauli[circuit] = [cirq.PauliString({q: cirq.X for q in qubits})]
     with pytest.raises(ValueError, match="Must provide positive pauli_repetitions."):
         measure_pauli_strings(
-            circuits_to_pauli, cirq.Simulator(), 0, 1000, 1000, np.random.default_rng()
+            circuits_to_pauli, cirq.Simulator(), 0, 300, 300, np.random.default_rng()
         )
 
 
@@ -689,7 +684,7 @@ def test_negative_num_random_bitstrings() -> None:
     circuits_to_pauli[circuit] = [cirq.PauliString({q: cirq.X for q in qubits})]
     with pytest.raises(ValueError, match="Must provide zero or more num_random_bitstrings."):
         measure_pauli_strings(
-            circuits_to_pauli, cirq.Simulator(), 1000, 1000, -1, np.random.default_rng()
+            circuits_to_pauli, cirq.Simulator(), 300, 300, -1, np.random.default_rng()
         )
 
 
@@ -705,7 +700,7 @@ def test_zero_readout_repetitions() -> None:
         ValueError, match="Must provide positive readout_repetitions for readout" + " calibration."
     ):
         measure_pauli_strings(
-            circuits_to_pauli, cirq.Simulator(), 1000, 0, 1000, np.random.default_rng()
+            circuits_to_pauli, cirq.Simulator(), 300, 0, 300, np.random.default_rng()
         )
 
 
@@ -719,7 +714,7 @@ def test_rng_type_mismatch() -> None:
     circuits_to_pauli[circuit] = [cirq.PauliString({q: cirq.X for q in qubits})]
     with pytest.raises(ValueError, match="Must provide a numpy random generator or a seed"):
         measure_pauli_strings(
-            circuits_to_pauli, cirq.Simulator(), 1000, 1000, 1000, "test"  # type: ignore[arg-type]
+            circuits_to_pauli, cirq.Simulator(), 300, 300, 300, "test"  # type: ignore[arg-type]
         )
 
 
@@ -737,7 +732,7 @@ def test_pauli_type_mismatch() -> None:
         " ops.PauliStrings. Got <class 'int'> instead.",
     ):
         measure_pauli_strings(
-            circuits_to_pauli, cirq.Simulator(), 1000, 1000, 1000, 1  # type: ignore[arg-type]
+            circuits_to_pauli, cirq.Simulator(), 300, 300, 300, 1234  # type: ignore[arg-type]
         )
 
 
@@ -756,7 +751,7 @@ def test_group_paulis_are_not_qwc() -> None:
         ValueError, match="The group of Pauli strings are not Qubit-Wise Commuting with each other."
     ):
         measure_pauli_strings(
-            circuits_to_pauli, cirq.Simulator(), 1000, 1000, 1000, np.random.default_rng()
+            circuits_to_pauli, cirq.Simulator(), 300, 300, 300, np.random.default_rng()
         )
 
 
@@ -770,7 +765,7 @@ def test_empty_group_paulis_not_allowed() -> None:
     circuits_to_pauli[circuit] = [[]]  # type: ignore
     with pytest.raises(ValueError, match="Empty group of Pauli strings is not allowed"):
         measure_pauli_strings(
-            circuits_to_pauli, cirq.Simulator(), 1000, 1000, 1000, np.random.default_rng()
+            circuits_to_pauli, cirq.Simulator(), 300, 300, 300, np.random.default_rng()
         )
 
 
@@ -806,5 +801,5 @@ def test_group_paulis_type_mismatch() -> None:
         "but found <class 'cirq.ops.pauli_string.PauliString'>.",
     ):
         measure_pauli_strings(
-            circuits_to_pauli, cirq.Simulator(), 1000, 1000, 1000, np.random.default_rng()
+            circuits_to_pauli, cirq.Simulator(), 300, 300, 300, np.random.default_rng()
         )

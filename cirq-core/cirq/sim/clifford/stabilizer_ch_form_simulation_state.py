@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 from cirq._compat import proper_repr
 from cirq.sim.clifford import stabilizer_state_ch_form

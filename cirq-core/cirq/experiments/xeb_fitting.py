@@ -18,7 +18,8 @@ from __future__ import annotations
 
 import dataclasses
 from abc import ABC, abstractmethod
-from typing import Iterable, Sequence, TYPE_CHECKING
+from collections.abc import Iterable, Sequence
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd

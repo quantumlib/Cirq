@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import math
-from typing import Any, cast, Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Iterator, Sequence
+from typing import Any, cast, TYPE_CHECKING
 
 from sympy.combinatorics import GrayCode
 
@@ -70,7 +71,7 @@ def _generate_got_set_for_init_prob(qubit, init_prob):
         yield common_gates.ry(_prob_to_angle(init_prob)).on(qubit)
 
 
-@value.value_equality
+@value.value_equality(unhashable=True)
 class BayesianNetworkGate(raw_types.Gate):
     """A gate that represents a Bayesian network.
 

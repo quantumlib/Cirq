@@ -11,9 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from __future__ import annotations
 
-from typing import AbstractSet, Any, TYPE_CHECKING
+from collections.abc import Set
+from typing import Any, TYPE_CHECKING
 
 import cirq
 from cirq._compat import proper_repr
@@ -117,7 +119,7 @@ class CouplerPulse(cirq.ops.Gate):
             or cirq.is_parameterized(self.q1_detune_mhz)
         )
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return (
             cirq.parameter_names(self.hold_time)
             | cirq.parameter_names(self.coupling_mhz)

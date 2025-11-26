@@ -32,8 +32,9 @@ import glob
 import importlib.util
 import sys
 import warnings
+from collections.abc import Iterable, Sequence
 from types import ModuleType
-from typing import Any, Iterable, Sequence
+from typing import Any
 
 from dev_tools import shell_tools
 from dev_tools.output_capture import OutputCapture

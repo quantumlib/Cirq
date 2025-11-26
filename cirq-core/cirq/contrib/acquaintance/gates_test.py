@@ -14,10 +14,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from itertools import combinations, product
 from random import randint
 from string import ascii_lowercase as alphabet
-from typing import Sequence
 
 import numpy
 import pytest

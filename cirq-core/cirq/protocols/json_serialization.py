@@ -20,8 +20,9 @@ import gzip
 import json
 import numbers
 import pathlib
+from collections.abc import Callable, Iterable, Sequence
 from types import NotImplementedType
-from typing import Any, Callable, cast, IO, Iterable, overload, Protocol, Sequence
+from typing import Any, cast, IO, overload, Protocol
 
 import attrs
 import numpy as np

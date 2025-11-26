@@ -16,23 +16,18 @@
 
 from __future__ import annotations
 
-from typing import (
-    AbstractSet,
-    Any,
+from collections.abc import (
     Callable,
-    Generic,
     ItemsView,
     Iterable,
     Iterator,
     KeysView,
     Mapping,
     MutableMapping,
-    overload,
-    Self,
-    TYPE_CHECKING,
-    TypeVar,
+    Set,
     ValuesView,
 )
+from typing import Any, Generic, overload, Self, TYPE_CHECKING, TypeVar
 
 import numpy as np
 import sympy
@@ -344,7 +339,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
     def _is_parameterized_(self) -> bool:
         return any(protocols.is_parameterized(v) for v in self._terms.values())
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return set(name for v in self._terms.values() for name in protocols.parameter_names(v))
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> LinearDict:

@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import abc
-from typing import Mapping, Sequence, TYPE_CHECKING
+from collections.abc import Mapping, Sequence
+from typing import TYPE_CHECKING
 
 import numpy as np
 

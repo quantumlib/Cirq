@@ -16,8 +16,9 @@ from __future__ import annotations
 
 import abc
 import itertools
+from collections.abc import Collection, Iterator, Sequence
 from functools import cached_property
-from typing import Any, Collection, Iterator, Sequence, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 from cirq import protocols, value
 

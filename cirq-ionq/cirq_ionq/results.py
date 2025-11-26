@@ -16,7 +16,8 @@
 from __future__ import annotations
 
 import collections
-from typing import Counter, Sequence
+from collections import Counter
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -293,6 +294,11 @@ class SimulatorResult:
             )
 
         measurements = {}
+        # normalize weights to sum to 1 if within tolerance because
+        # IonQ's pauliexp gates results are not extremely precise
+        total = sum(weights)
+        if np.isclose(total, 1.0, rtol=0, atol=1e-5):
+            weights = tuple(w / total for w in weights)
 
         if self.shotwise_results() is not None:
             for key, targets in self.measurement_dict().items():
