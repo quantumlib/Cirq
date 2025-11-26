@@ -294,12 +294,6 @@ class SimulatorResult:
             )
 
         measurements = {}
-        # normalize weights to sum to 1 if within tolerance because
-        # IonQ's pauliexp gates results are not extremely precise
-        total = sum(weights)
-        if np.isclose(total, 1.0, rtol=0, atol=1e-5):
-            weights = tuple(w / total for w in weights)
-
         if self.shotwise_results() is not None:
             for key, targets in self.measurement_dict().items():
                 # why do we need to reverse here? In QpuResult we don't do that ..
