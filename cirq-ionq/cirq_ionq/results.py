@@ -50,10 +50,6 @@ class QPUResult:
         """Returns the number of times the circuit was run."""
         return self._repetitions
 
-    def shotwise_results(self) -> list[int] | None:
-        """Returns the shotwise results if available, otherwise None."""
-        return self._shotwise_results
-
     def ordered_results(self, key: str | None = None) -> list[int]:
         """Returns a list of arbitrarily but consistently ordered results as big endian ints.
 
@@ -146,11 +142,11 @@ class QPUResult:
             )
 
         measurements = {}
-        if self.shotwise_results() is not None:
+        if self._shotwise_results is not None:
             for key, targets in self.measurement_dict().items():
                 bits = [
                     list(cirq.big_endian_int_to_bits(int(x), bit_count=len(targets)))[::-1]
-                    for x in self.shotwise_results()
+                    for x in self._shotwise_results
                 ]
                 measurements[key] = np.array(bits)
         else:
@@ -210,10 +206,6 @@ class SimulatorResult:
         The sampling is not done on the IonQ API but is done in `to_cirq_result`.
         """
         return self._repetitions
-
-    def shotwise_results(self) -> list[int] | None:
-        """Returns the shotwise results if available, otherwise None."""
-        return self._shotwise_results
 
     def probabilities(self, key: str | None = None) -> dict[int, float]:
         """Returns the probabilities of the measurement results.
@@ -294,12 +286,12 @@ class SimulatorResult:
             )
 
         measurements = {}
-        if self.shotwise_results() is not None:
+        if self._shotwise_results is not None:
             for key, targets in self.measurement_dict().items():
                 # why do we need to reverse here? In QpuResult we don't do that ..
                 bits = [
                     list(cirq.big_endian_int_to_bits(int(x), bit_count=len(targets)))[::-1]
-                    for x in self.shotwise_results()
+                    for x in self._shotwise_results
                 ]
                 measurements[key] = np.array(bits)
         else:

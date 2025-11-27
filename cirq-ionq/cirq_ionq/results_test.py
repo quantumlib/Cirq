@@ -29,7 +29,7 @@ def test_qpu_result_fields():
     assert result.repetitions() == 20
     assert result.num_qubits() == 1
     assert result.measurement_dict() == {'a': [0]}
-    assert result.shotwise_results() == [1, 2, 3]
+    assert result._shotwise_results == [1, 2, 3]
 
 
 def test_qpu_result_str():
@@ -173,7 +173,7 @@ def test_simulator_result_fields():
     assert result.num_qubits() == 1
     assert result.measurement_dict() == {'a': [0]}
     assert result.repetitions() == 100
-    assert result.shotwise_results() == [1, 2, 3]
+    assert result._shotwise_results == [1, 2, 3]
 
 
 def test_simulator_result_str():
