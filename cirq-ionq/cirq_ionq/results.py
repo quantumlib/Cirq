@@ -288,7 +288,6 @@ class SimulatorResult:
         measurements = {}
         if self._shotwise_results is not None:
             for key, targets in self.measurement_dict().items():
-                # why do we need to reverse here? In QpuResult we don't do that ..
                 bits = [
                     list(cirq.big_endian_int_to_bits(int(x), bit_count=len(targets)))[::-1]
                     for x in self._shotwise_results
