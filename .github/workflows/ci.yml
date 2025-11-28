@@ -338,7 +338,7 @@ jobs:
           pip install --upgrade setuptools wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest check
-        run: check/pytest -n $(nproc) --durations=20 --ignore=cirq-core/cirq/contrib
+        run: check/pytest -n $(sysctl -n hw.logicalcpu) --durations=20 --ignore=cirq-core/cirq/contrib
   notebooks-stable:
     if: github.repository_owner == 'quantumlib'
     name: Changed Notebooks Isolated Test against Cirq stable
