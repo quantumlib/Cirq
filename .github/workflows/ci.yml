@@ -22,7 +22,7 @@ jobs:
   quick_test:
     if: github.repository_owner == 'quantumlib'
     name: Misc check
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -36,7 +36,7 @@ jobs:
   packaging_test:
     if: github.repository_owner == 'quantumlib'
     name: Packaging test
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -54,7 +54,7 @@ jobs:
   format:
     if: github.repository_owner == 'quantumlib'
     name: Format check
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -72,7 +72,7 @@ jobs:
   mypy:
     if: github.repository_owner == 'quantumlib'
     name: Type check
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -164,7 +164,7 @@ jobs:
   shellcheck:
     if: github.repository_owner == 'quantumlib'
     name: Shell check
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -175,7 +175,7 @@ jobs:
   isolated-modules:
     if: github.repository_owner == 'quantumlib'
     name: Isolated pytest Ubuntu
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04-x64-8-core
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -194,7 +194,7 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.11', '3.12', '3.13']
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04-x64-8-core
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -237,7 +237,7 @@ jobs:
   build_protos:
     if: github.repository_owner == 'quantumlib'
     name: Build protos
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -256,7 +256,7 @@ jobs:
   coverage:
     if: github.repository_owner == 'quantumlib'
     name: Coverage check
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04-x64-8-core
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -291,7 +291,7 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.11', '3.12', '3.13']
-    runs-on: windows-2022
+    runs-on: windows-2022-x64-8-core
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -319,7 +319,7 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.11', '3.12', '3.13']
-    runs-on: macos-15
+    runs-on: macos-15-large
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -371,7 +371,7 @@ jobs:
   notebooks-branch:
     if: github.repository_owner == 'quantumlib'
     name: Notebook Tests against PR
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04-x64-8-core
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
