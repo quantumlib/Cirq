@@ -32,11 +32,6 @@ on:
 
   # Allow manual invocation.
   workflow_dispatch:
-    inputs:
-      debug:
-        description: 'Run with debugging options'
-        type: boolean
-        default: true
 
 concurrency:
   # Cancel any previously-started but still active runs on the same branch.
@@ -76,29 +71,3 @@ jobs:
         uses: github/codeql-action/upload-sarif@0499de31b99561a6d14a36a5f662c2a54f91beee # v3.29.5
         with:
           sarif_file: scorecard-results.sarif
-
-      - if: github.event.inputs.debug == true || runner.debug == true
-        name: Upload results as artifacts to the workflow Summary page
-        # yamllint disable rule:line-length
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
-        with:
-          name: Scorecard SARIF file
-          path: scorecard-results.sarif
-          retention-days: 5
-
-  # Scorecard currently (ver. 2.4.x) doesn't allow submissions from jobs having
-  # steps that use "run:". To print to the summary, we need to use another job.
-  write-summary:
-    name: Scorecard results
-    needs: run-scorecard
-    runs-on: ubuntu-slim
-    timeout-minutes: 5
-    steps:
-      - name: Write the Scorecard report page link to the workflow summary
-        run: |
-          repo="${{github.repository}}"
-          url="https://scorecard.dev/viewer/?uri=github.com/${repo}"
-          {
-          echo -n "The results are available on the OpenSSF Scorecard "
-          echo "[report page for ${{github.repository}}]($url)."
-          } >> "$GITHUB_STEP_SUMMARY"
