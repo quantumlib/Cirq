@@ -1,34 +1,44 @@
 name: CIFuzz
-on: [pull_request]
+run-name: >-
+  Perform fuzz testing on pull request ${{github.event.pull_request.number}}
+  by ${{github.actor}}
+on:
+  pull_request:
+  workflow_dispatch:
 permissions: {}
+concurrency:
+  # Cancel any previously-started but still active runs on the same branch.
+  cancel-in-progress: true
+  group: ${{github.workflow}}-${{github.event.pull_request.number||github.ref}}
 jobs:
-  Fuzzing:
-    runs-on: ubuntu-latest
+  fuzzing:
+    name: Fuzz testing
+    runs-on: ubuntu-24.04
     permissions:
       security-events: write
     steps:
     - name: Build Fuzzers
       id: build
-      uses: google/oss-fuzz/infra/cifuzz/actions/build_fuzzers@master
+      uses: google/oss-fuzz/infra/cifuzz/actions/build_fuzzers@c74d76768368951823cffca3bbd15eaa82093178
       with:
         oss-fuzz-project-name: cirq
         language: python
     - name: Run Fuzzers
-      uses: google/oss-fuzz/infra/cifuzz/actions/run_fuzzers@master
+      uses: google/oss-fuzz/infra/cifuzz/actions/run_fuzzers@c74d76768368951823cffca3bbd15eaa82093178
       with:
         oss-fuzz-project-name: cirq
         language: python
         fuzz-seconds: 600
         output-sarif: true
-    - name: Upload Crash
-      uses: actions/upload-artifact@v4
+    - name: Upload artifacts to workflow page if a failure occurred
+      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
       if: failure() && steps.build.outcome == 'success'
       with:
         name: artifacts
         path: ./out/artifacts
-    - name: Upload Sarif
+    - name: Upload SARIF file to results page
       if: always() && steps.build.outcome == 'success'
-      uses: github/codeql-action/upload-sarif@v2
+      uses: github/codeql-action/upload-sarif@8dca8a82e2fa1a2c8908956f711300f9c4a4f4f6 # v2
       with:
         # Path to SARIF file relative to the root of the repository
         sarif_file: cifuzz-sarif/results.sarif
