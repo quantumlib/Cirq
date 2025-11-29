@@ -19,6 +19,9 @@ include = [
 ]
 omit = ["benchmarks/*"]
 patch = ["subprocess"]
+# Speed up pytest-cov on Python 3.12+ by enabling sys.monitoring if possible.
+core = "sysmon"
+disable_warnings = ["no-sysmon"]
 
 [tool.coverage.report]
 exclude_also = [
