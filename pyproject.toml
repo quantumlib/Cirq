@@ -12,12 +12,13 @@ extend-exclude = ".*_pb2[.]py[i]?"
 
 [tool.coverage.run]
 include = [
-    # Omit files outside the current working directory.
+    # Include only the directories that have pytest tests in them.
     # Note: this means coverage must be run from the cirq repo root.
     # Failure to do so will result in false positives.
-    "./*",
+    "./cirq-*",
+    "./dev_tools/*",
+    "./examples/*",
 ]
-omit = ["benchmarks/*"]
 patch = ["subprocess"]
 # Speed up pytest-cov on Python 3.12+ by enabling sys.monitoring if possible.
 core = "sysmon"
