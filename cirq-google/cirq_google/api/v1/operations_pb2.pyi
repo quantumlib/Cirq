@@ -8,7 +8,13 @@ import collections.abc
 import google.protobuf.descriptor
 import google.protobuf.internal.containers
 import google.protobuf.message
+import sys
 import typing
+
+if sys.version_info >= (3, 10):
+    import typing as typing_extensions
+else:
+    import typing_extensions
 
 DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
 
@@ -32,7 +38,7 @@ class Qubit(google.protobuf.message.Message):
     ) -> None: ...
     def ClearField(self, field_name: typing.Literal["col", b"col", "row", b"row"]) -> None: ...
 
-global___Qubit = Qubit
+Global___Qubit: typing_extensions.TypeAlias = Qubit
 
 @typing.final
 class ParameterizedFloat(google.protobuf.message.Message):
@@ -58,7 +64,7 @@ class ParameterizedFloat(google.protobuf.message.Message):
     def ClearField(self, field_name: typing.Literal["parameter_key", b"parameter_key", "raw", b"raw", "value", b"value"]) -> None: ...
     def WhichOneof(self, oneof_group: typing.Literal["value", b"value"]) -> typing.Literal["raw", "parameter_key"] | None: ...
 
-global___ParameterizedFloat = ParameterizedFloat
+Global___ParameterizedFloat: typing_extensions.TypeAlias = ParameterizedFloat
 
 @typing.final
 class ExpW(google.protobuf.message.Message):
@@ -77,11 +83,11 @@ class ExpW(google.protobuf.message.Message):
     AXIS_HALF_TURNS_FIELD_NUMBER: builtins.int
     HALF_TURNS_FIELD_NUMBER: builtins.int
     @property
-    def target(self) -> global___Qubit:
+    def target(self) -> Global___Qubit:
         """The qubit to rotate."""
 
     @property
-    def axis_half_turns(self) -> global___ParameterizedFloat:
+    def axis_half_turns(self) -> Global___ParameterizedFloat:
         """The angle of the rotation axis' facing in the XY plane, expressed in
         units of pi. In other words, this is the theta in exp(i pi W(theta) t / 2).
            - 0 is positive-ward along X.
@@ -92,7 +98,7 @@ class ExpW(google.protobuf.message.Message):
         """
 
     @property
-    def half_turns(self) -> global___ParameterizedFloat:
+    def half_turns(self) -> Global___ParameterizedFloat:
         """The amount to rotate by expressed in units of pi / 2, i.e. the t in
         exp(i pi W(theta) t / 2).
         Note that this is periodic with period 4 (or 2 when ignoring global phase).
@@ -101,14 +107,14 @@ class ExpW(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        target: global___Qubit | None = ...,
-        axis_half_turns: global___ParameterizedFloat | None = ...,
-        half_turns: global___ParameterizedFloat | None = ...,
+        target: Global___Qubit | None = ...,
+        axis_half_turns: Global___ParameterizedFloat | None = ...,
+        half_turns: Global___ParameterizedFloat | None = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["axis_half_turns", b"axis_half_turns", "half_turns", b"half_turns", "target", b"target"]) -> builtins.bool: ...
     def ClearField(self, field_name: typing.Literal["axis_half_turns", b"axis_half_turns", "half_turns", b"half_turns", "target", b"target"]) -> None: ...
 
-global___ExpW = ExpW
+Global___ExpW: typing_extensions.TypeAlias = ExpW
 
 @typing.final
 class ExpZ(google.protobuf.message.Message):
@@ -123,11 +129,11 @@ class ExpZ(google.protobuf.message.Message):
     TARGET_FIELD_NUMBER: builtins.int
     HALF_TURNS_FIELD_NUMBER: builtins.int
     @property
-    def target(self) -> global___Qubit:
+    def target(self) -> Global___Qubit:
         """The qubit to rotate."""
 
     @property
-    def half_turns(self) -> global___ParameterizedFloat:
+    def half_turns(self) -> Global___ParameterizedFloat:
         """The amount of the rotation in radians, i.e. the t in
         exp(i * pi * Z * t / 2).
         Note that this is periodic with period 4 (or 2 when ignoring global phase).
@@ -136,13 +142,13 @@ class ExpZ(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        target: global___Qubit | None = ...,
-        half_turns: global___ParameterizedFloat | None = ...,
+        target: Global___Qubit | None = ...,
+        half_turns: Global___ParameterizedFloat | None = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["half_turns", b"half_turns", "target", b"target"]) -> builtins.bool: ...
     def ClearField(self, field_name: typing.Literal["half_turns", b"half_turns", "target", b"target"]) -> None: ...
 
-global___ExpZ = ExpZ
+Global___ExpZ: typing_extensions.TypeAlias = ExpZ
 
 @typing.final
 class Exp11(google.protobuf.message.Message):
@@ -158,15 +164,15 @@ class Exp11(google.protobuf.message.Message):
     TARGET2_FIELD_NUMBER: builtins.int
     HALF_TURNS_FIELD_NUMBER: builtins.int
     @property
-    def target1(self) -> global___Qubit:
+    def target1(self) -> Global___Qubit:
         """The first qubit to interact."""
 
     @property
-    def target2(self) -> global___Qubit:
+    def target2(self) -> Global___Qubit:
         """The other qubit to interact."""
 
     @property
-    def half_turns(self) -> global___ParameterizedFloat:
+    def half_turns(self) -> Global___ParameterizedFloat:
         """The amount of the rotation in units of pi, i.e. the t in
         exp(i * pi * |11><11| * t).
         Note that this is periodic with period 2 (including global phase).
@@ -175,14 +181,14 @@ class Exp11(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        target1: global___Qubit | None = ...,
-        target2: global___Qubit | None = ...,
-        half_turns: global___ParameterizedFloat | None = ...,
+        target1: Global___Qubit | None = ...,
+        target2: Global___Qubit | None = ...,
+        half_turns: Global___ParameterizedFloat | None = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["half_turns", b"half_turns", "target1", b"target1", "target2", b"target2"]) -> builtins.bool: ...
     def ClearField(self, field_name: typing.Literal["half_turns", b"half_turns", "target1", b"target1", "target2", b"target2"]) -> None: ...
 
-global___Exp11 = Exp11
+Global___Exp11: typing_extensions.TypeAlias = Exp11
 
 @typing.final
 class Measurement(google.protobuf.message.Message):
@@ -198,7 +204,7 @@ class Measurement(google.protobuf.message.Message):
     Measurement keys must be unique across the circuit.
     """
     @property
-    def targets(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Qubit]:
+    def targets(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___Qubit]:
         """The qubits to measure."""
 
     @property
@@ -212,13 +218,13 @@ class Measurement(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        targets: collections.abc.Iterable[global___Qubit] | None = ...,
+        targets: collections.abc.Iterable[Global___Qubit] | None = ...,
         key: builtins.str = ...,
         invert_mask: collections.abc.Iterable[builtins.bool] | None = ...,
     ) -> None: ...
     def ClearField(self, field_name: typing.Literal["invert_mask", b"invert_mask", "key", b"key", "targets", b"targets"]) -> None: ...
 
-global___Measurement = Measurement
+Global___Measurement: typing_extensions.TypeAlias = Measurement
 
 @typing.final
 class Operation(google.protobuf.message.Message):
@@ -237,32 +243,32 @@ class Operation(google.protobuf.message.Message):
     (Implies operations must be sorted by application order.)
     """
     @property
-    def exp_w(self) -> global___ExpW:
+    def exp_w(self) -> Global___ExpW:
         """A single-qubit rotation around an axis on the XY equator."""
 
     @property
-    def exp_z(self) -> global___ExpZ:
+    def exp_z(self) -> Global___ExpZ:
         """A single-qubit rotation around the Z axis."""
 
     @property
-    def exp_11(self) -> global___Exp11:
+    def exp_11(self) -> Global___Exp11:
         """An operation that interacts two qubits, phasing only the 11 state."""
 
     @property
-    def measurement(self) -> global___Measurement:
+    def measurement(self) -> Global___Measurement:
         """Measures a qubit and indicates where to store the result."""
 
     def __init__(
         self,
         *,
         incremental_delay_picoseconds: builtins.int = ...,
-        exp_w: global___ExpW | None = ...,
-        exp_z: global___ExpZ | None = ...,
-        exp_11: global___Exp11 | None = ...,
-        measurement: global___Measurement | None = ...,
+        exp_w: Global___ExpW | None = ...,
+        exp_z: Global___ExpZ | None = ...,
+        exp_11: Global___Exp11 | None = ...,
+        measurement: Global___Measurement | None = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["exp_11", b"exp_11", "exp_w", b"exp_w", "exp_z", b"exp_z", "measurement", b"measurement", "operation", b"operation"]) -> builtins.bool: ...
     def ClearField(self, field_name: typing.Literal["exp_11", b"exp_11", "exp_w", b"exp_w", "exp_z", b"exp_z", "incremental_delay_picoseconds", b"incremental_delay_picoseconds", "measurement", b"measurement", "operation", b"operation"]) -> None: ...
     def WhichOneof(self, oneof_group: typing.Literal["operation", b"operation"]) -> typing.Literal["exp_w", "exp_z", "exp_11", "measurement"] | None: ...
 
-global___Operation = Operation
+Global___Operation: typing_extensions.TypeAlias = Operation
