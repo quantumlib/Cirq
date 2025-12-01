@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Iterable, Iterator, TYPE_CHECKING
+from collections.abc import Iterable, Iterator
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -29,11 +30,11 @@ if TYPE_CHECKING:
     import cirq
 
 
-def _is_integer(n):
+def _is_integer(n) -> bool:
     return np.isclose(n, np.round(n))
 
 
-def _is_swaplike(gate: cirq.Gate):
+def _is_swaplike(gate: cirq.Gate) -> bool:
     if isinstance(gate, ops.SwapPowGate):
         return gate.exponent == 1
 
@@ -119,6 +120,7 @@ def eject_z(
             return []
 
         # Try to move the tracked phases over the operation via protocols.phase_by(op)
+        phased_op: cirq.Operation | None
         phased_op = op
         for i, p in enumerate([qubit_phase[q] for q in op.qubits]):
             if not single_qubit_decompositions.is_negligible_turn(p, atol):

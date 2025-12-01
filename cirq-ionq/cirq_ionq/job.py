@@ -18,7 +18,8 @@ from __future__ import annotations
 import json
 import time
 import warnings
-from typing import Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 import cirq
 from cirq._doc import document
@@ -122,7 +123,7 @@ class Job:
             IonQException: If unable to get the status of the job from the API.
         """
         self._check_if_unsuccessful()
-        return self._job['target']
+        return self._job['backend']
 
     def name(self) -> str:
         """Returns the name of the job which was supplied during job creation.
@@ -151,7 +152,7 @@ class Job:
                     if index == circuit_index:
                         return qubit_number
 
-        return int(self._job['qubits'])
+        return int(self._job['stats']['qubits'])
 
     def repetitions(self) -> int:
         """Returns the number of repetitions for the job.

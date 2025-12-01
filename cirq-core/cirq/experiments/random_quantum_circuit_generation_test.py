@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import itertools
-from typing import Callable, cast, Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
+from typing import cast
 
 import networkx as nx
 import numpy as np

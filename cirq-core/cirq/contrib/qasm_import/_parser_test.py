@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import re
 import textwrap
-from typing import Callable
+from collections.abc import Callable
 
 import numpy as np
 import pytest
@@ -294,10 +294,48 @@ def test_classical_control_multi_bit() -> None:
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 2}
 
-    # Note that this will *not* round-trip, but there's no good way around that due to the
-    # difference in how Cirq and QASM do multi-bit measurements.
-    with pytest.raises(ValueError, match='QASM does not support multiple conditions'):
+    # Note that this will *not* round-trip in QASM 2.0, but there's no good way around that due
+    # to the difference in how Cirq and QASM 2.0 do multi-bit measurements.
+    # Exporting multi-controlled operations in QASM 3.0 is supported with explicit '&&' between
+    # conditions.
+    with pytest.raises(
+        ValueError,
+        match='QASM 2.0 does not support multiple conditions. Consider exporting with QASM 3.0.',
+    ):
         _ = cirq.qasm(parsed_qasm.circuit)
+
+
+def test_classical_control_multi_cond_and() -> None:
+    qasm = """OPENQASM 3.0;
+        include "stdgates.inc";
+        qubit[2] q;
+        bit[2] a;
+
+        a[0] = measure q[0];
+        a[1] = measure q[1];
+
+        if (a[0]==1 && a[1]==0) cx q[0],q[1];
+    """
+    parser = QasmParser()
+
+    q_0 = cirq.NamedQubit('q_0')
+    q_1 = cirq.NamedQubit('q_1')
+
+    # Expect two independent conditions: a_0 == 1 and a_1 == 0
+    expected_circuit = cirq.Circuit(
+        cirq.measure(q_0, key='a_0'),
+        cirq.measure(q_1, key='a_1'),
+        cirq.CNOT(q_0, q_1).with_classical_controls(
+            sympy.Eq(sympy.Symbol('a_0'), 1), sympy.Eq(sympy.Symbol('a_1'), 0)
+        ),
+    )
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 2}
 
 
 def test_CX_gate_not_enough_args() -> None:
@@ -1051,8 +1089,8 @@ two_qubit_gates = [
 # Mapping of two-qubit gates and `num_params`
 two_qubit_param_gates = {
     # TODO: fix and enable commented gates below
-    # ('cu1', cirq.ControlledGate(QasmUGate(0, 0, 0.1 / np.pi))): 1,
-    # ('cu3', cirq.ControlledGate(QasmUGate(0.1 / np.pi, 0.2 / np.pi, 0.3 / np.pi))): 3,
+    ('cu1', cirq.ControlledGate(QasmUGate(0, 0, 0.1 / np.pi))): 1,
+    ('cu3', cirq.ControlledGate(QasmUGate(0.1 / np.pi, 0.2 / np.pi, 0.3 / np.pi))): 3,
     # ('cu', cirq.ControlledGate(QasmUGate(0.1 / np.pi, 0.2 / np.pi, 0.3 / np.pi))): 3,
     ('crx', cirq.ControlledGate(cirq.rx(0.1))): 1,
     ('cry', cirq.ControlledGate(cirq.ry(0.1))): 1,

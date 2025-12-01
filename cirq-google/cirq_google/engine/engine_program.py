@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import datetime
-from typing import Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 import duet
 
@@ -301,7 +302,7 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     def labels(self) -> dict[str, str]:
         """Returns the labels of the program."""
-        return self._inner_program().labels
+        return dict(self._inner_program().labels)
 
     async def set_labels_async(self, labels: dict[str, str]) -> EngineProgram:
         """Sets (overwriting) the labels for a previously created quantum

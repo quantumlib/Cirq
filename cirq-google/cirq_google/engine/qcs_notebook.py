@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import cast, Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import cast, TYPE_CHECKING
 
 from cirq_google import get_engine, ProcessorSampler
 from cirq_google.engine import (

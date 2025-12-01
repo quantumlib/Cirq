@@ -31,7 +31,8 @@ from __future__ import annotations
 
 import abc
 import collections
-from typing import Any, Callable, cast, Generic, Iterator, Mapping, Sequence, TYPE_CHECKING, TypeVar
+from collections.abc import Callable, Iterator, Mapping, Sequence
+from typing import Any, cast, Generic, TYPE_CHECKING, TypeVar
 
 import numpy as np
 
@@ -217,7 +218,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
     def sample_from_amplitudes(
         self,
         circuit: cirq.AbstractCircuit,
-        param_resolver: cirq.ParamResolver,
+        param_resolver: cirq.ParamResolverOrSimilarType,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE,
         repetitions: int = 1,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -938,7 +939,7 @@ def _qubit_map_to_shape(qubit_map: Mapping[cirq.Qid, int]) -> tuple[int, ...]:
     return tuple(qid_shape)
 
 
-def check_all_resolved(circuit):
+def check_all_resolved(circuit) -> None:
     """Raises if the circuit contains unresolved symbols."""
     if protocols.is_parameterized(circuit):
         unresolved = [op for moment in circuit for op in moment if protocols.is_parameterized(op)]

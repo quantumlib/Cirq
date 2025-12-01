@@ -13,27 +13,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import importlib.util
+import json
 import logging as std_logging
 import pickle
 import warnings
-from typing import Callable, Optional, Sequence
+from typing import Callable, Dict, Optional, Sequence, Tuple, Union
 
-import google.auth
+import google.auth  # type: ignore
 import google.protobuf.message
 import grpc  # type: ignore
-import proto
+import proto  # type: ignore
 from google.api_core import gapic_v1, grpc_helpers
-from google.auth import credentials as ga_credentials
-from google.auth.transport.grpc import SslCredentials
-from google.protobuf import empty_pb2
+from google.auth import credentials as ga_credentials  # type: ignore
+from google.auth.transport.grpc import SslCredentials  # type: ignore
+from google.protobuf import empty_pb2  # type: ignore
 from google.protobuf.json_format import MessageToJson
 
 from cirq_google.cloud.quantum_v1alpha1.types import engine, quantum
 
 from .base import DEFAULT_CLIENT_INFO, QuantumEngineServiceTransport
 
-CLIENT_LOGGING_SUPPORTED = importlib.util.find_spec("google.api_core.client_logging") is not None
+try:
+    from google.api_core import client_logging  # type: ignore
+
+    CLIENT_LOGGING_SUPPORTED = True  # pragma: NO COVER
+except ImportError:  # pragma: NO COVER
+    CLIENT_LOGGING_SUPPORTED = False
 
 _LOGGER = std_logging.getLogger(__name__)
 
@@ -108,7 +113,7 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
     top of HTTP/2); the ``grpcio`` package must be installed.
     """
 
-    _stubs: dict[str, Callable]
+    _stubs: Dict[str, Callable]
 
     def __init__(
         self,
@@ -117,11 +122,11 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         credentials: Optional[ga_credentials.Credentials] = None,
         credentials_file: Optional[str] = None,
         scopes: Optional[Sequence[str]] = None,
-        channel: Optional[grpc.Channel | Callable[..., grpc.Channel]] = None,
+        channel: Optional[Union[grpc.Channel, Callable[..., grpc.Channel]]] = None,
         api_mtls_endpoint: Optional[str] = None,
-        client_cert_source: Optional[Callable[[], tuple[bytes, bytes]]] = None,
+        client_cert_source: Optional[Callable[[], Tuple[bytes, bytes]]] = None,
         ssl_channel_credentials: Optional[grpc.ChannelCredentials] = None,
-        client_cert_source_for_mtls: Optional[Callable[[], tuple[bytes, bytes]]] = None,
+        client_cert_source_for_mtls: Optional[Callable[[], Tuple[bytes, bytes]]] = None,
         quota_project_id: Optional[str] = None,
         client_info: gapic_v1.client_info.ClientInfo = DEFAULT_CLIENT_INFO,
         always_use_jwt_access: Optional[bool] = False,
@@ -180,7 +185,7 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         """
         self._grpc_channel = None
         self._ssl_channel_credentials = ssl_channel_credentials
-        self._stubs: dict[str, Callable] = {}
+        self._stubs: Dict[str, Callable] = {}
 
         if api_mtls_endpoint:
             warnings.warn("api_mtls_endpoint is deprecated", DeprecationWarning)
@@ -710,6 +715,34 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
                 response_deserializer=quantum.QuantumProcessorConfig.deserialize,
             )
         return self._stubs['get_quantum_processor_config']
+
+    @property
+    def list_quantum_processor_configs(
+        self,
+    ) -> Callable[
+        [engine.ListQuantumProcessorConfigsRequest], engine.ListQuantumProcessorConfigsResponse
+    ]:
+        r"""Return a callable for the list quantum processor configs method over gRPC.
+
+        -
+
+        Returns:
+            Callable[[~.ListQuantumProcessorConfigsRequest],
+                    ~.ListQuantumProcessorConfigsResponse]:
+                A function that, when called, will call the underlying RPC
+                on the server.
+        """
+        # Generate a "stub function" on-the-fly which will actually make
+        # the request.
+        # gRPC handles serialization and deserialization, so we just need
+        # to pass in the functions for each.
+        if 'list_quantum_processor_configs' not in self._stubs:
+            self._stubs['list_quantum_processor_configs'] = self._logged_channel.unary_unary(
+                '/google.cloud.quantum.v1alpha1.QuantumEngineService/ListQuantumProcessorConfigs',
+                request_serializer=engine.ListQuantumProcessorConfigsRequest.serialize,
+                response_deserializer=engine.ListQuantumProcessorConfigsResponse.deserialize,
+            )
+        return self._stubs['list_quantum_processor_configs']
 
     @property
     def list_quantum_calibrations(

@@ -14,8 +14,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from copy import copy, deepcopy
-from typing import Any, Generic, Sequence, TYPE_CHECKING
+from typing import Any, Generic, TYPE_CHECKING
 
 import numpy as np
 
@@ -77,7 +78,7 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
 
     def __init__(
         self,
-        initial_state: int | list[int] = 0,
+        initial_state: int | Sequence[int] = 0,
         qubits: Sequence[cirq.Qid] | None = None,
         classical_data: cirq.ClassicalDataStore | None = None,
     ):
@@ -85,25 +86,32 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
 
         Args:
             qubits: The qubits to simulate.
-            initial_state: The initial state for the simulation.
+            initial_state: The initial state for the simulation. Accepts int or Sequence[int].
             classical_data: The classical data container for the simulation.
 
         Raises:
             ValueError: If qubits not provided and initial_state is int.
-                        If initial_state is not an int, list[int], or np.ndarray.
+                If initial_state is not an int or Sequence[int].
+                If initial_state is a np.ndarray and its shape is not 1-dimensional.
 
         An initial_state value of type integer is parsed in big endian order.
         """
         if isinstance(initial_state, int):
             if qubits is None:
-                raise ValueError('qubits must be provided if initial_state is not list[int]')
+                raise ValueError('qubits must be provided if initial_state is not Sequence[int]')
             state = ClassicalBasisState(
                 big_endian_int_to_bits(initial_state, bit_count=len(qubits))
             )
-        elif isinstance(initial_state, (list, np.ndarray)):
-            state = ClassicalBasisState(initial_state)
+        elif isinstance(initial_state, np.ndarray):
+            if initial_state.ndim != 1:
+                raise ValueError(
+                    f'initial_state must be 1-dimensional, got shape {initial_state.shape}'
+                )
+            state = ClassicalBasisState(list(initial_state))
+        elif isinstance(initial_state, Sequence) and not isinstance(initial_state, (str, bytes)):
+            state = ClassicalBasisState(list(initial_state))
         else:
-            raise ValueError('initial_state must be an int or list[int] or np.ndarray')
+            raise ValueError('initial_state must be an int or Sequence[int]')
         super().__init__(state=state, qubits=qubits, classical_data=classical_data)
 
     def _act_on_fallback_(self, action, qubits: Sequence[cirq.Qid], allow_decompose: bool = True):
@@ -118,12 +126,9 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
             True if the operation was applied successfully.
 
         Raises:
-            ValueError: If initial_state shape for type np.ndarray is not equal to 1.
-                        If gate is not one of X, SWAP, a controlled version of X or SWAP,
-                            or a measurement.
+            ValueError: If gate is not one of X, SWAP, QubitPermutationGate, a controlled version
+                of X or SWAP, or a measurement.
         """
-        if isinstance(self._state.basis, np.ndarray) and len(self._state.basis.shape) != 1:
-            raise ValueError('initial_state shape for type np.ndarray is not equal to 1')
         gate = action.gate if isinstance(action, ops.Operation) else action
         mapped_qubits = [self.qubit_map[i] for i in qubits]
 
@@ -152,9 +157,15 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
         elif gate == ops.TOFFOLI:
             c1, c2, q = mapped_qubits
             self._state.basis[q] ^= self._state.basis[c1] & self._state.basis[c2]
+        elif isinstance(gate, ops.QubitPermutationGate):
+            perm = gate.permutation
+            basis = self._state.basis
+            original_values = [basis[q] for q in mapped_qubits]
+            for i, q in enumerate(mapped_qubits):
+                basis[perm[i]] = original_values[i]
         else:
             raise ValueError(
-                f'{gate} is not one of X, SWAP; a controlled version '
+                f'{gate} is not one of X, SWAP, QubitPermutationGate; a controlled version '
                 'of X or SWAP; or a measurement'
             )
         return True

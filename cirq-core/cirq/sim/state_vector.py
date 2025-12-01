@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import abc
-from typing import Mapping, Sequence, TYPE_CHECKING
+from collections.abc import Mapping, Sequence
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -105,7 +106,7 @@ class StateVectorMixin:
             and non-zero floats of the specified accuracy."""
         return qis.dirac_notation(self.state_vector(), decimals, qid_shape=self._qid_shape)
 
-    def density_matrix_of(self, qubits: list[cirq.Qid] | None = None) -> np.ndarray:
+    def density_matrix_of(self, qubits: Sequence[cirq.Qid] | None = None) -> np.ndarray:
         r"""Returns the density matrix of the state.
 
         Calculate the density matrix for the system on the qubits provided.
@@ -135,8 +136,7 @@ class StateVectorMixin:
 
         Raises:
             ValueError: if the size of the state represents more than 25 qubits.
-            IndexError: if the indices are out of range for the number of qubits
-                corresponding to the state.
+            KeyError: if some of the qubits provided are not in the quantum state.
         """
         return qis.density_matrix_from_state_vector(
             self.state_vector(),
@@ -160,8 +160,7 @@ class StateVectorMixin:
 
         Raises:
             ValueError: if the size of the state represents more than 25 qubits.
-            IndexError: if index is out of range for the number of qubits
-                corresponding to the state.
+            KeyError: if the specified qubit is not in the quantum state.
         """
         return qis.bloch_vector_from_state_vector(
             self.state_vector(), self.qubit_map[qubit], qid_shape=self._qid_shape

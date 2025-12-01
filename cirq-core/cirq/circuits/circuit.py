@@ -27,24 +27,18 @@ import html
 import itertools
 import math
 from collections import defaultdict
-from types import NotImplementedType
-from typing import (
-    AbstractSet,
-    Any,
+from collections.abc import (
     Callable,
-    cast,
     Hashable,
     Iterable,
     Iterator,
     Mapping,
     MutableSequence,
-    overload,
-    Self,
     Sequence,
-    TYPE_CHECKING,
-    TypeVar,
-    Union,
+    Set,
 )
+from types import NotImplementedType
+from typing import Any, cast, overload, Self, TYPE_CHECKING, TypeVar, Union
 
 import networkx
 import numpy as np
@@ -1341,7 +1335,7 @@ class AbstractCircuit(abc.ABC):
             protocols.is_parameterized(tag) for tag in self.tags
         )
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         op_params = {name for op in self.all_operations() for name in protocols.parameter_names(op)}
         tag_params = {name for tag in self.tags for name in protocols.parameter_names(tag)}
         return op_params | tag_params
@@ -1666,8 +1660,14 @@ class AbstractCircuit(abc.ABC):
         )
 
     def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
-        controls = frozenset(k for op in self.all_operations() for k in protocols.control_keys(op))
-        return controls - protocols.measurement_key_objs(self)
+        measures: set[cirq.MeasurementKey] = set()
+        controls: set[cirq.MeasurementKey] = set()
+        for op in self.all_operations():
+            # Only require keys that haven't already been measured earlier
+            controls.update(k for k in protocols.control_keys(op) if k not in measures)
+            # Record any measurement keys produced by this op
+            measures.update(protocols.measurement_key_objs(op))
+        return frozenset(controls)
 
 
 def _overlap_collision_time(
@@ -1839,7 +1839,7 @@ class Circuit(AbstractCircuit):
         self._frozen: cirq.FrozenCircuit | None = None
         self._is_measurement: bool | None = None
         self._is_parameterized: bool | None = None
-        self._parameter_names: AbstractSet[str] | None = None
+        self._parameter_names: Set[str] | None = None
         if not contents:
             return
         flattened_contents = tuple(ops.flatten_to_ops_or_moments(contents))
@@ -1948,7 +1948,7 @@ class Circuit(AbstractCircuit):
             self._is_parameterized = super()._is_parameterized_()
         return self._is_parameterized
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         if self._parameter_names is None:
             self._parameter_names = super()._parameter_names_()
         return self._parameter_names
@@ -3002,13 +3002,15 @@ def get_earliest_accommodating_moment_index(
     mop_index = last_conflict + 1
 
     # Update our dicts with data from this `mop` placement. Note `mop_index` will always be greater
-    # than the existing value for all of these, by construction.
+    # than the existing value for qubits and measurement keys, by construction.
     for qubit in mop_qubits:
         qubit_indices[qubit] = mop_index
     for key in mop_mkeys:
         mkey_indices[key] = mop_index
+    # For control keys, keep the maximum moment index seen so far because ops with the same control
+    # keys can commute past each other.
     for key in mop_ckeys:
-        ckey_indices[key] = mop_index
+        ckey_indices[key] = max(mop_index, ckey_indices.get(key, -1))
 
     return mop_index
 

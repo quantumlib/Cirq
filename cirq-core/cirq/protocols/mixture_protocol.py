@@ -16,8 +16,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from types import NotImplementedType
-from typing import Any, Protocol, Sequence
+from typing import Any, Protocol
 
 import numpy as np
 
@@ -148,7 +149,7 @@ def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
     return mixture(val, None) is not None
 
 
-def validate_mixture(supports_mixture: SupportsMixture):
+def validate_mixture(supports_mixture: SupportsMixture) -> None:
     """Validates that the mixture's tuple are valid probabilities."""
     mixture_tuple = mixture(supports_mixture, None)
     if mixture_tuple is None:

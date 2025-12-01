@@ -27,8 +27,9 @@ raised to a power (i.e. cirq.H**0.5). See the definition in EigenGate.
 
 from __future__ import annotations
 
+from collections.abc import Collection, Sequence
 from types import NotImplementedType
-from typing import Any, cast, Collection, Sequence
+from typing import Any, cast
 
 import numpy as np
 import sympy
@@ -391,7 +392,7 @@ class YPowGate(eigen_gate.EigenGate):
     Unlike `cirq.XPowGate` and `cirq.ZPowGate`, this gate has no generalization
     to qudits and hence does not take the dimension argument. Ignoring the
     global phase all generalized Pauli operators on a d-level system may be
-    written as X**a Z**b for a,b=0,1,...,d-1. For a qubit, there is only one
+    written as ``X**a Z**b`` for a,b=0,1,...,d-1. For a qubit, there is only one
     "mixed" operator: XZ, conventionally denoted -iY. However, when d > 2 there
     are (d-1)*(d-1) > 1 such "mixed" operators (still ignoring the global phase).
     Due to this ambiguity, qudit Y gate is not well defined. The "mixed" operators

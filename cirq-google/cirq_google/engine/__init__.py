@@ -48,8 +48,6 @@ from cirq_google.engine.calibration import Calibration as Calibration
 
 from cirq_google.engine.calibration_layer import CalibrationLayer as CalibrationLayer
 
-from cirq_google.engine.calibration_result import CalibrationResult as CalibrationResult
-
 from cirq_google.engine.calibration_to_noise_properties import (
     noise_properties_from_calibration as noise_properties_from_calibration,
 )
@@ -95,3 +93,5 @@ from cirq_google.engine.virtual_engine_factory import (
 from cirq_google.engine.engine_result import EngineResult as EngineResult
 
 from cirq_google.engine.processor_sampler import ProcessorSampler as ProcessorSampler
+
+from cirq_google.engine.processor_config import ProcessorConfig as ProcessorConfig

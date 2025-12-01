@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import datetime
-from typing import Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 import duet
 
@@ -31,7 +32,6 @@ if TYPE_CHECKING:
     from google.protobuf import any_pb2
 
     import cirq_google.engine.engine as engine_base
-    from cirq_google.engine.calibration_result import CalibrationResult
     from cirq_google.engine.engine import engine_processor, engine_program
 
 TERMINAL_STATES = [
@@ -91,7 +91,6 @@ class EngineJob(abstract_job.AbstractJob):
         self.context = context
         self._job = _job
         self._results: Sequence[EngineResult] | None = None
-        self._calibration_results: Sequence[CalibrationResult] | None = None
         self._batched_results: Sequence[Sequence[EngineResult]] | None = None
         self._job_result_future = job_result_future
 
@@ -159,7 +158,7 @@ class EngineJob(abstract_job.AbstractJob):
 
     def labels(self) -> dict[str, str]:
         """Returns the labels of the job."""
-        return self._inner_job().labels
+        return dict(self._inner_job().labels)
 
     def set_labels(self, labels: dict[str, str]) -> EngineJob:
         """Sets (overwriting) the labels for a previously created quantum job.
@@ -317,7 +316,6 @@ class EngineJob(abstract_job.AbstractJob):
 
     def _get_job_results_v1(self, result: v1.program_pb2.Result) -> Sequence[EngineResult]:
         job_id = self.id()
-        job_finished = self.update_time()
 
         trial_results = []
         for sweep_result in result.sweep_results:
@@ -332,7 +330,6 @@ class EngineJob(abstract_job.AbstractJob):
                         params=cirq.ParamResolver(result.params.assignments),
                         measurements=measurements,
                         job_id=job_id,
-                        job_finished_time=job_finished,
                     )
                 )
         return trial_results
@@ -340,11 +337,10 @@ class EngineJob(abstract_job.AbstractJob):
     def _get_job_results_v2(self, result: v2.result_pb2.Result) -> Sequence[EngineResult]:
         sweep_results = v2.results_from_proto(result)
         job_id = self.id()
-        job_finished = self.update_time()
 
         # Flatten to single list to match to sampler api.
         return [
-            EngineResult.from_result(result, job_id=job_id, job_finished_time=job_finished)
+            EngineResult.from_result(result, job_id=job_id)
             for sweep_result in sweep_results
             for result in sweep_result
         ]

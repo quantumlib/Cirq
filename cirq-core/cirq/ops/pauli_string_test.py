@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import itertools
 import math
-from typing import Iterator
+from collections.abc import Iterator
 
 import numpy as np
 import pytest
@@ -323,6 +323,7 @@ def test_constructor_flexibility() -> None:
 @pytest.mark.parametrize('qubit_pauli_map', _sample_qubit_pauli_maps())
 def test_getitem(qubit_pauli_map) -> None:
     other = cirq.NamedQubit('other')
+    pauli_string: cirq.PauliString[cirq.NamedQubit]
     pauli_string = cirq.PauliString(qubit_pauli_map=qubit_pauli_map)
     for key in qubit_pauli_map:
         assert qubit_pauli_map[key] == pauli_string[key]
@@ -1190,7 +1191,7 @@ def test_expectation_from_density_matrix_invalid_input() -> None:
     with pytest.raises(ValueError, match='shape'):
         ps.expectation_from_density_matrix(rho.reshape((4, 4, 1)), q_map_2)
     with pytest.raises(ValueError, match='shape'):
-        ps.expectation_from_density_matrix(rho.reshape((-1)), q_map_2)
+        ps.expectation_from_density_matrix(rho.reshape((-1,)), q_map_2)
 
     # Correctly shaped state_vectors.
     with pytest.raises(ValueError, match='shape'):
@@ -2085,15 +2086,57 @@ def test_resolve(resolve_fn) -> None:
     ids=str,
 )
 def test_pauli_ops_identity_gate_operation(gate1: cirq.Pauli, gate2: cirq.Pauli) -> None:
-    # TODO: Issue #7280 - Support addition and subtraction of identity gate operations.
-    if gate1 == gate2 == cirq.I:
-        pytest.skip('Not yet implemented per #7280')
     q = cirq.LineQubit(0)
     pauli1, pauli2 = gate1.on(q), gate2.on(q)
-    unitary1, unitary2 = cirq.unitary(gate1), cirq.unitary(gate2)
+    if gate1 == gate2 == cirq.I:
+        # PauliSum swallows I qubits, so resulting unitaries are dimensionless
+        unitary1 = unitary2 = np.array([[1]])
+    else:
+        unitary1, unitary2 = cirq.unitary(gate1), cirq.unitary(gate2)
     addition = pauli1 + pauli2
     assert isinstance(addition, cirq.PauliSum)
     assert np.array_equal(addition.matrix(), unitary1 + unitary2)
     subtraction = pauli1 - pauli2
     assert isinstance(subtraction, cirq.PauliSum)
     assert np.array_equal(subtraction.matrix(), unitary1 - unitary2)
+
+
+def test_pauli_gate_multiplication_with_power() -> None:
+    q = cirq.LineQubit(0)
+
+    # Test all Pauli gates (X, Y, Z)
+    pauli_gates = [cirq.X, cirq.Y, cirq.Z]
+    for pauli_gate in pauli_gates:
+        gate = pauli_gate(q)
+
+        # Test multiplication
+        assert gate**2 * gate * gate * gate == gate**5
+        assert gate * gate**2 * gate * gate == gate**5
+        assert gate * gate * gate**2 * gate == gate**5
+        assert gate * gate * gate * gate**2 == gate**5
+
+        # Test with different powers
+        assert gate**0 * gate**5 == gate**5
+        assert gate**1 * gate**4 == gate**5
+        assert gate**2 * gate**3 == gate**5
+        assert gate**3 * gate**2 == gate**5
+        assert gate**4 * gate**1 == gate**5
+        assert gate**5 * gate**0 == gate**5
+
+
+def test_try_interpret_as_pauli_string() -> None:
+    from cirq.ops.pauli_string import _try_interpret_as_pauli_string
+
+    q = cirq.LineQubit(0)
+
+    # Pauli gate operation
+    x_gate = cirq.X(q)
+    assert _try_interpret_as_pauli_string(x_gate) == cirq.PauliString({q: cirq.X})
+
+    # powered gates
+    x_squared = x_gate**2
+    assert _try_interpret_as_pauli_string(x_squared) == cirq.PauliString({q: cirq.I})
+
+    # non-Pauli operation
+    h_gate = cirq.H(q)
+    assert _try_interpret_as_pauli_string(h_gate) is None

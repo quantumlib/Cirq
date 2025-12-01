@@ -15,9 +15,10 @@
 from __future__ import annotations
 
 import functools
+from collections.abc import Sequence
 from dataclasses import dataclass
 from types import NotImplementedType
-from typing import Any, Sequence, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -639,7 +640,7 @@ class SingleQubitCliffordGate(CliffordGate):
             return None
         # Find the entry with the largest magnitude in the input unitary, to find
         # the global phase difference between the input unitary and the gate unitary.
-        k = max(np.ndindex(*u.shape), key=lambda t: abs(u[t]))
+        k = max(np.ndindex(*u.shape), key=lambda t: abs(u[t].item()))
         return gate, u[k] / protocols.unitary(gate)[k]
 
     def pauli_tuple(self, pauli: Pauli) -> tuple[Pauli, bool]:

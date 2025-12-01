@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import collections
-from typing import Sequence, TYPE_CHECKING, TypeVar
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, TypeVar
 
 import duet
 import pandas as pd

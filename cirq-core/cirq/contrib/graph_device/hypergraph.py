@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import itertools
 import random
-from typing import Any, Hashable, Iterable, Mapping
+from collections.abc import Hashable, Iterable, Mapping
+from typing import Any
 
 AdjacencyList = set[frozenset[Hashable]]
 

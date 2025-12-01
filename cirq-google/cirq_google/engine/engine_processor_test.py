@@ -18,7 +18,6 @@ import datetime
 from unittest import mock
 
 import duet
-import freezegun
 import numpy as np
 import pytest
 from google.protobuf.duration_pb2 import Duration
@@ -29,7 +28,7 @@ import cirq
 import cirq_google as cg
 from cirq_google.api import v2
 from cirq_google.cloud import quantum
-from cirq_google.engine import engine_client, util
+from cirq_google.engine import engine_client, ProcessorConfig, util
 from cirq_google.engine.engine import EngineContext
 
 
@@ -178,6 +177,19 @@ _RESULTS2_V2 = v2.result_pb2.Result(
             ],
         )
     ]
+)
+
+
+_METRIC_SNAPSHOT = v2.metrics_pb2.MetricsSnapshot(
+    timestamp_ms=1562544000021,
+    metrics=[
+        v2.metrics_pb2.Metric(
+            name='xeb', targets=['0_0', '0_1'], values=[v2.metrics_pb2.Value(double_val=0.9999)]
+        ),
+        v2.metrics_pb2.Metric(
+            name='xeb', targets=['0_0', '1_0'], values=[v2.metrics_pb2.Value(double_val=0.9998)]
+        ),
+    ],
 )
 
 
@@ -737,37 +749,6 @@ def test_get_schedule_filter_by_time_slot(list_time_slots):
     )
 
 
-def _allow_deprecated_freezegun(func):
-    # a local hack, as freeze_time walks through all the sys.modules, and retrieves all the
-    # attributes for all modules when it reaches deprecated module attributes, we throw an error
-    # as the deprecation module thinks Cirq is using something deprecated. This hack SHOULD NOT be
-    # used elsewhere, it is specific to freezegun functionality.
-    def wrapper(*args, **kwargs):
-        import os
-
-        from cirq.testing.deprecation import ALLOW_DEPRECATION_IN_TEST
-
-        orig_exist, orig_value = (
-            ALLOW_DEPRECATION_IN_TEST in os.environ,
-            os.environ.get(ALLOW_DEPRECATION_IN_TEST, None),
-        )
-
-        os.environ[ALLOW_DEPRECATION_IN_TEST] = 'True'
-        try:
-            return func(*args, **kwargs)
-        finally:
-            if orig_exist:
-                # mypy can't resolve that orig_exist ensures that orig_value
-                # of type Optional[str] can't be None
-                os.environ[ALLOW_DEPRECATION_IN_TEST] = orig_value  # pragma: no cover
-            else:
-                del os.environ[ALLOW_DEPRECATION_IN_TEST]
-
-    return wrapper
-
-
-@_allow_deprecated_freezegun
-@freezegun.freeze_time()
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_time_slots_async')
 def test_get_schedule_time_filter_behavior(list_time_slots):
     list_time_slots.return_value = []
@@ -795,7 +776,7 @@ def test_get_schedule_time_filter_behavior(list_time_slots):
     processor.get_schedule(from_time=datetime.timedelta(seconds=200), to_time=None)
     list_time_slots.assert_called_with('proj', 'p0', f'end_time > {now + 200}')
 
-    test_timestamp = datetime.datetime.utcfromtimestamp(52)
+    test_timestamp = datetime.datetime.fromtimestamp(52, datetime.UTC)
     utc_ts = int(test_timestamp.timestamp())
     processor.get_schedule(from_time=test_timestamp, to_time=None)
     list_time_slots.assert_called_with('proj', 'p0', f'end_time > {utc_ts}')
@@ -810,8 +791,6 @@ def test_get_schedule_time_filter_behavior(list_time_slots):
     list_time_slots.assert_called_with('proj', 'p0', f'start_time < {utc_ts}')
 
 
-@_allow_deprecated_freezegun
-@freezegun.freeze_time()
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_reservations_async')
 def test_list_reservations_time_filter_behavior(list_reservations):
     list_reservations.return_value = []
@@ -839,7 +818,7 @@ def test_list_reservations_time_filter_behavior(list_reservations):
     processor.list_reservations(from_time=datetime.timedelta(seconds=200), to_time=None)
     list_reservations.assert_called_with('proj', 'p0', f'end_time > {now + 200}')
 
-    test_timestamp = datetime.datetime.utcfromtimestamp(52)
+    test_timestamp = datetime.datetime.fromtimestamp(52, datetime.UTC)
     utc_ts = int(test_timestamp.timestamp())
     processor.list_reservations(from_time=test_timestamp, to_time=None)
     list_reservations.assert_called_with('proj', 'p0', f'end_time > {utc_ts}')
@@ -888,7 +867,6 @@ def test_run_sweep_params_with_unary_rpcs(client):
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
     for result in results:
         assert result.job_id == job.id()
-        assert result.job_finished_time is not None
     assert results == cirq.read_json(json_text=cirq.to_json(results))
 
     client().create_program_async.assert_called_once()
@@ -930,7 +908,6 @@ def test_run_sweep_params_with_stream_rpcs(client):
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
     for result in results:
         assert result.job_id == job.id()
-        assert result.job_finished_time is not None
     assert results == cirq.read_json(json_text=cirq.to_json(results))
 
     client().run_job_over_stream.assert_called_once()
@@ -1001,3 +978,233 @@ def test_sampler_with_stream_rpcs(client):
 def test_str():
     processor = cg.EngineProcessor('a', 'p', EngineContext())
     assert str(processor) == 'EngineProcessor(project_id=\'a\', processor_id=\'p\')'
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_get_config_from_run(client):
+    project_id = "test_project_id"
+    processor_id = "test_proc_id"
+    run_name = "test_run_name"
+    config_name = "test_config_name"
+    name = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configAutomationRuns/{run_name}/'
+        f'configs/{config_name}'
+    )
+
+    device_spec = v2.device_pb2.DeviceSpecification(
+        valid_qubits=["0_0", "1_1", "2_2"],
+        valid_targets=[
+            v2.device_pb2.TargetSet(
+                name="2_quibit_targets",
+                target_ordering=v2.device_pb2.TargetSet.SYMMETRIC,
+                targets=[v2.device_pb2.Target(ids=["0_0", "1_1"])],
+            )
+        ],
+    )
+    quantum_config = quantum.QuantumProcessorConfig(
+        name=name,
+        device_specification=util.pack_any(device_spec),
+        characterization=util.pack_any(_METRIC_SNAPSHOT),
+    )
+    client().get_quantum_processor_config_from_run_async.return_value = quantum_config
+    expected_config = ProcessorConfig(quantum_processor_config=quantum_config, run_name=run_name)
+    processor = cg.EngineProcessor(
+        project_id=project_id, processor_id=processor_id, context=EngineContext()
+    )
+
+    actual_config = processor.get_config_from_run(config_name=config_name, run_name=run_name)
+
+    client().get_quantum_processor_config_from_run_async.assert_called_once_with(
+        project_id=project_id, processor_id=processor_id, run_name=run_name, config_name=config_name
+    )
+    assert actual_config.processor_id == expected_config.processor_id
+    assert actual_config.config_name == config_name
+    assert actual_config.run_name == run_name
+    assert actual_config.effective_device == expected_config.effective_device
+    assert actual_config.calibration == expected_config.calibration
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_get_default_config_from_run(client):
+    project_id = "test_project_id"
+    processor_id = "test_proc_id"
+    name = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configAutomationRuns/default/configs/default'
+    )
+
+    device_spec = v2.device_pb2.DeviceSpecification(
+        valid_qubits=["0_0", "1_1", "2_2"],
+        valid_targets=[
+            v2.device_pb2.TargetSet(
+                name="2_quibit_targets",
+                target_ordering=v2.device_pb2.TargetSet.SYMMETRIC,
+                targets=[v2.device_pb2.Target(ids=["0_0", "1_1"])],
+            )
+        ],
+    )
+    quantum_config = quantum.QuantumProcessorConfig(
+        name=name,
+        device_specification=util.pack_any(device_spec),
+        characterization=util.pack_any(_METRIC_SNAPSHOT),
+    )
+    client().get_quantum_processor_config_from_run_async.return_value = quantum_config
+    processor = cg.EngineProcessor(
+        project_id=project_id, processor_id=processor_id, context=EngineContext()
+    )
+
+    _ = processor.get_config_from_run()
+
+    client().get_quantum_processor_config_from_run_async.assert_called_once_with(
+        project_id=project_id, processor_id=processor_id, run_name='current', config_name='default'
+    )
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_get_config_from_snapshot(client):
+    project_id = "test_project_id"
+    processor_id = "test_proc_id"
+    snapshot_id = "test_snapshot_id"
+    config_name = "test_config_name"
+    name = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configSnapshots/{snapshot_id}/'
+        f'configs/{config_name}'
+    )
+
+    device_spec = v2.device_pb2.DeviceSpecification(
+        valid_qubits=["0_0", "1_1", "2_2"],
+        valid_targets=[
+            v2.device_pb2.TargetSet(
+                name="2_quibit_targets",
+                target_ordering=v2.device_pb2.TargetSet.SYMMETRIC,
+                targets=[v2.device_pb2.Target(ids=["0_0", "1_1"])],
+            )
+        ],
+    )
+    quantum_config = quantum.QuantumProcessorConfig(
+        name=name,
+        device_specification=util.pack_any(device_spec),
+        characterization=util.pack_any(_METRIC_SNAPSHOT),
+    )
+    client().get_quantum_processor_config_from_snapshot_async.return_value = quantum_config
+    expected_config = ProcessorConfig(quantum_processor_config=quantum_config)
+    processor = cg.EngineProcessor(
+        project_id=project_id, processor_id=processor_id, context=EngineContext()
+    )
+
+    actual_config = processor.get_config_from_snapshot(
+        config_name=config_name, snapshot_id=snapshot_id
+    )
+
+    client().get_quantum_processor_config_from_snapshot_async.assert_called_once_with(
+        project_id=project_id,
+        processor_id=processor_id,
+        snapshot_id=snapshot_id,
+        config_name=config_name,
+    )
+    assert actual_config.processor_id == expected_config.processor_id
+    assert actual_config.config_name == config_name
+    assert actual_config.run_name == ''
+    assert actual_config.snapshot_id == snapshot_id
+    assert actual_config.effective_device == expected_config.effective_device
+    assert actual_config.calibration == expected_config.calibration
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_get_default_config_from_snapshot(client):
+    project_id = "test_project_id"
+    processor_id = "test_proc_id"
+    snapshot_id = "test_snapshot_id"
+    name = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configSnapshots/{snapshot_id}/'
+        f'configs/default'
+    )
+
+    device_spec = v2.device_pb2.DeviceSpecification(
+        valid_qubits=["0_0", "1_1", "2_2"],
+        valid_targets=[
+            v2.device_pb2.TargetSet(
+                name="2_quibit_targets",
+                target_ordering=v2.device_pb2.TargetSet.SYMMETRIC,
+                targets=[v2.device_pb2.Target(ids=["0_0", "1_1"])],
+            )
+        ],
+    )
+    quantum_config = quantum.QuantumProcessorConfig(
+        name=name,
+        device_specification=util.pack_any(device_spec),
+        characterization=util.pack_any(_METRIC_SNAPSHOT),
+    )
+    client().get_quantum_processor_config_from_snapshot_async.return_value = quantum_config
+    expected_config = ProcessorConfig(quantum_processor_config=quantum_config)
+    processor = cg.EngineProcessor(
+        project_id=project_id, processor_id=processor_id, context=EngineContext()
+    )
+
+    actual_config = processor.get_config_from_snapshot(snapshot_id=snapshot_id)
+
+    client().get_quantum_processor_config_from_snapshot_async.assert_called_once_with(
+        project_id=project_id,
+        processor_id=processor_id,
+        snapshot_id=snapshot_id,
+        config_name='default',
+    )
+    assert actual_config.processor_id == expected_config.processor_id
+    assert actual_config.config_name == 'default'
+    assert actual_config.run_name == ''
+    assert actual_config.snapshot_id == snapshot_id
+    assert actual_config.effective_device == expected_config.effective_device
+    assert actual_config.calibration == expected_config.calibration
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_get_config_from_snapshot_not_found(client):
+    project_id = "test_project_id"
+    processor_id = "test_proc_id"
+    snapshot_id = "test_snapshot_id"
+    config_name = "test_config_name"
+
+    client().get_quantum_processor_config_from_snapshot_async.return_value = None
+
+    processor = cg.EngineProcessor(
+        project_id=project_id, processor_id=processor_id, context=EngineContext()
+    )
+
+    result = processor.get_config_from_snapshot(config_name=config_name, snapshot_id=snapshot_id)
+
+    client().get_quantum_processor_config_from_snapshot_async.assert_called_once_with(
+        project_id=project_id,
+        processor_id=processor_id,
+        snapshot_id=snapshot_id,
+        config_name=config_name,
+    )
+
+    assert result is None
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_get_current_config_from_run_not_found(client):
+    project_id = "test_project_id"
+    processor_id = "test_proc_id"
+    config_name = "test_config_name"
+    run_name = 'test_run_name'
+
+    client().get_quantum_processor_config_from_run_async.return_value = None
+
+    processor = cg.EngineProcessor(
+        project_id=project_id, processor_id=processor_id, context=EngineContext()
+    )
+
+    result = processor.get_config_from_run(config_name=config_name, run_name=run_name)
+
+    client().get_quantum_processor_config_from_run_async.assert_called_once_with(
+        project_id=project_id, processor_id=processor_id, run_name=run_name, config_name=config_name
+    )
+    assert result is None

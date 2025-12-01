@@ -21,7 +21,8 @@ https://arxiv.org/abs/quant-ph/0406176
 
 from __future__ import annotations
 
-from typing import Callable, cast, Iterable, TYPE_CHECKING
+from collections.abc import Callable, Iterable, Sequence
+from typing import cast, TYPE_CHECKING
 
 import numpy as np
 from attr import define
@@ -47,7 +48,7 @@ class _TwoQubitGate:
 
 
 def quantum_shannon_decomposition(
-    qubits: list[cirq.Qid], u: np.ndarray, atol: float = 1e-8
+    qubits: Sequence[cirq.Qid], u: np.ndarray, atol: float = 1e-8
 ) -> Iterable[cirq.Operation]:
     """Decomposes n-qubit unitary 1-q, 2-q and GlobalPhase gates, preserving global phase.
 
@@ -149,7 +150,7 @@ def quantum_shannon_decomposition(
     yield from cast(Iterable[ops.Operation], ops.flatten_op_tree(shannon_decomp))
 
 
-def _recursive_decomposition(qubits: list[cirq.Qid], u: np.ndarray) -> Iterable[cirq.Operation]:
+def _recursive_decomposition(qubits: Sequence[cirq.Qid], u: np.ndarray) -> Iterable[cirq.Operation]:
     """Recursive step in the quantum shannon decomposition.
 
     Decomposes n-qubit unitary into generic 2-qubit gates, CNOT, CZ and 1-qubit gates.
@@ -270,7 +271,7 @@ def _single_qubit_decomposition(qubit: cirq.Qid, u: np.ndarray) -> Iterable[cirq
 
 
 def _msb_demuxer(
-    demux_qubits: list[cirq.Qid], u1: np.ndarray, u2: np.ndarray
+    demux_qubits: Sequence[cirq.Qid], u1: np.ndarray, u2: np.ndarray
 ) -> Iterable[cirq.Operation]:
     """Demultiplexes a unitary matrix that is multiplexed in its most-significant-qubit.
 
@@ -336,7 +337,7 @@ def _nth_gray(n: int) -> int:
 
 
 def _multiplexed_cossin(
-    cossin_qubits: list[cirq.Qid], angles: list[float], rot_func: Callable = ops.ry
+    cossin_qubits: Sequence[cirq.Qid], angles: list[float], rot_func: Callable = ops.ry
 ) -> Iterable[cirq.Operation]:
     """Performs a multiplexed rotation over all qubits in this unitary matrix,
 

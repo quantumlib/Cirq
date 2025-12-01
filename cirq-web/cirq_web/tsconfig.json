@@ -2,15 +2,17 @@
   "extends": "./node_modules/gts/tsconfig-google.json",
   "compilerOptions": {
     "lib": ["es5", "es6", "dom"],
-    "target": "es6",
-    "module": "commonjs",
+    "target": "es2022",
+    "module": "ESNext",
     "allowJs": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "downlevelIteration": true,
     "sourceMap": false,
-    "outDir": "build"
+    "outDir": "build",
+    "moduleResolution": "Bundler",
+    "types": ["vitest/globals", "@webgpu/types"]
   },
   "include": [
     "e2e/**/*.ts",

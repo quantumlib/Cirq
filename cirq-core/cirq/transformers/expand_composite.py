@@ -16,7 +16,8 @@
 
 from __future__ import annotations
 
-from typing import Callable, TYPE_CHECKING
+from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from cirq import circuits, ops, protocols
 from cirq.transformers import transformer_api, transformer_primitives
@@ -31,7 +32,7 @@ def expand_composite(
     *,
     context: cirq.TransformerContext | None = None,
     no_decomp: Callable[[ops.Operation], bool] = (lambda _: False),
-):
+) -> cirq.Circuit:
     """A transformer that expands composite operations via `cirq.decompose`.
 
     For each operation in the circuit, this pass examines if the operation can

@@ -26,7 +26,8 @@ from __future__ import annotations
 
 import cmath
 import math
-from typing import AbstractSet, Any, Iterator
+from collections.abc import Iterator, Set
+from typing import Any
 
 import numpy as np
 import sympy
@@ -125,7 +126,7 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     def _is_parameterized_(self) -> bool:
         return cirq.is_parameterized(self.theta) or cirq.is_parameterized(self.phi)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return cirq.parameter_names(self.theta) | cirq.parameter_names(self.phi)
 
     def _has_unitary_(self):

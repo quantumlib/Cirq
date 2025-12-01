@@ -14,8 +14,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Collection, Sequence, Set
 from types import NotImplementedType
-from typing import AbstractSet, Any, Collection, Sequence, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -244,7 +245,7 @@ class ControlledGate(raw_types.Gate):
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.sub_gate)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self.sub_gate)
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> ControlledGate:

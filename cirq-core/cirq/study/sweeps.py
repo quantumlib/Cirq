@@ -17,7 +17,8 @@ from __future__ import annotations
 import abc
 import collections
 import itertools
-from typing import Any, cast, Iterable, Iterator, overload, Sequence, TYPE_CHECKING, Union
+from collections.abc import Iterable, Iterator, Mapping, Sequence
+from typing import Any, cast, overload, TYPE_CHECKING, Union
 
 import sympy
 
@@ -653,3 +654,27 @@ def dict_to_zip_sweep(factor_dict: ProductOrZipSweepLike) -> Zip:
             for k, v in factor_dict.items()
         )
     )
+
+
+def list_of_dicts_to_zip(params: Sequence[Mapping[str, float]]) -> cirq.Zip:
+    """Converts a list of dictionaries into a cirq.Zip of cirq.Points.
+
+    This will convert lists of dictionaries into a more compact
+    Sweep format.   For large sweeps, this can vastly improve performance.
+
+    This will change [{'a': 1.0, 'b': 2.0}, {'a': 3.0, 'b': 4.0}]
+    into cirq.Zip(cirq.Points('a', [1.0, 3.0]), cirq.Points('b', [2.0, 4.0])_)
+
+    Raises:
+        ValueError if the keys in any of the list items are not the same.
+    """
+    param_keys: dict[str, list[float]] = collections.defaultdict(list)
+    if len(params) < 1:
+        raise ValueError("Input dictionary to convert is empty.")
+    sweep_keys = params[0].keys()
+    for sweep_point in params:
+        if set(sweep_point.keys()) != sweep_keys:
+            raise ValueError("Keys must be the same in each sweep point.")
+        for key, value in sweep_point.items():
+            param_keys[key].append(value)
+    return Zip(*(Points(key, points) for key, points in param_keys.items()))

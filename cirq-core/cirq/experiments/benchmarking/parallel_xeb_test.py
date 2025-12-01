@@ -15,8 +15,8 @@
 from __future__ import annotations
 
 import itertools
+from collections.abc import Iterator
 from concurrent import futures
-from typing import Iterator
 
 import networkx as nx
 import numpy as np

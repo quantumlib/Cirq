@@ -16,7 +16,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Iterator, Sequence
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -239,7 +240,7 @@ class SparseSimulatorStep(
         self._dtype = dtype
         self._state_vector: np.ndarray | None = None
 
-    def state_vector(self, copy: bool = False):
+    def state_vector(self, copy: bool = False) -> np.ndarray:
         """Return the state vector at this point in the computation.
 
         The state is returned in the computational basis with these basis

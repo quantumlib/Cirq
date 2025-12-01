@@ -24,7 +24,7 @@ BASE_MAINTAINERS = {CIRQ_MAINTAINERS, ('USERNAME', "@vtomole")}
 
 DOCS_MAINTAINERS = BASE_MAINTAINERS.union({('USERNAME', '@aasfaw'), ('USERNAME', '@rmlarose')})
 
-GOOGLE_TEAM = {('USERNAME', "@wcourtney"), ('USERNAME', "@verult")}
+GOOGLE_TEAM = {('USERNAME', "@wcourtney"), ('USERNAME', "@verult"), ("USERNAME", "@hoisinberg")}
 
 GOOGLE_MAINTAINERS = BASE_MAINTAINERS.union(GOOGLE_TEAM)
 

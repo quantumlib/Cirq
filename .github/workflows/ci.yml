@@ -25,9 +25,9 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - name: Set up Python environment
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: '3.11'
           architecture: 'x64'
@@ -39,9 +39,11 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Set up Python environment
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: '3.11'
           architecture: 'x64'
@@ -55,11 +57,11 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
         with:
           fetch-depth: 0
       - name: Set up Python environment
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: '3.11'
           architecture: 'x64'
@@ -73,9 +75,9 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - name: Set up Python environment
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: '3.11'
           architecture: 'x64'
@@ -89,14 +91,18 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
         with:
           fetch-depth: 0
       - name: Set up Python environment
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: '3.11'
           architecture: 'x64'
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install latexmk texlive-latex-base texlive-latex-extra
       - name: Install changed files test dependencies
         run: dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
       - name: Changed files test
@@ -107,9 +113,9 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - name: Set up Python environment
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: '3.11'
           architecture: 'x64'
@@ -129,9 +135,9 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - name: Set up Python environment
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: '3.11'
           architecture: 'x64'
@@ -145,9 +151,9 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - name: Set up Python environment
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: '3.11'
           architecture: 'x64'
@@ -161,7 +167,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
         with:
           fetch-depth: 0
       - name: Run shellcheck
@@ -172,9 +178,9 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - name: Set up Python environment
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: '3.11'
           architecture: 'x64'
@@ -191,9 +197,9 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - name: Set up Python environment
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
@@ -201,6 +207,10 @@ jobs:
           cache-dependency-path: |
             **/requirements.txt
             dev_tools/requirements/**/*.txt
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install latexmk texlive-latex-base texlive-latex-extra
       - name: Install requirements
         run: |
           pip install --upgrade setuptools wheel
@@ -213,28 +223,28 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - name: Set up Python environment
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: '3.11'
           architecture: 'x64'
       - name: Install requirements
-        run: pip install pip-tools
-      - name: Test dependencies with pip-compile
+        run: pip install uv
+      - name: Test dependencies with uv pip compile
         run: |
-          pip-compile --resolver=backtracking dev_tools/requirements/deps/cirq-all.txt -o-
+          uv pip compile dev_tools/requirements/deps/cirq-all.txt
   build_protos:
     if: github.repository_owner == 'quantumlib'
     name: Build protos
     runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
         with:
           fetch-depth: 0
       - name: Set up Python environment
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: '3.11'
           architecture: 'x64'
@@ -249,11 +259,11 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
         with:
           fetch-depth: 0
       - name: Set up Python environment
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: '3.11'
           architecture: 'x64'
@@ -261,6 +271,10 @@ jobs:
           cache-dependency-path: |
             **/requirements.txt
             dev_tools/requirements/**/*.txt
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install latexmk texlive-latex-base texlive-latex-extra
       - name: Install requirements
         run: |
           pip install --upgrade setuptools wheel
@@ -268,7 +282,7 @@ jobs:
       - name: Coverage check
         run: check/pytest-and-incremental-coverage -n auto
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   windows:
@@ -280,9 +294,9 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: Check out source repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - name: Set up Python environment
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
@@ -305,12 +319,12 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.11', '3.12', '3.13']
-    runs-on: macos-13
+    runs-on: macos-15
     steps:
       - name: Check out source repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - name: Set up Python environment
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
@@ -336,11 +350,11 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
         with:
           fetch-depth: 0
       - name: Set up Python environment
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: '3.11'
           architecture: 'x64'
@@ -349,7 +363,7 @@ jobs:
       - name: Notebook tests
         run: check/pytest -n auto -m slow dev_tools/notebooks/isolated_notebook_test.py -k ${{matrix.partition}}
       - name: Persist the outputs
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         if: failure()
         with:
           name: notebook-outputs-${{ matrix.partition }}
@@ -360,9 +374,9 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - name: Set up Python environment
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: '3.11'
           architecture: 'x64'
@@ -371,7 +385,7 @@ jobs:
       - name: Notebook tests
         run: check/pytest -n auto -m slow dev_tools/notebooks/notebook_test.py
       - name: Persist the outputs
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         if: failure()
         with:
           name: notebook-outputs
@@ -382,11 +396,11 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - name: Set up Node environment
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
         with:
-          node-version: '20.17.0'
+          node-version: '22.16.0'
       - name: Install node dependencies
         run: check/npm ci
       - name: Check build matches the current
@@ -397,11 +411,11 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - name: Set up Node environment
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
         with:
-          node-version: '20.17.0'
+          node-version: '22.16.0'
       - name: Install node dependencies
         run: check/npm ci
       - name: Lint Typescript files
@@ -412,11 +426,11 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - name: Set up Node environment
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
         with:
-          node-version: '20.17.0'
+          node-version: '22.16.0'
       - name: Install node dependencies
         run: check/npm ci
       - name: Run unit tests
@@ -429,11 +443,11 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - name: Set up Node environment
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
         with:
-          node-version: '20.17.0'
+          node-version: '22.16.0'
       - name: Install node dependencies
         run: check/npm ci
       - name: Run coverage test

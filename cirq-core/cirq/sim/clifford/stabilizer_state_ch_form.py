@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 import numpy as np
 
@@ -150,7 +151,7 @@ class StabilizerStateChForm(qis.StabilizerState):
         self.F[:, r] ^= self.F[:, q]
         self.M[:, q] ^= self.M[:, r]
 
-    def update_sum(self, t, u, delta=0, alpha=0):
+    def update_sum(self, t, u, delta=0, alpha=0) -> None:
         """Implements the transformation (Proposition 4 in Bravyi et al)
 
         ``i^alpha U_H (|t> + i^delta |u>) = omega W_C W_H |s'>``
@@ -214,7 +215,7 @@ class StabilizerStateChForm(qis.StabilizerState):
             omega = (1j) ** (delta * int(y))
 
             delta2 = ((-1) ** y * delta) % 4
-            c = bool((delta2 >> 1))
+            c = bool(delta2 >> 1)
             a = bool(delta2 & 1)
             b = True
         else:
@@ -255,7 +256,7 @@ class StabilizerStateChForm(qis.StabilizerState):
         self.project_Z(q, x_i)
         return x_i
 
-    def project_Z(self, q, z):
+    def project_Z(self, q, z) -> None:
         """Applies a Z projector on the q'th qubit.
 
         Returns: a normalized state with Z_q |psi> = z |psi>
@@ -288,14 +289,14 @@ class StabilizerStateChForm(qis.StabilizerState):
         copy = StabilizerStateChForm(self.n)
         copy.G = self.G[axes][:, axes]
         copy.F = self.F[axes][:, axes]
-        copy.M = self.M[axes][:, axes]  # type: ignore[assignment]
-        copy.gamma = self.gamma[axes]  # type: ignore[assignment]
-        copy.v = self.v[axes]  # type: ignore[assignment]
-        copy.s = self.s[axes]  # type: ignore[assignment]
+        copy.M = self.M[axes][:, axes]
+        copy.gamma = self.gamma[axes]
+        copy.v = self.v[axes]
+        copy.s = self.s[axes]
         copy.omega = self.omega
         return copy
 
-    def apply_x(self, axis: int, exponent: float = 1, global_shift: float = 0):
+    def apply_x(self, axis: int, exponent: float = 1, global_shift: float = 0) -> None:
         if exponent % 2 != 0:
             if exponent % 0.5 != 0.0:
                 raise ValueError('X exponent must be half integer')  # pragma: no cover
@@ -304,7 +305,7 @@ class StabilizerStateChForm(qis.StabilizerState):
             self.apply_h(axis)
         self.omega *= _phase(exponent, global_shift)
 
-    def apply_y(self, axis: int, exponent: float = 1, global_shift: float = 0):
+    def apply_y(self, axis: int, exponent: float = 1, global_shift: float = 0) -> None:
         if exponent % 0.5 != 0.0:
             raise ValueError('Y exponent must be half integer')  # pragma: no cover
         shift = _phase(exponent, global_shift)
@@ -325,7 +326,7 @@ class StabilizerStateChForm(qis.StabilizerState):
             self.apply_z(axis)
             self.omega *= shift * (1 - 1j) / (2**0.5)
 
-    def apply_z(self, axis: int, exponent: float = 1, global_shift: float = 0):
+    def apply_z(self, axis: int, exponent: float = 1, global_shift: float = 0) -> None:
         if exponent % 2 != 0:
             if exponent % 0.5 != 0.0:
                 raise ValueError('Z exponent must be half integer')  # pragma: no cover
@@ -337,7 +338,7 @@ class StabilizerStateChForm(qis.StabilizerState):
                 self.gamma[axis] = (self.gamma[axis] - 1) % 4
         self.omega *= _phase(exponent, global_shift)
 
-    def apply_h(self, axis: int, exponent: float = 1, global_shift: float = 0):
+    def apply_h(self, axis: int, exponent: float = 1, global_shift: float = 0) -> None:
         if exponent % 2 != 0:
             if exponent % 1 != 0:
                 raise ValueError('H exponent must be integer')  # pragma: no cover
@@ -357,7 +358,7 @@ class StabilizerStateChForm(qis.StabilizerState):
 
     def apply_cz(
         self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
-    ):
+    ) -> None:
         if exponent % 2 != 0:
             if exponent % 1 != 0:
                 raise ValueError('CZ exponent must be integer')  # pragma: no cover
@@ -369,7 +370,7 @@ class StabilizerStateChForm(qis.StabilizerState):
 
     def apply_cx(
         self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
-    ):
+    ) -> None:
         if exponent % 2 != 0:
             if exponent % 1 != 0:
                 raise ValueError('CX exponent must be integer')  # pragma: no cover
@@ -385,7 +386,7 @@ class StabilizerStateChForm(qis.StabilizerState):
             self.M[control_axis, :] ^= self.M[target_axis, :]
         self.omega *= _phase(exponent, global_shift)
 
-    def apply_global_phase(self, coefficient: value.Scalar):
+    def apply_global_phase(self, coefficient: value.Scalar) -> None:
         self.omega *= coefficient
 
     def measure(

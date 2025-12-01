@@ -16,8 +16,8 @@ from __future__ import annotations
 
 import gzip
 import math
+from collections.abc import Iterator
 from copy import deepcopy
-from typing import Iterator
 
 import numpy as np
 import pytest
@@ -164,7 +164,9 @@ def test_sweep_to_proto_linspace():
 
 @pytest.mark.parametrize("val", [None, 1, 1.5, 's'])
 def test_build_recover_const(val):
-    val2 = v2.sweeps._recover_sweep_const(v2.sweeps._build_sweep_const(val))
+    sweep = v2.run_context_pb2.SingleSweep()
+    v2.sweeps._add_sweep_const(sweep, val)
+    val2 = v2.sweeps._recover_sweep_const(sweep.const_value)
     if isinstance(val, float):
         assert math.isclose(val, val2)  # avoid the floating precision issue.
     else:
@@ -179,7 +181,7 @@ def test_build_covert_const_double():
 
 def test_build_const_unsupported_type():
     with pytest.raises(ValueError, match='Unsupported type for serializing const sweep'):
-        v2.sweeps._build_sweep_const((1, 2))
+        v2.sweeps._add_sweep_const(v2.run_context_pb2.SingleSweep(), (1, 2))
 
 
 def test_list_sweep_bad_expression():

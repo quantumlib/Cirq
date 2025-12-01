@@ -13,7 +13,8 @@
 # limitations under the License.
 from __future__ import annotations
 
-from typing import Any, cast, Iterable
+from collections.abc import Iterable
+from typing import Any, cast
 
 import numpy as np
 import pytest

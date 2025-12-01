@@ -1415,3 +1415,91 @@ def test_stimcirq_gates():
     msg = serializer.serialize(c)
     deserialized_circuit = serializer.deserialize(msg)
     assert deserialized_circuit == c
+
+
+def _create_circuit(num_x: int, exponent: float) -> cirq.Circuit:
+    q = cirq.q(1, 2)
+    circuit = cirq.Circuit()
+    for i in range(num_x):
+        circuit.append(cirq.X(q) ** exponent)
+    return circuit
+
+
+def _create_circuit_returns_map(num_x: int) -> dict[str, cirq.Circuit]:
+    q = cirq.q(1, 2)
+    rtn_map = {}
+    for key, gate in [("X", cirq.X), ("Y", cirq.Y), ("Z", cirq.Z)]:
+        circuit = cirq.Circuit()
+        for i in range(num_x):
+            circuit.append(gate(q))
+        rtn_map[key] = circuit
+    return rtn_map
+
+
+def _create_circuit_kwargs(**kwargs) -> cirq.Circuit:
+    return _create_circuit(kwargs['num_x'], kwargs['exponent'])
+
+
+def test_multi_programs_list() -> None:
+    """Test serialize_multi_program with a list of circuits."""
+    serializer = cg.CircuitSerializer()
+    circuits = [_create_circuit(i, 1.0) for i in range(10)]
+    proto = serializer.serialize_multi_program(circuits)
+    circuit_tuples = serializer.deserialize_multi_program(proto)
+    assert circuit_tuples == [("", (), circuit) for circuit in circuits]
+
+
+def test_multi_programs_map() -> None:
+    """Test serialize_multi_program with a dictionary of circuits."""
+    serializer = cg.CircuitSerializer()
+    circuits = {f"circuit_{i}": _create_circuit(i, 1.0) for i in range(10)}
+    proto = serializer.serialize_multi_program(circuits)
+    circuit_tuples = serializer.deserialize_multi_program(proto)
+    assert circuit_tuples == [(key, (), circuit) for key, circuit in circuits.items()]
+
+
+@pytest.mark.parametrize('circuit_func', [_create_circuit, _create_circuit_kwargs])
+def test_multi_programs_function(circuit_func) -> None:
+    """Test serialize_circuit_function with a function that returns a circuit."""
+    serializer = cg.CircuitSerializer()
+    sweep = cirq.Points('num_x', [1, 2, 4, 8, 16]) * cirq.Points('exponent', [0.25, 0.5, 0.75, 1.0])
+    proto = serializer.serialize_circuit_function(circuit_func, sweep)
+    circuit_tuples = list(serializer.deserialize_multi_program(proto))
+    assert len(circuit_tuples) == 20
+    for param_tuple, circuit_tuple in zip(sweep.param_tuples(), circuit_tuples):
+        assert circuit_tuple[0] == ""
+        param_dict = dict(circuit_tuple[1])
+        assert param_dict == dict(param_tuple)
+        assert circuit_tuple[2] == _create_circuit(
+            num_x=param_dict['num_x'], exponent=param_dict['exponent']
+        )
+
+
+def test_multi_programs_function_map() -> None:
+    """Test serialize_circuit_function with a function that returns a dict of circuits."""
+    serializer = cg.CircuitSerializer()
+    sweep = cirq.Points('num_x', [1, 2])
+    proto = serializer.serialize_circuit_function(_create_circuit_returns_map, sweep)
+    circuit_tuples = list(serializer.deserialize_multi_program(proto))
+    assert len(circuit_tuples) == 6
+    q = cirq.q(1, 2)
+    assert circuit_tuples == [
+        ("X", (("num_x", 1),), cirq.Circuit(cirq.X(q))),
+        ("Y", (("num_x", 1),), cirq.Circuit(cirq.Y(q))),
+        ("Z", (("num_x", 1),), cirq.Circuit(cirq.Z(q))),
+        ("X", (("num_x", 2),), cirq.Circuit(cirq.X(q), cirq.X(q))),
+        ("Y", (("num_x", 2),), cirq.Circuit(cirq.Y(q), cirq.Y(q))),
+        ("Z", (("num_x", 2),), cirq.Circuit(cirq.Z(q), cirq.Z(q))),
+    ]
+
+
+def test_multi_programs_bad_function() -> None:
+    """Test serialize_circuit_function with a function that returns something besides circuits."""
+    serializer = cg.CircuitSerializer()
+
+    def _bad_function(num_x: int) -> float:
+        return num_x * 2.25
+
+    sweep = cirq.Points('num_x', [1, 2])
+    with pytest.raises(ValueError, match="Function returned unrecognized type"):
+        _ = serializer.serialize_circuit_function(_bad_function, sweep)  # type: ignore

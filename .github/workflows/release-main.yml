@@ -16,8 +16,10 @@ jobs:
     env:
       NAME: dev-release
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: '3.11'
           architecture: 'x64'
@@ -33,8 +35,26 @@ jobs:
           envsubst < dev_tools/packaging/pypirc_template > $HOME/.pypirc
       - name: Build and publish
         run: |
-          export CIRQ_PRE_RELEASE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
-          [[ "$CIRQ_PRE_RELEASE_VERSION" =~ .*dev.* ]] && echo "Deploying dev version '$CIRQ_PRE_RELEASE_VERSION'" || (echo "not dev version"; exit 1)
-          out_dir="${PWD}/dist"
-          dev_tools/packaging/produce-package.sh ${out_dir} $CIRQ_PRE_RELEASE_VERSION
+          CIRQ_PRE_RELEASE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
+          if [[ "${CIRQ_PRE_RELEASE_VERSION}" != *.dev* ]]; then
+            echo "Not a dev version"
+            exit 1
+          fi
+          echo "Building wheels for the dev version '${CIRQ_PRE_RELEASE_VERSION}'"
+          THIS_DATE_EPOCH=$(git log -1 --pretty="%ct")
+          out_dir="${HOME}/cirq-dist"
+          out_dir_last="${HOME}/cirq-dist-last"
+          dev_tools/packaging/produce-package.sh "${out_dir}" "${CIRQ_PRE_RELEASE_VERSION}"
+          # disregard errors from building wheels at the previous commit
+          SOURCE_DATE_EPOCH=${THIS_DATE_EPOCH} dev_tools/packaging/produce-package.sh \
+            --commit="HEAD~1" "${out_dir_last}" "${CIRQ_PRE_RELEASE_VERSION}" || true
+          echo "Comparing wheels with the build at previous commit"
+          if diff -q -r "${out_dir_last}" "${out_dir}"; then
+            echo "Wheels are identical - skipping the release"
+            echo "### Skipped identical release"  >> ${GITHUB_STEP_SUMMARY}
+            echo "Cirq wheels for ${CIRQ_PRE_RELEASE_VERSION} (${GITHUB_SHA})" \
+              "are identical to their build at the previous commit." >> ${GITHUB_STEP_SUMMARY}
+            exit 0
+          fi
+          echo "Deploying dev version '$CIRQ_PRE_RELEASE_VERSION'"
           twine upload "${out_dir}/*"

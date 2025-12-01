@@ -15,8 +15,9 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable, Sequence
 from fractions import Fraction
-from typing import Any, Iterable, overload, Protocol, Self, Sequence, TYPE_CHECKING, TypeVar, Union
+from typing import Any, overload, Protocol, Self, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
 import sympy
