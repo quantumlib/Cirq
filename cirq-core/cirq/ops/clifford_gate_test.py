@@ -225,6 +225,9 @@ def test_pow() -> None:
     )
     with pytest.raises(TypeError):
         _ = cirq.SingleQubitCliffordGate.Z**0.25
+    # Test that non-numeric exponent types return NotImplemented
+    assert cirq.SingleQubitCliffordGate.X.__pow__("string") == NotImplemented
+    assert cirq.SingleQubitCliffordGate.X.__pow__([1, 2]) == NotImplemented
 
 
 def test_init_from_quarter_turns() -> None:

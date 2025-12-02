@@ -740,13 +740,13 @@ class SingleQubitCliffordGate(CliffordGate):
 
     def __pow__(self, exponent: float) -> SingleQubitCliffordGate:
         # safety check : if it's not a number, we can't do the math.
-        if not isinstance(exponent,(int, float)):
+        if not isinstance(exponent, (int, float)):
             return NotImplemented
 
         # Integer Exponents (Mod 24 Optimization)
         if int(exponent) == exponent:
             # The single qubit Clifford gates are a group of size 24
-            #gate^25 is the same as gate^1
+            # gate^25 is the same as gate^1
             exp = int(exponent) % 24
 
             # optimization: gate^23 is equivalent to gate^-1.
