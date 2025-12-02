@@ -18,6 +18,7 @@ include = [
     "./*",
 ]
 omit = ["benchmarks/*"]
+patch = ["subprocess"]
 
 [tool.coverage.report]
 exclude_also = [

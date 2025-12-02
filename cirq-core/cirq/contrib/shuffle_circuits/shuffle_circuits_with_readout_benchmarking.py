@@ -274,7 +274,7 @@ def _analyze_readout_results(
     )
 
 
-@deprecated(deadline="v2.0", fix="Use run_shuffled_circuits_with_readout_benchmarking() instead.")
+@deprecated(deadline="v1.8", fix="Use run_shuffled_circuits_with_readout_benchmarking() instead.")
 def run_shuffled_with_readout_benchmarking(
     input_circuits: list[circuits.Circuit],
     sampler: work.Sampler,
