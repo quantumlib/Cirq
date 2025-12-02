@@ -1022,8 +1022,8 @@ def validate_density_matrix(
     if not np.all(np.linalg.eigvalsh(density_matrix) > -atol):
         raise ValueError(
             'The density matrix is not positive semidefinite. '
-            'This may be caused by using `np.float64` as `dtype` when using '
-            '`cirq.DensityMatrixSimulator`. Try using `np.float128` in such a case.'
+            'This may happen for simulations using lower-precision `dtype` such as '
+            '`np.complex64`. Try using `np.complex128` in such a case.'
         )
 
 
