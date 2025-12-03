@@ -527,7 +527,9 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         return self.engine().get_processor_config(
             processor_id=self.processor_id,
             device_config_revision=(
-                device_config_revision if device_config_revision else processor_config.Run(default_device_key.run)
+                device_config_revision
+                if device_config_revision
+                else processor_config.Run(default_device_key.run)
             ),
             config_name=config_name if config_name else default_device_key.config_alias,
         )

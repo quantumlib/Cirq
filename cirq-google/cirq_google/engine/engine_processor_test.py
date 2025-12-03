@@ -338,7 +338,9 @@ def test_get_sampler_from_run_name() -> None:
     run = Run(id='test_run_name')
     device_config_name = 'test_device_name'
 
-    sampler = processor.get_sampler(device_config_revision=run, device_config_name=device_config_name)
+    sampler = processor.get_sampler(
+        device_config_revision=run, device_config_name=device_config_name
+    )
 
     assert sampler.run_name == run.id
     assert sampler.device_config_name == device_config_name
@@ -379,7 +381,9 @@ def test_get_sampler_from_snapshot_id() -> None:
     snapshot = Snapshot(id='test_snapshot')
     device_config_name = 'test_device_name'
 
-    sampler = processor.get_sampler(device_config_revision=snapshot, device_config_name=device_config_name)
+    sampler = processor.get_sampler(
+        device_config_revision=snapshot, device_config_name=device_config_name
+    )
 
     assert sampler.snapshot_id == snapshot.id
     assert sampler.device_config_name == device_config_name
@@ -1123,7 +1127,9 @@ def test_get_config_from_snapshot(client):
 
     client().get_quantum_processor_config_async.return_value = quantum_config
     expected_config = ProcessorConfig(
-        processor=processor, quantum_processor_config=quantum_config, device_config_revision=snapshot
+        processor=processor,
+        quantum_processor_config=quantum_config,
+        device_config_revision=snapshot,
     )
 
     actual_config = processor.get_config(config_name=config_name, device_config_revision=snapshot)

@@ -633,7 +633,9 @@ class Engine(abstract_engine.AbstractEngine):
     async def get_processor_config_async(
         self,
         processor_id: str,
-        device_config_revision: processor_config.DeviceConfigRevision = processor_config.Run(id='current'),
+        device_config_revision: processor_config.DeviceConfigRevision = processor_config.Run(
+            id='current'
+        ),
         config_name: str = 'default',
     ) -> processor_config.ProcessorConfig | None:
         """Returns a ProcessorConfig from this project and the given processor id.

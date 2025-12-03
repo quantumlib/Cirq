@@ -298,7 +298,9 @@ def test_engine_get_sampler_with_snapshot_id_passes_to_unary_rpc(client):
         context=EngineContext(service_args={'client_info': 1}, enable_streaming=False),
     )
     snapshot_id = Snapshot(id="123")
-    sampler = engine.get_sampler('mysim', device_config_name="config", device_config_revision=snapshot_id)
+    sampler = engine.get_sampler(
+        'mysim', device_config_name="config", device_config_revision=snapshot_id
+    )
     _ = sampler.run_sweep(_CIRCUIT, params=[cirq.ParamResolver({'a': 1})])
 
     kwargs = client().create_job_async.call_args_list[0].kwargs
@@ -846,7 +848,9 @@ def test_get_sampler_from_snapshot():
         device_config_revision=snapshot_id, device_config_name=device_config_name
     )
     engine_sampler = engine.get_sampler(
-        processor_id=processor_id, device_config_name=device_config_name, device_config_revision=snapshot_id
+        processor_id=processor_id,
+        device_config_name=device_config_name,
+        device_config_revision=snapshot_id,
     )
 
     assert processor_sampler.snapshot_id == engine_sampler.snapshot_id
