@@ -1284,13 +1284,10 @@ def _quantum_processor_config_name_from_device_config_revision(
             f'configSnapshots/{device_config_revision.id}/'
             f'configs/{config_name}'
         )
+
     default_run_name = 'default'
     run_id = device_config_revision.id if device_config_revision else default_run_name
-    return (
-        f'{processor_resource_name}/'
-        f'configAutomationRuns/{run_id}/'
-        f'configs/{config_name}'
-    )
+    return f'{processor_resource_name}/configAutomationRuns/{run_id}/configs/{config_name}'
 
 
 def _date_or_time_to_filter_expr(param_name: str, param: datetime.datetime | datetime.date):
