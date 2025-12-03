@@ -401,7 +401,7 @@ def test_deprecated_run_shuffled_with_readout_benchmarking() -> None:
     num_random_bitstrings = 100
 
     # Test with an integer seed.
-    with cirq.testing.assert_deprecated(deadline='v2.0', count=1):
+    with cirq.testing.assert_deprecated(deadline='v1.8', count=1):
         measurements_seed, results_seed = sc_readout.run_shuffled_with_readout_benchmarking(
             input_circuits=input_circuits,
             sampler=sampler,
@@ -420,7 +420,7 @@ def test_deprecated_run_shuffled_with_readout_benchmarking() -> None:
         assert 0.18 < error < 0.22
 
     # Test with qubits=None to cover the auto-detection branch.
-    with cirq.testing.assert_deprecated(deadline='v2.0', count=1):
+    with cirq.testing.assert_deprecated(deadline='v1.8', count=1):
         _, results_none = sc_readout.run_shuffled_with_readout_benchmarking(
             input_circuits=input_circuits,
             sampler=sampler,
@@ -434,7 +434,7 @@ def test_deprecated_run_shuffled_with_readout_benchmarking() -> None:
     assert set(qlist_none) == set(qubits)
 
     # Test circuit_repetitions must be > 0
-    with cirq.testing.assert_deprecated(deadline="v2.0", count=1):
+    with cirq.testing.assert_deprecated(deadline="v1.8", count=1):
         with pytest.raises(ValueError, match="Must provide non-zero circuit_repetitions."):
             sc_readout.run_shuffled_with_readout_benchmarking(
                 input_circuits,
@@ -446,7 +446,7 @@ def test_deprecated_run_shuffled_with_readout_benchmarking() -> None:
             )
 
     # Test num_random_bitstrings must be >= 0
-    with cirq.testing.assert_deprecated(deadline="v2.0", count=1):
+    with cirq.testing.assert_deprecated(deadline="v1.8", count=1):
         with pytest.raises(ValueError, match="Must provide zero or more num_random_bitstrings."):
             sc_readout.run_shuffled_with_readout_benchmarking(
                 input_circuits,
@@ -458,7 +458,7 @@ def test_deprecated_run_shuffled_with_readout_benchmarking() -> None:
             )
 
     # Test readout_repetitions must be > 0
-    with cirq.testing.assert_deprecated(deadline="v2.0", count=1):
+    with cirq.testing.assert_deprecated(deadline="v1.8", count=1):
         with pytest.raises(
             ValueError, match="Must provide non-zero readout_repetitions for readout calibration."
         ):
