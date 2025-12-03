@@ -88,6 +88,10 @@ from cirq.transformers.dynamical_decoupling import (
 
 from cirq.transformers.eject_z import eject_z as eject_z
 
+from cirq.transformers.diagonal_optimization import (
+    drop_diagonal_before_measurement as drop_diagonal_before_measurement,
+)
+
 from cirq.transformers.measurement_transformers import (
     defer_measurements as defer_measurements,
     dephase_measurements as dephase_measurements,
