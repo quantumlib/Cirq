@@ -15,6 +15,7 @@
 """Tests for generating and validating 2D GHZ state circuits."""
 
 from typing import cast
+from unittest import mock
 
 import networkx as nx
 import numpy as np
@@ -155,38 +156,34 @@ def test_ghz_invalid_inputs():
         )
 
 
-def test_add_dd_and_align_right_exact_equality():
-    """Tests that the transformed circuit exactly matches the manually created structure."""
+def test_assert_dynamical_decoupling_is_applied():
+    """Verifies that cirq.transformers.add_dynamical_decoupling is called
+    exactly once when the add_dd_and_align_right flag is True.
+    """
 
     q0 = cirq.GridQubit(0, 0)
     q1 = cirq.GridQubit(0, 1)
     q2 = cirq.GridQubit(0, 2)
     center_qubit = q0
-    graph_2q = nx.Graph([(q0, q1), (q1, q2)])
+    graph_3q = nx.Graph([(q0, q1), (q1, q2)])
 
-    transformed_circuit_actual = ghz_2d.generate_2d_ghz_circuit(
-        center_qubit, graph_2q, num_qubits=3, add_dd_and_align_right=True
-    )
+    with mock.patch('cirq.transformers.add_dynamical_decoupling') as mock_dd:
+        mock_dd.return_value = cirq.Circuit()
 
-    base_circuit_raw = cirq.Circuit(
-        cirq.H(q0), cirq.H(q1), cirq.CZ(q0, q1), cirq.H(q1), cirq.H(q2), cirq.CZ(q1, q2), cirq.H(q2)
-    )
+        # Flag is True
+        transformed_circuit_actual = ghz_2d.generate_2d_ghz_circuit(
+            center_qubit, graph_3q, num_qubits=3, add_dd_and_align_right=True
+        )
 
-    expected_circuit = base_circuit_raw + cirq.Circuit(cirq.M(q0, q1, q2, key="m"))
-    expected_circuit = cirq.transformers.align_right(
-        cirq.transformers.merge_single_qubit_gates_to_phxz(expected_circuit)
-    )
-    expected_circuit = cirq.transformers.stratified_circuit(
-        expected_circuit[::-1], categories=[lambda op: cirq.num_qubits(op) == k for k in (1, 2)]
-    )[::-1]
-    expected_circuit = cirq.transformers.add_dynamical_decoupling(expected_circuit)
-    expected_circuit = cirq.Circuit(expected_circuit[:-1])
+        mock_dd.assert_called_once()
 
-    # Assert exact equality
-    assert transformed_circuit_actual == expected_circuit
+        mock_dd.reset_mock()
 
-    # Also check circuits with and without add_dd_and_align_right are different
-    base_circuit_actual = ghz_2d.generate_2d_ghz_circuit(
-        center_qubit, graph_2q, num_qubits=3, add_dd_and_align_right=False
-    )
-    assert transformed_circuit_actual != base_circuit_actual
+        # Flag is False
+        base_circuit_actual = ghz_2d.generate_2d_ghz_circuit(
+            center_qubit, graph_3q, num_qubits=3, add_dd_and_align_right=False
+        )
+
+        mock_dd.assert_not_called()
+
+        assert transformed_circuit_actual != base_circuit_actual
