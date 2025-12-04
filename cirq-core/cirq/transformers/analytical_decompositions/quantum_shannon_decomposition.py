@@ -24,8 +24,8 @@ from __future__ import annotations
 from collections.abc import Callable, Iterable, Sequence
 from typing import cast, TYPE_CHECKING
 
+import attrs
 import numpy as np
-from attr import define
 from scipy.linalg import cossin
 
 from cirq import ops
@@ -41,7 +41,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-@define
+@attrs.define
 class _TwoQubitGate:
     location: int
     matrix: np.ndarray
