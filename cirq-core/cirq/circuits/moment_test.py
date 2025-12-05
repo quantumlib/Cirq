@@ -413,19 +413,16 @@ def test_measurement_keys() -> None:
 def test_measurement_key_objs_caching() -> None:
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     m = cirq.Moment(cirq.measure(q0, key='foo'))
-    assert m._measurement_key_objs is None
+    assert m.measurement_keys == {cirq.MeasurementKey(name='foo')}
     key_objs = cirq.measurement_key_objs(m)
-    assert m._measurement_key_objs == key_objs
+    assert m.measurement_keys == key_objs
 
     # Make sure it gets updated when adding an operation.
     m = m.with_operation(cirq.measure(q1, key='bar'))
-    assert m._measurement_key_objs == {
-        cirq.MeasurementKey(name='bar'),
-        cirq.MeasurementKey(name='foo'),
-    }
+    assert m.measurement_keys == {cirq.MeasurementKey(name='bar'), cirq.MeasurementKey(name='foo')}
     # Or multiple operations.
     m = m.with_operations(cirq.measure(q2, key='doh'), cirq.measure(q3, key='baz'))
-    assert m._measurement_key_objs == {
+    assert m.measurement_keys == {
         cirq.MeasurementKey(name='bar'),
         cirq.MeasurementKey(name='foo'),
         cirq.MeasurementKey(name='doh'),
@@ -436,18 +433,18 @@ def test_measurement_key_objs_caching() -> None:
 def test_control_keys_caching() -> None:
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     m = cirq.Moment(cirq.X(q0).with_classical_controls('foo'))
-    assert m._control_keys is None
+    assert m.control_keys == {cirq.MeasurementKey(name='foo')}
     keys = cirq.control_keys(m)
-    assert m._control_keys == keys
+    assert m.control_keys == keys
 
     # Make sure it gets updated when adding an operation.
     m = m.with_operation(cirq.X(q1).with_classical_controls('bar'))
-    assert m._control_keys == {cirq.MeasurementKey(name='bar'), cirq.MeasurementKey(name='foo')}
+    assert m.control_keys == {cirq.MeasurementKey(name='bar'), cirq.MeasurementKey(name='foo')}
     # Or multiple operations.
     m = m.with_operations(
         cirq.X(q2).with_classical_controls('doh'), cirq.X(q3).with_classical_controls('baz')
     )
-    assert m._control_keys == {
+    assert m.control_keys == {
         cirq.MeasurementKey(name='bar'),
         cirq.MeasurementKey(name='foo'),
         cirq.MeasurementKey(name='doh'),
