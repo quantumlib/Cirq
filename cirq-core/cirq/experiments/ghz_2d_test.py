@@ -15,6 +15,7 @@
 """Tests for generating and validating 2D GHZ state circuits."""
 
 from typing import cast
+from unittest import mock
 
 import networkx as nx
 import numpy as np
@@ -153,3 +154,36 @@ def test_ghz_invalid_inputs():
         ghz_2d.generate_2d_ghz_circuit(
             center_qubit, graph, num_qubits=len(graph.nodes) + 1  # invalid
         )
+
+
+def test_assert_dynamical_decoupling_is_applied():
+    """Verifies that cirq.transformers.add_dynamical_decoupling is called
+    exactly once when the add_dd_and_align_right flag is True.
+    """
+
+    q0 = cirq.GridQubit(0, 0)
+    q1 = cirq.GridQubit(0, 1)
+    q2 = cirq.GridQubit(0, 2)
+    center_qubit = q0
+    graph_3q = nx.Graph([(q0, q1), (q1, q2)])
+
+    with mock.patch('cirq.transformers.add_dynamical_decoupling') as mock_dd:
+        mock_dd.return_value = cirq.Circuit()
+
+        # Flag is True
+        transformed_circuit_actual = ghz_2d.generate_2d_ghz_circuit(
+            center_qubit, graph_3q, num_qubits=3, add_dd_and_align_right=True
+        )
+
+        mock_dd.assert_called_once()
+
+        mock_dd.reset_mock()
+
+        # Flag is False
+        base_circuit_actual = ghz_2d.generate_2d_ghz_circuit(
+            center_qubit, graph_3q, num_qubits=3, add_dd_and_align_right=False
+        )
+
+        mock_dd.assert_not_called()
+
+        assert transformed_circuit_actual != base_circuit_actual
