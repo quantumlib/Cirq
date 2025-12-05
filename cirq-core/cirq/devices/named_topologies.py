@@ -16,8 +16,9 @@ from __future__ import annotations
 
 import abc
 import warnings
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
-from typing import Any, Callable, Iterable, Sequence, TYPE_CHECKING, Union
+from typing import Any, TYPE_CHECKING, Union
 
 import networkx as nx
 from matplotlib import pyplot as plt

@@ -14,9 +14,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from itertools import combinations
 from string import ascii_lowercase
-from typing import Any, Sequence
+from typing import Any
 
 import numpy as np
 import pytest

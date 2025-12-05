@@ -19,9 +19,10 @@ from __future__ import annotations
 import abc
 import functools
 import itertools
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from numbers import Real
-from typing import Callable, Sequence, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import numpy as np
 import sympy

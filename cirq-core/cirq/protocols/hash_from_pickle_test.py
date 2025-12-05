@@ -18,8 +18,8 @@ import multiprocessing
 import os
 import pathlib
 import pickle
-from collections.abc import Iterator
-from typing import Any, Hashable
+from collections.abc import Hashable, Iterator
+from typing import Any
 
 import pytest
 

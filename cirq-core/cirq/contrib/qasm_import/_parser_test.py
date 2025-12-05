@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import re
 import textwrap
-from typing import Callable
+from collections.abc import Callable
 
 import numpy as np
 import pytest

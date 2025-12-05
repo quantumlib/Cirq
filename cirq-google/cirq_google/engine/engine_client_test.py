@@ -33,6 +33,7 @@ import cirq_google.engine.stream_manager as engine_stream_manager
 from cirq_google.cloud import quantum
 from cirq_google.engine.engine_client import EngineClient, EngineException
 from cirq_google.engine.processor_config import Run, Snapshot
+from cirq_google.engine.processor_config import Run, Snapshot
 
 # JOB_PATH represents the path to a specific job.
 JOB_PATH = 'projects/proj/programs/prog/jobs/job0'
@@ -1768,7 +1769,7 @@ def test_get_quantum_processor_config_from_snapshot(client_constructor, default_
             project_id=project_id,
             processor_id=processor_id,
             config_name=config_name,
-            device_version=snapshot,
+            device_config_revision=snapshot,
         )
         == expected_result
     )
@@ -1780,9 +1781,10 @@ def test_get_quantum_processor_config_from_snapshot(client_constructor, default_
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_get_quantum_processor_exception(client_constructor, default_engine_client):
     grpc_client = _setup_client_mock(client_constructor)
-    grpc_client.get_quantum_processor_config.side_effect = exceptions.BadRequest('invalid_reueust')
+    error_msg = 'invalid_request'
+    grpc_client.get_quantum_processor_config.side_effect = exceptions.BadRequest(error_msg)
 
-    with pytest.raises(EngineException, match='invalid_reueust'):
+    with pytest.raises(EngineException, match=error_msg):
         _ = default_engine_client.get_quantum_processor_config(
             project_id="test_project_id",
             processor_id="test_processor_id",
@@ -1807,13 +1809,15 @@ def test_get_quantum_processor_config_from_run(client_constructor, default_engin
     grpc_client = _setup_client_mock(client_constructor)
     expected_result = quantum.QuantumProcessorConfig(name=resource_name)
     grpc_client.get_quantum_processor_config.return_value = expected_result
+    expected_result = quantum.QuantumProcessorConfig(name=resource_name)
+    grpc_client.get_quantum_processor_config.return_value = expected_result
 
     assert (
         default_engine_client.get_quantum_processor_config(
             project_id=project_id,
             processor_id=processor_id,
             config_name=config_name,
-            device_version=run,
+            device_config_revision=run,
         )
         == expected_result
     )

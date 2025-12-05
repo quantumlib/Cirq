@@ -509,6 +509,7 @@ from cirq.study import (
     flatten_with_sweep as flatten_with_sweep,
     ResultDict as ResultDict,
     Linspace as Linspace,
+    list_of_dicts_to_zip as list_of_dicts_to_zip,
     ListSweep as ListSweep,
     ParamDictType as ParamDictType,
     ParamMappingType as ParamMappingType,

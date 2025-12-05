@@ -18,7 +18,6 @@ import datetime
 from unittest import mock
 
 import duet
-import freezegun
 import numpy as np
 import pytest
 from google.protobuf.duration_pb2 import Duration
@@ -30,7 +29,9 @@ import cirq_google as cg
 from cirq_google.api import v2
 from cirq_google.cloud import quantum
 from cirq_google.engine import engine_client, util
+from cirq_google.engine import engine_client, util
 from cirq_google.engine.engine import EngineContext
+from cirq_google.engine.processor_config import ProcessorConfig, Run, Snapshot
 from cirq_google.engine.processor_config import ProcessorConfig, Run, Snapshot
 
 
@@ -339,7 +340,9 @@ def test_get_sampler_from_run_name() -> None:
     run = Run(id='test_run_name')
     device_config_name = 'test_device_name'
 
-    sampler = processor.get_sampler(device_version=run, device_config_name=device_config_name)
+    sampler = processor.get_sampler(
+        device_config_revision=run, device_config_name=device_config_name
+    )
 
     assert sampler.run_name == run.id
     assert sampler.device_config_name == device_config_name
@@ -380,7 +383,9 @@ def test_get_sampler_from_snapshot_id() -> None:
     snapshot = Snapshot(id='test_snapshot')
     device_config_name = 'test_device_name'
 
-    sampler = processor.get_sampler(device_version=snapshot, device_config_name=device_config_name)
+    sampler = processor.get_sampler(
+        device_config_revision=snapshot, device_config_name=device_config_name
+    )
 
     assert sampler.snapshot_id == snapshot.id
     assert sampler.device_config_name == device_config_name
@@ -401,7 +406,7 @@ def test_get_sampler_from_snapshot_id_with_defaults() -> None:
     )
     snapshot = Snapshot(id='test_snapshot')
 
-    sampler = processor.get_sampler(device_version=snapshot)
+    sampler = processor.get_sampler(device_config_revision=snapshot)
 
     assert sampler.snapshot_id == snapshot.id
     assert sampler.device_config_name == default_config_alias
@@ -766,37 +771,6 @@ def test_get_schedule_filter_by_time_slot(list_time_slots):
     )
 
 
-def _allow_deprecated_freezegun(func):
-    # a local hack, as freeze_time walks through all the sys.modules, and retrieves all the
-    # attributes for all modules when it reaches deprecated module attributes, we throw an error
-    # as the deprecation module thinks Cirq is using something deprecated. This hack SHOULD NOT be
-    # used elsewhere, it is specific to freezegun functionality.
-    def wrapper(*args, **kwargs):
-        import os
-
-        from cirq.testing.deprecation import ALLOW_DEPRECATION_IN_TEST
-
-        orig_exist, orig_value = (
-            ALLOW_DEPRECATION_IN_TEST in os.environ,
-            os.environ.get(ALLOW_DEPRECATION_IN_TEST, None),
-        )
-
-        os.environ[ALLOW_DEPRECATION_IN_TEST] = 'True'
-        try:
-            return func(*args, **kwargs)
-        finally:
-            if orig_exist:
-                # mypy can't resolve that orig_exist ensures that orig_value
-                # of type Optional[str] can't be None
-                os.environ[ALLOW_DEPRECATION_IN_TEST] = orig_value  # pragma: no cover
-            else:
-                del os.environ[ALLOW_DEPRECATION_IN_TEST]
-
-    return wrapper
-
-
-@_allow_deprecated_freezegun
-@freezegun.freeze_time()
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_time_slots_async')
 def test_get_schedule_time_filter_behavior(list_time_slots):
     list_time_slots.return_value = []
@@ -839,8 +813,6 @@ def test_get_schedule_time_filter_behavior(list_time_slots):
     list_time_slots.assert_called_with('proj', 'p0', f'start_time < {utc_ts}')
 
 
-@_allow_deprecated_freezegun
-@freezegun.freeze_time()
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_reservations_async')
 def test_list_reservations_time_filter_behavior(list_reservations):
     list_reservations.return_value = []
@@ -1065,15 +1037,15 @@ def test_get_config_from_run(client):
 
     client().get_quantum_processor_config_async.return_value = quantum_config
     expected_config = ProcessorConfig(
-        processor=processor, quantum_processor_config=quantum_config, device_version=run
+        processor=processor, quantum_processor_config=quantum_config, device_config_revision=run
     )
 
-    actual_config = processor.get_config(config_name=config_name, device_version=run)
+    actual_config = processor.get_config(config_name=config_name, device_config_revision=run)
 
     client().get_quantum_processor_config_async.assert_called_once_with(
         project_id=project_id,
         processor_id=processor_id,
-        device_version=run,
+        device_config_revision=run,
         config_name=config_name,
     )
     assert actual_config.processor_id == expected_config.processor_id
@@ -1118,7 +1090,7 @@ def test_get_default_config(client):
     client().get_quantum_processor_config_async.assert_called_once_with(
         project_id=project_id,
         processor_id=processor_id,
-        device_version=Run(id=default_run),
+        device_config_revision=Run(id=default_run),
         config_name=default_config,
     )
 
@@ -1157,15 +1129,24 @@ def test_get_config_from_snapshot(client):
 
     client().get_quantum_processor_config_async.return_value = quantum_config
     expected_config = ProcessorConfig(
+        processor=processor,
+        quantum_processor_config=quantum_config,
+        device_config_revision=snapshot,
+    )
+
+    actual_config = processor.get_config(config_name=config_name, device_config_revision=snapshot)
+    client().get_quantum_processor_config_async.return_value = quantum_config
+    expected_config = ProcessorConfig(
         processor=processor, quantum_processor_config=quantum_config, device_version=snapshot
     )
 
+    client().get_quantum_processor_config_async.assert_called_once_with(
     actual_config = processor.get_config(config_name=config_name, device_version=snapshot)
 
     client().get_quantum_processor_config_async.assert_called_once_with(
         project_id=project_id,
         processor_id=processor_id,
-        device_version=snapshot,
+        device_config_revision=snapshot,
         config_name=config_name,
     )
     assert actual_config.processor_id == expected_config.processor_id

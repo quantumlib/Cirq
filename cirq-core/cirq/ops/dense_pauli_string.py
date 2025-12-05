@@ -16,19 +16,9 @@ from __future__ import annotations
 
 import abc
 import numbers
+from collections.abc import Callable, Iterable, Iterator, Sequence, Set
 from types import NotImplementedType
-from typing import (
-    AbstractSet,
-    Any,
-    Callable,
-    cast,
-    Iterable,
-    Iterator,
-    overload,
-    Self,
-    Sequence,
-    TYPE_CHECKING,
-)
+from typing import Any, cast, overload, Self, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -187,7 +177,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.coefficient)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self.coefficient)
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Self:

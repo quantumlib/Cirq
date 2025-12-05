@@ -18,20 +18,9 @@ from __future__ import annotations
 
 import abc
 import functools
+from collections.abc import Callable, Collection, Hashable, Iterable, Mapping, Sequence, Set
 from types import NotImplementedType
-from typing import (
-    AbstractSet,
-    Any,
-    Callable,
-    cast,
-    Collection,
-    Hashable,
-    Iterable,
-    Mapping,
-    overload,
-    Sequence,
-    TYPE_CHECKING,
-)
+from typing import Any, cast, overload, TYPE_CHECKING
 
 import numpy as np
 
@@ -912,7 +901,7 @@ class TaggedOperation(Operation):
         return NotImplemented
 
     @cached_method
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         tag_params = {name for tag in self.tags for name in protocols.parameter_names(tag)}
         return protocols.parameter_names(self.sub_operation) | tag_params
 
@@ -1026,7 +1015,7 @@ class _InverseCompositeGate(Gate):
         return protocols.is_parameterized(self._original)
 
     @cached_method
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self._original)
 
     def _resolve_parameters_(

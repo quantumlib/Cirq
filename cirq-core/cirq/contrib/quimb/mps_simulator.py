@@ -21,7 +21,8 @@ from __future__ import annotations
 
 import dataclasses
 import math
-from typing import Any, Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 import quimb.tensor as qtn
@@ -42,7 +43,7 @@ class MPSOptions:
 
     # How to split the tensor. Refer to the Quimb documentation for the exact meaning.
     method: str = 'svds'
-    # If integer, the maxmimum number of singular values to keep, regardless of ``cutoff``.
+    # If integer, the maximum number of singular values to keep, regardless of ``cutoff``.
     max_bond: int | None = None
     # Method with which to apply the cutoff threshold. Refer to the Quimb documentation.
     cutoff_mode: str = 'rsum2'
@@ -142,7 +143,7 @@ class MPSSimulator(
 
 
 class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState']):
-    """A single trial reult"""
+    """A single trial result"""
 
     def __init__(
         self,

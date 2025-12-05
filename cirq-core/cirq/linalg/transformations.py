@@ -18,8 +18,9 @@ from __future__ import annotations
 
 import dataclasses
 import functools
+from collections.abc import Sequence
 from types import EllipsisType
-from typing import Any, Sequence
+from typing import Any
 
 import numpy as np
 

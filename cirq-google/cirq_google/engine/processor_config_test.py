@@ -22,6 +22,7 @@ from cirq_google.cloud import quantum
 from cirq_google.devices import GridDevice
 from cirq_google.engine import util
 from cirq_google.engine.processor_config import Run
+from cirq_google.engine.processor_config import Run
 
 _METRIC_SNAPSHOT = v2.metrics_pb2.MetricsSnapshot(
     timestamp_ms=1562544000021,
@@ -80,7 +81,9 @@ def test_processor_config_snapshot_id_empty():
 def test_processor_config_run_name():
     run = Run(id='test_run_name')
     config = cg.engine.ProcessorConfig(
-        processor=None, quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG, device_version=run
+        processor=None,
+        quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG,
+        device_config_revision=run,
     )
 
     assert config.run_name == run.id
@@ -136,7 +139,9 @@ def test_processor_config_repr():
 def test_processor_config_repr_with_run_name():
     run = Run(id='test_run_name')
     config = cg.engine.ProcessorConfig(
-        processor=None, quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG, device_version=run
+        processor=None,
+        quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG,
+        device_config_revision=run,
     )
     expected_repr = (
         'cirq_google.ProcessorConfig'
@@ -152,7 +157,9 @@ def test_processor_config_repr_with_run_name():
 def test_sampler():
     run = Run(id='test_run_name')
     config = cg.engine.ProcessorConfig(
-        processor=None, quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG, device_version=run
+        processor=None,
+        quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG,
+        device_config_revision=run,
     )
     sampler = config.sampler()
 

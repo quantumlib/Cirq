@@ -17,11 +17,14 @@
 from __future__ import annotations
 
 import re
-from typing import Callable, Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Callable, Iterator, Sequence, Set
+from typing import TYPE_CHECKING
 
 import numpy as np
+import sympy
 
 from cirq import linalg, ops, protocols, value
+from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
     import cirq
@@ -29,7 +32,7 @@ if TYPE_CHECKING:
 
 @value.value_equality(approximate=True)
 class QasmUGate(ops.Gate):
-    def __init__(self, theta, phi, lmda) -> None:
+    def __init__(self, theta: cirq.TParamVal, phi: cirq.TParamVal, lmda: cirq.TParamVal) -> None:
         """A QASM gate representing any single qubit unitary with a series of
         three rotations, Z, Y, and Z.
 
@@ -40,9 +43,9 @@ class QasmUGate(ops.Gate):
             phi: Half turns to rotate about Z (applied last).
             lmda: Half turns to rotate about Z (applied first).
         """
-        self.lmda = lmda % 2
         self.theta = theta % 2
         self.phi = phi % 2
+        self.lmda = lmda % 2
 
     def _num_qubits_(self) -> int:
         return 1
@@ -53,7 +56,28 @@ class QasmUGate(ops.Gate):
         return QasmUGate(rotation / np.pi, post_phase / np.pi, pre_phase / np.pi)
 
     def _has_unitary_(self):
-        return True
+        return not self._is_parameterized_()
+
+    def _is_parameterized_(self) -> bool:
+        return (
+            protocols.is_parameterized(self.theta)
+            or protocols.is_parameterized(self.phi)
+            or protocols.is_parameterized(self.lmda)
+        )
+
+    def _parameter_names_(self) -> Set[str]:
+        return (
+            protocols.parameter_names(self.theta)
+            | protocols.parameter_names(self.phi)
+            | protocols.parameter_names(self.lmda)
+        )
+
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> QasmUGate:
+        return QasmUGate(
+            protocols.resolve_parameters(self.theta, resolver, recursive),
+            protocols.resolve_parameters(self.phi, resolver, recursive),
+            protocols.resolve_parameters(self.lmda, resolver, recursive),
+        )
 
     def _qasm_(self, qubits: tuple[cirq.Qid, ...], args: cirq.QasmArgs) -> str:
         args.validate_version('2.0', '3.0')
@@ -68,18 +92,21 @@ class QasmUGate(ops.Gate):
     def __repr__(self) -> str:
         return (
             f'cirq.circuits.qasm_output.QasmUGate('
-            f'theta={self.theta!r}, '
-            f'phi={self.phi!r}, '
-            f'lmda={self.lmda})'
+            f'theta={proper_repr(self.theta)}, '
+            f'phi={proper_repr(self.phi)}, '
+            f'lmda={proper_repr(self.lmda)})'
         )
 
     def _decompose_(self, qubits):
+        def mul_pi(x):
+            return x * (sympy.pi if protocols.is_parameterized(x) else np.pi)
+
         q = qubits[0]
         phase_correction_half_turns = (self.phi + self.lmda) / 2
         return [
-            ops.rz(self.lmda * np.pi).on(q),
-            ops.ry(self.theta * np.pi).on(q),
-            ops.rz(self.phi * np.pi).on(q),
+            ops.rz(mul_pi(self.lmda)).on(q),
+            ops.ry(mul_pi(self.theta)).on(q),
+            ops.rz(mul_pi(self.phi)).on(q),
             ops.global_phase_operation(1j ** (2 * phase_correction_half_turns)),
         ]
 

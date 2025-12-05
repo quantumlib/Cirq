@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import copy
-from typing import Iterator
+from collections.abc import Iterator
 
 import numpy as np
 import pytest

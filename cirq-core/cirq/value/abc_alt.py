@@ -18,7 +18,8 @@ from __future__ import annotations
 
 import abc
 import functools
-from typing import Callable, cast, TypeVar
+from collections.abc import Callable
+from typing import cast, TypeVar
 
 T = TypeVar('T')
 

@@ -18,7 +18,8 @@ from __future__ import annotations
 
 import multiprocessing
 import multiprocessing.pool
-from typing import Any, Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import Any, TYPE_CHECKING
 
 import matplotlib.pyplot as plt
 import numpy as np

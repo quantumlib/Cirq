@@ -16,6 +16,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, TypeAlias
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, TypeAlias
 
 import cirq_google as cg
 from cirq_google.api import v2
@@ -36,7 +38,7 @@ class Run:
     id: str
 
 
-DeviceVersion: TypeAlias = Snapshot | Run
+DeviceConfigRevision: TypeAlias = Snapshot | Run
 
 
 class ProcessorConfig:
@@ -51,12 +53,13 @@ class ProcessorConfig:
         *,
         quantum_processor_config: quantum.QuantumProcessorConfig,
         processor: cg.engine.AbstractProcessor,
-        device_version: DeviceVersion | None = None,
+        device_config_revision: DeviceConfigRevision | None = None,
     ) -> None:
         """Contructs a Processor Config.
 
         Args:
             quantum_processor_config: The quantum processor config.
+            processor: The processor that this config describes.
             processor: The processor that this config describes.
         """
         self._quantum_processor_config = quantum_processor_config
@@ -71,7 +74,7 @@ class ProcessorConfig:
                 self._quantum_processor_config.characterization, v2.metrics_pb2.MetricsSnapshot()
             )
         )
-        self._device_vesion = device_version
+        self._device_vesion = device_config_revision
         self._processor = processor
 
     @property
@@ -99,6 +102,7 @@ class ProcessorConfig:
     def run_name(self) -> str:
         """The run that generated this config if avaiable."""
         return self._device_vesion.id if isinstance(self._device_vesion, Run) else ''
+        return self._device_vesion.id if isinstance(self._device_vesion, Run) else ''
 
     @property
     def processor_id(self) -> str:
@@ -111,6 +115,28 @@ class ProcessorConfig:
         """The unique identifier for this config."""
         parts = self._quantum_processor_config.name.split('/')
         return parts[-1]
+
+    def sampler(self, max_concurrent_jobs: int = 100) -> processor_sampler.ProcessorSampler:
+        """Returns the sampler backed by this config.
+
+        Args:
+            max_concurrent_jobs: The maximum number of jobs to be sent
+                simultaneously to the Engine. This client-side throttle can be
+                used to proactively reduce load to the backends and avoid quota
+                violations when pipelining circuit executions.
+
+        Returns:
+            A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
+            that will send circuits to the Quantum Computing Service
+            when sampled.
+        """
+        return processor_sampler.ProcessorSampler(
+            processor=self._processor,
+            run_name=self.run_name,
+            snapshot_id=self.snapshot_id,
+            device_config_name=self.config_name,
+            max_concurrent_jobs=max_concurrent_jobs,
+        )
 
     def sampler(self, max_concurrent_jobs: int = 100) -> processor_sampler.ProcessorSampler:
         """Returns the sampler backed by this config.
