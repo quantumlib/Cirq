@@ -33,7 +33,6 @@ import cirq_google.engine.stream_manager as engine_stream_manager
 from cirq_google.cloud import quantum
 from cirq_google.engine.engine_client import EngineClient, EngineException
 from cirq_google.engine.processor_config import Run, Snapshot
-from cirq_google.engine.processor_config import Run, Snapshot
 
 # JOB_PATH represents the path to a specific job.
 JOB_PATH = 'projects/proj/programs/prog/jobs/job0'
@@ -1899,7 +1898,7 @@ def test_list_quantum_processor_configs_from_run_name(client_constructor, defaul
 
     assert (
         default_engine_client.list_quantum_processor_configs(
-            project_id=project_id, processor_id=processor_id, device_version=run
+            project_id=project_id, processor_id=processor_id, device_config_revision=run
         )
         == expected_results
     )
@@ -1928,7 +1927,7 @@ def test_list_quantum_processor_configs_from_snapshot(client_constructor, defaul
 
     assert (
         default_engine_client.list_quantum_processor_configs(
-            project_id=project_id, processor_id=processor_id, device_version=snapshot
+            project_id=project_id, processor_id=processor_id, device_config_revision=snapshot
         )
         == expected_results
     )

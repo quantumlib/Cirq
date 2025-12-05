@@ -22,7 +22,6 @@ from cirq_google.cloud import quantum
 from cirq_google.devices import GridDevice
 from cirq_google.engine import util
 from cirq_google.engine.processor_config import Run
-from cirq_google.engine.processor_config import Run
 
 _METRIC_SNAPSHOT = v2.metrics_pb2.MetricsSnapshot(
     timestamp_ms=1562544000021,

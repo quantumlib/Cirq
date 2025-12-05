@@ -1220,11 +1220,11 @@ class EngineClient:
                 return None
             raise
         try:
-            name = _quantum_processor_config_name_from_device_version(
+            name = _quantum_processor_config_name_from_device_config_revision(
                 project_id=project_id,
                 processor_id=processor_id,
                 config_name=config_name,
-                device_version=device_version,
+                device_config_revision=device_config_revision,
             )
             request = quantum.GetQuantumProcessorConfigRequest(name=name)
             return await self._send_request_async(
@@ -1238,20 +1238,25 @@ class EngineClient:
     get_quantum_processor_config = duet.sync(get_quantum_processor_config_async)
 
     async def list_quantum_processor_configs_async(
-        self, project_id: str, processor_id: str, device_version: DeviceVersion = Run(id='current')
+        self,
+        project_id: str,
+        processor_id: str,
+        device_config_revision: DeviceConfigRevision = Run(id='current'),
     ) -> list[quantum.QuantumProcessorConfig]:
         """Returns the QuantumProcessorConfig for the given snapshot id.
 
         Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
-            device_version: Specifies either the snapshot_id or the run_name.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
 
         Returns:
             List of quantum procesor configs.
         """
-        parent_resource_name = _quantum_processor_config_name_from_device_version(
-            project_id=project_id, processor_id=processor_id, device_version=device_version
+        parent_resource_name = _quantum_processor_config_name_from_device_config_revision(
+            project_id=project_id,
+            processor_id=processor_id,
+            device_config_revision=device_config_revision,
         )
         request = quantum.ListQuantumProcessorConfigsRequest(parent=parent_resource_name)
         return await self._send_list_request_async(
@@ -1312,20 +1317,26 @@ def _ids_from_calibration_name(calibration_name: str) -> tuple[str, str, int]:
 def _quantum_processor_config_name_from_device_config_revision(
     project_id: str,
     processor_id: str,
-    config_name: str,
+    config_name: str | None = None,
     device_config_revision: DeviceConfigRevision | None = None,
 ) -> str:
     processor_resource_name = _processor_name_from_ids(project_id, processor_id)
     if isinstance(device_config_revision, Snapshot):
         return (
             f'{processor_resource_name}/'
-            f'configSnapshots/{device_config_revision.id}/'
-            f'configs/{config_name}'
+            f'configSnapshots/{device_config_revision.id}/configs'
+            f'/{config_name}'
+            if config_name
+            else ''
         )
 
     default_run_name = 'default'
     run_id = device_config_revision.id if device_config_revision else default_run_name
-    return f'{processor_resource_name}/configAutomationRuns/{run_id}/configs/{config_name}'
+    return (
+        f'{processor_resource_name}/' f'configAutomationRuns/{run_id}/configs' f'/{config_name}'
+        if config_name
+        else ''
+    )
 
 
 def _date_or_time_to_filter_expr(param_name: str, param: datetime.datetime | datetime.date):

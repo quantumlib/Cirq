@@ -29,9 +29,7 @@ import cirq_google as cg
 from cirq_google.api import v2
 from cirq_google.cloud import quantum
 from cirq_google.engine import engine_client, util
-from cirq_google.engine import engine_client, util
 from cirq_google.engine.engine import EngineContext
-from cirq_google.engine.processor_config import ProcessorConfig, Run, Snapshot
 from cirq_google.engine.processor_config import ProcessorConfig, Run, Snapshot
 
 
@@ -1135,13 +1133,6 @@ def test_get_config_from_snapshot(client):
     )
 
     actual_config = processor.get_config(config_name=config_name, device_config_revision=snapshot)
-    client().get_quantum_processor_config_async.return_value = quantum_config
-    expected_config = ProcessorConfig(
-        processor=processor, quantum_processor_config=quantum_config, device_version=snapshot
-    )
-
-    client().get_quantum_processor_config_async.assert_called_once_with(
-    actual_config = processor.get_config(config_name=config_name, device_version=snapshot)
 
     client().get_quantum_processor_config_async.assert_called_once_with(
         project_id=project_id,
@@ -1175,7 +1166,7 @@ def test_get_config_not_found(client):
     client().get_quantum_processor_config_async.assert_called_once_with(
         project_id=project_id,
         processor_id=processor_id,
-        device_version=default_run,
+        device_config_revision=default_run,
         config_name=config_name,
     )
 
@@ -1207,18 +1198,18 @@ def test_list_configs_from_snapshot(client):
         ProcessorConfig(
             processor=processor,
             quantum_processor_config=quantum_configs[0],
-            device_version=snapshot,
+            device_config_revision=snapshot,
         ),
         ProcessorConfig(
             processor=processor,
             quantum_processor_config=quantum_configs[1],
-            device_version=snapshot,
+            device_config_revision=snapshot,
         ),
     ]
 
-    results = processor.list_configs(device_version=snapshot)
+    results = processor.list_configs(device_config_revision=snapshot)
     client().list_quantum_processor_configs_async.assert_called_once_with(
-        project_id=project_id, processor_id=processor_id, device_version=snapshot
+        project_id=project_id, processor_id=processor_id, device_config_revision=snapshot
     )
 
     assert results[0].snapshot_id == expected_configs[0].snapshot_id
@@ -1261,17 +1252,21 @@ def test_list_configs_from_run(client):
 
     expected_configs = [
         ProcessorConfig(
-            processor=processor, quantum_processor_config=quantum_configs[0], device_version=run
+            processor=processor,
+            quantum_processor_config=quantum_configs[0],
+            device_config_revision=run,
         ),
         ProcessorConfig(
-            processor=processor, quantum_processor_config=quantum_configs[1], device_version=run
+            processor=processor,
+            quantum_processor_config=quantum_configs[1],
+            device_config_revision=run,
         ),
     ]
 
-    results = processor.list_configs(device_version=run)
+    results = processor.list_configs(device_config_revision=run)
 
     client().list_quantum_processor_configs_async.assert_called_once_with(
-        project_id=project_id, processor_id=processor_id, device_version=run
+        project_id=project_id, processor_id=processor_id, device_config_revision=run
     )
 
     assert results[0].snapshot_id == expected_configs[0].snapshot_id

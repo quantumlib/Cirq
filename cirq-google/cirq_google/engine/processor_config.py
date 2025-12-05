@@ -16,8 +16,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, TypeAlias
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, TypeAlias
 
 import cirq_google as cg
 from cirq_google.api import v2
@@ -115,28 +113,6 @@ class ProcessorConfig:
         """The unique identifier for this config."""
         parts = self._quantum_processor_config.name.split('/')
         return parts[-1]
-
-    def sampler(self, max_concurrent_jobs: int = 100) -> processor_sampler.ProcessorSampler:
-        """Returns the sampler backed by this config.
-
-        Args:
-            max_concurrent_jobs: The maximum number of jobs to be sent
-                simultaneously to the Engine. This client-side throttle can be
-                used to proactively reduce load to the backends and avoid quota
-                violations when pipelining circuit executions.
-
-        Returns:
-            A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
-            that will send circuits to the Quantum Computing Service
-            when sampled.
-        """
-        return processor_sampler.ProcessorSampler(
-            processor=self._processor,
-            run_name=self.run_name,
-            snapshot_id=self.snapshot_id,
-            device_config_name=self.config_name,
-            max_concurrent_jobs=max_concurrent_jobs,
-        )
 
     def sampler(self, max_concurrent_jobs: int = 100) -> processor_sampler.ProcessorSampler:
         """Returns the sampler backed by this config.

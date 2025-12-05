@@ -670,7 +670,9 @@ class Engine(abstract_engine.AbstractEngine):
     async def list_configs_async(
         self,
         processor_id: str,
-        device_version: processor_config.DeviceVersion = processor_config.Run(id='current'),
+        device_config_revision: processor_config.DeviceConfigRevision = processor_config.Run(
+            id='current'
+        ),
     ) -> list[processor_config.ProcessorConfig]:
         """Returns list of ProcessorConfigs from an automation run.
 
@@ -682,14 +684,16 @@ class Engine(abstract_engine.AbstractEngine):
             List of ProcessorConfigs.
         """
         configs = await self.context.client.list_quantum_processor_configs_async(
-            project_id=self.project_id, processor_id=processor_id, device_version=device_version
+            project_id=self.project_id,
+            processor_id=processor_id,
+            device_config_revision=device_config_revision,
         )
 
         return [
             processor_config.ProcessorConfig(
                 quantum_processor_config=quantum_config,
                 processor=self.get_processor(processor_id=processor_id),
-                device_version=device_version,
+                device_config_revision=device_config_revision,
             )
             for quantum_config in configs
         ]
