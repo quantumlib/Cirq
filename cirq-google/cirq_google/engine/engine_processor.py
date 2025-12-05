@@ -534,6 +534,28 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             config_name=config_name if config_name else default_device_key.config_alias,
         )
 
+    def list_configs(
+        self, device_config_revision: processor_config.DeviceConfigRevision | None = None
+    ) -> list[processor_config.ProcessorConfig]:
+        """Returns list of ProcessorConfigs from the given snapshot.
+
+        Args:
+           processor_id: The processor unique identifier.
+           device_version: Specifies either the snapshot_id or the run_name.
+
+        Returns:
+           List of ProcessorConfigs for this processor.
+        """
+        default_device_key = self._inner_processor().default_device_config_key
+        device_revsion = (
+            device_config_revision
+            if device_config_revision
+            else processor_config.Run(default_device_key.run)
+        )
+        return self.engine().list_configs(
+            processor_id=self.processor_id, device_config_revision=device_revsion
+        )
+
     def __str__(self):
         return (
             f"EngineProcessor(project_id={self.project_id!r}, "
