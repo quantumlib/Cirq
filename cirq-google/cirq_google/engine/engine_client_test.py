@@ -1808,8 +1808,6 @@ def test_get_quantum_processor_config_from_run(client_constructor, default_engin
     grpc_client = _setup_client_mock(client_constructor)
     expected_result = quantum.QuantumProcessorConfig(name=resource_name)
     grpc_client.get_quantum_processor_config.return_value = expected_result
-    expected_result = quantum.QuantumProcessorConfig(name=resource_name)
-    grpc_client.get_quantum_processor_config.return_value = expected_result
 
     assert (
         default_engine_client.get_quantum_processor_config(

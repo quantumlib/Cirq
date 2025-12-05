@@ -58,7 +58,7 @@ class ProcessorConfig:
         Args:
             quantum_processor_config: The quantum processor config.
             processor: The processor that this config describes.
-            processor: The processor that this config describes.
+            device_config_revision: Run or Snapshot id.
         """
         self._quantum_processor_config = quantum_processor_config
         self._grid_device = cg.GridDevice.from_proto(
@@ -99,7 +99,6 @@ class ProcessorConfig:
     @property
     def run_name(self) -> str:
         """The run that generated this config if avaiable."""
-        return self._device_vesion.id if isinstance(self._device_vesion, Run) else ''
         return self._device_vesion.id if isinstance(self._device_vesion, Run) else ''
 
     @property
