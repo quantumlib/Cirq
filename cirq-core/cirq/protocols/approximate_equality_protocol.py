@@ -141,6 +141,11 @@ def _approx_eq_iterables(val: Iterable, other: Iterable, *, atol: float) -> bool
         types.
     """
 
+    if isinstance(val, set):
+        val = sorted(val)
+    if isinstance(other, set):
+        other = sorted(other)
+
     iter1 = iter(val)
     iter2 = iter(other)
     done = object()
