@@ -50,7 +50,11 @@ def _transform_circuit(circuit: circuits.Circuit) -> circuits.Circuit:
     circuit = circuit + circuits.Circuit(ops.measure(*qubits, key="m"))
     circuit = transformers.align_right(transformers.merge_single_qubit_gates_to_phxz(circuit))
     circuit = transformers.stratified_circuit(
-        circuit[::-1], categories=[lambda op: protocols.num_qubits(op) == k for k in (1, 2)]
+        circuit[::-1],
+        categories=[
+            lambda op: protocols.num_qubits(op) == 1,
+            lambda op: protocols.num_qubits(op) == 2,
+        ],
     )[::-1]
     circuit = transformers.add_dynamical_decoupling(circuit)
     circuit = circuits.Circuit(circuit[:-1])

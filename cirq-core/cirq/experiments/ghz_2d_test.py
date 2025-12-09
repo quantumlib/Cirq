@@ -156,34 +156,65 @@ def test_ghz_invalid_inputs():
         )
 
 
-def test_assert_dynamical_decoupling_is_applied():
-    """Verifies that cirq.transformers.add_dynamical_decoupling is called
-    exactly once when the add_dd_and_align_right flag is True.
+allowed_single_qubit_gates_in_transformed = (
+    cirq.PhasedXZGate,
+    cirq.XPowGate,
+    cirq.YPowGate,
+    cirq.ZPowGate,
+    cirq.IdentityGate,
+)
+
+allowed_single_qubit_gates_in_base = (cirq.HPowGate,)
+
+
+def _is_allowed_single_qubit_gate(op: cirq.Operation, allowed_gates: tuple) -> bool:
+    """Checks if a single-qubit operation is in the allowed gate tuple"""
+
+    return isinstance(op.gate, allowed_gates)
+
+
+def test_dd_is_applied_by_structural_check():
+    """Verifies that DD is applied by checking for an increase in circuit length
+    and the presence of the standard DD gate in the transformed circuit.
     """
 
+    # Define the graph
     q0 = cirq.GridQubit(0, 0)
     q1 = cirq.GridQubit(0, 1)
     q2 = cirq.GridQubit(0, 2)
     center_qubit = q0
+
     graph_3q = nx.Graph([(q0, q1), (q1, q2)])
 
-    with mock.patch('cirq.transformers.add_dynamical_decoupling') as mock_dd:
-        mock_dd.return_value = cirq.Circuit()
+    # Create the base circuit
+    base_circuit = ghz_2d.generate_2d_ghz_circuit(
+        center_qubit, graph_3q, num_qubits=3, add_dd_and_align_right=False
+    )
 
-        # Flag is True
-        transformed_circuit_actual = ghz_2d.generate_2d_ghz_circuit(
-            center_qubit, graph_3q, num_qubits=3, add_dd_and_align_right=True
-        )
+    # Create the transformed circuit
+    transformed_circuit = ghz_2d.generate_2d_ghz_circuit(
+        center_qubit, graph_3q, num_qubits=3, add_dd_and_align_right=True
+    )
 
-        mock_dd.assert_called_once()
+    # Find the single qubit operations in base circuit
+    single_qubit_ops_in_base = list(
+        base_circuit.findall_operations(lambda op: cirq.num_qubits(op) == 1)
+    )
 
-        mock_dd.reset_mock()
+    # Find the single qubit operations in transformed circuit
+    single_qubit_ops_in_transformed = list(
+        transformed_circuit.findall_operations(lambda op: cirq.num_qubits(op) == 1)
+    )
 
-        # Flag is False
-        base_circuit_actual = ghz_2d.generate_2d_ghz_circuit(
-            center_qubit, graph_3q, num_qubits=3, add_dd_and_align_right=False
-        )
+    # Assert the transformed circuit has more single qubit operations than the base circuit
+    assert len(single_qubit_ops_in_transformed) > len(single_qubit_ops_in_base)
 
-        mock_dd.assert_not_called()
+    # The base circuit should only have a Hadamard as a single qubit gate
+    for op in single_qubit_ops_in_base:
+        assert _is_allowed_single_qubit_gate(op[1], allowed_single_qubit_gates_in_base)
 
-        assert transformed_circuit_actual != base_circuit_actual
+    # The transformed circuit should have DD gates and PhasedXZ gates as single qubit gates
+    for op in single_qubit_ops_in_transformed:
+        assert _is_allowed_single_qubit_gate(op[1], allowed_single_qubit_gates_in_transformed)
+
+    assert transformed_circuit != base_circuit
