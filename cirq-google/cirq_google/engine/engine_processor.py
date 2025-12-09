@@ -101,22 +101,17 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
 
     def get_sampler(
         self,
-        run_name: str = "",
-        device_config_name: str = "",
-        snapshot_id: str = "",
+        device_config_name: str | None = None,
+        device_config_revision: processor_config.DeviceConfigRevision | None = None,
         max_concurrent_jobs: int = 100,
     ) -> cg.engine.ProcessorSampler:
-        """Returns a sampler backed by the engine.
+        """Returns the default sampler backed by the engine.
+
         Args:
-            run_name: A unique identifier representing an automation run for the
-                processor. An Automation Run contains a collection of device
-                configurations for the processor.
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
-            snapshot_id: A unique identifier for an immutable snapshot reference.
-                A snapshot contains a collection of device configurations for the
-                processor.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
             max_concurrent_jobs: The maximum number of jobs to be sent
                 simultaneously to the Engine. This client-side throttle can be
                 used to proactively reduce load to the backends and avoid quota
@@ -127,27 +122,33 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             that will send circuits to the Quantum Computing Service
             when sampled.
 
-        Raises:
-            ValueError: If only one of `run_name` and `device_config_name` are specified.
-            ValueError: If both `run_name` and `snapshot_id` are specified.
-
         """
         processor = self._inner_processor()
-        if run_name and snapshot_id:
-            raise ValueError('Cannot specify both `run_name` and `snapshot_id`')
-        if (bool(run_name) or bool(snapshot_id)) ^ bool(device_config_name):
-            raise ValueError(
-                'Cannot specify only one of top level identifier and `device_config_name`'
+
+        device_config_name = (
+            device_config_name
+            if device_config_name
+            else processor.default_device_config_key.config_alias
+        )
+
+        if isinstance(device_config_revision, processor_config.Snapshot):
+            return processor_sampler.ProcessorSampler(
+                processor=self,
+                snapshot_id=device_config_revision.id,
+                device_config_name=device_config_name,
+                max_concurrent_jobs=max_concurrent_jobs,
             )
-        # If not provided, initialize the sampler with the Processor's default values.
-        if not run_name and not device_config_name and not snapshot_id:
-            run_name = processor.default_device_config_key.run
-            device_config_name = processor.default_device_config_key.config_alias
-            snapshot_id = processor.default_device_config_key.snapshot_id
+        if isinstance(device_config_revision, processor_config.Run):
+            return processor_sampler.ProcessorSampler(
+                processor=self,
+                run_name=device_config_revision.id,
+                device_config_name=device_config_name,
+                max_concurrent_jobs=max_concurrent_jobs,
+            )
+
         return processor_sampler.ProcessorSampler(
             processor=self,
-            run_name=run_name,
-            snapshot_id=snapshot_id,
+            run_name=processor.default_device_config_key.run,
             device_config_name=device_config_name,
             max_concurrent_jobs=max_concurrent_jobs,
         )
@@ -503,8 +504,10 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         filter_str = ' AND '.join(filters)
         return self.context.client.list_time_slots(self.project_id, self.processor_id, filter_str)
 
-    def get_config_from_run(
-        self, run_name: str = 'current', config_name: str = 'default'
+    def get_config(
+        self,
+        device_config_revision: processor_config.DeviceConfigRevision | None = None,
+        config_name: str = '',
     ) -> processor_config.ProcessorConfig | None:
         """Retrieves a ProcessorConfig from an automation run.
 
@@ -513,35 +516,22 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
 
         Args:
             processor_id: The processor unique identifier.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
             config_name: The quantum processor's unique identifier.
             run_name: The automation run name.  Use 'default'
                       if none id provided.
 
         Returns: The quantum processor config.
         """
-        return self.engine().get_processor_config_from_run(
-            processor_id=self.processor_id, run_name=run_name, config_name=config_name
-        )
-
-    def get_config_from_snapshot(
-        self, snapshot_id: str, config_name: str = 'default'
-    ) -> processor_config.ProcessorConfig | None:
-        """Retrieves a ProcessorConfig from a given snapshot id.
-
-        If not `config_name` is specified, the internally configured default is returned.
-
-        Args:
-            processor_id: The processor unique identifier.
-            config_name: The quantum processor's unique identifier.
-            snapshot_id: The snapshot's unique identifier.
-
-        Returns: The quantum processor config.
-
-        Raises:
-            EngineException: If the request to get the config fails.
-        """
-        return self.engine().get_processor_config_from_snapshot(
-            processor_id=self.processor_id, snapshot_id=snapshot_id, config_name=config_name
+        default_device_key = self._inner_processor().default_device_config_key
+        return self.engine().get_processor_config(
+            processor_id=self.processor_id,
+            device_config_revision=(
+                device_config_revision
+                if device_config_revision
+                else processor_config.Run(default_device_key.run)
+            ),
+            config_name=config_name if config_name else default_device_key.config_alias,
         )
 
     def __str__(self):
