@@ -15,7 +15,6 @@
 """Tests for generating and validating 2D GHZ state circuits."""
 
 from typing import cast
-from unittest import mock
 
 import networkx as nx
 import numpy as np
