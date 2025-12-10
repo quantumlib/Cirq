@@ -1039,7 +1039,7 @@ def test_get_processor_config_from_snapshot_none(get_quantum_config_async):
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_quantum_processor_configs_async')
-def test_list_configs_from_run(list_configs_async):
+def test_list_processor_configs_from_run(list_processor_configs_async):
     project_id = "test_project_id"
     processor_id = "test_processor_id"
     run = Run(id="test_run_name")
@@ -1052,13 +1052,13 @@ def test_list_configs_from_run(list_configs_async):
         quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_2'),
     ]
 
-    list_configs_async.return_value = expected_configs
+    list_processor_configs_async.return_value = expected_configs
 
-    results = cg.Engine(project_id=project_id).list_configs(
+    results = cg.Engine(project_id=project_id).list_processor_configs(
         processor_id=processor_id, device_config_revision=run
     )
 
-    list_configs_async.assert_called_once_with(
+    list_processor_configs_async.assert_called_once_with(
         project_id=project_id, processor_id=processor_id, device_config_revision=run
     )
     assert [
@@ -1071,7 +1071,7 @@ def test_list_configs_from_run(list_configs_async):
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_quantum_processor_configs_async')
-def test_list_configs_from_run_default(list_configs_async):
+def test_list_processor_configs_from_run_default(list_processor_configs_async):
     project_id = "test_project_id"
     processor_id = "test_processor_id"
     default_run = Run(id="current")
@@ -1084,11 +1084,11 @@ def test_list_configs_from_run_default(list_configs_async):
         quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_2'),
     ]
 
-    list_configs_async.return_value = expected_configs
+    list_processor_configs_async.return_value = expected_configs
 
-    results = cg.Engine(project_id=project_id).list_configs(processor_id=processor_id)
+    results = cg.Engine(project_id=project_id).list_processor_configs(processor_id=processor_id)
 
-    list_configs_async.assert_called_once_with(
+    list_processor_configs_async.assert_called_once_with(
         project_id=project_id, processor_id=processor_id, device_config_revision=default_run
     )
     assert [
@@ -1101,7 +1101,7 @@ def test_list_configs_from_run_default(list_configs_async):
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_quantum_processor_configs_async')
-def test_list_configs_from_snapshot(list_configs_async):
+def test_list_processor_configs_from_snapshot(list_processor_configs_async):
     project_id = "test_project_id"
     processor_id = "test_processor_id"
     snapshot = Snapshot(id="test_snapshot_id")
@@ -1113,13 +1113,13 @@ def test_list_configs_from_snapshot(list_configs_async):
         quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_2'),
     ]
 
-    list_configs_async.return_value = expected_configs
+    list_processor_configs_async.return_value = expected_configs
 
-    results = cg.Engine(project_id=project_id).list_configs(
+    results = cg.Engine(project_id=project_id).list_processor_configs(
         processor_id=processor_id, device_config_revision=snapshot
     )
 
-    list_configs_async.assert_called_once_with(
+    list_processor_configs_async.assert_called_once_with(
         project_id=project_id, processor_id=processor_id, device_config_revision=snapshot
     )
     assert [

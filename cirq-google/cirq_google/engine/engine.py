@@ -667,7 +667,7 @@ class Engine(abstract_engine.AbstractEngine):
 
     get_processor_config = duet.sync(get_processor_config_async)
 
-    async def list_configs_async(
+    async def list_processor_configs_async(
         self,
         processor_id: str,
         device_config_revision: processor_config.DeviceConfigRevision = processor_config.Run(
@@ -698,7 +698,7 @@ class Engine(abstract_engine.AbstractEngine):
             for quantum_config in configs
         ]
 
-    list_configs = duet.sync(list_configs_async)
+    list_processor_configs = duet.sync(list_processor_configs_async)
 
 
 def get_engine(project_id: str | None = None) -> Engine:
