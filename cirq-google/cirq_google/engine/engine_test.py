@@ -1045,7 +1045,7 @@ def test_list_processor_configs_from_run(list_processor_configs_async):
     run = Run(id="test_run_name")
     snapshot_id = 'test_snapshot_id'
     response_parent_resource = (
-        f'projects/{project_id}/' f'processors/{processor_id}/' f'configSnapshots/{snapshot_id}'
+        f'projects/{project_id}/processors/{processor_id}/configSnapshots/{snapshot_id}'
     )
     expected_configs = [
         quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_1'),
@@ -1077,7 +1077,7 @@ def test_list_processor_configs_from_run_default(list_processor_configs_async):
     default_run = Run(id="current")
     snapshot_id = "test_snapshot_id"
     response_parent_resource = (
-        f'projects/{project_id}/' f'processors/{processor_id}/' f'configSnapshots/{snapshot_id}'
+        f'projects/{project_id}/processors/{processor_id}/configSnapshots/{snapshot_id}'
     )
     expected_configs = [
         quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_1'),
@@ -1106,7 +1106,7 @@ def test_list_processor_configs_from_snapshot(list_processor_configs_async):
     processor_id = "test_processor_id"
     snapshot = Snapshot(id="test_snapshot_id")
     response_parent_resource = (
-        f'projects/{project_id}/' f'processors/{processor_id}/' f'configSnapshots/{snapshot.id}'
+        f'projects/{project_id}/processors/{processor_id}/configSnapshots/{snapshot.id}'
     )
     expected_configs = [
         quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_1'),
