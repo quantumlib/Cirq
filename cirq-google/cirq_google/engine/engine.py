@@ -678,7 +678,7 @@ class Engine(abstract_engine.AbstractEngine):
 
         Args:
             processor_id: The processor unique identifier.
-            device_version: Specifies either the snapshot_id or the run_name.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
 
         Returns:
             List of ProcessorConfigs.
