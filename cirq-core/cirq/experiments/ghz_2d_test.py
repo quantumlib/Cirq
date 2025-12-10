@@ -155,27 +155,8 @@ def test_ghz_invalid_inputs():
         )
 
 
-allowed_single_qubit_gates_in_transformed = (
-    cirq.PhasedXZGate,
-    cirq.XPowGate,
-    cirq.YPowGate,
-    cirq.ZPowGate,
-    cirq.IdentityGate,
-)
-
-allowed_single_qubit_gates_in_base = (cirq.HPowGate,)
-
-
-def _is_allowed_single_qubit_gate(op: cirq.Operation, allowed_gates: tuple) -> bool:
-    """Checks if a single-qubit operation is in the allowed gate tuple"""
-
-    return isinstance(op.gate, allowed_gates)
-
-
-def test_dd_is_applied_by_structural_check():
-    """Verifies that DD is applied by checking for an increase in circuit length
-    and the presence of the standard DD gate in the transformed circuit.
-    """
+def test_dynamical_decoupling_is_applied() -> None:
+    """Verifies that DD is applied for the add_dd_and_align_right flag."""
 
     # Define the graph
     q0 = cirq.GridQubit(0, 0)
@@ -195,25 +176,30 @@ def test_dd_is_applied_by_structural_check():
         center_qubit, graph_3q, num_qubits=3, add_dd_and_align_right=True
     )
 
-    # Find the single qubit operations in base circuit
-    single_qubit_ops_in_base = list(
-        base_circuit.findall_operations(lambda op: cirq.num_qubits(op) == 1)
-    )
+    assert transformed_circuit != base_circuit
 
-    # Find the single qubit operations in transformed circuit
-    single_qubit_ops_in_transformed = list(
-        transformed_circuit.findall_operations(lambda op: cirq.num_qubits(op) == 1)
-    )
+    single_qubit_gates_in_base = [
+        op.gate for op in base_circuit.all_operations() if cirq.num_qubits(op) == 1
+    ]
 
-    # Assert the transformed circuit has more single qubit operations than the base circuit
-    assert len(single_qubit_ops_in_transformed) > len(single_qubit_ops_in_base)
+    single_qubit_gates_in_transformed = [
+        op.gate for op in transformed_circuit.all_operations() if cirq.num_qubits(op) == 1
+    ]
+
+    assert len(single_qubit_gates_in_transformed) > len(single_qubit_gates_in_base)
 
     # The base circuit should only have a Hadamard as a single qubit gate
-    for op in single_qubit_ops_in_base:
-        assert _is_allowed_single_qubit_gate(op[1], allowed_single_qubit_gates_in_base)
+    assert all(isinstance(gate, cirq.HPowGate) for gate in single_qubit_gates_in_base)
 
     # The transformed circuit should have DD gates and PhasedXZ gates as single qubit gates
-    for op in single_qubit_ops_in_transformed:
-        assert _is_allowed_single_qubit_gate(op[1], allowed_single_qubit_gates_in_transformed)
-
-    assert transformed_circuit != base_circuit
+    allowed_single_qubit_gates_in_transformed = (
+        cirq.PhasedXZGate,
+        cirq.XPowGate,
+        cirq.YPowGate,
+        cirq.ZPowGate,
+        cirq.IdentityGate,
+    )
+    assert all(
+        isinstance(gate, allowed_single_qubit_gates_in_transformed)
+        for gate in single_qubit_gates_in_transformed
+    )
