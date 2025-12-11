@@ -36,13 +36,13 @@ print(text)
 The JSON can also be written to a file:
 
 ```python
-cirq.to_json(obj, 'cirq_object.json')
+cirq.to_json(obj, filepath)
 ```
 
 Or read back in from a file:
 
 ```python
-obj = cirq.read_json('cirq_object.json')
+obj = cirq.read_json(filepath)
 ```
 
 Or read back in from a string:

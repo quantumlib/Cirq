@@ -62,6 +62,14 @@ import pytest
 import cirq
 
 DOCS_FOLDER = pathlib.Path(__file__).parent.parent / 'docs'
+DEFAULT_STATE: dict[str, Any] = {}
+
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_default_state(tmp_path_factory) -> None:
+    """Provide writeable `filepath` variable for snippet execution namespace."""
+    scratch_dir = tmp_path_factory.mktemp("snippets_test")
+    DEFAULT_STATE["filepath"] = str(scratch_dir / "filepath")
 
 
 def test_can_run_readme_code_snippets():
@@ -251,7 +259,7 @@ def assert_code_snippets_run_in_sequence(snippets: list[tuple[str, int]], assume
     snippet will be visible in later snippets.
     """
 
-    state: dict[str, Any] = {}
+    state: dict[str, Any] = DEFAULT_STATE.copy()
 
     if assume_import:
         exec('import cirq', state)
