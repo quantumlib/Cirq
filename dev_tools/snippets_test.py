@@ -82,8 +82,8 @@ def test_can_run_readme_code_snippets():
 
 def find_docs_code_snippets_paths() -> Iterator[str]:
     for filename in DOCS_FOLDER.rglob('*.md'):
-        # Skip files under either 'hardware' and 'google', since there are a lot of
-        # code snippets import cirq_* which can't resolved in the test.
+        # Skip files under either 'hardware' and 'google'
+        # TODO: #7787 - revisit which of these can be fixed and enabled later.
         path = str(filename.relative_to(DOCS_FOLDER))
         if not path.startswith(('hardware', 'google')):
             yield path
