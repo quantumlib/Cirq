@@ -51,7 +51,6 @@ In addition to checking that the code executes:
 from __future__ import annotations
 
 import inspect
-import os
 import pathlib
 import re
 from collections.abc import Iterator
@@ -67,8 +66,8 @@ DOCS_FOLDER = pathlib.Path(__file__).parent.parent / 'docs'
 
 def test_can_run_readme_code_snippets():
     # Get the contents of the README.md file at the project root.
-    readme_path = 'README.md'
-    assert readme_path is not None
+    readme_path = DOCS_FOLDER.parent / 'README.md'
+    assert readme_path.exists()
 
     assert_file_has_working_code_snippets(readme_path, assume_import=False)
 
@@ -84,7 +83,7 @@ def find_docs_code_snippets_paths() -> Iterator[str]:
 
 @pytest.mark.parametrize('path', find_docs_code_snippets_paths())
 def test_can_run_docs_code_snippets(path):
-    assert_file_has_working_code_snippets(os.path.join(DOCS_FOLDER, path), assume_import=True)
+    assert_file_has_working_code_snippets(DOCS_FOLDER / path, assume_import=True)
 
 
 def find_code_snippets(pattern: str, content: str) -> list[tuple[str, int]]:
@@ -232,17 +231,16 @@ universe
     )
 
 
-def assert_file_has_working_code_snippets(path: str, assume_import: bool):
+def assert_file_has_working_code_snippets(path: str | pathlib.Path, assume_import: bool):
     """Checks that code snippets in a file actually run."""
 
     with open(path, encoding='utf-8') as f:
         content = f.read()
 
     # Find snippets of code, and execute them. They should finish.
-    if path.endswith('.md'):
-        overrides = find_markdown_test_overrides(content)
-        content = apply_overrides(content, overrides)
-        snippets = find_markdown_code_snippets(content)
+    overrides = find_markdown_test_overrides(content)
+    content = apply_overrides(content, overrides)
+    snippets = find_markdown_code_snippets(content)
     assert_code_snippets_run_in_sequence(snippets, assume_import)
 
 
