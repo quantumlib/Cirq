@@ -1205,12 +1205,12 @@ class EngineClient:
             EngineException: If the request to get the config fails.
         """
         try:
-            name = _quantum_processor_revision_path(
+            config_revision = _quantum_processor_revision_path(
                 project_id=project_id,
                 processor_id=processor_id,
                 device_config_revision=device_config_revision,
             )
-            request = quantum.GetQuantumProcessorConfigRequest(name=f'{name}/{config_name}')
+            request = quantum.GetQuantumProcessorConfigRequest(name=f'{config_revision}/configs/{config_name}')
             return await self._send_request_async(
                 self.grpc_client.get_quantum_processor_config, request
             )
@@ -1303,11 +1303,11 @@ def _quantum_processor_revision_path(
 ) -> str:
     processor_resource_name = _processor_name_from_ids(project_id, processor_id)
     if isinstance(device_config_revision, Snapshot):
-        return f'{processor_resource_name}/configSnapshots/{device_config_revision.id}/configs'
+        return f'{processor_resource_name}/configSnapshots/{device_config_revision.id}'
 
     default_run_name = 'default'
     run_id = device_config_revision.id if device_config_revision else default_run_name
-    return f'{processor_resource_name}/configAutomationRuns/{run_id}/configs'
+    return f'{processor_resource_name}/configAutomationRuns/{run_id}'
 
 
 def _date_or_time_to_filter_expr(param_name: str, param: datetime.datetime | datetime.date):

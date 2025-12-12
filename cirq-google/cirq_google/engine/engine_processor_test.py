@@ -1180,7 +1180,7 @@ def test_list_configs_from_snapshot(client):
     snapshot = Snapshot(id="test_snapshot_id")
     config_1 = "test_config_1"
     config_2 = "test_config_2"
-    name_prefix = f'projects/{project_id}/processors/{processor_id}/configSnapshots/{snapshot.id}/'
+    name_prefix = f'projects/{project_id}/processors/{processor_id}/configSnapshots/{snapshot.id}'
 
     quantum_configs = [
         quantum.QuantumProcessorConfig(name=f'{name_prefix}/configs/{config_1}'),
