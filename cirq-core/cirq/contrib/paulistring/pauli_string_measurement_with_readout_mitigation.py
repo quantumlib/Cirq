@@ -321,8 +321,6 @@ def _generate_basis_change_circuits_with_sweep(
             sweep_param = _pauli_strings_to_basis_change_with_sweep(pauli_strings, qid_list)
             parameterized_circuits.append(parameterized_circuit)
             sweep_params.append(sweep_param)
-    print("parameterized_circuits:", parameterized_circuits)
-    print("sweep_params:", sweep_params)
     return parameterized_circuits, sweep_params
 
 
@@ -418,14 +416,8 @@ def _process_pauli_measurement_results(
         )
 
         for pauli_str in pauli_strs:
-            print("pauli_strs:", pauli_strs)
             qubits_sorted = sorted(pauli_str.qubits)
             qubit_indices = [pauli_readout_qubits.index(q) for q in qubits_sorted]
-            print("qubits_sorted:", qubits_sorted)
-            print("qubit_indices:", qubit_indices)
-            print("readout_qubits:", pauli_readout_qubits)
-            print("measurement_results shape:", measurement_results.shape)
-            print("measurement_results:", measurement_results)
 
             if disable_readout_mitigation:
                 pauli_str_calibration_result = None
@@ -600,9 +592,6 @@ def measure_pauli_strings(
             )
         )
 
-    print(" circuits_results:", circuits_results)
-    print("--------------------------------")
-    print(" calibration_results:", calibration_results)
     # Process the results to calculate expectation values
     results: list[CircuitToPauliStringsMeasurementResult] = []
     circuit_result_index = 0
@@ -613,12 +602,10 @@ def measure_pauli_strings(
 
         circuits_results_for_group: Sequence[ResultDict] | Sequence[study.Result] = []
         if use_sweep:
-            circuits_results_for_group = cast(Sequence[Sequence[study.Result]], circuits_results)[i]
             raw_slice = cast(Sequence[Sequence[study.Result]], circuits_results)[
                 circuit_result_index : circuit_result_index + len(pauli_string_groups)
             ]
             circuits_results_for_group = [r[0] for r in raw_slice]
-            print(" circuits_results_for_group (sweep):", circuits_results_for_group)
 
         else:
             circuits_results_for_group = cast(Sequence[ResultDict], circuits_results)[
