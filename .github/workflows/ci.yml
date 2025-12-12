@@ -218,9 +218,7 @@ jobs:
       - name: Pytest check
         run: check/pytest -n auto --durations=20 --junit-xml=pytest-ubuntu-report.xml
       - name: Persist the test report
-        if: >-
-          (github.event_name == 'merge_group' || github.event_name == 'schedule') &&
-          matrix.python-version == '3.11'
+        if: github.event_name == 'merge_group' && matrix.python-version == '3.11'
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: pytest-ubuntu-report

@@ -58,6 +58,7 @@ class ProcessorConfig:
         Args:
             quantum_processor_config: The quantum processor config.
             processor: The processor that this config describes.
+            device_config_revision: Run or Snapshot id.
         """
         self._quantum_processor_config = quantum_processor_config
         self._grid_device = cg.GridDevice.from_proto(
