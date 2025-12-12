@@ -76,9 +76,16 @@ def test_freeze_and_unfreeze() -> None:
     cc = c.unfreeze()
     assert cc is not c
 
+    # Refreezing without modification returns original FrozenCircuit.
     fcc = cc.freeze()
     assert fcc.moments == f.moments
-    assert fcc is not f
+    assert fcc is f
+
+    # Modifying and refreezing returns new FrozenCircuit.
+    cc.append(cirq.X(a))
+    fcc2 = cc.freeze()
+    assert tuple(cc.moments) == fcc2.moments
+    assert fcc2 is not f
 
 
 def test_immutable() -> None:
