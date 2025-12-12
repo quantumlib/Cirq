@@ -33,11 +33,11 @@ def test_approx_eq_primitives() -> None:
     assert not cirq.approx_eq(0.0, 1e-10, atol=1e-11)
     assert cirq.approx_eq(complex(1, 1), complex(1.1, 1.2), atol=0.3)
     assert not cirq.approx_eq(complex(1, 1), complex(1.1, 1.2), atol=0.1)
-    assert cirq.approx_eq('ab', 'ab', atol=1e-3)
-    assert not cirq.approx_eq('ab', 'ac', atol=1e-3)
-    assert not cirq.approx_eq('1', '2', atol=999)
-    assert not cirq.approx_eq('test', 1, atol=1e-3)
-    assert not cirq.approx_eq('1', 1, atol=1e-3)
+    assert cirq.approx_eq("ab", "ab", atol=1e-3)
+    assert not cirq.approx_eq("ab", "ac", atol=1e-3)
+    assert not cirq.approx_eq("1", "2", atol=999)
+    assert not cirq.approx_eq("test", 1, atol=1e-3)
+    assert not cirq.approx_eq("1", 1, atol=1e-3)
 
 
 def test_approx_eq_mixed_primitives() -> None:
@@ -62,7 +62,7 @@ def test_numpy_dtype_compatibility() -> None:
 
     f_a, f_b, f_c = 0, 1e-8, 1
     f_types = [np.float16, np.float32, np.float64]
-    if hasattr(np, 'float128'):
+    if hasattr(np, "float128"):
         f_types.append(np.float128)
     for f_type in f_types:
         assert cirq.approx_eq(f_type(f_a), f_type(f_b), atol=1e-8)
@@ -70,7 +70,7 @@ def test_numpy_dtype_compatibility() -> None:
 
     c_a, c_b, c_c = 0, 1e-8j, 1j
     c_types = [np.complex64, np.complex128]
-    if hasattr(np, 'complex256'):
+    if hasattr(np, "complex256"):
         c_types.append(np.complex256)
     for c_type in c_types:
         assert cirq.approx_eq(c_type(c_a), c_type(c_b), atol=1e-8)
@@ -83,33 +83,33 @@ def test_fractions_compatibility() -> None:
 
 
 def test_decimal_compatibility() -> None:
-    assert cirq.approx_eq(Decimal('0'), Decimal('0.0000000001'), atol=1e-9)
-    assert not cirq.approx_eq(Decimal('0'), Decimal('0.00000001'), atol=1e-9)
-    assert not cirq.approx_eq(Decimal('NaN'), Decimal('-Infinity'), atol=1e-9)
+    assert cirq.approx_eq(Decimal("0"), Decimal("0.0000000001"), atol=1e-9)
+    assert not cirq.approx_eq(Decimal("0"), Decimal("0.00000001"), atol=1e-9)
+    assert not cirq.approx_eq(Decimal("NaN"), Decimal("-Infinity"), atol=1e-9)
 
 
 def test_approx_eq_mixed_types() -> None:
     assert cirq.approx_eq(np.float32(1), 1.0 + 1e-10, atol=1e-9)
     assert cirq.approx_eq(np.float64(1), np.complex64(1 + 1e-8j), atol=1e-4)
     assert cirq.approx_eq(np.uint8(1), np.complex64(1 + 1e-8j), atol=1e-4)
-    if hasattr(np, 'complex256'):
+    if hasattr(np, "complex256"):
         assert cirq.approx_eq(np.complex256(1), complex(1, 1e-8), atol=1e-4)
     assert cirq.approx_eq(np.int32(1), 1, atol=1e-9)
     assert cirq.approx_eq(complex(0.5, 0), Fraction(1, 2), atol=0.0)
     assert cirq.approx_eq(0.5 + 1e-4j, Fraction(1, 2), atol=1e-4)
     assert cirq.approx_eq(0, Fraction(1, 100000000), atol=1e-8)
-    assert cirq.approx_eq(np.uint16(1), Decimal('1'), atol=0.0)
-    assert cirq.approx_eq(np.float64(1.0), Decimal('1.00000001'), atol=1e-8)
-    assert not cirq.approx_eq(np.complex64(1e-5j), Decimal('0.001'), atol=1e-4)
+    assert cirq.approx_eq(np.uint16(1), Decimal("1"), atol=0.0)
+    assert cirq.approx_eq(np.float64(1.0), Decimal("1.00000001"), atol=1e-8)
+    assert not cirq.approx_eq(np.complex64(1e-5j), Decimal("0.001"), atol=1e-4)
 
 
 def test_approx_eq_special_numerics() -> None:
-    assert not cirq.approx_eq(float('nan'), 0, atol=0.0)
-    assert not cirq.approx_eq(float('nan'), float('nan'), atol=0.0)
-    assert not cirq.approx_eq(float('inf'), float('-inf'), atol=0.0)
-    assert not cirq.approx_eq(float('inf'), 5, atol=0.0)
-    assert not cirq.approx_eq(float('inf'), 0, atol=0.0)
-    assert cirq.approx_eq(float('inf'), float('inf'), atol=0.0)
+    assert not cirq.approx_eq(float("nan"), 0, atol=0.0)
+    assert not cirq.approx_eq(float("nan"), float("nan"), atol=0.0)
+    assert not cirq.approx_eq(float("inf"), float("-inf"), atol=0.0)
+    assert not cirq.approx_eq(float("inf"), 5, atol=0.0)
+    assert not cirq.approx_eq(float("inf"), 0, atol=0.0)
+    assert cirq.approx_eq(float("inf"), float("inf"), atol=0.0)
 
 
 class X(Number):
@@ -150,6 +150,13 @@ def test_approx_eq_tuple() -> None:
     assert not cirq.approx_eq((1, 1), (1,), atol=0.0)
     assert cirq.approx_eq((1.1, 1.2, 1.3), (1, 1, 1), atol=0.4)
     assert not cirq.approx_eq((1.1, 1.2, 1.3), (1, 1, 1), atol=0.2)
+
+
+def test_approx_eq_frozenset() -> None:
+    for n in range(10, 20):
+        assert cirq.approx_eq(
+            frozenset(cirq.LineQubit.range(n)), frozenset({*cirq.LineQubit.range(n)})
+        )
 
 
 def test_approx_eq_list() -> None:
