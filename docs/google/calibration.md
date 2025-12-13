@@ -20,12 +20,24 @@ A dropdown menu will let you choose the current characterization or historical
 metrics from a previous run.  Calibration metrics can also be retrieved
 programmatically using an engine instance or with a job.
 
+<!---test_substitution
+engine = cg.Engine(.*)
+engine = MagicMock()
+--->
+<!---test_substitution
+cg.EngineJob(.*)
+MagicMock()
+--->
+<!---test_substitution
+PROJECT_ID|PROGRAM_ID|PROCESSOR_ID|CALIBRATION_SECONDS|START_SECONDS|END_SECONDS|JOB_ID
+'placeholder'
+--->
 ```python
 import cirq_google as cg
 
 # Create an Engine object to use.
-# Replace YOUR_PROJECT_ID with the id from your cloud project.
-engine = cg.Engine(project_id=YOUR_PROJECT_ID)
+# Replace PROJECT_ID with the id from your cloud project.
+engine = cg.Engine(project_id=PROJECT_ID)
 processor = engine.get_processor(processor_id=PROCESSOR_ID)
 
 # Get the latest calibration metrics.
@@ -40,9 +52,9 @@ calibration_list = processor.list_calibration(START_SECONDS, END_SECONDS)
 
 # If you know the job-id, you can retrieve the calibration that the job used.
 job = engine.get_job("projects/" + PROJECT_ID
-                   + "/programs/"+PROGRAM_ID
+                   + "/programs/"+ PROGRAM_ID
                    + "/jobs/" + JOB_ID)
-job_calibration = cg.EngineJob(cg.JobConfig(), job, engine).get_calibration()
+job_calibration = cg.EngineJob(PROJECT_ID, PROGRAM_ID, JOB_ID, cg.engine.engine.EngineContext()).get_calibration()
 
 # The calibration can be iterated through using something like the following.
 for metric_name in latest_calibration:
