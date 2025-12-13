@@ -1880,9 +1880,7 @@ def test_list_quantum_processor_configs_from_run_name(client_constructor, defaul
     project_id = "test_project_id"
     processor_id = "test_processor_id"
     run = Run(id="test_run_name")
-    resource_name = (
-        f'projects/{project_id}/processors/{processor_id}/configAutomationRuns/{run.id}'
-    )
+    resource_name = f'projects/{project_id}/processors/{processor_id}/configAutomationRuns/{run.id}'
 
     expected_results = [
         quantum.QuantumProcessorConfig(

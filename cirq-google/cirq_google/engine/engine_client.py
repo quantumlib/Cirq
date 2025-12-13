@@ -1210,7 +1210,9 @@ class EngineClient:
                 processor_id=processor_id,
                 device_config_revision=device_config_revision,
             )
-            request = quantum.GetQuantumProcessorConfigRequest(name=f'{config_revision}/configs/{config_name}')
+            request = quantum.GetQuantumProcessorConfigRequest(
+                name=f'{config_revision}/configs/{config_name}'
+            )
             return await self._send_request_async(
                 self.grpc_client.get_quantum_processor_config, request
             )
