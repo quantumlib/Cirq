@@ -31,6 +31,7 @@ from cirq import _compat
 from cirq_google.cloud import quantum
 from cirq_google.engine import stream_manager
 from cirq_google.engine.asyncio_executor import AsyncioExecutor
+from cirq_google.engine.processor_config import DeviceConfigRevision, Run, Snapshot
 
 _M = TypeVar('_M', bound=proto.Message)
 _R = TypeVar('_R')
@@ -1182,12 +1183,34 @@ class EngineClient:
 
     list_time_slots = duet.sync(list_time_slots_async)
 
-    async def _get_quantum_processor_config(
-        self, name: str
+    async def get_quantum_processor_config_async(
+        self,
+        project_id: str,
+        processor_id: str,
+        config_name: str = 'default',
+        device_config_revision: DeviceConfigRevision = Run(id='current'),
     ) -> quantum.QuantumProcessorConfig | None:
-        """Runs get_quantum_processor_config with the given resource name."""
+        """Returns the QuantumProcessorConfig for the given snapshot id.
+
+        Args:
+            project_id: A project_id of the parent Google Cloud Project.
+            processor_id: The processor unique identifier.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
+            config_name: The id of the quantum processor config.
+
+        Returns:
+            The quantum procesor config or None if it does not exist.
+
+        Raises:
+            EngineException: If the request to get the config fails.
+        """
         try:
-            request = quantum.GetQuantumProcessorConfigRequest(name=name)
+            name = _quantum_processor_revision_path(
+                project_id=project_id,
+                processor_id=processor_id,
+                device_config_revision=device_config_revision,
+            )
+            request = quantum.GetQuantumProcessorConfigRequest(name=f'{name}/{config_name}')
             return await self._send_request_async(
                 self.grpc_client.get_quantum_processor_config, request
             )
@@ -1196,61 +1219,35 @@ class EngineClient:
                 return None
             raise
 
-    async def get_quantum_processor_config_from_snapshot_async(
-        self, project_id: str, processor_id: str, snapshot_id: str, config_name: str
-    ) -> quantum.QuantumProcessorConfig | None:
+    get_quantum_processor_config = duet.sync(get_quantum_processor_config_async)
+
+    async def list_quantum_processor_configs_async(
+        self,
+        project_id: str,
+        processor_id: str,
+        device_config_revision: DeviceConfigRevision = Run(id='current'),
+    ) -> list[quantum.QuantumProcessorConfig]:
         """Returns the QuantumProcessorConfig for the given snapshot id.
 
         Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
-            snapshot_id: The id of the snapshot that contains the quantum processor config.
-            config_name: The id of the quantum processor config.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
 
         Returns:
-            The quantum procesor config or None if it does not exist.
-
-        Raises:
-            EngineException: If the request to get the config fails.
+            List of quantum procesor configs.
         """
-        name = _quantum_processor_config_name_from_snapshot_id(
+        parent_resource_name = _quantum_processor_revision_path(
             project_id=project_id,
             processor_id=processor_id,
-            snapshot_id=snapshot_id,
-            config_name=config_name,
+            device_config_revision=device_config_revision,
         )
-        return await self._get_quantum_processor_config(name)
-
-    get_quantum_processor_config_from_snapshot = duet.sync(
-        get_quantum_processor_config_from_snapshot_async
-    )
-
-    async def get_quantum_processor_config_from_run_async(
-        self, project_id: str, processor_id: str, run_name: str, config_name: str
-    ) -> quantum.QuantumProcessorConfig | None:
-        """Returns the QuantumProcessorConfig for the given run_name.
-
-        Args:
-            project_id: A project_id of the parent Google Cloud Project.
-            processor_id: The processor unique identifier.
-            config_name: The id of the quantum processor config.
-            run_name: The run_name that contains the quantum processor config.
-
-        Returns:
-            The quantum procesor config or None if it does not exist.
-
-        Raises:
-            EngineException: If the request to get the config fails.
-        """
-        name = _quantum_processor_config_name_from_run_name(
-            project_id=project_id,
-            processor_id=processor_id,
-            run_name=run_name,
-            config_name=config_name,
+        request = quantum.ListQuantumProcessorConfigsRequest(parent=parent_resource_name)
+        return await self._send_list_request_async(
+            self.grpc_client.list_quantum_processor_configs, request
         )
-        return await self._get_quantum_processor_config(name)
 
-    get_quantum_processor_config_from_run = duet.sync(get_quantum_processor_config_from_run_async)
+    list_quantum_processor_configs = duet.sync(list_quantum_processor_configs_async)
 
 
 def _project_name(project_id: str) -> str:
@@ -1301,24 +1298,16 @@ def _ids_from_calibration_name(calibration_name: str) -> tuple[str, str, int]:
     return parts[1], parts[3], int(parts[5])
 
 
-def _quantum_processor_config_name_from_snapshot_id(
-    project_id: str, processor_id: str, snapshot_id: str, config_name: str
+def _quantum_processor_revision_path(
+    project_id: str, processor_id: str, device_config_revision: DeviceConfigRevision | None = None
 ) -> str:
-    return (
-        f'{_processor_name_from_ids(project_id, processor_id)}/'
-        f'configSnapshots/{snapshot_id}/'
-        f'configs/{config_name}'
-    )
+    processor_resource_name = _processor_name_from_ids(project_id, processor_id)
+    if isinstance(device_config_revision, Snapshot):
+        return f'{processor_resource_name}/configSnapshots/{device_config_revision.id}/configs'
 
-
-def _quantum_processor_config_name_from_run_name(
-    project_id: str, processor_id: str, run_name: str, config_name: str
-) -> str:
-    return (
-        f'{_processor_name_from_ids(project_id, processor_id)}/'
-        f'configAutomationRuns/{run_name}/'
-        f'configs/{config_name}'
-    )
+    default_run_name = 'default'
+    run_id = device_config_revision.id if device_config_revision else default_run_name
+    return f'{processor_resource_name}/configAutomationRuns/{run_id}/configs'
 
 
 def _date_or_time_to_filter_expr(param_name: str, param: datetime.datetime | datetime.date):
