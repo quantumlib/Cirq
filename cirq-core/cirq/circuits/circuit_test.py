@@ -5031,6 +5031,7 @@ def test_insert_op_tree_latest() -> None:
         (0, [0], [cirq.measure(q[0], key="n")], [q[0]], 1),
         (1, [2], [cirq.X(q[2]).with_classical_controls("m")], [q[2]], 3),
         (0, [0, 1, 2], [cirq.X(q[2]), cirq.Y(q[2]), cirq.H(q[2])], [q[2], q[2], q[2]], 3),
+        (3, [3], [cirq.H(q[1])], [q[1]], 4),
     ]
 
     for insert_index, result_indices, op_list, qubits, index_after in op_tree_list:
