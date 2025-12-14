@@ -2200,6 +2200,7 @@ class Circuit(AbstractCircuit):
     def _insert_latest(self, k: int, batches: list[list[_MOMENT_OR_OP]]) -> int:
         """Inserts batches of moments or operations using LATEST strategy.
 
+        Batches are inserted into reverse order.
         Operations are inserted into the latest possible moment from the starting
         index k. Moments are inserted intact at index k.
 
