@@ -2160,6 +2160,84 @@ class Circuit(AbstractCircuit):
 
         return not self._moments[moment_index].operates_on(operation.qubits)
 
+    def _latest_available_moment(
+        self, op: cirq.Operation, *, start_moment_index: int | None = None
+    ) -> int:
+        """Finds the index of the latest (i.e. right most) moment which can accommodate `op`.
+
+        Assumes that `start_moment_index` is between 0 and `len(self._moments)`.
+
+        Args:
+            op: Operation for which the latest moment that can accommodate it needs to be found.
+            start_moment_index: The starting point of the reverse search. Defaults to 0.
+
+        Returns:
+            Index of the latest matching moment. Returns `start_moment_index - 1` if no moment on
+            the right is available, or `len(self._moments)` if `start_moment_index` equals it.
+        """
+        if start_moment_index is None:
+            start_moment_index = 0
+        if start_moment_index == len(self._moments):
+            return start_moment_index
+        op_control_keys = protocols.control_keys(op)
+        op_measurement_keys = protocols.measurement_key_objs(op)
+        op_qubits = op.qubits
+        k = start_moment_index
+        while k < len(self._moments):
+            moment = self._moments[k]
+            if moment.operates_on(op_qubits):
+                return k - 1
+            moment_measurement_keys = moment._measurement_key_objs_()
+            if (
+                not op_measurement_keys.isdisjoint(moment_measurement_keys)
+                or not op_control_keys.isdisjoint(moment_measurement_keys)
+                or not moment._control_keys_().isdisjoint(op_measurement_keys)
+            ):
+                return k - 1
+            k += 1
+        return k - 1
+
+    def _insert_latest(self, k: int, batches: list[list[_MOMENT_OR_OP]]) -> int:
+        """Inserts batches of moments or operations using LATEST strategy.
+
+        Operations are inserted into the latest possible moment from the starting
+        index k. Moments are inserted intact at index k.
+
+        Args:
+            k: The index to insert the batches at.
+            batches: Moments or operations to insert.
+
+        Returns:
+            The insertion index that will place operations just after the
+            operations that were inserted by this method.
+        """
+        batches = batches[::-1]
+        max_latest_index = -1  # Maximum index of a changed moment
+        for batch in batches:
+            for moment_or_op in batch:
+                # Determine Placement
+                if isinstance(moment_or_op, Moment):
+                    p = k
+                else:
+                    p = self._latest_available_moment(moment_or_op, start_moment_index=k)
+                    if p < k:
+                        self._moments.insert(k, Moment())
+                        # All later moments shift by 1, so increase the max index
+                        max_latest_index += 1
+                        p = k
+                # Place
+                if isinstance(moment_or_op, Moment):
+                    self._moments.insert(p, moment_or_op)
+                    # All later moments shift by 1, so increase the max index
+                    max_latest_index += 1
+                elif p == len(self._moments):
+                    self._moments.append(Moment(moment_or_op))
+                else:
+                    self._moments[p] = self._moments[p].with_operation(moment_or_op)
+                max_latest_index = max(p, max_latest_index)
+        self._mutated(preserve_placement_cache=False)
+        return max_latest_index + 1
+
     def insert(
         self,
         index: int,
@@ -2195,6 +2273,10 @@ class Circuit(AbstractCircuit):
             batches = [[mop] for mop in mops]  # Each op goes into its own moment.
         else:
             batches = list(_group_into_moment_compatible(mops))
+
+        if strategy is InsertStrategy.LATEST:
+            return self._insert_latest(k, batches)
+
         for batch in batches:
             # Insert a moment if inline/earliest and _any_ op in the batch requires it.
             if (
@@ -2222,8 +2304,10 @@ class Circuit(AbstractCircuit):
                     p = k
                 elif strategy is InsertStrategy.INLINE:
                     p = k - 1
-                else:  # InsertStrategy.EARLIEST:
+                elif strategy is InsertStrategy.EARLIEST:
                     p = self.earliest_available_moment(moment_or_op, end_moment_index=k)
+                else:
+                    raise ValueError('Unknown insertion strategy')
                 # Place
                 if isinstance(moment_or_op, Moment):
                     self._moments.insert(p, moment_or_op)
