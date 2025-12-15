@@ -44,7 +44,7 @@ def test_isolated_packages(cloned_env, module, tmp_path) -> None:
     # of cirq-core wheel do not conflict.
     cirq_core_copy = shutil.copytree("./cirq-core", tmp_path / "cirq-core")
     # avoid specifying cirq-core twice
-    opt_module_dir = [f"./{module.root}"] if module.name != "cirq-core" else []
+    opt_module_dir = [] if module.name == "cirq-core" else [f"./{module.root}"]
     result = shell_tools.run(
         [f"{env}/bin/pip", "install", cirq_core_copy, *opt_module_dir],
         stderr=subprocess.PIPE,
