@@ -1,4 +1,4 @@
-# Copyright 2022 The Cirq Developers
+# Copyright 2025 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 from __future__ import annotations
 
-import logging
-from typing import Literal, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import numpy as np
 import quimb.tensor as qtn
@@ -27,30 +26,44 @@ import cirq
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
-logger = logging.getLogger(__name__)
 
-
-def gram_schmidt(matrix: NDArray[np.complex128]) -> NDArray[np.complex128]:
-    """Perform Gram-Schmidt orthogonalization on the columns of a matrix
+def _gram_schmidt(matrix: NDArray[np.complex128]) -> NDArray[np.complex128]:
+    """Perform Gram-Schmidt orthogonalization on the columns of a square matrix
     to define the unitary block to encode the MPS.
 
     Notes
     -----
-    If a column is (approximately) zero, it is replaced with a random vector.
+    This implementation provides slightly better fidelity compared to the Schmidt
+    decomposition approach used in scipy.linalg.qr for our use case. If you find
+    better performance with other implementations, please file an issue at
+    https://github.com/quantumlib/Cirq/issues
+
+    accompanied by the proposed code and benchmark results.
 
     Args:
-        matrix (NDArray[np.complex128]): Input matrix with complex entries.
+        matrix (NDArray[np.complex128]): Square matrix with complex entries.
 
     Returns:
         unitary (NDArray[np.complex128]): A unitary matrix with orthonormal columns
             derived from the input matrix. If a column is (approximately) zero, it
             is replaced with a random vector.
+
+    Raises:
+        ValueError: If the input matrix is not square.
     """
-    num_rows, num_columns = matrix.shape
-    unitary = np.zeros((num_rows, num_columns), dtype=np.complex128)
+    if matrix.shape[0] != matrix.shape[1]:
+        raise ValueError(
+            "Input matrix is expected to be square. "
+            f"Got shape {matrix.shape} instead. "
+            "If this is not an error, please file an issue at "
+            "https://github.com/quantumlib/Cirq/issues"
+        )
+
+    num_rows = matrix.shape[0]
+    unitary = np.zeros((num_rows, num_rows), dtype=np.complex128)
     orthonormal_basis: list[NDArray[np.complex128]] = []
 
-    for j in range(num_columns):
+    for j in range(num_rows):
         column = matrix[:, j]
 
         # If column is (approximately) zero, replace with random
@@ -64,12 +77,11 @@ def gram_schmidt(matrix: NDArray[np.complex128]) -> NDArray[np.complex128]:
             column -= (basis_vector.conj().T @ column) * basis_vector
 
         # Handle near-zero vectors (linear dependence)
-        norm = np.linalg.norm(column)
-        if norm < 1e-12:  # pragma: no cover
-            is_complex = np.iscomplexobj(matrix)
+        if np.linalg.norm(column) < 1e-12:  # pragma: no cover
             column = np.random.uniform(-1, 1, num_rows)  # type: ignore
-            if is_complex:
-                column += 1j * np.random.uniform(-1, 1, num_rows)
+            if np.iscomplexobj(matrix):
+                column = column + 1j * np.random.uniform(-1, 1, num_rows)
+
             for basis_vector in orthonormal_basis:
                 column -= (basis_vector.conj().T @ column) * basis_vector
 
@@ -79,20 +91,35 @@ def gram_schmidt(matrix: NDArray[np.complex128]) -> NDArray[np.complex128]:
     return unitary
 
 
-class Sequential:
-    def __init__(
-        self, max_fidelity_threshold: float = 0.95, convention: Literal["lsb", "msb"] = "lsb"
-    ) -> None:
+class MPSSequential:
+    """MPS to Circuit synthesis via sequential layers of unitaries.
+
+    This class provides methods to convert a Matrix Product State (MPS)
+    into a quantum circuit representation using layers of two-qubit and single-qubit unitaries
+    in the form of a staircase.
+
+    This approach allows for approximately encoding an area-law entangled state
+    using O(N) circuit depth, where N is the number of qubits by leveraging the MPS structure
+    as an intermediate representation. This is an exponential improvement over the
+    standard method of encoding arbitrary states, which typically requires O(2^N) depth.
+
+    The analytical decomposition is based on the approach presented in:
+    [arXiv:1908.07958](https://arxiv.org/abs/1908.07958){:.external}
+
+    Further improvements for future include using sweeping techniques from tensor network
+    literature to iteratively improve the fidelity of the encoding with a fixed number of
+    layers. The algorithm is described in detail in the following paper:
+    [arXiv:2209.00595](https://arxiv.org/abs/2209.00595){:.external}
+    """
+
+    def __init__(self, max_fidelity_threshold: float = 0.95) -> None:
         """Initialize the Sequential class.
 
         Args:
-            max_fidelity_threshold (float): The maximum fidelity required, after
-            which we can stop the encoding to save depth. Defaults to 0.95.
-            convention (str): Whether the circuit uses LSB or MSB. By default,
-            we use "lsb".
+            max_fidelity_threshold: The maximum fidelity required, after
+                which we can stop the encoding to save depth. Defaults to 0.95.
         """
         self.max_fidelity_threshold = max_fidelity_threshold
-        self.convention = convention
 
     def generate_layer(
         self, mps: qtn.MatrixProductState
@@ -105,7 +132,7 @@ class Sequential:
 
         Returns:
             unitary_layer (list[tuple[list[int], NDArray[np.complex128]]]): A list of
-            tuples representing the unitary layer of the circuit.
+                tuples representing the unitary layer of the circuit.
                 Each tuple contains:
                 - A list of qubit indices (in LSB order) that the unitary acts on.
                 - A unitary matrix (as a 2D NumPy array) that encodes the MPS.
@@ -135,21 +162,19 @@ class Sequential:
             d_left, d, d_right = tensor.shape
             isometry = tensor.reshape((d * d_left, d_right))
 
-            qubits = reversed(range(i - int(np.ceil(np.log2(d_left))), i + 1))
+            qubits = [
+                num_sites - 1 - q for q in range(i, i - int(np.ceil(np.log2(d_left))) - 1, -1)
+            ]
 
-            if self.convention == "lsb":
-                qubits = [abs(qubit - num_sites + 1) for qubit in qubits]  # type: ignore
-
-            # Create all-zero matrix and add the isometry columns
             matrix = np.zeros((isometry.shape[0], isometry.shape[0]), dtype=isometry.dtype)
 
             # Keep columns for which all ancillas are in the zero state
             matrix[:, : isometry.shape[1]] = isometry
 
             # Perform Gram-Schmidt orthogonalization to ensure the columns are orthonormal
-            unitary = gram_schmidt(matrix)
+            unitary = _gram_schmidt(matrix)
 
-            unitary_layer.append((qubits, unitary))  # type: ignore
+            unitary_layer.append((qubits, unitary))
 
         return unitary_layer
 
@@ -240,13 +265,7 @@ class Sequential:
             fidelity = float(np.real(fidelity))
 
             if fidelity >= self.max_fidelity_threshold:
-                logger.info(f"Reached target fidelity {fidelity}. {layer_index + 1} layers used.")
                 break
-
-        if layer_index == max_num_layers - 1:
-            logger.info(
-                f"Reached fidelity {fidelity} with maximum number of layers {max_num_layers}."
-            )
 
         # The layers disentangle the MPS to a state close to |00...0>
         # inv(U_k) ... inv(U_1) |ψ> = |00...0>
@@ -304,14 +323,5 @@ class Sequential:
             return circuit
 
         circuit = self.mps_to_circuit_approx(statevector, max_num_layers, 2**num_qubits)
-
-        fidelity = np.abs(np.vdot(cirq.final_state_vector(circuit), statevector)) ** 2
-        fidelity = float(np.real(fidelity))
-
-        logger.info(
-            f"Fidelity: {fidelity:.4f}, "
-            f"Number of qubits: {num_qubits}, "
-            f"Number of layers: {max_num_layers}, "
-        )
 
         return circuit
