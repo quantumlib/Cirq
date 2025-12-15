@@ -2129,7 +2129,7 @@ class Circuit(AbstractCircuit):
             Index of the earliest matching moment. Returns `end_moment_index` if no moment on left
             is available.
         """
-        if end_moment_index is None:
+        if end_moment_index is None or end_moment_index > len(self.moments):
             end_moment_index = len(self.moments)
         last_available = end_moment_index
         k = end_moment_index
@@ -2148,10 +2148,7 @@ class Circuit(AbstractCircuit):
                 or not moment._control_keys_().isdisjoint(op_measurement_keys)
             ):
                 return last_available
-            if self._can_add_op_at(k, op):
-                # Note: Remove the if condition after `self._device` is gone and move the method to
-                # `cirq.AbstractDevice`.
-                last_available = k
+            last_available = k
         return last_available
 
     def _can_add_op_at(self, moment_index: int, operation: cirq.Operation) -> bool:
