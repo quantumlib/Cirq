@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import shutil
 import sys
@@ -27,6 +28,8 @@ from filelock import FileLock
 
 from dev_tools import shell_tools
 from dev_tools.env_tools import create_virtual_env
+
+LOGGER = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -81,9 +84,13 @@ def cloned_env(testrun_uid, worker_id):
         base_dir = base_temp_path / env_dir_name
         with FileLock(str(base_dir) + ".lock"):
             if _check_for_reuse_or_recreate(base_dir):
-                print(f"Pytest worker [{worker_id}] is reusing {base_dir} for '{env_dir_name}'.")
+                LOGGER.info(
+                    f"Pytest worker [{worker_id}] is reusing {base_dir} for '{env_dir_name}'."
+                )
             else:
-                print(f"Pytest worker [{worker_id}] is creating {base_dir} for '{env_dir_name}'.")
+                LOGGER.info(
+                    f"Pytest worker [{worker_id}] is creating {base_dir} for '{env_dir_name}'."
+                )
                 _create_base_env(base_dir, pip_install_args)
 
         clone_dir = base_temp_path / str(uuid.uuid4())
@@ -112,7 +119,7 @@ def cloned_env(testrun_uid, worker_id):
         except BaseException as ex:
             # cleanup on failure
             if base_dir.is_dir():
-                print(f"Removing {base_dir}, due to error: {ex}")
+                LOGGER.info(f"Removing {base_dir}, due to error: {ex}")
                 shutil.rmtree(base_dir)
             raise
 
