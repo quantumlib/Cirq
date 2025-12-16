@@ -344,3 +344,8 @@ def test_has_stabilizer_effect_true_for_cliffords_with_global_phase(clifford_gat
 )
 def test_has_stabilizer_effect_false_for_non_cliffords(gate):
     assert not cirq.has_stabilizer_effect(gate)
+
+
+def test_has_stabilizer_effect_returns_false_for_symbolic_unitary():
+    gate = cirq.PhasedXZGate(x_exponent=0, z_exponent=0, axis_phase_exponent=sympy.Symbol('a'))
+    assert not cirq.has_stabilizer_effect(gate)
