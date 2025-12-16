@@ -16,8 +16,6 @@
 
 from __future__ import annotations
 
-import numpy as np
-
 import cirq
 from cirq import ops, protocols
 from cirq.transformers import transformer_api
@@ -25,29 +23,13 @@ from cirq.transformers.eject_z import eject_z
 
 
 def _is_diagonal(op: cirq.Operation) -> bool:
-    """Checks if an operation is diagonal in the computational basis.
+    """Checks if an operation is a known diagonal gate (Z, CZ, etc.).
 
-    Args:
-        op: The operation to check.
-
-    Returns:
-        True if the operation is diagonal in the computational basis.
+    As suggested in review, we avoid computing the unitary matrix (which is expensive)
+    and instead strictly check for gates known to be diagonal in the computational basis.
     """
-    # Fast Path: Check for common diagonal gate types directly
-    if isinstance(op.gate, (ops.ZPowGate, ops.CZPowGate, ops.IdentityGate)):
-        return True
-
-    # Slow Path: Check the unitary matrix
-    if protocols.has_unitary(op):
-        try:
-            u = protocols.unitary(op)
-            # Check if off-diagonal elements are close to zero
-            return np.allclose(u, np.diag(np.diag(u)))
-        except Exception:
-            # If matrix calculation fails (e.g. huge gates), assume not diagonal
-            return False
-
-    return False
+    # ZPowGate covers Z, S, T, Rz. CZPowGate covers CZ.
+    return isinstance(op.gate, (ops.ZPowGate, ops.CZPowGate, ops.IdentityGate))
 
 
 @transformer_api.transformer
@@ -107,9 +89,7 @@ def drop_diagonal_before_measurement(
     if context is None:
         context = transformer_api.TransformerContext()
 
-    # Phase 1: Apply eject_z to push Z gates later in the circuit.
-    # This handles commutation of Z gates through other operations,
-    # particularly important for the Z-CZ case mentioned in the feature request.
+    # Phase 1: Push Z gates later in the circuit to maximize removal opportunities.
     circuit = eject_z(circuit, context=context)
 
     # Phase 2: Remove diagonal gates that appear before measurements.
@@ -130,15 +110,21 @@ def drop_diagonal_before_measurement(
             # If this is a diagonal gate and ANY of its qubits will be measured, remove it
             # (diagonal gates only affect phase, which doesn't impact computational basis
             # measurements)
-            elif _is_diagonal(op) and all(q in measured_qubits for q in op.qubits):
-                # Skip this operation (it's diagonal and at least one qubit is measured)
-                pass
-            else:
-                # Keep the operation
+            elif _is_diagonal(op):
+                # CRITICAL: we can only remove if all qubits involved are measured.
+                # if even one qubit is NOT measured, the gate must stay to preserve
+                # the state of that unmeasured qubit (due to phase kickback/entanglement).
+                if all(q in measured_qubits for q in op.qubits):
+                    continue  # Drop the operation
+
                 new_ops.append(op)
-                # If it's not diagonal, these qubits are no longer "safe to optimize"
-                if not _is_diagonal(op):
-                    measured_qubits.difference_update(op.qubits)
+                # Note: We do NOT remove qubits from measured_qubits here.
+                # Diagonal gates commute with other diagonal gates.
+            else:
+                # Non-diagonal gate found.
+                new_ops.append(op)
+                # the chain is broken for these qubits.
+                measured_qubits.difference_update(op.qubits)
 
         # Add the moment if it has any operations
         if new_ops:
