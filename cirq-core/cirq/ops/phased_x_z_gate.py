@@ -318,38 +318,38 @@ class PhasedXZGate(raw_types.Gate):
             return False
         c = self._canonical()
         actual = (c._x_exponent, c._z_exponent, c._axis_phase_exponent)
-        key = tuple(round(v, 2) for v in actual)
+        rounded = tuple(round(v, 2) for v in actual)  # for numerical stability.
         return (
-            np.allclose(actual, key)
-            and tuple(value.PeriodicValue(v, 2) for v in key) in _clifford_as_phasedzx_params()
+            np.allclose(actual, rounded)
+            and tuple(v % 2 for v in rounded) in _clifford_as_phasedzx_params()
         )
 
 
 @functools.cache
 def _clifford_as_phasedzx_params():
     return {
-        (value.PeriodicValue(0.5, 2), value.PeriodicValue(1.5, 2), value.PeriodicValue(0.5, 2)),
-        (value.PeriodicValue(0.0, 2), value.PeriodicValue(1.5, 2), value.PeriodicValue(0.0, 2)),
-        (value.PeriodicValue(1.0, 2), value.PeriodicValue(0.0, 2), value.PeriodicValue(0.5, 2)),
-        (value.PeriodicValue(0.5, 2), value.PeriodicValue(0.5, 2), value.PeriodicValue(0.0, 2)),
-        (value.PeriodicValue(1.5, 2), value.PeriodicValue(0.5, 2), value.PeriodicValue(0.5, 2)),
-        (value.PeriodicValue(1.5, 2), value.PeriodicValue(1.0, 2), value.PeriodicValue(0.0, 2)),
-        (value.PeriodicValue(1.5, 2), value.PeriodicValue(1.5, 2), value.PeriodicValue(0.0, 2)),
-        (value.PeriodicValue(1.5, 2), value.PeriodicValue(0.0, 2), value.PeriodicValue(0.0, 2)),
-        (value.PeriodicValue(1.0, 2), value.PeriodicValue(0.0, 2), value.PeriodicValue(0.25, 2)),
-        (value.PeriodicValue(0.0, 2), value.PeriodicValue(0.5, 2), value.PeriodicValue(0.0, 2)),
-        (value.PeriodicValue(0.5, 2), value.PeriodicValue(0.5, 2), value.PeriodicValue(0.5, 2)),
-        (value.PeriodicValue(0.5, 2), value.PeriodicValue(1.0, 2), value.PeriodicValue(0.0, 2)),
-        (value.PeriodicValue(1.0, 2), value.PeriodicValue(0.0, 2), value.PeriodicValue(1.75, 2)),
-        (value.PeriodicValue(0.5, 2), value.PeriodicValue(0.0, 2), value.PeriodicValue(0.0, 2)),
-        (value.PeriodicValue(1.0, 2), value.PeriodicValue(0.0, 2), value.PeriodicValue(0.0, 2)),
-        (value.PeriodicValue(0.5, 2), value.PeriodicValue(1.5, 2), value.PeriodicValue(0.0, 2)),
-        (value.PeriodicValue(1.5, 2), value.PeriodicValue(1.5, 2), value.PeriodicValue(0.5, 2)),
-        (value.PeriodicValue(1.5, 2), value.PeriodicValue(0.0, 2), value.PeriodicValue(0.5, 2)),
-        (value.PeriodicValue(1.5, 2), value.PeriodicValue(1.0, 2), value.PeriodicValue(0.5, 2)),
-        (value.PeriodicValue(1.5, 2), value.PeriodicValue(0.5, 2), value.PeriodicValue(0.0, 2)),
-        (value.PeriodicValue(0.5, 2), value.PeriodicValue(1.0, 2), value.PeriodicValue(0.5, 2)),
-        (value.PeriodicValue(0.0, 2), value.PeriodicValue(1.0, 2), value.PeriodicValue(0.0, 2)),
-        (value.PeriodicValue(0.5, 2), value.PeriodicValue(0.0, 2), value.PeriodicValue(0.5, 2)),
-        (value.PeriodicValue(0.0, 2), value.PeriodicValue(0.0, 2), value.PeriodicValue(0.0, 2)),
+        (0.0, 1.0, 0.0),
+        (0.5, 1.5, 0.0),
+        (1.5, 1.5, 0.0),
+        (1.5, 1.5, 0.5),
+        (0.0, 0.5, 0.0),
+        (0.5, 1.0, 0.0),
+        (0.5, 1.0, 0.5),
+        (1.0, 0.0, 1.75),
+        (0.5, 0.5, 0.0),
+        (0.5, 0.5, 0.5),
+        (1.5, 0.5, 0.5),
+        (1.5, 1.0, 0.5),
+        (1.5, 1.0, 0.0),
+        (1.5, 0.5, 0.0),
+        (0.0, 0.0, 0.0),
+        (1.0, 0.0, 0.0),
+        (1.0, 0.0, 0.5),
+        (1.0, 0.0, 0.25),
+        (0.5, 0.0, 0.5),
+        (0.0, 1.5, 0.0),
+        (0.5, 0.0, 0.0),
+        (1.5, 0.0, 0.0),
+        (1.5, 0.0, 0.5),
+        (0.5, 1.5, 0.5),
     }
