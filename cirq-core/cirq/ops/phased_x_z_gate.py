@@ -14,9 +14,10 @@
 
 from __future__ import annotations
 
+import functools
 import numbers
 from collections.abc import Iterator, Sequence, Set
-from typing import Any, TYPE_CHECKING
+from typing import Any, cast, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -311,3 +312,44 @@ class PhasedXZGate(raw_types.Gate):
         return protocols.obj_to_dict_helper(
             self, ['axis_phase_exponent', 'x_exponent', 'z_exponent']
         )
+
+    def _has_stabilizer_effect_(self):
+        if not self._has_unitary_():
+            return False
+        c = self._canonical()
+        actual = (c._x_exponent, c._z_exponent, c._axis_phase_exponent)
+        key = tuple(round(v, 2) for v in actual)
+        return (
+            np.allclose(actual, key)
+            and tuple(value.PeriodicValue(v, 2) for v in key) in _clifford_as_phasedzx_params()
+        )
+
+
+@functools.cache
+def _clifford_as_phasedzx_params():
+    return {
+        (value.PeriodicValue(0.5, 2), value.PeriodicValue(1.5, 2), value.PeriodicValue(0.5, 2)),
+        (value.PeriodicValue(0.0, 2), value.PeriodicValue(1.5, 2), value.PeriodicValue(0.0, 2)),
+        (value.PeriodicValue(1.0, 2), value.PeriodicValue(0.0, 2), value.PeriodicValue(0.5, 2)),
+        (value.PeriodicValue(0.5, 2), value.PeriodicValue(0.5, 2), value.PeriodicValue(0.0, 2)),
+        (value.PeriodicValue(1.5, 2), value.PeriodicValue(0.5, 2), value.PeriodicValue(0.5, 2)),
+        (value.PeriodicValue(1.5, 2), value.PeriodicValue(1.0, 2), value.PeriodicValue(0.0, 2)),
+        (value.PeriodicValue(1.5, 2), value.PeriodicValue(1.5, 2), value.PeriodicValue(0.0, 2)),
+        (value.PeriodicValue(1.5, 2), value.PeriodicValue(0.0, 2), value.PeriodicValue(0.0, 2)),
+        (value.PeriodicValue(1.0, 2), value.PeriodicValue(0.0, 2), value.PeriodicValue(0.25, 2)),
+        (value.PeriodicValue(0.0, 2), value.PeriodicValue(0.5, 2), value.PeriodicValue(0.0, 2)),
+        (value.PeriodicValue(0.5, 2), value.PeriodicValue(0.5, 2), value.PeriodicValue(0.5, 2)),
+        (value.PeriodicValue(0.5, 2), value.PeriodicValue(1.0, 2), value.PeriodicValue(0.0, 2)),
+        (value.PeriodicValue(1.0, 2), value.PeriodicValue(0.0, 2), value.PeriodicValue(1.75, 2)),
+        (value.PeriodicValue(0.5, 2), value.PeriodicValue(0.0, 2), value.PeriodicValue(0.0, 2)),
+        (value.PeriodicValue(1.0, 2), value.PeriodicValue(0.0, 2), value.PeriodicValue(0.0, 2)),
+        (value.PeriodicValue(0.5, 2), value.PeriodicValue(1.5, 2), value.PeriodicValue(0.0, 2)),
+        (value.PeriodicValue(1.5, 2), value.PeriodicValue(1.5, 2), value.PeriodicValue(0.5, 2)),
+        (value.PeriodicValue(1.5, 2), value.PeriodicValue(0.0, 2), value.PeriodicValue(0.5, 2)),
+        (value.PeriodicValue(1.5, 2), value.PeriodicValue(1.0, 2), value.PeriodicValue(0.5, 2)),
+        (value.PeriodicValue(1.5, 2), value.PeriodicValue(0.5, 2), value.PeriodicValue(0.0, 2)),
+        (value.PeriodicValue(0.5, 2), value.PeriodicValue(1.0, 2), value.PeriodicValue(0.5, 2)),
+        (value.PeriodicValue(0.0, 2), value.PeriodicValue(1.0, 2), value.PeriodicValue(0.0, 2)),
+        (value.PeriodicValue(0.5, 2), value.PeriodicValue(0.0, 2), value.PeriodicValue(0.5, 2)),
+        (value.PeriodicValue(0.0, 2), value.PeriodicValue(0.0, 2), value.PeriodicValue(0.0, 2)),
+    }
