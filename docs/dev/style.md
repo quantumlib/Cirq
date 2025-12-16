@@ -108,6 +108,8 @@ Note that type annotations may need to be quoted when they act in expressions
 that are evaluated at the import time, for example,
 
 ```python
+from typing import Union
+
 MOMENT_OR_OPERATION = Union['cirq.Moment', 'cirq.Operation']
 ```
 
