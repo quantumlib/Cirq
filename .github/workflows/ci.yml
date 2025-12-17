@@ -106,7 +106,7 @@ jobs:
       - name: Install changed files test dependencies
         run: dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
       - name: Changed files test
-        run: check/pytest-changed-files -n $(nproc)
+        run: check/pytest-changed-files -n logical
   lint:
     if: github.repository_owner == 'quantumlib'
     name: Lint check
@@ -187,7 +187,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r dev_tools/requirements/isolated-base.env.txt
       - name: Test each module in isolation
-        run: pytest -n $(nproc) --enable-slow-tests dev_tools/packaging/isolated_packages_test.py
+        run: pytest -n logical --enable-slow-tests dev_tools/packaging/isolated_packages_test.py
   pytest:
     if: github.repository_owner == 'quantumlib'
     name: Pytest Ubuntu
@@ -216,7 +216,7 @@ jobs:
           pip install --upgrade setuptools wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Pytest check
-        run: check/pytest -n $(nproc) --durations=20 --junit-xml=pytest-ubuntu-report.xml
+        run: check/pytest -n logical --durations=20 --junit-xml=pytest-ubuntu-report.xml
       - name: Persist the test report
         if: github.event_name == 'merge_group' && matrix.python-version == '3.11'
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
@@ -286,7 +286,7 @@ jobs:
           pip install --upgrade setuptools wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Coverage check
-        run: check/pytest-and-incremental-coverage -n $(nproc)
+        run: check/pytest-and-incremental-coverage -n logical
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
         env:
@@ -317,7 +317,7 @@ jobs:
       - name: Pytest Windows
         run: |
           source dev_tools/pypath
-          check/pytest -n $(nproc) --durations=20 --ignore=cirq-core/cirq/contrib
+          check/pytest -n logical --durations=20 --ignore=cirq-core/cirq/contrib
         shell: bash
   macos:
     if: github.repository_owner == 'quantumlib'
@@ -344,7 +344,7 @@ jobs:
           pip install --upgrade setuptools wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest check
-        run: check/pytest -n $(sysctl -n hw.logicalcpu) --durations=20 --ignore=cirq-core/cirq/contrib
+        run: check/pytest -n logical --durations=20 --ignore=cirq-core/cirq/contrib
   notebooks-stable:
     if: github.repository_owner == 'quantumlib'
     name: Changed Notebooks Isolated Test against Cirq stable
@@ -368,7 +368,7 @@ jobs:
       - name: Install requirements
         run: pip install -r dev_tools/requirements/isolated-base.env.txt
       - name: Notebook tests
-        run: check/pytest -n $(nproc) -m slow dev_tools/notebooks/isolated_notebook_test.py -k ${{matrix.partition}}
+        run: check/pytest -n logical -m slow dev_tools/notebooks/isolated_notebook_test.py -k ${{matrix.partition}}
       - name: Persist the outputs
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         if: failure()
@@ -390,7 +390,7 @@ jobs:
       - name: Install requirements
         run: pip install -r dev_tools/requirements/notebooks.env.txt
       - name: Notebook tests
-        run: check/pytest -n $(nproc) -m slow dev_tools/notebooks/notebook_test.py
+        run: check/pytest -n logical -m slow dev_tools/notebooks/notebook_test.py
       - name: Persist the outputs
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         if: failure()
