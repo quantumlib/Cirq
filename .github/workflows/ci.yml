@@ -132,7 +132,7 @@ jobs:
   doc_test:
     if: github.repository_owner == 'quantumlib'
     name: Doc test
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -148,7 +148,7 @@ jobs:
   nbformat:
     if: github.repository_owner == 'quantumlib'
     name: Notebook formatting
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -226,7 +226,7 @@ jobs:
   pip-compile:
     if: github.repository_owner == 'quantumlib'
     name: Check consistency of requirements
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -400,7 +400,7 @@ jobs:
   ts-build:
     if: github.repository_owner == 'quantumlib'
     name: Bundle file consistency
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -415,7 +415,7 @@ jobs:
   ts-lint:
     if: github.repository_owner == 'quantumlib'
     name: Typescript lint check
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -430,7 +430,7 @@ jobs:
   ts-test:
     if: github.repository_owner == 'quantumlib'
     name: Typescript tests
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -447,7 +447,7 @@ jobs:
   ts-coverage:
     if: github.repository_owner == 'quantumlib'
     name: Typescript tests coverage
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
