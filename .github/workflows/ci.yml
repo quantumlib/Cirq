@@ -72,7 +72,7 @@ jobs:
   mypy:
     if: github.repository_owner == 'quantumlib'
     name: Type check
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
