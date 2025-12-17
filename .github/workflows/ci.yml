@@ -430,7 +430,7 @@ jobs:
   ts-test:
     if: github.repository_owner == 'quantumlib'
     name: Typescript tests
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -438,10 +438,6 @@ jobs:
         uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
         with:
           node-version: '22.16.0'
-      - name: Install system packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install libatk1.0-0t64
       - name: Install node dependencies
         run: check/npm ci
       - name: Run unit tests
