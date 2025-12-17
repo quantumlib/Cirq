@@ -100,15 +100,12 @@ class RouteCQC:
 
         Args:
             device_graph: The connectivity graph of physical qubits.
-
-        Raises:
-            ValueError: if `device_graph` is a directed graph.
+                Can be directed or undirected.
         """
 
-        if nx.is_directed(device_graph):
-            raise ValueError("Device graph must be undirected.")
         self.device_graph = device_graph
 
+    # pylint: disable=too-many-arguments
     def __call__(
         self,
         circuit: cirq.AbstractCircuit,
@@ -151,6 +148,7 @@ class RouteCQC:
         )
         return routed_circuit
 
+    # pylint: disable=too-many-arguments
     def route_circuit(
         self,
         circuit: cirq.AbstractCircuit,
@@ -228,6 +226,7 @@ class RouteCQC:
             two_qubit_ops,
             single_qubit_ops,
             lookahead_radius,
+            self.device_graph,
             tag_inserted_swaps=tag_inserted_swaps,
         )
 
@@ -285,6 +284,119 @@ class RouteCQC:
         two_qubit_ops = [list(m) for m in two_qubit_circuit]
         return two_qubit_ops, single_qubit_ops
 
+    # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals,too-many-branches,too-many-statements
+    @classmethod
+    def _emit_swap(
+        cls,
+        circuit_ops: list[cirq.Operation],
+        q1: cirq.Qid,
+        q2: cirq.Qid,
+        device_graph: nx.Graph,
+        tag_inserted_swaps: bool = False,
+    ) -> None:
+        """Inserts a SWAP (or directed decomposition) between q1 and q2.
+
+        For bidirectional edges, uses standard SWAP.
+        For unidirectional edges, uses Hadamard-based decomposition.
+
+        Args:
+            circuit_ops: List of operations to append the swap to.
+            q1: First qubit.
+            q2: Second qubit.
+            device_graph: The device connectivity graph.
+            tag_inserted_swaps: Whether to tag inserted swaps with RoutingSwapTag.
+        """
+        # Check if we have a bidirectional (2-way) connection
+        has_forward = device_graph.has_edge(q1, q2)
+        has_reverse = device_graph.has_edge(q2, q1)
+
+        if has_forward and has_reverse:
+            # Case A: Standard 2-way street. Use normal SWAP.
+            # This decomposes to 3 CNOTs automatically.
+            swap_op = ops.SWAP(q1, q2)
+            if tag_inserted_swaps:
+                swap_op = swap_op.with_tags(ops.RoutingSwapTag())
+            circuit_ops.append(swap_op)
+
+        elif has_forward and not has_reverse:
+            # Case B: One-way street (q1 -> q2 only).
+            # We need to decompose manually using the Hadamard trick.
+            # Identity: SWAP = CNOT(1,0) - CNOT(0,1) - CNOT(1,0)
+            # But we lack CNOT(1,0), so we replace it with H-CNOT-H.
+
+            # 1. CNOT(q1, q2)
+            cnot1 = ops.CNOT(q1, q2)
+            if tag_inserted_swaps:
+                cnot1 = cnot1.with_tags(ops.RoutingSwapTag())
+            circuit_ops.append(cnot1)
+
+            # 2. "Reverse" CNOT using Hadamards
+            h1 = ops.H(q1)
+            h2 = ops.H(q2)
+            if tag_inserted_swaps:
+                h1 = h1.with_tags(ops.RoutingSwapTag())
+                h2 = h2.with_tags(ops.RoutingSwapTag())
+            circuit_ops.extend([h1, h2])
+
+            cnot2 = ops.CNOT(q1, q2)
+            if tag_inserted_swaps:
+                cnot2 = cnot2.with_tags(ops.RoutingSwapTag())
+            circuit_ops.append(cnot2)
+
+            h3 = ops.H(q1)
+            h4 = ops.H(q2)
+            if tag_inserted_swaps:
+                h3 = h3.with_tags(ops.RoutingSwapTag())
+                h4 = h4.with_tags(ops.RoutingSwapTag())
+            circuit_ops.extend([h3, h4])
+
+            # 3. CNOT(q1, q2)
+            cnot3 = ops.CNOT(q1, q2)
+            if tag_inserted_swaps:
+                cnot3 = cnot3.with_tags(ops.RoutingSwapTag())
+            circuit_ops.append(cnot3)
+
+        elif has_reverse and not has_forward:
+            # Case C: One-way street (q2 -> q1 only).
+            # Same logic, but flipped.
+
+            # 1. CNOT(q2, q1)
+            cnot1 = ops.CNOT(q2, q1)
+            if tag_inserted_swaps:
+                cnot1 = cnot1.with_tags(ops.RoutingSwapTag())
+            circuit_ops.append(cnot1)
+
+            # 2. "Reverse" CNOT using Hadamards
+            h1 = ops.H(q2)
+            h2 = ops.H(q1)
+            if tag_inserted_swaps:
+                h1 = h1.with_tags(ops.RoutingSwapTag())
+                h2 = h2.with_tags(ops.RoutingSwapTag())
+            circuit_ops.extend([h1, h2])
+
+            cnot2 = ops.CNOT(q2, q1)
+            if tag_inserted_swaps:
+                cnot2 = cnot2.with_tags(ops.RoutingSwapTag())
+            circuit_ops.append(cnot2)
+
+            h3 = ops.H(q2)
+            h4 = ops.H(q1)
+            if tag_inserted_swaps:
+                h3 = h3.with_tags(ops.RoutingSwapTag())
+                h4 = h4.with_tags(ops.RoutingSwapTag())
+            circuit_ops.extend([h3, h4])
+
+            # 3. CNOT(q2, q1)
+            cnot3 = ops.CNOT(q2, q1)
+            if tag_inserted_swaps:
+                cnot3 = cnot3.with_tags(ops.RoutingSwapTag())
+            circuit_ops.append(cnot3)
+
+        else:
+            # Case D: No connection exists (Should rarely happen if routing is correct)
+            raise ValueError(f"No edge between {q1} and {q2} in device graph.")
+
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     @classmethod
     def _route(
         cls,
@@ -292,6 +404,7 @@ class RouteCQC:
         two_qubit_ops: list[list[cirq.Operation]],
         single_qubit_ops: list[list[cirq.Operation]],
         lookahead_radius: int,
+        device_graph: nx.Graph,
         tag_inserted_swaps: bool = False,
     ) -> list[list[cirq.Operation]]:
         """Main routing procedure that inserts necessary swaps on the given timesteps.
@@ -357,12 +470,14 @@ class RouteCQC:
                     seen.add(chosen_swaps)
 
                 for swap in chosen_swaps:
-                    inserted_swap = mm.mapped_op(
-                        ops.SWAP(mm.int_to_logical_qid[swap[0]], mm.int_to_logical_qid[swap[1]])
+                    # Use the new emit_swap method to handle directed edges
+                    cls._emit_swap(
+                        routed_ops[timestep],
+                        mm.int_to_physical_qid[mm.logical_to_physical[swap[0]]],
+                        mm.int_to_physical_qid[mm.logical_to_physical[swap[1]]],
+                        device_graph,
+                        tag_inserted_swaps=tag_inserted_swaps,
                     )
-                    if tag_inserted_swaps:
-                        inserted_swap = inserted_swap.with_tags(ops.RoutingSwapTag())
-                    routed_ops[timestep].append(inserted_swap)
                     mm.apply_swap(*swap)
 
         return routed_ops
@@ -382,7 +497,7 @@ class RouteCQC:
         """
         furthest_op = max(two_qubit_ops_ints[timestep], key=lambda op: mm.dist_on_device(*op))
         path = mm.shortest_path(*furthest_op)
-        return tuple([(path[0], path[i + 1]) for i in range(len(path) - 2)])
+        return tuple((path[0], path[i + 1]) for i in range(len(path) - 2))
 
     @classmethod
     def _choose_pair_of_swaps(
