@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import functools
 import numbers
 from collections.abc import Iterator, Sequence, Set
 from typing import Any, TYPE_CHECKING
@@ -311,3 +312,46 @@ class PhasedXZGate(raw_types.Gate):
         return protocols.obj_to_dict_helper(
             self, ['axis_phase_exponent', 'x_exponent', 'z_exponent']
         )
+
+    def _has_stabilizer_effect_(self) -> bool:
+        if not self._has_unitary_():
+            return False
+        c = self._canonical()
+        actual = (c._x_exponent, c._z_exponent, c._axis_phase_exponent)
+        rounded = tuple(round(v, 2) for v in actual)  # for numerical stability.
+        return (
+            np.allclose(actual, rounded)
+            and tuple(v % 2 for v in rounded) in _clifford_as_phasedzx_params()
+        )
+
+
+@functools.cache
+def _clifford_as_phasedzx_params() -> frozenset[tuple[float, float, float]]:
+    return frozenset(
+        {
+            (0.0, 1.0, 0.0),
+            (0.5, 1.5, 0.0),
+            (1.5, 1.5, 0.0),
+            (1.5, 1.5, 0.5),
+            (0.0, 0.5, 0.0),
+            (0.5, 1.0, 0.0),
+            (0.5, 1.0, 0.5),
+            (1.0, 0.0, 1.75),
+            (0.5, 0.5, 0.0),
+            (0.5, 0.5, 0.5),
+            (1.5, 0.5, 0.5),
+            (1.5, 1.0, 0.5),
+            (1.5, 1.0, 0.0),
+            (1.5, 0.5, 0.0),
+            (0.0, 0.0, 0.0),
+            (1.0, 0.0, 0.0),
+            (1.0, 0.0, 0.5),
+            (1.0, 0.0, 0.25),
+            (0.5, 0.0, 0.5),
+            (0.0, 1.5, 0.0),
+            (0.5, 0.0, 0.0),
+            (1.5, 0.0, 0.0),
+            (1.5, 0.0, 0.5),
+            (0.5, 1.5, 0.5),
+        }
+    )
