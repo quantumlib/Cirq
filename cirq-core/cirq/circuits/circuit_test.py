@@ -5053,6 +5053,7 @@ def test_insert_moments_and_ops_latest() -> None:
         (0, [cirq.Moment(cirq.H(q[2])), cirq.X(q[2])], 4),
         (1, [cirq.X(q[0]), cirq.Moment(cirq.Y(q[1]))], 4),
         (1, [cirq.Y(q[1]), cirq.Moment(cirq.Y(q[2]))], 2),
+        (1, [], 1),
     ]
 
     for insert_index, moments_and_ops, index_after in moments_and_ops_list:

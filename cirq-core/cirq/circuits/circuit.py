@@ -2160,9 +2160,7 @@ class Circuit(AbstractCircuit):
 
         return not self._moments[moment_index].operates_on(operation.qubits)
 
-    def _latest_available_moment(
-        self, op: cirq.Operation, *, start_moment_index: int | None = None
-    ) -> int:
+    def _latest_available_moment(self, op: cirq.Operation, *, start_moment_index: int = 0) -> int:
         """Finds the index of the latest (i.e. right most) moment which can accommodate `op`.
 
         Assumes that `start_moment_index` is between 0 and `len(self._moments)`.
@@ -2175,8 +2173,6 @@ class Circuit(AbstractCircuit):
             Index of the latest matching moment. Returns `start_moment_index - 1` if no moment on
             the right is available, or `len(self._moments)` if `start_moment_index` equals it.
         """
-        if start_moment_index is None:
-            start_moment_index = 0
         if start_moment_index == len(self._moments):
             return start_moment_index
         op_control_keys = protocols.control_keys(op)
@@ -2188,10 +2184,10 @@ class Circuit(AbstractCircuit):
             if moment.operates_on(op_qubits):
                 return k - 1
             moment_measurement_keys = moment._measurement_key_objs_()
-            if (
-                not op_measurement_keys.isdisjoint(moment_measurement_keys)
-                or not op_control_keys.isdisjoint(moment_measurement_keys)
-                or not moment._control_keys_().isdisjoint(op_measurement_keys)
+            if not (
+                op_measurement_keys.isdisjoint(moment_measurement_keys)
+                and op_control_keys.isdisjoint(moment_measurement_keys)
+                and moment._control_keys_().isdisjoint(op_measurement_keys)
             ):
                 return k - 1
             k += 1
@@ -2200,7 +2196,7 @@ class Circuit(AbstractCircuit):
     def _insert_latest(self, k: int, batches: list[list[_MOMENT_OR_OP]]) -> int:
         """Inserts batches of moments or operations using LATEST strategy.
 
-        Batches are inserted into reverse order.
+        Batches are processed in reverse order.
         Operations are inserted into the latest possible moment from the starting
         index k. Moments are inserted intact at index k.
 
@@ -2210,34 +2206,34 @@ class Circuit(AbstractCircuit):
 
         Returns:
             The insertion index that will place operations just after the
-            operations that were inserted by this method.
+            operations that were inserted by this method. Returns k if batches
+            is empty.
         """
-        batches = batches[::-1]
         max_latest_index = -1  # Maximum index of a changed moment
-        for batch in batches:
+        for batch in reversed(batches):
             for moment_or_op in batch:
-                # Determine Placement
                 if isinstance(moment_or_op, Moment):
-                    p = k
+                    self._moments.insert(k, moment_or_op)
+                    # All later moments shift by 1 when the new moment is inserted
+                    max_latest_index = max(k, max_latest_index + 1)
                 else:
+                    end_moment_index = len(self.moments)
                     p = self._latest_available_moment(moment_or_op, start_moment_index=k)
                     if p < k:
-                        self._moments.insert(k, Moment())
-                        # All later moments shift by 1, so increase the max index
-                        max_latest_index += 1
-                        p = k
-                # Place
-                if isinstance(moment_or_op, Moment):
-                    self._moments.insert(p, moment_or_op)
-                    # All later moments shift by 1, so increase the max index
-                    max_latest_index += 1
-                elif p == len(self._moments):
-                    self._moments.append(Moment(moment_or_op))
-                else:
-                    self._moments[p] = self._moments[p].with_operation(moment_or_op)
-                max_latest_index = max(p, max_latest_index)
-        self._mutated(preserve_placement_cache=False)
-        return max_latest_index + 1
+                        self._moments.insert(k, Moment.from_ops(moment_or_op))
+                        max_latest_index = max(k, max_latest_index + 1)
+                    elif p < end_moment_index:
+                        self._moments[p] = self._moments[p].with_operation(moment_or_op)
+                        max_latest_index = max(p, max_latest_index)
+                    else:
+                        assert p == end_moment_index
+                        self._moments.append(Moment.from_ops(moment_or_op))
+                        max_latest_index = end_moment_index
+        # handle returned position index for empty batch
+        pos = k if max_latest_index == -1 else max_latest_index + 1
+        if max_latest_index != -1:
+            self._mutated(preserve_placement_cache=False)
+        return pos
 
     def insert(
         self,
