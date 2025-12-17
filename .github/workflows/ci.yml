@@ -22,7 +22,7 @@ jobs:
   quick_test:
     if: github.repository_owner == 'quantumlib'
     name: Misc check
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -36,7 +36,7 @@ jobs:
   packaging_test:
     if: github.repository_owner == 'quantumlib'
     name: Packaging test
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -54,7 +54,7 @@ jobs:
   format:
     if: github.repository_owner == 'quantumlib'
     name: Format check
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -106,7 +106,7 @@ jobs:
       - name: Install changed files test dependencies
         run: dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
       - name: Changed files test
-        run: check/pytest-changed-files -n auto
+        run: check/pytest-changed-files -n logical
   lint:
     if: github.repository_owner == 'quantumlib'
     name: Lint check
@@ -132,7 +132,7 @@ jobs:
   doc_test:
     if: github.repository_owner == 'quantumlib'
     name: Doc test
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -148,7 +148,7 @@ jobs:
   nbformat:
     if: github.repository_owner == 'quantumlib'
     name: Notebook formatting
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -164,7 +164,7 @@ jobs:
   shellcheck:
     if: github.repository_owner == 'quantumlib'
     name: Shell check
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -175,7 +175,7 @@ jobs:
   isolated-modules:
     if: github.repository_owner == 'quantumlib'
     name: Isolated pytest Ubuntu
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04-x64-8-core
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -187,14 +187,14 @@ jobs:
       - name: Install dependencies
         run: pip install -r dev_tools/requirements/isolated-base.env.txt
       - name: Test each module in isolation
-        run: pytest -n auto --enable-slow-tests dev_tools/packaging/isolated_packages_test.py
+        run: pytest -n logical --enable-slow-tests dev_tools/packaging/isolated_packages_test.py
   pytest:
     if: github.repository_owner == 'quantumlib'
     name: Pytest Ubuntu
     strategy:
       matrix:
         python-version: ['3.11', '3.12', '3.13']
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04-x64-8-core
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -216,7 +216,7 @@ jobs:
           pip install --upgrade setuptools wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Pytest check
-        run: check/pytest -n auto --durations=20 --junit-xml=pytest-ubuntu-report.xml
+        run: check/pytest -n logical --durations=20 --junit-xml=pytest-ubuntu-report.xml
       - name: Persist the test report
         if: github.event_name == 'merge_group' && matrix.python-version == '3.11'
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
@@ -226,7 +226,7 @@ jobs:
   pip-compile:
     if: github.repository_owner == 'quantumlib'
     name: Check consistency of requirements
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -243,7 +243,7 @@ jobs:
   build_protos:
     if: github.repository_owner == 'quantumlib'
     name: Build protos
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -262,7 +262,7 @@ jobs:
   coverage:
     if: github.repository_owner == 'quantumlib'
     name: Coverage check
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04-x64-8-core
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -286,7 +286,7 @@ jobs:
           pip install --upgrade setuptools wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Coverage check
-        run: check/pytest-and-incremental-coverage -n auto
+        run: check/pytest-and-incremental-coverage -n logical
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
         env:
@@ -297,7 +297,7 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.11', '3.12', '3.13']
-    runs-on: windows-2022
+    runs-on: windows-2022-x64-8-core
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -317,7 +317,7 @@ jobs:
       - name: Pytest Windows
         run: |
           source dev_tools/pypath
-          check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib
+          check/pytest -n logical --durations=20 --ignore=cirq-core/cirq/contrib
         shell: bash
   macos:
     if: github.repository_owner == 'quantumlib'
@@ -325,7 +325,8 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.11', '3.12', '3.13']
-    runs-on: macos-15
+    # macos-15-large is Intel; macos-15-xlarge is ARM and the one we want.
+    runs-on: macos-15-xlarge
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -343,7 +344,7 @@ jobs:
           pip install --upgrade setuptools wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest check
-        run: check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib
+        run: check/pytest -n logical --durations=20 --ignore=cirq-core/cirq/contrib
   notebooks-stable:
     if: github.repository_owner == 'quantumlib'
     name: Changed Notebooks Isolated Test against Cirq stable
@@ -367,7 +368,7 @@ jobs:
       - name: Install requirements
         run: pip install -r dev_tools/requirements/isolated-base.env.txt
       - name: Notebook tests
-        run: check/pytest -n auto -m slow dev_tools/notebooks/isolated_notebook_test.py -k ${{matrix.partition}}
+        run: check/pytest -n logical -m slow dev_tools/notebooks/isolated_notebook_test.py -k ${{matrix.partition}}
       - name: Persist the outputs
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         if: failure()
@@ -377,7 +378,7 @@ jobs:
   notebooks-branch:
     if: github.repository_owner == 'quantumlib'
     name: Notebook Tests against PR
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04-x64-8-core
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -389,7 +390,7 @@ jobs:
       - name: Install requirements
         run: pip install -r dev_tools/requirements/notebooks.env.txt
       - name: Notebook tests
-        run: check/pytest -n auto -m slow dev_tools/notebooks/notebook_test.py
+        run: check/pytest -n logical -m slow dev_tools/notebooks/notebook_test.py
       - name: Persist the outputs
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         if: failure()
@@ -399,7 +400,7 @@ jobs:
   ts-build:
     if: github.repository_owner == 'quantumlib'
     name: Bundle file consistency
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -414,7 +415,7 @@ jobs:
   ts-lint:
     if: github.repository_owner == 'quantumlib'
     name: Typescript lint check
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -446,7 +447,7 @@ jobs:
   ts-coverage:
     if: github.repository_owner == 'quantumlib'
     name: Typescript tests coverage
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
