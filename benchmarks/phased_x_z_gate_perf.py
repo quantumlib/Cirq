@@ -19,7 +19,7 @@ import cirq
 
 
 @pytest.mark.benchmark(group="phased_x_z_gate")
-def test_has_stabilizer_effect_for_cliffords(benchmark):
+def test_has_stabilizer_effect_for_cliffords(benchmark) -> None:
     phased_xz_cliffords = [
         g.to_phased_xz_gate() for g in cirq.SingleQubitCliffordGate.all_single_qubit_cliffords
     ]
@@ -29,7 +29,7 @@ def test_has_stabilizer_effect_for_cliffords(benchmark):
 
 
 @pytest.mark.benchmark(group="phased_x_z_gate")
-def test_has_stabilizer_effect_for_random_gates(benchmark):
+def test_has_stabilizer_effect_for_random_gates(benchmark) -> None:
     # benchmark the same number of calls as for Cliffords
     num_calls = len(cirq.SingleQubitCliffordGate.all_single_qubit_cliffords)
     random_phased_xz_gates = [
