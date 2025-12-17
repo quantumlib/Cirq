@@ -164,7 +164,7 @@ jobs:
   shellcheck:
     if: github.repository_owner == 'quantumlib'
     name: Shell check
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
