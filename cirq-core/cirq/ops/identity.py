@@ -151,7 +151,7 @@ class IdentityGate(raw_types.Gate):
     def _from_json_dict_(cls, num_qubits, qid_shape=None, **kwargs):
         return cls(num_qubits=num_qubits, qid_shape=None if qid_shape is None else tuple(qid_shape))
 
-    def _has_stabilizer_effect_(self):
+    def _has_stabilizer_effect_(self) -> bool:
         return True
 
 
