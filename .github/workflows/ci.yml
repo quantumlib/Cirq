@@ -438,6 +438,10 @@ jobs:
         uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
         with:
           node-version: '22.16.0'
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install libatk1.0-0t64
       - name: Install node dependencies
         run: check/npm ci
       - name: Run unit tests
