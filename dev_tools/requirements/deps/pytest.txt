@@ -10,9 +10,6 @@ coverage~=7.4
 pytest-xdist
 filelock~=3.1
 
-# For testing time specific logic
-freezegun
-
 # For test_metadata_distributions_after_deprecated_submodule
 importlib-metadata
 
