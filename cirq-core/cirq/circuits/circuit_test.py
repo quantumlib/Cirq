@@ -1243,6 +1243,7 @@ def test_earliest_available_moment() -> None:
         c.earliest_available_moment(cirq.Y(q[1]).with_classical_controls("m"), end_moment_index=1)
         == 1
     )
+    assert c.earliest_available_moment(cirq.Y(q[1]), end_moment_index=4) == 2
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])

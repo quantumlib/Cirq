@@ -99,7 +99,7 @@ def test_job_results_qpu():
         assert "foo" in str(w[0].message)
         assert "bar" in str(w[1].message)
     expected = ionq.QPUResult({0: 600, 1: 400}, 2, {'a': [0, 1]})
-    assert results[0] == expected
+    assert results == expected
 
 
 def test_batch_job_results_qpu():
@@ -148,7 +148,7 @@ def test_job_results_rounding_qpu():
     job = ionq.Job(mock_client, job_dict)
     expected = ionq.QPUResult({0: 3, 1: 4997}, 2, {'a': [0, 1]})
     results = job.results()
-    assert results[0] == expected
+    assert results == expected
 
 
 def test_job_results_failed():
@@ -179,7 +179,7 @@ def test_job_results_qpu_endianness():
     }
     job = ionq.Job(mock_client, job_dict)
     results = job.results()
-    assert results[0] == ionq.QPUResult({0: 600, 2: 400}, 2, measurement_dict={})
+    assert results == ionq.QPUResult({0: 600, 2: 400}, 2, measurement_dict={})
 
 
 def test_batch_job_results_qpu_endianness():
@@ -200,7 +200,7 @@ def test_batch_job_results_qpu_endianness():
     }
     job = ionq.Job(mock_client, job_dict)
     results = job.results()
-    assert results[0] == ionq.QPUResult({0: 600, 2: 400}, 2, measurement_dict={'a': [0, 1]})
+    assert results == ionq.QPUResult({0: 600, 2: 400}, 2, measurement_dict={'a': [0, 1]})
 
 
 def test_job_results_qpu_target_endianness():
@@ -216,7 +216,7 @@ def test_job_results_qpu_target_endianness():
     }
     job = ionq.Job(mock_client, job_dict)
     results = job.results()
-    assert results[0] == ionq.QPUResult({0: 600, 2: 400}, 2, measurement_dict={})
+    assert results == ionq.QPUResult({0: 600, 2: 400}, 2, measurement_dict={})
 
 
 def test_batch_job_results_qpu_target_endianness():
@@ -238,7 +238,7 @@ def test_batch_job_results_qpu_target_endianness():
     }
     job = ionq.Job(mock_client, job_dict)
     results = job.results()
-    assert results[0] == ionq.QPUResult({0: 600, 2: 400}, 2, measurement_dict={'a': [0, 1]})
+    assert results == ionq.QPUResult({0: 600, 2: 400}, 2, measurement_dict={'a': [0, 1]})
 
 
 @mock.patch('time.sleep', return_value=None)
@@ -256,7 +256,7 @@ def test_job_results_poll(mock_sleep):
     mock_client.get_results.return_value = {'0': '0.6', '1': '0.4'}
     job = ionq.Job(mock_client, ready_job)
     results = job.results(polling_seconds=0)
-    assert results[0] == ionq.QPUResult({0: 600, 1: 400}, 1, measurement_dict={})
+    assert results == ionq.QPUResult({0: 600, 1: 400}, 1, measurement_dict={})
     mock_sleep.assert_called_once()
 
 
@@ -294,7 +294,7 @@ def test_job_results_simulator():
     }
     job = ionq.Job(mock_client, job_dict)
     results = job.results()
-    assert results[0] == ionq.SimulatorResult({0: 0.6, 1: 0.4}, 1, {}, 100)
+    assert results == ionq.SimulatorResult({0: 0.6, 1: 0.4}, 1, {}, 100)
 
 
 def test_batch_job_results_simulator():
@@ -336,7 +336,7 @@ def test_job_results_simulator_endianness():
     }
     job = ionq.Job(mock_client, job_dict)
     results = job.results()
-    assert results[0] == ionq.SimulatorResult({0: 0.6, 2: 0.4}, 2, {}, 100)
+    assert results == ionq.SimulatorResult({0: 0.6, 2: 0.4}, 2, {}, 100)
 
 
 def test_batch_job_results_simulator_endianness():
@@ -357,7 +357,7 @@ def test_batch_job_results_simulator_endianness():
     }
     job = ionq.Job(mock_client, job_dict)
     results = job.results()
-    assert results[0] == ionq.SimulatorResult({0: 0.6, 2: 0.4}, 2, {'a': [0, 1]}, 1000)
+    assert results == ionq.SimulatorResult({0: 0.6, 2: 0.4}, 2, {'a': [0, 1]}, 1000)
 
 
 def test_job_sharpen_results():
@@ -372,7 +372,7 @@ def test_job_sharpen_results():
     }
     job = ionq.Job(mock_client, job_dict)
     results = job.results(sharpen=False)
-    assert results[0] == ionq.SimulatorResult({0: 60, 1: 40}, 1, {}, 100)
+    assert results == ionq.SimulatorResult({0: 60, 1: 40}, 1, {}, 100)
 
 
 def test_job_cancel():
