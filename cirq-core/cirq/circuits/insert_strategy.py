@@ -24,6 +24,7 @@ class InsertStrategy:
     NEW_THEN_INLINE: InsertStrategy
     INLINE: InsertStrategy
     EARLIEST: InsertStrategy
+    LATEST: InsertStrategy
 
     def __new__(cls, name: str, doc: str) -> InsertStrategy:
         inst = getattr(cls, name, None)
@@ -91,5 +92,22 @@ InsertStrategy.EARLIEST = InsertStrategy(
     If the moment just before the insert location has conflicting operations,
     or the insert index is 0, then the operation is inserted into a new moment
     at the desired location.
+    """,
+)
+
+InsertStrategy.LATEST = InsertStrategy(
+    'LATEST',
+    """
+    Scans forward from the insert location until a moment with operations
+    touching qubits affected by the operation to insert is found. The operation
+    is added into the moment just before that conflicting location.
+
+    If the scan reaches the end of the circuit without finding any conflicting
+    operations, the operation is added into the last moment of the circuit
+    if possible, otherwise in a new moment at the end.
+
+    The operation is never added into moments before the initial insert
+    location. If the moment at the initial insert location has conflicting
+    operations, the operation is added into a new moment before it.
     """,
 )
