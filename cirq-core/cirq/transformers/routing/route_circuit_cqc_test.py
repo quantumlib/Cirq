@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-import networkx as nx  # type: ignore[import-untyped]
+import networkx as nx
 import pytest
 
 import cirq
@@ -107,7 +107,7 @@ def test_multi_qubit_gate_inputs() -> None:
 
     invalid_subcircuit_op = cirq.CircuitOperation(
         cirq.Circuit(cirq.X(q[1]), cirq.CCZ(q[0], q[1], q[2]), cirq.Y(q[1])).freeze()
-    ).with_tags("<mapped_circuit_op>")
+    ).with_tags('<mapped_circuit_op>')
     invalid_circuit = cirq.Circuit(cirq.H(q[0]), cirq.H(q[2]), invalid_subcircuit_op)
     with pytest.raises(
         ValueError, match="Input circuit must only have ops that act on 1 or 2 qubits."
@@ -130,7 +130,7 @@ def test_multi_qubit_gate_inputs() -> None:
 
     valid_subcircuit_op = cirq.CircuitOperation(
         cirq.Circuit(cirq.X(q[1]), cirq.CZ(q[0], q[1]), cirq.CZ(q[1], q[2]), cirq.Y(q[1])).freeze()
-    ).with_tags("<mapped_circuit_op>")
+    ).with_tags('<mapped_circuit_op>')
     valid_circuit = cirq.Circuit(cirq.H(q[0]), cirq.H(q[2]), valid_subcircuit_op)
     with pytest.raises(
         ValueError, match="Input circuit must only have ops that act on 1 or 2 qubits."
@@ -243,12 +243,12 @@ def test_circuit_with_tagged_ops() -> None:
     routed_circuit = router(circuit, initial_mapper=hard_coded_mapper)
     expected = cirq.Circuit(
         [
-            cirq.Moment(cirq.TaggedOperation(cirq.CNOT(q[0], q[1]), "u")),
+            cirq.Moment(cirq.TaggedOperation(cirq.CNOT(q[0], q[1]), 'u')),
             cirq.Moment(cirq.CNOT(q[1], q[2])),
             cirq.Moment(cirq.SWAP(q[0], q[1])),
-            cirq.Moment(cirq.TaggedOperation(cirq.CNOT(q[1], q[2]), "u")),
-            cirq.Moment(cirq.TaggedOperation(cirq.X(q[1]), "u")),
-            cirq.Moment(cirq.TaggedOperation(cirq.X(q[1]), "u")),
+            cirq.Moment(cirq.TaggedOperation(cirq.CNOT(q[1], q[2]), 'u')),
+            cirq.Moment(cirq.TaggedOperation(cirq.X(q[1]), 'u')),
+            cirq.Moment(cirq.TaggedOperation(cirq.X(q[1]), 'u')),
         ]
     )
     cirq.testing.assert_same_circuits(routed_circuit, expected)
@@ -384,6 +384,47 @@ def test_directed_device_with_tag_inserted_swaps_reverse_only() -> None:
     assert len(tagged_cnots) > 0, "Expected tagged CNOT gates!"
 
 
+def test_emit_swap_reverse_only_edge_with_tags() -> None:
+    """Direct unit test of _emit_swap to cover lines 364-393 (Case C).
+
+    This test directly calls _emit_swap with (q0, q1) arguments where only
+    the reverse edge (q1, q0) exists in the directed graph, triggering the
+    Case C code path with tag_inserted_swaps=True.
+    """
+    q0 = cirq.LineQubit(0)
+    q1 = cirq.LineQubit(1)
+
+    # Graph with only q1 -> q0 edge (reverse-only from q0's perspective)
+    g = nx.DiGraph()
+    g.add_edge(q1, q0)
+
+    circuit_ops: list[cirq.Operation] = []
+
+    # Call _emit_swap with (q0, q1) - this should trigger Case C (lines 364-393)
+    # because has_edge(q1, q0) is True but has_edge(q0, q1) is False
+    cirq.RouteCQC._emit_swap(  # pylint: disable=protected-access
+        circuit_ops, q0, q1, g, tag_inserted_swaps=True
+    )
+
+    # Verify the decomposition: should be 3 CNOTs + 4 Hadamards, all tagged
+    assert len(circuit_ops) == 7, f"Expected 7 operations, got {len(circuit_ops)}"
+
+    # All operations should be tagged with RoutingSwapTag
+    tagged_ops = [op for op in circuit_ops if cirq.RoutingSwapTag() in op.tags]
+    assert len(tagged_ops) == 7, "All operations should be tagged with RoutingSwapTag"
+
+    # Verify we have both Hadamards and CNOTs
+    hadamards = [op for op in circuit_ops if isinstance(op.gate, cirq.HPowGate)]
+    cnots = [op for op in circuit_ops if isinstance(op.gate, cirq.CNotPowGate)]
+
+    assert len(hadamards) == 4, f"Expected 4 Hadamard gates, got {len(hadamards)}"
+    assert len(cnots) == 3, f"Expected 3 CNOT gates, got {len(cnots)}"
+
+    # Verify the CNOT directions are all (q1, q0) since that's the only available edge
+    for cnot in cnots:
+        assert cnot.qubits == (q1, q0), f"Expected CNOT(q1, q0), got CNOT{cnot.qubits}"
+
+
 def test_no_edge_between_qubits_raises_error() -> None:
     """Tests that _emit_swap raises ValueError when qubits have no connecting edge."""
     # Test the _emit_swap method directly since the router has other checks
@@ -408,4 +449,4 @@ def test_repr() -> None:
     device = cirq.testing.construct_ring_device(10)
     device_graph = device.metadata.nx_graph
     router = cirq.RouteCQC(device_graph)
-    cirq.testing.assert_equivalent_repr(router, setup_code="import cirq\nimport networkx as nx")
+    cirq.testing.assert_equivalent_repr(router, setup_code='import cirq\nimport networkx as nx')
