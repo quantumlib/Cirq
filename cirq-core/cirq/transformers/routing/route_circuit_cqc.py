@@ -270,12 +270,12 @@ class RouteCQC:
                     default_key = ops.measure(op.qubits).gate.key  # type: ignore
                     if len(circuit.moments) == i + 1:
                         single_qubit_ops[timestep].append(op)
-                    elif key in ('', default_key):
+                    elif key in ("", default_key):
                         single_qubit_ops[timestep].extend(ops.measure(qubit) for qubit in op.qubits)
                     else:
                         raise ValueError(
-                            'Intermediate measurements on three or more qubits '
-                            'with a custom key are not supported'
+                            "Intermediate measurements on three or more qubits "
+                            "with a custom key are not supported"
                         )
                 elif protocols.num_qubits(op) == 2:
                     two_qubit_circuit[timestep] = two_qubit_circuit[timestep].with_operation(op)
@@ -600,4 +600,4 @@ class RouteCQC:
         return nx.utils.graphs_equal(self.device_graph, other.device_graph)
 
     def __repr__(self) -> str:
-        return f'cirq.RouteCQC(nx.Graph({dict(self.device_graph.adjacency())}))'
+        return f"cirq.RouteCQC(nx.Graph({dict(self.device_graph.adjacency())}))"
