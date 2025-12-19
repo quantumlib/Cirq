@@ -192,10 +192,19 @@ class PhasedXZGate(raw_types.Gate):
         """See `cirq.SupportsUnitary`."""
         if self._is_parameterized_():
             return None
-        z_pre = protocols.unitary(ops.Z**-self._axis_phase_exponent)
-        x = protocols.unitary(ops.X**self._x_exponent)
-        z_post = protocols.unitary(ops.Z ** (self._axis_phase_exponent + self._z_exponent))
-        return z_post @ x @ z_pre
+
+        a = self._axis_phase_exponent
+        x = self._x_exponent
+        z = self._z_exponent
+        cpx = np.cos(x * np.pi / 2)
+        spx = np.sin(x * np.pi / 2)
+        u = np.array(
+            [
+                [cpx * 1j**x, -1j * 1j ** (x - 2 * a) * spx],
+                [-1j * 1j ** (x + 2 * (z + a)) * spx, cpx * 1j ** (x + 2 * z)],
+            ]
+        )
+        return u
 
     def _decompose_(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
         q = qubits[0]
