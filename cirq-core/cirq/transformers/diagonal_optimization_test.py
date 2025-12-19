@@ -11,15 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Tests for diagonal_optimization transformer."""
 
-import numpy as np
-import pytest
 
 import cirq
-from cirq.transformers.diagonal_optimization import drop_diagonal_before_measurement
+from cirq.transformers.diagonal_optimization import (
+    drop_diagonal_before_measurement,
+    _is_diagonal,
+)
 
 
 def test_removes_z_before_measure():
+    """Tests that Z gates are removed before measurement."""
     q = cirq.NamedQubit('q')
 
     # Original: H -> Z -> Measure
@@ -34,6 +37,7 @@ def test_removes_z_before_measure():
 
 
 def test_removes_diagonal_chain():
+    """Tests that a chain of diagonal gates is removed."""
     q = cirq.NamedQubit('q')
 
     # Original: H -> Z -> S -> Measure
@@ -48,6 +52,7 @@ def test_removes_diagonal_chain():
 
 
 def test_keeps_z_blocked_by_x():
+    """Tests that Z gates blocked by X gates are preserved."""
     q = cirq.NamedQubit('q')
 
     # Original: Z -> X -> Measure
@@ -65,6 +70,7 @@ def test_keeps_z_blocked_by_x():
 
 
 def test_keeps_cz_if_only_one_qubit_measured():
+    """Tests that CZ is kept if only one qubit is measured."""
     q0, q1 = cirq.LineQubit.range(2)
 
     # Original: CZ(0,1) -> Measure(0)
@@ -77,6 +83,7 @@ def test_keeps_cz_if_only_one_qubit_measured():
 
 
 def test_removes_cz_if_both_measured():
+    """Tests that CZ is removed if both qubits are measured."""
     q0, q1 = cirq.LineQubit.range(2)
 
     # Original: CZ(0,1) -> Measure(0), Measure(1)
@@ -149,7 +156,6 @@ def test_preserves_non_diagonal_gates():
 
 def test_is_diagonal_helper_edge_cases():
     """Test edge cases in _is_diagonal helper function for full coverage."""
-    from cirq.transformers.diagonal_optimization import _is_diagonal
 
     q = cirq.NamedQubit('q')
 
@@ -173,4 +179,3 @@ def test_is_diagonal_helper_edge_cases():
     # Other diagonal gates (like CCZ) are not detected by the optimized version
     # This is intentional - eject_z is only effective for Z and CZ anyway
     assert not _is_diagonal(cirq.CCZ(q0, q1, q))
-
