@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import functools
+import math
 import numbers
 from collections.abc import Iterator, Sequence, Set
 from typing import Any, TYPE_CHECKING
@@ -196,16 +197,18 @@ class PhasedXZGate(raw_types.Gate):
         a = self._axis_phase_exponent
         x = self._x_exponent
         z = self._z_exponent
-        # evaluate cpx = cos(x * pi / 2) and spx = sin(x * pi / 2)
-        # without round-off errors at integer x
-        cpx_spx = 1j**x
-        cpx = cpx_spx.real
-        spx = cpx_spx.imag
+        # evaluate unitary terms ucx = exp(1j * pi * x / 2) * cos(pi * x / 2) and
+        # usx = -1j * exp(1j * pi * x / 2) * sin(pi * x / 2) without round-off
+        # errors at half-integer x
+        if x % 1 == 0.5:
+            ucx = 0.5 + 0.5j * (-1) ** math.floor(x)
+            usx = ucx.conjugate()
+        else:
+            cpxh = 1j**x
+            ucx = cpxh * cpxh.real
+            usx = -1j * cpxh * cpxh.imag
         u = np.array(
-            [
-                [cpx * 1j**x, -1j * 1j ** (x - 2 * a) * spx],
-                [-1j * 1j ** (x + 2 * (z + a)) * spx, cpx * 1j ** (x + 2 * z)],
-            ]
+            [[ucx, usx * 1j ** (-2 * a)], [usx * 1j ** (2 * (z + a)), ucx * 1j ** (2 * z)]]
         )
         return u
 
