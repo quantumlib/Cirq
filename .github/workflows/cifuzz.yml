@@ -19,12 +19,12 @@ jobs:
     steps:
     - name: Build Fuzzers
       id: build
-      uses: google/oss-fuzz/infra/cifuzz/actions/build_fuzzers@c74d76768368951823cffca3bbd15eaa82093178
+      uses: google/oss-fuzz/infra/cifuzz/actions/build_fuzzers@master
       with:
         oss-fuzz-project-name: cirq
         language: python
     - name: Run Fuzzers
-      uses: google/oss-fuzz/infra/cifuzz/actions/run_fuzzers@c74d76768368951823cffca3bbd15eaa82093178
+      uses: google/oss-fuzz/infra/cifuzz/actions/run_fuzzers@master
       with:
         oss-fuzz-project-name: cirq
         language: python
