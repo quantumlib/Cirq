@@ -196,8 +196,11 @@ class PhasedXZGate(raw_types.Gate):
         a = self._axis_phase_exponent
         x = self._x_exponent
         z = self._z_exponent
-        cpx = np.cos(x * np.pi / 2)
-        spx = np.sin(x * np.pi / 2)
+        # evaluate cpx = cos(x * pi / 2) and spx = sin(x * pi / 2)
+        # without round-off errors at integer x
+        cpx_spx = 1j**x
+        cpx = cpx_spx.real
+        spx = cpx_spx.imag
         u = np.array(
             [
                 [cpx * 1j**x, -1j * 1j ** (x - 2 * a) * spx],
