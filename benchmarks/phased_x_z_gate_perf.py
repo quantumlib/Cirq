@@ -39,3 +39,16 @@ def test_has_stabilizer_effect_for_random_gates(benchmark) -> None:
     f = lambda: any(cirq.has_stabilizer_effect(g) for g in random_phased_xz_gates)
     result = benchmark(f)
     assert not result
+
+
+@pytest.mark.benchmark(group="phased_x_z_gate")
+def test_unitary_for_random_gates(benchmark) -> None:
+    num_calls = 1000
+    random_phased_xz_gates = [
+        cirq.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
+        for x, z, a in np.random.uniform(-1, 1, (num_calls, 3))
+    ]
+    # evaluate unitary for all gates
+    f = lambda: all(cirq.unitary(g) is not None for g in random_phased_xz_gates)
+    result = benchmark(f)
+    assert result
