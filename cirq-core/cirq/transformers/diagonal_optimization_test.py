@@ -15,10 +15,7 @@
 
 
 import cirq
-from cirq.transformers.diagonal_optimization import (
-    drop_diagonal_before_measurement,
-    _is_diagonal,
-)
+from cirq.transformers.diagonal_optimization import _is_diagonal, drop_diagonal_before_measurement
 
 
 def test_removes_z_before_measure():
