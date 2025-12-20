@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import itertools
 import random
 from typing import cast
 
@@ -225,6 +226,20 @@ def test_from_matrix_close_unitary(unitary: np.ndarray) -> None:
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(cirq.PhasedXZGate.from_matrix(unitary)), unitary, atol=1e-8
     )
+
+
+@pytest.mark.parametrize(
+    ['x_exponent', 'z_exponent', 'axis_phase_exponent'],
+    itertools.product([-0.5, 0.0, 0.5, 1.0], repeat=3),
+)
+def test_exact_unitary_at_half_integers(
+    x_exponent: float, z_exponent: float, axis_phase_exponent: float
+) -> None:
+    gate = cirq.PhasedXZGate(
+        x_exponent=x_exponent, z_exponent=z_exponent, axis_phase_exponent=axis_phase_exponent
+    )
+    u = cirq.unitary(gate)
+    np.testing.assert_equal(u, np.round(u, decimals=1))
 
 
 @pytest.mark.parametrize(
