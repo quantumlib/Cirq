@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import math
-from typing import Any, cast, Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Iterator, Sequence
+from typing import Any, cast, TYPE_CHECKING
 
 from sympy.combinatorics import GrayCode
 

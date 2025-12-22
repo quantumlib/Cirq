@@ -15,8 +15,8 @@
 
 from __future__ import annotations
 
-import itertools
-from typing import Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 import cirq
 from cirq_ionq import results
@@ -106,7 +106,12 @@ class Sampler(cirq.Sampler):
             job_results = [job.results(timeout_seconds=self._timeout_seconds) for job in jobs]
         else:
             job_results = [job.results() for job in jobs]
-        flattened_job_results = list(itertools.chain.from_iterable(job_results))
+        flattened_job_results: list[results.QPUResult | results.SimulatorResult] = []
+        for res in job_results:
+            if isinstance(res, list):
+                flattened_job_results.extend(res)
+            else:
+                flattened_job_results.append(res)
         cirq_results = []
         for result, params in zip(flattened_job_results, resolvers):
             if isinstance(result, results.QPUResult):

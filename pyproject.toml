@@ -18,6 +18,7 @@ include = [
     "./*",
 ]
 omit = ["benchmarks/*"]
+patch = ["subprocess"]
 
 [tool.coverage.report]
 exclude_also = [
@@ -136,13 +137,22 @@ select = [
     "TC001",  # typing-only-first-party-import
     "TC002",  # typing-only-third-party-import
     # "TC003",  # typing-only-standard-library-import
+    "TID251",  # banned-api
+    "UP004",  # useless-object-inheritance
     "UP006",  # non-pep585-annotation
     "UP007",  # non-pep604-annotation-union
     "UP008",  # super-call-with-parameters, pylint super-with-arguments
     "UP010",  # unnecessary-future-import
+    "UP018",  # native-literals
+    "UP028",  # yield-in-for-loop
+    "UP034",  # extraneous-parentheses
+    "UP035",  # deprecated-import
     "UP037",  # quoted-annotation
     "W605",  # invalid-escape-sequence, pylint anomalous-backslash-in-string
 ]
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"attr".msg = "Please import 'attrs' per https://www.attrs.org/en/stable/names.html"
 
 [tool.ruff.lint.per-file-ignores]
 "*.ipynb" = ["E402"]

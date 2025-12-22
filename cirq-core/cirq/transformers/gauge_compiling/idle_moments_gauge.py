@@ -14,7 +14,8 @@
 from __future__ import annotations
 
 import functools
-from typing import Hashable, Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Hashable, Iterator, Sequence
+from typing import TYPE_CHECKING
 
 import attrs
 import numpy as np

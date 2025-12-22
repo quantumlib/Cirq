@@ -164,7 +164,7 @@ def _transfer_to_standard_form(
     return M, X, Z, r
 
 
-class StabilizerCode(object):
+class StabilizerCode:
     def __init__(self, group_generators: list[str], correctable_errors: list[str]):
         n = len(group_generators[0])
         k = n - len(group_generators)

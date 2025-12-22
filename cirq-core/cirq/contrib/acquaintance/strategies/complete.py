@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 from cirq import circuits, ops
 from cirq.contrib.acquaintance.gates import acquaint
@@ -54,7 +55,7 @@ def complete_acquaintance_strategy(
     if acquaintance_size == len(qubit_order):
         return circuits.Circuit(acquaint(*qubit_order))
 
-    strategy = circuits.Circuit((acquaint(q) for q in qubit_order))
+    strategy = circuits.Circuit(acquaint(q) for q in qubit_order)
     for size_to_acquaint in range(2, acquaintance_size + 1):
         expose_acquaintance_gates(strategy)
         replace_acquaintance_with_swap_network(strategy, qubit_order, size_to_acquaint, swap_gate)

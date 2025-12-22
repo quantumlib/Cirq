@@ -17,7 +17,8 @@ from __future__ import annotations
 
 import dataclasses
 import itertools
-from typing import Any, Callable, Container, Iterable, Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Callable, Container, Iterable, Iterator, Sequence
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 

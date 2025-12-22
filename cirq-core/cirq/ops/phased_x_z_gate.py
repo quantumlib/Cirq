@@ -14,8 +14,11 @@
 
 from __future__ import annotations
 
+import functools
+import math
 import numbers
-from typing import AbstractSet, Any, Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Iterator, Sequence, Set
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -190,10 +193,24 @@ class PhasedXZGate(raw_types.Gate):
         """See `cirq.SupportsUnitary`."""
         if self._is_parameterized_():
             return None
-        z_pre = protocols.unitary(ops.Z**-self._axis_phase_exponent)
-        x = protocols.unitary(ops.X**self._x_exponent)
-        z_post = protocols.unitary(ops.Z ** (self._axis_phase_exponent + self._z_exponent))
-        return z_post @ x @ z_pre
+
+        a = self._axis_phase_exponent
+        x = self._x_exponent
+        z = self._z_exponent
+        # evaluate unitary terms ucx = exp(1j * pi * x / 2) * cos(pi * x / 2) and
+        # usx = -1j * exp(1j * pi * x / 2) * sin(pi * x / 2) without round-off
+        # errors at half-integer x
+        if x % 1 == 0.5:
+            ucx = 0.5 + 0.5j * (-1) ** math.floor(x)
+            usx = ucx.conjugate()
+        else:
+            cpxh = 1j**x
+            ucx = cpxh * cpxh.real
+            usx = -1j * cpxh * cpxh.imag
+        u = np.array(
+            [[ucx, usx * 1j ** (-2 * a)], [usx * 1j ** (2 * (z + a)), ucx * 1j ** (2 * z)]]
+        )
+        return u
 
     def _decompose_(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
         q = qubits[0]
@@ -220,7 +237,7 @@ class PhasedXZGate(raw_types.Gate):
             or protocols.is_parameterized(self._axis_phase_exponent)
         )
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         """See `cirq.SupportsParameterization`."""
         return (
             protocols.parameter_names(self._x_exponent)
@@ -310,3 +327,46 @@ class PhasedXZGate(raw_types.Gate):
         return protocols.obj_to_dict_helper(
             self, ['axis_phase_exponent', 'x_exponent', 'z_exponent']
         )
+
+    def _has_stabilizer_effect_(self) -> bool:
+        if not self._has_unitary_():
+            return False
+        c = self._canonical()
+        actual = (c._x_exponent, c._z_exponent, c._axis_phase_exponent)
+        rounded = tuple(round(v, 2) for v in actual)  # for numerical stability.
+        return (
+            np.allclose(actual, rounded)
+            and tuple(v % 2 for v in rounded) in _clifford_as_phasedzx_params()
+        )
+
+
+@functools.cache
+def _clifford_as_phasedzx_params() -> frozenset[tuple[float, float, float]]:
+    return frozenset(
+        {
+            (0.0, 1.0, 0.0),
+            (0.5, 1.5, 0.0),
+            (1.5, 1.5, 0.0),
+            (1.5, 1.5, 0.5),
+            (0.0, 0.5, 0.0),
+            (0.5, 1.0, 0.0),
+            (0.5, 1.0, 0.5),
+            (1.0, 0.0, 1.75),
+            (0.5, 0.5, 0.0),
+            (0.5, 0.5, 0.5),
+            (1.5, 0.5, 0.5),
+            (1.5, 1.0, 0.5),
+            (1.5, 1.0, 0.0),
+            (1.5, 0.5, 0.0),
+            (0.0, 0.0, 0.0),
+            (1.0, 0.0, 0.0),
+            (1.0, 0.0, 0.5),
+            (1.0, 0.0, 0.25),
+            (0.5, 0.0, 0.5),
+            (0.0, 1.5, 0.0),
+            (0.5, 0.0, 0.0),
+            (1.5, 0.0, 0.0),
+            (1.5, 0.0, 0.5),
+            (0.5, 1.5, 0.5),
+        }
+    )

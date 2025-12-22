@@ -19,7 +19,8 @@ from __future__ import annotations
 import dataclasses
 import json
 import math
-from typing import Any, Callable, cast, Collection, Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Callable, Collection, Iterator, Sequence
+from typing import Any, cast, TYPE_CHECKING
 
 import numpy as np
 
@@ -196,7 +197,7 @@ class Serializer:
                 {'circuit': [op for op in serialized_ops if op['gate'] != 'meas']}
             )
             measurements.append(
-                (self._serialize_measurements(op for op in serialized_ops if op['gate'] == 'meas'))
+                self._serialize_measurements(op for op in serialized_ops if op['gate'] == 'meas')
             )
             qubit_numbers.append(self._num_qubits(circuit))
 

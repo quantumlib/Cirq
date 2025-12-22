@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import time
-from typing import Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 import attrs
 import numpy as np
@@ -273,7 +274,7 @@ def _analyze_readout_results(
     )
 
 
-@deprecated(deadline="v2.0", fix="Use run_shuffled_circuits_with_readout_benchmarking() instead.")
+@deprecated(deadline="v1.8", fix="Use run_shuffled_circuits_with_readout_benchmarking() instead.")
 def run_shuffled_with_readout_benchmarking(
     input_circuits: list[circuits.Circuit],
     sampler: work.Sampler,

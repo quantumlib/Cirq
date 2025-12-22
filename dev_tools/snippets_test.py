@@ -51,34 +51,47 @@ In addition to checking that the code executes:
 from __future__ import annotations
 
 import inspect
-import os
 import pathlib
 import re
-from typing import Any, Iterator, Pattern
+from collections.abc import Iterator
+from re import Pattern
+from typing import Any
 
 import pytest
 
 import cirq
 
+DOCS_FOLDER = pathlib.Path(__file__).parent.parent / 'docs'
+DEFAULT_STATE: dict[str, Any] = {}
+
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_default_state(tmp_path_factory) -> None:
+    """Provide writeable `filepath` variable for snippet execution namespace."""
+    scratch_dir = tmp_path_factory.mktemp("snippets_test")
+    DEFAULT_STATE["filepath"] = str(scratch_dir / "filepath")
+
 
 def test_can_run_readme_code_snippets():
     # Get the contents of the README.md file at the project root.
-    readme_path = 'README.md'
-    assert readme_path is not None
+    readme_path = DOCS_FOLDER.parent / 'README.md'
+    assert readme_path.exists()
 
     assert_file_has_working_code_snippets(readme_path, assume_import=False)
 
 
 def find_docs_code_snippets_paths() -> Iterator[str]:
-    docs_folder = pathlib.Path(__file__).parent
-    for filename in docs_folder.rglob('*.md'):
-        yield str(filename.relative_to(docs_folder))
+    for filename in DOCS_FOLDER.rglob('*.md'):
+        # Skip files under either 'hardware' and 'google'
+        # TODO: #7787 - revisit which of these can be fixed and enabled later.
+        path = str(filename.relative_to(DOCS_FOLDER))
+        if not path.startswith(('hardware', 'google')):
+            yield path
 
 
 @pytest.mark.parametrize('path', find_docs_code_snippets_paths())
 def test_can_run_docs_code_snippets(path):
-    docs_folder = os.path.dirname(__file__)
-    assert_file_has_working_code_snippets(os.path.join(docs_folder, path), assume_import=True)
+    assert_file_has_working_code_snippets(DOCS_FOLDER / path, assume_import=True)
 
 
 def find_code_snippets(pattern: str, content: str) -> list[tuple[str, int]]:
@@ -226,17 +239,16 @@ universe
     )
 
 
-def assert_file_has_working_code_snippets(path: str, assume_import: bool):
+def assert_file_has_working_code_snippets(path: str | pathlib.Path, assume_import: bool):
     """Checks that code snippets in a file actually run."""
 
     with open(path, encoding='utf-8') as f:
         content = f.read()
 
     # Find snippets of code, and execute them. They should finish.
-    if path.endswith('.md'):
-        overrides = find_markdown_test_overrides(content)
-        content = apply_overrides(content, overrides)
-        snippets = find_markdown_code_snippets(content)
+    overrides = find_markdown_test_overrides(content)
+    content = apply_overrides(content, overrides)
+    snippets = find_markdown_code_snippets(content)
     assert_code_snippets_run_in_sequence(snippets, assume_import)
 
 
@@ -247,7 +259,7 @@ def assert_code_snippets_run_in_sequence(snippets: list[tuple[str, int]], assume
     snippet will be visible in later snippets.
     """
 
-    state: dict[str, Any] = {}
+    state: dict[str, Any] = DEFAULT_STATE.copy()
 
     if assume_import:
         exec('import cirq', state)

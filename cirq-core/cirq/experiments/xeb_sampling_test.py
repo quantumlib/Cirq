@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import glob
 import itertools
-from typing import Iterable
+from collections.abc import Iterable
 
 import networkx as nx
 import numpy as np

@@ -16,6 +16,10 @@ __pycache__
 *.coverage
 *.coverage.*
 
+# ignore output from pytest-benchmark and pytest-profiling
+/.benchmarks/
+/prof/
+
 # packaging
 *.egg-info/
 build/

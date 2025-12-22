@@ -19,6 +19,7 @@ import re
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 from cirq.circuits.qasm_output import QasmTwoQubitGate, QasmUGate
@@ -66,6 +67,28 @@ def test_u_gate_from_qiskit_ugate_unitary(_) -> None:
     u = _qiskit_ugate_unitary(QasmUGate(theta, phi, lmda))
     g = QasmUGate.from_matrix(u)
     np.testing.assert_allclose(cirq.unitary(g), u, atol=1e-7)
+
+
+def test_u_gate_params() -> None:
+    q = cirq.LineQubit(0)
+    a, b, c = sympy.symbols('a b c')
+    u_gate = QasmUGate(a, b, c)
+    assert u_gate == QasmUGate(a, b + 2, c - 2)
+    assert u_gate != QasmUGate(a, b + 1, c - 1)
+    assert cirq.is_parameterized(u_gate)
+    assert cirq.parameter_names(u_gate) == {'a', 'b', 'c'}
+    assert not cirq.has_unitary(u_gate)
+    cirq.testing.assert_equivalent_repr(u_gate)
+    cirq.testing.assert_implements_consistent_protocols(u_gate)
+    u_gate_caps = cirq.resolve_parameters(u_gate, {'a': 'A', 'b': 'B', 'c': 'C'})
+    assert u_gate_caps == QasmUGate(*sympy.symbols('A B C'))
+    resolver = {'A': 0.1, 'B': 2.2, 'C': -1.7}
+    resolved = cirq.resolve_parameters(u_gate_caps, resolver)
+    assert cirq.approx_eq(resolved, QasmUGate(0.1, 0.2, 0.3))
+    resolved_then_decomposed = cirq.decompose_once_with_qubits(resolved, [q])
+    decomposed = cirq.decompose_once_with_qubits(u_gate_caps, [q])
+    decomposed_then_resolved = [cirq.resolve_parameters(g, resolver) for g in decomposed]
+    assert resolved_then_decomposed == decomposed_then_resolved
 
 
 def test_qasm_two_qubit_gate_repr() -> None:

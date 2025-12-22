@@ -16,7 +16,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, cast, Hashable, Iterable, TYPE_CHECKING
+from collections.abc import Callable, Hashable, Iterable
+from typing import Any, cast, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq.ops import global_phase_op, op_tree, raw_types

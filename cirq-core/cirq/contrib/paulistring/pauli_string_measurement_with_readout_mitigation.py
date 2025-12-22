@@ -18,7 +18,8 @@ from __future__ import annotations
 
 import itertools
 import time
-from typing import cast, Sequence, TYPE_CHECKING, Mapping
+from typing import cast, TYPE_CHECKING 
+from collections.abc import Sequence, Mapping
 
 import attrs
 import numpy as np

@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import dataclasses
 from collections import OrderedDict
-from typing import cast, Hashable, Iterable, Sequence
+from collections.abc import Hashable, Iterable, Sequence
+from typing import cast
 
 import numpy as np
 
