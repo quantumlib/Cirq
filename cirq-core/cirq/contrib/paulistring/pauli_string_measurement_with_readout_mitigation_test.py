@@ -803,3 +803,53 @@ def test_group_paulis_type_mismatch() -> None:
         measure_pauli_strings(
             circuits_to_pauli, cirq.Simulator(), 300, 300, 300, np.random.default_rng()
         )
+
+
+@pytest.mark.parametrize("use_sweep", [False, True])
+def test_sampler_receives_correct_circuits(use_sweep: bool) -> None:
+    """Test that the sampler receives circuits with correct measurement qubits."""
+
+    from unittest.mock import MagicMock
+
+    from cirq.study.result import ResultDict
+
+    # Create a circuit with 5 qubits
+    qubits = cirq.LineQubit.range(5)
+
+    circuit = cirq.FrozenCircuit(_create_ghz(5, qubits))
+
+    # Create Pauli strings that only use qubits 1, 2, 3 (indices 1,2,3)
+    pauli_qubits = qubits[1:4]  # qubits 1,2,3
+    pauli_string = cirq.PauliString({q: cirq.X for q in pauli_qubits})
+
+    circuits_to_pauli: dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
+    circuits_to_pauli[circuit] = [pauli_string]
+
+    # Mock the sampler
+    mock_sampler = MagicMock()
+
+    # Configure the mock sampler to return a valid ResultDict
+    mock_sampler.run.return_value = ResultDict(
+        params=cirq.ParamResolver({}), measurements={"result": np.array([[0, 1, 0]])}
+    )
+    # Configure the mock sampler to return valid results for run_batch
+    mock_sampler.run_batch.return_value = [
+        [ResultDict(params=cirq.ParamResolver({}), measurements={"result": np.array([[0, 1, 0]])})]
+    ]
+
+    # Call measure_pauli_strings with the mock sampler
+    measure_pauli_strings(circuits_to_pauli, mock_sampler, 100, 100, 0, 1234, use_sweep=use_sweep)
+
+    # Verify the sampler was called with the correct circuits
+    called_circuits = [call[0][0] for call in mock_sampler.run.call_args_list]
+
+    for called_circuit in called_circuits:
+        measured_qubits = set()
+        for op in called_circuit.all_operations():
+            if isinstance(op.gate, cirq.MeasurementGate):
+                measured_qubits.update(op.qubits)
+
+        # Ensure only the qubits in the Pauli string are measured
+        assert measured_qubits == set(
+            pauli_qubits
+        ), f"Expected measured qubits: {set(pauli_qubits)}, but found: {measured_qubits}"
