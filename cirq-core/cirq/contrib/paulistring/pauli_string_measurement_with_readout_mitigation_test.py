@@ -820,7 +820,7 @@ def test_sampler_receives_correct_circuits(use_sweep: bool) -> None:
 
     # Create Pauli strings that only use qubits 1, 2, 3 (indices 1,2,3)
     pauli_qubits = qubits[1:4]  # qubits 1,2,3
-    pauli_string = cirq.PauliString({q: cirq.X for q in pauli_qubits})
+    pauli_string: cirq.PauliString = cirq.PauliString({q: cirq.X for q in pauli_qubits})
 
     circuits_to_pauli: dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
     circuits_to_pauli[circuit] = [pauli_string]
@@ -841,7 +841,8 @@ def test_sampler_receives_correct_circuits(use_sweep: bool) -> None:
     measure_pauli_strings(circuits_to_pauli, mock_sampler, 100, 100, 0, 1234, use_sweep=use_sweep)
 
     # Verify the sampler was called with the correct circuits
-    called_circuits = [call[0][0] for call in mock_sampler.run.call_args_list]
+    batches = [call.args[0] for call in mock_sampler.run_batch.call_args_list]
+    called_circuits = [circuit for batch in batches for circuit in batch]
 
     for called_circuit in called_circuits:
         measured_qubits = set()
