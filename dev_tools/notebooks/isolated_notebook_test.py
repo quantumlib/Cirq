@@ -155,8 +155,9 @@ papermill {rewritten_notebook_path} {REPO_ROOT/out_path}"""
         cwd=notebook_env,
         capture_output=True,
         # important to get rid of PYTHONPATH specifically, which contains
-        # the Cirq repo path due to check/pytest
-        env={},
+        # the Cirq repo path due to check/pytest.  Also isolate the execution
+        # from pip settings in local configuration files or environment.
+        env={'PIP_CONFIG_FILE': '/dev/null'},
     )
 
     if result.returncode != 0:
