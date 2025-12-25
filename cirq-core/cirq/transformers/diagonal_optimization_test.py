@@ -14,8 +14,13 @@
 """Tests for diagonal_optimization transformer."""
 
 
+import numpy as np
+
 import cirq
-from cirq.transformers.diagonal_optimization import _is_diagonal, drop_diagonal_before_measurement
+from cirq.transformers.diagonal_optimization import (
+    _is_z_or_cz_pow_gate,
+    drop_diagonal_before_measurement,
+)
 
 
 def test_removes_z_before_measure():
@@ -98,11 +103,12 @@ def test_removes_cz_if_both_measured():
 def test_feature_request_z_cz_commutation():
     """Test the original feature request case: Z-CZ commutation before measurement.
 
-    The circuit Z(q0) - CZ(q0, q1) - measure(q1) should be optimized to just measure(q1).
+    The circuit Z(q0) - CZ(q0, q1) - measure(q1) should keep the CZ gate.
     This is because:
-    1. Z on the control qubit of CZ commutes through the CZ
-    2. After commutation, both gates are diagonal and before measurement
-    3. Both can be removed
+    1. Z on the control qubit of CZ commutes through the CZ (via eject_z)
+    2. After commutation: CZ(q0, q1) - Z(q1) - measure(q1)
+    3. Z(q1) can be removed (only acts on measured qubit)
+    4. CZ(q0, q1) must be kept (q0 is not measured)
     """
     q0, q1 = cirq.LineQubit.range(2)
 
@@ -151,28 +157,91 @@ def test_preserves_non_diagonal_gates():
     )
 
 
-def test_is_diagonal_helper_edge_cases():
-    """Test edge cases in _is_diagonal helper function for full coverage."""
+def test_diagonal_gates_commute_before_measurement():
+    """Test that multiple recognized diagonal gates are all removed when all qubits are measured.
+
+    This tests the property that recognized diagonal gates (Z, CZ) commute with each other,
+    so we don't remove qubits from measured_qubits when we encounter them. This allows
+    earlier diagonal gates in the circuit to also be removed.
+    """
+    q0, q1 = cirq.LineQubit.range(2)
+
+    # Circuit with multiple recognized diagonal gates before measurements
+    circuit = cirq.Circuit(
+        cirq.CZ(q0, q1),
+        cirq.Z(q0),
+        cirq.Z(q1),
+        cirq.measure(q0, key='m0'),
+        cirq.measure(q1, key='m1'),
+    )
+
+    optimized = drop_diagonal_before_measurement(circuit)
+
+    # All recognized diagonal gates should be removed since all qubits are measured
+    expected = cirq.Circuit(cirq.measure(q0, key='m0'), cirq.measure(q1, key='m1'))
+
+    assert list(optimized.all_operations()) == list(expected.all_operations())
+
+
+def test_unrecognized_diagonal_breaks_chain():
+    """Test that a CZ followed by an unrecognized diagonal 4x4 unitary is handled correctly.
+
+    Even if a gate is diagonal, if it's not a ZPowGate or CZPowGate, it won't be recognized
+    and will break the optimization chain. The earlier CZ gate cannot be removed because
+    the unrecognized diagonal gate blocks it.
+    """
+    q0, q1 = cirq.LineQubit.range(2)
+
+    # Create a custom diagonal 4x4 unitary (not a CZPowGate)
+    # This is diagonal but won't be recognized by _is_z_or_cz_pow_gate
+    diagonal_matrix = np.diag([1, 1j, -1, -1j])
+    custom_diagonal_gate = cirq.MatrixGate(diagonal_matrix)
+
+    # Circuit: CZ -> custom diagonal -> measurements
+    circuit = cirq.Circuit(
+        cirq.CZ(q0, q1),
+        custom_diagonal_gate(q0, q1),
+        cirq.measure(q0, key='m0'),
+        cirq.measure(q1, key='m1'),
+    )
+
+    optimized = drop_diagonal_before_measurement(circuit)
+
+    # The custom diagonal gate is not recognized, so it blocks the chain
+    # Only the custom diagonal gate can be removed... wait, no! It's not recognized
+    # so it won't be removed at all. And it breaks the chain for q0 and q1.
+    # So the CZ also cannot be removed.
+
+    # The optimized circuit should still have both gates
+    ops = list(optimized.all_operations())
+    gate_ops = [op for op in ops if not cirq.is_measurement(op)]
+
+    # Both CZ and custom diagonal should still be present
+    assert len(gate_ops) == 2
+
+
+def test_is_z_or_cz_pow_gate_helper_edge_cases():
+    """Test edge cases in _is_z_or_cz_pow_gate helper function for full coverage."""
 
     q = cirq.NamedQubit('q')
 
     # Test Z gates (including variants like S and T)
-    assert _is_diagonal(cirq.Z(q))
-    assert _is_diagonal(cirq.S(q))  # S is Z**0.5
-    assert _is_diagonal(cirq.T(q))  # T is Z**0.25
+    assert _is_z_or_cz_pow_gate(cirq.Z(q))
+    assert _is_z_or_cz_pow_gate(cirq.S(q))  # S is Z**0.5
+    assert _is_z_or_cz_pow_gate(cirq.T(q))  # T is Z**0.25
 
     # Test identity gate
-    assert _is_diagonal(cirq.I(q))
+    assert _is_z_or_cz_pow_gate(cirq.I(q))
 
     # Test non-diagonal gates
-    assert not _is_diagonal(cirq.H(q))
-    assert not _is_diagonal(cirq.X(q))
-    assert not _is_diagonal(cirq.Y(q))
+    assert not _is_z_or_cz_pow_gate(cirq.H(q))
+    assert not _is_z_or_cz_pow_gate(cirq.X(q))
+    assert not _is_z_or_cz_pow_gate(cirq.Y(q))
 
     # Test two-qubit CZ gate
     q0, q1 = cirq.LineQubit.range(2)
-    assert _is_diagonal(cirq.CZ(q0, q1))
+    assert _is_z_or_cz_pow_gate(cirq.CZ(q0, q1))
 
     # Other diagonal gates (like CCZ) are not detected by the optimized version
     # This is intentional - eject_z is only effective for Z and CZ anyway
-    assert not _is_diagonal(cirq.CCZ(q0, q1, q))
+    assert not _is_z_or_cz_pow_gate(cirq.CCZ(q0, q1, q))

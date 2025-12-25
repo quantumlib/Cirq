@@ -22,7 +22,7 @@ from cirq.transformers import transformer_api
 from cirq.transformers.eject_z import eject_z
 
 
-def _is_diagonal(op: cirq.Operation) -> bool:
+def _is_z_or_cz_pow_gate(op: cirq.Operation) -> bool:
     """Checks if an operation is a known diagonal gate (Z, CZ, etc.).
 
     As suggested in review, we avoid computing the unitary matrix (which is expensive)
@@ -36,28 +36,29 @@ def _is_diagonal(op: cirq.Operation) -> bool:
 def drop_diagonal_before_measurement(
     circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
 ) -> cirq.Circuit:
-    """Removes diagonal gates that appear immediately before measurements.
+    """Removes Z and CZ gates that appear immediately before measurements.
 
-    This transformer optimizes circuits by removing diagonal gates (gates that are
-    diagonal in the computational basis, such as Z, S, T, CZ, etc.) that appear
-    immediately before measurement operations. Since measurements project onto the
-    computational basis, any diagonal gate applied immediately before a measurement
-    does not affect the measurement outcome and can be safely removed.
+    This transformer optimizes circuits by removing Z-type and CZ-type diagonal gates
+    (specifically ZPowGate instances like Z, S, T, Rz, and CZPowGate instances like CZ)
+    that appear immediately before measurement operations. Since measurements project onto
+    the computational basis, these diagonal gates applied immediately before a measurement
+    do not affect the measurement outcome and can be safely removed (when all their qubits
+    are measured).
 
     To maximize the effectiveness of this optimization, the transformer first applies
     the `eject_z` transformation, which pushes Z gates (and other diagonal phases)
     later in the circuit. This handles cases where diagonal gates can commute past
     other operations. For example:
 
-        Z(q0) - CZ(q0, q1) - measure(q1)
+        Z(q0) - CZ(q0, q1) - measure(q0) - measure(q1)
 
     After `eject_z`, the Z gate on the control qubit commutes through the CZ:
 
-        CZ(q0, q1) - Z(q1) - measure(q1)
+        CZ(q0, q1) - Z(q1) - measure(q0) - measure(q1)
 
-    Then both the CZ and Z(q1) can be removed since they're before the measurement:
+    Then both the CZ and Z(q1) can be removed since all their qubits are measured:
 
-        measure(q1)
+        measure(q0) - measure(q1)
 
     Args:
         circuit: Input circuit to transform.
@@ -76,14 +77,17 @@ def drop_diagonal_before_measurement(
         >>> print(optimized)
         0: ───H───M───
 
-        >>> # Complex case: Z-CZ commutation
+        >>> # Complex case: Z-CZ commutation with both qubits measured
         >>> circuit = cirq.Circuit(
         ...     cirq.Z(q0),
         ...     cirq.CZ(q0, q1),
+        ...     cirq.measure(q0),
         ...     cirq.measure(q1)
         ... )
         >>> optimized = cirq.drop_diagonal_before_measurement(circuit)
         >>> print(optimized)
+        0: ───M───
+        <BLANKLINE>
         1: ───M───
     """
     if context is None:
@@ -107,10 +111,10 @@ def drop_diagonal_before_measurement(
             if protocols.is_measurement(op):
                 measured_qubits.update(op.qubits)
                 new_ops.append(op)
-            # If this is a diagonal gate and ANY of its qubits will be measured, remove it
+            # If this is a diagonal gate and ALL of its qubits will be measured, remove it
             # (diagonal gates only affect phase, which doesn't impact computational basis
             # measurements)
-            elif _is_diagonal(op):
+            elif _is_z_or_cz_pow_gate(op):
                 # CRITICAL: we can only remove if all qubits involved are measured.
                 # if even one qubit is NOT measured, the gate must stay to preserve
                 # the state of that unmeasured qubit (due to phase kickback/entanglement).
