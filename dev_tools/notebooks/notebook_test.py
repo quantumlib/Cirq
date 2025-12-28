@@ -73,7 +73,7 @@ def require_packages_not_changed() -> Iterator[None]:
 
 @pytest.fixture
 def env_with_temporary_pip_target() -> Iterator[dict[str, str]]:
-    """Setup system environment that tells pip to install packages to a temporary directory.
+    """Set up system environment that tells pip to install packages to a temporary directory.
 
     Also isolate the run from local pip settings in configuration files or environment.
     """
