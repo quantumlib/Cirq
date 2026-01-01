@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "@types/jsdom": "^27.0.0",
-    "@types/node": "^24.7.0",
+    "@types/node": "^25.0.3",
     "@types/pngjs": "^6.0.0",
     "@types/temp": "^0.9.0",
     "@types/three": "^0.181.0",
