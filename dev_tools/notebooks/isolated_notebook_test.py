@@ -218,9 +218,11 @@ def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path) -> None:
         content = notebook.read()
         mandatory_matches = [
             r"!pip install --upgrade --quiet cirq(-google)?~=1.0.dev",
-            r"Note: this notebook relies on unreleased Cirq features\. "
-            r"If you want to try these features, make sure you install cirq(-google)? via "
-            r"`pip install --upgrade cirq(-google)?~=1.0.dev`\.",
+            (
+                r"Note: this notebook relies on unreleased Cirq features\. "
+                r"If you want to try these features, make sure you install cirq(-google)? via "
+                r"`pip install --upgrade cirq(-google)?~=1.0.dev`\."
+            ),
         ]
 
         for m in mandatory_matches:
