@@ -51,7 +51,7 @@ _compat.deprecate_attributes(
             'v1.8',
             (
                 'DEFAULT_CONTRIB_RESOLVERS is no longer necessary as contrib classes are now '
-                'automatically recognized and resolved with an import of cirq.contrib.',
+                'automatically recognized and resolved with an import of cirq.contrib.'
             ),
         )
     },
