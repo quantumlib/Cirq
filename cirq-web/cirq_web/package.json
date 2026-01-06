@@ -7,7 +7,7 @@
   "type": "module",
   "dependencies": {
     "@types/looks-same": "^4.1.0",
-    "gts": "^6.0.2",
+    "gts": "^7.0.0",
     "typescript": "^5.7.3"
   },
   "devDependencies": {
@@ -19,7 +19,7 @@
     "@webgpu/types": "^0.1.63",
     "@vitest/coverage-v8": "^4.0.6",
     "canvas": "^3.2.0",
-    "gts": "^6.0.2",
+    "gts": "^7.0.0",
     "jsdom": "^27.1.0",
     "pixelmatch": "^7.0.0",
     "pngjs": "^7.0.0",
