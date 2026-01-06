@@ -27,7 +27,7 @@ If no monomorphism exists, it raises ValueError (so a router can fall back to a 
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict, Iterable, Optional, Tuple
+from typing import Dict, Iterable, Optional, Tuple, TYPE_CHECKING
 
 import networkx as nx
 

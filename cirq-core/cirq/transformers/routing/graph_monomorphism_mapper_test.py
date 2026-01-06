@@ -20,8 +20,8 @@ import pytest
 import cirq
 
 # Unit tests: keep N small and VF2 bounded.
-_MAX_MATCHES = 1          # stop at first embedding
-_TIMEOUT_STEPS = 2_000    # hard cap search work
+_MAX_MATCHES = 1  # stop at first embedding
+_TIMEOUT_STEPS = 2_000  # hard cap search work
 
 
 def construct_star_circuit_5q():
