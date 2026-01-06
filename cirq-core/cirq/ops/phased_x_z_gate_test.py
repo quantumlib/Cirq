@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import itertools
 import random
 from typing import cast
 
@@ -228,6 +229,20 @@ def test_from_matrix_close_unitary(unitary: np.ndarray) -> None:
 
 
 @pytest.mark.parametrize(
+    ['x_exponent', 'z_exponent', 'axis_phase_exponent'],
+    itertools.product([-0.5, 0.0, 0.5, 1.0], repeat=3),
+)
+def test_exact_unitary_at_half_integers(
+    x_exponent: float, z_exponent: float, axis_phase_exponent: float
+) -> None:
+    gate = cirq.PhasedXZGate(
+        x_exponent=x_exponent, z_exponent=z_exponent, axis_phase_exponent=axis_phase_exponent
+    )
+    u = cirq.unitary(gate)
+    np.testing.assert_equal(u, np.round(u, decimals=1))
+
+
+@pytest.mark.parametrize(
     'unitary',
     [
         cirq.testing.random_unitary(2),
@@ -313,3 +328,41 @@ def test_str_diagram() -> None:
 0: ───PhXZ(a=0.125,x=0.5,z=0.25)───
     """,
     )
+
+
+@pytest.mark.parametrize(
+    'clifford_gate',
+    [g.to_phased_xz_gate() for g in cirq.SingleQubitCliffordGate.all_single_qubit_cliffords],
+)
+def test_has_stabilizer_effect_true_for_cliffords(
+    clifford_gate: cirq.SingleQubitCliffordGate,
+) -> None:
+    assert cirq.has_stabilizer_effect(clifford_gate)
+
+
+@pytest.mark.parametrize(
+    'clifford_gate',
+    [g.to_phased_xz_gate() for g in cirq.SingleQubitCliffordGate.all_single_qubit_cliffords],
+)
+@pytest.mark.parametrize('global_phase', 1j ** np.random.uniform(0, 4, 10))
+def test_has_stabilizer_effect_true_for_cliffords_with_global_phase(
+    clifford_gate: cirq.SingleQubitCliffordGate, global_phase: complex
+) -> None:
+    gate = cirq.PhasedXZGate.from_matrix(cirq.unitary(clifford_gate) * global_phase)
+    assert cirq.has_stabilizer_effect(gate)
+
+
+@pytest.mark.parametrize(
+    'gate',
+    [
+        cirq.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
+        for x, z, a in np.random.uniform(-3, 3, (100, 3))
+    ],
+)
+def test_has_stabilizer_effect_false_for_non_cliffords(gate: cirq.PhasedXZGate) -> None:
+    assert not cirq.has_stabilizer_effect(gate)
+
+
+def test_has_stabilizer_effect_returns_false_for_symbolic_unitary() -> None:
+    gate = cirq.PhasedXZGate(x_exponent=0, z_exponent=0, axis_phase_exponent=sympy.Symbol('a'))
+    assert not cirq.has_stabilizer_effect(gate)
