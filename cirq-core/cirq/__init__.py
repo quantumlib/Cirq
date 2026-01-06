@@ -368,6 +368,7 @@ from cirq.transformers import (
     index_tags as index_tags,
     is_negligible_turn as is_negligible_turn,
     LineInitialMapper as LineInitialMapper,
+    GraphMonomorphismMapper as GraphMonomorphismMapper,
     MappingManager as MappingManager,
     map_clean_and_borrowable_qubits as map_clean_and_borrowable_qubits,
     map_moments as map_moments,
