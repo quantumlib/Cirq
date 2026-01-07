@@ -1,4 +1,4 @@
-# Copyright 2026
+# Copyright 2022 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ If no monomorphism exists, it raises ValueError (so a router can fall back to a 
 
 from __future__ import annotations
 
-from typing import Dict, Iterable, Optional, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import networkx as nx
 
@@ -49,25 +49,21 @@ class GraphMonomorphismMapper(initial_mapper.AbstractInitialMapper):
         max_matches: int = 5_000,
         timeout_steps: Optional[int] = None,
     ) -> None:
-        """
+        """Initializes a GraphMonomorphismMapper.
+
         Args:
-            device_graph: Device connectivity graph (physical qubits are nodes).
-                If directed, we treat it as undirected for the purposes of placement.
-            max_matches: Max number of candidate embeddings to consider before picking best-so-far.
+            device_graph: Device connectivity graph (physical qubits are nodes). If directed, it is
+                treated as undirected for the purposes of placement.
+            max_matches: Maximum number of candidate embeddings to consider before choosing the best
+                mapping found so far.
             timeout_steps: Optional hard cap on internal iteration steps (additional guardrail).
         """
         # For placement, treat connectivity as undirected adjacency.
-        # (If you need strict directionality, you'd do a DiGraph monomorphism with edge constraints.)
-        if nx.is_directed(device_graph):
-            ug = nx.Graph()
-            ug.add_nodes_from(sorted(list(device_graph.nodes(data=True))))
-            ug.add_edges_from(sorted(tuple(sorted(e)) for e in device_graph.edges))
-            self.device_graph = ug
-        else:
-            ug = nx.Graph()
-            ug.add_nodes_from(sorted(list(device_graph.nodes(data=True))))
-            ug.add_edges_from(sorted(tuple(sorted(e)) for e in device_graph.edges))
-            self.device_graph = ug
+        # If you need strict directionality, you'd do a DiGraph monomorphism with edge constraints.
+        ug = nx.Graph()
+        ug.add_nodes_from(sorted(list(device_graph.nodes(data=True))))
+        ug.add_edges_from(sorted(tuple(sorted(e)) for e in device_graph.edges))
+        self.device_graph = ug
 
         # Center is used only as a heuristic scoring anchor.
         # (nx.center returns nodes with minimum eccentricity.)
@@ -94,14 +90,21 @@ class GraphMonomorphismMapper(initial_mapper.AbstractInitialMapper):
 
     def _score_embedding(
         self,
-        logical_to_physical: Dict["cirq.Qid", "cirq.Qid"],
-        dist_to_center: Dict["cirq.Qid", int],
-    ) -> Tuple[int, int]:
-        """
-        Lower score is better.
+        logical_to_physical: dict[cirq.Qid, cirq.Qid],
+        dist_to_center: dict[cirq.Qid, int],
+    ) -> tuple[int, int]:
+        """Scores an embedding; lower score is better.
 
-        Primary: sum of distances to center (more compact/central).
-        Tie-break: -sum degrees (prefer higher-degree placements).
+        The score is a tuple used for lexicographic comparison:
+            (sum of distances to the device center, -sum of device degrees).
+
+        Args:
+            logical_to_physical: Mapping from logical qubits to physical qubits.
+            dist_to_center: Precomputed shortest-path distance from each physical qubit to the
+                device center.
+
+        Returns:
+            A score tuple. Lower is preferred; ties are broken by favoring higher-degree placements.
         """
         total_dist = 0
         total_degree = 0
@@ -110,13 +113,19 @@ class GraphMonomorphismMapper(initial_mapper.AbstractInitialMapper):
             total_degree += self.device_graph.degree(pq)
         return (total_dist, -total_degree)
 
-    def initial_mapping(self, circuit: cirq.AbstractCircuit) -> Dict["cirq.Qid", "cirq.Qid"]:
-        """
+    def initial_mapping(self, circuit: cirq.AbstractCircuit) -> dict[cirq.Qid, cirq.Qid]:
+        """Finds an initial mapping by embedding the circuit interaction graph into the device graph.
+
+        Args:
+            circuit: The input circuit with logical qubits.
+
         Returns:
-            dict mapping logical qubits -> physical qubits.
+            A dictionary mapping logical qubits in the circuit (keys) to physical qubits on the
+            device (values).
 
         Raises:
-            ValueError if no graph monomorphism embedding exists.
+            ValueError: If no graph monomorphism embedding exists, or if the circuit has more qubits
+                than the device graph can host.
         """
         circuit_g = self._make_circuit_interaction_graph(circuit)
 
@@ -136,8 +145,8 @@ class GraphMonomorphismMapper(initial_mapper.AbstractInitialMapper):
         # yields mappings: big_node -> small_node.
         matcher = nx.algorithms.isomorphism.GraphMatcher(self.device_graph, circuit_g)
 
-        best_map: Optional[Dict["cirq.Qid", "cirq.Qid"]] = None
-        best_score: Optional[Tuple[int, int]] = None
+        best_map: Optional[dict[cirq.Qid, cirq.Qid]] = None
+        best_score: Optional[tuple[int, int]] = None
 
         steps = 0
         matches_seen = 0
