@@ -14,6 +14,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from typing import Any
+
 import networkx as nx
 import pytest
 
@@ -69,7 +72,6 @@ def _assert_is_monomorphism(
 
 
 def test_path_embeds_on_small_grid() -> None:
-    # Small (<= 10) always embeddable on 4x4 grid, should be very fast.
     circuit = construct_path_circuit(10)
     device = cirq.testing.construct_grid_device(4, 4)  # 16 physical
     g = device.metadata.nx_graph
@@ -82,7 +84,6 @@ def test_path_embeds_on_small_grid() -> None:
 
 
 def test_star_embeds_on_small_grid() -> None:
-    # Degree-3 center requires a physical node with degree >= 3 (grid has it).
     circuit = construct_star_circuit_5q()
     device = cirq.testing.construct_grid_device(4, 4)
     g = device.metadata.nx_graph
@@ -95,7 +96,6 @@ def test_star_embeds_on_small_grid() -> None:
 
 
 def test_star_fails_on_ring() -> None:
-    # Ring max degree is 2, but star requires degree 3 -> impossible.
     circuit = construct_star_circuit_5q()
     device = cirq.testing.construct_ring_device(10, directed=True)
     g = device.metadata.nx_graph
@@ -106,7 +106,6 @@ def test_star_fails_on_ring() -> None:
 
 
 def test_path_embeds_on_ring() -> None:
-    # A path (max degree 2) should embed on a ring.
     circuit = construct_path_circuit(6)
     device = cirq.testing.construct_ring_device(10, directed=True)
     g = device.metadata.nx_graph
@@ -119,7 +118,6 @@ def test_path_embeds_on_ring() -> None:
 
 
 def test_more_logical_than_physical_fails_fast() -> None:
-    # Keep small, but verify the early size check.
     circuit = construct_path_circuit(17)  # 17 logical
     device = cirq.testing.construct_grid_device(4, 4)  # 16 physical
     g = device.metadata.nx_graph
@@ -129,7 +127,90 @@ def test_more_logical_than_physical_fails_fast() -> None:
         mapper.initial_mapping(circuit)
 
 
-def test_repr() -> None:
-    g = cirq.testing.construct_grid_device(4, 4).metadata.nx_graph
+def test_empty_circuit_returns_empty_mapping() -> None:
+    g = cirq.testing.construct_grid_device(2, 2).metadata.nx_graph
+    mapper = cirq.GraphMonomorphismMapper(g, max_matches=_MAX_MATCHES, timeout_steps=_TIMEOUT_STEPS)
+    assert mapper.initial_mapping(cirq.Circuit()) == {}
+
+
+def test_make_interaction_graph_skips_non_two_qubit_ops() -> None:
+    g = cirq.testing.construct_grid_device(2, 2).metadata.nx_graph
+    mapper = cirq.GraphMonomorphismMapper(g, max_matches=_MAX_MATCHES, timeout_steps=_TIMEOUT_STEPS)
+
+    q = cirq.NamedQubit("q")
+    a, b = cirq.NamedQubit("a"), cirq.NamedQubit("b")
+
+    circuit = cirq.Circuit(
+        cirq.X(q),      # 1q -> ignored
+        cirq.CZ(a, b),  # 2q -> included
+    )
+
+    cg = mapper._make_circuit_interaction_graph(circuit)
+    assert cg.has_edge(a, b)
+    assert q in cg.nodes
+    assert cg.degree(q) == 0
+
+
+def test_timeout_steps_breaks_out_and_raises(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Forces coverage of:
+    # if self.timeout_steps is not None and steps > self.timeout_steps: break
+    g = cirq.testing.construct_grid_device(2, 2).metadata.nx_graph
+    mapper = cirq.GraphMonomorphismMapper(g, max_matches=10_000, timeout_steps=0)
+
+    circuit = construct_path_circuit(2)
+
+    class FakeMatcher:
+        def subgraph_isomorphisms_iter(self) -> Iterator[dict[cirq.Qid, cirq.Qid]]:
+            # Infinite-ish generator; timeout should stop it immediately.
+            while True:
+                yield {}
+
+    monkeypatch.setattr(nx.algorithms.isomorphism, "GraphMatcher", lambda *_args, **_kw: FakeMatcher())
+
+    with pytest.raises(ValueError, match="No graph monomorphism embedding found"):
+        mapper.initial_mapping(circuit)
+
+
+def test_defensive_incomplete_mapping_is_skipped(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Covers:
+    # if len(logical_to_physical) != circuit_g.number_of_nodes(): continue
+    g = cirq.testing.construct_grid_device(2, 2).metadata.nx_graph
+    mapper = cirq.GraphMonomorphismMapper(g, max_matches=10, timeout_steps=_TIMEOUT_STEPS)
+
+    circuit = construct_path_circuit(2)  # 2 logical nodes
+
+    class FakeMatcher:
+        def subgraph_isomorphisms_iter(self) -> Iterator[dict[cirq.Qid, cirq.Qid]]:
+            # physical -> logical mapping with only 1 logical node -> after inversion it's incomplete
+            yield {cirq.LineQubit(0): cirq.LineQubit(0)}
+
+    monkeypatch.setattr(nx.algorithms.isomorphism, "GraphMatcher", lambda *_args, **_kw: FakeMatcher())
+
+    with pytest.raises(ValueError, match="No graph monomorphism embedding found"):
+        mapper.initial_mapping(circuit)
+
+
+def test_score_embedding_uses_default_large_distance() -> None:
+    g = cirq.testing.construct_grid_device(2, 2).metadata.nx_graph
+    mapper = cirq.GraphMonomorphismMapper(g, max_matches=_MAX_MATCHES, timeout_steps=_TIMEOUT_STEPS)
+
+    # Pick an actual physical node from the graph.
+    pq = next(iter(mapper.device_graph.nodes))
+    lq = cirq.NamedQubit("lq")
+
+    # dist_to_center missing pq -> should fall back to 10**9.
+    score = mapper._score_embedding({lq: pq}, dist_to_center={})
+    assert score[0] >= 10**9
+
+
+def test_value_equality_values_and_repr() -> None:
+    g = cirq.testing.construct_grid_device(2, 2).metadata.nx_graph
     mapper = cirq.GraphMonomorphismMapper(g, max_matches=123, timeout_steps=456)
+
+    # Covers _value_equality_values_ explicitly.
+    vals = mapper._value_equality_values_()
+    assert vals[2] == 123
+    assert vals[3] == 456
+
+    # Covers __repr__ (and keeps the existing equivalent repr check).
     cirq.testing.assert_equivalent_repr(mapper, setup_code="import cirq\nimport networkx as nx")
