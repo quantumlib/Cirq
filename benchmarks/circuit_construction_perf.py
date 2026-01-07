@@ -157,7 +157,7 @@ class TestXOnAllQubitsCircuit:
 
     @pytest.mark.parametrize(["qubit_count", "depth"], [[1, 1], [10, 10], [100, 100], [1000, 1000]])
     @pytest.mark.benchmark(group=group)
-    def time_circuit_construction(self, benchmark, qubit_count: int, depth: int) -> None:
+    def test_circuit_construction(self, benchmark, qubit_count: int, depth: int) -> None:
         q = cirq.LineQubit.range(qubit_count)
         f = lambda: cirq.Circuit(cirq.Moment(cirq.X.on_each(*q)) for _ in range(depth))
         circuit = benchmark(f)
