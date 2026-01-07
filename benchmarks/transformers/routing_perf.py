@@ -14,6 +14,7 @@
 
 """Performance tests for circuit qubit routing."""
 
+import itertools
 from typing import Final
 
 import pytest
@@ -21,8 +22,9 @@ import pytest
 import cirq
 
 
-@pytest.mark.parametrize("qubits", [10, 25, 50, 75, 100])
-@pytest.mark.parametrize("depth", [10, 50, 100, 250, 500, 1000])
+@pytest.mark.parametrize(
+    ["qubits", "depth"], itertools.product([10, 25, 50, 75, 100], [10, 50, 100, 250, 500, 1000])
+)
 @pytest.mark.benchmark(group="circuit_routing", max_time=10)
 def test_circuit_routing(benchmark, qubits: int, depth: int) -> None:
     """Benchmark circuit construction for Rotated Bottom-Z Surface code."""
