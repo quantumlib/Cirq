@@ -24,9 +24,9 @@ import cirq
 
 
 def rotated_surface_code_memory_z_cycle(
-    data_qubits: set[cirq.Qid],
-    z_measure_qubits: set[cirq.Qid],
-    x_measure_qubits: set[cirq.Qid],
+    data_qubits: set[cirq.GridQubit],
+    z_measure_qubits: set[cirq.GridQubit],
+    x_measure_qubits: set[cirq.GridQubit],
     z_order: Sequence[tuple[int, int]],
     x_order: Sequence[tuple[int, int]],
 ) -> cirq.Circuit:
@@ -50,8 +50,8 @@ def rotated_surface_code_memory_z_cycle(
     for k in range(4):
         op_list = []
         for measure_qubits, add, is_x in [
-            [x_measure_qubits, x_order[k], True],
-            [z_measure_qubits, z_order[k], False],
+            (x_measure_qubits, x_order[k], True),
+            (z_measure_qubits, z_order[k], False),
         ]:
             for q_meas in measure_qubits:
                 q_data = q_meas + add

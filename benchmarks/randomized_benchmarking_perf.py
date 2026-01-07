@@ -14,7 +14,7 @@
 
 import functools
 import itertools
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 
 import numpy as np
 import pytest
@@ -23,7 +23,7 @@ import cirq
 from cirq.experiments.qubit_characterizations import _find_inv_matrix, _single_qubit_cliffords
 
 
-def dot(args: Sequence[np.ndarray]) -> np.ndarray:
+def dot(args: Iterable[np.ndarray]) -> np.ndarray:
     return functools.reduce(np.dot, args)
 
 
@@ -42,6 +42,10 @@ class TestSingleQubitRandomizedBenchmarking:
     num_qubits = [100]
     num_circuits = [20]
 
+    # assigned in setup_class
+    sq_xz_matrices: np.ndarray
+    sq_xz_cliffords: Sequence[cirq.Gate]
+
     @classmethod
     def setup_class(cls):
         cls.sq_xz_matrices = np.array(
@@ -50,11 +54,9 @@ class TestSingleQubitRandomizedBenchmarking:
                 for group in _single_qubit_cliffords().c1_in_xz
             ]
         )
-        cls.sq_xz_cliffords: list[cirq.Gate] = [
-            cirq.PhasedXZGate.from_matrix(mat) for mat in cls.sq_xz_matrices
-        ]
+        cls.sq_xz_cliffords = [cirq.PhasedXZGate.from_matrix(mat) for mat in cls.sq_xz_matrices]
 
-    def _get_op_grid(self, qubits: list[cirq.Qid], depth: int) -> list[list[cirq.Operation]]:
+    def _get_op_grid(self, qubits: Sequence[cirq.Qid], depth: int) -> list[list[cirq.Operation]]:
         op_grid: list[list[cirq.Operation]] = []
         for q in qubits:
             gate_ids = np.random.choice(len(self.sq_xz_cliffords), depth)
