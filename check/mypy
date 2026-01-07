@@ -19,7 +19,7 @@ read -r -a CIRQ_PACKAGES < \
 
 echo -e -n "\033[31m"
 mypy --config-file=dev_tools/conf/$CONFIG_FILE "$@" \
-    "${CIRQ_PACKAGES[@]}" dev_tools benchmarks examples
+    "${CIRQ_PACKAGES[@]}" benchmarks dev_tools examples
 result=$?
 echo -e -n "\033[0m"
 
