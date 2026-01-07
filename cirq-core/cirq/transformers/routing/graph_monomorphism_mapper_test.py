@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-from typing import Any
+from typing import cast
 
 import networkx as nx
 import pytest
@@ -133,21 +133,46 @@ def test_empty_circuit_returns_empty_mapping() -> None:
     assert mapper.initial_mapping(cirq.Circuit()) == {}
 
 
-def test_make_interaction_graph_skips_non_two_qubit_ops() -> None:
+def test_make_interaction_graph_skips_self_edges() -> None:
     g = cirq.testing.construct_grid_device(2, 2).metadata.nx_graph
     mapper = cirq.GraphMonomorphismMapper(g, max_matches=_MAX_MATCHES, timeout_steps=_TIMEOUT_STEPS)
+
+    class TwoQubitSelfOp(cirq.Operation):
+        def __init__(self, q: cirq.Qid) -> None:
+            self._q = q
+
+        @property
+        def qubits(self) -> tuple[cirq.Qid, cirq.Qid]:
+            return (self._q, self._q)
+
+        def with_qubits(self, *new_qubits: cirq.Qid) -> "TwoQubitSelfOp":
+            assert len(new_qubits) == 1
+            return TwoQubitSelfOp(new_qubits[0])
+
+        def _num_qubits_(self) -> int:
+            return 2
 
     q = cirq.NamedQubit("q")
     a, b = cirq.NamedQubit("a"), cirq.NamedQubit("b")
 
-    circuit = cirq.Circuit(
-        cirq.X(q),      # 1q -> ignored
-        cirq.CZ(a, b),  # 2q -> included
-    )
+    ops = [TwoQubitSelfOp(q), cirq.CZ(a, b)]
+    qubits = {q, a, b}
 
-    cg = mapper._make_circuit_interaction_graph(circuit)
+    class FakeCircuit:
+        def all_qubits(self):
+            return qubits
+
+        def all_operations(self):
+            return iter(ops)
+
+    # cover with_qubits for incremental coverage
+    _ = TwoQubitSelfOp(q).with_qubits(q)
+
+    cg = mapper._make_circuit_interaction_graph(cast(cirq.AbstractCircuit, FakeCircuit()))
+
+    assert a in cg.nodes and b in cg.nodes and q in cg.nodes
     assert cg.has_edge(a, b)
-    assert q in cg.nodes
+    assert not cg.has_edge(q, q)
     assert cg.degree(q) == 0
 
 
@@ -165,7 +190,9 @@ def test_timeout_steps_breaks_out_and_raises(monkeypatch: pytest.MonkeyPatch) ->
             while True:
                 yield {}
 
-    monkeypatch.setattr(nx.algorithms.isomorphism, "GraphMatcher", lambda *_args, **_kw: FakeMatcher())
+    monkeypatch.setattr(
+        nx.algorithms.isomorphism, "GraphMatcher", lambda *_args, **_kw: FakeMatcher()
+    )
 
     with pytest.raises(ValueError, match="No graph monomorphism embedding found"):
         mapper.initial_mapping(circuit)
@@ -181,10 +208,13 @@ def test_defensive_incomplete_mapping_is_skipped(monkeypatch: pytest.MonkeyPatch
 
     class FakeMatcher:
         def subgraph_isomorphisms_iter(self) -> Iterator[dict[cirq.Qid, cirq.Qid]]:
-            # physical -> logical mapping with only 1 logical node -> after inversion it's incomplete
+            # physical -> logical mapping with only 1 logical node
+            # -> after inversion it's incomplete
             yield {cirq.LineQubit(0): cirq.LineQubit(0)}
 
-    monkeypatch.setattr(nx.algorithms.isomorphism, "GraphMatcher", lambda *_args, **_kw: FakeMatcher())
+    monkeypatch.setattr(
+        nx.algorithms.isomorphism, "GraphMatcher", lambda *_args, **_kw: FakeMatcher()
+    )
 
     with pytest.raises(ValueError, match="No graph monomorphism embedding found"):
         mapper.initial_mapping(circuit)

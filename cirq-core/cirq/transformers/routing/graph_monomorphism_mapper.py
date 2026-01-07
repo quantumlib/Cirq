@@ -27,7 +27,7 @@ If no monomorphism exists, it raises ValueError (so a router can fall back to a 
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import Optional, TYPE_CHECKING
 
 import networkx as nx
 
@@ -89,9 +89,7 @@ class GraphMonomorphismMapper(initial_mapper.AbstractInitialMapper):
         return g
 
     def _score_embedding(
-        self,
-        logical_to_physical: dict[cirq.Qid, cirq.Qid],
-        dist_to_center: dict[cirq.Qid, int],
+        self, logical_to_physical: dict[cirq.Qid, cirq.Qid], dist_to_center: dict[cirq.Qid, int]
     ) -> tuple[int, int]:
         """Scores an embedding; lower score is better.
 
@@ -114,7 +112,8 @@ class GraphMonomorphismMapper(initial_mapper.AbstractInitialMapper):
         return (total_dist, -total_degree)
 
     def initial_mapping(self, circuit: cirq.AbstractCircuit) -> dict[cirq.Qid, cirq.Qid]:
-        """Finds an initial mapping by embedding the circuit interaction graph into the device graph.
+        """Finds an initial mapping by embedding the circuit interaction graph
+        into the device graph.
 
         Args:
             circuit: The input circuit with logical qubits.
