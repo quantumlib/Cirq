@@ -109,7 +109,7 @@ def surface_code_circuit(
 
 
 class TestSurfaceCodeRotatedMemoryZ:
-    "Surface Code Rotated Memory-Z Benchmarks."
+    """Surface Code Rotated Memory-Z Benchmarks."""
 
     group = "circuit_construction"
     expected = pandas.DataFrame.from_dict(
@@ -151,7 +151,7 @@ class TestSurfaceCodeRotatedMemoryZ:
 
 
 class TestXOnAllQubitsCircuit:
-    "N * D times X gate on all qubits."
+    """N * D times X gate on all qubits."""
 
     group = "circuit_operations"
 
