@@ -145,7 +145,7 @@ def test_make_interaction_graph_skips_self_edges() -> None:
         def qubits(self) -> tuple[cirq.Qid, cirq.Qid]:
             return (self._q, self._q)
 
-        def with_qubits(self, *new_qubits: cirq.Qid) -> "TwoQubitSelfOp":
+        def with_qubits(self, *new_qubits: cirq.Qid) -> TwoQubitSelfOp:
             assert len(new_qubits) == 1
             return TwoQubitSelfOp(new_qubits[0])
 
