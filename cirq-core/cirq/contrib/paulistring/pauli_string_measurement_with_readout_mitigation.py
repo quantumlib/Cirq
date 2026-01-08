@@ -281,20 +281,20 @@ def _generate_basis_change_circuits(
 
     for input_circuit, pauli_string_groups in normalized_circuits_to_pauli.items():
         global_qubits = list(qubits_to_measure) if qubits_to_measure is not None else None
-        
+
         basis_change_circuits = []
         input_circuit_unfrozen = input_circuit.unfreeze()
         for pauli_strings in pauli_string_groups:
             if global_qubits is not None:
-              # Use the user-provided override
-              current_qid_list = global_qubits
+                # Use the user-provided override
+                current_qid_list = global_qubits
             else:
-              # Extract qubits from Pauli strings
-              current_qid_list = _extract_readout_qubits(pauli_strings)
-              
+                # Extract qubits from Pauli strings
+                current_qid_list = _extract_readout_qubits(pauli_strings)
+
             basis_change_circuit = circuits.Circuit(
                 input_circuit_unfrozen,
-                _pauli_strings_to_basis_change_ops(pauli_strings, qid_list),
+                _pauli_strings_to_basis_change_ops(pauli_strings, current_qid_list),
                 ops.measure(*current_qid_list, key="result"),
                 strategy=insert_strategy,
             )
@@ -315,43 +315,45 @@ def _generate_basis_change_circuits_with_sweep(
     for input_circuit, pauli_string_groups in normalized_circuits_to_pauli.items():
         # If qubits_to_measure is provided, use it
         if qubits_to_measure:
-          phi_symbols = sympy.symbols(f"phi:{len(qubits_to_measure)}")
-          theta_symbols = sympy.symbols(f"theta:{len(qubits_to_measure)}")
+            phi_symbols = sympy.symbols(f"phi:{len(qubits_to_measure)}")
+            theta_symbols = sympy.symbols(f"theta:{len(qubits_to_measure)}")
 
-          # Create phased gates and measurement operator
-          phased_gates = [
-              ops.PhasedXPowGate(phase_exponent=(a - 1) / 2, exponent=b)(qubit)
-              for a, b, qubit in zip(phi_symbols, theta_symbols, qubits_to_measure)
-          ]
-          measurement_op = ops.M(*qubits_to_measure, key="result")
+            # Create phased gates and measurement operator
+            phased_gates = [
+                ops.PhasedXPowGate(phase_exponent=(a - 1) / 2, exponent=b)(qubit)
+                for a, b, qubit in zip(phi_symbols, theta_symbols, qubits_to_measure)
+            ]
+            measurement_op = ops.M(*qubits_to_measure, key="result")
 
-          parameterized_circuit = circuits.Circuit(
-              input_circuit.unfreeze(), phased_gates, measurement_op, strategy=insert_strategy
-          )
-          sweep_param = []
-          for pauli_strings in pauli_string_groups:
-            sweep_param.append(_pauli_strings_to_basis_change_with_sweep(pauli_strings, qid_list))
-          sweep_params.append(sweep_param)
-          parameterized_circuits.append(parameterized_circuit)
-        
-        else: 
-          for pauli_strings in pauli_string_groups:
-              # Extract qubits from Pauli strings
-              qid_list = _extract_readout_qubits(pauli_strings)
-              phi_symbols = sympy.symbols(f"phi:{len(qid_list)}")
-              theta_symbols = sympy.symbols(f"theta:{len(qid_list)}")
-              # Create phased gates and measurement operator
-              phased_gates = [
-                  ops.PhasedXPowGate(phase_exponent=(a - 1) / 2, exponent=b)(qubit)
-                  for a, b, qubit in zip(phi_symbols, theta_symbols, qid_list)
-              ]
-              measurement_op = ops.M(*qid_list, key="result")
-              parameterized_circuit = circuits.Circuit(
-                  input_circuit.unfreeze(), phased_gates, measurement_op, strategy=insert_strategy
-              )
-              sweep_param = _pauli_strings_to_basis_change_with_sweep(pauli_strings, qid_list)
-              parameterized_circuits.append(parameterized_circuit)
-              sweep_params.append(sweep_param)
+            parameterized_circuit = circuits.Circuit(
+                input_circuit.unfreeze(), phased_gates, measurement_op, strategy=insert_strategy
+            )
+            sweep_param = []
+            for pauli_strings in pauli_string_groups:
+                sweep_param.append(
+                    _pauli_strings_to_basis_change_with_sweep(pauli_strings, qubits_to_measure)
+                )
+            sweep_params.append(sweep_param)
+            parameterized_circuits.append(parameterized_circuit)
+
+        else:
+            for pauli_strings in pauli_string_groups:
+                # Extract qubits from Pauli strings
+                qid_list = _extract_readout_qubits(pauli_strings)
+                phi_symbols = sympy.symbols(f"phi:{len(qid_list)}")
+                theta_symbols = sympy.symbols(f"theta:{len(qid_list)}")
+                # Create phased gates and measurement operator
+                phased_gates = [
+                    ops.PhasedXPowGate(phase_exponent=(a - 1) / 2, exponent=b)(qubit)
+                    for a, b, qubit in zip(phi_symbols, theta_symbols, qid_list)
+                ]
+                measurement_op = ops.M(*qid_list, key="result")
+                parameterized_circuit = circuits.Circuit(
+                    input_circuit.unfreeze(), phased_gates, measurement_op, strategy=insert_strategy
+                )
+                sweep_param = _pauli_strings_to_basis_change_with_sweep(pauli_strings, qid_list)
+                parameterized_circuits.append(parameterized_circuit)
+                sweep_params.append(sweep_param)
     return parameterized_circuits, sweep_params
 
 
@@ -440,11 +442,12 @@ def _process_pauli_measurement_results(
     for pauli_group_index, circuit_result in enumerate(circuit_results):
         measurement_results = circuit_result.measurements["result"]
         pauli_strs = pauli_string_groups[pauli_group_index]
-        pauli_readout_qubits = _extract_readout_qubits(pauli_strs)
 
         if fixed_calibration_key is not None:
+            pauli_readout_qubits = list(fixed_calibration_key)
             calibration_key = fixed_calibration_key
         else:
+            pauli_readout_qubits = _extract_readout_qubits(pauli_strs)
             calibration_key = tuple(pauli_readout_qubits)
 
         calibration_result = (
