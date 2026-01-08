@@ -529,3 +529,27 @@ def test_concat_different_keys_raises() -> None:
 def test_concat_empty_sweep_raises() -> None:
     with pytest.raises(ValueError, match="Concat requires at least one sweep."):
         _ = cirq.Concat()
+
+
+def test_list_of_dicts_to_zip_empty() -> None:
+    with pytest.raises(ValueError, match="empty"):
+        cirq.list_of_dicts_to_zip([])
+
+
+def test_list_of_dicts_to_zip_mismatched_keys() -> None:
+    with pytest.raises(ValueError, match="Keys must be the same"):
+        cirq.list_of_dicts_to_zip([{'a': 4.0}, {'a': 2.0, 'b': 1.0}])
+
+
+def test_list_of_dicts_to_zip() -> None:
+    param_dict = [
+        {'a': 1.0, 'b': 2.0, 'c': 10.0},
+        {'a': 2.0, 'b': 4.0, 'c': 9.0},
+        {'a': 3.0, 'b': 8.0, 'c': 8.0},
+    ]
+    param_zip = cirq.Zip(
+        cirq.Points('a', [1.0, 2.0, 3.0]),
+        cirq.Points('b', [2.0, 4.0, 8.0]),
+        cirq.Points('c', [10.0, 9.0, 8.0]),
+    )
+    assert cirq.list_of_dicts_to_zip(param_dict) == param_zip

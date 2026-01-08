@@ -67,7 +67,7 @@ ERROR_CALIBRATION_FAILED: CalibrationLayerCode.ValueType  # 5
 suitable device parameters could not be acheived or dependencies
 needed by the calibration did not exist.
 """
-global___CalibrationLayerCode = CalibrationLayerCode
+Global___CalibrationLayerCode: typing_extensions.TypeAlias = CalibrationLayerCode
 
 @typing.final
 class FocusedCalibration(google.protobuf.message.Message):
@@ -77,7 +77,7 @@ class FocusedCalibration(google.protobuf.message.Message):
 
     LAYERS_FIELD_NUMBER: builtins.int
     @property
-    def layers(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___CalibrationLayer]:
+    def layers(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___CalibrationLayer]:
         """The layers field represents each invocation of a calibration
         procedure.
 
@@ -92,11 +92,11 @@ class FocusedCalibration(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        layers: collections.abc.Iterable[global___CalibrationLayer] | None = ...,
+        layers: collections.abc.Iterable[Global___CalibrationLayer] | None = ...,
     ) -> None: ...
     def ClearField(self, field_name: typing.Literal["layers", b"layers"]) -> None: ...
 
-global___FocusedCalibration = FocusedCalibration
+Global___FocusedCalibration: typing_extensions.TypeAlias = FocusedCalibration
 
 @typing.final
 class CalibrationLayer(google.protobuf.message.Message):
@@ -157,7 +157,7 @@ class CalibrationLayer(google.protobuf.message.Message):
     def HasField(self, field_name: typing.Literal["layer", b"layer"]) -> builtins.bool: ...
     def ClearField(self, field_name: typing.Literal["args", b"args", "calibration_type", b"calibration_type", "layer", b"layer"]) -> None: ...
 
-global___CalibrationLayer = CalibrationLayer
+Global___CalibrationLayer: typing_extensions.TypeAlias = CalibrationLayer
 
 @typing.final
 class FocusedCalibrationResult(google.protobuf.message.Message):
@@ -167,7 +167,7 @@ class FocusedCalibrationResult(google.protobuf.message.Message):
 
     RESULTS_FIELD_NUMBER: builtins.int
     @property
-    def results(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___CalibrationLayerResult]:
+    def results(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___CalibrationLayerResult]:
         """The results of each CalibrationLayer request.
         There will be one CalibrationLayerResults message for each
         CalibrationLayer in the request, and the results will
@@ -177,11 +177,11 @@ class FocusedCalibrationResult(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        results: collections.abc.Iterable[global___CalibrationLayerResult] | None = ...,
+        results: collections.abc.Iterable[Global___CalibrationLayerResult] | None = ...,
     ) -> None: ...
     def ClearField(self, field_name: typing.Literal["results", b"results"]) -> None: ...
 
-global___FocusedCalibrationResult = FocusedCalibrationResult
+Global___FocusedCalibrationResult: typing_extensions.TypeAlias = FocusedCalibrationResult
 
 @typing.final
 class CalibrationLayerResult(google.protobuf.message.Message):
@@ -192,7 +192,7 @@ class CalibrationLayerResult(google.protobuf.message.Message):
     TOKEN_FIELD_NUMBER: builtins.int
     METRICS_FIELD_NUMBER: builtins.int
     VALID_UNTIL_MS_FIELD_NUMBER: builtins.int
-    code: global___CalibrationLayerCode.ValueType
+    code: Global___CalibrationLayerCode.ValueType
     """Whether the calibration procedure was a success or failure."""
     error_message: builtins.str
     """On non-successful results, contains additional information
@@ -219,7 +219,7 @@ class CalibrationLayerResult(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        code: global___CalibrationLayerCode.ValueType = ...,
+        code: Global___CalibrationLayerCode.ValueType = ...,
         error_message: builtins.str = ...,
         token: builtins.str = ...,
         metrics: cirq_google.api.v2.metrics_pb2.MetricsSnapshot | None = ...,
@@ -228,4 +228,4 @@ class CalibrationLayerResult(google.protobuf.message.Message):
     def HasField(self, field_name: typing.Literal["metrics", b"metrics"]) -> builtins.bool: ...
     def ClearField(self, field_name: typing.Literal["code", b"code", "error_message", b"error_message", "metrics", b"metrics", "token", b"token", "valid_until_ms", b"valid_until_ms"]) -> None: ...
 
-global___CalibrationLayerResult = CalibrationLayerResult
+Global___CalibrationLayerResult: typing_extensions.TypeAlias = CalibrationLayerResult

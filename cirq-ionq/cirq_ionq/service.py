@@ -157,13 +157,12 @@ class Service:
             dry_run=dry_run,
             extra_query_params=extra_query_params,
         ).results(sharpen=sharpen)
-        if isinstance(job_results[0], results.QPUResult):
-            return job_results[0].to_cirq_result(params=cirq.ParamResolver(param_resolver))
-        if isinstance(job_results[0], results.SimulatorResult):
-            return job_results[0].to_cirq_result(
-                params=cirq.ParamResolver(param_resolver), seed=seed
-            )
-        raise NotImplementedError(f"Unrecognized job result type '{type(job_results[0])}'.")
+        result = job_results[0] if isinstance(job_results, list) else job_results
+        if isinstance(result, results.QPUResult):
+            return result.to_cirq_result(params=cirq.ParamResolver(param_resolver))
+        if isinstance(result, results.SimulatorResult):
+            return result.to_cirq_result(params=cirq.ParamResolver(param_resolver), seed=seed)
+        raise NotImplementedError(f"Unrecognized job result type '{type(result)}'.")
 
     def run_batch(
         self,
@@ -234,8 +233,9 @@ class Service:
             extra_query_params=extra_query_params,
         ).results(sharpen=sharpen)
 
+        job_results_list = job_results if isinstance(job_results, list) else [job_results]
         cirq_results = []
-        for job_result in job_results:
+        for job_result in job_results_list:
             if isinstance(job_result, results.QPUResult):
                 cirq_results.append(
                     job_result.to_cirq_result(params=cirq.ParamResolver(param_resolver))

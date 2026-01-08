@@ -198,7 +198,12 @@ class Job:
         polling_seconds: int = 1,
         sharpen: bool | None = None,
         extra_query_params: dict | None = None,
-    ) -> list[results.QPUResult] | list[results.SimulatorResult]:
+    ) -> (
+        results.QPUResult
+        | results.SimulatorResult
+        | list[results.QPUResult]
+        | list[results.SimulatorResult]
+    ):
         """Polls the IonQ api for results.
 
         Args:
@@ -209,9 +214,10 @@ class Job:
             extra_query_params: Specify any parameters to include in the request.
 
         Returns:
-            Either a list of `cirq_ionq.QPUResult` or a list of `cirq_ionq.SimulatorResult`
-            depending on whether the job was running on an actual quantum processor or a
-            simulator.
+            Either a single `cirq_ionq.QPUResult` / `cirq_ionq.SimulatorResult`
+            (for a single-circuit job) or a `list` of such results (for a
+            batch job). The list order for batch jobs corresponds to the
+            order of the input circuits.
 
         Raises:
             IonQUnsuccessfulJob: If the job has failed, been canceled, or deleted.
@@ -219,6 +225,16 @@ class Job:
             RuntimeError: If the job reported that it had failed on the server, or
                 the job had an unknown status.
             TimeoutError: If the job timed out at the server.
+
+        Notes:
+            * IonQ returns results in little endian; Cirq presents them in
+            big endian.
+            * If your code previously assumed a list, use:
+                r = job.results()
+                results_list = r if isinstance(r, list) else [r]
+            If your code previously assumed a single result, use:
+                r = job.results()
+                r0 = r[0] if isinstance(r, list) else r
         """
         time_waited_seconds = 0
         while time_waited_seconds < timeout_seconds:
@@ -245,11 +261,10 @@ class Job:
             job_id=self.job_id(), sharpen=sharpen, extra_query_params=extra_query_params
         )
 
+        # is this a batch run (dict-of-dicts) or a single circuit?
         some_inner_value = next(iter(backend_results.values()))
-        if isinstance(some_inner_value, dict):
-            histograms = backend_results.values()
-        else:
-            histograms = [backend_results]
+        is_batch = isinstance(some_inner_value, dict)
+        histograms = list(backend_results.values()) if is_batch else [backend_results]
 
         # IonQ returns results in little endian, but
         # Cirq prefers to use big endian, so we convert.
@@ -270,7 +285,11 @@ class Job:
                         measurement_dict=self.measurement_dict(circuit_index=circuit_index),
                     )
                 )
-            return big_endian_results_qpu
+            return (
+                big_endian_results_qpu
+                if len(big_endian_results_qpu) > 1
+                else big_endian_results_qpu[0]
+            )
         else:
             big_endian_results_sim: list[results.SimulatorResult] = []
             for circuit_index, histogram in enumerate(histograms):
@@ -286,7 +305,11 @@ class Job:
                         repetitions=self.repetitions(),
                     )
                 )
-            return big_endian_results_sim
+            return (
+                big_endian_results_sim
+                if len(big_endian_results_sim) > 1
+                else big_endian_results_sim[0]
+            )
 
     def cancel(self):
         """Cancel the given job.
