@@ -76,6 +76,10 @@ from cirq.transformers.optimize_for_target_gateset import (
     optimize_for_target_gateset as optimize_for_target_gateset,
 )
 
+from cirq.transformers.diagonal_optimization import (
+    drop_diagonal_before_measurement as drop_diagonal_before_measurement,
+)
+
 from cirq.transformers.drop_empty_moments import drop_empty_moments as drop_empty_moments
 
 from cirq.transformers.drop_negligible_operations import (
@@ -87,10 +91,6 @@ from cirq.transformers.dynamical_decoupling import (
 )
 
 from cirq.transformers.eject_z import eject_z as eject_z
-
-from cirq.transformers.diagonal_optimization import (
-    drop_diagonal_before_measurement as drop_diagonal_before_measurement,
-)
 
 from cirq.transformers.measurement_transformers import (
     defer_measurements as defer_measurements,
