@@ -154,9 +154,10 @@ papermill {rewritten_notebook_path} {REPO_ROOT/out_path}"""
         check=False,
         cwd=notebook_env,
         capture_output=True,
-        # important to get rid of PYTHONPATH specifically, which contains
-        # the Cirq repo path due to check/pytest
-        env={},
+        # Important to get rid of PYTHONPATH specifically, which contains
+        # the Cirq repo path due to check/pytest.  Also isolate the execution
+        # from pip settings in local configuration files or environment.
+        env={'PIP_CONFIG_FILE': '/dev/null'},
     )
 
     if result.returncode != 0:
@@ -217,9 +218,11 @@ def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path) -> None:
         content = notebook.read()
         mandatory_matches = [
             r"!pip install --upgrade --quiet cirq(-google)?~=1.0.dev",
-            r"Note: this notebook relies on unreleased Cirq features\. "
-            r"If you want to try these features, make sure you install cirq(-google)? via "
-            r"`pip install --upgrade cirq(-google)?~=1.0.dev`\.",
+            (
+                r"Note: this notebook relies on unreleased Cirq features\. "
+                r"If you want to try these features, make sure you install cirq(-google)? via "
+                r"`pip install --upgrade cirq(-google)?~=1.0.dev`\."
+            ),
         ]
 
         for m in mandatory_matches:

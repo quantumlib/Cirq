@@ -73,7 +73,10 @@ def require_packages_not_changed() -> Iterator[None]:
 
 @pytest.fixture
 def env_with_temporary_pip_target() -> Iterator[dict[str, str]]:
-    """Setup system environment that tells pip to install packages to a temporary directory."""
+    """Set up system environment that tells pip to install packages to a temporary directory.
+
+    Also isolate the run from local pip settings in configuration files or environment.
+    """
     with tempfile.TemporaryDirectory(suffix='-notebook-site-packages') as tmpdirname:
         # Note: We need to append tmpdirname to the PYTHONPATH, because PYTHONPATH may
         # already point to the development sources of Cirq (as happens with check/pytest).
@@ -84,7 +87,12 @@ def env_with_temporary_pip_target() -> Iterator[dict[str, str]]:
             if 'PYTHONPATH' in os.environ
             else tmpdirname
         )
-        env = {**os.environ, 'PYTHONPATH': pythonpath, 'PIP_TARGET': tmpdirname}
+        env = {
+            **os.environ,
+            'PYTHONPATH': pythonpath,
+            'PIP_TARGET': tmpdirname,
+            'PIP_CONFIG_FILE': '/dev/null',
+        }
         yield env
 
 
