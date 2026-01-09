@@ -238,16 +238,12 @@ def main():
 
     file_names = glob.glob('cirq**/cirq**/**/*.py', recursive=True)
     assert file_names
-    excluded = [
+    excluded = (
         'cirq-google/cirq_google/api/',
         'cirq-google/cirq_google/cloud/',
         'cirq-web/cirq_web/node_modules/',
-    ]
-    file_names = [
-        f
-        for f in file_names
-        if not (any(f.startswith(x) for x in excluded) or f.endswith("_test.py"))
-    ]
+    )
+    file_names = [f for f in file_names if not (f.startswith(excluded) or f.endswith("_test.py"))]
     failed, attempted = run_tests(
         file_names, include_modules=True, include_local=False, quiet=quiet
     )
