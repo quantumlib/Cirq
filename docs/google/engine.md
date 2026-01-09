@@ -23,6 +23,10 @@ gcloud client:
 
 From a colab, you can execute:
 
+<!---test_substitution
+from google\.colab import auth
+auth = MagicMock()
+--->
 ```python
 from google.colab import auth
 auth.authenticate_user(clear_output=False)
@@ -50,7 +54,7 @@ print()
 --->
 <!---test_substitution
 engine = cirq_google.Engine(.*)
-engine = MockEngine()
+engine = MagicMock()
 --->
 <!---test_substitution
 cg.Engine(.*)
@@ -59,6 +63,10 @@ cirq.Simulator()
 <!---test_substitution
 sampler = .*
 sampler = engine
+--->
+<!---test_substitution
+PROJECT_ID|PROCESSOR_ID
+'placeholder'
 --->
 ```python
 import cirq
@@ -72,11 +80,11 @@ circuit = cirq.Circuit(
 )
 
 # Create an Engine object.
-# Replace YOUR_PROJECT_ID with the id from your cloud project.
-engine = cg.Engine(project_id=YOUR_PROJECT_ID)
+# Replace PROJECT_ID with the id from your cloud project.
+engine = cg.Engine(project_id=PROJECT_ID)
 
 # Create a sampler from the engine
-sampler = engine.get_sampler(processor_id='PROCESSOR_ID')
+sampler = engine.get_sampler(processor_id=PROCESSOR_ID)
 
 # This will run the circuit and return the results in a 'Result'
 results = sampler.run(circuit, repetitions=1000)
@@ -152,9 +160,17 @@ Currently, getting the program and job ids can only be done through the
 You can then use `get_program` and `get_job` to retrieve the results.
 See below for an example:
 
+<!---test_substitution
+engine = cg.Engine(.*)
+engine = MagicMock()
+--->
+<!---test_substitution
+GATE_SET
+'placeholder'
+--->
 ```python
 # Initialize the engine object
-engine = cirq_google.Engine(project_id='YOUR_PROJECT_ID')
+engine = cirq_google.Engine(project_id=PROJECT_ID)
 
 # Create an example circuit
 qubit = cirq.GridQubit(5, 2)
@@ -165,10 +181,10 @@ circuit = cirq.Circuit(
 param_sweep = cirq.Linspace('t', start=0, stop=1, length=10)
 
 # Run the circuit
-job = e.run_sweep(program=circuit,
+job = engine.run_sweep(program=circuit,
                   params=param_sweep,
                   repetitions=1000,
-                  processor_id='PROCESSOR_ID',
+                  processor_id=PROCESSOR_ID,
                   gate_set=GATE_SET)
 
 # Save the program and jo id for later
@@ -200,15 +216,23 @@ by using our list methods.
 To list the executions of your circuit, i.e., the jobs, you can use `cirq_google.Engine.list_jobs()`.
 You can search in all the jobs within your project using filtering criteria on creation time, execution state and labels.
 
+<!---test_substitution
+datetime
+MagicMock()
+--->
+<!---test_substitution
+quantum\.ExecutionStatus
+cirq_google.cloud.quantum.ExecutionStatus
+--->
 ```python
-from cirq_google.engine.client.quantum import enums
+from cirq_google.cloud import quantum
 
 # Initialize the engine object
-engine = cirq_google.Engine(project_id='YOUR_PROJECT_ID')
+engine = cirq_google.Engine(project_id=PROJECT_ID)
 
 # List all the jobs on the project since 2020/09/20 that succeeded:
 jobs = engine.list_jobs(created_after=datetime.date(2020,9,20),
-                        execution_states=[enums.ExecutionStatus.State.SUCCESS])
+                        execution_states=[quantum.ExecutionStatus.State.SUCCESS])
 for j in jobs:
    print(j.job_id, j.status(), j.create_time())
 ```
@@ -220,10 +244,10 @@ Similar to jobs, filtering makes it possible to list programs by creation time a
 With an existing `cirq_google.EngineProgram` object, you can list any jobs that were run using that program.
 
 ```python
-from cirq_google.engine.client.quantum import enums
+from cirq_google.cloud import quantum
 
 # Initialize the engine object
-engine = cirq_google.Engine(project_id='YOUR_PROJECT_ID')
+engine = cirq_google.Engine(project_id=PROJECT_ID)
 
 # List all the programs on the project since 2020/09/20 that have
 # the "variational" label with any value and the "experiment" label
@@ -236,6 +260,6 @@ for p in programs:
    print(p.program_id, p.create_time())
    # the same filtering parametrization is available as in engine.list_jobs()
    # for example here we list the jobs under the programs that failed
-   for j in p.list_jobs(execution_states=[enums.ExecutionStatus.State.FAILURE]):
+   for j in p.list_jobs(execution_states=[quantum.ExecutionStatus.State.FAILURE]):
      print(j.job_id, j.status())
 ```
