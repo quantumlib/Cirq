@@ -16,9 +16,13 @@
 
 from __future__ import annotations
 
-import cirq
-from cirq import ops, protocols
+from typing import TYPE_CHECKING
+
+from cirq import circuits, ops, protocols, transformers
 from cirq.transformers import transformer_api
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def _is_z_or_cz_pow_gate(op: cirq.Operation) -> bool:
@@ -93,7 +97,7 @@ def drop_diagonal_before_measurement(
         context = transformer_api.TransformerContext()
 
     # Phase 1: Push Z gates later in the circuit to maximize removal opportunities.
-    circuit = cirq.eject_z(circuit, context=context)
+    circuit = transformers.eject_z(circuit, context=context)
 
     # Phase 2: Remove diagonal gates that appear before measurements.
     # We iterate in reverse to identify which qubits will be measured.
@@ -131,7 +135,7 @@ def drop_diagonal_before_measurement(
 
         # Add the moment if it has any operations
         if new_ops:
-            new_moments.append(cirq.Moment(new_ops))
+            new_moments.append(circuits.Moment(new_ops))
 
     # Reverse back to original order
-    return cirq.Circuit(reversed(new_moments))
+    return circuits.Circuit(reversed(new_moments))
