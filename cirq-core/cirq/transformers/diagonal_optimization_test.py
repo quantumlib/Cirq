@@ -100,24 +100,23 @@ def test_removes_cz_if_both_measured():
 def test_feature_request_z_cz_commutation():
     """Test the original feature request #4935: Z-CZ commutation before measurement.
 
-    The circuit Z(q0) - CZ(q0, q1) - measure(q1) should keep the CZ gate.
+    The circuit Z(q0) - CZ(q0, q1) - Z(q1) - M(q1) should keep the CZ gate.
     This is because:
-    1. Z on the control qubit of CZ commutes through the CZ (via eject_z)
-    2. After commutation: CZ(q0, q1) - Z(q0) - Z(q1) - measure(q1)
-    3. Z(q1) can be removed (only acts on measured qubit)
-    4. CZ(q0, q1) and Z(q0) must be kept (q0 is not measured)
+    1. Z(q0) commutes through the CZ and Z(q1) is removed (via eject_z)
+    2. After commutation: CZ(q0, q1) - Z(q0) - M(q1)
+    3. CZ(q0, q1) and Z(q0) must be kept (q0 is not measured)
 
     The optimized circuit is: CZ(q0, q1) - Z(q0) - M(q1)
     """
     q0, q1 = cirq.LineQubit.range(2)
 
     # Original feature request circuit
-    circuit = cirq.Circuit(cirq.Z(q0), cirq.CZ(q0, q1), cirq.measure(q1, key='m1'))
+    circuit = cirq.Circuit(cirq.Z(q0), cirq.CZ(q0, q1), cirq.Z(q1), cirq.measure(q1, key='m1'))
 
     optimized = drop_diagonal_before_measurement(circuit)
 
     # Expected: CZ(q0, q1) - Z(q0) - M(q1)
-    expected = cirq.Circuit(cirq.CZ(q0, q1), cirq.Z(q0), cirq.measure(q1, key='m1'))
+    expected = cirq.Circuit(cirq.CZ(q0, q1), cirq.Z(q0), cirq.Moment(cirq.measure(q1, key='m1')))
 
     cirq.testing.assert_same_circuits(optimized, expected)
 
