@@ -359,6 +359,7 @@ from cirq.transformers import (
     defer_measurements as defer_measurements,
     dephase_measurements as dephase_measurements,
     drop_empty_moments as drop_empty_moments,
+    drop_diagonal_before_measurement as drop_diagonal_before_measurement,
     drop_negligible_operations as drop_negligible_operations,
     drop_terminal_measurements as drop_terminal_measurements,
     eject_phased_paulis as eject_phased_paulis,

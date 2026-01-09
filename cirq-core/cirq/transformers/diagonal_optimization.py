@@ -1,4 +1,4 @@
-# Copyright 2024 The Cirq Developers
+# Copyright 2025 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ from __future__ import annotations
 import cirq
 from cirq import ops, protocols
 from cirq.transformers import transformer_api
-from cirq.transformers.eject_z import eject_z
 
 
 def _is_z_or_cz_pow_gate(op: cirq.Operation) -> bool:
@@ -94,7 +93,7 @@ def drop_diagonal_before_measurement(
         context = transformer_api.TransformerContext()
 
     # Phase 1: Push Z gates later in the circuit to maximize removal opportunities.
-    circuit = eject_z(circuit, context=context)
+    circuit = cirq.eject_z(circuit, context=context)
 
     # Phase 2: Remove diagonal gates that appear before measurements.
     # We iterate in reverse to identify which qubits will be measured.
@@ -118,7 +117,7 @@ def drop_diagonal_before_measurement(
                 # CRITICAL: we can only remove if all qubits involved are measured.
                 # if even one qubit is NOT measured, the gate must stay to preserve
                 # the state of that unmeasured qubit (due to phase kickback/entanglement).
-                if all(q in measured_qubits for q in op.qubits):
+                if measured_qubits.issuperset(op.qubits):
                     continue  # Drop the operation
 
                 new_ops.append(op)

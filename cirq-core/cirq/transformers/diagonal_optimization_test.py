@@ -1,4 +1,4 @@
-# Copyright 2024 The Cirq Developers
+# Copyright 2025 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ def test_removes_z_before_measure():
     # Expected: H -> Measure (Z is gone)
     expected = cirq.Circuit(cirq.H(q), cirq.measure(q, key='m'))
 
-    assert optimized == expected
+    cirq.testing.assert_same_circuits(optimized, expected)
 
 
 def test_removes_diagonal_chain():
@@ -50,7 +50,7 @@ def test_removes_diagonal_chain():
     # Expected: H -> Measure (Both Z and S are gone)
     expected = cirq.Circuit(cirq.H(q), cirq.measure(q, key='m'))
 
-    assert optimized == expected
+    cirq.testing.assert_same_circuits(optimized, expected)
 
 
 def test_keeps_z_blocked_by_x():
@@ -66,9 +66,7 @@ def test_keeps_z_blocked_by_x():
 
     # We use this helper to check mathematical equivalence
     # instead of checking exact gate types (Y vs PhasedX)
-    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        circuit, optimized, atol=1e-6
-    )
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(circuit, optimized)
 
 
 def test_keeps_cz_if_only_one_qubit_measured():
@@ -81,7 +79,7 @@ def test_keeps_cz_if_only_one_qubit_measured():
     # CZ shouldn't be removed because q1 is not measured
     optimized = drop_diagonal_before_measurement(circuit)
 
-    assert optimized == circuit
+    cirq.testing.assert_same_circuits(optimized, circuit)
 
 
 def test_removes_cz_if_both_measured():
@@ -96,19 +94,20 @@ def test_removes_cz_if_both_measured():
     # Expected: Measures only
     expected = cirq.Circuit(cirq.measure(q0, key='m0'), cirq.measure(q1, key='m1'))
 
-    # Check that operations match (ignoring Moment structure)
-    assert list(optimized.all_operations()) == list(expected.all_operations())
+    cirq.testing.assert_same_circuits(optimized, expected)
 
 
 def test_feature_request_z_cz_commutation():
-    """Test the original feature request case: Z-CZ commutation before measurement.
+    """Test the original feature request #4935: Z-CZ commutation before measurement.
 
     The circuit Z(q0) - CZ(q0, q1) - measure(q1) should keep the CZ gate.
     This is because:
     1. Z on the control qubit of CZ commutes through the CZ (via eject_z)
-    2. After commutation: CZ(q0, q1) - Z(q1) - measure(q1)
+    2. After commutation: CZ(q0, q1) - Z(q0) - Z(q1) - measure(q1)
     3. Z(q1) can be removed (only acts on measured qubit)
-    4. CZ(q0, q1) must be kept (q0 is not measured)
+    4. CZ(q0, q1) and Z(q0) must be kept (q0 is not measured)
+
+    The optimized circuit is: CZ(q0, q1) - Z(q0) - M(q1)
     """
     q0, q1 = cirq.LineQubit.range(2)
 
@@ -117,13 +116,14 @@ def test_feature_request_z_cz_commutation():
 
     optimized = drop_diagonal_before_measurement(circuit)
 
-    # The Z(0) might be moved or merged by eject_z, but the CZ MUST stay.
-    # We check that a two-qubit gate still exists.
-    assert len(list(optimized.findall_operations(lambda op: len(op.qubits) == 2))) > 0
+    # Expected: CZ(q0, q1) - Z(q0) - M(q1)
+    expected = cirq.Circuit(cirq.CZ(q0, q1), cirq.Z(q0), cirq.measure(q1, key='m1'))
+
+    cirq.testing.assert_same_circuits(optimized, expected)
 
 
 def test_feature_request_full_example():
-    """Test the full feature request example with measurements on both qubits."""
+    """Test the full feature request #4935 with measurements on both qubits."""
     q0, q1 = cirq.LineQubit.range(2)
 
     # From feature request
@@ -131,8 +131,7 @@ def test_feature_request_full_example():
         cirq.Z(q0),
         cirq.CZ(q0, q1),
         cirq.Z(q1),
-        cirq.measure(q0, key='m0'),
-        cirq.measure(q1, key='m1'),
+        cirq.Moment(cirq.measure(q0, key='m0'), cirq.measure(q1, key='m1')),
     )
 
     optimized = drop_diagonal_before_measurement(circuit)
@@ -140,7 +139,7 @@ def test_feature_request_full_example():
     # Should simplify to just measurements
     expected = cirq.Circuit(cirq.measure(q0, key='m0'), cirq.measure(q1, key='m1'))
 
-    assert list(optimized.all_operations()) == list(expected.all_operations())
+    cirq.testing.assert_same_circuits(optimized, expected)
 
 
 def test_preserves_non_diagonal_gates():
@@ -152,9 +151,7 @@ def test_preserves_non_diagonal_gates():
     optimized = drop_diagonal_before_measurement(circuit)
 
     # Verify the physics hasn't changed (handles PhasedX vs Y differences)
-    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        circuit, optimized, atol=1e-6
-    )
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(circuit, optimized)
 
 
 def test_diagonal_gates_commute_before_measurement():
@@ -180,7 +177,7 @@ def test_diagonal_gates_commute_before_measurement():
     # All recognized diagonal gates should be removed since all qubits are measured
     expected = cirq.Circuit(cirq.measure(q0, key='m0'), cirq.measure(q1, key='m1'))
 
-    assert list(optimized.all_operations()) == list(expected.all_operations())
+    cirq.testing.assert_same_circuits(optimized, expected)
 
 
 def test_unrecognized_diagonal_breaks_chain():
@@ -211,13 +208,7 @@ def test_unrecognized_diagonal_breaks_chain():
     # Only the custom diagonal gate can be removed... wait, no! It's not recognized
     # so it won't be removed at all. And it breaks the chain for q0 and q1.
     # So the CZ also cannot be removed.
-
-    # The optimized circuit should still have both gates
-    ops = list(optimized.all_operations())
-    gate_ops = [op for op in ops if not cirq.is_measurement(op)]
-
-    # Both CZ and custom diagonal should still be present
-    assert len(gate_ops) == 2
+    cirq.testing.assert_same_circuits(optimized, circuit)
 
 
 def test_is_z_or_cz_pow_gate_helper_edge_cases():
