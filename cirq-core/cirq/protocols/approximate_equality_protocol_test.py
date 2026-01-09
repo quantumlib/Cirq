@@ -172,14 +172,14 @@ def test_approx_eq_set() -> None:
         if list(sij) != list(sji):
             found_differently_ordered_sets = True
             break
-
-    # ensure we have two equal differently-ordered sets
     assert found_differently_ordered_sets, "fix code for differently ordered sets"
+
+    # here sij, sji are equal, but have a different order
     assert cirq.approx_eq(sij, sji)
     assert cirq.approx_eq(sij, frozenset(sji))
     assert cirq.approx_eq(frozenset(sij), frozenset(sji))
 
-    # ensure approx_eq handles equal non-sortable sets
+    # ensure approx_eq handles non-sortable sets
     unsortable = {"a", 0}
     assert cirq.approx_eq(unsortable, unsortable)
     assert cirq.approx_eq(unsortable, frozenset(unsortable))
