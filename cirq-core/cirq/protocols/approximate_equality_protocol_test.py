@@ -185,6 +185,8 @@ def test_approx_eq_set() -> None:
     assert cirq.approx_eq(unsortable, frozenset(unsortable))
     assert cirq.approx_eq(frozenset(unsortable), frozenset(unsortable))
     assert not cirq.approx_eq(unsortable, {"a", 1})
+    # complete coverage for only the second argument being unsortable
+    assert not cirq.approx_eq({"a", "b"}, unsortable)
 
 
 def test_approx_eq_symbol() -> None:
