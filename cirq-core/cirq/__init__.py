@@ -358,6 +358,7 @@ from cirq.transformers import (
     decompose_two_qubit_interaction_into_four_fsim_gates as decompose_two_qubit_interaction_into_four_fsim_gates,  # noqa: E501
     defer_measurements as defer_measurements,
     dephase_measurements as dephase_measurements,
+    drop_diagonal_before_measurement as drop_diagonal_before_measurement,
     drop_empty_moments as drop_empty_moments,
     drop_negligible_operations as drop_negligible_operations,
     drop_terminal_measurements as drop_terminal_measurements,
