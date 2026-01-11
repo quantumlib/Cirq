@@ -31,7 +31,6 @@ import random
 import string
 from typing import TYPE_CHECKING, TypeVar
 
-import duet
 import google.auth
 
 import cirq
@@ -46,6 +45,7 @@ from cirq_google.engine import (
     processor_config,
     util,
 )
+from cirq_google.engine.duet_sync_wrapper import duet_sync
 from cirq_google.serialization import CIRCUIT_SERIALIZER, Serializer
 
 if TYPE_CHECKING:
@@ -410,7 +410,7 @@ class Engine(abstract_engine.AbstractEngine):
             device_config_name=device_config_name,
         )
 
-    run_sweep = duet.sync(run_sweep_async)
+    run_sweep = duet_sync(run_sweep_async)
 
     async def create_program_async(
         self,
@@ -452,7 +452,7 @@ class Engine(abstract_engine.AbstractEngine):
             self.project_id, new_program_id, self.context, new_program
         )
 
-    create_program = duet.sync(create_program_async)
+    create_program = duet_sync(create_program_async)
 
     def get_program(self, program_id: str) -> engine_program.EngineProgram:
         """Returns an EngineProgram for an existing Quantum Engine program.
@@ -500,10 +500,10 @@ class Engine(abstract_engine.AbstractEngine):
                 _program=p,
                 context=self.context,
             )
-            for p in response
+            async for p in response
         ]
 
-    list_programs = duet.sync(list_programs_async)
+    list_programs = duet_sync(list_programs_async)
 
     async def list_jobs_async(
         self,
@@ -554,10 +554,10 @@ class Engine(abstract_engine.AbstractEngine):
                 context=self.context,
                 _job=j,
             )
-            for j in response
+            async for j in response
         ]
 
-    list_jobs = duet.sync(list_jobs_async)
+    list_jobs = duet_sync(list_jobs_async)
 
     async def list_processors_async(self) -> list[engine_processor.EngineProcessor]:
         """Returns a list of Processors that the user has visibility to in the
@@ -576,7 +576,7 @@ class Engine(abstract_engine.AbstractEngine):
             for p in response
         ]
 
-    list_processors = duet.sync(list_processors_async)
+    list_processors = duet_sync(list_processors_async)
 
     def get_processor(self, processor_id: str) -> engine_processor.EngineProcessor:
         """Returns an EngineProcessor for a Quantum Engine processor.
@@ -665,7 +665,7 @@ class Engine(abstract_engine.AbstractEngine):
             )
         return None
 
-    get_processor_config = duet.sync(get_processor_config_async)
+    get_processor_config = duet_sync(get_processor_config_async)
 
     async def list_processor_configs_async(
         self,
@@ -698,7 +698,7 @@ class Engine(abstract_engine.AbstractEngine):
             for quantum_config in configs
         ]
 
-    list_processor_configs = duet.sync(list_processor_configs_async)
+    list_processor_configs = duet_sync(list_processor_configs_async)
 
 
 def get_engine(project_id: str | None = None) -> Engine:

@@ -16,9 +16,8 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 
-import duet
-
 import cirq
+from cirq_google.engine.duet_sync_wrapper import duet_sync
 
 VALIDATOR_TYPE = Callable[
     [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], int | Sequence[int]], None
@@ -79,4 +78,4 @@ class ValidatingSampler(cirq.Sampler):
         self._validate_circuit(programs, params_list, repetitions)
         return await self._sampler.run_batch_async(programs, params_list, repetitions)
 
-    run_batch = duet.sync(run_batch_async)
+    run_batch = duet_sync(run_batch_async)

@@ -16,15 +16,13 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import AsyncIterator
-from typing import TYPE_CHECKING
+from typing import cast, TYPE_CHECKING
 
+import duet
 import google.api_core.exceptions as google_exceptions
 
 from cirq_google.cloud import quantum
 from cirq_google.engine.asyncio_executor import AsyncioExecutor
-
-if TYPE_CHECKING:
-    import duet
 
 Code = quantum.StreamError.Code
 
@@ -121,7 +119,9 @@ class StreamManager:
         self._next_available_message_id = 0
         # Construct queue in AsyncioExecutor to ensure it binds to the correct event loop, since it
         # is used by asyncio coroutines.
-        self._request_queue = self._executor.submit(self._make_request_queue).result()
+        self._request_queue = cast(
+            duet.AwaitableFuture, self._executor.submit(self._make_request_queue)
+        ).result()
 
     async def _make_request_queue(self) -> asyncio.Queue[quantum.QuantumRunStreamRequest | None]:
         """Returns a queue used to back the request iterator passed to the stream.
@@ -160,11 +160,15 @@ class StreamManager:
             raise ValueError('Program name must be set.')
 
         if self._manage_stream_loop_future is None or self._manage_stream_loop_future.done():
-            self._manage_stream_loop_future = self._executor.submit(
-                self._manage_stream, self._request_queue
+            self._manage_stream_loop_future = cast(
+                duet.AwaitableFuture,
+                self._executor.submit(self._manage_stream, self._request_queue),
             )
-        return self._executor.submit(
-            self._manage_execution, self._request_queue, project_name, program, job
+        return cast(
+            duet.AwaitableFuture,
+            self._executor.submit(
+                self._manage_execution, self._request_queue, project_name, program, job
+            ),
         )
 
     def stop(self) -> None:

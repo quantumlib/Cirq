@@ -23,6 +23,7 @@ import duet
 import cirq
 from cirq_google.api import v2
 from cirq_google.engine import abstract_program, engine_client, engine_job
+from cirq_google.engine.duet_sync_wrapper import duet_sync
 from cirq_google.serialization import circuit_serializer
 
 if TYPE_CHECKING:
@@ -133,7 +134,7 @@ class EngineProgram(abstract_program.AbstractProgram):
             self.project_id, self.program_id, created_job_id, self.context, job
         )
 
-    run_sweep = duet.sync(run_sweep_async)
+    run_sweep = duet_sync(run_sweep_async)
 
     async def run_async(
         self,
@@ -193,7 +194,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         results = await job.results_async()
         return results[0]
 
-    run = duet.sync(run_async)
+    run = duet_sync(run_async)
 
     def engine(self) -> engine_base.Engine:
         """Returns the parent Engine object.
@@ -261,10 +262,10 @@ class EngineProgram(abstract_program.AbstractProgram):
                 context=self.context,
                 _job=j,
             )
-            for j in response
+            async for j in response
         ]
 
-    list_jobs = duet.sync(list_jobs_async)
+    list_jobs = duet_sync(list_jobs_async)
 
     def _inner_program(self) -> quantum.QuantumProgram:
         if self._program is None:
@@ -298,7 +299,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         )
         return self
 
-    set_description = duet.sync(set_description_async)
+    set_description = duet_sync(set_description_async)
 
     def labels(self) -> dict[str, str]:
         """Returns the labels of the program."""
@@ -319,7 +320,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         )
         return self
 
-    set_labels = duet.sync(set_labels_async)
+    set_labels = duet_sync(set_labels_async)
 
     async def add_labels_async(self, labels: dict[str, str]) -> EngineProgram:
         """Adds new labels to a previously created quantum program.
@@ -335,7 +336,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         )
         return self
 
-    add_labels = duet.sync(add_labels_async)
+    add_labels = duet_sync(add_labels_async)
 
     async def remove_labels_async(self, keys: list[str]) -> EngineProgram:
         """Removes labels with given keys from the labels of a previously
@@ -352,7 +353,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         )
         return self
 
-    remove_labels = duet.sync(remove_labels_async)
+    remove_labels = duet_sync(remove_labels_async)
 
     async def get_circuit_async(self) -> cirq.Circuit:
         """Returns the cirq Circuit for the Quantum Engine program. This is only
@@ -367,7 +368,7 @@ class EngineProgram(abstract_program.AbstractProgram):
             )
         return _deserialize_program(self._program.code)
 
-    get_circuit = duet.sync(get_circuit_async)
+    get_circuit = duet_sync(get_circuit_async)
 
     async def batch_size_async(self) -> int:
         """Returns the number of programs in a batch program.
@@ -377,7 +378,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         """
         raise NotImplementedError("Batch programs are no longer supported.")
 
-    batch_size = duet.sync(batch_size_async)
+    batch_size = duet_sync(batch_size_async)
 
     async def delete_async(self, delete_jobs: bool = False) -> None:
         """Deletes a previously created quantum program.
@@ -390,13 +391,13 @@ class EngineProgram(abstract_program.AbstractProgram):
             self.project_id, self.program_id, delete_jobs=delete_jobs
         )
 
-    delete = duet.sync(delete_async)
+    delete = duet_sync(delete_async)
 
     async def delete_job_async(self, job_id: str) -> None:
         """Deletes the job and result, if any."""
         await self.context.client.delete_job_async(self.project_id, self.program_id, job_id)
 
-    delete_job = duet.sync(delete_job_async)
+    delete_job = duet_sync(delete_job_async)
 
     def __str__(self) -> str:
         return f'EngineProgram(project_id=\'{self.project_id}\', program_id=\'{self.program_id}\')'

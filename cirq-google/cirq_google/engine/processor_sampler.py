@@ -20,6 +20,7 @@ from typing import cast, TYPE_CHECKING
 import duet
 
 import cirq
+from cirq_google.engine.duet_sync_wrapper import duet_sync
 
 if TYPE_CHECKING:
     import cirq_google as cg
@@ -84,7 +85,7 @@ class ProcessorSampler(cirq.Sampler):
 
             return await job.results_async()
 
-    run_sweep = duet.sync(run_sweep_async)
+    run_sweep = duet_sync(run_sweep_async)
 
     async def run_batch_async(
         self,
@@ -97,7 +98,7 @@ class ProcessorSampler(cirq.Sampler):
             await super().run_batch_async(programs, params_list, repetitions),
         )
 
-    run_batch = duet.sync(run_batch_async)
+    run_batch = duet_sync(run_batch_async)
 
     @property
     def processor(self) -> cg.engine.AbstractProcessor:
