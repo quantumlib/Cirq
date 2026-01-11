@@ -157,10 +157,6 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return self.all_measurement_key_objs()
 
     @_compat.cached_method
-    def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
-        return super()._control_keys_()
-
-    @_compat.cached_method
     def are_all_measurements_terminal(self) -> bool:
         return super().are_all_measurements_terminal()
 
@@ -224,3 +220,11 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         from cirq.circuits import CircuitOperation
 
         return CircuitOperation(self)
+
+    @cached_property
+    def measurement_keys(self) -> frozenset[cirq.MeasurementKey]:
+        return super().measurement_keys
+
+    @cached_property
+    def control_keys(self) -> frozenset[cirq.MeasurementKey]:
+        return super().control_keys
