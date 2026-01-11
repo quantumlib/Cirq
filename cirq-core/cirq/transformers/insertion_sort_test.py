@@ -27,26 +27,29 @@ def test_insertion_sort() -> None:
         cirq.GlobalPhaseGate(1j).on(),
     )
     sorted_circuit = cirq.transformers.insertion_sort_transformer(c)
-    assert sorted_circuit == cirq.Circuit(
-        cirq.GlobalPhaseGate(1j).on(),
-        cirq.CZ(cirq.q(0), cirq.q(1)),
-        cirq.CZ(cirq.q(2), cirq.q(1)),
-        cirq.CZ(cirq.q(2), cirq.q(1)),
-        cirq.CZ(cirq.q(2), cirq.q(4)),
+    cirq.testing.assert_same_circuits(
+        sorted_circuit,
+        cirq.Circuit(
+            cirq.GlobalPhaseGate(1j).on(),
+            cirq.CZ(cirq.q(0), cirq.q(1)),
+            cirq.CZ(cirq.q(2), cirq.q(1)),
+            cirq.CZ(cirq.q(2), cirq.q(1)),
+            cirq.CZ(cirq.q(2), cirq.q(4)),
+        ),
     )
 
 
 def test_insertion_sort_same_measurement_key() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.measure(q1, key='k'), cirq.measure(q0, key='k'))
-    assert cirq.transformers.insertion_sort_transformer(c) == c
+    cirq.testing.assert_same_circuits(cirq.transformers.insertion_sort_transformer(c), c)
 
 
 def test_insertion_sort_measurement_and_control_key_conflict() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.measure(q1, key='k'), cirq.X(q0).with_classical_controls('k'))
     # Second operation depends on the first so they don't commute.
-    assert cirq.transformers.insertion_sort_transformer(c) == c
+    cirq.testing.assert_same_circuits(cirq.transformers.insertion_sort_transformer(c), c)
 
 
 def test_insertion_sort_measurement_and_control_key_conflict_other_way_around() -> None:
@@ -56,18 +59,19 @@ def test_insertion_sort_measurement_and_control_key_conflict_other_way_around() 
         cirq.X(q1).with_classical_controls('k'),
         cirq.measure(q0, key='k'),
     )
-    assert cirq.transformers.insertion_sort_transformer(c) == c
+    cirq.testing.assert_same_circuits(cirq.transformers.insertion_sort_transformer(c), c)
 
 
 def test_insertion_sort_distinct_measurement_keys() -> None:
     q0, q1 = cirq.LineQubit.range(2)
-    c = cirq.Circuit(cirq.measure(q1, key='k1'), cirq.measure(q0, key='k2'))
+    c = cirq.Circuit(cirq.measure(q1, key='k1'), cirq.measure(q0, key='k0'))
     # Measurement keys are distinct, so the measurements commute.
-    expected = cirq.Circuit(cirq.measure(q0, key='k2'), cirq.measure(q1, key='k1'))
-    assert cirq.transformers.insertion_sort_transformer(c) == expected
+    expected = cirq.Circuit(cirq.measure(q0, key='k0'), cirq.measure(q1, key='k1'))
+    assert cirq.transformers.insertion_sort_transformer(c)[0].operations == expected[0].operations
 
 
 def test_insertion_sort_shared_control_key() -> None:
+
     q0, q1 = cirq.LineQubit.range(2)
     c = cirq.Circuit(
         cirq.X(q1).with_classical_controls('k'), cirq.X(q0).with_classical_controls('k')
@@ -75,4 +79,4 @@ def test_insertion_sort_shared_control_key() -> None:
     expected = cirq.Circuit(
         cirq.X(q0).with_classical_controls('k'), cirq.X(q1).with_classical_controls('k')
     )
-    assert cirq.transformers.insertion_sort_transformer(c) == expected
+    assert cirq.transformers.insertion_sort_transformer(c)[0].operations == expected[0].operations
