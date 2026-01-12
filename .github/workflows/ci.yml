@@ -324,7 +324,8 @@ jobs:
     name: Pytest MacOS
     strategy:
       matrix:
-        python-version: ['3.11', '3.12', '3.13', '3.14']
+        # TODO: #7832 - enable '3.14' once qiskit-aer provides binary wheels
+        python-version: ['3.11', '3.12', '3.13']
     # macos-15-large is Intel; macos-15-xlarge is ARM and the one we want.
     runs-on: macos-15-xlarge
     steps:
