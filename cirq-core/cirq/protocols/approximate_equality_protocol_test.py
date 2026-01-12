@@ -162,6 +162,33 @@ def test_approx_eq_list() -> None:
     assert not cirq.approx_eq([1.1, 1.2, 1.3], [1, 1, 1], atol=0.2)
 
 
+def test_approx_eq_set() -> None:
+    # create two equal sets with a different order
+    found_differently_ordered_sets = False
+    generate_pairs = ((i, j) for i in range(20) for j in range(i + 1, 20))
+    for i, j in generate_pairs:
+        sij = {cirq.LineQubit(i), cirq.LineQubit(j)}
+        sji = {cirq.LineQubit(j), cirq.LineQubit(i)}
+        if list(sij) != list(sji):
+            found_differently_ordered_sets = True
+            break
+    assert found_differently_ordered_sets, "fix code for differently ordered sets"
+
+    # here sij, sji are equal, but have a different order
+    assert cirq.approx_eq(sij, sji)
+    assert cirq.approx_eq(sij, frozenset(sji))
+    assert cirq.approx_eq(frozenset(sij), frozenset(sji))
+
+    # ensure approx_eq handles non-sortable sets
+    unsortable = {"a", 0}
+    assert cirq.approx_eq(unsortable, unsortable)
+    assert cirq.approx_eq(unsortable, frozenset(unsortable))
+    assert cirq.approx_eq(frozenset(unsortable), frozenset(unsortable))
+    assert not cirq.approx_eq(unsortable, {"a", 1})
+    # complete coverage for only the second argument being unsortable
+    assert not cirq.approx_eq({"a", "b"}, unsortable)
+
+
 def test_approx_eq_symbol() -> None:
     q = cirq.GridQubit(0, 0)
     s = sympy.Symbol("s")
