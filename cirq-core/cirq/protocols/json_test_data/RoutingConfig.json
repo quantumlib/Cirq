@@ -1,0 +1,5 @@
+{
+    "cirq_type": "RoutingConfig",
+    "lookahead_radius": 5,
+    "tag_inserted_swaps": true
+}

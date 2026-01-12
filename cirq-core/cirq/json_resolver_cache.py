@@ -210,6 +210,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'ResetChannel': cirq.ResetChannel,
         'Result': cirq.ResultDict,  # Keep support for Cirq < 0.14.
         'ResultDict': cirq.ResultDict,
+        'RoutingConfig': cirq.RoutingConfig,
         'RoutingSwapTag': cirq.RoutingSwapTag,
         'Rx': cirq.Rx,
         'Ry': cirq.Ry,

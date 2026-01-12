@@ -45,6 +45,9 @@ class RoutingConfig:
     lookahead_radius: int = 8
     tag_inserted_swaps: bool = False
 
+    def _json_dict_(self) -> dict[str, Any]:
+        return protocols.dataclass_json_dict(self)
+
 
 @dataclasses.dataclass
 class SwapSearchContext:
