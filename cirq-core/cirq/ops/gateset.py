@@ -20,7 +20,7 @@ from collections.abc import Callable, Hashable, Iterable
 from typing import Any, cast, TYPE_CHECKING
 
 from cirq import protocols, value
-from cirq.ops import global_phase_op, op_tree, raw_types
+from cirq.ops import classically_controlled_operation, global_phase_op, op_tree, raw_types
 
 if TYPE_CHECKING:
     import cirq
@@ -317,6 +317,7 @@ class Gateset:
         *gates: type[raw_types.Gate] | raw_types.Gate | GateFamily,
         name: str | None = None,
         unroll_circuit_op: bool = True,
+        allow_classically_controlled_operations: bool = False,
     ) -> None:
         """Init Gateset.
 
@@ -336,6 +337,8 @@ class Gateset:
             name: (Optional) Name for the Gateset. Useful for description.
             unroll_circuit_op: If True, `cirq.CircuitOperation` is recursively
                 validated by validating the underlying `cirq.Circuit`.
+            allow_classically_controlled_operations: If True, the subgate gets checked
+                for containment.
         """
         self._name = name
         self._unroll_circuit_op = unroll_circuit_op
@@ -361,6 +364,7 @@ class Gateset:
                     self._gate_families_with_tags.insert(0, g)
         self._unique_gate_list = unique_gate_list
         self._gates = frozenset(unique_gate_list)
+        self._allow_classically_controlled_operations = allow_classically_controlled_operations
 
     @property
     def name(self) -> str | None:
@@ -424,8 +428,13 @@ class Gateset:
         Args:
             item: The `cirq.Gate` or `cirq.Operation` instance to check containment for.
         """
-        if isinstance(item, raw_types.Operation) and item.gate is None:
-            return self._validate_operation(item)
+        if isinstance(item, raw_types.Operation):
+            if self._allow_classically_controlled_operations and isinstance(
+                item.untagged, classically_controlled_operation.ClassicallyControlledOperation
+            ):
+                return item.untagged.without_classical_controls().with_tags(*item.tags) in self
+            if item.gate is None:
+                return self._validate_operation(item)
 
         g = item if isinstance(item, raw_types.Gate) else item.gate
         assert g is not None, f'`item`: {item} must be a gate or have a valid `item.gate`'
@@ -515,7 +524,8 @@ class Gateset:
             f'cirq.Gateset('
             f'{gates_str}'
             f'{name_str}'
-            f'unroll_circuit_op = {self._unroll_circuit_op})'
+            f'unroll_circuit_op = {self._unroll_circuit_op},'
+            f'allow_classically_controlled_operations = {self._allow_classically_controlled_operations})'
         )
 
     def __str__(self) -> str:
@@ -529,12 +539,19 @@ class Gateset:
             'gates': self._unique_gate_list,
             'name': self.name,
             'unroll_circuit_op': self._unroll_circuit_op,
+            'allow_classically_controlled_operations': self._allow_classically_controlled_operations,
         }
 
     @classmethod
     def _from_json_dict_(cls, gates, name, unroll_circuit_op, **kwargs) -> Gateset:
         # This parameter was deprecated in 0.16, but we keep this logic here for backwards
         # compatibility.
+        allow_classically_controlled_operations = False
+        if 'allow_classically_controlled_operations' in kwargs:
+            allow_classically_controlled_operations = kwargs[
+                'allow_classically_controlled_operations'
+            ]
+            del kwargs['allow_classically_controlled_operations']
         if 'accept_global_phase_op' in kwargs:
             accept_global_phase_op = kwargs['accept_global_phase_op']
             global_phase_family = GateFamily(gate=global_phase_op.GlobalPhaseGate)
@@ -544,4 +561,9 @@ class Gateset:
                 gates = [
                     family for family in gates if family.gate is not global_phase_op.GlobalPhaseGate
                 ]
-        return cls(*gates, name=name, unroll_circuit_op=unroll_circuit_op)
+        return cls(
+            *gates,
+            name=name,
+            unroll_circuit_op=unroll_circuit_op,
+            allow_classically_controlled_operations=allow_classically_controlled_operations,
+        )
