@@ -390,7 +390,6 @@ from cirq.transformers import (
     prepare_two_qubit_state_using_sqrt_iswap as prepare_two_qubit_state_using_sqrt_iswap,
     quantum_shannon_decomposition as quantum_shannon_decomposition,
     RouteCQC as RouteCQC,
-    RoutingConfig as RoutingConfig,
     remove_tags as remove_tags,
     routed_circuit_with_mapping as routed_circuit_with_mapping,
     SqrtIswapTargetGateset as SqrtIswapTargetGateset,

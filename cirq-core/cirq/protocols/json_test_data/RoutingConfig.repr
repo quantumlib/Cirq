@@ -1,1 +1,0 @@
-cirq.RoutingConfig(lookahead_radius=5, tag_inserted_swaps=True)

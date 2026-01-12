@@ -20,7 +20,6 @@ import networkx as nx
 import pytest
 
 import cirq
-from cirq.transformers.routing.route_circuit_cqc import RoutingConfig
 
 
 def test_directed_device() -> None:
@@ -31,7 +30,7 @@ def test_directed_device() -> None:
     router = cirq.RouteCQC(device_graph)
     # Test that we can route a simple circuit on a directed graph
     q = cirq.LineQubit.range(3)
-    circuit = cirq.Circuit([cirq.Moment(cirq.CNOT(q[0], q[1])), cirq.Moment(cirq.CNOT(q[1], q[2]))])
+    circuit = cirq.Circuit(cirq.CNOT(q[0], q[1]), cirq.CNOT(q[1], q[2]))
     hard_coded_mapper = cirq.HardCodedInitialMapper({q[i]: q[i] for i in range(3)})
     routed_circuit = router(circuit, initial_mapper=hard_coded_mapper)
     device.validate_circuit(routed_circuit)
@@ -39,30 +38,32 @@ def test_directed_device() -> None:
 
 def test_directed_device_swap_decomposition() -> None:
     """Tests that directed graphs use Hadamard decomposition for SWAPs on one-way edges."""
-    # 1. Create Directed Ring: 0 -> 1 -> 2 ...
-    device = cirq.testing.construct_ring_device(10, directed=True)
-    device_graph = device.metadata.nx_graph
+    # Create a simple directed graph: q0 -> q1 (one-way only)
+    device_graph = nx.DiGraph()
+    q = cirq.LineQubit.range(2)
+    device_graph.add_edge(q[0], q[1])
+
     router = cirq.RouteCQC(device_graph)
 
-    q = cirq.LineQubit.range(3)
+    # A circuit that requires a SWAP to execute (qubits need to be swapped)
+    circuit = cirq.Circuit(cirq.CNOT(q[1], q[0]))  # Reverse direction not available
 
-    # 2. Force routing with non-adjacent qubits
-    # In a ring: 0->1->2, so 0 and 2 are NOT adjacent
-    # This forces the router to insert SWAPs to bring them together
-    circuit = cirq.Circuit([cirq.Moment(cirq.CNOT(q[0], q[2]))])
+    hard_coded_mapper = cirq.HardCodedInitialMapper({q[0]: q[0], q[1]: q[1]})
+    routed_circuit = router(circuit, initial_mapper=hard_coded_mapper, tag_inserted_swaps=True)
 
-    hard_coded_mapper = cirq.HardCodedInitialMapper({q[i]: q[i] for i in range(3)})
-    routed_circuit = router(circuit, initial_mapper=hard_coded_mapper)
-
-    # 3. CRITICAL CHECK: Look for Hadamard gates
-    # If your logic works, the output MUST contain H gates to reverse the CNOT.
-    ops_list = list(routed_circuit.all_operations())
-    has_hadamards = any(op.gate == cirq.H for op in ops_list)
-
-    assert has_hadamards, "Router failed to use Hadamard decomposition for directed SWAP!"
-
-    # 4. Standard validation
-    device.validate_circuit(routed_circuit)
+    # Expected: Hadamard-based SWAP decomposition followed by CNOT
+    # SWAP decomposition for unidirectional edge: CNOT-H⊗H-CNOT-H⊗H-CNOT
+    expected = cirq.Circuit(
+        cirq.CNOT(q[0], q[1]).with_tags(cirq.RoutingSwapTag()),
+        cirq.H(q[0]).with_tags(cirq.RoutingSwapTag()),
+        cirq.H(q[1]).with_tags(cirq.RoutingSwapTag()),
+        cirq.CNOT(q[0], q[1]).with_tags(cirq.RoutingSwapTag()),
+        cirq.H(q[0]).with_tags(cirq.RoutingSwapTag()),
+        cirq.H(q[1]).with_tags(cirq.RoutingSwapTag()),
+        cirq.CNOT(q[0], q[1]).with_tags(cirq.RoutingSwapTag()),
+        cirq.CNOT(q[0], q[1]),  # The original CNOT after swap
+    )
+    cirq.testing.assert_same_circuits(routed_circuit, expected)
 
 
 @pytest.mark.parametrize(
@@ -82,9 +83,7 @@ def test_route_small_circuit_random(n_qubits, n_moments, op_density, seed) -> No
     device = cirq.testing.construct_grid_device(4, 4)
     device_graph = device.metadata.nx_graph
     router = cirq.RouteCQC(device_graph)
-    c_routed, imap, swap_map = router.route_circuit(
-        c_orig, config=RoutingConfig(tag_inserted_swaps=True)
-    )
+    c_routed, imap, swap_map = router.route_circuit(c_orig, tag_inserted_swaps=True)
     device.validate_circuit(c_routed)
     cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
         c_routed, c_orig.transform_qubits(imap), swap_map
@@ -121,7 +120,7 @@ def test_multi_qubit_gate_inputs() -> None:
     ):
         router(invalid_circuit, context=cirq.TransformerContext(deep=False))
 
-    invalid_circuit = cirq.Circuit([cirq.Moment(cirq.CCX(q[0], q[1], q[2]))])
+    invalid_circuit = cirq.Circuit(cirq.CCX(q[0], q[1], q[2]))
     with pytest.raises(
         ValueError, match="Input circuit must only have ops that act on 1 or 2 qubits."
     ):
@@ -148,12 +147,7 @@ def test_circuit_with_measurement_gates() -> None:
     device = cirq.testing.construct_ring_device(3)
     device_graph = device.metadata.nx_graph
     q = cirq.LineQubit.range(3)
-    circuit = cirq.Circuit(
-        [
-            cirq.Moment(cirq.MeasurementGate(2).on(q[0], q[2])),
-            cirq.Moment(cirq.MeasurementGate(3).on(*q)),
-        ]
-    )
+    circuit = cirq.Circuit(cirq.MeasurementGate(2).on(q[0], q[2]), cirq.MeasurementGate(3).on(*q))
     hard_coded_mapper = cirq.HardCodedInitialMapper({q[i]: q[i] for i in range(3)})
     router = cirq.RouteCQC(device_graph)
     routed_circuit = router(circuit, initial_mapper=hard_coded_mapper)
@@ -303,11 +297,11 @@ def test_directed_device_with_tag_inserted_swaps() -> None:
 
     q = cirq.LineQubit.range(3)
     # Force routing with non-adjacent qubits to trigger swaps
-    circuit = cirq.Circuit([cirq.Moment(cirq.CNOT(q[0], q[2]))])
+    circuit = cirq.Circuit(cirq.CNOT(q[0], q[2]))
 
     hard_coded_mapper = cirq.HardCodedInitialMapper({q[i]: q[i] for i in range(3)})
     routed_circuit, _, _ = router.route_circuit(
-        circuit, config=RoutingConfig(tag_inserted_swaps=True), initial_mapper=hard_coded_mapper
+        circuit, initial_mapper=hard_coded_mapper, tag_inserted_swaps=True
     )
 
     # Verify that operations with RoutingSwapTag exist
@@ -341,7 +335,7 @@ def test_directed_device_reverse_only_edge() -> None:
 
     # Create a circuit that requires a swap on the reverse-only edge
     # Map qubits so we need to swap on edge 3<-2
-    circuit = cirq.Circuit([cirq.Moment(cirq.CNOT(q[2], q[3]))])
+    circuit = cirq.Circuit(cirq.CNOT(q[2], q[3]))
 
     hard_coded_mapper = cirq.HardCodedInitialMapper({q[i]: q[i] for i in range(4)})
     routed_circuit, _, _ = router.route_circuit(circuit, initial_mapper=hard_coded_mapper)
@@ -370,11 +364,11 @@ def test_directed_device_with_tag_inserted_swaps_reverse_only() -> None:
     router = cirq.RouteCQC(device_graph)
 
     # Create a circuit requiring swap on reverse-only edge
-    circuit = cirq.Circuit([cirq.Moment(cirq.CNOT(q[2], q[3]))])
+    circuit = cirq.Circuit(cirq.CNOT(q[2], q[3]))
 
     hard_coded_mapper = cirq.HardCodedInitialMapper({q[i]: q[i] for i in range(4)})
     routed_circuit, _, _ = router.route_circuit(
-        circuit, config=RoutingConfig(tag_inserted_swaps=True), initial_mapper=hard_coded_mapper
+        circuit, initial_mapper=hard_coded_mapper, tag_inserted_swaps=True
     )
 
     # Verify that operations with RoutingSwapTag exist
@@ -393,11 +387,11 @@ def test_directed_device_with_tag_inserted_swaps_reverse_only() -> None:
 
 
 def test_emit_swap_reverse_only_edge_with_tags() -> None:
-    """Direct unit test of emit_swap for unidirectional (reverse-only) edges.
+    """Direct unit test of _emit_swap to cover lines 364-393 (Case C).
 
-    This test directly calls emit_swap with (q0, q1) arguments where only
+    This test directly calls _emit_swap with (q0, q1) arguments where only
     the reverse edge (q1, q0) exists in the directed graph, triggering the
-    unidirectional code path with tag_inserted_swaps=True.
+    Case C code path with tag_inserted_swaps=True.
     """
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQubit(1)
@@ -408,7 +402,7 @@ def test_emit_swap_reverse_only_edge_with_tags() -> None:
 
     circuit_ops: list[cirq.Operation] = []
 
-    # Call emit_swap with (q0, q1) - triggers unidirectional path
+    # Call _emit_swap with (q0, q1) - this should trigger Case C (lines 364-393)
     # because has_edge(q1, q0) is True but has_edge(q0, q1) is False
     cirq.RouteCQC.emit_swap(circuit_ops, (q0, q1), g, tag_inserted_swaps=True)
 
@@ -432,8 +426,8 @@ def test_emit_swap_reverse_only_edge_with_tags() -> None:
 
 
 def test_no_edge_between_qubits_raises_error() -> None:
-    """Tests that emit_swap raises ValueError when qubits have no connecting edge."""
-    # Test the emit_swap method directly since the router has other checks
+    """Tests that _emit_swap raises ValueError when qubits have no connecting edge."""
+    # Test the _emit_swap method directly since the router has other checks
     # that prevent getting to this error in normal routing
     device_graph = nx.Graph()
     q = cirq.LineQubit.range(3)
