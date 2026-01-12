@@ -71,7 +71,6 @@ def test_insertion_sort_distinct_measurement_keys() -> None:
 
 
 def test_insertion_sort_shared_control_key() -> None:
-
     q0, q1 = cirq.LineQubit.range(2)
     c = cirq.Circuit(
         cirq.X(q1).with_classical_controls('k'), cirq.X(q0).with_classical_controls('k')
