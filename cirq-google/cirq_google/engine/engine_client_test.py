@@ -185,9 +185,11 @@ def test_list_program(client_constructor, default_engine_client):
         ),
         ('labels.color:red AND labels.shape:*', None, None, {'color': 'red', 'shape': '*'}),
         (
-            'create_time >= 2020-08-01 AND '
-            'create_time <= 1598918400 AND '
-            'labels.color:red AND labels.shape:*',
+            (
+                'create_time >= 2020-08-01 AND '
+                'create_time <= 1598918400 AND '
+                'labels.color:red AND labels.shape:*'
+            ),
             datetime.date(2020, 8, 1),
             datetime.datetime(2020, 9, 1, tzinfo=datetime.timezone.utc),
             {'color': 'red', 'shape': '*'},
@@ -1312,10 +1314,12 @@ def test_list_jobs(client_constructor, default_engine_client):
             None,
         ),
         (
-            'create_time >= 2020-08-01 AND '
-            'create_time <= 1598918400 AND '
-            'labels.color:red AND labels.shape:* AND '
-            '(execution_status.state = SUCCESS)',
+            (
+                'create_time >= 2020-08-01 AND '
+                'create_time <= 1598918400 AND '
+                'labels.color:red AND labels.shape:* AND '
+                '(execution_status.state = SUCCESS)'
+            ),
             datetime.date(2020, 8, 1),
             datetime.datetime(2020, 9, 1, tzinfo=datetime.timezone.utc),
             {'color': 'red', 'shape': '*'},
@@ -1871,3 +1875,66 @@ def test_get_quantum_processor_config_not_found(client_constructor, default_engi
         quantum.GetQuantumProcessorConfigRequest(name=resource_name)
     )
     assert actual_result is None
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_list_quantum_processor_configs_from_run_name(client_constructor, default_engine_client):
+    grpc_client = _setup_client_mock(client_constructor)
+
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    run = Run(id="test_run_name")
+    resource_name = f'projects/{project_id}/processors/{processor_id}/configAutomationRuns/{run.id}'
+
+    expected_results = [
+        quantum.QuantumProcessorConfig(
+            name=f'projects/{project_id}/processors/{processor_id}/configSnapshots/test_snapshot/configs/test_config_1'
+        ),
+        quantum.QuantumProcessorConfig(
+            name=f'projects/{project_id}/processors/{processor_id}/configSnapshots/test_snapshot/configs/test_config_2'
+        ),
+    ]
+    grpc_client.list_quantum_processor_configs.return_value = Pager(expected_results)
+
+    assert (
+        default_engine_client.list_quantum_processor_configs(
+            project_id=project_id, processor_id=processor_id, device_config_revision=run
+        )
+        == expected_results
+    )
+    grpc_client.list_quantum_processor_configs.assert_called_with(
+        quantum.ListQuantumProcessorConfigsRequest(parent=resource_name)
+    )
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_list_quantum_processor_configs_from_snapshot(client_constructor, default_engine_client):
+    grpc_client = _setup_client_mock(client_constructor)
+
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    snapshot = Snapshot(id="test_snapshot_id")
+    snapshot_resource_name = (
+        f'projects/{project_id}/processors/{processor_id}/configSnapshots/{snapshot.id}'
+    )
+
+    expected_results = [
+        quantum.QuantumProcessorConfig(
+            name=f'projects/{project_id}/processors/{processor_id}/configSnapshots/test_snapshot/configs/test_config_1'
+        ),
+        quantum.QuantumProcessorConfig(
+            name=f'projects/{project_id}/processors/{processor_id}/configSnapshots/test_snapshot/configs/test_config_2'
+        ),
+    ]
+
+    grpc_client.list_quantum_processor_configs.return_value = Pager(expected_results)
+
+    assert (
+        default_engine_client.list_quantum_processor_configs(
+            project_id=project_id, processor_id=processor_id, device_config_revision=snapshot
+        )
+        == expected_results
+    )
+    grpc_client.list_quantum_processor_configs.assert_called_with(
+        quantum.ListQuantumProcessorConfigsRequest(parent=snapshot_resource_name)
+    )
