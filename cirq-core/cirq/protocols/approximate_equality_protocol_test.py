@@ -176,6 +176,7 @@ def test_approx_eq_set() -> None:
 
     # here sij, sji are equal, but have a different order
     assert cirq.approx_eq(sij, sji)
+    assert cirq.approx_eq(sji, sij)
     assert cirq.approx_eq(sij, frozenset(sji))
     assert cirq.approx_eq(frozenset(sij), frozenset(sji))
 
