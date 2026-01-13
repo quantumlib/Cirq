@@ -96,6 +96,9 @@ def drop_diagonal_before_measurement(
     if context is None:
         context = transformer_api.TransformerContext()
 
+    # Extract tags_to_ignore for efficient lookup
+    tags_to_ignore = set(context.tags_to_ignore)
+
     # Phase 1: Push Z gates later in the circuit to maximize removal opportunities.
     circuit = transformers.eject_z(circuit, context=context)
 
@@ -110,6 +113,28 @@ def drop_diagonal_before_measurement(
         new_ops = []
 
         for op in moment:
+            # Check if this operation should be ignored (has a tag in tags_to_ignore)
+            if tags_to_ignore.intersection(op.tags):
+                # Preserve the operation unchanged and break the optimization chain
+                new_ops.append(op)
+                measured_qubits.difference_update(op.qubits)
+                continue
+
+            # Handle deep: recursively process sub-circuits in CircuitOperation
+            if context.deep and isinstance(op.untagged, circuits.CircuitOperation):
+                op_untagged = op.untagged
+                transformed_circuit = drop_diagonal_before_measurement(
+                    op_untagged.circuit, context=context
+                )
+                # CircuitOperation requires FrozenCircuit, so freeze the result
+                transformed_op = op_untagged.replace(
+                    circuit=transformed_circuit.freeze()
+                ).with_tags(*op.tags)
+                new_ops.append(transformed_op)
+                # CircuitOperation is treated as a non-diagonal gate, breaking the chain
+                measured_qubits.difference_update(op.qubits)
+                continue
+
             # If this is a measurement, mark these qubits as measured
             if protocols.is_measurement(op):
                 measured_qubits.update(op.qubits)
