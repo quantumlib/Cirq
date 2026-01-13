@@ -108,6 +108,7 @@ class GateFamily:
         ignore_global_phase: bool = True,
         tags_to_accept: Iterable[Hashable] = (),
         tags_to_ignore: Iterable[Hashable] = (),
+        allow_classically_controlled_operations: bool = False,
     ) -> None:
         """Init GateFamily.
 
@@ -123,7 +124,8 @@ class GateFamily:
             tags_to_ignore: Any `cirq.Operation` containing at least one tag in this sequence is
                 rejected. Note that this takes precedence over `tags_to_accept`, so an operation
                 which contains tags from both `tags_to_accept` and `tags_to_ignore` is rejected.
-
+            allow_classically_controlled_operations: If True, check the suboperation of classically
+                controlled operations.
         Raises:
             ValueError: if `gate` is not a `cirq.Gate` instance or subclass.
             ValueError: if `gate` is a parameterized instance of `cirq.Gate`.
@@ -145,6 +147,7 @@ class GateFamily:
         self._name = name if name else self._default_name()
         self._description = description if description else self._default_description()
         self._ignore_global_phase = ignore_global_phase
+        self._allow_classically_controlled_operations = allow_classically_controlled_operations
 
         common_tags = self._tags_to_accept & self._tags_to_ignore
         if common_tags:
@@ -217,6 +220,14 @@ class GateFamily:
         return isinstance(gate, self.gate)  # type: ignore
 
     def __contains__(self, item: raw_types.Gate | raw_types.Operation) -> bool:
+        if (
+            self._allow_classically_controlled_operations
+            and isinstance(item, raw_types.Operation)
+            and isinstance(
+                item.untagged, classically_controlled_operation.ClassicallyControlledOperation
+            )
+        ):
+            return item.untagged.without_classical_controls().with_tags(*item.tags) in self
         if self._should_check_tags:
             if self._tags_to_accept and (
                 not isinstance(item, raw_types.Operation)
@@ -247,7 +258,8 @@ class GateFamily:
             f'{name_and_description}'
             f'ignore_global_phase={self._ignore_global_phase}, '
             f'tags_to_accept={self._tags_to_accept}, '
-            f'tags_to_ignore={self._tags_to_ignore})'
+            f'tags_to_ignore={self._tags_to_ignore},'
+            f'allow_classically_controlled_operations={self._allow_classically_controlled_operations})'
         )
 
     def _value_equality_values_(self) -> Any:
@@ -261,6 +273,7 @@ class GateFamily:
             self._ignore_global_phase,
             self._tags_to_accept,
             self._tags_to_ignore,
+            self._allow_classically_controlled_operations,
         )
 
     def _json_dict_(self) -> dict[str, Any]:
@@ -269,6 +282,7 @@ class GateFamily:
             'name': self.name,
             'description': self.description,
             'ignore_global_phase': self._ignore_global_phase,
+            'allow_classically_controlled_operations': self._allow_classically_controlled_operations,
         }
         if self._tags_to_accept:
             d['tags_to_accept'] = list(self._tags_to_accept)
@@ -287,6 +301,12 @@ class GateFamily:
         tags_to_ignore=(),
         **kwargs,
     ) -> GateFamily:
+        allow_classically_controlled_operations = False
+        if 'allow_classically_controlled_operations' in kwargs:
+            allow_classically_controlled_operations = kwargs[
+                'allow_classically_controlled_operations'
+            ]
+            del kwargs['allow_classically_controlled_operations']
         if isinstance(gate, str):
             gate = protocols.cirq_type_from_json(gate)
         return cls(
@@ -296,6 +316,7 @@ class GateFamily:
             ignore_global_phase=ignore_global_phase,
             tags_to_accept=tags_to_accept,
             tags_to_ignore=tags_to_ignore,
+            allow_classically_controlled_operations=allow_classically_controlled_operations,
         )
 
 
@@ -375,7 +396,11 @@ class Gateset:
         return self._gates
 
     def with_params(
-        self, *, name: str | None = None, unroll_circuit_op: bool | None = None
+        self,
+        *,
+        name: str | None = None,
+        unroll_circuit_op: bool | None = None,
+        allow_classically_controlled_operations: bool = False,
     ) -> Gateset:
         """Returns a copy of this Gateset with identical gates and new values for named arguments.
 
@@ -385,6 +410,7 @@ class Gateset:
             name: New name for the Gateset.
             unroll_circuit_op: If True, new Gateset will recursively validate
                 `cirq.CircuitOperation` by validating the underlying `cirq.Circuit`.
+            allow_classically_controlled_operations: Wheter to check the suboperation or not.
 
         Returns:
             `self` if all new values are None or identical to the values of current Gateset.
@@ -399,7 +425,12 @@ class Gateset:
         if name == self._name and unroll_circuit_op == self._unroll_circuit_op:
             return self
         gates = self.gates
-        return Gateset(*gates, name=name, unroll_circuit_op=cast(bool, unroll_circuit_op))
+        return Gateset(
+            *gates,
+            name=name,
+            unroll_circuit_op=cast(bool, unroll_circuit_op),
+            allow_classically_controlled_operations=allow_classically_controlled_operations,
+        )
 
     def __contains__(self, item: raw_types.Gate | raw_types.Operation) -> bool:
         r"""Check for containment of a given Gate/Operation in this Gateset.
@@ -515,7 +546,12 @@ class Gateset:
             return False
 
     def _value_equality_values_(self) -> Any:
-        return (self.gates, self.name, self._unroll_circuit_op)
+        return (
+            self.gates,
+            self.name,
+            self._unroll_circuit_op,
+            self._allow_classically_controlled_operations,
+        )
 
     def __repr__(self) -> str:
         name_str = f'name = "{self.name}", ' if self.name is not None else ''

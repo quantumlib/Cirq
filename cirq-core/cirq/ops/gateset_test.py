@@ -481,3 +481,12 @@ def test_gateset_contains_classically_controlled_op():
     cop = op.with_classical_controls('c')
     assert cop not in cirq.Gateset(cirq.PhasedXZGate, allow_classically_controlled_operations=False)
     assert cop in cirq.Gateset(cirq.PhasedXZGate, allow_classically_controlled_operations=True)
+
+
+def test_gatefamily_contains_classically_controlled_op():
+    op = cirq.PhasedXZGate(x_exponent=0.3, z_exponent=0.423, axis_phase_exponent=0.324)(cirq.q(0))
+    cop = op.with_classical_controls('c')
+    assert cop not in cirq.GateFamily(
+        cirq.PhasedXZGate, allow_classically_controlled_operations=False
+    )
+    assert cop in cirq.GateFamily(cirq.PhasedXZGate, allow_classically_controlled_operations=True)
