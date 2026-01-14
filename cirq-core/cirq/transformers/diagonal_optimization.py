@@ -35,7 +35,7 @@ def _is_z_or_cz_pow_gate(op: cirq.Operation) -> bool:
     return isinstance(op.gate, (ops.ZPowGate, ops.CZPowGate, ops.IdentityGate))
 
 
-@transformer_api.transformer
+@transformer_api.transformer(add_deep_support=True)
 def drop_diagonal_before_measurement(
     circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
 ) -> cirq.Circuit:
@@ -96,6 +96,9 @@ def drop_diagonal_before_measurement(
     if context is None:
         context = transformer_api.TransformerContext()
 
+    # Extract tags_to_ignore for efficient lookup (frozenset for immutability)
+    tags_to_ignore = frozenset(context.tags_to_ignore)
+
     # Phase 1: Push Z gates later in the circuit to maximize removal opportunities.
     circuit = transformers.eject_z(circuit, context=context)
 
@@ -116,12 +119,13 @@ def drop_diagonal_before_measurement(
                 new_ops.append(op)
             # If this is a diagonal gate and ALL of its qubits will be measured, remove it
             # (diagonal gates only affect phase, which doesn't impact computational basis
-            # measurements)
+            # measurements). Skip removal if operation has tags_to_ignore.
             elif _is_z_or_cz_pow_gate(op):
-                # CRITICAL: we can only remove if all qubits involved are measured.
+                # CRITICAL: we can only remove if all qubits involved are measured
+                # AND the operation is not tagged to be ignored.
                 # if even one qubit is NOT measured, the gate must stay to preserve
                 # the state of that unmeasured qubit (due to phase kickback/entanglement).
-                if measured_qubits.issuperset(op.qubits):
+                if tags_to_ignore.isdisjoint(op.tags) and measured_qubits.issuperset(op.qubits):
                     continue  # Drop the operation
 
                 new_ops.append(op)
