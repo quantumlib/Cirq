@@ -22,9 +22,8 @@ from __future__ import annotations
 
 import abc
 import datetime
+from cirq_google.engine.duet_sync_wrapper import duet_sync
 from typing import TYPE_CHECKING
-
-import duet
 
 import cirq
 
@@ -121,7 +120,7 @@ class AbstractProcessor(abc.ABC):
         )
         return job.results()[0]
 
-    run = duet.sync(run_async)
+    run = duet_sync(run_async)
 
     @abc.abstractmethod
     async def run_sweep_async(
@@ -177,7 +176,7 @@ class AbstractProcessor(abc.ABC):
             `cirq.Result`, one for each parameter sweep.
         """
 
-    run_sweep = duet.sync(run_sweep_async)
+    run_sweep = duet_sync(run_sweep_async)
 
     @abc.abstractmethod
     def get_sampler(self) -> cg.ProcessorSampler:

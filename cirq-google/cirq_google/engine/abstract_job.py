@@ -17,10 +17,9 @@
 from __future__ import annotations
 
 import abc
+from cirq_google.engine.duet_sync_wrapper import duet_sync
 from collections.abc import Iterator, Sequence
 from typing import overload, TYPE_CHECKING
-
-import duet
 
 if TYPE_CHECKING:
     import datetime
@@ -170,7 +169,7 @@ class AbstractJob(abc.ABC):
     async def results_async(self) -> Sequence[EngineResult]:
         """Returns the job results, blocking until the job is complete."""
 
-    results = duet.sync(results_async)
+    results = duet_sync(results_async)
 
     def __iter__(self) -> Iterator[cirq.Result]:
         yield from self.results()

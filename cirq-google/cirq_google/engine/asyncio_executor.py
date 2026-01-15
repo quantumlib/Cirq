@@ -15,9 +15,11 @@
 from __future__ import annotations
 
 import asyncio
+import contextvars
 import errno
 import threading
 from collections.abc import Awaitable, Callable
+from contextlib import contextmanager
 from typing import ParamSpec, TYPE_CHECKING, TypeVar
 
 import duet
@@ -29,11 +31,33 @@ R = TypeVar('R')
 P = ParamSpec("P")
 
 
-class AsyncioExecutor:
-    """Runs asyncio coroutines in a thread, exposes the results as duet futures.
+class AsyncioPreferredExecutor:
+    """A view of the AsyncioExecutor that defaults to asyncio futures instead of duet futures."""
 
-    This lets us bridge between an asyncio event loop (which is what async grpc
-    code uses) and duet (which is what cirq uses for asynchrony).
+    def __init__(self, executor: AsyncioExecutor):
+        self._executor = executor
+
+    def submit(self, *args, **kwargs):
+        current_override = self._executor._override_ctx.get()
+
+        if current_override is None:
+            with self._executor.asyncio_futures():
+                return self._executor.submit(*args, **kwargs)
+        else:
+            return self._executor.submit(*args, **kwargs)
+
+    def __getattr__(self, name):
+        return getattr(self._executor, name)
+
+
+class AsyncioExecutor:
+    """Runs asyncio coroutines in a thread, exposes the results as either duet or asyncio futures.
+
+    When using duet futures (the default), this lets us bridge between an asyncio event loop (which
+    is what async grpc code uses) and duet (which is what cirq uses for asynchrony).
+
+    When using asyncio futures, this lets us make calls using a consistent gRPC channel and event
+    loop to prevent awaiting futures bound to the wrong loop.
     """
 
     def __init__(self) -> None:
@@ -41,6 +65,26 @@ class AsyncioExecutor:
         thread = threading.Thread(target=asyncio.run, args=(self._main(loop_future),), daemon=True)
         thread.start()
         self.loop = loop_future.result()
+        # None (default = False) | True (Duet futures) | False (asyncio futures)
+        self._override_ctx: contextvars.ContextVar[bool | None] = contextvars.ContextVar(
+            'use_duet_futures_override', default=None
+        )
+
+    @contextmanager
+    def asyncio_futures(self):
+        token = self._override_ctx.set(False)
+        try:
+            yield
+        finally:
+            self._override_ctx.reset(token)
+
+    @contextmanager
+    def duet_futures(self):
+        token = self._override_ctx.set(True)
+        try:
+            yield
+        finally:
+            self._override_ctx.reset(token)
 
     @staticmethod
     async def _main(loop_future: duet.AwaitableFuture) -> None:
@@ -59,7 +103,7 @@ class AsyncioExecutor:
 
     def submit(
         self, func: Callable[P, Awaitable[R]], *args: P.args, **kwargs: P.kwargs
-    ) -> duet.AwaitableFuture[R]:
+    ) -> Awaitable[R]:
         """Dispatch the given function to be run in an asyncio coroutine.
 
         Args:
@@ -72,7 +116,10 @@ class AsyncioExecutor:
         future: concurrent.futures.Future = asyncio.run_coroutine_threadsafe(
             func(*args, **kwargs), self.loop  # type: ignore[arg-type]
         )
-        return duet.AwaitableFuture.wrap(future)
+        if self._override_ctx.get() is not False:
+            return duet.AwaitableFuture.wrap(future)
+        else:
+            return asyncio.wrap_future(future)
 
     _instance: AsyncioExecutor | None = None
 

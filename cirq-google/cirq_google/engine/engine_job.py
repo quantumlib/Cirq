@@ -26,6 +26,7 @@ import cirq
 from cirq_google.api import v1, v2
 from cirq_google.cloud import quantum
 from cirq_google.engine import abstract_job, calibration, engine_client
+from cirq_google.engine.duet_sync_wrapper import duet_sync
 from cirq_google.engine.engine_result import EngineResult
 
 if TYPE_CHECKING:
@@ -115,7 +116,7 @@ class EngineJob(abstract_job.AbstractJob):
             self.project_id, self.program_id, self.job_id, return_run_context
         )
 
-    _get_job = duet.sync(_get_job_async)
+    _get_job = duet_sync(_get_job_async)
 
     def _inner_job(self) -> quantum.QuantumJob:
         if self._job is None:
@@ -127,7 +128,7 @@ class EngineJob(abstract_job.AbstractJob):
             self._job = await self._get_job_async()
         return self._job
 
-    _refresh_job = duet.sync(_refresh_job_async)
+    _refresh_job = duet_sync(_refresh_job_async)
 
     def create_time(self) -> datetime.datetime:
         """Returns when the job was created."""
