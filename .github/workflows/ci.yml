@@ -216,13 +216,7 @@ jobs:
           pip install --upgrade setuptools wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Pytest check
-        run: check/pytest -n logical --durations=20 --junit-xml=pytest-ubuntu-report.xml
-      - name: Persist the test report
-        if: github.event_name == 'merge_group' && matrix.python-version == '3.11'
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        with:
-          name: pytest-ubuntu-report
-          path: pytest-ubuntu-report.xml
+        run: check/pytest -n logical --durations=20
   pip-compile:
     if: github.repository_owner == 'quantumlib'
     name: Check consistency of requirements
