@@ -198,9 +198,7 @@ class CircuitOperation(ops.Operation):
         if mapped_repeat_until:
             if self._use_repetition_ids or self._repetitions != 1:
                 raise ValueError('Cannot use repetitions with repeat_until')
-            if protocols.measurement_key_objs(self._mapped_single_loop()).isdisjoint(
-                mapped_repeat_until.keys
-            ):
+            if self._mapped_single_loop().measurement_keys.isdisjoint(mapped_repeat_until.keys):
                 raise ValueError('Infinite loop: condition is not modified in subcircuit.')
 
     @property
@@ -310,8 +308,8 @@ class CircuitOperation(ops.Operation):
             raise ValueError('Cannot unroll circuit due to nondeterministic repetitions')
 
     @cached_property
-    def _measurement_key_objs(self) -> frozenset[cirq.MeasurementKey]:
-        circuit_keys = protocols.measurement_key_objs(self.circuit)
+    def measurement_keys(self) -> frozenset[cirq.MeasurementKey]:
+        circuit_keys = self.circuit.measurement_keys
         if circuit_keys and self.use_repetition_ids:
             self._ensure_deterministic_loop_count()
             if self.repetition_ids is not None:
@@ -328,26 +326,17 @@ class CircuitOperation(ops.Operation):
             for key in circuit_keys
         )
 
-    def _measurement_key_objs_(self) -> frozenset[cirq.MeasurementKey]:
-        return self._measurement_key_objs
-
-    def _measurement_key_names_(self) -> frozenset[str]:
-        return frozenset(str(key) for key in self._measurement_key_objs_())
-
     @cached_property
-    def _control_keys(self) -> frozenset[cirq.MeasurementKey]:
+    def control_keys(self) -> frozenset[cirq.MeasurementKey]:
         keys = (
             frozenset()
-            if not protocols.control_keys(self.circuit)
-            else protocols.control_keys(self._mapped_single_loop())
+            if not self.circuit.control_keys
+            else self._mapped_single_loop().control_keys
         )
         mapped_repeat_until = self._mapped_repeat_until
         if mapped_repeat_until is not None:
-            keys |= frozenset(mapped_repeat_until.keys) - self._measurement_key_objs_()
+            keys |= frozenset(mapped_repeat_until.keys) - self.measurement_keys
         return keys
-
-    def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
-        return self._control_keys
 
     def _is_parameterized_(self) -> bool:
         return any(self._parameter_names_generator())
@@ -396,9 +385,7 @@ class CircuitOperation(ops.Operation):
                 repeat_until, self.param_resolver, recursive=False
             )
         return protocols.with_rescoped_keys(
-            repeat_until,
-            self.parent_path,
-            bindable_keys=self._extern_keys | self._measurement_key_objs,
+            repeat_until, self.parent_path, bindable_keys=self._extern_keys | self.measurement_keys
         )
 
     def mapped_circuit(self, deep: bool = False) -> cirq.Circuit:
