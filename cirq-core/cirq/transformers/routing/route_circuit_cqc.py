@@ -100,15 +100,12 @@ class RouteCQC:
 
         Args:
             device_graph: The connectivity graph of physical qubits.
-
-        Raises:
-            ValueError: if `device_graph` is a directed graph.
+                Can be directed or undirected.
         """
 
-        if nx.is_directed(device_graph):
-            raise ValueError("Device graph must be undirected.")
         self.device_graph = device_graph
 
+    # pylint: disable=too-many-arguments
     def __call__(
         self,
         circuit: cirq.AbstractCircuit,
@@ -151,6 +148,7 @@ class RouteCQC:
         )
         return routed_circuit
 
+    # pylint: disable=too-many-arguments
     def route_circuit(
         self,
         circuit: cirq.AbstractCircuit,
@@ -228,6 +226,7 @@ class RouteCQC:
             two_qubit_ops,
             single_qubit_ops,
             lookahead_radius,
+            self.device_graph,
             tag_inserted_swaps=tag_inserted_swaps,
         )
 
@@ -271,12 +270,12 @@ class RouteCQC:
                     default_key = ops.measure(op.qubits).gate.key  # type: ignore
                     if len(circuit.moments) == i + 1:
                         single_qubit_ops[timestep].append(op)
-                    elif key in ('', default_key):
+                    elif key in ("", default_key):
                         single_qubit_ops[timestep].extend(ops.measure(qubit) for qubit in op.qubits)
                     else:
                         raise ValueError(
-                            'Intermediate measurements on three or more qubits '
-                            'with a custom key are not supported'
+                            "Intermediate measurements on three or more qubits "
+                            "with a custom key are not supported"
                         )
                 elif protocols.num_qubits(op) == 2:
                     two_qubit_circuit[timestep] = two_qubit_circuit[timestep].with_operation(op)
@@ -286,12 +285,60 @@ class RouteCQC:
         return two_qubit_ops, single_qubit_ops
 
     @classmethod
+    def emit_swap(
+        cls,
+        circuit_ops: list[cirq.Operation],
+        qubit_pair: tuple[cirq.Qid, cirq.Qid],
+        device_graph: nx.Graph,
+        tag_inserted_swaps: bool = False,
+    ) -> None:
+        """Inserts a SWAP (or directed decomposition) between two qubits.
+
+        For bidirectional edges, uses standard SWAP.
+        For unidirectional edges, uses Hadamard-based decomposition.
+
+        Args:
+            circuit_ops: List of operations to append the swap to.
+            qubit_pair: Tuple of (q1, q2) - the two qubits to swap.
+            device_graph: The device connectivity graph.
+            tag_inserted_swaps: Whether to tag inserted swaps with RoutingSwapTag.
+        """
+        q1, q2 = qubit_pair
+
+        def tag(op: cirq.Operation) -> cirq.Operation:
+            """Conditionally tag an operation with RoutingSwapTag."""
+            return op.with_tags(ops.RoutingSwapTag()) if tag_inserted_swaps else op
+
+        has_forward = device_graph.has_edge(q1, q2)
+        has_reverse = device_graph.has_edge(q2, q1)
+
+        if has_forward and has_reverse:
+            # Bidirectional: use standard SWAP (decomposes to 3 CNOTs automatically)
+            circuit_ops.append(tag(ops.SWAP(q1, q2)))
+
+        elif has_forward or has_reverse:
+            # Unidirectional: decompose SWAP using Hadamard trick
+            # SWAP = CNOT(ctrl,tgt) - H⊗H - CNOT(ctrl,tgt) - H⊗H - CNOT(ctrl,tgt)
+            ctrl, tgt = (q1, q2) if has_forward else (q2, q1)
+
+            circuit_ops.append(tag(ops.CNOT(ctrl, tgt)))
+            circuit_ops.extend([tag(ops.H(ctrl)), tag(ops.H(tgt))])
+            circuit_ops.append(tag(ops.CNOT(ctrl, tgt)))
+            circuit_ops.extend([tag(ops.H(ctrl)), tag(ops.H(tgt))])
+            circuit_ops.append(tag(ops.CNOT(ctrl, tgt)))
+
+        else:
+            raise ValueError(f"No edge between {q1} and {q2} in device graph.")
+
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
+    @classmethod
     def _route(
         cls,
         mm: mapping_manager.MappingManager,
         two_qubit_ops: list[list[cirq.Operation]],
         single_qubit_ops: list[list[cirq.Operation]],
         lookahead_radius: int,
+        device_graph: nx.Graph,
         tag_inserted_swaps: bool = False,
     ) -> list[list[cirq.Operation]]:
         """Main routing procedure that inserts necessary swaps on the given timesteps.
@@ -334,8 +381,6 @@ class RouteCQC:
             two_qubit_ops_ints[timestep] = unexecutable_ops_ints
             return len(unexecutable_ops)
 
-        strats = [cls._choose_single_swap, cls._choose_pair_of_swaps]
-
         for timestep in range(len(two_qubit_ops)):
             # Add single-qubit ops with qubits given by the current mapping.
             routed_ops.append([mm.mapped_op(op) for op in single_qubit_ops[timestep]])
@@ -346,7 +391,7 @@ class RouteCQC:
 
             while process_executable_two_qubit_ops(timestep):
                 chosen_swaps: tuple[QidIntPair, ...] | None = None
-                for strat in strats:
+                for strat in [cls._choose_single_swap, cls._choose_pair_of_swaps]:
                     chosen_swaps = strat(mm, two_qubit_ops_ints, timestep, lookahead_radius)
                     if chosen_swaps is not None:
                         break
@@ -357,12 +402,16 @@ class RouteCQC:
                     seen.add(chosen_swaps)
 
                 for swap in chosen_swaps:
-                    inserted_swap = mm.mapped_op(
-                        ops.SWAP(mm.int_to_logical_qid[swap[0]], mm.int_to_logical_qid[swap[1]])
+                    # Use the new emit_swap method to handle directed edges
+                    cls.emit_swap(
+                        routed_ops[timestep],
+                        (
+                            mm.int_to_physical_qid[mm.logical_to_physical[swap[0]]],
+                            mm.int_to_physical_qid[mm.logical_to_physical[swap[1]]],
+                        ),
+                        device_graph,
+                        tag_inserted_swaps=tag_inserted_swaps,
                     )
-                    if tag_inserted_swaps:
-                        inserted_swap = inserted_swap.with_tags(ops.RoutingSwapTag())
-                    routed_ops[timestep].append(inserted_swap)
                     mm.apply_swap(*swap)
 
         return routed_ops
@@ -382,7 +431,7 @@ class RouteCQC:
         """
         furthest_op = max(two_qubit_ops_ints[timestep], key=lambda op: mm.dist_on_device(*op))
         path = mm.shortest_path(*furthest_op)
-        return tuple([(path[0], path[i + 1]) for i in range(len(path) - 2)])
+        return tuple((path[0], path[i + 1]) for i in range(len(path) - 2))
 
     @classmethod
     def _choose_pair_of_swaps(
@@ -414,6 +463,7 @@ class RouteCQC:
         ]
         return cls._choose_optimal_swap(mm, two_qubit_ops_ints, timestep, lookahead_radius, sigma)
 
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     @classmethod
     def _choose_optimal_swap(
         cls,
@@ -485,4 +535,4 @@ class RouteCQC:
         return nx.utils.graphs_equal(self.device_graph, other.device_graph)
 
     def __repr__(self) -> str:
-        return f'cirq.RouteCQC(nx.Graph({dict(self.device_graph.adjacency())}))'
+        return f"cirq.RouteCQC(nx.Graph({dict(self.device_graph.adjacency())}))"
