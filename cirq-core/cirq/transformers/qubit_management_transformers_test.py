@@ -1,16 +1,4 @@
-# Copyright 2023 The Cirq Developers
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+"""Tests for qubit management transformers."""
 
 from __future__ import annotations
 
@@ -20,11 +8,19 @@ import cirq
 
 
 class GateAllocInDecompose(cirq.Gate):
+    """A test gate that allocates one ancilla in its decomposition."""
+
     def __init__(self, num_alloc: int = 1):
         self.num_alloc = num_alloc
 
     def _num_qubits_(self) -> int:
         return 1
+
+    def num_qubits(self) -> int:
+        return 1
+
+    def _qid_shape_(self) -> tuple[int, ...]:
+        return (2,)
 
     def _decompose_with_context_(self, qubits, context):
         assert context is not None
@@ -38,11 +34,19 @@ class GateAllocInDecompose(cirq.Gate):
 
 
 class GateAllocAndBorrowInDecompose(cirq.Gate):
+    """A test gate that both allocates and borrows ancillas in its decomposition."""
+
     def __init__(self, num_alloc: int = 1):
         self.num_alloc = num_alloc
 
     def _num_qubits_(self) -> int:
         return 1
+
+    def num_qubits(self) -> int:
+        return 1
+
+    def _qid_shape_(self) -> tuple[int, ...]:
+        return (2,)
 
     def __str__(self) -> str:
         return 'TestGate'
@@ -62,6 +66,8 @@ class GateAllocAndBorrowInDecompose(cirq.Gate):
 def get_decompose_func(
     gate_type: type[cirq.Gate], qm: cirq.QubitManager
 ) -> Callable[[cirq.Operation, int], cirq.OP_TREE]:
+    """Returns a map_func that decomposes operations of the given gate_type using the qm."""
+
     def decompose_func(op: cirq.Operation, _: int) -> cirq.OP_TREE:
         return (
             cirq.decompose_once(op, context=cirq.DecompositionContext(qm))
@@ -73,6 +79,7 @@ def get_decompose_func(
 
 
 def test_map_clean_and_borrowable_qubits_greedy_types() -> None:
+    """Tests map_clean_and_borrowable_qubits with different GreedyQubitManager configs."""
     qm = cirq.ops.SimpleQubitManager()
     q = cirq.LineQubit.range(2)
     g = GateAllocInDecompose(1)
@@ -137,6 +144,7 @@ ancilla_1: ───X───X───
 
 
 def test_map_clean_and_borrowable_qubits_borrows() -> None:
+    """Tests that map_clean_and_borrowable_qubits correctly reuses borrowed qubits."""
     qm = cirq.ops.SimpleQubitManager()
     op = GateAllocAndBorrowInDecompose(3).on(cirq.NamedQubit("original"))
     extra = cirq.LineQubit.range(3)
@@ -240,6 +248,7 @@ original: ────@───@───@───@─────@───@�
 
 
 def test_map_clean_and_borrowable_qubits_deallocates_only_once() -> None:
+    """Tests that CleanQubit/BorrowableQubit deallocation happens only once."""
     q = [cirq.ops.BorrowableQubit(i) for i in range(2)] + [cirq.q('q')]
     circuit = cirq.Circuit(cirq.X.on_each(*q), cirq.Y(q[1]), cirq.Z(q[1]))
     greedy_mm = cirq.GreedyQubitManager(prefix="a", size=2)
@@ -253,4 +262,62 @@ a_1: ───X───Y───Z───
 
 q: ─────X───────────
 ''',
+    )
+
+
+def test_map_clean_and_borrowable_qubits_nested_circuit_op() -> None:
+    """Test that CleanQubits inside CircuitOperations are correctly replaced."""
+    # Create a sub-circuit with a CleanQubit placeholder
+    clean_qubit = cirq.ops.CleanQubit(0)
+    sub_circuit = cirq.Circuit(cirq.X(clean_qubit))
+
+    # Wrap in a CircuitOperation
+    main_circuit = cirq.Circuit(cirq.CircuitOperation(sub_circuit.freeze()))
+
+    # Apply the transformer
+    result = cirq.map_clean_and_borrowable_qubits(main_circuit)
+
+    # Verify using diagram
+    cirq.testing.assert_has_diagram(
+        result,
+        """
+ancilla_0: ───[ ancilla_0: ───X─── ]───
+""",
+    )
+
+
+def test_map_clean_and_borrowable_qubits_deeply_nested() -> None:
+    """Test recursive mapping with multiple levels of nesting.
+
+    Note on allocation order:
+    1. mid_circuit processing starts.
+    2. cirq.X(mid_clean) is processed first (CleanQubit(1)). Allocates ancilla_0.
+    3. CircuitOperation(inner_circuit) is processed next. Recurses.
+    4. inner_circuit processing starts.
+    5. cirq.H(inner_clean) is processed (CleanQubit(0)). Allocates ancilla_1.
+    """
+    # Level 2: innermost circuit with CleanQubit
+    inner_clean = cirq.ops.CleanQubit(0)
+    inner_circuit = cirq.Circuit(cirq.H(inner_clean))
+
+    # Level 1: middle circuit wrapping the inner one, with its own CleanQubit
+    mid_clean = cirq.ops.CleanQubit(1)
+    mid_circuit = cirq.Circuit(cirq.X(mid_clean), cirq.CircuitOperation(inner_circuit.freeze()))
+
+    # Level 0: outermost circuit
+    main_circuit = cirq.Circuit(cirq.CircuitOperation(mid_circuit.freeze()))
+
+    # Apply the transformer
+    result = cirq.map_clean_and_borrowable_qubits(main_circuit)
+
+    # Verify using diagram
+    cirq.testing.assert_has_diagram(
+        result,
+        """
+              [ ancilla_0: ───X──────────────────────── ]
+ancilla_0: ───[                                         ]───
+              [ ancilla_1: ───[ ancilla_1: ───H─── ]─── ]
+              │
+ancilla_1: ───#2────────────────────────────────────────────
+""",
     )
