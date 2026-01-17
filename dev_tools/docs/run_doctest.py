@@ -246,6 +246,7 @@ def main():
     assert file_names
     excluded = (
         'cirq-core/cirq/testing/_compat_test_data/',
+        'cirq-core/cirq/testing/deprecation.py',
         'cirq-google/cirq_google/api/',
         'cirq-google/cirq_google/cloud/',
         'cirq-web/cirq_web/node_modules/',
