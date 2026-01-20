@@ -290,7 +290,9 @@ jobs:
     name: Pytest Windows
     strategy:
       matrix:
-        python-version: ['3.11', '3.12', '3.13', '3.14']
+        # TODO: #7832 - enable '3.14' once grpcio-tools, qiskit-aer, stim have binary wheels.
+        # Installation from sources works, but with run duration increased from 6 to 27 minutes.
+        python-version: ['3.11', '3.12', '3.13']
     runs-on: windows-2022-x64-8-core
     steps:
       - name: Check out source repository
