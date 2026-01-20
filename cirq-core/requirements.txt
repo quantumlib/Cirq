@@ -5,7 +5,7 @@ duet>=0.2.8
 matplotlib~=3.9
 networkx~=3.4
 numpy~=2.0
-pandas~=2.3
+pandas~=2.2
 sortedcontainers~=2.0
 scipy~=1.13
 sympy
