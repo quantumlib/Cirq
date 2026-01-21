@@ -236,3 +236,124 @@ def test_is_z_or_cz_pow_gate_helper_edge_cases():
     # Other diagonal gates (like CCZ) are not detected by the optimized version
     # This is intentional - eject_z is only effective for Z and CZ anyway
     assert not _is_z_or_cz_pow_gate(cirq.CCZ(q0, q1, q))
+
+
+def test_tags_to_ignore_preserves_tagged_operations():
+    """Test that operations with tags_to_ignore are preserved and not optimized."""
+    q0 = cirq.LineQubit(0)
+
+    # Circuit with a Z gate tagged with "ignore" followed by measurement
+    # Without tags_to_ignore, the Z would be removed
+    circuit = cirq.Circuit(cirq.Z(q0).with_tags("ignore"), cirq.measure(q0, key='m'))
+
+    # Apply transformer with tags_to_ignore
+    context = cirq.TransformerContext(tags_to_ignore=("ignore",))
+    optimized = drop_diagonal_before_measurement(circuit, context=context)
+
+    # The tagged Z gate should be preserved
+    cirq.testing.assert_same_circuits(optimized, circuit)
+
+
+def test_tags_to_ignore_does_not_break_optimization_chain():
+    """Test that tagged diagonal operations don't break the optimization chain.
+
+    For Z(q) -> Z[ignore](q) -> M(q), the first Z should still be removed because:
+    1. Diagonal gates commute with each other
+    2. The tagged Z is preserved but doesn't block earlier diagonal gates
+    """
+    q0 = cirq.LineQubit(0)
+
+    # Circuit: Z -> Z(tagged) -> measure
+    circuit = cirq.Circuit(cirq.Z(q0), cirq.Z(q0).with_tags("ignore"), cirq.measure(q0, key='m'))
+
+    context = cirq.TransformerContext(tags_to_ignore=("ignore",))
+    optimized = drop_diagonal_before_measurement(circuit, context=context)
+
+    # The first Z is removed, but tagged Z is preserved
+    expected = cirq.Circuit(cirq.Z(q0).with_tags("ignore"), cirq.measure(q0, key='m'))
+    cirq.testing.assert_same_circuits(optimized, expected)
+
+
+def test_tags_to_ignore_only_affects_tagged_operations():
+    """Test that untagged operations are still optimized when tags_to_ignore is set."""
+    q0, q1 = cirq.LineQubit.range(2)
+
+    # Circuit with one tagged Z (preserved) and one untagged Z (should be removed)
+    circuit = cirq.Circuit(
+        cirq.Z(q0).with_tags("ignore"),
+        cirq.Z(q1),
+        cirq.measure(q0, key='m0'),
+        cirq.measure(q1, key='m1'),
+    )
+
+    context = cirq.TransformerContext(tags_to_ignore=("ignore",))
+    optimized = drop_diagonal_before_measurement(circuit, context=context)
+
+    # q0's Z is preserved (tagged), q1's Z is removed (untagged)
+    # The tagged Z breaks the chain for q0, so it stays in its own moment
+    expected = cirq.Circuit(
+        cirq.Moment(cirq.Z(q0).with_tags("ignore")),
+        cirq.Moment(cirq.measure(q0, key='m0'), cirq.measure(q1, key='m1')),
+    )
+
+    cirq.testing.assert_same_circuits(optimized, expected)
+
+
+def test_deep_transforms_sub_circuits():
+    """Test that deep=True applies transformation to sub-circuits in CircuitOperation.
+
+    Uses CZ gate to truly test deep support - a Z gate alone would be removed by eject_z.
+    """
+    q0, q1 = cirq.LineQubit.range(2)
+
+    # Create a sub-circuit with CZ before measurements on both qubits
+    sub_circuit = cirq.FrozenCircuit(
+        cirq.CZ(q0, q1), cirq.measure(q0, key='m0'), cirq.measure(q1, key='m1')
+    )
+    circuit_op = cirq.CircuitOperation(sub_circuit)
+    circuit = cirq.Circuit(circuit_op)
+
+    # Apply transformer with deep=True
+    context = cirq.TransformerContext(deep=True)
+    optimized = drop_diagonal_before_measurement(circuit, context=context)
+
+    # The sub-circuit should have the CZ removed (both qubits are measured)
+    expected_sub_circuit = cirq.FrozenCircuit(
+        cirq.measure(q0, key='m0'), cirq.measure(q1, key='m1')
+    )
+    expected = cirq.Circuit(cirq.CircuitOperation(expected_sub_circuit))
+
+    cirq.testing.assert_same_circuits(optimized, expected)
+
+
+def test_deep_false_preserves_sub_circuits():
+    """Test that deep=False (default) does not modify sub-circuits."""
+    q0 = cirq.LineQubit(0)
+
+    # Create a sub-circuit with Z before measurement
+    sub_circuit = cirq.FrozenCircuit(cirq.Z(q0), cirq.measure(q0, key='m'))
+    circuit_op = cirq.CircuitOperation(sub_circuit)
+    circuit = cirq.Circuit(circuit_op)
+
+    # Apply transformer without deep (default is False)
+    optimized = drop_diagonal_before_measurement(circuit)
+
+    # The sub-circuit should be unchanged
+    cirq.testing.assert_same_circuits(optimized, circuit)
+
+
+def test_deep_with_tags_to_ignore_in_sub_circuit():
+    """Test that tags_to_ignore is respected within sub-circuits when deep=True."""
+    q0 = cirq.LineQubit(0)
+
+    # Create a sub-circuit with a tagged Z before measurement
+    sub_circuit = cirq.FrozenCircuit(cirq.Z(q0).with_tags("ignore"), cirq.measure(q0, key='m'))
+    circuit_op = cirq.CircuitOperation(sub_circuit)
+    circuit = cirq.Circuit(circuit_op)
+
+    # Apply transformer with deep=True and tags_to_ignore
+    context = cirq.TransformerContext(deep=True, tags_to_ignore=("ignore",))
+    optimized = drop_diagonal_before_measurement(circuit, context=context)
+
+    # The sub-circuit should be unchanged (tagged Z preserved)
+    cirq.testing.assert_same_circuits(optimized, circuit)
