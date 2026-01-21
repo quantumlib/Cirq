@@ -211,7 +211,7 @@ class EngineClient:
         created_before: datetime.datetime | datetime.date | None = None,
         created_after: datetime.datetime | datetime.date | None = None,
         has_labels: dict[str, str] | None = None,
-    ):
+    ) -> list[quantum.QuantumProgram]:
         """Returns a list of previously executed quantum programs.
 
         Args:
@@ -242,7 +242,7 @@ class EngineClient:
         request = quantum.ListQuantumProgramsRequest(
             parent=_project_name(project_id), filter=" AND ".join(filters)
         )
-        return await self._send_request_async(self.grpc_client.list_quantum_programs, request)
+        return await self._send_list_request_async(self.grpc_client.list_quantum_programs, request)
 
     list_programs = duet.sync(list_programs_async)
 
@@ -485,7 +485,7 @@ class EngineClient:
         execution_states: set[quantum.ExecutionStatus.State] | None = None,
         executed_processor_ids: list[str] | None = None,
         scheduled_processor_ids: list[str] | None = None,
-    ):
+    ) -> list[quantum.QuantumJob]:
         """Returns the list of jobs for a given program.
 
         Args:
@@ -545,7 +545,7 @@ class EngineClient:
             program_id = "-"
         parent = _program_name_from_ids(project_id, program_id)
         request = quantum.ListQuantumJobsRequest(parent=parent, filter=" AND ".join(filters))
-        return await self._send_request_async(self.grpc_client.list_quantum_jobs, request)
+        return await self._send_list_request_async(self.grpc_client.list_quantum_jobs, request)
 
     list_jobs = duet.sync(list_jobs_async)
 
