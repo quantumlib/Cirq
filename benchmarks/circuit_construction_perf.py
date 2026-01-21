@@ -1,4 +1,4 @@
-# Copyright 2022 The Cirq Developers
+# Copyright 2026 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,18 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# mypy: ignore-errors
+"""Performance tests for circuit construction."""
 
 import itertools
 from collections.abc import Sequence
+
+import pandas
+import pytest
 
 import cirq
 
 
 def rotated_surface_code_memory_z_cycle(
-    data_qubits: set[cirq.Qid],
-    z_measure_qubits: set[cirq.Qid],
-    x_measure_qubits: set[cirq.Qid],
+    data_qubits: set[cirq.GridQubit],
+    z_measure_qubits: set[cirq.GridQubit],
+    x_measure_qubits: set[cirq.GridQubit],
     z_order: Sequence[tuple[int, int]],
     x_order: Sequence[tuple[int, int]],
 ) -> cirq.Circuit:
@@ -47,8 +50,8 @@ def rotated_surface_code_memory_z_cycle(
     for k in range(4):
         op_list = []
         for measure_qubits, add, is_x in [
-            [x_measure_qubits, x_order[k], True],
-            [z_measure_qubits, z_order[k], False],
+            (x_measure_qubits, x_order[k], True),
+            (z_measure_qubits, z_order[k], False),
         ]:
             for q_meas in measure_qubits:
                 q_data = q_meas + add
@@ -105,35 +108,59 @@ def surface_code_circuit(
         )
 
 
-class SurfaceCodeRotatedMemoryZ:
-    pretty_name = "Surface Code Rotated Memory-Z Benchmarks."
-    params = [*range(3, 26, 2)]
-    param_names = ["distance"]
+class TestSurfaceCodeRotatedMemoryZ:
+    """Surface Code Rotated Memory-Z Benchmarks."""
 
-    def time_circuit_construction_moment_by_moment(self, distance: int) -> None:
+    group = "circuit_construction"
+    expected = pandas.DataFrame.from_dict(
+        {
+            3: [64, 369],
+            5: [176, 3225],
+            7: [344, 12985],
+            9: [568, 36369],
+            11: [848, 82401],
+            13: [1184, 162409],
+            15: [1576, 290025],
+            17: [2024, 481185],
+            19: [2528, 754129],
+            21: [3088, 1129401],
+            23: [3704, 1629849],
+            25: [4376, 2280625],
+        },
+        columns=["depth", "operation_count"],
+        orient="index",
+    )
+
+    @pytest.mark.parametrize("distance", expected.index)
+    @pytest.mark.benchmark(group=group)
+    def test_circuit_construction_moment_by_moment(self, benchmark, distance: int) -> None:
         """Benchmark circuit construction for Rotated Bottom-Z Surface code."""
-        _ = surface_code_circuit(distance, distance * distance)
+        circuit = benchmark(
+            surface_code_circuit, distance, num_rounds=distance * distance, moment_by_moment=True
+        )
+        assert len(circuit) == self.expected.depth[distance]
 
-    def time_circuit_construction_operations_by_operation(self, distance: int) -> None:
+    @pytest.mark.parametrize("distance", expected.index)
+    @pytest.mark.benchmark(group=group)
+    def test_circuit_construction_operations_by_operation(self, benchmark, distance: int) -> None:
         """Benchmark circuit construction for Rotated Bottom-Z Surface code."""
-        _ = surface_code_circuit(distance, distance * distance, False)
-
-    def track_circuit_operation_count(self, distance: int) -> int:
-        """Benchmark operation count for Rotated Bottom-Z Surface code."""
-        circuit = surface_code_circuit(distance, distance * distance)
-        return sum(1 for _ in circuit.all_operations())
-
-    def track_circuit_depth(self, distance: int) -> int:
-        """Benchmark operation count for Rotated Bottom-Z Surface code."""
-        circuit = surface_code_circuit(distance, distance * distance)
-        return len(circuit)
+        circuit = benchmark(
+            surface_code_circuit, distance, num_rounds=distance * distance, moment_by_moment=False
+        )
+        assert sum(1 for _ in circuit.all_operations()) == self.expected.operation_count[distance]
 
 
-class XOnAllQubitsCircuit:
-    pretty_name = "N * D times X gate on all qubits."
-    params = [[1, 10, 100, 1000], [1, 10, 100, 1000]]
-    param_names = ["Number of Qubits(N)", "Depth(D)"]
+class TestXOnAllQubitsCircuit:
+    """N * D times X gate on all qubits."""
 
-    def time_circuit_construction(self, N: int, D: int) -> cirq.Circuit:
-        q = cirq.LineQubit.range(N)
-        return cirq.Circuit(cirq.Moment(cirq.X.on_each(*q)) for _ in range(D))
+    group = "circuit_operations"
+
+    @pytest.mark.parametrize(
+        ["qubit_count", "depth"], itertools.product([1, 10, 100, 1000], [1, 10, 100, 1000])
+    )
+    @pytest.mark.benchmark(group=group)
+    def test_circuit_construction(self, benchmark, qubit_count: int, depth: int) -> None:
+        q = cirq.LineQubit.range(qubit_count)
+        f = lambda: cirq.Circuit(cirq.Moment(cirq.X.on_each(*q)) for _ in range(depth))
+        circuit = benchmark(f)
+        assert len(circuit) == depth

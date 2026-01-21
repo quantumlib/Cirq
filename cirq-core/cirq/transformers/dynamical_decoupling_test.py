@@ -223,13 +223,17 @@ b: ───H───H───H───H───H─────────
         ([X], 'Invalid dynamical decoupling sequence. Expect more than one gates.'),
         (
             [X, Y],
-            'Invalid dynamical decoupling sequence. Expect sequence product equals identity'
-            ' up to a global phase, got',
+            (
+                'Invalid dynamical decoupling sequence. Expect sequence product equals identity'
+                ' up to a global phase, got'
+            ),
         ),
         (
             [H, H],
-            'Dynamical decoupling sequence should only contain gates that are essentially'
-            ' Pauli gates.',
+            (
+                'Dynamical decoupling sequence should only contain gates that are essentially'
+                ' Pauli gates.'
+            ),
         ),
     ],
 )
