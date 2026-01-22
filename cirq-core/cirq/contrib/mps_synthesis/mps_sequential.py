@@ -37,16 +37,14 @@ def _gram_schmidt(matrix: npt.NDArray[np.complex128]) -> npt.NDArray[np.complex1
     decomposition approach used in scipy.linalg.qr for our use case. If you find
     better performance with other implementations, please file an issue at
     https://github.com/quantumlib/Cirq/issues
-
     accompanied by the proposed code and benchmark results.
 
     Args:
-        matrix (NDArray[np.complex128]): Square matrix with complex entries.
+        matrix: Square matrix with complex entries.
 
     Returns:
-        unitary (NDArray[np.complex128]): A unitary matrix with orthonormal columns
-            derived from the input matrix. If a column is (approximately) zero, it
-            is replaced with a random vector.
+        A unitary matrix with orthonormal columns derived from the input matrix.
+        If a column is approximately zero, it is replaced with a random vector.
     """
     assert (
         len(matrix.shape) == 2 and matrix.shape[0] == matrix.shape[1]
@@ -106,7 +104,7 @@ class MPSSequential:
 
         Args:
             max_fidelity_threshold: The maximum fidelity required, after
-                which we can stop the encoding to save depth. Defaults to 0.95.
+                which we can stop the encoding to save depth.
         """
         self.max_fidelity_threshold = max_fidelity_threshold
 
@@ -117,11 +115,10 @@ class MPSSequential:
         using a single unitary layer.
 
         Args:
-            mps (qtn.MatrixProductState): The MPS to convert.
+            mps: The MPS to convert.
 
         Returns:
-            unitary_layer (list[tuple[list[int], NDArray[np.complex128]]]): A list of
-                tuples representing the unitary layer of the circuit.
+            A list of tuples representing the unitary layer of the circuit.
                 Each tuple contains:
                 - A list of qubit indices (in LSB order) that the unitary acts on.
                 - A unitary matrix (as a 2D NumPy array) that encodes the MPS.
@@ -170,7 +167,7 @@ class MPSSequential:
     def mps_to_circuit_approx(
         self, statevector: npt.NDArray[np.complex128], max_num_layers: int, chi_max: int
     ) -> cirq.Circuit:
-        r"""Approximately encodes the MPS into a circuit via multiple layers
+        """Approximately encodes the MPS into a circuit via multiple layers
         of exact encoding of bond 2 truncated MPS.
 
         Whilst we can encode the MPS exactly in a single layer, we require
@@ -184,12 +181,12 @@ class MPSSequential:
         [1] https://arxiv.org/abs/1908.07958
 
         Args:
-            statevector (NDArray[np.complex128]): The statevector to convert.
-            max_num_layers (int): The number of layers to use in the circuit.
-            chi_max (int): The maximum bond dimension of the target MPS.
+            statevector: The statevector to convert.
+            max_num_layers: The number of layers to use in the circuit.
+            chi_max: The maximum bond dimension of the target MPS.
 
         Returns:
-            cirq.Circuit: The generated quantum circuit that encodes the MPS.
+            The generated quantum circuit that encodes the MPS.
         """
         mps_dense = qtn.MatrixProductState.from_dense(statevector)
         mps: qtn.MatrixProductState = qtn.tensor_1d_compress.tensor_network_1d_compress(
@@ -284,10 +281,10 @@ class MPSSequential:
         """Call the instance to create the circuit that encodes the statevector.
 
         Args:
-            statevector (NDArray[np.complex128]): The statevector to convert.
+            statevector: The statevector to convert.
 
         Returns:
-            QuantumCircuit: The generated quantum circuit.
+            The generated quantum circuit.
         """
         num_qubits = int(np.ceil(np.log2(len(statevector))))
 
