@@ -50,7 +50,7 @@ def test_compile_trivial_state_with_mps_pass() -> None:
     trivial_circuit.append(cirq.ry(np.pi / 2).on(qubits[9]))
     trivial_circuit.append(cirq.rx(np.pi).on(qubits[9]))
     trivial_circuit.append(cirq.rz(np.pi / 4).on(qubits[9]))
-    for i in reversed(range(8)):
+    for i in reversed(range(9)):
         trivial_circuit.append(cirq.CNOT(qubits[i + 1], qubits[i]))
         trivial_circuit.append(cirq.rz(-np.pi / (2 ** (9 - i))).on(qubits[i]))
         trivial_circuit.append(cirq.CNOT(qubits[i + 1], qubits[i]))
@@ -58,11 +58,11 @@ def test_compile_trivial_state_with_mps_pass() -> None:
         trivial_circuit.append(cirq.ry(np.pi / 2).on(qubits[i]))
         trivial_circuit.append(cirq.rx(np.pi).on(qubits[i]))
         trivial_circuit.append(cirq.rz(np.pi / 4).on(qubits[i]))
-    for i in reversed(range(8)):
+    for i in reversed(range(9)):
         trivial_circuit.append(cirq.rz(np.pi / (2 ** (9 - i))).on(qubits[i]))
-    for i in reversed(range(8)):
+    for i in reversed(range(9)):
         trivial_circuit.append(cirq.CNOT(qubits[i + 1], qubits[i]))
-    for i in reversed(range(8)):
+    for i in reversed(range(9)):
         trivial_circuit.append(cirq.CNOT(qubits[i], qubits[i + 1]))
 
     state = cirq.final_state_vector(trivial_circuit)
