@@ -24,10 +24,10 @@ import quimb.tensor as qtn
 import cirq
 
 if TYPE_CHECKING:
-    from numpy.typing import NDArray
+    import numpy.typing as npt
 
 
-def _gram_schmidt(matrix: NDArray[np.complex128]) -> NDArray[np.complex128]:
+def _gram_schmidt(matrix: npt.NDArray[np.complex128]) -> npt.NDArray[np.complex128]:
     """Perform Gram-Schmidt orthogonalization on the columns of a square matrix
     to define the unitary block to encode the MPS.
 
@@ -61,7 +61,7 @@ def _gram_schmidt(matrix: NDArray[np.complex128]) -> NDArray[np.complex128]:
 
     num_rows = matrix.shape[0]
     unitary = np.zeros((num_rows, num_rows), dtype=np.complex128)
-    orthonormal_basis: list[NDArray[np.complex128]] = []
+    orthonormal_basis: list[npt.NDArray[np.complex128]] = []
 
     for j in range(num_rows):
         column = matrix[:, j]
@@ -123,7 +123,7 @@ class MPSSequential:
 
     def generate_layer(
         self, mps: qtn.MatrixProductState
-    ) -> list[tuple[list[int], NDArray[np.complex128]]]:
+    ) -> list[tuple[list[int], npt.NDArray[np.complex128]]]:
         """Convert a Matrix Product State (MPS) to a circuit representation
         using a single unitary layer.
 
@@ -139,7 +139,7 @@ class MPSSequential:
         """
         num_sites = mps.L
 
-        unitary_layer: list[tuple[list[int], NDArray[np.complex128]]] = []
+        unitary_layer: list[tuple[list[int], npt.NDArray[np.complex128]]] = []
 
         for i, tensor in enumerate(reversed(mps.arrays)):
             i = num_sites - i - 1
@@ -179,7 +179,7 @@ class MPSSequential:
         return unitary_layer
 
     def mps_to_circuit_approx(
-        self, statevector: NDArray[np.complex128], max_num_layers: int, chi_max: int
+        self, statevector: npt.NDArray[np.complex128], max_num_layers: int, chi_max: int
     ) -> cirq.Circuit:
         r"""Approximately encodes the MPS into a circuit via multiple layers
         of exact encoding of bond 2 truncated MPS.
@@ -290,7 +290,7 @@ class MPSSequential:
         return circuit
 
     def __call__(
-        self, statevector: NDArray[np.complex128], max_num_layers: int = 10
+        self, statevector: npt.NDArray[np.complex128], max_num_layers: int = 10
     ) -> cirq.Circuit:
         """Call the instance to create the circuit that encodes the statevector.
 

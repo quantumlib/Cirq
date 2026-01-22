@@ -21,12 +21,12 @@ from cirq.contrib.mps_synthesis.mps_sequential import MPSSequential
 
 if TYPE_CHECKING:
     import numpy as np
-    from numpy.typing import NDArray
+    import numpy.typing as npt
     import cirq
 
 
 def mps_circuit_from_statevector(
-    statevector: NDArray[np.complex128], max_num_layers: int = 10, target_fidelity: float = 0.95
+    statevector: npt.NDArray[np.complex128], max_num_layers: int = 10, target_fidelity: float = 0.95
 ) -> cirq.Circuit:
     """Create the circuit that encodes the statevector using MPS synthesis.
 
