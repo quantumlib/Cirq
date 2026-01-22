@@ -154,3 +154,38 @@ def test_sampler_run_sweep():
         _, kwargs = call
         assert kwargs["repetitions"] == 4
         assert kwargs["target"] == 'qpu'
+
+
+def test_sampler_run_sweep_batched_job_results():
+    mock_service = mock.MagicMock()
+    job_dict = {
+        'id': '1',
+        'status': 'completed',
+        'stats': {'qubits': '1'},
+        'backend': 'qpu',
+        'metadata': {'shots': 4, 'measurement0': f'a{chr(31)}0'},
+    }
+
+    job = ionq.Job(client=mock_service, job_dict=job_dict)
+    mock_service.create_job.return_value = job
+
+    # Create dummy results
+    result1 = ionq.QPUResult(counts={0: 4}, num_qubits=1, measurement_dict={'a': [0]})
+    result2 = ionq.QPUResult(counts={1: 4}, num_qubits=1, measurement_dict={'a': [0]})
+
+    # Mock job.results to return a list
+    with mock.patch.object(ionq.Job, 'results', return_value=[result1, result2]):
+        sampler = ionq.Sampler(service=mock_service, target='qpu')
+        q0 = cirq.LineQubit(0)
+        circuit = cirq.Circuit(cirq.X(q0), cirq.measure(q0, key='a'))
+
+        # We pass 1 resolver, but job returns 2 results (list).
+        # This triggers `flattened_job_results.extend(res)`.
+        results = sampler.run_sweep(program=circuit, params=[cirq.ParamResolver({})], repetitions=4)
+
+        # Even though we got 2 results from the job, we only have 1 resolver,
+        # so zip() truncates to 1 result.
+        assert len(results) == 1
+        # result1 counts={0: 4}, so we expect four 0s.
+        # measurements is (repetitions, qubits), so [[0], [0], [0], [0]]
+        assert results[0].measurements['a'].tolist() == [[0], [0], [0], [0]]

@@ -1247,10 +1247,11 @@ def test_from_boolean_expression(boolean_expr, expected_pauli_sum) -> None:
     boolean = sympy_parser.parse_expr(boolean_expr)
     qubit_map = {name: cirq.NamedQubit(name) for name in sorted(cirq.parameter_names(boolean))}
     actual = cirq.PauliSum.from_boolean_expression(boolean, qubit_map)
-    # Instead of calling str() directly, first make sure that the items are sorted. This is to make
-    # the unit test more robut in case Sympy would result in a different parsing order. By sorting
-    # the individual items, we would have a canonical representation.
-    actual_items = list(sorted(str(pauli_string) for pauli_string in actual))
+    # Instead of calling str() directly, first make sure that the items are sorted and their
+    # coefficients normalized to have "+0j" imaginary component (instead of "-0j") as in the
+    # expected_pauli_sum.  This is to make the unit test more robust should Sympy change its
+    # parsing order.
+    actual_items = sorted(str(pauli_string).replace('-0j', '+0j') for pauli_string in actual)
     assert expected_pauli_sum == actual_items
 
 
