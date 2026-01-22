@@ -52,7 +52,7 @@ def _gram_schmidt(matrix: npt.NDArray[np.complex128]) -> npt.NDArray[np.complex1
         len(matrix.shape) == 2 and matrix.shape[0] == matrix.shape[1]
     ), "Input matrix must be square."
 
-    num_rows = matrix.shape[0]
+    num_rows: int = matrix.shape[0]
     unitary = np.zeros((num_rows, num_rows), dtype=np.complex128)
     orthonormal_basis: list[npt.NDArray[np.complex128]] = []
 
@@ -61,9 +61,7 @@ def _gram_schmidt(matrix: npt.NDArray[np.complex128]) -> npt.NDArray[np.complex1
 
         # If column is (approximately) zero, replace with random
         if np.allclose(column, 0):
-            column = np.random.uniform(-1, 1, num_rows)  # type: ignore
-            if np.iscomplexobj(matrix):
-                column = column + 1j * np.random.uniform(-1, 1, num_rows)
+            column = np.random.uniform(-1, 1, num_rows) + 1j * np.random.uniform(-1, 1, num_rows)
 
         # Gram-Schmidt orthogonalization
         for basis_vector in orthonormal_basis:
@@ -71,9 +69,7 @@ def _gram_schmidt(matrix: npt.NDArray[np.complex128]) -> npt.NDArray[np.complex1
 
         # Handle near-zero vectors (linear dependence)
         if np.linalg.norm(column) < 1e-12:  # pragma: no cover
-            column = np.random.uniform(-1, 1, num_rows)  # type: ignore
-            if np.iscomplexobj(matrix):
-                column = column + 1j * np.random.uniform(-1, 1, num_rows)
+            column = np.random.uniform(-1, 1, num_rows) + 1j * np.random.uniform(-1, 1, num_rows)
 
             for basis_vector in orthonormal_basis:
                 column -= (basis_vector.conj().T @ column) * basis_vector
