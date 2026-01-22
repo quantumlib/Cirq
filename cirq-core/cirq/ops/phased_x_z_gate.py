@@ -18,7 +18,7 @@ import functools
 import math
 import numbers
 from collections.abc import Iterator, Sequence, Set
-from typing import Any, TYPE_CHECKING
+from typing import Any, Final, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -331,13 +331,14 @@ class PhasedXZGate(raw_types.Gate):
     def _has_stabilizer_effect_(self) -> bool:
         if not self._has_unitary_():
             return False
-        c = self._canonical()
-        actual = (c._x_exponent, c._z_exponent, c._axis_phase_exponent)
-        rounded = tuple(round(v, 2) for v in actual)  # for numerical stability.
-        return (
-            np.allclose(actual, rounded)
-            and tuple(v % 2 for v in rounded) in _clifford_as_phasedzx_params()
+        tol: Final = 1e-8
+        result = (
+            abs((x := round(self._x_exponent, 2)) - self._x_exponent) <= tol
+            and abs((z := round(self._z_exponent, 2)) - self._z_exponent) <= tol
+            and abs((a := round(self._axis_phase_exponent, 2)) - self._axis_phase_exponent) <= tol
+            and (x % 2, z % 2, a % 2) in _clifford_as_phasedzx_params()
         )
+        return result
 
 
 @functools.cache
