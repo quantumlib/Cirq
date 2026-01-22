@@ -47,17 +47,10 @@ def _gram_schmidt(matrix: npt.NDArray[np.complex128]) -> npt.NDArray[np.complex1
         unitary (NDArray[np.complex128]): A unitary matrix with orthonormal columns
             derived from the input matrix. If a column is (approximately) zero, it
             is replaced with a random vector.
-
-    Raises:
-        ValueError: If the input matrix is not square.
     """
-    if matrix.shape[0] != matrix.shape[1]:
-        raise ValueError(
-            "Input matrix is expected to be square. "
-            f"Got shape {matrix.shape} instead. "
-            "If this is not an error, please file an issue at "
-            "https://github.com/quantumlib/Cirq/issues"
-        )
+    assert (
+        len(matrix.shape) == 2 and matrix.shape[0] == matrix.shape[1]
+    ), "Input matrix must be square."
 
     num_rows = matrix.shape[0]
     unitary = np.zeros((num_rows, num_rows), dtype=np.complex128)
