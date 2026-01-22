@@ -2,14 +2,18 @@ name: CIFuzz
 run-name: >-
   Perform fuzz testing on pull request ${{github.event.pull_request.number}}
   by ${{github.actor}}
+
 on:
   pull_request:
   workflow_dispatch:
+
 permissions: {}
+
 concurrency:
   # Cancel any previously-started but still active runs on the same branch.
   cancel-in-progress: true
   group: ${{github.workflow}}-${{github.event.pull_request.number||github.ref}}
+
 jobs:
   fuzzing:
     name: Fuzz testing
