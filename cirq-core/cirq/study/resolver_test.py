@@ -25,6 +25,12 @@ import sympy
 import cirq
 
 
+def test_symbol() -> None:
+    x = cirq.symbol("x")
+    assert isinstance(x, sympy.Symbol)
+    assert str(x) == "x"
+
+
 @pytest.mark.parametrize(
     'val',
     [
