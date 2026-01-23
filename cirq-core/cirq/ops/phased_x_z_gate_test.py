@@ -368,7 +368,7 @@ def test_has_stabilizer_effect_returns_false_for_symbolic_unitary() -> None:
     assert not cirq.has_stabilizer_effect(gate)
 
 
-@pytest.mark.parametrize(['x', 'z', 'a'], np.random.uniform(-3, 3, (100, 3)))
+@pytest.mark.parametrize(['x', 'z', 'a'], np.random.uniform(-3, 3, (100, 3)), ids=range(100))
 def test_canonical_xza_mod_2_matches_canonical(x: float, z: float, a: float) -> None:
     gate = cirq.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)._canonical()
     xza_expected = (gate.x_exponent % 2, gate.z_exponent % 2, gate.axis_phase_exponent % 2)
