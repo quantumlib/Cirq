@@ -24,6 +24,7 @@ import cirq
 
 
 def test_x_gate() -> None:
+    """Tests the X gate."""
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit()
     circuit.append(cirq.X(q0))
@@ -37,7 +38,8 @@ def test_x_gate() -> None:
     np.testing.assert_equal(results, expected_results)
 
 
-def test_CNOT() -> None:
+def test_cnot() -> None:
+    """Tests the CNOT gate."""
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit()
     circuit.append(cirq.X(q0))
@@ -50,7 +52,8 @@ def test_CNOT() -> None:
     np.testing.assert_equal(results, expected_results)
 
 
-def test_Swap() -> None:
+def test_swap() -> None:
+    """Tests the SWAP gate."""
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit()
     circuit.append(cirq.X(q0))
@@ -71,6 +74,7 @@ def test_Swap() -> None:
     ],
 )
 def test_qubit_permutation_gate(n, perm, state) -> None:
+    """Tests the QubitPermutationGate."""
     qubits = cirq.LineQubit.range(n)
     perm_gate = cirq.QubitPermutationGate(perm)
     circuit = cirq.Circuit(perm_gate(*qubits), cirq.measure(*qubits, key='key'))
@@ -83,7 +87,8 @@ def test_qubit_permutation_gate(n, perm, state) -> None:
     np.testing.assert_equal(result.measurements['key'], expected)
 
 
-def test_CCNOT() -> None:
+def test_ccnot() -> None:
+    """Tests the CCNOT gate."""
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit()
     circuit.append(cirq.CCNOT(q0, q1, q2))
@@ -108,7 +113,8 @@ def test_CCNOT() -> None:
 
 
 @pytest.mark.parametrize(['initial_state'], [(list(x),) for x in product([0, 1], repeat=4)])
-def test_CCCX(initial_state) -> None:
+def test_cccx(initial_state) -> None:
+    """Tests the CCCX gate."""
     CCCX = cirq.CCNOT.controlled()
     qubits = cirq.LineQubit.range(4)
 
@@ -126,7 +132,8 @@ def test_CCCX(initial_state) -> None:
 
 
 @pytest.mark.parametrize(['initial_state'], [(list(x),) for x in product([0, 1], repeat=3)])
-def test_CSWAP(initial_state) -> None:
+def test_controlled_swap(initial_state) -> None:
+    """Tests the controlled SWAP gate."""
     CSWAP = cirq.SWAP.controlled()
     qubits = cirq.LineQubit.range(3)
     circuit = cirq.Circuit()
@@ -144,6 +151,25 @@ def test_CSWAP(initial_state) -> None:
     sim = cirq.ClassicalStateSimulator()
     results = sim.simulate(circuit, initial_state=initial_state).measurements['key']
     np.testing.assert_equal(results, final_state)
+
+
+def test_cswap() -> None:
+    """Tests the CSWAP gate."""
+    # Specifically test named CSWAP gate, not just controlled(SWAP)
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit()
+    # Control q0=1, so swap q1, q2
+    circuit.append(cirq.X(q0))
+    circuit.append(cirq.X(q1))
+    circuit.append(cirq.CSWAP(q0, q1, q2))  # q0=1 -> swap q1=1, q2=0 -> q1=0, q2=1
+    circuit.append(cirq.measure((q0, q1, q2), key='key'))
+
+    sim: cirq.ClassicalStateSimulator
+    sim = cirq.ClassicalStateSimulator()
+    result = sim.run(circuit, repetitions=1)
+    # Expected: 1, 0, 1
+    expected = np.array([[[1, 0, 1]]], dtype=np.uint8)
+    np.testing.assert_equal(result.records['key'], expected)
 
 
 def test_measurement_gate() -> None:
@@ -324,7 +350,7 @@ def test_create_partial_simulation_state_from_int_with_no_qubits() -> None:
     with pytest.raises(ValueError):
         sim._create_partial_simulation_state(
             initial_state=initial_state,
-            qubits=qs,  # type: ignore[arg-type]
+            qubits=qs,
             classical_data=classical_data,
         )
 
