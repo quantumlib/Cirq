@@ -38,7 +38,7 @@ def test_x_gate() -> None:
     np.testing.assert_equal(results, expected_results)
 
 
-def test_cnot() -> None:
+def test_CNOT() -> None:  # pylint: disable=invalid-name
     """Tests the CNOT gate."""
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit()
@@ -52,7 +52,7 @@ def test_cnot() -> None:
     np.testing.assert_equal(results, expected_results)
 
 
-def test_swap() -> None:
+def test_Swap() -> None:  # pylint: disable=invalid-name
     """Tests the SWAP gate."""
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit()
@@ -87,7 +87,7 @@ def test_qubit_permutation_gate(n, perm, state) -> None:
     np.testing.assert_equal(result.measurements['key'], expected)
 
 
-def test_ccnot() -> None:
+def test_CCNOT() -> None:  # pylint: disable=invalid-name
     """Tests the CCNOT gate."""
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit()
@@ -113,7 +113,7 @@ def test_ccnot() -> None:
 
 
 @pytest.mark.parametrize(['initial_state'], [(list(x),) for x in product([0, 1], repeat=4)])
-def test_cccx(initial_state) -> None:
+def test_CCCX(initial_state) -> None:  # pylint: disable=invalid-name
     """Tests the CCCX gate."""
     CCCX = cirq.CCNOT.controlled()
     qubits = cirq.LineQubit.range(4)
@@ -132,7 +132,7 @@ def test_cccx(initial_state) -> None:
 
 
 @pytest.mark.parametrize(['initial_state'], [(list(x),) for x in product([0, 1], repeat=3)])
-def test_controlled_swap(initial_state) -> None:
+def test_controlled_SWAP(initial_state) -> None:  # pylint: disable=invalid-name
     """Tests the controlled SWAP gate."""
     CSWAP = cirq.SWAP.controlled()
     qubits = cirq.LineQubit.range(3)
@@ -153,7 +153,7 @@ def test_controlled_swap(initial_state) -> None:
     np.testing.assert_equal(results, final_state)
 
 
-def test_cswap() -> None:
+def test_CSWAP() -> None:  # pylint: disable=invalid-name
     """Tests the CSWAP gate."""
     # Specifically test named CSWAP gate, not just controlled(SWAP)
     q0, q1, q2 = cirq.LineQubit.range(3)
@@ -349,9 +349,7 @@ def test_create_partial_simulation_state_from_int_with_no_qubits() -> None:
     classical_data = cirq.value.ClassicalDataDictionaryStore()
     with pytest.raises(ValueError):
         sim._create_partial_simulation_state(
-            initial_state=initial_state,
-            qubits=qs,
-            classical_data=classical_data,
+            initial_state=initial_state, qubits=qs, classical_data=classical_data,  # type: ignore
         )
 
 
