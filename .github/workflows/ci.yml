@@ -193,7 +193,7 @@ jobs:
     name: Pytest Ubuntu
     strategy:
       matrix:
-        python-version: ['3.11', '3.12', '3.13']
+        python-version: ['3.11', '3.12', '3.13', '3.14']
     runs-on: ubuntu-22.04-x64-8-core
     steps:
       - name: Check out source repository
@@ -216,13 +216,7 @@ jobs:
           pip install --upgrade setuptools wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Pytest check
-        run: check/pytest -n logical --durations=20 --junit-xml=pytest-ubuntu-report.xml
-      - name: Persist the test report
-        if: github.event_name == 'merge_group' && matrix.python-version == '3.11'
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        with:
-          name: pytest-ubuntu-report
-          path: pytest-ubuntu-report.xml
+        run: check/pytest -n logical --durations=20
   pip-compile:
     if: github.repository_owner == 'quantumlib'
     name: Check consistency of requirements
@@ -296,6 +290,8 @@ jobs:
     name: Pytest Windows
     strategy:
       matrix:
+        # TODO: #7832 - enable '3.14' once grpcio-tools, qiskit-aer, stim have binary wheels.
+        # Installation from sources works, but with run duration increased from 6 to 27 minutes.
         python-version: ['3.11', '3.12', '3.13']
     runs-on: windows-2022-x64-8-core
     steps:
@@ -324,6 +320,7 @@ jobs:
     name: Pytest MacOS
     strategy:
       matrix:
+        # TODO: #7832 - enable '3.14' once qiskit-aer provides binary wheels
         python-version: ['3.11', '3.12', '3.13']
     # macos-15-large is Intel; macos-15-xlarge is ARM and the one we want.
     runs-on: macos-15-xlarge
