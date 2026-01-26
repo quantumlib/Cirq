@@ -1387,7 +1387,7 @@ def test_x_y_z_clifford_protocols(
     'gate_cls, qubit_range', ((cirq.CZPowGate, 2), (cirq.CXPowGate, 2), (cirq.HPowGate, 1))
 )
 @pytest.mark.parametrize(
-    'exponent, is_clifford', ((0, True), (0.5, False), (1, True), (-1.5, False)),
+    'exponent, is_clifford', ((0, True), (0.5, False), (1, True), (-1.5, False))
 )
 def test_cx_h_cz_clifford_protocols(
     gate_cls: type[cirq.EigenGate], qubit_range: int, exponent: float, is_clifford: bool
