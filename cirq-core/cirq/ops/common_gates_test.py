@@ -1384,12 +1384,10 @@ def test_x_y_z_clifford_protocols(
 
 
 @pytest.mark.parametrize(
-    'gate_cls, qubit_range',
-    ((cirq.CZPowGate, 2), (cirq.CXPowGate, 2), (cirq.HPowGate, 1))
+    'gate_cls, qubit_range', ((cirq.CZPowGate, 2), (cirq.CXPowGate, 2), (cirq.HPowGate, 1))
 )
 @pytest.mark.parametrize(
-    'exponent, is_clifford',
-    ((0, True), (0.5, False), (1, True), (-1.5, False)),
+    'exponent, is_clifford', ((0, True), (0.5, False), (1, True), (-1.5, False)),
 )
 def test_cx_h_cz_clifford_protocols(
     gate_cls: type[cirq.EigenGate], qubit_range: int, exponent: float, is_clifford: bool
@@ -1408,6 +1406,7 @@ def test_cx_h_cz_clifford_protocols(
             np.testing.assert_allclose(cirq.unitary(gate), cirq.unitary(clifford_decomposition))
     else:
         assert not cirq.has_stabilizer_effect(gate)
-        assert gate._decompose_into_clifford_with_qubits_(
-            cirq.LineQubit.range(qubit_range)
-        ) is NotImplemented
+        assert (
+            gate._decompose_into_clifford_with_qubits_(cirq.LineQubit.range(qubit_range))
+            is NotImplemented
+        )
