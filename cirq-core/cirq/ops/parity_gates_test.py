@@ -331,7 +331,7 @@ def test_json_serialization() -> None:
 
 @pytest.mark.parametrize('gate_cls', (cirq.XXPowGate, cirq.YYPowGate, cirq.ZZPowGate))
 @pytest.mark.parametrize(
-    'exponent,is_clifford',
+    'exponent, is_clifford',
     ((0, True), (0.5, True), (0.75, False), (1, True), (1.5, True), (-1.5, True)),
 )
 def test_clifford_protocols(
