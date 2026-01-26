@@ -17,6 +17,7 @@ concurrency:
 jobs:
   fuzzing:
     name: Fuzz testing
+    if: github.repository_owner == 'quantumlib'
     runs-on: ubuntu-24.04
     permissions:
       security-events: write
