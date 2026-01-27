@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests for circuit routing with the RouteCQC transformer."""
 
 from __future__ import annotations
 
@@ -23,7 +22,6 @@ import cirq
 
 
 def test_directed_device() -> None:
-    """Tests that directed device graphs are now accepted by the router."""
     device = cirq.testing.construct_ring_device(10, directed=True)
     device_graph = device.metadata.nx_graph
     # Directed graphs should now be accepted
@@ -37,7 +35,6 @@ def test_directed_device() -> None:
 
 
 def test_directed_device_swap_decomposition() -> None:
-    """Tests that directed graphs use Hadamard decomposition for SWAPs on one-way edges."""
     # Create a simple directed graph: q0 -> q1 (one-way only)
     device_graph = nx.DiGraph()
     q = cirq.LineQubit.range(2)
@@ -76,7 +73,6 @@ def test_directed_device_swap_decomposition() -> None:
     ],
 )
 def test_route_small_circuit_random(n_qubits, n_moments, op_density, seed) -> None:
-    """Tests routing of random circuits on a grid device with various parameters."""
     c_orig = cirq.testing.random_circuit(
         qubits=n_qubits, n_moments=n_moments, op_density=op_density, random_state=seed
     )
@@ -91,7 +87,6 @@ def test_route_small_circuit_random(n_qubits, n_moments, op_density, seed) -> No
 
 
 def test_high_qubit_count() -> None:
-    """Tests routing of a large circuit with 40 qubits on a 7x7 grid device."""
     c_orig = cirq.testing.random_circuit(qubits=40, n_moments=350, op_density=0.4, random_state=0)
     device = cirq.testing.construct_grid_device(7, 7)
     device_graph = device.metadata.nx_graph
@@ -101,7 +96,6 @@ def test_high_qubit_count() -> None:
 
 
 def test_multi_qubit_gate_inputs() -> None:
-    """Tests that circuits with >2-qubit gates raise appropriate errors."""
     device = cirq.testing.construct_grid_device(4, 4)
     device_graph = device.metadata.nx_graph
     router = cirq.RouteCQC(device_graph)
@@ -143,7 +137,6 @@ def test_multi_qubit_gate_inputs() -> None:
 
 
 def test_circuit_with_measurement_gates() -> None:
-    """Tests routing of circuits with measurement gates."""
     device = cirq.testing.construct_ring_device(3)
     device_graph = device.metadata.nx_graph
     q = cirq.LineQubit.range(3)
@@ -155,7 +148,6 @@ def test_circuit_with_measurement_gates() -> None:
 
 
 def test_circuit_with_two_qubit_intermediate_measurement_gate() -> None:
-    """Tests routing with intermediate 2-qubit measurement gates."""
     device = cirq.testing.construct_ring_device(2)
     device_graph = device.metadata.nx_graph
     router = cirq.RouteCQC(device_graph)
@@ -169,7 +161,6 @@ def test_circuit_with_two_qubit_intermediate_measurement_gate() -> None:
 
 
 def test_circuit_with_multi_qubit_intermediate_measurement_gate_and_with_default_key() -> None:
-    """Tests routing with multi-qubit intermediate measurement gates using default keys."""
     device = cirq.testing.construct_ring_device(3)
     device_graph = device.metadata.nx_graph
     router = cirq.RouteCQC(device_graph)
@@ -184,7 +175,6 @@ def test_circuit_with_multi_qubit_intermediate_measurement_gate_and_with_default
 
 
 def test_circuit_with_multi_qubit_intermediate_measurement_gate_with_custom_key() -> None:
-    """Tests that multi-qubit intermediate measurements with custom keys raise errors."""
     device = cirq.testing.construct_ring_device(3)
     device_graph = device.metadata.nx_graph
     router = cirq.RouteCQC(device_graph)
@@ -200,7 +190,6 @@ def test_circuit_with_multi_qubit_intermediate_measurement_gate_with_custom_key(
 
 
 def test_circuit_with_non_unitary_and_global_phase() -> None:
-    """Tests routing of circuits with non-unitary operations and global phase gates."""
     device = cirq.testing.construct_ring_device(4)
     device_graph = device.metadata.nx_graph
     q = cirq.LineQubit.range(3)
@@ -227,7 +216,6 @@ def test_circuit_with_non_unitary_and_global_phase() -> None:
 
 
 def test_circuit_with_tagged_ops() -> None:
-    """Tests that tagged operations maintain their tags through routing."""
     device = cirq.testing.construct_ring_device(4)
     device_graph = device.metadata.nx_graph
     q = cirq.LineQubit.range(3)
@@ -257,7 +245,6 @@ def test_circuit_with_tagged_ops() -> None:
 
 
 def test_already_valid_circuit() -> None:
-    """Tests routing of a circuit that is already valid for the device."""
     device = cirq.testing.construct_ring_device(10)
     device_graph = device.metadata.nx_graph
     circuit = cirq.Circuit(
@@ -275,7 +262,6 @@ def test_already_valid_circuit() -> None:
 
 
 def test_empty_circuit() -> None:
-    """Tests routing of an empty circuit."""
     device = cirq.testing.construct_grid_device(5, 5)
     device_graph = device.metadata.nx_graph
     empty_circuit = cirq.Circuit()
@@ -289,7 +275,6 @@ def test_empty_circuit() -> None:
 
 
 def test_directed_device_with_tag_inserted_swaps() -> None:
-    """Tests that tag_inserted_swaps=True works correctly for directed edges."""
     # Use a directed ring device
     device = cirq.testing.construct_ring_device(10, directed=True)
     device_graph = device.metadata.nx_graph
@@ -317,7 +302,6 @@ def test_directed_device_with_tag_inserted_swaps() -> None:
 
 
 def test_directed_device_reverse_only_edge() -> None:
-    """Tests that reverse-only edges use Hadamard decomposition."""
     # Create a mixed graph with both bidirectional and reverse-only edges
     device_graph = nx.DiGraph()
     q = cirq.LineQubit.range(4)
@@ -347,7 +331,6 @@ def test_directed_device_reverse_only_edge() -> None:
 
 
 def test_directed_device_with_tag_inserted_swaps_reverse_only() -> None:
-    """Tests that tag_inserted_swaps=True works for reverse-only directed edges."""
     # Create a mixed graph with reverse-only edge
     device_graph = nx.DiGraph()
     q = cirq.LineQubit.range(4)
@@ -387,12 +370,6 @@ def test_directed_device_with_tag_inserted_swaps_reverse_only() -> None:
 
 
 def test_emit_swap_reverse_only_edge_with_tags() -> None:
-    """Direct unit test of _emit_swap to cover lines 364-393 (Case C).
-
-    This test directly calls _emit_swap with (q0, q1) arguments where only
-    the reverse edge (q1, q0) exists in the directed graph, triggering the
-    Case C code path with tag_inserted_swaps=True.
-    """
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQubit(1)
 
@@ -426,7 +403,6 @@ def test_emit_swap_reverse_only_edge_with_tags() -> None:
 
 
 def test_no_edge_between_qubits_raises_error() -> None:
-    """Tests that _emit_swap raises ValueError when qubits have no connecting edge."""
     # Test the _emit_swap method directly since the router has other checks
     # that prevent getting to this error in normal routing
     device_graph = nx.Graph()
@@ -443,7 +419,6 @@ def test_no_edge_between_qubits_raises_error() -> None:
 
 
 def test_repr() -> None:
-    """Tests the string representation of the RouteCQC transformer."""
     device = cirq.testing.construct_ring_device(10)
     device_graph = device.metadata.nx_graph
     router = cirq.RouteCQC(device_graph)
