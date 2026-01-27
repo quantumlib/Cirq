@@ -105,7 +105,6 @@ class RouteCQC:
 
         self.device_graph = device_graph
 
-    # pylint: disable=too-many-arguments
     def __call__(
         self,
         circuit: cirq.AbstractCircuit,
@@ -148,7 +147,6 @@ class RouteCQC:
         )
         return routed_circuit
 
-    # pylint: disable=too-many-arguments
     def route_circuit(
         self,
         circuit: cirq.AbstractCircuit,
@@ -270,12 +268,12 @@ class RouteCQC:
                     default_key = ops.measure(op.qubits).gate.key  # type: ignore
                     if len(circuit.moments) == i + 1:
                         single_qubit_ops[timestep].append(op)
-                    elif key in ("", default_key):
+                    elif key in ('', default_key):
                         single_qubit_ops[timestep].extend(ops.measure(qubit) for qubit in op.qubits)
                     else:
                         raise ValueError(
-                            "Intermediate measurements on three or more qubits "
-                            "with a custom key are not supported"
+                            'Intermediate measurements on three or more qubits '
+                            'with a custom key are not supported'
                         )
                 elif protocols.num_qubits(op) == 2:
                     two_qubit_circuit[timestep] = two_qubit_circuit[timestep].with_operation(op)
@@ -330,7 +328,6 @@ class RouteCQC:
         else:
             raise ValueError(f"No edge between {q1} and {q2} in device graph.")
 
-    # pylint: disable=too-many-arguments,too-many-positional-arguments
     @classmethod
     def _route(
         cls,
@@ -381,6 +378,8 @@ class RouteCQC:
             two_qubit_ops_ints[timestep] = unexecutable_ops_ints
             return len(unexecutable_ops)
 
+        strats = [cls._choose_single_swap, cls._choose_pair_of_swaps]
+
         for timestep in range(len(two_qubit_ops)):
             # Add single-qubit ops with qubits given by the current mapping.
             routed_ops.append([mm.mapped_op(op) for op in single_qubit_ops[timestep]])
@@ -391,7 +390,7 @@ class RouteCQC:
 
             while process_executable_two_qubit_ops(timestep):
                 chosen_swaps: tuple[QidIntPair, ...] | None = None
-                for strat in [cls._choose_single_swap, cls._choose_pair_of_swaps]:
+                for strat in strats:
                     chosen_swaps = strat(mm, two_qubit_ops_ints, timestep, lookahead_radius)
                     if chosen_swaps is not None:
                         break
@@ -431,7 +430,7 @@ class RouteCQC:
         """
         furthest_op = max(two_qubit_ops_ints[timestep], key=lambda op: mm.dist_on_device(*op))
         path = mm.shortest_path(*furthest_op)
-        return tuple((path[0], path[i + 1]) for i in range(len(path) - 2))
+        return tuple([(path[0], path[i + 1]) for i in range(len(path) - 2)])
 
     @classmethod
     def _choose_pair_of_swaps(
@@ -463,7 +462,6 @@ class RouteCQC:
         ]
         return cls._choose_optimal_swap(mm, two_qubit_ops_ints, timestep, lookahead_radius, sigma)
 
-    # pylint: disable=too-many-arguments,too-many-positional-arguments
     @classmethod
     def _choose_optimal_swap(
         cls,
@@ -535,4 +533,4 @@ class RouteCQC:
         return nx.utils.graphs_equal(self.device_graph, other.device_graph)
 
     def __repr__(self) -> str:
-        return f"cirq.RouteCQC(nx.Graph({dict(self.device_graph.adjacency())}))"
+        return f'cirq.RouteCQC(nx.Graph({dict(self.device_graph.adjacency())}))'
