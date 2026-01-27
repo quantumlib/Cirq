@@ -2,6 +2,7 @@
 load-plugins=pylint.extensions.docstyle,pylint.extensions.docparams,pylint_copyright_checker
 max-line-length=100
 disable=all
+fail-on=I
 ignore-paths=cirq-google/cirq_google/cloud/.*
 ignore-patterns=.*_pb2\.py
 output-format=colorized
