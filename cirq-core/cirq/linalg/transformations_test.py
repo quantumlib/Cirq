@@ -665,6 +665,20 @@ def test_factor_state_vector(state_1: int, state_2: int) -> None:
         assert np.allclose(b1, b)
 
 
+def test_density_matrix_kronecker_product() -> None:
+    matrix_1_array = np.array([[1, 0], [0, 0]], dtype=np.complex64)
+    matrix_2_array = (
+        np.array([[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]], dtype=np.complex64) / 4.0
+    )
+    matrix_1 = cirq.to_valid_density_matrix(matrix_1_array, qid_shape=(2,), dtype=np.complex64)
+    matrix_2 = cirq.to_valid_density_matrix(matrix_2_array, qid_shape=(4,), dtype=np.complex64)
+    calculated_result_shape = tuple(
+        map(lambda x, y: (x / 2 + y / 2) * 2, matrix_1_array.shape, matrix_2_array.shape)
+    )
+    matrix_result = cirq.linalg.transformations.density_matrix_kronecker_product(matrix_1, matrix_2)
+    assert matrix_result.shape == calculated_result_shape
+
+
 @pytest.mark.parametrize('num_dimensions', [*range(1, 7)])
 def test_transpose_flattened_array(num_dimensions) -> None:
     np.random.seed(0)
