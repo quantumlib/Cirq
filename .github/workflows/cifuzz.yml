@@ -5,6 +5,8 @@ run-name: >-
 
 on:
   pull_request:
+    branches:
+      - main
     paths:
       - 'cirq-*/**'
   workflow_dispatch:
