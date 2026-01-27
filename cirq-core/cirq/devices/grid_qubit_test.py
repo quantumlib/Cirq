@@ -354,38 +354,24 @@ def test_to_json() -> None:
 
 
 def test_immutable() -> None:
-    # Match one of two strings. The second one is message returned since python 3.11.
-    with pytest.raises(
-        AttributeError,
-        match="(can't set attribute)|(property 'col' of 'GridQubit' object has no setter)",
-    ):
+    with pytest.raises(AttributeError, match="property 'col' of 'GridQubit' object has no setter"):
         q = cirq.GridQubit(1, 2)
         q.col = 3  # type: ignore[misc]
 
-    with pytest.raises(
-        AttributeError,
-        match="(can't set attribute)|(property 'row' of 'GridQubit' object has no setter)",
-    ):
+    with pytest.raises(AttributeError, match="property 'row' of 'GridQubit' object has no setter"):
         q = cirq.GridQubit(1, 2)
         q.row = 3  # type: ignore[misc]
 
-    with pytest.raises(
-        AttributeError,
-        match="(can't set attribute)|(property 'col' of 'GridQid' object has no setter)",
-    ):
+    with pytest.raises(AttributeError, match="property 'col' of 'GridQid' object has no setter"):
         qid = cirq.GridQid(1, 2, dimension=3)
         qid.col = 3  # type: ignore[misc]
 
-    with pytest.raises(
-        AttributeError,
-        match="(can't set attribute)|(property 'row' of 'GridQid' object has no setter)",
-    ):
+    with pytest.raises(AttributeError, match="property 'row' of 'GridQid' object has no setter"):
         qid = cirq.GridQid(1, 2, dimension=3)
         qid.row = 3  # type: ignore[misc]
 
     with pytest.raises(
-        AttributeError,
-        match="(can't set attribute)|(property 'dimension' of 'GridQid' object has no setter)",
+        AttributeError, match="property 'dimension' of 'GridQid' object has no setter"
     ):
         qid = cirq.GridQid(1, 2, dimension=3)
         qid.dimension = 3  # type: ignore[misc]
