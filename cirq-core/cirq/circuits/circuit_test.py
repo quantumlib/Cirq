@@ -5064,3 +5064,81 @@ def test_insert_moments_and_ops_latest() -> None:
             cirq.Moment([cirq.H(q[1])]),
         )
         assert c.insert(insert_index, moments_and_ops, cirq.InsertStrategy.LATEST) == index_after
+
+
+def test_insert_earliest_batch_with_measurement_key_dependency() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.X(q0), cirq.X(q1))
+    ops_to_insert = [cirq.measure(q0, key="k"), cirq.X(q1).with_classical_controls("k")]
+    c.insert(0, ops_to_insert, strategy=cirq.InsertStrategy.EARLIEST)
+
+    assert c == cirq.Circuit(
+        cirq.Moment(cirq.measure(q0, key="k")),
+        cirq.Moment(cirq.X(q1).with_classical_controls("k")),
+        cirq.Moment(cirq.X(q0), cirq.X(q1)),
+    )
+
+
+def test_insert_earliest_op_with_control_key_unions_with_existing_moment() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.X(q0))
+    ops_to_insert = [cirq.measure(q0, key="k"), cirq.X(q1).with_classical_controls("k")]
+    c.insert(0, ops_to_insert, strategy=cirq.InsertStrategy.EARLIEST)
+    assert c == cirq.Circuit(
+        cirq.Moment(cirq.measure(q0, key="k")),
+        cirq.Moment(cirq.X(q0), cirq.X(q1).with_classical_controls("k")),
+    )
+
+
+def test_insert_earliest_op_with_control_key() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.measure(q0, key="k"))
+    ops_to_insert = [cirq.X(q1).with_classical_controls("k")]
+    c.insert(0, ops_to_insert, strategy=cirq.InsertStrategy.EARLIEST)
+
+    assert c == cirq.Circuit(
+        cirq.Moment(cirq.X(q1).with_classical_controls("k")), cirq.Moment(cirq.measure(q0, key="k"))
+    )
+
+
+def test_insert_earliest_batch_same_measurement_key() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.X(q0), cirq.X(q1))
+    ops_to_insert = [cirq.measure(q0, key="k"), cirq.measure(q1, key="k")]
+    c.insert(0, ops_to_insert, strategy=cirq.InsertStrategy.EARLIEST)
+
+    assert c == cirq.Circuit(
+        cirq.Moment(cirq.measure(q0, key="k")),
+        cirq.Moment(cirq.measure(q1, key="k")),
+        cirq.Moment(cirq.X(q0), cirq.X(q1)),
+    )
+
+
+def test_insert_earliest_batch_with_measurement_key_dependency_reversed() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.X(q0), cirq.X(q1))
+    ops_to_insert = [cirq.X(q1).with_classical_controls("k"), cirq.measure(q0, key="k")]
+    c.insert(0, ops_to_insert, strategy=cirq.InsertStrategy.EARLIEST)
+
+    assert c == cirq.Circuit(
+        cirq.Moment(cirq.X(q1).with_classical_controls("k")),
+        cirq.Moment(cirq.measure(q0, key="k")),
+        cirq.Moment(cirq.X(q0), cirq.X(q1)),
+    )
+
+
+def test_insert_earliest_batch() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    # Create a circuit with every operation in a separate moment
+    c = cirq.Circuit(
+        cirq.X(q0), cirq.measure(q0, key="k"), cirq.X(q1), strategy=cirq.InsertStrategy.NEW
+    )
+    ops_to_insert = [cirq.X(q0).with_classical_controls("k"), cirq.measure(q0, key="k")]
+    c.insert(2, ops_to_insert, strategy=cirq.InsertStrategy.EARLIEST)
+
+    assert c == cirq.Circuit(
+        cirq.Moment(cirq.X(q0)),
+        cirq.Moment(cirq.measure(q0, key="k")),
+        cirq.Moment(cirq.X(q0).with_classical_controls("k"), cirq.X(q1)),
+        cirq.Moment(cirq.measure(q0, key="k")),
+    )
