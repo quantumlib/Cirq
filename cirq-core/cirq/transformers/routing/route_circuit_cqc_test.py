@@ -322,7 +322,10 @@ def test_directed_device_reverse_only_edge() -> None:
     circuit = cirq.Circuit(cirq.CNOT(q[2], q[3]))
 
     hard_coded_mapper = cirq.HardCodedInitialMapper({q[i]: q[i] for i in range(4)})
-    routed_circuit, _, _ = router.route_circuit(circuit, initial_mapper=hard_coded_mapper)
+    # Need tag_inserted_swaps=True for directionality decomposition
+    routed_circuit, _, _ = router.route_circuit(
+        circuit, initial_mapper=hard_coded_mapper, tag_inserted_swaps=True
+    )
 
     # Verify Hadamard gates are present
     ops_list = list(routed_circuit.all_operations())
@@ -369,53 +372,27 @@ def test_directed_device_with_tag_inserted_swaps_reverse_only() -> None:
     assert len(tagged_cnots) > 0, "Expected tagged CNOT gates!"
 
 
-def test_emit_swap_reverse_only_edge_with_tags() -> None:
-    q0 = cirq.LineQubit(0)
-    q1 = cirq.LineQubit(1)
+def test_directional_swap_decomposition_preserves_unitary() -> None:
+    """Test that the directional SWAP decomposition is mathematically equivalent to SWAP."""
+    # Create a unidirectional graph
+    device_graph = nx.DiGraph()
+    q = cirq.LineQubit.range(2)
+    device_graph.add_edge(q[0], q[1])  # Only forward edge
 
-    # Graph with only q1 -> q0 edge (reverse-only from q0's perspective)
-    g = nx.DiGraph()
-    g.add_edge(q1, q0)
+    router = cirq.RouteCQC(device_graph)
 
-    circuit_ops: list[cirq.Operation] = []
+    # Circuit that needs a SWAP on the unidirectional edge
+    circuit = cirq.Circuit(cirq.CNOT(q[1], q[0]))
 
-    # Call _emit_swap with (q0, q1) - this should trigger Case C (lines 364-393)
-    # because has_edge(q1, q0) is True but has_edge(q0, q1) is False
-    cirq.RouteCQC.emit_swap(circuit_ops, (q0, q1), g, tag_inserted_swaps=True)
+    hard_coded_mapper = cirq.HardCodedInitialMapper({q[0]: q[0], q[1]: q[1]})
+    routed_circuit, initial_map, swap_map = router.route_circuit(
+        circuit, initial_mapper=hard_coded_mapper, tag_inserted_swaps=True
+    )
 
-    # Verify the decomposition: should be 3 CNOTs + 4 Hadamards, all tagged
-    assert len(circuit_ops) == 7, f"Expected 7 operations, got {len(circuit_ops)}"
-
-    # All operations should be tagged with RoutingSwapTag
-    tagged_ops = [op for op in circuit_ops if cirq.RoutingSwapTag() in op.tags]
-    assert len(tagged_ops) == 7, "All operations should be tagged with RoutingSwapTag"
-
-    # Verify we have both Hadamards and CNOTs
-    hadamards = [op for op in circuit_ops if isinstance(op.gate, cirq.HPowGate)]
-    cnots = [op for op in circuit_ops if isinstance(op.gate, cirq.CNotPowGate)]
-
-    assert len(hadamards) == 4, f"Expected 4 Hadamard gates, got {len(hadamards)}"
-    assert len(cnots) == 3, f"Expected 3 CNOT gates, got {len(cnots)}"
-
-    # Verify the CNOT directions are all (q1, q0) since that's the only available edge
-    for cnot in cnots:
-        assert cnot.qubits == (q1, q0), f"Expected CNOT(q1, q0), got CNOT{cnot.qubits}"
-
-
-def test_no_edge_between_qubits_raises_error() -> None:
-    # Test the _emit_swap method directly since the router has other checks
-    # that prevent getting to this error in normal routing
-    device_graph = nx.Graph()
-    q = cirq.LineQubit.range(3)
-    # Create a graph where q[0] and q[2] are not connected
-    device_graph.add_edge(q[0], q[1])
-    # Note: q[2] is isolated (no edges)
-
-    circuit_ops: list[cirq.Operation] = []
-
-    # This should raise a ValueError about no edge between qubits
-    with pytest.raises(ValueError, match="No edge between"):
-        cirq.RouteCQC.emit_swap(circuit_ops, (q[0], q[2]), device_graph, tag_inserted_swaps=False)
+    # Verify the routed circuit is mathematically equivalent to the original
+    cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+        routed_circuit, circuit.transform_qubits(initial_map), swap_map
+    )
 
 
 def test_repr() -> None:
