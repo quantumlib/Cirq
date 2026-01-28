@@ -33,8 +33,7 @@ jobs:
       with:
         path: |
           ~/.cache/pip
-          ~/.cache/bazel
-        key: ${{runner.os}}-cifuzz-${{hashFiles('cirq-*/**')}}
+        key: ${{runner.os}}-cifuzz-${{hashFiles('setup.py', 'pyproject.toml', 'dev_tools/requirements/**/*.txt', 'cirq-*/setup.py', 'cirq-*/pyproject.toml', 'cirq-*/**/requirements.txt')}}
         restore-keys: ${{runner.os}}-cifuzz-
     - name: Build Fuzzers
       id: build
