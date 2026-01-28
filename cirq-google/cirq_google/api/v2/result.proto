@@ -83,6 +83,13 @@ message QubitMeasurementResult {
 
 // A point sampled during a parameter sweep.
 message ParameterDict {
-  // Maps parameter names to values.
+  // Maps sweep parameter names to values.
   map<string, float> assignments = 1;
+
+  // Optional string for keyed circuit results.
+  string key = 2;
+
+  // Optional args for keyed circuit mappings / functions.
+  // See com.google.cirq.google.api.v2.program.KeyedCircuit.
+  map<string, Arg> args = 3;
 }
