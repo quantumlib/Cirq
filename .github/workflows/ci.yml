@@ -128,7 +128,7 @@ jobs:
       - name: Lint with ruff
         run: FORCE_COLOR=1 ruff check
       - name: Lint with pylint
-        run: check/pylint -v
+        run: check/pylint
   doc_test:
     if: github.repository_owner == 'quantumlib'
     name: Doc test
