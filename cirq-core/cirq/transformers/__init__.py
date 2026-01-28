@@ -51,6 +51,7 @@ from cirq.transformers.routing import (
     AbstractInitialMapper as AbstractInitialMapper,
     HardCodedInitialMapper as HardCodedInitialMapper,
     LineInitialMapper as LineInitialMapper,
+    GraphMonomorphismMapper as GraphMonomorphismMapper,
     MappingManager as MappingManager,
     RouteCQC as RouteCQC,
     routed_circuit_with_mapping as routed_circuit_with_mapping,
