@@ -24,7 +24,7 @@ message SweepResult {
   int32 repetitions = 1;
 
   // The results along with the parameters that generated these results.
-  // These represent the expanded parameters defined int he ParameterSweep
+  // These represent the expanded parameters defined in the ParameterSweep
   // which this SweepResult corresponds to.
   repeated ParameterizedResult parameterized_results = 2;
 }
