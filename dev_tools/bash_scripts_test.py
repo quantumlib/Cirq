@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 import os
-import re
 import subprocess
 from collections.abc import Iterable
 from typing import TYPE_CHECKING
@@ -606,9 +605,7 @@ def test_pylint_changed_files_file_selection(tmpdir_factory) -> None:
         ).split()
     )
 
-    intercepted_prefix = 'INTERCEPTED env PYTHONPATH=/tmp/somewhere pylint --jobs=0 '
-    pythonpath_pattern = re.compile("(?<=PYTHONPATH=).+?(?= pylint)")
-    normalized = lambda s: pythonpath_pattern.sub("/tmp/somewhere", s)
+    intercepted_prefix = 'INTERCEPTED pylint --jobs=0 '
 
     result = run(
         script_file='check/pylint-changed-files',
@@ -620,7 +617,7 @@ def test_pylint_changed_files_file_selection(tmpdir_factory) -> None:
         'git commit -m test --quiet --no-gpg-sign\n',
     )
     assert result.returncode == 0
-    assert normalized(result.stdout) == intercepted_prefix + 'cirq/file.py\n'
+    assert result.stdout == intercepted_prefix + 'cirq/file.py\n'
     assert (
         result.stderr.split()
         == (
@@ -639,7 +636,7 @@ def test_pylint_changed_files_file_selection(tmpdir_factory) -> None:
         'git commit -m test --quiet --no-gpg-sign\n',
     )
     assert result.returncode == 0
-    assert normalized(result.stdout) == intercepted_prefix + 'cirq/file.py\n'
+    assert result.stdout == intercepted_prefix + 'cirq/file.py\n'
     assert (
         result.stderr.split()
         == (
@@ -659,7 +656,7 @@ def test_pylint_changed_files_file_selection(tmpdir_factory) -> None:
         'echo x > cirq/file.py',
     )
     assert result.returncode == 0
-    assert normalized(result.stdout) == intercepted_prefix + 'cirq/file.py\n'
+    assert result.stdout == intercepted_prefix + 'cirq/file.py\n'
     assert (
         result.stderr.split()
         == (
@@ -679,7 +676,7 @@ def test_pylint_changed_files_file_selection(tmpdir_factory) -> None:
         'git commit -m test --quiet --no-gpg-sign\n',
     )
     assert result.returncode == 0
-    assert normalized(result.stdout) == intercepted_prefix + (
+    assert result.stdout == intercepted_prefix + (
         'cirq/file.py dev_tools/file.py examples/file.py\n'
     )
     assert (
