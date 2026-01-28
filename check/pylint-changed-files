@@ -66,5 +66,5 @@ num_changed=${#changed[@]}
 # Run it.
 echo "Found ${num_changed} lintable files associated with changes." >&2
 if (( num_changed )); then
-    pylint --jobs=0 "${changed[@]}"
+    env PYTHONPATH="${PWD}" pylint --jobs=0 "${changed[@]}"
 fi

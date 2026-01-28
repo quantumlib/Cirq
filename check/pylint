@@ -17,4 +17,4 @@ if (( $# == 0 )); then
     set -- .
 fi
 
-pylint --jobs=0 "$@"
+env PYTHONPATH="${PWD}" pylint --jobs=0 "$@"
