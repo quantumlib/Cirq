@@ -240,13 +240,13 @@ class RouteCQC:
         # This handles directed device graphs by decomposing SWAP into a sequence of CNOTs
         # that respect the edge direction constraints.
         routed_circuit = circuits.Circuit(circuits.Circuit(m) for m in routed_ops)
-        routed_circuit = self._replace_swaps_with_directional_decomposition(
+        final_circuit = self._replace_swaps_with_directional_decomposition(
             routed_circuit, tag_inserted_swaps
         )
 
         # 5. Return the routed circuit and mappings.
         return (
-            routed_circuit,
+            final_circuit,
             initial_mapping,
             {
                 initial_mapping[mm.int_to_logical_qid[k]]: mm.int_to_physical_qid[v]
