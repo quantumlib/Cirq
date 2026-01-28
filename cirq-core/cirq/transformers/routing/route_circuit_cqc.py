@@ -303,8 +303,9 @@ class RouteCQC:
         """Replaces SWAP gates tagged with RoutingSwapTag with directional decompositions.
 
         For directed device graphs, SWAP gates need to be decomposed into CNOTs that
-        respect the edge direction. This method uses cirq.map_operations to find all
-        SWAP gates with RoutingSwapTag and replaces them with the appropriate decomposition.
+        respect the edge direction. This method uses cirq.map_operations_and_unroll to
+        find all SWAP gates with RoutingSwapTag and replaces them with the appropriate
+        decomposition.
 
         For bidirectional edges (or undirected graphs), the SWAP is left unchanged.
         For unidirectional edges, the SWAP is decomposed using the Hadamard trick:
@@ -355,8 +356,7 @@ class RouteCQC:
                 # Transfer tags from original SWAP to decomposed operations
                 return [op_i.with_tags(*op.tags) for op_i in decomposed_ops]
 
-            # No edge in either direction - this shouldn't happen if routing is correct
-            # but keep the original operation and let downstream validation catch it
+            # Bidirectional or no edge check needed at routing level - keep as-is
             return op
 
         return transformer_primitives.map_operations_and_unroll(circuit, map_func)
