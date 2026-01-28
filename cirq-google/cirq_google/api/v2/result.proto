@@ -24,7 +24,7 @@ message SweepResult {
   int32 repetitions = 1;
 
   // The results along with the parameters that generated these results.
-  // These represent the expanded parameters defined int he ParameterSweep
+  // These represent the expanded parameters defined in the ParameterSweep
   // which this SweepResult corresponds to.
   repeated ParameterizedResult parameterized_results = 2;
 }
@@ -83,6 +83,13 @@ message QubitMeasurementResult {
 
 // A point sampled during a parameter sweep.
 message ParameterDict {
-  // Maps parameter names to values.
+  // Maps sweep parameter names to values.
   map<string, float> assignments = 1;
+
+  // Optional string for keyed circuit results.
+  string key = 2;
+
+  // Optional args for keyed circuit mappings / functions.
+  // See com.google.cirq.google.api.v2.program.KeyedCircuit.
+  map<string, Arg> args = 3;
 }
