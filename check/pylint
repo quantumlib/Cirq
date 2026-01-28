@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 ################################################################################
-# Runs pylint on the repository using a preconfigured .pylintrc file.
+# Runs pylint on the repository or on paths specified on the command line.
 #
 # Usage:
-#     check/pylint [--flags for pylint]
+#     check/pylint [files-and-flags-for-pylint]
 ################################################################################
 
 # Get the working directory to the repo root.
@@ -12,9 +12,9 @@ thisdir=$(dirname "${BASH_SOURCE[0]:?}") || exit $?
 repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel) || exit $?
 cd "${repo_dir}" || exit $?
 
-read -r -a CIRQ_MODULES < \
-    <(env PYTHONPATH=. python dev_tools/modules.py list --mode package-path)
+# By default check all sources
+if (( $# == 0 )); then
+    set -- .
+fi
 
-# Add dev_tools to $PYTHONPATH so that pylint can find custom checkers
-env PYTHONPATH=dev_tools pylint --jobs=0 --rcfile=dev_tools/conf/.pylintrc "$@" \
-    "${CIRQ_MODULES[@]}" benchmarks dev_tools examples
+pylint --jobs=0 "$@"
