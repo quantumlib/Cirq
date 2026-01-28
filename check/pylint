@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 ################################################################################
-# Runs pylint on the repository or on paths specified on the command line.
+# Runs pylint on the repository.
 #
 # Usage:
-#     check/pylint [files-and-flags-for-pylint]
+#     check/pylint [--flags for pylint]
 ################################################################################
 
 # Get the working directory to the repo root.
@@ -12,10 +12,5 @@ thisdir=$(dirname "${BASH_SOURCE[0]:?}") || exit $?
 repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel) || exit $?
 cd "${repo_dir}" || exit $?
 
-# By default check all sources
-if (( $# == 0 )); then
-    set -- .
-fi
-
 source dev_tools/pypath || exit $?
-pylint --jobs=0 "$@"
+pylint --jobs=0 "$@" .
