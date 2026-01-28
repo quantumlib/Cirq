@@ -167,7 +167,7 @@ The simplest way to run checks is to invoke `pytest`, `pylint`, or `mypy` for yo
 
 ```bash
 pytest
-pylint --rcfile=dev_tools/conf/.pylintrc cirq
+pylint cirq
 mypy --config-file=dev_tools/conf/mypy.ini .
 ```
 
