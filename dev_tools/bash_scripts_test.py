@@ -606,7 +606,7 @@ def test_pylint_changed_files_file_selection(tmpdir_factory) -> None:
     )
 
     intercepted_prefix = (
-        'INTERCEPTED env PYTHONPATH=dev_tools pylint --jobs=0 --rcfile=dev_tools/conf/.pylintrc '
+        'INTERCEPTED pylint --jobs=0 '
     )
 
     result = run(
