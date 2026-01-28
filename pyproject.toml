@@ -56,7 +56,10 @@ asyncio_default_fixture_loop_scope = "function"
 [tool.pylint.main]
 fail-on = ["I"]
 ignore-long-lines = "^(.*#\\w*pylint: disable.*|\\s*(# )?[<\\[\\(]?https?://\\S+[>\\]\\)]?)$"
-ignore-paths=["cirq-google/cirq_google/cloud/.*"]
+ignore-paths=[
+    "cirq-google/cirq_google/cloud/",
+    "cirq-web/cirq_web/node_modules/",
+]
 ignore-patterns = [".*_pb2\\.py"]
 load-plugins = [
     "dev_tools.pylint_copyright_checker",
