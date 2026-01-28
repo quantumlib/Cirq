@@ -4916,6 +4916,7 @@ def test_create_speed() -> None:
     c = cirq.Circuit(ops)
     duration = time.perf_counter() - t
     assert len(c) == moments
+    print(duration)
     assert duration < 4
 
 
@@ -4938,6 +4939,7 @@ def test_append_speed() -> None:
             c.append(xs[q])
     duration = time.perf_counter() - t
     assert len(c) == moments
+    print(duration)
     assert duration < 5
 
 
