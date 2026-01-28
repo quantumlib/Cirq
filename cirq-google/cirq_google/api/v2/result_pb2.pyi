@@ -58,7 +58,7 @@ class SweepResult(google.protobuf.message.Message):
     @property
     def parameterized_results(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___ParameterizedResult]:
         """The results along with the parameters that generated these results.
-        These represent the expanded parameters defined int he ParameterSweep
+        These represent the expanded parameters defined in the ParameterSweep
         which this SweepResult corresponds to.
         """
 
