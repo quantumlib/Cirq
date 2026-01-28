@@ -510,7 +510,14 @@ def test_many_group_pauli_in_circuits_with_coefficient(use_sweep: bool) -> None:
     simulator = cirq.Simulator()
 
     circuits_with_pauli_expectations = measure_pauli_strings(
-        circuits_to_pauli, sampler, 300, 300, 300, np.random.default_rng(), use_sweep
+        circuits_to_pauli,
+        sampler,
+        300,
+        300,
+        300,
+        np.random.default_rng(),
+        use_sweep,
+        measure_on_full_support=True,
     )
 
     for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
