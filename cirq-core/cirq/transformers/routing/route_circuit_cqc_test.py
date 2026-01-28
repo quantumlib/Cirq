@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from __future__ import annotations
 
 import networkx as nx
@@ -393,6 +392,27 @@ def test_directional_swap_decomposition_preserves_unitary() -> None:
     cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
         routed_circuit, circuit.transform_qubits(initial_map), swap_map
     )
+
+
+def test_swap_on_qubits_not_in_graph_unchanged() -> None:
+    """Test that SWAPs on qubits not in the graph are left unchanged."""
+    # Create a graph with only q0 <-> q1 edge
+    device_graph = nx.Graph()
+    q = cirq.LineQubit.range(3)
+    device_graph.add_edge(q[0], q[1])
+
+    router = cirq.RouteCQC(device_graph)
+
+    # Create a circuit with a tagged SWAP on q0-q2 (not in graph)
+    # This tests the fallback case in _replace_swaps_with_directional_decomposition
+    swap_on_non_edge = cirq.SWAP(q[0], q[2]).with_tags(cirq.RoutingSwapTag())
+    circuit = cirq.Circuit(swap_on_non_edge)
+
+    # Directly call the private method to test the fallback path
+    result = router._replace_swaps_with_directional_decomposition(circuit, True)
+
+    # The SWAP should be unchanged since there's no edge between q0 and q2
+    assert list(result.all_operations()) == [swap_on_non_edge]
 
 
 def test_repr() -> None:
