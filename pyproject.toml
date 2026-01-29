@@ -44,6 +44,7 @@ exclude = [
     '/setup\.py',
     'cirq-google/cirq_google/cloud/',
 ]
+exclude_gitignore = true
 plugins = ["duet.typing"]
 show_error_codes = true
 warn_redundant_casts = true
