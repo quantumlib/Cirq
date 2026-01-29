@@ -39,6 +39,88 @@ extend_skip = ["__init__.py"]
 extend_skip_glob = ["*_pb2.py"]
 
 
+[tool.mypy]
+exclude = [
+    '/setup\.py',
+    'cirq-google/cirq_google/cloud/',
+]
+plugins = ["duet.typing"]
+show_error_codes = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = ["__main__"]
+follow_imports = "silent"
+ignore_missing_imports = true
+
+# Require explicit reexport from cirq modules
+[[tool.mypy.overrides]]
+module = ["cirq.*"]
+no_implicit_reexport = true
+
+# Generated code
+[[tool.mypy.overrides]]
+module = ["cirq_google.cloud.*"]
+follow_imports = "silent"
+
+# 3rd-party libs for which we don't have stubs
+
+# Google
+[[tool.mypy.overrides]]
+module = [
+    "google.api_core.*",
+    "google.auth.*",
+    "google.cloud.*",
+    "google.colab.*",
+    "google.oauth2.*",
+    "qsimcirq",
+]
+follow_imports = "silent"
+ignore_missing_imports = true
+
+# Treat symbols imported from Google's protobuf library as type Any.
+# This suppresses errors due to attributes not known to typeshed,
+# e.g. Descriptor._options.
+[[tool.mypy.overrides]]
+module = ["google.protobuf.*"]
+follow_imports = "skip"
+follow_imports_for_stubs = true
+
+# Non-Google
+[[tool.mypy.overrides]]
+module = [
+    "IPython.*",
+    "_pytest.*",
+    "absl.*",
+    "astroid.*",
+    "cachetools.*",
+    "filelock.*",
+    "ipywidgets.*",
+    "matplotlib.*",
+    "mpl_toolkits.*",
+    "networkx.*",
+    "pandas.*",
+    "ply.*",
+    "proto.*",
+    "pylatex.*",
+    "pylint.*",
+    "pytest.*",
+    "qiskit.*",
+    "quimb.*",
+    "ruamel.*",
+    "scipy.*",
+    "setuptools.*",
+    "sortedcontainers.*",
+    "stimcirq.*",
+    "sympy.*",
+    "tensorflow_docs.*",
+    "tqdm.*",
+]
+follow_imports = "silent"
+ignore_missing_imports = true
+
+
 [tool.pytest.ini_options]
 filterwarnings = [
     "ignore:Matplotlib is currently using agg:UserWarning",
