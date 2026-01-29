@@ -168,7 +168,7 @@ The simplest way to run checks is to invoke `pytest`, `pylint`, or `mypy` for yo
 ```bash
 pytest
 pylint cirq
-mypy --config-file=dev_tools/conf/mypy.ini .
+mypy .
 ```
 
 This can be a bit tedious, because you have to specify the configuration files each time.
@@ -207,7 +207,7 @@ A more convenient way to run checks is to via the scripts in the [check/](https:
     - Type checking:
 
         ```bash
-        ./check/mypy [files-and-flags-for-mypy]
+        ./check/mypy [flags-for-mypy]
         ```
 
     - Miscellaneous checks:
