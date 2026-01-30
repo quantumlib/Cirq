@@ -42,11 +42,3 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         for k in skip_keywords.intersection(item.keywords):
             item.add_marker(skip_marks[k])
-
-
-@pytest.fixture(scope="session", autouse=True)
-def log_pytest_randomly_seed(record_testsuite_property, request) -> None:
-    # Ensure tests cannot authenticate to production servers with user credentials
-    randomly_seed: str | None = request.config.getoption("randomly_seed", None)
-    if randomly_seed is not None:
-        record_testsuite_property("randomly_seed", randomly_seed)
