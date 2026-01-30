@@ -168,9 +168,9 @@ def _stratify_circuit(
             # Update qubit, measurement key, and control key moments.
             for qubit in op.qubits:
                 qubit_time_index[qubit] = time_index
-            for key in protocols.measurement_key_objs(op):
+            for key in op.measurement_keys:
                 measurement_time_index[key] = time_index
-            for key in protocols.control_keys(op):
+            for key in op.control_keys:
                 control_time_index[key] = time_index
 
     return circuits.Circuit(circuits.Moment(moment) for moment in new_moments if moment)
