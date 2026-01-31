@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterator
 from typing import Any, Self, TYPE_CHECKING
 
 import numpy as np
@@ -25,12 +25,9 @@ from cirq import protocols, value
 from cirq._compat import proper_repr
 from cirq._doc import document
 from cirq.ops import (
-    clifford_gate,
     common_gates,
     eigen_gate,
     gate_features,
-    pauli_gates,
-    pauli_interaction_gate,
 )
 
 if TYPE_CHECKING:
