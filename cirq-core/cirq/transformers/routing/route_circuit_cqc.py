@@ -433,16 +433,12 @@ class RouteCQC:
                     seen.add(chosen_swaps)
 
                 for swap in chosen_swaps:
-                    # Emit a standard SWAP gate (will be replaced with directional
-                    # decomposition in post-processing if needed for directed graphs)
-                    swap_qubits = (
-                        mm.int_to_physical_qid[mm.logical_to_physical[swap[0]]],
-                        mm.int_to_physical_qid[mm.logical_to_physical[swap[1]]],
+                    inserted_swap = mm.mapped_op(
+                        ops.SWAP(mm.int_to_logical_qid[swap[0]], mm.int_to_logical_qid[swap[1]])
                     )
-                    swap_op = ops.SWAP(*swap_qubits)
                     if tag_inserted_swaps:
-                        swap_op = swap_op.with_tags(ops.RoutingSwapTag())
-                    routed_ops[timestep].append(swap_op)
+                        inserted_swap = inserted_swap.with_tags(ops.RoutingSwapTag())
+                    routed_ops[timestep].append(inserted_swap)
                     mm.apply_swap(*swap)
 
         return routed_ops
