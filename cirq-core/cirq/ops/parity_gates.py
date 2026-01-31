@@ -24,11 +24,8 @@ import numpy as np
 from cirq import protocols, value
 from cirq._compat import proper_repr
 from cirq._doc import document
-from cirq.ops import (
-    common_gates,
-    eigen_gate,
-    gate_features,
-)
+from cirq.ops import common_gates, eigen_gate, gate_features
+
 
 if TYPE_CHECKING:
     import cirq
