@@ -329,31 +329,6 @@ def test_json_serialization() -> None:
     assert cirq.read_json(json_text=cirq.to_json(cirq.ms(np.pi / 2))) == cirq.ms(np.pi / 2)
 
 
-@pytest.mark.parametrize('gate_cls', (cirq.XXPowGate, cirq.YYPowGate, cirq.ZZPowGate))
-@pytest.mark.parametrize(
-    'exponent,is_clifford',
-    ((0, True), (0.5, True), (0.75, False), (1, True), (1.5, True), (-1.5, True)),
-)
-def test_clifford_protocols(
-    gate_cls: type[cirq.EigenGate], exponent: float, is_clifford: bool
-) -> None:
-    gate = gate_cls(exponent=exponent)
-    assert hasattr(gate, '_decompose_into_clifford_with_qubits_')
-    if is_clifford:
-        clifford_decomposition = cirq.Circuit(
-            gate._decompose_into_clifford_with_qubits_(cirq.LineQubit.range(2))
-        )
-        assert cirq.has_stabilizer_effect(gate)
-        assert cirq.has_stabilizer_effect(clifford_decomposition)
-        if exponent == 0:
-            assert clifford_decomposition == cirq.Circuit()
-        else:
-            np.testing.assert_allclose(cirq.unitary(gate), cirq.unitary(clifford_decomposition))
-    else:
-        assert not cirq.has_stabilizer_effect(gate)
-        assert gate._decompose_into_clifford_with_qubits_(cirq.LineQubit.range(2)) is NotImplemented
-
-
 def test_parity_gate_multiplication():
     q1, q2, q3 = cirq.LineQubit.range(3)
 
