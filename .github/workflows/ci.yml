@@ -84,7 +84,7 @@ jobs:
       - name: Install mypy
         run: pip install -r dev_tools/requirements/mypy.env.txt
       - name: Type check
-        run: check/mypy
+        run: FORCE_COLOR=1 check/mypy
   changed_files:
     if: github.repository_owner == 'quantumlib'
     name: Changed files test
@@ -128,7 +128,7 @@ jobs:
       - name: Lint with ruff
         run: FORCE_COLOR=1 ruff check
       - name: Lint with pylint
-        run: check/pylint -v
+        run: check/pylint
   doc_test:
     if: github.repository_owner == 'quantumlib'
     name: Doc test

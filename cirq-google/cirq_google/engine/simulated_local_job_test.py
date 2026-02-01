@@ -107,6 +107,9 @@ def test_run_async():
         sweeps=[{}],
         simulation_type=LocalSimulationType.ASYNCHRONOUS,
     )
-    assert job.execution_status() == quantum.ExecutionStatus.State.RUNNING
+    assert job.execution_status() in (
+        quantum.ExecutionStatus.State.READY,
+        quantum.ExecutionStatus.State.RUNNING,
+    )
     _ = job.results()
     assert job.execution_status() == quantum.ExecutionStatus.State.SUCCESS

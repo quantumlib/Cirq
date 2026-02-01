@@ -39,6 +39,89 @@ extend_skip = ["__init__.py"]
 extend_skip_glob = ["*_pb2.py"]
 
 
+[tool.mypy]
+exclude = [
+    '/setup\.py',
+    'cirq-google/cirq_google/cloud/',
+]
+exclude_gitignore = true
+plugins = ["duet.typing"]
+show_error_codes = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = ["__main__"]
+follow_imports = "silent"
+ignore_missing_imports = true
+
+# Require explicit reexport from cirq modules
+[[tool.mypy.overrides]]
+module = ["cirq.*"]
+no_implicit_reexport = true
+
+# Generated code
+[[tool.mypy.overrides]]
+module = ["cirq_google.cloud.*"]
+follow_imports = "silent"
+
+# 3rd-party libs for which we don't have stubs
+
+# Google
+[[tool.mypy.overrides]]
+module = [
+    "google.api_core.*",
+    "google.auth.*",
+    "google.cloud.*",
+    "google.colab.*",
+    "google.oauth2.*",
+    "qsimcirq",
+]
+follow_imports = "silent"
+ignore_missing_imports = true
+
+# Treat symbols imported from Google's protobuf library as type Any.
+# This suppresses errors due to attributes not known to typeshed,
+# e.g. Descriptor._options.
+[[tool.mypy.overrides]]
+module = ["google.protobuf.*"]
+follow_imports = "skip"
+follow_imports_for_stubs = true
+
+# Non-Google
+[[tool.mypy.overrides]]
+module = [
+    "IPython.*",
+    "_pytest.*",
+    "absl.*",
+    "astroid.*",
+    "cachetools.*",
+    "filelock.*",
+    "ipywidgets.*",
+    "matplotlib.*",
+    "mpl_toolkits.*",
+    "networkx.*",
+    "pandas.*",
+    "ply.*",
+    "proto.*",
+    "pylatex.*",
+    "pylint.*",
+    "pytest.*",
+    "qiskit.*",
+    "quimb.*",
+    "ruamel.*",
+    "scipy.*",
+    "setuptools.*",
+    "sortedcontainers.*",
+    "stimcirq.*",
+    "sympy.*",
+    "tensorflow_docs.*",
+    "tqdm.*",
+]
+follow_imports = "silent"
+ignore_missing_imports = true
+
+
 [tool.pytest.ini_options]
 filterwarnings = [
     "ignore:Matplotlib is currently using agg:UserWarning",
@@ -51,6 +134,72 @@ markers = [
 ]
 # Silence deprecation warnings about option "asyncio_default_fixture_loop_scope"
 asyncio_default_fixture_loop_scope = "function"
+
+
+[tool.pylint.main]
+fail-on = ["I"]
+ignore-long-lines = "^(.*#\\w*pylint: disable.*|\\s*(# )?[<\\[\\(]?https?://\\S+[>\\]\\)]?)$"
+ignore-paths=[
+    "cirq-google/cirq_google/cloud/",
+    "cirq-web/cirq_web/node_modules/",
+]
+ignore-patterns = [".*_pb2\\.py"]
+load-plugins = [
+    "dev_tools.pylint_copyright_checker",
+    "pylint.extensions.docparams",
+    "pylint.extensions.docstyle",
+]
+max-line-length = 100
+
+[tool.pylint.messages_control]
+disable = ["all"]
+enable= [
+    "abstract-class-instantiated",
+    "assert-on-tuple",
+    "assignment-from-no-return",
+    "bad-chained-comparison",
+    "bad-indentation",
+    "bad-mcs-classmethod-argument",
+    "bad-mcs-method-argument",
+    "bad-option-value",
+    "bad-reversed-sequence",
+    "bad-super-call",
+    "consider-using-f-string",
+    "deprecated-decorator",
+    "docstyle",
+    "duplicate-argument-name",
+    "inconsistent-mro",
+    "method-hidden",
+    "missing-kwoa",
+    "missing-param-doc",
+    "missing-raises-doc",
+    "mixed-line-endings",
+    "no-value-for-parameter",
+    "raising-bad-type",
+    "raising-format-tuple",
+    "redefined-slots-in-subclass",
+    "return-arg-in-generator",
+    "self-cls-assignment",
+    "shadowed-import",
+    "simplifiable-condition",
+    "simplifiable-if-statement",
+    "too-many-function-args",
+    "trailing-whitespace",
+    "unhashable-dict-key",
+    "unnecessary-semicolon",
+    "unreachable",
+    "unrecognized-inline-option",
+    "use-maxsplit-arg",
+    "useless-suppression",
+    "using-constant-test",
+    "wrong-import-order",
+    "wrong-or-nonexistent-copyright-notice",
+]
+
+[tool.pylint.reports]
+output-format = "colorized"
+reports = false
+score = false
 
 
 [tool.ruff]
