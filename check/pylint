@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ################################################################################
-# Runs pylint on the repository using a preconfigured .pylintrc file.
+# Runs pylint on the repository.
 #
 # Usage:
 #     check/pylint [--flags for pylint]
@@ -12,9 +12,5 @@ thisdir=$(dirname "${BASH_SOURCE[0]:?}") || exit $?
 repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel) || exit $?
 cd "${repo_dir}" || exit $?
 
-read -r -a CIRQ_MODULES < \
-    <(env PYTHONPATH=. python dev_tools/modules.py list --mode package-path)
-
-# Add dev_tools to $PYTHONPATH so that pylint can find custom checkers
-env PYTHONPATH=dev_tools pylint --jobs=0 --rcfile=dev_tools/conf/.pylintrc "$@" \
-    "${CIRQ_MODULES[@]}" benchmarks dev_tools examples
+source dev_tools/pypath || exit $?
+pylint --jobs=0 "$@" .
