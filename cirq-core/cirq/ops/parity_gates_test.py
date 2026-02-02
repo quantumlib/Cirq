@@ -329,6 +329,18 @@ def test_json_serialization() -> None:
     assert cirq.read_json(json_text=cirq.to_json(cirq.ms(np.pi / 2))) == cirq.ms(np.pi / 2)
 
 
+@pytest.mark.parametrize('gate_cls', (cirq.XXPowGate, cirq.YYPowGate, cirq.ZZPowGate))
+@pytest.mark.parametrize(
+    ['exponent', 'is_clifford'],
+    ((0, True), (0.5, True), (0.75, False), (1, True), (1.5, True), (-1.5, True)),
+)
+def test_has_stabilizer_effect(
+    gate_cls: type[cirq.EigenGate], exponent: float, is_clifford: bool
+) -> None:
+    gate = gate_cls(exponent=exponent)
+    assert cirq.has_stabilizer_effect(gate) is is_clifford
+
+
 def test_parity_gate_multiplication():
     q1, q2, q3 = cirq.LineQubit.range(3)
 
