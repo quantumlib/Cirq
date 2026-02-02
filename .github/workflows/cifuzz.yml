@@ -27,14 +27,12 @@ jobs:
       security-events: write
     steps:
     - name: Checkout Code
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
     - name: Cache build artifacts
-      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+      uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
       with:
-        path: |
-          ~/.cache/pip
-          ~/.cache/bazel
-        key: ${{runner.os}}-cifuzz-${{hashFiles('cirq-*/**')}}
+        path: ~/.cache/pip
+        key: ${{runner.os}}-cifuzz-${{hashFiles('cirq-*/**/requirements.txt')}}
         restore-keys: ${{runner.os}}-cifuzz-
     - name: Build Fuzzers
       id: build
@@ -49,6 +47,7 @@ jobs:
         language: python
         fuzz-seconds: 300
         output-sarif: true
+        parallel-fuzzing: true
     - name: Upload artifacts to workflow page if a failure occurred
       uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
       if: failure() && steps.build.outcome == 'success'
