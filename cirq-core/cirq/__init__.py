@@ -520,6 +520,7 @@ from cirq.study import (
     Product as Product,
     Sweep as Sweep,
     Sweepable as Sweepable,
+    symbol as symbol,
     to_resolvers as to_resolvers,
     to_sweep as to_sweep,
     to_sweeps as to_sweeps,

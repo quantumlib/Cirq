@@ -26,6 +26,7 @@ from cirq.study.resolver import (
     ParamMappingType as ParamMappingType,
     ParamResolver as ParamResolver,
     ParamResolverOrSimilarType as ParamResolverOrSimilarType,
+    symbol as symbol,
 )
 
 from cirq.study.sweepable import (
