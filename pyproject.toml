@@ -17,6 +17,7 @@ include = [
     # Failure to do so will result in false positives.
     "./*",
 ]
+omit = ["benchmarks/*"]
 patch = ["subprocess"]
 # Speed up pytest-cov on Python 3.12+ by enabling sys.monitoring if possible.
 core = "sysmon"
