@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Value conversion utilities and classes for time and quantum states."""
+
 from cirq.value.abc_alt import (
     ABCMetaImplementAnyOneOf as ABCMetaImplementAnyOneOf,
     alternative as alternative,

@@ -240,9 +240,7 @@ def test_mixed_block_curve() -> None:
 
                    ┃     ┃     ┃     │     │     │
 ───   ─┰─   ─┬─   ─┸─   ─╂─   ─╀─   ─┴─   ─╁─   ─┼─
-       ┃     │           ┃     │           ┃     │"""[
-        1:
-    ]
+       ┃     │           ┃     │           ┃     │"""[1:]
     _assert_same_diagram(actual, expected)
 
 
@@ -259,9 +257,7 @@ def test_lines_meet_content() -> None:
         d.render(),
         """
 long text<<<<<<<<<<
-with multiple lines"""[
-            1:
-        ],
+with multiple lines"""[1:],
     )
 
     b.horizontal_alignment = 0.5
@@ -269,9 +265,7 @@ with multiple lines"""[
         d.render(),
         """
 >>>>>long text<<<<<
-with multiple lines"""[
-            1:
-        ],
+with multiple lines"""[1:],
     )
 
     _assert_same_diagram(
@@ -281,9 +275,7 @@ with multiple lines"""[
          v
 >>>>>long text<<<<<
 with multiple lines
-         ^"""[
-            1:
-        ],
+         ^"""[1:],
     )
 
     _assert_same_diagram(
@@ -292,9 +284,7 @@ with multiple lines
          v
 >>>>>long text<<<<<
 with multiple lines
-         ^"""[
-            1:
-        ],
+         ^"""[1:],
     )
 
     _assert_same_diagram(
@@ -319,9 +309,7 @@ with multiple lines
                    ^
                    ^
                    ^
-                   ^"""[
-            1:
-        ],
+                   ^"""[1:],
     )
 
     _assert_same_diagram(
@@ -347,9 +335,7 @@ with multiple lines
                     ^
                     ^
                     ^
-                    ^"""[
-            1:
-        ],
+                    ^"""[1:],
     )
 
     b.content = 'short text'
@@ -376,9 +362,7 @@ with multiple lines
                     ^
                     ^
                     ^
-                    ^"""[
-            1:
-        ],
+                    ^"""[1:],
     )
 
     b.content = 'abc\ndef\nghi'
@@ -405,9 +389,7 @@ with multiple lines
                     ^
                     ^
                     ^
-                    ^"""[
-            1:
-        ],
+                    ^"""[1:],
     )
 
 
@@ -426,9 +408,7 @@ def test_content_stretches_other_blocks() -> None:
         """
      long text     ┼
 with multiple lines│
-─────────┼─────────┼"""[
-            1:
-        ],
+─────────┼─────────┼"""[1:],
     )
 
 
@@ -445,9 +425,7 @@ def test_lines_stretch_content() -> None:
         """
 
 
-  C"""[
-            1:
-        ],
+  C"""[1:],
     )
 
 
