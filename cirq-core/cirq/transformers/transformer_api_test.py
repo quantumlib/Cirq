@@ -274,9 +274,7 @@ def test_transformer_stats_logger_linear_and_nested(capfd):
     circuit = t3(circuit, context=context)
     context.logger.show(LogLevel.ALL)
     out, _ = capfd.readouterr()
-    assert (
-        out.strip()
-        == '''
+    assert out.strip() == '''
 Transformer-1: T1
 Initial Circuit:
 0: ───H───@───
@@ -352,4 +350,3 @@ Final Circuit:
         1: ───H───X───X───H───H───X───X───H───H───X───X───H───H───X───X───H───
 ----------------------------------------
 '''.strip()
-    )

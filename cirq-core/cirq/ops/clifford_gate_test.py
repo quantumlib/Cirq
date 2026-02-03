@@ -938,15 +938,12 @@ stable   | destable
 +     Z2 | +   Z1X2
 """
     )
-    assert (
-        repr(cirq.ops.CliffordGate.CNOT)
-        == """Clifford Gate with Tableau:
+    assert repr(cirq.ops.CliffordGate.CNOT) == """Clifford Gate with Tableau:
 stable | destable
 -------+----------
 + Z0   | + X0X1
 + Z0Z1 | +   X1
 """
-    )
 
 
 def test_single_qubit_clifford_gate_repr() -> None:

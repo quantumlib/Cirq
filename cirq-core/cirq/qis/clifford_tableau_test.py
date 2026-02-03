@@ -36,7 +36,7 @@ def _S(table, q):
 
 
 def _H(table, q):
-    (table.xs[:, q], table.zs[:, q]) = (table.zs[:, q].copy(), table.xs[:, q].copy())
+    table.xs[:, q], table.zs[:, q] = (table.zs[:, q].copy(), table.xs[:, q].copy())
     table.rs[:] ^= table.xs[:, q] & table.zs[:, q]
 
 
