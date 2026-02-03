@@ -89,9 +89,7 @@ def test_route_circuit_reproducible_between_runs(algo) -> None:
                                          │
 (1, 2): ───0────X─────0────────────0─────iSwap────0───
                └──┘       └────┘       └──────┘
-    """.lstrip(
-        '\n'
-    ).rstrip()
+    """.lstrip('\n').rstrip()
     assert swap_network_str == expected_swap_network_str
 
 

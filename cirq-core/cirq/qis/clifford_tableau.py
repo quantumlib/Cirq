@@ -585,18 +585,12 @@ class CliffordTableau(StabilizerState):
         effective_exponent = exponent % 2
         if effective_exponent == 0.5:
             self.rs[:] ^= self.xs[:, axis] & (~self.zs[:, axis])
-            (self.xs[:, axis], self.zs[:, axis]) = (
-                self.zs[:, axis].copy(),
-                self.xs[:, axis].copy(),
-            )
+            self.xs[:, axis], self.zs[:, axis] = (self.zs[:, axis].copy(), self.xs[:, axis].copy())
         elif effective_exponent == 1:
             self.rs[:] ^= self.xs[:, axis] ^ self.zs[:, axis]
         elif effective_exponent == 1.5:
             self.rs[:] ^= ~(self.xs[:, axis]) & self.zs[:, axis]
-            (self.xs[:, axis], self.zs[:, axis]) = (
-                self.zs[:, axis].copy(),
-                self.xs[:, axis].copy(),
-            )
+            self.xs[:, axis], self.zs[:, axis] = (self.zs[:, axis].copy(), self.xs[:, axis].copy())
 
     def apply_z(self, axis: int, exponent: float = 1, global_shift: float = 0) -> None:
         if exponent % 2 == 0:
@@ -628,7 +622,7 @@ class CliffordTableau(StabilizerState):
             return
         if exponent % 1 != 0:
             raise ValueError('CZ exponent must be integer')  # pragma: no cover
-        (self.xs[:, target_axis], self.zs[:, target_axis]) = (
+        self.xs[:, target_axis], self.zs[:, target_axis] = (
             self.zs[:, target_axis].copy(),
             self.xs[:, target_axis].copy(),
         )
@@ -640,7 +634,7 @@ class CliffordTableau(StabilizerState):
         )
         self.xs[:, target_axis] ^= self.xs[:, control_axis]
         self.zs[:, control_axis] ^= self.zs[:, target_axis]
-        (self.xs[:, target_axis], self.zs[:, target_axis]) = (
+        self.xs[:, target_axis], self.zs[:, target_axis] = (
             self.zs[:, target_axis].copy(),
             self.xs[:, target_axis].copy(),
         )

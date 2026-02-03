@@ -45,12 +45,9 @@ def test_line_placement_str():
     q01 = cirq.GridQubit(0, 1)
     q02 = cirq.GridQubit(0, 2)
     placement = GridQubitLineTuple([q00, q01, q02])
-    assert (
-        str(placement).strip()
-        == """
+    assert str(placement).strip() == """
 q(0, 0)━━q(0, 1)━━q(0, 2)
     """.strip()
-    )
 
 
 def test_line_placement_to_str():
@@ -60,11 +57,8 @@ def test_line_placement_to_str():
     q10 = cirq.GridQubit(1, 0)
     q11 = cirq.GridQubit(1, 1)
     placement = GridQubitLineTuple([q02, q01, q00, q10, q11])
-    assert (
-        str(placement).strip()
-        == """
+    assert str(placement).strip() == """
 q(0, 0)━━q(0, 1)━━q(0, 2)
 ┃
 q(1, 0)━━q(1, 1)
     """.strip()
-    )

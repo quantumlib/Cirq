@@ -132,16 +132,14 @@ def test_plotting(sampler, qubits, ax) -> None:
 
 _TEST_RESULT = cirq.experiments.TwoQubitXEBResult(
     pd.read_csv(
-        io.StringIO(
-            """layer_i,pair_i,pair,a,layer_fid,cycle_depths,fidelities,a_std,layer_fid_std
+        io.StringIO("""layer_i,pair_i,pair,a,layer_fid,cycle_depths,fidelities,a_std,layer_fid_std
 0,0,"(cirq.GridQubit(4, 4), cirq.GridQubit(5, 4))",,0.9,[],[],,
 0,1,"(cirq.GridQubit(5, 3), cirq.GridQubit(6, 3))",,0.8,[],[],,
 1,0,"(cirq.GridQubit(4, 3), cirq.GridQubit(5, 3))",,0.3,[],[],,
 1,1,"(cirq.GridQubit(5, 4), cirq.GridQubit(6, 4))",,0.2,[],[],,
 2,0,"(cirq.GridQubit(4, 3), cirq.GridQubit(4, 4))",,0.1,[],[],,
 2,1,"(cirq.GridQubit(6, 3), cirq.GridQubit(6, 4))",,0.5,[],[],,
-3,0,"(cirq.GridQubit(5, 3), cirq.GridQubit(5, 4))",,0.4,[],[],"""
-        ),
+3,0,"(cirq.GridQubit(5, 3), cirq.GridQubit(5, 4))",,0.4,[],[],"""),
         index_col=[0, 1, 2],
         converters={2: lambda s: eval(s)},
     )
