@@ -24,7 +24,6 @@ import cirq
 
 
 def test_x_gate() -> None:
-    """Tests the X gate."""
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit()
     circuit.append(cirq.X(q0))
@@ -38,8 +37,7 @@ def test_x_gate() -> None:
     np.testing.assert_equal(results, expected_results)
 
 
-def test_CNOT() -> None:  # pylint: disable=invalid-name
-    """Tests the CNOT gate."""
+def test_CNOT() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit()
     circuit.append(cirq.X(q0))
@@ -52,8 +50,7 @@ def test_CNOT() -> None:  # pylint: disable=invalid-name
     np.testing.assert_equal(results, expected_results)
 
 
-def test_Swap() -> None:  # pylint: disable=invalid-name
-    """Tests the SWAP gate."""
+def test_Swap() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit()
     circuit.append(cirq.X(q0))
@@ -74,7 +71,6 @@ def test_Swap() -> None:  # pylint: disable=invalid-name
     ],
 )
 def test_qubit_permutation_gate(n, perm, state) -> None:
-    """Tests the QubitPermutationGate."""
     qubits = cirq.LineQubit.range(n)
     perm_gate = cirq.QubitPermutationGate(perm)
     circuit = cirq.Circuit(perm_gate(*qubits), cirq.measure(*qubits, key='key'))
@@ -87,8 +83,7 @@ def test_qubit_permutation_gate(n, perm, state) -> None:
     np.testing.assert_equal(result.measurements['key'], expected)
 
 
-def test_CCNOT() -> None:  # pylint: disable=invalid-name
-    """Tests the CCNOT gate."""
+def test_CCNOT() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit()
     circuit.append(cirq.CCNOT(q0, q1, q2))
@@ -113,8 +108,7 @@ def test_CCNOT() -> None:  # pylint: disable=invalid-name
 
 
 @pytest.mark.parametrize(['initial_state'], [(list(x),) for x in product([0, 1], repeat=4)])
-def test_CCCX(initial_state) -> None:  # pylint: disable=invalid-name
-    """Tests the CCCX gate."""
+def test_CCCX(initial_state) -> None:
     CCCX = cirq.CCNOT.controlled()
     qubits = cirq.LineQubit.range(4)
 
@@ -133,7 +127,6 @@ def test_CCCX(initial_state) -> None:  # pylint: disable=invalid-name
 
 @pytest.mark.parametrize(['initial_state'], [(list(x),) for x in product([0, 1], repeat=3)])
 def test_controlled_SWAP(initial_state) -> None:  # pylint: disable=invalid-name
-    """Tests the controlled SWAP gate."""
     CSWAP = cirq.SWAP.controlled()
     qubits = cirq.LineQubit.range(3)
     circuit = cirq.Circuit()
@@ -154,7 +147,6 @@ def test_controlled_SWAP(initial_state) -> None:  # pylint: disable=invalid-name
 
 
 def test_CSWAP() -> None:  # pylint: disable=invalid-name
-    """Tests the CSWAP gate."""
     # Specifically test named CSWAP gate, not just controlled(SWAP)
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit()
@@ -349,7 +341,9 @@ def test_create_partial_simulation_state_from_int_with_no_qubits() -> None:
     classical_data = cirq.value.ClassicalDataDictionaryStore()
     with pytest.raises(ValueError):
         sim._create_partial_simulation_state(
-            initial_state=initial_state, qubits=qs, classical_data=classical_data,  # type: ignore
+            initial_state=initial_state,
+            qubits=qs,  # type: ignore[arg-type]
+            classical_data=classical_data,
         )
 
 

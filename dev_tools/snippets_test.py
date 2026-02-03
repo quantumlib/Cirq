@@ -62,7 +62,6 @@ import pytest
 import cirq
 
 DOCS_FOLDER = pathlib.Path(__file__).parent.parent / 'docs'
-
 DEFAULT_STATE: dict[str, Any] = {}
 
 
