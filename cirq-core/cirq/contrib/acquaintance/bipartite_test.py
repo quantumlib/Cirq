@@ -22,20 +22,12 @@ import cirq
 import cirq.contrib.acquaintance as cca
 
 circuit_diagrams = {
-    (
-        'undecomposed',
-        cca.BipartiteGraphType.COMPLETE,
-        1,
-    ): """
+    ('undecomposed', cca.BipartiteGraphType.COMPLETE, 1): """
 0: ───K_{1, 1}:(0, 0)↦(0, 0)───
       │
 1: ───K_{1, 1}:(1, 0)↦(1, 0)───
 """,
-    (
-        'undecomposed',
-        cca.BipartiteGraphType.COMPLETE,
-        2,
-    ): """
+    ('undecomposed', cca.BipartiteGraphType.COMPLETE, 2): """
 0: ───K_{2, 2}:(0, 0)↦(0, 0)───
       │
 1: ───K_{2, 2}:(0, 1)↦(0, 1)───
@@ -44,11 +36,7 @@ circuit_diagrams = {
       │
 3: ───K_{2, 2}:(1, 1)↦(1, 1)───
 """,
-    (
-        'undecomposed',
-        cca.BipartiteGraphType.COMPLETE,
-        3,
-    ): """
+    ('undecomposed', cca.BipartiteGraphType.COMPLETE, 3): """
 0: ───K_{3, 3}:(0, 0)↦(0, 0)───
       │
 1: ───K_{3, 3}:(0, 1)↦(0, 1)───
@@ -61,11 +49,7 @@ circuit_diagrams = {
       │
 5: ───K_{3, 3}:(1, 2)↦(1, 2)───
 """,
-    (
-        'undecomposed',
-        cca.BipartiteGraphType.COMPLETE,
-        4,
-    ): """
+    ('undecomposed', cca.BipartiteGraphType.COMPLETE, 4): """
 0: ───K_{4, 4}:(0, 0)↦(0, 0)───
       │
 1: ───K_{4, 4}:(0, 1)↦(0, 1)───
@@ -82,20 +66,12 @@ circuit_diagrams = {
       │
 7: ───K_{4, 4}:(1, 3)↦(1, 3)───
 """,
-    (
-        'undecomposed',
-        cca.BipartiteGraphType.MATCHING,
-        1,
-    ): """
+    ('undecomposed', cca.BipartiteGraphType.MATCHING, 1): """
 0: ───Matching:(0, 0)↦(0, 0)───
       │
 1: ───Matching:(1, 0)↦(1, 0)───
 """,
-    (
-        'undecomposed',
-        cca.BipartiteGraphType.MATCHING,
-        2,
-    ): """
+    ('undecomposed', cca.BipartiteGraphType.MATCHING, 2): """
 0: ───Matching:(0, 0)↦(0, 1)───
       │
 1: ───Matching:(0, 1)↦(0, 0)───
@@ -104,11 +80,7 @@ circuit_diagrams = {
       │
 3: ───Matching:(1, 1)↦(1, 0)───
 """,
-    (
-        'undecomposed',
-        cca.BipartiteGraphType.MATCHING,
-        3,
-    ): """
+    ('undecomposed', cca.BipartiteGraphType.MATCHING, 3): """
 0: ───Matching:(0, 0)↦(0, 2)───
       │
 1: ───Matching:(0, 1)↦(0, 1)───
@@ -121,11 +93,7 @@ circuit_diagrams = {
       │
 5: ───Matching:(1, 2)↦(1, 0)───
 """,
-    (
-        'undecomposed',
-        cca.BipartiteGraphType.MATCHING,
-        4,
-    ): """
+    ('undecomposed', cca.BipartiteGraphType.MATCHING, 4): """
 0: ───Matching:(0, 0)↦(0, 3)───
       │
 1: ───Matching:(0, 1)↦(0, 2)───
@@ -142,20 +110,12 @@ circuit_diagrams = {
       │
 7: ───Matching:(1, 3)↦(1, 0)───
 """,
-    (
-        'decomposed',
-        cca.BipartiteGraphType.COMPLETE,
-        1,
-    ): """
+    ('decomposed', cca.BipartiteGraphType.COMPLETE, 1): """
 0: ───█───
       │
 1: ───█───
 """,
-    (
-        'decomposed',
-        cca.BipartiteGraphType.COMPLETE,
-        2,
-    ): """
+    ('decomposed', cca.BipartiteGraphType.COMPLETE, 2): """
 0: ─────────────█───0↦1───────█───0↦1─────────────
                 │   │         │   │
 1: ───█───0↦1───█───1↦0───█───█───1↦0───█───0↦1───
@@ -164,11 +124,7 @@ circuit_diagrams = {
                 │   │         │   │
 3: ─────────────█───1↦0───────█───1↦0─────────────
 """,
-    (
-        'decomposed',
-        cca.BipartiteGraphType.COMPLETE,
-        3,
-    ): """
+    ('decomposed', cca.BipartiteGraphType.COMPLETE, 3): """
 0: ───────────────────────█───0↦1───────────────────────────█───0↦1───────────────────────
                           │   │                             │   │
 1: ─────────────█───0↦1───█───1↦0───█───0↦1───────█───0↦1───█───1↦0───█───0↦1─────────────
@@ -182,11 +138,7 @@ circuit_diagrams = {
 5: ───────────────────────█───1↦0───────────────────────────█───1↦0───────────────────────
 
 """,
-    (
-        'decomposed',
-        cca.BipartiteGraphType.COMPLETE,
-        4,
-    ): """
+    ('decomposed', cca.BipartiteGraphType.COMPLETE, 4): """
 0: ─────────────────────────────────█───0↦1───────────────────────────────────────────────█───0↦1─────────────────────────────────
                                     │   │                                                 │   │
 1: ───────────────────────█───0↦1───█───1↦0───█───0↦1───────────────────────────█───0↦1───█───1↦0───█───0↦1───────────────────────
@@ -204,20 +156,12 @@ circuit_diagrams = {
 7: ─────────────────────────────────█───1↦0───────────────────────────────────────────────█───1↦0─────────────────────────────────
 
 """,  # noqa: E501
-    (
-        'decomposed',
-        cca.BipartiteGraphType.MATCHING,
-        1,
-    ): """
+    ('decomposed', cca.BipartiteGraphType.MATCHING, 1): """
 0: ───█───
       │
 1: ───█───
 """,
-    (
-        'decomposed',
-        cca.BipartiteGraphType.MATCHING,
-        2,
-    ): """
+    ('decomposed', cca.BipartiteGraphType.MATCHING, 2): """
 0: ───────0↦1───────
           │
 1: ───█───1↦0───█───
@@ -226,11 +170,7 @@ circuit_diagrams = {
           │
 3: ───────1↦0───────
 """,
-    (
-        'decomposed',
-        cca.BipartiteGraphType.MATCHING,
-        3,
-    ): """
+    ('decomposed', cca.BipartiteGraphType.MATCHING, 3): """
 0: ─────────────0↦1─────────────
                 │
 1: ───────0↦1───1↦0───0↦1───────
@@ -243,11 +183,7 @@ circuit_diagrams = {
                 │
 5: ─────────────1↦0─────────────
 """,
-    (
-        'decomposed',
-        cca.BipartiteGraphType.MATCHING,
-        4,
-    ): """
+    ('decomposed', cca.BipartiteGraphType.MATCHING, 4): """
 0: ───────────────────0↦1───────────────────
                       │
 1: ─────────────0↦1───1↦0───0↦1─────────────

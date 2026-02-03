@@ -422,7 +422,7 @@ def test_sweep_with_flattened_sweep():
         cirq.measure(q, key='m'),
     )
     param_sweep1 = cirq.Linspace('t', start=0, stop=1, length=20)
-    (_, param_sweep2) = cirq.flatten_with_sweep(circuit, param_sweep1)
+    _, param_sweep2 = cirq.flatten_with_sweep(circuit, param_sweep1)
     assert v2.sweep_to_proto(param_sweep2) is not None
 
 

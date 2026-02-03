@@ -1189,11 +1189,9 @@ class QasmParser:
         if p is None:
             raise QasmException('Unexpected end of file')
 
-        raise QasmException(
-            f"""Syntax error: '{p.value}'
+        raise QasmException(f"""Syntax error: '{p.value}'
 {self.debug_context(p)}
-at line {p.lineno}, column {self.find_column(p)}"""
-        )
+at line {p.lineno}, column {self.find_column(p)}""")
 
     def find_column(self, p):
         line_start = self.qasm.rfind('\n', 0, p.lexpos) + 1
