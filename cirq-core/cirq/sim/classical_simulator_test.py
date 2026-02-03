@@ -125,14 +125,14 @@ def test_CCCX(initial_state) -> None:
     np.testing.assert_equal(results, final_state)
 
 
-@pytest.mark.parametrize(['initial_state'], [(list(x),) for x in product([0, 1], repeat=3)])
-def test_controlled_SWAP(initial_state) -> None:  # pylint: disable=invalid-name
-    CSWAP = cirq.SWAP.controlled()
+@pytest.mark.parametrize('initial_state', product([0, 1], repeat=3))
+@pytest.mark.parametrize('cswap', [cirq.CSWAP, cirq.SWAP.controlled()], ids=str)
+def test_controlled_swap(cswap: cirq.Gate, initial_state: tuple[int, int, int]) -> None:
     qubits = cirq.LineQubit.range(3)
     circuit = cirq.Circuit()
 
     circuit = cirq.Circuit()
-    circuit.append(CSWAP(*qubits))
+    circuit.append(cswap(*qubits))
     circuit.append(cirq.measure(qubits, key='key'))
 
     a, b, c = initial_state
@@ -144,24 +144,6 @@ def test_controlled_SWAP(initial_state) -> None:  # pylint: disable=invalid-name
     sim = cirq.ClassicalStateSimulator()
     results = sim.simulate(circuit, initial_state=initial_state).measurements['key']
     np.testing.assert_equal(results, final_state)
-
-
-def test_CSWAP() -> None:  # pylint: disable=invalid-name
-    # Specifically test named CSWAP gate, not just controlled(SWAP)
-    q0, q1, q2 = cirq.LineQubit.range(3)
-    circuit = cirq.Circuit()
-    # Control q0=1, so swap q1, q2
-    circuit.append(cirq.X(q0))
-    circuit.append(cirq.X(q1))
-    circuit.append(cirq.CSWAP(q0, q1, q2))  # q0=1 -> swap q1=1, q2=0 -> q1=0, q2=1
-    circuit.append(cirq.measure((q0, q1, q2), key='key'))
-
-    sim: cirq.ClassicalStateSimulator
-    sim = cirq.ClassicalStateSimulator()
-    result = sim.run(circuit, repetitions=1)
-    # Expected: 1, 0, 1
-    expected = np.array([[[1, 0, 1]]], dtype=np.uint8)
-    np.testing.assert_equal(result.records['key'], expected)
 
 
 def test_measurement_gate() -> None:
