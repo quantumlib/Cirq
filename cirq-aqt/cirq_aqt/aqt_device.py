@@ -148,14 +148,14 @@ class AQTNoiseModel(cirq.NoiseModel):
 
         if len(operation.qubits) == 1:
             for idx in xtlk_arr.nonzero()[0]:
-                exponent = operation.gate.exponent  # type:ignore
+                exponent = operation.gate.exponent  # type: ignore
                 exponent = exponent * xtlk_arr[idx]
-                xtlk_op = operation.gate.on(system_qubits[idx]) ** exponent  # type:ignore
+                xtlk_op = operation.gate.on(system_qubits[idx]) ** exponent  # type: ignore
                 xtlk_op_list.append(xtlk_op)
         elif len(operation.qubits) == 2:
             for op_qubit in operation.qubits:
                 for idx in xtlk_arr.nonzero()[0]:
-                    exponent = operation.gate.exponent  # type:ignore
+                    exponent = operation.gate.exponent  # type: ignore
                     exponent = exponent * xtlk_arr[idx]
                     xtlk_op = gate.on(op_qubit, system_qubits[idx]) ** exponent
                     xtlk_op_list.append(xtlk_op)

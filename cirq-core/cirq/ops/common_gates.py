@@ -49,9 +49,7 @@ from cirq.ops import (
 from cirq.ops.measurement_gate import MeasurementGate
 from cirq.ops.swap_gates import ISWAP, ISwapPowGate, SWAP, SwapPowGate
 
-assert all(
-    [ISWAP, SWAP, ISwapPowGate, SwapPowGate, MeasurementGate]
-), """
+assert all([ISWAP, SWAP, ISwapPowGate, SwapPowGate, MeasurementGate]), """
 Included for compatibility. Please continue to use top-level cirq.{thing}
 imports.
 """
@@ -161,19 +159,6 @@ class XPowGate(eigen_gate.EigenGate):
         return XPowGate(
             exponent=exponent, global_shift=self._global_shift, dimension=self._dimension
         )
-
-    def _decompose_into_clifford_with_qubits_(self, qubits):
-        from cirq.ops.clifford_gate import SingleQubitCliffordGate
-
-        if self.exponent % 2 == 0:
-            return []
-        if self.exponent % 2 == 0.5:
-            return SingleQubitCliffordGate.X_sqrt.on(*qubits)
-        if self.exponent % 2 == 1:
-            return SingleQubitCliffordGate.X.on(*qubits)
-        if self.exponent % 2 == 1.5:
-            return SingleQubitCliffordGate.X_nsqrt.on(*qubits)
-        return NotImplemented  # pragma: no cover
 
     def _trace_distance_bound_(self) -> float | None:
         if self._is_parameterized_() or self._dimension != 2:
@@ -423,19 +408,6 @@ class YPowGate(eigen_gate.EigenGate):
         """Returns an equal-up-global-phase standardized form of the gate."""
         return YPowGate(exponent=self._exponent)
 
-    def _decompose_into_clifford_with_qubits_(self, qubits):
-        from cirq.ops.clifford_gate import SingleQubitCliffordGate
-
-        if self.exponent % 2 == 0:
-            return []
-        if self.exponent % 2 == 0.5:
-            return SingleQubitCliffordGate.Y_sqrt.on(*qubits)
-        if self.exponent % 2 == 1:
-            return SingleQubitCliffordGate.Y.on(*qubits)
-        if self.exponent % 2 == 1.5:
-            return SingleQubitCliffordGate.Y_nsqrt.on(*qubits)
-        return NotImplemented  # pragma: no cover
-
     def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
         return [
             (0, np.array([[0.5, -0.5j], [0.5j, 0.5]])),
@@ -632,19 +604,6 @@ class ZPowGate(eigen_gate.EigenGate):
         if p != 1:
             args.target_tensor *= p
         return args.target_tensor
-
-    def _decompose_into_clifford_with_qubits_(self, qubits):
-        from cirq.ops.clifford_gate import SingleQubitCliffordGate
-
-        if self.exponent % 2 == 0:
-            return []
-        if self.exponent % 2 == 0.5:
-            return SingleQubitCliffordGate.Z_sqrt.on(*qubits)
-        if self.exponent % 2 == 1:
-            return SingleQubitCliffordGate.Z.on(*qubits)
-        if self.exponent % 2 == 1.5:
-            return SingleQubitCliffordGate.Z_nsqrt.on(*qubits)
-        return NotImplemented  # pragma: no cover
 
     def in_su2(self) -> Rz:
         """Returns an equal-up-global-phase gate from the group SU2."""
@@ -952,15 +911,6 @@ class HPowGate(eigen_gate.EigenGate):
             }
         )
 
-    def _decompose_into_clifford_with_qubits_(self, qubits):
-        from cirq.ops.clifford_gate import SingleQubitCliffordGate
-
-        if self.exponent % 2 == 1:
-            return SingleQubitCliffordGate.H.on(*qubits)
-        if self.exponent % 2 == 0:
-            return []
-        return NotImplemented  # pragma: no cover
-
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray | None:
         if self._exponent != 1:
             return NotImplemented
@@ -1047,15 +997,6 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
     def _num_qubits_(self) -> int:
         return 2
-
-    def _decompose_into_clifford_with_qubits_(self, qubits):
-        from cirq.ops.pauli_interaction_gate import PauliInteractionGate
-
-        if self.exponent % 2 == 1:
-            return PauliInteractionGate.CZ.on(*qubits)
-        if self.exponent % 2 == 0:
-            return []
-        return NotImplemented  # pragma: no cover
 
     def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
         return [(0, np.diag([1, 1, 1, 0])), (1, np.diag([0, 0, 0, 1]))]
@@ -1229,15 +1170,6 @@ class CXPowGate(eigen_gate.EigenGate):
 
     def _num_qubits_(self) -> int:
         return 2
-
-    def _decompose_into_clifford_with_qubits_(self, qubits):
-        from cirq.ops.pauli_interaction_gate import PauliInteractionGate
-
-        if self.exponent % 2 == 1:
-            return PauliInteractionGate.CNOT.on(*qubits)
-        if self.exponent % 2 == 0:
-            return []
-        return NotImplemented  # pragma: no cover
 
     def _decompose_(self, qubits):
         c, t = qubits

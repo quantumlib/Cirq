@@ -52,7 +52,7 @@ def test_run_hadamard() -> None:
 
 
 def test_run_GHZ() -> None:
-    (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
+    q0, q1 = (cirq.LineQubit(0), cirq.LineQubit(1))
     simulator = cirq.CliffordSimulator()
     circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.measure(q0))
     result = simulator.run(circuit, repetitions=100)
@@ -305,28 +305,28 @@ def test_clifford_step_result_no_measurements_str() -> None:
 
 
 def test_clifford_state_str() -> None:
-    (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
+    q0, q1 = (cirq.LineQubit(0), cirq.LineQubit(1))
     state = cirq.CliffordState(qubit_map={q0: 0, q1: 1})
 
     assert str(state) == "|00⟩"
 
 
 def test_clifford_state_state_vector() -> None:
-    (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
+    q0, q1 = (cirq.LineQubit(0), cirq.LineQubit(1))
     state = cirq.CliffordState(qubit_map={q0: 0, q1: 1})
 
     np.testing.assert_equal(state.state_vector(), [1.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j])
 
 
 def test_stabilizerStateChForm_H() -> None:
-    (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
+    q0, q1 = (cirq.LineQubit(0), cirq.LineQubit(1))
     state = cirq.CliffordState(qubit_map={q0: 0, q1: 1})
     with pytest.raises(ValueError, match="|y> is equal to |z>"):
         state.ch_form._H_decompose(0, 1, 1, 0)
 
 
 def test_clifford_stabilizerStateChForm_repr() -> None:
-    (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
+    q0, q1 = (cirq.LineQubit(0), cirq.LineQubit(1))
     state = cirq.CliffordState(qubit_map={q0: 0, q1: 1})
     assert repr(state) == 'StabilizerStateChForm(num_qubits=2)'
 
@@ -357,7 +357,7 @@ def test_clifford_circuit_SHSYSHS() -> None:
 
 @pytest.mark.parametrize('split', [True, False])
 def test_clifford_circuit(split) -> None:
-    (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
+    q0, q1 = (cirq.LineQubit(0), cirq.LineQubit(1))
     circuit = cirq.Circuit()
 
     for _ in range(100):
@@ -422,7 +422,7 @@ def test_clifford_circuit_2(qubits, split) -> None:
 @pytest.mark.parametrize('split', [True, False])
 def test_clifford_circuit_3(split) -> None:
     # This test tests the simulator on arbitrary 1-qubit Clifford gates.
-    (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
+    q0, q1 = (cirq.LineQubit(0), cirq.LineQubit(1))
     circuit = cirq.Circuit()
 
     def random_clifford_gate():
@@ -536,7 +536,7 @@ def test_simulate_global_phase_operation() -> None:
 
 
 def test_json_roundtrip() -> None:
-    (q0, q1, q2) = (cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2))
+    q0, q1, q2 = (cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2))
     state = cirq.CliffordState(qubit_map={q0: 0, q1: 1, q2: 2})
 
     # Apply some transformations.

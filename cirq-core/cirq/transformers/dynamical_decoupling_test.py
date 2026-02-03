@@ -835,14 +835,12 @@ def test_labeled_circuit_str():
         cirq.Moment([cirq.M(q) for q in [q0, q1, q2]]),
     )
     labeled_circuit = _Grid.from_circuit(input_circuit, single_qubit_gate_moments_only=True)
-    assert str(labeled_circuit) == (
-        """Grid Repr:
+    assert str(labeled_circuit) == ("""Grid Repr:
      |  0  |  1  |  2  |  3  |  4  |
 -----+-----+-----+-----+-----+-----+
 q(0) |  d  |  i  | i,s |  d  |  w  |
 q(1) |  d  |  i  | d,s |  w  |  w  |
-q(2) |  d  |  d  | d,s |  w  |  w  |"""
-    )
+q(2) |  d  |  d  | d,s |  w  |  w  |""")
 
 
 def test_labeled_circuit_str_empty():
