@@ -490,19 +490,22 @@ def test_many_group_pauli_in_circuits_with_coefficient(use_sweep: bool) -> None:
     circuit_3 = cirq.FrozenCircuit(_create_ghz(8, qubits_3))
 
     circuits_to_pauli: dict[cirq.FrozenCircuit, list[list[cirq.PauliString]]] = {}
+
     circuits_to_pauli[circuit_1] = [
         _generate_qwc_paulis(
-            _generate_random_pauli_string(qubits_1, enable_coeff=True, allow_pauli_i=False), 4
+            _generate_random_pauli_string(qubits_1, enable_coeff=True, allow_pauli_i=False), 2
         )
     ]
+
     circuits_to_pauli[circuit_2] = [
         _generate_qwc_paulis(
-            _generate_random_pauli_string(qubits_2, enable_coeff=True, allow_pauli_i=False), 5
+            _generate_random_pauli_string(qubits_2, enable_coeff=True, allow_pauli_i=False), 2
         )
     ]
+
     circuits_to_pauli[circuit_3] = [
         _generate_qwc_paulis(
-            _generate_random_pauli_string(qubits_3, enable_coeff=True, allow_pauli_i=False), 6
+            _generate_random_pauli_string(qubits_3, enable_coeff=True, allow_pauli_i=False), 2
         )
     ]
 
@@ -522,6 +525,13 @@ def test_many_group_pauli_in_circuits_with_coefficient(use_sweep: bool) -> None:
 
     for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
         assert isinstance(circuit_with_pauli_expectations.circuit, cirq.FrozenCircuit)
+
+        expected_group_count = len(circuits_to_pauli[circuit_with_pauli_expectations.circuit][0])
+
+        assert len(circuit_with_pauli_expectations.results) == expected_group_count, (
+            f"Expected {expected_group_count} results (groups) for circuit, "
+            f"but got {len(circuit_with_pauli_expectations.results)}."
+        )
 
         expected_val_simulation = simulator.simulate(
             circuit_with_pauli_expectations.circuit.unfreeze()

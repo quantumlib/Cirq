@@ -243,7 +243,7 @@ def _pauli_strings_to_basis_change_ops(
 
 
 def _pauli_strings_to_basis_change_with_sweep(
-    pauli_strings: list[ops.PauliString], qid_list: list[ops.Qid]
+    pauli_strings: Sequence[ops.PauliString], qid_list: Sequence[ops.Qid]
 ) -> dict[str, float]:
     """Decide single-qubit rotation sweep parameters for basis change.
 
@@ -588,7 +588,7 @@ def measure_pauli_strings(
     # Extract unique qubit tuples from input pauli strings
     unique_qubit_tuples = set()
     if measure_on_full_support:
-        full_support = set()
+        full_support: set[ops.Qid] = set()
         for pauli_string_groups in normalized_circuits_to_pauli.values():
             for pauli_strings in pauli_string_groups:
                 for pauli_string in pauli_strings:
@@ -652,18 +652,29 @@ def measure_pauli_strings(
     # Process the results to calculate expectation values
     results: list[CircuitToPauliStringsMeasurementResult] = []
     circuit_result_index = 0
+    input_circuit_index = 0
+
     for input_circuit, pauli_string_groups in normalized_circuits_to_pauli.items():
         disable_readout_mitigation = False if num_random_bitstrings != 0 else True
 
         circuits_results_for_group: Sequence[cirq.ResultDict] | Sequence[cirq.Result] = []
-        results_slice = slice(circuit_result_index, circuit_result_index + len(pauli_string_groups))
+
         if use_sweep:
-            circuits_results_for_group = [r[0] for r in sweep_circuits_results[results_slice]]
-
+            if measure_on_full_support:
+                circuits_results_for_group = sweep_circuits_results[input_circuit_index]
+                input_circuit_index += 1
+            else:
+                results_slice = slice(
+                    circuit_result_index, circuit_result_index + len(pauli_string_groups)
+                )
+                circuits_results_for_group = [r[0] for r in sweep_circuits_results[results_slice]]
+                circuit_result_index += len(pauli_string_groups)
         else:
+            results_slice = slice(
+                circuit_result_index, circuit_result_index + len(pauli_string_groups)
+            )
             circuits_results_for_group = circuits_results[results_slice]
-
-        circuit_result_index += len(pauli_string_groups)
+            circuit_result_index += len(pauli_string_groups)
 
         fixed_calibration_key = tuple(qubits_to_measure_arg) if measure_on_full_support else None
         pauli_measurement_results = _process_pauli_measurement_results(
