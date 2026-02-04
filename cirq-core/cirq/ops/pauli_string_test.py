@@ -1766,20 +1766,25 @@ def test_mutable_pauli_string_inplace_conjugate_by() -> None:
 
     class NoOp(cirq.Operation):
         def __init__(self, *qubits):
+            self._gate = cirq.IdentityGate(len(qubits))
             self._qubits = qubits
 
         @property
-        def qubits(self):  # pragma: no cover
+        def gate(self) -> cirq.Gate:
+            return self._gate
+
+        @property
+        def qubits(self) -> tuple[cirq.Qid, ...]:
             return self._qubits
 
-        def with_qubits(self, *new_qubits):
+        def with_qubits(self, *new_qubits) -> cirq.Operation:
             raise NotImplementedError()
 
-        def _decompose_(self):
+        def _decompose_(self) -> cirq.OP_TREE:
             return []
 
-        def __pow__(self, power):
-            return []
+        def __pow__(self, power) -> cirq.Operation:
+            return self
 
     # No-ops
     p2 = p.inplace_after(cirq.global_phase_operation(1j))
