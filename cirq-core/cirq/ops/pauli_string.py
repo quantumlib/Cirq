@@ -1076,9 +1076,7 @@ def _validate_qubit_mapping(
         )
 
     used_inds = [qubit_map[q] for q in pauli_qubits]
-    if len(used_inds) != len(set(used_inds)) or not set(range(num_state_qubits)) >= set(
-        used_inds
-    ):
+    if len(used_inds) != len(set(used_inds)) or not set(range(num_state_qubits)) >= set(used_inds):
         raise ValueError(
             f'Input qubit map indices must be valid for a state over {num_state_qubits} qubits.'
         )

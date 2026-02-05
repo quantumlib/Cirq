@@ -145,8 +145,14 @@ def test_pauli_string_measurement_errors_no_noise(use_sweep: bool) -> None:
                 pauli_string_measurement_results.calibration_result,
                 SingleQubitReadoutCalibrationResult,
             )
-            assert pauli_string_measurement_results.calibration_result.zero_state_errors == dict.fromkeys(pauli_string_measurement_results.pauli_string.qubits, 0)
-            assert pauli_string_measurement_results.calibration_result.one_state_errors == dict.fromkeys(pauli_string_measurement_results.pauli_string.qubits, 0)
+            assert (
+                pauli_string_measurement_results.calibration_result.zero_state_errors
+                == dict.fromkeys(pauli_string_measurement_results.pauli_string.qubits, 0)
+            )
+            assert (
+                pauli_string_measurement_results.calibration_result.one_state_errors
+                == dict.fromkeys(pauli_string_measurement_results.pauli_string.qubits, 0)
+            )
 
 
 @pytest.mark.parametrize("use_sweep", [True, False])
@@ -196,8 +202,14 @@ def test_group_pauli_string_measurement_errors_no_noise_with_coefficient(use_swe
                 pauli_string_measurement_results.calibration_result,
                 SingleQubitReadoutCalibrationResult,
             )
-            assert pauli_string_measurement_results.calibration_result.zero_state_errors == dict.fromkeys(pauli_string_measurement_results.pauli_string.qubits, 0)
-            assert pauli_string_measurement_results.calibration_result.one_state_errors == dict.fromkeys(pauli_string_measurement_results.pauli_string.qubits, 0)
+            assert (
+                pauli_string_measurement_results.calibration_result.zero_state_errors
+                == dict.fromkeys(pauli_string_measurement_results.pauli_string.qubits, 0)
+            )
+            assert (
+                pauli_string_measurement_results.calibration_result.one_state_errors
+                == dict.fromkeys(pauli_string_measurement_results.pauli_string.qubits, 0)
+            )
 
 
 @pytest.mark.parametrize("use_sweep", [True, False])

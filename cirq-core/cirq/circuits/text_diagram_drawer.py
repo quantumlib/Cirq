@@ -67,9 +67,7 @@ class TextDiagramDrawer:
         horizontal_padding: Mapping[int, float] | None = None,
         vertical_padding: Mapping[int, float] | None = None,
     ) -> None:
-        self.entries: dict[tuple[int, int], _DiagramText] = (
-            {} if entries is None else dict(entries)
-        )
+        self.entries: dict[tuple[int, int], _DiagramText] = {} if entries is None else dict(entries)
         self.horizontal_lines: list[_HorizontalLine] = (
             [] if horizontal_lines is None else list(horizontal_lines)
         )

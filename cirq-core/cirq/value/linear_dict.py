@@ -327,10 +327,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
     def _json_dict_(self) -> dict[Any, Any]:
         if self._has_validator:
             raise ValueError('LinearDict with a validator is not json serializable.')
-        return {
-            'keys': list(self._terms.keys()),
-            'values': list(self._terms.values()),
-        }
+        return {'keys': list(self._terms.keys()), 'values': list(self._terms.values())}
 
     @classmethod
     def _from_json_dict_(cls, keys, values, **kwargs):

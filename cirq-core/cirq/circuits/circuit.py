@@ -1274,8 +1274,7 @@ class AbstractCircuit(abc.ABC):
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         cbits = tuple(
             sorted(
-                {key for op in self.all_operations() for key in protocols.control_keys(op)},
-                key=str,
+                {key for op in self.all_operations() for key in protocols.control_keys(op)}, key=str
             )
         )
         labels = qubits + cbits

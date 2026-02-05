@@ -78,9 +78,7 @@ class LineInitialMapper(initial_mapper.AbstractInitialMapper):
         else:
             self.device_graph = nx.Graph()
             self.device_graph.add_nodes_from(sorted(device_graph.nodes(data=True)))
-            self.device_graph.add_edges_from(
-                sorted(sorted(edge) for edge in device_graph.edges)
-            )
+            self.device_graph.add_edges_from(sorted(sorted(edge) for edge in device_graph.edges))
         self.center = nx.center(self.device_graph)[0]
 
     def _make_circuit_graph(

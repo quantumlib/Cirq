@@ -208,9 +208,7 @@ class CircuitSerializer(serializer.Serializer):
             if names is None:
                 circuit_or_map = circuit_function(**dict(param_tuple))
             else:
-                circuit_or_map = circuit_function(
-                    **{k: v for k, v in param_tuple if k in names}
-                )
+                circuit_or_map = circuit_function(**{k: v for k, v in param_tuple if k in names})
             if isinstance(circuit_or_map, cirq.AbstractCircuit):
                 circuit_tuples: Sequence[tuple[str, cirq.AbstractCircuit]] = [("", circuit_or_map)]
             elif isinstance(circuit_or_map, Mapping):
