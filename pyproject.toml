@@ -227,6 +227,7 @@ select = [
              # pylint expression-not-assigned, pointless-exception-statement,
              # pointless-statement, pointless-string-statement
     "B033",  # duplicate-value, pylint duplicate-value
+    "C4",  # flake8-comprehensions
     "D301",  # escape-sequence-in-docstring
     "D419",  # empty-docstring, pylint empty-docstring
     "E402",  # module-import-not-at-top-of-file, pylint wrong-import-position
