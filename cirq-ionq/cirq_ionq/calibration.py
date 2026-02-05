@@ -67,5 +67,5 @@ class Calibration:
         connections = self._calibration_dict['connectivity']
         to_qubit = lambda x: cirq.LineQubit(int(x))
         return {(to_qubit(x), to_qubit(y)) for x, y in connections}.union(
-            {(to_qubit(y), to_qubit(x)) for x, y in connections}
+            (to_qubit(y), to_qubit(x)) for x, y in connections
         )

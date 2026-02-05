@@ -217,7 +217,7 @@ class AQTSimulator:
                 self.circuit.append(gate.on(*qubits) ** angle)
         # TODO: Better solution for measurement at the end.
         # Github issue: https://github.com/quantumlib/Cirq/issues/2199
-        self.circuit.append(cirq.measure(*list(self.qubit_list), key='m'))
+        self.circuit.append(cirq.measure(*self.qubit_list, key='m'))
 
     def simulate_samples(self, repetitions: int) -> cirq.Result:
         """Samples the circuit.

@@ -3522,7 +3522,7 @@ def test_push_frontier_random_circuit() -> None:
         late_frontier = {q: randint(0, n_moments) for q in sample(qubits, randint(0, len(qubits)))}
         update_qubits = sample(qubits, randint(0, len(qubits)))
 
-        orig_early_frontier = dict(early_frontier.items())
+        orig_early_frontier = dict(early_frontier)
         orig_moments = list(circuit._moments)
         insert_index, n_new_moments = circuit._push_frontier(
             early_frontier, late_frontier, update_qubits
