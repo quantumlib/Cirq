@@ -380,10 +380,7 @@ class BitstringAccumulator:
         if not np.array_equal(self.chunksizes, other.chunksizes):
             return False
 
-        if not np.array_equal(self.timestamps, other.timestamps):
-            return False
-
-        return True
+        return np.array_equal(self.timestamps, other.timestamps)
 
     def summary_string(self, setting: InitObsSetting, number_fmt='.3f'):
         return (

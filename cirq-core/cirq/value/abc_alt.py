@@ -100,9 +100,7 @@ class ABCMetaImplementAnyOneOf(abc.ABCMeta):
                 )
             if getattr(value, '__isabstractmethod__', False):
                 return False
-            if hasattr(value, '_abstract_alternatives_'):
-                return False
-            return True
+            return not hasattr(value, '_abstract_alternatives_')
 
         def find_next_implementations(all_names: set[str]) -> bool:
             next_implemented_by = {}

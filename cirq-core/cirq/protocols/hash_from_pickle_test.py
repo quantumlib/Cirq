@@ -57,9 +57,7 @@ def _is_included(json_filename: str) -> bool:
     json_posix_path = pathlib.PurePath(json_filename).as_posix()
     if any(json_posix_path.endswith(t) for t in _EXCLUDE_JSON_FILES):
         return False
-    if not os.path.isfile(json_filename):
-        return False
-    return True
+    return os.path.isfile(json_filename)
 
 
 @pytest.fixture(scope='module')
