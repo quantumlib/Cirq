@@ -456,3 +456,68 @@ def test_job_fields_update_status():
     assert job.name() == 'bacon'
     assert job.num_qubits() == 5
     assert job.repetitions() == 1000
+
+
+def test_shotwise_job_results_ideal_simulator():
+    mock_client = mock.MagicMock()
+    mock_client.get_shots.return_value = [1, 1, 1, 1, 1]
+    mock_client.get_results.return_value = {'0': '1'}
+    job_dict = {
+        'id': 'my_id',
+        'status': 'completed',
+        'stats': {'qubits': '2'},
+        'backend': 'simulator',
+        'metadata': {
+            'shots': '5',
+            'measurements': json.dumps([{'measurement0': f'results{chr(31)}0,1'}]),
+        },
+        'results': {'shots': {'url': 'http://fake.url/shots'}},
+        "noise": {"model": "ideal"},
+    }
+    job = ionq.Job(mock_client, job_dict)
+    results = job.results()
+    cirq_result = results[0].to_cirq_result()
+    assert cirq_result.measurements["results"].tolist() == [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]
+
+
+def test_shotwise_job_results_noisy_simulator():
+    mock_client = mock.MagicMock()
+    mock_client.get_results.return_value = {'0': '0.6', '1': '0.4'}
+    mock_client.get_shots.return_value = [2, 1, 3, 1, 0]
+    job_dict = {
+        'id': 'my_id',
+        'status': 'completed',
+        'stats': {'qubits': '2'},
+        'backend': 'simulator',
+        'metadata': {
+            'shots': '5',
+            'measurements': json.dumps([{'measurement0': f'results{chr(31)}0,1'}]),
+        },
+        'results': {'shots': {'url': 'http://fake.url/shots'}},
+        "noise": {"model": "aria-1"},
+    }
+    job = ionq.Job(mock_client, job_dict)
+    results = job.results()
+    cirq_result = results[0].to_cirq_result()
+    assert cirq_result.measurements["results"].tolist() == [[0, 1], [1, 0], [1, 1], [1, 0], [0, 0]]
+
+
+def test_shotwise_job_results_qpu():
+    mock_client = mock.MagicMock()
+    mock_client.get_results.return_value = {'0': '0.6', '3': '0.4'}
+    mock_client.get_shots.return_value = [2, 1, 3, 1, 0]
+    job_dict = {
+        'id': 'my_id',
+        'status': 'completed',
+        'stats': {'qubits': '2'},
+        'backend': 'qpu',
+        'metadata': {
+            'shots': 5,
+            'measurements': json.dumps([{'measurement0': f'results{chr(31)}0,1'}]),
+        },
+        'results': {'shots': {'url': 'http://fake.url/shots'}},
+    }
+    job = ionq.Job(mock_client, job_dict)
+    results = job.results()
+    cirq_result = results[0].to_cirq_result()
+    assert cirq_result.measurements["results"].tolist() == [[0, 1], [1, 0], [1, 1], [1, 0], [0, 0]]
