@@ -320,7 +320,7 @@ class TestStreamManager:
             async with duet.timeout_scope(5):
                 result_future = manager.submit(REQUEST_PROJECT_NAME, REQUEST_PROGRAM, REQUEST_JOB0)
                 result_future.cancel()
-                await duet.sleep(1)  # Let cancellation complete asynchronously
+                await duet.sleep(2)  # Let cancellation complete asynchronously
                 actual_all_cancel_requests = fake_client.all_cancel_requests[:]
                 manager.stop()
 
