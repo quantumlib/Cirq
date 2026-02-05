@@ -285,9 +285,7 @@ class Moment:
         if not self.operates_on(qubits):
             return self
         return Moment(
-            operation
-            for operation in self.operations
-            if qubits.isdisjoint(frozenset(operation.qubits))
+            operation for operation in self.operations if qubits.isdisjoint(operation.qubits)
         )
 
     @_compat.cached_method()

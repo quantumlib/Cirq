@@ -160,7 +160,7 @@ class PointOptimizer:
                     for q in flat_op.qubits:
                         new_qubits.add(q)
 
-                if not new_qubits.issubset(set(opt.clear_qubits)):
+                if not new_qubits.issubset(opt.clear_qubits):
                     raise ValueError(
                         'New operations in PointOptimizer should not act on new qubits.'
                     )
