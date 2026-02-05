@@ -445,7 +445,7 @@ def _reshape_simulation_results(
             ):
                 cycle_idx = cycle_depth_to_index[cycle_depth]
                 common_pure_probs[cycle_idx][template_idx] = pure_probs
-        return {pair: common_pure_probs for pair in pairs}
+        return dict.fromkeys(pairs, common_pure_probs)
 
 
 @attrs.frozen

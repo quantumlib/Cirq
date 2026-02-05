@@ -145,12 +145,8 @@ def test_pauli_string_measurement_errors_no_noise(use_sweep: bool) -> None:
                 pauli_string_measurement_results.calibration_result,
                 SingleQubitReadoutCalibrationResult,
             )
-            assert pauli_string_measurement_results.calibration_result.zero_state_errors == {
-                q: 0 for q in pauli_string_measurement_results.pauli_string.qubits
-            }
-            assert pauli_string_measurement_results.calibration_result.one_state_errors == {
-                q: 0 for q in pauli_string_measurement_results.pauli_string.qubits
-            }
+            assert pauli_string_measurement_results.calibration_result.zero_state_errors == dict.fromkeys(pauli_string_measurement_results.pauli_string.qubits, 0)
+            assert pauli_string_measurement_results.calibration_result.one_state_errors == dict.fromkeys(pauli_string_measurement_results.pauli_string.qubits, 0)
 
 
 @pytest.mark.parametrize("use_sweep", [True, False])
@@ -169,7 +165,7 @@ def test_group_pauli_string_measurement_errors_no_noise_with_coefficient(use_swe
         )
         for _ in range(3)
     ]
-    circuits_to_pauli[circuit].append([cirq.PauliString({q: cirq.X for q in qubits})])
+    circuits_to_pauli[circuit].append([cirq.PauliString(dict.fromkeys(qubits, cirq.X))])
 
     circuits_with_pauli_expectations = measure_pauli_strings(
         circuits_to_pauli, sampler, 300, 300, 300, 1234, use_sweep
@@ -200,12 +196,8 @@ def test_group_pauli_string_measurement_errors_no_noise_with_coefficient(use_swe
                 pauli_string_measurement_results.calibration_result,
                 SingleQubitReadoutCalibrationResult,
             )
-            assert pauli_string_measurement_results.calibration_result.zero_state_errors == {
-                q: 0 for q in pauli_string_measurement_results.pauli_string.qubits
-            }
-            assert pauli_string_measurement_results.calibration_result.one_state_errors == {
-                q: 0 for q in pauli_string_measurement_results.pauli_string.qubits
-            }
+            assert pauli_string_measurement_results.calibration_result.zero_state_errors == dict.fromkeys(pauli_string_measurement_results.pauli_string.qubits, 0)
+            assert pauli_string_measurement_results.calibration_result.one_state_errors == dict.fromkeys(pauli_string_measurement_results.pauli_string.qubits, 0)
 
 
 @pytest.mark.parametrize("use_sweep", [True, False])
@@ -581,7 +573,7 @@ def test_invalid_input_circuit_type() -> None:
     qubits = cirq.LineQubit.range(5)
 
     qubits_to_pauli: dict[tuple, list[cirq.PauliString]] = {}
-    qubits_to_pauli[tuple(qubits)] = [cirq.PauliString({q: cirq.X for q in qubits})]
+    qubits_to_pauli[tuple(qubits)] = [cirq.PauliString(dict.fromkeys(qubits, cirq.X))]
     with pytest.raises(
         TypeError, match="All keys in 'circuits_to_pauli' must be FrozenCircuit instances."
     ):
@@ -644,10 +636,10 @@ def test_all_pauli_strings_are_pauli_i() -> None:
 
     circuits_to_pauli: dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
     circuits_to_pauli[circuit_1] = [
-        cirq.PauliString({q: cirq.I for q in qubits_1}),
-        cirq.PauliString({q: cirq.X for q in qubits_1}),
+        cirq.PauliString(dict.fromkeys(qubits_1, cirq.I)),
+        cirq.PauliString(dict.fromkeys(qubits_1, cirq.X)),
     ]
-    circuits_to_pauli[circuit_2] = [cirq.PauliString({q: cirq.X for q in qubits_2})]
+    circuits_to_pauli[circuit_2] = [cirq.PauliString(dict.fromkeys(qubits_2, cirq.X))]
 
     with pytest.raises(
         ValueError,
@@ -667,7 +659,7 @@ def test_zero_pauli_repetitions() -> None:
     circuit = cirq.FrozenCircuit(_create_ghz(5, qubits))
 
     circuits_to_pauli: dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
-    circuits_to_pauli[circuit] = [cirq.PauliString({q: cirq.X for q in qubits})]
+    circuits_to_pauli[circuit] = [cirq.PauliString(dict.fromkeys(qubits, cirq.X))]
     with pytest.raises(ValueError, match="Must provide positive pauli_repetitions."):
         measure_pauli_strings(
             circuits_to_pauli, cirq.Simulator(), 0, 300, 300, np.random.default_rng()
@@ -681,7 +673,7 @@ def test_negative_num_random_bitstrings() -> None:
     circuit = cirq.FrozenCircuit(_create_ghz(5, qubits))
 
     circuits_to_pauli: dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
-    circuits_to_pauli[circuit] = [cirq.PauliString({q: cirq.X for q in qubits})]
+    circuits_to_pauli[circuit] = [cirq.PauliString(dict.fromkeys(qubits, cirq.X))]
     with pytest.raises(ValueError, match="Must provide zero or more num_random_bitstrings."):
         measure_pauli_strings(
             circuits_to_pauli, cirq.Simulator(), 300, 300, -1, np.random.default_rng()
@@ -695,7 +687,7 @@ def test_zero_readout_repetitions() -> None:
     circuit = cirq.FrozenCircuit(_create_ghz(5, qubits))
 
     circuits_to_pauli: dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
-    circuits_to_pauli[circuit] = [cirq.PauliString({q: cirq.X for q in qubits})]
+    circuits_to_pauli[circuit] = [cirq.PauliString(dict.fromkeys(qubits, cirq.X))]
     with pytest.raises(
         ValueError, match="Must provide positive readout_repetitions for readout" + " calibration."
     ):
@@ -711,7 +703,7 @@ def test_rng_type_mismatch() -> None:
     circuit = cirq.FrozenCircuit(_create_ghz(5, qubits))
 
     circuits_to_pauli: dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
-    circuits_to_pauli[circuit] = [cirq.PauliString({q: cirq.X for q in qubits})]
+    circuits_to_pauli[circuit] = [cirq.PauliString(dict.fromkeys(qubits, cirq.X))]
     with pytest.raises(ValueError, match="Must provide a numpy random generator or a seed"):
         measure_pauli_strings(
             circuits_to_pauli, cirq.Simulator(), 300, 300, 300, "test"  # type: ignore[arg-type]
@@ -820,7 +812,7 @@ def test_sampler_receives_correct_circuits(use_sweep: bool) -> None:
 
     # Create Pauli strings that only use qubits 1, 2, 3 (indices 1,2,3)
     pauli_qubits = qubits[1:4]  # qubits 1,2,3
-    pauli_string: cirq.PauliString = cirq.PauliString({q: cirq.X for q in pauli_qubits})
+    pauli_string: cirq.PauliString = cirq.PauliString(dict.fromkeys(pauli_qubits, cirq.X))
 
     circuits_to_pauli: dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
     circuits_to_pauli[circuit] = [pauli_string]

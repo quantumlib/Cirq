@@ -2008,8 +2008,8 @@ def test_coefficient_precision() -> None:
     qs = cirq.LineQubit.range(4 * 10**3)
     r: cirq.MutablePauliString[cirq.LineQubit]
     r2: cirq.MutablePauliString[cirq.LineQubit]
-    r = cirq.MutablePauliString({q: cirq.X for q in qs})
-    r2 = cirq.MutablePauliString({q: cirq.Y for q in qs})
+    r = cirq.MutablePauliString(dict.fromkeys(qs, cirq.X))
+    r2 = cirq.MutablePauliString(dict.fromkeys(qs, cirq.Y))
     r2 *= r
     assert r2.coefficient == 1
 

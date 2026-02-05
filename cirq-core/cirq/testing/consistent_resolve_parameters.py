@@ -35,7 +35,7 @@ def assert_consistent_resolve_parameters(val: Any) -> None:
         # the parameters want different types. But if resolution succeeds, the
         # object should report that it has no more parameters to resolve.
         try:
-            resolved = cirq.resolve_parameters(val, {name: 0 for name in names})
+            resolved = cirq.resolve_parameters(val, dict.fromkeys(names, 0))
         except Exception:
             pass
         else:

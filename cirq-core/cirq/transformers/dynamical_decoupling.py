@@ -228,10 +228,10 @@ class _Grid:
         cls, circuit: cirq.FrozenCircuit, single_qubit_gate_moments_only: bool
     ) -> _Grid:
         gate_types: dict[ops.Qid, dict[int, _CellType]] = {
-            q: {mid: _CellType.UNKNOWN for mid in range(len(circuit))} for q in circuit.all_qubits()
+            q: dict.fromkeys(range(len(circuit)), _CellType.UNKNOWN) for q in circuit.all_qubits()
         }
         mergable: dict[ops.Qid, dict[int, bool]] = {
-            q: {mid: False for mid in range(len(circuit))} for q in circuit.all_qubits()
+            q: dict.fromkeys(range(len(circuit)), False) for q in circuit.all_qubits()
         }
         busy_moment_range_by_qubit = _calc_busy_moment_range_of_each_qubit(circuit)
 
@@ -259,7 +259,7 @@ class _Grid:
                         gate_types[q][mid] = _CellType.WALL
 
         need_to_stop: dict[ops.Qid, dict[int, bool]] = {
-            q: {mid: False for mid in range(len(circuit))} for q in circuit.all_qubits()
+            q: dict.fromkeys(range(len(circuit)), False) for q in circuit.all_qubits()
         }
         # Reversely find the last mergeable gate of each qubit, set them as need_to_stop.
         for q in circuit.all_qubits():

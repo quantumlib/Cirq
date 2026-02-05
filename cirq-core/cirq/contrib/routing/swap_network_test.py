@@ -70,7 +70,7 @@ def test_swap_network_str() -> None:
 
     gates: dict[tuple[cirq.Qid, cirq.Qid], cirq.Gate]
     initial_mapping: dict[cirq.Qid, cirq.Qid]
-    gates = {(l, ll): cirq.ZZ for l, ll in itertools.combinations(log_qubits, 2)}
+    gates = dict.fromkeys(itertools.combinations(log_qubits, 2), cirq.ZZ)
     initial_mapping = {p: l for p, l in zip(phys_qubits, log_qubits)}
     execution_strategy = cca.GreedyExecutionStrategy(gates, initial_mapping)
     routed_circuit = cca.complete_acquaintance_strategy(phys_qubits, 2)

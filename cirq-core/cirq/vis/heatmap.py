@@ -416,7 +416,7 @@ class TwoQubitInteractionHeatmap(Heatmap):
             collection_options.update(
                 {"linewidths": 2, "edgecolors": "lightgrey", "linestyles": "dashed"}
             )
-        Heatmap({q: 0.0 for q in qubits}).plot(
+        Heatmap(dict.fromkeys(qubits, 0.0)).plot(
             ax=ax,
             collection_options=collection_options,
             plot_colorbar=False,
