@@ -324,8 +324,8 @@ class TestStreamManager:
                 actual_all_cancel_requests = fake_client.all_cancel_requests[:]
                 manager.stop()
 
-                assert len(fake_client.all_cancel_requests) == 1
-                assert fake_client.all_cancel_requests[0] == quantum.CancelQuantumJobRequest(
+                assert len(actual_all_cancel_requests) == 1
+                assert actual_all_cancel_requests[0] == quantum.CancelQuantumJobRequest(
                     name='projects/proj/programs/prog/jobs/job0'
                 )
 
