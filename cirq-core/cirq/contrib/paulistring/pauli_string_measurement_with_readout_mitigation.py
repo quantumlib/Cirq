@@ -596,7 +596,7 @@ def measure_pauli_strings(
     results: list[CircuitToPauliStringsMeasurementResult] = []
     circuit_result_index = 0
     for input_circuit, pauli_string_groups in normalized_circuits_to_pauli.items():
-        disable_readout_mitigation = False if num_random_bitstrings != 0 else True
+        disable_readout_mitigation = num_random_bitstrings == 0
 
         circuits_results_for_group: Sequence[cirq.ResultDict] | Sequence[cirq.Result] = []
         results_slice = slice(circuit_result_index, circuit_result_index + len(pauli_string_groups))

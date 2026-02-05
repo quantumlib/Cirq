@@ -282,6 +282,7 @@ select = [
     "SIM202",  # negate-not-equal-op, pylint unneeded-not, unnecessary-negation
     "SIM208",  # double-negation, pylint unneeded-not, unnecessary-negation
     "SIM210",  # if-expr-with-true-false
+    "SIM211",  # if-expr-with-false-true
     "SIM222",  # expr-or-true
     "SIM223",  # expr-and-false
     "TC001",  # typing-only-first-party-import
