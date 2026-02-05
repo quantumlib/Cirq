@@ -765,7 +765,7 @@ class AbstractCircuit(abc.ABC):
         start_index = min(start_frontier.values())
         blocked_qubits: set[cirq.Qid] = set()
         for index, moment in enumerate(self[start_index:], start_index):
-            active_qubits = set(q for q, s in start_frontier.items() if s <= index)
+            active_qubits = {q for q, s in start_frontier.items() if s <= index}
             for op in moment.operations:
                 if is_blocker(op) or blocked_qubits.intersection(op.qubits):
                     blocked_qubits.update(op.qubits)
@@ -1274,7 +1274,7 @@ class AbstractCircuit(abc.ABC):
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         cbits = tuple(
             sorted(
-                set(key for op in self.all_operations() for key in protocols.control_keys(op)),
+                {key for op in self.all_operations() for key in protocols.control_keys(op)},
                 key=str,
             )
         )
@@ -1607,7 +1607,7 @@ class AbstractCircuit(abc.ABC):
         for op in self.all_operations():
             if len(op.qubits) > 1:
                 uf.union(*op.qubits)
-        return sorted([qs for qs in uf.to_sets()], key=min)
+        return sorted(uf.to_sets(), key=min)
 
     def factorize(self) -> Iterable[Self]:
         """Factorize circuit into a sequence of independent circuits (factors).
@@ -2451,7 +2451,7 @@ class Circuit(AbstractCircuit):
         flat_ops = tuple(ops.flatten_to_ops(operations))
         if not flat_ops:
             return frontier  # pragma: no cover
-        qubits = set(q for op in flat_ops for q in op.qubits)
+        qubits = {q for op in flat_ops for q in op.qubits}
         if any(frontier[q] > start for q in qubits):
             raise ValueError(
                 'The frontier for qubits on which the operations'

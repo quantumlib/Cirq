@@ -234,7 +234,7 @@ def _merge_single_qubit_gates(
         ValueError: if one of the operations is not on 1 or 2 qubits
     """
     merged_ops: list[ops.Operation] = []
-    pending_ops: dict[tuple[cirq.Qid, ...], list[ops.Operation]] = dict()
+    pending_ops: dict[tuple[cirq.Qid, ...], list[ops.Operation]] = {}
     for op in operations:
         if protocols.num_qubits(op) == 2:
             for qubit_ops in pending_ops.values():

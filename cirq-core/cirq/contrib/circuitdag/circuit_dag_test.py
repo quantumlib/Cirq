@@ -91,7 +91,7 @@ def test_two_identical_ops() -> None:
     dag.append(cirq.X(q0))
     assert networkx.dag.is_directed_acyclic_graph(dag)
     assert len(dag.nodes()) == 3
-    assert set((n1.val, n2.val) for n1, n2 in dag.edges()) == {
+    assert {(n1.val, n2.val) for n1, n2 in dag.edges()} == {
         (cirq.X(q0), cirq.Y(q0)),
         (cirq.X(q0), cirq.X(q0)),
         (cirq.Y(q0), cirq.X(q0)),
@@ -238,7 +238,7 @@ def test_findall_nodes_until_blocked(circuit, is_blocker) -> None:
     found_nodes = list(dag.findall_nodes_until_blocked(is_blocker))
     assert not any(dag.has_edge(b, a) for a, b in itertools.combinations(found_nodes, 2))
 
-    blocking_nodes = set(node for node in all_nodes if is_blocker(node.val))
+    blocking_nodes = {node for node in all_nodes if is_blocker(node.val)}
     blocked_nodes = blocking_nodes.union(*(dag.succ[node] for node in blocking_nodes))
     expected_nodes = set(all_nodes) - blocked_nodes
     assert sorted(found_nodes) == sorted(expected_nodes)

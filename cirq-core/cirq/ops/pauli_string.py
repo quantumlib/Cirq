@@ -333,7 +333,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             return NotImplemented
 
         qs = args.known_qubits or list(self.keys())
-        symbols = list(str(self.get(q)) for q in qs)
+        symbols = [str(self.get(q)) for q in qs]
         if self.coefficient == 1:
             prefix = '+'
         elif self.coefficient == -1:
@@ -1077,7 +1077,7 @@ def _validate_qubit_mapping(
 
     used_inds = [qubit_map[q] for q in pauli_qubits]
     if len(used_inds) != len(set(used_inds)) or not set(range(num_state_qubits)) >= set(
-        sorted(used_inds)
+        used_inds
     ):
         raise ValueError(
             f'Input qubit map indices must be valid for a state over {num_state_qubits} qubits.'

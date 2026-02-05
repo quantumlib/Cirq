@@ -244,7 +244,7 @@ class SumOfProducts(AbstractControlValues):
 
     def __init__(self, data: Collection[Sequence[int]], *, name: str | None = None):
         self._conjunctions: tuple[tuple[int, ...], ...] = tuple(
-            sorted(set(tuple(cv) for cv in data))
+            sorted({tuple(cv) for cv in data})
         )
         self._name = name
         if not len(self._conjunctions):

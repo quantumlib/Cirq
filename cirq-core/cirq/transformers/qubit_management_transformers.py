@@ -166,9 +166,9 @@ def map_clean_and_borrowable_qubits(
                 end_frontier = dict.fromkeys(borrowable_qubits, en + 1)
                 ops_in_between = circuit.findall_operations_between(start_frontier, end_frontier)
                 # Filter the set of borrowable qubits which do not have any conflicting operations.
-                filtered_borrowable_qubits = borrowable_qubits - set(
+                filtered_borrowable_qubits = borrowable_qubits - {
                     q for _, op in ops_in_between for q in op.qubits
-                )
+                }
                 if filtered_borrowable_qubits:
                     # Allocate a borrowable qubit and remove it from the pool of available qubits.
                     allocated_map[q] = min(filtered_borrowable_qubits)

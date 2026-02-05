@@ -311,7 +311,7 @@ def simulate_circuit_library(
     keys = None
     if isinstance(target_or_dict, dict):
         keys = tuple(target_or_dict.keys())
-        two_qubit_ops = list(target_or_dict[k] for k in keys)
+        two_qubit_ops = [target_or_dict[k] for k in keys]
     else:
         two_qubit_ops = [target_or_dict]
 

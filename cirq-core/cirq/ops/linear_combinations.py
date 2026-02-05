@@ -602,7 +602,7 @@ class PauliSum:
         def key_json(k: UnitPauliStringT):
             return [list(e) for e in sorted(k)]
 
-        return {'items': list((key_json(k), v) for k, v in self._linear_dict.items())}
+        return {'items': [(key_json(k), v) for k, v in self._linear_dict.items()]}
 
     @classmethod
     def _from_json_dict_(cls, items, **kwargs):

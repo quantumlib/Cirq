@@ -382,7 +382,7 @@ class RouteCQC:
         """
         furthest_op = max(two_qubit_ops_ints[timestep], key=lambda op: mm.dist_on_device(*op))
         path = mm.shortest_path(*furthest_op)
-        return tuple([(path[0], path[i + 1]) for i in range(len(path) - 2)])
+        return tuple((path[0], path[i + 1]) for i in range(len(path) - 2))
 
     @classmethod
     def _choose_pair_of_swaps(

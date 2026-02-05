@@ -279,7 +279,7 @@ class _Grid:
         if not self.gate_types:
             return "Grid(empty)"
 
-        qubits = sorted(list(self.gate_types.keys()))
+        qubits = sorted(self.gate_types.keys())
         num_moments = len(self.gate_types[qubits[0]])
 
         max_qubit_len = max(len(str(q)) for q in qubits) if qubits else 0

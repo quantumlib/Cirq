@@ -73,13 +73,13 @@ class LineInitialMapper(initial_mapper.AbstractInitialMapper):
         """
         if nx.is_directed(device_graph):
             self.device_graph = nx.DiGraph()
-            self.device_graph.add_nodes_from(sorted(list(device_graph.nodes(data=True))))
-            self.device_graph.add_edges_from(sorted(list(device_graph.edges)))
+            self.device_graph.add_nodes_from(sorted(device_graph.nodes(data=True)))
+            self.device_graph.add_edges_from(sorted(device_graph.edges))
         else:
             self.device_graph = nx.Graph()
-            self.device_graph.add_nodes_from(sorted(list(device_graph.nodes(data=True))))
+            self.device_graph.add_nodes_from(sorted(device_graph.nodes(data=True)))
             self.device_graph.add_edges_from(
-                sorted(list(sorted(edge) for edge in device_graph.edges))
+                sorted(sorted(edge) for edge in device_graph.edges)
             )
         self.center = nx.center(self.device_graph)[0]
 

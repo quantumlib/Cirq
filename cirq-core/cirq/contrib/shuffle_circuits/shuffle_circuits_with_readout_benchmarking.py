@@ -192,7 +192,7 @@ def _determine_qubits_to_measure(
     qubits_to_measure: list[list[ops.Qid]] = []
     if qubits is None:
         qubits_to_measure = [
-            sorted(set(q for circuit in input_circuits for q in circuit.all_qubits()))
+            sorted({q for circuit in input_circuits for q in circuit.all_qubits()})
         ]
 
     elif isinstance(qubits[0], ops.Qid):

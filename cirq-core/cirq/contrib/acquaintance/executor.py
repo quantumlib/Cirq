@@ -186,7 +186,7 @@ class GreedyExecutionStrategy(ExecutionStrategy):
             NotImplementedError: If not all gates are of the same arity.
         """
 
-        if len(set(len(indices) for indices in gates)) > 1:
+        if len({len(indices) for indices in gates}) > 1:
             raise NotImplementedError(
                 'Can only implement greedy strategy if all gates are of the same arity.'
             )

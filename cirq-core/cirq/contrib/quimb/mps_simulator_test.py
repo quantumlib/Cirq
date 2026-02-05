@@ -399,7 +399,7 @@ def test_sample_seed() -> None:
     simulator = ccq.mps_simulator.MPSSimulator(seed=1234)
     result = simulator.run(circuit, repetitions=20)
     measured = result.measurements['q']
-    result_string = ''.join(map(lambda x: str(int(x[0])), measured))
+    result_string = ''.join(str(int(x[0])) for x in measured)
     assert result_string == '01011001110111011011'
 
 

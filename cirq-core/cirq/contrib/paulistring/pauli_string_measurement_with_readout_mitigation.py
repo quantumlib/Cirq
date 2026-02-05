@@ -223,7 +223,7 @@ def _normalize_input_paulis(
 
 def _extract_readout_qubits(pauli_strings: list[ops.PauliString]) -> list[ops.Qid]:
     """Extracts unique qubits from a list of QWC Pauli strings."""
-    return sorted(set(q for ps in pauli_strings for q in ps.qubits))
+    return sorted({q for ps in pauli_strings for q in ps.qubits})
 
 
 def _pauli_strings_to_basis_change_ops(

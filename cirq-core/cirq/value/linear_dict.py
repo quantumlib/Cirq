@@ -174,7 +174,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
         return snapshot._terms.items()
 
     def update(self, *args, **kwargs):
-        terms = dict()
+        terms = {}
         terms.update(*args, **kwargs)
         for vector, coefficient in terms.items():
             if isinstance(coefficient, sympy.Basic):
@@ -328,8 +328,8 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
         if self._has_validator:
             raise ValueError('LinearDict with a validator is not json serializable.')
         return {
-            'keys': [k for k in self._terms.keys()],
-            'values': [v for v in self._terms.values()],
+            'keys': list(self._terms.keys()),
+            'values': list(self._terms.values()),
         }
 
     @classmethod
@@ -340,7 +340,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
         return any(protocols.is_parameterized(v) for v in self._terms.values())
 
     def _parameter_names_(self) -> Set[str]:
-        return set(name for v in self._terms.values() for name in protocols.parameter_names(v))
+        return {name for v in self._terms.values() for name in protocols.parameter_names(v)}
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> LinearDict:
         result = self.copy()

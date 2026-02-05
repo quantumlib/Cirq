@@ -103,7 +103,7 @@ class QPUResult:
                 'circuit that produced these results.'
             )
         result: Counter[int] = collections.Counter()
-        result.update([bit_value for bit_value in self.ordered_results(key)])
+        result.update(list(self.ordered_results(key)))
         return result
 
     def measurement_dict(self) -> dict[str, Sequence[int]]:
@@ -139,7 +139,7 @@ class QPUResult:
         for key, targets in self.measurement_dict().items():
             qpu_results = self.ordered_results(key)
             measurements[key] = np.array(
-                list(cirq.big_endian_int_to_bits(x, bit_count=len(targets)) for x in qpu_results)
+                [cirq.big_endian_int_to_bits(x, bit_count=len(targets)) for x in qpu_results]
             )
         return cirq.ResultDict(params=params or cirq.ParamResolver({}), measurements=measurements)
 
@@ -216,7 +216,7 @@ class SimulatorResult:
                 'circuit that produced these results.'
             )
         targets = self._measurement_dict[key]
-        result: dict[int, float] = dict()
+        result: dict[int, float] = {}
         for value, probability in self._probabilities.items():
             bits = [(value >> (self.num_qubits() - target - 1)) & 1 for target in targets]
             bit_value = sum(bit * (1 << i) for i, bit in enumerate(bits[::-1]))

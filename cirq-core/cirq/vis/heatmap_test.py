@@ -109,7 +109,7 @@ def test_cell_colors(ax, colormap_name):
     qubits = [grid_qubit.GridQubit(row, col) for (row, col) in row_col_list]
     values = 1.0 + 2.0 * np.random.random(len(qubits))  # [1, 3)
     test_value_map = {(qubit,): value for qubit, value in zip(qubits, values)}
-    test_row_col_map = {rc: value for rc, value in zip(row_col_list, values)}
+    test_row_col_map = dict(zip(row_col_list, values))
     vmin, vmax = 1.5, 2.5
     random_heatmap = heatmap.Heatmap(
         test_value_map, collection_options={'cmap': colormap_name}, vmin=vmin, vmax=vmax
@@ -135,7 +135,7 @@ def test_default_annotation(ax):
     qubits = [grid_qubit.GridQubit(row, col) for (row, col) in row_col_list]
     values = ['3.752', '42', '-5.27e8', '-7.34e-9', 732, 0.432, 3.9753e28]
     test_value_map = {(qubit,): value for qubit, value in zip(qubits, values)}
-    test_row_col_map = {rc: value for rc, value in zip(row_col_list, values)}
+    test_row_col_map = dict(zip(row_col_list, values))
     random_heatmap = heatmap.Heatmap(test_value_map)
     random_heatmap.plot(ax)
     actual_texts = set()
@@ -144,9 +144,9 @@ def test_default_annotation(ax):
             col, row = artist.get_position()
             text = artist.get_text()
             actual_texts.add(((row, col), text))
-    expected_texts = set(
+    expected_texts = {
         (qubit, format(float(value), '.2g')) for qubit, value in test_row_col_map.items()
-    )
+    }
     assert expected_texts.issubset(actual_texts)
 
 
@@ -156,7 +156,7 @@ def test_annotation_position_and_content(ax, format_string):
     qubits = [grid_qubit.GridQubit(row, col) for (row, col) in row_col_list]
     values = np.random.random(len(qubits))
     test_value_map = {(qubit,): value for qubit, value in zip(qubits, values)}
-    test_row_col_map = {rc: value for rc, value in zip(row_col_list, values)}
+    test_row_col_map = dict(zip(row_col_list, values))
     random_heatmap = heatmap.Heatmap(test_value_map, annotation_format=format_string)
     random_heatmap.plot(ax)
     actual_texts = set()
@@ -165,9 +165,9 @@ def test_annotation_position_and_content(ax, format_string):
             col, row = artist.get_position()
             text = artist.get_text()
             actual_texts.add(((row, col), text))
-    expected_texts = set(
+    expected_texts = {
         (qubit, format(value, format_string)) for qubit, value in test_row_col_map.items()
-    )
+    }
     assert expected_texts.issubset(actual_texts)
 
 
@@ -175,7 +175,7 @@ def test_annotation_map(ax):
     row_col_list = [(0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8)]
     qubits = [grid_qubit.GridQubit(*row_col) for row_col in row_col_list]
     values = np.random.random(len(qubits))
-    annos = np.random.choice([c for c in string.ascii_letters], len(qubits))
+    annos = np.random.choice(list(string.ascii_letters), len(qubits))
     test_value_map = {(qubit,): value for qubit, value in zip(qubits, values)}
     test_anno_map = {
         (qubit,): anno
@@ -190,9 +190,9 @@ def test_annotation_map(ax):
             col, row = artist.get_position()
             assert (row, col) != (1, 6)
             actual_texts.add(((row, col), artist.get_text()))
-    expected_texts = set(
+    expected_texts = {
         (row_col, anno) for row_col, anno in zip(row_col_list, annos) if row_col != (1, 6)
-    )
+    }
     assert expected_texts.issubset(actual_texts)
 
 
@@ -215,7 +215,7 @@ def test_non_float_values(ax, format_string):
     row_col_list = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
     qubits = [grid_qubit.GridQubit(row, col) for (row, col) in row_col_list]
     values = np.random.random(len(qubits))
-    units = np.random.choice([c for c in string.ascii_letters], len(qubits))
+    units = np.random.choice(list(string.ascii_letters), len(qubits))
     test_value_map = {
         (qubit,): Foo(float(value), unit) for qubit, value, unit in zip(qubits, values, units)
     }

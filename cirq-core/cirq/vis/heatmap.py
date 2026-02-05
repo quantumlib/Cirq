@@ -157,7 +157,7 @@ class Heatmap:
             + valid_heatmap_kwargs
             + self._extra_valid_kwargs()
         )
-        if any([k not in valid_kwargs for k in kwargs]):
+        if any(k not in valid_kwargs for k in kwargs):
             invalid_args = ", ".join([k for k in kwargs if k not in valid_kwargs])
             raise ValueError(f"Received invalid argument(s): {invalid_args}")
 
@@ -233,7 +233,7 @@ class Heatmap:
             x, y = center
             face_luminance = vis_utils.relative_luminance(facecolor)
             text_color = 'black' if face_luminance > 0.4 else 'white'
-            text_kwargs: dict[str, Any] = dict(color=text_color, ha="center", va="center")
+            text_kwargs: dict[str, Any] = {'color': text_color, 'ha': "center", 'va': "center"}
             text_kwargs.update(self._config.get('annotation_text_kwargs', {}))
             ax.text(x, y, annotation, **text_kwargs)
 
@@ -256,8 +256,8 @@ class Heatmap:
         if self._config.get('plot_colorbar'):
             self._plot_colorbar(collection, ax)
         # Step-5: Set min/max limits of x/y axis on the plot.
-        rows = set([q.row for qubits in self._value_map.keys() for q in qubits])
-        cols = set([q.col for qubits in self._value_map.keys() for q in qubits])
+        rows = {q.row for qubits in self._value_map.keys() for q in qubits}
+        cols = {q.col for qubits in self._value_map.keys() for q in qubits}
         min_row, max_row = min(rows), max(rows)
         min_col, max_col = min(cols), max(cols)
         min_xtick = np.floor(min_col)
@@ -409,7 +409,7 @@ class TwoQubitInteractionHeatmap(Heatmap):
             fig, ax = plt.subplots(figsize=(8, 8))
         original_config = copy.deepcopy(self._config)
         self.update_config(**kwargs)
-        qubits = set([q for qubits in self._value_map.keys() for q in qubits])
+        qubits = {q for qubits in self._value_map.keys() for q in qubits}
         collection_options: dict[str, Any] = {"cmap": "binary"}
         highlighted_qubits = frozenset(kwargs.get("highlighted_qubits", ()))
         if not highlighted_qubits:

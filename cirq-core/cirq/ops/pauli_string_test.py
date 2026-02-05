@@ -376,7 +376,7 @@ def test_basic_functionality(qubit_pauli_map) -> None:
 
     # Test iteration
     assert len(tuple(qubit_pauli_map)) == len(tuple(pauli_string))
-    assert set(tuple(qubit_pauli_map)) == set(tuple(pauli_string))
+    assert set(qubit_pauli_map) == set(pauli_string)
 
 
 def test_repr() -> None:

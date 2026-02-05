@@ -362,7 +362,7 @@ def test_default_decompose(paulis, phase_exponent_negative: float, sign: int) ->
 
     # Get matrix from decomposition
     pauli_string = cirq.PauliString(
-        qubit_pauli_map={q: p for q, p in zip(qubits, paulis)}, coefficient=sign
+        qubit_pauli_map=dict(zip(qubits, paulis)), coefficient=sign
     )
     actual = cirq.Circuit(
         cirq.PauliStringPhasor(pauli_string, exponent_neg=phase_exponent_negative)
