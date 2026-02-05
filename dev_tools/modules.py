@@ -78,9 +78,7 @@ class Module:
             self.top_level_packages = []
         self.top_level_package_paths = [self.root / p for p in self.top_level_packages]
         self.version = self.raw_setup['version']
-        self.install_requires = (
-            [] if 'install_requires' not in self.raw_setup else self.raw_setup['install_requires']
-        )
+        self.install_requires = self.raw_setup.get('install_requires', [])
 
 
 def list_modules(

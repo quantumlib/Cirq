@@ -285,6 +285,7 @@ select = [
     "SIM211",  # if-expr-with-false-true
     "SIM222",  # expr-or-true
     "SIM223",  # expr-and-false
+    "SIM401",  # if-else-block-instead-of-dict-get
     "TC001",  # typing-only-first-party-import
     "TC002",  # typing-only-third-party-import
     # "TC003",  # typing-only-standard-library-import
