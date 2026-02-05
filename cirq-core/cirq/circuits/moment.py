@@ -261,10 +261,10 @@ class Moment:
         m._operations = self._operations + flattened_contents
         m._sorted_operations = None
         m._measurement_key_objs = self._measurement_key_objs_().union(
-            set(itertools.chain(*(protocols.measurement_key_objs(op) for op in flattened_contents)))
+            itertools.chain(*(protocols.measurement_key_objs(op) for op in flattened_contents))
         )
         m._control_keys = self._control_keys_().union(
-            set(itertools.chain(*(protocols.control_keys(op) for op in flattened_contents)))
+            itertools.chain(*(protocols.control_keys(op) for op in flattened_contents))
         )
 
         return m

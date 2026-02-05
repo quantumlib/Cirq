@@ -944,7 +944,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         # Initialize the ps the same as self.
         ps = PauliString(qubit_pauli_map=self._qubit_pauli_map, coefficient=self.coefficient)
         all_ops = list(op_tree.flatten_to_ops(clifford))
-        all_qubits = set.union(set(self.qubits), [q for op in all_ops for q in op.qubits])
+        all_qubits = set(self.qubits).union(q for op in all_ops for q in op.qubits)
         # Iteratively calculate the conjugation in reverse order of ops.
         for op in all_ops[::-1]:
             # To calcuate the conjugation of P (`ps`) with respect to C (`op`)

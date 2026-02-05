@@ -485,7 +485,7 @@ def test_group_interchangeable_qubits_creates_tuples_with_unique_keys() -> None:
 def test_gate_to_operation_to_gate_round_trips() -> None:
     def all_subclasses(cls):
         return set(cls.__subclasses__()).union(
-            [s for c in cls.__subclasses__() for s in all_subclasses(c)]
+            s for c in cls.__subclasses__() for s in all_subclasses(c)
         )
 
     # Only test gate subclasses in cirq-core.

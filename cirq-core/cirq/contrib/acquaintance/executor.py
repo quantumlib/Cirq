@@ -223,7 +223,4 @@ class GreedyExecutionStrategy(ExecutionStrategy):
         for indices, gate in gates.items():
             indices = tuple(indices)
             canonicalized_gates[frozenset(indices)][indices] = gate
-        return {
-            canonical_indices: dict(list(gates.items()))
-            for canonical_indices, gates in canonicalized_gates.items()
-        }
+        return dict(canonicalized_gates)

@@ -103,7 +103,7 @@ class QPUResult:
                 'circuit that produced these results.'
             )
         result: Counter[int] = collections.Counter()
-        result.update(list(self.ordered_results(key)))
+        result.update(self.ordered_results(key))
         return result
 
     def measurement_dict(self) -> dict[str, Sequence[int]]:
@@ -267,7 +267,7 @@ class SimulatorResult:
             )
         rand = cirq.value.parse_random_state(seed)
         measurements = {}
-        values, weights = zip(*list(self.probabilities().items()))
+        values, weights = zip(*self.probabilities().items())
 
         # normalize weights to sum to 1 if within tolerance because
         # IonQ's pauliexp gates results are not extremely precise
