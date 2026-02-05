@@ -25,11 +25,11 @@ name = 'cirq-pasqal'
 description = 'A Cirq package to simulate and connect to Pasqal quantum computers'
 
 # README file as long_description.
-long_description = open('README.md', encoding='utf-8').read()
-
+with open('README.md', encoding='utf-8') as file:
+    long_description = file.read()
 # Read in requirements
-requirements = open('requirements.txt').readlines()
-requirements = [r.strip() for r in requirements]
+with open('requirements.txt', encoding='utf-8') as file:
+    requirements = [r.strip() for r in file.readlines()]
 requirements += [f'cirq-core=={__version__}']
 
 cirq_packages = ['cirq_pasqal'] + [

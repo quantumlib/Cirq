@@ -10,8 +10,8 @@ name = 'module1'
 
 
 # Read in requirements
-requirements = open('requirements.txt').readlines()
-requirements = [r.strip() for r in requirements]
+with open('requirements.txt', encoding='utf-8') as file:
+    requirements = [r.strip() for r in file.readlines()]
 
 pack1_packages = ['pack1'] + ['pack1.' + package for package in find_packages(where='pack1')]
 

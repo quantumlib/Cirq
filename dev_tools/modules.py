@@ -201,7 +201,8 @@ def _parse_module(folder: Path) -> dict[str, Any]:
     try:
         setuptools.setup = setup
         os.chdir(str(folder))
-        setup_py = open("setup.py", encoding="utf8").read()
+        with open("setup.py", encoding="utf8") as file:
+            setup_py = file.read()
         exec(setup_py, globals(), {})
         assert setup_args, f"Invalid setup.py - setup() was not called in {folder}/setup.py!"
         return setup_args
