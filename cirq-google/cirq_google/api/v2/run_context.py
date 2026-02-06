@@ -49,7 +49,7 @@ def to_device_parameters_diff(
         return idx
 
     # Maps a resource group path to its index in diff.groups.
-    resource_groups_index: dict[tuple[str, ...], int] = {tuple(): _EMPTY_RESOURCE_PATH_IDX}
+    resource_groups_index: dict[tuple[str, ...], int] = {(): _EMPTY_RESOURCE_PATH_IDX}
 
     def resource_path_id(path: tuple[str, ...]) -> int:
         """Computes the index of a path in diff.groups."""

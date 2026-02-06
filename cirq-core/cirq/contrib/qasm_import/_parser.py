@@ -161,8 +161,8 @@ class CustomGate:
         for qubits in _generate_op_qubits(args, lineno):
             yield CircuitOperation(
                 self.circuit,
-                param_resolver={k: v for k, v in zip(self.params, params)},
-                qubit_map={k: v for k, v in zip(self.qubits, qubits)},
+                param_resolver=dict(zip(self.params, params)),
+                qubit_map=dict(zip(self.qubits, qubits)),
             )
 
 

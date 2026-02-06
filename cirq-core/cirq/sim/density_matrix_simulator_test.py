@@ -161,7 +161,7 @@ def test_run_mixture(dtype: type[np.complexfloating], split: bool) -> None:
     np.testing.assert_equal(result.measurements['q(1)'], [[0]] * 100)
     # Test that we get at least one of each result. Probability of this test
     # failing is 2 ** (-99).
-    q0_measurements = set(x[0] for x in result.measurements['q(0)'].tolist())
+    q0_measurements = {x[0] for x in result.measurements['q(0)'].tolist()}
     assert q0_measurements == {0, 1}
 
 
@@ -182,7 +182,7 @@ def test_run_qudit_mixture(dtype: type[np.complexfloating], split: bool) -> None
     np.testing.assert_equal(result.measurements['q(1) (d=2)'], [[0]] * 100)
     # Test that we get at least one of each result. Probability of this test
     # failing is about 3 * (2/3) ** 100.
-    q0_measurements = set(x[0] for x in result.measurements['q(0) (d=3)'].tolist())
+    q0_measurements = {x[0] for x in result.measurements['q(0) (d=3)'].tolist()}
     assert q0_measurements == {0, 1, 2}
 
 
@@ -199,7 +199,7 @@ def test_run_channel(dtype: type[np.complexfloating], split: bool) -> None:
     np.testing.assert_equal(result.measurements['q(1)'], [[0]] * 100)
     # Test that we get at least one of each result. Probability of this test
     # failing is 2 ** (-99).
-    q0_measurements = set(x[0] for x in result.measurements['q(0)'].tolist())
+    q0_measurements = {x[0] for x in result.measurements['q(0)'].tolist()}
     assert q0_measurements == {0, 1}
 
 
@@ -220,7 +220,7 @@ def test_run_decomposable_channel(dtype: type[np.complexfloating], split: bool) 
     np.testing.assert_equal(result.measurements['q(1)'], [[0]] * 100)
     # Test that we get at least one of each result. Probability of this test
     # failing is 2 ** (-99).
-    q0_measurements = set(x[0] for x in result.measurements['q(0)'].tolist())
+    q0_measurements = {x[0] for x in result.measurements['q(0)'].tolist()}
     assert q0_measurements == {0, 1}
 
 
@@ -252,7 +252,7 @@ def test_run_qudit_channel(dtype: type[np.complexfloating], split: bool) -> None
     np.testing.assert_equal(result.measurements['q(1) (d=4)'], [[0]] * 100)
     # Test that we get at least one of each result. Probability of this test
     # failing is about (3/4) ** 100.
-    q0_measurements = set(x[0] for x in result.measurements['q(0) (d=3)'].tolist())
+    q0_measurements = {x[0] for x in result.measurements['q(0) (d=3)'].tolist()}
     assert q0_measurements == {0, 1, 2}
 
 

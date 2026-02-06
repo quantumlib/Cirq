@@ -56,8 +56,8 @@ def test_griddevice_metadata() -> None:
     assert metadata.qubit_pairs == expected_pairings
     assert metadata.gateset == gateset
     expected_graph = nx.Graph()
-    expected_graph.add_nodes_from(sorted(list(qubits + isolated_qubits)))
-    expected_graph.add_edges_from(sorted(list(expected_pairings)), directed=False)
+    expected_graph.add_nodes_from(sorted(qubits + isolated_qubits))
+    expected_graph.add_edges_from(sorted(expected_pairings), directed=False)
     assert metadata.nx_graph.edges() == expected_graph.edges()
     assert metadata.nx_graph.nodes() == expected_graph.nodes()
     assert metadata.gate_durations == gate_durations

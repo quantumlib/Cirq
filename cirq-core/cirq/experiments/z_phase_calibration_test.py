@@ -102,7 +102,7 @@ class _TestSimulator(cirq.Simulator):
 )
 def test_calibrate_z_phases(pool, angles, error, characterization_flags) -> None:
 
-    original_gate = cirq.PhasedFSimGate(**{k: v for k, v in zip(_ANGLES, angles)})
+    original_gate = cirq.PhasedFSimGate(**dict(zip(_ANGLES, angles)))
     actual_gate = cirq.PhasedFSimGate(**{k: v + e for k, v, e in zip(_ANGLES, angles, error)})
 
     options = XEBPhasedFSimCharacterizationOptions(
@@ -142,7 +142,7 @@ def test_calibrate_z_phases(pool, angles, error, characterization_flags) -> None
 @pytest.mark.parametrize(['angles', 'error'], _create_tests(n=3))
 def test_calibrate_z_phases_no_options(pool, angles, error) -> None:
 
-    original_gate = cirq.PhasedFSimGate(**{k: v for k, v in zip(_ANGLES, angles)})
+    original_gate = cirq.PhasedFSimGate(**dict(zip(_ANGLES, angles)))
     actual_gate = cirq.PhasedFSimGate(**{k: v + e for k, v, e in zip(_ANGLES, angles, error)})
 
     sampler = _TestSimulator(original_gate, actual_gate, seed=_SEED)
@@ -178,7 +178,7 @@ def test_calibrate_z_phases_no_options(pool, angles, error) -> None:
 @pytest.mark.parametrize(['angles', 'error'], _create_tests(n=3))
 def test_calibrate_z_phases_workflow_no_options(pool, angles, error) -> None:
 
-    original_gate = cirq.PhasedFSimGate(**{k: v for k, v in zip(_ANGLES, angles)})
+    original_gate = cirq.PhasedFSimGate(**dict(zip(_ANGLES, angles)))
     actual_gate = cirq.PhasedFSimGate(**{k: v + e for k, v, e in zip(_ANGLES, angles, error)})
 
     sampler = _TestSimulator(original_gate, actual_gate, seed=_SEED)

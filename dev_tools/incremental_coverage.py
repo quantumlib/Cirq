@@ -96,7 +96,7 @@ def diff_to_new_interesting_lines(unified_diff_lines: list[str]) -> dict[int, st
         value equal to the reason the line was touched. Includes added lines
         and lines near changes (including removals).
     """
-    interesting_lines = dict()
+    interesting_lines = {}
     for diff_line in unified_diff_lines:
         # Parse the 'new file' range parts of the unified diff.
         if not diff_line.startswith('@@ '):
