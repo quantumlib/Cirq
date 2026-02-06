@@ -280,6 +280,7 @@ select = [
     "RUF200",  # invalid-pyproject-toml
     "SIM101",  # duplicate-isinstance-call, pylint consider-merging-isinstance
     "SIM103",  # needless-bool
+    "SIM110",  # reimplemented-builtin
     "SIM113",  # enumerate-for-loop
     "SIM115",  # open-file-with-context-handler
     "SIM116",  # if-else-block-instead-of-dict-lookup
