@@ -131,7 +131,7 @@ class _BaseGridQid(ops.Qid):
             qids: optional Iterable of qubits to constrain neighbors to.
         """
         neighbors = set()
-        for q in [self + (0, 1), self + (1, 0), self + (-1, 0), self + (0, -1)]:
+        for q in [self + (0, 1), self + (1, 0), self + (-1, 0), self + (0, -1)]:  # noqa
             if qids is None or q in qids:
                 neighbors.add(q)
         return neighbors

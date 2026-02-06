@@ -73,14 +73,16 @@ def test_error_not_starting_with_format(qasm: str) -> None:
 def test_comments() -> None:
     parser = QasmParser()
 
-    parsed_qasm = parser.parse("""
+    parsed_qasm = parser.parse(
+        """
     //this is the format
     OPENQASM 2.0;
     // this is some other comment
     include "qelib1.inc";
     // and something at the end of the file
     // multiline
-    """)
+    """
+    )
 
     assert parsed_qasm.supportedFormat
     assert parsed_qasm.qelib1Include
@@ -761,7 +763,8 @@ def test_measurement_bounds() -> None:
 
 
 def test_reset() -> None:
-    qasm = textwrap.dedent("""\
+    qasm = textwrap.dedent(
+        """\
         OPENQASM 2.0;
         include "qelib1.inc";
         qreg q[1];
@@ -769,7 +772,8 @@ def test_reset() -> None:
         x q[0];
         reset q[0];
         measure q[0] -> c[0];
-        """)
+        """
+    )
 
     parser = QasmParser()
 
@@ -2432,7 +2436,7 @@ def test_all_qelib_gates_unitary_equivalence(
         gate = cirq_gate
     expected = Circuit()
     expected.append(gate.on(*qubits))
-    imported = list(parsed_qasm.circuit.all_operations())[0].gate
+    imported = next(iter(parsed_qasm.circuit.all_operations())).gate
     U_native = cirq.unitary(gate)
     U_import = cirq.unitary(imported)
     assert np.allclose(U_import, U_native, atol=1e-8)

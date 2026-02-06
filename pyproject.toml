@@ -275,6 +275,7 @@ select = [
     "PLW1501",  # bad-open-mode
     "RUF005",  # collection-literal-concatenation
     "RUF013",  # implicit-optional
+    "RUF015",  # unnecessary-iterable-allocation-for-first-element
     "RUF019",  # unnecessary-key-check
     "RUF027",  # missing-f-string-syntax
     "RUF100",  # unused-noqa

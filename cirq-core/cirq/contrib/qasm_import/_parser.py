@@ -1128,7 +1128,9 @@ class QasmParser:
                 v = (val >> i) & 1
                 conditions.append(sympy.Eq(sympy.Symbol(key), v))
         p[0] = [
-            ops.ClassicallyControlledOperation(conditions=conditions, sub_operation=tuple(p[5])[0])
+            ops.ClassicallyControlledOperation(
+                conditions=conditions, sub_operation=next(iter(p[5]))
+            )
         ]
 
     def p_gate_params_multiple(self, p):
@@ -1189,9 +1191,11 @@ class QasmParser:
         if p is None:
             raise QasmException('Unexpected end of file')
 
-        raise QasmException(f"""Syntax error: '{p.value}'
+        raise QasmException(
+            f"""Syntax error: '{p.value}'
 {self.debug_context(p)}
-at line {p.lineno}, column {self.find_column(p)}""")
+at line {p.lineno}, column {self.find_column(p)}"""
+        )
 
     def find_column(self, p):
         line_start = self.qasm.rfind('\n', 0, p.lexpos) + 1
