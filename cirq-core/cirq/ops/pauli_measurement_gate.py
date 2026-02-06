@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator, Mapping, Sequence
+from functools import cached_property
 from typing import Any, cast, TYPE_CHECKING
 
 from cirq import protocols, value
@@ -124,11 +125,9 @@ class PauliMeasurementGate(raw_types.Gate):
     def _is_measurement_(self) -> bool:
         return True
 
-    def _measurement_key_name_(self) -> str:
-        return self.key
-
-    def _measurement_key_obj_(self) -> cirq.MeasurementKey:
-        return self.mkey
+    @cached_property
+    def measurement_keys(self) -> frozenset[cirq.MeasurementKey]:
+        return frozenset([self.mkey])
 
     def observable(self) -> cirq.DensePauliString:
         """Pauli observable which should be measured by the gate."""

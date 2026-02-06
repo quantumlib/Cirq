@@ -20,6 +20,7 @@ import numbers
 import re
 import warnings
 from collections.abc import Collection, Mapping, Sequence, Set
+from functools import cached_property
 from types import NotImplementedType
 from typing import Any, cast, Self, TYPE_CHECKING, TypeVar
 
@@ -369,6 +370,10 @@ class GateOperation(raw_types.Operation):
             control_values=control_values,
             control_qid_shape=tuple(q.dimension for q in qubits),
         ).on(*(qubits + self._qubits))
+
+    @cached_property
+    def measurement_keys(self) -> frozenset[cirq.MeasurementKey]:
+        return self.gate.measurement_keys
 
 
 TV = TypeVar('TV', bound=raw_types.Gate)

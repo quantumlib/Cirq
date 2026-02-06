@@ -44,7 +44,7 @@ class SupportsControlKey(Protocol):
         """
 
 
-def control_keys(val: Any) -> frozenset[cirq.MeasurementKey]:
+def control_keys(val: Any, _skip_property_check=False) -> frozenset[cirq.MeasurementKey]:
     """Gets the keys that the value is classically controlled by.
 
     Args:
@@ -61,6 +61,11 @@ def control_keys(val: Any) -> frozenset[cirq.MeasurementKey]:
         the subcircuit are still required externally and thus appear in the
         result.
     """
+    if not _skip_property_check:
+        attr = getattr(val, 'control_keys', None)
+        if attr is not None:
+            return attr
+
     getter = getattr(val, '_control_keys_', None)
     result = NotImplemented if getter is None else getter()
     if result is not NotImplemented and result is not None:
