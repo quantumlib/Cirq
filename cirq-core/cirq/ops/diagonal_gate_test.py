@@ -158,11 +158,11 @@ def test_unitary(n) -> None:
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
 def test_resolve(resolve_fn) -> None:
     diagonal_angles = [2, 3, 5, 7, 11, 13, 17, 19]
-    diagonal_gate = cirq.DiagonalGate(diagonal_angles[:6] + [sympy.Symbol('a'), sympy.Symbol('b')])
+    diagonal_gate = cirq.DiagonalGate([*diagonal_angles[:6], sympy.Symbol('a'), sympy.Symbol('b')])
     assert cirq.is_parameterized(diagonal_gate)
 
     diagonal_gate = resolve_fn(diagonal_gate, {'a': 17})
-    assert diagonal_gate == cirq.DiagonalGate(diagonal_angles[:7] + [sympy.Symbol('b')])
+    assert diagonal_gate == cirq.DiagonalGate([*diagonal_angles[:7], sympy.Symbol('b')])
     assert cirq.is_parameterized(diagonal_gate)
 
     diagonal_gate = resolve_fn(diagonal_gate, {'b': 19})

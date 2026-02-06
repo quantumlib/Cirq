@@ -49,7 +49,9 @@ from cirq.ops import (
 from cirq.ops.measurement_gate import MeasurementGate
 from cirq.ops.swap_gates import ISWAP, ISwapPowGate, SWAP, SwapPowGate
 
-assert all([ISWAP, SWAP, ISwapPowGate, SwapPowGate, MeasurementGate]), """
+assert all(
+    [ISWAP, SWAP, ISwapPowGate, SwapPowGate, MeasurementGate]
+), """
 Included for compatibility. Please continue to use top-level cirq.{thing}
 imports.
 """
@@ -1092,7 +1094,7 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         return ZPowGate(exponent=self.exponent).controlled(
             num_controls=result.num_controls() + 1,
             control_values=result.control_values & cv.ProductOfSums([1]),
-            control_qid_shape=result.control_qid_shape + (2,),
+            control_qid_shape=(*result.control_qid_shape, 2),
         )
 
     def _decompose_with_context_(
@@ -1278,7 +1280,7 @@ class CXPowGate(eigen_gate.EigenGate):
         return XPowGate(exponent=self.exponent).controlled(
             num_controls=result.num_controls() + 1,
             control_values=result.control_values & cv.ProductOfSums([1]),
-            control_qid_shape=result.control_qid_shape + (2,),
+            control_qid_shape=(*result.control_qid_shape, 2),
         )
 
     def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> str | None:

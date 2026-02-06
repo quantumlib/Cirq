@@ -83,5 +83,5 @@ def test_noise_model_from_noise_properties_json() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     props = SampleNoiseProperties([q0, q1], [(q0, q1), (q1, q0)])
     model = NoiseModelFromNoiseProperties(props)
-    resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
+    resolvers = [custom_resolver, *cirq.DEFAULT_RESOLVERS]
     cirq.testing.assert_json_roundtrip_works(model, resolvers=resolvers)

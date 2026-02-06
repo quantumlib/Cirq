@@ -144,7 +144,8 @@ def deindent_snippet(snippet: str) -> str:
 
 
 def test_find_markdown_code_snippets():
-    snippets = find_markdown_code_snippets("""
+    snippets = find_markdown_code_snippets(
+        """
 A 3 by 3 grid of qubits using
 
 ```python
@@ -165,7 +166,8 @@ More text.
 ```python
 print("last line")
 ```
-""")
+"""
+    )
 
     assert snippets == [
         ('\nprint("hello world")', 4),
@@ -175,7 +177,8 @@ print("last line")
 
 
 def test_find_markdown_test_overrides():
-    overrides = find_markdown_test_overrides("""
+    overrides = find_markdown_test_overrides(
+        """
 A 3 by 3 grid of qubits using
 
 ```python
@@ -189,7 +192,8 @@ goodbye
 world
 universe
 --->
-""")
+"""
+    )
 
     assert len(overrides) == 2
     assert overrides[0][0].match('hello')
@@ -215,7 +219,9 @@ universe
 --->
 """
     overrides = find_markdown_test_overrides(content)
-    assert apply_overrides(content, overrides) == """
+    assert (
+        apply_overrides(content, overrides)
+        == """
 A 3 by 3 grid of qubits using
 
 ```python
@@ -230,6 +236,7 @@ universe
 universe
 --->
 """
+    )
 
 
 def assert_file_has_working_code_snippets(path: str | pathlib.Path, assume_import: bool):
@@ -385,7 +392,7 @@ def assert_code_snippet_runs_and_prints_expected(
         new_msg = ex.args[0] + '\n\nIn snippet{}:\n{}'.format(
             "" if line_number is None else " (line {})".format(line_number), _indent([snippet])
         )
-        ex.args = (new_msg,) + tuple(ex.args[1:])
+        ex.args = (new_msg, *tuple(ex.args[1:]))
         raise
 
 
@@ -481,49 +488,81 @@ def _indent(lines: list[str]) -> str:
 
 
 def test_find_expected_outputs():
-    assert find_expected_outputs("""
+    assert (
+        find_expected_outputs(
+            """
 # print
 # abc
 
 # def
-    """) == ['abc']
+    """
+        )
+        == ['abc']
+    )
 
-    assert find_expected_outputs("""
+    assert (
+        find_expected_outputs(
+            """
 # prints
 # abc
 
 # def
-    """) == ['abc']
+    """
+        )
+        == ['abc']
+    )
 
-    assert find_expected_outputs("""
+    assert (
+        find_expected_outputs(
+            """
 # print:
 # abc
 
 # def
-    """) == ['abc']
+    """
+        )
+        == ['abc']
+    )
 
-    assert find_expected_outputs("""
+    assert (
+        find_expected_outputs(
+            """
 #print:
 # abc
 
 # def
-    """) == ['abc']
+    """
+        )
+        == ['abc']
+    )
 
-    assert find_expected_outputs("""
+    assert (
+        find_expected_outputs(
+            """
 # prints:
 # abc
 
 # def
-    """) == ['abc']
+    """
+        )
+        == ['abc']
+    )
 
-    assert find_expected_outputs("""
+    assert (
+        find_expected_outputs(
+            """
 # prints:
 # abc
 
 # def
-    """) == ['abc']
+    """
+        )
+        == ['abc']
+    )
 
-    assert find_expected_outputs("""
+    assert (
+        find_expected_outputs(
+            """
 lorem ipsum
 
 # prints
@@ -534,9 +573,14 @@ a wondrous collection
 # prints
 # def
 # ghi
-    """) == ['  abc', 'def', 'ghi']
+    """
+        )
+        == ['  abc', 'def', 'ghi']
+    )
 
-    assert find_expected_outputs("""
+    assert (
+        find_expected_outputs(
+            """
 a wandering adventurer
 
 # prints something like
@@ -544,7 +588,10 @@ a wandering adventurer
 #prints
 # pants
 # trance
-    """) == []
+    """
+        )
+        == []
+    )
 
 
 def test_assert_expected_lines_present_in_order():

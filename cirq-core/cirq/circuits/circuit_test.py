@@ -344,12 +344,12 @@ def test_add_op_tree(circuit_cls) -> None:
     b = cirq.NamedQubit('b')
 
     c = circuit_cls()
-    assert c + [cirq.X(a), cirq.Y(b)] == circuit_cls([cirq.Moment([cirq.X(a), cirq.Y(b)])])
+    assert [*c, cirq.X(a), cirq.Y(b)] == circuit_cls([cirq.Moment([cirq.X(a), cirq.Y(b)])])
 
     assert c + cirq.X(a) == circuit_cls(cirq.X(a))
-    assert c + [cirq.X(a)] == circuit_cls(cirq.X(a))
-    assert c + [[[cirq.X(a)], []]] == circuit_cls(cirq.X(a))
-    assert c + (cirq.X(a),) == circuit_cls(cirq.X(a))
+    assert [*c, cirq.X(a)] == circuit_cls(cirq.X(a))
+    assert [*c, [[cirq.X(a)], []]] == circuit_cls(cirq.X(a))
+    assert (*c, cirq.X(a)) == circuit_cls(cirq.X(a))
     assert c + (cirq.X(a) for _ in range(1)) == circuit_cls(cirq.X(a))
     with pytest.raises(TypeError):
         _ = c + cirq.X
@@ -362,12 +362,12 @@ def test_radd_op_tree(circuit_cls, gate) -> None:
     b = cirq.NamedQubit('b')
 
     c = circuit_cls()
-    assert [gate(a), cirq.Y(b)] + c == circuit_cls([cirq.Moment([gate(a), cirq.Y(b)])])
+    assert [gate(a), cirq.Y(b), *c] == circuit_cls([cirq.Moment([gate(a), cirq.Y(b)])])
 
     assert gate(a) + c == circuit_cls(gate(a))
-    assert [gate(a)] + c == circuit_cls(gate(a))
-    assert [[[gate(a)], []]] + c == circuit_cls(gate(a))
-    assert (gate(a),) + c == circuit_cls(gate(a))
+    assert [gate(a), *c] == circuit_cls(gate(a))
+    assert [[[gate(a)], []], *c] == circuit_cls(gate(a))
+    assert (gate(a), *c) == circuit_cls(gate(a))
     assert (gate(a) for _ in range(1)) + c == circuit_cls(gate(a))
     with pytest.raises(AttributeError):
         _ = gate + c
@@ -381,7 +381,7 @@ def test_radd_op_tree(circuit_cls, gate) -> None:
     else:
         d = cirq.Circuit()
         d.append(cirq.Y(b))
-    assert [gate(a)] + d == circuit_cls([cirq.Moment([gate(a)]), cirq.Moment([cirq.Y(b)])])
+    assert [gate(a), *d] == circuit_cls([cirq.Moment([gate(a)]), cirq.Moment([cirq.Y(b)])])
     assert cirq.Moment([gate(a)]) + d == circuit_cls(
         [cirq.Moment([gate(a)]), cirq.Moment([cirq.Y(b)])]
     )
@@ -412,7 +412,9 @@ def test_repr(circuit_cls) -> None:
         [cirq.Moment([cirq.H(a), cirq.H(b)]), cirq.Moment(), cirq.Moment([cirq.CZ(a, b)])]
     )
     cirq.testing.assert_equivalent_repr(c)
-    assert repr(c) == f"""cirq.{circuit_cls.__name__}([
+    assert (
+        repr(c)
+        == f"""cirq.{circuit_cls.__name__}([
     cirq.Moment(
         cirq.H(cirq.NamedQubit('a')),
         cirq.H(cirq.NamedQubit('b')),
@@ -422,6 +424,7 @@ def test_repr(circuit_cls) -> None:
         cirq.CZ(cirq.NamedQubit('a'), cirq.NamedQubit('b')),
     ),
 ])"""
+    )
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
@@ -3632,7 +3635,9 @@ def test_to_qasm(circuit_cls) -> None:
     q0 = cirq.NamedQubit('q0')
     circuit = circuit_cls(cirq.X(q0), cirq.measure(q0, key='mmm'))
     assert circuit.to_qasm() == cirq.qasm(circuit)
-    assert circuit.to_qasm() == f"""// Generated from Cirq v{cirq.__version__}
+    assert (
+        circuit.to_qasm()
+        == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -3646,8 +3651,11 @@ creg m_mmm[1];
 x q[0];
 measure q[0] -> m_mmm[0];
 """
+    )
     assert circuit.to_qasm(version="3.0") == cirq.qasm(circuit, args=cirq.QasmArgs(version="3.0"))
-    assert circuit.to_qasm(version="3.0") == f"""// Generated from Cirq v{cirq.__version__}
+    assert (
+        circuit.to_qasm(version="3.0")
+        == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 3.0;
 include "stdgates.inc";
@@ -3661,6 +3669,7 @@ bit[1] m_mmm;
 x q[0];
 m_mmm[0] = measure q[0];
 """
+    )
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
@@ -3672,7 +3681,9 @@ def test_save_qasm(tmpdir, circuit_cls) -> None:
     circuit.save_qasm(file_path)
     with open(file_path, 'r') as f:
         file_content = f.read()
-    assert file_content == f"""// Generated from Cirq v{cirq.__version__}
+    assert (
+        file_content
+        == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -3684,6 +3695,7 @@ qreg q[1];
 
 x q[0];
 """
+    )
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])

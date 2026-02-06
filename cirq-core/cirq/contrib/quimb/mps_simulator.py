@@ -427,7 +427,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
 
                 T = U @ self._M[n] @ self._M[p]
 
-                left_inds = tuple(set(T.inds) & set(self._M[n].inds)) + (new_inds[0],)
+                left_inds = tuple(*(set(T.inds) & set(self._M[n].inds)), *new_inds[0])
                 X, Y = T.split(
                     left_inds,
                     method=self._simulation_options.method,

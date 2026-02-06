@@ -92,7 +92,7 @@ class QuantumFourierTransformGate(raw_types.Gate):
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return cirq.CircuitDiagramInfo(
-            wire_symbols=(str(self),) + tuple(f'#{k+1}' for k in range(1, self._num_qubits)),
+            wire_symbols=(str(self), *tuple(f'#{k+1}' for k in range(1, self._num_qubits))),
             exponent_qubit_index=0,
         )
 
@@ -185,7 +185,7 @@ class PhaseGradientGate(raw_types.Gate):
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return cirq.CircuitDiagramInfo(
-            wire_symbols=('Grad',) + tuple(f'#{k+1}' for k in range(1, self._num_qubits)),
+            wire_symbols=('Grad', *tuple(f'#{k+1}' for k in range(1, self._num_qubits))),
             exponent=self.exponent,
             exponent_qubit_index=0,
         )

@@ -112,7 +112,8 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         sweep_abc = [common_gates.CNOT(a, b), common_gates.CNOT(b, c)]
         global_phase_gate = global_phase_op.from_phase_and_exponent(self.global_shift, exp)
         global_phase_operation = [] if global_phase_gate.is_identity() else [global_phase_gate()]
-        return global_phase_operation + [
+        return [
+            *global_phase_operation,
             p(a),
             p(b),
             p(c),
@@ -324,7 +325,8 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
             if protocols.is_parameterized(global_phase) or abs(global_phase - 1.0) > 0
             else []
         )
-        return global_phase_operation + [
+        return [
+            *global_phase_operation,
             p_gates[0](a),
             p_gates[1](b),
             p_gates[2](c),

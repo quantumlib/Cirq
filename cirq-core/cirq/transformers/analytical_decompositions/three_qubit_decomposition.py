@@ -226,7 +226,7 @@ def _optimize_multiplexed_angles_circuit(operations: Sequence[ops.Operation]):
             operations = operations[:1]
             break
         elif num_czs == 3:
-            operations = operations[:i] + [operations[i + 1]] + operations[i + 3 :]
+            operations = [*operations[:i], operations[i + 1], *operations[i + 3 :]]
             break
         else:
             i += 1

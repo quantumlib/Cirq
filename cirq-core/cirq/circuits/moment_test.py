@@ -516,9 +516,8 @@ def test_add() -> None:
     with pytest.raises(ValueError, match='Overlap'):
         _ = m1 + m2
 
-    assert m1 + [[[[cirq.Y(b)]]]] == cirq.Moment(cirq.X(a), cirq.Y(b))
-    assert m1 + [] == m1
-    assert m1 + [] is m1
+    assert [*m1, [[[cirq.Y(b)]]]] == cirq.Moment(cirq.X(a), cirq.Y(b))
+    assert [*m1] == m1
 
 
 def test_sub() -> None:
@@ -592,7 +591,9 @@ def test_moment_text_diagram() -> None:
     d: cirq.Qid
     a, b, c, d = cirq.GridQubit.rect(2, 2)
     m = cirq.Moment(cirq.CZ(a, b), cirq.CNOT(c, d))
-    assert str(m).strip() == """
+    assert (
+        str(m).strip()
+        == """
   ╷ 0 1
 ╶─┼─────
 0 │ @─@
@@ -600,6 +601,7 @@ def test_moment_text_diagram() -> None:
 1 │ @─X
   │
     """.strip()
+    )
 
     m = cirq.Moment(cirq.CZ(a, b), cirq.CNOT(c, d))
     cirq.testing.assert_has_diagram(

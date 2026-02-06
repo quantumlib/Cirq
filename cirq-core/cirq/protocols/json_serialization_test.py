@@ -94,7 +94,7 @@ def test_deprecated_cirq_type_in_json_dict() -> None:
         if name == 'test.noncirq.namespace.HasOldJsonDict':  # pragma: no cover
             return HasOldJsonDict
 
-    test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
+    test_resolvers = [custom_resolver, *cirq.DEFAULT_RESOLVERS]
     with pytest.raises(ValueError, match="Found 'cirq_type'"):
         assert_json_roundtrip_works(HasOldJsonDict(), resolvers=test_resolvers)
 
@@ -181,12 +181,14 @@ def test_op_roundtrip_file_obj(tmpdir) -> None:
 
 def test_fail_to_resolve() -> None:
     buffer = io.StringIO()
-    buffer.write("""
+    buffer.write(
+        """
     {
       "cirq_type": "MyCustomClass",
       "data": [1, 2, 3]
     }
-    """)
+    """
+    )
     buffer.seek(0)
 
     with pytest.raises(ValueError) as e:
@@ -547,7 +549,7 @@ def test_type_serialization(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cl
             return SerializableTypeObject
 
     sto = SerializableTypeObject(cls)
-    test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
+    test_resolvers = [custom_resolver, *cirq.DEFAULT_RESOLVERS]
     expected_json = f'{{\n  "cirq_type": "SerializableTypeObject",\n  "test_type": "{typename}"\n}}'
     assert cirq.to_json(sto) == expected_json
     assert cirq.read_json(json_text=expected_json, resolvers=test_resolvers) == sto
@@ -559,7 +561,7 @@ def test_invalid_type_deserialize() -> None:
         if name == 'SerializableTypeObject':
             return SerializableTypeObject
 
-    test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
+    test_resolvers = [custom_resolver, *cirq.DEFAULT_RESOLVERS]
     invalid_json = '{\n  "cirq_type": "SerializableTypeObject",\n  "test_type": "bad_type"\n}'
     with pytest.raises(ValueError, match='Could not resolve type'):
         _ = cirq.read_json(json_text=invalid_json, resolvers=test_resolvers)
@@ -745,9 +747,12 @@ def test_dataclass_json_dict() -> None:
 
 
 def test_numpy_values() -> None:
-    assert cirq.to_json({'value': np.array(1)}) == """{
+    assert (
+        cirq.to_json({'value': np.array(1)})
+        == """{
   "value": 1
 }"""
+    )
 
 
 def test_basic_time_assertions() -> None:
