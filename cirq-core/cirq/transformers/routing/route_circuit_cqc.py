@@ -81,14 +81,13 @@ class RouteCQC:
                 the swap that minimises the cost and use it to update our logical to physical
                 mapping. Repeat from 3.1.
 
-    **Handling Directed Graphs:**
-        When the device_graph is directed (i.e., edges represent unidirectional CNOT constraints),
+    Handling Directed Graphs:
+        When the device_graph is directed (e.g., edges represent unidirectional CNOT constraints),
         the routing logic still operates as if the graph were undirected. This is because SWAP
         gates are logically symmetric regardless of underlying gate direction constraints.
-        After routing completes, any inserted SWAP gates tagged with `RoutingSwapTag` are
-        decomposed into a directional-aware sequence using the Hadamard trick:
-        ``SWAP = CNOT(ctrl,tgt) - H⊗H - CNOT(ctrl,tgt) - H⊗H - CNOT(ctrl,tgt)``
-        where (ctrl, tgt) follows the allowed edge direction.
+        After routing completes, any inserted SWAP gates are decomposed into a directional-aware
+        sequence using the Hadamard trick:
+        ``SWAP = CNOT(ctrl, tgt) - H⊗H - CNOT(ctrl, tgt) - H⊗H - CNOT(ctrl, tgt)``
 
     For example:
 
@@ -187,7 +186,7 @@ class RouteCQC:
             circuit: the input circuit to be transformed.
             lookahead_radius: the maximum number of succeeding timesteps the algorithm will
                 consider for ranking candidate swaps with the cost cost function.
-            tag_inserted_swaps: whether or not a RoutingSwapTag should be attched to inserted swap
+            tag_inserted_swaps: whether or not a RoutingSwapTag should be attached to inserted swap
                 operations.
             initial_mapper: an initial mapping strategy (placement) of logical qubits in the
                 circuit onto physical qubits on the device.
@@ -228,7 +227,7 @@ class RouteCQC:
         two_qubit_ops, single_qubit_ops = self._get_one_and_two_qubit_ops_as_timesteps(circuit)
 
         # 4. Do the routing and save the routed circuit as a list of moments.
-        routed_ops = self._route(
+        routed_ops, routing_swaps = self._route(
             mm,
             two_qubit_ops,
             single_qubit_ops,
@@ -236,15 +235,18 @@ class RouteCQC:
             tag_inserted_swaps=tag_inserted_swaps,
         )
 
-        # 4.5. Replace tagged SWAP gates with directional decompositions if needed.
+        # 5. Replace tagged SWAP gates with directional decompositions if needed.
         # This handles directed device graphs by decomposing SWAP into a sequence of CNOTs
         # that respect the edge direction constraints.
         routed_circuit = circuits.Circuit(circuits.Circuit(m) for m in routed_ops)
-        final_circuit = self._replace_swaps_with_directional_decomposition(
-            routed_circuit, tag_inserted_swaps
-        )
+        if nx.is_directed(self.device_graph):
+            final_circuit = self._replace_swaps_with_directional_decomposition(
+                routed_circuit, routing_swaps
+            )
+        else:
+            final_circuit = routed_circuit
 
-        # 5. Return the routed circuit and mappings.
+        # 6. Return the routed circuit and mappings.
         return (
             final_circuit,
             initial_mapping,
@@ -298,13 +300,13 @@ class RouteCQC:
         return two_qubit_ops, single_qubit_ops
 
     def _replace_swaps_with_directional_decomposition(
-        self, circuit: cirq.AbstractCircuit, tag_inserted_swaps: bool
+        self, circuit: cirq.AbstractCircuit, routing_swaps: set[cirq.Operation]
     ) -> cirq.AbstractCircuit:
-        """Replaces SWAP gates tagged with RoutingSwapTag with directional decompositions.
+        """Replaces routing-added SWAP gates with directional decompositions.
 
         For directed device graphs, SWAP gates need to be decomposed into CNOTs that
         respect the edge direction. This method uses cirq.map_operations_and_unroll to
-        find all SWAP gates with RoutingSwapTag and replaces them with the appropriate
+        find all routing-added SWAP gates and replaces them with the appropriate
         decomposition.
 
         For bidirectional edges (or undirected graphs), the SWAP is left unchanged.
@@ -313,34 +315,26 @@ class RouteCQC:
 
         Args:
             circuit: The routed circuit containing SWAP operations.
-            tag_inserted_swaps: Whether SWAPs were tagged during routing.
+            routing_swaps: Set of routing-added SWAP operations to decompose.
 
         Returns:
             Circuit with directional SWAP decompositions where needed.
         """
-        if not tag_inserted_swaps:
-            # If swaps weren't tagged, we can't identify which ones to decompose.
-            # In this case, we assume the graph is undirected or the user will
-            # handle decomposition elsewhere.
+        if not routing_swaps:
+            # If no routing swaps were added, no decomposition needed.
             return circuit
 
         def map_func(op: cirq.Operation, _: int) -> cirq.OP_TREE:
-            """Map function to replace tagged SWAPs with directional decomposition."""
-            # Check if this is a tagged SWAP operation
-            if not isinstance(op.gate, ops.SwapPowGate) or op.gate.exponent != 1:
-                return op
-            if not any(isinstance(tag, ops.RoutingSwapTag) for tag in op.tags):
+            """Map function to replace routing-added SWAPs with directional decomposition."""
+            # Check if this is a routing-added SWAP operation
+            if op not in routing_swaps:
                 return op
 
             q1, q2 = op.qubits
             has_forward = self.device_graph.has_edge(q1, q2)
             has_reverse = self.device_graph.has_edge(q2, q1)
 
-            if has_forward and has_reverse:
-                # Bidirectional: keep the SWAP as-is
-                return op
-
-            if has_forward or has_reverse:
+            if has_forward ^ has_reverse:
                 # Unidirectional: decompose SWAP using Hadamard trick
                 ctrl, tgt = (q1, q2) if has_forward else (q2, q1)
                 # Preserve the RoutingSwapTag on the decomposed operations
@@ -369,10 +363,10 @@ class RouteCQC:
         single_qubit_ops: list[list[cirq.Operation]],
         lookahead_radius: int,
         tag_inserted_swaps: bool = False,
-    ) -> list[list[cirq.Operation]]:
+    ) -> tuple[list[list[cirq.Operation]], set[cirq.Operation]]:
         """Main routing procedure that inserts necessary swaps on the given timesteps.
 
-        The i'th element of the returned list corresponds to the routed operatiosn in the i'th
+        The i'th element of the returned list corresponds to the routed operations in the i'th
         timestep.
 
         Args:
@@ -382,11 +376,12 @@ class RouteCQC:
             the paper.
           lookahead_radius: the maximum number of times the cost function can be iterated for
             convergence.
-        tag_inserted_swaps: whether or not a RoutingSwapTag should be attched to inserted swap
+        tag_inserted_swaps: whether or not a RoutingSwapTag should be attached to inserted swap
             operations.
 
         Returns:
             a list of lists corresponding to timesteps of the routed circuit.
+            a set of inserted SWAP operations.
         """
         two_qubit_ops_ints: list[list[QidIntPair]] = [
             [
@@ -411,6 +406,8 @@ class RouteCQC:
             return len(unexecutable_ops)
 
         strats = [cls._choose_single_swap, cls._choose_pair_of_swaps]
+
+        inserted_swaps: set[cirq.Operation] = set()
 
         for timestep in range(len(two_qubit_ops)):
             # Add single-qubit ops with qubits given by the current mapping.
@@ -438,10 +435,11 @@ class RouteCQC:
                     )
                     if tag_inserted_swaps:
                         inserted_swap = inserted_swap.with_tags(ops.RoutingSwapTag())
+                    inserted_swaps.add(inserted_swap)
                     routed_ops[timestep].append(inserted_swap)
                     mm.apply_swap(*swap)
 
-        return routed_ops
+        return routed_ops, inserted_swaps
 
     @classmethod
     def _brute_force_strategy(
