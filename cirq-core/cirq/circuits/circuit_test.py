@@ -412,9 +412,7 @@ def test_repr(circuit_cls) -> None:
         [cirq.Moment([cirq.H(a), cirq.H(b)]), cirq.Moment(), cirq.Moment([cirq.CZ(a, b)])]
     )
     cirq.testing.assert_equivalent_repr(c)
-    assert (
-        repr(c)
-        == f"""cirq.{circuit_cls.__name__}([
+    assert repr(c) == f"""cirq.{circuit_cls.__name__}([
     cirq.Moment(
         cirq.H(cirq.NamedQubit('a')),
         cirq.H(cirq.NamedQubit('b')),
@@ -424,7 +422,6 @@ def test_repr(circuit_cls) -> None:
         cirq.CZ(cirq.NamedQubit('a'), cirq.NamedQubit('b')),
     ),
 ])"""
-    )
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
@@ -1243,6 +1240,7 @@ def test_earliest_available_moment() -> None:
         c.earliest_available_moment(cirq.Y(q[1]).with_classical_controls("m"), end_moment_index=1)
         == 1
     )
+    assert c.earliest_available_moment(cirq.Y(q[1]), end_moment_index=4) == 2
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
@@ -3524,8 +3522,8 @@ def test_push_frontier_random_circuit() -> None:
         late_frontier = {q: randint(0, n_moments) for q in sample(qubits, randint(0, len(qubits)))}
         update_qubits = sample(qubits, randint(0, len(qubits)))
 
-        orig_early_frontier = {q: f for q, f in early_frontier.items()}
-        orig_moments = [m for m in circuit._moments]
+        orig_early_frontier = dict(early_frontier)
+        orig_moments = list(circuit._moments)
         insert_index, n_new_moments = circuit._push_frontier(
             early_frontier, late_frontier, update_qubits
         )
@@ -3634,9 +3632,7 @@ def test_to_qasm(circuit_cls) -> None:
     q0 = cirq.NamedQubit('q0')
     circuit = circuit_cls(cirq.X(q0), cirq.measure(q0, key='mmm'))
     assert circuit.to_qasm() == cirq.qasm(circuit)
-    assert (
-        circuit.to_qasm()
-        == f"""// Generated from Cirq v{cirq.__version__}
+    assert circuit.to_qasm() == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -3650,11 +3646,8 @@ creg m_mmm[1];
 x q[0];
 measure q[0] -> m_mmm[0];
 """
-    )
     assert circuit.to_qasm(version="3.0") == cirq.qasm(circuit, args=cirq.QasmArgs(version="3.0"))
-    assert (
-        circuit.to_qasm(version="3.0")
-        == f"""// Generated from Cirq v{cirq.__version__}
+    assert circuit.to_qasm(version="3.0") == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 3.0;
 include "stdgates.inc";
@@ -3668,7 +3661,6 @@ bit[1] m_mmm;
 x q[0];
 m_mmm[0] = measure q[0];
 """
-    )
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
@@ -3680,9 +3672,7 @@ def test_save_qasm(tmpdir, circuit_cls) -> None:
     circuit.save_qasm(file_path)
     with open(file_path, 'r') as f:
         file_content = f.read()
-    assert (
-        file_content
-        == f"""// Generated from Cirq v{cirq.__version__}
+    assert file_content == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -3694,7 +3684,6 @@ qreg q[1];
 
 x q[0];
 """
-    )
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
@@ -4987,3 +4976,79 @@ def test_tagged_circuits() -> None:
     assert (
         circuit2.concat_ragged(tagged_circuit).tags == ()
     )  # We only preserve the tags for the first one
+
+
+def test_latest_available_moment() -> None:
+    q = cirq.LineQubit.range(3)
+    c = cirq.Circuit(
+        cirq.Moment(cirq.measure(q[0], key="m")),
+        cirq.Moment(cirq.X(q[1]).with_classical_controls("m")),
+    )
+    assert c._latest_available_moment(cirq.Y(q[0])) == -1
+    assert c._latest_available_moment(cirq.Y(q[1])) == 0
+    assert c._latest_available_moment(cirq.Y(q[2])) == 1
+    assert c._latest_available_moment(cirq.Y(q[2]).with_classical_controls("m")) == -1
+    assert (
+        c._latest_available_moment(cirq.Y(q[2]).with_classical_controls("m"), start_moment_index=1)
+        == 1
+    )
+    # Defaults to len(moments) if start_moment_index == len(moments)
+    assert c._latest_available_moment(cirq.Y(q[1]), start_moment_index=2) == 2
+    # Y(q[1]) can be in the same moment as X(q[1])
+    assert c._latest_available_moment(cirq.Y(q[1]), start_moment_index=1) == 0
+    # A measurement on q[0] with different key can be in moment 1
+    assert c._latest_available_moment(cirq.measure(q[0], key="n"), start_moment_index=1) == 1
+    # A measurement on q[0] with the same key can't be in moment 1
+    assert c._latest_available_moment(cirq.measure(q[0], key="m"), start_moment_index=1) == 0
+    assert c._latest_available_moment(cirq.measure(q[0], key="m"), start_moment_index=0) == -1
+
+
+def test_insert_op_tree_latest() -> None:
+    q = cirq.LineQubit.range(3)
+
+    op_tree_list = [
+        (0, [0, 1], [cirq.X(q[0]), cirq.X(q[1])], [q[0], q[1]], 2),
+        (0, [2], [cirq.X(q[2])], [q[2]], 3),
+        (2, [2], [cirq.Y(q[1])], [q[1]], 3),
+        (
+            1,
+            [1, 1, 3],
+            [cirq.measure(q[0], key="m"), cirq.Y(q[1]), cirq.Z(q[2])],
+            [q[0], q[1], q[2]],
+            4,
+        ),
+        (0, [0], [cirq.measure(q[0], key="n")], [q[0]], 1),
+        (1, [2], [cirq.X(q[2]).with_classical_controls("m")], [q[2]], 3),
+        (0, [0, 1, 2], [cirq.X(q[2]), cirq.Y(q[2]), cirq.H(q[2])], [q[2], q[2], q[2]], 3),
+        (3, [3], [cirq.H(q[1])], [q[1]], 4),
+    ]
+
+    for insert_index, result_indices, op_list, qubits, index_after in op_tree_list:
+        c = cirq.Circuit(
+            cirq.Moment(cirq.measure(q[0], key="m")),
+            cirq.Moment(cirq.X(q[1]).with_classical_controls("m")),
+            cirq.Moment([cirq.H(q[1])]),
+        )
+        assert c.insert(insert_index, op_list, cirq.InsertStrategy.LATEST) == index_after
+        for i in range(len(op_list)):
+            assert c.operation_at(qubits[i], result_indices[i]) == op_list[i]
+
+
+def test_insert_moments_and_ops_latest() -> None:
+    q = cirq.LineQubit.range(3)
+
+    moments_and_ops_list = [
+        (0, [cirq.Moment(cirq.H(q[2])), cirq.Moment(cirq.X(q[2]))], 2),
+        (0, [cirq.Moment(cirq.H(q[2])), cirq.X(q[2])], 4),
+        (1, [cirq.X(q[0]), cirq.Moment(cirq.Y(q[1]))], 4),
+        (1, [cirq.Y(q[1]), cirq.Moment(cirq.Y(q[2]))], 2),
+        (1, [], 1),
+    ]
+
+    for insert_index, moments_and_ops, index_after in moments_and_ops_list:
+        c = cirq.Circuit(
+            cirq.Moment(cirq.measure(q[0], key="m")),
+            cirq.Moment(cirq.X(q[1]).with_classical_controls("m")),
+            cirq.Moment([cirq.H(q[1])]),
+        )
+        assert c.insert(insert_index, moments_and_ops, cirq.InsertStrategy.LATEST) == index_after

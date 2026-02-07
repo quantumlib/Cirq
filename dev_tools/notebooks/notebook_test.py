@@ -56,24 +56,27 @@ def require_packages_not_changed() -> Iterator[None]:
 
     Raise AssertionError if the pre-existing set of Python packages changes in any way.
     """
-    cirq_packages = set(m.name for m in list_modules()).union(["cirq"])
-    packages_before = set(
+    cirq_packages = {m.name for m in list_modules()}.union(["cirq"])
+    packages_before = {
         (d.name, d.version)
         for d in importlib.metadata.distributions()
         if d.name not in cirq_packages
-    )
+    }
     yield
-    packages_after = set(
+    packages_after = {
         (d.name, d.version)
         for d in importlib.metadata.distributions()
         if d.name not in cirq_packages
-    )
+    }
     assert packages_after == packages_before
 
 
 @pytest.fixture
 def env_with_temporary_pip_target() -> Iterator[dict[str, str]]:
-    """Setup system environment that tells pip to install packages to a temporary directory."""
+    """Set up system environment that tells pip to install packages to a temporary directory.
+
+    Also isolate the run from local pip settings in configuration files or environment.
+    """
     with tempfile.TemporaryDirectory(suffix='-notebook-site-packages') as tmpdirname:
         # Note: We need to append tmpdirname to the PYTHONPATH, because PYTHONPATH may
         # already point to the development sources of Cirq (as happens with check/pytest).
@@ -84,7 +87,12 @@ def env_with_temporary_pip_target() -> Iterator[dict[str, str]]:
             if 'PYTHONPATH' in os.environ
             else tmpdirname
         )
-        env = {**os.environ, 'PYTHONPATH': pythonpath, 'PIP_TARGET': tmpdirname}
+        env = {
+            **os.environ,
+            'PYTHONPATH': pythonpath,
+            'PIP_TARGET': tmpdirname,
+            'PIP_CONFIG_FILE': '/dev/null',
+        }
         yield env
 
 

@@ -757,7 +757,7 @@ def test_metadata_distributions_after_deprecated_submodule():
 
 
 def _test_metadata_distributions_after_deprecated_submodule():
-    # verify deprecated_submodule does not break importlib_metadata.distributions()
+    # verify deprecated_submodule does not break importlib.metadata.distributions()
     # See https://github.com/quantumlib/Cirq/issues/4729
     deprecated_submodule(
         new_module_name='cirq.neutral_atoms',
@@ -766,9 +766,7 @@ def _test_metadata_distributions_after_deprecated_submodule():
         deadline="v0.14",
         create_attribute=True,
     )
-    m = pytest.importorskip("importlib_metadata")
-    distlist = list(m.distributions())
-    assert all(isinstance(d.name, str) for d in distlist)
+    assert all(isinstance(d.name, str) for d in importlib.metadata.distributions())
 
 
 def test_parent_spec_after_deprecated_submodule():

@@ -667,6 +667,39 @@ class Engine(abstract_engine.AbstractEngine):
 
     get_processor_config = duet.sync(get_processor_config_async)
 
+    async def list_processor_configs_async(
+        self,
+        processor_id: str,
+        device_config_revision: processor_config.DeviceConfigRevision = processor_config.Run(
+            id='current'
+        ),
+    ) -> list[processor_config.ProcessorConfig]:
+        """Returns list of ProcessorConfigs from an automation run.
+
+        Args:
+            processor_id: The processor unique identifier.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
+
+        Returns:
+            List of ProcessorConfigs.
+        """
+        configs = await self.context.client.list_quantum_processor_configs_async(
+            project_id=self.project_id,
+            processor_id=processor_id,
+            device_config_revision=device_config_revision,
+        )
+
+        return [
+            processor_config.ProcessorConfig(
+                quantum_processor_config=quantum_config,
+                processor=self.get_processor(processor_id=processor_id),
+                device_config_revision=device_config_revision,
+            )
+            for quantum_config in configs
+        ]
+
+    list_processor_configs = duet.sync(list_processor_configs_async)
+
 
 def get_engine(project_id: str | None = None) -> Engine:
     """Get an Engine instance assuming some sensible defaults.

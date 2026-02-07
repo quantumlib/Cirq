@@ -358,6 +358,7 @@ from cirq.transformers import (
     decompose_two_qubit_interaction_into_four_fsim_gates as decompose_two_qubit_interaction_into_four_fsim_gates,  # noqa: E501
     defer_measurements as defer_measurements,
     dephase_measurements as dephase_measurements,
+    drop_diagonal_before_measurement as drop_diagonal_before_measurement,
     drop_empty_moments as drop_empty_moments,
     drop_negligible_operations as drop_negligible_operations,
     drop_terminal_measurements as drop_terminal_measurements,
@@ -519,6 +520,7 @@ from cirq.study import (
     Product as Product,
     Sweep as Sweep,
     Sweepable as Sweepable,
+    symbol as symbol,
     to_resolvers as to_resolvers,
     to_sweep as to_sweep,
     to_sweeps as to_sweeps,
@@ -693,13 +695,11 @@ from cirq.work import (
     ZerosSampler as ZerosSampler,
 )
 
-
 # Unflattened sub-modules.
 
 # Registers cirq-core's public classes for JSON serialization.
 from cirq.protocols.json_serialization import _register_resolver
 from cirq.json_resolver_cache import _class_resolver_dictionary
-
 
 _register_resolver(_class_resolver_dictionary)
 

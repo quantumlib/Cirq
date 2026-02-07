@@ -14,9 +14,11 @@
 
 from __future__ import annotations
 
+import functools
+import math
 import numbers
 from collections.abc import Iterator, Sequence, Set
-from typing import Any, TYPE_CHECKING
+from typing import Any, Final, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -191,10 +193,24 @@ class PhasedXZGate(raw_types.Gate):
         """See `cirq.SupportsUnitary`."""
         if self._is_parameterized_():
             return None
-        z_pre = protocols.unitary(ops.Z**-self._axis_phase_exponent)
-        x = protocols.unitary(ops.X**self._x_exponent)
-        z_post = protocols.unitary(ops.Z ** (self._axis_phase_exponent + self._z_exponent))
-        return z_post @ x @ z_pre
+
+        a = self._axis_phase_exponent
+        x = self._x_exponent
+        z = self._z_exponent
+        # evaluate unitary terms ucx = exp(1j * pi * x / 2) * cos(pi * x / 2) and
+        # usx = -1j * exp(1j * pi * x / 2) * sin(pi * x / 2) without round-off
+        # errors at half-integer x
+        if x % 1 == 0.5:
+            ucx = 0.5 + 0.5j * (-1) ** math.floor(x)
+            usx = ucx.conjugate()
+        else:
+            cpxh = 1j**x
+            ucx = cpxh * cpxh.real
+            usx = -1j * cpxh * cpxh.imag
+        u = np.array(
+            [[ucx, usx * 1j ** (-2 * a)], [usx * 1j ** (2 * (z + a)), ucx * 1j ** (2 * z)]]
+        )
+        return u
 
     def _decompose_(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
         q = qubits[0]
@@ -311,3 +327,67 @@ class PhasedXZGate(raw_types.Gate):
         return protocols.obj_to_dict_helper(
             self, ['axis_phase_exponent', 'x_exponent', 'z_exponent']
         )
+
+    def _has_stabilizer_effect_(self) -> bool:
+        if not self._has_unitary_():
+            return False
+        tol: Final = 1e-8
+        result = (
+            abs((x := round(self._x_exponent, 2)) - self._x_exponent) <= tol
+            and abs((z := round(self._z_exponent, 2)) - self._z_exponent) <= tol
+            and abs((a := round(self._axis_phase_exponent, 2)) - self._axis_phase_exponent) <= tol
+            and _canonical_xza_mod_2(x, z, a) in _clifford_as_phasedzx_params()
+        )
+        return result
+
+
+def _canonical_xza_mod_2(
+    x_exponent: float, z_exponent: float, axis_phase_exponent: float
+) -> tuple[float, float, float]:
+    """Return canonical values of PhasedXZGate parameters modulo 2.
+
+    Optimized helper for `PhasedXZGate._has_stabilizer_effect_`.
+    """
+    # The result must be consistent with PhasedXZGate._canonical
+    x = x_exponent % 2
+    a = 0.0 if x == 0 else axis_phase_exponent % 2
+    z = z_exponent % 2
+    if x == 1 and z != 0:
+        a = (a + z / 2) % 2
+        z = 0
+    if 0.5 < a <= 1.5:
+        a = (a - 1) % 2
+        x = 2 - x if x else x
+    return (x, z, a)
+
+
+@functools.cache
+def _clifford_as_phasedzx_params() -> frozenset[tuple[float, float, float]]:
+    return frozenset(
+        {
+            (0.0, 1.0, 0.0),
+            (0.5, 1.5, 0.0),
+            (1.5, 1.5, 0.0),
+            (1.5, 1.5, 0.5),
+            (0.0, 0.5, 0.0),
+            (0.5, 1.0, 0.0),
+            (0.5, 1.0, 0.5),
+            (1.0, 0.0, 1.75),
+            (0.5, 0.5, 0.0),
+            (0.5, 0.5, 0.5),
+            (1.5, 0.5, 0.5),
+            (1.5, 1.0, 0.5),
+            (1.5, 1.0, 0.0),
+            (1.5, 0.5, 0.0),
+            (0.0, 0.0, 0.0),
+            (1.0, 0.0, 0.0),
+            (1.0, 0.0, 0.5),
+            (1.0, 0.0, 0.25),
+            (0.5, 0.0, 0.5),
+            (0.0, 1.5, 0.0),
+            (0.5, 0.0, 0.0),
+            (1.5, 0.0, 0.0),
+            (1.5, 0.0, 0.5),
+            (0.5, 1.5, 0.5),
+        }
+    )

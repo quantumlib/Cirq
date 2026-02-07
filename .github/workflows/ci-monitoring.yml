@@ -1,0 +1,57 @@
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Monitor duration of pytest runs after PR merges or releases
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+name: Continuous Integration - Monitoring
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - v[0-9]+.*
+
+  # Allow manual invocation.
+  workflow_dispatch:
+
+# Declare default permissions as read only.
+permissions: read-all
+
+jobs:
+  pytest:
+    # Run only with the minimum-supported Python version, otherwise
+    # keep in sync with the "pytest" job in ci-daily.yml.
+    if: github.repository_owner == 'quantumlib'
+    name: Pytest Ubuntu
+    strategy:
+      matrix:
+        python-version: ['3.11']
+    runs-on: ubuntu-22.04-x64-8-core
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Set up Python environment
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: 'x64'
+          cache: 'pip'
+          cache-dependency-path: |
+            **/requirements.txt
+            dev_tools/requirements/**/*.txt
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install latexmk texlive-latex-base texlive-latex-extra
+      - name: Install requirements
+        run: |
+          pip install --upgrade setuptools wheel
+          pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
+      - name: Pytest check
+        continue-on-error: true
+        run: check/pytest -n logical --durations=20 --junit-xml=pytest-ubuntu-report.xml
+      - name: Persist the test report
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: pytest-ubuntu-report
+          path: pytest-ubuntu-report.xml

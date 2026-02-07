@@ -121,7 +121,7 @@ class ABCMetaImplementAnyOneOf(abc.ABCMeta):
 
         # Find all abstract methods (methods that haven't been implemented or
         # don't have an implemented alternative).
-        all_names = set(alt_name for alt_name in namespace.keys() if hasattr(cls, alt_name))
+        all_names = {alt_name for alt_name in namespace.keys() if hasattr(cls, alt_name)}
         for base in bases:
             all_names.update(getattr(base, '__abstractmethods__', set()))
             all_names.update(

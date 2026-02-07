@@ -765,7 +765,7 @@ class AbstractCircuit(abc.ABC):
         start_index = min(start_frontier.values())
         blocked_qubits: set[cirq.Qid] = set()
         for index, moment in enumerate(self[start_index:], start_index):
-            active_qubits = set(q for q, s in start_frontier.items() if s <= index)
+            active_qubits = {q for q, s in start_frontier.items() if s <= index}
             for op in moment.operations:
                 if is_blocker(op) or blocked_qubits.intersection(op.qubits):
                     blocked_qubits.update(op.qubits)
@@ -1274,8 +1274,7 @@ class AbstractCircuit(abc.ABC):
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         cbits = tuple(
             sorted(
-                set(key for op in self.all_operations() for key in protocols.control_keys(op)),
-                key=str,
+                {key for op in self.all_operations() for key in protocols.control_keys(op)}, key=str
             )
         )
         labels = qubits + cbits
@@ -1607,7 +1606,7 @@ class AbstractCircuit(abc.ABC):
         for op in self.all_operations():
             if len(op.qubits) > 1:
                 uf.union(*op.qubits)
-        return sorted([qs for qs in uf.to_sets()], key=min)
+        return sorted(uf.to_sets(), key=min)
 
     def factorize(self) -> Iterable[Self]:
         """Factorize circuit into a sequence of independent circuits (factors).
@@ -2129,7 +2128,7 @@ class Circuit(AbstractCircuit):
             Index of the earliest matching moment. Returns `end_moment_index` if no moment on left
             is available.
         """
-        if end_moment_index is None:
+        if end_moment_index is None or end_moment_index > len(self.moments):
             end_moment_index = len(self.moments)
         last_available = end_moment_index
         k = end_moment_index
@@ -2148,10 +2147,7 @@ class Circuit(AbstractCircuit):
                 or not moment._control_keys_().isdisjoint(op_measurement_keys)
             ):
                 return last_available
-            if self._can_add_op_at(k, op):
-                # Note: Remove the if condition after `self._device` is gone and move the method to
-                # `cirq.AbstractDevice`.
-                last_available = k
+            last_available = k
         return last_available
 
     def _can_add_op_at(self, moment_index: int, operation: cirq.Operation) -> bool:
@@ -2159,6 +2155,81 @@ class Circuit(AbstractCircuit):
             return True
 
         return not self._moments[moment_index].operates_on(operation.qubits)
+
+    def _latest_available_moment(self, op: cirq.Operation, *, start_moment_index: int = 0) -> int:
+        """Finds the index of the latest (i.e. right most) moment which can accommodate `op`.
+
+        Assumes that `start_moment_index` is between 0 and `len(self._moments)`.
+
+        Args:
+            op: Operation for which the latest moment that can accommodate it needs to be found.
+            start_moment_index: The starting point of the reverse search. Defaults to 0.
+
+        Returns:
+            Index of the latest matching moment. Returns `start_moment_index - 1` if no moment on
+            the right is available, or `len(self._moments)` if `start_moment_index` equals it.
+        """
+        if start_moment_index == len(self._moments):
+            return start_moment_index
+        op_control_keys = protocols.control_keys(op)
+        op_measurement_keys = protocols.measurement_key_objs(op)
+        op_qubits = op.qubits
+        k = start_moment_index
+        while k < len(self._moments):
+            moment = self._moments[k]
+            if moment.operates_on(op_qubits):
+                return k - 1
+            moment_measurement_keys = moment._measurement_key_objs_()
+            if not (
+                op_measurement_keys.isdisjoint(moment_measurement_keys)
+                and op_control_keys.isdisjoint(moment_measurement_keys)
+                and moment._control_keys_().isdisjoint(op_measurement_keys)
+            ):
+                return k - 1
+            k += 1
+        return k - 1
+
+    def _insert_latest(self, k: int, batches: list[list[_MOMENT_OR_OP]]) -> int:
+        """Inserts batches of moments or operations using LATEST strategy.
+
+        Batches are processed in reverse order.
+        Operations are inserted into the latest possible moment from the starting
+        index k. Moments are inserted intact at index k.
+
+        Args:
+            k: The index to insert the batches at.
+            batches: Moments or operations to insert.
+
+        Returns:
+            The insertion index that will place operations just after the
+            operations that were inserted by this method. Returns k if batches
+            is empty.
+        """
+        max_latest_index = -1  # Maximum index of a changed moment
+        for batch in reversed(batches):
+            for moment_or_op in batch:
+                if isinstance(moment_or_op, Moment):
+                    self._moments.insert(k, moment_or_op)
+                    # All later moments shift by 1 when the new moment is inserted
+                    max_latest_index = max(k, max_latest_index + 1)
+                else:
+                    end_moment_index = len(self.moments)
+                    p = self._latest_available_moment(moment_or_op, start_moment_index=k)
+                    if p < k:
+                        self._moments.insert(k, Moment.from_ops(moment_or_op))
+                        max_latest_index = max(k, max_latest_index + 1)
+                    elif p < end_moment_index:
+                        self._moments[p] = self._moments[p].with_operation(moment_or_op)
+                        max_latest_index = max(p, max_latest_index)
+                    else:
+                        assert p == end_moment_index
+                        self._moments.append(Moment.from_ops(moment_or_op))
+                        max_latest_index = end_moment_index
+        # handle returned position index for empty batch
+        pos = k if max_latest_index == -1 else max_latest_index + 1
+        if max_latest_index != -1:
+            self._mutated(preserve_placement_cache=False)
+        return pos
 
     def insert(
         self,
@@ -2195,6 +2266,10 @@ class Circuit(AbstractCircuit):
             batches = [[mop] for mop in mops]  # Each op goes into its own moment.
         else:
             batches = list(_group_into_moment_compatible(mops))
+
+        if strategy is InsertStrategy.LATEST:
+            return self._insert_latest(k, batches)
+
         for batch in batches:
             # Insert a moment if inline/earliest and _any_ op in the batch requires it.
             if (
@@ -2222,8 +2297,10 @@ class Circuit(AbstractCircuit):
                     p = k
                 elif strategy is InsertStrategy.INLINE:
                     p = k - 1
-                else:  # InsertStrategy.EARLIEST:
+                elif strategy is InsertStrategy.EARLIEST:
                     p = self.earliest_available_moment(moment_or_op, end_moment_index=k)
+                else:
+                    raise ValueError('Unknown insertion strategy')
                 # Place
                 if isinstance(moment_or_op, Moment):
                     self._moments.insert(p, moment_or_op)
@@ -2373,7 +2450,7 @@ class Circuit(AbstractCircuit):
         flat_ops = tuple(ops.flatten_to_ops(operations))
         if not flat_ops:
             return frontier  # pragma: no cover
-        qubits = set(q for op in flat_ops for q in op.qubits)
+        qubits = {q for op in flat_ops for q in op.qubits}
         if any(frontier[q] > start for q in qubits):
             raise ValueError(
                 'The frontier for qubits on which the operations'

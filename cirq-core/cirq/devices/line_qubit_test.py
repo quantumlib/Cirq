@@ -264,18 +264,11 @@ def test_for_gate() -> None:
 
 
 def test_immutable() -> None:
-    # Match one of two strings. The second one is message returned since python 3.11.
-    with pytest.raises(
-        AttributeError,
-        match="(can't set attribute)|(property 'x' of 'LineQubit' object has no setter)",
-    ):
+    with pytest.raises(AttributeError, match="property 'x' of 'LineQubit' object has no setter"):
         q = cirq.LineQubit(5)
         q.x = 6  # type: ignore[misc]
 
-    with pytest.raises(
-        AttributeError,
-        match="(can't set attribute)|(property 'x' of 'LineQid' object has no setter)",
-    ):
+    with pytest.raises(AttributeError, match="property 'x' of 'LineQid' object has no setter"):
         qid = cirq.LineQid(5, dimension=4)
         qid.x = 6  # type: ignore[misc]
 

@@ -181,14 +181,12 @@ def test_op_roundtrip_file_obj(tmpdir) -> None:
 
 def test_fail_to_resolve() -> None:
     buffer = io.StringIO()
-    buffer.write(
-        """
+    buffer.write("""
     {
       "cirq_type": "MyCustomClass",
       "data": [1, 2, 3]
     }
-    """
-    )
+    """)
     buffer.seek(0)
 
     with pytest.raises(ValueError) as e:
@@ -243,7 +241,7 @@ def test_mutually_exclusive_not_serialize_lists(mod_spec: ModuleJsonTestSpec) ->
 
 @pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS, ids=repr)
 def test_resolver_cache_vs_should_not_serialize(mod_spec: ModuleJsonTestSpec) -> None:
-    resolver_cache_types = set([n for (n, _) in mod_spec.get_resolver_cache_types()])
+    resolver_cache_types = {n for (n, _) in mod_spec.get_resolver_cache_types()}
     common = set(mod_spec.should_not_be_serialized) & resolver_cache_types
 
     assert len(common) == 0, (
@@ -255,7 +253,7 @@ def test_resolver_cache_vs_should_not_serialize(mod_spec: ModuleJsonTestSpec) ->
 
 @pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS, ids=repr)
 def test_resolver_cache_vs_not_yet_serializable(mod_spec: ModuleJsonTestSpec) -> None:
-    resolver_cache_types = set([n for (n, _) in mod_spec.get_resolver_cache_types()])
+    resolver_cache_types = {n for (n, _) in mod_spec.get_resolver_cache_types()}
     common = set(mod_spec.not_yet_serializable) & resolver_cache_types
 
     assert len(common) == 0, (
@@ -747,12 +745,9 @@ def test_dataclass_json_dict() -> None:
 
 
 def test_numpy_values() -> None:
-    assert (
-        cirq.to_json({'value': np.array(1)})
-        == """{
+    assert cirq.to_json({'value': np.array(1)}) == """{
   "value": 1
 }"""
-    )
 
 
 def test_basic_time_assertions() -> None:

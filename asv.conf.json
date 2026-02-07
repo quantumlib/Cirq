@@ -7,6 +7,7 @@
     "build_command": [
         "PIP_NO_BUILD_ISOLATION=false python -m pip wheel --no-deps --no-index -w {build_cache_dir} {build_dir}"
     ],
+    "install_command": ["in-dir={env_dir} python -m pip install {wheel_file} pytest"],
     "branches": ["main"],
     "dvcs": "git",
     "environment_type": "virtualenv",

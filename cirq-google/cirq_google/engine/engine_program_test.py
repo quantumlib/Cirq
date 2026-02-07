@@ -298,12 +298,14 @@ def test_get_circuit_v1(get_program_async):
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
-def test_get_circuit_v2(get_program_async):
+@pytest.mark.parametrize("include_empty_program", [False, True])
+def test_get_circuit_v2(get_program_async, include_empty_program: bool) -> None:
     circuit = cirq.Circuit(
         cirq.X(cirq.GridQubit(5, 2)) ** 0.5, cirq.measure(cirq.GridQubit(5, 2), key='result')
     )
 
-    program = cg.EngineProgram('a', 'b', EngineContext())
+    program_msg = quantum.QuantumProgram() if include_empty_program else None
+    program = cg.EngineProgram('a', 'b', EngineContext(), _program=program_msg)
     get_program_async.return_value = quantum.QuantumProgram(code=_PROGRAM_V2)
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
         program.get_circuit(), circuit

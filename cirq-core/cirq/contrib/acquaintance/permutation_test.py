@@ -114,7 +114,7 @@ def test_linear_permutation_gate(n_elements, n_permuted) -> None:
     elements = tuple(range(n_elements))
     elements_to_permute = random.sample(elements, n_permuted)
     permuted_elements = random.sample(elements_to_permute, n_permuted)
-    permutation = {e: p for e, p in zip(elements_to_permute, permuted_elements)}
+    permutation = dict(zip(elements_to_permute, permuted_elements))
     cca.PermutationGate.validate_permutation(permutation, n_elements)
     gate = cca.LinearPermutationGate(n_elements, permutation)
     ct.assert_equivalent_repr(gate)
