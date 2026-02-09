@@ -351,7 +351,9 @@ def _generate_basis_change_circuits_with_sweep(
                 parameterized_circuit = circuits.Circuit(
                     input_circuit.unfreeze(), phased_gates, measurement_op, strategy=insert_strategy
                 )
-                sweep_param_dict = _pauli_strings_to_basis_change_with_sweep(pauli_strings, qid_list)
+                sweep_param_dict = _pauli_strings_to_basis_change_with_sweep(
+                    pauli_strings, qid_list
+                )
                 parameterized_circuits.append(parameterized_circuit)
                 sweep_params.append(sweep_param_dict)
     return parameterized_circuits, sweep_params
