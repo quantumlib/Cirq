@@ -23,7 +23,7 @@ import sympy
 import cirq
 
 
-@pytest.mark.parametrize('eigen_gate_type', [cirq.CCXPowGate, cirq.CCZPowGate])
+@pytest.mark.parametrize('eigen_gate_type', [cirq.CCXPowGate, cirq.CCZPowGate, cirq.CCYPowGate])
 def test_eigen_gates_consistent_protocols(eigen_gate_type) -> None:
     cirq.testing.assert_eigengate_implements_consistent_protocols(eigen_gate_type)
 
@@ -36,6 +36,7 @@ def test_eigen_gates_consistent_protocols(eigen_gate_type) -> None:
         (cirq.ThreeQubitDiagonalGate([0, 0, 0, 0, 0, 0, 0, 0])),
         (cirq.CCX),
         (cirq.CCZ),
+        (cirq.CCY),
     ),
 )
 def test_consistent_protocols(gate) -> None:
@@ -47,6 +48,8 @@ def test_init() -> None:
     assert (cirq.CCZ**0.25).exponent == 0.25
     assert (cirq.CCX**0.5).exponent == 0.5
     assert (cirq.CCX**0.25).exponent == 0.25
+    assert (cirq.CCY**0.5).exponent == 0.5
+    assert (cirq.CCY**0.25).exponent == 0.25
 
 
 def test_unitary() -> None:
@@ -81,6 +84,42 @@ def test_unitary() -> None:
                 [0, 0, 0, 0, 0, 1, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0.5 + 0.5j, 0.5 - 0.5j],
                 [0, 0, 0, 0, 0, 0, 0.5 - 0.5j, 0.5 + 0.5j],
+            ]
+        ),
+        atol=1e-8,
+    )
+
+    assert cirq.has_unitary(cirq.CCY)
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.CCY),
+        np.array(
+            [
+                [1, 0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, -1j],
+                [0, 0, 0, 0, 0, 0, 1j, 0],
+            ]
+        ),
+        atol=1e-8,
+    )
+
+    assert cirq.has_unitary(cirq.CCY**0.5)
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.CCY**0.5),
+        np.array(
+            [
+                [1, 0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0.5 + 0.5j, -0.5 - 0.5j],
+                [0, 0, 0, 0, 0, 0, 0.5 + 0.5j, 0.5 + 0.5j],
             ]
         ),
         atol=1e-8,

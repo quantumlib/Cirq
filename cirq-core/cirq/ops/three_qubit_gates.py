@@ -506,6 +506,144 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
 
 @value.value_equality()
+class CCYPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
+    r"""A doubly-controlled-Y that can be raised to a power.
+
+    The unitary matrix of `CCY**t` is an 8x8 identity except the bottom right
+    2x2 area is the matrix of `Y**t`:
+
+    $$
+    \begin{bmatrix}
+        1 & & & & & & & \\
+        & 1 & & & & & & \\
+        & & 1 & & & & & \\
+        & & & 1 & & & & \\
+        & & & & 1 & & & \\
+        & & & & & 1 & & \\
+        & & & & & & e^{i \pi t /2} \cos(\pi t /2) & -e^{i \pi t /2} \sin(\pi t /2) \\
+        & & & & & & e^{i \pi t /2} \sin(\pi t /2) & e^{i \pi t /2} \cos(\pi t /2)
+    \end{bmatrix}
+    $$
+    """
+
+    def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
+        return [
+            (
+                0,
+                linalg.block_diag(
+                    np.diag([1, 1, 1, 1, 1, 1]), np.array([[0.5, -0.5j], [0.5j, 0.5]])
+                ),
+            ),
+            (
+                1,
+                linalg.block_diag(
+                    np.diag([0, 0, 0, 0, 0, 0]), np.array([[0.5, 0.5j], [-0.5j, 0.5]])
+                ),
+            ),
+        ]
+
+    def _trace_distance_bound_(self) -> float | None:
+        if self._is_parameterized_():
+            return None
+        return abs(np.sin(self._exponent * 0.5 * np.pi))
+
+    def _pauli_expansion_(self) -> value.LinearDict[str]:
+        if protocols.is_parameterized(self):
+            return NotImplemented
+        global_phase = 1j ** (2 * self._exponent * self._global_shift)
+        z_phase = 1j**self._exponent
+        c = -1j * z_phase * np.sin(np.pi * self._exponent / 2) / 4
+        return value.LinearDict(
+            {
+                'III': global_phase * (1 - c),
+                'IIY': global_phase * c,
+                'IZI': global_phase * c,
+                'ZII': global_phase * c,
+                'ZZI': global_phase * -c,
+                'ZIY': global_phase * -c,
+                'IZY': global_phase * -c,
+                'ZZY': global_phase * c,
+            }
+        )
+
+    def qubit_index_to_equivalence_group_key(self, index) -> int:
+        return 1 if index < 2 else 0
+
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
+        if protocols.is_parameterized(self):
+            return NotImplemented
+        p = 1j ** (2 * self._exponent * self._global_shift)
+        if p != 1:
+            args.target_tensor *= p
+        return protocols.apply_unitary(
+            controlled_gate.ControlledGate(
+                controlled_gate.ControlledGate(pauli_gates.Y**self.exponent)
+            ),
+            protocols.ApplyUnitaryArgs(args.target_tensor, args.available_buffer, args.axes),
+            default=NotImplemented,
+        )
+
+    def _decompose_(self, qubits):
+        c1, c2, t = qubits
+        yield pauli_gates.X(t) ** 0.5
+        yield CCZPowGate(exponent=self._exponent, global_shift=self.global_shift).on(c1, c2, t)
+        yield pauli_gates.X(t) ** -0.5
+
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
+        return protocols.CircuitDiagramInfo(
+            ('@', '@', 'Y'), exponent=self._diagram_exponent(args), exponent_qubit_index=2
+        )
+
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> str | None:
+        return None
+
+    def __repr__(self) -> str:
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'cirq.CCY'
+            return f'(cirq.CCY**{proper_repr(self._exponent)})'
+        return (
+            f'cirq.CCYPowGate(exponent={proper_repr(self._exponent)}, '
+            f'global_shift={self._global_shift!r})'
+        )
+
+    def __str__(self) -> str:
+        if self._exponent == 1:
+            return 'CCY'
+        return f'CCY**{self._exponent}'
+
+    def _num_qubits_(self) -> int:
+        return 3
+
+    def controlled(
+        self,
+        num_controls: int | None = None,
+        control_values: cv.AbstractControlValues | Sequence[int | Collection[int]] | None = None,
+        control_qid_shape: tuple[int, ...] | None = None,
+    ) -> raw_types.Gate:
+        """Returns a controlled `YPowGate` with two additional controls.
+
+        The `controlled` method of the `Gate` class, of which this class is a
+        child, returns a `ControlledGate` with `sub_gate = self`. This method
+        overrides this behavior to return a `ControlledGate` with
+        `sub_gate = YPowGate`.
+        """
+        if num_controls == 0:
+            return self
+        sub_gate: cirq.Gate = self
+        if self._global_shift == 0:
+            sub_gate = controlled_gate.ControlledGate(
+                common_gates.YPowGate(exponent=self._exponent), num_controls=2
+            )
+        return controlled_gate.ControlledGate(
+            sub_gate,
+            num_controls=num_controls,
+            control_values=control_values,
+            control_qid_shape=control_qid_shape,
+        )
+
+
+@value.value_equality()
 class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     """A controlled swap gate. The Fredkin gate."""
 
@@ -723,6 +861,29 @@ document(
     $$
 
     Alternative names: `cirq.CCNOT` and `cirq.TOFFOLI`.
+    """,
+)
+
+CCY = CCYPowGate()
+document(
+    CCY,
+    r"""The Controlled-Controlled-Y gate.
+
+    The `exponent=1` instance of `cirq.CCYPowGate`.
+
+    The unitary matrix of this gate is (empty elements are $0$):
+    $$
+    \begin{bmatrix}
+        1 & & & & & & & \\
+        & 1 & & & & & & \\
+        & & 1 & & & & & \\
+        & & & 1 & & & & \\
+        & & & & 1 & & & \\
+        & & & & & 1 & & \\
+        & & & & & & 0 & -i \\
+        & & & & & & i & 0
+    \end{bmatrix}
+    $$
     """,
 )
 

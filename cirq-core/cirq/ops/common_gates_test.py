@@ -33,7 +33,7 @@ def test_phase_insensitive_eigen_gates_consistent_protocols(eigen_gate_type) -> 
     cirq.testing.assert_eigengate_implements_consistent_protocols(eigen_gate_type)
 
 
-@pytest.mark.parametrize('eigen_gate_type', [cirq.CNotPowGate, cirq.HPowGate])
+@pytest.mark.parametrize('eigen_gate_type', [cirq.CNotPowGate, cirq.CYPowGate, cirq.HPowGate])
 def test_phase_sensitive_eigen_gates_consistent_protocols(eigen_gate_type) -> None:
     cirq.testing.assert_eigengate_implements_consistent_protocols(eigen_gate_type)
 
@@ -119,6 +119,10 @@ def test_z_init() -> None:
         (cirq.CZPowGate(exponent=0.5), cirq.CCZPowGate(exponent=0.5), cirq.S),
         (cirq.XPowGate(exponent=0.5), cirq.CXPowGate(exponent=0.5), cirq.XPowGate(exponent=0.5)),
         (cirq.CXPowGate(exponent=0.5), cirq.CCXPowGate(exponent=0.5), cirq.XPowGate(exponent=0.5)),
+        (cirq.Y, cirq.CY, cirq.Y),
+        (cirq.CY, cirq.CCY, cirq.Y),
+        (cirq.YPowGate(exponent=0.5), cirq.CYPowGate(exponent=0.5), cirq.YPowGate(exponent=0.5)),
+        (cirq.CYPowGate(exponent=0.5), cirq.CCYPowGate(exponent=0.5), cirq.YPowGate(exponent=0.5)),
     ],
 )
 def test_specialized_control(input_gate, specialized_output, base_gate) -> None:
@@ -169,6 +173,59 @@ def test_specialized_control(input_gate, specialized_output, base_gate) -> None:
         control_qid_shape=(2,)
     ).controlled(control_qid_shape=(4,)) != cirq.ControlledGate(
         base_gate, num_controls=3 + absorbed, control_qid_shape=(3, 2, 4) + absorbed_shape
+    )
+
+
+def test_cy_init() -> None:
+    assert cirq.CYPowGate(exponent=0.5).exponent == 0.5
+    assert cirq.CYPowGate(exponent=5).exponent == 5
+    assert (cirq.CY**0.5).exponent == 0.5
+
+
+def test_cy_str() -> None:
+    assert str(cirq.CY) == 'CY'
+    assert str(cirq.CY**0.5) == 'CY**0.5'
+    assert str(cirq.CY**-0.25) == 'CY**-0.25'
+
+
+def test_cy_repr() -> None:
+    assert repr(cirq.CY) == 'cirq.CY'
+    assert repr(cirq.CY**0.5) == '(cirq.CY**0.5)'
+    assert repr(cirq.CY**-0.25) == '(cirq.CY**-0.25)'
+
+
+def test_cy_unitary() -> None:
+    assert np.allclose(
+        cirq.unitary(cirq.CY),
+        np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1j], [0, 0, 1j, 0]]),
+    )
+
+    assert np.allclose(
+        cirq.unitary(cirq.CY**0.5),
+        np.array(
+            [
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, 0.5 + 0.5j, -0.5 - 0.5j],
+                [0, 0, 0.5 + 0.5j, 0.5 + 0.5j],
+            ]
+        ),
+    )
+
+    assert np.allclose(
+        cirq.unitary(cirq.CY**0), np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+    )
+
+    assert np.allclose(
+        cirq.unitary(cirq.CY**-0.5),
+        np.array(
+            [
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, 0.5 - 0.5j, 0.5 - 0.5j],
+                [0, 0, -0.5 + 0.5j, 0.5 - 0.5j],
+            ]
+        ),
     )
 
 
