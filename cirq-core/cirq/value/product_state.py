@@ -64,7 +64,7 @@ class ProductState:
 
     def __init__(self, states=None):
         if states is None:
-            states = dict()  # pragma: no cover
+            states = {}  # pragma: no cover
 
         object.__setattr__(self, 'states', states)
 

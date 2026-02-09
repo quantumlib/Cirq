@@ -183,7 +183,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
                 shape.append(1)
                 overflow_sizes.append(register + 1)
             else:
-                size = int(np.prod([dim for dim in register], dtype=np.int64).item())
+                size = int(np.prod(list(register), dtype=np.int64).item())
                 shape.append(size)
                 input_ranges.append(range(size))
                 overflow_sizes.append(size)

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ################################################################################
-# Runs pylint on changed files using a preconfigured .pylintrc file.
+# Runs pylint on changed Python sources.
 #
 # Usage:
 #     check/pylint-changed-files [BASE_REVISION]
@@ -65,7 +65,7 @@ num_changed=${#changed[@]}
 
 # Run it.
 echo "Found ${num_changed} lintable files associated with changes." >&2
-if [ "${num_changed}" -eq 0 ]; then
-    exit 0
+if (( num_changed )); then
+    source dev_tools/pypath || exit $?
+    pylint --jobs=0 "${changed[@]}"
 fi
-env PYTHONPATH=dev_tools pylint --jobs=0 --rcfile=dev_tools/conf/.pylintrc "${changed[@]}"

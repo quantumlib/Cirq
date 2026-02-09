@@ -520,6 +520,7 @@ from cirq.study import (
     Product as Product,
     Sweep as Sweep,
     Sweepable as Sweepable,
+    symbol as symbol,
     to_resolvers as to_resolvers,
     to_sweep as to_sweep,
     to_sweeps as to_sweeps,
@@ -694,13 +695,11 @@ from cirq.work import (
     ZerosSampler as ZerosSampler,
 )
 
-
 # Unflattened sub-modules.
 
 # Registers cirq-core's public classes for JSON serialization.
 from cirq.protocols.json_serialization import _register_resolver
 from cirq.json_resolver_cache import _class_resolver_dictionary
-
 
 _register_resolver(_class_resolver_dictionary)
 

@@ -120,29 +120,23 @@ def test_qasm_two_qubit_gate_unitary() -> None:
 def test_empty_circuit_one_qubit() -> None:
     (q0,) = _make_qubits(1)
     output = cirq.QasmOutput((), (q0,))
-    assert (
-        str(output)
-        == """OPENQASM 2.0;
+    assert str(output) == """OPENQASM 2.0;
 include "qelib1.inc";
 
 
 // Qubits: [q0]
 qreg q[1];
 """
-    )
 
 
 def test_empty_circuit_no_qubits() -> None:
     output = cirq.QasmOutput((), ())
-    assert (
-        str(output)
-        == """OPENQASM 2.0;
+    assert str(output) == """OPENQASM 2.0;
 include "qelib1.inc";
 
 
 // Qubits: []
 """
-    )
 
 
 def test_header() -> None:
@@ -153,9 +147,7 @@ def test_header() -> None:
         header="""My test circuit
 Device: Bristlecone""",
     )
-    assert (
-        str(output)
-        == """// My test circuit
+    assert str(output) == """// My test circuit
 // Device: Bristlecone
 
 OPENQASM 2.0;
@@ -165,7 +157,6 @@ include "qelib1.inc";
 // Qubits: [q0]
 qreg q[1];
 """
-    )
 
     output = cirq.QasmOutput(
         (),
@@ -175,9 +166,7 @@ My test circuit
 Device: Bristlecone
 """,
     )
-    assert (
-        str(output)
-        == """//
+    assert str(output) == """//
 // My test circuit
 // Device: Bristlecone
 //
@@ -189,15 +178,12 @@ include "qelib1.inc";
 // Qubits: [q0]
 qreg q[1];
 """
-    )
 
 
 def test_single_gate_no_parameter() -> None:
     (q0,) = _make_qubits(1)
     output = cirq.QasmOutput((cirq.X(q0),), (q0,))
-    assert (
-        str(output)
-        == """OPENQASM 2.0;
+    assert str(output) == """OPENQASM 2.0;
 include "qelib1.inc";
 
 
@@ -207,15 +193,12 @@ qreg q[1];
 
 x q[0];
 """
-    )
 
 
 def test_single_gate_with_parameter() -> None:
     (q0,) = _make_qubits(1)
     output = cirq.QasmOutput((cirq.X(q0) ** 0.25,), (q0,))
-    assert (
-        str(output)
-        == """OPENQASM 2.0;
+    assert str(output) == """OPENQASM 2.0;
 include "qelib1.inc";
 
 
@@ -225,15 +208,12 @@ qreg q[1];
 
 rx(pi*0.25) q[0];
 """
-    )
 
 
 def test_h_gate_with_parameter() -> None:
     (q0,) = _make_qubits(1)
     output = cirq.QasmOutput((cirq.H(q0) ** 0.25,), (q0,))
-    assert (
-        str(output)
-        == """OPENQASM 2.0;
+    assert str(output) == """OPENQASM 2.0;
 include "qelib1.inc";
 
 
@@ -246,28 +226,22 @@ ry(pi*0.25) q[0];
 rx(pi*0.25) q[0];
 ry(pi*-0.25) q[0];
 """
-    )
 
 
 def test_qasm_global_phase() -> None:
     output = cirq.QasmOutput((cirq.global_phase_operation(np.exp(1j * 5))), ())
-    assert (
-        str(output)
-        == """OPENQASM 2.0;
+    assert str(output) == """OPENQASM 2.0;
 include "qelib1.inc";
 
 
 // Qubits: []
 """
-    )
 
 
 def test_precision() -> None:
     (q0,) = _make_qubits(1)
     output = cirq.QasmOutput((cirq.X(q0) ** 0.1234567,), (q0,), precision=3)
-    assert (
-        str(output)
-        == """OPENQASM 2.0;
+    assert str(output) == """OPENQASM 2.0;
 include "qelib1.inc";
 
 
@@ -277,7 +251,6 @@ qreg q[1];
 
 rx(pi*0.123) q[0];
 """
-    )
 
 
 def test_version() -> None:
@@ -294,16 +267,13 @@ def test_save_to_file(tmpdir) -> None:
     output.save(file_path)
     with open(file_path, 'r') as f:
         file_content = f.read()
-    assert (
-        file_content
-        == """OPENQASM 2.0;
+    assert file_content == """OPENQASM 2.0;
 include "qelib1.inc";
 
 
 // Qubits: [q0]
 qreg q[1];
 """
-    )
 
 
 def test_unsupported_operation() -> None:
@@ -629,9 +599,7 @@ def test_reset() -> None:
         header='Generated from Cirq!',
         precision=5,
     )
-    assert (
-        str(output).strip()
-        == """
+    assert str(output).strip() == """
 // Generated from Cirq!
 
 OPENQASM 2.0;
@@ -647,7 +615,6 @@ cx q[0],q[1];
 reset q[0];
 reset q[1];
     """.strip()
-    )
 
 
 def test_different_sized_registers() -> None:
@@ -656,9 +623,7 @@ def test_different_sized_registers() -> None:
     output = cirq.QasmOutput(
         c.all_operations(), tuple(sorted(c.all_qubits())), header='Generated from Cirq!'
     )
-    assert (
-        str(output)
-        == """// Generated from Cirq!
+    assert str(output) == """// Generated from Cirq!
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -675,7 +640,6 @@ measure q[0] -> m_c[0];
 measure q[0] -> m_c[0];
 measure q[1] -> m_c[1];
 """
-    )
     # OPENQASM 3.0
     output3 = cirq.QasmOutput(
         c.all_operations(),
@@ -683,9 +647,7 @@ measure q[1] -> m_c[1];
         header='Generated from Cirq!',
         version='3.0',
     )
-    assert (
-        str(output3)
-        == """// Generated from Cirq!
+    assert str(output3) == """// Generated from Cirq!
 
 OPENQASM 3.0;
 include "stdgates.inc";
@@ -702,4 +664,3 @@ m_c[0] = measure q[0];
 m_c[0] = measure q[0];
 m_c[1] = measure q[1];
 """
-    )
