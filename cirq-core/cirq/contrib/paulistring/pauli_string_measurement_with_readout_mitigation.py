@@ -351,9 +351,9 @@ def _generate_basis_change_circuits_with_sweep(
                 parameterized_circuit = circuits.Circuit(
                     input_circuit.unfreeze(), phased_gates, measurement_op, strategy=insert_strategy
                 )
-                sweep_param = _pauli_strings_to_basis_change_with_sweep(pauli_strings, qid_list)
+                sweep_param_dict = _pauli_strings_to_basis_change_with_sweep(pauli_strings, qid_list)
                 parameterized_circuits.append(parameterized_circuit)
-                sweep_params.append(sweep_param)
+                sweep_params.append(sweep_param_dict)
     return parameterized_circuits, sweep_params
 
 
@@ -676,7 +676,11 @@ def measure_pauli_strings(
             circuits_results_for_group = circuits_results[results_slice]
             circuit_result_index += len(pauli_string_groups)
 
-        fixed_calibration_key = tuple(qubits_to_measure_arg) if measure_on_full_support else None
+        fixed_calibration_key = (
+            tuple(qubits_to_measure_arg)
+            if measure_on_full_support and qubits_to_measure_arg is not None
+            else None
+        )
         pauli_measurement_results = _process_pauli_measurement_results(
             pauli_string_groups,
             circuits_results_for_group,
