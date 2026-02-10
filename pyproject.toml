@@ -275,6 +275,7 @@ select = [
     "PLW0245",  # super-without-brackets, pylint super-without-brackets
     "PLW1501",  # bad-open-mode
     "RET507",  # superfluous-else-continue
+    "RET508",  # superfluous-else-break
     "RUF013",  # implicit-optional
     "RUF019",  # unnecessary-key-check
     "RUF027",  # missing-f-string-syntax
