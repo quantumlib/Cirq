@@ -2774,8 +2774,7 @@ def _draw_moment_in_diagram(
         for s, q in zip(symbols, labels):
             out_diagram.write(x, label_map[q], s)
 
-        if x > max_x:
-            max_x = x
+        max_x = max(max_x, x)
 
     _draw_moment_annotations(
         moment=moment,
