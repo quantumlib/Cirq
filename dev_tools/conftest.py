@@ -101,7 +101,7 @@ def cloned_env(testrun_uid, worker_id):
         reuse = False
         if env_dir.is_dir() and (env_dir / "testrun.uid").is_file():
             with open(env_dir / "testrun.uid") as file:
-                uid = file.readlines()[0]
+                uid = next(file)
             # if the dir is from this test session, let's reuse it
             if uid == testrun_uid:
                 reuse = True

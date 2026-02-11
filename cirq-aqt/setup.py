@@ -32,7 +32,7 @@ with open('README.md', encoding='utf-8') as file:
 
 # Read in requirements
 with open('requirements.txt', encoding='utf-8') as file:
-    requirements = [r.strip() for r in file.readlines()]
+    requirements = [r.strip() for r in file]
 requirements += [f'cirq-core=={__version__}']
 
 cirq_packages = ['cirq_aqt'] + [

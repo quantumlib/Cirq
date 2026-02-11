@@ -30,11 +30,12 @@ description = (
 # README file as long_description.
 with open('README.md', encoding='utf-8') as file:
     long_description = file.read()
+
 # Read in requirements
 with open('requirements.txt', encoding='utf-8') as file:
-    requirements = [r.strip() for r in file.readlines()]
+    requirements = [r.strip() for r in file]
 with open('cirq/contrib/requirements.txt', encoding='utf-8') as file:
-    contrib_requirements = [r.strip() for r in file.readlines()]
+    contrib_requirements = [r.strip() for r in file]
 
 
 cirq_packages = ['cirq'] + [

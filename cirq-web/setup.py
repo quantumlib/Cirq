@@ -27,9 +27,10 @@ description = 'Web-based 3D visualization tools for Cirq.'
 # README file as long_description.
 with open('README.md', encoding='utf-8') as file:
     long_description = file.read()
+
 # Read in requirements
 with open('requirements.txt', encoding='utf-8') as file:
-    requirements = [r.strip() for r in file.readlines()]
+    requirements = [r.strip() for r in file]
 requirements += [f'cirq-core=={__version__}']
 
 packs = ['cirq_web'] + ['cirq_web.' + package for package in find_packages(where='cirq_web')]
