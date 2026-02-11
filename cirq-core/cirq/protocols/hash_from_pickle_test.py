@@ -54,10 +54,13 @@ _EXCLUDE_JSON_FILES = (
 
 
 def _is_included(json_filename: str) -> bool:
+    # ruff: disable[SIM103]
     json_posix_path = pathlib.PurePath(json_filename).as_posix()
     if any(json_posix_path.endswith(t) for t in _EXCLUDE_JSON_FILES):
         return False
-    return os.path.isfile(json_filename)
+    if not os.path.isfile(json_filename):
+        return False
+    return True
 
 
 @pytest.fixture(scope='module')

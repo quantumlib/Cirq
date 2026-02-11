@@ -114,6 +114,7 @@ class TextDiagramDrawer:
 
     def content_present(self, x: int, y: int) -> bool:
         """Determines if a line or printed text is at the given location."""
+        # ruff: disable[SIM103]
 
         # Text?
         if (x, y) in self.entries:
@@ -124,7 +125,10 @@ class TextDiagramDrawer:
             return True
 
         # Horizontal line?
-        return any(line_y == y and x1 < x < x2 for line_y, x1, x2, _, _ in self.horizontal_lines)
+        if any(line_y == y and x1 < x < x2 for line_y, x1, x2, _, _ in self.horizontal_lines):
+            return True  # pragma: no cover
+
+        return False
 
     def grid_line(
         self, x1: int, y1: int, x2: int, y2: int, emphasize: bool = False, doubled: bool = False

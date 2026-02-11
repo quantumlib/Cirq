@@ -98,9 +98,12 @@ class ABCMetaImplementAnyOneOf(abc.ABCMeta):
                     'implementation alternative but it does not exist in the '
                     f'definition of {cls!r}.'
                 )
+            # ruff: disable[SIM103]
             if getattr(value, '__isabstractmethod__', False):
                 return False
-            return not hasattr(value, '_abstract_alternatives_')
+            if hasattr(value, '_abstract_alternatives_'):
+                return False
+            return True
 
         def find_next_implementations(all_names: set[str]) -> bool:
             next_implemented_by = {}
