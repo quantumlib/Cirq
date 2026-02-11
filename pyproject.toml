@@ -268,6 +268,7 @@ select = [
     "PLE0101",  # return-in-init, pylint return-in-init
     "PLE0116",  # continue-in-finally, pylint continue-in-finally
     "PLE0302",  # unexpected-special-method-signature, unexpected-special-method-signature
+    "PLE1205",  # logging-too-many-args
     "PLE1206",  # logging-too-few-args
     "PLE1310",  # bad-str-strip-call, pylint bad-str-strip-call
     "PLR0206",  # property-with-parameters, pylint property-with-parameters
