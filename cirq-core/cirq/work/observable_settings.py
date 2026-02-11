@@ -118,7 +118,7 @@ def _max_weight_state(states: Iterable[value.ProductState]) -> value.ProductStat
 
 def zeros_state(qubits: Iterable[cirq.Qid]):
     """Return the ProductState that is |00..00> on all qubits."""
-    return value.ProductState({q: value.KET_ZERO for q in qubits})
+    return value.ProductState(dict.fromkeys(qubits, value.KET_ZERO))
 
 
 def observables_to_settings(

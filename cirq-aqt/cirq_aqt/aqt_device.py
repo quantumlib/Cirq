@@ -217,7 +217,7 @@ class AQTSimulator:
                 self.circuit.append(gate.on(*qubits) ** angle)
         # TODO: Better solution for measurement at the end.
         # Github issue: https://github.com/quantumlib/Cirq/issues/2199
-        self.circuit.append(cirq.measure(*[qubit for qubit in self.qubit_list], key='m'))
+        self.circuit.append(cirq.measure(*self.qubit_list, key='m'))
 
     def simulate_samples(self, repetitions: int) -> cirq.Result:
         """Samples the circuit.
@@ -272,7 +272,7 @@ class AQTDevice(cirq.Device):
         if not all(isinstance(qubit, cirq.LineQubit) for qubit in qubits):
             raise TypeError(
                 "All qubits were not of type cirq.LineQubit, instead were "
-                f"{set(type(qubit) for qubit in qubits)}"
+                f"{ {type(qubit) for qubit in qubits} }"
             )
         self.qubits = frozenset(qubits)
 

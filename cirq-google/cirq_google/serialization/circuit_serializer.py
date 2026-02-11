@@ -208,9 +208,7 @@ class CircuitSerializer(serializer.Serializer):
             if names is None:
                 circuit_or_map = circuit_function(**dict(param_tuple))
             else:
-                circuit_or_map = circuit_function(
-                    **dict({k: v for k, v in param_tuple if k in names})
-                )
+                circuit_or_map = circuit_function(**{k: v for k, v in param_tuple if k in names})
             if isinstance(circuit_or_map, cirq.AbstractCircuit):
                 circuit_tuples: Sequence[tuple[str, cirq.AbstractCircuit]] = [("", circuit_or_map)]
             elif isinstance(circuit_or_map, Mapping):
@@ -244,10 +242,9 @@ class CircuitSerializer(serializer.Serializer):
                 # Moment is already in the constants table
                 msg.moment_indices.append(moment_index)
                 continue
-            else:
-                # Moment is not yet in the constants table
-                # Create it and we will add it to the table at the end
-                moment_proto = v2.program_pb2.Moment()
+            # Moment is not yet in the constants table
+            # Create it, and we will add it to the table at the end
+            moment_proto = v2.program_pb2.Moment()
 
             for op in moment:
                 if isinstance(op.untagged, cirq.CircuitOperation) or (

@@ -149,7 +149,7 @@ class PointOptimizer:
 
                 # Clear target area, and insert new operations.
                 circuit.clear_operations_touching(
-                    opt.clear_qubits, [e for e in range(i, i + opt.clear_span)]
+                    opt.clear_qubits, list(range(i, i + opt.clear_span))
                 )
                 new_operations = self.post_clean_up(cast(tuple[ops.Operation], opt.new_operations))
 
@@ -160,7 +160,7 @@ class PointOptimizer:
                     for q in flat_op.qubits:
                         new_qubits.add(q)
 
-                if not new_qubits.issubset(set(opt.clear_qubits)):
+                if not new_qubits.issubset(opt.clear_qubits):
                     raise ValueError(
                         'New operations in PointOptimizer should not act on new qubits.'
                     )

@@ -163,7 +163,7 @@ def _setting_to_z_observable(setting: InitObsSetting):
     qubits = setting.observable.qubits
     return InitObsSetting(
         init_state=zeros_state(qubits),
-        observable=ops.PauliString(qubit_pauli_map={q: ops.Z for q in qubits}),
+        observable=ops.PauliString(qubit_pauli_map=dict.fromkeys(qubits, ops.Z)),
     )
 
 
