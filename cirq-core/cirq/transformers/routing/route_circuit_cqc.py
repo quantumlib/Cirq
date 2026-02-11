@@ -452,8 +452,10 @@ class RouteCQC:
         to achieve the physical swaps (M[q1], M[q2]), (M[q2], M[q3]), ..., (M[q_{i-1}], M[q_i]),
         we must execute the logical swaps (q1, q2), (q1, q3), ..., (q_1, qi).
         """
-        furthest_op = max(two_qubit_ops_ints[timestep], key=lambda op: mm.dist_on_device(*op))
-        path = mm.shortest_path(*furthest_op)
+        furthest_op = max(
+            two_qubit_ops_ints[timestep], key=lambda op: mm.dist_on_device_undirected(*op)
+        )
+        path = mm.shortest_path_undirected(*furthest_op)
         return tuple((path[0], path[i + 1]) for i in range(len(path) - 2))
 
     @classmethod
@@ -525,7 +527,12 @@ class RouteCQC:
     ) -> list[QidIntPair]:
         """Finds all feasible SWAPs between qubits involved in 2-qubit operations."""
         physical_qubits = (mm.logical_to_physical[lq[i]] for lq in two_qubit_ops for i in range(2))
-        physical_swaps = mm.induced_subgraph_int.edges(nbunch=physical_qubits)
+        # For directed graphs, we need undirected edges for swap candidates
+        # since SWAPs are symmetric regardless of underlying gate constraints
+        induced_graph = mm.induced_subgraph_int
+        if isinstance(induced_graph, nx.DiGraph):
+            induced_graph = induced_graph.to_undirected()
+        physical_swaps = induced_graph.edges(nbunch=physical_qubits)
         return [
             (mm.physical_to_logical[q1], mm.physical_to_logical[q2]) for q1, q2 in physical_swaps
         ]
@@ -546,7 +553,8 @@ class RouteCQC:
             mm.apply_swap(*swap)
         max_length, sum_length = 0, 0
         for lq in two_qubit_ops:
-            dist = mm.dist_on_device(*lq)
+            # Use undirected distance for routing cost calculations
+            dist = mm.dist_on_device_undirected(*lq)
             max_length = max(max_length, dist)
             sum_length += dist
         for swap in swaps:
