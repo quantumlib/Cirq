@@ -142,7 +142,7 @@ def test_circuit_with_measurement_gates() -> None:
     device_graph = device.metadata.nx_graph
     q = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(cirq.MeasurementGate(2).on(q[0], q[2]), cirq.MeasurementGate(3).on(*q))
-    hard_coded_mapper = cirq.HardCodedInitialMapper({q[i]: q[i] for i in range(3)})
+    hard_coded_mapper = cirq.HardCodedInitialMapper(dict(zip(q, q)))
     router = cirq.RouteCQC(device_graph)
     routed_circuit = router(circuit, initial_mapper=hard_coded_mapper)
     cirq.testing.assert_same_circuits(routed_circuit, circuit)
@@ -153,7 +153,7 @@ def test_circuit_with_two_qubit_intermediate_measurement_gate() -> None:
     device_graph = device.metadata.nx_graph
     router = cirq.RouteCQC(device_graph)
     qs = cirq.LineQubit.range(2)
-    hard_coded_mapper = cirq.HardCodedInitialMapper({qs[i]: qs[i] for i in range(2)})
+    hard_coded_mapper = cirq.HardCodedInitialMapper(dict(zip(qs, qs)))
     circuit = cirq.Circuit([cirq.Moment(cirq.measure(qs)), cirq.Moment(cirq.H.on_each(qs))])
     routed_circuit = router(
         circuit, initial_mapper=hard_coded_mapper, context=cirq.TransformerContext(deep=True)
@@ -166,7 +166,7 @@ def test_circuit_with_multi_qubit_intermediate_measurement_gate_and_with_default
     device_graph = device.metadata.nx_graph
     router = cirq.RouteCQC(device_graph)
     qs = cirq.LineQubit.range(3)
-    hard_coded_mapper = cirq.HardCodedInitialMapper({qs[i]: qs[i] for i in range(3)})
+    hard_coded_mapper = cirq.HardCodedInitialMapper(dict(zip(qs, qs)))
     circuit = cirq.Circuit([cirq.Moment(cirq.measure(qs)), cirq.Moment(cirq.H.on_each(qs))])
     routed_circuit = router(
         circuit, initial_mapper=hard_coded_mapper, context=cirq.TransformerContext(deep=True)
@@ -180,7 +180,7 @@ def test_circuit_with_multi_qubit_intermediate_measurement_gate_with_custom_key(
     device_graph = device.metadata.nx_graph
     router = cirq.RouteCQC(device_graph)
     qs = cirq.LineQubit.range(3)
-    hard_coded_mapper = cirq.HardCodedInitialMapper({qs[i]: qs[i] for i in range(3)})
+    hard_coded_mapper = cirq.HardCodedInitialMapper(dict(zip(qs, qs)))
     circuit = cirq.Circuit(
         [cirq.Moment(cirq.measure(qs, key="test")), cirq.Moment(cirq.H.on_each(qs))]
     )
@@ -201,7 +201,7 @@ def test_circuit_with_non_unitary_and_global_phase() -> None:
             cirq.Moment(cirq.depolarize(0.1, 2).on(q[0], q[2]), cirq.depolarize(0.1).on(q[1])),
         ]
     )
-    hard_coded_mapper = cirq.HardCodedInitialMapper({q[i]: q[i] for i in range(3)})
+    hard_coded_mapper = cirq.HardCodedInitialMapper(dict(zip(q, q)))
     router = cirq.RouteCQC(device_graph)
     routed_circuit = router(circuit, initial_mapper=hard_coded_mapper)
     expected = cirq.Circuit(
@@ -229,7 +229,7 @@ def test_circuit_with_tagged_ops() -> None:
             cirq.Moment(cirq.X(q[0]).with_tags("u")),
         ]
     )
-    hard_coded_mapper = cirq.HardCodedInitialMapper({q[i]: q[i] for i in range(3)})
+    hard_coded_mapper = cirq.HardCodedInitialMapper(dict(zip(q, q)))
     router = cirq.RouteCQC(device_graph)
     routed_circuit = router(circuit, initial_mapper=hard_coded_mapper)
     expected = cirq.Circuit(
@@ -285,7 +285,7 @@ def test_directed_device_with_tag_inserted_swaps() -> None:
     # Force routing with non-adjacent qubits to trigger swaps
     circuit = cirq.Circuit(cirq.CNOT(q[0], q[2]))
 
-    hard_coded_mapper = cirq.HardCodedInitialMapper({q[i]: q[i] for i in range(3)})
+    hard_coded_mapper = cirq.HardCodedInitialMapper(dict(zip(q, q)))
     routed_circuit, _, _ = router.route_circuit(
         circuit, initial_mapper=hard_coded_mapper, tag_inserted_swaps=True
     )
@@ -322,7 +322,7 @@ def test_directed_device_reverse_only_edge() -> None:
     # Map qubits so we need to swap on edge 3<-2
     circuit = cirq.Circuit(cirq.CNOT(q[2], q[3]))
 
-    hard_coded_mapper = cirq.HardCodedInitialMapper({q[i]: q[i] for i in range(4)})
+    hard_coded_mapper = cirq.HardCodedInitialMapper(dict(zip(q, q)))
     # Need tag_inserted_swaps=True for directionality decomposition
     routed_circuit, initial_map, swap_map = router.route_circuit(
         circuit, initial_mapper=hard_coded_mapper, tag_inserted_swaps=True
@@ -353,13 +353,6 @@ def test_directed_device_reverse_only_edge() -> None:
     )
 
 
-def test_repr() -> None:
-    device = cirq.testing.construct_ring_device(10)
-    device_graph = device.metadata.nx_graph
-    router = cirq.RouteCQC(device_graph)
-    cirq.testing.assert_equivalent_repr(router, setup_code='import cirq\nimport networkx as nx')
-
-
 def test_directed_device_bidirectional_swap_preserved() -> None:
     # Create a graph: 0 <-> 1 -> 2
     device_graph = nx.DiGraph()
@@ -374,7 +367,7 @@ def test_directed_device_bidirectional_swap_preserved() -> None:
     # Routing should swap 0 and 1 to bring them adjacent.
     circuit = cirq.Circuit(cirq.CNOT(q[0], q[2]))
 
-    hard_coded_mapper = cirq.HardCodedInitialMapper({q[i]: q[i] for i in range(3)})
+    hard_coded_mapper = cirq.HardCodedInitialMapper(dict(zip(q, q)))
     routed_circuit, _, _ = router.route_circuit(
         circuit, initial_mapper=hard_coded_mapper, tag_inserted_swaps=True
     )
@@ -389,3 +382,10 @@ def test_directed_device_bidirectional_swap_preserved() -> None:
 
     assert preserved_swaps
     assert any(set(op.qubits) == {q[0], q[1]} for op in preserved_swaps)
+
+
+def test_repr() -> None:
+    device = cirq.testing.construct_ring_device(10)
+    device_graph = device.metadata.nx_graph
+    router = cirq.RouteCQC(device_graph)
+    cirq.testing.assert_equivalent_repr(router, setup_code='import cirq\nimport networkx as nx')
