@@ -314,35 +314,28 @@ def test_directed_device_reverse_only_edge() -> None:
 
     # Create a circuit that requires a swap on the reverse-only edge
     # Map qubits so we need to swap on edge 3<-2
-    circuit = cirq.Circuit(cirq.CNOT(q[2], q[3]))
+    circuit = cirq.Circuit(cirq.CNOT(q[0], q[1]), cirq.CNOT(q[2], q[3]), cirq.CNOT(q[1], q[0]))
 
     hard_coded_mapper = cirq.HardCodedInitialMapper(dict(zip(q, q)))
     routed_circuit, initial_map, swap_map = router.route_circuit(
         circuit, initial_mapper=hard_coded_mapper, tag_inserted_swaps=True
     )
 
-    # Verify Hadamard gates are present
-    assert any(op.gate == cirq.H for op in routed_circuit.all_operations())
-
     # Verify that operations with RoutingSwapTag exist
-    ops_list = list(routed_circuit.all_operations())
-    tagged_ops = [op for op in ops_list if cirq.RoutingSwapTag() in op.tags]
-
-    # Should have tagged operations from the decomposed swap
+    tagged_ops = [op for op in routed_circuit.all_operations() if cirq.RoutingSwapTag() in op.tags]
     assert tagged_ops
 
-    # Verify both Hadamards and CNOTs are tagged
-    tagged_hadamards = [op for op in tagged_ops if op.gate == cirq.H]
-    tagged_cnots = [op for op in tagged_ops if isinstance(op.gate, cirq.CNotPowGate)]
+    # Verify presence of gates from the decomposed swap
+    tagged_gates = {op.gate for op in tagged_ops}
+    assert tagged_gates == {cirq.CNOT, cirq.H}
 
-    assert tagged_hadamards
-    assert tagged_cnots
+    # Verify CNOTs on bidirectional edge were preserved and the CNOT on the reverse edge flipped
+    untagged_ops = [op for op in routed_circuit.all_operations() if not op.tags]
+    assert untagged_ops == [cirq.CNOT(q[0], q[1]), cirq.CNOT(q[3], q[2]), cirq.CNOT(q[1], q[0])]
 
     # Verify the routed circuit is mathematically equivalent to the original
-    active_qubits = routed_circuit.all_qubits()
-    filtered_swap_map = {k: v for k, v in swap_map.items() if k in active_qubits}
     cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
-        routed_circuit, circuit.transform_qubits(initial_map), filtered_swap_map
+        routed_circuit, circuit, swap_map
     )
 
 
