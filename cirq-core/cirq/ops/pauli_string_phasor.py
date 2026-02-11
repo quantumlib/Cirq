@@ -263,7 +263,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
 
     @classmethod
     def _from_json_dict_(cls, pauli_string, exponent_neg, exponent_pos, **kwargs):
-        qubits = kwargs['qubits'] if 'qubits' in kwargs else None
+        qubits = kwargs.get('qubits', None)
         return PauliStringPhasor(
             pauli_string=pauli_string,
             qubits=qubits,

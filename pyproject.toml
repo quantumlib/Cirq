@@ -282,13 +282,19 @@ select = [
     "RUF100",  # unused-noqa
     "RUF200",  # invalid-pyproject-toml
     "SIM101",  # duplicate-isinstance-call, pylint consider-merging-isinstance
+    "SIM103",  # needless-bool
+    "SIM110",  # reimplemented-builtin
+    "SIM113",  # enumerate-for-loop
+    "SIM115",  # open-file-with-context-handler
     "SIM116",  # if-else-block-instead-of-dict-lookup
     "SIM201",  # negate-equal-op, pylint unneeded-not, unnecessary-negation
     "SIM202",  # negate-not-equal-op, pylint unneeded-not, unnecessary-negation
     "SIM208",  # double-negation, pylint unneeded-not, unnecessary-negation
     "SIM210",  # if-expr-with-true-false
+    "SIM211",  # if-expr-with-false-true
     "SIM222",  # expr-or-true
     "SIM223",  # expr-and-false
+    "SIM401",  # if-else-block-instead-of-dict-get
     "TC001",  # typing-only-first-party-import
     "TC002",  # typing-only-third-party-import
     # "TC003",  # typing-only-standard-library-import

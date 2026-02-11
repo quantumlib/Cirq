@@ -36,7 +36,8 @@ description = (
 )
 
 # README file as long_description.
-long_description = open('README.md', encoding='utf-8').read()
+with open('README.md', encoding='utf-8') as file:
+    long_description = file.read()
 
 # This is a pure metapackage that installs all our packages
 requirements = [f'{p.name}=={p.version}' for p in modules.list_modules()]
