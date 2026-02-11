@@ -34,7 +34,8 @@ def test_directed_device() -> None:
     cirq.testing.assert_same_circuits(routed_circuit, circuit)
 
 
-def test_directed_device_swap_decomposition() -> None:
+@pytest.mark.parametrize("tag_inserted_swaps", [True, False])
+def test_directed_device_swap_decomposition(tag_inserted_swaps: bool) -> None:
     # Create a simple directed graph: q0 -> q1 (one-way only)
     device_graph = nx.DiGraph()
     q = cirq.LineQubit.range(2)
@@ -46,18 +47,21 @@ def test_directed_device_swap_decomposition() -> None:
     circuit = cirq.Circuit(cirq.CNOT(q[1], q[0]))  # Reverse direction not available
 
     hard_coded_mapper = cirq.HardCodedInitialMapper({q[0]: q[0], q[1]: q[1]})
-    routed_circuit = router(circuit, initial_mapper=hard_coded_mapper, tag_inserted_swaps=True)
+    routed_circuit = router(
+        circuit, initial_mapper=hard_coded_mapper, tag_inserted_swaps=tag_inserted_swaps
+    )
 
     # Expected: Hadamard-based SWAP decomposition followed by CNOT
     # SWAP decomposition for unidirectional edge: CNOT-H⊗H-CNOT-H⊗H-CNOT
+    t = (cirq.RoutingSwapTag(),) if tag_inserted_swaps else ()
     expected = cirq.Circuit(
-        cirq.CNOT(q[0], q[1]).with_tags(cirq.RoutingSwapTag()),
-        cirq.H(q[0]).with_tags(cirq.RoutingSwapTag()),
-        cirq.H(q[1]).with_tags(cirq.RoutingSwapTag()),
-        cirq.CNOT(q[0], q[1]).with_tags(cirq.RoutingSwapTag()),
-        cirq.H(q[0]).with_tags(cirq.RoutingSwapTag()),
-        cirq.H(q[1]).with_tags(cirq.RoutingSwapTag()),
-        cirq.CNOT(q[0], q[1]).with_tags(cirq.RoutingSwapTag()),
+        cirq.CNOT(q[0], q[1]).with_tags(*t),
+        cirq.H(q[0]).with_tags(*t),
+        cirq.H(q[1]).with_tags(*t),
+        cirq.CNOT(q[0], q[1]).with_tags(*t),
+        cirq.H(q[0]).with_tags(*t),
+        cirq.H(q[1]).with_tags(*t),
+        cirq.CNOT(q[0], q[1]).with_tags(*t),
         cirq.CNOT(q[0], q[1]),  # The original CNOT after swap
     )
     cirq.testing.assert_same_circuits(routed_circuit, expected)
