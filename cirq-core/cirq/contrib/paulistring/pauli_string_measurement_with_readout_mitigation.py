@@ -236,7 +236,7 @@ def _pauli_strings_to_basis_change_ops(
             if pauli_op == ops.X:
                 operations.append(ops.ry(-np.pi / 2)(qubit))  # =cirq.H
                 break
-            elif pauli_op == ops.Y:
+            if pauli_op == ops.Y:
                 operations.append(ops.rx(np.pi / 2)(qubit))
                 break
     return operations
@@ -264,7 +264,7 @@ def _pauli_strings_to_basis_change_with_sweep(
                 params_dict[f"phi{qid}"] = 0.0
                 params_dict[f"theta{qid}"] = 1 / 2
                 break
-            elif pauli_op == ops.Y:
+            if pauli_op == ops.Y:
                 params_dict[f"phi{qid}"] = 1.0
                 params_dict[f"theta{qid}"] = 1 / 2
                 break
