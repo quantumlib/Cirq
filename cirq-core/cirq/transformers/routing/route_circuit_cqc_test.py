@@ -31,7 +31,6 @@ def test_directed_device() -> None:
     hard_coded_mapper = cirq.HardCodedInitialMapper(dict(zip(q, q)))
     routed_circuit = router(circuit, initial_mapper=hard_coded_mapper)
     device.validate_circuit(routed_circuit)
-
     cirq.testing.assert_same_circuits(routed_circuit, circuit)
 
 
@@ -286,20 +285,15 @@ def test_directed_device_with_tag_inserted_swaps() -> None:
     circuit = cirq.Circuit(cirq.CNOT(q[0], q[2]))
 
     hard_coded_mapper = cirq.HardCodedInitialMapper(dict(zip(q, q)))
-    routed_circuit, _, _ = router.route_circuit(
-        circuit, initial_mapper=hard_coded_mapper, tag_inserted_swaps=True
-    )
+    routed_circuit = router(circuit, initial_mapper=hard_coded_mapper, tag_inserted_swaps=True)
 
     # Verify that operations with RoutingSwapTag exist
-    ops_list = list(routed_circuit.all_operations())
-    tagged_ops = [op for op in ops_list if cirq.RoutingSwapTag() in op.tags]
-
-    # Should have tagged operations from the decomposed swap
+    tagged_ops = [op for op in routed_circuit.all_operations() if cirq.RoutingSwapTag() in op.tags]
     assert tagged_ops
 
-    # Verify Hadamard gates are present and tagged
-    tagged_hadamards = [op for op in tagged_ops if op.gate == cirq.H]
-    assert tagged_hadamards
+    # Verify presence of gates from the decomposed swap
+    tagged_gates = {op.gate for op in tagged_ops}
+    assert tagged_gates == {cirq.CNOT, cirq.H}
 
 
 def test_directed_device_reverse_only_edge() -> None:
@@ -323,7 +317,6 @@ def test_directed_device_reverse_only_edge() -> None:
     circuit = cirq.Circuit(cirq.CNOT(q[2], q[3]))
 
     hard_coded_mapper = cirq.HardCodedInitialMapper(dict(zip(q, q)))
-    # Need tag_inserted_swaps=True for directionality decomposition
     routed_circuit, initial_map, swap_map = router.route_circuit(
         circuit, initial_mapper=hard_coded_mapper, tag_inserted_swaps=True
     )
@@ -357,9 +350,7 @@ def test_directed_device_bidirectional_swap_preserved() -> None:
     # Create a graph: 0 <-> 1 -> 2
     device_graph = nx.DiGraph()
     q = cirq.LineQubit.range(3)
-    device_graph.add_edges_from(
-        [(q[0], q[1]), (q[1], q[0]), (q[1], q[2])]  # bidirectional  # forward-only
-    )
+    device_graph.add_edges_from([(q[0], q[1]), (q[1], q[0]), (q[1], q[2])])
 
     router = cirq.RouteCQC(device_graph)
 
@@ -368,9 +359,7 @@ def test_directed_device_bidirectional_swap_preserved() -> None:
     circuit = cirq.Circuit(cirq.CNOT(q[0], q[2]))
 
     hard_coded_mapper = cirq.HardCodedInitialMapper(dict(zip(q, q)))
-    routed_circuit, _, _ = router.route_circuit(
-        circuit, initial_mapper=hard_coded_mapper, tag_inserted_swaps=True
-    )
+    routed_circuit = router(circuit, initial_mapper=hard_coded_mapper, tag_inserted_swaps=True)
 
     # Check for preserved SWAP(0, 1)
     # Identify SWAPs that are kept as SWAP gates (bidirectional) and tagged
@@ -380,8 +369,7 @@ def test_directed_device_bidirectional_swap_preserved() -> None:
         if isinstance(op.gate, cirq.SwapPowGate) and cirq.RoutingSwapTag() in op.tags
     ]
 
-    assert preserved_swaps
-    assert any(set(op.qubits) == {q[0], q[1]} for op in preserved_swaps)
+    assert preserved_swaps == [cirq.SWAP(q[0], q[1]).with_tags(cirq.RoutingSwapTag())]
 
 
 def test_repr() -> None:
