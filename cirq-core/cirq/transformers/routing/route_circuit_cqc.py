@@ -82,6 +82,7 @@ class RouteCQC:
                 mapping. Repeat from 3.1.
 
     Handling Directed Graphs:
+
         When the device_graph is directed (e.g., edges represent unidirectional CNOT constraints),
         the routing logic still operates as if the graph were undirected. This is because SWAP
         gates are logically symmetric regardless of underlying gate direction constraints.
@@ -239,7 +240,7 @@ class RouteCQC:
         # This handles directed device graphs by decomposing SWAP into a sequence of CNOTs
         # that respect the edge direction constraints.
         routed_circuit = circuits.Circuit(circuits.Circuit(m) for m in routed_ops)
-        if nx.is_directed(self.device_graph):
+        if routing_swaps and nx.is_directed(self.device_graph):
             final_circuit = self._replace_swaps_with_directional_decomposition(
                 routed_circuit, routing_swaps
             )
@@ -311,7 +312,7 @@ class RouteCQC:
 
         For bidirectional edges (or undirected graphs), the SWAP is left unchanged.
         For unidirectional edges, the SWAP is decomposed using the Hadamard trick:
-            SWAP = CNOT(ctrl,tgt) - H⊗H - CNOT(ctrl,tgt) - H⊗H - CNOT(ctrl,tgt)
+            SWAP = CNOT(ctrl, tgt) - H⊗H - CNOT(ctrl, tgt) - H⊗H - CNOT(ctrl, tgt)
 
         Args:
             circuit: The routed circuit containing SWAP operations.
@@ -320,9 +321,6 @@ class RouteCQC:
         Returns:
             Circuit with directional SWAP decompositions where needed.
         """
-        if not routing_swaps:
-            # If no routing swaps were added, no decomposition needed.
-            return circuit
 
         def map_func(op: cirq.Operation, _: int) -> cirq.OP_TREE:
             """Map function to replace routing-added SWAPs with directional decomposition."""
@@ -380,7 +378,7 @@ class RouteCQC:
             operations.
 
         Returns:
-            a list of lists corresponding to timesteps of the routed circuit.
+            A list of lists corresponding to timesteps of the routed circuit and
             a set of inserted SWAP operations.
         """
         two_qubit_ops_ints: list[list[QidIntPair]] = [
