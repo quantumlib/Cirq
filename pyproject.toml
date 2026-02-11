@@ -271,6 +271,7 @@ select = [
     "PLE1206",  # logging-too-few-args
     "PLE1310",  # bad-str-strip-call, pylint bad-str-strip-call
     "PLR0206",  # property-with-parameters, pylint property-with-parameters
+    "PLR1733",  # unnecessary-dict-index-lookup
     "PLR1736",  # unnecessary-list-index-lookup
     "PLW0245",  # super-without-brackets, pylint super-without-brackets
     "PLW1501",  # bad-open-mode
