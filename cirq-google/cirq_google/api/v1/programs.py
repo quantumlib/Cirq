@@ -150,14 +150,8 @@ def circuit_as_schedule_to_protos(circuit: cirq.Circuit) -> Iterator[operations_
     Yields:
         An Operation proto.
     """
-    last_picos: int | None = None
-    for time_picos, op in enumerate(circuit.all_operations()):
-        if last_picos is None:
-            delay = time_picos
-        else:
-            delay = time_picos - last_picos
-        op_proto = gate_to_proto(cast(cirq.Gate, op.gate), op.qubits, delay)
-        last_picos = time_picos
+    for op in circuit.all_operations():
+        op_proto = gate_to_proto(cast(cirq.Gate, op.gate), op.qubits, delay=0)
         yield op_proto
 
 
