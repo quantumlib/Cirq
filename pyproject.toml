@@ -273,6 +273,7 @@ select = [
     "PLR0206",  # property-with-parameters, pylint property-with-parameters
     "PLR1736",  # unnecessary-list-index-lookup
     "PLW0120",  # useless-else-on-loop
+    "PLW0406",  # import-self
     "PLW0245",  # super-without-brackets, pylint super-without-brackets
     "PLW1501",  # bad-open-mode
     "RET507",  # superfluous-else-continue
@@ -311,4 +312,4 @@ select = [
 "attr".msg = "Please import 'attrs' per https://www.attrs.org/en/stable/names.html"
 
 [tool.ruff.lint.per-file-ignores]
-"*.ipynb" = ["E402"]
+"*.ipynb" = ["E402", "PLW0406"]
