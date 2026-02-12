@@ -42,7 +42,7 @@ def _with_values(original: dict[T, V], val: V | dict[T, V]) -> dict[T, V]:
     """
     if isinstance(val, dict):
         return {**original, **val}
-    return {k: val for k in original}
+    return dict.fromkeys(original, val)
 
 
 @dataclasses.dataclass

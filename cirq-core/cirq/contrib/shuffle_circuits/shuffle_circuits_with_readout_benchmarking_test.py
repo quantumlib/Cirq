@@ -159,8 +159,8 @@ def test_circuits_with_readout_benchmarking_errors_no_noise(mode: str) -> None:
         assert all(isinstance(q, cirq.Qid) for q in qlist)
         assert isinstance(readout_calibration_result, SingleQubitReadoutCalibrationResult)
 
-        assert readout_calibration_result.zero_state_errors == {q: 0 for q in qubits}
-        assert readout_calibration_result.one_state_errors == {q: 0 for q in qubits}
+        assert readout_calibration_result.zero_state_errors == dict.fromkeys(qubits, 0)
+        assert readout_calibration_result.one_state_errors == dict.fromkeys(qubits, 0)
         assert readout_calibration_result.repetitions == readout_repetitions
         assert isinstance(readout_calibration_result.timestamp, float)
 

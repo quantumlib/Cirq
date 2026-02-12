@@ -161,8 +161,8 @@ class CustomGate:
         for qubits in _generate_op_qubits(args, lineno):
             yield CircuitOperation(
                 self.circuit,
-                param_resolver={k: v for k, v in zip(self.params, params)},
-                qubit_map={k: v for k, v in zip(self.qubits, qubits)},
+                param_resolver=dict(zip(self.params, params)),
+                qubit_map=dict(zip(self.qubits, qubits)),
             )
 
 
@@ -1189,11 +1189,9 @@ class QasmParser:
         if p is None:
             raise QasmException('Unexpected end of file')
 
-        raise QasmException(
-            f"""Syntax error: '{p.value}'
+        raise QasmException(f"""Syntax error: '{p.value}'
 {self.debug_context(p)}
-at line {p.lineno}, column {self.find_column(p)}"""
-        )
+at line {p.lineno}, column {self.find_column(p)}""")
 
     def find_column(self, p):
         line_start = self.qasm.rfind('\n', 0, p.lexpos) + 1

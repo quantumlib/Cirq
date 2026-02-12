@@ -22,10 +22,7 @@ import cirq
 
 
 def all_gates_of_type(m: cirq.Moment, g: cirq.Gateset):
-    for op in m:
-        if op not in g:
-            return False
-    return True
+    return all(op in g for op in m)
 
 
 def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit, **kwargs):

@@ -36,7 +36,7 @@ def test_simplify_sandwich() -> None:
                 circuit, qubits = _get_circuit(width=width, height=height, p=p, rs=rs)
                 operator: cirq.PauliString
                 operator = cirq.PauliString(
-                    {q: cirq.Z for q in rs.choice(qubits, size=2, replace=False)}
+                    dict.fromkeys(rs.choice(qubits, size=2, replace=False), cirq.Z)
                 )
                 tot_c = ccq.circuit_for_expectation_value(circuit, operator)
                 tot_c_init = tot_c.copy()
@@ -75,7 +75,7 @@ def test_tensor_expectation_value() -> None:
                     circuit, qubits = _get_circuit(width=width, height=height, p=p, rs=rs)
                     operator: cirq.PauliString
                     operator = cirq.PauliString(
-                        {q: cirq.Z for q in rs.choice(qubits, size=2, replace=False)},
+                        dict.fromkeys(rs.choice(qubits, size=2, replace=False), cirq.Z),
                         coefficient=rs.uniform(-1, 1),
                     )
 

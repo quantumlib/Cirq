@@ -290,7 +290,7 @@ def render_circuit(
                         if proc.stderr:
                             print(f"--- pdflatex stderr ---\n{proc.stderr}")
                     break  # Exit loop if pdflatex failed
-                elif not tmp_pdf_path.is_file() and i == 1:  # pragma: no cover
+                if not tmp_pdf_path.is_file() and i == 1:  # pragma: no cover
                     latex_failed = True
                     print("!!! pdflatex completed, but PDF file not found. Check logs. !!!")
                     log_file = tmp_tex_path.with_suffix(".log")
@@ -300,7 +300,7 @@ def render_circuit(
                             f"{log_file.read_text(errors='ignore')[-2000:]}"
                         )
                     break
-                elif tmp_pdf_path.is_file():
+                if tmp_pdf_path.is_file():
                     _debug_print(f"  pdflatex run {i+1}/2 successful (PDF exists).")
 
             if not latex_failed and tmp_pdf_path.is_file():

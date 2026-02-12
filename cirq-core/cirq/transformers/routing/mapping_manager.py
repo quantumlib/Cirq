@@ -55,7 +55,7 @@ class MappingManager:
             self._physical_qid_to_int.keys(), key=lambda x: self._physical_qid_to_int[x]
         )
         logical_qubits, physical_qubits = (
-            zip(*[(k, v) for k, v in initial_mapping.items()]) if initial_mapping else ([], [])
+            zip(*initial_mapping.items()) if initial_mapping else ([], [])
         )
         num_qubits = len(logical_qubits)
         self._logical_to_physical = np.asarray(

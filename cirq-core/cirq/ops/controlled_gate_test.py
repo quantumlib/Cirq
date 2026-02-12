@@ -713,7 +713,7 @@ def test_circuit_diagram_sum_of_products() -> None:
 class MockGate(cirq.testing.TwoQubitGate):
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         self.captured_diagram_args = args
-        return cirq.CircuitDiagramInfo(wire_symbols=tuple(['M1', 'M2']), exponent=1, connected=True)
+        return cirq.CircuitDiagramInfo(wire_symbols=('M1', 'M2'), exponent=1, connected=True)
 
     def _has_unitary_(self):
         return True

@@ -64,7 +64,7 @@ def circuit_to_tensors(
     if qubits is None:
         qubits = sorted(circuit.all_qubits())  # pragma: no cover
 
-    qubit_frontier = {q: 0 for q in qubits}
+    qubit_frontier = dict.fromkeys(qubits, 0)
     positions = None
     tensors: list[qtn.Tensor] = []
 

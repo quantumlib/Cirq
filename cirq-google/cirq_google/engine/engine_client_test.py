@@ -157,7 +157,7 @@ def test_list_program(client_constructor, default_engine_client):
         quantum.QuantumProgram(name='projects/proj/programs/prog1'),
         quantum.QuantumProgram(name='projects/proj/programs/prog2'),
     ]
-    grpc_client.list_quantum_programs.return_value = results
+    grpc_client.list_quantum_programs.return_value = _AsyncIterable(results)
 
     assert default_engine_client.list_programs(project_id='proj') == results
     grpc_client.list_quantum_programs.assert_called_with(
@@ -1252,7 +1252,7 @@ def test_list_jobs(client_constructor, default_engine_client):
         quantum.QuantumJob(name='projects/proj/programs/prog1/jobs/job1'),
         quantum.QuantumJob(name='projects/proj/programs/prog1/jobs/job2'),
     ]
-    grpc_client.list_quantum_jobs.return_value = results
+    grpc_client.list_quantum_jobs.return_value = _AsyncIterable(results)
 
     assert default_engine_client.list_jobs(project_id='proj', program_id='prog1') == results
     grpc_client.list_quantum_jobs.assert_called_with(
@@ -1263,6 +1263,15 @@ def test_list_jobs(client_constructor, default_engine_client):
     grpc_client.list_quantum_jobs.assert_called_with(
         quantum.ListQuantumJobsRequest(parent='projects/proj/programs/-')
     )
+
+
+class _AsyncIterable:
+    def __init__(self, items):
+        self.items = items
+
+    async def __aiter__(self):
+        for item in self.items:
+            yield item
 
 
 @pytest.mark.parametrize(

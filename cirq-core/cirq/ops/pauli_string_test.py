@@ -376,7 +376,7 @@ def test_basic_functionality(qubit_pauli_map) -> None:
 
     # Test iteration
     assert len(tuple(qubit_pauli_map)) == len(tuple(pauli_string))
-    assert set(tuple(qubit_pauli_map)) == set(tuple(pauli_string))
+    assert set(qubit_pauli_map) == set(pauli_string)
 
 
 def test_repr() -> None:
@@ -1766,20 +1766,25 @@ def test_mutable_pauli_string_inplace_conjugate_by() -> None:
 
     class NoOp(cirq.Operation):
         def __init__(self, *qubits):
+            self._gate = cirq.IdentityGate(len(qubits))
             self._qubits = qubits
 
         @property
-        def qubits(self):  # pragma: no cover
+        def gate(self) -> cirq.Gate:
+            return self._gate
+
+        @property
+        def qubits(self) -> tuple[cirq.Qid, ...]:
             return self._qubits
 
-        def with_qubits(self, *new_qubits):
+        def with_qubits(self, *new_qubits) -> cirq.Operation:
             raise NotImplementedError()
 
-        def _decompose_(self):
+        def _decompose_(self) -> cirq.OP_TREE:
             return []
 
-        def __pow__(self, power):
-            return []
+        def __pow__(self, power) -> cirq.Operation:
+            return self
 
     # No-ops
     p2 = p.inplace_after(cirq.global_phase_operation(1j))
@@ -2003,8 +2008,8 @@ def test_coefficient_precision() -> None:
     qs = cirq.LineQubit.range(4 * 10**3)
     r: cirq.MutablePauliString[cirq.LineQubit]
     r2: cirq.MutablePauliString[cirq.LineQubit]
-    r = cirq.MutablePauliString({q: cirq.X for q in qs})
-    r2 = cirq.MutablePauliString({q: cirq.Y for q in qs})
+    r = cirq.MutablePauliString(dict.fromkeys(qs, cirq.X))
+    r2 = cirq.MutablePauliString(dict.fromkeys(qs, cirq.Y))
     r2 *= r
     assert r2.coefficient == 1
 
