@@ -380,7 +380,7 @@ class MagicSquareResult:
         alice_choices = np.zeros((3, 3, repetitions, 3), dtype=bool)
         bob_choices = np.zeros((3, 3, repetitions, 3), dtype=bool)
 
-        # the following manipulations implment the Mermin-Peres square from the
+        # the following manipulations implement the Mermin-Peres square from the
         # docstring of `construct_magic_square_circuit`
         alice_choices[0, :, :, 0] = self.alice_measurements[0, :, :, 1]  # I ⊗ Z
         alice_choices[0, :, :, 1] = self.alice_measurements[0, :, :, 0]  # Z ⊗ I
