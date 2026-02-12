@@ -395,31 +395,22 @@ class MagicSquareResult:
         assert np.all((np.sum(bob_choices, axis=3) % 2) == 1)  # check rule
         return alice_choices, bob_choices
 
-    def generate_choices(self, seed: int | None = None) -> tuple[np.ndarray, np.ndarray]:
+    def generate_choices(self) -> tuple[np.ndarray, np.ndarray]:
         """Generate choices from Alice and Bob's measurements.
-
-        Args:
-            seed: A seed for the random number generator.
 
         Returns:
             Alice and Bob's choices in the game. The two numpy arrays have indices
             signifying [query_row, query_column, repetition, index_of_output].
-
-        Raises:
-            NotImplementedError: If Alice and Bob measure unequal numbers of Paulis.
         """
         return self._generate_choices_from_rules()
 
-    def get_win_matrix(self, seed: int | None = None) -> np.ndarray:
+    def get_win_matrix(self) -> np.ndarray:
         """Find the fraction of the time that Alice and Bob win.
-
-        Args:
-            seed: The seed for the random number generator.
 
         Returns:
             The fraction of the time that they win.
         """
-        alice_choices, bob_choices = self.generate_choices(seed)
+        alice_choices, bob_choices = self.generate_choices()
         win_matrix = np.zeros((3, 3))
         for row in range(3):
             for col in range(3):
