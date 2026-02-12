@@ -307,7 +307,7 @@ jobs:
       - name: Install requirements
         run: |
           pip install --upgrade setuptools wheel
-          pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
+          pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/pytest-minimal.env.txt
       - name: Pytest Windows
         run: |
           source dev_tools/pypath
@@ -336,7 +336,7 @@ jobs:
       - name: Install requirements
         run: |
           pip install --upgrade setuptools wheel
-          pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
+          pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/pytest-minimal.env.txt
       - name: Pytest check
         run: check/pytest -n logical --durations=20 --ignore=cirq-core/cirq/contrib
   notebooks-stable:
