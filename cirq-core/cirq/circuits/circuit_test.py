@@ -3532,7 +3532,7 @@ def test_push_frontier_random_circuit() -> None:
         for q in set(early_frontier).difference(update_qubits):
             assert early_frontier[q] == orig_early_frontier[q]
         for q, f in late_frontier.items():
-            assert orig_early_frontier.get(q, 0) <= late_frontier[q] + n_new_moments
+            assert orig_early_frontier.get(q, 0) <= f + n_new_moments
             if f != len(orig_moments):
                 assert orig_moments[f] == circuit[f + n_new_moments]
         for q in set(update_qubits).intersection(early_frontier):

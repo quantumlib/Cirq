@@ -37,6 +37,7 @@ def test_wrapper_eq() -> None:
 
 
 def test_wrapper_cmp() -> None:
+    # ruff: disable[PLR0124]
     u0 = cirq.contrib.Unique(0)
     u1 = cirq.contrib.Unique(1)
     # The ordering of Unique instances is unpredictable

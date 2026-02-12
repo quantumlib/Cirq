@@ -76,7 +76,6 @@ def test_decompose_single_qubit_operation() -> None:
     assert isinstance(tgopz[0].gate, cirq.ZPowGate)
     theta = sympy.Symbol('theta')
     assert gs.decompose_to_target_gateset(cirq.H(Q) ** theta, 0) is NotImplemented
-    return
 
 
 def test_decompose_two_qubit_operation() -> None:
@@ -87,7 +86,6 @@ def test_decompose_two_qubit_operation() -> None:
     assert isinstance(tgopsqrtxx[0].gate, cirq.XXPowGate)
     theta = sympy.Symbol('theta')
     assert gs.decompose_to_target_gateset(cirq.XX(Q, Q2) ** theta, 0) is NotImplemented
-    return
 
 
 def test_postprocess_transformers() -> None:

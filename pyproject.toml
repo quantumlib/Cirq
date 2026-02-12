@@ -270,7 +270,11 @@ select = [
     "PLE0302",  # unexpected-special-method-signature, unexpected-special-method-signature
     "PLE1206",  # logging-too-few-args
     "PLE1310",  # bad-str-strip-call, pylint bad-str-strip-call
+    "PLR0124",  # comparison-with-itself
     "PLR0206",  # property-with-parameters, pylint property-with-parameters
+    "PLR1711",  # useless-return
+    "PLR1730",  # if-stmt-min-max
+    "PLR1733",  # unnecessary-dict-index-lookup
     "PLR1736",  # unnecessary-list-index-lookup
     "PLW0120",  # useless-else-on-loop
     "PLW0406",  # import-self
