@@ -374,45 +374,43 @@ class MagicSquareResult:
             Alice and Bob's choices in the game.
         """
         repetitions = self.alice_measurements.shape[2]
+
+        # the following two arrays have indices signifying
+        # [query_row, query_column, repetition, index_of_output]
         alice_choices = np.zeros((3, 3, repetitions, 3), dtype=bool)
         bob_choices = np.zeros((3, 3, repetitions, 3), dtype=bool)
-        alice_choices[0, :, :, 0] = self.alice_measurements[0, :, :, 1]
-        alice_choices[0, :, :, 1] = self.alice_measurements[0, :, :, 0]
-        alice_choices[1, :, :, :2] = self.alice_measurements[1, :, :, :2]
-        alice_choices[2, :, :, :2] = 1 - self.alice_measurements[2, :, :, :2]
-        bob_choices[:, 0, :, 0] = self.bob_measurements[:, 0, :, 1]
-        bob_choices[:, 0, :, 1] = self.bob_measurements[:, 0, :, 0]
-        bob_choices[:, 1:, :, :2] = self.bob_measurements[:, 1:, :, :2]
-        alice_choices[:, :, :, 2] = np.sum(alice_choices, axis=3) % 2
-        bob_choices[:, :, :, 2] = 1 - (np.sum(bob_choices, axis=3) % 2)
-        assert np.all((np.sum(alice_choices, axis=3) % 2) == 0)
-        assert np.all((np.sum(bob_choices, axis=3) % 2) == 1)
+
+        # the following manipulations implement the Mermin-Peres square from the
+        # docstring of `construct_magic_square_circuit`
+        alice_choices[0, :, :, 0] = self.alice_measurements[0, :, :, 1]  # I ⊗ Z
+        alice_choices[0, :, :, 1] = self.alice_measurements[0, :, :, 0]  # Z ⊗ I
+        alice_choices[1, :, :, :2] = self.alice_measurements[1, :, :, :2]  # X ⊗ I | I ⊗ X
+        alice_choices[2, :, :, :2] = 1 - self.alice_measurements[2, :, :, :2]  # -X ⊗ Z |-Z ⊗ X
+        bob_choices[:, 0, :, 0] = self.bob_measurements[:, 0, :, 1]  # I ⊗ Z
+        bob_choices[:, 0, :, 1] = self.bob_measurements[:, 0, :, 0]  # X ⊗ I
+        bob_choices[:, 1:, :, :2] = self.bob_measurements[:, 1:, :, :2]  # Z ⊗ I | I ⊗ X
+        alice_choices[:, :, :, 2] = np.sum(alice_choices, axis=3) % 2  # infer from rule
+        bob_choices[:, :, :, 2] = 1 - (np.sum(bob_choices, axis=3) % 2)  # infer from rule
+        assert np.all((np.sum(alice_choices, axis=3) % 2) == 0)  # check rule
+        assert np.all((np.sum(bob_choices, axis=3) % 2) == 1)  # check rule
         return alice_choices, bob_choices
 
-    def generate_choices(self, seed: int | None = None) -> tuple[np.ndarray, np.ndarray]:
+    def generate_choices(self) -> tuple[np.ndarray, np.ndarray]:
         """Generate choices from Alice and Bob's measurements.
 
-        Args:
-            seed: A seed for the random number generator.
-
         Returns:
-            Alice and Bob's choices in the game.
-
-        Raises:
-            NotImplementedError: If Alice and Bob measure unequal numbers of Paulis.
+            Alice and Bob's choices in the game. The two numpy arrays have indices
+            signifying [query_row, query_column, repetition, index_of_output].
         """
         return self._generate_choices_from_rules()
 
-    def get_win_matrix(self, seed: int | None = None) -> np.ndarray:
+    def get_win_matrix(self) -> np.ndarray:
         """Find the fraction of the time that Alice and Bob win.
-
-        Args:
-            seed: The seed for the random number generator.
 
         Returns:
             The fraction of the time that they win.
         """
-        alice_choices, bob_choices = self.generate_choices(seed)
+        alice_choices, bob_choices = self.generate_choices()
         win_matrix = np.zeros((3, 3))
         for row in range(3):
             for col in range(3):
