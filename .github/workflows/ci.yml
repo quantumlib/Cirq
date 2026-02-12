@@ -310,6 +310,7 @@ jobs:
           pip install --upgrade --upgrade-strategy eager \
             -r dev_tools/requirements/pytest-minimal.env.txt \
             qiskit-aer~=0.17.0 stimcirq
+        shell: bash
       - name: Pytest Windows
         run: |
           source dev_tools/pypath
