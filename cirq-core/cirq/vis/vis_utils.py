@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -19,7 +22,7 @@ if TYPE_CHECKING:
     from numpy.typing import ArrayLike
 
 
-def relative_luminance(color: 'ArrayLike') -> float:
+def relative_luminance(color: ArrayLike) -> float:
     """Returns the relative luminance according to W3C specification.
 
     Spec: https://www.w3.org/TR/WCAG21/#dfn-relative-luminance.

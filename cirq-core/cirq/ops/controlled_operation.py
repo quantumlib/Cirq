@@ -14,19 +14,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Collection, Sequence, Set
 from types import EllipsisType, NotImplementedType
-from typing import (
-    AbstractSet,
-    Any,
-    Collection,
-    Dict,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -37,7 +27,6 @@ from cirq.ops import (
     controlled_gate,
     eigen_gate,
     gate_operation,
-    matrix_gates,
     op_tree,
     raw_types,
 )
@@ -57,9 +46,7 @@ class ControlledOperation(raw_types.Operation):
         self,
         controls: Sequence[cirq.Qid],
         sub_operation: cirq.Operation,
-        control_values: Optional[
-            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
-        ] = None,
+        control_values: cv.AbstractControlValues | Sequence[int | Collection[int]] | None = None,
     ):
         """Initializes the controlled operation.
 
@@ -116,7 +103,7 @@ class ControlledOperation(raw_types.Operation):
             self._control_values = self._control_values & sub_operation.control_values
 
     @property
-    def controls(self) -> Tuple[cirq.Qid, ...]:
+    def controls(self) -> tuple[cirq.Qid, ...]:
         return self._controls
 
     @property
@@ -128,7 +115,7 @@ class ControlledOperation(raw_types.Operation):
         return self._sub_operation
 
     @property
-    def gate(self) -> Optional[cirq.ControlledGate]:
+    def gate(self) -> cirq.ControlledGate | None:
         if self.sub_operation.gate is None:
             return None
         return controlled_gate.ControlledGate(
@@ -138,35 +125,25 @@ class ControlledOperation(raw_types.Operation):
         )
 
     @property
-    def qubits(self):
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         return self.controls + self.sub_operation.qubits
 
-    def with_qubits(self, *new_qubits):
+    def with_qubits(self, *new_qubits) -> ControlledOperation:
         n = len(self.controls)
         return ControlledOperation(
             new_qubits[:n], self.sub_operation.with_qubits(*new_qubits[n:]), self.control_values
         )
 
-    def _decompose_(self):
-        return self._decompose_with_context_()
-
-    def _decompose_with_context_(self, context: Optional[cirq.DecompositionContext] = None):
+    def _decompose_with_context_(self, *, context: cirq.DecompositionContext):
         result = protocols.decompose_once_with_qubits(
-            self.gate, self.qubits, NotImplemented, flatten=False, context=context
+            self.gate, self.qubits, None, flatten=False, context=context
         )
-        if result is not NotImplemented:
+        if result is not None:
             return result
 
-        if isinstance(self.sub_operation.gate, matrix_gates.MatrixGate):
-            # Default decompositions of 2/3 qubit `cirq.MatrixGate` ignores global phase, which is
-            # local phase in the controlled variant and hence cannot be ignored.
-            return NotImplemented
-
-        result = protocols.decompose_once(
-            self.sub_operation, NotImplemented, flatten=False, context=context
-        )
-        if result is NotImplemented:
-            return NotImplemented
+        result = protocols.decompose_once(self.sub_operation, None, flatten=False, context=context)
+        if result is None:
+            return None
 
         return op_tree.transform_op_tree(
             result, lambda op: op.controlled_by(*self.controls, control_values=self.control_values)
@@ -183,7 +160,7 @@ class ControlledOperation(raw_types.Operation):
         sub_n = len(args.axes) - n
         sub_axes = args.axes[n:]
         for control_vals in self.control_values.expand():
-            active: Tuple[Union[EllipsisType, slice], ...] = (
+            active: tuple[EllipsisType | slice, ...] = (
                 ...,
                 *(slice(v, v + 1) for v in control_vals),
                 *(slice(None),) * sub_n,
@@ -209,7 +186,7 @@ class ControlledOperation(raw_types.Operation):
     def _has_unitary_(self) -> bool:
         return protocols.has_unitary(self.sub_operation)
 
-    def _qasm_(self, args: cirq.QasmArgs) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs) -> str | None:
         if (
             hasattr(self._sub_operation, "gate")
             and len(self._controls) == 1
@@ -243,10 +220,10 @@ class ControlledOperation(raw_types.Operation):
         sub_tensor = sub_matrix.reshape(qid_shape[len(self.controls) :] * 2)
         for control_vals in self.control_values.expand():
             active = (*(v for v in control_vals), *(slice(None),) * sub_n) * 2
-            tensor[active] = sub_tensor
+            tensor[active] = sub_tensor  # type: ignore[index]
         return tensor.reshape((np.prod(qid_shape, dtype=np.int64).item(),) * 2)
 
-    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+    def _unitary_(self) -> np.ndarray | NotImplementedType:
         sub_matrix = protocols.unitary(self.sub_operation, None)
         if sub_matrix is None:
             return NotImplemented
@@ -255,7 +232,7 @@ class ControlledOperation(raw_types.Operation):
     def _has_mixture_(self) -> bool:
         return protocols.has_mixture(self.sub_operation)
 
-    def _mixture_(self) -> Optional[List[Tuple[float, np.ndarray]]]:
+    def _mixture_(self) -> list[tuple[float, np.ndarray]] | None:
         sub_mixture = protocols.mixture(self.sub_operation, None)
         if sub_mixture is None:
             return None
@@ -285,7 +262,7 @@ class ControlledOperation(raw_types.Operation):
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.sub_operation)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self.sub_operation)
 
     def _resolve_parameters_(
@@ -294,7 +271,7 @@ class ControlledOperation(raw_types.Operation):
         new_sub_op = protocols.resolve_parameters(self.sub_operation, resolver, recursive)
         return ControlledOperation(self.controls, new_sub_op, self.control_values)
 
-    def _trace_distance_bound_(self) -> Optional[float]:
+    def _trace_distance_bound_(self) -> float | None:
         if self._is_parameterized_():
             return None
         u = protocols.unitary(self.sub_operation, default=None)
@@ -311,7 +288,7 @@ class ControlledOperation(raw_types.Operation):
 
     def _circuit_diagram_info_(
         self, args: cirq.CircuitDiagramInfoArgs
-    ) -> Optional[protocols.CircuitDiagramInfo]:
+    ) -> protocols.CircuitDiagramInfo | None:
         n = len(self.controls)
 
         sub_args = protocols.CircuitDiagramInfoArgs(
@@ -346,7 +323,7 @@ class ControlledOperation(raw_types.Operation):
             exponent_qubit_index=exponent_qubit_index,
         )
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             'controls': self.controls,
             'control_values': self.control_values,

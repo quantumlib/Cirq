@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import random
 
 import numpy as np
@@ -58,12 +60,12 @@ def _random_double_MS_effect():
     )
 
 
-def assert_ops_implement_unitary(q0, q1, operations, intended_effect, atol=0.01):
+def assert_ops_implement_unitary(q0, q1, operations, intended_effect, atol=0.01) -> None:
     actual_effect = _operations_to_matrix(operations, (q0, q1))
     assert cirq.allclose_up_to_global_phase(actual_effect, intended_effect, atol=atol)
 
 
-def assert_ms_depth_below(operations, threshold):
+def assert_ms_depth_below(operations, threshold) -> None:
     total_ms = 0
 
     for op in operations:
@@ -130,7 +132,7 @@ def assert_ms_depth_below(operations, threshold):
     (2, _random_double_MS_effect()) for _ in range(10)
 ])
 # yapf: enable
-def test_two_to_ops(max_ms_depth: int, effect: np.ndarray):
+def test_two_to_ops(max_ms_depth: int, effect: np.ndarray) -> None:
     q0 = cirq.NamedQubit('q0')
     q1 = cirq.NamedQubit('q1')
 

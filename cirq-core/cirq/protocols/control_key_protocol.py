@@ -16,9 +16,7 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import Any, FrozenSet, TYPE_CHECKING, Union
-
-from typing_extensions import Protocol
+from typing import Any, Protocol, TYPE_CHECKING
 
 from cirq._doc import doc_private
 from cirq.protocols import measurement_key_protocol
@@ -37,7 +35,7 @@ class SupportsControlKey(Protocol):
     """
 
     @doc_private
-    def _control_keys_(self) -> Union[FrozenSet[cirq.MeasurementKey], NotImplementedType, None]:
+    def _control_keys_(self) -> frozenset[cirq.MeasurementKey] | NotImplementedType | None:
         """Return the keys for controls referenced by the receiving object.
 
         Returns:
@@ -46,7 +44,7 @@ class SupportsControlKey(Protocol):
         """
 
 
-def control_keys(val: Any) -> FrozenSet[cirq.MeasurementKey]:
+def control_keys(val: Any) -> frozenset[cirq.MeasurementKey]:
     """Gets the keys that the value is classically controlled by.
 
     Args:
@@ -55,6 +53,13 @@ def control_keys(val: Any) -> FrozenSet[cirq.MeasurementKey]:
     Returns:
         The measurement keys the value is controlled by. If the value is not
         classically controlled, the result is the empty tuple.
+
+    Notes:
+        For composite operations (e.g. CircuitOperation), only control keys that
+        have not already been measured earlier in the subcircuit are returned.
+        Control keys that are satisfied by measurements **after** their use in
+        the subcircuit are still required externally and thus appear in the
+        result.
     """
     getter = getattr(val, '_control_keys_', None)
     result = NotImplemented if getter is None else getter()
@@ -64,7 +69,7 @@ def control_keys(val: Any) -> FrozenSet[cirq.MeasurementKey]:
     return frozenset()
 
 
-def measurement_keys_touched(val: Any) -> FrozenSet[cirq.MeasurementKey]:
+def measurement_keys_touched(val: Any) -> frozenset[cirq.MeasurementKey]:
     """Returns all the measurement keys used by the value.
 
     This would be the case if the value is or contains a measurement gate, or

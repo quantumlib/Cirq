@@ -14,9 +14,9 @@
 
 """Experimental features. Their API can be broken without any warning and might be in a work-in
 progress state"""
+
 from cirq_google.experimental.noise_models import (
-    # pylint: disable=line-too-long
-    PerQubitDepolarizingWithDampedReadoutNoiseModel as PerQubitDepolarizingWithDampedReadoutNoiseModel,
+    PerQubitDepolarizingWithDampedReadoutNoiseModel as PerQubitDepolarizingWithDampedReadoutNoiseModel,  # noqa: E501
     simple_noise_from_calibration_metrics as simple_noise_from_calibration_metrics,
 )
 

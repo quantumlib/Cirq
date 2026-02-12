@@ -12,11 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cirq
 import cirq.contrib.qcircuit as ccq
 
 
-def test_get_qcircuit_diagram_info():
+def test_get_qcircuit_diagram_info() -> None:
+    qubit_map: dict[cirq.LabelEntity, int]
     qubits = cirq.NamedQubit('x'), cirq.NamedQubit('y')
 
     gate = cirq.SwapPowGate(exponent=0.5)
@@ -38,7 +41,7 @@ def test_get_qcircuit_diagram_info():
 
     gate = cirq.SWAP
     op = gate(*qubits)
-    qubit_map = {q: i for q, i in zip(qubits, (4, 3))}
+    qubit_map = dict(zip(qubits, (4, 3)))
     args = cirq.CircuitDiagramInfoArgs(
         known_qubits=qubits,
         known_qubit_count=None,
@@ -52,7 +55,7 @@ def test_get_qcircuit_diagram_info():
     )
     assert actual_info == expected_info
 
-    qubit_map = {q: i for q, i in zip(qubits, (2, 5))}
+    qubit_map = dict(zip(qubits, (2, 5)))
     args = cirq.CircuitDiagramInfoArgs(
         known_qubits=qubits,
         known_qubit_count=None,

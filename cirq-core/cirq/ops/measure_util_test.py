@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
 import cirq
 
 
-def test_measure_qubits():
+def test_measure_qubits() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
@@ -46,6 +48,7 @@ def test_measure_qubits():
     assert cirq.measure(cirq.LineQid.for_qid_shape((1, 2, 3)), key='a') == cirq.MeasurementGate(
         num_qubits=3, key='a', qid_shape=(1, 2, 3)
     ).on(*cirq.LineQid.for_qid_shape((1, 2, 3)))
+    cmap: dict[tuple[int, ...], np.ndarray]
     cmap = {(0,): np.array([[0, 1], [1, 0]])}
     assert cirq.measure(a, confusion_map=cmap) == cirq.MeasurementGate(
         num_qubits=1, key='a', confusion_map=cmap
@@ -55,16 +58,16 @@ def test_measure_qubits():
         _ = cirq.measure(np.array([1, 0]))
 
     with pytest.raises(ValueError, match='Qid'):
-        _ = cirq.measure("bork")
+        _ = cirq.measure("bork")  # type: ignore[arg-type]
 
     with pytest.raises(ValueError, match='Qid'):
-        _ = cirq.measure([a, [b]])
+        _ = cirq.measure([a, [b]])  # type: ignore[list-item]
 
     with pytest.raises(ValueError, match='Qid'):
-        _ = cirq.measure([a], [b])
+        _ = cirq.measure([a], [b])  # type: ignore
 
 
-def test_measure_each():
+def test_measure_each() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
@@ -81,13 +84,13 @@ def test_measure_each():
         cirq.measure(b.with_dimension(3)),
     ]
 
-    assert cirq.measure_each(a, b, key_func=lambda e: e.name + '!') == [
+    assert cirq.measure_each(a, b, key_func=lambda e: e.name + '!') == [  # type: ignore[attr-defined]
         cirq.measure(a, key='a!'),
         cirq.measure(b, key='b!'),
     ]
 
 
-def test_measure_single_paulistring():
+def test_measure_single_paulistring() -> None:
     # Correct application
     q = cirq.LineQubit.range(3)
     ps = cirq.X(q[0]) * cirq.Y(q[1]) * cirq.Z(q[2])
@@ -107,14 +110,14 @@ def test_measure_single_paulistring():
 
     # Wrong type
     with pytest.raises(ValueError, match='should be an instance of cirq.PauliString'):
-        _ = cirq.measure_single_paulistring(q)
+        _ = cirq.measure_single_paulistring(q)  # type: ignore[arg-type]
 
     # Coefficient != +1 or -1
     with pytest.raises(ValueError, match='must have a coefficient'):
         _ = cirq.measure_single_paulistring(-2 * ps)
 
 
-def test_measure_paulistring_terms():
+def test_measure_paulistring_terms() -> None:
     # Correct application
     q = cirq.LineQubit.range(3)
     ps = cirq.X(q[0]) * cirq.Y(q[1]) * cirq.Z(q[2])
@@ -130,4 +133,4 @@ def test_measure_paulistring_terms():
 
     # Wrong type
     with pytest.raises(ValueError, match='should be an instance of cirq.PauliString'):
-        _ = cirq.measure_paulistring_terms(q)
+        _ = cirq.measure_paulistring_terms(q)  # type: ignore[arg-type]

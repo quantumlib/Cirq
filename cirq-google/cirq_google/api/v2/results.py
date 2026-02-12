@@ -11,9 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import dataclasses
 from collections import OrderedDict
-from typing import cast, Dict, Hashable, Iterable, List, Optional, Sequence
+from collections.abc import Hashable, Iterable, Sequence
+from typing import cast
 
 import numpy as np
 
@@ -36,13 +40,13 @@ class MeasureInfo:
     """
 
     key: str
-    qubits: List[cirq.GridQubit]
+    qubits: list[cirq.GridQubit]
     instances: int
-    invert_mask: List[bool]
-    tags: List[Hashable]
+    invert_mask: list[bool]
+    tags: list[Hashable]
 
 
-def find_measurements(program: cirq.AbstractCircuit) -> List[MeasureInfo]:
+def find_measurements(program: cirq.AbstractCircuit) -> list[MeasureInfo]:
     """Find measurements in the given program (circuit).
 
     Returns:
@@ -55,7 +59,7 @@ def find_measurements(program: cirq.AbstractCircuit) -> List[MeasureInfo]:
     if not isinstance(program, cirq.AbstractCircuit):
         raise NotImplementedError(f'Unrecognized program type: {type(program)}')
 
-    measurements: Dict[str, MeasureInfo] = {}
+    measurements: dict[str, MeasureInfo] = {}
     for moment in program:
         for op in moment:
             if isinstance(op.gate, cirq.MeasurementGate):
@@ -80,10 +84,10 @@ def find_measurements(program: cirq.AbstractCircuit) -> List[MeasureInfo]:
     return list(measurements.values())
 
 
-def _grid_qubits(op: cirq.Operation) -> List[cirq.GridQubit]:
+def _grid_qubits(op: cirq.Operation) -> list[cirq.GridQubit]:
     if not all(isinstance(q, cirq.GridQubit) for q in op.qubits):
         raise ValueError(f'Expected GridQubits: {op.qubits}')
-    return cast(List[cirq.GridQubit], list(op.qubits))
+    return cast(list[cirq.GridQubit], list(op.qubits))
 
 
 def pack_bits(bits: np.ndarray) -> bytes:
@@ -109,9 +113,9 @@ def unpack_bits(data: bytes, repetitions: int) -> np.ndarray:
 
 def results_to_proto(
     trial_sweeps: Iterable[Iterable[cirq.Result]],
-    measurements: List[MeasureInfo],
+    measurements: list[MeasureInfo],
     *,
-    out: Optional[result_pb2.Result] = None,
+    out: result_pb2.Result | None = None,
 ) -> result_pb2.Result:
     """Converts trial results from multiple sweeps to v2 protobuf message.
 
@@ -149,7 +153,7 @@ def results_to_proto(
 
 
 def results_from_proto(
-    msg: result_pb2.Result, measurements: Optional[List[MeasureInfo]] = None
+    msg: result_pb2.Result, measurements: list[MeasureInfo] | None = None
 ) -> Sequence[Sequence[cirq.Result]]:
     """Converts a v2 result proto into List of list of trial results.
 
@@ -171,7 +175,7 @@ def results_from_proto(
 
 
 def _trial_sweep_from_proto(
-    msg: result_pb2.SweepResult, measure_map: Optional[Dict[str, MeasureInfo]] = None
+    msg: result_pb2.SweepResult, measure_map: dict[str, MeasureInfo] | None = None
 ) -> Sequence[cirq.Result]:
     """Converts a SweepResult proto into List of list of trial results.
 
@@ -189,9 +193,9 @@ def _trial_sweep_from_proto(
         ValueError: If a qubit already exists in the measurement results.
     """
 
-    trial_sweep: List[cirq.Result] = []
+    trial_sweep: list[cirq.Result] = []
     for pr in msg.parameterized_results:
-        records: Dict[str, np.ndarray] = {}
+        records: dict[str, np.ndarray] = {}
         for mr in pr.measurement_results:
             instances = max(mr.instances, 1)
             qubit_results: OrderedDict[cirq.GridQubit, np.ndarray] = OrderedDict()

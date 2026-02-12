@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import os
 import uuid
 import webbrowser
@@ -22,7 +24,7 @@ from pathlib import Path
 import cirq_web
 
 # Resolve the path so the bundle file can be accessed properly
-_DIST_PATH = Path(cirq_web.__file__).parents[1] / "cirq_ts" / "dist"
+_DIST_PATH = Path(cirq_web.__file__).parents[1] / "cirq_web" / "dist"
 
 
 class Env(Enum):
@@ -117,9 +119,8 @@ def _to_script_tag(bundle_filename: str) -> str:
         The bundle file as string (readable by browser) wrapped in HTML script tags.
     """
     bundle_file_path = os.path.join(_DIST_PATH, bundle_filename)
-    bundle_file = open(bundle_file_path, 'r', encoding='utf-8')
-    bundle_file_contents = bundle_file.read()
-    bundle_file.close()
+    with open(bundle_file_path, 'r', encoding='utf-8') as bundle_file:
+        bundle_file_contents = bundle_file.read()
     bundle_html = f'<script>{bundle_file_contents}</script>'
 
     return bundle_html

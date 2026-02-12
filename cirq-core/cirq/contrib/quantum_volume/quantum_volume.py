@@ -3,15 +3,20 @@
 https://arxiv.org/abs/1811.12926.
 """
 
-from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional, Set, Tuple
+from __future__ import annotations
 
-import networkx as nx
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
 import numpy as np
-import pandas as pd
 
 import cirq
 import cirq.contrib.routing as ccr
+
+if TYPE_CHECKING:
+    import networkx as nx
+    import pandas as pd
 
 
 def generate_model_circuit(
@@ -60,7 +65,7 @@ def generate_model_circuit(
     return circuit
 
 
-def compute_heavy_set(circuit: cirq.Circuit) -> List[int]:
+def compute_heavy_set(circuit: cirq.Circuit) -> list[int]:
     """Classically compute the heavy set of the given circuit.
 
     The heavy set is defined as the output bit-strings that have a greater than
@@ -92,13 +97,13 @@ def compute_heavy_set(circuit: cirq.Circuit) -> List[int]:
 @dataclass
 class CompilationResult:
     circuit: cirq.Circuit
-    mapping: Dict[cirq.Qid, cirq.Qid]
-    parity_map: Dict[cirq.Qid, cirq.Qid]
+    mapping: dict[cirq.Qid, cirq.Qid]
+    parity_map: dict[cirq.Qid, cirq.Qid]
 
 
 def sample_heavy_set(
     compilation_result: CompilationResult,
-    heavy_set: List[int],
+    heavy_set: list[int],
     *,
     repetitions=10_000,
     sampler: cirq.Sampler = cirq.Simulator(),
@@ -123,7 +128,7 @@ def sample_heavy_set(
     # Add measure gates to the end of (a copy of) the circuit. Ensure that those
     # gates measure those in the given mapping, preserving this order.
     qubits = circuit.all_qubits()
-    key = None
+    key: Callable[[cirq.Qid], cirq.Qid] | None = None
     if mapping:
         # Add any qubits that were not explicitly mapped, so they aren't lost in
         # the sorting.
@@ -154,8 +159,8 @@ def sample_heavy_set(
 
 
 def process_results(
-    mapping: Dict[cirq.Qid, cirq.Qid],
-    parity_mapping: Dict[cirq.Qid, cirq.Qid],
+    mapping: dict[cirq.Qid, cirq.Qid],
+    parity_mapping: dict[cirq.Qid, cirq.Qid],
     trial_result: cirq.Result,
 ) -> pd.DataFrame:
     """Checks the given results for parity and throws away all of the runs that
@@ -172,11 +177,11 @@ def process_results(
 
     """
     # The circuit's mapping from physical qubit to logical qubit.
-    inverse_mapping: Dict[cirq.Qid, cirq.Qid] = {v: k for k, v in mapping.items()}
+    inverse_mapping: dict[cirq.Qid, cirq.Qid] = {v: k for k, v in mapping.items()}
 
     # Calculate all the invalid parity pairs.
     data = trial_result.data
-    bad_measurements: Set[int] = set()
+    bad_measurements: set[int] = set()
     for final_qubit, original_qubit in mapping.items():
         if original_qubit in parity_mapping:
             final_parity_qubit = inverse_mapping[parity_mapping[original_qubit]]
@@ -200,9 +205,9 @@ def compile_circuit(
     *,
     device_graph: nx.Graph,
     routing_attempts: int,
-    compiler: Optional[Callable[[cirq.Circuit], cirq.Circuit]] = None,
-    routing_algo_name: Optional[str] = None,
-    router: Optional[Callable[..., ccr.SwapNetwork]] = None,
+    compiler: Callable[[cirq.Circuit], cirq.Circuit] | None = None,
+    routing_algo_name: str | None = None,
+    router: Callable[..., ccr.SwapNetwork] | None = None,
     add_readout_error_correction=False,
 ) -> CompilationResult:
     """Compile the given model circuit onto the given device graph. This uses a
@@ -233,7 +238,7 @@ def compile_circuit(
     compiled_circuit = circuit.copy()
 
     # Optionally add some the parity check bits.
-    parity_map: Dict[cirq.Qid, cirq.Qid] = {}  # original -> parity
+    parity_map: dict[cirq.Qid, cirq.Qid] = {}  # original -> parity
     if add_readout_error_correction:
         num_qubits = len(compiled_circuit.all_qubits())
         # Sort just to make it deterministic.
@@ -258,7 +263,7 @@ def compile_circuit(
         # Github issue: https://github.com/quantumlib/Cirq/issues/2967
         routing_algo_name = 'greedy'
 
-    swap_networks: List[ccr.SwapNetwork] = []
+    swap_networks: list[ccr.SwapNetwork] = []
     for _ in range(routing_attempts):
         swap_network = ccr.route_circuit(
             compiled_circuit, device_graph, router=router, algo_name=routing_algo_name
@@ -309,7 +314,7 @@ class QuantumVolumeResult:
     # The model circuit used.
     model_circuit: cirq.Circuit
     # The heavy set computed from the above model circuit.
-    heavy_set: List[int]
+    heavy_set: list[int]
     # The model circuit after being compiled.
     compiled_circuit: cirq.Circuit
     # The percentage of outputs that this sampler had that were in the heavy
@@ -328,7 +333,7 @@ def prepare_circuits(
     depth: int,
     num_circuits: int,
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
-) -> List[Tuple[cirq.Circuit, List[int]]]:
+) -> list[tuple[cirq.Circuit, list[int]]]:
     """Generates circuits and computes their heavy set.
 
     Args:
@@ -354,13 +359,13 @@ def prepare_circuits(
 def execute_circuits(
     *,
     device_graph: nx.Graph,
-    samplers: List[cirq.Sampler],
-    circuits: List[Tuple[cirq.Circuit, List[int]]],
+    samplers: list[cirq.Sampler],
+    circuits: list[tuple[cirq.Circuit, list[int]]],
     routing_attempts: int,
-    compiler: Optional[Callable[[cirq.Circuit], cirq.Circuit]] = None,
+    compiler: Callable[[cirq.Circuit], cirq.Circuit] | None = None,
     repetitions: int = 10_000,
     add_readout_error_correction=False,
-) -> List[QuantumVolumeResult]:
+) -> list[QuantumVolumeResult]:
     """Executes the given circuits on the given samplers.
 
     Args
@@ -381,7 +386,7 @@ def execute_circuits(
     """
     # First, compile all of the model circuits.
     print("Compiling model circuits")
-    compiled_circuits: List[CompilationResult] = []
+    compiled_circuits: list[CompilationResult] = []
     for idx, (model_circuit, heavy_set) in enumerate(circuits):
         print(f"  Compiling model circuit #{idx + 1}")
         compiled_circuits.append(
@@ -422,13 +427,13 @@ def calculate_quantum_volume(
     depth: int,
     num_circuits: int,
     device_graph: nx.Graph,
-    samplers: List[cirq.Sampler],
+    samplers: list[cirq.Sampler],
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
-    compiler: Optional[Callable[[cirq.Circuit], cirq.Circuit]] = None,
+    compiler: Callable[[cirq.Circuit], cirq.Circuit] | None = None,
     repetitions=10_000,
     routing_attempts=30,
     add_readout_error_correction=False,
-) -> List[QuantumVolumeResult]:
+) -> list[QuantumVolumeResult]:
     """Run the quantum volume algorithm.
 
     This algorithm should compute the same values as Algorithm 1 in

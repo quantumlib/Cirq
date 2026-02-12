@@ -20,7 +20,8 @@ passed as a list.
 
 from __future__ import annotations
 
-from typing import AbstractSet, Any, Dict, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING
+from collections.abc import Iterator, Sequence, Set
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -64,10 +65,10 @@ class TwoQubitDiagonalGate(raw_types.Gate):
                 If these values are $(x_0, x_1, \ldots , x_3)$ then the unitary
                 has diagonal values $(e^{i x_0}, e^{i x_1}, \ldots, e^{i x_3})$.
         """
-        self._diag_angles_radians: Tuple[value.TParamVal, ...] = tuple(diag_angles_radians)
+        self._diag_angles_radians: tuple[value.TParamVal, ...] = tuple(diag_angles_radians)
 
     @property
-    def diag_angles_radians(self) -> Tuple[value.TParamVal, ...]:
+    def diag_angles_radians(self) -> tuple[value.TParamVal, ...]:
         return self._diag_angles_radians
 
     def _num_qubits_(self) -> int:
@@ -76,7 +77,7 @@ class TwoQubitDiagonalGate(raw_types.Gate):
     def _is_parameterized_(self) -> bool:
         return any(protocols.is_parameterized(angle) for angle in self._diag_angles_radians)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return {
             name for angle in self._diag_angles_radians for name in protocols.parameter_names(angle)
         }
@@ -91,7 +92,7 @@ class TwoQubitDiagonalGate(raw_types.Gate):
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()
 
-    def _unitary_(self) -> Optional[np.ndarray]:
+    def _unitary_(self) -> np.ndarray | None:
         if self._is_parameterized_():
             return None
         return np.diag([np.exp(1j * angle) for angle in self._diag_angles_radians])
@@ -139,5 +140,5 @@ class TwoQubitDiagonalGate(raw_types.Gate):
         angles = ','.join(proper_repr(angle) for angle in self._diag_angles_radians)
         return f'cirq.TwoQubitDiagonalGate([{angles}])'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, attribute_names=["diag_angles_radians"])

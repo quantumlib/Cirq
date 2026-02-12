@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, Iterable, Sequence, TYPE_CHECKING, Union
+from collections.abc import Callable, Iterable, Sequence
+from typing import Any, TYPE_CHECKING, Union
 
 from cirq import ops, protocols, value
 from cirq._doc import document
@@ -196,7 +197,7 @@ class _NoNoiseModel(NoiseModel):
     def __repr__(self) -> str:
         return 'cirq.NO_NOISE'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, [])
 
     def _has_unitary_(self) -> bool:
@@ -235,7 +236,7 @@ class ConstantQubitNoiseModel(NoiseModel):
     def __repr__(self) -> str:
         return f'cirq.ConstantQubitNoiseModel({self.qubit_noise_gate!r})'
 
-    def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]):
+    def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         # Noise should not be appended to previously-added noise.
         if self.is_virtual_moment(moment):
             return moment
@@ -247,7 +248,7 @@ class ConstantQubitNoiseModel(NoiseModel):
         ]
         return output[::-1] if self._prepend else output
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['qubit_noise_gate'])
 
     def _has_unitary_(self) -> bool:

@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# mypy: ignore-errors
+
 import functools
-from typing import List, Sequence
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -39,37 +41,37 @@ class SingleQubitRandomizedBenchmarking:
     param_names = ["depth", "num_qubits", "num_circuits"]
     timeout = 600  # Change timeout to 10 minutes instead of default 60 seconds.
 
-    def setup(self, *_):
+    def setup(self, *_) -> None:
         self.sq_xz_matrices = np.array(
             [
                 dot([cirq.unitary(c) for c in reversed(group)])
                 for group in _single_qubit_cliffords().c1_in_xz
             ]
         )
-        self.sq_xz_cliffords: List[cirq.Gate] = [
+        self.sq_xz_cliffords: list[cirq.Gate] = [
             cirq.PhasedXZGate.from_matrix(mat) for mat in self.sq_xz_matrices
         ]
 
-    def _get_op_grid(self, qubits: List[cirq.Qid], depth: int) -> List[List[cirq.Operation]]:
-        op_grid: List[List[cirq.Operation]] = []
+    def _get_op_grid(self, qubits: list[cirq.Qid], depth: int) -> list[list[cirq.Operation]]:
+        op_grid: list[list[cirq.Operation]] = []
         for q in qubits:
             gate_ids = np.random.choice(len(self.sq_xz_cliffords), depth)
             idx = _find_inv_matrix(dot(self.sq_xz_matrices[gate_ids][::-1]), self.sq_xz_matrices)
-            op_sequence = [self.sq_xz_cliffords[id].on(q) for id in gate_ids]
+            op_sequence = [self.sq_xz_cliffords[gate_id].on(q) for gate_id in gate_ids]
             op_sequence.append(self.sq_xz_cliffords[idx].on(q))
             op_grid.append(op_sequence)
         return op_grid
 
-    def time_rb_op_grid_generation(self, depth: int, num_qubits: int, num_circuits: int):
+    def time_rb_op_grid_generation(self, depth: int, num_qubits: int, num_circuits: int) -> None:
         qubits = cirq.GridQubit.rect(1, num_qubits)
         for _ in range(num_circuits):
             self._get_op_grid(qubits, depth)
 
-    def time_rb_circuit_construction(self, depth: int, num_qubits: int, num_circuits: int):
+    def time_rb_circuit_construction(self, depth: int, num_qubits: int, num_circuits: int) -> None:
         qubits = cirq.GridQubit.rect(1, num_qubits)
         for _ in range(num_circuits):
             op_grid = self._get_op_grid(qubits, depth)
-            circuit = cirq.Circuit(
+            cirq.Circuit(
                 [cirq.Moment(ops[d] for ops in op_grid) for d in range(depth + 1)],
                 cirq.Moment(cirq.measure(*qubits)),
             )

@@ -12,15 +12,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Tuple
+from __future__ import annotations
+
+from typing import cast
 
 from cirq import circuits, ops, protocols, transformers
 from cirq.contrib.paulistring.clifford_target_gateset import CliffordTargetGateset
 
 
 def clifford_optimized_circuit(circuit: circuits.Circuit, atol: float = 1e-8) -> circuits.Circuit:
-    # Convert to a circuit with SingleQubitCliffordGates,
-    # CZs and other ignored gates
+    """Optimizes a circuit composed of Clifford and CZ gates.
+
+    This function attempts to simplify a circuit by finding local optimizations.
+    It works in two stages:
+    1.  It converts the circuit to a target gateset consisting of
+        `cirq.SingleQubitCliffordGate` and `cirq.CZPowGate` gates.
+    2.  It then iterates through the circuit, applying the following rules:
+        -   Merges adjacent single-qubit Clifford gates.
+        -   Commutes single-qubit Clifford gates past CZ gates, attempting to
+            merge them with other single-qubit Clifford gates.
+        -   Cancels pairs of identical CZ gates.
+
+    Args:
+        circuit: The circuit to optimize.
+        atol: A limit on the amount of absolute error introduced by the decomposition.
+
+    Returns:
+        The optimized circuit.
+    """
+    # Convert to a circuit with SingleQubitCliffordGates, CZs and other ignored gates.
     c_cliff = transformers.optimize_for_target_gateset(
         circuit, gateset=CliffordTargetGateset(atol=atol)
     )
@@ -29,7 +49,7 @@ def clifford_optimized_circuit(circuit: circuits.Circuit, atol: float = 1e-8) ->
 
     def find_merge_point(
         start_i: int, string_op: ops.PauliStringPhasor, stop_at_cz: bool
-    ) -> Tuple[int, ops.PauliStringPhasor, int]:
+    ) -> tuple[int, ops.PauliStringPhasor, int]:
         STOP = 0
         CONTINUE = 1
         SKIP = 2
@@ -146,7 +166,7 @@ def clifford_optimized_circuit(circuit: circuits.Circuit, atol: float = 1e-8) ->
                 # Don't share qubits
                 # Keep looking
                 continue
-            elif not (
+            if not (
                 isinstance(op, ops.GateOperation)
                 and isinstance(op.gate, ops.CZPowGate)
                 and op.gate.exponent == 1

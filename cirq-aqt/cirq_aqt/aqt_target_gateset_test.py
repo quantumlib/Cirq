@@ -14,6 +14,8 @@
 
 """Tests for AQTTargetGateset."""
 
+from __future__ import annotations
+
 import pytest
 import sympy
 
@@ -49,41 +51,43 @@ Q, Q2, Q3, Q4 = cirq.LineQubit.range(4)
         (cirq.ZPowGate(exponent=0.5)(Q).controlled_by(Q2, Q3), False),
     ],
 )
-def test_gateset(op: cirq.Operation, expected: bool):
+def test_gateset(op: cirq.Operation, expected: bool) -> None:
     gs = aqt_target_gateset.AQTTargetGateset()
     assert gs.validate(op) == expected
     assert gs.validate(cirq.Circuit(op)) == expected
 
 
-def test_decompose_single_qubit_operation():
+def test_decompose_single_qubit_operation() -> None:
     gs = aqt_target_gateset.AQTTargetGateset()
     tgoph = gs.decompose_to_target_gateset(cirq.H(Q), 0)
+    assert isinstance(tgoph, list)
     assert len(tgoph) == 2
     assert isinstance(tgoph[0].gate, cirq.Rx)
     assert isinstance(tgoph[1].gate, cirq.Ry)
     tcoph = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.H(Q))).with_tags('tagged')
     tgtcoph = gs.decompose_to_target_gateset(tcoph, 0)
+    assert isinstance(tgtcoph, list)
     assert len(tgtcoph) == 2
     assert isinstance(tgtcoph[0].gate, cirq.Rx)
     assert isinstance(tgtcoph[1].gate, cirq.Ry)
     tgopz = gs.decompose_to_target_gateset(cirq.Z(Q), 0)
+    assert isinstance(tgopz, list)
     assert len(tgopz) == 1
     assert isinstance(tgopz[0].gate, cirq.ZPowGate)
     theta = sympy.Symbol('theta')
     assert gs.decompose_to_target_gateset(cirq.H(Q) ** theta, 0) is NotImplemented
-    return
 
 
-def test_decompose_two_qubit_operation():
+def test_decompose_two_qubit_operation() -> None:
     gs = aqt_target_gateset.AQTTargetGateset()
     tgopsqrtxx = gs.decompose_to_target_gateset(cirq.XX(Q, Q2) ** 0.5, 0)
+    assert isinstance(tgopsqrtxx, list)
     assert len(tgopsqrtxx) == 1
     assert isinstance(tgopsqrtxx[0].gate, cirq.XXPowGate)
     theta = sympy.Symbol('theta')
     assert gs.decompose_to_target_gateset(cirq.XX(Q, Q2) ** theta, 0) is NotImplemented
-    return
 
 
-def test_postprocess_transformers():
+def test_postprocess_transformers() -> None:
     gs = aqt_target_gateset.AQTTargetGateset()
     assert len(gs.postprocess_transformers) == 2

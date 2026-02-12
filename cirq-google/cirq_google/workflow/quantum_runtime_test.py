@@ -11,12 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import datetime
 import glob
 import re
 import time
 import uuid
-from typing import Any, cast, List
+from typing import Any, cast
 
 import numpy as np
 import pytest
@@ -168,7 +171,7 @@ def _load_result_by_hand(tmpdir: str, run_id: str) -> cg.ExecutableGroupResult:
         key=lambda s: int(cast(Any, re.search(r'ExecutableResult\.(\d+)\.json\.gz$', s)).group(1)),
     )
     assert len(fns) == 3
-    exe_results: List[cg.ExecutableResult] = [cirq.read_json_gzip(fn) for fn in fns]
+    exe_results: list[cg.ExecutableResult] = [cirq.read_json_gzip(fn) for fn in fns]
     return cg.ExecutableGroupResult(
         runtime_configuration=rt_config,
         shared_runtime_info=shared_rt_info,

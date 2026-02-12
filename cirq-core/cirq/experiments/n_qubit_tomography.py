@@ -20,7 +20,8 @@ so that occurs outside of the StateTomographyExperiment class.
 
 from __future__ import annotations
 
-from typing import List, Optional, Sequence, Tuple, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -51,9 +52,7 @@ class StateTomographyExperiment:
     """
 
     def __init__(
-        self,
-        qubits: Sequence[cirq.Qid],
-        prerotations: Optional[Sequence[Tuple[float, float]]] = None,
+        self, qubits: Sequence[cirq.Qid], prerotations: Sequence[tuple[float, float]] | None = None
     ):
         """Initializes the rotation protocol and matrix for system.
 
@@ -72,8 +71,8 @@ class StateTomographyExperiment:
 
         phase_exp_vals, exp_vals = zip(*prerotations)
 
-        operations: List[cirq.Operation] = []
-        sweeps: List[cirq.Sweep] = []
+        operations: list[cirq.Operation] = []
+        sweeps: list[cirq.Sweep] = []
         for i, qubit in enumerate(qubits):
             phase_exp = sympy.Symbol(f'phase_exp_{i}')
             exp = sympy.Symbol(f'exp_{i}')
@@ -137,7 +136,7 @@ def state_tomography(
     qubits: Sequence[cirq.Qid],
     circuit: cirq.Circuit,
     repetitions: int = 1000,
-    prerotations: Optional[Sequence[Tuple[float, float]]] = None,
+    prerotations: Sequence[tuple[float, float]] | None = None,
 ) -> TomographyResult:
     """This performs n qubit tomography on a cirq circuit
 

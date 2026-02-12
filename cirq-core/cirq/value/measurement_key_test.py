@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 
 import cirq
@@ -72,7 +74,7 @@ def test_repr():
 
 def test_json_dict():
     mkey = cirq.MeasurementKey('key')
-    assert mkey._json_dict_() == {'name': 'key', 'path': tuple()}
+    assert mkey._json_dict_() == {'name': 'key', 'path': ()}
     mkey = cirq.MeasurementKey.parse_serialized('nested:key')
     assert mkey._json_dict_() == {'name': 'key', 'path': ('nested',)}
 

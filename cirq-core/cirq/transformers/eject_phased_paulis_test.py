@@ -11,8 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import dataclasses
-from typing import cast, Iterable
+from collections.abc import Iterable
+from typing import cast
 
 import numpy as np
 import pytest
@@ -28,7 +32,7 @@ def assert_optimizes(
     eject_parameterized: bool = False,
     *,
     with_context: bool = False,
-):
+) -> None:
     context = cirq.TransformerContext(tags_to_ignore=("nocompile",)) if with_context else None
     circuit = cirq.eject_phased_paulis(
         before, eject_parameterized=eject_parameterized, context=context
@@ -98,7 +102,7 @@ def quick_circuit(*moments: Iterable[cirq.OP_TREE]) -> cirq.Circuit:
     )
 
 
-def test_absorbs_z():
+def test_absorbs_z() -> None:
     q = cirq.NamedQubit('q')
     x = sympy.Symbol('x')
 
@@ -165,7 +169,7 @@ def test_absorbs_z():
     )
 
 
-def test_crosses_czs():
+def test_crosses_czs() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     x = sympy.Symbol('x')
@@ -232,64 +236,16 @@ def test_crosses_czs():
     )
 
 
-def test_toggles_measurements():
+def test_doesnt_change_measurements() -> None:
     a = cirq.NamedQubit('a')
-    b = cirq.NamedQubit('b')
-    x = sympy.Symbol('x')
 
-    # Single.
     assert_optimizes(
-        before=quick_circuit(
-            [cirq.PhasedXPowGate(phase_exponent=0.25).on(a)], [cirq.measure(a, b)]
-        ),
-        expected=quick_circuit([cirq.measure(a, b, invert_mask=(True,))]),
-    )
-    assert_optimizes(
-        before=quick_circuit(
-            [cirq.PhasedXPowGate(phase_exponent=0.25).on(b)], [cirq.measure(a, b)]
-        ),
-        expected=quick_circuit([cirq.measure(a, b, invert_mask=(False, True))]),
-    )
-    assert_optimizes(
-        before=quick_circuit([cirq.PhasedXPowGate(phase_exponent=x).on(b)], [cirq.measure(a, b)]),
-        expected=quick_circuit([cirq.measure(a, b, invert_mask=(False, True))]),
-        eject_parameterized=True,
-    )
-
-    # Multiple.
-    assert_optimizes(
-        before=quick_circuit(
-            [cirq.PhasedXPowGate(phase_exponent=0.25).on(a)],
-            [cirq.PhasedXPowGate(phase_exponent=0.25).on(b)],
-            [cirq.measure(a, b)],
-        ),
-        expected=quick_circuit([cirq.measure(a, b, invert_mask=(True, True))]),
-    )
-
-    # Xmon.
-    assert_optimizes(
-        before=quick_circuit(
-            [cirq.PhasedXPowGate(phase_exponent=0.25).on(a)], [cirq.measure(a, b, key='t')]
-        ),
-        expected=quick_circuit([cirq.measure(a, b, invert_mask=(True,), key='t')]),
-    )
-
-    # CCOs
-    assert_optimizes(
-        before=quick_circuit(
-            [cirq.PhasedXPowGate(phase_exponent=0.25).on(a)],
-            [cirq.measure(a, key="m")],
-            [cirq.X(b).with_classical_controls("m")],
-        ),
-        expected=quick_circuit(
-            [cirq.measure(a, invert_mask=(True,), key="m")],
-            [cirq.X(b).with_classical_controls("m")],
-        ),
-        compare_unitaries=False,
+        before=quick_circuit([cirq.PhasedXPowGate(phase_exponent=0.25).on(a)], [cirq.measure(a)]),
+        expected=quick_circuit([cirq.PhasedXPowGate(phase_exponent=0.25).on(a)], [cirq.measure(a)]),
     )
 
 
-def test_eject_phased_xz():
+def test_eject_phased_xz() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.Circuit(
@@ -305,7 +261,7 @@ def test_eject_phased_xz():
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(c, c_expected, 1e-8)
 
 
-def test_cancels_other_full_w():
+def test_cancels_other_full_w() -> None:
     q = cirq.NamedQubit('q')
     x = sympy.Symbol('x')
     y = sympy.Symbol('y')
@@ -365,7 +321,7 @@ def test_cancels_other_full_w():
     )
 
 
-def test_phases_partial_ws():
+def test_phases_partial_ws() -> None:
     q = cirq.NamedQubit('q')
     x = sympy.Symbol('x')
     y = sympy.Symbol('y')
@@ -420,7 +376,7 @@ def test_phases_partial_ws():
 
 
 @pytest.mark.parametrize('sym', [sympy.Symbol('x'), sympy.Symbol('x') + 1])
-def test_blocked_by_unknown_and_symbols(sym):
+def test_blocked_by_unknown_and_symbols(sym) -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
@@ -442,7 +398,7 @@ def test_blocked_by_unknown_and_symbols(sym):
     )
 
 
-def test_blocked_by_nocompile_tag():
+def test_blocked_by_nocompile_tag() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
@@ -453,7 +409,7 @@ def test_blocked_by_nocompile_tag():
     )
 
 
-def test_zero_x_rotation():
+def test_zero_x_rotation() -> None:
     a = cirq.NamedQubit('a')
 
     assert_optimizes(before=quick_circuit([cirq.rx(0)(a)]), expected=quick_circuit([cirq.rx(0)(a)]))

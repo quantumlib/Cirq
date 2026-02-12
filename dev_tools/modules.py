@@ -42,13 +42,15 @@ subcommands:
     replace_version     replace Cirq version in all modules
 """
 
+from __future__ import annotations
+
 import argparse
 import dataclasses
 import os
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 _FOLDER = 'folder'
 _PACKAGE_PATH = 'package-path'
@@ -60,13 +62,13 @@ _DEFAULT_SEARCH_DIR: Path = Path(".")
 @dataclasses.dataclass
 class Module:
     root: Path
-    raw_setup: Dict[str, Any]
+    raw_setup: dict[str, Any]
 
     name: str = dataclasses.field(init=False)
     version: str = dataclasses.field(init=False)
-    top_level_packages: List[str] = dataclasses.field(init=False)
-    top_level_package_paths: List[Path] = dataclasses.field(init=False)
-    install_requires: List[str] = dataclasses.field(init=False)
+    top_level_packages: list[str] = dataclasses.field(init=False)
+    top_level_package_paths: list[Path] = dataclasses.field(init=False)
+    install_requires: list[str] = dataclasses.field(init=False)
 
     def __post_init__(self) -> None:
         self.name = self.raw_setup['name']
@@ -76,14 +78,12 @@ class Module:
             self.top_level_packages = []
         self.top_level_package_paths = [self.root / p for p in self.top_level_packages]
         self.version = self.raw_setup['version']
-        self.install_requires = (
-            [] if 'install_requires' not in self.raw_setup else self.raw_setup['install_requires']
-        )
+        self.install_requires = self.raw_setup.get('install_requires', [])
 
 
 def list_modules(
     search_dir: Path = _DEFAULT_SEARCH_DIR, include_parent: bool = False
-) -> List[Module]:
+) -> list[Module]:
     """Returns a list of python modules based defined by setup.py files.
 
     Args:
@@ -117,7 +117,7 @@ def list_modules(
     return result
 
 
-def get_version(search_dir: Path = _DEFAULT_SEARCH_DIR) -> Optional[str]:
+def get_version(search_dir: Path = _DEFAULT_SEARCH_DIR) -> str | None:
     """Check for all versions are the same and return that version.
 
     Lists all the modules within `search_dir` (default the current working directory), checks that
@@ -179,13 +179,15 @@ def _rewrite_version(version_file: Path, old: str, new: str) -> None:
 
 
 def _find_version_file(top: Path) -> Path:
-    for root, _, files in os.walk(str(top)):
+    for root, dirnames, files in os.walk(top):
+        if "build" in dirnames:
+            dirnames.remove("build")
         if "_version.py" in files:
             return Path(root) / "_version.py"
     raise FileNotFoundError(f"Can't find _version.py in {top}.")
 
 
-def _parse_module(folder: Path) -> Dict[str, Any]:
+def _parse_module(folder: Path) -> dict[str, Any]:
     setup_args = {}
     import setuptools
 
@@ -199,7 +201,8 @@ def _parse_module(folder: Path) -> Dict[str, Any]:
     try:
         setuptools.setup = setup
         os.chdir(str(folder))
-        setup_py = open("setup.py", encoding="utf8").read()
+        with open("setup.py", encoding="utf8") as file:
+            setup_py = file.read()
         exec(setup_py, globals(), {})
         assert setup_args, f"Invalid setup.py - setup() was not called in {folder}/setup.py!"
         return setup_args
@@ -312,7 +315,7 @@ def parse(args):
     return parser.parse_args(args)
 
 
-def main(argv: List[str]):
+def main(argv: list[str]):
     if argv == []:
         # If no arguments are given, print the help/usage info.
         argv = ['--help']

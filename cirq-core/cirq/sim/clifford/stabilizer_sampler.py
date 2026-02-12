@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Sequence
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -40,16 +40,16 @@ class StabilizerSampler(sampler.Sampler):
     def run_sweep(
         self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
     ) -> Sequence[cirq.Result]:
-        results: List[cirq.Result] = []
+        results: list[cirq.Result] = []
         for param_resolver in cirq.to_resolvers(params):
             resolved_circuit = cirq.resolve_parameters(program, param_resolver)
             measurements = self._run(resolved_circuit, repetitions=repetitions)
             results.append(cirq.ResultDict(params=param_resolver, measurements=measurements))
         return results
 
-    def _run(self, circuit: cirq.AbstractCircuit, repetitions: int) -> Dict[str, np.ndarray]:
+    def _run(self, circuit: cirq.AbstractCircuit, repetitions: int) -> dict[str, np.ndarray]:
 
-        measurements: Dict[str, List[np.ndarray]] = {
+        measurements: dict[str, list[np.ndarray]] = {
             key: [] for key in protocols.measurement_key_names(circuit)
         }
         qubits = circuit.all_qubits()

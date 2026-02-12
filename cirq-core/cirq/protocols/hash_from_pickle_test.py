@@ -18,8 +18,8 @@ import multiprocessing
 import os
 import pathlib
 import pickle
-from collections.abc import Iterator
-from typing import Any, Hashable
+from collections.abc import Hashable, Iterator
+from typing import Any
 
 import pytest
 
@@ -50,19 +50,13 @@ _EXCLUDE_JSON_FILES = (
     "cirq/protocols/json_test_data/sympy.Indexed.json",
     "cirq/protocols/json_test_data/sympy.IndexedBase.json",
     "cirq/protocols/json_test_data/sympy.pi.json",
-    # Cirq-Rigetti is deprecated per #7058
-    # Instead of handling deprecation-in-test errors we exclude
-    # all cirq_rigetti classes here.
-    "cirq_rigetti/json_test_data/AspenQubit.json",
-    "cirq_rigetti/json_test_data/OctagonalQubit.json",
-    # RigettiQCSAspenDevice does not pickle
-    "cirq_rigetti/json_test_data/RigettiQCSAspenDevice.json",
 )
 
 
 def _is_included(json_filename: str) -> bool:
+    # ruff: disable[SIM103]
     json_posix_path = pathlib.PurePath(json_filename).as_posix()
-    if any(json_posix_path.endswith(t) for t in _EXCLUDE_JSON_FILES):
+    if json_posix_path.endswith(_EXCLUDE_JSON_FILES):
         return False
     if not os.path.isfile(json_filename):
         return False
@@ -87,11 +81,9 @@ def _read_json(json_filename: str) -> Any:
 
 def test_exclude_json_files_has_valid_entries() -> None:
     """Verify _EXCLUDE_JSON_FILES has valid entries."""
-    # do not check rigetti files if not installed
-    skip_rigetti = all(m.name != "cirq_rigetti" for m in MODULE_TEST_SPECS)
     json_file_validates = lambda f: any(
         m.test_data_path.joinpath(os.path.basename(f)).is_file() for m in MODULE_TEST_SPECS
-    ) or (skip_rigetti and f.startswith("cirq_rigetti/"))
+    )
     invalid_json_paths = [f for f in _EXCLUDE_JSON_FILES if not json_file_validates(f)]
     assert invalid_json_paths == []
 
@@ -105,7 +97,7 @@ def test_exclude_json_files_has_valid_entries() -> None:
         if _is_included(f"{abs_path}.json")
     ],
 )
-def test_hash_from_pickle(json_filename: str, pool: multiprocessing.pool.Pool):
+def test_hash_from_pickle(json_filename: str, pool: multiprocessing.pool.Pool) -> None:
     obj_local = _read_json(json_filename)
     if not isinstance(obj_local, Hashable):
         return

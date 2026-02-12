@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Dict, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from cirq import value
 
@@ -39,7 +39,7 @@ class AbstractInitialMapper(metaclass=abc.ABCMeta):
     """
 
     @abc.abstractmethod
-    def initial_mapping(self, circuit: cirq.AbstractCircuit) -> Dict[cirq.Qid, cirq.Qid]:
+    def initial_mapping(self, circuit: cirq.AbstractCircuit) -> dict[cirq.Qid, cirq.Qid]:
         """Maps the logical qubits of a circuit onto physical qubits on a device.
 
         Args:
@@ -54,10 +54,10 @@ class AbstractInitialMapper(metaclass=abc.ABCMeta):
 class HardCodedInitialMapper(AbstractInitialMapper):
     """Initial Mapper class takes a hard-coded mapping and returns it."""
 
-    def __init__(self, _map: Dict[cirq.Qid, cirq.Qid]) -> None:
+    def __init__(self, _map: dict[cirq.Qid, cirq.Qid]) -> None:
         self._map = _map
 
-    def initial_mapping(self, circuit: cirq.AbstractCircuit) -> Dict[cirq.Qid, cirq.Qid]:
+    def initial_mapping(self, circuit: cirq.AbstractCircuit) -> dict[cirq.Qid, cirq.Qid]:
         """Returns the hard-coded initial mapping.
 
         Args:
@@ -69,7 +69,7 @@ class HardCodedInitialMapper(AbstractInitialMapper):
         Raises:
             ValueError: if the qubits in circuit are not a subset of the qubit keys in the mapping.
         """
-        if not circuit.all_qubits().issubset(set(self._map.keys())):
+        if not circuit.all_qubits().issubset(self._map.keys()):
             raise ValueError("The qubits in circuit must be a subset of the keys in the mapping")
         return self._map
 

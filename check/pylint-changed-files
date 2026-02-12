@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ################################################################################
-# Runs pylint on changed files using a preconfigured .pylintrc file.
+# Runs pylint on changed Python sources.
 #
 # Usage:
 #     check/pylint-changed-files [BASE_REVISION]
@@ -25,9 +25,9 @@
 ################################################################################
 
 # Get the working directory to the repo root.
-thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
-topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
-cd "${topdir}" || exit $?
+thisdir=$(dirname "${BASH_SOURCE[0]:?}") || exit $?
+repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel) || exit $?
+cd "${repo_dir}" || exit $?
 
 # Figure out which revision to compare against.
 if [ -n "$1" ] && [[ $1 != -* ]]; then
@@ -46,7 +46,7 @@ else
     echo -e "\033[31mNo default revision found to compare against. Argument #1 must be what to diff against (e.g. 'origin/main' or 'HEAD~1').\033[0m" >&2
     exit 1
 fi
-base="$(git merge-base "${rev}" HEAD)"
+base=$(git merge-base "${rev}" HEAD)
 if [ "$(git rev-parse "${rev}")" == "${base}" ]; then
     echo -e "Comparing against revision '${rev}'." >&2
 else
@@ -56,7 +56,8 @@ fi
 
 typeset -a changed
 IFS=$'\n' read -r -d '' -a changed < \
-    <(git diff --name-only "${rev}" -- '*.py' ':(exclude)cirq-google/cirq_google/cloud/*' ':(exclude)*_pb2.py' \
+    <(git diff --name-only --diff-filter=d "${rev}" -- \
+    "*.py" ":(exclude)cirq-google/cirq_google/cloud/*" ":(exclude)*_pb2.py" \
     | grep -E "^(cirq|dev_tools|examples).*.py$"
 )
 
@@ -64,7 +65,7 @@ num_changed=${#changed[@]}
 
 # Run it.
 echo "Found ${num_changed} lintable files associated with changes." >&2
-if [ "${num_changed}" -eq 0 ]; then
-    exit 0
+if (( num_changed )); then
+    source dev_tools/pypath || exit $?
+    pylint --jobs=0 "${changed[@]}"
 fi
-env PYTHONPATH=dev_tools pylint --jobs=0 --rcfile=dev_tools/conf/.pylintrc "${changed[@]}"

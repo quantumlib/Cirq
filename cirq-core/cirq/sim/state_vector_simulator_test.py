@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 
 import cirq
 import cirq.testing
 
 
-def test_state_vector_trial_result_repr():
+def test_state_vector_trial_result_repr() -> None:
     q0 = cirq.NamedQubit('a')
     final_simulator_state = cirq.StateVectorSimulationState(
         available_buffer=np.array([0, 1], dtype=np.complex64),
@@ -45,7 +47,7 @@ def test_state_vector_trial_result_repr():
     assert eval(expected_repr) == trial_result
 
 
-def test_state_vector_trial_result_equality():
+def test_state_vector_trial_result_equality() -> None:
     eq = cirq.testing.EqualsTester()
     final_simulator_state = cirq.StateVectorSimulationState(initial_state=np.array([]))
     eq.add_equality_group(
@@ -84,7 +86,7 @@ def test_state_vector_trial_result_equality():
     )
 
 
-def test_state_vector_trial_result_state_mixin():
+def test_state_vector_trial_result_state_mixin() -> None:
     qubits = cirq.LineQubit.range(2)
     final_simulator_state = cirq.StateVectorSimulationState(
         qubits=qubits, initial_state=np.array([0, 1, 0, 0])
@@ -101,7 +103,7 @@ def test_state_vector_trial_result_state_mixin():
     assert result.dirac_notation() == '|01⟩'
 
 
-def test_state_vector_trial_result_qid_shape():
+def test_state_vector_trial_result_qid_shape() -> None:
     final_simulator_state = cirq.StateVectorSimulationState(
         qubits=[cirq.NamedQubit('a')], initial_state=np.array([0, 1])
     )
@@ -123,7 +125,7 @@ def test_state_vector_trial_result_qid_shape():
     assert cirq.qid_shape(trial_result) == (3, 2)
 
 
-def test_state_vector_trial_state_vector_is_copy():
+def test_state_vector_trial_state_vector_is_copy() -> None:
     final_state_vector = np.array([0, 1], dtype=np.complex64)
     qubit_map = {cirq.NamedQubit('a'): 0}
     final_simulator_state = cirq.StateVectorSimulationState(
@@ -135,7 +137,7 @@ def test_state_vector_trial_state_vector_is_copy():
     assert trial_result.state_vector(copy=True) is not final_simulator_state.target_tensor
 
 
-def test_state_vector_trial_result_no_qubits():
+def test_state_vector_trial_result_no_qubits() -> None:
     initial_state_vector = np.array([1], dtype=np.complex64)
     initial_state = initial_state_vector.reshape((2,) * 0)  # reshape as tensor for 0 qubits
     final_simulator_state = cirq.StateVectorSimulationState(qubits=[], initial_state=initial_state)
@@ -147,7 +149,7 @@ def test_state_vector_trial_result_no_qubits():
     assert np.array_equal(state_vector, initial_state_vector)
 
 
-def test_str_big():
+def test_str_big() -> None:
     qs = cirq.LineQubit.range(10)
     final_simulator_state = cirq.StateVectorSimulationState(
         prng=np.random.RandomState(0),
@@ -159,7 +161,7 @@ def test_str_big():
     assert 'output vector: [0.03125+0.j 0.03125+0.j 0.03125+0.j ..' in str(result)
 
 
-def test_str_qudit():
+def test_str_qudit() -> None:
     qutrit = cirq.LineQid(0, dimension=3)
     final_simulator_state = cirq.StateVectorSimulationState(
         prng=np.random.RandomState(0),
@@ -181,7 +183,7 @@ def test_str_qudit():
     assert "|1⟩" in str(result)
 
 
-def test_pretty_print():
+def test_pretty_print() -> None:
     final_simulator_state = cirq.StateVectorSimulationState(
         available_buffer=np.array([1]),
         prng=np.random.RandomState(0),

@@ -16,7 +16,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, List, Optional, Sequence, Tuple, Type, TYPE_CHECKING, Union
+from collections.abc import Callable, Sequence
+from typing import Any, Self, TYPE_CHECKING
 
 import numpy as np
 
@@ -32,7 +33,7 @@ if TYPE_CHECKING:
 class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
     """Contains the density matrix and buffers for efficient state evolution."""
 
-    def __init__(self, density_matrix: np.ndarray, buffer: Optional[List[np.ndarray]] = None):
+    def __init__(self, density_matrix: np.ndarray, buffer: list[np.ndarray] | None = None):
         """Initializes the object with the inputs.
 
         This initializer creates the buffer if necessary.
@@ -57,10 +58,10 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
     def create(
         cls,
         *,
-        initial_state: Union[np.ndarray, cirq.STATE_VECTOR_LIKE] = 0,
-        qid_shape: Optional[Tuple[int, ...]] = None,
-        dtype: Optional[Type[np.complexfloating]] = None,
-        buffer: Optional[List[np.ndarray]] = None,
+        initial_state: np.ndarray | cirq.STATE_VECTOR_LIKE = 0,
+        qid_shape: tuple[int, ...] | None = None,
+        dtype: type[np.complexfloating] | None = None,
+        buffer: list[np.ndarray] | None = None,
     ):
         """Creates a buffered density matrix with the requested state.
 
@@ -121,7 +122,7 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
 
     def factor(
         self, axes: Sequence[int], *, validate=True, atol=1e-07
-    ) -> Tuple[_BufferedDensityMatrix, _BufferedDensityMatrix]:
+    ) -> tuple[_BufferedDensityMatrix, _BufferedDensityMatrix]:
         """Factors out the desired axes.
 
         Args:
@@ -188,7 +189,7 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
 
     def measure(
         self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
-    ) -> List[int]:
+    ) -> list[int]:
         """Measures the density matrix.
 
         Args:
@@ -245,12 +246,12 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
     def __init__(
         self,
         *,
-        available_buffer: Optional[List[np.ndarray]] = None,
-        prng: Optional[np.random.RandomState] = None,
-        qubits: Optional[Sequence[cirq.Qid]] = None,
-        initial_state: Union[np.ndarray, cirq.STATE_VECTOR_LIKE] = 0,
-        dtype: Type[np.complexfloating] = np.complex64,
-        classical_data: Optional[cirq.ClassicalDataStore] = None,
+        available_buffer: list[np.ndarray] | None = None,
+        prng: np.random.RandomState | None = None,
+        qubits: Sequence[cirq.Qid] | None = None,
+        initial_state: np.ndarray | cirq.STATE_VECTOR_LIKE = 0,
+        dtype: type[np.complexfloating] = np.complex64,
+        classical_data: cirq.ClassicalDataStore | None = None,
     ):
         """Inits DensityMatrixSimulationState.
 
@@ -284,7 +285,7 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
         )
         super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
 
-    def add_qubits(self, qubits: Sequence[cirq.Qid]):
+    def add_qubits(self, qubits: Sequence[cirq.Qid]) -> Self:
         ret = super().add_qubits(qubits)
         return (
             self.kronecker_product(type(self)(qubits=qubits), inplace=True)
@@ -292,7 +293,7 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
             else ret
         )
 
-    def remove_qubits(self, qubits: Sequence[cirq.Qid]):
+    def remove_qubits(self, qubits: Sequence[cirq.Qid]) -> Self:
         ret = super().remove_qubits(qubits)
         if ret is not NotImplemented:
             return ret
@@ -303,7 +304,7 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
     def _act_on_fallback_(
         self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool = True
     ) -> bool:
-        strats: List[Callable[[Any, Any, Sequence[cirq.Qid]], bool]] = [
+        strats: list[Callable[[Any, Any, Sequence[cirq.Qid]], bool]] = [
             _strat_apply_channel_to_state
         ]
         if allow_decompose:
@@ -332,15 +333,15 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
         )
 
     @property
-    def target_tensor(self):
+    def target_tensor(self) -> np.ndarray:
         return self._state._density_matrix
 
     @property
-    def available_buffer(self):
+    def available_buffer(self) -> list[np.ndarray]:
         return self._state._buffer
 
     @property
-    def qid_shape(self):
+    def qid_shape(self) -> tuple[int, ...]:
         return self._state._qid_shape
 
 

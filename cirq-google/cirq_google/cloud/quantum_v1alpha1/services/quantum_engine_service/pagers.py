@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2022 Google LLC
+# Copyright 2025 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +13,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from typing import Any, AsyncIterator, Awaitable, Callable, Iterator, Optional, Sequence, Tuple
+from typing import (
+    Any,
+    AsyncIterator,
+    Awaitable,
+    Callable,
+    Iterator,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
+
+from google.api_core import gapic_v1, retry as retries, retry_async as retries_async
+
+try:
+    OptionalRetry = Union[retries.Retry, gapic_v1.method._MethodDefault, None]
+    OptionalAsyncRetry = Union[retries_async.AsyncRetry, gapic_v1.method._MethodDefault, None]
+except AttributeError:  # pragma: NO COVER
+    OptionalRetry = Union[retries.Retry, object, None]  # type: ignore
+    OptionalAsyncRetry = Union[retries_async.AsyncRetry, object, None]  # type: ignore
 
 from cirq_google.cloud.quantum_v1alpha1.types import engine, quantum
 
@@ -22,7 +41,7 @@ class ListQuantumProgramsPager:
     """A pager for iterating through ``list_quantum_programs`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse` object, and
     provides an ``__iter__`` method to iterate through its
     ``programs`` field.
 
@@ -31,7 +50,7 @@ class ListQuantumProgramsPager:
     through the ``programs`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -42,23 +61,32 @@ class ListQuantumProgramsPager:
         request: engine.ListQuantumProgramsRequest,
         response: engine.ListQuantumProgramsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        retry: OptionalRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ):
         """Instantiate the pager.
 
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumProgramsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProgramsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
-                sent along with the request as metadata.
+            retry (google.api_core.retry.Retry): Designation of what errors,
+                if any, should be retried.
+            timeout (float): The timeout for this request.
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
+                sent along with the request as metadata. Normally, each value must be of type `str`,
+                but for metadata keys ending with the suffix `-bin`, the corresponding values must
+                be of type `bytes`.
         """
         self._method = method
         self._request = engine.ListQuantumProgramsRequest(request)
         self._response = response
+        self._retry = retry
+        self._timeout = timeout
         self._metadata = metadata
 
     def __getattr__(self, name: str) -> Any:
@@ -69,7 +97,9 @@ class ListQuantumProgramsPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = self._method(self._request, metadata=self._metadata)
+            self._response = self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __iter__(self) -> Iterator[quantum.QuantumProgram]:
@@ -77,14 +107,14 @@ class ListQuantumProgramsPager:
             yield from page.programs
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}<{self._response!r}>'
+        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
 
 
 class ListQuantumProgramsAsyncPager:
     """A pager for iterating through ``list_quantum_programs`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse` object, and
     provides an ``__aiter__`` method to iterate through its
     ``programs`` field.
 
@@ -93,7 +123,7 @@ class ListQuantumProgramsAsyncPager:
     through the ``programs`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -104,23 +134,32 @@ class ListQuantumProgramsAsyncPager:
         request: engine.ListQuantumProgramsRequest,
         response: engine.ListQuantumProgramsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ):
         """Instantiates the pager.
 
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumProgramsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProgramsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
-                sent along with the request as metadata.
+            retry (google.api_core.retry.AsyncRetry): Designation of what errors,
+                if any, should be retried.
+            timeout (float): The timeout for this request.
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
+                sent along with the request as metadata. Normally, each value must be of type `str`,
+                but for metadata keys ending with the suffix `-bin`, the corresponding values must
+                be of type `bytes`.
         """
         self._method = method
         self._request = engine.ListQuantumProgramsRequest(request)
         self._response = response
+        self._retry = retry
+        self._timeout = timeout
         self._metadata = metadata
 
     def __getattr__(self, name: str) -> Any:
@@ -131,7 +170,9 @@ class ListQuantumProgramsAsyncPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = await self._method(self._request, metadata=self._metadata)
+            self._response = await self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __aiter__(self) -> AsyncIterator[quantum.QuantumProgram]:
@@ -143,14 +184,14 @@ class ListQuantumProgramsAsyncPager:
         return async_generator()
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}<{self._response!r}>'
+        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
 
 
 class ListQuantumJobsPager:
     """A pager for iterating through ``list_quantum_jobs`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse` object, and
     provides an ``__iter__`` method to iterate through its
     ``jobs`` field.
 
@@ -159,7 +200,7 @@ class ListQuantumJobsPager:
     through the ``jobs`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -170,23 +211,32 @@ class ListQuantumJobsPager:
         request: engine.ListQuantumJobsRequest,
         response: engine.ListQuantumJobsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        retry: OptionalRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ):
         """Instantiate the pager.
 
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumJobsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
-                sent along with the request as metadata.
+            retry (google.api_core.retry.Retry): Designation of what errors,
+                if any, should be retried.
+            timeout (float): The timeout for this request.
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
+                sent along with the request as metadata. Normally, each value must be of type `str`,
+                but for metadata keys ending with the suffix `-bin`, the corresponding values must
+                be of type `bytes`.
         """
         self._method = method
         self._request = engine.ListQuantumJobsRequest(request)
         self._response = response
+        self._retry = retry
+        self._timeout = timeout
         self._metadata = metadata
 
     def __getattr__(self, name: str) -> Any:
@@ -197,7 +247,9 @@ class ListQuantumJobsPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = self._method(self._request, metadata=self._metadata)
+            self._response = self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __iter__(self) -> Iterator[quantum.QuantumJob]:
@@ -205,14 +257,14 @@ class ListQuantumJobsPager:
             yield from page.jobs
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}<{self._response!r}>'
+        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
 
 
 class ListQuantumJobsAsyncPager:
     """A pager for iterating through ``list_quantum_jobs`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse` object, and
     provides an ``__aiter__`` method to iterate through its
     ``jobs`` field.
 
@@ -221,7 +273,7 @@ class ListQuantumJobsAsyncPager:
     through the ``jobs`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -232,23 +284,32 @@ class ListQuantumJobsAsyncPager:
         request: engine.ListQuantumJobsRequest,
         response: engine.ListQuantumJobsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ):
         """Instantiates the pager.
 
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumJobsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
-                sent along with the request as metadata.
+            retry (google.api_core.retry.AsyncRetry): Designation of what errors,
+                if any, should be retried.
+            timeout (float): The timeout for this request.
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
+                sent along with the request as metadata. Normally, each value must be of type `str`,
+                but for metadata keys ending with the suffix `-bin`, the corresponding values must
+                be of type `bytes`.
         """
         self._method = method
         self._request = engine.ListQuantumJobsRequest(request)
         self._response = response
+        self._retry = retry
+        self._timeout = timeout
         self._metadata = metadata
 
     def __getattr__(self, name: str) -> Any:
@@ -259,7 +320,9 @@ class ListQuantumJobsAsyncPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = await self._method(self._request, metadata=self._metadata)
+            self._response = await self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __aiter__(self) -> AsyncIterator[quantum.QuantumJob]:
@@ -271,14 +334,14 @@ class ListQuantumJobsAsyncPager:
         return async_generator()
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}<{self._response!r}>'
+        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
 
 
 class ListQuantumJobEventsPager:
     """A pager for iterating through ``list_quantum_job_events`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse` object, and
     provides an ``__iter__`` method to iterate through its
     ``events`` field.
 
@@ -287,7 +350,7 @@ class ListQuantumJobEventsPager:
     through the ``events`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -298,23 +361,32 @@ class ListQuantumJobEventsPager:
         request: engine.ListQuantumJobEventsRequest,
         response: engine.ListQuantumJobEventsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        retry: OptionalRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ):
         """Instantiate the pager.
 
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
-                sent along with the request as metadata.
+            retry (google.api_core.retry.Retry): Designation of what errors,
+                if any, should be retried.
+            timeout (float): The timeout for this request.
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
+                sent along with the request as metadata. Normally, each value must be of type `str`,
+                but for metadata keys ending with the suffix `-bin`, the corresponding values must
+                be of type `bytes`.
         """
         self._method = method
         self._request = engine.ListQuantumJobEventsRequest(request)
         self._response = response
+        self._retry = retry
+        self._timeout = timeout
         self._metadata = metadata
 
     def __getattr__(self, name: str) -> Any:
@@ -325,7 +397,9 @@ class ListQuantumJobEventsPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = self._method(self._request, metadata=self._metadata)
+            self._response = self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __iter__(self) -> Iterator[quantum.QuantumJobEvent]:
@@ -333,14 +407,14 @@ class ListQuantumJobEventsPager:
             yield from page.events
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}<{self._response!r}>'
+        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
 
 
 class ListQuantumJobEventsAsyncPager:
     """A pager for iterating through ``list_quantum_job_events`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse` object, and
     provides an ``__aiter__`` method to iterate through its
     ``events`` field.
 
@@ -349,7 +423,7 @@ class ListQuantumJobEventsAsyncPager:
     through the ``events`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -360,23 +434,32 @@ class ListQuantumJobEventsAsyncPager:
         request: engine.ListQuantumJobEventsRequest,
         response: engine.ListQuantumJobEventsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ):
         """Instantiates the pager.
 
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
-                sent along with the request as metadata.
+            retry (google.api_core.retry.AsyncRetry): Designation of what errors,
+                if any, should be retried.
+            timeout (float): The timeout for this request.
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
+                sent along with the request as metadata. Normally, each value must be of type `str`,
+                but for metadata keys ending with the suffix `-bin`, the corresponding values must
+                be of type `bytes`.
         """
         self._method = method
         self._request = engine.ListQuantumJobEventsRequest(request)
         self._response = response
+        self._retry = retry
+        self._timeout = timeout
         self._metadata = metadata
 
     def __getattr__(self, name: str) -> Any:
@@ -387,7 +470,9 @@ class ListQuantumJobEventsAsyncPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = await self._method(self._request, metadata=self._metadata)
+            self._response = await self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __aiter__(self) -> AsyncIterator[quantum.QuantumJobEvent]:
@@ -399,14 +484,14 @@ class ListQuantumJobEventsAsyncPager:
         return async_generator()
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}<{self._response!r}>'
+        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
 
 
 class ListQuantumProcessorsPager:
     """A pager for iterating through ``list_quantum_processors`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse` object, and
     provides an ``__iter__`` method to iterate through its
     ``processors`` field.
 
@@ -415,7 +500,7 @@ class ListQuantumProcessorsPager:
     through the ``processors`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -426,23 +511,32 @@ class ListQuantumProcessorsPager:
         request: engine.ListQuantumProcessorsRequest,
         response: engine.ListQuantumProcessorsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        retry: OptionalRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ):
         """Instantiate the pager.
 
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
-                sent along with the request as metadata.
+            retry (google.api_core.retry.Retry): Designation of what errors,
+                if any, should be retried.
+            timeout (float): The timeout for this request.
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
+                sent along with the request as metadata. Normally, each value must be of type `str`,
+                but for metadata keys ending with the suffix `-bin`, the corresponding values must
+                be of type `bytes`.
         """
         self._method = method
         self._request = engine.ListQuantumProcessorsRequest(request)
         self._response = response
+        self._retry = retry
+        self._timeout = timeout
         self._metadata = metadata
 
     def __getattr__(self, name: str) -> Any:
@@ -453,7 +547,9 @@ class ListQuantumProcessorsPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = self._method(self._request, metadata=self._metadata)
+            self._response = self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __iter__(self) -> Iterator[quantum.QuantumProcessor]:
@@ -461,14 +557,14 @@ class ListQuantumProcessorsPager:
             yield from page.processors
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}<{self._response!r}>'
+        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
 
 
 class ListQuantumProcessorsAsyncPager:
     """A pager for iterating through ``list_quantum_processors`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse` object, and
     provides an ``__aiter__`` method to iterate through its
     ``processors`` field.
 
@@ -477,7 +573,7 @@ class ListQuantumProcessorsAsyncPager:
     through the ``processors`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -488,23 +584,32 @@ class ListQuantumProcessorsAsyncPager:
         request: engine.ListQuantumProcessorsRequest,
         response: engine.ListQuantumProcessorsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ):
         """Instantiates the pager.
 
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
-                sent along with the request as metadata.
+            retry (google.api_core.retry.AsyncRetry): Designation of what errors,
+                if any, should be retried.
+            timeout (float): The timeout for this request.
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
+                sent along with the request as metadata. Normally, each value must be of type `str`,
+                but for metadata keys ending with the suffix `-bin`, the corresponding values must
+                be of type `bytes`.
         """
         self._method = method
         self._request = engine.ListQuantumProcessorsRequest(request)
         self._response = response
+        self._retry = retry
+        self._timeout = timeout
         self._metadata = metadata
 
     def __getattr__(self, name: str) -> Any:
@@ -515,7 +620,9 @@ class ListQuantumProcessorsAsyncPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = await self._method(self._request, metadata=self._metadata)
+            self._response = await self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __aiter__(self) -> AsyncIterator[quantum.QuantumProcessor]:
@@ -527,14 +634,164 @@ class ListQuantumProcessorsAsyncPager:
         return async_generator()
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}<{self._response!r}>'
+        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
+
+
+class ListQuantumProcessorConfigsPager:
+    """A pager for iterating through ``list_quantum_processor_configs`` requests.
+
+    This class thinly wraps an initial
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorConfigsResponse` object, and
+    provides an ``__iter__`` method to iterate through its
+    ``quantum_processor_configs`` field.
+
+    If there are more pages, the ``__iter__`` method will make additional
+    ``ListQuantumProcessorConfigs`` requests and continue to iterate
+    through the ``quantum_processor_configs`` field on the
+    corresponding responses.
+
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorConfigsResponse`
+    attributes are available on the pager. If multiple requests are made, only
+    the most recent response is retained, and thus used for attribute lookup.
+    """
+
+    def __init__(
+        self,
+        method: Callable[..., engine.ListQuantumProcessorConfigsResponse],
+        request: engine.ListQuantumProcessorConfigsRequest,
+        response: engine.ListQuantumProcessorConfigsResponse,
+        *,
+        retry: OptionalRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+    ):
+        """Instantiate the pager.
+
+        Args:
+            method (Callable): The method that was originally called, and
+                which instantiated this pager.
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorConfigsRequest):
+                The initial request object.
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorConfigsResponse):
+                The initial response object.
+            retry (google.api_core.retry.Retry): Designation of what errors,
+                if any, should be retried.
+            timeout (float): The timeout for this request.
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
+                sent along with the request as metadata. Normally, each value must be of type `str`,
+                but for metadata keys ending with the suffix `-bin`, the corresponding values must
+                be of type `bytes`.
+        """
+        self._method = method
+        self._request = engine.ListQuantumProcessorConfigsRequest(request)
+        self._response = response
+        self._retry = retry
+        self._timeout = timeout
+        self._metadata = metadata
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._response, name)
+
+    @property
+    def pages(self) -> Iterator[engine.ListQuantumProcessorConfigsResponse]:
+        yield self._response
+        while self._response.next_page_token:
+            self._request.page_token = self._response.next_page_token
+            self._response = self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
+            yield self._response
+
+    def __iter__(self) -> Iterator[quantum.QuantumProcessorConfig]:
+        for page in self.pages:
+            yield from page.quantum_processor_configs
+
+    def __repr__(self) -> str:
+        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
+
+
+class ListQuantumProcessorConfigsAsyncPager:
+    """A pager for iterating through ``list_quantum_processor_configs`` requests.
+
+    This class thinly wraps an initial
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorConfigsResponse` object, and
+    provides an ``__aiter__`` method to iterate through its
+    ``quantum_processor_configs`` field.
+
+    If there are more pages, the ``__aiter__`` method will make additional
+    ``ListQuantumProcessorConfigs`` requests and continue to iterate
+    through the ``quantum_processor_configs`` field on the
+    corresponding responses.
+
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorConfigsResponse`
+    attributes are available on the pager. If multiple requests are made, only
+    the most recent response is retained, and thus used for attribute lookup.
+    """
+
+    def __init__(
+        self,
+        method: Callable[..., Awaitable[engine.ListQuantumProcessorConfigsResponse]],
+        request: engine.ListQuantumProcessorConfigsRequest,
+        response: engine.ListQuantumProcessorConfigsResponse,
+        *,
+        retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+    ):
+        """Instantiates the pager.
+
+        Args:
+            method (Callable): The method that was originally called, and
+                which instantiated this pager.
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorConfigsRequest):
+                The initial request object.
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorConfigsResponse):
+                The initial response object.
+            retry (google.api_core.retry.AsyncRetry): Designation of what errors,
+                if any, should be retried.
+            timeout (float): The timeout for this request.
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
+                sent along with the request as metadata. Normally, each value must be of type `str`,
+                but for metadata keys ending with the suffix `-bin`, the corresponding values must
+                be of type `bytes`.
+        """
+        self._method = method
+        self._request = engine.ListQuantumProcessorConfigsRequest(request)
+        self._response = response
+        self._retry = retry
+        self._timeout = timeout
+        self._metadata = metadata
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._response, name)
+
+    @property
+    async def pages(self) -> AsyncIterator[engine.ListQuantumProcessorConfigsResponse]:
+        yield self._response
+        while self._response.next_page_token:
+            self._request.page_token = self._response.next_page_token
+            self._response = await self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
+            yield self._response
+
+    def __aiter__(self) -> AsyncIterator[quantum.QuantumProcessorConfig]:
+        async def async_generator():
+            async for page in self.pages:
+                for response in page.quantum_processor_configs:
+                    yield response
+
+        return async_generator()
+
+    def __repr__(self) -> str:
+        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
 
 
 class ListQuantumCalibrationsPager:
     """A pager for iterating through ``list_quantum_calibrations`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse` object, and
     provides an ``__iter__`` method to iterate through its
     ``calibrations`` field.
 
@@ -543,7 +800,7 @@ class ListQuantumCalibrationsPager:
     through the ``calibrations`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -554,23 +811,32 @@ class ListQuantumCalibrationsPager:
         request: engine.ListQuantumCalibrationsRequest,
         response: engine.ListQuantumCalibrationsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        retry: OptionalRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ):
         """Instantiate the pager.
 
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
-                sent along with the request as metadata.
+            retry (google.api_core.retry.Retry): Designation of what errors,
+                if any, should be retried.
+            timeout (float): The timeout for this request.
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
+                sent along with the request as metadata. Normally, each value must be of type `str`,
+                but for metadata keys ending with the suffix `-bin`, the corresponding values must
+                be of type `bytes`.
         """
         self._method = method
         self._request = engine.ListQuantumCalibrationsRequest(request)
         self._response = response
+        self._retry = retry
+        self._timeout = timeout
         self._metadata = metadata
 
     def __getattr__(self, name: str) -> Any:
@@ -581,7 +847,9 @@ class ListQuantumCalibrationsPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = self._method(self._request, metadata=self._metadata)
+            self._response = self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __iter__(self) -> Iterator[quantum.QuantumCalibration]:
@@ -589,14 +857,14 @@ class ListQuantumCalibrationsPager:
             yield from page.calibrations
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}<{self._response!r}>'
+        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
 
 
 class ListQuantumCalibrationsAsyncPager:
     """A pager for iterating through ``list_quantum_calibrations`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse` object, and
     provides an ``__aiter__`` method to iterate through its
     ``calibrations`` field.
 
@@ -605,7 +873,7 @@ class ListQuantumCalibrationsAsyncPager:
     through the ``calibrations`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -616,23 +884,32 @@ class ListQuantumCalibrationsAsyncPager:
         request: engine.ListQuantumCalibrationsRequest,
         response: engine.ListQuantumCalibrationsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ):
         """Instantiates the pager.
 
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
-                sent along with the request as metadata.
+            retry (google.api_core.retry.AsyncRetry): Designation of what errors,
+                if any, should be retried.
+            timeout (float): The timeout for this request.
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
+                sent along with the request as metadata. Normally, each value must be of type `str`,
+                but for metadata keys ending with the suffix `-bin`, the corresponding values must
+                be of type `bytes`.
         """
         self._method = method
         self._request = engine.ListQuantumCalibrationsRequest(request)
         self._response = response
+        self._retry = retry
+        self._timeout = timeout
         self._metadata = metadata
 
     def __getattr__(self, name: str) -> Any:
@@ -643,7 +920,9 @@ class ListQuantumCalibrationsAsyncPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = await self._method(self._request, metadata=self._metadata)
+            self._response = await self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __aiter__(self) -> AsyncIterator[quantum.QuantumCalibration]:
@@ -655,14 +934,14 @@ class ListQuantumCalibrationsAsyncPager:
         return async_generator()
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}<{self._response!r}>'
+        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
 
 
 class ListQuantumReservationsPager:
     """A pager for iterating through ``list_quantum_reservations`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse` object, and
     provides an ``__iter__`` method to iterate through its
     ``reservations`` field.
 
@@ -671,7 +950,7 @@ class ListQuantumReservationsPager:
     through the ``reservations`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -682,23 +961,32 @@ class ListQuantumReservationsPager:
         request: engine.ListQuantumReservationsRequest,
         response: engine.ListQuantumReservationsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        retry: OptionalRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ):
         """Instantiate the pager.
 
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumReservationsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
-                sent along with the request as metadata.
+            retry (google.api_core.retry.Retry): Designation of what errors,
+                if any, should be retried.
+            timeout (float): The timeout for this request.
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
+                sent along with the request as metadata. Normally, each value must be of type `str`,
+                but for metadata keys ending with the suffix `-bin`, the corresponding values must
+                be of type `bytes`.
         """
         self._method = method
         self._request = engine.ListQuantumReservationsRequest(request)
         self._response = response
+        self._retry = retry
+        self._timeout = timeout
         self._metadata = metadata
 
     def __getattr__(self, name: str) -> Any:
@@ -709,7 +997,9 @@ class ListQuantumReservationsPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = self._method(self._request, metadata=self._metadata)
+            self._response = self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __iter__(self) -> Iterator[quantum.QuantumReservation]:
@@ -717,14 +1007,14 @@ class ListQuantumReservationsPager:
             yield from page.reservations
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}<{self._response!r}>'
+        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
 
 
 class ListQuantumReservationsAsyncPager:
     """A pager for iterating through ``list_quantum_reservations`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse` object, and
     provides an ``__aiter__`` method to iterate through its
     ``reservations`` field.
 
@@ -733,7 +1023,7 @@ class ListQuantumReservationsAsyncPager:
     through the ``reservations`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -744,23 +1034,32 @@ class ListQuantumReservationsAsyncPager:
         request: engine.ListQuantumReservationsRequest,
         response: engine.ListQuantumReservationsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ):
         """Instantiates the pager.
 
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumReservationsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
-                sent along with the request as metadata.
+            retry (google.api_core.retry.AsyncRetry): Designation of what errors,
+                if any, should be retried.
+            timeout (float): The timeout for this request.
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
+                sent along with the request as metadata. Normally, each value must be of type `str`,
+                but for metadata keys ending with the suffix `-bin`, the corresponding values must
+                be of type `bytes`.
         """
         self._method = method
         self._request = engine.ListQuantumReservationsRequest(request)
         self._response = response
+        self._retry = retry
+        self._timeout = timeout
         self._metadata = metadata
 
     def __getattr__(self, name: str) -> Any:
@@ -771,7 +1070,9 @@ class ListQuantumReservationsAsyncPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = await self._method(self._request, metadata=self._metadata)
+            self._response = await self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __aiter__(self) -> AsyncIterator[quantum.QuantumReservation]:
@@ -783,14 +1084,14 @@ class ListQuantumReservationsAsyncPager:
         return async_generator()
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}<{self._response!r}>'
+        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
 
 
 class ListQuantumReservationGrantsPager:
     """A pager for iterating through ``list_quantum_reservation_grants`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse` object, and
     provides an ``__iter__`` method to iterate through its
     ``reservation_grants`` field.
 
@@ -799,7 +1100,7 @@ class ListQuantumReservationGrantsPager:
     through the ``reservation_grants`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -810,23 +1111,32 @@ class ListQuantumReservationGrantsPager:
         request: engine.ListQuantumReservationGrantsRequest,
         response: engine.ListQuantumReservationGrantsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        retry: OptionalRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ):
         """Instantiate the pager.
 
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
-                sent along with the request as metadata.
+            retry (google.api_core.retry.Retry): Designation of what errors,
+                if any, should be retried.
+            timeout (float): The timeout for this request.
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
+                sent along with the request as metadata. Normally, each value must be of type `str`,
+                but for metadata keys ending with the suffix `-bin`, the corresponding values must
+                be of type `bytes`.
         """
         self._method = method
         self._request = engine.ListQuantumReservationGrantsRequest(request)
         self._response = response
+        self._retry = retry
+        self._timeout = timeout
         self._metadata = metadata
 
     def __getattr__(self, name: str) -> Any:
@@ -837,7 +1147,9 @@ class ListQuantumReservationGrantsPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = self._method(self._request, metadata=self._metadata)
+            self._response = self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __iter__(self) -> Iterator[quantum.QuantumReservationGrant]:
@@ -845,14 +1157,14 @@ class ListQuantumReservationGrantsPager:
             yield from page.reservation_grants
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}<{self._response!r}>'
+        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
 
 
 class ListQuantumReservationGrantsAsyncPager:
     """A pager for iterating through ``list_quantum_reservation_grants`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse` object, and
     provides an ``__aiter__`` method to iterate through its
     ``reservation_grants`` field.
 
@@ -861,7 +1173,7 @@ class ListQuantumReservationGrantsAsyncPager:
     through the ``reservation_grants`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -872,23 +1184,32 @@ class ListQuantumReservationGrantsAsyncPager:
         request: engine.ListQuantumReservationGrantsRequest,
         response: engine.ListQuantumReservationGrantsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ):
         """Instantiates the pager.
 
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
-                sent along with the request as metadata.
+            retry (google.api_core.retry.AsyncRetry): Designation of what errors,
+                if any, should be retried.
+            timeout (float): The timeout for this request.
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
+                sent along with the request as metadata. Normally, each value must be of type `str`,
+                but for metadata keys ending with the suffix `-bin`, the corresponding values must
+                be of type `bytes`.
         """
         self._method = method
         self._request = engine.ListQuantumReservationGrantsRequest(request)
         self._response = response
+        self._retry = retry
+        self._timeout = timeout
         self._metadata = metadata
 
     def __getattr__(self, name: str) -> Any:
@@ -899,7 +1220,9 @@ class ListQuantumReservationGrantsAsyncPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = await self._method(self._request, metadata=self._metadata)
+            self._response = await self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __aiter__(self) -> AsyncIterator[quantum.QuantumReservationGrant]:
@@ -911,14 +1234,14 @@ class ListQuantumReservationGrantsAsyncPager:
         return async_generator()
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}<{self._response!r}>'
+        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
 
 
 class ListQuantumReservationBudgetsPager:
     """A pager for iterating through ``list_quantum_reservation_budgets`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse` object, and
     provides an ``__iter__`` method to iterate through its
     ``reservation_budgets`` field.
 
@@ -927,7 +1250,7 @@ class ListQuantumReservationBudgetsPager:
     through the ``reservation_budgets`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -938,23 +1261,32 @@ class ListQuantumReservationBudgetsPager:
         request: engine.ListQuantumReservationBudgetsRequest,
         response: engine.ListQuantumReservationBudgetsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        retry: OptionalRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ):
         """Instantiate the pager.
 
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
-                sent along with the request as metadata.
+            retry (google.api_core.retry.Retry): Designation of what errors,
+                if any, should be retried.
+            timeout (float): The timeout for this request.
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
+                sent along with the request as metadata. Normally, each value must be of type `str`,
+                but for metadata keys ending with the suffix `-bin`, the corresponding values must
+                be of type `bytes`.
         """
         self._method = method
         self._request = engine.ListQuantumReservationBudgetsRequest(request)
         self._response = response
+        self._retry = retry
+        self._timeout = timeout
         self._metadata = metadata
 
     def __getattr__(self, name: str) -> Any:
@@ -965,7 +1297,9 @@ class ListQuantumReservationBudgetsPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = self._method(self._request, metadata=self._metadata)
+            self._response = self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __iter__(self) -> Iterator[quantum.QuantumReservationBudget]:
@@ -973,14 +1307,14 @@ class ListQuantumReservationBudgetsPager:
             yield from page.reservation_budgets
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}<{self._response!r}>'
+        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
 
 
 class ListQuantumReservationBudgetsAsyncPager:
     """A pager for iterating through ``list_quantum_reservation_budgets`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse` object, and
     provides an ``__aiter__`` method to iterate through its
     ``reservation_budgets`` field.
 
@@ -989,7 +1323,7 @@ class ListQuantumReservationBudgetsAsyncPager:
     through the ``reservation_budgets`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -1000,23 +1334,32 @@ class ListQuantumReservationBudgetsAsyncPager:
         request: engine.ListQuantumReservationBudgetsRequest,
         response: engine.ListQuantumReservationBudgetsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ):
         """Instantiates the pager.
 
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
-                sent along with the request as metadata.
+            retry (google.api_core.retry.AsyncRetry): Designation of what errors,
+                if any, should be retried.
+            timeout (float): The timeout for this request.
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
+                sent along with the request as metadata. Normally, each value must be of type `str`,
+                but for metadata keys ending with the suffix `-bin`, the corresponding values must
+                be of type `bytes`.
         """
         self._method = method
         self._request = engine.ListQuantumReservationBudgetsRequest(request)
         self._response = response
+        self._retry = retry
+        self._timeout = timeout
         self._metadata = metadata
 
     def __getattr__(self, name: str) -> Any:
@@ -1027,7 +1370,9 @@ class ListQuantumReservationBudgetsAsyncPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = await self._method(self._request, metadata=self._metadata)
+            self._response = await self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __aiter__(self) -> AsyncIterator[quantum.QuantumReservationBudget]:
@@ -1039,14 +1384,14 @@ class ListQuantumReservationBudgetsAsyncPager:
         return async_generator()
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}<{self._response!r}>'
+        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
 
 
 class ListQuantumTimeSlotsPager:
     """A pager for iterating through ``list_quantum_time_slots`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse` object, and
     provides an ``__iter__`` method to iterate through its
     ``time_slots`` field.
 
@@ -1055,7 +1400,7 @@ class ListQuantumTimeSlotsPager:
     through the ``time_slots`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -1066,23 +1411,32 @@ class ListQuantumTimeSlotsPager:
         request: engine.ListQuantumTimeSlotsRequest,
         response: engine.ListQuantumTimeSlotsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        retry: OptionalRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ):
         """Instantiate the pager.
 
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
-                sent along with the request as metadata.
+            retry (google.api_core.retry.Retry): Designation of what errors,
+                if any, should be retried.
+            timeout (float): The timeout for this request.
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
+                sent along with the request as metadata. Normally, each value must be of type `str`,
+                but for metadata keys ending with the suffix `-bin`, the corresponding values must
+                be of type `bytes`.
         """
         self._method = method
         self._request = engine.ListQuantumTimeSlotsRequest(request)
         self._response = response
+        self._retry = retry
+        self._timeout = timeout
         self._metadata = metadata
 
     def __getattr__(self, name: str) -> Any:
@@ -1093,7 +1447,9 @@ class ListQuantumTimeSlotsPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = self._method(self._request, metadata=self._metadata)
+            self._response = self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __iter__(self) -> Iterator[quantum.QuantumTimeSlot]:
@@ -1101,14 +1457,14 @@ class ListQuantumTimeSlotsPager:
             yield from page.time_slots
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}<{self._response!r}>'
+        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
 
 
 class ListQuantumTimeSlotsAsyncPager:
     """A pager for iterating through ``list_quantum_time_slots`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse` object, and
     provides an ``__aiter__`` method to iterate through its
     ``time_slots`` field.
 
@@ -1117,7 +1473,7 @@ class ListQuantumTimeSlotsAsyncPager:
     through the ``time_slots`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -1128,23 +1484,32 @@ class ListQuantumTimeSlotsAsyncPager:
         request: engine.ListQuantumTimeSlotsRequest,
         response: engine.ListQuantumTimeSlotsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        retry: OptionalAsyncRetry = gapic_v1.method.DEFAULT,
+        timeout: Union[float, object] = gapic_v1.method.DEFAULT,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
     ):
         """Instantiates the pager.
 
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
-                sent along with the request as metadata.
+            retry (google.api_core.retry.AsyncRetry): Designation of what errors,
+                if any, should be retried.
+            timeout (float): The timeout for this request.
+            metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
+                sent along with the request as metadata. Normally, each value must be of type `str`,
+                but for metadata keys ending with the suffix `-bin`, the corresponding values must
+                be of type `bytes`.
         """
         self._method = method
         self._request = engine.ListQuantumTimeSlotsRequest(request)
         self._response = response
+        self._retry = retry
+        self._timeout = timeout
         self._metadata = metadata
 
     def __getattr__(self, name: str) -> Any:
@@ -1155,7 +1520,9 @@ class ListQuantumTimeSlotsAsyncPager:
         yield self._response
         while self._response.next_page_token:
             self._request.page_token = self._response.next_page_token
-            self._response = await self._method(self._request, metadata=self._metadata)
+            self._response = await self._method(
+                self._request, retry=self._retry, timeout=self._timeout, metadata=self._metadata
+            )
             yield self._response
 
     def __aiter__(self) -> AsyncIterator[quantum.QuantumTimeSlot]:
@@ -1167,4 +1534,4 @@ class ListQuantumTimeSlotsAsyncPager:
         return async_generator()
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}<{self._response!r}>'
+        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)

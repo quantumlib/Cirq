@@ -12,14 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import os
 import subprocess
-from typing import Iterable
-
-import pytest
+from collections.abc import Iterable
+from typing import TYPE_CHECKING
 
 from dev_tools import shell_tools
 from dev_tools.test_utils import only_on_posix
+
+if TYPE_CHECKING:
+    import pytest
 
 
 def run(
@@ -77,7 +81,7 @@ chmod +x ./test-script.sh
 
 
 @only_on_posix
-def test_pytest_changed_files_file_selection(tmpdir_factory):
+def test_pytest_changed_files_file_selection(tmpdir_factory) -> None:
     result = run(
         script_file='check/pytest-changed-files',
         tmpdir_factory=tmpdir_factory,
@@ -183,7 +187,7 @@ def test_pytest_changed_files_file_selection(tmpdir_factory):
 
 
 @only_on_posix
-def test_pytest_changed_files_branch_selection(tmpdir_factory):
+def test_pytest_changed_files_branch_selection(tmpdir_factory) -> None:
     result = run(
         script_file='check/pytest-changed-files', tmpdir_factory=tmpdir_factory, arg='HEAD'
     )
@@ -318,7 +322,7 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
         'git init --quiet --initial-branch main\n'
         'git config --local user.name \'Me\'\n'
         'git config --local user.email \'<>\'\n'
-        'git commit -m tes --quiet --allow-empty --no-gpg-sign\n'
+        'git commit -m test --quiet --allow-empty --no-gpg-sign\n'
         'cd ..\n'
         'git remote add origin alt\n'
         'git fetch origin main --quiet 2> /dev/null\n',
@@ -335,7 +339,7 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
 
 
 @only_on_posix
-def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
+def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory) -> None:
     result = run(
         script_file='check/pytest-and-incremental-coverage',
         tmpdir_factory=tmpdir_factory,
@@ -485,7 +489,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
 
 
 @only_on_posix
-def test_incremental_format_branch_selection(tmpdir_factory):
+def test_incremental_format_branch_selection(tmpdir_factory) -> None:
     result = run(script_file='check/format-incremental', tmpdir_factory=tmpdir_factory, arg='HEAD')
     assert result.returncode == 0
     assert "No files to format" in result.stdout
@@ -584,7 +588,7 @@ def test_incremental_format_branch_selection(tmpdir_factory):
 
 
 @only_on_posix
-def test_pylint_changed_files_file_selection(tmpdir_factory):
+def test_pylint_changed_files_file_selection(tmpdir_factory) -> None:
     result = run(
         script_file='check/pylint-changed-files',
         tmpdir_factory=tmpdir_factory,
@@ -601,9 +605,7 @@ def test_pylint_changed_files_file_selection(tmpdir_factory):
         ).split()
     )
 
-    intercepted_prefix = (
-        'INTERCEPTED env PYTHONPATH=dev_tools pylint --jobs=0 --rcfile=dev_tools/conf/.pylintrc '
-    )
+    intercepted_prefix = 'INTERCEPTED pylint --jobs=0 '
 
     result = run(
         script_file='check/pylint-changed-files',

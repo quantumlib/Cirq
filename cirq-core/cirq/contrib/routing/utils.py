@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import operator
 import re
-from typing import Callable, Iterable, List, TYPE_CHECKING
+from collections.abc import Callable, Iterable
+from typing import TYPE_CHECKING
 
 import networkx as nx
 
@@ -31,7 +32,7 @@ if TYPE_CHECKING:
 BINARY_OP_PREDICATE = Callable[[ops.Operation, ops.Operation], bool]
 
 
-def get_time_slices(dag: CircuitDag) -> List[nx.Graph]:
+def get_time_slices(dag: CircuitDag) -> list[nx.Graph]:
     """Slices the DAG into logical graphs.
 
     Each time slice is a graph whose vertices are qubits and whose edges

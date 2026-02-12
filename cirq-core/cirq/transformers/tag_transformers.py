@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
-from typing import Callable, Hashable, Optional, TYPE_CHECKING
+from collections.abc import Callable, Hashable
+from typing import TYPE_CHECKING
 
 from cirq.transformers import transformer_api, transformer_primitives
 
@@ -23,11 +26,11 @@ if TYPE_CHECKING:
 
 @transformer_api.transformer
 def index_tags(
-    circuit: 'cirq.AbstractCircuit',
+    circuit: cirq.AbstractCircuit,
     *,
-    context: Optional['cirq.TransformerContext'] = None,
-    target_tags: Optional[set[Hashable]] = None,
-) -> 'cirq.Circuit':
+    context: cirq.TransformerContext | None = None,
+    target_tags: set[Hashable] | None = None,
+) -> cirq.Circuit:
     """Indexes tags in target_tags as tag_0, tag_1, ... per tag.
 
     Args:
@@ -44,7 +47,7 @@ def index_tags(
         return circuit.unfreeze(copy=False)
     tag_iter_by_tags = {tag: itertools.count(start=0, step=1) for tag in target_tags}
 
-    def _map_func(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
+    def _map_func(op: cirq.Operation, _) -> cirq.OP_TREE:
         tag_set = set(op.tags)
         nonlocal tag_iter_by_tags
         for tag in target_tags.intersection(op.tags):
@@ -60,12 +63,12 @@ def index_tags(
 
 @transformer_api.transformer
 def remove_tags(
-    circuit: 'cirq.AbstractCircuit',
+    circuit: cirq.AbstractCircuit,
     *,
-    context: Optional['cirq.TransformerContext'] = None,
-    target_tags: Optional[set[Hashable]] = None,
+    context: cirq.TransformerContext | None = None,
+    target_tags: set[Hashable] | None = None,
     remove_if: Callable[[Hashable], bool] = lambda _: False,
-) -> 'cirq.Circuit':
+) -> cirq.Circuit:
     """Removes tags from the operations based on the input args.
 
     Args:
@@ -82,13 +85,13 @@ def remove_tags(
         raise ValueError("remove_tags doesn't support tags_to_ignore, use function args instead.")
     target_tags = target_tags or set()
 
-    def _map_func(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
-        remaing_tags = set()
+    def _map_func(op: cirq.Operation, _) -> cirq.OP_TREE:
+        remaining_tags = set()
         for tag in op.tags:
             if not remove_if(tag) and tag not in target_tags:
-                remaing_tags.add(tag)
+                remaining_tags.add(tag)
 
-        return op.untagged.with_tags(*remaing_tags)
+        return op.untagged.with_tags(*remaining_tags)
 
     return transformer_primitives.map_operations(
         circuit, _map_func, deep=context.deep if context else False

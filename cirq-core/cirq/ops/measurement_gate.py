@@ -14,18 +14,8 @@
 
 from __future__ import annotations
 
-from typing import (
-    Any,
-    Dict,
-    FrozenSet,
-    Iterable,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from collections.abc import Iterable, Mapping, Sequence
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -49,11 +39,11 @@ class MeasurementGate(raw_types.Gate):
 
     def __init__(
         self,
-        num_qubits: Optional[int] = None,
-        key: Union[str, cirq.MeasurementKey] = '',
-        invert_mask: Tuple[bool, ...] = (),
-        qid_shape: Optional[Tuple[int, ...]] = None,
-        confusion_map: Optional[Dict[Tuple[int, ...], np.ndarray]] = None,
+        num_qubits: int | None = None,
+        key: str | cirq.MeasurementKey = '',
+        invert_mask: tuple[bool, ...] = (),
+        qid_shape: tuple[int, ...] | None = None,
+        confusion_map: dict[tuple[int, ...], np.ndarray] | None = None,
     ) -> None:
         """Inits MeasurementGate.
 
@@ -106,20 +96,20 @@ class MeasurementGate(raw_types.Gate):
         return self._mkey
 
     @property
-    def invert_mask(self) -> Tuple[bool, ...]:
+    def invert_mask(self) -> tuple[bool, ...]:
         return self._invert_mask
 
     @property
-    def confusion_map(self) -> Dict[Tuple[int, ...], np.ndarray]:
+    def confusion_map(self) -> dict[tuple[int, ...], np.ndarray]:
         return self._confusion_map
 
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         return self._qid_shape
 
     def _has_unitary_(self) -> bool:
         return False
 
-    def with_key(self, key: Union[str, cirq.MeasurementKey]) -> MeasurementGate:
+    def with_key(self, key: str | cirq.MeasurementKey) -> MeasurementGate:
         """Creates a measurement gate with a new key but otherwise identical."""
         if key == self.key:
             return self
@@ -131,14 +121,14 @@ class MeasurementGate(raw_types.Gate):
             confusion_map=self.confusion_map,
         )
 
-    def _with_key_path_(self, path: Tuple[str, ...]):
+    def _with_key_path_(self, path: tuple[str, ...]):
         return self.with_key(self.mkey._with_key_path_(path))
 
-    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+    def _with_key_path_prefix_(self, prefix: tuple[str, ...]):
         return self.with_key(self.mkey._with_key_path_prefix_(prefix))
 
     def _with_rescoped_keys_(
-        self, path: Tuple[str, ...], bindable_keys: FrozenSet[cirq.MeasurementKey]
+        self, path: tuple[str, ...], bindable_keys: frozenset[cirq.MeasurementKey]
     ):
         return self.with_key(protocols.with_rescoped_keys(self.mkey, path, bindable_keys))
 
@@ -164,7 +154,7 @@ class MeasurementGate(raw_types.Gate):
             confusion_map=self.confusion_map,
         )
 
-    def full_invert_mask(self) -> Tuple[bool, ...]:
+    def full_invert_mask(self) -> tuple[bool, ...]:
         """Returns the invert mask for all qubits.
 
         If the user supplies a partial invert_mask, this returns that mask
@@ -224,7 +214,7 @@ class MeasurementGate(raw_types.Gate):
 
         return protocols.CircuitDiagramInfo(symbols)
 
-    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> str | None:
         if self.confusion_map or not all(d == 2 for d in self._qid_shape):
             return NotImplemented
         args.validate_version('2.0', '3.0')
@@ -244,7 +234,7 @@ class MeasurementGate(raw_types.Gate):
         return ''.join(lines)
 
     def _op_repr_(self, qubits: Sequence[cirq.Qid]) -> str:
-        args = list(repr(q) for q in qubits)
+        args = [repr(q) for q in qubits]
         if self.key != _default_measurement_key(qubits):
             args.append(f'key={self.mkey!r}')
         if self.invert_mask:
@@ -275,8 +265,8 @@ class MeasurementGate(raw_types.Gate):
         )
         return self.key, self.full_invert_mask(), self._qid_shape, hashable_cmap
 
-    def _json_dict_(self) -> Dict[str, Any]:
-        other: Dict[str, Any] = {}
+    def _json_dict_(self) -> dict[str, Any]:
+        other: dict[str, Any] = {}
         if not all(d == 2 for d in self._qid_shape):
             other['qid_shape'] = self._qid_shape
         if self.confusion_map:
@@ -301,7 +291,7 @@ class MeasurementGate(raw_types.Gate):
             confusion_map={tuple(k): np.array(v) for k, v in confusion_map or []},
         )
 
-    def _has_stabilizer_effect_(self) -> Optional[bool]:
+    def _has_stabilizer_effect_(self) -> bool | None:
         return True
 
     def _act_on_(self, sim_state: cirq.SimulationStateBase, qubits: Sequence[cirq.Qid]) -> bool:

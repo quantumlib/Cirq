@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import json
 import warnings
 from unittest import mock
@@ -24,9 +26,9 @@ import cirq_ionq as ionq
 def test_job_fields():
     job_dict = {
         'id': 'my_id',
-        'target': 'qpu',
+        'backend': 'qpu',
         'name': 'bacon',
-        'qubits': '5',
+        'stats': {'qubits': '5'},
         'status': 'completed',
         'metadata': {'shots': 1000, 'measurement0': f'a{chr(31)}0,1'},
     }
@@ -42,9 +44,9 @@ def test_job_fields():
 def test_job_fields_multiple_circuits():
     job_dict = {
         'id': 'my_id',
-        'target': 'qpu',
+        'backend': 'qpu',
         'name': 'bacon',
-        'qubits': '5',
+        'stats': {'qubits': '5'},
         'status': 'completed',
         'metadata': {
             'shots': 1000,
@@ -85,8 +87,8 @@ def test_job_results_qpu():
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '2',
-        'target': 'qpu',
+        'stats': {'qubits': '2'},
+        'backend': 'qpu',
         'metadata': {'shots': 1000, 'measurement0': f'a{chr(31)}0,1'},
         'warning': {'messages': ['foo', 'bar']},
     }
@@ -97,7 +99,7 @@ def test_job_results_qpu():
         assert "foo" in str(w[0].message)
         assert "bar" in str(w[1].message)
     expected = ionq.QPUResult({0: 600, 1: 400}, 2, {'a': [0, 1]})
-    assert results[0] == expected
+    assert results == expected
 
 
 def test_batch_job_results_qpu():
@@ -109,8 +111,8 @@ def test_batch_job_results_qpu():
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '2',
-        'target': 'qpu',
+        'stats': {'qubits': '2'},
+        'backend': 'qpu',
         'metadata': {
             'shots': 1000,
             'measurements': json.dumps(
@@ -138,15 +140,15 @@ def test_job_results_rounding_qpu():
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '2',
-        'target': 'qpu',
+        'stats': {'qubits': '2'},
+        'backend': 'qpu',
         'metadata': {'shots': 5000, 'measurement0': f'a{chr(31)}0,1'},
     }
     # 5000*0.0006 ~ 2.9999 but should be interpreted as 3
     job = ionq.Job(mock_client, job_dict)
     expected = ionq.QPUResult({0: 3, 1: 4997}, 2, {'a': [0, 1]})
     results = job.results()
-    assert results[0] == expected
+    assert results == expected
 
 
 def test_job_results_failed():
@@ -171,13 +173,13 @@ def test_job_results_qpu_endianness():
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '2',
-        'target': 'qpu',
+        'stats': {'qubits': '2'},
+        'backend': 'qpu',
         'metadata': {'shots': 1000},
     }
     job = ionq.Job(mock_client, job_dict)
     results = job.results()
-    assert results[0] == ionq.QPUResult({0: 600, 2: 400}, 2, measurement_dict={})
+    assert results == ionq.QPUResult({0: 600, 2: 400}, 2, measurement_dict={})
 
 
 def test_batch_job_results_qpu_endianness():
@@ -188,8 +190,8 @@ def test_batch_job_results_qpu_endianness():
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '2',
-        'target': 'qpu',
+        'stats': {'qubits': '2'},
+        'backend': 'qpu',
         'metadata': {
             'shots': 1000,
             'measurements': json.dumps([{'measurement0': f'a{chr(31)}0,1'}]),
@@ -198,7 +200,7 @@ def test_batch_job_results_qpu_endianness():
     }
     job = ionq.Job(mock_client, job_dict)
     results = job.results()
-    assert results[0] == ionq.QPUResult({0: 600, 2: 400}, 2, measurement_dict={'a': [0, 1]})
+    assert results == ionq.QPUResult({0: 600, 2: 400}, 2, measurement_dict={'a': [0, 1]})
 
 
 def test_job_results_qpu_target_endianness():
@@ -207,14 +209,14 @@ def test_job_results_qpu_target_endianness():
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '2',
-        'target': 'qpu.target',
+        'stats': {'qubits': '2'},
+        'backend': 'qpu.target',
         'metadata': {'shots': 1000},
         'data': {'histogram': {'0': '0.6', '1': '0.4'}},
     }
     job = ionq.Job(mock_client, job_dict)
     results = job.results()
-    assert results[0] == ionq.QPUResult({0: 600, 2: 400}, 2, measurement_dict={})
+    assert results == ionq.QPUResult({0: 600, 2: 400}, 2, measurement_dict={})
 
 
 def test_batch_job_results_qpu_target_endianness():
@@ -225,8 +227,8 @@ def test_batch_job_results_qpu_target_endianness():
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '2',
-        'target': 'qpu.target',
+        'stats': {'qubits': '2'},
+        'backend': 'qpu.target',
         'metadata': {
             'shots': 1000,
             'measurements': json.dumps([{'measurement0': f'a{chr(31)}0,1'}]),
@@ -236,7 +238,7 @@ def test_batch_job_results_qpu_target_endianness():
     }
     job = ionq.Job(mock_client, job_dict)
     results = job.results()
-    assert results[0] == ionq.QPUResult({0: 600, 2: 400}, 2, measurement_dict={'a': [0, 1]})
+    assert results == ionq.QPUResult({0: 600, 2: 400}, 2, measurement_dict={'a': [0, 1]})
 
 
 @mock.patch('time.sleep', return_value=None)
@@ -245,8 +247,8 @@ def test_job_results_poll(mock_sleep):
     completed_job = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '1',
-        'target': 'qpu',
+        'stats': {'qubits': '1'},
+        'backend': 'qpu',
         'metadata': {'shots': 1000},
     }
     mock_client = mock.MagicMock()
@@ -254,7 +256,7 @@ def test_job_results_poll(mock_sleep):
     mock_client.get_results.return_value = {'0': '0.6', '1': '0.4'}
     job = ionq.Job(mock_client, ready_job)
     results = job.results(polling_seconds=0)
-    assert results[0] == ionq.QPUResult({0: 600, 1: 400}, 1, measurement_dict={})
+    assert results == ionq.QPUResult({0: 600, 1: 400}, 1, measurement_dict={})
     mock_sleep.assert_called_once()
 
 
@@ -286,13 +288,13 @@ def test_job_results_simulator():
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '1',
-        'target': 'simulator',
+        'stats': {'qubits': '1'},
+        'backend': 'simulator',
         'metadata': {'shots': '100'},
     }
     job = ionq.Job(mock_client, job_dict)
     results = job.results()
-    assert results[0] == ionq.SimulatorResult({0: 0.6, 1: 0.4}, 1, {}, 100)
+    assert results == ionq.SimulatorResult({0: 0.6, 1: 0.4}, 1, {}, 100)
 
 
 def test_batch_job_results_simulator():
@@ -304,8 +306,8 @@ def test_batch_job_results_simulator():
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '2',
-        'target': 'simulator',
+        'stats': {'qubits': '2'},
+        'backend': 'simulator',
         'metadata': {
             'shots': 1000,
             'measurements': json.dumps(
@@ -328,13 +330,13 @@ def test_job_results_simulator_endianness():
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '2',
-        'target': 'simulator',
+        'stats': {'qubits': '2'},
+        'backend': 'simulator',
         'metadata': {'shots': '100'},
     }
     job = ionq.Job(mock_client, job_dict)
     results = job.results()
-    assert results[0] == ionq.SimulatorResult({0: 0.6, 2: 0.4}, 2, {}, 100)
+    assert results == ionq.SimulatorResult({0: 0.6, 2: 0.4}, 2, {}, 100)
 
 
 def test_batch_job_results_simulator_endianness():
@@ -345,8 +347,8 @@ def test_batch_job_results_simulator_endianness():
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '2',
-        'target': 'simulator',
+        'stats': {'qubits': '2'},
+        'backend': 'simulator',
         'metadata': {
             'shots': 1000,
             'measurements': json.dumps([{'measurement0': f'a{chr(31)}0,1'}]),
@@ -355,7 +357,7 @@ def test_batch_job_results_simulator_endianness():
     }
     job = ionq.Job(mock_client, job_dict)
     results = job.results()
-    assert results[0] == ionq.SimulatorResult({0: 0.6, 2: 0.4}, 2, {'a': [0, 1]}, 1000)
+    assert results == ionq.SimulatorResult({0: 0.6, 2: 0.4}, 2, {'a': [0, 1]}, 1000)
 
 
 def test_job_sharpen_results():
@@ -364,13 +366,13 @@ def test_job_sharpen_results():
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
-        'qubits': '1',
-        'target': 'simulator',
+        'stats': {'qubits': '1'},
+        'backend': 'simulator',
         'metadata': {'shots': '100'},
     }
     job = ionq.Job(mock_client, job_dict)
     results = job.results(sharpen=False)
-    assert results[0] == ionq.SimulatorResult({0: 60, 1: 40}, 1, {}, 100)
+    assert results == ionq.SimulatorResult({0: 60, 1: 40}, 1, {}, 100)
 
 
 def test_job_cancel():
@@ -398,9 +400,9 @@ def test_job_delete():
 def test_job_fields_unsuccessful():
     job_dict = {
         'id': 'my_id',
-        'target': 'qpu',
+        'backend': 'qpu',
         'name': 'bacon',
-        'qubits': '5',
+        'stats': {'qubits': '5'},
         'status': 'deleted',
         'metadata': {'shots': 1000},
     }
@@ -418,9 +420,9 @@ def test_job_fields_unsuccessful():
 def test_job_fields_cannot_get_status():
     job_dict = {
         'id': 'my_id',
-        'target': 'qpu',
+        'backend': 'qpu',
         'name': 'bacon',
-        'qubits': '5',
+        'stats': {'qubits': '5'},
         'status': 'running',
         'metadata': {'shots': 1000},
     }
@@ -440,9 +442,9 @@ def test_job_fields_cannot_get_status():
 def test_job_fields_update_status():
     job_dict = {
         'id': 'my_id',
-        'target': 'qpu',
+        'backend': 'qpu',
         'name': 'bacon',
-        'qubits': '5',
+        'stats': {'qubits': '5'},
         'status': 'running',
         'metadata': {'shots': 1000},
     }

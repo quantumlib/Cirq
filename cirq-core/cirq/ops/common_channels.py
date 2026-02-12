@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import itertools
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from collections.abc import Iterable, Sequence
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -53,10 +54,10 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
 
     def __init__(
         self,
-        p_x: Optional[float] = None,
-        p_y: Optional[float] = None,
-        p_z: Optional[float] = None,
-        error_probabilities: Optional[Dict[str, float]] = None,
+        p_x: float | None = None,
+        p_y: float | None = None,
+        p_z: float | None = None,
+        error_probabilities: dict[str, float] | None = None,
         tol: float = 1e-8,
     ) -> None:
         r"""The asymmetric depolarizing channel.
@@ -110,7 +111,7 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
             self._num_qubits = 1
             self._error_probabilities = {'I': p_i, 'X': p_x, 'Y': p_y, 'Z': p_z}
 
-    def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
+    def _mixture_(self) -> Sequence[tuple[float, np.ndarray]]:
         ps = []
         for pauli in self._error_probabilities:
             Pi = np.identity(1)
@@ -141,15 +142,13 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
     def __str__(self) -> str:
         return 'asymmetric_depolarize(' + f"error_probabilities={self._error_probabilities})"
 
-    def _circuit_diagram_info_(
-        self, args: protocols.CircuitDiagramInfoArgs
-    ) -> Union[str, Iterable[str]]:
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs) -> str | Iterable[str]:
         if self._num_qubits == 1:
             if args.precision is not None:
                 return (
                     f"A({self.p_x:.{args.precision}g},"
-                    + f"{self.p_y:.{args.precision}g},"
-                    + f"{self.p_z:.{args.precision}g})"
+                    f"{self.p_y:.{args.precision}g},"
+                    f"{self.p_z:.{args.precision}g})"
                 )
             return f"A({self.p_x},{self.p_y},{self.p_z})"
         if args.precision is not None:
@@ -191,19 +190,19 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
         return self._error_probabilities.get('Z', 0.0)
 
     @property
-    def error_probabilities(self) -> Dict[str, float]:
+    def error_probabilities(self) -> dict[str, float]:
         """A dictionary from Pauli gates to probability"""
         return self._error_probabilities
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['error_probabilities'])
 
 
 def asymmetric_depolarize(
-    p_x: Optional[float] = None,
-    p_y: Optional[float] = None,
-    p_z: Optional[float] = None,
-    error_probabilities: Optional[Dict[str, float]] = None,
+    p_x: float | None = None,
+    p_y: float | None = None,
+    p_z: float | None = None,
+    error_probabilities: dict[str, float] | None = None,
     tol: float = 1e-8,
 ) -> AsymmetricDepolarizingChannel:
     r"""Returns an `AsymmetricDepolarizingChannel` with the given parameters.
@@ -296,7 +295,7 @@ class DepolarizingChannel(raw_types.Gate):
     def _qid_shape_(self):
         return (2,) * self._n_qubits
 
-    def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
+    def _mixture_(self) -> Sequence[tuple[float, np.ndarray]]:
         return self._delegate._mixture_()
 
     def _has_mixture_(self) -> bool:
@@ -315,8 +314,8 @@ class DepolarizingChannel(raw_types.Gate):
             return f"depolarize(p={self._p})"
         return f"depolarize(p={self._p},n_qubits={self._n_qubits})"
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs) -> Tuple[str, ...]:
-        result: Tuple[str, ...]
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs) -> tuple[str, ...]:
+        result: tuple[str, ...]
         if args.precision is not None:
             result = (f"D({self._p:.{args.precision}g})",)
         else:
@@ -339,7 +338,7 @@ class DepolarizingChannel(raw_types.Gate):
         """The number of qubits"""
         return self._n_qubits
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         if self._n_qubits == 1:
             return protocols.obj_to_dict_helper(self, ['p'])
         return protocols.obj_to_dict_helper(self, ['p', 'n_qubits'])
@@ -480,7 +479,7 @@ class GeneralizedAmplitudeDampingChannel(raw_types.Gate):
         """The probability of energy transfer."""
         return self._gamma
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['p', 'gamma'])
 
 
@@ -604,7 +603,7 @@ class AmplitudeDampingChannel(raw_types.Gate):
         """The probability of the interaction being dissipative."""
         return self._gamma
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['gamma'])
 
 
@@ -683,10 +682,10 @@ class ResetChannel(raw_types.Gate):
         """
         self._dimension = dimension
 
-    def _has_stabilizer_effect_(self) -> Optional[bool]:
+    def _has_stabilizer_effect_(self) -> bool | None:
         return True
 
-    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> str | None:
         args.validate_version('2.0', '3.0')
         return args.format('reset {0};\n', qubits[0])
 
@@ -752,7 +751,7 @@ class ResetChannel(raw_types.Gate):
         """The dimension of the qudit being reset."""
         return self._dimension
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['dimension'])
 
 
@@ -767,7 +766,7 @@ def reset(qubit: cirq.Qid) -> raw_types.Operation:
 R = reset
 
 
-def reset_each(*qubits: cirq.Qid) -> List[raw_types.Operation]:
+def reset_each(*qubits: cirq.Qid) -> list[raw_types.Operation]:
     """Returns a list of `cirq.ResetChannel` instances on the given qubits."""
     return [ResetChannel(q.dimension).on(q) for q in qubits]
 
@@ -863,7 +862,7 @@ class PhaseDampingChannel(raw_types.Gate):
         """The damping constant."""
         return self._gamma
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['gamma'])
 
 
@@ -942,7 +941,7 @@ class PhaseFlipChannel(raw_types.Gate):
     def _num_qubits_(self) -> int:
         return 1
 
-    def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
+    def _mixture_(self) -> Sequence[tuple[float, np.ndarray]]:
         mixture = self._delegate._mixture_()
         # just return identity and z term
         return (mixture[0], mixture[3])
@@ -970,7 +969,7 @@ class PhaseFlipChannel(raw_types.Gate):
         """The probability of a phase flip."""
         return self._p
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['p'])
 
 
@@ -1013,7 +1012,7 @@ def _phase_flip(p: float) -> PhaseFlipChannel:
     return PhaseFlipChannel(p)
 
 
-def phase_flip(p: Optional[float] = None) -> Union[common_gates.ZPowGate, PhaseFlipChannel]:
+def phase_flip(p: float | None = None) -> common_gates.ZPowGate | PhaseFlipChannel:
     r"""Returns a PhaseFlipChannel that flips a qubit's phase with probability p.
 
     If `p` is None, return a guaranteed phase flip in the form of a Z operation.
@@ -1095,7 +1094,7 @@ class BitFlipChannel(raw_types.Gate):
     def _num_qubits_(self) -> int:
         return 1
 
-    def _mixture_(self) -> Sequence[Tuple[float, Any]]:
+    def _mixture_(self) -> Sequence[tuple[float, Any]]:
         return ((1 - self._p, identity.I), (self._p, pauli_gates.X))
 
     def _has_mixture_(self) -> bool:
@@ -1121,7 +1120,7 @@ class BitFlipChannel(raw_types.Gate):
         """The probability of a bit flip."""
         return self._p
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['p'])
 
 
@@ -1159,7 +1158,7 @@ def _bit_flip(p: float) -> BitFlipChannel:
     return BitFlipChannel(p)
 
 
-def bit_flip(p: Optional[float] = None) -> Union[common_gates.XPowGate, BitFlipChannel]:
+def bit_flip(p: float | None = None) -> common_gates.XPowGate | BitFlipChannel:
     r"""Construct a BitFlipChannel that flips a qubit state with probability p.
 
     If p is None, this returns a guaranteed flip in the form of an X operation.

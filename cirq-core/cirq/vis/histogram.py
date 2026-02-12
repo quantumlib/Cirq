@@ -11,25 +11,29 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Mapping, Optional, Sequence, SupportsFloat, Union
+
+from __future__ import annotations
+
+from collections.abc import Mapping, Sequence
+from typing import Any, SupportsFloat
 
 import numpy as np
 from matplotlib import pyplot as plt
 
 
 def integrated_histogram(
-    data: Union[Sequence[SupportsFloat], Mapping[Any, SupportsFloat]],
-    ax: Optional[plt.Axes] = None,
+    data: Sequence[SupportsFloat] | Mapping[Any, SupportsFloat],
+    ax: plt.Axes | None = None,
     *,
     cdf_on_x: bool = False,
     axis_label: str = '',
     semilog: bool = True,
     median_line: bool = True,
-    median_label: Optional[str] = 'median',
+    median_label: str | None = 'median',
     mean_line: bool = False,
-    mean_label: Optional[str] = 'mean',
+    mean_label: str | None = 'mean',
     show_zero: bool = False,
-    title: Optional[str] = None,
+    title: str | None = None,
     **kwargs,
 ) -> plt.Axes:
     """Plot the integrated histogram for an array of data.

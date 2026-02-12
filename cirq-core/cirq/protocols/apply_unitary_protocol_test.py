@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
@@ -19,7 +21,7 @@ import cirq
 from cirq.protocols.apply_unitary_protocol import _incorporate_result_into_target
 
 
-def test_apply_unitary_presence_absence():
+def test_apply_unitary_presence_absence() -> None:
     m = np.diag([1, -1])
 
     class NoUnitaryEffect:
@@ -54,12 +56,13 @@ def test_apply_unitary_presence_absence():
             args.target_tensor[one] *= -1
             return args.target_tensor
 
-    fails = [NoUnitaryEffect(), HasApplyReturnsNotImplemented()]
+    fails = [NoUnitaryEffect(), HasApplyReturnsNotImplemented(), m * 2]
     passes = [
         HasUnitary(),
         HasApplyReturnsNotImplementedButHasUnitary(),
         HasApplyOutputInBuffer(),
         HasApplyMutateInline(),
+        m,
     ]
 
     def make_input():
@@ -99,7 +102,7 @@ def test_apply_unitary_presence_absence():
         )
 
 
-def test_apply_unitary_args_tensor_manipulation():
+def test_apply_unitary_args_tensor_manipulation() -> None:
     # All below are qubit swap operations with 1j global phase
 
     class ModifyTargetTensor:
@@ -212,7 +215,7 @@ def test_apply_unitary_args_tensor_manipulation():
             args.available_buffer[...] = 98
             return ret
 
-    operations = [
+    operations: list[cirq.SupportsConsistentApplyUnitary] = [
         ModifyTargetTensor(),
         TransposeTargetTensor(),
         ReshapeTargetTensor(),
@@ -237,6 +240,7 @@ def test_apply_unitary_args_tensor_manipulation():
             op_indices, tuple(qid_shape[i] for i in op_indices)
         )
         sub_result = val._apply_unitary_(sub_args)
+        assert isinstance(sub_result, np.ndarray)
         result = _incorporate_result_into_target(args, sub_args, sub_result)
         np.testing.assert_allclose(result, expected, atol=1e-8)
 
@@ -255,6 +259,7 @@ def test_apply_unitary_args_tensor_manipulation():
             op_indices, tuple(qid_shape[i] for i in op_indices)
         )
         sub_result = val._apply_unitary_(sub_args)
+        assert isinstance(sub_result, np.ndarray)
         result = _incorporate_result_into_target(args, sub_args, sub_result)
         np.testing.assert_allclose(result, expected, atol=1e-8, verbose=True)
 
@@ -263,7 +268,7 @@ def test_apply_unitary_args_tensor_manipulation():
         assert_is_swap(op)
 
 
-def test_big_endian_subspace_index():
+def test_big_endian_subspace_index() -> None:
     state = np.zeros(shape=(2, 3, 4, 5, 1, 6, 1, 1))
     args = cirq.ApplyUnitaryArgs(state, np.empty_like(state), [1, 3])
     s = slice(None)
@@ -271,12 +276,13 @@ def test_big_endian_subspace_index():
     assert args.subspace_index(big_endian_bits_int=1) == (s, 0, s, 1, s, s, s, s)
 
 
-def test_apply_unitaries():
+def test_apply_unitaries() -> None:
     a, b, c = cirq.LineQubit.range(3)
 
     result = cirq.apply_unitaries(
         unitary_values=[cirq.H(a), cirq.CNOT(a, b), cirq.H(c).controlled_by(b)], qubits=[a, b, c]
     )
+    assert result is not None
     np.testing.assert_allclose(
         result.reshape(8), [np.sqrt(0.5), 0, 0, 0, 0, 0, 0.5, 0.5], atol=1e-8
     )
@@ -285,6 +291,7 @@ def test_apply_unitaries():
     result = cirq.apply_unitaries(
         unitary_values=[cirq.H(a), cirq.CNOT(a, b), cirq.H(c).controlled_by(b)], qubits=[a, c, b]
     )
+    assert result is not None
     np.testing.assert_allclose(
         result.reshape(8), [np.sqrt(0.5), 0, 0, 0, 0, 0.5, 0, 0.5], atol=1e-8
     )
@@ -295,14 +302,17 @@ def test_apply_unitaries():
         qubits=[a, b, c],
         args=cirq.ApplyUnitaryArgs.default(num_qubits=3),
     )
+    assert result is not None
     np.testing.assert_allclose(
         result.reshape(8), [np.sqrt(0.5), 0, 0, 0, 0, 0, 0.5, 0.5], atol=1e-8
     )
 
     # Empty.
     result = cirq.apply_unitaries(unitary_values=[], qubits=[])
+    assert result is not None
     np.testing.assert_allclose(result, [1])
     result = cirq.apply_unitaries(unitary_values=[], qubits=[], default=None)
+    assert result is not None
     np.testing.assert_allclose(result, [1])
 
     # Non-unitary operation.
@@ -324,7 +334,7 @@ def test_apply_unitaries():
         )
 
 
-def test_apply_unitaries_mixed_qid_shapes():
+def test_apply_unitaries_mixed_qid_shapes() -> None:
     class PlusOneMod3Gate(cirq.testing.SingleQubitGate):
         def _qid_shape_(self):
             return (3,)
@@ -355,6 +365,7 @@ def test_apply_unitaries_mixed_qid_shapes():
         ],
         qubits=[a, b],
     )
+    assert result is not None
     np.testing.assert_allclose(result.reshape(12), [1] + [0] * 11, atol=1e-8)
 
     result = cirq.apply_unitaries(
@@ -374,6 +385,7 @@ def test_apply_unitaries_mixed_qid_shapes():
             axes=(0, 1),
         ),
     )
+    assert result is not None
     np.testing.assert_allclose(result.reshape(12, 12), np.eye(12), atol=1e-8)
 
     result = cirq.apply_unitaries(
@@ -400,6 +412,7 @@ def test_apply_unitaries_mixed_qid_shapes():
             axes=(0, 1),
         ),
     )
+    assert result is not None
     np.testing.assert_allclose(
         result.reshape(12, 12),
         np.array(
@@ -423,7 +436,7 @@ def test_apply_unitaries_mixed_qid_shapes():
 
 
 # fmt: off
-def test_subspace_size_2():
+def test_subspace_size_2() -> None:
     result = cirq.apply_unitary(
         unitary_value=cirq.X,
         args=cirq.ApplyUnitaryArgs(
@@ -510,7 +523,7 @@ def test_subspace_size_2():
     )
 
 
-def test_subspaces_size_3():
+def test_subspaces_size_3() -> None:
     plus_one_mod_3_gate = cirq.XPowGate(dimension=3)
 
     result = cirq.apply_unitary(
@@ -578,7 +591,7 @@ def test_subspaces_size_3():
     )
 
 
-def test_subspaces_size_1():
+def test_subspaces_size_1() -> None:
     phase_gate = cirq.MatrixGate(np.array([[1j]]))
 
     result = cirq.apply_unitary(
@@ -643,7 +656,7 @@ def test_subspaces_size_1():
 # fmt: on
 
 
-def test_invalid_subspaces():
+def test_invalid_subspaces() -> None:
     with pytest.raises(ValueError, match='Subspace specified does not exist in axis'):
         _ = cirq.ApplyUnitaryArgs(
             target_tensor=cirq.eye_tensor((2,), dtype=np.complex64),
@@ -674,7 +687,7 @@ def test_invalid_subspaces():
         )
 
 
-def test_incorporate_result_not_view():
+def test_incorporate_result_not_view() -> None:
     tensor = np.zeros((2, 2))
     tensor2 = np.zeros((2, 2))
     buffer = np.empty_like(tensor)
@@ -684,12 +697,12 @@ def test_incorporate_result_not_view():
         _incorporate_result_into_target(args, not_sub_args, tensor2)
 
 
-def test_default_method_arguments():
+def test_default_method_arguments() -> None:
     with pytest.raises(TypeError, match='exactly one of'):
         cirq.ApplyUnitaryArgs.default(1, qid_shape=(2,))
 
 
-def test_apply_unitary_args_with_axes_transposed_to_start():
+def test_apply_unitary_args_with_axes_transposed_to_start() -> None:
     target = np.zeros((2, 3, 4, 5))
     buffer = np.zeros((2, 3, 4, 5))
     args = cirq.ApplyUnitaryArgs(target, buffer, [1, 3])
@@ -706,7 +719,8 @@ def test_apply_unitary_args_with_axes_transposed_to_start():
     assert args.available_buffer[1, 2, 3, 4] == 2
 
 
-def test_cast_to_complex():
+def test_cast_to_complex() -> None:
+    y0: cirq.PauliString[cirq.LineQubit]
     y0 = cirq.PauliString({cirq.LineQubit(0): cirq.Y})
     state = 0.5 * np.eye(2)
     args = cirq.ApplyUnitaryArgs(
@@ -721,7 +735,7 @@ def test_cast_to_complex():
 
 
 class NotDecomposableGate(cirq.Gate):
-    def num_qubits(self):
+    def num_qubits(self) -> int:
         return 1
 
 
@@ -731,7 +745,7 @@ class DecomposableGate(cirq.Gate):
         self._sub_gate = sub_gate
         self._allocate_ancilla = allocate_ancilla
 
-    def num_qubits(self):
+    def num_qubits(self) -> int:
         return 1
 
     def _decompose_(self, qubits):
@@ -740,17 +754,16 @@ class DecomposableGate(cirq.Gate):
         yield self._sub_gate(qubits[0])
 
 
-def test_strat_apply_unitary_from_decompose():
+def test_strat_apply_unitary_from_decompose() -> None:
     state = np.eye(2, dtype=np.complex128)
     args = cirq.ApplyUnitaryArgs(
         target_tensor=state, available_buffer=np.zeros_like(state), axes=(0,)
     )
-    np.testing.assert_allclose(
-        cirq.apply_unitaries(
-            [DecomposableGate(cirq.X, False)(cirq.LineQubit(0))], [cirq.LineQubit(0)], args
-        ),
-        [[0, 1], [1, 0]],
+    result = cirq.apply_unitaries(
+        [DecomposableGate(cirq.X, False)(cirq.LineQubit(0))], [cirq.LineQubit(0)], args
     )
+    assert result is not None
+    np.testing.assert_allclose(result, [[0, 1], [1, 0]])
 
     with pytest.raises(TypeError):
         _ = cirq.apply_unitaries(
@@ -760,7 +773,7 @@ def test_strat_apply_unitary_from_decompose():
         )
 
 
-def test_unitary_construction():
+def test_unitary_construction() -> None:
     with pytest.raises(TypeError):
         _ = cirq.ApplyUnitaryArgs.for_unitary()
 

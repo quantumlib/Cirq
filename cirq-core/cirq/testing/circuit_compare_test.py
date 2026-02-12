@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
@@ -19,7 +21,7 @@ import cirq
 from cirq.testing.circuit_compare import _assert_apply_unitary_works_when_axes_transposed
 
 
-def test_sensitive_to_phase():
+def test_sensitive_to_phase() -> None:
     q = cirq.NamedQubit('q')
 
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
@@ -36,7 +38,7 @@ def test_sensitive_to_phase():
     )
 
 
-def test_sensitive_to_measurement_but_not_measured_phase():
+def test_sensitive_to_measurement_but_not_measured_phase() -> None:
     q = cirq.NamedQubit('q')
 
     with pytest.raises(AssertionError):
@@ -78,7 +80,7 @@ def test_sensitive_to_measurement_but_not_measured_phase():
     )
 
 
-def test_sensitive_to_measurement_toggle():
+def test_sensitive_to_measurement_toggle() -> None:
     q = cirq.NamedQubit('q')
 
     with pytest.raises(AssertionError):
@@ -101,7 +103,7 @@ def test_sensitive_to_measurement_toggle():
     )
 
 
-def test_measuring_qubits():
+def test_measuring_qubits() -> None:
     a, b = cirq.LineQubit.range(2)
 
     with pytest.raises(AssertionError):
@@ -124,7 +126,7 @@ def test_measuring_qubits():
 @pytest.mark.parametrize(
     'circuit', [cirq.testing.random_circuit(cirq.LineQubit.range(2), 4, 0.5) for _ in range(5)]
 )
-def test_random_same_matrix(circuit):
+def test_random_same_matrix(circuit) -> None:
     a, b = cirq.LineQubit.range(2)
     same = cirq.Circuit(
         cirq.MatrixGate(circuit.unitary(qubits_that_should_be_present=[a, b])).on(a, b)
@@ -138,7 +140,7 @@ def test_random_same_matrix(circuit):
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(mutable_circuit, same)
 
 
-def test_correct_qubit_ordering():
+def test_correct_qubit_ordering() -> None:
     a, b = cirq.LineQubit.range(2)
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
         cirq.Circuit(cirq.Z(a), cirq.Z(b), cirq.measure(b)),
@@ -152,7 +154,7 @@ def test_correct_qubit_ordering():
         )
 
 
-def test_known_old_failure():
+def test_known_old_failure() -> None:
     a, b = cirq.LineQubit.range(2)
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
         actual=cirq.Circuit(
@@ -168,7 +170,7 @@ def test_known_old_failure():
     )
 
 
-def test_assert_same_circuits():
+def test_assert_same_circuits() -> None:
     a, b = cirq.LineQubit.range(2)
 
     cirq.testing.assert_same_circuits(cirq.Circuit(cirq.H(a)), cirq.Circuit(cirq.H(a)))
@@ -189,7 +191,7 @@ def test_assert_same_circuits():
         )
 
 
-def test_assert_circuits_have_same_unitary_given_final_permutation():
+def test_assert_circuits_have_same_unitary_given_final_permutation() -> None:
     q = cirq.LineQubit.range(5)
     expected = cirq.Circuit([cirq.Moment(cirq.CNOT(q[2], q[1]), cirq.CNOT(q[3], q[0]))])
     actual = cirq.Circuit(
@@ -200,6 +202,7 @@ def test_assert_circuits_have_same_unitary_given_final_permutation():
             cirq.Moment(cirq.CNOT(q[3], q[2])),
         ]
     )
+    qubit_map: dict[cirq.Qid, cirq.Qid]
     qubit_map = {q[0]: q[2], q[2]: q[1], q[1]: q[0]}
     cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
         actual, expected, qubit_map
@@ -211,6 +214,7 @@ def test_assert_circuits_have_same_unitary_given_final_permutation():
             actual, expected, qubit_map=qubit_map
         )
 
+    bad_qubit_map: dict[cirq.Qid, cirq.Qid]
     bad_qubit_map = {q[0]: q[2], q[2]: q[4], q[4]: q[0]}
     with pytest.raises(ValueError, match="'qubit_map' must be a mapping"):
         cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
@@ -218,7 +222,7 @@ def test_assert_circuits_have_same_unitary_given_final_permutation():
         )
 
 
-def test_assert_has_diagram():
+def test_assert_has_diagram() -> None:
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.CNOT(a, b))
     cirq.testing.assert_has_diagram(
@@ -261,7 +265,7 @@ Highlighted differences:
     assert expected_error in ex_info.value.args[0]
 
 
-def test_assert_has_consistent_apply_channel():
+def test_assert_has_consistent_apply_channel() -> None:
     class Correct:
         def _apply_channel_(self, args: cirq.ApplyChannelArgs):
             args.target_tensor[...] = 0
@@ -327,7 +331,7 @@ def test_assert_has_consistent_apply_channel():
     cirq.testing.assert_has_consistent_apply_channel(NoApply())
 
 
-def test_assert_has_consistent_apply_unitary():
+def test_assert_has_consistent_apply_unitary() -> None:
     class IdentityReturningUnalteredWorkspace:
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
             return args.available_buffer
@@ -459,7 +463,7 @@ def test_assert_has_consistent_apply_unitary():
     cirq.testing.assert_has_consistent_apply_unitary(cirq.X.on(cirq.NamedQubit('q')))
 
 
-def test_assert_has_consistent_qid_shape():
+def test_assert_has_consistent_qid_shape() -> None:
     class ConsistentGate(cirq.Gate):
         def _num_qubits_(self):
             return 4
@@ -558,7 +562,7 @@ def test_assert_has_consistent_qid_shape():
     cirq.testing.assert_has_consistent_qid_shape(NoProtocol())
 
 
-def test_assert_apply_unitary_works_when_axes_transposed_failure():
+def test_assert_apply_unitary_works_when_axes_transposed_failure() -> None:
     class BadOp:
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs):
             # Get a more convenient view of the data.

@@ -22,10 +22,13 @@ API keys for classical simulators and quantum devices can be obtained at:
 
 """
 
+from __future__ import annotations
+
 import json
 import time
 import uuid
-from typing import Callable, cast, Dict, List, Literal, Sequence, Tuple, TypedDict, Union
+from collections.abc import Callable, Sequence
+from typing import cast, Literal, TypedDict
 from urllib.parse import urljoin
 
 import numpy as np
@@ -192,9 +195,9 @@ class AQTSampler(cirq.Sampler):
             return emit("No workspaces accessible with this access token contain resources.")
 
         col_widths = [
-            max([len(w['id']) for w in workspaces]),
-            max([len(d['name']) for w in workspaces for d in w['resources']]),
-            max([len(d['id']) for w in workspaces for d in w['resources']]),
+            max(len(w['id']) for w in workspaces),
+            max(len(d['name']) for w in workspaces for d in w['resources']),
+            max(len(d['id']) for w in workspaces for d in w['resources']),
             3,
         ]
         SEPARATOR = "+-" + "-+-".join(col_width * "-" for col_width in col_widths) + "-+"
@@ -249,16 +252,14 @@ class AQTSampler(cirq.Sampler):
             RuntimeError: If the circuit is empty.
         """
 
-        seq_list: List[Union[Tuple[str, float, List[int]], Tuple[str, float, float, List[int]]]] = (
-            []
-        )
+        seq_list: list[tuple[str, float, list[int]] | tuple[str, float, float, list[int]]] = []
         circuit = cirq.resolve_parameters(circuit, param_resolver)
         for op in circuit.all_operations():
-            line_qubit = cast(Tuple[cirq.LineQubit], op.qubits)
+            line_qubit = cast(tuple[cirq.LineQubit], op.qubits)
             op = cast(cirq.GateOperation, op)
             qubit_idx = [obj.x for obj in line_qubit]
             op_str = get_op_string(op)
-            gate: Union[cirq.EigenGate, cirq.PhasedXPowGate]
+            gate: cirq.EigenGate | cirq.PhasedXPowGate
             if op_str == 'R':
                 gate = cast(cirq.PhasedXPowGate, op.gate)
                 seq_list.append(
@@ -367,7 +368,7 @@ class AQTSampler(cirq.Sampler):
 
         response = post(submission_url, json=submission_data, headers=headers)
         response = response.json()
-        data = cast(Dict, response)
+        data = cast(dict, response)
 
         if 'response' not in data.keys() or 'status' not in data['response'].keys():
             raise RuntimeError('Got unexpected return data from server: \n' + str(data))
@@ -382,13 +383,13 @@ class AQTSampler(cirq.Sampler):
         while True:
             response = get(result_url, headers=headers)
             response = response.json()
-            data = cast(Dict, response)
+            data = cast(dict, response)
 
             if 'response' not in data.keys() or 'status' not in data['response'].keys():
                 raise RuntimeError('Got unexpected return data from AQT server: \n' + str(data))
             if data['response']['status'] == 'finished':
                 break
-            elif data['response']['status'] == 'error':
+            if data['response']['status'] == 'error':
                 raise RuntimeError('Got unexpected return data from AQT server: \n' + str(data))
             time.sleep(1.0)
 
@@ -424,7 +425,7 @@ class AQTSampler(cirq.Sampler):
         # TODO: Use measurement name from circuit.
         # Github issue: https://github.com/quantumlib/Cirq/issues/2199
         meas_name = 'm'
-        trial_results: List[cirq.Result] = []
+        trial_results: list[cirq.Result] = []
         for param_resolver in cirq.to_resolvers(params):
             id_str = str(uuid.uuid1())
             num_qubits = len(program.all_qubits())

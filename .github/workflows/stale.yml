@@ -63,7 +63,7 @@ jobs:
   stale:
     if: github.repository_owner == 'quantumlib'
     name: Label and/or close stale issues and PRs
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-slim
     timeout-minutes: 10
     permissions:
       issues: write
@@ -78,7 +78,7 @@ jobs:
         echo "exempt-pr-labels='$prs'" >> "$GITHUB_OUTPUT"
 
     - name: Label and/or close stale issues and/or PRs
-      uses: actions/stale@5bef64f19d7facfb25b37b414482c7164d639639 # v9
+      uses: actions/stale@997185467fa4f803885201cee163a9f38240193d # v10.1.1
       with:
         repo-token: ${{secrets.GITHUB_TOKEN}}
         debug-only: ${{inputs.debug || false}}

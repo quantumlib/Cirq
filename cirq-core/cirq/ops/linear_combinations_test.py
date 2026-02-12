@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import collections
-from typing import Union
 
 import numpy as np
 import pytest
@@ -35,7 +36,7 @@ q0, q1, q2, q3 = cirq.LineQubit.range(4)
         {cirq.TOFFOLI: 0.5j, cirq.FREDKIN: 0.5},
     ),
 )
-def test_linear_combination_of_gates_accepts_consistent_gates(terms):
+def test_linear_combination_of_gates_accepts_consistent_gates(terms) -> None:
     combination_1 = cirq.LinearCombinationOfGates(terms)
 
     combination_2 = cirq.LinearCombinationOfGates({})
@@ -56,7 +57,7 @@ def test_linear_combination_of_gates_accepts_consistent_gates(terms):
         {cirq.TOFFOLI: 0.5j, cirq.S: 0.5},
     ),
 )
-def test_linear_combination_of_gates_rejects_inconsistent_gates(terms):
+def test_linear_combination_of_gates_rejects_inconsistent_gates(terms) -> None:
     with pytest.raises(ValueError):
         cirq.LinearCombinationOfGates(terms)
 
@@ -71,7 +72,7 @@ def test_linear_combination_of_gates_rejects_inconsistent_gates(terms):
 
 
 @pytest.mark.parametrize('gate', (cirq.X, cirq.Y, cirq.XX, cirq.CZ, cirq.CSWAP, cirq.FREDKIN))
-def test_empty_linear_combination_of_gates_accepts_all_gates(gate):
+def test_empty_linear_combination_of_gates_accepts_all_gates(gate) -> None:
     combination = cirq.LinearCombinationOfGates({})
     combination[gate] = -0.5j
     assert len(combination) == 1
@@ -86,12 +87,12 @@ def test_empty_linear_combination_of_gates_accepts_all_gates(gate):
         ({cirq.CCZ: 0.1, cirq.CSWAP: 0.2}, 3),
     ),
 )
-def test_linear_combination_of_gates_has_correct_num_qubits(terms, expected_num_qubits):
+def test_linear_combination_of_gates_has_correct_num_qubits(terms, expected_num_qubits) -> None:
     combination = cirq.LinearCombinationOfGates(terms)
     assert combination.num_qubits() == expected_num_qubits
 
 
-def test_empty_linear_combination_of_gates_has_no_matrix():
+def test_empty_linear_combination_of_gates_has_no_matrix() -> None:
     empty = cirq.LinearCombinationOfGates({})
     assert empty.num_qubits() is None
     with pytest.raises(ValueError):
@@ -109,7 +110,7 @@ def test_empty_linear_combination_of_gates_has_no_matrix():
         ({cirq.CCZ: 3j}, np.diag([3j, 3j, 3j, 3j, 3j, 3j, 3j, -3j])),
     ),
 )
-def test_linear_combination_of_gates_has_correct_matrix(terms, expected_matrix):
+def test_linear_combination_of_gates_has_correct_matrix(terms, expected_matrix) -> None:
     combination = cirq.LinearCombinationOfGates(terms)
     assert np.all(combination.matrix() == expected_matrix)
 
@@ -127,7 +128,7 @@ def test_linear_combination_of_gates_has_correct_matrix(terms, expected_matrix):
         ),
     ),
 )
-def test_unitary_linear_combination_of_gates_has_correct_unitary(terms, expected_unitary):
+def test_unitary_linear_combination_of_gates_has_correct_unitary(terms, expected_unitary) -> None:
     combination = cirq.LinearCombinationOfGates(terms)
     assert cirq.has_unitary(combination)
     assert np.allclose(cirq.unitary(combination), expected_unitary)
@@ -136,7 +137,7 @@ def test_unitary_linear_combination_of_gates_has_correct_unitary(terms, expected
 @pytest.mark.parametrize(
     'terms', ({cirq.X: 2}, {cirq.Y ** sympy.Symbol('t'): 1}, {cirq.X: 1, cirq.S: 1})
 )
-def test_non_unitary_linear_combination_of_gates_has_no_unitary(terms):
+def test_non_unitary_linear_combination_of_gates_has_no_unitary(terms) -> None:
     combination = cirq.LinearCombinationOfGates(terms)
     assert not cirq.has_unitary(combination)
     with pytest.raises((TypeError, ValueError)):
@@ -159,7 +160,7 @@ def test_non_unitary_linear_combination_of_gates_has_no_unitary(terms):
         ),
     ),
 )
-def test_linear_combination_of_gates_has_correct_pauli_expansion(terms, expected_expansion):
+def test_linear_combination_of_gates_has_correct_pauli_expansion(terms, expected_expansion) -> None:
     combination = cirq.LinearCombinationOfGates(terms)
     actual_expansion = cirq.pauli_expansion(combination)
     assert set(actual_expansion.keys()) == set(expected_expansion.keys())
@@ -183,7 +184,7 @@ def test_linear_combination_of_gates_has_correct_pauli_expansion(terms, expected
         ({cirq.X: 0.4, cirq.Y: 0.4}, 0, {cirq.I: 1}),
     ),
 )
-def test_linear_combinations_of_gates_valid_powers(terms, exponent, expected_terms):
+def test_linear_combinations_of_gates_valid_powers(terms, exponent, expected_terms) -> None:
     combination = cirq.LinearCombinationOfGates(terms)
     actual_result = combination**exponent
     expected_result = cirq.LinearCombinationOfGates(expected_terms)
@@ -202,7 +203,7 @@ def test_linear_combinations_of_gates_valid_powers(terms, exponent, expected_ter
         ({cirq.Y: 1}, sympy.Symbol('k')),
     ),
 )
-def test_linear_combinations_of_gates_invalid_powers(terms, exponent):
+def test_linear_combinations_of_gates_invalid_powers(terms, exponent) -> None:
     combination = cirq.LinearCombinationOfGates(terms)
     with pytest.raises(TypeError):
         _ = combination**exponent
@@ -219,21 +220,21 @@ def test_linear_combinations_of_gates_invalid_powers(terms, exponent):
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
 def test_parameterized_linear_combination_of_gates(
     terms, is_parameterized, parameter_names, resolve_fn
-):
+) -> None:
     gate = cirq.LinearCombinationOfGates(terms)
     assert cirq.is_parameterized(gate) == is_parameterized
     assert cirq.parameter_names(gate) == parameter_names
-    resolved = resolve_fn(gate, {p: 1 for p in parameter_names})
+    resolved = resolve_fn(gate, dict.fromkeys(parameter_names, 1))
     assert not cirq.is_parameterized(resolved)
 
 
 def get_matrix(
-    operator: Union[
-        cirq.Gate,
-        cirq.GateOperation,
-        cirq.LinearCombinationOfGates,
-        cirq.LinearCombinationOfOperations,
-    ],
+    operator: (
+        cirq.Gate
+        | cirq.GateOperation
+        | cirq.LinearCombinationOfGates
+        | cirq.LinearCombinationOfOperations
+    ),
 ) -> np.ndarray:
     if isinstance(operator, (cirq.LinearCombinationOfGates, cirq.LinearCombinationOfOperations)):
         return operator.matrix()
@@ -241,8 +242,8 @@ def get_matrix(
 
 
 def assert_linear_combinations_are_equal(
-    actual: Union[cirq.LinearCombinationOfGates, cirq.LinearCombinationOfOperations],
-    expected: Union[cirq.LinearCombinationOfGates, cirq.LinearCombinationOfOperations],
+    actual: cirq.LinearCombinationOfGates | cirq.LinearCombinationOfOperations,
+    expected: cirq.LinearCombinationOfGates | cirq.LinearCombinationOfOperations,
 ) -> None:
     if not actual and not expected:
         assert len(actual) == 0
@@ -291,7 +292,7 @@ def assert_linear_combinations_are_equal(
         ((cirq.X + cirq.Z) * sympy.Symbol('s') / np.sqrt(2), cirq.H * sympy.Symbol('s')),
     ),
 )
-def test_gate_expressions(expression, expected_result):
+def test_gate_expressions(expression, expected_result) -> None:
     assert_linear_combinations_are_equal(expression, expected_result)
 
 
@@ -303,7 +304,7 @@ def test_gate_expressions(expression, expected_result):
         (cirq.TOFFOLI, cirq.TOFFOLI, cirq.FREDKIN),
     ),
 )
-def test_in_place_manipulations_of_linear_combination_of_gates(gates):
+def test_in_place_manipulations_of_linear_combination_of_gates(gates) -> None:
     a = cirq.LinearCombinationOfGates({})
     b = cirq.LinearCombinationOfGates({})
 
@@ -332,7 +333,7 @@ def test_in_place_manipulations_of_linear_combination_of_gates(gates):
         cirq.PauliString({q0: cirq.X, q1: cirq.Y, q2: cirq.Z}),
     ),
 )
-def test_empty_linear_combination_of_operations_accepts_all_operations(op):
+def test_empty_linear_combination_of_operations_accepts_all_operations(op) -> None:
     combination = cirq.LinearCombinationOfOperations({})
     combination[op] = -0.5j
     assert len(combination) == 1
@@ -347,7 +348,7 @@ def test_empty_linear_combination_of_operations_accepts_all_operations(op):
         {cirq.X(q0): 1 + 1j, cirq.CZ(q1, q2): 0.5},
     ),
 )
-def test_linear_combination_of_operations_is_consistent(terms):
+def test_linear_combination_of_operations_is_consistent(terms) -> None:
     combination_1 = cirq.LinearCombinationOfOperations(terms)
 
     combination_2 = cirq.LinearCombinationOfOperations({})
@@ -370,7 +371,7 @@ def test_linear_combination_of_operations_is_consistent(terms):
         ({cirq.Z(q0): -1j, cirq.CNOT(q1, q2): 0.25}, (q0, q1, q2)),
     ),
 )
-def test_linear_combination_of_operations_has_correct_qubits(terms, expected_qubits):
+def test_linear_combination_of_operations_has_correct_qubits(terms, expected_qubits) -> None:
     combination = cirq.LinearCombinationOfOperations(terms)
     assert combination.qubits == expected_qubits
 
@@ -589,7 +590,7 @@ def test_linear_combination_of_operations_has_correct_qubits(terms, expected_qub
         ),
     ),
 )
-def test_linear_combination_of_operations_has_correct_matrix(terms, expected_matrix):
+def test_linear_combination_of_operations_has_correct_matrix(terms, expected_matrix) -> None:
     combination = cirq.LinearCombinationOfOperations(terms)
     assert np.allclose(combination.matrix(), expected_matrix)
 
@@ -621,7 +622,9 @@ def test_linear_combination_of_operations_has_correct_matrix(terms, expected_mat
         ),
     ),
 )
-def test_unitary_linear_combination_of_operations_has_correct_unitary(terms, expected_unitary):
+def test_unitary_linear_combination_of_operations_has_correct_unitary(
+    terms, expected_unitary
+) -> None:
     combination = cirq.LinearCombinationOfOperations(terms)
     assert cirq.has_unitary(combination)
     assert np.allclose(cirq.unitary(combination), expected_unitary)
@@ -635,7 +638,7 @@ def test_unitary_linear_combination_of_operations_has_correct_unitary(terms, exp
         {cirq.X(q0): 1, cirq.S(q0): 1},
     ),
 )
-def test_non_unitary_linear_combination_of_operations_has_no_unitary(terms):
+def test_non_unitary_linear_combination_of_operations_has_no_unitary(terms) -> None:
     combination = cirq.LinearCombinationOfOperations(terms)
     assert not cirq.has_unitary(combination)
     with pytest.raises((TypeError, ValueError)):
@@ -675,7 +678,9 @@ def test_non_unitary_linear_combination_of_operations_has_no_unitary(terms):
         ),
     ),
 )
-def test_linear_combination_of_operations_has_correct_pauli_expansion(terms, expected_expansion):
+def test_linear_combination_of_operations_has_correct_pauli_expansion(
+    terms, expected_expansion
+) -> None:
     combination = cirq.LinearCombinationOfOperations(terms)
     actual_expansion = cirq.pauli_expansion(combination)
     assert set(actual_expansion.keys()) == set(expected_expansion.keys())
@@ -699,7 +704,7 @@ def test_linear_combination_of_operations_has_correct_pauli_expansion(terms, exp
         ({cirq.Y(q1): 2, cirq.Z(q1): 3}, 0, {cirq.I(q1): 1}),
     ),
 )
-def test_linear_combinations_of_operations_valid_powers(terms, exponent, expected_terms):
+def test_linear_combinations_of_operations_valid_powers(terms, exponent, expected_terms) -> None:
     combination = cirq.LinearCombinationOfOperations(terms)
     actual_result = combination**exponent
     expected_result = cirq.LinearCombinationOfOperations(expected_terms)
@@ -719,7 +724,7 @@ def test_linear_combinations_of_operations_valid_powers(terms, exponent, expecte
         ({cirq.X(q0): 1}, sympy.Symbol('k')),
     ),
 )
-def test_linear_combinations_of_operations_invalid_powers(terms, exponent):
+def test_linear_combinations_of_operations_invalid_powers(terms, exponent) -> None:
     combination = cirq.LinearCombinationOfOperations(terms)
     with pytest.raises(TypeError):
         _ = combination**exponent
@@ -736,11 +741,11 @@ def test_linear_combinations_of_operations_invalid_powers(terms, exponent):
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
 def test_parameterized_linear_combination_of_ops(
     terms, is_parameterized, parameter_names, resolve_fn
-):
+) -> None:
     op = cirq.LinearCombinationOfOperations(terms)
     assert cirq.is_parameterized(op) == is_parameterized
     assert cirq.parameter_names(op) == parameter_names
-    resolved = resolve_fn(op, {p: 1 for p in parameter_names})
+    resolved = resolve_fn(op, dict.fromkeys(parameter_names, 1))
     assert not cirq.is_parameterized(resolved)
 
 
@@ -809,11 +814,11 @@ def test_parameterized_linear_combination_of_ops(
         ),
     ),
 )
-def test_operation_expressions(expression, expected_result):
+def test_operation_expressions(expression, expected_result) -> None:
     assert_linear_combinations_are_equal(expression, expected_result)
 
 
-def test_pauli_sum_construction():
+def test_pauli_sum_construction() -> None:
     q = cirq.LineQubit.range(2)
     pstr1 = cirq.X(q[0]) * cirq.X(q[1])
     pstr2 = cirq.Y(q[0]) * cirq.Y(q[1])
@@ -838,7 +843,7 @@ def test_pauli_sum_construction():
         ),
     ),
 )
-def test_unitary_pauli_sum_has_correct_unitary(psum, expected_unitary):
+def test_unitary_pauli_sum_has_correct_unitary(psum, expected_unitary) -> None:
     assert cirq.has_unitary(psum)
     assert np.allclose(cirq.unitary(psum), expected_unitary)
 
@@ -851,7 +856,7 @@ def test_unitary_pauli_sum_has_correct_unitary(psum, expected_unitary):
         cirq.X(q0) * cirq.Z(q1) - cirq.Z(q1) * cirq.X(q0),
     ),
 )
-def test_non_pauli_sum_has_no_unitary(psum):
+def test_non_pauli_sum_has_no_unitary(psum) -> None:
     assert isinstance(psum, cirq.PauliSum)
     assert not cirq.has_unitary(psum)
     with pytest.raises(ValueError):
@@ -868,7 +873,7 @@ def test_non_pauli_sum_has_no_unitary(psum):
         (cirq.X(q0) * cirq.Y(q1) + cirq.Y(q1) * cirq.Z(q3), (q0, q1, q3)),
     ),
 )
-def test_pauli_sum_qubits(psum, expected_qubits):
+def test_pauli_sum_qubits(psum, expected_qubits) -> None:
     assert psum.qubits == expected_qubits
 
 
@@ -883,7 +888,7 @@ def test_pauli_sum_qubits(psum, expected_qubits):
         ),
     ),
 )
-def test_pauli_sum_with_qubits(psum, expected_psum):
+def test_pauli_sum_with_qubits(psum, expected_psum) -> None:
     if len(expected_psum.qubits) == len(psum.qubits):
         assert psum.with_qubits(*expected_psum.qubits) == expected_psum
     else:
@@ -891,7 +896,7 @@ def test_pauli_sum_with_qubits(psum, expected_psum):
             psum.with_qubits(*expected_psum.qubits)
 
 
-def test_pauli_sum_from_single_pauli():
+def test_pauli_sum_from_single_pauli() -> None:
     q = cirq.LineQubit.range(2)
     psum1 = cirq.X(q[0]) + cirq.Y(q[1])
     assert psum1 == cirq.PauliSum.from_pauli_strings([cirq.X(q[0]) * 1, cirq.Y(q[1]) * 1])
@@ -905,7 +910,7 @@ def test_pauli_sum_from_single_pauli():
     assert psum3 == psum2
 
 
-def test_pauli_sub():
+def test_pauli_sub() -> None:
     q = cirq.LineQubit.range(2)
     pstr1 = cirq.X(q[0]) * cirq.X(q[1])
     pstr2 = cirq.Y(q[0]) * cirq.Y(q[1])
@@ -915,7 +920,7 @@ def test_pauli_sub():
     assert psum == psum2
 
 
-def test_pauli_sub_simplify():
+def test_pauli_sub_simplify() -> None:
     q = cirq.LineQubit.range(2)
     pstr1 = cirq.X(q[0]) * cirq.X(q[1])
     pstr2 = cirq.X(q[0]) * cirq.X(q[1])
@@ -925,7 +930,7 @@ def test_pauli_sub_simplify():
     assert psum == psum2
 
 
-def test_pauli_sum_neg():
+def test_pauli_sum_neg() -> None:
     q = cirq.LineQubit.range(2)
     pstr1 = cirq.X(q[0]) * cirq.X(q[1])
     pstr2 = cirq.Y(q[0]) * cirq.Y(q[1])
@@ -940,12 +945,12 @@ def test_pauli_sum_neg():
     assert psum1 == -psum2
 
 
-def test_paulisum_validation():
+def test_paulisum_validation() -> None:
     q = cirq.LineQubit.range(2)
     pstr1 = cirq.X(q[0]) * cirq.X(q[1])
     pstr2 = cirq.Y(q[0]) * cirq.Y(q[1])
     with pytest.raises(ValueError) as e:
-        cirq.PauliSum([pstr1, pstr2])
+        cirq.PauliSum([pstr1, pstr2])  # type: ignore[arg-type]
     assert e.match("Consider using")
 
     with pytest.raises(ValueError):
@@ -958,27 +963,37 @@ def test_paulisum_validation():
         cirq.PauliSum(ld)
 
     with pytest.raises(ValueError):
-        key = frozenset([(q[0], cirq.H)])
-        ld = cirq.LinearDict({key: 2.0})
+        key1 = frozenset([(q[0], cirq.H)])
+        ld = cirq.LinearDict({key1: 2.0})
         cirq.PauliSum(ld)
 
-    key = frozenset([(q[0], cirq.X)])
-    ld = cirq.LinearDict({key: 2.0})
+    key2 = frozenset([(q[0], cirq.X)])
+    ld = cirq.LinearDict({key2: 2.0})
     assert cirq.PauliSum(ld) == cirq.PauliSum.from_pauli_strings([2 * cirq.X(q[0])])
 
     ps = cirq.PauliSum()
     ps += cirq.I(cirq.LineQubit(0))
     assert ps == cirq.PauliSum(cirq.LinearDict({frozenset(): complex(1)}))
 
+    ps = cirq.I(cirq.LineQubit(0)) + cirq.PauliSum()
+    assert ps == cirq.PauliSum(cirq.LinearDict({frozenset(): complex(1)}))
 
-def test_add_number_paulisum():
+    ps = cirq.PauliSum()
+    ps -= cirq.I(cirq.LineQubit(0))
+    assert ps == cirq.PauliSum(cirq.LinearDict({frozenset(): complex(-1)}))
+
+    ps = cirq.I(cirq.LineQubit(0)) - cirq.PauliSum()
+    assert ps == cirq.PauliSum(cirq.LinearDict({frozenset(): complex(1)}))
+
+
+def test_add_number_paulisum() -> None:
     q = cirq.LineQubit.range(2)
     pstr1 = cirq.X(q[0]) * cirq.X(q[1])
     psum = cirq.PauliSum.from_pauli_strings([pstr1]) + 1.3
     assert psum == cirq.PauliSum.from_pauli_strings([pstr1, cirq.PauliString({}, 1.3)])
 
 
-def test_add_number_paulistring():
+def test_add_number_paulistring() -> None:
     a, b = cirq.LineQubit.range(2)
     pstr1 = cirq.X(a) * cirq.X(b)
     psum = pstr1 + 1.3
@@ -999,8 +1014,24 @@ def test_add_number_paulistring():
         == cirq.PauliSum.from_pauli_strings([cirq.PauliString() * 2, cirq.PauliString({a: cirq.X})])
     )
 
+    assert (
+        cirq.X(a) - 2
+        == -2 + cirq.X(a)
+        == cirq.PauliSum.from_pauli_strings(
+            [cirq.PauliString() * -2, cirq.PauliString({a: cirq.X})]
+        )
+    )
 
-def test_pauli_sum_formatting():
+    assert (
+        2 - cirq.X(a)
+        == 2 + -cirq.X(a)
+        == cirq.PauliSum.from_pauli_strings(
+            [cirq.PauliString() * 2, -cirq.PauliString({a: cirq.X})]
+        )
+    )
+
+
+def test_pauli_sum_formatting() -> None:
     q = cirq.LineQubit.range(2)
     pauli = cirq.X(q[0])
     assert str(pauli) == 'X(q(0))'
@@ -1018,7 +1049,7 @@ def test_pauli_sum_formatting():
     assert str(empty) == "0.000"
 
 
-def test_pauli_sum_matrix():
+def test_pauli_sum_matrix() -> None:
     q = cirq.LineQubit.range(3)
     paulisum = cirq.X(q[0]) * cirq.X(q[1]) + cirq.Z(q[0])
     H1 = np.array(
@@ -1047,7 +1078,7 @@ def test_pauli_sum_matrix():
     assert np.allclose(H3, paulisum.matrix([q[1], q[2], q[0]]))
 
 
-def test_pauli_sum_repr():
+def test_pauli_sum_repr() -> None:
     q = cirq.LineQubit.range(2)
     pstr1 = cirq.X(q[0]) * cirq.X(q[1])
     pstr2 = cirq.Y(q[0]) * cirq.Y(q[1])
@@ -1055,7 +1086,7 @@ def test_pauli_sum_repr():
     cirq.testing.assert_equivalent_repr(psum)
 
 
-def test_bad_arithmetic():
+def test_bad_arithmetic() -> None:
     q = cirq.LineQubit.range(2)
     pstr1 = cirq.X(q[0]) * cirq.X(q[1])
     pstr2 = cirq.Y(q[0]) * cirq.Y(q[1])
@@ -1094,9 +1125,11 @@ def test_bad_arithmetic():
         _ = psum ** "string"
 
 
-def test_paulisum_mul_paulistring():
+def test_paulisum_mul_paulistring() -> None:
     q0, q1 = cirq.LineQubit.range(2)
 
+    x0: cirq.PauliString[cirq.LineQubit]
+    y1: cirq.PauliString[cirq.LineQubit]
     psum1 = cirq.X(q0) + 2 * cirq.Y(q0) + 3 * cirq.Z(q0)
     x0 = cirq.PauliString(cirq.X(q0))
     y1 = cirq.PauliString(cirq.Y(q1))
@@ -1116,7 +1149,7 @@ def test_paulisum_mul_paulistring():
     assert psum1 == -1j * cirq.Y(q0) + 2j * cirq.X(q0) + 3
 
 
-def test_paulisum_mul_paulisum():
+def test_paulisum_mul_paulisum() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
 
     psum1 = cirq.X(q0) + 2 * cirq.Y(q0) * cirq.Y(q1)
@@ -1153,7 +1186,7 @@ def test_paulisum_mul_paulisum():
     )
 
 
-def test_pauli_sum_pow():
+def test_pauli_sum_pow() -> None:
     identity = cirq.PauliSum.from_pauli_strings([cirq.PauliString(coefficient=1)])
     psum1 = cirq.X(q0) + cirq.Y(q0)
     assert psum1**2 == psum1 * psum1
@@ -1210,25 +1243,26 @@ def test_pauli_sum_pow():
         ('x0 ^ x1 ^ x2', ['(-0.5+0j)*Z(x0)*Z(x1)*Z(x2)', '(0.5+0j)*I']),
     ],
 )
-def test_from_boolean_expression(boolean_expr, expected_pauli_sum):
+def test_from_boolean_expression(boolean_expr, expected_pauli_sum) -> None:
     boolean = sympy_parser.parse_expr(boolean_expr)
     qubit_map = {name: cirq.NamedQubit(name) for name in sorted(cirq.parameter_names(boolean))}
     actual = cirq.PauliSum.from_boolean_expression(boolean, qubit_map)
-    # Instead of calling str() directly, first make sure that the items are sorted. This is to make
-    # the unit test more robut in case Sympy would result in a different parsing order. By sorting
-    # the individual items, we would have a canonical representation.
-    actual_items = list(sorted(str(pauli_string) for pauli_string in actual))
+    # Instead of calling str() directly, first make sure that the items are sorted and their
+    # coefficients normalized to have "+0j" imaginary component (instead of "-0j") as in the
+    # expected_pauli_sum.  This is to make the unit test more robust should Sympy change its
+    # parsing order.
+    actual_items = sorted(str(pauli_string).replace('-0j', '+0j') for pauli_string in actual)
     assert expected_pauli_sum == actual_items
 
 
-def test_unsupported_op():
+def test_unsupported_op() -> None:
     not_a_boolean = sympy_parser.parse_expr('x * x')
     qubit_map = {name: cirq.NamedQubit(name) for name in cirq.parameter_names(not_a_boolean)}
     with pytest.raises(ValueError, match='Unsupported type'):
         cirq.PauliSum.from_boolean_expression(not_a_boolean, qubit_map)
 
 
-def test_imul_aliasing():
+def test_imul_aliasing() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     psum1 = cirq.X(q0) + cirq.Y(q1)
     psum2 = psum1
@@ -1237,7 +1271,7 @@ def test_imul_aliasing():
     assert psum1 == psum2
 
 
-def test_expectation_from_state_vector_invalid_input():
+def test_expectation_from_state_vector_invalid_input() -> None:
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     psum = cirq.X(q0) + 2 * cirq.Y(q1) + 3 * cirq.Z(q3)
     q_map = {q0: 0, q1: 1, q3: 2}
@@ -1280,7 +1314,7 @@ def test_expectation_from_state_vector_invalid_input():
         psum.expectation_from_state_vector(wf.reshape((4, 4, 1)), q_map_2)
 
 
-def test_expectation_from_state_vector_check_preconditions():
+def test_expectation_from_state_vector_check_preconditions() -> None:
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     psum = cirq.X(q0) + 2 * cirq.Y(q1) + 3 * cirq.Z(q3)
     q_map = {q0: 0, q1: 1, q2: 2, q3: 3}
@@ -1293,7 +1327,7 @@ def test_expectation_from_state_vector_check_preconditions():
     )
 
 
-def test_expectation_from_state_vector_basis_states():
+def test_expectation_from_state_vector_basis_states() -> None:
     q = cirq.LineQubit.range(2)
     psum = cirq.X(q[0]) + 2 * cirq.Y(q[0]) + 3 * cirq.Z(q[0])
     q_map = {x: i for i, x in enumerate(q)}
@@ -1330,7 +1364,7 @@ def test_expectation_from_state_vector_basis_states():
     )
 
 
-def test_expectation_from_state_vector_two_qubit_states():
+def test_expectation_from_state_vector_two_qubit_states() -> None:
     q = cirq.LineQubit.range(2)
     q_map = {x: i for i, x in enumerate(q)}
 
@@ -1366,7 +1400,7 @@ def test_expectation_from_state_vector_two_qubit_states():
         )
 
 
-def test_expectation_from_density_matrix_invalid_input():
+def test_expectation_from_density_matrix_invalid_input() -> None:
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     psum = cirq.X(q0) + 2 * cirq.Y(q1) + 3 * cirq.Z(q3)
     q_map = {q0: 0, q1: 1, q3: 2}
@@ -1419,10 +1453,10 @@ def test_expectation_from_density_matrix_invalid_input():
     with pytest.raises(ValueError, match='shape'):
         psum.expectation_from_density_matrix(rho.reshape((8, 8, 1)), q_map)
     with pytest.raises(ValueError, match='shape'):
-        psum.expectation_from_density_matrix(rho.reshape((-1)), q_map)
+        psum.expectation_from_density_matrix(rho.reshape((-1,)), q_map)
 
 
-def test_expectation_from_density_matrix_check_preconditions():
+def test_expectation_from_density_matrix_check_preconditions() -> None:
     q0, q1, _, q3 = cirq.LineQubit.range(4)
     psum = cirq.X(q0) + 2 * cirq.Y(q1) + 3 * cirq.Z(q3)
     q_map = {q0: 0, q1: 1, q3: 2}
@@ -1436,7 +1470,7 @@ def test_expectation_from_density_matrix_check_preconditions():
     _ = psum.expectation_from_density_matrix(not_psd, q_map, check_preconditions=False)
 
 
-def test_expectation_from_density_matrix_basis_states():
+def test_expectation_from_density_matrix_basis_states() -> None:
     q = cirq.LineQubit.range(2)
     psum = cirq.X(q[0]) + 2 * cirq.Y(q[0]) + 3 * cirq.Z(q[0])
     q_map = {x: i for i, x in enumerate(q)}
@@ -1471,7 +1505,7 @@ def test_expectation_from_density_matrix_basis_states():
     )
 
 
-def test_expectation_from_density_matrix_two_qubit_states():
+def test_expectation_from_density_matrix_two_qubit_states() -> None:
     q = cirq.LineQubit.range(2)
     q_map = {x: i for i, x in enumerate(q)}
 
@@ -1502,7 +1536,7 @@ def test_expectation_from_density_matrix_two_qubit_states():
         )
 
 
-def test_projector_sum_expectations_matrix():
+def test_projector_sum_expectations_matrix() -> None:
     q0 = cirq.NamedQubit('q0')
 
     zero_projector_sum = cirq.ProjectorSum.from_projector_strings(
@@ -1519,7 +1553,7 @@ def test_projector_sum_expectations_matrix():
     )
 
 
-def test_projector_sum_expectations_from_state_vector():
+def test_projector_sum_expectations_from_state_vector() -> None:
     q0 = cirq.NamedQubit('q0')
 
     zero_projector_sum = cirq.ProjectorSum.from_projector_strings(
@@ -1540,7 +1574,7 @@ def test_projector_sum_expectations_from_state_vector():
     )
 
 
-def test_projector_sum_expectations_from_density_matrix():
+def test_projector_sum_expectations_from_density_matrix() -> None:
     q0 = cirq.NamedQubit('q0')
 
     zero_projector_sum = cirq.ProjectorSum.from_projector_strings(
@@ -1562,7 +1596,7 @@ def test_projector_sum_expectations_from_density_matrix():
     )
 
 
-def test_projector_sum_accessor():
+def test_projector_sum_accessor() -> None:
     q0 = cirq.NamedQubit('q0')
 
     projector_string_1 = cirq.ProjectorString({q0: 0}, 0.2016)
@@ -1577,7 +1611,7 @@ def test_projector_sum_accessor():
     assert expanded_projector_strings == [projector_string_1, projector_string_2]
 
 
-def test_projector_bool_operation():
+def test_projector_bool_operation() -> None:
     q0 = cirq.NamedQubit('q0')
 
     empty_projector_sum = cirq.ProjectorSum.from_projector_strings([])
@@ -1589,7 +1623,7 @@ def test_projector_bool_operation():
     assert non_empty_projector_sum
 
 
-def test_projector_sum_addition():
+def test_projector_sum_addition() -> None:
     q0 = cirq.NamedQubit('q0')
 
     zero_projector_sum = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 0}))
@@ -1607,10 +1641,10 @@ def test_projector_sum_addition():
     np.testing.assert_allclose(one_projector_sum.matrix().toarray(), [[0.0, 0.0], [0.0, 1.0]])
 
     with pytest.raises(TypeError):
-        _ = zero_projector_sum + 0.20160913
+        _ = zero_projector_sum + 0.20160913  # type: ignore[operator]
 
 
-def test_projector_sum_subtraction():
+def test_projector_sum_subtraction() -> None:
     q0 = cirq.NamedQubit('q0')
 
     zero_projector_sum = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 0}))
@@ -1628,10 +1662,10 @@ def test_projector_sum_subtraction():
     np.testing.assert_allclose(one_projector_sum.matrix().toarray(), [[0.0, 0.0], [0.0, 1.0]])
 
     with pytest.raises(TypeError):
-        _ = zero_projector_sum - 0.87539319
+        _ = zero_projector_sum - 0.87539319  # type: ignore[operator]
 
 
-def test_projector_sum_negation():
+def test_projector_sum_negation() -> None:
     q0 = cirq.NamedQubit('q0')
 
     zero_projector_sum = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 0}))
@@ -1643,7 +1677,7 @@ def test_projector_sum_negation():
     np.testing.assert_allclose(zero_projector_sum.matrix().toarray(), [[1.0, 0.0], [0.0, 0.0]])
 
 
-def test_projector_sum_incrementation():
+def test_projector_sum_incrementation() -> None:
     q0 = cirq.NamedQubit('q0')
 
     zero_projector_sum = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 0}))
@@ -1663,10 +1697,10 @@ def test_projector_sum_incrementation():
     np.testing.assert_allclose(one_projector_sum.matrix().toarray(), [[0.0, 0.0], [0.0, 1.0]])
 
     with pytest.raises(TypeError):
-        zero_projector_sum += 0.6963472309248
+        zero_projector_sum += 0.6963472309248  # type: ignore[arg-type]
 
 
-def test_projector_sum_decrementation():
+def test_projector_sum_decrementation() -> None:
     q0 = cirq.NamedQubit('q0')
 
     zero_projector_sum = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 0}))
@@ -1686,10 +1720,10 @@ def test_projector_sum_decrementation():
     np.testing.assert_allclose(one_projector_sum.matrix().toarray(), [[0.0, 0.0], [0.0, 1.0]])
 
     with pytest.raises(TypeError):
-        zero_projector_sum -= 0.12345
+        zero_projector_sum -= 0.12345  # type: ignore[arg-type]
 
 
-def test_projector_sum_multiplication_left():
+def test_projector_sum_multiplication_left() -> None:
     q0 = cirq.NamedQubit('q0')
 
     zero_projector_sum = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 0}))
@@ -1701,16 +1735,18 @@ def test_projector_sum_multiplication_left():
     np.testing.assert_allclose(multiplication_int.matrix().toarray(), [[2.0, 0.0], [0.0, 0.0]])
 
     multiplication_complex = 2j * zero_projector_sum
-    np.testing.assert_allclose(multiplication_complex.matrix().toarray(), [[2.0j, 0.0], [0.0, 0.0]])
+    np.testing.assert_allclose(
+        multiplication_complex.matrix().toarray(), [[2.0j, 0.0j], [0.0j, 0.0j]]
+    )
 
     # Check that the input is not changed:
     np.testing.assert_allclose(zero_projector_sum.matrix().toarray(), [[1.0, 0.0], [0.0, 0.0]])
 
     with pytest.raises(TypeError):
-        _ = 'not_the_correct_type' * zero_projector_sum
+        _ = 'not_the_correct_type' * zero_projector_sum  # type: ignore[operator]
 
 
-def test_projector_sum_multiplication_right():
+def test_projector_sum_multiplication_right() -> None:
     q0 = cirq.NamedQubit('q0')
 
     zero_projector_sum = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 0}))
@@ -1722,16 +1758,18 @@ def test_projector_sum_multiplication_right():
     np.testing.assert_allclose(multiplication_int.matrix().toarray(), [[2.0, 0.0], [0.0, 0.0]])
 
     multiplication_complex = zero_projector_sum * 2j
-    np.testing.assert_allclose(multiplication_complex.matrix().toarray(), [[2.0j, 0.0], [0.0, 0.0]])
+    np.testing.assert_allclose(
+        multiplication_complex.matrix().toarray(), [[2.0j, 0.0j], [0.0j, 0.0j]]
+    )
 
     # Check that the input is not changed:
-    np.testing.assert_allclose(zero_projector_sum.matrix().toarray(), [[1.0, 0.0], [0.0, 0.0]])
+    np.testing.assert_allclose(zero_projector_sum.matrix().toarray(), [[1.0, 0.0j], [0.0j, 0.0j]])
 
     with pytest.raises(TypeError):
-        _ = zero_projector_sum * 'not_the_correct_type'
+        _ = zero_projector_sum * 'not_the_correct_type'  # type: ignore[operator]
 
 
-def test_projector_sum_self_multiplication():
+def test_projector_sum_self_multiplication() -> None:
     q0 = cirq.NamedQubit('q0')
 
     zero_projector_sum = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 0}))
@@ -1746,13 +1784,15 @@ def test_projector_sum_self_multiplication():
 
     multiplication_complex = zero_projector_sum.copy()
     multiplication_complex *= 2j
-    np.testing.assert_allclose(multiplication_complex.matrix().toarray(), [[2.0j, 0.0], [0.0, 0.0]])
+    np.testing.assert_allclose(
+        multiplication_complex.matrix().toarray(), [[2.0j, 0.0j], [0.0j, 0.0j]]
+    )
 
     with pytest.raises(TypeError):
-        zero_projector_sum *= 'not_the_correct_type'
+        zero_projector_sum *= 'not_the_correct_type'  # type: ignore[arg-type]
 
 
-def test_projector_sum_weighted_sum():
+def test_projector_sum_weighted_sum() -> None:
     q0 = cirq.NamedQubit('q0')
 
     zero_projector_sum = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 0}))
@@ -1766,7 +1806,7 @@ def test_projector_sum_weighted_sum():
     np.testing.assert_allclose(one_projector_sum.matrix().toarray(), [[0.0, 0.0], [0.0, 1.0]])
 
 
-def test_projector_sum_division():
+def test_projector_sum_division() -> None:
     q0 = cirq.NamedQubit('q0')
 
     zero_projector_sum = cirq.ProjectorSum.from_projector_strings(cirq.ProjectorString({q0: 0}))
@@ -1778,13 +1818,15 @@ def test_projector_sum_division():
     np.testing.assert_allclose(true_division_int.matrix().toarray(), [[0.5, 0.0], [0.0, 0.0]])
 
     true_division_complex = zero_projector_sum / 2j
-    np.testing.assert_allclose(true_division_complex.matrix().toarray(), [[-0.5j, 0.0], [0.0, 0.0]])
+    np.testing.assert_allclose(
+        true_division_complex.matrix().toarray(), [[-0.5j, 0.0j], [0.0j, 0.0j]]
+    )
 
     # Check that the input is not changed:
     np.testing.assert_allclose(zero_projector_sum.matrix().toarray(), [[1.0, 0.0], [0.0, 0.0]])
 
     with pytest.raises(TypeError):
-        _ = zero_projector_sum / 'not_the_correct_type'
+        _ = zero_projector_sum / 'not_the_correct_type'  # type: ignore[operator]
 
 
 @pytest.mark.parametrize(
@@ -1796,6 +1838,6 @@ def test_projector_sum_division():
         ([cirq.ProjectorString({q0: 0, q1: 1})], (q0, q1)),
     ),
 )
-def test_projector_sum_has_correct_qubits(terms, expected_qubits):
+def test_projector_sum_has_correct_qubits(terms, expected_qubits) -> None:
     combination = cirq.ProjectorSum.from_projector_strings(terms)
     assert combination.qubits == expected_qubits

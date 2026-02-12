@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
 import random
+from collections.abc import Iterable
 
 import pytest
 
@@ -21,34 +24,35 @@ import cirq
 import cirq.contrib.acquaintance as cca
 
 
-def test_bad_qubit_pairs():
+def test_bad_qubit_pairs() -> None:
     a, b, c, d, e = cirq.LineQubit.range(5)
     bad_qubit_pairs = [(a, b), (c, d), (e,)]
     with pytest.raises(ValueError):
         cca.strategies.quartic_paired.qubit_pairs_to_qubit_order(bad_qubit_pairs)
 
 
-def random_index_pairs(n_pairs: int):
+def random_index_pairs(n_pairs: int) -> tuple[tuple[int, int], ...]:
     indices = list(range(2 * n_pairs))
     random.shuffle(indices)
-    return tuple(indices[2 * i : 2 * (i + 1)] for i in range(n_pairs))
+    return tuple(zip(indices[0::2], indices[1::2]))
 
 
 @pytest.mark.parametrize(
     'index_pairs', [random_index_pairs(n_pairs) for n_pairs in range(2, 7) for _ in range(2)]
 )
-def test_quartic_paired_acquaintances(index_pairs):
+def test_quartic_paired_acquaintances(index_pairs) -> None:
     n_pairs = len(index_pairs)
-    qubit_pairs = tuple(tuple(cirq.LineQubit(x) for x in index_pair) for index_pair in index_pairs)
+    qubit_pairs: Iterable[tuple[cirq.Qid, cirq.Qid]]
+    qubit_pairs = tuple((cirq.LineQubit(x), cirq.LineQubit(y)) for x, y in index_pairs)
     strategy, qubits = cca.quartic_paired_acquaintance_strategy(qubit_pairs)
-    initial_mapping = {q: q.x for q in qubits}
+    initial_mapping = {q: q.x for q in qubits}  # type: ignore[attr-defined]
     opps = cca.get_logical_acquaintance_opportunities(strategy, initial_mapping)
-    assert set(len(opp) for opp in opps) == set([2, 4])
-    quadratic_opps = set(opp for opp in opps if len(opp) == 2)
-    expected_quadratic_opps = set(
+    assert {len(opp) for opp in opps} == {2, 4}
+    quadratic_opps = {opp for opp in opps if len(opp) == 2}
+    expected_quadratic_opps = {
         frozenset(index_pair) for index_pair in itertools.combinations(range(2 * n_pairs), 2)
-    )
+    }
     assert quadratic_opps == expected_quadratic_opps
-    quartic_opps = set(opp for opp in opps if len(opp) == 4)
-    expected_quartic_opps = set(frozenset(I + J) for I, J in itertools.combinations(index_pairs, 2))
+    quartic_opps = {opp for opp in opps if len(opp) == 4}
+    expected_quartic_opps = {frozenset(I + J) for I, J in itertools.combinations(index_pairs, 2)}
     assert quartic_opps == expected_quartic_opps

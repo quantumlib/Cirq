@@ -31,7 +31,7 @@ All modules should depend on `cirq-core`, which is the central, core library for
 Each package gets published to PyPI as a separate package. To build all the wheel files locally, use
 
 ```bash
-dev_tools/packaging/produce-package.sh ./dist `./dev_tools/packaging/generate-dev-version-id.sh`
+dev_tools/packaging/produce-package.sh ./dist "$(./dev_tools/packaging/generate-dev-version-id.sh)"
 ```
 
 Packages are versioned together, share the same version number, and are released together.
@@ -52,7 +52,7 @@ To set up a new module follow these steps:
 1. Add the `<top_level_package>/json_resolver_cache.py` file
     ```python
     @functools.lru_cache()  # pragma: no cover
-    def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:  # pragma: no cover
+    def _class_resolver_dictionary() -> dict[str, ObjectFactory]:  # pragma: no cover
         return {}
     ```
 2. Register the resolver cache at _the end_ of the `<top_level_package>/__init__.py`:

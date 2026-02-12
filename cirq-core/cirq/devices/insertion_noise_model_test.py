@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cirq
 from cirq.devices.insertion_noise_model import InsertionNoiseModel
 from cirq.devices.noise_utils import OpIdentifier, PHYSICAL_GATE_TAG
 
 
-def test_insertion_noise():
+def test_insertion_noise() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     op_id0 = OpIdentifier(cirq.XPowGate, q0)
     op_id1 = OpIdentifier(cirq.ZPowGate, q1)
@@ -50,7 +52,7 @@ def test_insertion_noise():
     cirq.testing.assert_equivalent_repr(model)
 
 
-def test_colliding_noise_qubits():
+def test_colliding_noise_qubits() -> None:
     # Check that noise affecting other qubits doesn't cause issues.
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     op_id0 = OpIdentifier(cirq.CZPowGate)
@@ -66,7 +68,7 @@ def test_colliding_noise_qubits():
     cirq.testing.assert_equivalent_repr(model)
 
 
-def test_prepend():
+def test_prepend() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     op_id0 = OpIdentifier(cirq.XPowGate, q0)
     op_id1 = OpIdentifier(cirq.ZPowGate, q1)
@@ -81,7 +83,7 @@ def test_prepend():
     ]
 
 
-def test_require_physical_tag():
+def test_require_physical_tag() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     op_id0 = OpIdentifier(cirq.XPowGate, q0)
     op_id1 = OpIdentifier(cirq.ZPowGate, q1)
@@ -95,7 +97,7 @@ def test_require_physical_tag():
     ]
 
 
-def test_supertype_matching():
+def test_supertype_matching() -> None:
     # Demonstrate that the model applies the closest matching type
     # if multiple types match a given gate.
     q0 = cirq.LineQubit(0)

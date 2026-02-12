@@ -16,7 +16,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Iterator, List, Tuple
+from collections.abc import Iterator
+from typing import Any
 
 import cirq
 
@@ -88,7 +89,7 @@ class IonQTargetGateset(cirq.TwoQubitCompilationTargetGateset):
         return NotImplemented
 
     @property
-    def preprocess_transformers(self) -> List[cirq.TRANSFORMER]:
+    def preprocess_transformers(self) -> list[cirq.TRANSFORMER]:
         """List of transformers which should be run before decomposing individual operations.
 
         Decompose to three qubit gates because three qubit gates have different decomposition
@@ -101,7 +102,7 @@ class IonQTargetGateset(cirq.TwoQubitCompilationTargetGateset):
         ]
 
     @property
-    def postprocess_transformers(self) -> List[cirq.TRANSFORMER]:
+    def postprocess_transformers(self) -> list[cirq.TRANSFORMER]:
         """List of transformers which should be run after decomposing individual operations."""
         return [cirq.drop_negligible_operations, cirq.drop_empty_moments]
 
@@ -111,7 +112,7 @@ class IonQTargetGateset(cirq.TwoQubitCompilationTargetGateset):
     def _value_equality_values_(self) -> Any:
         return self.atol
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ['atol'])
 
     @classmethod
@@ -120,7 +121,7 @@ class IonQTargetGateset(cirq.TwoQubitCompilationTargetGateset):
 
 
 def decompose_all_to_all_connect_ccz_gate(
-    ccz_gate: cirq.CCZPowGate, qubits: Tuple[cirq.Qid, ...]
+    ccz_gate: cirq.CCZPowGate, qubits: tuple[cirq.Qid, ...]
 ) -> cirq.OP_TREE:
     """Decomposition of all-to-all connected qubits are different from line qubits or grid qubits.
 
@@ -143,7 +144,7 @@ def decompose_all_to_all_connect_ccz_gate(
     global_phase = 1j ** (2 * ccz_gate.global_shift * ccz_gate._exponent)
     global_phase = (
         complex(global_phase)
-        if cirq.is_parameterized(global_phase) and global_phase.is_complex  # type: ignore
+        if cirq.is_parameterized(global_phase) and global_phase.is_complex
         else global_phase
     )
     global_phase_operation = (

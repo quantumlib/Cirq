@@ -11,8 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Tests for channels."""
-from typing import Iterable, Sequence
+
+from __future__ import annotations
+
+from collections.abc import Iterable, Sequence
 
 import numpy as np
 import pytest
@@ -65,7 +69,7 @@ def compute_choi(channel: cirq.SupportsKraus) -> np.ndarray:
         ),
     ),
 )
-def test_kraus_to_choi(kraus_operators, expected_choi):
+def test_kraus_to_choi(kraus_operators, expected_choi) -> None:
     """Verifies that cirq.kraus_to_choi computes the correct Choi matrix."""
     assert np.allclose(cirq.kraus_to_choi(kraus_operators), expected_choi)
 
@@ -89,7 +93,7 @@ def test_kraus_to_choi(kraus_operators, expected_choi):
         ),
     ),
 )
-def test_choi_to_kraus_invalid_input(choi, error):
+def test_choi_to_kraus_invalid_input(choi, error) -> None:
     with pytest.raises(ValueError, match=error):
         _ = cirq.choi_to_kraus(choi)
 
@@ -143,7 +147,7 @@ def test_choi_to_kraus_invalid_input(choi, error):
         ),
     ),
 )
-def test_choi_to_kraus_fixed_values(choi, expected_kraus):
+def test_choi_to_kraus_fixed_values(choi, expected_kraus) -> None:
     """Verifies that cirq.choi_to_kraus gives correct results on a few fixed inputs."""
     actual_kraus = cirq.choi_to_kraus(choi)
     assert len(actual_kraus) == len(expected_kraus)
@@ -178,7 +182,7 @@ def test_choi_to_kraus_fixed_values(choi, expected_kraus):
         ),
     ),
 )
-def test_choi_to_kraus_action_on_operatorial_basis(choi):
+def test_choi_to_kraus_action_on_operatorial_basis(choi) -> None:
     """Verifies that cirq.choi_to_kraus computes a valid Kraus representation."""
     kraus_operators = cirq.choi_to_kraus(choi)
     c = np.reshape(choi, (2, 2, 2, 2))
@@ -217,14 +221,14 @@ def test_choi_to_kraus_action_on_operatorial_basis(choi):
         # fmt: on
     ),
 )
-def test_choi_to_kraus_inverse_of_kraus_to_choi(choi):
+def test_choi_to_kraus_inverse_of_kraus_to_choi(choi) -> None:
     """Verifies that cirq.kraus_to_choi(cirq.choi_to_kraus(.)) is identity on Choi matrices."""
     kraus = cirq.choi_to_kraus(choi)
     recovered_choi = cirq.kraus_to_choi(kraus)
     assert np.allclose(recovered_choi, choi)
 
 
-def test_choi_to_kraus_atol():
+def test_choi_to_kraus_atol() -> None:
     """Verifies that insignificant Kraus operators are omitted."""
     choi = cirq.kraus_to_choi(cirq.kraus(cirq.phase_damp(1e-6)))
     assert len(cirq.choi_to_kraus(choi, atol=1e-2)) == 1
@@ -242,7 +246,7 @@ def test_choi_to_kraus_atol():
         cirq.amplitude_damp(0.2),
     ),
 )
-def test_operation_to_choi(channel):
+def test_operation_to_choi(channel) -> None:
     """Verifies that cirq.operation_to_choi correctly computes the Choi matrix."""
     n_qubits = cirq.num_qubits(channel)
     actual = cirq.operation_to_choi(channel)
@@ -251,7 +255,7 @@ def test_operation_to_choi(channel):
     assert np.all(actual == expected)
 
 
-def test_choi_for_completely_dephasing_channel():
+def test_choi_for_completely_dephasing_channel() -> None:
     """Checks cirq.operation_to_choi on the completely dephasing channel."""
     assert np.all(cirq.operation_to_choi(cirq.phase_damp(1)) == np.diag([1, 0, 0, 1]))
 
@@ -268,7 +272,7 @@ def test_choi_for_completely_dephasing_channel():
         ),
     ),
 )
-def test_superoperator_to_kraus_fixed_values(superoperator, expected_kraus_operators):
+def test_superoperator_to_kraus_fixed_values(superoperator, expected_kraus_operators) -> None:
     """Verifies that cirq.kraus_to_superoperator computes the correct channel matrix."""
     actual_kraus_operators = cirq.superoperator_to_kraus(superoperator)
     for i in (0, 1):
@@ -306,14 +310,14 @@ def test_superoperator_to_kraus_fixed_values(superoperator, expected_kraus_opera
         # fmt: on
     ),
 )
-def test_superoperator_to_kraus_inverse_of_kraus_to_superoperator(superoperator):
+def test_superoperator_to_kraus_inverse_of_kraus_to_superoperator(superoperator) -> None:
     """Verifies that cirq.kraus_to_superoperator(cirq.superoperator_to_kraus(.)) is identity."""
     kraus = cirq.superoperator_to_kraus(superoperator)
     recovered_superoperator = cirq.kraus_to_superoperator(kraus)
     assert np.allclose(recovered_superoperator, superoperator)
 
 
-def test_superoperator_to_kraus_atol():
+def test_superoperator_to_kraus_atol() -> None:
     """Verifies that insignificant Kraus operators are omitted."""
     superop = cirq.kraus_to_superoperator(cirq.kraus(cirq.phase_damp(1e-6)))
     assert len(cirq.superoperator_to_kraus(superop, atol=1e-2)) == 1
@@ -338,7 +342,7 @@ def test_superoperator_to_kraus_atol():
         ),
     ),
 )
-def test_choi_to_superoperator_invalid_input(choi, error):
+def test_choi_to_superoperator_invalid_input(choi, error) -> None:
     with pytest.raises(ValueError, match=error):
         _ = cirq.choi_to_superoperator(choi)
 
@@ -346,7 +350,7 @@ def test_choi_to_superoperator_invalid_input(choi, error):
 @pytest.mark.parametrize(
     'superoperator, error', ((np.array([[1, 2, 3], [4, 5, 6]]), "shape"), (np.eye(2), "shape"))
 )
-def test_superoperator_to_choi_invalid_input(superoperator, error):
+def test_superoperator_to_choi_invalid_input(superoperator, error) -> None:
     with pytest.raises(ValueError, match=error):
         _ = cirq.superoperator_to_choi(superoperator)
 
@@ -402,7 +406,7 @@ def test_superoperator_to_choi_invalid_input(superoperator, error):
         ),
     ),
 )
-def test_superoperator_vs_choi_fixed_values(superoperator, choi):
+def test_superoperator_vs_choi_fixed_values(superoperator, choi) -> None:
     recovered_choi = cirq.superoperator_to_choi(superoperator)
     assert np.allclose(recovered_choi, choi)
 
@@ -436,7 +440,7 @@ def test_superoperator_vs_choi_fixed_values(superoperator, choi):
         # fmt: on
     ),
 )
-def test_choi_to_superoperator_inverse_of_superoperator_to_choi(choi):
+def test_choi_to_superoperator_inverse_of_superoperator_to_choi(choi) -> None:
     superoperator = cirq.choi_to_superoperator(choi)
     recovered_choi = cirq.superoperator_to_choi(superoperator)
     assert np.allclose(recovered_choi, choi)
@@ -445,6 +449,6 @@ def test_choi_to_superoperator_inverse_of_superoperator_to_choi(choi):
     assert np.allclose(recovered_superoperator, superoperator)
 
 
-def test_superoperator_for_completely_dephasing_channel():
+def test_superoperator_for_completely_dephasing_channel() -> None:
     """Checks cirq.operation_to_superoperator on the completely dephasing channel."""
     assert np.all(cirq.operation_to_superoperator(cirq.phase_damp(1)) == np.diag([1, 0, 0, 1]))

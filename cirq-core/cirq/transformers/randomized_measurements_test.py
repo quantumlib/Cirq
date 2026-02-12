@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 
 import cirq
 import cirq.transformers.randomized_measurements as rand_meas
 
 
-def test_randomized_measurements_appends_two_moments_on_returned_circuit():
+def test_randomized_measurements_appends_two_moments_on_returned_circuit() -> None:
     # Create a 4-qubit circuit
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     circuit_pre = cirq.Circuit(
@@ -34,7 +36,9 @@ def test_randomized_measurements_appends_two_moments_on_returned_circuit():
         assert num_moments_post == num_moments_pre + 2
 
 
-def test_append_randomized_measurements_leaves_qubits_not_in_specified_subsystem_unchanged():
+def test_append_randomized_measurements_leaves_qubits_not_in_specified_subsystem_unchanged() -> (
+    None
+):
     # Create a 4-qubit circuit
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     circuit = cirq.Circuit([cirq.H(q0), cirq.CNOT(q0, q1), cirq.CNOT(q1, q2), cirq.CNOT(q2, q3)])
@@ -46,7 +50,9 @@ def test_append_randomized_measurements_leaves_qubits_not_in_specified_subsystem
     assert circuit.operation_at(q3, 4) is None
 
 
-def test_append_randomized_measurements_leaves_qubits_not_in_noncontinuous_subsystem_unchanged():
+def test_append_random_measurements_leaves_qubits_not_in_noncontinuous_subsystem_unchanged() -> (
+    None
+):
     # Create a 4-qubit circuit
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     circuit = cirq.Circuit([cirq.H(q0), cirq.CNOT(q0, q1), cirq.CNOT(q1, q2), cirq.CNOT(q2, q3)])
@@ -59,7 +65,7 @@ def test_append_randomized_measurements_leaves_qubits_not_in_noncontinuous_subsy
     assert circuit.operation_at(q3, 4) is None
 
 
-def test_exception():
+def test_exception() -> None:
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     circuit = cirq.Circuit([cirq.H(q0), cirq.CNOT(q0, q1), cirq.CNOT(q1, q2), cirq.CNOT(q2, q3)])
 

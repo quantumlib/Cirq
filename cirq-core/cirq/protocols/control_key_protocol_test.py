@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cirq
 
 
-def test_control_key():
+def test_control_key() -> None:
     class Named:
         def _control_keys_(self):
             return frozenset([cirq.MeasurementKey('key')])

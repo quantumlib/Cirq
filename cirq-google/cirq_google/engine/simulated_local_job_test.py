@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Tests for SimulatedLocalJob."""
+
+from __future__ import annotations
+
 import numpy as np
 import pytest
 import sympy
@@ -103,6 +107,9 @@ def test_run_async():
         sweeps=[{}],
         simulation_type=LocalSimulationType.ASYNCHRONOUS,
     )
-    assert job.execution_status() == quantum.ExecutionStatus.State.RUNNING
+    assert job.execution_status() in (
+        quantum.ExecutionStatus.State.READY,
+        quantum.ExecutionStatus.State.RUNNING,
+    )
     _ = job.results()
     assert job.execution_status() == quantum.ExecutionStatus.State.SUCCESS

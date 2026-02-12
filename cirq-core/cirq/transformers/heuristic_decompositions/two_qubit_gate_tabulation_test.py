@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
@@ -41,7 +43,7 @@ _random_2Q_unitaries = np.array([random_special_unitary(4, random_state=_rng) fo
 
 @pytest.mark.parametrize('tabulation', [sycamore_tabulation, sqrt_iswap_tabulation])
 @pytest.mark.parametrize('target', _random_2Q_unitaries)
-def test_gate_compilation_matches_expected_max_infidelity(tabulation, target):
+def test_gate_compilation_matches_expected_max_infidelity(tabulation, target) -> None:
     result = tabulation.compile_two_qubit_gate(target)
 
     assert result.success
@@ -50,7 +52,7 @@ def test_gate_compilation_matches_expected_max_infidelity(tabulation, target):
 
 
 @pytest.mark.parametrize('tabulation', [sycamore_tabulation, sqrt_iswap_tabulation])
-def test_gate_compilation_on_base_gate_standard(tabulation):
+def test_gate_compilation_on_base_gate_standard(tabulation) -> None:
     base_gate = tabulation.base_gate
 
     result = tabulation.compile_two_qubit_gate(base_gate)
@@ -61,7 +63,7 @@ def test_gate_compilation_on_base_gate_standard(tabulation):
     assert fidelity > 0.99999
 
 
-def test_gate_compilation_on_base_gate_identity():
+def test_gate_compilation_on_base_gate_identity() -> None:
     tabulation = two_qubit_gate_product_tabulation(np.eye(4), 0.25)
     base_gate = tabulation.base_gate
 
@@ -73,7 +75,7 @@ def test_gate_compilation_on_base_gate_identity():
     assert fidelity > 0.99999
 
 
-def test_gate_compilation_missing_points_raises_error():
+def test_gate_compilation_missing_points_raises_error() -> None:
     with pytest.raises(ValueError, match='Failed to tabulate a'):
         two_qubit_gate_product_tabulation(
             np.eye(4), 0.4, allow_missed_points=False, random_state=_rng
@@ -81,7 +83,7 @@ def test_gate_compilation_missing_points_raises_error():
 
 
 @pytest.mark.parametrize('seed', [0, 1])
-def test_sycamore_gate_tabulation(seed):
+def test_sycamore_gate_tabulation(seed) -> None:
     base_gate = cirq.unitary(cirq.FSimGate(np.pi / 2, np.pi / 6))
     tab = two_qubit_gate_product_tabulation(
         base_gate, 0.1, sample_scaling=2, random_state=np.random.RandomState(seed)
@@ -90,7 +92,7 @@ def test_sycamore_gate_tabulation(seed):
     assert result.success
 
 
-def test_sycamore_gate_tabulation_repr():
+def test_sycamore_gate_tabulation_repr() -> None:
     simple_tabulation = TwoQubitGateTabulation(
         np.array([[(1 + 0j), 0j, 0j, 0j]], dtype=np.complex128),
         np.array([[(1 + 0j), 0j, 0j, 0j]], dtype=np.complex128),
@@ -102,7 +104,11 @@ def test_sycamore_gate_tabulation_repr():
     assert_equivalent_repr(simple_tabulation)
 
 
-def test_sycamore_gate_tabulation_eq():
-    assert sycamore_tabulation == sycamore_tabulation
+def test_sycamore_gate_tabulation_eq() -> None:
+    rng = value.parse_random_state(11)
+    sycamore_tabulation_copy = two_qubit_gate_product_tabulation(
+        cirq.unitary(cirq.FSimGate(np.pi / 2, np.pi / 6)), 0.2, random_state=rng
+    )
+    assert sycamore_tabulation == sycamore_tabulation_copy
     assert sycamore_tabulation != sqrt_iswap_tabulation
     assert sycamore_tabulation != 1

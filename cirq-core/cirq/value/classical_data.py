@@ -16,9 +16,8 @@ from __future__ import annotations
 
 import abc
 import enum
-from typing import Dict, List, Mapping, Optional, Sequence, Tuple, TYPE_CHECKING
-
-from typing_extensions import Self
+from collections.abc import Mapping, Sequence
+from typing import Self, TYPE_CHECKING
 
 from cirq.value import digits, value_equality_attr
 
@@ -47,17 +46,17 @@ class MeasurementType(enum.IntEnum):
 
 class ClassicalDataStoreReader(abc.ABC):
     @abc.abstractmethod
-    def keys(self) -> Tuple[cirq.MeasurementKey, ...]:
+    def keys(self) -> tuple[cirq.MeasurementKey, ...]:
         """Gets the measurement keys in the order they were stored."""
 
     @property
     @abc.abstractmethod
-    def records(self) -> Mapping[cirq.MeasurementKey, List[Tuple[int, ...]]]:
+    def records(self) -> Mapping[cirq.MeasurementKey, list[tuple[int, ...]]]:
         """Gets the a mapping from measurement key to measurement records."""
 
     @property
     @abc.abstractmethod
-    def channel_records(self) -> Mapping[cirq.MeasurementKey, List[int]]:
+    def channel_records(self) -> Mapping[cirq.MeasurementKey, list[int]]:
         """Gets the a mapping from measurement key to channel measurement records."""
 
     @abc.abstractmethod
@@ -83,7 +82,7 @@ class ClassicalDataStoreReader(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_digits(self, key: cirq.MeasurementKey, index=-1) -> Tuple[int, ...]:
+    def get_digits(self, key: cirq.MeasurementKey, index=-1) -> tuple[int, ...]:
         """Gets the values of the qubits that were measured into this key.
 
         For example, if the measurement of qubits [q0, q1] produces [0, 1],
@@ -143,10 +142,10 @@ class ClassicalDataDictionaryStore(ClassicalDataStore):
     def __init__(
         self,
         *,
-        _records: Optional[Dict[cirq.MeasurementKey, List[Tuple[int, ...]]]] = None,
-        _measured_qubits: Optional[Dict[cirq.MeasurementKey, List[Tuple[cirq.Qid, ...]]]] = None,
-        _channel_records: Optional[Dict[cirq.MeasurementKey, List[int]]] = None,
-        _measurement_types: Optional[Dict[cirq.MeasurementKey, cirq.MeasurementType]] = None,
+        _records: dict[cirq.MeasurementKey, list[tuple[int, ...]]] | None = None,
+        _measured_qubits: dict[cirq.MeasurementKey, list[tuple[cirq.Qid, ...]]] | None = None,
+        _channel_records: dict[cirq.MeasurementKey, list[int]] | None = None,
+        _measurement_types: dict[cirq.MeasurementKey, cirq.MeasurementType] | None = None,
     ):
         """Initializes a `ClassicalDataDictionaryStore` object."""
         if not _measurement_types:
@@ -165,27 +164,27 @@ class ClassicalDataDictionaryStore(ClassicalDataStore):
             _measured_qubits = {}
         if _channel_records is None:
             _channel_records = {}
-        self._records: Dict[cirq.MeasurementKey, List[Tuple[int, ...]]] = _records
-        self._measured_qubits: Dict[cirq.MeasurementKey, List[Tuple[cirq.Qid, ...]]] = (
+        self._records: dict[cirq.MeasurementKey, list[tuple[int, ...]]] = _records
+        self._measured_qubits: dict[cirq.MeasurementKey, list[tuple[cirq.Qid, ...]]] = (
             _measured_qubits
         )
-        self._channel_records: Dict[cirq.MeasurementKey, List[int]] = _channel_records
-        self._measurement_types: Dict[cirq.MeasurementKey, cirq.MeasurementType] = (
+        self._channel_records: dict[cirq.MeasurementKey, list[int]] = _channel_records
+        self._measurement_types: dict[cirq.MeasurementKey, cirq.MeasurementType] = (
             _measurement_types
         )
 
     @property
-    def records(self) -> Mapping[cirq.MeasurementKey, List[Tuple[int, ...]]]:
+    def records(self) -> Mapping[cirq.MeasurementKey, list[tuple[int, ...]]]:
         """Gets the a mapping from measurement key to measurement records."""
         return self._records
 
     @property
-    def channel_records(self) -> Mapping[cirq.MeasurementKey, List[int]]:
+    def channel_records(self) -> Mapping[cirq.MeasurementKey, list[int]]:
         """Gets the a mapping from measurement key to channel measurement records."""
         return self._channel_records
 
     @property
-    def measured_qubits(self) -> Mapping[cirq.MeasurementKey, List[Tuple[cirq.Qid, ...]]]:
+    def measured_qubits(self) -> Mapping[cirq.MeasurementKey, list[tuple[cirq.Qid, ...]]]:
         """Gets the a mapping from measurement key to the qubits measured."""
         return self._measured_qubits
 
@@ -194,7 +193,7 @@ class ClassicalDataDictionaryStore(ClassicalDataStore):
         """Gets the a mapping from measurement key to the measurement type."""
         return self._measurement_types
 
-    def keys(self) -> Tuple[cirq.MeasurementKey, ...]:
+    def keys(self) -> tuple[cirq.MeasurementKey, ...]:
         return tuple(self._measurement_types.keys())
 
     def record_measurement(
@@ -225,7 +224,7 @@ class ClassicalDataDictionaryStore(ClassicalDataStore):
             raise ValueError(f"Measurement already logged to key {key}")
         self._channel_records[key].append(measurement)
 
-    def get_digits(self, key: cirq.MeasurementKey, index=-1) -> Tuple[int, ...]:
+    def get_digits(self, key: cirq.MeasurementKey, index=-1) -> tuple[int, ...]:
         return (
             self._records[key][index]
             if self._measurement_types[key] == MeasurementType.MEASUREMENT

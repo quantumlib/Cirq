@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import collections
-from typing import Dict, FrozenSet, List, Optional, Sequence, Tuple, TYPE_CHECKING, TypeVar, Union
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, TypeVar
 
 import duet
 import pandas as pd
@@ -237,8 +238,8 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
     async def run_batch_async(
         self,
         programs: Sequence[cirq.AbstractCircuit],
-        params_list: Optional[Sequence[cirq.Sweepable]] = None,
-        repetitions: Union[int, Sequence[int]] = 1,
+        params_list: Sequence[cirq.Sweepable] | None = None,
+        repetitions: int | Sequence[int] = 1,
     ) -> Sequence[Sequence[cirq.Result]]:
         """Runs the supplied circuits asynchronously.
 
@@ -288,9 +289,9 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
     def _normalize_batch_args(
         self,
         programs: Sequence[cirq.AbstractCircuit],
-        params_list: Optional[Sequence[cirq.Sweepable]] = None,
-        repetitions: Union[int, Sequence[int]] = 1,
-    ) -> Tuple[Sequence[cirq.Sweepable], Sequence[int]]:
+        params_list: Sequence[cirq.Sweepable] | None = None,
+        repetitions: int | Sequence[int] = 1,
+    ) -> tuple[Sequence[cirq.Sweepable], Sequence[int]]:
         if params_list is None:
             params_list = [None] * len(programs)
         if len(programs) != len(params_list):
@@ -310,7 +311,7 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
     def sample_expectation_values(
         self,
         program: cirq.AbstractCircuit,
-        observables: Union[cirq.PauliSumLike, List[cirq.PauliSumLike]],
+        observables: cirq.PauliSumLike | list[cirq.PauliSumLike],
         *,
         num_samples: int,
         params: cirq.Sweepable = None,
@@ -359,17 +360,17 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
             )
 
         # Wrap input into a list of pauli sum
-        pauli_sums: List[cirq.PauliSum] = (
+        pauli_sums: list[cirq.PauliSum] = (
             [ops.PauliSum.wrap(o) for o in observables]
-            if isinstance(observables, List)
+            if isinstance(observables, list)
             else [ops.PauliSum.wrap(observables)]
         )
         del observables
 
         # Flatten Pauli Sum into one big list of Pauli String
         # Keep track of which Pauli Sum each one was from.
-        flat_pstrings: List[cirq.PauliString] = []
-        pstring_to_psum_i: Dict[cirq.PauliString, int] = {}
+        flat_pstrings: list[cirq.PauliString] = []
+        pstring_to_psum_i: dict[cirq.PauliString, int] = {}
         for psum_i, pauli_sum in enumerate(pauli_sums):
             for pstring in pauli_sum:
                 flat_pstrings.append(pstring)
@@ -377,10 +378,10 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
 
         # Flatten Circuit Sweep into one big list of Params.
         # Keep track of their indices so we can map back.
-        flat_params: List[cirq.ParamMappingType] = [
+        flat_params: list[cirq.ParamMappingType] = [
             pr.param_dict for pr in study.to_resolvers(params)
         ]
-        circuit_param_to_sweep_i: Dict[FrozenSet[Tuple[str, Union[int, Tuple[int, int]]]], int] = {
+        circuit_param_to_sweep_i: dict[frozenset[tuple[str, int | tuple[int, int]]], int] = {
             _hashable_param(param.items()): i for i, param in enumerate(flat_params)
         }
 
@@ -398,7 +399,7 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         # nesting structure, we place the measured values according to the back-mappings we set up
         # above. We also do the sum operation to aggregate multiple PauliString measured values
         # for a given PauliSum.
-        nested_results: List[List[float]] = [[0] * len(pauli_sums) for _ in range(len(flat_params))]
+        nested_results: list[list[float]] = [[0] * len(pauli_sums) for _ in range(len(flat_params))]
         for res in obs_meas_results:
             param_i = circuit_param_to_sweep_i[_hashable_param(res.circuit_params.items())]
             psum_i = pstring_to_psum_i[res.setting.observable]
@@ -409,7 +410,7 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
     @staticmethod
     def _get_measurement_shapes(
         circuit: cirq.AbstractCircuit,
-    ) -> Dict[str, Tuple[int, Tuple[int, ...]]]:
+    ) -> dict[str, tuple[int, tuple[int, ...]]]:
         """Gets the shapes of measurements in the given circuit.
 
         Returns:
@@ -422,8 +423,8 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
             ValueError: if the qid_shape of different instances of the same measurement
             key disagree.
         """
-        qid_shapes: Dict[str, Tuple[int, ...]] = {}
-        num_instances: Dict[str, int] = collections.Counter()
+        qid_shapes: dict[str, tuple[int, ...]] = {}
+        num_instances: dict[str, int] = collections.Counter()
         for op in circuit.all_operations():
             key = protocols.measurement_key_name(op, default=None)
             if key is not None:

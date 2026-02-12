@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from collections.abc import Mapping
 from typing import cast
 
@@ -34,7 +36,7 @@ class DepolarizingNoiseTransformer:
 
     Attrs:
         p: The probability with which to add noise.
-        target_gate: Add depolarizing nose after this type of gate
+        target_gate: Add depolarizing noise after this type of gate
     """
 
     def __init__(
@@ -56,7 +58,7 @@ class DepolarizingNoiseTransformer:
         if not isinstance(p, (Mapping, float)):
             raise TypeError(  # pragma: no cover
                 "p must either be a float or a mapping from"  # pragma: no cover
-                + "sorted qubit pairs to floats"  # pragma: no cover
+                "sorted qubit pairs to floats"  # pragma: no cover
             )  # pragma: no cover
         self.p = p
         self.p_func = (
@@ -86,7 +88,7 @@ class DepolarizingNoiseTransformer:
             rng = np.random.default_rng()
         target_gate = self.target_gate
 
-        # add random Pauli gates with probability p after each of the specified gate
+        # add random Pauli gates with probability p after each specified gate
         assert target_gate.num_qubits() == 2, "`target_gate` must be a two-qubit gate."
         paulis = [ops.I, ops.X, ops.Y, ops.Z]
         new_moments = []

@@ -59,6 +59,10 @@ message GateSpecification {
     FSimViaModel fsim_via_model = 12;
     CZPowGate cz_pow_gate = 13;
     InternalGate internal_gate = 14;
+    Reset reset = 15;
+    AnalogDetuneQubit analog_detune_qubit = 16;
+    AnalogDetuneCouplerOnly analog_detune_coupler_only = 17;
+    WaitGateWithUnit wait_gate_with_unit = 18;
   }
 
   // Gate types available to Google devices.
@@ -80,6 +84,12 @@ message GateSpecification {
   // This gate gets mapped to the internal representation corresponding
   // to <gate_module.gate_name>.
   message InternalGate {}
+  // This gate resets qubit to its |0> state.
+  message Reset {}
+  // For Analog Experiment.
+  message AnalogDetuneQubit {}
+  message AnalogDetuneCouplerOnly {}
+  message WaitGateWithUnit {}
 }
 
 message GateSet {

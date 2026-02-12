@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import warnings
-from typing import Any, List, Optional, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 import numpy as np
 
@@ -21,7 +24,7 @@ from cirq import devices, linalg, ops, protocols
 from cirq.testing import lin_alg_utils
 
 
-def assert_qasm_is_consistent_with_unitary(val: Any):
+def assert_qasm_is_consistent_with_unitary(val: Any) -> None:
     """Uses `val._unitary_` to check `val._qasm_`'s behavior."""
 
     # Only test if qiskit is installed.
@@ -85,8 +88,8 @@ qreg q[{num_qubits}];
             qasm_unitary, unitary, rtol=1e-8, atol=1e-8
         )
     except Exception as ex:
-        p_unitary: Optional[np.ndarray]
-        p_qasm_unitary: Optional[np.ndarray]
+        p_unitary: np.ndarray | None
+        p_qasm_unitary: np.ndarray | None
         if qasm_unitary is not None:
             p_unitary, p_qasm_unitary = linalg.match_global_phase(unitary, qasm_unitary)
         else:
@@ -104,7 +107,7 @@ qreg q[{num_qubits}];
         )
 
 
-def assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, unitary):  # pragma: no cover
+def assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, unitary) -> None:  # pragma: no cover
     try:
         # We don't want to require qiskit as a dependency but
         # if Qiskit is installed, test QASM output against it.
@@ -125,7 +128,7 @@ def _indent(*content: str) -> str:
     return '    ' + '\n'.join(content).replace('\n', '\n    ')
 
 
-def _reorder_indices_of_matrix(matrix: np.ndarray, new_order: List[int]):
+def _reorder_indices_of_matrix(matrix: np.ndarray, new_order: list[int]):
     num_qubits = matrix.shape[0].bit_length() - 1
     matrix = np.reshape(matrix, (2,) * 2 * num_qubits)
     all_indices = range(2 * num_qubits)

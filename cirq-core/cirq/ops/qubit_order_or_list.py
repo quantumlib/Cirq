@@ -18,12 +18,14 @@ This type is defined in its own file to work around an "invalid type" bug in
 mypy.
 """
 
-from typing import Iterable, Union
+from __future__ import annotations
+
+from collections.abc import Iterable
 
 from cirq._doc import document
 from cirq.ops import qubit_order, raw_types
 
-QubitOrderOrList = Union[qubit_order.QubitOrder, Iterable[raw_types.Qid]]
+QubitOrderOrList = qubit_order.QubitOrder | Iterable[raw_types.Qid]
 document(
     QubitOrderOrList,
     """Specifies a qubit ordering.

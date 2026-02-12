@@ -12,18 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
 import cirq
 
 
-def test_assert_consistent_channel_valid():
+def test_assert_consistent_channel_valid() -> None:
     channel = cirq.KrausChannel(kraus_ops=(np.array([[0, 1], [0, 0]]), np.array([[1, 0], [0, 0]])))
     cirq.testing.assert_consistent_channel(channel)
 
 
-def test_assert_consistent_channel_tolerances():
+def test_assert_consistent_channel_tolerances() -> None:
     # This channel is off by 1e-5 from the identity matrix in the consistency condition.
     channel = cirq.KrausChannel(
         kraus_ops=(np.array([[0, np.sqrt(1 - 1e-5)], [0, 0]]), np.array([[1, 0], [0, 0]]))
@@ -37,23 +39,23 @@ def test_assert_consistent_channel_tolerances():
         cirq.testing.assert_consistent_channel(channel, rtol=0, atol=1e-6)
 
 
-def test_assert_consistent_channel_invalid():
+def test_assert_consistent_channel_invalid() -> None:
     channel = cirq.KrausChannel(kraus_ops=(np.array([[1, 1], [0, 0]]), np.array([[1, 0], [0, 0]])))
     with pytest.raises(AssertionError, match=r"cirq.KrausChannel.*2 1"):
         cirq.testing.assert_consistent_channel(channel)
 
 
-def test_assert_consistent_channel_not_kraus():
+def test_assert_consistent_channel_not_kraus() -> None:
     with pytest.raises(AssertionError, match="12.*has_kraus"):
         cirq.testing.assert_consistent_channel(12)
 
 
-def test_assert_consistent_mixture_valid():
+def test_assert_consistent_mixture_valid() -> None:
     mixture = cirq.X.with_probability(0.1)
     cirq.testing.assert_consistent_mixture(mixture)
 
 
-def test_assert_consistent_mixture_not_mixture():
+def test_assert_consistent_mixture_not_mixture() -> None:
     not_mixture = cirq.amplitude_damp(0.1)
     with pytest.raises(AssertionError, match="has_mixture"):
         cirq.testing.assert_consistent_mixture(not_mixture)
@@ -69,7 +71,7 @@ class _MixtureGate(cirq.testing.SingleQubitGate):
         return (self._p, cirq.unitary(cirq.I)), (self._q, cirq.unitary(cirq.X))
 
 
-def test_assert_consistent_mixture_not_normalized():
+def test_assert_consistent_mixture_not_normalized() -> None:
     mixture = _MixtureGate(0.1, 0.85)
     with pytest.raises(AssertionError, match="sum to 1"):
         cirq.testing.assert_consistent_mixture(mixture)
@@ -79,7 +81,7 @@ def test_assert_consistent_mixture_not_normalized():
         cirq.testing.assert_consistent_mixture(mixture)
 
 
-def test_assert_consistent_mixture_tolerances():
+def test_assert_consistent_mixture_tolerances() -> None:
 
     # This gate is 1e-5 off being properly normalized.
     mixture = _MixtureGate(0.1, 0.9 - 1e-5)

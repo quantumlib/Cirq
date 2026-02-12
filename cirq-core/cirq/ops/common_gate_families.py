@@ -14,7 +14,9 @@
 
 """Common Gate Families used in cirq-core"""
 
-from typing import Any, cast, Optional, Type, Union
+from __future__ import annotations
+
+from typing import Any, cast
 
 from cirq import protocols
 from cirq.ops import eigen_gate, gateset, parallel_gate, raw_types
@@ -23,7 +25,7 @@ from cirq.ops import eigen_gate, gateset, parallel_gate, raw_types
 class AnyUnitaryGateFamily(gateset.GateFamily):
     """GateFamily which accepts any N-Qubit unitary gate."""
 
-    def __init__(self, num_qubits: Optional[int] = None) -> None:
+    def __init__(self, num_qubits: int | None = None) -> None:
         """Init AnyUnitaryGateFamily
 
         Args:
@@ -63,7 +65,7 @@ class AnyUnitaryGateFamily(gateset.GateFamily):
 class AnyIntegerPowerGateFamily(gateset.GateFamily):
     """GateFamily which accepts instances of a given `cirq.EigenGate`, raised to integer power."""
 
-    def __init__(self, gate: Type[eigen_gate.EigenGate]) -> None:
+    def __init__(self, gate: type[eigen_gate.EigenGate]) -> None:
         """Init AnyIntegerPowerGateFamily
 
         Args:
@@ -127,11 +129,11 @@ class ParallelGateFamily(gateset.GateFamily):
 
     def __init__(
         self,
-        gate: Union[Type[raw_types.Gate], raw_types.Gate],
+        gate: type[raw_types.Gate] | raw_types.Gate,
         *,
-        name: Optional[str] = None,
-        description: Optional[str] = None,
-        max_parallel_allowed: Optional[int] = None,
+        name: str | None = None,
+        description: str | None = None,
+        max_parallel_allowed: int | None = None,
     ) -> None:
         """Inits ParallelGateFamily
 

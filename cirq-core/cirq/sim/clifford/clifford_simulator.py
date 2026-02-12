@@ -32,7 +32,8 @@ The quantum state is specified in two forms:
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Sequence, Union
+from collections.abc import Sequence
+from typing import Any
 
 import numpy as np
 
@@ -72,7 +73,7 @@ class CliffordSimulator(
 
     def _create_partial_simulation_state(
         self,
-        initial_state: Union[int, cirq.StabilizerChFormSimulationState],
+        initial_state: int | cirq.StabilizerChFormSimulationState,
         qubits: Sequence[cirq.Qid],
         classical_data: cirq.ClassicalDataStore,
     ) -> cirq.StabilizerChFormSimulationState:
@@ -110,7 +111,7 @@ class CliffordSimulator(
     def _create_simulator_trial_result(
         self,
         params: cirq.ParamResolver,
-        measurements: Dict[str, np.ndarray],
+        measurements: dict[str, np.ndarray],
         final_simulator_state: cirq.SimulationStateBase[cirq.StabilizerChFormSimulationState],
     ):
         return CliffordTrialResult(
@@ -124,7 +125,7 @@ class CliffordTrialResult(
     def __init__(
         self,
         params: cirq.ParamResolver,
-        measurements: Dict[str, np.ndarray],
+        measurements: dict[str, np.ndarray],
         final_simulator_state: cirq.SimulationStateBase[cirq.StabilizerChFormSimulationState],
     ) -> None:
         super().__init__(
@@ -161,7 +162,7 @@ class CliffordSimulatorStepResult(
             sim_state: The qubit:SimulationState lookup for this step.
         """
         super().__init__(sim_state)
-        self._clifford_state = None
+        self._clifford_state: CliffordState | None = None
 
     def __str__(self) -> str:
         def bitstring(vals):
@@ -183,7 +184,7 @@ class CliffordSimulatorStepResult(
         p.text("cirq.CliffordSimulatorStateResult(...)" if cycle else self.__str__())
 
     @property
-    def state(self):
+    def state(self) -> CliffordState:
         if self._clifford_state is None:
             clifford_state = CliffordState(self._qubit_mapping)
             clifford_state.ch_form = self._merged_sim_state.state.copy()
@@ -201,7 +202,7 @@ class CliffordState:
     Gates and measurements are applied to each representation in O(n^2) time.
     """
 
-    def __init__(self, qubit_map, initial_state: Union[int, cirq.StabilizerStateChForm] = 0):
+    def __init__(self, qubit_map, initial_state: int | cirq.StabilizerStateChForm = 0):
         self.qubit_map = qubit_map
         self.n = len(qubit_map)
 
@@ -240,10 +241,10 @@ class CliffordState:
     def to_numpy(self) -> np.ndarray:
         return self.ch_form.to_state_vector()
 
-    def state_vector(self):
+    def state_vector(self) -> np.ndarray:
         return self.ch_form.state_vector()
 
-    def apply_unitary(self, op: cirq.Operation):
+    def apply_unitary(self, op: cirq.Operation) -> None:
         ch_form_args = clifford.StabilizerChFormSimulationState(
             prng=np.random.RandomState(), qubits=self.qubit_map.keys(), initial_state=self.ch_form
         )
@@ -251,15 +252,14 @@ class CliffordState:
             act_on(op, ch_form_args)
         except TypeError:
             raise ValueError(f'{op.gate} cannot be run with Clifford simulator.')
-        return
 
     def apply_measurement(
         self,
         op: cirq.Operation,
-        measurements: Dict[str, List[int]],
+        measurements: dict[str, list[int]],
         prng: np.random.RandomState,
         collapse_state_vector=True,
-    ):
+    ) -> None:
         if not isinstance(op.gate, cirq.MeasurementGate):
             raise TypeError(
                 f'apply_measurement only supports cirq.MeasurementGate operations. '

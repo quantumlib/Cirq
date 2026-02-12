@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import abc
-from typing import List, Mapping, Optional, Sequence, Tuple, TYPE_CHECKING
+from collections.abc import Mapping, Sequence
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -34,7 +35,7 @@ if TYPE_CHECKING:
 class StateVectorMixin:
     """A mixin that provide methods for objects that have a state vector."""
 
-    def __init__(self, qubit_map: Optional[Mapping[cirq.Qid, int]] = None, *args, **kwargs):
+    def __init__(self, qubit_map: Mapping[cirq.Qid, int] | None = None, *args, **kwargs):
         """Inits StateVectorMixin.
 
         Args:
@@ -53,7 +54,7 @@ class StateVectorMixin:
     def qubit_map(self) -> Mapping[cirq.Qid, int]:
         return self._qubit_map
 
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         if self._qid_shape is None:
             return NotImplemented
         return self._qid_shape
@@ -105,7 +106,7 @@ class StateVectorMixin:
             and non-zero floats of the specified accuracy."""
         return qis.dirac_notation(self.state_vector(), decimals, qid_shape=self._qid_shape)
 
-    def density_matrix_of(self, qubits: Optional[List[cirq.Qid]] = None) -> np.ndarray:
+    def density_matrix_of(self, qubits: Sequence[cirq.Qid] | None = None) -> np.ndarray:
         r"""Returns the density matrix of the state.
 
         Calculate the density matrix for the system on the qubits provided.
@@ -135,8 +136,7 @@ class StateVectorMixin:
 
         Raises:
             ValueError: if the size of the state represents more than 25 qubits.
-            IndexError: if the indices are out of range for the number of qubits
-                corresponding to the state.
+            KeyError: if some of the qubits provided are not in the quantum state.
         """
         return qis.density_matrix_from_state_vector(
             self.state_vector(),
@@ -160,8 +160,7 @@ class StateVectorMixin:
 
         Raises:
             ValueError: if the size of the state represents more than 25 qubits.
-            IndexError: if index is out of range for the number of qubits
-                corresponding to the state.
+            KeyError: if the specified qubit is not in the quantum state.
         """
         return qis.bloch_vector_from_state_vector(
             self.state_vector(), self.qubit_map[qubit], qid_shape=self._qid_shape
@@ -172,7 +171,7 @@ def sample_state_vector(
     state_vector: np.ndarray,
     indices: Sequence[int],
     *,  # Force keyword args
-    qid_shape: Optional[Tuple[int, ...]] = None,
+    qid_shape: tuple[int, ...] | None = None,
     repetitions: int = 1,
     seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> np.ndarray:
@@ -237,10 +236,10 @@ def measure_state_vector(
     state_vector: np.ndarray,
     indices: Sequence[int],
     *,  # Force keyword args
-    qid_shape: Optional[Tuple[int, ...]] = None,
-    out: Optional[np.ndarray] = None,
+    qid_shape: tuple[int, ...] | None = None,
+    out: np.ndarray | None = None,
     seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
-) -> Tuple[List[int], np.ndarray]:
+) -> tuple[list[int], np.ndarray]:
     """Performs a measurement of the state in the computational basis.
 
     This does not modify `state` unless the optional `out` is `state`.

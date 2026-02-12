@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from __future__ import annotations
 
 import requests
 
@@ -20,7 +20,7 @@ import requests
 class GithubRepository:
     """Details how to access a repository on github."""
 
-    def __init__(self, organization: str, name: str, access_token: Optional[str]) -> None:
+    def __init__(self, organization: str, name: str, access_token: str | None) -> None:
         """Inits GithubRepository.
 
         Args:

@@ -18,24 +18,9 @@ import dataclasses
 import inspect
 import itertools
 from collections import defaultdict
+from collections.abc import Callable, Iterable, Iterator, Sequence
 from types import NotImplementedType
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
-    overload,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    TypeVar,
-    Union,
-)
-
-from typing_extensions import Protocol, runtime_checkable
+from typing import Any, overload, Protocol, TYPE_CHECKING, TypeVar, Union
 
 from cirq import devices, ops
 from cirq._doc import doc_private
@@ -55,14 +40,13 @@ DecomposeResult = Union[None, NotImplementedType, 'cirq.OP_TREE']
 _CONTEXT_COUNTER = itertools.count()  # Use _reset_context_counter() to reset the counter.
 
 
-@runtime_checkable
 class OpDecomposerWithContext(Protocol):
     def __call__(
-        self, __op: cirq.Operation, *, context: Optional[cirq.DecompositionContext] = None
+        self, __op: cirq.Operation, *, context: cirq.DecompositionContext
     ) -> DecomposeResult: ...
 
 
-OpDecomposer = Union[Callable[['cirq.Operation'], DecomposeResult], OpDecomposerWithContext]
+OpDecomposer = Callable[['cirq.Operation'], DecomposeResult] | OpDecomposerWithContext
 
 DECOMPOSE_TARGET_GATESET = ops.Gateset(
     ops.XPowGate,
@@ -85,9 +69,16 @@ class DecompositionContext:
     Args:
         qubit_manager: A `cirq.QubitManager` instance to allocate clean / dirty ancilla qubits as
             part of the decompose protocol.
+        extract_global_phases: If set, will extract the global phases from
+         `DECOMPOSE_TARGET_GATESET` into independent global phase operations.
     """
 
     qubit_manager: cirq.QubitManager
+    extract_global_phases: bool = False
+
+    def extracting_global_phases(self) -> DecompositionContext:
+        """Returns a copy with the `extract_global_phases` field set."""
+        return dataclasses.replace(self, extract_global_phases=True)
 
 
 class SupportsDecompose(Protocol):
@@ -129,9 +120,7 @@ class SupportsDecompose(Protocol):
     def _decompose_(self) -> DecomposeResult:
         pass
 
-    def _decompose_with_context_(
-        self, *, context: Optional[DecompositionContext] = None
-    ) -> DecomposeResult:
+    def _decompose_with_context_(self, *, context: DecompositionContext) -> DecomposeResult:
         pass
 
 
@@ -154,34 +143,32 @@ class SupportsDecomposeWithQubits(Protocol):
     implements `SupportsDecomposeWithQubits`.
     """
 
-    def _decompose_(self, qubits: Tuple[cirq.Qid, ...]) -> DecomposeResult:
+    def _decompose_(self, qubits: tuple[cirq.Qid, ...]) -> DecomposeResult:
         pass
 
     def _decompose_with_context_(
-        self, qubits: Tuple[cirq.Qid, ...], *, context: Optional[DecompositionContext] = None
+        self, qubits: tuple[cirq.Qid, ...], *, context: DecompositionContext
     ) -> DecomposeResult:
         pass
 
 
 def _try_op_decomposer(
-    val: Any, decomposer: Optional[OpDecomposer], *, context: Optional[DecompositionContext] = None
+    val: Any, decomposer: OpDecomposer | None, *, context: DecompositionContext
 ) -> DecomposeResult:
     if decomposer is None or not isinstance(val, ops.Operation):
         return None
     if 'context' in inspect.signature(decomposer).parameters:
-        assert isinstance(decomposer, OpDecomposerWithContext)
-        return decomposer(val, context=context)
-    else:
-        return decomposer(val)
+        return decomposer(val, context=context)  # type: ignore[call-arg]
+    return decomposer(val)  # type: ignore[call-arg]
 
 
 @dataclasses.dataclass(frozen=True)
 class _DecomposeArgs:
-    context: Optional[DecompositionContext]
-    intercepting_decomposer: Optional[OpDecomposer]
-    fallback_decomposer: Optional[OpDecomposer]
-    keep: Optional[Callable[[cirq.Operation], bool]]
-    on_stuck_raise: Union[None, Exception, Callable[[cirq.Operation], Optional[Exception]]]
+    context: DecompositionContext
+    intercepting_decomposer: OpDecomposer | None
+    fallback_decomposer: OpDecomposer | None
+    keep: Callable[[cirq.Operation], bool] | None
+    on_stuck_raise: None | Exception | Callable[[cirq.Operation], Exception | None]
     preserve_structure: bool
 
 
@@ -227,15 +214,15 @@ def _decompose_dfs(item: Any, args: _DecomposeArgs) -> Iterator[cirq.Operation]:
 def decompose(
     val: Any,
     *,
-    intercepting_decomposer: Optional[OpDecomposer] = None,
-    fallback_decomposer: Optional[OpDecomposer] = None,
-    keep: Optional[Callable[[cirq.Operation], bool]] = None,
-    on_stuck_raise: Union[
-        None, Exception, Callable[[cirq.Operation], Optional[Exception]]
-    ] = _value_error_describing_bad_operation,
+    intercepting_decomposer: OpDecomposer | None = None,
+    fallback_decomposer: OpDecomposer | None = None,
+    keep: Callable[[cirq.Operation], bool] | None = None,
+    on_stuck_raise: (
+        None | Exception | Callable[[cirq.Operation], Exception | None]
+    ) = _value_error_describing_bad_operation,
     preserve_structure: bool = False,
-    context: Optional[DecompositionContext] = None,
-) -> List[cirq.Operation]:
+    context: DecompositionContext | None = None,
+) -> list[cirq.Operation]:
     """Recursively decomposes a value into `cirq.Operation`s meeting a criteria.
 
     Args:
@@ -312,18 +299,15 @@ def decompose(
     return [*_decompose_dfs(val, args)]
 
 
-# pylint: disable=function-redefined
-
-
 @overload
-def decompose_once(val: Any, **kwargs) -> List[cirq.Operation]:
+def decompose_once(val: Any, **kwargs) -> list[cirq.Operation]:
     pass
 
 
 @overload
 def decompose_once(
     val: Any, default: TDefault, *args, flatten: bool = True, **kwargs
-) -> Union[TDefault, List[cirq.Operation]]:
+) -> TDefault | list[cirq.Operation]:
     pass
 
 
@@ -332,7 +316,7 @@ def decompose_once(
     default=RaiseTypeErrorIfNotProvided,
     *args,
     flatten: bool = True,
-    context: Optional[DecompositionContext] = None,
+    context: DecompositionContext | None = None,
     **kwargs,
 ):
     """Decomposes a value into operations, if possible.
@@ -373,7 +357,7 @@ def decompose_once(
 
     method = getattr(val, '_decompose_with_context_', None)
     decomposed = NotImplemented if method is None else method(*args, **kwargs, context=context)
-    if decomposed is NotImplemented or decomposed is None:
+    if decomposed is NotImplemented:
         method = getattr(val, '_decompose_', None)
         decomposed = NotImplemented if method is None else method(*args, **kwargs)
 
@@ -400,8 +384,8 @@ def decompose_once_with_qubits(
     qubits: Iterable[cirq.Qid],
     *,
     flatten: bool = True,
-    context: Optional[DecompositionContext] = None,
-) -> List[cirq.Operation]:
+    context: DecompositionContext | None = None,
+) -> list[cirq.Operation]:
     pass
 
 
@@ -409,11 +393,11 @@ def decompose_once_with_qubits(
 def decompose_once_with_qubits(
     val: Any,
     qubits: Iterable[cirq.Qid],
-    default: Optional[TDefault],
+    default: TDefault | None,
     *,
     flatten: bool = True,
-    context: Optional[DecompositionContext] = None,
-) -> Union[TDefault, List[cirq.Operation]]:
+    context: DecompositionContext | None = None,
+) -> TDefault | list[cirq.Operation]:
     pass
 
 
@@ -422,7 +406,7 @@ def decompose_once_with_qubits(
     qubits: Iterable[cirq.Qid],
     default=RaiseTypeErrorIfNotProvided,
     flatten: bool = True,
-    context: Optional[DecompositionContext] = None,
+    context: DecompositionContext | None = None,
 ):
     """Decomposes a value into operations on the given qubits.
 
@@ -456,12 +440,9 @@ def decompose_once_with_qubits(
     return decompose_once(val, default, tuple(qubits), flatten=flatten, context=context)
 
 
-# pylint: enable=function-redefined
-
-
 def _try_decompose_into_operations_and_qubits(
     val: Any,
-) -> Tuple[Optional[List[cirq.Operation]], Sequence[cirq.Qid], Tuple[int, ...]]:
+) -> tuple[list[cirq.Operation] | None, Sequence[cirq.Qid], tuple[int, ...]]:
     """Returns the value's decomposition (if any) and the qubits it applies to."""
 
     if isinstance(val, ops.Gate):
@@ -477,7 +458,7 @@ def _try_decompose_into_operations_and_qubits(
     result = decompose_once(val, None)
     if result is not None:
         qubit_set = set()
-        qid_shape_dict: Dict[cirq.Qid, int] = defaultdict(lambda: 1)
+        qid_shape_dict: dict[cirq.Qid, int] = defaultdict(lambda: 1)
         for op in result:
             for level, q in zip(qid_shape_protocol.qid_shape(op), op.qubits):
                 qubit_set.add(q)

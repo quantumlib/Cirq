@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import dataclasses
-from typing import Any, Dict, FrozenSet, Mapping, Optional, Tuple
+from collections.abc import Mapping
+from typing import Any
 
 MEASUREMENT_KEY_SEPARATOR = ':'
 
@@ -33,11 +36,11 @@ class MeasurementKey:
             appears first in the tuple.
     """
 
-    _hash: Optional[int] = dataclasses.field(default=None, init=False)
-    _str: Optional[str] = dataclasses.field(default=None, init=False)
+    _hash: int | None = dataclasses.field(default=None, init=False)
+    _str: str | None = dataclasses.field(default=None, init=False)
 
     name: str
-    path: Tuple[str, ...] = dataclasses.field(default_factory=tuple)
+    path: tuple[str, ...] = dataclasses.field(default_factory=tuple)
 
     def __post_init__(self):
         if not isinstance(self.name, str):
@@ -49,7 +52,7 @@ class MeasurementKey:
                 '`MeasurementKey.parse_serialized` for correct behavior.'
             )
 
-    def replace(self, **changes) -> 'MeasurementKey':
+    def replace(self, **changes) -> MeasurementKey:
         """Returns a copy of this MeasurementKey with the specified changes."""
         return dataclasses.replace(self, **changes)
 
@@ -76,7 +79,7 @@ class MeasurementKey:
             object.__setattr__(self, '_hash', hash(str(self)))
         return self._hash
 
-    def __getstate__(self) -> Dict[str, Any]:
+    def __getstate__(self) -> dict[str, Any]:
         # clear cached hash value when pickling, see #6674
         state = self.__dict__
         if "_hash" in state:
@@ -102,7 +105,7 @@ class MeasurementKey:
         return cls(name=name, path=tuple(path))
 
     @classmethod
-    def parse_serialized(cls, key_str: str) -> 'MeasurementKey':
+    def parse_serialized(cls, key_str: str) -> MeasurementKey:
         """Parses the serialized string representation of `Measurementkey` into a `MeasurementKey`.
 
         This is the only way to construct a `MeasurementKey` from a nested string representation
@@ -110,10 +113,10 @@ class MeasurementKey:
         components = key_str.split(MEASUREMENT_KEY_SEPARATOR)
         return MeasurementKey(name=components[-1], path=tuple(components[:-1]))
 
-    def _with_key_path_(self, path: Tuple[str, ...]):
+    def _with_key_path_(self, path: tuple[str, ...]):
         return self.replace(path=path)
 
-    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+    def _with_key_path_prefix_(self, prefix: tuple[str, ...]):
         return self._with_key_path_(path=prefix + self.path)
 
     def with_key_path_prefix(self, *path_component: str):
@@ -124,9 +127,7 @@ class MeasurementKey:
         """
         return self.replace(path=path_component + self.path)
 
-    def _with_rescoped_keys_(
-        self, path: Tuple[str, ...], bindable_keys: FrozenSet['MeasurementKey']
-    ):
+    def _with_rescoped_keys_(self, path: tuple[str, ...], bindable_keys: frozenset[MeasurementKey]):
         return self.replace(path=path + self.path)
 
     def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):

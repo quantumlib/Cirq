@@ -13,12 +13,15 @@
 # limitations under the License.
 
 """Runtime information dataclasses and execution of executables."""
+
+from __future__ import annotations
+
 import contextlib
 import dataclasses
 import datetime
 import time
 import uuid
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -27,15 +30,15 @@ from cirq import _compat
 from cirq.protocols import dataclass_json_dict
 from cirq_google.workflow.io import _FilesystemSaver
 from cirq_google.workflow.progress import _PrintLogger
-from cirq_google.workflow.quantum_executable import (
-    ExecutableSpec,
-    QuantumExecutable,
-    QuantumExecutableGroup,
-)
 from cirq_google.workflow.qubit_placement import NaiveQubitPlacer, QubitPlacer
 
 if TYPE_CHECKING:
     import cirq_google as cg
+    from cirq_google.workflow.quantum_executable import (
+        ExecutableSpec,
+        QuantumExecutable,
+        QuantumExecutableGroup,
+    )
 
 
 @dataclasses.dataclass
@@ -51,15 +54,15 @@ class SharedRuntimeInfo:
     """
 
     run_id: str
-    device: Optional[cirq.Device] = None
-    run_start_time: Optional[datetime.datetime] = None
-    run_end_time: Optional[datetime.datetime] = None
+    device: cirq.Device | None = None
+    run_start_time: datetime.datetime | None = None
+    run_end_time: datetime.datetime | None = None
 
     @classmethod
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return dataclass_json_dict(self)
 
     def __repr__(self) -> str:
@@ -90,14 +93,14 @@ class RuntimeInfo:
     """
 
     execution_index: int
-    qubit_placement: Optional[Dict[Any, cirq.Qid]] = None
-    timings_s: Dict[str, float] = dataclasses.field(default_factory=dict)
+    qubit_placement: dict[Any, cirq.Qid] | None = None
+    timings_s: dict[str, float] = dataclasses.field(default_factory=dict)
 
     @classmethod
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         d = dataclass_json_dict(self)
         if d['qubit_placement']:
             d['qubit_placement'] = list(d['qubit_placement'].items())
@@ -105,12 +108,12 @@ class RuntimeInfo:
         return d
 
     @classmethod
-    def _from_json_dict_(cls, **kwargs) -> 'RuntimeInfo':
+    def _from_json_dict_(cls, **kwargs) -> RuntimeInfo:
         kwargs.pop('cirq_type')
         if kwargs.get('qubit_placement', None):
             kwargs['qubit_placement'] = {_try_tuple(k): v for k, v in kwargs['qubit_placement']}
         if 'timings_s' in kwargs:
-            kwargs['timings_s'] = {k: v for k, v in kwargs['timings_s']}
+            kwargs['timings_s'] = dict(kwargs['timings_s'])
         return cls(**kwargs)
 
     def __repr__(self) -> str:
@@ -128,7 +131,7 @@ class ExecutableResult:
         raw_data: The `cirq.Result` containing the data from the run.
     """
 
-    spec: Optional[ExecutableSpec]
+    spec: ExecutableSpec | None
     runtime_info: RuntimeInfo
     raw_data: cirq.Result
 
@@ -136,7 +139,7 @@ class ExecutableResult:
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return dataclass_json_dict(self)
 
     def __repr__(self) -> str:
@@ -157,15 +160,15 @@ class ExecutableGroupResult:
             for an individual `cg.QuantumExecutable`.
     """
 
-    runtime_configuration: 'QuantumRuntimeConfiguration'
+    runtime_configuration: QuantumRuntimeConfiguration
     shared_runtime_info: SharedRuntimeInfo
-    executable_results: List[ExecutableResult]
+    executable_results: list[ExecutableResult]
 
     @classmethod
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return dataclass_json_dict(self)
 
     def __repr__(self) -> str:
@@ -191,17 +194,17 @@ class QuantumRuntimeConfiguration:
             execution with `cirq.optimize_for_target_gateset`.
     """
 
-    processor_record: 'cg.ProcessorRecord'
-    run_id: Optional[str] = None
-    random_seed: Optional[int] = None
+    processor_record: cg.ProcessorRecord
+    run_id: str | None = None
+    random_seed: int | None = None
     qubit_placer: QubitPlacer = NaiveQubitPlacer()
-    target_gateset: Optional[cirq.CompilationTargetGateset] = None
+    target_gateset: cirq.CompilationTargetGateset | None = None
 
     @classmethod
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return dataclass_json_dict(self)
 
     def __repr__(self) -> str:
@@ -282,7 +285,7 @@ def execute(
     for i, exe in enumerate(executable_group):
         runtime_info = RuntimeInfo(execution_index=i)
 
-        if exe.params != tuple():
+        if exe.params != ():
             raise NotImplementedError("Circuit params are not yet supported.")
         if not hasattr(exe.measurement, 'n_repetitions'):
             raise NotImplementedError("Only `BitstringsMeasurement` are supported.")

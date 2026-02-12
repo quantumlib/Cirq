@@ -12,20 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
 import cirq
 
 
-def test_init_state():
+def test_init_state() -> None:
     args = cirq.StabilizerChFormSimulationState(qubits=cirq.LineQubit.range(1), initial_state=1)
     np.testing.assert_allclose(args.state.state_vector(), [0, 1])
     with pytest.raises(ValueError, match='Must specify qubits'):
         _ = cirq.StabilizerChFormSimulationState(initial_state=1)
 
 
-def test_cannot_act():
+def test_cannot_act() -> None:
     class NoDetails(cirq.testing.SingleQubitGate):
         pass
 
@@ -35,7 +37,7 @@ def test_cannot_act():
         cirq.act_on(NoDetails(), args, qubits=())
 
 
-def test_gate_with_act_on():
+def test_gate_with_act_on() -> None:
     class CustomGate(cirq.testing.SingleQubitGate):
         def _act_on_(self, sim_state, qubits):
             if isinstance(sim_state, cirq.StabilizerChFormSimulationState):
@@ -53,7 +55,7 @@ def test_gate_with_act_on():
     np.testing.assert_allclose(state.gamma, [0, 1, 0])
 
 
-def test_unitary_fallback_y():
+def test_unitary_fallback_y() -> None:
     class UnitaryYGate(cirq.Gate):
         def num_qubits(self) -> int:
             return 1
@@ -72,7 +74,7 @@ def test_unitary_fallback_y():
     np.testing.assert_allclose(args.state.state_vector(), expected_args.state.state_vector())
 
 
-def test_unitary_fallback_h():
+def test_unitary_fallback_h() -> None:
     class UnitaryHGate(cirq.Gate):
         def num_qubits(self) -> int:
             return 1
@@ -91,7 +93,7 @@ def test_unitary_fallback_h():
     np.testing.assert_allclose(args.state.state_vector(), expected_args.state.state_vector())
 
 
-def test_copy():
+def test_copy() -> None:
     args = cirq.StabilizerChFormSimulationState(
         qubits=cirq.LineQubit.range(3), prng=np.random.RandomState()
     )

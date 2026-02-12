@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import collections
-from typing import cast, Dict, List, Optional, Sequence, TYPE_CHECKING, Union
+from collections.abc import Sequence
+from typing import cast, TYPE_CHECKING
 
 from cirq import circuits, ops, transformers
 from cirq.contrib.acquaintance.devices import get_acquaintance_size
@@ -25,7 +26,7 @@ from cirq.contrib.acquaintance.permutation import PermutationGate
 if TYPE_CHECKING:
     import cirq
 
-STRATEGY_GATE = Union[AcquaintanceOpportunityGate, PermutationGate]
+STRATEGY_GATE = AcquaintanceOpportunityGate | PermutationGate
 
 
 def rectify_acquaintance_strategy(circuit: cirq.Circuit, acquaint_first: bool = True) -> None:
@@ -43,7 +44,7 @@ def rectify_acquaintance_strategy(circuit: cirq.Circuit, acquaint_first: bool = 
     """
     rectified_moments = []
     for moment in circuit:
-        gate_type_to_ops: Dict[bool, List[ops.GateOperation]] = collections.defaultdict(list)
+        gate_type_to_ops: dict[bool, list[ops.GateOperation]] = collections.defaultdict(list)
         for op in moment.operations:
             gate_op = cast(ops.GateOperation, op)
             is_acquaintance = isinstance(gate_op.gate, AcquaintanceOpportunityGate)
@@ -59,7 +60,7 @@ def rectify_acquaintance_strategy(circuit: cirq.Circuit, acquaint_first: bool = 
 def replace_acquaintance_with_swap_network(
     circuit: cirq.Circuit,
     qubit_order: Sequence[cirq.Qid],
-    acquaintance_size: Optional[int] = 0,
+    acquaintance_size: int | None = 0,
     swap_gate: cirq.Gate = ops.SWAP,
 ) -> bool:
     """Replace every rectified moment with acquaintance gates with a generalized swap network.
@@ -83,7 +84,7 @@ def replace_acquaintance_with_swap_network(
     """
     rectify_acquaintance_strategy(circuit)
     reflected = False
-    reverse_map = {q: r for q, r in zip(qubit_order, reversed(qubit_order))}
+    reverse_map = dict(zip(qubit_order, reversed(qubit_order)))
     for moment_index, moment in enumerate(circuit):
         if reflected:
             moment = moment.transform_qubits(reverse_map.__getitem__)

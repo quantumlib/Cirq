@@ -15,19 +15,8 @@
 from __future__ import annotations
 
 import numbers
-from typing import (
-    AbstractSet,
-    cast,
-    Dict,
-    Iterable,
-    Iterator,
-    Optional,
-    Sequence,
-    TYPE_CHECKING,
-    Union,
-)
-
-import sympy
+from collections.abc import Iterable, Iterator, Sequence, Set
+from typing import cast, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq._compat import deprecated, proper_repr
@@ -42,6 +31,8 @@ from cirq.ops import (
 )
 
 if TYPE_CHECKING:
+    import sympy
+
     import cirq
 
 
@@ -65,7 +56,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
     def __init__(
         self,
         pauli_string: ps.PauliString,
-        qubits: Optional[Sequence[cirq.Qid]] = None,
+        qubits: Sequence[cirq.Qid] | None = None,
         *,
         exponent_neg: cirq.TParamVal = 1,
         exponent_pos: cirq.TParamVal = 0,
@@ -83,9 +74,9 @@ class PauliStringPhasor(gate_operation.GateOperation):
                 `pauli_string` are acted upon by identity. The order of
                 these qubits must match the order in `pauli_string`.
             exponent_neg: How much to phase vectors in the negative eigenspace,
-                in the form of the t in (-1)**t = exp(i pi t).
+                in the form of the t in ``(-1)**t = exp(i*pi*t)``.
             exponent_pos: How much to phase vectors in the positive eigenspace,
-                in the form of the t in (-1)**t = exp(i pi t).
+                in the form of the t in ``(-1)**t = exp(i*pi*t)``.
 
         Raises:
             ValueError: If coefficient is not 1 or -1 or the qubits of
@@ -145,7 +136,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
             )
         return False
 
-    def map_qubits(self, qubit_map: Dict[raw_types.Qid, raw_types.Qid]) -> PauliStringPhasor:
+    def map_qubits(self, qubit_map: dict[raw_types.Qid, raw_types.Qid]) -> PauliStringPhasor:
         """Maps the qubits inside the PauliStringPhasor.
 
         Args:
@@ -199,7 +190,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
         syms = tuple(sym(qubit) for qubit in qubits)
         return protocols.CircuitDiagramInfo(wire_symbols=syms, exponent=self.exponent_relative)
 
-    def conjugated_by(self, clifford: 'cirq.OP_TREE') -> 'PauliStringPhasor':
+    def conjugated_by(self, clifford: cirq.OP_TREE) -> PauliStringPhasor:
         r"""Returns the Pauli string conjugated by a clifford operation.
 
         The PauliStringPhasor $P$ conjugated by the Clifford operation $C$ is
@@ -210,7 +201,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
         pn = self.exponent_neg
         return PauliStringPhasor(new_pauli_string, exponent_pos=pp, exponent_neg=pn)
 
-    @deprecated(deadline="v2.0", fix="Use conjuagetd_by() instead.")
+    @deprecated(deadline="v2.0", fix="Use conjugated_by() instead.")
     def pass_operations_over(
         self, ops: Iterable[raw_types.Operation], after_to_before: bool = False
     ) -> PauliStringPhasor:  # pragma: no cover
@@ -272,7 +263,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
 
     @classmethod
     def _from_json_dict_(cls, pauli_string, exponent_neg, exponent_pos, **kwargs):
-        qubits = kwargs['qubits'] if 'qubits' in kwargs else None
+        qubits = kwargs.get('qubits', None)
         return PauliStringPhasor(
             pauli_string=pauli_string,
             qubits=qubits,
@@ -355,7 +346,7 @@ class PauliStringPhasorGate(raw_types.Gate):
             return rel1 == rel2 and self.dense_pauli_string == other.dense_pauli_string
         return False
 
-    def __pow__(self, exponent: Union[float, sympy.Symbol]) -> PauliStringPhasorGate:
+    def __pow__(self, exponent: float | sympy.Symbol) -> PauliStringPhasorGate:
         pn = protocols.mul(self.exponent_neg, exponent, None)
         pp = protocols.mul(self.exponent_pos, exponent, None)
         if pn is None or pp is None:
@@ -398,7 +389,7 @@ class PauliStringPhasorGate(raw_types.Gate):
             self.exponent_pos
         )
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self.exponent_neg) | protocols.parameter_names(
             self.exponent_pos
         )

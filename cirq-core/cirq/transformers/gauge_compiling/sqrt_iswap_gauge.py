@@ -14,6 +14,8 @@
 
 """A Gauge transformer for SQRT_ISWAP gate."""
 
+from __future__ import annotations
+
 import numpy as np
 
 from cirq import ops

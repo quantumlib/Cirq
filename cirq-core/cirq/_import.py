@@ -12,14 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import importlib
 import sys
+from collections.abc import Callable
 from contextlib import contextmanager
 from importlib import abc
 from importlib.abc import Loader
 from importlib.machinery import ModuleSpec
 from types import ModuleType
-from typing import Any, Callable, cast, List, Optional
+from typing import Any, cast
 
 
 class InstrumentedFinder(abc.MetaPathFinder):
@@ -29,7 +32,7 @@ class InstrumentedFinder(abc.MetaPathFinder):
         self,
         finder: Any,
         module_name: str,
-        wrap_module: Callable[[ModuleType], Optional[ModuleType]],
+        wrap_module: Callable[[ModuleType], ModuleType | None],
         after_exec: Callable[[ModuleType], None],
     ):
         """A module finder that uses an existing module finder to find a python
@@ -54,7 +57,7 @@ class InstrumentedFinder(abc.MetaPathFinder):
 
         self.finder = finder
         self.module_name = module_name
-        self.match_components: List[str] = []
+        self.match_components: list[str] = []
         if self.module_name:
             self.match_components = self.module_name.split('.')
         self.wrap_module = wrap_module
@@ -80,7 +83,7 @@ class InstrumentedLoader(abc.Loader):
     def __init__(
         self,
         loader: Any,
-        wrap_module: Callable[[ModuleType], Optional[ModuleType]],
+        wrap_module: Callable[[ModuleType], ModuleType | None],
         after_exec: Callable[[ModuleType], None],
     ):
         """A module loader that uses an existing module loader and intercepts
@@ -119,7 +122,7 @@ class InstrumentedLoader(abc.Loader):
 @contextmanager
 def wrap_module_executions(
     module_name: str,
-    wrap_func: Callable[[ModuleType], Optional[ModuleType]],
+    wrap_func: Callable[[ModuleType], ModuleType | None],
     after_exec: Callable[[ModuleType], None] = lambda m: None,
     assert_meta_path_unchanged: bool = True,
 ):
@@ -155,7 +158,7 @@ def delay_import(module_name: str):
     delay = True
     execute_list = []
 
-    def wrap_func(module: ModuleType) -> Optional[ModuleType]:
+    def wrap_func(module: ModuleType) -> ModuleType | None:
         if delay:
             execute_list.append(module)
             return None  # Don't allow the module to be executed yet

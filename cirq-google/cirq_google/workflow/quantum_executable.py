@@ -14,10 +14,13 @@
 
 """Data structures for programs executable on a quantum runtime."""
 
+from __future__ import annotations
+
 import abc
 import dataclasses
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from typing import Any, cast, Dict, Iterator, List, Optional, Sequence, Tuple, Union
+from typing import Any, cast
 
 import cirq
 from cirq import _compat
@@ -52,28 +55,28 @@ class KeyValueExecutableSpec(ExecutableSpec):
     """
 
     executable_family: str
-    key_value_pairs: Tuple[Tuple[str, Any], ...] = ()
+    key_value_pairs: tuple[tuple[str, Any], ...] = ()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return dict(self.key_value_pairs)
 
     @classmethod
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.dataclass_json_dict(self)
 
     @classmethod
-    def from_dict(cls, d: Dict[str, Any], *, executable_family: str) -> 'KeyValueExecutableSpec':
+    def from_dict(cls, d: dict[str, Any], *, executable_family: str) -> KeyValueExecutableSpec:
         return cls(
             executable_family=executable_family, key_value_pairs=tuple((k, v) for k, v in d.items())
         )
 
     @classmethod
     def _from_json_dict_(
-        cls, executable_family: str, key_value_pairs: List[List[Union[str, Any]]], **kwargs
-    ) -> 'KeyValueExecutableSpec':
+        cls, executable_family: str, key_value_pairs: list[list[str | Any]], **kwargs
+    ) -> KeyValueExecutableSpec:
         return cls(
             executable_family=executable_family,
             key_value_pairs=tuple((k, v) for k, v in key_value_pairs),
@@ -114,7 +117,7 @@ class BitstringsMeasurement:
         return cirq._compat.dataclass_repr(self, namespace='cirq_google')
 
 
-TParamPair = Tuple[cirq.TParamKey, cirq.TParamVal]
+TParamPair = tuple[cirq.TParamKey, cirq.TParamVal]
 
 
 @dataclass(frozen=True)
@@ -142,20 +145,19 @@ class QuantumExecutable:
 
     circuit: cirq.FrozenCircuit
     measurement: BitstringsMeasurement
-    params: Optional[Tuple[TParamPair, ...]] = None
-    spec: Optional[ExecutableSpec] = None
-    problem_topology: Optional[cirq.NamedTopology] = None
-    initial_state: Optional[cirq.ProductState] = None
+    params: tuple[TParamPair, ...] | None = None
+    spec: ExecutableSpec | None = None
+    problem_topology: cirq.NamedTopology | None = None
+    initial_state: cirq.ProductState | None = None
 
-    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         circuit: cirq.AbstractCircuit,
         measurement: BitstringsMeasurement,
-        params: Union[Sequence[TParamPair], cirq.ParamResolverOrSimilarType] = None,
-        spec: Optional[ExecutableSpec] = None,
-        problem_topology: Optional[cirq.NamedTopology] = None,
-        initial_state: Optional[cirq.ProductState] = None,
+        params: Sequence[TParamPair] | cirq.ParamResolverOrSimilarType = None,
+        spec: ExecutableSpec | None = None,
+        problem_topology: cirq.NamedTopology | None = None,
+        initial_state: cirq.ProductState | None = None,
     ):
         """Initialize the quantum executable.
 
@@ -221,7 +223,7 @@ class QuantumExecutable:
             object.__setattr__(self, '_hash', hash(dataclasses.astuple(self)))
         return self._hash  # type: ignore
 
-    def __getstate__(self) -> Dict[str, Any]:
+    def __getstate__(self) -> dict[str, Any]:
         # clear cached hash value when pickling, see #6674
         state = self.__dict__
         if state["_hash"] is not None:
@@ -245,7 +247,7 @@ class QuantumExecutableGroup:
         executables: A tuple of `cg.QuantumExecutable`.
     """
 
-    executables: Tuple[QuantumExecutable, ...]
+    executables: tuple[QuantumExecutable, ...]
 
     def __init__(self, executables: Sequence[QuantumExecutable]):
         """Initialize and normalize the quantum executable group.
@@ -284,7 +286,7 @@ class QuantumExecutableGroup:
             object.__setattr__(self, '_hash', hash(dataclasses.astuple(self)))
         return self._hash  # type: ignore
 
-    def __getstate__(self) -> Dict[str, Any]:
+    def __getstate__(self) -> dict[str, Any]:
         # clear cached hash value when pickling, see #6674
         state = self.__dict__
         if state["_hash"] is not None:
@@ -296,5 +298,5 @@ class QuantumExecutableGroup:
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.dataclass_json_dict(self)

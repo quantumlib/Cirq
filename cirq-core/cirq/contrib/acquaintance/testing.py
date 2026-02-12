@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Sequence, TYPE_CHECKING
+from __future__ import annotations
+
+from collections.abc import Sequence
+from typing import cast, TYPE_CHECKING
 
 from cirq import devices, ops, protocols
 from cirq.contrib.acquaintance.permutation import PermutationGate, update_mapping

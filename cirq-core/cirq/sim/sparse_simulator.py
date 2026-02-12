@@ -16,7 +16,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterator, List, Optional, Sequence, Type, TYPE_CHECKING, Union
+from collections.abc import Iterator, Sequence
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -127,7 +128,7 @@ class Simulator(
     def __init__(
         self,
         *,
-        dtype: Type[np.complexfloating] = np.complex64,
+        dtype: type[np.complexfloating] = np.complex64,
         noise: cirq.NOISE_MODEL_LIKE = None,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         split_untangled_states: bool = True,
@@ -154,7 +155,7 @@ class Simulator(
 
     def _create_partial_simulation_state(
         self,
-        initial_state: Union[cirq.STATE_VECTOR_LIKE, cirq.StateVectorSimulationState],
+        initial_state: cirq.STATE_VECTOR_LIKE | cirq.StateVectorSimulationState,
         qubits: Sequence[cirq.Qid],
         classical_data: cirq.ClassicalDataStore,
     ):
@@ -192,12 +193,12 @@ class Simulator(
     def simulate_expectation_values_sweep_iter(
         self,
         program: cirq.AbstractCircuit,
-        observables: Union[cirq.PauliSumLike, List[cirq.PauliSumLike]],
+        observables: cirq.PauliSumLike | list[cirq.PauliSumLike],
         params: cirq.Sweepable,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
         permit_terminal_measurements: bool = False,
-    ) -> Iterator[List[float]]:
+    ) -> Iterator[list[float]]:
         if not permit_terminal_measurements and program.are_any_measurements_terminal():
             raise ValueError(
                 'Provided circuit has terminal measurements, which may '
@@ -206,7 +207,7 @@ class Simulator(
             )
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         qmap = {q: i for i, q in enumerate(qubit_order.order_for(program.all_qubits()))}
-        if not isinstance(observables, List):
+        if not isinstance(observables, list):
             observables = [observables]
         pslist = [ops.PauliSum.wrap(pslike) for pslike in observables]
         yield from (
@@ -225,7 +226,7 @@ class SparseSimulatorStep(
     def __init__(
         self,
         sim_state: cirq.SimulationStateBase[cirq.StateVectorSimulationState],
-        dtype: Type[np.complexfloating] = np.complex64,
+        dtype: type[np.complexfloating] = np.complex64,
     ):
         """Results of a step of the simulator.
 
@@ -237,9 +238,9 @@ class SparseSimulatorStep(
         qubit_map = {q: i for i, q in enumerate(sim_state.qubits)}
         super().__init__(sim_state=sim_state, qubit_map=qubit_map)
         self._dtype = dtype
-        self._state_vector: Optional[np.ndarray] = None
+        self._state_vector: np.ndarray | None = None
 
-    def state_vector(self, copy: bool = False):
+    def state_vector(self, copy: bool = False) -> np.ndarray:
         """Return the state vector at this point in the computation.
 
         The state is returned in the computational basis with these basis

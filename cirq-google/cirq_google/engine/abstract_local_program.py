@@ -11,15 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import copy
 import datetime
-from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
-import cirq
-from cirq_google.cloud import quantum
 from cirq_google.engine.abstract_program import AbstractProgram
 
 if TYPE_CHECKING:
+    import cirq
+    import cirq_google.cloud.quantum as quantum
     from cirq_google.engine.abstract_local_engine import AbstractLocalEngine
     from cirq_google.engine.abstract_local_job import AbstractLocalJob
 
@@ -35,18 +39,18 @@ class AbstractLocalProgram(AbstractProgram):
     need to implement abstract methods.
     """
 
-    def __init__(self, circuits: List[cirq.Circuit], engine: 'AbstractLocalEngine'):
+    def __init__(self, circuits: list[cirq.Circuit], engine: AbstractLocalEngine):
         if not circuits:
             raise ValueError('No circuits provided to program.')
         self._create_time = datetime.datetime.now()
         self._update_time = datetime.datetime.now()
         self._description = ''
-        self._labels: Dict[str, str] = {}
+        self._labels: dict[str, str] = {}
         self._engine = engine
-        self._jobs: Dict[str, AbstractLocalJob] = {}
+        self._jobs: dict[str, AbstractLocalJob] = {}
         self._circuits = circuits
 
-    def engine(self) -> 'AbstractLocalEngine':
+    def engine(self) -> AbstractLocalEngine:
         """Returns the parent Engine object.
 
         Returns:
@@ -54,10 +58,10 @@ class AbstractLocalProgram(AbstractProgram):
         """
         return self._engine
 
-    def add_job(self, job_id: str, job: 'AbstractLocalJob') -> None:
+    def add_job(self, job_id: str, job: AbstractLocalJob) -> None:
         self._jobs[job_id] = job
 
-    def get_job(self, job_id: str) -> 'AbstractLocalJob':
+    def get_job(self, job_id: str) -> AbstractLocalJob:
         """Returns an AbstractLocalJob for an existing Quantum Engine job.
 
         Args:
@@ -75,11 +79,11 @@ class AbstractLocalProgram(AbstractProgram):
 
     def list_jobs(
         self,
-        created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
-        created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[Dict[str, str]] = None,
-        execution_states: Optional[Set[quantum.ExecutionStatus.State]] = None,
-    ) -> Sequence['AbstractLocalJob']:
+        created_before: datetime.datetime | datetime.date | None = None,
+        created_after: datetime.datetime | datetime.date | None = None,
+        has_labels: dict[str, str] | None = None,
+        execution_states: set[quantum.ExecutionStatus.State] | None = None,
+    ) -> Sequence[AbstractLocalJob]:
         """Returns the list of jobs for this program.
 
         Args:
@@ -118,11 +122,11 @@ class AbstractLocalProgram(AbstractProgram):
             job_list.append(job)
         return job_list
 
-    def create_time(self) -> 'datetime.datetime':
+    def create_time(self) -> datetime.datetime:
         """Returns when the program was created."""
         return self._create_time
 
-    def update_time(self) -> 'datetime.datetime':
+    def update_time(self) -> datetime.datetime:
         """Returns when the program was last updated."""
         return self._update_time
 
@@ -130,7 +134,7 @@ class AbstractLocalProgram(AbstractProgram):
         """Returns the description of the program."""
         return self._description
 
-    def set_description(self, description: str) -> 'AbstractProgram':
+    def set_description(self, description: str) -> AbstractProgram:
         """Sets the description of the program.
 
         Params:
@@ -142,11 +146,11 @@ class AbstractLocalProgram(AbstractProgram):
         self._description = description
         return self
 
-    def labels(self) -> Dict[str, str]:
+    def labels(self) -> dict[str, str]:
         """Returns the labels of the program."""
         return copy.copy(self._labels)
 
-    def set_labels(self, labels: Dict[str, str]) -> 'AbstractProgram':
+    def set_labels(self, labels: dict[str, str]) -> AbstractProgram:
         """Sets (overwriting) the labels for a previously created quantum
         program.
 
@@ -159,7 +163,7 @@ class AbstractLocalProgram(AbstractProgram):
         self._labels = copy.copy(labels)
         return self
 
-    def add_labels(self, labels: Dict[str, str]) -> 'AbstractProgram':
+    def add_labels(self, labels: dict[str, str]) -> AbstractProgram:
         """Adds new labels to a previously created quantum program.
 
         Params:
@@ -172,7 +176,7 @@ class AbstractLocalProgram(AbstractProgram):
             self._labels[key] = labels[key]
         return self
 
-    def remove_labels(self, keys: List[str]) -> 'AbstractProgram':
+    def remove_labels(self, keys: list[str]) -> AbstractProgram:
         """Removes labels with given keys from the labels of a previously
         created quantum program.
 
@@ -186,7 +190,7 @@ class AbstractLocalProgram(AbstractProgram):
             del self._labels[key]
         return self
 
-    def get_circuit(self, program_num: Optional[int] = None) -> cirq.Circuit:
+    def get_circuit(self, program_num: int | None = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the program. This is only
         supported if the program was created with the V2 protos.
 

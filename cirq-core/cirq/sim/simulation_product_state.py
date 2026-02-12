@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 from collections import abc
-from typing import Any, Dict, Generic, Iterator, List, Mapping, Optional, Sequence, TYPE_CHECKING
+from collections.abc import Iterator, Mapping, Sequence
+from typing import Any, Generic, TYPE_CHECKING
 
 import numpy as np
 
@@ -34,10 +35,10 @@ class SimulationProductState(
 
     def __init__(
         self,
-        sim_states: Dict[Optional[cirq.Qid], TSimulationState],
+        sim_states: dict[cirq.Qid | None, TSimulationState],
         qubits: Sequence[cirq.Qid],
         split_untangled_states: bool,
-        classical_data: Optional[cirq.ClassicalDataStore] = None,
+        classical_data: cirq.ClassicalDataStore | None = None,
     ):
         """Initializes the class.
 
@@ -57,7 +58,7 @@ class SimulationProductState(
         self._split_untangled_states = split_untangled_states
 
     @property
-    def sim_states(self) -> Mapping[Optional[cirq.Qid], TSimulationState]:
+    def sim_states(self) -> Mapping[cirq.Qid | None, TSimulationState]:
         return self._sim_states
 
     @property
@@ -68,7 +69,7 @@ class SimulationProductState(
         merged_state = self.sim_states[None]
         if not self.split_untangled_states:
             return merged_state
-        extra_states = set([self.sim_states[k] for k in self.sim_states.keys() if k is not None])
+        extra_states = {self.sim_states[k] for k in self.sim_states.keys() if k is not None}
         if not extra_states:
             return merged_state
 
@@ -108,7 +109,7 @@ class SimulationProductState(
 
         # Go through the op's qubits and join any disparate SimulationState states
         # into a new combined state.
-        op_args_opt: Optional[TSimulationState] = None
+        op_args_opt: TSimulationState | None = None
         for q in qubits:
             if op_args_opt is None:
                 op_args_opt = self.sim_states[q]
@@ -152,12 +153,12 @@ class SimulationProductState(
 
     def sample(
         self,
-        qubits: List[cirq.Qid],
+        qubits: list[cirq.Qid],
         repetitions: int = 1,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> np.ndarray:
         columns = []
-        selected_order: List[ops.Qid] = []
+        selected_order: list[ops.Qid] = []
         q_set = set(qubits)
         for v in dict.fromkeys(self.sim_states.values()):
             qs = [q for q in v.qubits if q in q_set]
@@ -170,11 +171,11 @@ class SimulationProductState(
         index_order = [qubit_map[q] for q in qubits]
         return stacked[:, index_order]
 
-    def __getitem__(self, item: Optional[cirq.Qid]) -> TSimulationState:
+    def __getitem__(self, item: cirq.Qid | None) -> TSimulationState:
         return self.sim_states[item]
 
     def __len__(self) -> int:
         return len(self.sim_states)
 
-    def __iter__(self) -> Iterator[Optional[cirq.Qid]]:
+    def __iter__(self) -> Iterator[cirq.Qid | None]:
         return iter(self.sim_states)

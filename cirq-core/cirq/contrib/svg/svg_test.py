@@ -1,4 +1,7 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
+from __future__ import annotations
+
 import IPython.display
 import numpy as np
 import pytest
@@ -7,7 +10,7 @@ import cirq
 from cirq.contrib.svg import circuit_to_svg, SVGCircuit
 
 
-def test_svg():
+def test_svg() -> None:
     a, b, c = cirq.LineQubit.range(3)
 
     svg_text = circuit_to_svg(
@@ -26,7 +29,7 @@ def test_svg():
     assert '</svg>' in svg_text
 
 
-def test_svg_noise():
+def test_svg_noise() -> None:
     noise_model = cirq.ConstantQubitNoiseModel(cirq.DepolarizingChannel(p=1e-3))
     q = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.X(q))
@@ -35,12 +38,12 @@ def test_svg_noise():
     assert '>D(0.001)</text>' in svg
 
 
-def test_validation():
+def test_validation() -> None:
     with pytest.raises(ValueError):
         circuit_to_svg(cirq.Circuit())
 
 
-def test_empty_moments():
+def test_empty_moments() -> None:
     a, b = cirq.LineQubit.range(2)
     svg_1 = circuit_to_svg(
         cirq.Circuit(
@@ -73,7 +76,7 @@ def test_empty_moments():
         ('A[<virtual>]B[cirq.VirtualTag()]C>D<E', 'ABC&gt;D&lt;E'),
     ],
 )
-def test_gate_with_less_greater_str(symbol, svg_symbol):
+def test_gate_with_less_greater_str(symbol, svg_symbol) -> None:
     class CustomGate(cirq.Gate):
         def _num_qubits_(self) -> int:
             return 1

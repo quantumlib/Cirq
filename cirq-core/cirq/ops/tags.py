@@ -11,8 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Canonical tags for the TaggedOperation class."""
-from typing import Dict
+
+from __future__ import annotations
 
 
 class VirtualTag:
@@ -38,7 +40,7 @@ class VirtualTag:
     def __repr__(self) -> str:
         return 'cirq.VirtualTag()'
 
-    def _json_dict_(self) -> Dict[str, str]:
+    def _json_dict_(self) -> dict[str, str]:
         return {}
 
     def __hash__(self):
@@ -61,7 +63,7 @@ class RoutingSwapTag:
     def __repr__(self) -> str:
         return 'cirq.RoutingSwapTag()'
 
-    def _json_dict_(self) -> Dict[str, str]:
+    def _json_dict_(self) -> dict[str, str]:
         return {}
 
     def __hash__(self):

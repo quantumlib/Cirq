@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# mypy: ignore-errors
+
 import cirq
 
 
@@ -29,7 +31,7 @@ class SerializeLargeExpandedCircuits:
     params = ([100, 500, 1000], [100, 1000, 4000])
     timeout = 600  # Change timeout to 2 minutes instead of default 60 seconds.
 
-    def setup(self, num_qubits: int, num_moments: int):
+    def setup(self, num_qubits: int, num_moments: int) -> None:
         qubits = cirq.LineQubit.range(num_qubits)
         one_q_x_moment = cirq.Moment(cirq.X(q) for q in qubits[::2])
         one_q_y_moment = cirq.Moment(cirq.Y(q) for q in qubits[1::2])
@@ -43,11 +45,11 @@ class SerializeLargeExpandedCircuits:
             * (num_moments // 5)
         )
 
-    def time_json_serialization(self, *_):
+    def time_json_serialization(self, *_) -> None:
         _ = cirq.to_json(self.circuit)
 
-    def time_json_serialization_gzip(self, *_):
+    def time_json_serialization_gzip(self, *_) -> None:
         _ = cirq.to_json_gzip(self.circuit)
 
-    def track_json_serialization_gzip_size(self, *_):
+    def track_json_serialization_gzip_size(self, *_) -> str:
         return _human_size(len(cirq.to_json_gzip(self.circuit)))

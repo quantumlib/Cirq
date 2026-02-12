@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import scipy.stats
 
 import cirq
 
 
-def test_decompose_x():
+def test_decompose_x() -> None:
     """Verifies correctness of multi-controlled X decomposition."""
     for total_qubits_count in range(1, 8):
         qubits = cirq.LineQubit.range(total_qubits_count)
@@ -81,14 +83,14 @@ def _test_decompose(matrix, controls_count):
     cirq.testing.assert_allclose_up_to_global_phase(expected_matrix, result_matrix, atol=1e-8)
 
 
-def test_decompose_specific_matrices():
+def test_decompose_specific_matrices() -> None:
     for gate in [cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.I, cirq.T, cirq.S]:
         for controls_count in range(7):
             _test_decompose(cirq.unitary(gate), controls_count)
 
 
 @cirq.testing.retry_once_with_later_random_values
-def test_decompose_random_unitary():
+def test_decompose_random_unitary() -> None:
     for controls_count in range(5):
         for _ in range(10):
             _test_decompose(_random_unitary(), controls_count)
@@ -97,7 +99,7 @@ def test_decompose_random_unitary():
 
 
 @cirq.testing.retry_once_with_later_random_values
-def test_decompose_random_special_unitary():
+def test_decompose_random_special_unitary() -> None:
     for controls_count in range(5):
         for _ in range(10):
             _test_decompose(_random_special_unitary(), controls_count)
@@ -111,7 +113,7 @@ def _decomposition_size(U, controls_count):
     return _count_operations(operations)
 
 
-def test_decompose_size_special_unitary():
+def test_decompose_size_special_unitary() -> None:
     np.random.seed(0)
     u = _random_special_unitary()
     assert _decomposition_size(u, 0) == (1, 0, 0)
@@ -124,7 +126,7 @@ def test_decompose_size_special_unitary():
         assert _decomposition_size(u, i) == (64 * i - 312, 48 * i - 234, 16)
 
 
-def test_decompose_size_unitary():
+def test_decompose_size_unitary() -> None:
     np.random.seed(0)
     u = _random_unitary()
     assert _decomposition_size(u, 0) == (1, 0, 0)

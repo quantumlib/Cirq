@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# mypy: ignore-errors
+
 import numpy as np
 
 import cirq
@@ -29,7 +31,7 @@ CZ = np.diag([1, 1, 1, -1])
 # yapf: enable
 
 
-def time_kak_decomposition(target):
+def time_kak_decomposition(target) -> None:
     """Benchmark kak_decomposition
     kak_decomposition is benchmarked because it was historically slow.
     See https://github.com/quantumlib/Cirq/issues/3840 for status of other benchmarks.

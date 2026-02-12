@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import numpy as np
 import pytest
 import sympy
@@ -18,7 +21,7 @@ import sympy
 import cirq
 
 
-def test_init():
+def test_init() -> None:
     p = cirq.RandomGateChannel(sub_gate=cirq.X, probability=0.5)
     assert p.sub_gate is cirq.X
     assert p.probability == 0.5
@@ -29,7 +32,7 @@ def test_init():
         _ = cirq.RandomGateChannel(sub_gate=cirq.X, probability=-1)
 
 
-def test_eq():
+def test_eq() -> None:
     eq = cirq.testing.EqualsTester()
     q = cirq.LineQubit(0)
 
@@ -67,7 +70,7 @@ def test_eq():
     )
 
 
-def test_consistent_protocols():
+def test_consistent_protocols() -> None:
     cirq.testing.assert_implements_consistent_protocols(
         cirq.RandomGateChannel(sub_gate=cirq.X, probability=1),
         ignore_decompose_to_default_gateset=True,
@@ -86,7 +89,7 @@ def test_consistent_protocols():
     )
 
 
-def test_diagram():
+def test_diagram() -> None:
     class NoDetailsGate(cirq.Gate):
         def num_qubits(self) -> int:
             raise NotImplementedError()
@@ -115,7 +118,7 @@ def test_diagram():
 
 
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
-def test_parameterized(resolve_fn):
+def test_parameterized(resolve_fn) -> None:
     op = cirq.X.with_probability(sympy.Symbol('x'))
     assert cirq.is_parameterized(op)
     assert not cirq.has_kraus(op)
@@ -128,7 +131,7 @@ def test_parameterized(resolve_fn):
     assert cirq.has_mixture(op2)
 
 
-def test_mixture():
+def test_mixture() -> None:
     class NoDetailsGate(cirq.Gate):
         def num_qubits(self) -> int:
             return 1
@@ -150,7 +153,7 @@ def test_mixture():
     assert {p for p, _ in m} == {7 / 8, 1 / 32, 3 / 32}
 
 
-def test_channel():
+def test_channel() -> None:
     class NoDetailsGate(cirq.Gate):
         def num_qubits(self) -> int:
             return 1
@@ -192,7 +195,7 @@ def test_channel():
     np.testing.assert_allclose(m[2], cirq.unitary(cirq.I) * np.sqrt(0.75), atol=1e-8)
 
 
-def test_trace_distance():
+def test_trace_distance() -> None:
     t = cirq.trace_distance_bound
     assert 0.999 <= t(cirq.X.with_probability(sympy.Symbol('x')))
     assert t(cirq.X.with_probability(0)) == 0
@@ -201,18 +204,18 @@ def test_trace_distance():
     assert 0.35 <= t(cirq.S.with_probability(0.5)) <= 0.36
 
 
-def test_str():
+def test_str() -> None:
     assert str(cirq.X.with_probability(0.5)) == 'X[prob=0.5]'
 
 
-def test_stabilizer_supports_probability():
+def test_stabilizer_supports_probability() -> None:
     q = cirq.LineQubit(0)
     c = cirq.Circuit(cirq.X(q).with_probability(0.5), cirq.measure(q, key='m'))
     m = np.sum(cirq.StabilizerSampler().sample(c, repetitions=100)['m'])
     assert 5 < m < 95
 
 
-def test_unsupported_stabilizer_safety():
+def test_unsupported_stabilizer_safety() -> None:
     from cirq.protocols.act_on_protocol_test import ExampleSimulationState
 
     with pytest.raises(TypeError, match="act_on"):

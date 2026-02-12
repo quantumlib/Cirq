@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, FrozenSet, Iterable, Mapping, Tuple, TYPE_CHECKING, Union
+from collections.abc import Iterable, Mapping
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -32,7 +33,7 @@ class KrausChannel(raw_types.Gate):
     def __init__(
         self,
         kraus_ops: Iterable[np.ndarray],
-        key: Union[str, cirq.MeasurementKey, None] = None,
+        key: str | cirq.MeasurementKey | None = None,
         validate: bool = False,
     ):
         kraus_ops = list(kraus_ops)
@@ -59,7 +60,7 @@ class KrausChannel(raw_types.Gate):
         self._key = key
 
     @staticmethod
-    def from_channel(channel: cirq.Gate, key: Union[str, cirq.MeasurementKey, None] = None):
+    def from_channel(channel: cirq.Gate, key: str | cirq.MeasurementKey | None = None):
         """Creates a copy of a channel with the given measurement key."""
         return KrausChannel(kraus_ops=list(protocols.kraus(channel)), key=key)
 
@@ -95,16 +96,16 @@ class KrausChannel(raw_types.Gate):
             return self
         return KrausChannel(kraus_ops=self._kraus_ops, key=key_map[str(self._key)])
 
-    def _with_key_path_(self, path: Tuple[str, ...]):
+    def _with_key_path_(self, path: tuple[str, ...]):
         return KrausChannel(kraus_ops=self._kraus_ops, key=protocols.with_key_path(self._key, path))
 
-    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+    def _with_key_path_prefix_(self, prefix: tuple[str, ...]):
         return KrausChannel(
             kraus_ops=self._kraus_ops, key=protocols.with_key_path_prefix(self._key, prefix)
         )
 
     def _with_rescoped_keys_(
-        self, path: Tuple[str, ...], bindable_keys: FrozenSet[cirq.MeasurementKey]
+        self, path: tuple[str, ...], bindable_keys: frozenset[cirq.MeasurementKey]
     ):
         return KrausChannel(
             kraus_ops=self._kraus_ops,
@@ -122,7 +123,7 @@ class KrausChannel(raw_types.Gate):
             args.append(f'key=\'{self._key}\'')
         return f'cirq.KrausChannel({", ".join(args)})'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['_kraus_ops', '_key'])
 
     @classmethod

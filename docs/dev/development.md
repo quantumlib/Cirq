@@ -23,23 +23,6 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 
 Note that if you are using PyCharm, you might have to use the command Restart & Invalidate Caches to have the change be picked up.
 
-## Docker
-You can build the stable and pre-release Docker images with our `Dockerfile`.
-
-```bash
-docker build -t cirq --target cirq_stable .
-docker run -it cirq python -c "import cirq_google; print(cirq_google.Sycamore23)"
-```
-
-```bash
-docker build -t cirq_pre --target cirq_pre_release .
-docker run -it cirq_pre python -c "import cirq_google; print(cirq_google.Sycamore23)"
-```
-
-If you want to contribute changes to Cirq, you will instead want to fork the repository and submit pull requests from your fork.
-
-
-
 ## Forking the repository
 
 1. Fork the Cirq repo (Fork button in upper right corner of
@@ -71,7 +54,7 @@ This remote can be used to merge changes from Cirq's main repository into your l
     ```
 
     You can check the branches that are on the ```upstream``` remote by
-    running `git ls-remote --heads upstream` or `git branch -r`.
+    running `git ls-remote --branches upstream` or `git branch -r`.
 Most importantly you should see ```upstream/main``` listed.
 1. Merge the upstream main into your local main so that it is up to date.
 
@@ -89,29 +72,37 @@ These instructions are primarily for Linux-based environments that use the `apt`
 package manager.
 
 0. First clone the repository, if you have not already done so.
-See the previous section for instructions.
-
+   See the previous section for instructions.
 
 1. Install system dependencies.
 
-    Make sure you have Python 3.10 or greater.
+    Make sure you have Python 3.11 or greater.
     You can install most other dependencies via `apt-get`:
 
     ```bash
     cat apt-system-requirements.txt dev_tools/conf/apt-list-dev-tools.txt | xargs sudo apt-get install --yes
     ```
 
-    This installs Docker, among other things. You may need to restart
-    Docker or configure permissions on your system; see the
-    [Docker installation instructions](https://docs.docker.com/engine/install/ubuntu/)
-    for more information.
-
     There are some extra steps if Protocol Buffers are changed; see the next section.
 
-2. Prepare a Python virtual environment that includes the Cirq dev tools (such as Mypy).
+2. Setup virtualenvwrapper
 
-    One of the system dependencies we installed was `virtualenvwrapper`, which makes it easy to create virtual environments.
-    If you did not have `virtualenvwrapper` previously, you may need to re-open your terminal or run `source ~/.bashrc` before these commands will work:
+    One of the system dependencies we installed was `virtualenvwrapper`, which makes it easy to
+    create virtual environments.  If you did not have `virtualenvwrapper` previously, then to
+    complete the setup of virtualenvwrapper, the following lines must be added to your ~/.bashrc or
+    ~/.zshrc file.  Once the file is saved, you will need to either open a new terminal session or
+    execute `source ~/.bashrc` to activate the new configuration.
+
+    ```bash
+    export WORKON_HOME=$HOME/.virtualenvs
+    export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
+    source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
+    ```
+
+    For a complete reference see the [virtualenvwrapper documentation](
+    https://virtualenvwrapper.readthedocs.io).
+
+3. Prepare a Python virtual environment that includes the Cirq dev tools (such as Mypy).
 
     ```bash
     mkvirtualenv cirq-py3 --python=/usr/bin/python3
@@ -125,13 +116,13 @@ See the previous section for instructions.
     **Note**: Some highly managed or customized devices have configurations that interfere with `virtualenv`.
     In that case, [anaconda](https://www.anaconda.com/) environments may be a better choice.
 
-3. Check that the tests pass.
+4. Check that the tests pass.
 
     ```bash
     ./check/pytest .
     ```
 
-4. (**OPTIONAL**) include your development copy of Cirq and its subpackages in your Python path.
+5. (**OPTIONAL**) include your development copy of Cirq and its subpackages in your Python path.
 
     ```bash
     source dev_tools/pypath
@@ -164,8 +155,9 @@ get picked up!
 [Protocol buffers](https://developers.google.com/protocol-buffers) ("protobufs") are used in Cirq for converting circuits, gates, and other objects into a standard form that can be written and read by other programs.
 Cirq's protobufs live at [cirq-google/api/v2](https://github.com/quantumlib/Cirq/tree/main/cirq-google/cirq_google/api/v2) and may need to be changed or extended from time to time.
 
-If any protos are updated, their dependents can be rebuilt by calling the script [dev_tools/build-protos.sh](https://github.com/quantumlib/Cirq/tree/main/dev_tools).
-This script uses `grpcio-tools` and protobuf version 4.25 to generate the Python proto API.
+If any protos are updated, their dependents can be rebuilt by calling the script
+[dev_tools/build-protos.sh](https://github.com/quantumlib/Cirq/blob/main/dev_tools/build-protos.sh).
+This script uses the `grpcio-tools` package to generate the Python proto API.
 
 ## Continuous integration and local testing
 
@@ -175,8 +167,8 @@ The simplest way to run checks is to invoke `pytest`, `pylint`, or `mypy` for yo
 
 ```bash
 pytest
-pylint --rcfile=dev_tools/conf/.pylintrc cirq
-mypy --config-file=dev_tools/conf/mypy.ini .
+pylint cirq
+mypy .
 ```
 
 This can be a bit tedious, because you have to specify the configuration files each time.
@@ -215,7 +207,7 @@ A more convenient way to run checks is to via the scripts in the [check/](https:
     - Type checking:
 
         ```bash
-        ./check/mypy [files-and-flags-for-mypy]
+        ./check/mypy [flags-for-mypy]
         ```
 
     - Miscellaneous checks:
@@ -266,7 +258,8 @@ revision and the working directory.
 The above scripts may not exactly match the results computed by the continuous integration workflows on GitHub.
 For example, you may be running an older version of `pylint` or `numpy`.
 If you need to test against the actual continuous integration check, open up a pull request.
-For this pull request you may want to mark it as `[Testing]` so that it is not reviewed.
+For this pull request you may want to open it in a draft mode or
+mark it as `[Testing]` so that it is not reviewed.
 
 ### Writing docstrings and generating documentation
 
@@ -333,91 +326,3 @@ You can call the following utility to unroll the content of a file:
 ```bash
 python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt
 ```
-
-## Producing a PyPI package
-
-1. Do a dry run with test PyPI.
-
-    If you're making a release, you should have access to a test PyPI account
-    capable of uploading packages to Cirq. Put its credentials into the environment
-    variables `TEST_TWINE_USERNAME` and `TEST_TWINE_PASSWORD` then run
-
-    ```bash
-    ./dev_tools/packaging/publish-dev-package.sh EXPECTED_VERSION --test
-    ```
-
-    You must specify the EXPECTED_VERSION argument to match the version in [cirq/_version.py](https://github.com/quantumlib/Cirq/blob/main/cirq-core/cirq/_version.py), and it must contain the string `dev`.
-    This is to prevent accidentally uploading the wrong version.
-
-    The script will append the current date and time to the expected version number before uploading to test PyPI.
-    It will print out the full version that it uploaded.
-    Take not of this value.
-
-    Once the package has uploaded, verify that it works
-
-    ```bash
-    ./dev_tools/packaging/verify-published-package.sh FULL_VERSION_REPORTED_BY_PUBLISH_SCRIPT --test
-   ```
-
-    The script will create fresh virtual environments, install Cirq and its dependencies, check that code importing Cirq executes, and run the tests over the installed code. If everything goes smoothly, the script will finish by printing `VERIFIED`.
-
-2. Do a dry run with prod PyPI
-
-    This step is essentially identical to the test dry run, but with production PyPI.
-    You should have access to a production PyPI account capable of uploading packages to Cirq.
-    Put its credentials into the environment variables `PROD_TWINE_USERNAME` and `PROD_TWINE_PASSWORD` then run
-
-    ```bash
-    ./dev_tools/packaging/publish-dev-package.sh EXPECTED_VERSION --prod
-    ```
-
-    Once the package has uploaded, verify that it works
-
-    ```bash
-    ./dev_tools/packaging/verify-published-package.sh FULL_VERSION_REPORTED_BY_PUBLISH_SCRIPT --prod
-   ```
-
-    If everything goes smoothly, the script will finish by printing `VERIFIED`.
-
-3. Set the version number in [cirq/_version.py](https://github.com/quantumlib/Cirq/blob/main/cirq-core/cirq/_version.py).
-
-    Development versions end with `.dev` or `.dev#`.
-    For example, `0.0.4.dev500` is a development version of the release version `0.0.4`.
-    For a release, create a pull request turning `#.#.#.dev*` into `#.#.#` and a follow up pull request turning `#.#.#` into `(#+1).#.#.dev`.
-
-4. Run [dev_tools/packaging/produce-package.sh](https://github.com/quantumlib/Cirq/blob/main/dev_tools/packaging/produce-package.sh) to produce PyPI artifacts.
-
-    ```bash
-    ./dev_tools/packaging/produce-package.sh dist
-    ```
-
-    The output files will be placed in the directory `dist/`.
-
-5. Create a GitHub release.
-
-    Describe major changes (especially breaking changes) in the summary.
-    Make sure you point the tag being created at the one and only revision with the non-dev version number.
-    Attach the package files you produced to the release.
-
-6. Upload to PyPI.
-
-    You can use a tool such as `twine` for this.
-    For example:
-
-    ```bash
-    twine upload -u "${PROD_TWINE_USERNAME}" -p "${PROD_TWINE_PASSWORD}" dist/*
-    ```
-
-    You should then run the verification script to check that the uploaded package works:
-
-    ```bash
-    ./dev_tools/packaging/verify-published-package.sh VERSION_YOU_UPLOADED --prod
-   ```
-
-    And try it out for yourself:
-
-    ```bash
-    python -m pip install cirq
-    python -c "import cirq; print(cirq_google.Sycamore)"
-    python -c "import cirq; print(cirq.__version__)"
-    ```

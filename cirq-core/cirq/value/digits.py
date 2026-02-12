@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Iterable, List, Optional, overload, Union
+from __future__ import annotations
+
+from collections.abc import Iterable
+from typing import Any, overload
 
 
 def big_endian_bits_to_int(bits: Iterable[Any]) -> int:
@@ -46,7 +49,7 @@ def big_endian_bits_to_int(bits: Iterable[Any]) -> int:
     return result
 
 
-def big_endian_int_to_bits(val: int, *, bit_count: int) -> List[int]:
+def big_endian_int_to_bits(val: int, *, bit_count: int) -> list[int]:
     """Returns the big-endian bits of an integer.
 
     Args:
@@ -72,7 +75,7 @@ def big_endian_int_to_bits(val: int, *, bit_count: int) -> List[int]:
     return [(val >> i) & 1 for i in range(bit_count)[::-1]]
 
 
-def big_endian_digits_to_int(digits: Iterable[int], *, base: Union[int, Iterable[int]]) -> int:
+def big_endian_digits_to_int(digits: Iterable[int], *, base: int | Iterable[int]) -> int:
     """Returns the big-endian integer specified by the given digits and base.
 
     Args:
@@ -118,20 +121,24 @@ def big_endian_digits_to_int(digits: Iterable[int], *, base: Union[int, Iterable
     return result
 
 
-# pylint: disable=function-redefined
 @overload
-def big_endian_int_to_digits(val: int, *, digit_count: int, base: int) -> List[int]:
+def big_endian_int_to_digits(val: int, *, digit_count: int, base: int) -> list[int]:
     pass
 
 
 @overload
-def big_endian_int_to_digits(val: int, *, base: Iterable[int]) -> List[int]:
+def big_endian_int_to_digits(val: int, *, digit_count: int, base: Iterable[int]) -> list[int]:
+    pass
+
+
+@overload
+def big_endian_int_to_digits(val: int, *, base: Iterable[int]) -> list[int]:
     pass
 
 
 def big_endian_int_to_digits(
-    val: int, *, digit_count: Optional[int] = None, base: Union[int, Iterable[int]]
-) -> List[int]:
+    val: int, *, digit_count: int | None = None, base: int | Iterable[int]
+) -> list[int]:
     """Separates an integer into big-endian digits.
 
     Args:
@@ -162,6 +169,11 @@ def big_endian_int_to_digits(
         >>> cirq.big_endian_int_to_digits(11, base=[2, 3, 4])
         [0, 2, 3]
     """
+    if digit_count and base == 2:
+        binary_chars = bin(val).removeprefix('0b')
+        zeros_count = digit_count - len(binary_chars)
+        if zeros_count >= 0:
+            return [0] * zeros_count + [1 if c == "1" else 0 for c in binary_chars]
     if isinstance(base, int):
         if digit_count is None:
             raise ValueError('No digit count. Provide `digit_count` when base is an int.')
@@ -186,7 +198,5 @@ def big_endian_int_to_digits(
             f'left behind {val!r} instead of 0.'
         )
 
-    return result[::-1]
-
-
-# pylint: enable=function-redefined
+    result.reverse()
+    return result

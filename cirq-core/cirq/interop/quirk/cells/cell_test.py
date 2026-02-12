@@ -11,13 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import pytest
 
 import cirq
 from cirq.interop.quirk.cells.cell import Cell, ExplicitOperationsCell
 
 
-def test_cell_defaults():
+def test_cell_defaults() -> None:
     class BasicCell(Cell):
         def with_line_qubits_mapped_to(self, qubits):
             raise NotImplementedError()
@@ -29,12 +32,12 @@ def test_cell_defaults():
     assert c.operations() == ()
     assert c.basis_change() == ()
     assert c.controlled_by(cirq.LineQubit(0)) is c
-    x = []
+    x: list[Cell | None] = []
     c.modify_column(x)
     assert x == []
 
 
-def test_cell_replace_utils():
+def test_cell_replace_utils() -> None:
     a, b, c = cirq.NamedQubit.range(3, prefix='q')
     assert Cell._replace_qubit(cirq.LineQubit(1), [a, b, c]) == b
     with pytest.raises(ValueError, match='only map from line qubits'):
@@ -45,7 +48,7 @@ def test_cell_replace_utils():
         _ = Cell._replace_qubit(cirq.LineQubit(999), [a, b, c])
 
 
-def test_explicit_operations_cell_equality():
+def test_explicit_operations_cell_equality() -> None:
     a = cirq.LineQubit(0)
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(ExplicitOperationsCell([], []), ExplicitOperationsCell([]))
@@ -53,7 +56,7 @@ def test_explicit_operations_cell_equality():
     eq.add_equality_group(ExplicitOperationsCell([], [cirq.Y(a)]))
 
 
-def test_explicit_operations_cell():
+def test_explicit_operations_cell() -> None:
     a, b = cirq.LineQubit.range(2)
     v = ExplicitOperationsCell([cirq.X(a)], [cirq.S(a)])
     assert v.operations() == (cirq.X(a),)

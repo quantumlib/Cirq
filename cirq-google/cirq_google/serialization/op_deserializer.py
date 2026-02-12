@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import abc
-from typing import Any, List
+from typing import Any
 
 import sympy
 
@@ -35,7 +37,7 @@ class OpDeserializer(abc.ABC):
 
     @abc.abstractmethod
     def from_proto(
-        self, proto, *, constants: List[v2.program_pb2.Constant], deserialized_constants: List[Any]
+        self, proto, *, constants: list[v2.program_pb2.Constant], deserialized_constants: list[Any]
     ) -> cirq.Operation:
         """Converts a proto-formatted operation into a Cirq operation.
 
@@ -60,8 +62,8 @@ class CircuitOpDeserializer(OpDeserializer):
         self,
         proto: v2.program_pb2.CircuitOperation,
         *,
-        constants: List[v2.program_pb2.Constant],
-        deserialized_constants: List[Any],
+        constants: list[v2.program_pb2.Constant],
+        deserialized_constants: list[Any],
     ) -> cirq.Operation:
         """Turns a cirq.google.api.v2.CircuitOperation proto into a CircuitOperation.
 

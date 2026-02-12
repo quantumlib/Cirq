@@ -14,8 +14,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Set
 from types import NotImplementedType
-from typing import AbstractSet, Any, Dict, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -61,7 +62,7 @@ class ParallelGate(raw_types.Gate):
     def num_copies(self) -> int:
         return self._num_copies
 
-    def _decompose_(self, qubits: Tuple[cirq.Qid, ...]) -> DecomposeResult:
+    def _decompose_(self, qubits: tuple[cirq.Qid, ...]) -> DecomposeResult:
         if len(qubits) != self.num_qubits():
             raise ValueError(f"len(qubits)={len(qubits)} should be {self.num_qubits()}")
         step = self.sub_gate.num_qubits()
@@ -90,7 +91,7 @@ class ParallelGate(raw_types.Gate):
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.sub_gate)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self.sub_gate)
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> ParallelGate:
@@ -98,7 +99,7 @@ class ParallelGate(raw_types.Gate):
             sub_gate=protocols.resolve_parameters(self.sub_gate, resolver, recursive)
         )
 
-    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+    def _unitary_(self) -> np.ndarray | NotImplementedType:
         # Obtain the unitary for the single qubit gate
         single_unitary = protocols.unitary(self.sub_gate, NotImplemented)
 
@@ -114,7 +115,7 @@ class ParallelGate(raw_types.Gate):
 
         return unitary
 
-    def _trace_distance_bound_(self) -> Optional[float]:
+    def _trace_distance_bound_(self) -> float | None:
         if protocols.is_parameterized(self.sub_gate):
             return None
         angle = self._num_copies * np.arcsin(protocols.trace_distance_bound(self.sub_gate))
@@ -152,7 +153,7 @@ class ParallelGate(raw_types.Gate):
             return NotImplemented
         return self.with_gate(new_gate)
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, attribute_names=["sub_gate", "num_copies"])
 
 

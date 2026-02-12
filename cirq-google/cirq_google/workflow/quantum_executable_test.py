@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import dataclasses
 import pickle
 
@@ -43,13 +45,13 @@ def _get_random_circuit(qubits, *, n_moments=10, random_state=52):
 
 def _get_example_spec(name='example-program'):
     return KeyValueExecutableSpec.from_dict(
-        dict(name=name), executable_family='cirq_google.algo_benchmarks.example'
+        {'name': name}, executable_family='cirq_google.algo_benchmarks.example'
     )
 
 
 def test_kv_executable_spec():
     kv1 = KeyValueExecutableSpec.from_dict(
-        dict(name='test', idx=5), executable_family='cirq_google.algo_benchmarks.example'
+        {'name': 'test', 'idx': 5}, executable_family='cirq_google.algo_benchmarks.example'
     )
     kv2 = KeyValueExecutableSpec(
         executable_family='cirq_google.algo_benchmarks.example',
@@ -63,7 +65,7 @@ def test_kv_executable_spec():
 
 
 def test_dict_round_trip():
-    input_dict = dict(name='test', idx=5)
+    input_dict = {'name': 'test', 'idx': 5}
 
     kv = KeyValueExecutableSpec.from_dict(
         input_dict, executable_family='cirq_google.algo_benchmarks.example'
@@ -185,16 +187,14 @@ def test_quantum_executable_group_methods():
     exes = _get_quantum_executables()
     eg = QuantumExecutableGroup(exes)
 
-    # pylint: disable=line-too-long
     assert str(eg) == (
         "QuantumExecutableGroup(executables=["
-        "QuantumExecutable(spec=cirq_google.KeyValueExecutableSpec(executable_family='cirq_google.algo_benchmarks.example', key_value_pairs=(('name', 'example-program-0'),))), "
-        "QuantumExecutable(spec=cirq_google.KeyValueExecutableSpec(executable_family='cirq_google.algo_benchmarks.example', key_value_pairs=(('name', 'example-program-1'),))), ...])"
+        "QuantumExecutable(spec=cirq_google.KeyValueExecutableSpec(executable_family='cirq_google.algo_benchmarks.example', key_value_pairs=(('name', 'example-program-0'),))), "  # noqa: E501
+        "QuantumExecutable(spec=cirq_google.KeyValueExecutableSpec(executable_family='cirq_google.algo_benchmarks.example', key_value_pairs=(('name', 'example-program-1'),))), ...])"  # noqa: E501
     )
-    # pylint: enable=line-too-long
 
     assert len(eg) == len(exes), '__len__'
-    assert exes == [e for e in eg], '__iter__'
+    assert exes == list(eg), '__iter__'
 
 
 def test_quantum_executable_group_serialization(tmpdir):

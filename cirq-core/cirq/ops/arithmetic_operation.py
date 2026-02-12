@@ -17,10 +17,10 @@ from __future__ import annotations
 
 import abc
 import itertools
-from typing import cast, Iterable, List, Sequence, Tuple, TYPE_CHECKING, Union
+from collections.abc import Iterable, Sequence
+from typing import cast, Self, TYPE_CHECKING
 
 import numpy as np
-from typing_extensions import Self
 
 from cirq.ops.raw_types import Gate
 
@@ -44,21 +44,21 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
     >>> class Add(cirq.ArithmeticGate):
     ...     def __init__(
     ...         self,
-    ...         target_register: '[int, Sequence[int]]',
-    ...         input_register: 'Union[int, Sequence[int]]',
+    ...         target_register: int | Sequence[int],
+    ...         input_register: int | Sequence[int],
     ...     ):
     ...         self.target_register = target_register
     ...         self.input_register = input_register
     ...
-    ...     def registers(self) -> 'Sequence[Union[int, Sequence[int]]]':
+    ...     def registers(self) -> Sequence[int | Sequence[int]]:
     ...         return self.target_register, self.input_register
     ...
     ...     def with_registers(
-    ...         self, *new_registers: 'Union[int, Sequence[int]]'
+    ...         self, *new_registers: int | Sequence[int]
     ...     ) -> 'Add':
     ...         return Add(*new_registers)
     ...
-    ...     def apply(self, *register_values: int) -> 'Union[int, Iterable[int]]':
+    ...     def apply(self, *register_values: int) -> int | Iterable[int]:
     ...         return sum(register_values)
     >>> cirq.unitary(
     ...     Add(target_register=[2, 2],
@@ -88,7 +88,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
     """
 
     @abc.abstractmethod
-    def registers(self) -> Sequence[Union[int, Sequence[int]]]:
+    def registers(self) -> Sequence[int | Sequence[int]]:
         """The data acted upon by the arithmetic gate.
 
         Each register in the list can either be a classical constant (an `int`),
@@ -105,7 +105,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def with_registers(self, *new_registers: Union[int, Sequence[int]]) -> Self:
+    def with_registers(self, *new_registers: int | Sequence[int]) -> Self:
         """Returns the same fate targeting different registers.
 
         Args:
@@ -119,7 +119,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def apply(self, *register_values: int) -> Union[int, Iterable[int]]:
+    def apply(self, *register_values: int) -> int | Iterable[int]:
         """Returns the result of the gate operating on classical values.
 
         For example, an addition takes two values (the target and the source),
@@ -131,9 +131,9 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
         1. The `apply` method is permitted to return values that have more bits
             than the registers they will be stored into. The extra bits are
             simply dropped. For example, if the value 5 is returned for a 2
-            qubit register then 5 % 2**2 = 1 will be used instead. Negative
+            qubit register then ``5 % 2**2 = 1`` will be used instead. Negative
             values are also permitted. For example, for a 3 qubit register the
-            value -2 becomes -2 % 2**3 = 6.
+            value -2 becomes ``-2 % 2**3 = 6``.
         2. When the value of the last `k` registers is not changed by the
             gate, the `apply` method is permitted to omit these values
             from the result. That is to say, when the length of the output is
@@ -164,7 +164,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
         """
         raise NotImplementedError()
 
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         shape = []
         for r in self.registers():
             if isinstance(r, Sequence):
@@ -174,16 +174,16 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
 
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs):
         registers = self.registers()
-        input_ranges: List[Sequence[int]] = []
-        shape: List[int] = []
-        overflow_sizes: List[int] = []
+        input_ranges: list[Sequence[int]] = []
+        shape: list[int] = []
+        overflow_sizes: list[int] = []
         for register in registers:
             if isinstance(register, int):
                 input_ranges.append([register])
                 shape.append(1)
                 overflow_sizes.append(register + 1)
             else:
-                size = int(np.prod([dim for dim in register], dtype=np.int64).item())
+                size = int(np.prod(list(register), dtype=np.int64).item())
                 shape.append(size)
                 input_ranges.append(range(size))
                 overflow_sizes.append(size)
@@ -198,8 +198,8 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
             output = self.apply(*input_seq)
 
             # Wrap into list.
-            inputs: List[int] = list(input_seq)
-            outputs: List[int] = [output] if isinstance(output, int) else list(output)
+            inputs: list[int] = list(input_seq)
+            outputs: list[int] = [output] if isinstance(output, int) else list(output)
 
             # Omitted tail values default to the corresponding input value.
             if len(outputs) < len(inputs):
@@ -221,8 +221,8 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
                     outputs[i] %= overflow_sizes[i]
 
             # Copy amplitude to new location.
-            cast(List[Union[int, slice]], outputs).append(slice(None))
-            cast(List[Union[int, slice]], inputs).append(slice(None))
+            cast(list[int | slice], outputs).append(slice(None))
+            cast(list[int | slice], inputs).append(slice(None))
             dst[tuple(outputs)] = src[tuple(inputs)]
 
         # In case the reshaped arrays were copies instead of views.
@@ -233,9 +233,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
 
 
 def _describe_bad_arithmetic_changed_const(
-    registers: Sequence[Union[int, Sequence[Union[cirq.Qid, int]]]],
-    inputs: List[int],
-    outputs: List[int],
+    registers: Sequence[int | Sequence[cirq.Qid | int]], inputs: list[int], outputs: list[int]
 ) -> str:
     from cirq.circuits import TextDiagramDrawer
 

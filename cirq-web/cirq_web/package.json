@@ -1,0 +1,52 @@
+{
+  "name": "web",
+  "version": "0.12.0",
+  "description": "Web widgets for Cirq",
+  "main": "index.js",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@types/looks-same": "^4.1.0",
+    "gts": "^7.0.0",
+    "typescript": "^5.7.3"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^27.0.0",
+    "@types/node": "^25.0.3",
+    "@types/pngjs": "^6.0.0",
+    "@types/temp": "^0.9.0",
+    "@types/three": "^0.182.0",
+    "@webgpu/types": "^0.1.63",
+    "@vitest/coverage-v8": "^4.0.6",
+    "canvas": "^3.2.0",
+    "gts": "^7.0.0",
+    "jsdom": "^27.1.0",
+    "pixelmatch": "^7.0.0",
+    "pngjs": "^7.0.0",
+    "puppeteer": "^24.23.0",
+    "rimraf": "^6.0.1",
+    "temp": "^0.9.4",
+    "three": "^0.182.0",
+    "ts-mock-imports": "^1.3.7",
+    "typescript": "^5.7.3",
+    "vite": "^7.1.9",
+    "vitest": "^4.0.6"
+  },
+  "scripts": {
+    "build": "vite build --mode bloch_sphere && vite build --mode circuit",
+    "test": "vitest --run",
+    "coverage": "vitest --run --coverage && rm -rf coverage/",
+    "test-e2e": "vitest --run --config vitest.e2e.config.ts",
+    "lint": "gts lint",
+    "clean": "gts clean",
+    "compile": "tsc --noEmit",
+    "fix": "gts fix",
+    "prepare": "npm run compile"
+  },
+  "author": "",
+  "license": "ISC",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}

@@ -18,17 +18,8 @@ import functools
 import itertools
 import math
 import operator
-from typing import (
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    NamedTuple,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-)
+from collections.abc import Iterable, Iterator, Sequence
+from typing import NamedTuple, TYPE_CHECKING
 
 from cirq import ops, protocols, value
 from cirq.contrib.acquaintance.permutation import (
@@ -44,10 +35,10 @@ if TYPE_CHECKING:
 
 def operations_to_part_lens(
     qubit_order: Sequence[cirq.Qid], op_tree: cirq.OP_TREE
-) -> Tuple[int, ...]:
+) -> tuple[int, ...]:
     qubit_sort_key = functools.partial(operator.indexOf, qubit_order)
     op_parts = [tuple(sorted(op.qubits, key=qubit_sort_key)) for op in ops.flatten_op_tree(op_tree)]
-    singletons: List[Tuple[cirq.Qid, ...]] = [(q,) for q in set(qubit_order).difference(*op_parts)]
+    singletons: list[tuple[cirq.Qid, ...]] = [(q,) for q in set(qubit_order).difference(*op_parts)]
     part_sort_key = lambda p: min(qubit_sort_key(q) for q in p)
     parts = tuple(tuple(part) for part in sorted(singletons + op_parts, key=part_sort_key))
 
@@ -87,16 +78,16 @@ def acquaint(*qubits) -> cirq.Operation:
 Layers = NamedTuple(
     'Layers',
     [
-        ('prior_interstitial', List['cirq.Operation']),
-        ('pre', List['cirq.Operation']),
-        ('intra', List['cirq.Operation']),
-        ('post', List['cirq.Operation']),
-        ('posterior_interstitial', List['cirq.Operation']),
+        ('prior_interstitial', list['cirq.Operation']),
+        ('pre', list['cirq.Operation']),
+        ('intra', list['cirq.Operation']),
+        ('post', list['cirq.Operation']),
+        ('posterior_interstitial', list['cirq.Operation']),
     ],
 )
 
 
-def new_layers(**kwargs: List[cirq.Operation]) -> Layers:
+def new_layers(**kwargs: list[cirq.Operation]) -> Layers:
     return Layers._make(kwargs.get(field, []) for field in Layers._fields)
 
 
@@ -106,7 +97,7 @@ def acquaint_insides(
     qubits: Sequence[cirq.Qid],
     before: bool,
     layers: Layers,
-    mapping: Dict[ops.Qid, int],
+    mapping: dict[ops.Qid, int],
 ) -> None:
     """Acquaints each of the qubits with another set specified by an
     acquaintance gate.
@@ -142,7 +133,7 @@ def acquaint_insides(
 
     # update mapping
     reached_qubits = qubits[: max_reach + 1]
-    positions = list(mapping[q] for q in reached_qubits)
+    positions = [mapping[q] for q in reached_qubits]
     mapping.update(zip(reached_qubits, reversed(positions)))
 
 
@@ -153,12 +144,12 @@ def _get_max_reach(size: int, round_up: bool = True) -> int:
 
 
 def acquaint_and_shift(
-    parts: Tuple[List[cirq.Qid], List[cirq.Qid]],
+    parts: tuple[list[cirq.Qid], list[cirq.Qid]],
     layers: Layers,
-    acquaintance_size: Optional[int],
+    acquaintance_size: int | None,
     swap_gate: cirq.Gate,
-    mapping: Dict[ops.Qid, int],
-):
+    mapping: dict[ops.Qid, int],
+) -> None:
     """Acquaints and shifts a pair of lists of qubits. The first part is
     acquainted with every qubit individually in the second part, and vice
     versa. Operations are grouped into several layers:
@@ -276,7 +267,7 @@ class SwapNetworkGate(PermutationGate):
     def __init__(
         self,
         part_lens: Sequence[int],
-        acquaintance_size: Optional[int] = 0,
+        acquaintance_size: int | None = 0,
         swap_gate: cirq.Gate = ops.SWAP,
     ) -> None:
         super().__init__(sum(part_lens), swap_gate)
@@ -346,14 +337,14 @@ class SwapNetworkGate(PermutationGate):
     def from_operations(
         qubit_order: Sequence[cirq.Qid],
         operations: Sequence[cirq.Operation],
-        acquaintance_size: Optional[int] = 0,
+        acquaintance_size: int | None = 0,
         swap_gate: cirq.Gate = ops.SWAP,
     ) -> SwapNetworkGate:
         part_sizes = operations_to_part_lens(qubit_order, operations)
         return SwapNetworkGate(part_sizes, acquaintance_size, swap_gate)
 
-    def permutation(self) -> Dict[int, int]:
-        return {i: j for i, j in enumerate(reversed(range(sum(self.part_lens))))}
+    def permutation(self) -> dict[int, int]:
+        return dict(enumerate(reversed(range(sum(self.part_lens)))))
 
     def __repr__(self) -> str:
         return (

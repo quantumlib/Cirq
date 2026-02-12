@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import asyncio
 import concurrent
-from typing import AsyncIterable, AsyncIterator, Awaitable, List, Sequence, Union
+from collections.abc import AsyncIterable, AsyncIterator, Awaitable, Sequence
 from unittest import mock
 
 import duet
@@ -70,15 +72,15 @@ class FakeQuantumRunStream:
     _REQUEST_STOPPED = 'REQUEST_STOPPED'
 
     def __init__(self) -> None:
-        self.all_stream_requests: List[quantum.QuantumRunStreamRequest] = []
-        self.all_cancel_requests: List[quantum.CancelQuantumJobRequest] = []
+        self.all_stream_requests: list[quantum.QuantumRunStreamRequest] = []
+        self.all_cancel_requests: list[quantum.CancelQuantumJobRequest] = []
         self._executor = AsyncioExecutor.instance()
         self._request_buffer = duet.AsyncCollector[quantum.QuantumRunStreamRequest]()
         self._request_iterator_stopped: duet.AwaitableFuture[None] = duet.AwaitableFuture()
         # asyncio.Queue needs to be initialized inside the asyncio thread because all callers need
         # to use the same event loop.
         self._responses_and_exceptions_future: duet.AwaitableFuture[
-            asyncio.Queue[Union[quantum.QuantumRunStreamResponse, BaseException]]
+            asyncio.Queue[quantum.QuantumRunStreamResponse | BaseException]
         ] = duet.AwaitableFuture()
 
     async def quantum_run_stream(
@@ -96,7 +98,7 @@ class FakeQuantumRunStream:
         This is called from the asyncio thread.
         """
         responses_and_exceptions: asyncio.Queue[
-            Union[quantum.QuantumRunStreamResponse, BaseException]
+            quantum.QuantumRunStreamResponse | BaseException
         ] = asyncio.Queue()
         self._responses_and_exceptions_future.try_set_result(responses_and_exceptions)
 
@@ -141,9 +143,7 @@ class FakeQuantumRunStream:
             requests.append(await self._request_buffer.__anext__())
         return requests
 
-    async def reply(
-        self, response_or_exception: Union[quantum.QuantumRunStreamResponse, BaseException]
-    ):
+    async def reply(self, response_or_exception: quantum.QuantumRunStreamResponse | BaseException):
         """Sends a response or raises an exception to the `quantum_run_stream()` caller.
 
         If input response is missing `message_id`, it is defaulted to the `message_id` of the most
@@ -319,6 +319,7 @@ class TestStreamManager:
         async def test():
             async with duet.timeout_scope(5):
                 result_future = manager.submit(REQUEST_PROJECT_NAME, REQUEST_PROGRAM, REQUEST_JOB0)
+                await duet.sleep(0.001)  # Let result_future start before it is canceled
                 result_future.cancel()
                 await duet.sleep(1)  # Let cancellation complete asynchronously
                 manager.stop()

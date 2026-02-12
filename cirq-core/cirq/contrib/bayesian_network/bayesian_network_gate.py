@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import math
-from typing import Any, cast, Dict, Iterator, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from collections.abc import Iterator, Sequence
+from typing import Any, cast, TYPE_CHECKING
 
 from sympy.combinatorics import GrayCode
 
@@ -70,7 +71,7 @@ def _generate_got_set_for_init_prob(qubit, init_prob):
         yield common_gates.ry(_prob_to_angle(init_prob)).on(qubit)
 
 
-@value.value_equality
+@value.value_equality(unhashable=True)
 class BayesianNetworkGate(raw_types.Gate):
     """A gate that represents a Bayesian network.
 
@@ -96,8 +97,8 @@ class BayesianNetworkGate(raw_types.Gate):
 
     def __init__(
         self,
-        init_probs: List[Tuple[str, Optional[float]]],
-        arc_probs: List[Tuple[str, Tuple[str], List[float]]],
+        init_probs: list[tuple[str, float | None]],
+        arc_probs: list[tuple[str, tuple[str, ...], list[float]]],
     ):
         """Builds a BayesianNetworkGate.
 
@@ -175,28 +176,27 @@ class BayesianNetworkGate(raw_types.Gate):
     def _has_unitary_(self) -> bool:
         return True
 
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         return (2,) * len(self._init_probs)
 
     def _value_equality_values_(self):
         return self._init_probs, self._arc_probs
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {'init_probs': self._init_probs, 'arc_probs': self._arc_probs}
 
     @classmethod
     def _from_json_dict_(
         cls,
-        init_probs: List[List[Union[str, Optional[float]]]],
-        arc_probs: List[List[Union[str, List[str], List[float]]]],
+        init_probs: list[list[str | float | None]],
+        arc_probs: list[list[str | list[str] | list[float]]],
         **kwargs,
     ) -> BayesianNetworkGate:
         converted_init_probs = cast(
-            List[Tuple[str, Optional[float]]],
-            [(param, init_prob) for param, init_prob in init_probs],
+            list[tuple[str, float | None]], [(param, init_prob) for param, init_prob in init_probs]
         )
         converted_cond_probs = cast(
-            List[Tuple[str, Tuple[str], List[float]]],
+            list[tuple[str, tuple[str, ...], list[float]]],
             [(target, tuple(params), cond_probs) for target, params, cond_probs in arc_probs],
         )
         return cls(converted_init_probs, converted_cond_probs)

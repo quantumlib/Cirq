@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import cast, Dict, List, Tuple, TYPE_CHECKING
+from typing import cast, TYPE_CHECKING
 
 import matplotlib.font_manager
 import matplotlib.textpath
@@ -15,7 +15,7 @@ FONT = matplotlib.font_manager.FontProperties()
 EMPTY_MOMENT_COLWIDTH = float(21)  # assumed default column width
 
 
-def fixup_text(text: str):
+def fixup_text(text: str) -> str:
     if '\n' in text:
         # https://github.com/quantumlib/Cirq/issues/4499
         # TODO: Visualize Custom MatrixGate
@@ -63,7 +63,7 @@ def _text(x: float, y: float, text: str, fontsize: int = 14):
 
 def _fit_horizontal(
     tdd: cirq.TextDiagramDrawer, ref_boxwidth: float, col_padding: float
-) -> Tuple[List[float], List[float]]:
+) -> tuple[list[float], list[float]]:
     """Figure out the horizontal spacing of columns to fit everything in.
 
     Returns:
@@ -93,7 +93,7 @@ def _fit_horizontal(
 
 def _fit_vertical(
     tdd: cirq.TextDiagramDrawer, ref_boxheight: float, row_padding: float
-) -> Tuple[List[float], List[float], Dict[float, int]]:
+) -> tuple[list[float], list[float], dict[float, int]]:
     """Return data structures used to turn tdd vertical coordinates into
     well-spaced SVG coordinates.
 

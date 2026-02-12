@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import os
 import shutil
 import subprocess
@@ -32,22 +34,19 @@ PACKAGES = ["-r", "dev_tools/requirements/isolated-base.env.txt"]
 # the "isolation" fails and for example cirq-core would be on the PATH
 @mock.patch.dict(os.environ, {"PYTHONPATH": ""})
 @pytest.mark.parametrize('module', list_modules(), ids=[m.name for m in list_modules()])
-def test_isolated_packages(cloned_env, module, tmp_path):
+def test_isolated_packages(cloned_env, module, tmp_path) -> None:
     env = cloned_env("isolated_packages", *PACKAGES)
 
-    if str(module.root) != "cirq-core":
+    if module.name != "cirq-core":
         assert f'cirq-core=={module.version}' in module.install_requires
 
-    # TODO: Remove after upgrading package builds from setup.py to PEP-517
     # Create per-worker copy of cirq-core sources so that parallel builds
     # of cirq-core wheel do not conflict.
-    opt_cirq_core = (
-        [str(shutil.copytree("./cirq-core", tmp_path / "cirq-core"))]
-        if str(module.root) != "cirq-core"
-        else []
-    )
+    cirq_core_copy = shutil.copytree("./cirq-core", tmp_path / "cirq-core")
+    # avoid specifying cirq-core twice
+    opt_module_dir = [] if module.name == "cirq-core" else [f"./{module.root}"]
     result = shell_tools.run(
-        [f"{env}/bin/pip", "install", f"./{module.root}", *opt_cirq_core],
+        [f"{env}/bin/pip", "install", cirq_core_copy, *opt_module_dir],
         stderr=subprocess.PIPE,
         check=False,
     )

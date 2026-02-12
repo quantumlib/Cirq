@@ -14,9 +14,11 @@
 
 """Utility methods for decomposing two-qubit unitaries into Sycamore gates."""
 
+from __future__ import annotations
+
 import itertools
 import math
-from typing import Iterator, List, Optional
+from collections.abc import Iterator
 
 import numpy as np
 
@@ -76,7 +78,7 @@ def two_qubit_matrix_to_sycamore_operations(
         A `cirq.OP_TREE` that implements the given unitary operation using only `cirq_google.SYC` +
         single qubit rotations.
     """
-    decomposed_ops: List[cirq.OP_TREE] = []
+    decomposed_ops: list[cirq.OP_TREE] = []
     for op in cirq.two_qubit_matrix_to_cz_operations(
         q0, q1, mat, allow_partial_czs=True, atol=atol, clean_operations=clean_operations
     ):
@@ -93,7 +95,7 @@ def two_qubit_matrix_to_sycamore_operations(
     )
 
 
-def known_2q_op_to_sycamore_operations(op: cirq.Operation) -> Optional[cirq.OP_TREE]:
+def known_2q_op_to_sycamore_operations(op: cirq.Operation) -> cirq.OP_TREE | None:
     """Synthesizes a known two-qubit operation using `cirq_google.SYC` + single qubit rotations.
 
     This function dispatches to various known gate decompositions based on gate type. Currently,

@@ -24,13 +24,15 @@ Your experience may vary based on many factors not captured here.
 Parameters were calculated using a variety of width/depth/sweeps from
 the rep rate calculator, see:
 
-[https://github.com/quantumlib/ReCirq/blob/master/recirq/benchmarks/rep_rate/](https://github.com/quantumlib/ReCirq/blob/master/recirq/benchmarks/rep_rate/){:.external}
+[https://github.com/quantumlib/ReCirq/blob/main/recirq/benchmarks/rep_rate/](https://github.com/quantumlib/ReCirq/blob/main/recirq/benchmarks/rep_rate/){:.external}
 
 Model was then fitted by hand, correcting for anomalies and outliers
 when possible.
 """
 
-from typing import List, Optional, Sequence
+from __future__ import annotations
+
+from collections.abc import Sequence
 
 import cirq
 
@@ -92,7 +94,7 @@ def _rep_time(width: int, depth: int, sweeps: int, reps: int) -> float:
 
 
 def _estimate_run_time_seconds(
-    width: int, depth: int, sweeps: int, repetitions: int, latency: Optional[float] = _BASE_LATENCY
+    width: int, depth: int, sweeps: int, repetitions: int, latency: float | None = _BASE_LATENCY
 ) -> float:
     """Returns an approximate number of seconds for execution of a single circuit.
 
@@ -113,7 +115,7 @@ def _estimate_run_time_seconds(
 
 
 def estimate_run_time(
-    program: cirq.AbstractCircuit, repetitions: int, latency: Optional[float] = _BASE_LATENCY
+    program: cirq.AbstractCircuit, repetitions: int, latency: float | None = _BASE_LATENCY
 ) -> float:
     """Compute the estimated time for running a single circuit.
 
@@ -137,7 +139,7 @@ def estimate_run_sweep_time(
     program: cirq.AbstractCircuit,
     params: cirq.Sweepable = None,
     repetitions: int = 1000,
-    latency: Optional[float] = _BASE_LATENCY,
+    latency: float | None = _BASE_LATENCY,
 ) -> float:
     """Compute the estimated time for running a parameter sweep across a single Circuit.
 
@@ -161,7 +163,7 @@ def estimate_run_sweep_time(
 
 def estimate_run_batch_time(
     programs: Sequence[cirq.AbstractCircuit],
-    params_list: List[cirq.Sweepable],
+    params_list: list[cirq.Sweepable],
     repetitions: int = 1000,
     latency: float = _BASE_LATENCY,
 ) -> float:

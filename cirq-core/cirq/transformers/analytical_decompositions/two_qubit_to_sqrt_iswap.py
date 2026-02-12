@@ -22,7 +22,8 @@ References:
 
 from __future__ import annotations
 
-from typing import Optional, Sequence, Tuple, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -233,7 +234,7 @@ def two_qubit_matrix_to_sqrt_iswap_operations(
     q1: cirq.Qid,
     mat: np.ndarray,
     *,
-    required_sqrt_iswap_count: Optional[int] = None,
+    required_sqrt_iswap_count: int | None = None,
     use_sqrt_iswap_inv: bool = False,
     atol: float = 1e-8,
     check_preconditions: bool = True,
@@ -303,7 +304,7 @@ def _kak_decomposition_to_sqrt_iswap_operations(
     q0: cirq.Qid,
     q1: cirq.Qid,
     kak: linalg.KakDecomposition,
-    required_sqrt_iswap_count: Optional[int] = None,
+    required_sqrt_iswap_count: int | None = None,
     use_sqrt_iswap_inv: bool = False,
     atol: float = 1e-8,
 ) -> Sequence[cirq.Operation]:
@@ -328,7 +329,7 @@ def _decomp_to_operations(
     q0: cirq.Qid,
     q1: cirq.Qid,
     two_qubit_gate: cirq.Gate,
-    single_qubit_operations: Sequence[Tuple[np.ndarray, np.ndarray]],
+    single_qubit_operations: Sequence[tuple[np.ndarray, np.ndarray]],
     u0_before: np.ndarray = np.eye(2),
     u0_after: np.ndarray = np.eye(2),
     atol: float = 1e-8,
@@ -401,8 +402,8 @@ def _decomp_to_operations(
 
 
 def _single_qubit_matrices_with_sqrt_iswap(
-    kak: cirq.KakDecomposition, required_sqrt_iswap_count: Optional[int] = None, atol: float = 1e-8
-) -> Tuple[Sequence[Tuple[np.ndarray, np.ndarray]], complex]:
+    kak: cirq.KakDecomposition, required_sqrt_iswap_count: int | None = None, atol: float = 1e-8
+) -> tuple[Sequence[tuple[np.ndarray, np.ndarray]], complex]:
     """Computes the sequence of interleaved single-qubit unitary matrices in the
     sqrt-iSWAP decomposition."""
     decomposers = [
@@ -428,7 +429,7 @@ def _single_qubit_matrices_with_sqrt_iswap(
 
 
 def _in_0_region(
-    interaction_coefficients: Tuple[float, float, float], weyl_tol: float = 1e-8
+    interaction_coefficients: tuple[float, float, float], weyl_tol: float = 1e-8
 ) -> bool:
     """Tests if (x, y, z) ~= (0, 0, 0) assuming x, y, z are canonical."""
     x, y, z = interaction_coefficients
@@ -436,7 +437,7 @@ def _in_0_region(
 
 
 def _in_1sqrt_iswap_region(
-    interaction_coefficients: Tuple[float, float, float], weyl_tol: float = 1e-8
+    interaction_coefficients: tuple[float, float, float], weyl_tol: float = 1e-8
 ) -> bool:
     """Tests if (x, y, z) ~= (π/8, π/8, 0), assuming x, y, z are canonical."""
     x, y, z = interaction_coefficients
@@ -444,7 +445,7 @@ def _in_1sqrt_iswap_region(
 
 
 def _in_2sqrt_iswap_region(
-    interaction_coefficients: Tuple[float, float, float], weyl_tol: float = 1e-8
+    interaction_coefficients: tuple[float, float, float], weyl_tol: float = 1e-8
 ) -> bool:
     """Tests if (x, y, z) is inside or within weyl_tol of the volume
     x >= y + |z| assuming x, y, z are canonical.
@@ -461,7 +462,7 @@ def _in_2sqrt_iswap_region(
 
 
 def _in_3sqrt_iswap_region(
-    interaction_coefficients: Tuple[float, float, float], weyl_tol: float = 1e-8
+    interaction_coefficients: tuple[float, float, float], weyl_tol: float = 1e-8
 ) -> bool:
     """Any two-qubit operation is decomposable into three SQRT_ISWAP gates.
 
@@ -475,7 +476,7 @@ def _in_3sqrt_iswap_region(
 
 def _decomp_0_matrices(
     kak: cirq.KakDecomposition, atol: float = 1e-8
-) -> Tuple[Sequence[Tuple[np.ndarray, np.ndarray]], complex]:
+) -> tuple[Sequence[tuple[np.ndarray, np.ndarray]], complex]:
     """Returns the single-qubit matrices for the 0-SQRT_ISWAP decomposition.
 
     Assumes canonical x, y, z and (x, y, z) = (0, 0, 0) within tolerance.
@@ -493,7 +494,7 @@ def _decomp_0_matrices(
 
 def _decomp_1sqrt_iswap_matrices(
     kak: cirq.KakDecomposition, atol: float = 1e-8
-) -> Tuple[Sequence[Tuple[np.ndarray, np.ndarray]], complex]:
+) -> tuple[Sequence[tuple[np.ndarray, np.ndarray]], complex]:
     """Returns the single-qubit matrices for the 1-SQRT_ISWAP decomposition.
 
     Assumes canonical x, y, z and (x, y, z) = (π/8, π/8, 0) within tolerance.
@@ -506,7 +507,7 @@ def _decomp_1sqrt_iswap_matrices(
 
 def _decomp_2sqrt_iswap_matrices(
     kak: cirq.KakDecomposition, atol: float = 1e-8
-) -> Tuple[Sequence[Tuple[np.ndarray, np.ndarray]], complex]:
+) -> tuple[Sequence[tuple[np.ndarray, np.ndarray]], complex]:
     """Returns the single-qubit matrices for the 2-SQRT_ISWAP decomposition.
 
     Assumes canonical x, y, z and x >= y + |z| within tolerance.  For x, y, z
@@ -569,7 +570,7 @@ def _decomp_2sqrt_iswap_matrices(
 
 def _decomp_3sqrt_iswap_matrices(
     kak: cirq.KakDecomposition, atol: float = 1e-8
-) -> Tuple[Sequence[Tuple[np.ndarray, np.ndarray]], complex]:
+) -> tuple[Sequence[tuple[np.ndarray, np.ndarray]], complex]:
     """Returns the single-qubit matrices for the 3-SQRT_ISWAP decomposition.
 
     Assumes any canonical x, y, z.  Three sqrt-iSWAP gates are only needed if

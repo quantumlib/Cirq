@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Iterator, Sequence
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -115,7 +116,7 @@ class UniformSuperpositionGate(raw_types.Gate):
     def __repr__(self) -> str:
         return f'UniformSuperpositionGate(m_value={self._m_value}, num_qubits={self._num_qubits})'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         d = {}
         d['m_value'] = self._m_value
         d['num_qubits'] = self._num_qubits

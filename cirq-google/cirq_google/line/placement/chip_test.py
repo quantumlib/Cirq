@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable
+from __future__ import annotations
+
+from collections.abc import Iterable
 
 import cirq
 from cirq_google.line.placement.chip import above, below, chip_as_adjacency_list, left_of, right_of

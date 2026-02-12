@@ -14,17 +14,20 @@
 
 """Tests for kraus_protocol.py."""
 
-from typing import Iterable, List, Sequence, Tuple
+from __future__ import annotations
+
+from collections.abc import Iterable
 
 import numpy as np
 import pytest
 
 import cirq
+from cirq.protocols.apply_channel_protocol import _apply_kraus
 
-LOCAL_DEFAULT: List[np.ndarray] = [np.array([])]
+LOCAL_DEFAULT: list[np.ndarray] = [np.array([])]
 
 
-def test_kraus_no_methods():
+def test_kraus_no_methods() -> None:
     class NoMethod:
         pass
 
@@ -39,7 +42,7 @@ def test_kraus_no_methods():
     assert not cirq.has_kraus(NoMethod())
 
 
-def assert_not_implemented(val):
+def assert_not_implemented(val) -> None:
     with pytest.raises(TypeError, match='returned NotImplemented'):
         _ = cirq.kraus(val)
 
@@ -51,7 +54,7 @@ def assert_not_implemented(val):
     assert not cirq.has_kraus(val)
 
 
-def test_kraus_returns_not_implemented():
+def test_kraus_returns_not_implemented() -> None:
     class ReturnsNotImplemented:
         def _kraus_(self):
             return NotImplemented
@@ -59,7 +62,7 @@ def test_kraus_returns_not_implemented():
     assert_not_implemented(ReturnsNotImplemented())
 
 
-def test_mixture_returns_not_implemented():
+def test_mixture_returns_not_implemented() -> None:
     class ReturnsNotImplemented:
         def _mixture_(self):
             return NotImplemented
@@ -67,7 +70,7 @@ def test_mixture_returns_not_implemented():
     assert_not_implemented(ReturnsNotImplemented())
 
 
-def test_unitary_returns_not_implemented():
+def test_unitary_returns_not_implemented() -> None:
     class ReturnsNotImplemented:
         def _unitary_(self):
             return NotImplemented
@@ -80,13 +83,13 @@ def test_unitary_returns_not_implemented():
     assert cirq.kraus(ReturnsNotImplemented(), LOCAL_DEFAULT) is LOCAL_DEFAULT
 
 
-def test_explicit_kraus():
+def test_explicit_kraus() -> None:
     a0 = np.array([[0, 0], [1, 0]])
     a1 = np.array([[1, 0], [0, 0]])
     c = (a0, a1)
 
     class ReturnsKraus:
-        def _kraus_(self) -> Sequence[np.ndarray]:
+        def _kraus_(self) -> Iterable[np.ndarray]:
             return c
 
     assert cirq.kraus(ReturnsKraus()) is c
@@ -98,11 +101,11 @@ def test_explicit_kraus():
     assert cirq.has_kraus(ReturnsKraus())
 
 
-def test_kraus_fallback_to_mixture():
+def test_kraus_fallback_to_mixture() -> None:
     m = ((0.3, cirq.unitary(cirq.X)), (0.4, cirq.unitary(cirq.Y)), (0.3, cirq.unitary(cirq.Z)))
 
     class ReturnsMixture:
-        def _mixture_(self) -> Iterable[Tuple[float, np.ndarray]]:
+        def _mixture_(self) -> Iterable[tuple[float, np.ndarray]]:
             return m
 
     c = (
@@ -120,7 +123,7 @@ def test_kraus_fallback_to_mixture():
     assert cirq.has_kraus(ReturnsMixture())
 
 
-def test_kraus_fallback_to_unitary():
+def test_kraus_fallback_to_unitary() -> None:
     u = np.array([[1, 0], [1, 0]])
 
     class ReturnsUnitary:
@@ -160,12 +163,91 @@ class HasKrausWhenDecomposed(cirq.testing.SingleQubitGate):
 
 
 @pytest.mark.parametrize('cls', [HasKraus, HasMixture, HasUnitary])
-def test_has_kraus(cls):
+def test_has_kraus(cls) -> None:
     assert cirq.has_kraus(cls())
 
 
-@pytest.mark.parametrize('decomposed_cls', [HasKraus, HasMixture, HasUnitary])
-def test_has_kraus_when_decomposed(decomposed_cls):
+@pytest.mark.parametrize('decomposed_cls', [HasKraus, HasMixture])
+def test_has_kraus_when_decomposed(decomposed_cls) -> None:
     op = HasKrausWhenDecomposed(decomposed_cls).on(cirq.NamedQubit('test'))
     assert cirq.has_kraus(op)
     assert not cirq.has_kraus(op, allow_decompose=False)
+
+
+def test_strat_kraus_from_apply_channel_returns_none() -> None:
+    # Remove _kraus_ and _apply_channel_ methods
+    class NoApplyChannelReset(cirq.ResetChannel):
+        def _kraus_(self):
+            return NotImplemented
+
+        def _apply_channel_(self, args):
+            return NotImplemented
+
+    gate_no_apply = NoApplyChannelReset()
+    with pytest.raises(
+        TypeError,
+        match="does have a _kraus_, _mixture_ or _unitary_ method, but it returned NotImplemented",
+    ):
+        cirq.kraus(gate_no_apply)
+
+
+@pytest.mark.parametrize(
+    'channel_cls,params',
+    [
+        (cirq.BitFlipChannel, (0.5,)),
+        (cirq.PhaseFlipChannel, (0.3,)),
+        (cirq.DepolarizingChannel, (0.2,)),
+        (cirq.AmplitudeDampingChannel, (0.4,)),
+        (cirq.PhaseDampingChannel, (0.25,)),
+    ],
+)
+def test_kraus_fallback_to_apply_channel(channel_cls, params) -> None:
+    """Kraus protocol falls back to _apply_channel_ when no _kraus_, _mixture_, or _unitary_."""
+    # Create the expected channel and get its Kraus operators
+    expected_channel = channel_cls(*params)
+    expected_kraus = cirq.kraus(expected_channel)
+
+    class TestChannel:
+        def __init__(self, channel_cls, params):
+            self.channel_cls = channel_cls
+            self.params = params
+            self.expected_kraus = cirq.kraus(channel_cls(*params))
+
+        def _num_qubits_(self):
+            return 1
+
+        def _apply_channel_(self, args: cirq.ApplyChannelArgs):
+            return _apply_kraus(self.expected_kraus, args)
+
+    chan = TestChannel(channel_cls, params)
+    kraus_ops = cirq.kraus(chan)
+
+    # Compare the superoperator matrices for equivalence
+    expected_super = sum(np.kron(k, k.conj()) for k in expected_kraus)
+    actual_super = sum(np.kron(k, k.conj()) for k in kraus_ops)
+    np.testing.assert_allclose(actual_super, expected_super, atol=1e-8)
+
+
+def test_reset_channel_kraus_apply_channel_consistency() -> None:
+    Reset = cirq.ResetChannel
+    # Original gate
+    gate = Reset()
+    cirq.testing.assert_has_consistent_apply_channel(gate)
+    cirq.testing.assert_consistent_channel(gate)
+
+    # Remove _kraus_ method
+    class NoKrausReset(cirq.ResetChannel):
+        def _kraus_(self):
+            return NotImplemented
+
+    gate_no_kraus = NoKrausReset()
+    # Should still match the original superoperator
+    np.testing.assert_allclose(cirq.kraus(gate), cirq.kraus(gate_no_kraus), atol=1e-8)
+
+
+def test_kraus_channel_with_has_unitary() -> None:
+    """CZSWAP has no unitary dunder method but has_unitary returns True."""
+    op = cirq.CZSWAP.on(cirq.q(1), cirq.q(2))
+    channels = cirq.kraus(op)
+    assert len(channels) == 1
+    np.testing.assert_allclose(channels[0], cirq.unitary(op))

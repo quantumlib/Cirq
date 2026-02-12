@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import abc
 from types import NotImplementedType
-from typing import Any, cast, Dict, Tuple, TYPE_CHECKING, Union
+from typing import Any, cast, TYPE_CHECKING
 
 from cirq._doc import document
 from cirq._import import LazyLoader
@@ -42,7 +42,7 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
     of private subclasses are the X, Y, or Z Pauli gates defined below.
     """
 
-    _XYZ: Tuple[Pauli, Pauli, Pauli]
+    _XYZ: tuple[Pauli, Pauli, Pauli]
 
     @staticmethod
     def by_index(index: int) -> Pauli:
@@ -56,12 +56,10 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
         self._index = index
         self._name = name
 
-    def num_qubits(self):
+    def num_qubits(self) -> int:
         return 1
 
-    def _commutes_(
-        self, other: Any, *, atol: float = 1e-8
-    ) -> Union[bool, NotImplementedType, None]:
+    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> bool | NotImplementedType | None:
         if not isinstance(other, Pauli):
             return NotImplemented
         return self is other
@@ -74,8 +72,8 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
         return (self._index - second._index + 1) % 3 - 1
 
     def phased_pauli_product(
-        self, other: Union[cirq.Pauli, identity.IdentityGate]
-    ) -> Tuple[complex, Union[cirq.Pauli, identity.IdentityGate]]:
+        self, other: cirq.Pauli | identity.IdentityGate
+    ) -> tuple[complex, cirq.Pauli | identity.IdentityGate]:
         if self == other:
             return 1, identity.I
         if other is identity.I:
@@ -125,7 +123,7 @@ class _PauliX(Pauli, common_gates.XPowGate):
         return Pauli._XYZ[0]
 
     @property
-    def basis(self) -> Dict[int, _XEigenState]:
+    def basis(self) -> dict[int, _XEigenState]:
         from cirq.value.product_state import _XEigenState
 
         return {+1: _XEigenState(+1), -1: _XEigenState(-1)}
@@ -149,7 +147,7 @@ class _PauliY(Pauli, common_gates.YPowGate):
         return Pauli._XYZ[1]
 
     @property
-    def basis(self) -> Dict[int, _YEigenState]:
+    def basis(self) -> dict[int, _YEigenState]:
         from cirq.value.product_state import _YEigenState
 
         return {+1: _YEigenState(+1), -1: _YEigenState(-1)}
@@ -173,7 +171,7 @@ class _PauliZ(Pauli, common_gates.ZPowGate):
         return Pauli._XYZ[2]
 
     @property
-    def basis(self) -> Dict[int, _ZEigenState]:
+    def basis(self) -> dict[int, _ZEigenState]:
         from cirq.value.product_state import _ZEigenState
 
         return {+1: _ZEigenState(+1), -1: _ZEigenState(-1)}

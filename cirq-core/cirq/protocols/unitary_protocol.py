@@ -12,18 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from types import NotImplementedType
-from typing import Any, Optional, TypeVar, Union
+from typing import Any, Protocol, TypeVar
 
 import numpy as np
-from typing_extensions import Protocol
 
 from cirq._doc import doc_private
 from cirq.protocols import qid_shape_protocol
 from cirq.protocols.apply_unitary_protocol import apply_unitaries, ApplyUnitaryArgs
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 
-# This is a special indicator value used by the unitary method to determine
+# This is a special indicator value used by the function unitary() to determine
 # whether or not the caller provided a 'default' argument. It must be of type
 # np.ndarray to ensure the method has the correct type signature in that case.
 # It is checked for using `is`, so it won't have a false positive if the user
@@ -37,23 +38,23 @@ class SupportsUnitary(Protocol):
     """An object that may be describable by a unitary matrix."""
 
     @doc_private
-    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+    def _unitary_(self) -> np.ndarray | NotImplementedType | None:
         """A unitary matrix describing this value, e.g. the matrix of a gate.
 
         This method is used by the global `cirq.unitary` method. If this method
         is not present, or returns NotImplemented, it is assumed that the
         receiving object doesn't have a unitary matrix (resulting in a TypeError
-        or default result when calling `cirq.unitary` on it). (The ability to
+        or default result when calling `cirq.unitary` on it). The ability to
         return NotImplemented is useful when a class cannot know if it has a
-        matrix until runtime, e.g. cirq.X**c normally has a matrix but
-        cirq.X**sympy.Symbol('a') doesn't.)
+        matrix until runtime; e.g., `cirq.X**c` normally has a matrix but
+        `cirq.X**sympy.Symbol('a')` doesn't.
 
         The order of cells in the matrix is always implicit with respect to the
-        object being called. For example, for gates the matrix must be ordered
+        object being called. For example, for gates, the matrix must be ordered
         with respect to the list of qubits that the gate is applied to. For
         operations, the matrix is ordered to match the list returned by its
         `qubits` attribute. The qubit-to-amplitude order mapping matches the
-        ordering of numpy.kron(A, B), where A is a qubit earlier in the list
+        ordering of `numpy.kron(A, B)`, where A is a qubit earlier in the list
         than the qubit B.
 
         Returns:
@@ -67,7 +68,7 @@ class SupportsUnitary(Protocol):
 
         This method is used by the global `cirq.has_unitary` method.  If this
         method is not present, or returns NotImplemented, it will fallback
-        to using _unitary_ with a default value, or False if neither exist.
+        to using `_unitary_()` with a default value, or False if neither exist.
 
         Returns:
             True if the value has a unitary matrix representation, False
@@ -76,20 +77,21 @@ class SupportsUnitary(Protocol):
 
 
 def unitary(
-    val: Any, default: Union[np.ndarray, TDefault] = RaiseTypeErrorIfNotProvided
-) -> Union[np.ndarray, TDefault]:
+    val: Any, default: np.ndarray | TDefault = RaiseTypeErrorIfNotProvided
+) -> np.ndarray | TDefault:
     """Returns a unitary matrix describing the given value.
 
-    The matrix is determined by any one of the following techniques:
+    The matrix is determined by the first of these strategies that succeeds:
 
-    - The value has a `_unitary_` method that returns something besides None or
-        NotImplemented. The matrix is whatever the method returned.
+    - If the value is a NumPy array, it is returned directly.
+    - The value has a `_unitary_` method that returns something besides `None` or
+        `NotImplemented`. The matrix is whatever the method returned.
+    - The value has an `_apply_unitary_` method, and it returns something
+        besides `None` or `NotImplemented`. The matrix is created by applying
+        `_apply_unitary_` to an identity matrix.
     - The value has a `_decompose_` method that returns a list of operations,
         and each operation in the list has a unitary effect. The matrix is
         created by aggregating the sub-operations' unitary effects.
-    - The value has an `_apply_unitary_` method, and it returns something
-        besides None or NotImplemented. The matrix is created by applying
-        `_apply_unitary_` to an identity matrix.
 
     If none of these techniques succeeds, it is assumed that `val` doesn't have
     a unitary effect. The order in which techniques are attempted is
@@ -98,8 +100,8 @@ def unitary(
     Args:
         val: The value to describe with a unitary matrix.
         default: Determines the fallback behavior when `val` doesn't have
-            a unitary effect. If `default` is not set, a TypeError is raised. If
-            `default` is set to a value, that value is returned.
+            a unitary effect. If `default` is not set, a `TypeError` is raised.
+            If `default` is set to a value, that value is returned.
 
     Returns:
         If `val` has a unitary effect, the corresponding unitary matrix.
@@ -109,6 +111,9 @@ def unitary(
         TypeError: `val` doesn't have a unitary effect and no default value was
             specified.
     """
+    if isinstance(val, np.ndarray):
+        return val
+
     strats = [
         _strat_unitary_from_unitary,
         _strat_unitary_from_apply_unitary,
@@ -130,17 +135,17 @@ def unitary(
         f"type: {type(val)}\n"
         f"value: {val!r}\n"
         "\n"
-        "The value failed to satisfy any of the following criteria:\n"
+        "The given value failed to satisfy any of the following criteria:\n"
         "- A `_unitary_(self)` method that returned a value "
-        "besides None or NotImplemented.\n"
+        "besides `None` or `NotImplemented`.\n"
         "- A `_decompose_(self)` method that returned a "
         "list of unitary operations.\n"
-        "- An `_apply_unitary_(self, args) method that returned a value "
-        "besides None or NotImplemented."
+        "- An `_apply_unitary_(self, args)` method that returned a value "
+        "besides `None` or `NotImplemented`."
     )
 
 
-def _strat_unitary_from_unitary(val: Any) -> Optional[np.ndarray]:
+def _strat_unitary_from_unitary(val: Any) -> np.ndarray | None:
     """Attempts to compute a value's unitary via its _unitary_ method."""
     getter = getattr(val, '_unitary_', None)
     if getter is None:
@@ -148,7 +153,7 @@ def _strat_unitary_from_unitary(val: Any) -> Optional[np.ndarray]:
     return getter()
 
 
-def _strat_unitary_from_apply_unitary(val: Any) -> Optional[np.ndarray]:
+def _strat_unitary_from_apply_unitary(val: Any) -> np.ndarray | None:
     """Attempts to compute a value's unitary via its _apply_unitary_ method."""
     # Check for the magic method.
     method = getattr(val, '_apply_unitary_', None)
@@ -169,7 +174,7 @@ def _strat_unitary_from_apply_unitary(val: Any) -> Optional[np.ndarray]:
     return result.reshape((state_len, state_len))
 
 
-def _strat_unitary_from_decompose(val: Any) -> Optional[np.ndarray]:
+def _strat_unitary_from_decompose(val: Any) -> np.ndarray | None:
     """Attempts to compute a value's unitary via its _decompose_ method."""
     # Check if there's a decomposition.
     operations, qubits, val_qid_shape = _try_decompose_into_operations_and_qubits(val)

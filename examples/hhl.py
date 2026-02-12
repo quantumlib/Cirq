@@ -49,6 +49,12 @@ https://arxiv.org/abs/0811.3171
 Coles, Eidenbenz et al. Quantum Algorithm Implementations for Beginners
 https://arxiv.org/abs/1804.03719
 
+Brassard, Gilles et al. Quantum Amplitude Amplification and Estimation
+https://arxiv.org/abs/quant-ph/0005055
+
+Kaye, Phillip et al. An Introduction to Quantum Computing,
+Section 8.4: Searching without knowing the success probability
+
 === CIRCUIT ===
 Example of circuit with 2 register qubits.
 
@@ -64,7 +70,12 @@ Note: QFT in the above diagram omits swaps, which are included implicitly by
 reversing qubit order for phase kickbacks.
 """
 
+from __future__ import annotations
+
 import math
+import random
+from collections.abc import Mapping
+from typing import Any
 
 import numpy as np
 import sympy
@@ -135,7 +146,6 @@ class PhaseKickback(cirq.Gate):
     """
 
     def __init__(self, num_qubits, unitary):
-        super(PhaseKickback, self)
         self._num_qubits = num_qubits
         self.U = unitary
 
@@ -162,7 +172,6 @@ class EigenRotation(cirq.Gate):
     """
 
     def __init__(self, num_qubits, C, t):
-        super(EigenRotation, self)
         self._num_qubits = num_qubits
         self.C = C
         self.t = t
@@ -196,73 +205,238 @@ class EigenRotation(cirq.Gate):
         return cirq.ry(theta)
 
 
-def hhl_circuit(A, C, t, register_size, *input_prep_gates):
-    """Constructs the HHL circuit.
+class HHLAlgorithm:
+    """A class for the HHL algorithm.
 
-    Args:
-        A: The input Hermitian matrix.
-        C: Algorithm parameter, see above.
-        t: Algorithm parameter, see above.
-        register_size: The size of the eigenvalue register.
-        *input_prep_gates: A list of gates to be applied to |0> to generate the desired input
-            state |b>.
-
-    Returns:
-        The HHL circuit. The ancilla measurement has key 'a' and the memory measurement is in key
-        'm'.  There are two parameters in the circuit, `exponent` and `phase_exponent` corresponding
-        to a possible rotation  applied before the measurement on the memory with a
-        `cirq.PhasedXPowGate`.
+    It provides two versions of the algorithm: one with amplitude amplification,
+    and one without.
     """
 
-    ancilla = cirq.LineQubit(0)
-    # to store eigenvalues of the matrix
-    register = [cirq.LineQubit(i + 1) for i in range(register_size)]
-    # to store input and output vectors
-    memory = cirq.LineQubit(register_size + 1)
+    def __init__(
+        self, A: np.ndarray, C: float, t: float, register_size: int, *input_prep_gates: cirq.Gate
+    ):
+        """Initializes the HHL algorithm.
 
-    c = cirq.Circuit()
-    hs = HamiltonianSimulation(A, t)
-    pe = PhaseEstimation(register_size + 1, hs)
-    c.append([gate(memory) for gate in input_prep_gates])
-    c.append(
-        [
-            pe(*(register + [memory])),
-            EigenRotation(register_size + 1, C, t)(*(register + [ancilla])),
-            pe(*(register + [memory])) ** -1,
-            cirq.measure(ancilla, key='a'),
+        Args:
+            A: The input Hermitian matrix.
+            C: Algorithm parameter, see above.
+            t: Algorithm parameter, see above.
+            register_size: The size of the eigenvalue register.
+            *input_prep_gates: A list of gates to be applied to |0> to generate the desired input
+                state |b>.
+        """
+        self.A = A
+        self.C = C
+        self.t = t
+        self.register_size = register_size
+        self.input_prep_gates = input_prep_gates
+
+        # ancilla qubit
+        self.ancilla = cirq.LineQubit(0)
+        # to store eigenvalues of the matrix
+        self.register = [cirq.LineQubit(i + 1) for i in range(register_size)]
+        # to store input and output vectors
+        self.memory = cirq.LineQubit(register_size + 1)
+
+    def hhl_circuit(self):
+        """Constructs the HHL circuit.
+
+        Returns:
+            The HHL circuit. The ancilla measurement has key 'a' and the memory measurement
+            is in key 'm'. If the ancilla is measured as 1, the memory is in the desired
+            state |x>.
+        """
+        c = cirq.Circuit()
+        hs = HamiltonianSimulation(self.A, self.t)
+        pe = PhaseEstimation(self.register_size + 1, hs)
+        c.append([gate(self.memory) for gate in self.input_prep_gates])
+        c.append(
+            [
+                pe(*(self.register + [self.memory])),
+                EigenRotation(self.register_size + 1, self.C, self.t)(
+                    *(self.register + [self.ancilla])
+                ),
+                pe(*(self.register + [self.memory])) ** -1,
+            ]
+        )
+        return c
+
+    def diffusion_operator(self):
+        """Creates the diffusion operator I - 2|0><0| which reflects about the initial state
+        with all qubits in |0>.
+        """
+        qubits = [self.ancilla] + self.register + [self.memory]
+        c = cirq.Circuit()
+        c.append(cirq.X.on_each(qubits))
+        c.append(cirq.ControlledGate(cirq.Z, num_controls=self.register_size + 1).on(*qubits))
+        c.append(cirq.X.on_each(qubits))
+        return c
+
+    def amplitude_amplification(self, num_iterations: int):
+        """Applies amplitude amplification to increase the probability of measuring the ancilla
+        qubit as 1.
+
+        Args:
+            num_iterations: The number of times to apply amplitude amplification.
+
+        Returns:
+            The circuit with amplitude amplification applied.
+        """
+        hhl_circuit = self.hhl_circuit()
+        c = cirq.Circuit()
+        c += hhl_circuit
+
+        r_succ = cirq.Z(self.ancilla)
+        r_init = self.diffusion_operator()
+
+        for _ in range(num_iterations):
+            c.append(r_succ)
+            c += hhl_circuit**-1
+            c += r_init
+            c += hhl_circuit
+
+        return c
+
+    def measure_circuit(self, circuit: cirq.Circuit):
+        """Measures the ancilla qubit and the memory qubit.
+
+        There are two parameters in the circuit, `exponent` and `phase_exponent` corresponding
+        to a possible rotation applied before the measurement on the memory with a
+        `cirq.PhasedXPowGate`.
+
+        Args:
+            circuit: The circuit to measure.
+
+        Returns:
+            The circuit with the ancilla and memory qubits measured.
+        """
+        circuit.append(cirq.measure(self.ancilla, key='a'))
+        circuit.append(
+            [
+                cirq.PhasedXPowGate(
+                    exponent=sympy.Symbol('exponent'), phase_exponent=sympy.Symbol('phase_exponent')
+                )(self.memory),
+                cirq.measure(self.memory, key='m'),
+            ]
+        )
+
+        return circuit
+
+    def print_results(self, results: list[np.ndarray], num_runs: list[int]) -> np.floating[Any]:
+        """Prints the measurement results for X, Y, and Z measurements.
+
+        Args:
+            results: List containing memory qubit measurements for X, Y and Z.
+            num_runs: List containing the total number of simulation runs to obtain X, Y and Z.
+
+        Returns:
+            the success probability, as the mean of (# of successful runs) / (# of runs) needed
+            to obtain an estimate for X, Y and Z.
+        """
+        success_probability = []
+
+        for label, result, runs in zip(('X', 'Y', 'Z'), results, num_runs):
+            expectation = 1 - 2 * np.mean(result)
+            num_estimates = result.shape[0]
+            print(
+                f'{label} = {expectation} from {num_estimates} estimates '
+                f'out of {runs} simulation runs'
+            )
+            success_probability.append(num_estimates / runs)
+
+        return np.mean(success_probability)
+
+    def simulate_without_amplification(self, total_runs: int) -> list[np.ndarray]:
+        """Simulates the HHL circuit without amplitude amplification.
+
+        At the end measures X, Y and Z on the memory qubit.
+        Only the runs where the ancilla is measured as 1 are returned.
+
+        Args:
+            total_runs: The total number of simulations to run.
+
+        Returns:
+            A list containing the simulation results where the ancilla is 1, for each
+            X, Y and Z measurement.
+        """
+        simulator = cirq.Simulator()
+
+        # Cases for measuring X, Y, and Z (respectively) on the memory qubit.
+        params: list[Mapping[str, float]] = [
+            {'exponent': 0.5, 'phase_exponent': -0.5},
+            {'exponent': 0.5, 'phase_exponent': 0},
+            {'exponent': 0, 'phase_exponent': 0},
         ]
-    )
 
-    c.append(
-        [
-            cirq.PhasedXPowGate(
-                exponent=sympy.Symbol('exponent'), phase_exponent=sympy.Symbol('phase_exponent')
-            )(memory),
-            cirq.measure(memory, key='m'),
+        results = simulator.run_sweep(
+            self.measure_circuit(self.hhl_circuit()), params, repetitions=total_runs
+        )
+
+        return [result.measurements['m'][result.measurements['a'] == 1] for result in results]
+
+    def simulate_with_amplification(
+        self, total_estimates: int
+    ) -> tuple[list[np.ndarray], list[int]]:
+        """Simulates the HHL circuit with amplitude amplification.
+
+        Amplitude amplification is applied to the HHL circuit until the ancilla is measured as 1.
+        Afterwards X, Y and Z are measured on the memory qubit.
+
+        Args:
+            total_estimates: The number of estimates to obtain for each X, Y and Z measurement.
+
+        Returns:
+            A pair of lists, containing for each X, Y and Z measurement goal:
+                - a numpy array with the results for successful simulations.
+                - the total number of simulation runs.
+        """
+        simulator = cirq.Simulator()
+
+        # Cases for measuring X, Y, and Z (respectively) on the memory qubit.
+        params: list[Mapping[str, float]] = [
+            {'exponent': 0.5, 'phase_exponent': -0.5},
+            {'exponent': 0.5, 'phase_exponent': 0},
+            {'exponent': 0, 'phase_exponent': 0},
         ]
-    )
 
-    return c
+        results = []
+        runs = []
+        for param in params:
+            resolver = cirq.ParamResolver(param)
+            results_for_param = []
+            repetitions = total_estimates
+            num_runs = 0  # number of calls to simulator.run
+            # We use the algorithm "Quantum Searching Without Knowing Success Probability II"
+            # from Kaye et al., Section 8.4.
+            # We perform 9 iterations, which suffices if the success probability p of a single run
+            # without amplification is at least 1/2^10.
+            for l in range(1, 10):
+                M = 2**l
+                # Apply amplitude amplification a random number of times between 0 and M-1.
+                # For M large enough, doing this twice increases the success probability to
+                # 3/4 - O(1/(M*θ)), where θ is the angle such that sin^2(θ) = p, the probability
+                # of success of a single run without amplification.
+                for _ in range(2):
+                    j = random.randint(0, M - 1)
+                    result = simulator.run(
+                        self.measure_circuit(self.amplitude_amplification(num_iterations=j)),
+                        resolver,
+                        repetitions,
+                    )
+                    num_runs += repetitions
+                    results_for_param.append(
+                        result.measurements['m'][result.measurements['a'] == 1]
+                    )
+                    repetitions -= (result.measurements['a'] == 1).sum()
+                    if repetitions <= 0:
+                        break
+                if repetitions <= 0:
+                    break
 
+            results.append(np.concatenate(results_for_param, axis=0))
+            runs.append(num_runs)
 
-def simulate(circuit):
-    simulator = cirq.Simulator()
-
-    # Cases for measuring X, Y, and Z (respectively) on the memory qubit.
-    params = [
-        {'exponent': 0.5, 'phase_exponent': -0.5},
-        {'exponent': 0.5, 'phase_exponent': 0},
-        {'exponent': 0, 'phase_exponent': 0},
-    ]
-
-    results = simulator.run_sweep(circuit, params, repetitions=5000)
-
-    for label, result in zip(('X', 'Y', 'Z'), list(results)):
-        # Only select cases where the ancilla is 1.
-        # TODO: optimize using amplitude amplification algorithm.
-        # Github issue: https://github.com/quantumlib/Cirq/issues/2216
-        expectation = 1 - 2 * np.mean(result.measurements['m'][result.measurements['a'] == 1])
-        print(f'{label} = {expectation}')
+        return results, runs
 
 
 def main():
@@ -293,12 +467,32 @@ def main():
     C = 2 * math.pi / (2**register_size * t)
 
     # Simulate circuit.
-    print("Expected observable outputs:")
-    print("X =", expected[0])
-    print("Y =", expected[1])
-    print("Z =", expected[2])
-    print("Actual: ")
-    simulate(hhl_circuit(A, C, t, register_size, *input_prep_gates))
+    print('Expected observable outputs:')
+    print('X =', expected[0])
+    print('Y =', expected[1])
+    print('Z =', expected[2])
+
+    hhl = HHLAlgorithm(A, C, t, register_size, *input_prep_gates)
+    print('Actual values without amplitude amplification: ')
+    results = hhl.simulate_without_amplification(total_runs=5000)
+    success_probability = hhl.print_results(results, num_runs=[5000, 5000, 5000])
+    print(
+        f'Success probability of a single run without amplitude amplification: '
+        f'{success_probability}'
+    )
+    # We show that amplitude amplification obtains similar values using fewer simulations.
+    # Because amplitude amplification continues until the algorithm succeeds, the number of
+    # estimates is set to 5000 * success_probability to be roughly equivalent to 5000 runs
+    # without amplitude amplification.
+    print('Actual values with amplitude amplification: ')
+    results, num_runs = hhl.simulate_with_amplification(
+        total_estimates=int(5000 * success_probability)
+    )
+    success_probability = hhl.print_results(results, num_runs)
+    print(
+        f'Success probability of a single run with amplitude amplification: '
+        f'{success_probability}'
+    )
 
 
 if __name__ == '__main__':

@@ -11,13 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
 import cirq
 
 
-def test_dot():
+def test_dot() -> None:
     assert cirq.dot(2) == 2
     assert cirq.dot(2.5, 2.5) == 6.25
 
@@ -33,7 +36,7 @@ def test_dot():
         cirq.dot()
 
 
-def test_kron_multiplies_sizes():
+def test_kron_multiplies_sizes() -> None:
     assert cirq.kron(np.array([1, 2])).shape == (1, 2)
     assert cirq.kron(np.array([1, 2]), shape_len=1).shape == (2,)
     assert cirq.kron(np.array([1, 2]), np.array([3, 4, 5]), shape_len=1).shape == (6,)
@@ -51,7 +54,7 @@ def test_kron_multiplies_sizes():
     assert np.allclose(cirq.kron(np.eye(2), np.eye(3), np.eye(4)), np.eye(24))
 
 
-def test_kron_spreads_values():
+def test_kron_spreads_values() -> None:
     u = np.array([[2, 3], [5, 7]])
 
     assert np.allclose(
@@ -68,7 +71,7 @@ def test_kron_spreads_values():
     )
 
 
-def test_acts_like_kron_multiplies_sizes():
+def test_acts_like_kron_multiplies_sizes() -> None:
     assert np.allclose(cirq.kron_with_controls(), np.eye(1))
     assert np.allclose(cirq.kron_with_controls(np.eye(2), np.eye(3), np.eye(4)), np.eye(24))
 
@@ -79,7 +82,7 @@ def test_acts_like_kron_multiplies_sizes():
     )
 
 
-def test_supports_controls():
+def test_supports_controls() -> None:
     u = np.array([[2, 3], [5, 7]])
     assert np.allclose(cirq.kron_with_controls(cirq.CONTROL_TAG), np.array([[1, 0], [0, 1]]))
     assert np.allclose(
@@ -92,7 +95,7 @@ def test_supports_controls():
     )
 
 
-def test_block_diag():
+def test_block_diag() -> None:
     assert np.allclose(cirq.block_diag(), np.zeros((0, 0)))
 
     assert np.allclose(cirq.block_diag(np.array([[1, 2], [3, 4]])), np.array([[1, 2], [3, 4]]))
@@ -108,7 +111,7 @@ def test_block_diag():
         _ = cirq.block_diag(np.array([[1, 2, 3], [3, 4, 5]]))
 
 
-def test_block_diag_dtype():
+def test_block_diag_dtype() -> None:
     assert cirq.block_diag().dtype == np.complex128
 
     assert cirq.block_diag(np.array([[1]], dtype=np.int8)).dtype == np.int8

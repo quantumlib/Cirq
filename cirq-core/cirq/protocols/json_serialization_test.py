@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import contextlib
 import dataclasses
 import datetime
@@ -21,7 +23,6 @@ import json
 import os
 import pathlib
 import warnings
-from typing import Dict, List, Optional, Tuple, Type
 from unittest import mock
 
 import attrs
@@ -46,25 +47,18 @@ class _ModuleDeprecation:
 
 
 # tested modules and their deprecation settings
-TESTED_MODULES: Dict[str, Optional[_ModuleDeprecation]] = {
+TESTED_MODULES: dict[str, _ModuleDeprecation | None] = {
     'cirq_aqt': None,
     'cirq_ionq': None,
     'cirq_google': None,
     'cirq_pasqal': None,
-    'cirq_rigetti': None,
+    f'cirq{"."}contrib': None,
     'cirq.protocols': None,
     'non_existent_should_be_fine': None,
 }
 
-# TODO(#6706) remove after cirq_rigetti supports NumPy 2.0
-if np.__version__.startswith("2."):  # pragma: no cover
-    warnings.warn(
-        "json_serialization_test - ignoring cirq_rigetti due to incompatibility with NumPy 2.0"
-    )
-    del TESTED_MODULES["cirq_rigetti"]
 
-
-def _get_testspecs_for_modules() -> List[ModuleJsonTestSpec]:
+def _get_testspecs_for_modules() -> list[ModuleJsonTestSpec]:
     modules = []
     for m in TESTED_MODULES.keys():
         try:
@@ -78,7 +72,7 @@ def _get_testspecs_for_modules() -> List[ModuleJsonTestSpec]:
 MODULE_TEST_SPECS = _get_testspecs_for_modules()
 
 
-def test_deprecated_cirq_type_in_json_dict():
+def test_deprecated_cirq_type_in_json_dict() -> None:
     class HasOldJsonDict:
         # Required for testing serialization of non-cirq objects.
         __module__ = 'test.noncirq.namespace'
@@ -105,7 +99,7 @@ def test_deprecated_cirq_type_in_json_dict():
         assert_json_roundtrip_works(HasOldJsonDict(), resolvers=test_resolvers)
 
 
-def test_line_qubit_roundtrip():
+def test_line_qubit_roundtrip() -> None:
     q1 = cirq.LineQubit(12)
     assert_json_roundtrip_works(
         q1,
@@ -116,7 +110,7 @@ def test_line_qubit_roundtrip():
     )
 
 
-def test_gridqubit_roundtrip():
+def test_gridqubit_roundtrip() -> None:
     q = cirq.GridQubit(15, 18)
     assert_json_roundtrip_works(
         q,
@@ -128,7 +122,7 @@ def test_gridqubit_roundtrip():
     )
 
 
-def test_op_roundtrip():
+def test_op_roundtrip() -> None:
     q = cirq.LineQubit(5)
     op1 = cirq.rx(0.123).on(q)
     assert_json_roundtrip_works(
@@ -149,7 +143,7 @@ def test_op_roundtrip():
     )
 
 
-def test_op_roundtrip_filename(tmpdir):
+def test_op_roundtrip_filename(tmpdir) -> None:
     filename = f'{tmpdir}/op.json'
     q = cirq.LineQubit(5)
     op1 = cirq.rx(0.123).on(q)
@@ -165,7 +159,7 @@ def test_op_roundtrip_filename(tmpdir):
     assert op1 == op3
 
 
-def test_op_roundtrip_file_obj(tmpdir):
+def test_op_roundtrip_file_obj(tmpdir) -> None:
     filename = f'{tmpdir}/op.json'
     q = cirq.LineQubit(5)
     op1 = cirq.rx(0.123).on(q)
@@ -185,16 +179,14 @@ def test_op_roundtrip_file_obj(tmpdir):
         assert op1 == op3
 
 
-def test_fail_to_resolve():
+def test_fail_to_resolve() -> None:
     buffer = io.StringIO()
-    buffer.write(
-        """
+    buffer.write("""
     {
       "cirq_type": "MyCustomClass",
       "data": [1, 2, 3]
     }
-    """
-    )
+    """)
     buffer.seek(0)
 
     with pytest.raises(ValueError) as e:
@@ -213,7 +205,7 @@ Q0, Q1, Q2, Q3, Q4 = QUBITS
 # deprecation error in testing. It is cleaner to just turn it off than to assert
 # deprecation for each submodule.
 @mock.patch.dict(os.environ, clear='CIRQ_TESTING')
-def test_shouldnt_be_serialized_no_superfluous(mod_spec: ModuleJsonTestSpec):
+def test_shouldnt_be_serialized_no_superfluous(mod_spec: ModuleJsonTestSpec) -> None:
     # everything in the list should be ignored for a reason
     names = set(mod_spec.get_all_names())
     missing_names = set(mod_spec.should_not_be_serialized).difference(names)
@@ -229,7 +221,7 @@ def test_shouldnt_be_serialized_no_superfluous(mod_spec: ModuleJsonTestSpec):
 # deprecation error in testing. It is cleaner to just turn it off than to assert
 # deprecation for each submodule.
 @mock.patch.dict(os.environ, clear='CIRQ_TESTING')
-def test_not_yet_serializable_no_superfluous(mod_spec: ModuleJsonTestSpec):
+def test_not_yet_serializable_no_superfluous(mod_spec: ModuleJsonTestSpec) -> None:
     # everything in the list should be ignored for a reason
     names = set(mod_spec.get_all_names())
     missing_names = set(mod_spec.not_yet_serializable).difference(names)
@@ -239,7 +231,7 @@ def test_not_yet_serializable_no_superfluous(mod_spec: ModuleJsonTestSpec):
 
 
 @pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS, ids=repr)
-def test_mutually_exclusive_not_serialize_lists(mod_spec: ModuleJsonTestSpec):
+def test_mutually_exclusive_not_serialize_lists(mod_spec: ModuleJsonTestSpec) -> None:
     common = set(mod_spec.should_not_be_serialized) & set(mod_spec.not_yet_serializable)
     assert len(common) == 0, (
         f"Defined in both {mod_spec.name} 'Not yet serializable' "
@@ -248,8 +240,8 @@ def test_mutually_exclusive_not_serialize_lists(mod_spec: ModuleJsonTestSpec):
 
 
 @pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS, ids=repr)
-def test_resolver_cache_vs_should_not_serialize(mod_spec: ModuleJsonTestSpec):
-    resolver_cache_types = set([n for (n, _) in mod_spec.get_resolver_cache_types()])
+def test_resolver_cache_vs_should_not_serialize(mod_spec: ModuleJsonTestSpec) -> None:
+    resolver_cache_types = {n for (n, _) in mod_spec.get_resolver_cache_types()}
     common = set(mod_spec.should_not_be_serialized) & resolver_cache_types
 
     assert len(common) == 0, (
@@ -260,8 +252,8 @@ def test_resolver_cache_vs_should_not_serialize(mod_spec: ModuleJsonTestSpec):
 
 
 @pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS, ids=repr)
-def test_resolver_cache_vs_not_yet_serializable(mod_spec: ModuleJsonTestSpec):
-    resolver_cache_types = set([n for (n, _) in mod_spec.get_resolver_cache_types()])
+def test_resolver_cache_vs_not_yet_serializable(mod_spec: ModuleJsonTestSpec) -> None:
+    resolver_cache_types = {n for (n, _) in mod_spec.get_resolver_cache_types()}
     common = set(mod_spec.not_yet_serializable) & resolver_cache_types
 
     assert len(common) == 0, (
@@ -273,14 +265,14 @@ def test_resolver_cache_vs_not_yet_serializable(mod_spec: ModuleJsonTestSpec):
     )
 
 
-def test_builtins():
+def test_builtins() -> None:
     assert_json_roundtrip_works(True)
     assert_json_roundtrip_works(1)
     assert_json_roundtrip_works(1 + 2j)
     assert_json_roundtrip_works({'test': [123, 5.5], 'key2': 'asdf', '3': None, '0.0': []})
 
 
-def test_numpy():
+def test_numpy() -> None:
     x = np.ones(1)[0]
 
     assert_json_roundtrip_works(np.bool_(True))
@@ -301,7 +293,7 @@ def test_numpy():
     assert_json_roundtrip_works(np.arange(3))
 
 
-def test_pandas():
+def test_pandas() -> None:
     assert_json_roundtrip_works(
         pd.DataFrame(data=[[1, 2, 3], [4, 5, 6]], columns=['x', 'y', 'z'], index=[2, 5])
     )
@@ -326,7 +318,7 @@ def test_pandas():
     )
 
 
-def test_sympy():
+def test_sympy() -> None:
     # Raw values.
     assert_json_roundtrip_works(sympy.Symbol('theta'))
     assert_json_roundtrip_works(sympy.Integer(5))
@@ -357,9 +349,9 @@ class SBKImpl(cirq.SerializableByKey):
     def __init__(
         self,
         name: str,
-        data_list: Optional[List] = None,
-        data_tuple: Optional[Tuple] = None,
-        data_dict: Optional[Dict] = None,
+        data_list: list | None = None,
+        data_tuple: tuple | None = None,
+        data_dict: dict | None = None,
     ):
         self.name = name
         self.data_list = data_list or []
@@ -394,7 +386,7 @@ class SBKImpl(cirq.SerializableByKey):
         return cls(name, data_list, tuple(data_tuple), data_dict)
 
 
-def test_serializable_by_key():
+def test_serializable_by_key() -> None:
     def custom_resolver(name):
         if name == 'SBKImpl':
             return SBKImpl
@@ -449,12 +441,12 @@ def _list_public_classes_for_tested_modules():
 
 
 @pytest.mark.parametrize('mod_spec,cirq_obj_name,cls', _list_public_classes_for_tested_modules())
-def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cls):
+def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cls) -> None:
     if cirq_obj_name in mod_spec.tested_elsewhere:
         pytest.skip("Tested elsewhere.")
 
     if cirq_obj_name in mod_spec.not_yet_serializable:
-        return pytest.xfail(reason="Not serializable (yet)")
+        pytest.xfail(reason="Not serializable (yet)")
 
     test_data_path = mod_spec.test_data_path
     rel_path = test_data_path.relative_to(REPO_ROOT)
@@ -524,7 +516,7 @@ def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: st
 
 @dataclasses.dataclass
 class SerializableTypeObject:
-    test_type: Type
+    test_type: type
 
     def _json_dict_(self):
         return {'test_type': json_serialization.json_cirq_type(self.test_type)}
@@ -535,12 +527,12 @@ class SerializableTypeObject:
 
 
 @pytest.mark.parametrize('mod_spec,cirq_obj_name,cls', _list_public_classes_for_tested_modules())
-def test_type_serialization(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cls):
+def test_type_serialization(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cls) -> None:
     if cirq_obj_name in mod_spec.tested_elsewhere:
         pytest.skip("Tested elsewhere.")
 
     if cirq_obj_name in mod_spec.not_yet_serializable:
-        return pytest.xfail(reason="Not serializable (yet)")
+        pytest.xfail(reason="Not serializable (yet)")
 
     if cls is None:
         pytest.skip(f'No serialization for None-mapped type: {cirq_obj_name}')  # pragma: no cover
@@ -556,15 +548,13 @@ def test_type_serialization(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cl
 
     sto = SerializableTypeObject(cls)
     test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
-    expected_json = (
-        f'{{\n  "cirq_type": "SerializableTypeObject",\n' f'  "test_type": "{typename}"\n}}'
-    )
+    expected_json = f'{{\n  "cirq_type": "SerializableTypeObject",\n  "test_type": "{typename}"\n}}'
     assert cirq.to_json(sto) == expected_json
     assert cirq.read_json(json_text=expected_json, resolvers=test_resolvers) == sto
     assert_json_roundtrip_works(sto, resolvers=test_resolvers)
 
 
-def test_invalid_type_deserialize():
+def test_invalid_type_deserialize() -> None:
     def custom_resolver(name):
         if name == 'SerializableTypeObject':
             return SerializableTypeObject
@@ -579,7 +569,7 @@ def test_invalid_type_deserialize():
         _ = cirq.read_json(json_text=factory_json, resolvers=test_resolvers)
 
 
-def test_to_from_strings():
+def test_to_from_strings() -> None:
     x_json_text = """{
   "cirq_type": "_PauliX",
   "exponent": 1.0,
@@ -592,7 +582,7 @@ def test_to_from_strings():
         cirq.read_json(io.StringIO(), json_text=x_json_text)
 
 
-def test_to_from_json_gzip():
+def test_to_from_json_gzip() -> None:
     a, b = cirq.LineQubit.range(2)
     test_circuit = cirq.Circuit(cirq.H(a), cirq.CX(a, b))
     gzip_data = cirq.to_json_gzip(test_circuit)
@@ -605,9 +595,9 @@ def test_to_from_json_gzip():
         _ = cirq.read_json_gzip()
 
 
-def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]):
+def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: str | None):
     content = path.read_text()
-    ctx_managers: List[contextlib.AbstractContextManager] = [contextlib.suppress()]
+    ctx_managers: list[contextlib.AbstractContextManager] = [contextlib.suppress()]
     if deprecation_deadline:  # pragma: no cover
         # we ignore coverage here, because sometimes there are no deprecations at all in any of the
         # modules
@@ -617,6 +607,7 @@ def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]
         if deprecation is not None and deprecation.old_name in content:
             ctx_managers.append(deprecation.deprecation_assertion)  # pragma: no cover
 
+    # TODO: consider to add the support for 'tunits'.
     imports = {'cirq': cirq, 'pd': pd, 'sympy': sympy, 'np': np, 'datetime': datetime, 'nx': nx}
 
     for m in TESTED_MODULES.keys():
@@ -637,8 +628,8 @@ def assert_repr_and_json_test_data_agree(
     repr_path: pathlib.Path,
     json_path: pathlib.Path,
     inward_only: bool,
-    deprecation_deadline: Optional[str],
-):
+    deprecation_deadline: str | None,
+) -> None:
     if not repr_path.exists() and not json_path.exists():
         return
 
@@ -708,7 +699,7 @@ def assert_repr_and_json_test_data_agree(
     'mod_spec, abs_path',
     [(m, abs_path) for m in MODULE_TEST_SPECS for abs_path in m.all_test_data_keys()],
 )
-def test_json_and_repr_data(mod_spec: ModuleJsonTestSpec, abs_path: str):
+def test_json_and_repr_data(mod_spec: ModuleJsonTestSpec, abs_path: str) -> None:
     assert_repr_and_json_test_data_agree(
         mod_spec=mod_spec,
         repr_path=pathlib.Path(f'{abs_path}.repr'),
@@ -725,7 +716,7 @@ def test_json_and_repr_data(mod_spec: ModuleJsonTestSpec, abs_path: str):
     )
 
 
-def test_pathlib_paths(tmpdir):
+def test_pathlib_paths(tmpdir) -> None:
     path = pathlib.Path(tmpdir) / 'op.json'
     cirq.to_json(cirq.X, path)
     assert cirq.read_json(path) == cirq.X
@@ -753,16 +744,13 @@ def test_dataclass_json_dict() -> None:
     assert_json_roundtrip_works(my_dc, resolvers=[custom_resolver, *cirq.DEFAULT_RESOLVERS])
 
 
-def test_numpy_values():
-    assert (
-        cirq.to_json({'value': np.array(1)})
-        == """{
+def test_numpy_values() -> None:
+    assert cirq.to_json({'value': np.array(1)}) == """{
   "value": 1
 }"""
-    )
 
 
-def test_basic_time_assertions():
+def test_basic_time_assertions() -> None:
     naive_dt = datetime.datetime.now()
     utc_dt = naive_dt.astimezone(datetime.timezone.utc)
     assert naive_dt.timestamp() == utc_dt.timestamp()
@@ -775,7 +763,7 @@ def test_basic_time_assertions():
     assert naive_dt == re_naive, 'works, as long as you called fromtimestamp from the same timezone'
 
 
-def test_datetime():
+def test_datetime() -> None:
     naive_dt = datetime.datetime.now()
 
     re_naive_dt = cirq.read_json(json_text=cirq.to_json(naive_dt))
@@ -800,7 +788,7 @@ class _TestAttrsClas:
     x: int
 
 
-def test_attrs_json_dict():
+def test_attrs_json_dict() -> None:
     obj = _TestAttrsClas('test', x=123)
     js = json_serialization.attrs_json_dict(obj)
     assert js == {'name': 'test', 'x': 123}

@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import numpy as np
 import pytest
 import sympy
@@ -73,8 +76,7 @@ def test_pack_results():
         ('b', np.array([[0, 0], [0, 1], [1, 0], [1, 1], [0, 0], [0, 1], [1, 0]])),
     ]
     data = programs.pack_results(measurements)
-    expected = make_bytes(
-        """
+    expected = make_bytes("""
         000 00
         001 01
         010 10
@@ -84,8 +86,7 @@ def test_pack_results():
         110 10
 
         000 00 -- padding
-    """
-    )
+    """)
     assert data == expected
 
 
@@ -105,8 +106,7 @@ def test_pack_results_incompatible_shapes():
 
 
 def test_unpack_results():
-    data = make_bytes(
-        """
+    data = make_bytes("""
         000 00
         001 01
         010 10
@@ -114,8 +114,7 @@ def test_unpack_results():
         100 00
         101 01
         110 10
-    """
-    )
+    """)
     assert len(data) == 5  # 35 data bits + 5 padding bits
     results = programs.unpack_results(data, 7, [('a', 3), ('b', 2)])
     assert 'a' in results

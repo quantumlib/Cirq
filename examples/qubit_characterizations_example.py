@@ -1,4 +1,7 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
+from __future__ import annotations
+
 import cirq
 
 
@@ -31,8 +34,10 @@ def main(minimum_cliffords=5, maximum_cliffords=20, cliffords_step=5):
     clifford_range = range(minimum_cliffords, maximum_cliffords, cliffords_step)
 
     # Clifford-based randomized benchmarking of single-qubit gates on q_0.
-    rb_result_1q = cirq.experiments.single_qubit_randomized_benchmarking(
-        simulator, q_0, num_clifford_range=clifford_range, repetitions=100
+    rb_result_1q = cirq.experiments.single_qubit_rb(
+        simulator,
+        q_0,
+        cirq.experiments.RBParameters(num_clifford_range=clifford_range, repetitions=100),
     )
     rb_result_1q.plot()
 

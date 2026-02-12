@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
-from typing import Dict, Iterable, Tuple
+from collections.abc import Iterable
 
 import networkx as nx
 
@@ -34,7 +36,7 @@ def get_grid_device_graph(*args, **kwargs) -> nx.Graph:
     return gridqubits_to_graph_device(cirq.GridQubit.rect(*args, **kwargs))
 
 
-def gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):
+def gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]) -> nx.Graph:
     """Gets the graph of a set of grid qubits."""
     return nx.Graph(
         pair for pair in itertools.combinations(qubits, 2) if _manhattan_distance(*pair) == 1
@@ -45,7 +47,7 @@ def _manhattan_distance(qubit1: cirq.GridQubit, qubit2: cirq.GridQubit) -> int:
     return abs(qubit1.row - qubit2.row) + abs(qubit1.col - qubit2.col)
 
 
-def nx_qubit_layout(graph: nx.Graph) -> Dict[cirq.Qid, Tuple[float, float]]:
+def nx_qubit_layout(graph: nx.Graph) -> dict[cirq.Qid, tuple[float, float]]:
     """Return a layout for a graph for nodes which are qubits.
 
     This can be used in place of nx.spring_layout or other networkx layouts.
@@ -62,7 +64,7 @@ def nx_qubit_layout(graph: nx.Graph) -> Dict[cirq.Qid, Tuple[float, float]]:
     >>> nx.draw_networkx(g, pos=pos)
 
     """
-    pos: Dict[cirq.Qid, Tuple[float, float]] = {}
+    pos: dict[cirq.Qid, tuple[float, float]] = {}
 
     _node_to_i_cache = None
     for node in graph.nodes:

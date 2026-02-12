@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import functools
-from typing import Sequence
+from collections.abc import Sequence
 
 from cirq_google.api.v2 import program_pb2, run_context_pb2
 
@@ -47,7 +49,7 @@ def to_device_parameters_diff(
         return idx
 
     # Maps a resource group path to its index in diff.groups.
-    resource_groups_index: dict[tuple[str, ...], int] = {tuple(): _EMPTY_RESOURCE_PATH_IDX}
+    resource_groups_index: dict[tuple[str, ...], int] = {(): _EMPTY_RESOURCE_PATH_IDX}
 
     def resource_path_id(path: tuple[str, ...]) -> int:
         """Computes the index of a path in diff.groups."""

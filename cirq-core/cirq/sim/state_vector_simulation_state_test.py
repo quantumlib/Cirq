@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Type
+from __future__ import annotations
+
+from typing import cast
 from unittest import mock
 
 import numpy as np
@@ -21,7 +23,7 @@ import pytest
 import cirq
 
 
-def test_default_parameter():
+def test_default_parameter() -> None:
     dtype = np.complex64
     tensor = cirq.one_hot(shape=(2, 2, 2), dtype=np.complex64)
     qubits = cirq.LineQubit.range(3)
@@ -33,7 +35,7 @@ def test_default_parameter():
     assert args.available_buffer.dtype == tensor.dtype
 
 
-def test_infer_target_tensor():
+def test_infer_target_tensor() -> None:
     dtype = np.complex64
     args = cirq.StateVectorSimulationState(
         qubits=cirq.LineQubit.range(2),
@@ -54,13 +56,13 @@ def test_infer_target_tensor():
     )
 
 
-def test_shallow_copy_buffers():
+def test_shallow_copy_buffers() -> None:
     args = cirq.StateVectorSimulationState(qubits=cirq.LineQubit.range(1), initial_state=0)
     copy = args.copy(deep_copy_buffers=False)
     assert copy.available_buffer is args.available_buffer
 
 
-def test_decomposed_fallback():
+def test_decomposed_fallback() -> None:
     class Composite(cirq.Gate):
         def num_qubits(self) -> int:
             return 1  # pragma: no cover
@@ -82,7 +84,7 @@ def test_decomposed_fallback():
     )
 
 
-def test_cannot_act():
+def test_cannot_act() -> None:
     class NoDetails:
         pass
 
@@ -98,7 +100,7 @@ def test_cannot_act():
         cirq.act_on(NoDetails(), args, qubits=())
 
 
-def test_act_using_probabilistic_single_qubit_channel():
+def test_act_using_probabilistic_single_qubit_channel() -> None:
     class ProbabilisticSorX(cirq.Gate):
         def num_qubits(self) -> int:
             return 1
@@ -148,7 +150,7 @@ def test_act_using_probabilistic_single_qubit_channel():
     )
 
 
-def test_act_using_adaptive_two_qubit_channel():
+def test_act_using_adaptive_two_qubit_channel() -> None:
     class Decay11(cirq.Gate):
         def num_qubits(self) -> int:
             return 2
@@ -171,7 +173,7 @@ def test_act_using_adaptive_two_qubit_channel():
             qubits=cirq.LineQubit.range(4),
             prng=mock_prng,
             initial_state=np.copy(state),
-            dtype=cast(Type[np.complexfloating], state.dtype),
+            dtype=cast(type[np.complexfloating], state.dtype),
         )
         cirq.act_on(Decay11(), args, [cirq.LineQubit(1), cirq.LineQubit(3)])
         return args.target_tensor
@@ -210,7 +212,7 @@ def test_act_using_adaptive_two_qubit_channel():
         assert_not_affected(projected_state, sample=3 / 4 + 1e-8)
 
 
-def test_probability_comes_up_short_results_in_fallback():
+def test_probability_comes_up_short_results_in_fallback() -> None:
     class Short(cirq.Gate):
         def num_qubits(self) -> int:
             return 1
@@ -234,7 +236,7 @@ def test_probability_comes_up_short_results_in_fallback():
     np.testing.assert_allclose(args.target_tensor, np.array([0, 1]))
 
 
-def test_random_channel_has_random_behavior():
+def test_random_channel_has_random_behavior() -> None:
     q = cirq.LineQubit(0)
     s = cirq.Simulator().sample(
         cirq.Circuit(cirq.X(q), cirq.amplitude_damp(0.4).on(q), cirq.measure(q, key='out')),
@@ -245,7 +247,7 @@ def test_random_channel_has_random_behavior():
     assert v[1] > 1
 
 
-def test_measured_channel():
+def test_measured_channel() -> None:
     # This behaves like an X-basis measurement.
     kc = cirq.KrausChannel(
         kraus_ops=(np.array([[1, 1], [1, 1]]) * 0.5, np.array([[1, -1], [-1, 1]]) * 0.5), key='m'
@@ -257,7 +259,7 @@ def test_measured_channel():
     assert results.histogram(key='m') == {0: 100}
 
 
-def test_measured_mixture():
+def test_measured_mixture() -> None:
     # This behaves like an X-basis measurement.
     mm = cirq.MixedUnitaryChannel(
         mixture=((0.5, np.array([[1, 0], [0, 1]])), (0.5, np.array([[0, 1], [1, 0]]))), key='flip'
@@ -269,6 +271,6 @@ def test_measured_mixture():
     assert results.histogram(key='flip') == results.histogram(key='m')
 
 
-def test_qid_shape_error():
+def test_qid_shape_error() -> None:
     with pytest.raises(ValueError, match="qid_shape must be provided"):
         cirq.sim.state_vector_simulation_state._BufferedStateVector.create(initial_state=0)

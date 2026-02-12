@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import io
 import sys
 
@@ -26,7 +28,6 @@ class OutputCapture:
     def __enter__(self):
         self._cache = sys.stdout, sys.stderr
         sys.stdout, sys.stderr = self.buffer, self.buffer
-        return None
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         sys.stdout, sys.stderr = self._cache

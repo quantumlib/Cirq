@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 
 from cirq import quirk_url_to_circuit
@@ -19,12 +21,12 @@ from cirq.interop.quirk.cells.input_cells import SetDefaultInputCell
 from cirq.interop.quirk.cells.testing import assert_url_to_circuit_returns
 
 
-def test_missing_input_cell():
+def test_missing_input_cell() -> None:
     with pytest.raises(ValueError, match='Missing input'):
         _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":[["+=A2"]]}')
 
 
-def test_input_cell():
+def test_input_cell() -> None:
     assert_url_to_circuit_returns(
         '{"cols":[["inputA4",1,1,1,"+=A4"]]}', maps={0x_0_0: 0x_0_0, 0x_2_3: 0x_2_5}
     )
@@ -41,7 +43,7 @@ def test_input_cell():
         )
 
 
-def test_reversed_input_cell():
+def test_reversed_input_cell() -> None:
     assert_url_to_circuit_returns(
         '{"cols":[["revinputA4",1,1,1,"+=A4"]]}',
         maps={0x_0_0: 0x_0_0, 0x_2_3: 0x_2_7, 0x_1_3: 0x_1_B},
@@ -59,7 +61,7 @@ def test_reversed_input_cell():
         )
 
 
-def test_set_default_input_cell():
+def test_set_default_input_cell() -> None:
     # Later column.
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":11}],["+=A4"]]}', maps={0: 11, 4: 15, 5: 0}
@@ -98,6 +100,6 @@ def test_set_default_input_cell():
         )
 
 
-def test_with_line_qubits_mapped_to():
+def test_with_line_qubits_mapped_to() -> None:
     cell = SetDefaultInputCell('a', 5)
     assert cell.with_line_qubits_mapped_to([]) is cell

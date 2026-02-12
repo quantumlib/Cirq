@@ -26,6 +26,7 @@ from cirq.study.resolver import (
     ParamMappingType as ParamMappingType,
     ParamResolver as ParamResolver,
     ParamResolverOrSimilarType as ParamResolverOrSimilarType,
+    symbol as symbol,
 )
 
 from cirq.study.sweepable import (
@@ -38,6 +39,7 @@ from cirq.study.sweepable import (
 from cirq.study.sweeps import (
     Concat as Concat,
     Linspace as Linspace,
+    list_of_dicts_to_zip as list_of_dicts_to_zip,
     ListSweep as ListSweep,
     Points as Points,
     Product as Product,

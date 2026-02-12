@@ -12,26 +12,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import datetime
-from typing import Dict, List, Optional, TYPE_CHECKING, Union
+from typing import Any, TYPE_CHECKING
 
-from google.protobuf import any_pb2
-
-import cirq
+from cirq import _compat
 from cirq_google.api import v2
-from cirq_google.cloud import quantum
 from cirq_google.devices import grid_device
-from cirq_google.engine import abstract_processor, calibration, processor_sampler, util
+from cirq_google.engine import (
+    abstract_processor,
+    calibration,
+    processor_config,
+    processor_sampler,
+    util,
+)
 
 if TYPE_CHECKING:
+    from google.protobuf import any_pb2
+
+    import cirq
     import cirq_google as cg
+    import cirq_google.cloud.quantum as quantum
     import cirq_google.engine.abstract_job as abstract_job
     import cirq_google.engine.engine as engine_base
 
 
-def _date_to_timestamp(
-    union_time: Optional[Union[datetime.datetime, datetime.date, int]],
-) -> Optional[int]:
+def _date_to_timestamp(union_time: datetime.datetime | datetime.date | int | None) -> int | None:
     if isinstance(union_time, int):
         return union_time
     elif isinstance(union_time, datetime.datetime):
@@ -39,6 +46,13 @@ def _date_to_timestamp(
     elif isinstance(union_time, datetime.date):
         return int(datetime.datetime.combine(union_time, datetime.datetime.min.time()).timestamp())
     return None
+
+
+def _fix_deprecated_allowlisted_users_args(
+    args: tuple[Any, ...], kwargs: dict[str, Any]
+) -> tuple[tuple[Any, ...], dict[str, Any]]:
+    kwargs['allowlisted_users'] = kwargs.pop('whitelisted_users')
+    return args, kwargs
 
 
 class EngineProcessor(abstract_processor.AbstractProcessor):
@@ -53,8 +67,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         self,
         project_id: str,
         processor_id: str,
-        context: 'engine_base.EngineContext',
-        _processor: Optional[quantum.QuantumProcessor] = None,
+        context: engine_base.EngineContext,
+        _processor: quantum.QuantumProcessor | None = None,
     ) -> None:
         """A processor available via the engine.
 
@@ -75,7 +89,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             f'project_id={self.project_id!r}>'
         )
 
-    def engine(self) -> 'engine_base.Engine':
+    def engine(self) -> engine_base.Engine:
         """Returns the parent Engine object.
 
         Returns:
@@ -87,22 +101,17 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
 
     def get_sampler(
         self,
-        run_name: str = "",
-        device_config_name: str = "",
-        snapshot_id: str = "",
-        max_concurrent_jobs: int = 10,
-    ) -> 'cg.engine.ProcessorSampler':
-        """Returns a sampler backed by the engine.
+        device_config_name: str | None = None,
+        device_config_revision: processor_config.DeviceConfigRevision | None = None,
+        max_concurrent_jobs: int = 100,
+    ) -> cg.engine.ProcessorSampler:
+        """Returns the default sampler backed by the engine.
+
         Args:
-            run_name: A unique identifier representing an automation run for the
-                processor. An Automation Run contains a collection of device
-                configurations for the processor.
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
-            snapshot_id: A unique identifier for an immutable snapshot reference.
-                A snapshot contains a collection of device configurations for the
-                processor.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
             max_concurrent_jobs: The maximum number of jobs to be sent
                 simultaneously to the Engine. This client-side throttle can be
                 used to proactively reduce load to the backends and avoid quota
@@ -113,27 +122,33 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             that will send circuits to the Quantum Computing Service
             when sampled.
 
-        Raises:
-            ValueError: If only one of `run_name` and `device_config_name` are specified.
-            ValueError: If both `run_name` and `snapshot_id` are specified.
-
         """
         processor = self._inner_processor()
-        if run_name and snapshot_id:
-            raise ValueError('Cannot specify both `run_name` and `snapshot_id`')
-        if (bool(run_name) or bool(snapshot_id)) ^ bool(device_config_name):
-            raise ValueError(
-                'Cannot specify only one of top level identifier and `device_config_name`'
+
+        device_config_name = (
+            device_config_name
+            if device_config_name
+            else processor.default_device_config_key.config_alias
+        )
+
+        if isinstance(device_config_revision, processor_config.Snapshot):
+            return processor_sampler.ProcessorSampler(
+                processor=self,
+                snapshot_id=device_config_revision.id,
+                device_config_name=device_config_name,
+                max_concurrent_jobs=max_concurrent_jobs,
             )
-        # If not provided, initialize the sampler with the Processor's default values.
-        if not run_name and not device_config_name and not snapshot_id:
-            run_name = processor.default_device_config_key.run
-            device_config_name = processor.default_device_config_key.config_alias
-            snapshot_id = processor.default_device_config_key.snapshot_id
+        if isinstance(device_config_revision, processor_config.Run):
+            return processor_sampler.ProcessorSampler(
+                processor=self,
+                run_name=device_config_revision.id,
+                device_config_name=device_config_name,
+                max_concurrent_jobs=max_concurrent_jobs,
+            )
+
         return processor_sampler.ProcessorSampler(
             processor=self,
-            run_name=run_name,
-            snapshot_id=snapshot_id,
+            run_name=processor.default_device_config_key.run,
             device_config_name=device_config_name,
             max_concurrent_jobs=max_concurrent_jobs,
         )
@@ -145,15 +160,15 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         device_config_name: str,
         run_name: str = "",
         snapshot_id: str = "",
-        program_id: Optional[str] = None,
-        job_id: Optional[str] = None,
+        program_id: str | None = None,
+        job_id: str | None = None,
         params: cirq.Sweepable = None,
         repetitions: int = 1,
-        program_description: Optional[str] = None,
-        program_labels: Optional[Dict[str, str]] = None,
-        job_description: Optional[str] = None,
-        job_labels: Optional[Dict[str, str]] = None,
-    ) -> 'abstract_job.AbstractJob':
+        program_description: str | None = None,
+        program_labels: dict[str, str] | None = None,
+        job_description: str | None = None,
+        job_labels: dict[str, str] | None = None,
+    ) -> abstract_job.AbstractJob:
         """Runs the supplied Circuit on this processor.
 
         In contrast to run, this runs across multiple parameter sweeps, and
@@ -222,20 +237,20 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         self._processor = self.context.client.get_processor(self.project_id, self.processor_id)
         return self._processor.health.name
 
-    def expected_down_time(self) -> 'Optional[datetime.datetime]':
+    def expected_down_time(self) -> datetime.datetime | None:
         """Returns the start of the next expected down time of the processor, if
         set."""
         return self._inner_processor().expected_down_time
 
-    def expected_recovery_time(self) -> 'Optional[datetime.datetime]':
+    def expected_recovery_time(self) -> datetime.datetime | None:
         """Returns the expected the processor should be available, if set."""
         return self._inner_processor().expected_recovery_time
 
-    def supported_languages(self) -> List[str]:
+    def supported_languages(self) -> list[str]:
         """Returns the list of processor supported program languages."""
-        return self._inner_processor().supported_languages
+        return list(self._inner_processor().supported_languages)
 
-    def get_device_specification(self) -> Optional[v2.device_pb2.DeviceSpecification]:
+    def get_device_specification(self) -> v2.device_pb2.DeviceSpecification | None:
         """Returns a device specification proto for use in determining
         information about the device.
 
@@ -262,9 +277,9 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
 
     def list_calibrations(
         self,
-        earliest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
-        latest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
-    ) -> List[calibration.Calibration]:
+        earliest_timestamp: datetime.datetime | datetime.date | int | None = None,
+        latest_timestamp: datetime.datetime | datetime.date | int | None = None,
+    ) -> list[calibration.Calibration]:
         """Retrieve metadata about a specific calibration run.
 
         Params:
@@ -308,7 +323,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         )
         return _to_calibration(response.data)
 
-    def get_current_calibration(self) -> Optional[calibration.Calibration]:
+    def get_current_calibration(self) -> calibration.Calibration | None:
         """Returns metadata about the current calibration for a processor.
 
         Returns:
@@ -320,23 +335,30 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         else:
             return None
 
+    @_compat.deprecated_parameter(
+        deadline='v1.7',
+        fix='Change whitelisted_users to allowlisted_users.',
+        parameter_desc='whitelisted_users',
+        match=lambda args, kwargs: 'whitelisted_users' in kwargs,
+        rewrite=_fix_deprecated_allowlisted_users_args,
+    )
     def create_reservation(
         self,
         start_time: datetime.datetime,
         end_time: datetime.datetime,
-        whitelisted_users: Optional[List[str]] = None,
+        allowlisted_users: list[str] | None = None,
     ):
         """Creates a reservation on this processor.
 
         Args:
             start_time: the starting date/time of the reservation.
             end_time: the ending date/time of the reservation.
-            whitelisted_users: a list of emails that are allowed
+            allowlisted_users: a list of emails that are allowed
               to send programs during this reservation (in addition to users
               with permission "quantum.reservations.use" on the project).
         """
         response = self.context.client.create_reservation(
-            self.project_id, self.processor_id, start_time, end_time, whitelisted_users
+            self.project_id, self.processor_id, start_time, end_time, allowlisted_users
         )
         return response
 
@@ -382,18 +404,25 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         else:
             return self._cancel_reservation(reservation_id)
 
-    def get_reservation(self, reservation_id: str) -> Optional[quantum.QuantumReservation]:
+    def get_reservation(self, reservation_id: str) -> quantum.QuantumReservation | None:
         """Retrieve a reservation given its id."""
         return self.context.client.get_reservation(
             self.project_id, self.processor_id, reservation_id
         )
 
+    @_compat.deprecated_parameter(
+        deadline='v1.7',
+        fix='Change whitelisted_users to allowlisted_users.',
+        parameter_desc='whitelisted_users',
+        match=lambda args, kwargs: 'whitelisted_users' in kwargs,
+        rewrite=_fix_deprecated_allowlisted_users_args,
+    )
     def update_reservation(
         self,
         reservation_id: str,
-        start_time: Optional[datetime.datetime] = None,
-        end_time: Optional[datetime.datetime] = None,
-        whitelisted_users: Optional[List[str]] = None,
+        start_time: datetime.datetime | None = None,
+        end_time: datetime.datetime | None = None,
+        allowlisted_users: list[str] | None = None,
     ):
         """Updates a reservation with new information.
 
@@ -407,14 +436,14 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             reservation_id,
             start=start_time,
             end=end_time,
-            whitelisted_users=whitelisted_users,
+            allowlisted_users=allowlisted_users,
         )
 
     def list_reservations(
         self,
-        from_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(),
-        to_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(weeks=2),
-    ) -> List[quantum.QuantumTimeSlot]:
+        from_time: None | datetime.datetime | datetime.timedelta = datetime.timedelta(),
+        to_time: None | datetime.datetime | datetime.timedelta = datetime.timedelta(weeks=2),
+    ) -> list[quantum.QuantumTimeSlot]:
         """Retrieves the reservations from a processor.
 
         Only reservations from this processor and project will be
@@ -441,10 +470,10 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
 
     def get_schedule(
         self,
-        from_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(),
-        to_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(weeks=2),
-        time_slot_type: Optional[quantum.QuantumTimeSlot.TimeSlotType] = None,
-    ) -> List[quantum.QuantumTimeSlot]:
+        from_time: None | datetime.datetime | datetime.timedelta = datetime.timedelta(),
+        to_time: None | datetime.datetime | datetime.timedelta = datetime.timedelta(weeks=2),
+        time_slot_type: quantum.QuantumTimeSlot.TimeSlotType | None = None,
+    ) -> list[quantum.QuantumTimeSlot]:
         """Retrieves the schedule for a processor.
 
         The schedule may be filtered by time.
@@ -475,6 +504,58 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         filter_str = ' AND '.join(filters)
         return self.context.client.list_time_slots(self.project_id, self.processor_id, filter_str)
 
+    def get_config(
+        self,
+        device_config_revision: processor_config.DeviceConfigRevision | None = None,
+        config_name: str = '',
+    ) -> processor_config.ProcessorConfig | None:
+        """Retrieves a ProcessorConfig from an automation run.
+
+        If no `run_name` and `config_name` are specified, the inernally configured default config
+        is returned.
+
+        Args:
+            processor_id: The processor unique identifier.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
+            config_name: The quantum processor's unique identifier.
+            run_name: The automation run name.  Use 'default'
+                      if none id provided.
+
+        Returns: The quantum processor config.
+        """
+        default_device_key = self._inner_processor().default_device_config_key
+        return self.engine().get_processor_config(
+            processor_id=self.processor_id,
+            device_config_revision=(
+                device_config_revision
+                if device_config_revision
+                else processor_config.Run(default_device_key.run)
+            ),
+            config_name=config_name if config_name else default_device_key.config_alias,
+        )
+
+    def list_configs(
+        self, device_config_revision: processor_config.DeviceConfigRevision | None = None
+    ) -> list[processor_config.ProcessorConfig]:
+        """Returns list of ProcessorConfigs from the given snapshot.
+
+        Args:
+           processor_id: The processor unique identifier.
+           device_config_revision: Specifies either the snapshot_id or the run_name.
+
+        Returns:
+           List of ProcessorConfigs for this processor.
+        """
+        default_device_key = self._inner_processor().default_device_config_key
+        device_revsion = (
+            device_config_revision
+            if device_config_revision
+            else processor_config.Run(default_device_key.run)
+        )
+        return self.engine().list_processor_configs(
+            processor_id=self.processor_id, device_config_revision=device_revsion
+        )
+
     def __str__(self):
         return (
             f"EngineProcessor(project_id={self.project_id!r}, "
@@ -488,9 +569,9 @@ def _to_calibration(calibration_any: any_pb2.Any) -> calibration.Calibration:
 
 
 def _to_date_time_filters(
-    from_time: Union[None, datetime.datetime, datetime.timedelta],
-    to_time: Union[None, datetime.datetime, datetime.timedelta],
-) -> List[str]:
+    from_time: None | datetime.datetime | datetime.timedelta,
+    to_time: None | datetime.datetime | datetime.timedelta,
+) -> list[str]:
     now = datetime.datetime.now()
 
     if from_time is None:

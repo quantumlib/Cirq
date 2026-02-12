@@ -16,7 +16,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, List, Optional, Sequence, Tuple, Type, TYPE_CHECKING, Union
+from collections.abc import Callable, Sequence
+from typing import Any, Self, TYPE_CHECKING
 
 import numpy as np
 
@@ -32,7 +33,7 @@ if TYPE_CHECKING:
 class _BufferedStateVector(qis.QuantumStateRepresentation):
     """Contains the state vector and buffer for efficient state evolution."""
 
-    def __init__(self, state_vector: np.ndarray, buffer: Optional[np.ndarray] = None):
+    def __init__(self, state_vector: np.ndarray, buffer: np.ndarray | None = None):
         """Initializes the object with the inputs.
 
         This initializer creates the buffer if necessary.
@@ -53,10 +54,10 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
     def create(
         cls,
         *,
-        initial_state: Union[np.ndarray, cirq.STATE_VECTOR_LIKE] = 0,
-        qid_shape: Optional[Tuple[int, ...]] = None,
-        dtype: Optional[Type[np.complexfloating]] = None,
-        buffer: Optional[np.ndarray] = None,
+        initial_state: np.ndarray | cirq.STATE_VECTOR_LIKE = 0,
+        qid_shape: tuple[int, ...] | None = None,
+        dtype: type[np.complexfloating] | np.dtype[np.complexfloating] | None = None,
+        buffer: np.ndarray | None = None,
     ):
         """Initializes the object with the inputs.
 
@@ -116,7 +117,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
 
     def factor(
         self, axes: Sequence[int], *, validate=True, atol=1e-07
-    ) -> Tuple[_BufferedStateVector, _BufferedStateVector]:
+    ) -> tuple[_BufferedStateVector, _BufferedStateVector]:
         """Factors a state vector into two independent state vectors.
 
         This function should only be called on state vectors that are known to be separable, such
@@ -179,7 +180,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         self._swap_target_tensor_for(new_target_tensor)
         return True
 
-    def apply_mixture(self, action: Any, axes: Sequence[int], prng) -> Optional[int]:
+    def apply_mixture(self, action: Any, axes: Sequence[int], prng) -> int | None:
         """Apply mixture to state.
 
         Args:
@@ -201,7 +202,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         self._swap_target_tensor_for(self._buffer)
         return index
 
-    def apply_channel(self, action: Any, axes: Sequence[int], prng) -> Optional[int]:
+    def apply_channel(self, action: Any, axes: Sequence[int], prng) -> int | None:
         """Apply channel to state.
 
         Args:
@@ -257,7 +258,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
 
     def measure(
         self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
-    ) -> List[int]:
+    ) -> list[int]:
         """Measures the state vector.
 
         Args:
@@ -320,12 +321,12 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
     def __init__(
         self,
         *,
-        available_buffer: Optional[np.ndarray] = None,
-        prng: Optional[np.random.RandomState] = None,
-        qubits: Optional[Sequence[cirq.Qid]] = None,
-        initial_state: Union[np.ndarray, cirq.STATE_VECTOR_LIKE] = 0,
-        dtype: Type[np.complexfloating] = np.complex64,
-        classical_data: Optional[cirq.ClassicalDataStore] = None,
+        available_buffer: np.ndarray | None = None,
+        prng: np.random.RandomState | None = None,
+        qubits: Sequence[cirq.Qid] | None = None,
+        initial_state: np.ndarray | cirq.STATE_VECTOR_LIKE = 0,
+        dtype: type[np.complexfloating] | np.dtype[np.complexfloating] = np.complex64,
+        classical_data: cirq.ClassicalDataStore | None = None,
     ):
         """Inits StateVectorSimulationState.
 
@@ -356,7 +357,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
         )
         super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
 
-    def add_qubits(self, qubits: Sequence[cirq.Qid]):
+    def add_qubits(self, qubits: Sequence[cirq.Qid]) -> Self:
         ret = super().add_qubits(qubits)
         return (
             self.kronecker_product(type(self)(qubits=qubits), inplace=True)
@@ -364,7 +365,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
             else ret
         )
 
-    def remove_qubits(self, qubits: Sequence[cirq.Qid]):
+    def remove_qubits(self, qubits: Sequence[cirq.Qid]) -> Self:
         ret = super().remove_qubits(qubits)
         if ret is not NotImplemented:
             return ret
@@ -375,7 +376,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
     def _act_on_fallback_(
         self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool = True
     ) -> bool:
-        strats: List[Callable[[Any, Any, Sequence[cirq.Qid]], bool]] = [
+        strats: list[Callable[[Any, Any, Sequence[cirq.Qid]], bool]] = [
             _strat_act_on_state_vector_from_apply_unitary,
             _strat_act_on_state_vector_from_mixture,
             _strat_act_on_state_vector_from_channel,
@@ -406,11 +407,11 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
         )
 
     @property
-    def target_tensor(self):
+    def target_tensor(self) -> np.ndarray:
         return self._state._state_vector
 
     @property
-    def available_buffer(self):
+    def available_buffer(self) -> np.ndarray:
         return self._state._buffer
 
 
@@ -429,7 +430,7 @@ def _strat_act_on_state_vector_from_mixture(
     if index is None:
         return NotImplemented
     if protocols.is_measurement(action):
-        key = protocols.measurement_key_name(action)
+        key = protocols.measurement_key_obj(action)
         args._classical_data.record_channel_measurement(key, index)
     return True
 
@@ -441,6 +442,6 @@ def _strat_act_on_state_vector_from_channel(
     if index is None:
         return NotImplemented
     if protocols.is_measurement(action):
-        key = protocols.measurement_key_name(action)
+        key = protocols.measurement_key_obj(action)
         args._classical_data.record_channel_measurement(key, index)
     return True

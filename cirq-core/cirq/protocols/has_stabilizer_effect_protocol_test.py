@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from typing import Any
+
 import numpy as np
 
 import cirq
@@ -48,40 +52,40 @@ class EmptyOp(cirq.Operation):
         self.q = q
 
     @property
-    def qubits(self):
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         return (self.q,)
 
-    def with_qubits(self, *new_qubits):  # pragma: no cover
+    def with_qubits(self, *new_qubits) -> cirq.Operation:  # pragma: no cover
         return self
 
 
 class NoOp(EmptyOp):
     @property
-    def gate(self):
+    def gate(self) -> Any:
         return No()
 
 
 class NoOp1(EmptyOp):
     @property
-    def gate(self):
+    def gate(self) -> Any:
         return No1()
 
 
 class NoOp2(EmptyOp):
     @property
-    def gate(self):
+    def gate(self) -> Any:
         return No2()
 
 
 class NoOp3(EmptyOp):
     @property
-    def gate(self):
+    def gate(self) -> Any:
         return No3()
 
 
 class YesOp(EmptyOp):
     @property
-    def gate(self):
+    def gate(self) -> Any:
         return Yes()
 
 
@@ -93,8 +97,8 @@ class OpWithUnitary(EmptyOp):
         return self.unitary
 
     @property
-    def qubits(self):
-        return cirq.LineQubit.range(self.unitary.shape[0].bit_length() - 1)
+    def qubits(self) -> tuple[cirq.Qid, ...]:
+        return tuple(cirq.LineQubit.range(self.unitary.shape[0].bit_length() - 1))
 
 
 class GateDecomposes(cirq.Gate):
@@ -105,7 +109,7 @@ class GateDecomposes(cirq.Gate):
         yield YesOp(*qubits)
 
 
-def test_inconclusive():
+def test_inconclusive() -> None:
     assert not cirq.has_stabilizer_effect(object())
     assert not cirq.has_stabilizer_effect('boo')
     assert not cirq.has_stabilizer_effect(cirq.testing.SingleQubitGate())
@@ -113,21 +117,21 @@ def test_inconclusive():
     assert not cirq.has_stabilizer_effect(NoOp())
 
 
-def test_via_has_stabilizer_effect_method():
+def test_via_has_stabilizer_effect_method() -> None:
     assert not cirq.has_stabilizer_effect(No1())
     assert not cirq.has_stabilizer_effect(No2())
     assert not cirq.has_stabilizer_effect(No3())
     assert cirq.has_stabilizer_effect(Yes())
 
 
-def test_via_gate_of_op():
+def test_via_gate_of_op() -> None:
     assert cirq.has_stabilizer_effect(YesOp())
     assert not cirq.has_stabilizer_effect(NoOp1())
     assert not cirq.has_stabilizer_effect(NoOp2())
     assert not cirq.has_stabilizer_effect(NoOp3())
 
 
-def test_via_unitary():
+def test_via_unitary() -> None:
     op1 = OpWithUnitary(np.array([[0, 1], [1, 0]]))
     assert cirq.has_stabilizer_effect(op1)
 
@@ -148,7 +152,7 @@ def test_via_unitary():
     assert not cirq.has_stabilizer_effect(cirq.CCZ)
 
 
-def test_via_decompose():
+def test_via_decompose() -> None:
     assert cirq.has_stabilizer_effect(cirq.Circuit(cirq.H.on_each(cirq.LineQubit.range(4))))
     assert not cirq.has_stabilizer_effect(cirq.Circuit(cirq.T.on_each(cirq.LineQubit.range(4))))
     assert not cirq.has_stabilizer_effect(

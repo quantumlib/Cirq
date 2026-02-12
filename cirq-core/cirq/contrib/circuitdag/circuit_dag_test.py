@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
 import random
 
@@ -25,7 +27,7 @@ class FakeDevice(cirq.Device):
     pass
 
 
-def test_wrapper_eq():
+def test_wrapper_eq() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.contrib.CircuitDag.make_node(cirq.X(q0)))
@@ -34,7 +36,8 @@ def test_wrapper_eq():
     eq.add_equality_group(cirq.contrib.CircuitDag.make_node(cirq.X(q1)))
 
 
-def test_wrapper_cmp():
+def test_wrapper_cmp() -> None:
+    # ruff: disable[PLR0124]
     u0 = cirq.contrib.Unique(0)
     u1 = cirq.contrib.Unique(1)
     # The ordering of Unique instances is unpredictable
@@ -49,14 +52,14 @@ def test_wrapper_cmp():
     assert u1 >= u0
 
 
-def test_wrapper_cmp_failure():
+def test_wrapper_cmp_failure() -> None:
     with pytest.raises(TypeError):
         _ = object() < cirq.contrib.Unique(1)
     with pytest.raises(TypeError):
         _ = cirq.contrib.Unique(1) < object()
 
 
-def test_wrapper_repr():
+def test_wrapper_repr() -> None:
     q0 = cirq.LineQubit(0)
 
     node = cirq.contrib.CircuitDag.make_node(cirq.X(q0))
@@ -64,14 +67,14 @@ def test_wrapper_repr():
     assert repr(node) == expected
 
 
-def test_init():
+def test_init() -> None:
     dag = cirq.contrib.CircuitDag()
     assert networkx.dag.is_directed_acyclic_graph(dag)
     assert list(dag.nodes()) == []
     assert list(dag.edges()) == []
 
 
-def test_append():
+def test_append() -> None:
     q0 = cirq.LineQubit(0)
     dag = cirq.contrib.CircuitDag()
     dag.append(cirq.X(q0))
@@ -81,7 +84,7 @@ def test_append():
     assert [(n1.val, n2.val) for n1, n2 in dag.edges()] == [(cirq.X(q0), cirq.Y(q0))]
 
 
-def test_two_identical_ops():
+def test_two_identical_ops() -> None:
     q0 = cirq.LineQubit(0)
     dag = cirq.contrib.CircuitDag()
     dag.append(cirq.X(q0))
@@ -89,14 +92,14 @@ def test_two_identical_ops():
     dag.append(cirq.X(q0))
     assert networkx.dag.is_directed_acyclic_graph(dag)
     assert len(dag.nodes()) == 3
-    assert set((n1.val, n2.val) for n1, n2 in dag.edges()) == {
+    assert {(n1.val, n2.val) for n1, n2 in dag.edges()} == {
         (cirq.X(q0), cirq.Y(q0)),
         (cirq.X(q0), cirq.X(q0)),
         (cirq.Y(q0), cirq.X(q0)),
     }
 
 
-def test_from_ops():
+def test_from_ops() -> None:
     q0 = cirq.LineQubit(0)
     dag = cirq.contrib.CircuitDag.from_ops(cirq.X(q0), cirq.Y(q0))
     assert networkx.dag.is_directed_acyclic_graph(dag)
@@ -104,7 +107,7 @@ def test_from_ops():
     assert [(n1.val, n2.val) for n1, n2 in dag.edges()] == [(cirq.X(q0), cirq.Y(q0))]
 
 
-def test_from_circuit():
+def test_from_circuit() -> None:
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.X(q0), cirq.Y(q0))
     dag = cirq.contrib.CircuitDag.from_circuit(circuit)
@@ -114,14 +117,14 @@ def test_from_circuit():
     assert sorted(circuit.all_qubits()) == sorted(dag.all_qubits())
 
 
-def test_to_empty_circuit():
+def test_to_empty_circuit() -> None:
     circuit = cirq.Circuit()
     dag = cirq.contrib.CircuitDag.from_circuit(circuit)
     assert networkx.dag.is_directed_acyclic_graph(dag)
     assert circuit == dag.to_circuit()
 
 
-def test_to_circuit():
+def test_to_circuit() -> None:
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.X(q0), cirq.Y(q0))
     dag = cirq.contrib.CircuitDag.from_circuit(circuit)
@@ -135,7 +138,7 @@ def test_to_circuit():
     )
 
 
-def test_equality():
+def test_equality() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit1 = cirq.Circuit(
         cirq.X(q0), cirq.Y(q0), cirq.Z(q1), cirq.CZ(q0, q1), cirq.X(q1), cirq.Y(q1), cirq.Z(q0)
@@ -165,7 +168,7 @@ def test_equality():
     eq.add_equality_group(cirq.contrib.CircuitDag.from_circuit(circuit4))
 
 
-def test_larger_circuit():
+def test_larger_circuit() -> None:
     q0, q1, q2, q3 = [
         cirq.GridQubit(0, 5),
         cirq.GridQubit(1, 5),
@@ -211,7 +214,7 @@ def test_larger_circuit():
 
 
 @pytest.mark.parametrize('circuit', [cirq.testing.random_circuit(10, 10, 0.5) for _ in range(3)])
-def test_is_maximalist(circuit):
+def test_is_maximalist(circuit) -> None:
     dag = cirq.contrib.CircuitDag.from_circuit(circuit)
     transitive_closure = networkx.dag.transitive_closure(dag)
     assert cirq.contrib.CircuitDag(incoming_graph_data=transitive_closure) == dag
@@ -230,13 +233,13 @@ def _get_circuits_and_is_blockers():
 
 
 @pytest.mark.parametrize('circuit, is_blocker', _get_circuits_and_is_blockers())
-def test_findall_nodes_until_blocked(circuit, is_blocker):
+def test_findall_nodes_until_blocked(circuit, is_blocker) -> None:
     dag = cirq.contrib.CircuitDag.from_circuit(circuit)
     all_nodes = list(dag.ordered_nodes())
     found_nodes = list(dag.findall_nodes_until_blocked(is_blocker))
     assert not any(dag.has_edge(b, a) for a, b in itertools.combinations(found_nodes, 2))
 
-    blocking_nodes = set(node for node in all_nodes if is_blocker(node.val))
+    blocking_nodes = {node for node in all_nodes if is_blocker(node.val)}
     blocked_nodes = blocking_nodes.union(*(dag.succ[node] for node in blocking_nodes))
     expected_nodes = set(all_nodes) - blocked_nodes
     assert sorted(found_nodes) == sorted(expected_nodes)

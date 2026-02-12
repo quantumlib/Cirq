@@ -11,24 +11,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """A helper for jobs that have been created on the Quantum Engine."""
 
+from __future__ import annotations
+
 import abc
-from typing import Dict, Iterator, List, Optional, overload, Sequence, Tuple, TYPE_CHECKING
+from collections.abc import Iterator, Sequence
+from typing import overload, TYPE_CHECKING
 
 import duet
-
-import cirq
-from cirq_google.cloud import quantum
-from cirq_google.engine.engine_result import EngineResult
 
 if TYPE_CHECKING:
     import datetime
 
+    import cirq
+    import cirq_google.cloud.quantum as quantum
     import cirq_google.engine.abstract_engine as abstract_engine
     import cirq_google.engine.abstract_processor as abstract_processor
     import cirq_google.engine.abstract_program as abstract_program
     import cirq_google.engine.calibration as calibration
+    from cirq_google.engine.engine_result import EngineResult
 
 
 class AbstractJob(abc.ABC):
@@ -54,7 +57,7 @@ class AbstractJob(abc.ABC):
     """
 
     @abc.abstractmethod
-    def engine(self) -> 'abstract_engine.AbstractEngine':
+    def engine(self) -> abstract_engine.AbstractEngine:
         """Returns the parent `AbstractEngine` object."""
 
     @abc.abstractmethod
@@ -62,15 +65,15 @@ class AbstractJob(abc.ABC):
         """Returns the id of this job."""
 
     @abc.abstractmethod
-    def program(self) -> 'abstract_program.AbstractProgram':
+    def program(self) -> abstract_program.AbstractProgram:
         """Returns the parent `AbstractProgram`object."""
 
     @abc.abstractmethod
-    def create_time(self) -> 'datetime.datetime':
+    def create_time(self) -> datetime.datetime:
         """Returns when the job was created."""
 
     @abc.abstractmethod
-    def update_time(self) -> 'datetime.datetime':
+    def update_time(self) -> datetime.datetime:
         """Returns when the job was last updated."""
 
     @abc.abstractmethod
@@ -78,7 +81,7 @@ class AbstractJob(abc.ABC):
         """Returns the description of the job."""
 
     @abc.abstractmethod
-    def set_description(self, description: str) -> 'AbstractJob':
+    def set_description(self, description: str) -> AbstractJob:
         """Sets the description of the job.
 
         Params:
@@ -89,11 +92,11 @@ class AbstractJob(abc.ABC):
         """
 
     @abc.abstractmethod
-    def labels(self) -> Dict[str, str]:
+    def labels(self) -> dict[str, str]:
         """Returns the labels of the job."""
 
     @abc.abstractmethod
-    def set_labels(self, labels: Dict[str, str]) -> 'AbstractJob':
+    def set_labels(self, labels: dict[str, str]) -> AbstractJob:
         """Sets (overwriting) the labels for a previously created quantum job.
 
         Params:
@@ -104,7 +107,7 @@ class AbstractJob(abc.ABC):
         """
 
     @abc.abstractmethod
-    def add_labels(self, labels: Dict[str, str]) -> 'AbstractJob':
+    def add_labels(self, labels: dict[str, str]) -> AbstractJob:
         """Adds new labels to a previously created quantum job.
 
         Params:
@@ -115,7 +118,7 @@ class AbstractJob(abc.ABC):
         """
 
     @abc.abstractmethod
-    def remove_labels(self, keys: List[str]) -> 'AbstractJob':
+    def remove_labels(self, keys: list[str]) -> AbstractJob:
         """Removes labels with given keys.
 
         Params:
@@ -126,7 +129,7 @@ class AbstractJob(abc.ABC):
         """
 
     @abc.abstractmethod
-    def processor_ids(self) -> List[str]:
+    def processor_ids(self) -> list[str]:
         """Returns the processor ids provided when the job was created."""
 
     @abc.abstractmethod
@@ -134,11 +137,11 @@ class AbstractJob(abc.ABC):
         """Return the execution status of the job."""
 
     @abc.abstractmethod
-    def failure(self) -> Optional[Tuple[str, str]]:
+    def failure(self) -> tuple[str, str] | None:
         """Return failure code and message of the job if present."""
 
     @abc.abstractmethod
-    def get_repetitions_and_sweeps(self) -> Tuple[int, List[cirq.Sweep]]:
+    def get_repetitions_and_sweeps(self) -> tuple[int, list[cirq.Sweep]]:
         """Returns the repetitions and sweeps for the job.
 
         Returns:
@@ -146,21 +149,21 @@ class AbstractJob(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_processor(self) -> Optional['abstract_processor.AbstractProcessor']:
+    def get_processor(self) -> abstract_processor.AbstractProcessor | None:
         """Returns the AbstractProcessor for the processor the job is/was run on,
         if available, else None."""
 
     @abc.abstractmethod
-    def get_calibration(self) -> Optional['calibration.Calibration']:
+    def get_calibration(self) -> calibration.Calibration | None:
         """Returns the recorded calibration at the time when the job was run, if
         one was captured, else None."""
 
     @abc.abstractmethod
-    def cancel(self) -> Optional[bool]:
+    def cancel(self) -> bool | None:
         """Cancel the job."""
 
     @abc.abstractmethod
-    def delete(self) -> Optional[bool]:
+    def delete(self) -> bool | None:
         """Deletes the job and result, if any."""
 
     @abc.abstractmethod
@@ -172,7 +175,6 @@ class AbstractJob(abc.ABC):
     def __iter__(self) -> Iterator[cirq.Result]:
         yield from self.results()
 
-    # pylint: disable=function-redefined
     @overload
     def __getitem__(self, item: int) -> cirq.Result:
         pass
@@ -183,8 +185,6 @@ class AbstractJob(abc.ABC):
 
     def __getitem__(self, item):
         return self.results()[item]
-
-    # pylint: enable=function-redefined
 
     def __len__(self) -> int:
         return len(self.results())

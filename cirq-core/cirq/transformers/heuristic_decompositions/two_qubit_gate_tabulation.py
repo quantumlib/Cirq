@@ -17,9 +17,10 @@ with a product A k A."""
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import reduce
-from typing import List, NamedTuple, Sequence, Tuple
+from typing import NamedTuple
 
 import numpy as np
 
@@ -34,7 +35,7 @@ from cirq.transformers.heuristic_decompositions.gate_tabulation_math_utils impor
     weyl_chamber_mesh,
 )
 
-_SingleQubitGatePair = Tuple[np.ndarray, np.ndarray]
+_SingleQubitGatePair = tuple[np.ndarray, np.ndarray]
 
 
 class TwoQubitGateTabulationResult(NamedTuple):
@@ -61,7 +62,7 @@ class TwoQubitGateTabulationResult(NamedTuple):
 
     base_gate_unitary: np.ndarray
     target_gate: np.ndarray
-    local_unitaries: Tuple[_SingleQubitGatePair, ...]
+    local_unitaries: tuple[_SingleQubitGatePair, ...]
     actual_gate: np.ndarray
     success: bool
 
@@ -82,7 +83,7 @@ class TwoQubitGateTabulation:
     summary: str  # Text summarizing the results of the tabulation procedure.
     # Any KAK vectors which are expected to be compilable (within infidelity
     # max_expected_infidelity) using 2 or 3 base gates.
-    missed_points: Tuple[np.ndarray, ...]
+    missed_points: tuple[np.ndarray, ...]
 
     def compile_two_qubit_gate(self, unitary: np.ndarray) -> TwoQubitGateTabulationResult:
         r"""Compute single qubit gates required to compile a desired unitary.
@@ -109,7 +110,7 @@ class TwoQubitGateTabulation:
         success = infidelities[nearest_ind] < self.max_expected_infidelity
 
         # shape (n,2,2,2)
-        inner_gates = np.array(self.single_qubit_gates[nearest_ind])
+        inner_gates: np.ndarray = np.array(self.single_qubit_gates[nearest_ind])
 
         if inner_gates.size == 0:  # Only need base gate
             kR, kL, actual = _outer_locals_for_unitary(unitary, self.base_gate)
@@ -201,7 +202,7 @@ class TwoQubitGateTabulation:
 
 def _outer_locals_for_unitary(
     target: np.ndarray, base: np.ndarray
-) -> Tuple[_SingleQubitGatePair, _SingleQubitGatePair, np.ndarray]:
+) -> tuple[_SingleQubitGatePair, _SingleQubitGatePair, np.ndarray]:
     """Local unitaries mapping between locally equivalent 2-local unitaries.
 
     Finds the left and right 1-local unitaries kL, kR such that
@@ -246,10 +247,10 @@ def _outer_locals_for_unitary(
 
 class _TabulationStepResult(NamedTuple):
     # Generated KAK vectors that are uniquely close to at least one mesh point.
-    kept_kaks: List[np.ndarray]
+    kept_kaks: list[np.ndarray]
     # The corresponding single qubit unitaries required to obtain the desired
     # KAK vectors.
-    kept_cycles: List[Tuple[_SingleQubitGatePair, ...]]
+    kept_cycles: list[tuple[_SingleQubitGatePair, ...]]
 
 
 def _tabulate_kak_vectors(
@@ -361,7 +362,7 @@ def two_qubit_gate_product_tabulation(
 
     # include the base gate itself
     kak_vecs = [cirq.kak_vector(base_gate, check_preconditions=False)]
-    sq_cycles: List[Tuple[_SingleQubitGatePair, ...]] = [()]
+    sq_cycles: list[tuple[_SingleQubitGatePair, ...]] = [()]
 
     # Tabulate gates that are close to gates in the mesh
     u_locals_0 = random_qubit_unitary((num_samples,), rng=rng)

@@ -16,13 +16,14 @@ from __future__ import annotations
 
 import operator
 import random
-from typing import Any, Callable, cast, Iterable, TYPE_CHECKING
-
-import networkx
+from collections.abc import Callable, Iterable
+from typing import Any, cast, TYPE_CHECKING
 
 from cirq import ops
 
 if TYPE_CHECKING:
+    import networkx
+
     import cirq
 
 
@@ -74,7 +75,7 @@ def is_topologically_sorted(
 
 def random_topological_sort(dag: networkx.DiGraph) -> Iterable[Any]:
     remaining_dag = dag.copy()
-    frontier = list(node for node in remaining_dag.nodes() if not remaining_dag.pred[node])
+    frontier = [node for node in remaining_dag.nodes() if not remaining_dag.pred[node]]
     while frontier:
         random.shuffle(frontier)
         node = frontier.pop()

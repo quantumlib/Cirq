@@ -1,6 +1,10 @@
+[build-system]
+requires = ["setuptools >= 70.0.0"]
+build-backend = "setuptools.build_meta"
+
 [tool.black]
 line-length = 100
-target_version = ['py310', 'py311', 'py312']
+target_version = ['py311', 'py312', 'py313', 'py314']
 skip-string-normalization = true
 skip-magic-trailing-comma = true
 extend-exclude = ".*_pb2[.]py[i]?"
@@ -14,7 +18,10 @@ include = [
     "./*",
 ]
 omit = ["benchmarks/*"]
-
+patch = ["subprocess"]
+# Speed up pytest-cov on Python 3.12+ by enabling sys.monitoring if possible.
+core = "sysmon"
+disable_warnings = ["no-sysmon"]
 
 [tool.coverage.report]
 exclude_also = [
@@ -35,6 +42,89 @@ extend_skip = ["__init__.py"]
 extend_skip_glob = ["*_pb2.py"]
 
 
+[tool.mypy]
+exclude = [
+    '/setup\.py',
+    'cirq-google/cirq_google/cloud/',
+]
+exclude_gitignore = true
+plugins = ["duet.typing"]
+show_error_codes = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = ["__main__"]
+follow_imports = "silent"
+ignore_missing_imports = true
+
+# Require explicit reexport from cirq modules
+[[tool.mypy.overrides]]
+module = ["cirq.*"]
+no_implicit_reexport = true
+
+# Generated code
+[[tool.mypy.overrides]]
+module = ["cirq_google.cloud.*"]
+follow_imports = "silent"
+
+# 3rd-party libs for which we don't have stubs
+
+# Google
+[[tool.mypy.overrides]]
+module = [
+    "google.api_core.*",
+    "google.auth.*",
+    "google.cloud.*",
+    "google.colab.*",
+    "google.oauth2.*",
+    "qsimcirq",
+]
+follow_imports = "silent"
+ignore_missing_imports = true
+
+# Treat symbols imported from Google's protobuf library as type Any.
+# This suppresses errors due to attributes not known to typeshed,
+# e.g. Descriptor._options.
+[[tool.mypy.overrides]]
+module = ["google.protobuf.*"]
+follow_imports = "skip"
+follow_imports_for_stubs = true
+
+# Non-Google
+[[tool.mypy.overrides]]
+module = [
+    "IPython.*",
+    "_pytest.*",
+    "absl.*",
+    "astroid.*",
+    "cachetools.*",
+    "filelock.*",
+    "ipywidgets.*",
+    "matplotlib.*",
+    "mpl_toolkits.*",
+    "networkx.*",
+    "pandas.*",
+    "ply.*",
+    "proto.*",
+    "pylatex.*",
+    "pylint.*",
+    "pytest.*",
+    "qiskit.*",
+    "quimb.*",
+    "ruamel.*",
+    "scipy.*",
+    "setuptools.*",
+    "sortedcontainers.*",
+    "stimcirq.*",
+    "sympy.*",
+    "tensorflow_docs.*",
+    "tqdm.*",
+]
+follow_imports = "silent"
+ignore_missing_imports = true
+
+
 [tool.pytest.ini_options]
 filterwarnings = [
     "ignore:Matplotlib is currently using agg:UserWarning",
@@ -42,9 +132,194 @@ filterwarnings = [
     "ignore::UserWarning:cotengra.hyperoptimizers.hyper",
 ]
 markers = [
-    "rigetti_integration: tests that connect to Quil compiler or QVM.",
     "slow: slow tests that should be skipped by default.",
     "weekly: tests to be run only by weekly CI automation.",
 ]
 # Silence deprecation warnings about option "asyncio_default_fixture_loop_scope"
 asyncio_default_fixture_loop_scope = "function"
+
+
+[tool.pylint.main]
+fail-on = ["I"]
+ignore-long-lines = "^(.*#\\w*pylint: disable.*|\\s*(# )?[<\\[\\(]?https?://\\S+[>\\]\\)]?)$"
+ignore-paths=[
+    "cirq-google/cirq_google/cloud/",
+    "cirq-web/cirq_web/node_modules/",
+]
+ignore-patterns = [".*_pb2\\.py"]
+load-plugins = [
+    "dev_tools.pylint_copyright_checker",
+    "pylint.extensions.docparams",
+    "pylint.extensions.docstyle",
+]
+max-line-length = 100
+
+[tool.pylint.messages_control]
+disable = ["all"]
+enable= [
+    "abstract-class-instantiated",
+    "assert-on-tuple",
+    "assignment-from-no-return",
+    "bad-chained-comparison",
+    "bad-indentation",
+    "bad-mcs-classmethod-argument",
+    "bad-mcs-method-argument",
+    "bad-option-value",
+    "bad-reversed-sequence",
+    "bad-super-call",
+    "consider-using-f-string",
+    "deprecated-decorator",
+    "docstyle",
+    "duplicate-argument-name",
+    "inconsistent-mro",
+    "method-hidden",
+    "missing-kwoa",
+    "missing-param-doc",
+    "missing-raises-doc",
+    "mixed-line-endings",
+    "no-value-for-parameter",
+    "raising-bad-type",
+    "raising-format-tuple",
+    "redefined-slots-in-subclass",
+    "return-arg-in-generator",
+    "self-cls-assignment",
+    "shadowed-import",
+    "simplifiable-condition",
+    "simplifiable-if-statement",
+    "too-many-function-args",
+    "trailing-whitespace",
+    "unhashable-dict-key",
+    "unnecessary-semicolon",
+    "unreachable",
+    "unrecognized-inline-option",
+    "use-maxsplit-arg",
+    "useless-suppression",
+    "using-constant-test",
+    "wrong-import-order",
+    "wrong-or-nonexistent-copyright-notice",
+]
+
+[tool.pylint.reports]
+output-format = "colorized"
+reports = false
+score = false
+
+
+[tool.ruff]
+line-length = 100
+preview = true
+target-version = "py311"
+extend-exclude = [
+    "*_pb2.py*",
+    "cirq-google/cirq_google/cloud/*.py",  # contains only generated code
+]
+
+[tool.ruff.lint]
+select = [
+    "A001",  # builtin-variable-shadowing, pylint redefined-builtin
+    "A002",  # builtin-argument-shadowing, pylint redefined-builtin
+    # "ANN201",  # missing-return-type-undocumented-public-function
+    "B002",  # unary-prefix-increment-decrement, pylint nonexistent-operator
+    "B005",  # strip-with-multi-characters
+    "B006",  # mutable-argument-default, pylint dangerous-default-value
+    "B012",  # jump-statement-in-finally, pylint lost-exception
+    "B018",  # useless-expression,
+             # pylint expression-not-assigned, pointless-exception-statement,
+             # pointless-statement, pointless-string-statement
+    "B033",  # duplicate-value, pylint duplicate-value
+    "C4",  # flake8-comprehensions
+    "D301",  # escape-sequence-in-docstring
+    "D419",  # empty-docstring, pylint empty-docstring
+    "E402",  # module-import-not-at-top-of-file, pylint wrong-import-position
+    "E501",  # line-too-long, pylint line-too-long
+    "E711",  # none-comparison, pylint singleton-comparison
+    "E712",  # true-false-comparison, pylint singleton-comparison
+    "F401",  # unused-import, pylint unused-import
+    "F403",  # undefined-local-with-import-star, pylint wildcard-import
+    "F405",  # undefined-local-with-import-star-usage, pylint unused-wildcard-import
+    "F406",  # undefined-local-with-nested-import-star-usage, pylint wildcard-import
+    "F541",  # f-string-missing-placeholders, pylint f-string-without-interpolation
+    "F601",  # multi-value-repeated-key-literal, pylint duplicate-key
+    "F602",  # multi-value-repeated-key-variable, pylint duplicate-key
+    "F632",  # is-literal, pylint literal-comparison
+    "F701",  # break-outside-loop, pylint not-in-loop
+    "F702",  # continue-outside-loop, pylint not-in-loop
+    "F704",  # yield-outside-function, pylint yield-outside-function
+    "F706",  # return-in-init, pylint return-outside-function
+    "F811",  # redefined-while-unused, pylint function-redefined
+    "F821",  # undefined-name, pylint undefined-variable, unexpected-keyword-arg
+    "F841",  # unused-variable, pylint unused-variable
+    "F901",  # raise-not-implemented, pylint notimplemented-raised
+    "FURB131",  # delete-full-slice
+    "FURB136",  # if-expr-min-max
+    "FURB145",  # slice-copy
+    "FURB148",  # unnecessary-enumerate
+    "FURB166",  # int-on-sliced-str
+    "FURB167",  # regex-flag-alias
+    "FURB168",  # isinstance-type-none
+    "FURB169",  # type-none-comparison
+    "FURB192",  # sorted-min-max
+    "ISC",  # flake8-implicit-str-concat
+    "N804",  # invalid-first-argument-name-for-class-method, pylint bad-classmethod-argument
+    "NPY201",  # numpy2-deprecation
+    "PERF101",  # unnecessary-list-cast
+    "PIE790",  # unnecessary-placeholder, pylint unnecessary-pass
+    "PLE0100",  # yield-in-init, pylint init-is-generator
+    "PLE0101",  # return-in-init, pylint return-in-init
+    "PLE0116",  # continue-in-finally, pylint continue-in-finally
+    "PLE0302",  # unexpected-special-method-signature, unexpected-special-method-signature
+    "PLE1206",  # logging-too-few-args
+    "PLE1310",  # bad-str-strip-call, pylint bad-str-strip-call
+    "PLR0124",  # comparison-with-itself
+    "PLR0206",  # property-with-parameters, pylint property-with-parameters
+    "PLR1711",  # useless-return
+    "PLR1730",  # if-stmt-min-max
+    "PLR1733",  # unnecessary-dict-index-lookup
+    "PLR1736",  # unnecessary-list-index-lookup
+    "PLW0120",  # useless-else-on-loop
+    "PLW0406",  # import-self
+    "PLW0245",  # super-without-brackets, pylint super-without-brackets
+    "PLW1501",  # bad-open-mode
+    "RET507",  # superfluous-else-continue
+    "RET508",  # superfluous-else-break
+    "RUF013",  # implicit-optional
+    "RUF019",  # unnecessary-key-check
+    "RUF027",  # missing-f-string-syntax
+    "RUF100",  # unused-noqa
+    "RUF200",  # invalid-pyproject-toml
+    "SIM101",  # duplicate-isinstance-call, pylint consider-merging-isinstance
+    "SIM103",  # needless-bool
+    "SIM110",  # reimplemented-builtin
+    "SIM113",  # enumerate-for-loop
+    "SIM115",  # open-file-with-context-handler
+    "SIM116",  # if-else-block-instead-of-dict-lookup
+    "SIM201",  # negate-equal-op, pylint unneeded-not, unnecessary-negation
+    "SIM202",  # negate-not-equal-op, pylint unneeded-not, unnecessary-negation
+    "SIM208",  # double-negation, pylint unneeded-not, unnecessary-negation
+    "SIM210",  # if-expr-with-true-false
+    "SIM211",  # if-expr-with-false-true
+    "SIM222",  # expr-or-true
+    "SIM223",  # expr-and-false
+    "SIM401",  # if-else-block-instead-of-dict-get
+    "TC001",  # typing-only-first-party-import
+    "TC002",  # typing-only-third-party-import
+    # "TC003",  # typing-only-standard-library-import
+    "TID251",  # banned-api
+    "UP004",  # useless-object-inheritance
+    "UP006",  # non-pep585-annotation
+    "UP007",  # non-pep604-annotation-union
+    "UP008",  # super-call-with-parameters, pylint super-with-arguments
+    "UP010",  # unnecessary-future-import
+    "UP018",  # native-literals
+    "UP028",  # yield-in-for-loop
+    "UP034",  # extraneous-parentheses
+    "UP035",  # deprecated-import
+    "UP037",  # quoted-annotation
+    "W605",  # invalid-escape-sequence, pylint anomalous-backslash-in-string
+]
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"attr".msg = "Please import 'attrs' per https://www.attrs.org/en/stable/names.html"
+
+[tool.ruff.lint.per-file-ignores]
+"*.ipynb" = ["E402", "PLW0406"]

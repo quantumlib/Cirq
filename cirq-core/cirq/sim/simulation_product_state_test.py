@@ -11,29 +11,33 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Dict, Optional, Sequence
+
+from __future__ import annotations
+
+from collections.abc import Sequence
+from typing import Any, Self
 
 import cirq
 
 
 class EmptyQuantumState(cirq.QuantumStateRepresentation):
-    def copy(self, deep_copy_buffers=True):
+    def copy(self, deep_copy_buffers=True) -> Self:
         return self
 
-    def measure(self, axes, seed=None):
+    def measure(self, axes, seed=None) -> list[int]:
         return [0] * len(axes)
 
     @property
-    def supports_factor(self):
+    def supports_factor(self) -> bool:
         return True
 
-    def kron(self, other):
+    def kron(self, other) -> Self:
         return self
 
-    def factor(self, axes, *, validate=True, atol=1e-07):
+    def factor(self, axes, *, validate=True, atol=1e-07) -> tuple[Self, Self]:
         return self, self
 
-    def reindex(self, axes):
+    def reindex(self, axes) -> Self:
         return self
 
 
@@ -54,7 +58,7 @@ qs2 = cirq.LineQubit.range(2)
 def create_container(
     qubits: Sequence[cirq.Qid], split_untangled_states=True
 ) -> cirq.SimulationProductState[EmptySimulationState]:
-    state_map: Dict[Optional[cirq.Qid], EmptySimulationState] = {}
+    state_map: dict[cirq.Qid | None, EmptySimulationState] = {}
     log = cirq.ClassicalDataDictionaryStore()
     if split_untangled_states:
         for q in reversed(qubits):
@@ -70,7 +74,7 @@ def create_container(
     )
 
 
-def test_entanglement_causes_join():
+def test_entanglement_causes_join() -> None:
     state = create_container(qs2)
     assert len(set(state.values())) == 3
     state.apply_operation(cirq.CNOT(q0, q1))
@@ -79,7 +83,7 @@ def test_entanglement_causes_join():
     assert state[None] is not state[q0]
 
 
-def test_subcircuit_entanglement_causes_join():
+def test_subcircuit_entanglement_causes_join() -> None:
     state = create_container(qs2)
     assert len(set(state.values())) == 3
     state.apply_operation(cirq.CircuitOperation(cirq.FrozenCircuit(cirq.CNOT(q0, q1))))
@@ -87,7 +91,7 @@ def test_subcircuit_entanglement_causes_join():
     assert state[q0] is state[q1]
 
 
-def test_subcircuit_entanglement_causes_join_in_subset():
+def test_subcircuit_entanglement_causes_join_in_subset() -> None:
     state = create_container(qs3)
     assert len(set(state.values())) == 4
     state.apply_operation(cirq.CircuitOperation(cirq.FrozenCircuit(cirq.CNOT(q0, q1))))
@@ -98,7 +102,7 @@ def test_subcircuit_entanglement_causes_join_in_subset():
     assert state[q0] is state[q1] is state[q2]
 
 
-def test_identity_does_not_join():
+def test_identity_does_not_join() -> None:
     state = create_container(qs2)
     assert len(set(state.values())) == 3
     state.apply_operation(cirq.IdentityGate(2)(q0, q1))
@@ -107,7 +111,7 @@ def test_identity_does_not_join():
     assert state[q0] is not state[None]
 
 
-def test_identity_fallback_does_not_join():
+def test_identity_fallback_does_not_join() -> None:
     state = create_container(qs2)
     assert len(set(state.values())) == 3
     state._act_on_fallback_(cirq.I, (q0, q1))
@@ -116,7 +120,7 @@ def test_identity_fallback_does_not_join():
     assert state[q0] is not state[None]
 
 
-def test_subcircuit_identity_does_not_join():
+def test_subcircuit_identity_does_not_join() -> None:
     state = create_container(qs2)
     assert len(set(state.values())) == 3
     state.apply_operation(cirq.CircuitOperation(cirq.FrozenCircuit(cirq.IdentityGate(2)(q0, q1))))
@@ -124,7 +128,7 @@ def test_subcircuit_identity_does_not_join():
     assert state[q0] is not state[q1]
 
 
-def test_measurement_causes_split():
+def test_measurement_causes_split() -> None:
     state = create_container(qs2)
     state.apply_operation(cirq.CNOT(q0, q1))
     assert len(set(state.values())) == 2
@@ -134,7 +138,7 @@ def test_measurement_causes_split():
     assert state[q0] is not state[None]
 
 
-def test_subcircuit_measurement_causes_split():
+def test_subcircuit_measurement_causes_split() -> None:
     state = create_container(qs2)
     state.apply_operation(cirq.CNOT(q0, q1))
     assert len(set(state.values())) == 2
@@ -143,7 +147,7 @@ def test_subcircuit_measurement_causes_split():
     assert state[q0] is not state[q1]
 
 
-def test_subcircuit_measurement_causes_split_in_subset():
+def test_subcircuit_measurement_causes_split_in_subset() -> None:
     state = create_container(qs3)
     state.apply_operation(cirq.CNOT(q0, q1))
     state.apply_operation(cirq.CNOT(q0, q2))
@@ -158,7 +162,7 @@ def test_subcircuit_measurement_causes_split_in_subset():
     assert state[q1] is not state[q2]
 
 
-def test_reset_causes_split():
+def test_reset_causes_split() -> None:
     state = create_container(qs2)
     state.apply_operation(cirq.CNOT(q0, q1))
     assert len(set(state.values())) == 2
@@ -168,7 +172,7 @@ def test_reset_causes_split():
     assert state[q0] is not state[None]
 
 
-def test_measurement_does_not_split_if_disabled():
+def test_measurement_does_not_split_if_disabled() -> None:
     state = create_container(qs2, False)
     state.apply_operation(cirq.CNOT(q0, q1))
     assert len(set(state.values())) == 1
@@ -178,7 +182,7 @@ def test_measurement_does_not_split_if_disabled():
     assert state[None] is state[q0]
 
 
-def test_reset_does_not_split_if_disabled():
+def test_reset_does_not_split_if_disabled() -> None:
     state = create_container(qs2, False)
     state.apply_operation(cirq.CNOT(q0, q1))
     assert len(set(state.values())) == 1
@@ -188,7 +192,7 @@ def test_reset_does_not_split_if_disabled():
     assert state[None] is state[q0]
 
 
-def test_measurement_of_all_qubits_causes_split():
+def test_measurement_of_all_qubits_causes_split() -> None:
     state = create_container(qs2)
     state.apply_operation(cirq.CNOT(q0, q1))
     assert len(set(state.values())) == 2
@@ -198,7 +202,7 @@ def test_measurement_of_all_qubits_causes_split():
     assert state[q0] is not state[None]
 
 
-def test_measurement_in_single_qubit_circuit_passes():
+def test_measurement_in_single_qubit_circuit_passes() -> None:
     state = create_container([q0])
     assert len(set(state.values())) == 2
     state.apply_operation(cirq.measure(q0))
@@ -206,25 +210,25 @@ def test_measurement_in_single_qubit_circuit_passes():
     assert state[q0] is not state[None]
 
 
-def test_reorder_succeeds():
+def test_reorder_succeeds() -> None:
     state = create_container(qs2, False)
     reordered = state[q0].transpose_to_qubit_order([q1, q0])
     assert reordered.qubits == (q1, q0)
 
 
-def test_copy_succeeds():
+def test_copy_succeeds() -> None:
     state = create_container(qs2, False)
     copied = state[q0].copy()
     assert copied.qubits == (q0, q1)
 
 
-def test_merge_succeeds():
+def test_merge_succeeds() -> None:
     state = create_container(qs2, False)
     merged = state.create_merged_state()
     assert merged.qubits == (q0, q1)
 
 
-def test_swap_does_not_merge():
+def test_swap_does_not_merge() -> None:
     state = create_container(qs2)
     old_q0 = state[q0]
     old_q1 = state[q1]
@@ -238,14 +242,14 @@ def test_swap_does_not_merge():
     assert state[q1].qubits == (q1,)
 
 
-def test_half_swap_does_merge():
+def test_half_swap_does_merge() -> None:
     state = create_container(qs2)
     state.apply_operation(cirq.SWAP(q0, q1) ** 0.5)
     assert len(set(state.values())) == 2
     assert state[q0] is state[q1]
 
 
-def test_swap_after_entangle_reorders():
+def test_swap_after_entangle_reorders() -> None:
     state = create_container(qs2)
     state.apply_operation(cirq.CX(q0, q1))
     assert len(set(state.values())) == 2
@@ -256,7 +260,7 @@ def test_swap_after_entangle_reorders():
     assert state[q0].qubits == (q1, q0)
 
 
-def test_act_on_gate_does_not_join():
+def test_act_on_gate_does_not_join() -> None:
     state = create_container(qs2)
     assert len(set(state.values())) == 3
     cirq.act_on(cirq.X, state, [q0])
@@ -265,7 +269,7 @@ def test_act_on_gate_does_not_join():
     assert state[q0] is not state[None]
 
 
-def test_field_getters():
+def test_field_getters() -> None:
     state = create_container(qs2)
     assert state.sim_states.keys() == set(qs2) | {None}
     assert state.split_untangled_states

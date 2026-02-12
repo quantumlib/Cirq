@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
 import cirq
 
 
-def test_default_parameter():
+def test_default_parameter() -> None:
     qid_shape = (2,)
     tensor = cirq.to_valid_density_matrix(
         0, len(qid_shape), qid_shape=qid_shape, dtype=np.complex64
@@ -32,13 +34,13 @@ def test_default_parameter():
     assert args.qid_shape == qid_shape
 
 
-def test_shallow_copy_buffers():
+def test_shallow_copy_buffers() -> None:
     args = cirq.DensityMatrixSimulationState(qubits=cirq.LineQubit.range(1), initial_state=0)
     copy = args.copy(deep_copy_buffers=False)
     assert copy.available_buffer is args.available_buffer
 
 
-def test_decomposed_fallback():
+def test_decomposed_fallback() -> None:
     class Composite(cirq.Gate):
         def num_qubits(self) -> int:
             return 1
@@ -59,7 +61,7 @@ def test_decomposed_fallback():
     )
 
 
-def test_cannot_act():
+def test_cannot_act() -> None:
     class NoDetails:
         pass
 
@@ -73,12 +75,12 @@ def test_cannot_act():
         cirq.act_on(NoDetails(), args, qubits=())
 
 
-def test_qid_shape_error():
+def test_qid_shape_error() -> None:
     with pytest.raises(ValueError, match="qid_shape must be provided"):
         cirq.sim.density_matrix_simulation_state._BufferedDensityMatrix.create(initial_state=0)
 
 
-def test_initial_state_vector():
+def test_initial_state_vector() -> None:
     qubits = cirq.LineQubit.range(3)
     args = cirq.DensityMatrixSimulationState(
         qubits=qubits, initial_state=np.full((8,), 1 / np.sqrt(8)), dtype=np.complex64
@@ -91,7 +93,7 @@ def test_initial_state_vector():
     assert args2.target_tensor.shape == (2, 2, 2, 2, 2, 2)
 
 
-def test_initial_state_matrix():
+def test_initial_state_matrix() -> None:
     qubits = cirq.LineQubit.range(3)
     args = cirq.DensityMatrixSimulationState(
         qubits=qubits, initial_state=np.full((8, 8), 1 / 8), dtype=np.complex64
@@ -104,7 +106,7 @@ def test_initial_state_matrix():
     assert args2.target_tensor.shape == (2, 2, 2, 2, 2, 2)
 
 
-def test_initial_state_bad_shape():
+def test_initial_state_bad_shape() -> None:
     qubits = cirq.LineQubit.range(3)
     with pytest.raises(ValueError, match="Invalid quantum state"):
         cirq.DensityMatrixSimulationState(

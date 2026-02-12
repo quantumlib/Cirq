@@ -17,8 +17,8 @@ authors:
 abstract: >-
   Python package for writing, manipulating, and running quantum circuits
   on quantum computers and simulators.
-version: 1.5.0
-date-released: 2025-04-10
+version: 1.6.1
+date-released: 2025-08-13
 url: https://quantumai.google/cirq
 repository-code: https://github.com/quantumlib/Cirq
 license: Apache-2.0

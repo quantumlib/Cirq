@@ -47,11 +47,13 @@ Estimation algorithm is retried.
 [1]: https://arxiv.org/abs/quant-ph/9508027
 """
 
+from __future__ import annotations
+
 import argparse
 import fractions
 import math
 import random
-from typing import Callable, Optional, Sequence, Union
+from collections.abc import Callable, Sequence
 
 import sympy
 
@@ -74,7 +76,7 @@ parser.add_argument(
 )
 
 
-def naive_order_finder(x: int, n: int) -> Optional[int]:
+def naive_order_finder(x: int, n: int) -> int | None:
     """Computes smallest positive r such that x**r mod n == 1.
 
     Args:
@@ -128,7 +130,7 @@ class ModularExp(cirq.ArithmeticGate):
     """
 
     def __init__(
-        self, target: Sequence[int], exponent: Union[int, Sequence[int]], base: int, modulus: int
+        self, target: Sequence[int], exponent: int | Sequence[int], base: int, modulus: int
     ) -> None:
         if len(target) < modulus.bit_length():
             raise ValueError(
@@ -139,10 +141,10 @@ class ModularExp(cirq.ArithmeticGate):
         self.base = base
         self.modulus = modulus
 
-    def registers(self) -> Sequence[Union[int, Sequence[int]]]:
+    def registers(self) -> Sequence[int | Sequence[int]]:
         return self.target, self.exponent, self.base, self.modulus
 
-    def with_registers(self, *new_registers: Union[int, Sequence[int]]) -> 'ModularExp':
+    def with_registers(self, *new_registers: int | Sequence[int]) -> ModularExp:
         if len(new_registers) != 4:
             raise ValueError(
                 f'Expected 4 registers (target, exponent, base, '
@@ -238,7 +240,7 @@ def read_eigenphase(result: cirq.Result) -> float:
     return float(exponent_as_integer / 2**exponent_num_bits)
 
 
-def quantum_order_finder(x: int, n: int) -> Optional[int]:
+def quantum_order_finder(x: int, n: int) -> int | None:
     """Computes smallest positive r such that x**r mod n == 1.
 
     Args:
@@ -271,7 +273,7 @@ def quantum_order_finder(x: int, n: int) -> Optional[int]:
     return r
 
 
-def find_factor_of_prime_power(n: int) -> Optional[int]:
+def find_factor_of_prime_power(n: int) -> int | None:
     """Returns non-trivial factor of n if n is a prime power, else None."""
     for k in range(2, math.floor(math.log2(n)) + 1):
         c = math.pow(n, 1 / k)
@@ -285,8 +287,8 @@ def find_factor_of_prime_power(n: int) -> Optional[int]:
 
 
 def find_factor(
-    n: int, order_finder: Callable[[int, int], Optional[int]], max_attempts: int = 30
-) -> Optional[int]:
+    n: int, order_finder: Callable[[int, int], int | None], max_attempts: int = 30
+) -> int | None:
     """Returns a non-trivial factor of composite integer n.
 
     Args:
@@ -325,7 +327,7 @@ def find_factor(
     return None  # pragma: no cover
 
 
-def main(n: int, order_finder: Callable[[int, int], Optional[int]] = naive_order_finder):
+def main(n: int, order_finder: Callable[[int, int], int | None] = naive_order_finder):
     if n < 2:
         raise ValueError(f'Invalid input {n}, expected positive integer greater than one.')
 

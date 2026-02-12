@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import itertools
-from typing import Callable, Dict, Iterable, List, Optional, Sequence, Type, TYPE_CHECKING, Union
+from collections.abc import Callable, Iterable, Sequence
+from typing import TYPE_CHECKING, Union
 
 from cirq import _import, circuits, ops, protocols
 from cirq.transformers import transformer_api
@@ -33,7 +34,7 @@ Classifier = Callable[['cirq.Operation'], bool]
 
 # Any of the possible operation categories that we can stratify on.
 Category = Union[
-    'cirq.Gate', 'cirq.Operation', Type['cirq.Gate'], Type['cirq.Operation'], Classifier
+    'cirq.Gate', 'cirq.Operation', type['cirq.Gate'], type['cirq.Operation'], Classifier
 ]
 
 
@@ -41,7 +42,7 @@ Category = Union[
 def stratified_circuit(
     circuit: cirq.AbstractCircuit,
     *,
-    context: Optional[cirq.TransformerContext] = None,
+    context: cirq.TransformerContext | None = None,
     categories: Iterable[Category] = (),
 ) -> cirq.Circuit:
     """Repacks avoiding simultaneous operations with different classes.
@@ -117,12 +118,12 @@ def _stratify_circuit(
         The stratified circuit.
     """
     num_classes = len(classifiers) + 1  # include one "extra" category for ignored operations
-    new_moments: List[List[cirq.Operation]] = []
+    new_moments: list[list[cirq.Operation]] = []
 
     # Keep track of the latest time index for each qubit, measurement key, and control key.
-    qubit_time_index: Dict[cirq.Qid, int] = {}
-    measurement_time_index: Dict[cirq.MeasurementKey, int] = {}
-    control_time_index: Dict[cirq.MeasurementKey, int] = {}
+    qubit_time_index: dict[cirq.Qid, int] = {}
+    measurement_time_index: dict[cirq.MeasurementKey, int] = {}
+    control_time_index: dict[cirq.MeasurementKey, int] = {}
 
     # The minimum time index for operations with a tag in context.tags_to_ignore.
     last_ignored_ops_time_index = 0
@@ -164,7 +165,7 @@ def _stratify_circuit(
                 new_moments += [[] for _ in range(num_classes)]
             new_moments[time_index].append(op)
 
-            # Update qubit, measurment key, and control key moments.
+            # Update qubit, measurement key, and control key moments.
             for qubit in op.qubits:
                 qubit_time_index[qubit] = time_index
             for key in protocols.measurement_key_objs(op):
@@ -177,7 +178,7 @@ def _stratify_circuit(
 
 def _get_classifiers(
     circuit: circuits.AbstractCircuit, categories: Iterable[Category]
-) -> List[Classifier]:
+) -> list[Classifier]:
     """Convert a collection of categories into a list of classifiers.
 
     The returned list of classifiers is:

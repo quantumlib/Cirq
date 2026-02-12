@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import itertools
-from typing import cast, Dict, Hashable, TYPE_CHECKING
+from collections.abc import Hashable
+from typing import cast, TYPE_CHECKING
 
 import networkx as nx
 from sortedcontainers import SortedDict, SortedSet
@@ -35,7 +36,7 @@ def get_initial_mapping(
     logical_graph: nx.Graph,
     device_graph: nx.Graph,
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
-) -> Dict[ops.Qid, ops.Qid]:
+) -> dict[ops.Qid, ops.Qid]:
     """Gets an initial mapping of logical to physical qubits for routing.
 
     Args:

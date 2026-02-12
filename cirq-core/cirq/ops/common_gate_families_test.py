@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 import sympy
 
@@ -30,7 +32,7 @@ class UnitaryGate(cirq.Gate):
         return self._num_qubits
 
 
-def test_any_unitary_gate_family():
+def test_any_unitary_gate_family() -> None:
     with pytest.raises(ValueError, match='must be a positive integer'):
         _ = cirq.AnyUnitaryGateFamily(0)
     eq = cirq.testing.EqualsTester()
@@ -55,15 +57,17 @@ def test_any_unitary_gate_family():
     assert cirq.testing.SingleQubitGate() not in cirq.AnyUnitaryGateFamily()
 
 
-def test_any_integer_power_gate_family():
+def test_any_integer_power_gate_family() -> None:
     with pytest.raises(ValueError, match='subclass of `cirq.EigenGate`'):
-        cirq.AnyIntegerPowerGateFamily(gate=cirq.testing.SingleQubitGate)
+        cirq.AnyIntegerPowerGateFamily(gate=cirq.testing.SingleQubitGate)  # type: ignore[arg-type]
     with pytest.raises(ValueError, match='subclass of `cirq.EigenGate`'):
-        cirq.AnyIntegerPowerGateFamily(gate=CustomXPowGate())
+        cirq.AnyIntegerPowerGateFamily(gate=CustomXPowGate())  # type: ignore[arg-type]
     eq = cirq.testing.EqualsTester()
     gate_family = cirq.AnyIntegerPowerGateFamily(CustomXPowGate)
     eq.add_equality_group(gate_family)
-    eq.add_equality_group(cirq.AnyIntegerPowerGateFamily(cirq.EigenGate))
+    eq.add_equality_group(
+        cirq.AnyIntegerPowerGateFamily(cirq.EigenGate)  # type: ignore[type-abstract]
+    )
     cirq.testing.assert_equivalent_repr(gate_family)
     assert CustomX in gate_family
     assert CustomX**2 in gate_family
@@ -76,7 +80,7 @@ def test_any_integer_power_gate_family():
 @pytest.mark.parametrize('gate', [CustomX, cirq.ParallelGate(CustomX, 2), CustomXPowGate])
 @pytest.mark.parametrize('name,description', [(None, None), ("Custom Name", "Custom Description")])
 @pytest.mark.parametrize('max_parallel_allowed', [None, 3])
-def test_parallel_gate_family(gate, name, description, max_parallel_allowed):
+def test_parallel_gate_family(gate, name, description, max_parallel_allowed) -> None:
     gate_family = cirq.ParallelGateFamily(
         gate, name=name, description=description, max_parallel_allowed=max_parallel_allowed
     )
@@ -97,7 +101,7 @@ def test_parallel_gate_family(gate, name, description, max_parallel_allowed):
     assert str_to_search in gate_family.description
 
 
-def test_parallel_gate_family_eq():
+def test_parallel_gate_family_eq() -> None:
     eq = cirq.testing.EqualsTester()
     for name, description in [(None, None), ("Custom Name", "Custom Description")]:
         eq.add_equality_group(

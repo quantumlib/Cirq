@@ -11,12 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import numpy as np
 
 import cirq
 
 
-def test_equal_up_to_global_phase_primitives():
+def test_equal_up_to_global_phase_primitives() -> None:
     assert cirq.equal_up_to_global_phase(1.0 + 1j, 1.0 + 1j, atol=1e-9)
     assert not cirq.equal_up_to_global_phase(2.0, 1.0 + 1j, atol=1e-9)
     assert cirq.equal_up_to_global_phase(1.0 + 1j, 1.0 - 1j, atol=1e-9)
@@ -34,7 +37,7 @@ def test_equal_up_to_global_phase_primitives():
     assert cirq.equal_up_to_global_phase(1.0 + 1e-10j, 1.0, atol=1e-15)
 
 
-def test_equal_up_to_global_numeric_iterables():
+def test_equal_up_to_global_numeric_iterables() -> None:
     assert cirq.equal_up_to_global_phase([], [], atol=1e-9)
     assert cirq.equal_up_to_global_phase([[]], [[]], atol=1e-9)
     assert cirq.equal_up_to_global_phase([1j, 1], [1j, 1], atol=1e-9)
@@ -49,7 +52,7 @@ def test_equal_up_to_global_numeric_iterables():
     assert not cirq.equal_up_to_global_phase((1j, 1), (1, 1j), atol=1e-09)
 
 
-def test_equal_up_to_global_numpy_array():
+def test_equal_up_to_global_numpy_array() -> None:
     assert cirq.equal_up_to_global_phase(
         np.asarray([1j, 1j]), np.asarray([1, 1], dtype=np.complex64)
     )
@@ -60,7 +63,7 @@ def test_equal_up_to_global_numpy_array():
     assert cirq.equal_up_to_global_phase(np.asarray([[]]), np.asarray([[]]))
 
 
-def test_equal_up_to_global_mixed_array_types():
+def test_equal_up_to_global_mixed_array_types() -> None:
     a = [1j, 1, -1j, -1]
     b = [-1, 1j, 1, -1j]
     c = [-1, 1, -1, 1]
@@ -108,7 +111,7 @@ class B:
         return cirq.equal_up_to_global_phase(self.val[0], other, atol=atol)
 
 
-def test_equal_up_to_global_phase_eq_supported():
+def test_equal_up_to_global_phase_eq_supported() -> None:
     assert cirq.equal_up_to_global_phase(A(0.1 + 0j), A(0.1j), atol=1e-2)
     assert not cirq.equal_up_to_global_phase(A(0.0 + 0j), A(0.1j), atol=0.0)
     assert not cirq.equal_up_to_global_phase(A(0.0 + 0j), 0.1j, atol=0.0)
@@ -120,7 +123,7 @@ def test_equal_up_to_global_phase_eq_supported():
     assert not cirq.equal_up_to_global_phase(1e-8j, B(0.0), atol=1e-10)
 
 
-def test_equal_up_to_global_phase_non_eigen_gates():
+def test_equal_up_to_global_phase_non_eigen_gates() -> None:
     gate1 = cirq.PhasedXPowGate(phase_exponent=1.5, exponent=1.0)
     gate2 = cirq.PhasedXPowGate(phase_exponent=0.5, exponent=1.0)
     assert cirq.equal_up_to_global_phase(gate1, gate2)

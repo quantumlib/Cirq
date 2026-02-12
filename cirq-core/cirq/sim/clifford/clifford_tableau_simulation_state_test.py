@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple
+from __future__ import annotations
 
 import numpy as np
 import pytest
@@ -20,13 +20,13 @@ import pytest
 import cirq
 
 
-def test_unitary_fallback():
+def test_unitary_fallback() -> None:
     class UnitaryXGate(cirq.testing.SingleQubitGate):
         def _unitary_(self):
             return np.array([[0, 1], [1, 0]])
 
     class UnitaryYGate(cirq.Gate):
-        def _qid_shape_(self) -> Tuple[int, ...]:
+        def _qid_shape_(self) -> tuple[int, ...]:
             return (2,)
 
         def _unitary_(self):
@@ -57,7 +57,7 @@ def test_unitary_fallback():
     assert args.tableau == expected_args.tableau
 
 
-def test_cannot_act():
+def test_cannot_act() -> None:
     class NoDetails:
         pass
 
@@ -77,7 +77,7 @@ def test_cannot_act():
         cirq.act_on(NoDetailsSingleQubitGate(), args, [cirq.LineQubit(1)])
 
 
-def test_copy():
+def test_copy() -> None:
     args = cirq.CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=3),
         qubits=cirq.LineQubit.range(3),

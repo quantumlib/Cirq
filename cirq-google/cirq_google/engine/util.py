@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Tuple, TypeVar
+from __future__ import annotations
+
+from typing import TypeVar
 
 from google.protobuf import any_pb2
 from google.protobuf.message import Message
@@ -27,7 +29,7 @@ M = TypeVar('M', bound=Message)
 #
 # where gate_type is "syc" or "sqrt_iswap", angle_type is "zeta" or "gamma",
 # and "qubit_pair" is a tuple of qubits.
-ZPhaseDataType = Dict[str, Dict[str, Dict[Tuple[cirq.Qid, ...], float]]]
+ZPhaseDataType = dict[str, dict[str, dict[tuple[cirq.Qid, ...], float]]]
 
 
 def pack_any(message: Message) -> any_pb2.Any:

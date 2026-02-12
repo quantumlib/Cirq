@@ -13,6 +13,9 @@
 # limitations under the License.
 
 """Tests for engine."""
+
+from __future__ import annotations
+
 import datetime
 import time
 from unittest import mock
@@ -20,7 +23,7 @@ from unittest import mock
 import duet
 import numpy as np
 import pytest
-from google.protobuf import any_pb2, timestamp_pb2
+from google.protobuf import any_pb2
 from google.protobuf.text_format import Merge
 
 import cirq
@@ -30,6 +33,7 @@ from cirq_google.api import v1, v2
 from cirq_google.cloud import quantum
 from cirq_google.engine import util
 from cirq_google.engine.engine import EngineContext
+from cirq_google.engine.processor_config import Run, Snapshot
 
 _CIRCUIT = cirq.Circuit(
     cirq.X(cirq.GridQubit(5, 2)) ** 0.5, cirq.measure(cirq.GridQubit(5, 2), key='result')
@@ -39,12 +43,6 @@ _CIRCUIT = cirq.Circuit(
 _CIRCUIT2 = cirq.FrozenCircuit(
     cirq.Y(cirq.GridQubit(5, 2)) ** 0.5, cirq.measure(cirq.GridQubit(5, 2), key='result')
 )
-
-
-def _to_timestamp(json_string):
-    timestamp_proto = timestamp_pb2.Timestamp()
-    timestamp_proto.FromJsonString(json_string)
-    return timestamp_proto
 
 
 _A_RESULT = util.pack_any(
@@ -247,14 +245,29 @@ def setup_run_circuit_with_result_(client, result):
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
-def test_run_circuit_with_unary_rpcs(client):
+@pytest.mark.parametrize('compress_run_context', [True, False])
+def test_run_circuit_with_unary_rpcs(client, compress_run_context):
     setup_run_circuit_with_result_(client, _A_RESULT)
 
     engine = cg.Engine(
         project_id='proj',
-        context=EngineContext(service_args={'client_info': 1}, enable_streaming=False),
+        context=EngineContext(
+            service_args={'client_info': 1},
+            enable_streaming=False,
+            compress_run_context=compress_run_context,
+        ),
     )
     result = engine.run(program=_CIRCUIT, program_id='prog', job_id='job-id', processor_id='mysim')
+    if compress_run_context:
+        expected_sweep = util.pack_any(
+            v2.run_context_to_proto(cirq.UnitSweep, 1, compress_proto=True)
+        )
+    else:
+        expected_sweep = util.pack_any(
+            v2.run_context_pb2.RunContext(
+                parameter_sweeps=[v2.run_context_pb2.ParameterSweep(repetitions=1)]
+            )
+        )
 
     assert result.repetitions == 1
     assert result.params.param_dict == {'a': 1}
@@ -266,11 +279,7 @@ def test_run_circuit_with_unary_rpcs(client):
         program_id='prog',
         job_id='job-id',
         processor_id='mysim',
-        run_context=util.pack_any(
-            v2.run_context_pb2.RunContext(
-                parameter_sweeps=[v2.run_context_pb2.ParameterSweep(repetitions=1)]
-            )
-        ),
+        run_context=expected_sweep,
         description=None,
         labels=None,
         run_name='',
@@ -288,7 +297,10 @@ def test_engine_get_sampler_with_snapshot_id_passes_to_unary_rpc(client):
         project_id='proj',
         context=EngineContext(service_args={'client_info': 1}, enable_streaming=False),
     )
-    sampler = engine.get_sampler('mysim', device_config_name="config", snapshot_id="123")
+    snapshot_id = Snapshot(id="123")
+    sampler = engine.get_sampler(
+        'mysim', device_config_name="config", device_config_revision=snapshot_id
+    )
     _ = sampler.run_sweep(_CIRCUIT, params=[cirq.ParamResolver({'a': 1})])
 
     kwargs = client().create_job_async.call_args_list[0].kwargs
@@ -797,6 +809,54 @@ def test_get_processor():
     assert cg.Engine(project_id='proj').get_processor('xmonsim').processor_id == 'xmonsim'
 
 
+def test_get_sampler_initializes_max_concurrent_jobs():
+    max_concurrent_jobs = 5
+    engine = cg.Engine(project_id='proj')
+    sampler = engine.get_sampler(processor_id='tmp', max_concurrent_jobs=max_concurrent_jobs)
+
+    assert sampler.max_concurrent_jobs == max_concurrent_jobs
+
+
+def test_get_sampler_from_run_name():
+    processor_id = 'test_processor_id'
+    run = Run(id="test_run_name")
+    device_config_name = 'test_config_alias'
+    project_id = 'test_proj'
+    engine = cg.Engine(project_id=project_id)
+    processor = engine.get_processor(processor_id=processor_id)
+
+    processor_sampler = processor.get_sampler(
+        device_config_revision=run, device_config_name=device_config_name
+    )
+    engine_sampler = engine.get_sampler(
+        processor_id=processor_id, device_config_revision=run, device_config_name=device_config_name
+    )
+
+    assert processor_sampler.run_name == engine_sampler.run_name
+    assert processor_sampler.device_config_name == engine_sampler.device_config_name
+
+
+def test_get_sampler_from_snapshot():
+    processor_id = 'test_processor_id'
+    snapshot_id = Snapshot(id='test_snapshot_id')
+    device_config_name = 'test_config_alias'
+    project_id = 'test_proj'
+    engine = cg.Engine(project_id=project_id)
+    processor = engine.get_processor(processor_id=processor_id)
+
+    processor_sampler = processor.get_sampler(
+        device_config_revision=snapshot_id, device_config_name=device_config_name
+    )
+    engine_sampler = engine.get_sampler(
+        processor_id=processor_id,
+        device_config_name=device_config_name,
+        device_config_revision=snapshot_id,
+    )
+
+    assert processor_sampler.snapshot_id == engine_sampler.snapshot_id
+    assert processor_sampler.device_config_name == engine_sampler.device_config_name
+
+
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_sampler_with_unary_rpcs(client):
     setup_run_circuit_with_result_(client, _RESULTS)
@@ -896,3 +956,176 @@ valid_gates {
         )
     with pytest.raises(ValueError):
         device.validate_operation(cirq.CZ(cirq.GridQubit(1, 1), cirq.GridQubit(2, 2)))
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_async')
+def test_get_processor_config_from_snapshot(get_quantum_config_async):
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    snapshot = Snapshot(id="test_snapshot_id")
+    config_name = "test_config_name"
+    resource_name = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configSnapshots/{snapshot.id}/'
+        f'configs/{config_name}'
+    )
+    quantum_confg = quantum.QuantumProcessorConfig(name=resource_name)
+
+    get_quantum_config_async.return_value = quantum_confg
+
+    result = cg.Engine(project_id=project_id).get_processor_config(
+        processor_id=processor_id, device_config_revision=snapshot, config_name=config_name
+    )
+
+    get_quantum_config_async.assert_called_with(
+        project_id=project_id,
+        processor_id=processor_id,
+        device_config_revision=snapshot,
+        config_name=config_name,
+    )
+    assert result.processor_id == processor_id
+    assert result.snapshot_id == snapshot.id
+    assert result.config_name == config_name
+    assert result.run_name == ''
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_async')
+def test_get_processor_config_from_run(get_quantum_config_async):
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    snapshot_id = "test_snapshot_id"
+    config_name = "test_config_name"
+    run = Run(id="test_run_name")
+    resource_name = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configSnapshots/{snapshot_id}/'
+        f'configs/{config_name}'
+    )
+    quantum_confg = quantum.QuantumProcessorConfig(name=resource_name)
+
+    get_quantum_config_async.return_value = quantum_confg
+
+    result = cg.Engine(project_id=project_id).get_processor_config(
+        processor_id=processor_id, device_config_revision=run, config_name=config_name
+    )
+
+    get_quantum_config_async.assert_called_with(
+        project_id=project_id,
+        processor_id=processor_id,
+        device_config_revision=run,
+        config_name=config_name,
+    )
+    assert result.processor_id == processor_id
+    assert result.snapshot_id == snapshot_id
+    assert result.run_name == run.id
+    assert result.config_name == config_name
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_async')
+def test_get_processor_config_from_snapshot_none(get_quantum_config_async):
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    config_name = "test_config_name"
+
+    get_quantum_config_async.return_value = None
+
+    result = cg.Engine(project_id=project_id).get_processor_config(
+        processor_id=processor_id, config_name=config_name
+    )
+
+    assert result is None
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_quantum_processor_configs_async')
+def test_list_processor_configs_from_run(list_processor_configs_async):
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    run = Run(id="test_run_name")
+    snapshot_id = 'test_snapshot_id'
+    response_parent_resource = (
+        f'projects/{project_id}/processors/{processor_id}/configSnapshots/{snapshot_id}'
+    )
+    expected_configs = [
+        quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_1'),
+        quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_2'),
+    ]
+
+    list_processor_configs_async.return_value = expected_configs
+
+    results = cg.Engine(project_id=project_id).list_processor_configs(
+        processor_id=processor_id, device_config_revision=run
+    )
+
+    list_processor_configs_async.assert_called_once_with(
+        project_id=project_id, processor_id=processor_id, device_config_revision=run
+    )
+    assert [
+        (config.config_name, config.processor_id, config.run_name, config.snapshot_id)
+        for config in results
+    ] == [
+        ('test_config_1', processor_id, run.id, snapshot_id),
+        ('test_config_2', processor_id, run.id, snapshot_id),
+    ]
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_quantum_processor_configs_async')
+def test_list_processor_configs_from_run_default(list_processor_configs_async):
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    default_run = Run(id="current")
+    snapshot_id = "test_snapshot_id"
+    response_parent_resource = (
+        f'projects/{project_id}/processors/{processor_id}/configSnapshots/{snapshot_id}'
+    )
+    expected_configs = [
+        quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_1'),
+        quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_2'),
+    ]
+
+    list_processor_configs_async.return_value = expected_configs
+
+    results = cg.Engine(project_id=project_id).list_processor_configs(processor_id=processor_id)
+
+    list_processor_configs_async.assert_called_once_with(
+        project_id=project_id, processor_id=processor_id, device_config_revision=default_run
+    )
+    assert [
+        (config.config_name, config.processor_id, config.run_name, config.snapshot_id)
+        for config in results
+    ] == [
+        ('test_config_1', processor_id, default_run.id, snapshot_id),
+        ('test_config_2', processor_id, default_run.id, snapshot_id),
+    ]
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_quantum_processor_configs_async')
+def test_list_processor_configs_from_snapshot(list_processor_configs_async):
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    snapshot = Snapshot(id="test_snapshot_id")
+    response_parent_resource = (
+        f'projects/{project_id}/processors/{processor_id}/configSnapshots/{snapshot.id}'
+    )
+    expected_configs = [
+        quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_1'),
+        quantum.QuantumProcessorConfig(name=f'{response_parent_resource}/configs/test_config_2'),
+    ]
+
+    list_processor_configs_async.return_value = expected_configs
+
+    results = cg.Engine(project_id=project_id).list_processor_configs(
+        processor_id=processor_id, device_config_revision=snapshot
+    )
+
+    list_processor_configs_async.assert_called_once_with(
+        project_id=project_id, processor_id=processor_id, device_config_revision=snapshot
+    )
+    assert [
+        (config.config_name, config.processor_id, config.run_name, config.snapshot_id)
+        for config in results
+    ] == [
+        ('test_config_1', processor_id, '', snapshot.id),
+        ('test_config_2', processor_id, '', snapshot.id),
+    ]

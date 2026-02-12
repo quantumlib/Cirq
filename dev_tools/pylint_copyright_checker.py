@@ -16,17 +16,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from astroid import nodes
 from pylint.checkers import BaseRawFileChecker
 
 if TYPE_CHECKING:
+    from astroid import nodes
     from pylint.lint import PyLinter
 
 
 class CopyrightChecker(BaseRawFileChecker):
     """Check for the copyright notices at the beginning of a Python source file.
 
-    This checker can be disabled by putting `# pylint: disable=wrong-or-nonexistent-copyright-notice`
+    This check can be disabled by putting `# pylint: disable=wrong-or-nonexistent-copyright-notice`
     at the beginning of a file.
     """
 

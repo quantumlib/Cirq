@@ -28,13 +28,14 @@ description = (
 )
 
 # README file as long_description.
-long_description = open('README.md', encoding='utf-8').read()
+with open('README.md', encoding='utf-8') as file:
+    long_description = file.read()
 
 # Read in requirements
-requirements = open('requirements.txt').readlines()
-requirements = [r.strip() for r in requirements]
-contrib_requirements = open('cirq/contrib/requirements.txt').readlines()
-contrib_requirements = [r.strip() for r in contrib_requirements]
+with open('requirements.txt', encoding='utf-8') as file:
+    requirements = [r.strip() for r in file]
+with open('cirq/contrib/requirements.txt', encoding='utf-8') as file:
+    contrib_requirements = [r.strip() for r in file]
 
 
 cirq_packages = ['cirq'] + [
@@ -49,29 +50,32 @@ setup(
     author_email='cirq-dev@googlegroups.com',
     maintainer="The Quantum AI open-source software maintainers",
     maintainer_email="quantum-oss-maintainers@google.com",
-    python_requires=('>=3.10.0'),
+    python_requires='>=3.11.0',
     install_requires=requirements,
     extras_require={'contrib': contrib_requirements},
-    license='Apache 2',
+    license='Apache-2.0',
     description=description,
     long_description=long_description,
     long_description_content_type='text/markdown',
     packages=cirq_packages,
-    package_data={'cirq': ['py.typed'], 'cirq.protocols.json_test_data': ['*']},
+    package_data={
+        'cirq': ['py.typed'],
+        'cirq.protocols.json_test_data': ['*'],
+        f'cirq{"."}contrib.json_test_data': ['*'],
+    },
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "Intended Audience :: Education",
         "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: Apache Software License",
         "Operating System :: MacOS :: MacOS X",
         "Operating System :: Microsoft :: Windows",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
         "Topic :: Scientific/Engineering :: Quantum Computing",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Typing :: Typed",

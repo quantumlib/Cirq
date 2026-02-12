@@ -11,16 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import contextlib
 import logging
 import os
-from typing import Iterator, Optional
+from collections.abc import Iterator
 
 from cirq._compat import ALLOW_DEPRECATION_IN_TEST
 
 
 @contextlib.contextmanager
-def assert_deprecated(*msgs: str, deadline: str, count: Optional[int] = 1) -> Iterator[None]:
+def assert_deprecated(*msgs: str, deadline: str, count: int | None = 1) -> Iterator[None]:
     """Allows deprecated functions, classes, decorators in tests.
 
     It acts as a contextmanager that can be used in with statements:

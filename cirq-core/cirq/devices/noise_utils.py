@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Tuple, Type, TYPE_CHECKING, Union
+from typing import Any, TYPE_CHECKING
 
 from cirq import ops, protocols, qis, value
 from cirq._compat import deprecated, proper_repr
@@ -31,24 +31,24 @@ PHYSICAL_GATE_TAG = 'physical_gate'
 class OpIdentifier:
     """Identifies an operation by gate and (optionally) target qubits."""
 
-    def __init__(self, gate_type: Type[cirq.Gate], *qubits: cirq.Qid):
+    def __init__(self, gate_type: type[cirq.Gate], *qubits: cirq.Qid):
         self._gate_type = gate_type
         self._gate_family = ops.GateFamily(gate_type)
-        self._qubits: Tuple[cirq.Qid, ...] = tuple(qubits)
+        self._qubits: tuple[cirq.Qid, ...] = tuple(qubits)
 
     @property
-    def gate_type(self) -> Type[cirq.Gate]:
+    def gate_type(self) -> type[cirq.Gate]:
         # set to a type during initialization, never modified
         return self._gate_type
 
     @property
-    def qubits(self) -> Tuple[cirq.Qid, ...]:
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         return self._qubits
 
     def _predicate(self, *args, **kwargs):
         return self._gate_family._predicate(*args, **kwargs)
 
-    def is_proper_subtype_of(self, op_id: OpIdentifier):
+    def is_proper_subtype_of(self, op_id: OpIdentifier) -> bool:
         """Returns true if this is contained within op_id, but not equal to it.
 
         If this returns true, (x in self) implies (x in op_id), but the reverse
@@ -67,7 +67,7 @@ class OpIdentifier:
         else:
             return False
 
-    def __contains__(self, item: Union[ops.Gate, ops.Operation]) -> bool:
+    def __contains__(self, item: ops.Gate | ops.Operation) -> bool:
         if isinstance(item, ops.Gate):
             return (not self._qubits) and self._predicate(item)
         return (
@@ -86,7 +86,7 @@ class OpIdentifier:
     def _value_equality_values_(self) -> Any:
         return (self.gate_type, self.qubits)
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         if hasattr(self.gate_type, '__name__'):
             return {'gate_type': protocols.json_cirq_type(self._gate_type), 'qubits': self._qubits}
         return {'gate_type': self._gate_type, 'qubits': self._qubits}

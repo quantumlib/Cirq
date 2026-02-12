@@ -16,37 +16,28 @@
 
 from __future__ import annotations
 
-from typing import (
-    AbstractSet,
-    Any,
+from collections.abc import (
     Callable,
-    Dict,
-    Generic,
     ItemsView,
     Iterable,
     Iterator,
     KeysView,
     Mapping,
     MutableMapping,
-    Optional,
-    overload,
-    Tuple,
-    TYPE_CHECKING,
-    TypeVar,
-    Union,
+    Set,
     ValuesView,
 )
+from typing import Any, Generic, overload, Self, TYPE_CHECKING, TypeVar
 
 import numpy as np
 import sympy
-from typing_extensions import Self
 
 from cirq import protocols
 
 if TYPE_CHECKING:
     import cirq
 
-Scalar = Union[complex, np.number]
+Scalar = complex | np.number
 TVector = TypeVar('TVector')
 
 TDefault = TypeVar('TDefault')
@@ -95,7 +86,7 @@ def _format_term(format_spec: str, vector: TVector, coefficient: cirq.TParamValC
     return '+' + result
 
 
-def _format_terms(terms: Iterable[Tuple[TVector, cirq.TParamValComplex]], format_spec: str):
+def _format_terms(terms: Iterable[tuple[TVector, cirq.TParamValComplex]], format_spec: str):
     formatted_terms = [_format_term(format_spec, vector, coeff) for vector, coeff in terms]
     s = ''.join(formatted_terms)
     if not s:
@@ -122,8 +113,8 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
 
     def __init__(
         self,
-        terms: Optional[Mapping[TVector, cirq.TParamValComplex]] = None,
-        validator: Optional[Callable[[TVector], bool]] = None,
+        terms: Mapping[TVector, cirq.TParamValComplex] | None = None,
+        validator: Callable[[TVector], bool] | None = None,
     ) -> None:
         """Initializes linear combination from a collection of terms.
 
@@ -138,7 +129,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
         """
         self._has_validator = validator is not None
         self._is_valid = validator or (lambda x: True)
-        self._terms: Dict[TVector, cirq.TParamValComplex] = {}
+        self._terms: dict[TVector, cirq.TParamValComplex] = {}
         if terms is not None:
             self.update(terms)
 
@@ -182,27 +173,8 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
         snapshot = self.copy().clean(atol=0)
         return snapshot._terms.items()
 
-    # pylint: disable=function-redefined
-    @overload
-    def update(
-        self, other: Mapping[TVector, cirq.TParamValComplex], **kwargs: cirq.TParamValComplex
-    ) -> None:
-        pass
-
-    @overload
-    def update(
-        self,
-        other: Iterable[Tuple[TVector, cirq.TParamValComplex]],
-        **kwargs: cirq.TParamValComplex,
-    ) -> None:
-        pass
-
-    @overload
-    def update(self, *args: Any, **kwargs: cirq.TParamValComplex) -> None:
-        pass
-
     def update(self, *args, **kwargs):
-        terms = dict()
+        terms = {}
         terms.update(*args, **kwargs)
         for vector, coefficient in terms.items():
             if isinstance(coefficient, sympy.Basic):
@@ -217,15 +189,13 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
         pass
 
     @overload
-    def get(self, vector: TVector, default: TDefault) -> Union[cirq.TParamValComplex, TDefault]:
+    def get(self, vector: TVector, default: TDefault) -> cirq.TParamValComplex | TDefault:
         pass
 
     def get(self, vector, default=0):
         if self._terms.get(vector, 0) == 0:
             return default
         return self._terms.get(vector)
-
-    # pylint: enable=function-redefined
 
     def __contains__(self, vector: Any) -> bool:
         return vector in self._terms and self._terms[vector] != 0
@@ -354,13 +324,10 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
         else:
             p.text(str(self))
 
-    def _json_dict_(self) -> Dict[Any, Any]:
+    def _json_dict_(self) -> dict[Any, Any]:
         if self._has_validator:
             raise ValueError('LinearDict with a validator is not json serializable.')
-        return {
-            'keys': [k for k in self._terms.keys()],
-            'values': [v for v in self._terms.values()],
-        }
+        return {'keys': list(self._terms.keys()), 'values': list(self._terms.values())}
 
     @classmethod
     def _from_json_dict_(cls, keys, values, **kwargs):
@@ -369,8 +336,8 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
     def _is_parameterized_(self) -> bool:
         return any(protocols.is_parameterized(v) for v in self._terms.values())
 
-    def _parameter_names_(self) -> AbstractSet[str]:
-        return set(name for v in self._terms.values() for name in protocols.parameter_names(v))
+    def _parameter_names_(self) -> Set[str]:
+        return {name for v in self._terms.values() for name in protocols.parameter_names(v)}
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> LinearDict:
         result = self.copy()

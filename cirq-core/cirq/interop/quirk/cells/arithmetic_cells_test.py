@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 from typing import cast
 
 import numpy as np
@@ -22,7 +25,7 @@ from cirq.interop.quirk.cells import arithmetic_cells
 from cirq.interop.quirk.cells.testing import assert_url_to_circuit_returns
 
 
-def test_arithmetic_comparison_gates():
+def test_arithmetic_comparison_gates() -> None:
     with pytest.raises(ValueError, match='Missing input'):
         _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":[["^A<B"]]}')
     assert_url_to_circuit_returns(
@@ -73,7 +76,7 @@ def test_arithmetic_comparison_gates():
     )
 
 
-def test_arithmetic_unlisted_misc_gates():
+def test_arithmetic_unlisted_misc_gates() -> None:
     assert_url_to_circuit_returns(
         '{"cols":[["^=A3",1,1,"inputA2"]]}',
         maps={
@@ -141,7 +144,7 @@ def test_arithmetic_unlisted_misc_gates():
     )
 
 
-def test_arithmetic_addition_gates():
+def test_arithmetic_addition_gates() -> None:
     assert_url_to_circuit_returns(
         '{"cols":[["inc3"]]}',
         diagram="""
@@ -164,7 +167,7 @@ def test_arithmetic_addition_gates():
     )
 
 
-def test_arithmetic_multiply_accumulate_gates():
+def test_arithmetic_multiply_accumulate_gates() -> None:
     assert_url_to_circuit_returns(
         '{"cols":[["+=AA4",1,1,1,"inputA2"]]}',
         maps={0b_0000_00: 0b_0000_00, 0b_0100_10: 0b_1000_10, 0b_1000_11: 0b_0001_11},
@@ -186,7 +189,7 @@ def test_arithmetic_multiply_accumulate_gates():
     )
 
 
-def test_modular_arithmetic_modulus_size():
+def test_modular_arithmetic_modulus_size() -> None:
     with pytest.raises(ValueError, match='too small for modulus'):
         _ = quirk_url_to_circuit(
             'https://algassert.com/quirk#circuit={"cols":['
@@ -208,7 +211,7 @@ def test_modular_arithmetic_modulus_size():
     assert_url_to_circuit_returns('{"cols":[["incmodR2",1,"inputR2"]]}')
 
 
-def test_arithmetic_modular_addition_gates():
+def test_arithmetic_modular_addition_gates() -> None:
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setR","arg":16}],["incmodR4"]]}',
         diagram="""
@@ -242,7 +245,7 @@ def test_arithmetic_modular_addition_gates():
     )
 
 
-def test_arithmetic_modular_multiply_accumulate_gates():
+def test_arithmetic_modular_multiply_accumulate_gates() -> None:
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setR","arg":5},{"id":"setA","arg":3},'
         '{"id":"setB","arg":4}],["+ABmodR4"]]}',
@@ -256,7 +259,7 @@ def test_arithmetic_modular_multiply_accumulate_gates():
     )
 
 
-def test_arithmetic_multiply_gates():
+def test_arithmetic_multiply_gates() -> None:
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":3}],["*A4"]]}', maps={0: 0, 1: 3, 3: 9, 9: 11, 11: 1}
     )
@@ -273,7 +276,7 @@ def test_arithmetic_multiply_gates():
     )
 
 
-def test_arithmetic_modular_multiply_gates():
+def test_arithmetic_modular_multiply_gates() -> None:
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":3},{"id":"setR","arg":7}],["*AmodR4"]]}',
         maps={0: 0, 1: 3, 3: 2, 2: 6, 6: 4, 4: 5, 5: 1, 7: 7, 15: 15},
@@ -294,7 +297,7 @@ def test_arithmetic_modular_multiply_gates():
     )
 
 
-def test_arithmetic_modular_exponentiation_gates():
+def test_arithmetic_modular_exponentiation_gates() -> None:
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":5},{"id":"setB","arg":3},'
         '{"id":"setR","arg":7}],["*BToAmodR4"]]}',
@@ -318,7 +321,7 @@ def test_arithmetic_modular_exponentiation_gates():
     )
 
 
-def test_repr():
+def test_repr() -> None:
     circuit = quirk_url_to_circuit(
         'https://algassert.com/quirk#circuit={"cols":'
         '['
@@ -336,7 +339,7 @@ def test_repr():
     )
 
 
-def test_with_registers():
+def test_with_registers() -> None:
     circuit = quirk_url_to_circuit(
         'https://algassert.com/quirk#circuit={"cols":'
         '['
@@ -363,7 +366,7 @@ def test_with_registers():
     )
 
 
-def test_helpers():
+def test_helpers() -> None:
     f = arithmetic_cells._popcnt
     assert f(0) == 0
     assert f(1) == 1
@@ -414,7 +417,7 @@ def test_helpers():
     assert h(7, 16) == 7
 
 
-def test_with_line_qubits_mapped_to():
+def test_with_line_qubits_mapped_to() -> None:
     a, b, c, d, e = cirq.LineQubit.range(5)
     a2, b2, c2, d2, e2 = cirq.NamedQubit.range(5, prefix='p')
 

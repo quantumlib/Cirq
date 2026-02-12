@@ -17,11 +17,11 @@
 from __future__ import annotations
 
 import warnings
+from collections.abc import Iterable, Sequence
 from types import EllipsisType, NotImplementedType
-from typing import Any, cast, Iterable, Optional, Sequence, Tuple, TYPE_CHECKING, TypeVar, Union
+from typing import Any, cast, Protocol, TYPE_CHECKING, TypeVar
 
 import numpy as np
-from typing_extensions import Protocol
 
 from cirq import linalg, qis
 from cirq._doc import doc_private
@@ -75,7 +75,7 @@ class ApplyUnitaryArgs:
         target_tensor: np.ndarray,
         available_buffer: np.ndarray,
         axes: Iterable[int],
-        subspaces: Optional[Sequence[Tuple[int, ...]]] = None,
+        subspaces: Sequence[tuple[int, ...]] | None = None,
     ):
         """Inits ApplyUnitaryArgs.
 
@@ -113,7 +113,7 @@ class ApplyUnitaryArgs:
 
     @staticmethod
     def default(
-        num_qubits: Optional[int] = None, *, qid_shape: Optional[Tuple[int, ...]] = None
+        num_qubits: int | None = None, *, qid_shape: tuple[int, ...] | None = None
     ) -> ApplyUnitaryArgs:
         """A default instance starting in state |0⟩.
 
@@ -132,14 +132,14 @@ class ApplyUnitaryArgs:
             raise TypeError('Specify exactly one of num_qubits or qid_shape.')
         if num_qubits is not None:
             qid_shape = (2,) * num_qubits
-        qid_shape = cast(Tuple[int, ...], qid_shape)  # Satisfy mypy
+        qid_shape = cast(tuple[int, ...], qid_shape)  # Satisfy mypy
         num_qubits = len(qid_shape)
         state = qis.one_hot(index=(0,) * num_qubits, shape=qid_shape, dtype=np.complex128)
         return ApplyUnitaryArgs(state, np.empty_like(state), range(num_qubits))
 
     @classmethod
     def for_unitary(
-        cls, num_qubits: Optional[int] = None, *, qid_shape: Optional[Tuple[int, ...]] = None
+        cls, num_qubits: int | None = None, *, qid_shape: tuple[int, ...] | None = None
     ) -> ApplyUnitaryArgs:
         """A default instance corresponding to an identity matrix.
 
@@ -159,7 +159,7 @@ class ApplyUnitaryArgs:
             raise TypeError('Specify exactly one of num_qubits or qid_shape.')
         if num_qubits is not None:
             qid_shape = (2,) * num_qubits
-        qid_shape = cast(Tuple[int, ...], qid_shape)  # Satisfy mypy
+        qid_shape = cast(tuple[int, ...], qid_shape)  # Satisfy mypy
         num_qubits = len(qid_shape)
         state = qis.eye_tensor(qid_shape, dtype=np.complex128)
         return ApplyUnitaryArgs(state, np.empty_like(state), range(num_qubits))
@@ -182,7 +182,7 @@ class ApplyUnitaryArgs:
         return ApplyUnitaryArgs(target_tensor, available_buffer, range(len(self.axes)))
 
     def _for_operation_with_qid_shape(
-        self, indices: Iterable[int], slices: Tuple[Union[int, slice], ...]
+        self, indices: Iterable[int], slices: tuple[int | slice, ...]
     ) -> ApplyUnitaryArgs:
         """Creates a sliced and transposed view of `self` appropriate for an
         operation with shape `qid_shape` on qubits with the given indices.
@@ -215,7 +215,7 @@ class ApplyUnitaryArgs:
 
     def subspace_index(
         self, little_endian_bits_int: int = 0, *, big_endian_bits_int: int = 0
-    ) -> Tuple[Union[slice, int, EllipsisType], ...]:
+    ) -> tuple[slice | int | EllipsisType, ...]:
         """An index for the subspace where the target axes equal a value.
 
         Args:
@@ -260,9 +260,7 @@ class SupportsConsistentApplyUnitary(Protocol):
     """An object that can be efficiently left-multiplied into tensors."""
 
     @doc_private
-    def _apply_unitary_(
-        self, args: ApplyUnitaryArgs
-    ) -> Union[np.ndarray, None, NotImplementedType]:
+    def _apply_unitary_(self, args: ApplyUnitaryArgs) -> np.ndarray | None | NotImplementedType:
         """Left-multiplies a unitary effect onto a tensor with good performance.
 
         This method is given both the target tensor and workspace of the same
@@ -308,10 +306,10 @@ class SupportsConsistentApplyUnitary(Protocol):
 def apply_unitary(
     unitary_value: Any,
     args: ApplyUnitaryArgs,
-    default: Union[np.ndarray, TDefault] = RaiseTypeErrorIfNotProvided,
+    default: np.ndarray | TDefault = RaiseTypeErrorIfNotProvided,
     *,
     allow_decompose: bool = True,
-) -> Union[np.ndarray, TDefault]:
+) -> np.ndarray | TDefault:
     """High performance left-multiplication of a unitary effect onto a tensor.
 
     Applies the unitary effect of `unitary_value` to the tensor specified in
@@ -422,7 +420,7 @@ def apply_unitary(
 
 def _strat_apply_unitary_from_apply_unitary(
     unitary_value: Any, args: ApplyUnitaryArgs
-) -> Optional[np.ndarray]:
+) -> np.ndarray | None:
     # Check for magic method.
     func = getattr(unitary_value, '_apply_unitary_', None)
     if func is None:
@@ -470,21 +468,26 @@ def _apply_unitary_from_matrix(matrix: np.ndarray, unitary_value: Any, args: App
 
 def _strat_apply_unitary_from_unitary(
     unitary_value: Any, args: ApplyUnitaryArgs
-) -> Optional[np.ndarray]:
-    # Check for magic method.
-    method = getattr(unitary_value, '_unitary_', None)
-    if method is None:
-        return NotImplemented
+) -> np.ndarray | None:
+    if isinstance(unitary_value, np.ndarray):
+        matrix = unitary_value
+        if not linalg.is_unitary(matrix):
+            return None
+    else:
+        # Check for magic method.
+        method = getattr(unitary_value, '_unitary_', None)
+        if method is None:
+            return NotImplemented
 
-    # Attempt to get the unitary matrix.
-    matrix = method()
-    if matrix is NotImplemented or matrix is None:
-        return matrix
+        # Attempt to get the unitary matrix.
+        matrix = method()
+        if matrix is NotImplemented or matrix is None:
+            return matrix
 
     return _apply_unitary_from_matrix(matrix, unitary_value, args)
 
 
-def _strat_apply_unitary_from_decompose(val: Any, args: ApplyUnitaryArgs) -> Optional[np.ndarray]:
+def _strat_apply_unitary_from_decompose(val: Any, args: ApplyUnitaryArgs) -> np.ndarray | None:
     operations, qubits, _ = _try_decompose_into_operations_and_qubits(val)
     if operations is None:
         return NotImplemented
@@ -509,9 +512,9 @@ def _strat_apply_unitary_from_decompose(val: Any, args: ApplyUnitaryArgs) -> Opt
 def apply_unitaries(
     unitary_values: Iterable[Any],
     qubits: Sequence[cirq.Qid],
-    args: Optional[ApplyUnitaryArgs] = None,
+    args: ApplyUnitaryArgs | None = None,
     default: Any = RaiseTypeErrorIfNotProvided,
-) -> Optional[np.ndarray]:
+) -> np.ndarray | None:
     """Apply a series of unitaries onto a state tensor.
 
     Uses `cirq.apply_unitary` on each of the unitary values, to apply them to
@@ -647,7 +650,7 @@ def _incorporate_result_into_target(
     return args.target_tensor
 
 
-def _to_slice(subspace_def: Tuple[int, ...]):
+def _to_slice(subspace_def: tuple[int, ...]):
     if len(subspace_def) < 1:
         raise ValueError(f'Subspace {subspace_def} has zero dimensions.')
 

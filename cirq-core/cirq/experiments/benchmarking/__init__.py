@@ -14,4 +14,4 @@
 
 """Tools for branchmarking NISQ circuits."""
 
-from cirq.experiments.benchmarking.parallel_xeb import parallel_two_qubit_xeb
+from cirq.experiments.benchmarking.parallel_xeb import parallel_two_qubit_xeb  # noqa: F401

@@ -1,4 +1,9 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
+from __future__ import annotations
+
+from collections.abc import Sequence
+
 import networkx as nx
 import numpy as np
 import pytest
@@ -23,14 +28,15 @@ def _get_circuit(width, height, rs, p=2):
     return circuit, qubits
 
 
-def test_simplify_sandwich():
+def test_simplify_sandwich() -> None:
     rs = np.random.RandomState(52)
     for width in [2, 3]:
         for height in [1, 3]:
             for p in [1, 2]:
                 circuit, qubits = _get_circuit(width=width, height=height, p=p, rs=rs)
+                operator: cirq.PauliString
                 operator = cirq.PauliString(
-                    {q: cirq.Z for q in rs.choice(qubits, size=2, replace=False)}
+                    dict.fromkeys(rs.choice(qubits, size=2, replace=False), cirq.Z)
                 )
                 tot_c = ccq.circuit_for_expectation_value(circuit, operator)
                 tot_c_init = tot_c.copy()
@@ -44,11 +50,12 @@ def test_simplify_sandwich():
 
 
 @pytest.mark.parametrize('simplify', [False, True])
-def test_circuit_to_tensors(simplify):
-    rs = np.random.RandomState(52)
+def test_circuit_to_tensors(simplify) -> None:
+    qubits: Sequence[cirq.Qid]
     qubits = cirq.LineQubit.range(2)
     circuit = cirq.testing.random_circuit(qubits=qubits, n_moments=10, op_density=0.8)
-    operator = cirq.PauliString({q: cirq.Z for q in rs.choice(qubits, size=2, replace=False)})
+    operator: cirq.PauliString
+    operator = cirq.PauliString(dict.fromkeys(qubits, cirq.Z))
 
     circuit_sand = ccq.circuit_for_expectation_value(circuit, operator)
     if simplify:
@@ -59,15 +66,16 @@ def test_circuit_to_tensors(simplify):
     np.testing.assert_allclose(u_tn, u_cirq, atol=1e-6)
 
 
-def test_tensor_expectation_value():
+def test_tensor_expectation_value() -> None:
     for _ in range(10):
         for width in [2, 3]:
             for height in [1, 3]:
                 for p in [1, 2]:
                     rs = np.random.RandomState(52)
                     circuit, qubits = _get_circuit(width=width, height=height, p=p, rs=rs)
+                    operator: cirq.PauliString
                     operator = cirq.PauliString(
-                        {q: cirq.Z for q in rs.choice(qubits, size=2, replace=False)},
+                        dict.fromkeys(rs.choice(qubits, size=2, replace=False), cirq.Z),
                         coefficient=rs.uniform(-1, 1),
                     )
 

@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable
+from __future__ import annotations
+
+from collections.abc import Callable
 
 from cirq import circuits, devices, ops
 
@@ -27,7 +29,7 @@ class QubitMapper:
     def map_moment(self, moment: circuits.Moment) -> circuits.Moment:
         return circuits.Moment(self.map_operation(op) for op in moment.operations)
 
-    def optimize_circuit(self, circuit: circuits.Circuit):
+    def optimize_circuit(self, circuit: circuits.Circuit) -> None:
         circuit[:] = (self.map_moment(m) for m in circuit)
 
 

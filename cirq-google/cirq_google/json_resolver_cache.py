@@ -14,18 +14,22 @@
 
 """Module for use in exporting cirq-google objects in JSON."""
 
+from __future__ import annotations
+
 import functools
 import warnings
-from typing import Dict
+from typing import TYPE_CHECKING
 
-from cirq.protocols.json_serialization import ObjectFactory
 from cirq.transformers.heuristic_decompositions.two_qubit_gate_tabulation import (
     TwoQubitGateTabulation,
 )
 
+if TYPE_CHECKING:
+    from cirq.protocols.json_serialization import ObjectFactory
+
 
 @functools.lru_cache()
-def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
+def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
     def _old_xmon(*args, **kwargs):
         d_type = kwargs['constant']
         warnings.warn(
@@ -40,13 +44,20 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
 
     return {
         '_NamedConstantXmonDevice': _old_xmon,
+        'AnalogDetuneCouplerOnly': cirq_google.AnalogDetuneCouplerOnly,
+        'AnalogDetuneQubit': cirq_google.AnalogDetuneQubit,
         'Calibration': cirq_google.Calibration,
         'CalibrationTag': cirq_google.CalibrationTag,
         'CalibrationLayer': cirq_google.CalibrationLayer,
+        'CompressDurationTag': cirq_google.CompressDurationTag,
         'CouplerPulse': cirq_google.experimental.CouplerPulse,
         'Coupler': cirq_google.Coupler,
         'GoogleNoiseProperties': cirq_google.GoogleNoiseProperties,
+        'PerQubitDepolarizingWithDampedReadoutNoiseModel': (
+            cirq_google.experimental.PerQubitDepolarizingWithDampedReadoutNoiseModel
+        ),
         'SycamoreGate': cirq_google.SycamoreGate,
+        'WaitGateWithUnit': cirq_google.WaitGateWithUnit,
         'WillowGate': cirq_google.WillowGate,
         # cirq_google.GateTabulation has been removed and replaced by cirq.TwoQubitGateTabulation.
         'GateTabulation': TwoQubitGateTabulation,
@@ -63,18 +74,14 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'cirq.google.ExecutableResult': cirq_google.ExecutableResult,
         'cirq.google.ExecutableGroupResult': cirq_google.ExecutableGroupResult,
         # Pylint fights with the black formatter.
-        # pylint: disable=line-too-long
-        'cirq.google.ExecutableGroupResultFilesystemRecord': cirq_google.ExecutableGroupResultFilesystemRecord,
-        # pylint: enable=line-too-long
+        'cirq.google.ExecutableGroupResultFilesystemRecord': cirq_google.ExecutableGroupResultFilesystemRecord,  # noqa: E501
         'cirq.google.QuantumRuntimeConfiguration': cirq_google.QuantumRuntimeConfiguration,
         'cirq.google.NaiveQubitPlacer': cirq_google.NaiveQubitPlacer,
         'cirq.google.RandomDevicePlacer': cirq_google.RandomDevicePlacer,
         'cirq.google.EngineProcessorRecord': cirq_google.EngineProcessorRecord,
         'cirq.google.SimulatedProcessorRecord': cirq_google.SimulatedProcessorRecord,
-        # pylint: disable=line-too-long
-        'cirq.google.SimulatedProcessorWithLocalDeviceRecord': cirq_google.SimulatedProcessorWithLocalDeviceRecord,
+        'cirq.google.SimulatedProcessorWithLocalDeviceRecord': cirq_google.SimulatedProcessorWithLocalDeviceRecord,  # noqa: E501
         'cirq.google.HardcodedQubitPlacer': cirq_google.HardcodedQubitPlacer,
-        # pylint: enable=line-too-long
         'cirq.google.EngineResult': cirq_google.EngineResult,
         'cirq.google.GridDevice': cirq_google.GridDevice,
         'cirq.google.GoogleCZTargetGateset': cirq_google.GoogleCZTargetGateset,

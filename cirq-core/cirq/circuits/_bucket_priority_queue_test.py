@@ -12,14 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 
 import cirq
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 
 
-def test_init():
-    q = BucketPriorityQueue()
+def test_init() -> None:
+    q: BucketPriorityQueue = BucketPriorityQueue()
     assert not q.drop_duplicate_entries
     assert list(q) == []
     assert len(q) == 0
@@ -40,7 +42,7 @@ def test_init():
     assert bool(q)
 
 
-def test_eq():
+def test_eq() -> None:
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(
         BucketPriorityQueue(),
@@ -69,8 +71,8 @@ def test_eq():
     )
 
 
-def test_enqueue_dequeue():
-    q = BucketPriorityQueue()
+def test_enqueue_dequeue() -> None:
+    q: BucketPriorityQueue = BucketPriorityQueue()
     q.enqueue(5, 'a')
     assert q == BucketPriorityQueue([(5, 'a')])
     q.enqueue(4, 'b')
@@ -83,10 +85,10 @@ def test_enqueue_dequeue():
         _ = q.dequeue()
 
 
-def test_drop_duplicates_enqueue():
-    q0 = BucketPriorityQueue()
-    q1 = BucketPriorityQueue(drop_duplicate_entries=False)
-    q2 = BucketPriorityQueue(drop_duplicate_entries=True)
+def test_drop_duplicates_enqueue() -> None:
+    q0: BucketPriorityQueue = BucketPriorityQueue()
+    q1: BucketPriorityQueue = BucketPriorityQueue(drop_duplicate_entries=False)
+    q2: BucketPriorityQueue = BucketPriorityQueue(drop_duplicate_entries=True)
     for q in [q0, q1, q2]:
         for _ in range(2):
             q.enqueue(0, 'a')
@@ -95,10 +97,10 @@ def test_drop_duplicates_enqueue():
     assert q2 == BucketPriorityQueue([(0, 'a')], drop_duplicate_entries=True)
 
 
-def test_drop_duplicates_dequeue():
-    q0 = BucketPriorityQueue()
-    q1 = BucketPriorityQueue(drop_duplicate_entries=False)
-    q2 = BucketPriorityQueue(drop_duplicate_entries=True)
+def test_drop_duplicates_dequeue() -> None:
+    q0: BucketPriorityQueue = BucketPriorityQueue()
+    q1: BucketPriorityQueue = BucketPriorityQueue(drop_duplicate_entries=False)
+    q2: BucketPriorityQueue = BucketPriorityQueue(drop_duplicate_entries=True)
     for q in [q0, q1, q2]:
         q.enqueue(0, 'a')
         q.enqueue(0, 'b')
@@ -111,11 +113,11 @@ def test_drop_duplicates_dequeue():
     assert q2 == BucketPriorityQueue([(0, 'b'), (0, 'a')], drop_duplicate_entries=True)
 
 
-def test_same_priority_fifo():
+def test_same_priority_fifo() -> None:
     a = (5, 'a')
     b = (5, 'b')
     for x, y in [(a, b), (b, a)]:
-        q = BucketPriorityQueue()
+        q: BucketPriorityQueue = BucketPriorityQueue()
         q.enqueue(*x)
         q.enqueue(*y)
         assert q
@@ -125,23 +127,23 @@ def test_same_priority_fifo():
         assert not q
 
 
-def test_supports_arbitrary_offsets():
+def test_supports_arbitrary_offsets() -> None:
     m = 1 << 60
 
-    q_neg = BucketPriorityQueue()
+    q_neg: BucketPriorityQueue = BucketPriorityQueue()
     q_neg.enqueue(-m + 0, 'b')
     q_neg.enqueue(-m - 4, 'a')
     q_neg.enqueue(-m + 4, 'c')
     assert list(q_neg) == [(-m - 4, 'a'), (-m, 'b'), (-m + 4, 'c')]
 
-    q_pos = BucketPriorityQueue()
+    q_pos: BucketPriorityQueue = BucketPriorityQueue()
     q_pos.enqueue(m + 0, 'b')
     q_pos.enqueue(m + 4, 'c')
     q_pos.enqueue(m - 4, 'a')
     assert list(q_pos) == [(m - 4, 'a'), (m, 'b'), (m + 4, 'c')]
 
 
-def test_repr():
+def test_repr() -> None:
     r = repr(BucketPriorityQueue(entries=[(1, 2), (3, 4)], drop_duplicate_entries=True))
     assert r.endswith('BucketPriorityQueue(entries=[(1, 2), (3, 4)], drop_duplicate_entries=True)')
 
@@ -152,13 +154,10 @@ def test_repr():
     )
 
 
-def test_str():
+def test_str() -> None:
     s = str(BucketPriorityQueue(entries=[(1, 2), (3, 4)], drop_duplicate_entries=True))
-    assert (
-        s
-        == """
+    assert s == """
 BucketPriorityQueue {
     1: 2,
     3: 4,
 }""".strip()
-    )

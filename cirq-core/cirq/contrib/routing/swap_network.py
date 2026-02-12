@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Dict, Iterable, TYPE_CHECKING
+from collections.abc import Iterable
+from typing import TYPE_CHECKING
 
 import cirq.contrib.acquaintance as cca
 from cirq import ops
@@ -37,13 +38,13 @@ class SwapNetwork:
         initial_mapping: The initial mapping from physical to logical qubits.
     """
 
-    def __init__(self, circuit: cirq.Circuit, initial_mapping: Dict[cirq.Qid, cirq.Qid]) -> None:
+    def __init__(self, circuit: cirq.Circuit, initial_mapping: dict[cirq.Qid, cirq.Qid]) -> None:
         if not all(isinstance(i, ops.Qid) for I in initial_mapping.items() for i in I):
             raise ValueError('Mapping must be from Qids to Qids.')
         self.circuit = circuit
         self.initial_mapping = initial_mapping
 
-    def final_mapping(self) -> Dict[cirq.Qid, cirq.Qid]:
+    def final_mapping(self) -> dict[cirq.Qid, cirq.Qid]:
         mapping = dict(self.initial_mapping)
         cca.update_mapping(mapping, self.circuit.all_operations())
         return mapping

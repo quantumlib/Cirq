@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
+from collections.abc import Mapping, Sequence
+from typing import Any, TYPE_CHECKING
 
 from cirq import devices
 from cirq.devices import noise_utils
@@ -44,21 +45,21 @@ class InsertionNoiseModel(devices.NoiseModel):
             with PHYSICAL_GATE_TAG.
     """
 
-    ops_added: Dict[noise_utils.OpIdentifier, cirq.Operation] = dataclasses.field(
+    ops_added: Mapping[noise_utils.OpIdentifier, cirq.Operation] = dataclasses.field(
         default_factory=dict
     )
     prepend: bool = False
     require_physical_tag: bool = True
 
     def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
-        noise_ops: List[cirq.Operation] = []
+        noise_ops: list[cirq.Operation] = []
         candidate_ops = [
             op
             for op in moment
             if (not self.require_physical_tag) or noise_utils.PHYSICAL_GATE_TAG in op.tags
         ]
         for op in candidate_ops:
-            match_id: Optional[noise_utils.OpIdentifier] = None
+            match_id: noise_utils.OpIdentifier | None = None
             candidate_ids = [op_id for op_id in self.ops_added if op in op_id]
             for op_id in candidate_ids:
                 if match_id is None or op_id.is_proper_subtype_of(match_id):
@@ -78,11 +79,11 @@ class InsertionNoiseModel(devices.NoiseModel):
     def __repr__(self) -> str:
         return (
             f'cirq.devices.InsertionNoiseModel(ops_added={self.ops_added},'
-            + f' prepend={self.prepend},'
-            + f' require_physical_tag={self.require_physical_tag})'
+            f' prepend={self.prepend},'
+            f' require_physical_tag={self.require_physical_tag})'
         )
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             'ops_added': list(self.ops_added.items()),
             'prepend': self.prepend,

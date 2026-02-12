@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import os
 from pathlib import Path
 from unittest import mock
@@ -34,7 +36,7 @@ def remove_whitespace(string: str) -> str:
     return "".join(string.split())
 
 
-def test_repr_html(tmpdir):
+def test_repr_html(tmpdir) -> None:
     # # Reset the path so the files are accessible
     cirq_web.widget._DIST_PATH = Path(tmpdir) / "dir"
     path = tmpdir.mkdir('dir').join('testfile.txt')
@@ -54,7 +56,7 @@ def test_repr_html(tmpdir):
 
 
 @mock.patch.dict(os.environ, {"BROWSER": "true"})
-def test_generate_html_file_with_browser(tmpdir):
+def test_generate_html_file_with_browser(tmpdir) -> None:
     # # Reset the path so the files are accessible
     cirq_web.widget._DIST_PATH = Path(tmpdir) / "dir"
     path = tmpdir.mkdir('dir')
@@ -64,7 +66,8 @@ def test_generate_html_file_with_browser(tmpdir):
 
     test_widget = FakeWidget()
     test_html_path = test_widget.generate_html_file(str(path), 'test.html', open_in_browser=True)
-    actual = open(test_html_path, 'r', encoding='utf-8').read()
+    with open(test_html_path, 'r', encoding='utf-8') as file:
+        actual = file.read()
 
     expected = f"""
         <meta charset="UTF-8">

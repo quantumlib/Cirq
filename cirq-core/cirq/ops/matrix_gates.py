@@ -16,13 +16,14 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, List, Optional, Tuple, TYPE_CHECKING
+from collections.abc import Iterable
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import _import, linalg, protocols
 from cirq._compat import proper_repr
-from cirq.ops import global_phase_op, identity, phased_x_z_gate, raw_types
+from cirq.ops import global_phase_op, phased_x_z_gate, raw_types
 
 if TYPE_CHECKING:
     import cirq
@@ -55,8 +56,8 @@ class MatrixGate(raw_types.Gate):
         self,
         matrix: np.ndarray,
         *,
-        name: Optional[str] = None,
-        qid_shape: Optional[Iterable[int]] = None,
+        name: str | None = None,
+        qid_shape: Iterable[int] | None = None,
         unitary_check: bool = True,
         unitary_check_rtol: float = 1e-5,
         unitary_check_atol: float = 1e-8,
@@ -115,7 +116,7 @@ class MatrixGate(raw_types.Gate):
         """Creates a new MatrixGate with the same matrix and a new name."""
         return MatrixGate(self._matrix, name=name, qid_shape=self._qid_shape, unitary_check=False)
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             'matrix': self._matrix.tolist(),
             'qid_shape': self._qid_shape,
@@ -126,7 +127,7 @@ class MatrixGate(raw_types.Gate):
     def _from_json_dict_(cls, matrix, qid_shape, name=None, **kwargs):
         return cls(matrix=np.array(matrix), qid_shape=qid_shape, name=name)
 
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         return self._qid_shape
 
     def __pow__(self, exponent: Any) -> MatrixGate:
@@ -149,10 +150,10 @@ class MatrixGate(raw_types.Gate):
         result[linalg.slice_for_qubits_equal_to([j], 1)] *= np.conj(p)
         return MatrixGate(matrix=result.reshape(self._matrix.shape), qid_shape=self._qid_shape)
 
-    def _decompose_(self, qubits: Tuple[cirq.Qid, ...]) -> cirq.OP_TREE:
+    def _decompose_(self, qubits: tuple[cirq.Qid, ...]) -> cirq.OP_TREE:
         from cirq.circuits import Circuit
 
-        decomposed: List[cirq.Operation] = NotImplemented
+        decomposed: list[cirq.Operation] = NotImplemented
         if self._qid_shape == (2,):
             decomposed = [
                 g.on(qubits[0])
@@ -170,8 +171,8 @@ class MatrixGate(raw_types.Gate):
             return NotImplemented
         # The above algorithms ignore phase, but phase is important to maintain if the gate is
         # controlled. Here, we add it back in with a global phase op.
-        ident = identity.IdentityGate(qid_shape=self._qid_shape).on(*qubits)  # Preserve qid order
-        u = protocols.unitary(Circuit(ident, *decomposed)).reshape(self._matrix.shape)
+        circuit = Circuit(*decomposed)
+        u = circuit.unitary(qubit_order=qubits, qubits_that_should_be_present=qubits)
         phase_delta = linalg.phase_delta(u, self._matrix)
         # Phase delta is on the complex unit circle, so if real(phase_delta) >= 1, that means
         # no phase delta. (>1 is rounding error).
@@ -199,7 +200,7 @@ class MatrixGate(raw_types.Gate):
         rest = [f'#{i+1}' for i in range(1, n_qubits)]
         return protocols.CircuitDiagramInfo(wire_symbols=[main, *rest])
 
-    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> str | None:
         args.validate_version('2.0', '3.0')
         if self._qid_shape == (2,):
             return protocols.qasm(

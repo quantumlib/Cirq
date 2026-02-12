@@ -3,6 +3,7 @@
 See cirq/_compat_test.py for the tests.
 This module contains example deprecations for modules.
 """
+
 import logging
 
 from cirq import _compat
@@ -64,11 +65,11 @@ _compat.deprecated_submodule(
 
 # simulates a move of child module to a top level module.
 # this will be the case with cirq.google -> cirq_google
-# fake_freezegun -> freezegun
+# fake_numpy -> numpy
 _compat.deprecated_submodule(
-    new_module_name="freezegun",
+    new_module_name="numpy",
     old_parent=__name__,
-    old_child="fake_freezegun",
+    old_child="fake_numpy",
     deadline="v0.20",
     create_attribute=False,
 )

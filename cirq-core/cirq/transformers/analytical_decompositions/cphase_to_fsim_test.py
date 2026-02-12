@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
-from typing import List, Sequence, Tuple
+from collections.abc import Sequence
 
 import numpy as np
 import pytest
@@ -22,7 +24,7 @@ import sympy
 import cirq
 
 
-def test_symbols():
+def test_symbols() -> None:
     with pytest.raises(ValueError, match='Symbolic arguments'):
         cirq.compute_cphase_exponents_for_fsim_decomposition(
             cirq.FSimGate(theta=sympy.Symbol('t'), phi=sympy.Symbol('phi'))
@@ -34,8 +36,9 @@ class FakeSycamoreGate(cirq.FSimGate):
         super().__init__(theta=np.pi / 2, phi=np.pi / 6)
 
 
-def test_parameterized_gates():
+def test_parameterized_gates() -> None:
     t = sympy.Symbol('t')
+    fsim_gate: cirq.FSimGate
     with pytest.raises(ValueError):
         cphase_gate = cirq.CZPowGate(exponent=t)
         fsim_gate = FakeSycamoreGate()
@@ -52,14 +55,14 @@ def test_parameterized_gates():
         cirq.decompose_cphase_into_two_fsim(cphase_gate, fsim_gate=fsim_gate)
 
 
-def test_invalid_qubits():
+def test_invalid_qubits() -> None:
     with pytest.raises(ValueError):
         cirq.decompose_cphase_into_two_fsim(
             cphase_gate=cirq.CZ, fsim_gate=FakeSycamoreGate(), qubits=cirq.LineQubit.range(3)
         )
 
 
-def test_circuit_structure():
+def test_circuit_structure() -> None:
     syc = FakeSycamoreGate()
     ops = cirq.decompose_cphase_into_two_fsim(cirq.CZ, fsim_gate=syc)
     num_interaction_moments = 0
@@ -71,7 +74,7 @@ def test_circuit_structure():
     assert num_interaction_moments == 2
 
 
-def assert_decomposition_valid(cphase_gate, fsim_gate):
+def assert_decomposition_valid(cphase_gate, fsim_gate) -> None:
     u_expected = cirq.unitary(cphase_gate)
     ops = cirq.decompose_cphase_into_two_fsim(cphase_gate, fsim_gate=fsim_gate)
     u_actual = cirq.unitary(cirq.Circuit(ops))
@@ -81,7 +84,7 @@ def assert_decomposition_valid(cphase_gate, fsim_gate):
 @pytest.mark.parametrize(
     'exponent', (-5.5, -3, -1.5, -1, -0.65, -0.2, 0, 0.1, 0.75, 1, 1.5, 2, 5.5)
 )
-def test_decomposition_to_sycamore_gate(exponent):
+def test_decomposition_to_sycamore_gate(exponent) -> None:
     cphase_gate = cirq.CZPowGate(exponent=exponent)
     assert_decomposition_valid(cphase_gate, FakeSycamoreGate())
 
@@ -93,7 +96,7 @@ def test_decomposition_to_sycamore_gate(exponent):
         (-1.4 * np.pi, -np.pi / 9, np.pi / 11, np.pi / 2, 2.4 * np.pi),
     ),
 )
-def test_valid_cphase_exponents(theta, phi):
+def test_valid_cphase_exponents(theta, phi) -> None:
     fsim_gate = cirq.FSimGate(theta=theta, phi=phi)
     valid_exponent_intervals = cirq.compute_cphase_exponents_for_fsim_decomposition(fsim_gate)
     assert valid_exponent_intervals
@@ -111,9 +114,9 @@ def test_valid_cphase_exponents(theta, phi):
                 assert_decomposition_valid(cphase_gate, fsim_gate=fsim_gate)
 
 
-def complement_intervals(intervals: Sequence[Tuple[float, float]]) -> Sequence[Tuple[float, float]]:
+def complement_intervals(intervals: Sequence[tuple[float, float]]) -> Sequence[tuple[float, float]]:
     """Computes complement of union of intervals in [0, 2]."""
-    complements: List[Tuple[float, float]] = []
+    complements: list[tuple[float, float]] = []
     a = 0.0
     for b, c in intervals:
         complements.append((a, b))
@@ -129,7 +132,7 @@ def complement_intervals(intervals: Sequence[Tuple[float, float]]) -> Sequence[T
         (-1.7 * np.pi, -np.pi / 5, np.pi / 7, 2.5 * np.pi),
     ),
 )
-def test_invalid_cphase_exponents(theta, phi):
+def test_invalid_cphase_exponents(theta, phi) -> None:
     fsim_gate = cirq.FSimGate(theta=theta, phi=phi)
     valid_exponent_intervals = cirq.compute_cphase_exponents_for_fsim_decomposition(fsim_gate)
     invalid_exponent_intervals = complement_intervals(valid_exponent_intervals)
@@ -149,6 +152,6 @@ def test_invalid_cphase_exponents(theta, phi):
 @pytest.mark.parametrize(
     'bad_fsim_gate', (cirq.FSimGate(theta=0, phi=0), cirq.FSimGate(theta=np.pi / 4, phi=np.pi / 2))
 )
-def test_invalid_fsim_gate(bad_fsim_gate):
+def test_invalid_fsim_gate(bad_fsim_gate) -> None:
     with pytest.raises(ValueError):
         cirq.decompose_cphase_into_two_fsim(cirq.CZ, fsim_gate=bad_fsim_gate)

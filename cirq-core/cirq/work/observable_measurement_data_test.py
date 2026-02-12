@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import dataclasses
 import datetime
 import time
@@ -113,7 +116,7 @@ def test_observable_measured_result():
 
 
 @pytest.fixture
-def example_bsa() -> 'cw.BitstringAccumulator':
+def example_bsa() -> cw.BitstringAccumulator:
     """Test fixture to create an (empty) example BitstringAccumulator"""
     q0, q1 = cirq.LineQubit.range(2)
     setting = cw.InitObsSetting(
@@ -181,13 +184,10 @@ def test_bitstring_accumulator_strings(example_bsa):
     for setting, ssb in zip(settings, strings_should_be):
         assert example_bsa.summary_string(setting) == ssb, ssb
 
-    assert (
-        str(example_bsa)
-        == """Accumulator +Z(q(0)) * +Z(q(1)) → X(q(0))*Y(q(1)); 4 repetitions
+    assert str(example_bsa) == """Accumulator +Z(q(0)) * +Z(q(1)) → X(q(0))*Y(q(1)); 4 repetitions
   +Z(q(0)) * +Z(q(1)) → X(q(0))*Y(q(1)): 0.000 +- 0.577
   +Z(q(0)) * +Z(q(1)) → X(q(0)): 0.000 +- 0.577
   +Z(q(0)) * +Z(q(1)) → Y(q(1)): 0.000 +- 0.577"""
-    )
 
 
 def test_bitstring_accumulator_equality():

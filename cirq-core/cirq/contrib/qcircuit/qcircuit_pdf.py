@@ -12,24 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 
 import errno
 import os
+from typing import TYPE_CHECKING
 
 from pylatex import Document, NoEscape, Package
 
-from cirq import circuits
 from cirq.contrib.qcircuit.qcircuit_diagram import circuit_to_latex_using_qcircuit
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def circuit_to_pdf_using_qcircuit_via_tex(
-    circuit: circuits.Circuit,
+    circuit: cirq.Circuit,
     filepath: str,
     pdf_kwargs=None,
     qcircuit_kwargs=None,
     clean_ext=('dvi', 'ps'),
     documentclass='article',
-):
+) -> None:
     """Compiles the QCircuit-based latex diagram of the given circuit.
 
     Args:

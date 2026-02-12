@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Dict, List, Sequence
+
+from __future__ import annotations
+
+from collections.abc import Sequence
+from typing import Any
 
 import cirq
 import cirq_pasqal
@@ -30,7 +34,7 @@ class PasqalNoiseModel(cirq.devices.NoiseModel):
             )
         self.device = device
 
-    def get_default_noise_dict(self) -> Dict[str, Any]:
+    def get_default_noise_dict(self) -> dict[str, Any]:
         """Returns the current noise parameters"""
         default_noise_dict = {
             str(cirq.YPowGate()): cirq.depolarize(1e-2),
@@ -47,7 +51,7 @@ class PasqalNoiseModel(cirq.devices.NoiseModel):
 
     def noisy_moment(
         self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]
-    ) -> List[cirq.Operation]:
+    ) -> list[cirq.Operation]:
         """Returns a list of noisy moments.
         The model includes
         - Depolarizing noise with gate-dependent strength

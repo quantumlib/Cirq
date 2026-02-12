@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import os.path
 import re
-from typing import cast, Dict, List, Optional, Set, Tuple
+from typing import cast
 
 from dev_tools import env_tools, shell_tools
 
@@ -56,7 +58,7 @@ IGNORED_LINE_PATTERNS = [
 EXPLICIT_OPT_OUT_PATTERN = r'#\s*pragma:\s*no cover\s*$'
 
 
-def diff_to_new_interesting_lines(unified_diff_lines: List[str]) -> Dict[int, str]:
+def diff_to_new_interesting_lines(unified_diff_lines: list[str]) -> dict[int, str]:
     """Extracts a set of 'interesting' lines out of a GNU unified diff format.
 
     Format:
@@ -94,7 +96,7 @@ def diff_to_new_interesting_lines(unified_diff_lines: List[str]) -> Dict[int, st
         value equal to the reason the line was touched. Includes added lines
         and lines near changes (including removals).
     """
-    interesting_lines = dict()
+    interesting_lines = {}
     for diff_line in unified_diff_lines:
         # Parse the 'new file' range parts of the unified diff.
         if not diff_line.startswith('@@ '):
@@ -122,8 +124,8 @@ def fix_line_from_coverage_file(line):
 
 
 def get_incremental_uncovered_lines(
-    abs_path: str, base_commit: str, actual_commit: Optional[str]
-) -> List[Tuple[int, str, str]]:
+    abs_path: str, base_commit: str, actual_commit: str | None
+) -> list[tuple[int, str, str]]:
     """Find touched but uncovered lines in the given file.
 
     Uses git diff and the annotation files created by `pytest --cov-report annotate` to find
@@ -189,9 +191,9 @@ def line_content_counts_as_uncovered_manual(content: str) -> bool:
     return True
 
 
-def determine_ignored_lines(content: str) -> Set[int]:
+def determine_ignored_lines(content: str) -> set[int]:
     lines = content.split('\n')
-    result: List[int] = []
+    result: list[int] = []
 
     explicit_opt_out_regexp = re.compile(EXPLICIT_OPT_OUT_PATTERN)
     i = 0
@@ -219,7 +221,7 @@ def determine_ignored_lines(content: str) -> Set[int]:
     return {e + 1 for e in result}
 
 
-def naive_find_end_of_scope(lines: List[str], i: int) -> int:
+def naive_find_end_of_scope(lines: list[str], i: int) -> int:
     # TODO: deal with line continuations, which may be less indented.
     # Github issue: https://github.com/quantumlib/Cirq/issues/2968
     line = lines[i]

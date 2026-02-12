@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import itertools
 import math
-from typing import Any, Dict, Iterable, List, Mapping, Optional, TYPE_CHECKING
+from collections.abc import Iterable, Mapping
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 from scipy.sparse import csr_matrix
@@ -26,7 +27,7 @@ def _check_qids_dimension(qids):
 class ProjectorString:
     """Mapping of `cirq.Qid` to measurement values (with a coefficient) representing a projector."""
 
-    def __init__(self, projector_dict: Dict[cirq.Qid, int], coefficient: complex = 1):
+    def __init__(self, projector_dict: dict[cirq.Qid, int], coefficient: complex = 1):
         """Constructor for ProjectorString
 
         Args:
@@ -39,14 +40,14 @@ class ProjectorString:
         self._coefficient = complex(coefficient)
 
     @property
-    def projector_dict(self) -> Dict[cirq.Qid, int]:
+    def projector_dict(self) -> dict[cirq.Qid, int]:
         return self._projector_dict
 
     @property
     def coefficient(self) -> complex:
         return self._coefficient
 
-    def matrix(self, projector_qids: Optional[Iterable[cirq.Qid]] = None) -> csr_matrix:
+    def matrix(self, projector_qids: Iterable[cirq.Qid] | None = None) -> csr_matrix:
         """Returns the matrix of self in computational basis of qubits.
 
         Args:
@@ -82,7 +83,7 @@ class ProjectorString:
 
     def _get_idx_to_keep(self, qid_map: Mapping[cirq.Qid, int]):
         num_qubits = len(qid_map)
-        idx_to_keep: List[Any] = [slice(0, 2)] * num_qubits
+        idx_to_keep: list[Any] = [slice(0, 2)] * num_qubits
         for q in self.projector_dict.keys():
             idx_to_keep[qid_map[q]] = self.projector_dict[q]
         return tuple(idx_to_keep)
@@ -135,10 +136,10 @@ class ProjectorString:
     def __repr__(self) -> str:
         return (
             f"cirq.ProjectorString(projector_dict={self._projector_dict},"
-            + f"coefficient={self._coefficient})"
+            f"coefficient={self._coefficient})"
         )
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             'projector_dict': list(self._projector_dict.items()),
             'coefficient': self._coefficient,

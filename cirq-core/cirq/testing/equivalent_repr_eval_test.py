@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
 import cirq
 
 
-def test_external():
+def test_external() -> None:
     for t in ['a', 1j]:
         cirq.testing.assert_equivalent_repr(t)
         cirq.testing.assert_equivalent_repr(t, setup_code='')
@@ -29,7 +31,7 @@ def test_external():
         cirq.testing.assert_equivalent_repr(np.array([5]))
 
 
-def test_custom_class_repr():
+def test_custom_class_repr() -> None:
     class CustomRepr:  # pragma: no cover
         setup_code = """class CustomRepr:
             def __init__(self, eq_val):
@@ -81,5 +83,5 @@ def test_custom_class_repr():
         )
 
 
-def test_imports_cirq_by_default():
+def test_imports_cirq_by_default() -> None:
     cirq.testing.assert_equivalent_repr(cirq.NamedQubit('a'))

@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 
-from typing import Any, Callable, Iterable, Optional, Tuple, TYPE_CHECKING, TypeVar
-
-from cirq.ops import raw_types
+from collections.abc import Callable, Iterable
+from typing import Any, TYPE_CHECKING, TypeVar
 
 if TYPE_CHECKING:
-    from cirq.ops import qubit_order_or_list
+    import cirq
 
 
 TInternalQubit = TypeVar('TInternalQubit')
@@ -28,12 +28,10 @@ TExternalQubit = TypeVar('TExternalQubit')
 class QubitOrder:
     """Defines the kronecker product order of qubits."""
 
-    def __init__(
-        self, explicit_func: Callable[[Iterable[raw_types.Qid]], Tuple[raw_types.Qid, ...]]
-    ) -> None:
+    def __init__(self, explicit_func: Callable[[Iterable[cirq.Qid]], tuple[cirq.Qid, ...]]) -> None:
         self._explicit_func = explicit_func
 
-    DEFAULT: 'QubitOrder'
+    DEFAULT: QubitOrder
     """A basis that orders qubits in the same way that calling `sorted` does.
 
     Specifically, qubits are ordered first by their type name and then by
@@ -43,8 +41,8 @@ class QubitOrder:
 
     @staticmethod
     def explicit(
-        fixed_qubits: Iterable[raw_types.Qid], fallback: Optional['QubitOrder'] = None
-    ) -> 'QubitOrder':
+        fixed_qubits: Iterable[cirq.Qid], fallback: QubitOrder | None = None
+    ) -> QubitOrder:
         """A basis that contains exactly the given qubits in the given order.
 
         Args:
@@ -77,7 +75,7 @@ class QubitOrder:
         return QubitOrder(func)
 
     @staticmethod
-    def sorted_by(key: Callable[[raw_types.Qid], Any]) -> 'QubitOrder':
+    def sorted_by(key: Callable[[cirq.Qid], Any]) -> QubitOrder:
         """A basis that orders qubits ascending based on a key function.
 
         Args:
@@ -89,7 +87,7 @@ class QubitOrder:
         """
         return QubitOrder(lambda qubits: tuple(sorted(qubits, key=key)))
 
-    def order_for(self, qubits: Iterable[raw_types.Qid]) -> Tuple[raw_types.Qid, ...]:
+    def order_for(self, qubits: Iterable[cirq.Qid]) -> tuple[cirq.Qid, ...]:
         """Returns a qubit tuple ordered corresponding to the basis.
 
         Args:
@@ -104,7 +102,7 @@ class QubitOrder:
         return self._explicit_func(qubits)
 
     @staticmethod
-    def as_qubit_order(val: 'qubit_order_or_list.QubitOrderOrList') -> 'QubitOrder':
+    def as_qubit_order(val: cirq.QubitOrderOrList) -> QubitOrder:
         """Converts a value into a basis.
 
         Args:
@@ -126,7 +124,7 @@ class QubitOrder:
         self,
         internalize: Callable[[TExternalQubit], TInternalQubit],
         externalize: Callable[[TInternalQubit], TExternalQubit],
-    ) -> 'QubitOrder':
+    ) -> QubitOrder:
         """Transforms the Basis so that it applies to wrapped qubits.
 
         Args:

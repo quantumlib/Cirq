@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Tests for EngineClient."""
+
+from __future__ import annotations
+
 import asyncio
 import datetime
 import os
@@ -24,9 +28,11 @@ from google.protobuf import any_pb2
 from google.protobuf.field_mask_pb2 import FieldMask
 from google.protobuf.timestamp_pb2 import Timestamp
 
+import cirq.testing
 import cirq_google.engine.stream_manager as engine_stream_manager
 from cirq_google.cloud import quantum
 from cirq_google.engine.engine_client import EngineClient, EngineException
+from cirq_google.engine.processor_config import Run, Snapshot
 
 # JOB_PATH represents the path to a specific job.
 JOB_PATH = 'projects/proj/programs/prog/jobs/job0'
@@ -151,7 +157,7 @@ def test_list_program(client_constructor, default_engine_client):
         quantum.QuantumProgram(name='projects/proj/programs/prog1'),
         quantum.QuantumProgram(name='projects/proj/programs/prog2'),
     ]
-    grpc_client.list_quantum_programs.return_value = results
+    grpc_client.list_quantum_programs.return_value = _AsyncIterable(results)
 
     assert default_engine_client.list_programs(project_id='proj') == results
     grpc_client.list_quantum_programs.assert_called_with(
@@ -179,9 +185,11 @@ def test_list_program(client_constructor, default_engine_client):
         ),
         ('labels.color:red AND labels.shape:*', None, None, {'color': 'red', 'shape': '*'}),
         (
-            'create_time >= 2020-08-01 AND '
-            'create_time <= 1598918400 AND '
-            'labels.color:red AND labels.shape:*',
+            (
+                'create_time >= 2020-08-01 AND '
+                'create_time <= 1598918400 AND '
+                'labels.color:red AND labels.shape:*'
+            ),
             datetime.date(2020, 8, 1),
             datetime.datetime(2020, 9, 1, tzinfo=datetime.timezone.utc),
             {'color': 'red', 'shape': '*'},
@@ -209,7 +217,7 @@ def test_list_program_filters(
 
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_list_program_filters_invalid_type(client_constructor, default_engine_client):
-    with pytest.raises(ValueError, match=""):
+    with pytest.raises(ValueError, match="Unsupported date/time"):
         default_engine_client.list_programs(
             project_id='proj', created_before="Unsupported date/time"
         )
@@ -1244,7 +1252,7 @@ def test_list_jobs(client_constructor, default_engine_client):
         quantum.QuantumJob(name='projects/proj/programs/prog1/jobs/job1'),
         quantum.QuantumJob(name='projects/proj/programs/prog1/jobs/job2'),
     ]
-    grpc_client.list_quantum_jobs.return_value = results
+    grpc_client.list_quantum_jobs.return_value = _AsyncIterable(results)
 
     assert default_engine_client.list_jobs(project_id='proj', program_id='prog1') == results
     grpc_client.list_quantum_jobs.assert_called_with(
@@ -1255,6 +1263,15 @@ def test_list_jobs(client_constructor, default_engine_client):
     grpc_client.list_quantum_jobs.assert_called_with(
         quantum.ListQuantumJobsRequest(parent='projects/proj/programs/-')
     )
+
+
+class _AsyncIterable:
+    def __init__(self, items):
+        self.items = items
+
+    async def __aiter__(self):
+        for item in self.items:
+            yield item
 
 
 @pytest.mark.parametrize(
@@ -1297,7 +1314,7 @@ def test_list_jobs(client_constructor, default_engine_client):
             None,
         ),
         (
-            '(execution_status.state = FAILURE OR ' 'execution_status.state = CANCELLED)',
+            '(execution_status.state = FAILURE OR execution_status.state = CANCELLED)',
             None,
             None,
             None,
@@ -1306,10 +1323,12 @@ def test_list_jobs(client_constructor, default_engine_client):
             None,
         ),
         (
-            'create_time >= 2020-08-01 AND '
-            'create_time <= 1598918400 AND '
-            'labels.color:red AND labels.shape:* AND '
-            '(execution_status.state = SUCCESS)',
+            (
+                'create_time >= 2020-08-01 AND '
+                'create_time <= 1598918400 AND '
+                'labels.color:red AND labels.shape:* AND '
+                '(execution_status.state = SUCCESS)'
+            ),
             datetime.date(2020, 8, 1),
             datetime.datetime(2020, 9, 1, tzinfo=datetime.timezone.utc),
             {'color': 'red', 'shape': '*'},
@@ -1526,7 +1545,7 @@ def test_create_reservation(client_constructor, default_engine_client):
         name='projects/proj/processors/processor0/reservations/papar-party-44',
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000003600),
-        whitelisted_users=users,
+        allowlisted_users=users,
     )
     grpc_client.create_quantum_reservation.return_value = result
 
@@ -1541,6 +1560,10 @@ def test_create_reservation(client_constructor, default_engine_client):
             parent='projects/proj/processors/processor0', quantum_reservation=result
         )
     )
+    with cirq.testing.assert_deprecated('Change whitelisted_users', deadline='v1.7'):
+        _ = default_engine_client.create_reservation(
+            'proj', 'processor0', start, end, whitelisted_users=users
+        )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
@@ -1551,7 +1574,7 @@ def test_cancel_reservation(client_constructor, default_engine_client):
         name=name,
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000002000),
-        whitelisted_users=['jeff@google.com'],
+        allowlisted_users=['jeff@google.com'],
     )
     grpc_client.cancel_quantum_reservation.return_value = result
 
@@ -1571,7 +1594,7 @@ def test_delete_reservation(client_constructor, default_engine_client):
         name=name,
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000002000),
-        whitelisted_users=['jeff@google.com'],
+        allowlisted_users=['jeff@google.com'],
     )
     grpc_client.delete_quantum_reservation.return_value = result
 
@@ -1591,7 +1614,7 @@ def test_get_reservation(client_constructor, default_engine_client):
         name=name,
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000002000),
-        whitelisted_users=['jeff@google.com'],
+        allowlisted_users=['jeff@google.com'],
     )
     grpc_client.get_quantum_reservation.return_value = result
 
@@ -1631,13 +1654,13 @@ def test_list_reservation(client_constructor, default_engine_client):
             name=name,
             start_time=Timestamp(seconds=1000000000),
             end_time=Timestamp(seconds=1000002000),
-            whitelisted_users=['jeff@google.com'],
+            allowlisted_users=['jeff@google.com'],
         ),
         quantum.QuantumReservation(
             name=name,
             start_time=Timestamp(seconds=1200000000),
             end_time=Timestamp(seconds=1200002000),
-            whitelisted_users=['dstrain@google.com'],
+            allowlisted_users=['dstrain@google.com'],
         ),
     ]
     grpc_client.list_quantum_reservations.return_value = Pager(results)
@@ -1653,7 +1676,7 @@ def test_update_reservation(client_constructor, default_engine_client):
         name=name,
         start_time=Timestamp(seconds=1000001000),
         end_time=Timestamp(seconds=1000002000),
-        whitelisted_users=['jeff@google.com'],
+        allowlisted_users=['jeff@google.com'],
     )
     grpc_client.update_quantum_reservation.return_value = result
 
@@ -1664,7 +1687,7 @@ def test_update_reservation(client_constructor, default_engine_client):
             'papar-party-44',
             start=datetime.datetime.fromtimestamp(1000001000),
             end=datetime.datetime.fromtimestamp(1000002000),
-            whitelisted_users=['jeff@google.com'],
+            allowlisted_users=['jeff@google.com'],
         )
         == result
     )
@@ -1672,21 +1695,30 @@ def test_update_reservation(client_constructor, default_engine_client):
         quantum.UpdateQuantumReservationRequest(
             name=name,
             quantum_reservation=result,
-            update_mask=FieldMask(paths=['start_time', 'end_time', 'whitelisted_users']),
+            update_mask=FieldMask(paths=['start_time', 'end_time', 'allowlisted_users']),
         )
     )
+    with cirq.testing.assert_deprecated('Change whitelisted_users', deadline='v1.7'):
+        _ = default_engine_client.update_reservation(
+            'proj',
+            'processor0',
+            'papar-party-44',
+            start=datetime.datetime.fromtimestamp(1000001000),
+            end=datetime.datetime.fromtimestamp(1000002000),
+            whitelisted_users=['jeff@google.com'],
+        )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_update_reservation_remove_all_users(client_constructor, default_engine_client):
     grpc_client = _setup_client_mock(client_constructor)
     name = 'projects/proj/processors/processor0/reservations/papar-party-44'
-    result = quantum.QuantumReservation(name=name, whitelisted_users=[])
+    result = quantum.QuantumReservation(name=name, allowlisted_users=[])
     grpc_client.update_quantum_reservation.return_value = result
 
     assert (
         default_engine_client.update_reservation(
-            'proj', 'processor0', 'papar-party-44', whitelisted_users=[]
+            'proj', 'processor0', 'papar-party-44', allowlisted_users=[]
         )
         == result
     )
@@ -1694,7 +1726,7 @@ def test_update_reservation_remove_all_users(client_constructor, default_engine_
         quantum.UpdateQuantumReservationRequest(
             name=name,
             quantum_reservation=result,
-            update_mask=FieldMask(paths=['whitelisted_users']),
+            update_mask=FieldMask(paths=['allowlisted_users']),
         )
     )
 
@@ -1725,3 +1757,193 @@ def test_list_time_slots(client_constructor, default_engine_client):
     grpc_client.list_quantum_time_slots.return_value = Pager(results)
 
     assert default_engine_client.list_time_slots('proj', 'processor0') == results
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_get_quantum_processor_config_from_snapshot(client_constructor, default_engine_client):
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    snapshot = Snapshot(id="test_snapshot_id")
+    config_name = "test_config_name"
+    resource_name = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configSnapshots/{snapshot.id}/'
+        f'configs/{config_name}'
+    )
+
+    grpc_client = _setup_client_mock(client_constructor)
+    expected_result = quantum.QuantumProcessorConfig(name=resource_name)
+    grpc_client.get_quantum_processor_config.return_value = expected_result
+
+    assert (
+        default_engine_client.get_quantum_processor_config(
+            project_id=project_id,
+            processor_id=processor_id,
+            config_name=config_name,
+            device_config_revision=snapshot,
+        )
+        == expected_result
+    )
+    grpc_client.get_quantum_processor_config.assert_called_with(
+        quantum.GetQuantumProcessorConfigRequest(name=resource_name)
+    )
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_get_quantum_processor_exception(client_constructor, default_engine_client):
+    grpc_client = _setup_client_mock(client_constructor)
+    error_msg = 'invalid_request'
+    grpc_client.get_quantum_processor_config.side_effect = exceptions.BadRequest(error_msg)
+
+    with pytest.raises(EngineException, match=error_msg):
+        _ = default_engine_client.get_quantum_processor_config(
+            project_id="test_project_id",
+            processor_id="test_processor_id",
+            config_name="test_config_name",
+        )
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_get_quantum_processor_config_from_run(client_constructor, default_engine_client):
+
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    run = Run(id="test_run_name")
+    config_name = "test_config_name"
+    resource_name = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configAutomationRuns/{run.id}/'
+        f'configs/{config_name}'
+    )
+
+    grpc_client = _setup_client_mock(client_constructor)
+    expected_result = quantum.QuantumProcessorConfig(name=resource_name)
+    grpc_client.get_quantum_processor_config.return_value = expected_result
+
+    assert (
+        default_engine_client.get_quantum_processor_config(
+            project_id=project_id,
+            processor_id=processor_id,
+            config_name=config_name,
+            device_config_revision=run,
+        )
+        == expected_result
+    )
+    grpc_client.get_quantum_processor_config.assert_called_with(
+        quantum.GetQuantumProcessorConfigRequest(name=resource_name)
+    )
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_get_quantum_processor_config_defaults_to_current_run(
+    client_constructor, default_engine_client
+):
+
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    run_name = 'current'
+    config_name = "test_config_name"
+    resource_name = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        f'configAutomationRuns/{run_name}/'
+        f'configs/{config_name}'
+    )
+
+    grpc_client = _setup_client_mock(client_constructor)
+    grpc_client.get_quantum_processor_config.return_value = None
+
+    default_engine_client.get_quantum_processor_config(
+        project_id=project_id, processor_id=processor_id, config_name=config_name
+    )
+    grpc_client.get_quantum_processor_config.assert_called_with(
+        quantum.GetQuantumProcessorConfigRequest(name=resource_name)
+    )
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_get_quantum_processor_config_not_found(client_constructor, default_engine_client):
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    config_name = "test_config_name"
+    resource_name = (
+        f'projects/{project_id}/'
+        f'processors/{processor_id}/'
+        'configAutomationRuns/current/'
+        f'configs/{config_name}'
+    )
+    grpc_client = _setup_client_mock(client_constructor)
+    grpc_client.get_quantum_processor_config.side_effect = exceptions.NotFound('not found')
+
+    actual_result = default_engine_client.get_quantum_processor_config(
+        project_id=project_id, processor_id=processor_id, config_name=config_name
+    )
+    grpc_client.get_quantum_processor_config.assert_called_with(
+        quantum.GetQuantumProcessorConfigRequest(name=resource_name)
+    )
+    assert actual_result is None
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_list_quantum_processor_configs_from_run_name(client_constructor, default_engine_client):
+    grpc_client = _setup_client_mock(client_constructor)
+
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    run = Run(id="test_run_name")
+    resource_name = f'projects/{project_id}/processors/{processor_id}/configAutomationRuns/{run.id}'
+
+    expected_results = [
+        quantum.QuantumProcessorConfig(
+            name=f'projects/{project_id}/processors/{processor_id}/configSnapshots/test_snapshot/configs/test_config_1'
+        ),
+        quantum.QuantumProcessorConfig(
+            name=f'projects/{project_id}/processors/{processor_id}/configSnapshots/test_snapshot/configs/test_config_2'
+        ),
+    ]
+    grpc_client.list_quantum_processor_configs.return_value = Pager(expected_results)
+
+    assert (
+        default_engine_client.list_quantum_processor_configs(
+            project_id=project_id, processor_id=processor_id, device_config_revision=run
+        )
+        == expected_results
+    )
+    grpc_client.list_quantum_processor_configs.assert_called_with(
+        quantum.ListQuantumProcessorConfigsRequest(parent=resource_name)
+    )
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_list_quantum_processor_configs_from_snapshot(client_constructor, default_engine_client):
+    grpc_client = _setup_client_mock(client_constructor)
+
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    snapshot = Snapshot(id="test_snapshot_id")
+    snapshot_resource_name = (
+        f'projects/{project_id}/processors/{processor_id}/configSnapshots/{snapshot.id}'
+    )
+
+    expected_results = [
+        quantum.QuantumProcessorConfig(
+            name=f'projects/{project_id}/processors/{processor_id}/configSnapshots/test_snapshot/configs/test_config_1'
+        ),
+        quantum.QuantumProcessorConfig(
+            name=f'projects/{project_id}/processors/{processor_id}/configSnapshots/test_snapshot/configs/test_config_2'
+        ),
+    ]
+
+    grpc_client.list_quantum_processor_configs.return_value = Pager(expected_results)
+
+    assert (
+        default_engine_client.list_quantum_processor_configs(
+            project_id=project_id, processor_id=processor_id, device_config_revision=snapshot
+        )
+        == expected_results
+    )
+    grpc_client.list_quantum_processor_configs.assert_called_with(
+        quantum.ListQuantumProcessorConfigsRequest(parent=snapshot_resource_name)
+    )

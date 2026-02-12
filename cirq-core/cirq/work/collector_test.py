@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import duet
 import pytest
 
 import cirq
 
 
-def test_circuit_sample_job_equality():
+def test_circuit_sample_job_equality() -> None:
     eq = cirq.testing.EqualsTester()
     c1 = cirq.Circuit()
     c2 = cirq.Circuit(cirq.measure(cirq.LineQubit(0)))
@@ -32,14 +34,14 @@ def test_circuit_sample_job_equality():
     eq.add_equality_group(cirq.CircuitSampleJob(c1, repetitions=10, tag='test'))
 
 
-def test_circuit_sample_job_repr():
+def test_circuit_sample_job_repr() -> None:
     cirq.testing.assert_equivalent_repr(
         cirq.CircuitSampleJob(cirq.Circuit(cirq.H(cirq.LineQubit(0))), repetitions=10, tag='guess')
     )
 
 
 @duet.sync
-async def test_async_collect():
+async def test_async_collect() -> None:
     received = []
 
     class TestCollector(cirq.Collector):
@@ -51,14 +53,13 @@ async def test_async_collect():
         def on_job_result(self, job, result):
             received.append(job.tag)
 
-    result = await TestCollector().collect_async(
+    await TestCollector().collect_async(
         sampler=cirq.Simulator(), max_total_samples=100, concurrency=5
     )
-    assert result is None
     assert received == ['test'] * 10
 
 
-def test_collect():
+def test_collect() -> None:
     received = []
 
     class TestCollector(cirq.Collector):
@@ -74,7 +75,7 @@ def test_collect():
     assert received == ['test'] * 10
 
 
-def test_failed_job():
+def test_failed_job() -> None:
     class FailingSampler:
         async def run_async(self, circuit, repetitions):
             await duet.completed_future(None)
@@ -90,10 +91,12 @@ def test_failed_job():
             pass
 
     with pytest.raises(Exception, match='job failed!'):
-        TestCollector().collect(sampler=FailingSampler(), max_total_samples=100, concurrency=5)
+        TestCollector().collect(
+            sampler=FailingSampler(), max_total_samples=100, concurrency=5  # type: ignore
+        )
 
 
-def test_collect_with_reaction():
+def test_collect_with_reaction() -> None:
     events = [0]
     sent = 0
     received = 0
@@ -123,7 +126,7 @@ def test_collect_with_reaction():
     assert all(events.index(-k) > events.index(k) for k in range(1, 11))
 
 
-def test_flatten_jobs_terminate_from_collector():
+def test_flatten_jobs_terminate_from_collector() -> None:
     sent = False
     received = []
 

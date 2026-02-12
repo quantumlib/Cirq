@@ -14,27 +14,29 @@
 
 """Tests for the expand composite transformer pass."""
 
+from __future__ import annotations
+
 import cirq
 
 
-def assert_equal_mod_empty(expected, actual):
+def assert_equal_mod_empty(expected, actual) -> None:
     actual = cirq.drop_empty_moments(actual)
     cirq.testing.assert_same_circuits(actual, expected)
 
 
-def test_empty_circuit():
+def test_empty_circuit() -> None:
     circuit = cirq.Circuit()
     circuit = cirq.expand_composite(circuit)
     assert_equal_mod_empty(cirq.Circuit(), circuit)
 
 
-def test_empty_moment():
+def test_empty_moment() -> None:
     circuit = cirq.Circuit([])
     circuit = cirq.expand_composite(circuit)
     assert_equal_mod_empty(cirq.Circuit([]), circuit)
 
 
-def test_ignore_non_composite():
+def test_ignore_non_composite() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit()
     circuit.append([cirq.X(q0), cirq.Y(q1), cirq.CZ(q0, q1), cirq.Z(q0)])
@@ -43,7 +45,7 @@ def test_ignore_non_composite():
     assert_equal_mod_empty(expected, circuit)
 
 
-def test_composite_default():
+def test_composite_default() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     cnot = cirq.CNOT(q0, q1)
     circuit = cirq.Circuit()
@@ -54,7 +56,7 @@ def test_composite_default():
     assert_equal_mod_empty(expected, circuit)
 
 
-def test_multiple_composite_default():
+def test_multiple_composite_default() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     cnot = cirq.CNOT(q0, q1)
     circuit = cirq.Circuit()
@@ -66,7 +68,7 @@ def test_multiple_composite_default():
     assert_equal_mod_empty(expected, circuit)
 
 
-def test_mix_composite_non_composite():
+def test_mix_composite_non_composite() -> None:
     q0, q1 = cirq.LineQubit.range(2)
 
     circuit = cirq.Circuit(cirq.X(q0), cirq.CNOT(q0, q1), cirq.X(q1))
@@ -83,7 +85,7 @@ def test_mix_composite_non_composite():
     assert_equal_mod_empty(expected, circuit)
 
 
-def test_recursive_composite():
+def test_recursive_composite() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     swap = cirq.SWAP(q0, q1)
     circuit = cirq.Circuit()
@@ -104,7 +106,7 @@ def test_recursive_composite():
     assert_equal_mod_empty(expected, circuit)
 
 
-def test_decompose_returns_not_flat_op_tree():
+def test_decompose_returns_not_flat_op_tree() -> None:
     class ExampleGate(cirq.testing.SingleQubitGate):
         def _decompose_(self, qubits):
             (q0,) = qubits
@@ -119,7 +121,7 @@ def test_decompose_returns_not_flat_op_tree():
     assert_equal_mod_empty(expected, circuit)
 
 
-def test_decompose_returns_deep_op_tree():
+def test_decompose_returns_deep_op_tree() -> None:
     class ExampleGate(cirq.testing.TwoQubitGate):
         def _decompose_(self, qubits):
             q0, q1 = qubits
@@ -160,7 +162,7 @@ def test_decompose_returns_deep_op_tree():
     assert_equal_mod_empty(expected, circuit)
 
 
-def test_non_recursive_expansion():
+def test_non_recursive_expansion() -> None:
     qubits = [cirq.NamedQubit(s) for s in 'xy']
     no_decomp = lambda op: (isinstance(op, cirq.GateOperation) and op.gate == cirq.ISWAP)
     unexpanded_circuit = cirq.Circuit(cirq.ISWAP(*qubits))
@@ -182,14 +184,14 @@ y: ───X───────@───────@───────�
     assert actual_text_diagram == expected_text_diagram
 
 
-def test_do_not_decompose_no_compile():
+def test_do_not_decompose_no_compile() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.CNOT(q0, q1).with_tags("no_compile"))
     context = cirq.TransformerContext(tags_to_ignore=("no_compile",))
     assert_equal_mod_empty(c, cirq.expand_composite(c, context=context))
 
 
-def test_expands_composite_recursively_preserving_structur():
+def test_expands_composite_recursively_preserving_structure() -> None:
     q = cirq.LineQubit.range(2)
     c_nested = cirq.FrozenCircuit(
         cirq.SWAP(*q[:2]), cirq.SWAP(*q[:2]).with_tags("ignore"), cirq.SWAP(*q[:2])
@@ -254,7 +256,7 @@ def test_expands_composite_recursively_preserving_structur():
         c_nested_expanded,
     )
 
-    context = cirq.TransformerContext(tags_to_ignore=["ignore"], deep=True)
+    context = cirq.TransformerContext(tags_to_ignore=("ignore",), deep=True)
     c_expanded = cirq.expand_composite(
         c_orig, no_decomp=lambda op: op.gate == cirq.CNOT, context=context
     )

@@ -1,1 +1,1 @@
-ipython~=8.10
+ipython>=8.21,<10.0dev

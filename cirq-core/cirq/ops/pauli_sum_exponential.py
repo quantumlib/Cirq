@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterator, Tuple, TYPE_CHECKING
+from collections.abc import Iterator
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -68,7 +69,7 @@ class PauliSumExponential:
         self._pauli_sum = pauli_sum
 
     @property
-    def qubits(self) -> Tuple[cirq.Qid, ...]:
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         return self._pauli_sum.qubits
 
     def _value_equality_values_(self) -> Any:

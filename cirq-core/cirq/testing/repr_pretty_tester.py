@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 
 from typing import Any
 
@@ -33,11 +34,11 @@ class FakePrinter:
     def __init__(self):
         self.text_pretty = ""
 
-    def text(self, to_print):
+    def text(self, to_print) -> None:
         self.text_pretty += to_print
 
 
-def assert_repr_pretty(val: Any, text: str, cycle: bool = False):
+def assert_repr_pretty(val: Any, text: str, cycle: bool = False) -> None:
     """Assert that the given object has a `_repr_pretty_` method that produces the given text.
 
     Args:
@@ -56,7 +57,7 @@ def assert_repr_pretty(val: Any, text: str, cycle: bool = False):
     assert p.text_pretty == text, f"{p.text_pretty} != {text}"
 
 
-def assert_repr_pretty_contains(val: Any, substr: str, cycle: bool = False):
+def assert_repr_pretty_contains(val: Any, substr: str, cycle: bool = False) -> None:
     """Assert that the given object has a `_repr_pretty_` output that contains the given text.
 
     Args:

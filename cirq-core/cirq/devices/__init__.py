@@ -14,7 +14,6 @@
 
 """Device classes, qubits, and topologies, as well as noise models."""
 
-
 from cirq.devices.device import Device as Device, DeviceMetadata as DeviceMetadata
 
 from cirq.devices.grid_device_metadata import GridDeviceMetadata as GridDeviceMetadata

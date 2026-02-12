@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
@@ -36,7 +38,7 @@ import cirq
         ]
     ),
 )
-def test_state_prep_channel_kraus(state):
+def test_state_prep_channel_kraus(state) -> None:
     qubits = cirq.LineQubit.range(2)
     gate = cirq.StatePreparationChannel(state)(qubits[0], qubits[1])
     cirq.testing.assert_consistent_channel(gate)
@@ -53,7 +55,7 @@ def test_state_prep_channel_kraus(state):
     )
 
 
-def test_state_prep_channel_kraus_small():
+def test_state_prep_channel_kraus_small() -> None:
     gate = cirq.StatePreparationChannel(np.array([0.0, 1.0]))(cirq.LineQubit(0))
     np.testing.assert_almost_equal(
         cirq.kraus(gate), (np.array([[0.0, 0.0], [1.0, 0.0]]), np.array([[0.0, 0.0], [0.0, 1.0]]))
@@ -69,7 +71,7 @@ def test_state_prep_channel_kraus_small():
     assert not cirq.has_mixture(gate)
 
 
-def test_state_prep_gate_printing():
+def test_state_prep_gate_printing() -> None:
     circuit = cirq.Circuit()
     qubits = cirq.LineQubit.range(2)
     gate = cirq.StatePreparationChannel(np.array([1, 0, 0, 1]) / np.sqrt(2))
@@ -87,7 +89,7 @@ def test_state_prep_gate_printing():
 
 
 @pytest.mark.parametrize('name', ['Prep', 'S'])
-def test_state_prep_gate_printing_with_name(name):
+def test_state_prep_gate_printing_with_name(name) -> None:
     circuit = cirq.Circuit()
     qubits = cirq.LineQubit.range(2)
     gate = cirq.StatePreparationChannel(np.array([1, 0, 0, 1]) / np.sqrt(2), name=name)
@@ -104,7 +106,7 @@ def test_state_prep_gate_printing_with_name(name):
     )
 
 
-def test_gate_params():
+def test_gate_params() -> None:
     state = np.array([1, 0, 0, 0], dtype=np.complex64)
     gate = cirq.StatePreparationChannel(state)
     assert gate.num_qubits() == 2
@@ -114,19 +116,19 @@ def test_gate_params():
     cirq.testing.assert_equivalent_repr(gate)
 
 
-def test_gate_error_handling():
+def test_gate_error_handling() -> None:
     with pytest.raises(ValueError, match='`target_state` must be a 1d numpy array.'):
         cirq.StatePreparationChannel(np.eye(2))
     with pytest.raises(ValueError, match='Matrix width \\(5\\) is not a power of 2'):
         cirq.StatePreparationChannel(np.ones(shape=5))
 
 
-def test_equality_of_gates():
+def test_equality_of_gates() -> None:
     state = np.array([1, 0, 0, 0], dtype=np.complex64)
     gate_1 = cirq.StatePreparationChannel(state)
     gate_2 = cirq.StatePreparationChannel(state)
     assert gate_1 == gate_2, "Equal state not leading to same gate"
-    assert not gate_1 == state, "Incompatible objects shouldn't be equal"
+    assert not gate_1 == state, "Incompatible objects shouldn't be equal"  # noqa: SIM201
     state = np.array([0, 1, 0, 0], dtype=np.complex64)
     gate_3 = cirq.StatePreparationChannel(state, name='gate_a')
     gate_4 = cirq.StatePreparationChannel(state, name='gate_b')
@@ -134,7 +136,7 @@ def test_equality_of_gates():
     assert gate_1 != gate_3, "Different states shouldn't lead to same gate"
 
 
-def test_approx_equality_of_gates():
+def test_approx_equality_of_gates() -> None:
     state = np.array([1, 0, 0, 0], dtype=np.complex64)
     gate_1 = cirq.StatePreparationChannel(state)
     gate_2 = cirq.StatePreparationChannel(state)

@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
 import pytest
@@ -22,7 +22,7 @@ import pytest
 import cirq
 
 
-def test_single_qubit_readout_result_repr():
+def test_single_qubit_readout_result_repr() -> None:
     result = cirq.experiments.SingleQubitReadoutCalibrationResult(
         zero_state_errors={cirq.LineQubit(0): 0.1},
         one_state_errors={cirq.LineQubit(0): 0.2},
@@ -61,20 +61,20 @@ class NoisySingleQubitReadoutSampler(cirq.Sampler):
         return results
 
 
-def test_estimate_single_qubit_readout_errors_no_noise():
+def test_estimate_single_qubit_readout_errors_no_noise() -> None:
     qubits = cirq.LineQubit.range(10)
     sampler = cirq.Simulator()
     repetitions = 1000
     result = cirq.estimate_single_qubit_readout_errors(
         sampler, qubits=qubits, repetitions=repetitions
     )
-    assert result.zero_state_errors == {q: 0 for q in qubits}
-    assert result.one_state_errors == {q: 0 for q in qubits}
+    assert result.zero_state_errors == dict.fromkeys(qubits, 0)
+    assert result.one_state_errors == dict.fromkeys(qubits, 0)
     assert result.repetitions == repetitions
     assert isinstance(result.timestamp, float)
 
 
-def test_estimate_single_qubit_readout_errors_with_noise():
+def test_estimate_single_qubit_readout_errors_with_noise() -> None:
     qubits = cirq.LineQubit.range(5)
     sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.2, seed=1234)
     repetitions = 1000
@@ -89,35 +89,35 @@ def test_estimate_single_qubit_readout_errors_with_noise():
     assert isinstance(result.timestamp, float)
 
 
-def test_estimate_parallel_readout_errors_no_noise():
+def test_estimate_parallel_readout_errors_no_noise() -> None:
     qubits = [cirq.GridQubit(i, 0) for i in range(10)]
     sampler = cirq.Simulator()
     repetitions = 1000
     result = cirq.estimate_parallel_single_qubit_readout_errors(
         sampler, qubits=qubits, repetitions=repetitions
     )
-    assert result.zero_state_errors == {q: 0 for q in qubits}
-    assert result.one_state_errors == {q: 0 for q in qubits}
+    assert result.zero_state_errors == dict.fromkeys(qubits, 0)
+    assert result.one_state_errors == dict.fromkeys(qubits, 0)
     assert result.repetitions == repetitions
     assert isinstance(result.timestamp, float)
     _ = result.plot_integrated_histogram()
     _, _ = result.plot_heatmap()
 
 
-def test_estimate_parallel_readout_errors_all_zeros():
+def test_estimate_parallel_readout_errors_all_zeros() -> None:
     qubits = cirq.LineQubit.range(10)
     sampler = cirq.ZerosSampler()
     repetitions = 1000
     result = cirq.estimate_parallel_single_qubit_readout_errors(
         sampler, qubits=qubits, repetitions=repetitions
     )
-    assert result.zero_state_errors == {q: 0 for q in qubits}
-    assert result.one_state_errors == {q: 1 for q in qubits}
+    assert result.zero_state_errors == dict.fromkeys(qubits, 0)
+    assert result.one_state_errors == dict.fromkeys(qubits, 1)
     assert result.repetitions == repetitions
     assert isinstance(result.timestamp, float)
 
 
-def test_estimate_parallel_readout_errors_bad_bit_string():
+def test_estimate_parallel_readout_errors_bad_bit_string() -> None:
     qubits = cirq.LineQubit.range(4)
     with pytest.raises(ValueError, match='but was None'):
         _ = cirq.estimate_parallel_single_qubit_readout_errors(
@@ -126,7 +126,7 @@ def test_estimate_parallel_readout_errors_bad_bit_string():
             repetitions=1000,
             trials=35,
             trials_per_batch=10,
-            bit_strings=[[1] * 4],
+            bit_strings=[[1] * 4],  # type: ignore[arg-type]
         )
     with pytest.raises(ValueError, match='0 or 1'):
         _ = cirq.estimate_parallel_single_qubit_readout_errors(
@@ -138,7 +138,7 @@ def test_estimate_parallel_readout_errors_bad_bit_string():
         )
 
 
-def test_estimate_parallel_readout_errors_zero_reps():
+def test_estimate_parallel_readout_errors_zero_reps() -> None:
     qubits = cirq.LineQubit.range(10)
     with pytest.raises(ValueError, match='non-zero repetition'):
         _ = cirq.estimate_parallel_single_qubit_readout_errors(
@@ -146,7 +146,7 @@ def test_estimate_parallel_readout_errors_zero_reps():
         )
 
 
-def test_estimate_parallel_readout_errors_zero_trials():
+def test_estimate_parallel_readout_errors_zero_trials() -> None:
     qubits = cirq.LineQubit.range(10)
     with pytest.raises(ValueError, match='non-zero trials'):
         _ = cirq.estimate_parallel_single_qubit_readout_errors(
@@ -154,7 +154,7 @@ def test_estimate_parallel_readout_errors_zero_trials():
         )
 
 
-def test_estimate_parallel_readout_errors_zero_batch():
+def test_estimate_parallel_readout_errors_zero_batch() -> None:
     qubits = cirq.LineQubit.range(10)
     with pytest.raises(ValueError, match='non-zero trials_per_batch'):
         _ = cirq.estimate_parallel_single_qubit_readout_errors(
@@ -162,20 +162,20 @@ def test_estimate_parallel_readout_errors_zero_batch():
         )
 
 
-def test_estimate_parallel_readout_errors_batching():
+def test_estimate_parallel_readout_errors_batching() -> None:
     qubits = cirq.LineQubit.range(5)
     sampler = cirq.ZerosSampler()
     repetitions = 1000
     result = cirq.estimate_parallel_single_qubit_readout_errors(
         sampler, qubits=qubits, repetitions=repetitions, trials=35, trials_per_batch=10
     )
-    assert result.zero_state_errors == {q: 0.0 for q in qubits}
-    assert result.one_state_errors == {q: 1.0 for q in qubits}
+    assert result.zero_state_errors == dict.fromkeys(qubits, 0.0)
+    assert result.one_state_errors == dict.fromkeys(qubits, 1.0)
     assert result.repetitions == repetitions
     assert isinstance(result.timestamp, float)
 
 
-def test_estimate_parallel_readout_errors_with_noise():
+def test_estimate_parallel_readout_errors_with_noise() -> None:
     qubits = cirq.LineQubit.range(5)
     sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.2, seed=1234)
     repetitions = 1000
@@ -190,7 +190,7 @@ def test_estimate_parallel_readout_errors_with_noise():
     assert isinstance(result.timestamp, float)
 
 
-def test_estimate_parallel_readout_errors_missing_qubits():
+def test_estimate_parallel_readout_errors_missing_qubits() -> None:
     qubits = cirq.LineQubit.range(4)
 
     result = cirq.estimate_parallel_single_qubit_readout_errors(
@@ -200,7 +200,7 @@ def test_estimate_parallel_readout_errors_missing_qubits():
         trials=1,
         bit_strings=np.array([[0] * 4]),
     )
-    assert result.zero_state_errors == {q: 0 for q in qubits}
+    assert result.zero_state_errors == dict.fromkeys(qubits, 0)
     # Trial did not include a one-state
     assert all(np.isnan(result.one_state_errors[q]) for q in qubits)
     assert result.repetitions == 2000

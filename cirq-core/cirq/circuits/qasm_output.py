@@ -17,11 +17,14 @@
 from __future__ import annotations
 
 import re
-from typing import Callable, Dict, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from collections.abc import Callable, Iterator, Sequence, Set
+from typing import TYPE_CHECKING
 
 import numpy as np
+import sympy
 
 from cirq import linalg, ops, protocols, value
+from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
     import cirq
@@ -29,7 +32,7 @@ if TYPE_CHECKING:
 
 @value.value_equality(approximate=True)
 class QasmUGate(ops.Gate):
-    def __init__(self, theta, phi, lmda) -> None:
+    def __init__(self, theta: cirq.TParamVal, phi: cirq.TParamVal, lmda: cirq.TParamVal) -> None:
         """A QASM gate representing any single qubit unitary with a series of
         three rotations, Z, Y, and Z.
 
@@ -40,9 +43,9 @@ class QasmUGate(ops.Gate):
             phi: Half turns to rotate about Z (applied last).
             lmda: Half turns to rotate about Z (applied first).
         """
-        self.lmda = lmda % 2
         self.theta = theta % 2
         self.phi = phi % 2
+        self.lmda = lmda % 2
 
     def _num_qubits_(self) -> int:
         return 1
@@ -53,9 +56,30 @@ class QasmUGate(ops.Gate):
         return QasmUGate(rotation / np.pi, post_phase / np.pi, pre_phase / np.pi)
 
     def _has_unitary_(self):
-        return True
+        return not self._is_parameterized_()
 
-    def _qasm_(self, qubits: Tuple[cirq.Qid, ...], args: cirq.QasmArgs) -> str:
+    def _is_parameterized_(self) -> bool:
+        return (
+            protocols.is_parameterized(self.theta)
+            or protocols.is_parameterized(self.phi)
+            or protocols.is_parameterized(self.lmda)
+        )
+
+    def _parameter_names_(self) -> Set[str]:
+        return (
+            protocols.parameter_names(self.theta)
+            | protocols.parameter_names(self.phi)
+            | protocols.parameter_names(self.lmda)
+        )
+
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> QasmUGate:
+        return QasmUGate(
+            protocols.resolve_parameters(self.theta, resolver, recursive),
+            protocols.resolve_parameters(self.phi, resolver, recursive),
+            protocols.resolve_parameters(self.lmda, resolver, recursive),
+        )
+
+    def _qasm_(self, qubits: tuple[cirq.Qid, ...], args: cirq.QasmArgs) -> str:
         args.validate_version('2.0', '3.0')
         return args.format(
             'u3({0:half_turns},{1:half_turns},{2:half_turns}) {3};\n',
@@ -68,23 +92,28 @@ class QasmUGate(ops.Gate):
     def __repr__(self) -> str:
         return (
             f'cirq.circuits.qasm_output.QasmUGate('
-            f'theta={self.theta!r}, '
-            f'phi={self.phi!r}, '
-            f'lmda={self.lmda})'
+            f'theta={proper_repr(self.theta)}, '
+            f'phi={proper_repr(self.phi)}, '
+            f'lmda={proper_repr(self.lmda)})'
         )
 
     def _decompose_(self, qubits):
+        def mul_pi(x):
+            return x * (sympy.pi if protocols.is_parameterized(x) else np.pi)
+
         q = qubits[0]
+        phase_correction_half_turns = (self.phi + self.lmda) / 2
         return [
-            ops.rz(self.lmda * np.pi).on(q),
-            ops.ry(self.theta * np.pi).on(q),
-            ops.rz(self.phi * np.pi).on(q),
+            ops.rz(mul_pi(self.lmda)).on(q),
+            ops.ry(mul_pi(self.theta)).on(q),
+            ops.rz(mul_pi(self.phi)).on(q),
+            ops.global_phase_operation(1j ** (2 * phase_correction_half_turns)),
         ]
 
     def _value_equality_values_(self):
         return self.lmda, self.theta, self.phi
 
-    def _json_dict_(self) -> Dict[str, float]:
+    def _json_dict_(self) -> dict[str, float]:
         return {'theta': self.theta, 'phi': self.phi, 'lmda': self.lmda}
 
     @classmethod
@@ -173,7 +202,7 @@ class QasmOutput:
     def __init__(
         self,
         operations: cirq.OP_TREE,
-        qubits: Tuple[cirq.Qid, ...],
+        qubits: tuple[cirq.Qid, ...],
         header: str = '',
         precision: int = 10,
         version: str = '2.0',
@@ -208,10 +237,10 @@ class QasmOutput:
             meas_key_bitcount={k: v[0] for k, v in self.cregs.items()},
         )
 
-    def _generate_measurement_ids(self) -> Tuple[Dict[str, str], Dict[str, Optional[str]]]:
+    def _generate_measurement_ids(self) -> tuple[dict[str, str], dict[str, str | None]]:
         # Pick an id for the creg that will store each measurement
-        meas_key_id_map: Dict[str, str] = {}
-        meas_comments: Dict[str, Optional[str]] = {}
+        meas_key_id_map: dict[str, str] = {}
+        meas_comments: dict[str, str | None] = {}
         meas_i = 0
         for meas in self.measurements:
             key = protocols.measurement_key_name(meas)
@@ -227,10 +256,10 @@ class QasmOutput:
             meas_key_id_map[key] = meas_id
         return meas_key_id_map, meas_comments
 
-    def _generate_qubit_ids(self) -> Dict[cirq.Qid, str]:
+    def _generate_qubit_ids(self) -> dict[cirq.Qid, str]:
         return {qubit: f'q[{i}]' for i, qubit in enumerate(self.qubits)}
 
-    def _generate_cregs(self, meas_key_id_map: Dict[str, str]) -> Dict[str, tuple[int, str]]:
+    def _generate_cregs(self, meas_key_id_map: dict[str, str]) -> dict[str, tuple[int, str]]:
         """Pick an id for the creg that will store each measurement
 
         This function finds the largest measurement using each key.
@@ -239,7 +268,7 @@ class QasmOutput:
 
         Returns: dictionary with key of measurement id and value of (#qubits, comment).
         """
-        cregs: Dict[str, tuple[int, str]] = {}
+        cregs: dict[str, tuple[int, str]] = {}
         for meas in self.measurements:
             key = protocols.measurement_key_name(meas)
             meas_id = meas_key_id_map[key]
@@ -258,7 +287,7 @@ class QasmOutput:
         """Test if id_str is a valid id in QASM grammar."""
         return self.valid_id_re.match(id_str) is not None
 
-    def save(self, path: Union[str, bytes, int]) -> None:
+    def save(self, path: str | bytes | int) -> None:
         """Write QASM output to a file specified by path."""
         with open(path, 'w') as f:
 

@@ -40,13 +40,13 @@ class DeviceSpecification(google.protobuf.message.Message):
     For instance, "All Z gates are converted to VirtualZ gates".
     """
     @property
-    def valid_gate_sets(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___GateSet]:
+    def valid_gate_sets(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___GateSet]:
         """A list of allowed gatesets for programs submitted to this processor
         Language.gate_set should be one of these values to be valid.
         """
 
     @property
-    def valid_gates(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___GateSpecification]:
+    def valid_gates(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___GateSpecification]:
         """The device gateset.
         Contains the list of gates allowed in programs submitted to this processor.
         """
@@ -62,21 +62,21 @@ class DeviceSpecification(google.protobuf.message.Message):
         """
 
     @property
-    def valid_targets(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___TargetSet]:
+    def valid_targets(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___TargetSet]:
         """A list of targets that gates can use."""
 
     def __init__(
         self,
         *,
-        valid_gate_sets: collections.abc.Iterable[global___GateSet] | None = ...,
-        valid_gates: collections.abc.Iterable[global___GateSpecification] | None = ...,
+        valid_gate_sets: collections.abc.Iterable[Global___GateSet] | None = ...,
+        valid_gates: collections.abc.Iterable[Global___GateSpecification] | None = ...,
         valid_qubits: collections.abc.Iterable[builtins.str] | None = ...,
-        valid_targets: collections.abc.Iterable[global___TargetSet] | None = ...,
+        valid_targets: collections.abc.Iterable[Global___TargetSet] | None = ...,
         developer_recommendations: builtins.str = ...,
     ) -> None: ...
     def ClearField(self, field_name: typing.Literal["developer_recommendations", b"developer_recommendations", "valid_gate_sets", b"valid_gate_sets", "valid_gates", b"valid_gates", "valid_qubits", b"valid_qubits", "valid_targets", b"valid_targets"]) -> None: ...
 
-global___DeviceSpecification = DeviceSpecification
+Global___DeviceSpecification: typing_extensions.TypeAlias = DeviceSpecification
 
 @typing.final
 class GateSpecification(google.protobuf.message.Message):
@@ -200,6 +200,42 @@ class GateSpecification(google.protobuf.message.Message):
             self,
         ) -> None: ...
 
+    @typing.final
+    class Reset(google.protobuf.message.Message):
+        """This gate resets qubit to its |0> state."""
+
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        def __init__(
+            self,
+        ) -> None: ...
+
+    @typing.final
+    class AnalogDetuneQubit(google.protobuf.message.Message):
+        """For Analog Experiment."""
+
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        def __init__(
+            self,
+        ) -> None: ...
+
+    @typing.final
+    class AnalogDetuneCouplerOnly(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        def __init__(
+            self,
+        ) -> None: ...
+
+    @typing.final
+    class WaitGateWithUnit(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        def __init__(
+            self,
+        ) -> None: ...
+
     GATE_DURATION_PICOS_FIELD_NUMBER: builtins.int
     SYC_FIELD_NUMBER: builtins.int
     SQRT_ISWAP_FIELD_NUMBER: builtins.int
@@ -214,59 +250,75 @@ class GateSpecification(google.protobuf.message.Message):
     FSIM_VIA_MODEL_FIELD_NUMBER: builtins.int
     CZ_POW_GATE_FIELD_NUMBER: builtins.int
     INTERNAL_GATE_FIELD_NUMBER: builtins.int
+    RESET_FIELD_NUMBER: builtins.int
+    ANALOG_DETUNE_QUBIT_FIELD_NUMBER: builtins.int
+    ANALOG_DETUNE_COUPLER_ONLY_FIELD_NUMBER: builtins.int
+    WAIT_GATE_WITH_UNIT_FIELD_NUMBER: builtins.int
     gate_duration_picos: builtins.int
     """This defines the approximate duration to run the gate on the device,
     specified as an integer number of picoseconds.
     """
     @property
-    def syc(self) -> global___GateSpecification.Sycamore: ...
+    def syc(self) -> Global___GateSpecification.Sycamore: ...
     @property
-    def sqrt_iswap(self) -> global___GateSpecification.SqrtISwap: ...
+    def sqrt_iswap(self) -> Global___GateSpecification.SqrtISwap: ...
     @property
-    def sqrt_iswap_inv(self) -> global___GateSpecification.SqrtISwapInv: ...
+    def sqrt_iswap_inv(self) -> Global___GateSpecification.SqrtISwapInv: ...
     @property
-    def cz(self) -> global___GateSpecification.CZ: ...
+    def cz(self) -> Global___GateSpecification.CZ: ...
     @property
-    def phased_xz(self) -> global___GateSpecification.PhasedXZ: ...
+    def phased_xz(self) -> Global___GateSpecification.PhasedXZ: ...
     @property
-    def virtual_zpow(self) -> global___GateSpecification.VirtualZPow: ...
+    def virtual_zpow(self) -> Global___GateSpecification.VirtualZPow: ...
     @property
-    def physical_zpow(self) -> global___GateSpecification.PhysicalZPow: ...
+    def physical_zpow(self) -> Global___GateSpecification.PhysicalZPow: ...
     @property
-    def coupler_pulse(self) -> global___GateSpecification.CouplerPulse: ...
+    def coupler_pulse(self) -> Global___GateSpecification.CouplerPulse: ...
     @property
-    def meas(self) -> global___GateSpecification.Measurement: ...
+    def meas(self) -> Global___GateSpecification.Measurement: ...
     @property
-    def wait(self) -> global___GateSpecification.Wait: ...
+    def wait(self) -> Global___GateSpecification.Wait: ...
     @property
-    def fsim_via_model(self) -> global___GateSpecification.FSimViaModel: ...
+    def fsim_via_model(self) -> Global___GateSpecification.FSimViaModel: ...
     @property
-    def cz_pow_gate(self) -> global___GateSpecification.CZPowGate: ...
+    def cz_pow_gate(self) -> Global___GateSpecification.CZPowGate: ...
     @property
-    def internal_gate(self) -> global___GateSpecification.InternalGate: ...
+    def internal_gate(self) -> Global___GateSpecification.InternalGate: ...
+    @property
+    def reset(self) -> Global___GateSpecification.Reset: ...
+    @property
+    def analog_detune_qubit(self) -> Global___GateSpecification.AnalogDetuneQubit: ...
+    @property
+    def analog_detune_coupler_only(self) -> Global___GateSpecification.AnalogDetuneCouplerOnly: ...
+    @property
+    def wait_gate_with_unit(self) -> Global___GateSpecification.WaitGateWithUnit: ...
     def __init__(
         self,
         *,
         gate_duration_picos: builtins.int = ...,
-        syc: global___GateSpecification.Sycamore | None = ...,
-        sqrt_iswap: global___GateSpecification.SqrtISwap | None = ...,
-        sqrt_iswap_inv: global___GateSpecification.SqrtISwapInv | None = ...,
-        cz: global___GateSpecification.CZ | None = ...,
-        phased_xz: global___GateSpecification.PhasedXZ | None = ...,
-        virtual_zpow: global___GateSpecification.VirtualZPow | None = ...,
-        physical_zpow: global___GateSpecification.PhysicalZPow | None = ...,
-        coupler_pulse: global___GateSpecification.CouplerPulse | None = ...,
-        meas: global___GateSpecification.Measurement | None = ...,
-        wait: global___GateSpecification.Wait | None = ...,
-        fsim_via_model: global___GateSpecification.FSimViaModel | None = ...,
-        cz_pow_gate: global___GateSpecification.CZPowGate | None = ...,
-        internal_gate: global___GateSpecification.InternalGate | None = ...,
+        syc: Global___GateSpecification.Sycamore | None = ...,
+        sqrt_iswap: Global___GateSpecification.SqrtISwap | None = ...,
+        sqrt_iswap_inv: Global___GateSpecification.SqrtISwapInv | None = ...,
+        cz: Global___GateSpecification.CZ | None = ...,
+        phased_xz: Global___GateSpecification.PhasedXZ | None = ...,
+        virtual_zpow: Global___GateSpecification.VirtualZPow | None = ...,
+        physical_zpow: Global___GateSpecification.PhysicalZPow | None = ...,
+        coupler_pulse: Global___GateSpecification.CouplerPulse | None = ...,
+        meas: Global___GateSpecification.Measurement | None = ...,
+        wait: Global___GateSpecification.Wait | None = ...,
+        fsim_via_model: Global___GateSpecification.FSimViaModel | None = ...,
+        cz_pow_gate: Global___GateSpecification.CZPowGate | None = ...,
+        internal_gate: Global___GateSpecification.InternalGate | None = ...,
+        reset: Global___GateSpecification.Reset | None = ...,
+        analog_detune_qubit: Global___GateSpecification.AnalogDetuneQubit | None = ...,
+        analog_detune_coupler_only: Global___GateSpecification.AnalogDetuneCouplerOnly | None = ...,
+        wait_gate_with_unit: Global___GateSpecification.WaitGateWithUnit | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["coupler_pulse", b"coupler_pulse", "cz", b"cz", "cz_pow_gate", b"cz_pow_gate", "fsim_via_model", b"fsim_via_model", "gate", b"gate", "internal_gate", b"internal_gate", "meas", b"meas", "phased_xz", b"phased_xz", "physical_zpow", b"physical_zpow", "sqrt_iswap", b"sqrt_iswap", "sqrt_iswap_inv", b"sqrt_iswap_inv", "syc", b"syc", "virtual_zpow", b"virtual_zpow", "wait", b"wait"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["coupler_pulse", b"coupler_pulse", "cz", b"cz", "cz_pow_gate", b"cz_pow_gate", "fsim_via_model", b"fsim_via_model", "gate", b"gate", "gate_duration_picos", b"gate_duration_picos", "internal_gate", b"internal_gate", "meas", b"meas", "phased_xz", b"phased_xz", "physical_zpow", b"physical_zpow", "sqrt_iswap", b"sqrt_iswap", "sqrt_iswap_inv", b"sqrt_iswap_inv", "syc", b"syc", "virtual_zpow", b"virtual_zpow", "wait", b"wait"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["gate", b"gate"]) -> typing.Literal["syc", "sqrt_iswap", "sqrt_iswap_inv", "cz", "phased_xz", "virtual_zpow", "physical_zpow", "coupler_pulse", "meas", "wait", "fsim_via_model", "cz_pow_gate", "internal_gate"] | None: ...
+    def HasField(self, field_name: typing.Literal["analog_detune_coupler_only", b"analog_detune_coupler_only", "analog_detune_qubit", b"analog_detune_qubit", "coupler_pulse", b"coupler_pulse", "cz", b"cz", "cz_pow_gate", b"cz_pow_gate", "fsim_via_model", b"fsim_via_model", "gate", b"gate", "internal_gate", b"internal_gate", "meas", b"meas", "phased_xz", b"phased_xz", "physical_zpow", b"physical_zpow", "reset", b"reset", "sqrt_iswap", b"sqrt_iswap", "sqrt_iswap_inv", b"sqrt_iswap_inv", "syc", b"syc", "virtual_zpow", b"virtual_zpow", "wait", b"wait", "wait_gate_with_unit", b"wait_gate_with_unit"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["analog_detune_coupler_only", b"analog_detune_coupler_only", "analog_detune_qubit", b"analog_detune_qubit", "coupler_pulse", b"coupler_pulse", "cz", b"cz", "cz_pow_gate", b"cz_pow_gate", "fsim_via_model", b"fsim_via_model", "gate", b"gate", "gate_duration_picos", b"gate_duration_picos", "internal_gate", b"internal_gate", "meas", b"meas", "phased_xz", b"phased_xz", "physical_zpow", b"physical_zpow", "reset", b"reset", "sqrt_iswap", b"sqrt_iswap", "sqrt_iswap_inv", b"sqrt_iswap_inv", "syc", b"syc", "virtual_zpow", b"virtual_zpow", "wait", b"wait", "wait_gate_with_unit", b"wait_gate_with_unit"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["gate", b"gate"]) -> typing.Literal["syc", "sqrt_iswap", "sqrt_iswap_inv", "cz", "phased_xz", "virtual_zpow", "physical_zpow", "coupler_pulse", "meas", "wait", "fsim_via_model", "cz_pow_gate", "internal_gate", "reset", "analog_detune_qubit", "analog_detune_coupler_only", "wait_gate_with_unit"] | None: ...
 
-global___GateSpecification = GateSpecification
+Global___GateSpecification: typing_extensions.TypeAlias = GateSpecification
 
 @typing.final
 class GateSet(google.protobuf.message.Message):
@@ -277,18 +329,18 @@ class GateSet(google.protobuf.message.Message):
     name: builtins.str
     """The name of the gate set corresponding to Language.gate_set"""
     @property
-    def valid_gates(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___GateDefinition]:
+    def valid_gates(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___GateDefinition]:
         """A list of valid gates permitted by this gate set"""
 
     def __init__(
         self,
         *,
         name: builtins.str = ...,
-        valid_gates: collections.abc.Iterable[global___GateDefinition] | None = ...,
+        valid_gates: collections.abc.Iterable[Global___GateDefinition] | None = ...,
     ) -> None: ...
     def ClearField(self, field_name: typing.Literal["name", b"name", "valid_gates", b"valid_gates"]) -> None: ...
 
-global___GateSet = GateSet
+Global___GateSet: typing_extensions.TypeAlias = GateSet
 
 @typing.final
 class GateDefinition(google.protobuf.message.Message):
@@ -308,7 +360,7 @@ class GateDefinition(google.protobuf.message.Message):
     specified as an integer number of picoseconds.
     """
     @property
-    def valid_args(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___ArgDefinition]:
+    def valid_args(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___ArgDefinition]:
         """The name of the arguments that should be specified for
         an operation of this gate
         """
@@ -325,13 +377,13 @@ class GateDefinition(google.protobuf.message.Message):
         *,
         id: builtins.str = ...,
         number_of_qubits: builtins.int = ...,
-        valid_args: collections.abc.Iterable[global___ArgDefinition] | None = ...,
+        valid_args: collections.abc.Iterable[Global___ArgDefinition] | None = ...,
         gate_duration_picos: builtins.int = ...,
         valid_targets: collections.abc.Iterable[builtins.str] | None = ...,
     ) -> None: ...
     def ClearField(self, field_name: typing.Literal["gate_duration_picos", b"gate_duration_picos", "id", b"id", "number_of_qubits", b"number_of_qubits", "valid_args", b"valid_args", "valid_targets", b"valid_targets"]) -> None: ...
 
-global___GateDefinition = GateDefinition
+Global___GateDefinition: typing_extensions.TypeAlias = GateDefinition
 
 @typing.final
 class ArgDefinition(google.protobuf.message.Message):
@@ -366,13 +418,13 @@ class ArgDefinition(google.protobuf.message.Message):
     This corresponds to the valid key values for the
     map value of Operation.args
     """
-    type: global___ArgDefinition.ArgType.ValueType
+    type: Global___ArgDefinition.ArgType.ValueType
     """The type of the argument.
     This should correspond to the legal assignment
     of the Arg.arg oneof for this argument
     """
     @property
-    def allowed_ranges(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___ArgumentRange]:
+    def allowed_ranges(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___ArgumentRange]:
         """This should only be populated for type FLOAT.
         If not set, all float values are allowed.
         """
@@ -381,12 +433,12 @@ class ArgDefinition(google.protobuf.message.Message):
         self,
         *,
         name: builtins.str = ...,
-        type: global___ArgDefinition.ArgType.ValueType = ...,
-        allowed_ranges: collections.abc.Iterable[global___ArgumentRange] | None = ...,
+        type: Global___ArgDefinition.ArgType.ValueType = ...,
+        allowed_ranges: collections.abc.Iterable[Global___ArgumentRange] | None = ...,
     ) -> None: ...
     def ClearField(self, field_name: typing.Literal["allowed_ranges", b"allowed_ranges", "name", b"name", "type", b"type"]) -> None: ...
 
-global___ArgDefinition = ArgDefinition
+Global___ArgDefinition: typing_extensions.TypeAlias = ArgDefinition
 
 @typing.final
 class ArgumentRange(google.protobuf.message.Message):
@@ -408,7 +460,7 @@ class ArgumentRange(google.protobuf.message.Message):
     ) -> None: ...
     def ClearField(self, field_name: typing.Literal["maximum_value", b"maximum_value", "minimum_value", b"minimum_value"]) -> None: ...
 
-global___ArgumentRange = ArgumentRange
+Global___ArgumentRange: typing_extensions.TypeAlias = ArgumentRange
 
 @typing.final
 class TargetSet(google.protobuf.message.Message):
@@ -473,24 +525,24 @@ class TargetSet(google.protobuf.message.Message):
     This will be referenced in the GateDefinition to denote
     which targets are valid.
     """
-    target_ordering: global___TargetSet.TargetOrdering.ValueType
+    target_ordering: Global___TargetSet.TargetOrdering.ValueType
     """The type of ordering of the ids within each target in this set.
     For instance, if the ids within each target are symmetric.
     """
     @property
-    def targets(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Target]:
+    def targets(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___Target]:
         """A list of targets that are valid"""
 
     def __init__(
         self,
         *,
         name: builtins.str = ...,
-        target_ordering: global___TargetSet.TargetOrdering.ValueType = ...,
-        targets: collections.abc.Iterable[global___Target] | None = ...,
+        target_ordering: Global___TargetSet.TargetOrdering.ValueType = ...,
+        targets: collections.abc.Iterable[Global___Target] | None = ...,
     ) -> None: ...
     def ClearField(self, field_name: typing.Literal["name", b"name", "target_ordering", b"target_ordering", "targets", b"targets"]) -> None: ...
 
-global___TargetSet = TargetSet
+Global___TargetSet: typing_extensions.TypeAlias = TargetSet
 
 @typing.final
 class Target(google.protobuf.message.Message):
@@ -512,4 +564,4 @@ class Target(google.protobuf.message.Message):
     ) -> None: ...
     def ClearField(self, field_name: typing.Literal["ids", b"ids"]) -> None: ...
 
-global___Target = Target
+Global___Target: typing_extensions.TypeAlias = Target

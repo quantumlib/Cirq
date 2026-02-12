@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# mypy: ignore-errors
+
 import cirq
 
 
@@ -20,7 +22,7 @@ class RouteCQC:
     param_names = ["qubits", "depth", "op_density", "grid_device_size"]
     timeout = 300  # Increase timeout to 5 minutes instead of default 60 seconds.
 
-    def setup(self, qubits: int, depth: int, op_density: float, grid_device_size: int):
+    def setup(self, qubits: int, depth: int, op_density: float, grid_device_size: int) -> None:
         gate_domain = {cirq.CNOT: 2, cirq.X: 1}
         self.circuit = cirq.testing.random_circuit(
             qubits, depth, op_density, gate_domain=gate_domain, random_state=12345
@@ -28,12 +30,12 @@ class RouteCQC:
         self.device = cirq.testing.construct_grid_device(grid_device_size, grid_device_size)
         self.router = cirq.RouteCQC(self.device.metadata.nx_graph)
 
-    def time_circuit_routing(self, *_):
+    def time_circuit_routing(self, *_) -> None:
         self.routed_circuit = self.router(self.circuit)
 
     def track_routed_circuit_depth_ratio(self, *_) -> float:
         self.routed_circuit = self.router(self.circuit)
         return len(self.routed_circuit) / len(self.circuit)
 
-    def teardown(self, *_):
+    def teardown(self, *_) -> None:
         self.device.validate_circuit(self.routed_circuit)

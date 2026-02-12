@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import multiprocessing
-from typing import Any, Dict, Iterator, Optional, Sequence
+from collections.abc import Iterator, Sequence
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -35,7 +36,7 @@ def pool() -> Iterator[multiprocessing.pool.Pool]:
         yield pool
 
 
-def test_simulate_2q_xeb_circuits(pool):
+def test_simulate_2q_xeb_circuits(pool) -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuits = [
         rqcg.random_rotations_between_two_qubit_circuit(
@@ -43,7 +44,7 @@ def test_simulate_2q_xeb_circuits(pool):
         )
         for _ in range(2)
     ]
-    cycle_depths = np.arange(3, 50, 9)
+    cycle_depths = list(range(3, 50, 9))
 
     df = simulate_2q_xeb_circuits(circuits=circuits, cycle_depths=cycle_depths)
     assert len(df) == len(cycle_depths) * len(circuits)
@@ -58,7 +59,7 @@ def test_simulate_2q_xeb_circuits(pool):
     pd.testing.assert_frame_equal(df, df2)
 
 
-def test_simulate_circuit_length_validation():
+def test_simulate_circuit_length_validation() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuits = [
         rqcg.random_rotations_between_two_qubit_circuit(
@@ -69,12 +70,12 @@ def test_simulate_circuit_length_validation():
         )
         for _ in range(2)
     ]
-    cycle_depths = np.arange(3, 50, 9, dtype=np.int64)
+    cycle_depths = list(range(3, 50, 9))
     with pytest.raises(ValueError, match='.*not long enough.*'):
         _ = simulate_2q_xeb_circuits(circuits=circuits, cycle_depths=cycle_depths)
 
 
-def _ref_simulate_2q_xeb_circuit(task: Dict[str, Any]):
+def _ref_simulate_2q_xeb_circuit(task: dict[str, Any]):
     """Helper function for simulating a given (circuit, cycle_depth)."""
     circuit_i = task['circuit_i']
     cycle_depth = task['cycle_depth']
@@ -98,7 +99,7 @@ def _ref_simulate_2q_xeb_circuits(
     circuits: Sequence[cirq.Circuit],
     cycle_depths: Sequence[int],
     param_resolver: cirq.ParamResolverOrSimilarType = None,
-    pool: Optional[multiprocessing.pool.Pool] = None,
+    pool: multiprocessing.pool.Pool | None = None,
 ):
     """Reference implementation for `simulate_2q_xeb_circuits` that
     does each circuit independently instead of using intermediate states.
@@ -129,7 +130,7 @@ def _ref_simulate_2q_xeb_circuits(
 
 
 @pytest.mark.parametrize('use_pool', (True, False))
-def test_incremental_simulate(request, use_pool):
+def test_incremental_simulate(request, use_pool) -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuits = [
         rqcg.random_rotations_between_two_qubit_circuit(
@@ -137,7 +138,7 @@ def test_incremental_simulate(request, use_pool):
         )
         for _ in range(20)
     ]
-    cycle_depths = np.arange(3, 100, 9, dtype=np.int64)
+    cycle_depths = list(range(3, 100, 9))
 
     # avoid starting worker pool if it is not needed
     pool = request.getfixturevalue("pool") if use_pool else None

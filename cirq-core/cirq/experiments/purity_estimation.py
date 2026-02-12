@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence
+from __future__ import annotations
+
+from collections.abc import Sequence
 
 import numpy as np
 
 
 def purity_from_probabilities(
-    hilbert_space_dimension: int, probabilities: Sequence[float]
+    hilbert_space_dimension: int, probabilities: np.ndarray | Sequence[float]
 ) -> float:
     """Purity estimator from speckle purity benchmarking.
 

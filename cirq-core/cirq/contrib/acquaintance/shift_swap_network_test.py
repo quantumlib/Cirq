@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
 import random
 
@@ -21,7 +23,7 @@ import cirq
 import cirq.contrib.acquaintance as cca
 
 
-def random_part_lens(max_n_parts, max_part_size):
+def random_part_lens(max_n_parts, max_part_size) -> tuple[int, ...]:
     return tuple(random.randint(1, max_part_size) for _ in range(random.randint(1, max_n_parts)))
 
 
@@ -29,7 +31,7 @@ def random_part_lens(max_n_parts, max_part_size):
     'left_part_lens,right_part_lens',
     [tuple(random_part_lens(7, 2) for _ in ('left', 'right')) for _ in range(5)],
 )
-def test_shift_swap_network_gate_acquaintance_opps(left_part_lens, right_part_lens):
+def test_shift_swap_network_gate_acquaintance_opps(left_part_lens, right_part_lens) -> None:
 
     gate = cca.ShiftSwapNetworkGate(left_part_lens, right_part_lens)
     n_qubits = gate.qubit_count()
@@ -43,25 +45,22 @@ def test_shift_swap_network_gate_acquaintance_opps(left_part_lens, right_part_le
     # expected opps
     i = 0
     sides = ('left', 'right')
+    parts: dict[str, list[set[int]]]
     parts = {side: [] for side in sides}
     for side, part_lens in zip(sides, (left_part_lens, right_part_lens)):
         for part_len in part_lens:
             parts[side].append(set(range(i, i + part_len)))
             i += part_len
 
-    expected_opps = set(
+    expected_opps = {
         frozenset(left_part | right_part)
         for left_part, right_part in itertools.product(parts['left'], parts['right'])
-    )
+    }
     assert actual_opps == expected_opps
 
 
 circuit_diagrams = {
-    (
-        'undecomposed',
-        (1,) * 3,
-        (1,) * 3,
-    ): """
+    ('undecomposed', (1,) * 3, (1,) * 3): """
 0: ───(0, 0, 0)↦(1, 0, 0)───
       │
 1: ───(0, 1, 0)↦(1, 1, 0)───
@@ -74,11 +73,7 @@ circuit_diagrams = {
       │
 5: ───(1, 2, 0)↦(0, 2, 0)───
     """,
-    (
-        'decomposed',
-        (1,) * 3,
-        (1,) * 3,
-    ): """
+    ('decomposed', (1,) * 3, (1,) * 3): """
 0: ───────────────────────█───╲0╱───────────────────────
                           │   │
 1: ─────────────█───╲0╱───█───╱1╲───█───╲0╱─────────────
@@ -91,11 +86,7 @@ circuit_diagrams = {
                           │   │
 5: ───────────────────────█───╱1╲───────────────────────
     """,
-    (
-        'undecomposed',
-        (2,) * 3,
-        (2,) * 3,
-    ): """
+    ('undecomposed', (2,) * 3, (2,) * 3): """
 0: ────(0, 0, 0)↦(1, 0, 0)───
        │
 1: ────(0, 0, 1)↦(1, 0, 1)───
@@ -120,11 +111,7 @@ circuit_diagrams = {
        │
 11: ───(1, 2, 1)↦(0, 2, 1)───
     """,
-    (
-        'decomposed',
-        (2,) * 3,
-        (2,) * 3,
-    ): """
+    ('decomposed', (2,) * 3, (2,) * 3): """
 0: ────────────────────────█───╲0╱───────────────────────
                            │   │
 1: ────────────────────────█───╲1╱───────────────────────
@@ -149,11 +136,7 @@ circuit_diagrams = {
                            │   │
 11: ───────────────────────█───╱3╲───────────────────────
     """,
-    (
-        'undecomposed',
-        (1, 2, 2),
-        (2, 1, 2),
-    ): """
+    ('undecomposed', (1, 2, 2), (2, 1, 2)): """
 0: ───(0, 0, 0)↦(1, 0, 0)───
       │
 1: ───(0, 1, 0)↦(1, 1, 0)───
@@ -174,11 +157,7 @@ circuit_diagrams = {
       │
 9: ───(1, 2, 1)↦(0, 2, 1)───
     """,
-    (
-        'decomposed',
-        (1, 2, 2),
-        (2, 1, 2),
-    ): """
+    ('decomposed', (1, 2, 2), (2, 1, 2)): """
 0: ───────────────────────█───╲0╱───────────────────────
                           │   │
 1: ─────────────█───╲0╱───█───╱1╲───────────────────────
@@ -202,8 +181,8 @@ circuit_diagrams = {
 }
 
 
-@pytest.mark.parametrize('left_part_lens,right_part_lens', set(key[1:] for key in circuit_diagrams))
-def test_shift_swap_network_gate_diagrams(left_part_lens, right_part_lens):
+@pytest.mark.parametrize('left_part_lens,right_part_lens', {key[1:] for key in circuit_diagrams})
+def test_shift_swap_network_gate_diagrams(left_part_lens, right_part_lens) -> None:
 
     gate = cca.ShiftSwapNetworkGate(left_part_lens, right_part_lens)
     n_qubits = gate.qubit_count()
@@ -218,7 +197,7 @@ def test_shift_swap_network_gate_diagrams(left_part_lens, right_part_lens):
     cirq.testing.assert_has_diagram(circuit, diagram)
 
 
-def test_shift_swap_network_gate_bad_part_lens():
+def test_shift_swap_network_gate_bad_part_lens() -> None:
     with pytest.raises(ValueError):
         cca.ShiftSwapNetworkGate((0, 1, 1), (2, 2))
     with pytest.raises(ValueError):
@@ -233,7 +212,7 @@ def test_shift_swap_network_gate_bad_part_lens():
     'left_part_lens,right_part_lens',
     [tuple(random_part_lens(2, 2) for _ in ('left', 'right')) for _ in range(5)],
 )
-def test_shift_swap_network_gate_repr(left_part_lens, right_part_lens):
+def test_shift_swap_network_gate_repr(left_part_lens, right_part_lens) -> None:
     gate = cca.ShiftSwapNetworkGate(left_part_lens, right_part_lens)
     cirq.testing.assert_equivalent_repr(gate)
 
@@ -245,7 +224,7 @@ def test_shift_swap_network_gate_repr(left_part_lens, right_part_lens):
     'left_part_lens,right_part_lens',
     [tuple(random_part_lens(2, 2) for _ in ('left', 'right')) for _ in range(5)],
 )
-def test_shift_swap_network_gate_permutation(left_part_lens, right_part_lens):
+def test_shift_swap_network_gate_permutation(left_part_lens, right_part_lens) -> None:
     gate = cca.ShiftSwapNetworkGate(left_part_lens, right_part_lens)
     n_qubits = gate.qubit_count()
     cca.testing.assert_permutation_decomposition_equivalence(gate, n_qubits)

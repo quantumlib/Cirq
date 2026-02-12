@@ -14,11 +14,16 @@
 
 """Tools for disabling validation in circuit construction."""
 
+from __future__ import annotations
+
 import contextlib
+from collections.abc import Generator
 
 
 @contextlib.contextmanager
-def disable_op_validation(*, accept_debug_responsibility: bool = False):
+def disable_op_validation(
+    *, accept_debug_responsibility: bool = False
+) -> Generator[None, None, None]:
     if not accept_debug_responsibility:
         raise ValueError(
             "WARNING! Using disable_op_validation with invalid ops can cause "

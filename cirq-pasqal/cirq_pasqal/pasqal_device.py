@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Sequence, Union
+from collections.abc import Sequence
+from typing import Any
 
 import networkx as nx
 import numpy as np
@@ -72,7 +73,6 @@ class PasqalDevice(cirq.devices.Device):
             qubits, nx.from_edgelist([(a, b) for a in qubits for b in qubits if a != b])
         )
 
-    # pylint: enable=missing-raises-doc
     @property
     def supported_qubit_type(self):
         return (NamedQubit,)
@@ -86,7 +86,7 @@ class PasqalDevice(cirq.devices.Device):
         return self._metadata
 
     def qubit_list(self):
-        return [qubit for qubit in self.qubits]
+        return list(self.qubits)
 
     def is_pasqal_device_op(self, op: cirq.Operation) -> bool:
         if not isinstance(op, cirq.Operation):
@@ -171,7 +171,7 @@ class PasqalVirtualDevice(PasqalDevice):
     """
 
     def __init__(
-        self, control_radius: float, qubits: Sequence[Union[ThreeDQubit, GridQubit, LineQubit]]
+        self, control_radius: float, qubits: Sequence[ThreeDQubit | GridQubit | LineQubit]
     ) -> None:
         """Initializes a device with some qubits.
 
@@ -252,7 +252,7 @@ class PasqalVirtualDevice(PasqalDevice):
         if len(self.qubits) <= 1:
             raise ValueError("Two qubits to compute a minimal distance.")
 
-        return min([self.distance(q1, q2) for q1 in self.qubits for q2 in self.qubits if q1 != q2])
+        return min(self.distance(q1, q2) for q1 in self.qubits for q2 in self.qubits if q1 != q2)
 
     def distance(self, p: Any, q: Any) -> float:
         """Returns the distance between two qubits.
@@ -289,5 +289,5 @@ class PasqalVirtualDevice(PasqalDevice):
     def _value_equality_values_(self) -> Any:
         return (self.control_radius, self.qubits)
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.protocols.obj_to_dict_helper(self, ['control_radius', 'qubits'])

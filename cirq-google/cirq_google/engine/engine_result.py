@@ -14,14 +14,14 @@
 
 from __future__ import annotations
 
-import datetime
-from typing import Any, Dict, Mapping, Optional, TYPE_CHECKING
-
-import numpy as np
+from collections.abc import Mapping
+from typing import Any, TYPE_CHECKING
 
 from cirq import study
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq
 
 
@@ -32,23 +32,20 @@ class EngineResult(study.ResultDict):
 
     Additional Attributes:
         job_id: A string job identifier.
-        job_finished_time: A timestamp for when the job finished.
     """
 
     def __init__(
         self,
         *,  # Forces keyword args.
         job_id: str,
-        job_finished_time: datetime.datetime,
-        params: Optional[study.ParamResolver] = None,
-        measurements: Optional[Mapping[str, np.ndarray]] = None,
-        records: Optional[Mapping[str, np.ndarray]] = None,
+        params: study.ParamResolver | None = None,
+        measurements: Mapping[str, np.ndarray] | None = None,
+        records: Mapping[str, np.ndarray] | None = None,
     ):
         """Initialize the result.
 
         Args:
             job_id: A string job identifier.
-            job_finished_time: A timestamp for when the job finished; will be converted to UTC.
             params: A ParamResolver of settings used for this result.
             measurements: A dictionary from measurement gate key to measurement
                 results. See `cirq.ResultDict`.
@@ -57,10 +54,9 @@ class EngineResult(study.ResultDict):
         """
         super().__init__(params=params, measurements=measurements, records=records)
         self.job_id = job_id
-        self.job_finished_time = job_finished_time
 
     @classmethod
-    def from_result(cls, result: cirq.Result, *, job_id: str, job_finished_time: datetime.datetime):
+    def from_result(cls, result: cirq.Result, *, job_id: str):
         if isinstance(result, study.ResultDict):
             # optimize by using private methods
             return cls(
@@ -68,7 +64,6 @@ class EngineResult(study.ResultDict):
                 measurements=result._measurements,
                 records=result._records,
                 job_id=job_id,
-                job_finished_time=job_finished_time,
             )
         else:
             return cls(
@@ -76,39 +71,30 @@ class EngineResult(study.ResultDict):
                 measurements=result.measurements,
                 records=result.records,
                 job_id=job_id,
-                job_finished_time=job_finished_time,
             )
 
     def __eq__(self, other):
         if not isinstance(other, EngineResult):
             return False
 
-        return (
-            super().__eq__(other)
-            and self.job_id == other.job_id
-            and self.job_finished_time == other.job_finished_time
-        )
+        return super().__eq__(other) and self.job_id == other.job_id
 
     def __repr__(self) -> str:
         return (
             f'cirq_google.EngineResult(params={self.params!r}, '
             f'records={self._record_dict_repr()}, '
-            f'job_id={self.job_id!r}, '
-            f'job_finished_time={self.job_finished_time!r})'
+            f'job_id={self.job_id!r})'
         )
 
     @classmethod
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         d = super()._json_dict_()
         d['job_id'] = self.job_id
-        d['job_finished_time'] = self.job_finished_time
         return d
 
     @classmethod
-    def _from_json_dict_(cls, params, records, job_id, job_finished_time, **kwargs):
-        return cls._from_packed_records(
-            params=params, records=records, job_id=job_id, job_finished_time=job_finished_time
-        )
+    def _from_json_dict_(cls, params, records, job_id, **kwargs):
+        return cls._from_packed_records(params=params, records=records, job_id=job_id)

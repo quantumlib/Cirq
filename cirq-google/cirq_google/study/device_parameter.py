@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import dataclasses
-from typing import Any, Dict, Optional, Sequence
+from __future__ import annotations
 
-from typing_extensions import Protocol
+import dataclasses
+from collections.abc import Sequence
+from typing import Any, Protocol
 
 import cirq
 
@@ -31,8 +32,8 @@ class SupportsDeviceParameter(Protocol):
     """
 
     path: Sequence[str]
-    idx: Optional[int] = None
-    value: Optional[Any] = None
+    idx: int | None = None
+    value: Any | None = None
 
 
 @dataclasses.dataclass
@@ -53,9 +54,9 @@ class DeviceParameter(SupportsDeviceParameter):
     """
 
     path: Sequence[str]
-    idx: Optional[int] = None
-    value: Optional[Any] = None
-    units: Optional[str] = None
+    idx: int | None = None
+    value: Any | None = None
+    units: str | None = None
 
     def __repr__(self) -> str:
         return (
@@ -69,11 +70,9 @@ class DeviceParameter(SupportsDeviceParameter):
 
     @classmethod
     def _from_json_dict_(cls, path, idx, value, **kwargs):
-        return DeviceParameter(
-            path=path, idx=idx, value=value, units=kwargs["units"] if "units" in kwargs else None
-        )
+        return DeviceParameter(path=path, idx=idx, value=value, units=kwargs.get("units", None))
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ["path", "idx", "value", "units"])
 
 
@@ -90,10 +89,10 @@ class Metadata:
             In this case, we should not keep unit information in metadata.
     """
 
-    device_parameters: Optional[Sequence[DeviceParameter]] = None
+    device_parameters: Sequence[DeviceParameter] | None = None
     is_const: bool = False
-    label: Optional[str] = None
-    unit: Optional[str] = None
+    label: str | None = None
+    unit: str | None = None
 
     def __repr__(self) -> str:
         return (
@@ -109,13 +108,13 @@ class Metadata:
     @classmethod
     def _from_json_dict_(
         cls,
-        device_parameters: Optional[Sequence[DeviceParameter]] = None,
+        device_parameters: Sequence[DeviceParameter] | None = None,
         is_const: bool = False,
-        label: Optional[str] = None,
-        unit: Optional[str] = None,
+        label: str | None = None,
+        unit: str | None = None,
         **kwargs,
     ):
         return Metadata(device_parameters=device_parameters, is_const=is_const, label=label)
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ["device_parameters", "is_const", "label", "unit"])

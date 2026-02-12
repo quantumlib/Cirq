@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import abc
-from typing import FrozenSet, Iterable, Optional, TYPE_CHECKING
+from collections.abc import Iterable
+from typing import TYPE_CHECKING
 
 import networkx as nx
 
@@ -59,7 +60,7 @@ class Device(metaclass=abc.ABCMeta):
     """
 
     @property
-    def metadata(self) -> Optional[DeviceMetadata]:
+    def metadata(self) -> DeviceMetadata | None:
         """Returns the associated Metadata with the device if applicable.
 
         Returns:
@@ -116,11 +117,11 @@ class DeviceMetadata:
                 directional coupling, undirected edges indicate bi-directional
                 coupling.
         """
-        self._qubits_set: FrozenSet[cirq.Qid] = frozenset(qubits)
+        self._qubits_set: frozenset[cirq.Qid] = frozenset(qubits)
         self._nx_graph = nx_graph
 
     @property
-    def qubit_set(self) -> FrozenSet[cirq.Qid]:
+    def qubit_set(self) -> frozenset[cirq.Qid]:
         """Returns the set of qubits on the device.
 
         Returns:
@@ -147,7 +148,7 @@ class DeviceMetadata:
 
     def _json_dict_(self):
         graph_payload = nx.readwrite.json_graph.node_link_data(self._nx_graph, edges='links')
-        qubits_payload = sorted(list(self._qubits_set))
+        qubits_payload = sorted(self._qubits_set)
 
         return {'qubits': qubits_payload, 'nx_graph': graph_payload}
 

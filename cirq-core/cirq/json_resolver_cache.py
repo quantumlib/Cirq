@@ -17,12 +17,10 @@ from __future__ import annotations
 
 import datetime
 import functools
-from typing import Dict, List, NamedTuple, Optional, Tuple, TYPE_CHECKING
+from typing import NamedTuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
     import cirq
-    import cirq.devices.unconstrained_device
-    import cirq.ops.pauli_gates
     from cirq.protocols.json_serialization import ObjectFactory
 
 
@@ -32,23 +30,23 @@ SpecklePurityPair = NamedTuple('SpecklePurityPair', [('num_cycle', int), ('purit
 CrossEntropyResult = NamedTuple(
     'CrossEntropyResult',
     [
-        ('data', List[CrossEntropyPair]),
+        ('data', list[CrossEntropyPair]),
         ('repetitions', int),
-        ('purity_data', Optional[List[SpecklePurityPair]]),
+        ('purity_data', list[SpecklePurityPair] | None),
     ],
 )
 CrossEntropyResultDict = NamedTuple(
-    'CrossEntropyResultDict', [('results', Dict[Tuple['cirq.Qid', ...], CrossEntropyResult])]
+    'CrossEntropyResultDict', [('results', dict[tuple['cirq.Qid', ...], CrossEntropyResult])]
 )
 
 
 @functools.lru_cache()
-def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
+def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
     import numpy as np
     import pandas as pd
 
     import cirq
-    from cirq.devices import InsertionNoiseModel
+    from cirq.devices import InsertionNoiseModel, NoiseModelFromNoiseProperties, ThermalNoiseModel
     from cirq.devices.noise_model import _NoNoiseModel
     from cirq.experiments import GridInteractionLayer
     from cirq.ops import raw_types
@@ -82,7 +80,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         )
 
     def _cross_entropy_result_dict(
-        results: List[Tuple[List[cirq.Qid], CrossEntropyResult]], **kwargs
+        results: list[tuple[list[cirq.Qid], CrossEntropyResult]], **kwargs
     ) -> CrossEntropyResultDict:
         return CrossEntropyResultDict(results={tuple(qubits): result for qubits, result in results})
 
@@ -175,6 +173,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'NamedQubit': cirq.NamedQubit,
         'NamedQid': cirq.NamedQid,
         'NoIdentifierQubit': cirq.testing.NoIdentifierQubit,
+        'NoiseModelFromNoiseProperties': NoiseModelFromNoiseProperties,
         'ObservableMeasuredResult': cirq.work.ObservableMeasuredResult,
         'OpIdentifier': cirq.OpIdentifier,
         'ParamResolver': cirq.ParamResolver,
@@ -226,6 +225,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'SympyCondition': cirq.SympyCondition,
         'TaggedOperation': cirq.TaggedOperation,
         'TensoredConfusionMatrices': cirq.TensoredConfusionMatrices,
+        'ThermalNoiseModel': ThermalNoiseModel,
         'TiltedSquareLattice': cirq.TiltedSquareLattice,
         'ThreeQubitDiagonalGate': cirq.ThreeQubitDiagonalGate,
         'TrialResult': cirq.ResultDict,  # keep support for Cirq < 0.11.
@@ -237,9 +237,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'VirtualTag': cirq.VirtualTag,
         'WaitGate': cirq.WaitGate,
         # The formatter keeps putting this back
-        # pylint: disable=line-too-long
-        'XEBPhasedFSimCharacterizationOptions': cirq.experiments.XEBPhasedFSimCharacterizationOptions,
-        # pylint: enable=line-too-long
+        'XEBPhasedFSimCharacterizationOptions': cirq.experiments.XEBPhasedFSimCharacterizationOptions,  # noqa: E501
         '_XEigenState': cirq.value.product_state._XEigenState,
         'XPowGate': cirq.XPowGate,
         'XXPowGate': cirq.XXPowGate,

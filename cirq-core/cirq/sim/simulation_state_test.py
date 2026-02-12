@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Sequence
+from __future__ import annotations
+
+from collections.abc import Sequence
+from typing import Any
 
 import numpy as np
 import pytest
@@ -23,13 +26,13 @@ from cirq.testing import PhaseUsingCleanAncilla, PhaseUsingDirtyAncilla
 
 
 class ExampleQuantumState(cirq.QuantumStateRepresentation):
-    def copy(self, deep_copy_buffers=True):
-        pass
+    def copy(self, deep_copy_buffers=True) -> ExampleQuantumState:
+        raise NotImplementedError()
 
-    def measure(self, axes, seed=None):
+    def measure(self, axes, seed=None) -> list[int]:
         return [5, 3]
 
-    def reindex(self, axes):
+    def reindex(self, axes) -> ExampleQuantumState:
         return self
 
 
@@ -42,7 +45,7 @@ class ExampleSimulationState(cirq.SimulationState):
     ) -> bool:
         return True
 
-    def add_qubits(self, qubits):
+    def add_qubits(self, qubits) -> ExampleSimulationState:
         super().add_qubits(qubits)
         return self
 
@@ -72,20 +75,20 @@ class Composite(cirq.Gate):
         yield cirq.X(*qubits)
 
 
-def test_measurements():
+def test_measurements() -> None:
     args = ExampleSimulationState()
     args.measure([cirq.LineQubit(0)], "test", [False], {})
     assert args.log_of_measurement_results["test"] == [5]
 
 
-def test_decompose():
+def test_decompose() -> None:
     args = ExampleSimulationState()
     assert simulation_state.strat_act_on_from_apply_decompose(
         Composite(), args, [cirq.LineQubit(0)]
     )
 
 
-def test_decompose_for_gate_allocating_qubits_raises():
+def test_decompose_for_gate_allocating_qubits_raises() -> None:
     class Composite(cirq.testing.SingleQubitGate):
         def _decompose_(self, qubits):
             anc = cirq.NamedQubit("anc")
@@ -97,7 +100,7 @@ def test_decompose_for_gate_allocating_qubits_raises():
         simulation_state.strat_act_on_from_apply_decompose(Composite(), args, [cirq.LineQubit(0)])
 
 
-def test_mapping():
+def test_mapping() -> None:
     args = ExampleSimulationState()
     assert list(iter(args)) == cirq.LineQubit.range(2)
     r1 = args[cirq.LineQubit(0)]
@@ -106,7 +109,7 @@ def test_mapping():
         _ = args[cirq.LineQubit(2)]
 
 
-def test_swap_bad_dimensions():
+def test_swap_bad_dimensions() -> None:
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQid(1, 3)
     args = ExampleSimulationState()
@@ -114,7 +117,7 @@ def test_swap_bad_dimensions():
         args.swap(q0, q1)
 
 
-def test_rename_bad_dimensions():
+def test_rename_bad_dimensions() -> None:
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQid(1, 3)
     args = ExampleSimulationState()
@@ -122,7 +125,7 @@ def test_rename_bad_dimensions():
         args.rename(q0, q1)
 
 
-def test_transpose_qubits():
+def test_transpose_qubits() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     args = ExampleSimulationState()
     assert args.transpose_to_qubit_order((q1, q0)).qubits == (q1, q0)
@@ -132,14 +135,14 @@ def test_transpose_qubits():
         args.transpose_to_qubit_order((q0, q1, q1))
 
 
-def test_field_getters():
+def test_field_getters() -> None:
     args = ExampleSimulationState()
     assert args.prng is np.random
     assert args.qubit_map == {q: i for i, q in enumerate(cirq.LineQubit.range(2))}
 
 
 @pytest.mark.parametrize('exp', np.linspace(0, 2 * np.pi, 10))
-def test_delegating_gate_unitary(exp):
+def test_delegating_gate_unitary(exp) -> None:
     q = cirq.LineQubit(0)
 
     test_circuit = cirq.Circuit()
@@ -154,7 +157,7 @@ def test_delegating_gate_unitary(exp):
 
 
 @pytest.mark.parametrize('exp', np.linspace(0, 2 * np.pi, 10))
-def test_delegating_gate_channel(exp):
+def test_delegating_gate_channel(exp) -> None:
     q = cirq.LineQubit(0)
 
     test_circuit = cirq.Circuit()
@@ -169,7 +172,7 @@ def test_delegating_gate_channel(exp):
 
 
 @pytest.mark.parametrize('num_ancilla', [1, 2, 3])
-def test_phase_using_dirty_ancilla(num_ancilla: int):
+def test_phase_using_dirty_ancilla(num_ancilla: int) -> None:
     q = cirq.LineQubit(0)
     anc = cirq.NamedQubit.range(num_ancilla, prefix='anc')
 
@@ -184,7 +187,7 @@ def test_phase_using_dirty_ancilla(num_ancilla: int):
 
 @pytest.mark.parametrize('num_ancilla', [1, 2, 3])
 @pytest.mark.parametrize('theta', np.linspace(0, 2 * np.pi, 10))
-def test_phase_using_clean_ancilla(num_ancilla: int, theta: float):
+def test_phase_using_clean_ancilla(num_ancilla: int, theta: float) -> None:
     q = cirq.LineQubit(0)
     u = cirq.MatrixGate(cirq.testing.random_unitary(2))
     test_circuit = cirq.Circuit(

@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import abc
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 from cirq import circuits, devices, ops
 from cirq.contrib.acquaintance.bipartite import BipartiteSwapNetworkGate
@@ -42,10 +42,10 @@ class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
             )
 
 
-def get_acquaintance_size(obj: Union[circuits.Circuit, ops.Operation]) -> int:
+def get_acquaintance_size(obj: circuits.Circuit | ops.Operation) -> int:
     """The maximum number of qubits to be acquainted with each other."""
     if isinstance(obj, circuits.Circuit):
-        return max(tuple(get_acquaintance_size(op) for op in obj.all_operations()) or (0,))
+        return max((get_acquaintance_size(op) for op in obj.all_operations()), default=0)
     if not isinstance(obj, ops.Operation):
         raise TypeError('not isinstance(obj, (Circuit, Operation))')
     if not isinstance(obj, ops.GateOperation):

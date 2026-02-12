@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 
 class QasmException(Exception):
     def __init__(self, message: str) -> None:

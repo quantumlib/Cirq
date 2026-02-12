@@ -11,15 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import datetime
-from typing import Dict, List, Optional, Sequence, Set, Union
+from __future__ import annotations
 
-import cirq
-from cirq_google.cloud import quantum
+import datetime
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
+
 from cirq_google.engine.abstract_engine import AbstractEngine
-from cirq_google.engine.abstract_job import AbstractJob
-from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
-from cirq_google.engine.abstract_program import AbstractProgram
+
+if TYPE_CHECKING:
+    import cirq
+    import cirq_google.cloud.quantum as quantum
+    from cirq_google.engine.abstract_job import AbstractJob
+    from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
+    from cirq_google.engine.abstract_program import AbstractProgram
 
 
 class AbstractLocalEngine(AbstractEngine):
@@ -31,7 +36,7 @@ class AbstractLocalEngine(AbstractEngine):
 
     """
 
-    def __init__(self, processors: List[AbstractLocalProcessor]):
+    def __init__(self, processors: list[AbstractLocalProcessor]):
         for processor in processors:
             processor.set_engine(self)
         self._processors = {proc.processor_id: proc for proc in processors}
@@ -59,10 +64,10 @@ class AbstractLocalEngine(AbstractEngine):
 
     def list_programs(
         self,
-        created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
-        created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[Dict[str, str]] = None,
-    ) -> List[AbstractProgram]:
+        created_before: datetime.datetime | datetime.date | None = None,
+        created_after: datetime.datetime | datetime.date | None = None,
+        has_labels: dict[str, str] | None = None,
+    ) -> list[AbstractProgram]:
         """Returns a list of previously executed quantum programs.
 
         Args:
@@ -77,7 +82,7 @@ class AbstractLocalEngine(AbstractEngine):
                 label with value red can be queried using
                 `{'color: red', 'shape:*'}`
         """
-        valid_programs: List[AbstractProgram] = []
+        valid_programs: list[AbstractProgram] = []
         for processor in self._processors.values():
             valid_programs.extend(
                 processor.list_programs(
@@ -90,11 +95,11 @@ class AbstractLocalEngine(AbstractEngine):
 
     def list_jobs(
         self,
-        created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
-        created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[Dict[str, str]] = None,
-        execution_states: Optional[Set[quantum.ExecutionStatus.State]] = None,
-    ) -> List[AbstractJob]:
+        created_before: datetime.datetime | datetime.date | None = None,
+        created_after: datetime.datetime | datetime.date | None = None,
+        has_labels: dict[str, str] | None = None,
+        execution_states: set[quantum.ExecutionStatus.State] | None = None,
+    ) -> list[AbstractJob]:
         """Returns the list of jobs in the project.
 
         All historical jobs can be retrieved using this method and filtering
@@ -120,7 +125,7 @@ class AbstractLocalEngine(AbstractEngine):
                  is contained in `execution_states`. See
                  `quantum.ExecutionStatus.State` enum for accepted values.
         """
-        valid_jobs: List[AbstractJob] = []
+        valid_jobs: list[AbstractJob] = []
         for processor in self._processors.values():
             programs = processor.list_programs(
                 created_before=created_before, created_after=created_after, has_labels=has_labels
@@ -158,7 +163,7 @@ class AbstractLocalEngine(AbstractEngine):
         """
         return self._processors[processor_id]
 
-    def get_sampler(self, processor_id: Union[str, List[str]]) -> cirq.Sampler:
+    def get_sampler(self, processor_id: str | list[str]) -> cirq.Sampler:
         """Returns a sampler backed by the engine.
 
         Args:

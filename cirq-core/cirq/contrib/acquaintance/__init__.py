@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Tools for creating and using acquaintance strategies."""
+
 from cirq.contrib.acquaintance.bipartite import (
     BipartiteGraphType as BipartiteGraphType,
     BipartiteSwapNetworkGate as BipartiteSwapNetworkGate,
@@ -79,4 +80,4 @@ from cirq.contrib.acquaintance.topological_sort import (
     random_topological_sort as random_topological_sort,
 )
 
-from cirq.contrib.acquaintance import testing
+from cirq.contrib.acquaintance import testing  # noqa: F401

@@ -16,19 +16,8 @@ from __future__ import annotations
 
 import json
 import urllib.parse
-from typing import (
-    Any,
-    cast,
-    Dict,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from collections.abc import Iterable, Mapping, Sequence
+from typing import Any, cast, TYPE_CHECKING
 
 import numpy as np
 
@@ -50,10 +39,8 @@ if TYPE_CHECKING:
 def quirk_url_to_circuit(
     quirk_url: str,
     *,
-    qubits: Optional[Sequence[cirq.Qid]] = None,
-    extra_cell_makers: Union[
-        Dict[str, cirq.Gate], Iterable[cirq.interop.quirk.cells.CellMaker]
-    ] = (),
+    qubits: Sequence[cirq.Qid] | None = None,
+    extra_cell_makers: Mapping[str, cirq.Gate] | Iterable[cirq.interop.quirk.cells.CellMaker] = (),
     max_operation_count: int = 10**6,
 ) -> cirq.Circuit:
     """Parses a Cirq circuit out of a Quirk URL.
@@ -153,11 +140,9 @@ def quirk_url_to_circuit(
 def quirk_json_to_circuit(
     data: dict,
     *,
-    qubits: Optional[Sequence[cirq.Qid]] = None,
-    extra_cell_makers: Union[
-        Dict[str, cirq.Gate], Iterable[cirq.interop.quirk.cells.CellMaker]
-    ] = (),
-    quirk_url: Optional[str] = None,
+    qubits: Sequence[cirq.Qid] | None = None,
+    extra_cell_makers: Mapping[str, cirq.Gate] | Iterable[cirq.interop.quirk.cells.CellMaker] = (),
+    quirk_url: str | None = None,
     max_operation_count: int = 10**6,
 ) -> cirq.Circuit:
     """Constructs a Cirq circuit from Quirk's JSON format.
@@ -258,9 +243,9 @@ def quirk_json_to_circuit(
 
 
 def _parse_cols_into_composite_cell(
-    data: Dict[str, Any], registry: Dict[str, CellMaker]
+    data: dict[str, Any], registry: dict[str, CellMaker]
 ) -> CompositeCell:
-    if not isinstance(data, Dict):
+    if not isinstance(data, dict):
         raise ValueError('Circuit JSON must be a dictionary.')
     if 'cols' not in data:
         raise ValueError(f'Circuit JSON dict must have a "cols" entry.\nJSON={data}')
@@ -269,7 +254,7 @@ def _parse_cols_into_composite_cell(
         raise ValueError(f'Circuit JSON cols must be a list.\nJSON={data}')
 
     # Parse column json into cells.
-    parsed_cols: List[List[Optional[Cell]]] = []
+    parsed_cols: list[list[Cell | None]] = []
     height = 0
     for i, col in enumerate(cols):
         parsed_col, h = _parse_col_cells_with_height(registry, i, col)
@@ -303,8 +288,8 @@ def _parse_cols_into_composite_cell(
     return CompositeCell(height, parsed_cols, gate_count=gate_count)
 
 
-def _register_custom_gate(gate_json: Any, registry: Dict[str, CellMaker]):
-    if not isinstance(gate_json, Dict):
+def _register_custom_gate(gate_json: Any, registry: dict[str, CellMaker]):
+    if not isinstance(gate_json, dict):
         raise ValueError(f'Custom gate json must be a dictionary.\nCustom gate json={gate_json!r}.')
 
     if 'id' not in gate_json:
@@ -346,11 +331,11 @@ def _register_custom_gate(gate_json: Any, registry: Dict[str, CellMaker]):
         )
 
 
-def _init_ops(data: Dict[str, Any]) -> cirq.OP_TREE:
+def _init_ops(data: dict[str, Any]) -> cirq.OP_TREE:
     if 'init' not in data:
         return []
     init = data['init']
-    if not isinstance(init, List):
+    if not isinstance(init, list):
         raise ValueError(f'Circuit JSON init must be a list but was {init!r}.')
     init_ops = []
     for i in range(len(init)):
@@ -374,8 +359,8 @@ def _init_ops(data: Dict[str, Any]) -> cirq.OP_TREE:
 
 
 def _parse_col_cells_with_height(
-    registry: Dict[str, CellMaker], col: int, col_data: Any
-) -> Tuple[List[Optional[Cell]], int]:
+    registry: dict[str, CellMaker], col: int, col_data: Any
+) -> tuple[list[Cell | None], int]:
     if not isinstance(col_data, list):
         raise ValueError(f'col must be a list.\ncol: {col_data!r}')
     result = []
@@ -388,8 +373,8 @@ def _parse_col_cells_with_height(
 
 
 def _parse_cell_with_height(
-    registry: Dict[str, CellMaker], row: int, col: int, entry: Any
-) -> Tuple[Optional[Cell], int]:
+    registry: dict[str, CellMaker], row: int, col: int, entry: Any
+) -> tuple[Cell | None, int]:
     if entry == 1:
         return None, 0
 

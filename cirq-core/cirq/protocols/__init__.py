@@ -139,10 +139,7 @@ from cirq.protocols.pauli_expansion_protocol import (
     SupportsPauliExpansion as SupportsPauliExpansion,
 )
 
-# pylint: disable=redefined-builtin
 from cirq.protocols.pow_protocol import pow as pow
-
-# pylint: enable=redefined-builtin
 
 from cirq.protocols.qasm import (
     qasm as qasm,

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import fractions
 
 import pytest
@@ -19,7 +21,7 @@ import pytest
 from cirq.testing.equals_tester import EqualsTester
 
 
-def test_add_equality_group_correct():
+def test_add_equality_group_correct() -> None:
     eq = EqualsTester()
 
     eq.add_equality_group(fractions.Fraction(1, 1))
@@ -39,7 +41,7 @@ def test_add_equality_group_correct():
     eq.add_equality_group('unrelated')
 
 
-def test_assert_make_equality_group():
+def test_assert_make_equality_group() -> None:
     eq = EqualsTester()
 
     with pytest.raises(AssertionError, match="can't be in the same"):
@@ -57,20 +59,20 @@ def test_assert_make_equality_group():
         eq.make_equality_group(lambda: 3)
 
 
-def test_add_equality_group_not_equivalent():
+def test_add_equality_group_not_equivalent() -> None:
     eq = EqualsTester()
     with pytest.raises(AssertionError, match="can't be in the same"):
         eq.add_equality_group(1, 2)
 
 
-def test_add_equality_group_not_disjoint():
+def test_add_equality_group_not_disjoint() -> None:
     eq = EqualsTester()
     eq.add_equality_group(1)
     with pytest.raises(AssertionError, match="can't be in different"):
         eq.add_equality_group(1)
 
 
-def test_add_equality_group_bad_hash():
+def test_add_equality_group_bad_hash() -> None:
     class KeyHash:
         def __init__(self, k, h):
             self._k = k
@@ -94,7 +96,7 @@ def test_add_equality_group_bad_hash():
         eq.add_equality_group(KeyHash('c', 2), KeyHash('c', 3))
 
 
-def test_add_equality_group_exception_hash():
+def test_add_equality_group_exception_hash() -> None:
     class FailHash:
         def __hash__(self):
             raise ValueError('injected failure')
@@ -104,7 +106,7 @@ def test_add_equality_group_exception_hash():
         eq.add_equality_group(FailHash())
 
 
-def test_fails_when_forgot_type_check():
+def test_fails_when_forgot_type_check() -> None:
     eq = EqualsTester()
 
     class NoTypeCheckEqualImplementation:
@@ -124,11 +126,12 @@ def test_fails_when_forgot_type_check():
         eq.add_equality_group(NoTypeCheckEqualImplementation())
 
 
-def test_fails_when_equal_to_everything():
+def test_fails_when_equal_to_everything() -> None:
     eq = EqualsTester()
 
     class AllEqual:
-        __hash__ = None
+        def __hash__(self) -> int:
+            return 0
 
         def __eq__(self, other):
             return True
@@ -136,11 +139,12 @@ def test_fails_when_equal_to_everything():
         def __ne__(self, other):
             return False
 
+    assert hash(AllEqual()) == 0
     with pytest.raises(AssertionError, match="can't be in different"):
         eq.add_equality_group(AllEqual())
 
 
-def test_fails_hash_is_default_and_inconsistent():
+def test_fails_hash_is_default_and_inconsistent() -> None:
     eq = EqualsTester()
 
     class DefaultHashImplementation:
@@ -161,7 +165,7 @@ def test_fails_hash_is_default_and_inconsistent():
         eq.make_equality_group(DefaultHashImplementation)
 
 
-def test_fails_when_ne_is_inconsistent():
+def test_fails_when_ne_is_inconsistent() -> None:
     eq = EqualsTester()
 
     class InconsistentNeImplementation:
@@ -185,7 +189,7 @@ def test_fails_when_ne_is_inconsistent():
         eq.make_equality_group(InconsistentNeImplementation)
 
 
-def test_fails_when_ne_is_inconsistent_due_to_not_implemented():
+def test_fails_when_ne_is_inconsistent_due_to_not_implemented() -> None:
     eq = EqualsTester()
 
     class InconsistentNeImplementation:
@@ -207,7 +211,7 @@ def test_fails_when_ne_is_inconsistent_due_to_not_implemented():
         eq.make_equality_group(InconsistentNeImplementation)
 
 
-def test_fails_when_not_reflexive():
+def test_fails_when_not_reflexive() -> None:
     eq = EqualsTester()
 
     class NotReflexiveImplementation:
@@ -226,7 +230,7 @@ def test_fails_when_not_reflexive():
         eq.add_equality_group(NotReflexiveImplementation())
 
 
-def test_fails_when_not_commutative():
+def test_fails_when_not_commutative() -> None:
     eq = EqualsTester()
 
     class NotCommutativeImplementation:
@@ -248,14 +252,14 @@ def test_fails_when_not_commutative():
         eq.add_equality_group(NotCommutativeImplementation(1), NotCommutativeImplementation(0))
 
 
-def test_works_on_types():
+def test_works_on_types() -> None:
     eq = EqualsTester()
     eq.add_equality_group(object)
     eq.add_equality_group(int)
     eq.add_equality_group(object())
 
 
-def test_returns_not_implemented_for_other_types():
+def test_returns_not_implemented_for_other_types() -> None:
     # First we demonstrate an example of the problem.
 
     # FirstClass is the class that is broken.
@@ -323,7 +327,7 @@ def test_returns_not_implemented_for_other_types():
     eq.add_equality_group(ThirdClass("a"), ThirdClass("a"))
 
 
-def test_not_implemented_error():
+def test_not_implemented_error() -> None:
     # Common bug is to return NotImplementedError instead of NotImplemented.
     class NotImplementedErrorCase:
         def __init__(self, val):

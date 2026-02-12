@@ -14,18 +14,8 @@
 
 from __future__ import annotations
 
-from typing import (
-    Callable,
-    cast,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
-    Sequence,
-    TYPE_CHECKING,
-    TypeVar,
-    Union,
-)
+from collections.abc import Callable, Iterable, Iterator, Sequence
+from typing import cast, TYPE_CHECKING, TypeVar
 
 from cirq import circuits
 from cirq.interop.quirk.cells.cell import Cell
@@ -41,11 +31,7 @@ class CompositeCell(Cell):
     """
 
     def __init__(
-        self,
-        height: int,
-        sub_cell_cols_generator: Iterable[List[Optional[Cell]]],
-        *,
-        gate_count: int,
+        self, height: int, sub_cell_cols_generator: Iterable[list[Cell | None]], *, gate_count: int
     ):
         """Inits CompositeCell.
 
@@ -93,15 +79,15 @@ class CompositeCell(Cell):
             gate_count=self._gate_count,
         )
 
-    def _sub_cell_cols_sealed(self) -> List[List[Optional[Cell]]]:
+    def _sub_cell_cols_sealed(self) -> list[list[Cell | None]]:
         if not isinstance(self._sub_cell_cols_generator, list):
             self._sub_cell_cols_generator = list(self._sub_cell_cols_generator)
-        return cast(List[List[Optional[Cell]]], self._sub_cell_cols_generator)
+        return cast(list[list[Cell | None]], self._sub_cell_cols_generator)
 
-    def with_line_qubits_mapped_to(self, qubits: List[cirq.Qid]) -> Cell:
+    def with_line_qubits_mapped_to(self, qubits: list[cirq.Qid]) -> Cell:
         return self._transform_cells(lambda cell: cell.with_line_qubits_mapped_to(qubits))
 
-    def with_input(self, letter: str, register: Union[Sequence[cirq.Qid], int]) -> CompositeCell:
+    def with_input(self, letter: str, register: Sequence[cirq.Qid] | int) -> CompositeCell:
         return self._transform_cells(lambda cell: cell.with_input(letter, register))
 
     def controlled_by(self, qubit: cirq.Qid) -> CompositeCell:
@@ -129,7 +115,7 @@ T = TypeVar('T')
 
 def _iterator_to_iterable(iterator: Iterator[T]) -> Iterable[T]:
     done = False
-    items: List[T] = []
+    items: list[T] = []
 
     class IterIntoItems:
         def __iter__(self):

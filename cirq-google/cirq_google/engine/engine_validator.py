@@ -11,13 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Callable, Sequence, Union
+
+from __future__ import annotations
+
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING
 
 from google.protobuf import any_pb2
 
 import cirq
-from cirq_google.engine.validating_sampler import VALIDATOR_TYPE
-from cirq_google.serialization.serializer import Serializer
+
+if TYPE_CHECKING:
+    from cirq_google import Serializer
+    from cirq_google.engine.validating_sampler import VALIDATOR_TYPE
 
 MAX_MESSAGE_SIZE = 10_000_000
 MAX_MOMENTS = 10000
@@ -39,7 +45,7 @@ def _validate_depth(
 
 def _verify_reps(
     sweeps: Sequence[cirq.Sweepable],
-    repetitions: Union[int, Sequence[int]],
+    repetitions: int | Sequence[int],
     max_repetitions: int = MAX_TOTAL_REPETITIONS,
 ) -> None:
     """Verify that the total number of repetitions is under the limit."""
@@ -118,7 +124,7 @@ def create_program_validator(max_size: int = MAX_MESSAGE_SIZE) -> PROGRAM_VALIDA
 def validate_for_engine(
     circuits: Sequence[cirq.AbstractCircuit],
     sweeps: Sequence[cirq.Sweepable],
-    repetitions: Union[int, Sequence[int]],
+    repetitions: int | Sequence[int],
     max_moments: int = MAX_MOMENTS,
     max_repetitions: int = MAX_TOTAL_REPETITIONS,
 ) -> None:
@@ -158,7 +164,7 @@ def create_engine_validator(
     def _validator(
         circuits: Sequence[cirq.AbstractCircuit],
         sweeps: Sequence[cirq.Sweepable],
-        repetitions: Union[int, Sequence[int]],
+        repetitions: int | Sequence[int],
     ):
         return validate_for_engine(circuits, sweeps, repetitions, max_moments, max_repetitions)
 

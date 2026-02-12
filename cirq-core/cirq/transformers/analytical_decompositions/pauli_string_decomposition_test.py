@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cmath
 import itertools
 from typing import cast
@@ -28,7 +30,7 @@ from cirq.transformers.analytical_decompositions import unitary_to_pauli_string
 @pytest.mark.parametrize(
     'pauli_string', [''.join(p) for p in itertools.product(['', 'I', 'X', 'Y', 'Z'], repeat=4)]
 )
-def test_unitary_to_pauli_string(pauli_string: str, phase: complex):
+def test_unitary_to_pauli_string(pauli_string: str, phase: complex) -> None:
     want = DensePauliString(pauli_string, coefficient=phase)
     got = unitary_to_pauli_string(protocols.unitary(want))
     assert got is not None
@@ -36,7 +38,7 @@ def test_unitary_to_pauli_string(pauli_string: str, phase: complex):
     assert np.isclose(cast(np.complex128, want.coefficient), cast(np.complex128, got.coefficient))
 
 
-def test_unitary_to_pauli_string_non_pauli_input():
+def test_unitary_to_pauli_string_non_pauli_input() -> None:
     got = unitary_to_pauli_string(protocols.unitary(T))
     assert got is None
 
@@ -50,7 +52,7 @@ def test_unitary_to_pauli_string_non_pauli_input():
     assert got is None
 
 
-def test_invalid_input():
+def test_invalid_input() -> None:
     with pytest.raises(ValueError, match='Input has a non-square shape.*'):
         _ = unitary_to_pauli_string(np.zeros((2, 3)))
 
