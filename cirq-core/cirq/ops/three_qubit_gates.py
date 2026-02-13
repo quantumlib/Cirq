@@ -585,9 +585,9 @@ class CCYPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
     def _decompose_(self, qubits):
         c1, c2, t = qubits
-        yield pauli_gates.X(t) ** 0.5
-        yield CCZPowGate(exponent=self._exponent, global_shift=self.global_shift).on(c1, c2, t)
-        yield pauli_gates.X(t) ** -0.5
+        yield common_gates.S(t) ** -1
+        yield CCXPowGate(exponent=self._exponent, global_shift=self.global_shift).on(c1, c2, t)
+        yield common_gates.S(t)
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(
@@ -595,7 +595,16 @@ class CCYPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         )
 
     def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> str | None:
-        return None
+        if self._exponent != 1:
+            return None
+
+        args.validate_version('2.0', '3.0')
+        lines = [
+            args.format('sdg {0};\n', qubits[2]),
+            args.format('ccx {0},{1},{2};\n', qubits[0], qubits[1], qubits[2]),
+            args.format('s {0};\n', qubits[2]),
+        ]
+        return ''.join(lines)
 
     def __repr__(self) -> str:
         if self._global_shift == 0:
