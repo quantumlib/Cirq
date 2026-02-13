@@ -196,8 +196,7 @@ def test_cy_repr() -> None:
 
 def test_cy_unitary() -> None:
     assert np.allclose(
-        cirq.unitary(cirq.CY),
-        np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1j], [0, 0, 1j, 0]]),
+        cirq.unitary(cirq.CY), np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1j], [0, 0, 1j, 0]])
     )
 
     assert np.allclose(

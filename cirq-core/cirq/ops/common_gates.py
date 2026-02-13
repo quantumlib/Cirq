@@ -1532,9 +1532,6 @@ class CYPowGate(eigen_gate.EigenGate):
         )
 
 
-
-
-
 def rx(rads: value.TParamVal) -> Rx:
     """Returns a gate with the matrix $e^{-i X t / 2}$ where $t=rads$."""
     return Rx(rads=rads)
