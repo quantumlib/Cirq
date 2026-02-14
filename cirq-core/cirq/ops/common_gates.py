@@ -1169,7 +1169,7 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         )
 
     def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> str | None:
-        if self._exponent != 1:
+        if self._exponent % 2 != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0', '3.0')
         return args.format('cz {0},{1};\n', qubits[0], qubits[1])
@@ -1345,7 +1345,7 @@ class CXPowGate(eigen_gate.EigenGate):
         )
 
     def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> str | None:
-        if self._exponent != 1:
+        if self._exponent % 2 != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0', '3.0')
         return args.format('cx {0},{1};\n', qubits[0], qubits[1])
@@ -1435,8 +1435,8 @@ class CYPowGate(eigen_gate.EigenGate):
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j ** (2 * self._exponent * self._global_shift)
-        cnot_phase = 1j**self._exponent
-        c = -1j * cnot_phase * np.sin(np.pi * self._exponent / 2) / 2
+        cy_phase = 1j**self._exponent
+        c = -1j * cy_phase * np.sin(np.pi * self._exponent / 2) / 2
         return value.LinearDict(
             {
                 'II': global_phase * (1 - c),
@@ -1506,7 +1506,7 @@ class CYPowGate(eigen_gate.EigenGate):
         )
 
     def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> str | None:
-        if self._exponent != 1:
+        if self._exponent % 2 != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0', '3.0')
         return args.format('cy {0},{1};\n', qubits[0], qubits[1])
