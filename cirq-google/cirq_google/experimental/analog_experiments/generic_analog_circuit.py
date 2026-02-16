@@ -14,7 +14,8 @@
 
 import functools
 import re
-from typing import cast, Sequence
+from collections.abc import Sequence
+from typing import cast
 
 import numpy as np
 import scipy
@@ -149,18 +150,20 @@ class GenericAnalogCircuitBuilder:
         return cirq.Moment(qubit_gates + coupler_gates)
 
     def _get_interpolators(self, idle_freq_map: dict[cirq.Qid, tu.Value] | None) -> dict:
-        """Get interpolators for the qubit frequencies and coupling strengths that can be evaluated at any time.
+        """Get interpolators for the qubit frequencies and coupling strengths that can be evaluated
+        at any time.
 
         Args:
             idle_freq_map: A map from qubits to their idle frequencies. If None, assume idles are 0.
 
         Returns:
-            A map from qubits or couplers to functions from time to the qubit frequency or coupling strength.
+            A map from qubits or couplers to functions from time to the qubit frequency or coupling
+            strength.
         """
 
         # resolve the idles
         idle_freq_map_resolved = (
-            {q: 0 * tu.GHz for q in self.trajectory.qubits}
+            dict.fromkeys(self.trajectory.qubits, 0 * tu.GHz)
             if idle_freq_map is None
             else idle_freq_map
         )

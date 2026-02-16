@@ -209,8 +209,8 @@ def test_generic_analog_make_circuit_for_simulation() -> None:
     couplers = [cg.Coupler(*pair) for pair in device_graph.edges]
     trajectory = atu.AnalogTrajectory.from_sparse_trajectory(
         [
-            (5 * tu.ns, {q: 50 * tu.MHz for q in qubits}, {}),
-            (10 * tu.ns, {}, {c: -5 * tu.MHz for c in couplers}),
+            (5 * tu.ns, dict.fromkeys(qubits, 50 * tu.MHz), {}),
+            (10 * tu.ns, {}, dict.fromkeys(couplers, -5 * tu.MHz)),
             (3 * tu.ns, {}, {}),
             (2 * tu.ns, {qubits[0]: 4 * tu.GHz}, {}),
         ]
@@ -229,8 +229,8 @@ def test_generic_analog_make_circuit_for_simulation() -> None:
     couplers = [cg.Coupler(*pair) for pair in device_graph.edges]
     trajectory = atu.AnalogTrajectory.from_sparse_trajectory(
         [
-            (5 * tu.ns, {q: 50 * tu.MHz for q in qubits}, {}),
-            (10 * tu.ns, {}, {c: -5 * tu.MHz for c in couplers}),
+            (5 * tu.ns, dict.fromkeys(qubits, 50 * tu.MHz), {}),
+            (10 * tu.ns, {}, dict.fromkeys(couplers, -5 * tu.MHz)),
             (3 * tu.ns, {}, {}),
             (2 * tu.ns, {qubits[0]: 4 * tu.GHz}, {}),
         ]
