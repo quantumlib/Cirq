@@ -165,7 +165,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     def _qid_shape_(self) -> tuple[int, ...]:
-        shape = []
+        shape: list[int, ...] = []
         for r in self.registers():
             if isinstance(r, Sequence):
                 shape.extend(r)
