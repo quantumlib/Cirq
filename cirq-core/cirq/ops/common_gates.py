@@ -1407,9 +1407,9 @@ class CYPowGate(eigen_gate.EigenGate):
 
     def _decompose_(self, qubits):
         c, t = qubits
-        yield cirq.S(t) ** -1
-        yield cirq.CXPowGate(exponent=self._exponent, global_shift=self.global_shift).on(c, t)
-        yield cirq.S(t)
+        yield XPowGate(exponent=0.5).on(t)
+        yield cirq.CZPowGate(exponent=self._exponent, global_shift=self.global_shift).on(c, t)
+        yield XPowGate(exponent=-0.5).on(t)
 
     def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
         return [
