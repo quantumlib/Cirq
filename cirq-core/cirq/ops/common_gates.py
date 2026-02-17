@@ -1199,10 +1199,8 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 class CXPowGate(eigen_gate.EigenGate):
     r"""A gate that applies a controlled power of an X gate.
 
-    When applying CNOT (controlled-not) to qubits, you can either use
-    positional arguments CNOT(q1, q2), where q2 is toggled when q1 is on,
-    or named arguments CNOT(control=q1, target=q2).
-    (Mixing the two is not permitted.)
+    Use positional arguments when applying CNOT (controlled-not) to qubits, for
+    instance, CNOT(q1, q2), where q2 is toggled when q1 is on.
 
     The unitary matrix of `cirq.CXPowGate(exponent=t)` is:
 
@@ -1374,10 +1372,8 @@ class CXPowGate(eigen_gate.EigenGate):
 class CYPowGate(eigen_gate.EigenGate):
     r"""A gate that applies a controlled power of a Y gate.
 
-    When applying CY (controlled-Y) to qubits, you can either use
-    positional arguments CY(q1, q2), where q2 is toggled when q1 is on,
-    or named arguments CY(control=q1, target=q2).
-    (Mixing the two is not permitted.)
+    Use positional arguments when applying CY (controlled-Y) to qubits, for
+    instance, CY(q1, q2), where q2 is toggled when q1 is on.
 
     The unitary matrix of `cirq.CYPowGate(exponent=t)` is:
 
@@ -1645,7 +1641,7 @@ document(
 
     Alternative name: `cirq.CNOT`.
 
-    The unitary matrix of this gate is (empty elements are $0$):
+    The unitary matrix of this gate is:
     $$
         \begin{bmatrix}
             1 & 0 & 0 & 0 \\
@@ -1665,7 +1661,7 @@ document(
 
     This is the `exponent=1` instance of `cirq.CYPowGate`.
 
-    The unitary matrix of this gate is (empty elements are $0$):
+    The unitary matrix of this gate is:
     $$
         \begin{bmatrix}
             1 & 0 & 0 & 0 \\

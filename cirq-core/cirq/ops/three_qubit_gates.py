@@ -383,8 +383,8 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         & & & 1 & & & & \\
         & & & & 1 & & & \\
         & & & & & 1 & & \\
-        & & & & & & e^{i \pi t /2} \cos(\pi t) & -i e^{i \pi t /2} \sin(\pi t) \\
-        & & & & & & -i e^{i \pi t /2} \sin(\pi t) & e^{i \pi t /2} \cos(\pi t)
+        & & & & & & e^{i \pi t / 2} \cos(\pi t) & -i e^{i \pi t / 2} \sin(\pi t) \\
+        & & & & & & -i e^{i \pi t / 2} \sin(\pi t) & e^{i \pi t / 2} \cos(\pi t)
     \end{bmatrix}
     $$
     """
@@ -505,7 +505,6 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         )
 
 
-@value.value_equality()
 class CCYPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     r"""A doubly-controlled-Y that can be raised to a power.
 
@@ -520,8 +519,8 @@ class CCYPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         & & & 1 & & & & \\
         & & & & 1 & & & \\
         & & & & & 1 & & \\
-        & & & & & & e^{i \pi t /2} \cos(\pi t /2) & -e^{i \pi t /2} \sin(\pi t /2) \\
-        & & & & & & e^{i \pi t /2} \sin(\pi t /2) & e^{i \pi t /2} \cos(\pi t /2)
+        & & & & & & e^{i \pi t / 2} \cos(\pi t / 2) & -e^{i \pi t / 2} \sin(\pi t / 2) \\
+        & & & & & & e^{i \pi t / 2} \sin(\pi t / 2) & e^{i \pi t / 2} \cos(\pi t / 2)
     \end{bmatrix}
     $$
     """
