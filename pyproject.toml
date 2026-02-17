@@ -263,6 +263,9 @@ select = [
     "N804",  # invalid-first-argument-name-for-class-method, pylint bad-classmethod-argument
     "NPY201",  # numpy2-deprecation
     "PERF101",  # unnecessary-list-cast
+    "PERF102",  # incorrect-dict-iterator
+    "PERF402",  # manual-list-copy
+    "PERF403",  # manual-dict-comprehension
     "PIE790",  # unnecessary-placeholder, pylint unnecessary-pass
     "PLE0100",  # yield-in-init, pylint init-is-generator
     "PLE0101",  # return-in-init, pylint return-in-init
