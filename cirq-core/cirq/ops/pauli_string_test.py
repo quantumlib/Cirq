@@ -75,10 +75,7 @@ def assert_conjugation(
         """Extracts a sub-PauliString from a given PauliString, restricted to
         a specified subset of qubits.
         """
-        pauli_map = {}
-        for q, pauli in ps.items():
-            if q in qubits:
-                pauli_map[q] = pauli
+        pauli_map = {q: pauli for q, pauli in ps.items() if q in qubits}
         return cirq.PauliString(qubit_pauli_map=pauli_map, coefficient=ps.coefficient)
 
     conjugation = input_ps.conjugated_by(op)
