@@ -1075,7 +1075,7 @@ two_qubit_gates = [
     ('cx', cirq.CNOT),
     ('CX', cirq.CNOT),
     ('cz', cirq.CZ),
-    ('cy', cirq.ControlledGate(cirq.Y)),
+    ('cy', cirq.CY),
     ('swap', cirq.SWAP),
     ('ch', cirq.ControlledGate(cirq.H)),
     ('csx', cirq.ControlledGate(cirq.XPowGate(exponent=0.5))),
