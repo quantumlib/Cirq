@@ -226,7 +226,7 @@ class EngineClient:
                 query programs that have the 'shape' label and have the 'color'
                 label with value 'red' can be queried using:
 
-                {'color': 'red', 'shape':'*'}
+                {'color': 'red', 'shape': '*'}
         """
         filters = []
 
@@ -503,7 +503,7 @@ class EngineClient:
                 query programs that have the shape 'label' and have the 'color'
                 label with value 'red' can be queried using:
 
-                {'color': 'red', 'shape':'*'}
+                {'color': 'red', 'shape': '*'}
 
             execution_states: retrieve jobs that have an execution state that
                 is contained in `execution_states`. See
