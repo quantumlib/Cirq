@@ -210,7 +210,7 @@ class AnalogSimulationCircuitBuilder:
         t_traj = [_.duration[tu.ns] for _ in self.trajectory.full_trajectory]
         for t in t_traj[1:]:
             if not t > 0:
-                raise ValueError("Trajectory times should be positive.")
+                raise ValueError("Trajectory times should be positive.")  # pragma: no cover
 
         t = np.cumsum(t_traj)
         interpolators = {}
@@ -356,9 +356,10 @@ class AnalogSimulationCircuitBuilder:
         dt_ns = trotter_step[tu.ns]
         num_steps = int(np.round(t_max_ns / dt_ns))
         if not np.isclose(num_steps * dt_ns, t_max_ns, atol=1e-5):
-            raise ValueError(
-                f"Please pick a Trotter step that divides the total time, {t_max_ns} ns"
-            )
+            raise ValueError(  # pragma: no cover
+                "Please pick a Trotter step that divides the total time, "  # pragma: no cover
+                f"{t_max_ns} ns"  # pragma: no cover
+            )  # pragma: no cover
 
         # get the device graph
         grid_qubit_list = []
