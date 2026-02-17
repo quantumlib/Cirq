@@ -274,7 +274,9 @@ class AnalogSimulationCircuitBuilder:
 
             # we make sequence like [layer1, layer2, layer3, layer4, layer3, layer2, layer 1]
             two_qubit_moments = []
-            for i, layer in enumerate(interaction_pattern + interaction_pattern[::-1][1:]):
+            for i, layer in enumerate(
+                list(interaction_pattern) + list(interaction_pattern)[::-1][1:]
+            ):
                 # layer4: dt, the rest: dt/2
                 factor = 1.0 if i + 1 == len(interaction_pattern) else 0.5
                 pairs = list(rcg._get_active_pairs(device_graph, layer))
