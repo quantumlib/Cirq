@@ -272,39 +272,24 @@ class AnalogSimulationCircuitBuilder:
             # two qubit moments:
             coupling_GHz = {c: interpolators[c](step * dt_ns) for c in self.trajectory.couplers}
 
-            # two qubit moments:
-            two_qubit_moments_except_last = []
-            for layer in interaction_pattern[:-1]:
+            # we make sequence like [layer1, layer2, layer3, layer4, layer3, layer2, layer 1]
+            two_qubit_moments = []
+            for i, layer in enumerate(interaction_pattern + interaction_pattern[::-1][1:]):
+                # layer4: dt, the rest: dt/2
+                factor = 1.0 if i + 1 == len(interaction_pattern) else 0.5
                 pairs = list(rcg._get_active_pairs(device_graph, layer))
                 if len(pairs) > 0:
-                    two_qubit_moments_except_last.append(
+                    two_qubit_moments.append(
                         cirq.Moment(
-                            (cirq.ISWAP ** (-2 * coupling_GHz[cgc.Coupler(*pair)] * dt_ns)).on(
-                                *pair
-                            )
+                            (
+                                cirq.ISWAP
+                                ** (-4 * factor * coupling_GHz[cgc.Coupler(*pair)] * dt_ns)
+                            ).on(*pair)
                             for pair in pairs
                         )
-                    )  # dt/2
-
-            last_two_qubit_moment = []
-            pairs = list(rcg._get_active_pairs(device_graph, interaction_pattern[-1]))
-            if len(pairs) > 0:
-                last_two_qubit_moment.append(
-                    cirq.Moment(
-                        (cirq.ISWAP ** (-4 * coupling_GHz[cgc.Coupler(*pair)] * dt_ns)).on(*pair)
-                        for pair in pairs
                     )
-                )  # dt
 
-            moments.extend(
-                [
-                    single_qubit_moment,
-                    *two_qubit_moments_except_last,
-                    *last_two_qubit_moment,
-                    *two_qubit_moments_except_last[::-1],
-                    single_qubit_moment,
-                ]
-            )
+            moments.extend([single_qubit_moment, *two_qubit_moments, single_qubit_moment])
         return cirq.Circuit.from_moments(*moments)
 
     def make_circuit(
@@ -349,7 +334,6 @@ class AnalogSimulationCircuitBuilder:
             A circuit that can be used with a simulator.
         """
 
-        # next, get interpolators
         interpolators, t_max_ns = self._get_interpolators(idle_freq_map)
 
         # assert that this is an integer number of Trotter steps
