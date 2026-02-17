@@ -185,8 +185,8 @@ def test_generic_analog_make_circuit_for_simulation() -> None:
             (2 * tu.ns, {q1: 4 * tu.GHz}, {}),
         ]
     )
-    builder = gac.GenericAnalogCircuitBuilder(trajectory)
-    circuit = builder.make_circuit_for_simulation(1 * tu.ns, second_order=False)
+    builder = gac.AnalogSimulationCircuitBuilder(trajectory)
+    circuit = builder.make_circuit(1 * tu.ns, second_order=False)
 
     assert len(circuit) == 40
     for op in circuit[0].operations:
@@ -194,7 +194,7 @@ def test_generic_analog_make_circuit_for_simulation() -> None:
     for op in circuit[1].operations:
         assert op.gate == cirq.ISWAP**0.0
 
-    circuit = builder.make_circuit_for_simulation(1 * tu.ns, second_order=True)
+    circuit = builder.make_circuit(1 * tu.ns, second_order=True)
 
     assert len(circuit) == 60
     for op in circuit[0].operations:
@@ -215,11 +215,11 @@ def test_generic_analog_make_circuit_for_simulation() -> None:
             (2 * tu.ns, {qubits[0]: 4 * tu.GHz}, {}),
         ]
     )
-    builder = gac.GenericAnalogCircuitBuilder(trajectory)
-    circuit = builder.make_circuit_for_simulation(1 * tu.ns, second_order=False)
+    builder = gac.AnalogSimulationCircuitBuilder(trajectory)
+    circuit = builder.make_circuit(1 * tu.ns, second_order=False)
     assert len(circuit) == 60
 
-    circuit = builder.make_circuit_for_simulation(1 * tu.ns, second_order=True)
+    circuit = builder.make_circuit(1 * tu.ns, second_order=True)
     assert len(circuit) == 100
 
     # finally, test a 2D grid of qubits
@@ -235,9 +235,9 @@ def test_generic_analog_make_circuit_for_simulation() -> None:
             (2 * tu.ns, {qubits[0]: 4 * tu.GHz}, {}),
         ]
     )
-    builder = gac.GenericAnalogCircuitBuilder(trajectory)
-    circuit = builder.make_circuit_for_simulation(1 * tu.ns, second_order=False)
+    builder = gac.AnalogSimulationCircuitBuilder(trajectory)
+    circuit = builder.make_circuit(1 * tu.ns, second_order=False)
     assert len(circuit) == 100
 
-    circuit = builder.make_circuit_for_simulation(1 * tu.ns, second_order=True)
+    circuit = builder.make_circuit(1 * tu.ns, second_order=True)
     assert len(circuit) == 180

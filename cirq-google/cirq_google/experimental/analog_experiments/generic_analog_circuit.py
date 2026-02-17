@@ -17,6 +17,7 @@ import re
 from collections.abc import Sequence
 from typing import cast
 
+import networkx as nx
 import numpy as np
 import scipy
 import tunits as tu
@@ -149,7 +150,41 @@ class GenericAnalogCircuitBuilder:
 
         return cirq.Moment(qubit_gates + coupler_gates)
 
-    def _get_interpolators(self, idle_freq_map: dict[cirq.Qid, tu.Value] | None) -> dict:
+
+class AnalogSimulationCircuitBuilder:
+    """Class for making arbitrary analog circuits for the purpose of simulating them.
+    The circuit is defined by an AnalogTrajectory object.
+
+    Attributes:
+        trajectory: AnalogTrajectory object defining the circuit.
+        g_ramp_shaping: coupling ramps are shaped according to ramp_shape_exp if True.
+        ramp_shape_exp: exponent of g_ramp (g proportional to t^ramp_shape_exp).
+        interpolate_coupling_cal: interpolates between calibrated coupling tu.Values if True.
+        linear_qubit_ramp: if True, the qubit ramp is linear. if false, a cosine shaped
+            ramp is used.
+    """
+
+    def __init__(
+        self,
+        trajectory: atu.AnalogTrajectory,
+        g_ramp_shaping: bool = True,
+        ramp_shape_exp: int = 1,
+        interpolate_coupling_cal: bool = False,
+        linear_qubit_ramp: bool = True,
+    ):
+
+        if ramp_shape_exp != 1 or not linear_qubit_ramp:
+            raise NotImplementedError("Only linear ramps are currently supported.")
+
+        self.trajectory = trajectory
+        self.g_ramp_shaping = g_ramp_shaping
+        self.ramp_shape_exp = ramp_shape_exp
+        self.interpolate_coupling_cal = interpolate_coupling_cal
+        self.linear_qubit_ramp = linear_qubit_ramp
+
+    def _get_interpolators(
+        self, idle_freq_map: dict[cirq.Qid, tu.Value] | None
+    ) -> tuple[dict, float]:
         """Get interpolators for the qubit frequencies and coupling strengths that can be evaluated
         at any time.
 
@@ -157,8 +192,9 @@ class GenericAnalogCircuitBuilder:
             idle_freq_map: A map from qubits to their idle frequencies. If None, assume idles are 0.
 
         Returns:
-            A map from qubits or couplers to functions from time to the qubit frequency or coupling
-            strength.
+            * A map from qubits or couplers to functions from time to the qubit frequency or
+            coupling strength.
+            * The maximum time in nanoseconds for which these functions can be evaluated.
         """
 
         # resolve the idles
@@ -171,7 +207,12 @@ class GenericAnalogCircuitBuilder:
             idle_freq_map_resolved
         )
 
-        t = np.cumsum([_.duration[tu.ns] for _ in full_trajectory])
+        t_traj = [_.duration[tu.ns] for _ in self.trajectory.full_trajectory]
+        for t in t_traj[1:]:
+            if not t > 0:
+                raise ValueError("Trajectory times should be positive.")
+
+        t = np.cumsum(t_traj)
         interpolators = {}
         for qubit in self.trajectory.qubits:
             f = [cast(tu.Value, _.qubit_freqs[qubit])[tu.GHz] for _ in full_trajectory]
@@ -179,20 +220,113 @@ class GenericAnalogCircuitBuilder:
         for coupler in self.trajectory.couplers:
             f = [_.couplings[coupler][tu.GHz] for _ in full_trajectory]
             interpolators[coupler] = scipy.interpolate.interp1d(t, f)
-        return interpolators
+        return interpolators, t[-1]
 
-    def make_circuit_for_simulation(
+    def _make_first_order_circuit(
+        self,
+        interpolators: dict,
+        dt_ns: float,
+        num_steps: int,
+        device_graph: nx.Graph,
+        interaction_pattern: Sequence[rcg.GridInteractionLayer],
+    ) -> cirq.Circuit:
+        moments = []
+        for step in range(num_steps):
+            # single-qubit moment:
+            frequency_GHz = {q: interpolators[q](step * dt_ns) for q in self.trajectory.qubits}
+            moments.append(
+                cirq.Moment((cirq.Z ** (-2 * f * dt_ns))(q) for q, f in frequency_GHz.items())
+            )
+
+            # two qubit moments:
+            coupling_GHz = {c: interpolators[c](step * dt_ns) for c in self.trajectory.couplers}
+            for layer in interaction_pattern:
+                pairs = list(rcg._get_active_pairs(device_graph, layer))
+                if len(pairs) > 0:
+                    moments.append(
+                        cirq.Moment(
+                            (cirq.ISWAP ** (-4 * coupling_GHz[cgc.Coupler(*pair)] * dt_ns)).on(
+                                *pair
+                            )
+                            for pair in pairs
+                        )
+                    )
+        return cirq.Circuit.from_moments(*moments)
+
+    def _make_second_order_circuit(
+        self,
+        interpolators: dict,
+        dt_ns: float,
+        num_steps: int,
+        device_graph: nx.Graph,
+        interaction_pattern: Sequence[rcg.GridInteractionLayer],
+    ) -> cirq.Circuit:
+        moments = []
+        for step in range(num_steps):
+            # single-qubit moment:
+            frequency_GHz = {q: interpolators[q](step * dt_ns) for q in self.trajectory.qubits}
+            single_qubit_moment = cirq.Moment(
+                (cirq.Z ** (-f * dt_ns))(q) for q, f in frequency_GHz.items()
+            )  # dt/2
+
+            # two qubit moments:
+            coupling_GHz = {c: interpolators[c](step * dt_ns) for c in self.trajectory.couplers}
+
+            # two qubit moments:
+            two_qubit_moments_except_last = []
+            for layer in interaction_pattern[:-1]:
+                pairs = list(rcg._get_active_pairs(device_graph, layer))
+                if len(pairs) > 0:
+                    two_qubit_moments_except_last.append(
+                        cirq.Moment(
+                            (cirq.ISWAP ** (-2 * coupling_GHz[cgc.Coupler(*pair)] * dt_ns)).on(
+                                *pair
+                            )
+                            for pair in pairs
+                        )
+                    )  # dt/2
+
+            last_two_qubit_moment = []
+            pairs = list(rcg._get_active_pairs(device_graph, interaction_pattern[-1]))
+            if len(pairs) > 0:
+                last_two_qubit_moment.append(
+                    cirq.Moment(
+                        (cirq.ISWAP ** (-4 * coupling_GHz[cgc.Coupler(*pair)] * dt_ns)).on(*pair)
+                        for pair in pairs
+                    )
+                )  # dt
+
+            moments.extend(
+                [
+                    single_qubit_moment,
+                    *two_qubit_moments_except_last,
+                    *last_two_qubit_moment,
+                    *two_qubit_moments_except_last[::-1],
+                    single_qubit_moment,
+                ]
+            )
+        return cirq.Circuit.from_moments(*moments)
+
+    def make_circuit(
         self,
         trotter_step: tu.Value,
         interaction_pattern: Sequence[rcg.GridInteractionLayer] = rcg.HALF_GRID_STAGGERED_PATTERN,
         second_order: bool = False,
         idle_freq_map: dict[cirq.Qid, tu.Value] | None = None,
     ) -> cirq.Circuit:
-        """Create a Cirq circuit for simulating an analog experiment.
+        r"""Create a Cirq circuit for simulating an analog experiment.
 
         The resulting circuit can be put into a larger circuit containing digital
         gates and measurements and can be simulated using cirq simulators such as
         cirq.Simulator or qsimcirq.QSimSimulator.
+
+        Coupling terms are modeled as $e^{-2\pi i g dt(X_i X_j + Y_i Y_j)/2}$, which is
+        `cirq.ISWAP**(-4*g*dt)`
+        (see https://quantumai.google/reference/python/cirq/ISwapPowGate).
+
+        Single-qubit terms are modeled as $e^{-2\pi i f dt \hat n}$, which, up to a global
+        phase is $e^{\pi i f dt Z}$, i.e. `cirq.Z**(-2*f*dt)`
+        (see https://quantumai.google/reference/python/cirq/ZPowGate).
 
         Current limitations:
         * For now, phases should not be expected to match those in the actual experiment.
@@ -215,24 +349,16 @@ class GenericAnalogCircuitBuilder:
             A circuit that can be used with a simulator.
         """
 
-        # first, validate that the trajectory has all nonzero times
-
-        t_traj = [_.duration[tu.ns] for _ in self.trajectory.full_trajectory]
-        for t in t_traj[1:]:
-            assert t > 0, "Trajectory times should be positive."
-
-        # find the max time:
-        t_max_ns = sum(t_traj)
+        # next, get interpolators
+        interpolators, t_max_ns = self._get_interpolators(idle_freq_map)
 
         # assert that this is an integer number of Trotter steps
         dt_ns = trotter_step[tu.ns]
         num_steps = int(np.round(t_max_ns / dt_ns))
-        assert np.isclose(
-            num_steps * dt_ns, t_max_ns, atol=1e-5
-        ), f"Please pick a Trotter step that divides the total time, {t_max_ns} ns"
-
-        # next, get interpolators
-        interpolators = self._get_interpolators(idle_freq_map)
+        if not np.isclose(num_steps * dt_ns, t_max_ns, atol=1e-5):
+            raise ValueError(
+                f"Please pick a Trotter step that divides the total time, {t_max_ns} ns"
+            )
 
         # get the device graph
         grid_qubit_list = []
@@ -243,75 +369,12 @@ class GenericAnalogCircuitBuilder:
 
         # make the circuit
 
-        moments = []
-
-        if not second_order:
-            for step in range(num_steps):
-                # single-qubit moment:
-                frequency_GHz = {q: interpolators[q](step * dt_ns) for q in self.trajectory.qubits}
-                moments.append(
-                    cirq.Moment((cirq.Z ** (-2 * f * dt_ns))(q) for q, f in frequency_GHz.items())
-                )
-
-                # two qubit moments:
-                coupling_GHz = {c: interpolators[c](step * dt_ns) for c in self.trajectory.couplers}
-                for layer in interaction_pattern:
-                    pairs = list(rcg._get_active_pairs(device_graph, layer))
-                    if len(pairs) > 0:
-                        moments.append(
-                            cirq.Moment(
-                                (cirq.ISWAP ** (-4 * coupling_GHz[cgc.Coupler(*pair)] * dt_ns)).on(
-                                    *pair
-                                )
-                                for pair in pairs
-                            )
-                        )
-        elif second_order:
-            for step in range(num_steps):
-                # single-qubit moment:
-                frequency_GHz = {q: interpolators[q](step * dt_ns) for q in self.trajectory.qubits}
-                single_qubit_moment = cirq.Moment(
-                    (cirq.Z ** (-f * dt_ns))(q) for q, f in frequency_GHz.items()
-                )  # dt/2
-
-                # two qubit moments:
-                coupling_GHz = {c: interpolators[c](step * dt_ns) for c in self.trajectory.couplers}
-
-                # two qubit moments:
-                two_qubit_moments_except_last = []
-                for layer in interaction_pattern[:-1]:
-                    pairs = list(rcg._get_active_pairs(device_graph, layer))
-                    if len(pairs) > 0:
-                        two_qubit_moments_except_last.append(
-                            cirq.Moment(
-                                (cirq.ISWAP ** (-2 * coupling_GHz[cgc.Coupler(*pair)] * dt_ns)).on(
-                                    *pair
-                                )
-                                for pair in pairs
-                            )
-                        )  # dt/2
-
-                last_two_qubit_moment = []
-                pairs = list(rcg._get_active_pairs(device_graph, interaction_pattern[-1]))
-                if len(pairs) > 0:
-                    last_two_qubit_moment.append(
-                        cirq.Moment(
-                            (cirq.ISWAP ** (-4 * coupling_GHz[cgc.Coupler(*pair)] * dt_ns)).on(
-                                *pair
-                            )
-                            for pair in pairs
-                        )
-                    )  # dt
-
-                if len(two_qubit_moments_except_last) > 0:
-                    moments += (
-                        [single_qubit_moment]
-                        + two_qubit_moments_except_last
-                        + last_two_qubit_moment
-                        + list(reversed(two_qubit_moments_except_last))
-                        + [single_qubit_moment]
-                    )
-                else:
-                    moments += [single_qubit_moment] + last_two_qubit_moment + [single_qubit_moment]
-
-        return cirq.Circuit.from_moments(*moments)
+        return (
+            self._make_second_order_circuit(
+                interpolators, dt_ns, num_steps, device_graph, interaction_pattern
+            )
+            if second_order
+            else self._make_first_order_circuit(
+                interpolators, dt_ns, num_steps, device_graph, interaction_pattern
+            )
+        )
