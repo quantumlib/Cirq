@@ -569,13 +569,6 @@ def test_create_job_with_invalid_priority(
         ('', '', '', '', 'Must specify a processor id when creating a job.'),
         ('processor0', 'RUN_NAME', '', '', 'Cannot specify only one of top level identifier'),
         ('processor0', '', '', 'CONFIG_ALIAS', 'Cannot specify only one of top level identifier'),
-        (
-            'processor0',
-            'run_name',
-            'snapshot_id',
-            'CONFIG_ALIAS',
-            'Cannot specify both `run_name` and `snapshot_id`',
-        ),
     ],
 )
 def test_create_job_with_invalid_processor_and_device_config_arguments_throws(
@@ -1020,7 +1013,6 @@ def test_run_job_over_stream_processor_unset_raises(default_engine_client, defau
     [
         ('run1', '', '', 'Cannot specify only one of top level identifier'),
         ('', '', 'device_config1', 'Cannot specify only one of top level identifier'),
-        ('run', 'snapshot_id', 'config', 'Cannot specify both `run_name` and `snapshot_id`'),
     ],
 )
 def test_run_job_over_stream_invalid_device_config_raises(

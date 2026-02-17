@@ -396,7 +396,8 @@ class EngineClient:
 
         Either both `run_name` and `device_config_name` must be set, or neither
         of them must be set. If none of them are set, a default internal device
-        configuration will be used.
+        configuration will be used. If both `run_name` and `snapshot_id` are
+        set, then `snapshot_id` will be preferred.
 
         Args:
             project_id: A project_id of the parent Google Cloud Project.
@@ -426,15 +427,12 @@ class EngineClient:
             ValueError: If  only one of `run_name` and `device_config_name` are specified.
             ValueError: If either `run_name` and `device_config_name` are set but
                 `processor_id` is empty.
-            ValueError: If both `run_name` and `snapshot_id` are specified.
         """
         # Check program to run and program parameters.
         if priority and not 0 <= priority < 1000:
             raise ValueError('priority must be between 0 and 1000')
         if not processor_id:
             raise ValueError('Must specify a processor id when creating a job.')
-        if run_name and snapshot_id:
-            raise ValueError('Cannot specify both `run_name` and `snapshot_id`')
         if (bool(run_name) or bool(snapshot_id)) ^ bool(device_config_name):
             raise ValueError(
                 'Cannot specify only one of top level identifier (e.g `run_name`, `snapshot_id`)'
@@ -794,15 +792,12 @@ class EngineClient:
             ValueError: If the priority is not between 0 and 1000.
             ValueError: If `processor_id` is not set.
             ValueError: If only one of `run_name` and `device_config_name` are specified.
-            ValueError: If both `run_name` and `snapshot_id` are specified.
         """
         # Check program to run and program parameters.
         if priority and not 0 <= priority < 1000:
             raise ValueError('priority must be between 0 and 1000')
         if not processor_id:
             raise ValueError('Must specify a processor id when creating a job.')
-        if run_name and snapshot_id:
-            raise ValueError('Cannot specify both `run_name` and `snapshot_id`')
         if (bool(run_name) or bool(snapshot_id)) ^ bool(device_config_name):
             raise ValueError(
                 'Cannot specify only one of top level identifier and `device_config_name`'
