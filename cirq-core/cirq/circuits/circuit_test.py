@@ -351,7 +351,7 @@ def test_add_op_tree(circuit_cls) -> None:
     # ruff: disable[RUF005]
     assert c + [cirq.X(a)] == circuit_cls(cirq.X(a))
     assert c + [[[cirq.X(a)], []]] == circuit_cls(cirq.X(a))
-    assert c + (cirq.X(a), ) == circuit_cls(cirq.X(a))
+    assert c + (cirq.X(a),) == circuit_cls(cirq.X(a))
     # ruff: enable[RUF005]
     assert c + (cirq.X(a) for _ in range(1)) == circuit_cls(cirq.X(a))
     with pytest.raises(TypeError):
