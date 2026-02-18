@@ -320,11 +320,11 @@ def test_unsupported_add() -> None:
     with pytest.raises(TypeError, match='1'):
         _ = cirq.GridQubit(1, 1) + 1  # type: ignore[operator]
     with pytest.raises(TypeError, match='(1,)'):
-        _ = cirq.GridQubit(1, 1) + (1,)  # noqa: RUF005 type: ignore[operator]
+        _ = cirq.GridQubit(1, 1) + (1,)  # type: ignore[operator] # noqa: RUF005
     with pytest.raises(TypeError, match='(1, 2, 3)'):
-        _ = cirq.GridQubit(1, 1) + (1, 2, 3)  # noqa: RUF005 type: ignore[operator]
+        _ = cirq.GridQubit(1, 1) + (1, 2, 3)  # type: ignore[operator] # noqa: RUF005
     with pytest.raises(TypeError, match='(1, 2.0)'):
-        _ = cirq.GridQubit(1, 1) + (1, 2.0)  # noqa: RUF005 type: ignore[operator]
+        _ = cirq.GridQubit(1, 1) + (1, 2.0)  # type: ignore[operator] # noqa: RUF005
 
     with pytest.raises(TypeError, match='1'):
         _ = cirq.GridQubit(1, 1) - 1  # type: ignore[operator]
