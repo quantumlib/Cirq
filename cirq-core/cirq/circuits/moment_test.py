@@ -516,8 +516,11 @@ def test_add() -> None:
     with pytest.raises(ValueError, match='Overlap'):
         _ = m1 + m2
 
-    assert [*m1, [[[cirq.Y(b)]]]] == cirq.Moment(cirq.X(a), cirq.Y(b))
-    assert [*m1] == m1
+    # ruff: disable[RUF005]
+    assert m1 + [[[[cirq.Y(b)]]]] == cirq.Moment(cirq.X(a), cirq.Y(b))
+    assert m1 + [] == m1
+    assert m1 + [] is m1
+    # ruff: enable[RUF005]
 
 
 def test_sub() -> None:
