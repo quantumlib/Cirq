@@ -49,9 +49,7 @@ from cirq.ops import (
 from cirq.ops.measurement_gate import MeasurementGate
 from cirq.ops.swap_gates import ISWAP, ISwapPowGate, SWAP, SwapPowGate
 
-assert all(
-    [ISWAP, SWAP, ISwapPowGate, SwapPowGate, MeasurementGate]
-), """
+assert all([ISWAP, SWAP, ISwapPowGate, SwapPowGate, MeasurementGate]), """
 Included for compatibility. Please continue to use top-level cirq.{thing}
 imports.
 """

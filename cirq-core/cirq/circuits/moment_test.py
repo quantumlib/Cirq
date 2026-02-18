@@ -591,9 +591,7 @@ def test_moment_text_diagram() -> None:
     d: cirq.Qid
     a, b, c, d = cirq.GridQubit.rect(2, 2)
     m = cirq.Moment(cirq.CZ(a, b), cirq.CNOT(c, d))
-    assert (
-        str(m).strip()
-        == """
+    assert str(m).strip() == """
   ╷ 0 1
 ╶─┼─────
 0 │ @─@
@@ -601,7 +599,6 @@ def test_moment_text_diagram() -> None:
 1 │ @─X
   │
     """.strip()
-    )
 
     m = cirq.Moment(cirq.CZ(a, b), cirq.CNOT(c, d))
     cirq.testing.assert_has_diagram(

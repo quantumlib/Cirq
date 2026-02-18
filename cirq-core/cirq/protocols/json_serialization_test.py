@@ -181,14 +181,12 @@ def test_op_roundtrip_file_obj(tmpdir) -> None:
 
 def test_fail_to_resolve() -> None:
     buffer = io.StringIO()
-    buffer.write(
-        """
+    buffer.write("""
     {
       "cirq_type": "MyCustomClass",
       "data": [1, 2, 3]
     }
-    """
-    )
+    """)
     buffer.seek(0)
 
     with pytest.raises(ValueError) as e:
@@ -747,12 +745,9 @@ def test_dataclass_json_dict() -> None:
 
 
 def test_numpy_values() -> None:
-    assert (
-        cirq.to_json({'value': np.array(1)})
-        == """{
+    assert cirq.to_json({'value': np.array(1)}) == """{
   "value": 1
 }"""
-    )
 
 
 def test_basic_time_assertions() -> None:

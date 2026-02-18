@@ -366,22 +366,14 @@ def test_zip_product_str() -> None:
 
 
 def test_list_sweep_str() -> None:
-    assert (
-        str(cirq.UnitSweep)
-        == '''Sweep:
+    assert str(cirq.UnitSweep) == '''Sweep:
 {}'''
-    )
-    assert (
-        str(cirq.Linspace('a', start=0, stop=3, length=4))
-        == '''Sweep:
+    assert str(cirq.Linspace('a', start=0, stop=3, length=4)) == '''Sweep:
 {'a': 0.0}
 {'a': 1.0}
 {'a': 2.0}
 {'a': 3.0}'''
-    )
-    assert (
-        str(cirq.Linspace('a', start=0, stop=15.75, length=64))
-        == '''Sweep:
+    assert str(cirq.Linspace('a', start=0, stop=15.75, length=64)) == '''Sweep:
 {'a': 0.0}
 {'a': 0.25}
 {'a': 0.5}
@@ -393,16 +385,10 @@ def test_list_sweep_str() -> None:
 {'a': 15.25}
 {'a': 15.5}
 {'a': 15.75}'''
-    )
-    assert (
-        str(cirq.ListSweep(cirq.Linspace('a', 0, 3, 4) + cirq.Linspace('b', 1, 2, 2)))
-        == '''Sweep:
+    assert str(cirq.ListSweep(cirq.Linspace('a', 0, 3, 4) + cirq.Linspace('b', 1, 2, 2))) == '''Sweep:
 {'a': 0.0, 'b': 1.0}
 {'a': 1.0, 'b': 2.0}'''
-    )
-    assert (
-        str(cirq.ListSweep(cirq.Linspace('a', 0, 3, 4) * cirq.Linspace('b', 1, 2, 2)))
-        == '''Sweep:
+    assert str(cirq.ListSweep(cirq.Linspace('a', 0, 3, 4) * cirq.Linspace('b', 1, 2, 2))) == '''Sweep:
 {'a': 0.0, 'b': 1.0}
 {'a': 0.0, 'b': 2.0}
 {'a': 1.0, 'b': 1.0}
@@ -411,7 +397,6 @@ def test_list_sweep_str() -> None:
 {'a': 2.0, 'b': 2.0}
 {'a': 3.0, 'b': 1.0}
 {'a': 3.0, 'b': 2.0}'''
-    )
 
 
 def test_dict_to_product_sweep() -> None:
