@@ -243,7 +243,7 @@ def test_mutually_exclusive_not_serialize_lists(mod_spec: ModuleJsonTestSpec) ->
 
 @pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS, ids=repr)
 def test_resolver_cache_vs_should_not_serialize(mod_spec: ModuleJsonTestSpec) -> None:
-    resolver_cache_types = set([n for (n, _) in mod_spec.get_resolver_cache_types()])
+    resolver_cache_types = {n for (n, _) in mod_spec.get_resolver_cache_types()}
     common = set(mod_spec.should_not_be_serialized) & resolver_cache_types
 
     assert len(common) == 0, (
@@ -255,7 +255,7 @@ def test_resolver_cache_vs_should_not_serialize(mod_spec: ModuleJsonTestSpec) ->
 
 @pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS, ids=repr)
 def test_resolver_cache_vs_not_yet_serializable(mod_spec: ModuleJsonTestSpec) -> None:
-    resolver_cache_types = set([n for (n, _) in mod_spec.get_resolver_cache_types()])
+    resolver_cache_types = {n for (n, _) in mod_spec.get_resolver_cache_types()}
     common = set(mod_spec.not_yet_serializable) & resolver_cache_types
 
     assert len(common) == 0, (

@@ -195,9 +195,9 @@ class AQTSampler(cirq.Sampler):
             return emit("No workspaces accessible with this access token contain resources.")
 
         col_widths = [
-            max([len(w['id']) for w in workspaces]),
-            max([len(d['name']) for w in workspaces for d in w['resources']]),
-            max([len(d['id']) for w in workspaces for d in w['resources']]),
+            max(len(w['id']) for w in workspaces),
+            max(len(d['name']) for w in workspaces for d in w['resources']),
+            max(len(d['id']) for w in workspaces for d in w['resources']),
             3,
         ]
         SEPARATOR = "+-" + "-+-".join(col_width * "-" for col_width in col_widths) + "-+"
@@ -389,7 +389,7 @@ class AQTSampler(cirq.Sampler):
                 raise RuntimeError('Got unexpected return data from AQT server: \n' + str(data))
             if data['response']['status'] == 'finished':
                 break
-            elif data['response']['status'] == 'error':
+            if data['response']['status'] == 'error':
                 raise RuntimeError('Got unexpected return data from AQT server: \n' + str(data))
             time.sleep(1.0)
 

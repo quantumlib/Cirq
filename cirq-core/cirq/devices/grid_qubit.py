@@ -130,11 +130,13 @@ class _BaseGridQid(ops.Qid):
         Args:
             qids: optional Iterable of qubits to constrain neighbors to.
         """
-        neighbors = set()
-        for q in [self + (0, 1), self + (1, 0), self + (-1, 0), self + (0, -1)]:  # noqa: RUF005
-            if qids is None or q in qids:
-                neighbors.add(q)
-        return neighbors
+        the_neighbors = {
+            self._with_row_col(row=self._row + offset[0], col=self._col + offset[1])
+            for offset in ((0, 1), (1, 0), (-1, 0), (0, -1))
+        }
+        if qids is not None:
+            the_neighbors.intersection_update(qids)
+        return the_neighbors
 
     @abc.abstractmethod
     def _with_row_col(self, row: int, col: int) -> Self:

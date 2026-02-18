@@ -105,7 +105,7 @@ def _validate_map_input(
                 'was' if len(pauli_map_to) == 1 else 'were',
             )
         )
-    if len(set((to for to, _ in pauli_map_to.values()))) != len(pauli_map_to):
+    if len({to for to, _ in pauli_map_to.values()}) != len(pauli_map_to):
         raise ValueError('A rotation cannot map two Paulis to the same')
     return {frm: (to, flip) for frm, (to, flip) in pauli_map_to.items()}
 

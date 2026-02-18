@@ -641,7 +641,7 @@ class CircuitToQuantikz:
                             if lines[k_idx].endswith(" \\\\"):
                                 lines[k_idx] = lines[k_idx].rstrip()[:-3].rstrip()
                             break
-                        elif k_idx == len(lines) - 1:  # pragma: no cover
+                        if k_idx == len(lines) - 1:  # pragma: no cover
                             lines[k_idx] = ""
             lines.append("\\end{quantikz}")
             final_parts.append("\n".join(filter(None, lines)))

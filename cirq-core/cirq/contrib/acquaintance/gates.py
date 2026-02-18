@@ -133,7 +133,7 @@ def acquaint_insides(
 
     # update mapping
     reached_qubits = qubits[: max_reach + 1]
-    positions = list(mapping[q] for q in reached_qubits)
+    positions = [mapping[q] for q in reached_qubits]
     mapping.update(zip(reached_qubits, reversed(positions)))
 
 
@@ -344,7 +344,7 @@ class SwapNetworkGate(PermutationGate):
         return SwapNetworkGate(part_sizes, acquaintance_size, swap_gate)
 
     def permutation(self) -> dict[int, int]:
-        return {i: j for i, j in enumerate(reversed(range(sum(self.part_lens))))}
+        return dict(enumerate(reversed(range(sum(self.part_lens)))))
 
     def __repr__(self) -> str:
         return (

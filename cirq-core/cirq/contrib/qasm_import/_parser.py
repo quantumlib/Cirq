@@ -161,8 +161,8 @@ class CustomGate:
         for qubits in _generate_op_qubits(args, lineno):
             yield CircuitOperation(
                 self.circuit,
-                param_resolver={k: v for k, v in zip(self.params, params)},
-                qubit_map={k: v for k, v in zip(self.qubits, qubits)},
+                param_resolver=dict(zip(self.params, params)),
+                qubit_map=dict(zip(self.qubits, qubits)),
             )
 
 
@@ -693,9 +693,7 @@ class QasmParser:
             cirq_gate=ops.ControlledGate(ops.XPowGate(exponent=0.5), num_controls=3),
         ),
         'cx': QasmGateStatement(qasm_gate='cx', cirq_gate=CX, num_params=0, num_args=2),
-        'cy': QasmGateStatement(
-            qasm_gate='cy', cirq_gate=ops.ControlledGate(ops.Y), num_params=0, num_args=2
-        ),
+        'cy': QasmGateStatement(qasm_gate='cy', cirq_gate=ops.CY, num_params=0, num_args=2),
         'cz': QasmGateStatement(qasm_gate='cz', cirq_gate=ops.CZ, num_params=0, num_args=2),
         'h': QasmGateStatement(qasm_gate='h', num_params=0, num_args=1, cirq_gate=ops.H),
         'id': QasmGateStatement(

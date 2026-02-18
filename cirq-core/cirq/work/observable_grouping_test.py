@@ -63,7 +63,7 @@ def test_group_settings_greedy_single_item() -> None:
 
 
 def test_group_settings_greedy_empty() -> None:
-    assert cirq.work.group_settings_greedy([]) == dict()
+    assert cirq.work.group_settings_greedy([]) == {}
 
 
 def test_group_settings_greedy_init_state_compat() -> None:

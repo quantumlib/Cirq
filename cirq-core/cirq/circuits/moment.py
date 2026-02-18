@@ -220,7 +220,7 @@ class Moment:
         m = Moment(_flatten_contents=False)
         m._operations = (*self._operations, operation)
         m._sorted_operations = None
-        m._qubit_to_op = {**self._qubit_to_op, **{q: operation for q in operation.qubits}}
+        m._qubit_to_op = {**self._qubit_to_op, **dict.fromkeys(operation.qubits, operation)}
 
         m._measurement_key_objs = self._measurement_key_objs_().union(
             protocols.measurement_key_objs(operation)
@@ -261,10 +261,10 @@ class Moment:
         m._operations = self._operations + flattened_contents
         m._sorted_operations = None
         m._measurement_key_objs = self._measurement_key_objs_().union(
-            set(itertools.chain(*(protocols.measurement_key_objs(op) for op in flattened_contents)))
+            itertools.chain(*(protocols.measurement_key_objs(op) for op in flattened_contents))
         )
         m._control_keys = self._control_keys_().union(
-            set(itertools.chain(*(protocols.control_keys(op) for op in flattened_contents)))
+            itertools.chain(*(protocols.control_keys(op) for op in flattened_contents))
         )
 
         return m
@@ -285,9 +285,7 @@ class Moment:
         if not self.operates_on(qubits):
             return self
         return Moment(
-            operation
-            for operation in self.operations
-            if qubits.isdisjoint(frozenset(operation.qubits))
+            operation for operation in self.operations if qubits.isdisjoint(operation.qubits)
         )
 
     @_compat.cached_method()

@@ -150,6 +150,10 @@ def test_neighbors() -> None:
     restricted_qubits = [cirq.GridQubit(2, 1), cirq.GridQubit(2, 2)]
     assert cirq.GridQubit(1, 1).neighbors(restricted_qubits) == {cirq.GridQubit(2, 1)}
 
+    # Check with qids iterator
+    neighbor_qubits = [cirq.GridQubit(0, 1), cirq.GridQubit(2, 1)]
+    assert cirq.GridQubit(1, 1).neighbors(iter(neighbor_qubits)) == set(neighbor_qubits)
+
 
 def test_square() -> None:
     assert cirq.GridQubit.square(2, top=1, left=1) == [

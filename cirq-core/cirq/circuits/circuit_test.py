@@ -3525,8 +3525,8 @@ def test_push_frontier_random_circuit() -> None:
         late_frontier = {q: randint(0, n_moments) for q in sample(qubits, randint(0, len(qubits)))}
         update_qubits = sample(qubits, randint(0, len(qubits)))
 
-        orig_early_frontier = {q: f for q, f in early_frontier.items()}
-        orig_moments = [m for m in circuit._moments]
+        orig_early_frontier = dict(early_frontier)
+        orig_moments = list(circuit._moments)
         insert_index, n_new_moments = circuit._push_frontier(
             early_frontier, late_frontier, update_qubits
         )
@@ -3535,7 +3535,7 @@ def test_push_frontier_random_circuit() -> None:
         for q in set(early_frontier).difference(update_qubits):
             assert early_frontier[q] == orig_early_frontier[q]
         for q, f in late_frontier.items():
-            assert orig_early_frontier.get(q, 0) <= late_frontier[q] + n_new_moments
+            assert orig_early_frontier.get(q, 0) <= f + n_new_moments
             if f != len(orig_moments):
                 assert orig_moments[f] == circuit[f + n_new_moments]
         for q in set(update_qubits).intersection(early_frontier):
