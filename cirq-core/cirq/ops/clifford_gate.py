@@ -139,7 +139,7 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
     # These are class properties so we define them as properties on a metaclass.
 
     @property
-    def all_single_qubit_cliffords(cls) -> Sequence[cirq.SingleQubitCliffordGate]:
+    def all_single_qubit_cliffords(cls) -> Sequence[cirq.SingleQubitCliffordGate]:  # noqa: N805
         """All 24 single-qubit Clifford gates."""
         if not hasattr(cls, '_all_single_qubit_cliffords'):
             pX = (pauli_gates.X, False)
@@ -190,31 +190,31 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
         return cls._all_single_qubit_cliffords
 
     @property
-    def I(cls) -> cirq.SingleQubitCliffordGate:
+    def I(cls) -> cirq.SingleQubitCliffordGate:  # noqa: N805
         return cls.all_single_qubit_cliffords[0]
 
     @property
-    def X(cls) -> cirq.SingleQubitCliffordGate:
+    def X(cls) -> cirq.SingleQubitCliffordGate:  # noqa: N805
         return cls.all_single_qubit_cliffords[1]
 
     @property
-    def Y(cls) -> cirq.SingleQubitCliffordGate:
+    def Y(cls) -> cirq.SingleQubitCliffordGate:  # noqa: N805
         return cls.all_single_qubit_cliffords[2]
 
     @property
-    def Z(cls) -> cirq.SingleQubitCliffordGate:
+    def Z(cls) -> cirq.SingleQubitCliffordGate:  # noqa: N805
         return cls.all_single_qubit_cliffords[3]
 
     @property
-    def H(cls) -> cirq.SingleQubitCliffordGate:
+    def H(cls) -> cirq.SingleQubitCliffordGate:  # noqa: N805
         return cls.all_single_qubit_cliffords[10]
 
     @property
-    def S(cls) -> cirq.SingleQubitCliffordGate:
+    def S(cls) -> cirq.SingleQubitCliffordGate:  # noqa: N805
         return cls.all_single_qubit_cliffords[6]
 
     @property
-    def CNOT(cls) -> cirq.CliffordGate:
+    def CNOT(cls) -> cirq.CliffordGate:  # noqa: N805
         if not hasattr(cls, '_CNOT'):
             t = qis.CliffordTableau(num_qubits=2)
             t.xs = np.array([[1, 1], [0, 1], [0, 0], [0, 0]])
@@ -223,7 +223,7 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
         return cls._CNOT
 
     @property
-    def CZ(cls) -> cirq.CliffordGate:
+    def CZ(cls) -> cirq.CliffordGate:  # noqa: N805
         if not hasattr(cls, '_CZ'):
             t = qis.CliffordTableau(num_qubits=2)
             t.xs = np.array([[1, 0], [0, 1], [0, 0], [0, 0]])
@@ -232,7 +232,7 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
         return cls._CZ
 
     @property
-    def SWAP(cls) -> cirq.CliffordGate:
+    def SWAP(cls) -> cirq.CliffordGate:  # noqa: N805
         if not hasattr(cls, '_SWAP'):
             t = qis.CliffordTableau(num_qubits=2)
             t.xs = np.array([[0, 1], [1, 0], [0, 0], [0, 0]])
@@ -241,27 +241,27 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
         return cls._SWAP
 
     @property
-    def X_sqrt(cls) -> cirq.SingleQubitCliffordGate:
+    def X_sqrt(cls) -> cirq.SingleQubitCliffordGate:  # noqa: N805
         return cls.all_single_qubit_cliffords[4]
 
     @property
-    def X_nsqrt(cls) -> cirq.SingleQubitCliffordGate:
+    def X_nsqrt(cls) -> cirq.SingleQubitCliffordGate:  # noqa: N805
         return cls.all_single_qubit_cliffords[7]
 
     @property
-    def Y_sqrt(cls) -> cirq.SingleQubitCliffordGate:
+    def Y_sqrt(cls) -> cirq.SingleQubitCliffordGate:  # noqa: N805
         return cls.all_single_qubit_cliffords[5]
 
     @property
-    def Y_nsqrt(cls) -> cirq.SingleQubitCliffordGate:
+    def Y_nsqrt(cls) -> cirq.SingleQubitCliffordGate:  # noqa: N805
         return cls.all_single_qubit_cliffords[8]
 
     @property
-    def Z_sqrt(cls) -> cirq.SingleQubitCliffordGate:
+    def Z_sqrt(cls) -> cirq.SingleQubitCliffordGate:  # noqa: N805
         return cls.all_single_qubit_cliffords[6]
 
     @property
-    def Z_nsqrt(cls) -> cirq.SingleQubitCliffordGate:
+    def Z_nsqrt(cls) -> cirq.SingleQubitCliffordGate:  # noqa: N805
         return cls.all_single_qubit_cliffords[9]
 
 
