@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import asyncio
 import datetime
-import os
 from unittest import mock
 
 import duet
@@ -390,7 +389,6 @@ def test_delete_program(client_constructor, default_engine_client):
     )
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_create_job_with_all_parameters(
     client_constructor, default_run_context, default_engine_client
@@ -431,7 +429,6 @@ def test_create_job_with_all_parameters(
     )
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_create_job_without_labels(client_constructor, default_engine_client):
     grpc_client = _setup_client_mock(client_constructor)
@@ -468,7 +465,6 @@ def test_create_job_without_labels(client_constructor, default_engine_client):
     )
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_create_job_without_description(client_constructor, default_engine_client):
     grpc_client = _setup_client_mock(client_constructor)
@@ -506,7 +502,6 @@ def test_create_job_without_description(client_constructor, default_engine_clien
     )
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_create_job_without_job_id(client_constructor, default_engine_client):
     grpc_client = _setup_client_mock(client_constructor)
@@ -540,7 +535,6 @@ def test_create_job_without_job_id(client_constructor, default_engine_client):
     )
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_create_job_with_invalid_priority(
     client_constructor, default_run_context, default_engine_client
@@ -561,7 +555,6 @@ def test_create_job_with_invalid_priority(
         )
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 @pytest.mark.parametrize(
     'processor_id, run_name, snapshot_id, device_config_name, error_message',
@@ -596,7 +589,6 @@ def test_create_job_with_invalid_processor_and_device_config_arguments_throws(
         )
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 @pytest.mark.parametrize(
     'run_name, snapshot_id, device_config_name',
@@ -641,7 +633,6 @@ def test_create_job_with_run_name_and_device_config_name_succeeds(
     )
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_create_job_with_snapshot_id_and_config_successfully_passes_device_config_selector(
     client_constructor, default_engine_client, default_run_context
@@ -672,9 +663,8 @@ def test_create_job_with_snapshot_id_and_config_successfully_passes_device_confi
     assert device_config_selector.config_alias == device_config_name
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
-def test_create_job_with_run_id_and_snapshot_id_and_config_succeeds(
+def test_create_job_with_run_name_and_snapshot_id_and_config_succeeds(
     client_constructor, default_engine_client, default_run_context
 ):
     grpc_client = _setup_client_mock(client_constructor)
@@ -958,7 +948,6 @@ def test_run_job_over_stream_with_snapshot_id_returns_correct_future(
 
     expected_future = duet.futuretools.completed_future(quantum.QuantumResult(parent=JOB_PATH))
     stream_manager.submit.return_value = expected_future
-    stream_manager.submit.return_value = expected_future
 
     actual_future = default_engine_client.run_job_over_stream(**run_job_kwargs[0])
 
@@ -1004,7 +993,6 @@ def test_run_job_over_stream_with_snapshot_id_propogates_snapshot_id(
     )
     parent = expected_submit_args[0][2].name
     expected_future = duet.futuretools.completed_future(quantum.QuantumResult(parent=parent))
-    stream_manager.submit.return_value = expected_future
     stream_manager.submit.return_value = expected_future
 
     _ = default_engine_client.run_job_over_stream(**run_job_kwargs[0])
@@ -1052,7 +1040,6 @@ def test_run_job_over_stream_with_snapshot_id_and_run_name_favors_snapshot_id(
     )
     parent = expected_submit_args[0][2].name
     expected_future = duet.futuretools.completed_future(quantum.QuantumResult(parent=parent))
-    stream_manager.submit.return_value = expected_future
     stream_manager.submit.return_value = expected_future
 
     _ = default_engine_client.run_job_over_stream(**run_job_kwargs[0])
