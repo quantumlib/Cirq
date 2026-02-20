@@ -207,7 +207,7 @@ class AnalogSimulationCircuitBuilder:
             idle_freq_map_resolved
         )
 
-        t_traj = [_.duration[tu.ns] for _ in self.trajectory.full_trajectory]
+        t_traj = [step.duration[tu.ns] for step in self.trajectory.full_trajectory]
         for t in t_traj[1:]:
             if not t > 0:
                 raise ValueError("Trajectory times should be positive.")  # pragma: no cover
@@ -215,10 +215,10 @@ class AnalogSimulationCircuitBuilder:
         t = np.cumsum(t_traj)
         interpolators = {}
         for qubit in self.trajectory.qubits:
-            f = [cast(tu.Value, _.qubit_freqs[qubit])[tu.GHz] for _ in full_trajectory]
+            f = [cast(tu.Value, step.qubit_freqs[qubit])[tu.GHz] for step in full_trajectory]
             interpolators[qubit] = scipy.interpolate.interp1d(t, f)
         for coupler in self.trajectory.couplers:
-            f = [_.couplings[coupler][tu.GHz] for _ in full_trajectory]
+            f = [step.couplings[coupler][tu.GHz] for step in full_trajectory]
             interpolators[coupler] = scipy.interpolate.interp1d(t, f)
         return interpolators, t[-1]
 
@@ -298,7 +298,7 @@ class AnalogSimulationCircuitBuilder:
         self,
         trotter_step: tu.Value,
         interaction_pattern: Sequence[rcg.GridInteractionLayer] = rcg.HALF_GRID_STAGGERED_PATTERN,
-        second_order: bool = False,
+        trotter_order: int = 1,
         idle_freq_map: dict[cirq.Qid, tu.Value] | None = None,
     ) -> cirq.Circuit:
         r"""Create a Cirq circuit for simulating an analog experiment.
@@ -325,10 +325,12 @@ class AnalogSimulationCircuitBuilder:
         * Sympy symbols are not supported. Please resolve all parameters.
 
         Args:
-            trotter_step: The Trotter step size used for simulation.
+            trotter_step: The Trotter step size used for simulation. Should divide the total
+                time.
             interaction_pattern: The pattern of two-qubit gates to use for the simulation.
                 Shouldn't matter as long as the Trotter step size is sufficiently small.
-            second_order: Whether to use a second-order Trotter approximation
+            trotter_order: The order of the Trotter approximation (1 and 2 are are the only
+                supported options).
                 (otherwise use first-order).
             idle_freq_map: The qubit idle frequencies. If not provided, set to 0.
 
@@ -347,6 +349,9 @@ class AnalogSimulationCircuitBuilder:
                 f"{t_max_ns} ns"  # pragma: no cover
             )  # pragma: no cover
 
+        if not trotter_order in [1, 2]:
+            raise NotImplementedError("Only 1st and 2nd order Trotter currently supported.")
+
         # get the device graph
         grid_qubit_list = []
         for qubit in self.trajectory.qubits:
@@ -360,7 +365,7 @@ class AnalogSimulationCircuitBuilder:
             self._make_second_order_circuit(
                 interpolators, dt_ns, num_steps, device_graph, interaction_pattern
             )
-            if second_order
+            if trotter_order == 2
             else self._make_first_order_circuit(
                 interpolators, dt_ns, num_steps, device_graph, interaction_pattern
             )
