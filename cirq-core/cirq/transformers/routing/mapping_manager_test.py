@@ -152,3 +152,87 @@ def test_shortest_path():
     one_to_four[1], one_to_four[2] = one_to_four[2], one_to_four[1]
     assert all(mm.shortest_path(q_int[1], q_int[4]) == one_to_four)
     assert all(mm.shortest_path(q_int[1], q_int[2]) == [q_int[1], q_int[2]])
+
+
+def test_dist_on_device_undirected_with_undirected_graph():
+    device_graph, initial_mapping, q = construct_device_graph_and_mapping()
+    mm = cirq.MappingManager(device_graph, initial_mapping)
+    q_int = [mm.logical_qid_to_int[q[i]] if q[i] in initial_mapping else -1 for i in range(len(q))]
+
+    # For undirected graphs, undirected distance should match regular distance
+    assert mm.dist_on_device_undirected(q_int[1], q_int[3]) == mm.dist_on_device(q_int[1], q_int[3])
+    assert mm.dist_on_device_undirected(q_int[1], q_int[2]) == mm.dist_on_device(q_int[1], q_int[2])
+
+
+def test_shortest_path_undirected_with_undirected_graph():
+    device_graph, initial_mapping, q = construct_device_graph_and_mapping()
+    mm = cirq.MappingManager(device_graph, initial_mapping)
+    q_int = [mm.logical_qid_to_int[q[i]] if q[i] in initial_mapping else -1 for i in range(len(q))]
+
+    # For undirected graphs, undirected path should match regular path
+    assert all(
+        mm.shortest_path_undirected(q_int[1], q_int[2]) == mm.shortest_path(q_int[1], q_int[2])
+    )
+    assert all(
+        mm.shortest_path_undirected(q_int[4], q_int[1]) == mm.shortest_path(q_int[4], q_int[1])
+    )
+
+
+def construct_directed_device_graph_and_mapping(bidirectional=True):
+    """Helper to construct a directed device graph and identity mapping.
+
+    Args:
+        bidirectional: if True, creates 0<->1 (bidirectional) + 1->2 (unidirectional).
+            If False, creates 0->1->2 (all unidirectional).
+    """
+    device_graph = nx.DiGraph()
+    q = cirq.LineQubit.range(3)
+    if bidirectional:
+        device_graph.add_edges_from([(q[0], q[1]), (q[1], q[0]), (q[1], q[2])])
+    else:
+        device_graph.add_edges_from([(q[0], q[1]), (q[1], q[2])])
+    initial_mapping = {q[0]: q[0], q[1]: q[1], q[2]: q[2]}
+    return device_graph, initial_mapping, q
+
+
+def test_apply_swap_with_directed_graph():
+    device_graph, initial_mapping, q = construct_directed_device_graph_and_mapping(
+        bidirectional=True
+    )
+    mm = cirq.MappingManager(device_graph, initial_mapping)
+    q_int = [mm.logical_qid_to_int[q[i]] for i in range(len(q))]
+
+    # should be able to swap on edge 1->2 even though there's no 2->1 edge
+    # because undirected distance is 1
+    mm.apply_swap(q_int[1], q_int[2])
+
+    # verify the swap was applied correctly
+    assert mm.logical_to_physical[q_int[1]] == 2
+    assert mm.logical_to_physical[q_int[2]] == 1
+
+
+def test_dist_on_device_undirected_with_directed_graph():
+    device_graph, initial_mapping, q = construct_directed_device_graph_and_mapping(
+        bidirectional=False
+    )
+    mm = cirq.MappingManager(device_graph, initial_mapping)
+    q_int = [mm.logical_qid_to_int[q[i]] for i in range(len(q))]
+
+    # directed distance from 2 to 0 is infinity (no path)
+    assert mm.dist_on_device(q_int[2], q_int[0]) == float('inf')
+
+    # undirected distance should be 2 (path 2-1-0)
+    assert mm.dist_on_device_undirected(q_int[2], q_int[0]) == 2
+    assert mm.dist_on_device_undirected(q_int[0], q_int[2]) == 2
+
+
+def test_shortest_path_undirected_with_directed_graph():
+    device_graph, initial_mapping, q = construct_directed_device_graph_and_mapping(
+        bidirectional=False
+    )
+    mm = cirq.MappingManager(device_graph, initial_mapping)
+    q_int = [mm.logical_qid_to_int[q[i]] for i in range(len(q))]
+
+    # undirected path from 2 to 0 should exist
+    path = mm.shortest_path_undirected(q_int[2], q_int[0])
+    assert list(path) == [q_int[2], q_int[1], q_int[0]]
