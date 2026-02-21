@@ -139,6 +139,8 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
 
     # These are class properties so we define them as properties on a metaclass.
 
+    # ruff: disable[N805]
+
     @property
     def all_single_qubit_cliffords(cls) -> Sequence[cirq.SingleQubitCliffordGate]:
         """All 24 single-qubit Clifford gates."""
