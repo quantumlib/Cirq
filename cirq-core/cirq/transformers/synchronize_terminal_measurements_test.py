@@ -28,7 +28,7 @@ def assert_optimizes(before, after, measure_only_moment=True, with_context=False
 
     # Test nested circuit ops.
     context = cirq.TransformerContext(
-        tags_to_ignore=("ignore",) + tuple([NO_COMPILE_TAG] if with_context else []), deep=True
+        tags_to_ignore=("ignore", *tuple([NO_COMPILE_TAG] if with_context else [])), deep=True
     )
     c_nested = cirq.Circuit(
         before,

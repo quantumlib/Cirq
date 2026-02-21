@@ -186,7 +186,7 @@ def test_fsim_gate_family_eq():
                 cirq.PhasedISwapPowGate,
                 cirq.PhasedISwapPowGate,
             ],
-            gate_types_to_check=ALL_POSSIBLE_FSIM_GATES + [cirq.FSimGate],
+            gate_types_to_check=[*ALL_POSSIBLE_FSIM_GATES, cirq.FSimGate],
             allow_symbols=True,
         ),
         cirq_google.FSimGateFamily(
@@ -196,7 +196,7 @@ def test_fsim_gate_family_eq():
                 cirq.CZPowGate,
                 cirq.PhasedISwapPowGate,
             ],
-            gate_types_to_check=ALL_POSSIBLE_FSIM_GATES[::-1] + [cirq.FSimGate],
+            gate_types_to_check=[*ALL_POSSIBLE_FSIM_GATES[::-1], cirq.FSimGate],
             allow_symbols=True,
         ),
     )
@@ -214,7 +214,7 @@ def test_fsim_gate_family_eq():
                 cirq.CZPowGate,
                 cirq.PhasedISwapPowGate,
             ],
-            gate_types_to_check=ALL_POSSIBLE_FSIM_GATES[::-1] + [cirq.FSimGate],  # type: ignore
+            gate_types_to_check=[*ALL_POSSIBLE_FSIM_GATES[::-1], cirq.FSimGate],  # type: ignore
             allow_symbols=True,
             atol=1e-8,
         ),

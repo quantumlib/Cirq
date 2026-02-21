@@ -1155,7 +1155,7 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         return ZPowGate(exponent=self.exponent).controlled(
             num_controls=result.num_controls() + 1,
             control_values=result.control_values & cv.ProductOfSums([1]),
-            control_qid_shape=result.control_qid_shape + (2,),
+            control_qid_shape=(*result.control_qid_shape, 2),
         )
 
     def _decompose_with_context_(
@@ -1339,7 +1339,7 @@ class CXPowGate(eigen_gate.EigenGate):
         return XPowGate(exponent=self.exponent).controlled(
             num_controls=result.num_controls() + 1,
             control_values=result.control_values & cv.ProductOfSums([1]),
-            control_qid_shape=result.control_qid_shape + (2,),
+            control_qid_shape=(*result.control_qid_shape, 2),
         )
 
     def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> str | None:
@@ -1498,7 +1498,7 @@ class CYPowGate(eigen_gate.EigenGate):
         return YPowGate(exponent=self.exponent).controlled(
             num_controls=result.num_controls() + 1,
             control_values=result.control_values & cv.ProductOfSums([1]),
-            control_qid_shape=result.control_qid_shape + (2,),
+            control_qid_shape=(*result.control_qid_shape, 2),
         )
 
     def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> str | None:

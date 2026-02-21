@@ -243,14 +243,16 @@ BA"""
 
 def test_addition_subtraction() -> None:
     # GridQubits
+    # ruff: disable[RUF005]
     assert cirq.GridQubit(1, 2) + (2, 5) == cirq.GridQubit(3, 7)
     assert cirq.GridQubit(1, 2) + (0, 0) == cirq.GridQubit(1, 2)
     assert cirq.GridQubit(1, 2) + (-1, 0) == cirq.GridQubit(0, 2)
+    # ruff: enable[RUF005]
     assert cirq.GridQubit(1, 2) - (2, 5) == cirq.GridQubit(-1, -3)
     assert cirq.GridQubit(1, 2) - (0, 0) == cirq.GridQubit(1, 2)
     assert cirq.GridQubit(1, 2) - (-1, 0) == cirq.GridQubit(2, 2)
 
-    assert (2, 5) + cirq.GridQubit(1, 2) == cirq.GridQubit(3, 7)
+    assert (2, 5) + cirq.GridQubit(1, 2) == cirq.GridQubit(3, 7)  # noqa: RUF005
     assert (2, 5) - cirq.GridQubit(1, 2) == cirq.GridQubit(1, 3)
 
     assert cirq.GridQubit(1, 2) + cirq.GridQubit(3, 5) == cirq.GridQubit(4, 7)
@@ -258,14 +260,18 @@ def test_addition_subtraction() -> None:
     assert cirq.GridQubit(1, -2) + cirq.GridQubit(3, 5) == cirq.GridQubit(4, 3)
 
     # GridQids
+    # ruff: disable[RUF005]
     assert cirq.GridQid(1, 2, dimension=3) + (2, 5) == cirq.GridQid(3, 7, dimension=3)
     assert cirq.GridQid(1, 2, dimension=3) + (0, 0) == cirq.GridQid(1, 2, dimension=3)
     assert cirq.GridQid(1, 2, dimension=3) + (-1, 0) == cirq.GridQid(0, 2, dimension=3)
+    # ruff: enable[RUF005]
     assert cirq.GridQid(1, 2, dimension=3) - (2, 5) == cirq.GridQid(-1, -3, dimension=3)
     assert cirq.GridQid(1, 2, dimension=3) - (0, 0) == cirq.GridQid(1, 2, dimension=3)
     assert cirq.GridQid(1, 2, dimension=3) - (-1, 0) == cirq.GridQid(2, 2, dimension=3)
 
-    assert (2, 5) + cirq.GridQid(1, 2, dimension=3) == cirq.GridQid(3, 7, dimension=3)
+    assert (2, 5) + cirq.GridQid(1, 2, dimension=3) == cirq.GridQid(  # noqa: RUF005
+        3, 7, dimension=3
+    )
     assert (2, 5) - cirq.GridQid(1, 2, dimension=3) == cirq.GridQid(1, 3, dimension=3)
 
     assert cirq.GridQid(1, 2, dimension=3) + cirq.GridQid(3, 5, dimension=3) == cirq.GridQid(
@@ -314,11 +320,11 @@ def test_unsupported_add() -> None:
     with pytest.raises(TypeError, match='1'):
         _ = cirq.GridQubit(1, 1) + 1  # type: ignore[operator]
     with pytest.raises(TypeError, match='(1,)'):
-        _ = cirq.GridQubit(1, 1) + (1,)  # type: ignore[operator]
+        _ = cirq.GridQubit(1, 1) + (1,)  # type: ignore[operator] # noqa: RUF005
     with pytest.raises(TypeError, match='(1, 2, 3)'):
-        _ = cirq.GridQubit(1, 1) + (1, 2, 3)  # type: ignore[operator]
+        _ = cirq.GridQubit(1, 1) + (1, 2, 3)  # type: ignore[operator] # noqa: RUF005
     with pytest.raises(TypeError, match='(1, 2.0)'):
-        _ = cirq.GridQubit(1, 1) + (1, 2.0)  # type: ignore[operator]
+        _ = cirq.GridQubit(1, 1) + (1, 2.0)  # type: ignore[operator] # noqa: RUF005
 
     with pytest.raises(TypeError, match='1'):
         _ = cirq.GridQubit(1, 1) - 1  # type: ignore[operator]

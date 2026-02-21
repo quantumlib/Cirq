@@ -161,18 +161,18 @@ def test_specialized_control(input_gate, specialized_output, base_gate) -> None:
     absorbed_values = ((1,),) * absorbed
     absorbed_shape = (2,) * absorbed
     assert input_gate.controlled(num_controls=1, control_qid_shape=(3,)) == cirq.ControlledGate(
-        base_gate, num_controls=1 + absorbed, control_qid_shape=(3,) + absorbed_shape
+        base_gate, num_controls=1 + absorbed, control_qid_shape=(3, *absorbed_shape)
     )
     assert input_gate.controlled(control_values=((0,), (1,), (0,))) == cirq.ControlledGate(
-        base_gate, num_controls=3 + absorbed, control_values=((0,), (1,), (0,)) + absorbed_values
+        base_gate, num_controls=3 + absorbed, control_values=((0,), (1,), (0,), *absorbed_values)
     )
     assert input_gate.controlled(control_qid_shape=(3, 2, 3)) == cirq.ControlledGate(
-        base_gate, num_controls=3 + absorbed, control_qid_shape=(3, 2, 3) + absorbed_shape
+        base_gate, num_controls=3 + absorbed, control_qid_shape=(3, 2, 3, *absorbed_shape)
     )
     assert input_gate.controlled(control_qid_shape=(3,)).controlled(
         control_qid_shape=(2,)
     ).controlled(control_qid_shape=(4,)) != cirq.ControlledGate(
-        base_gate, num_controls=3 + absorbed, control_qid_shape=(3, 2, 4) + absorbed_shape
+        base_gate, num_controls=3 + absorbed, control_qid_shape=(3, 2, 4, *absorbed_shape)
     )
 
 

@@ -218,7 +218,7 @@ class Moment:
 
         # Use private variables to facilitate a quick copy.
         m = Moment(_flatten_contents=False)
-        m._operations = self._operations + (operation,)
+        m._operations = (*self._operations, operation)
         m._sorted_operations = None
         m._qubit_to_op = {**self._qubit_to_op, **dict.fromkeys(operation.qubits, operation)}
 

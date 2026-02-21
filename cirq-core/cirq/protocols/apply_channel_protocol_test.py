@@ -49,7 +49,7 @@ def apply_channel(val, rho, left_axes, right_axes, assert_result_is_out_buf=Fals
 
 
 def test_apply_channel_bad_args() -> None:
-    target = np.zeros((3,) + (1, 2, 3) + (3, 1, 2) + (3,))
+    target = np.zeros((3, 1, 2, 3, 3, 1, 2, 3))
     with pytest.raises(ValueError, match='Invalid target_tensor shape'):
         cirq.apply_channel(
             cirq.IdentityGate(3, (1, 2, 3)),
