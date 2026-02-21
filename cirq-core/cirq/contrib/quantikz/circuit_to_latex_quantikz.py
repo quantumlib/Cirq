@@ -330,7 +330,7 @@ class CircuitToQuantikz:
             is_symbolic_or_special = any(
                 char.isalpha()
                 for char in s_exponent
-                if char.lower() not in ["e"]  # Exclude 'e' for scientific notation
+                if char.lower() != "e"  # Exclude 'e' for scientific notation
             )
             if not is_symbolic_or_special:  # If it looks like a number
                 try:

@@ -264,6 +264,7 @@ select = [
     "FURB167",  # regex-flag-alias
     "FURB168",  # isinstance-type-none
     "FURB169",  # type-none-comparison
+    "FURB171",  # single-item-membership-test
     "FURB192",  # sorted-min-max
     "ISC",  # flake8-implicit-str-concat
     "N804",  # invalid-first-argument-name-for-class-method, pylint bad-classmethod-argument
