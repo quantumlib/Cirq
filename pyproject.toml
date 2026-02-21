@@ -255,6 +255,7 @@ select = [
     "FURB105",  # print-empty-string
     "FURB116",  # f-string-number-format
     "FURB131",  # delete-full-slice
+    "FURB132",  # check-and-remove-from-set
     "FURB136",  # if-expr-min-max
     "FURB145",  # slice-copy
     "FURB148",  # unnecessary-enumerate
