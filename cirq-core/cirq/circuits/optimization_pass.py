@@ -157,8 +157,7 @@ class PointOptimizer:
 
                 new_qubits = set()
                 for flat_op in flat_new_operations:
-                    for q in flat_op.qubits:
-                        new_qubits.add(q)
+                    new_qubits.update(flat_op.qubits)
 
                 if not new_qubits.issubset(opt.clear_qubits):
                     raise ValueError(

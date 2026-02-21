@@ -257,6 +257,7 @@ select = [
     "FURB131",  # delete-full-slice
     "FURB132",  # check-and-remove-from-set
     "FURB136",  # if-expr-min-max
+    "FURB142",  # for-loop-set-mutations
     "FURB145",  # slice-copy
     "FURB148",  # unnecessary-enumerate
     "FURB166",  # int-on-sliced-str
