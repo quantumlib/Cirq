@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import filecmp
 import os
+import pathlib
 import shutil
 import tempfile
 
@@ -43,9 +44,8 @@ def test_rewrite_notebook() -> None:
     path = dt.rewrite_notebook(ipynb_path)
 
     assert path != ipynb_path
-    with open(path, 'r') as f:
-        rewritten = f.read()
-        assert rewritten == 'd = 3\nd = 4'
+    rewritten = pathlib.Path(path).read_text()
+    assert rewritten == 'd = 3\nd = 4'
 
     os.remove(path)
     shutil.rmtree(directory)
@@ -56,9 +56,8 @@ def test_rewrite_notebook_multiple() -> None:
 
     path = dt.rewrite_notebook(ipynb_path)
 
-    with open(path, 'r') as f:
-        rewritten = f.read()
-        assert rewritten == 'd = 3\nd = 1'
+    rewritten = pathlib.Path(path).read_text()
+    assert rewritten == 'd = 3\nd = 1'
 
     os.remove(path)
     shutil.rmtree(directory)
@@ -69,9 +68,8 @@ def test_rewrite_notebook_ignore_non_seperator_lines() -> None:
 
     path = dt.rewrite_notebook(ipynb_path)
 
-    with open(path, 'r') as f:
-        rewritten = f.read()
-        assert rewritten == 'd = 3\nd = 4'
+    rewritten = pathlib.Path(path).read_text()
+    assert rewritten == 'd = 3\nd = 4'
 
     os.remove(path)
     shutil.rmtree(directory)

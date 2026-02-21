@@ -250,6 +250,7 @@ select = [
     "F821",  # undefined-name, pylint undefined-variable, unexpected-keyword-arg
     "F841",  # unused-variable, pylint unused-variable
     "F901",  # raise-not-implemented, pylint notimplemented-raised
+    "FURB101",  # read-whole-file
     "FURB131",  # delete-full-slice
     "FURB136",  # if-expr-min-max
     "FURB145",  # slice-copy
