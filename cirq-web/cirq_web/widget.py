@@ -117,6 +117,6 @@ def _to_script_tag(bundle_filename: str) -> str:
     Returns:
         The bundle file as string (readable by browser) wrapped in HTML script tags.
     """
-    bundle_file_path = os.path.join(_DIST_PATH, bundle_filename)
-    bundle_file_contents = Path(bundle_file_path).read_text(encoding='utf-8')
+    bundle_file_path = _DIST_PATH.joinpath(bundle_filename)
+    bundle_file_contents = bundle_file_path.read_text(encoding='utf-8')
     return f'<script>{bundle_file_contents}</script>'

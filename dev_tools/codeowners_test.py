@@ -88,7 +88,8 @@ def test_codeowners(filepath, expected) -> None:
     # will be skipped
     codeowners = pytest.importorskip("codeowners")
 
-    owners = codeowners.CodeOwners(pathlib.Path(".github/CODEOWNERS").read_text(encoding="utf8"))
+    owners_text = pathlib.Path(".github/CODEOWNERS").read_text(encoding="utf8")
+    owners = codeowners.CodeOwners(owners_text)
     assert os.path.exists(
         filepath
     ), f"{filepath} should exist to avoid creating/maintaining meaningless codeowners rules."

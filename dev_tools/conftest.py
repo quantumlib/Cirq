@@ -113,7 +113,7 @@ def cloned_env(testrun_uid, worker_id):
     def _create_base_env(base_dir: Path, pip_install_args: tuple[str, ...]):
         try:
             create_virtual_env(str(base_dir), [], sys.executable, True)
-            Path(base_dir / "testrun.uid").write_text(testrun_uid, encoding="utf8")
+            base_dir.joinpath("testrun.uid").write_text(testrun_uid, encoding="utf8")
             if pip_install_args:
                 shell_tools.run([f"{base_dir}/bin/pip", "install", *pip_install_args])
         except BaseException as ex:

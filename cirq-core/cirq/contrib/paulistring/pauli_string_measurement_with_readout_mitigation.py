@@ -588,7 +588,6 @@ def measure_pauli_strings(
     normalized_circuits_to_pauli = _normalize_input_paulis(circuits_to_pauli)
 
     # Extract unique qubit tuples from input pauli strings
-    unique_qubit_tuples = set()
     if measure_on_full_support:
         full_support: set[ops.Qid] = set()
         for pauli_string_groups in normalized_circuits_to_pauli.values():
@@ -596,7 +595,7 @@ def measure_pauli_strings(
                 for pauli_string in pauli_strings:
                     full_support.update(pauli_string.qubits)
         # One calibration group
-        unique_qubit_tuples.add(tuple(sorted(full_support)))
+        unique_qubit_tuples = {tuple(sorted(full_support))}
     else:
         unique_qubit_tuples = {
             tuple(_extract_readout_qubits(pauli_strings))
