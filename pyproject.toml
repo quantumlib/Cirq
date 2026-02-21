@@ -261,6 +261,7 @@ select = [
     "FURB192",  # sorted-min-max
     "ISC",  # flake8-implicit-str-concat
     "N804",  # invalid-first-argument-name-for-class-method, pylint bad-classmethod-argument
+    "N805",  # invalid-first-argument-name-for-method
     "NPY201",  # numpy2-deprecation
     "PERF101",  # unnecessary-list-cast
     "PERF102",  # incorrect-dict-iterator
