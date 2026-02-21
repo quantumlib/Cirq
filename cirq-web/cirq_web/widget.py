@@ -85,8 +85,7 @@ class Widget(ABC):
         client_code = self.get_client_code()
         contents = self._create_html_content(client_code)
         path_of_html_file = os.path.join(output_directory, file_name)
-        with open(path_of_html_file, 'w', encoding='utf-8') as f:
-            f.write(contents)
+        Path(path_of_html_file).write_text(contents, encoding='utf-8')
 
         if open_in_browser:
             webbrowser.open(path_of_html_file, new=2)

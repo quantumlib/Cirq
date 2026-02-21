@@ -28,12 +28,10 @@ import dev_tools.notebooks as dt
 def write_test_data(ipynb_txt, tst_txt):
     directory = tempfile.mkdtemp()
     ipynb_path = os.path.join(directory, 'test.ipynb')
-    with open(ipynb_path, 'w') as f:
-        f.write(ipynb_txt)
+    pathlib.Path(ipynb_path).write_text(ipynb_txt)
 
     tst_path = os.path.join(directory, 'test.tst')
-    with open(tst_path, 'w') as f:
-        f.write(tst_txt)
+    pathlib.Path(tst_path).write_text(tst_txt)
 
     return directory, ipynb_path
 
@@ -78,8 +76,7 @@ def test_rewrite_notebook_ignore_non_seperator_lines() -> None:
 def test_rewrite_notebook_no_tst_file() -> None:
     directory = tempfile.mkdtemp()
     ipynb_path = os.path.join(directory, 'test.ipynb')
-    with open(ipynb_path, 'w') as f:
-        f.write('d = 5\nd = 4')
+    pathlib.Path(ipynb_path).write_text('d = 5\nd = 4')
 
     path = dt.rewrite_notebook(ipynb_path)
     assert path != ipynb_path
