@@ -155,7 +155,7 @@ class PointOptimizer:
 
                 flat_new_operations = tuple(ops.flatten_to_ops(new_operations))
 
-                new_qubits: set[cirq.LineQubit] = set()
+                new_qubits: set[cirq.Qid] = set()
                 for flat_op in flat_new_operations:
                     new_qubits.update(flat_op.qubits)
 
