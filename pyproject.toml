@@ -252,6 +252,7 @@ select = [
     "F901",  # raise-not-implemented, pylint notimplemented-raised
     "FURB101",  # read-whole-file
     "FURB103",  # write-whole-file
+    "FURB105",  # print-empty-string
     "FURB131",  # delete-full-slice
     "FURB136",  # if-expr-min-max
     "FURB145",  # slice-copy
