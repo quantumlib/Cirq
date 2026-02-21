@@ -235,8 +235,7 @@ universe
 def assert_file_has_working_code_snippets(path: str | pathlib.Path, assume_import: bool):
     """Checks that code snippets in a file actually run."""
 
-    with open(path, encoding='utf-8') as f:
-        content = f.read()
+    content = pathlib.Path(path).read_text(encoding='utf-8')
 
     # Find snippets of code, and execute them. They should finish.
     overrides = find_markdown_test_overrides(content)

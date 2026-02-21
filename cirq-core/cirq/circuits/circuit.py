@@ -587,8 +587,7 @@ class AbstractCircuit(abc.ABC):
             next_moment = self.next_moment_operating_on([qubit], moment)
             if next_moment is None:
                 end_frontier[qubit] = max(len(self), start_frontier[qubit])
-                if qubit in active:
-                    active.remove(qubit)
+                active.discard(qubit)
             else:
                 next_op = self.operation_at(qubit, next_moment)
                 assert next_op is not None
