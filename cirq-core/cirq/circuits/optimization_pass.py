@@ -155,10 +155,9 @@ class PointOptimizer:
 
                 flat_new_operations = tuple(ops.flatten_to_ops(new_operations))
 
-                new_qubits = set()
+                new_qubits: set[cirq.Qid] = set()
                 for flat_op in flat_new_operations:
-                    for q in flat_op.qubits:
-                        new_qubits.add(q)
+                    new_qubits.update(flat_op.qubits)
 
                 if not new_qubits.issubset(opt.clear_qubits):
                     raise ValueError(
