@@ -198,15 +198,15 @@ class QasmParser:
         self.parsedQasm: Qasm | None = None
         self.qubits: dict[str, ops.Qid] = {}
         self.functions = {
-            'sin': np.sin,
-            'cos': np.cos,
-            'tan': np.tan,
-            'exp': np.exp,
-            'ln': np.log,
-            'sqrt': np.sqrt,
-            'acos': np.arccos,
-            'atan': np.arctan,
-            'asin': np.arcsin,
+            'sin': sympy.sin,
+            'cos': sympy.cos,
+            'tan': sympy.tan,
+            'exp': sympy.exp,
+            'ln': sympy.log,
+            'sqrt': sympy.sqrt,
+            'acos': sympy.acos,
+            'atan': sympy.atan,
+            'asin': sympy.asin,
         }
 
         self.binary_operators = {
@@ -937,9 +937,10 @@ class QasmParser:
     def p_expr_identifier(self, p):
         """expr : ID"""
         if not self.in_custom_gate_scope:
-            raise QasmException(f"Parameter '{p[1]}' in line {p.lineno(1)} not supported")
-        if p[1] not in self.custom_gate_scoped_params:
-            raise QasmException(f"Undefined parameter '{p[1]}' in line {p.lineno(1)}'")
+            if p[1] not in self.cregs:
+                raise QasmException(f"Undefined Parameter '{p[1]}' in line {p.lineno(1)}")
+        elif p[1] not in self.custom_gate_scoped_params:
+            raise QasmException(f"Undefined parameter '{p[1]}' in line {p.lineno(1)}")
         p[0] = sympy.Symbol(p[1])
 
     def p_expr_parens(self, p):
@@ -952,6 +953,8 @@ class QasmParser:
         if func not in self.functions.keys():
             raise QasmException(f"Function not recognized: '{func}' at line {p.lineno(1)}")
         p[0] = self.functions[func](p[3])
+        if isinstance(p[0], sympy.core.numbers.Number):
+            p[0] = float(p[0])
 
     def p_expr_unary(self, p):
         """expr : '-' expr

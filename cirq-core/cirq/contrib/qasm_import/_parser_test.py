@@ -506,6 +506,44 @@ def test_expressions(expr: str) -> None:
 
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
+@pytest.mark.parametrize(
+    'expr',
+    [
+        '{}',
+        '3 * {}',
+        'cos({})',
+    ],
+)
+def test_expressions_with_identifier(expr: str) -> None:
+    symbol_name = 'some_param'
+    expr = expr.format(symbol_name)
+    qasm = f"""OPENQASM 2.0;
+     qreg q[1];
+     creg {symbol_name}[64];
+     U({expr}, 2 * pi, pi / 2.0) q[0];
+"""
+
+    parser = QasmParser()
+
+    q0 = cirq.NamedQubit('q_0')
+
+    ns = {symbol_name:sympy.Symbol(symbol_name)}
+    expected_circuit = Circuit()
+    expected_circuit.append(QasmUGate(sympy.sympify(expr, locals=ns) / np.pi, 2.0, 1 / 2.0)(q0))
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+    assert not parsed_qasm.qelib1Include
+
+    parsed_qasm_circuit_resolved = cirq.resolve_parameters(parsed_qasm.circuit, {symbol_name: 10})
+    expected_circuit_resolved = cirq.resolve_parameters(parsed_qasm.circuit, {symbol_name: 10})
+
+    ct.assert_allclose_up_to_global_phase(
+        cirq.unitary(parsed_qasm_circuit_resolved), cirq.unitary(expected_circuit_resolved), atol=1e-10
+    )
+    assert parsed_qasm.qregs == {'q': 1}
+
 
 def test_unknown_function() -> None:
     qasm = """OPENQASM 2.0;
@@ -2190,7 +2228,7 @@ def test_top_level_param_error() -> None:
     """
     _test_parse_exception(
         qasm,
-        cirq_err="Parameter 'p' in line 4 not supported",
+        cirq_err="Undefined Parameter 'p' in line 4",
         qiskit_err="4,8: 'p' is not a parameter",
     )
 
