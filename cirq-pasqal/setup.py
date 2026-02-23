@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pathlib
 import runpy
 
 from setuptools import find_packages, setup
@@ -25,8 +26,7 @@ name = 'cirq-pasqal'
 description = 'A Cirq package to simulate and connect to Pasqal quantum computers'
 
 # README file as long_description.
-with open('README.md', encoding='utf-8') as file:
-    long_description = file.read()
+long_description = pathlib.Path('README.md').read_text(encoding='utf-8')
 
 # Read in requirements
 with open('requirements.txt', encoding='utf-8') as file:
