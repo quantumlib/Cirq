@@ -114,7 +114,7 @@ def find_markdown_code_snippets(content: str) -> list[tuple[str, int]]:
 
 def find_markdown_test_overrides(content: str) -> list[tuple[Pattern, str]]:
     test_sub_text = find_code_snippets("<!---test_substitution\n(.*?)--->", content)
-    substitutions = [line.split('\n')[:-1] for line, _ in test_sub_text]
+    substitutions = [line.rstrip().split('\n', maxsplit=1) for line, _ in test_sub_text]
     return [(re.compile(match), sub) for match, sub in substitutions]
 
 
