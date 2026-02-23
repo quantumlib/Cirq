@@ -27,6 +27,7 @@
 from __future__ import annotations
 
 import os
+import pathlib
 import re
 import shutil
 import subprocess
@@ -214,22 +215,21 @@ def test_all_notebooks_against_released_cirq(partition, notebook_path, cloned_en
 @pytest.mark.parametrize("notebook_path", NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES)
 def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path) -> None:
     # utf-8 is important for Windows testing, otherwise characters like ┌──┐ fail on cp1252
-    with open(notebook_path, encoding="utf-8") as notebook:
-        content = notebook.read()
-        mandatory_matches = [
-            r"!pip install --upgrade --quiet cirq(-google)?~=1.0.dev",
-            (
-                r"Note: this notebook relies on unreleased Cirq features\. "
-                r"If you want to try these features, make sure you install cirq(-google)? via "
-                r"`pip install --upgrade cirq(-google)?~=1.0.dev`\."
-            ),
-        ]
+    content = pathlib.Path(notebook_path).read_text(encoding="utf-8")
+    mandatory_matches = [
+        r"!pip install --upgrade --quiet cirq(-google)?~=1.0.dev",
+        (
+            r"Note: this notebook relies on unreleased Cirq features\. "
+            r"If you want to try these features, make sure you install cirq(-google)? via "
+            r"`pip install --upgrade cirq(-google)?~=1.0.dev`\."
+        ),
+    ]
 
-        for m in mandatory_matches:
-            assert re.search(m, content), (
-                f"{notebook_path} is marked as NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES, "
-                f"however it contains no line matching:\n{m}"
-            )
+    for m in mandatory_matches:
+        assert re.search(m, content), (
+            f"{notebook_path} is marked as NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES, "
+            f"however it contains no line matching:\n{m}"
+        )
 
 
 def test_skip_notebooks_has_valid_patterns() -> None:

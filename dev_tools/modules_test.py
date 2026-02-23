@@ -179,8 +179,7 @@ def test_replace_version_errors() -> None:
 
 @chdir(target_dir=None)
 def test_error() -> None:
-    with open("setup.py", mode='w') as f:
-        f.write('name="test"')
+    Path("setup.py").write_text('name="test"')
 
     with pytest.raises(AssertionError, match=r"Invalid setup.py - setup\(\) was not called.*"):
         modules.main(["list", "--mode", "folder", "--include-parent"])
