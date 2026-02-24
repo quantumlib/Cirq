@@ -81,8 +81,8 @@ import cirq_google
 # A simple sample circuit
 qubit = cirq.GridQubit(5, 2)
 circuit = cirq.Circuit(
-    cirq.X(qubit)**0.5,                 # Square root of NOT.
-    cirq.measure(qubit, key='result')   # Measurement.
+    cirq.X(qubit) ** 0.5,  # Square root of NOT.
+    cirq.measure(qubit, key='result'),  # Measurement.
 )
 
 # Create an Engine object.
@@ -182,16 +182,18 @@ engine = cirq_google.Engine(project_id=PROJECT_ID)
 # Create an example circuit
 qubit = cirq.GridQubit(5, 2)
 circuit = cirq.Circuit(
-    cirq.X(qubit)**sympy.Symbol('t'),
-    cirq.measure(qubit, key='result')
+    cirq.X(qubit) ** sympy.Symbol('t'),
+    cirq.measure(qubit, key='result'),
 )
 param_sweep = cirq.Linspace('t', start=0, stop=1, length=10)
 
 # Run the circuit
-job = engine.run_sweep(program=circuit,
-                  params=param_sweep,
-                  repetitions=1000,
-                  processor_id=PROCESSOR_ID)
+job = engine.run_sweep(
+    program=circuit,
+    params=param_sweep,
+    repetitions=1000,
+    processor_id=PROCESSOR_ID,
+)
 
 # Save the program and job id for later
 program_id = job.program_id
@@ -209,7 +211,6 @@ historical_job = engine.get_program(program_id=program_id).get_job(job_id=job_id
 
 # Retrieve the results
 historical_results = historical_job.results()
-
 ```
 
 If you did not save the ids, you can still find them from your
@@ -234,10 +235,12 @@ from cirq_google.cloud import quantum
 engine = cirq_google.Engine(project_id=PROJECT_ID)
 
 # List all the jobs on the project since 2020/09/20 that succeeded:
-jobs = engine.list_jobs(created_after=datetime.date(2020,9,20),
-                        execution_states=[quantum.ExecutionStatus.State.SUCCESS])
+jobs = engine.list_jobs(
+    created_after=datetime.date(2020, 9, 20),
+    execution_states=[quantum.ExecutionStatus.State.SUCCESS],
+)
 for j in jobs:
-   print(j.job_id, j.status(), j.create_time())
+    print(j.job_id, j.status(), j.create_time())
 ```
 
 ### Listing programs
@@ -262,13 +265,13 @@ engine = cirq_google.Engine(project_id=PROJECT_ID)
 # the "variational" label with any value and the "experiment" label
 # with value "vqe001":
 programs = engine.list_programs(
-                created_after=datetime.date(2020,9,20),
-                has_labels={"variational":"*", "experiment":"vqe001"}
-           )
+    created_after=datetime.date(2020, 9, 20),
+    has_labels={"variational": "*", "experiment": "vqe001"},
+)
 for p in programs:
-   print(p.program_id, p.create_time())
-   # the same filtering parametrization is available as in engine.list_jobs()
-   # for example here we list the jobs under the programs that failed
-   for j in p.list_jobs(execution_states=[quantum.ExecutionStatus.State.FAILURE]):
-     print(j.job_id, j.status())
+    print(p.program_id, p.create_time())
+    # the same filtering parametrization is available as in engine.list_jobs()
+    # for example here we list the jobs under the programs that failed
+    for j in p.list_jobs(execution_states=[quantum.ExecutionStatus.State.FAILURE]):
+        print(j.job_id, j.status())
 ```

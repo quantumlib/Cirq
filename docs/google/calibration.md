@@ -58,13 +58,13 @@ calibration_list = processor.list_calibrations(START_SECONDS, END_SECONDS)
 
 # The calibration can be iterated through using something like the following.
 for metric_name in latest_calibration:
-  print(metric_name)
-  print('------')
-  for qubit_or_pair in latest_calibration[metric_name]:
-     # Note that although the value is often singular,
-     # the metric_value is of the type list and can have multiple values.
-     metric_value = latest_calibration[metric_name][qubit_or_pair]
-     print(f'{qubit_or_pair} = {metric_value}')
+    print(metric_name)
+    print('------')
+    for qubit_or_pair in latest_calibration[metric_name]:
+        # Note that although the value is often singular,
+        # the metric_value is of the type list and can have multiple values.
+        metric_value = latest_calibration[metric_name][qubit_or_pair]
+        print(f'{qubit_or_pair} = {metric_value}')
 ```
 
 Calibration metrics will also soon be available from the
