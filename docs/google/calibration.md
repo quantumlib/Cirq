@@ -21,12 +21,11 @@ metrics from a previous run.  Calibration metrics can also be retrieved
 programmatically using an engine instance or with a job.
 
 <!---test_substitution
-engine = cg.Engine(.*)
-engine = mock.MagicMock()
---->
-<!---test_substitution
-cg.EngineJob(.*)
-mock.MagicMock()
+engine = cg.Engine\(project_id=.*
+\g<0>
+engine = mock.create_autospec(cirq_google.Engine, instance=True)
+mock_engine_processor = mock.create_autospec(cirq_google.EngineProcessor, instance=True)
+engine.configure_mock(**{"get_processor.return_value": mock_engine_processor})
 --->
 <!---test_substitution
 PROJECT_ID|PROGRAM_ID|PROCESSOR_ID|CALIBRATION_SECONDS|START_SECONDS|END_SECONDS|JOB_ID
@@ -48,13 +47,14 @@ latest_calibration = processor.get_current_calibration()
 previous_calibration = processor.get_calibration(CALIBRATION_SECONDS)
 
 # If you would like to find a calibration from a time-frame, use this.
-calibration_list = processor.list_calibration(START_SECONDS, END_SECONDS)
+calibration_list = processor.list_calibrations(START_SECONDS, END_SECONDS)
 
+## TODO: #7910 - fix or delete this block
 # If you know the job-id, you can retrieve the calibration that the job used.
-job = engine.get_job("projects/" + PROJECT_ID
-                   + "/programs/"+ PROGRAM_ID
-                   + "/jobs/" + JOB_ID)
-job_calibration = cg.EngineJob(PROJECT_ID, PROGRAM_ID, JOB_ID, cg.engine.engine.EngineContext()).get_calibration()
+# job = engine.get_job("projects/" + PROJECT_ID
+#                    + "/programs/"+ PROGRAM_ID
+#                    + "/jobs/" + JOB_ID)
+# job_calibration = cg.EngineJob(PROJECT_ID, PROGRAM_ID, JOB_ID, cg.engine.engine.EngineContext()).get_calibration()
 
 # The calibration can be iterated through using something like the following.
 for metric_name in latest_calibration:
