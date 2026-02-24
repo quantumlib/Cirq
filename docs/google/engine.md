@@ -25,7 +25,7 @@ From a colab, you can execute:
 
 <!---test_substitution
 from google\.colab import auth
-auth = MagicMock()
+auth = mock.MagicMock()
 --->
 ```python
 from google.colab import auth
@@ -54,7 +54,7 @@ print()
 --->
 <!---test_substitution
 engine = cirq_google.Engine(.*)
-engine = MagicMock()
+engine = mock.MagicMock()
 --->
 <!---test_substitution
 cg.Engine(.*)
@@ -162,7 +162,7 @@ See below for an example:
 
 <!---test_substitution
 engine = cg.Engine(.*)
-engine = MagicMock()
+engine = mock.MagicMock()
 --->
 <!---test_substitution
 GATE_SET
@@ -218,7 +218,7 @@ You can search in all the jobs within your project using filtering criteria on c
 
 <!---test_substitution
 datetime
-MagicMock()
+mock.MagicMock()
 --->
 <!---test_substitution
 quantum\.ExecutionStatus

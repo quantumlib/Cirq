@@ -22,11 +22,11 @@ programmatically using an engine instance or with a job.
 
 <!---test_substitution
 engine = cg.Engine(.*)
-engine = MagicMock()
+engine = mock.MagicMock()
 --->
 <!---test_substitution
 cg.EngineJob(.*)
-MagicMock()
+mock.MagicMock()
 --->
 <!---test_substitution
 PROJECT_ID|PROGRAM_ID|PROCESSOR_ID|CALIBRATION_SECONDS|START_SECONDS|END_SECONDS|JOB_ID

@@ -42,7 +42,7 @@ PROJECT_ID|PROCESSOR_ID
 --->
 <!---test_substitution
 engine = cg.Engine(.*)
-engine = MagicMock()
+engine = mock.MagicMock()
 --->
 ```python
 import cirq_google as cg
@@ -113,7 +113,7 @@ PROJECT_ID|PROCESSOR_ID
 --->
 <!---test_substitution
 engine = cg.Engine(.*)
-engine = MagicMock()
+engine = mock.MagicMock()
 --->
 ```python
 import cirq

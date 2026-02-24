@@ -257,7 +257,7 @@ def assert_code_snippets_run_in_sequence(snippets: list[tuple[str, int]], assume
     if assume_import:
         exec('import cirq', state)
         exec('import cirq_google', state)
-        exec('from unittest.mock import MagicMock', state)
+        exec('import unittest.mock as mock', state)
         exec('import sympy', state)
 
     for content, line_number in snippets:
