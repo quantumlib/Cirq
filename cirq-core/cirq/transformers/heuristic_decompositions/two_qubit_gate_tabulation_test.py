@@ -105,6 +105,10 @@ def test_sycamore_gate_tabulation_repr() -> None:
 
 
 def test_sycamore_gate_tabulation_eq() -> None:
-    assert sycamore_tabulation == sycamore_tabulation
+    rng = value.parse_random_state(11)
+    sycamore_tabulation_copy = two_qubit_gate_product_tabulation(
+        cirq.unitary(cirq.FSimGate(np.pi / 2, np.pi / 6)), 0.2, random_state=rng
+    )
+    assert sycamore_tabulation == sycamore_tabulation_copy
     assert sycamore_tabulation != sqrt_iswap_tabulation
     assert sycamore_tabulation != 1

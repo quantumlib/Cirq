@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pathlib
 import runpy
 
 from setuptools import find_packages, setup
@@ -28,13 +29,13 @@ description = (
 )
 
 # README file as long_description.
-long_description = open('README.md', encoding='utf-8').read()
+long_description = pathlib.Path('README.md').read_text(encoding='utf-8')
 
 # Read in requirements
-requirements = open('requirements.txt').readlines()
-requirements = [r.strip() for r in requirements]
-contrib_requirements = open('cirq/contrib/requirements.txt').readlines()
-contrib_requirements = [r.strip() for r in contrib_requirements]
+with open('requirements.txt', encoding='utf-8') as file:
+    requirements = [r.strip() for r in file]
+with open('cirq/contrib/requirements.txt', encoding='utf-8') as file:
+    contrib_requirements = [r.strip() for r in file]
 
 
 cirq_packages = ['cirq'] + [

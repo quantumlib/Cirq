@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import itertools
 import os
+import pathlib
 import time
 from collections import defaultdict
 from collections.abc import Iterator, Sequence
@@ -3532,7 +3533,7 @@ def test_push_frontier_random_circuit() -> None:
         for q in set(early_frontier).difference(update_qubits):
             assert early_frontier[q] == orig_early_frontier[q]
         for q, f in late_frontier.items():
-            assert orig_early_frontier.get(q, 0) <= late_frontier[q] + n_new_moments
+            assert orig_early_frontier.get(q, 0) <= f + n_new_moments
             if f != len(orig_moments):
                 assert orig_moments[f] == circuit[f + n_new_moments]
         for q in set(update_qubits).intersection(early_frontier):
@@ -3670,8 +3671,7 @@ def test_save_qasm(tmpdir, circuit_cls) -> None:
     circuit = circuit_cls(cirq.X(q0))
 
     circuit.save_qasm(file_path)
-    with open(file_path, 'r') as f:
-        file_content = f.read()
+    file_content = pathlib.Path(file_path).read_text()
     assert file_content == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 2.0;

@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import os
+import pathlib
 import re
 
 import numpy as np
@@ -265,8 +266,7 @@ def test_save_to_file(tmpdir) -> None:
     (q0,) = _make_qubits(1)
     output = cirq.QasmOutput((), (q0,))
     output.save(file_path)
-    with open(file_path, 'r') as f:
-        file_content = f.read()
+    file_content = pathlib.Path(file_path).read_text()
     assert file_content == """OPENQASM 2.0;
 include "qelib1.inc";
 
