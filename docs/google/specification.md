@@ -37,18 +37,18 @@ Example code to print out the gate durations for every gate supported by the
 device is shown below:
 
 <!---test_substitution
-PROJECT_ID|PROCESSOR_ID
-'placeholder'
---->
-<!---test_substitution
-engine = cg.Engine(.*)
-engine = mock.MagicMock()
+engine = cirq_google.Engine\(project_id=.*
+PROJECT_ID = "placeholder"
+PROCESSOR_ID = "willow_pink"
+\g<0>
+from cirq_google.engine import virtual_engine_factory as factory
+engine = factory.create_noiseless_virtual_engine_from_latest_templates()
 --->
 ```python
-import cirq_google as cg
+import cirq_google
 
 # Create an Engine object to use.
-engine = cg.Engine(project_id=PROJECT_ID)
+engine = cirq_google.Engine(project_id=PROJECT_ID)
 
 # Replace the processor id to get the device specification with that id.
 spec = engine.get_processor(PROCESSOR_ID).get_device_specification()
@@ -107,25 +107,18 @@ verify a circuit.
 The following example illustrates retrieving the device specification live
 from the engine and then using it to validate a circuit.
 
-<!---test_substitution
-PROJECT_ID|PROCESSOR_ID
-'placeholder'
---->
-<!---test_substitution
-engine = cg.Engine(.*)
-engine = mock.MagicMock()
---->
 ```python
 import cirq
-import cirq_google as cg
+import cirq_google
 
 # Create an Engine object to use.
-engine = cg.Engine(project_id=PROJECT_ID, proto_version=cirq_google.ProtoVersion.V2)
+engine = cirq_google.Engine(project_id=PROJECT_ID)
 
 # Replace the processor id to get the device with that id.
 device = engine.get_processor(PROCESSOR_ID).get_device()
 
-q0, q1 = cirq.LineQubit.range(2)
+q0 = cirq.GridQubit(6, 6)
+q1 = cirq.GridQubit(6, 7)
 circuit = cirq.Circuit(cirq.CZ(q0, q1))
 
 # Raises a ValueError, since CZ is not a supported gate.
