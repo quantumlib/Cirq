@@ -848,9 +848,6 @@ def test_postselection_symmetry_validation_and_logic() -> None:
     )
     with pytest.raises(ValueError, match="are not commuting with all Pauli"):
         measure_pauli_strings([params_non_commute], sampler, 10, 10, 0, rng)
-        measure_pauli_strings(
-            [params_non_commute], cirq.Simulator(), 300, 300, 300, np.random.default_rng()
-        )
 
 
 @pytest.mark.parametrize("use_sweep", [False, True])
