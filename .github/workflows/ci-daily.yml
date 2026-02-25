@@ -4,6 +4,10 @@ on:
   schedule:
     # Checks out main by default.
     - cron: '0 0 * * *'
+  # FIXME - remove this and other testing changes before PR submission
+  pull_request:
+    branches:
+      - main
 
   # Allow manual invocation.
   workflow_dispatch:
@@ -17,7 +21,7 @@ permissions: read-all
 
 jobs:
   pytest:
-    if: github.repository_owner == 'quantumlib'
+    if: github.repository_owner == 'quantumlib' && false
     name: Pytest Ubuntu
     strategy:
       matrix:
@@ -43,7 +47,7 @@ jobs:
       - name: Pytest check
         run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --enable-slow-tests
   windows:
-    if: github.repository_owner == 'quantumlib'
+    if: github.repository_owner == 'quantumlib' && false
     name: Pytest Windows
     strategy:
       matrix:
@@ -73,7 +77,8 @@ jobs:
     name: Pytest MacOS
     strategy:
       matrix:
-        python-version: ['3.11', '3.12', '3.13', '3.14']
+        # python-version: ['3.11', '3.12', '3.13', '3.14']
+        python-version: ['3.14']
     runs-on: macos-15
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -92,5 +97,7 @@ jobs:
               -r dev_tools/requirements/deps/pylint.txt \
               -r dev_tools/requirements/deps/pytest.txt \
               -r dev_tools/requirements/deps/notebook.txt
+          # check if installation works
+          pip install qsimcirq
       - name: Pytest check
         run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --enable-slow-tests
