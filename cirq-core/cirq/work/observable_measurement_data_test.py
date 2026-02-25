@@ -334,7 +334,7 @@ def test_bitstring_accumulator_stats():
         np.testing.assert_allclose(np.sqrt(var / 4 / (4 - 1)), bsa.stderr(setting))
 
     bad_obs = [cirq.X(a) * cirq.X(b)]
-    bad_setting = next(iter(cw.observables_to_settings(bad_obs, qubits=[a, b])))
+    bad_setting = next(cw.observables_to_settings(bad_obs, qubits=[a, b]))
     with pytest.raises(ValueError):
         bsa.mean(bad_setting)
 

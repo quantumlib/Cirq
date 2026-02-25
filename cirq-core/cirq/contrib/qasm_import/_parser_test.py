@@ -2432,7 +2432,7 @@ def test_all_qelib_gates_unitary_equivalence(
         gate = cirq_gate
     expected = Circuit()
     expected.append(gate.on(*qubits))
-    imported = next(iter(parsed_qasm.circuit.all_operations())).gate
+    imported = next(parsed_qasm.circuit.all_operations()).gate
     U_native = cirq.unitary(gate)
     U_import = cirq.unitary(imported)
     assert np.allclose(U_import, U_native, atol=1e-8)

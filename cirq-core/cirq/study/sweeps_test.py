@@ -215,20 +215,20 @@ def test_slice_sweep() -> None:
     sweep = cirq.Points('a', [1, 2, 3]) * cirq.Points('b', [4, 5, 6, 7])
 
     first_two = sweep[:2]
-    first_two_iter = iter(first_two.param_tuples())
+    first_two_iter = first_two.param_tuples()
     assert next(first_two_iter) == (('a', 1), ('b', 4))
     assert next(first_two_iter) == (('a', 1), ('b', 5))
     assert len(list(first_two)) == 2
 
     middle_three = sweep[5:8]
-    middle_three_iter = iter(middle_three.param_tuples())
+    middle_three_iter = middle_three.param_tuples()
     assert next(middle_three_iter) == (('a', 2), ('b', 5))
     assert next(middle_three_iter) == (('a', 2), ('b', 6))
     assert next(middle_three_iter) == (('a', 2), ('b', 7))
     assert len(list(middle_three.param_tuples())) == 3
 
     odd_elems = sweep[6:1:-2]
-    odd_elems_iter = iter(odd_elems.param_tuples())
+    odd_elems_iter = odd_elems.param_tuples()
     assert next(odd_elems_iter) == (('a', 2), ('b', 6))
     assert next(odd_elems_iter) == (('a', 2), ('b', 4))
     assert next(odd_elems_iter) == (('a', 1), ('b', 6))
@@ -238,7 +238,7 @@ def test_slice_sweep() -> None:
     assert list(sweep) == list(reversed(list(sweep_reversed)))
 
     single_sweep = sweep[5:6]
-    assert next(iter(single_sweep.param_tuples())) == (('a', 2), ('b', 5))
+    assert next(single_sweep.param_tuples()) == (('a', 2), ('b', 5))
     assert len(list(single_sweep.param_tuples())) == 1
 
 

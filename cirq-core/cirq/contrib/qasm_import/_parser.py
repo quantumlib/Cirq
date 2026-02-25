@@ -1125,11 +1125,7 @@ class QasmParser:
             for i, key in enumerate(carg):
                 v = (val >> i) & 1
                 conditions.append(sympy.Eq(sympy.Symbol(key), v))
-        p[0] = [
-            ops.ClassicallyControlledOperation(
-                conditions=conditions, sub_operation=next(iter(p[5]))
-            )
-        ]
+        p[0] = [ops.ClassicallyControlledOperation(conditions=conditions, sub_operation=next(p[5]))]
 
     def p_gate_params_multiple(self, p):
         """gate_params : ID ',' gate_params"""
