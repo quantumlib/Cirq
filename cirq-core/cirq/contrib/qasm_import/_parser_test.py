@@ -1935,6 +1935,17 @@ def test_single_qubit_gates(qasm_gate: str, cirq_gate: cirq.Gate) -> None:
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
+def test_non_bit_type_in_measurement() -> None:
+    qasm = """OPENQASM 3.0;
+     qubit q;
+     angle a;
+     a = measure q;
+    """
+    parser = QasmParser()
+    with pytest.raises(QasmException, match=f"Illegal use of `angle` type register for measurement results at line 4"):
+        parser.parse(qasm)
+
+
 def test_openqasm_3_0_qubits() -> None:
     qasm = """OPENQASM 3.0;
      include "stdgates.inc";
@@ -1991,7 +2002,7 @@ def test_openqasm_2_0_qubit_unsupported() -> None:
     """
     _test_parse_exception(
         qasm,
-        cirq_err="Version error, use of an OPENQASM3.0 register on line 2",
+        cirq_err="Version mismatch, an OpenQASM 3.0 register encoundered on line 2 while parsing OpenQASM 2.0",
         qiskit_err="<input>:2,5: 'qubit' is not defined in this scope",
     )
 
@@ -2003,7 +2014,7 @@ def test_openqasm_2_0_bit_unsupported() -> None:
     """
     _test_parse_exception(
         qasm,
-        cirq_err="Version error, use of an OPENQASM3.0 register on line 3",
+        cirq_err="Version mismatch, an OpenQASM 3.0 register encoundered on line 3 while parsing OpenQASM 2.0",
         qiskit_err="<input>:3,5: 'bit' is not defined in this scope",
     )
 
@@ -2015,7 +2026,7 @@ def test_openqasm_2_0_scalar_bit_unsupported() -> None:
     """
     _test_parse_exception(
         qasm,
-        cirq_err="Version error, use of an OPENQASM3.0 register on line 3",
+        cirq_err="Version mismatch, an OpenQASM 3.0 register encoundered on line 3 while parsing OpenQASM 2.0",
         qiskit_err="<input>:3,5: 'bit' is not defined in this scope",
     )
 

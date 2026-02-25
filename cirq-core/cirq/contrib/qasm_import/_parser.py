@@ -199,6 +199,17 @@ class QasmParser:
         self.parsedQasm: Qasm | None = None
         self.qubits: dict[str, ops.Qid] = {}
         self.functions = {
+            'sin': np.sin,
+            'cos': np.cos,
+            'tan': np.tan,
+            'exp': np.exp,
+            'ln': np.log,
+            'sqrt': np.sqrt,
+            'acos': np.acos,
+            'atan': np.atan,
+            'asin': np.asin,
+        }
+        self.sympy_functions = {
             'sin': sympy.sin,
             'cos': sympy.cos,
             'tan': sympy.tan,
@@ -902,7 +913,9 @@ class QasmParser:
             name, length = p[5], p[3]
         self._validate_reg(p, name, length)
         if self.version != "3.0":
-            raise QasmException(f"Version error, use of an OPENQASM3.0 register on line {p.lineno(1)}")
+            raise QasmException(
+                f"Version mismatch, an OpenQASM 3.0 register encoundered on line {p.lineno(2)} while parsing OpenQASM 2.0"
+            )
         if p[1] == "qubit":
             self.qregs[name] = length
         else:
@@ -968,9 +981,11 @@ class QasmParser:
         func = p[1]
         if func not in self.functions.keys():
             raise QasmException(f"Function not recognized: '{func}' at line {p.lineno(1)}")
-        p[0] = self.functions[func](p[3])
-        if isinstance(p[0], sympy.core.numbers.Number):
-            p[0] = float(p[0])
+        functions = self.functions
+        if isinstance(p[3], sympy.Expr):
+            # Use the sympy functions only when necessary for performance
+            functions = self.sympy_functions
+        p[0] = functions[func](p[3])
 
     def p_expr_unary(self, p):
         """expr : '-' expr
@@ -1101,7 +1116,7 @@ class QasmParser:
 
         if type_ != 'bit':
             raise QasmException(
-                f"Illegal, cannot assign measurement to non bit type register at line {p.lineno(1)}"
+                f"Illegal use of `{type_}` type register for measurement results at line {p.lineno(2)}"
             )
         if len(qreg) != len(creg):
             raise QasmException(
