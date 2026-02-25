@@ -207,7 +207,7 @@ def test_apply_unitary_args_tensor_manipulation() -> None:
             # Flatten last two axes and add another fake index to the end of
             # target_tensor so np.matmul treats it like an array of two-qubit
             # column vectors.
-            new_shape = args.target_tensor.shape[:-2] + (4, 1)
+            new_shape = (*args.target_tensor.shape[:-2], 4, 1)
             ret = np.matmul(u, args.target_tensor.reshape(new_shape)).reshape(
                 args.target_tensor.shape
             )

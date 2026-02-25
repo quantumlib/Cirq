@@ -31,7 +31,7 @@ from cirq_google.engine.engine_job import EngineJob
     [('run_name', 'device_config_alias', ''), ('', '', '')],
 )
 def test_run_circuit(circuit, run_name, device_config_name, snapshot_id):
-    processor = mock.create_autospec(AbstractProcessor)
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
     sampler = cg.ProcessorSampler(
         processor=processor, run_name=run_name, device_config_name=device_config_name
     )
@@ -52,7 +52,7 @@ def test_run_circuit(circuit, run_name, device_config_name, snapshot_id):
     [('run_name', 'device_config_alias', ''), ('', '', ''), ('', 'config_name', 'snapshot_id')],
 )
 def test_run_batch(run_name, device_config_name, snapshot_id):
-    processor = mock.create_autospec(AbstractProcessor)
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
     sampler = cg.ProcessorSampler(
         processor=processor,
         run_name=run_name,
@@ -95,7 +95,7 @@ def test_run_batch(run_name, device_config_name, snapshot_id):
     [('run_name', 'device_config_alias', ''), ('', '', '')],
 )
 def test_run_batch_identical_repetitions(run_name, device_config_name, snapshot_id):
-    processor = mock.create_autospec(AbstractProcessor)
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
     sampler = cg.ProcessorSampler(
         processor=processor, run_name=run_name, device_config_name=device_config_name
     )
@@ -131,7 +131,7 @@ def test_run_batch_identical_repetitions(run_name, device_config_name, snapshot_
 
 
 def test_run_batch_bad_number_of_repetitions():
-    processor = mock.create_autospec(AbstractProcessor)
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
     sampler = cg.ProcessorSampler(processor=processor)
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a))
@@ -145,7 +145,7 @@ def test_run_batch_bad_number_of_repetitions():
 
 
 def test_run_batch_differing_repetitions():
-    processor = mock.create_autospec(AbstractProcessor)
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
     run_name = "RUN_NAME"
     device_config_name = "DEVICE_CONFIG_NAME"
     sampler = cg.ProcessorSampler(
@@ -175,7 +175,7 @@ def test_run_batch_differing_repetitions():
 
 @duet.sync
 async def test_sampler_with_full_job_queue_blocks():
-    processor = mock.create_autospec(AbstractProcessor)
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
     sampler = cg.ProcessorSampler(processor=processor, max_concurrent_jobs=2)
 
     async def wait_forever(**kwargs):
@@ -195,7 +195,7 @@ async def test_sampler_with_full_job_queue_blocks():
 
 @duet.sync
 async def test_sampler_with_job_queue_availability_runs_all():
-    processor = mock.create_autospec(AbstractProcessor)
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
     sampler = cg.ProcessorSampler(processor=processor, max_concurrent_jobs=3)
 
     async def wait_forever(**kwargs):
@@ -215,7 +215,7 @@ async def test_sampler_with_job_queue_availability_runs_all():
 
 @duet.sync
 async def test_sampler_with_full_job_queue_unblocks_when_available():
-    processor = mock.create_autospec(AbstractProcessor)
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
     sampler = cg.ProcessorSampler(processor=processor, max_concurrent_jobs=2)
 
     job = mock.AsyncMock(EngineJob)
@@ -230,7 +230,7 @@ async def test_sampler_with_full_job_queue_unblocks_when_available():
 
 
 def test_processor_sampler_processor_property():
-    processor = mock.create_autospec(AbstractProcessor)
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
     sampler = cg.ProcessorSampler(processor=processor)
     assert sampler.processor is processor
 
@@ -249,7 +249,7 @@ def test_with_local_processor():
     'run_name, device_config_name', [('run_name', ''), ('', 'device_config_name')]
 )
 def test_processor_sampler_with_invalid_configuration_throws(run_name, device_config_name):
-    processor = mock.create_autospec(AbstractProcessor)
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
     with pytest.raises(
         ValueError, match='Cannot specify only one of `run_name` and `device_config_name`'
     ):

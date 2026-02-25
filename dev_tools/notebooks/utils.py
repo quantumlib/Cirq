@@ -32,8 +32,8 @@ def list_all_notebooks() -> list[str]:
     try:
         output = subprocess.check_output(['git', 'ls-files', '*.ipynb'], cwd=REPO_ROOT, text=True)
         return [str(REPO_ROOT.joinpath(f)) for f in output.splitlines()]
-    except subprocess.CalledProcessError as ex:
-        warning("It seems that tests are not running in a git repo, skipping notebook tests", ex)
+    except subprocess.CalledProcessError:
+        warning("It seems that tests are not running in a git repo, skipping notebook tests")
         return []
 
 
@@ -50,7 +50,7 @@ def filter_notebooks(all_notebooks: list[str], skip_list: list[str]) -> list[str
         the `skip_list` glob patterns.
     """
 
-    skipped_notebooks = set(str(f) for g in skip_list for f in REPO_ROOT.glob(g))
+    skipped_notebooks = {str(f) for g in skip_list for f in REPO_ROOT.glob(g)}
 
     # sorted is important otherwise pytest-xdist will complain that
     # the workers have different parametrization:
@@ -112,7 +112,7 @@ def rewrite_notebook(notebook_path: str) -> str:
 
     assert len(patterns) == len(used_patterns), (
         'Not all patterns where used. Patterns not used: '
-        f'{set(x for x, _ in patterns) - used_patterns}'
+        f'{ {x for x, _ in patterns} - used_patterns}'
     )
 
     with tempfile.NamedTemporaryFile(mode='w', suffix='-rewrite.ipynb', delete=False) as new_file:

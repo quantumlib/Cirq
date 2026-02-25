@@ -33,7 +33,7 @@ def test_phase_insensitive_eigen_gates_consistent_protocols(eigen_gate_type) -> 
     cirq.testing.assert_eigengate_implements_consistent_protocols(eigen_gate_type)
 
 
-@pytest.mark.parametrize('eigen_gate_type', [cirq.CNotPowGate, cirq.HPowGate])
+@pytest.mark.parametrize('eigen_gate_type', [cirq.CNotPowGate, cirq.CYPowGate, cirq.HPowGate])
 def test_phase_sensitive_eigen_gates_consistent_protocols(eigen_gate_type) -> None:
     cirq.testing.assert_eigengate_implements_consistent_protocols(eigen_gate_type)
 
@@ -119,6 +119,10 @@ def test_z_init() -> None:
         (cirq.CZPowGate(exponent=0.5), cirq.CCZPowGate(exponent=0.5), cirq.S),
         (cirq.XPowGate(exponent=0.5), cirq.CXPowGate(exponent=0.5), cirq.XPowGate(exponent=0.5)),
         (cirq.CXPowGate(exponent=0.5), cirq.CCXPowGate(exponent=0.5), cirq.XPowGate(exponent=0.5)),
+        (cirq.Y, cirq.CY, cirq.Y),
+        (cirq.CY, cirq.CCY, cirq.Y),
+        (cirq.YPowGate(exponent=0.5), cirq.CYPowGate(exponent=0.5), cirq.YPowGate(exponent=0.5)),
+        (cirq.CYPowGate(exponent=0.5), cirq.CCYPowGate(exponent=0.5), cirq.YPowGate(exponent=0.5)),
     ],
 )
 def test_specialized_control(input_gate, specialized_output, base_gate) -> None:
@@ -157,18 +161,70 @@ def test_specialized_control(input_gate, specialized_output, base_gate) -> None:
     absorbed_values = ((1,),) * absorbed
     absorbed_shape = (2,) * absorbed
     assert input_gate.controlled(num_controls=1, control_qid_shape=(3,)) == cirq.ControlledGate(
-        base_gate, num_controls=1 + absorbed, control_qid_shape=(3,) + absorbed_shape
+        base_gate, num_controls=1 + absorbed, control_qid_shape=(3, *absorbed_shape)
     )
     assert input_gate.controlled(control_values=((0,), (1,), (0,))) == cirq.ControlledGate(
-        base_gate, num_controls=3 + absorbed, control_values=((0,), (1,), (0,)) + absorbed_values
+        base_gate, num_controls=3 + absorbed, control_values=((0,), (1,), (0,), *absorbed_values)
     )
     assert input_gate.controlled(control_qid_shape=(3, 2, 3)) == cirq.ControlledGate(
-        base_gate, num_controls=3 + absorbed, control_qid_shape=(3, 2, 3) + absorbed_shape
+        base_gate, num_controls=3 + absorbed, control_qid_shape=(3, 2, 3, *absorbed_shape)
     )
     assert input_gate.controlled(control_qid_shape=(3,)).controlled(
         control_qid_shape=(2,)
     ).controlled(control_qid_shape=(4,)) != cirq.ControlledGate(
-        base_gate, num_controls=3 + absorbed, control_qid_shape=(3, 2, 4) + absorbed_shape
+        base_gate, num_controls=3 + absorbed, control_qid_shape=(3, 2, 4, *absorbed_shape)
+    )
+
+
+def test_cy_init() -> None:
+    assert cirq.CYPowGate(exponent=0.5).exponent == 0.5
+    assert cirq.CYPowGate(exponent=5).exponent == 5
+    assert (cirq.CY**0.5).exponent == 0.5
+
+
+def test_cy_str() -> None:
+    assert str(cirq.CY) == 'CY'
+    assert str(cirq.CY**0.5) == 'CY**0.5'
+    assert str(cirq.CY**-0.25) == 'CY**-0.25'
+
+
+def test_cy_repr() -> None:
+    assert repr(cirq.CY) == 'cirq.CY'
+    assert repr(cirq.CY**0.5) == '(cirq.CY**0.5)'
+    assert repr(cirq.CY**-0.25) == '(cirq.CY**-0.25)'
+
+
+def test_cy_unitary() -> None:
+    assert np.allclose(
+        cirq.unitary(cirq.CY), np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1j], [0, 0, 1j, 0]])
+    )
+
+    assert np.allclose(
+        cirq.unitary(cirq.CY**0.5),
+        np.array(
+            [
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, 0.5 + 0.5j, -0.5 - 0.5j],
+                [0, 0, 0.5 + 0.5j, 0.5 + 0.5j],
+            ]
+        ),
+    )
+
+    assert np.allclose(
+        cirq.unitary(cirq.CY**0), np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+    )
+
+    assert np.allclose(
+        cirq.unitary(cirq.CY**-0.5),
+        np.array(
+            [
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, 0.5 - 0.5j, 0.5 - 0.5j],
+                [0, 0, -0.5 + 0.5j, 0.5 - 0.5j],
+            ]
+        ),
     )
 
 
@@ -177,8 +233,10 @@ def test_specialized_control(input_gate, specialized_output, base_gate) -> None:
     [
         (cirq.Z, cirq.CCZ),
         (cirq.X, cirq.CCX),
+        (cirq.Y, cirq.CCY),
         (cirq.ZPowGate(exponent=0.5), cirq.CCZPowGate(exponent=0.5)),
         (cirq.XPowGate(exponent=0.5), cirq.CCXPowGate(exponent=0.5)),
+        (cirq.YPowGate(exponent=0.5), cirq.CCYPowGate(exponent=0.5)),
     ],
 )
 def test_specialized_control_two_step(input_gate, specialized_output) -> None:
@@ -201,6 +259,8 @@ def test_specialized_control_two_step(input_gate, specialized_output) -> None:
         (cirq.CZPowGate(global_shift=-0.5, exponent=0.5), cirq.CCZPowGate),
         (cirq.XPowGate(global_shift=-0.5, exponent=0.5), cirq.CXPowGate),
         (cirq.CXPowGate(global_shift=-0.5, exponent=0.5), cirq.CCXPowGate),
+        (cirq.YPowGate(global_shift=-0.5, exponent=0.5), cirq.CYPowGate),
+        (cirq.CYPowGate(global_shift=-0.5, exponent=0.5), cirq.CCYPowGate),
     ],
 )
 def test_no_specialized_control_for_global_shift_non_zero(gate, specialized_type) -> None:
@@ -227,6 +287,21 @@ def test_no_specialized_control_for_global_shift_non_zero(gate, specialized_type
                 ]
             ),
         ),
+        (
+            cirq.YPowGate(global_shift=-0.5, exponent=1),
+            np.block(
+                [[np.eye(2), np.zeros((2, 2))], [np.zeros((2, 2)), np.array([[0, -1], [1, 0]])]]
+            ),
+        ),
+        (
+            cirq.CYPowGate(global_shift=-0.5, exponent=1),
+            np.block(
+                [
+                    [np.diag([1, 1, 1, 1, -1j, -1j]), np.zeros((6, 2))],
+                    [np.zeros((2, 6)), np.array([[0, -1], [1, 0]])],
+                ]
+            ),
+        ),
     ],
 )
 def test_global_phase_controlled_gate(gate, matrix) -> None:
@@ -241,6 +316,7 @@ def test_rot_gates_eq() -> None:
         lambda p: cirq.Y**p,
         lambda p: cirq.Z**p,
         lambda p: cirq.CNOT**p,
+        lambda p: cirq.CY**p,
     ]
     for gate in gates:
         eq.add_equality_group(gate(3.5), gate(-0.5))
@@ -261,6 +337,7 @@ def test_rot_gates_eq() -> None:
         cirq.CNotPowGate(), cirq.CXPowGate(), cirq.CNotPowGate(exponent=1), cirq.CNOT
     )
     eq.add_equality_group(cirq.CZPowGate(), cirq.CZPowGate(exponent=1), cirq.CZ)
+    eq.add_equality_group(cirq.CYPowGate(), cirq.CYPowGate(exponent=1), cirq.CY)
 
 
 def test_z_unitary() -> None:
@@ -706,6 +783,10 @@ def test_interchangeable_qubit_eq() -> None:
     eq.add_equality_group(cirq.CNOT(b, a))
     eq.add_equality_group(cirq.CNOT(a, c))
 
+    eq.add_equality_group(cirq.CY(a, b))
+    eq.add_equality_group(cirq.CY(b, a))
+    eq.add_equality_group(cirq.CY(a, c))
+
 
 def test_identity_multiplication() -> None:
     a, b, c = cirq.LineQubit.range(3)
@@ -713,6 +794,9 @@ def test_identity_multiplication() -> None:
     assert cirq.CX(a, b) * cirq.I(a) == cirq.CX(a, b)
     assert cirq.CZ(a, b) * cirq.I(c) == cirq.CZ(a, b)
     assert cirq.CX(a, b) ** 0.5 * cirq.I(c) == cirq.CX(a, b) ** 0.5
+    assert cirq.I(a) * cirq.CY(a, b) == cirq.CY(a, b)
+    assert cirq.CY(a, b) * cirq.I(a) == cirq.CY(a, b)
+    assert cirq.CY(a, b) ** 0.5 * cirq.I(c) == cirq.CY(a, b) ** 0.5
     assert cirq.I(c) * cirq.CZ(b, c) ** 0.5 == cirq.CZ(b, c) ** 0.5
     assert cirq.T(a) * cirq.I(a) == cirq.T(a)
     assert cirq.T(b) * cirq.I(c) == cirq.T(b)
@@ -759,6 +843,29 @@ b: -----------------------------@---X---@---X^0.5---@-------------------I---@^t-
         use_unicode_characters=False,
     )
 
+    cy_circuit = cirq.Circuit(
+        cirq.CY(a, b), cirq.CY(b, a), cirq.CY(a, b) ** 0.5, cirq.CY(b, a) ** 0.5
+    )
+
+    cirq.testing.assert_has_diagram(
+        cy_circuit,
+        """
+a: ───@───Y───@───────Y^0.5───
+      │   │   │       │
+b: ───Y───@───Y^0.5───@───────
+""",
+    )
+
+    cirq.testing.assert_has_diagram(
+        cy_circuit,
+        """
+a: ---@---Y---@-------Y^0.5---
+      |   |   |       |
+b: ---Y---@---Y^0.5---@-------
+""",
+        use_unicode_characters=False,
+    )
+
 
 def test_cnot_unitary() -> None:
     np.testing.assert_almost_equal(
@@ -778,6 +885,12 @@ def test_cnot_decompose() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     assert cirq.decompose_once(cirq.CNOT(a, b) ** sympy.Symbol('x')) is not None
+
+
+def test_cy_decompose() -> None:
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    assert cirq.decompose_once(cirq.CY(a, b) ** sympy.Symbol('x')) is not None
 
 
 def test_repr() -> None:
@@ -940,7 +1053,7 @@ def test_h_stabilizer() -> None:
     assert not cirq.has_stabilizer_effect(gate**foo)
 
 
-@pytest.mark.parametrize('gate', [cirq.CX, cirq.CZ])
+@pytest.mark.parametrize('gate', [cirq.CX, cirq.CZ, cirq.CY])
 def test_cx_cz_stabilizer(gate) -> None:
     assert cirq.has_stabilizer_effect(gate)
     assert not cirq.has_stabilizer_effect(gate**0.5)
@@ -1077,12 +1190,14 @@ def test_trace_distance() -> None:
     sh = cirq.H**foo
     scx = cirq.CX**foo
     scz = cirq.CZ**foo
+    scy = cirq.CY**foo
     # These values should have 1.0 or 0.0 directly returned
     assert cirq.trace_distance_bound(sx) == 1.0
     assert cirq.trace_distance_bound(sy) == 1.0
     assert cirq.trace_distance_bound(sz) == 1.0
     assert cirq.trace_distance_bound(scx) == 1.0
     assert cirq.trace_distance_bound(scz) == 1.0
+    assert cirq.trace_distance_bound(scy) == 1.0
     assert cirq.trace_distance_bound(sh) == 1.0
     assert cirq.trace_distance_bound(cirq.I) == 0.0
     # These values are calculated, so we use approx_eq
@@ -1091,7 +1206,9 @@ def test_trace_distance() -> None:
     assert cirq.approx_eq(cirq.trace_distance_bound(cirq.Z**0.5), np.sin(np.pi / 4))
     assert cirq.approx_eq(cirq.trace_distance_bound(cirq.H**0.25), np.sin(np.pi / 8))
     assert cirq.approx_eq(cirq.trace_distance_bound(cirq.CX**2), 0.0)
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.CY**2), 0.0)
     assert cirq.approx_eq(cirq.trace_distance_bound(cirq.CZ ** (1 / 9)), np.sin(np.pi / 18))
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.CY ** (1 / 9)), np.sin(np.pi / 18))
 
 
 def test_commutes() -> None:

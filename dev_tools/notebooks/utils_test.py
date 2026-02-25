@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import filecmp
 import os
+import pathlib
 import shutil
 import tempfile
 
@@ -27,12 +28,10 @@ import dev_tools.notebooks as dt
 def write_test_data(ipynb_txt, tst_txt):
     directory = tempfile.mkdtemp()
     ipynb_path = os.path.join(directory, 'test.ipynb')
-    with open(ipynb_path, 'w') as f:
-        f.write(ipynb_txt)
+    pathlib.Path(ipynb_path).write_text(ipynb_txt)
 
     tst_path = os.path.join(directory, 'test.tst')
-    with open(tst_path, 'w') as f:
-        f.write(tst_txt)
+    pathlib.Path(tst_path).write_text(tst_txt)
 
     return directory, ipynb_path
 
@@ -43,9 +42,8 @@ def test_rewrite_notebook() -> None:
     path = dt.rewrite_notebook(ipynb_path)
 
     assert path != ipynb_path
-    with open(path, 'r') as f:
-        rewritten = f.read()
-        assert rewritten == 'd = 3\nd = 4'
+    rewritten = pathlib.Path(path).read_text()
+    assert rewritten == 'd = 3\nd = 4'
 
     os.remove(path)
     shutil.rmtree(directory)
@@ -56,9 +54,8 @@ def test_rewrite_notebook_multiple() -> None:
 
     path = dt.rewrite_notebook(ipynb_path)
 
-    with open(path, 'r') as f:
-        rewritten = f.read()
-        assert rewritten == 'd = 3\nd = 1'
+    rewritten = pathlib.Path(path).read_text()
+    assert rewritten == 'd = 3\nd = 1'
 
     os.remove(path)
     shutil.rmtree(directory)
@@ -69,9 +66,8 @@ def test_rewrite_notebook_ignore_non_seperator_lines() -> None:
 
     path = dt.rewrite_notebook(ipynb_path)
 
-    with open(path, 'r') as f:
-        rewritten = f.read()
-        assert rewritten == 'd = 3\nd = 4'
+    rewritten = pathlib.Path(path).read_text()
+    assert rewritten == 'd = 3\nd = 4'
 
     os.remove(path)
     shutil.rmtree(directory)
@@ -80,8 +76,7 @@ def test_rewrite_notebook_ignore_non_seperator_lines() -> None:
 def test_rewrite_notebook_no_tst_file() -> None:
     directory = tempfile.mkdtemp()
     ipynb_path = os.path.join(directory, 'test.ipynb')
-    with open(ipynb_path, 'w') as f:
-        f.write('d = 5\nd = 4')
+    pathlib.Path(ipynb_path).write_text('d = 5\nd = 4')
 
     path = dt.rewrite_notebook(ipynb_path)
     assert path != ipynb_path

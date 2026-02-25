@@ -223,13 +223,11 @@ def test_analog_detune_coupler_circuit_diagram() -> None:
     q3, q4 = cirq.q(0, 2), cirq.q(0, 3)
     cirq.testing.assert_has_diagram(
         cirq.Circuit(gate.on_each((q1, q2), (q3, q4))),
-        textwrap.dedent(
-            """
+        textwrap.dedent("""
         c(q(0, 0),q(0, 1)): ───AnalogDetuneCouplerOnly(length=l, g_max=None)───
         
         c(q(0, 2),q(0, 3)): ───AnalogDetuneCouplerOnly(length=l, g_max=None)───
-        """
-        ),
+        """),
     )
 
 

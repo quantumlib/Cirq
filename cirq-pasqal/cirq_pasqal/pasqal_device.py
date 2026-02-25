@@ -86,7 +86,7 @@ class PasqalDevice(cirq.devices.Device):
         return self._metadata
 
     def qubit_list(self):
-        return [qubit for qubit in self.qubits]
+        return list(self.qubits)
 
     def is_pasqal_device_op(self, op: cirq.Operation) -> bool:
         if not isinstance(op, cirq.Operation):
@@ -252,7 +252,7 @@ class PasqalVirtualDevice(PasqalDevice):
         if len(self.qubits) <= 1:
             raise ValueError("Two qubits to compute a minimal distance.")
 
-        return min([self.distance(q1, q2) for q1 in self.qubits for q2 in self.qubits if q1 != q2])
+        return min(self.distance(q1, q2) for q1 in self.qubits for q2 in self.qubits if q1 != q2)
 
     def distance(self, p: Any, q: Any) -> float:
         """Returns the distance between two qubits.

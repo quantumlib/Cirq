@@ -58,12 +58,12 @@ def test_group_settings_greedy_single_item() -> None:
     settings = list(cirq.work.observables_to_settings([term], qubits))
     grouped_settings = cirq.work.group_settings_greedy(settings)
     assert len(grouped_settings) == 1
-    assert list(grouped_settings.keys())[0] == settings[0]
-    assert list(grouped_settings.values())[0][0] == settings[0]
+    assert next(iter(grouped_settings.keys())) == settings[0]
+    assert next(iter(grouped_settings.values()))[0] == settings[0]
 
 
 def test_group_settings_greedy_empty() -> None:
-    assert cirq.work.group_settings_greedy([]) == dict()
+    assert cirq.work.group_settings_greedy([]) == {}
 
 
 def test_group_settings_greedy_init_state_compat() -> None:

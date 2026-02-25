@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import asyncio
 import datetime
-import os
 from unittest import mock
 
 import duet
@@ -157,7 +156,7 @@ def test_list_program(client_constructor, default_engine_client):
         quantum.QuantumProgram(name='projects/proj/programs/prog1'),
         quantum.QuantumProgram(name='projects/proj/programs/prog2'),
     ]
-    grpc_client.list_quantum_programs.return_value = results
+    grpc_client.list_quantum_programs.return_value = _AsyncIterable(results)
 
     assert default_engine_client.list_programs(project_id='proj') == results
     grpc_client.list_quantum_programs.assert_called_with(
@@ -185,9 +184,11 @@ def test_list_program(client_constructor, default_engine_client):
         ),
         ('labels.color:red AND labels.shape:*', None, None, {'color': 'red', 'shape': '*'}),
         (
-            'create_time >= 2020-08-01 AND '
-            'create_time <= 1598918400 AND '
-            'labels.color:red AND labels.shape:*',
+            (
+                'create_time >= 2020-08-01 AND '
+                'create_time <= 1598918400 AND '
+                'labels.color:red AND labels.shape:*'
+            ),
             datetime.date(2020, 8, 1),
             datetime.datetime(2020, 9, 1, tzinfo=datetime.timezone.utc),
             {'color': 'red', 'shape': '*'},
@@ -388,7 +389,6 @@ def test_delete_program(client_constructor, default_engine_client):
     )
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_create_job_with_all_parameters(
     client_constructor, default_run_context, default_engine_client
@@ -429,7 +429,6 @@ def test_create_job_with_all_parameters(
     )
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_create_job_without_labels(client_constructor, default_engine_client):
     grpc_client = _setup_client_mock(client_constructor)
@@ -466,7 +465,6 @@ def test_create_job_without_labels(client_constructor, default_engine_client):
     )
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_create_job_without_description(client_constructor, default_engine_client):
     grpc_client = _setup_client_mock(client_constructor)
@@ -504,7 +502,6 @@ def test_create_job_without_description(client_constructor, default_engine_clien
     )
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_create_job_without_job_id(client_constructor, default_engine_client):
     grpc_client = _setup_client_mock(client_constructor)
@@ -538,7 +535,6 @@ def test_create_job_without_job_id(client_constructor, default_engine_client):
     )
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_create_job_with_invalid_priority(
     client_constructor, default_run_context, default_engine_client
@@ -559,7 +555,6 @@ def test_create_job_with_invalid_priority(
         )
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 @pytest.mark.parametrize(
     'processor_id, run_name, snapshot_id, device_config_name, error_message',
@@ -567,13 +562,6 @@ def test_create_job_with_invalid_priority(
         ('', '', '', '', 'Must specify a processor id when creating a job.'),
         ('processor0', 'RUN_NAME', '', '', 'Cannot specify only one of top level identifier'),
         ('processor0', '', '', 'CONFIG_ALIAS', 'Cannot specify only one of top level identifier'),
-        (
-            'processor0',
-            'run_name',
-            'snapshot_id',
-            'CONFIG_ALIAS',
-            'Cannot specify both `run_name` and `snapshot_id`',
-        ),
     ],
 )
 def test_create_job_with_invalid_processor_and_device_config_arguments_throws(
@@ -601,7 +589,6 @@ def test_create_job_with_invalid_processor_and_device_config_arguments_throws(
         )
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 @pytest.mark.parametrize(
     'run_name, snapshot_id, device_config_name',
@@ -646,7 +633,6 @@ def test_create_job_with_run_name_and_device_config_name_succeeds(
     )
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_create_job_with_snapshot_id_and_config_successfully_passes_device_config_selector(
     client_constructor, default_engine_client, default_run_context
@@ -663,6 +649,38 @@ def test_create_job_with_snapshot_id_and_config_successfully_passes_device_confi
         program_id='prog',
         job_id='job0',
         processor_id=processor_id,
+        snapshot_id=snapshot_id,
+        device_config_name=device_config_name,
+        run_context=default_run_context,
+        priority=10,
+    )
+
+    job = grpc_client.create_quantum_job.call_args[0][0]
+    device_config_selector = (
+        job.quantum_job.scheduling_config.processor_selector.device_config_selector
+    )
+    assert device_config_selector.snapshot_id == snapshot_id
+    assert device_config_selector.config_alias == device_config_name
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_create_job_with_run_name_and_snapshot_id_and_config_succeeds(
+    client_constructor, default_engine_client, default_run_context
+):
+    grpc_client = _setup_client_mock(client_constructor)
+    result = quantum.QuantumJob(name=JOB_PATH)
+    grpc_client.create_quantum_job.return_value = result
+    processor_id = "processor0"
+    run_name = "RUN_NAME"
+    snapshot_id = "SNAPSHOT_ID"
+    device_config_name = "DEVICE_CONFIG_NAME"
+
+    default_engine_client.create_job(
+        project_id='proj',
+        program_id='prog',
+        job_id='job0',
+        processor_id=processor_id,
+        run_name=run_name,
         snapshot_id=snapshot_id,
         device_config_name=device_config_name,
         run_context=default_run_context,
@@ -930,7 +948,6 @@ def test_run_job_over_stream_with_snapshot_id_returns_correct_future(
 
     expected_future = duet.futuretools.completed_future(quantum.QuantumResult(parent=JOB_PATH))
     stream_manager.submit.return_value = expected_future
-    stream_manager.submit.return_value = expected_future
 
     actual_future = default_engine_client.run_job_over_stream(**run_job_kwargs[0])
 
@@ -977,6 +994,52 @@ def test_run_job_over_stream_with_snapshot_id_propogates_snapshot_id(
     parent = expected_submit_args[0][2].name
     expected_future = duet.futuretools.completed_future(quantum.QuantumResult(parent=parent))
     stream_manager.submit.return_value = expected_future
+
+    _ = default_engine_client.run_job_over_stream(**run_job_kwargs[0])
+
+    stream_manager.submit.assert_called_with(*expected_submit_args[0])
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+@mock.patch.object(engine_stream_manager, 'StreamManager', autospec=True)
+def test_run_job_over_stream_with_snapshot_id_and_run_name_favors_snapshot_id(
+    manager_constructor, client_constructor, default_engine_client, default_run_context
+):
+    _setup_client_mock(client_constructor)
+    stream_manager = _setup_stream_manager_mock(manager_constructor)
+    run_job_kwargs = (
+        {
+            'project_id': 'proj',
+            'program_id': 'prog',
+            'code': any_pb2.Any(),
+            'job_id': 'job0',
+            'processor_id': 'processor0',
+            'run_context': any_pb2.Any(),
+            'run_name': 'RUN_NAME',
+            'snapshot_id': 'SNAPSHOT_ID',
+            'device_config_name': 'CONFIG_NAME',
+        },
+    )
+    expected_submit_args = (
+        [
+            'projects/proj',
+            quantum.QuantumProgram(name='projects/proj/programs/prog', code=any_pb2.Any()),
+            quantum.QuantumJob(
+                name=JOB_PATH,
+                run_context=default_run_context,
+                scheduling_config=quantum.SchedulingConfig(
+                    processor_selector=quantum.SchedulingConfig.ProcessorSelector(
+                        processor='projects/proj/processors/processor0',
+                        device_config_selector=quantum.DeviceConfigSelector(
+                            snapshot_id="SNAPSHOT_ID", config_alias="CONFIG_NAME"
+                        ),
+                    )
+                ),
+            ),
+        ],
+    )
+    parent = expected_submit_args[0][2].name
+    expected_future = duet.futuretools.completed_future(quantum.QuantumResult(parent=parent))
     stream_manager.submit.return_value = expected_future
 
     _ = default_engine_client.run_job_over_stream(**run_job_kwargs[0])
@@ -1018,7 +1081,6 @@ def test_run_job_over_stream_processor_unset_raises(default_engine_client, defau
     [
         ('run1', '', '', 'Cannot specify only one of top level identifier'),
         ('', '', 'device_config1', 'Cannot specify only one of top level identifier'),
-        ('run', 'snapshot_id', 'config', 'Cannot specify both `run_name` and `snapshot_id`'),
     ],
 )
 def test_run_job_over_stream_invalid_device_config_raises(
@@ -1250,7 +1312,7 @@ def test_list_jobs(client_constructor, default_engine_client):
         quantum.QuantumJob(name='projects/proj/programs/prog1/jobs/job1'),
         quantum.QuantumJob(name='projects/proj/programs/prog1/jobs/job2'),
     ]
-    grpc_client.list_quantum_jobs.return_value = results
+    grpc_client.list_quantum_jobs.return_value = _AsyncIterable(results)
 
     assert default_engine_client.list_jobs(project_id='proj', program_id='prog1') == results
     grpc_client.list_quantum_jobs.assert_called_with(
@@ -1261,6 +1323,15 @@ def test_list_jobs(client_constructor, default_engine_client):
     grpc_client.list_quantum_jobs.assert_called_with(
         quantum.ListQuantumJobsRequest(parent='projects/proj/programs/-')
     )
+
+
+class _AsyncIterable:
+    def __init__(self, items):
+        self.items = items
+
+    async def __aiter__(self):
+        for item in self.items:
+            yield item
 
 
 @pytest.mark.parametrize(
@@ -1312,10 +1383,12 @@ def test_list_jobs(client_constructor, default_engine_client):
             None,
         ),
         (
-            'create_time >= 2020-08-01 AND '
-            'create_time <= 1598918400 AND '
-            'labels.color:red AND labels.shape:* AND '
-            '(execution_status.state = SUCCESS)',
+            (
+                'create_time >= 2020-08-01 AND '
+                'create_time <= 1598918400 AND '
+                'labels.color:red AND labels.shape:* AND '
+                '(execution_status.state = SUCCESS)'
+            ),
             datetime.date(2020, 8, 1),
             datetime.datetime(2020, 9, 1, tzinfo=datetime.timezone.utc),
             {'color': 'red', 'shape': '*'},

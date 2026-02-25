@@ -85,8 +85,7 @@ class Widget(ABC):
         client_code = self.get_client_code()
         contents = self._create_html_content(client_code)
         path_of_html_file = os.path.join(output_directory, file_name)
-        with open(path_of_html_file, 'w', encoding='utf-8') as f:
-            f.write(contents)
+        Path(path_of_html_file).write_text(contents, encoding='utf-8')
 
         if open_in_browser:
             webbrowser.open(path_of_html_file, new=2)
@@ -118,10 +117,6 @@ def _to_script_tag(bundle_filename: str) -> str:
     Returns:
         The bundle file as string (readable by browser) wrapped in HTML script tags.
     """
-    bundle_file_path = os.path.join(_DIST_PATH, bundle_filename)
-    bundle_file = open(bundle_file_path, 'r', encoding='utf-8')
-    bundle_file_contents = bundle_file.read()
-    bundle_file.close()
-    bundle_html = f'<script>{bundle_file_contents}</script>'
-
-    return bundle_html
+    bundle_file_path = _DIST_PATH.joinpath(bundle_filename)
+    bundle_file_contents = bundle_file_path.read_text(encoding='utf-8')
+    return f'<script>{bundle_file_contents}</script>'

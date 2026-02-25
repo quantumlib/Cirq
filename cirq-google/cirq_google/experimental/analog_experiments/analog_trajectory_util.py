@@ -133,8 +133,8 @@ class AnalogTrajectory:
             couplers = list(set(couplers_in_traj))
 
         full_trajectory: list[FrequencyMap] = []
-        init_qubit_freq_dict: dict[cirq.Qid, tu.Value | None] = {q: None for q in qubits}
-        init_g_dict: dict[cgc.Coupler, tu.Value] = {c: 0 * tu.MHz for c in couplers}
+        init_qubit_freq_dict: dict[cirq.Qid, tu.Value | None] = dict.fromkeys(qubits)
+        init_g_dict: dict[cgc.Coupler, tu.Value] = dict.fromkeys(couplers, 0 * tu.MHz)
         full_trajectory.append(FrequencyMap(0 * tu.ns, init_qubit_freq_dict, init_g_dict, False))
 
         for dt, qubit_freq_dict, g_dict in sparse_trajectory:

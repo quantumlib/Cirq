@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests for executable snippets in documentation.
+r"""Tests for executable snippets in documentation.
 
 This tests code snippets that are executable in `.md` documentation. It covers
 all such files under the docs directory, as well as the top-level README file.
@@ -42,10 +42,14 @@ In addition to checking that the code executes:
             <!---test_substitution
             pattern
             substitution
+            substitution-line-2
             --->
 
       where pattern is the regex matching pattern (passed to re.compile) and
-      substitution is the replacement string.
+      substitution is the replacement string.  The replacement string may
+      span several lines and it recognizes escape sequences as in `re.sub`,
+      for example, `\1` stands for the text matched by the first parentheses
+      group in the pattern and `\g<0>` for the entire matched string.
 """
 
 from __future__ import annotations
@@ -82,10 +86,10 @@ def test_can_run_readme_code_snippets():
 
 def find_docs_code_snippets_paths() -> Iterator[str]:
     for filename in DOCS_FOLDER.rglob('*.md'):
-        # Skip files under either 'hardware' and 'google'
+        # Skip files under 'hardware'
         # TODO: #7787 - revisit which of these can be fixed and enabled later.
         path = str(filename.relative_to(DOCS_FOLDER))
-        if not path.startswith(('hardware', 'google')):
+        if not path.startswith('hardware'):
             yield path
 
 
@@ -114,7 +118,7 @@ def find_markdown_code_snippets(content: str) -> list[tuple[str, int]]:
 
 def find_markdown_test_overrides(content: str) -> list[tuple[Pattern, str]]:
     test_sub_text = find_code_snippets("<!---test_substitution\n(.*?)--->", content)
-    substitutions = [line.split('\n')[:-1] for line, _ in test_sub_text]
+    substitutions = [line.rstrip().split('\n', maxsplit=1) for line, _ in test_sub_text]
     return [(re.compile(match), sub) for match, sub in substitutions]
 
 
@@ -144,8 +148,7 @@ def deindent_snippet(snippet: str) -> str:
 
 
 def test_find_markdown_code_snippets():
-    snippets = find_markdown_code_snippets(
-        """
+    snippets = find_markdown_code_snippets("""
 A 3 by 3 grid of qubits using
 
 ```python
@@ -166,8 +169,7 @@ More text.
 ```python
 print("last line")
 ```
-"""
-    )
+""")
 
     assert snippets == [
         ('\nprint("hello world")', 4),
@@ -177,8 +179,7 @@ print("last line")
 
 
 def test_find_markdown_test_overrides():
-    overrides = find_markdown_test_overrides(
-        """
+    overrides = find_markdown_test_overrides("""
 A 3 by 3 grid of qubits using
 
 ```python
@@ -192,8 +193,7 @@ goodbye
 world
 universe
 --->
-"""
-    )
+""")
 
     assert len(overrides) == 2
     assert overrides[0][0].match('hello')
@@ -219,9 +219,7 @@ universe
 --->
 """
     overrides = find_markdown_test_overrides(content)
-    assert (
-        apply_overrides(content, overrides)
-        == """
+    assert apply_overrides(content, overrides) == """
 A 3 by 3 grid of qubits using
 
 ```python
@@ -236,14 +234,12 @@ universe
 universe
 --->
 """
-    )
 
 
 def assert_file_has_working_code_snippets(path: str | pathlib.Path, assume_import: bool):
     """Checks that code snippets in a file actually run."""
 
-    with open(path, encoding='utf-8') as f:
-        content = f.read()
+    content = pathlib.Path(path).read_text(encoding='utf-8')
 
     # Find snippets of code, and execute them. They should finish.
     overrides = find_markdown_test_overrides(content)
@@ -263,6 +259,9 @@ def assert_code_snippets_run_in_sequence(snippets: list[tuple[str, int]], assume
 
     if assume_import:
         exec('import cirq', state)
+        exec('import cirq_google', state)
+        exec('import unittest.mock as mock', state)
+        exec('import sympy', state)
 
     for content, line_number in snippets:
         assert_code_snippet_executes_correctly(content, state, line_number)
@@ -392,7 +391,7 @@ def assert_code_snippet_runs_and_prints_expected(
         new_msg = ex.args[0] + '\n\nIn snippet{}:\n{}'.format(
             "" if line_number is None else " (line {})".format(line_number), _indent([snippet])
         )
-        ex.args = (new_msg,) + tuple(ex.args[1:])
+        ex.args = (new_msg, *ex.args[1:])
         raise
 
 
@@ -488,81 +487,49 @@ def _indent(lines: list[str]) -> str:
 
 
 def test_find_expected_outputs():
-    assert (
-        find_expected_outputs(
-            """
+    assert find_expected_outputs("""
 # print
 # abc
 
 # def
-    """
-        )
-        == ['abc']
-    )
+    """) == ['abc']
 
-    assert (
-        find_expected_outputs(
-            """
+    assert find_expected_outputs("""
 # prints
 # abc
 
 # def
-    """
-        )
-        == ['abc']
-    )
+    """) == ['abc']
 
-    assert (
-        find_expected_outputs(
-            """
+    assert find_expected_outputs("""
 # print:
 # abc
 
 # def
-    """
-        )
-        == ['abc']
-    )
+    """) == ['abc']
 
-    assert (
-        find_expected_outputs(
-            """
+    assert find_expected_outputs("""
 #print:
 # abc
 
 # def
-    """
-        )
-        == ['abc']
-    )
+    """) == ['abc']
 
-    assert (
-        find_expected_outputs(
-            """
+    assert find_expected_outputs("""
 # prints:
 # abc
 
 # def
-    """
-        )
-        == ['abc']
-    )
+    """) == ['abc']
 
-    assert (
-        find_expected_outputs(
-            """
+    assert find_expected_outputs("""
 # prints:
 # abc
 
 # def
-    """
-        )
-        == ['abc']
-    )
+    """) == ['abc']
 
-    assert (
-        find_expected_outputs(
-            """
+    assert find_expected_outputs("""
 lorem ipsum
 
 # prints
@@ -573,14 +540,9 @@ a wondrous collection
 # prints
 # def
 # ghi
-    """
-        )
-        == ['  abc', 'def', 'ghi']
-    )
+    """) == ['  abc', 'def', 'ghi']
 
-    assert (
-        find_expected_outputs(
-            """
+    assert find_expected_outputs("""
 a wandering adventurer
 
 # prints something like
@@ -588,10 +550,7 @@ a wandering adventurer
 #prints
 # pants
 # trance
-    """
-        )
-        == []
-    )
+    """) == []
 
 
 def test_assert_expected_lines_present_in_order():

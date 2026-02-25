@@ -330,7 +330,7 @@ class CircuitToQuantikz:
             is_symbolic_or_special = any(
                 char.isalpha()
                 for char in s_exponent
-                if char.lower() not in ["e"]  # Exclude 'e' for scientific notation
+                if char.lower() != "e"  # Exclude 'e' for scientific notation
             )
             if not is_symbolic_or_special:  # If it looks like a number
                 try:
@@ -598,10 +598,8 @@ class CircuitToQuantikz:
                             active_chunk[i].append(moment_out[i])
                         moment_out = ["\\qw"] * self.num_qubits
                         spanned_qubits = set()
-                for i in range(min_qubit, max_qubit + 1):
-                    spanned_qubits.add(i)
-                for q in op.qubits:
-                    spanned_qubits.add(self.qubit_to_index[q])
+                spanned_qubits.update(range(min_qubit, max_qubit + 1))
+                spanned_qubits.update(self.qubit_to_index[q] for q in op.qubits)
                 op_rnd = self._render_operation(op)
                 for idx, tex in op_rnd.items():
                     moment_out[idx] = tex
@@ -641,7 +639,7 @@ class CircuitToQuantikz:
                             if lines[k_idx].endswith(" \\\\"):
                                 lines[k_idx] = lines[k_idx].rstrip()[:-3].rstrip()
                             break
-                        elif k_idx == len(lines) - 1:  # pragma: no cover
+                        if k_idx == len(lines) - 1:  # pragma: no cover
                             lines[k_idx] = ""
             lines.append("\\end{quantikz}")
             final_parts.append("\n".join(filter(None, lines)))

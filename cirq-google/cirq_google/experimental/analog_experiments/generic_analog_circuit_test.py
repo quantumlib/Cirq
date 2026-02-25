@@ -17,6 +17,7 @@ import sympy
 import tunits as tu
 
 import cirq
+import cirq.contrib.routing as ccr
 import cirq_google as cg
 from cirq_google.experimental.analog_experiments import (
     analog_trajectory_util as atu,
@@ -167,3 +168,76 @@ def test_generic_analog_make_circuit() -> None:
 
     for op in circuit[4].operations:
         assert isinstance(op.gate, AnalogDetuneQubit)
+
+
+def test_generic_analog_make_circuit_for_simulation() -> None:
+
+    # first, test a pair of qubits
+
+    q0 = cirq.GridQubit(0, 0)
+    q1 = cirq.GridQubit(0, 1)
+
+    trajectory = atu.AnalogTrajectory.from_sparse_trajectory(
+        [
+            (5 * tu.ns, {q0: 50 * tu.MHz}, {}),
+            (10 * tu.ns, {q0: 8 * tu.MHz, q1: 1 * tu.MHz}, {cg.Coupler(q0, q1): -5 * tu.MHz}),
+            (3 * tu.ns, {}, {}),
+            (2 * tu.ns, {q1: 4 * tu.GHz}, {}),
+        ]
+    )
+    builder = gac.AnalogSimulationCircuitBuilder(trajectory)
+    circuit = builder.make_circuit(1 * tu.ns, trotter_order=1)
+
+    assert len(circuit) == 40
+    for op in circuit[0].operations:
+        assert op.gate == cirq.Z**0.0
+    for op in circuit[1].operations:
+        assert op.gate == cirq.ISWAP**0.0
+
+    circuit = builder.make_circuit(1 * tu.ns, trotter_order=2)
+
+    assert len(circuit) == 60
+    for op in circuit[0].operations:
+        assert op.gate == cirq.Z**0.0
+    for op in circuit[1].operations:
+        assert op.gate == cirq.ISWAP**0.0
+
+    # next, test a line of qubits
+
+    qubits = cirq.GridQubit.rect(1, 3, 0, 0)
+    device_graph = ccr.gridqubits_to_graph_device(qubits)
+    couplers = [cg.Coupler(*pair) for pair in device_graph.edges]
+    trajectory = atu.AnalogTrajectory.from_sparse_trajectory(
+        [
+            (5 * tu.ns, dict.fromkeys(qubits, 50 * tu.MHz), {}),
+            (10 * tu.ns, {}, dict.fromkeys(couplers, -5 * tu.MHz)),
+            (3 * tu.ns, {}, {}),
+            (2 * tu.ns, {qubits[0]: 4 * tu.GHz}, {}),
+        ]
+    )
+    builder = gac.AnalogSimulationCircuitBuilder(trajectory)
+    circuit = builder.make_circuit(1 * tu.ns, trotter_order=1)
+    assert len(circuit) == 60
+
+    circuit = builder.make_circuit(1 * tu.ns, trotter_order=2)
+    assert len(circuit) == 100
+
+    # finally, test a 2D grid of qubits
+
+    qubits = cirq.GridQubit.rect(3, 3, 0, 0)
+    device_graph = ccr.gridqubits_to_graph_device(qubits)
+    couplers = [cg.Coupler(*pair) for pair in device_graph.edges]
+    trajectory = atu.AnalogTrajectory.from_sparse_trajectory(
+        [
+            (5 * tu.ns, dict.fromkeys(qubits, 50 * tu.MHz), {}),
+            (10 * tu.ns, {}, dict.fromkeys(couplers, -5 * tu.MHz)),
+            (3 * tu.ns, {}, {}),
+            (2 * tu.ns, {qubits[0]: 4 * tu.GHz}, {}),
+        ]
+    )
+    builder = gac.AnalogSimulationCircuitBuilder(trajectory)
+    circuit = builder.make_circuit(1 * tu.ns, trotter_order=1)
+    assert len(circuit) == 100
+
+    circuit = builder.make_circuit(1 * tu.ns, trotter_order=2)
+    assert len(circuit) == 180

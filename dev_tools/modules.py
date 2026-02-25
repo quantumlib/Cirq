@@ -78,9 +78,7 @@ class Module:
             self.top_level_packages = []
         self.top_level_package_paths = [self.root / p for p in self.top_level_packages]
         self.version = self.raw_setup['version']
-        self.install_requires = (
-            [] if 'install_requires' not in self.raw_setup else self.raw_setup['install_requires']
-        )
+        self.install_requires = self.raw_setup.get('install_requires', [])
 
 
 def list_modules(
@@ -140,7 +138,7 @@ def get_version(search_dir: Path = _DEFAULT_SEARCH_DIR) -> str | None:
     versions = {m.name: m.version for m in mods}
     if len(set(versions.values())) > 1:
         raise ValueError(f"Versions should be the same, instead: \n{versions}")
-    return list(set(versions.values()))[0]
+    return next(iter(versions.values()))
 
 
 def replace_version(search_dir: Path = _DEFAULT_SEARCH_DIR, *, old: str, new: str):
@@ -203,7 +201,7 @@ def _parse_module(folder: Path) -> dict[str, Any]:
     try:
         setuptools.setup = setup
         os.chdir(str(folder))
-        setup_py = open("setup.py", encoding="utf8").read()
+        setup_py = Path("setup.py").read_text(encoding="utf8")
         exec(setup_py, globals(), {})
         assert setup_args, f"Invalid setup.py - setup() was not called in {folder}/setup.py!"
         return setup_args

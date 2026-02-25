@@ -20,12 +20,23 @@ A dropdown menu will let you choose the current characterization or historical
 metrics from a previous run.  Calibration metrics can also be retrieved
 programmatically using an engine instance or with a job.
 
+<!---test_substitution
+engine = cg.Engine\(project_id=.*
+\g<0>
+engine = mock.create_autospec(cirq_google.Engine, instance=True)
+mock_engine_processor = mock.create_autospec(cirq_google.EngineProcessor, instance=True)
+engine.configure_mock(**{"get_processor.return_value": mock_engine_processor})
+--->
+<!---test_substitution
+PROJECT_ID|PROGRAM_ID|PROCESSOR_ID|CALIBRATION_SECONDS|START_SECONDS|END_SECONDS|JOB_ID
+'placeholder'
+--->
 ```python
 import cirq_google as cg
 
 # Create an Engine object to use.
-# Replace YOUR_PROJECT_ID with the id from your cloud project.
-engine = cg.Engine(project_id=YOUR_PROJECT_ID)
+# Replace PROJECT_ID with the id from your cloud project.
+engine = cg.Engine(project_id=PROJECT_ID)
 processor = engine.get_processor(processor_id=PROCESSOR_ID)
 
 # Get the latest calibration metrics.
@@ -36,23 +47,24 @@ latest_calibration = processor.get_current_calibration()
 previous_calibration = processor.get_calibration(CALIBRATION_SECONDS)
 
 # If you would like to find a calibration from a time-frame, use this.
-calibration_list = processor.list_calibration(START_SECONDS, END_SECONDS)
+calibration_list = processor.list_calibrations(START_SECONDS, END_SECONDS)
 
+## TODO: #7910 - fix or delete this block
 # If you know the job-id, you can retrieve the calibration that the job used.
-job = engine.get_job("projects/" + PROJECT_ID
-                   + "/programs/"+PROGRAM_ID
-                   + "/jobs/" + JOB_ID)
-job_calibration = cg.EngineJob(cg.JobConfig(), job, engine).get_calibration()
+# job = engine.get_job("projects/" + PROJECT_ID
+#                    + "/programs/"+ PROGRAM_ID
+#                    + "/jobs/" + JOB_ID)
+# job_calibration = cg.EngineJob(PROJECT_ID, PROGRAM_ID, JOB_ID, cg.engine.engine.EngineContext()).get_calibration()
 
 # The calibration can be iterated through using something like the following.
 for metric_name in latest_calibration:
-  print(metric_name)
-  print('------')
-  for qubit_or_pair in latest_calibration[metric_name]:
-     # Note that although the value is often singular,
-     # the metric_value is of the type list and can have multiple values.
-     metric_value = latest_calibration[metric_name][qubit_or_pair]
-     print(f'{qubit_or_pair} = {metric_value}')
+    print(metric_name)
+    print('------')
+    for qubit_or_pair in latest_calibration[metric_name]:
+        # Note that although the value is often singular,
+        # the metric_value is of the type list and can have multiple values.
+        metric_value = latest_calibration[metric_name][qubit_or_pair]
+        print(f'{qubit_or_pair} = {metric_value}')
 ```
 
 Calibration metrics will also soon be available from the

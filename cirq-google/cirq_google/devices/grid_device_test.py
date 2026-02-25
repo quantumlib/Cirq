@@ -588,9 +588,7 @@ def test_grid_device_str_grid_qubits():
     spec = _create_device_spec_with_all_couplings()
     device = cirq_google.GridDevice.from_proto(spec)
 
-    assert (
-        str(device)
-        == """\
+    assert str(device) == """\
 (0, 0)───(0, 1)
 │        │
 │        │
@@ -604,7 +602,6 @@ def test_grid_device_str_grid_qubits():
 │        │
 │        │
 (4, 0)───(4, 1)"""
-    )
 
 
 @pytest.mark.parametrize('cycle,func', [(False, str), (True, repr)])

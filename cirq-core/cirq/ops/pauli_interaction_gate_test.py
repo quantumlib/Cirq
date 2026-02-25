@@ -119,11 +119,8 @@ def test_text_diagrams() -> None:
         cirq.PauliInteractionGate(cirq.Y, True, cirq.Z, True)(q0, q1),
         cirq.PauliInteractionGate(cirq.Z, True, cirq.Y, True)(q0, q1),
     )
-    assert (
-        circuit.to_text_diagram().strip()
-        == """
+    assert circuit.to_text_diagram().strip() == """
 q0: ───X───(-X)───X──────(-X)───X───Y───@───(-Y)───(-@)───
        │   │      │      │      │   │   │   │      │
 q1: ───X───X──────(-X)───(-X)───Y───@───Y───(-@)───(-Y)───
     """.strip()
-    )

@@ -472,7 +472,7 @@ def partial_trace_of_state_vector_as_mixture(
     keep_rho = partial_trace(rho, keep_indices).reshape((np.prod(ret_shape),) * 2)
     eigvals, eigvecs = np.linalg.eigh(keep_rho)
     mixture = tuple(zip(eigvals, [vec.reshape(ret_shape) for vec in eigvecs.T]))
-    return tuple([(float(p[0]), p[1]) for p in mixture if not protocols.approx_eq(p[0], 0.0)])
+    return tuple((float(p[0]), p[1]) for p in mixture if not protocols.approx_eq(p[0], 0.0))
 
 
 def sub_state_vector(
@@ -551,7 +551,7 @@ def sub_state_vector(
         raise ValueError("Input state must be normalized.")
     if len(set(keep_indices)) != len(keep_indices):
         raise ValueError(f"keep_indices were {keep_indices} but must be unique.")
-    if any([ind >= n_qubits for ind in keep_indices]):
+    if any(ind >= n_qubits for ind in keep_indices):
         raise ValueError("keep_indices {} are an invalid subset of the input state vector.")
 
     other_qubits = sorted(set(range(n_qubits)) - set(keep_indices))
@@ -563,7 +563,7 @@ def sub_state_vector(
     best_candidate = max(candidates, key=lambda c: float(np.linalg.norm(c, 2)))
     best_candidate = best_candidate / np.linalg.norm(best_candidate)
     left = np.conj(best_candidate.reshape((keep_dims,))).T
-    coherence_measure = sum([abs(np.dot(left, c.reshape((keep_dims,)))) ** 2 for c in candidates])
+    coherence_measure = sum(abs(np.dot(left, c.reshape((keep_dims,)))) ** 2 for c in candidates)
 
     if protocols.approx_eq(coherence_measure, 1, atol=atol):
         return np.exp(2j * np.pi * np.random.random()) * best_candidate.reshape(ret_shape)
