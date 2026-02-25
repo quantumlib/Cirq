@@ -520,7 +520,6 @@ def test_add() -> None:
     assert m1 + [[[[cirq.Y(b)]]]] == cirq.Moment(cirq.X(a), cirq.Y(b))
     assert m1 + [] == m1
     assert m1 + [] is m1
-    # ruff: enable[RUF005]
 
 
 def test_sub() -> None:

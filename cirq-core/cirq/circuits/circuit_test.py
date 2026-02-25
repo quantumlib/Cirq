@@ -344,16 +344,14 @@ def test_add_op_tree(circuit_cls) -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
+    # ruff: disable[RUF005]
     c = circuit_cls()
-    # ruff: disable[RUF005]
     assert c + [cirq.X(a), cirq.Y(b)] == circuit_cls([cirq.Moment([cirq.X(a), cirq.Y(b)])])
-    # ruff: enable[RUF005]
+
     assert c + cirq.X(a) == circuit_cls(cirq.X(a))
-    # ruff: disable[RUF005]
     assert c + [cirq.X(a)] == circuit_cls(cirq.X(a))
     assert c + [[[cirq.X(a)], []]] == circuit_cls(cirq.X(a))
     assert c + (cirq.X(a),) == circuit_cls(cirq.X(a))
-    # ruff: enable[RUF005]
     assert c + (cirq.X(a) for _ in range(1)) == circuit_cls(cirq.X(a))
     with pytest.raises(TypeError):
         _ = c + cirq.X
@@ -365,16 +363,14 @@ def test_radd_op_tree(circuit_cls, gate) -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
+    # ruff: disable[RUF005]
     c = circuit_cls()
-    # ruff: disable[RUF005]
     assert [gate(a), cirq.Y(b)] + c == circuit_cls([cirq.Moment([gate(a), cirq.Y(b)])])
-    # ruff: enable[RUF005]
+
     assert gate(a) + c == circuit_cls(gate(a))
-    # ruff: disable[RUF005]
     assert [gate(a)] + c == circuit_cls(gate(a))
     assert [[[gate(a)], []]] + c == circuit_cls(gate(a))
     assert (gate(a),) + c == circuit_cls(gate(a))
-    # ruff: enable[RUF005]
     assert (gate(a) for _ in range(1)) + c == circuit_cls(gate(a))
     with pytest.raises(AttributeError):
         _ = gate + c
@@ -388,9 +384,7 @@ def test_radd_op_tree(circuit_cls, gate) -> None:
     else:
         d = cirq.Circuit()
         d.append(cirq.Y(b))
-    # ruff: disable[RUF005]
     assert [gate(a)] + d == circuit_cls([cirq.Moment([gate(a)]), cirq.Moment([cirq.Y(b)])])
-    # ruff: enable[RUF005]
     assert cirq.Moment([gate(a)]) + d == circuit_cls(
         [cirq.Moment([gate(a)]), cirq.Moment([cirq.Y(b)])]
     )
