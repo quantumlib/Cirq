@@ -384,7 +384,7 @@ def assert_code_snippet_runs_and_prints_expected(
         new_msg = ex.args[0] + '\n\nIn snippet{}:\n{}'.format(
             "" if line_number is None else " (line {})".format(line_number), _indent([snippet])
         )
-        ex.args = (new_msg, *tuple(ex.args[1:]))
+        ex.args = (new_msg, *ex.args[1:])
         raise
 
 
