@@ -537,7 +537,7 @@ def test_expressions_with_identifier(expr: str) -> None:
     assert not parsed_qasm.qelib1Include
 
     parsed_qasm_circuit_resolved = cirq.resolve_parameters(parsed_qasm.circuit, {symbol_name: 10})
-    expected_circuit_resolved = cirq.resolve_parameters(parsed_qasm.circuit, {symbol_name: 10})
+    expected_circuit_resolved = cirq.resolve_parameters(expected_circuit, {symbol_name: 10})
 
     ct.assert_allclose_up_to_global_phase(
         cirq.unitary(parsed_qasm_circuit_resolved), cirq.unitary(expected_circuit_resolved), atol=1e-10
