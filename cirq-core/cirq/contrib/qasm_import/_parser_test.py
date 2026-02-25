@@ -167,7 +167,7 @@ def test_multiple_creg_declaration() -> None:
     assert parsed_qasm.qelib1Include
     ct.assert_same_circuits(parsed_qasm.circuit, Circuit())
     assert parsed_qasm.qregs == {'a_quantum_register': 1337}
-    assert parsed_qasm.cregs == {'a_classical_register': 1337, 'c': 42}
+    assert parsed_qasm.cregs == {'a_classical_register': ("bit", 1337), 'c': ("bit", 42)}
 
 
 def test_syntax_error() -> None:
@@ -506,20 +506,20 @@ def test_expressions(expr: str) -> None:
 
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
+
 @pytest.mark.parametrize(
     'expr',
     [
-        '{}',
-        '3 * {}',
-        'cos({})',
+        'phi',
+        '3 * phi',
+        'cos(phi)',
     ],
 )
 def test_expressions_with_identifier(expr: str) -> None:
-    symbol_name = 'some_param'
-    expr = expr.format(symbol_name)
-    qasm = f"""OPENQASM 2.0;
+    symbol_name = "phi"
+    qasm = f"""OPENQASM 3.0;
      qreg q[1];
-     creg {symbol_name}[64];
+     angle[64] {symbol_name};
      U({expr}, 2 * pi, pi / 2.0) q[0];
 """
 
@@ -536,6 +536,8 @@ def test_expressions_with_identifier(expr: str) -> None:
     assert parsed_qasm.supportedFormat
     assert not parsed_qasm.qelib1Include
 
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+
     parsed_qasm_circuit_resolved = cirq.resolve_parameters(parsed_qasm.circuit, {symbol_name: 10})
     expected_circuit_resolved = cirq.resolve_parameters(expected_circuit, {symbol_name: 10})
 
@@ -543,6 +545,7 @@ def test_expressions_with_identifier(expr: str) -> None:
         cirq.unitary(parsed_qasm_circuit_resolved), cirq.unitary(expected_circuit_resolved), atol=1e-10
     )
     assert parsed_qasm.qregs == {'q': 1}
+    assert parsed_qasm.cregs == {symbol_name: ("angle", 64)}
 
 
 def test_unknown_function() -> None:
@@ -692,7 +695,7 @@ def test_measure_individual_bits() -> None:
 
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q1': 2}
-    assert parsed_qasm.cregs == {'c1': 2}
+    assert parsed_qasm.cregs == {'c1': ("bit", 2)}
 
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
@@ -723,7 +726,7 @@ def test_measure_registers() -> None:
 
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q1': 3}
-    assert parsed_qasm.cregs == {'c1': 3}
+    assert parsed_qasm.cregs == {'c1': ("bit", 3)}
 
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
@@ -822,7 +825,7 @@ def test_reset() -> None:
 
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 1}
-    assert parsed_qasm.cregs == {'c': 1}
+    assert parsed_qasm.cregs == {'c': ("bit", 1)}
 
 
 def test_u0_gate() -> None:
@@ -1982,6 +1985,41 @@ def test_openqasm_3_0_scalar_qubit() -> None:
     assert parsed_qasm.qregs == {'q': 1}
 
 
+def test_openqasm_2_0_qubit_unsupported() -> None:
+    qasm = """OPENQASM 2.0;
+     qubit[2] q;
+    """
+    _test_parse_exception(
+        qasm,
+        cirq_err="Version error, use of an OPENQASM3.0 register on line 2",
+        qiskit_err="<input>:2,5: 'qubit' is not defined in this scope",
+    )
+
+
+def test_openqasm_2_0_bit_unsupported() -> None:
+    qasm = """OPENQASM 2.0;
+     qreg q[2];
+     bit[2] b;
+    """
+    _test_parse_exception(
+        qasm,
+        cirq_err="Version error, use of an OPENQASM3.0 register on line 3",
+        qiskit_err="<input>:3,5: 'bit' is not defined in this scope",
+    )
+
+
+def test_openqasm_2_0_scalar_bit_unsupported() -> None:
+    qasm = """OPENQASM 2.0;
+     qreg q[2];
+     bit b;
+    """
+    _test_parse_exception(
+        qasm,
+        cirq_err="Version error, use of an OPENQASM3.0 register on line 3",
+        qiskit_err="<input>:3,5: 'bit' is not defined in this scope",
+    )
+
+
 def test_custom_gate() -> None:
     qasm = """OPENQASM 2.0;
      include "qelib1.inc";
@@ -2228,7 +2266,7 @@ def test_top_level_param_error() -> None:
     """
     _test_parse_exception(
         qasm,
-        cirq_err="Undefined Parameter 'p' in line 4",
+        cirq_err="Undefined parameter 'p' in line 4",
         qiskit_err="4,8: 'p' is not a parameter",
     )
 
