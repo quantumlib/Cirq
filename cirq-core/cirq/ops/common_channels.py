@@ -82,7 +82,7 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
             ValueError: if the args or the sum of args are not probabilities.
         """
         if error_probabilities:
-            num_qubits = len(next(iter(error_probabilities)))
+            num_qubits = len(next(iter(error_probabilities.keys())))
             for k in error_probabilities.keys():
                 if not set(k).issubset({'I', 'X', 'Y', 'Z'}):
                     raise ValueError(f"{k} is not made solely of I, X, Y, Z.")

@@ -430,7 +430,7 @@ def test_deprecated_run_shuffled_with_readout_benchmarking() -> None:
             readout_repetitions=readout_repetitions,
             qubits=None,
         )
-    qlist_none, _ = next(iter(results_none.items()))
+    qlist_none = next(iter(results_none.keys()))
     assert set(qlist_none) == set(qubits)
 
     # Test circuit_repetitions must be > 0
