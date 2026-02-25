@@ -142,10 +142,10 @@ def _are_pauli_sum_and_pauli_string_qubit_wise_commuting(
     all_qubits: list[ops.Qid] | frozenset[ops.Qid],
 ) -> bool:
     """Checks if a Pauli sum and a Pauli string are Qubit-Wise Commuting."""
-    for pauli_sum_term in pauli_sum:
-        if not _are_two_pauli_strings_qubit_wise_commuting(pauli_sum_term, pauli_str, all_qubits):
-            return False
-    return True
+    return all(
+        _are_two_pauli_strings_qubit_wise_commuting(term, pauli_str, all_qubits)
+        for term in pauli_sum
+    )
 
 
 def _are_symmetry_and_pauli_string_qubit_wise_commuting(
@@ -824,7 +824,6 @@ def measure_pauli_strings(
         input_circuit = circuit_to_pauli.circuit
         pauli_string_groups = circuit_to_pauli.pauli_strings
 
-        # qubits_in_circuit = tuple(sorted(input_circuit.all_qubits()))
         disable_readout_mitigation = num_random_bitstrings == 0
 
         circuits_results_for_group: Sequence[cirq.ResultDict] | Sequence[cirq.Result] = []
