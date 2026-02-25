@@ -18,8 +18,8 @@ from __future__ import annotations
 
 import itertools
 import time
-from typing import cast, TYPE_CHECKING 
-from collections.abc import Sequence, Mapping
+from collections.abc import Mapping, Sequence
+from typing import cast, TYPE_CHECKING
 
 import attrs
 import numpy as np
@@ -163,7 +163,7 @@ def _are_symmetry_and_pauli_string_qubit_wise_commuting(
     elif isinstance(symmetry, ops.PauliString):
         return _are_two_pauli_strings_qubit_wise_commuting(symmetry, pauli_str, all_qubits)
     else:
-        return False
+        return False  # pragma: no cover
 
 
 def _validate_group_paulis_qwc(
@@ -267,7 +267,7 @@ def _validate_circuit_to_pauli_strings_parameters(
                 )
 
         # Check if input symmetries are commuting with all Pauli strings in the circuit
-        qubits_in_circuit = list(sorted(params.circuit.all_qubits()))
+        qubits_in_circuit = sorted(params.circuit.all_qubits())
 
         if not all(
             _are_symmetry_and_pauli_string_qubit_wise_commuting(sym, pauli_str, qubits_in_circuit)
@@ -377,13 +377,13 @@ def _validate_and_normalize_unformatted_input(
     return param_list
 
 
-def _extract_readout_qubits(pauli_strings: list[ops.PauliString]) -> list[ops.Qid]:
+def _extract_readout_qubits(pauli_strings: Sequence[ops.PauliString]) -> list[ops.Qid]:
     """Extracts unique qubits from a list of QWC Pauli strings."""
     return sorted({q for ps in pauli_strings for q in ps.qubits})
 
 
 def _pauli_strings_to_basis_change_ops(
-    pauli_strings: Sequence[ops.PauliString], qid_list: list[ops.Qid]
+    pauli_strings: Sequence[ops.PauliString], qid_list: Sequence[ops.Qid]
 ):
     operations = []
     for qubit in qid_list:
@@ -566,7 +566,7 @@ def _build_many_one_qubits_empty_confusion_matrix(qubits_length: int) -> list[np
 
 
 def _process_pauli_measurement_results(
-    pauli_string_groups: list[list[ops.PauliString]],
+    pauli_string_groups: Sequence[Sequence[ops.PauliString]],
     circuit_results: Sequence[cirq.ResultDict] | Sequence[cirq.Result],
     calibration_results: dict[tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult],
     pauli_repetitions: int,
@@ -754,9 +754,9 @@ def measure_pauli_strings(
     if measure_on_full_support:
         full_support: set[ops.Qid] = set()
         for circuit_to_pauli in normalized_circuits_to_pauli:
-          for pauli_string_groups in circuit_to_pauli.pauli_strings:
-              for pauli_string in pauli_strings:
-                  full_support.update(pauli_string.qubits)
+            for pauli_string_groups in circuit_to_pauli.pauli_strings:
+                for pauli_string in pauli_string_groups:
+                    full_support.update(pauli_string.qubits)
         # One calibration group
         unique_qubit_tuples = {tuple(sorted(full_support))}
     else:
@@ -824,7 +824,7 @@ def measure_pauli_strings(
         input_circuit = circuit_to_pauli.circuit
         pauli_string_groups = circuit_to_pauli.pauli_strings
 
-        #qubits_in_circuit = tuple(sorted(input_circuit.all_qubits()))
+        # qubits_in_circuit = tuple(sorted(input_circuit.all_qubits()))
         disable_readout_mitigation = num_random_bitstrings == 0
 
         circuits_results_for_group: Sequence[cirq.ResultDict] | Sequence[cirq.Result] = []

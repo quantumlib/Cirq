@@ -613,11 +613,11 @@ def test_invalid_input_container_type() -> None:
     qubits = cirq.LineQubit.range(2)
     circuit = cirq.FrozenCircuit(_create_ghz(2, qubits))
 
+    invalid_input = {circuit}
+
     qubits_to_pauli: dict[tuple, list[cirq.PauliString]] = {}
     qubits_to_pauli[tuple(qubits)] = [cirq.PauliString(dict.fromkeys(qubits, cirq.X))]
-    with pytest.raises(
-        TypeError, match="All keys in 'circuits_to_pauli' must be FrozenCircuit instances."
-    ):
+    with pytest.raises(TypeError, match="Input must be a dict or a list"):
         measure_pauli_strings(
             invalid_input, cirq.Simulator(), 100, 100, 100, np.random.default_rng()  # type: ignore
         )
@@ -849,7 +849,7 @@ def test_postselection_symmetry_validation_and_logic() -> None:
     with pytest.raises(ValueError, match="are not commuting with all Pauli"):
         measure_pauli_strings([params_non_commute], sampler, 10, 10, 0, rng)
         measure_pauli_strings(
-            circuits_to_pauli, cirq.Simulator(), 300, 300, 300, np.random.default_rng()
+            [params_non_commute], cirq.Simulator(), 300, 300, 300, np.random.default_rng()
         )
 
 
