@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests for executable snippets in documentation.
+r"""Tests for executable snippets in documentation.
 
 This tests code snippets that are executable in `.md` documentation. It covers
 all such files under the docs directory, as well as the top-level README file.
@@ -42,10 +42,14 @@ In addition to checking that the code executes:
             <!---test_substitution
             pattern
             substitution
+            substitution-line-2
             --->
 
       where pattern is the regex matching pattern (passed to re.compile) and
-      substitution is the replacement string.
+      substitution is the replacement string.  The replacement string may
+      span several lines and it recognizes escape sequences as in `re.sub`,
+      for example, `\1` stands for the text matched by the first parentheses
+      group in the pattern and `\g<0>` for the entire matched string.
 """
 
 from __future__ import annotations
