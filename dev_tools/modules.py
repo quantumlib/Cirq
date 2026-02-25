@@ -138,7 +138,7 @@ def get_version(search_dir: Path = _DEFAULT_SEARCH_DIR) -> str | None:
     versions = {m.name: m.version for m in mods}
     if len(set(versions.values())) > 1:
         raise ValueError(f"Versions should be the same, instead: \n{versions}")
-    return next(iter(set(versions.values())))
+    return next(iter(versions.values()))
 
 
 def replace_version(search_dir: Path = _DEFAULT_SEARCH_DIR, *, old: str, new: str):

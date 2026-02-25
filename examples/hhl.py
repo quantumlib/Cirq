@@ -252,11 +252,9 @@ class HHLAlgorithm:
         c.append([gate(self.memory) for gate in self.input_prep_gates])
         c.append(
             [
-                pe(*[*self.register, self.memory]),
-                EigenRotation(self.register_size + 1, self.C, self.t)(
-                    *[*self.register, self.ancilla]
-                ),
-                pe(*[*self.register, self.memory]) ** -1,
+                pe(*self.register, self.memory),
+                EigenRotation(self.register_size + 1, self.C, self.t)(*self.register, self.ancilla),
+                pe(*self.register, self.memory) ** -1,
             ]
         )
         return c
