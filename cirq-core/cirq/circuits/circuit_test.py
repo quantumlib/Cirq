@@ -344,6 +344,7 @@ def test_add_op_tree(circuit_cls) -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
+    # ruff: disable[RUF005]
     c = circuit_cls()
     assert c + [cirq.X(a), cirq.Y(b)] == circuit_cls([cirq.Moment([cirq.X(a), cirq.Y(b)])])
 
@@ -362,6 +363,7 @@ def test_radd_op_tree(circuit_cls, gate) -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
+    # ruff: disable[RUF005]
     c = circuit_cls()
     assert [gate(a), cirq.Y(b)] + c == circuit_cls([cirq.Moment([gate(a), cirq.Y(b)])])
 

@@ -252,11 +252,9 @@ class HHLAlgorithm:
         c.append([gate(self.memory) for gate in self.input_prep_gates])
         c.append(
             [
-                pe(*(self.register + [self.memory])),
-                EigenRotation(self.register_size + 1, self.C, self.t)(
-                    *(self.register + [self.ancilla])
-                ),
-                pe(*(self.register + [self.memory])) ** -1,
+                pe(*self.register, self.memory),
+                EigenRotation(self.register_size + 1, self.C, self.t)(*self.register, self.ancilla),
+                pe(*self.register, self.memory) ** -1,
             ]
         )
         return c
@@ -265,7 +263,7 @@ class HHLAlgorithm:
         """Creates the diffusion operator I - 2|0><0| which reflects about the initial state
         with all qubits in |0>.
         """
-        qubits = [self.ancilla] + self.register + [self.memory]
+        qubits = [self.ancilla, *self.register, self.memory]
         c = cirq.Circuit()
         c.append(cirq.X.on_each(qubits))
         c.append(cirq.ControlledGate(cirq.Z, num_controls=self.register_size + 1).on(*qubits))

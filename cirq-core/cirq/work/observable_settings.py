@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import dataclasses
 import numbers
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Iterator, Mapping
 from typing import TYPE_CHECKING
 
 import sympy
@@ -123,7 +123,7 @@ def zeros_state(qubits: Iterable[cirq.Qid]):
 
 def observables_to_settings(
     observables: Iterable[cirq.PauliString], qubits: Iterable[cirq.Qid]
-) -> Iterable[InitObsSetting]:
+) -> Iterator[InitObsSetting]:
     """Transform an observable to an InitObsSetting initialized in the
     all-zeros state.
     """

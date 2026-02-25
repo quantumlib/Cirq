@@ -193,7 +193,7 @@ class ParallelGateFamily(gateset.GateFamily):
 
     def _value_equality_values_(self) -> Any:
         # `isinstance` is used to ensure the a gate type and gate instance is not compared.
-        return super()._value_equality_values_() + (self._max_parallel_allowed,)
+        return (*super()._value_equality_values_(), self._max_parallel_allowed)
 
     def _json_dict_(self):
         return {

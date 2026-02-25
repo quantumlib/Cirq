@@ -70,7 +70,7 @@ class MeasurementKey:
     def __str__(self):
         if self._str is None:
             object.__setattr__(
-                self, '_str', MEASUREMENT_KEY_SEPARATOR.join(self.path + (self.name,))
+                self, '_str', MEASUREMENT_KEY_SEPARATOR.join((*self.path, self.name))
             )
         return self._str
 

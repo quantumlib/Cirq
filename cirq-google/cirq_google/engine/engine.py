@@ -283,7 +283,7 @@ class Engine(abstract_engine.AbstractEngine):
             ValueError: If either `run_name` and `device_config_name` are set but
                 `processor_id` is empty.
         """
-        return list(
+        results = list(
             self.run_sweep(
                 program=program,
                 program_id=program_id,
@@ -299,7 +299,8 @@ class Engine(abstract_engine.AbstractEngine):
                 snapshot_id=snapshot_id,
                 device_config_name=device_config_name,
             )
-        )[0]
+        )
+        return results[0]
 
     async def run_sweep_async(
         self,

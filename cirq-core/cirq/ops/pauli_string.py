@@ -197,7 +197,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
     def _value_equality_values_(self):
         if len(self._qubit_pauli_map) == 1 and self.coefficient == 1:
-            q, p = list(self._qubit_pauli_map.items())[0]
+            q, p = next(iter(self._qubit_pauli_map.items()))
             return gate_operation.GateOperation(p, [q])._value_equality_values_()
 
         return (frozenset(self._qubit_pauli_map.items()), self._coefficient)

@@ -242,6 +242,7 @@ BA"""
 
 
 def test_addition_subtraction() -> None:
+    # ruff: disable[RUF005]
     # GridQubits
     assert cirq.GridQubit(1, 2) + (2, 5) == cirq.GridQubit(3, 7)
     assert cirq.GridQubit(1, 2) + (0, 0) == cirq.GridQubit(1, 2)
@@ -311,6 +312,7 @@ def test_addition_subtraction_numpy_array(dtype) -> None:
 
 
 def test_unsupported_add() -> None:
+    # ruff: disable[RUF005]
     with pytest.raises(TypeError, match='1'):
         _ = cirq.GridQubit(1, 1) + 1  # type: ignore[operator]
     with pytest.raises(TypeError, match='(1,)'):

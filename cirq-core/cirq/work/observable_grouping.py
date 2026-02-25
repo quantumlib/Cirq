@@ -49,7 +49,7 @@ def group_settings_greedy(
     grouped_settings: dict[InitObsSetting, list[InitObsSetting]] = {}
     for setting in settings:
         for max_setting, simul_settings in grouped_settings.items():
-            trial_grouped_settings = simul_settings + [setting]
+            trial_grouped_settings = [*simul_settings, setting]
             new_max_weight_state = _max_weight_state(
                 stg.init_state for stg in trial_grouped_settings
             )
