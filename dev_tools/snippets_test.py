@@ -95,7 +95,7 @@ def find_docs_code_snippets_paths() -> Iterator[str]:
         'hardware/pasqal/sampler.md',
     )
     for filename in DOCS_FOLDER.rglob('*.md'):
-        path = str(filename.relative_to(DOCS_FOLDER))
+        path = filename.relative_to(DOCS_FOLDER).as_posix()
         if not path.endswith(excluded):
             yield path
 
