@@ -35,6 +35,11 @@ jobs:
           envsubst < dev_tools/packaging/pypirc_template > $HOME/.pypirc
       - name: Build and publish
         run: |
+          if ${{ contains(github.event.pull_request.labels.*.name, 'ci/no-release') }}; then
+            echo "The PR has ci/no-release label - skipping the release"
+            echo "### Skipped release due to ci/no-release label"  >> ${GITHUB_STEP_SUMMARY}
+            exit 0
+          fi
           CIRQ_PRE_RELEASE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
           if [[ "${CIRQ_PRE_RELEASE_VERSION}" != *.dev* ]]; then
             echo "Not a dev version"
