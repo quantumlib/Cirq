@@ -85,11 +85,18 @@ def test_can_run_readme_code_snippets():
 
 
 def find_docs_code_snippets_paths() -> Iterator[str]:
+    # TODO: #7787 - fix and enable these later
+    excluded = (
+        'hardware/ionq/access.md',
+        'hardware/ionq/calibrations.md',
+        'hardware/ionq/circuits.md',
+        'hardware/ionq/jobs.md',
+        'hardware/ionq/service.md',
+        'hardware/pasqal/sampler.md',
+    )
     for filename in DOCS_FOLDER.rglob('*.md'):
-        # Skip files under 'hardware'
-        # TODO: #7787 - revisit which of these can be fixed and enabled later.
         path = str(filename.relative_to(DOCS_FOLDER))
-        if not path.startswith('hardware'):
+        if not path.endswith(excluded):
             yield path
 
 
