@@ -40,6 +40,11 @@ jobs:
             echo "Not a dev version"
             exit 1
           fi
+          if ${{ contains(github.event.pull_request.labels.*.name, 'ci/no-release') }}; then
+            echo "The PR has ci/no-release label - skipping the release"
+            echo "### Skipped release due to ci/no-release label"  >> ${GITHUB_STEP_SUMMARY}
+            exit 0
+          fi
           echo "Building wheels for the dev version '${CIRQ_PRE_RELEASE_VERSION}'"
           THIS_DATE_EPOCH=$(git log -1 --pretty="%ct")
           out_dir="${HOME}/cirq-dist"
