@@ -35,7 +35,9 @@ jobs:
           envsubst < dev_tools/packaging/pypirc_template > $HOME/.pypirc
       - name: Build and publish
         run: |
-          if ${{ contains(github.event.pull_request.labels.*.name, 'ci/no-release') }}; then
+          if gh pr list --state=merged --search="${GITHUB_SHA}" --label=ci/no-release \
+            --json=mergeCommit --jq=".[].mergeCommit.oid" | grep -q "${GITHUB_SHA}";
+          then
             echo "The PR has ci/no-release label - skipping the release"
             echo "### Skipped release due to ci/no-release label"  >> ${GITHUB_STEP_SUMMARY}
             exit 0
