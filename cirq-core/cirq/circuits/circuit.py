@@ -2153,7 +2153,20 @@ class Circuit(AbstractCircuit):
         if not 0 <= moment_index < len(self._moments):
             return True
 
-        return not self._moments[moment_index].operates_on(operation.qubits)
+        if self._moments[moment_index].operates_on(operation.qubits):
+            return False
+
+        op_measurement_keys = protocols.measurement_key_objs(operation)
+        op_control_keys = protocols.control_keys(operation)
+
+        moment_measurement_keys = protocols.measurement_key_objs(self._moments[moment_index])
+        moment_control_keys = protocols.control_keys(self._moments[moment_index])
+
+        return (
+            op_measurement_keys.isdisjoint(moment_measurement_keys)
+            and op_control_keys.isdisjoint(moment_measurement_keys)
+            and moment_control_keys.isdisjoint(op_measurement_keys)
+        )
 
     def _latest_available_moment(self, op: cirq.Operation, *, start_moment_index: int = 0) -> int:
         """Finds the index of the latest (i.e. right most) moment which can accommodate `op`.
@@ -2999,17 +3012,39 @@ def _group_into_moment_compatible(inputs: Sequence[_MOMENT_OR_OP]) -> Iterator[l
     """
     batch: list[_MOMENT_OR_OP] = []
     batch_qubits: set[cirq.Qid] = set()
+    batch_measurement_keys: set[cirq.MeasurementKey] = set()
+    batch_control_keys: set[cirq.MeasurementKey] = set()
     for mop in inputs:
-        is_moment = isinstance(mop, cirq.Moment)
-        if (is_moment and batch) or not batch_qubits.isdisjoint(mop.qubits):
+        if isinstance(mop, cirq.Moment):
+            if batch:
+                yield batch
+                batch = []
+                batch_qubits.clear()
+                batch_measurement_keys.clear()
+                batch_control_keys.clear()
+            yield [mop]
+            continue
+
+        op_qubits = mop.qubits
+        op_measurement_keys = protocols.measurement_key_objs(mop)
+        op_control_keys = protocols.control_keys(mop)
+
+        if (
+            not batch_qubits.isdisjoint(op_qubits)
+            or not batch_measurement_keys.isdisjoint(op_measurement_keys)
+            or not batch_measurement_keys.isdisjoint(op_control_keys)
+            or not batch_control_keys.isdisjoint(op_measurement_keys)
+        ):
             yield batch
             batch = []
             batch_qubits.clear()
-        if is_moment:
-            yield [mop]
-            continue
+            batch_measurement_keys.clear()
+            batch_control_keys.clear()
+
         batch.append(mop)
-        batch_qubits.update(mop.qubits)
+        batch_qubits.update(op_qubits)
+        batch_measurement_keys.update(op_measurement_keys)
+        batch_control_keys.update(op_control_keys)
     if batch:
         yield batch
 
