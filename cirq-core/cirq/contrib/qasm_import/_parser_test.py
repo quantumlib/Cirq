@@ -167,7 +167,7 @@ def test_multiple_creg_declaration() -> None:
     assert parsed_qasm.qelib1Include
     ct.assert_same_circuits(parsed_qasm.circuit, Circuit())
     assert parsed_qasm.qregs == {'a_quantum_register': 1337}
-    assert parsed_qasm.cregs == {'a_classical_register': 1337, 'c': 42}
+    assert parsed_qasm.cregs == {'a_classical_register': ("bit", 1337), 'c': ("bit", 42)}
 
 
 def test_syntax_error() -> None:
@@ -507,6 +507,47 @@ def test_expressions(expr: str) -> None:
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
+@pytest.mark.parametrize(
+    'expr',
+    [
+        'phi',
+        '3 * phi',
+        'cos(phi)',
+    ],
+)
+def test_expressions_with_identifier(expr: str) -> None:
+    symbol_name = "phi"
+    qasm = f"""OPENQASM 3.0;
+     qreg q[1];
+     angle[64] {symbol_name};
+     U({expr}, 2 * pi, pi / 2.0) q[0];
+"""
+
+    parser = QasmParser()
+
+    q0 = cirq.NamedQubit('q_0')
+
+    ns = {symbol_name:sympy.Symbol(symbol_name)}
+    expected_circuit = Circuit()
+    expected_circuit.append(QasmUGate(sympy.sympify(expr, locals=ns) / np.pi, 2.0, 1 / 2.0)(q0))
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+    assert not parsed_qasm.qelib1Include
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+
+    parsed_qasm_circuit_resolved = cirq.resolve_parameters(parsed_qasm.circuit, {symbol_name: 10})
+    expected_circuit_resolved = cirq.resolve_parameters(expected_circuit, {symbol_name: 10})
+
+    ct.assert_allclose_up_to_global_phase(
+        cirq.unitary(parsed_qasm_circuit_resolved), cirq.unitary(expected_circuit_resolved), atol=1e-10
+    )
+    assert parsed_qasm.qregs == {'q': 1}
+    assert parsed_qasm.cregs == {symbol_name: ("angle", 64)}
+
+
 def test_unknown_function() -> None:
     qasm = """OPENQASM 2.0;
      qreg q[1];
@@ -654,7 +695,7 @@ def test_measure_individual_bits() -> None:
 
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q1': 2}
-    assert parsed_qasm.cregs == {'c1': 2}
+    assert parsed_qasm.cregs == {'c1': ("bit", 2)}
 
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
@@ -685,7 +726,7 @@ def test_measure_registers() -> None:
 
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q1': 3}
-    assert parsed_qasm.cregs == {'c1': 3}
+    assert parsed_qasm.cregs == {'c1': ("bit", 3)}
 
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
@@ -784,7 +825,7 @@ def test_reset() -> None:
 
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 1}
-    assert parsed_qasm.cregs == {'c': 1}
+    assert parsed_qasm.cregs == {'c': ("bit", 1)}
 
 
 def test_u0_gate() -> None:
@@ -1894,6 +1935,17 @@ def test_single_qubit_gates(qasm_gate: str, cirq_gate: cirq.Gate) -> None:
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(expected_circuit))
 
 
+def test_non_bit_type_in_measurement() -> None:
+    qasm = """OPENQASM 3.0;
+     qubit q;
+     angle a;
+     a = measure q;
+    """
+    parser = QasmParser()
+    with pytest.raises(QasmException, match=f"Illegal use of `angle` type register for measurement results at line 4"):
+        parser.parse(qasm)
+
+
 def test_openqasm_3_0_qubits() -> None:
     qasm = """OPENQASM 3.0;
      include "stdgates.inc";
@@ -1942,6 +1994,41 @@ def test_openqasm_3_0_scalar_qubit() -> None:
 
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 1}
+
+
+def test_openqasm_2_0_qubit_unsupported() -> None:
+    qasm = """OPENQASM 2.0;
+     qubit[2] q;
+    """
+    _test_parse_exception(
+        qasm,
+        cirq_err="Version mismatch, an OpenQASM 3.0 register encoundered on line 2 while parsing OpenQASM 2.0",
+        qiskit_err="<input>:2,5: 'qubit' is not defined in this scope",
+    )
+
+
+def test_openqasm_2_0_bit_unsupported() -> None:
+    qasm = """OPENQASM 2.0;
+     qreg q[2];
+     bit[2] b;
+    """
+    _test_parse_exception(
+        qasm,
+        cirq_err="Version mismatch, an OpenQASM 3.0 register encoundered on line 3 while parsing OpenQASM 2.0",
+        qiskit_err="<input>:3,5: 'bit' is not defined in this scope",
+    )
+
+
+def test_openqasm_2_0_scalar_bit_unsupported() -> None:
+    qasm = """OPENQASM 2.0;
+     qreg q[2];
+     bit b;
+    """
+    _test_parse_exception(
+        qasm,
+        cirq_err="Version mismatch, an OpenQASM 3.0 register encoundered on line 3 while parsing OpenQASM 2.0",
+        qiskit_err="<input>:3,5: 'bit' is not defined in this scope",
+    )
 
 
 def test_custom_gate() -> None:
@@ -2190,7 +2277,7 @@ def test_top_level_param_error() -> None:
     """
     _test_parse_exception(
         qasm,
-        cirq_err="Parameter 'p' in line 4 not supported",
+        cirq_err="Undefined parameter 'p' in line 4",
         qiskit_err="4,8: 'p' is not a parameter",
     )
 

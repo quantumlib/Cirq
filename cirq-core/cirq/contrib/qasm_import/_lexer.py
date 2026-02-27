@@ -31,6 +31,7 @@ class QasmLexer:
         'qubit': 'QUBIT',
         'qreg': 'QREG',
         'bit': 'BIT',
+        'angle': 'ANGLE',
         'creg': 'CREG',
         'measure': 'MEASURE',
         'reset': 'RESET',
