@@ -369,6 +369,61 @@ def test_directed_device_bidirectional_swap_preserved() -> None:
     assert preserved_swaps == [cirq.SWAP(q[0], q[1]).with_tags(cirq.RoutingSwapTag())]
 
 
+def test_directed_device_mixed_edges_with_routing() -> None:
+    # Create a mixed graph: 0<->1 (bidirectional), 1->2 (unidirectional)
+    device_graph = nx.DiGraph()
+    q = cirq.LineQubit.range(3)
+    device_graph.add_edges_from([(q[0], q[1]), (q[1], q[0]), (q[1], q[2])])
+
+    router = cirq.RouteCQC(device_graph)
+
+    # Circuit with CNOT(2, 1) - needs to operate on unidirectional edge 1->2
+    # This previously failed with "not adjacent" error during swap candidate selection
+    circuit = cirq.Circuit(cirq.CNOT(q[2], q[1]))
+
+    hard_coded_mapper = cirq.HardCodedInitialMapper(dict(zip(q, q)))
+    # This should not raise an error (previously raised ValueError about non-adjacent qubits)
+    routed_circuit = router(circuit, initial_mapper=hard_coded_mapper)
+
+    # Verify that the routed circuit has operations on adjacent qubits
+    for op in routed_circuit.all_operations():
+        if len(op.qubits) == 2:
+            q1, q2 = op.qubits
+            # Verify qubits are adjacent in the device graph
+            assert device_graph.has_edge(q1, q2) or device_graph.has_edge(
+                q2, q1
+            ), f"Operation {op} acts on non-adjacent qubits {q1}, {q2}"
+
+
+def test_directed_device_routing_with_unidirectional_swap() -> None:
+    # Create a chain: 0->1->2 (all unidirectional forward)
+    device_graph = nx.DiGraph()
+    q = cirq.LineQubit.range(3)
+    device_graph.add_edges_from([(q[0], q[1]), (q[1], q[2])])
+
+    router = cirq.RouteCQC(device_graph)
+
+    # Circuit requiring swap: CNOT(2, 0) - qubits 0 and 2 are 2 hops apart
+    circuit = cirq.Circuit(cirq.CNOT(q[2], q[0]))
+
+    hard_coded_mapper = cirq.HardCodedInitialMapper(dict(zip(q, q)))
+    # This should not raise an error (previously would fail during routing)
+    routed_circuit = router(circuit, initial_mapper=hard_coded_mapper, tag_inserted_swaps=True)
+
+    # Verify that the routed circuit has operations on adjacent qubits
+    for op in routed_circuit.all_operations():
+        if len(op.qubits) == 2:
+            q1, q2 = op.qubits
+            # Verify qubits are adjacent in the device graph
+            assert device_graph.has_edge(q1, q2) or device_graph.has_edge(
+                q2, q1
+            ), f"Operation {op} acts on non-adjacent qubits {q1}, {q2}"
+
+    # Verify swap was inserted and properly tagged (routing should need swaps)
+    tagged_ops = [op for op in routed_circuit.all_operations() if cirq.RoutingSwapTag() in op.tags]
+    assert len(tagged_ops) > 0, "Expected at least one tagged operation for non-adjacent qubits"
+
+
 def test_repr() -> None:
     device = cirq.testing.construct_ring_device(10)
     device_graph = device.metadata.nx_graph

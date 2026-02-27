@@ -83,6 +83,16 @@ class MappingManager:
         self._predecessors, self._distances = nx.floyd_warshall_predecessor_and_distance(
             self._induced_subgraph_int
         )
+        # For directed graphs, compute undirected distances and predecessors for swap operations
+        # (SWAPs are symmetric regardless of underlying gate direction constraints)
+        if isinstance(self._induced_subgraph_int, nx.DiGraph):
+            undirected_graph = self._induced_subgraph_int.to_undirected()
+            self._undirected_predecessors, self._undirected_distances = (
+                nx.floyd_warshall_predecessor_and_distance(undirected_graph)
+            )
+        else:
+            self._undirected_predecessors = self._predecessors
+            self._undirected_distances = self._distances
 
     @property
     def physical_qid_to_int(self) -> dict[cirq.Qid, int]:
@@ -147,6 +157,23 @@ class MappingManager:
         """
         return self._distances[self.logical_to_physical[lq1]][self.logical_to_physical[lq2]]
 
+    def dist_on_device_undirected(self, lq1: int, lq2: int) -> int:
+        """Finds undirected distance between logical qubits on the device.
+
+        This is useful for routing decisions where directionality doesn't matter,
+        such as determining swap costs or shortest paths for SWAP insertion.
+
+        Args:
+            lq1: integer corresponding to the first logical qubit.
+            lq2: integer corresponding to the second logical qubit.
+
+        Returns:
+            The shortest undirected path distance.
+        """
+        return self._undirected_distances[self.logical_to_physical[lq1]][
+            self.logical_to_physical[lq2]
+        ]
+
     def is_adjacent(self, lq1: int, lq2: int) -> bool:
         """Finds whether logical qubits `lq1` and `lq2` are adjacent on the device.
 
@@ -170,12 +197,13 @@ class MappingManager:
         Raises:
             ValueError: whenever lq1 and lq2 are not adjacent on the device.
         """
-        if self.dist_on_device(lq1, lq2) > 1:
+        # Use undirected distance for swap adjacency check
+        pq1, pq2 = self.logical_to_physical[lq1], self.logical_to_physical[lq2]
+        if self._undirected_distances[pq1][pq2] > 1:
             raise ValueError(
                 f"q1: {lq1} and q2: {lq2} are not adjacent on the device. Cannot swap them."
             )
 
-        pq1, pq2 = self.logical_to_physical[lq1], self.logical_to_physical[lq2]
         self._logical_to_physical[[lq1, lq2]] = self._logical_to_physical[[lq2, lq1]]
         self._physical_to_logical[[pq1, pq2]] = self._physical_to_logical[[pq2, pq1]]
 
@@ -207,4 +235,23 @@ class MappingManager:
         """
         return self.physical_to_logical[
             nx.reconstruct_path(*self.logical_to_physical[[lq1, lq2]], self._predecessors)
+        ]
+
+    def shortest_path_undirected(self, lq1: int, lq2: int) -> Sequence[int]:
+        """Find the shortest undirected path between two logical qubits on the device.
+
+        This is useful for routing decisions where directionality doesn't matter,
+        such as finding paths for SWAP insertion.
+
+        Args:
+            lq1: integer corresponding to the first logical qubit.
+            lq2: integer corresponding to the second logical qubit.
+
+        Returns:
+            A sequence of logical qubit integers on the shortest undirected path.
+        """
+        return self.physical_to_logical[
+            nx.reconstruct_path(
+                *self.logical_to_physical[[lq1, lq2]], self._undirected_predecessors
+            )
         ]
