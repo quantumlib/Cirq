@@ -470,3 +470,19 @@ def test_overlapping_gate_families() -> None:
     assert instance_op_with_tag in gs
     assert type_op_no_tag not in gs
     assert type_op_with_tag in gs
+
+
+def test_gateset_contains_classically_controlled_op():
+    op = cirq.PhasedXZGate(x_exponent=0.3, z_exponent=0.423, axis_phase_exponent=0.324)(cirq.q(0))
+    cop = op.with_classical_controls('c')
+    assert cop not in cirq.Gateset(cirq.PhasedXZGate, allow_classically_controlled_operations=False)
+    assert cop in cirq.Gateset(cirq.PhasedXZGate, allow_classically_controlled_operations=True)
+
+
+def test_gatefamily_contains_classically_controlled_op():
+    op = cirq.PhasedXZGate(x_exponent=0.3, z_exponent=0.423, axis_phase_exponent=0.324)(cirq.q(0))
+    cop = op.with_classical_controls('c')
+    assert cop not in cirq.GateFamily(
+        cirq.PhasedXZGate, allow_classically_controlled_operations=False
+    )
+    assert cop in cirq.GateFamily(cirq.PhasedXZGate, allow_classically_controlled_operations=True)
