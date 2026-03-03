@@ -79,6 +79,7 @@ def _create_device_spec_with_horizontal_couplings():
         'meas',
         'wait',
         'fsim_via_model',
+        'two_pulse_fsim',
         'cz_pow_gate',
         'internal_gate',
         'reset',
@@ -121,10 +122,8 @@ def _create_device_spec_with_horizontal_couplings():
         cirq.GateFamily(cirq_google.experimental.ops.coupler_pulse.CouplerPulse),
         cirq.GateFamily(cirq.ops.measurement_gate.MeasurementGate),
         cirq.GateFamily(cirq.ops.wait_gate.WaitGate),
-        cirq.GateFamily(
-            cirq.ops.FSimGate,
-            tags_to_accept=[cirq_google.FSimViaModelTag(), cirq_google.TwoPulseFSimTag()],
-        ),
+        cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
+        cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.TwoPulseFSimTag()]),
         cirq.GateFamily(cirq.CZPowGate),
         cirq.GateFamily(cirq_google.InternalGate),
         cirq.GateFamily(cirq.ResetChannel),
@@ -166,16 +165,19 @@ def _create_device_spec_with_horizontal_couplings():
         cirq.GateFamily(cirq.ops.measurement_gate.MeasurementGate): base_duration * 8,
         cirq.GateFamily(cirq.ops.wait_gate.WaitGate): base_duration * 9,
         cirq.GateFamily(
-            cirq.ops.FSimGate,
-            tags_to_accept=[cirq_google.FSimViaModelTag(), cirq_google.TwoPulseFSimTag()],
+            cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]
         ): base_duration
         * 10,
-        cirq.GateFamily(cirq.CZPowGate): base_duration * 11,
-        cirq.GateFamily(cirq_google.InternalGate): base_duration * 12,
-        cirq.GateFamily(cirq.ResetChannel): base_duration * 13,
-        cirq.GateFamily(cirq_google.AnalogDetuneQubit): base_duration * 14,
-        cirq.GateFamily(cirq_google.AnalogDetuneCouplerOnly): base_duration * 15,
-        cirq.GateFamily(cirq_google.WaitGateWithUnit): base_duration * 16,
+        cirq.GateFamily(
+            cirq.ops.FSimGate, tags_to_accept=[cirq_google.TwoPulseFSimTag()]
+        ): base_duration
+        * 11,
+        cirq.GateFamily(cirq.CZPowGate): base_duration * 12,
+        cirq.GateFamily(cirq_google.InternalGate): base_duration * 13,
+        cirq.GateFamily(cirq.ResetChannel): base_duration * 14,
+        cirq.GateFamily(cirq_google.AnalogDetuneQubit): base_duration * 15,
+        cirq.GateFamily(cirq_google.AnalogDetuneCouplerOnly): base_duration * 16,
+        cirq.GateFamily(cirq_google.WaitGateWithUnit): base_duration * 17,
     }
 
     expected_target_gatesets = (
@@ -205,10 +207,8 @@ def _create_device_spec_with_horizontal_couplings():
                 ),
                 cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
                 cirq.ops.wait_gate.WaitGate,
-                cirq.GateFamily(
-                    cirq.ops.FSimGate,
-                    tags_to_accept=[cirq_google.FSimViaModelTag(), cirq_google.TwoPulseFSimTag()],
-                ),
+                cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
+                cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.TwoPulseFSimTag()]),
                 cirq.GateFamily(cirq_google.InternalGate),
                 cirq.GateFamily(cirq.ResetChannel),
                 cirq.GateFamily(cirq_google.AnalogDetuneQubit),
@@ -243,10 +243,8 @@ def _create_device_spec_with_horizontal_couplings():
                 ),
                 cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
                 cirq.ops.wait_gate.WaitGate,
-                cirq.GateFamily(
-                    cirq.ops.FSimGate,
-                    tags_to_accept=[cirq_google.FSimViaModelTag(), cirq_google.TwoPulseFSimTag()],
-                ),
+                cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
+                cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.TwoPulseFSimTag()]),
                 cirq.GateFamily(cirq_google.InternalGate),
                 cirq.GateFamily(cirq.ResetChannel),
                 cirq.GateFamily(cirq_google.AnalogDetuneQubit),
@@ -283,10 +281,8 @@ def _create_device_spec_with_horizontal_couplings():
                 ),
                 cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
                 cirq.ops.wait_gate.WaitGate,
-                cirq.GateFamily(
-                    cirq.ops.FSimGate,
-                    tags_to_accept=[cirq_google.FSimViaModelTag(), cirq_google.TwoPulseFSimTag()],
-                ),
+                cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
+                cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.TwoPulseFSimTag()]),
                 cirq.GateFamily(cirq_google.InternalGate),
                 cirq.GateFamily(cirq.ResetChannel),
                 cirq.GateFamily(cirq_google.AnalogDetuneQubit),
@@ -647,10 +643,8 @@ def test_device_from_device_information_equals_device_from_proto():
         cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
         cirq.ops.measurement_gate.MeasurementGate,
         cirq.ops.wait_gate.WaitGate,
-        cirq.GateFamily(
-            cirq.ops.FSimGate,
-            tags_to_accept=[cirq_google.FSimViaModelTag(), cirq_google.TwoPulseFSimTag()],
-        ),
+        cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
+        cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.TwoPulseFSimTag()]),
         cirq.GateFamily(cirq_google.InternalGate),
         cirq.GateFamily(cirq.ResetChannel),
         cirq.GateFamily(cirq_google.AnalogDetuneQubit),
@@ -677,16 +671,19 @@ def test_device_from_device_information_equals_device_from_proto():
         cirq.GateFamily(cirq.ops.measurement_gate.MeasurementGate): base_duration * 8,
         cirq.GateFamily(cirq.ops.wait_gate.WaitGate): base_duration * 9,
         cirq.GateFamily(
-            cirq.ops.FSimGate,
-            tags_to_accept=[cirq_google.FSimViaModelTag(), cirq_google.TwoPulseFSimTag()],
+            cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]
         ): base_duration
         * 10,
-        cirq.GateFamily(cirq.CZPowGate): base_duration * 11,
-        cirq.GateFamily(cirq_google.InternalGate): base_duration * 12,
-        cirq.GateFamily(cirq.ResetChannel): base_duration * 13,
-        cirq.GateFamily(cirq_google.AnalogDetuneQubit): base_duration * 14,
-        cirq.GateFamily(cirq_google.AnalogDetuneCouplerOnly): base_duration * 15,
-        cirq.GateFamily(cirq_google.WaitGateWithUnit): base_duration * 16,
+        cirq.GateFamily(
+            cirq.ops.FSimGate, tags_to_accept=[cirq_google.TwoPulseFSimTag()]
+        ): base_duration
+        * 11,
+        cirq.GateFamily(cirq.CZPowGate): base_duration * 12,
+        cirq.GateFamily(cirq_google.InternalGate): base_duration * 13,
+        cirq.GateFamily(cirq.ResetChannel): base_duration * 14,
+        cirq.GateFamily(cirq_google.AnalogDetuneQubit): base_duration * 15,
+        cirq.GateFamily(cirq_google.AnalogDetuneCouplerOnly): base_duration * 16,
+        cirq.GateFamily(cirq_google.WaitGateWithUnit): base_duration * 17,
     }
 
     device_from_information = cirq_google.GridDevice._from_device_information(
@@ -790,16 +787,19 @@ def test_to_proto():
         cirq.GateFamily(cirq.ops.measurement_gate.MeasurementGate): base_duration * 8,
         cirq.GateFamily(cirq.ops.wait_gate.WaitGate): base_duration * 9,
         cirq.GateFamily(
-            cirq.ops.FSimGate,
-            tags_to_accept=[cirq_google.FSimViaModelTag(), cirq_google.TwoPulseFSimTag()],
+            cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]
         ): base_duration
         * 10,
-        cirq.GateFamily(cirq.CZPowGate): base_duration * 11,
-        cirq.GateFamily(cirq_google.InternalGate): base_duration * 12,
-        cirq.GateFamily(cirq.ResetChannel): base_duration * 13,
-        cirq.GateFamily(cirq_google.AnalogDetuneQubit): base_duration * 14,
-        cirq.GateFamily(cirq_google.AnalogDetuneCouplerOnly): base_duration * 15,
-        cirq.GateFamily(cirq_google.WaitGateWithUnit): base_duration * 16,
+        cirq.GateFamily(
+            cirq.ops.FSimGate, tags_to_accept=[cirq_google.TwoPulseFSimTag()]
+        ): base_duration
+        * 11,
+        cirq.GateFamily(cirq.CZPowGate): base_duration * 12,
+        cirq.GateFamily(cirq_google.InternalGate): base_duration * 13,
+        cirq.GateFamily(cirq.ResetChannel): base_duration * 14,
+        cirq.GateFamily(cirq_google.AnalogDetuneQubit): base_duration * 15,
+        cirq.GateFamily(cirq_google.AnalogDetuneCouplerOnly): base_duration * 16,
+        cirq.GateFamily(cirq_google.WaitGateWithUnit): base_duration * 17,
     }
 
     spec = cirq_google.GridDevice._from_device_information(
