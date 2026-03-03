@@ -416,6 +416,9 @@ message Tag {
     // Uses parameter model to interpolate FSim gate.
     FSimViaModelTag fsim_via_model = 7;
 
+    // Use two-pulse FSim gate implementation.
+    TwoPulseFSimTag two_pulse_fsim = 12;
+
     // Calibration Tag
     CalibrationTag calibration_tag = 9;
     
@@ -428,8 +431,6 @@ message Tag {
 
     // Raw Types such as strings and other values
     Arg raw_value = 11;
-    // Use two-pulse FSim gate implementation.
-    TwoPulseFSimTag two_pulse_fsim = 9;
   }
 }
 
