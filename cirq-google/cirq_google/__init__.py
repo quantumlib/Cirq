@@ -64,8 +64,8 @@ from cirq_google.ops import (
     PhysicalZTag as PhysicalZTag,
     SYC as SYC,
     SycamoreGate as SycamoreGate,
-    WaitGateWithUnit as WaitGateWithUnit,
     TwoPulseFSimTag as TwoPulseFSimTag,
+    WaitGateWithUnit as WaitGateWithUnit,
     WILLOW as WILLOW,
     WillowGate as WillowGate,
 )

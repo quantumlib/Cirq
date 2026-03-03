@@ -21,20 +21,20 @@ import cirq_google
 from cirq_google.api.v2 import program_pb2
 
 
-def test_equality():
+def test_equality() -> None:
     assert cirq_google.TwoPulseFSimTag() == cirq_google.TwoPulseFSimTag()
     assert hash(cirq_google.TwoPulseFSimTag()) == hash(cirq_google.TwoPulseFSimTag())
 
 
-def test_str_repr():
+def test_str_repr() -> None:
     assert str(cirq_google.TwoPulseFSimTag()) == 'TwoPulseFSimTag()'
     assert repr(cirq_google.TwoPulseFSimTag()) == 'cirq_google.TwoPulseFSimTag()'
     cirq.testing.assert_equivalent_repr(
-        cirq_google.TwoPulseFSimTag(), setup_code=('import cirq\nimport cirq_google\n')
+        cirq_google.TwoPulseFSimTag(), setup_code='import cirq_google'
     )
 
 
-def test_proto():
+def test_proto() -> None:
     tag = cirq_google.TwoPulseFSimTag()
     msg = tag.to_proto()
     assert tag == cirq_google.TwoPulseFSimTag.from_proto(msg)
