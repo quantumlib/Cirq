@@ -34,9 +34,13 @@ jobs:
         run: |
           envsubst < dev_tools/packaging/pypirc_template > $HOME/.pypirc
       - name: Build and publish
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          if gh pr list --state=merged --search="${GITHUB_SHA}" --label=ci/no-release \
-            --json=mergeCommit --jq=".[].mergeCommit.oid" | grep -q "${GITHUB_SHA}";
+          pr_number=$(git log -1 --pretty="%s" | sed -n -E "s/.*[(]#([0-9]+)[)]$/\1/p")
+          if (( pr_number )) &&
+            gh pr view --json=labels --jq=".labels[].name" "${pr_number}" |
+            grep -q -x ci/no-release;
           then
             echo "The PR has a ci/no-release label - skipping the release"
             echo "### Skipped release due to ci/no-release label"  >> ${GITHUB_STEP_SUMMARY}
