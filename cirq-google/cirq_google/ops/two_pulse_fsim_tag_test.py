@@ -36,9 +36,8 @@ def test_str_repr():
 
 def test_proto():
     tag = cirq_google.TwoPulseFSimTag()
-    # Note: This test assumes program_pb2 has been updated with two_pulse_fsim field.
-    # msg = tag.to_proto()
-    # assert tag == cirq_google.TwoPulseFSimTag.from_proto(msg)
+    msg = tag.to_proto()
+    assert tag == cirq_google.TwoPulseFSimTag.from_proto(msg)
 
     with pytest.raises(ValueError, match="Message is not a TwoPulseFSimTag"):
         msg = program_pb2.Tag()

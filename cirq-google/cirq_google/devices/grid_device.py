@@ -167,7 +167,7 @@ _GATES: list[_GateRepresentations] = [
         gate_spec_name='fsim_via_model',
         supported_gates=[
             cirq.GateFamily(
-                cirq.FSimGate, tags_to_accept=[ops.FSimViaModelTag(), ops.TwoPulseFSimTag]
+                cirq.FSimGate, tags_to_accept=[ops.FSimViaModelTag(), ops.TwoPulseFSimTag()]
             )
         ],
     ),
