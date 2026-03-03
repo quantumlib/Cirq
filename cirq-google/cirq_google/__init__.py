@@ -65,6 +65,7 @@ from cirq_google.ops import (
     SYC as SYC,
     SycamoreGate as SycamoreGate,
     WaitGateWithUnit as WaitGateWithUnit,
+    TwoPulseFSimTag as TwoPulseFSimTag,
     WILLOW as WILLOW,
     WillowGate as WillowGate,
 )
