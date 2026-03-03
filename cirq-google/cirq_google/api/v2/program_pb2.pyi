@@ -1024,6 +1024,7 @@ class Tag(google.protobuf.message.Message):
     PHYSICAL_Z_FIELD_NUMBER: builtins.int
     CLASSICAL_STATE_FIELD_NUMBER: builtins.int
     FSIM_VIA_MODEL_FIELD_NUMBER: builtins.int
+    TWO_PULSE_FSIM_FIELD_NUMBER: builtins.int
     CALIBRATION_TAG_FIELD_NUMBER: builtins.int
     COMPRESS_DURATION_FIELD_NUMBER: builtins.int
     INTERNAL_TAG_FIELD_NUMBER: builtins.int
@@ -1068,6 +1069,10 @@ class Tag(google.protobuf.message.Message):
         """
 
     @property
+    def two_pulse_fsim(self) -> Global___TwoPulseFSimTag:
+        """Use two-pulse FSim gate implementation."""
+
+    @property
     def calibration_tag(self) -> Global___CalibrationTag:
         """Calibration Tag"""
 
@@ -1094,14 +1099,15 @@ class Tag(google.protobuf.message.Message):
         physical_z: Global___PhysicalZTag | None = ...,
         classical_state: Global___ClassicalStateTag | None = ...,
         fsim_via_model: Global___FSimViaModelTag | None = ...,
+        two_pulse_fsim: Global___TwoPulseFSimTag | None = ...,
         calibration_tag: Global___CalibrationTag | None = ...,
         compress_duration: Global___CompressDurationTag | None = ...,
         internal_tag: Global___InternalTag | None = ...,
         raw_value: Global___Arg | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["calibration_tag", b"calibration_tag", "classical_state", b"classical_state", "compress_duration", b"compress_duration", "dynamical_decoupling", b"dynamical_decoupling", "fsim_via_model", b"fsim_via_model", "internal_tag", b"internal_tag", "no_sync", b"no_sync", "phase_match", b"phase_match", "physical_z", b"physical_z", "raw_value", b"raw_value", "tag", b"tag"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["calibration_tag", b"calibration_tag", "classical_state", b"classical_state", "compress_duration", b"compress_duration", "dynamical_decoupling", b"dynamical_decoupling", "fsim_via_model", b"fsim_via_model", "internal_tag", b"internal_tag", "no_sync", b"no_sync", "phase_match", b"phase_match", "physical_z", b"physical_z", "raw_value", b"raw_value", "tag", b"tag"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["tag", b"tag"]) -> typing.Literal["dynamical_decoupling", "no_sync", "phase_match", "physical_z", "classical_state", "fsim_via_model", "calibration_tag", "compress_duration", "internal_tag", "raw_value"] | None: ...
+    def HasField(self, field_name: typing.Literal["calibration_tag", b"calibration_tag", "classical_state", b"classical_state", "compress_duration", b"compress_duration", "dynamical_decoupling", b"dynamical_decoupling", "fsim_via_model", b"fsim_via_model", "internal_tag", b"internal_tag", "no_sync", b"no_sync", "phase_match", b"phase_match", "physical_z", b"physical_z", "raw_value", b"raw_value", "tag", b"tag", "two_pulse_fsim", b"two_pulse_fsim"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["calibration_tag", b"calibration_tag", "classical_state", b"classical_state", "compress_duration", b"compress_duration", "dynamical_decoupling", b"dynamical_decoupling", "fsim_via_model", b"fsim_via_model", "internal_tag", b"internal_tag", "no_sync", b"no_sync", "phase_match", b"phase_match", "physical_z", b"physical_z", "raw_value", b"raw_value", "tag", b"tag", "two_pulse_fsim", b"two_pulse_fsim"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["tag", b"tag"]) -> typing.Literal["dynamical_decoupling", "no_sync", "phase_match", "physical_z", "classical_state", "fsim_via_model", "two_pulse_fsim", "calibration_tag", "compress_duration", "internal_tag", "raw_value"] | None: ...
 
 Global___Tag: typing_extensions.TypeAlias = Tag
 
@@ -1152,6 +1158,16 @@ class FSimViaModelTag(google.protobuf.message.Message):
     ) -> None: ...
 
 Global___FSimViaModelTag: typing_extensions.TypeAlias = FSimViaModelTag
+
+@typing.final
+class TwoPulseFSimTag(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    def __init__(
+        self,
+    ) -> None: ...
+
+Global___TwoPulseFSimTag: typing_extensions.TypeAlias = TwoPulseFSimTag
 
 @typing.final
 class NoSyncTag(google.protobuf.message.Message):
