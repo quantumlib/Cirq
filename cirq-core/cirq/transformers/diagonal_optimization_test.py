@@ -14,7 +14,6 @@
 
 """Tests for diagonal_optimization transformer."""
 
-
 import numpy as np
 
 import cirq

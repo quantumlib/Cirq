@@ -150,6 +150,10 @@ def test_neighbors() -> None:
     restricted_qubits = [cirq.GridQubit(2, 1), cirq.GridQubit(2, 2)]
     assert cirq.GridQubit(1, 1).neighbors(restricted_qubits) == {cirq.GridQubit(2, 1)}
 
+    # Check with qids iterator
+    neighbor_qubits = [cirq.GridQubit(0, 1), cirq.GridQubit(2, 1)]
+    assert cirq.GridQubit(1, 1).neighbors(iter(neighbor_qubits)) == set(neighbor_qubits)
+
 
 def test_square() -> None:
     assert cirq.GridQubit.square(2, top=1, left=1) == [
@@ -238,6 +242,7 @@ BA"""
 
 
 def test_addition_subtraction() -> None:
+    # ruff: disable[RUF005]
     # GridQubits
     assert cirq.GridQubit(1, 2) + (2, 5) == cirq.GridQubit(3, 7)
     assert cirq.GridQubit(1, 2) + (0, 0) == cirq.GridQubit(1, 2)
@@ -307,6 +312,7 @@ def test_addition_subtraction_numpy_array(dtype) -> None:
 
 
 def test_unsupported_add() -> None:
+    # ruff: disable[RUF005]
     with pytest.raises(TypeError, match='1'):
         _ = cirq.GridQubit(1, 1) + 1  # type: ignore[operator]
     with pytest.raises(TypeError, match='(1,)'):

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Define detuning gates for Analog Experiment usage."""
+
 from __future__ import annotations
 
 from collections.abc import Iterable, Set

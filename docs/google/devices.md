@@ -39,7 +39,7 @@ For example, this circuit will execute the two gates in parallel:
 
 ```python
 cirq.Circuit(
-  cirq.Moment(cirq.X(cirq.GridQubit(4,4)), cirq.X(cirq.GridQubit(4,5)))
+    cirq.Moment(cirq.X(cirq.GridQubit(4, 4)), cirq.X(cirq.GridQubit(4, 5)))
 )
 ```
 
@@ -48,8 +48,8 @@ This circuit will execute the two gates in serial:
 
 ```python
 cirq.Circuit(
-  cirq.Moment(cirq.X(cirq.GridQubit(4,4))),
-  cirq.Moment(cirq.X(cirq.GridQubit(4,5)))
+    cirq.Moment(cirq.X(cirq.GridQubit(4, 4))),
+    cirq.Moment(cirq.X(cirq.GridQubit(4, 5))),
 )
 ```
 
@@ -58,8 +58,8 @@ is virtual and its moment will disappear:
 
 ```python
 cirq.Circuit(
-  cirq.Moment(cirq.Z(cirq.GridQubit(4,4))),
-  cirq.Moment(cirq.X(cirq.GridQubit(4,5)))
+    cirq.Moment(cirq.Z(cirq.GridQubit(4, 4))),
+    cirq.Moment(cirq.X(cirq.GridQubit(4, 5))),
 )
 ```
 
@@ -89,7 +89,7 @@ in 0.02 increments.
 
 
 ```python
-descriptor = cirq_google.study.DeviceParameter( ["q4_8", "piAmp"])
+descriptor = cirq_google.study.DeviceParameter(["q4_8", "piAmp"])
 sweep = cirq.Linspace("q4_8.piAmp", 0, 1, 51, metadata=descriptor)
 ```
 
@@ -295,9 +295,9 @@ It can be accessed by using `cirq_google.Sycamore`. This device has two possible
 two-qubits gates that can be used.
 
 *  Square root of ISWAP. The gate `cirq.ISWAP ** 0.5` or `cirq.ISWAP ** -0.5` can be
-used on this device.
+   used on this device.
 *  Sycamore gate. This gate, equivalent to FSimGate(π/2, π/6) can be used as `cirq_google.SYC`
-or by using `cirq.FsimGate(numpy.pi/2,numpy.pi/6)`. 
+   or by using `cirq.FsimGate(numpy.pi/2,numpy.pi/6)`.
 
 
 ### Sycamore23

@@ -191,6 +191,8 @@ from cirq.ops import (
     BooleanHamiltonianGate as BooleanHamiltonianGate,
     CCX as CCX,
     CCXPowGate as CCXPowGate,
+    CCY as CCY,
+    CCYPowGate as CCYPowGate,
     CCZ as CCZ,
     CCZPowGate as CCZPowGate,
     CCNOT as CCNOT,
@@ -206,6 +208,8 @@ from cirq.ops import (
     CSwapGate as CSwapGate,
     CX as CX,
     CXPowGate as CXPowGate,
+    CY as CY,
+    CYPowGate as CYPowGate,
     CXSWAP as CXSWAP,
     CZ as CZ,
     CZSWAP as CZSWAP,
@@ -695,13 +699,11 @@ from cirq.work import (
     ZerosSampler as ZerosSampler,
 )
 
-
 # Unflattened sub-modules.
 
 # Registers cirq-core's public classes for JSON serialization.
 from cirq.protocols.json_serialization import _register_resolver
 from cirq.json_resolver_cache import _class_resolver_dictionary
-
 
 _register_resolver(_class_resolver_dictionary)
 

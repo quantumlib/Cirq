@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Tools for creating and using acquaintance strategies."""
+
 from cirq.contrib.acquaintance.bipartite import (
     BipartiteGraphType as BipartiteGraphType,
     BipartiteSwapNetworkGate as BipartiteSwapNetworkGate,

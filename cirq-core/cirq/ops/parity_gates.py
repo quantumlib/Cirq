@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterator
 from typing import Any, Self, TYPE_CHECKING
 
 import numpy as np
@@ -24,14 +24,7 @@ import numpy as np
 from cirq import protocols, value
 from cirq._compat import proper_repr
 from cirq._doc import document
-from cirq.ops import (
-    clifford_gate,
-    common_gates,
-    eigen_gate,
-    gate_features,
-    pauli_gates,
-    pauli_interaction_gate,
-)
+from cirq.ops import common_gates, eigen_gate, gate_features
 
 if TYPE_CHECKING:
     import cirq
@@ -94,27 +87,6 @@ class XXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         if self._is_parameterized_():
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
-
-    def _decompose_into_clifford_with_qubits_(self, qubits):
-        if self.exponent % 2 == 0:
-            return []
-        if self.exponent % 2 == 0.5:
-            return [
-                pauli_interaction_gate.PauliInteractionGate(
-                    pauli_gates.X, False, pauli_gates.X, False
-                ).on(*qubits),
-                clifford_gate.SingleQubitCliffordGate.X_sqrt.on_each(*qubits),
-            ]
-        if self.exponent % 2 == 1:
-            return [clifford_gate.SingleQubitCliffordGate.X.on_each(*qubits)]
-        if self.exponent % 2 == 1.5:
-            return [
-                pauli_interaction_gate.PauliInteractionGate(
-                    pauli_gates.X, False, pauli_gates.X, False
-                ).on(*qubits),
-                clifford_gate.SingleQubitCliffordGate.X_nsqrt.on_each(*qubits),
-            ]
-        return NotImplemented
 
     def _has_stabilizer_effect_(self) -> bool:
         return self.exponent % 2 in (0, 0.5, 1, 1.5)
@@ -204,27 +176,6 @@ class YYPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
-    def _decompose_into_clifford_with_qubits_(self, qubits):
-        if self.exponent % 2 == 0:
-            return []
-        if self.exponent % 2 == 0.5:
-            return [
-                pauli_interaction_gate.PauliInteractionGate(
-                    pauli_gates.Y, False, pauli_gates.Y, False
-                ).on(*qubits),
-                clifford_gate.SingleQubitCliffordGate.Y_sqrt.on_each(*qubits),
-            ]
-        if self.exponent % 2 == 1:
-            return [clifford_gate.SingleQubitCliffordGate.Y.on_each(*qubits)]
-        if self.exponent % 2 == 1.5:
-            return [
-                pauli_interaction_gate.PauliInteractionGate(
-                    pauli_gates.Y, False, pauli_gates.Y, False
-                ).on(*qubits),
-                clifford_gate.SingleQubitCliffordGate.Y_nsqrt.on_each(*qubits),
-            ]
-        return NotImplemented
-
     def _has_stabilizer_effect_(self) -> bool:
         return self.exponent % 2 in (0, 0.5, 1, 1.5)
 
@@ -279,31 +230,6 @@ class ZZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         yield common_gates.CZPowGate(
             exponent=-2 * self.exponent, global_shift=-self.global_shift / 2
         )(qubits[0], qubits[1])
-
-    def _decompose_into_clifford_with_qubits_(
-        self, qubits: Sequence[cirq.Qid]
-    ) -> Sequence[cirq.Operation | Sequence[cirq.Operation]]:
-        if not self._has_stabilizer_effect_():
-            return NotImplemented
-        if self.exponent % 2 == 0:
-            return []
-        if self.exponent % 2 == 1:
-            return clifford_gate.SingleQubitCliffordGate.Z.on_each(*qubits)
-
-        if self.exponent % 2 == 0.5:
-            return [
-                pauli_interaction_gate.PauliInteractionGate(
-                    pauli_gates.Z, False, pauli_gates.Z, False
-                ).on(*qubits),
-                clifford_gate.SingleQubitCliffordGate.Z_sqrt.on_each(*qubits),
-            ]
-        else:
-            return [
-                pauli_interaction_gate.PauliInteractionGate(
-                    pauli_gates.Z, False, pauli_gates.Z, False
-                ).on(*qubits),
-                clifford_gate.SingleQubitCliffordGate.Z_nsqrt.on_each(*qubits),
-            ]
 
     def _has_stabilizer_effect_(self) -> bool:
         return self.exponent % 2 in (0, 0.5, 1, 1.5)

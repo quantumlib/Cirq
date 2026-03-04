@@ -413,7 +413,7 @@ def test_with_key_path() -> None:
     assert cirq.measurement_key_names(remap_op) == {'a:b:m'}
     assert cirq.with_key_path(remap_op, ('a', 'b')) is remap_op
 
-    assert cirq.with_key_path(op, tuple()) is op
+    assert cirq.with_key_path(op, ()) is op
 
     assert cirq.with_key_path(cirq.X(a), ('a', 'b')) is NotImplemented
 
@@ -423,8 +423,8 @@ def test_with_key_path_prefix() -> None:
     op = cirq.measure(a, key='m')
     remap_op = cirq.with_key_path_prefix(op, ('a', 'b'))
     assert cirq.measurement_key_names(remap_op) == {'a:b:m'}
-    assert cirq.with_key_path_prefix(remap_op, tuple()) is remap_op
-    assert cirq.with_key_path_prefix(op, tuple()) is op
+    assert cirq.with_key_path_prefix(remap_op, ()) is remap_op
+    assert cirq.with_key_path_prefix(op, ()) is op
     assert cirq.with_key_path_prefix(cirq.X(a), ('a', 'b')) is NotImplemented
 
 
@@ -485,7 +485,7 @@ def test_group_interchangeable_qubits_creates_tuples_with_unique_keys() -> None:
 def test_gate_to_operation_to_gate_round_trips() -> None:
     def all_subclasses(cls):
         return set(cls.__subclasses__()).union(
-            [s for c in cls.__subclasses__() for s in all_subclasses(c)]
+            s for c in cls.__subclasses__() for s in all_subclasses(c)
         )
 
     # Only test gate subclasses in cirq-core.

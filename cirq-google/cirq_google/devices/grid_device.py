@@ -168,6 +168,10 @@ _GATES: list[_GateRepresentations] = [
         supported_gates=[cirq.GateFamily(cirq.FSimGate, tags_to_accept=[ops.FSimViaModelTag()])],
     ),
     _GateRepresentations(
+        gate_spec_name='two_pulse_fsim',
+        supported_gates=[cirq.GateFamily(cirq.FSimGate, tags_to_accept=[ops.TwoPulseFSimTag()])],
+    ),
+    _GateRepresentations(
         gate_spec_name='internal_gate', supported_gates=[cirq.GateFamily(ops.InternalGate)]
     ),
     _GateRepresentations(

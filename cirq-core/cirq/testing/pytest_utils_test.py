@@ -35,3 +35,16 @@ def test_retry_once_with_later_random_values() -> None:
     with pytest.warns(UserWarning, match="Retrying.*failing seed.*pytest-randomly"):
         decoratedfunc()
     assert testfunc.call_count == 2
+
+
+def test_session_properties(record_property, request) -> None:
+    """Record pytest session properties for JUnit XML report.
+
+    No testing of actual code.  The purpose of this test is to
+    record pytest session properties when pytest does XML report.
+    """
+    # Note: pytest has a dedicated record_testsuite_property fixture,
+    # but it does not work for parallel executions with pytest-xdist.
+    # As a workaround we use this no-op test and record_property instead.
+    randomly_seed: str = request.config.getoption("randomly_seed", "")
+    record_property("randomly_seed", randomly_seed)

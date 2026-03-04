@@ -67,9 +67,7 @@ class TextDiagramDrawer:
         horizontal_padding: Mapping[int, float] | None = None,
         vertical_padding: Mapping[int, float] | None = None,
     ) -> None:
-        self.entries: dict[tuple[int, int], _DiagramText] = (
-            dict() if entries is None else dict(entries)
-        )
+        self.entries: dict[tuple[int, int], _DiagramText] = {} if entries is None else dict(entries)
         self.horizontal_lines: list[_HorizontalLine] = (
             [] if horizontal_lines is None else list(horizontal_lines)
         )
@@ -77,10 +75,10 @@ class TextDiagramDrawer:
             [] if vertical_lines is None else list(vertical_lines)
         )
         self.horizontal_padding: dict[int, float] = (
-            dict() if horizontal_padding is None else dict(horizontal_padding)
+            {} if horizontal_padding is None else dict(horizontal_padding)
         )
         self.vertical_padding: dict[int, float] = (
-            dict() if vertical_padding is None else dict(vertical_padding)
+            {} if vertical_padding is None else dict(vertical_padding)
         )
 
     def _value_equality_values_(self):
@@ -114,6 +112,7 @@ class TextDiagramDrawer:
 
     def content_present(self, x: int, y: int) -> bool:
         """Determines if a line or printed text is at the given location."""
+        # ruff: disable[SIM103]
 
         # Text?
         if (x, y) in self.entries:

@@ -224,7 +224,7 @@ def test_parameterized_linear_combination_of_gates(
     gate = cirq.LinearCombinationOfGates(terms)
     assert cirq.is_parameterized(gate) == is_parameterized
     assert cirq.parameter_names(gate) == parameter_names
-    resolved = resolve_fn(gate, {p: 1 for p in parameter_names})
+    resolved = resolve_fn(gate, dict.fromkeys(parameter_names, 1))
     assert not cirq.is_parameterized(resolved)
 
 
@@ -745,7 +745,7 @@ def test_parameterized_linear_combination_of_ops(
     op = cirq.LinearCombinationOfOperations(terms)
     assert cirq.is_parameterized(op) == is_parameterized
     assert cirq.parameter_names(op) == parameter_names
-    resolved = resolve_fn(op, {p: 1 for p in parameter_names})
+    resolved = resolve_fn(op, dict.fromkeys(parameter_names, 1))
     assert not cirq.is_parameterized(resolved)
 
 

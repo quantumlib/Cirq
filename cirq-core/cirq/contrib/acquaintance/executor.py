@@ -186,7 +186,7 @@ class GreedyExecutionStrategy(ExecutionStrategy):
             NotImplementedError: If not all gates are of the same arity.
         """
 
-        if len(set(len(indices) for indices in gates)) > 1:
+        if len({len(indices) for indices in gates}) > 1:
             raise NotImplementedError(
                 'Can only implement greedy strategy if all gates are of the same arity.'
             )
@@ -223,7 +223,4 @@ class GreedyExecutionStrategy(ExecutionStrategy):
         for indices, gate in gates.items():
             indices = tuple(indices)
             canonicalized_gates[frozenset(indices)][indices] = gate
-        return {
-            canonical_indices: dict(list(gates.items()))
-            for canonical_indices, gates in canonicalized_gates.items()
-        }
+        return dict(canonicalized_gates)

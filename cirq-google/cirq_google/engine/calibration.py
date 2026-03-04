@@ -115,7 +115,7 @@ class Calibration(abc.Mapping):
         return len(self._metric_dict)
 
     def __str__(self) -> str:
-        return f'Calibration(keys={list(sorted(self.keys()))})'
+        return f'Calibration(keys={sorted(self.keys())})'
 
     def __repr__(self) -> str:
         return f'cirq_google.Calibration(metrics={dict(self._metric_dict)!r})'
