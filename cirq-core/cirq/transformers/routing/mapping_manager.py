@@ -85,10 +85,10 @@ class MappingManager:
         )
         # For directed graphs, compute undirected distances and predecessors for swap operations
         # (SWAPs are symmetric regardless of underlying gate direction constraints)
-        if isinstance(self._induced_subgraph_int, nx.DiGraph):
-            undirected_graph = self._induced_subgraph_int.to_undirected()
+        if self._induced_subgraph_int.is_directed():
+            undirected_induced_subgraph_int = self._induced_subgraph_int.to_undirected()
             self._undirected_predecessors, self._undirected_distances = (
-                nx.floyd_warshall_predecessor_and_distance(undirected_graph)
+                nx.floyd_warshall_predecessor_and_distance(undirected_induced_subgraph_int)
             )
         else:
             self._undirected_predecessors = self._predecessors

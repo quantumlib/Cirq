@@ -529,10 +529,12 @@ class RouteCQC:
         physical_qubits = (mm.logical_to_physical[lq[i]] for lq in two_qubit_ops for i in range(2))
         # For directed graphs, we need undirected edges for swap candidates
         # since SWAPs are symmetric regardless of underlying gate constraints
-        induced_graph = mm.induced_subgraph_int
-        if isinstance(induced_graph, nx.DiGraph):
-            induced_graph = induced_graph.to_undirected()
-        physical_swaps = induced_graph.edges(nbunch=physical_qubits)
+        undirected_induced_subgraph_int = (
+            mm.induced_subgraph_int.to_undirected()
+            if mm.induced_subgraph_int.is_directed()
+            else mm.induced_subgraph_int
+        )
+        physical_swaps = undirected_induced_subgraph_int.edges(nbunch=physical_qubits)
         return [
             (mm.physical_to_logical[q1], mm.physical_to_logical[q2]) for q1, q2 in physical_swaps
         ]
