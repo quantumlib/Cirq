@@ -17,6 +17,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from cirq.contrib.qasm_import._parser import QasmParser
+from cirq.contrib.qasm_import._parser3 import Qasm3Parser
 
 if TYPE_CHECKING:
     import cirq
@@ -33,3 +34,16 @@ def circuit_from_qasm(qasm: str) -> cirq.Circuit:
     """
 
     return QasmParser().parse(qasm).circuit
+
+
+def circuit_from_qasm3(qasm: str) -> cirq.Circuit:
+    """Parses an OpenQASM 3.0 string to `cirq.Circuit`.
+
+    Args:
+        qasm: The OpenQASM string
+
+    Returns:
+        The parsed circuit
+    """
+
+    return Qasm3Parser().parse(qasm).circuit

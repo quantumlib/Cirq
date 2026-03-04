@@ -124,6 +124,24 @@ def assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, unitary) -> None:  #
     lin_alg_utils.assert_allclose_up_to_global_phase(unitary, qiskit_unitary, rtol=1e-8, atol=1e-8)
 
 
+def assert_qiskit_parsed_qasm3_consistent_with_unitary(qasm, unitary) -> None:  # pragma: no cover
+    try:
+        # We don't want to require qiskit as a dependency but
+        # if Qiskit is installed, test QASM output against it.
+        import qiskit
+        import qiskit.qasm3
+    except ImportError:
+        return
+
+    num_qubits = int(np.log2(len(unitary)))
+    qc = qiskit.qasm3.loads(qasm)
+    qc.remove_final_measurements()  # no measurements allowed
+    qiskit_unitary = qiskit.quantum_info.Operator(qc).data
+    qiskit_unitary = _reorder_indices_of_matrix(qiskit_unitary, list(reversed(range(num_qubits))))
+
+    lin_alg_utils.assert_allclose_up_to_global_phase(unitary, qiskit_unitary, rtol=1e-8, atol=1e-8)
+
+
 def _indent(*content: str) -> str:
     return '    ' + '\n'.join(content).replace('\n', '\n    ')
 
