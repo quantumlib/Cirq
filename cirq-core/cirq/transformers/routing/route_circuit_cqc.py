@@ -453,9 +453,9 @@ class RouteCQC:
         we must execute the logical swaps (q1, q2), (q1, q3), ..., (q_1, qi).
         """
         furthest_op = max(
-            two_qubit_ops_ints[timestep], key=lambda op: mm.dist_on_device_undirected(*op)
+            two_qubit_ops_ints[timestep], key=lambda op: mm.dist_on_device(*op, undirected=True)
         )
-        path = mm.shortest_path_undirected(*furthest_op)
+        path = mm.shortest_path(*furthest_op, undirected=True)
         return tuple((path[0], path[i + 1]) for i in range(len(path) - 2))
 
     @classmethod
@@ -556,7 +556,7 @@ class RouteCQC:
         max_length, sum_length = 0, 0
         for lq in two_qubit_ops:
             # Use undirected distance for routing cost calculations
-            dist = mm.dist_on_device_undirected(*lq)
+            dist = mm.dist_on_device(*lq, undirected=True)
             max_length = max(max_length, dist)
             sum_length += dist
         for swap in swaps:

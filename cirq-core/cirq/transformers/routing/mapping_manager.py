@@ -145,34 +145,20 @@ class MappingManager:
         """Induced subgraph on physical qubit integers present in `self.logical_to_physical`."""
         return self._induced_subgraph_int
 
-    def dist_on_device(self, lq1: int, lq2: int) -> int:
+    def dist_on_device(self, lq1: int, lq2: int, *, undirected=False) -> int:
         """Finds distance between logical qubits 'lq1' and 'lq2' on the device.
 
         Args:
             lq1: integer corresponding to the first logical qubit.
             lq2: integer corresponding to the second logical qubit.
+            undirected: when True compute the distance assuming bidirectional
+                edges between connected qubits.
 
         Returns:
             The shortest path distance.
         """
-        return self._distances[self.logical_to_physical[lq1]][self.logical_to_physical[lq2]]
-
-    def dist_on_device_undirected(self, lq1: int, lq2: int) -> int:
-        """Finds undirected distance between logical qubits on the device.
-
-        This is useful for routing decisions where directionality doesn't matter,
-        such as determining swap costs or shortest paths for SWAP insertion.
-
-        Args:
-            lq1: integer corresponding to the first logical qubit.
-            lq2: integer corresponding to the second logical qubit.
-
-        Returns:
-            The shortest undirected path distance.
-        """
-        return self._undirected_distances[self.logical_to_physical[lq1]][
-            self.logical_to_physical[lq2]
-        ]
+        distances = self._undirected_distances if undirected else self._distances
+        return distances[self.logical_to_physical[lq1]][self.logical_to_physical[lq2]]
 
     def is_adjacent(self, lq1: int, lq2: int) -> bool:
         """Finds whether logical qubits `lq1` and `lq2` are adjacent on the device.
@@ -198,12 +184,12 @@ class MappingManager:
             ValueError: whenever lq1 and lq2 are not adjacent on the device.
         """
         # Use undirected distance for swap adjacency check
-        pq1, pq2 = self.logical_to_physical[lq1], self.logical_to_physical[lq2]
-        if self._undirected_distances[pq1][pq2] > 1:
+        if self.dist_on_device(lq1, lq2, undirected=True) > 1:
             raise ValueError(
                 f"q1: {lq1} and q2: {lq2} are not adjacent on the device. Cannot swap them."
             )
 
+        pq1, pq2 = self.logical_to_physical[lq1], self.logical_to_physical[lq2]
         self._logical_to_physical[[lq1, lq2]] = self._logical_to_physical[[lq2, lq1]]
         self._physical_to_logical[[pq1, pq2]] = self._physical_to_logical[[pq2, pq1]]
 
@@ -223,35 +209,19 @@ class MappingManager:
         }
         return op.transform_qubits(qubit_map)
 
-    def shortest_path(self, lq1: int, lq2: int) -> Sequence[int]:
+    def shortest_path(self, lq1: int, lq2: int, *, undirected=False) -> Sequence[int]:
         """Find the shortest path between two logical qubits on the device, given their mapping.
 
         Args:
             lq1: integer corresponding to the first logical qubit.
             lq2: integer corresponding to the second logical qubit.
+            undirected: when True find the shortest path assuming bidirectional edges
+                between connected qubits.
 
         Returns:
             A sequence of logical qubit integers on the shortest path from `lq1` to `lq2`.
         """
+        predecessors = self._undirected_predecessors if undirected else self._predecessors
         return self.physical_to_logical[
-            nx.reconstruct_path(*self.logical_to_physical[[lq1, lq2]], self._predecessors)
-        ]
-
-    def shortest_path_undirected(self, lq1: int, lq2: int) -> Sequence[int]:
-        """Find the shortest undirected path between two logical qubits on the device.
-
-        This is useful for routing decisions where directionality doesn't matter,
-        such as finding paths for SWAP insertion.
-
-        Args:
-            lq1: integer corresponding to the first logical qubit.
-            lq2: integer corresponding to the second logical qubit.
-
-        Returns:
-            A sequence of logical qubit integers on the shortest undirected path.
-        """
-        return self.physical_to_logical[
-            nx.reconstruct_path(
-                *self.logical_to_physical[[lq1, lq2]], self._undirected_predecessors
-            )
+            nx.reconstruct_path(*self.logical_to_physical[[lq1, lq2]], predecessors)
         ]
