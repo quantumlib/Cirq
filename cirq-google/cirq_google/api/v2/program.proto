@@ -416,6 +416,9 @@ message Tag {
     // Uses parameter model to interpolate FSim gate.
     FSimViaModelTag fsim_via_model = 7;
 
+    // Use two-pulse FSim gate implementation.
+    TwoPulseFSimTag two_pulse_fsim = 12;
+
     // Calibration Tag
     CalibrationTag calibration_tag = 9;
     
@@ -442,6 +445,9 @@ message PhysicalZTag {}
 message ClassicalStateTag {}
 
 message FSimViaModelTag {}
+
+message TwoPulseFSimTag {}
+
 
 // Tag to remove moment-based synchronization
 // The reverse and forward arguments control the
