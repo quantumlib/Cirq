@@ -98,6 +98,7 @@ class ABCMetaImplementAnyOneOf(abc.ABCMeta):
                     'implementation alternative but it does not exist in the '
                     f'definition of {cls!r}.'
                 )
+            # ruff: disable[SIM103]
             if getattr(value, '__isabstractmethod__', False):
                 return False
             if hasattr(value, '_abstract_alternatives_'):

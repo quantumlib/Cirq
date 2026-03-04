@@ -693,9 +693,7 @@ class QasmParser:
             cirq_gate=ops.ControlledGate(ops.XPowGate(exponent=0.5), num_controls=3),
         ),
         'cx': QasmGateStatement(qasm_gate='cx', cirq_gate=CX, num_params=0, num_args=2),
-        'cy': QasmGateStatement(
-            qasm_gate='cy', cirq_gate=ops.ControlledGate(ops.Y), num_params=0, num_args=2
-        ),
+        'cy': QasmGateStatement(qasm_gate='cy', cirq_gate=ops.CY, num_params=0, num_args=2),
         'cz': QasmGateStatement(qasm_gate='cz', cirq_gate=ops.CZ, num_params=0, num_args=2),
         'h': QasmGateStatement(qasm_gate='h', num_params=0, num_args=1, cirq_gate=ops.H),
         'id': QasmGateStatement(
@@ -1127,9 +1125,7 @@ class QasmParser:
             for i, key in enumerate(carg):
                 v = (val >> i) & 1
                 conditions.append(sympy.Eq(sympy.Symbol(key), v))
-        p[0] = [
-            ops.ClassicallyControlledOperation(conditions=conditions, sub_operation=tuple(p[5])[0])
-        ]
+        p[0] = [ops.ClassicallyControlledOperation(conditions=conditions, sub_operation=next(p[5]))]
 
     def p_gate_params_multiple(self, p):
         """gate_params : ID ',' gate_params"""

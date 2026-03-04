@@ -325,7 +325,7 @@ def test_state_equal() -> None:
         prng=value.parse_random_state(0),
         simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1729.0, sum_prob_atol=1e-3),
     )
-    assert state0 == state0
+    assert state0 == state0  # noqa: PLR0124
     assert state0 != state1a
     assert state1a != state1b
 

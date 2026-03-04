@@ -242,10 +242,9 @@ class CircuitSerializer(serializer.Serializer):
                 # Moment is already in the constants table
                 msg.moment_indices.append(moment_index)
                 continue
-            else:
-                # Moment is not yet in the constants table
-                # Create it and we will add it to the table at the end
-                moment_proto = v2.program_pb2.Moment()
+            # Moment is not yet in the constants table
+            # Create it, and we will add it to the table at the end
+            moment_proto = v2.program_pb2.Moment()
 
             for op in moment:
                 if isinstance(op.untagged, cirq.CircuitOperation) or (

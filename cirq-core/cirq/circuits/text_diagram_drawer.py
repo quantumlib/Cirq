@@ -112,6 +112,7 @@ class TextDiagramDrawer:
 
     def content_present(self, x: int, y: int) -> bool:
         """Determines if a line or printed text is at the given location."""
+        # ruff: disable[SIM103]
 
         # Text?
         if (x, y) in self.entries:

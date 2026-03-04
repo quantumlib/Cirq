@@ -181,6 +181,14 @@ class GateSpecification(google.protobuf.message.Message):
         ) -> None: ...
 
     @typing.final
+    class TwoPulseFSim(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        def __init__(
+            self,
+        ) -> None: ...
+
+    @typing.final
     class CZPowGate(google.protobuf.message.Message):
         DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -248,6 +256,7 @@ class GateSpecification(google.protobuf.message.Message):
     MEAS_FIELD_NUMBER: builtins.int
     WAIT_FIELD_NUMBER: builtins.int
     FSIM_VIA_MODEL_FIELD_NUMBER: builtins.int
+    TWO_PULSE_FSIM_FIELD_NUMBER: builtins.int
     CZ_POW_GATE_FIELD_NUMBER: builtins.int
     INTERNAL_GATE_FIELD_NUMBER: builtins.int
     RESET_FIELD_NUMBER: builtins.int
@@ -281,6 +290,8 @@ class GateSpecification(google.protobuf.message.Message):
     @property
     def fsim_via_model(self) -> Global___GateSpecification.FSimViaModel: ...
     @property
+    def two_pulse_fsim(self) -> Global___GateSpecification.TwoPulseFSim: ...
+    @property
     def cz_pow_gate(self) -> Global___GateSpecification.CZPowGate: ...
     @property
     def internal_gate(self) -> Global___GateSpecification.InternalGate: ...
@@ -307,6 +318,7 @@ class GateSpecification(google.protobuf.message.Message):
         meas: Global___GateSpecification.Measurement | None = ...,
         wait: Global___GateSpecification.Wait | None = ...,
         fsim_via_model: Global___GateSpecification.FSimViaModel | None = ...,
+        two_pulse_fsim: Global___GateSpecification.TwoPulseFSim | None = ...,
         cz_pow_gate: Global___GateSpecification.CZPowGate | None = ...,
         internal_gate: Global___GateSpecification.InternalGate | None = ...,
         reset: Global___GateSpecification.Reset | None = ...,
@@ -314,9 +326,9 @@ class GateSpecification(google.protobuf.message.Message):
         analog_detune_coupler_only: Global___GateSpecification.AnalogDetuneCouplerOnly | None = ...,
         wait_gate_with_unit: Global___GateSpecification.WaitGateWithUnit | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["analog_detune_coupler_only", b"analog_detune_coupler_only", "analog_detune_qubit", b"analog_detune_qubit", "coupler_pulse", b"coupler_pulse", "cz", b"cz", "cz_pow_gate", b"cz_pow_gate", "fsim_via_model", b"fsim_via_model", "gate", b"gate", "internal_gate", b"internal_gate", "meas", b"meas", "phased_xz", b"phased_xz", "physical_zpow", b"physical_zpow", "reset", b"reset", "sqrt_iswap", b"sqrt_iswap", "sqrt_iswap_inv", b"sqrt_iswap_inv", "syc", b"syc", "virtual_zpow", b"virtual_zpow", "wait", b"wait", "wait_gate_with_unit", b"wait_gate_with_unit"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["analog_detune_coupler_only", b"analog_detune_coupler_only", "analog_detune_qubit", b"analog_detune_qubit", "coupler_pulse", b"coupler_pulse", "cz", b"cz", "cz_pow_gate", b"cz_pow_gate", "fsim_via_model", b"fsim_via_model", "gate", b"gate", "gate_duration_picos", b"gate_duration_picos", "internal_gate", b"internal_gate", "meas", b"meas", "phased_xz", b"phased_xz", "physical_zpow", b"physical_zpow", "reset", b"reset", "sqrt_iswap", b"sqrt_iswap", "sqrt_iswap_inv", b"sqrt_iswap_inv", "syc", b"syc", "virtual_zpow", b"virtual_zpow", "wait", b"wait", "wait_gate_with_unit", b"wait_gate_with_unit"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["gate", b"gate"]) -> typing.Literal["syc", "sqrt_iswap", "sqrt_iswap_inv", "cz", "phased_xz", "virtual_zpow", "physical_zpow", "coupler_pulse", "meas", "wait", "fsim_via_model", "cz_pow_gate", "internal_gate", "reset", "analog_detune_qubit", "analog_detune_coupler_only", "wait_gate_with_unit"] | None: ...
+    def HasField(self, field_name: typing.Literal["analog_detune_coupler_only", b"analog_detune_coupler_only", "analog_detune_qubit", b"analog_detune_qubit", "coupler_pulse", b"coupler_pulse", "cz", b"cz", "cz_pow_gate", b"cz_pow_gate", "fsim_via_model", b"fsim_via_model", "gate", b"gate", "internal_gate", b"internal_gate", "meas", b"meas", "phased_xz", b"phased_xz", "physical_zpow", b"physical_zpow", "reset", b"reset", "sqrt_iswap", b"sqrt_iswap", "sqrt_iswap_inv", b"sqrt_iswap_inv", "syc", b"syc", "two_pulse_fsim", b"two_pulse_fsim", "virtual_zpow", b"virtual_zpow", "wait", b"wait", "wait_gate_with_unit", b"wait_gate_with_unit"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["analog_detune_coupler_only", b"analog_detune_coupler_only", "analog_detune_qubit", b"analog_detune_qubit", "coupler_pulse", b"coupler_pulse", "cz", b"cz", "cz_pow_gate", b"cz_pow_gate", "fsim_via_model", b"fsim_via_model", "gate", b"gate", "gate_duration_picos", b"gate_duration_picos", "internal_gate", b"internal_gate", "meas", b"meas", "phased_xz", b"phased_xz", "physical_zpow", b"physical_zpow", "reset", b"reset", "sqrt_iswap", b"sqrt_iswap", "sqrt_iswap_inv", b"sqrt_iswap_inv", "syc", b"syc", "two_pulse_fsim", b"two_pulse_fsim", "virtual_zpow", b"virtual_zpow", "wait", b"wait", "wait_gate_with_unit", b"wait_gate_with_unit"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["gate", b"gate"]) -> typing.Literal["syc", "sqrt_iswap", "sqrt_iswap_inv", "cz", "phased_xz", "virtual_zpow", "physical_zpow", "coupler_pulse", "meas", "wait", "fsim_via_model", "two_pulse_fsim", "cz_pow_gate", "internal_gate", "reset", "analog_detune_qubit", "analog_detune_coupler_only", "wait_gate_with_unit"] | None: ...
 
 Global___GateSpecification: typing_extensions.TypeAlias = GateSpecification
 

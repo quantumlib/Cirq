@@ -1075,7 +1075,7 @@ two_qubit_gates = [
     ('cx', cirq.CNOT),
     ('CX', cirq.CNOT),
     ('cz', cirq.CZ),
-    ('cy', cirq.ControlledGate(cirq.Y)),
+    ('cy', cirq.CY),
     ('swap', cirq.SWAP),
     ('ch', cirq.ControlledGate(cirq.H)),
     ('csx', cirq.ControlledGate(cirq.XPowGate(exponent=0.5))),
@@ -2432,7 +2432,7 @@ def test_all_qelib_gates_unitary_equivalence(
         gate = cirq_gate
     expected = Circuit()
     expected.append(gate.on(*qubits))
-    imported = list(parsed_qasm.circuit.all_operations())[0].gate
+    imported = next(parsed_qasm.circuit.all_operations()).gate
     U_native = cirq.unitary(gate)
     U_import = cirq.unitary(imported)
     assert np.allclose(U_import, U_native, atol=1e-8)

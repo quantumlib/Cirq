@@ -252,7 +252,6 @@ class CliffordState:
             act_on(op, ch_form_args)
         except TypeError:
             raise ValueError(f'{op.gate} cannot be run with Clifford simulator.')
-        return
 
     def apply_measurement(
         self,

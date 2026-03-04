@@ -334,7 +334,7 @@ def test_bitstring_accumulator_stats():
         np.testing.assert_allclose(np.sqrt(var / 4 / (4 - 1)), bsa.stderr(setting))
 
     bad_obs = [cirq.X(a) * cirq.X(b)]
-    bad_setting = list(cw.observables_to_settings(bad_obs, qubits=[a, b]))[0]
+    bad_setting = next(cw.observables_to_settings(bad_obs, qubits=[a, b]))
     with pytest.raises(ValueError):
         bsa.mean(bad_setting)
 
@@ -384,7 +384,7 @@ def test_bitstring_accumulator_errors():
         [cirq.X(q0), cirq.Y(q0), cirq.Z(q0), cirq.Z(q0) * cirq.Z(q1)], qubits=[q0, q1]
     )
     grouped_settings = cw.group_settings_greedy(settings)
-    max_setting = list(grouped_settings.keys())[0]
+    max_setting = next(iter(grouped_settings.keys()))
     simul_settings = grouped_settings[max_setting]
 
     with pytest.raises(ValueError):

@@ -112,12 +112,12 @@ def test_protocols_mul_not_implemented() -> None:
 def test_resolve(resolve_fn) -> None:
     diagonal_angles = [2, 3, 5, 7]
     diagonal_gate = cirq.TwoQubitDiagonalGate(
-        diagonal_angles[:2] + [sympy.Symbol('a'), sympy.Symbol('b')]
+        [*diagonal_angles[:2], sympy.Symbol('a'), sympy.Symbol('b')]
     )
     assert cirq.is_parameterized(diagonal_gate)
 
     diagonal_gate = resolve_fn(diagonal_gate, {'a': 5})
-    assert diagonal_gate == cirq.TwoQubitDiagonalGate(diagonal_angles[:3] + [sympy.Symbol('b')])
+    assert diagonal_gate == cirq.TwoQubitDiagonalGate([*diagonal_angles[:3], sympy.Symbol('b')])
     assert cirq.is_parameterized(diagonal_gate)
 
     diagonal_gate = resolve_fn(diagonal_gate, {'b': 7})

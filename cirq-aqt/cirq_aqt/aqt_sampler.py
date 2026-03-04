@@ -389,7 +389,7 @@ class AQTSampler(cirq.Sampler):
                 raise RuntimeError('Got unexpected return data from AQT server: \n' + str(data))
             if data['response']['status'] == 'finished':
                 break
-            elif data['response']['status'] == 'error':
+            if data['response']['status'] == 'error':
                 raise RuntimeError('Got unexpected return data from AQT server: \n' + str(data))
             time.sleep(1.0)
 

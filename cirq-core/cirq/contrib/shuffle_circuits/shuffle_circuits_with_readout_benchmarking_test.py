@@ -380,7 +380,7 @@ def test_circuits_with_readout_benchmarking_no_qubits_arg_empty_rng(mode: str) -
 
     # When qubits is None, all qubits from input circuits are benchmarked as one group.
     assert len(readout_calibration_results) == 1
-    qlist, result = list(readout_calibration_results.items())[0]
+    qlist, result = next(iter(readout_calibration_results.items()))
     assert isinstance(qlist, tuple)
     assert set(qlist) == set(qubits)
     assert isinstance(result, SingleQubitReadoutCalibrationResult)
@@ -412,7 +412,7 @@ def test_deprecated_run_shuffled_with_readout_benchmarking() -> None:
             qubits=qubits,
         )
     assert len(measurements_seed) == len(input_circuits)
-    qlist, result = list(results_seed.items())[0]
+    qlist, result = next(iter(results_seed.items()))
     assert tuple(qubits) == qlist
     for error in result.zero_state_errors.values():
         assert 0.08 < error < 0.12
@@ -430,7 +430,7 @@ def test_deprecated_run_shuffled_with_readout_benchmarking() -> None:
             readout_repetitions=readout_repetitions,
             qubits=None,
         )
-    qlist_none, _ = list(results_none.items())[0]
+    qlist_none = next(iter(results_none.keys()))
     assert set(qlist_none) == set(qubits)
 
     # Test circuit_repetitions must be > 0

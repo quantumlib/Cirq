@@ -290,9 +290,7 @@ jobs:
     name: Pytest Windows
     strategy:
       matrix:
-        # TODO: #7832 - enable '3.14' once grpcio-tools, qiskit-aer, stim have binary wheels.
-        # Installation from sources works, but with run duration increased from 6 to 27 minutes.
-        python-version: ['3.11', '3.12', '3.13']
+        python-version: ['3.11', '3.12', '3.13', '3.14']
     runs-on: windows-2022-x64-8-core
     steps:
       - name: Check out source repository
@@ -309,7 +307,10 @@ jobs:
       - name: Install requirements
         run: |
           pip install --upgrade setuptools wheel
-          pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
+          pip install --upgrade --upgrade-strategy eager \
+            -r dev_tools/requirements/pytest-minimal.env.txt \
+            qiskit-aer~=0.17.0 stimcirq
+        shell: bash
       - name: Pytest Windows
         run: |
           source dev_tools/pypath
@@ -320,8 +321,7 @@ jobs:
     name: Pytest MacOS
     strategy:
       matrix:
-        # TODO: #7832 - enable '3.14' once qiskit-aer provides binary wheels
-        python-version: ['3.11', '3.12', '3.13']
+        python-version: ['3.11', '3.12', '3.13', '3.14']
     # macos-15-large is Intel; macos-15-xlarge is ARM and the one we want.
     runs-on: macos-15-xlarge
     steps:
@@ -339,7 +339,9 @@ jobs:
       - name: Install requirements
         run: |
           pip install --upgrade setuptools wheel
-          pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
+          pip install --upgrade --upgrade-strategy eager \
+            -r dev_tools/requirements/pytest-minimal.env.txt \
+            qiskit-aer~=0.17.0 stimcirq
       - name: Pytest check
         run: check/pytest -n logical --durations=20 --ignore=cirq-core/cirq/contrib
   notebooks-stable:
@@ -367,7 +369,7 @@ jobs:
       - name: Notebook tests
         run: check/pytest -n logical -m slow dev_tools/notebooks/isolated_notebook_test.py -k ${{matrix.partition}}
       - name: Persist the outputs
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         if: failure()
         with:
           name: notebook-outputs-${{ matrix.partition }}
@@ -389,7 +391,7 @@ jobs:
       - name: Notebook tests
         run: check/pytest -n logical -m slow dev_tools/notebooks/notebook_test.py
       - name: Persist the outputs
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         if: failure()
         with:
           name: notebook-outputs

@@ -57,6 +57,7 @@ message GateSpecification {
     Measurement meas = 10;
     Wait wait = 11;
     FSimViaModel fsim_via_model = 12;
+    TwoPulseFSim two_pulse_fsim = 19;
     CZPowGate cz_pow_gate = 13;
     InternalGate internal_gate = 14;
     Reset reset = 15;
@@ -80,6 +81,7 @@ message GateSpecification {
   message Measurement {}
   message Wait {}
   message FSimViaModel {}
+  message TwoPulseFSim {}
   message CZPowGate {}
   // This gate gets mapped to the internal representation corresponding
   // to <gate_module.gate_name>.

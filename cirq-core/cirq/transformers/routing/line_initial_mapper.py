@@ -113,8 +113,8 @@ class LineInitialMapper(initial_mapper.AbstractInitialMapper):
             q0, q1 = op.qubits
             c0, c1 = component_id[q0], component_id[q1]
             # Keep track of partners for mapping isolated qubits later.
-            partners[q0] = partners[q0] if q0 in partners else q1
-            partners[q1] = partners[q1] if q1 in partners else q0
+            partners[q0] = partners.get(q0, q1)
+            partners[q1] = partners.get(q1, q0)
 
             if not (degree_lt_two(q0) and degree_lt_two(q1) and c0 != c1):
                 continue

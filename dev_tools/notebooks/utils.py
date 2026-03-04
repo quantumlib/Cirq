@@ -32,8 +32,8 @@ def list_all_notebooks() -> list[str]:
     try:
         output = subprocess.check_output(['git', 'ls-files', '*.ipynb'], cwd=REPO_ROOT, text=True)
         return [str(REPO_ROOT.joinpath(f)) for f in output.splitlines()]
-    except subprocess.CalledProcessError as ex:
-        warning("It seems that tests are not running in a git repo, skipping notebook tests", ex)
+    except subprocess.CalledProcessError:
+        warning("It seems that tests are not running in a git repo, skipping notebook tests")
         return []
 
 

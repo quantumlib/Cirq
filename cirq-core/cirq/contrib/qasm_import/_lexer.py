@@ -49,7 +49,8 @@ class QasmLexer:
         'ARROW',
         'EQ',
         'AND',
-    ] + list(reserved.values())
+        *reserved.values(),
+    ]
 
     def t_newline(self, t):
         r"""\n+"""

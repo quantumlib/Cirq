@@ -14,8 +14,17 @@
 
 import functools
 import re
+from collections.abc import Sequence
+from typing import cast
+
+import networkx as nx
+import numpy as np
+import scipy
+import tunits as tu
 
 import cirq
+import cirq.contrib.routing as ccr
+import cirq.experiments.random_quantum_circuit_generation as rcg
 from cirq_google.experimental.analog_experiments import analog_trajectory_util as atu
 from cirq_google.ops import analog_detune_gates as adg, coupler as cgc, wait_gate as wg
 from cirq_google.study import symbol_util as su
@@ -140,3 +149,224 @@ class GenericAnalogCircuitBuilder:
             )
 
         return cirq.Moment(qubit_gates + coupler_gates)
+
+
+class AnalogSimulationCircuitBuilder:
+    """Class for making arbitrary analog circuits for the purpose of simulating them.
+    The circuit is defined by an AnalogTrajectory object.
+
+    Attributes:
+        trajectory: AnalogTrajectory object defining the circuit.
+        g_ramp_shaping: coupling ramps are shaped according to ramp_shape_exp if True.
+        ramp_shape_exp: exponent of g_ramp (g proportional to t^ramp_shape_exp).
+        interpolate_coupling_cal: interpolates between calibrated coupling tu.Values if True.
+        linear_qubit_ramp: if True, the qubit ramp is linear. if false, a cosine shaped
+            ramp is used.
+    """
+
+    def __init__(
+        self,
+        trajectory: atu.AnalogTrajectory,
+        g_ramp_shaping: bool = True,
+        ramp_shape_exp: int = 1,
+        interpolate_coupling_cal: bool = False,
+        linear_qubit_ramp: bool = True,
+    ):
+
+        if ramp_shape_exp != 1 or not linear_qubit_ramp:
+            raise NotImplementedError("Only linear ramps are currently supported.")
+
+        self.trajectory = trajectory
+        self.g_ramp_shaping = g_ramp_shaping
+        self.ramp_shape_exp = ramp_shape_exp
+        self.interpolate_coupling_cal = interpolate_coupling_cal
+        self.linear_qubit_ramp = linear_qubit_ramp
+
+    def _get_interpolators(
+        self, idle_freq_map: dict[cirq.Qid, tu.Value] | None
+    ) -> tuple[dict, float]:
+        """Get interpolators for the qubit frequencies and coupling strengths that can be evaluated
+        at any time.
+
+        Args:
+            idle_freq_map: A map from qubits to their idle frequencies. If None, assume idles are 0.
+
+        Returns:
+            * A map from qubits or couplers to functions from time to the qubit frequency or
+            coupling strength.
+            * The maximum time in nanoseconds for which these functions can be evaluated.
+        """
+
+        # resolve the idles
+        idle_freq_map_resolved = (
+            dict.fromkeys(self.trajectory.qubits, 0 * tu.GHz)
+            if idle_freq_map is None
+            else idle_freq_map
+        )
+        full_trajectory = self.trajectory.get_full_trajectory_with_resolved_idles(
+            idle_freq_map_resolved
+        )
+
+        t_traj = [step.duration[tu.ns] for step in self.trajectory.full_trajectory]
+        for t in t_traj[1:]:
+            if not t > 0:
+                raise ValueError("Trajectory times should be positive.")  # pragma: no cover
+
+        t = np.cumsum(t_traj)
+        interpolators = {}
+        for qubit in self.trajectory.qubits:
+            f = [cast(tu.Value, step.qubit_freqs[qubit])[tu.GHz] for step in full_trajectory]
+            interpolators[qubit] = scipy.interpolate.interp1d(t, f)
+        for coupler in self.trajectory.couplers:
+            f = [step.couplings[coupler][tu.GHz] for step in full_trajectory]
+            interpolators[coupler] = scipy.interpolate.interp1d(t, f)
+        return interpolators, t[-1]
+
+    def _make_first_order_circuit(
+        self,
+        interpolators: dict,
+        dt_ns: float,
+        num_steps: int,
+        device_graph: nx.Graph,
+        interaction_pattern: Sequence[rcg.GridInteractionLayer],
+    ) -> cirq.Circuit:
+        moments = []
+        for step in range(num_steps):
+            # single-qubit moment:
+            frequency_GHz = {q: interpolators[q](step * dt_ns) for q in self.trajectory.qubits}
+            moments.append(
+                cirq.Moment((cirq.Z ** (-2 * f * dt_ns))(q) for q, f in frequency_GHz.items())
+            )
+
+            # two qubit moments:
+            coupling_GHz = {c: interpolators[c](step * dt_ns) for c in self.trajectory.couplers}
+            for layer in interaction_pattern:
+                pairs = list(rcg._get_active_pairs(device_graph, layer))
+                if len(pairs) > 0:
+                    moments.append(
+                        cirq.Moment(
+                            (cirq.ISWAP ** (-4 * coupling_GHz[cgc.Coupler(*pair)] * dt_ns)).on(
+                                *pair
+                            )
+                            for pair in pairs
+                        )
+                    )
+        return cirq.Circuit.from_moments(*moments)
+
+    def _make_second_order_circuit(
+        self,
+        interpolators: dict,
+        dt_ns: float,
+        num_steps: int,
+        device_graph: nx.Graph,
+        interaction_pattern: Sequence[rcg.GridInteractionLayer],
+    ) -> cirq.Circuit:
+        moments = []
+        for step in range(num_steps):
+            # single-qubit moment:
+            frequency_GHz = {q: interpolators[q](step * dt_ns) for q in self.trajectory.qubits}
+            single_qubit_moment = cirq.Moment(
+                (cirq.Z ** (-f * dt_ns))(q) for q, f in frequency_GHz.items()
+            )  # dt/2
+
+            # two qubit moments:
+            coupling_GHz = {c: interpolators[c](step * dt_ns) for c in self.trajectory.couplers}
+
+            # we make sequence like [layer1, layer2, layer3, layer4, layer3, layer2, layer 1]
+            two_qubit_moments = []
+            for i, layer in enumerate(
+                list(interaction_pattern) + list(interaction_pattern)[::-1][1:]
+            ):
+                # layer4: dt, the rest: dt/2
+                factor = 1.0 if i + 1 == len(interaction_pattern) else 0.5
+                pairs = list(rcg._get_active_pairs(device_graph, layer))
+                if len(pairs) > 0:
+                    two_qubit_moments.append(
+                        cirq.Moment(
+                            (
+                                cirq.ISWAP
+                                ** (-4 * factor * coupling_GHz[cgc.Coupler(*pair)] * dt_ns)
+                            ).on(*pair)
+                            for pair in pairs
+                        )
+                    )
+
+            moments.extend([single_qubit_moment, *two_qubit_moments, single_qubit_moment])
+        return cirq.Circuit.from_moments(*moments)
+
+    def make_circuit(
+        self,
+        trotter_step: tu.Value,
+        interaction_pattern: Sequence[rcg.GridInteractionLayer] = rcg.HALF_GRID_STAGGERED_PATTERN,
+        trotter_order: int = 1,
+        idle_freq_map: dict[cirq.Qid, tu.Value] | None = None,
+    ) -> cirq.Circuit:
+        r"""Create a Cirq circuit for simulating an analog experiment.
+
+        The resulting circuit can be put into a larger circuit containing digital
+        gates and measurements and can be simulated using cirq simulators such as
+        cirq.Simulator or qsimcirq.QSimSimulator.
+
+        Coupling terms are modeled as $e^{-2\pi i g dt(X_i X_j + Y_i Y_j)/2}$, which is
+        `cirq.ISWAP**(-4*g*dt)`
+        (see https://quantumai.google/reference/python/cirq/ISwapPowGate).
+
+        Single-qubit terms are modeled as $e^{-2\pi i f dt \hat n}$, which, up to a global
+        phase is $e^{\pi i f dt Z}$, i.e. `cirq.Z**(-2*f*dt)`
+        (see https://quantumai.google/reference/python/cirq/ZPowGate).
+
+        Current limitations:
+        * For now, phases should not be expected to match those in the actual experiment.
+            Experimental phases need to be characterized.
+        * Uses a simplified XY model Hamiltonian instead of the full device Hamiltonian,
+        which includes higher levels and higher-order nonlocal interactions.
+        * Ramps faster than 2-3 nanoseconds are not possible on hardware; filters
+        smooth out such fast ramps but are not simulated here.
+        * Sympy symbols are not supported. Please resolve all parameters.
+
+        Args:
+            trotter_step: The Trotter step size used for simulation. Should divide the total
+                time.
+            interaction_pattern: The pattern of two-qubit gates to use for the simulation.
+                Shouldn't matter as long as the Trotter step size is sufficiently small.
+            trotter_order: The order of the Trotter approximation (1 and 2 are are the only
+                supported options).
+                (otherwise use first-order).
+            idle_freq_map: The qubit idle frequencies. If not provided, set to 0.
+
+        Returns:
+            A circuit that can be used with a simulator.
+        """
+
+        interpolators, t_max_ns = self._get_interpolators(idle_freq_map)
+
+        # assert that this is an integer number of Trotter steps
+        dt_ns = trotter_step[tu.ns]
+        num_steps = int(np.round(t_max_ns / dt_ns))
+        if not np.isclose(num_steps * dt_ns, t_max_ns, atol=1e-5):
+            raise ValueError(  # pragma: no cover
+                "Please pick a Trotter step that divides the total time, "  # pragma: no cover
+                f"{t_max_ns} ns"  # pragma: no cover
+            )  # pragma: no cover
+
+        if not trotter_order in [1, 2]:
+            raise NotImplementedError("Only 1st and 2nd order Trotter currently supported.")
+
+        # get the device graph
+        grid_qubit_list = []
+        for qubit in self.trajectory.qubits:
+            assert type(qubit) == cirq.GridQubit, "Qubits must be cirq.GridQubit"
+            grid_qubit_list.append(qubit)
+        device_graph = ccr.gridqubits_to_graph_device(grid_qubit_list)
+
+        # make the circuit
+
+        return (
+            self._make_second_order_circuit(
+                interpolators, dt_ns, num_steps, device_graph, interaction_pattern
+            )
+            if trotter_order == 2
+            else self._make_first_order_circuit(
+                interpolators, dt_ns, num_steps, device_graph, interaction_pattern
+            )
+        )

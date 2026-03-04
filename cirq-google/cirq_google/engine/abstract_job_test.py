@@ -100,10 +100,8 @@ def test_instantiation_and_iteration():
     assert job[3].measurements['a'][0] == 3
 
     #  Test iterating through for loop
-    count = 0
-    for result in job:
+    for count, result in enumerate(job):
         assert result.measurements['a'][0] == count
-        count += 1
 
     # Test iterator using iterator
     iterator = iter(job)

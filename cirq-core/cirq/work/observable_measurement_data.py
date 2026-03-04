@@ -366,6 +366,7 @@ class BitstringAccumulator:
         if not isinstance(other, BitstringAccumulator):
             return NotImplemented
 
+        # ruff: disable[SIM103]
         if (
             self.max_setting != other.max_setting
             or self.simul_settings != other.simul_settings

@@ -106,8 +106,7 @@ def _parse_dd_sequence(
         pauli_gate = _pauli_up_to_global_phase(gate)
         if pauli_gate is not None:
             pauli_map[gate] = pauli_gate
-    for gate in [ops.X, ops.Y, ops.Z]:
-        pauli_map[gate] = gate
+    pauli_map.update({gate: gate for gate in [ops.X, ops.Y, ops.Z]})
 
     return (dd_sequence, pauli_map)
 
