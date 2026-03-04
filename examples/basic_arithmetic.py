@@ -273,7 +273,7 @@ def main(n=3):
     for p in range(2 * 2):
         for q in range(2 * 2):
             experiment_adder(p, q, n)
-    print('')
+    print()
     print('Execute Multiplier')
     print(cirq.Circuit(cirq.decompose(Multiplier(5 * n).on(*cirq.LineQubit.range(5 * n)))))
     for p in range(2 * 2):

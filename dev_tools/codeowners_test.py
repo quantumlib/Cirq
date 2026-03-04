@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import os
+import pathlib
 
 import pytest
 
@@ -87,9 +88,9 @@ def test_codeowners(filepath, expected) -> None:
     # will be skipped
     codeowners = pytest.importorskip("codeowners")
 
-    with open(".github/CODEOWNERS", encoding="utf8") as f:
-        owners = codeowners.CodeOwners(f.read())
-        assert os.path.exists(
-            filepath
-        ), f"{filepath} should exist to avoid creating/maintaining meaningless codeowners rules."
-        assert set(owners.of(filepath)) == expected
+    owners_text = pathlib.Path(".github/CODEOWNERS").read_text(encoding="utf8")
+    owners = codeowners.CodeOwners(owners_text)
+    assert os.path.exists(
+        filepath
+    ), f"{filepath} should exist to avoid creating/maintaining meaningless codeowners rules."
+    assert set(owners.of(filepath)) == expected

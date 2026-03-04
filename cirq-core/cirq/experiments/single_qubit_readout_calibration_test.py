@@ -68,8 +68,8 @@ def test_estimate_single_qubit_readout_errors_no_noise() -> None:
     result = cirq.estimate_single_qubit_readout_errors(
         sampler, qubits=qubits, repetitions=repetitions
     )
-    assert result.zero_state_errors == {q: 0 for q in qubits}
-    assert result.one_state_errors == {q: 0 for q in qubits}
+    assert result.zero_state_errors == dict.fromkeys(qubits, 0)
+    assert result.one_state_errors == dict.fromkeys(qubits, 0)
     assert result.repetitions == repetitions
     assert isinstance(result.timestamp, float)
 
@@ -96,8 +96,8 @@ def test_estimate_parallel_readout_errors_no_noise() -> None:
     result = cirq.estimate_parallel_single_qubit_readout_errors(
         sampler, qubits=qubits, repetitions=repetitions
     )
-    assert result.zero_state_errors == {q: 0 for q in qubits}
-    assert result.one_state_errors == {q: 0 for q in qubits}
+    assert result.zero_state_errors == dict.fromkeys(qubits, 0)
+    assert result.one_state_errors == dict.fromkeys(qubits, 0)
     assert result.repetitions == repetitions
     assert isinstance(result.timestamp, float)
     _ = result.plot_integrated_histogram()
@@ -111,8 +111,8 @@ def test_estimate_parallel_readout_errors_all_zeros() -> None:
     result = cirq.estimate_parallel_single_qubit_readout_errors(
         sampler, qubits=qubits, repetitions=repetitions
     )
-    assert result.zero_state_errors == {q: 0 for q in qubits}
-    assert result.one_state_errors == {q: 1 for q in qubits}
+    assert result.zero_state_errors == dict.fromkeys(qubits, 0)
+    assert result.one_state_errors == dict.fromkeys(qubits, 1)
     assert result.repetitions == repetitions
     assert isinstance(result.timestamp, float)
 
@@ -169,8 +169,8 @@ def test_estimate_parallel_readout_errors_batching() -> None:
     result = cirq.estimate_parallel_single_qubit_readout_errors(
         sampler, qubits=qubits, repetitions=repetitions, trials=35, trials_per_batch=10
     )
-    assert result.zero_state_errors == {q: 0.0 for q in qubits}
-    assert result.one_state_errors == {q: 1.0 for q in qubits}
+    assert result.zero_state_errors == dict.fromkeys(qubits, 0.0)
+    assert result.one_state_errors == dict.fromkeys(qubits, 1.0)
     assert result.repetitions == repetitions
     assert isinstance(result.timestamp, float)
 
@@ -200,7 +200,7 @@ def test_estimate_parallel_readout_errors_missing_qubits() -> None:
         trials=1,
         bit_strings=np.array([[0] * 4]),
     )
-    assert result.zero_state_errors == {q: 0 for q in qubits}
+    assert result.zero_state_errors == dict.fromkeys(qubits, 0)
     # Trial did not include a one-state
     assert all(np.isnan(result.one_state_errors[q]) for q in qubits)
     assert result.repetitions == 2000

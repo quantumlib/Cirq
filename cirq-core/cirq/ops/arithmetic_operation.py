@@ -165,11 +165,10 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     def _qid_shape_(self) -> tuple[int, ...]:
-        shape = []
+        shape: list[int] = []
         for r in self.registers():
             if isinstance(r, Sequence):
-                for i in r:
-                    shape.append(i)
+                shape.extend(r)
         return tuple(shape)
 
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs):
@@ -183,7 +182,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
                 shape.append(1)
                 overflow_sizes.append(register + 1)
             else:
-                size = int(np.prod([dim for dim in register], dtype=np.int64).item())
+                size = int(np.prod(list(register), dtype=np.int64).item())
                 shape.append(size)
                 input_ranges.append(range(size))
                 overflow_sizes.append(size)

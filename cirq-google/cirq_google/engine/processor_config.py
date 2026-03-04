@@ -72,22 +72,22 @@ class ProcessorConfig:
                 self._quantum_processor_config.characterization, v2.metrics_pb2.MetricsSnapshot()
             )
         )
-        self._device_vesion = device_config_revision
+        self._device_version = device_config_revision
         self._processor = processor
 
     @property
     def effective_device(self) -> cirq.Device:
-        """The GridDevice generated from thisc configuration's device specification"""
+        """The GridDevice generated from this configuration's device specification."""
         return self._grid_device
 
     @property
     def calibration(self) -> cg.Calibration:
-        """Charicterization metrics captured for this configuration"""
+        """Characterization metrics captured for this configuration."""
         return self._calibration
 
     @property
     def snapshot_id(self) -> str:
-        """The snapshot that contains this processor config"""
+        """The snapshot that contains this processor config."""
         if 'configSnapshots' not in self._quantum_processor_config.name:
             # We assume the calling `get_quantume_processor_config` always
             # returns a config with the snapshot resouce nanme.  This check
@@ -98,8 +98,8 @@ class ProcessorConfig:
 
     @property
     def run_name(self) -> str:
-        """The run that generated this config if avaiable."""
-        return self._device_vesion.id if isinstance(self._device_vesion, Run) else ''
+        """The run that generated this config (if available)."""
+        return self._device_version.id if isinstance(self._device_version, Run) else ''
 
     @property
     def processor_id(self) -> str:
@@ -123,7 +123,7 @@ class ProcessorConfig:
                 violations when pipelining circuit executions.
 
         Returns:
-            A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
+            A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`)
             that will send circuits to the Quantum Computing Service
             when sampled.
         """

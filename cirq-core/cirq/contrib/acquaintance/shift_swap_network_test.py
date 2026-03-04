@@ -52,10 +52,10 @@ def test_shift_swap_network_gate_acquaintance_opps(left_part_lens, right_part_le
             parts[side].append(set(range(i, i + part_len)))
             i += part_len
 
-    expected_opps = set(
+    expected_opps = {
         frozenset(left_part | right_part)
         for left_part, right_part in itertools.product(parts['left'], parts['right'])
-    )
+    }
     assert actual_opps == expected_opps
 
 
@@ -181,7 +181,7 @@ circuit_diagrams = {
 }
 
 
-@pytest.mark.parametrize('left_part_lens,right_part_lens', set(key[1:] for key in circuit_diagrams))
+@pytest.mark.parametrize('left_part_lens,right_part_lens', {key[1:] for key in circuit_diagrams})
 def test_shift_swap_network_gate_diagrams(left_part_lens, right_part_lens) -> None:
 
     gate = cca.ShiftSwapNetworkGate(left_part_lens, right_part_lens)

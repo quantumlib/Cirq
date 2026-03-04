@@ -106,8 +106,7 @@ def _parse_dd_sequence(
         pauli_gate = _pauli_up_to_global_phase(gate)
         if pauli_gate is not None:
             pauli_map[gate] = pauli_gate
-    for gate in [ops.X, ops.Y, ops.Z]:
-        pauli_map[gate] = gate
+    pauli_map.update({gate: gate for gate in [ops.X, ops.Y, ops.Z]})
 
     return (dd_sequence, pauli_map)
 
@@ -228,10 +227,10 @@ class _Grid:
         cls, circuit: cirq.FrozenCircuit, single_qubit_gate_moments_only: bool
     ) -> _Grid:
         gate_types: dict[ops.Qid, dict[int, _CellType]] = {
-            q: {mid: _CellType.UNKNOWN for mid in range(len(circuit))} for q in circuit.all_qubits()
+            q: dict.fromkeys(range(len(circuit)), _CellType.UNKNOWN) for q in circuit.all_qubits()
         }
         mergable: dict[ops.Qid, dict[int, bool]] = {
-            q: {mid: False for mid in range(len(circuit))} for q in circuit.all_qubits()
+            q: dict.fromkeys(range(len(circuit)), False) for q in circuit.all_qubits()
         }
         busy_moment_range_by_qubit = _calc_busy_moment_range_of_each_qubit(circuit)
 
@@ -259,7 +258,7 @@ class _Grid:
                         gate_types[q][mid] = _CellType.WALL
 
         need_to_stop: dict[ops.Qid, dict[int, bool]] = {
-            q: {mid: False for mid in range(len(circuit))} for q in circuit.all_qubits()
+            q: dict.fromkeys(range(len(circuit)), False) for q in circuit.all_qubits()
         }
         # Reversely find the last mergeable gate of each qubit, set them as need_to_stop.
         for q in circuit.all_qubits():
@@ -279,7 +278,7 @@ class _Grid:
         if not self.gate_types:
             return "Grid(empty)"
 
-        qubits = sorted(list(self.gate_types.keys()))
+        qubits = sorted(self.gate_types.keys())
         num_moments = len(self.gate_types[qubits[0]])
 
         max_qubit_len = max(len(str(q)) for q in qubits) if qubits else 0

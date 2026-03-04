@@ -123,7 +123,7 @@ def defer_measurements(
 
             # First create a sorted set of the indexed keys for this control.
             keys = sorted(
-                set(
+                {
                     indexed_key
                     for condition in op.classical_controls
                     for indexed_key in (
@@ -131,7 +131,7 @@ def defer_measurements(
                         if isinstance(condition, value.KeyCondition)
                         else [(k, -1) for k in condition.keys]
                     )
-                )
+                }
             )
             for key, index in keys:
                 if key not in measurement_qubits:

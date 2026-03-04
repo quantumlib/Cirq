@@ -475,7 +475,7 @@ class CircuitOperation(ops.Operation):
     def __str__(self):
         # TODO: support out-of-line subcircuit definition in string format.
         msg_lines = str(self.circuit).split('\n')
-        msg_width = max([len(line) for line in msg_lines])
+        msg_width = max(len(line) for line in msg_lines)
         circuit_msg = '\n'.join(f'[ {line:<{msg_width}} ]' for line in msg_lines)
         args = []
 

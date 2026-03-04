@@ -96,7 +96,7 @@ class EngineClient:
 
     @cached_property
     def grpc_client(self) -> quantum.QuantumEngineServiceAsyncClient:
-        """Creates an async grpc client for the quantum engine service."""
+        """Creates an async grpc client for the Quantum Engine service."""
 
         async def make_client():
             # Suppress warnings about using Application Default Credentials.
@@ -120,7 +120,7 @@ class EngineClient:
         """Sends a request by invoking an asyncio callable and collecting results.
 
         This is used for requests that return paged results. Inside the asyncio
-        event loop, we iterate over all results and collect then into a list.
+        event loop, we iterate over all results and collect them into a list.
         """
 
         async def new_func(request: _M) -> list[_R]:
@@ -196,7 +196,7 @@ class EngineClient:
         Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
-            return_code: If True returns the serialized program code.
+            return_code: If True, returns the serialized program code.
         """
         request = quantum.GetQuantumProgramRequest(
             name=_program_name_from_ids(project_id, program_id), return_code=return_code
@@ -222,11 +222,11 @@ class EngineClient:
                 or time.
             has_labels: retrieve programs that have labels on them specified by
                 this dict. If the value is set to `*`, filters having the label
-                egardless of the label value will be filtered. For example, to
-                uery programs that have the shape label and have the color
-                label with value red can be queried using
+                regardless of the label value will be filtered. For example, to
+                query programs that have the 'shape' label and have the 'color'
+                label with value 'red' can be queried using:
 
-                {'color': 'red', 'shape':'*'}
+                {'color': 'red', 'shape': '*'}
         """
         filters = []
 
@@ -367,8 +367,8 @@ class EngineClient:
         Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
-            delete_jobs: If True will delete all the program's jobs, other this
-                will fail if the program contains any jobs.
+            delete_jobs: If True, will delete all the program's jobs, otherwise
+                this will fail if the program contains any jobs.
         """
         request = quantum.DeleteQuantumProgramRequest(
             name=_program_name_from_ids(project_id, program_id), delete_jobs=delete_jobs
@@ -396,7 +396,8 @@ class EngineClient:
 
         Either both `run_name` and `device_config_name` must be set, or neither
         of them must be set. If none of them are set, a default internal device
-        configuration will be used.
+        configuration will be used. If both `run_name` and `snapshot_id` are
+        set, then `snapshot_id` will be preferred.
 
         Args:
             project_id: A project_id of the parent Google Cloud Project.
@@ -426,7 +427,6 @@ class EngineClient:
             ValueError: If  only one of `run_name` and `device_config_name` are specified.
             ValueError: If either `run_name` and `device_config_name` are set but
                 `processor_id` is empty.
-            ValueError: If both `run_name` and `snapshot_id` are specified.
         """
         # Check program to run and program parameters.
         if priority and not 0 <= priority < 1000:
@@ -434,7 +434,7 @@ class EngineClient:
         if not processor_id:
             raise ValueError('Must specify a processor id when creating a job.')
         if run_name and snapshot_id:
-            raise ValueError('Cannot specify both `run_name` and `snapshot_id`')
+            print('Both run_name and snapshot_id were specified, using snapshot_id.')
         if (bool(run_name) or bool(snapshot_id)) ^ bool(device_config_name):
             raise ValueError(
                 'Cannot specify only one of top level identifier (e.g `run_name`, `snapshot_id`)'
@@ -500,10 +500,10 @@ class EngineClient:
             has_labels: retrieve jobs that have labels on them specified by
                 this dict. If the value is set to `*`, filters having the label
                 regardless of the label value will be filtered. For example, to
-                query programs that have the shape label and have the color
-                label with value red can be queried using
+                query programs that have the shape 'label' and have the 'color'
+                label with value 'red' can be queried using:
 
-                {'color': 'red', 'shape':'*'}
+                {'color': 'red', 'shape': '*'}
 
             execution_states: retrieve jobs that have an execution state that
                 is contained in `execution_states`. See
@@ -558,7 +558,7 @@ class EngineClient:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             job_id: Unique ID of the job within the parent program.
-            return_run_context: If true then the run context will be loaded
+            return_run_context: If True, then the run context will be loaded
                 from the job's run_context_location and set on the returned
                 QuantumJob.
         """
@@ -794,7 +794,6 @@ class EngineClient:
             ValueError: If the priority is not between 0 and 1000.
             ValueError: If `processor_id` is not set.
             ValueError: If only one of `run_name` and `device_config_name` are specified.
-            ValueError: If both `run_name` and `snapshot_id` are specified.
         """
         # Check program to run and program parameters.
         if priority and not 0 <= priority < 1000:
@@ -802,7 +801,7 @@ class EngineClient:
         if not processor_id:
             raise ValueError('Must specify a processor id when creating a job.')
         if run_name and snapshot_id:
-            raise ValueError('Cannot specify both `run_name` and `snapshot_id`')
+            print('Both run_name and snapshot_id were specified, using snapshot_id.')
         if (bool(run_name) or bool(snapshot_id)) ^ bool(device_config_name):
             raise ValueError(
                 'Cannot specify only one of top level identifier and `device_config_name`'

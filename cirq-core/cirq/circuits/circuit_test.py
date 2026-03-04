@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import itertools
 import os
+import pathlib
 import time
 from collections import defaultdict
 from collections.abc import Iterator, Sequence
@@ -343,6 +344,7 @@ def test_add_op_tree(circuit_cls) -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
+    # ruff: disable[RUF005]
     c = circuit_cls()
     assert c + [cirq.X(a), cirq.Y(b)] == circuit_cls([cirq.Moment([cirq.X(a), cirq.Y(b)])])
 
@@ -361,6 +363,7 @@ def test_radd_op_tree(circuit_cls, gate) -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
+    # ruff: disable[RUF005]
     c = circuit_cls()
     assert [gate(a), cirq.Y(b)] + c == circuit_cls([cirq.Moment([gate(a), cirq.Y(b)])])
 
@@ -3522,8 +3525,8 @@ def test_push_frontier_random_circuit() -> None:
         late_frontier = {q: randint(0, n_moments) for q in sample(qubits, randint(0, len(qubits)))}
         update_qubits = sample(qubits, randint(0, len(qubits)))
 
-        orig_early_frontier = {q: f for q, f in early_frontier.items()}
-        orig_moments = [m for m in circuit._moments]
+        orig_early_frontier = dict(early_frontier)
+        orig_moments = list(circuit._moments)
         insert_index, n_new_moments = circuit._push_frontier(
             early_frontier, late_frontier, update_qubits
         )
@@ -3532,7 +3535,7 @@ def test_push_frontier_random_circuit() -> None:
         for q in set(early_frontier).difference(update_qubits):
             assert early_frontier[q] == orig_early_frontier[q]
         for q, f in late_frontier.items():
-            assert orig_early_frontier.get(q, 0) <= late_frontier[q] + n_new_moments
+            assert orig_early_frontier.get(q, 0) <= f + n_new_moments
             if f != len(orig_moments):
                 assert orig_moments[f] == circuit[f + n_new_moments]
         for q in set(update_qubits).intersection(early_frontier):
@@ -3670,8 +3673,7 @@ def test_save_qasm(tmpdir, circuit_cls) -> None:
     circuit = circuit_cls(cirq.X(q0))
 
     circuit.save_qasm(file_path)
-    with open(file_path, 'r') as f:
-        file_content = f.read()
+    file_content = pathlib.Path(file_path).read_text()
     assert file_content == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 2.0;

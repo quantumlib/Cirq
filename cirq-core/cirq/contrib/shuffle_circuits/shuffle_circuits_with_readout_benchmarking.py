@@ -192,7 +192,7 @@ def _determine_qubits_to_measure(
     qubits_to_measure: list[list[ops.Qid]] = []
     if qubits is None:
         qubits_to_measure = [
-            sorted(set(q for circuit in input_circuits for q in circuit.all_qubits()))
+            sorted({q for circuit in input_circuits for q in circuit.all_qubits()})
         ]
 
     elif isinstance(qubits[0], ops.Qid):
@@ -240,7 +240,7 @@ def _analyze_readout_results(
     zero_state_totals = np.zeros((1, len(qubits)), dtype=np.int64)
     one_state_totals = np.zeros((1, len(qubits)), dtype=np.int64)
     for measurement_result, bitstr in zip(unshuffled_readout_measurements, random_bitstrings):
-        for _, trial_result in measurement_result.measurements.items():
+        for trial_result in measurement_result.measurements.values():
             trial_result = trial_result.astype(np.int64)  # Cast to int64
             sample_counts = np.sum(trial_result, axis=0)
 

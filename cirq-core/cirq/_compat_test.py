@@ -584,44 +584,50 @@ old_parent = 'cirq.testing._compat_test_data'
 
 # this is where the deprecation error should show where the deprecated usage
 # has occured, which is this file
-_deprecation_origin = ['_compat_test.py:']
+_deprecation_origin = '_compat_test.py:'
 
 # see cirq_compat_test_data/__init__.py for the setup code
 _fake_a_deprecation_msg = [
     f'{old_parent}.fake_a was used but is deprecated',
     f'Use {old_parent}.module_a instead',
-] + _deprecation_origin
+    _deprecation_origin,
+]
 
 # see cirq_compat_test_data/__init__.py for the setup code
 _fake_b_deprecation_msg = [
     f'{old_parent}.fake_b was used but is deprecated',
     f'Use {old_parent}.module_a.module_b instead',
-] + _deprecation_origin
+    _deprecation_origin,
+]
 
 # see cirq_compat_test_data/__init__.py for the setup code
 _fake_ab_deprecation_msg = [
     f'{old_parent}.module_a.fake_ab was used but is deprecated',
     f'Use {old_parent}.module_a.module_b instead',
-] + _deprecation_origin
+    _deprecation_origin,
+]
 
 # see cirq_compat_test_data/__init__.py for the setup code
 _fake_ops_deprecation_msg = [
     f'{old_parent}.fake_ops was used but is deprecated',
     'Use cirq.ops instead',
-] + _deprecation_origin
+    _deprecation_origin,
+]
 
 
 # see cirq_compat_test_data/__init__.py for the setup code
 _fake_numpy_deprecation_msg = [
     f'{old_parent}.fake_numpy was used but is deprecated',
     'Use numpy instead',
-] + _deprecation_origin
+    _deprecation_origin,
+]
 
 # see cirq_compat_test_data/__init__.py for the setup code
 _repeated_child_deprecation_msg = [
     f'{old_parent}.repeated_child was used but is deprecated',
     f'Use {old_parent}.repeated instead',
-] + _deprecation_origin
+    _deprecation_origin,
+]
 
 
 def _trace_unhandled_exceptions(*args, queue: multiprocessing.Queue, func: Callable):

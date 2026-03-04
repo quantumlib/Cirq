@@ -144,7 +144,7 @@ def test_graph_device() -> None:
     with pytest.raises(ValueError):
         graph_device.validate_operation(cirq.CNOT(qubits[0], qubits[2]))
     with pytest.raises(AttributeError):
-        graph_device.validate_operation(list((2, 3)))  # type: ignore[arg-type]
+        graph_device.validate_operation([2, 3])  # type: ignore[arg-type]
 
     moment = cirq.Moment([cirq.CNOT(*qubits[:2]), cirq.CNOT(*qubits[2:])])
     with pytest.raises(ValueError):

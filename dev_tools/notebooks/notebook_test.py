@@ -56,18 +56,18 @@ def require_packages_not_changed() -> Iterator[None]:
 
     Raise AssertionError if the pre-existing set of Python packages changes in any way.
     """
-    cirq_packages = set(m.name for m in list_modules()).union(["cirq"])
-    packages_before = set(
+    cirq_packages = {m.name for m in list_modules()}.union(["cirq"])
+    packages_before = {
         (d.name, d.version)
         for d in importlib.metadata.distributions()
         if d.name not in cirq_packages
-    )
+    }
     yield
-    packages_after = set(
+    packages_after = {
         (d.name, d.version)
         for d in importlib.metadata.distributions()
         if d.name not in cirq_packages
-    )
+    }
     assert packages_after == packages_before
 
 

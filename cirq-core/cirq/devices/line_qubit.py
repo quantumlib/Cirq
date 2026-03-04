@@ -113,7 +113,10 @@ class _BaseLineQid(ops.Qid):
         Args:
             qids: optional Iterable of qubits to constrain neighbors to.
         """
-        return {q for q in [self - 1, self + 1] if qids is None or q in qids}
+        the_neighbors = {self._with_x(x=self._x - 1), self._with_x(x=self._x + 1)}
+        if qids is not None:
+            the_neighbors.intersection_update(qids)
+        return the_neighbors
 
     @abc.abstractmethod
     def _with_x(self, x: int) -> Self:

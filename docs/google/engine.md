@@ -23,6 +23,10 @@ gcloud client:
 
 From a colab, you can execute:
 
+<!---test_substitution
+from google\.colab import auth
+auth = mock.MagicMock()
+--->
 ```python
 from google.colab import auth
 auth.authenticate_user(clear_output=False)
@@ -41,42 +45,52 @@ You can use this instance to run quantum circuits or sweeps (parameterized
 variants of a general circuit).
 
 <!---test_substitution
-results = job.results.*
-results = None
+engine = cirq_google.Engine\b.*
+# This pattern matches in all snippets.
+# We repeat the expression first to ensure Engine argumets are correct.
+\g<0>
+# Then we create various mock objects that derive from engine calls.
+engine = mock_engine = mock.create_autospec(cirq_google.Engine, instance=True)
+mock_sampler = mock.create_autospec(cirq.Sampler, instance=True)
+mock_engine_job = mock.create_autospec(cirq_google.EngineJob, instance=True,
+    program_id="program_id", job_id="job_id")
+mock_engine_program = mock.create_autospec(cirq_google.EngineProgram, instance=True,
+    program_id="program_id")
+# Finally let us import datetime for snippets that use it below
+import datetime
 --->
 <!---test_substitution
-print.results.idx.*
-print()
+sampler = engine.get_sampler.processor_id=PROCESSOR_ID.*
+mock_engine.configure_mock(**{"get_sampler.return_value": mock_sampler})
+\g<0>
 --->
 <!---test_substitution
-engine = cirq_google.Engine(.*)
-engine = MockEngine()
+results = sampler.run\b
+mock_result = mock.create_autospec(cirq.Result, instance=True)
+mock_sampler.configure_mock(**{"run.return_value": mock_result})
+\g<0>
 --->
 <!---test_substitution
-cg.Engine(.*)
-cirq.Simulator()
---->
-<!---test_substitution
-sampler = .*
-sampler = engine
+PROJECT_ID|PROCESSOR_ID
+'placeholder'
 --->
 ```python
 import cirq
-import cirq_google as cg
+import cirq_google
 
 # A simple sample circuit
 qubit = cirq.GridQubit(5, 2)
 circuit = cirq.Circuit(
-    cirq.X(qubit)**0.5,                 # Square root of NOT.
-    cirq.measure(qubit, key='result')   # Measurement.
+    cirq.X(qubit) ** 0.5,  # Square root of NOT.
+    cirq.measure(qubit, key='result'),  # Measurement.
 )
 
 # Create an Engine object.
-# Replace YOUR_PROJECT_ID with the id from your cloud project.
-engine = cg.Engine(project_id=YOUR_PROJECT_ID)
+# Replace PROJECT_ID with the id from your cloud project.
+engine = cirq_google.Engine(project_id=PROJECT_ID)
 
 # Create a sampler from the engine
-sampler = engine.get_sampler(processor_id='PROCESSOR_ID')
+sampler = engine.get_sampler(processor_id=PROCESSOR_ID)
 
 # This will run the circuit and return the results in a 'Result'
 results = sampler.run(circuit, repetitions=1000)
@@ -152,26 +166,36 @@ Currently, getting the program and job ids can only be done through the
 You can then use `get_program` and `get_job` to retrieve the results.
 See below for an example:
 
+<!---test_substitution
+job = engine.run_sweep.program=circuit
+mock_engine.configure_mock(**{
+    "run_sweep.return_value": mock_engine_job,
+    "get_program.return_value": mock_engine_program,
+})
+mock_engine_program.configure_mock(**{"get_job.return_value": mock_engine_job})
+\g<0>
+--->
 ```python
 # Initialize the engine object
-engine = cirq_google.Engine(project_id='YOUR_PROJECT_ID')
+engine = cirq_google.Engine(project_id=PROJECT_ID)
 
 # Create an example circuit
 qubit = cirq.GridQubit(5, 2)
 circuit = cirq.Circuit(
-    cirq.X(qubit)**sympy.Symbol('t'),
-    cirq.measure(qubit, key='result')
+    cirq.X(qubit) ** sympy.Symbol('t'),
+    cirq.measure(qubit, key='result'),
 )
 param_sweep = cirq.Linspace('t', start=0, stop=1, length=10)
 
 # Run the circuit
-job = e.run_sweep(program=circuit,
-                  params=param_sweep,
-                  repetitions=1000,
-                  processor_id='PROCESSOR_ID',
-                  gate_set=GATE_SET)
+job = engine.run_sweep(
+    program=circuit,
+    params=param_sweep,
+    repetitions=1000,
+    processor_id=PROCESSOR_ID,
+)
 
-# Save the program and jo id for later
+# Save the program and job id for later
 program_id = job.program_id
 job_id = job.job_id
 
@@ -187,7 +211,6 @@ historical_job = engine.get_program(program_id=program_id).get_job(job_id=job_id
 
 # Retrieve the results
 historical_results = historical_job.results()
-
 ```
 
 If you did not save the ids, you can still find them from your
@@ -200,17 +223,24 @@ by using our list methods.
 To list the executions of your circuit, i.e., the jobs, you can use `cirq_google.Engine.list_jobs()`.
 You can search in all the jobs within your project using filtering criteria on creation time, execution state and labels.
 
+<!---test_substitution
+jobs = engine.list_jobs.created_after=datetime.date.*
+mock_engine.configure_mock(**{"list_jobs.return_value": [mock_engine_job]})
+\g<0>
+--->
 ```python
-from cirq_google.engine.client.quantum import enums
+from cirq_google.cloud import quantum
 
 # Initialize the engine object
-engine = cirq_google.Engine(project_id='YOUR_PROJECT_ID')
+engine = cirq_google.Engine(project_id=PROJECT_ID)
 
 # List all the jobs on the project since 2020/09/20 that succeeded:
-jobs = engine.list_jobs(created_after=datetime.date(2020,9,20),
-                        execution_states=[enums.ExecutionStatus.State.SUCCESS])
+jobs = engine.list_jobs(
+    created_after=datetime.date(2020, 9, 20),
+    execution_states=[quantum.ExecutionStatus.State.SUCCESS],
+)
 for j in jobs:
-   print(j.job_id, j.status(), j.create_time())
+    print(j.job_id, j.status(), j.create_time())
 ```
 
 ### Listing programs
@@ -219,23 +249,29 @@ To list the different instances of your circuits uploaded, i.e., the programs, y
 Similar to jobs, filtering makes it possible to list programs by creation time and labels.
 With an existing `cirq_google.EngineProgram` object, you can list any jobs that were run using that program.
 
+<!---test_substitution
+programs = engine.list_programs[(].*
+mock_engine.configure_mock(**{"list_programs.return_value": [mock_engine_program]})
+mock_engine_program.configure_mock(**{"list_jobs.return_value": [mock_engine_job]})
+\g<0>
+--->
 ```python
-from cirq_google.engine.client.quantum import enums
+from cirq_google.cloud import quantum
 
 # Initialize the engine object
-engine = cirq_google.Engine(project_id='YOUR_PROJECT_ID')
+engine = cirq_google.Engine(project_id=PROJECT_ID)
 
 # List all the programs on the project since 2020/09/20 that have
 # the "variational" label with any value and the "experiment" label
 # with value "vqe001":
 programs = engine.list_programs(
-                created_after=datetime.date(2020,9,20),
-                has_labels={"variational":"*", "experiment":"vqe001"}
-           )
+    created_after=datetime.date(2020, 9, 20),
+    has_labels={"variational": "*", "experiment": "vqe001"},
+)
 for p in programs:
-   print(p.program_id, p.create_time())
-   # the same filtering parametrization is available as in engine.list_jobs()
-   # for example here we list the jobs under the programs that failed
-   for j in p.list_jobs(execution_states=[enums.ExecutionStatus.State.FAILURE]):
-     print(j.job_id, j.status())
+    print(p.program_id, p.create_time())
+    # the same filtering parametrization is available as in engine.list_jobs()
+    # for example here we list the jobs under the programs that failed
+    for j in p.list_jobs(execution_states=[quantum.ExecutionStatus.State.FAILURE]):
+        print(j.job_id, j.status())
 ```
