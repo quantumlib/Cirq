@@ -49,10 +49,6 @@ previous_calibration = processor.get_calibration(CALIBRATION_SECONDS)
 # If you would like to find a calibration from a time-frame, use this.
 calibration_list = processor.list_calibrations(START_SECONDS, END_SECONDS)
 
-# If you know the job-id, you can retrieve the calibration that the job used.
-# job = next((j for j in engine.list_jobs() if j.id == JOB_ID), None)
-# job_calibration = job.get_calibration() if job else None
-
 # The calibration can be iterated through using something like the following.
 for metric_name in latest_calibration:
     print(metric_name)
