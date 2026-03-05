@@ -14,7 +14,11 @@
 
 from __future__ import annotations
 
+import itertools
+from collections.abc import Sequence
+
 import networkx as nx
+import numpy as np
 import pytest
 from networkx.utils.misc import graphs_equal
 
@@ -101,6 +105,12 @@ def test_distance_on_device_and_is_adjacent():
     # 'dist_on_device' does not use cirq.NamedQubit("e") to find shorter shortest path
     assert mm.dist_on_device(q_int[1], q_int[4]) == 3
 
+    # undirected and directed distance is the same for undirected graph
+    for lq1, lq2 in itertools.product(mm.logical_qid_to_int.values(), repeat=2):
+        assert mm.dist_on_device(lq1, lq2, undirected=True) == mm.dist_on_device(
+            lq1, lq2, undirected=False
+        )
+
     # distance changes after applying swap
     mm.apply_swap(q_int[2], q_int[3])
     assert mm.dist_on_device(q_int[1], q_int[3]) == 2
@@ -147,8 +157,81 @@ def test_shortest_path():
     # shortest path on symmetric qubit reverses the list
     assert all(mm.shortest_path(q_int[4], q_int[1]) == one_to_four[::-1])
 
+    # undirected and directed shortest paths are the same for undirected graph
+    for lq1, lq2 in itertools.product(mm.logical_qid_to_int.values(), repeat=2):
+        np.testing.assert_array_equal(
+            mm.shortest_path(lq1, lq2, undirected=True),
+            mm.shortest_path(lq1, lq2, undirected=False),
+        )
+
     # swapping changes shortest paths involving the swapped qubits
     mm.apply_swap(q_int[3], q_int[2])
     one_to_four[1], one_to_four[2] = one_to_four[2], one_to_four[1]
     assert all(mm.shortest_path(q_int[1], q_int[4]) == one_to_four)
     assert all(mm.shortest_path(q_int[1], q_int[2]) == [q_int[1], q_int[2]])
+
+
+def construct_directed_device_graph_and_mapping() -> (
+    tuple[nx.DiGraph, dict[cirq.Qid, cirq.Qid], Sequence[cirq.Qid]]
+):
+    """Return a directed device graph with bidirectional 0<->1 and directed 1->2 edges."""
+    q: Sequence[cirq.Qid] = cirq.LineQubit.range(3)
+    device_graph = nx.DiGraph([(q[0], q[1]), (q[1], q[0]), (q[1], q[2])])
+    initial_mapping = dict(zip(q, q))
+    return device_graph, initial_mapping, q
+
+
+def test_apply_swap_with_directed_graph():
+    device_graph, initial_mapping, q = construct_directed_device_graph_and_mapping()
+    mm = cirq.MappingManager(device_graph, initial_mapping)
+    q_int = [mm.logical_qid_to_int[qi] for qi in q]
+
+    # swapping now non-adjacent qubits raises error
+    with pytest.raises(ValueError, match="not adjacent on the device"):
+        mm.apply_swap(q_int[0], q_int[2])
+
+    # should be able to swap on edge 1->2 even though there's no 2->1 edge
+    # because undirected distance is 1
+    mm.apply_swap(q_int[1], q_int[2])
+
+    # verify the swap was applied correctly
+    assert mm.logical_to_physical[q_int[1]] == 2
+    assert mm.logical_to_physical[q_int[2]] == 1
+
+
+def test_dist_on_device_with_directed_graph():
+    device_graph, initial_mapping, q = construct_directed_device_graph_and_mapping()
+    mm = cirq.MappingManager(device_graph, initial_mapping)
+    q_int = [mm.logical_qid_to_int[qi] for qi in q]
+
+    # distance along bidirectional edge is 1 either way
+    assert mm.dist_on_device(q_int[0], q_int[1]) == 1
+    assert mm.dist_on_device(q_int[1], q_int[0]) == 1
+
+    # directed distance from 2 to 0 is infinity (no path)
+    assert mm.dist_on_device(q_int[2], q_int[0]) == float('inf')
+    # but exists in opposite direction
+    assert mm.dist_on_device(q_int[0], q_int[2]) == 2
+
+    # undirected distance should be 2 (path 2-1-0)
+    assert mm.dist_on_device(q_int[2], q_int[0], undirected=True) == 2
+    assert mm.dist_on_device(q_int[0], q_int[2], undirected=True) == 2
+
+
+def test_shortest_path_with_directed_graph():
+    device_graph, initial_mapping, q = construct_directed_device_graph_and_mapping()
+    mm = cirq.MappingManager(device_graph, initial_mapping)
+    q_int = [mm.logical_qid_to_int[qi] for qi in q]
+
+    # path from 2 to 0 does not exist
+    # TODO: raise ValueError with informative message
+    with pytest.raises(Exception):
+        mm.shortest_path(q_int[2], q_int[0])
+    # path from 0 to 2 exists
+    np.testing.assert_array_equal(q_int, mm.shortest_path(q_int[0], q_int[2]))
+
+    # undirected path exists in either direction
+    np.testing.assert_array_equal(q_int, mm.shortest_path(q_int[0], q_int[2], undirected=True))
+    np.testing.assert_array_equal(
+        q_int[::-1], mm.shortest_path(q_int[2], q_int[0], undirected=True)
+    )
