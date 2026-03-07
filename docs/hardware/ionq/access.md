@@ -14,6 +14,10 @@ with IonQ computers.
 
 Here is an example of this pattern:
 
+<!---test_substitution
+service = ionq.Service(.*)
+service = mock.MagicMock()
+--->
 ```python
 import cirq_ionq as ionq
 

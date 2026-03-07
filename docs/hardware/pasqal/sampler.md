@@ -12,14 +12,17 @@ The `PasqalSampler` class is the entry point to communicate with the API. It can
 using your PASQAL_API_ACCESS_TOKEN.
 
 
+<!---test_substitution
+sampler = cirq_pasqal.PasqalSampler(.*)
+sampler = mock.MagicMock()
+--->
 ```python
 import cirq
 from cirq_pasqal import ThreeDQubit, PasqalVirtualDevice, PasqalSampler
 
 # A simple sample circuit
 qubit = ThreeDQubit(0, 0, 0)
-p_device = PasqalVirtualDevice(control_radius=2.1, qubits=[qubit])
-p_circuit = cirq.Circuit(device=p_device)
+p_circuit = cirq.Circuit()
 p_circuit.append(cirq.X(qubit))                        # NOT gate.
 p_circuit.append(cirq.measure(qubit, key='result'))    # Measurement.
 
@@ -28,8 +31,8 @@ p_circuit.append(cirq.measure(qubit, key='result'))    # Measurement.
 # Replace 'my_token' with the access token and uncomment next lines.
 
 # PASQAL_API_ACCESS_TOKEN = 'my_token'
-# sampler = cirq_pasqal.PasqalSampler(remote_host='http://34.98.71.118/v0/pasqal', access_token=PASQAL_API_ACCESS_TOKEN)
-# results = sampler.run(p_circuit, repetitions=1000) # Runs the circuit and returns the results in a 'Result'
+sampler = cirq_pasqal.PasqalSampler(remote_host='http://34.98.71.118/v0/pasqal', access_token=PASQAL_API_ACCESS_TOKEN)
+results = sampler.run(p_circuit, repetitions=1000) # Runs the circuit and returns the results in a 'Result'
 ```
 
 ## Device Specification
