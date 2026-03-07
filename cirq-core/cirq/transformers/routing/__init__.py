@@ -23,6 +23,10 @@ from cirq.transformers.routing.mapping_manager import MappingManager as MappingM
 
 from cirq.transformers.routing.line_initial_mapper import LineInitialMapper as LineInitialMapper
 
+from cirq.transformers.routing.graph_monomorphism_mapper import (
+    GraphMonomorphismMapper as GraphMonomorphismMapper,
+)
+
 from cirq.transformers.routing.route_circuit_cqc import RouteCQC as RouteCQC
 
 from cirq.transformers.routing.visualize_routed_circuit import (
