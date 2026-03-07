@@ -161,7 +161,7 @@ class PauliMeasurementGate(raw_types.Gate):
             if self.key not in label_map:
                 symbols[0] += f"('{self.key}')"
         if self.key in label_map:
-            symbols += '@'
+            symbols += 'V'
 
         return protocols.CircuitDiagramInfo(tuple(symbols))
 
