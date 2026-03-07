@@ -95,7 +95,7 @@ def z_phase_calibration_workflow(
 
     pool: multiprocessing.pool.Pool | cf.Executor | None = None
     local_pool = False
-    if isinstance(num_workers_or_pool, multiprocessing.pool.Pool):
+    if isinstance(num_workers_or_pool, (multiprocessing.pool.Pool, cf.Executor)):
         pool = num_workers_or_pool  # pragma: no cover
     elif num_workers_or_pool != 0:
         pool = cf.ThreadPoolExecutor(num_workers_or_pool if num_workers_or_pool > 0 else None)
