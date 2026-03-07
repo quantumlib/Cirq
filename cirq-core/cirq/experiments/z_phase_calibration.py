@@ -17,7 +17,6 @@
 from __future__ import annotations
 
 import concurrent.futures as cf
-import multiprocessing
 import multiprocessing.pool
 from collections.abc import Sequence
 from typing import Any, TYPE_CHECKING
