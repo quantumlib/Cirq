@@ -2,6 +2,7 @@
 
 pytest
 pytest-asyncio
+pytest-benchmark
 pytest-cov
 pytest-randomly
 coverage~=7.4
