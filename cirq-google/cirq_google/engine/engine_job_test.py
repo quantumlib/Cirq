@@ -273,6 +273,90 @@ def test_get_processor_no_processor():
     assert not job.get_processor()
 
 
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_async')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_calibration_async')
+def test_get_calibration(get_calibration, get_job):
+    calibration_timestamp_seconds = 1562
+    raw_calibration_data = """
+timestamp_ms: 1562,
+metrics: [{
+    name: 'two_qubit_xeb',
+    targets: ['0_0', '0_1'],
+    values: [{
+        double_val: .9999
+    }]
+    }, {
+    name: 'two_qubit_xeb',
+    targets: ['0_0', '1_0'],
+    values: [{
+        double_val: .9998
+    }]
+    }, {
+    name: 't1',
+    targets: ['0_0'],
+    values: [{
+        double_val: 321
+    }]
+    }, {
+    name: 't1',
+    targets: ['0_1'],
+    values: [{
+        double_val: 911
+    }]
+    }, {
+    name: 't1',
+    targets: ['1_0'],
+    values: [{
+        double_val: 505
+    }]
+    }, {
+    name: 'globalMetric',
+    values: [{
+        int32_val: 12300
+    }]
+}]
+"""
+    calibration = Merge(raw_calibration_data, v2.metrics_pb2.MetricsSnapshot())
+    job_calibration = cg.Calibration(calibration=calibration)
+
+    qjob = quantum.QuantumJob(
+        execution_status=quantum.ExecutionStatus(
+            state=quantum.ExecutionStatus.State.SUCCESS,
+            calibration_name=f"projects/a/processors/p/calibrations/{calibration_timestamp_seconds}",
+        )
+    )
+    get_job.return_value = qjob
+
+    calibration_any_proto = any_pb2.Any()
+    calibration_any_proto.Pack(calibration)
+    quantum_calibration = quantum.QuantumCalibration(
+        name='calibration1',
+        timestamp=timestamp_pb2.Timestamp(seconds=calibration_timestamp_seconds),
+        data=calibration_any_proto,
+    )
+
+    get_calibration.return_value = quantum_calibration
+
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext())
+
+    assert job.get_calibration() == job_calibration
+    get_job.assert_called_once()
+    get_calibration.assert_called_once_with('a', 'p', calibration_timestamp_seconds)
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_async')
+def test_get_calibration_no_calibration(get_job):
+    qjob = quantum.QuantumJob(
+        execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.RUNNING)
+    )
+    get_job.return_value = qjob
+
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext())
+
+    assert not job.get_calibration()
+    get_job.assert_called_once()
+
+
 @mock.patch('cirq_google.engine.engine_client.EngineClient.cancel_job_async')
 def test_cancel(cancel_job):
     job = cg.EngineJob('a', 'b', 'steve', EngineContext())
