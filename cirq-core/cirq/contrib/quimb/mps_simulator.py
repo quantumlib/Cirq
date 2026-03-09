@@ -391,7 +391,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
         """
 
         old_inds = tuple(map(self.i_str, axes))
-        new_inds = tuple(['new_' + old_ind for old_ind in old_inds])
+        new_inds = tuple('new_' + old_ind for old_ind in old_inds)
 
         if protocols.has_unitary(op):
             U = protocols.unitary(op)
@@ -427,7 +427,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
 
                 T = U @ self._M[n] @ self._M[p]
 
-                left_inds = tuple(set(T.inds) & set(self._M[n].inds)) + (new_inds[0],)
+                left_inds = (*set(T.inds).intersection(self._M[n].inds), new_inds[0])
                 X, Y = T.split(
                     left_inds,
                     method=self._simulation_options.method,
@@ -466,8 +466,8 @@ class _MPSHandler(qis.QuantumStateRepresentation):
     def estimation_stats(self):  # pragma: no cover
         """Returns some statistics about the memory usage and quality of the approximation."""
 
-        num_coefs_used = sum([Mi.data.size for Mi in self._M])
-        memory_bytes = sum([Mi.data.nbytes for Mi in self._M])
+        num_coefs_used = sum(Mi.data.size for Mi in self._M)
+        memory_bytes = sum(Mi.data.nbytes for Mi in self._M)
 
         # The computation below is done for numerical stability, instead of directly using the
         # formula:

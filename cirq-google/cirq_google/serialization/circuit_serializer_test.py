@@ -962,7 +962,7 @@ def test_serialize_op_bad_operation():
     class NullOperation(cirq.Operation):
         @property
         def qubits(self):
-            return tuple()  # pragma: no cover
+            return ()  # pragma: no cover
 
         def with_qubits(self, *qubits):
             return self  # pragma: no cover

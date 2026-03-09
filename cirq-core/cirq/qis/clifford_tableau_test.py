@@ -36,7 +36,7 @@ def _S(table, q):
 
 
 def _H(table, q):
-    (table.xs[:, q], table.zs[:, q]) = (table.zs[:, q].copy(), table.xs[:, q].copy())
+    table.xs[:, q], table.zs[:, q] = (table.zs[:, q].copy(), table.xs[:, q].copy())
     table.rs[:] ^= table.xs[:, q] & table.zs[:, q]
 
 
@@ -160,7 +160,7 @@ def test_measurement() -> None:
         _H(t, 0)
         _CNOT(t, 0, 1)
         res.append(2 * t._measure(q=0, prng=prng) + t._measure(q=1, prng=prng))
-    assert set(res) == set([0, 3])
+    assert set(res) == {0, 3}
     assert sum(np.asarray(res) == 0) >= (repetitions / 2 * 0.9)
     assert sum(np.asarray(res) == 3) >= (repetitions / 2 * 0.9)
 
@@ -171,7 +171,7 @@ def test_measurement() -> None:
         _H(t, 0)
         _H(t, 1)
         res.append(2 * t._measure(q=0, prng=prng) + t._measure(q=1, prng=prng))
-    assert set(res) == set([0, 1, 2, 3])
+    assert set(res) == {0, 1, 2, 3}
     assert sum(np.asarray(res) == 0) >= (repetitions / 4 * 0.9)
     assert sum(np.asarray(res) == 1) >= (repetitions / 4 * 0.9)
     assert sum(np.asarray(res) == 2) >= (repetitions / 4 * 0.9)
@@ -188,7 +188,7 @@ def test_measurement() -> None:
         _S(t, 0)  # [ZI, ZZ, YX, IX]
         _S(t, 1)  # [ZI, ZZ, YY, IY]
         res.append(2 * t._measure(q=0, prng=prng) + t._measure(q=1, prng=prng))
-    assert set(res) == set([0, 1, 2, 3])
+    assert set(res) == {0, 1, 2, 3}
     assert sum(np.asarray(res) == 0) >= (repetitions / 4 * 0.9)
     assert sum(np.asarray(res) == 1) >= (repetitions / 4 * 0.9)
     assert sum(np.asarray(res) == 2) >= (repetitions / 4 * 0.9)

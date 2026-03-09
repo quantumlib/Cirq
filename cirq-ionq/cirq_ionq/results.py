@@ -108,7 +108,7 @@ class QPUResult:
                 'circuit that produced these results.'
             )
         result: Counter[int] = collections.Counter()
-        result.update([bit_value for bit_value in self.ordered_results(key)])
+        result.update(self.ordered_results(key))
         return result
 
     def measurement_dict(self) -> dict[str, Sequence[int]]:
@@ -235,7 +235,7 @@ class SimulatorResult:
                 'circuit that produced these results.'
             )
         targets = self._measurement_dict[key]
-        result: dict[int, float] = dict()
+        result: dict[int, float] = {}
         for value, probability in self._probabilities.items():
             bits = [(value >> (self.num_qubits() - target - 1)) & 1 for target in targets]
             bit_value = sum(bit * (1 << i) for i, bit in enumerate(bits[::-1]))

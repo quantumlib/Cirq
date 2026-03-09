@@ -25,6 +25,12 @@ import sympy
 import cirq
 
 
+def test_symbol() -> None:
+    x = cirq.symbol("x")
+    assert isinstance(x, sympy.Symbol)
+    assert str(x) == "x"
+
+
 @pytest.mark.parametrize(
     'val',
     [
@@ -153,7 +159,7 @@ def test_param_dict() -> None:
 
 def test_param_dict_iter() -> None:
     r = cirq.ParamResolver({'a': 0.5, 'b': 0.1})
-    assert [key for key in r] == ['a', 'b']
+    assert list(r) == ['a', 'b']
     assert [r.value_of(key) for key in r] == [0.5, 0.1]
     assert list(r) == ['a', 'b']
 

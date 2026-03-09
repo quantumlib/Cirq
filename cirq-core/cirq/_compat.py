@@ -20,7 +20,7 @@ import contextlib
 import contextvars
 import dataclasses
 import functools
-import importlib
+import importlib.util
 import inspect
 import os
 import re

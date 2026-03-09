@@ -77,7 +77,7 @@ def is_undirected_device_graph(graph: UndirectedHypergraph) -> bool:
         return False
     if not all(isinstance(v, ops.Qid) for v in graph.vertices):
         return False
-    for _, label in graph.labelled_edges.items():
+    for label in graph.labelled_edges.values():
         if not (label is None or isinstance(label, UndirectedGraphDeviceEdge)):
             return False
     return True

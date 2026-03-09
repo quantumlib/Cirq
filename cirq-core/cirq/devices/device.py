@@ -148,7 +148,7 @@ class DeviceMetadata:
 
     def _json_dict_(self):
         graph_payload = nx.readwrite.json_graph.node_link_data(self._nx_graph, edges='links')
-        qubits_payload = sorted(list(self._qubits_set))
+        qubits_payload = sorted(self._qubits_set)
 
         return {'qubits': qubits_payload, 'nx_graph': graph_payload}
 

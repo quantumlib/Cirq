@@ -58,7 +58,7 @@ class SweepResult(google.protobuf.message.Message):
     @property
     def parameterized_results(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___ParameterizedResult]:
         """The results along with the parameters that generated these results.
-        These represent the expanded parameters defined int he ParameterSweep
+        These represent the expanded parameters defined in the ParameterSweep
         which this SweepResult corresponds to.
         """
 
@@ -199,16 +199,46 @@ class ParameterDict(google.protobuf.message.Message):
         ) -> None: ...
         def ClearField(self, field_name: typing.Literal["key", b"key", "value", b"value"]) -> None: ...
 
+    @typing.final
+    class ArgsEntry(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        KEY_FIELD_NUMBER: builtins.int
+        VALUE_FIELD_NUMBER: builtins.int
+        key: builtins.str
+        @property
+        def value(self) -> cirq_google.api.v2.program_pb2.Arg: ...
+        def __init__(
+            self,
+            *,
+            key: builtins.str = ...,
+            value: cirq_google.api.v2.program_pb2.Arg | None = ...,
+        ) -> None: ...
+        def HasField(self, field_name: typing.Literal["value", b"value"]) -> builtins.bool: ...
+        def ClearField(self, field_name: typing.Literal["key", b"key", "value", b"value"]) -> None: ...
+
     ASSIGNMENTS_FIELD_NUMBER: builtins.int
+    KEY_FIELD_NUMBER: builtins.int
+    ARGS_FIELD_NUMBER: builtins.int
+    key: builtins.str
+    """Optional string for keyed circuit results."""
     @property
     def assignments(self) -> google.protobuf.internal.containers.ScalarMap[builtins.str, builtins.float]:
-        """Maps parameter names to values."""
+        """Maps sweep parameter names to values."""
+
+    @property
+    def args(self) -> google.protobuf.internal.containers.MessageMap[builtins.str, cirq_google.api.v2.program_pb2.Arg]:
+        """Optional args for keyed circuit mappings / functions.
+        See com.google.cirq.google.api.v2.program.KeyedCircuit.
+        """
 
     def __init__(
         self,
         *,
         assignments: collections.abc.Mapping[builtins.str, builtins.float] | None = ...,
+        key: builtins.str = ...,
+        args: collections.abc.Mapping[builtins.str, cirq_google.api.v2.program_pb2.Arg] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["assignments", b"assignments"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["args", b"args", "assignments", b"assignments", "key", b"key"]) -> None: ...
 
 Global___ParameterDict: typing_extensions.TypeAlias = ParameterDict

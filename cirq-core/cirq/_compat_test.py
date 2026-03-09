@@ -584,44 +584,50 @@ old_parent = 'cirq.testing._compat_test_data'
 
 # this is where the deprecation error should show where the deprecated usage
 # has occured, which is this file
-_deprecation_origin = ['_compat_test.py:']
+_deprecation_origin = '_compat_test.py:'
 
 # see cirq_compat_test_data/__init__.py for the setup code
 _fake_a_deprecation_msg = [
     f'{old_parent}.fake_a was used but is deprecated',
     f'Use {old_parent}.module_a instead',
-] + _deprecation_origin
+    _deprecation_origin,
+]
 
 # see cirq_compat_test_data/__init__.py for the setup code
 _fake_b_deprecation_msg = [
     f'{old_parent}.fake_b was used but is deprecated',
     f'Use {old_parent}.module_a.module_b instead',
-] + _deprecation_origin
+    _deprecation_origin,
+]
 
 # see cirq_compat_test_data/__init__.py for the setup code
 _fake_ab_deprecation_msg = [
     f'{old_parent}.module_a.fake_ab was used but is deprecated',
     f'Use {old_parent}.module_a.module_b instead',
-] + _deprecation_origin
+    _deprecation_origin,
+]
 
 # see cirq_compat_test_data/__init__.py for the setup code
 _fake_ops_deprecation_msg = [
     f'{old_parent}.fake_ops was used but is deprecated',
     'Use cirq.ops instead',
-] + _deprecation_origin
+    _deprecation_origin,
+]
 
 
 # see cirq_compat_test_data/__init__.py for the setup code
 _fake_numpy_deprecation_msg = [
     f'{old_parent}.fake_numpy was used but is deprecated',
     'Use numpy instead',
-] + _deprecation_origin
+    _deprecation_origin,
+]
 
 # see cirq_compat_test_data/__init__.py for the setup code
 _repeated_child_deprecation_msg = [
     f'{old_parent}.repeated_child was used but is deprecated',
     f'Use {old_parent}.repeated instead',
-] + _deprecation_origin
+    _deprecation_origin,
+]
 
 
 def _trace_unhandled_exceptions(*args, queue: multiprocessing.Queue, func: Callable):
@@ -757,7 +763,7 @@ def test_metadata_distributions_after_deprecated_submodule():
 
 
 def _test_metadata_distributions_after_deprecated_submodule():
-    # verify deprecated_submodule does not break importlib_metadata.distributions()
+    # verify deprecated_submodule does not break importlib.metadata.distributions()
     # See https://github.com/quantumlib/Cirq/issues/4729
     deprecated_submodule(
         new_module_name='cirq.neutral_atoms',
@@ -766,9 +772,7 @@ def _test_metadata_distributions_after_deprecated_submodule():
         deadline="v0.14",
         create_attribute=True,
     )
-    m = pytest.importorskip("importlib_metadata")
-    distlist = list(m.distributions())
-    assert all(isinstance(d.name, str) for d in distlist)
+    assert all(isinstance(d.name, str) for d in importlib.metadata.distributions())
 
 
 def test_parent_spec_after_deprecated_submodule():
