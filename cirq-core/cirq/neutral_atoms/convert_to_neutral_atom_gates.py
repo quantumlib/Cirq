@@ -24,9 +24,13 @@ if TYPE_CHECKING:
 
 def is_native_neutral_atom_op(operation: cirq.Operation) -> bool:
     """Returns true if the operation is in the default neutral atom gateset."""
-    return operation in neutral_atom_devices.neutral_atom_gateset()
+    return operation.gate in neutral_atom_devices.neutral_atom_gateset()
 
 
 def is_native_neutral_atom_gate(gate: cirq.Gate) -> bool:
     """Returns true if the gate is in the default neutral atom gateset."""
-    return gate in neutral_atom_devices.neutral_atom_gateset()
+    try:
+        return gate in neutral_atom_devices.neutral_atom_gateset()
+    except TypeError:
+        # Handle unhashable gates by returning False
+        return False
