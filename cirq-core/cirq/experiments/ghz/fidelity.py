@@ -68,6 +68,12 @@ def measure_ghz_fidelity(
         circuit: The circuit that prepares the GHZ state.
         num_z_type: The number of z-type stabilizers (all measured simultaneously)
         num_x_type: The number of x-type stabilizers
+        rng: The random number generator to use.
+        pauli_repetitions: The number of repetitions to use for measuring stabilizers.
+        readout_repetitions: The number of repetitions to use for benchmarking readout
+            (for readout error mitigation).
+        num_random_bitstrings: The number of random bitstrings for readout benchmarking
+            (for readout error mitigation). Set to 0 to skip readout benchmarking.
     """
     qubits = list(circuit.all_qubits())
     n_qubits = len(qubits)
