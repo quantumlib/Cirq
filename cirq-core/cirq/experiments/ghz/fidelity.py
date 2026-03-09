@@ -68,6 +68,7 @@ def measure_ghz_fidelity(
         circuit: The circuit that prepares the GHZ state.
         num_z_type: The number of z-type stabilizers (all measured simultaneously)
         num_x_type: The number of x-type stabilizers
+        sampler: The simulator or hardware sampler on which to run.
         rng: The random number generator to use.
         pauli_repetitions: The number of repetitions to use for measuring stabilizers.
         readout_repetitions: The number of repetitions to use for benchmarking readout
