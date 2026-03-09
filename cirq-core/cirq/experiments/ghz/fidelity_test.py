@@ -7,7 +7,7 @@ import cirq.sim as sim
 
 
 def test_measure_ghz_fidelity():
-    qubits = devices.LineQubit.range(4)
+    qubits = devices.LineQubit.range(10)
     sampler = sim.Simulator()
     circuit = ghz_1d.generate_1d_ghz_circuit(qubits)
     rng = np.random.default_rng()
