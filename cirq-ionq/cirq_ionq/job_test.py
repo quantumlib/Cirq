@@ -475,8 +475,8 @@ def test_shotwise_job_results_ideal_simulator():
         "noise": {"model": "ideal"},
     }
     job = ionq.Job(mock_client, job_dict)
-    results = job.results()
-    cirq_result = results[0].to_cirq_result()
+    result = job.results()
+    cirq_result = result.to_cirq_result()
     assert cirq_result.measurements["results"].tolist() == [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]
 
 
@@ -497,8 +497,8 @@ def test_shotwise_job_results_noisy_simulator():
         "noise": {"model": "aria-1"},
     }
     job = ionq.Job(mock_client, job_dict)
-    results = job.results()
-    cirq_result = results[0].to_cirq_result()
+    result = job.results()
+    cirq_result = result.to_cirq_result()
     assert cirq_result.measurements["results"].tolist() == [[0, 1], [1, 0], [1, 1], [1, 0], [0, 0]]
 
 
@@ -518,6 +518,6 @@ def test_shotwise_job_results_qpu():
         'results': {'shots': {'url': 'http://fake.url/shots'}},
     }
     job = ionq.Job(mock_client, job_dict)
-    results = job.results()
-    cirq_result = results[0].to_cirq_result()
+    result = job.results()
+    cirq_result = result.to_cirq_result()
     assert cirq_result.measurements["results"].tolist() == [[0, 1], [1, 0], [1, 1], [1, 0], [0, 0]]
