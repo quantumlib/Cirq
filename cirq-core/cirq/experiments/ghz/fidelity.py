@@ -43,7 +43,7 @@ def int_to_stabilizer(which_stabilizer: int, qubits: list[ops.Qid]) -> ops.Pauli
     basis_ops = [ops.Z(qubits[i]) * ops.Z(qubits[i + 1]) for i in range(num_qubits - 1)] + [XXX]
     which_to_include = np.binary_repr(which_stabilizer, num_qubits)
 
-    op_to_return = ops.I(qubits[0])
+    op_to_return: ops.PauliString = ops.PauliString(ops.I(qubits[0]))
     for q in range(num_qubits):
         if which_to_include[-1 - q] == "1":
             op_to_return *= basis_ops[q]
