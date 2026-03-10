@@ -110,7 +110,7 @@ def two_qubit_matrix_to_diagonal_and_cz_operations(
         clean_operations: Enables optimizing resulting operation list by
             merging operations and ejecting phased Paulis and Z operations.
     Returns:
-        tuple(ops,D): operations `ops`, and the diagonal `D`
+        A tuple (D, ops) where `D` is the diagonal matrix (np.ndarray) and `ops` is a list of cirq.Operation
     """
     if predicates.is_diagonal(mat, atol=atol):
         return mat, []
