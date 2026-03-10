@@ -33,7 +33,6 @@ def _sorted_best_string_placements(
     def get_len(op):
         if hasattr(op, 'pauli_string'):
             return len(op.pauli_string)
-        # Fallback per a operacions que es poden convertir a PauliString
         ps = protocols.pauli_string(op, default=None)
         return len(ps) if ps is not None else 0
 
