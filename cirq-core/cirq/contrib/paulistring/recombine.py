@@ -30,7 +30,14 @@ def _sorted_best_string_placements(
     output_ops: Sequence[ops.Operation],
     key: Callable[[Any], ops.PauliStringPhasor] = lambda node: node.val,
 ) -> list[tuple[ops.PauliStringPhasor, int, circuitdag.Unique[ops.PauliStringPhasor]]]:
-    sort_key = lambda placement: (-len(placement[0].pauli_string), placement[1])
+    def get_len(op):
+        if hasattr(op, 'pauli_string'):
+            return len(op.pauli_string)
+        # Fallback per a operacions que es poden convertir a PauliString
+        ps = protocols.pauli_string(op, default=None)
+        return len(ps) if ps is not None else 0
+
+    sort_key = lambda p: (-get_len(p[0]), p[1])
 
     node_maxes = []
     for possible_node in possible_nodes:
