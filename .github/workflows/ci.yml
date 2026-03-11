@@ -194,10 +194,10 @@ jobs:
     strategy:
       matrix:
         python-version: |-
-          ${{ case(
+          ${{ fromJSON(case(
             github.event_name == 'merge_group', '["3.11"]',
             '["3.11", "3.12", "3.13", "3.14"]'
-          ) }}
+          )) }}
     runs-on: ubuntu-22.04-x64-8-core
     steps:
       - name: Check out source repository
