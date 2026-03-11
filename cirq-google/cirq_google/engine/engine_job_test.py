@@ -28,6 +28,7 @@ from cirq_google.api import v1, v2
 from cirq_google.cloud import quantum
 from cirq_google.engine import util
 from cirq_google.engine.engine import EngineContext
+from cirq_google.engine.stream_manager import StreamError
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -510,6 +511,25 @@ def test_receives_job_via_stream_raises_and_updates_underlying_job():
     # Checks that the underlying job has been updated by checking failure information.
     assert actual_error_code == expected_error_code.name
     assert actual_error_message == expected_error_message
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
+def test_on_stream_failure_retrieves_results_using_get_job_results(get_job_results):
+    qjob = quantum.QuantumJob(
+        execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS),
+        update_time=UPDATE_TIME,
+    )
+    get_job_results.return_value = RESULTS
+    result_future = duet.failed_future(StreamError(RuntimeError("stream failed")))
+
+    job = cg.EngineJob(
+        'a', 'b', 'steve', EngineContext(), _job=qjob, job_result_future=result_future
+    )
+    data = job.results()
+
+    assert len(data) == 2
+    assert str(data[0]) == 'q=0110'
+    assert str(data[1]) == 'q=1010'
+    get_job_results.assert_called_once_with('a', 'b', 'steve')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
