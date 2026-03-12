@@ -281,9 +281,7 @@ def is_applicable_python_file(rel_path: str) -> bool:
     Returns:
         Whether to include the file.
     """
-    return rel_path.endswith('.py') and not any(
-        pat.search(rel_path) for pat in IGNORED_FILE_RE
-    )
+    return rel_path.endswith('.py') and not any(pat.search(rel_path) for pat in IGNORED_FILE_RE)
 
 
 def check_for_uncovered_lines(env: env_tools.PreparedEnv) -> int:
