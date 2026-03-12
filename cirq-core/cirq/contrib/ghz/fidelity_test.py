@@ -14,9 +14,9 @@
 
 import numpy as np
 
+import cirq.contrib.ghz.fidelity as ghz_fidelity
+import cirq.contrib.ghz.ghz_1d as ghz_1d
 import cirq.devices as devices
-import cirq.experiments.ghz.fidelity as ghz_fidelity
-import cirq.experiments.ghz.ghz_1d as ghz_1d
 import cirq.sim as sim
 
 
