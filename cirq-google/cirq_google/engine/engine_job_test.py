@@ -512,6 +512,7 @@ def test_receives_job_via_stream_raises_and_updates_underlying_job():
     assert actual_error_code == expected_error_code.name
     assert actual_error_message == expected_error_message
 
+
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
 def test_on_stream_failure_retrieves_results_using_get_job_results(get_job_results):
     qjob = quantum.QuantumJob(
