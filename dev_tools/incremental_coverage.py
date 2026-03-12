@@ -58,6 +58,11 @@ IGNORED_LINE_PATTERNS = [
 ]
 EXPLICIT_OPT_OUT_PATTERN = r'#\s*pragma:\s*no cover\s*$'
 
+IGNORED_FILE_RE = [re.compile(pat) for pat in IGNORED_FILE_PATTERNS]
+IGNORED_BLOCK_RE = [re.compile(pat) for pat in IGNORED_BLOCK_PATTERNS]
+IGNORED_LINE_RE = [re.compile(pat) for pat in IGNORED_LINE_PATTERNS]
+EXPLICIT_OPT_OUT_RE = re.compile(EXPLICIT_OPT_OUT_PATTERN)
+
 
 def diff_to_new_interesting_lines(unified_diff_lines: list[str]) -> dict[int, str]:
     """Extracts a set of 'interesting' lines out of a GNU unified diff format.
@@ -195,21 +200,20 @@ def determine_ignored_lines(content: str) -> set[int]:
     lines = content.split('\n')
     result: list[int] = []
 
-    explicit_opt_out_regexp = re.compile(EXPLICIT_OPT_OUT_PATTERN)
     i = 0
     while i < len(lines):
         line = lines[i]
 
-        if any(re.match(pat, line) for pat in IGNORED_BLOCK_PATTERNS):
+        if any(pat.match(line) for pat in IGNORED_BLOCK_RE):
             end = naive_find_end_of_scope(lines, i + 1)
             result.extend(range(i, end))
             i = end
-        elif explicit_opt_out_regexp.match(line.strip()):
+        elif EXPLICIT_OPT_OUT_RE.match(line.strip()):
             # Ignore the rest of a block.
             end = naive_find_end_of_scope(lines, i)
             result.extend(range(i, end))
             i = end
-        elif explicit_opt_out_regexp.search(line):
+        elif EXPLICIT_OPT_OUT_RE.search(line):
             # Ignore a single line.
             result.append(i)
             i += 1
@@ -262,7 +266,7 @@ def line_counts_as_uncovered(line: str, is_from_cover_annotation_file: bool) -> 
         content = content[: content.index('#')].strip()
 
     # Ignored line pattern?
-    if any(re.search(pat, content) for pat in IGNORED_LINE_PATTERNS):
+    if any(pat.search(content) for pat in IGNORED_LINE_RE):
         return False
 
     return is_from_cover_annotation_file or line_content_counts_as_uncovered_manual(content)
@@ -278,7 +282,7 @@ def is_applicable_python_file(rel_path: str) -> bool:
         Whether to include the file.
     """
     return rel_path.endswith('.py') and not any(
-        re.search(pat, rel_path) for pat in IGNORED_FILE_PATTERNS
+        pat.search(rel_path) for pat in IGNORED_FILE_RE
     )
 
 
