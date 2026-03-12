@@ -29,3 +29,10 @@ def test_measure_ghz_fidelity():
     f, df = result.compute_fidelity(mitigated=False)
     assert f == 1.0
     assert df == 0.0
+
+    qubits = devices.LineQubit.range(4)
+    circuit = ghz_1d.generate_1d_ghz_circuit(qubits)
+    result = ghz_fidelity.measure_ghz_fidelity(circuit, 2**3 - 1, 2**3, rng, sampler)
+    f, df = result.compute_fidelity(mitigated=False)
+    assert f == 1.0
+    assert df == 0.0
