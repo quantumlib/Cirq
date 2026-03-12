@@ -14,8 +14,8 @@
 
 from __future__ import annotations
 
-from typing import cast
 from collections.abc import Sequence
+from typing import cast
 
 import numpy as np
 
