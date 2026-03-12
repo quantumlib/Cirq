@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import cast, Sequence
+from typing import cast
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -63,7 +64,7 @@ def generate_stabilizers(
     """
     num_qubits = len(qubits)
     # Precompute basis_ops once
-    XXX: ops.PauliString = ops.PauliString({q: ops.X for q in qubits})
+    XXX: ops.PauliString = ops.PauliString(dict.fromkeys(qubits, ops.X))
     basis_ops = [
         ops.PauliString({qubits[i]: ops.Z, qubits[i + 1]: ops.Z}) for i in range(num_qubits - 1)
     ] + [XXX]
