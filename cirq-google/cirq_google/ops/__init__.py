@@ -32,6 +32,8 @@ from cirq_google.ops.physical_z_tag import PhysicalZTag as PhysicalZTag
 
 from cirq_google.ops.sycamore_gate import SycamoreGate as SycamoreGate, SYC as SYC
 
+from cirq_google.ops.two_pulse_fsim_tag import TwoPulseFSimTag as TwoPulseFSimTag
+
 from cirq_google.ops.internal_gate import InternalGate as InternalGate
 
 from cirq_google.ops.internal_tag import InternalTag as InternalTag

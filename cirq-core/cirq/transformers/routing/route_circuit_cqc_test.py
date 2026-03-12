@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+import collections
+
 import networkx as nx
 import pytest
 
@@ -367,6 +369,44 @@ def test_directed_device_bidirectional_swap_preserved() -> None:
     ]
 
     assert preserved_swaps == [cirq.SWAP(q[0], q[1]).with_tags(cirq.RoutingSwapTag())]
+
+
+@pytest.mark.parametrize(
+    ["graph_edges", "cnot_edge", "expected_tagged_gates_count"],
+    [
+        ("01", (0, 1), {}),
+        ("01", (1, 0), {"CNOT": 3, "H": 4}),
+        ("01,10,12", (2, 1), {"CNOT": 3, "H": 4}),
+        ("01,12", (2, 0), {"CNOT": 6, "H": 8}),
+    ],
+)
+def test_directed_device_with_mixed_edges_routing(
+    graph_edges: str, cnot_edge: tuple[int, int], expected_tagged_gates_count: dict[str, int]
+) -> None:
+    q = cirq.LineQubit.range(3)
+    device_graph = nx.DiGraph([tuple(q[int(c)] for c in edge) for edge in graph_edges.split(",")])
+    router = cirq.RouteCQC(device_graph)
+    circuit = cirq.Circuit(cirq.CNOT(q[cnot_edge[0]], q[cnot_edge[1]]))
+    # use all qubits for simpler comparison of the original and routed circuits
+    circuit.append(cirq.I.on_each(*q))
+    hard_coded_mapper = cirq.HardCodedInitialMapper(dict(zip(q, q)))
+    routed_circuit, _, swap_map = router.route_circuit(
+        circuit, initial_mapper=hard_coded_mapper, tag_inserted_swaps=True
+    )
+
+    # Verify the routed circuit is mathematically equivalent to the original
+    cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+        routed_circuit, circuit, swap_map
+    )
+
+    # Verify that the routed circuit has operations on valid edges
+    for _, op in routed_circuit.findall_operations(lambda op: cirq.num_qubits(op) == 2):
+        assert device_graph.has_edge(*op.qubits)
+
+    tagged_gates_count = collections.Counter(
+        str(op.gate) for op in routed_circuit.all_operations() if cirq.RoutingSwapTag() in op.tags
+    )
+    assert tagged_gates_count == expected_tagged_gates_count
 
 
 def test_repr() -> None:
