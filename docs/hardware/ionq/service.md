@@ -22,8 +22,10 @@ The basic steps for running a quantum circuit in a blocking manner are:
 Here is a simple example of this flow:
 
 <!---test_substitution
-service = ionq.Service(.*)
-service = mock.MagicMock()
+service = ionq.Service\(api_key=API_KEY\)
+service = mock.create_autospec(ionq.Service, instance=True)
+mock_result = mock.create_autospec(cirq.Result, instance=True)
+service.configure_mock(**{"run.return_value": mock_result})
 --->
 ```python
 import cirq

@@ -7,15 +7,19 @@ or on the IonQ simulator.  Here we describe the restrictions on these circuits.
 
 In this section we assume a `cirq_ionq.Service` object has been instantiated and is
 called `service` and `cirq` and `cirq_ionq` have been imported:
+
 <!---test_substitution
-service = ionq.Service(.*)
-service = mock.MagicMock()
+service = ionq.Service\(\)
+service = mock.create_autospec(ionq.Service, instance=True)
+mock_calibration = mock.create_autospec(ionq.Calibration, instance=True)
+service.configure_mock(**{"get_current_calibration.return_value": mock_calibration})
 --->
 ```python
 import cirq
 import cirq_ionq as ionq
 service = ionq.Service()
 ```
+
 See [IonQ API Service](service.md) for how to set up the service.
 
 ## Qubits

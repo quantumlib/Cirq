@@ -13,8 +13,9 @@ using your PASQAL_API_ACCESS_TOKEN.
 
 
 <!---test_substitution
-sampler = cirq_pasqal.PasqalSampler(.*)
-sampler = mock.MagicMock()
+sampler = PasqalSampler\(.*\)
+PasqalSampler = mock.create_autospec(PasqalSampler)
+\g<0>
 --->
 ```python
 import cirq
@@ -30,8 +31,8 @@ p_circuit.append(cirq.measure(qubit, key='result'))    # Measurement.
 # Create a PasqalSampler object to use.
 # Replace 'my_token' with the access token and uncomment next lines.
 
-# PASQAL_API_ACCESS_TOKEN = 'my_token'
-sampler = cirq_pasqal.PasqalSampler(remote_host='http://34.98.71.118/v0/pasqal', access_token=PASQAL_API_ACCESS_TOKEN)
+PASQAL_API_ACCESS_TOKEN = 'my_token'
+sampler = PasqalSampler(remote_host='http://34.98.71.118/v0/pasqal', access_token=PASQAL_API_ACCESS_TOKEN)
 results = sampler.run(p_circuit, repetitions=1000) # Runs the circuit and returns the results in a 'Result'
 ```
 
