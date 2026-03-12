@@ -26,7 +26,7 @@ import cirq.work as work
 
 
 def int_to_stabilizer(
-    which_stabilizer: int, qubits: list[ops.Qid], basis_ops: list[ops.PauliString]
+    which_stabilizer: int, qubits: Sequence[ops.Qid], basis_ops: Sequence[ops.PauliString]
 ) -> ops.PauliString:
     """A mapping from the integers [0, ..., 2**num_qubits - 1] to GHZ stabilizers.
 
@@ -51,7 +51,7 @@ def int_to_stabilizer(
 
 
 def generate_stabilizers(
-    stabilizer_ints: Sequence[int], qubits: list[ops.Qid]
+    stabilizer_ints: Sequence[int], qubits: Sequence[ops.Qid]
 ) -> list[ops.PauliString]:
     """Generate a list of stabilizers from a sequence of stabilizer integers.
 
@@ -78,7 +78,7 @@ def measure_ghz_fidelity(
     num_x_type: int,
     rng: np.random.Generator,
     sampler: work.Sampler,
-    pauli_repetitions: int = 10000,
+    pauli_repetitions: int = 10_000,
     readout_repetitions: int = 10_000,
     num_random_bitstrings: int = 30,
 ) -> GHZFidelityResult:
@@ -102,10 +102,10 @@ def measure_ghz_fidelity(
 
     # pick random stabilizers
     z_type_ints = cast(
-        Sequence, rng.choice(range(1, 2 ** (n_qubits - 1)), replace=False, size=num_z_type)
+        Sequence[int], rng.choice(range(1, 2 ** (n_qubits - 1)), replace=False, size=num_z_type)
     )
     x_type_ints = cast(
-        Sequence,
+        Sequence[int],
         rng.choice(2 ** (len(qubits) - 1), replace=False, size=num_x_type) + 2 ** (len(qubits) - 1),
     )
 
