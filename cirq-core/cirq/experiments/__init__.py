@@ -91,4 +91,5 @@ from cirq.experiments.z_phase_calibration import (
     calibrate_z_phases as calibrate_z_phases,
 )
 
-from cirq.experiments.ghz_2d import generate_2d_ghz_circuit as generate_2d_ghz_circuit
+from cirq.experiments.ghz.ghz_2d import generate_2d_ghz_circuit as generate_2d_ghz_circuit
+from cirq.experiments.ghz.ghz_1d import generate_1d_ghz_circuit as generate_1d_ghz_circuit
