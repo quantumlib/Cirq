@@ -17,6 +17,7 @@ service.configure_mock(**{"get_current_calibration.return_value": mock_calibrati
 ```python
 import cirq
 import cirq_ionq as ionq
+
 service = ionq.Service()
 ```
 

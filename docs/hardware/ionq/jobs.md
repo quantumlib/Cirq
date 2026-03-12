@@ -13,6 +13,7 @@ service = mock.create_autospec(ionq.Service, instance=True)
 ```python
 import cirq
 import cirq_ionq as ionq
+
 service = ionq.Service()
 ```
 
@@ -39,8 +40,8 @@ The first method for running is to do so via the `run` method on `cirq_ionq.Serv
 ```python
 qubit = cirq.LineQubit(0)
 circuit = cirq.Circuit(
-    cirq.X(qubit)**0.5,            # Square root of NOT.
-    cirq.measure(qubit, key='x')   # Measurement store in key 'x'
+    cirq.X(qubit) ** 0.5,  # Square root of NOT.
+    cirq.measure(qubit, key='x'),  # Measurement store in key 'x'
 )
 
 result = service.run(circuit=circuit, repetitions=100, target='qpu')

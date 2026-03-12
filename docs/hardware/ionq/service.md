@@ -34,8 +34,8 @@ import cirq_ionq as ionq
 # A circuit that applies a square root of NOT and then a measurement.
 qubit = cirq.LineQubit(0)
 circuit = cirq.Circuit(
-  cirq.X(qubit)**0.5,      # Square root of NOT.
-  cirq.measure(qubit, key='x')  # Measurement store in key 'x'
+    cirq.X(qubit) ** 0.5,  # Square root of NOT.
+    cirq.measure(qubit, key='x'),  # Measurement store in key 'x'
 )
 
 # Create a ionq.Service object.
@@ -111,11 +111,11 @@ Here is an example of using error mitigation and sharpening options:
 ```python
 # Run a program against the service with error mitigation and sharpening
 result = service.run(
-  circuit=circuit,
-  repetitions=100,
-  target='qpu',
-  error_mitigation={'debias': True},
-  sharpen=True
+    circuit=circuit,
+    repetitions=100,
+    target='qpu',
+    error_mitigation={'debias': True},
+    sharpen=True,
 )
 ```
 
