@@ -181,6 +181,10 @@ A more convenient way to run checks is to via the scripts in the [check/](https:
          ```bash
          ./check/format-incremental [--apply] [BASE_REVISION]
          ```
+         
+         ```bash
+         ruff check [--fix]
+         ```
 
     - Run tests associated with changed files:
 
