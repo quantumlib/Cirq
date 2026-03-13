@@ -167,12 +167,15 @@ The simplest way to run checks is to invoke `pytest`, `pylint`, or `mypy` for yo
 
 ```bash
 pytest
-pylint cirq
+pylint .
 mypy .
 ```
 
-This can be a bit tedious, because you have to specify the configuration files each time.
-A more convenient way to run checks is to via the scripts in the [check/](https://github.com/quantumlib/Cirq/tree/main/check) directory, which specify configuration arguments for you and cover more use cases:
+This can be a bit tedious, because the above assumes that Python path has been
+set using `source dev_tools/pypath`.
+A more convenient way to run checks is via the scripts in the [check/](
+https://github.com/quantumlib/Cirq/tree/main/check) directory, which
+set the Python path and configuration arguments for you and cover more use cases:
 
 - **Fast checks (complete in seconds or tens of seconds)**
 
@@ -181,9 +184,12 @@ A more convenient way to run checks is to via the scripts in the [check/](https:
          ```bash
          ./check/format-incremental [--apply] [BASE_REVISION]
          ```
-         
+
+    - Check for lint:
+
          ```bash
-         ruff check [--fix]
+         ruff check
+         ./check/pylint-changed-files
          ```
 
     - Run tests associated with changed files:
