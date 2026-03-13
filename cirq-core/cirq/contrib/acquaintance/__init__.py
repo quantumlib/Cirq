@@ -12,7 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tools for creating and using acquaintance strategies."""
+"""Tools for creating and using acquaintance strategies.
+
+In quantum circuit compilation, an "acquaintance strategy" refers to a systematic
+routing or swapping algorithm designed to bring specific logical qubits into close
+physical proximity on a hardware processor so they can interact.
+
+On near-term physical quantum hardware, qubits have restricted connectivity and can
+typically only execute gates with their immediate physical neighbors. If a quantum
+algorithm requires an operation between qubits that are physically far apart on the
+chip, the compiler must insert a sequence of SWAP gates to move them next to each
+other.
+
+An "acquaintance opportunity" is defined as the exact moment when the required target
+logical qubits are successfully brought together on adjacent physical qubits. An
+acquaintance strategy is the overarching algorithmic plan---often using linear swap
+networks or permutation logic---that ensures all the required combinations of qubits get
+"acquainted" over the course of the circuit's execution.
+
+See https://arxiv.org/abs/1905.05118 for a paper detailing acquaintance strategies.
+"""
 
 from cirq.contrib.acquaintance.bipartite import (
     BipartiteGraphType as BipartiteGraphType,
