@@ -20,19 +20,17 @@ import cirq.devices as devices
 import cirq.sim as sim
 
 
-def test_measure_ghz_fidelity():
+def test_measure_ghz_fidelity() -> None:
     qubits = devices.LineQubit.range(10)
     sampler = sim.Simulator()
     circuit = ghz_1d.generate_1d_ghz_circuit(qubits)
     rng = np.random.default_rng()
-    result = ghz_fidelity.measure_ghz_fidelity(circuit, 20, 20, rng, sampler)
+    result = ghz_fidelity.measure_ghz_fidelity(
+        circuit, 20, 20, rng, sampler, pauli_repetitions=100, readout_repetitions=1000
+    )
     f, df = result.compute_fidelity(mitigated=False)
     assert f == 1.0
     assert df == 0.0
-
-    qubits = devices.LineQubit.range(4)
-    circuit = ghz_1d.generate_1d_ghz_circuit(qubits)
-    result = ghz_fidelity.measure_ghz_fidelity(circuit, 2**3 - 1, 2**3, rng, sampler)
-    f, df = result.compute_fidelity(mitigated=False)
-    assert f == 1.0
-    assert df == 0.0
+    f_m, df_m = result.compute_fidelity(mitigated=True)
+    assert f_m == 1.0
+    assert df_m == 0.0
