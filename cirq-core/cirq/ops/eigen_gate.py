@@ -183,15 +183,8 @@ class EigenGate(raw_types.Gate):
         if diagram_period is None:
             return result
 
-        # Canonicalize the rounded exponent into (-period/2, period/2].
         if args.precision is not None:
             result = np.around(result, args.precision).item()
-        h = diagram_period / 2
-        if not (-h < result <= h):
-            result = h - result
-            result %= diagram_period
-            result = h - result
-
         return result
 
     def _format_exponent_as_angle(
