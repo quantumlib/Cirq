@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections.abc import Iterable
+
 import pytest
 
 import cirq
@@ -30,6 +32,16 @@ PARAMETERS = (
 )
 
 
+def _mark_slow(parameters: Iterable[tuple], slow_parameters: set[tuple]) -> list[tuple]:
+    parameter_list = list(parameters)
+    if not slow_parameters.issubset(parameter_list):
+        raise ValueError("Unmatched values in slow_parameters")
+    return [
+        (pytest.param(*p, marks=pytest.mark.slow) if p in slow_parameters else p)
+        for p in parameter_list
+    ]
+
+
 def _make_circuit(num_qubits: int, num_moments: int) -> cirq.Circuit:
     qubits = cirq.LineQubit.range(num_qubits)
     one_q_x_moment = cirq.Moment(cirq.X(q) for q in qubits[::2])
@@ -46,7 +58,7 @@ def _make_circuit(num_qubits: int, num_moments: int) -> cirq.Circuit:
 
 @pytest.mark.parametrize(
     ["num_qubits", "num_moments", "_expected_gzip_size"],
-    PARAMETERS,
+    _mark_slow(PARAMETERS, {(500, 4000, 5918482), (1000, 1000, 2853094), (1000, 4000, 11412197)}),
     ids=[f"{nq}-{nm}" for nq, nm, _ in PARAMETERS],
 )
 @pytest.mark.benchmark(group="serialization")
@@ -60,7 +72,7 @@ def test_json_serialization(
 
 @pytest.mark.parametrize(
     ["num_qubits", "num_moments", "expected_gzip_size"],
-    PARAMETERS,
+    _mark_slow(PARAMETERS, {(500, 4000, 5918482), (1000, 1000, 2853094), (1000, 4000, 11412197)}),
     ids=[f"{nq}-{nm}" for nq, nm, _ in PARAMETERS],
 )
 @pytest.mark.benchmark(group="serialization")

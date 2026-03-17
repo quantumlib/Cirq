@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections.abc import Iterable
+
 import pytest
 
 import cirq
@@ -30,6 +32,16 @@ PARAMETERS = (
 )
 
 
+def _mark_slow(parameters: Iterable[tuple], slow_parameters: set[tuple]) -> list[tuple]:
+    parameter_list = list(parameters)
+    if not slow_parameters.issubset(parameter_list):
+        raise ValueError("Unmatched values in slow_parameters")
+    return [
+        (pytest.param(*p, marks=pytest.mark.slow) if p in slow_parameters else p)
+        for p in parameter_list
+    ]
+
+
 def _make_circuit(num_qubits: int, num_moments: int) -> cirq.Circuit:
     qubits = cirq.LineQubit.range(num_qubits)
     one_q_x_moment = cirq.Moment(cirq.X(q) for q in qubits[::2])
@@ -42,7 +54,9 @@ def _make_circuit(num_qubits: int, num_moments: int) -> cirq.Circuit:
     return circuit
 
 
-@pytest.mark.parametrize(["num_qubits", "num_moments"], PARAMETERS)
+@pytest.mark.parametrize(
+    ["num_qubits", "num_moments"], _mark_slow(PARAMETERS, {(1000, 4000), (500, 4000)})
+)
 @pytest.mark.benchmark(group="transformer_primitives")
 def test_map_moments(benchmark, num_qubits: int, num_moments: int) -> None:
     circuit = _make_circuit(num_qubits, num_moments)
@@ -58,7 +72,7 @@ def test_map_moments(benchmark, num_qubits: int, num_moments: int) -> None:
     benchmark(cirq.map_moments, circuit=circuit, map_func=map_func)
 
 
-@pytest.mark.parametrize(["num_qubits", "num_moments"], PARAMETERS)
+@pytest.mark.parametrize(["num_qubits", "num_moments"], _mark_slow(PARAMETERS, {(1000, 4000)}))
 @pytest.mark.benchmark(group="transformer_primitives")
 def test_map_operations_apply_tag(benchmark, num_qubits: int, num_moments: int) -> None:
     circuit = _make_circuit(num_qubits, num_moments)
@@ -69,7 +83,10 @@ def test_map_operations_apply_tag(benchmark, num_qubits: int, num_moments: int) 
     benchmark(cirq.map_operations, circuit=circuit, map_func=map_func)
 
 
-@pytest.mark.parametrize(["num_qubits", "num_moments"], PARAMETERS)
+@pytest.mark.parametrize(
+    ["num_qubits", "num_moments"],
+    _mark_slow(PARAMETERS, {(100, 4000), (500, 1000), (500, 4000), (1000, 1000), (1000, 4000)}),
+)
 @pytest.mark.benchmark(group="transformer_primitives")
 def test_map_operations_to_optree(benchmark, num_qubits: int, num_moments: int) -> None:
     circuit = _make_circuit(num_qubits, num_moments)
@@ -80,7 +97,7 @@ def test_map_operations_to_optree(benchmark, num_qubits: int, num_moments: int) 
     benchmark(cirq.map_operations, circuit=circuit, map_func=map_func)
 
 
-@pytest.mark.parametrize(["num_qubits", "num_moments"], PARAMETERS)
+@pytest.mark.parametrize(["num_qubits", "num_moments"], _mark_slow(PARAMETERS, {(1000, 4000)}))
 @pytest.mark.benchmark(group="transformer_primitives")
 def test_map_operations_to_optree_and_unroll(benchmark, num_qubits: int, num_moments: int) -> None:
     circuit = _make_circuit(num_qubits, num_moments)
