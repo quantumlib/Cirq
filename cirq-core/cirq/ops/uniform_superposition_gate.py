@@ -113,6 +113,9 @@ class UniformSuperpositionGate(raw_types.Gate):
             return (self._m_value == other._m_value) and (self._num_qubits == other._num_qubits)
         return False
 
+    def __hash__(self) -> int:
+        return hash((self._m_value, self._num_qubits))
+
     def __repr__(self) -> str:
         return f'UniformSuperpositionGate(m_value={self._m_value}, num_qubits={self._num_qubits})'
 

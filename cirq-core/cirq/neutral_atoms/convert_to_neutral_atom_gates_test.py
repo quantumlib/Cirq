@@ -49,3 +49,10 @@ def test_gateset(op: cirq.Operation, expected: bool) -> None:
     assert cirq.is_native_neutral_atom_op(op) == expected
     if op.gate is not None:
         assert cirq.is_native_neutral_atom_gate(op.gate) == expected
+
+
+def test_is_native_neutral_atom_gate_unhashable_gate() -> None:
+    # Regression test for https://github.com/quantumlib/Cirq/issues/7941
+    # UniformSuperpositionGate previously raised TypeError due to missing __hash__
+    gate = cirq.UniformSuperpositionGate(m_value=3, num_qubits=2)
+    assert cirq.is_native_neutral_atom_gate(gate) is False
