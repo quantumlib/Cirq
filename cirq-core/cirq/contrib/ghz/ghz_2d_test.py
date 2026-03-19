@@ -21,7 +21,7 @@ import numpy as np
 import pytest
 
 import cirq
-import cirq.experiments.ghz.ghz_2d as ghz_2d
+import cirq.contrib.ghz.ghz_2d as ghz_2d
 
 
 def _create_mock_graph() -> tuple[nx.Graph, cirq.GridQubit]:

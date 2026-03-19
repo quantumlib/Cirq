@@ -15,6 +15,7 @@
 """Performance tests for circuit qubit routing."""
 
 import itertools
+from collections.abc import Iterable
 from typing import Final
 
 import pytest
@@ -22,8 +23,31 @@ import pytest
 import cirq
 
 
+def _mark_slow(parameters: Iterable[tuple], slow_parameters: set[tuple]) -> list[tuple]:
+    parameter_list = list(parameters)
+    if not slow_parameters.issubset(parameter_list):
+        raise ValueError("Unmatched values in slow_parameters")
+    return [
+        (pytest.param(*p, marks=pytest.mark.slow) if p in slow_parameters else p)
+        for p in parameter_list
+    ]
+
+
 @pytest.mark.parametrize(
-    ["qubits", "depth"], itertools.product([10, 25, 50, 75, 100], [10, 50, 100, 250, 500, 1000])
+    ["qubits", "depth"],
+    _mark_slow(
+        itertools.product([10, 25, 50, 75, 100], [10, 50, 100, 250, 500, 1000]),
+        {
+            (50, 1000),
+            (75, 250),
+            (75, 500),
+            (75, 1000),
+            (100, 100),
+            (100, 250),
+            (100, 500),
+            (100, 1000),
+        },
+    ),
 )
 @pytest.mark.benchmark(group="circuit_routing", max_time=10)
 def test_circuit_routing(benchmark, qubits: int, depth: int) -> None:
