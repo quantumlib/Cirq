@@ -31,7 +31,6 @@ die() {
     exit "$1"
 }
 
-
 # Get the working directory to the repo root -----------------------------------
 
 thisdir=$(dirname "${BASH_SOURCE[0]:?}")
