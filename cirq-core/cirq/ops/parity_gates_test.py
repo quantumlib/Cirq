@@ -91,9 +91,9 @@ def test_xx_diagrams() -> None:
     cirq.testing.assert_has_diagram(
         circuit,
         """
-a: ───XX───XX───────XX───────
+a: ───XX───XX─────XX───────
       │    │        │
-b: ───XX───XX^(3)───XX^0.5───
+b: ───XX───XX^3───XX^0.5───
 """,
     )
 
@@ -163,9 +163,9 @@ def test_yy_diagrams() -> None:
     cirq.testing.assert_has_diagram(
         circuit,
         """
-a: ───YY───YY───────YY───────
+a: ───YY───YY─────YY───────
       │    │        │
-b: ───YY───YY^(3)───YY^0.5───
+b: ───YY───YY^3───YY^0.5───
 """,
     )
 
@@ -234,17 +234,16 @@ def test_zz_matrix() -> None:
     )
 
 
-def test_zz_diagrams() -> None:
+def test_zz_diagram() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     circuit = cirq.Circuit(cirq.ZZ(a, b), cirq.ZZ(a, b) ** 3, cirq.ZZ(a, b) ** 0.5)
-    print(circuit)
     cirq.testing.assert_has_diagram(
         circuit,
         """
-a: ───ZZ───ZZ───────ZZ───────
+a: ───ZZ───ZZ───────ZZ─────
       │    │        │
-b: ───ZZ───ZZ^(3)───ZZ^0.5───
+b: ───ZZ───ZZ^3───ZZ^0.5───
 """,
     )
 

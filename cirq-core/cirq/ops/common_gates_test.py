@@ -1088,21 +1088,21 @@ def test_ixyz_circuit_diagram() -> None:
             ix(q) ** 4.500001,
         ),
         """
-q: ───X───X^-1───X^-1───X^-1───X^(3)───X^4.5───X^4.5───
+q: ───X───X^-1───X^-1───X^-1───X^3───X^4.5───X^4.5───
         """,
     )
 
     cirq.testing.assert_has_diagram(
         cirq.Circuit(iy(q), iy(q) ** -1, iy(q) ** 3, iy(q) ** 4.5, iy(q) ** 4.500001),
         """
-q: ───Y───Y^-1───Y^(3)───Y^4.5───Y^4.5───
+q: ───Y───Y^-1───Y^3───Y^4.5───Y^4.5───
     """,
     )
 
     cirq.testing.assert_has_diagram(
         cirq.Circuit(iz(q), iz(q) ** -1, iz(q) ** 3, iz(q) ** 4.5, iz(q) ** 4.500001),
         """
-q: ───Z───Z^-1───Z^(3)───Z^4.5───Z^4.5───
+q: ───Z───Z^-1───Z^3───Z^4.5───Z^4.5───
     """,
     )
 
