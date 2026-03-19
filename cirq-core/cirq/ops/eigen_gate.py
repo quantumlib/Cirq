@@ -167,7 +167,6 @@ class EigenGate(raw_types.Gate):
         Returns:
             A rounded canonicalized exponent.
         """
-        # ignore everything else
         if not isinstance(self._exponent, (int, float)):
             return self._exponent
         result = float(self._exponent)
