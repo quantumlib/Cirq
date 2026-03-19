@@ -1,102 +1,127 @@
 #!/usr/bin/env bash
 
-################################################################################
-# Runs multiple checks.
-#
-# The default set of checks most closely matches the tests run during
-# a continuous integration test, however these do not match perfectly
-# since those tests run on different architectures and environments.
-#
-# Defaults to the following tests:
-#   pylint
-#   mypy
-#   format-incremental
-#   pytest-and-incremental-coverage
-#   doctest
-#
-# Usage:
-#     check/all revision [BASE_REVISION] [--only-changed-files] [--apply-format-changes]
-#
-# BASE_REVISION is forwarded to format-incremental and to the pytest and pylint
-# checks (pytest-and-incremental-coverage or pytest-changed-files and
-# pylint-changed-files). See those checks for how to specify this value.
-#
-# If --only-changed-files is specified, pytest-changed-files will be run
-# instead of pytest-and-incremental-coverage, and pylint-changed-files will
-# be run instead of pylint.
-#
-# If --apply-format-changes is specified the --apply flag will be passed
-# to format-incremental to apply the format changes suggested by the
-# formatter.
-################################################################################
+set -o errexit
+set -o nounset
 
-# Get the working directory to the repo root.
-thisdir=$(dirname "${BASH_SOURCE[0]:?}") || exit $?
-repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel) || exit $?
-cd "${repo_dir}" || exit $?
+declare -r usage="\
+Usage: check/all [options] [BASE_REV]
 
-errors=()
+Runs multiple checks locally to approximate continuous integration test.
+Note that results may differ as continuous integration tests are run for
+more architectures and environments.
 
-# Parse arguments.
-apply_arg=( )
-only_changed=0
-rev=( )
+Code formatting and test coverage are always checked only for files
+that changed with respect to the BASE_REV, which is by default the
+nearest ancestor in the upstream main branch.
+
+Options:
+
+  --changed, --only-changed-files   restrict pylint and pytest checks
+                to files that changed since the BASE_REV revision.
+
+  --fix         apply changes suggested by source code linters and formatters.
+
+  --apply-format-changes (deprecated)   apply code formatting suggestions.
+
+  -h, --help    display this message and exit.
+"
+
+die() {
+    ( shift; echo "$*" >&2 )
+    exit "$1"
+}
+
+# Get the working directory to the repo root -----------------------------------
+
+thisdir=$(dirname "${BASH_SOURCE[0]:?}")
+repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel)
+cd "${repo_dir}"
+
+# Parse arguments --------------------------------------------------------------
+
+declare only_changed=0
+declare -a extra_format_args=()
+declare -a extra_ruff_args=()
+declare -a base_rev=()
+
 for arg in "$@"; do
-    if [[ "${arg}" == "--only-changed-files" ]]; then
-        only_changed=1
-    elif [[ "${arg}" == "--apply-format-changes" ]]; then
-        apply_arg=( "--apply" )
-    elif [[ "${#rev[@]}" == 0 ]]; then
-        if [ "$(git cat-file -t "${arg}" 2> /dev/null)" != "commit" ]; then
-            echo -e "\033[31mNo revision '${arg}'.\033[0m" >&2
-            exit 1
-        fi
-        rev=( "${arg}" )
-    else
-        echo -e "\033[31mInvalid arguments. Expected [BASE_REVISION] [--only-changed-files] [--apply-format].\033[0m" >&2
-        exit 1
-    fi
+    case "${arg}" in
+        -h|--help)
+            echo "${usage}"
+            exit 0
+            ;;
+        --changed|--only-changed-files)
+            only_changed=1
+            ;;
+        --fix)
+            extra_format_args=( --apply )
+            extra_ruff_args=( --fix )
+            ;;
+        --apply-format-changes)
+            extra_format_args=( --apply )
+            ;;
+        -*)
+            die 2 "Invalid option '${arg}'.  See '$0 --help' for usage information."
+            ;;
+        *)
+            if (( "${#base_rev[@]}" )); then
+                die 2 "Too many arguments.  See '$0 --help' for usage information."
+            fi
+            if ! base_rev=( \
+                "$(git rev-parse --quiet --verify --end-of-options "${arg}^{commit}")" \
+            ); then
+                die 1 "Invalid git commit '${arg}'"
+            fi
+            ;;
+    esac
 done
 
-echo "Running misc"
-check/misc || errors+=( "check/misc failed" )
+# Run the tests ----------------------------------------------------------------
 
-if [ ${only_changed} -ne 0 ]; then
-  echo "Running incremental pylint"
-  check/pylint-changed-files || errors+=( "check/pylint-changed-files failed" )
+declare -a errors=()
+
+run() {
+    echo "[running] $*"
+    echo
+    "$@" || errors+=( "$* failed" )
+    echo
+}
+
+run check/misc
+run ruff check "${extra_ruff_args[@]}"
+run check/format-incremental "${base_rev[@]}" "${extra_format_args[@]}"
+
+if (( only_changed )); then
+    run check/pylint-changed-files "${base_rev[@]}"
 else
-  echo "Running pylint"
-  check/pylint || errors+=( "check/pylint failed" )
+    run check/pylint
 fi
 
-echo "Running mypy"
-check/mypy || errors+=( "check/mypy failed" )
-
-echo "Running incremental format"
-check/format-incremental "${rev[@]}" "${apply_arg[@]}" ||
-    errors+=( "check/format-incremental failed" )
-
-if [ ${only_changed} -ne 0 ]; then
-    echo "Running pytest and incremental coverage on changed files"
-    check/pytest-changed-files-and-incremental-coverage "${rev[@]}" ||
-         errors+=( "check/pytest-changed-files-and-incremental-coverage failed" )
+if (( only_changed )); then
+    run check/pytest-changed-files-and-incremental-coverage "${base_rev[@]}"
 else
-    echo "Running pytest and incremental coverage"
-    check/pytest-and-incremental-coverage "${rev[@]}" ||
-         errors+=( "check/pytest-and-incremental-coverage failed" )
+    run check/pytest-and-incremental-coverage "${base_rev[@]}"
 fi
 
-echo "Running doctest"
-check/doctest || errors+=( "check/doctest failed" )
+run check/mypy
+
+# Make the only-changed mode fast.  Skip check/doctest which rarely fails,
+# but takes most run time in that mode.
+if (( only_changed == 0 )); then
+    run check/doctest
+fi
+
+# Summarize the results --------------------------------------------------------
+
+declare exit_code=0
 
 echo
-if [[ "${#errors[@]}" == 0 ]]; then
-    echo "All checks passed."
-    result=0
-else
+if (( "${#errors[@]}" )); then
     printf "Some checks failed.\n\n"
     printf "  %s\n" "${errors[@]}"
-    result=1
+    exit_code=1
+else
+    echo "All checks passed."
 fi
 
-exit "${result}"
+exit "${exit_code}"
