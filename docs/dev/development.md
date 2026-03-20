@@ -252,11 +252,13 @@ set the Python path and configuration arguments for you and cover more use cases
     - Run all continuous integration checks:
 
         ```bash
-        ./check/all [BASE_REVISION] [--only-changed-files] [--apply-format-changes]
+        ./check/all [BASE_REVISION] [--changed] [--fix]
         ```
 
-        If `--only-changed-files` is set, checks that can will focus down to
+        If the `--changed` option is set, checks that can will focus down to
         just files that were changed (trading accuracy for speed).
+        The option `--fix` will apply safe corrections from linter and
+        formatter tools to address problems detected in the code.
 
 In the above, `[BASE_REVISION]` controls what commit is being compared
 against for an incremental check (e.g., in order to determine which files changed).
