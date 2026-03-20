@@ -452,17 +452,17 @@ def test_gateset_contains_op_with_no_gate() -> None:
 
 
 def test_gateset_contains_unhashable_gate() -> None:
-    class NonHashableGate(cirq.Gate):
+    class UnHashableGate(cirq.Gate):
         def _num_qubits_(self):
             return 1
 
         def __eq__(self, other):
-            return type(other) is NonHashableGate
+            return type(other) is UnHashableGate
 
-    gate = NonHashableGate()
+    gate = UnHashableGate()
     op = gate.on(cirq.q(0))
     gs_without = cirq.Gateset(cirq.X, cirq.Y, cirq.Z)
-    gs_with = cirq.Gateset(NonHashableGate)
+    gs_with = cirq.Gateset(UnHashableGate)
 
     assert not isinstance(gate, Hashable)
     assert gate not in gs_without
