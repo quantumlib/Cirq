@@ -40,6 +40,7 @@ Q, Q2, Q3 = cirq.LineQubit.range(3)
         (cirq.ParallelGate(cirq.X, num_copies=3)(Q, Q2, Q3), True),
         (cirq.ParallelGate(cirq.Y, num_copies=3)(Q, Q2, Q3), True),
         (cirq.ParallelGate(cirq.Z, num_copies=3)(Q, Q2, Q3), True),
+        (cirq.UniformSuperpositionGate(m_value=3, num_qubits=2)(Q, Q2), False),
         (cirq.X(Q).controlled_by(Q2, Q3), True),
         (cirq.Z(Q).controlled_by(Q2, Q3), True),
         (cirq.ZPowGate(exponent=0.5)(Q).controlled_by(Q2, Q3), False),
@@ -49,9 +50,3 @@ def test_gateset(op: cirq.Operation, expected: bool) -> None:
     assert cirq.is_native_neutral_atom_op(op) == expected
     if op.gate is not None:
         assert cirq.is_native_neutral_atom_gate(op.gate) == expected
-
-
-def test_unhashable_gate() -> None:
-    gate = cirq.UniformSuperpositionGate(m_value=3, num_qubits=2)
-    assert not cirq.is_native_neutral_atom_gate(gate)
-    assert not cirq.is_native_neutral_atom_op(gate.on(Q, Q2))
