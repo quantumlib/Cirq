@@ -451,14 +451,21 @@ def test_gateset_contains_op_with_no_gate() -> None:
 
 
 def test_gateset_contains_unhashable_gate() -> None:
-    """Tests that unhashable gates can be checked for containment without raising TypeError."""
-    # UniformSuperpositionGate is unhashable (has __eq__ but no __hash__)
-    gate = cirq.UniformSuperpositionGate(m_value=3, num_qubits=2)
-    gs = cirq.Gateset(cirq.X, cirq.Y, cirq.Z)
+    class NonHashableGate(cirq.Gate):
+        def _num_qubits_(self):
+            return 1
 
-    # Should return False without raising TypeError
-    assert gate not in gs
-    assert gate.on(*cirq.LineQubit.range(2)) not in gs
+        def __eq__(self, other):
+            return type(other) is NonHashableGate
+
+    gate = NonHashableGate()
+    gs_without = cirq.Gateset(cirq.X, cirq.Y, cirq.Z)
+    gs_with = cirq.Gateset(NonHashableGate)
+
+    assert gate not in gs_without
+    assert gate.on(cirq.q(0)) not in gs_without
+    assert gate in gs_with
+    assert gate.on(cirq.q(0)) in gs_with
 
 
 def test_overlapping_gate_families() -> None:

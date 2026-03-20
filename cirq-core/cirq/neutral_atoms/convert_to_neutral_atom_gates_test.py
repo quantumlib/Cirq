@@ -49,3 +49,9 @@ def test_gateset(op: cirq.Operation, expected: bool) -> None:
     assert cirq.is_native_neutral_atom_op(op) == expected
     if op.gate is not None:
         assert cirq.is_native_neutral_atom_gate(op.gate) == expected
+
+
+def test_unhashable_gate() -> None:
+    gate = cirq.UniformSuperpositionGate(m_value=3, num_qubits=2)
+    assert not cirq.is_native_neutral_atom_gate(gate)
+    assert not cirq.is_native_neutral_atom_op(gate.on(Q, Q2))
