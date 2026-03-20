@@ -58,6 +58,9 @@ for arg in "$@"; do
             extra_ruff_args=( --fix )
             ;;
         --apply-format-changes)
+            echo "Warning: option '--apply-format-changes' is deprecated." \
+                "Please use '--fix' instead." >&2
+            echo >&2
             extra_format_args=( --apply )
             ;;
         -*)
