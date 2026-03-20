@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Hashable
 from typing import cast
 
 import numpy as np
@@ -459,13 +460,15 @@ def test_gateset_contains_unhashable_gate() -> None:
             return type(other) is NonHashableGate
 
     gate = NonHashableGate()
+    op = gate.on(cirq.q(0))
     gs_without = cirq.Gateset(cirq.X, cirq.Y, cirq.Z)
     gs_with = cirq.Gateset(NonHashableGate)
 
+    assert not isinstance(gate, Hashable)
     assert gate not in gs_without
-    assert gate.on(cirq.q(0)) not in gs_without
+    assert op not in gs_without
     assert gate in gs_with
-    assert gate.on(cirq.q(0)) in gs_with
+    assert op in gs_with
 
 
 def test_overlapping_gate_families() -> None:
