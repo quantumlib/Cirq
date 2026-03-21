@@ -95,3 +95,11 @@ def test_eq(m: int, n: int) -> None:
     assert a.__eq__(b)
     assert not (a.__eq__(c))
     assert not (a.__eq__(d))
+
+def test_hash() -> None:
+    a = cirq.UniformSuperpositionGate(5, 3)
+    b = cirq.UniformSuperpositionGate(5, 3)
+    c = cirq.UniformSuperpositionGate(6, 3)
+    assert hash(a) == hash(b)
+    assert hash(a) != hash(c)
+    assert len({a, b, c}) == 2
