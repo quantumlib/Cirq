@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-import multiprocessing
+import concurrent.futures as cf
 import multiprocessing.pool
 from collections.abc import Sequence
 from typing import Any, TYPE_CHECKING
@@ -46,7 +46,7 @@ def z_phase_calibration_workflow(
     cycle_depths: Sequence[int] = tuple(np.arange(3, 100, 20)),
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     atol: float = 1e-3,
-    num_workers_or_pool: int | multiprocessing.pool.Pool = -1,
+    num_workers_or_pool: int | multiprocessing.pool.Pool | cf.Executor = -1,
     pairs: Sequence[tuple[cirq.GridQubit, cirq.GridQubit]] | None = None,
     tags: Sequence[Any] = (),
 ) -> tuple[xeb_fitting.XEBCharacterizationResult, pd.DataFrame]:
@@ -81,7 +81,7 @@ def z_phase_calibration_workflow(
         cycle_depths: The cycle depths to use.
         random_state: The random state to use.
         atol: Absolute tolerance to be used by the minimizer.
-        num_workers_or_pool: An optional multi-processing pool or number of workers.
+        num_workers_or_pool: An optional pool or number of workers.
             A zero value means no multiprocessing.
             A positive integer value will create a pool with the given number of workers.
             A negative value will create pool with maximum number of workers.
@@ -92,12 +92,12 @@ def z_phase_calibration_workflow(
         - A `pd.DataFrame` comparing the before and after fidelities.
     """
 
-    pool: multiprocessing.pool.Pool | None = None
+    pool: multiprocessing.pool.Pool | cf.Executor | None = None
     local_pool = False
-    if isinstance(num_workers_or_pool, multiprocessing.pool.Pool):
+    if isinstance(num_workers_or_pool, (multiprocessing.pool.Pool, cf.Executor)):
         pool = num_workers_or_pool  # pragma: no cover
     elif num_workers_or_pool != 0:
-        pool = multiprocessing.Pool(num_workers_or_pool if num_workers_or_pool > 0 else None)
+        pool = cf.ThreadPoolExecutor(num_workers_or_pool if num_workers_or_pool > 0 else None)
         local_pool = True
 
     fids_df_0, circuits, sampled_df = parallel_xeb_workflow(
@@ -143,8 +143,8 @@ def z_phase_calibration_workflow(
     )
 
     if local_pool:
-        assert isinstance(pool, multiprocessing.pool.Pool)
-        pool.close()
+        assert isinstance(pool, cf.Executor)
+        pool.shutdown()
     return result, before_after
 
 
@@ -159,7 +159,7 @@ def calibrate_z_phases(
     cycle_depths: Sequence[int] = tuple(np.arange(3, 100, 20)),
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     atol: float = 1e-3,
-    num_workers_or_pool: int | multiprocessing.pool.Pool = -1,
+    num_workers_or_pool: int | multiprocessing.pool.Pool | cf.Executor = -1,
     pairs: Sequence[tuple[cirq.GridQubit, cirq.GridQubit]] | None = None,
     tags: Sequence[Any] = (),
 ) -> dict[tuple[cirq.Qid, cirq.Qid], cirq.PhasedFSimGate]:
