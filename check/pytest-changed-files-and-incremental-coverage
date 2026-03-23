@@ -90,11 +90,22 @@ fi
 
 source dev_tools/pypath || exit $?
 
+TIMEFORMAT=": TIMING - walltime=%1R"
+echo
+echo ": TIMING - ncpu=1 changed_python_tests_count=${#changed_python_tests[@]}"
 # Run tests while producing coverage files.
-check/pytest "${changed_python_tests[@]}" \
+time check/pytest -n0 "${changed_python_tests[@]}" \
+    "${cov_changed_python_file_dirs[@]}" \
+    --cov-report=annotate
+echo
+
+echo ": TIMING - ncpu=6 changed_python_tests_count=${#changed_python_tests[@]}"
+# Run tests while producing coverage files.
+time check/pytest -n6 "${changed_python_tests[@]}" \
     "${cov_changed_python_file_dirs[@]}" \
     --cov-report=annotate
 pytest_result=$?
+echo
 
 # Analyze coverage files.
 python dev_tools/check_incremental_coverage_annotations.py "${rev}"
