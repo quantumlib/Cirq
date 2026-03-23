@@ -96,6 +96,7 @@ def test_eq(m: int, n: int) -> None:
     assert not (a.__eq__(c))
     assert not (a.__eq__(d))
 
+
 def test_hash() -> None:
     a = cirq.UniformSuperpositionGate(5, 3)
     b = cirq.UniformSuperpositionGate(5, 3)

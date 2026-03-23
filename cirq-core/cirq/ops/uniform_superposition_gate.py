@@ -27,6 +27,7 @@ from cirq.ops.pauli_gates import X
 if TYPE_CHECKING:
     import cirq
 
+
 @value.value_equality
 class UniformSuperpositionGate(raw_types.Gate):
     r"""Creates a uniform superposition state on the states $[0, M)$
