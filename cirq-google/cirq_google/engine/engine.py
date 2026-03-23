@@ -484,7 +484,7 @@ class Engine(abstract_engine.AbstractEngine):
         for job in all_jobs:
             if job.job_id == job_id:
                 return job
-        raise ValueError(f'No job with id {job_id} found in list of jobs: {all_jobs}')
+        raise ValueError(f'No job with id {job_id} found in list of jobs')
 
     get_job = duet.sync(get_job_async)
 
