@@ -468,7 +468,7 @@ class Engine(abstract_engine.AbstractEngine):
         """
         return engine_program.EngineProgram(self.project_id, program_id, self.context)
 
-    async def get_job_async(self, job_id: str) -> engine_program.EngineJob:
+    async def get_job_async(self, job_id: str) -> engine_job.EngineJob:
         """Returns an EngineJob for an existing Quantum Engine job.
 
         Args:
