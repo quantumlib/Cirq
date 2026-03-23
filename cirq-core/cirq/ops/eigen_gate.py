@@ -139,19 +139,17 @@ class EigenGate(raw_types.Gate):
             return type(self)(exponent=exponent)
         return type(self)(exponent=exponent, global_shift=self._global_shift)
 
-    def _diagram_exponent(
-        self, args: protocols.CircuitDiagramInfoArgs,
-    ):
+    def _diagram_exponent(self, args: protocols.CircuitDiagramInfoArgs):
         """The exponent to use in circuit diagrams.
 
-        The current implementation simply rounds integer/floating point
-        exponents to the specified precision.
+        The current implementation simply rounds numeric type exponents
+        to the specified precision.
 
         Args:
             args: The diagram args being used to produce the diagram.
 
         Returns:
-            The exponent rounded to the appropriate precision.
+            The exponent rounded to the precision specified by `args`.
         """
         if not isinstance(self._exponent, (int, float)):
             return self._exponent
