@@ -219,6 +219,11 @@ message FSimGate {
   // cirq.FSimGate(...).with_tags(cirq_google.FSimViaModelTag()).
   // This field controls how we translate the gate implementation.
   bool translate_via_model = 3;
+
+  // If true, this is equivalent to:
+  // cirq.FSimGate(...).with_tags(cirq_google.TwoPulseFSimTag()).
+  // This field controls how we translate the gate implementation.
+  bool translate_to_two_pulse = 4;
 }
 
 // Representation of cirq.ISwapPowGate
