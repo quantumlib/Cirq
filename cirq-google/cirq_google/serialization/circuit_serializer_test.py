@@ -996,17 +996,6 @@ def test_deserialize_fsim_missing_parameters():
         serializer.deserialize(proto)
 
 
-def test_serialize_fsim_both_translation_tags():
-    serializer = cg.CircuitSerializer()
-    q0 = cirq.GridQubit(1, 1)
-    q1 = cirq.GridQubit(1, 2)
-    op = cirq.FSimGate(theta=1.0, phi=1.0)(q0, q1).with_tags(
-        cg.FSimViaModelTag(), cg.TwoPulseFSimTag()
-    )
-    with pytest.raises(ValueError, match="You cannot add both FSimViaModelTag and TwoPulseFSimTag"):
-        serializer.serialize(cirq.Circuit(op))
-
-
 def test_deserialize_wrong_types():
     serializer = cg.CircuitSerializer()
     proto = circuit_proto(

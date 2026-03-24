@@ -372,8 +372,6 @@ class CircuitSerializer(serializer.Serializer):
                 msg.fsimgate.translate_via_model = True
             if any(isinstance(tag, TwoPulseFSimTag) for tag in op.tags):
                 msg.fsimgate.translate_to_two_pulse = True
-            if msg.fsimgate.translate_via_model and msg.fsimgate.translate_to_two_pulse:
-                raise ValueError("You cannot add both FSimViaModelTag and TwoPulseFSimTag")
         elif isinstance(gate, cirq.MeasurementGate):
             arg_func_langs.arg_to_proto(gate.key, out=msg.measurementgate.key)
             if len(gate.invert_mask):
