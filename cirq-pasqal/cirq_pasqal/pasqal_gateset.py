@@ -22,6 +22,25 @@ if TYPE_CHECKING:
     from cirq.protocols.decompose_protocol import DecomposeResult
 
 
+@cirq.transformer
+def split_multi_op_moments(
+    circuit: cirq.AbstractCircuit, context: cirq.TransformerContext | None = None
+) -> cirq.Circuit:
+    "Split moments with multiple operations such that each non-measurement operation has its own moment."
+    "Pascal devices require at most one operation per moment except for measurement operations"
+    "which can be kept together in a single moment "
+
+    def split_moment(moment, _):
+        non_measurement_ops = [op for op in moment if not isinstance(op.gate, cirq.MeasurementGate)]
+        measurements = [op for op in moment if isinstance(op.gate, cirq.MeasurementGate)]
+        result = [cirq.Moment([op]) for op in non_measurement_ops]
+        if measurements:
+            result.append(cirq.Moment(measurements))
+        return result
+
+    return cirq.map_moments(circuit, split_moment)
+
+
 class PasqalGateset(cirq.CompilationTargetGateset):
     """A Compilation target intended for Pasqal neutral atom devices.
     This gateset supports single qubit gates that can be used
@@ -88,12 +107,12 @@ class PasqalGateset(cirq.CompilationTargetGateset):
 
     @property
     def postprocess_transformers(self) -> list[cirq.TRANSFORMER]:
-        return []
+        return [cirq.drop_negligible_operations, cirq.drop_empty_moments, split_multi_op_moments]
 
     def __repr__(self):
         return (
-            f'cirq_pasqal.PasqalGateset(include_additional_controlled_ops='
-            f'{self.include_additional_controlled_ops})'
+            f"cirq_pasqal.PasqalGateset(include_additional_controlled_ops="
+            f"{self.include_additional_controlled_ops})"
         )
 
     @classmethod
@@ -101,4 +120,4 @@ class PasqalGateset(cirq.CompilationTargetGateset):
         return cls(include_additional_controlled_ops=include_additional_controlled_ops)
 
     def _json_dict_(self) -> dict[str, Any]:
-        return cirq.protocols.obj_to_dict_helper(self, ['include_additional_controlled_ops'])
+        return cirq.protocols.obj_to_dict_helper(self, ["include_additional_controlled_ops"])

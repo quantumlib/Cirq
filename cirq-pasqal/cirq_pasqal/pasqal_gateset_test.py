@@ -18,6 +18,7 @@ import pytest
 
 import cirq
 import cirq_pasqal
+from cirq_pasqal import TwoDQubit, PasqalVirtualDevice
 
 Q, Q2, Q3 = cirq.LineQubit.range(3)
 
@@ -114,3 +115,17 @@ def test_decomposition(op: cirq.Operation, gs: cirq.CompilationTargetGateset):
 def test_repr(gs):
     assert gs.num_qubits == 2
     cirq.testing.assert_equivalent_repr(gs, setup_code='import cirq_pasqal')
+
+
+def test_postprocess_transformers_splits_moments():
+    gs = cirq_pasqal.PasqalGateset()
+    p_qubits = TwoDQubit.square(6)
+    initial_circuit = cirq.Circuit()
+    initial_circuit.append(cirq.CZ(p_qubits[0], p_qubits[1]))
+    initial_circuit.append(cirq.Z(p_qubits[0]))
+    initial_circuit.append(cirq.CX(p_qubits[0], p_qubits[2]))
+
+    p_device = PasqalVirtualDevice(control_radius=2.1, qubits=p_qubits)
+    pasqal_gateset = cirq_pasqal.PasqalGateset(include_additional_controlled_ops=False)
+    pasqal_circuit = cirq.optimize_for_target_gateset(initial_circuit, gateset=pasqal_gateset)
+    p_device.validate_circuit(pasqal_circuit)
