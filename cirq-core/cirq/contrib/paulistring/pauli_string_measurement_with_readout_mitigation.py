@@ -243,11 +243,6 @@ def _validate_circuit_to_pauli_strings_parameters(
                 _validate_single_pauli_string(pauli_str)
 
         # 3. Validate postselection symmetries
-        # Postselection symmetries are parsed and validated below, however
-        # the functionality to actually apply postselection filtering is not
-        # implemented in this PR. Raise a clear error if the user attempts to
-        # provide postselection symmetries so users do not assume they are
-        # applied.
         for sym, _ in params.postselection_symmetries:
             if isinstance(sym, ops.PauliSum):
                 terms = tuple(sym)
@@ -277,14 +272,6 @@ def _validate_circuit_to_pauli_strings_parameters(
         ):
             raise ValueError(
                 f"Postselection symmetries of {params.circuit} are not commuting with all Pauli"
-            )
-        # Postselection symmetries are parsed and validated above, however
-        # the functionality to actually apply postselection filtering is not
-        # implemented in this PR.
-        if params.postselection_symmetries:
-            raise NotImplementedError(
-                "Postselection symmetries are not implemented. "
-                "Please use readout mitigation via confusion matrices instead."
             )
 
 
@@ -377,10 +364,13 @@ def _validate_and_normalize_unformatted_input(
     return param_list
 
 
-def _extract_readout_qubits(pauli_strings: Sequence[ops.PauliString], symmetries: list[ops.PauliString | ops.PauliSum] | None = None) -> list[ops.Qid]:
+def _extract_readout_qubits(
+    pauli_strings: Sequence[ops.PauliString],
+    symmetries: Sequence[ops.PauliString | ops.PauliSum] | None = None,
+) -> list[ops.Qid]:
     """Extracts unique qubits from both the target Pauli strings and the symmetries."""
     all_qubits = set(q for ps in pauli_strings for q in ps.qubits)
-    
+
     if symmetries:
         for sym in symmetries:
             if isinstance(sym, ops.PauliString):
@@ -388,9 +378,9 @@ def _extract_readout_qubits(pauli_strings: Sequence[ops.PauliString], symmetries
             elif isinstance(sym, ops.PauliSum):
                 for term in sym:
                     all_qubits.update(term.qubits)
-                    
+
     return sorted(list(all_qubits))
-    
+
 
 def _pauli_objs_to_basis_change_ops(
     pauli_objs: Sequence[Union[ops.PauliString, ops.PauliSum]], qid_list: Sequence[ops.Qid]
@@ -403,7 +393,7 @@ def _pauli_objs_to_basis_change_ops(
             flattened_terms.extend(list(obj))
 
     operations = []
-    
+
     for qubit in qid_list:
         for pauli_str in flattened_terms:
             pauli_op = pauli_str.get(qubit, default=ops.I)
@@ -413,12 +403,12 @@ def _pauli_objs_to_basis_change_ops(
             elif pauli_op == ops.Y:
                 operations.append(ops.rx(np.pi / 2)(qubit))
                 break
-                
-    return operations      
+
+    return operations
 
 
 def _pauli_objs_to_basis_change_with_sweep(
-    pauli_objs: Sequence[Union[ops.PauliString| ops.PauliSum]], qid_list: Sequence[ops.Qid]
+    pauli_objs: Sequence[Union[ops.PauliString | ops.PauliSum]], qid_list: Sequence[ops.Qid]
 ) -> dict[str, float]:
     """Decide single-qubit rotation sweep parameters for basis change.
 
@@ -501,7 +491,6 @@ def _generate_basis_change_circuits_with_sweep(
         input_circuit = params.circuit
         pauli_string_groups = params.pauli_strings
         symmetries = tuple(sym for sym, _ in params.postselection_symmetries)
-
 
         # If qubits_to_measure is provided, use it
         if qubits_to_measure:
@@ -615,7 +604,7 @@ def _split_input_circuits(
 
 def _process_symmetry_measurement_results(
     qubits: Sequence[ops.Qid],
-    pauli_string_groups: list[list[ops.PauliString]],
+    pauli_string_groups: Sequence[ops.PauliString],
     measurement_results: np.ndarray,
     circuit_to_pauli: CircuitToPauliStringsParameters,
     pauli_repetitions: int,
@@ -688,6 +677,7 @@ def _process_symmetry_measurement_results(
             )
         )
     return single_circuit_pauli_measurement_results
+
 
 def _process_pauli_measurement_results(
     pauli_string_groups: Sequence[Sequence[ops.PauliString]],
@@ -802,6 +792,7 @@ def _process_pauli_measurement_results(
 
     return pauli_measurement_results
 
+
 def _measure_pauli_strings_with_symmetries(
     sampler: work.Sampler,
     circuits_to_pauli: list[CircuitToPauliStringsParameters],
@@ -833,7 +824,7 @@ def _measure_pauli_strings_with_symmetries(
     # Skip if no circuits to measure
     if not circuits_to_pauli:
         return []
-    
+
     final_measurement_results: list[CircuitToPauliStringsMeasurementResult] = []
 
     # Generate measurement circuits
@@ -913,8 +904,6 @@ def _measure_pauli_strings_with_symmetries(
                 )
             )
     return final_measurement_results
-
-    
 
 
 def _measure_pauli_strings_with_confusion_matrices(
@@ -1138,7 +1127,7 @@ def measure_pauli_strings(
             - A list of PauliStringMeasurementResult objects.
             - The calibration result for single-qubit readout errors.
     """
-     
+
     normalized_circuits_to_pauli = _validate_input(
         circuits_to_pauli,
         pauli_repetitions,
@@ -1146,7 +1135,6 @@ def measure_pauli_strings(
         num_random_bitstrings,
         rng_or_seed,
     )
-
 
     # Split the input circuits into two lists based on the way they are measured.
     symmetry_circuits, confusion_circuits = _split_input_circuits(normalized_circuits_to_pauli)
@@ -1159,12 +1147,12 @@ def measure_pauli_strings(
         insert_strategy=insert_strategy,
     ) + _measure_pauli_strings_with_confusion_matrices(
         sampler=sampler,
-       normalized_circuits_to_pauli=confusion_circuits,
+        normalized_circuits_to_pauli=confusion_circuits,
         pauli_repetitions=pauli_repetitions,
         readout_repetitions=readout_repetitions,
         num_random_bitstrings=num_random_bitstrings,
         rng_or_seed=rng_or_seed,
         use_sweep=use_sweep,
         insert_strategy=insert_strategy,
-        measure_on_full_support = measure_on_full_support
+        measure_on_full_support=measure_on_full_support,
     )
