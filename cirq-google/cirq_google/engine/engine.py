@@ -170,6 +170,8 @@ class Engine(abstract_engine.AbstractEngine):
     *   get_program
     *   list_processors
     *   get_processor
+    *   list_jobs
+    *   get_job
 
     """
 
@@ -462,9 +464,29 @@ class Engine(abstract_engine.AbstractEngine):
             program_id: Unique ID of the program within the parent project.
 
         Returns:
-            A EngineProgram for the program.
+            The EngineProgram for the program.
         """
         return engine_program.EngineProgram(self.project_id, program_id, self.context)
+
+    async def get_job_async(self, job_id: str) -> engine_job.EngineJob:
+        """Returns an EngineJob for an existing Quantum Engine job.
+
+        Args:
+            job_id: Unique ID of the job within the parent project.
+
+        Returns:
+            The EngineJob if the job_id mapped to a real job.
+
+        Raises:
+            ValueError: If the job_id does not map to a real job.
+        """
+        all_jobs = await self.list_jobs_async()
+        for job in all_jobs:
+            if job.job_id == job_id:
+                return job
+        raise ValueError(f'No job with id {job_id} found in list of jobs')
+
+    get_job = duet.sync(get_job_async)
 
     async def list_programs_async(
         self,
@@ -516,7 +538,7 @@ class Engine(abstract_engine.AbstractEngine):
         """Returns the list of jobs in the project.
 
         All historical jobs can be retrieved using this method and filtering
-        options are available too, to narrow down the search baesd on:
+        options are available too, to narrow down the search based on:
           * creation time
           * job labels
           * execution states
