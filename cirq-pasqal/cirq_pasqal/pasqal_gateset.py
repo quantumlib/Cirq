@@ -28,7 +28,7 @@ def split_multi_op_moments(
 ) -> cirq.Circuit:
     """ Split multi-operation moments so each non-measurement operation has its own moment.
 
-    Pasqal devices require at most one operation per moment except for measurement operations"
+    Pasqal devices require at most one operation per moment except for measurement operations
     which can be kept together in a single moment. """
 
     def split_moment(moment, _):
