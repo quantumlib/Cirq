@@ -16,8 +16,8 @@
 
 from __future__ import annotations
 
-import concurrent.futures as cf
 from collections.abc import Sequence
+from concurrent import futures
 from dataclasses import dataclass
 from typing import Any, TYPE_CHECKING
 
@@ -86,7 +86,7 @@ def simulate_2q_xeb_circuits(
     circuits: Sequence[cirq.Circuit],
     cycle_depths: Sequence[int],
     param_resolver: cirq.ParamResolverOrSimilarType = None,
-    pool: multiprocessing.pool.Pool | cf.Executor | None = None,
+    pool: multiprocessing.pool.Pool | futures.Executor | None = None,
     simulator: cirq.SimulatesIntermediateState | None = None,
 ) -> pd.DataFrame:
     """Simulate two-qubit XEB circuits.

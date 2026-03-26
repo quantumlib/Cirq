@@ -16,10 +16,10 @@
 
 from __future__ import annotations
 
-import concurrent.futures as cf
 import functools
 import itertools
 from collections.abc import Mapping, Sequence
+from concurrent import futures
 from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Any, cast, TYPE_CHECKING
@@ -410,7 +410,7 @@ def parallel_xeb_workflow(
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ax: plt.Axes | None = None,
     pairs: Sequence[tuple[cirq.GridQubit, cirq.GridQubit]] | None = None,
-    pool: multiprocessing.pool.Pool | cf.Executor | None = None,
+    pool: multiprocessing.pool.Pool | futures.Executor | None = None,
     batch_size: int = 9,
     tags: Sequence[Any] = (),
     **plot_kwargs,
