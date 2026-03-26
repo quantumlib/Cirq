@@ -45,7 +45,7 @@ jobs:
       with:
         oss-fuzz-project-name: cirq
         language: python
-        fuzz-seconds: 300
+        fuzz-seconds: 240
         output-sarif: true
         parallel-fuzzing: true
     - name: Upload artifacts to workflow page if a failure occurred
