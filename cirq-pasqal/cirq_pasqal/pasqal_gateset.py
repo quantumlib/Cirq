@@ -24,11 +24,12 @@ if TYPE_CHECKING:
 
 @cirq.transformer
 def split_multi_op_moments(
-    circuit: cirq.AbstractCircuit, context: cirq.TransformerContext | None = None
+    circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
 ) -> cirq.Circuit:
-    "Split moments with multiple operations such that each non-measurement operation has its own moment."
-    "Pascal devices require at most one operation per moment except for measurement operations"
-    "which can be kept together in a single moment "
+    """ Split multi-operation moments so each non-measurement operation has its own moment.
+
+    Pasqal devices require at most one operation per moment except for measurement operations"
+    which can be kept together in a single moment. """
 
     def split_moment(moment, _):
         non_measurement_ops = [op for op in moment if not isinstance(op.gate, cirq.MeasurementGate)]
@@ -38,7 +39,7 @@ def split_multi_op_moments(
             result.append(cirq.Moment(measurements))
         return result
 
-    return cirq.map_moments(circuit, split_moment)
+    return cirq.map_moments(circuit, split_moment).unfreeze(copy=False)
 
 
 class PasqalGateset(cirq.CompilationTargetGateset):
