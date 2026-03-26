@@ -28,12 +28,6 @@ jobs:
     steps:
     - name: Checkout Code
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-    - name: Cache build artifacts
-      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
-      with:
-        path: ~/.cache/pip
-        key: ${{runner.os}}-cifuzz-${{hashFiles('cirq-*/**/requirements.txt')}}
-        restore-keys: ${{runner.os}}-cifuzz-
     - name: Build Fuzzers
       id: build
       uses: google/oss-fuzz/infra/cifuzz/actions/build_fuzzers@master
