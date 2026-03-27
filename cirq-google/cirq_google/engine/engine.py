@@ -663,7 +663,7 @@ class Engine(abstract_engine.AbstractEngine):
     ) -> processor_config.ProcessorConfig | None:
         """Returns a ProcessorConfig from this project and the given processor id.
 
-        If no `run_name` and `config_name` are specified, the inernally configured default config
+        If no `run_name` and `config_name` are specified, the internally configured default config
         is returned.
 
         Args:
