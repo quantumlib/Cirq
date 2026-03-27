@@ -505,10 +505,14 @@ class FSimGate(google.protobuf.message.Message):
     THETA_FIELD_NUMBER: builtins.int
     PHI_FIELD_NUMBER: builtins.int
     TRANSLATE_VIA_MODEL_FIELD_NUMBER: builtins.int
+    TRANSLATE_TO_TWO_PULSE_FIELD_NUMBER: builtins.int
     translate_via_model: builtins.bool
     """If true, this is equivalent to:
     cirq.FSimGate(...).with_tags(cirq_google.FSimViaModelTag()).
-    This field controls how we translate the gate implementation.
+    """
+    translate_to_two_pulse: builtins.bool
+    """If true, this is equivalent to:
+    cirq.FSimGate(...).with_tags(cirq_google.TwoPulseFSimTag()).
     """
     @property
     def theta(self) -> Global___FloatArg: ...
@@ -520,9 +524,11 @@ class FSimGate(google.protobuf.message.Message):
         theta: Global___FloatArg | None = ...,
         phi: Global___FloatArg | None = ...,
         translate_via_model: builtins.bool = ...,
+        translate_to_two_pulse: builtins.bool = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["phi", b"phi", "theta", b"theta"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["phi", b"phi", "theta", b"theta", "translate_via_model", b"translate_via_model"]) -> None: ...
+    def HasField(self, field_name: typing.Literal["phi", b"phi", "theta", b"theta", "translate_tag", b"translate_tag", "translate_to_two_pulse", b"translate_to_two_pulse", "translate_via_model", b"translate_via_model"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["phi", b"phi", "theta", b"theta", "translate_tag", b"translate_tag", "translate_to_two_pulse", b"translate_to_two_pulse", "translate_via_model", b"translate_via_model"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["translate_tag", b"translate_tag"]) -> typing.Literal["translate_via_model", "translate_to_two_pulse"] | None: ...
 
 Global___FSimGate: typing_extensions.TypeAlias = FSimGate
 
