@@ -26,12 +26,22 @@ if TYPE_CHECKING:
 def split_multi_op_moments(
     circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
 ) -> cirq.Circuit:
-    """ Split multi-operation moments so each non-measurement operation has its own moment.
+    """Split multi-operation moments so each non-measurement operation has its own moment.
 
-    Pasqal devices require at most one operation per moment except for measurement operations"
-    which can be kept together in a single moment. """
+    Pasqal devices require at most one operation per moment except for measurement operations
+    which can be kept together in a single moment.
+    Args:
+        circuit: Input circuit to transform.
+        context: `cirq.TransformerContext` storing common configurable options for transformers.
+    Returns:
+        Copy of the input circuit where each non-measurement operation has its own moment.
+    """
 
     def split_moment(moment, _):
+        if not moment:
+            return []
+        if len(moment) == 1 or all(isinstance(op.gate, cirq.MeasurementGate) for op in moment):
+            return [moment]
         non_measurement_ops = [op for op in moment if not isinstance(op.gate, cirq.MeasurementGate)]
         measurements = [op for op in moment if isinstance(op.gate, cirq.MeasurementGate)]
         result = [cirq.Moment([op]) for op in non_measurement_ops]
@@ -108,12 +118,12 @@ class PasqalGateset(cirq.CompilationTargetGateset):
 
     @property
     def postprocess_transformers(self) -> list[cirq.TRANSFORMER]:
-        return [cirq.drop_negligible_operations, cirq.drop_empty_moments, split_multi_op_moments]
+        return [cirq.drop_negligible_operations, split_multi_op_moments]
 
     def __repr__(self):
         return (
-            f"cirq_pasqal.PasqalGateset(include_additional_controlled_ops="
-            f"{self.include_additional_controlled_ops})"
+            f'cirq_pasqal.PasqalGateset(include_additional_controlled_ops='
+            f'{self.include_additional_controlled_ops})'
         )
 
     @classmethod
