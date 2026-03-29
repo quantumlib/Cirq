@@ -75,6 +75,13 @@ def move_pauli_strings_into_circuit(
         )
     else:
         string_dag = pauli_string_dag_from_circuit(cast(circuits.Circuit, circuit_left))
+    non_pauli_string_phasors = [
+        o for o in string_dag.all_operations() if not isinstance(o, ops.PauliStringPhasor)]
+    if non_pauli_string_phasors:
+        raise ValueError(
+                f'Expected only PauliStringPhasor in left circuit. '
+                f'Found {non_pauli_string_phasors}.'
+              )
     output_ops = list(circuit_right.all_operations())
 
     rightmost_nodes = set(string_dag.nodes()) - {before for before, _ in string_dag.edges()}
