@@ -51,4 +51,7 @@ jobs:
         continue-on-error: true
         env:
           GH_TOKEN: '${{secrets.GITHUB_TOKEN}}'
-        run: gh issue edit "${ISSUE_NUMBER}" --add-label "triage/discuss"
+        run: |
+          gh issue edit "${{github.event.issue.number}}" \
+            --repo "${{github.repository}}" \
+            --add-label "triage/discuss"
