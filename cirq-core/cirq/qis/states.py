@@ -594,7 +594,7 @@ def bloch_vector_from_state_vector(
         state_vector: A sequence representing a state vector in which
             the ordering mapping to qubits follows the standard Kronecker
             convention of numpy.kron (big-endian).
-        index: index of qubit who's bloch vector we want to find.
+        index: index of qubit whose bloch vector we want to find.
             follows the standard Kronecker convention of numpy.kron.
         qid_shape: specifies the dimensions of the qudits for the input
             `state_vector`.  If not specified, qubits are assumed and the
@@ -906,7 +906,7 @@ def validate_qid_shape(
 
     Raises:
         ValueError: if the size of `state_vector` does not match that given in
-            `qid_shape` or if `qid_state` is not given if `state_vector` does
+            `qid_shape` or if `qid_shape` is not given if `state_vector` does
             not have a dimension that is a power of two.
     """
     size = state_vector.size
