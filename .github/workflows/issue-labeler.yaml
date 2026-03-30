@@ -43,15 +43,13 @@ jobs:
     timeout-minutes: 5
     permissions:
       issues: write
-    env:
-      ISSUE_NUMBER: ${{inputs.issue-number || github.event.issue.number}}
-      SHELLOPTS: ${{inputs.debug && 'xtrace' || '' }}
     steps:
       - name: Add label triage/discuss if appropriate
         continue-on-error: true
         env:
           GH_TOKEN: '${{secrets.GITHUB_TOKEN}}'
+          SHELLOPTS: ${{inputs.debug && 'xtrace' || '' }}
         run: |
-          gh issue edit "${{ISSUE_NUMBER}}" \
+          gh issue edit "${{inputs.issue-number || github.event.issue.number}}" \
             --repo "${{github.repository}}" \
             --add-label "triage/discuss"
