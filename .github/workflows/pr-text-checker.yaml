@@ -18,7 +18,7 @@
 name: Pull request text checker
 run-name: >-
   Check title and description of PR
-  Check PR #${{github.event.inputs.pr-number || github.event.pull_request.number}}
+  #${{github.event.inputs.pr-number || github.event.pull_request.number}}
   by ${{github.actor}}
 
 on:
