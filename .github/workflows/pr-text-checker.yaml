@@ -1,0 +1,65 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Summary: check the subject and description of each PR for basic best
+# practices and fail with an error if a PR doesn't meet the conditions.
+
+name: Pull request text checker
+run-name: >-
+  Check title and description of PR
+  Check PR #${{github.event.inputs.pr-number || github.event.pull_request.number}}
+  by ${{github.actor}}
+
+on:
+  pull_request:
+    types:
+      - edited
+      - opened
+      - reopened
+      - synchronize
+    branches:
+      - main
+
+permissions: read-all
+
+jobs:
+  check-text-length:
+    name: "Minimum length check"
+    runs-on: ubuntu-slim
+    timeout-minutes: 5
+    steps:
+      - name: Check the lengths of the PR title and description
+        env:
+          SHELLOPTS: ${{runner.debug && 'xtrace' || '' }}
+        run: |
+          pr_title=$(jq -r ".pull_request.title" "${GITHUB_EVENT_PATH}")
+          pr_body=$(jq -r ".pull_request.body" "${GITHUB_EVENT_PATH}")
+          declare -a problems=()
+
+          read -ra title_words <<< "${pr_title}"
+          if [[ ${#title_words[@]} -lt 2 ]]; then
+            problems+=("PR title must contain at least two words.")
+          fi
+          if [[ -z "${pr_body}" || ${#pr_body} -lt 10 ]]; then
+            problems+=("PR description must be at least 10 characters long.")
+          fi
+
+          if [[ ${#problems[@]} -gt 0 ]]; then
+            echo "result=error" >> "${GITHUB_ENV}"
+            {
+              echo "Please fix the following problem(s) with this PR:"
+              printf -- ":x:  %s\n" "${problems[@]}"
+            } >> "${GITHUB_STEP_SUMMARY}"
+            exit 1
+          fi
