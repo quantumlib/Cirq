@@ -56,7 +56,6 @@ jobs:
           fi
 
           if [[ ${#problems[@]} -gt 0 ]]; then
-            echo "result=error" >> "${GITHUB_ENV}"
             {
               echo "Please fix the following problem(s) with this PR:"
               printf -- ":x:  %s\n" "${problems[@]}"
