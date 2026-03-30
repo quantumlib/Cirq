@@ -52,6 +52,6 @@ jobs:
         env:
           GH_TOKEN: '${{secrets.GITHUB_TOKEN}}'
         run: |
-          gh issue edit "${{github.event.issue.number}}" \
+          gh issue edit "${{ISSUE_NUMBER}}" \
             --repo "${{github.repository}}" \
             --add-label "triage/discuss"
