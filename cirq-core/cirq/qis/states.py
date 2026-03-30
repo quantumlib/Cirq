@@ -146,7 +146,7 @@ class QuantumState:
     def state_vector_or_density_matrix(self) -> np.ndarray:
         """Return the state vector or density matrix of this state.
 
-        If the state is a denity matrix, return the density matrix. Otherwise, return the state
+        If the state is a density matrix, return the density matrix. Otherwise, return the state
         vector.
         """
         state_vector = self.state_vector()
@@ -1015,7 +1015,7 @@ def validate_density_matrix(
             f'but has shape {density_matrix.shape}.'
         )
     if not np.allclose(density_matrix, density_matrix.conj().T, atol=atol):
-        raise ValueError('The density matrix is not hermitian.')
+        raise ValueError('The density matrix is not Hermitian.')
     trace = np.trace(density_matrix)
     if not np.isclose(trace, 1.0, atol=atol):
         raise ValueError(f'Density matrix does not have trace 1. Instead, it has trace {trace}.')
