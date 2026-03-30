@@ -44,7 +44,7 @@ jobs:
     permissions:
       issues: write
     steps:
-      - name: Add label triage/discuss if appropriate
+      - name: Add 'triage/discuss' if appropriate
         continue-on-error: true
         env:
           GH_TOKEN: '${{secrets.GITHUB_TOKEN}}'
