@@ -161,7 +161,5 @@ def test_too_much_ram() -> None:
 
 def test_get_quimb_version_unparseable() -> None:
     pytest.importorskip('quimb')
-    import quimb
-
     with mock.patch('quimb.__version__', 'unknown'):
         assert ccq.state_vector._get_quimb_version() == ((0, 0), 'unknown')
