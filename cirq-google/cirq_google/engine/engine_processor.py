@@ -511,7 +511,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
     ) -> processor_config.ProcessorConfig | None:
         """Retrieves a ProcessorConfig from an automation run.
 
-        If no `run_name` and `config_name` are specified, the inernally configured default config
+        If no `run_name` and `config_name` are specified, the internally configured default config
         is returned.
 
         Args:
