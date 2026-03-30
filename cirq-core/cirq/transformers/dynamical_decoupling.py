@@ -283,23 +283,22 @@ class _Grid:
 
         max_qubit_len = max(len(str(q)) for q in qubits) if qubits else 0
 
-        header = f"{'':>{max_qubit_len}} |"
-        for i in range(num_moments):
-            header += f" {i:^3} |"
+        header = f"{'':>{max_qubit_len}} |" + "".join(f" {i:^3} |" for i in range(num_moments))
 
-        separator = f"{'-' * max_qubit_len}-+"
-        separator += '-----+' * num_moments
+        separator = f"{'-' * max_qubit_len}-+" + '-----+' * num_moments
 
         lines = ["Grid Repr:", header, separator]
 
         for q in qubits:
-            row_str = f"{str(q):>{max_qubit_len}} |"
+            q_gate_types = self.gate_types[q]
+            q_need_to_stop = self.need_to_stop[q]
+            row_parts = [f"{str(q):>{max_qubit_len}} |"]
             for mid in range(num_moments):
-                gate_type = self.gate_types[q][mid].value
-                stop = self.need_to_stop[q][mid]
+                gate_type = q_gate_types[mid].value
+                stop = q_need_to_stop[mid]
                 cell = f"{gate_type},s" if stop else f" {gate_type} "
-                row_str += f" {cell} |"
-            lines.append(row_str)
+                row_parts.append(f" {cell} |")
+            lines.append("".join(row_parts))
 
         return "\n".join(lines)
 
