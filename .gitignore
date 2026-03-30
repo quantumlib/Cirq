@@ -10,6 +10,7 @@ __pycache__
 .cache/
 .mypy_cache
 .pytest_cache/
+.ruff_cache/
 
 # ignore coverage files
 *.py,cover
