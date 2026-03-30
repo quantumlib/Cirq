@@ -23,7 +23,7 @@ def _get_quimb_version():
     version = quimb.__version__
     try:
         return tuple(int(x) for x in version.split('.')), version
-    except:  # pragma: no cover
+    except Exception:
         return (0, 0), version
 
 
