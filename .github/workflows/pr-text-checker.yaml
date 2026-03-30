@@ -58,7 +58,7 @@ jobs:
           if [[ ${#problems[@]} -gt 0 ]]; then
             {
               echo "Please fix the following problem(s) with this PR:"
-              printf -- ":x:  %s\n" "${problems[@]}"
+              printf -- ":small_red_triangle:  %s\n" "${problems[@]}"
             } >> "${GITHUB_STEP_SUMMARY}"
             exit 1
           fi
