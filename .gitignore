@@ -53,3 +53,11 @@ docs/api_docs
 
 # notebook test output
 /out
+
+# Miscellaneous common editor backup files and temp files.
+*.bak
+*.log
+*.tmp
+*~
+.\#*
+\#*\#
