@@ -3,13 +3,13 @@ __pycache__
 *.pyc
 
 # ignore idea SDK
-.idea/*
+.idea/
 .vscode
 
-# ignore cache
-.cache/*
-.mypy_cache/*
-.pytest_cache/*
+# ignore caches
+.cache/
+.mypy_cache
+.pytest_cache/
 
 # ignore coverage files
 *.py,cover
