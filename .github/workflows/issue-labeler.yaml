@@ -34,10 +34,6 @@ on:
         type: boolean
         default: true
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.issue.number || github.ref }}
-  cancel-in-progress: true
-
 permissions: read-all
 
 jobs:
@@ -51,15 +47,8 @@ jobs:
       ISSUE_NUMBER: ${{inputs.issue-number || github.event.issue.number}}
       SHELLOPTS: ${{inputs.debug && 'xtrace' || '' }}
     steps:
-      - name: Check for label triage/discuss
-        id: 'check'
+      - name: Add label triage/discuss if appropriate
+        continue-on-error: true
         env:
           GH_TOKEN: '${{secrets.GITHUB_TOKEN}}'
-        run: |
-          if gh issue view "${ISSUE_NUMBER}" --json labels --jq '.labels[].name' | \
-              grep -q -x "triage/discuss"; then
-            echo "Issue ${ISSUE_NUMBER} already has label 'triage/discuss'."
-          else
-            gh issue edit "${ISSUE_NUMBER}" --add-label "triage/discuss"
-            echo "Added 'triage/discuss' label."
-          fi
+        run: gh issue edit "${ISSUE_NUMBER}" --add-label "triage/discuss"
