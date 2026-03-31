@@ -1169,7 +1169,7 @@ def test_expectation_from_density_matrix_invalid_input() -> None:
     # Excess keys are ignored.
     _ = ps.expectation_from_density_matrix(rho, {q0: 0, q1: 1, q2: 0})
 
-    with pytest.raises(ValueError, match='hermitian'):
+    with pytest.raises(ValueError, match='Hermitian'):
         ps.expectation_from_density_matrix(1j * np.eye(4), q_map)
     with pytest.raises(ValueError, match='trace'):
         ps.expectation_from_density_matrix(np.eye(4, dtype=np.complex64), q_map)

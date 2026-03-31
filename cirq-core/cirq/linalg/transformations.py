@@ -258,7 +258,7 @@ def targeted_conjugate_about(
     r"""Conjugates the given tensor about the target tensor.
 
     This method computes a target tensor conjugated by another tensor.
-    Here conjugate is used in the sense of conjugating by a matrix, i.a.
+    Here conjugate is used in the sense of conjugating by a matrix, i.e.
     A conjugated about B is $A B A^\dagger$ where $\dagger$ represents the
     conjugate transpose.
 
