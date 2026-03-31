@@ -906,7 +906,7 @@ def validate_qid_shape(
 
     Raises:
         ValueError: if the size of `state_vector` does not match that given in
-            `qid_shape` or if `qid_shape` is not given if `state_vector` does
+            `qid_shape`, or if `qid_shape` is not given, if `state_vector` does
             not have a dimension that is a power of two.
     """
     size = state_vector.size
