@@ -12,17 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Common editor configurations for this project.
-#
-# EditorConfig is a file format for specifying some common style parameters.
-# Many IDEs & editors read .editorconfig files, either natively or via plugins.
-# We mostly follow Google's style guides (https://google.github.io/styleguide/)
-# with only a few deviations for line length and indentation in some files.
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 root = true
 
+# We mostly follow Google style guides (https://google.github.io/styleguide/)
+# with only a few deviations for line length and indentation in some files.
+
+# IMPORTANT: some of the other config files (.clang-format, etc.) also have
+# the same settings and need to be updated if changes are made to this file.
 [*]
 charset = utf-8
 indent_style = space
@@ -32,21 +28,19 @@ trim_trailing_whitespace = true
 max_line_length = 100
 
 [{*.ts,*.js}]
-# Google style guidelines use 2.
 indent_size = 2
 
 [*.json]
-# Not stated explicitly in Google's guidelines, but the examples use 2.
 indent_size = 2
 
 [*.py]
-# Google style guidelines use 4.
 indent_size = 4
 
 [*.sh]
-# Google style guidelines use 2.
 indent_size = 4
 
-[{*.yaml,*.yml}]
-# Google doesn't have style guidelines for YAML. Most people use indent = 2.
+[*.toml]
+indent_size = 2
+
+[{*.yaml,*.yml,*.cff}]
 indent_size = 2
