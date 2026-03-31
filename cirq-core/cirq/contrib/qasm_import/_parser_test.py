@@ -2481,7 +2481,7 @@ def test_input_two_params() -> None:
     expected_circuit = Circuit(QasmUGate(theta / np.pi, n / np.pi, 0).on(q_0))
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
 
-def test_input_decl_not_allowed_in_qasm2() -> None:
+def test_input_not_allowed_in_qasm2() -> None:
     """input_params is a QASM 3.0 feature and must raise in a 2.0 file."""
     qasm = """OPENQASM 2.0;
      qreg q[1];
@@ -2490,7 +2490,7 @@ def test_input_decl_not_allowed_in_qasm2() -> None:
     with pytest.raises(QasmException, match="'input' is only supported in OpenQASM 3.0"):
         QasmParser().parse(qasm)
 
-def test_input_decl_duplicate_name_error() -> None:
+def test_input_duplicate_name_error() -> None:
     """Declaring the same input name twice should raise."""
     qasm = """OPENQASM 3.0;
      qreg q[1];
@@ -2499,7 +2499,7 @@ def test_input_decl_duplicate_name_error() -> None:
     """
     with pytest.raises(QasmException, match="'theta' is already declared as an input"):
         QasmParser().parse(qasm)
-def test_input_decl_duplicate_as_register_name_error() -> None:
+def test_input_duplicate_as_register_name_error() -> None:
     """Declaring the same input as a register should raise."""
     qasm = """OPENQASM 3.0;
      qreg q[1];
@@ -2509,7 +2509,7 @@ def test_input_decl_duplicate_as_register_name_error() -> None:
     with pytest.raises(QasmException, match="'q' is already declared as a register"):
         QasmParser().parse(qasm)
 
-def test_input_decl_zero_bit_width_error() -> None:
+def test_input_zero_bit_width_error() -> None:
     """A zero bit-width in the bracketed type form should raise."""
     qasm = """OPENQASM 3.0;
      qreg q[1];
@@ -2518,7 +2518,7 @@ def test_input_decl_zero_bit_width_error() -> None:
     with pytest.raises(QasmException, match="Illegal bit-width of zero for input 'theta'"):
         QasmParser().parse(qasm)
 
-def test_input_decl_invalid_type_error() -> None:
+def test_input_invalid_type_error() -> None:
     """An unrecognised type keyword should produce a syntax error."""
     qasm = """OPENQASM 3.0;
      qreg q[1];

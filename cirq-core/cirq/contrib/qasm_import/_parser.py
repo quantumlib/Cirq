@@ -951,10 +951,6 @@ class QasmParser:
             raise QasmException(
                 f"'input' is only supported in OpenQASM 3.0, at line {p.lineno(1)}"
             )
-        if len(p) != 8:
-            raise QasmException(
-                f"Badly formed input of length: {len(p)} at line {p.lineno(1)}"
-            )
         # INPUT input_type '[' NATURAL_NUMBER ']' ID ';'
         bit_width = p[4]
         if bit_width == 0:
