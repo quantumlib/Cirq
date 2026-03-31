@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import datetime
+import json
 import os
 from unittest import mock
 
@@ -296,3 +297,131 @@ def test_service_remote_host_default():
 def test_service_remote_host_from_env_var_cirq_ionq_precedence():
     service = ionq.Service(api_key='tomyheart')
     assert service.remote_host == 'http://example.com'
+
+
+def test_service_run_unwraps_single_result_list():
+    """`Service.run` should unwrap `[result]` to `result`."""
+    # set up a real Service object (we'll monkey-patch its create_job)
+    service = ionq.Service(remote_host="http://example.com", api_key="key")
+
+    # simple 1-qubit circuit
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.X(q), cirq.measure(q, key="m"))
+
+    # fabricate a QPUResult and wrap it in a list to mimic an erroneous behavior
+    qpu_result = ionq.QPUResult(counts={1: 1}, num_qubits=1, measurement_dict={"m": [0]})
+    mock_job = mock.MagicMock()
+    mock_job.results.return_value = [qpu_result]  # <- list of length-1
+
+    # monkey-patch create_job so Service.run sees our mock_job
+    with mock.patch.object(service, "create_job", return_value=mock_job):
+        out = service.run(circuit=circuit, repetitions=1, target="qpu")
+
+    # expected Cirq result after unwrapping and conversion
+    expected = qpu_result.to_cirq_result(params=cirq.ParamResolver({}))
+
+    assert out == expected
+    mock_job.results.assert_called_once()
+
+
+@pytest.mark.parametrize("target", ["qpu", "simulator"])
+def test_run_batch_preserves_order(target):
+    """``Service.run_batch`` must return results in the same order as the
+    input ``circuits`` list, regardless of how the IonQ API happens to order
+    its per-circuit results.
+    """
+
+    # Service with a fully mocked HTTP client.
+    service = ionq.Service(remote_host="http://example.com", api_key="key")
+    client = mock.MagicMock()
+    service._client = client
+
+    # Three trivial 1-qubit circuits, each measuring under a unique key.
+    keys = ["a", "b", "c"]
+    q = cirq.LineQubit(0)
+    circuits = [cirq.Circuit(cirq.measure(q, key=k)) for k in keys]
+
+    client.create_job.return_value = {"id": "job_id", "status": "ready"}
+
+    client.get_job.return_value = {
+        "id": "job_id",
+        "status": "completed",
+        "backend": target,
+        "qubits": "1",
+        "metadata": {
+            "shots": "1",
+            "measurements": json.dumps([{"measurement0": f"{k}\u001f0"} for k in keys]),
+            "qubit_numbers": json.dumps([1, 1, 1]),
+        },
+    }
+
+    # Intentionally scramble the order returned by the API: b, a, c.
+    client.get_results.return_value = {
+        "res_b": {"0": "1"},
+        "res_a": {"0": "1"},
+        "res_c": {"0": "1"},
+    }
+
+    results = service.run_batch(circuits, repetitions=1, target=target)
+
+    # The order of measurement keys in the results should match the input
+    # circuit order exactly (a, b, c).
+    assert [next(iter(r.measurements)) for r in results] == keys
+
+    # Smoke-test on the mocked client usage.
+    client.create_job.assert_called_once()
+    client.get_results.assert_called_once()
+
+
+def test_service_run_seed():
+    """Test create_job in another way, for more complete coverage."""
+    # Set up a real Service object (we'll monkey-patch its create_job).
+    service = ionq.Service(remote_host="http://example.com", api_key="key")
+
+    # Setup the job to return a SimulatorResult.
+    mock_job = mock.MagicMock()
+    mock_simulator_result = mock.MagicMock(spec=ionq.SimulatorResult)
+    mock_job.results.return_value = mock_simulator_result
+
+    # We need to mock create_job on the service because service.run calls self.create_job.
+    with mock.patch.object(service, 'create_job', return_value=mock_job):
+        circuit = cirq.Circuit(cirq.X(cirq.LineQubit(0)))
+        service.run(circuit, repetitions=1, target='simulator', seed=123)
+
+        mock_simulator_result.to_cirq_result.assert_called_once()
+        kwargs = mock_simulator_result.to_cirq_result.call_args[1]
+        assert kwargs['seed'] == 123
+
+
+def test_service_run_returns_list_defensive():
+    """Cover the case where job.results() returns a list for a single run."""
+    service = ionq.Service(remote_host="http://example.com", api_key="key")
+    mock_job = mock.MagicMock()
+    # Return a list containing one QPUResult
+    qpu_result = ionq.QPUResult(counts={1: 1}, num_qubits=1, measurement_dict={"m": [0]})
+    mock_job.results.return_value = [qpu_result]
+
+    with mock.patch.object(service, 'create_job', return_value=mock_job):
+        circuit = cirq.Circuit(cirq.X(cirq.LineQubit(0)))
+        # This should handle the list and extract the first element
+        result = service.run(circuit, repetitions=1, target='qpu')
+
+    assert result == qpu_result.to_cirq_result(params=cirq.ParamResolver({}))
+
+
+def test_service_run_batch_returns_single_defensive():
+    """Cover the case where job.results() returns a single item for a batch run."""
+    service = ionq.Service(remote_host="http://example.com", api_key="key")
+    mock_job = mock.MagicMock()
+    # Return a single QPUResult (not a list)
+    qpu_result = ionq.QPUResult(counts={1: 1}, num_qubits=1, measurement_dict={"m": [0]})
+    mock_job.results.return_value = qpu_result
+
+    with mock.patch.object(service, 'create_batch_job', return_value=mock_job):
+        circuit = cirq.Circuit(cirq.X(cirq.LineQubit(0)))
+        # run_batch expects a list of circuits
+        results = service.run_batch([circuit], repetitions=1, target='qpu')
+
+    # Should wrap the single result in a list
+    assert len(results) == 1
+    assert results[0] == qpu_result.to_cirq_result(params=cirq.ParamResolver({}))

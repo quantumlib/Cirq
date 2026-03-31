@@ -18,7 +18,8 @@ from __future__ import annotations
 
 import dataclasses
 import time
-from typing import Any, cast, Iterable, TYPE_CHECKING
+from collections.abc import Iterable
+from typing import Any, cast, TYPE_CHECKING
 
 import matplotlib.pyplot as plt
 import numpy as np

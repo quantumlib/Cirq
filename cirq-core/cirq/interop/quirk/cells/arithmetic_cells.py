@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import inspect
-from typing import Any, Callable, cast, Iterable, Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Callable, Iterable, Iterator, Sequence
+from typing import Any, cast, TYPE_CHECKING
 
 from cirq import ops, value
 from cirq.interop.quirk.cells.cell import Cell, CELL_SIZES, CellMaker

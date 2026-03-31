@@ -22,7 +22,6 @@ from .grpc_asyncio import QuantumEngineServiceGrpcAsyncIOTransport
 from .rest import QuantumEngineServiceRestTransport
 from .rest import QuantumEngineServiceRestInterceptor
 
-
 # Compile a registry of transports.
 _transport_registry = OrderedDict()  # type: Dict[str, Type[QuantumEngineServiceTransport]]
 _transport_registry['grpc'] = QuantumEngineServiceGrpcTransport

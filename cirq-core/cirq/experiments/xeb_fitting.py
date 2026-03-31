@@ -18,7 +18,9 @@ from __future__ import annotations
 
 import dataclasses
 from abc import ABC, abstractmethod
-from typing import Iterable, Sequence, TYPE_CHECKING
+from collections.abc import Iterable, Sequence
+from concurrent import futures
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -48,7 +50,7 @@ def benchmark_2q_xeb_fidelities(
     circuits: Sequence[cirq.Circuit],
     cycle_depths: Sequence[int] | None = None,
     param_resolver: cirq.ParamResolverOrSimilarType = None,
-    pool: multiprocessing.pool.Pool | None = None,
+    pool: multiprocessing.pool.Pool | futures.Executor | None = None,
 ) -> pd.DataFrame:
     """Simulate and benchmark two-qubit XEB circuits.
 
@@ -450,7 +452,7 @@ def characterize_phased_fsim_parameters_with_xeb(
     xatol: float = 1e-3,
     fatol: float = 1e-3,
     verbose: bool = True,
-    pool: multiprocessing.pool.Pool | None = None,
+    pool: multiprocessing.pool.Pool | futures.Executor | None = None,
 ) -> XEBCharacterizationResult:
     """Run a classical optimization to fit phased fsim parameters to experimental data, and
     thereby characterize PhasedFSim-like gates.
@@ -469,7 +471,7 @@ def characterize_phased_fsim_parameters_with_xeb(
         fatol: The `fatol` argument for Nelder-Mead. This is the absolute error for convergence
             in the function evaluation.
         verbose: Whether to print progress updates.
-        pool: An optional multiprocessing pool to execute circuit simulations in parallel.
+        pool: An optional pool to execute circuit simulations in parallel.
     """
     (pair,) = sampled_df['pair'].unique()
     initial_simplex, names = options.get_initial_simplex_and_names(
@@ -545,7 +547,7 @@ def characterize_phased_fsim_parameters_with_xeb_by_pair(
     initial_simplex_step_size: float = 0.1,
     xatol: float = 1e-3,
     fatol: float = 1e-3,
-    pool: multiprocessing.pool.Pool | None = None,
+    pool: multiprocessing.pool.Pool | futures.Executor | None = None,
 ) -> XEBCharacterizationResult:
     """Run a classical optimization to fit phased fsim parameters to experimental data, and
     thereby characterize PhasedFSim-like gates grouped by pairs.
@@ -569,7 +571,7 @@ def characterize_phased_fsim_parameters_with_xeb_by_pair(
             in the parameters.
         fatol: The `fatol` argument for Nelder-Mead. This is the absolute error for convergence
             in the function evaluation.
-        pool: An optional multiprocessing pool to execute pair optimization in parallel. Each
+        pool: An optional pool to execute pair optimization in parallel. Each
             optimization (and the simulations therein) runs serially.
     """
     pairs = sampled_df['pair'].unique()

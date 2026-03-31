@@ -16,7 +16,8 @@
 
 from __future__ import annotations
 
-from typing import cast, Iterable, Sequence, TYPE_CHECKING
+from collections.abc import Iterable, Sequence
+from typing import cast, TYPE_CHECKING
 
 import numpy as np
 
@@ -40,7 +41,7 @@ def _remove_partial_czs_or_fail(
             t = op.gate.exponent % 2  # CZ^t is periodic with period 2.
             if t < atol:
                 continue  # Identity.
-            elif abs(t - 1) < atol:
+            if abs(t - 1) < atol:
                 result.append(ops.CZ(*op.qubits))  # Was either CZ or CZ**-1.
             else:
                 raise ValueError(f'CZ^t is not allowed for t={t}')
@@ -109,7 +110,7 @@ def two_qubit_matrix_to_diagonal_and_cz_operations(
         clean_operations: Enables optimizing resulting operation list by
             merging operations and ejecting phased Paulis and Z operations.
     Returns:
-        tuple(ops,D): operations `ops`, and the diagonal `D`
+        A tuple `(D, ops)` where `D` is the diagonal matrix and `ops` the list of operations.
     """
     if predicates.is_diagonal(mat, atol=atol):
         return mat, []
@@ -233,7 +234,7 @@ def _merge_single_qubit_gates(
         ValueError: if one of the operations is not on 1 or 2 qubits
     """
     merged_ops: list[ops.Operation] = []
-    pending_ops: dict[tuple[cirq.Qid, ...], list[ops.Operation]] = dict()
+    pending_ops: dict[tuple[cirq.Qid, ...], list[ops.Operation]] = {}
     for op in operations:
         if protocols.num_qubits(op) == 2:
             for qubit_ops in pending_ops.values():

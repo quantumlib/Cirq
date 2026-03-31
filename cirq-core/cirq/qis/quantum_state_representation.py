@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import abc
-from typing import Self, Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import Self, TYPE_CHECKING
 
 import numpy as np
 

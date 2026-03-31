@@ -42,22 +42,41 @@ def insertion_sort_transformer(
         q: idx for idx, q in enumerate(sorted(circuit.all_qubits()))
     }
     cached_qubit_indices: dict[int, list[int]] = {}
+    cached_measurement_keys: dict[int, frozenset[cirq.MeasurementKey]] = {}
+    cached_control_keys: dict[int, frozenset[cirq.MeasurementKey]] = {}
     for pos, op in enumerate(circuit.all_operations()):
         # here `pos` is at the append position of final_operations
-        if (op_qubit_indices := cached_qubit_indices.get(id(op))) is None:
-            op_qubit_indices = cached_qubit_indices[id(op)] = sorted(
+        op_id = id(op)
+        if (op_qubit_indices := cached_qubit_indices.get(op_id)) is None:
+            op_qubit_indices = cached_qubit_indices[op_id] = sorted(
                 qubit_index[q] for q in op.qubits
             )
+        if (op_measurement_keys := cached_measurement_keys.get(op_id)) is None:
+            op_measurement_keys = cached_measurement_keys[op_id] = protocols.measurement_key_objs(
+                op
+            )
+        if (op_control_keys := cached_control_keys.get(op_id)) is None:
+            op_control_keys = cached_control_keys[op_id] = protocols.control_keys(op)
+
         for tail_op in reversed(final_operations):
-            tail_qubit_indices = cached_qubit_indices[id(tail_op)]
-            if op_qubit_indices < tail_qubit_indices and (
-                # special case for zero-qubit gates
-                not op_qubit_indices
-                # check if two sorted sequences are disjoint
-                or op_qubit_indices[-1] < tail_qubit_indices[0]
-                or set(op_qubit_indices).isdisjoint(tail_qubit_indices)
-                # fallback to more expensive commutation check
-                or protocols.commutes(op, tail_op, default=False)
+            tail_id = id(tail_op)
+            tail_qubit_indices = cached_qubit_indices[tail_id]
+            tail_measurement_keys = cached_measurement_keys[tail_id]
+            tail_control_keys = cached_control_keys[tail_id]
+            if (
+                op_qubit_indices < tail_qubit_indices
+                and op_measurement_keys.isdisjoint(tail_measurement_keys)
+                and op_control_keys.isdisjoint(tail_measurement_keys)
+                and tail_control_keys.isdisjoint(op_measurement_keys)
+                and (
+                    # special case for zero-qubit gates
+                    not op_qubit_indices
+                    # check if two sorted sequences are disjoint
+                    or op_qubit_indices[-1] < tail_qubit_indices[0]
+                    or set(op_qubit_indices).isdisjoint(tail_qubit_indices)
+                    # fallback to more expensive commutation check
+                    or protocols.commutes(op, tail_op, default=False)
+                )
             ):
                 pos -= 1
                 continue

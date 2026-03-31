@@ -18,7 +18,8 @@ from __future__ import annotations
 
 import cmath
 import math
-from typing import Any, Callable, cast, Iterable, TYPE_CHECKING, TypeVar
+from collections.abc import Callable, Iterable
+from typing import Any, cast, TYPE_CHECKING, TypeVar
 
 import matplotlib.pyplot as plt
 import numpy as np

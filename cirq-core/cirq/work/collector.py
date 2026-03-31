@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Iterator, Protocol, TYPE_CHECKING
+from collections.abc import Iterator
+from typing import Any, Protocol, TYPE_CHECKING
 
 import duet
 import numpy as np

@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Iterable, Sequence, TYPE_CHECKING, Union
+from collections.abc import Callable, Iterable, Sequence
+from typing import Any, TYPE_CHECKING, Union
 
 from cirq import ops, protocols, value
 from cirq._doc import document

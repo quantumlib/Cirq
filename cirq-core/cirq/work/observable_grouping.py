@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Callable, cast, Iterable
+from collections.abc import Callable, Iterable
+from typing import cast
 
 from cirq import ops, value
 from cirq.work.observable_settings import _max_weight_observable, _max_weight_state, InitObsSetting
@@ -48,7 +49,7 @@ def group_settings_greedy(
     grouped_settings: dict[InitObsSetting, list[InitObsSetting]] = {}
     for setting in settings:
         for max_setting, simul_settings in grouped_settings.items():
-            trial_grouped_settings = simul_settings + [setting]
+            trial_grouped_settings = [*simul_settings, setting]
             new_max_weight_state = _max_weight_state(
                 stg.init_state for stg in trial_grouped_settings
             )

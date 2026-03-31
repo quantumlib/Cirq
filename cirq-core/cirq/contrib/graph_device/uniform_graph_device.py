@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Hashable, Iterable, Mapping
+from collections.abc import Hashable, Iterable, Mapping
+from typing import Any
 
 from cirq import devices, ops
 from cirq.contrib.graph_device.graph_device import UndirectedGraphDevice, UndirectedGraphDeviceEdge

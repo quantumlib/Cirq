@@ -215,27 +215,30 @@ def test_slice_sweep() -> None:
     sweep = cirq.Points('a', [1, 2, 3]) * cirq.Points('b', [4, 5, 6, 7])
 
     first_two = sweep[:2]
-    assert list(first_two.param_tuples())[0] == (('a', 1), ('b', 4))
-    assert list(first_two.param_tuples())[1] == (('a', 1), ('b', 5))
+    first_two_iter = first_two.param_tuples()
+    assert next(first_two_iter) == (('a', 1), ('b', 4))
+    assert next(first_two_iter) == (('a', 1), ('b', 5))
     assert len(list(first_two)) == 2
 
     middle_three = sweep[5:8]
-    assert list(middle_three.param_tuples())[0] == (('a', 2), ('b', 5))
-    assert list(middle_three.param_tuples())[1] == (('a', 2), ('b', 6))
-    assert list(middle_three.param_tuples())[2] == (('a', 2), ('b', 7))
+    middle_three_iter = middle_three.param_tuples()
+    assert next(middle_three_iter) == (('a', 2), ('b', 5))
+    assert next(middle_three_iter) == (('a', 2), ('b', 6))
+    assert next(middle_three_iter) == (('a', 2), ('b', 7))
     assert len(list(middle_three.param_tuples())) == 3
 
     odd_elems = sweep[6:1:-2]
-    assert list(odd_elems.param_tuples())[2] == (('a', 1), ('b', 6))
-    assert list(odd_elems.param_tuples())[1] == (('a', 2), ('b', 4))
-    assert list(odd_elems.param_tuples())[0] == (('a', 2), ('b', 6))
+    odd_elems_iter = odd_elems.param_tuples()
+    assert next(odd_elems_iter) == (('a', 2), ('b', 6))
+    assert next(odd_elems_iter) == (('a', 2), ('b', 4))
+    assert next(odd_elems_iter) == (('a', 1), ('b', 6))
     assert len(list(odd_elems.param_tuples())) == 3
 
     sweep_reversed = sweep[::-1]
     assert list(sweep) == list(reversed(list(sweep_reversed)))
 
     single_sweep = sweep[5:6]
-    assert list(single_sweep.param_tuples())[0] == (('a', 2), ('b', 5))
+    assert next(single_sweep.param_tuples()) == (('a', 2), ('b', 5))
     assert len(list(single_sweep.param_tuples())) == 1
 
 
@@ -363,22 +366,14 @@ def test_zip_product_str() -> None:
 
 
 def test_list_sweep_str() -> None:
-    assert (
-        str(cirq.UnitSweep)
-        == '''Sweep:
+    assert str(cirq.UnitSweep) == '''Sweep:
 {}'''
-    )
-    assert (
-        str(cirq.Linspace('a', start=0, stop=3, length=4))
-        == '''Sweep:
+    assert str(cirq.Linspace('a', start=0, stop=3, length=4)) == '''Sweep:
 {'a': 0.0}
 {'a': 1.0}
 {'a': 2.0}
 {'a': 3.0}'''
-    )
-    assert (
-        str(cirq.Linspace('a', start=0, stop=15.75, length=64))
-        == '''Sweep:
+    assert str(cirq.Linspace('a', start=0, stop=15.75, length=64)) == '''Sweep:
 {'a': 0.0}
 {'a': 0.25}
 {'a': 0.5}
@@ -390,16 +385,13 @@ def test_list_sweep_str() -> None:
 {'a': 15.25}
 {'a': 15.5}
 {'a': 15.75}'''
-    )
     assert (
-        str(cirq.ListSweep(cirq.Linspace('a', 0, 3, 4) + cirq.Linspace('b', 1, 2, 2)))
-        == '''Sweep:
+        str(cirq.ListSweep(cirq.Linspace('a', 0, 3, 4) + cirq.Linspace('b', 1, 2, 2))) == '''Sweep:
 {'a': 0.0, 'b': 1.0}
 {'a': 1.0, 'b': 2.0}'''
     )
     assert (
-        str(cirq.ListSweep(cirq.Linspace('a', 0, 3, 4) * cirq.Linspace('b', 1, 2, 2)))
-        == '''Sweep:
+        str(cirq.ListSweep(cirq.Linspace('a', 0, 3, 4) * cirq.Linspace('b', 1, 2, 2))) == '''Sweep:
 {'a': 0.0, 'b': 1.0}
 {'a': 0.0, 'b': 2.0}
 {'a': 1.0, 'b': 1.0}
@@ -529,3 +521,27 @@ def test_concat_different_keys_raises() -> None:
 def test_concat_empty_sweep_raises() -> None:
     with pytest.raises(ValueError, match="Concat requires at least one sweep."):
         _ = cirq.Concat()
+
+
+def test_list_of_dicts_to_zip_empty() -> None:
+    with pytest.raises(ValueError, match="empty"):
+        cirq.list_of_dicts_to_zip([])
+
+
+def test_list_of_dicts_to_zip_mismatched_keys() -> None:
+    with pytest.raises(ValueError, match="Keys must be the same"):
+        cirq.list_of_dicts_to_zip([{'a': 4.0}, {'a': 2.0, 'b': 1.0}])
+
+
+def test_list_of_dicts_to_zip() -> None:
+    param_dict = [
+        {'a': 1.0, 'b': 2.0, 'c': 10.0},
+        {'a': 2.0, 'b': 4.0, 'c': 9.0},
+        {'a': 3.0, 'b': 8.0, 'c': 8.0},
+    ]
+    param_zip = cirq.Zip(
+        cirq.Points('a', [1.0, 2.0, 3.0]),
+        cirq.Points('b', [2.0, 4.0, 8.0]),
+        cirq.Points('c', [10.0, 9.0, 8.0]),
+    )
+    assert cirq.list_of_dicts_to_zip(param_dict) == param_zip

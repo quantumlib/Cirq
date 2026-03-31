@@ -16,8 +16,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Sequence
 from types import NotImplementedType
-from typing import Any, Iterable, Protocol, Sequence, TypeVar
+from typing import Any, Protocol, TypeVar
 
 import numpy as np
 

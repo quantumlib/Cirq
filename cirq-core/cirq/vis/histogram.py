@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping, Sequence, SupportsFloat
+from collections.abc import Mapping, Sequence
+from typing import Any, SupportsFloat
 
 import numpy as np
 from matplotlib import pyplot as plt

@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 import numpy as np
 
@@ -186,7 +187,7 @@ class StabilizerStateChForm(qis.StabilizerState):
             y = t
             z = t ^ e
 
-        (omega, a, b, c) = self._H_decompose(self.v[q], y[q], z[q], delta)
+        omega, a, b, c = self._H_decompose(self.v[q], y[q], z[q], delta)
 
         self.s = y
         self.s[q] = c
@@ -214,7 +215,7 @@ class StabilizerStateChForm(qis.StabilizerState):
             omega = (1j) ** (delta * int(y))
 
             delta2 = ((-1) ** y * delta) % 4
-            c = bool((delta2 >> 1))
+            c = bool(delta2 >> 1)
             a = bool(delta2 & 1)
             b = True
         else:

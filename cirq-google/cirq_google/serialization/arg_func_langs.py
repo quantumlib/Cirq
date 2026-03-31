@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import math
 import numbers
-from typing import cast, Sequence, TypeAlias
+from collections.abc import Sequence
+from typing import cast, TypeAlias
 
 import numpy as np
 import sympy

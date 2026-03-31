@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import datetime
-from typing import Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 import duet
 
@@ -26,6 +27,7 @@ from cirq_google.api import v1, v2
 from cirq_google.cloud import quantum
 from cirq_google.engine import abstract_job, calibration, engine_client
 from cirq_google.engine.engine_result import EngineResult
+from cirq_google.engine.stream_manager import StreamError
 
 if TYPE_CHECKING:
     from google.protobuf import any_pb2
@@ -290,16 +292,20 @@ class EngineJob(abstract_job.AbstractJob):
 
     async def _await_result_async(self) -> quantum.QuantumResult:
         if self._job_result_future is not None:
-            response = await self._job_result_future
-            if isinstance(response, quantum.QuantumResult):
-                return response
-            elif isinstance(response, quantum.QuantumJob):
-                self._job = response
-                _raise_on_failure(response)
-            else:
-                raise ValueError(
-                    'Internal error: The job response type is not recognized.'
-                )  # pragma: no cover
+            try:
+                response = await self._job_result_future
+                if isinstance(response, quantum.QuantumResult):
+                    return response
+                elif isinstance(response, quantum.QuantumJob):
+                    self._job = response
+                    _raise_on_failure(response)
+                else:
+                    raise ValueError(
+                        'Internal error: The job response type is not recognized.'
+                    )  # pragma: no cover
+            except StreamError:
+                # If the stream has disconnected, attempt to retrieve the result without it.
+                pass
 
         async with duet.timeout_scope(self.context.timeout):  # type: ignore[arg-type]
             while True:

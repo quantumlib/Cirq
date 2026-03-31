@@ -17,7 +17,8 @@ from __future__ import annotations
 import itertools
 import random
 from collections import defaultdict
-from typing import Any, Iterable, Sequence
+from collections.abc import Iterable, Sequence
+from typing import Any
 
 import numpy as np
 import sympy
@@ -301,7 +302,7 @@ def assert_has_consistent_apply_unitary(val: Any, *, atol: float = 1e-8) -> None
 
     qid_shape = protocols.qid_shape(val)
 
-    eye = qis.eye_tensor((2,) + qid_shape, dtype=np.complex128)
+    eye = qis.eye_tensor((2, *qid_shape), dtype=np.complex128)
     actual = protocols.apply_unitary(
         unitary_value=val,
         args=protocols.ApplyUnitaryArgs(
@@ -393,7 +394,7 @@ def _assert_apply_unitary_works_when_axes_transposed(val: Any, *, atol: float = 
     # Pick sizes and shapes.
     shape = protocols.qid_shape(val)
     n = len(shape)
-    padded_shape = shape + (1, 2, 2, 3)
+    padded_shape = (*shape, 1, 2, 2, 3)
     padded_n = len(padded_shape)
     size = np.prod(padded_shape, dtype=np.int64).item()
 

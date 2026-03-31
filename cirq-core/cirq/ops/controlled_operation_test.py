@@ -16,8 +16,9 @@ from __future__ import annotations
 
 import itertools
 import re
+from collections.abc import Sequence
 from types import EllipsisType, NotImplementedType
-from typing import cast, Sequence
+from typing import cast
 
 import numpy as np
 import pytest
@@ -293,7 +294,7 @@ class MockGate(cirq.testing.TwoQubitGate):
     ) -> protocols.CircuitDiagramInfo:
         self.captured_diagram_args = args
         return cirq.CircuitDiagramInfo(
-            wire_symbols=tuple(['M1', 'M2']),
+            wire_symbols=('M1', 'M2'),
             exponent=1,
             exponent_qubit_index=self._exponent_qubit_index,
             connected=True,

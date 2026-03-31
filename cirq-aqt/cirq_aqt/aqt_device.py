@@ -27,8 +27,9 @@ The native gate set consists of the local gates: X, Y, and XX entangling gates
 from __future__ import annotations
 
 import json
+from collections.abc import Iterable, Sequence
 from enum import Enum
-from typing import Any, cast, Iterable, Sequence
+from typing import Any, cast
 
 import networkx as nx
 import numpy as np
@@ -146,15 +147,15 @@ class AQTNoiseModel(cirq.NoiseModel):
         gate = cast(cirq.EigenGate, gate_dict[op_str])
 
         if len(operation.qubits) == 1:
-            for idx in xtlk_arr.nonzero()[0]:
-                exponent = operation.gate.exponent  # type:ignore
+            for idx in cast(Sequence[int], xtlk_arr.nonzero()[0]):
+                exponent = operation.gate.exponent  # type: ignore
                 exponent = exponent * xtlk_arr[idx]
-                xtlk_op = operation.gate.on(system_qubits[idx]) ** exponent  # type:ignore
+                xtlk_op = operation.gate.on(system_qubits[idx]) ** exponent  # type: ignore
                 xtlk_op_list.append(xtlk_op)
         elif len(operation.qubits) == 2:
             for op_qubit in operation.qubits:
-                for idx in xtlk_arr.nonzero()[0]:
-                    exponent = operation.gate.exponent  # type:ignore
+                for idx in cast(Sequence[int], xtlk_arr.nonzero()[0]):
+                    exponent = operation.gate.exponent  # type: ignore
                     exponent = exponent * xtlk_arr[idx]
                     xtlk_op = gate.on(op_qubit, system_qubits[idx]) ** exponent
                     xtlk_op_list.append(xtlk_op)
@@ -216,7 +217,7 @@ class AQTSimulator:
                 self.circuit.append(gate.on(*qubits) ** angle)
         # TODO: Better solution for measurement at the end.
         # Github issue: https://github.com/quantumlib/Cirq/issues/2199
-        self.circuit.append(cirq.measure(*[qubit for qubit in self.qubit_list], key='m'))
+        self.circuit.append(cirq.measure(*self.qubit_list, key='m'))
 
     def simulate_samples(self, repetitions: int) -> cirq.Result:
         """Samples the circuit.
@@ -271,7 +272,7 @@ class AQTDevice(cirq.Device):
         if not all(isinstance(qubit, cirq.LineQubit) for qubit in qubits):
             raise TypeError(
                 "All qubits were not of type cirq.LineQubit, instead were "
-                f"{set(type(qubit) for qubit in qubits)}"
+                f"{ {type(qubit) for qubit in qubits} }"
             )
         self.qubits = frozenset(qubits)
 

@@ -17,25 +17,19 @@ from __future__ import annotations
 import cmath
 import math
 import numbers
-from types import NotImplementedType
-from typing import (
-    AbstractSet,
-    Any,
+from collections.abc import (
     Callable,
-    cast,
-    Generic,
     ItemsView,
     Iterable,
     Iterator,
     KeysView,
     Mapping,
-    overload,
     Sequence,
-    TYPE_CHECKING,
-    TypeVar,
-    Union,
+    Set,
     ValuesView,
 )
+from types import NotImplementedType
+from typing import Any, cast, Generic, overload, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
 import sympy
@@ -203,7 +197,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
     def _value_equality_values_(self):
         if len(self._qubit_pauli_map) == 1 and self.coefficient == 1:
-            q, p = list(self._qubit_pauli_map.items())[0]
+            q, p = next(iter(self._qubit_pauli_map.items()))
             return gate_operation.GateOperation(p, [q])._value_equality_values_()
 
         return (frozenset(self._qubit_pauli_map.items()), self._coefficient)
@@ -339,7 +333,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             return NotImplemented
 
         qs = args.known_qubits or list(self.keys())
-        symbols = list(str(self.get(q)) for q in qs)
+        symbols = [str(self.get(q)) for q in qs]
         if self.coefficient == 1:
             prefix = '+'
         elif self.coefficient == -1:
@@ -950,7 +944,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         # Initialize the ps the same as self.
         ps = PauliString(qubit_pauli_map=self._qubit_pauli_map, coefficient=self.coefficient)
         all_ops = list(op_tree.flatten_to_ops(clifford))
-        all_qubits = set.union(set(self.qubits), [q for op in all_ops for q in op.qubits])
+        all_qubits = set(self.qubits).union(q for op in all_ops for q in op.qubits)
         # Iteratively calculate the conjugation in reverse order of ops.
         for op in all_ops[::-1]:
             # To calcuate the conjugation of P (`ps`) with respect to C (`op`)
@@ -1040,7 +1034,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.coefficient)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self.coefficient)
 
     def _resolve_parameters_(
@@ -1082,9 +1076,7 @@ def _validate_qubit_mapping(
         )
 
     used_inds = [qubit_map[q] for q in pauli_qubits]
-    if len(used_inds) != len(set(used_inds)) or not set(range(num_state_qubits)) >= set(
-        sorted(used_inds)
-    ):
+    if len(used_inds) != len(set(used_inds)) or not set(range(num_state_qubits)) >= set(used_inds):
         raise ValueError(
             f'Input qubit map indices must be valid for a state over {num_state_qubits} qubits.'
         )
@@ -1233,7 +1225,7 @@ class MutablePauliString(Generic[TKey]):
             return sign
         return -sign
 
-    def keys(self) -> AbstractSet[TKey]:
+    def keys(self) -> Set[TKey]:
         """Returns the sequence of qubits on which this pauli string acts."""
         return self.pauli_int_dict.keys()
 

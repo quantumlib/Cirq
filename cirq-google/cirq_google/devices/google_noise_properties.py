@@ -17,8 +17,9 @@
 from __future__ import annotations
 
 import dataclasses
+from collections.abc import Sequence
 from functools import cached_property
-from typing import Any, Sequence, TypeVar
+from typing import Any, TypeVar
 
 import numpy as np
 
@@ -41,7 +42,7 @@ def _with_values(original: dict[T, V], val: V | dict[T, V]) -> dict[T, V]:
     """
     if isinstance(val, dict):
         return {**original, **val}
-    return {k: val for k in original}
+    return dict.fromkeys(original, val)
 
 
 @dataclasses.dataclass

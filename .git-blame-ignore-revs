@@ -36,3 +36,6 @@ d1e68b15fd2a6bf40d286bc0439dc7ce9cbd127c
 
 # Format all notebooks (no change in the code) (#7386)
 8b02d60a9721e19bbe34507343627087a65ac55e
+
+# Format all files with black-26.1.0 (#7874)
+f14948c48b66ab15e5b0d50cd2eb71bf6513ce4b

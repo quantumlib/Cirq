@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 from cirq import circuits, devices, ops, value
 from cirq.devices.noise_model import validate_all_measurements

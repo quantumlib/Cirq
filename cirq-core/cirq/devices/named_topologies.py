@@ -16,8 +16,9 @@ from __future__ import annotations
 
 import abc
 import warnings
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
-from typing import Any, Callable, Iterable, Sequence, TYPE_CHECKING, Union
+from typing import Any, TYPE_CHECKING, Union
 
 import networkx as nx
 from matplotlib import pyplot as plt
@@ -192,14 +193,14 @@ class TiltedSquareLattice(NamedTopology):
 
         object.__setattr__(self, 'name', f'tilted-square-lattice-{self.width}-{self.height}')
 
-        rect1 = set(
+        rect1 = {
             (i + j, i - j) for i in range(self.width // 2 + 1) for j in range(self.height // 2 + 1)
-        )
-        rect2 = set(
+        }
+        rect2 = {
             ((i + j) // 2, (i - j) // 2)
             for i in range(1, self.width + 1, 2)
             for j in range(1, self.height + 1, 2)
-        )
+        }
         nodes = rect1 | rect2
         g = nx.Graph()
         for node in nodes:

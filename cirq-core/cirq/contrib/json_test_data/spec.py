@@ -27,6 +27,4 @@ TestSpec = ModuleJsonTestSpec(
     should_not_be_serialized=["Unique", "CircuitDag"],
     resolver_cache=_class_resolver_dictionary(),
     deprecated={},
-    # TODO: #7520 - create .json and .repr for these so they can be tested here
-    tested_elsewhere=["QuantumVolumeResult", "SwapPermutationGate", "BayesianNetworkGate"],
 )

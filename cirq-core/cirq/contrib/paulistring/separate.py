@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Iterator
+from collections.abc import Iterator
 
 from cirq import circuits, ops, transformers
 from cirq.contrib.paulistring.clifford_target_gateset import CliffordTargetGateset

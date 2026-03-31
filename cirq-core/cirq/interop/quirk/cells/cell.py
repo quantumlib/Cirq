@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Callable, Iterable, NamedTuple, Sequence, TYPE_CHECKING, Union
+from collections.abc import Callable, Iterable, Sequence
+from typing import Any, NamedTuple, TYPE_CHECKING, Union
 
 from cirq import devices, ops, value
 

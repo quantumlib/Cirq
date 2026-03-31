@@ -17,6 +17,8 @@ import sympy
 import tunits as tu
 
 import cirq
+import cirq.contrib.routing as ccr
+import cirq_google as cg
 from cirq_google.experimental.analog_experiments import (
     analog_trajectory_util as atu,
     generic_analog_circuit as gac,
@@ -25,9 +27,12 @@ from cirq_google.ops.analog_detune_gates import AnalogDetuneCouplerOnly, AnalogD
 
 
 def test_get_neighbor_freqs() -> None:
-    pair = ("q0_0", "q0_1")
-    qubit_freq_dict = {"q0_0": 5 * tu.GHz, "q0_1": sympy.Symbol("f_q"), "q0_2": 6 * tu.GHz}
-    neighbor_freqs = gac._get_neighbor_freqs(pair, qubit_freq_dict)
+    q0 = cirq.GridQubit(0, 0)
+    q1 = cirq.GridQubit(0, 1)
+    q2 = cirq.GridQubit(0, 2)
+    pair = cg.Coupler(q0, q1)
+    qubit_freq_dict = {q0: 5 * tu.GHz, q1: sympy.Symbol("f_q"), q2: 6 * tu.GHz}
+    neighbor_freqs = gac._get_neighbor_freqs(pair, qubit_freq_dict)  # type: ignore[arg-type]
     assert neighbor_freqs == (5 * tu.GHz, sympy.Symbol("f_q"))
 
 
@@ -39,31 +44,36 @@ def test_to_grid_qubit() -> None:
         gac._to_grid_qubit("q1")
 
 
-def test_coupler_name_from_qubit_pair() -> None:
-    pair = ("q0_0", "q0_1")
-    coupler_name = gac._coupler_name_from_qubit_pair(pair)
+def test_get_coupler_name() -> None:
+    pair = cg.Coupler(cirq.q(0, 0), cirq.q(0, 1))
+    coupler_name = gac._coupler_name(pair)
     assert coupler_name == "c_q0_0_q0_1"
 
-    pair = ("q9_0", "q10_0")
-    coupler_name = gac._coupler_name_from_qubit_pair(pair)
+    pair = cg.Coupler(cirq.q(9, 0), cirq.q(10, 0))
+    coupler_name = gac._coupler_name(pair)
     assert coupler_name == "c_q9_0_q10_0"
 
-    pair = ("q7_8", "q7_7")
-    coupler_name = gac._coupler_name_from_qubit_pair(pair)
+    pair = cg.Coupler(cirq.q(7, 8), cirq.q(7, 7))
+    coupler_name = gac._coupler_name(pair)
     assert coupler_name == "c_q7_7_q7_8"
 
 
 def test_make_one_moment_of_generic_analog_circuit() -> None:
+    q0 = cirq.GridQubit(0, 0)
+    q1 = cirq.GridQubit(0, 1)
+    q2 = cirq.GridQubit(0, 2)
+    pair1 = cg.Coupler(q0, q1)
+    pair2 = cg.Coupler(q1, q2)
     freq_map = atu.FrequencyMap(
         duration=3 * tu.ns,
-        qubit_freqs={"q0_0": 5 * tu.GHz, "q0_1": 6 * tu.GHz, "q0_2": sympy.Symbol("f_q0_2")},
-        couplings={("q0_0", "q0_1"): 5 * tu.MHz, ("q0_1", "q0_2"): 6 * tu.MHz},
+        qubit_freqs={q0: 5 * tu.GHz, q1: 6 * tu.GHz, q2: sympy.Symbol("f_q0_2")},
+        couplings={pair1: 5 * tu.MHz, pair2: 6 * tu.MHz},
         is_wait_step=False,
     )
     prev_freq_map = atu.FrequencyMap(
         duration=9 * tu.ns,
-        qubit_freqs={"q0_0": 4 * tu.GHz, "q0_1": 6 * tu.GHz, "q0_2": sympy.Symbol("f_q0_2")},
-        couplings={("q0_0", "q0_1"): 2 * tu.MHz, ("q0_1", "q0_2"): 3 * tu.MHz},
+        qubit_freqs={q0: 4 * tu.GHz, q1: 6 * tu.GHz, q2: sympy.Symbol("f_q0_2")},
+        couplings={pair1: 2 * tu.MHz, pair2: 3 * tu.MHz},
         is_wait_step=False,
     )
 
@@ -111,7 +121,7 @@ def test_make_one_moment_of_generic_analog_circuit() -> None:
         neighbor_qubits_freq=(5 * tu.GHz, 6 * tu.GHz),
         prev_neighbor_qubits_freq=(4 * tu.GHz, 6 * tu.GHz),
         interpolate_coupling_cal=False,
-    ).on(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))
+    ).on(pair1)
     assert moment.operations[4] == AnalogDetuneCouplerOnly(
         length=3 * tu.ns,
         w=3 * tu.ns,
@@ -121,21 +131,24 @@ def test_make_one_moment_of_generic_analog_circuit() -> None:
         neighbor_qubits_freq=(6 * tu.GHz, sympy.Symbol("f_q0_2")),
         prev_neighbor_qubits_freq=(6 * tu.GHz, sympy.Symbol("f_q0_2")),
         interpolate_coupling_cal=False,
-    ).on(cirq.GridQubit(0, 1), cirq.GridQubit(0, 2))
+    ).on(pair2)
 
 
 def test_generic_analog_make_circuit() -> None:
+    q0 = cirq.GridQubit(0, 0)
+    q1 = cirq.GridQubit(0, 1)
+
     trajectory = atu.AnalogTrajectory.from_sparse_trajectory(
         [
-            (5 * tu.ns, {"q0_0": 5 * tu.GHz}, {}),
+            (5 * tu.ns, {q0: 5 * tu.GHz}, {}),
             (sympy.Symbol('t'), {}, {}),
             (
                 10 * tu.ns,
-                {"q0_0": 8 * tu.GHz, "q0_1": sympy.Symbol('f')},
-                {("q0_0", "q0_1"): -5 * tu.MHz},
+                {q0: 8 * tu.GHz, q1: sympy.Symbol('f')},
+                {cg.Coupler(q0, q1): -5 * tu.MHz},
             ),
             (3 * tu.ns, {}, {}),
-            (2 * tu.ns, {"q0_1": 4 * tu.GHz}, {}),
+            (2 * tu.ns, {q1: 4 * tu.GHz}, {}),
         ]
     )
     builder = gac.GenericAnalogCircuitBuilder(trajectory)
@@ -146,7 +159,6 @@ def test_generic_analog_make_circuit() -> None:
         assert isinstance(op.gate, AnalogDetuneQubit)
     for op in circuit[1].operations:
         assert isinstance(op.gate, cirq.WaitGate)
-
     assert isinstance(circuit[2].operations[0].gate, AnalogDetuneQubit)
     assert isinstance(circuit[2].operations[1].gate, AnalogDetuneQubit)
     assert isinstance(circuit[2].operations[2].gate, AnalogDetuneCouplerOnly)
@@ -156,3 +168,76 @@ def test_generic_analog_make_circuit() -> None:
 
     for op in circuit[4].operations:
         assert isinstance(op.gate, AnalogDetuneQubit)
+
+
+def test_generic_analog_make_circuit_for_simulation() -> None:
+
+    # first, test a pair of qubits
+
+    q0 = cirq.GridQubit(0, 0)
+    q1 = cirq.GridQubit(0, 1)
+
+    trajectory = atu.AnalogTrajectory.from_sparse_trajectory(
+        [
+            (5 * tu.ns, {q0: 50 * tu.MHz}, {}),
+            (10 * tu.ns, {q0: 8 * tu.MHz, q1: 1 * tu.MHz}, {cg.Coupler(q0, q1): -5 * tu.MHz}),
+            (3 * tu.ns, {}, {}),
+            (2 * tu.ns, {q1: 4 * tu.GHz}, {}),
+        ]
+    )
+    builder = gac.AnalogSimulationCircuitBuilder(trajectory)
+    circuit = builder.make_circuit(1 * tu.ns, trotter_order=1)
+
+    assert len(circuit) == 40
+    for op in circuit[0].operations:
+        assert op.gate == cirq.Z**0.0
+    for op in circuit[1].operations:
+        assert op.gate == cirq.ISWAP**0.0
+
+    circuit = builder.make_circuit(1 * tu.ns, trotter_order=2)
+
+    assert len(circuit) == 60
+    for op in circuit[0].operations:
+        assert op.gate == cirq.Z**0.0
+    for op in circuit[1].operations:
+        assert op.gate == cirq.ISWAP**0.0
+
+    # next, test a line of qubits
+
+    qubits = cirq.GridQubit.rect(1, 3, 0, 0)
+    device_graph = ccr.gridqubits_to_graph_device(qubits)
+    couplers = [cg.Coupler(*pair) for pair in device_graph.edges]
+    trajectory = atu.AnalogTrajectory.from_sparse_trajectory(
+        [
+            (5 * tu.ns, dict.fromkeys(qubits, 50 * tu.MHz), {}),
+            (10 * tu.ns, {}, dict.fromkeys(couplers, -5 * tu.MHz)),
+            (3 * tu.ns, {}, {}),
+            (2 * tu.ns, {qubits[0]: 4 * tu.GHz}, {}),
+        ]
+    )
+    builder = gac.AnalogSimulationCircuitBuilder(trajectory)
+    circuit = builder.make_circuit(1 * tu.ns, trotter_order=1)
+    assert len(circuit) == 60
+
+    circuit = builder.make_circuit(1 * tu.ns, trotter_order=2)
+    assert len(circuit) == 100
+
+    # finally, test a 2D grid of qubits
+
+    qubits = cirq.GridQubit.rect(3, 3, 0, 0)
+    device_graph = ccr.gridqubits_to_graph_device(qubits)
+    couplers = [cg.Coupler(*pair) for pair in device_graph.edges]
+    trajectory = atu.AnalogTrajectory.from_sparse_trajectory(
+        [
+            (5 * tu.ns, dict.fromkeys(qubits, 50 * tu.MHz), {}),
+            (10 * tu.ns, {}, dict.fromkeys(couplers, -5 * tu.MHz)),
+            (3 * tu.ns, {}, {}),
+            (2 * tu.ns, {qubits[0]: 4 * tu.GHz}, {}),
+        ]
+    )
+    builder = gac.AnalogSimulationCircuitBuilder(trajectory)
+    circuit = builder.make_circuit(1 * tu.ns, trotter_order=1)
+    assert len(circuit) == 100
+
+    circuit = builder.make_circuit(1 * tu.ns, trotter_order=2)
+    assert len(circuit) == 180

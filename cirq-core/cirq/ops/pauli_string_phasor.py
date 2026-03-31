@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import numbers
-from typing import AbstractSet, cast, Iterable, Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Iterable, Iterator, Sequence, Set
+from typing import cast, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq._compat import deprecated, proper_repr
@@ -262,7 +263,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
 
     @classmethod
     def _from_json_dict_(cls, pauli_string, exponent_neg, exponent_pos, **kwargs):
-        qubits = kwargs['qubits'] if 'qubits' in kwargs else None
+        qubits = kwargs.get('qubits', None)
         return PauliStringPhasor(
             pauli_string=pauli_string,
             qubits=qubits,
@@ -388,7 +389,7 @@ class PauliStringPhasorGate(raw_types.Gate):
             self.exponent_pos
         )
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self.exponent_neg) | protocols.parameter_names(
             self.exponent_pos
         )

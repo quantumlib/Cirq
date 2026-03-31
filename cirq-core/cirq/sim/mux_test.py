@@ -23,7 +23,6 @@ import pytest
 import sympy
 
 import cirq
-import cirq.testing
 
 
 def test_sample() -> None:

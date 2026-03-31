@@ -32,7 +32,8 @@ The quantum state is specified in two forms:
 
 from __future__ import annotations
 
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 import numpy as np
 
@@ -251,7 +252,6 @@ class CliffordState:
             act_on(op, ch_form_args)
         except TypeError:
             raise ValueError(f'{op.gate} cannot be run with Clifford simulator.')
-        return
 
     def apply_measurement(
         self,

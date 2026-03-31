@@ -21,10 +21,11 @@ https://arxiv.org/abs/quant-ph/0406176
 
 from __future__ import annotations
 
-from typing import Callable, cast, Iterable, Sequence, TYPE_CHECKING
+from collections.abc import Callable, Iterable, Sequence
+from typing import cast, TYPE_CHECKING
 
+import attrs
 import numpy as np
-from attr import define
 from scipy.linalg import cossin
 
 from cirq import ops
@@ -40,7 +41,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-@define
+@attrs.define
 class _TwoQubitGate:
     location: int
     matrix: np.ndarray
@@ -85,15 +86,14 @@ def quantum_shannon_decomposition(
     """
     if not predicates.is_unitary(u, atol=atol):  # Check that u is unitary
         raise ValueError(
-            "Expected input matrix u to be unitary, \
-                but it fails cirq.is_unitary check"
+            "Expected input matrix u to be unitary, but it fails cirq.is_unitary check"
         )
 
     n = u.shape[0]
     if n & (n - 1):
         raise ValueError(
-            f"Expected input matrix u to be a (2^n x 2^n) shaped numpy array, \
-                but instead got shape {u.shape}"
+            f"Expected input matrix u to be a (2^n x 2^n) shaped numpy array, "
+            f"but instead got shape {u.shape}"
         )
 
     if n == 2:
@@ -175,14 +175,14 @@ def _recursive_decomposition(qubits: Sequence[cirq.Qid], u: np.ndarray) -> Itera
     n = u.shape[0]
     if n & (n - 1):
         raise ValueError(
-            f"Expected input matrix u to be a (2^n x 2^n) shaped numpy array, \
-                but instead got shape {u.shape}"
+            f"Expected input matrix u to be a (2^n x 2^n) shaped numpy array, "
+            f"but instead got shape {u.shape}"
         )
 
     if n <= 2:
         raise ValueError(
-            f"Expected input matrix u for recursive step to have size at least 4, \
-                but it has size {n}"
+            f"Expected input matrix u for recursive step to have size at least 4, "
+            f"but it has size {n}"
         )
 
     if n == 4:

@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Any, Protocol, Sequence
+from collections.abc import Sequence
+from typing import Any, Protocol
 
 import cirq
 
@@ -69,9 +70,7 @@ class DeviceParameter(SupportsDeviceParameter):
 
     @classmethod
     def _from_json_dict_(cls, path, idx, value, **kwargs):
-        return DeviceParameter(
-            path=path, idx=idx, value=value, units=kwargs["units"] if "units" in kwargs else None
-        )
+        return DeviceParameter(path=path, idx=idx, value=value, units=kwargs.get("units", None))
 
     def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ["path", "idx", "value", "units"])

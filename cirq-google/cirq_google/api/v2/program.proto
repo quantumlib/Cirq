@@ -215,10 +215,18 @@ message FSimGate {
   FloatArg theta = 1;
   FloatArg phi = 2;
 
-  // If true, this is equivalent to:
-  // cirq.FSimGate(...).with_tags(cirq_google.FSimViaModelTag()).
+
   // This field controls how we translate the gate implementation.
-  bool translate_via_model = 3;
+  oneof translate_tag {
+    // If true, this is equivalent to:
+    // cirq.FSimGate(...).with_tags(cirq_google.FSimViaModelTag()).
+    bool translate_via_model = 3;
+
+    // If true, this is equivalent to:
+    // cirq.FSimGate(...).with_tags(cirq_google.TwoPulseFSimTag()).
+    bool translate_to_two_pulse = 4;
+  }
+
 }
 
 // Representation of cirq.ISwapPowGate
@@ -416,6 +424,9 @@ message Tag {
     // Uses parameter model to interpolate FSim gate.
     FSimViaModelTag fsim_via_model = 7;
 
+    // Use two-pulse FSim gate implementation.
+    TwoPulseFSimTag two_pulse_fsim = 12;
+
     // Calibration Tag
     CalibrationTag calibration_tag = 9;
     
@@ -442,6 +453,9 @@ message PhysicalZTag {}
 message ClassicalStateTag {}
 
 message FSimViaModelTag {}
+
+message TwoPulseFSimTag {}
+
 
 // Tag to remove moment-based synchronization
 // The reverse and forward arguments control the

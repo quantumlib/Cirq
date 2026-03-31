@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import re
-from typing import Hashable, TYPE_CHECKING
+from collections.abc import Hashable
+from typing import TYPE_CHECKING
 
 import attrs
 import sympy

@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import abc
 import enum
-from typing import Mapping, Self, Sequence, TYPE_CHECKING
+from collections.abc import Mapping, Sequence
+from typing import Self, TYPE_CHECKING
 
 from cirq.value import digits, value_equality_attr
 

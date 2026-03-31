@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import cast, Iterable
+from collections.abc import Iterable
+from typing import cast
 
 import numpy as np
 import pytest
@@ -83,7 +84,7 @@ def assert_optimizes(
         context = cirq.TransformerContext(tags_to_ignore=("ignore",), deep=True)
     else:
         context = dataclasses.replace(
-            context, tags_to_ignore=context.tags_to_ignore + ("ignore",), deep=True
+            context, tags_to_ignore=(*context.tags_to_ignore, "ignore"), deep=True
         )
     c_nested = cirq.eject_phased_paulis(
         c_nested, context=context, eject_parameterized=eject_parameterized

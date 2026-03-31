@@ -85,10 +85,24 @@ package manager.
 
     There are some extra steps if Protocol Buffers are changed; see the next section.
 
-2. Prepare a Python virtual environment that includes the Cirq dev tools (such as Mypy).
+2. Setup virtualenvwrapper
 
-    One of the system dependencies we installed was `virtualenvwrapper`, which makes it easy to create virtual environments.
-    If you did not have `virtualenvwrapper` previously, you may need to re-open your terminal or run `source ~/.bashrc` before these commands will work:
+    One of the system dependencies we installed was `virtualenvwrapper`, which makes it easy to
+    create virtual environments.  If you did not have `virtualenvwrapper` previously, then to
+    complete the setup of virtualenvwrapper, the following lines must be added to your ~/.bashrc or
+    ~/.zshrc file.  Once the file is saved, you will need to either open a new terminal session or
+    execute `source ~/.bashrc` to activate the new configuration.
+
+    ```bash
+    export WORKON_HOME=$HOME/.virtualenvs
+    export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
+    source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
+    ```
+
+    For a complete reference see the [virtualenvwrapper documentation](
+    https://virtualenvwrapper.readthedocs.io).
+
+3. Prepare a Python virtual environment that includes the Cirq dev tools (such as Mypy).
 
     ```bash
     mkvirtualenv cirq-py3 --python=/usr/bin/python3
@@ -102,13 +116,13 @@ package manager.
     **Note**: Some highly managed or customized devices have configurations that interfere with `virtualenv`.
     In that case, [anaconda](https://www.anaconda.com/) environments may be a better choice.
 
-3. Check that the tests pass.
+4. Check that the tests pass.
 
     ```bash
     ./check/pytest .
     ```
 
-4. (**OPTIONAL**) include your development copy of Cirq and its subpackages in your Python path.
+5. (**OPTIONAL**) include your development copy of Cirq and its subpackages in your Python path.
 
     ```bash
     source dev_tools/pypath
@@ -153,12 +167,15 @@ The simplest way to run checks is to invoke `pytest`, `pylint`, or `mypy` for yo
 
 ```bash
 pytest
-pylint --rcfile=dev_tools/conf/.pylintrc cirq
-mypy --config-file=dev_tools/conf/mypy.ini .
+pylint .
+mypy .
 ```
 
-This can be a bit tedious, because you have to specify the configuration files each time.
-A more convenient way to run checks is to via the scripts in the [check/](https://github.com/quantumlib/Cirq/tree/main/check) directory, which specify configuration arguments for you and cover more use cases:
+This can be a bit tedious, because the above assumes that Python path has been
+set using `source dev_tools/pypath`.
+A more convenient way to run checks is via the scripts in the [check/](
+https://github.com/quantumlib/Cirq/tree/main/check) directory, which
+set the Python path and configuration arguments for you and cover more use cases:
 
 - **Fast checks (complete in seconds or tens of seconds)**
 
@@ -166,6 +183,13 @@ A more convenient way to run checks is to via the scripts in the [check/](https:
 
          ```bash
          ./check/format-incremental [--apply] [BASE_REVISION]
+         ```
+
+    - Check for lint:
+
+         ```bash
+         ruff check
+         ./check/pylint-changed-files
          ```
 
     - Run tests associated with changed files:
@@ -193,7 +217,7 @@ A more convenient way to run checks is to via the scripts in the [check/](https:
     - Type checking:
 
         ```bash
-        ./check/mypy [files-and-flags-for-mypy]
+        ./check/mypy [flags-for-mypy]
         ```
 
     - Miscellaneous checks:
@@ -228,11 +252,13 @@ A more convenient way to run checks is to via the scripts in the [check/](https:
     - Run all continuous integration checks:
 
         ```bash
-        ./check/all [BASE_REVISION] [--only-changed-files] [--apply-format-changes]
+        ./check/all [BASE_REVISION] [--changed] [--fix]
         ```
 
-        If `--only-changed-files` is set, checks that can will focus down to
+        If the `--changed` option is set, checks that can will focus down to
         just files that were changed (trading accuracy for speed).
+        The option `--fix` will apply safe corrections from linter and
+        formatter tools to address problems detected in the code.
 
 In the above, `[BASE_REVISION]` controls what commit is being compared
 against for an incremental check (e.g., in order to determine which files changed).

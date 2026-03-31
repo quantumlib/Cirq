@@ -16,7 +16,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, cast, Hashable, Iterable, TYPE_CHECKING
+from collections.abc import Callable, Hashable, Iterable
+from typing import Any, cast, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq.ops import global_phase_op, op_tree, raw_types
@@ -438,8 +439,8 @@ class Gateset:
                 )
                 return True
 
-        # Check exact instance equality next
-        if g in self._instance_gate_families:
+        # Check exact instance equality next (only for hashable gates)
+        if isinstance(g, Hashable) and g in self._instance_gate_families:
             assert item in self._instance_gate_families[g], (
                 f"{item} instance matches {self._instance_gate_families[g]} but "
                 f"is not accepted by it."

@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import abc
 import itertools
-from typing import Any, cast, Hashable, Iterable, NoReturn, TYPE_CHECKING
+from collections.abc import Hashable, Iterable
+from typing import Any, cast, NoReturn, TYPE_CHECKING
 
 from cirq import devices, ops, value
 from cirq.contrib.graph_device.hypergraph import UndirectedHypergraph
@@ -76,7 +77,7 @@ def is_undirected_device_graph(graph: UndirectedHypergraph) -> bool:
         return False
     if not all(isinstance(v, ops.Qid) for v in graph.vertices):
         return False
-    for _, label in graph.labelled_edges.items():
+    for label in graph.labelled_edges.values():
         if not (label is None or isinstance(label, UndirectedGraphDeviceEdge)):
             return False
     return True

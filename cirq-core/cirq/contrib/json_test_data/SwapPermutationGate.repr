@@ -1,0 +1,1 @@
+cirq.contrib.acquaintance.SwapPermutationGate(swap_gate=cirq.SWAP)

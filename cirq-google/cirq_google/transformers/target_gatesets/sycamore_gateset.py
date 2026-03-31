@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import itertools
-from typing import Any, Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import Any, TYPE_CHECKING
 
 import cirq
 from cirq_google import ops
@@ -85,7 +86,7 @@ def merge_swap_rzz_and_2q_unitaries(
     circuit = cirq.merge_k_qubit_unitaries_to_circuit_op(
         circuit,
         k=2,
-        tags_to_ignore=tuple(tags_to_ignore) + (merged_swap_rzz_tag,),
+        tags_to_ignore=(*tags_to_ignore, merged_swap_rzz_tag),
         merged_circuit_op_tag=merged_2q_component_tag,
         deep=deep,
     )

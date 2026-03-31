@@ -21,7 +21,8 @@ import enum
 import functools
 import inspect
 import textwrap
-from typing import Any, Callable, cast, Hashable, overload, Protocol, TYPE_CHECKING, TypeVar
+from collections.abc import Callable, Hashable
+from typing import Any, cast, overload, Protocol, TYPE_CHECKING, TypeVar
 
 from cirq import circuits
 

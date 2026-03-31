@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import cast, Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import cast, TYPE_CHECKING
 
 from cirq import devices, ops, protocols
 from cirq.contrib.acquaintance.permutation import PermutationGate, update_mapping

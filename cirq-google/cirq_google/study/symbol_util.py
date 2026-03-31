@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import AbstractSet, Any, TypeAlias
+from collections.abc import Set
+from typing import Any, TypeAlias
 
 import sympy
 import tunits as tu
@@ -41,7 +42,7 @@ def direct_symbol_replacement(x, resolver: cirq.ParamResolver):
     return x
 
 
-def dict_param_name(dict_with_value: dict[Any, ValueOrSymbol] | None) -> AbstractSet[str]:
+def dict_param_name(dict_with_value: dict[Any, ValueOrSymbol] | None) -> Set[str]:
     """Find the names of all parameterized value in a dictionary."""
     if dict_with_value is None:
         return set()

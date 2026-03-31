@@ -18,7 +18,6 @@ import numpy as np
 import pytest
 
 import cirq
-import cirq.testing
 
 # TODO: This and clifford tableau need tests.
 # Github issue: https://github.com/quantumlib/Cirq/issues/3021
@@ -36,7 +35,7 @@ def test_initial_state() -> None:
 
 
 def test_run() -> None:
-    (q0, q1, q2) = (cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2))
+    q0, q1, q2 = (cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2))
 
     """
     0: ───H───@───────────────X───M───────────

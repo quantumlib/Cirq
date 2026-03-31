@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import os
 import subprocess
-from typing import Iterable, TYPE_CHECKING
+from collections.abc import Iterable
+from typing import TYPE_CHECKING
 
 from dev_tools import shell_tools
 from dev_tools.test_utils import only_on_posix
@@ -604,9 +605,7 @@ def test_pylint_changed_files_file_selection(tmpdir_factory) -> None:
         ).split()
     )
 
-    intercepted_prefix = (
-        'INTERCEPTED env PYTHONPATH=dev_tools pylint --jobs=0 --rcfile=dev_tools/conf/.pylintrc '
-    )
+    intercepted_prefix = 'INTERCEPTED pylint --jobs=0 '
 
     result = run(
         script_file='check/pylint-changed-files',

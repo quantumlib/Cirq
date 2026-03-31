@@ -16,7 +16,8 @@
 
 from __future__ import annotations
 
-from typing import Callable, Iterable, Iterator, NoReturn, TYPE_CHECKING
+from collections.abc import Callable, Iterable, Iterator
+from typing import NoReturn, TYPE_CHECKING
 
 from cirq._doc import document
 from cirq._import import LazyLoader

@@ -31,7 +31,8 @@ from __future__ import annotations
 
 import abc
 import collections
-from typing import Any, Callable, cast, Generic, Iterator, Mapping, Sequence, TYPE_CHECKING, TypeVar
+from collections.abc import Callable, Iterator, Mapping, Sequence
+from typing import Any, cast, Generic, TYPE_CHECKING, TypeVar
 
 import numpy as np
 
@@ -271,7 +272,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
                     sample_set = [current_sample]
                     for idx in qubit_indices:
                         sample_set = [
-                            target[:idx] + (result,) + target[idx + 1 :]
+                            (*target[:idx], result, *target[idx + 1 :])
                             for target in sample_set
                             for result in [0, 1]
                         ]

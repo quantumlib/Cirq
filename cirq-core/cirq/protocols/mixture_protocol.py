@@ -16,8 +16,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from types import NotImplementedType
-from typing import Any, Protocol, Sequence
+from typing import Any, Protocol
 
 import numpy as np
 

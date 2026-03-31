@@ -64,6 +64,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'PhysicalZTag': cirq_google.PhysicalZTag,
         'FSimGateFamily': cirq_google.FSimGateFamily,
         'FSimViaModelTag': cirq_google.FSimViaModelTag,
+        'TwoPulseFSimTag': cirq_google.TwoPulseFSimTag,
         'SycamoreTargetGateset': cirq_google.SycamoreTargetGateset,
         'cirq.google.BitstringsMeasurement': cirq_google.BitstringsMeasurement,
         'cirq.google.QuantumExecutable': cirq_google.QuantumExecutable,

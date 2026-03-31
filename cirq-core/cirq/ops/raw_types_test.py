@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import AbstractSet, Any, cast, Iterator
+from collections.abc import Iterator, Set
+from typing import Any, cast
 
 import numpy as np
 import pytest
@@ -739,7 +740,7 @@ class ParameterizableTag:
     def _is_parameterized_(self) -> bool:
         return cirq.is_parameterized(self.value)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return cirq.parameter_names(self.value)
 
     def _resolve_parameters_(
@@ -781,7 +782,7 @@ def test_inverse_composite_standards() -> None:
         def _value_equality_values_(self):
             return (self._param,)
 
-        def _parameter_names_(self) -> AbstractSet[str]:
+        def _parameter_names_(self) -> Set[str]:
             return cirq.parameter_names(self._param)
 
         def _is_parameterized_(self) -> bool:

@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import random
-from typing import cast, Sequence
+from collections.abc import Sequence
+from typing import cast
 
 import numpy as np
 import pytest
@@ -89,7 +90,7 @@ def test_random_circuit(
     assert len(circuit) == n_moments
     if gate_domain is None:
         gate_domain = cirq.testing.DEFAULT_GATE_DOMAIN
-    assert set(cast(cirq.GateOperation, op).gate for op in circuit.all_operations()).issubset(
+    assert {cast(cirq.GateOperation, op).gate for op in circuit.all_operations()}.issubset(
         gate_domain
     )
 

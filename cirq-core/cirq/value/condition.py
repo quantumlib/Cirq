@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import abc
 import dataclasses
-from typing import Any, Mapping, TYPE_CHECKING
+from collections.abc import Mapping
+from typing import Any, TYPE_CHECKING
 
 import attrs
 import sympy

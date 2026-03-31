@@ -48,8 +48,7 @@ def _assert_no_collision(gate) -> None:
 
 
 def _all_rotations():
-    for pauli, flip in itertools.product(_paulis, _bools):
-        yield (pauli, flip)
+    yield from itertools.product(_paulis, _bools)
 
 
 def _all_rotation_pairs():
@@ -939,15 +938,12 @@ stable   | destable
 +     Z2 | +   Z1X2
 """
     )
-    assert (
-        repr(cirq.ops.CliffordGate.CNOT)
-        == """Clifford Gate with Tableau:
+    assert repr(cirq.ops.CliffordGate.CNOT) == """Clifford Gate with Tableau:
 stable | destable
 -------+----------
 + Z0   | + X0X1
 + Z0Z1 | +   X1
 """
-    )
 
 
 def test_single_qubit_clifford_gate_repr() -> None:

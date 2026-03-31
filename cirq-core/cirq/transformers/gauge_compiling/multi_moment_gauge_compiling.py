@@ -50,28 +50,31 @@ class MultiMomentGaugeTransformer(abc.ABC):
     supported_gates: ops.GateFamily | ops.Gateset
 
     @abc.abstractmethod
-    def gauge_on_moments(self, moments_to_gauge: list[circuits.Moment]) -> list[circuits.Moment]:
-        """Gauges a block of moments.
-
-        Args:
-            moments_to_gauge: A list of moments to be gauged.
-
-        Returns:
-            A list of moments after gauging.
-        """
-
-    @abc.abstractmethod
     def sample_left_moment(
-        self, active_qubits: frozenset[ops.Qid], rng: np.random.Generator
+        self, active_qubits: frozenset[ops.Qid], prng: np.random.Generator
     ) -> circuits.Moment:
         """Samples a random single-qubit moment to be inserted before the target block.
 
         Args:
             active_qubits: The qubits on which the sampled gates should be applied.
-            rng: A pseudorandom number generator.
+            prng: A pseudorandom number generator.
 
         Returns:
             The sampled moment.
+        """
+
+    @abc.abstractmethod
+    def gauge_on_moments(
+        self, moments_to_gauge: list[circuits.Moment], prng: np.random.Generator
+    ) -> list[circuits.Moment]:
+        """Gauges a block of moments.
+
+        Args:
+            moments_to_gauge: A list of moments to be gauged.
+            prng: A pseudorandom number generator.
+
+        Returns:
+            A list of moments after gauging.
         """
 
     def is_target_moment(
@@ -106,11 +109,32 @@ class MultiMomentGaugeTransformer(abc.ABC):
         circuit: circuits.AbstractCircuit,
         *,
         context: transformer_api.TransformerContext | None = None,
+        rng_or_seed: np.random.Generator | int | None = None,
     ) -> circuits.AbstractCircuit:
+        """Apply the transformer to the given circuit.
+
+        Args:
+            circuit: The circuit to transform.
+            context: `cirq.TransformerContext` storing common configurable options for transformers.
+            prng: A pseudorandom number generator.
+
+        Returns:
+            The transformed circuit.
+
+        Raises:
+            ValueError: if the TransformerContext has deep=True.
+
+        """
         if context is None:
             context = transformer_api.TransformerContext(deep=False)
         if context.deep:
             raise ValueError('GaugeTransformer cannot be used with deep=True')
+        rng = (
+            rng_or_seed
+            if isinstance(rng_or_seed, np.random.Generator)
+            else np.random.default_rng(rng_or_seed)
+        )
+
         output_moments: list[circuits.Moment] = []
         moments_to_gauge: list[circuits.Moment] = []
         for moment in circuit:
@@ -118,10 +142,10 @@ class MultiMomentGaugeTransformer(abc.ABC):
                 moments_to_gauge.append(moment)
             else:
                 if moments_to_gauge:
-                    output_moments.extend(self.gauge_on_moments(moments_to_gauge))
+                    output_moments.extend(self.gauge_on_moments(moments_to_gauge, rng))
                     moments_to_gauge.clear()
                 output_moments.append(moment)
         if moments_to_gauge:
-            output_moments.extend(self.gauge_on_moments(moments_to_gauge))
+            output_moments.extend(self.gauge_on_moments(moments_to_gauge, rng))
 
         return circuits.Circuit.from_moments(*output_moments)

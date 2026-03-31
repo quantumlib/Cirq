@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Iterable, TYPE_CHECKING
+from collections.abc import Iterable
+from typing import TYPE_CHECKING
 
 from cirq import circuits, ops, study
 from cirq.work.observable_measurement import measure_grouped_settings, StoppingCriteria
@@ -34,7 +35,7 @@ def calibrate_readout_error(
     # and X for the other half.
     init_state = zeros_state(qubits)
     max_setting = InitObsSetting(
-        init_state=init_state, observable=ops.PauliString({q: ops.Z for q in qubits})
+        init_state=init_state, observable=ops.PauliString(dict.fromkeys(qubits, ops.Z))
     )
     grouped_settings = {
         max_setting: [

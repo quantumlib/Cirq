@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import numbers
-from typing import AbstractSet, Any, cast, Protocol, Self, TYPE_CHECKING, TypeVar
+from collections.abc import Set
+from typing import Any, cast, Protocol, Self, TYPE_CHECKING, TypeVar
 
 import sympy
 
@@ -40,7 +41,7 @@ class SupportsParameterization(Protocol):
         and False otherwise."""
 
     @doc_private
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         """Returns a collection of string names of parameters that require
         resolution. If _is_parameterized_ is False, the collection is empty.
         The converse is not necessarily true, because some objects may report
@@ -92,7 +93,7 @@ def is_parameterized(val: Any) -> bool:
     return bool(parameter_names(val))
 
 
-def parameter_names(val: Any) -> AbstractSet[str]:
+def parameter_names(val: Any) -> Set[str]:
     """Returns parameter names for this object.
 
     Args:
@@ -119,7 +120,7 @@ def parameter_names(val: Any) -> AbstractSet[str]:
     return set()
 
 
-def parameter_symbols(val: Any) -> AbstractSet[sympy.Symbol]:
+def parameter_symbols(val: Any) -> Set[sympy.Symbol]:
     """Returns parameter symbols for this object.
 
     Args:

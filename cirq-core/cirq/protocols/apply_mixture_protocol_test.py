@@ -13,7 +13,8 @@
 # limitations under the License.
 from __future__ import annotations
 
-from typing import Any, cast, Iterable
+from collections.abc import Iterable
+from typing import Any, cast
 
 import numpy as np
 import pytest
@@ -59,7 +60,7 @@ def assert_apply_mixture_returns(
 
 
 def test_apply_mixture_bad_args() -> None:
-    target = np.zeros((3,) + (1, 2, 3) + (3, 1, 2) + (3,))
+    target = np.zeros((3,) + (1, 2, 3) + (3, 1, 2) + (3,))  # noqa: RUF005
     with pytest.raises(ValueError, match='Invalid target_tensor shape'):
         cirq.apply_mixture(
             cirq.IdentityGate(3, (1, 2, 3)),

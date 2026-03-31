@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import json
 import urllib.parse
-from typing import Any, cast, Iterable, Mapping, Sequence, TYPE_CHECKING
+from collections.abc import Iterable, Mapping, Sequence
+from typing import Any, cast, TYPE_CHECKING
 
 import numpy as np
 
@@ -272,8 +273,7 @@ def _parse_cols_into_composite_cell(
     for c in parsed_cols:
         for cell in c:
             if cell is not None:
-                for key, modifier in cell.persistent_modifiers().items():
-                    persistent_mods[key] = modifier
+                persistent_mods.update(cell.persistent_modifiers())
         for i in range(len(c)):
             for modifier in persistent_mods.values():
                 cell = c[i]

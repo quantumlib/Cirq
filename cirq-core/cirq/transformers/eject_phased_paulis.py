@@ -16,7 +16,8 @@
 
 from __future__ import annotations
 
-from typing import cast, Iterable, Iterator, TYPE_CHECKING
+from collections.abc import Iterable, Iterator
+from typing import cast, TYPE_CHECKING
 
 import numpy as np
 import sympy

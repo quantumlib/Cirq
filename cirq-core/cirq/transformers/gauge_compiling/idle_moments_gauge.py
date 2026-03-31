@@ -14,7 +14,8 @@
 from __future__ import annotations
 
 import functools
-from typing import Hashable, Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Hashable, Iterator, Sequence
+from typing import TYPE_CHECKING
 
 import attrs
 import numpy as np
@@ -218,7 +219,7 @@ class IdleMomentsGauge:
 
         return circuits.Circuit.from_moments(
             *(
-                [op for op in sq.values()] + nsq
+                list(sq.values()) + nsq
                 for sq, nsq in zip(single_qubit_moments, non_single_qubit_moments, strict=True)
             )
         )

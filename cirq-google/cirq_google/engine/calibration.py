@@ -18,8 +18,9 @@ from __future__ import annotations
 
 import datetime
 from collections import abc, defaultdict
+from collections.abc import Iterator, Sequence
 from itertools import cycle
-from typing import Any, cast, Iterator, Sequence
+from typing import Any, cast
 
 import google.protobuf.json_format as json_format
 import matplotlib as mpl
@@ -114,7 +115,7 @@ class Calibration(abc.Mapping):
         return len(self._metric_dict)
 
     def __str__(self) -> str:
-        return f'Calibration(keys={list(sorted(self.keys()))})'
+        return f'Calibration(keys={sorted(self.keys())})'
 
     def __repr__(self) -> str:
         return f'cirq_google.Calibration(metrics={dict(self._metric_dict)!r})'

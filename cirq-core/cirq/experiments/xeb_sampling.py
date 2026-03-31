@@ -19,8 +19,10 @@ from __future__ import annotations
 import os
 import time
 import uuid
+from collections.abc import Callable, Sequence
+from contextlib import AbstractContextManager
 from dataclasses import dataclass
-from typing import Any, Callable, ContextManager, Sequence, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -257,7 +259,7 @@ def _execute_sample_2q_xeb_tasks_in_batches(
     combinations_by_layer: list[CircuitLibraryCombination],
     repetitions: int,
     batch_size: int,
-    progress_bar: Callable[..., ContextManager],
+    progress_bar: Callable[..., AbstractContextManager],
     dataset_directory: str | None = None,
 ) -> list[dict[str, Any]]:
     """Helper function used in `sample_2q_xeb_circuits` to batch and execute sampling tasks."""
@@ -287,7 +289,7 @@ def sample_2q_xeb_circuits(
     *,
     repetitions: int = 10_000,
     batch_size: int = 9,
-    progress_bar: Callable[..., ContextManager] | None = tqdm.tqdm,
+    progress_bar: Callable[..., AbstractContextManager] | None = tqdm.tqdm,
     combinations_by_layer: list[CircuitLibraryCombination] | None = None,
     shuffle: cirq.RANDOM_STATE_OR_SEED_LIKE | None = None,
     dataset_directory: str | None = None,

@@ -19,7 +19,8 @@ from __future__ import annotations
 import dataclasses
 import json
 import math
-from typing import Any, Callable, cast, Collection, Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Callable, Collection, Iterator, Sequence
+from typing import Any, cast, TYPE_CHECKING
 
 import numpy as np
 
@@ -171,7 +172,7 @@ class Serializer:
             self._validate_circuit(circuit)
             self._validate_qubits(circuit.all_qubits())
 
-        num_qubits = max([self._num_qubits(circuit) for circuit in circuits])
+        num_qubits = max(self._num_qubits(circuit) for circuit in circuits)
 
         gateset = None
         for circuit in circuits:
@@ -196,7 +197,7 @@ class Serializer:
                 {'circuit': [op for op in serialized_ops if op['gate'] != 'meas']}
             )
             measurements.append(
-                (self._serialize_measurements(op for op in serialized_ops if op['gate'] == 'meas'))
+                self._serialize_measurements(op for op in serialized_ops if op['gate'] == 'meas')
             )
             qubit_numbers.append(self._num_qubits(circuit))
 
@@ -232,7 +233,7 @@ class Serializer:
         """Validates qubit types and values."""
         if any(not isinstance(q, line_qubit.LineQubit) for q in all_qubits):
             raise ValueError(
-                f'All qubits must be cirq.LineQubits but were {set(type(q) for q in all_qubits)}'
+                f'All qubits must be cirq.LineQubits but were { {type(q) for q in all_qubits} }'
             )
         if any(cast(line_qubit.LineQubit, q).x < 0 for q in all_qubits):
             raise ValueError(

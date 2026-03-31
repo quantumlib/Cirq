@@ -161,7 +161,7 @@ def test_run_mixture(dtype: type[np.complexfloating], split: bool) -> None:
     np.testing.assert_equal(result.measurements['q(1)'], [[0]] * 100)
     # Test that we get at least one of each result. Probability of this test
     # failing is 2 ** (-99).
-    q0_measurements = set(x[0] for x in result.measurements['q(0)'].tolist())
+    q0_measurements = {x[0] for x in result.measurements['q(0)'].tolist()}
     assert q0_measurements == {0, 1}
 
 
@@ -182,7 +182,7 @@ def test_run_qudit_mixture(dtype: type[np.complexfloating], split: bool) -> None
     np.testing.assert_equal(result.measurements['q(1) (d=2)'], [[0]] * 100)
     # Test that we get at least one of each result. Probability of this test
     # failing is about 3 * (2/3) ** 100.
-    q0_measurements = set(x[0] for x in result.measurements['q(0) (d=3)'].tolist())
+    q0_measurements = {x[0] for x in result.measurements['q(0) (d=3)'].tolist()}
     assert q0_measurements == {0, 1, 2}
 
 
@@ -199,7 +199,7 @@ def test_run_channel(dtype: type[np.complexfloating], split: bool) -> None:
     np.testing.assert_equal(result.measurements['q(1)'], [[0]] * 100)
     # Test that we get at least one of each result. Probability of this test
     # failing is 2 ** (-99).
-    q0_measurements = set(x[0] for x in result.measurements['q(0)'].tolist())
+    q0_measurements = {x[0] for x in result.measurements['q(0)'].tolist()}
     assert q0_measurements == {0, 1}
 
 
@@ -220,7 +220,7 @@ def test_run_decomposable_channel(dtype: type[np.complexfloating], split: bool) 
     np.testing.assert_equal(result.measurements['q(1)'], [[0]] * 100)
     # Test that we get at least one of each result. Probability of this test
     # failing is 2 ** (-99).
-    q0_measurements = set(x[0] for x in result.measurements['q(0)'].tolist())
+    q0_measurements = {x[0] for x in result.measurements['q(0)'].tolist()}
     assert q0_measurements == {0, 1}
 
 
@@ -252,7 +252,7 @@ def test_run_qudit_channel(dtype: type[np.complexfloating], split: bool) -> None
     np.testing.assert_equal(result.measurements['q(1) (d=4)'], [[0]] * 100)
     # Test that we get at least one of each result. Probability of this test
     # failing is about (3/4) ** 100.
-    q0_measurements = set(x[0] for x in result.measurements['q(0) (d=3)'].tolist())
+    q0_measurements = {x[0] for x in result.measurements['q(0) (d=3)'].tolist()}
     assert q0_measurements == {0, 1, 2}
 
 
@@ -1525,9 +1525,7 @@ def test_separated_states_str_does_not_merge() -> None:
     circuit = cirq.Circuit(cirq.measure(q0), cirq.measure(q1), cirq.X(q0))
 
     result = cirq.DensityMatrixSimulator().simulate(circuit)
-    assert (
-        str(result)
-        == """measurements: q(0)=0 q(1)=0
+    assert str(result) == """measurements: q(0)=0 q(1)=0
 
 qubits: (cirq.LineQubit(0),)
 final density matrix:
@@ -1542,7 +1540,6 @@ final density matrix:
 phase:
 final density matrix:
 [[1.+0.j]]"""
-    )
 
 
 def test_unseparated_states_str() -> None:
@@ -1550,9 +1547,7 @@ def test_unseparated_states_str() -> None:
     circuit = cirq.Circuit(cirq.measure(q0), cirq.measure(q1), cirq.X(q0))
 
     result = cirq.DensityMatrixSimulator(split_untangled_states=False).simulate(circuit)
-    assert (
-        str(result)
-        == """measurements: q(0)=0 q(1)=0
+    assert str(result) == """measurements: q(0)=0 q(1)=0
 
 qubits: (cirq.LineQubit(0), cirq.LineQubit(1))
 final density matrix:
@@ -1560,7 +1555,6 @@ final density matrix:
  [0.+0.j 0.+0.j 0.+0.j 0.+0.j]
  [0.+0.j 0.+0.j 1.+0.j 0.+0.j]
  [0.+0.j 0.+0.j 0.+0.j 0.+0.j]]"""
-    )
 
 
 def test_sweep_unparameterized_prefix_not_repeated_even_non_unitaries() -> None:

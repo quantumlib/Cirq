@@ -20,7 +20,7 @@ mypy.
 
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Iterable
 
 from cirq._doc import document
 from cirq.ops import qubit_order, raw_types

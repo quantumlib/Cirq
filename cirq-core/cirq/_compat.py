@@ -20,15 +20,16 @@ import contextlib
 import contextvars
 import dataclasses
 import functools
-import importlib
+import importlib.util
 import inspect
 import os
 import re
 import sys
 import traceback
 import warnings
+from collections.abc import Callable, Iterator
 from types import ModuleType
-from typing import Any, Callable, Iterator, overload, TypeVar
+from typing import Any, overload, TypeVar
 
 import numpy as np
 import pandas as pd

@@ -16,23 +16,18 @@
 
 from __future__ import annotations
 
-from typing import (
-    AbstractSet,
-    Any,
+from collections.abc import (
     Callable,
-    Generic,
     ItemsView,
     Iterable,
     Iterator,
     KeysView,
     Mapping,
     MutableMapping,
-    overload,
-    Self,
-    TYPE_CHECKING,
-    TypeVar,
+    Set,
     ValuesView,
 )
+from typing import Any, Generic, overload, Self, TYPE_CHECKING, TypeVar
 
 import numpy as np
 import sympy
@@ -179,7 +174,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
         return snapshot._terms.items()
 
     def update(self, *args, **kwargs):
-        terms = dict()
+        terms = {}
         terms.update(*args, **kwargs)
         for vector, coefficient in terms.items():
             if isinstance(coefficient, sympy.Basic):
@@ -332,10 +327,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
     def _json_dict_(self) -> dict[Any, Any]:
         if self._has_validator:
             raise ValueError('LinearDict with a validator is not json serializable.')
-        return {
-            'keys': [k for k in self._terms.keys()],
-            'values': [v for v in self._terms.values()],
-        }
+        return {'keys': list(self._terms.keys()), 'values': list(self._terms.values())}
 
     @classmethod
     def _from_json_dict_(cls, keys, values, **kwargs):
@@ -344,8 +336,8 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
     def _is_parameterized_(self) -> bool:
         return any(protocols.is_parameterized(v) for v in self._terms.values())
 
-    def _parameter_names_(self) -> AbstractSet[str]:
-        return set(name for v in self._terms.values() for name in protocols.parameter_names(v))
+    def _parameter_names_(self) -> Set[str]:
+        return {name for v in self._terms.values() for name in protocols.parameter_names(v)}
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> LinearDict:
         result = self.copy()

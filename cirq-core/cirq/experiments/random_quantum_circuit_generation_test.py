@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import itertools
-from typing import Callable, cast, Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
+from typing import cast
 
 import networkx as nx
 import numpy as np
@@ -411,7 +412,7 @@ def test_grid_interaction_layer_repr() -> None:
 def _validate_single_qubit_layers(
     qubits: set[cirq.GridQubit], moments: Sequence[cirq.Moment], non_repeating_layers: bool = True
 ) -> None:
-    previous_single_qubit_gates: SINGLE_QUBIT_LAYER = {q: None for q in qubits}
+    previous_single_qubit_gates: SINGLE_QUBIT_LAYER = dict.fromkeys(qubits)
 
     for moment in moments:
         # All qubits are acted upon

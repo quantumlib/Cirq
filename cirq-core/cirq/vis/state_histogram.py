@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import collections
-from typing import Sequence, SupportsFloat
+from collections.abc import Sequence
+from typing import SupportsFloat
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -35,7 +36,7 @@ def get_state_histogram(result: result.Result) -> np.ndarray:
     Returns:
         The state histogram (a numpy array) corresponding to the trial result.
     """
-    num_qubits = sum([value.shape[1] for value in result.measurements.values()])
+    num_qubits = sum(value.shape[1] for value in result.measurements.values())
     states = 2**num_qubits
     values = np.zeros(states)
     # measurements is a dict of {measurement gate key:

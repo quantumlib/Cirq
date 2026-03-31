@@ -22,8 +22,9 @@ component operations in order, including any nested CircuitOperations.
 from __future__ import annotations
 
 import math
+from collections.abc import Callable, Iterator, Mapping, Sequence
 from functools import cached_property
-from typing import Any, Callable, cast, Iterator, Mapping, Sequence, TYPE_CHECKING, TypeAlias
+from typing import Any, cast, TYPE_CHECKING, TypeAlias
 
 import numpy as np
 import sympy
@@ -474,7 +475,7 @@ class CircuitOperation(ops.Operation):
     def __str__(self):
         # TODO: support out-of-line subcircuit definition in string format.
         msg_lines = str(self.circuit).split('\n')
-        msg_width = max([len(line) for line in msg_lines])
+        msg_width = max(len(line) for line in msg_lines)
         circuit_msg = '\n'.join(f'[ {line:<{msg_width}} ]' for line in msg_lines)
         args = []
 

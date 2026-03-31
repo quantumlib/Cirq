@@ -15,8 +15,9 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable, Sequence
 from fractions import Fraction
-from typing import Any, Iterable, overload, Protocol, Self, Sequence, TYPE_CHECKING, TypeVar, Union
+from typing import Any, overload, Protocol, Self, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
 import sympy
@@ -133,7 +134,7 @@ class CircuitDiagramInfo:
             if args.precision is not None:
                 # funky behavior of fraction, cast to str in constructor helps.
                 approx_frac = Fraction(self.exponent).limit_denominator(16)
-                if approx_frac.denominator not in [2, 4, 5, 10]:
+                if approx_frac.denominator not in [1, 2, 4, 5, 10]:
                     if abs(float(approx_frac) - self.exponent) < 10**-args.precision:
                         return f'({approx_frac})'
 
@@ -380,7 +381,7 @@ def _op_info_with_fallback(
         name += f"[{', '.join(map(str, op.tags))}]"
 
     # Include ordering in the qubit labels.
-    symbols = (name,) + tuple(f'#{i + 1}' for i in range(1, len(op.qubits)))
+    symbols = (name, *(f'#{i + 1}' for i in range(1, len(op.qubits))))
 
     return protocols.CircuitDiagramInfo(wire_symbols=symbols)
 
