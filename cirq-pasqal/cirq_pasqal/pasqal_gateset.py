@@ -30,9 +30,11 @@ def split_multi_op_moments(
 
     Pasqal devices require at most one operation per moment except for measurement operations
     which can be kept together in a single moment.
+
     Args:
         circuit: Input circuit to transform.
         context: `cirq.TransformerContext` storing common configurable options for transformers.
+
     Returns:
         Copy of the input circuit where each non-measurement operation has its own moment.
     """
@@ -131,4 +133,4 @@ class PasqalGateset(cirq.CompilationTargetGateset):
         return cls(include_additional_controlled_ops=include_additional_controlled_ops)
 
     def _json_dict_(self) -> dict[str, Any]:
-        return cirq.protocols.obj_to_dict_helper(self, ["include_additional_controlled_ops"])
+        return cirq.protocols.obj_to_dict_helper(self, ['include_additional_controlled_ops'])
