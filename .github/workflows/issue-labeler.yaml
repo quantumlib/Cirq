@@ -38,7 +38,7 @@ permissions: read-all
 
 jobs:
   label-triage-discuss:
-    name: Add triage/discuss
+    name: Add 'triage/discuss' label
     runs-on: ubuntu-slim
     timeout-minutes: 5
     permissions:
