@@ -37,6 +37,9 @@ class QasmLexer:
         'gate': 'GATE',
         'if': 'IF',
         'pi': 'PI',
+        'input': 'INPUT',
+        'float': 'FLOAT',
+        'angle': 'ANGLE',
     }
 
     tokens = [
