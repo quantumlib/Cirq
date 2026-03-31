@@ -2438,7 +2438,7 @@ def test_all_qelib_gates_unitary_equivalence(
     assert np.allclose(U_import, U_native, atol=1e-8)
     assert parsed_qasm.qregs == {'q': num_args}
 
-def test_input_decl_brackets() -> None:
+def test_input_basic() -> None:
     """input is stored in input_params and the declared name 
     becomes a free sympy.Symbol in the circuit."""
 
