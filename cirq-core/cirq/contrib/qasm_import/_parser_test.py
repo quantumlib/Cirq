@@ -2483,7 +2483,6 @@ def test_input_two_params() -> None:
     expected_circuit = Circuit(QasmUGate(theta / np.pi, n / np.pi, 0).on(q_0))
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
 
-
 def test_input_not_allowed_in_qasm2() -> None:
     """input_params is a QASM 3.0 feature and must raise in a 2.0 file."""
     qasm = """OPENQASM 2.0;
