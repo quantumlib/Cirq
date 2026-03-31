@@ -1431,7 +1431,7 @@ def test_expectation_from_density_matrix_invalid_input() -> None:
     with pytest.raises(ValueError, match='indices'):
         psum.expectation_from_density_matrix(rho, {q0: 0, q1: 0, q3: 2})
 
-    with pytest.raises(ValueError, match='hermitian'):
+    with pytest.raises(ValueError, match='Hermitian'):
         psum.expectation_from_density_matrix(1j * np.eye(8), q_map)
     with pytest.raises(ValueError, match='trace'):
         psum.expectation_from_density_matrix(np.eye(8, dtype=np.complex64), q_map)
