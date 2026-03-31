@@ -15,8 +15,9 @@
 from __future__ import annotations
 
 import abc
+from collections.abc import Iterable, Iterator, Sequence
 from types import NotImplementedType
-from typing import Any, cast, Iterable, Iterator, Sequence, TYPE_CHECKING, TypeVar
+from typing import Any, cast, TYPE_CHECKING, TypeVar
 
 from cirq import circuits, ops, protocols, transformers, value
 

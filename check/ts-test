@@ -15,7 +15,7 @@
 # limitations under the License.
 
 ################################################################################
-# Runs the test files 
+# Runs the test files
 #
 # Usage:
 #     check/ts-test
@@ -24,8 +24,8 @@
 ################################################################################
 
 # Get the working directory to the repo root.
-thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
-topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
-cd "${topdir}" || exit $?
+thisdir=$(dirname "${BASH_SOURCE[0]:?}") || exit $?
+repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel) || exit $?
+cd "${repo_dir}" || exit $?
 
 check/npm run test "$@"

@@ -51,7 +51,7 @@ round_to_2_prec = cirq.CircuitDiagramInfoArgs(
 )
 
 
-def assert_mixtures_equal(actual, expected):
+def assert_mixtures_equal(actual, expected) -> None:
     """Assert equal for tuple of mixed scalar and array types."""
     for a, e in zip(actual, expected):
         np.testing.assert_almost_equal(a[0], e[0])
@@ -84,7 +84,7 @@ def test_asymmetric_depolarizing_channel_str() -> None:
     assert (
         str(cirq.asymmetric_depolarize(0.1, 0.2, 0.3))
         == "asymmetric_depolarize(error_probabilities={'I': 0.3999999999999999, "
-        + "'X': 0.1, 'Y': 0.2, 'Z': 0.3})"
+        "'X': 0.1, 'Y': 0.2, 'Z': 0.3})"
     )
 
 

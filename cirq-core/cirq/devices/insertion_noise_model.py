@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Any, Sequence, TYPE_CHECKING
+from collections.abc import Mapping, Sequence
+from typing import Any, TYPE_CHECKING
 
 from cirq import devices
 from cirq.devices import noise_utils
@@ -44,7 +45,7 @@ class InsertionNoiseModel(devices.NoiseModel):
             with PHYSICAL_GATE_TAG.
     """
 
-    ops_added: dict[noise_utils.OpIdentifier, cirq.Operation] = dataclasses.field(
+    ops_added: Mapping[noise_utils.OpIdentifier, cirq.Operation] = dataclasses.field(
         default_factory=dict
     )
     prepend: bool = False
@@ -78,8 +79,8 @@ class InsertionNoiseModel(devices.NoiseModel):
     def __repr__(self) -> str:
         return (
             f'cirq.devices.InsertionNoiseModel(ops_added={self.ops_added},'
-            + f' prepend={self.prepend},'
-            + f' require_physical_tag={self.require_physical_tag})'
+            f' prepend={self.prepend},'
+            f' require_physical_tag={self.require_physical_tag})'
         )
 
     def _json_dict_(self) -> dict[str, Any]:

@@ -24,8 +24,7 @@ from cirq.transformers.analytical_decompositions.controlled_gate_decomposition i
 )
 
 from cirq.transformers.analytical_decompositions.cphase_to_fsim import (
-    # pylint: disable=line-too-long
-    compute_cphase_exponents_for_fsim_decomposition as compute_cphase_exponents_for_fsim_decomposition,
+    compute_cphase_exponents_for_fsim_decomposition as compute_cphase_exponents_for_fsim_decomposition,  # noqa: E501
     decompose_cphase_into_two_fsim as decompose_cphase_into_two_fsim,
 )
 
@@ -47,14 +46,12 @@ from cirq.transformers.analytical_decompositions.three_qubit_decomposition impor
 )
 
 from cirq.transformers.analytical_decompositions.two_qubit_to_cz import (
-    # pylint: disable=line-too-long
     two_qubit_matrix_to_cz_operations as two_qubit_matrix_to_cz_operations,
-    two_qubit_matrix_to_diagonal_and_cz_operations as two_qubit_matrix_to_diagonal_and_cz_operations,
+    two_qubit_matrix_to_diagonal_and_cz_operations as two_qubit_matrix_to_diagonal_and_cz_operations,  # noqa: E501
 )
 
 from cirq.transformers.analytical_decompositions.two_qubit_to_fsim import (
-    # pylint: disable=line-too-long
-    decompose_two_qubit_interaction_into_four_fsim_gates as decompose_two_qubit_interaction_into_four_fsim_gates,
+    decompose_two_qubit_interaction_into_four_fsim_gates as decompose_two_qubit_interaction_into_four_fsim_gates,  # noqa: E501
 )
 
 from cirq.transformers.analytical_decompositions.two_qubit_to_ms import (

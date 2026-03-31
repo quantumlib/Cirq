@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import itertools
-from typing import Callable, Hashable, Optional, TYPE_CHECKING
+from collections.abc import Callable, Hashable
+from typing import TYPE_CHECKING
 
 from cirq.transformers import transformer_api, transformer_primitives
 
@@ -27,8 +28,8 @@ if TYPE_CHECKING:
 def index_tags(
     circuit: cirq.AbstractCircuit,
     *,
-    context: Optional[cirq.TransformerContext] = None,
-    target_tags: Optional[set[Hashable]] = None,
+    context: cirq.TransformerContext | None = None,
+    target_tags: set[Hashable] | None = None,
 ) -> cirq.Circuit:
     """Indexes tags in target_tags as tag_0, tag_1, ... per tag.
 
@@ -64,8 +65,8 @@ def index_tags(
 def remove_tags(
     circuit: cirq.AbstractCircuit,
     *,
-    context: Optional[cirq.TransformerContext] = None,
-    target_tags: Optional[set[Hashable]] = None,
+    context: cirq.TransformerContext | None = None,
+    target_tags: set[Hashable] | None = None,
     remove_if: Callable[[Hashable], bool] = lambda _: False,
 ) -> cirq.Circuit:
     """Removes tags from the operations based on the input args.
@@ -85,12 +86,12 @@ def remove_tags(
     target_tags = target_tags or set()
 
     def _map_func(op: cirq.Operation, _) -> cirq.OP_TREE:
-        remaing_tags = set()
+        remaining_tags = set()
         for tag in op.tags:
             if not remove_if(tag) and tag not in target_tags:
-                remaing_tags.add(tag)
+                remaining_tags.add(tag)
 
-        return op.untagged.with_tags(*remaing_tags)
+        return op.untagged.with_tags(*remaining_tags)
 
     return transformer_primitives.map_operations(
         circuit, _map_func, deep=context.deep if context else False

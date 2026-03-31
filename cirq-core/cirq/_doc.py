@@ -15,12 +15,13 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TypeVar
 
+T = TypeVar('T')
 RECORDED_CONST_DOCS: dict[int, str] = {}
 
 
-def document(value: Any, doc_string: str = ''):
+def document(value: T, doc_string: str = '') -> T:
     """Stores documentation details about the given value.
 
     This method is used to associate a docstring with global constants. It is
@@ -64,7 +65,7 @@ def document(value: Any, doc_string: str = ''):
 _DOC_PRIVATE = "_tf_docs_doc_private"
 
 
-def doc_private(obj):
+def doc_private(obj: T) -> T:
     """A decorator: Generates docs for private methods/functions.
 
     For example:

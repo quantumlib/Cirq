@@ -18,7 +18,8 @@ from __future__ import annotations
 
 import abc
 from collections import defaultdict
-from typing import Callable, cast, Iterable, Sequence, TYPE_CHECKING
+from collections.abc import Callable, Iterable, Sequence
+from typing import cast, TYPE_CHECKING
 
 from cirq import ops
 
@@ -126,7 +127,7 @@ class PointOptimizer:
             change should be made.
         """
 
-    def optimize_circuit(self, circuit: cirq.Circuit):
+    def optimize_circuit(self, circuit: cirq.Circuit) -> None:
         frontier: dict[cirq.Qid, int] = defaultdict(lambda: 0)
         i = 0
         while i < len(circuit):  # Note: circuit may mutate as we go.
@@ -148,18 +149,17 @@ class PointOptimizer:
 
                 # Clear target area, and insert new operations.
                 circuit.clear_operations_touching(
-                    opt.clear_qubits, [e for e in range(i, i + opt.clear_span)]
+                    opt.clear_qubits, list(range(i, i + opt.clear_span))
                 )
                 new_operations = self.post_clean_up(cast(tuple[ops.Operation], opt.new_operations))
 
                 flat_new_operations = tuple(ops.flatten_to_ops(new_operations))
 
-                new_qubits = set()
+                new_qubits: set[cirq.Qid] = set()
                 for flat_op in flat_new_operations:
-                    for q in flat_op.qubits:
-                        new_qubits.add(q)
+                    new_qubits.update(flat_op.qubits)
 
-                if not new_qubits.issubset(set(opt.clear_qubits)):
+                if not new_qubits.issubset(opt.clear_qubits):
                     raise ValueError(
                         'New operations in PointOptimizer should not act on new qubits.'
                     )

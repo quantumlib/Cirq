@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import itertools
 import math
-from typing import Any, Iterable, Mapping, TYPE_CHECKING
+from collections.abc import Iterable, Mapping
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 from scipy.sparse import csr_matrix
@@ -135,7 +136,7 @@ class ProjectorString:
     def __repr__(self) -> str:
         return (
             f"cirq.ProjectorString(projector_dict={self._projector_dict},"
-            + f"coefficient={self._coefficient})"
+            f"coefficient={self._coefficient})"
         )
 
     def _json_dict_(self) -> dict[str, Any]:

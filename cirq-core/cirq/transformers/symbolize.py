@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import re
-from typing import Hashable, TYPE_CHECKING
+from collections.abc import Hashable
+from typing import TYPE_CHECKING
 
 import attrs
 import sympy
@@ -75,7 +76,7 @@ def symbolize_single_qubit_gates_by_indexed_tags(
     """
 
     def _map_func(op: cirq.Operation, _):
-        """Maps an op with tag `{tag_prefix}_i` to a symbolzied `PhasedXZGate(xi,zi,ai)`."""
+        """Maps an op with tag `{tag_prefix}_i` to a symbolized `PhasedXZGate(xi,zi,ai)`."""
         tags: set[Hashable] = set(op.tags)
         tag_id: None | int = None
         for tag in tags:

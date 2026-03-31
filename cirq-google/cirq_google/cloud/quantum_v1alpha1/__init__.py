@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2022 Google LLC
+# Copyright 2025 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 from .services.quantum_engine_service import QuantumEngineServiceClient
 from .services.quantum_engine_service import QuantumEngineServiceAsyncClient
 
@@ -28,6 +27,7 @@ from .types.engine import DeleteQuantumProgramRequest
 from .types.engine import DeleteQuantumReservationRequest
 from .types.engine import GetQuantumCalibrationRequest
 from .types.engine import GetQuantumJobRequest
+from .types.engine import GetQuantumProcessorConfigRequest
 from .types.engine import GetQuantumProcessorRequest
 from .types.engine import GetQuantumProgramRequest
 from .types.engine import GetQuantumReservationRequest
@@ -38,6 +38,8 @@ from .types.engine import ListQuantumJobEventsRequest
 from .types.engine import ListQuantumJobEventsResponse
 from .types.engine import ListQuantumJobsRequest
 from .types.engine import ListQuantumJobsResponse
+from .types.engine import ListQuantumProcessorConfigsRequest
+from .types.engine import ListQuantumProcessorConfigsResponse
 from .types.engine import ListQuantumProcessorsRequest
 from .types.engine import ListQuantumProcessorsResponse
 from .types.engine import ListQuantumProgramsRequest
@@ -57,6 +59,7 @@ from .types.engine import StreamError
 from .types.engine import UpdateQuantumJobRequest
 from .types.engine import UpdateQuantumProgramRequest
 from .types.engine import UpdateQuantumReservationRequest
+from .types.quantum import DeviceConfigKey
 from .types.quantum import DeviceConfigSelector
 from .types.quantum import ExecutionStatus
 from .types.quantum import GcsLocation
@@ -66,6 +69,7 @@ from .types.quantum import QuantumCalibration
 from .types.quantum import QuantumJob
 from .types.quantum import QuantumJobEvent
 from .types.quantum import QuantumProcessor
+from .types.quantum import QuantumProcessorConfig
 from .types.quantum import QuantumProgram
 from .types.quantum import QuantumReservation
 from .types.quantum import QuantumReservationBudget
@@ -73,7 +77,6 @@ from .types.quantum import QuantumReservationGrant
 from .types.quantum import QuantumResult
 from .types.quantum import QuantumTimeSlot
 from .types.quantum import SchedulingConfig
-from .types.quantum import DeviceConfigKey
 
 __all__ = (
     'QuantumEngineServiceAsyncClient',
@@ -86,11 +89,13 @@ __all__ = (
     'DeleteQuantumJobRequest',
     'DeleteQuantumProgramRequest',
     'DeleteQuantumReservationRequest',
+    'DeviceConfigKey',
     'DeviceConfigSelector',
     'ExecutionStatus',
     'GcsLocation',
     'GetQuantumCalibrationRequest',
     'GetQuantumJobRequest',
+    'GetQuantumProcessorConfigRequest',
     'GetQuantumProcessorRequest',
     'GetQuantumProgramRequest',
     'GetQuantumReservationRequest',
@@ -102,6 +107,8 @@ __all__ = (
     'ListQuantumJobEventsResponse',
     'ListQuantumJobsRequest',
     'ListQuantumJobsResponse',
+    'ListQuantumProcessorConfigsRequest',
+    'ListQuantumProcessorConfigsResponse',
     'ListQuantumProcessorsRequest',
     'ListQuantumProcessorsResponse',
     'ListQuantumProgramsRequest',
@@ -120,6 +127,7 @@ __all__ = (
     'QuantumJob',
     'QuantumJobEvent',
     'QuantumProcessor',
+    'QuantumProcessorConfig',
     'QuantumProgram',
     'QuantumReservation',
     'QuantumReservationBudget',
@@ -134,5 +142,4 @@ __all__ = (
     'UpdateQuantumJobRequest',
     'UpdateQuantumProgramRequest',
     'UpdateQuantumReservationRequest',
-    'DeviceConfigKey',
 )

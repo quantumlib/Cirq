@@ -16,8 +16,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping, Sequence
 from concurrent import futures
-from typing import overload, Sequence, TYPE_CHECKING, Union
+from typing import overload, TYPE_CHECKING, Union
 
 import attrs
 import networkx as nx
@@ -34,12 +35,16 @@ if TYPE_CHECKING:
 
 _TARGET_T = Union['cirq.Gate', 'cirq.Operation', 'cirq.AbstractCircuit']
 _QUBIT_PAIR_T = tuple['cirq.GridQubit', 'cirq.GridQubit']
-_CANONICAL_TARGET_T = Union['cirq.Operation', dict[_QUBIT_PAIR_T, 'cirq.Operation']]
-_PROBABILITIES_DICT_T = dict[_QUBIT_PAIR_T, list[list[np.ndarray]]]
+_CANONICAL_TARGET_T = Union['cirq.Operation', Mapping[_QUBIT_PAIR_T, 'cirq.Operation']]
+_PROBABILITIES_DICT_T = Mapping[_QUBIT_PAIR_T, list[list[np.ndarray]]]
 
 
 def _canonize_pair(pair: _QUBIT_PAIR_T) -> _QUBIT_PAIR_T:
     return min(pair), max(pair)
+
+
+def _tuple_from_ints(seq: Iterable[int]) -> tuple[int, ...]:
+    return tuple(seq)
 
 
 @attrs.frozen
@@ -56,7 +61,9 @@ class XEBParameters:
     n_repetitions: int = 10**4
     n_combinations: int = 10
     n_circuits: int = 20
-    cycle_depths: tuple[int, ...] = attrs.field(default=(5, 25, 50, 100, 200, 300), converter=tuple)
+    cycle_depths: tuple[int, ...] = attrs.field(
+        default=(5, 25, 50, 100, 200, 300), converter=_tuple_from_ints
+    )
 
 
 @attrs.frozen
@@ -75,7 +82,7 @@ class XEBWideCircuitInfo:
     pairs: Sequence[_QUBIT_PAIR_T] = attrs.field(
         converter=lambda seq: [_canonize_pair(pair) for pair in seq]
     )
-    narrow_template_indices: tuple[int, ...] = attrs.field(converter=tuple)
+    narrow_template_indices: tuple[int, ...] = attrs.field(converter=_tuple_from_ints)
     cycle_depth: int | None = None
 
     @staticmethod
@@ -166,7 +173,7 @@ def _target_to_operation(target: _TARGET_T) -> cirq.Operation:
     return target
 
 
-def _canonize_target(target: _TARGET_T | dict[_QUBIT_PAIR_T, _TARGET_T]) -> _CANONICAL_TARGET_T:
+def _canonize_target(target: _TARGET_T | Mapping[_QUBIT_PAIR_T, _TARGET_T]) -> _CANONICAL_TARGET_T:
     if isinstance(target, (ops.Gate, ops.Operation, circuits.AbstractCircuit)):
         return _target_to_operation(target)
     return {k: _target_to_operation(v) for k, v in target.items()}
@@ -272,10 +279,10 @@ def simulate_circuit_library(
 @overload
 def simulate_circuit_library(
     circuit_templates: Sequence[cirq.Circuit],
-    target_or_dict: dict[_QUBIT_PAIR_T, ops.Operation],
+    target_or_dict: Mapping[_QUBIT_PAIR_T, ops.Operation],
     cycle_depths: Sequence[int],
     pool: futures.Executor | None = None,
-) -> dict[_QUBIT_PAIR_T, Sequence[Sequence[np.ndarray]]]: ...
+) -> Mapping[_QUBIT_PAIR_T, Sequence[Sequence[np.ndarray]]]: ...
 
 
 def simulate_circuit_library(
@@ -283,7 +290,7 @@ def simulate_circuit_library(
     target_or_dict: _CANONICAL_TARGET_T,
     cycle_depths: Sequence[int],
     pool: futures.Executor | None = None,
-) -> Sequence[Sequence[np.ndarray]] | dict[_QUBIT_PAIR_T, Sequence[Sequence[np.ndarray]]]:
+) -> Sequence[Sequence[np.ndarray]] | Mapping[_QUBIT_PAIR_T, Sequence[Sequence[np.ndarray]]]:
     """Simulate the given sequence of circuits.
 
     Args:
@@ -304,7 +311,7 @@ def simulate_circuit_library(
     keys = None
     if isinstance(target_or_dict, dict):
         keys = tuple(target_or_dict.keys())
-        two_qubit_ops = list(target_or_dict[k] for k in keys)
+        two_qubit_ops = [target_or_dict[k] for k in keys]
     else:
         two_qubit_ops = [target_or_dict]
 
@@ -407,15 +414,16 @@ def _reshape_sampling_results(
 
 def _reshape_simulation_results(
     simulation_results: (
-        Sequence[Sequence[np.ndarray]] | dict[_QUBIT_PAIR_T, Sequence[Sequence[np.ndarray]]]
+        Sequence[Sequence[np.ndarray]] | Mapping[_QUBIT_PAIR_T, Sequence[Sequence[np.ndarray]]]
     ),
     cycle_depths: Sequence[int],
     pairs: Sequence[_QUBIT_PAIR_T],
     num_templates: int,
 ) -> _PROBABILITIES_DICT_T:
+    cycle_depth_to_index: dict[int, int]
     cycle_depth_to_index = {d: i for i, d in enumerate(cycle_depths)}
 
-    if isinstance(simulation_results, dict):
+    if isinstance(simulation_results, Mapping):
         pure_probabilities = {
             pair: [[np.empty(0)] * num_templates for _ in range(len(cycle_depths))]
             for pair in pairs
@@ -437,7 +445,7 @@ def _reshape_simulation_results(
             ):
                 cycle_idx = cycle_depth_to_index[cycle_depth]
                 common_pure_probs[cycle_idx][template_idx] = pure_probs
-        return {pair: common_pure_probs for pair in pairs}
+        return dict.fromkeys(pairs, common_pure_probs)
 
 
 @attrs.frozen
@@ -463,7 +471,7 @@ def _cross_entropy(p: np.ndarray, q: np.ndarray, eps: float = 1e-60) -> float:
 def estimate_fidelities(
     sampling_results: Sequence[dict[str, np.ndarray]],
     simulation_results: (
-        Sequence[Sequence[np.ndarray]] | dict[_QUBIT_PAIR_T, Sequence[Sequence[np.ndarray]]]
+        Sequence[Sequence[np.ndarray]] | Mapping[_QUBIT_PAIR_T, Sequence[Sequence[np.ndarray]]]
     ),
     cycle_depths: Sequence[int],
     wide_circuits_info: Sequence[XEBWideCircuitInfo],
@@ -525,7 +533,7 @@ def estimate_fidelities(
 
 def _extract_pairs(
     sampler: cirq.Sampler,
-    target: _TARGET_T | dict[_QUBIT_PAIR_T, _TARGET_T],
+    target: _TARGET_T | Mapping[_QUBIT_PAIR_T, _TARGET_T],
     qubits: Sequence[cirq.GridQubit] | None,
     pairs: Sequence[_QUBIT_PAIR_T] | None,
 ) -> Sequence[_QUBIT_PAIR_T]:
@@ -545,8 +553,8 @@ def _extract_pairs(
 
 def parallel_xeb_workflow(
     sampler: cirq.Sampler,
-    target: _TARGET_T | dict[_QUBIT_PAIR_T, _TARGET_T],
-    ideal_target: _TARGET_T | dict[_QUBIT_PAIR_T, _TARGET_T] | None = None,
+    target: _TARGET_T | Mapping[_QUBIT_PAIR_T, _TARGET_T],
+    ideal_target: _TARGET_T | Mapping[_QUBIT_PAIR_T, _TARGET_T] | None = None,
     qubits: Sequence[cirq.GridQubit] | None = None,
     pairs: Sequence[_QUBIT_PAIR_T] | None = None,
     parameters: XEBParameters = XEBParameters(),
@@ -571,9 +579,8 @@ def parallel_xeb_workflow(
     Raises:
         ValueError: If qubits are not specified and the sampler has no device.
     """
-    if rng is None:
-        rng = np.random.default_rng()
-    rs = np.random.RandomState(rng.integers(0, 10**9))
+    seed = np.random.randint(0, 10**9) if rng is None else rng.integers(0, 10**9)
+    rs = np.random.RandomState(seed)
 
     pairs = _extract_pairs(sampler, target, qubits, pairs)
     graph = nx.Graph(pairs)
@@ -644,8 +651,8 @@ def parallel_xeb_workflow(
 
 def parallel_two_qubit_xeb(
     sampler: cirq.Sampler,
-    target: _TARGET_T | dict[_QUBIT_PAIR_T, _TARGET_T],
-    ideal_target: _TARGET_T | dict[_QUBIT_PAIR_T, _TARGET_T] | None = None,
+    target: _TARGET_T | Mapping[_QUBIT_PAIR_T, _TARGET_T],
+    ideal_target: _TARGET_T | Mapping[_QUBIT_PAIR_T, _TARGET_T] | None = None,
     qubits: Sequence[cirq.GridQubit] | None = None,
     pairs: Sequence[_QUBIT_PAIR_T] | None = None,
     parameters: XEBParameters = XEBParameters(),

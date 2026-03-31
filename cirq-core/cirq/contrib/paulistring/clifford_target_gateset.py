@@ -79,7 +79,7 @@ class CliffordTargetGateset(transformers.TwoQubitCompilationTargetGateset):
     def __init__(
         self,
         *,
-        single_qubit_target: SingleQubitTarget = SingleQubitTarget.PAULI_STRING_PHASORS_AND_CLIFFORDS,  # pylint: disable=line-too-long
+        single_qubit_target: SingleQubitTarget = SingleQubitTarget.PAULI_STRING_PHASORS_AND_CLIFFORDS,  # noqa: E501
         atol: float = 1e-8,
     ):
         """Initializes CliffordTargetGateset

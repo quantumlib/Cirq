@@ -48,8 +48,6 @@ from cirq_google.engine.calibration import Calibration as Calibration
 
 from cirq_google.engine.calibration_layer import CalibrationLayer as CalibrationLayer
 
-from cirq_google.engine.calibration_result import CalibrationResult as CalibrationResult
-
 from cirq_google.engine.calibration_to_noise_properties import (
     noise_properties_from_calibration as noise_properties_from_calibration,
 )
@@ -80,13 +78,14 @@ from cirq_google.engine.runtime_estimator import (
 from cirq_google.engine.validating_sampler import ValidatingSampler as ValidatingSampler
 
 from cirq_google.engine.virtual_engine_factory import (
-    # pylint: disable=line-too-long
     create_default_noisy_quantum_virtual_machine as create_default_noisy_quantum_virtual_machine,
     create_device_from_processor_id as create_device_from_processor_id,
     create_noiseless_virtual_engine_from_device as create_noiseless_virtual_engine_from_device,
     create_noiseless_virtual_engine_from_proto as create_noiseless_virtual_engine_from_proto,
-    create_noiseless_virtual_engine_from_templates as create_noiseless_virtual_engine_from_templates,
-    create_noiseless_virtual_engine_from_latest_templates as create_noiseless_virtual_engine_from_latest_templates,
+    create_noiseless_virtual_engine_from_templates as create_noiseless_virtual_engine_from_templates,  # noqa: E501
+    create_noiseless_virtual_engine_from_latest_templates as create_noiseless_virtual_engine_from_latest_templates,  # noqa: E501
+    list_virtual_processors as list_virtual_processors,
+    load_device_noise_properties as load_device_noise_properties,
     load_median_device_calibration as load_median_device_calibration,
     load_sample_device_zphase as load_sample_device_zphase,
 )
@@ -94,3 +93,5 @@ from cirq_google.engine.virtual_engine_factory import (
 from cirq_google.engine.engine_result import EngineResult as EngineResult
 
 from cirq_google.engine.processor_sampler import ProcessorSampler as ProcessorSampler
+
+from cirq_google.engine.processor_config import ProcessorConfig as ProcessorConfig

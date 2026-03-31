@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import itertools
-from typing import Any, Iterable, Sequence, TYPE_CHECKING
+from collections.abc import Iterable, Sequence
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -81,7 +82,7 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
             ValueError: if the args or the sum of args are not probabilities.
         """
         if error_probabilities:
-            num_qubits = len(list(error_probabilities)[0])
+            num_qubits = len(next(iter(error_probabilities.keys())))
             for k in error_probabilities.keys():
                 if not set(k).issubset({'I', 'X', 'Y', 'Z'}):
                     raise ValueError(f"{k} is not made solely of I, X, Y, Z.")
@@ -146,8 +147,8 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
             if args.precision is not None:
                 return (
                     f"A({self.p_x:.{args.precision}g},"
-                    + f"{self.p_y:.{args.precision}g},"
-                    + f"{self.p_z:.{args.precision}g})"
+                    f"{self.p_y:.{args.precision}g},"
+                    f"{self.p_z:.{args.precision}g})"
                 )
             return f"A({self.p_x},{self.p_y},{self.p_z})"
         if args.precision is not None:

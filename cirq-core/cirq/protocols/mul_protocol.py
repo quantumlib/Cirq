@@ -71,6 +71,3 @@ def mul(lhs: Any, rhs: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     if default is not RaiseTypeErrorIfNotProvided:
         return default
     raise TypeError(f"unsupported operand type(s) for *: '{type(lhs)}' and '{type(rhs)}'")
-
-
-# pylint: enable=function-redefined, redefined-builtin

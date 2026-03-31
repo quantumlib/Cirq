@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import cast, Optional, Sequence, TYPE_CHECKING, Union
+from collections.abc import Sequence
+from typing import cast, TYPE_CHECKING
 
 from cirq_google import get_engine, ProcessorSampler
 from cirq_google.engine import (
@@ -47,13 +48,13 @@ class QCSObjectsForNotebook:
     device: cirq.Device
     sampler: ProcessorSampler
     signed_in: bool
-    processor_id: Optional[str]
-    project_id: Optional[str]
+    processor_id: str | None
+    project_id: str | None
     is_simulator: bool
 
 
 def get_qcs_objects_for_notebook(
-    project_id: Optional[str] = None, processor_id: Optional[str] = None, virtual=False
+    project_id: str | None = None, processor_id: str | None = None, virtual=False
 ) -> QCSObjectsForNotebook:
     """Authenticates on Google Cloud and returns Engine related objects.
 
@@ -115,7 +116,7 @@ def get_qcs_objects_for_notebook(
         # All of these are either local processors or engine processors
         # Either way, tell mypy they have a processor_id field.
         processors = cast(
-            Sequence[Union[EngineProcessor, AbstractLocalProcessor]], engine.list_processors()
+            Sequence[EngineProcessor | AbstractLocalProcessor], engine.list_processors()
         )
         if not processors:
             raise ValueError("No processors available.")
@@ -177,6 +178,6 @@ def authenticate_user(clear_output: bool = False) -> None:
     except Exception as exc:
         print(
             "Authentication failed, you may not have permission to access a"
-            + " hardware Engine. Use a virtual Engine instead."
+            " hardware Engine. Use a virtual Engine instead."
         )
         raise exc

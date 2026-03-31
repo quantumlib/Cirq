@@ -21,9 +21,8 @@ import enum
 import functools
 import inspect
 import textwrap
-from typing import Any, Callable, cast, Hashable, overload, TYPE_CHECKING, TypeVar
-
-from typing_extensions import Protocol
+from collections.abc import Callable, Hashable
+from typing import Any, cast, overload, Protocol, TYPE_CHECKING, TypeVar
 
 from cirq import circuits
 
@@ -88,8 +87,8 @@ class TransformerLogger:
 
     The logger assumes that
         - Transformers are run sequentially.
-        - Nested transformers are allowed, in which case the behavior would be similar to a
-          doing a depth first search on the graph of transformers -- i.e. the top level transformer
+        - Nested transformers are allowed, in which case the behavior would be similar to
+          doing a depth-first search on the graph of transformers -- i.e. the top level transformer
           would end (i.e. receive a `register_final` call) once all nested transformers (i.e. all
           `register_initial` calls received while the top level transformer was active) have
           finished (i.e. corresponding `register_final` calls have also been received).
@@ -231,7 +230,7 @@ class TRANSFORMER(Protocol):
     >>> def convert_to_cz(
     ...     circuit: cirq.AbstractCircuit,
     ...     *,
-    ...     context: 'Optional[cirq.TransformerContext]' = None,
+    ...     context: cirq.TransformerContext | None = None,
     ...     atol: float = 1e-8,
     ... ) -> cirq.Circuit:
     ...     ...
@@ -245,7 +244,7 @@ class TRANSFORMER(Protocol):
     ...         self,
     ...         circuit: cirq.AbstractCircuit,
     ...         *,
-    ...         context: 'Optional[cirq.TransformerContext]' = None,
+    ...         context: cirq.TransformerContext | None = None,
     ...      ) -> cirq.AbstractCircuit:
     ...         ...
     """
@@ -288,7 +287,7 @@ def transformer(cls_or_func: Any = None, *, add_deep_support: bool = False) -> A
 
     >>> @cirq.transformer
     ... def convert_to_cz(
-    ...    circuit: cirq.AbstractCircuit, *, context: 'Optional[cirq.TransformerContext]' = None
+    ...    circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
     ... ) -> cirq.Circuit:
     ...    ...
 
@@ -302,7 +301,7 @@ def transformer(cls_or_func: Any = None, *, add_deep_support: bool = False) -> A
     ...        self,
     ...        circuit: cirq.AbstractCircuit,
     ...        *,
-    ...        context: 'Optional[cirq.TransformerContext]' = None,
+    ...        context: cirq.TransformerContext | None = None,
     ...    ) -> cirq.Circuit:
     ...        ...
 
@@ -313,7 +312,7 @@ def transformer(cls_or_func: Any = None, *, add_deep_support: bool = False) -> A
     ... def convert_to_sqrt_iswap(
     ...     circuit: cirq.AbstractCircuit,
     ...     *,
-    ...     context: 'Optional[cirq.TransformerContext]' = None,
+    ...     context: cirq.TransformerContext | None = None,
     ...     atol: float = 1e-8,
     ...     sqrt_iswap_gate: cirq.ISwapPowGate = cirq.SQRT_ISWAP_INV,
     ...     cleanup_operations: bool = True,

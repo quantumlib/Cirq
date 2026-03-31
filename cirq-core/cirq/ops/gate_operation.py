@@ -16,12 +16,12 @@
 
 from __future__ import annotations
 
+import numbers
 import re
 import warnings
+from collections.abc import Collection, Mapping, Sequence, Set
 from types import NotImplementedType
-from typing import AbstractSet, Any, cast, Collection, Mapping, Sequence, TYPE_CHECKING, TypeVar
-
-from typing_extensions import Self
+from typing import Any, cast, Self, TYPE_CHECKING, TypeVar
 
 from cirq import ops, protocols, value
 from cirq.ops import control_values as cv, gate_features, raw_types
@@ -148,14 +148,9 @@ class GateOperation(raw_types.Operation):
     def _num_qubits_(self):
         return len(self._qubits)
 
-    def _decompose_(self) -> cirq.OP_TREE:
-        return self._decompose_with_context_()
-
-    def _decompose_with_context_(
-        self, context: cirq.DecompositionContext | None = None
-    ) -> cirq.OP_TREE:
+    def _decompose_with_context_(self, *, context: cirq.DecompositionContext) -> cirq.OP_TREE:
         return protocols.decompose_once_with_qubits(
-            self.gate, self.qubits, NotImplemented, flatten=False, context=context
+            self.gate, self.qubits, None, flatten=False, context=context
         )
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
@@ -266,7 +261,7 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         getter = getattr(self.gate, '_parameter_names_', None)
         if getter is not None:
             return getter()
@@ -278,12 +273,6 @@ class GateOperation(raw_types.Operation):
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return protocols.circuit_diagram_info(self.gate, args, NotImplemented)
-
-    def _decompose_into_clifford_(self):
-        sub = getattr(self.gate, '_decompose_into_clifford_with_qubits_', None)
-        if sub is None:
-            return NotImplemented  # pragma: no cover
-        return sub(self.qubits)
 
     def _trace_distance_bound_(self) -> float:
         getter = getattr(self.gate, '_trace_distance_bound_', None)
@@ -327,6 +316,25 @@ class GateOperation(raw_types.Operation):
 
     def __rmul__(self, other: Any) -> Any:
         return self.gate._rmul_with_qubits(self._qubits, other)
+
+    def __add__(self, other):
+        if not isinstance(other, (ops.Operation, numbers.Number)):
+            return NotImplemented
+        return 1 * self + other
+
+    def __radd__(self, other):
+        return other + 1 * self
+
+    def __sub__(self, other):
+        if not isinstance(other, (ops.Operation, numbers.Number)):
+            return NotImplemented
+        return 1 * self - other
+
+    def __rsub__(self, other):
+        return other + -self
+
+    def __neg__(self):
+        return -1 * self
 
     def _qasm_(self, args: protocols.QasmArgs) -> str | None:
         if isinstance(self.gate, ops.GlobalPhaseGate):

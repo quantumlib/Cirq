@@ -15,5 +15,5 @@
 import os
 
 
-def pytest_configure(config):
+def pytest_configure(config) -> None:
     os.environ['CIRQ_TESTING'] = "true"

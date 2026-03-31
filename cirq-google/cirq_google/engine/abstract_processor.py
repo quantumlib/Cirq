@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import abc
 import datetime
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import duet
 
@@ -35,7 +35,6 @@ if TYPE_CHECKING:
     import cirq_google.engine.abstract_engine as abstract_engine
     import cirq_google.engine.abstract_job as abstract_job
     import cirq_google.engine.calibration as calibration
-    import cirq_google.serialization.serializer as serializer
 
 
 class AbstractProcessor(abc.ABC):
@@ -181,20 +180,11 @@ class AbstractProcessor(abc.ABC):
     run_sweep = duet.sync(run_sweep_async)
 
     @abc.abstractmethod
-    def get_sampler(self, run_name: str = "", device_config_name: str = "") -> cg.ProcessorSampler:
-        """Returns a sampler backed by the processor.
-
-        Args:
-            run_name: A unique identifier representing an automation run for the
-                processor. An Automation Run contains a collection of device
-                configurations for the processor.
-            device_config_name: An identifier used to select the processor configuration
-                utilized to run the job. A configuration identifies the set of
-                available qubits, couplers, and supported gates in the processor.
-        """
+    def get_sampler(self) -> cg.ProcessorSampler:
+        """Returns a sampler backed by the processor."""
 
     @abc.abstractmethod
-    def engine(self) -> Optional[abstract_engine.AbstractEngine]:
+    def engine(self) -> abstract_engine.AbstractEngine | None:
         """Returns the parent Engine object.
 
         Returns:
@@ -285,14 +275,14 @@ class AbstractProcessor(abc.ABC):
         self,
         start_time: datetime.datetime,
         end_time: datetime.datetime,
-        whitelisted_users: list[str] | None = None,
+        allowlisted_users: list[str] | None = None,
     ) -> quantum.QuantumReservation:
         """Creates a reservation on this processor.
 
         Args:
             start_time: the starting date/time of the reservation.
             end_time: the ending date/time of the reservation.
-            whitelisted_users: a list of emails that are allowed
+            allowlisted_users: a list of emails that are allowed
               to send programs during this reservation (in addition to users
               with permission "quantum.reservations.use" on the project).
         """
@@ -311,7 +301,7 @@ class AbstractProcessor(abc.ABC):
         reservation_id: str,
         start_time: datetime.datetime | None = None,
         end_time: datetime.datetime | None = None,
-        whitelisted_users: list[str] | None = None,
+        allowlisted_users: list[str] | None = None,
     ):
         """Updates a reservation with new information.
 

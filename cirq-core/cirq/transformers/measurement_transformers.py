@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import itertools
 from collections import defaultdict
-from typing import Any, cast, Iterable, Sequence, TYPE_CHECKING
+from collections.abc import Iterable, Sequence
+from typing import Any, cast, TYPE_CHECKING
 
 import numpy as np
 
@@ -122,7 +123,7 @@ def defer_measurements(
 
             # First create a sorted set of the indexed keys for this control.
             keys = sorted(
-                set(
+                {
                     indexed_key
                     for condition in op.classical_controls
                     for indexed_key in (
@@ -130,7 +131,7 @@ def defer_measurements(
                         if isinstance(condition, value.KeyCondition)
                         else [(k, -1) for k in condition.keys]
                     )
-                )
+                }
             )
             for key, index in keys:
                 if key not in measurement_qubits:
@@ -172,7 +173,7 @@ def _all_possible_datastore_states(
     keys: Iterable[tuple[cirq.MeasurementKey, int]],
     measurement_qubits: dict[cirq.MeasurementKey, list[tuple[cirq.Qid, ...]]],
 ) -> Iterable[cirq.ClassicalDataStoreReader]:
-    """The cartesian product of all possible DataStore states for the given keys."""
+    """The Cartesian product of all possible DataStore states for the given keys."""
     # First we get the list of all possible values. So if we have a key mapped to qubits of shape
     # (2, 2) and a key mapped to a qutrit, the possible measurement values are:
     # [((0, 0), (0,)),

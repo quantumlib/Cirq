@@ -22,7 +22,8 @@ from __future__ import annotations
 
 import abc
 import datetime
-from typing import Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import cirq

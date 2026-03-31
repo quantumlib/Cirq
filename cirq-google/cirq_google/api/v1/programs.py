@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import json
-from typing import Any, cast, Iterator, Sequence
+from collections.abc import Iterator, Sequence
+from typing import Any, cast
 
 import numpy as np
 import sympy
@@ -149,16 +150,8 @@ def circuit_as_schedule_to_protos(circuit: cirq.Circuit) -> Iterator[operations_
     Yields:
         An Operation proto.
     """
-    last_picos: int | None = None
-    time_picos = 0
     for op in circuit.all_operations():
-        if last_picos is None:
-            delay = time_picos
-        else:
-            delay = time_picos - last_picos
-        op_proto = gate_to_proto(cast(cirq.Gate, op.gate), op.qubits, delay)
-        time_picos += 1
-        last_picos = time_picos
+        op_proto = gate_to_proto(cast(cirq.Gate, op.gate), op.qubits, delay=0)
         yield op_proto
 
 

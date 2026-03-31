@@ -21,7 +21,7 @@ import cirq
 import cirq.contrib.routing as ccr
 
 
-def test_ops_are_consistent_with_device_graph():
+def test_ops_are_consistent_with_device_graph() -> None:
     device_graph = ccr.get_linear_device_graph(3)
     qubits = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(cirq.ZZ(qubits[0], qubits[2]))
@@ -31,7 +31,7 @@ def test_ops_are_consistent_with_device_graph():
     )
 
 
-def test_get_circuit_connectivity():
+def test_get_circuit_connectivity() -> None:
     a, b, c, d = cirq.LineQubit.range(4)
     circuit = cirq.Circuit(cirq.CZ(a, b), cirq.CZ(b, c), cirq.CZ(c, d), cirq.CZ(d, a))
     graph = ccr.get_circuit_connectivity(circuit)
@@ -41,12 +41,12 @@ def test_get_circuit_connectivity():
     assert is_planar
 
 
-def test_is_valid_routing_with_bad_args():
+def test_is_valid_routing_with_bad_args() -> None:
     p, q, r = cirq.LineQubit.range(3)
     x, y = cirq.NamedQubit('x'), cirq.NamedQubit('y')
     circuit = cirq.Circuit([cirq.CNOT(x, y), cirq.CZ(x, y)])
     routed_circuit = cirq.Circuit([cirq.CNOT(p, q), cirq.CZ(q, r)])
-    initial_mapping = {p: x, q: y}
+    initial_mapping: dict[cirq.Qid, cirq.Qid] = {p: x, q: y}
     swap_network = ccr.SwapNetwork(routed_circuit, initial_mapping)
     assert not ccr.is_valid_routing(circuit, swap_network)
 

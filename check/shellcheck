@@ -12,9 +12,9 @@
 ################################################################################
 
 # Change working directory to the repository root.
-thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
-topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
-cd "${topdir}" || exit $?
+thisdir=$(dirname "${BASH_SOURCE[0]:?}") || exit $?
+repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel) || exit $?
+cd "${repo_dir}" || exit $?
 
 # Process command line arguments
 opt_dry_run=0
@@ -51,9 +51,9 @@ required_shell_scripts=(
     dev_tools/pypath
 )
 
-scripts_not_found="$(comm -13 \
+scripts_not_found=$(comm -13 \
     <(printf "%s\n" "${our_shell_scripts[@]}") \
-    <(printf "%s\n" "${required_shell_scripts[@]}") )"
+    <(printf "%s\n" "${required_shell_scripts[@]}") )
 
 if [[ -n "${scripts_not_found}" ]]; then
     echo "Identification of shell scripts failed - files not found:" >&2

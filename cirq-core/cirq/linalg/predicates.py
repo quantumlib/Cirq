@@ -16,8 +16,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from types import EllipsisType
-from typing import cast, Sequence, Union
+from typing import cast
 
 import numpy as np
 
@@ -115,8 +116,12 @@ def is_unitary(matrix: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8) ->
     Returns:
         Whether the matrix is unitary within the given tolerance.
     """
-    return matrix.shape[0] == matrix.shape[1] and np.allclose(
-        matrix.dot(np.conj(matrix.T)), np.eye(matrix.shape[0]), rtol=rtol, atol=atol
+    return (
+        matrix.ndim == 2
+        and matrix.shape[0] == matrix.shape[1]
+        and np.allclose(
+            matrix.dot(np.conj(matrix.T)), np.eye(matrix.shape[0]), rtol=rtol, atol=atol
+        )
     )
 
 
@@ -156,7 +161,7 @@ def is_normal(matrix: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8) -> 
     return matrix_commutes(matrix, matrix.T.conj(), rtol=rtol, atol=atol)
 
 
-def is_cptp(*, kraus_ops: Sequence[np.ndarray], rtol: float = 1e-5, atol: float = 1e-8):
+def is_cptp(*, kraus_ops: Sequence[np.ndarray], rtol: float = 1e-5, atol: float = 1e-8) -> bool:
     """Determines if a channel is completely positive trace preserving (CPTP).
 
     A channel composed of Kraus operators K[0:n] is a CPTP map if the sum of
@@ -302,7 +307,7 @@ def slice_for_qubits_equal_to(
     out_size = (
         cast(int, num_qubits) if out_size_specified else max(target_qubit_axes, default=-1) + 1
     )
-    result = cast(list[Union[slice, int, EllipsisType]], [slice(None)] * out_size)
+    result = cast(list[slice | int | EllipsisType], [slice(None)] * out_size)
     if not out_size_specified:
         result.append(Ellipsis)
     if qid_shape is None:

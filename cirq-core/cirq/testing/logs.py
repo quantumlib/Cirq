@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import contextlib
 import logging
-from typing import Iterator
+from collections.abc import Iterator
 
 
 @contextlib.contextmanager
@@ -96,6 +96,3 @@ def assert_logs(
                 f'{match} expected to appear in log messages but it was '
                 f'not found. Log messages: {msgs}.'
             )
-
-
-# pylint: enable=missing-raises-doc

@@ -15,8 +15,9 @@
 from __future__ import annotations
 
 import abc
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from typing import Iterator, Sequence, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -63,7 +64,7 @@ class ProductState:
 
     def __init__(self, states=None):
         if states is None:
-            states = dict()  # pragma: no cover
+            states = {}  # pragma: no cover
 
         object.__setattr__(self, 'states', states)
 

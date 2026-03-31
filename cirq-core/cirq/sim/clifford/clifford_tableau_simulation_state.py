@@ -17,7 +17,8 @@ for Clifford Simulator."""
 
 from __future__ import annotations
 
-from typing import Optional, Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 from cirq.qis import clifford_tableau
 from cirq.sim.clifford.stabilizer_simulation_state import StabilizerSimulationState
@@ -34,9 +35,9 @@ class CliffordTableauSimulationState(StabilizerSimulationState[clifford_tableau.
     def __init__(
         self,
         tableau: cirq.CliffordTableau,
-        prng: Optional[np.random.RandomState] = None,
-        qubits: Optional[Sequence[cirq.Qid]] = None,
-        classical_data: Optional[cirq.ClassicalDataStore] = None,
+        prng: np.random.RandomState | None = None,
+        qubits: Sequence[cirq.Qid] | None = None,
+        classical_data: cirq.ClassicalDataStore | None = None,
     ):
         """Inits CliffordTableauSimulationState.
 

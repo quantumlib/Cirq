@@ -18,8 +18,9 @@ import abc
 import fractions
 import math
 import numbers
+from collections.abc import Iterable, Set
 from types import NotImplementedType
-from typing import AbstractSet, Any, cast, Iterable, NamedTuple, TYPE_CHECKING
+from typing import Any, cast, NamedTuple, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -103,9 +104,15 @@ class EigenGate(raw_types.Gate):
                 `cirq.unitary(cirq.rx(pi))` equals -iX instead of X.
 
         Raises:
+            TypeError: If the supplied exponent is a string.
             ValueError: If the supplied exponent is a complex number with an
                 imaginary component.
         """
+        if isinstance(exponent, str):
+            raise TypeError(
+                "Gate exponent must be a number or sympy expression. "
+                f"Received a string instead: {exponent!r}"
+            )
         if isinstance(exponent, complex):
             if exponent.imag:
                 raise ValueError(f"Gate exponent must be real. Invalid Value: {exponent}")
@@ -128,65 +135,28 @@ class EigenGate(raw_types.Gate):
         Child classes should override this method if they have an __init__
         method with a differing signature.
         """
-        # pylint: disable=unexpected-keyword-arg
         if self._global_shift == 0:
             return type(self)(exponent=exponent)
         return type(self)(exponent=exponent, global_shift=self._global_shift)
-        # pylint: enable=unexpected-keyword-arg
 
-    def _diagram_exponent(
-        self, args: protocols.CircuitDiagramInfoArgs, *, ignore_global_phase: bool = True
-    ):
+    def _diagram_exponent(self, args: protocols.CircuitDiagramInfoArgs):
         """The exponent to use in circuit diagrams.
 
-        Basically, this just canonicalizes the exponent in a way that is
-        insensitive to global phase. Only relative phases affect the "true"
-        exponent period, and since we omit global phase detail in diagrams this
-        is the appropriate canonicalization to use. To use the absolute period
-        instead of the relative period (e.g. for when printing Rx(rads) style
-        symbols, where rads=pi and rads=-pi are equivalent but should produce
-        different text) set 'ignore_global_phase' to False.
-
-        Note that the exponent is canonicalized into the range
-            (-period/2, period/2]
-        and that this canonicalization happens after rounding, so that e.g.
-        X^-0.999999 shows as X instead of X^-1 when using a digit precision of
-        3.
+        The current implementation simply rounds numeric type exponents
+        to the specified precision.
 
         Args:
             args: The diagram args being used to produce the diagram.
-            ignore_global_phase: Determines whether the global phase of the
-                operation is considered when computing the period of the
-                exponent.
 
         Returns:
-            A rounded canonicalized exponent.
+            The exponent rounded to the precision specified by `args`.
         """
         if not isinstance(self._exponent, (int, float)):
             return self._exponent
+
         result = float(self._exponent)
-
-        if ignore_global_phase:
-            # Compute global-phase-independent period of the gate.
-            shifts = list(self._eigen_shifts())
-            relative_shifts = {e - shifts[0] for e in shifts[1:]}
-            relative_periods = [abs(2 / e) for e in relative_shifts if e != 0]
-            diagram_period = _approximate_common_period(relative_periods)
-        else:
-            # Use normal period of the gate.
-            diagram_period = self._period()
-        if diagram_period is None:
-            return result
-
-        # Canonicalize the rounded exponent into (-period/2, period/2].
         if args.precision is not None:
             result = np.around(result, args.precision).item()
-        h = diagram_period / 2
-        if not (-h < result <= h):
-            result = h - result
-            result %= diagram_period
-            result = h - result
-
         return result
 
     def _format_exponent_as_angle(
@@ -202,7 +172,7 @@ class EigenGate(raw_types.Gate):
             Angle in radians corresponding to the exponent of self and
             formatted according to style described by args.
         """
-        exponent = self._diagram_exponent(args, ignore_global_phase=False)
+        exponent = self._diagram_exponent(args)
         pi = sympy.pi if protocols.is_parameterized(exponent) else np.pi
         return args.format_radians(radians=2 * pi * exponent / order)
 
@@ -288,7 +258,12 @@ class EigenGate(raw_types.Gate):
         real_periods = [abs(2 / e) for e in exponents if e != 0]
         return _approximate_common_period(real_periods)
 
-    def __pow__(self, exponent: float | sympy.Symbol) -> EigenGate:
+    def __pow__(self, exponent: value.TParamVal) -> EigenGate:
+        if isinstance(exponent, str):
+            raise TypeError(
+                "Gate exponent must be a number or sympy expression. "
+                f"Received a string instead: {exponent!r}"
+            )
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             return NotImplemented  # pragma: no cover
@@ -332,16 +307,17 @@ class EigenGate(raw_types.Gate):
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._exponent)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self._exponent)
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> EigenGate:
         exponent = resolver.value_of(self._exponent, recursive)
-        if isinstance(exponent, numbers.Complex):
-            if isinstance(exponent, numbers.Real):
-                exponent = float(exponent)
-            else:
-                raise ValueError(f'Complex exponent {exponent} not supported for EigenGate')
+        # Note that int/float checking is purposely done first,
+        # since numbers instance checking is somewhat slow.
+        if isinstance(exponent, (int, float)) or isinstance(exponent, numbers.Real):  # noqa: SIM101
+            exponent = float(exponent)
+        elif isinstance(exponent, numbers.Complex):
+            raise ValueError(f'Complex exponent {exponent} not supported for EigenGate')
         return self._with_exponent(exponent=exponent)
 
     def _equal_up_to_global_phase_(self, other, atol):

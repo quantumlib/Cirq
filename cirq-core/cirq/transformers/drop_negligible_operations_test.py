@@ -19,13 +19,13 @@ import cirq
 NO_COMPILE_TAG = "no_compile_tag"
 
 
-def test_leaves_big():
+def test_leaves_big() -> None:
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit(cirq.Moment(cirq.Z(a) ** 0.1))
     cirq.testing.assert_same_circuits(cirq.drop_negligible_operations(circuit, atol=0.001), circuit)
 
 
-def test_clears_small():
+def test_clears_small() -> None:
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit(cirq.Moment(cirq.Z(a) ** 0.000001))
     cirq.testing.assert_same_circuits(
@@ -33,7 +33,7 @@ def test_clears_small():
     )
 
 
-def test_does_not_clear_small_no_compile():
+def test_does_not_clear_small_no_compile() -> None:
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit(cirq.Moment((cirq.Z(a) ** 0.000001).with_tags(NO_COMPILE_TAG)))
     cirq.testing.assert_same_circuits(
@@ -44,7 +44,7 @@ def test_does_not_clear_small_no_compile():
     )
 
 
-def test_clears_known_empties_even_at_zero_tolerance():
+def test_clears_known_empties_even_at_zero_tolerance() -> None:
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.Z(a) ** 0, cirq.Y(a) ** 0.0000001, cirq.X(a) ** -0.0000001, cirq.CZ(a, b) ** 0
@@ -63,7 +63,7 @@ def test_clears_known_empties_even_at_zero_tolerance():
     )
 
 
-def test_recursively_runs_inside_circuit_ops_deep():
+def test_recursively_runs_inside_circuit_ops_deep() -> None:
     a = cirq.NamedQubit('a')
     small_op = cirq.Z(a) ** 0.000001
     nested_circuit = cirq.FrozenCircuit(
@@ -92,13 +92,13 @@ def test_recursively_runs_inside_circuit_ops_deep():
         ),
         cirq.Moment(),
     )
-    context = cirq.TransformerContext(tags_to_ignore=[NO_COMPILE_TAG], deep=True)
+    context = cirq.TransformerContext(tags_to_ignore=(NO_COMPILE_TAG,), deep=True)
     cirq.testing.assert_same_circuits(
         cirq.drop_negligible_operations(c_orig, context=context, atol=0.001), c_expected
     )
 
 
-def test_ignores_large_ops():
+def test_ignores_large_ops() -> None:
     qnum = 20
     qubits = cirq.LineQubit.range(qnum)
     subcircuit = cirq.FrozenCircuit(cirq.X.on_each(*qubits))

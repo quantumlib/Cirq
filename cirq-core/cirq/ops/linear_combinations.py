@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import numbers
 from collections import defaultdict
-from typing import AbstractSet, Any, Iterable, Mapping, TYPE_CHECKING, Union
+from collections.abc import Iterable, Mapping, Set
+from typing import Any, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy
@@ -136,7 +137,7 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
     def _is_parameterized_(self) -> bool:
         return any(protocols.is_parameterized(item) for item in self.items())
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return {name for item in self.items() for name in protocols.parameter_names(item)}
 
     def _resolve_parameters_(
@@ -253,7 +254,7 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
     def _is_parameterized_(self) -> bool:
         return any(protocols.is_parameterized(item) for item in self.items())
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return {name for item in self.items() for name in protocols.parameter_names(item)}
 
     def _resolve_parameters_(
@@ -473,7 +474,7 @@ class PauliSum:
 
     @classmethod
     def from_boolean_expression(
-        cls, boolean_expr: sympy.Expr, qubit_map: dict[str, cirq.Qid]
+        cls, boolean_expr: sympy.Expr, qubit_map: Mapping[str, cirq.Qid]
     ) -> PauliSum:
         """Builds the Hamiltonian representation of a Boolean expression.
 
@@ -601,7 +602,7 @@ class PauliSum:
         def key_json(k: UnitPauliStringT):
             return [list(e) for e in sorted(k)]
 
-        return {'items': list((key_json(k), v) for k, v in self._linear_dict.items())}
+        return {'items': [(key_json(k), v) for k, v in self._linear_dict.items()]}
 
     @classmethod
     def _from_json_dict_(cls, items, **kwargs):
@@ -742,6 +743,8 @@ class PauliSum:
         return len(self._linear_dict)
 
     def __iadd__(self, other):
+        if isinstance(other, raw_types.Operation):
+            other = pauli_string._try_interpret_as_pauli_string(other)
         if isinstance(other, numbers.Complex):
             other = PauliSum.from_pauli_strings([PauliString(coefficient=other)])
         elif isinstance(other, PauliString):
@@ -754,13 +757,9 @@ class PauliSum:
         return self
 
     def __add__(self, other):
-        if not isinstance(other, (numbers.Complex, PauliString, PauliSum)):
-            if hasattr(other, 'gate') and isinstance(other.gate, identity.IdentityGate):
-                other = PauliString(other)
-            else:
-                return NotImplemented
         result = self.copy()
-        result += other
+        if result.__iadd__(other) is NotImplemented:
+            return NotImplemented
         return result
 
     def __radd__(self, other):
@@ -770,9 +769,11 @@ class PauliSum:
         return -self.__sub__(other)
 
     def __isub__(self, other):
+        if isinstance(other, raw_types.Operation):
+            other = pauli_string._try_interpret_as_pauli_string(other)
         if isinstance(other, numbers.Complex):
             other = PauliSum.from_pauli_strings([PauliString(coefficient=other)])
-        if isinstance(other, PauliString):
+        elif isinstance(other, PauliString):
             other = PauliSum.from_pauli_strings([other])
 
         if not isinstance(other, PauliSum):
@@ -782,10 +783,9 @@ class PauliSum:
         return self
 
     def __sub__(self, other):
-        if not isinstance(other, (numbers.Complex, PauliString, PauliSum)):
-            return NotImplemented
         result = self.copy()
-        result -= other
+        if result.__isub__(other) is NotImplemented:
+            return NotImplemented
         return result
 
     def __neg__(self):

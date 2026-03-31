@@ -16,7 +16,8 @@
 
 from __future__ import annotations
 
-from typing import Callable, cast, Optional, TYPE_CHECKING
+from collections.abc import Callable
+from typing import cast, TYPE_CHECKING
 
 from cirq import circuits, ops, protocols
 from cirq.transformers import transformer_api, transformer_primitives
@@ -28,9 +29,9 @@ if TYPE_CHECKING:
 def _rewrite_merged_k_qubit_unitaries(
     circuit: cirq.AbstractCircuit,
     *,
-    context: Optional[cirq.TransformerContext] = None,
+    context: cirq.TransformerContext | None = None,
     k: int = 0,
-    rewriter: Optional[Callable[[cirq.CircuitOperation], cirq.OP_TREE]] = None,
+    rewriter: Callable[[cirq.CircuitOperation], cirq.OP_TREE] | None = None,
     merged_circuit_op_tag: str = "_merged_k_qubit_unitaries_component",
 ) -> cirq.Circuit:
     deep = context.deep if context else False
@@ -70,9 +71,9 @@ def _rewrite_merged_k_qubit_unitaries(
 def merge_k_qubit_unitaries(
     circuit: cirq.AbstractCircuit,
     *,
-    context: Optional[cirq.TransformerContext] = None,
+    context: cirq.TransformerContext | None = None,
     k: int = 0,
-    rewriter: Optional[Callable[[cirq.CircuitOperation], cirq.OP_TREE]] = None,
+    rewriter: Callable[[cirq.CircuitOperation], cirq.OP_TREE] | None = None,
 ) -> cirq.Circuit:
     """Merges connected components of unitary operations, acting on <= k qubits.
 

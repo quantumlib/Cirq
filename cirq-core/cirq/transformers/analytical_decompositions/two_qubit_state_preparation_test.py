@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import copy
+from collections.abc import Iterator
 
 import numpy as np
 import pytest
@@ -24,11 +25,11 @@ import pytest
 import cirq
 
 
-def random_state(seed: float):
+def random_state(seed: float) -> np.ndarray:
     return cirq.testing.random_superposition(4, random_state=seed)
 
 
-def states_with_phases(st: np.ndarray):
+def states_with_phases(st: np.ndarray) -> Iterator[np.ndarray]:
     """Returns several states similar to st with modified global phases."""
     st = np.array(st, dtype="complex64")
     yield st
@@ -61,10 +62,10 @@ STATES_TO_PREPARE = [
 
 
 @pytest.mark.parametrize("state", STATES_TO_PREPARE)
-def test_prepare_two_qubit_state_using_cz(state):
+def test_prepare_two_qubit_state_using_cz(state) -> None:
     state = cirq.to_valid_state_vector(state, num_qubits=2)
-    q = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(cirq.prepare_two_qubit_state_using_cz(*q, state))
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.prepare_two_qubit_state_using_cz(q0, q1, state))
     ops_cz = [*circuit.findall_operations(lambda op: op.gate == cirq.CZ)]
     ops_2q = [*circuit.findall_operations(lambda op: cirq.num_qubits(op) > 1)]
     assert ops_cz == ops_2q
@@ -76,11 +77,11 @@ def test_prepare_two_qubit_state_using_cz(state):
 
 @pytest.mark.parametrize("state", STATES_TO_PREPARE)
 @pytest.mark.parametrize("use_iswap_inv", [True, False])
-def test_prepare_two_qubit_state_using_iswap(state, use_iswap_inv):
+def test_prepare_two_qubit_state_using_iswap(state, use_iswap_inv) -> None:
     state = cirq.to_valid_state_vector(state, num_qubits=2)
-    q = cirq.LineQubit.range(2)
+    q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
-        cirq.prepare_two_qubit_state_using_iswap(*q, state, use_iswap_inv=use_iswap_inv)
+        cirq.prepare_two_qubit_state_using_iswap(q0, q1, state, use_iswap_inv=use_iswap_inv)
     )
     iswap_gate = cirq.ISWAP_INV if use_iswap_inv else cirq.ISWAP
     ops_iswap = [*circuit.findall_operations(lambda op: op.gate == iswap_gate)]
@@ -94,12 +95,12 @@ def test_prepare_two_qubit_state_using_iswap(state, use_iswap_inv):
 
 @pytest.mark.parametrize("state", STATES_TO_PREPARE)
 @pytest.mark.parametrize("use_sqrt_iswap_inv", [True, False])
-def test_prepare_two_qubit_state_using_sqrt_iswap(state, use_sqrt_iswap_inv):
+def test_prepare_two_qubit_state_using_sqrt_iswap(state, use_sqrt_iswap_inv) -> None:
     state = cirq.to_valid_state_vector(state, num_qubits=2)
-    q = cirq.LineQubit.range(2)
+    q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.prepare_two_qubit_state_using_sqrt_iswap(
-            *q, state, use_sqrt_iswap_inv=use_sqrt_iswap_inv
+            q0, q1, state, use_sqrt_iswap_inv=use_sqrt_iswap_inv
         )
     )
     sqrt_iswap_gate = cirq.SQRT_ISWAP_INV if use_sqrt_iswap_inv else cirq.SQRT_ISWAP

@@ -20,14 +20,14 @@ import gzip
 import json
 import numbers
 import pathlib
+from collections.abc import Callable, Iterable, Sequence
 from types import NotImplementedType
-from typing import Any, Callable, cast, IO, Iterable, overload, Sequence
+from typing import Any, cast, IO, overload, Protocol
 
 import attrs
 import numpy as np
 import pandas as pd
 import sympy
-from typing_extensions import Protocol
 
 from cirq._doc import doc_private
 
@@ -155,7 +155,6 @@ def obj_to_dict_helper(obj: Any, attribute_names: Iterable[str]) -> dict[str, An
     return d
 
 
-# pylint: enable=redefined-builtin
 def dataclass_json_dict(obj: Any) -> dict[str, Any]:
     """Return a dictionary suitable for `_json_dict_` from a dataclass.
 
@@ -219,7 +218,7 @@ class CirqEncoder(json.JSONEncoder):
         super().__init__(*args, **kwargs)
         self._memo: dict[Any, dict] = {}
 
-    def default(self, o):
+    def default(self, o) -> dict[str, Any] | list[Any] | float | bool:
         # Object with custom method?
         if hasattr(o, '_json_dict_'):
             json_dict = _json_dict_with_cirq_type(o)
@@ -460,7 +459,6 @@ def cirq_type_from_json(type_str: str, resolvers: Sequence[JsonResolver] | None 
     raise ValueError(f"Type {type_str} maps to a factory method instead of a type.")
 
 
-# pylint: disable=function-redefined
 @overload
 def to_json(
     obj: Any, file_or_fn: IO | pathlib.Path | str, *, indent=2, separators=None, cls=CirqEncoder
@@ -517,13 +515,12 @@ def to_json(
     return None
 
 
-# pylint: enable=function-redefined
 def read_json(
     file_or_fn: None | IO | pathlib.Path | str = None,
     *,
     json_text: str | None = None,
     resolvers: Sequence[JsonResolver] | None = None,
-):
+) -> Any:
     """Read a JSON file that optionally contains cirq objects.
 
     Args:
@@ -609,7 +606,7 @@ def read_json_gzip(
     *,
     gzip_raw: bytes | None = None,
     resolvers: Sequence[JsonResolver] | None = None,
-):
+) -> Any:
     """Read a gzipped JSON file that optionally contains cirq objects.
 
     Args:

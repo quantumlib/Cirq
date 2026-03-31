@@ -21,19 +21,16 @@ import cirq_web
 
 
 class MockGateNoDiagramInfo(cirq.testing.SingleQubitGate):
-    def __init__(self):
-        super(MockGateNoDiagramInfo, self)
+    pass
 
 
 class MockGateUnimplementedDiagramInfo(cirq.testing.SingleQubitGate):
-    def __init__(self):
-        super(MockGateUnimplementedDiagramInfo, self)
 
     def _circuit_diagram_info_(self, args):
         return NotImplemented
 
 
-def test_Operation3DSymbol_basic():
+def test_Operation3DSymbol_basic() -> None:
     wire_symbols = ['X']
     location_info = [{'row': 0, 'col': 0}]
     color_info = ['black']
@@ -53,7 +50,7 @@ def test_Operation3DSymbol_basic():
     assert actual == expected
 
 
-def test_resolve_operation_hadamard():
+def test_resolve_operation_hadamard() -> None:
     mock_qubit = cirq.NamedQubit('mock')
     operation = cirq.H(mock_qubit)
     symbol_info = cirq_web.circuits.symbols.resolve_operation(
@@ -67,7 +64,7 @@ def test_resolve_operation_hadamard():
     assert symbol_info.colors == expected_colors
 
 
-def test_resolve_operation_x_pow():
+def test_resolve_operation_x_pow() -> None:
     mock_qubit = cirq.NamedQubit('mock')
     operation = cirq.X(mock_qubit) ** 0.5
     symbol_info = cirq_web.circuits.symbols.resolve_operation(
@@ -82,7 +79,7 @@ def test_resolve_operation_x_pow():
 
 
 @pytest.mark.parametrize('custom_gate', [MockGateNoDiagramInfo, MockGateUnimplementedDiagramInfo])
-def test_resolve_operation_invalid_diagram_info(custom_gate):
+def test_resolve_operation_invalid_diagram_info(custom_gate) -> None:
     mock_qubit = cirq.NamedQubit('mock')
     gate = custom_gate()
     operation = gate.on(mock_qubit)
@@ -97,7 +94,7 @@ def test_resolve_operation_invalid_diagram_info(custom_gate):
     assert symbol_info.colors == expected_colors
 
 
-def test_unresolvable_operation_():
+def test_unresolvable_operation_() -> None:
     mock_qubit = cirq.NamedQubit('mock')
     operation = cirq.X(mock_qubit)
 

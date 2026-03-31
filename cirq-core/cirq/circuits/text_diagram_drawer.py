@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, cast, Iterable, Mapping, NamedTuple, Sequence, TYPE_CHECKING
+from collections.abc import Callable, Iterable, Mapping, Sequence
+from typing import Any, cast, NamedTuple, Self, TYPE_CHECKING
 
 import numpy as np
 
@@ -63,12 +64,10 @@ class TextDiagramDrawer:
         entries: Mapping[tuple[int, int], _DiagramText] | None = None,
         horizontal_lines: Iterable[_HorizontalLine] | None = None,
         vertical_lines: Iterable[_VerticalLine] | None = None,
-        horizontal_padding: Mapping[int, int] | None = None,
-        vertical_padding: Mapping[int, int] | None = None,
+        horizontal_padding: Mapping[int, float] | None = None,
+        vertical_padding: Mapping[int, float] | None = None,
     ) -> None:
-        self.entries: dict[tuple[int, int], _DiagramText] = (
-            dict() if entries is None else dict(entries)
-        )
+        self.entries: dict[tuple[int, int], _DiagramText] = {} if entries is None else dict(entries)
         self.horizontal_lines: list[_HorizontalLine] = (
             [] if horizontal_lines is None else list(horizontal_lines)
         )
@@ -76,10 +75,10 @@ class TextDiagramDrawer:
             [] if vertical_lines is None else list(vertical_lines)
         )
         self.horizontal_padding: dict[int, float] = (
-            dict() if horizontal_padding is None else dict(horizontal_padding)
+            {} if horizontal_padding is None else dict(horizontal_padding)
         )
         self.vertical_padding: dict[int, float] = (
-            dict() if vertical_padding is None else dict(vertical_padding)
+            {} if vertical_padding is None else dict(vertical_padding)
         )
 
     def _value_equality_values_(self):
@@ -95,7 +94,7 @@ class TextDiagramDrawer:
     def __bool__(self):
         return any(self._value_equality_values_())
 
-    def write(self, x: int, y: int, text: str, transposed_text: str | None = None):
+    def write(self, x: int, y: int, text: str, transposed_text: str | None = None) -> None:
         """Adds text to the given location.
 
         Args:
@@ -113,6 +112,7 @@ class TextDiagramDrawer:
 
     def content_present(self, x: int, y: int) -> bool:
         """Determines if a line or printed text is at the given location."""
+        # ruff: disable[SIM103]
 
         # Text?
         if (x, y) in self.entries:
@@ -130,7 +130,7 @@ class TextDiagramDrawer:
 
     def grid_line(
         self, x1: int, y1: int, x2: int, y2: int, emphasize: bool = False, doubled: bool = False
-    ):
+    ) -> None:
         """Adds a vertical or horizontal line from (x1, y1) to (x2, y2).
 
         Horizontal line is selected on equality in the second coordinate and
@@ -313,7 +313,7 @@ class TextDiagramDrawer:
 
         return block_diagram.render()
 
-    def copy(self):
+    def copy(self) -> Self:
         return self.__class__(
             entries=self.entries,
             vertical_lines=self.vertical_lines,

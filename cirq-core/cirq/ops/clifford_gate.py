@@ -15,9 +15,10 @@
 from __future__ import annotations
 
 import functools
+from collections.abc import Sequence
 from dataclasses import dataclass
 from types import NotImplementedType
-from typing import Any, Sequence, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -104,7 +105,7 @@ def _validate_map_input(
                 'was' if len(pauli_map_to) == 1 else 'were',
             )
         )
-    if len(set((to for to, _ in pauli_map_to.values()))) != len(pauli_map_to):
+    if len({to for to, _ in pauli_map_to.values()}) != len(pauli_map_to):
         raise ValueError('A rotation cannot map two Paulis to the same')
     return {frm: (to, flip) for frm, (to, flip) in pauli_map_to.items()}
 
@@ -124,10 +125,11 @@ def _pad_tableau(
             "num_qubits_after_padding."
         )
     padded_tableau = qis.CliffordTableau(num_qubits_after_padding)
-    v_index = np.concatenate((np.asarray(axes), num_qubits_after_padding + np.asarray(axes)))
+    axes_a = np.asarray(axes)
+    v_index = np.concatenate((axes_a, num_qubits_after_padding + axes_a))
 
-    padded_tableau.xs[np.ix_(v_index, axes)] = clifford_tableau.xs
-    padded_tableau.zs[np.ix_(v_index, axes)] = clifford_tableau.zs
+    padded_tableau.xs[np.ix_(v_index, axes_a)] = clifford_tableau.xs
+    padded_tableau.zs[np.ix_(v_index, axes_a)] = clifford_tableau.zs
     padded_tableau.rs[v_index] = clifford_tableau.rs
     return padded_tableau
 
@@ -136,6 +138,8 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
     """A metaclass used to lazy initialize several common Clifford Gate as class attributes."""
 
     # These are class properties so we define them as properties on a metaclass.
+
+    # ruff: disable[N805]
 
     @property
     def all_single_qubit_cliffords(cls) -> Sequence[cirq.SingleQubitCliffordGate]:
@@ -374,7 +378,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         object.__setattr__(self, '_clifford_tableau', _clifford_tableau.copy())
 
     @property
-    def clifford_tableau(self):
+    def clifford_tableau(self) -> qis.CliffordTableau:
         return self._clifford_tableau
 
     def _json_dict_(self) -> dict[str, Any]:
@@ -639,7 +643,7 @@ class SingleQubitCliffordGate(CliffordGate):
             return None
         # Find the entry with the largest magnitude in the input unitary, to find
         # the global phase difference between the input unitary and the gate unitary.
-        k = max(np.ndindex(*u.shape), key=lambda t: abs(u[t]))
+        k = max(np.ndindex(*u.shape), key=lambda t: abs(u[t].item()))
         return gate, u[k] / protocols.unitary(gate)[k]
 
     def pauli_tuple(self, pauli: Pauli) -> tuple[Pauli, bool]:
@@ -747,11 +751,7 @@ class SingleQubitCliffordGate(CliffordGate):
 
         return NotImplemented
 
-    def _act_on_(
-        self,
-        sim_state: cirq.SimulationStateBase,  # pylint: disable=unused-argument
-        qubits: Sequence[cirq.Qid],  # pylint: disable=unused-argument
-    ):
+    def _act_on_(self, sim_state: cirq.SimulationStateBase, qubits: Sequence[cirq.Qid]):
         # TODO(#5256) Add the implementation of _act_on_ with CliffordTableauSimulationState.
         return NotImplemented
 

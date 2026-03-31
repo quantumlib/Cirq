@@ -23,7 +23,7 @@ from cirq import linalg, protocols
 from cirq.testing import lin_alg_utils
 
 
-def assert_phase_by_is_consistent_with_unitary(val: Any):
+def assert_phase_by_is_consistent_with_unitary(val: Any) -> None:
     """Uses `val._unitary_` to check `val._phase_by_`'s behavior."""
 
     original = protocols.unitary(val, None)

@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import AbstractSet, Any, TYPE_CHECKING
+from collections.abc import Set
+from typing import Any, TYPE_CHECKING
 
 import sympy
 
@@ -95,7 +96,7 @@ class PeriodicValue:
 
         return is_parameterized(self.value) or is_parameterized(self.period)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         # HACK: Avoids circular dependencies.
         from cirq.protocols import parameter_names
 

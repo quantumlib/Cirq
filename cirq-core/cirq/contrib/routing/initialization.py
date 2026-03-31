@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import itertools
-from typing import cast, Hashable, TYPE_CHECKING
+from collections.abc import Hashable
+from typing import cast, TYPE_CHECKING
 
 import networkx as nx
 from sortedcontainers import SortedDict, SortedSet

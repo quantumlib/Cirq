@@ -18,8 +18,9 @@ from __future__ import annotations
 
 import abc
 import dataclasses
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from typing import Any, cast, Iterator, Sequence
+from typing import Any, cast
 
 import cirq
 from cirq import _compat
@@ -149,7 +150,6 @@ class QuantumExecutable:
     problem_topology: cirq.NamedTopology | None = None
     initial_state: cirq.ProductState | None = None
 
-    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         circuit: cirq.AbstractCircuit,

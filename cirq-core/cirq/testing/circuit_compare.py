@@ -17,7 +17,8 @@ from __future__ import annotations
 import itertools
 import random
 from collections import defaultdict
-from typing import Any, Iterable, Sequence
+from collections.abc import Iterable, Sequence
+from typing import Any
 
 import numpy as np
 import sympy
@@ -117,9 +118,7 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
         reference: A circuit with the correct function.
         atol: Absolute error tolerance.
     """
-    # pylint: disable=unused-variable
     __tracebackhide__ = True
-    # pylint: enable=unused-variable
 
     measured_qubits_actual = {
         qubit
@@ -267,9 +266,7 @@ def assert_has_diagram(
             beginning and whitespace at the end are ignored.
         **kwargs: Keyword arguments to be passed to actual.to_text_diagram().
     """
-    # pylint: disable=unused-variable
     __tracebackhide__ = True
-    # pylint: enable=unused-variable
     actual_diagram = actual.to_text_diagram(**kwargs).lstrip("\n").rstrip()
     desired_diagram = desired.lstrip("\n").rstrip()
 
@@ -297,9 +294,7 @@ def assert_has_consistent_apply_unitary(val: Any, *, atol: float = 1e-8) -> None
         val: The value under test. Should have a `__pow__` method.
         atol: Absolute error tolerance.
     """
-    # pylint: disable=unused-variable
     __tracebackhide__ = True
-    # pylint: enable=unused-variable
 
     _assert_apply_unitary_works_when_axes_transposed(val, atol=atol)
 
@@ -307,7 +302,7 @@ def assert_has_consistent_apply_unitary(val: Any, *, atol: float = 1e-8) -> None
 
     qid_shape = protocols.qid_shape(val)
 
-    eye = qis.eye_tensor((2,) + qid_shape, dtype=np.complex128)
+    eye = qis.eye_tensor((2, *qid_shape), dtype=np.complex128)
     actual = protocols.apply_unitary(
         unitary_value=val,
         args=protocols.ApplyUnitaryArgs(
@@ -341,9 +336,8 @@ def assert_has_consistent_apply_channel(val: Any, *, atol: float = 1e-8) -> None
         val: The value under test. Should have a `__pow__` method.
         atol: Absolute error tolerance.
     """
-    # pylint: disable=unused-variable
     __tracebackhide__ = True
-    # pylint: enable=unused-variable
+    assert hasattr(val, '_apply_channel_')
 
     kraus = protocols.kraus(val, default=None)
     expected = qis.kraus_to_superoperator(kraus) if kraus is not None else None
@@ -400,7 +394,7 @@ def _assert_apply_unitary_works_when_axes_transposed(val: Any, *, atol: float = 
     # Pick sizes and shapes.
     shape = protocols.qid_shape(val)
     n = len(shape)
-    padded_shape = shape + (1, 2, 2, 3)
+    padded_shape = (*shape, 1, 2, 2, 3)
     padded_n = len(padded_shape)
     size = np.prod(padded_shape, dtype=np.int64).item()
 
@@ -463,9 +457,7 @@ def assert_has_consistent_apply_unitary_for_various_exponents(
             the value's `__pow__` returns `NotImplemented` for any of these,
             they are skipped.
     """
-    # pylint: disable=unused-variable
     __tracebackhide__ = True
-    # pylint: enable=unused-variable
 
     for exponent in exponents:
         gate = protocols.pow(val, exponent, default=None)
@@ -485,9 +477,7 @@ def assert_has_consistent_qid_shape(val: Any) -> None:
         val: The value under test. Should have `_qid_shape_` and/or
             `num_qubits_` methods. Can optionally have a `qubits` property.
     """
-    # pylint: disable=unused-variable
     __tracebackhide__ = True
-    # pylint: enable=unused-variable
     default = (-1,)
     qid_shape = protocols.qid_shape(val, default)
     num_qubits = protocols.num_qubits(val, default)

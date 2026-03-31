@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import os
+import pathlib
 
 import pytest
 
@@ -24,7 +25,7 @@ BASE_MAINTAINERS = {CIRQ_MAINTAINERS, ('USERNAME', "@vtomole")}
 
 DOCS_MAINTAINERS = BASE_MAINTAINERS.union({('USERNAME', '@aasfaw'), ('USERNAME', '@rmlarose')})
 
-GOOGLE_TEAM = {('USERNAME', "@wcourtney"), ('USERNAME', "@verult")}
+GOOGLE_TEAM = {('USERNAME', "@wcourtney"), ('USERNAME', "@verult"), ("USERNAME", "@hoisinberg")}
 
 GOOGLE_MAINTAINERS = BASE_MAINTAINERS.union(GOOGLE_TEAM)
 
@@ -80,16 +81,16 @@ QCVV_MAINTAINERS = BASE_MAINTAINERS.union(QCVV_TEAM)
         ("docs/tutorials/google/start.ipynb", GOOGLE_MAINTAINERS.union(DOCS_MAINTAINERS)),
     ],
 )
-def test_codeowners(filepath, expected):
+def test_codeowners(filepath, expected) -> None:
     # for some reason the codeowners library does not publish all the wheels
     # for Mac and Windows. Eventually we could write our own codeowners parser,
     # but for now it is good enough. If codeowners is not installed, this test
     # will be skipped
     codeowners = pytest.importorskip("codeowners")
 
-    with open(".github/CODEOWNERS", encoding="utf8") as f:
-        owners = codeowners.CodeOwners(f.read())
-        assert os.path.exists(
-            filepath
-        ), f"{filepath} should exist to avoid creating/maintaining meaningless codeowners rules."
-        assert set(owners.of(filepath)) == expected
+    owners_text = pathlib.Path(".github/CODEOWNERS").read_text(encoding="utf8")
+    owners = codeowners.CodeOwners(owners_text)
+    assert os.path.exists(
+        filepath
+    ), f"{filepath} should exist to avoid creating/maintaining meaningless codeowners rules."
+    assert set(owners.of(filepath)) == expected

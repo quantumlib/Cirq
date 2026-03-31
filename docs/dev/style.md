@@ -2,8 +2,9 @@
 
 As mentioned in [CONTRIBUTING.md](https://github.com/quantumlib/Cirq/blob/main/CONTRIBUTING.md) we use use [Pylint](https://pylint.pycqa.org/)
 to check for style violations.  Pylint attempts to enforce styles in
-[PEP 8](https://www.python.org/dev/peps/pep-0008/). To see which lint checks we enforce, see the
-[dev_tools/conf/.pylintrc](https://github.com/quantumlib/Cirq/blob/main/dev_tools/conf/.pylintrc) file.
+[PEP 8](https://www.python.org/dev/peps/pep-0008/). To see which lint checks we enforce,
+see the `[tool.pylint.messages_control]` section in the
+[pyproject.toml](https://github.com/quantumlib/Cirq/blob/main/pyproject.toml) file.
 
 Here we include some extra style guidelines.
 
@@ -37,7 +38,7 @@ qubit = cirq.NamedQubit('a')
 ```
 The one exception to this is for the typing code, where we prefer the direct import
 ```python
-from typing import List
+from typing import Mapping
 ```
 This exception allows typing hints to be more compact.
 
@@ -108,6 +109,8 @@ Note that type annotations may need to be quoted when they act in expressions
 that are evaluated at the import time, for example,
 
 ```python
+from typing import Union
+
 MOMENT_OR_OPERATION = Union['cirq.Moment', 'cirq.Operation']
 ```
 

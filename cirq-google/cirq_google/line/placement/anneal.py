@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, TYPE_CHECKING
+from collections.abc import Callable
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -219,14 +220,14 @@ class AnnealSequenceSearch:
             if sample_bool():
                 # Append edge either before or after inner section.
                 if sample_bool():
-                    seqs.append(inner + [n1, n0] + head[::-1])
+                    seqs.append([*inner, n1, n0, *head[::-1]])
                     seqs.append(tail)
                 else:
-                    seqs.append(tail[::-1] + [n1, n0] + inner)
+                    seqs.append([*tail[::-1], n1, n0, *inner])
                     seqs.append(head)
             else:
                 # Form a new sequence from head, tail, and new edge.
-                seqs.append(head + [n0, n1] + tail)
+                seqs.append([*head, n0, n1, *tail])
                 seqs.append(inner)
 
         return [e for e in seqs if e]
@@ -327,7 +328,7 @@ class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
 
     TODO: This line search strategy is still work in progress and requires
     efficiency improvements.
-    Github issue: https://github.com/quantumlib/Cirq/issues/2217
+    GitHub issue: https://github.com/quantumlib/Cirq/issues/2217
     """
 
     def __init__(

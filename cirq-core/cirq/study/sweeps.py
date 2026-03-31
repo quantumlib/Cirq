@@ -17,7 +17,8 @@ from __future__ import annotations
 import abc
 import collections
 import itertools
-from typing import Any, cast, Iterable, Iterator, overload, Sequence, TYPE_CHECKING, Union
+from collections.abc import Iterable, Iterator, Mapping, Sequence
+from typing import Any, cast, overload, TYPE_CHECKING, Union
 
 import sympy
 
@@ -33,11 +34,13 @@ ProductOrZipSweepLike = dict['cirq.TParamKey', Union['cirq.TParamVal', Sequence[
 
 
 def _check_duplicate_keys(sweeps):
-    keys = set()
-    for sweep in sweeps:
-        if any(key in keys for key in sweep.keys):
-            raise ValueError('duplicate keys')
-        keys.update(sweep.keys)
+    keys = set(itertools.chain.from_iterable(sweep.keys for sweep in sweeps))
+    key_count = sum(len(sweep.keys) for sweep in sweeps)
+    # If the total length of the sweep keys
+    # is not the same as the size of the set,
+    # then there is a duplicate key.
+    if key_count != len(keys):
+        raise ValueError('duplicate keys')
 
 
 class Sweep(metaclass=abc.ABCMeta):
@@ -109,7 +112,6 @@ class Sweep(metaclass=abc.ABCMeta):
         for params in self.param_tuples():
             yield resolver.ParamResolver(collections.OrderedDict(params))
 
-    # pylint: disable=function-redefined
     @overload
     def __getitem__(self, val: int) -> resolver.ParamResolver:
         pass
@@ -138,8 +140,6 @@ class Sweep(metaclass=abc.ABCMeta):
                 results[inds_map[i]] = item
 
         return ListSweep(results)
-
-    # pylint: enable=function-redefined
 
     @abc.abstractmethod
     def param_tuples(self) -> Iterator[Params]:
@@ -233,16 +233,10 @@ class Product(Sweep):
         return length
 
     def param_tuples(self) -> Iterator[Params]:
-        def _gen(factors):
-            if not factors:
-                yield ()
-            else:
-                first, rest = factors[0], factors[1:]
-                for first_values in first.param_tuples():
-                    for rest_values in _gen(rest):
-                        yield first_values + rest_values
-
-        return _gen(self.factors)
+        yield from (
+            tuple(itertools.chain.from_iterable(values))
+            for values in itertools.product(*(factor.param_tuples() for factor in self.factors))
+        )
 
     def __repr__(self) -> str:
         factors_repr = ', '.join(repr(f) for f in self.factors)
@@ -660,3 +654,27 @@ def dict_to_zip_sweep(factor_dict: ProductOrZipSweepLike) -> Zip:
             for k, v in factor_dict.items()
         )
     )
+
+
+def list_of_dicts_to_zip(params: Sequence[Mapping[str, float]]) -> cirq.Zip:
+    """Converts a list of dictionaries into a cirq.Zip of cirq.Points.
+
+    This will convert lists of dictionaries into a more compact
+    Sweep format.   For large sweeps, this can vastly improve performance.
+
+    This will change [{'a': 1.0, 'b': 2.0}, {'a': 3.0, 'b': 4.0}]
+    into cirq.Zip(cirq.Points('a', [1.0, 3.0]), cirq.Points('b', [2.0, 4.0])_)
+
+    Raises:
+        ValueError if the keys in any of the list items are not the same.
+    """
+    param_keys: dict[str, list[float]] = collections.defaultdict(list)
+    if len(params) < 1:
+        raise ValueError("Input dictionary to convert is empty.")
+    sweep_keys = params[0].keys()
+    for sweep_point in params:
+        if set(sweep_point.keys()) != sweep_keys:
+            raise ValueError("Keys must be the same in each sweep point.")
+        for key, value in sweep_point.items():
+            param_keys[key].append(value)
+    return Zip(*(Points(key, points) for key, points in param_keys.items()))

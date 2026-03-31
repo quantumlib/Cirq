@@ -14,13 +14,13 @@
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
 
 
 def purity_from_probabilities(
-    hilbert_space_dimension: int, probabilities: Sequence[float]
+    hilbert_space_dimension: int, probabilities: np.ndarray | Sequence[float]
 ) -> float:
     """Purity estimator from speckle purity benchmarking.
 

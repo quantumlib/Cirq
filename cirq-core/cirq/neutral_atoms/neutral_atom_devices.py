@@ -17,7 +17,7 @@ from __future__ import annotations
 from cirq import ops
 
 
-def neutral_atom_gateset(max_parallel_z=None, max_parallel_xy=None):
+def neutral_atom_gateset(max_parallel_z=None, max_parallel_xy=None) -> ops.Gateset:
     return ops.Gateset(
         ops.AnyIntegerPowerGateFamily(ops.CNotPowGate),
         ops.AnyIntegerPowerGateFamily(ops.CCNotPowGate),

@@ -14,18 +14,19 @@
 
 import inspect
 import os
+from collections.abc import Iterator
 
 import matplotlib.pyplot as plt
 import pytest
 
 
-def pytest_configure(config):
+def pytest_configure(config) -> None:
     # Use matplotlib agg backend which does not require a display.
     plt.switch_backend('agg')
     os.environ['CIRQ_TESTING'] = "true"
 
 
-def pytest_pyfunc_call(pyfuncitem):
+def pytest_pyfunc_call(pyfuncitem) -> None:
     if inspect.iscoroutinefunction(pyfuncitem._obj):
         raise ValueError(  # pragma: no cover
             f'{pyfuncitem._obj.__name__} is a bare async function. '
@@ -34,6 +35,6 @@ def pytest_pyfunc_call(pyfuncitem):
 
 
 @pytest.fixture
-def closefigures():
+def closefigures() -> Iterator[None]:
     yield
     plt.close('all')

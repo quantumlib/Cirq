@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import numbers
-from typing import AbstractSet, Any, cast, SupportsFloat, TYPE_CHECKING
+from collections.abc import Set
+from typing import Any, cast, SupportsFloat, TYPE_CHECKING
 
 import numpy as np
 
@@ -74,7 +75,7 @@ class RandomGateChannel(raw_types.Gate):
             self.sub_gate
         )
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self.probability) | protocols.parameter_names(
             self.sub_gate
         )

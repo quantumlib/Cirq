@@ -10,7 +10,13 @@ import collections.abc
 import google.protobuf.descriptor
 import google.protobuf.internal.containers
 import google.protobuf.message
+import sys
 import typing
+
+if sys.version_info >= (3, 10):
+    import typing as typing_extensions
+else:
+    import typing_extensions
 
 DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
 
@@ -42,7 +48,7 @@ class Program(google.protobuf.message.Message):
     ) -> None: ...
     def ClearField(self, field_name: typing.Literal["operations", b"operations", "parameter_sweeps", b"parameter_sweeps"]) -> None: ...
 
-global___Program = Program
+Global___Program: typing_extensions.TypeAlias = Program
 
 @typing.final
 class RunContext(google.protobuf.message.Message):
@@ -62,7 +68,7 @@ class RunContext(google.protobuf.message.Message):
     ) -> None: ...
     def ClearField(self, field_name: typing.Literal["parameter_sweeps", b"parameter_sweeps"]) -> None: ...
 
-global___RunContext = RunContext
+Global___RunContext: typing_extensions.TypeAlias = RunContext
 
 @typing.final
 class ParameterizedResult(google.protobuf.message.Message):
@@ -129,7 +135,7 @@ class ParameterizedResult(google.protobuf.message.Message):
     def HasField(self, field_name: typing.Literal["params", b"params"]) -> builtins.bool: ...
     def ClearField(self, field_name: typing.Literal["measurement_results", b"measurement_results", "params", b"params"]) -> None: ...
 
-global___ParameterizedResult = ParameterizedResult
+Global___ParameterizedResult: typing_extensions.TypeAlias = ParameterizedResult
 
 @typing.final
 class MeasurementKey(google.protobuf.message.Message):
@@ -156,7 +162,7 @@ class MeasurementKey(google.protobuf.message.Message):
     ) -> None: ...
     def ClearField(self, field_name: typing.Literal["key", b"key", "qubits", b"qubits"]) -> None: ...
 
-global___MeasurementKey = MeasurementKey
+Global___MeasurementKey: typing_extensions.TypeAlias = MeasurementKey
 
 @typing.final
 class SweepResult(google.protobuf.message.Message):
@@ -173,7 +179,7 @@ class SweepResult(google.protobuf.message.Message):
     in the measurement results.
     """
     @property
-    def measurement_keys(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___MeasurementKey]:
+    def measurement_keys(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___MeasurementKey]:
         """A list of measurement keys (string) along with the qubits that have been
         measured. The size of the measurement key is the total number of
         measurements in the list of operations for the Program. The measurement
@@ -181,7 +187,7 @@ class SweepResult(google.protobuf.message.Message):
         """
 
     @property
-    def parameterized_results(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___ParameterizedResult]:
+    def parameterized_results(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___ParameterizedResult]:
         """The results along with the parameters that generated these results.
         These represent the expanded parameters defined int he ParameterSweep
         which this SweepResult corresponds to.
@@ -191,12 +197,12 @@ class SweepResult(google.protobuf.message.Message):
         self,
         *,
         repetitions: builtins.int = ...,
-        measurement_keys: collections.abc.Iterable[global___MeasurementKey] | None = ...,
-        parameterized_results: collections.abc.Iterable[global___ParameterizedResult] | None = ...,
+        measurement_keys: collections.abc.Iterable[Global___MeasurementKey] | None = ...,
+        parameterized_results: collections.abc.Iterable[Global___ParameterizedResult] | None = ...,
     ) -> None: ...
     def ClearField(self, field_name: typing.Literal["measurement_keys", b"measurement_keys", "parameterized_results", b"parameterized_results", "repetitions", b"repetitions"]) -> None: ...
 
-global___SweepResult = SweepResult
+Global___SweepResult: typing_extensions.TypeAlias = SweepResult
 
 @typing.final
 class Result(google.protobuf.message.Message):
@@ -206,7 +212,7 @@ class Result(google.protobuf.message.Message):
 
     SWEEP_RESULTS_FIELD_NUMBER: builtins.int
     @property
-    def sweep_results(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___SweepResult]:
+    def sweep_results(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___SweepResult]:
         """The results for each ParameterSweep. These will be in the same order
         as the parameter_sweeps repeated field in the Program that generated
         these results.
@@ -215,8 +221,8 @@ class Result(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        sweep_results: collections.abc.Iterable[global___SweepResult] | None = ...,
+        sweep_results: collections.abc.Iterable[Global___SweepResult] | None = ...,
     ) -> None: ...
     def ClearField(self, field_name: typing.Literal["sweep_results", b"sweep_results"]) -> None: ...
 
-global___Result = Result
+Global___Result: typing_extensions.TypeAlias = Result

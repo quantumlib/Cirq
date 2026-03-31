@@ -11,8 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# mypy: ignore-errors
+
 import itertools
-from typing import Sequence
+from collections.abc import Sequence
 
 import cirq
 
@@ -131,6 +134,6 @@ class XOnAllQubitsCircuit:
     params = [[1, 10, 100, 1000], [1, 10, 100, 1000]]
     param_names = ["Number of Qubits(N)", "Depth(D)"]
 
-    def time_circuit_construction(self, N: int, D: int):
+    def time_circuit_construction(self, N: int, D: int) -> cirq.Circuit:
         q = cirq.LineQubit.range(N)
         return cirq.Circuit(cirq.Moment(cirq.X.on_each(*q)) for _ in range(D))

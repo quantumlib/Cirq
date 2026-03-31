@@ -14,12 +14,13 @@
 
 from __future__ import annotations
 
-from typing import Callable, Iterable, overload, TYPE_CHECKING
+from collections.abc import Callable, Iterable
+from typing import cast, overload, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import protocols
-from cirq.ops import pauli_string, raw_types
+from cirq.ops import gate_operation, pauli_string, raw_types
 from cirq.ops.measurement_gate import MeasurementGate
 from cirq.ops.pauli_measurement_gate import PauliMeasurementGate
 
@@ -90,15 +91,13 @@ def measure_paulistring_terms(
     return [PauliMeasurementGate([pauli_basis[q]], key=key_func(q)).on(q) for q in pauli_basis]
 
 
-# pylint: disable=function-redefined
-
-
 @overload
 def measure(
     *target: raw_types.Qid,
     key: str | cirq.MeasurementKey | None = None,
     invert_mask: tuple[bool, ...] = (),
-) -> raw_types.Operation:
+    confusion_map: dict[tuple[int, ...], np.ndarray] | None = None,
+) -> gate_operation.GateOperation:
     pass
 
 
@@ -108,7 +107,8 @@ def measure(
     *,
     key: str | cirq.MeasurementKey | None = None,
     invert_mask: tuple[bool, ...] = (),
-) -> raw_types.Operation:
+    confusion_map: dict[tuple[int, ...], np.ndarray] | None = None,
+) -> gate_operation.GateOperation:
     pass
 
 
@@ -117,7 +117,7 @@ def measure(
     key: str | cirq.MeasurementKey | None = None,
     invert_mask: tuple[bool, ...] = (),
     confusion_map: dict[tuple[int, ...], np.ndarray] | None = None,
-) -> raw_types.Operation:
+) -> gate_operation.GateOperation:
     """Returns a single MeasurementGate applied to all the given qubits.
 
     The qubits are measured in the computational basis. This can also be
@@ -162,7 +162,8 @@ def measure(
     if key is None:
         key = _default_measurement_key(targets)
     qid_shape = protocols.qid_shape(targets)
-    return MeasurementGate(len(targets), key, invert_mask, qid_shape, confusion_map).on(*targets)
+    gate = MeasurementGate(len(targets), key, invert_mask, qid_shape, confusion_map)
+    return cast(gate_operation.GateOperation, gate.on(*targets))
 
 
 M = measure
@@ -205,6 +206,3 @@ def measure_each(
     )
     qubitsequence = qubits[0] if one_iterable_arg else qubits
     return [MeasurementGate(1, key_func(q), qid_shape=(q.dimension,)).on(q) for q in qubitsequence]
-
-
-# pylint: enable=function-redefined

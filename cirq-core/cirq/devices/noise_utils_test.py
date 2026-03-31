@@ -18,13 +18,13 @@ import cirq
 from cirq.devices.noise_utils import OpIdentifier
 
 
-def test_op_identifier():
+def test_op_identifier() -> None:
     op_id = OpIdentifier(cirq.XPowGate)
     assert cirq.X(cirq.LineQubit(1)) in op_id
     assert cirq.Rx(rads=1) in op_id
 
 
-def test_op_identifier_subtypes():
+def test_op_identifier_subtypes() -> None:
     gate_id = OpIdentifier(cirq.Gate)
     xpow_id = OpIdentifier(cirq.XPowGate)
     x_on_q0_id = OpIdentifier(cirq.XPowGate, cirq.LineQubit(0))
@@ -34,7 +34,7 @@ def test_op_identifier_subtypes():
     assert not xpow_id.is_proper_subtype_of(xpow_id)
 
 
-def test_op_id_str():
+def test_op_id_str() -> None:
     op_id = OpIdentifier(cirq.XPowGate, cirq.LineQubit(0))
     assert str(op_id) == "<class 'cirq.ops.common_gates.XPowGate'>(cirq.LineQubit(0),)"
     assert repr(op_id) == (
@@ -42,7 +42,7 @@ def test_op_id_str():
     )
 
 
-def test_op_id_swap():
+def test_op_id_swap() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     base_id = OpIdentifier(cirq.CZPowGate, q0, q1)
     swap_id = OpIdentifier(base_id.gate_type, *base_id.qubits[::-1])
@@ -52,8 +52,8 @@ def test_op_id_swap():
     assert cirq.CZ(q1, q0) in swap_id
 
 
-def test_op_id_instance():
+def test_op_id_instance() -> None:
     q0 = cirq.LineQubit.range(1)[0]
     gate = cirq.SingleQubitCliffordGate.from_xz_map((cirq.X, False), (cirq.Z, False))
-    op_id = OpIdentifier(gate, q0)
+    op_id = OpIdentifier(type(gate), q0)
     cirq.testing.assert_equivalent_repr(op_id)

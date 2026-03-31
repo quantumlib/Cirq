@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, overload, TYPE_CHECKING
+from typing import overload, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -24,9 +24,9 @@ if TYPE_CHECKING:
 
 
 def chosen_angle_to_half_turns(
-    half_turns: Optional[type_alias.TParamVal] = None,
-    rads: Optional[float] = None,
-    degs: Optional[float] = None,
+    half_turns: type_alias.TParamVal | None = None,
+    rads: float | None = None,
+    degs: float | None = None,
     default: float = 1.0,
 ) -> type_alias.TParamVal:
     """Returns a half_turns value based on the given arguments.
@@ -63,9 +63,9 @@ def chosen_angle_to_half_turns(
 
 
 def chosen_angle_to_canonical_half_turns(
-    half_turns: Optional[type_alias.TParamVal] = None,
-    rads: Optional[float] = None,
-    degs: Optional[float] = None,
+    half_turns: type_alias.TParamVal | None = None,
+    rads: float | None = None,
+    degs: float | None = None,
     default: float = 1.0,
 ) -> type_alias.TParamVal:
     """Returns a canonicalized half_turns based on the given arguments.
@@ -87,7 +87,6 @@ def chosen_angle_to_canonical_half_turns(
     )
 
 
-# pylint: disable=function-redefined
 @overload
 def canonicalize_half_turns(half_turns: float) -> float:
     pass
@@ -108,6 +107,3 @@ def canonicalize_half_turns(half_turns: type_alias.TParamVal) -> type_alias.TPar
     if half_turns > 1:
         half_turns -= 2
     return half_turns
-
-
-# pylint: enable=function-redefined

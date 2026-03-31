@@ -9,3 +9,4 @@ coverage:
 
 ignore:
   - "**/*_pb2.py"
+  - "cirq-google/cirq_google/cloud/**/*.py"

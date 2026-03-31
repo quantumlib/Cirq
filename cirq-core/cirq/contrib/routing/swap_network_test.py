@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import itertools
+from typing import Any
 
 import pytest
 
@@ -23,9 +24,10 @@ import cirq.contrib.acquaintance as cca
 import cirq.contrib.routing as ccr
 
 
-def test_final_mapping():
+def test_final_mapping() -> None:
     n_qubits = 10
     qubits = cirq.LineQubit.range(n_qubits)
+    initial_mapping: dict[cirq.Qid, cirq.Qid]
     initial_mapping = dict(zip(qubits, qubits))
     expected_final_mapping = dict(zip(qubits, reversed(qubits)))
     SWAP = cca.SwapPermutationGate()
@@ -37,10 +39,11 @@ def test_final_mapping():
     assert swap_network.final_mapping() == expected_final_mapping
 
 
-def test_swap_network_bad_args():
+def test_swap_network_bad_args() -> None:
     n_qubits = 10
     qubits = cirq.LineQubit.range(n_qubits)
     circuit = cirq.Circuit()
+    initial_mapping: dict[Any, Any]
     with pytest.raises(ValueError):
         initial_mapping = dict(zip(qubits, range(n_qubits)))
         ccr.SwapNetwork(circuit, initial_mapping)
@@ -50,7 +53,8 @@ def test_swap_network_bad_args():
 
 
 @pytest.mark.parametrize('circuits', [[cirq.testing.random_circuit(10, 10, 0.5) for _ in range(3)]])
-def test_swap_network_equality(circuits):
+def test_swap_network_equality(circuits) -> None:
+    mapping: dict[cirq.Qid, cirq.Qid]
     et = cirq.testing.EqualsTester()
     for circuit in circuits:  # NB: tiny prob. that circuits aren't unique
         qubits = sorted(circuit.all_qubits())
@@ -59,13 +63,15 @@ def test_swap_network_equality(circuits):
             et.add_equality_group(ccr.SwapNetwork(circuit, mapping))
 
 
-def test_swap_network_str():
+def test_swap_network_str() -> None:
     n_qubits = 5
     phys_qubits = cirq.GridQubit.rect(n_qubits, 1)
     log_qubits = cirq.LineQubit.range(n_qubits)
 
-    gates = {(l, ll): cirq.ZZ for l, ll in itertools.combinations(log_qubits, 2)}
-    initial_mapping = {p: l for p, l in zip(phys_qubits, log_qubits)}
+    gates: dict[tuple[cirq.Qid, cirq.Qid], cirq.Gate]
+    initial_mapping: dict[cirq.Qid, cirq.Qid]
+    gates = dict.fromkeys(itertools.combinations(log_qubits, 2), cirq.ZZ)
+    initial_mapping = dict(zip(phys_qubits, log_qubits))
     execution_strategy = cca.GreedyExecutionStrategy(gates, initial_mapping)
     routed_circuit = cca.complete_acquaintance_strategy(phys_qubits, 2)
     execution_strategy(routed_circuit)
@@ -81,5 +87,5 @@ def test_swap_network_str():
 (3, 0): ───q(3)───ZZ───q(3)───╱1╲───q(2)───ZZ───q(2)───╲0╱───q(4)───ZZ───q(4)───╱1╲───q(0)───ZZ───q(0)───╲0╱───q(2)───ZZ───q(2)───╱1╲───q(1)───
                                            │           │                                     │           │
 (4, 0): ───q(4)────────q(4)─────────q(4)───ZZ───q(4)───╱1╲───q(2)────────q(2)─────────q(2)───ZZ───q(2)───╱1╲───q(0)────────q(0)─────────q(0)───
-    """.strip()
+    """.strip()  # noqa: E501
     assert actual_str == expected_str

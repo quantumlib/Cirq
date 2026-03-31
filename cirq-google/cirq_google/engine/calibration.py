@@ -18,8 +18,9 @@ from __future__ import annotations
 
 import datetime
 from collections import abc, defaultdict
+from collections.abc import Iterator, Sequence
 from itertools import cycle
-from typing import Any, cast, Iterator, Sequence
+from typing import Any, cast
 
 import google.protobuf.json_format as json_format
 import matplotlib as mpl
@@ -114,7 +115,7 @@ class Calibration(abc.Mapping):
         return len(self._metric_dict)
 
     def __str__(self) -> str:
-        return f'Calibration(keys={list(sorted(self.keys()))})'
+        return f'Calibration(keys={sorted(self.keys())})'
 
     def __repr__(self) -> str:
         return f'cirq_google.Calibration(metrics={dict(self._metric_dict)!r})'
@@ -243,7 +244,7 @@ class Calibration(abc.Mapping):
         if not all(len(k) == 1 for k in metrics.values()):
             raise ValueError(
                 'Heatmaps are only supported if all values in a metric are single metric values.'
-                + f'{key} has metric values {metrics.values()}'
+                f'{key} has metric values {metrics.values()}'
             )
         value_map = {self.key_to_qubits(k): self.value_to_float(v) for k, v in metrics.items()}
         if all(len(k) == 1 for k in value_map.keys()):
@@ -252,7 +253,7 @@ class Calibration(abc.Mapping):
             return cirq.TwoQubitInteractionHeatmap(value_map, title=key.replace('_', ' ').title())
         raise ValueError(
             'Heatmaps are only supported if all the targets in a metric are one or two qubits.'
-            + f'{key} has target qubits {value_map.keys()}'
+            f'{key} has target qubits {value_map.keys()}'
         )
 
     def plot_histograms(
@@ -289,8 +290,8 @@ class Calibration(abc.Mapping):
             if not all(len(k) == 1 for k in metrics.values()):
                 raise ValueError(
                     'Histograms are only supported if all values in a metric '
-                    + 'are single metric values.'
-                    + f'{key} has metric values {metrics.values()}'
+                    'are single metric values.'
+                    f'{key} has metric values {metrics.values()}'
                 )
             cirq.integrated_histogram(
                 [self.value_to_float(v) for v in metrics.values()],

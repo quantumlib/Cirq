@@ -50,8 +50,8 @@ version.
 
 ## Documentation
 
-Documentation for `cirq-web` can be found in the `README` files located in the
-module's subdirectories in the [Cirq repository on GitHub]. To get started
+Documentation for `cirq-web` can be found in the `README` file located in the
+module's subdirectory in the [Cirq repository on GitHub]. To get started
 with using Cirq in general, please refer to the [Cirq documentation site].
 
 Below is a quick example of using `cirq-web` to generate a portable 3D

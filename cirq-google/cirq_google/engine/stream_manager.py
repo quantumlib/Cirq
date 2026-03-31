@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import asyncio
-from typing import AsyncIterator, TYPE_CHECKING
+from collections.abc import AsyncIterator
+from typing import TYPE_CHECKING
 
 import google.api_core.exceptions as google_exceptions
 
@@ -205,9 +206,9 @@ class StreamManager:
         """
         while True:
             try:
-                # The default gRPC client timeout is used.
                 response_iterable = await self._grpc_client.quantum_run_stream(
-                    _request_iterator(request_queue)
+                    _request_iterator(request_queue),
+                    timeout=None,  # Persist the stream indefinitely.
                 )
                 async for response in response_iterable:
                     self._response_demux.publish(response)

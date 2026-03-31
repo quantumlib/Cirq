@@ -20,15 +20,16 @@ import contextlib
 import contextvars
 import dataclasses
 import functools
-import importlib
+import importlib.util
 import inspect
 import os
 import re
 import sys
 import traceback
 import warnings
+from collections.abc import Callable, Iterator
 from types import ModuleType
-from typing import Any, Callable, Iterator, overload, TypeVar
+from typing import Any, overload, TypeVar
 
 import numpy as np
 import pandas as pd
@@ -469,7 +470,7 @@ def deprecate_attributes(module_name: str, deprecated_attributes: dict[str, tupl
         __dict__ = module.__dict__
 
         # Workaround for: https://github.com/python/mypy/issues/8083
-        __spec__ = _make_proxy_spec_property(module)  # type: ignore
+        __spec__ = _make_proxy_spec_property(module)
 
         def __getattr__(self, name):
             if name in deprecated_attributes:
@@ -770,7 +771,7 @@ def _setup_deprecated_submodule_attribute(
         __dict__ = parent_module.__dict__
 
         # Workaround for: https://github.com/python/mypy/issues/8083
-        __spec__ = _make_proxy_spec_property(parent_module)  # type: ignore
+        __spec__ = _make_proxy_spec_property(parent_module)
 
         def __getattr__(self, name):
             if name == old_child:

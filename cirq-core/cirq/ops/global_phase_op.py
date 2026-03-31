@@ -15,8 +15,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Collection, Sequence, Set
 from types import NotImplementedType
-from typing import AbstractSet, Any, cast, Collection, Sequence
+from typing import Any, cast
 
 import numpy as np
 import sympy
@@ -78,12 +79,12 @@ class GlobalPhaseGate(raw_types.Gate):
         return protocols.obj_to_dict_helper(self, ['coefficient'])
 
     def _qid_shape_(self) -> tuple[int, ...]:
-        return tuple()
+        return ()
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.coefficient)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self.coefficient)
 
     def _resolve_parameters_(
@@ -91,6 +92,13 @@ class GlobalPhaseGate(raw_types.Gate):
     ) -> cirq.GlobalPhaseGate:
         coefficient = protocols.resolve_parameters(self.coefficient, resolver, recursive)
         return GlobalPhaseGate(coefficient=coefficient)
+
+    def is_identity(self) -> bool:
+        """Checks if gate is equivalent to an identity.
+
+        Returns: True if the coefficient is within rounding error of 1.
+        """
+        return not protocols.is_parameterized(self._coefficient) and np.isclose(self.coefficient, 1)
 
     def controlled(
         self,
@@ -122,3 +130,23 @@ def global_phase_operation(
 ) -> cirq.GateOperation:
     """Creates an operation that represents a global phase on the state."""
     return GlobalPhaseGate(coefficient, atol)()
+
+
+def from_phase_and_exponent(
+    half_turns: cirq.TParamVal, exponent: cirq.TParamVal
+) -> cirq.GlobalPhaseGate:
+    """Creates a GlobalPhaseGate from the global phase and exponent.
+
+    Args:
+        half_turns: The number of half turns to rotate by.
+        exponent: The power to raise the phase to.
+
+    Returns: A `GlobalPhaseGate` with the corresponding coefficient.
+    """
+    coefficient = 1j ** (2 * half_turns * exponent)
+    coefficient = (
+        complex(coefficient)
+        if isinstance(coefficient, sympy.Expr) and coefficient.is_complex
+        else coefficient
+    )
+    return GlobalPhaseGate(coefficient)

@@ -17,7 +17,8 @@ from __future__ import annotations
 
 import cmath
 import math
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 import numpy as np
 
@@ -248,7 +249,7 @@ class MSGate(cirq.Gate):
             return self
 
         if power == -1:
-            return MSGate(phi0=self.phi0 + 0.5, phi1=self.phi1)
+            return MSGate(phi0=self.phi0 + 0.5, phi1=self.phi1, theta=self.theta)
 
         return NotImplemented
 

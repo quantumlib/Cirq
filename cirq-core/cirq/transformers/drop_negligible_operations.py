@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from cirq import protocols
 from cirq.transformers import transformer_api, transformer_primitives
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 def drop_negligible_operations(
     circuit: cirq.AbstractCircuit,
     *,
-    context: Optional[cirq.TransformerContext] = None,
+    context: cirq.TransformerContext | None = None,
     atol: float = 1e-8,
 ) -> cirq.Circuit:
     """Removes operations with tiny effects.

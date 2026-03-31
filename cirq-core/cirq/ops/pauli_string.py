@@ -17,25 +17,19 @@ from __future__ import annotations
 import cmath
 import math
 import numbers
-from types import NotImplementedType
-from typing import (
-    AbstractSet,
-    Any,
+from collections.abc import (
     Callable,
-    cast,
-    Generic,
     ItemsView,
     Iterable,
     Iterator,
     KeysView,
     Mapping,
-    overload,
     Sequence,
-    TYPE_CHECKING,
-    TypeVar,
-    Union,
+    Set,
     ValuesView,
 )
+from types import NotImplementedType
+from typing import Any, cast, Generic, overload, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
 import sympy
@@ -53,7 +47,6 @@ from cirq.ops import (
     identity,
     op_tree,
     pauli_gates,
-    pauli_interaction_gate,
     raw_types,
 )
 
@@ -204,7 +197,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
     def _value_equality_values_(self):
         if len(self._qubit_pauli_map) == 1 and self.coefficient == 1:
-            q, p = list(self._qubit_pauli_map.items())[0]
+            q, p = next(iter(self._qubit_pauli_map.items()))
             return gate_operation.GateOperation(p, [q])._value_equality_values_()
 
         return (frozenset(self._qubit_pauli_map.items()), self._coefficient)
@@ -232,7 +225,6 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def __getitem__(self, key: TKey) -> pauli_gates.Pauli:
         return self._qubit_pauli_map[key]
 
-    # pylint: disable=function-redefined
     @overload
     def get(self, key: Any, default: None = None) -> pauli_gates.Pauli | None:
         pass
@@ -268,20 +260,11 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         pass
 
     def __mul__(self, other):
-        known = False
-        if isinstance(other, raw_types.Operation) and isinstance(other.gate, identity.IdentityGate):
-            known = True
-        elif isinstance(other, (PauliString, numbers.Number)):
-            known = True
-        if known:
+        if isinstance(other, (PauliString, numbers.Number)):
             return PauliString(
-                cast(PAULI_STRING_LIKE, other),
-                qubit_pauli_map=self._qubit_pauli_map,
-                coefficient=self.coefficient,
+                other, qubit_pauli_map=self._qubit_pauli_map, coefficient=self.coefficient
             )
         return NotImplemented
-
-    # pylint: enable=function-redefined
 
     @property
     def gate(self) -> cirq.DensePauliString:
@@ -298,9 +281,6 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             return PauliString(
                 qubit_pauli_map=self._qubit_pauli_map, coefficient=self._coefficient * other
             )
-
-        if isinstance(other, raw_types.Operation) and isinstance(other.gate, identity.IdentityGate):
-            return self  # pragma: no cover
 
         # Note: PauliString case handled by __mul__.
         return NotImplemented
@@ -353,7 +333,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             return NotImplemented
 
         qs = args.known_qubits or list(self.keys())
-        symbols = list(str(self.get(q)) for q in qs)
+        symbols = [str(self.get(q)) for q in qs]
         if self.coefficient == 1:
             prefix = '+'
         elif self.coefficient == -1:
@@ -897,9 +877,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
         if not self.keys() <= set(qubits):
             raise ValueError('not self.keys() <= set(qubits)')
-        # pylint: disable=too-many-function-args
         pauli_mask = [self.get(q, identity.I) for q in qubits]
-        # pylint: enable=too-many-function-args
         return dense_pauli_string.DensePauliString(pauli_mask, coefficient=self.coefficient)
 
     def conjugated_by(self, clifford: cirq.OP_TREE) -> PauliString:
@@ -966,60 +944,20 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         # Initialize the ps the same as self.
         ps = PauliString(qubit_pauli_map=self._qubit_pauli_map, coefficient=self.coefficient)
         all_ops = list(op_tree.flatten_to_ops(clifford))
-        all_qubits = set.union(set(self.qubits), [q for op in all_ops for q in op.qubits])
+        all_qubits = set(self.qubits).union(q for op in all_ops for q in op.qubits)
         # Iteratively calculate the conjugation in reverse order of ops.
         for op in all_ops[::-1]:
             # To calcuate the conjugation of P (`ps`) with respect to C (`op`)
             # Decompose P = Pc⊗R, where Pc acts on the same qubits as C, R acts on the remaining.
             # Then the conjugation = (C^{-1}⊗I·Pc⊗R·C⊗I) = (C^{-1}·Pc·C)⊗R.
 
-            # Isolate R
-            remain: cirq.PauliString = PauliString(
+            # Conjugation on the qubits of op
+            conjugated = _calc_conjugation(ps, op)
+            # The pauli string on the remaining qubits
+            remain: PauliString = PauliString(
                 *(pauli(q) for q in all_qubits - set(op.qubits) if (pauli := ps.get(q)) is not None)
             )
-
-            # Initialize the conjugation of Pc.
-            conjugated: cirq.DensePauliString = (
-                dense_pauli_string.DensePauliString(pauli_mask=[identity.I for _ in op.qubits])
-                * ps.coefficient
-            )
-
-            # Calculate the conjugation via CliffordGate's clifford_tableau.
-            # Note the clifford_tableau in CliffordGate represents C·P·C^-1 instead of C^-1·P·C.
-            # So we take the inverse of the tableau to match the definition of the conjugation here.
-            gate_in_clifford: cirq.CliffordGate
-            if isinstance(op.gate, clifford_gate.CliffordGate):
-                gate_in_clifford = op.gate
-            else:
-                # Convert the clifford gate to CliffordGate type.
-                gate_in_clifford = clifford_gate.CliffordGate.from_op_list([op], op.qubits)
-            tableau = gate_in_clifford.clifford_tableau.inverse()
-
-            # Calculate the conjugation by `op` via mutiplying the conjugation of each Pauli:
-            #   C^{-1}·(P_1⊗...⊗P_n)·C
-            # = C^{-1}·(P_1⊗I) ...·(P_n⊗I)·C
-            # = (C^{-1}(P_1⊗I)C)·...·(C^{-1}(P_n⊗I)C)
-            # For the Pauli on the kth qubit P_k. The conjugation is calculated as following.
-            #   Puali X_k's conjugation is from the destabilzer table;
-            #   Puali Z_k's conjugation is from the stabilzer table;
-            #   Puali Y_k's conjugation is calcluated according to Y = iXZ. E.g., for the kth qubit,
-            #     C^{-1}·Y_k⊗I·C = C^{-1}·(iX_k⊗I·Z_k⊗I)·C = i (C^{-1}·X_k⊗I·C)·(C^{-1}·Z_k⊗I·C).
-            for qid, qubit in enumerate(op.qubits):
-                pauli = ps.get(qubit)
-                match pauli:
-                    case None:
-                        continue
-                    case pauli_gates.X:
-                        conjugated *= tableau.destabilizers()[qid]
-                    case pauli_gates.Z:
-                        conjugated *= tableau.stabilizers()[qid]
-                    case pauli_gates.Y:
-                        conjugated *= (
-                            1j
-                            * tableau.destabilizers()[qid]  # conj X first
-                            * tableau.stabilizers()[qid]  # then conj Z
-                        )
-            ps = remain * conjugated.on(*op.qubits)
+            ps = remain * conjugated
         return ps
 
     def after(self, ops: cirq.OP_TREE) -> cirq.PauliString:
@@ -1054,7 +992,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         """
         return self.conjugated_by(ops)
 
-    @deprecated(deadline="v2.0", fix="Use conjuagetd_by()/before()/after() instead.")
+    @deprecated(deadline="v2.0", fix="Use conjugated_by(), before(), or after() instead.")
     def pass_operations_over(
         self, ops: Iterable[cirq.Operation], after_to_before: bool = False
     ) -> PauliString:  # pragma: no cover
@@ -1096,7 +1034,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.coefficient)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self.coefficient)
 
     def _resolve_parameters_(
@@ -1138,29 +1076,39 @@ def _validate_qubit_mapping(
         )
 
     used_inds = [qubit_map[q] for q in pauli_qubits]
-    if len(used_inds) != len(set(used_inds)) or not set(range(num_state_qubits)) >= set(
-        sorted(used_inds)
-    ):
+    if len(used_inds) != len(set(used_inds)) or not set(range(num_state_qubits)) >= set(used_inds):
         raise ValueError(
             f'Input qubit map indices must be valid for a state over {num_state_qubits} qubits.'
         )
 
 
-def _try_interpret_as_pauli_string(op: Any):
+def _try_interpret_as_pauli_string(op: Any) -> PauliString | None:
     """Return a reprepresentation of an operation as a pauli string, if it is possible."""
-    if isinstance(op, gate_operation.GateOperation):
-        gates = {
-            common_gates.XPowGate: pauli_gates.X,
-            common_gates.YPowGate: pauli_gates.Y,
-            common_gates.ZPowGate: pauli_gates.Z,
-        }
-        if (pauli := gates.get(type(op.gate), None)) is not None:
-            exponent = op.gate.exponent  # type: ignore
-            if exponent % 2 == 0:
-                return PauliString()
-            if exponent % 2 == 1:
-                return pauli.on(op.qubits[0])
-    return None
+    if not isinstance(op, raw_types.Operation):
+        return None
+
+    if isinstance(op, PauliString):
+        return op
+
+    # optimize for integer exponents of Pauli gates
+    cached_gates: dict[type[cirq.Gate | None], cirq.Pauli] = {
+        common_gates.XPowGate: pauli_gates.X,
+        common_gates.YPowGate: pauli_gates.Y,
+        common_gates.ZPowGate: pauli_gates.Z,
+    }
+    if (pauli := cached_gates.get(type(op.gate))) is not None:
+        exponent = op.gate.exponent  # type: ignore
+        if exponent % 2 == 0:
+            return PauliString()
+        if exponent % 2 == 1:
+            return pauli.on(op.qubits[0])
+        return None
+
+    pauli_expansion_op = protocols.pauli_expansion(op, default=None)
+    if pauli_expansion_op is None or len(pauli_expansion_op) != 1:
+        return None
+    gates, coef = next(iter(pauli_expansion_op.items()))
+    return PauliString(dict(zip(op.qubits, gates)), coefficient=coef)
 
 
 # Ignoring type because mypy believes `with_qubits` methods are incompatible.
@@ -1194,27 +1142,11 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
         assert len(self.qubits) == 1
         return self.qubits[0]
 
-    def _as_pauli_string(self) -> PauliString:
-        return PauliString(qubit_pauli_map={self.qubit: self.pauli})
-
     def __mul__(self, other):
-        if isinstance(other, SingleQubitPauliStringGateOperation):
-            return self._as_pauli_string() * other._as_pauli_string()
-        if isinstance(other, (PauliString, numbers.Complex)):
-            return self._as_pauli_string() * other
-        if (as_pauli_string := _try_interpret_as_pauli_string(other)) is not None:
-            return self * as_pauli_string
-        return NotImplemented
+        return PauliString.__mul__(self, other)
 
     def __rmul__(self, other):
-        if isinstance(other, (PauliString, numbers.Complex)):
-            return other * self._as_pauli_string()
-        if (as_pauli_string := _try_interpret_as_pauli_string(other)) is not None:
-            return as_pauli_string * self
-        return NotImplemented
-
-    def __neg__(self):
-        return -self._as_pauli_string()
+        return PauliString.__rmul__(self, other)
 
     def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['pauli', 'qubit'])
@@ -1293,7 +1225,7 @@ class MutablePauliString(Generic[TKey]):
             return sign
         return -sign
 
-    def keys(self) -> AbstractSet[TKey]:
+    def keys(self) -> Set[TKey]:
         """Returns the sequence of qubits on which this pauli string acts."""
         return self.pauli_int_dict.keys()
 
@@ -1349,7 +1281,6 @@ class MutablePauliString(Generic[TKey]):
     def __delitem__(self, key: TKey):
         del self.pauli_int_dict[key]
 
-    # pylint: disable=function-redefined
     @overload
     def get(self, key: TKey, default: None = None) -> cirq.Pauli | None:
         pass
@@ -1363,7 +1294,6 @@ class MutablePauliString(Generic[TKey]):
         result = self.pauli_int_dict.get(key, None)
         return default if result is None else _INT_TO_PAULI[result - 1]
 
-    # pylint: enable=function-redefined
     def inplace_before(self, ops: cirq.OP_TREE) -> cirq.MutablePauliString:
         r"""Propagates the pauli string from after to before a Clifford effect.
 
@@ -1378,7 +1308,18 @@ class MutablePauliString(Generic[TKey]):
         Returns:
             The mutable pauli string that was mutated.
         """
-        return self.inplace_after(protocols.inverse(ops))
+        # An inplace impl of PauliString.conjugated_by().
+        flattened_ops = list(op_tree.flatten_to_ops(ops))
+        for op in flattened_ops[::-1]:
+            conjugated = _calc_conjugation(self.frozen(), op)
+            self.coefficient = conjugated.coefficient
+            for q in op.qubits:
+                new_pauli_int = PAULI_GATE_LIKE_TO_INDEX_MAP[conjugated.get(q) or 0]
+                if new_pauli_int == 0:
+                    self.pauli_int_dict.pop(cast(TKey, q), None)
+                else:
+                    self.pauli_int_dict[cast(TKey, q)] = new_pauli_int
+        return self
 
     def inplace_after(self, ops: cirq.OP_TREE) -> cirq.MutablePauliString:
         r"""Propagates the pauli string from before to after a Clifford effect.
@@ -1398,43 +1339,7 @@ class MutablePauliString(Generic[TKey]):
             NotImplementedError: If any ops decompose into an unsupported
                 Clifford gate.
         """
-        for clifford in op_tree.flatten_to_ops(ops):
-            for op in _decompose_into_cliffords(clifford):
-                ps = [self.pauli_int_dict.pop(cast(TKey, q), 0) for q in op.qubits]
-                if not any(ps):
-                    continue
-                gate = op.gate
-
-                if isinstance(gate, clifford_gate.SingleQubitCliffordGate):
-                    out = gate.pauli_tuple(_INT_TO_PAULI[ps[0] - 1])
-                    if out[1]:
-                        self.coefficient *= -1
-                    self.pauli_int_dict[cast(TKey, op.qubits[0])] = PAULI_GATE_LIKE_TO_INDEX_MAP[
-                        out[0]
-                    ]
-
-                elif isinstance(gate, pauli_interaction_gate.PauliInteractionGate):
-                    q0, q1 = op.qubits
-                    p0 = _INT_TO_PAULI_OR_IDENTITY[ps[0]]
-                    p1 = _INT_TO_PAULI_OR_IDENTITY[ps[1]]
-
-                    # Kick across Paulis that anti-commute with the controls.
-                    kickback_0_to_1 = not protocols.commutes(p0, gate.pauli0)
-                    kickback_1_to_0 = not protocols.commutes(p1, gate.pauli1)
-                    kick0 = gate.pauli1 if kickback_0_to_1 else identity.I
-                    kick1 = gate.pauli0 if kickback_1_to_0 else identity.I
-                    self.__imul__({q0: p0, q1: kick0})
-                    self.__imul__({q0: kick1, q1: p1})
-
-                    # Decompose inverted controls into single-qubit operations.
-                    if gate.invert0:
-                        self.inplace_after(gate.pauli1(q1))
-                    if gate.invert1:
-                        self.inplace_after(gate.pauli0(q0))
-
-                else:  # pragma: no cover
-                    raise NotImplementedError(f"Unrecognized decomposed Clifford: {op!r}")
-        return self
+        return self.inplace_before(protocols.inverse(ops))
 
     def _imul_helper(self, other: cirq.PAULI_STRING_LIKE, sign: int):
         """Left-multiplies or right-multiplies by a PAULI_STRING_LIKE.
@@ -1601,35 +1506,6 @@ class MutablePauliString(Generic[TKey]):
         return f'{self.frozen()!r}.mutable_copy()'
 
 
-def _decompose_into_cliffords(op: cirq.Operation) -> list[cirq.Operation]:
-    # An operation that can be ignored?
-    if isinstance(op.gate, global_phase_op.GlobalPhaseGate):
-        return []
-
-    # Already a known Clifford?
-    if isinstance(
-        op.gate,
-        (clifford_gate.SingleQubitCliffordGate, pauli_interaction_gate.PauliInteractionGate),
-    ):
-        return [op]
-
-    # Specifies a decomposition into Cliffords?
-    v = getattr(op, '_decompose_into_clifford_', None)
-    if v is not None:
-        result = v()
-        if result is not None and result is not NotImplemented:
-            return list(op_tree.flatten_to_ops(result))
-
-    # Specifies a decomposition that happens to contain only Cliffords?
-    decomposed = protocols.decompose_once(op, None)
-    if decomposed is not None:
-        return [out for sub_op in decomposed for out in _decompose_into_cliffords(sub_op)]
-
-    raise TypeError(  # pragma: no cover
-        f'Operation is not a known Clifford and did not decompose into known Cliffords: {op!r}'
-    )
-
-
 # Mypy has extreme difficulty with these constants for some reason.
 _i = cast(identity.IdentityGate, identity.I)  # type: ignore
 _x = cast(pauli_gates.Pauli, pauli_gates.X)  # type: ignore
@@ -1674,3 +1550,52 @@ def _pauli_like_to_pauli_int(key: Any, pauli_gate_like: PAULI_GATE_LIKE):
             f"{set(PAULI_GATE_LIKE_TO_INDEX_MAP.keys())!r}"
         )
     return pauli_int
+
+
+def _calc_conjugation(ps: cirq.PauliString, clifford_op: cirq.Operation) -> cirq.PauliString:
+    """Computes the conjugation of a Pauli string by a single Clifford operation.
+
+    It computes $C^-1 P C$ where P is the Pauli string `ps` and C is the `clifford_op`.
+    """
+
+    # Initialize the conjugation of the pauli string.
+    conjugated = dense_pauli_string.DensePauliString('I' * len(clifford_op.qubits)) * ps.coefficient
+
+    # Calculate the conjugation via CliffordGate's clifford_tableau.
+    # Note the clifford_tableau in CliffordGate represents C·P·C^-1 instead of C^-1·P·C.
+    # So we take the inverse of the tableau to match the definition of the conjugation here.
+    if isinstance(clifford_op.gate, clifford_gate.CliffordGate):
+        gate_in_clifford = clifford_op.gate
+    else:
+        # Convert the clifford gate to CliffordGate type.
+        gate_in_clifford = clifford_gate.CliffordGate.from_op_list(
+            [clifford_op], clifford_op.qubits
+        )
+    tableau = gate_in_clifford.clifford_tableau.inverse()
+
+    # Calculate the conjugation by `clifford_op` via mutiplying the conjugation of each Pauli:
+    #   C^{-1}·(P_1⊗...⊗P_n)·C
+    # = C^{-1}·(P_1⊗I) ...·(P_n⊗I)·C
+    # = (C^{-1}(P_1⊗I)C)·...·(C^{-1}(P_n⊗I)C)
+    # For the Pauli on the kth qubit P_k. The conjugation is calculated as following.
+    #   Pauli X_k's conjugation is from the destabilizer table;
+    #   Pauli Z_k's conjugation is from the stabilizer table;
+    #   Pauli Y_k's conjugation is calculated according to Y = iXZ. E.g., for the kth qubit,
+    #     C^{-1}·Y_k⊗I·C = C^{-1}·(iX_k⊗I·Z_k⊗I)·C = i (C^{-1}·X_k⊗I·C)·(C^{-1}·Z_k⊗I·C).
+    for qid, qubit in enumerate(clifford_op.qubits):
+        pauli = ps.get(qubit)
+        match pauli:
+            case None:
+                continue
+            case pauli_gates.X:
+                conjugated *= tableau.destabilizers()[qid]
+            case pauli_gates.Z:
+                conjugated *= tableau.stabilizers()[qid]
+            case pauli_gates.Y:
+                conjugated *= (
+                    1j
+                    * tableau.destabilizers()[qid]  # conj X first
+                    * tableau.stabilizers()[qid]  # then conj Z
+                )
+
+    return conjugated.on(*clifford_op.qubits)

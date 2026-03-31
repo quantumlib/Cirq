@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import abc
-from typing import Iterator, Optional, overload, Sequence, TYPE_CHECKING
+from collections.abc import Iterator, Sequence
+from typing import overload, TYPE_CHECKING
 
 import duet
 
@@ -148,12 +149,12 @@ class AbstractJob(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_processor(self) -> Optional[abstract_processor.AbstractProcessor]:
+    def get_processor(self) -> abstract_processor.AbstractProcessor | None:
         """Returns the AbstractProcessor for the processor the job is/was run on,
         if available, else None."""
 
     @abc.abstractmethod
-    def get_calibration(self) -> Optional[calibration.Calibration]:
+    def get_calibration(self) -> calibration.Calibration | None:
         """Returns the recorded calibration at the time when the job was run, if
         one was captured, else None."""
 
@@ -174,7 +175,6 @@ class AbstractJob(abc.ABC):
     def __iter__(self) -> Iterator[cirq.Result]:
         yield from self.results()
 
-    # pylint: disable=function-redefined
     @overload
     def __getitem__(self, item: int) -> cirq.Result:
         pass
@@ -185,8 +185,6 @@ class AbstractJob(abc.ABC):
 
     def __getitem__(self, item):
         return self.results()[item]
-
-    # pylint: enable=function-redefined
 
     def __len__(self) -> int:
         return len(self.results())

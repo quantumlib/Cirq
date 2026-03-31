@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterable, overload
+from collections.abc import Iterable
+from typing import Any, overload
 
 
 def big_endian_bits_to_int(bits: Iterable[Any]) -> int:
@@ -120,9 +121,13 @@ def big_endian_digits_to_int(digits: Iterable[int], *, base: int | Iterable[int]
     return result
 
 
-# pylint: disable=function-redefined
 @overload
 def big_endian_int_to_digits(val: int, *, digit_count: int, base: int) -> list[int]:
+    pass
+
+
+@overload
+def big_endian_int_to_digits(val: int, *, digit_count: int, base: Iterable[int]) -> list[int]:
     pass
 
 
@@ -164,6 +169,11 @@ def big_endian_int_to_digits(
         >>> cirq.big_endian_int_to_digits(11, base=[2, 3, 4])
         [0, 2, 3]
     """
+    if digit_count and base == 2:
+        binary_chars = bin(val).removeprefix('0b')
+        zeros_count = digit_count - len(binary_chars)
+        if zeros_count >= 0:
+            return [0] * zeros_count + [1 if c == "1" else 0 for c in binary_chars]
     if isinstance(base, int):
         if digit_count is None:
             raise ValueError('No digit count. Provide `digit_count` when base is an int.')
@@ -188,7 +198,5 @@ def big_endian_int_to_digits(
             f'left behind {val!r} instead of 0.'
         )
 
-    return result[::-1]
-
-
-# pylint: enable=function-redefined
+    result.reverse()
+    return result

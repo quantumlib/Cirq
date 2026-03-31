@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import datetime
-from typing import Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 import duet
 
@@ -301,7 +302,7 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     def labels(self) -> dict[str, str]:
         """Returns the labels of the program."""
-        return self._inner_program().labels
+        return dict(self._inner_program().labels)
 
     async def set_labels_async(self, labels: dict[str, str]) -> EngineProgram:
         """Sets (overwriting) the labels for a previously created quantum
@@ -360,7 +361,9 @@ class EngineProgram(abstract_program.AbstractProgram):
         Returns:
             The program's cirq Circuit.
         """
-        if self._program is None or self._program.code is None:
+        # The code field is an any_pb2.Any and is always set. But if the program has not
+        # been fetched this field may be empty, which we can see by checking the type_url.
+        if self._program is None or not self._program.code or not self._program.code.type_url:
             self._program = await self.context.client.get_program_async(
                 self.project_id, self.program_id, True
             )

@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import itertools
-from typing import Any, cast, Iterable, Sequence, TYPE_CHECKING, Union
+from collections.abc import Iterable, Sequence
+from typing import Any, cast, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -1019,7 +1020,11 @@ def validate_density_matrix(
     if not np.isclose(trace, 1.0, atol=atol):
         raise ValueError(f'Density matrix does not have trace 1. Instead, it has trace {trace}.')
     if not np.all(np.linalg.eigvalsh(density_matrix) > -atol):
-        raise ValueError('The density matrix is not positive semidefinite.')
+        raise ValueError(
+            'The density matrix is not positive semidefinite. '
+            'This may happen for simulations using lower-precision `dtype` such as '
+            '`np.complex64`. Try using `np.complex128` in such a case.'
+        )
 
 
 def _qid_shape_from_args(

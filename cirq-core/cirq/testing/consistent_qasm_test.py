@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import importlib.util
 import warnings
 
 import numpy as np
@@ -31,10 +32,10 @@ class Fixed(cirq.Operation):
         return self.unitary
 
     @property
-    def qubits(self):
-        return cirq.LineQubit.range(self.unitary.shape[0].bit_length() - 1)
+    def qubits(self) -> tuple[cirq.Qid, ...]:
+        return tuple(cirq.LineQubit.range(self.unitary.shape[0].bit_length() - 1))
 
-    def with_qubits(self, *new_qubits):
+    def with_qubits(self, *new_qubits) -> Fixed:
         raise NotImplementedError()
 
     def _qasm_(self, args: cirq.QasmArgs):
@@ -53,9 +54,7 @@ class QuditGate(cirq.Gate):
 
 
 def test_assert_qasm_is_consistent_with_unitary() -> None:
-    try:
-        import qiskit as _
-    except ImportError:  # pragma: no cover
+    if importlib.util.find_spec('qiskit') is None:  # pragma: no cover
         warnings.warn(
             "Skipped test_assert_qasm_is_consistent_with_unitary "
             "because qiskit isn't installed to verify against."

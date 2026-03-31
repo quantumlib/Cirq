@@ -18,9 +18,11 @@ from __future__ import annotations
 
 import functools
 import itertools
+from collections.abc import Mapping, Sequence
+from concurrent import futures
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Any, cast, Mapping, Sequence, TYPE_CHECKING
+from typing import Any, cast, TYPE_CHECKING
 
 import networkx as nx
 import numpy as np
@@ -30,8 +32,9 @@ from cirq import ops, value, vis
 from cirq._compat import cached_method
 from cirq.experiments import random_quantum_circuit_generation as rqcg
 from cirq.experiments.qubit_characterizations import (
-    parallel_single_qubit_randomized_benchmarking,
+    parallel_single_qubit_rb,
     ParallelRandomizedBenchmarkingResult,
+    RBParameters,
 )
 from cirq.experiments.xeb_fitting import (
     benchmark_2q_xeb_fidelities,
@@ -407,7 +410,7 @@ def parallel_xeb_workflow(
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ax: plt.Axes | None = None,
     pairs: Sequence[tuple[cirq.GridQubit, cirq.GridQubit]] | None = None,
-    pool: multiprocessing.pool.Pool | None = None,
+    pool: multiprocessing.pool.Pool | futures.Executor | None = None,
     batch_size: int = 9,
     tags: Sequence[Any] = (),
     **plot_kwargs,
@@ -426,7 +429,7 @@ def parallel_xeb_workflow(
         ax: the plt.Axes to plot the device layout on. If not given,
             no plot is created.
         pairs: Pairs to use. If not specified, use all pairs between adjacent qubits.
-        pool: An optional multiprocessing pool.
+        pool: An optional pool.
         batch_size: We call `run_batch` on the sampler, which can speed up execution in certain
             environments. The number of (circuit, cycle_depth) tasks to be run in each batch
             is given by this number.
@@ -586,12 +589,14 @@ def run_rb_and_xeb(
 
     qubits, pairs = qubits_and_pairs(sampler, qubits, pairs)
 
-    rb = parallel_single_qubit_randomized_benchmarking(
+    rb = parallel_single_qubit_rb(
         sampler=sampler,
         qubits=qubits,
-        repetitions=repetitions,
-        num_circuits=num_circuits,
-        num_clifford_range=num_clifford_range,
+        parameters=RBParameters(
+            num_circuits=num_circuits,
+            repetitions=repetitions,
+            num_clifford_range=num_clifford_range,
+        ),
     )
 
     xeb = parallel_two_qubit_xeb(

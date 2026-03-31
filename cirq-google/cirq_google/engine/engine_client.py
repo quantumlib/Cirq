@@ -17,8 +17,9 @@ from __future__ import annotations
 import datetime
 import sys
 import warnings
+from collections.abc import AsyncIterable, Awaitable, Callable
 from functools import cached_property
-from typing import AsyncIterable, Awaitable, Callable, TypeVar
+from typing import Any, TypeVar
 
 import duet
 import proto
@@ -26,12 +27,21 @@ from google.api_core.exceptions import GoogleAPICallError, NotFound
 from google.protobuf import any_pb2, field_mask_pb2
 from google.protobuf.timestamp_pb2 import Timestamp
 
+from cirq import _compat
 from cirq_google.cloud import quantum
 from cirq_google.engine import stream_manager
 from cirq_google.engine.asyncio_executor import AsyncioExecutor
+from cirq_google.engine.processor_config import DeviceConfigRevision, Run, Snapshot
 
 _M = TypeVar('_M', bound=proto.Message)
 _R = TypeVar('_R')
+
+
+def _fix_deprecated_allowlisted_users_args(
+    args: tuple[Any, ...], kwargs: dict[str, Any]
+) -> tuple[tuple[Any, ...], dict[str, Any]]:
+    kwargs['allowlisted_users'] = kwargs.pop('whitelisted_users')
+    return args, kwargs
 
 
 class EngineException(Exception):
@@ -86,7 +96,7 @@ class EngineClient:
 
     @cached_property
     def grpc_client(self) -> quantum.QuantumEngineServiceAsyncClient:
-        """Creates an async grpc client for the quantum engine service."""
+        """Creates an async grpc client for the Quantum Engine service."""
 
         async def make_client():
             # Suppress warnings about using Application Default Credentials.
@@ -110,7 +120,7 @@ class EngineClient:
         """Sends a request by invoking an asyncio callable and collecting results.
 
         This is used for requests that return paged results. Inside the asyncio
-        event loop, we iterate over all results and collect then into a list.
+        event loop, we iterate over all results and collect them into a list.
         """
 
         async def new_func(request: _M) -> list[_R]:
@@ -186,7 +196,7 @@ class EngineClient:
         Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
-            return_code: If True returns the serialized program code.
+            return_code: If True, returns the serialized program code.
         """
         request = quantum.GetQuantumProgramRequest(
             name=_program_name_from_ids(project_id, program_id), return_code=return_code
@@ -201,7 +211,7 @@ class EngineClient:
         created_before: datetime.datetime | datetime.date | None = None,
         created_after: datetime.datetime | datetime.date | None = None,
         has_labels: dict[str, str] | None = None,
-    ):
+    ) -> list[quantum.QuantumProgram]:
         """Returns a list of previously executed quantum programs.
 
         Args:
@@ -212,11 +222,11 @@ class EngineClient:
                 or time.
             has_labels: retrieve programs that have labels on them specified by
                 this dict. If the value is set to `*`, filters having the label
-                egardless of the label value will be filtered. For example, to
-                uery programs that have the shape label and have the color
-                label with value red can be queried using
+                regardless of the label value will be filtered. For example, to
+                query programs that have the 'shape' label and have the 'color'
+                label with value 'red' can be queried using:
 
-                {'color': 'red', 'shape':'*'}
+                {'color': 'red', 'shape': '*'}
         """
         filters = []
 
@@ -232,7 +242,7 @@ class EngineClient:
         request = quantum.ListQuantumProgramsRequest(
             parent=_project_name(project_id), filter=" AND ".join(filters)
         )
-        return await self._send_request_async(self.grpc_client.list_quantum_programs, request)
+        return await self._send_list_request_async(self.grpc_client.list_quantum_programs, request)
 
     list_programs = duet.sync(list_programs_async)
 
@@ -357,8 +367,8 @@ class EngineClient:
         Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
-            delete_jobs: If True will delete all the program's jobs, other this
-                will fail if the program contains any jobs.
+            delete_jobs: If True, will delete all the program's jobs, otherwise
+                this will fail if the program contains any jobs.
         """
         request = quantum.DeleteQuantumProgramRequest(
             name=_program_name_from_ids(project_id, program_id), delete_jobs=delete_jobs
@@ -386,7 +396,8 @@ class EngineClient:
 
         Either both `run_name` and `device_config_name` must be set, or neither
         of them must be set. If none of them are set, a default internal device
-        configuration will be used.
+        configuration will be used. If both `run_name` and `snapshot_id` are
+        set, then `snapshot_id` will be preferred.
 
         Args:
             project_id: A project_id of the parent Google Cloud Project.
@@ -416,7 +427,6 @@ class EngineClient:
             ValueError: If  only one of `run_name` and `device_config_name` are specified.
             ValueError: If either `run_name` and `device_config_name` are set but
                 `processor_id` is empty.
-            ValueError: If both `run_name` and `snapshot_id` are specified.
         """
         # Check program to run and program parameters.
         if priority and not 0 <= priority < 1000:
@@ -424,7 +434,7 @@ class EngineClient:
         if not processor_id:
             raise ValueError('Must specify a processor id when creating a job.')
         if run_name and snapshot_id:
-            raise ValueError('Cannot specify both `run_name` and `snapshot_id`')
+            print('Both run_name and snapshot_id were specified, using snapshot_id.')
         if (bool(run_name) or bool(snapshot_id)) ^ bool(device_config_name):
             raise ValueError(
                 'Cannot specify only one of top level identifier (e.g `run_name`, `snapshot_id`)'
@@ -475,7 +485,7 @@ class EngineClient:
         execution_states: set[quantum.ExecutionStatus.State] | None = None,
         executed_processor_ids: list[str] | None = None,
         scheduled_processor_ids: list[str] | None = None,
-    ):
+    ) -> list[quantum.QuantumJob]:
         """Returns the list of jobs for a given program.
 
         Args:
@@ -490,10 +500,10 @@ class EngineClient:
             has_labels: retrieve jobs that have labels on them specified by
                 this dict. If the value is set to `*`, filters having the label
                 regardless of the label value will be filtered. For example, to
-                query programs that have the shape label and have the color
-                label with value red can be queried using
+                query programs that have the shape 'label' and have the 'color'
+                label with value 'red' can be queried using:
 
-                {'color': 'red', 'shape':'*'}
+                {'color': 'red', 'shape': '*'}
 
             execution_states: retrieve jobs that have an execution state that
                 is contained in `execution_states`. See
@@ -535,7 +545,7 @@ class EngineClient:
             program_id = "-"
         parent = _program_name_from_ids(project_id, program_id)
         request = quantum.ListQuantumJobsRequest(parent=parent, filter=" AND ".join(filters))
-        return await self._send_request_async(self.grpc_client.list_quantum_jobs, request)
+        return await self._send_list_request_async(self.grpc_client.list_quantum_jobs, request)
 
     list_jobs = duet.sync(list_jobs_async)
 
@@ -548,7 +558,7 @@ class EngineClient:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             job_id: Unique ID of the job within the parent program.
-            return_run_context: If true then the run context will be loaded
+            return_run_context: If True, then the run context will be loaded
                 from the job's run_context_location and set on the returned
                 QuantumJob.
         """
@@ -784,7 +794,6 @@ class EngineClient:
             ValueError: If the priority is not between 0 and 1000.
             ValueError: If `processor_id` is not set.
             ValueError: If only one of `run_name` and `device_config_name` are specified.
-            ValueError: If both `run_name` and `snapshot_id` are specified.
         """
         # Check program to run and program parameters.
         if priority and not 0 <= priority < 1000:
@@ -792,7 +801,7 @@ class EngineClient:
         if not processor_id:
             raise ValueError('Must specify a processor id when creating a job.')
         if run_name and snapshot_id:
-            raise ValueError('Cannot specify both `run_name` and `snapshot_id`')
+            print('Both run_name and snapshot_id were specified, using snapshot_id.')
         if (bool(run_name) or bool(snapshot_id)) ^ bool(device_config_name):
             raise ValueError(
                 'Cannot specify only one of top level identifier and `device_config_name`'
@@ -945,13 +954,20 @@ class EngineClient:
 
     get_current_calibration = duet.sync(get_current_calibration_async)
 
+    @_compat.deprecated_parameter(
+        deadline='v1.7',
+        fix='Change whitelisted_users to allowlisted_users.',
+        parameter_desc='whitelisted_users',
+        match=lambda args, kwargs: 'whitelisted_users' in kwargs,
+        rewrite=_fix_deprecated_allowlisted_users_args,
+    )
     async def create_reservation_async(
         self,
         project_id: str,
         processor_id: str,
         start: datetime.datetime,
         end: datetime.datetime,
-        whitelisted_users: list[str] | None = None,
+        allowlisted_users: list[str] | None = None,
     ):
         """Creates a quantum reservation and returns the created object.
 
@@ -962,7 +978,7 @@ class EngineClient:
                 or None if the engine should generate an id
             start: the starting time of the reservation as a datetime object
             end: the ending time of the reservation as a datetime object
-            whitelisted_users: a list of emails that can use the reservation.
+            allowlisted_users: a list of emails that can use the reservation.
         """
         parent = _processor_name_from_ids(project_id, processor_id)
         reservation = quantum.QuantumReservation(
@@ -970,14 +986,14 @@ class EngineClient:
             start_time=Timestamp(seconds=int(start.timestamp())),
             end_time=Timestamp(seconds=int(end.timestamp())),
         )
-        if whitelisted_users:
-            reservation.whitelisted_users.extend(whitelisted_users)
+        if allowlisted_users:
+            reservation.allowlisted_users.extend(allowlisted_users)
         request = quantum.CreateQuantumReservationRequest(
             parent=parent, quantum_reservation=reservation
         )
         return await self._send_request_async(self.grpc_client.create_quantum_reservation, request)
 
-    create_reservation = duet.sync(create_reservation_async)
+    create_reservation = duet.sync(create_reservation_async)  # type: ignore[misc]
 
     async def cancel_reservation_async(
         self, project_id: str, processor_id: str, reservation_id: str
@@ -1083,6 +1099,13 @@ class EngineClient:
 
     list_reservations = duet.sync(list_reservations_async)
 
+    @_compat.deprecated_parameter(
+        deadline='v1.7',
+        fix='Change whitelisted_users to allowlisted_users.',
+        parameter_desc='whitelisted_users',
+        match=lambda args, kwargs: 'whitelisted_users' in kwargs,
+        rewrite=_fix_deprecated_allowlisted_users_args,
+    )
     async def update_reservation_async(
         self,
         project_id: str,
@@ -1090,12 +1113,12 @@ class EngineClient:
         reservation_id: str,
         start: datetime.datetime | None = None,
         end: datetime.datetime | None = None,
-        whitelisted_users: list[str] | None = None,
+        allowlisted_users: list[str] | None = None,
     ):
         """Updates a quantum reservation.
 
         This will update a quantum reservation's starting time, ending time,
-        and list of whitelisted users.  If any field is not filled, it will
+        and list of allowlisted users.  If any field is not filled, it will
         not be updated.
 
         Args:
@@ -1104,8 +1127,8 @@ class EngineClient:
             reservation_id: Unique ID of the reservation in the parent project,
             start: the new starting time of the reservation as a datetime object
             end: the new ending time of the reservation as a datetime object
-            whitelisted_users: a list of emails that can use the reservation.
-                The empty list, [], will clear the whitelisted_users while None
+            allowlisted_users: a list of emails that can use the reservation.
+                The empty list, [], will clear the allowlisted_users while None
                 will leave the value unchanged.
         """
         name = (
@@ -1122,9 +1145,9 @@ class EngineClient:
         if end:
             reservation.end_time = end
             paths.append('end_time')
-        if whitelisted_users is not None:
-            reservation.whitelisted_users.extend(whitelisted_users)
-            paths.append('whitelisted_users')
+        if allowlisted_users is not None:
+            reservation.allowlisted_users.extend(allowlisted_users)
+            paths.append('allowlisted_users')
 
         request = quantum.UpdateQuantumReservationRequest(
             name=name,
@@ -1133,7 +1156,7 @@ class EngineClient:
         )
         return await self._send_request_async(self.grpc_client.update_quantum_reservation, request)
 
-    update_reservation = duet.sync(update_reservation_async)
+    update_reservation = duet.sync(update_reservation_async)  # type: ignore[misc]
 
     async def list_time_slots_async(
         self, project_id: str, processor_id: str, filter_str: str = ''
@@ -1158,6 +1181,74 @@ class EngineClient:
         )
 
     list_time_slots = duet.sync(list_time_slots_async)
+
+    async def get_quantum_processor_config_async(
+        self,
+        project_id: str,
+        processor_id: str,
+        config_name: str = 'default',
+        device_config_revision: DeviceConfigRevision = Run(id='current'),
+    ) -> quantum.QuantumProcessorConfig | None:
+        """Returns the QuantumProcessorConfig for the given snapshot id.
+
+        Args:
+            project_id: A project_id of the parent Google Cloud Project.
+            processor_id: The processor unique identifier.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
+            config_name: The id of the quantum processor config.
+
+        Returns:
+            The quantum procesor config or None if it does not exist.
+
+        Raises:
+            EngineException: If the request to get the config fails.
+        """
+        try:
+            config_revision = _quantum_processor_revision_path(
+                project_id=project_id,
+                processor_id=processor_id,
+                device_config_revision=device_config_revision,
+            )
+            request = quantum.GetQuantumProcessorConfigRequest(
+                name=f'{config_revision}/configs/{config_name}'
+            )
+            return await self._send_request_async(
+                self.grpc_client.get_quantum_processor_config, request
+            )
+        except EngineException as err:
+            if isinstance(err.__cause__, NotFound):
+                return None
+            raise
+
+    get_quantum_processor_config = duet.sync(get_quantum_processor_config_async)
+
+    async def list_quantum_processor_configs_async(
+        self,
+        project_id: str,
+        processor_id: str,
+        device_config_revision: DeviceConfigRevision = Run(id='current'),
+    ) -> list[quantum.QuantumProcessorConfig]:
+        """Returns the QuantumProcessorConfig for the given snapshot id.
+
+        Args:
+            project_id: A project_id of the parent Google Cloud Project.
+            processor_id: The processor unique identifier.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
+
+        Returns:
+            List of quantum procesor configs.
+        """
+        parent_resource_name = _quantum_processor_revision_path(
+            project_id=project_id,
+            processor_id=processor_id,
+            device_config_revision=device_config_revision,
+        )
+        request = quantum.ListQuantumProcessorConfigsRequest(parent=parent_resource_name)
+        return await self._send_list_request_async(
+            self.grpc_client.list_quantum_processor_configs, request
+        )
+
+    list_quantum_processor_configs = duet.sync(list_quantum_processor_configs_async)
 
 
 def _project_name(project_id: str) -> str:
@@ -1206,6 +1297,18 @@ def _ids_from_processor_name(processor_name: str) -> tuple[str, str]:
 def _ids_from_calibration_name(calibration_name: str) -> tuple[str, str, int]:
     parts = calibration_name.split('/')
     return parts[1], parts[3], int(parts[5])
+
+
+def _quantum_processor_revision_path(
+    project_id: str, processor_id: str, device_config_revision: DeviceConfigRevision | None = None
+) -> str:
+    processor_resource_name = _processor_name_from_ids(project_id, processor_id)
+    if isinstance(device_config_revision, Snapshot):
+        return f'{processor_resource_name}/configSnapshots/{device_config_revision.id}'
+
+    default_run_name = 'default'
+    run_id = device_config_revision.id if device_config_revision else default_run_name
+    return f'{processor_resource_name}/configAutomationRuns/{run_id}'
 
 
 def _date_or_time_to_filter_expr(param_name: str, param: datetime.datetime | datetime.date):

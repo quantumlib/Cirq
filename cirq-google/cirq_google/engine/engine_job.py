@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import datetime
-from typing import Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 import duet
 
@@ -26,12 +27,12 @@ from cirq_google.api import v1, v2
 from cirq_google.cloud import quantum
 from cirq_google.engine import abstract_job, calibration, engine_client
 from cirq_google.engine.engine_result import EngineResult
+from cirq_google.engine.stream_manager import StreamError
 
 if TYPE_CHECKING:
     from google.protobuf import any_pb2
 
     import cirq_google.engine.engine as engine_base
-    from cirq_google.engine.calibration_result import CalibrationResult
     from cirq_google.engine.engine import engine_processor, engine_program
 
 TERMINAL_STATES = [
@@ -91,7 +92,6 @@ class EngineJob(abstract_job.AbstractJob):
         self.context = context
         self._job = _job
         self._results: Sequence[EngineResult] | None = None
-        self._calibration_results: Sequence[CalibrationResult] | None = None
         self._batched_results: Sequence[Sequence[EngineResult]] | None = None
         self._job_result_future = job_result_future
 
@@ -159,7 +159,7 @@ class EngineJob(abstract_job.AbstractJob):
 
     def labels(self) -> dict[str, str]:
         """Returns the labels of the job."""
-        return self._inner_job().labels
+        return dict(self._inner_job().labels)
 
     def set_labels(self, labels: dict[str, str]) -> EngineJob:
         """Sets (overwriting) the labels for a previously created quantum job.
@@ -292,16 +292,20 @@ class EngineJob(abstract_job.AbstractJob):
 
     async def _await_result_async(self) -> quantum.QuantumResult:
         if self._job_result_future is not None:
-            response = await self._job_result_future
-            if isinstance(response, quantum.QuantumResult):
-                return response
-            elif isinstance(response, quantum.QuantumJob):
-                self._job = response
-                _raise_on_failure(response)
-            else:
-                raise ValueError(
-                    'Internal error: The job response type is not recognized.'
-                )  # pragma: no cover
+            try:
+                response = await self._job_result_future
+                if isinstance(response, quantum.QuantumResult):
+                    return response
+                elif isinstance(response, quantum.QuantumJob):
+                    self._job = response
+                    _raise_on_failure(response)
+                else:
+                    raise ValueError(
+                        'Internal error: The job response type is not recognized.'
+                    )  # pragma: no cover
+            except StreamError:
+                # If the stream has disconnected, attempt to retrieve the result without it.
+                pass
 
         async with duet.timeout_scope(self.context.timeout):  # type: ignore[arg-type]
             while True:
@@ -317,7 +321,6 @@ class EngineJob(abstract_job.AbstractJob):
 
     def _get_job_results_v1(self, result: v1.program_pb2.Result) -> Sequence[EngineResult]:
         job_id = self.id()
-        job_finished = self.update_time()
 
         trial_results = []
         for sweep_result in result.sweep_results:
@@ -332,7 +335,6 @@ class EngineJob(abstract_job.AbstractJob):
                         params=cirq.ParamResolver(result.params.assignments),
                         measurements=measurements,
                         job_id=job_id,
-                        job_finished_time=job_finished,
                     )
                 )
         return trial_results
@@ -340,11 +342,10 @@ class EngineJob(abstract_job.AbstractJob):
     def _get_job_results_v2(self, result: v2.result_pb2.Result) -> Sequence[EngineResult]:
         sweep_results = v2.results_from_proto(result)
         job_id = self.id()
-        job_finished = self.update_time()
 
         # Flatten to single list to match to sampler api.
         return [
-            EngineResult.from_result(result, job_id=job_id, job_finished_time=job_finished)
+            EngineResult.from_result(result, job_id=job_id)
             for sweep_result in sweep_results
             for result in sweep_result
         ]

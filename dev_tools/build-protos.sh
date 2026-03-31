@@ -25,10 +25,10 @@ set -e
 trap "{ echo -e '\033[31mFAILED\033[0m'; }" ERR
 
 # Get the working directory to the repo root.
-cd "$(dirname "${BASH_SOURCE[0]}")"
-cd "$(git rev-parse --show-toplevel)"
+thisdir=$(dirname "${BASH_SOURCE[0]:?}")
+repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel)
 
-cd cirq-google || exit $?
+cd "${repo_dir}/cirq-google"
 
 TUNITS_PROTO_PATH=$(python -c "import importlib.resources; print(importlib.resources.files('tunits').parent)")
 

@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import itertools
-from typing import Optional, Sequence, Union
+from collections.abc import Sequence
 
 import numpy as np
 
 from cirq.value import random_state
 
-_RealArraylike = Union[np.ndarray, float]
+_RealArraylike = np.ndarray | float
 
 
 def _single_qubit_unitary(
@@ -48,7 +48,7 @@ def _single_qubit_unitary(
 def random_qubit_unitary(
     shape: Sequence[int] = (),
     randomize_global_phase: bool = False,
-    rng: Optional[np.random.RandomState] = None,
+    rng: np.random.RandomState | None = None,
 ) -> np.ndarray:
     """Random qubit unitary distributed over the Haar measure.
 
@@ -133,7 +133,7 @@ def _kak_equivalent_vectors(kak_vec) -> np.ndarray:
     out = out[..., np.newaxis, :, :, :] + _offsets[:, np.newaxis, np.newaxis, :]
 
     # Merge indices
-    return np.reshape(out, out.shape[:-4] + (192, 3))
+    return np.reshape(out, (*out.shape[:-4], 192, 3))
 
 
 def kak_vector_infidelity(

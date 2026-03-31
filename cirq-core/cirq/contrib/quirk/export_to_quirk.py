@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import json
 import urllib.parse
-from typing import Any, cast, Iterable
+from collections.abc import Iterable
+from typing import Any, cast
 
 from cirq import circuits, devices, ops, protocols
 from cirq.contrib.quirk.linearize_circuit import linearize_circuit_qubits

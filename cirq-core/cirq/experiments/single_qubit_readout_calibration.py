@@ -18,7 +18,8 @@ from __future__ import annotations
 
 import dataclasses
 import time
-from typing import Any, cast, Iterable, TYPE_CHECKING
+from collections.abc import Iterable
+from typing import Any, cast, TYPE_CHECKING
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -178,6 +179,17 @@ class SingleQubitReadoutCalibrationResult:
         ax.legend(loc='best')
         ax.set_ylabel('Percentile')
         return ax
+
+    def readout_result_for_qubits(
+        self, readout_qubits: list[ops.Qid]
+    ) -> SingleQubitReadoutCalibrationResult:
+        """Builds a calibration result for the specific readout qubits."""
+        return SingleQubitReadoutCalibrationResult(
+            zero_state_errors={qubit: self.zero_state_errors[qubit] for qubit in readout_qubits},
+            one_state_errors={qubit: self.one_state_errors[qubit] for qubit in readout_qubits},
+            timestamp=self.timestamp,
+            repetitions=self.repetitions,
+        )
 
     @classmethod
     def _from_json_dict_(

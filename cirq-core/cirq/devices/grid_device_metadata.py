@@ -16,7 +16,8 @@
 
 from __future__ import annotations
 
-from typing import cast, Iterable, Mapping, TYPE_CHECKING
+from collections.abc import Iterable, Mapping
+from typing import cast, TYPE_CHECKING
 
 import networkx as nx
 
@@ -70,7 +71,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
             ValueError: if all_qubits is provided and is not a superset
                 of all the qubits found in qubit_pairs.
         """
-        sorted_pairs = sorted(list(qubit_pairs))
+        sorted_pairs = sorted(qubit_pairs)
         for a, b in sorted_pairs:
             if a == b:
                 raise ValueError(f"Self loop encountered in qubit {a}")
@@ -204,7 +205,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
             'qubit_pairs': sorted([sorted(pair) for pair in self._qubit_pairs]),
             'gateset': self._gateset,
             'gate_durations': duration_payload,
-            'all_qubits': sorted(list(self.qubit_set)),
+            'all_qubits': sorted(self.qubit_set),
             'compilation_target_gatesets': list(self._compilation_target_gatesets),
         }
 

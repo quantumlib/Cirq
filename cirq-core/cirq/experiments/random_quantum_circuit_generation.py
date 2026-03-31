@@ -17,7 +17,8 @@ from __future__ import annotations
 
 import dataclasses
 import itertools
-from typing import Any, Callable, cast, Container, Iterable, Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Callable, Container, Iterable, Iterator, Sequence
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -297,7 +298,7 @@ class CircuitLibraryCombination:
 
     layer: Any | None
     combinations: np.ndarray
-    pairs: list[QidPairT]
+    pairs: Sequence[QidPairT]
 
 
 def _get_random_combinations(
@@ -458,8 +459,7 @@ def _pairs_from_moment(moment: cirq.Moment) -> list[QidPairT]:
     for op in moment.operations:
         if len(op.qubits) != 2:
             raise ValueError("Layer circuit contains non-2-qubit operations.")
-        qpair = cast(QidPairT, op.qubits)
-        pairs.append(qpair)
+        pairs.append(op.qubits)
     return pairs
 
 
@@ -667,7 +667,7 @@ def _single_qubit_gates_arg_to_factory(
     in the previous layer. This check is done by gate identity, not equality.
     """
     if len(set(single_qubit_gates)) == 1:
-        return _FixedSingleQubitLayerFactory({q: single_qubit_gates[0] for q in qubits})
+        return _FixedSingleQubitLayerFactory(dict.fromkeys(qubits, single_qubit_gates[0]))
 
     return _RandomSingleQubitLayerFactory(qubits, single_qubit_gates, prng)
 

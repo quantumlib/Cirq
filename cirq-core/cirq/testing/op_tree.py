@@ -17,7 +17,7 @@ from __future__ import annotations
 from cirq import ops
 
 
-def assert_equivalent_op_tree(x: ops.OP_TREE, y: ops.OP_TREE):
+def assert_equivalent_op_tree(x: ops.OP_TREE, y: ops.OP_TREE) -> None:
     """Ensures that the two OP_TREEs are equivalent.
 
     Args:

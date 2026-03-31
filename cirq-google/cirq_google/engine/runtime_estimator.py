@@ -24,7 +24,7 @@ Your experience may vary based on many factors not captured here.
 Parameters were calculated using a variety of width/depth/sweeps from
 the rep rate calculator, see:
 
-[https://github.com/quantumlib/ReCirq/blob/master/recirq/benchmarks/rep_rate/](https://github.com/quantumlib/ReCirq/blob/master/recirq/benchmarks/rep_rate/){:.external}
+[https://github.com/quantumlib/ReCirq/blob/main/recirq/benchmarks/rep_rate/](https://github.com/quantumlib/ReCirq/blob/main/recirq/benchmarks/rep_rate/){:.external}
 
 Model was then fitted by hand, correcting for anomalies and outliers
 when possible.
@@ -32,7 +32,7 @@ when possible.
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import cirq
 

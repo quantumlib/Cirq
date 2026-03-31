@@ -17,7 +17,7 @@ from __future__ import annotations
 from dev_tools import modules
 
 
-def test_versions_are_the_same():
+def test_versions_are_the_same() -> None:
     """Test for consistent version number across all modules."""
     mods = modules.list_modules(include_parent=True)
     versions = {m.name: m.version for m in mods}

@@ -16,8 +16,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from numbers import Real
-from typing import Sequence, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from cirq.ops import CZ, CZPowGate, Gate, Gateset, S, X
 from cirq.transformers.gauge_compiling.gauge_compiling import (

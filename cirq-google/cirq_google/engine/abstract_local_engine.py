@@ -14,7 +14,8 @@
 from __future__ import annotations
 
 import datetime
-from typing import Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 from cirq_google.engine.abstract_engine import AbstractEngine
 
@@ -102,7 +103,7 @@ class AbstractLocalEngine(AbstractEngine):
         """Returns the list of jobs in the project.
 
         All historical jobs can be retrieved using this method and filtering
-        options are available too, to narrow down the search baesd on:
+        options are available too, to narrow down the search based on:
           * creation time
           * job labels
           * execution states

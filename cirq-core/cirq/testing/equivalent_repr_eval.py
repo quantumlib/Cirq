@@ -41,7 +41,7 @@ def assert_equivalent_repr(
     Raises:
         AssertionError: If the assertion fails, or eval(repr(value)) raises an error.
     """
-    __tracebackhide__ = True  # pylint: disable=unused-variable
+    __tracebackhide__ = True
 
     global_vals = global_vals or {}
     local_vals = local_vals or {}

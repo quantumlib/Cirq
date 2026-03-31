@@ -8,7 +8,13 @@ import collections.abc
 import google.protobuf.descriptor
 import google.protobuf.internal.containers
 import google.protobuf.message
+import sys
 import typing
+
+if sys.version_info >= (3, 10):
+    import typing as typing_extensions
+else:
+    import typing_extensions
 
 DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
 
@@ -28,18 +34,18 @@ class MetricsSnapshot(google.protobuf.message.Message):
     time at which all of the metrics have been collected.
     """
     @property
-    def metrics(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Metric]:
+    def metrics(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___Metric]:
         """All of the metrics collected during this snapshot."""
 
     def __init__(
         self,
         *,
         timestamp_ms: builtins.int = ...,
-        metrics: collections.abc.Iterable[global___Metric] | None = ...,
+        metrics: collections.abc.Iterable[Global___Metric] | None = ...,
     ) -> None: ...
     def ClearField(self, field_name: typing.Literal["metrics", b"metrics", "timestamp_ms", b"timestamp_ms"]) -> None: ...
 
-global___MetricsSnapshot = MetricsSnapshot
+Global___MetricsSnapshot: typing_extensions.TypeAlias = MetricsSnapshot
 
 @typing.final
 class Metric(google.protobuf.message.Message):
@@ -62,7 +68,7 @@ class Metric(google.protobuf.message.Message):
         """
 
     @property
-    def values(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Value]:
+    def values(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___Value]:
         """The values of this Metrics. Repeated to support multivalued metrics like
         tomography.
         """
@@ -72,11 +78,11 @@ class Metric(google.protobuf.message.Message):
         *,
         name: builtins.str = ...,
         targets: collections.abc.Iterable[builtins.str] | None = ...,
-        values: collections.abc.Iterable[global___Value] | None = ...,
+        values: collections.abc.Iterable[Global___Value] | None = ...,
     ) -> None: ...
     def ClearField(self, field_name: typing.Literal["name", b"name", "targets", b"targets", "values", b"values"]) -> None: ...
 
-global___Metric = Metric
+Global___Metric: typing_extensions.TypeAlias = Metric
 
 @typing.final
 class Value(google.protobuf.message.Message):
@@ -104,4 +110,4 @@ class Value(google.protobuf.message.Message):
     def ClearField(self, field_name: typing.Literal["double_val", b"double_val", "int32_val", b"int32_val", "int64_val", b"int64_val", "str_val", b"str_val", "val", b"val"]) -> None: ...
     def WhichOneof(self, oneof_group: typing.Literal["val", b"val"]) -> typing.Literal["double_val", "int32_val", "int64_val", "str_val"] | None: ...
 
-global___Value = Value
+Global___Value: typing_extensions.TypeAlias = Value

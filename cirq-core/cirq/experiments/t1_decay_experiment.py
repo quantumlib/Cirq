@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any, cast, Optional, Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import Any, cast, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -146,7 +147,7 @@ class T1DecayResult:
             return np.nan
 
     def plot(
-        self, ax: Optional[plt.Axes] = None, include_fit: bool = False, **plot_kwargs: Any
+        self, ax: plt.Axes | None = None, include_fit: bool = False, **plot_kwargs: Any
     ) -> plt.Axes:
         """Plots the excited state probability vs the amount of delay.
 

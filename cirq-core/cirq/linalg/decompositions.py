@@ -18,7 +18,8 @@ from __future__ import annotations
 
 import cmath
 import math
-from typing import Any, Callable, cast, Iterable, TYPE_CHECKING, TypeVar
+from collections.abc import Callable, Iterable
+from typing import Any, cast, TYPE_CHECKING, TypeVar
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -116,7 +117,7 @@ def unitary_eig(
             was unitary.
 
     Returns:
-        A Tuple of
+        A tuple of
             eigvals: The eigenvalues of `matrix`.
             V: The unitary matrix with the eigenvectors as columns.
 
@@ -130,7 +131,6 @@ def unitary_eig(
     return R.diagonal(), V
 
 
-# pylint: enable=missing-raises-doc
 def map_eigenvalues(
     matrix: np.ndarray, func: Callable[[complex], complex], *, atol: float = 1e-8
 ) -> np.ndarray:
@@ -244,7 +244,7 @@ def so4_to_magic_su2s(
 
 @value.value_equality(approximate=True)
 class AxisAngleDecomposition:
-    """Represents a unitary operation as an axis, angle, and global phase.
+    r"""Represents a unitary operation as an axis, angle, and global phase.
 
     The unitary $U$ is decomposed as follows:
 
@@ -473,6 +473,9 @@ class KakDecomposition:
             f'    global_phase={self.global_phase!r})'
         )
 
+    def _has_unitary_(self) -> bool:
+        return True
+
     def _unitary_(self) -> np.ndarray:
         """Returns the decomposition's two-qubit unitary matrix.
 
@@ -519,7 +522,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
     include_frame: bool = True,
     ax: mplot3d.axes3d.Axes3D | None = None,
     **kwargs,
-):
+) -> mplot3d.axes3d.Axes3D:
     r"""Plots the interaction coefficients of many two-qubit operations.
 
     Plots:

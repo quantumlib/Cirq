@@ -58,7 +58,6 @@ class Timestamp:
     def __radd__(self, other) -> Timestamp:
         return self.__add__(other)
 
-    # pylint: disable=function-redefined
     @overload
     def __sub__(self, other: Timestamp) -> Duration:
         pass
@@ -79,8 +78,6 @@ class Timestamp:
         if isinstance(other, type(self)):
             return Duration(picos=self._picos - other._picos)
         return NotImplemented
-
-    # pylint: enable=function-redefined
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):

@@ -13,7 +13,13 @@
 # limitations under the License.
 """Data format v2 for google api."""
 
-from cirq_google.api.v2 import device_pb2, metrics_pb2, program_pb2, result_pb2, run_context_pb2
+from cirq_google.api.v2 import (
+    device_pb2,  # noqa: F401
+    metrics_pb2,  # noqa: F401
+    program_pb2,  # noqa: F401
+    result_pb2,  # noqa: F401
+    run_context_pb2,  # noqa: F401
+)
 
 from cirq_google.api.v2.program import (
     grid_qubit_from_proto_id as grid_qubit_from_proto_id,

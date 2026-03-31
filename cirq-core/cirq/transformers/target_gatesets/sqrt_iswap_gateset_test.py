@@ -14,8 +14,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 import numpy as np
 import pytest
 import sympy
@@ -24,10 +22,7 @@ import cirq
 
 
 def all_gates_of_type(m: cirq.Moment, g: cirq.Gateset):
-    for op in m:
-        if op not in g:
-            return False
-    return True
+    return all(op in g for op in m)
 
 
 def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit, **kwargs):
@@ -40,7 +35,7 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit, **kwargs):
 
 
 def assert_optimization_not_broken(
-    circuit: cirq.Circuit, required_sqrt_iswap_count: Optional[int] = None
+    circuit: cirq.Circuit, required_sqrt_iswap_count: int | None = None
 ):
     c_new = cirq.optimize_for_target_gateset(
         circuit,

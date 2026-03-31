@@ -15,12 +15,16 @@
 from __future__ import annotations
 
 from multiprocessing import Process
+from typing import TYPE_CHECKING
 
 import pytest
 
 import cirq
 import cirq.contrib.routing as ccr
 from cirq.contrib.routing.greedy import route_circuit_greedily
+
+if TYPE_CHECKING:
+    import networkx as nx
 
 
 def test_bad_args() -> None:
@@ -34,18 +38,19 @@ def test_bad_args() -> None:
         route_circuit_greedily(circuit, device_graph, max_num_empty_steps=0)
 
 
-def create_circuit_and_device():
+def create_circuit_and_device() -> tuple[cirq.Circuit, nx.Graph]:
     """Construct a small circuit and a device with line connectivity
     to test the greedy router. This instance hangs router in Cirq 8.2.
     """
     num_qubits = 6
+    gate_domain: dict[cirq.Gate, int]
     gate_domain = {cirq.ops.CNOT: 2}
     circuit = cirq.testing.random_circuit(num_qubits, 15, 0.5, gate_domain, random_state=37)
     device_graph = ccr.get_linear_device_graph(num_qubits)
     return circuit, device_graph
 
 
-def create_hanging_routing_instance(circuit, device_graph):
+def create_hanging_routing_instance(circuit, device_graph) -> None:
     """Create a test problem instance."""
     route_circuit_greedily(  # pragma: no cover
         circuit, device_graph, max_search_radius=2, random_state=1

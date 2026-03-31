@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Iterable, Sequence, TYPE_CHECKING, Union
+from collections.abc import Callable, Iterable, Sequence
+from typing import Any, TYPE_CHECKING, Union
 
 from cirq import ops, protocols, value
 from cirq._doc import document
@@ -235,7 +236,7 @@ class ConstantQubitNoiseModel(NoiseModel):
     def __repr__(self) -> str:
         return f'cirq.ConstantQubitNoiseModel({self.qubit_noise_gate!r})'
 
-    def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]):
+    def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         # Noise should not be appended to previously-added noise.
         if self.is_virtual_moment(moment):
             return moment

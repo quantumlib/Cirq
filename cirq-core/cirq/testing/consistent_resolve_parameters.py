@@ -21,7 +21,7 @@ import sympy
 import cirq
 
 
-def assert_consistent_resolve_parameters(val: Any):
+def assert_consistent_resolve_parameters(val: Any) -> None:
     names = cirq.parameter_names(val)
     symbols = cirq.parameter_symbols(val)
 
@@ -35,8 +35,8 @@ def assert_consistent_resolve_parameters(val: Any):
         # the parameters want different types. But if resolution succeeds, the
         # object should report that it has no more parameters to resolve.
         try:
-            resolved = cirq.resolve_parameters(val, {name: 0 for name in names})
-        except Exception:
+            resolved = cirq.resolve_parameters(val, dict.fromkeys(names, 0))
+        except (TypeError, ValueError, RecursionError, sympy.SympifyError):
             pass
         else:
             assert not cirq.parameter_names(resolved)
@@ -50,4 +50,4 @@ def assert_consistent_resolve_parameters(val: Any):
         param_dict.update({sympy.Symbol(name + '_CONSISTENCY_TEST'): 0 for name in names})
         resolver = cirq.ParamResolver(param_dict)
         resolved = cirq.resolve_parameters_once(val, resolver)
-        assert cirq.parameter_names(resolved) == set(name + '_CONSISTENCY_TEST' for name in names)
+        assert cirq.parameter_names(resolved) == {name + '_CONSISTENCY_TEST' for name in names}

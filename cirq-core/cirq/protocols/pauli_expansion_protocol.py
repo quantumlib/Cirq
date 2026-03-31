@@ -16,9 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Any, TypeVar, Union
-
-from typing_extensions import Protocol
+from typing import Any, Protocol, TypeVar
 
 from cirq import value
 from cirq._doc import doc_private
@@ -48,9 +46,9 @@ class SupportsPauliExpansion(Protocol):
 def pauli_expansion(
     val: Any,
     *,
-    default: Union[value.LinearDict[str], TDefault] = RaiseTypeErrorIfNotProvided,
+    default: value.LinearDict[str] | TDefault = RaiseTypeErrorIfNotProvided,
     atol: float = 1e-9,
-) -> Union[value.LinearDict[str], TDefault]:
+) -> value.LinearDict[str] | TDefault:
     """Returns coefficients of the expansion of val in the Pauli basis.
 
     Args:

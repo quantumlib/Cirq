@@ -1,0 +1,54 @@
+[
+  {
+    "cirq_type": "PerQubitDepolarizingWithDampedReadoutNoiseModel",
+    "depol_probs": [
+      [
+        {
+          "cirq_type": "LineQubit",
+          "x": 0
+        },
+        0.1
+      ]
+    ],
+    "bitflip_probs": [
+      [
+        {
+          "cirq_type": "LineQubit",
+          "x": 0
+        },
+        0.2
+      ]
+    ],
+    "decay_probs": [
+      [
+        {
+          "cirq_type": "LineQubit",
+          "x": 0
+        },
+        0.3
+      ]
+    ]
+  },
+  {
+    "cirq_type": "PerQubitDepolarizingWithDampedReadoutNoiseModel",
+    "depol_probs": null,
+    "bitflip_probs": [
+      [
+        {
+          "cirq_type": "LineQubit",
+          "x": 0
+        },
+        0.21
+      ]
+    ],
+    "decay_probs": [
+      [
+        {
+          "cirq_type": "LineQubit",
+          "x": 0
+        },
+        0.31
+      ]
+    ]
+  }
+]

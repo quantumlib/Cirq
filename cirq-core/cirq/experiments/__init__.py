@@ -15,12 +15,15 @@
 
 from cirq.experiments.qubit_characterizations import (
     RandomizedBenchMarkResult as RandomizedBenchMarkResult,
+    RBParameters as RBParameters,
     single_qubit_randomized_benchmarking as single_qubit_randomized_benchmarking,
+    single_qubit_rb as single_qubit_rb,
     single_qubit_state_tomography as single_qubit_state_tomography,
     TomographyResult as TomographyResult,
     two_qubit_randomized_benchmarking as two_qubit_randomized_benchmarking,
     two_qubit_state_tomography as two_qubit_state_tomography,
     parallel_single_qubit_randomized_benchmarking as parallel_single_qubit_randomized_benchmarking,
+    parallel_single_qubit_rb as parallel_single_qubit_rb,
 )
 
 from cirq.experiments.fidelity_estimation import (
@@ -37,12 +40,11 @@ from cirq.experiments.purity_estimation import (
 )
 
 from cirq.experiments.random_quantum_circuit_generation import (
-    # pylint: disable=line-too-long
     GRID_ALIGNED_PATTERN as GRID_ALIGNED_PATTERN,
     GRID_STAGGERED_PATTERN as GRID_STAGGERED_PATTERN,
     HALF_GRID_STAGGERED_PATTERN as HALF_GRID_STAGGERED_PATTERN,
     GridInteractionLayer as GridInteractionLayer,
-    random_rotations_between_grid_interaction_layers_circuit as random_rotations_between_grid_interaction_layers_circuit,
+    random_rotations_between_grid_interaction_layers_circuit as random_rotations_between_grid_interaction_layers_circuit,  # noqa: E501
 )
 
 from cirq.experiments.readout_confusion_matrix import (

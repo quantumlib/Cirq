@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import itertools
-from typing import Callable, Iterable, Sequence, TYPE_CHECKING, Union
+from collections.abc import Callable, Iterable, Sequence
+from typing import TYPE_CHECKING, Union
 
 from cirq import _import, circuits, ops, protocols
 from cirq.transformers import transformer_api
@@ -164,7 +165,7 @@ def _stratify_circuit(
                 new_moments += [[] for _ in range(num_classes)]
             new_moments[time_index].append(op)
 
-            # Update qubit, measurment key, and control key moments.
+            # Update qubit, measurement key, and control key moments.
             for qubit in op.qubits:
                 qubit_time_index[qubit] = time_index
             for key in protocols.measurement_key_objs(op):

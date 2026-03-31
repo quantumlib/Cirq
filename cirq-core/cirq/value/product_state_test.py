@@ -88,7 +88,7 @@ def test_product_state():
     with pytest.raises(ValueError) as e:
         # Re-use q2
         ps *= cirq.KET_PLUS(q2)
-    assert e.match(r'.*both contain factors for these qubits: ' r'\[cirq.LineQubit\(2\)\]')
+    assert e.match(r'.*both contain factors for these qubits: \[cirq.LineQubit\(2\)\]')
 
     ps2 = eval(repr(ps))
     assert ps == ps2

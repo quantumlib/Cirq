@@ -14,29 +14,30 @@
 
 from __future__ import annotations
 
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any, Self
 
 import cirq
 
 
 class EmptyQuantumState(cirq.QuantumStateRepresentation):
-    def copy(self, deep_copy_buffers=True):
+    def copy(self, deep_copy_buffers=True) -> Self:
         return self
 
-    def measure(self, axes, seed=None):
+    def measure(self, axes, seed=None) -> list[int]:
         return [0] * len(axes)
 
     @property
-    def supports_factor(self):
+    def supports_factor(self) -> bool:
         return True
 
-    def kron(self, other):
+    def kron(self, other) -> Self:
         return self
 
-    def factor(self, axes, *, validate=True, atol=1e-07):
+    def factor(self, axes, *, validate=True, atol=1e-07) -> tuple[Self, Self]:
         return self, self
 
-    def reindex(self, axes):
+    def reindex(self, axes) -> Self:
         return self
 
 

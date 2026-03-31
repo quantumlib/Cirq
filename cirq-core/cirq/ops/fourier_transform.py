@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import AbstractSet, Any
+from collections.abc import Set
+from typing import Any
 
 import numpy as np
 import sympy
@@ -91,7 +92,7 @@ class QuantumFourierTransformGate(raw_types.Gate):
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return cirq.CircuitDiagramInfo(
-            wire_symbols=(str(self),) + tuple(f'#{k+1}' for k in range(1, self._num_qubits)),
+            wire_symbols=(str(self), *(f'#{k+1}' for k in range(1, self._num_qubits))),
             exponent_qubit_index=0,
         )
 
@@ -163,7 +164,7 @@ class PhaseGradientGate(raw_types.Gate):
     def _is_parameterized_(self) -> bool:
         return cirq.is_parameterized(self.exponent)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return cirq.parameter_names(self.exponent)
 
     def _resolve_parameters_(
@@ -184,7 +185,7 @@ class PhaseGradientGate(raw_types.Gate):
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return cirq.CircuitDiagramInfo(
-            wire_symbols=('Grad',) + tuple(f'#{k+1}' for k in range(1, self._num_qubits)),
+            wire_symbols=('Grad', *(f'#{k+1}' for k in range(1, self._num_qubits))),
             exponent=self.exponent,
             exponent_qubit_index=0,
         )
@@ -212,6 +213,4 @@ def qft(*qubits: cirq.Qid, without_reverse: bool = False, inverse: bool = False)
         A `cirq.Operation` applying the qft to the given qubits.
     """
     result = QuantumFourierTransformGate(len(qubits), without_reverse=without_reverse).on(*qubits)
-    if inverse:
-        result = cirq.inverse(result)
-    return result
+    return cirq.inverse(result) if inverse else result

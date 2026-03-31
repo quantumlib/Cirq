@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2022 Google LLC
+# Copyright 2025 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ from .engine import (
     DeleteQuantumReservationRequest,
     GetQuantumCalibrationRequest,
     GetQuantumJobRequest,
+    GetQuantumProcessorConfigRequest,
     GetQuantumProcessorRequest,
     GetQuantumProgramRequest,
     GetQuantumReservationRequest,
@@ -35,6 +36,8 @@ from .engine import (
     ListQuantumJobEventsResponse,
     ListQuantumJobsRequest,
     ListQuantumJobsResponse,
+    ListQuantumProcessorConfigsRequest,
+    ListQuantumProcessorConfigsResponse,
     ListQuantumProcessorsRequest,
     ListQuantumProcessorsResponse,
     ListQuantumProgramsRequest,
@@ -66,6 +69,7 @@ from .quantum import (
     QuantumJob,
     QuantumJobEvent,
     QuantumProcessor,
+    QuantumProcessorConfig,
     QuantumProgram,
     QuantumReservation,
     QuantumReservationBudget,
@@ -87,6 +91,7 @@ __all__ = (
     'DeleteQuantumReservationRequest',
     'GetQuantumCalibrationRequest',
     'GetQuantumJobRequest',
+    'GetQuantumProcessorConfigRequest',
     'GetQuantumProcessorRequest',
     'GetQuantumProgramRequest',
     'GetQuantumReservationRequest',
@@ -97,6 +102,8 @@ __all__ = (
     'ListQuantumJobEventsResponse',
     'ListQuantumJobsRequest',
     'ListQuantumJobsResponse',
+    'ListQuantumProcessorConfigsRequest',
+    'ListQuantumProcessorConfigsResponse',
     'ListQuantumProcessorsRequest',
     'ListQuantumProcessorsResponse',
     'ListQuantumProgramsRequest',
@@ -116,6 +123,7 @@ __all__ = (
     'UpdateQuantumJobRequest',
     'UpdateQuantumProgramRequest',
     'UpdateQuantumReservationRequest',
+    'DeviceConfigKey',
     'DeviceConfigSelector',
     'ExecutionStatus',
     'GcsLocation',
@@ -125,6 +133,7 @@ __all__ = (
     'QuantumJob',
     'QuantumJobEvent',
     'QuantumProcessor',
+    'QuantumProcessorConfig',
     'QuantumProgram',
     'QuantumReservation',
     'QuantumReservationBudget',
@@ -132,5 +141,4 @@ __all__ = (
     'QuantumResult',
     'QuantumTimeSlot',
     'SchedulingConfig',
-    'DeviceConfigKey',
 )

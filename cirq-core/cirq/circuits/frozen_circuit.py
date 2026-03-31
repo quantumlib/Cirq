@@ -16,9 +16,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Hashable, Iterable, Iterator, Sequence, Set
 from functools import cached_property
 from types import NotImplementedType
-from typing import AbstractSet, Hashable, Iterable, Iterator, Sequence, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from cirq import _compat, protocols
 from cirq.circuits import AbstractCircuit, Alignment, Circuit
@@ -65,9 +66,12 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         self._tags = tuple(tags)
 
     @classmethod
-    def _from_moments(cls, moments: Iterable[cirq.Moment]) -> FrozenCircuit:
+    def _from_moments(
+        cls, moments: Iterable[cirq.Moment], tags: Sequence[Hashable]
+    ) -> FrozenCircuit:
         new_circuit = FrozenCircuit()
         new_circuit._moments = tuple(moments)
+        new_circuit._tags = tuple(tags)
         return new_circuit
 
     @property
@@ -78,7 +82,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return self
 
     def unfreeze(self, copy: bool = True) -> cirq.Circuit:
-        return Circuit._from_moments(self._moments)
+        return Circuit._from_moments(self._moments, tags=self.tags)
 
     @property
     def tags(self) -> tuple[Hashable, ...]:
@@ -87,8 +91,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
 
     @cached_property
     def untagged(self) -> cirq.FrozenCircuit:
-        """Returns the underlying FrozenCircuit without any tags."""
-        return self._from_moments(self._moments) if self.tags else self
+        return super().untagged
 
     def with_tags(self, *new_tags: Hashable) -> cirq.FrozenCircuit:
         """Creates a new tagged `FrozenCircuit` with `self.tags` and `new_tags` combined."""
@@ -102,13 +105,6 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
     def __hash__(self) -> int:
         # Explicitly cached for performance
         return hash((self.moments, self.tags))
-
-    def __eq__(self, other):
-        super_eq = super().__eq__(other)
-        if super_eq is not True:
-            return super_eq
-        other_tags = other.tags if isinstance(other, FrozenCircuit) else ()
-        return self.tags == other_tags
 
     def __getstate__(self):
         # Don't save hash when pickling; see #3777.
@@ -174,23 +170,11 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
 
     @_compat.cached_method
     def _is_parameterized_(self) -> bool:
-        return super()._is_parameterized_() or any(
-            protocols.is_parameterized(tag) for tag in self.tags
-        )
+        return super()._is_parameterized_()
 
     @_compat.cached_method
-    def _parameter_names_(self) -> AbstractSet[str]:
-        tag_params = {name for tag in self.tags for name in protocols.parameter_names(tag)}
-        return super()._parameter_names_() | tag_params
-
-    def _resolve_parameters_(
-        self, resolver: cirq.ParamResolver, recursive: bool
-    ) -> cirq.FrozenCircuit:
-        resolved_circuit = super()._resolve_parameters_(resolver, recursive)
-        resolved_tags = [
-            protocols.resolve_parameters(tag, resolver, recursive) for tag in self.tags
-        ]
-        return resolved_circuit.with_tags(*resolved_tags)
+    def _parameter_names_(self) -> Set[str]:
+        return super()._parameter_names_()
 
     def _measurement_key_names_(self) -> frozenset[str]:
         return self.all_measurement_key_names()
@@ -216,16 +200,6 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
             return (self.unfreeze() ** other).freeze()
         except:
             return NotImplemented
-
-    def _repr_args(self) -> str:
-        moments_repr = super()._repr_args()
-        tag_repr = ','.join(_compat.proper_repr(t) for t in self._tags)
-        return f'{moments_repr}, tags=[{tag_repr}]' if self.tags else moments_repr
-
-    def _json_dict_(self):
-        attribute_names = ['moments', 'tags'] if self.tags else ['moments']
-        ret = protocols.obj_to_dict_helper(self, attribute_names)
-        return ret
 
     @classmethod
     def _from_json_dict_(cls, moments, *, tags=(), **kwargs):

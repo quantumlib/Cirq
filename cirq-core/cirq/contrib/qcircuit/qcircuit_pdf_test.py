@@ -14,18 +14,15 @@
 
 from __future__ import annotations
 
-from unittest import mock
-
-import pylatex
+import pathlib
 
 import cirq
 import cirq.contrib.qcircuit.qcircuit_pdf as qcircuit_pdf
 
 
-@mock.patch.object(pylatex.Document, "generate_pdf")
-def test_qcircuit_pdf(mock_generate_pdf) -> None:
+def test_qcircuit_pdf(tmp_path: pathlib.Path) -> None:
     circuit = cirq.Circuit(cirq.X(cirq.q(0)), cirq.CZ(cirq.q(0), cirq.q(1)))
-    qcircuit_pdf.circuit_to_pdf_using_qcircuit_via_tex(circuit, "/tmp/test_file")
-    mock_generate_pdf.assert_called_once_with(
-        "/tmp/test_file", compiler="latexmk", compiler_args=["-pdfps"]
-    )
+    qcircuit_pdf.circuit_to_pdf_using_qcircuit_via_tex(circuit, f"{tmp_path}/test_file")
+    assert (tmp_path / "test_file.pdf").is_file()
+    assert not (tmp_path / "test_file.dvi").exists()
+    assert not (tmp_path / "test_file.ps").exists()

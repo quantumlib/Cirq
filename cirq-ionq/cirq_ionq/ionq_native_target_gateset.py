@@ -16,8 +16,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from types import NotImplementedType
-from typing import Any, Iterator
+from typing import Any
 
 import numpy as np
 
@@ -149,7 +150,7 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         global_phase = 1j ** (2 * ccz_gate.global_shift * ccz_gate._exponent)
         global_phase = (
             complex(global_phase)
-            if cirq.is_parameterized(global_phase) and global_phase.is_complex  # type: ignore
+            if cirq.is_parameterized(global_phase) and global_phase.is_complex
             else global_phase
         )
         global_phase_operation = (
@@ -158,7 +159,8 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
             else []
         )
 
-        return global_phase_operation + [
+        return [
+            *global_phase_operation,
             self._cnot(*[b, c]),
             p(c) ** -1,
             self._cnot(*[a, c]),

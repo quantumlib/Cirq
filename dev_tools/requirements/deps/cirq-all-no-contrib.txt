@@ -5,5 +5,4 @@
 -r ../../../cirq-google/requirements.txt
 -r ../../../cirq-ionq/requirements.txt
 -r ../../../cirq-pasqal/requirements.txt
--r ../../../cirq-rigetti/requirements.txt
 -r ../../../cirq-web/requirements.txt

@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 import numpy as np
 import pytest
@@ -25,13 +26,13 @@ from cirq.testing import PhaseUsingCleanAncilla, PhaseUsingDirtyAncilla
 
 
 class ExampleQuantumState(cirq.QuantumStateRepresentation):
-    def copy(self, deep_copy_buffers=True):
-        pass
+    def copy(self, deep_copy_buffers=True) -> ExampleQuantumState:
+        raise NotImplementedError()
 
-    def measure(self, axes, seed=None):
+    def measure(self, axes, seed=None) -> list[int]:
         return [5, 3]
 
-    def reindex(self, axes):
+    def reindex(self, axes) -> ExampleQuantumState:
         return self
 
 
@@ -44,7 +45,7 @@ class ExampleSimulationState(cirq.SimulationState):
     ) -> bool:
         return True
 
-    def add_qubits(self, qubits):
+    def add_qubits(self, qubits) -> ExampleSimulationState:
         super().add_qubits(qubits)
         return self
 

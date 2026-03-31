@@ -14,8 +14,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence, Set
 from types import NotImplementedType
-from typing import AbstractSet, Sequence
 
 import numpy as np
 import pytest
@@ -100,7 +100,7 @@ class GoodGate(cirq.testing.SingleQubitGate):
     def _is_parameterized_(self) -> bool:
         return cirq.is_parameterized(self.exponent) or cirq.is_parameterized(self.phase_exponent)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return cirq.parameter_names(self.exponent) | cirq.parameter_names(self.phase_exponent)
 
     def _resolve_parameters_(self, resolver, recursive) -> GoodGate:
@@ -124,7 +124,7 @@ class BadGateIsParameterized(GoodGate):
 
 
 class BadGateParameterNames(GoodGate):
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return super()._parameter_names_() | {'not_a_param'}
 
 
@@ -201,7 +201,7 @@ class BadEigenGate(GoodEigenGate):
         )
 
 
-def test_assert_implements_consistent_protocols():
+def test_assert_implements_consistent_protocols() -> None:
     cirq.testing.assert_implements_consistent_protocols(
         GoodGate(phase_exponent=0.0), global_vals={'GoodGate': GoodGate}
     )
@@ -249,7 +249,7 @@ def test_assert_implements_consistent_protocols():
         cirq.testing.assert_implements_consistent_protocols(controlled_gate_op_test.BadGate())
 
 
-def test_assert_eigengate_implements_consistent_protocols():
+def test_assert_eigengate_implements_consistent_protocols() -> None:
     cirq.testing.assert_eigengate_implements_consistent_protocols(
         GoodEigenGate,
         global_vals={'GoodEigenGate': GoodEigenGate},
@@ -264,7 +264,7 @@ def test_assert_eigengate_implements_consistent_protocols():
         )
 
 
-def test_assert_commutes_magic_method_consistent_with_unitaries():
+def test_assert_commutes_magic_method_consistent_with_unitaries() -> None:
     gate_op = cirq.CNOT(*cirq.LineQubit.range(2))
     with pytest.raises(TypeError):
         cirq.testing.assert_commutes_magic_method_consistent_with_unitaries(gate_op)

@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterable, Iterator, Sequence
+from collections.abc import Iterable, Iterator, Sequence
+from typing import Any
 
 import numpy as np
 
@@ -77,7 +78,7 @@ class InputRotationCell(Cell):
             )
         return self
 
-    def controlled_by(self, qubit: cirq.Qid):
+    def controlled_by(self, qubit: cirq.Qid) -> InputRotationCell:
         return InputRotationCell(
             self.identifier,
             self.register,
@@ -118,7 +119,7 @@ class QuirkInputRotationOperation(ops.Operation):
     def qubits(self) -> tuple[cirq.Qid, ...]:
         return tuple(self.base_operation.qubits) + self.register
 
-    def with_qubits(self, *new_qubits):
+    def with_qubits(self, *new_qubits) -> QuirkInputRotationOperation:
         k = len(self.base_operation.qubits)
         new_op_qubits = new_qubits[:k]
         new_register = new_qubits[k:]

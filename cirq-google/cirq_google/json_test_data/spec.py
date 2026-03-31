@@ -26,11 +26,9 @@ TestSpec = ModuleJsonTestSpec(
         'NoiseModelFromGoogleNoiseProperties',
         'ProtoVersion',
         'GreedySequenceSearchStrategy',
-        'PerQubitDepolarizingWithDampedReadoutNoiseModel',
         'ProcessorSampler',
         'ValidatingSampler',
         'CouldNotPlaceError',
-        'CalibrationResult',
         # Abstract:
         'ExecutableSpec',
     ],

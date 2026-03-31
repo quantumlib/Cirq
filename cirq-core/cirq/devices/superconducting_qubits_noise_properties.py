@@ -38,7 +38,7 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties, abc.ABC):
             quantum hardware. Used with t(1|phi)_ns to specify thermal noise.
         t1_ns: dict[cirq.Qid, float] of qubits to their T_1 time, in ns.
         tphi_ns: dict[cirq.Qid, float] of qubits to their T_phi time, in ns.
-        readout_errors: dict[cirq.Qid, np.ndarray] of qubits to their readout
+        readout_errors: dict[cirq.Qid, list[float]] of qubits to their readout
             errors in matrix form: [P(read |1> from |0>), P(read |0> from |1>)].
             Used to prepend amplitude damping errors to measurements.
         gate_pauli_errors: dict of noise_utils.OpIdentifiers (a gate and the qubits it

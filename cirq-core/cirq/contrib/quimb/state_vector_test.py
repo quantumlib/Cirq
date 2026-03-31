@@ -12,7 +12,7 @@ import cirq
 import cirq.contrib.quimb as ccq
 
 
-def test_tensor_state_vector_1():
+def test_tensor_state_vector_1() -> None:
     q = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.YPowGate(exponent=0.25).on(q[0]))
 
@@ -21,7 +21,7 @@ def test_tensor_state_vector_1():
     np.testing.assert_allclose(psi1, psi2, atol=1e-15)
 
 
-def test_tensor_state_vector_implicit_qubits():
+def test_tensor_state_vector_implicit_qubits() -> None:
     q = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.YPowGate(exponent=0.25).on(q[0]))
 
@@ -30,7 +30,7 @@ def test_tensor_state_vector_implicit_qubits():
     np.testing.assert_allclose(psi1, psi2, atol=1e-15)
 
 
-def test_tensor_state_vector_2():
+def test_tensor_state_vector_2() -> None:
     q = cirq.LineQubit.range(2)
     rs = np.random.RandomState(52)
     for _ in range(10):
@@ -41,7 +41,7 @@ def test_tensor_state_vector_2():
         np.testing.assert_allclose(psi1, psi2, atol=1e-8)
 
 
-def test_tensor_state_vector_3():
+def test_tensor_state_vector_3() -> None:
     qubits = cirq.LineQubit.range(10)
     circuit = cirq.testing.random_circuit(qubits=qubits, n_moments=10, op_density=0.8)
     psi1 = cirq.final_state_vector(circuit, dtype=np.complex128)
@@ -49,7 +49,7 @@ def test_tensor_state_vector_3():
     np.testing.assert_allclose(psi1, psi2, atol=1e-8)
 
 
-def test_tensor_state_vector_4():
+def test_tensor_state_vector_4() -> None:
     qubits = cirq.LineQubit.range(4)
     circuit = cirq.testing.random_circuit(qubits=qubits, n_moments=100, op_density=0.8)
     psi1 = cirq.final_state_vector(circuit, dtype=np.complex128)
@@ -57,7 +57,7 @@ def test_tensor_state_vector_4():
     np.testing.assert_allclose(psi1, psi2, atol=1e-8)
 
 
-def test_sandwich_operator_identity():
+def test_sandwich_operator_identity() -> None:
     qubits = cirq.LineQubit.range(6)
     circuit = cirq.testing.random_circuit(qubits=qubits, n_moments=10, op_density=0.8)
     tot_c = ccq.circuit_for_expectation_value(circuit, cirq.PauliString({}))
@@ -74,7 +74,7 @@ def _random_pauli_string(qubits, rs, coefficients=False):
     return ps
 
 
-def test_sandwich_operator_expect_val():
+def test_sandwich_operator_expect_val() -> None:
     rs = np.random.RandomState(52)
     qubits = cirq.LineQubit.range(5)
     for _ in range(10):  # try a bunch of different ones
@@ -89,7 +89,7 @@ def test_sandwich_operator_expect_val():
         np.testing.assert_allclose(eval_sandwich, eval_normal, atol=1e-5)
 
 
-def test_tensor_unitary():
+def test_tensor_unitary() -> None:
     rs = np.random.RandomState(52)
     for _ in range(10):
         qubits = cirq.LineQubit.range(5)
@@ -104,7 +104,7 @@ def test_tensor_unitary():
         np.testing.assert_allclose(u_tn, u_cirq, atol=1e-6)
 
 
-def test_tensor_unitary_implicit_qubits():
+def test_tensor_unitary_implicit_qubits() -> None:
     rs = np.random.RandomState(52)
     for _ in range(10):
         qubits = cirq.LineQubit.range(5)
@@ -119,7 +119,7 @@ def test_tensor_unitary_implicit_qubits():
         np.testing.assert_allclose(u_tn, u_cirq, atol=1e-6)
 
 
-def test_tensor_expectation_value():
+def test_tensor_expectation_value() -> None:
     rs = np.random.RandomState(52)
     for _ in range(10):
         for n_qubit in [2, 7]:
@@ -140,17 +140,18 @@ def test_tensor_expectation_value():
                 np.testing.assert_allclose(eval_tn, eval_normal, atol=1e-3)
 
 
-def test_bad_init_state():
+def test_bad_init_state() -> None:
     qubits = cirq.LineQubit.range(5)
     circuit = cirq.testing.random_circuit(qubits=qubits, n_moments=10, op_density=0.8)
     with pytest.raises(ValueError):
         ccq.circuit_to_tensors(circuit=circuit, qubits=qubits, initial_state=1)
 
 
-def test_too_much_ram():
+def test_too_much_ram() -> None:
     qubits = cirq.LineQubit.range(30)
     circuit = cirq.testing.random_circuit(qubits=qubits, n_moments=20, op_density=0.8)
-    op = functools.reduce(operator.mul, [cirq.Z(q) for q in qubits], 1)
+    op: cirq.PauliString
+    op = functools.reduce(operator.mul, [cirq.Z(q) for q in qubits], cirq.PauliString())
     with pytest.raises(MemoryError) as e:
         ccq.tensor_expectation_value(circuit=circuit, pauli_string=op)
 

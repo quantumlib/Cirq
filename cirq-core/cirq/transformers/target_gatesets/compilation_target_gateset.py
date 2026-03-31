@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import abc
-from typing import Hashable, TYPE_CHECKING
+from collections.abc import Hashable
+from typing import TYPE_CHECKING
 
 from cirq import circuits, ops, protocols, transformers
 from cirq.transformers import merge_k_qubit_gates, merge_single_qubit_gates

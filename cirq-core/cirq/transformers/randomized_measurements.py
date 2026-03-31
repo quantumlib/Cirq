@@ -34,8 +34,8 @@ class RandomizedMeasurements:
         For more details on the randomized measurement toolbox see https://arxiv.org/abs/2203.11374
 
         Args:
-            subsystem: The specific subsystem (e.g qubit index) to measure in random basis
-            rest of the qubits are measured in the computational basis
+            subsystem: The specific subsystem (e.g., qubit index) to measure in a random basis.
+                The rest of the qubits are measured in the computational basis.
         """
         self.subsystem = subsystem
 
@@ -48,9 +48,9 @@ class RandomizedMeasurements:
         context: transformer_api.TransformerContext | None = None,
     ) -> cirq.Circuit:
         """Apply the transformer to the given circuit. Given an input circuit returns
-        a new circuit with the pre-measurement unitaries and measurements gates added.
-        to the qubits in the subsystem provided.If no subsystem is specified in the
-        construction of this class it defaults to measuring all the qubits in the
+        a new circuit with the pre-measurement unitaries and measurement gates added
+        to the qubits in the subsystem provided. If no subsystem is specified in the
+        construction of this class, it defaults to measuring all the qubits in the
         randomized bases.
 
         Args:
@@ -138,7 +138,7 @@ def _pauli_basis_rotation(rng: np.random.Generator) -> cirq.Gate:
 
 
 def _single_qubit_clifford(rng: np.random.Generator) -> cirq.Gate:
-    """Randomly generate a single-qubit Clifford rotation.
+    """Randomly generates a single-qubit Clifford rotation.
 
     Args:
         rng: Random number generator
@@ -156,7 +156,7 @@ def _single_qubit_clifford(rng: np.random.Generator) -> cirq.Gate:
 
 
 def _single_qubit_cue(rng: np.random.Generator) -> cirq.Gate:
-    """Randomly generate a CUE gate.
+    """Randomly generates a CUE gate.
 
     Args:
         rng: Random number generator

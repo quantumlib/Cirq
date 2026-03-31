@@ -16,7 +16,8 @@
 
 from __future__ import annotations
 
-from typing import Callable, Iterable, Iterator, NoReturn, TYPE_CHECKING
+from collections.abc import Callable, Iterable, Iterator
+from typing import NoReturn, TYPE_CHECKING
 
 from cirq._doc import document
 from cirq._import import LazyLoader
@@ -40,7 +41,7 @@ document(
     - A list of operations (a `list[cirq.Operation]`).
     - A list of lists of operations (a `list[list[cirq.Operation]]`).
     - A list mixing operations and generators of operations
-        (a `list[Union[cirq.Operation, Iterator[cirq.Operation]]]`).
+        (a `list[cirq.Operation | Iterator[cirq.Operation]]`).
     - Generally anything that can be iterated, and its items iterated, and
         so forth recursively until a bottom layer of operations is found.
     """,

@@ -216,7 +216,7 @@ def test_measure_density_matrix_partial_indices_all_orders() -> None:
             assert bits == [bool(1 & (x >> (2 - p))) for p in perm]
 
 
-def matrix_000_plus_010():
+def matrix_000_plus_010() -> np.ndarray:
     state = np.zeros(8, dtype=np.complex64)
     state[0] = 1 / np.sqrt(2)
     state[2] = 1j / np.sqrt(2)

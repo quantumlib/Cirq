@@ -102,7 +102,7 @@ def test_teleportation_diagram() -> None:
  &\lstick{\text{carrier}}& \qw&\gate{\text{H}}       \qw&\control \qw    &\targ    \qw\qwx&\meter          \qw&\control \qw    &         \qw\qwx&\qw\\
  &\lstick{\text{bob}}&     \qw&                      \qw&\targ    \qw\qwx&         \qw    &                \qw&\targ    \qw\qwx&\control \qw\qwx&\qw\\
  \\
-}""".strip()
+}""".strip()  # noqa: E501
     assert_has_qcircuit_diagram(
         circuit, expected_diagram, qubit_order=cirq.QubitOrder.explicit([ali, car, bob])
     )
@@ -151,7 +151,7 @@ def test_two_cx_diagram() -> None:
  &\lstick{\text{q(2)}}& \qw&\targ    \qw\qwx&         \qw\qwx&\targ    \qw\qwx&         \qw\qwx&\qw\\
  &\lstick{\text{q(3)}}& \qw&         \qw    &\targ    \qw\qwx&         \qw    &\targ    \qw\qwx&\qw\\
  \\
-}""".strip()
+}""".strip()  # noqa: E501
     assert_has_qcircuit_diagram(circuit, expected_diagram)
 
 

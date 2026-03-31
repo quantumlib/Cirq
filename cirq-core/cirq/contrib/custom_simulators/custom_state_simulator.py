@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Generic, Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import Any, Generic, TYPE_CHECKING
 
 from cirq import sim
 from cirq.sim.simulation_state import TSimulationState

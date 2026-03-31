@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import math
-from typing import Any, cast, Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Iterator, Sequence
+from typing import Any, cast, TYPE_CHECKING
 
 from sympy.combinatorics import GrayCode
 
@@ -70,7 +71,7 @@ def _generate_got_set_for_init_prob(qubit, init_prob):
         yield common_gates.ry(_prob_to_angle(init_prob)).on(qubit)
 
 
-@value.value_equality
+@value.value_equality(unhashable=True)
 class BayesianNetworkGate(raw_types.Gate):
     """A gate that represents a Bayesian network.
 
@@ -97,7 +98,7 @@ class BayesianNetworkGate(raw_types.Gate):
     def __init__(
         self,
         init_probs: list[tuple[str, float | None]],
-        arc_probs: list[tuple[str, tuple[str], list[float]]],
+        arc_probs: list[tuple[str, tuple[str, ...], list[float]]],
     ):
         """Builds a BayesianNetworkGate.
 
@@ -195,7 +196,7 @@ class BayesianNetworkGate(raw_types.Gate):
             list[tuple[str, float | None]], [(param, init_prob) for param, init_prob in init_probs]
         )
         converted_cond_probs = cast(
-            list[tuple[str, tuple[str], list[float]]],
+            list[tuple[str, tuple[str, ...], list[float]]],
             [(target, tuple(params), cond_probs) for target, params, cond_probs in arc_probs],
         )
         return cls(converted_init_probs, converted_cond_probs)

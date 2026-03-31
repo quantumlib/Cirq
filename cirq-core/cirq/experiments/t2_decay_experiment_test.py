@@ -22,7 +22,7 @@ import cirq
 import cirq.experiments.t2_decay_experiment as t2
 
 
-def test_init_t2_decay_result():
+def test_init_t2_decay_result() -> None:
     x_data = pd.DataFrame(
         columns=['delay_ns', 0, 1], index=range(2), data=[[100.0, 0, 10], [1000.0, 10, 0]]
     )
@@ -42,7 +42,7 @@ def test_init_t2_decay_result():
 
 
 @pytest.mark.usefixtures('closefigures')
-def test_plot_does_not_raise_error():
+def test_plot_does_not_raise_error() -> None:
     class _TimeDependentDecay(cirq.NoiseModel):
         def noisy_moment(self, moment, system_qubits):
             duration = max(
@@ -67,7 +67,7 @@ def test_plot_does_not_raise_error():
     results.plot_bloch_vector()
 
 
-def test_result_eq():
+def test_result_eq() -> None:
     example_data = pd.DataFrame(
         columns=['delay_ns', 0, 1],
         index=range(5),
@@ -85,7 +85,7 @@ def test_result_eq():
     eq.add_equality_group(cirq.experiments.T2DecayResult(example_data, other_data))
 
 
-def test_sudden_decay_results():
+def test_sudden_decay_results() -> None:
     class _SuddenDecay(cirq.NoiseModel):
         def noisy_moment(self, moment, system_qubits):
             duration = max(
@@ -117,7 +117,7 @@ def test_sudden_decay_results():
 
 
 @pytest.mark.parametrize('experiment_type', [t2.ExperimentType.HAHN_ECHO, t2.ExperimentType.CPMG])
-def test_spin_echo_cancels_out_constant_rate_phase(experiment_type):
+def test_spin_echo_cancels_out_constant_rate_phase(experiment_type) -> None:
     class _TimeDependentPhase(cirq.NoiseModel):
         def noisy_moment(self, moment, system_qubits):
             duration = max(
@@ -151,7 +151,7 @@ def test_spin_echo_cancels_out_constant_rate_phase(experiment_type):
     'experiment_type',
     [t2.ExperimentType.RAMSEY, t2.ExperimentType.HAHN_ECHO, t2.ExperimentType.CPMG],
 )
-def test_all_on_results(experiment_type):
+def test_all_on_results(experiment_type) -> None:
     pulses = [1] if experiment_type == t2.ExperimentType.CPMG else None
     results = t2.t2_decay(
         sampler=cirq.Simulator(),
@@ -174,7 +174,7 @@ def test_all_on_results(experiment_type):
     'experiment_type',
     [t2.ExperimentType.RAMSEY, t2.ExperimentType.HAHN_ECHO, t2.ExperimentType.CPMG],
 )
-def test_all_off_results(experiment_type):
+def test_all_off_results(experiment_type) -> None:
     pulses = [1] if experiment_type == t2.ExperimentType.CPMG else None
     results = t2.t2_decay(
         sampler=cirq.DensityMatrixSimulator(noise=cirq.amplitude_damp(1)),
@@ -204,7 +204,7 @@ def test_all_off_results(experiment_type):
     'experiment_type',
     [t2.ExperimentType.RAMSEY, t2.ExperimentType.HAHN_ECHO, t2.ExperimentType.CPMG],
 )
-def test_custom_delay_sweep(experiment_type):
+def test_custom_delay_sweep(experiment_type) -> None:
     pulses = [1] if experiment_type == t2.ExperimentType.CPMG else None
     results = t2.t2_decay(
         sampler=cirq.DensityMatrixSimulator(noise=cirq.amplitude_damp(1)),
@@ -231,7 +231,7 @@ def test_custom_delay_sweep(experiment_type):
     )
 
 
-def test_multiple_pulses():
+def test_multiple_pulses() -> None:
     results = t2.t2_decay(
         sampler=cirq.DensityMatrixSimulator(noise=cirq.amplitude_damp(1)),
         qubit=cirq.GridQubit(0, 0),
@@ -302,7 +302,7 @@ def test_multiple_pulses():
     assert results.expectation_pauli_x.equals(expected)
 
 
-def test_bad_args():
+def test_bad_args() -> None:
     with pytest.raises(ValueError, match='repetitions <= 0'):
         _ = cirq.experiments.t2_decay(
             sampler=cirq.Simulator(),
@@ -388,7 +388,7 @@ def test_bad_args():
         )
 
 
-def test_cpmg_circuit():
+def test_cpmg_circuit() -> None:
     """Tests sub-component to make sure CPMG circuit is generated correctly."""
     q = cirq.GridQubit(1, 1)
     t = sympy.Symbol('t')
@@ -406,7 +406,7 @@ def test_cpmg_circuit():
     assert circuit == expected
 
 
-def test_cpmg_sweep():
+def test_cpmg_sweep() -> None:
     sweep = t2._cpmg_sweep([1, 3, 5])
     expected = cirq.Zip(
         cirq.Points('pulse_0', [1, 1, 1]),
@@ -418,7 +418,7 @@ def test_cpmg_sweep():
     assert sweep == expected
 
 
-def test_str():
+def test_str() -> None:
     x_data = pd.DataFrame(
         columns=['delay_ns', 0, 1], index=range(2), data=[[100.0, 0, 10], [1000.0, 10, 0]]
     )

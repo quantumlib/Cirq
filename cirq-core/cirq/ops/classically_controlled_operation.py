@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import AbstractSet, Any, Mapping, Sequence, TYPE_CHECKING
+from collections.abc import Mapping, Sequence, Set
+from typing import Any, TYPE_CHECKING
 
 import sympy
 
@@ -117,23 +118,18 @@ class ClassicallyControlledOperation(raw_types.Operation):
         return self._sub_operation.without_classical_controls()
 
     @property
-    def qubits(self):
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         return self._sub_operation.qubits
 
-    def with_qubits(self, *new_qubits):
+    def with_qubits(self, *new_qubits) -> cirq.Operation:
         return self._sub_operation.with_qubits(*new_qubits).with_classical_controls(
             *self._conditions
         )
 
-    def _decompose_(self):
-        return self._decompose_with_context_()
-
-    def _decompose_with_context_(self, context: cirq.DecompositionContext | None = None):
-        result = protocols.decompose_once(
-            self._sub_operation, NotImplemented, flatten=False, context=context
-        )
-        if result is NotImplemented:
-            return NotImplemented
+    def _decompose_with_context_(self, *, context: cirq.DecompositionContext):
+        result = protocols.decompose_once(self._sub_operation, None, flatten=False, context=context)
+        if result is None:
+            return None
 
         return op_tree.transform_op_tree(
             result, lambda op: ClassicallyControlledOperation(op, self._conditions)
@@ -155,7 +151,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._sub_operation)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self._sub_operation)
 
     def _resolve_parameters_(
@@ -189,7 +185,8 @@ class ClassicallyControlledOperation(raw_types.Operation):
                 + '(conditions=['
                 + ', '.join(str(c) for c in self._conditions)
                 + '])',
-            ) + wire_symbols[1:]
+                *wire_symbols[1:],
+            )
         exp_index = sub_info.exponent_qubit_index
         if exp_index is None:
             # None means at bottom, which means the last of the original wire symbols
@@ -235,9 +232,12 @@ class ClassicallyControlledOperation(raw_types.Operation):
 
     def _qasm_(self, args: cirq.QasmArgs) -> str | None:
         args.validate_version('2.0', '3.0')
-        if len(self._conditions) > 1:
-            raise ValueError('QASM does not support multiple conditions.')
+        if args.version == "2.0" and len(self._conditions) > 1:
+            raise ValueError(
+                'QASM 2.0 does not support multiple conditions. Consider exporting with QASM 3.0.'
+            )
         subop_qasm = protocols.qasm(self._sub_operation, args=args)
         if not self._conditions:
             return subop_qasm
-        return f'if ({protocols.qasm(self._conditions[0], args=args)}) {subop_qasm}'
+        condition_qasm = " && ".join(protocols.qasm(c, args=args) for c in self._conditions)
+        return f'if ({condition_qasm}) {subop_qasm}'

@@ -7,11 +7,11 @@
 ################################################################################
 
 # Get the working directory to the repo root.
-thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
-topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
-cd "${topdir}" || exit $?
+thisdir=$(dirname "${BASH_SOURCE[0]:?}") || exit $?
+repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel) || exit $?
+cd "${repo_dir}" || exit $?
 
-git_status="$(git status --short)"
+git_status=$(git status --short)
 if [[ -n "${git_status}" ]]; then
     echo "$0 requires a pristine worktree, but 'git status' shows"
     echo "some changes or untracked files."
@@ -33,7 +33,7 @@ echo
 
 dev_tools/build-protos.sh
 
-git_status="$(git status --short)"
+git_status=$(git status --short)
 
 if [[ -n "${git_status}" ]]; then
     echo

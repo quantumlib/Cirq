@@ -134,11 +134,11 @@ with a `# pragma: no cover` comment on its own line.
 
 Code should meet common style standards for Python and be free of error-prone
 constructs. We use [Pylint](https://www.pylint.org/) to check for code lint.
-To see which lint checks we enforce, see the
-[dev_tools/conf/.pylintrc](dev_tools/conf/.pylintrc) file. When Pylint produces
+To see which lint checks we enforce, see the `[tool.pylint.messages_control]`
+section in the [pyproject.toml](./pyproject.toml) file. When Pylint produces
 a false positive, it can be silenced with annotations. For example, the
-annotation `# pylint: disable=unused-import` would silence a warning about
-an unused import.
+annotation `# pylint: disable=wrong-import-order` would silence a warning about
+wrong import order.
 
 ### Types
 

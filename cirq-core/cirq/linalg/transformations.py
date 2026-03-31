@@ -18,8 +18,9 @@ from __future__ import annotations
 
 import dataclasses
 import functools
+from collections.abc import Sequence
 from types import EllipsisType
-from typing import Any, Sequence
+from typing import Any
 
 import numpy as np
 
@@ -34,7 +35,7 @@ from cirq.linalg import predicates
 RaiseValueErrorIfNotProvided: np.ndarray = np.array([])
 
 
-def reflection_matrix_pow(reflection_matrix: np.ndarray, exponent: float):
+def reflection_matrix_pow(reflection_matrix: np.ndarray, exponent: float) -> np.ndarray:
     """Raises a matrix with two opposing eigenvalues to a power.
 
     Args:
@@ -82,7 +83,7 @@ def match_global_phase(a: np.ndarray, b: np.ndarray) -> tuple[np.ndarray, np.nda
         return np.copy(a), np.copy(b)
 
     # Find the entry with the largest magnitude in one of the matrices.
-    k = max(np.ndindex(*a.shape), key=lambda t: abs(b[t]))
+    k = max(np.ndindex(*a.shape), key=lambda t: abs(b[t].item()))
 
     def dephase(v):
         r = np.real(v)
@@ -471,7 +472,7 @@ def partial_trace_of_state_vector_as_mixture(
     keep_rho = partial_trace(rho, keep_indices).reshape((np.prod(ret_shape),) * 2)
     eigvals, eigvecs = np.linalg.eigh(keep_rho)
     mixture = tuple(zip(eigvals, [vec.reshape(ret_shape) for vec in eigvecs.T]))
-    return tuple([(float(p[0]), p[1]) for p in mixture if not protocols.approx_eq(p[0], 0.0)])
+    return tuple((float(p[0]), p[1]) for p in mixture if not protocols.approx_eq(p[0], 0.0))
 
 
 def sub_state_vector(
@@ -550,7 +551,7 @@ def sub_state_vector(
         raise ValueError("Input state must be normalized.")
     if len(set(keep_indices)) != len(keep_indices):
         raise ValueError(f"keep_indices were {keep_indices} but must be unique.")
-    if any([ind >= n_qubits for ind in keep_indices]):
+    if any(ind >= n_qubits for ind in keep_indices):
         raise ValueError("keep_indices {} are an invalid subset of the input state vector.")
 
     other_qubits = sorted(set(range(n_qubits)) - set(keep_indices))
@@ -562,7 +563,7 @@ def sub_state_vector(
     best_candidate = max(candidates, key=lambda c: float(np.linalg.norm(c, 2)))
     best_candidate = best_candidate / np.linalg.norm(best_candidate)
     left = np.conj(best_candidate.reshape((keep_dims,))).T
-    coherence_measure = sum([abs(np.dot(left, c.reshape((keep_dims,)))) ** 2 for c in candidates])
+    coherence_measure = sum(abs(np.dot(left, c.reshape((keep_dims,)))) ** 2 for c in candidates)
 
     if protocols.approx_eq(coherence_measure, 1, atol=atol):
         return np.exp(2j * np.pi * np.random.random()) * best_candidate.reshape(ret_shape)
@@ -720,7 +721,7 @@ def factor_density_matrix(
     return extracted, remainder
 
 
-def transpose_state_vector_to_axis_order(t: np.ndarray, axes: Sequence[int]):
+def transpose_state_vector_to_axis_order(t: np.ndarray, axes: Sequence[int]) -> np.ndarray:
     """Transposes the axes of a state vector to a specified order.
 
     Args:
@@ -733,7 +734,7 @@ def transpose_state_vector_to_axis_order(t: np.ndarray, axes: Sequence[int]):
     return np.moveaxis(t, axes, range(len(axes)))
 
 
-def transpose_density_matrix_to_axis_order(t: np.ndarray, axes: Sequence[int]):
+def transpose_density_matrix_to_axis_order(t: np.ndarray, axes: Sequence[int]) -> np.ndarray:
     """Transposes the axes of a density matrix to a specified order.
 
     Args:
@@ -780,7 +781,9 @@ def _index_from_coordinates(s: Sequence[int], volume: Sequence[int]) -> int:
     return np.dot(s, volume)
 
 
-def transpose_flattened_array(t: np.ndarray, shape: Sequence[int], axes: Sequence[int]):
+def transpose_flattened_array(
+    t: np.ndarray, shape: Sequence[int], axes: Sequence[int]
+) -> np.ndarray:
     """Transposes a flattened array.
 
     Equivalent to np.transpose(t.reshape(shape), axes).reshape((-1,)).
