@@ -135,11 +135,17 @@ def test_postprocess_transformers_splits_moments():
 
     circuit2 = cirq.Circuit(cirq.Z.on_each(p_qubits[0], p_qubits[1]))
     circuit2.append(cirq.ZPowGate(exponent=1e-12).on(p_qubits[0]))
+    circuit2.append(cirq.Moment(cirq.Z(p_qubits[0]), cirq.measure(p_qubits[1])))
     circuit2.append(cirq.Moment())
-    assert circuit2[2] == cirq.Moment()
+    assert circuit2[3] == cirq.Moment()
     pasqal_circuit2 = cirq.optimize_for_target_gateset(circuit2, gateset=pasqal_gateset)
     cirq.testing.assert_same_circuits(
         pasqal_circuit2,
-        cirq.Circuit(cirq.Moment(cirq.Z(p_qubits[0])), cirq.Moment(cirq.Z(p_qubits[1]))),
+        cirq.Circuit(
+            cirq.Moment(cirq.Z(p_qubits[0])),
+            cirq.Moment(cirq.Z(p_qubits[1])),
+            cirq.Moment(cirq.Z(p_qubits[0])),
+            cirq.Moment(cirq.measure(p_qubits[1])),
+        ),
     )
     p_device.validate_circuit(pasqal_circuit2)
