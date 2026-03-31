@@ -37,7 +37,7 @@ class Qasm:
     """Qasm stores the final result of the Qasm parsing."""
 
     def __init__(
-        self, supported_format: bool, qelib1_include: bool, qregs: dict, cregs: dict, c: Circuit
+        self, supported_format: bool, qelib1_include: bool, qregs: dict, cregs: dict, c: Circuit, input_params: dict[str, str] | None = None,
     ):
         # defines whether the Quantum Experience standard header
         # is present or not
@@ -48,6 +48,7 @@ class Qasm:
         self.qregs = qregs
         self.cregs = cregs
         self.circuit = c
+        self.input_params: dict[str, str] = input_params if input_params is not None else {}
 
 
 def _generate_op_qubits(args: list[list[ops.Qid]], lineno: int) -> list[list[ops.Qid]]:
@@ -192,9 +193,13 @@ class QasmParser:
         self.custom_gate_scoped_qubits: dict[str, ops.Qid] = {}
         """The qubits declared within the current custom gate definition. Empty if not in
          custom gate scope."""
+        self.input_params: dict[str, str] = {}
+        """The input params mapped from name to type"""
         self.qelibinc = False
         self.lexer = QasmLexer()
         self.supported_format = False
+        self.format_version: str = ""
+        """The OpenQASM version string"""
         self.parsedQasm: Qasm | None = None
         self.qubits: dict[str, ops.Qid] = {}
         self.functions = {
@@ -800,7 +805,7 @@ class QasmParser:
     def p_qasm_format_only(self, p):
         """qasm : format"""
         self.supported_format = True
-        p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs, self.cregs, self.circuit)
+        p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs, self.cregs, self.circuit, self.input_params)
 
     def p_qasm_no_format_specified_error(self, p):
         """qasm : QELIBINC
@@ -813,17 +818,17 @@ class QasmParser:
         """qasm : qasm QELIBINC"""
         self.qelibinc = True
         self.gate_set |= self.qelib_gates
-        p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs, self.cregs, self.circuit)
+        p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs, self.cregs, self.circuit, self.input_params)
 
     def p_qasm_include_stdgates(self, p):
         """qasm : qasm STDGATESINC"""
         self.qelibinc = True
         self.gate_set |= self.qelib_gates
-        p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs, self.cregs, self.circuit)
+        p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs, self.cregs, self.circuit, self.input_params)
 
     def p_qasm_circuit(self, p):
         """qasm : qasm circuit"""
-        p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs, self.cregs, p[2])
+        p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs, self.cregs, p[2], self.input_params)
 
     def p_format(self, p):
         """format : FORMAT_SPEC"""
@@ -832,12 +837,14 @@ class QasmParser:
                 f"Unsupported OpenQASM version: {p[1]}, "
                 "only 2.0 and 3.0 are supported currently by Cirq"
             )
+        self.format_version = p[1]
 
     # circuit : new_reg circuit
     #         | gate_op circuit
     #         | measurement circuit
     #         | reset circuit
     #         | if circuit
+    #         | input_decl circuit
     #         | empty
 
     def p_circuit_reg(self, p):
@@ -850,6 +857,10 @@ class QasmParser:
         |  circuit reset
         |  circuit if"""
         self.circuit.append(p[2])
+        p[0] = self.circuit
+
+    def p_circuit_input_decl(self, p):
+        """circuit : input_decl circuit"""
         p[0] = self.circuit
 
     def p_circuit_empty(self, p):
@@ -924,6 +935,39 @@ class QasmParser:
         """params : expr"""
         p[0] = [p[1]]
 
+    # input declarations (OpenQASM 3.0 only)
+    # input_decl : INPUT input_type '[' NATURAL_NUMBER ']' ID ';'
+
+    def p_input_type(self, p):
+        """input_type : FLOAT
+        | ANGLE
+        """
+        p[0] = p[1]
+
+    def p_input_decl(self, p):
+        """input_decl : INPUT input_type '[' NATURAL_NUMBER ']' ID ';'
+        """
+        if self.format_version != "3.0":
+            raise QasmException(
+                f"'input' is only supported in OpenQASM 3.0, at line {p.lineno(1)}"
+            )
+        # INPUT input_type '[' NATURAL_NUMBER ']' ID ';'
+        bit_width = p[4]
+        if bit_width == 0:
+            raise QasmException(
+                f"Illegal bit-width of zero for input '{p[6]}' at line {p.lineno(4)}"
+            )
+        type = f"{p[2]}[{bit_width}]"
+        name = p[6]
+        if name in self.input_params:
+            raise QasmException(f"'{name}' is already declared as an input at line {p.lineno(1)}")
+        if name in self.qregs or name in self.cregs:
+            raise QasmException(
+                f"'{name}' is already declared as a register at line {p.lineno(1)}"
+            )
+        self.input_params[name] = type
+        p[0] = (name, type)
+
     # expr : term
     #            | ID
     #            | func '(' expression ')'
@@ -936,6 +980,9 @@ class QasmParser:
 
     def p_expr_identifier(self, p):
         """expr : ID"""
+        if p[1] in self.input_params:
+            p[0] = sympy.Symbol(p[1])
+            return
         if not self.in_custom_gate_scope:
             raise QasmException(f"Parameter '{p[1]}' in line {p.lineno(1)} not supported")
         if p[1] not in self.custom_gate_scoped_params:
