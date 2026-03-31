@@ -204,6 +204,34 @@ def test_calibrate_z_phases_workflow_no_options(pool, angles, error) -> None:
         assert 'theta' not in params
 
 
+@pytest.mark.parametrize(['angles', 'error'], _create_tests(n=3))
+def test_calibrate_z_phases_workflow_no_options_no_pool(angles, error) -> None:
+    original_gate = cirq.PhasedFSimGate(**dict(zip(_ANGLES, angles)))
+    actual_gate = cirq.PhasedFSimGate(**{k: v + e for k, v, e in zip(_ANGLES, angles, error)})
+
+    sampler = _TestSimulator(original_gate, actual_gate, seed=_SEED)
+    qubits = cirq.q(0, 0), cirq.q(0, 1)
+    result, _ = z_phase_calibration_workflow(
+        sampler,
+        qubits,
+        original_gate,
+        options=None,
+        n_repetitions=1,
+        n_combinations=1,
+        n_circuits=1,
+        cycle_depths=(1, 2),
+        random_state=_SEED,
+        num_workers_or_pool=2,
+    )
+
+    for params in result.final_params.values():
+        assert 'zeta' in params
+        assert 'chi' in params
+        assert 'gamma' in params
+        assert 'phi' not in params
+        assert 'theta' not in params
+
+
 def test_plot_z_phase_calibration_result() -> None:
     df = pd.DataFrame()
     qs = cirq.q(0, 0), cirq.q(0, 1), cirq.q(0, 2)
