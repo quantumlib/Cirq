@@ -49,7 +49,7 @@ jobs:
         env:
           GH_TOKEN: '${{secrets.GITHUB_TOKEN}}'
           SHELLOPTS: ${{inputs.debug && 'xtrace' || '' }}
+          ISSUE_NUMBER: ${{inputs.issue-number || github.event.issue.number}}
         run: |
-          gh issue edit "${{inputs.issue-number || github.event.issue.number}}" \
-            --repo "${{github.repository}}" \
+          gh issue edit "${ISSUE_NUMBER}" --repo "${{github.repository}}" \
             --add-label "triage/discuss"
