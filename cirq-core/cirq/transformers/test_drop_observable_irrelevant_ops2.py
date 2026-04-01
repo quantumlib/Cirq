@@ -28,7 +28,8 @@ def test_does_not_remove_op_when_only_subset_of_qubits_measured():
     optimized = transformer.transform_circuit(circuit)
     expected = circuit
     assert optimized == expected
-  def test_multiple_measurement_keys_do_not_interfere():
+
+def test_multiple_measurement_keys_do_not_interfere():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.Z(q0),                   
