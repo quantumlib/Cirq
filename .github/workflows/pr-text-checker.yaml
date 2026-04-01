@@ -17,8 +17,8 @@
 
 name: Pull request text checker
 run-name: >-
-  Check title and description of PR
-  #${{github.event.inputs.pr-number || github.event.pull_request.number}}
+  Check title and description of
+  PR #${{github.event.inputs.pr-number || github.event.pull_request.number}}
   by ${{github.actor}}
 
 on:
@@ -45,20 +45,20 @@ jobs:
         run: |
           pr_title=$(jq -r ".pull_request.title" "${GITHUB_EVENT_PATH}")
           pr_body=$(jq -r ".pull_request.body" "${GITHUB_EVENT_PATH}")
-          declare -a problems=()
 
           read -ra title_words <<< "${pr_title}"
           if [[ ${#title_words[@]} -lt 2 ]]; then
-            problems+=("PR title must contain at least two words.")
+            echo "::error::PR title must contain at least two words."
+            error=1
           fi
           if [[ -z "${pr_body}" || ${#pr_body} -lt 10 ]]; then
-            problems+=("PR description must be at least 10 characters long.")
+            echo "::error::PR description must be at least 10 characters long."
+            error=1
           fi
 
-          if [[ ${#problems[@]} -gt 0 ]]; then
+          if [[ -v error ]]; then
             {
-              echo "Please fix the following problem(s) with this PR:"
-              printf -- ":small_red_triangle:  %s\n" "${problems[@]}"
+            printf "❌ Problem(s) found with the PR title and/or description."
             } >> "${GITHUB_STEP_SUMMARY}"
             exit 1
           fi
