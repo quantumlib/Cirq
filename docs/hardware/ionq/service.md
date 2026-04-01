@@ -21,6 +21,12 @@ The basic steps for running a quantum circuit in a blocking manner are:
 
 Here is a simple example of this flow:
 
+<!---test_substitution
+service = ionq.Service\(api_key=API_KEY\)
+service = mock.create_autospec(ionq.Service, instance=True)
+mock_result = mock.create_autospec(cirq.Result, instance=True)
+service.configure_mock(**{"run.return_value": mock_result})
+--->
 ```python
 import cirq
 import cirq_ionq as ionq
@@ -28,8 +34,8 @@ import cirq_ionq as ionq
 # A circuit that applies a square root of NOT and then a measurement.
 qubit = cirq.LineQubit(0)
 circuit = cirq.Circuit(
-  cirq.X(qubit)**0.5,      # Square root of NOT.
-  cirq.measure(qubit, key='x')  # Measurement store in key 'x'
+    cirq.X(qubit) ** 0.5,  # Square root of NOT.
+    cirq.measure(qubit, key='x'),  # Measurement store in key 'x'
 )
 
 # Create a ionq.Service object.
@@ -105,11 +111,11 @@ Here is an example of using error mitigation and sharpening options:
 ```python
 # Run a program against the service with error mitigation and sharpening
 result = service.run(
-  circuit=circuit,
-  repetitions=100,
-  target='qpu',
-  error_mitigation={'debias': True},
-  sharpen=True
+    circuit=circuit,
+    repetitions=100,
+    target='qpu',
+    error_mitigation={'debias': True},
+    sharpen=True,
 )
 ```
 

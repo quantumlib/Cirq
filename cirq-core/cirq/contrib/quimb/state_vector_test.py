@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import functools
 import operator
+from unittest import mock
 
 import numpy as np
 import pytest
@@ -156,3 +157,9 @@ def test_too_much_ram() -> None:
         ccq.tensor_expectation_value(circuit=circuit, pauli_string=op)
 
     assert e.match(r'.*too much RAM!.*')
+
+
+def test_get_quimb_version_unparseable() -> None:
+    pytest.importorskip('quimb')
+    with mock.patch('quimb.__version__', 'unknown'):
+        assert ccq.state_vector._get_quimb_version() == ((0, 0), 'unknown')

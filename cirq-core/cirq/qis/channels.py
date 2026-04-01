@@ -285,7 +285,7 @@ def superoperator_to_choi(superoperator: np.ndarray) -> np.ndarray:
 
 
 def operation_to_choi(operation: protocols.SupportsKraus) -> np.ndarray:
-    r"""Returns the unique Choi matrix associated with an operation .
+    r"""Returns the unique Choi matrix associated with an operation.
 
     Choi matrix J(E) of a linear map E: L(H1) -> L(H2) which takes linear operators
     on Hilbert space H1 to linear operators on Hilbert space H2 is defined as
