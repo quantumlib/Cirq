@@ -125,9 +125,7 @@ class ABCMetaImplementAnyOneOf(abc.ABCMeta):
         all_names = {alt_name for alt_name in namespace.keys() if hasattr(cls, alt_name)}
         for base in bases:
             all_names.update(getattr(base, '__abstractmethods__', set()))
-            all_names.update(
-                alt_name for alt_name, _ in getattr(base, '_implemented_by_', {}).items()
-            )
+            all_names.update(getattr(base, '_implemented_by_', {}).keys())
         while find_next_implementations(all_names):
             pass
         abstracts = frozenset(name for name in all_names if not has_some_implementation(name))
