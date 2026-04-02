@@ -61,7 +61,7 @@ jobs:
         uses: ossf/scorecard-action@4eaacf0543bb3f2c246792bd56e8cdeffafb205a # v2.4.3
         with:
           # Save the results
-          results_file: scorecard-results.sarif
+          results_file: raw-scorecard-results.sarif
           results_format: sarif
           # See https://github.com/ossf/scorecard-action#publishing-results.
           publish_results: true
@@ -73,7 +73,7 @@ jobs:
           # repeated warnings that we can't do anything about.
           patterns: |
             -.github/workflows/cifuzz.yml:actions/unpinned-tag
-          input: scorecard-results.sarif
+          input: raw-scorecard-results.sarif
           output: scorecard-results.sarif
 
       - name: Upload results to code-scanning dashboard
