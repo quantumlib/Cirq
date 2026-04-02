@@ -34,11 +34,10 @@ from dev_tools.notebooks import filter_notebooks, list_all_notebooks, REPO_ROOT,
 from dev_tools.test_utils import only_on_posix
 
 SKIP_NOTEBOOKS = [
-    # skipping vendor notebooks as we don't have auth sorted out
+    # skipping vendor notebooks where we need to have auth sorted out
     '**/aqt/*.ipynb',
     '**/azure-quantum/*.ipynb',
     '**/ionq/*.ipynb',
-    '**/pasqal/*.ipynb',
     # skipping quantum utility simulation (too large)
     'examples/advanced/*quantum_utility*',
     # tutorials that use QCS and arent skipped due to one or more cleared output cells
