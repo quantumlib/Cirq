@@ -117,7 +117,9 @@ def test_notebooks_against_cirq_head(
     out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"
     rewritten_notebook_path = rewrite_notebook(notebook_path)
     papermill_flags = "--no-request-save-on-cell-execute --autosave-cell-every 0"
-    cmd = f"papermill {rewritten_notebook_path} {REPO_ROOT/out_path} {papermill_flags}"
+    cmd = f'papermill "{rewritten_notebook_path}" "{REPO_ROOT/out_path}" {papermill_flags}'
+    # ensure papermill will have CLOUDSDK_CONFIG set per dev_tools/conftest.py
+    assert os.path.isdir(env_with_temporary_pip_target["CLOUDSDK_CONFIG"])
 
     REPO_ROOT.joinpath("out", notebook_rel_dir).mkdir(parents=True, exist_ok=True)
     result = shell_tools.run(
