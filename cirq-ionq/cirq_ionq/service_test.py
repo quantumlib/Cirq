@@ -352,7 +352,7 @@ def test_run_batch_preserves_order(target):
         "qubits": "1",
         "metadata": {
             "shots": "1",
-            "measurements": json.dumps([{"measurement0": f"{k}\u001f0"} for k in keys]),
+            "measurements": json.dumps([{"measurement0": f"{k}{chr(31)}0"} for k in keys]),
             "qubit_numbers": json.dumps([1, 1, 1]),
         },
     }
