@@ -412,8 +412,8 @@ class CircuitToQuantikz:
                     return self._format_exponent_for_display(mapped_base)
 
                 if (
-                    hasattr(gate, "exponent")
-                    and not (isinstance(gate.exponent, float) and math.isclose(gate.exponent, 1.0))
+                    (gate_exponent := getattr(gate, "exponent", None)) is not None
+                    and not (isinstance(gate_exponent, float) and math.isclose(gate_exponent, 1.0))
                     and isinstance(gate, tuple(_EXPONENT_GATE_MAP.keys()))
                 ):
                     has_exp_in_cand = ("^" in name_cand) or ("**" in name_cand)
@@ -425,7 +425,7 @@ class CircuitToQuantikz:
                         if needs_recon:
                             name_cand = (
                                 f"{recon_base}^"
-                                f"{{{self._format_exponent_for_display(gate.exponent)}}}"
+                                f"{{{self._format_exponent_for_display(gate_exponent)}}}"
                             )
 
                 fmt_name = self._escape_string(name_cand)
