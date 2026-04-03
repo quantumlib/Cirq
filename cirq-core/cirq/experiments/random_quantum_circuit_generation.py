@@ -667,7 +667,7 @@ def _single_qubit_gates_arg_to_factory(
     in the previous layer. This check is done by gate identity, not equality.
     """
     if len(set(single_qubit_gates)) == 1:
-        return _FixedSingleQubitLayerFactory({q: single_qubit_gates[0] for q in qubits})
+        return _FixedSingleQubitLayerFactory(dict.fromkeys(qubits, single_qubit_gates[0]))
 
     return _RandomSingleQubitLayerFactory(qubits, single_qubit_gates, prng)
 

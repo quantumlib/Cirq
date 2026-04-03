@@ -224,7 +224,7 @@ def test_parameterized_linear_combination_of_gates(
     gate = cirq.LinearCombinationOfGates(terms)
     assert cirq.is_parameterized(gate) == is_parameterized
     assert cirq.parameter_names(gate) == parameter_names
-    resolved = resolve_fn(gate, {p: 1 for p in parameter_names})
+    resolved = resolve_fn(gate, dict.fromkeys(parameter_names, 1))
     assert not cirq.is_parameterized(resolved)
 
 
@@ -745,7 +745,7 @@ def test_parameterized_linear_combination_of_ops(
     op = cirq.LinearCombinationOfOperations(terms)
     assert cirq.is_parameterized(op) == is_parameterized
     assert cirq.parameter_names(op) == parameter_names
-    resolved = resolve_fn(op, {p: 1 for p in parameter_names})
+    resolved = resolve_fn(op, dict.fromkeys(parameter_names, 1))
     assert not cirq.is_parameterized(resolved)
 
 
@@ -1247,10 +1247,11 @@ def test_from_boolean_expression(boolean_expr, expected_pauli_sum) -> None:
     boolean = sympy_parser.parse_expr(boolean_expr)
     qubit_map = {name: cirq.NamedQubit(name) for name in sorted(cirq.parameter_names(boolean))}
     actual = cirq.PauliSum.from_boolean_expression(boolean, qubit_map)
-    # Instead of calling str() directly, first make sure that the items are sorted. This is to make
-    # the unit test more robut in case Sympy would result in a different parsing order. By sorting
-    # the individual items, we would have a canonical representation.
-    actual_items = list(sorted(str(pauli_string) for pauli_string in actual))
+    # Instead of calling str() directly, first make sure that the items are sorted and their
+    # coefficients normalized to have "+0j" imaginary component (instead of "-0j") as in the
+    # expected_pauli_sum.  This is to make the unit test more robust should Sympy change its
+    # parsing order.
+    actual_items = sorted(str(pauli_string).replace('-0j', '+0j') for pauli_string in actual)
     assert expected_pauli_sum == actual_items
 
 
@@ -1430,7 +1431,7 @@ def test_expectation_from_density_matrix_invalid_input() -> None:
     with pytest.raises(ValueError, match='indices'):
         psum.expectation_from_density_matrix(rho, {q0: 0, q1: 0, q3: 2})
 
-    with pytest.raises(ValueError, match='hermitian'):
+    with pytest.raises(ValueError, match='Hermitian'):
         psum.expectation_from_density_matrix(1j * np.eye(8), q_map)
     with pytest.raises(ValueError, match='trace'):
         psum.expectation_from_density_matrix(np.eye(8, dtype=np.complex64), q_map)

@@ -45,8 +45,8 @@ def default_props(
 ) -> dict[str, Any]:
     return {
         'gate_times_ns': DEFAULT_GATE_NS,
-        't1_ns': {q: 1e5 for q in system_qubits},
-        'tphi_ns': {q: 2e5 for q in system_qubits},
+        't1_ns': dict.fromkeys(system_qubits, 1e5),
+        'tphi_ns': dict.fromkeys(system_qubits, 2e5),
         'readout_errors': {q: [0.001, 0.01] for q in system_qubits},
         'gate_pauli_errors': {
             **{

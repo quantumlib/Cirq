@@ -156,11 +156,8 @@ def test_repr() -> None:
 
 def test_str() -> None:
     s = str(BucketPriorityQueue(entries=[(1, 2), (3, 4)], drop_duplicate_entries=True))
-    assert (
-        s
-        == """
+    assert s == """
 BucketPriorityQueue {
     1: 2,
     3: 4,
 }""".strip()
-    )

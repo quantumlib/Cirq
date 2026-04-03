@@ -34,11 +34,10 @@ from dev_tools.notebooks import filter_notebooks, list_all_notebooks, REPO_ROOT,
 from dev_tools.test_utils import only_on_posix
 
 SKIP_NOTEBOOKS = [
-    # skipping vendor notebooks as we don't have auth sorted out
+    # skipping vendor notebooks where we need to have auth sorted out
     '**/aqt/*.ipynb',
     '**/azure-quantum/*.ipynb',
     '**/ionq/*.ipynb',
-    '**/pasqal/*.ipynb',
     # skipping quantum utility simulation (too large)
     'examples/advanced/*quantum_utility*',
     # tutorials that use QCS and arent skipped due to one or more cleared output cells
@@ -56,24 +55,27 @@ def require_packages_not_changed() -> Iterator[None]:
 
     Raise AssertionError if the pre-existing set of Python packages changes in any way.
     """
-    cirq_packages = set(m.name for m in list_modules()).union(["cirq"])
-    packages_before = set(
+    cirq_packages = {m.name for m in list_modules()}.union(["cirq"])
+    packages_before = {
         (d.name, d.version)
         for d in importlib.metadata.distributions()
         if d.name not in cirq_packages
-    )
+    }
     yield
-    packages_after = set(
+    packages_after = {
         (d.name, d.version)
         for d in importlib.metadata.distributions()
         if d.name not in cirq_packages
-    )
+    }
     assert packages_after == packages_before
 
 
 @pytest.fixture
 def env_with_temporary_pip_target() -> Iterator[dict[str, str]]:
-    """Setup system environment that tells pip to install packages to a temporary directory."""
+    """Set up system environment that tells pip to install packages to a temporary directory.
+
+    Also isolate the run from local pip settings in configuration files or environment.
+    """
     with tempfile.TemporaryDirectory(suffix='-notebook-site-packages') as tmpdirname:
         # Note: We need to append tmpdirname to the PYTHONPATH, because PYTHONPATH may
         # already point to the development sources of Cirq (as happens with check/pytest).
@@ -84,7 +86,12 @@ def env_with_temporary_pip_target() -> Iterator[dict[str, str]]:
             if 'PYTHONPATH' in os.environ
             else tmpdirname
         )
-        env = {**os.environ, 'PYTHONPATH': pythonpath, 'PIP_TARGET': tmpdirname}
+        env = {
+            **os.environ,
+            'PYTHONPATH': pythonpath,
+            'PIP_TARGET': tmpdirname,
+            'PIP_CONFIG_FILE': '/dev/null',
+        }
         yield env
 
 
@@ -110,7 +117,9 @@ def test_notebooks_against_cirq_head(
     out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"
     rewritten_notebook_path = rewrite_notebook(notebook_path)
     papermill_flags = "--no-request-save-on-cell-execute --autosave-cell-every 0"
-    cmd = f"papermill {rewritten_notebook_path} {REPO_ROOT/out_path} {papermill_flags}"
+    cmd = f'papermill "{rewritten_notebook_path}" "{REPO_ROOT/out_path}" {papermill_flags}'
+    # ensure papermill will have CLOUDSDK_CONFIG set per dev_tools/conftest.py
+    assert os.path.isdir(env_with_temporary_pip_target["CLOUDSDK_CONFIG"])
 
     REPO_ROOT.joinpath("out", notebook_rel_dir).mkdir(parents=True, exist_ok=True)
     result = shell_tools.run(

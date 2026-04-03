@@ -70,12 +70,14 @@ def move_pauli_strings_into_circuit(
     circuit_left: circuits.Circuit | circuitdag.CircuitDag, circuit_right: circuits.Circuit
 ) -> circuits.Circuit:
     if isinstance(circuit_left, circuitdag.CircuitDag):
-        string_dag = circuitdag.CircuitDag(pauli_string_reorder_pred, circuit_left)
+        string_dag = circuitdag.CircuitDag(
+            incoming_graph_data=circuit_left, can_reorder=pauli_string_reorder_pred
+        )
     else:
         string_dag = pauli_string_dag_from_circuit(cast(circuits.Circuit, circuit_left))
     output_ops = list(circuit_right.all_operations())
 
-    rightmost_nodes = set(string_dag.nodes()) - set(before for before, _ in string_dag.edges())
+    rightmost_nodes = set(string_dag.nodes()) - {before for before, _ in string_dag.edges()}
 
     while rightmost_nodes:
         # Sort the pauli string placements based on paulistring length and

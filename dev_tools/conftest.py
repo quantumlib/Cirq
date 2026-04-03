@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import shutil
 import sys
@@ -27,6 +28,8 @@ from filelock import FileLock
 
 from dev_tools import shell_tools
 from dev_tools.env_tools import create_virtual_env
+
+_LOGGER = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -81,9 +84,13 @@ def cloned_env(testrun_uid, worker_id):
         base_dir = base_temp_path / env_dir_name
         with FileLock(str(base_dir) + ".lock"):
             if _check_for_reuse_or_recreate(base_dir):
-                print(f"Pytest worker [{worker_id}] is reusing {base_dir} for '{env_dir_name}'.")
+                _LOGGER.info(
+                    f"Pytest worker [{worker_id}] is reusing {base_dir} for '{env_dir_name}'."
+                )
             else:
-                print(f"Pytest worker [{worker_id}] is creating {base_dir} for '{env_dir_name}'.")
+                _LOGGER.info(
+                    f"Pytest worker [{worker_id}] is creating {base_dir} for '{env_dir_name}'."
+                )
                 _create_base_env(base_dir, pip_install_args)
 
         clone_dir = base_temp_path / str(uuid.uuid4())
@@ -93,7 +100,8 @@ def cloned_env(testrun_uid, worker_id):
     def _check_for_reuse_or_recreate(env_dir: Path):
         reuse = False
         if env_dir.is_dir() and (env_dir / "testrun.uid").is_file():
-            uid = open(env_dir / "testrun.uid").readlines()[0]
+            with open(env_dir / "testrun.uid") as file:
+                uid = next(file)
             # if the dir is from this test session, let's reuse it
             if uid == testrun_uid:
                 reuse = True
@@ -105,14 +113,13 @@ def cloned_env(testrun_uid, worker_id):
     def _create_base_env(base_dir: Path, pip_install_args: tuple[str, ...]):
         try:
             create_virtual_env(str(base_dir), [], sys.executable, True)
-            with open(base_dir / "testrun.uid", mode="w", encoding="utf8") as f:
-                f.write(testrun_uid)
+            base_dir.joinpath("testrun.uid").write_text(testrun_uid, encoding="utf8")
             if pip_install_args:
                 shell_tools.run([f"{base_dir}/bin/pip", "install", *pip_install_args])
         except BaseException as ex:
             # cleanup on failure
             if base_dir.is_dir():
-                print(f"Removing {base_dir}, due to error: {ex}")
+                _LOGGER.info(f"Removing {base_dir}, due to error: {ex}")
                 shutil.rmtree(base_dir)
             raise
 

@@ -146,7 +146,7 @@ class QuantumState:
     def state_vector_or_density_matrix(self) -> np.ndarray:
         """Return the state vector or density matrix of this state.
 
-        If the state is a denity matrix, return the density matrix. Otherwise, return the state
+        If the state is a density matrix, return the density matrix. Otherwise, return the state
         vector.
         """
         state_vector = self.state_vector()
@@ -594,7 +594,7 @@ def bloch_vector_from_state_vector(
         state_vector: A sequence representing a state vector in which
             the ordering mapping to qubits follows the standard Kronecker
             convention of numpy.kron (big-endian).
-        index: index of qubit who's bloch vector we want to find.
+        index: index of qubit whose bloch vector we want to find.
             follows the standard Kronecker convention of numpy.kron.
         qid_shape: specifies the dimensions of the qudits for the input
             `state_vector`.  If not specified, qubits are assumed and the
@@ -906,7 +906,7 @@ def validate_qid_shape(
 
     Raises:
         ValueError: if the size of `state_vector` does not match that given in
-            `qid_shape` or if `qid_state` is not given if `state_vector` does
+            `qid_shape`, or if `qid_shape` is not given and `state_vector` does
             not have a dimension that is a power of two.
     """
     size = state_vector.size
@@ -1015,12 +1015,16 @@ def validate_density_matrix(
             f'but has shape {density_matrix.shape}.'
         )
     if not np.allclose(density_matrix, density_matrix.conj().T, atol=atol):
-        raise ValueError('The density matrix is not hermitian.')
+        raise ValueError('The density matrix is not Hermitian.')
     trace = np.trace(density_matrix)
     if not np.isclose(trace, 1.0, atol=atol):
         raise ValueError(f'Density matrix does not have trace 1. Instead, it has trace {trace}.')
     if not np.all(np.linalg.eigvalsh(density_matrix) > -atol):
-        raise ValueError('The density matrix is not positive semidefinite.')
+        raise ValueError(
+            'The density matrix is not positive semidefinite. '
+            'This may happen for simulations using lower-precision `dtype` such as '
+            '`np.complex64`. Try using `np.complex128` in such a case.'
+        )
 
 
 def _qid_shape_from_args(

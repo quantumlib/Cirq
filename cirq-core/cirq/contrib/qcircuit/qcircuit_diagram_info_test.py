@@ -41,7 +41,7 @@ def test_get_qcircuit_diagram_info() -> None:
 
     gate = cirq.SWAP
     op = gate(*qubits)
-    qubit_map = {q: i for q, i in zip(qubits, (4, 3))}
+    qubit_map = dict(zip(qubits, (4, 3)))
     args = cirq.CircuitDiagramInfoArgs(
         known_qubits=qubits,
         known_qubit_count=None,
@@ -55,7 +55,7 @@ def test_get_qcircuit_diagram_info() -> None:
     )
     assert actual_info == expected_info
 
-    qubit_map = {q: i for q, i in zip(qubits, (2, 5))}
+    qubit_map = dict(zip(qubits, (2, 5)))
     args = cirq.CircuitDiagramInfoArgs(
         known_qubits=qubits,
         known_qubit_count=None,

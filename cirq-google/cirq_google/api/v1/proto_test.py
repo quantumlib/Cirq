@@ -16,4 +16,10 @@
 
 from __future__ import annotations
 
-from cirq_google.api.v1 import operations_pb2, params_pb2, program_pb2  # noqa: F401
+from cirq_google.api.v1 import operations_pb2, params_pb2, program_pb2
+
+
+def test_api_v1_import_works() -> None:
+    assert operations_pb2
+    assert params_pb2
+    assert program_pb2

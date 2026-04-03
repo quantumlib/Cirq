@@ -439,8 +439,8 @@ class Gateset:
                 )
                 return True
 
-        # Check exact instance equality next
-        if g in self._instance_gate_families:
+        # Check exact instance equality next (only for hashable gates)
+        if isinstance(g, Hashable) and g in self._instance_gate_families:
             assert item in self._instance_gate_families[g], (
                 f"{item} instance matches {self._instance_gate_families[g]} but "
                 f"is not accepted by it."

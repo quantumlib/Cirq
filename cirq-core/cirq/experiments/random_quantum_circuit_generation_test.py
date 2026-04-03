@@ -412,7 +412,7 @@ def test_grid_interaction_layer_repr() -> None:
 def _validate_single_qubit_layers(
     qubits: set[cirq.GridQubit], moments: Sequence[cirq.Moment], non_repeating_layers: bool = True
 ) -> None:
-    previous_single_qubit_gates: SINGLE_QUBIT_LAYER = {q: None for q in qubits}
+    previous_single_qubit_gates: SINGLE_QUBIT_LAYER = dict.fromkeys(qubits)
 
     for moment in moments:
         # All qubits are acted upon

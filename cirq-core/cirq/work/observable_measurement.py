@@ -234,7 +234,7 @@ def _aggregate_n_repetitions(next_chunk_repetitions: set[int]) -> int:
     """A stopping criteria can request a different number of more_repetitions for each
     measurement spec. For batching efficiency, we take the max and issue a warning in this case."""
     if len(next_chunk_repetitions) == 1:
-        return list(next_chunk_repetitions)[0]
+        return next(iter(next_chunk_repetitions))
 
     reps = max(next_chunk_repetitions)
     warnings.warn(

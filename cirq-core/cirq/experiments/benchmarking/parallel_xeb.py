@@ -311,7 +311,7 @@ def simulate_circuit_library(
     keys = None
     if isinstance(target_or_dict, dict):
         keys = tuple(target_or_dict.keys())
-        two_qubit_ops = list(target_or_dict[k] for k in keys)
+        two_qubit_ops = [target_or_dict[k] for k in keys]
     else:
         two_qubit_ops = [target_or_dict]
 
@@ -445,7 +445,7 @@ def _reshape_simulation_results(
             ):
                 cycle_idx = cycle_depth_to_index[cycle_depth]
                 common_pure_probs[cycle_idx][template_idx] = pure_probs
-        return {pair: common_pure_probs for pair in pairs}
+        return dict.fromkeys(pairs, common_pure_probs)
 
 
 @attrs.frozen
@@ -579,9 +579,8 @@ def parallel_xeb_workflow(
     Raises:
         ValueError: If qubits are not specified and the sampler has no device.
     """
-    if rng is None:
-        rng = np.random.default_rng()
-    rs = np.random.RandomState(rng.integers(0, 10**9))
+    seed = np.random.randint(0, 10**9) if rng is None else rng.integers(0, 10**9)
+    rs = np.random.RandomState(seed)
 
     pairs = _extract_pairs(sampler, target, qubits, pairs)
     graph = nx.Graph(pairs)

@@ -154,6 +154,13 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
         elif gate == ops.SWAP:
             a, b = mapped_qubits
             self._state.basis[a], self._state.basis[b] = self._state.basis[b], self._state.basis[a]
+        elif gate == ops.CSWAP:
+            c, a, b = mapped_qubits
+            if self._state.basis[c]:
+                self._state.basis[a], self._state.basis[b] = (
+                    self._state.basis[b],
+                    self._state.basis[a],
+                )
         elif gate == ops.TOFFOLI:
             c1, c2, q = mapped_qubits
             self._state.basis[q] ^= self._state.basis[c1] & self._state.basis[c2]
