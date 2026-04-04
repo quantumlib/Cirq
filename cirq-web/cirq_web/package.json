@@ -15,7 +15,7 @@
     "@types/node": "^25.0.3",
     "@types/pngjs": "^6.0.0",
     "@types/temp": "^0.9.0",
-    "@types/three": "^0.182.0",
+    "@types/three": "^0.183.1",
     "@webgpu/types": "^0.1.63",
     "@vitest/coverage-v8": "^4.0.6",
     "canvas": "^3.2.0",
