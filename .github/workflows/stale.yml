@@ -67,7 +67,7 @@ jobs:
       pull-requests: write
     env:
       help-text: >-
-        <br><br>If you have questions or feedback about this process, please
+        If you have questions or feedback about this process, please
         open a new issue in this repository to let us know. You can also send
         email to the maintainers at quantum-oss-maintainers@google.com.
     steps:
@@ -91,6 +91,7 @@ jobs:
           by a maintainer within ${{env.days-before-close}} days, this issue
           will be closed. If you want to keep the issue open, leave a comment
           here and the status will be updated automatically.
+          <p>
           ${{env.help-text}}
 
         stale-pr-message: >-
@@ -100,6 +101,7 @@ jobs:
           by a maintainer within ${{env.days-before-close}} days, this pull
           request will be closed. If you want to keep the pull request open,
           leave a comment here and the status will be updated automatically.
+          <p>
           ${{env.help-text}}
 
         close-issue-message: >-
@@ -107,6 +109,7 @@ jobs:
           ${{env.days-before-close}} days since the time the `status/stale`
           label was applied. If you believe the issue is still relevant, please
           feel free to reopen it.
+          <p>
           ${{env.help-text}}
 
         close-pr-message: >-
@@ -114,4 +117,5 @@ jobs:
           ${{env.days-before-close}} days since the time the `status/stale`
           label was applied. If you would like to continue working on this PR,
           please feel free to reopen it.
+          <p>
           ${{env.help-text}}
