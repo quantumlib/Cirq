@@ -6,9 +6,6 @@ __pycache__
 .idea/
 .vscode
 
-# ignore caches
-.cache/
-
 # ignore coverage files
 *.py,cover
 *.coverage
