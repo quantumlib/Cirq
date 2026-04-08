@@ -37,3 +37,6 @@ docs/api_docs
 
 # pyenv configuration
 .python-version
+
+# notebook test output
+/out
