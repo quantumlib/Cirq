@@ -116,7 +116,6 @@ module = [
     "ruamel.*",
     "scipy.*",
     "setuptools.*",
-    "sortedcontainers.*",
     "stimcirq.*",
     "sympy.*",
     "tensorflow_docs.*",
