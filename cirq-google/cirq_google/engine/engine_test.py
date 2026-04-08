@@ -794,6 +794,28 @@ def test_list_jobs(list_jobs_async):
     ]
 
 
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_jobs_async')
+def test_get_job_when_job_exists(list_jobs_async):
+    job1 = quantum.QuantumJob(name='projects/proj/programs/prog1/jobs/job1')
+    job2 = quantum.QuantumJob(name='projects/proj/programs/prog2/jobs/job2')
+    list_jobs_async.return_value = [job1, job2]
+
+    ctx = EngineContext()
+    result = cg.Engine(project_id='proj', context=ctx).get_job('job2')
+    assert job2 == result._job
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_jobs_async')
+def test_get_job_when_job_doesnt_exist(list_jobs_async):
+    job1 = quantum.QuantumJob(name='projects/proj/programs/prog1/jobs/job1')
+    job2 = quantum.QuantumJob(name='projects/proj/programs/prog2/jobs/job2')
+    list_jobs_async.return_value = [job1, job2]
+
+    ctx = EngineContext()
+    with pytest.raises(ValueError, match='No job'):
+        _ = cg.Engine(project_id='proj', context=ctx).get_job('job3')
+
+
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_processors_async')
 def test_list_processors(list_processors_async):
     processor1 = quantum.QuantumProcessor(name='projects/proj/processors/xmonsim')

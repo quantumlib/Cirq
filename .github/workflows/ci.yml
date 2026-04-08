@@ -193,7 +193,12 @@ jobs:
     name: Pytest Ubuntu
     strategy:
       matrix:
-        python-version: ['3.11', '3.12', '3.13', '3.14']
+        # check only the required version for merge queue
+        python-version: |-
+          ${{ fromJSON(case(
+            github.event_name == 'merge_group', '["3.11"]',
+            '["3.11", "3.12", "3.13", "3.14"]'
+          )) }}
     runs-on: ubuntu-22.04-x64-8-core
     steps:
       - name: Check out source repository
@@ -282,7 +287,7 @@ jobs:
       - name: Coverage check
         run: check/pytest-and-incremental-coverage -n logical
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   windows:
@@ -290,7 +295,12 @@ jobs:
     name: Pytest Windows
     strategy:
       matrix:
-        python-version: ['3.11', '3.12', '3.13', '3.14']
+        # check only the required version for merge queue
+        python-version: |-
+          ${{ fromJSON(case(
+            github.event_name == 'merge_group', '["3.11"]',
+            '["3.11", "3.12", "3.13", "3.14"]'
+          )) }}
     runs-on: windows-2022-x64-8-core
     steps:
       - name: Check out source repository
@@ -321,7 +331,12 @@ jobs:
     name: Pytest MacOS
     strategy:
       matrix:
-        python-version: ['3.11', '3.12', '3.13', '3.14']
+        # check only the required version for merge queue
+        python-version: |-
+          ${{ fromJSON(case(
+            github.event_name == 'merge_group', '["3.11"]',
+            '["3.11", "3.12", "3.13", "3.14"]'
+          )) }}
     # macos-15-large is Intel; macos-15-xlarge is ARM and the one we want.
     runs-on: macos-15-xlarge
     steps:
@@ -404,7 +419,7 @@ jobs:
       - name: Check out source repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Set up Node environment
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: '22.16.0'
       - name: Install node dependencies
@@ -419,7 +434,7 @@ jobs:
       - name: Check out source repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Set up Node environment
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: '22.16.0'
       - name: Install node dependencies
@@ -434,7 +449,7 @@ jobs:
       - name: Check out source repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Set up Node environment
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: '22.16.0'
       - name: Install node dependencies
@@ -451,7 +466,7 @@ jobs:
       - name: Check out source repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Set up Node environment
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: '22.16.0'
       - name: Install node dependencies
