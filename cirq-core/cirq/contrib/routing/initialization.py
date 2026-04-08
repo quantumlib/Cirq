@@ -85,7 +85,7 @@ def get_initial_mapping(
                     total_distance += physical_distances[p, pp]
             total_distances[l, p] = total_distance
         min_total_distance = min(total_distances.values())
-        best_candidates = [lp for lp, d in total_distances.items() if d == min_total_distance]
+        best_candidates = sorted(lp for lp, d in total_distances.items() if d == min_total_distance)
         choice = prng.choice(len(best_candidates))
         l, p = best_candidates[choice]
         assert p not in mapping
