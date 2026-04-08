@@ -6,7 +6,6 @@ matplotlib~=3.9
 networkx~=3.4
 numpy~=2.0
 pandas~=2.3
-sortedcontainers~=2.0
 scipy~=1.14
 sympy
 tqdm>=4.12
