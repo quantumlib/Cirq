@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import random
+import timeit
 
 import networkx as nx
 import numpy as np
@@ -28,7 +29,10 @@ def get_seeded_initial_mapping(graph_seed, init_seed) -> dict[cirq.Qid, cirq.Qid
     logical_graph = nx.erdos_renyi_graph(10, 0.5, seed=graph_seed)
     logical_graph = nx.relabel_nodes(logical_graph, cirq.LineQubit)
     device_graph = ccr.get_grid_device_graph(4, 4)
-    return ccr.initialization.get_initial_mapping(logical_graph, device_graph, init_seed)
+    result = ccr.initialization.get_initial_mapping(logical_graph, device_graph, init_seed)
+    f = lambda: ccr.initialization.get_initial_mapping(logical_graph, device_graph, init_seed)
+    print('\n:DB timeit.timeit(f, number=200):', timeit.timeit(f, number=200))
+    return result
 
 
 @pytest.mark.parametrize('seed', [random.randint(0, 2**32) for _ in range(10)])
