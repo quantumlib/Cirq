@@ -2,10 +2,6 @@
 __pycache__
 *.pyc
 
-# ignore idea SDK
-.idea/
-.vscode
-
 # ignore coverage files
 *.py,cover
 *.coverage
@@ -44,14 +40,3 @@ docs/api_docs
 
 # pyenv configuration
 .python-version
-
-# notebook test output
-/out
-
-# Miscellaneous common editor backup files and temp files.
-*.bak
-*.log
-*.tmp
-*~
-.\#*
-\#*\#
