@@ -23,9 +23,6 @@ docs/api_docs
 # swap files
 *.swp
 
-# Mac only
-.DS_Store
-
 # From asv
 *.asv/
 
