@@ -86,6 +86,10 @@ if [ "${num_changed}" -eq 0 ]; then
     exit 0
 fi
 
-source dev_tools/pypath || exit $?
+# Run in a serial mode if there are only few changed files
+typeset -a opt_num_workers=()
+if [ "${#num_changed[@]}" -le 6 ]; then
+    opt_num_workers=( -n0 )
+fi
 
-pytest "${rest[@]}" "${changed[@]}"
+check/pytest "${opt_num_workers[@]}" "${rest[@]}" "${changed[@]}"
