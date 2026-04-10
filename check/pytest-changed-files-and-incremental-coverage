@@ -88,10 +88,17 @@ if [ "${#changed_python_tests[@]}" -eq 0 ]; then
     exit 0
 fi
 
+# Run in a serial mode if there are only few changed files
+typeset -a opt_num_workers=()
+if [ "${#changed_python_tests[@]}" -le 6 ]; then
+    opt_num_workers=( -n0 )
+fi
+
 source dev_tools/pypath || exit $?
 
 # Run tests while producing coverage files.
 check/pytest "${changed_python_tests[@]}" \
+    "${opt_num_workers[@]}" \
     "${cov_changed_python_file_dirs[@]}" \
     --cov-report=annotate
 pytest_result=$?

@@ -27,6 +27,7 @@ from attrs import frozen
 from cirq import ops, protocols
 from cirq.circuits import Circuit, FrozenCircuit, Moment
 from cirq.protocols import unitary_protocol
+from cirq.protocols.control_key_protocol import control_keys
 from cirq.protocols.has_stabilizer_effect_protocol import has_stabilizer_effect
 from cirq.protocols.has_unitary_protocol import has_unitary
 from cirq.transformers import transformer_api
@@ -120,7 +121,7 @@ def _is_single_qubit_gate_moment(moment: Moment) -> bool:
 
 
 def _is_clifford_op(op: ops.Operation) -> bool:
-    return has_unitary(op) and has_stabilizer_effect(op)
+    return has_unitary(op) and has_stabilizer_effect(op) and not control_keys(op)
 
 
 def _calc_busy_moment_range_of_each_qubit(circuit: FrozenCircuit) -> dict[ops.Qid, list[int]]:
