@@ -102,7 +102,7 @@ jobs:
       - name: Install system packages
         run: |
           sudo apt-get update
-          sudo apt-get install latexmk texlive-latex-base texlive-latex-extra
+          sudo apt-get install $(cat apt-system-requirements.txt)
       - name: Install changed files test dependencies
         run: dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
       - name: Changed files test
@@ -215,7 +215,7 @@ jobs:
       - name: Install system packages
         run: |
           sudo apt-get update
-          sudo apt-get install latexmk texlive-latex-base texlive-latex-extra
+          sudo apt-get install $(cat apt-system-requirements.txt)
       - name: Install requirements
         run: |
           pip install --upgrade setuptools wheel
@@ -279,7 +279,7 @@ jobs:
       - name: Install system packages
         run: |
           sudo apt-get update
-          sudo apt-get install latexmk texlive-latex-base texlive-latex-extra
+          sudo apt-get install $(cat apt-system-requirements.txt)
       - name: Install requirements
         run: |
           pip install --upgrade setuptools wheel
