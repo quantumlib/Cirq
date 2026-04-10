@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from __future__ import annotations
+from typing import cast
 
 import pytest
 
@@ -62,8 +63,8 @@ def test_insert_non_pauli_string_into_circuit() -> None:
     c_left_strings = cirq.Circuit()
     for moment in c_left_phasors:
         for op in moment:
-            c_left_strings.append(op.gate._decompose_(op.qubits))
+            op_as_phasor = cast(cirq.PauliStringPhasor, op)
+            c_left_strings.append(op_as_phasor.gate._decompose_(op_as_phasor.qubits))
 
-    _ = move_pauli_strings_into_circuit(c_left_phasors, c_right)
     with pytest.raises(ValueError):
         _ = move_pauli_strings_into_circuit(c_left_strings, c_right)
