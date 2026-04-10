@@ -53,6 +53,7 @@ def test_move_non_clifford_into_clifford() -> None:
     assert opt_len1 <= baseline_len
     assert opt_len2 <= baseline_len
 
+
 def test_insert_non_pauli_string_into_circuit() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     c_orig = cirq.testing.nonoptimal_toffoli_circuit(q0, q1, q2)
