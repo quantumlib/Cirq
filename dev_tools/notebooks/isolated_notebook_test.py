@@ -139,6 +139,9 @@ def _rewrite_and_run_notebook(notebook_path, cloned_env):
     notebook_file = os.path.basename(notebook_path)
     notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, REPO_ROOT))
     out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"
+    # ensure papermill will have CLOUDSDK_CONFIG set per dev_tools/conftest.py
+    env = {'CLOUDSDK_CONFIG': os.environ['CLOUDSDK_CONFIG'], 'PIP_CONFIG_FILE': '/dev/null'}
+    assert os.path.isdir(env["CLOUDSDK_CONFIG"])
     notebook_env = cloned_env("isolated_notebook_tests", *PACKAGES)
 
     notebook_file = os.path.basename(notebook_path)
@@ -147,9 +150,10 @@ def _rewrite_and_run_notebook(notebook_path, cloned_env):
 
     REPO_ROOT.joinpath("out", notebook_rel_dir).mkdir(parents=True, exist_ok=True)
     cmd = f"""
-. ./bin/activate
-pip list
-papermill {rewritten_notebook_path} {REPO_ROOT/out_path}"""
+        . ./bin/activate
+        pip list
+        papermill "{rewritten_notebook_path}" "{REPO_ROOT/out_path}"
+    """
     result = shell_tools.run(
         cmd,
         log_run_to_stderr=False,
@@ -160,7 +164,7 @@ papermill {rewritten_notebook_path} {REPO_ROOT/out_path}"""
         # Important to get rid of PYTHONPATH specifically, which contains
         # the Cirq repo path due to check/pytest.  Also isolate the execution
         # from pip settings in local configuration files or environment.
-        env={'PIP_CONFIG_FILE': '/dev/null'},
+        env=env,
     )
 
     if result.returncode != 0:

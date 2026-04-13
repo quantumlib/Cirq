@@ -12,7 +12,7 @@ on:
       - checks_requested
 
 concurrency:
-  group: ${{ github.head_ref || github.run_id }}
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 # Declare default permissions as read only.
@@ -63,7 +63,7 @@ jobs:
       - name: Set up Python environment
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
-          python-version: '3.14'
+          python-version: '3.11'
           architecture: 'x64'
       - name: Install dependencies
         run: pip install -r dev_tools/requirements/deps/format.txt
@@ -102,7 +102,7 @@ jobs:
       - name: Install system packages
         run: |
           sudo apt-get update
-          sudo apt-get install latexmk texlive-latex-base texlive-latex-extra
+          sudo apt-get install $(cat apt-system-requirements.txt)
       - name: Install changed files test dependencies
         run: dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
       - name: Changed files test
@@ -215,7 +215,7 @@ jobs:
       - name: Install system packages
         run: |
           sudo apt-get update
-          sudo apt-get install latexmk texlive-latex-base texlive-latex-extra
+          sudo apt-get install $(cat apt-system-requirements.txt)
       - name: Install requirements
         run: |
           pip install --upgrade setuptools wheel
@@ -279,7 +279,7 @@ jobs:
       - name: Install system packages
         run: |
           sudo apt-get update
-          sudo apt-get install latexmk texlive-latex-base texlive-latex-extra
+          sudo apt-get install $(cat apt-system-requirements.txt)
       - name: Install requirements
         run: |
           pip install --upgrade setuptools wheel

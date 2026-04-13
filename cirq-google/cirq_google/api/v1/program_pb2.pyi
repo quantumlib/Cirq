@@ -3,39 +3,45 @@
 isort:skip_file
 """
 
-import builtins
-import cirq_google.api.v1.operations_pb2
-import cirq_google.api.v1.params_pb2
-import collections.abc
-import google.protobuf.descriptor
-import google.protobuf.internal.containers
-import google.protobuf.message
+from cirq_google.api.v1 import operations_pb2 as _operations_pb2
+from cirq_google.api.v1 import params_pb2 as _params_pb2
+from collections import abc as _abc
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from google.protobuf.internal import containers as _containers
+import builtins as _builtins
 import sys
-import typing
+import typing as _typing
 
 if sys.version_info >= (3, 10):
-    import typing as typing_extensions
+    from typing import TypeAlias as _TypeAlias
 else:
-    import typing_extensions
+    from typing_extensions import TypeAlias as _TypeAlias
 
-DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
+if sys.version_info >= (3, 13):
+    from warnings import deprecated as _deprecated
+else:
+    from typing_extensions import deprecated as _deprecated
 
-@typing.final
-class Program(google.protobuf.message.Message):
+DESCRIPTOR: _descriptor.FileDescriptor
+
+@_typing.final
+class Program(_message.Message):
     """A quantum program. This includes a quantum circuit and also a set of circuit
     parameters over which the circuit should be run.
     """
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    OPERATIONS_FIELD_NUMBER: builtins.int
-    PARAMETER_SWEEPS_FIELD_NUMBER: builtins.int
-    @property
-    def operations(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[cirq_google.api.v1.operations_pb2.Operation]:
+    OPERATIONS_FIELD_NUMBER: _builtins.int
+    PARAMETER_SWEEPS_FIELD_NUMBER: _builtins.int
+    @_builtins.property
+    def operations(self) -> _containers.RepeatedCompositeFieldContainer[_operations_pb2.Operation]:
         """Gates and measurements that make up the circuit."""
 
-    @property
-    def parameter_sweeps(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[cirq_google.api.v1.params_pb2.ParameterSweep]:
+    @_builtins.property
+    @_deprecated("""This field has been marked as deprecated using proto field options.""")
+    def parameter_sweeps(self) -> _containers.RepeatedCompositeFieldContainer[_params_pb2.ParameterSweep]:
         """The circuit parameters for the operations above will be evaluated for
         each parameter in parameter sweeps.
         """
@@ -43,44 +49,46 @@ class Program(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        operations: collections.abc.Iterable[cirq_google.api.v1.operations_pb2.Operation] | None = ...,
-        parameter_sweeps: collections.abc.Iterable[cirq_google.api.v1.params_pb2.ParameterSweep] | None = ...,
+        operations: _abc.Iterable[_operations_pb2.Operation] | None = ...,
+        parameter_sweeps: _abc.Iterable[_params_pb2.ParameterSweep] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["operations", b"operations", "parameter_sweeps", b"parameter_sweeps"]) -> None: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["operations", b"operations", "parameter_sweeps", b"parameter_sweeps"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___Program: typing_extensions.TypeAlias = Program
+Global___Program: _TypeAlias = Program  # noqa: Y015
 
-@typing.final
-class RunContext(google.protobuf.message.Message):
+@_typing.final
+class RunContext(_message.Message):
     """The context for running a quantum program."""
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    PARAMETER_SWEEPS_FIELD_NUMBER: builtins.int
-    @property
-    def parameter_sweeps(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[cirq_google.api.v1.params_pb2.ParameterSweep]:
+    PARAMETER_SWEEPS_FIELD_NUMBER: _builtins.int
+    @_builtins.property
+    def parameter_sweeps(self) -> _containers.RepeatedCompositeFieldContainer[_params_pb2.ParameterSweep]:
         """The parameters for operations in a program."""
 
     def __init__(
         self,
         *,
-        parameter_sweeps: collections.abc.Iterable[cirq_google.api.v1.params_pb2.ParameterSweep] | None = ...,
+        parameter_sweeps: _abc.Iterable[_params_pb2.ParameterSweep] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["parameter_sweeps", b"parameter_sweeps"]) -> None: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["parameter_sweeps", b"parameter_sweeps"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___RunContext: typing_extensions.TypeAlias = RunContext
+Global___RunContext: _TypeAlias = RunContext  # noqa: Y015
 
-@typing.final
-class ParameterizedResult(google.protobuf.message.Message):
+@_typing.final
+class ParameterizedResult(_message.Message):
     """The parameters used to generate result along with the results for this
     set of parameters.
     """
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    PARAMS_FIELD_NUMBER: builtins.int
-    MEASUREMENT_RESULTS_FIELD_NUMBER: builtins.int
-    measurement_results: builtins.bytes
+    PARAMS_FIELD_NUMBER: _builtins.int
+    MEASUREMENT_RESULTS_FIELD_NUMBER: _builtins.int
+    measurement_results: _builtins.bytes
     """The measurement results. This is a packed representation of all of the
     measurements for fixed set of parameters (specified by params above)
     across all of the repetitions for the set of parameters given the
@@ -122,72 +130,75 @@ class ParameterizedResult(google.protobuf.message.Message):
     bytes is the first bit of the bit string, the second-least significant
     bit of the bytes is the second bit of the bit string, etc.
     """
-    @property
-    def params(self) -> cirq_google.api.v1.params_pb2.ParameterDict:
+    @_builtins.property
+    def params(self) -> _params_pb2.ParameterDict:
         """The parameter dict that was used when generating these results."""
 
     def __init__(
         self,
         *,
-        params: cirq_google.api.v1.params_pb2.ParameterDict | None = ...,
-        measurement_results: builtins.bytes = ...,
+        params: _params_pb2.ParameterDict | None = ...,
+        measurement_results: _builtins.bytes = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["params", b"params"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["measurement_results", b"measurement_results", "params", b"params"]) -> None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["params", b"params"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["measurement_results", b"measurement_results", "params", b"params"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___ParameterizedResult: typing_extensions.TypeAlias = ParameterizedResult
+Global___ParameterizedResult: _TypeAlias = ParameterizedResult  # noqa: Y015
 
-@typing.final
-class MeasurementKey(google.protobuf.message.Message):
+@_typing.final
+class MeasurementKey(_message.Message):
     """A message which represents a measurement key, along with the qubits
     upon which the measurement acts. This measurement is in the computational
     basis.
     """
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    KEY_FIELD_NUMBER: builtins.int
-    QUBITS_FIELD_NUMBER: builtins.int
-    key: builtins.str
+    KEY_FIELD_NUMBER: _builtins.int
+    QUBITS_FIELD_NUMBER: _builtins.int
+    key: _builtins.str
     """The measurement key."""
-    @property
-    def qubits(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[cirq_google.api.v1.operations_pb2.Qubit]:
+    @_builtins.property
+    def qubits(self) -> _containers.RepeatedCompositeFieldContainer[_operations_pb2.Qubit]:
         """The qubits upon which this measurement is performed."""
 
     def __init__(
         self,
         *,
-        key: builtins.str = ...,
-        qubits: collections.abc.Iterable[cirq_google.api.v1.operations_pb2.Qubit] | None = ...,
+        key: _builtins.str = ...,
+        qubits: _abc.Iterable[_operations_pb2.Qubit] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["key", b"key", "qubits", b"qubits"]) -> None: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["key", b"key", "qubits", b"qubits"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___MeasurementKey: typing_extensions.TypeAlias = MeasurementKey
+Global___MeasurementKey: _TypeAlias = MeasurementKey  # noqa: Y015
 
-@typing.final
-class SweepResult(google.protobuf.message.Message):
+@_typing.final
+class SweepResult(_message.Message):
     """The measurement results for a particular ParameterSweep."""
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    REPETITIONS_FIELD_NUMBER: builtins.int
-    MEASUREMENT_KEYS_FIELD_NUMBER: builtins.int
-    PARAMETERIZED_RESULTS_FIELD_NUMBER: builtins.int
-    repetitions: builtins.int
+    REPETITIONS_FIELD_NUMBER: _builtins.int
+    MEASUREMENT_KEYS_FIELD_NUMBER: _builtins.int
+    PARAMETERIZED_RESULTS_FIELD_NUMBER: _builtins.int
+    repetitions: _builtins.int
     """The total number of repetitions that were performed for this sweep.
     This is reported in order to make it possible to decode the bytes
     in the measurement results.
     """
-    @property
-    def measurement_keys(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___MeasurementKey]:
+    @_builtins.property
+    def measurement_keys(self) -> _containers.RepeatedCompositeFieldContainer[Global___MeasurementKey]:
         """A list of measurement keys (string) along with the qubits that have been
         measured. The size of the measurement key is the total number of
         measurements in the list of operations for the Program. The measurement
         keys are all unique.
         """
 
-    @property
-    def parameterized_results(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___ParameterizedResult]:
+    @_builtins.property
+    def parameterized_results(self) -> _containers.RepeatedCompositeFieldContainer[Global___ParameterizedResult]:
         """The results along with the parameters that generated these results.
         These represent the expanded parameters defined int he ParameterSweep
         which this SweepResult corresponds to.
@@ -196,23 +207,24 @@ class SweepResult(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        repetitions: builtins.int = ...,
-        measurement_keys: collections.abc.Iterable[Global___MeasurementKey] | None = ...,
-        parameterized_results: collections.abc.Iterable[Global___ParameterizedResult] | None = ...,
+        repetitions: _builtins.int = ...,
+        measurement_keys: _abc.Iterable[Global___MeasurementKey] | None = ...,
+        parameterized_results: _abc.Iterable[Global___ParameterizedResult] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["measurement_keys", b"measurement_keys", "parameterized_results", b"parameterized_results", "repetitions", b"repetitions"]) -> None: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["measurement_keys", b"measurement_keys", "parameterized_results", b"parameterized_results", "repetitions", b"repetitions"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___SweepResult: typing_extensions.TypeAlias = SweepResult
+Global___SweepResult: _TypeAlias = SweepResult  # noqa: Y015
 
-@typing.final
-class Result(google.protobuf.message.Message):
+@_typing.final
+class Result(_message.Message):
     """The overall results of running a Program."""
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    SWEEP_RESULTS_FIELD_NUMBER: builtins.int
-    @property
-    def sweep_results(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___SweepResult]:
+    SWEEP_RESULTS_FIELD_NUMBER: _builtins.int
+    @_builtins.property
+    def sweep_results(self) -> _containers.RepeatedCompositeFieldContainer[Global___SweepResult]:
         """The results for each ParameterSweep. These will be in the same order
         as the parameter_sweeps repeated field in the Program that generated
         these results.
@@ -221,8 +233,9 @@ class Result(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        sweep_results: collections.abc.Iterable[Global___SweepResult] | None = ...,
+        sweep_results: _abc.Iterable[Global___SweepResult] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["sweep_results", b"sweep_results"]) -> None: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["sweep_results", b"sweep_results"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___Result: typing_extensions.TypeAlias = Result
+Global___Result: _TypeAlias = Result  # noqa: Y015

@@ -198,7 +198,7 @@ class AnalogSimulationCircuitBuilder:
         """
 
         # resolve the idles
-        idle_freq_map_resolved = (
+        idle_freq_map_resolved: dict[cirq.Qid, tu.Value] = (
             dict.fromkeys(self.trajectory.qubits, 0 * tu.GHz)
             if idle_freq_map is None
             else idle_freq_map
