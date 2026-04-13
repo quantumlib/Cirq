@@ -25,8 +25,9 @@ import cirq
 import cirq.experiments.qubit_characterizations as ceqc
 from cirq import circuits, GridQubit, ops, sim
 from cirq.experiments import (
-    parallel_single_qubit_randomized_benchmarking,
-    single_qubit_randomized_benchmarking,
+    parallel_single_qubit_rb,
+    RBParameters,
+    single_qubit_rb,
     single_qubit_state_tomography,
     two_qubit_randomized_benchmarking,
     two_qubit_state_tomography,
@@ -114,7 +115,9 @@ def test_single_qubit_randomized_benchmarking() -> None:
     simulator = sim.Simulator()
     qubit = GridQubit(0, 0)
     num_cfds = tuple(np.logspace(np.log10(5), 3, 5, dtype=int))
-    results = single_qubit_randomized_benchmarking(simulator, qubit, num_clifford_range=num_cfds)
+    results = single_qubit_rb(
+        simulator, qubit, RBParameters(num_clifford_range=num_cfds, num_circuits=10)
+    )
     g_pops = np.asarray(results.data)[:, 1]
     assert np.isclose(np.mean(g_pops), 1.0)
     assert np.isclose(results.pauli_error(), 0.0, atol=1e-7)  # warning is expected
@@ -127,8 +130,10 @@ def test_parallel_single_qubit_parallel_single_qubit_randomized_benchmarking() -
     simulator = sim.Simulator()
     qubits = (GridQubit(0, 0), GridQubit(0, 1))
     num_cfds = range(5, 20, 5)
-    results = parallel_single_qubit_randomized_benchmarking(
-        simulator, num_clifford_range=num_cfds, repetitions=100, qubits=qubits
+    results = parallel_single_qubit_rb(
+        simulator,
+        qubits,
+        RBParameters(num_clifford_range=num_cfds, repetitions=100, num_circuits=10),
     )
     for qubit in qubits:
         g_pops = np.asarray(results.results_dictionary[qubit].data)[:, 1]
@@ -145,8 +150,10 @@ def test_parallel_single_qubit_randomized_benchmarking_with_noise() -> None:
     simulator = sim.Simulator(noise=cirq.depolarize(1e-3), seed=0)
     qubits = (GridQubit(0, 0), GridQubit(0, 1))
     num_cfds = range(5, 7, 1)
-    results = parallel_single_qubit_randomized_benchmarking(
-        simulator, num_clifford_range=num_cfds, repetitions=10, qubits=qubits
+    results = parallel_single_qubit_rb(
+        simulator,
+        qubits,
+        RBParameters(num_clifford_range=num_cfds, repetitions=10, num_circuits=10),
     )
     for qubit in qubits:
         g_pops = np.asarray(results.results_dictionary[qubit].data)[:, 1]
