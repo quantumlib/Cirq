@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import datetime
+from collections.abc import Mapping, Sequence
 from typing import Any, TYPE_CHECKING
 
 from cirq import _compat
@@ -155,7 +156,11 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
 
     async def run_sweep_async(
         self,
-        program: cirq.AbstractCircuit,
+        program: (
+            cirq.AbstractCircuit
+            | Sequence[cirq.AbstractCircuit]
+            | Mapping[str, cirq.AbstractCircuit]
+        ),
         *,
         device_config_name: str,
         run_name: str = "",
@@ -177,6 +182,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         Args:
             program: The Circuit to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
+                A list or mapping of circuits can also be provided.  If so,
+                it will be executed as a KeyedCircuit.
             run_name: A unique identifier representing an automation run for the
                 processor. An Automation Run contains a collection of device
                 configurations for the processor.

@@ -29,6 +29,7 @@ import datetime
 import enum
 import random
 import string
+from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, TypeVar
 
 import duet
@@ -46,7 +47,7 @@ from cirq_google.engine import (
     processor_config,
     util,
 )
-from cirq_google.serialization import CIRCUIT_SERIALIZER, Serializer
+from cirq_google.serialization import CIRCUIT_SERIALIZER, CircuitSerializer
 
 if TYPE_CHECKING:
     from google.protobuf import any_pb2
@@ -87,7 +88,7 @@ class EngineContext:
         verbose: bool | None = None,
         client: engine_client.EngineClient | None = None,
         timeout: int | None = None,
-        serializer: Serializer = CIRCUIT_SERIALIZER,
+        serializer: CircuitSerializer = CIRCUIT_SERIALIZER,
         # TODO(#5996) Remove enable_streaming once the feature is stable.
         enable_streaming: bool = True,
         compress_run_context: bool = False,
@@ -144,6 +145,22 @@ class EngineContext:
         if self.proto_version != ProtoVersion.V2:
             raise ValueError(f'invalid program proto version: {self.proto_version}')
         return util.pack_any(self.serializer.serialize(program))
+
+    def _serialize_multi_program(
+        self, programs: Sequence[cirq.AbstractCircuit] | Mapping[str, cirq.AbstractCircuit]
+    ) -> any_pb2.Any:
+        if isinstance(programs, Mapping):
+            if any(not isinstance(value, cirq.AbstractCircuit) for value in programs.values()):
+                raise TypeError(f'Unrecognized program type: {type(programs)}')
+        if isinstance(programs, Sequence):
+            if any(not isinstance(value, cirq.AbstractCircuit) for value in programs):
+                raise TypeError(f'Unrecognized program type: {type(programs)}')
+        else:
+            raise TypeError(f'Unrecognized program type: {type(programs)}')
+
+        if self.proto_version != ProtoVersion.V2:
+            raise ValueError(f'invalid program proto version: {self.proto_version}')
+        return util.pack_any(self.serializer.serialize_multi_program(programs))
 
     def _serialize_run_context(self, sweeps: cirq.Sweepable, repetitions: int) -> any_pb2.Any:
         if self.proto_version != ProtoVersion.V2:
@@ -306,7 +323,11 @@ class Engine(abstract_engine.AbstractEngine):
 
     async def run_sweep_async(
         self,
-        program: cirq.AbstractCircuit,
+        program: (
+            cirq.AbstractCircuit
+            | Sequence[cirq.AbstractCircuit]
+            | Mapping[str, cirq.AbstractCircuit]
+        ),
         processor_id: str,
         program_id: str | None = None,
         job_id: str | None = None,
@@ -329,6 +350,8 @@ class Engine(abstract_engine.AbstractEngine):
         Args:
             program: The Circuit to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
+                A list or mapping of programs can also be provided.
+                These will be executed as KeyedCircuits.
             program_id: A user-provided identifier for the program. This must
                 be unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
@@ -375,12 +398,17 @@ class Engine(abstract_engine.AbstractEngine):
                 job_id = _make_random_id('job-')
             run_context = self.context._serialize_run_context(params, repetitions)
 
+            if isinstance(program, cirq.AbstractCircuit):
+                code = self.context._serialize_program(program)
+            else:
+                code = self.context._serialize_multi_program(program)
+
             job_result_future = self.context.client.run_job_over_stream(
                 project_id=self.project_id,
                 program_id=str(program_id),
                 program_description=program_description,
                 program_labels=program_labels,
-                code=self.context._serialize_program(program),
+                code=code,
                 job_id=str(job_id),
                 run_context=run_context,
                 job_description=job_description,
@@ -417,7 +445,11 @@ class Engine(abstract_engine.AbstractEngine):
 
     async def create_program_async(
         self,
-        program: cirq.AbstractCircuit,
+        program: (
+            cirq.AbstractCircuit
+            | Sequence[cirq.AbstractCircuit]
+            | Mapping[str, cirq.AbstractCircuit]
+        ),
         program_id: str | None = None,
         description: str | None = None,
         labels: dict[str, str] | None = None,
@@ -443,12 +475,13 @@ class Engine(abstract_engine.AbstractEngine):
         if not program_id:
             program_id = _make_random_id('prog-')
 
+        if isinstance(program, cirq.AbstractCircuit):
+            code = self.context._serialize_program(program)
+        else:
+            code = self.context._serialize_multi_program(program)
+
         new_program_id, new_program = await self.context.client.create_program_async(
-            self.project_id,
-            program_id,
-            code=self.context._serialize_program(program),
-            description=description,
-            labels=labels,
+            self.project_id, program_id, code=code, description=description, labels=labels
         )
 
         return engine_program.EngineProgram(
