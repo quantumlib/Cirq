@@ -295,10 +295,10 @@ class FSimGateFamily(cirq.GateFamily):
             elif isinstance(g, cirq.Gate):
                 for target in type(gate).mro():
                     if target in self.gate_types_to_check:
-                        cg = self.convert(g, cast(type, target))
+                        cg = self.convert(g, target)
                         if cg is None:
                             continue
-                        if self._check_equal(gate, cg):
+                        if self._check_equal(cast(POSSIBLE_FSIM_GATES, gate), cg):
                             return True
                         break
         return False
