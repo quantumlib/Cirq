@@ -100,7 +100,7 @@ class ProcessorSampler(cirq.Sampler):
 
     async def run_batch_async(
         self,
-        programs: Sequence[cirq.AbstractCircuit],
+        programs: Sequence[cirq.AbstractCircuit] | Mapping[str, cirq.AbstractCircuit],
         params_list: Sequence[cirq.Sweepable] | None = None,
         repetitions: int | Sequence[int] = 1,
     ) -> Sequence[Sequence[cg.EngineResult]]:
@@ -113,18 +113,30 @@ class ProcessorSampler(cirq.Sampler):
             params_list_batches = []
             repetition_batches = []
 
+            # Treat programs as a sequence for iteration, but keep keys if it's a mapping
+            prog_keys = list(programs.keys()) if isinstance(programs, Mapping) else None
+            prog_values = (
+                list(programs.values()) if isinstance(programs, Mapping) else list(programs)
+            )
+
             i = 0
-            while i < len(programs):
+            while i < len(prog_values):
                 batch_reps = repetitions[i]
-                batch_programs = [programs[i]]
+                if prog_keys is not None:
+                    batch_programs = {prog_keys[i]: prog_values[i]}
+                else:
+                    batch_programs = [prog_values[i]]
                 batch_params = [params_list[i]]
                 i += 1
                 while (
-                    i < len(programs)
+                    i < len(prog_values)
                     and len(batch_programs) < self._jobs_per_batch
                     and repetitions[i] == batch_reps
                 ):
-                    batch_programs.append(programs[i])
+                    if prog_keys is not None:
+                        batch_programs[prog_keys[i]] = prog_values[i]
+                    else:
+                        batch_programs.append(prog_values[i])
                     batch_params.append(params_list[i])
                     i += 1
                 program_batches.append(batch_programs)
@@ -135,9 +147,10 @@ class ProcessorSampler(cirq.Sampler):
                 self.run_sweep_async, zip(program_batches, params_list_batches, repetition_batches)
             )
 
+        prog_values = list(programs.values()) if isinstance(programs, Mapping) else list(programs)
         return cast(
             Sequence[Sequence['cg.EngineResult']],
-            await super().run_batch_async(programs, params_list, repetitions),
+            await super().run_batch_async(prog_values, params_list, repetitions),
         )
 
     run_batch = duet.sync(run_batch_async)

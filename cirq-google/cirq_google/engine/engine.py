@@ -152,7 +152,7 @@ class EngineContext:
         if isinstance(programs, Mapping):
             if any(not isinstance(value, cirq.AbstractCircuit) for value in programs.values()):
                 raise TypeError(f'Unrecognized program type: {type(programs)}')
-        if isinstance(programs, Sequence):
+        elif isinstance(programs, Sequence):
             if any(not isinstance(value, cirq.AbstractCircuit) for value in programs):
                 raise TypeError(f'Unrecognized program type: {type(programs)}')
         else:

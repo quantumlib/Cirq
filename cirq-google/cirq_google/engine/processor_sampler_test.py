@@ -202,7 +202,8 @@ def test_run_batch_with_jobs_per_batch():
     )
 
 
-def test_run_batch_with_jobs_per_batch_and_params():
+@pytest.mark.parametrize('use_mapping', [True, False])
+def test_run_batch_with_jobs_per_batch_and_params(use_mapping: bool):
     processor = mock.create_autospec(AbstractProcessor, instance=True)
     sampler = cg.ProcessorSampler(processor=processor, jobs_per_batch=2)
     a = cirq.LineQubit(0)
@@ -211,10 +212,12 @@ def test_run_batch_with_jobs_per_batch_and_params():
     params1 = [cirq.ParamResolver({'t': 1})]
     params2 = [cirq.ParamResolver({'t': 2})]
 
-    sampler.run_batch([circuit1, circuit2], [params1, params2], repetitions=5)
+    batch = {'a': circuit1, 'b': circuit2} if use_mapping else [circuit1, circuit2]
+
+    sampler.run_batch(batch, [params1, params2], repetitions=5)
 
     processor.run_sweep_async.assert_called_once_with(
-        program=[circuit1, circuit2],
+        program=batch,
         params=[params1, params2],
         repetitions=5,
         run_name='',
