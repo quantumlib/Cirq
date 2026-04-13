@@ -90,7 +90,6 @@ def test_estimate_single_qubit_readout_errors_with_noise() -> None:
 
 
 def test_estimate_parallel_readout_errors_no_noise() -> None:
-    qubits = [cirq.GridQubit(i, 0) for i in range(10)]
     qubits = cirq.GridQubit.rect(10, 1)
     sampler = cirq.Simulator()
     repetitions = 1000
