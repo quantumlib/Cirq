@@ -3,36 +3,36 @@
 isort:skip_file
 """
 
-import builtins
-import collections.abc
-import google.protobuf.descriptor
-import google.protobuf.internal.containers
-import google.protobuf.message
+from collections import abc as _abc
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from google.protobuf.internal import containers as _containers
+import builtins as _builtins
 import sys
-import typing
+import typing as _typing
 
 if sys.version_info >= (3, 10):
-    import typing as typing_extensions
+    from typing import TypeAlias as _TypeAlias
 else:
-    import typing_extensions
+    from typing_extensions import TypeAlias as _TypeAlias
 
-DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
+DESCRIPTOR: _descriptor.FileDescriptor
 
-@typing.final
-class ParameterSweep(google.protobuf.message.Message):
+@_typing.final
+class ParameterSweep(_message.Message):
     """Specifies how to repeatedly sample a circuit, with or without sweeping over
     varying parameter-dicts.
     """
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    REPETITIONS_FIELD_NUMBER: builtins.int
-    SWEEP_FIELD_NUMBER: builtins.int
-    repetitions: builtins.int
+    REPETITIONS_FIELD_NUMBER: _builtins.int
+    SWEEP_FIELD_NUMBER: _builtins.int
+    repetitions: _builtins.int
     """How many times to sample, for each parameter-dict that is swept over.
     This must be set to a value strictly greater than zero.
     """
-    @property
+    @_builtins.property
     def sweep(self) -> Global___ProductSweep:
         """Which parameters, that control gates in the circuit, to try.
 
@@ -45,23 +45,25 @@ class ParameterSweep(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        repetitions: builtins.int = ...,
+        repetitions: _builtins.int = ...,
         sweep: Global___ProductSweep | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["sweep", b"sweep"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["repetitions", b"repetitions", "sweep", b"sweep"]) -> None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["sweep", b"sweep"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["repetitions", b"repetitions", "sweep", b"sweep"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___ParameterSweep: typing_extensions.TypeAlias = ParameterSweep
+Global___ParameterSweep: _TypeAlias = ParameterSweep  # noqa: Y015
 
-@typing.final
-class ProductSweep(google.protobuf.message.Message):
+@_typing.final
+class ProductSweep(_message.Message):
     """A cartesian product of parameter sweeps."""
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    FACTORS_FIELD_NUMBER: builtins.int
-    @property
-    def factors(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___ZipSweep]:
+    FACTORS_FIELD_NUMBER: _builtins.int
+    @_builtins.property
+    def factors(self) -> _containers.RepeatedCompositeFieldContainer[Global___ZipSweep]:
         """A list of parameter sweeps to combine into a cartesian sweep.
 
         Example: if one of the factors assigns
@@ -80,21 +82,22 @@ class ProductSweep(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        factors: collections.abc.Iterable[Global___ZipSweep] | None = ...,
+        factors: _abc.Iterable[Global___ZipSweep] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["factors", b"factors"]) -> None: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["factors", b"factors"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___ProductSweep: typing_extensions.TypeAlias = ProductSweep
+Global___ProductSweep: _TypeAlias = ProductSweep  # noqa: Y015
 
-@typing.final
-class ZipSweep(google.protobuf.message.Message):
+@_typing.final
+class ZipSweep(_message.Message):
     """A pairwise-joining of parameter sweeps."""
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    SWEEPS_FIELD_NUMBER: builtins.int
-    @property
-    def sweeps(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___SingleSweep]:
+    SWEEPS_FIELD_NUMBER: _builtins.int
+    @_builtins.property
+    def sweeps(self) -> _containers.RepeatedCompositeFieldContainer[Global___SingleSweep]:
         """Note: if one sweep is shorter, the others will be truncated.
 
         Example: if one of the factors assigns
@@ -111,66 +114,72 @@ class ZipSweep(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        sweeps: collections.abc.Iterable[Global___SingleSweep] | None = ...,
+        sweeps: _abc.Iterable[Global___SingleSweep] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["sweeps", b"sweeps"]) -> None: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["sweeps", b"sweeps"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___ZipSweep: typing_extensions.TypeAlias = ZipSweep
+Global___ZipSweep: _TypeAlias = ZipSweep  # noqa: Y015
 
-@typing.final
-class SingleSweep(google.protobuf.message.Message):
+@_typing.final
+class SingleSweep(_message.Message):
     """A set of values to try for a particular parameter."""
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    PARAMETER_KEY_FIELD_NUMBER: builtins.int
-    POINTS_FIELD_NUMBER: builtins.int
-    LINSPACE_FIELD_NUMBER: builtins.int
-    parameter_key: builtins.str
+    PARAMETER_KEY_FIELD_NUMBER: _builtins.int
+    POINTS_FIELD_NUMBER: _builtins.int
+    LINSPACE_FIELD_NUMBER: _builtins.int
+    parameter_key: _builtins.str
     """The parameter key being varied. This cannot be the empty string."""
-    @property
+    @_builtins.property
     def points(self) -> Global___Points:
         """An explicit list of points to try."""
 
-    @property
+    @_builtins.property
     def linspace(self) -> Global___Linspace:
         """Uniformly-spaced sampling over a range."""
 
     def __init__(
         self,
         *,
-        parameter_key: builtins.str = ...,
+        parameter_key: _builtins.str = ...,
         points: Global___Points | None = ...,
         linspace: Global___Linspace | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["linspace", b"linspace", "points", b"points", "sweep", b"sweep"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["linspace", b"linspace", "parameter_key", b"parameter_key", "points", b"points", "sweep", b"sweep"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["sweep", b"sweep"]) -> typing.Literal["points", "linspace"] | None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["linspace", b"linspace", "points", b"points", "sweep", b"sweep"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["linspace", b"linspace", "parameter_key", b"parameter_key", "points", b"points", "sweep", b"sweep"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    _WhichOneofReturnType_sweep: _TypeAlias = _typing.Literal["points", "linspace"]  # noqa: Y015
+    _WhichOneofArgType_sweep: _TypeAlias = _typing.Literal["sweep", b"sweep"]  # noqa: Y015
+    def WhichOneof(self, oneof_group: _WhichOneofArgType_sweep) -> _WhichOneofReturnType_sweep | None: ...
 
-Global___SingleSweep: typing_extensions.TypeAlias = SingleSweep
+Global___SingleSweep: _TypeAlias = SingleSweep  # noqa: Y015
 
-@typing.final
-class Points(google.protobuf.message.Message):
+@_typing.final
+class Points(_message.Message):
     """A list of explicit values."""
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    POINTS_FIELD_NUMBER: builtins.int
-    @property
-    def points(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
+    POINTS_FIELD_NUMBER: _builtins.int
+    @_builtins.property
+    def points(self) -> _containers.RepeatedScalarFieldContainer[_builtins.float]:
         """The values."""
 
     def __init__(
         self,
         *,
-        points: collections.abc.Iterable[builtins.float] | None = ...,
+        points: _abc.Iterable[_builtins.float] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["points", b"points"]) -> None: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["points", b"points"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___Points: typing_extensions.TypeAlias = Points
+Global___Points: _TypeAlias = Points  # noqa: Y015
 
-@typing.final
-class Linspace(google.protobuf.message.Message):
+@_typing.final
+class Linspace(_message.Message):
     """A range of evenly-spaced values.
 
     Example: if the first_point is 1.0, the last_point is 2.0 ,
@@ -178,16 +187,16 @@ class Linspace(google.protobuf.message.Message):
       1.0, 1.25, 1.5, 1.75, 2.0
     """
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    FIRST_POINT_FIELD_NUMBER: builtins.int
-    LAST_POINT_FIELD_NUMBER: builtins.int
-    NUM_POINTS_FIELD_NUMBER: builtins.int
-    first_point: builtins.float
+    FIRST_POINT_FIELD_NUMBER: _builtins.int
+    LAST_POINT_FIELD_NUMBER: _builtins.int
+    NUM_POINTS_FIELD_NUMBER: _builtins.int
+    first_point: _builtins.float
     """The start of the range."""
-    last_point: builtins.float
+    last_point: _builtins.float
     """The end of the range."""
-    num_points: builtins.int
+    num_points: _builtins.int
     """The number of points in the range (including first and last). Must be
     greater than zero. If it is 1, the first_point and last_point must be
     the same.
@@ -195,46 +204,49 @@ class Linspace(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        first_point: builtins.float = ...,
-        last_point: builtins.float = ...,
-        num_points: builtins.int = ...,
+        first_point: _builtins.float = ...,
+        last_point: _builtins.float = ...,
+        num_points: _builtins.int = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["first_point", b"first_point", "last_point", b"last_point", "num_points", b"num_points"]) -> None: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["first_point", b"first_point", "last_point", b"last_point", "num_points", b"num_points"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___Linspace: typing_extensions.TypeAlias = Linspace
+Global___Linspace: _TypeAlias = Linspace  # noqa: Y015
 
-@typing.final
-class ParameterDict(google.protobuf.message.Message):
+@_typing.final
+class ParameterDict(_message.Message):
     """A point sampled during a parameter sweep."""
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    @typing.final
-    class AssignmentsEntry(google.protobuf.message.Message):
-        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    @_typing.final
+    class AssignmentsEntry(_message.Message):
+        DESCRIPTOR: _descriptor.Descriptor
 
-        KEY_FIELD_NUMBER: builtins.int
-        VALUE_FIELD_NUMBER: builtins.int
-        key: builtins.str
-        value: builtins.float
+        KEY_FIELD_NUMBER: _builtins.int
+        VALUE_FIELD_NUMBER: _builtins.int
+        key: _builtins.str
+        value: _builtins.float
         def __init__(
             self,
             *,
-            key: builtins.str = ...,
-            value: builtins.float = ...,
+            key: _builtins.str = ...,
+            value: _builtins.float = ...,
         ) -> None: ...
-        def ClearField(self, field_name: typing.Literal["key", b"key", "value", b"value"]) -> None: ...
+        _ClearFieldArgType: _TypeAlias = _typing.Literal["key", b"key", "value", b"value"]  # noqa: Y015
+        def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-    ASSIGNMENTS_FIELD_NUMBER: builtins.int
-    @property
-    def assignments(self) -> google.protobuf.internal.containers.ScalarMap[builtins.str, builtins.float]:
+    ASSIGNMENTS_FIELD_NUMBER: _builtins.int
+    @_builtins.property
+    def assignments(self) -> _containers.ScalarMap[_builtins.str, _builtins.float]:
         """Maps parameter names to values."""
 
     def __init__(
         self,
         *,
-        assignments: collections.abc.Mapping[builtins.str, builtins.float] | None = ...,
+        assignments: _abc.Mapping[_builtins.str, _builtins.float] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["assignments", b"assignments"]) -> None: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["assignments", b"assignments"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___ParameterDict: typing_extensions.TypeAlias = ParameterDict
+Global___ParameterDict: _TypeAlias = ParameterDict  # noqa: Y015
