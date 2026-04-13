@@ -120,9 +120,7 @@ def integrated_histogram(
     ax.set_title(title)
 
     if semilog:
-        vals = bin_values if cdf_on_x else parameter_values
-        if any(v > 0 for v in vals):
-            set_semilog()
+        set_semilog()
     set_lim(0, 1)
     set_ticks([0.0, 0.25, 0.5, 0.75, 1.0])
     ax.grid(True)
