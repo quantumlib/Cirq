@@ -19,6 +19,7 @@ from typing import Any, TYPE_CHECKING
 
 import sympy
 
+from cirq import protocols
 from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
@@ -61,9 +62,6 @@ class PeriodicValue:
 
     def _approx_eq_(self, other: Any, atol: float) -> bool:
         """Implementation of `SupportsApproximateEquality` protocol."""
-        # HACK: Avoids circular dependencies.
-        from cirq.protocols import approx_eq
-
         if not isinstance(other, type(self)):
             return NotImplemented
 
@@ -83,7 +81,7 @@ class PeriodicValue:
         if high - low > self.period / 2:
             low += self.period
 
-        return approx_eq(low, high, atol=atol)
+        return protocols.approx_eq(low, high, atol=atol)
 
     def __repr__(self) -> str:
         v = proper_repr(self.value)
@@ -91,22 +89,13 @@ class PeriodicValue:
         return f'cirq.PeriodicValue({v}, {p})'
 
     def _is_parameterized_(self) -> bool:
-        # HACK: Avoids circular dependencies.
-        from cirq.protocols import is_parameterized
-
-        return is_parameterized(self.value) or is_parameterized(self.period)
+        return protocols.is_parameterized(self.value) or protocols.is_parameterized(self.period)
 
     def _parameter_names_(self) -> Set[str]:
-        # HACK: Avoids circular dependencies.
-        from cirq.protocols import parameter_names
-
-        return parameter_names(self.value) | parameter_names(self.period)
+        return protocols.parameter_names(self.value) | protocols.parameter_names(self.period)
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> PeriodicValue:
-        # HACK: Avoids circular dependencies.
-        from cirq.protocols import resolve_parameters
-
         return PeriodicValue(
-            value=resolve_parameters(self.value, resolver, recursive),
-            period=resolve_parameters(self.period, resolver, recursive),
+            value=protocols.resolve_parameters(self.value, resolver, recursive),
+            period=protocols.resolve_parameters(self.period, resolver, recursive),
         )
