@@ -863,8 +863,8 @@ class QasmParser:
         """format : FORMAT_SPEC"""
         if p[1] not in ["2.0", "3.0"]:
             raise QasmException(
-                f"Unsupported OpenQASM version: {p[1]}, "
-                "only 2.0 and 3.0 are supported currently by Cirq"
+                f"Unsupported OpenQASM version: {p[1]}. "
+                "Only 2.0 and 3.0 are supported currently by Cirq"
             )
         self.format_version = p[1]
 
@@ -978,12 +978,12 @@ class QasmParser:
         if self.format_version != "3.0":
             raise QasmException(
                 f"'input' modifier at line {p.lineno(1)} is only supported in OpenQASM 3.0"
-            )
+                )
         # INPUT input_type '[' NATURAL_NUMBER ']' ID ';'
         bit_width = p[4]
         if bit_width == 0:
             raise QasmException(
-                f"Illegal bit-width of zero for input '{p[6]}' at line {p.lineno(4)}"
+                 f"Illegal bit width of zero for input '{p[6]}' at line {p.lineno(4)}"
             )
         input_type = f"{p[2]}[{bit_width}]"
         name = p[6]
