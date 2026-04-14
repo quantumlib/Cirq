@@ -128,7 +128,6 @@ def test_parallel_single_qubit_parallel_single_qubit_randomized_benchmarking() -
     qubits = (GridQubit(0, 0), GridQubit(0, 1))
     num_cfds = range(5, 20, 5)
     with cirq.testing.assert_deprecated('use parallel_single_qubit_rb instead', deadline='v2.0'):
-        # Inline import so that warnings (if any) are captured during testing.
         from cirq.experiments import parallel_single_qubit_randomized_benchmarking
 
         results = parallel_single_qubit_randomized_benchmarking(
@@ -149,7 +148,6 @@ def test_parallel_single_qubit_randomized_benchmarking_with_noise() -> None:
     qubits = (GridQubit(0, 0), GridQubit(0, 1))
     num_cfds = range(5, 7, 1)
     with cirq.testing.assert_deprecated('use parallel_single_qubit_rb instead', deadline='v2.0'):
-        # Inline import so that warnings (if any) are captured during testing.
         from cirq.experiments import parallel_single_qubit_randomized_benchmarking
 
         results = parallel_single_qubit_randomized_benchmarking(
