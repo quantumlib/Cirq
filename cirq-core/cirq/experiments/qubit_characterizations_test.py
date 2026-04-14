@@ -14,9 +14,6 @@
 
 from __future__ import annotations
 
-import os
-from unittest import mock
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
@@ -25,9 +22,6 @@ import cirq
 import cirq.experiments.qubit_characterizations as ceqc
 from cirq import circuits, GridQubit, ops, sim
 from cirq.experiments import (
-    parallel_single_qubit_rb,
-    RBParameters,
-    single_qubit_rb,
     single_qubit_state_tomography,
     two_qubit_randomized_benchmarking,
     two_qubit_state_tomography,
@@ -108,33 +102,38 @@ def test_single_qubit_cliffords() -> None:
         assert num_x <= 1
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 def test_single_qubit_randomized_benchmarking() -> None:
     # Check that the ground state population at the end of the Clifford
     # sequences is always unity.
     simulator = sim.Simulator()
     qubit = GridQubit(0, 0)
     num_cfds = tuple(np.logspace(np.log10(5), 3, 5, dtype=int))
-    results = single_qubit_rb(
-        simulator, qubit, RBParameters(num_clifford_range=num_cfds, num_circuits=10)
-    )
+    with cirq.testing.assert_deprecated('use single_qubit_rb instead', deadline='v2.0'):
+        # Inline import so that warnings (if any) are captured during testing.
+        from cirq.experiments import single_qubit_randomized_benchmarking
+
+        results = single_qubit_randomized_benchmarking(
+            simulator, qubit, num_clifford_range=num_cfds
+        )
+
     g_pops = np.asarray(results.data)[:, 1]
     assert np.isclose(np.mean(g_pops), 1.0)
     assert np.isclose(results.pauli_error(), 0.0, atol=1e-7)  # warning is expected
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 def test_parallel_single_qubit_parallel_single_qubit_randomized_benchmarking() -> None:
     # Check that the ground state population at the end of the Clifford
     # sequences is always unity.
     simulator = sim.Simulator()
     qubits = (GridQubit(0, 0), GridQubit(0, 1))
     num_cfds = range(5, 20, 5)
-    results = parallel_single_qubit_rb(
-        simulator,
-        qubits,
-        RBParameters(num_clifford_range=num_cfds, repetitions=100, num_circuits=10),
-    )
+    with cirq.testing.assert_deprecated('use parallel_single_qubit_rb instead', deadline='v2.0'):
+        # Inline import so that warnings (if any) are captured during testing.
+        from cirq.experiments import parallel_single_qubit_randomized_benchmarking
+
+        results = parallel_single_qubit_randomized_benchmarking(
+            simulator, num_clifford_range=num_cfds, repetitions=100, qubits=qubits
+        )
     for qubit in qubits:
         g_pops = np.asarray(results.results_dictionary[qubit].data)[:, 1]
         assert np.isclose(np.mean(g_pops), 1.0)
@@ -145,16 +144,17 @@ def test_parallel_single_qubit_parallel_single_qubit_randomized_benchmarking() -
     _ = results.plot_integrated_histogram()
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 def test_parallel_single_qubit_randomized_benchmarking_with_noise() -> None:
     simulator = sim.Simulator(noise=cirq.depolarize(1e-3), seed=0)
     qubits = (GridQubit(0, 0), GridQubit(0, 1))
     num_cfds = range(5, 7, 1)
-    results = parallel_single_qubit_rb(
-        simulator,
-        qubits,
-        RBParameters(num_clifford_range=num_cfds, repetitions=10, num_circuits=10),
-    )
+    with cirq.testing.assert_deprecated('use parallel_single_qubit_rb instead', deadline='v2.0'):
+        # Inline import so that warnings (if any) are captured during testing.
+        from cirq.experiments import parallel_single_qubit_randomized_benchmarking
+
+        results = parallel_single_qubit_randomized_benchmarking(
+            simulator, num_clifford_range=num_cfds, repetitions=10, qubits=qubits
+        )
     for qubit in qubits:
         g_pops = np.asarray(results.results_dictionary[qubit].data)[:, 1]
         assert np.isclose(np.mean(g_pops), 0.99, atol=1e-2)
