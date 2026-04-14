@@ -105,27 +105,24 @@ class ProcessorSampler(cirq.Sampler):
         repetitions: int | Sequence[int] = 1,
     ) -> Sequence[Sequence[cg.EngineResult]]:
         if self._jobs_per_batch > 1:
+            # Treat programs as a sequence for iteration, but keep keys if it's a mapping
+            prog_keys = list(programs.keys()) if isinstance(programs, Mapping) else []
+            prog_values = (
+                list(programs.values()) if isinstance(programs, Mapping) else list(programs)
+            )
+
             params_list, repetitions = self._normalize_batch_args(
-                programs, params_list, repetitions
+                prog_values, params_list, repetitions
             )
             # Batch programs that have the same number of repetitions.
             program_batches = []
             params_list_batches = []
             repetition_batches = []
 
-            # Treat programs as a sequence for iteration, but keep keys if it's a mapping
-            prog_keys = list(programs.keys()) if isinstance(programs, Mapping) else None
-            prog_values = (
-                list(programs.values()) if isinstance(programs, Mapping) else list(programs)
-            )
-
             i = 0
             while i < len(prog_values):
                 batch_reps = repetitions[i]
-                if prog_keys is not None:
-                    batch_programs = {prog_keys[i]: prog_values[i]}
-                else:
-                    batch_programs = [prog_values[i]]
+                batch_programs = {prog_keys[i]: prog_values[i]} if prog_keys else [prog_values[i]]
                 batch_params = [params_list[i]]
                 i += 1
                 while (
@@ -133,7 +130,7 @@ class ProcessorSampler(cirq.Sampler):
                     and len(batch_programs) < self._jobs_per_batch
                     and repetitions[i] == batch_reps
                 ):
-                    if prog_keys is not None:
+                    if isinstance(batch_programs, dict):
                         batch_programs[prog_keys[i]] = prog_values[i]
                     else:
                         batch_programs.append(prog_values[i])
