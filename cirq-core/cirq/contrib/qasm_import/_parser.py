@@ -978,12 +978,12 @@ class QasmParser:
         if self.format_version != "3.0":
             raise QasmException(
                 f"'input' modifier at line {p.lineno(1)} is only supported in OpenQASM 3.0"
-                )
+            )
         # INPUT input_type '[' NATURAL_NUMBER ']' ID ';'
         bit_width = p[4]
         if bit_width == 0:
             raise QasmException(
-                 f"Illegal bit width of zero for input '{p[6]}' at line {p.lineno(4)}"
+                f"Illegal bit width of zero for input '{p[6]}' at line {p.lineno(4)}"
             )
         input_type = f"{p[2]}[{bit_width}]"
         name = p[6]
