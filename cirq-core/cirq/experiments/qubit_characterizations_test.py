@@ -22,6 +22,8 @@ import cirq
 import cirq.experiments.qubit_characterizations as ceqc
 from cirq import circuits, GridQubit, ops, sim
 from cirq.experiments import (
+    parallel_single_qubit_randomized_benchmarking,
+    single_qubit_randomized_benchmarking,
     single_qubit_state_tomography,
     two_qubit_randomized_benchmarking,
     two_qubit_state_tomography,
@@ -109,9 +111,6 @@ def test_single_qubit_randomized_benchmarking() -> None:
     qubit = GridQubit(0, 0)
     num_cfds = tuple(np.logspace(np.log10(5), 3, 5, dtype=int))
     with cirq.testing.assert_deprecated('use single_qubit_rb instead', deadline='v2.0'):
-        # Inline import so that warnings (if any) are captured during testing.
-        from cirq.experiments import single_qubit_randomized_benchmarking
-
         results = single_qubit_randomized_benchmarking(
             simulator, qubit, num_clifford_range=num_cfds
         )
@@ -128,8 +127,6 @@ def test_parallel_single_qubit_parallel_single_qubit_randomized_benchmarking() -
     qubits = (GridQubit(0, 0), GridQubit(0, 1))
     num_cfds = range(5, 20, 5)
     with cirq.testing.assert_deprecated('use parallel_single_qubit_rb instead', deadline='v2.0'):
-        from cirq.experiments import parallel_single_qubit_randomized_benchmarking
-
         results = parallel_single_qubit_randomized_benchmarking(
             simulator, num_clifford_range=num_cfds, repetitions=100, qubits=qubits
         )
@@ -148,8 +145,6 @@ def test_parallel_single_qubit_randomized_benchmarking_with_noise() -> None:
     qubits = (GridQubit(0, 0), GridQubit(0, 1))
     num_cfds = range(5, 7, 1)
     with cirq.testing.assert_deprecated('use parallel_single_qubit_rb instead', deadline='v2.0'):
-        from cirq.experiments import parallel_single_qubit_randomized_benchmarking
-
         results = parallel_single_qubit_randomized_benchmarking(
             simulator, num_clifford_range=num_cfds, repetitions=10, qubits=qubits
         )
