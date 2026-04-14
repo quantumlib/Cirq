@@ -976,7 +976,9 @@ class QasmParser:
     def p_input_decl(self, p):
         """input_decl : INPUT input_type '[' NATURAL_NUMBER ']' ID ';'"""
         if self.format_version != "3.0":
-            raise QasmException(f"'input' is only supported in OpenQASM 3.0, at line {p.lineno(1)}")
+            raise QasmException(
+                f"'input' modifier at line {p.lineno(1)} is only supported in OpenQASM 3.0"
+            )
         # INPUT input_type '[' NATURAL_NUMBER ']' ID ';'
         bit_width = p[4]
         if bit_width == 0:
@@ -986,9 +988,13 @@ class QasmParser:
         input_type = f"{p[2]}[{bit_width}]"
         name = p[6]
         if name in self.input_params:
-            raise QasmException(f"'{name}' is already declared as an input at line {p.lineno(1)}")
+            raise QasmException(
+                f"'{name}' has already been declared as an input at line {p.lineno(1)}"
+            )
         if name in self.qregs or name in self.cregs:
-            raise QasmException(f"'{name}' is already declared as a register at line {p.lineno(1)}")
+            raise QasmException(
+                f"'{name}' has already been declared as a register at line {p.lineno(1)}"
+            )
         self.input_params[name] = input_type
         p[0] = (name, input_type)
 

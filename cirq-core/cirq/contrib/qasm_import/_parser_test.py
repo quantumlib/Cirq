@@ -2490,7 +2490,9 @@ def test_input_not_allowed_in_qasm2() -> None:
      qreg q[1];
      input float[64] n;
     """
-    with pytest.raises(QasmException, match="'input' is only supported in OpenQASM 3.0"):
+    with pytest.raises(
+        QasmException, match="'input' modifier at line 3 is only supported in OpenQASM 3.0"
+    ):
         QasmParser().parse(qasm)
 
 
@@ -2501,7 +2503,9 @@ def test_input_duplicate_name_error() -> None:
      input float[32] theta;
      input angle[32] theta;
     """
-    with pytest.raises(QasmException, match="'theta' is already declared as an input"):
+    with pytest.raises(
+        QasmException, match="'theta' has already been declared as an input at line 4"
+    ):
         QasmParser().parse(qasm)
 
 
@@ -2512,7 +2516,9 @@ def test_input_duplicate_as_register_name_error() -> None:
      input float[32] q;
      input angle[32] theta;
     """
-    with pytest.raises(QasmException, match="'q' is already declared as a register"):
+    with pytest.raises(
+        QasmException, match="'q' has already been declared as a register at line 3"
+    ):
         QasmParser().parse(qasm)
 
 
@@ -2522,7 +2528,9 @@ def test_input_zero_bit_width_error() -> None:
      qreg q[1];
      input float[0] theta;
     """
-    with pytest.raises(QasmException, match="Illegal bit-width of zero for input 'theta'"):
+    with pytest.raises(
+        QasmException, match="Illegal bit width of zero for input 'theta' at line 3"
+    ):
         QasmParser().parse(qasm)
 
 
