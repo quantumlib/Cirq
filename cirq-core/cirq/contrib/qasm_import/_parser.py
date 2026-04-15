@@ -937,7 +937,7 @@ class QasmParser:
             else:
                 # QUBIT '[' NATURAL_NUMBER ']' ID ';'
                 name, length = p[5], p[3]
-        if name in self.qregs.keys() or name in self.cregs.keys() or name in self.input_params:
+        if name in self.qregs or name in self.cregs or name in self.input_params:
             raise QasmException(f"{name} is already defined at line {p.lineno(2)}")
         if length == 0:
             raise QasmException(f"Illegal, zero-length register '{name}' at line {p.lineno(4)}")
@@ -1003,8 +1003,8 @@ class QasmParser:
             )
         input_type = f"{p[2]}[{bit_width}]"
         name = p[6]
-        if name in self.input_params or name in self.qregs.keys() or name in self.cregs.keys():
-            raise QasmException(f"{name} is already defined at line {p.lineno(2)}")
+        if name in self.input_params or name in self.qregs or name in self.cregs:
+            raise QasmException(f"{name} is already defined at line {p.lineno(6)}")
         self.input_params[name] = input_type
         p[0] = (name, input_type)
 
