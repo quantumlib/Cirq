@@ -30,10 +30,12 @@ class ExecutableSpec(metaclass=abc.ABCMeta):
     """Specification metadata about an executable.
 
     Subclasses should add problem-specific fields.
+
+    Attributes:
+        executable_family: A unique name to group executables.
     """
 
     executable_family: str = NotImplemented
-    """A unique name to group executables."""
 
 
 @dataclass(frozen=True)
