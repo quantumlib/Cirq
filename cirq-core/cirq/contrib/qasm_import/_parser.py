@@ -43,7 +43,7 @@ class Qasm:
         qregs: dict,
         cregs: dict,
         c: Circuit,
-        input_params: dict[str, str] | None = None,
+        input_params: dict[str, str],
     ):
         """Initializes Qasm.
 
@@ -60,7 +60,7 @@ class Qasm:
         self.qregs = qregs
         self.cregs = cregs
         self.circuit = c
-        self.input_params: dict[str, str] = input_params if input_params is not None else {}
+        self.input_params = input_params
 
 
 def _generate_op_qubits(args: list[list[ops.Qid]], lineno: int) -> list[list[ops.Qid]]:
@@ -937,7 +937,7 @@ class QasmParser:
             else:
                 # QUBIT '[' NATURAL_NUMBER ']' ID ';'
                 name, length = p[5], p[3]
-        if name in self.qregs.keys() or name in self.cregs.keys():
+        if name in self.qregs.keys() or name in self.cregs.keys() or name in self.input_params:
             raise QasmException(f"{name} is already defined at line {p.lineno(2)}")
         if length == 0:
             raise QasmException(f"Illegal, zero-length register '{name}' at line {p.lineno(4)}")
@@ -1003,14 +1003,8 @@ class QasmParser:
             )
         input_type = f"{p[2]}[{bit_width}]"
         name = p[6]
-        if name in self.input_params:
-            raise QasmException(
-                f"'{name}' has already been declared as an input at line {p.lineno(1)}"
-            )
-        if name in self.qregs or name in self.cregs:
-            raise QasmException(
-                f"'{name}' has already been declared as a register at line {p.lineno(1)}"
-            )
+        if name in self.input_params or name in self.qregs.keys() or name in self.cregs.keys():
+            raise QasmException(f"{name} is already defined at line {p.lineno(2)}")
         self.input_params[name] = input_type
         p[0] = (name, input_type)
 
@@ -1026,13 +1020,11 @@ class QasmParser:
 
     def p_expr_identifier(self, p):
         """expr : ID"""
-        if p[1] in self.input_params:
-            p[0] = sympy.Symbol(p[1])
-            return
-        if not self.in_custom_gate_scope:
-            raise QasmException(f"Parameter '{p[1]}' in line {p.lineno(1)} not supported")
-        if p[1] not in self.custom_gate_scoped_params:
-            raise QasmException(f"Undefined parameter '{p[1]}' in line {p.lineno(1)}'")
+        if p[1] not in self.input_params:
+            if not self.in_custom_gate_scope:
+                raise QasmException(f"Parameter '{p[1]}' in line {p.lineno(1)} not supported")
+            if p[1] not in self.custom_gate_scoped_params:
+                raise QasmException(f"Undefined parameter '{p[1]}' in line {p.lineno(1)}'")
         p[0] = sympy.Symbol(p[1])
 
     def p_expr_parens(self, p):

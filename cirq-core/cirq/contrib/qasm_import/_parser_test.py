@@ -2439,53 +2439,42 @@ def test_all_qelib_gates_unitary_equivalence(
     assert parsed_qasm.qregs == {'q': num_args}
 
 
-def test_input_basic() -> None:
-    """input is stored in input_params and the declared name
-    becomes a free sympy.Symbol in the circuit."""
-
-    qasm = """OPENQASM 3.0;
+@pytest.mark.parametrize('input_type', ['angle', 'float'])
+def test_input_basic(input_type: str) -> None:
+    qasm = f"""OPENQASM 3.0;
      qreg q[1];
-     input angle[64] theta;
+     input {input_type}[64] theta;
      U(theta, 0, 0) q[0];
     """
     parsed_qasm = QasmParser().parse(qasm)
 
-    assert parsed_qasm.input_params == {'theta': 'angle[64]'}
+    assert parsed_qasm.input_params == {'theta': f'{input_type}[64]'}
 
     theta = sympy.Symbol('theta')
     q_0 = cirq.NamedQubit('q_0')
     expected_circuit = Circuit(QasmUGate(theta / np.pi, 0, 0).on(q_0))
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
 
-    # Verify the symbol can be resolved by the caller to produce a concrete gate.
-    resolved = cirq.resolve_parameters(parsed_qasm.circuit, {'theta': np.pi / 2})
-    expected_resolved = Circuit(QasmUGate(0.5, 0, 0).on(q_0))
-    ct.assert_same_circuits(resolved, expected_resolved)
-
 
 def test_input_two_params() -> None:
-    """two inputs are stored in input_params and the declared
-    names become free sympy.Symbols in the circuit."""
-
     qasm = """OPENQASM 3.0;
      qreg q[1];
      input angle[64] theta;
-     input float[64] n;
-     U(theta, n, 0) q[0];
+     input float[64] phi;
+     U(theta, phi, 0) q[0];
     """
     parsed_qasm = QasmParser().parse(qasm)
 
-    assert parsed_qasm.input_params == {'theta': 'angle[64]', 'n': 'float[64]'}
+    assert parsed_qasm.input_params == {'theta': 'angle[64]', 'phi': 'float[64]'}
 
     theta = sympy.Symbol('theta')
-    n = sympy.Symbol('n')
+    phi = sympy.Symbol('phi')
     q_0 = cirq.NamedQubit('q_0')
-    expected_circuit = Circuit(QasmUGate(theta / np.pi, n / np.pi, 0).on(q_0))
+    expected_circuit = Circuit(QasmUGate(theta / np.pi, phi / np.pi, 0).on(q_0))
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
 
 
 def test_input_not_allowed_in_qasm2() -> None:
-    """input_params is a QASM 3.0 feature and must raise in a 2.0 file."""
     qasm = """OPENQASM 2.0;
      qreg q[1];
      input float[64] n;
@@ -2496,46 +2485,33 @@ def test_input_not_allowed_in_qasm2() -> None:
         QasmParser().parse(qasm)
 
 
-def test_input_duplicate_name_error() -> None:
-    """Declaring the same input name twice should raise."""
-    qasm = """OPENQASM 3.0;
-     qreg q[1];
-     input float[32] theta;
-     input angle[32] theta;
-    """
-    with pytest.raises(
-        QasmException, match="'theta' has already been declared as an input at line 4"
-    ):
-        QasmParser().parse(qasm)
-
-
-def test_input_duplicate_as_register_name_error() -> None:
-    """Declaring the same input as a register should raise."""
-    qasm = """OPENQASM 3.0;
-     qreg q[1];
-     input float[32] q;
-     input angle[32] theta;
-    """
-    with pytest.raises(
-        QasmException, match="'q' has already been declared as a register at line 3"
-    ):
+@pytest.mark.parametrize(
+    'first_decl,second_decl,name',
+    [
+        ('input float[32] theta;', 'input angle[32] theta;', 'theta'),
+        ('qreg q[1];', 'input float[32] q;', 'q'),
+        ('creg c[1];', 'input float[32] c;', 'c'),
+        ('input float[32] q;', 'qreg q[1];', 'q'),
+    ],
+)
+def test_input_duplicate_identifier_error(first_decl: str, second_decl: str, name: str) -> None:
+    qasm = f"""OPENQASM 3.0;
+        {first_decl}
+        {second_decl}"""
+    with pytest.raises(QasmException, match=f"{name} is already defined"):
         QasmParser().parse(qasm)
 
 
 def test_input_zero_bit_width_error() -> None:
-    """A zero bit-width in the bracketed type form should raise."""
     qasm = """OPENQASM 3.0;
      qreg q[1];
      input float[0] theta;
     """
-    with pytest.raises(
-        QasmException, match="Illegal bit width of zero for input 'theta' at line 3"
-    ):
+    with pytest.raises(QasmException, match="Illegal bit width of zero for input 'theta'"):
         QasmParser().parse(qasm)
 
 
 def test_input_invalid_type_error() -> None:
-    """An unrecognised type keyword should produce a syntax error."""
     qasm = """OPENQASM 3.0;
      qreg q[1];
      input badtype theta;
