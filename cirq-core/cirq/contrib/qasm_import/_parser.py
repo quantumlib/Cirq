@@ -832,8 +832,8 @@ class QasmParser:
             self.qelibinc,
             self.qregs,
             self.cregs,
-            self.circuit,
             self.input_params,
+            self.circuit,
         )
 
     def p_qasm_no_format_specified_error(self, p):
@@ -852,8 +852,8 @@ class QasmParser:
             self.qelibinc,
             self.qregs,
             self.cregs,
-            self.circuit,
             self.input_params,
+            self.circuit,
         )
 
     def p_qasm_include_stdgates(self, p):
@@ -865,14 +865,14 @@ class QasmParser:
             self.qelibinc,
             self.qregs,
             self.cregs,
-            self.circuit,
             self.input_params,
+            self.circuit,
         )
 
     def p_qasm_circuit(self, p):
         """qasm : qasm circuit"""
         p[0] = Qasm(
-            self.supported_format, self.qelibinc, self.qregs, self.cregs, p[2], self.input_params
+            self.supported_format, self.qelibinc, self.qregs, self.cregs, self.input_params, p[2]
         )
 
     def p_format(self, p):
