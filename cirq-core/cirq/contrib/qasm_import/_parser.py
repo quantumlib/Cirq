@@ -214,13 +214,13 @@ class QasmParser:
         self.qregs: dict[str, int] = {}
         self.cregs: dict[str, int] = {}
         self.gate_set: dict[str, CustomGate | QasmGateStatement] = {**self.basic_gates}
-        self.in_custom_gate_scope = False
+        self.in_custom_gate_scope: bool = False
         self.custom_gate_scoped_params: set[str] = set()
         self.custom_gate_scoped_qubits: dict[str, ops.Qid] = {}
         self.input_params: dict[str, str] = {}
-        self.qelibinc = False
+        self.qelibinc: bool = False
         self.lexer = QasmLexer()
-        self.supported_format = False
+        self.supported_format: bool = False
         self.format_version: str = ""
         self.parsedQasm: Qasm | None = None
         self.qubits: dict[str, ops.Qid] = {}
