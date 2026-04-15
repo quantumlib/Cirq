@@ -803,8 +803,7 @@ def _measure_pauli_strings_with_symmetries(
     use_sweep: bool,
     insert_strategy: circuits.InsertStrategy,
 ) -> list[CircuitToPauliStringsMeasurementResult]:
-    """
-    Measures expectation values of Pauli strings on given circuits with postselection symmetries.
+    """Measures expectation values of Pauli strings on given circuits with postselection symmetries.
     This function takes a list of CircuitToPauliStringsParameters. Each parameter contains
     a circuit, its associated list of QWC Pauli string groups and postselection symmetries.
     For each circuit_to_pauli, it:

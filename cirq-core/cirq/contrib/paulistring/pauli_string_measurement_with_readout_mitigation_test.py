@@ -345,7 +345,7 @@ def test_many_circuits_mixed_mitigation_types(use_sweep: bool) -> None:
     params_sym = CircuitToPauliStringsParameters(
         circuit=circuit_2, pauli_strings=(pauli_group,), postselection_symmetries=((symmetry, 1),)
     )
-    
+
     # Circuit 3 is a |+>|+> state with a PauliSum symmetry (X0 + X1 = 2).
     circuit_3 = cirq.FrozenCircuit(cirq.H(qubits_3[0]), cirq.H(qubits_3[1]))
     symmetry_sum = cirq.X(qubits_3[0]) + cirq.X(qubits_3[1])
@@ -387,9 +387,7 @@ def test_many_circuits_mixed_mitigation_types(use_sweep: bool) -> None:
 
             # Assert the mitigated result falls statistically close to the ideal simulation
             assert np.isclose(
-                res.mitigated_expectation,
-                ideal_expectation,
-                atol=10 * res.mitigated_stddev,
+                res.mitigated_expectation, ideal_expectation, atol=10 * res.mitigated_stddev
             )
 
             # Maintain type validations based on whether symmetries were used
