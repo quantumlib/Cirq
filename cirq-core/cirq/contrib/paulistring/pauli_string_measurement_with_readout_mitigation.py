@@ -19,7 +19,7 @@ from __future__ import annotations
 import itertools
 import time
 from collections.abc import Mapping, Sequence
-from typing import cast, TYPE_CHECKING, Union
+from typing import cast, TYPE_CHECKING
 
 import attrs
 import numpy as np
@@ -373,7 +373,7 @@ def _extract_readout_qubits(
     symmetries: Sequence[ops.PauliString | ops.PauliSum] | None = None,
 ) -> list[ops.Qid]:
     """Extracts unique qubits from both the target Pauli strings and the symmetries."""
-    all_qubits = set(q for ps in pauli_strings for q in ps.qubits)
+    all_qubits = {q for ps in pauli_strings for q in ps.qubits}
 
     if symmetries:
         for sym in symmetries:
@@ -383,11 +383,11 @@ def _extract_readout_qubits(
                 for term in sym:
                     all_qubits.update(term.qubits)
 
-    return sorted(list(all_qubits))
+    return sorted(all_qubits)
 
 
 def _pauli_objs_to_basis_change_ops(
-    pauli_objs: Sequence[Union[ops.PauliString, ops.PauliSum]], qid_list: Sequence[ops.Qid]
+    pauli_objs: Sequence[ops.PauliString | ops.PauliSum], qid_list: Sequence[ops.Qid]
 ):
     flattened_terms = []
     for obj in pauli_objs:
@@ -404,7 +404,7 @@ def _pauli_objs_to_basis_change_ops(
             if pauli_op == ops.X:
                 operations.append(ops.ry(-np.pi / 2)(qubit))
                 break
-            elif pauli_op == ops.Y:
+            if pauli_op == ops.Y:
                 operations.append(ops.rx(np.pi / 2)(qubit))
                 break
 
@@ -412,7 +412,7 @@ def _pauli_objs_to_basis_change_ops(
 
 
 def _pauli_objs_to_basis_change_with_sweep(
-    pauli_objs: Sequence[Union[ops.PauliString | ops.PauliSum]], qid_list: Sequence[ops.Qid]
+    pauli_objs: Sequence[ops.PauliString | ops.PauliSum], qid_list: Sequence[ops.Qid]
 ) -> dict[str, float]:
     """Decide single-qubit rotation sweep parameters for basis change.
 
@@ -440,7 +440,7 @@ def _pauli_objs_to_basis_change_with_sweep(
                 params_dict[f"phi{qid}"] = 0.0
                 params_dict[f"theta{qid}"] = 1 / 2
                 break
-            elif pauli_op == ops.Y:
+            if pauli_op == ops.Y:
                 params_dict[f"phi{qid}"] = 1.0
                 params_dict[f"theta{qid}"] = 1 / 2
                 break
@@ -601,8 +601,7 @@ def _split_input_circuits(
             # If no postselection symmetries are provided, treat the circuit as a confusion circuit
             confusion_circuits.append(circuit_to_pauli_params)
             continue
-        else:
-            symmetry_circuits.append(circuit_to_pauli_params)
+        symmetry_circuits.append(circuit_to_pauli_params)
     return symmetry_circuits, confusion_circuits
 
 
@@ -806,7 +805,8 @@ def _measure_pauli_strings_with_symmetries(
 ) -> list[CircuitToPauliStringsMeasurementResult]:
     """
     Measures expectation values of Pauli strings on given circuits with postselection symmetries.
-    This function takes a list of CircuitToPauliStringsParameters. Each parameter contains a circuit, its associated list of QWC Pauli string groups and postselection symmetries.
+    This function takes a list of CircuitToPauliStringsParameters. Each parameter contains
+    a circuit, its associated list of QWC Pauli string groups and postselection symmetries.
     For each circuit_to_pauli, it:
     1. Runs the circuits to get the measurement results.
     2. Filters the measurement results based on postselection symmetries.
@@ -1116,10 +1116,13 @@ def measure_pauli_strings(
     In this case, the `readout_repetitions` and `num_random_bitstrings` arguments are ignored.
 
     Args:
-        circuits_to_pauli: A list of CircuitToPauliStringsParameters objects, where each object contains:
+        circuits_to_pauli: A list of CircuitToPauliStringsParameters objects, where each
+        object contains:
             - The circuit to measure.
-            - A list of QWC groups (list[list[ops.PauliString]]) or a list of PauliStrings (list[ops.PauliString]).
-            - A dictionary mapping Pauli strings or Pauli sums to expected eigen value for postselection symmetries.
+            - A list of QWC groups (list[list[ops.PauliString]]) or a list of PauliStrings
+            (list[ops.PauliString]).
+            - A dictionary mapping Pauli strings or Pauli sums to expected eigen value for
+            postselection symmetries.
         sampler: The sampler to use.
         pauli_repetitions: The number of repetitions for each circuit when measuring
             Pauli strings.

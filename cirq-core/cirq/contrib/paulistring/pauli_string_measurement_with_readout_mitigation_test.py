@@ -325,6 +325,7 @@ def test_many_circuits_mixed_mitigation_types(use_sweep: bool) -> None:
     """
     qubits_1 = cirq.LineQubit.range(3)
     qubits_2 = cirq.LineQubit.range(5)
+    qubits_3 = cirq.LineQubit.range(2)
 
     # Circuit 1 is a Standard GHZ without symmetry.
     circuit_1 = cirq.FrozenCircuit(_create_ghz(3, qubits_1))
@@ -344,11 +345,21 @@ def test_many_circuits_mixed_mitigation_types(use_sweep: bool) -> None:
     params_sym = CircuitToPauliStringsParameters(
         circuit=circuit_2, pauli_strings=(pauli_group,), postselection_symmetries=((symmetry, 1),)
     )
+    
+    # Circuit 3 is a |+>|+> state with a PauliSum symmetry (X0 + X1 = 2).
+    circuit_3 = cirq.FrozenCircuit(cirq.H(qubits_3[0]), cirq.H(qubits_3[1]))
+    symmetry_sum = cirq.X(qubits_3[0]) + cirq.X(qubits_3[1])
+    params_sym_sum = CircuitToPauliStringsParameters(
+        circuit=circuit_3,
+        pauli_strings=((2.0 * cirq.PauliString(cirq.X(qubits_3[0])),),),
+        postselection_symmetries=((symmetry_sum, 2),),
+    )
 
     sampler = NoisySingleQubitReadoutSampler(p0=0.01, p1=0.02, seed=1234)
+    simulator = cirq.Simulator()
 
     results = measure_pauli_strings(
-        [params_1, params_sym],
+        [params_1, params_sym, params_sym_sum],
         sampler,
         pauli_repetitions=500,
         readout_repetitions=500,
@@ -357,24 +368,35 @@ def test_many_circuits_mixed_mitigation_types(use_sweep: bool) -> None:
         use_sweep=use_sweep,
     )
 
-    assert len(results) == 2
+    assert len(results) == 3
 
     for circuit_res in results:
         # For Circuit 2, we expect exactly 2 results because the group had 2 Pauli strings
         if circuit_res.circuit == circuit_2:
             assert len(circuit_res.results) == 2
 
+        # Simulate the ideal circuit to extract the ground truth state vector
+        expected_val_simulation = simulator.simulate(circuit_res.circuit.unfreeze())
+        final_state_vector = expected_val_simulation.final_state_vector
+
         for res in circuit_res.results:
-            if circuit_res.circuit == circuit_2:
+            # Calculate the ideal expectation directly from the state vector and Pauli string
+            ideal_expectation = _ideal_expectation_based_on_pauli_string(
+                res.pauli_string, final_state_vector
+            )
+
+            # Assert the mitigated result falls statistically close to the ideal simulation
+            assert np.isclose(
+                res.mitigated_expectation,
+                ideal_expectation,
+                atol=10 * res.mitigated_stddev,
+            )
+
+            # Maintain type validations based on whether symmetries were used
+            if circuit_res.circuit in [circuit_2, circuit_3]:
                 assert isinstance(res.calibration_result, PostFilteringSymmetryCalibrationResult)
-                # Verify coefficient was applied (2.0 for the second Pauli string)
-                if res.pauli_string.coefficient == 2.0:
-                    # Expectation should be roughly 2.0 * 1.0 or 2.0 * -1.0 depending on state
-                    # for GHZ Z expectation is 0, so 2.0 * 0 = 0.
-                    assert -2.2 <= res.mitigated_expectation <= 2.2
             else:
                 assert isinstance(res.calibration_result, SingleQubitReadoutCalibrationResult)
-                assert -1.1 <= res.mitigated_expectation <= 1.1
 
 
 @pytest.mark.parametrize("use_sweep", [True, False])
