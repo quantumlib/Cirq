@@ -41,19 +41,19 @@ gate_dict = {'X': cirq.X, 'Y': cirq.Y, 'Z': cirq.Z, 'MS': cirq.XX, 'R': cirq.Pha
 
 
 class OperationString(Enum):
-    """String representations of operations supported by AQT resources."""
+    """String representations of operations supported by AQT resources.
+
+    Attributes:
+        MS: Cirq: XXPowGate, AQT: RXX gate.
+        Z: Cirq: ZPowGate, AQT: RZ gate.
+        R: Cirq: PhasedXPowGate, AQT: R gate.
+        MEASURE: Measurement gate.
+    """
 
     MS = "MS"
-    """Cirq: XXPowGate, AQT: RXX gate."""
-
     Z = "Z"
-    """Cirq: ZPowGate, AQT: RZ gate."""
-
     R = "R"
-    """Cirq: PhasedXPowGate, AQT: R gate."""
-
     MEASURE = "Meas"
-    """Measurement gate."""
 
 
 def get_op_string(op_obj: cirq.Operation) -> str:
