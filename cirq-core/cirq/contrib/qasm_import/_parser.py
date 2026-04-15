@@ -42,8 +42,8 @@ class Qasm:
         qelib1_include: bool,
         qregs: dict,
         cregs: dict,
-        c: Circuit,
         input_params: dict[str, str],
+        c: Circuit,
     ):
         """Initializes Qasm.
 
