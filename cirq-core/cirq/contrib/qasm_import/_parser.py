@@ -43,7 +43,7 @@ class Qasm:
         qregs: dict,
         cregs: dict,
         input_params: dict[str, str],
-        c: Circuit,
+        circuit: Circuit,
     ):
         """Initializes Qasm.
 
@@ -59,7 +59,7 @@ class Qasm:
         self.supportedFormat = supported_format
         self.qregs = qregs
         self.cregs = cregs
-        self.circuit = c
+        self.circuit = circuit
         self.input_params = input_params
 
 
