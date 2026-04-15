@@ -319,8 +319,8 @@ def test_group_pauli_string_measurement_errors_with_noise(use_sweep: bool) -> No
 @pytest.mark.parametrize("use_sweep", [True, False])
 def test_many_circuits_mixed_mitigation_types(use_sweep: bool) -> None:
     """Test mixed input: some circuits using confusion matrices, some using symmetries.
-    
-    This test specifically includes a QWC group with multiple Pauli strings to 
+
+    This test specifically includes a QWC group with multiple Pauli strings to
     ensure the processing logic handles nested groups correctly.
     """
     qubits_1 = cirq.LineQubit.range(3)
@@ -329,23 +329,20 @@ def test_many_circuits_mixed_mitigation_types(use_sweep: bool) -> None:
     # Circuit 1 is a Standard GHZ without symmetry.
     circuit_1 = cirq.FrozenCircuit(_create_ghz(3, qubits_1))
     params_1 = CircuitToPauliStringsParameters(
-        circuit=circuit_1, 
-        pauli_strings=((cirq.PauliString(cirq.Z(qubits_1[0])),),)
+        circuit=circuit_1, pauli_strings=((cirq.PauliString(cirq.Z(qubits_1[0])),),)
     )
 
     # Circuit 2 is a GHZ with a known symmetry (Z0*Z1 = 1)
     circuit_2 = cirq.FrozenCircuit(_create_ghz(5, qubits_2))
     symmetry: cirq.PauliString = cirq.PauliString(cirq.Z(qubits_2[0]) * cirq.Z(qubits_2[1]))
 
-    pauli_group = (
+    pauli_group: tuple[cirq.PauliString, ...] = (
         cirq.PauliString(cirq.Z(qubits_2[0])),
-        2.0 * cirq.PauliString(cirq.Z(qubits_2[1]))
+        2.0 * cirq.PauliString(cirq.Z(qubits_2[1])),
     )
 
     params_sym = CircuitToPauliStringsParameters(
-        circuit=circuit_2,
-        pauli_strings=(pauli_group,), 
-        postselection_symmetries=((symmetry, 1),),
+        circuit=circuit_2, pauli_strings=(pauli_group,), postselection_symmetries=((symmetry, 1),)
     )
 
     sampler = NoisySingleQubitReadoutSampler(p0=0.01, p1=0.02, seed=1234)
@@ -366,7 +363,7 @@ def test_many_circuits_mixed_mitigation_types(use_sweep: bool) -> None:
         # For Circuit 2, we expect exactly 2 results because the group had 2 Pauli strings
         if circuit_res.circuit == circuit_2:
             assert len(circuit_res.results) == 2
-        
+
         for res in circuit_res.results:
             if circuit_res.circuit == circuit_2:
                 assert isinstance(res.calibration_result, PostFilteringSymmetryCalibrationResult)
@@ -855,7 +852,7 @@ def test_sampler_receives_correct_circuits(use_sweep: bool) -> None:
     qubits = cirq.LineQubit.range(5)
     circuit = cirq.FrozenCircuit(_create_ghz(5, qubits))
     pauli_qubits = qubits[1:4]  # Q1, Q2, Q3
-    pauli_str = cirq.PauliString(dict.fromkeys(pauli_qubits, cirq.X))
+    pauli_str: cirq.PauliString = cirq.PauliString(dict.fromkeys(pauli_qubits, cirq.X))
 
     # Test standard Pauli String without Symmetries
     circuits_to_pauli = {circuit: [pauli_str]}

@@ -26,7 +26,7 @@ import numpy as np
 import sympy
 
 import cirq.contrib.shuffle_circuits.shuffle_circuits_with_readout_benchmarking as sc_readout
-from cirq import circuits, ops, work
+from cirq import circuits, ops, study, work
 from cirq.experiments.readout_confusion_matrix import TensoredConfusionMatrices
 
 if TYPE_CHECKING:
@@ -834,7 +834,7 @@ def _measure_pauli_strings_with_symmetries(
         )
 
         # Run the sweeps
-        all_circuits_measurement_results: list[list[study.Result]] = []
+        all_circuits_measurement_results: list[Sequence[study.Result]] = []
         for parameterized_circuit, sweep in zip(pauli_measurement_circuits, sweep_params):
             results_for_one_circuit = sampler.run_sweep(
                 program=parameterized_circuit, params=sweep, repetitions=pauli_repetitions
@@ -883,10 +883,12 @@ def _measure_pauli_strings_with_symmetries(
                 + len(circuit_to_pauli_params.pauli_strings)
             ]
             qubits_in_circuit = tuple(sorted(circuit_to_pauli_params.circuit.all_qubits()))
-            single_circuit_pauli_measurement_results: list[PauliStringMeasurementResult] = []
+            single_circuit_pauli_measurement_results_in_batch: list[
+                PauliStringMeasurementResult
+            ] = []
 
             for i, circuit_result in enumerate(circuit_results):
-                single_circuit_pauli_measurement_results.extend(
+                single_circuit_pauli_measurement_results_in_batch.extend(
                     _process_symmetry_measurement_results(
                         qubits_in_circuit,
                         circuit_to_pauli_params.pauli_strings[i],
@@ -900,7 +902,7 @@ def _measure_pauli_strings_with_symmetries(
             final_measurement_results.append(
                 CircuitToPauliStringsMeasurementResult(
                     circuit=circuit_to_pauli_params.circuit,
-                    results=single_circuit_pauli_measurement_results,
+                    results=single_circuit_pauli_measurement_results_in_batch,
                 )
             )
     return final_measurement_results
@@ -1039,7 +1041,9 @@ def _measure_pauli_strings_with_confusion_matrices(
 
     for circuit_to_pauli in normalized_circuits_to_pauli:
         input_circuit = circuit_to_pauli.circuit
-        pauli_string_groups = circuit_to_pauli.pauli_strings
+        pauli_string_groups_in_circuit: tuple[tuple[ops.PauliString]] = (
+            circuit_to_pauli.pauli_strings
+        )
 
         disable_readout_mitigation = num_random_bitstrings == 0
 
@@ -1051,16 +1055,16 @@ def _measure_pauli_strings_with_confusion_matrices(
                 input_circuit_index += 1
             else:
                 results_slice = slice(
-                    circuit_result_index, circuit_result_index + len(pauli_string_groups)
+                    circuit_result_index, circuit_result_index + len(pauli_string_groups_in_circuit)
                 )
                 circuits_results_for_group = [r[0] for r in sweep_circuits_results[results_slice]]
-                circuit_result_index += len(pauli_string_groups)
+                circuit_result_index += len(pauli_string_groups_in_circuit)
         else:
             results_slice = slice(
-                circuit_result_index, circuit_result_index + len(pauli_string_groups)
+                circuit_result_index, circuit_result_index + len(pauli_string_groups_in_circuit)
             )
             circuits_results_for_group = circuits_results[results_slice]
-            circuit_result_index += len(pauli_string_groups)
+            circuit_result_index += len(pauli_string_groups_in_circuit)
 
         fixed_calibration_key = (
             tuple(qubits_to_measure_arg)
@@ -1068,7 +1072,7 @@ def _measure_pauli_strings_with_confusion_matrices(
             else None
         )
         pauli_measurement_results = _process_pauli_measurement_results(
-            pauli_string_groups,
+            pauli_string_groups_in_circuit,
             circuits_results_for_group,
             calibration_results,
             pauli_repetitions,
