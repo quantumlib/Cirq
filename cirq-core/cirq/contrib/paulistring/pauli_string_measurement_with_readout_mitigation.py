@@ -40,6 +40,10 @@ if TYPE_CHECKING:
 class CircuitToPauliStringsParameters:
     """Parameters for measuring Pauli strings on a circuit.
 
+    If postselection symmetries are provided, this circuit will be measured using
+    the post-selection symmetry method. If no postselection symmetries are provided,
+    this circuit will be measured using the confusion matrix method.
+
     Attributes:
         circuit: The circuit to measure.
         pauli_strings:
@@ -1107,6 +1111,10 @@ def measure_pauli_strings(
     """Measures expectation values of Pauli strings on given circuits with/without
     readout error mitigation.
 
+    Note: If `postselection_symmetries` are included in the `circuits_to_pauli` parameters,
+    readout benchmarking is not performed. In this case, the `readout_repetitions` and
+    `num_random_bitstrings` arguments are ignored.
+
     Args:
         circuits_to_pauli: A list of CircuitToPauliStringsParameters objects, where each object contains:
             - The circuit to measure.
@@ -1116,14 +1124,19 @@ def measure_pauli_strings(
         pauli_repetitions: The number of repetitions for each circuit when measuring
             Pauli strings.
         readout_repetitions: The number of repetitions for readout calibration
-            in the shuffled benchmarking.
+            in the shuffled benchmarking. (Ignored if `postselection_symmetries` are provided).
         num_random_bitstrings: The number of random bitstrings to use in readout
-            benchmarking.
+            benchmarking. (Ignored if `postselection_symmetries` are provided).
         rng_or_seed: A random number generator or seed for the readout benchmarking.
         use_sweep: If True, uses parameterized circuits and sweeps parameters
             for both Pauli measurements and readout benchmarking. Defaults to False.
         insert_strategy: The strategy for inserting measurement operations into the circuit.
             Defaults to circuits.InsertStrategy.INLINE.
+        measure_on_full_support: If True, calculates the union of all qubits used in all
+            Pauli strings (the full support). All circuits will then measure this full set
+            of qubits, and readout benchmarking will be performed only once on this full set,
+            rather than for every unique subset of Pauli qubits. This significantly reduces
+            overhead when measuring many Pauli strings with varying support.
 
     Returns:
         A list of CircuitToPauliStringsMeasurementResult objects, where each object contains:
