@@ -39,12 +39,18 @@ class Qasm:
     def __init__(
         self, supported_format: bool, qelib1_include: bool, qregs: dict, cregs: dict, c: Circuit
     ):
-        # defines whether the Quantum Experience standard header
-        # is present or not
+        """Initializes Qasm.
+
+        Attributes:
+            qelib1Include: defines whether the Quantum Experience standard header
+                is present or not.
+            supportedFormat: defines if it has a supported format or not.
+            qregs: quantum registers.
+            cregs: classical registers.
+            circuit: circuit.
+        """
         self.qelib1Include = qelib1_include
-        # defines if it has a supported format or not
         self.supportedFormat = supported_format
-        # circuit
         self.qregs = qregs
         self.cregs = cregs
         self.circuit = c
@@ -176,22 +182,26 @@ class QasmParser:
     """
 
     def __init__(self) -> None:
+        """Initializes the Qasm parser.
+
+        Attributes:
+            gate_set: The gates available to use in the circuit, including those from
+                libraries, and user-defined ones.
+            in_custom_gate_scope: This is set to True when the parser is in the middle
+                of parsing a custom gate definition.
+            custom_gate_scoped_params: The params declared within the current custom
+                gate definition. Empty if not in custom gate scope.
+            custom_gate_scoped_qubits: The qubits declared within the current custom
+                gate definition. Empty if not in custom gate scope.
+        """
         self.parser = yacc.yacc(module=self, debug=False, write_tables=False)
         self.circuit = Circuit()
         self.qregs: dict[str, int] = {}
         self.cregs: dict[str, int] = {}
         self.gate_set: dict[str, CustomGate | QasmGateStatement] = {**self.basic_gates}
-        """The gates available to use in the circuit, including those from libraries, and
-         user-defined ones."""
         self.in_custom_gate_scope = False
-        """This is set to True when the parser is in the middle of parsing a custom gate
-         definition."""
         self.custom_gate_scoped_params: set[str] = set()
-        """The params declared within the current custom gate definition. Empty if not in
-         custom gate scope."""
         self.custom_gate_scoped_qubits: dict[str, ops.Qid] = {}
-        """The qubits declared within the current custom gate definition. Empty if not in
-         custom gate scope."""
         self.qelibinc = False
         self.lexer = QasmLexer()
         self.supported_format = False
