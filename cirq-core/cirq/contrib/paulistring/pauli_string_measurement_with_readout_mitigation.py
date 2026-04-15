@@ -1112,8 +1112,8 @@ def measure_pauli_strings(
     readout error mitigation.
 
     Note: If `postselection_symmetries` are included in the `circuits_to_pauli` parameters,
-    readout benchmarking is not performed. In this case, the `readout_repetitions` and
-    `num_random_bitstrings` arguments are ignored.
+    the circuit will be measured using the post-selection symmetry method.
+    In this case, the `readout_repetitions` and `num_random_bitstrings` arguments are ignored.
 
     Args:
         circuits_to_pauli: A list of CircuitToPauliStringsParameters objects, where each object contains:
