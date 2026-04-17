@@ -15,8 +15,10 @@
 from __future__ import annotations
 
 import os.path
+import io
 import pathlib
 import re
+import tokenize
 from typing import cast
 
 from dev_tools import env_tools, shell_tools
@@ -256,10 +258,18 @@ def line_counts_as_uncovered(line: str, is_from_cover_annotation_file: bool) -> 
     content = content.strip()
 
     # Ignore end-of-line comments.
-    # TODO: avoid # in strings, etc.
-    # Github issue: https://github.com/quantumlib/Cirq/issues/2968
     if '#' in content:
-        content = content[: content.index('#')].strip()
+        try:
+            tokens = list(tokenize.generate_tokens(io.StringIO(content).readline))
+            for token in tokens:
+                if token.type == tokenize.COMMENT:
+                    content = content[: token.start[1]]
+                    break
+        except tokenize.TokenError:
+            # Fall back to naive stripping if the line is not valid python.
+            # (e.g. it is a middle-line of a multi-line string).
+            content = content[: content.index('#')]
+        content = content.strip()
 
     # Ignored line pattern?
     if any(re.search(pat, content) for pat in IGNORED_LINE_PATTERNS):
