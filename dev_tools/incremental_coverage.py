@@ -14,8 +14,8 @@
 
 from __future__ import annotations
 
-import os.path
 import io
+import os.path
 import pathlib
 import re
 import tokenize
