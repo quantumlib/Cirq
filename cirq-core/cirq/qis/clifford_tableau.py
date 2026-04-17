@@ -309,25 +309,23 @@ class CliffordTableau(StabilizerState):
         )
 
     def __str__(self) -> str:
-        string = ''
+        rows = []
 
         for i in range(self.n, 2 * self.n):
-            string += '- ' if self.rs[i] else '+ '
+            row = ['- ' if self.rs[i] else '+ ']
 
             for k in range(self.n):
                 if self.xs[i, k] & (not self.zs[i, k]):
-                    string += 'X '
+                    row.append('X ')
                 elif (not self.xs[i, k]) & self.zs[i, k]:
-                    string += 'Z '
+                    row.append('Z ')
                 elif self.xs[i, k] & self.zs[i, k]:
-                    string += 'Y '
+                    row.append('Y ')
                 else:
-                    string += 'I '
+                    row.append('I ')
+            rows.append(''.join(row))
 
-            if i < 2 * self.n - 1:
-                string += '\n'
-
-        return string
+        return '\n'.join(rows)
 
     def _str_full_(self) -> str:
         left_col_width = max(7, self.n * 2 + 3)
@@ -499,18 +497,18 @@ class CliffordTableau(StabilizerState):
         from cirq.ops.dense_pauli_string import DensePauliString
 
         coefficient = -1 if self.rs[i] else 1
-        pauli_mask = ""
+        pauli_mask = []
 
         for k in range(self.n):
             if self.xs[i, k] & (not self.zs[i, k]):
-                pauli_mask += "X"
+                pauli_mask.append("X")
             elif (not self.xs[i, k]) & self.zs[i, k]:
-                pauli_mask += "Z"
+                pauli_mask.append("Z")
             elif self.xs[i, k] & self.zs[i, k]:
-                pauli_mask += "Y"
+                pauli_mask.append("Y")
             else:
-                pauli_mask += "I"
-        return DensePauliString(pauli_mask, coefficient=coefficient)
+                pauli_mask.append("I")
+        return DensePauliString("".join(pauli_mask), coefficient=coefficient)
 
     def stabilizers(self) -> list[cirq.DensePauliString]:
         """Returns the stabilizer generators of the state. These
