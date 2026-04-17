@@ -79,7 +79,7 @@ jobs:
   label-dependabot-pr:
     if: >-
       github.repository_owner == 'quantumlib' &&
-      (github.event.action == 'opened' || github.event_name == 'workflow_dispatch') &&
+      github.event.action == 'opened' &&
       github.event.pull_request.user.login == 'dependabot[bot]'
     name: Convert dependabot PR to draft
     runs-on: ubuntu-slim
