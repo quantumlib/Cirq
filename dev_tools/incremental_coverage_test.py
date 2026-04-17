@@ -107,13 +107,13 @@ def test_determine_ignored_lines() -> None:
 
 def test_line_counts_as_uncovered_with_hashes() -> None:
     f = incremental_coverage.line_counts_as_uncovered
-    # Simple line with hash in string
+    # Simple line with hash in string.
     assert f("x = '#'", False) is True
-    # Line with hash in string AND a comment
+    # Line with hash in string and a comment.
     assert f("x = '#' # comment", False) is True
-    # Line that should be ignored (e.g. import)
+    # Line that should be ignored (e.g., import).
     assert f("import os # comment", False) is False
-    # Line with multiple hashes in string
+    # Line with multiple hashes in string.
     assert f("x = '###'", False) is True
-    # Check that it still ignores actual comments
+    # Check that it still ignores actual comments.
     assert f("x = 1 # some comment", False) is True
