@@ -134,7 +134,7 @@ class CircuitDiagramInfo:
             if args.precision is not None:
                 # funky behavior of fraction, cast to str in constructor helps.
                 approx_frac = Fraction(self.exponent).limit_denominator(16)
-                if approx_frac.denominator not in [2, 4, 5, 10]:
+                if approx_frac.denominator not in [1, 2, 4, 5, 10]:
                     if abs(float(approx_frac) - self.exponent) < 10**-args.precision:
                         return f'({approx_frac})'
 

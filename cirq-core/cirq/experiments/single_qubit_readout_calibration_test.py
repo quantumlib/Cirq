@@ -90,7 +90,7 @@ def test_estimate_single_qubit_readout_errors_with_noise() -> None:
 
 
 def test_estimate_parallel_readout_errors_no_noise() -> None:
-    qubits = [cirq.GridQubit(i, 0) for i in range(10)]
+    qubits = cirq.GridQubit.rect(10, 1)
     sampler = cirq.Simulator()
     repetitions = 1000
     result = cirq.estimate_parallel_single_qubit_readout_errors(
@@ -100,8 +100,6 @@ def test_estimate_parallel_readout_errors_no_noise() -> None:
     assert result.one_state_errors == dict.fromkeys(qubits, 0)
     assert result.repetitions == repetitions
     assert isinstance(result.timestamp, float)
-    _ = result.plot_integrated_histogram()
-    _, _ = result.plot_heatmap()
 
 
 def test_estimate_parallel_readout_errors_all_zeros() -> None:
@@ -176,7 +174,7 @@ def test_estimate_parallel_readout_errors_batching() -> None:
 
 
 def test_estimate_parallel_readout_errors_with_noise() -> None:
-    qubits = cirq.LineQubit.range(5)
+    qubits = cirq.GridQubit.rect(5, 1)
     sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.2, seed=1234)
     repetitions = 1000
     result = cirq.estimate_parallel_single_qubit_readout_errors(
@@ -188,6 +186,8 @@ def test_estimate_parallel_readout_errors_with_noise() -> None:
         assert 0.07 < error < 0.13
     assert result.repetitions == repetitions
     assert isinstance(result.timestamp, float)
+    result.plot_integrated_histogram()
+    result.plot_heatmap()
 
 
 def test_estimate_parallel_readout_errors_missing_qubits() -> None:

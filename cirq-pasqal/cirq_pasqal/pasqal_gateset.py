@@ -14,12 +14,45 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any, TYPE_CHECKING
 
 import cirq
 
 if TYPE_CHECKING:
     from cirq.protocols.decompose_protocol import DecomposeResult
+
+
+@cirq.transformer
+def split_multi_op_moments(
+    circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
+) -> cirq.Circuit:
+    """Split multi-operation moments so each non-measurement operation has its own moment.
+
+    Pasqal devices require at most one operation per moment except for measurement operations
+    which can be kept together in a single moment.
+
+    Args:
+        circuit: Input circuit to transform.
+        context: `cirq.TransformerContext` storing common configurable options for transformers.
+
+    Returns:
+        Copy of the input circuit where each non-measurement operation has its own moment.
+    """
+
+    def split_moment(moment: cirq.Moment, _: int) -> cirq.Moment | Sequence[cirq.Moment]:
+        if not moment:
+            return []
+        if len(moment) == 1 or all(isinstance(op.gate, cirq.MeasurementGate) for op in moment):
+            return moment
+        non_measurement_ops = [op for op in moment if not isinstance(op.gate, cirq.MeasurementGate)]
+        measurements = [op for op in moment if isinstance(op.gate, cirq.MeasurementGate)]
+        result = [cirq.Moment([op]) for op in non_measurement_ops]
+        if measurements:
+            result.append(cirq.Moment(measurements))
+        return result
+
+    return cirq.map_moments(circuit, split_moment).unfreeze(copy=False)
 
 
 class PasqalGateset(cirq.CompilationTargetGateset):
@@ -88,7 +121,7 @@ class PasqalGateset(cirq.CompilationTargetGateset):
 
     @property
     def postprocess_transformers(self) -> list[cirq.TRANSFORMER]:
-        return []
+        return [cirq.drop_negligible_operations, split_multi_op_moments]
 
     def __repr__(self):
         return (
