@@ -24,7 +24,7 @@ import cirq
 from cirq_google.cloud import quantum
 from cirq_google.engine.abstract_local_program import AbstractLocalProgram
 from cirq_google.engine.local_simulation_type import LocalSimulationType
-from cirq_google.engine.simulated_local_job import SimulatedLocalJob, _flatten_results
+from cirq_google.engine.simulated_local_job import _flatten_results, SimulatedLocalJob
 
 Q = cirq.GridQubit(2, 2)
 
@@ -67,11 +67,7 @@ def test_run_multi_program_single_sweep():
         None,
     )
     job = SimulatedLocalJob(
-        job_id='test_job',
-        processor_id='test1',
-        parent_program=program,
-        repetitions=10,
-        sweeps=[{}],
+        job_id='test_job', processor_id='test1', parent_program=program, repetitions=10, sweeps=[{}]
     )
     results = job.results()
     assert len(results) == 2
