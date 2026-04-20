@@ -147,7 +147,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         repetitions: int = 1,
         description: str | None = None,
         labels: dict[str, str] | None = None,
-    ) -> cirq.Result:
+    ) -> engine_job.EngineJob:
         """Runs the supplied Circuit via Quantum Engine.
 
         Args:
@@ -171,7 +171,8 @@ class EngineProgram(abstract_program.AbstractProgram):
             labels: Optional set of labels to set on the job.
 
         Returns:
-            A single Result for this run.
+            An EngineJob. If this is iterated over it returns a list containing a single
+            TrialResult
 
         Raises:
             ValueError: If a processor id hasn't been specified to run the job
@@ -179,7 +180,7 @@ class EngineProgram(abstract_program.AbstractProgram):
             ValueError: If either `run_name` and `device_config_name` are set but
                 `processor_id` is empty.
         """
-        job = await self.run_sweep_async(
+        return await self.run_sweep_async(
             job_id=job_id,
             params=[param_resolver],
             repetitions=repetitions,
@@ -190,8 +191,6 @@ class EngineProgram(abstract_program.AbstractProgram):
             snapshot_id=snapshot_id,
             device_config_name=device_config_name,
         )
-        results = await job.results_async()
-        return results[0]
 
     run = duet.sync(run_async)
 
