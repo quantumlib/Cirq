@@ -60,6 +60,9 @@ def run(
     with open(file_path, 'w', encoding="utf8") as f:
         f.writelines(script_lines)
 
+    # isolate the `coverage` command when running in a `pytest --cov` session
+    env = {k: v for k, v in os.environ.items() if k != 'COVERAGE_PROCESS_CONFIG'}
+
     cmd = f"""
 export GIT_CONFIG_GLOBAL=/dev/null
 export GIT_CONFIG_SYSTEM=/dev/null
@@ -76,7 +79,7 @@ chmod +x ./test-script.sh
 ./test-script.sh {arg}
 """
     return shell_tools.run(
-        cmd, log_run_to_stderr=False, shell=True, check=False, capture_output=True
+        cmd, log_run_to_stderr=False, shell=True, check=False, capture_output=True, env=env
     )
 
 
