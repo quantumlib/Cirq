@@ -114,7 +114,7 @@ class ProcessorSampler(cirq.Sampler):
             params_list, repetitions = self._normalize_batch_args(
                 prog_values, params_list, repetitions
             )
-            # Batch programs that have the same number of repetitions.
+            # Batch programs that have the same number of repetitions and same sweep.
             program_batches = []
             params_list_batches = []
             repetition_batches = []
@@ -122,27 +122,36 @@ class ProcessorSampler(cirq.Sampler):
             i = 0
             while i < len(prog_values):
                 batch_reps = repetitions[i]
+                batch_sweep = params_list[i]
                 batch_programs = {prog_keys[i]: prog_values[i]} if prog_keys else [prog_values[i]]
-                batch_params = [params_list[i]]
                 i += 1
                 while (
                     i < len(prog_values)
                     and len(batch_programs) < self._jobs_per_batch
                     and repetitions[i] == batch_reps
+                    and params_list[i] == batch_sweep
                 ):
                     if isinstance(batch_programs, dict):
                         batch_programs[prog_keys[i]] = prog_values[i]
                     else:
                         batch_programs.append(prog_values[i])
-                    batch_params.append(params_list[i])
                     i += 1
                 program_batches.append(batch_programs)
-                params_list_batches.append(batch_params)
+                params_list_batches.append(batch_sweep)
                 repetition_batches.append(batch_reps)
 
-            return await duet.pstarmap_async(
+            all_batch_results = await duet.pstarmap_async(
                 self.run_sweep_async, zip(program_batches, params_list_batches, repetition_batches)
             )
+            final_results = []
+            for batch_res, batch_progs in zip(all_batch_results, program_batches):
+                num_progs = len(batch_progs)
+                for j in range(num_progs):
+                    # Engine returns results grouped by sweep then by program.
+                    # e.g. (S1, P1), (S1, P2), (S2, P1), (S2, P2)
+                    # So P1's results are at indices 0, 2, ...
+                    final_results.append(batch_res[j::num_progs])
+            return final_results
 
         prog_values = list(programs.values()) if isinstance(programs, Mapping) else list(programs)
         return cast(
