@@ -284,7 +284,7 @@ def test_should_preserve_initial_state_false_skips_copy() -> None:
         dtype=np.complex64,
         should_preserve_initial_state=False,
     )
-    assert np.shares_memory(bsv._state_vector, state_vector)
+    assert np.may_share_memory(bsv._state_vector, state_vector)
 
 
 def test_should_preserve_initial_state_true_copies() -> None:
@@ -295,7 +295,7 @@ def test_should_preserve_initial_state_true_copies() -> None:
         dtype=np.complex64,
         should_preserve_initial_state=True,
     )
-    assert not np.shares_memory(bsv._state_vector, state_vector)
+    assert not np.may_share_memory(bsv._state_vector, state_vector)
 
 
 def test_should_preserve_initial_state_false_no_eager_buffer() -> None:
