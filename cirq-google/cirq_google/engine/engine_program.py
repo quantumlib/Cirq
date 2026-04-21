@@ -172,7 +172,7 @@ class EngineProgram(abstract_program.AbstractProgram):
 
         Returns:
             An EngineJob. If this is iterated over it returns a list containing a single
-            TrialResult
+            EngineResult
 
         Raises:
             ValueError: If a processor id hasn't been specified to run the job
