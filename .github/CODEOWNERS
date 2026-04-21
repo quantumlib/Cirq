@@ -1,11 +1,11 @@
 ####################
-# cirq maintainers
+# Cirq maintainers
 ####################
 
 * @quantumlib/cirq-maintainers @vtomole
 
 ####################
-# vendor maintainers
+# Vendor maintainers
 ####################
 
 cirq-google/**/*.* @wcourtney @quantumlib/cirq-maintainers @vtomole @verult @hoisinberg
@@ -23,13 +23,13 @@ cirq-pasqal/**/*.* @HGSilveri @quantumlib/cirq-maintainers @vtomole
 cirq-core/cirq/experiments/**/*.* @mrwojtek @quantumlib/cirq-maintainers @vtomole
 
 #####################################################
-# docs maintainers
+# Cirq docs maintainers
 #####################################################
 
 docs/**/*.* @quantumlib/cirq-maintainers @vtomole
 
 ###################################################################
-# vendor docs maintainers: vendor maintainers + + @rmlarose
+# Vendor docs maintainers
 ###################################################################
 
 docs/google/**/*.* @wcourtney @quantumlib/cirq-maintainers @vtomole @verult @hoisinberg
@@ -46,4 +46,5 @@ docs/hardware/azure-quantum/**/*.* @ScottCarda-MS @billti @anpaz @quantumlib/cir
 #############################################################
 # qcvv docs maintainers: docs maintainers + mrwojtek + aasfaw
 #############################################################
+
 docs/noise/qcvv/**/*.* @mrwojtek @quantumlib/cirq-maintainers @vtomole
