@@ -26,24 +26,24 @@ cirq-core/cirq/experiments/**/*.* @mrwojtek @quantumlib/cirq-maintainers @vtomol
 # docs maintainers
 #####################################################
 
-docs/**/*.* @rmlarose @quantumlib/cirq-maintainers @vtomole
+docs/**/*.* @quantumlib/cirq-maintainers @vtomole
 
 ###################################################################
 # vendor docs maintainers: vendor maintainers + + @rmlarose
 ###################################################################
 
-docs/google/**/*.* @wcourtney @rmlarose @quantumlib/cirq-maintainers @vtomole @verult @hoisinberg
-docs/tutorials/google/**/*.* @wcourtney @rmlarose @quantumlib/cirq-maintainers @vtomole @verult @hoisinberg
+docs/google/**/*.* @wcourtney @quantumlib/cirq-maintainers @vtomole @verult @hoisinberg
+docs/tutorials/google/**/*.* @wcourtney @quantumlib/cirq-maintainers @vtomole @verult @hoisinberg
 
-docs/hardware/ionq/**/*.* @dabacon @ColemanCollins @nakardo @gmauricio @rmlarose @Cynocracy @quantumlib/cirq-maintainers @vtomole @splch
+docs/hardware/ionq/**/*.* @dabacon @ColemanCollins @nakardo @gmauricio @Cynocracy @quantumlib/cirq-maintainers @vtomole @splch
 
-docs/hardware/aqt/**/*.* @ma5x @pschindler @alfrisch @rmlarose @quantumlib/cirq-maintainers @vtomole
+docs/hardware/aqt/**/*.* @ma5x @pschindler @alfrisch @quantumlib/cirq-maintainers @vtomole
 
-docs/hardware/pasqal/**/*.* @HGSilveri @rmlarose @quantumlib/cirq-maintainers @vtomole
+docs/hardware/pasqal/**/*.* @HGSilveri @quantumlib/cirq-maintainers @vtomole
 
 docs/hardware/azure-quantum/**/*.* @guenp @anpaz @quantumlib/cirq-maintainers @vtomole
 
 #############################################################
 # qcvv docs maintainers: docs maintainers + mrwojtek + aasfaw
 #############################################################
-docs/noise/qcvv/**/*.* @mrwojtek @rmlarose @quantumlib/cirq-maintainers @vtomole
+docs/noise/qcvv/**/*.* @mrwojtek @quantumlib/cirq-maintainers @vtomole
