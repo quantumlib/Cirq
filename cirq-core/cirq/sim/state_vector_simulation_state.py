@@ -106,7 +106,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
                 state_vector = initial_state.reshape(qid_shape)
             else:
                 state_vector = initial_state
-            if np.may_share_memory(state_vector, initial_state) and should_preserve_initial_state:
+            if should_preserve_initial_state and np.may_share_memory(state_vector, initial_state)  :
                 state_vector = state_vector.copy()
         state_vector = state_vector.astype(dtype, copy=False)
         return cls(state_vector, buffer, should_preserve_initial_state)
