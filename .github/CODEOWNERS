@@ -12,7 +12,7 @@ cirq-google/**/*.* @wcourtney @quantumlib/cirq-maintainers @vtomole @verult @hoi
 
 cirq-ionq/**/*.* @dabacon @ColemanCollins @nakardo @gmauricio @Cynocracy @quantumlib/cirq-maintainers @vtomole @splch
 
-cirq-aqt/**/*.* @ma5x @pschindler @alfrisch @quantumlib/cirq-maintainers @vtomole
+cirq-aqt/**/*.* @ma5x @pschindler @quantumlib/cirq-maintainers @vtomole
 
 cirq-pasqal/**/*.* @HGSilveri @quantumlib/cirq-maintainers @vtomole
 
@@ -37,11 +37,11 @@ docs/tutorials/google/**/*.* @wcourtney @quantumlib/cirq-maintainers @vtomole @v
 
 docs/hardware/ionq/**/*.* @dabacon @ColemanCollins @nakardo @gmauricio @Cynocracy @quantumlib/cirq-maintainers @vtomole @splch
 
-docs/hardware/aqt/**/*.* @ma5x @pschindler @alfrisch @quantumlib/cirq-maintainers @vtomole
+docs/hardware/aqt/**/*.* @ma5x @pschindler @quantumlib/cirq-maintainers @vtomole
 
 docs/hardware/pasqal/**/*.* @HGSilveri @quantumlib/cirq-maintainers @vtomole
 
-docs/hardware/azure-quantum/**/*.* @ScottCarda-MS @billti @anpaz @quantumlib/cirq-maintainers @vtomole
+docs/hardware/azure-quantum/**/*.* @ScottCarda-MS @billti @quantumlib/cirq-maintainers @vtomole
 
 #############################################################
 # qcvv docs maintainers: docs maintainers + mrwojtek + aasfaw
