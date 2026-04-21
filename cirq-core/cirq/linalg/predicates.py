@@ -39,7 +39,7 @@ def is_diagonal(matrix: np.ndarray, *, atol: float = 1e-8) -> bool:
         Whether the matrix is diagonal within the given tolerance.
     """
     matrix = np.copy(matrix)
-    matrix[np.eye(*matrix.shape, dtype=bool)] = 0
+    matrix[np.eye(*matrix.shape, dtype=np.bool)] = 0
     return tolerance.all_near_zero(matrix, atol=atol)
 
 
