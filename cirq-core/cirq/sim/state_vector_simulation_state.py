@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 class _BufferedStateVector(qis.QuantumStateRepresentation):
     """Contains the state vector and buffer for efficient state evolution."""
 
-    def __init__(self, state_vector: np.ndarray, buffer: np.ndarray | None = None):
+    def __init__(self, state_vector: np.ndarray, buffer: np.ndarray | None = None, should_preserve_initial_state: bool = True):
         """Initializes the object with the inputs.
 
         This initializer creates the buffer if necessary.
@@ -41,14 +41,31 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         Args:
             state_vector: The state vector, must be correctly formatted. The data is not checked
                 for validity here due to performance concerns.
-            buffer: Optional, must be same shape as the state vector. If not provided, a buffer
-                will be created automatically.
+            buffer: Optional, must be same shape as the state vector. If not provided and
+                should_preserve_initial_state is True, a buffer will be created automatically.
+                If should_preserve_initial_state is False, the buffer is allocated lazily on
+                first use.
+            should_preserve_initial_state: If False, skips eager buffer allocation to avoid
+                the memory overhead of an extra state-vector-sized array.
         """
         self._state_vector = state_vector
-        if buffer is None:
-            buffer = np.empty_like(state_vector)
-        self._buffer = buffer
         self._qid_shape = state_vector.shape
+        if buffer is not None:
+            self.__buffer: np.ndarray | None = buffer
+        elif should_preserve_initial_state:
+            self.__buffer = np.empty_like(state_vector)
+        else:
+            self.__buffer = None
+
+    @property
+    def _buffer(self) -> np.ndarray:
+        if self.__buffer is None:
+            self.__buffer = np.empty_like(self._state_vector)
+        return self.__buffer
+
+    @_buffer.setter
+    def _buffer(self, value: np.ndarray) -> None:
+        self.__buffer = value
 
     @classmethod
     def create(
@@ -58,6 +75,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         qid_shape: tuple[int, ...] | None = None,
         dtype: type[np.complexfloating] | np.dtype[np.complexfloating] | None = None,
         buffer: np.ndarray | None = None,
+        should_preserve_initial_state: bool = True
     ):
         """Initializes the object with the inputs.
 
@@ -84,10 +102,10 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
                 state_vector = initial_state.reshape(qid_shape)
             else:
                 state_vector = initial_state
-            if np.may_share_memory(state_vector, initial_state):
+            if np.may_share_memory(state_vector, initial_state) and should_preserve_initial_state:
                 state_vector = state_vector.copy()
         state_vector = state_vector.astype(dtype, copy=False)
-        return cls(state_vector, buffer)
+        return cls(state_vector, buffer, should_preserve_initial_state)
 
     def copy(self, deep_copy_buffers: bool = True) -> _BufferedStateVector:
         """Copies the object.
@@ -97,9 +115,19 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         Returns:
             A copy of the object.
         """
+        if self.__buffer is None:
+            buf = None
+            preserve = False
+        elif deep_copy_buffers:
+            buf = self.__buffer.copy()
+            preserve = True
+        else:
+            buf = self.__buffer
+            preserve = True
         return _BufferedStateVector(
             state_vector=self._state_vector.copy(),
-            buffer=self._buffer.copy() if deep_copy_buffers else self._buffer,
+            buffer=buf,
+            should_preserve_initial_state=preserve,
         )
 
     def kron(self, other: _BufferedStateVector) -> _BufferedStateVector:
@@ -327,6 +355,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
         initial_state: np.ndarray | cirq.STATE_VECTOR_LIKE = 0,
         dtype: type[np.complexfloating] | np.dtype[np.complexfloating] = np.complex64,
         classical_data: cirq.ClassicalDataStore | None = None,
+        should_preserve_initial_state: bool = True,
     ):
         """Inits StateVectorSimulationState.
 
@@ -354,6 +383,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
             qid_shape=tuple(q.dimension for q in qubits) if qubits is not None else None,
             dtype=dtype,
             buffer=available_buffer,
+            should_preserve_initial_state=should_preserve_initial_state
         )
         super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
 
