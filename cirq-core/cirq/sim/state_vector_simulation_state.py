@@ -120,7 +120,10 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
             A copy of the object.
         """
         preserve = self._raw_buffer is not None
-        buf = self._raw_buffer.copy() if preserve and deep_copy_buffers else self._raw_buffer
+        if self._raw_buffer is not None and deep_copy_buffers:
+            buf = self._raw_buffer.copy()
+        else:
+            buf = self._raw_buffer
         return _BufferedStateVector(
             state_vector=self._state_vector.copy(),
             buffer=buf,
