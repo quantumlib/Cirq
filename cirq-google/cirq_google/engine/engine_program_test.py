@@ -17,7 +17,6 @@ from __future__ import annotations
 import datetime
 from unittest import mock
 
-import duet
 import numpy as np
 import pytest
 from google.protobuf import any_pb2, timestamp_pb2
@@ -99,8 +98,7 @@ def test_run_sweeps_delegation(create_job_async):
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
 @mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_async')
-@duet.sync
-async def test_run_delegation(create_job_async, get_results_async):
+def test_run_delegation(create_job_async, get_results_async):
     dt = datetime.datetime.now(tz=datetime.timezone.utc)
     create_job_async.return_value = (
         'steve',
@@ -150,7 +148,7 @@ async def test_run_delegation(create_job_async, get_results_async):
         device_config_name="config",
     )
 
-    results = await job.results_async()
+    results = job.results()
     result = results[0]
 
     assert result == cg.EngineResult(
