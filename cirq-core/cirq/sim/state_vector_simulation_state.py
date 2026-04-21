@@ -55,22 +55,19 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         """
         self._state_vector = state_vector
         self._qid_shape = state_vector.shape
-        if buffer is not None:
-            self.__buffer: np.ndarray | None = buffer
-        elif should_preserve_initial_state:
-            self.__buffer = np.empty_like(state_vector)
-        else:
-            self.__buffer = None
+        self._raw_buffer: np.ndarray | None = buffer
+        if self._raw_buffer is None and should_preserve_initial_state:
+            self._raw_buffer = np.empty_like(state_vector)
 
     @property
     def _buffer(self) -> np.ndarray:
-        if self.__buffer is None:
-            self.__buffer = np.empty_like(self._state_vector)
-        return self.__buffer
+        if self._raw_buffer is None:
+            self._raw_buffer = np.empty_like(self._state_vector)
+        return self._raw_buffer
 
     @_buffer.setter
     def _buffer(self, value: np.ndarray) -> None:
-        self.__buffer = value
+        self._raw_buffer = value
 
     @classmethod
     def create(
@@ -93,6 +90,8 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
             dtype: The dtype of the state vector, if the initial state is provided as an int.
             buffer: Optional, must be length 3 and same shape as the state vector. If not
                 provided, a buffer will be created automatically.
+            should_preserve_initial_state: If False, skips copying the initial state and defers
+                buffer allocation to first use, reducing memory overhead for large state vectors.
         Raises:
             ValueError: If initial state is provided as integer, but qid_shape is not provided.
         """
@@ -120,15 +119,8 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         Returns:
             A copy of the object.
         """
-        if self.__buffer is None:
-            buf = None
-            preserve = False
-        elif deep_copy_buffers:
-            buf = self.__buffer.copy()
-            preserve = True
-        else:
-            buf = self.__buffer
-            preserve = True
+        preserve = self._raw_buffer is not None
+        buf = self._raw_buffer.copy() if preserve and deep_copy_buffers else self._raw_buffer
         return _BufferedStateVector(
             state_vector=self._state_vector.copy(),
             buffer=buf,

@@ -302,16 +302,16 @@ def test_should_preserve_initial_state_false_no_eager_buffer() -> None:
     bsv = cirq.sim.state_vector_simulation_state._BufferedStateVector.create(
         initial_state=0, qid_shape=(2,), dtype=np.complex64, should_preserve_initial_state=False
     )
-    assert bsv._BufferedStateVector__buffer is None
+    assert bsv._raw_buffer is None
 
 
 def test_should_preserve_initial_state_false_lazy_buffer_on_access() -> None:
     bsv = cirq.sim.state_vector_simulation_state._BufferedStateVector.create(
         initial_state=0, qid_shape=(2,), dtype=np.complex64, should_preserve_initial_state=False
     )
-    assert bsv._BufferedStateVector__buffer is None
+    assert bsv._raw_buffer is None
     buf = bsv._buffer
-    assert bsv._BufferedStateVector__buffer is not None
+    assert bsv._raw_buffer is not None
     assert buf.shape == bsv._state_vector.shape
     assert buf.dtype == bsv._state_vector.dtype
 
@@ -335,7 +335,7 @@ def test_copy_with_unallocated_buffer_preserves_lazy_state() -> None:
         initial_state=0, qid_shape=(2,), dtype=np.complex64, should_preserve_initial_state=False
     )
     copy = bsv.copy()
-    assert copy._BufferedStateVector__buffer is None
+    assert copy._raw_buffer is None
 
 
 def test_shallow_copy_with_unallocated_buffer() -> None:
@@ -343,7 +343,7 @@ def test_shallow_copy_with_unallocated_buffer() -> None:
         initial_state=0, qid_shape=(2,), dtype=np.complex64, should_preserve_initial_state=False
     )
     copy = bsv.copy(deep_copy_buffers=False)
-    assert copy._BufferedStateVector__buffer is None
+    assert copy._raw_buffer is None
 
 
 def test_deep_copy_with_allocated_buffer() -> None:
@@ -352,8 +352,6 @@ def test_deep_copy_with_allocated_buffer() -> None:
     )
     _ = bsv._buffer
     copy = bsv.copy(deep_copy_buffers=True)
-    assert copy._BufferedStateVector__buffer is not None
-    assert copy._BufferedStateVector__buffer is not bsv._BufferedStateVector__buffer
-    np.testing.assert_array_equal(
-        copy._BufferedStateVector__buffer, bsv._BufferedStateVector__buffer
-    )
+    assert copy._raw_buffer is not None
+    assert copy._raw_buffer is not bsv._raw_buffer
+    np.testing.assert_array_equal(copy._raw_buffer, bsv._raw_buffer)
