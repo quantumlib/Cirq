@@ -324,7 +324,9 @@ def test_should_preserve_initial_state_false_correct_simulation() -> None:
         dtype=np.complex64,
         should_preserve_initial_state=False,
     )
+    assert args._state._raw_buffer is None
     cirq.act_on(cirq.X, args, [cirq.LineQubit(0)])
+    assert args._state._raw_buffer is not None
     np.testing.assert_allclose(
         args.target_tensor, cirq.one_hot(index=(1, 0), shape=(2, 2), dtype=np.complex64)
     )
@@ -336,6 +338,8 @@ def test_copy_with_unallocated_buffer_preserves_lazy_state() -> None:
     )
     copy = bsv.copy()
     assert copy._raw_buffer is None
+    assert not np.may_share_memory(copy._state_vector, bsv._state_vector)
+    np.testing.assert_array_equal(copy._state_vector, bsv._state_vector)
 
 
 def test_shallow_copy_with_unallocated_buffer() -> None:
@@ -344,14 +348,15 @@ def test_shallow_copy_with_unallocated_buffer() -> None:
     )
     copy = bsv.copy(deep_copy_buffers=False)
     assert copy._raw_buffer is None
+    assert not np.may_share_memory(copy._state_vector, bsv._state_vector)
+    np.testing.assert_array_equal(copy._state_vector, bsv._state_vector)
 
 
 def test_deep_copy_with_allocated_buffer() -> None:
     bsv = cirq.sim.state_vector_simulation_state._BufferedStateVector.create(
         initial_state=0, qid_shape=(2,), dtype=np.complex64, should_preserve_initial_state=True
     )
-    _ = bsv._buffer
     copy = bsv.copy(deep_copy_buffers=True)
     assert copy._raw_buffer is not None
-    assert copy._raw_buffer is not bsv._raw_buffer
+    assert not np.may_share_memory(copy._raw_buffer, bsv._raw_buffer)
     np.testing.assert_array_equal(copy._raw_buffer, bsv._raw_buffer)
