@@ -33,7 +33,12 @@ if TYPE_CHECKING:
 class _BufferedStateVector(qis.QuantumStateRepresentation):
     """Contains the state vector and buffer for efficient state evolution."""
 
-    def __init__(self, state_vector: np.ndarray, buffer: np.ndarray | None = None, should_preserve_initial_state: bool = True):
+    def __init__(
+        self,
+        state_vector: np.ndarray,
+        buffer: np.ndarray | None = None,
+        should_preserve_initial_state: bool = True,
+    ):
         """Initializes the object with the inputs.
 
         This initializer creates the buffer if necessary.
@@ -75,7 +80,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         qid_shape: tuple[int, ...] | None = None,
         dtype: type[np.complexfloating] | np.dtype[np.complexfloating] | None = None,
         buffer: np.ndarray | None = None,
-        should_preserve_initial_state: bool = True
+        should_preserve_initial_state: bool = True,
     ):
         """Initializes the object with the inputs.
 
@@ -383,7 +388,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
             qid_shape=tuple(q.dimension for q in qubits) if qubits is not None else None,
             dtype=dtype,
             buffer=available_buffer,
-            should_preserve_initial_state=should_preserve_initial_state
+            should_preserve_initial_state=should_preserve_initial_state,
         )
         super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
 
