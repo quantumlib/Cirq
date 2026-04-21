@@ -41,7 +41,7 @@ docs/hardware/aqt/**/*.* @ma5x @pschindler @alfrisch @quantumlib/cirq-maintainer
 
 docs/hardware/pasqal/**/*.* @HGSilveri @quantumlib/cirq-maintainers @vtomole
 
-docs/hardware/azure-quantum/**/*.* @guenp @anpaz @quantumlib/cirq-maintainers @vtomole
+docs/hardware/azure-quantum/**/*.* @ScottCarda-MS @billti @anpaz @quantumlib/cirq-maintainers @vtomole
 
 #############################################################
 # qcvv docs maintainers: docs maintainers + mrwojtek + aasfaw
