@@ -117,3 +117,27 @@ def test_line_counts_as_uncovered_with_hashes() -> None:
     assert f("x = '###'", False) is True
     # Check that it still ignores actual comments.
     assert f("x = 1 # some comment", False) is True
+
+    # Coverage for is_from_cover_annotation_file=True
+    assert f("! x = 1", True) is True
+    assert f("  x = 1", True) is False
+    assert f("! import os", True) is False
+
+    # Coverage for tokenize.TokenError
+    # An unclosed multi-line string will cause tokenize to raise TokenError
+    assert f('""" # comment', False) is True
+    assert f("''' # comment", False) is True
+
+    # Additional coverage for line_content_counts_as_uncovered_manual
+    assert f("def foo():", False) is False
+    assert f("class Foo:", False) is False
+    assert f("    ", False) is False
+
+
+def test_is_applicable_python_file() -> None:
+    f = incremental_coverage.is_applicable_python_file
+    assert f("cirq/ops/gate.py") is True
+    assert f("dev_tools/incremental_coverage.py") is False
+    assert f("cirq/ops/gate_test.py") is True
+    assert f("test.txt") is False
+    assert f("benchmarks/perf.py") is False
