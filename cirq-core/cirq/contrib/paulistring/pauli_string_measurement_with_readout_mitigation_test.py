@@ -25,7 +25,9 @@ import cirq
 from cirq.contrib.paulistring import (
     CircuitToPauliStringsParameters,
     measure_pauli_strings,
-    PostFilteringSymmetryCalibrationResult,
+)
+from cirq.contrib.paulistring.pauli_string_measurement_with_readout_mitigation import (
+    PostFilteringSymmetryCalibrationResult as PostFilteringSymmetryCalibrationResult,
 )
 from cirq.experiments import SingleQubitReadoutCalibrationResult
 from cirq.experiments.single_qubit_readout_calibration_test import NoisySingleQubitReadoutSampler
@@ -335,15 +337,15 @@ def test_many_circuits_mixed_mitigation_types(use_sweep: bool) -> None:
 
     # Circuit 2 is a GHZ with a known symmetry (Z0*Z1 = 1)
     circuit_2 = cirq.FrozenCircuit(_create_ghz(5, qubits_2))
-    symmetry: cirq.PauliString = cirq.PauliString(cirq.Z(qubits_2[0]) * cirq.Z(qubits_2[1]))
+    symmetry: cirq.PauliString = -1.0 * cirq.PauliString(cirq.Z(qubits_2[0]) * cirq.Z(qubits_2[1]))
 
     pauli_group: tuple[cirq.PauliString, ...] = (
-        cirq.PauliString(cirq.Z(qubits_2[0])),
+        cirq.PauliString(cirq.Z(qubits_2[0]) * cirq.Z(qubits_2[1])),
         2.0 * cirq.PauliString(cirq.Z(qubits_2[1])),
     )
 
     params_sym = CircuitToPauliStringsParameters(
-        circuit=circuit_2, pauli_strings=(pauli_group,), postselection_symmetries=((symmetry, 1),)
+        circuit=circuit_2, pauli_strings=(pauli_group,), postselection_symmetries=((symmetry, -1),)
     )
 
     # Circuit 3 is a |+>|+> state with a PauliSum symmetry (X0 + X1 = 2).
