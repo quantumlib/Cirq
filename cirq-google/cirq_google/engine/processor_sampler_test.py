@@ -173,6 +173,116 @@ def test_run_batch_differing_repetitions():
     )
 
 
+def test_run_batch_with_jobs_per_batch():
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
+    sampler = cg.ProcessorSampler(processor=processor, jobs_per_batch=2)
+    a = cirq.LineQubit(0)
+    circuit1 = cirq.Circuit(cirq.X(a))
+    circuit2 = cirq.Circuit(cirq.Y(a))
+    circuit3 = cirq.Circuit(cirq.Z(a))
+
+    sampler.run_batch([circuit1, circuit2, circuit3], repetitions=5)
+
+    assert processor.run_sweep_async.call_count == 2
+    processor.run_sweep_async.assert_any_call(
+        program=[circuit1, circuit2],
+        params=None,
+        repetitions=5,
+        run_name='',
+        snapshot_id='',
+        device_config_name='',
+    )
+    processor.run_sweep_async.assert_any_call(
+        program=[circuit3],
+        params=None,
+        repetitions=5,
+        run_name='',
+        snapshot_id='',
+        device_config_name='',
+    )
+
+
+@pytest.mark.parametrize('use_mapping', [True, False])
+def test_run_batch_with_jobs_per_batch_and_params(use_mapping: bool):
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
+    sampler = cg.ProcessorSampler(processor=processor, jobs_per_batch=2)
+    a = cirq.LineQubit(0)
+    circuit1 = cirq.Circuit(cirq.X(a))
+    circuit2 = cirq.Circuit(cirq.Y(a))
+    params1 = [cirq.ParamResolver({'t': 1})]
+
+    batch = {'a': circuit1, 'b': circuit2} if use_mapping else [circuit1, circuit2]
+
+    sampler.run_batch(batch, [params1, params1], repetitions=5)
+
+    processor.run_sweep_async.assert_called_once_with(
+        program=batch,
+        params=params1,
+        repetitions=5,
+        run_name='',
+        snapshot_id='',
+        device_config_name='',
+    )
+
+
+def test_run_batch_with_jobs_per_batch_different_params():
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
+    sampler = cg.ProcessorSampler(processor=processor, jobs_per_batch=2)
+    a = cirq.LineQubit(0)
+    circuit1 = cirq.Circuit(cirq.X(a))
+    circuit2 = cirq.Circuit(cirq.Y(a))
+    params1 = [cirq.ParamResolver({'t': 1})]
+    params2 = [cirq.ParamResolver({'t': 2})]
+
+    sampler.run_batch([circuit1, circuit2], [params1, params2], repetitions=5)
+
+    assert processor.run_sweep_async.call_count == 2
+    processor.run_sweep_async.assert_any_call(
+        program=[circuit1],
+        params=params1,
+        repetitions=5,
+        run_name='',
+        snapshot_id='',
+        device_config_name='',
+    )
+    processor.run_sweep_async.assert_any_call(
+        program=[circuit2],
+        params=params2,
+        repetitions=5,
+        run_name='',
+        snapshot_id='',
+        device_config_name='',
+    )
+
+
+def test_run_batch_with_jobs_per_batch_different_repetitions():
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
+    sampler = cg.ProcessorSampler(processor=processor, jobs_per_batch=2)
+    a = cirq.LineQubit(0)
+    circuit1 = cirq.Circuit(cirq.X(a))
+    circuit2 = cirq.Circuit(cirq.Y(a))
+
+    sampler.run_batch([circuit1, circuit2], repetitions=[5, 10])
+
+    assert processor.run_sweep_async.call_count == 2
+    processor.run_sweep_async.assert_any_call(
+        program=[circuit1],
+        params=None,
+        repetitions=5,
+        run_name='',
+        snapshot_id='',
+        device_config_name='',
+    )
+    processor.run_sweep_async.assert_any_call(
+        program=[circuit2],
+        params=None,
+        repetitions=10,
+        run_name='',
+        snapshot_id='',
+        device_config_name='',
+    )
+
+
 @duet.sync
 async def test_sampler_with_full_job_queue_blocks():
     processor = mock.create_autospec(AbstractProcessor, instance=True)
