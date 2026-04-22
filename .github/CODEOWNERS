@@ -1,28 +1,22 @@
 # GitHub CODEOWNERS file for Cirq.
-#
-# Reminders:
-#  * People listed here must have write permissions for the repo.
-#  * Earlier pattern rules should be broader, later ones more specific.
 
-# Overall Cirq maintainers.
+#### Overall Cirq maintainers ####
 
 * @quantumlib/cirq-maintainers
 
-
-# Cirq docs maintainers.
+#### Cirq docs maintainers ####
 
 docs/**/*.* @quantumlib/cirq-maintainers @quantumlib/cirq-contributors
 docs/tutorials/google/**/*.* @quantumlib/cirq-maintainers @quantumlib/cirq-contributors @wcourtney @verult @hoisinberg
 docs/noise/qcvv/**/*.* @quantumlib/cirq-maintainers @quantumlib/cirq-contributors @mrwojtek
 
-
-# Hardware module maintainers.
-
-cirq-aqt/**/*.*          @quantumlib/cirq-maintainers @quantumlib/cirq-aqt-contributors
-docs/hardware/aqt/**/*.* @quantumlib/cirq-maintainers @quantumlib/cirq-aqt-contributors
+#### Hardware module maintainers ####
 
 cirq-google/**/*.* @quantumlib/cirq-maintainers @wcourtney @verult @hoisinberg
 docs/google/**/*.* @quantumlib/cirq-maintainers @wcourtney @verult @hoisinberg
+
+cirq-aqt/**/*.*          @quantumlib/cirq-maintainers @quantumlib/cirq-aqt-contributors
+docs/hardware/aqt/**/*.* @quantumlib/cirq-maintainers @quantumlib/cirq-aqt-contributors
 
 cirq-ionq/**/*.*          @quantumlib/cirq-maintainers @quantumlib/cirq-ionq-contributors
 docs/hardware/ionq/**/*.* @quantumlib/cirq-maintainers @quantumlib/cirq-ionq-contributors
@@ -32,7 +26,6 @@ docs/hardware/pasqal/**/*.* @quantumlib/cirq-maintainers @quantumlib/cirq-pasqal
 
 docs/hardware/azure-quantum/**/*.* @quantumlib/cirq-maintainers @quantumlib/cirq-azure-contributors
 
-
-# Experiments maintainers.
+#### Experiments maintainers ####
 
 cirq-core/cirq/experiments/**/*.* @quantumlib/cirq-maintainers @mrwojtek
