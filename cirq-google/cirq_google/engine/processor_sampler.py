@@ -60,6 +60,9 @@ class ProcessorSampler(cirq.Sampler):
             jobs_per_batch:  If set to greater than 1, this will batch multiple
                 circuits within the same API call when calling run_batch() or
                 run_batch_async() up to a maximum of `jobs_per_batch`.
+                Note that actual hardware execution order is not guaranteed
+                if jobs_per_batch > 1. (For instance, the hardware may run
+                all circuits for the first sweep point, then the second point, etc).
 
         Raises:
             ValueError: If  only one of `run_name` and `device_config_name` are specified.
@@ -76,6 +79,16 @@ class ProcessorSampler(cirq.Sampler):
 
     async def run_sweep_async(
         self,
+        program: cirq.AbstractCircuit,
+        params: cirq.Sweepable | Sequence[cirq.Sweepable],
+        repetitions: int = 1,
+    ) -> Sequence[cg.EngineResult]:
+        await self._run_sweep_async(program, params, repetitions)
+
+    run_sweep = duet.sync(run_sweep_async)
+
+    async def _run_sweep_async(
+        self,
         program: (
             cirq.AbstractCircuit
             | Sequence[cirq.AbstractCircuit]
@@ -84,6 +97,7 @@ class ProcessorSampler(cirq.Sampler):
         params: cirq.Sweepable | Sequence[cirq.Sweepable],
         repetitions: int = 1,
     ) -> Sequence[cg.EngineResult]:
+        """Internal helper to run sweeps or batches."""
         async with self._concurrent_job_limiter:
             job = await self._processor.run_sweep_async(
                 program=program,
@@ -95,8 +109,6 @@ class ProcessorSampler(cirq.Sampler):
             )
 
             return await job.results_async()
-
-    run_sweep = duet.sync(run_sweep_async)
 
     async def run_batch_async(
         self,
