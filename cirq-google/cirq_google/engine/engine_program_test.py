@@ -148,8 +148,7 @@ def test_run_delegation(create_job_async, get_results_async):
         device_config_name="config",
     )
 
-    results = job.results()
-    result = results[0]
+    (result,) = job
 
     assert result == cg.EngineResult(
         params=cirq.ParamResolver({'a': 1.0}),
