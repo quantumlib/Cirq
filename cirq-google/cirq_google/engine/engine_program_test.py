@@ -139,7 +139,7 @@ def test_run_delegation(create_job_async, get_results_async):
 
     program = cg.EngineProgram('a', 'b', EngineContext())
     param_resolver = cirq.ParamResolver({})
-    results = program.run(
+    job = program.run(
         job_id='steve',
         repetitions=10,
         param_resolver=param_resolver,
@@ -148,7 +148,9 @@ def test_run_delegation(create_job_async, get_results_async):
         device_config_name="config",
     )
 
-    assert results == cg.EngineResult(
+    (result,) = job
+
+    assert result == cg.EngineResult(
         params=cirq.ParamResolver({'a': 1.0}),
         measurements={'q': np.array([[False], [True], [True], [False]], dtype=bool)},
         job_id='steve',

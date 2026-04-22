@@ -612,7 +612,7 @@ def test_run_multiple_times(client):
         param_resolver=cirq.ParamResolver({'a': 1}),
         run_name="run",
         device_config_name="config_alias",
-    )
+    ).results()
     run_context = v2.run_context_pb2.RunContext()
     client().create_job_async.call_args[1]['run_context'].Unpack(run_context)
     sweeps1 = run_context.parameter_sweeps
