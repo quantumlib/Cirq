@@ -1,40 +1,38 @@
-################################################################################
 # GitHub CODEOWNERS file for Cirq.
 #
 # Reminders:
 #  * People listed here must have write permissions for the repo.
 #  * Earlier pattern rules should be broader, later ones more specific.
-################################################################################
 
 # Overall Cirq maintainers.
 
-* @quantumlib/cirq-maintainers @vtomole
+* @quantumlib/cirq-maintainers
 
 
 # Cirq docs maintainers.
 
-docs/**/*.* @quantumlib/cirq-maintainers @vtomole
-docs/tutorials/google/**/*.* @wcourtney @quantumlib/cirq-maintainers @vtomole @verult @hoisinberg
-docs/noise/qcvv/**/*.* @mrwojtek @quantumlib/cirq-maintainers @vtomole
+docs/**/*.* @quantumlib/cirq-maintainers @quantumlib/cirq-contributors
+docs/tutorials/google/**/*.* @quantumlib/cirq-maintainers @quantumlib/cirq-contributors @wcourtney @verult @hoisinberg
+docs/noise/qcvv/**/*.* @quantumlib/cirq-maintainers @quantumlib/cirq-contributors @mrwojtek
 
 
 # Hardware module maintainers.
 
-cirq-aqt/**/*.*          @ma5x @pschindler @quantumlib/cirq-maintainers @vtomole
-docs/hardware/aqt/**/*.* @ma5x @pschindler @quantumlib/cirq-maintainers @vtomole
+cirq-aqt/**/*.*          @quantumlib/cirq-maintainers @quantumlib/cirq-aqt-contributors
+docs/hardware/aqt/**/*.* @quantumlib/cirq-maintainers @quantumlib/cirq-aqt-contributors
 
-cirq-google/**/*.* @wcourtney @quantumlib/cirq-maintainers @vtomole @verult @hoisinberg
-docs/google/**/*.* @wcourtney @quantumlib/cirq-maintainers @vtomole @verult @hoisinberg
+cirq-google/**/*.* @quantumlib/cirq-maintainers @wcourtney @verult @hoisinberg
+docs/google/**/*.* @quantumlib/cirq-maintainers @wcourtney @verult @hoisinberg
 
-cirq-ionq/**/*.*          @dabacon @ColemanCollins @nakardo @gmauricio @Cynocracy @quantumlib/cirq-maintainers @vtomole @splch
-docs/hardware/ionq/**/*.* @dabacon @ColemanCollins @nakardo @gmauricio @Cynocracy @quantumlib/cirq-maintainers @vtomole @splch
+cirq-ionq/**/*.*          @quantumlib/cirq-maintainers @quantumlib/cirq-ionq-contributors
+docs/hardware/ionq/**/*.* @quantumlib/cirq-maintainers @quantumlib/cirq-ionq-contributors
 
-cirq-pasqal/**/*.*          @HGSilveri @quantumlib/cirq-maintainers @vtomole
-docs/hardware/pasqal/**/*.* @HGSilveri @quantumlib/cirq-maintainers @vtomole
+cirq-pasqal/**/*.*          @quantumlib/cirq-maintainers @quantumlib/cirq-pasqal-contributors
+docs/hardware/pasqal/**/*.* @quantumlib/cirq-maintainers @quantumlib/cirq-pasqal-contributors
 
-docs/hardware/azure-quantum/**/*.* @ScottCarda-MS @billti @quantumlib/cirq-maintainers @vtomole
+docs/hardware/azure-quantum/**/*.* @quantumlib/cirq-maintainers @quantumlib/cirq-azure-contributors
 
 
 # Experiments maintainers.
 
-cirq-core/cirq/experiments/**/*.* @mrwojtek @quantumlib/cirq-maintainers @vtomole
+cirq-core/cirq/experiments/**/*.* @quantumlib/cirq-maintainers @mrwojtek
