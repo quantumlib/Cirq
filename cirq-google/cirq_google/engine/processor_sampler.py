@@ -83,7 +83,7 @@ class ProcessorSampler(cirq.Sampler):
         params: cirq.Sweepable | Sequence[cirq.Sweepable],
         repetitions: int = 1,
     ) -> Sequence[cg.EngineResult]:
-        await self._run_sweep_async(program, params, repetitions)
+        return await self._run_sweep_async(program, params, repetitions)
 
     run_sweep = duet.sync(run_sweep_async)
 
