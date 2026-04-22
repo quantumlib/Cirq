@@ -1,4 +1,6 @@
 # GitHub CODEOWNERS file for Cirq.
+# To view the members of a team, construct a URL of this form:
+# https://github.com/orgs/quantumlib/teams/[TEAM_NAME]/members
 
 #### Overall Cirq maintainers ####
 
