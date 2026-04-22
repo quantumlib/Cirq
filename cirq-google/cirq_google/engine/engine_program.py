@@ -352,9 +352,14 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     remove_labels = duet.sync(remove_labels_async)
 
-    async def get_circuit_async(self) -> cirq.Circuit:
+    async def get_circuit_async(self, program_num: int | None = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the Quantum Engine program. This is only
         supported if the program was created with the V2 protos.
+
+        Args:
+            program_num: if this is a multi-circuit program, the index of the circuit
+                to return.  This argument is zero-indexed. Negative values
+                indexing from the end of the list.
 
         Returns:
             The program's cirq Circuit.
@@ -365,7 +370,7 @@ class EngineProgram(abstract_program.AbstractProgram):
             self._program = await self.context.client.get_program_async(
                 self.project_id, self.program_id, True
             )
-        return _deserialize_program(self._program.code)
+        return _deserialize_program(self._program.code, program_num)
 
     get_circuit = duet.sync(get_circuit_async)
 
@@ -402,7 +407,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         return f'EngineProgram(project_id=\'{self.project_id}\', program_id=\'{self.program_id}\')'
 
 
-def _deserialize_program(code: any_pb2.Any) -> cirq.Circuit:
+def _deserialize_program(code: any_pb2.Any, program_num: int | None = None) -> cirq.Circuit:
     import cirq_google.engine.engine as engine_base
 
     code_type = code.type_url[len(engine_base.TYPE_PREFIX) :]
@@ -412,6 +417,9 @@ def _deserialize_program(code: any_pb2.Any) -> cirq.Circuit:
     elif code_type == 'cirq.google.api.v2.Program' or code_type == 'cirq.api.google.v2.Program':
         program = v2.program_pb2.Program.FromString(code.value)
     if program is not None:
-        return circuit_serializer.CIRCUIT_SERIALIZER.deserialize(program)
+        serializer = circuit_serializer.CIRCUIT_SERIALIZER
+        if program_num is not None:
+            return serializer.deserialize_multi_program(program)[program_num][2]
+        return serializer.deserialize(program)
 
     raise ValueError(f'unsupported program type: {code_type}')

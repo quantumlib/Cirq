@@ -159,6 +159,19 @@ class AbstractJob(abc.ABC):
         one was captured, else None."""
 
     @abc.abstractmethod
+    def get_circuit(self, program_num: int | None = None) -> cirq.Circuit:
+        """Returns the cirq Circuit for the job.
+
+        Args:
+            program_num: if this is a multi-circuit job, the index of the circuit
+                to return.  This argument is zero-indexed. Negative values
+                indexing from the end of the list.
+
+        Returns:
+            The job's cirq Circuit.
+        """
+
+    @abc.abstractmethod
     def cancel(self) -> bool | None:
         """Cancel the job."""
 

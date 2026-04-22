@@ -314,6 +314,41 @@ def test_get_circuit_v2(get_program_async, include_empty_program: bool) -> None:
     )
     get_program_async.assert_called_once_with('a', 'b', True)
 
+    with mock.patch(
+        'cirq_google.serialization.circuit_serializer.CIRCUIT_SERIALIZER.deserialize_multi_program'
+    ) as deserialize_multi_program:
+        deserialize_multi_program.return_value = [('key0', (), circuit), ('key1', (), circuit)]
+        assert program.get_circuit(program_num=1) == circuit
+        deserialize_multi_program.assert_called_once()
+
+
+@duet.sync
+async def test_get_circuit_async():
+    context = EngineContext()
+    program = cg.EngineProgram('a', 'b', context)
+    circuit = cirq.Circuit()
+    with mock.patch.object(
+        context.client, 'get_program_async', new_callable=mock.AsyncMock
+    ) as get_program_async:
+        get_program_async.return_value = quantum.QuantumProgram(code=_PROGRAM_V2)
+        with mock.patch(
+            'cirq_google.engine.engine_program._deserialize_program'
+        ) as deserialize_program:
+            deserialize_program.return_value = circuit
+            assert await program.get_circuit_async(1) == circuit
+            deserialize_program.assert_called_once_with(mock.ANY, 1)
+
+
+def test_deserialize_program():
+    code = util.pack_any(v2.program_pb2.Program())
+    with mock.patch(
+        'cirq_google.serialization.circuit_serializer.CIRCUIT_SERIALIZER'
+    ) as mock_serializer:
+        cg.engine.engine_program._deserialize_program(code)
+        mock_serializer.deserialize.assert_called_once()
+        cg.engine.engine_program._deserialize_program(code, program_num=1)
+        mock_serializer.deserialize_multi_program.assert_called_once()
+
 
 @pytest.fixture(scope='module', autouse=True)
 def mock_grpc_client():

@@ -174,3 +174,16 @@ class AbstractLocalJob(AbstractJob):
         """Returns the recorded calibration at the time when the job was created,
         from the parent Engine object."""
         return self.get_processor().get_latest_calibration(int(self._create_time.timestamp()))
+
+    def get_circuit(self, program_num: int | None = None) -> cirq.Circuit:
+        """Returns the cirq Circuit for the job.
+
+        Args:
+            program_num: if this is a multi-circuit job, the index of the circuit
+                to return.  This argument is zero-indexed. Negative values
+                indexing from the end of the list.
+
+        Returns:
+            The job's cirq Circuit.
+        """
+        return self.program().get_circuit(program_num)
