@@ -309,23 +309,23 @@ class CliffordTableau(StabilizerState):
         )
 
     def __str__(self) -> str:
-        rows = []
+        words = []
 
         for i in range(self.n, 2 * self.n):
-            row = ['- ' if self.rs[i] else '+ ']
+            words.append('- ' if self.rs[i] else '+ ')
 
             for k in range(self.n):
                 if self.xs[i, k] & (not self.zs[i, k]):
-                    row.append('X ')
+                    words.append('X ')
                 elif (not self.xs[i, k]) & self.zs[i, k]:
-                    row.append('Z ')
+                    words.append('Z ')
                 elif self.xs[i, k] & self.zs[i, k]:
-                    row.append('Y ')
+                    words.append('Y ')
                 else:
-                    row.append('I ')
-            rows.append(''.join(row))
+                    words.append('I ')
+            words.append('\n')
 
-        return '\n'.join(rows)
+        return ''.join(words[:-1])
 
     def _str_full_(self) -> str:
         left_col_width = max(7, self.n * 2 + 3)
