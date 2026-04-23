@@ -17,6 +17,7 @@ from __future__ import annotations
 import datetime
 from unittest import mock
 
+import duet
 import numpy as np
 import pytest
 from google.protobuf import any_pb2, timestamp_pb2
