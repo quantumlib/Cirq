@@ -568,11 +568,15 @@ def _to_calibration(calibration_any: any_pb2.Any) -> calibration.Calibration:
     return calibration.Calibration(metrics)
 
 
+def _now() -> datetime.datetime:
+    return datetime.datetime.now()
+
+
 def _to_date_time_filters(
     from_time: None | datetime.datetime | datetime.timedelta,
     to_time: None | datetime.datetime | datetime.timedelta,
 ) -> list[str]:
-    now = datetime.datetime.now()
+    now = _now()
 
     if from_time is None:
         start_time = None
