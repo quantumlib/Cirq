@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import datetime
 from collections.abc import Sequence
-from typing import TYPE_CHECKING
+from typing import cast, TYPE_CHECKING
 
 import duet
 
@@ -419,7 +419,7 @@ def _deserialize_program(code: any_pb2.Any, program_num: int | None = None) -> c
     if program is not None:
         serializer = circuit_serializer.CIRCUIT_SERIALIZER
         if program_num is not None:
-            return serializer.deserialize_multi_program(program)[program_num][2]
+            return cast(cirq.Circuit, serializer.deserialize_multi_program(program)[program_num][2])
         return serializer.deserialize(program)
 
     raise ValueError(f'unsupported program type: {code_type}')

@@ -81,7 +81,7 @@ class MockJob(AbstractJob):
         pass
 
     def get_circuit(self, program_num: int | None = None) -> cirq.Circuit:
-        pass
+        return cirq.Circuit()
 
     def cancel(self) -> None:
         pass
