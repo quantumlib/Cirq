@@ -220,10 +220,18 @@ def test_run_batch_ordering():
     # P1_S1, P1_S2, P2_S1, P2_S2
     import numpy as np
 
-    r1_s1 = cg.EngineResult(params=cirq.ParamResolver({'v': 0}), measurements={'m': np.array([[0]])}, job_id='job')
-    r1_s2 = cg.EngineResult(params=cirq.ParamResolver({'v': 1}), measurements={'m': np.array([[1]])}, job_id='job')
-    r2_s1 = cg.EngineResult(params=cirq.ParamResolver({'v': 0}), measurements={'m': np.array([[0]])}, job_id='job')
-    r2_s2 = cg.EngineResult(params=cirq.ParamResolver({'v': 1}), measurements={'m': np.array([[1]])}, job_id='job')
+    r1_s1 = cg.EngineResult(
+        params=cirq.ParamResolver({'v': 0}), measurements={'m': np.array([[0]])}, job_id='job'
+    )
+    r1_s2 = cg.EngineResult(
+        params=cirq.ParamResolver({'v': 1}), measurements={'m': np.array([[1]])}, job_id='job'
+    )
+    r2_s1 = cg.EngineResult(
+        params=cirq.ParamResolver({'v': 0}), measurements={'m': np.array([[0]])}, job_id='job'
+    )
+    r2_s2 = cg.EngineResult(
+        params=cirq.ParamResolver({'v': 1}), measurements={'m': np.array([[1]])}, job_id='job'
+    )
 
     results_grouped = [r1_s1, r1_s2, r2_s1, r2_s2]
     mock_job.results_async.return_value = results_grouped
