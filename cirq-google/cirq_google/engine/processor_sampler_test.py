@@ -202,6 +202,42 @@ def test_run_batch_with_jobs_per_batch():
     )
 
 
+def test_run_batch_ordering():
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
+    sampler = cg.ProcessorSampler(processor=processor, jobs_per_batch=2)
+
+    a = cirq.LineQubit(0)
+    circuit1 = cirq.Circuit(cirq.X(a), cirq.measure(a, key='m'))
+    circuit2 = cirq.Circuit(cirq.Y(a), cirq.measure(a, key='m'))
+
+    # 2 sweep points
+    sweep = cirq.Points('v', [0, 1])
+
+    # Mock job and results
+    mock_job = mock.AsyncMock(EngineJob)
+
+    # Engine returns results grouped by program:
+    # P1_S1, P1_S2, P2_S1, P2_S2
+    import numpy as np
+
+    r1_s1 = cg.EngineResult(params=cirq.ParamResolver({'v': 0}), measurements={'m': np.array([[0]])}, job_id='job')
+    r1_s2 = cg.EngineResult(params=cirq.ParamResolver({'v': 1}), measurements={'m': np.array([[1]])}, job_id='job')
+    r2_s1 = cg.EngineResult(params=cirq.ParamResolver({'v': 0}), measurements={'m': np.array([[0]])}, job_id='job')
+    r2_s2 = cg.EngineResult(params=cirq.ParamResolver({'v': 1}), measurements={'m': np.array([[1]])}, job_id='job')
+
+    results_grouped = [r1_s1, r1_s2, r2_s1, r2_s2]
+    mock_job.results_async.return_value = results_grouped
+    processor.run_sweep_async.return_value = mock_job
+
+    # Run batch
+    results = sampler.run_batch([circuit1, circuit2], [sweep, sweep], repetitions=1)
+
+    # results[0] should be for circuit1: [r1_s1, r1_s2]
+    # results[1] should be for circuit2: [r2_s1, r2_s2]
+    assert results[0] == [r1_s1, r1_s2]
+    assert results[1] == [r2_s1, r2_s2]
+
+
 @pytest.mark.parametrize('use_mapping', [True, False])
 def test_run_batch_with_jobs_per_batch_and_params(use_mapping: bool):
     processor = mock.create_autospec(AbstractProcessor, instance=True)

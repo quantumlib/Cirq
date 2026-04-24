@@ -158,11 +158,11 @@ class ProcessorSampler(cirq.Sampler):
             final_results = []
             for batch_res, batch_progs in zip(all_batch_results, program_batches):
                 num_progs = len(batch_progs)
+                num_sweeps = len(batch_res) // num_progs
                 for j in range(num_progs):
-                    # Engine returns results grouped by sweep then by program.
-                    # e.g. (S1, P1), (S1, P2), (S2, P1), (S2, P2)
-                    # So P1's results are at indices 0, 2, ...
-                    final_results.append(batch_res[j::num_progs])
+                    # Engine returns results grouped by program then by sweep.
+                    # e.g. (P1, S1), (P1, S2), (P2, S1), (P2, S2)
+                    final_results.append(batch_res[j * num_sweeps : (j + 1) * num_sweeps])
             return final_results
 
         prog_values = list(programs.values()) if isinstance(programs, Mapping) else list(programs)
