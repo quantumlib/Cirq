@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import datetime
+import functools
 from unittest import mock
 
 import duet
@@ -192,6 +193,17 @@ _METRIC_SNAPSHOT = v2.metrics_pb2.MetricsSnapshot(
         ),
     ],
 )
+
+
+class _FrozenDateTime(datetime.datetime):
+    """Frozen datetime for testing time related behavior."""
+
+    _stock_datetime = datetime.datetime
+
+    @classmethod
+    @functools.cache
+    def now(cls, tz=None):
+        return cls._stock_datetime.now(tz)
 
 
 class FakeEngineContext(EngineContext):
@@ -769,17 +781,16 @@ def test_get_schedule_filter_by_time_slot(list_time_slots):
     )
 
 
-@mock.patch('cirq_google.engine.engine_processor._now')
+@mock.patch('datetime.datetime', _FrozenDateTime)
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_time_slots_async')
-def test_get_schedule_time_filter_behavior(list_time_slots, mock_now):
-    fixed_now = datetime.datetime(2026, 4, 1)
+def test_get_schedule_time_filter_behavior(list_time_slots):
+    _FrozenDateTime.now.cache_clear()
+    fixed_now = _FrozenDateTime.now()
 
-    mock_now.return_value = fixed_now
+    now = int(fixed_now.timestamp())
     list_time_slots.return_value = []
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
-    now = int((fixed_now).timestamp())
     in_two_weeks = int((fixed_now + datetime.timedelta(weeks=2)).timestamp())
-
     processor.get_schedule()
     list_time_slots.assert_called_with(
         'proj', 'p0', f'start_time < {in_two_weeks} AND end_time > {now}'
@@ -815,15 +826,15 @@ def test_get_schedule_time_filter_behavior(list_time_slots, mock_now):
     list_time_slots.assert_called_with('proj', 'p0', f'start_time < {utc_ts}')
 
 
-@mock.patch('cirq_google.engine.engine_processor._now')
+@mock.patch('datetime.datetime', _FrozenDateTime)
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_reservations_async')
-def test_list_reservations_time_filter_behavior(list_reservations, mock_now):
-    fixed_now = datetime.datetime(2026, 4, 1)
+def test_list_reservations_time_filter_behavior(list_reservations):
+    _FrozenDateTime.now.cache_clear()
+    fixed_now = _FrozenDateTime.now()
 
-    mock_now.return_value = fixed_now
+    now = int(fixed_now.timestamp())
     list_reservations.return_value = []
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
-    now = int((fixed_now).timestamp())
     in_two_weeks = int((fixed_now + datetime.timedelta(weeks=2)).timestamp())
     processor.list_reservations()
     list_reservations.assert_called_with(
