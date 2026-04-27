@@ -782,7 +782,7 @@ def test_get_schedule_filter_by_time_slot(list_time_slots):
     )
 
 
-# @mock.patch('datetime.datetime', _FrozenDateTime)
+@mock.patch('datetime.datetime', _FrozenDateTime)
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_time_slots_async')
 def test_get_schedule_time_filter_behavior(list_time_slots):
     list_time_slots.return_value = []
@@ -826,7 +826,7 @@ def test_get_schedule_time_filter_behavior(list_time_slots):
     list_time_slots.assert_called_with('proj', 'p0', f'start_time < {utc_ts}')
 
 
-# @mock.patch('datetime.datetime', _FrozenDateTime)
+@mock.patch('datetime.datetime', _FrozenDateTime)
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_reservations_async')
 def test_list_reservations_time_filter_behavior(list_reservations):
     list_reservations.return_value = []
