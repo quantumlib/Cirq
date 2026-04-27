@@ -784,13 +784,11 @@ def test_get_schedule_filter_by_time_slot(list_time_slots):
 @mock.patch('datetime.datetime', _FrozenDateTime)
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_time_slots_async')
 def test_get_schedule_time_filter_behavior(list_time_slots):
-    _FrozenDateTime.now.cache_clear()
-    fixed_now = _FrozenDateTime.now()
-
-    now = int(fixed_now.timestamp())
     list_time_slots.return_value = []
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
-    in_two_weeks = int((fixed_now + datetime.timedelta(weeks=2)).timestamp())
+
+    now = int(datetime.datetime.now().timestamp())
+    in_two_weeks = int((datetime.datetime.now() + datetime.timedelta(weeks=2)).timestamp())
     processor.get_schedule()
     list_time_slots.assert_called_with(
         'proj', 'p0', f'start_time < {in_two_weeks} AND end_time > {now}'
@@ -829,13 +827,11 @@ def test_get_schedule_time_filter_behavior(list_time_slots):
 @mock.patch('datetime.datetime', _FrozenDateTime)
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_reservations_async')
 def test_list_reservations_time_filter_behavior(list_reservations):
-    _FrozenDateTime.now.cache_clear()
-    fixed_now = _FrozenDateTime.now()
-
-    now = int(fixed_now.timestamp())
     list_reservations.return_value = []
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
-    in_two_weeks = int((fixed_now + datetime.timedelta(weeks=2)).timestamp())
+
+    now = int(datetime.datetime.now().timestamp())
+    in_two_weeks = int((datetime.datetime.now() + datetime.timedelta(weeks=2)).timestamp())
     processor.list_reservations()
     list_reservations.assert_called_with(
         'proj', 'p0', f'start_time < {in_two_weeks} AND end_time > {now}'
