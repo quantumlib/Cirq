@@ -63,25 +63,26 @@ def test_from_zyz_exponents(z0: float, y: float, z1: float) -> None:
     )
 
 
-def f(x, z, a):
-    return cirq.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
-
-
 def test_canonicalization() -> None:
+    def f(x, z, a):
+        return cirq.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
+
     # Canonicalizations are equivalent.
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(f(1, 0, 0), f(3, 0, 0), f(-1, 0, 1))
     """
     # Canonicalize X exponent into [0, +1].
     if not isinstance(x, sympy.Expr):
+        if x < 0:
+            x *= -1
+            a += 1
         x %= 2
-        if x > 1.0:
+        if x == 0:
+            a = 0  # Axis phase exponent is irrelevant if there is no X exponent.
+        elif x > 1.0:
             x = 2 - x
             a += 1
 
-    # Axis phase exponent is irrelevant if there is no X exponent.
-    if x == 0:
-        a = 0.0
     # For 180 degree X rotations, the axis phase and z exponent overlap.
     if x == 1 and z != 0:
         a += z / 2
@@ -156,6 +157,13 @@ def test_canonicalization() -> None:
 
 def test_pi_pulse_canonicalization() -> None:
     """Pi-pulses (x_exponent=1) about different axes should not be considered equal."""
+
+    def f(x, z, a):
+        return cirq.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
+
+    assert f(1, 0, 0.25) == f(-1, 0, 1.25)
+    assert f(1, 0, 0.25) != f(1, 0, 1.25)
+
     assert cirq.approx_eq(f(1, 0, 0.2), f(-1, 0, 1.2))
     assert not cirq.approx_eq(f(1, 0, 0.2), f(1, 0, 1.2))
 
@@ -391,4 +399,4 @@ def test_canonical_xza_mod_2_matches_canonical(x: float, z: float, a: float) -> 
     gateb = cirq.PhasedXZGate(x_exponent=xb, z_exponent=zb, axis_phase_exponent=ab)._canonical()
     xzab_expected = (gateb.x_exponent % 2, gateb.z_exponent % 2, gateb.axis_phase_exponent % 2)
     xzab_actual = cirq.ops.phased_x_z_gate._canonical_xza_mod_2(xb, zb, ab)
-    assert xzab_actual == xzab_expected, f"{xb=}, {zb=}, {ab=}, {xzab_expected=}, {xzab_actual=}"
+    assert xzab_actual == xzab_expected
