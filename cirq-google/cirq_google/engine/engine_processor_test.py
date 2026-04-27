@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import datetime
 import functools
-import time
 from unittest import mock
 
 import duet
@@ -804,7 +803,6 @@ def test_get_schedule_time_filter_behavior(list_time_slots):
     processor.get_schedule(from_time=None, to_time=None)
     list_time_slots.assert_called_with('proj', 'p0', '')
 
-    time.sleep(1)
     processor.get_schedule(from_time=datetime.timedelta(0), to_time=None)
     list_time_slots.assert_called_with('proj', 'p0', f'end_time > {now}')
 
@@ -833,7 +831,6 @@ def test_list_reservations_time_filter_behavior(list_reservations):
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
 
     now = int(datetime.datetime.now().timestamp())
-    time.sleep(1)
     in_two_weeks = int((datetime.datetime.now() + datetime.timedelta(weeks=2)).timestamp())
     processor.list_reservations()
     list_reservations.assert_called_with(
