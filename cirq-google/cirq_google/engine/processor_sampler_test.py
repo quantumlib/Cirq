@@ -208,7 +208,7 @@ def test_run_batch_ordering():
     sampler = cg.ProcessorSampler(processor=processor, jobs_per_batch=2)
 
     a = cirq.LineQubit(0)
-    circuit1 = cirq.Circuit(cirq.X(a), cirq.measure(a, key='m'))
+    circuit1 = cirq.Circuit(cirq.X(a), cirq.X(a), cirq.measure(a, key='m'))
     circuit2 = cirq.Circuit(cirq.Y(a), cirq.measure(a, key='m'))
 
     # 2 sweep points
