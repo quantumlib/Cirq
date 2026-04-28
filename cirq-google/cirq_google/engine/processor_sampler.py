@@ -159,6 +159,11 @@ class ProcessorSampler(cirq.Sampler):
             for batch_res, batch_progs in zip(all_batch_results, program_batches):
                 num_progs = len(batch_progs)
                 num_sweeps = len(batch_res) // num_progs
+                if len(batch_res) % num_progs != 0:
+                    raise ValueError(
+                        f"Engine returned {len(batch_res)} results, "
+                        f"which is not divisible by {num_progs} programs."
+                    )
                 for j in range(num_progs):
                     # Engine returns results grouped by program then by sweep.
                     # e.g. (P1, S1), (P1, S2), (P2, S1), (P2, S2)

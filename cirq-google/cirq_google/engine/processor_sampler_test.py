@@ -17,6 +17,7 @@ from __future__ import annotations
 from unittest import mock
 
 import duet
+import numpy as np
 import pytest
 
 import cirq
@@ -218,8 +219,6 @@ def test_run_batch_ordering():
 
     # Engine returns results grouped by program:
     # P1_S1, P1_S2, P2_S1, P2_S2
-    import numpy as np
-
     r1_s1 = cg.EngineResult(
         params=cirq.ParamResolver({'v': 0}), measurements={'m': np.array([[0]])}, job_id='job'
     )
@@ -410,3 +409,23 @@ def test_processor_sampler_with_invalid_configuration_throws(run_name, device_co
         cg.ProcessorSampler(
             processor=processor, run_name=run_name, device_config_name=device_config_name
         )
+
+@duet.sync
+async def test_run_batch_error_divisible():
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
+    sampler = cg.ProcessorSampler(processor=processor, jobs_per_batch=2)
+
+    a = cirq.LineQubit(0)
+    circuit1 = cirq.Circuit(cirq.X(a))
+    circuit2 = cirq.Circuit(cirq.Y(a))
+
+    job = mock.create_autospec(EngineJob, instance=True)
+    # Return 3 results for 2 programs. 3 % 2 != 0.
+    job.results_async.return_value = [mock.Mock()] * 3
+
+    processor.run_sweep_async.return_value = job
+
+    with pytest.raises(
+        ValueError, match="Engine returned 3 results, which is not divisible by 2 programs."
+    ):
+        await sampler.run_batch_async([circuit1, circuit2], [{}, {}], 5)
