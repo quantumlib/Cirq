@@ -24,6 +24,7 @@ from unittest import mock
 import cirq
 from cirq_google.cloud import quantum
 from cirq_google.engine.abstract_local_job import AbstractLocalJob
+from cirq_google.engine.engine_program import EngineProgram
 
 if TYPE_CHECKING:
     from cirq_google.engine.engine_result import EngineResult
@@ -106,7 +107,10 @@ def test_get_circuit():
         repetitions=100,
         sweeps=[],
     )
-    job.get_circuit()
+
+    circuit = cirq.Circuit()
+    mock_program.get_circuit.return_value = circuit
+    assert job.get_circuit() == circuit
     mock_program.get_circuit.assert_called_with(None)
-    job.get_circuit(1)
+    assert job.get_circuit(1) == circuit
     mock_program.get_circuit.assert_called_with(1)

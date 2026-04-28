@@ -319,7 +319,7 @@ def test_get_circuit_v2(get_program_async, include_empty_program: bool) -> None:
         'cirq_google.serialization.circuit_serializer.CIRCUIT_SERIALIZER.deserialize_multi_program'
     ) as deserialize_multi_program:
         deserialize_multi_program.return_value = [('key0', (), circuit), ('key1', (), circuit)]
-        assert program.get_circuit(program_num=1) == circuit
+        assert program.get_circuit(program_num=1) is circuit
         deserialize_multi_program.assert_called_once()
 
 

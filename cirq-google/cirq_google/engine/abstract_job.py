@@ -165,7 +165,7 @@ class AbstractJob(abc.ABC):
         Args:
             program_num: if this is a multi-circuit job, the index of the circuit
                 to return.  This argument is zero-indexed. Negative values
-                indexing from the end of the list.
+                index from the end of the list.  Ignored if not multi-circuit.
 
         Returns:
             The job's cirq Circuit.

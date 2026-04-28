@@ -124,5 +124,5 @@ def test_instantiation_and_iteration():
 
 def test_get_circuit():
     job = MockJob()
-    job.get_circuit()
-    job.get_circuit(1)
+    assert job.get_circuit() == cirq.Circuit()
+    assert job.get_circuit(1) == cirq.Circuit()

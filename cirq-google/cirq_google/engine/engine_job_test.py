@@ -569,9 +569,9 @@ def test_get_circuit():
         cg.EngineProgram, 'get_circuit_async', new_callable=mock.AsyncMock
     ) as get_circuit_async:
         get_circuit_async.return_value = circuit
-        assert job.get_circuit() == circuit
+        assert job.get_circuit() is circuit
         get_circuit_async.assert_called_with(None)
-        assert job.get_circuit(1) == circuit
+        assert job.get_circuit(1) is circuit
         get_circuit_async.assert_called_with(1)
 
 
@@ -583,5 +583,5 @@ async def test_get_circuit_async():
         cg.EngineProgram, 'get_circuit_async', new_callable=mock.AsyncMock
     ) as get_circuit_async:
         get_circuit_async.return_value = circuit
-        assert await job.get_circuit_async(1) == circuit
+        assert await job.get_circuit_async(1) is circuit
         get_circuit_async.assert_called_with(1)
