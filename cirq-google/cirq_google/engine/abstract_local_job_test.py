@@ -24,7 +24,6 @@ from unittest import mock
 import cirq
 from cirq_google.cloud import quantum
 from cirq_google.engine.abstract_local_job import AbstractLocalJob
-from cirq_google.engine.engine_program import EngineProgram
 
 if TYPE_CHECKING:
     from cirq_google.engine.engine_result import EngineResult
