@@ -410,6 +410,7 @@ def test_processor_sampler_with_invalid_configuration_throws(run_name, device_co
             processor=processor, run_name=run_name, device_config_name=device_config_name
         )
 
+
 @duet.sync
 async def test_run_batch_error_divisible():
     processor = mock.create_autospec(AbstractProcessor, instance=True)
