@@ -223,10 +223,10 @@ def test_run_batch_ordering():
         params=cirq.ParamResolver({'v': 0}), measurements={'m': np.array([[0]])}, job_id='job'
     )
     r1_s2 = cg.EngineResult(
-        params=cirq.ParamResolver({'v': 1}), measurements={'m': np.array([[1]])}, job_id='job'
+        params=cirq.ParamResolver({'v': 1}), measurements={'m': np.array([[0]])}, job_id='job'
     )
     r2_s1 = cg.EngineResult(
-        params=cirq.ParamResolver({'v': 0}), measurements={'m': np.array([[0]])}, job_id='job'
+        params=cirq.ParamResolver({'v': 0}), measurements={'m': np.array([[1]])}, job_id='job'
     )
     r2_s2 = cg.EngineResult(
         params=cirq.ParamResolver({'v': 1}), measurements={'m': np.array([[1]])}, job_id='job'
