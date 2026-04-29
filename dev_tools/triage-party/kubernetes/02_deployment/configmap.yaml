@@ -38,18 +38,19 @@ data:
           - issue-needs-classification
 
       - id: cynq
-        name: Cirq Cynque
+        name: Biweekly Cirq Cynque
         rules:
           - discuss
           - important-not-milestoned
 
       - id: milestone
-        name: In Milestone
+        name: In milestone
         description: >
-          A Kanban visualization of upcoming releases, showing the flow of issues through each stage.
-            * only assigned issues should be in the milestone
-            * Unassigned issues with priority/p1-release should be assigned
-            * >3 issues assigned to the same person within a stage signifies a bottleneck 🌊
+          A Kanban visualization of upcoming releases, showing the flow of issues through each
+          stage. Notes:
+            * Only assigned issues should be in the milestone.
+            * Unassigned issues with priority/p0 should be assigned.
+            * >3 issues assigned to the same person within a stage indicates a bottleneck 🌊
         display: kanban
         overflow: 3
         dedup: true
@@ -60,6 +61,7 @@ data:
           - milestone-pr-needs-work
           - milestone-pr-needs-merge
           - milestone-recently-closed
+
       - id: quarterly
         name: Quarterly scrub
         description: >
@@ -72,8 +74,9 @@ data:
       - id: discovery
         name: Signalling work
         description: >
-          It is important to help contributors find work that matches their skills, time commitment and ambition.
-          Help them find work by marking issues with complexity level and skill levels required.
+          It is important to help contributors find work that matches their skills, time commitment
+          and ambition. Help them find work by marking issues with complexity level and skill levels
+          required.
         rules:
           - issue-needs-discoverability
 
@@ -95,7 +98,7 @@ data:
 
       issue-needs-discoverability:
         name: "Issues that are hard to discover"
-        resolution: Add complexity/* skill/* labels
+        resolution: "Add complexity/* skill/* labels"
         type: issue
         filters:
           - label: "kind/.*"
@@ -106,7 +109,7 @@ data:
 
       issue-needs-classification:
         name: "Issues that require classification"
-        resolution: Add area/* labels
+        resolution: "Add area/* labels"
         type: issue
         filters:
           - label: "!(area)/.*"
@@ -122,7 +125,7 @@ data:
       ### Cirq Cynque
 
       discuss:
-        name: "Issues / PRs that need discussion"
+        name: "Issues/PRs that need discussion"
         filters:
           - label: "triage/discuss"
 
@@ -134,6 +137,7 @@ data:
           - tag: open-milestone
           - tag: "!assignee-updated"
           - tag: "!(assignee-open-pr|assignee-closed-pr)"
+
       milestone-assignee-updated:
         name: "In Progress"
         type: issue
@@ -147,18 +151,21 @@ data:
         filters:
           - tag: open-milestone
           - tag: "(pr-changes-requested|pr-reviewer-comment)"
+
       milestone-pr-needs-review:
         name: "PR needs Review"
         type: issue
         filters:
           - tag: open-milestone
           - tag: "(pr-unreviewed|pr-new-commits)"
+
       milestone-pr-needs-merge:
         name: "PR needs Merge"
         type: issue
         filters:
           - tag: open-milestone
           - tag: "(pr-approved|pr-approved-but-pushed)"
+
       milestone-recently-closed:
         name: "Finish Line"
         type: issue
