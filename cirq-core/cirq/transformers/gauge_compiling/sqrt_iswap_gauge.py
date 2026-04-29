@@ -19,6 +19,7 @@ from __future__ import annotations
 import numpy as np
 
 from cirq import ops
+from cirq._doc import document
 from cirq.transformers.gauge_compiling.gauge_compiling import (
     ConstantGauge,
     Gauge,
@@ -94,4 +95,11 @@ SqrtISWAPGaugeSelector = GaugeSelector(gauges=[RZRotation(), XYRotation()])
 
 SqrtISWAPGaugeTransformer = GaugeTransformer(
     target=ops.SQRT_ISWAP, gauge_selector=SqrtISWAPGaugeSelector
+)
+document(
+    SqrtISWAPGaugeTransformer,
+    r"""A GaugeTransformer that gauges SQRT_ISWAP gates.
+
+    Usage: `SqrtISWAPGaugeTransformer(circuit)` will return a new circuit with all SQRT_ISWAP gates gauged by either the RZRotation gauge or the XYRotation gauge.
+    """,
 )
