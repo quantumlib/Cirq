@@ -14,8 +14,6 @@
 
 from __future__ import annotations
 
-from typing import cast
-
 import pytest
 
 import cirq
@@ -55,18 +53,10 @@ def test_move_non_clifford_into_clifford() -> None:
     assert opt_len2 <= baseline_len
 
 
-def test_insert_non_pauli_string_into_circuit() -> None:
-    q0, q1, q2 = cirq.LineQubit.range(3)
-    c_orig = cirq.testing.nonoptimal_toffoli_circuit(q0, q1, q2)
-
-    c_left_phasors, c_right = convert_and_separate_circuit(c_orig)
-
-    # convert phasors from the left circuit to regular Pauli gates.
-    c_left_strings = cirq.Circuit()
-    for moment in c_left_phasors:
-        for op in moment:
-            op_as_phasor = cast(cirq.PauliStringPhasor, op)
-            c_left_strings.append(op_as_phasor.gate._decompose_(op_as_phasor.qubits))
-
-    with pytest.raises(ValueError):
-        _ = move_pauli_strings_into_circuit(c_left_strings, c_right)
+def test_move_pauli_strings_into_circuit_raises() -> None:
+    # check that example in #7934 raises exception
+    q0 = cirq.LineQubit(0)
+    with pytest.raises(
+        ValueError, match='Expected only PauliStringPhasor operations in circuit_left.'
+    ):
+        move_pauli_strings_into_circuit(cirq.Circuit(cirq.X(q0)), cirq.Circuit())

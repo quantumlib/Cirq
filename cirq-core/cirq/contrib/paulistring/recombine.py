@@ -69,13 +69,13 @@ def _sorted_best_string_placements(
 def move_pauli_strings_into_circuit(
     circuit_left: circuits.Circuit | circuitdag.CircuitDag, circuit_right: circuits.Circuit
 ) -> circuits.Circuit:
-    non_pauli_string_phasors = [
-        o for o in circuit_left.all_operations() if not isinstance(o, ops.PauliStringPhasor)
-    ]
-    if non_pauli_string_phasors:
+    non_pauli_string_phasor = next(
+        (o for o in circuit_left.all_operations() if not isinstance(o, ops.PauliStringPhasor)), None
+    )
+    if non_pauli_string_phasor is not None:
         raise ValueError(
-            f'Expected only PauliStringPhasor in left circuit. '
-            f'Found {non_pauli_string_phasors}.'
+            f'Expected only PauliStringPhasor operations in circuit_left. '
+            f'Found {non_pauli_string_phasor}.'
         )
     if isinstance(circuit_left, circuitdag.CircuitDag):
         string_dag = circuitdag.CircuitDag(
@@ -83,7 +83,6 @@ def move_pauli_strings_into_circuit(
         )
     else:
         string_dag = pauli_string_dag_from_circuit(cast(circuits.Circuit, circuit_left))
-
     output_ops = list(circuit_right.all_operations())
 
     rightmost_nodes = set(string_dag.nodes()) - {before for before, _ in string_dag.edges()}
