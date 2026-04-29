@@ -18,14 +18,15 @@ data:
         - collaborator
         - owner
       members:
-        - balopat
+        - 95-martin-orion
         - dstrain115
         - maffoo
+        - mhucka
         - mpharrigan
-        - 95-martin-orion
-        - viathor
+        - pavoljuhas
         - Strilanc
         - tanujkhattar
+        - viathor
 
     collections:
       - id: daily
@@ -84,10 +85,6 @@ data:
         type: issue
         filters:
           - label: "!triage/.*"
-          - label: "!(kind/roadmap-item)"
-          - label: "!(kind/health)"
-          - label: "!(kind/task)"
-          - label: "!(kind/design-issue)"
 
       issue-needs-kind:
         name: "Untyped (unkind) issues"
@@ -105,7 +102,7 @@ data:
           - label: "triage/accepted"
           - label: "!(area/google)"
           - label: "!(complexity|skill)/.*"
-          - label: "!(good first issue|help wanted)"
+          - label: "!(good first issue|good for learning|help wanted)"
 
       issue-needs-classification:
         name: "Issues that require classification"
@@ -113,7 +110,6 @@ data:
         type: issue
         filters:
           - label: "!(area)/.*"
-          - label: "!(kind/roadmap-item)"
 
       needs-review:
         name: "PRs that needs review"
@@ -128,8 +124,7 @@ data:
       discuss:
         name: "Issues / PRs that need discussion"
         filters:
-          - label: "(triage/discuss|need decision)"
-
+          - label: "triage/discuss"
 
       ### Milestone Kanban ###
       milestone-not-started:
@@ -177,7 +172,7 @@ data:
         name: "Not in milestone"
         type: issue
         filters:
-          - label: "priority/important-soon|priority/critical-urgent"
+          - label: "priority/p0|priority/high"
           - tag: "!open-milestone"
           - tag: "!assignee-updated"
           - tag: "!(assignee-open-pr|assignee-closed-pr)"
