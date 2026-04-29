@@ -19,6 +19,7 @@ from __future__ import annotations
 import datetime
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
+from unittest import mock
 
 import cirq
 from cirq_google.cloud import quantum
@@ -94,3 +95,21 @@ def test_create_update_time():
     job._update_time = update_time
     assert job.create_time() == create_time
     assert job.update_time() == update_time
+
+
+def test_get_circuit():
+    mock_program = mock.Mock()
+    job = NothingJob(
+        job_id='test',
+        processor_id='pot_of_gold',
+        parent_program=mock_program,
+        repetitions=100,
+        sweeps=[],
+    )
+
+    circuit = cirq.Circuit()
+    mock_program.get_circuit.return_value = circuit
+    assert job.get_circuit() == circuit
+    mock_program.get_circuit.assert_called_with(None)
+    assert job.get_circuit(1) == circuit
+    mock_program.get_circuit.assert_called_with(1)

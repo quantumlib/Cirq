@@ -24,7 +24,7 @@ import cirq
 from cirq_google.cloud import quantum
 from cirq_google.engine.abstract_local_program import AbstractLocalProgram
 from cirq_google.engine.local_simulation_type import LocalSimulationType
-from cirq_google.engine.simulated_local_job import SimulatedLocalJob
+from cirq_google.engine.simulated_local_job import _flatten_results, SimulatedLocalJob
 
 Q = cirq.GridQubit(2, 2)
 
@@ -35,6 +35,10 @@ class ParentProgram(AbstractLocalProgram):
 
     def delete_job(self, program_id: str) -> None:
         pass
+
+
+def test_flatten_results_empty():
+    assert _flatten_results([]) == []
 
 
 def test_run():
@@ -51,6 +55,24 @@ def test_run():
     results = job.results()
     assert np.all(results[0].measurements['m'] == 1)
     assert job.execution_status() == quantum.ExecutionStatus.State.SUCCESS
+
+
+def test_run_multi_program_single_sweep():
+    # Covers line 134: sweeps = sweeps * len(programs)
+    program = ParentProgram(
+        [
+            cirq.Circuit(cirq.X(Q), cirq.measure(Q, key='m')),
+            cirq.Circuit(cirq.I(Q), cirq.measure(Q, key='m')),
+        ],
+        None,
+    )
+    job = SimulatedLocalJob(
+        job_id='test_job', processor_id='test1', parent_program=program, repetitions=10, sweeps=[{}]
+    )
+    results = job.results()
+    assert len(results) == 2
+    assert np.all(results[0].measurements['m'] == 1)
+    assert np.all(results[1].measurements['m'] == 0)
 
 
 def test_run_sweep():

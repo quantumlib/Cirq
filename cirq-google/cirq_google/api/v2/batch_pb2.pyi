@@ -3,26 +3,26 @@
 isort:skip_file
 """
 
-import builtins
-import cirq_google.api.v2.program_pb2
-import cirq_google.api.v2.result_pb2
-import cirq_google.api.v2.run_context_pb2
-import collections.abc
-import google.protobuf.descriptor
-import google.protobuf.internal.containers
-import google.protobuf.message
+from cirq_google.api.v2 import program_pb2 as _program_pb2
+from cirq_google.api.v2 import result_pb2 as _result_pb2
+from cirq_google.api.v2 import run_context_pb2 as _run_context_pb2
+from collections import abc as _abc
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from google.protobuf.internal import containers as _containers
+import builtins as _builtins
 import sys
-import typing
+import typing as _typing
 
 if sys.version_info >= (3, 10):
-    import typing as typing_extensions
+    from typing import TypeAlias as _TypeAlias
 else:
-    import typing_extensions
+    from typing_extensions import TypeAlias as _TypeAlias
 
-DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
+DESCRIPTOR: _descriptor.FileDescriptor
 
-@typing.final
-class BatchProgram(google.protobuf.message.Message):
+@_typing.final
+class BatchProgram(_message.Message):
     """A Batch of multiple circuits that should be run together
     as one QuantumProgram within Quantum Engine.
 
@@ -32,33 +32,34 @@ class BatchProgram(google.protobuf.message.Message):
     cause the programs to be executed separately on the hardware.
     """
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    PROGRAMS_FIELD_NUMBER: builtins.int
-    @property
-    def programs(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[cirq_google.api.v2.program_pb2.Program]:
+    PROGRAMS_FIELD_NUMBER: _builtins.int
+    @_builtins.property
+    def programs(self) -> _containers.RepeatedCompositeFieldContainer[_program_pb2.Program]:
         """The circuits that should be bundled together as one program"""
 
     def __init__(
         self,
         *,
-        programs: collections.abc.Iterable[cirq_google.api.v2.program_pb2.Program] | None = ...,
+        programs: _abc.Iterable[_program_pb2.Program] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["programs", b"programs"]) -> None: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["programs", b"programs"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___BatchProgram: typing_extensions.TypeAlias = BatchProgram
+Global___BatchProgram: _TypeAlias = BatchProgram  # noqa: Y015
 
-@typing.final
-class BatchRunContext(google.protobuf.message.Message):
+@_typing.final
+class BatchRunContext(_message.Message):
     """A batch of contexts for running a bundled batch of programs
     To be used in conjunction with BatchProgram
     """
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    RUN_CONTEXTS_FIELD_NUMBER: builtins.int
-    @property
-    def run_contexts(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[cirq_google.api.v2.run_context_pb2.RunContext]:
+    RUN_CONTEXTS_FIELD_NUMBER: _builtins.int
+    @_builtins.property
+    def run_contexts(self) -> _containers.RepeatedCompositeFieldContainer[_run_context_pb2.RunContext]:
         """Run contexts for each program in the BatchProgram
         Each RunContext should map directly to a Program in the corresponding
         BatchProgram.
@@ -71,21 +72,22 @@ class BatchRunContext(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        run_contexts: collections.abc.Iterable[cirq_google.api.v2.run_context_pb2.RunContext] | None = ...,
+        run_contexts: _abc.Iterable[_run_context_pb2.RunContext] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["run_contexts", b"run_contexts"]) -> None: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["run_contexts", b"run_contexts"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___BatchRunContext: typing_extensions.TypeAlias = BatchRunContext
+Global___BatchRunContext: _TypeAlias = BatchRunContext  # noqa: Y015
 
-@typing.final
-class BatchResult(google.protobuf.message.Message):
+@_typing.final
+class BatchResult(_message.Message):
     """The result returned from running a BatchProgram/BatchRunContext"""
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    RESULTS_FIELD_NUMBER: builtins.int
-    @property
-    def results(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[cirq_google.api.v2.result_pb2.Result]:
+    RESULTS_FIELD_NUMBER: _builtins.int
+    @_builtins.property
+    def results(self) -> _containers.RepeatedCompositeFieldContainer[_result_pb2.Result]:
         """Results returned from executing a BatchProgram/BatchRunContext pair.
 
         After a BatchProgram and BatchRunContext is successfully run in
@@ -103,8 +105,9 @@ class BatchResult(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        results: collections.abc.Iterable[cirq_google.api.v2.result_pb2.Result] | None = ...,
+        results: _abc.Iterable[_result_pb2.Result] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["results", b"results"]) -> None: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["results", b"results"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___BatchResult: typing_extensions.TypeAlias = BatchResult
+Global___BatchResult: _TypeAlias = BatchResult  # noqa: Y015

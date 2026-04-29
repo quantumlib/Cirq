@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import abc
 import datetime
+from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING
 
 import duet
@@ -126,7 +127,11 @@ class AbstractProcessor(abc.ABC):
     @abc.abstractmethod
     async def run_sweep_async(
         self,
-        program: cirq.AbstractCircuit,
+        program: (
+            cirq.AbstractCircuit
+            | Sequence[cirq.AbstractCircuit]
+            | Mapping[str, cirq.AbstractCircuit]
+        ),
         *,
         device_config_name: str,
         run_name: str = "",
