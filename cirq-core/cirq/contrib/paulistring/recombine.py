@@ -69,6 +69,14 @@ def _sorted_best_string_placements(
 def move_pauli_strings_into_circuit(
     circuit_left: circuits.Circuit | circuitdag.CircuitDag, circuit_right: circuits.Circuit
 ) -> circuits.Circuit:
+    non_pauli_string_phasor = next(
+        (o for o in circuit_left.all_operations() if not isinstance(o, ops.PauliStringPhasor)), None
+    )
+    if non_pauli_string_phasor is not None:
+        raise ValueError(
+            f'Expected only PauliStringPhasor operations in circuit_left. '
+            f'Found {non_pauli_string_phasor}.'
+        )
     if isinstance(circuit_left, circuitdag.CircuitDag):
         string_dag = circuitdag.CircuitDag(
             incoming_graph_data=circuit_left, can_reorder=pauli_string_reorder_pred

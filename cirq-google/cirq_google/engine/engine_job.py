@@ -258,6 +258,21 @@ class EngineJob(abstract_job.AbstractJob):
         metrics = v2.metrics_pb2.MetricsSnapshot.FromString(response.data.value)
         return calibration.Calibration(metrics)
 
+    async def get_circuit_async(self, program_num: int | None = None) -> cirq.Circuit:
+        """Returns the cirq Circuit for the Quantum Engine job.
+
+        Args:
+            program_num: if this is a multi-circuit job, the index of the circuit
+                to return.  This argument is zero-indexed. Negative values
+                indexing from the end of the list.
+
+        Returns:
+            The job's cirq Circuit.
+        """
+        return await self.program().get_circuit_async(program_num)
+
+    get_circuit = duet.sync(get_circuit_async)
+
     def cancel(self) -> None:
         """Cancel the job."""
         self.context.client.cancel_job(self.project_id, self.program_id, self.job_id)
