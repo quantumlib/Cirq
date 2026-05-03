@@ -2162,11 +2162,12 @@ class Circuit(AbstractCircuit):
         moment_measurement_keys = protocols.measurement_key_objs(self._moments[moment_index])
         moment_control_keys = protocols.control_keys(self._moments[moment_index])
 
-        return (
-            op_measurement_keys.isdisjoint(moment_measurement_keys)
-            and op_control_keys.isdisjoint(moment_measurement_keys)
-            and moment_control_keys.isdisjoint(op_measurement_keys)
-        )
+        # Check that there is no measurement key - control key conflict.
+        # It is allowed to have already an operation in the moment with
+        # the same measurement key.
+        return op_control_keys.isdisjoint(
+            moment_measurement_keys
+        ) and moment_control_keys.isdisjoint(op_measurement_keys)
 
     def _latest_available_moment(self, op: cirq.Operation, *, start_moment_index: int = 0) -> int:
         """Finds the index of the latest (i.e. right most) moment which can accommodate `op`.
@@ -3029,9 +3030,12 @@ def _group_into_moment_compatible(inputs: Sequence[_MOMENT_OR_OP]) -> Iterator[l
         op_measurement_keys = protocols.measurement_key_objs(mop)
         op_control_keys = protocols.control_keys(mop)
 
+        # Check that qubits are different and there is no
+        # measurement key - control key conflict.
+        # It is allowed to have already an operation in the batch with
+        # the same measurement key.
         if (
             not batch_qubits.isdisjoint(op_qubits)
-            or not batch_measurement_keys.isdisjoint(op_measurement_keys)
             or not batch_measurement_keys.isdisjoint(op_control_keys)
             or not batch_control_keys.isdisjoint(op_measurement_keys)
         ):
