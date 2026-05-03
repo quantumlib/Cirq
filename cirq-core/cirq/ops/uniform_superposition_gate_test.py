@@ -85,13 +85,14 @@ def test_str() -> None:
     )
 
 
-@pytest.mark.parametrize(["m", "n"], [(5, 3), (10, 4)])
-def test_eq(m: int, n: int) -> None:
-    a = cirq.UniformSuperpositionGate(m, n)
-    b = cirq.UniformSuperpositionGate(m, n)
-    c = cirq.UniformSuperpositionGate(m + 1, n)
-    d = cirq.X
-    assert a.m_value == b.m_value
-    assert a.__eq__(b)
-    assert not (a.__eq__(c))
-    assert not (a.__eq__(d))
+def test_eq_ne_hash() -> None:
+    eq = cirq.testing.EqualsTester()
+    a = cirq.UniformSuperpositionGate(5, 3)
+    b = cirq.UniformSuperpositionGate(5, 3)
+    c = cirq.UniformSuperpositionGate(8, 3)
+    d = cirq.UniformSuperpositionGate(8, 4)
+    eq.add_equality_group(a, b)
+    eq.add_equality_group(c)
+    eq.add_equality_group(d)
+    eq.add_equality_group(cirq.X)
+    assert len({a, b, c, d}) == 3

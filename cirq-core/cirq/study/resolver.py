@@ -48,6 +48,15 @@ _NOT_FOUND = object()
 _RECURSION_FLAG = object()
 
 
+def symbol(name: str) -> sympy.Symbol:
+    """Creates a sympy Symbol for use in sweeps.
+
+    We export this from cirq to allow constructing basic parametrizable objects
+    without additional imports beyond cirq itself.
+    """
+    return sympy.Symbol(name)
+
+
 class ParamResolver:
     """Resolves parameters to actual values.
 

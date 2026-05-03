@@ -36,7 +36,7 @@ description = (
 )
 
 # README file as long_description.
-long_description = open('README.md', encoding='utf-8').read()
+long_description = pathlib.Path('README.md').read_text(encoding='utf-8')
 
 # This is a pure metapackage that installs all our packages
 requirements = [f'{p.name}=={p.version}' for p in modules.list_modules()]
@@ -74,6 +74,7 @@ setup(
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
         "Topic :: Scientific/Engineering :: Quantum Computing",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Typing :: Typed",

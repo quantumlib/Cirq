@@ -29,7 +29,8 @@ from __future__ import annotations
 
 import doctest
 import glob
-import importlib.util
+import importlib
+import pathlib
 import sys
 import warnings
 from collections.abc import Iterable, Sequence
@@ -207,6 +208,18 @@ def exec_tests(
     return doctest.TestResults(failed=failed, attempted=attempted), error_messages
 
 
+def resolve_module_name(file_path: str) -> str:
+    """Return absolute import path for a given Python source file.
+
+    This assumes all parent package folders contain `__init__.py` files.
+    """
+    file_absolute = pathlib.Path(file_path).absolute()
+    top_parent = next(p for p in file_absolute.parents if not p.joinpath("__init__.py").exists())
+    file_relative = file_absolute.relative_to(top_parent)
+    modname = ".".join(file_relative.parts).removesuffix(file_relative.suffix)
+    return modname
+
+
 def import_file(file_path: str) -> ModuleType:
     """Finds and runs a python file as if were imported with an `import`
     statement.
@@ -219,17 +232,10 @@ def import_file(file_path: str) -> ModuleType:
     Raises:
         ValueError: if unable to import the given file.
     """
-    mod_name = 'cirq_doctest_module'
-    # Find and create the module
-    spec = importlib.util.spec_from_file_location(mod_name, file_path)
-    if spec is None:
-        raise ValueError(f'Unable to find module spec: mod_name={mod_name}, file_path={file_path}')
-    mod = importlib.util.module_from_spec(spec)
-    # Run the code in the module (but not with __name__ == '__main__')
-    sys.modules[mod_name] = mod
-    spec.loader.exec_module(mod)  # type: ignore
-    mod = sys.modules[mod_name]
-    del sys.modules[mod_name]
+    mod_name = resolve_module_name(file_path)
+    mod = importlib.import_module(mod_name)
+    if not mod.__file__ or not pathlib.Path(mod.__file__).samefile(file_path):
+        raise ValueError(f'Unable to import mod_name={mod_name} from file_path={file_path}')
     return mod
 
 
@@ -238,16 +244,14 @@ def main():
 
     file_names = glob.glob('cirq**/cirq**/**/*.py', recursive=True)
     assert file_names
-    excluded = [
+    excluded = (
+        'cirq-core/cirq/testing/_compat_test_data/',
+        'cirq-core/cirq/testing/deprecation.py',
         'cirq-google/cirq_google/api/',
         'cirq-google/cirq_google/cloud/',
         'cirq-web/cirq_web/node_modules/',
-    ]
-    file_names = [
-        f
-        for f in file_names
-        if not (any(f.startswith(x) for x in excluded) or f.endswith("_test.py"))
-    ]
+    )
+    file_names = [f for f in file_names if not (f.startswith(excluded) or f.endswith("_test.py"))]
     failed, attempted = run_tests(
         file_names, include_modules=True, include_local=False, quiet=quiet
     )

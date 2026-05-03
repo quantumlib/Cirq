@@ -64,7 +64,7 @@ jobs:
       SHELLOPTS: ${{inputs.trace && 'xtrace' || '' }}
     steps:
       - name: Check out a copy of the git repository
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           sparse-checkout: |
             ./dev_tools/ci/size-labeler.sh
@@ -75,3 +75,23 @@ jobs:
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         run: ./dev_tools/ci/size-labeler.sh
+
+  label-dependabot-pr:
+    if: >-
+      github.repository_owner == 'quantumlib' &&
+      github.event.action == 'opened' &&
+      github.event.pull_request.user.login == 'dependabot[bot]'
+    name: Convert dependabot PR to draft
+    runs-on: ubuntu-slim
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Convert to draft and attach the on-hold label
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          PULL_REQUEST_URL: ${{github.event.pull_request.html_url}}
+        run: |
+          gh pr ready "${PULL_REQUEST_URL}" --undo
+          gh pr edit "${PULL_REQUEST_URL}" --add-label status/on-hold

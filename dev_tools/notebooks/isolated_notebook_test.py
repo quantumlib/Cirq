@@ -27,6 +27,7 @@
 from __future__ import annotations
 
 import os
+import pathlib
 import re
 import shutil
 import subprocess
@@ -45,16 +46,18 @@ from dev_tools.notebooks import filter_notebooks, list_all_notebooks, REPO_ROOT,
 # by the notebooks in question when adding notebooks to this list.
 # For more information, please see the section "Lifecycle" in docs/dev/notebooks.md.
 
-NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = []
+NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = [
+    # needs https://github.com/quantumlib/Cirq/pull/7972
+    'docs/hardware/pasqal/getting_started.ipynb'
+]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
 # please always add a reason for skipping.
 SKIP_NOTEBOOKS = [
-    # skipping vendor notebooks as we don't have auth sorted out
+    # skipping vendor notebooks where we need to have auth sorted out
     '**/aqt/*.ipynb',
     '**/azure-quantum/*.ipynb',
     '**/ionq/*.ipynb',
-    '**/pasqal/*.ipynb',
     # skipping quantum utility simulation (too large)
     'examples/advanced/*quantum_utility*',
     # tutorials that use QCS and arent skipped due to one or more cleared output cells
@@ -136,6 +139,9 @@ def _rewrite_and_run_notebook(notebook_path, cloned_env):
     notebook_file = os.path.basename(notebook_path)
     notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, REPO_ROOT))
     out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"
+    # ensure papermill will have CLOUDSDK_CONFIG set per dev_tools/conftest.py
+    env = {'CLOUDSDK_CONFIG': os.environ['CLOUDSDK_CONFIG'], 'PIP_CONFIG_FILE': '/dev/null'}
+    assert os.path.isdir(env["CLOUDSDK_CONFIG"])
     notebook_env = cloned_env("isolated_notebook_tests", *PACKAGES)
 
     notebook_file = os.path.basename(notebook_path)
@@ -144,9 +150,10 @@ def _rewrite_and_run_notebook(notebook_path, cloned_env):
 
     REPO_ROOT.joinpath("out", notebook_rel_dir).mkdir(parents=True, exist_ok=True)
     cmd = f"""
-. ./bin/activate
-pip list
-papermill {rewritten_notebook_path} {REPO_ROOT/out_path}"""
+        . ./bin/activate
+        pip list
+        papermill "{rewritten_notebook_path}" "{REPO_ROOT/out_path}"
+    """
     result = shell_tools.run(
         cmd,
         log_run_to_stderr=False,
@@ -157,7 +164,7 @@ papermill {rewritten_notebook_path} {REPO_ROOT/out_path}"""
         # Important to get rid of PYTHONPATH specifically, which contains
         # the Cirq repo path due to check/pytest.  Also isolate the execution
         # from pip settings in local configuration files or environment.
-        env={'PIP_CONFIG_FILE': '/dev/null'},
+        env=env,
     )
 
     if result.returncode != 0:
@@ -214,20 +221,21 @@ def test_all_notebooks_against_released_cirq(partition, notebook_path, cloned_en
 @pytest.mark.parametrize("notebook_path", NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES)
 def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path) -> None:
     # utf-8 is important for Windows testing, otherwise characters like ┌──┐ fail on cp1252
-    with open(notebook_path, encoding="utf-8") as notebook:
-        content = notebook.read()
-        mandatory_matches = [
-            r"!pip install --upgrade --quiet cirq(-google)?~=1.0.dev",
+    content = pathlib.Path(notebook_path).read_text(encoding="utf-8")
+    mandatory_matches = [
+        r"!pip install --upgrade --quiet cirq(-google)?~=1.0.dev",
+        (
             r"Note: this notebook relies on unreleased Cirq features\. "
             r"If you want to try these features, make sure you install cirq(-google)? via "
-            r"`pip install --upgrade cirq(-google)?~=1.0.dev`\.",
-        ]
+            r"`pip install --upgrade cirq(-google)?~=1.0.dev`\."
+        ),
+    ]
 
-        for m in mandatory_matches:
-            assert re.search(m, content), (
-                f"{notebook_path} is marked as NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES, "
-                f"however it contains no line matching:\n{m}"
-            )
+    for m in mandatory_matches:
+        assert re.search(m, content), (
+            f"{notebook_path} is marked as NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES, "
+            f"however it contains no line matching:\n{m}"
+        )
 
 
 def test_skip_notebooks_has_valid_patterns() -> None:

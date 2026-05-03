@@ -294,7 +294,7 @@ class MockGate(cirq.testing.TwoQubitGate):
     ) -> protocols.CircuitDiagramInfo:
         self.captured_diagram_args = args
         return cirq.CircuitDiagramInfo(
-            wire_symbols=tuple(['M1', 'M2']),
+            wire_symbols=('M1', 'M2'),
             exponent=1,
             exponent_qubit_index=self._exponent_qubit_index,
             connected=True,

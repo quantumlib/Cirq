@@ -1,4 +1,4 @@
-name: Pre-release cirq to PyPi
+name: Pre-release cirq to PyPI
 
 on:
   push:
@@ -11,29 +11,49 @@ permissions: read-all
 jobs:
   push_to_pypi:
     if: github.repository == 'quantumlib/Cirq'
-    name: Push to PyPi
+    name: Push to PyPI
     runs-on: ubuntu-22.04
     env:
       NAME: dev-release
     steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 2
-      - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: '3.11'
           architecture: 'x64'
+      - name: Check labels
+        id: check-labels
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pr_number=$(git log -1 --pretty="%s" | sed -n -E "s/.*[(]#([0-9]+)[)]$/\1/p")
+          if (( pr_number )) &&
+            gh pr view --json=labels --jq=".labels[].name" "${pr_number}" |
+            grep -q -x ci/no-release;
+          then
+            echo "The PR has a ci/no-release label - skipping the release"
+            echo "### Skipped release due to ci/no-release label" >> "${GITHUB_STEP_SUMMARY}"
+            has_no_release=true
+          else
+            has_no_release=false
+          fi
+          echo "has_no_release=${has_no_release}" >> "${GITHUB_OUTPUT}"
       - name: Install dependencies
+        if: steps.check-labels.outputs.has_no_release != 'true'
         run: |
           python -m pip install --upgrade pip
           pip install --upgrade setuptools wheel twine
-      - name: Create PYPI config file
+      - name: Create PyPI config file
+        if: steps.check-labels.outputs.has_no_release != 'true'
         env:
           CIRQ_PYPI_TOKEN: ${{ secrets.CIRQ_PYPI_TOKEN }}
           CIRQ_TEST_PYPI_TOKEN: ${{ secrets.CIRQ_TEST_PYPI_TOKEN }}
         run: |
           envsubst < dev_tools/packaging/pypirc_template > $HOME/.pypirc
       - name: Build and publish
+        if: steps.check-labels.outputs.has_no_release != 'true'
         run: |
           CIRQ_PRE_RELEASE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
           if [[ "${CIRQ_PRE_RELEASE_VERSION}" != *.dev* ]]; then
@@ -51,9 +71,9 @@ jobs:
           echo "Comparing wheels with the build at previous commit"
           if diff -q -r "${out_dir_last}" "${out_dir}"; then
             echo "Wheels are identical - skipping the release"
-            echo "### Skipped identical release"  >> ${GITHUB_STEP_SUMMARY}
+            echo "### Skipped identical release"  >> "${GITHUB_STEP_SUMMARY}"
             echo "Cirq wheels for ${CIRQ_PRE_RELEASE_VERSION} (${GITHUB_SHA})" \
-              "are identical to their build at the previous commit." >> ${GITHUB_STEP_SUMMARY}
+              "are identical to their build at the previous commit." >> "${GITHUB_STEP_SUMMARY}"
             exit 0
           fi
           echo "Deploying dev version '$CIRQ_PRE_RELEASE_VERSION'"

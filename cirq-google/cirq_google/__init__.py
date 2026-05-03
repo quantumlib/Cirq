@@ -64,6 +64,7 @@ from cirq_google.ops import (
     PhysicalZTag as PhysicalZTag,
     SYC as SYC,
     SycamoreGate as SycamoreGate,
+    TwoPulseFSimTag as TwoPulseFSimTag,
     WaitGateWithUnit as WaitGateWithUnit,
     WILLOW as WILLOW,
     WillowGate as WillowGate,
@@ -112,7 +113,6 @@ from cirq_google.workflow import (
 from cirq_google import study  # noqa: F401
 
 from cirq_google import experimental  # noqa: F401
-
 
 # Register cirq_google's public classes for JSON serialization.
 from cirq.protocols.json_serialization import _register_resolver

@@ -80,8 +80,7 @@ export class Meridians extends Group {
       return;
     }
 
-    let nonEquatorCircles: number;
-    numCircles % 2 !== 0 ? (nonEquatorCircles = numCircles - 1) : (nonEquatorCircles = numCircles);
+    const nonEquatorCircles = numCircles % 2 !== 0 ? numCircles - 1 : numCircles;
     const circlesPerHalf = nonEquatorCircles / 2;
 
     // Creates chords proportionally to radius 5 circle.
@@ -89,8 +88,7 @@ export class Meridians extends Group {
 
     // Start building the chords from the top down.
     // If the user only wants one chord, skip the loop.
-    let topmostChordPos: number;
-    numCircles === 1 ? (topmostChordPos = 0) : (topmostChordPos = radius - initialFactor);
+    const topmostChordPos = numCircles === 1 ? 0 : radius - initialFactor;
 
     const chordYPositions = [0]; // equator
     for (let i = topmostChordPos; i > 0; i -= topmostChordPos / circlesPerHalf) {

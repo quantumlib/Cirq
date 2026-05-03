@@ -259,7 +259,7 @@ def test_sweep_to_proto_with_func_round_trip(sweep):
     proto = v2.sweep_to_proto(sweep, sweep_transformer=add_tunit_func)
     recovered = v2.sweep_from_proto(proto)
 
-    assert list(recovered.points)[0] == 1 * tunits.ns
+    assert recovered.points[0] == 1 * tunits.ns
 
 
 def test_sweep_to_proto_unit():
@@ -308,7 +308,7 @@ def test_sweep_from_proto_with_func_succeeds(sweep):
     msg = v2.sweep_to_proto(sweep)
     sweep = v2.sweep_from_proto(msg, sweep_transformer=add_tunit_func)
 
-    assert list(sweep.points)[0] == [1.0 * tunits.ns]
+    assert sweep.points[0] == [1.0 * tunits.ns]
 
 
 @pytest.mark.parametrize('sweep', [cirq.Points('foo', [1, 2, 3]), cirq.Points('foo', [1])])
@@ -329,7 +329,7 @@ def test_sweep_from_proto_with_func_round_trip(sweep):
     msg = v2.sweep_to_proto(sweep, sweep_transformer=add_tunit_func)
     sweep = v2.sweep_from_proto(msg, sweep_transformer=strip_tunit_func)
 
-    assert list(sweep.points)[0] == 1.0
+    assert sweep.points[0] == 1.0
 
 
 @pytest.mark.parametrize(
@@ -422,7 +422,7 @@ def test_sweep_with_flattened_sweep():
         cirq.measure(q, key='m'),
     )
     param_sweep1 = cirq.Linspace('t', start=0, stop=1, length=20)
-    (_, param_sweep2) = cirq.flatten_with_sweep(circuit, param_sweep1)
+    _, param_sweep2 = cirq.flatten_with_sweep(circuit, param_sweep1)
     assert v2.sweep_to_proto(param_sweep2) is not None
 
 

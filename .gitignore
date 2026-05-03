@@ -2,15 +2,6 @@
 __pycache__
 *.pyc
 
-# ignore idea SDK
-.idea/*
-.vscode
-
-# ignore cache
-.cache/*
-.mypy_cache/*
-.pytest_cache/*
-
 # ignore coverage files
 *.py,cover
 *.coverage
@@ -31,12 +22,6 @@ docs/api_docs
 
 # swap files
 *.swp
-
-# Mac only
-.DS_Store
-
-# From asv
-*.asv/
 
 # Ignore generated Jupyter files
 *.ipynb_checkpoints/

@@ -1414,9 +1414,7 @@ def test_separated_states_str_does_not_merge() -> None:
     )
 
     result = cirq.Simulator().simulate(circuit)
-    assert (
-        str(result)
-        == """measurements: q(0)=0 q(1)=0
+    assert str(result) == """measurements: q(0)=0 q(1)=0
 
 qubits: (cirq.LineQubit(0),)
 output vector: 0.707|0⟩ + 0.707|1⟩
@@ -1426,7 +1424,6 @@ output vector: |0⟩
 
 phase:
 output vector: 1j|⟩"""
-    )
 
 
 def test_separable_non_dirac_str() -> None:
@@ -1446,13 +1443,10 @@ def test_unseparated_states_str() -> None:
     )
 
     result = cirq.Simulator(split_untangled_states=False).simulate(circuit)
-    assert (
-        str(result)
-        == """measurements: q(0)=0 q(1)=0
+    assert str(result) == """measurements: q(0)=0 q(1)=0
 
 qubits: (cirq.LineQubit(0), cirq.LineQubit(1))
 output vector: 0.707j|00⟩ + 0.707j|10⟩"""
-    )
 
 
 @pytest.mark.parametrize('split', [True, False])

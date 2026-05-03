@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import datetime
 from collections.abc import Sequence
-from typing import TYPE_CHECKING
+from typing import cast, TYPE_CHECKING
 
 import duet
 
@@ -147,7 +147,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         repetitions: int = 1,
         description: str | None = None,
         labels: dict[str, str] | None = None,
-    ) -> cirq.Result:
+    ) -> engine_job.EngineJob:
         """Runs the supplied Circuit via Quantum Engine.
 
         Args:
@@ -171,7 +171,7 @@ class EngineProgram(abstract_program.AbstractProgram):
             labels: Optional set of labels to set on the job.
 
         Returns:
-            A single Result for this run.
+            An EngineJob. If this is iterated over it yields one EngineResult.
 
         Raises:
             ValueError: If a processor id hasn't been specified to run the job
@@ -179,7 +179,7 @@ class EngineProgram(abstract_program.AbstractProgram):
             ValueError: If either `run_name` and `device_config_name` are set but
                 `processor_id` is empty.
         """
-        job = await self.run_sweep_async(
+        return await self.run_sweep_async(
             job_id=job_id,
             params=[param_resolver],
             repetitions=repetitions,
@@ -190,8 +190,6 @@ class EngineProgram(abstract_program.AbstractProgram):
             snapshot_id=snapshot_id,
             device_config_name=device_config_name,
         )
-        results = await job.results_async()
-        return results[0]
 
     run = duet.sync(run_async)
 
@@ -354,18 +352,25 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     remove_labels = duet.sync(remove_labels_async)
 
-    async def get_circuit_async(self) -> cirq.Circuit:
+    async def get_circuit_async(self, program_num: int | None = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the Quantum Engine program. This is only
         supported if the program was created with the V2 protos.
+
+        Args:
+            program_num: if this is a multi-circuit program, the index of the circuit
+                to return.  This argument is zero-indexed. Negative values
+                indexing from the end of the list.
 
         Returns:
             The program's cirq Circuit.
         """
-        if self._program is None or self._program.code is None:
+        # The code field is an any_pb2.Any and is always set. But if the program has not
+        # been fetched this field may be empty, which we can see by checking the type_url.
+        if self._program is None or not self._program.code or not self._program.code.type_url:
             self._program = await self.context.client.get_program_async(
                 self.project_id, self.program_id, True
             )
-        return _deserialize_program(self._program.code)
+        return _deserialize_program(self._program.code, program_num)
 
     get_circuit = duet.sync(get_circuit_async)
 
@@ -402,7 +407,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         return f'EngineProgram(project_id=\'{self.project_id}\', program_id=\'{self.program_id}\')'
 
 
-def _deserialize_program(code: any_pb2.Any) -> cirq.Circuit:
+def _deserialize_program(code: any_pb2.Any, program_num: int | None = None) -> cirq.Circuit:
     import cirq_google.engine.engine as engine_base
 
     code_type = code.type_url[len(engine_base.TYPE_PREFIX) :]
@@ -412,6 +417,9 @@ def _deserialize_program(code: any_pb2.Any) -> cirq.Circuit:
     elif code_type == 'cirq.google.api.v2.Program' or code_type == 'cirq.api.google.v2.Program':
         program = v2.program_pb2.Program.FromString(code.value)
     if program is not None:
-        return circuit_serializer.CIRCUIT_SERIALIZER.deserialize(program)
+        serializer = circuit_serializer.CIRCUIT_SERIALIZER
+        if program_num is not None:
+            return cast(cirq.Circuit, serializer.deserialize_multi_program(program)[program_num][2])
+        return serializer.deserialize(program)
 
     raise ValueError(f'unsupported program type: {code_type}')
