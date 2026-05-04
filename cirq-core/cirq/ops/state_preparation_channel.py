@@ -103,7 +103,10 @@ class StatePreparationChannel(raw_types.Gate):
         The operator satisfies the completeness relation Sum(E^ E) = I.
         """
         N = 2**self._num_qubits
-        return self._state[None, :, None] * np.eye(N, dtype=self._state.dtype)[:, None, :]
+        operator = np.zeros(shape=(N, N, N), dtype=self._state.dtype)
+        idx = np.arange(N)
+        operator[idx, :, idx] = self._state
+        return operator
 
     def __repr__(self) -> str:
         return (
