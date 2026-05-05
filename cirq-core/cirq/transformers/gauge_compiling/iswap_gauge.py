@@ -19,6 +19,7 @@ from __future__ import annotations
 import numpy as np
 
 from cirq import ops
+from cirq._doc import document
 from cirq.transformers.gauge_compiling.gauge_compiling import (
     ConstantGauge,
     Gauge,
@@ -104,4 +105,11 @@ class XYRotation(Gauge):
 
 ISWAPGaugeTransformer = GaugeTransformer(
     target=ops.ISWAP, gauge_selector=GaugeSelector(gauges=[RZRotation(), XYRotation()])
+)
+document(
+    ISWAPGaugeTransformer,
+    r"""A GaugeTransformer that gauges ISWAP gates.
+
+    Usage: `ISWAPGaugeTransformer(circuit)` will return a new circuit with all ISWAP gates gauged by either the RZRotation gauge or the XYRotation gauge.
+    """,
 )
