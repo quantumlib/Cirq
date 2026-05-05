@@ -189,8 +189,7 @@ class CliffordTableau(StabilizerState):
     def _reconstruct_xs(self, xs: np.ndarray | None) -> np.ndarray:
         if xs is None:
             new_xs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
-            for i in range(self.n):
-                new_xs[i, i] = True
+            np.fill_diagonal(new_xs[: self.n, :], True)
         else:
             shape = xs.shape
             if (
@@ -211,8 +210,7 @@ class CliffordTableau(StabilizerState):
     def _reconstruct_zs(self, zs: np.ndarray | None) -> np.ndarray:
         if zs is None:
             new_zs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
-            for i in range(self.n):
-                new_zs[self.n + i, i] = True
+            np.fill_diagonal(new_zs[self.n : 2 * self.n, :], True)
         else:
             shape = zs.shape
             if (
