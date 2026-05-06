@@ -48,7 +48,7 @@ jobs:
           pip install --upgrade setuptools wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Pytest check
-        continue-on-error: true
+        continue-on-error: 
         run: check/pytest -n logical --durations=20 --junit-xml=pytest-ubuntu-report.xml
       - name: Persist the test report
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
