@@ -1637,7 +1637,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = json_format.MessageToJson(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -1740,7 +1740,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = type(request).to_json(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -1782,7 +1782,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
                 try:
                     response_payload = quantum.QuantumReservation.to_json(response)
-                except:
+                except Exception:
                     response_payload = None
                 http_response = {
                     "payload": response_payload,
@@ -1877,7 +1877,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = type(request).to_json(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -1919,7 +1919,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
                 try:
                     response_payload = quantum.QuantumJob.to_json(response)
-                except:
+                except Exception:
                     response_payload = None
                 http_response = {
                     "payload": response_payload,
@@ -2011,7 +2011,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = type(request).to_json(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -2053,7 +2053,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
                 try:
                     response_payload = quantum.QuantumProgram.to_json(response)
-                except:
+                except Exception:
                     response_payload = None
                 http_response = {
                     "payload": response_payload,
@@ -2146,7 +2146,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = type(request).to_json(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -2188,7 +2188,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
                 try:
                     response_payload = quantum.QuantumReservation.to_json(response)
-                except:
+                except Exception:
                     response_payload = None
                 http_response = {
                     "payload": response_payload,
@@ -2272,7 +2272,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = json_format.MessageToJson(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -2365,7 +2365,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = json_format.MessageToJson(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -2459,7 +2459,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = json_format.MessageToJson(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -2556,7 +2556,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = type(request).to_json(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -2598,7 +2598,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
                 try:
                     response_payload = quantum.QuantumCalibration.to_json(response)
-                except:
+                except Exception:
                     response_payload = None
                 http_response = {
                     "payload": response_payload,
@@ -2688,7 +2688,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = type(request).to_json(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -2728,7 +2728,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
                 try:
                     response_payload = quantum.QuantumJob.to_json(response)
-                except:
+                except Exception:
                     response_payload = None
                 http_response = {
                     "payload": response_payload,
@@ -2815,7 +2815,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = type(request).to_json(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -2857,7 +2857,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
                 try:
                     response_payload = quantum.QuantumProcessor.to_json(response)
-                except:
+                except Exception:
                     response_payload = None
                 http_response = {
                     "payload": response_payload,
@@ -2947,7 +2947,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = type(request).to_json(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -2989,7 +2989,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
                 try:
                     response_payload = quantum.QuantumProcessorConfig.to_json(response)
-                except:
+                except Exception:
                     response_payload = None
                 http_response = {
                     "payload": response_payload,
@@ -3075,7 +3075,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = type(request).to_json(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -3117,7 +3117,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
                 try:
                     response_payload = quantum.QuantumProgram.to_json(response)
-                except:
+                except Exception:
                     response_payload = None
                 http_response = {
                     "payload": response_payload,
@@ -3204,7 +3204,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = type(request).to_json(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -3246,7 +3246,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
                 try:
                     response_payload = quantum.QuantumReservation.to_json(response)
-                except:
+                except Exception:
                     response_payload = None
                 http_response = {
                     "payload": response_payload,
@@ -3334,7 +3334,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = type(request).to_json(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -3376,7 +3376,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
                 try:
                     response_payload = quantum.QuantumResult.to_json(response)
-                except:
+                except Exception:
                     response_payload = None
                 http_response = {
                     "payload": response_payload,
@@ -3463,7 +3463,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = type(request).to_json(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -3505,7 +3505,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
                 try:
                     response_payload = engine.ListQuantumCalibrationsResponse.to_json(response)
-                except:
+                except Exception:
                     response_payload = None
                 http_response = {
                     "payload": response_payload,
@@ -3592,7 +3592,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = type(request).to_json(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -3634,7 +3634,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
                 try:
                     response_payload = engine.ListQuantumJobEventsResponse.to_json(response)
-                except:
+                except Exception:
                     response_payload = None
                 http_response = {
                     "payload": response_payload,
@@ -3724,7 +3724,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = type(request).to_json(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -3766,7 +3766,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
                 try:
                     response_payload = engine.ListQuantumJobsResponse.to_json(response)
-                except:
+                except Exception:
                     response_payload = None
                 http_response = {
                     "payload": response_payload,
@@ -3856,7 +3856,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = type(request).to_json(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -3898,7 +3898,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
                 try:
                     response_payload = engine.ListQuantumProcessorConfigsResponse.to_json(response)
-                except:
+                except Exception:
                     response_payload = None
                 http_response = {
                     "payload": response_payload,
@@ -3985,7 +3985,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = type(request).to_json(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -4027,7 +4027,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
                 try:
                     response_payload = engine.ListQuantumProcessorsResponse.to_json(response)
-                except:
+                except Exception:
                     response_payload = None
                 http_response = {
                     "payload": response_payload,
@@ -4114,7 +4114,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = type(request).to_json(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -4156,7 +4156,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
                 try:
                     response_payload = engine.ListQuantumProgramsResponse.to_json(response)
-                except:
+                except Exception:
                     response_payload = None
                 http_response = {
                     "payload": response_payload,
@@ -4246,7 +4246,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = type(request).to_json(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -4292,7 +4292,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     response_payload = engine.ListQuantumReservationBudgetsResponse.to_json(
                         response
                     )
-                except:
+                except Exception:
                     response_payload = None
                 http_response = {
                     "payload": response_payload,
@@ -4382,7 +4382,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = type(request).to_json(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -4426,7 +4426,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
                 try:
                     response_payload = engine.ListQuantumReservationGrantsResponse.to_json(response)
-                except:
+                except Exception:
                     response_payload = None
                 http_response = {
                     "payload": response_payload,
@@ -4513,7 +4513,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = type(request).to_json(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -4555,7 +4555,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
                 try:
                     response_payload = engine.ListQuantumReservationsResponse.to_json(response)
-                except:
+                except Exception:
                     response_payload = None
                 http_response = {
                     "payload": response_payload,
@@ -4642,7 +4642,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = type(request).to_json(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -4684,7 +4684,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
                 try:
                     response_payload = engine.ListQuantumTimeSlotsResponse.to_json(response)
-                except:
+                except Exception:
                     response_payload = None
                 http_response = {
                     "payload": response_payload,
@@ -4797,7 +4797,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = type(request).to_json(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -4847,7 +4847,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
                 try:
                     response_payload = quantum.QuantumReservationGrant.to_json(response)
-                except:
+                except Exception:
                     response_payload = None
                 http_response = {
                     "payload": response_payload,
@@ -4942,7 +4942,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = type(request).to_json(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -4984,7 +4984,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
                 try:
                     response_payload = quantum.QuantumJob.to_json(response)
-                except:
+                except Exception:
                     response_payload = None
                 http_response = {
                     "payload": response_payload,
@@ -5076,7 +5076,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = type(request).to_json(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -5118,7 +5118,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
                 try:
                     response_payload = quantum.QuantumProgram.to_json(response)
-                except:
+                except Exception:
                     response_payload = None
                 http_response = {
                     "payload": response_payload,
@@ -5211,7 +5211,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 method = transcoded_request['method']
                 try:
                     request_payload = type(request).to_json(request)
-                except:
+                except Exception:
                     request_payload = None
                 http_request = {
                     "payload": request_payload,
@@ -5253,7 +5253,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
                 try:
                     response_payload = quantum.QuantumReservation.to_json(response)
-                except:
+                except Exception:
                     response_payload = None
                 http_response = {
                     "payload": response_payload,

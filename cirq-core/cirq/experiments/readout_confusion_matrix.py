@@ -346,7 +346,7 @@ class TensoredConfusionMatrices:
         for qubit in qubits:
             try:
                 idx = self.measure_qubits.index((qubit,))
-            except:  # pragma: no cover
+            except Exception:  # pragma: no cover
                 raise NotImplementedError(
                     "The response matrix must be a tensor product of single-qubit "
                     f"response matrices, including that of qubit {qubit}."

@@ -181,7 +181,7 @@ class Heatmap:
         elif self._config.get('annotation_format'):
             try:
                 return format(value, self._config['annotation_format'])
-            except:
+            except Exception:
                 return format(float(value), self._config['annotation_format'])
         else:
             return None

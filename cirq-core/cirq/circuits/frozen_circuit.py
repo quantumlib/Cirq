@@ -198,7 +198,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
     def __pow__(self, other) -> cirq.FrozenCircuit:
         try:
             return (self.unfreeze() ** other).freeze()
-        except:
+        except Exception:
             return NotImplemented
 
     @classmethod

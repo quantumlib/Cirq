@@ -141,7 +141,7 @@ def fidelity(
     if qid_shape is None:
         try:
             qid_shape = infer_qid_shape(state1, state2)
-        except:
+        except Exception:
             raise ValueError(
                 'Failed to infer the qid shape of the given states. '
                 'Please specify the qid shape explicitly using the `qid_shape` argument.'
