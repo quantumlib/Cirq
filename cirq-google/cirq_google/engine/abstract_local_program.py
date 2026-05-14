@@ -39,7 +39,11 @@ class AbstractLocalProgram(AbstractProgram):
     need to implement abstract methods.
     """
 
-    def __init__(self, circuits: list[cirq.Circuit], engine: AbstractLocalEngine):
+    def __init__(
+        self,
+        circuits: list[cirq.Circuit],
+        engine: AbstractLocalEngine,
+    ):
         if not circuits:
             raise ValueError('No circuits provided to program.')
         self._create_time = datetime.datetime.now()
@@ -190,22 +194,47 @@ class AbstractLocalProgram(AbstractProgram):
             del self._labels[key]
         return self
 
-    def get_circuit(self, program_num: int | None = None) -> cirq.Circuit:
+    def get_circuit(self, circuit_num: int | None = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the program. This is only
         supported if the program was created with the V2 protos.
 
         Args:
-            program_num: if this is a multi-circuit program, the index of the circuit
+            circuit_num: if this is a multi-circuit program, the index of the circuit
                 to return.  This argument is zero-indexed. Negative values
                 indexing from the end of the list.
 
         Returns:
             The program's cirq Circuit.
         """
-        if program_num is not None:
-            return self._circuits[program_num]
-        return self._circuits[0]
+        if circuit_num is None:
+            if self.is_batch():
+                raise ValueError(
+                    f"This program is a batch program containing {len(self._circuits)} circuits. "
+                    "Please specify `circuit_num` to get a specific circuit, "
+                    "or use `get_circuits()` to get all of them."
+                )
+            return self._circuits[0]
+        try:
+            return self._circuits[circuit_num]
+        except IndexError:
+            raise IndexError(
+                f"Index {circuit_num} out of range for batch program of size {len(self._circuits)}."
+            )
+
+    def get_circuits(self) -> list[cirq.Circuit]:
+        """Returns all the cirq Circuits for the program."""
+        return self._circuits
+
+    def is_batch(self) -> bool:
+        """Returns True if the program is a batch program."""
+        return len(self._circuits) > 1
 
     def batch_size(self) -> int:
-        """Returns the number of programs in a batch program."""
+        """Returns the number of programs in a batch program.
+
+        Raises:
+            ValueError: if the program created was not a batch program.
+        """
+        if not self.is_batch():
+            raise ValueError("This program is not a batch program.")
         return len(self._circuits)

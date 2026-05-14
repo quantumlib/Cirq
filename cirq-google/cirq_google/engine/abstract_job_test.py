@@ -80,7 +80,7 @@ class MockJob(AbstractJob):
     def get_calibration(self):
         pass
 
-    def get_circuit(self, program_num: int | None = None) -> cirq.Circuit:
+    def get_circuit(self, circuit_num: int | None = None) -> cirq.Circuit:
         return cirq.Circuit()
 
     def cancel(self) -> None:

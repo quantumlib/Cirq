@@ -226,15 +226,50 @@ class EngineJob(abstract_job.AbstractJob):
             return (failure.error_code.name, failure.error_message)
         return None
 
-    def get_repetitions_and_sweeps(self) -> tuple[int, list[cirq.Sweep]]:
+    def get_repetitions_and_sweeps(self, circuit_num: int | None = None) -> tuple[int, list[cirq.Sweep]]:
         """Returns the repetitions and sweeps for the Quantum Engine job.
+
+        Args:
+            circuit_num: if this is a batch job, the index of the circuit
+                to return the sweeps for.  This argument is zero-indexed.
+                Negative values index from the end of the list.
 
         Returns:
             A tuple of the repetition count and list of sweeps.
         """
         if self._job is None or self._job.run_context is None:
             self._job = self._get_job(return_run_context=True)
-        return _deserialize_run_context(self._job.run_context)
+        reps, sweeps = _deserialize_run_context(self._job.run_context)
+
+        is_batch = self.program().is_batch()
+        batch_size = self.program().batch_size() if is_batch else 1
+
+        is_mapped = is_batch and len(sweeps) == batch_size and len(sweeps) > 1
+
+        if circuit_num is None:
+            if is_mapped:
+                raise ValueError(
+                    f"This is a batch job with {len(sweeps)} mapped sweeps. "
+                    "Please specify `circuit_num` to get sweeps for a specific circuit."
+                )
+            return (reps, sweeps)
+
+        if not is_batch:
+            if circuit_num != 0 and circuit_num != -1:
+                raise IndexError(f"Job is not a batch job, cannot index {circuit_num}")
+            return (reps, sweeps)
+
+        if not is_mapped:
+            # Shared sweeps in a batch job, return all of them
+            return (reps, sweeps)
+
+        # Mapped sweeps in a batch job
+        try:
+            return (reps, [sweeps[circuit_num]])
+        except IndexError:
+            raise IndexError(
+                f"Index {circuit_num} out of range for batch job sweeps of size {len(sweeps)}."
+            )
 
     def get_processor(self) -> engine_processor.EngineProcessor | None:
         """Returns the EngineProcessor for the processor the job is/was run on,
@@ -258,18 +293,18 @@ class EngineJob(abstract_job.AbstractJob):
         metrics = v2.metrics_pb2.MetricsSnapshot.FromString(response.data.value)
         return calibration.Calibration(metrics)
 
-    async def get_circuit_async(self, program_num: int | None = None) -> cirq.Circuit:
+    async def get_circuit_async(self, circuit_num: int | None = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the Quantum Engine job.
 
         Args:
-            program_num: if this is a multi-circuit job, the index of the circuit
+            circuit_num: if this is a multi-circuit job, the index of the circuit
                 to return.  This argument is zero-indexed. Negative values
                 indexing from the end of the list.
 
         Returns:
             The job's cirq Circuit.
         """
-        return await self.program().get_circuit_async(program_num)
+        return await self.program().get_circuit_async(circuit_num)
 
     get_circuit = duet.sync(get_circuit_async)
 

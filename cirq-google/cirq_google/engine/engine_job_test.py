@@ -31,6 +31,111 @@ from cirq_google.engine.engine import EngineContext
 from cirq_google.engine.stream_manager import StreamError
 
 
+_PROGRAM_V2 = util.pack_any(
+    Merge(
+        """language {
+  gate_set: "v2_5"
+  arg_function_language: "exp"
+}
+circuit {
+  scheduling_strategy: MOMENT_BY_MOMENT
+  moments {
+    operations {
+      qubit_constant_index: 0
+      phasedxpowgate {
+        phase_exponent {
+          float_value: 0.0
+        }
+        exponent {
+          float_value: 0.5
+        }
+      }
+    }
+  }
+  moments {
+    operations {
+      qubit_constant_index: 0
+      measurementgate {
+        key {
+          arg_value {
+            string_value: "result"
+          }
+        }
+        invert_mask {
+          arg_value {
+            bool_values {
+            }
+          }
+        }
+      }
+    }
+  }
+}
+constants {
+  qubit {
+    id: "5_2"
+  }
+}
+""",
+        v2.program_pb2.Program(),
+    )
+)
+
+_BATCH_PROGRAM_V2 = util.pack_any(
+    Merge(
+        """language {
+  gate_set: "v2_5"
+  arg_function_language: "exp"
+}
+keyed_circuits {
+  key: "c1"
+  circuit {
+    scheduling_strategy: MOMENT_BY_MOMENT
+    moments {
+      operations {
+        qubit_constant_index: 0
+        phasedxpowgate {
+          phase_exponent {
+            float_value: 0.0
+          }
+          exponent {
+            float_value: 0.5
+          }
+        }
+      }
+    }
+  }
+}
+keyed_circuits {
+  key: "c2"
+  circuit {
+    scheduling_strategy: MOMENT_BY_MOMENT
+    moments {
+      operations {
+        qubit_constant_index: 0
+        phasedxpowgate {
+          phase_exponent {
+            float_value: 0.0
+          }
+          exponent {
+            float_value: 0.5
+          }
+        }
+      }
+    }
+  }
+}
+constants {
+  qubit {
+    id: "5_2"
+  }
+}
+""",
+        v2.program_pb2.Program(),
+    )
+)
+
+
 @pytest.fixture(scope='module', autouse=True)
 def mock_grpc_client():
     with mock.patch(
@@ -220,9 +325,11 @@ def test_failure_with_no_error():
     assert not job.failure()
 
 
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_async')
-def test_get_repetitions_and_sweeps(get_job):
-    job = cg.EngineJob('a', 'b', 'steve', EngineContext())
+def test_get_repetitions_and_sweeps(get_job, get_program):
+    # Single program (non-batch)
+    get_program.return_value = quantum.QuantumProgram(code=_PROGRAM_V2)
     get_job.return_value = quantum.QuantumJob(
         run_context=util.pack_any(
             v2.run_context_pb2.RunContext(
@@ -230,8 +337,56 @@ def test_get_repetitions_and_sweeps(get_job):
             )
         )
     )
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext())
     assert job.get_repetitions_and_sweeps() == (10, [cirq.UnitSweep])
-    get_job.assert_called_once_with('a', 'b', 'steve', True)
+    assert job.get_repetitions_and_sweeps(0) == (10, [cirq.UnitSweep])
+    with pytest.raises(IndexError, match="Job is not a batch job"):
+        _ = job.get_repetitions_and_sweeps(1)
+
+    # Batch program, shared sweep
+    get_program.reset_mock()
+    get_program.return_value = quantum.QuantumProgram(code=_BATCH_PROGRAM_V2)
+    get_job.reset_mock()
+    get_job.return_value = quantum.QuantumJob(
+        run_context=util.pack_any(
+            v2.run_context_pb2.RunContext(
+                parameter_sweeps=[v2.run_context_pb2.ParameterSweep(repetitions=10)]
+            )
+        )
+    )
+    job_batch_shared = cg.EngineJob('a', 'b', 'steve', EngineContext())
+    assert job_batch_shared.get_repetitions_and_sweeps() == (10, [cirq.UnitSweep])
+    assert job_batch_shared.get_repetitions_and_sweeps(0) == (10, [cirq.UnitSweep])
+    assert job_batch_shared.get_repetitions_and_sweeps(1) == (10, [cirq.UnitSweep])
+
+    # Batch program, mapped sweeps
+    get_job.reset_mock()
+    get_job.return_value = quantum.QuantumJob(
+        run_context=util.pack_any(
+            v2.run_context_pb2.RunContext(
+                parameter_sweeps=[
+                    v2.run_context_pb2.ParameterSweep(repetitions=10),
+                    v2.run_context_pb2.ParameterSweep(
+                        repetitions=10,
+                        sweep=v2.run_context_pb2.Sweep(
+                            single_sweep=v2.run_context_pb2.SingleSweep(
+                                parameter_key='t',
+                                points=v2.run_context_pb2.Points(points_double=[1.0, 2.0])
+                            )
+                        )
+                    )
+                ]
+            )
+        )
+    )
+    job_batch_mapped = cg.EngineJob('a', 'b', 'steve', EngineContext())
+    # Mapped sweeps, requires index
+    with pytest.raises(ValueError, match="mapped sweeps"):
+        _ = job_batch_mapped.get_repetitions_and_sweeps()
+    assert job_batch_mapped.get_repetitions_and_sweeps(0) == (10, [cirq.UnitSweep])
+    assert job_batch_mapped.get_repetitions_and_sweeps(1) == (10, [cirq.Points('t', [1.0, 2.0])])
+    with pytest.raises(IndexError, match="Index 2 out of range"):
+        _ = job_batch_mapped.get_repetitions_and_sweeps(2)
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_async')

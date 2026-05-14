@@ -122,12 +122,12 @@ class SimulatedLocalJob(AbstractLocalJob):
 
         Returns: a List of results from the sweep's execution.
         """
-        reps, sweeps = self.get_repetitions_and_sweeps()
+        reps = self._repetitions
+        sweeps = self._sweeps
         parent = self.program()
-        batch_size = parent.batch_size()
         try:
             self._state = quantum.ExecutionStatus.State.RUNNING
-            programs = [parent.get_circuit(n) for n in range(batch_size)]
+            programs = parent.get_circuits()
             if len(sweeps) == 1 and len(programs) > 1:
                 sweeps = sweeps * len(programs)
             batch_results = self._sampler.run_batch(
