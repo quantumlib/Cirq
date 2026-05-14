@@ -22,6 +22,7 @@ from typing import TYPE_CHECKING
 from unittest import mock
 
 import pytest
+
 import cirq
 from cirq_google.cloud import quantum
 from cirq_google.engine.abstract_local_job import AbstractLocalJob

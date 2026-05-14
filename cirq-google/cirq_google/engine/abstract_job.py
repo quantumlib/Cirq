@@ -141,7 +141,9 @@ class AbstractJob(abc.ABC):
         """Return failure code and message of the job if present."""
 
     @abc.abstractmethod
-    def get_repetitions_and_sweeps(self, circuit_num: int | None = None) -> tuple[int, list[cirq.Sweep]]:
+    def get_repetitions_and_sweeps(
+        self, circuit_num: int | None = None
+    ) -> tuple[int, list[cirq.Sweep]]:
         """Returns the repetitions and sweeps for the job.
 
         Args:

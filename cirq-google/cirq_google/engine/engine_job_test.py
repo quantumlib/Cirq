@@ -30,7 +30,6 @@ from cirq_google.engine import util
 from cirq_google.engine.engine import EngineContext
 from cirq_google.engine.stream_manager import StreamError
 
-
 _PROGRAM_V2 = util.pack_any(
     Merge(
         """language {
@@ -371,10 +370,10 @@ def test_get_repetitions_and_sweeps(get_job, get_program):
                         sweep=v2.run_context_pb2.Sweep(
                             single_sweep=v2.run_context_pb2.SingleSweep(
                                 parameter_key='t',
-                                points=v2.run_context_pb2.Points(points_double=[1.0, 2.0])
+                                points=v2.run_context_pb2.Points(points_double=[1.0, 2.0]),
                             )
-                        )
-                    )
+                        ),
+                    ),
                 ]
             )
         )

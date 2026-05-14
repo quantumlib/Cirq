@@ -39,11 +39,7 @@ class AbstractLocalProgram(AbstractProgram):
     need to implement abstract methods.
     """
 
-    def __init__(
-        self,
-        circuits: list[cirq.Circuit],
-        engine: AbstractLocalEngine,
-    ):
+    def __init__(self, circuits: list[cirq.Circuit], engine: AbstractLocalEngine):
         if not circuits:
             raise ValueError('No circuits provided to program.')
         self._create_time = datetime.datetime.now()

@@ -403,9 +403,7 @@ async def test_get_circuit_async():
     ) as get_program_async:
         get_program_async.return_value = quantum.QuantumProgram(code=_BATCH_PROGRAM_V2)
         c = await program_batch.get_circuit_async(1)
-        cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-            c, circuit
-        )
+        cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(c, circuit)
 
 
 def test_deserialize_program():
@@ -417,6 +415,12 @@ def test_deserialize_program():
         mock_serializer.deserialize.assert_called_once()
         cg.engine.engine_program._deserialize_program(code, circuit_num=1)
         mock_serializer.deserialize_multi_program.assert_called_once()
+
+
+def test_deserialize_program_errors():
+    # Index out of range
+    with pytest.raises(IndexError, match="Index 2 out of range"):
+        cg.engine.engine_program._deserialize_program(_BATCH_PROGRAM_V2, circuit_num=2)
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -487,9 +491,7 @@ def test_get_circuits(get_program_async):
     get_program_async.return_value = quantum.QuantumProgram(code=_PROGRAM_V2)
     circuits = program.get_circuits()
     assert len(circuits) == 1
-    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        circuits[0], circuit
-    )
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(circuits[0], circuit)
 
     # Batch program
     program_batch = cg.EngineProgram('a', 'b', EngineContext())

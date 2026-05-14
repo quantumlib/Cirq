@@ -62,6 +62,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         self.program_id = program_id
         self.context = context
         self._program = _program
+        self._proto: v2.program_pb2.Program | None = None
 
     async def run_sweep_async(
         self,
@@ -353,7 +354,7 @@ class EngineProgram(abstract_program.AbstractProgram):
     remove_labels = duet.sync(remove_labels_async)
 
     async def _get_proto_async(self) -> v2.program_pb2.Program:
-        if not hasattr(self, '_proto') or self._proto is None:
+        if self._proto is None:
             if self._program is None or not self._program.code or not self._program.code.type_url:
                 self._program = await self.context.client.get_program_async(
                     self.project_id, self.program_id, True
@@ -419,7 +420,7 @@ class EngineProgram(abstract_program.AbstractProgram):
             return [serializer.deserialize(proto)]
 
         deserialized = serializer.deserialize_multi_program(proto)
-        return [triple[2] for triple in deserialized]
+        return [cast(cirq.Circuit, triple[2]) for triple in deserialized]
 
     get_circuits = duet.sync(get_circuits_async)
 
@@ -478,7 +479,5 @@ def _deserialize_program(code: any_pb2.Any, circuit_num: int | None = None) -> c
         try:
             return cast(cirq.Circuit, serializer.deserialize_multi_program(program)[circuit_num][2])
         except IndexError:
-            raise IndexError(
-                f"Index {circuit_num} out of range for batch program."
-            )
+            raise IndexError(f"Index {circuit_num} out of range for batch program.")
     return serializer.deserialize(program)

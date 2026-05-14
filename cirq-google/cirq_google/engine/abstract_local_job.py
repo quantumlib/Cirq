@@ -157,7 +157,9 @@ class AbstractLocalJob(AbstractJob):
         """Returns the processor ids provided when the job was created."""
         return [self._processor_id]
 
-    def get_repetitions_and_sweeps(self, circuit_num: int | None = None) -> tuple[int, list[cirq.Sweep]]:
+    def get_repetitions_and_sweeps(
+        self, circuit_num: int | None = None
+    ) -> tuple[int, list[cirq.Sweep]]:
         """Returns the repetitions and sweeps for the job.
 
         Args:

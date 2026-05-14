@@ -226,7 +226,9 @@ class EngineJob(abstract_job.AbstractJob):
             return (failure.error_code.name, failure.error_message)
         return None
 
-    def get_repetitions_and_sweeps(self, circuit_num: int | None = None) -> tuple[int, list[cirq.Sweep]]:
+    def get_repetitions_and_sweeps(
+        self, circuit_num: int | None = None
+    ) -> tuple[int, list[cirq.Sweep]]:
         """Returns the repetitions and sweeps for the Quantum Engine job.
 
         Args:
