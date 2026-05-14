@@ -5092,15 +5092,14 @@ def test_insert_earliest_op_with_control_key() -> None:
 
 
 def test_insert_earliest_batch_same_measurement_key() -> None:
-    # Checks that operations with the same measurement key
-    # can be put in the same moment.
     q0, q1 = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.X(q0), cirq.X(q1))
     ops_to_insert = [cirq.measure(q0, key="k"), cirq.measure(q1, key="k")]
     c.insert(0, ops_to_insert, strategy=cirq.InsertStrategy.EARLIEST)
 
     assert c == cirq.Circuit(
-        cirq.Moment(cirq.measure(q0, key="k"), cirq.measure(q1, key="k")),
+        cirq.Moment(cirq.measure(q0, key="k")),
+        cirq.Moment(cirq.measure(q1, key="k")),
         cirq.Moment(cirq.X(q0), cirq.X(q1)),
     )
 
@@ -5143,7 +5142,9 @@ def test_insert_in_existing_moment_same_measurement_key_different_qubits() -> No
 
     c.insert(0, [op_to_add], strategy=cirq.InsertStrategy.EARLIEST)
 
-    assert c == cirq.Circuit(cirq.Moment(cirq.measure(q0, key="k"), cirq.measure(q1, key="k")))
+    assert c == cirq.Circuit(
+        cirq.Moment(cirq.measure(q1, key="k")), cirq.Moment(cirq.measure(q0, key="k"))
+    )
 
 
 def test_insert_in_existing_moment_measurement_control_key_conflict() -> None:
