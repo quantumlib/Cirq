@@ -197,7 +197,7 @@ class AbstractLocalJob(AbstractJob):
             return (self._repetitions, [self._sweeps[circuit_num]])
         except IndexError:
             raise IndexError(
-                f"Index {circuit_num} out of range for batch job sweeps of size {len(self._sweeps)}."
+                f"Index {circuit_num} out of range for sweeps of size {len(self._sweeps)}."
             )
 
     def get_processor(self) -> AbstractLocalProcessor:
