@@ -7,5 +7,6 @@ deploy:
     manifests:
     - dev_tools/triage-party/kubernetes/01_ns/namespace.yaml
     - dev_tools/triage-party/kubernetes/02_deployment/configmap.yaml
+    - dev_tools/triage-party/kubernetes/02_deployment/custom-css.yaml
     - dev_tools/triage-party/kubernetes/02_deployment/deployment.yaml
     - dev_tools/triage-party/kubernetes/03_svc/service.yaml
