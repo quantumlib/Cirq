@@ -257,6 +257,18 @@ class Job:
                 f'Job was not completed successfully. Instead had status: {self.status()}'
             )
 
+        shotwise_results = None
+        retrieve_shotwise_result = self.target().startswith('qpu') or (
+            "noise" in self._job
+            and "model" in self._job["noise"]
+            and self._job["noise"]["model"] != "ideal"
+        )
+        if retrieve_shotwise_result:
+            try:
+                shotwise_results = self._client.get_shots(self._job["results"]["shots"]["url"])
+            except:
+                pass
+
         backend_results = self._client.get_results(
             job_id=self.job_id(), sharpen=sharpen, extra_query_params=extra_query_params
         )
@@ -283,6 +295,7 @@ class Job:
                         counts=counts,
                         num_qubits=self.num_qubits(circuit_index),
                         measurement_dict=self.measurement_dict(circuit_index=circuit_index),
+                        shotwise_results=shotwise_results,
                     )
                 )
             return (
@@ -303,6 +316,7 @@ class Job:
                         num_qubits=self.num_qubits(circuit_index),
                         measurement_dict=self.measurement_dict(circuit_index=circuit_index),
                         repetitions=self.repetitions(),
+                        shotwise_results=shotwise_results,
                     )
                 )
             return (

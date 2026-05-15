@@ -102,7 +102,8 @@ class _IonQClient:
         ), f'Target can only be one of {self.SUPPORTED_TARGETS} but was {default_target}.'
         assert max_retry_seconds >= 0, 'Negative retry not possible without time machine.'
 
-        self.url = f'{url.scheme}://{url.netloc}/{api_version}'
+        self.url_base = f'{url.scheme}://{url.netloc}'
+        self.url = f'{self.url_base}/{api_version}'
         self.headers = self.api_headers(api_key)
         self.default_target = default_target
         self.max_retry_seconds = max_retry_seconds
@@ -221,7 +222,7 @@ class _IonQClient:
             extra_query_params: Specify any parameters to include in the request.
 
         Returns:
-            extra_query_paramsresponse as a dict.
+            response as a dict.
 
         Raises:
             IonQNotFoundException: If job or results don't exist.
@@ -249,6 +250,24 @@ class _IonQClient:
                     params=params,
                     headers=self.headers,
                 )
+
+        return self._make_request(request, {}).json()
+
+    def get_shots(self, shots_url):
+        """Get job shotwise output from IonQ API.
+
+        Args:
+            shots_url: The shots URL as returned by the IonQ API.
+
+        Returns:
+            response as a dict.
+
+        Raises:
+            IonQException: For other API call failures.
+        """
+
+        def request():
+            return requests.get(f"{self.url_base}/{shots_url}", headers=self.headers)
 
         return self._make_request(request, {}).json()
 
