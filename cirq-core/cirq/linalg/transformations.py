@@ -546,7 +546,7 @@ def sub_state_vector(
         raise ValueError("keep_indices {} are an invalid subset of the input state vector.")
 
     # The permutation moves the specified qubits to the start of the qubit order.
-    keeps = set(keep_indices)
+    keeps = frozenset(keep_indices)
     remainder = np.array([i for i in range(n_qubits) if i not in keeps], dtype=np.int64)
     permutation = np.concatenate([keep_indices, remainder])
 
