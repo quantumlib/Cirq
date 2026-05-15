@@ -470,7 +470,7 @@ def partial_trace_of_state_vector_as_mixture(
 
 def sub_state_vector(
     state_vector: np.ndarray,
-    keep_indices: np.ndarray,
+    keep_indices: list[int],
     *,
     default: np.ndarray | None = None,
     atol: float = 1e-6,
@@ -496,7 +496,7 @@ def sub_state_vector(
 
     If the provided `state_vector` cannot be factored into a pure state over
     `keep_indices`, the method will fall back to return `default`. If `default`
-    is not provided, the method will fail and raise `ValueError`.
+    is not provided, the method will fail and raise EntangledStateError.
 
     Args:
         state_vector: The target state_vector.
@@ -521,6 +521,7 @@ def sub_state_vector(
             `default` is not provided.
 
     """
+
     if not np.log2(state_vector.size).is_integer():
         raise ValueError(
             f"Input state_vector of size {state_vector.size} does not represent a "
@@ -542,7 +543,7 @@ def sub_state_vector(
         raise ValueError("Input state must be normalized.")
     if len(set(keep_indices)) != len(keep_indices):
         raise ValueError(f"keep_indices were {keep_indices} but must be unique.")
-    if any([ind >= n_qubits for ind in keep_indices]):
+    if any(ind >= n_qubits for ind in keep_indices):
         raise ValueError("keep_indices {} are an invalid subset of the input state vector.")
 
     # The number of output qubits.
@@ -564,11 +565,11 @@ def sub_state_vector(
     # Return the eigenvector with eigenvalue 1.
     evals, evec = np.linalg.eigh(rho)
     if np.isclose(evals, 1, atol=atol).any():
-      factor_index = np.argmax(evals)
-      factored = evec[:, factor_index]
-      # Prevent accidental reliance on global phase.
-      random_phase = np.exp(2j * np.pi * np.random.random())
-      return random_phase * factored.reshape(ret_shape)
+        factor_index = np.argmax(evals)
+        factored = evec[:, factor_index]
+        # Prevent accidental reliance on global phase.
+        random_phase = np.exp(2j * np.pi * np.random.random())
+        return random_phase * factored.reshape(ret_shape)
 
     # Method did not yield a pure state. Fall back to `default` argument.
     if default is not None:
