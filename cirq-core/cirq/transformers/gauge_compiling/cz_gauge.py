@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 from cirq import ops
+from cirq._doc import document
 from cirq.ops.common_gates import CZ
 from cirq.transformers.gauge_compiling.gauge_compiling import (
     ConstantGauge,
@@ -46,3 +47,10 @@ CZGaugeSelector = GaugeSelector(
 )
 
 CZGaugeTransformer = GaugeTransformer(target=CZ, gauge_selector=CZGaugeSelector)
+document(
+    CZGaugeTransformer,
+    r"""A GaugeTransformer that gauges CZ gates.
+
+    Usage: `CZGaugeTransformer(circuit)` will return a new circuit with all CZ gates gauged by the CZGaugeSelector gauge.
+    """,
+)
