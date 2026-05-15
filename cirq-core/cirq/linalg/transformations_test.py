@@ -398,6 +398,9 @@ def test_sub_state_vector() -> None:
         is _DEFAULT_ARRAY
     )
 
+    # Ensure None can be passed as the `default` argument
+    assert cirq.sub_state_vector(state, [0, 1], default=None, atol=1e-16) is None
+
     # Permit invalid factoring for loose tolerance.
     for q1 in range(9):
         assert (

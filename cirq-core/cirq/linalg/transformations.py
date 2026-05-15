@@ -20,11 +20,20 @@ import dataclasses
 import functools
 from collections.abc import Sequence
 from types import EllipsisType
-from typing import Any
+from typing import Any, TypeVar
 
 import numpy as np
 
 from cirq import protocols
+
+# This is a special indicator value used by the `sub_state_vector` method to
+# determine whether or not the caller provided a 'default' argument. It must be
+# of type np.ndarray to ensure the method has the correct type signature in that
+# case. It is checked for using `is`, so it won't have a false positive if the
+# user provides a different np.array([]) value.
+RaiseValueErrorIfNotProvided: np.ndarray = np.array([])
+
+TDefault = TypeVar('TDefault')
 
 
 def reflection_matrix_pow(reflection_matrix: np.ndarray, exponent: float) -> np.ndarray:
@@ -471,9 +480,9 @@ def sub_state_vector(
     state_vector: np.ndarray,
     keep_indices: list[int],
     *,
-    default: np.ndarray | None = None,
+    default: np.ndarray | TDefault = RaiseValueErrorIfNotProvided,
     atol: float = 1e-6,
-) -> np.ndarray:
+) -> np.ndarray | TDefault:
     r"""Attempts to factor a state vector into two parts and return one of them.
 
     The input `state_vector` must have shape ``(2,) * n`` or ``(2 ** n)`` where
@@ -567,7 +576,7 @@ def sub_state_vector(
         return random_phase * factored.reshape(ret_shape)
 
     # Method did not yield a pure state. Fall back to `default` argument.
-    if default is not None:
+    if default is not RaiseValueErrorIfNotProvided:
         return default
 
     raise EntangledStateError(
