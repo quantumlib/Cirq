@@ -384,32 +384,31 @@ def test_sub_state_vector() -> None:
     assert cirq.equal_up_to_global_phase(
         cirq.sub_state_vector(reshaped_state, [5, 6, 7, 8], atol=1e-15), c
     )
-
-    # Make an imperfect product state to probe tolerances.
-    rng = np.random.default_rng(0)
-    noise = rng.uniform(-1, 1, size=state.size) + 1j * rng.uniform(-1, 1, state.size)
-    imperfect_state = state + 1e-2 * noise.reshape((2,) * 9)
-    imperfect_state /= np.linalg.norm(imperfect_state)
+    # Output state vector is independent of the order of keep_indices
+    assert cirq.equal_up_to_global_phase(
+        cirq.sub_state_vector(reshaped_state, [8, 5, 7, 6], atol=1e-15), c
+    )
 
     # Reject factoring for very tight tolerance.
     assert (
-        cirq.sub_state_vector(imperfect_state, [0, 1], default=_DEFAULT_ARRAY, atol=1e-16)
+        cirq.sub_state_vector(state, [0, 1], default=_DEFAULT_ARRAY, atol=1e-16) is _DEFAULT_ARRAY
+    )
+    assert (
+        cirq.sub_state_vector(state, [2, 3, 4], default=_DEFAULT_ARRAY, atol=1e-16)
         is _DEFAULT_ARRAY
     )
     assert (
-        cirq.sub_state_vector(imperfect_state, [2, 3, 4], default=_DEFAULT_ARRAY, atol=1e-16)
+        cirq.sub_state_vector(state, [5, 6, 7, 8], default=_DEFAULT_ARRAY, atol=1e-16)
         is _DEFAULT_ARRAY
     )
-    assert (
-        cirq.sub_state_vector(imperfect_state, [5, 6, 7, 8], default=_DEFAULT_ARRAY, atol=1e-16)
-        is _DEFAULT_ARRAY
-    )
+
+    # Ensure None can be passed as the `default` argument
+    assert cirq.sub_state_vector(state, [0, 1], default=None, atol=1e-16) is None
 
     # Permit invalid factoring for loose tolerance.
     for q1 in range(9):
         assert (
-            cirq.sub_state_vector(imperfect_state, [q1], default=_DEFAULT_ARRAY, atol=1)
-            is not _DEFAULT_ARRAY
+            cirq.sub_state_vector(state, [q1], default=_DEFAULT_ARRAY, atol=1) is not _DEFAULT_ARRAY
         )
 
 
@@ -482,6 +481,8 @@ def test_sub_state_vector_invalid_inputs() -> None:
         cirq.sub_state_vector(state, [1, 2, 2], atol=1e-8)
 
     state = np.array([1, 0, 0, 0]).reshape((2, 2))
+    with pytest.raises(ValueError, match='invalid'):
+        cirq.sub_state_vector(state, [-1], atol=1e-8)
     with pytest.raises(ValueError, match='invalid'):
         cirq.sub_state_vector(state, [5], atol=1e-8)
     with pytest.raises(ValueError, match='invalid'):

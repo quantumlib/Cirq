@@ -20,11 +20,20 @@ import dataclasses
 import functools
 from collections.abc import Sequence
 from types import EllipsisType
-from typing import Any
+from typing import Any, TypeVar
 
 import numpy as np
 
 from cirq import protocols
+
+# This is a special indicator value used by the `sub_state_vector` method to
+# determine whether or not the caller provided a 'default' argument. It must be
+# of type np.ndarray to ensure the method has the correct type signature in that
+# case. It is checked for using `is`, so it won't have a false positive if the
+# user provides a different np.array([]) value.
+RaiseValueErrorIfNotProvided: np.ndarray = np.array([])
+
+TDefault = TypeVar('TDefault')
 
 
 def reflection_matrix_pow(reflection_matrix: np.ndarray, exponent: float) -> np.ndarray:
@@ -471,9 +480,9 @@ def sub_state_vector(
     state_vector: np.ndarray,
     keep_indices: list[int],
     *,
-    default: np.ndarray | None = None,
+    default: np.ndarray | TDefault = RaiseValueErrorIfNotProvided,
     atol: float = 1e-6,
-) -> np.ndarray:
+) -> np.ndarray | TDefault:
     r"""Attempts to factor a state vector into two parts and return one of them.
 
     The input `state_vector` must have shape ``(2,) * n`` or ``(2 ** n)`` where
@@ -542,32 +551,30 @@ def sub_state_vector(
         raise ValueError("Input state must be normalized.")
     if len(set(keep_indices)) != len(keep_indices):
         raise ValueError(f"keep_indices were {keep_indices} but must be unique.")
-    if any(ind >= n_qubits for ind in keep_indices):
+    if any(ind < 0 or ind >= n_qubits for ind in keep_indices):
         raise ValueError("keep_indices {} are an invalid subset of the input state vector.")
 
     # The permutation moves the specified qubits to the start of the qubit order.
     keeps = frozenset(keep_indices)
-    remainder = np.array([i for i in range(n_qubits) if i not in keeps], dtype=np.int64)
-    permutation = np.concatenate([keep_indices, remainder])
+    permutation = [*sorted(keep_indices), *(i for i in range(n_qubits) if not i in keeps)]
 
     # Permute qubits and construct the pure-state density matrix.
     raveled = state_vector.reshape([2] * n_qubits)
     raveled = np.transpose(raveled, permutation)
-    num_qubits_out = len(keep_indices)
-    c_psi = raveled.reshape([2**num_qubits_out, -1])
+    c_psi = raveled.reshape(keep_dims, -1)
     rho = c_psi @ c_psi.conj().T
 
     # Return the eigenvector with eigenvalue 1.
     evals, evec = np.linalg.eigh(rho)
-    if np.isclose(evals, 1, atol=atol).any():
-        factor_index = np.argmax(evals)
+    factor_index = np.argmax(evals)
+    if np.isclose(evals[factor_index], 1, atol=atol, rtol=0):
         factored = evec[:, factor_index]
         # Prevent accidental reliance on global phase.
         random_phase = np.exp(2j * np.pi * np.random.random())
         return random_phase * factored.reshape(ret_shape)
 
     # Method did not yield a pure state. Fall back to `default` argument.
-    if default is not None:
+    if default is not RaiseValueErrorIfNotProvided:
         return default
 
     raise EntangledStateError(
