@@ -482,6 +482,8 @@ def test_sub_state_vector_invalid_inputs() -> None:
 
     state = np.array([1, 0, 0, 0]).reshape((2, 2))
     with pytest.raises(ValueError, match='invalid'):
+        cirq.sub_state_vector(state, [-1], atol=1e-8)
+    with pytest.raises(ValueError, match='invalid'):
         cirq.sub_state_vector(state, [5], atol=1e-8)
     with pytest.raises(ValueError, match='invalid'):
         cirq.sub_state_vector(state, [0, 1, 2], atol=1e-8)
