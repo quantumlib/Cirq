@@ -16,7 +16,7 @@ spec:
       - name: triage-party
         image: triageparty/triage-party
         imagePullPolicy: Always
-        args: ["/app/main", "--min-refresh","2m", "--max-refresh", "2m"]
+        args: ["/app/main", "--min-refresh","1m", "--max-refresh", "3m"]
         env:
         - name: GITHUB_TOKEN
           valueFrom:
