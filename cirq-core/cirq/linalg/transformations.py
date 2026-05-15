@@ -25,7 +25,6 @@ from typing import Any
 import numpy as np
 
 from cirq import protocols
-from cirq.linalg import predicates
 
 
 def reflection_matrix_pow(reflection_matrix: np.ndarray, exponent: float) -> np.ndarray:
@@ -546,20 +545,16 @@ def sub_state_vector(
     if any(ind >= n_qubits for ind in keep_indices):
         raise ValueError("keep_indices {} are an invalid subset of the input state vector.")
 
-    # The number of output qubits.
-    # keep_indices = np.array(keep_indices)
-    num_qubits_out = len(keep_indices)#.shape[0]
-
     # The permutation moves the specified qubits to the start of the qubit order.
     keeps = set(keep_indices)
-    remainder = np.array(
-        [i for i in range(n_qubits) if i not in keeps], dtype=np.int64)
+    remainder = np.array([i for i in range(n_qubits) if i not in keeps], dtype=np.int64)
     permutation = np.concatenate([keep_indices, remainder])
 
     # Permute qubits and construct the pure-state density matrix.
     raveled = state_vector.reshape([2] * n_qubits)
     raveled = np.transpose(raveled, permutation)
-    c_psi = raveled.reshape([2 ** num_qubits_out, -1])
+    num_qubits_out = len(keep_indices)
+    c_psi = raveled.reshape([2**num_qubits_out, -1])
     rho = c_psi @ c_psi.conj().T
 
     # Return the eigenvector with eigenvalue 1.

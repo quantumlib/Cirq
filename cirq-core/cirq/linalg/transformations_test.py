@@ -393,7 +393,8 @@ def test_sub_state_vector() -> None:
 
     # Reject factoring for very tight tolerance.
     assert (
-        cirq.sub_state_vector(imperfect_state, [0, 1], default=_DEFAULT_ARRAY, atol=1e-16) is _DEFAULT_ARRAY
+        cirq.sub_state_vector(imperfect_state, [0, 1], default=_DEFAULT_ARRAY, atol=1e-16)
+        is _DEFAULT_ARRAY
     )
     assert (
         cirq.sub_state_vector(imperfect_state, [2, 3, 4], default=_DEFAULT_ARRAY, atol=1e-16)
@@ -407,7 +408,8 @@ def test_sub_state_vector() -> None:
     # Permit invalid factoring for loose tolerance.
     for q1 in range(9):
         assert (
-            cirq.sub_state_vector(imperfect_state, [q1], default=_DEFAULT_ARRAY, atol=1) is not _DEFAULT_ARRAY
+            cirq.sub_state_vector(imperfect_state, [q1], default=_DEFAULT_ARRAY, atol=1)
+            is not _DEFAULT_ARRAY
         )
 
 
