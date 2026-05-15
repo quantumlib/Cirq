@@ -559,8 +559,8 @@ def sub_state_vector(
 
     # Return the eigenvector with eigenvalue 1.
     evals, evec = np.linalg.eigh(rho)
-    if np.isclose(evals, 1, atol=atol).any():
-        factor_index = np.argmax(evals)
+    factor_index = np.argmax(evals)
+    if np.isclose(evals[factor_index], 1, atol=atol, rtol=0):
         factored = evec[:, factor_index]
         # Prevent accidental reliance on global phase.
         random_phase = np.exp(2j * np.pi * np.random.random())
