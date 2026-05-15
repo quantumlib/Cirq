@@ -556,14 +556,12 @@ def sub_state_vector(
 
     # The permutation moves the specified qubits to the start of the qubit order.
     keeps = frozenset(keep_indices)
-    remainder = np.array([i for i in range(n_qubits) if i not in keeps], dtype=np.int64)
-    permutation = np.concatenate([keep_indices, remainder])
+    permutation = [*sorted(keep_indices), *(i for i in range(n_qubits) if not i in keeps)]
 
     # Permute qubits and construct the pure-state density matrix.
     raveled = state_vector.reshape([2] * n_qubits)
     raveled = np.transpose(raveled, permutation)
-    num_qubits_out = len(keep_indices)
-    c_psi = raveled.reshape([2**num_qubits_out, -1])
+    c_psi = raveled.reshape([keep_dims, -1])
     rho = c_psi @ c_psi.conj().T
 
     # Return the eigenvector with eigenvalue 1.
