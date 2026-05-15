@@ -561,7 +561,7 @@ def sub_state_vector(
     # Permute qubits and construct the pure-state density matrix.
     raveled = state_vector.reshape([2] * n_qubits)
     raveled = np.transpose(raveled, permutation)
-    c_psi = raveled.reshape([keep_dims, -1])
+    c_psi = raveled.reshape(keep_dims, -1)
     rho = c_psi @ c_psi.conj().T
 
     # Return the eigenvector with eigenvalue 1.
