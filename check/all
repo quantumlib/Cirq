@@ -91,8 +91,8 @@ run() {
 }
 
 run check/misc
-run ruff check "${extra_ruff_args[@]}"
 run check/format-incremental "${base_rev[@]}" "${extra_format_args[@]}"
+run ruff check "${extra_ruff_args[@]}"
 
 if (( only_changed )); then
     run check/pylint-changed-files "${base_rev[@]}"

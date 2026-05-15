@@ -33,11 +33,9 @@ from cirq_google.engine.local_simulation_type import LocalSimulationType
 def _flatten_results(batch_results: Sequence[Sequence[EngineResult]]) -> list[EngineResult]:
     if not batch_results:
         return []
-    # Engine returns results grouped by sweep then by program.
-    # batch_results is currently grouped by program then by sweep.
-    return [
-        batch_results[i][j] for j in range(len(batch_results[0])) for i in range(len(batch_results))
-    ]
+    # Engine returns results grouped by program then by sweep.
+    # batch_results is already grouped by program then by sweep.
+    return [res for batch in batch_results for res in batch]
 
 
 def _to_engine_results(

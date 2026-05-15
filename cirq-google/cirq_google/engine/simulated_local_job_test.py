@@ -135,3 +135,27 @@ def test_run_async():
     )
     _ = job.results()
     assert job.execution_status() == quantum.ExecutionStatus.State.SUCCESS
+
+
+def test_run_batch():
+    program = ParentProgram(
+        [
+            cirq.Circuit(cirq.X(Q) ** sympy.Symbol('t'), cirq.measure(Q, key='m')),
+            cirq.Circuit(cirq.Z(Q) ** sympy.Symbol('t'), cirq.measure(Q, key='m')),
+        ],
+        None,
+    )
+    job = SimulatedLocalJob(
+        job_id='test_job',
+        processor_id='test1',
+        parent_program=program,
+        repetitions=100,
+        sweeps=[cirq.Points(key='t', points=[0, 1]), cirq.Points(key='t', points=[0, 1])],
+    )
+    assert job.execution_status() == quantum.ExecutionStatus.State.READY
+    results = job.results()
+    assert np.all(results[0].measurements['m'] == 0)
+    assert np.all(results[1].measurements['m'] == 1)
+    assert np.all(results[2].measurements['m'] == 0)
+    assert np.all(results[3].measurements['m'] == 0)
+    assert job.execution_status() == quantum.ExecutionStatus.State.SUCCESS

@@ -84,6 +84,9 @@ jobs:
     name: Convert dependabot PR to draft
     runs-on: ubuntu-slim
     timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - name: Convert to draft and attach the on-hold label
         env:

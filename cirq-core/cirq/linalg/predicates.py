@@ -38,10 +38,9 @@ def is_diagonal(matrix: np.ndarray, *, atol: float = 1e-8) -> bool:
     Returns:
         Whether the matrix is diagonal within the given tolerance.
     """
-    matrix = np.copy(matrix)
-    for i in range(min(matrix.shape)):
-        matrix[i, i] = 0
-    return tolerance.all_near_zero(matrix, atol=atol)
+    absolute = np.abs(matrix)
+    np.fill_diagonal(absolute, 0)
+    return tolerance.near_zero(np.max(absolute, initial=0), atol=atol)
 
 
 def is_hermitian(matrix: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8) -> bool:
