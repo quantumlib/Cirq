@@ -19,7 +19,7 @@ from __future__ import annotations
 import itertools
 import time
 from collections.abc import Iterable, Mapping, Sequence
-from typing import Iterator, cast, TYPE_CHECKING, overload
+from typing import Iterator, cast, TYPE_CHECKING
 
 import attrs
 import numpy as np
@@ -53,8 +53,6 @@ class CircuitToPauliStringsParameters:
         postselection_symmetries: The tuple mapping Pauli strings or Pauli sums to expected values
             for postselection symmetries.  Measured bitstrings which do not have the indicated
             values of the symmetry operators are postselected out.
-        readout_repetitions: The number of repetitions to use for readout calibration.
-        num_random_bitstrings: The number of random bitstrings to use for readout mitigation.
     """
 
     circuit: circuits.FrozenCircuit
@@ -64,16 +62,6 @@ class CircuitToPauliStringsParameters:
     postselection_symmetries: Sequence[tuple[ops.PauliString | ops.PauliSum, int]] = attrs.field(
         default=()
     )
-    readout_repetitions: int = 1
-    num_random_bitstrings: int = 0
-    
-    def __attrs_post_init__(self):
-        # Check num_random_bitstrings is bigger than or equal to 0
-        if self.num_random_bitstrings is not None and self.num_random_bitstrings < 0:
-            raise ValueError("Must provide zero or more num_random_bitstrings.")
-        # Check readout_repetitions is bigger than 0
-        if self.readout_repetitions is not None and self.readout_repetitions <= 0:
-            raise ValueError("Must provide positive readout_repetitions for readout calibration.")
 
 
 @attrs.frozen
@@ -306,14 +294,14 @@ def _validate_input(
         | list[CircuitToPauliStringsParameters]
     ),
     pauli_repetitions: int,
+    readout_repetitions: int,
+    num_random_bitstrings: int,
     rng_or_seed: np.random.Generator | int,
-    readout_repetitions: int | None = None,
-    num_random_bitstrings: int | None = None,
 ):
     if not circuits_to_pauli:
         raise ValueError("Input circuits_to_pauli parameter must not be empty.")
 
-    normalized_circuits_to_pauli = _validate_and_normalize_unformatted_input(circuits_to_pauli, readout_repetitions, num_random_bitstrings)
+    normalized_circuits_to_pauli = _validate_and_normalize_unformatted_input(circuits_to_pauli)
 
     _validate_circuit_to_pauli_strings_parameters(normalized_circuits_to_pauli)
 
@@ -325,6 +313,14 @@ def _validate_input(
     if pauli_repetitions <= 0:
         raise ValueError("Must provide positive pauli_repetitions.")
 
+    # Check num_random_bitstrings is bigger than or equal to 0
+    if num_random_bitstrings < 0:
+        raise ValueError("Must provide zero or more num_random_bitstrings.")
+
+    # Check readout_repetitions is bigger than 0
+    if readout_repetitions <= 0:
+        raise ValueError("Must provide positive readout_repetitions for readout calibration.")
+
     return normalized_circuits_to_pauli
 
 
@@ -334,8 +330,6 @@ def _validate_and_normalize_unformatted_input(
         | Mapping[circuits.FrozenCircuit, Sequence[Sequence[ops.PauliString]]]
         | list[CircuitToPauliStringsParameters]
     ),
-    readout_repetitions: int | None = None,
-    num_random_bitstrings: int | None = None,
 ) -> list[CircuitToPauliStringsParameters]:
     """Converts any valid input format into a standardized list of parameters
     where pauli_strings is always Sequence[Sequence[PauliString]]."""
@@ -356,8 +350,6 @@ def _validate_and_normalize_unformatted_input(
                     circuit=circuit,
                     pauli_strings=cast(tuple[tuple[ops.PauliString]], normalized_paulis),
                     postselection_symmetries=[],
-                    readout_repetitions=readout_repetitions,
-                    num_random_bitstrings=num_random_bitstrings,
                 )
             )
     elif isinstance(circuits_input, list):
@@ -891,6 +883,8 @@ def _measure_pauli_strings_with_confusion_matrices(
     normalized_circuits_to_pauli: list[CircuitToPauliStringsParameters],
     sampler: work.Sampler,
     pauli_repetitions: int,
+    readout_repetitions: int,
+    num_random_bitstrings: int,
     rng_or_seed: np.random.Generator | int,
     use_sweep: bool = False,
     insert_strategy: circuits.InsertStrategy = circuits.InsertStrategy.INLINE,
@@ -923,6 +917,10 @@ def _measure_pauli_strings_with_confusion_matrices(
         sampler: The sampler to use.
         pauli_repetitions: The number of repetitions for each circuit when measuring
             Pauli strings.
+        readout_repetitions: The number of repetitions for readout calibration
+            in the shuffled benchmarking.
+        num_random_bitstrings: The number of random bitstrings to use in readout
+            benchmarking.
         rng_or_seed: A random number generator or seed for the readout benchmarking.
         use_sweep: If True, uses parameterized circuits and sweeps parameters
             for both Pauli measurements and readout benchmarking. Defaults to False.
@@ -941,9 +939,6 @@ def _measure_pauli_strings_with_confusion_matrices(
     """
     if not normalized_circuits_to_pauli:
         return []
-    
-    readout_repetitions = normalized_circuits_to_pauli[0].readout_repetitions
-    num_random_bitstrings = normalized_circuits_to_pauli[0].num_random_bitstrings
 
     # Extract unique qubit tuples from input pauli strings
     if measure_on_full_support:
@@ -1065,47 +1060,17 @@ def _measure_pauli_strings_with_confusion_matrices(
     return results
 
 
-@overload
 def measure_pauli_strings(
-    circuits_to_pauli: Mapping[
-        circuits.FrozenCircuit,
-        Sequence[ops.PauliString] | Sequence[Sequence[ops.PauliString]]
-    ],
+    circuits_to_pauli: (
+        Mapping[circuits.FrozenCircuit, Sequence[ops.PauliString] | Sequence[Sequence[ops.PauliString]]
+]
+        | list[CircuitToPauliStringsParameters]
+    ),
     sampler: work.Sampler,
     pauli_repetitions: int,
     readout_repetitions: int,
     num_random_bitstrings: int,
     rng_or_seed: np.random.Generator | int,
-    use_sweep: bool = False,
-    insert_strategy: circuits.InsertStrategy = circuits.InsertStrategy.INLINE,
-    measure_on_full_support: bool = False,
-) -> list[CircuitToPauliStringsMeasurementResult]:
-    ...
-
-
-@overload
-def measure_pauli_strings(
-    circuits_to_pauli: list[CircuitToPauliStringsParameters],
-    sampler: work.Sampler,
-    pauli_repetitions: int,
-    rng_or_seed: np.random.Generator | int,
-    use_sweep: bool = False,
-    insert_strategy: circuits.InsertStrategy = circuits.InsertStrategy.INLINE,
-    measure_on_full_support: bool = False,
-) -> list[CircuitToPauliStringsMeasurementResult]:
-    ...
-    
-
-def measure_pauli_strings(
-    circuits_to_pauli: (
-        Mapping[circuits.FrozenCircuit, Sequence[ops.PauliString] | Sequence[Sequence[ops.PauliString]]]
-        | list[CircuitToPauliStringsParameters]
-    ),
-    sampler: work.Sampler,
-    pauli_repetitions: int,
-    readout_repetitions: int | None = None,
-    num_random_bitstrings: int | None = None,
-    rng_or_seed: np.random.Generator | int = 0 ,
     use_sweep: bool = False,
     insert_strategy: circuits.InsertStrategy = circuits.InsertStrategy.INLINE,
     measure_on_full_support: bool = False,
@@ -1153,9 +1118,9 @@ def measure_pauli_strings(
     normalized_circuits_to_pauli = _validate_input(
         circuits_to_pauli,
         pauli_repetitions,
-        rng_or_seed,
         readout_repetitions,
         num_random_bitstrings,
+        rng_or_seed,
     )
 
     # Split the input circuits into two lists based on the way they are measured.
@@ -1171,6 +1136,8 @@ def measure_pauli_strings(
         sampler=sampler,
         normalized_circuits_to_pauli=confusion_circuits,
         pauli_repetitions=pauli_repetitions,
+        readout_repetitions=readout_repetitions,
+        num_random_bitstrings=num_random_bitstrings,
         rng_or_seed=rng_or_seed,
         use_sweep=use_sweep,
         insert_strategy=insert_strategy,
