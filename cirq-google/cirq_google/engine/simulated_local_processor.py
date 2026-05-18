@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import datetime
+from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING
 
 import cirq
@@ -198,7 +199,11 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
 
     async def run_sweep_async(
         self,
-        program: cirq.AbstractCircuit,
+        program: (
+            cirq.AbstractCircuit
+            | Sequence[cirq.AbstractCircuit]
+            | Mapping[str, cirq.AbstractCircuit]
+        ),
         *,
         program_id: str | None = None,
         job_id: str | None = None,
@@ -216,11 +221,17 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             program_id = self._create_id(id_type='program')
         if job_id is None:
             job_id = self._create_id(id_type='job')
-        self._program_validator([program], [params], repetitions, CIRCUIT_SERIALIZER)
+        if isinstance(program, cirq.AbstractCircuit):
+            programs = [program]
+        elif isinstance(program, Mapping):
+            programs = list(program.values())
+        else:
+            programs = list(program)
+        self._program_validator(programs, [params], repetitions, CIRCUIT_SERIALIZER)
         self._programs[program_id] = SimulatedLocalProgram(
             program_id=program_id,
             simulation_type=self._simulation_type,
-            circuits=[program],
+            circuits=programs,
             processor=self,
             engine=self.engine(),
         )

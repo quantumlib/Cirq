@@ -23,9 +23,6 @@ docs/api_docs
 # swap files
 *.swp
 
-# From asv
-*.asv/
-
 # Ignore generated Jupyter files
 *.ipynb_checkpoints/
 

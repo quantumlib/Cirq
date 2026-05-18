@@ -560,3 +560,28 @@ def test_timeout(get_job):
 def test_str():
     job = cg.EngineJob('a', 'b', 'steve', EngineContext())
     assert str(job) == 'EngineJob(project_id=\'a\', program_id=\'b\', job_id=\'steve\')'
+
+
+def test_get_circuit():
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext())
+    circuit = cirq.Circuit()
+    with mock.patch.object(
+        cg.EngineProgram, 'get_circuit_async', new_callable=mock.AsyncMock
+    ) as get_circuit_async:
+        get_circuit_async.return_value = circuit
+        assert job.get_circuit() is circuit
+        get_circuit_async.assert_called_with(None)
+        assert job.get_circuit(1) is circuit
+        get_circuit_async.assert_called_with(1)
+
+
+@duet.sync
+async def test_get_circuit_async():
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext())
+    circuit = cirq.Circuit()
+    with mock.patch.object(
+        cg.EngineProgram, 'get_circuit_async', new_callable=mock.AsyncMock
+    ) as get_circuit_async:
+        get_circuit_async.return_value = circuit
+        assert await job.get_circuit_async(1) is circuit
+        get_circuit_async.assert_called_with(1)

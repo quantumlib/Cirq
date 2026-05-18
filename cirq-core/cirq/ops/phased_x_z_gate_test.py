@@ -69,31 +69,36 @@ def test_canonicalization() -> None:
 
     # Canonicalizations are equivalent.
     eq = cirq.testing.EqualsTester()
-    eq.add_equality_group(f(-1, 0, 0), f(-3, 0, 0), f(1, 1, 0.5))
+    eq.add_equality_group(f(1, 0, 0), f(3, 0, 0), f(-1, 0, 1))
     """
-    # Canonicalize X exponent (-1, +1].
-    if isinstance(x, numbers.Real):
+    # Canonicalize X exponent into [0, +1].
+    if not isinstance(x, sympy.Expr):
+        if x < 0:
+            x *= -1
+            a += 1
         x %= 2
-        if x > 1:
-            x -= 2
-    # Axis phase exponent is irrelevant if there is no X exponent.
-    # Canonicalize Z exponent (-1, +1].
-    if isinstance(z, numbers.Real):
+        if x == 0:
+            a = 0  # Axis phase exponent is irrelevant if there is no X exponent.
+        elif x > 1.0:
+            x = 2 - x
+            a += 1
+
+    # For 180 degree X rotations, the axis phase and z exponent overlap.
+    if x == 1 and z != 0:
+        a += z / 2
+        z = 0.0
+
+    # Canonicalize Z exponent into (-1, +1].
+    if not isinstance(z, sympy.Expr):
         z %= 2
-        if z > 1:
+        if z > 1.0:
             z -= 2
 
-    # Canonicalize axis phase exponent into (-0.5, +0.5].
-    if isinstance(a, numbers.Real):
+    # Canonicalize axis phase exponent into (-1, +1].
+    if not isinstance(a, sympy.Expr):
         a %= 2
-        if a > 1:
+        if a > 1.0:
             a -= 2
-        if a <= -0.5:
-            a += 1
-            x = -x
-        elif a > 0.5:
-            a -= 1
-            x = -x
     """
 
     # X rotation gets canonicalized.
@@ -102,9 +107,9 @@ def test_canonicalization() -> None:
     assert t.z_exponent == 0
     assert t.axis_phase_exponent == 0
     t = f(1.5, 0, 0)._canonical()
-    assert t.x_exponent == -0.5
+    assert t.x_exponent == 0.5
     assert t.z_exponent == 0
-    assert t.axis_phase_exponent == 0
+    assert t.axis_phase_exponent == 1
 
     # Z rotation gets canonicalized.
     t = f(0, 3, 0)._canonical()
@@ -122,23 +127,23 @@ def test_canonicalization() -> None:
     assert t.z_exponent == 0
     assert t.axis_phase_exponent == 0.25
     t = f(0.5, 0, 1.25)._canonical()
-    assert t.x_exponent == -0.5
+    assert t.x_exponent == 0.5
     assert t.z_exponent == 0
-    assert t.axis_phase_exponent == 0.25
+    assert t.axis_phase_exponent == -0.75
     t = f(0.5, 0, 0.75)._canonical()
-    assert t.x_exponent == -0.5
+    assert t.x_exponent == 0.5
     assert t.z_exponent == 0
-    assert t.axis_phase_exponent == -0.25
+    assert t.axis_phase_exponent == 0.75
 
     # 180 degree rotations don't need a virtual Z.
     t = f(1, 1, 0.5)._canonical()
     assert t.x_exponent == 1
     assert t.z_exponent == 0
-    assert t.axis_phase_exponent == 0
+    assert t.axis_phase_exponent == 1
     t = f(1, 0.25, 0.5)._canonical()
     assert t.x_exponent == 1
     assert t.z_exponent == 0
-    assert t.axis_phase_exponent == -0.375
+    assert t.axis_phase_exponent == 0.625
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(t), cirq.unitary(f(1, 0.25, 0.5)), atol=1e-8
     )
@@ -148,6 +153,19 @@ def test_canonicalization() -> None:
     assert t.x_exponent == 0
     assert t.z_exponent == 0.25
     assert t.axis_phase_exponent == 0
+
+
+def test_pi_pulse_canonicalization() -> None:
+    """Pi-pulses (x_exponent=1) about different axes should not be considered equal."""
+
+    def f(x, z, a):
+        return cirq.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
+
+    assert f(1, 0, 0.25) == f(-1, 0, 1.25)
+    assert f(1, 0, 0.25) != f(1, 0, 1.25)
+
+    assert cirq.approx_eq(f(1, 0, 0.2), f(-1, 0, 1.2))
+    assert not cirq.approx_eq(f(1, 0, 0.2), f(1, 0, 1.2))
 
 
 def test_from_matrix() -> None:

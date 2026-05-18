@@ -31,7 +31,11 @@ from cirq_google.engine.local_simulation_type import LocalSimulationType
 
 
 def _flatten_results(batch_results: Sequence[Sequence[EngineResult]]) -> list[EngineResult]:
-    return [result for batch in batch_results for result in batch]
+    if not batch_results:
+        return []
+    # Engine returns results grouped by program then by sweep.
+    # batch_results is already grouped by program then by sweep.
+    return [res for batch in batch_results for res in batch]
 
 
 def _to_engine_results(
@@ -124,6 +128,8 @@ class SimulatedLocalJob(AbstractLocalJob):
         try:
             self._state = quantum.ExecutionStatus.State.RUNNING
             programs = [parent.get_circuit(n) for n in range(batch_size)]
+            if len(sweeps) == 1 and len(programs) > 1:
+                sweeps = sweeps * len(programs)
             batch_results = self._sampler.run_batch(
                 programs=programs, params_list=cast(list[cirq.Sweepable], sweeps), repetitions=reps
             )

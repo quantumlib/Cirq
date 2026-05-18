@@ -612,7 +612,7 @@ def test_run_multiple_times(client):
         param_resolver=cirq.ParamResolver({'a': 1}),
         run_name="run",
         device_config_name="config_alias",
-    )
+    ).results()
     run_context = v2.run_context_pb2.RunContext()
     client().create_job_async.call_args[1]['run_context'].Unpack(run_context)
     sweeps1 = run_context.parameter_sweeps
@@ -1151,3 +1151,43 @@ def test_list_processor_configs_from_snapshot(list_processor_configs_async):
         ('test_config_1', processor_id, '', snapshot.id),
         ('test_config_2', processor_id, '', snapshot.id),
     ]
+
+
+def test_engine_context_serialize_multi_program_errors():
+    context = EngineContext()
+
+    # Mapping with non-circuits
+    with pytest.raises(TypeError, match='Unrecognized program type'):
+        context._serialize_multi_program({'a': 'not a circuit'})
+
+    # Sequence with non-circuits
+    with pytest.raises(TypeError, match='Unrecognized program type'):
+        context._serialize_multi_program(['not a circuit'])
+
+    # Invalid type
+    with pytest.raises(TypeError, match='Unrecognized program type'):
+        context._serialize_multi_program(123)
+
+    # invalid proto version
+    # Note: ProtoVersion.V1 is blocked in __init__, but UNDEFINED is not.
+    context.proto_version = cg.engine.engine.ProtoVersion.UNDEFINED
+    with pytest.raises(ValueError, match='invalid program proto version'):
+        context._serialize_multi_program([_CIRCUIT])
+
+
+def test_engine_context_serialize_multi_program_success():
+    context = EngineContext()
+    # success
+    # This should not raise
+    context._serialize_multi_program([_CIRCUIT])
+    context._serialize_multi_program({'a': _CIRCUIT})
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_engine_create_program_multi(client_mock):
+    client_mock().create_program_async.return_value = ('prog', quantum.QuantumProgram())
+    engine = cg.Engine(project_id='proj')
+
+    # program is not AbstractCircuit (it's a list)
+    engine.create_program([_CIRCUIT], 'prog')
+    client_mock().create_program_async.assert_called_once()

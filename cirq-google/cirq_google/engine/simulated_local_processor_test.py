@@ -211,3 +211,14 @@ def test_device_specification():
     device_spec.valid_qubits.append('q0_1')
     proc = SimulatedLocalProcessor(processor_id='test_proc', device_specification=device_spec)
     assert proc.get_device_specification() == device_spec
+
+
+def test_simulated_local_processor_run_sweep_multi():
+    processor = SimulatedLocalProcessor(processor_id='test_proc')
+    circuit = cirq.Circuit(cirq.measure(cirq.GridQubit(0, 0), key='m'))
+
+    # Mapping
+    processor.run_sweep({'a': circuit}, params={}, repetitions=1)
+
+    # Sequence (else block)
+    processor.run_sweep([circuit], params={}, repetitions=1)

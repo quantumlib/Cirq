@@ -94,15 +94,18 @@ class PhasedXZGate(raw_types.Gate):
         z = self.z_exponent
         a = self.axis_phase_exponent
 
-        # Canonicalize X exponent into (-1, +1].
+        # Canonicalize X exponent into [0, +1].
         if not isinstance(x, sympy.Expr):
+            if x < 0:
+                x *= -1
+                a += 1
             x %= 2
-            if x > 1.0:
-                x -= 2
+            if x == 0:
+                a = 0  # Axis phase exponent is irrelevant if there is no X exponent.
+            elif x > 1.0:
+                x = 2 - x
+                a += 1
 
-        # Axis phase exponent is irrelevant if there is no X exponent.
-        if x == 0:
-            a = 0.0
         # For 180 degree X rotations, the axis phase and z exponent overlap.
         if x == 1 and z != 0:
             a += z / 2
@@ -114,19 +117,11 @@ class PhasedXZGate(raw_types.Gate):
             if z > 1.0:
                 z -= 2
 
-        # Canonicalize axis phase exponent into (-0.5, +0.5].
+        # Canonicalize axis phase exponent into (-1, +1].
         if not isinstance(a, sympy.Expr):
             a %= 2
             if a > 1.0:
                 a -= 2
-            if a <= -0.5:
-                a += 1
-                if x != 1:
-                    x = -x
-            elif a > 0.5:
-                a -= 1
-                if x != 1:
-                    x = -x
 
         return PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
 
@@ -349,45 +344,55 @@ def _canonical_xza_mod_2(
     Optimized helper for `PhasedXZGate._has_stabilizer_effect_`.
     """
     # The result must be consistent with PhasedXZGate._canonical
-    x = x_exponent % 2
-    a = 0.0 if x == 0 else axis_phase_exponent % 2
-    z = z_exponent % 2
+    x = x_exponent
+    a = axis_phase_exponent
+    if x < 0:
+        x *= -1
+        a += 1
+    x %= 2
+    if x == 0:
+        a = 0
+    elif x > 1:
+        x = 2 - x
+        a += 1
+    z = z_exponent
     if x == 1 and z != 0:
-        a = (a + z / 2) % 2
+        a += z / 2
         z = 0
-    if 0.5 < a <= 1.5:
-        a = (a - 1) % 2
-        x = 2 - x if x else x
-    return (x, z, a)
+    return (x, z % 2, a % 2)
 
 
 @functools.cache
 def _clifford_as_phasedzx_params() -> frozenset[tuple[float, float, float]]:
     return frozenset(
         {
-            (0.0, 1.0, 0.0),
-            (0.5, 1.5, 0.0),
-            (1.5, 1.5, 0.0),
-            (1.5, 1.5, 0.5),
-            (0.0, 0.5, 0.0),
-            (0.5, 1.0, 0.0),
-            (0.5, 1.0, 0.5),
-            (1.0, 0.0, 1.75),
-            (0.5, 0.5, 0.0),
-            (0.5, 0.5, 0.5),
-            (1.5, 0.5, 0.5),
-            (1.5, 1.0, 0.5),
-            (1.5, 1.0, 0.0),
-            (1.5, 0.5, 0.0),
             (0.0, 0.0, 0.0),
-            (1.0, 0.0, 0.0),
-            (1.0, 0.0, 0.5),
-            (1.0, 0.0, 0.25),
-            (0.5, 0.0, 0.5),
+            (0.0, 0.5, 0.0),
+            (0.0, 1.0, 0.0),
             (0.0, 1.5, 0.0),
             (0.5, 0.0, 0.0),
-            (1.5, 0.0, 0.0),
-            (1.5, 0.0, 0.5),
+            (0.5, 0.0, 0.5),
+            (0.5, 0.0, 1.0),
+            (0.5, 0.0, 1.5),
+            (0.5, 0.5, 0.0),
+            (0.5, 0.5, 0.5),
+            (0.5, 0.5, 1.0),
+            (0.5, 0.5, 1.5),
+            (0.5, 1.0, 0.0),
+            (0.5, 1.0, 0.5),
+            (0.5, 1.0, 1.0),
+            (0.5, 1.0, 1.5),
+            (0.5, 1.5, 0.0),
             (0.5, 1.5, 0.5),
+            (0.5, 1.5, 1.0),
+            (0.5, 1.5, 1.5),
+            (1.0, 0.0, 0.0),
+            (1.0, 0.0, 0.25),
+            (1.0, 0.0, 0.5),
+            (1.0, 0.0, 0.75),
+            (1.0, 0.0, 1.0),
+            (1.0, 0.0, 1.25),
+            (1.0, 0.0, 1.5),
+            (1.0, 0.0, 1.75),
         }
     )

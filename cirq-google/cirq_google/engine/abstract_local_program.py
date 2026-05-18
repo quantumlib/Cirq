@@ -195,14 +195,14 @@ class AbstractLocalProgram(AbstractProgram):
         supported if the program was created with the V2 protos.
 
         Args:
-            program_num: if this is a batch program, the index of the circuit in
-                the batch.  This argument is zero-indexed. Negative values
+            program_num: if this is a multi-circuit program, the index of the circuit
+                to return.  This argument is zero-indexed. Negative values
                 indexing from the end of the list.
 
         Returns:
             The program's cirq Circuit.
         """
-        if program_num:
+        if program_num is not None:
             return self._circuits[program_num]
         return self._circuits[0]
 

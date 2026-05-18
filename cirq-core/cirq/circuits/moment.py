@@ -101,7 +101,7 @@ class Moment:
 
         # An internal dictionary to support efficient operation access by qubit.
         self._qubit_to_op: dict[cirq.Qid, cirq.Operation] = {}
-        for op in self.operations:
+        for op in self._operations:
             for q in op.qubits:
                 # Check that operations don't overlap.
                 if q in self._qubit_to_op:
