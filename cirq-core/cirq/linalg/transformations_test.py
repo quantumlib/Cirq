@@ -390,25 +390,28 @@ def test_sub_state_vector() -> None:
     )
 
     # Reject factoring for very tight tolerance.
+    imperfect_state = state * np.random.normal(1.0, 1e-6, state.shape)
     assert (
-        cirq.sub_state_vector(state, [0, 1], default=_DEFAULT_ARRAY, atol=1e-16) is _DEFAULT_ARRAY
-    )
-    assert (
-        cirq.sub_state_vector(state, [2, 3, 4], default=_DEFAULT_ARRAY, atol=1e-16)
+        cirq.sub_state_vector(imperfect_state, [0, 1], default=_DEFAULT_ARRAY, atol=1e-16)
         is _DEFAULT_ARRAY
     )
     assert (
-        cirq.sub_state_vector(state, [5, 6, 7, 8], default=_DEFAULT_ARRAY, atol=1e-16)
+        cirq.sub_state_vector(imperfect_state, [2, 3, 4], default=_DEFAULT_ARRAY, atol=1e-16)
+        is _DEFAULT_ARRAY
+    )
+    assert (
+        cirq.sub_state_vector(imperfect_state, [5, 6, 7, 8], default=_DEFAULT_ARRAY, atol=1e-16)
         is _DEFAULT_ARRAY
     )
 
     # Ensure None can be passed as the `default` argument
-    assert cirq.sub_state_vector(state, [0, 1], default=None, atol=1e-16) is None
+    assert cirq.sub_state_vector(imperfect_state, [0, 1], default=None, atol=1e-16) is None
 
     # Permit invalid factoring for loose tolerance.
     for q1 in range(9):
         assert (
-            cirq.sub_state_vector(state, [q1], default=_DEFAULT_ARRAY, atol=1) is not _DEFAULT_ARRAY
+            cirq.sub_state_vector(imperfect_state, [q1], default=_DEFAULT_ARRAY, atol=1)
+            is not _DEFAULT_ARRAY
         )
 
 
