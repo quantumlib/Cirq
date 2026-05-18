@@ -19,7 +19,8 @@ from __future__ import annotations
 import itertools
 import time
 from collections.abc import Iterable, Mapping, Sequence
-from typing import Iterator, cast, TYPE_CHECKING
+from typing import cast, TYPE_CHECKING
+from collections.abc import Iterator
 
 import attrs
 import numpy as np
@@ -289,8 +290,9 @@ def _validate_circuit_to_pauli_strings_parameters(
 
 def _validate_input(
     circuits_to_pauli: (
-        Mapping[circuits.FrozenCircuit, Sequence[ops.PauliString]]
-        | Mapping[circuits.FrozenCircuit, Sequence[Sequence[ops.PauliString]]]
+        Mapping[
+            circuits.FrozenCircuit, Sequence[ops.PauliString] | Sequence[Sequence[ops.PauliString]]
+        ]
         | list[CircuitToPauliStringsParameters]
     ),
     pauli_repetitions: int,
@@ -326,8 +328,9 @@ def _validate_input(
 
 def _validate_and_normalize_unformatted_input(
     circuits_input: (
-        Mapping[circuits.FrozenCircuit, Sequence[ops.PauliString]]
-        | Mapping[circuits.FrozenCircuit, Sequence[Sequence[ops.PauliString]]]
+        Mapping[
+            circuits.FrozenCircuit, Sequence[ops.PauliString] | Sequence[Sequence[ops.PauliString]]
+        ]
         | list[CircuitToPauliStringsParameters]
     ),
 ) -> list[CircuitToPauliStringsParameters]:
@@ -594,7 +597,7 @@ def _split_input_circuits(
         if circuit_to_pauli_params.postselection_symmetries:
             symmetry_circuits.append(circuit_to_pauli_params)
         else:
-            confusion_circuits.append(circuit_to_pauli_params) 
+            confusion_circuits.append(circuit_to_pauli_params)
     return symmetry_circuits, confusion_circuits
 
 
@@ -619,9 +622,8 @@ def _process_symmetry_measurement_results(
 
     for sym, expected_value in circuit_to_pauli.postselection_symmetries:
         sum_eigenvalues = sum(
-            ps.coefficient.real * np.prod(
-                measurement_result_eigenvalues[:, _qubits_to_indices(ps.keys())], axis=1
-            )
+            ps.coefficient.real
+            * np.prod(measurement_result_eigenvalues[:, _qubits_to_indices(ps.keys())], axis=1)
             for ps in _flatten_pauli_objs([sym])
         )
         rows_to_keep_mask &= np.isclose(sum_eigenvalues, expected_value)
@@ -717,7 +719,7 @@ def _process_pauli_measurement_results(
         else:
             pauli_readout_qubits = _extract_readout_qubits(pauli_strs)
             calibration_key = tuple(pauli_readout_qubits)
-            
+
         qubit_to_index = {q: i for i, q in enumerate(pauli_readout_qubits)}
 
         calibration_result = (
@@ -845,21 +847,21 @@ def _measure_pauli_strings_with_symmetries(
         circuit_result_index = 0
         for circuit_to_pauli_params in circuits_to_pauli:
             num_results = len(circuit_to_pauli_params.pauli_strings)
-            circuit_results = circuits_measurement_results[
+            cur_circuit_results = circuits_measurement_results[
                 circuit_result_index : circuit_result_index
                 + len(circuit_to_pauli_params.pauli_strings)
             ]
-            all_circuits_measurement_results.append(circuit_results)
+            all_circuits_measurement_results.append(cur_circuit_results)
             circuit_result_index += num_results
-    
+
     final_measurement_results: list[CircuitToPauliStringsMeasurementResult] = []
-    for circuit_to_pauli_params, circuit_results in zip(
+    for circuit_to_pauli_params, circuit_results_seq in zip(
         circuits_to_pauli, all_circuits_measurement_results
     ):
         qubits_in_circuit = tuple(sorted(circuit_to_pauli_params.circuit.all_qubits()))
         single_circuit_pauli_measurement_results: list[PauliStringMeasurementResult] = []
-        
-        for i, circuit_result in enumerate(circuit_results):
+
+        for i, circuit_result in enumerate(circuit_results_seq):
             single_circuit_pauli_measurement_results.extend(
                 _process_symmetry_measurement_results(
                     qubits_in_circuit,
@@ -875,7 +877,7 @@ def _measure_pauli_strings_with_symmetries(
                 results=single_circuit_pauli_measurement_results,
             )
         )
-        
+
     return final_measurement_results
 
 
@@ -1012,7 +1014,7 @@ def _measure_pauli_strings_with_confusion_matrices(
 
     for circuit_to_pauli in normalized_circuits_to_pauli:
         input_circuit = circuit_to_pauli.circuit
-        pauli_string_groups_in_circuit: tuple[tuple[ops.PauliString]] = (
+        pauli_string_groups_in_circuit: tuple[tuple[ops.PauliString, ...], ...] = (
             circuit_to_pauli.pauli_strings
         )
 
@@ -1062,8 +1064,9 @@ def _measure_pauli_strings_with_confusion_matrices(
 
 def measure_pauli_strings(
     circuits_to_pauli: (
-        Mapping[circuits.FrozenCircuit, Sequence[ops.PauliString] | Sequence[Sequence[ops.PauliString]]
-]
+        Mapping[
+            circuits.FrozenCircuit, Sequence[ops.PauliString] | Sequence[Sequence[ops.PauliString]]
+        ]
         | list[CircuitToPauliStringsParameters]
     ),
     sampler: work.Sampler,

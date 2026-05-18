@@ -22,10 +22,7 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.contrib.paulistring import (
-    CircuitToPauliStringsParameters,
-    measure_pauli_strings,
-)
+from cirq.contrib.paulistring import CircuitToPauliStringsParameters, measure_pauli_strings
 from cirq.contrib.paulistring.pauli_string_measurement_with_readout_mitigation import (
     PostFilteringSymmetryCalibrationResult as PostFilteringSymmetryCalibrationResult,
 )
