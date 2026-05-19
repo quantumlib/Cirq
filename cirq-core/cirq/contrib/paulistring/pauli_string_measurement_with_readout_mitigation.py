@@ -18,9 +18,8 @@ from __future__ import annotations
 
 import itertools
 import time
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Iterable, Iterator, Mapping, Sequence
 from typing import cast, TYPE_CHECKING
-from collections.abc import Iterator
 
 import attrs
 import numpy as np
@@ -385,10 +384,7 @@ def _extract_readout_qubits(
 ) -> list[ops.Qid]:
     """Extracts unique qubits from both the target Pauli strings and the symmetries."""
     all_qubits = {q for ps in pauli_strings for q in ps.qubits}
-
-    if symmetries:
-        for sym in _flatten_pauli_objs(symmetries):
-            all_qubits.update(sym.qubits)
+    all_qubits.update(*(sym.qubits for sym in _flatten_pauli_objs(symmetries)))
 
     return sorted(all_qubits)
 
