@@ -16,7 +16,7 @@ spec:
       - name: triage-party
         image: triageparty/triage-party
         imagePullPolicy: Always
-        args: ["/app/main", "--min-refresh","5m", "--max-refresh", "5m"]
+        args: ["/app/main", "--min-refresh","1m", "--max-refresh", "3m"]
         env:
         - name: GITHUB_TOKEN
           valueFrom:
@@ -26,7 +26,19 @@ spec:
         volumeMounts:
         - name: config
           mountPath: /app/config
+        - name: custom-css-volume
+          mountPath: /app/site/static/css/custom.css
+          subPath: custom.css
+        - name: favicon-volume
+          mountPath: /app/site/static/img/favicon-32x32.png
+          subPath: favicon-32x32.png
       volumes:
       - name: config
         configMap:
           name: triage-party-config
+      - name: custom-css-volume
+        configMap:
+          name: cirq-triage-party-css
+      - name: favicon-volume
+        configMap:
+          name: triage-party-favicon

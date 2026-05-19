@@ -7,7 +7,7 @@ data:
   # The contents of config/config.yaml
   config.yaml: |
     settings:
-      name: quantum
+      name: Quantum AI
       repos:
         - https://github.com/quantumlib/cirq
       min_similarity: 0.7
@@ -18,105 +18,111 @@ data:
         - collaborator
         - owner
       members:
-        - balopat
+        - 95-martin-orion
+        - dabacon
         - dstrain115
         - maffoo
+        - mhucka
         - mpharrigan
-        - 95-martin-orion
-        - viathor
+        - pavoljuhas
         - Strilanc
         - tanujkhattar
+        - viathor
 
     collections:
-      - id: daily
-        name: Daily Triage
+      - id: cynq
+        name: Cirq Cynque
         rules:
-          - needs-review
+          - issue-discussion
+          - pr-discussion
+          # - important-not-milestoned
+
+      - id: daily-issue-triage
+        name: Issue triage
+        rules:
           - issue-needs-triage
           - issue-needs-kind
           - issue-needs-classification
 
-      - id: cynq
-        name: Cirq Cynque
+      - id: daily-pr-review
+        name: PR review
         rules:
-          - discuss
-          - important-not-milestoned
+          - needs-review
 
-      - id: milestone
-        name: In Milestone
-        description: >
-          A Kanban visualization of upcoming releases, showing the flow of issues through each stage.
-            * only assigned issues should be in the milestone
-            * Unassigned issues with priority/p1-release should be assigned
-            * >3 issues assigned to the same person within a stage signifies a bottleneck 🌊
-        display: kanban
-        overflow: 3
-        dedup: true
-        rules:
-          - milestone-not-started
-          - milestone-assignee-updated
-          - milestone-pr-needs-review
-          - milestone-pr-needs-work
-          - milestone-pr-needs-merge
-          - milestone-recently-closed
-      - id: quarterly
-        name: Quarterly scrub
-        description: >
-          Quarterly review of items that need our attention.
-        rules:
-          - bugs-recv
-          - features-recv
-          - design-issues-recv
+      # - id: milestone
+      #   name: In milestone
+      #   description: >
+      #     A Kanban visualization of upcoming releases, showing the flow of issues through each
+      #     stage. notes:
+      #       * Only assigned issues should be in the milestone.
+      #       * Unassigned issues with priority/p0 should be assigned.
+      #       * >3 issues assigned to the same person within a stage indicates a bottleneck 🌊
+      #   display: kanban
+      #   overflow: 3
+      #   dedup: true
+      #   rules:
+      #     - milestone-not-started
+      #     - milestone-assignee-updated
+      #     - milestone-pr-needs-review
+      #     - milestone-pr-needs-work
+      #     - milestone-pr-needs-merge
+      #     - milestone-recently-closed
+
+      # - id: quarterly
+      #   name: Quarterly scrub
+      #   description: >
+      #     Quarterly review of items that need our attention.
+      #   rules:
+      #     - bugs-recv
+      #     - features-recv
+      #     - design-issues-recv
 
       - id: discovery
-        name: Signalling work
-        description: >
-          It is important to help contributors find work that matches their skills, time commitment and ambition.
-          Help them find work by marking issues with complexity level and skill levels required.
+        name: Issue discoverability
+        description: |-
+          To help contributors find work that matches their skills, time, and ambitions, add labels
+          for complexity and skill level required using the complexity/* and skill-level/* labels,
+          respectively.
         rules:
           - issue-needs-discoverability
 
     rules:
       ## Daily triage
       issue-needs-triage:
-        name: "Untriaged issues"
+        name: "Issues that need triaging"
         resolution: "Add a triage/* label"
         type: issue
         filters:
           - label: "!triage/.*"
-          - label: "!(kind/roadmap-item)"
-          - label: "!(kind/health)"
-          - label: "!(kind/task)"
-          - label: "!(kind/design-issue)"
 
       issue-needs-kind:
-        name: "Untyped (unkind) issues"
+        name: "Issues that need 'kind' labels"
         resolution: "Add a kind/* label"
         type: issue
         filters:
           - label: "!kind/.*"
 
+      issue-needs-classification:
+        name: "Issues that need 'area' labels"
+        resolution: "Add area/* labels"
+        type: issue
+        filters:
+          - label: "!(area)/.*"
+
       issue-needs-discoverability:
         name: "Issues that are hard to discover"
-        resolution: Add complexity/* skill/* labels
+        resolution: "Add complexity/* skill/* labels"
         type: issue
         filters:
           - label: "kind/.*"
           - label: "triage/accepted"
           - label: "!(area/google)"
           - label: "!(complexity|skill)/.*"
-          - label: "!(good first issue|help wanted)"
-
-      issue-needs-classification:
-        name: "Issues that require classification"
-        resolution: Add area/* labels
-        type: issue
-        filters:
-          - label: "!(area)/.*"
-          - label: "!(kind/roadmap-item)"
+          - label: "!(good first issue|good for learning|help wanted)"
 
       needs-review:
         name: "PRs that needs review"
+        resolution: "Review the PRs on GitHub"
         type: pull_request
         filters:
           - title: "!.*(WIP|wip).*"
@@ -125,11 +131,21 @@ data:
 
       ### Cirq Cynque
 
-      discuss:
-        name: "Issues / PRs that need discussion"
+      issue-discussion:
+        name: "Issues that need discussion"
+        resolution: "Discuss the issue and update the triage tag"
+        type: issue
         filters:
-          - label: "(triage/discuss|need decision)"
+          - label: "triage/discuss"
 
+      pr-discussion:
+        name: "PRs that need discussion"
+        resolution: "Discuss the PR"
+        type: pull_request
+        filters:
+          - title: "!.*(WIP|wip).*"
+          - label: "triage/discuss"
+          - tag: "!draft"
 
       ### Milestone Kanban ###
       milestone-not-started:
@@ -139,6 +155,7 @@ data:
           - tag: open-milestone
           - tag: "!assignee-updated"
           - tag: "!(assignee-open-pr|assignee-closed-pr)"
+
       milestone-assignee-updated:
         name: "In Progress"
         type: issue
@@ -152,18 +169,21 @@ data:
         filters:
           - tag: open-milestone
           - tag: "(pr-changes-requested|pr-reviewer-comment)"
+
       milestone-pr-needs-review:
         name: "PR needs Review"
         type: issue
         filters:
           - tag: open-milestone
           - tag: "(pr-unreviewed|pr-new-commits)"
+
       milestone-pr-needs-merge:
         name: "PR needs Merge"
         type: issue
         filters:
           - tag: open-milestone
           - tag: "(pr-approved|pr-approved-but-pushed)"
+
       milestone-recently-closed:
         name: "Finish Line"
         type: issue
@@ -177,7 +197,7 @@ data:
         name: "Not in milestone"
         type: issue
         filters:
-          - label: "priority/important-soon|priority/critical-urgent"
+          - label: "priority/p0|priority/high"
           - tag: "!open-milestone"
           - tag: "!assignee-updated"
           - tag: "!(assignee-open-pr|assignee-closed-pr)"
