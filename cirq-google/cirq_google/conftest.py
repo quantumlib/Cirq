@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+from unittest import mock
 
 import matplotlib.pyplot as plt
 import pytest
@@ -26,3 +27,11 @@ def pytest_configure(config):
 def closefigures():
     yield
     plt.close('all')
+
+
+@pytest.fixture(scope="session", autouse=True)
+def disable_local_gcloud_credentials(tmp_path_factory):
+    # Ensure tests cannot authenticate to production servers with user credentials
+    empty_dir = tmp_path_factory.mktemp("empty_gcloud_config-cirq_google", numbered=False)
+    with mock.patch.dict(os.environ, {"CLOUDSDK_CONFIG": str(empty_dir)}):
+        yield

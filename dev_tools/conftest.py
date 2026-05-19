@@ -35,7 +35,7 @@ _LOGGER = logging.getLogger(__name__)
 @pytest.fixture(scope="session", autouse=True)
 def disable_local_gcloud_credentials(tmp_path_factory):
     # Ensure tests cannot authenticate to production servers with user credentials
-    empty_dir = tmp_path_factory.mktemp("empty_gcloud_config", numbered=False)
+    empty_dir = tmp_path_factory.mktemp("empty_gcloud_config-dev_tools", numbered=False)
     with mock.patch.dict(os.environ, {"CLOUDSDK_CONFIG": str(empty_dir)}):
         yield
 
