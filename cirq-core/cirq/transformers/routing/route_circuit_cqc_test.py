@@ -414,3 +414,68 @@ def test_repr() -> None:
     device_graph = device.metadata.nx_graph
     router = cirq.RouteCQC(device_graph)
     cirq.testing.assert_equivalent_repr(router, setup_code='import cirq\nimport networkx as nx')
+
+
+@pytest.mark.parametrize(
+    "test_type, threshold, n_qubits",
+    [
+        ("single_op", 0.1, 4),
+        ("single_op", 0.25, 4),
+        ("single_op", 0.5, 4),
+        ("single_op", 0.75, 4),
+        ("multiple_ops", 0.1, 3),
+        ("multiple_ops", 0.1, 4),
+        ("multiple_ops", 0.1, 5),
+        ("threshold_behavior", 0.25, 4),
+        ("threshold_behavior", 0.5, 4),
+        ("threshold_behavior", 0.75, 4),
+    ],
+)
+def test_circuit_operations_recursive_routing(test_type, threshold, n_qubits) -> None:
+    """Test recursive routing of circuits containing CircuitOperations."""
+    device = cirq.testing.construct_grid_device(4, 4)
+    router = cirq.RouteCQC(device.metadata.nx_graph)
+    q = cirq.LineQubit.range(n_qubits)
+
+    if test_type == "single_op":
+        inner_circuit = cirq.Circuit(cirq.CNOT(q[0], q[1]), cirq.CNOT(q[1], q[2]))
+        outer_circuit = cirq.Circuit(
+            cirq.CircuitOperation(inner_circuit.freeze()), cirq.CNOT(q[0], q[1])
+        )
+    elif test_type == "multiple_ops":
+        inner1 = cirq.Circuit(cirq.CNOT(q[0], q[1]), cirq.CZ(q[1], q[2]))
+        inner2 = cirq.Circuit(cirq.CNOT(q[-2], q[-1]), cirq.CZ(q[0], q[1]))
+        outer_circuit = cirq.Circuit(
+            cirq.CircuitOperation(inner1.freeze()),
+            cirq.CNOT(q[0], q[n_qubits // 2]),
+            cirq.CircuitOperation(inner2.freeze()),
+        )
+    elif test_type == "threshold_behavior":
+        inner_circuit = cirq.Circuit(
+            cirq.CNOT(q[0], q[1]), cirq.CNOT(q[1], q[2]), cirq.CNOT(q[2], q[3])
+        )
+        outer_circuit = cirq.Circuit(cirq.H(q[0]), cirq.CircuitOperation(inner_circuit.freeze()))
+
+    routed, _, _ = router.route_circuit(outer_circuit, min_qubit_mapping_threshold=threshold)
+    device.validate_circuit(routed)
+    assert len(list(routed.all_operations())) > 0
+
+
+def test_directed_device_recursive_routing() -> None:
+    # Use a directed ring (strongly connected) so LineInitialMapper works
+    device = cirq.testing.construct_ring_device(4, directed=True)
+    device_graph = device.metadata.nx_graph
+    router = cirq.RouteCQC(device_graph)
+
+    q = cirq.LineQubit.range(3)
+    # Inner circuit with adjacent gates; outer circuit forces a swap
+    inner_circuit = cirq.Circuit(cirq.CNOT(q[0], q[1]))
+    outer_circuit = cirq.Circuit(
+        cirq.CNOT(q[0], q[2]),  # non-adjacent: forces a swap
+        cirq.CircuitOperation(inner_circuit.freeze()),
+    )
+
+    routed, _, _ = router.route_circuit(
+        outer_circuit, min_qubit_mapping_threshold=0.5, tag_inserted_swaps=True
+    )
+    assert len(list(routed.all_operations())) > 0
