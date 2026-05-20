@@ -33,8 +33,8 @@ def closefigures():
 def disable_local_gcloud_credentials(tmp_path_factory):
     """Ensure tests cannot authenticate to cloud servers with user credentials.
 
-    Disable credentials set either through environment variable GOOGLE_APPLICATION_CREDENTIALS
-    or via configuration files if user ran `gcloud auth application-default login`
+    Disable credentials set either through the GOOGLE_APPLICATION_CREDENTIALS environment variable
+    or via configuration files after running `gcloud auth application-default login`
 
     For more details see `google.auth.default`.
     """
