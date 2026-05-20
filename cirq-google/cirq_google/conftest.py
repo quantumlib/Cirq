@@ -31,7 +31,17 @@ def closefigures():
 
 @pytest.fixture(scope="session", autouse=True)
 def disable_local_gcloud_credentials(tmp_path_factory):
-    # Ensure tests cannot authenticate to production servers with user credentials
+    """Ensure tests cannot authenticate to cloud servers with user credentials.
+
+    Disable credentials set either through environment variable GOOGLE_APPLICATION_CREDENTIALS
+    or via configuration files if user ran `gcloud auth application-default login`
+
+    For more details see `google.auth.default`.
+    """
     empty_dir = tmp_path_factory.mktemp("empty_gcloud_config-cirq_google", numbered=False)
-    with mock.patch.dict(os.environ, {"CLOUDSDK_CONFIG": str(empty_dir)}):
+    scrubbed_environ = {
+        **{k: v for k, v in os.environ.items() if k != "GOOGLE_APPLICATION_CREDENTIALS"},
+        "CLOUDSDK_CONFIG": str(empty_dir),
+    }
+    with mock.patch.dict(os.environ, scrubbed_environ, clear=True):
         yield
