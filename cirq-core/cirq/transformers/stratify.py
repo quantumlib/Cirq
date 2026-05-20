@@ -20,6 +20,8 @@ import itertools
 from collections.abc import Callable, Iterable, Sequence
 from typing import TYPE_CHECKING, Union
 
+import copy
+
 from cirq import _import, circuits, ops, protocols
 from cirq.transformers import transformer_api
 
@@ -70,7 +72,8 @@ def stratified_circuit(
     # Try the algorithm with each permutation of the classifiers.
     smallest_depth = protocols.num_qubits(circuit) * len(circuit) + 1
     shortest_stratified_circuit = circuits.Circuit()
-    reversed_circuit = circuit[::-1]
+    reversed_circuit = copy.deepcopy(circuit)
+    reversed_circuit.reverse()
     for ordered_classifiers in itertools.permutations(classifiers):
         solution = _stratify_circuit(
             circuit,
@@ -88,7 +91,8 @@ def stratified_circuit(
             reversed_circuit,
             classifiers=ordered_classifiers,
             context=context or transformer_api.TransformerContext(),
-        )[::-1]
+        )
+        solution.reverse()
         if len(solution) < smallest_depth:
             shortest_stratified_circuit = solution
             smallest_depth = len(solution)
