@@ -365,7 +365,7 @@ class EngineProgram(abstract_program.AbstractProgram):
     async def is_batch_async(self) -> bool:
         """Returns True if the program is a batch program."""
         proto = await self._get_proto_async()
-        return proto.WhichOneof('program') != 'circuit'
+        return len(proto.keyed_circuits) > 0
 
     is_batch = duet.sync(is_batch_async)
 

@@ -524,6 +524,7 @@ def test_get_circuit_error_cases(get_program_async):
     program_single = cg.EngineProgram('a', 'b', EngineContext())
     get_program_async.reset_mock()
     get_program_async.return_value = quantum.QuantumProgram(code=_PROGRAM_V2)
+    assert program_single.get_circuit() is not None
     assert program_single.get_circuit(0) is not None
     assert program_single.get_circuit(-1) is not None
     with pytest.raises(IndexError, match="is not a batch program, cannot index 1"):

@@ -172,7 +172,7 @@ class AbstractProgram(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_circuits(self) -> list[cirq.Circuit]:
+    def get_circuits(self) -> Sequence[cirq.Circuit]:
         """Returns all the cirq Circuits for the program.
 
         Returns:

@@ -343,9 +343,7 @@ def test_get_repetitions_and_sweeps(get_job, get_program):
         _ = job.get_repetitions_and_sweeps(1)
 
     # Batch program, shared sweep
-    get_program.reset_mock()
     get_program.return_value = quantum.QuantumProgram(code=_BATCH_PROGRAM_V2)
-    get_job.reset_mock()
     get_job.return_value = quantum.QuantumJob(
         run_context=util.pack_any(
             v2.run_context_pb2.RunContext(
@@ -359,7 +357,6 @@ def test_get_repetitions_and_sweeps(get_job, get_program):
     assert job_batch_shared.get_repetitions_and_sweeps(1) == (10, [cirq.UnitSweep])
 
     # Batch program, mapped sweeps
-    get_job.reset_mock()
     get_job.return_value = quantum.QuantumJob(
         run_context=util.pack_any(
             v2.run_context_pb2.RunContext(

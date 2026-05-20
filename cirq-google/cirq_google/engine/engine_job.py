@@ -247,31 +247,24 @@ class EngineJob(abstract_job.AbstractJob):
         batch_size = self.program().batch_size() if is_batch else 1
 
         is_mapped = is_batch and len(sweeps) == batch_size and len(sweeps) > 1
-
-        if circuit_num is None:
-            if is_mapped:
+        if is_mapped:
+            if circuit_num is None:
                 raise ValueError(
                     f"This is a batch job with {len(sweeps)} mapped sweeps. "
                     "Please specify `circuit_num` to get sweeps for a specific circuit."
                 )
-            return (reps, sweeps)
+            # Mapped sweeps in a batch job
+            try:
+                return (reps, [sweeps[circuit_num]])
+            except IndexError:
+                raise IndexError(
+                    f"Index {circuit_num} out of range for sweeps of size {len(sweeps)}."
+                )
 
-        if not is_batch:
-            if circuit_num != 0 and circuit_num != -1:
-                raise IndexError(f"Job is not a batch job, cannot index {circuit_num}")
-            return (reps, sweeps)
-
-        if not is_mapped:
-            # Shared sweeps in a batch job, return all of them
-            return (reps, sweeps)
-
-        # Mapped sweeps in a batch job
-        try:
-            return (reps, [sweeps[circuit_num]])
-        except IndexError:
-            raise IndexError(
-                f"Index {circuit_num} out of range for batch job sweeps of size {len(sweeps)}."
-            )
+        # Not a batch job
+        if not is_batch and circuit_num and circuit_num != -1:
+            raise IndexError(f"Job is not a batch job, cannot index {circuit_num}")
+        return (reps, sweeps)
 
     def get_processor(self) -> engine_processor.EngineProcessor | None:
         """Returns the EngineProcessor for the processor the job is/was run on,
