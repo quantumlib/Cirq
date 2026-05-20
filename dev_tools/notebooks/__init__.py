@@ -17,4 +17,5 @@ from dev_tools.notebooks.utils import (
     filter_notebooks as filter_notebooks,
     list_all_notebooks as list_all_notebooks,
     rewrite_notebook as rewrite_notebook,
+    sleep_once_if_parallel as sleep_once_if_parallel,
 )

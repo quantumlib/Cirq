@@ -14,12 +14,16 @@
 
 from __future__ import annotations
 
+import functools
 import os
 import pathlib
 import re
 import subprocess
 import tempfile
+import time
+from collections.abc import Callable
 from logging import warning
+from typing import ParamSpec, TypeVar
 
 REPO_ROOT = pathlib.Path(__file__).parent.parent.parent
 
@@ -119,3 +123,29 @@ def rewrite_notebook(notebook_path: str) -> str:
         new_file.writelines(lines)
 
     return new_file.name
+
+
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
+def sleep_once_if_parallel(testfunc: Callable[P, R]) -> Callable[P, R]:
+    """Decorator to insert incremental sleep to the first call of a test in a parallel pytest run.
+
+    Avoid race condition when several workers start jupyter kernel simultaneously by
+    perform a short random sleep at the first call of the decorated test function.
+    """
+    is_first_call = True
+
+    @functools.wraps(testfunc)
+    def wrapped(*args: P.args, **kwargs: P.kwargs) -> R:
+        nonlocal is_first_call
+        mx = re.search(r"\d+$", os.environ.get("PYTEST_XDIST_WORKER", ""))
+        worker_index = int(mx.group()) if mx else 0
+        seconds = 1.0 * worker_index
+        if is_first_call and seconds:
+            time.sleep(seconds)
+        is_first_call = False
+        return testfunc(*args, **kwargs)
+
+    return wrapped
