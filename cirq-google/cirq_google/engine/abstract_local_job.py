@@ -157,12 +157,30 @@ class AbstractLocalJob(AbstractJob):
         """Returns the processor ids provided when the job was created."""
         return [self._processor_id]
 
-    def get_repetitions_and_sweeps(self) -> tuple[int, list[cirq.Sweep]]:
-        """Returns the repetitions and sweeps for the job.
+    def get_repetitions_and_sweeps(
+        self, circuit_num: int | None = None
+    ) -> tuple[int, list[cirq.Sweep]]:
+        is_batch = self.program().is_batch()
+        batch_size = self.program().batch_size() if is_batch else 1
 
-        Returns:
-            A tuple of the repetition count and list of sweeps.
-        """
+        is_mapped = is_batch and len(self._sweeps) == batch_size and len(self._sweeps) > 1
+        if is_mapped:
+            if circuit_num is None:
+                raise ValueError(
+                    f"This is a batch job with {len(self._sweeps)} mapped sweeps. "
+                    "Please specify `circuit_num` to get sweeps for a specific circuit."
+                )
+            # Mapped sweeps in a batch job
+            try:
+                return (self._repetitions, [self._sweeps[circuit_num]])
+            except IndexError:
+                raise IndexError(
+                    f"Index {circuit_num} out of range for sweeps of size {len(self._sweeps)}."
+                )
+
+        # Not a batch job
+        if not is_batch and circuit_num and circuit_num != -1:
+            raise IndexError(f"Job is not a batch job, cannot index {circuit_num}")
         return (self._repetitions, self._sweeps)
 
     def get_processor(self) -> AbstractLocalProcessor:
@@ -175,15 +193,15 @@ class AbstractLocalJob(AbstractJob):
         from the parent Engine object."""
         return self.get_processor().get_latest_calibration(int(self._create_time.timestamp()))
 
-    def get_circuit(self, program_num: int | None = None) -> cirq.Circuit:
+    def get_circuit(self, circuit_num: int | None = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the job.
 
         Args:
-            program_num: if this is a multi-circuit job, the index of the circuit
+            circuit_num: if this is a multi-circuit job, the index of the circuit
                 to return.  This argument is zero-indexed. Negative values
                 index from the end of the list.  Ignored if not multi-circuit.
 
         Returns:
             The job's cirq Circuit.
         """
-        return self.program().get_circuit(program_num)
+        return self.program().get_circuit(circuit_num)

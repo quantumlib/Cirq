@@ -141,8 +141,15 @@ class AbstractJob(abc.ABC):
         """Return failure code and message of the job if present."""
 
     @abc.abstractmethod
-    def get_repetitions_and_sweeps(self) -> tuple[int, list[cirq.Sweep]]:
+    def get_repetitions_and_sweeps(
+        self, circuit_num: int | None = None
+    ) -> tuple[int, list[cirq.Sweep]]:
         """Returns the repetitions and sweeps for the job.
+
+        Args:
+            circuit_num: if this is a batch job, the index of the circuit
+                to return the sweeps for.  This argument is zero-indexed.
+                Negative values index from the end of the list.
 
         Returns:
             A tuple of the repetition count and list of sweeps.
@@ -159,11 +166,11 @@ class AbstractJob(abc.ABC):
         one was captured, else None."""
 
     @abc.abstractmethod
-    def get_circuit(self, program_num: int | None = None) -> cirq.Circuit:
+    def get_circuit(self, circuit_num: int | None = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the job.
 
         Args:
-            program_num: if this is a multi-circuit job, the index of the circuit
+            circuit_num: if this is a multi-circuit job, the index of the circuit
                 to return.  This argument is zero-indexed. Negative values
                 index from the end of the list.  Ignored if not multi-circuit.
 
