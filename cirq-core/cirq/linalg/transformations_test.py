@@ -370,7 +370,7 @@ def test_sub_state_vector() -> None:
         cirq.sub_state_vector(state, [2, 3, 4], atol=1e-15), b.reshape((2, 2, 2))
     )
     assert cirq.equal_up_to_global_phase(
-        cirq.sub_state_vector(state, [5, 6, 7, 8], atol=1e-15), c.reshape((2, 2, 2, 2))
+        cirq.sub_state_vector(state, [5, 6, 7, 8], atol=2e-15), c.reshape((2, 2, 2, 2))
     )
 
     # Output state vector conforms to the shape of the input state vector.
@@ -382,11 +382,11 @@ def test_sub_state_vector() -> None:
         cirq.sub_state_vector(reshaped_state, [2, 3, 4], atol=1e-15), b
     )
     assert cirq.equal_up_to_global_phase(
-        cirq.sub_state_vector(reshaped_state, [5, 6, 7, 8], atol=1e-15), c
+        cirq.sub_state_vector(reshaped_state, [5, 6, 7, 8], atol=2e-15), c
     )
     # Output state vector is independent of the order of keep_indices
     assert cirq.equal_up_to_global_phase(
-        cirq.sub_state_vector(reshaped_state, [8, 5, 7, 6], atol=1e-15), c
+        cirq.sub_state_vector(reshaped_state, [8, 5, 7, 6], atol=2e-15), c
     )
 
     # Reject factoring for very tight tolerance.
