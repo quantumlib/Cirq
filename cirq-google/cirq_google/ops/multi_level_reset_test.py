@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
-import stimcirq
 
 import cirq
 import cirq_google as cg
@@ -73,13 +71,12 @@ def test_serialization_round_trip():
     assert deserialized_circuit == circuit
 
     # Verify exact class
-    deserialized_op = list(deserialized_circuit.all_operations())[0]
+    deserialized_op = next(iter(deserialized_circuit.all_operations()))
     assert isinstance(deserialized_op.gate, MultilevelResetViaResonator)
 
 
 def test_repr():
     gate = MultilevelResetViaResonator()
     assert repr(gate) == 'cirq_google.MultilevelResetViaResonator()'
-    import cirq_google
 
     assert eval(repr(gate)) == gate

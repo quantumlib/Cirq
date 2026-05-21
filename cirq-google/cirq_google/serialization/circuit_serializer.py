@@ -22,7 +22,6 @@ import warnings
 from collections.abc import Callable, Hashable, Mapping, Sequence
 from typing import Any
 
-import attrs
 import sympy
 
 import cirq
@@ -924,7 +923,7 @@ class CircuitSerializer(serializer.Serializer):
             match str(msg.name):
                 # Add new custom cirq_google gates here:
                 case "MultilevelResetViaResonator":
-                    gate = MultilevelResetViaResonator()
+                    gate: cirq.Gate = MultilevelResetViaResonator()
                 case _:
                     gate = arg_func_langs.internal_gate_from_proto(msg)
             op = gate(*qubits)
