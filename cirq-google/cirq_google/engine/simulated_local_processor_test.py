@@ -269,3 +269,30 @@ def test_simulated_local_processor_mapped_sweeps():
     # P1 S1_1: u=1 -> Y^1 = Y -> measurements should be 1
     assert np.all(results[2].measurements['m'] == 0)
     assert np.all(results[3].measurements['m'] == 1)
+
+
+def test_simulated_local_processor_multiple_sweeps_single_circuit():
+    Q = cirq.GridQubit(2, 2)
+    circuit = cirq.Circuit(cirq.X(Q) ** sympy.Symbol('t'), cirq.measure(Q, key='m'))
+
+    processor = SimulatedLocalProcessor(processor_id='test_processor')
+
+    sweeps = [cirq.Points(key='t', points=[0, 1]), cirq.Points(key='t', points=[1, 0])]
+
+    job = processor.run_sweep(
+        program=circuit, params=sweeps, repetitions=10, device_config_name='test_config'
+    )
+
+    results = job.results()
+    assert len(results) == 4
+
+    reps, job_sweeps = job.get_repetitions_and_sweeps()
+    assert reps == 10
+    assert len(job_sweeps) == 2
+    assert job_sweeps[0] == sweeps[0]
+    assert job_sweeps[1] == sweeps[1]
+
+    assert np.all(results[0].measurements['m'] == 0)
+    assert np.all(results[1].measurements['m'] == 1)
+    assert np.all(results[2].measurements['m'] == 1)
+    assert np.all(results[3].measurements['m'] == 0)

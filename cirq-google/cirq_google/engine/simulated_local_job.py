@@ -130,6 +130,8 @@ class SimulatedLocalJob(AbstractLocalJob):
             programs = parent.get_circuits()
             if len(sweeps) == 1 and len(programs) > 1:
                 sweeps = sweeps * len(programs)
+            elif len(programs) == 1 and len(sweeps) > 1:
+                programs = programs * len(sweeps)
             batch_results = self._sampler.run_batch(
                 programs=programs, params_list=cast(list[cirq.Sweepable], sweeps), repetitions=reps
             )

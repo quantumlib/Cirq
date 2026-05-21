@@ -229,8 +229,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             programs = list(program)
 
         sweeps_list = cirq.to_sweeps(params)
-        is_mapped = len(programs) > 1 and len(sweeps_list) == len(programs)
-        sweeps_to_use = sweeps_list if is_mapped else [params]
+        sweeps_to_use = sweeps_list
 
         self._program_validator(programs, sweeps_to_use, repetitions, CIRCUIT_SERIALIZER)
         self._programs[program_id] = SimulatedLocalProgram(
