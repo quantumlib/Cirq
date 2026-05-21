@@ -208,7 +208,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         program_id: str | None = None,
         job_id: str | None = None,
         params: cirq.Sweepable = None,
-        repetitions: int = 1,
+        repetitions: int | Sequence[int] = 1,
         program_description: str | None = None,
         program_labels: dict[str, str] | None = None,
         job_description: str | None = None,
@@ -227,7 +227,12 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             programs = list(program.values())
         else:
             programs = list(program)
-        self._program_validator(programs, [params], repetitions, CIRCUIT_SERIALIZER)
+
+        sweeps_list = cirq.to_sweeps(params)
+        is_mapped = len(programs) > 1 and len(sweeps_list) == len(programs)
+        sweeps_to_use = sweeps_list if is_mapped else [params]
+
+        self._program_validator(programs, sweeps_to_use, repetitions, CIRCUIT_SERIALIZER)
         self._programs[program_id] = SimulatedLocalProgram(
             program_id=program_id,
             simulation_type=self._simulation_type,
@@ -240,7 +245,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             processor_id=self.processor_id,
             parent_program=self._programs[program_id],
             repetitions=repetitions,
-            sweeps=[params],
+            sweeps=sweeps_to_use,
             sampler=self._sampler,
             simulation_type=self._simulation_type,
         )

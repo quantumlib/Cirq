@@ -222,3 +222,50 @@ def test_simulated_local_processor_run_sweep_multi():
 
     # Sequence (else block)
     processor.run_sweep([circuit], params={}, repetitions=1)
+
+
+def test_simulated_local_processor_mapped_sweeps():
+    Q = cirq.GridQubit(2, 2)
+    # Circuit 0 uses symbol 't', Circuit 1 uses symbol 'u'
+    circuit0 = cirq.Circuit(cirq.X(Q) ** sympy.Symbol('t'), cirq.measure(Q, key='m'))
+    circuit1 = cirq.Circuit(cirq.Y(Q) ** sympy.Symbol('u'), cirq.measure(Q, key='m'))
+
+    processor = SimulatedLocalProcessor(processor_id='test_processor')
+
+    sweeps = [cirq.Points(key='t', points=[0, 1]), cirq.Points(key='u', points=[0, 1])]
+
+    # We want to run:
+    # - circuit0 with sweep over 't' (10 reps)
+    # - circuit1 with sweep over 'u' (20 reps)
+
+    job = processor.run_sweep(
+        program=[circuit0, circuit1],
+        params=sweeps,
+        repetitions=[10, 20],
+        device_config_name='test_config',
+    )
+
+    results = job.results()
+    assert len(results) == 4  # 2 circuits * 2 sweep points each = 4 results
+
+    # Engine returns results grouped by program then by sweep.
+    # e.g. (P0, S0_0), (P0, S0_1), (P1, S1_0), (P1, S1_1)
+
+    # P0 (circuit0, has 't') was run with 10 reps.
+    assert len(results[0].measurements['m']) == 10
+    assert len(results[1].measurements['m']) == 10
+
+    # P1 (circuit1, has 'u') was run with 20 reps.
+    assert len(results[2].measurements['m']) == 20
+    assert len(results[3].measurements['m']) == 20
+
+    # Verify values to ensure correct sweeps were mapped
+    # P0 S0_0: t=0 -> X^0 = I -> measurements should be 0
+    # P0 S0_1: t=1 -> X^1 = X -> measurements should be 1
+    assert np.all(results[0].measurements['m'] == 0)
+    assert np.all(results[1].measurements['m'] == 1)
+
+    # P1 S1_0: u=0 -> Y^0 = I -> measurements should be 0
+    # P1 S1_1: u=1 -> Y^1 = Y -> measurements should be 1
+    assert np.all(results[2].measurements['m'] == 0)
+    assert np.all(results[3].measurements['m'] == 1)
