@@ -19,6 +19,8 @@ import pathlib
 import re
 import subprocess
 import tempfile
+import time
+from collections.abc import Callable
 from logging import warning
 
 REPO_ROOT = pathlib.Path(__file__).parent.parent.parent
@@ -119,3 +121,51 @@ def rewrite_notebook(notebook_path: str) -> str:
         new_file.writelines(lines)
 
     return new_file.name
+
+
+def create_parallel_scheduler(
+    queuefile: pathlib.Path, worker_name: str, interval: float
+) -> Callable[[], tuple[float, float]]:
+    """Create callable which generates epoch time for events separated by interval seconds.
+
+    The scheduler is synchronized over parallel Python processes provided each
+    of them uses a unique `worker_name` and the same `queuefile`.
+
+    Args:
+        queuefile: The shared file used to determine the next event time.
+            The file is appended to at each use of the returned scheduler
+            and should be empty or non-existent at the time of the first use.
+        worker_name: The unique name for associating the created scheduler
+            with its `queuefile` data.  Each parallel process should use
+            a unique `worker_name` when sharing the same `queuefile`.
+        interval: The minimum delay in seconds between successive events.
+
+    Returns:
+        The scheduler as a zero-argument callable object.  At each call the scheduler
+        returns a tuple of (event_time, wait_time), where `event_time` is the epoch
+        time for the next event and `wait_time` is the time in seconds left to that time.
+    """
+    pos = 0
+    event_time = 0.0
+
+    def schedule() -> tuple[float, float]:
+        """Return time for the next event as a tuple of (event_time, wait_time)."""
+        nonlocal pos
+        nonlocal event_time
+        record = f"{time.time()} {worker_name}\n"
+        with queuefile.open("a") as fp:
+            fp.write(record)
+        with queuefile.open("r") as fp:
+            fp.seek(pos)
+            for line in fp:
+                pos += len(line)
+                t = float(line.split(maxsplit=1)[0])
+                event_time = max(t, event_time + interval)
+                if line == record:
+                    break
+            else:
+                raise OSError(f"Cannot find sentinel line {record!r} in {queuefile}")
+        wait_time = max(event_time - time.time(), 0.0)
+        return event_time, wait_time
+
+    return schedule
