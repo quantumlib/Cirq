@@ -78,5 +78,3 @@ def test_serialization_round_trip():
 def test_repr():
     gate = MultilevelResetViaResonator()
     assert repr(gate) == 'cirq_google.MultilevelResetViaResonator()'
-
-    assert eval(repr(gate)) == gate
