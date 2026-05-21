@@ -1,0 +1,50 @@
+# Copyright 2026 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from typing import TYPE_CHECKING
+
+import cirq
+from cirq_google.ops.internal_gate import InternalGate
+
+
+class MultilevelResetViaResonator(InternalGate):
+    """Multilevel qubit reset with resonator.
+
+    This is a specialized type of reset that can be used to clear out
+    excited levels by utilizing the attached resonator.  Useful in
+    performing Quantum Error Correction experiments that require multiple
+    rounds of measurement and reset.
+    """
+
+    def __init__(self, gate_name=None, gate_module=None, num_qubits=1, **kwargs):
+        super().__init__(
+            gate_name="MultilevelResetViaResonator",
+            gate_module="pyle.cirqtools.pyle_gates",
+            num_qubits=1,
+        )
+
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> list[str]:
+        return ["[R (ML)]"]
+
+    def is_reset_gate(self) -> bool:
+        return True
+
+    def _decompose_(self, qubits):
+        return cirq.reset_each(*qubits)
+
+    def _json_dict_(self):
+        return {}
+
+    def __repr__(self) -> str:
+        return 'cirq_google.MultilevelResetViaResonator()'
