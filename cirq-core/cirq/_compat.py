@@ -264,7 +264,7 @@ def _warn_or_error(msg):
             f"During testing using Cirq deprecated functionality is not allowed: {msg}"
             f"Update to non-deprecated functionality, or alternatively, you can quiet "
             f"this error by removing the CIRQ_TESTING environment variable "
-            f"temporarily with `@mock.patch.dict(os.environ, clear='CIRQ_TESTING')`.\n"
+            f"temporarily with `@mock.patch.dict(os.environ, {{'CIRQ_TESTING': 'false'}})`.\n"
             f"In case the usage of deprecated cirq is intentional, use "
             f"`with cirq.testing.assert_deprecated(...):` around this line:\n"
             f"{filename}:{line_number}: in {function_name}\n"
@@ -589,7 +589,7 @@ _warned: set[str] = set()
 
 
 def _called_from_test() -> bool:
-    return 'CIRQ_TESTING' in os.environ
+    return os.environ.get("CIRQ_TESTING", "").lower() == "true"
 
 
 def _should_dedupe_module_deprecation() -> bool:
