@@ -385,6 +385,42 @@ def test_get_repetitions_and_sweeps(get_job, get_program):
         _ = job_batch_mapped.get_repetitions_and_sweeps(2)
 
 
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_async')
+def test_get_repetitions_and_sweeps_non_uniform(get_job, get_program):
+    get_program.return_value = quantum.QuantumProgram(code=_BATCH_PROGRAM_V2)
+    get_job.return_value = quantum.QuantumJob(
+        run_context=util.pack_any(
+            v2.run_context_pb2.RunContext(
+                parameter_sweeps=[
+                    v2.run_context_pb2.ParameterSweep(repetitions=10),
+                    v2.run_context_pb2.ParameterSweep(
+                        repetitions=20,
+                        sweep=v2.run_context_pb2.Sweep(
+                            single_sweep=v2.run_context_pb2.SingleSweep(
+                                parameter_key='t',
+                                points=v2.run_context_pb2.Points(points_double=[1.0, 2.0]),
+                            )
+                        ),
+                    ),
+                ]
+            )
+        )
+    )
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext())
+
+    with pytest.raises(ValueError, match="mapped sweeps"):
+        _ = job.get_repetitions_and_sweeps()
+
+    reps0, sweeps0 = job.get_repetitions_and_sweeps(0)
+    assert reps0 == 10
+    assert sweeps0 == [cirq.UnitSweep]
+
+    reps1, sweeps1 = job.get_repetitions_and_sweeps(1)
+    assert reps1 == 20
+    assert sweeps1 == [cirq.Points('t', [1.0, 2.0])]
+
+
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_async')
 def test_get_repetitions_and_sweeps_v1(get_job):
     job = cg.EngineJob('a', 'b', 'steve', EngineContext())
@@ -407,6 +443,18 @@ def test_get_repetitions_and_sweeps_unsupported(get_job):
     )
     with pytest.raises(ValueError, match='unsupported run_context type: unknown.proto'):
         job.get_repetitions_and_sweeps()
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_async')
+def test_get_repetitions_and_sweeps_no_repetitions(get_job, get_program):
+    get_program.return_value = quantum.QuantumProgram(code=_PROGRAM_V2)
+    get_job.return_value = quantum.QuantumJob(
+        run_context=util.pack_any(v2.run_context_pb2.RunContext(parameter_sweeps=[]))
+    )
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext())
+    with pytest.raises(ValueError, match="No repetitions found in run context."):
+        _ = job.get_repetitions_and_sweeps()
 
 
 def test_get_processor():
@@ -569,6 +617,55 @@ sweep_results: [{
     )
 )
 
+RESULTS_NON_UNIFORM = quantum.QuantumResult(
+    result=util.pack_any(
+        Merge(
+            """
+sweep_results: [{
+        repetitions: 10,
+        parameterized_results: [{
+            params: {
+                assignments: {
+                    key: 'a'
+                    value: 1
+                }
+            },
+            measurement_results: {
+                key: 'q'
+                qubit_measurement_results: [{
+                  qubit: {
+                    id: '1_1'
+                  }
+                  results: "\\000\\000"
+                }]
+            }
+        }]
+    }, {
+        repetitions: 20,
+        parameterized_results: [{
+            params: {
+                assignments: {
+                    key: 'a'
+                    value: 2
+                }
+            },
+            measurement_results: {
+                key: 'q'
+                qubit_measurement_results: [{
+                  qubit: {
+                    id: '1_1'
+                  }
+                  results: "\\000\\000\\000"
+                }]
+            }
+        }]
+    }]
+""",
+            v2.result_pb2.Result(),
+        )
+    )
+)
+
 
 UPDATE_TIME = datetime.datetime.now(tz=datetime.timezone.utc)
 
@@ -587,6 +684,24 @@ def test_results(get_job_results):
     assert str(data[0]) == 'q=0110'
     assert str(data[1]) == 'q=1010'
     get_job_results.assert_called_once_with('a', 'b', 'steve')
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
+def test_results_non_uniform(get_job_results):
+    qjob = quantum.QuantumJob(
+        execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS),
+        update_time=UPDATE_TIME,
+    )
+    get_job_results.return_value = RESULTS_NON_UNIFORM
+
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+    data = job.results()
+    assert len(data) == 2
+    assert len(data[0].measurements['q']) == 10
+    assert len(data[1].measurements['q']) == 20
+    # Verify they are correct EngineResult
+    assert data[0].job_id == 'steve'
+    assert data[1].job_id == 'steve'
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')

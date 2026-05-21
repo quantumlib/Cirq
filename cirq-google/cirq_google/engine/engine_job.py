@@ -255,7 +255,7 @@ class EngineJob(abstract_job.AbstractJob):
                 )
             # Mapped sweeps in a batch job
             try:
-                return (reps, [sweeps[circuit_num]])
+                return (reps[circuit_num], [sweeps[circuit_num]])
             except IndexError:
                 raise IndexError(
                     f"Index {circuit_num} out of range for sweeps of size {len(sweeps)}."
@@ -264,7 +264,9 @@ class EngineJob(abstract_job.AbstractJob):
         # Not a batch job
         if not is_batch and circuit_num and circuit_num != -1:
             raise IndexError(f"Job is not a batch job, cannot index {circuit_num}")
-        return (reps, sweeps)
+        if not reps:
+            raise ValueError("No repetitions found in run context.")
+        return (reps[0], sweeps)
 
     def get_processor(self) -> engine_processor.EngineProcessor | None:
         """Returns the EngineProcessor for the processor the job is/was run on,
@@ -402,7 +404,7 @@ class EngineJob(abstract_job.AbstractJob):
         )
 
 
-def _deserialize_run_context(run_context: any_pb2.Any) -> tuple[int, list[cirq.Sweep]]:
+def _deserialize_run_context(run_context: any_pb2.Any) -> tuple[list[int], list[cirq.Sweep]]:
     import cirq_google.engine.engine as engine_base
 
     run_context_type = run_context.type_url[len(engine_base.TYPE_PREFIX) :]
@@ -416,7 +418,7 @@ def _deserialize_run_context(run_context: any_pb2.Any) -> tuple[int, list[cirq.S
         or run_context_type == 'cirq.api.google.v2.RunContext'
     ):
         v2_run_context = v2.run_context_pb2.RunContext.FromString(run_context.value)
-        return v2_run_context.parameter_sweeps[0].repetitions, [
+        return [s.repetitions for s in v2_run_context.parameter_sweeps], [
             v2.sweep_from_proto(s.sweep) for s in v2_run_context.parameter_sweeps
         ]
     raise ValueError(f'unsupported run_context type: {run_context_type}')

@@ -159,3 +159,28 @@ def test_run_batch():
     assert np.all(results[2].measurements['m'] == 0)
     assert np.all(results[3].measurements['m'] == 0)
     assert job.execution_status() == quantum.ExecutionStatus.State.SUCCESS
+
+
+def test_run_batch_non_uniform_repetitions():
+    program = ParentProgram(
+        [
+            cirq.Circuit(cirq.X(Q), cirq.measure(Q, key='m')),
+            cirq.Circuit(cirq.Y(Q), cirq.measure(Q, key='m')),
+        ],
+        None,
+    )
+    job = SimulatedLocalJob(
+        job_id='test_job',
+        processor_id='test1',
+        parent_program=program,
+        repetitions=[10, 20],
+        sweeps=[cirq.UnitSweep, cirq.UnitSweep],
+    )
+    assert job.execution_status() == quantum.ExecutionStatus.State.READY
+    results = job.results()
+    assert len(results) == 2
+    assert len(results[0].measurements['m']) == 10
+    assert len(results[1].measurements['m']) == 20
+    assert np.all(results[0].measurements['m'] == 1)
+    assert np.all(results[1].measurements['m'] == 1)
+    assert job.execution_status() == quantum.ExecutionStatus.State.SUCCESS
