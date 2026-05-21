@@ -37,16 +37,16 @@ class NamedTopology(metaclass=abc.ABCMeta):
     "Named topologies" provide a mapping from a simple dataclass to a unique graph for categories
     of relevant topologies. Relevant topologies may be hardware dependant, but common topologies
     are linear (1D) and rectangular grid topologies.
+
+    Attributes:
+        name: A name that uniquely identifies this topology.
+        n_nodes: The number of nodes in the topology.
+        graph: A networkx graph representation of the topology.
     """
 
     name: str = NotImplemented
-    """A name that uniquely identifies this topology."""
-
     n_nodes: int = NotImplemented
-    """The number of nodes in the topology."""
-
     graph: nx.Graph = NotImplemented
-    """A networkx graph representation of the topology."""
 
 
 _GRIDLIKE_NODE = Union['cirq.GridQubit', tuple[int, int]]

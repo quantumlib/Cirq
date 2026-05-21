@@ -286,7 +286,7 @@ class FSimGateFamily(cirq.GateFamily):
         """
         if not isinstance(gate, self.gate_types_to_check):
             return False
-        gate = cast(POSSIBLE_FSIM_GATES, gate)
+        cg: POSSIBLE_FSIM_GATES | None
         for g in self.gates_to_accept:
             if isinstance(g, type):
                 cg = self.convert(gate, cast(type, g))  # mypy hack.
@@ -295,7 +295,7 @@ class FSimGateFamily(cirq.GateFamily):
             elif isinstance(g, cirq.Gate):
                 for target in type(gate).mro():
                     if target in self.gate_types_to_check:
-                        cg = self.convert(g, target)
+                        cg = self.convert(g, cast(type, target))
                         if cg is None:
                             continue
                         if self._check_equal(gate, cg):

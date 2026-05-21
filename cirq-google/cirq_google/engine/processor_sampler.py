@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import cast, TYPE_CHECKING
 
 import duet
@@ -36,6 +36,7 @@ class ProcessorSampler(cirq.Sampler):
         snapshot_id: str = "",
         device_config_name: str = "",
         max_concurrent_jobs: int = 100,
+        jobs_per_batch: int = 1,
     ):
         """Inits ProcessorSampler.
 
@@ -56,6 +57,12 @@ class ProcessorSampler(cirq.Sampler):
                 concurrently to the Engine. This client-side throttle can be
                 used to proactively reduce load to the backends and avoid quota
                 violations when pipelining circuit executions.
+            jobs_per_batch:  If set to greater than 1, this will batch multiple
+                circuits within the same API call when calling run_batch() or
+                run_batch_async() up to a maximum of `jobs_per_batch`.
+                Note that actual hardware execution order is not guaranteed
+                if jobs_per_batch > 1. (For instance, the hardware may run
+                all circuits for the first sweep point, then the second point, etc).
 
         Raises:
             ValueError: If  only one of `run_name` and `device_config_name` are specified.
@@ -68,10 +75,29 @@ class ProcessorSampler(cirq.Sampler):
         self._snapshot_id = snapshot_id
         self._device_config_name = device_config_name
         self._concurrent_job_limiter = duet.Limiter(max_concurrent_jobs)
+        self._jobs_per_batch = jobs_per_batch
 
     async def run_sweep_async(
-        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+        self,
+        program: cirq.AbstractCircuit,
+        params: cirq.Sweepable | Sequence[cirq.Sweepable],
+        repetitions: int = 1,
     ) -> Sequence[cg.EngineResult]:
+        return await self._run_sweep_async(program, params, repetitions)
+
+    run_sweep = duet.sync(run_sweep_async)
+
+    async def _run_sweep_async(
+        self,
+        program: (
+            cirq.AbstractCircuit
+            | Sequence[cirq.AbstractCircuit]
+            | Mapping[str, cirq.AbstractCircuit]
+        ),
+        params: cirq.Sweepable | Sequence[cirq.Sweepable],
+        repetitions: int = 1,
+    ) -> Sequence[cg.EngineResult]:
+        """Internal helper to run sweeps or batches."""
         async with self._concurrent_job_limiter:
             job = await self._processor.run_sweep_async(
                 program=program,
@@ -84,17 +110,70 @@ class ProcessorSampler(cirq.Sampler):
 
             return await job.results_async()
 
-    run_sweep = duet.sync(run_sweep_async)
-
     async def run_batch_async(
         self,
-        programs: Sequence[cirq.AbstractCircuit],
+        programs: Sequence[cirq.AbstractCircuit] | Mapping[str, cirq.AbstractCircuit],
         params_list: Sequence[cirq.Sweepable] | None = None,
         repetitions: int | Sequence[int] = 1,
     ) -> Sequence[Sequence[cg.EngineResult]]:
+        if self._jobs_per_batch > 1:
+            # Treat programs as a sequence for iteration, but keep keys if it's a mapping
+            prog_keys = list(programs.keys()) if isinstance(programs, Mapping) else []
+            prog_values = (
+                list(programs.values()) if isinstance(programs, Mapping) else list(programs)
+            )
+
+            params_list, repetitions = self._normalize_batch_args(
+                prog_values, params_list, repetitions
+            )
+            # Batch programs that have the same number of repetitions and same sweep.
+            program_batches = []
+            params_list_batches = []
+            repetition_batches = []
+
+            i = 0
+            while i < len(prog_values):
+                batch_reps = repetitions[i]
+                batch_sweep = params_list[i]
+                batch_programs = {prog_keys[i]: prog_values[i]} if prog_keys else [prog_values[i]]
+                i += 1
+                while (
+                    i < len(prog_values)
+                    and len(batch_programs) < self._jobs_per_batch
+                    and repetitions[i] == batch_reps
+                    and params_list[i] == batch_sweep
+                ):
+                    if isinstance(batch_programs, dict):
+                        batch_programs[prog_keys[i]] = prog_values[i]
+                    else:
+                        batch_programs.append(prog_values[i])
+                    i += 1
+                program_batches.append(batch_programs)
+                params_list_batches.append(batch_sweep)
+                repetition_batches.append(batch_reps)
+
+            all_batch_results = await duet.pstarmap_async(
+                self.run_sweep_async, zip(program_batches, params_list_batches, repetition_batches)
+            )
+            final_results = []
+            for batch_res, batch_progs in zip(all_batch_results, program_batches):
+                num_progs = len(batch_progs)
+                num_sweeps = len(batch_res) // num_progs
+                if len(batch_res) % num_progs != 0:
+                    raise ValueError(
+                        f"Engine returned {len(batch_res)} results, "
+                        f"which is not divisible by {num_progs} programs."
+                    )
+                for j in range(num_progs):
+                    # Engine returns results grouped by program then by sweep.
+                    # e.g. (P1, S1), (P1, S2), (P2, S1), (P2, S2)
+                    final_results.append(batch_res[j * num_sweeps : (j + 1) * num_sweeps])
+            return final_results
+
+        prog_values = list(programs.values()) if isinstance(programs, Mapping) else list(programs)
         return cast(
             Sequence[Sequence['cg.EngineResult']],
-            await super().run_batch_async(programs, params_list, repetitions),
+            await super().run_batch_async(prog_values, params_list, repetitions),
         )
 
     run_batch = duet.sync(run_batch_async)

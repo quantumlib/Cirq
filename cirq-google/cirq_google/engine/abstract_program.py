@@ -158,13 +158,30 @@ class AbstractProgram(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_circuit(self) -> cirq.Circuit:
+    def get_circuit(self, circuit_num: int | None = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the program. This is only
         supported if the program was created with the V2 protos.
+
+        Args:
+            circuit_num: if this is a multi-circuit program, the index of the circuit
+                to return.  This argument is zero-indexed. Negative values
+                indexing from the end of the list.
 
         Returns:
             The program's cirq Circuit.
         """
+
+    @abc.abstractmethod
+    def get_circuits(self) -> Sequence[cirq.Circuit]:
+        """Returns all the cirq Circuits for the program.
+
+        Returns:
+            A list of the program's cirq Circuits.
+        """
+
+    @abc.abstractmethod
+    def is_batch(self) -> bool:
+        """Returns True if the program is a batch program."""
 
     @abc.abstractmethod
     def batch_size(self) -> int:

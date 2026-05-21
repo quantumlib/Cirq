@@ -36,7 +36,7 @@ def assert_consistent_resolve_parameters(val: Any) -> None:
         # object should report that it has no more parameters to resolve.
         try:
             resolved = cirq.resolve_parameters(val, dict.fromkeys(names, 0))
-        except Exception:
+        except (TypeError, ValueError, RecursionError, sympy.SympifyError):
             pass
         else:
             assert not cirq.parameter_names(resolved)

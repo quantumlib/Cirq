@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Hashable
 from typing import cast
 
 import numpy as np
@@ -448,6 +449,26 @@ def test_gateset_contains_op_with_no_gate() -> None:
     op = cirq.X(cirq.q(1)).with_classical_controls('a')
     assert op.gate is None
     assert op not in gf
+
+
+def test_gateset_contains_unhashable_gate() -> None:
+    class UnHashableGate(cirq.Gate):
+        def _num_qubits_(self):
+            return 1
+
+        def __eq__(self, other):
+            return type(other) is UnHashableGate
+
+    gate = UnHashableGate()
+    op = gate.on(cirq.q(0))
+    gs_without = cirq.Gateset(cirq.X, cirq.Y, cirq.Z)
+    gs_with = cirq.Gateset(UnHashableGate)
+
+    assert not isinstance(gate, Hashable)
+    assert gate not in gs_without
+    assert op not in gs_without
+    assert gate in gs_with
+    assert op in gs_with
 
 
 def test_overlapping_gate_families() -> None:

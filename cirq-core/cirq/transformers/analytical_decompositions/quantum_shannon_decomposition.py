@@ -301,7 +301,7 @@ def _msb_demuxer(
     u2 = u2.astype(np.complex128)
     u = u1 @ u2.T.conjugate()
     if predicates.is_hermitian(u):
-        # If `u` is hermitian, use the more accurate `eigh` method.
+        # If `u` is Hermitian, use the more accurate `eigh` method.
         dsquared, V = np.linalg.eigh(u)
     else:
         dsquared, V = np.linalg.eig(u)

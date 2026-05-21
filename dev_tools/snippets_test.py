@@ -85,19 +85,9 @@ def test_can_run_readme_code_snippets():
 
 
 def find_docs_code_snippets_paths() -> Iterator[str]:
-    # TODO: #7787 - fix and enable these later
-    excluded = (
-        'hardware/ionq/access.md',
-        'hardware/ionq/calibrations.md',
-        'hardware/ionq/circuits.md',
-        'hardware/ionq/jobs.md',
-        'hardware/ionq/service.md',
-        'hardware/pasqal/sampler.md',
-    )
     for filename in DOCS_FOLDER.rglob('*.md'):
         path = filename.relative_to(DOCS_FOLDER).as_posix()
-        if not path.endswith(excluded):
-            yield path
+        yield path
 
 
 @pytest.mark.parametrize('path', find_docs_code_snippets_paths())

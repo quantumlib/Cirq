@@ -37,6 +37,7 @@ from cirq_google.ops import (
     InternalTag,
     PhysicalZTag,
     SycamoreGate,
+    TwoPulseFSimTag,
     WaitGateWithUnit,
     WillowGate,
 )
@@ -367,8 +368,16 @@ class CircuitSerializer(serializer.Serializer):
         elif isinstance(gate, cirq.FSimGate):
             arg_func_langs.float_arg_to_proto(gate.theta, out=msg.fsimgate.theta)
             arg_func_langs.float_arg_to_proto(gate.phi, out=msg.fsimgate.phi)
-            if any(isinstance(tag, FSimViaModelTag) for tag in op.tags):
+            has_model_tag = any(isinstance(tag, FSimViaModelTag) for tag in op.tags)
+            has_two_pulse_tag = any(isinstance(tag, TwoPulseFSimTag) for tag in op.tags)
+            if has_model_tag and has_two_pulse_tag:
+                raise ValueError(
+                    'FSimViaModelTag and TwoPulseFSimTag cannot be added to the same FSim gate'
+                )
+            if has_model_tag:
                 msg.fsimgate.translate_via_model = True
+            if has_two_pulse_tag:
+                msg.fsimgate.translate_to_two_pulse = True
         elif isinstance(gate, cirq.MeasurementGate):
             arg_func_langs.arg_to_proto(gate.key, out=msg.measurementgate.key)
             if len(gate.invert_mask):
@@ -870,6 +879,8 @@ class CircuitSerializer(serializer.Serializer):
                 raise ValueError('theta and phi must be specified for FSimGate')
             if operation_proto.fsimgate.translate_via_model:
                 op = op.with_tags(FSimViaModelTag())
+            if operation_proto.fsimgate.translate_to_two_pulse:
+                op = op.with_tags(TwoPulseFSimTag())
         elif which_gate_type == 'measurementgate':
             key = arg_func_langs.arg_from_proto(
                 operation_proto.measurementgate.key, required_arg_name=None
@@ -1117,6 +1128,8 @@ class CircuitSerializer(serializer.Serializer):
             return PhysicalZTag()
         elif which == 'fsim_via_model':
             return FSimViaModelTag()
+        elif which == 'two_pulse_fsim':
+            return TwoPulseFSimTag()
         elif which == 'calibration_tag':
             return CalibrationTag.from_proto(msg)
         elif which == 'internal_tag':

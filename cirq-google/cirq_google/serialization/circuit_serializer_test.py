@@ -272,6 +272,20 @@ OPERATIONS = [
         ),
     ),
     (
+        cirq.FSimGate(theta=2, phi=1)(Q0, Q1).with_tags(cg.TwoPulseFSimTag()),
+        op_proto(
+            {
+                'fsimgate': {
+                    'theta': {'float_value': 2.0},
+                    'phi': {'float_value': 1.0},
+                    'translate_to_two_pulse': True,
+                },
+                'qubit_constant_index': [0, 1],
+                'tag_indices': [2],
+            }
+        ),
+    ),
+    (
         cirq.WaitGate(duration=cirq.Duration(nanos=15))(Q0),
         op_proto(
             {'waitgate': {'duration_nanos': {'float_value': 15}}, 'qubit_constant_index': [0]}
@@ -982,6 +996,13 @@ def test_deserialize_fsim_missing_parameters():
         serializer.deserialize(proto)
 
 
+def test_fsim_with_both_tags_raises_error():
+    serializer = cg.CircuitSerializer()
+    op = cirq.FSimGate(theta=2, phi=1)(Q0, Q1).with_tags(cg.FSimViaModelTag(), cg.TwoPulseFSimTag())
+    with pytest.raises(ValueError, match='FSimViaModelTag and TwoPulseFSimTag'):
+        serializer.serialize(cirq.Circuit(op))
+
+
 def test_deserialize_wrong_types():
     serializer = cg.CircuitSerializer()
     proto = circuit_proto(
@@ -1054,6 +1075,7 @@ def test_circuit_with_analog_detune_coupler_only():
     [
         cg.ops.DynamicalDecouplingTag('X'),
         cg.FSimViaModelTag(),
+        cg.TwoPulseFSimTag(),
         cg.PhysicalZTag(),
         cg.InternalTag(name='abc', package='xyz'),
     ],

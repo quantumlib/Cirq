@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections.abc import Sequence
+
 import cirq.circuits as circuits
 import cirq.ops as ops
 import cirq.transformers as transformers
 
 
-def _create_odd_ghz(qubits: list[ops.Qid]) -> circuits.Circuit:
+def _create_odd_ghz(qubits: Sequence[ops.Qid]) -> circuits.Circuit:
     """Circuit to create a GHZ state on an odd number of qubits with 1D connectivity. Example:
 
 
@@ -77,7 +79,7 @@ def _create_odd_ghz(qubits: list[ops.Qid]) -> circuits.Circuit:
     return circuits.Circuit.from_moments(*moments)
 
 
-def _create_even_ghz(qubits: list[ops.Qid]) -> circuits.Circuit:
+def _create_even_ghz(qubits: Sequence[ops.Qid]) -> circuits.Circuit:
     """Circuit to create a GHZ state on an even number of qubits with 1D connectivity. Example:
 
 
@@ -141,7 +143,7 @@ def _create_even_ghz(qubits: list[ops.Qid]) -> circuits.Circuit:
     return circuits.Circuit.from_moments(*moments)
 
 
-def _create_ghz_from_one_end(qubits: list[ops.Qid]) -> circuits.Circuit:
+def _create_ghz_from_one_end(qubits: Sequence[ops.Qid]) -> circuits.Circuit:
     """Circuit to create a GHZ state from one end in a 1D chain. Example:
 
 
@@ -183,7 +185,7 @@ def _create_ghz_from_one_end(qubits: list[ops.Qid]) -> circuits.Circuit:
 
 
 def generate_1d_ghz_circuit(
-    qubits: list[ops.Qid],
+    qubits: Sequence[ops.Qid],
     add_dd: bool = True,
     dd_sequence: tuple[ops.Gate, ...] = (ops.X, ops.Y, ops.X, ops.Y),
     from_one_end: bool = False,

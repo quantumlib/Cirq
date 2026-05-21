@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import warnings
 from collections.abc import Sequence
 from typing import cast, TYPE_CHECKING
 
@@ -13,21 +12,6 @@ import cirq
 
 if TYPE_CHECKING:
     import numpy as np
-
-
-def _get_quimb_version():
-    """Returns the quimb version and parsed (major,minor) numbers if possible.
-    Returns:
-        a tuple of ((major, minor), version string)
-    """
-    version = quimb.__version__
-    try:
-        return tuple(int(x) for x in version.split('.')), version
-    except:  # pragma: no cover
-        return (0, 0), version
-
-
-QUIMB_VERSION = _get_quimb_version()
 
 
 def circuit_to_tensors(
@@ -163,15 +147,7 @@ def tensor_expectation_value(
         for q in qubits
     ]
     tn = qtn.TensorNetwork(tensors + end_bras)
-    if QUIMB_VERSION[0] < (1, 3):
-        warnings.warn(  # pragma: no cover
-            f'quimb version {QUIMB_VERSION[1]} detected. Please use '
-            f'quimb>=1.3 for optimal performance in '
-            '`tensor_expectation_value`. '
-            'See https://github.com/quantumlib/Cirq/issues/3263'
-        )
-    else:
-        tn.rank_simplify(inplace=True)
+    tn.rank_simplify(inplace=True)
     path_info = tn.contract(get='path-info')
     ram_gb = path_info.largest_intermediate * 128 / 8 / 1024 / 1024 / 1024
     if ram_gb > max_ram_gb:

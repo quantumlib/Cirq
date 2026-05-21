@@ -579,9 +579,8 @@ def parallel_xeb_workflow(
     Raises:
         ValueError: If qubits are not specified and the sampler has no device.
     """
-    if rng is None:
-        rng = np.random.default_rng()
-    rs = np.random.RandomState(rng.integers(0, 10**9))
+    seed = np.random.randint(0, 10**9) if rng is None else rng.integers(0, 10**9)
+    rs = np.random.RandomState(seed)
 
     pairs = _extract_pairs(sampler, target, qubits, pairs)
     graph = nx.Graph(pairs)

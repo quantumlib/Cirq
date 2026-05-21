@@ -61,13 +61,23 @@ jobs:
         uses: ossf/scorecard-action@4eaacf0543bb3f2c246792bd56e8cdeffafb205a # v2.4.3
         with:
           # Save the results
-          results_file: scorecard-results.sarif
+          results_file: raw-scorecard-results.sarif
           results_format: sarif
           # See https://github.com/ossf/scorecard-action#publishing-results.
           publish_results: true
 
+      - name: Filter results
+        uses: advanced-security/filter-sarif@2da736ff05ef065cb2894ac6892e47b5eac2c3c0 # v1.1
+        with:
+          # The cifuzz action version cannot be pinned to a hash. Filter out those results to avoid
+          # repeated warnings that we can't do anything about.
+          patterns: |
+            -.github/workflows/cifuzz.yml:actions/unpinned-tag
+          input: raw-scorecard-results.sarif
+          output: scorecard-results.sarif
+
       - name: Upload results to code-scanning dashboard
         # yamllint disable rule:line-length
-        uses: github/codeql-action/upload-sarif@5d4e8d1aca955e8d8589aabd499c5cae939e33c7 # v4.31.9
+        uses: github/codeql-action/upload-sarif@c10b8064de6f491fea524254123dbe5e09572f13 # v4.35.1
         with:
           sarif_file: scorecard-results.sarif

@@ -3,30 +3,30 @@
 isort:skip_file
 """
 
-import builtins
-import cirq_google.api.v2.metrics_pb2
-import cirq_google.api.v2.program_pb2
-import collections.abc
-import google.protobuf.descriptor
-import google.protobuf.internal.containers
-import google.protobuf.internal.enum_type_wrapper
-import google.protobuf.message
+from cirq_google.api.v2 import metrics_pb2 as _metrics_pb2
+from cirq_google.api.v2 import program_pb2 as _program_pb2
+from collections import abc as _abc
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from google.protobuf.internal import containers as _containers
+from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+import builtins as _builtins
 import sys
-import typing
+import typing as _typing
 
 if sys.version_info >= (3, 10):
-    import typing as typing_extensions
+    from typing import TypeAlias as _TypeAlias
 else:
-    import typing_extensions
+    from typing_extensions import TypeAlias as _TypeAlias
 
-DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
+DESCRIPTOR: _descriptor.FileDescriptor
 
 class _CalibrationLayerCode:
-    ValueType = typing.NewType("ValueType", builtins.int)
-    V: typing_extensions.TypeAlias = ValueType
+    ValueType = _typing.NewType("ValueType", _builtins.int)
+    V: _TypeAlias = ValueType  # noqa: Y015
 
-class _CalibrationLayerCodeEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_CalibrationLayerCode.ValueType], builtins.type):
-    DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
+class _CalibrationLayerCodeEnumTypeWrapper(_enum_type_wrapper._EnumTypeWrapper[_CalibrationLayerCode.ValueType], _builtins.type):
+    DESCRIPTOR: _descriptor.EnumDescriptor
     CALIBRATION_RESULT_UNSPECIFIED: _CalibrationLayerCode.ValueType  # 0
     """Zero is a default value and means the value was unknown or unset."""
     SUCCESS: _CalibrationLayerCode.ValueType  # 1
@@ -67,17 +67,17 @@ ERROR_CALIBRATION_FAILED: CalibrationLayerCode.ValueType  # 5
 suitable device parameters could not be acheived or dependencies
 needed by the calibration did not exist.
 """
-Global___CalibrationLayerCode: typing_extensions.TypeAlias = CalibrationLayerCode
+Global___CalibrationLayerCode: _TypeAlias = CalibrationLayerCode  # noqa: Y015
 
-@typing.final
-class FocusedCalibration(google.protobuf.message.Message):
+@_typing.final
+class FocusedCalibration(_message.Message):
     """ This message represents a request to execute a custom calibration routine."""
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    LAYERS_FIELD_NUMBER: builtins.int
-    @property
-    def layers(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___CalibrationLayer]:
+    LAYERS_FIELD_NUMBER: _builtins.int
+    @_builtins.property
+    def layers(self) -> _containers.RepeatedCompositeFieldContainer[Global___CalibrationLayer]:
         """The layers field represents each invocation of a calibration
         procedure.
 
@@ -92,57 +92,60 @@ class FocusedCalibration(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        layers: collections.abc.Iterable[Global___CalibrationLayer] | None = ...,
+        layers: _abc.Iterable[Global___CalibrationLayer] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["layers", b"layers"]) -> None: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["layers", b"layers"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___FocusedCalibration: typing_extensions.TypeAlias = FocusedCalibration
+Global___FocusedCalibration: _TypeAlias = FocusedCalibration  # noqa: Y015
 
-@typing.final
-class CalibrationLayer(google.protobuf.message.Message):
+@_typing.final
+class CalibrationLayer(_message.Message):
     """Each CalibrationLayer represents one invocation
     of a calibration procedure.
     """
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    @typing.final
-    class ArgsEntry(google.protobuf.message.Message):
-        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    @_typing.final
+    class ArgsEntry(_message.Message):
+        DESCRIPTOR: _descriptor.Descriptor
 
-        KEY_FIELD_NUMBER: builtins.int
-        VALUE_FIELD_NUMBER: builtins.int
-        key: builtins.str
-        @property
-        def value(self) -> cirq_google.api.v2.program_pb2.Arg: ...
+        KEY_FIELD_NUMBER: _builtins.int
+        VALUE_FIELD_NUMBER: _builtins.int
+        key: _builtins.str
+        @_builtins.property
+        def value(self) -> _program_pb2.Arg: ...
         def __init__(
             self,
             *,
-            key: builtins.str = ...,
-            value: cirq_google.api.v2.program_pb2.Arg | None = ...,
+            key: _builtins.str = ...,
+            value: _program_pb2.Arg | None = ...,
         ) -> None: ...
-        def HasField(self, field_name: typing.Literal["value", b"value"]) -> builtins.bool: ...
-        def ClearField(self, field_name: typing.Literal["key", b"key", "value", b"value"]) -> None: ...
+        _HasFieldArgType: _TypeAlias = _typing.Literal["value", b"value"]  # noqa: Y015
+        def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+        _ClearFieldArgType: _TypeAlias = _typing.Literal["key", b"key", "value", b"value"]  # noqa: Y015
+        def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-    CALIBRATION_TYPE_FIELD_NUMBER: builtins.int
-    LAYER_FIELD_NUMBER: builtins.int
-    ARGS_FIELD_NUMBER: builtins.int
-    calibration_type: builtins.str
+    CALIBRATION_TYPE_FIELD_NUMBER: _builtins.int
+    LAYER_FIELD_NUMBER: _builtins.int
+    ARGS_FIELD_NUMBER: _builtins.int
+    calibration_type: _builtins.str
     """The type of the calibration procedure to execute.
     The value of this field must be in one of the acceptable
     values found in the cirq enum TBD.
     TODO(dstrain): Point to the cirq enum once it exists.
     """
-    @property
-    def layer(self) -> cirq_google.api.v2.program_pb2.Program:
+    @_builtins.property
+    def layer(self) -> _program_pb2.Program:
         """A circuit that identifies the layer or circuit to optimize
         if the calibration requires this.  For many calibrations,
         this will be a single moment representing the layer to
         optimize for.
         """
 
-    @property
-    def args(self) -> google.protobuf.internal.containers.MessageMap[builtins.str, cirq_google.api.v2.program_pb2.Arg]:
+    @_builtins.property
+    def args(self) -> _containers.MessageMap[_builtins.str, _program_pb2.Arg]:
         """Arguments that can be specified to the calibration procedure,
         such as the number of layers, which angles to optimize, etc
         """
@@ -150,24 +153,26 @@ class CalibrationLayer(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        calibration_type: builtins.str = ...,
-        layer: cirq_google.api.v2.program_pb2.Program | None = ...,
-        args: collections.abc.Mapping[builtins.str, cirq_google.api.v2.program_pb2.Arg] | None = ...,
+        calibration_type: _builtins.str = ...,
+        layer: _program_pb2.Program | None = ...,
+        args: _abc.Mapping[_builtins.str, _program_pb2.Arg] | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["layer", b"layer"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["args", b"args", "calibration_type", b"calibration_type", "layer", b"layer"]) -> None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["layer", b"layer"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["args", b"args", "calibration_type", b"calibration_type", "layer", b"layer"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___CalibrationLayer: typing_extensions.TypeAlias = CalibrationLayer
+Global___CalibrationLayer: _TypeAlias = CalibrationLayer  # noqa: Y015
 
-@typing.final
-class FocusedCalibrationResult(google.protobuf.message.Message):
+@_typing.final
+class FocusedCalibrationResult(_message.Message):
     """The results returned by a FocusedCalibration request."""
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    RESULTS_FIELD_NUMBER: builtins.int
-    @property
-    def results(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___CalibrationLayerResult]:
+    RESULTS_FIELD_NUMBER: _builtins.int
+    @_builtins.property
+    def results(self) -> _containers.RepeatedCompositeFieldContainer[Global___CalibrationLayerResult]:
         """The results of each CalibrationLayer request.
         There will be one CalibrationLayerResults message for each
         CalibrationLayer in the request, and the results will
@@ -177,40 +182,41 @@ class FocusedCalibrationResult(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        results: collections.abc.Iterable[Global___CalibrationLayerResult] | None = ...,
+        results: _abc.Iterable[Global___CalibrationLayerResult] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["results", b"results"]) -> None: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["results", b"results"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___FocusedCalibrationResult: typing_extensions.TypeAlias = FocusedCalibrationResult
+Global___FocusedCalibrationResult: _TypeAlias = FocusedCalibrationResult  # noqa: Y015
 
-@typing.final
-class CalibrationLayerResult(google.protobuf.message.Message):
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+@_typing.final
+class CalibrationLayerResult(_message.Message):
+    DESCRIPTOR: _descriptor.Descriptor
 
-    CODE_FIELD_NUMBER: builtins.int
-    ERROR_MESSAGE_FIELD_NUMBER: builtins.int
-    TOKEN_FIELD_NUMBER: builtins.int
-    METRICS_FIELD_NUMBER: builtins.int
-    VALID_UNTIL_MS_FIELD_NUMBER: builtins.int
+    CODE_FIELD_NUMBER: _builtins.int
+    ERROR_MESSAGE_FIELD_NUMBER: _builtins.int
+    TOKEN_FIELD_NUMBER: _builtins.int
+    METRICS_FIELD_NUMBER: _builtins.int
+    VALID_UNTIL_MS_FIELD_NUMBER: _builtins.int
     code: Global___CalibrationLayerCode.ValueType
     """Whether the calibration procedure was a success or failure."""
-    error_message: builtins.str
+    error_message: _builtins.str
     """On non-successful results, contains additional information
     about the details of the error.
     """
-    token: builtins.str
+    token: _builtins.str
     """A token identifying the calibration result.
     If a token exists in the response, it can be used to tag
     focused circuits that use parameters
     derived from this calibration.
     If no token exists, then the calibration was purely diagnostic.
     """
-    valid_until_ms: builtins.int
+    valid_until_ms: _builtins.int
     """Timestamp of when the calibration is valid until, specified as
     milliseconds since the Unix epoch time.
     """
-    @property
-    def metrics(self) -> cirq_google.api.v2.metrics_pb2.MetricsSnapshot:
+    @_builtins.property
+    def metrics(self) -> _metrics_pb2.MetricsSnapshot:
         """Results, such as gate fidelities, gate angles, etc
         would be returned in a similar format to calibration metrics.
         This allows the return result to be easily extensible.
@@ -220,12 +226,14 @@ class CalibrationLayerResult(google.protobuf.message.Message):
         self,
         *,
         code: Global___CalibrationLayerCode.ValueType = ...,
-        error_message: builtins.str = ...,
-        token: builtins.str = ...,
-        metrics: cirq_google.api.v2.metrics_pb2.MetricsSnapshot | None = ...,
-        valid_until_ms: builtins.int = ...,
+        error_message: _builtins.str = ...,
+        token: _builtins.str = ...,
+        metrics: _metrics_pb2.MetricsSnapshot | None = ...,
+        valid_until_ms: _builtins.int = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["metrics", b"metrics"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["code", b"code", "error_message", b"error_message", "metrics", b"metrics", "token", b"token", "valid_until_ms", b"valid_until_ms"]) -> None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["metrics", b"metrics"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["code", b"code", "error_message", b"error_message", "metrics", b"metrics", "token", b"token", "valid_until_ms", b"valid_until_ms"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___CalibrationLayerResult: typing_extensions.TypeAlias = CalibrationLayerResult
+Global___CalibrationLayerResult: _TypeAlias = CalibrationLayerResult  # noqa: Y015
