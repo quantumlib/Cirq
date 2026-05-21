@@ -36,13 +36,7 @@ import warnings
 import pytest
 
 from dev_tools import shell_tools
-from dev_tools.notebooks import (
-    filter_notebooks,
-    list_all_notebooks,
-    REPO_ROOT,
-    rewrite_notebook,
-    sleep_once_if_parallel,
-)
+from dev_tools.notebooks import filter_notebooks, list_all_notebooks, REPO_ROOT, rewrite_notebook
 
 # The notebooks in the following list rely on features that are not yet released.
 # They are excluded from isolated notebook tests in this file; however, they are still tested
@@ -141,7 +135,6 @@ def _partitioned_test_cases(notebooks):
     return [(f"partition-{i%n_partitions}", notebook) for i, notebook in enumerate(notebooks)]
 
 
-@sleep_once_if_parallel
 def _rewrite_and_run_notebook(notebook_path, cloned_env):
     notebook_file = os.path.basename(notebook_path)
     notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, REPO_ROOT))

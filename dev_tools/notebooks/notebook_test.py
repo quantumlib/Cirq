@@ -24,20 +24,13 @@ from __future__ import annotations
 import importlib.metadata
 import os
 import tempfile
-import time
 from collections.abc import Iterator
 
 import pytest
 
 from dev_tools import shell_tools
 from dev_tools.modules import list_modules
-from dev_tools.notebooks import (
-    filter_notebooks,
-    list_all_notebooks,
-    REPO_ROOT,
-    rewrite_notebook,
-    sleep_once_if_parallel,
-)
+from dev_tools.notebooks import filter_notebooks, list_all_notebooks, REPO_ROOT, rewrite_notebook
 from dev_tools.test_utils import only_on_posix
 
 SKIP_NOTEBOOKS = [
@@ -54,24 +47,6 @@ SKIP_NOTEBOOKS = [
     'docs/tutorials/google/spin_echoes.ipynb',
     'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
 ]
-
-
-def _short_sleep_if_parallel() -> None:
-    """Avoid race condition when several workers start jupyter kernel simultaneously.
-
-    Perform short random sleep for the first call on a parallel pytest worker.
-    """
-    global _short_sleep_done
-    seconds = (
-        0.0
-        if _short_sleep_done or int(os.environ.get("PYTEST_XDIST_WORKER_COUNT", "0")) <= 1
-        else (time.monotonic_ns() % 1000) / 1000.0
-    )
-    time.sleep(seconds)
-    _short_sleep_done = True
-
-
-_short_sleep_done = False
 
 
 @pytest.fixture
@@ -123,7 +98,6 @@ def env_with_temporary_pip_target() -> Iterator[dict[str, str]]:
 @pytest.mark.slow
 @only_on_posix
 @pytest.mark.parametrize("notebook_path", filter_notebooks(list_all_notebooks(), SKIP_NOTEBOOKS))
-@sleep_once_if_parallel
 def test_notebooks_against_cirq_head(
     notebook_path, require_packages_not_changed, env_with_temporary_pip_target
 ) -> None:
@@ -148,7 +122,6 @@ def test_notebooks_against_cirq_head(
     assert os.path.isdir(env_with_temporary_pip_target["CLOUDSDK_CONFIG"])
 
     REPO_ROOT.joinpath("out", notebook_rel_dir).mkdir(parents=True, exist_ok=True)
-    _short_sleep_if_parallel()
     result = shell_tools.run(
         cmd,
         log_run_to_stderr=False,
