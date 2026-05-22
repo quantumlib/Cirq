@@ -156,7 +156,10 @@ def test_skip_notebooks_has_valid_patterns() -> None:
 def test_papermill_scheduler_is_still_needed() -> None:
     # reminder to revisit the papermill_scheduler hack when papermill releases new version
     needed_for_papermill_version = (2, 7)
-    pmdist = importlib.metadata.distribution("papermill")
+    try:
+        pmdist = importlib.metadata.distribution("papermill")
+    except importlib.metadata.PackageNotFoundError:
+        pytest.skip("papermill is not installed")
     actual_papermill_version = tuple(int(v) for v in pmdist.version.split(".")[:2])
     msg = f"""
         Please check if papermill_scheduler fixture can be removed for papermill-{pmdist.version}.
