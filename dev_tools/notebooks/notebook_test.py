@@ -24,7 +24,9 @@ from __future__ import annotations
 import importlib.metadata
 import os
 import tempfile
+import textwrap
 import time
+import warnings
 from collections.abc import Iterator
 
 import pytest
@@ -149,3 +151,21 @@ def test_skip_notebooks_has_valid_patterns() -> None:
     """Verify patterns in SKIP_NOTEBOOKS are all valid."""
     patterns_without_match = [g for g in SKIP_NOTEBOOKS if not any(REPO_ROOT.glob(g))]
     assert patterns_without_match == []
+
+
+def test_papermill_scheduler_is_still_needed() -> None:
+    # reminder to revisit the papermill_scheduler hack when papermill releases new version
+    needed_for_papermill_version = (2, 7)
+    pmdist = importlib.metadata.distribution("papermill")
+    actual_papermill_version = tuple(int(v) for v in pmdist.version.split(".")[:2])
+    msg = f"""
+        Please check if papermill_scheduler fixture can be removed for papermill-{pmdist.version}.
+        If so the following pytest run will pass without errors (repeat several times)
+
+          check/pytest -n8 -m slow dev_tools/notebooks/notebook_test.py
+
+        If you get "Kernel died before replying to kernel_info" error, continue using the
+        `papermill_scheduler` fixture and adjust the `needed_for_papermill_version` value.
+    """
+    if actual_papermill_version > needed_for_papermill_version:
+        warnings.warn(textwrap.dedent(msg), DeprecationWarning)
