@@ -20,6 +20,7 @@ import re
 import subprocess
 import tempfile
 import time
+import uuid
 from collections.abc import Callable
 from logging import warning
 
@@ -124,21 +125,20 @@ def rewrite_notebook(notebook_path: str) -> str:
 
 
 def create_parallel_scheduler(
-    queuefile: pathlib.Path, worker_name: str, interval: float
+    queuefile: pathlib.Path, interval: float
 ) -> Callable[[], tuple[float, float]]:
     """Create callable which generates epoch time for events separated by interval seconds.
 
-    The scheduler is synchronized over parallel Python processes provided each
-    of them uses a unique `worker_name` and the same `queuefile`.
+    The scheduler is synchronized over parallel Python processes provided
+    all of them use the same `queuefile`.
 
     Args:
         queuefile: The shared file used to determine the next event time.
             The file is appended to at each use of the returned scheduler
-            and should be empty or non-existent at the time of the first use.
-        worker_name: The unique name for associating the created scheduler
-            with its `queuefile` data.  Each parallel process should use
-            a unique `worker_name` when sharing the same `queuefile`.
+            and should be empty or non-existent at the time of its first use.
         interval: The minimum delay in seconds between successive events.
+            When zero or negative, the scheduler produces immediate time
+            without using the `queuefile`.
 
     Returns:
         The scheduler as a zero-argument callable object.  At each call the scheduler
@@ -147,12 +147,16 @@ def create_parallel_scheduler(
     """
     pos = 0
     event_time = 0.0
+    this_scheduler_uid = f"{uuid.uuid4()}"[-12:]
 
-    def schedule() -> tuple[float, float]:
+    if interval <= 0:
+        return lambda: (time.time(), 0.0)
+
+    def scheduler() -> tuple[float, float]:
         """Return time for the next event as a tuple of (event_time, wait_time)."""
         nonlocal pos
         nonlocal event_time
-        record = f"{time.time()} {worker_name}\n"
+        record = f"{time.time()} {this_scheduler_uid}\n"
         with queuefile.open("a") as fp:
             fp.write(record)
         with queuefile.open("r") as fp:
@@ -168,4 +172,4 @@ def create_parallel_scheduler(
         wait_time = max(event_time - time.time(), 0.0)
         return event_time, wait_time
 
-    return schedule
+    return scheduler
