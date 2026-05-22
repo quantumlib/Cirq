@@ -35,7 +35,7 @@ class InternalGate(ops.Gate):
     def __init__(
         self,
         gate_name: str,
-        gate_module: str = None,
+        gate_module: str | None = None,
         num_qubits: int = 1,
         custom_args: Mapping[str, program_pb2.CustomArg] | None = None,
         **kwargs,
