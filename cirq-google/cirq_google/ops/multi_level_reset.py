@@ -27,11 +27,7 @@ class MultilevelResetViaResonator(InternalGate):
     """
 
     def __init__(self, gate_name=None, gate_module=None, num_qubits=1, **kwargs):
-        super().__init__(
-            gate_name="MultilevelResetViaResonator",
-            gate_module="pyle.cirqtools.pyle_gates",
-            num_qubits=1,
-        )
+        super().__init__(gate_name="MultilevelResetViaResonator", num_qubits=1)
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> list[str]:
         return ["[R (ML)]"]

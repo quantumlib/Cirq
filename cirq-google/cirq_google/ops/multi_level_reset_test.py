@@ -61,7 +61,6 @@ def test_serialization_round_trip():
     assert op_proto.WhichOneof('gate_value') == 'internalgate'
     internal_gate_proto = op_proto.internalgate
     assert internal_gate_proto.name == "MultilevelResetViaResonator"
-    assert internal_gate_proto.module == "pyle.cirqtools.pyle_gates"
     assert internal_gate_proto.num_qubits == 1
 
     # Deserialize
