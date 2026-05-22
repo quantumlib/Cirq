@@ -122,9 +122,9 @@ def test_notebooks_against_cirq_head(
     # ensure papermill will have CLOUDSDK_CONFIG set per dev_tools/conftest.py
     assert os.path.isdir(env_with_temporary_pip_target["CLOUDSDK_CONFIG"])
 
-    _, wait_time = papermill_scheduler()
-    time.sleep(wait_time)
     REPO_ROOT.joinpath("out", notebook_rel_dir).mkdir(parents=True, exist_ok=True)
+    wait_time = papermill_scheduler()[1]
+    time.sleep(wait_time)
     result = shell_tools.run(
         cmd,
         log_run_to_stderr=False,
