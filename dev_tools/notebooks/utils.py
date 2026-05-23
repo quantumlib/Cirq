@@ -156,10 +156,10 @@ def create_parallel_scheduler(
         """Return time for the next event as a tuple of (event_time, wait_time)."""
         nonlocal pos
         nonlocal event_time
-        record = f"{time.time()} {this_scheduler_uid}\n"
-        with queuefile.open("a") as fp:
+        record = f"{time.time()} {this_scheduler_uid}\n".encode()
+        with queuefile.open("ab") as fp:
             fp.write(record)
-        with queuefile.open("r") as fp:
+        with queuefile.open("rb") as fp:
             fp.seek(pos)
             for line in fp:
                 pos += len(line)
