@@ -192,6 +192,16 @@ class AbstractJob(abc.ABC):
 
     results = duet.sync(results_async)
 
+    @abc.abstractmethod
+    async def batched_results_async(self) -> Sequence[Sequence[EngineResult]]:
+        """Returns the job results split by program/circuit in the batch.
+
+        Instead of flattening results into a single list, this will return a Sequence[EngineResult]
+        for each circuit in the batch.
+        """
+
+    batched_results = duet.sync(batched_results_async)
+
     def __iter__(self) -> Iterator[cirq.Result]:
         yield from self.results()
 
