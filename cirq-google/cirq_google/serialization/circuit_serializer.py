@@ -35,6 +35,7 @@ from cirq_google.ops import (
     FSimViaModelTag,
     InternalGate,
     InternalTag,
+    LZSResetViaResonator,
     MultilevelResetViaResonator,
     PhysicalZTag,
     SycamoreGate,
@@ -922,6 +923,8 @@ class CircuitSerializer(serializer.Serializer):
             msg = operation_proto.internalgate
             match str(msg.name):
                 # Add new custom cirq_google gates here:
+                case "LZSResetViaResonator":
+                    gate: cirq.Gate = LZSResetViaResonator()
                 case "MultilevelResetViaResonator":
                     gate: cirq.Gate = MultilevelResetViaResonator()
                 case _:

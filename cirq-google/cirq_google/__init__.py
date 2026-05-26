@@ -61,6 +61,7 @@ from cirq_google.ops import (
     FSimViaModelTag as FSimViaModelTag,
     InternalGate as InternalGate,
     InternalTag as InternalTag,
+    LZSResetViaResonator as LZSResetViaResonator,
     MultilevelResetViaResonator as MultilevelResetViaResonator,
     PhysicalZTag as PhysicalZTag,
     SYC as SYC,
