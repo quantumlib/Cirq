@@ -35,6 +35,7 @@ from cirq_google.ops import (
     FSimViaModelTag,
     InternalGate,
     InternalTag,
+    MultilevelResetViaResonator,
     PhysicalZTag,
     SycamoreGate,
     TwoPulseFSimTag,
@@ -919,7 +920,13 @@ class CircuitSerializer(serializer.Serializer):
             op = cirq.ResetChannel(dimension=dimensions)(*qubits)
         elif which_gate_type == 'internalgate':
             msg = operation_proto.internalgate
-            op = arg_func_langs.internal_gate_from_proto(msg)(*qubits)
+            match str(msg.name):
+                # Add new custom cirq_google gates here:
+                case "MultilevelResetViaResonator":
+                    gate: cirq.Gate = MultilevelResetViaResonator()
+                case _:
+                    gate = arg_func_langs.internal_gate_from_proto(msg)
+            op = gate(*qubits)
         elif which_gate_type == 'couplerpulsegate':
             gate = CouplerPulse(
                 hold_time=cirq.Duration(
