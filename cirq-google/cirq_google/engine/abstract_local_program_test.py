@@ -149,12 +149,25 @@ def test_description_and_labels():
 def test_circuit():
     circuit1 = cirq.Circuit(cirq.X(cirq.LineQubit(1)))
     circuit2 = cirq.Circuit(cirq.Y(cirq.LineQubit(2)))
+
+    # Single circuit, non-batch
     program = NothingProgram([circuit1], None)
-    assert program.batch_size() == 1
+    assert not program.is_batch()
+    with pytest.raises(ValueError, match="not a batch program"):
+        _ = program.batch_size()
     assert program.get_circuit() == circuit1
     assert program.get_circuit(0) == circuit1
-    assert program.batch_size() == 1
+    assert program.get_circuits() == [circuit1]
+
+    # Multi circuit (always batch)
     program = NothingProgram([circuit1, circuit2], None)
+    assert program.is_batch()
     assert program.batch_size() == 2
+    with pytest.raises(ValueError, match="batch program containing 2 circuits"):
+        _ = program.get_circuit()
     assert program.get_circuit(0) == circuit1
     assert program.get_circuit(1) == circuit2
+    assert program.get_circuits() == [circuit1, circuit2]
+
+    with pytest.raises(IndexError):
+        _ = program.get_circuit(2)

@@ -242,11 +242,10 @@ def _fidelity_state_vectors_or_density_matrices(state1: np.ndarray, state2: np.n
         # state1 is a density matrix and state2 is a state vector
         return np.real(np.conjugate(state2) @ state1 @ state2)
     elif state1.ndim == 2 and state2.ndim == 2:
-        # Both density matrices
-        state1_sqrt = _sqrt_positive_semidefinite_matrix(state1)
-        eigs = linalg.eigvalsh(state1_sqrt @ state2 @ state1_sqrt)
-        trace = np.sum(np.sqrt(np.abs(eigs)))
-        return trace**2
+        # Both density matrices: use SVD-based fidelity for numerical stability
+        rho1_sqrt = linalg.sqrtm(state1)
+        rho2_sqrt = linalg.sqrtm(state2)
+        return (np.sum(linalg.svdvals(rho1_sqrt @ rho2_sqrt))) ** 2
     # matrix is reshaped before this point
     raise ValueError(  # pragma: no cover
         'The given arrays must be one- or two-dimensional. '

@@ -3,42 +3,42 @@
 isort:skip_file
 """
 
-import builtins
-import cirq_google.api.v2.program_pb2
-import collections.abc
-import google.protobuf.descriptor
-import google.protobuf.internal.containers
-import google.protobuf.internal.enum_type_wrapper
-import google.protobuf.message
+from cirq_google.api.v2 import program_pb2 as _program_pb2
+from collections import abc as _abc
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from google.protobuf.internal import containers as _containers
+from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from tunits.proto import tunits_pb2 as _tunits_pb2
+import builtins as _builtins
 import sys
-import tunits.proto.tunits_pb2
-import typing
+import typing as _typing
 
 if sys.version_info >= (3, 10):
-    import typing as typing_extensions
+    from typing import TypeAlias as _TypeAlias
 else:
-    import typing_extensions
+    from typing_extensions import TypeAlias as _TypeAlias
 
-DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
+DESCRIPTOR: _descriptor.FileDescriptor
 
-@typing.final
-class RunContext(google.protobuf.message.Message):
+@_typing.final
+class RunContext(_message.Message):
     """The context for running a quantum program."""
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    PARAMETER_SWEEPS_FIELD_NUMBER: builtins.int
-    DEVICE_PARAMETERS_OVERRIDE_FIELD_NUMBER: builtins.int
-    COMPRESSED_RUN_CONTEXT_FIELD_NUMBER: builtins.int
-    compressed_run_context: builtins.bytes
+    PARAMETER_SWEEPS_FIELD_NUMBER: _builtins.int
+    DEVICE_PARAMETERS_OVERRIDE_FIELD_NUMBER: _builtins.int
+    COMPRESSED_RUN_CONTEXT_FIELD_NUMBER: _builtins.int
+    compressed_run_context: _builtins.bytes
     """If compression is desired, this field stores the gzipped bytes
     of the RunContext
     """
-    @property
-    def parameter_sweeps(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___ParameterSweep]:
+    @_builtins.property
+    def parameter_sweeps(self) -> _containers.RepeatedCompositeFieldContainer[Global___ParameterSweep]:
         """The parameters for operations in a program."""
 
-    @property
+    @_builtins.property
     def device_parameters_override(self) -> Global___DeviceParametersDiff:
         """Optional override of select device parameters before program
         execution. Note it is permissible to specify the same device parameter
@@ -50,30 +50,32 @@ class RunContext(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        parameter_sweeps: collections.abc.Iterable[Global___ParameterSweep] | None = ...,
+        parameter_sweeps: _abc.Iterable[Global___ParameterSweep] | None = ...,
         device_parameters_override: Global___DeviceParametersDiff | None = ...,
-        compressed_run_context: builtins.bytes = ...,
+        compressed_run_context: _builtins.bytes = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["device_parameters_override", b"device_parameters_override"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["compressed_run_context", b"compressed_run_context", "device_parameters_override", b"device_parameters_override", "parameter_sweeps", b"parameter_sweeps"]) -> None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["device_parameters_override", b"device_parameters_override"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["compressed_run_context", b"compressed_run_context", "device_parameters_override", b"device_parameters_override", "parameter_sweeps", b"parameter_sweeps"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___RunContext: typing_extensions.TypeAlias = RunContext
+Global___RunContext: _TypeAlias = RunContext  # noqa: Y015
 
-@typing.final
-class ParameterSweep(google.protobuf.message.Message):
+@_typing.final
+class ParameterSweep(_message.Message):
     """Specifies how to repeatedly sample a circuit, with or without sweeping over
     varying parameter-dicts.
     """
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    REPETITIONS_FIELD_NUMBER: builtins.int
-    SWEEP_FIELD_NUMBER: builtins.int
-    repetitions: builtins.int
+    REPETITIONS_FIELD_NUMBER: _builtins.int
+    SWEEP_FIELD_NUMBER: _builtins.int
+    repetitions: _builtins.int
     """How many times to sample, for each parameter-dict that is swept over.
     This must be set to a value strictly greater than zero.
     """
-    @property
+    @_builtins.property
     def sweep(self) -> Global___Sweep:
         """Which parameters, that control gates in the circuit, to try.
 
@@ -86,25 +88,27 @@ class ParameterSweep(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        repetitions: builtins.int = ...,
+        repetitions: _builtins.int = ...,
         sweep: Global___Sweep | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["sweep", b"sweep"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["repetitions", b"repetitions", "sweep", b"sweep"]) -> None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["sweep", b"sweep"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["repetitions", b"repetitions", "sweep", b"sweep"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___ParameterSweep: typing_extensions.TypeAlias = ParameterSweep
+Global___ParameterSweep: _TypeAlias = ParameterSweep  # noqa: Y015
 
-@typing.final
-class Sweep(google.protobuf.message.Message):
+@_typing.final
+class Sweep(_message.Message):
     """A sweep over all of the parameters in a program."""
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    SWEEP_FUNCTION_FIELD_NUMBER: builtins.int
-    SINGLE_SWEEP_FIELD_NUMBER: builtins.int
-    @property
+    SWEEP_FUNCTION_FIELD_NUMBER: _builtins.int
+    SINGLE_SWEEP_FIELD_NUMBER: _builtins.int
+    @_builtins.property
     def sweep_function(self) -> Global___SweepFunction: ...
-    @property
+    @_builtins.property
     def single_sweep(self) -> Global___SingleSweep: ...
     def __init__(
         self,
@@ -112,24 +116,28 @@ class Sweep(google.protobuf.message.Message):
         sweep_function: Global___SweepFunction | None = ...,
         single_sweep: Global___SingleSweep | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["single_sweep", b"single_sweep", "sweep", b"sweep", "sweep_function", b"sweep_function"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["single_sweep", b"single_sweep", "sweep", b"sweep", "sweep_function", b"sweep_function"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["sweep", b"sweep"]) -> typing.Literal["sweep_function", "single_sweep"] | None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["single_sweep", b"single_sweep", "sweep", b"sweep", "sweep_function", b"sweep_function"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["single_sweep", b"single_sweep", "sweep", b"sweep", "sweep_function", b"sweep_function"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    _WhichOneofReturnType_sweep: _TypeAlias = _typing.Literal["sweep_function", "single_sweep"]  # noqa: Y015
+    _WhichOneofArgType_sweep: _TypeAlias = _typing.Literal["sweep", b"sweep"]  # noqa: Y015
+    def WhichOneof(self, oneof_group: _WhichOneofArgType_sweep) -> _WhichOneofReturnType_sweep | None: ...
 
-Global___Sweep: typing_extensions.TypeAlias = Sweep
+Global___Sweep: _TypeAlias = Sweep  # noqa: Y015
 
-@typing.final
-class SweepFunction(google.protobuf.message.Message):
+@_typing.final
+class SweepFunction(_message.Message):
     """A function that takes multiple sweeps and produces more sweeps."""
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
     class _FunctionType:
-        ValueType = typing.NewType("ValueType", builtins.int)
-        V: typing_extensions.TypeAlias = ValueType
+        ValueType = _typing.NewType("ValueType", _builtins.int)
+        V: _TypeAlias = ValueType  # noqa: Y015
 
-    class _FunctionTypeEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[SweepFunction._FunctionType.ValueType], builtins.type):
-        DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
+    class _FunctionTypeEnumTypeWrapper(_enum_type_wrapper._EnumTypeWrapper[SweepFunction._FunctionType.ValueType], _builtins.type):
+        DESCRIPTOR: _descriptor.EnumDescriptor
         FUNCTION_TYPE_UNSPECIFIED: SweepFunction._FunctionType.ValueType  # 0
         """The function type is not specified. Should never be used."""
         PRODUCT: SweepFunction._FunctionType.ValueType  # 1
@@ -233,74 +241,81 @@ class SweepFunction(google.protobuf.message.Message):
     'a' to the values 0, 1, 2, 3, 4, 5 in sequence.
     """
 
-    FUNCTION_TYPE_FIELD_NUMBER: builtins.int
-    SWEEPS_FIELD_NUMBER: builtins.int
+    FUNCTION_TYPE_FIELD_NUMBER: _builtins.int
+    SWEEPS_FIELD_NUMBER: _builtins.int
     function_type: Global___SweepFunction.FunctionType.ValueType
-    @property
-    def sweeps(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___Sweep]:
+    @_builtins.property
+    def sweeps(self) -> _containers.RepeatedCompositeFieldContainer[Global___Sweep]:
         """The argument sweeps to the function."""
 
     def __init__(
         self,
         *,
         function_type: Global___SweepFunction.FunctionType.ValueType = ...,
-        sweeps: collections.abc.Iterable[Global___Sweep] | None = ...,
+        sweeps: _abc.Iterable[Global___Sweep] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["function_type", b"function_type", "sweeps", b"sweeps"]) -> None: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["function_type", b"function_type", "sweeps", b"sweeps"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___SweepFunction: typing_extensions.TypeAlias = SweepFunction
+Global___SweepFunction: _TypeAlias = SweepFunction  # noqa: Y015
 
-@typing.final
-class DeviceParameter(google.protobuf.message.Message):
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+@_typing.final
+class DeviceParameter(_message.Message):
+    DESCRIPTOR: _descriptor.Descriptor
 
-    PATH_FIELD_NUMBER: builtins.int
-    IDX_FIELD_NUMBER: builtins.int
-    UNITS_FIELD_NUMBER: builtins.int
-    idx: builtins.int
+    PATH_FIELD_NUMBER: _builtins.int
+    IDX_FIELD_NUMBER: _builtins.int
+    UNITS_FIELD_NUMBER: _builtins.int
+    idx: _builtins.int
     """If the value is an array, the index of the array to change."""
-    units: builtins.str
+    units: _builtins.str
     """String representation of the units, if any.
     Examples: "GHz", "ns", etc.
     """
-    @property
-    def path(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
+    @_builtins.property
+    def path(self) -> _containers.RepeatedScalarFieldContainer[_builtins.str]:
         """Path to the parameter key"""
 
     def __init__(
         self,
         *,
-        path: collections.abc.Iterable[builtins.str] | None = ...,
-        idx: builtins.int | None = ...,
-        units: builtins.str | None = ...,
+        path: _abc.Iterable[_builtins.str] | None = ...,
+        idx: _builtins.int | None = ...,
+        units: _builtins.str | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["_idx", b"_idx", "_units", b"_units", "idx", b"idx", "units", b"units"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["_idx", b"_idx", "_units", b"_units", "idx", b"idx", "path", b"path", "units", b"units"]) -> None: ...
-    @typing.overload
-    def WhichOneof(self, oneof_group: typing.Literal["_idx", b"_idx"]) -> typing.Literal["idx"] | None: ...
-    @typing.overload
-    def WhichOneof(self, oneof_group: typing.Literal["_units", b"_units"]) -> typing.Literal["units"] | None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["_idx", b"_idx", "_units", b"_units", "idx", b"idx", "units", b"units"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["_idx", b"_idx", "_units", b"_units", "idx", b"idx", "path", b"path", "units", b"units"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    _WhichOneofReturnType__idx: _TypeAlias = _typing.Literal["idx"]  # noqa: Y015
+    _WhichOneofArgType__idx: _TypeAlias = _typing.Literal["_idx", b"_idx"]  # noqa: Y015
+    _WhichOneofReturnType__units: _TypeAlias = _typing.Literal["units"]  # noqa: Y015
+    _WhichOneofArgType__units: _TypeAlias = _typing.Literal["_units", b"_units"]  # noqa: Y015
+    @_typing.overload
+    def WhichOneof(self, oneof_group: _WhichOneofArgType__idx) -> _WhichOneofReturnType__idx | None: ...
+    @_typing.overload
+    def WhichOneof(self, oneof_group: _WhichOneofArgType__units) -> _WhichOneofReturnType__units | None: ...
 
-Global___DeviceParameter: typing_extensions.TypeAlias = DeviceParameter
+Global___DeviceParameter: _TypeAlias = DeviceParameter  # noqa: Y015
 
-@typing.final
-class Metadata(google.protobuf.message.Message):
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+@_typing.final
+class Metadata(_message.Message):
+    DESCRIPTOR: _descriptor.Descriptor
 
-    DEVICE_PARAMETERS_FIELD_NUMBER: builtins.int
-    LABEL_FIELD_NUMBER: builtins.int
-    IS_CONST_FIELD_NUMBER: builtins.int
-    UNIT_FIELD_NUMBER: builtins.int
-    label: builtins.str
+    DEVICE_PARAMETERS_FIELD_NUMBER: _builtins.int
+    LABEL_FIELD_NUMBER: _builtins.int
+    IS_CONST_FIELD_NUMBER: _builtins.int
+    UNIT_FIELD_NUMBER: _builtins.int
+    label: _builtins.str
     """If specified, use this label instead of parameter_key as the independent
     column name in returned dataset.
     """
-    is_const: builtins.bool
+    is_const: _builtins.bool
     """If true, store this sweep as parameters instead of the independent axes."""
-    unit: builtins.str
+    unit: _builtins.str
     """A temporary solution that we store the unit information here."""
-    @property
-    def device_parameters(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___DeviceParameter]:
+    @_builtins.property
+    def device_parameters(self) -> _containers.RepeatedCompositeFieldContainer[Global___DeviceParameter]:
         """Optional arguments for if this is a device parameter.
         Note one single_sweep may be associated with multiple device parameters.
         """
@@ -308,24 +323,32 @@ class Metadata(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        device_parameters: collections.abc.Iterable[Global___DeviceParameter] | None = ...,
-        label: builtins.str | None = ...,
-        is_const: builtins.bool | None = ...,
-        unit: builtins.str | None = ...,
+        device_parameters: _abc.Iterable[Global___DeviceParameter] | None = ...,
+        label: _builtins.str | None = ...,
+        is_const: _builtins.bool | None = ...,
+        unit: _builtins.str | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["_is_const", b"_is_const", "_label", b"_label", "_unit", b"_unit", "is_const", b"is_const", "label", b"label", "unit", b"unit"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["_is_const", b"_is_const", "_label", b"_label", "_unit", b"_unit", "device_parameters", b"device_parameters", "is_const", b"is_const", "label", b"label", "unit", b"unit"]) -> None: ...
-    @typing.overload
-    def WhichOneof(self, oneof_group: typing.Literal["_is_const", b"_is_const"]) -> typing.Literal["is_const"] | None: ...
-    @typing.overload
-    def WhichOneof(self, oneof_group: typing.Literal["_label", b"_label"]) -> typing.Literal["label"] | None: ...
-    @typing.overload
-    def WhichOneof(self, oneof_group: typing.Literal["_unit", b"_unit"]) -> typing.Literal["unit"] | None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["_is_const", b"_is_const", "_label", b"_label", "_unit", b"_unit", "is_const", b"is_const", "label", b"label", "unit", b"unit"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["_is_const", b"_is_const", "_label", b"_label", "_unit", b"_unit", "device_parameters", b"device_parameters", "is_const", b"is_const", "label", b"label", "unit", b"unit"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    _WhichOneofReturnType__is_const: _TypeAlias = _typing.Literal["is_const"]  # noqa: Y015
+    _WhichOneofArgType__is_const: _TypeAlias = _typing.Literal["_is_const", b"_is_const"]  # noqa: Y015
+    _WhichOneofReturnType__label: _TypeAlias = _typing.Literal["label"]  # noqa: Y015
+    _WhichOneofArgType__label: _TypeAlias = _typing.Literal["_label", b"_label"]  # noqa: Y015
+    _WhichOneofReturnType__unit: _TypeAlias = _typing.Literal["unit"]  # noqa: Y015
+    _WhichOneofArgType__unit: _TypeAlias = _typing.Literal["_unit", b"_unit"]  # noqa: Y015
+    @_typing.overload
+    def WhichOneof(self, oneof_group: _WhichOneofArgType__is_const) -> _WhichOneofReturnType__is_const | None: ...
+    @_typing.overload
+    def WhichOneof(self, oneof_group: _WhichOneofArgType__label) -> _WhichOneofReturnType__label | None: ...
+    @_typing.overload
+    def WhichOneof(self, oneof_group: _WhichOneofArgType__unit) -> _WhichOneofReturnType__unit | None: ...
 
-Global___Metadata: typing_extensions.TypeAlias = Metadata
+Global___Metadata: _TypeAlias = Metadata  # noqa: Y015
 
-@typing.final
-class DeviceParametersDiff(google.protobuf.message.Message):
+@_typing.final
+class DeviceParametersDiff(_message.Message):
     """A bundle of multiple DeviceParameters and their values.
     The main use case is to set those parameters with the
     values from this bundle before executing a circuit sweep.
@@ -336,79 +359,81 @@ class DeviceParametersDiff(google.protobuf.message.Message):
     groups only once, and avoiding repeated storage of common parameter names.
     """
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    @typing.final
-    class ResourceGroup(google.protobuf.message.Message):
+    @_typing.final
+    class ResourceGroup(_message.Message):
         """A resource group a device parameter belongs to.
         The identifier of a resource group is DeviceParameter.path without the
         last component.
         """
 
-        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+        DESCRIPTOR: _descriptor.Descriptor
 
-        PARENT_FIELD_NUMBER: builtins.int
-        NAME_FIELD_NUMBER: builtins.int
-        parent: builtins.int
+        PARENT_FIELD_NUMBER: _builtins.int
+        NAME_FIELD_NUMBER: _builtins.int
+        parent: _builtins.int
         """parent resource group, as an index into the groups repeated field."""
-        name: builtins.int
+        name: _builtins.int
         """as index into the strs repeated field."""
         def __init__(
             self,
             *,
-            parent: builtins.int = ...,
-            name: builtins.int = ...,
+            parent: _builtins.int = ...,
+            name: _builtins.int = ...,
         ) -> None: ...
-        def ClearField(self, field_name: typing.Literal["name", b"name", "parent", b"parent"]) -> None: ...
+        _ClearFieldArgType: _TypeAlias = _typing.Literal["name", b"name", "parent", b"parent"]  # noqa: Y015
+        def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-    @typing.final
-    class GenericValue(google.protobuf.message.Message):
+    @_typing.final
+    class GenericValue(_message.Message):
         """Param value whose type is not among proto field types supported by
         ArgValue. In other words, it is the responsibility of the client codes
         to enforce the validity and type consistency of this param value.
         """
 
-        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+        DESCRIPTOR: _descriptor.Descriptor
 
-        TYPE_DESCRIPTOR_FIELD_NUMBER: builtins.int
-        VALUE_FIELD_NUMBER: builtins.int
-        type_descriptor: builtins.str
+        TYPE_DESCRIPTOR_FIELD_NUMBER: _builtins.int
+        VALUE_FIELD_NUMBER: _builtins.int
+        type_descriptor: _builtins.str
         """Type description of the value representation. Eg. if the following value
         bytes field is a JSON string, type_descriptor can be its JSON namespace;
         or if the following value field is a protobuf serialization,
         type_descriptor can be its protobuf definition URL.
         """
-        value: builtins.bytes
+        value: _builtins.bytes
         """The value in client's encoding."""
         def __init__(
             self,
             *,
-            type_descriptor: builtins.str = ...,
-            value: builtins.bytes = ...,
+            type_descriptor: _builtins.str = ...,
+            value: _builtins.bytes = ...,
         ) -> None: ...
-        def ClearField(self, field_name: typing.Literal["type_descriptor", b"type_descriptor", "value", b"value"]) -> None: ...
+        _ClearFieldArgType: _TypeAlias = _typing.Literal["type_descriptor", b"type_descriptor", "value", b"value"]  # noqa: Y015
+        def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-    @typing.final
-    class Param(google.protobuf.message.Message):
-        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    @_typing.final
+    class Param(_message.Message):
+        DESCRIPTOR: _descriptor.Descriptor
 
-        RESOURCE_GROUP_FIELD_NUMBER: builtins.int
-        NAME_FIELD_NUMBER: builtins.int
-        VALUE_FIELD_NUMBER: builtins.int
-        GENERIC_VALUE_FIELD_NUMBER: builtins.int
-        resource_group: builtins.int
+        RESOURCE_GROUP_FIELD_NUMBER: _builtins.int
+        NAME_FIELD_NUMBER: _builtins.int
+        VALUE_FIELD_NUMBER: _builtins.int
+        GENERIC_VALUE_FIELD_NUMBER: _builtins.int
+        resource_group: _builtins.int
         """the resource group hosting this parameter key, as index into groups
         repeated field.
         """
-        name: builtins.int
+        name: _builtins.int
         """name of this param, as index into the strs repeated field."""
-        @property
-        def value(self) -> cirq_google.api.v2.program_pb2.ArgValue:
+        @_builtins.property
+        def value(self) -> _program_pb2.ArgValue:
             """this param's new value, as message ArgValue to allow types of bool,
             string, double, float and arrays.
             """
 
-        @property
+        @_builtins.property
         def generic_value(self) -> Global___DeviceParametersDiff.GenericValue:
             """this param's new value, and its type is not among the variants
             supported by ArgValue.
@@ -417,24 +442,28 @@ class DeviceParametersDiff(google.protobuf.message.Message):
         def __init__(
             self,
             *,
-            resource_group: builtins.int = ...,
-            name: builtins.int = ...,
-            value: cirq_google.api.v2.program_pb2.ArgValue | None = ...,
+            resource_group: _builtins.int = ...,
+            name: _builtins.int = ...,
+            value: _program_pb2.ArgValue | None = ...,
             generic_value: Global___DeviceParametersDiff.GenericValue | None = ...,
         ) -> None: ...
-        def HasField(self, field_name: typing.Literal["generic_value", b"generic_value", "param_val", b"param_val", "value", b"value"]) -> builtins.bool: ...
-        def ClearField(self, field_name: typing.Literal["generic_value", b"generic_value", "name", b"name", "param_val", b"param_val", "resource_group", b"resource_group", "value", b"value"]) -> None: ...
-        def WhichOneof(self, oneof_group: typing.Literal["param_val", b"param_val"]) -> typing.Literal["value", "generic_value"] | None: ...
+        _HasFieldArgType: _TypeAlias = _typing.Literal["generic_value", b"generic_value", "param_val", b"param_val", "value", b"value"]  # noqa: Y015
+        def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+        _ClearFieldArgType: _TypeAlias = _typing.Literal["generic_value", b"generic_value", "name", b"name", "param_val", b"param_val", "resource_group", b"resource_group", "value", b"value"]  # noqa: Y015
+        def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+        _WhichOneofReturnType_param_val: _TypeAlias = _typing.Literal["value", "generic_value"]  # noqa: Y015
+        _WhichOneofArgType_param_val: _TypeAlias = _typing.Literal["param_val", b"param_val"]  # noqa: Y015
+        def WhichOneof(self, oneof_group: _WhichOneofArgType_param_val) -> _WhichOneofReturnType_param_val | None: ...
 
-    GROUPS_FIELD_NUMBER: builtins.int
-    PARAMS_FIELD_NUMBER: builtins.int
-    STRS_FIELD_NUMBER: builtins.int
-    @property
-    def groups(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___DeviceParametersDiff.ResourceGroup]: ...
-    @property
-    def params(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___DeviceParametersDiff.Param]: ...
-    @property
-    def strs(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
+    GROUPS_FIELD_NUMBER: _builtins.int
+    PARAMS_FIELD_NUMBER: _builtins.int
+    STRS_FIELD_NUMBER: _builtins.int
+    @_builtins.property
+    def groups(self) -> _containers.RepeatedCompositeFieldContainer[Global___DeviceParametersDiff.ResourceGroup]: ...
+    @_builtins.property
+    def params(self) -> _containers.RepeatedCompositeFieldContainer[Global___DeviceParametersDiff.Param]: ...
+    @_builtins.property
+    def strs(self) -> _containers.RepeatedScalarFieldContainer[_builtins.str]:
         """List of all key, dir, and deletion names in these contents.
         ResourceGroup.name, Param.name, and Deletion.name are indexes into this
         list.
@@ -443,61 +472,62 @@ class DeviceParametersDiff(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        groups: collections.abc.Iterable[Global___DeviceParametersDiff.ResourceGroup] | None = ...,
-        params: collections.abc.Iterable[Global___DeviceParametersDiff.Param] | None = ...,
-        strs: collections.abc.Iterable[builtins.str] | None = ...,
+        groups: _abc.Iterable[Global___DeviceParametersDiff.ResourceGroup] | None = ...,
+        params: _abc.Iterable[Global___DeviceParametersDiff.Param] | None = ...,
+        strs: _abc.Iterable[_builtins.str] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["groups", b"groups", "params", b"params", "strs", b"strs"]) -> None: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["groups", b"groups", "params", b"params", "strs", b"strs"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___DeviceParametersDiff: typing_extensions.TypeAlias = DeviceParametersDiff
+Global___DeviceParametersDiff: _TypeAlias = DeviceParametersDiff  # noqa: Y015
 
-@typing.final
-class SingleSweep(google.protobuf.message.Message):
+@_typing.final
+class SingleSweep(_message.Message):
     """A set of values to loop over for a particular parameter."""
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    PARAMETER_KEY_FIELD_NUMBER: builtins.int
-    POINTS_FIELD_NUMBER: builtins.int
-    LINSPACE_FIELD_NUMBER: builtins.int
-    CONST_VALUE_FIELD_NUMBER: builtins.int
-    RANDOM_VARIABLE_FIELD_NUMBER: builtins.int
-    PARAMETER_FIELD_NUMBER: builtins.int
-    METADATA_FIELD_NUMBER: builtins.int
-    parameter_key: builtins.str
+    PARAMETER_KEY_FIELD_NUMBER: _builtins.int
+    POINTS_FIELD_NUMBER: _builtins.int
+    LINSPACE_FIELD_NUMBER: _builtins.int
+    CONST_VALUE_FIELD_NUMBER: _builtins.int
+    RANDOM_VARIABLE_FIELD_NUMBER: _builtins.int
+    PARAMETER_FIELD_NUMBER: _builtins.int
+    METADATA_FIELD_NUMBER: _builtins.int
+    parameter_key: _builtins.str
     """The parameter key being varied. This cannot be the empty string.
     These are must appear as string Args in the quantum program.
     """
-    @property
+    @_builtins.property
     def points(self) -> Global___Points:
         """An explicit list of points to try."""
 
-    @property
+    @_builtins.property
     def linspace(self) -> Global___Linspace:
         """Uniformly-spaced sampling over a range."""
 
-    @property
+    @_builtins.property
     def const_value(self) -> Global___ConstValue:
         """A constant value."""
 
-    @property
+    @_builtins.property
     def random_variable(self) -> Global___FiniteRandomVariable:
         """Random Variable chosen from a finite list"""
 
-    @property
+    @_builtins.property
     def parameter(self) -> Global___DeviceParameter:
         """Optional arguments for if this is a device parameter.
         (as opposed to a circuit symbol)
         """
 
-    @property
+    @_builtins.property
     def metadata(self) -> Global___Metadata:
         """Optional arguments for storing extra metadata information."""
 
     def __init__(
         self,
         *,
-        parameter_key: builtins.str = ...,
+        parameter_key: _builtins.str = ...,
         points: Global___Points | None = ...,
         linspace: Global___Linspace | None = ...,
         const_value: Global___ConstValue | None = ...,
@@ -505,45 +535,51 @@ class SingleSweep(google.protobuf.message.Message):
         parameter: Global___DeviceParameter | None = ...,
         metadata: Global___Metadata | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["const_value", b"const_value", "linspace", b"linspace", "metadata", b"metadata", "parameter", b"parameter", "points", b"points", "random_variable", b"random_variable", "sweep", b"sweep"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["const_value", b"const_value", "linspace", b"linspace", "metadata", b"metadata", "parameter", b"parameter", "parameter_key", b"parameter_key", "points", b"points", "random_variable", b"random_variable", "sweep", b"sweep"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["sweep", b"sweep"]) -> typing.Literal["points", "linspace", "const_value", "random_variable"] | None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["const_value", b"const_value", "linspace", b"linspace", "metadata", b"metadata", "parameter", b"parameter", "points", b"points", "random_variable", b"random_variable", "sweep", b"sweep"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["const_value", b"const_value", "linspace", b"linspace", "metadata", b"metadata", "parameter", b"parameter", "parameter_key", b"parameter_key", "points", b"points", "random_variable", b"random_variable", "sweep", b"sweep"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    _WhichOneofReturnType_sweep: _TypeAlias = _typing.Literal["points", "linspace", "const_value", "random_variable"]  # noqa: Y015
+    _WhichOneofArgType_sweep: _TypeAlias = _typing.Literal["sweep", b"sweep"]  # noqa: Y015
+    def WhichOneof(self, oneof_group: _WhichOneofArgType_sweep) -> _WhichOneofReturnType_sweep | None: ...
 
-Global___SingleSweep: typing_extensions.TypeAlias = SingleSweep
+Global___SingleSweep: _TypeAlias = SingleSweep  # noqa: Y015
 
-@typing.final
-class Points(google.protobuf.message.Message):
+@_typing.final
+class Points(_message.Message):
     """A list of explicit values."""
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    POINTS_FIELD_NUMBER: builtins.int
-    POINTS_DOUBLE_FIELD_NUMBER: builtins.int
-    UNIT_FIELD_NUMBER: builtins.int
-    @property
-    def points(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
+    POINTS_FIELD_NUMBER: _builtins.int
+    POINTS_DOUBLE_FIELD_NUMBER: _builtins.int
+    UNIT_FIELD_NUMBER: _builtins.int
+    @_builtins.property
+    def points(self) -> _containers.RepeatedScalarFieldContainer[_builtins.float]:
         """The values.  Deprecated, superseded by points_double (assign both fields during transition)."""
 
-    @property
-    def points_double(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
+    @_builtins.property
+    def points_double(self) -> _containers.RepeatedScalarFieldContainer[_builtins.float]:
         """The values."""
 
-    @property
-    def unit(self) -> tunits.proto.tunits_pb2.Value: ...
+    @_builtins.property
+    def unit(self) -> _tunits_pb2.Value: ...
     def __init__(
         self,
         *,
-        points: collections.abc.Iterable[builtins.float] | None = ...,
-        points_double: collections.abc.Iterable[builtins.float] | None = ...,
-        unit: tunits.proto.tunits_pb2.Value | None = ...,
+        points: _abc.Iterable[_builtins.float] | None = ...,
+        points_double: _abc.Iterable[_builtins.float] | None = ...,
+        unit: _tunits_pb2.Value | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["unit", b"unit"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["points", b"points", "points_double", b"points_double", "unit", b"unit"]) -> None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["unit", b"unit"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["points", b"points", "points_double", b"points_double", "unit", b"unit"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___Points: typing_extensions.TypeAlias = Points
+Global___Points: _TypeAlias = Points  # noqa: Y015
 
-@typing.final
-class Linspace(google.protobuf.message.Message):
+@_typing.final
+class Linspace(_message.Message):
     """A range of evenly-spaced values.
 
     Example: if the first_point is 1.0, the last_point is 2.0 ,
@@ -551,118 +587,126 @@ class Linspace(google.protobuf.message.Message):
       1.0, 1.25, 1.5, 1.75, 2.0
     """
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    FIRST_POINT_FIELD_NUMBER: builtins.int
-    FIRST_POINT_DOUBLE_FIELD_NUMBER: builtins.int
-    LAST_POINT_FIELD_NUMBER: builtins.int
-    LAST_POINT_DOUBLE_FIELD_NUMBER: builtins.int
-    NUM_POINTS_FIELD_NUMBER: builtins.int
-    UNIT_FIELD_NUMBER: builtins.int
-    first_point: builtins.float
+    FIRST_POINT_FIELD_NUMBER: _builtins.int
+    FIRST_POINT_DOUBLE_FIELD_NUMBER: _builtins.int
+    LAST_POINT_FIELD_NUMBER: _builtins.int
+    LAST_POINT_DOUBLE_FIELD_NUMBER: _builtins.int
+    NUM_POINTS_FIELD_NUMBER: _builtins.int
+    UNIT_FIELD_NUMBER: _builtins.int
+    first_point: _builtins.float
     """The start of the range.
     Deprecated: superseded by first_point_double (assign both fields during transition).
     """
-    first_point_double: builtins.float
-    last_point: builtins.float
+    first_point_double: _builtins.float
+    last_point: _builtins.float
     """The end of the range. (float32 should be avoided.)"""
-    last_point_double: builtins.float
-    num_points: builtins.int
+    last_point_double: _builtins.float
+    num_points: _builtins.int
     """The number of points in the range (including first and last). Must be
     greater than zero. If it is 1, the first_point and last_point must be
     the same.
     """
-    @property
-    def unit(self) -> tunits.proto.tunits_pb2.Value: ...
+    @_builtins.property
+    def unit(self) -> _tunits_pb2.Value: ...
     def __init__(
         self,
         *,
-        first_point: builtins.float = ...,
-        first_point_double: builtins.float = ...,
-        last_point: builtins.float = ...,
-        last_point_double: builtins.float = ...,
-        num_points: builtins.int = ...,
-        unit: tunits.proto.tunits_pb2.Value | None = ...,
+        first_point: _builtins.float = ...,
+        first_point_double: _builtins.float = ...,
+        last_point: _builtins.float = ...,
+        last_point_double: _builtins.float = ...,
+        num_points: _builtins.int = ...,
+        unit: _tunits_pb2.Value | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["unit", b"unit"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["first_point", b"first_point", "first_point_double", b"first_point_double", "last_point", b"last_point", "last_point_double", b"last_point_double", "num_points", b"num_points", "unit", b"unit"]) -> None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["unit", b"unit"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["first_point", b"first_point", "first_point_double", b"first_point_double", "last_point", b"last_point", "last_point_double", b"last_point_double", "num_points", b"num_points", "unit", b"unit"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___Linspace: typing_extensions.TypeAlias = Linspace
+Global___Linspace: _TypeAlias = Linspace  # noqa: Y015
 
-@typing.final
-class ConstValue(google.protobuf.message.Message):
+@_typing.final
+class ConstValue(_message.Message):
     """A constant value."""
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    IS_NONE_FIELD_NUMBER: builtins.int
-    FLOAT_VALUE_FIELD_NUMBER: builtins.int
-    DOUBLE_VALUE_FIELD_NUMBER: builtins.int
-    INT_VALUE_FIELD_NUMBER: builtins.int
-    STRING_VALUE_FIELD_NUMBER: builtins.int
-    WITH_UNIT_VALUE_FIELD_NUMBER: builtins.int
-    is_none: builtins.bool
+    IS_NONE_FIELD_NUMBER: _builtins.int
+    FLOAT_VALUE_FIELD_NUMBER: _builtins.int
+    DOUBLE_VALUE_FIELD_NUMBER: _builtins.int
+    INT_VALUE_FIELD_NUMBER: _builtins.int
+    STRING_VALUE_FIELD_NUMBER: _builtins.int
+    WITH_UNIT_VALUE_FIELD_NUMBER: _builtins.int
+    is_none: _builtins.bool
     """This value should always be true if set, which represents the python None
     object.
     """
-    float_value: builtins.float
-    double_value: builtins.float
-    int_value: builtins.int
-    string_value: builtins.str
-    @property
-    def with_unit_value(self) -> tunits.proto.tunits_pb2.Value: ...
+    float_value: _builtins.float
+    double_value: _builtins.float
+    int_value: _builtins.int
+    string_value: _builtins.str
+    @_builtins.property
+    def with_unit_value(self) -> _tunits_pb2.Value: ...
     def __init__(
         self,
         *,
-        is_none: builtins.bool = ...,
-        float_value: builtins.float = ...,
-        double_value: builtins.float = ...,
-        int_value: builtins.int = ...,
-        string_value: builtins.str = ...,
-        with_unit_value: tunits.proto.tunits_pb2.Value | None = ...,
+        is_none: _builtins.bool = ...,
+        float_value: _builtins.float = ...,
+        double_value: _builtins.float = ...,
+        int_value: _builtins.int = ...,
+        string_value: _builtins.str = ...,
+        with_unit_value: _tunits_pb2.Value | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["double_value", b"double_value", "float_value", b"float_value", "int_value", b"int_value", "is_none", b"is_none", "string_value", b"string_value", "value", b"value", "with_unit_value", b"with_unit_value"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["double_value", b"double_value", "float_value", b"float_value", "int_value", b"int_value", "is_none", b"is_none", "string_value", b"string_value", "value", b"value", "with_unit_value", b"with_unit_value"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["value", b"value"]) -> typing.Literal["is_none", "float_value", "double_value", "int_value", "string_value", "with_unit_value"] | None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["double_value", b"double_value", "float_value", b"float_value", "int_value", b"int_value", "is_none", b"is_none", "string_value", b"string_value", "value", b"value", "with_unit_value", b"with_unit_value"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["double_value", b"double_value", "float_value", b"float_value", "int_value", b"int_value", "is_none", b"is_none", "string_value", b"string_value", "value", b"value", "with_unit_value", b"with_unit_value"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    _WhichOneofReturnType_value: _TypeAlias = _typing.Literal["is_none", "float_value", "double_value", "int_value", "string_value", "with_unit_value"]  # noqa: Y015
+    _WhichOneofArgType_value: _TypeAlias = _typing.Literal["value", b"value"]  # noqa: Y015
+    def WhichOneof(self, oneof_group: _WhichOneofArgType_value) -> _WhichOneofReturnType_value | None: ...
 
-Global___ConstValue: typing_extensions.TypeAlias = ConstValue
+Global___ConstValue: _TypeAlias = ConstValue  # noqa: Y015
 
-@typing.final
-class FiniteRandomVariable(google.protobuf.message.Message):
+@_typing.final
+class FiniteRandomVariable(_message.Message):
     """A message for a random variable with a finite distribution"""
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    @typing.final
-    class DistributionEntry(google.protobuf.message.Message):
-        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    @_typing.final
+    class DistributionEntry(_message.Message):
+        DESCRIPTOR: _descriptor.Descriptor
 
-        KEY_FIELD_NUMBER: builtins.int
-        VALUE_FIELD_NUMBER: builtins.int
-        key: builtins.str
-        value: builtins.float
+        KEY_FIELD_NUMBER: _builtins.int
+        VALUE_FIELD_NUMBER: _builtins.int
+        key: _builtins.str
+        value: _builtins.float
         def __init__(
             self,
             *,
-            key: builtins.str = ...,
-            value: builtins.float = ...,
+            key: _builtins.str = ...,
+            value: _builtins.float = ...,
         ) -> None: ...
-        def ClearField(self, field_name: typing.Literal["key", b"key", "value", b"value"]) -> None: ...
+        _ClearFieldArgType: _TypeAlias = _typing.Literal["key", b"key", "value", b"value"]  # noqa: Y015
+        def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-    DISTRIBUTION_FIELD_NUMBER: builtins.int
-    LENGTH_FIELD_NUMBER: builtins.int
-    SEED_FIELD_NUMBER: builtins.int
-    length: builtins.int
-    seed: builtins.int
-    @property
-    def distribution(self) -> google.protobuf.internal.containers.ScalarMap[builtins.str, builtins.float]: ...
+    DISTRIBUTION_FIELD_NUMBER: _builtins.int
+    LENGTH_FIELD_NUMBER: _builtins.int
+    SEED_FIELD_NUMBER: _builtins.int
+    length: _builtins.int
+    seed: _builtins.int
+    @_builtins.property
+    def distribution(self) -> _containers.ScalarMap[_builtins.str, _builtins.float]: ...
     def __init__(
         self,
         *,
-        distribution: collections.abc.Mapping[builtins.str, builtins.float] | None = ...,
-        length: builtins.int = ...,
-        seed: builtins.int = ...,
+        distribution: _abc.Mapping[_builtins.str, _builtins.float] | None = ...,
+        length: _builtins.int = ...,
+        seed: _builtins.int = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["distribution", b"distribution", "length", b"length", "seed", b"seed"]) -> None: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["distribution", b"distribution", "length", b"length", "seed", b"seed"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___FiniteRandomVariable: typing_extensions.TypeAlias = FiniteRandomVariable
+Global___FiniteRandomVariable: _TypeAlias = FiniteRandomVariable  # noqa: Y015

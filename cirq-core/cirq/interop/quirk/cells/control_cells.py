@@ -103,7 +103,7 @@ class ParityControlCell(Cell):
             gate = column[i]
             if gate is self:
                 continue
-            elif isinstance(gate, ParityControlCell):
+            if isinstance(gate, ParityControlCell):
                 # The first parity control to modify the column must merge all
                 # of the other parity controls into itself.
                 column[i] = None

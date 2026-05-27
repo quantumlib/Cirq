@@ -93,7 +93,7 @@ class Sampler(cirq.Sampler):
             Either a list of `cirq_ionq.QPUResult` or a list of `cirq_ionq.SimulatorResult`
             depending on whether the job was running on an actual quantum processor or a simulator.
         """
-        resolvers = [r for r in cirq.to_resolvers(params)]
+        resolvers = list(cirq.to_resolvers(params))
         jobs = [
             self._service.create_job(
                 circuit=cirq.resolve_parameters(program, resolver),

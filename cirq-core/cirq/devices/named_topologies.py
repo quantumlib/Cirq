@@ -37,16 +37,16 @@ class NamedTopology(metaclass=abc.ABCMeta):
     "Named topologies" provide a mapping from a simple dataclass to a unique graph for categories
     of relevant topologies. Relevant topologies may be hardware dependant, but common topologies
     are linear (1D) and rectangular grid topologies.
+
+    Attributes:
+        name: A name that uniquely identifies this topology.
+        n_nodes: The number of nodes in the topology.
+        graph: A networkx graph representation of the topology.
     """
 
     name: str = NotImplemented
-    """A name that uniquely identifies this topology."""
-
     n_nodes: int = NotImplemented
-    """The number of nodes in the topology."""
-
     graph: nx.Graph = NotImplemented
-    """A networkx graph representation of the topology."""
 
 
 _GRIDLIKE_NODE = Union['cirq.GridQubit', tuple[int, int]]
@@ -193,14 +193,14 @@ class TiltedSquareLattice(NamedTopology):
 
         object.__setattr__(self, 'name', f'tilted-square-lattice-{self.width}-{self.height}')
 
-        rect1 = set(
+        rect1 = {
             (i + j, i - j) for i in range(self.width // 2 + 1) for j in range(self.height // 2 + 1)
-        )
-        rect2 = set(
+        }
+        rect2 = {
             ((i + j) // 2, (i - j) // 2)
             for i in range(1, self.width + 1, 2)
             for j in range(1, self.height + 1, 2)
-        )
+        }
         nodes = rect1 | rect2
         g = nx.Graph()
         for node in nodes:

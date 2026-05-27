@@ -153,7 +153,7 @@ class StateVectorMixin:
         numpy.kron.
 
         Args:
-            qubit: qubit who's bloch vector we want to find.
+            qubit: qubit whose bloch vector we want to find.
 
         Returns:
             A length 3 numpy array representing the qubit's bloch vector.

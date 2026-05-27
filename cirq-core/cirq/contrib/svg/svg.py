@@ -131,7 +131,7 @@ def _fit_vertical(
 
     max_yi = max(yi_map[yi] for yi in all_yis)
     row_heights = [0.0] * (max_yi + 2)
-    for (_, yi), _ in tdd.entries.items():
+    for _, yi in tdd.entries.keys():
         yi = yi_map[yi]
         row_heights[yi] = max(ref_boxheight, row_heights[yi])
 

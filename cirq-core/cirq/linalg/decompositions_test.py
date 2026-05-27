@@ -382,14 +382,11 @@ def test_kak_str() -> None:
         single_qubit_operations_after=(cirq.unitary(cirq.Y), cirq.unitary(cirq.Z)),
         global_phase=1j,
     )
-    assert (
-        str(v)
-        == """KAK {
+    assert str(v) == """KAK {
     xyz*(4/π): 0.3, 0.2, 0.1
     before: (0*π around X) ⊗ (1*π around X)
     after: (1*π around Y) ⊗ (1*π around Z)
 }"""
-    )
 
 
 def test_axis_angle_decomposition_eq() -> None:

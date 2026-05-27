@@ -77,8 +77,9 @@ def map_clean_and_borrowable_qubits(
     using the qubit manager instead of making it part of the transformer.
         3. However, for borrowable system qubits managed by the transformer, we do not reuse qubits
     within the same moment.
-        4. Since this is not implemented using the cirq transformers infrastructure, we currently
-    do not support recursive mapping within sub-circuits and that is left as a future TODO.
+        4. We support recursive mapping within sub-circuits (CircuitOperations). The transformer
+    traverses into the nested circuits and shares the same QubitManager to ensure
+    globally unique qubit allocation.
 
     Args:
         circuit: Input `cirq.Circuit` containing temporarily allocated
@@ -106,6 +107,12 @@ def map_clean_and_borrowable_qubits(
     def map_func(op: cirq.Operation, idx: int) -> cirq.OP_TREE:
         nonlocal last_op_idx, to_free
         assert isinstance(qm, ops.QubitManager)
+
+        # Handle CircuitOperation recursively, sharing the same QubitManager
+        # to ensure globally unique qubit allocation across all nesting levels.
+        if isinstance(op.untagged, circuits.CircuitOperation):
+            inner_circuit = map_clean_and_borrowable_qubits(op.untagged.circuit, qm=qm)
+            op = op.untagged.replace(circuit=inner_circuit.freeze()).with_tags(*op.tags)
 
         for q in sorted(to_free):
             is_managed_qubit = allocated_map[q] not in all_qubits
@@ -155,13 +162,13 @@ def map_clean_and_borrowable_qubits(
                 # For each of the system qubits that can be borrowed, check whether they have a
                 # conflicting operation in the range [st, en]; which is the scope for which the
                 # borrower needs the borrowed qubit for.
-                start_frontier = {q: st for q in borrowable_qubits}
-                end_frontier = {q: en + 1 for q in borrowable_qubits}
+                start_frontier = dict.fromkeys(borrowable_qubits, st)
+                end_frontier = dict.fromkeys(borrowable_qubits, en + 1)
                 ops_in_between = circuit.findall_operations_between(start_frontier, end_frontier)
                 # Filter the set of borrowable qubits which do not have any conflicting operations.
-                filtered_borrowable_qubits = borrowable_qubits - set(
+                filtered_borrowable_qubits = borrowable_qubits - {
                     q for _, op in ops_in_between for q in op.qubits
-                )
+                }
                 if filtered_borrowable_qubits:
                     # Allocate a borrowable qubit and remove it from the pool of available qubits.
                     allocated_map[q] = min(filtered_borrowable_qubits)

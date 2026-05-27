@@ -152,11 +152,11 @@ class ClassicalDataDictionaryStore(ClassicalDataStore):
             _measurement_types = {}
             if _records:
                 _measurement_types.update(
-                    {k: MeasurementType.MEASUREMENT for k, v in _records.items()}
+                    dict.fromkeys(_records.keys(), MeasurementType.MEASUREMENT)
                 )
             if _channel_records:
                 _measurement_types.update(
-                    {k: MeasurementType.CHANNEL for k, v in _channel_records.items()}
+                    dict.fromkeys(_channel_records.keys(), MeasurementType.CHANNEL)
                 )
         if _records is None:
             _records = {}

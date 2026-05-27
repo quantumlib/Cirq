@@ -27,7 +27,7 @@ from cirq.linalg import tolerance, transformations
 
 
 def is_diagonal(matrix: np.ndarray, *, atol: float = 1e-8) -> bool:
-    """Determines if a matrix is a approximately diagonal.
+    """Determines if a matrix is approximately diagonal.
 
     A matrix is diagonal if i!=j implies m[i,j]==0.
 
@@ -38,10 +38,9 @@ def is_diagonal(matrix: np.ndarray, *, atol: float = 1e-8) -> bool:
     Returns:
         Whether the matrix is diagonal within the given tolerance.
     """
-    matrix = np.copy(matrix)
-    for i in range(min(matrix.shape)):
-        matrix[i, i] = 0
-    return tolerance.all_near_zero(matrix, atol=atol)
+    absolute = np.abs(matrix)
+    np.fill_diagonal(absolute, 0)
+    return tolerance.near_zero(np.max(absolute, initial=0), atol=atol)
 
 
 def is_hermitian(matrix: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8) -> bool:
@@ -271,7 +270,7 @@ def slice_for_qubits_equal_to(
             bool(qureg_value & (1 << k)).
         big_endian_qureg_value: Same as `little_endian_qureg_value` but big
             endian w.r.t. to target qubit axes, meaning the low bit of the
-            integer dertemines the desired value of the last target qubit, and
+            integer determines the desired value of the last target qubit, and
             so forth.  Specify exactly one of the `*_qureg_value` arguments.
         num_qubits: If specified the slices will extend all the way up to
             this number of qubits, otherwise if it is None, the final element

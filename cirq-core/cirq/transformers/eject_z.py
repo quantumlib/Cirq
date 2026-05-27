@@ -89,7 +89,7 @@ def eject_z(
                 phased_xz_replacements[key] = phased_xz_replacements[key].with_z_exponent(p * 2)
 
     def map_func(op: cirq.Operation, moment_index: int) -> cirq.OP_TREE:
-        last_phased_xz_op.update({q: None for q in op.qubits})
+        last_phased_xz_op.update(dict.fromkeys(op.qubits))
 
         if tags_to_ignore & set(op.tags):
             # Op marked with no-compile, dump phases and do not cross.

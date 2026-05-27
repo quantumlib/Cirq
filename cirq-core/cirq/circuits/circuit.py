@@ -587,8 +587,7 @@ class AbstractCircuit(abc.ABC):
             next_moment = self.next_moment_operating_on([qubit], moment)
             if next_moment is None:
                 end_frontier[qubit] = max(len(self), start_frontier[qubit])
-                if qubit in active:
-                    active.remove(qubit)
+                active.discard(qubit)
             else:
                 next_op = self.operation_at(qubit, next_moment)
                 assert next_op is not None
@@ -765,7 +764,7 @@ class AbstractCircuit(abc.ABC):
         start_index = min(start_frontier.values())
         blocked_qubits: set[cirq.Qid] = set()
         for index, moment in enumerate(self[start_index:], start_index):
-            active_qubits = set(q for q, s in start_frontier.items() if s <= index)
+            active_qubits = {q for q, s in start_frontier.items() if s <= index}
             for op in moment.operations:
                 if is_blocker(op) or blocked_qubits.intersection(op.qubits):
                     blocked_qubits.update(op.qubits)
@@ -1274,8 +1273,7 @@ class AbstractCircuit(abc.ABC):
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         cbits = tuple(
             sorted(
-                set(key for op in self.all_operations() for key in protocols.control_keys(op)),
-                key=str,
+                {key for op in self.all_operations() for key in protocols.control_keys(op)}, key=str
             )
         )
         labels = qubits + cbits
@@ -1607,7 +1605,7 @@ class AbstractCircuit(abc.ABC):
         for op in self.all_operations():
             if len(op.qubits) > 1:
                 uf.union(*op.qubits)
-        return sorted([qs for qs in uf.to_sets()], key=min)
+        return sorted(uf.to_sets(), key=min)
 
     def factorize(self) -> Iterable[Self]:
         """Factorize circuit into a sequence of independent circuits (factors).
@@ -2155,7 +2153,27 @@ class Circuit(AbstractCircuit):
         if not 0 <= moment_index < len(self._moments):
             return True
 
-        return not self._moments[moment_index].operates_on(operation.qubits)
+        if self._moments[moment_index].operates_on(operation.qubits):
+            return False
+
+        op_measurement_keys = protocols.measurement_key_objs(operation)
+        op_control_keys = protocols.control_keys(operation)
+
+        # defer extraction of moment keys until truly needed
+        result = True
+        if op_control_keys or op_measurement_keys:
+            moment_measurement_keys = protocols.measurement_key_objs(self._moments[moment_index])
+            result = op_control_keys.isdisjoint(moment_measurement_keys) and (
+                (
+                    op_measurement_keys.isdisjoint(moment_measurement_keys)
+                    and op_measurement_keys.isdisjoint(
+                        protocols.control_keys(self._moments[moment_index])
+                    )
+                )
+                if op_measurement_keys
+                else True
+            )
+        return result
 
     def _latest_available_moment(self, op: cirq.Operation, *, start_moment_index: int = 0) -> int:
         """Finds the index of the latest (i.e. right most) moment which can accommodate `op`.
@@ -2451,7 +2469,7 @@ class Circuit(AbstractCircuit):
         flat_ops = tuple(ops.flatten_to_ops(operations))
         if not flat_ops:
             return frontier  # pragma: no cover
-        qubits = set(q for op in flat_ops for q in op.qubits)
+        qubits = {q for op in flat_ops for q in op.qubits}
         if any(frontier[q] > start for q in qubits):
             raise ValueError(
                 'The frontier for qubits on which the operations'
@@ -2775,8 +2793,7 @@ def _draw_moment_in_diagram(
         for s, q in zip(symbols, labels):
             out_diagram.write(x, label_map[q], s)
 
-        if x > max_x:
-            max_x = x
+        max_x = max(max_x, x)
 
     _draw_moment_annotations(
         moment=moment,
@@ -3002,17 +3019,39 @@ def _group_into_moment_compatible(inputs: Sequence[_MOMENT_OR_OP]) -> Iterator[l
     """
     batch: list[_MOMENT_OR_OP] = []
     batch_qubits: set[cirq.Qid] = set()
+    batch_measurement_keys: set[cirq.MeasurementKey] = set()
+    batch_control_keys: set[cirq.MeasurementKey] = set()
     for mop in inputs:
-        is_moment = isinstance(mop, cirq.Moment)
-        if (is_moment and batch) or not batch_qubits.isdisjoint(mop.qubits):
+        if isinstance(mop, cirq.Moment):
+            if batch:
+                yield batch
+                batch = []
+                batch_qubits.clear()
+                batch_measurement_keys.clear()
+                batch_control_keys.clear()
+            yield [mop]
+            continue
+
+        op_qubits = mop.qubits
+        op_measurement_keys = protocols.measurement_key_objs(mop)
+        op_control_keys = protocols.control_keys(mop)
+
+        if (
+            not batch_qubits.isdisjoint(op_qubits)
+            or not batch_measurement_keys.isdisjoint(op_measurement_keys)
+            or not batch_measurement_keys.isdisjoint(op_control_keys)
+            or not batch_control_keys.isdisjoint(op_measurement_keys)
+        ):
             yield batch
             batch = []
             batch_qubits.clear()
-        if is_moment:
-            yield [mop]
-            continue
+            batch_measurement_keys.clear()
+            batch_control_keys.clear()
+
         batch.append(mop)
-        batch_qubits.update(mop.qubits)
+        batch_qubits.update(op_qubits)
+        batch_measurement_keys.update(op_measurement_keys)
+        batch_control_keys.update(op_control_keys)
     if batch:
         yield batch
 

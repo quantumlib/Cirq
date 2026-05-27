@@ -274,12 +274,6 @@ class GateOperation(raw_types.Operation):
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return protocols.circuit_diagram_info(self.gate, args, NotImplemented)
 
-    def _decompose_into_clifford_(self):
-        sub = getattr(self.gate, '_decompose_into_clifford_with_qubits_', None)
-        if sub is None:
-            return NotImplemented  # pragma: no cover
-        return sub(self.qubits)
-
     def _trace_distance_bound_(self) -> float:
         getter = getattr(self.gate, '_trace_distance_bound_', None)
         if getter is not None:

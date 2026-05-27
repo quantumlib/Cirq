@@ -24,6 +24,9 @@ from __future__ import annotations
 import importlib.metadata
 import os
 import tempfile
+import textwrap
+import time
+import warnings
 from collections.abc import Iterator
 
 import pytest
@@ -34,11 +37,10 @@ from dev_tools.notebooks import filter_notebooks, list_all_notebooks, REPO_ROOT,
 from dev_tools.test_utils import only_on_posix
 
 SKIP_NOTEBOOKS = [
-    # skipping vendor notebooks as we don't have auth sorted out
+    # skipping vendor notebooks where we need to have auth sorted out
     '**/aqt/*.ipynb',
     '**/azure-quantum/*.ipynb',
     '**/ionq/*.ipynb',
-    '**/pasqal/*.ipynb',
     # skipping quantum utility simulation (too large)
     'examples/advanced/*quantum_utility*',
     # tutorials that use QCS and arent skipped due to one or more cleared output cells
@@ -57,24 +59,27 @@ def require_packages_not_changed() -> Iterator[None]:
 
     Raise AssertionError if the pre-existing set of Python packages changes in any way.
     """
-    cirq_packages = set(m.name for m in list_modules()).union(["cirq"])
-    packages_before = set(
+    cirq_packages = {m.name for m in list_modules()}.union(["cirq"])
+    packages_before = {
         (d.name, d.version)
         for d in importlib.metadata.distributions()
         if d.name not in cirq_packages
-    )
+    }
     yield
-    packages_after = set(
+    packages_after = {
         (d.name, d.version)
         for d in importlib.metadata.distributions()
         if d.name not in cirq_packages
-    )
+    }
     assert packages_after == packages_before
 
 
 @pytest.fixture
 def env_with_temporary_pip_target() -> Iterator[dict[str, str]]:
-    """Setup system environment that tells pip to install packages to a temporary directory."""
+    """Set up system environment that tells pip to install packages to a temporary directory.
+
+    Also isolate the run from local pip settings in configuration files or environment.
+    """
     with tempfile.TemporaryDirectory(suffix='-notebook-site-packages') as tmpdirname:
         # Note: We need to append tmpdirname to the PYTHONPATH, because PYTHONPATH may
         # already point to the development sources of Cirq (as happens with check/pytest).
@@ -85,7 +90,12 @@ def env_with_temporary_pip_target() -> Iterator[dict[str, str]]:
             if 'PYTHONPATH' in os.environ
             else tmpdirname
         )
-        env = {**os.environ, 'PYTHONPATH': pythonpath, 'PIP_TARGET': tmpdirname}
+        env = {
+            **os.environ,
+            'PYTHONPATH': pythonpath,
+            'PIP_TARGET': tmpdirname,
+            'PIP_CONFIG_FILE': '/dev/null',
+        }
         yield env
 
 
@@ -93,7 +103,7 @@ def env_with_temporary_pip_target() -> Iterator[dict[str, str]]:
 @only_on_posix
 @pytest.mark.parametrize("notebook_path", filter_notebooks(list_all_notebooks(), SKIP_NOTEBOOKS))
 def test_notebooks_against_cirq_head(
-    notebook_path, require_packages_not_changed, env_with_temporary_pip_target
+    notebook_path, require_packages_not_changed, env_with_temporary_pip_target, papermill_scheduler
 ) -> None:
     """Test that jupyter notebooks execute.
 
@@ -111,9 +121,13 @@ def test_notebooks_against_cirq_head(
     out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"
     rewritten_notebook_path = rewrite_notebook(notebook_path)
     papermill_flags = "--no-request-save-on-cell-execute --autosave-cell-every 0"
-    cmd = f"papermill {rewritten_notebook_path} {REPO_ROOT/out_path} {papermill_flags}"
+    cmd = f'papermill "{rewritten_notebook_path}" "{REPO_ROOT/out_path}" {papermill_flags}'
+    # ensure papermill will have CLOUDSDK_CONFIG set per dev_tools/conftest.py
+    assert os.path.isdir(env_with_temporary_pip_target["CLOUDSDK_CONFIG"])
 
     REPO_ROOT.joinpath("out", notebook_rel_dir).mkdir(parents=True, exist_ok=True)
+    wait_time = papermill_scheduler()[1]
+    time.sleep(wait_time)
     result = shell_tools.run(
         cmd,
         log_run_to_stderr=False,
@@ -138,3 +152,24 @@ def test_skip_notebooks_has_valid_patterns() -> None:
     """Verify patterns in SKIP_NOTEBOOKS are all valid."""
     patterns_without_match = [g for g in SKIP_NOTEBOOKS if not any(REPO_ROOT.glob(g))]
     assert patterns_without_match == []
+
+
+def test_papermill_scheduler_is_still_needed() -> None:
+    # reminder to revisit the papermill_scheduler hack when papermill releases new version
+    needed_for_papermill_version = (2, 7)
+    try:
+        pmdist = importlib.metadata.distribution("papermill")
+    except importlib.metadata.PackageNotFoundError:
+        pytest.skip("papermill is not installed")
+    actual_papermill_version = tuple(int(v) for v in pmdist.version.split(".")[:2])
+    msg = f"""
+        Please check if papermill_scheduler fixture can be removed for papermill-{pmdist.version}.
+        If so the following pytest run will pass without errors (repeat several times)
+
+          check/pytest -n8 -m slow dev_tools/notebooks/notebook_test.py
+
+        If you get "Kernel died before replying to kernel_info" error, continue using the
+        `papermill_scheduler` fixture and adjust the `needed_for_papermill_version` value.
+    """
+    if actual_papermill_version > needed_for_papermill_version:
+        warnings.warn(textwrap.dedent(msg), DeprecationWarning)

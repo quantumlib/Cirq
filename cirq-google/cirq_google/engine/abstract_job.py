@@ -141,8 +141,15 @@ class AbstractJob(abc.ABC):
         """Return failure code and message of the job if present."""
 
     @abc.abstractmethod
-    def get_repetitions_and_sweeps(self) -> tuple[int, list[cirq.Sweep]]:
+    def get_repetitions_and_sweeps(
+        self, circuit_num: int | None = None
+    ) -> tuple[int, list[cirq.Sweep]]:
         """Returns the repetitions and sweeps for the job.
+
+        Args:
+            circuit_num: if this is a batch job, the index of the circuit
+                to return the sweeps for.  This argument is zero-indexed.
+                Negative values index from the end of the list.
 
         Returns:
             A tuple of the repetition count and list of sweeps.
@@ -159,6 +166,19 @@ class AbstractJob(abc.ABC):
         one was captured, else None."""
 
     @abc.abstractmethod
+    def get_circuit(self, circuit_num: int | None = None) -> cirq.Circuit:
+        """Returns the cirq Circuit for the job.
+
+        Args:
+            circuit_num: if this is a multi-circuit job, the index of the circuit
+                to return.  This argument is zero-indexed. Negative values
+                index from the end of the list.  Ignored if not multi-circuit.
+
+        Returns:
+            The job's cirq Circuit.
+        """
+
+    @abc.abstractmethod
     def cancel(self) -> bool | None:
         """Cancel the job."""
 
@@ -171,6 +191,16 @@ class AbstractJob(abc.ABC):
         """Returns the job results, blocking until the job is complete."""
 
     results = duet.sync(results_async)
+
+    @abc.abstractmethod
+    async def batched_results_async(self) -> Sequence[Sequence[EngineResult]]:
+        """Returns the job results split by program/circuit in the batch.
+
+        Instead of flattening results into a single list, this will return a Sequence[EngineResult]
+        for each circuit in the batch.
+        """
+
+    batched_results = duet.sync(batched_results_async)
 
     def __iter__(self) -> Iterator[cirq.Result]:
         yield from self.results()

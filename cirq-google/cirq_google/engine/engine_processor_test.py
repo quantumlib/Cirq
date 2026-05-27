@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import datetime
+import functools
 from unittest import mock
 
 import duet
@@ -192,6 +193,17 @@ _METRIC_SNAPSHOT = v2.metrics_pb2.MetricsSnapshot(
         ),
     ],
 )
+
+
+class _FrozenDateTime(datetime.datetime):
+    """Frozen datetime for testing time related behavior."""
+
+    _stock_datetime = datetime.datetime
+
+    @classmethod
+    @functools.cache
+    def now(cls, tz=None):
+        return cls._stock_datetime.now(tz)
 
 
 class FakeEngineContext(EngineContext):
@@ -769,6 +781,7 @@ def test_get_schedule_filter_by_time_slot(list_time_slots):
     )
 
 
+@mock.patch('datetime.datetime', _FrozenDateTime)
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_time_slots_async')
 def test_get_schedule_time_filter_behavior(list_time_slots):
     list_time_slots.return_value = []
@@ -811,6 +824,7 @@ def test_get_schedule_time_filter_behavior(list_time_slots):
     list_time_slots.assert_called_with('proj', 'p0', f'start_time < {utc_ts}')
 
 
+@mock.patch('datetime.datetime', _FrozenDateTime)
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_reservations_async')
 def test_list_reservations_time_filter_behavior(list_reservations):
     list_reservations.return_value = []

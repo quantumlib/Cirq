@@ -259,7 +259,7 @@ def test_sweep_to_proto_with_func_round_trip(sweep):
     proto = v2.sweep_to_proto(sweep, sweep_transformer=add_tunit_func)
     recovered = v2.sweep_from_proto(proto)
 
-    assert list(recovered.points)[0] == 1 * tunits.ns
+    assert recovered.points[0] == 1 * tunits.ns
 
 
 def test_sweep_to_proto_unit():
@@ -308,7 +308,7 @@ def test_sweep_from_proto_with_func_succeeds(sweep):
     msg = v2.sweep_to_proto(sweep)
     sweep = v2.sweep_from_proto(msg, sweep_transformer=add_tunit_func)
 
-    assert list(sweep.points)[0] == [1.0 * tunits.ns]
+    assert sweep.points[0] == [1.0 * tunits.ns]
 
 
 @pytest.mark.parametrize('sweep', [cirq.Points('foo', [1, 2, 3]), cirq.Points('foo', [1])])
@@ -329,7 +329,7 @@ def test_sweep_from_proto_with_func_round_trip(sweep):
     msg = v2.sweep_to_proto(sweep, sweep_transformer=add_tunit_func)
     sweep = v2.sweep_from_proto(msg, sweep_transformer=strip_tunit_func)
 
-    assert list(sweep.points)[0] == 1.0
+    assert sweep.points[0] == 1.0
 
 
 @pytest.mark.parametrize(
@@ -422,7 +422,7 @@ def test_sweep_with_flattened_sweep():
         cirq.measure(q, key='m'),
     )
     param_sweep1 = cirq.Linspace('t', start=0, stop=1, length=20)
-    (_, param_sweep2) = cirq.flatten_with_sweep(circuit, param_sweep1)
+    _, param_sweep2 = cirq.flatten_with_sweep(circuit, param_sweep1)
     assert v2.sweep_to_proto(param_sweep2) is not None
 
 
@@ -513,3 +513,37 @@ def test_run_context_to_proto_sweepable(sweepable: cirq.Sweepable, use_resolver:
 def test_invalid_sweepable_raises() -> None:
     with pytest.raises(TypeError):
         _ = v2.run_context_to_proto(cirq.X, 1000, compress_proto=False)  # type: ignore[arg-type]
+
+
+def test_run_context_to_proto_sequence_repetitions() -> None:
+    # Case 1: len(sweeps) == 1, len(reps) > 1
+    sweep = cirq.UnitSweep
+    reps = [10, 20, 30]
+    out = v2.run_context_to_proto(sweep, reps)
+    assert len(out.parameter_sweeps) == 3
+    for i, r in enumerate(reps):
+        assert out.parameter_sweeps[i].repetitions == r
+        assert v2.sweep_from_proto(out.parameter_sweeps[i].sweep) == sweep
+
+    # Case 2: len(sweeps) > 1, len(reps) > 1, matching lengths
+    sweeps_list = [cirq.Linspace('a', 0, 1, 5), cirq.Linspace('b', 0, 1, 5)]
+    reps = [10, 20]
+    out = v2.run_context_to_proto(sweeps_list, reps)
+    assert len(out.parameter_sweeps) == 2
+    for i, r in enumerate(reps):
+        assert out.parameter_sweeps[i].repetitions == r
+        assert v2.sweep_from_proto(out.parameter_sweeps[i].sweep) == sweeps_list[i]
+
+    # Case 3: len(sweeps) > 1, len(reps) > 1, non-matching lengths
+    sweeps_list = [cirq.Linspace('a', 0, 1, 5), cirq.Linspace('b', 0, 1, 5)]
+    reps = [10, 20, 30]
+    with pytest.raises(ValueError, match="Length of sweeps.*and repetitions.*must match"):
+        _ = v2.run_context_to_proto(sweeps_list, reps)
+
+    # Case 4: len(sweeps) == 1, len(reps) == 1
+    sweep = cirq.UnitSweep
+    reps = [10]
+    out = v2.run_context_to_proto(sweep, reps)
+    assert len(out.parameter_sweeps) == 1
+    assert out.parameter_sweeps[0].repetitions == 10
+    assert v2.sweep_from_proto(out.parameter_sweeps[0].sweep) == sweep

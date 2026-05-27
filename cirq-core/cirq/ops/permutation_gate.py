@@ -77,7 +77,7 @@ class QubitPermutationGate(raw_types.Gate):
         return True
 
     def _decompose_(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
-        permutation = [p for p in self.permutation]
+        permutation = list(self.permutation)
 
         for i in range(len(permutation)):
 

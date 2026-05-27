@@ -45,13 +45,13 @@ def _get_random_circuit(qubits, *, n_moments=10, random_state=52):
 
 def _get_example_spec(name='example-program'):
     return KeyValueExecutableSpec.from_dict(
-        dict(name=name), executable_family='cirq_google.algo_benchmarks.example'
+        {'name': name}, executable_family='cirq_google.algo_benchmarks.example'
     )
 
 
 def test_kv_executable_spec():
     kv1 = KeyValueExecutableSpec.from_dict(
-        dict(name='test', idx=5), executable_family='cirq_google.algo_benchmarks.example'
+        {'name': 'test', 'idx': 5}, executable_family='cirq_google.algo_benchmarks.example'
     )
     kv2 = KeyValueExecutableSpec(
         executable_family='cirq_google.algo_benchmarks.example',
@@ -65,7 +65,7 @@ def test_kv_executable_spec():
 
 
 def test_dict_round_trip():
-    input_dict = dict(name='test', idx=5)
+    input_dict = {'name': 'test', 'idx': 5}
 
     kv = KeyValueExecutableSpec.from_dict(
         input_dict, executable_family='cirq_google.algo_benchmarks.example'
@@ -194,7 +194,7 @@ def test_quantum_executable_group_methods():
     )
 
     assert len(eg) == len(exes), '__len__'
-    assert exes == [e for e in eg], '__iter__'
+    assert exes == list(eg), '__iter__'
 
 
 def test_quantum_executable_group_serialization(tmpdir):

@@ -319,6 +319,7 @@ class TestStreamManager:
         async def test():
             async with duet.timeout_scope(5):
                 result_future = manager.submit(REQUEST_PROJECT_NAME, REQUEST_PROGRAM, REQUEST_JOB0)
+                await duet.sleep(0.001)  # Let result_future start before it is canceled
                 result_future.cancel()
                 await duet.sleep(1)  # Let cancellation complete asynchronously
                 manager.stop()

@@ -71,9 +71,7 @@ def get_logical_acquaintance_opportunities(
     strategy: cirq.Circuit, initial_mapping: LogicalMapping
 ) -> set[frozenset[int]] | set[frozenset[cirq.Qid]]:
     acquaintance_dag = get_acquaintance_dag(strategy, initial_mapping)
-    logical_acquaintance_opportunities = set()
-    for op in acquaintance_dag.all_operations():
-        logical_acquaintance_opportunities.add(
-            frozenset(op.logical_indices)  # type: ignore[attr-defined]
-        )
-    return logical_acquaintance_opportunities
+    return {
+        frozenset(op.logical_indices)  # type: ignore[attr-defined]
+        for op in acquaintance_dag.all_operations()
+    }

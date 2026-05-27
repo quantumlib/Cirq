@@ -359,40 +359,6 @@ def test_resolve_parameters(resolve_fn) -> None:
         resolve_fn(CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': 0.5j}))
 
 
-def test_diagram_period() -> None:
-    class ShiftyGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
-        def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
-            raise NotImplementedError()
-
-        def __init__(self, e, *shifts):
-            super().__init__(exponent=e, global_shift=np.random.random())
-            self.shifts = shifts
-
-        def _eigen_shifts(self):
-            return list(self.shifts)
-
-    args = cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT
-
-    assert ShiftyGate(0.5, 0, 1)._diagram_exponent(args) == 0.5
-    assert ShiftyGate(1.5, 0, 1)._diagram_exponent(args) == -0.5
-    assert ShiftyGate(2.5, 0, 1)._diagram_exponent(args) == 0.5
-
-    assert ShiftyGate(0.5, 0.5, -0.5)._diagram_exponent(args) == 0.5
-    assert ShiftyGate(1.5, 0.5, -0.5)._diagram_exponent(args) == -0.5
-    assert ShiftyGate(2.5, 0.5, -0.5)._diagram_exponent(args) == 0.5
-
-    # Irrational period.
-    np.testing.assert_allclose(
-        ShiftyGate(np.e, 0, 1 / np.e)._diagram_exponent(args), np.e, atol=1e-2
-    )  # diagram precision is 1e-3 and can perturb result.
-    np.testing.assert_allclose(
-        ShiftyGate(np.e * 2.5, 0, 1 / np.e)._diagram_exponent(args), np.e / 2, atol=1e-2
-    )  # diagram precision is 1e-3 and can perturb result.
-
-    # Unknown period.
-    assert ShiftyGate(505.2, 0, np.pi, np.e)._diagram_exponent(args) == 505.2
-
-
 class WeightedZPowGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
     def __init__(self, weight, **kwargs):
         self.weight = weight

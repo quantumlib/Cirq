@@ -187,7 +187,7 @@ class StabilizerStateChForm(qis.StabilizerState):
             y = t
             z = t ^ e
 
-        (omega, a, b, c) = self._H_decompose(self.v[q], y[q], z[q], delta)
+        omega, a, b, c = self._H_decompose(self.v[q], y[q], z[q], delta)
 
         self.s = y
         self.s[q] = c

@@ -325,7 +325,7 @@ def test_state_equal() -> None:
         prng=value.parse_random_state(0),
         simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1729.0, sum_prob_atol=1e-3),
     )
-    assert state0 == state0
+    assert state0 == state0  # noqa: PLR0124
     assert state0 != state1a
     assert state1a != state1b
 
@@ -399,7 +399,7 @@ def test_sample_seed() -> None:
     simulator = ccq.mps_simulator.MPSSimulator(seed=1234)
     result = simulator.run(circuit, repetitions=20)
     measured = result.measurements['q']
-    result_string = ''.join(map(lambda x: str(int(x[0])), measured))
+    result_string = ''.join(str(int(x[0])) for x in measured)
     assert result_string == '01011001110111011011'
 
 

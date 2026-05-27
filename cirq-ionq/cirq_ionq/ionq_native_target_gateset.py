@@ -159,7 +159,8 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
             else []
         )
 
-        return global_phase_operation + [
+        return [
+            *global_phase_operation,
             self._cnot(*[b, c]),
             p(c) ** -1,
             self._cnot(*[a, c]),

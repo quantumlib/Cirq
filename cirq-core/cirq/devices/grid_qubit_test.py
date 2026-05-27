@@ -150,6 +150,10 @@ def test_neighbors() -> None:
     restricted_qubits = [cirq.GridQubit(2, 1), cirq.GridQubit(2, 2)]
     assert cirq.GridQubit(1, 1).neighbors(restricted_qubits) == {cirq.GridQubit(2, 1)}
 
+    # Check with qids iterator
+    neighbor_qubits = [cirq.GridQubit(0, 1), cirq.GridQubit(2, 1)]
+    assert cirq.GridQubit(1, 1).neighbors(iter(neighbor_qubits)) == set(neighbor_qubits)
+
 
 def test_square() -> None:
     assert cirq.GridQubit.square(2, top=1, left=1) == [
@@ -238,6 +242,7 @@ BA"""
 
 
 def test_addition_subtraction() -> None:
+    # ruff: disable[RUF005]
     # GridQubits
     assert cirq.GridQubit(1, 2) + (2, 5) == cirq.GridQubit(3, 7)
     assert cirq.GridQubit(1, 2) + (0, 0) == cirq.GridQubit(1, 2)
@@ -307,6 +312,7 @@ def test_addition_subtraction_numpy_array(dtype) -> None:
 
 
 def test_unsupported_add() -> None:
+    # ruff: disable[RUF005]
     with pytest.raises(TypeError, match='1'):
         _ = cirq.GridQubit(1, 1) + 1  # type: ignore[operator]
     with pytest.raises(TypeError, match='(1,)'):
@@ -354,38 +360,24 @@ def test_to_json() -> None:
 
 
 def test_immutable() -> None:
-    # Match one of two strings. The second one is message returned since python 3.11.
-    with pytest.raises(
-        AttributeError,
-        match="(can't set attribute)|(property 'col' of 'GridQubit' object has no setter)",
-    ):
+    with pytest.raises(AttributeError, match="property 'col' of 'GridQubit' object has no setter"):
         q = cirq.GridQubit(1, 2)
         q.col = 3  # type: ignore[misc]
 
-    with pytest.raises(
-        AttributeError,
-        match="(can't set attribute)|(property 'row' of 'GridQubit' object has no setter)",
-    ):
+    with pytest.raises(AttributeError, match="property 'row' of 'GridQubit' object has no setter"):
         q = cirq.GridQubit(1, 2)
         q.row = 3  # type: ignore[misc]
 
-    with pytest.raises(
-        AttributeError,
-        match="(can't set attribute)|(property 'col' of 'GridQid' object has no setter)",
-    ):
+    with pytest.raises(AttributeError, match="property 'col' of 'GridQid' object has no setter"):
         qid = cirq.GridQid(1, 2, dimension=3)
         qid.col = 3  # type: ignore[misc]
 
-    with pytest.raises(
-        AttributeError,
-        match="(can't set attribute)|(property 'row' of 'GridQid' object has no setter)",
-    ):
+    with pytest.raises(AttributeError, match="property 'row' of 'GridQid' object has no setter"):
         qid = cirq.GridQid(1, 2, dimension=3)
         qid.row = 3  # type: ignore[misc]
 
     with pytest.raises(
-        AttributeError,
-        match="(can't set attribute)|(property 'dimension' of 'GridQid' object has no setter)",
+        AttributeError, match="property 'dimension' of 'GridQid' object has no setter"
     ):
         qid = cirq.GridQid(1, 2, dimension=3)
         qid.dimension = 3  # type: ignore[misc]

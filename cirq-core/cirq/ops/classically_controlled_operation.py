@@ -185,7 +185,8 @@ class ClassicallyControlledOperation(raw_types.Operation):
                 + '(conditions=['
                 + ', '.join(str(c) for c in self._conditions)
                 + '])',
-            ) + wire_symbols[1:]
+                *wire_symbols[1:],
+            )
         exp_index = sub_info.exponent_qubit_index
         if exp_index is None:
             # None means at bottom, which means the last of the original wire symbols

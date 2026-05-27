@@ -3,72 +3,73 @@
 isort:skip_file
 """
 
-import builtins
-import collections.abc
-import google.protobuf.descriptor
-import google.protobuf.internal.containers
-import google.protobuf.message
+from collections import abc as _abc
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from google.protobuf.internal import containers as _containers
+import builtins as _builtins
 import sys
-import typing
+import typing as _typing
 
 if sys.version_info >= (3, 10):
-    import typing as typing_extensions
+    from typing import TypeAlias as _TypeAlias
 else:
-    import typing_extensions
+    from typing_extensions import TypeAlias as _TypeAlias
 
-DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
+DESCRIPTOR: _descriptor.FileDescriptor
 
-@typing.final
-class MetricsSnapshot(google.protobuf.message.Message):
+@_typing.final
+class MetricsSnapshot(_message.Message):
     """A snapshot of the performance metrics for a quantum processor at a
     particular time.
     """
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    TIMESTAMP_MS_FIELD_NUMBER: builtins.int
-    METRICS_FIELD_NUMBER: builtins.int
-    timestamp_ms: builtins.int
+    TIMESTAMP_MS_FIELD_NUMBER: _builtins.int
+    METRICS_FIELD_NUMBER: _builtins.int
+    timestamp_ms: _builtins.int
     """The time the metrics were collected, in unix time (milliseconds since
     Epoch minus leap seconds). Metric collection take time, so this is the
     time at which all of the metrics have been collected.
     """
-    @property
-    def metrics(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___Metric]:
+    @_builtins.property
+    def metrics(self) -> _containers.RepeatedCompositeFieldContainer[Global___Metric]:
         """All of the metrics collected during this snapshot."""
 
     def __init__(
         self,
         *,
-        timestamp_ms: builtins.int = ...,
-        metrics: collections.abc.Iterable[Global___Metric] | None = ...,
+        timestamp_ms: _builtins.int = ...,
+        metrics: _abc.Iterable[Global___Metric] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["metrics", b"metrics", "timestamp_ms", b"timestamp_ms"]) -> None: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["metrics", b"metrics", "timestamp_ms", b"timestamp_ms"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___MetricsSnapshot: typing_extensions.TypeAlias = MetricsSnapshot
+Global___MetricsSnapshot: _TypeAlias = MetricsSnapshot  # noqa: Y015
 
-@typing.final
-class Metric(google.protobuf.message.Message):
+@_typing.final
+class Metric(_message.Message):
     """The actual metrics."""
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    NAME_FIELD_NUMBER: builtins.int
-    TARGETS_FIELD_NUMBER: builtins.int
-    VALUES_FIELD_NUMBER: builtins.int
-    name: builtins.str
+    NAME_FIELD_NUMBER: _builtins.int
+    TARGETS_FIELD_NUMBER: _builtins.int
+    VALUES_FIELD_NUMBER: _builtins.int
+    name: _builtins.str
     """The name of the metric. This is the type of metric, i.e. 't1' or
     'randomized_benchmarking'.
     """
-    @property
-    def targets(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
+    @_builtins.property
+    def targets(self) -> _containers.RepeatedScalarFieldContainer[_builtins.str]:
         """The targets of the metrics. Targets include things like the qubits (i.e.
         strings like `q0_1`), but may also be empty when the metric applies
         globally.
         """
 
-    @property
-    def values(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___Value]:
+    @_builtins.property
+    def values(self) -> _containers.RepeatedCompositeFieldContainer[Global___Value]:
         """The values of this Metrics. Repeated to support multivalued metrics like
         tomography.
         """
@@ -76,38 +77,43 @@ class Metric(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        name: builtins.str = ...,
-        targets: collections.abc.Iterable[builtins.str] | None = ...,
-        values: collections.abc.Iterable[Global___Value] | None = ...,
+        name: _builtins.str = ...,
+        targets: _abc.Iterable[_builtins.str] | None = ...,
+        values: _abc.Iterable[Global___Value] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["name", b"name", "targets", b"targets", "values", b"values"]) -> None: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["name", b"name", "targets", b"targets", "values", b"values"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
-Global___Metric: typing_extensions.TypeAlias = Metric
+Global___Metric: _TypeAlias = Metric  # noqa: Y015
 
-@typing.final
-class Value(google.protobuf.message.Message):
+@_typing.final
+class Value(_message.Message):
     """A generic metric value."""
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    DOUBLE_VAL_FIELD_NUMBER: builtins.int
-    INT32_VAL_FIELD_NUMBER: builtins.int
-    INT64_VAL_FIELD_NUMBER: builtins.int
-    STR_VAL_FIELD_NUMBER: builtins.int
-    double_val: builtins.float
-    int32_val: builtins.int
-    int64_val: builtins.int
-    str_val: builtins.str
+    DOUBLE_VAL_FIELD_NUMBER: _builtins.int
+    INT32_VAL_FIELD_NUMBER: _builtins.int
+    INT64_VAL_FIELD_NUMBER: _builtins.int
+    STR_VAL_FIELD_NUMBER: _builtins.int
+    double_val: _builtins.float
+    int32_val: _builtins.int
+    int64_val: _builtins.int
+    str_val: _builtins.str
     def __init__(
         self,
         *,
-        double_val: builtins.float = ...,
-        int32_val: builtins.int = ...,
-        int64_val: builtins.int = ...,
-        str_val: builtins.str = ...,
+        double_val: _builtins.float = ...,
+        int32_val: _builtins.int = ...,
+        int64_val: _builtins.int = ...,
+        str_val: _builtins.str = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["double_val", b"double_val", "int32_val", b"int32_val", "int64_val", b"int64_val", "str_val", b"str_val", "val", b"val"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["double_val", b"double_val", "int32_val", b"int32_val", "int64_val", b"int64_val", "str_val", b"str_val", "val", b"val"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["val", b"val"]) -> typing.Literal["double_val", "int32_val", "int64_val", "str_val"] | None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["double_val", b"double_val", "int32_val", b"int32_val", "int64_val", b"int64_val", "str_val", b"str_val", "val", b"val"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["double_val", b"double_val", "int32_val", b"int32_val", "int64_val", b"int64_val", "str_val", b"str_val", "val", b"val"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    _WhichOneofReturnType_val: _TypeAlias = _typing.Literal["double_val", "int32_val", "int64_val", "str_val"]  # noqa: Y015
+    _WhichOneofArgType_val: _TypeAlias = _typing.Literal["val", b"val"]  # noqa: Y015
+    def WhichOneof(self, oneof_group: _WhichOneofArgType_val) -> _WhichOneofReturnType_val | None: ...
 
-Global___Value: typing_extensions.TypeAlias = Value
+Global___Value: _TypeAlias = Value  # noqa: Y015

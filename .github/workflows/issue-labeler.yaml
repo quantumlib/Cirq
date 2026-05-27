@@ -1,0 +1,55 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Summary: put labels on new issues.
+
+name: Issue labeler
+run-name: >-
+  Label issue ${{github.event.issue.number}} by ${{github.actor}}
+
+on:
+  issues:
+    types:
+      - 'opened'
+
+  workflow_dispatch:
+    inputs:
+      issue-number:
+        description: 'The issue number:'
+        type: string
+        required: true
+      debug:
+        description: 'Run in debug mode'
+        type: boolean
+        default: true
+
+permissions: read-all
+
+jobs:
+  label-triage-discuss:
+    name: Add 'triage/discuss' label
+    runs-on: ubuntu-slim
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - name: Add 'triage/discuss' if appropriate
+        continue-on-error: true
+        env:
+          GH_TOKEN: '${{secrets.GITHUB_TOKEN}}'
+          SHELLOPTS: ${{inputs.debug && 'xtrace' || '' }}
+          ISSUE_NUMBER: ${{inputs.issue-number || github.event.issue.number}}
+        run: |
+          gh issue edit "${ISSUE_NUMBER}" --repo "${{github.repository}}" \
+            --add-label "triage/discuss"

@@ -921,7 +921,8 @@ class TaggedOperation(Operation):
             if visible_tags:
                 sub_op_info.wire_symbols = (
                     sub_op_info.wire_symbols[0] + f"[{', '.join(map(str, visible_tags))}]",
-                ) + sub_op_info.wire_symbols[1:]
+                    *sub_op_info.wire_symbols[1:],
+                )
         return sub_op_info
 
     @cached_method

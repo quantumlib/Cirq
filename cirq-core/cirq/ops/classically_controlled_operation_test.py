@@ -205,9 +205,7 @@ def test_qasm_sympy_condition() -> None:
         cirq.X(q1).with_classical_controls(sympy.Eq(sympy.Symbol('a'), 0)),
     )
     qasm = cirq.qasm(circuit)
-    assert (
-        qasm
-        == f"""// Generated from Cirq v{cirq.__version__}
+    assert qasm == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -221,16 +219,13 @@ creg m_a[1];
 measure q[0] -> m_a[0];
 if (m_a==0) x q[1];
 """
-    )
 
 
 def test_qasm_key_condition() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.measure(q0, key='a'), cirq.X(q1).with_classical_controls('a'))
     qasm = cirq.qasm(circuit)
-    assert (
-        qasm
-        == f"""// Generated from Cirq v{cirq.__version__}
+    assert qasm == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -244,7 +239,6 @@ creg m_a[1];
 measure q[0] -> m_a[0];
 if (m_a==1) x q[1];
 """
-    )
 
 
 def test_qasm_no_conditions() -> None:
@@ -253,9 +247,7 @@ def test_qasm_no_conditions() -> None:
         cirq.measure(q0, key='a'), cirq.ClassicallyControlledOperation(cirq.X(q1), [])
     )
     qasm = cirq.qasm(circuit)
-    assert (
-        qasm
-        == f"""// Generated from Cirq v{cirq.__version__}
+    assert qasm == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -269,7 +261,6 @@ creg m_a[1];
 measure q[0] -> m_a[0];
 x q[1];
 """
-    )
 
 
 def test_qasm_multiple_conditions() -> None:
@@ -288,9 +279,7 @@ def test_qasm_multiple_conditions() -> None:
         _ = cirq.qasm(circuit, args=cirq.QasmArgs(version='2.0'))
 
     qasm = cirq.qasm(circuit, args=cirq.QasmArgs(version='3.0'))
-    assert (
-        qasm
-        == f"""// Generated from Cirq v{cirq.__version__}
+    assert qasm == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 3.0;
 include "stdgates.inc";
@@ -306,7 +295,6 @@ m_a[0] = measure q[0];
 m_b[0] = measure q[0];
 if (m_a==0 && m_b==0) x q[1];
 """
-    )
 
 
 @pytest.mark.parametrize('sim', ALL_SIMULATORS)
@@ -1073,9 +1061,7 @@ def test_commutes() -> None:
 def test_moment_diagram() -> None:
     a, _, c, d = cirq.GridQubit.rect(2, 2)
     m = cirq.Moment(cirq.CZ(a, d), cirq.X(c).with_classical_controls('m'))
-    assert (
-        str(m).strip()
-        == """
+    assert str(m).strip() == """
   ╷ 0                 1
 ╶─┼─────────────────────
 0 │ @─────────────────┐
@@ -1083,7 +1069,6 @@ def test_moment_diagram() -> None:
 1 │ X(conditions=[m]) @
   │
     """.strip()
-    )
 
 
 def test_diagram_exponents() -> None:

@@ -80,6 +80,9 @@ class MockJob(AbstractJob):
     def get_calibration(self):
         pass
 
+    def get_circuit(self, circuit_num: int | None = None) -> cirq.Circuit:
+        return cirq.Circuit()
+
     def cancel(self) -> None:
         pass
 
@@ -88,6 +91,9 @@ class MockJob(AbstractJob):
 
     async def results_async(self):
         return [cirq.ResultDict(params={}, measurements={'a': np.asarray([t])}) for t in range(5)]
+
+    async def batched_results_async(self):
+        return [[r] for r in await self.results_async()]
 
 
 def test_instantiation_and_iteration():
@@ -100,10 +106,8 @@ def test_instantiation_and_iteration():
     assert job[3].measurements['a'][0] == 3
 
     #  Test iterating through for loop
-    count = 0
-    for result in job:
+    for count, result in enumerate(job):
         assert result.measurements['a'][0] == count
-        count += 1
 
     # Test iterator using iterator
     iterator = iter(job)
@@ -119,3 +123,18 @@ def test_instantiation_and_iteration():
     assert result.measurements['a'][0] == 4
     with pytest.raises(StopIteration):
         next(iterator)
+
+
+def test_get_circuit():
+    job = MockJob()
+    assert job.get_circuit() == cirq.Circuit()
+    assert job.get_circuit(1) == cirq.Circuit()
+
+
+def test_batched_results():
+    job = MockJob()
+    batched = job.batched_results()
+    assert len(batched) == 5
+    for count, r_list in enumerate(batched):
+        assert len(r_list) == 1
+        assert r_list[0].measurements['a'][0] == count

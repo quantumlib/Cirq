@@ -30,7 +30,8 @@ MAX_MOMENTS = 10000
 MAX_TOTAL_REPETITIONS = 5_000_000
 
 PROGRAM_VALIDATOR_TYPE = Callable[
-    [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], int, 'Serializer'], None
+    [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], int | Sequence[int], 'Serializer'],
+    None,
 ]
 
 
@@ -76,7 +77,7 @@ def _verify_measurements(circuits):
 def validate_program(
     circuits: Sequence[cirq.AbstractCircuit],
     sweeps: Sequence[cirq.Sweepable],
-    repetitions: int,
+    repetitions: int | Sequence[int],
     serializer: Serializer,
     max_size: int = MAX_MESSAGE_SIZE,
 ) -> None:
@@ -113,10 +114,10 @@ def create_program_validator(max_size: int = MAX_MESSAGE_SIZE) -> PROGRAM_VALIDA
     def _validator(
         circuits: Sequence[cirq.AbstractCircuit],
         sweeps: Sequence[cirq.Sweepable],
-        repetitions: int,
+        repetitions: int | Sequence[int],
         serializer: Serializer,
-    ):
-        return validate_program(circuits, sweeps, repetitions, serializer, max_size)
+    ) -> None:
+        validate_program(circuits, sweeps, repetitions, serializer, max_size)
 
     return _validator
 

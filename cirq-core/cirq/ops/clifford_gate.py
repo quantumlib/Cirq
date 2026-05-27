@@ -105,7 +105,7 @@ def _validate_map_input(
                 'was' if len(pauli_map_to) == 1 else 'were',
             )
         )
-    if len(set((to for to, _ in pauli_map_to.values()))) != len(pauli_map_to):
+    if len({to for to, _ in pauli_map_to.values()}) != len(pauli_map_to):
         raise ValueError('A rotation cannot map two Paulis to the same')
     return {frm: (to, flip) for frm, (to, flip) in pauli_map_to.items()}
 
@@ -125,10 +125,11 @@ def _pad_tableau(
             "num_qubits_after_padding."
         )
     padded_tableau = qis.CliffordTableau(num_qubits_after_padding)
-    v_index = np.concatenate((np.asarray(axes), num_qubits_after_padding + np.asarray(axes)))
+    axes_a = np.asarray(axes)
+    v_index = np.concatenate((axes_a, num_qubits_after_padding + axes_a))
 
-    padded_tableau.xs[np.ix_(v_index, axes)] = clifford_tableau.xs
-    padded_tableau.zs[np.ix_(v_index, axes)] = clifford_tableau.zs
+    padded_tableau.xs[np.ix_(v_index, axes_a)] = clifford_tableau.xs
+    padded_tableau.zs[np.ix_(v_index, axes_a)] = clifford_tableau.zs
     padded_tableau.rs[v_index] = clifford_tableau.rs
     return padded_tableau
 
@@ -137,6 +138,8 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
     """A metaclass used to lazy initialize several common Clifford Gate as class attributes."""
 
     # These are class properties so we define them as properties on a metaclass.
+
+    # ruff: disable[N805]
 
     @property
     def all_single_qubit_cliffords(cls) -> Sequence[cirq.SingleQubitCliffordGate]:

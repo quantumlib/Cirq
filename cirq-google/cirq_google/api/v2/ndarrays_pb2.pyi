@@ -23,28 +23,28 @@ that a field stored as a proto is Complex128 requires only checking message
 type and not the data.)
 """
 
-import builtins
-import collections.abc
-import google.protobuf.descriptor
-import google.protobuf.internal.containers
-import google.protobuf.internal.enum_type_wrapper
-import google.protobuf.message
+from collections import abc as _abc
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from google.protobuf.internal import containers as _containers
+from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+import builtins as _builtins
 import sys
-import typing
+import typing as _typing
 
 if sys.version_info >= (3, 10):
-    import typing as typing_extensions
+    from typing import TypeAlias as _TypeAlias
 else:
-    import typing_extensions
+    from typing_extensions import TypeAlias as _TypeAlias
 
-DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
+DESCRIPTOR: _descriptor.FileDescriptor
 
 class _Endianness:
-    ValueType = typing.NewType("ValueType", builtins.int)
-    V: typing_extensions.TypeAlias = ValueType
+    ValueType = _typing.NewType("ValueType", _builtins.int)
+    V: _TypeAlias = ValueType  # noqa: Y015
 
-class _EndiannessEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_Endianness.ValueType], builtins.type):
-    DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
+class _EndiannessEnumTypeWrapper(_enum_type_wrapper._EnumTypeWrapper[_Endianness.ValueType], _builtins.type):
+    DESCRIPTOR: _descriptor.EnumDescriptor
     LITTLE_ENDIAN: _Endianness.ValueType  # 0
     BIG_ENDIAN: _Endianness.ValueType  # 1
 
@@ -52,254 +52,294 @@ class Endianness(_Endianness, metaclass=_EndiannessEnumTypeWrapper): ...
 
 LITTLE_ENDIAN: Endianness.ValueType  # 0
 BIG_ENDIAN: Endianness.ValueType  # 1
-Global___Endianness: typing_extensions.TypeAlias = Endianness
+Global___Endianness: _TypeAlias = Endianness  # noqa: Y015
 
-@typing.final
-class Complex128Array(google.protobuf.message.Message):
+@_typing.final
+class Complex128Array(_message.Message):
     """
     Array of interleaved (real, imaginary) pairs, each of which are 64-bit
     floats.
     """
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    SHAPE_FIELD_NUMBER: builtins.int
-    ENDIANNESS_FIELD_NUMBER: builtins.int
-    FLAT_BYTES_FIELD_NUMBER: builtins.int
+    SHAPE_FIELD_NUMBER: _builtins.int
+    ENDIANNESS_FIELD_NUMBER: _builtins.int
+    FLAT_BYTES_FIELD_NUMBER: _builtins.int
     endianness: Global___Endianness.ValueType
-    flat_bytes: builtins.bytes
-    @property
-    def shape(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]: ...
+    flat_bytes: _builtins.bytes
+    @_builtins.property
+    def shape(self) -> _containers.RepeatedScalarFieldContainer[_builtins.int]: ...
     def __init__(
         self,
         *,
-        shape: collections.abc.Iterable[builtins.int] | None = ...,
+        shape: _abc.Iterable[_builtins.int] | None = ...,
         endianness: Global___Endianness.ValueType = ...,
-        flat_bytes: builtins.bytes = ...,
+        flat_bytes: _builtins.bytes = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["data", b"data", "flat_bytes", b"flat_bytes"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["data", b"data", "endianness", b"endianness", "flat_bytes", b"flat_bytes", "shape", b"shape"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["data", b"data"]) -> typing.Literal["flat_bytes"] | None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["data", b"data", "flat_bytes", b"flat_bytes"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["data", b"data", "endianness", b"endianness", "flat_bytes", b"flat_bytes", "shape", b"shape"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    _WhichOneofReturnType_data: _TypeAlias = _typing.Literal["flat_bytes"]  # noqa: Y015
+    _WhichOneofArgType_data: _TypeAlias = _typing.Literal["data", b"data"]  # noqa: Y015
+    def WhichOneof(self, oneof_group: _WhichOneofArgType_data) -> _WhichOneofReturnType_data | None: ...
 
-Global___Complex128Array: typing_extensions.TypeAlias = Complex128Array
+Global___Complex128Array: _TypeAlias = Complex128Array  # noqa: Y015
 
-@typing.final
-class Complex64Array(google.protobuf.message.Message):
+@_typing.final
+class Complex64Array(_message.Message):
     """
     Array of interleaved (real, imaginary) pairs, each of which are 32-bit
     floats.
     """
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    SHAPE_FIELD_NUMBER: builtins.int
-    ENDIANNESS_FIELD_NUMBER: builtins.int
-    FLAT_BYTES_FIELD_NUMBER: builtins.int
+    SHAPE_FIELD_NUMBER: _builtins.int
+    ENDIANNESS_FIELD_NUMBER: _builtins.int
+    FLAT_BYTES_FIELD_NUMBER: _builtins.int
     endianness: Global___Endianness.ValueType
-    flat_bytes: builtins.bytes
-    @property
-    def shape(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]: ...
+    flat_bytes: _builtins.bytes
+    @_builtins.property
+    def shape(self) -> _containers.RepeatedScalarFieldContainer[_builtins.int]: ...
     def __init__(
         self,
         *,
-        shape: collections.abc.Iterable[builtins.int] | None = ...,
+        shape: _abc.Iterable[_builtins.int] | None = ...,
         endianness: Global___Endianness.ValueType = ...,
-        flat_bytes: builtins.bytes = ...,
+        flat_bytes: _builtins.bytes = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["data", b"data", "flat_bytes", b"flat_bytes"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["data", b"data", "endianness", b"endianness", "flat_bytes", b"flat_bytes", "shape", b"shape"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["data", b"data"]) -> typing.Literal["flat_bytes"] | None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["data", b"data", "flat_bytes", b"flat_bytes"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["data", b"data", "endianness", b"endianness", "flat_bytes", b"flat_bytes", "shape", b"shape"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    _WhichOneofReturnType_data: _TypeAlias = _typing.Literal["flat_bytes"]  # noqa: Y015
+    _WhichOneofArgType_data: _TypeAlias = _typing.Literal["data", b"data"]  # noqa: Y015
+    def WhichOneof(self, oneof_group: _WhichOneofArgType_data) -> _WhichOneofReturnType_data | None: ...
 
-Global___Complex64Array: typing_extensions.TypeAlias = Complex64Array
+Global___Complex64Array: _TypeAlias = Complex64Array  # noqa: Y015
 
-@typing.final
-class Float16Array(google.protobuf.message.Message):
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+@_typing.final
+class Float16Array(_message.Message):
+    DESCRIPTOR: _descriptor.Descriptor
 
-    SHAPE_FIELD_NUMBER: builtins.int
-    ENDIANNESS_FIELD_NUMBER: builtins.int
-    FLAT_BYTES_FIELD_NUMBER: builtins.int
+    SHAPE_FIELD_NUMBER: _builtins.int
+    ENDIANNESS_FIELD_NUMBER: _builtins.int
+    FLAT_BYTES_FIELD_NUMBER: _builtins.int
     endianness: Global___Endianness.ValueType
-    flat_bytes: builtins.bytes
-    @property
-    def shape(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]: ...
+    flat_bytes: _builtins.bytes
+    @_builtins.property
+    def shape(self) -> _containers.RepeatedScalarFieldContainer[_builtins.int]: ...
     def __init__(
         self,
         *,
-        shape: collections.abc.Iterable[builtins.int] | None = ...,
+        shape: _abc.Iterable[_builtins.int] | None = ...,
         endianness: Global___Endianness.ValueType = ...,
-        flat_bytes: builtins.bytes = ...,
+        flat_bytes: _builtins.bytes = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["data", b"data", "flat_bytes", b"flat_bytes"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["data", b"data", "endianness", b"endianness", "flat_bytes", b"flat_bytes", "shape", b"shape"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["data", b"data"]) -> typing.Literal["flat_bytes"] | None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["data", b"data", "flat_bytes", b"flat_bytes"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["data", b"data", "endianness", b"endianness", "flat_bytes", b"flat_bytes", "shape", b"shape"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    _WhichOneofReturnType_data: _TypeAlias = _typing.Literal["flat_bytes"]  # noqa: Y015
+    _WhichOneofArgType_data: _TypeAlias = _typing.Literal["data", b"data"]  # noqa: Y015
+    def WhichOneof(self, oneof_group: _WhichOneofArgType_data) -> _WhichOneofReturnType_data | None: ...
 
-Global___Float16Array: typing_extensions.TypeAlias = Float16Array
+Global___Float16Array: _TypeAlias = Float16Array  # noqa: Y015
 
-@typing.final
-class Float32Array(google.protobuf.message.Message):
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+@_typing.final
+class Float32Array(_message.Message):
+    DESCRIPTOR: _descriptor.Descriptor
 
-    SHAPE_FIELD_NUMBER: builtins.int
-    ENDIANNESS_FIELD_NUMBER: builtins.int
-    FLAT_BYTES_FIELD_NUMBER: builtins.int
+    SHAPE_FIELD_NUMBER: _builtins.int
+    ENDIANNESS_FIELD_NUMBER: _builtins.int
+    FLAT_BYTES_FIELD_NUMBER: _builtins.int
     endianness: Global___Endianness.ValueType
-    flat_bytes: builtins.bytes
-    @property
-    def shape(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]: ...
+    flat_bytes: _builtins.bytes
+    @_builtins.property
+    def shape(self) -> _containers.RepeatedScalarFieldContainer[_builtins.int]: ...
     def __init__(
         self,
         *,
-        shape: collections.abc.Iterable[builtins.int] | None = ...,
+        shape: _abc.Iterable[_builtins.int] | None = ...,
         endianness: Global___Endianness.ValueType = ...,
-        flat_bytes: builtins.bytes = ...,
+        flat_bytes: _builtins.bytes = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["data", b"data", "flat_bytes", b"flat_bytes"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["data", b"data", "endianness", b"endianness", "flat_bytes", b"flat_bytes", "shape", b"shape"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["data", b"data"]) -> typing.Literal["flat_bytes"] | None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["data", b"data", "flat_bytes", b"flat_bytes"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["data", b"data", "endianness", b"endianness", "flat_bytes", b"flat_bytes", "shape", b"shape"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    _WhichOneofReturnType_data: _TypeAlias = _typing.Literal["flat_bytes"]  # noqa: Y015
+    _WhichOneofArgType_data: _TypeAlias = _typing.Literal["data", b"data"]  # noqa: Y015
+    def WhichOneof(self, oneof_group: _WhichOneofArgType_data) -> _WhichOneofReturnType_data | None: ...
 
-Global___Float32Array: typing_extensions.TypeAlias = Float32Array
+Global___Float32Array: _TypeAlias = Float32Array  # noqa: Y015
 
-@typing.final
-class Float64Array(google.protobuf.message.Message):
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+@_typing.final
+class Float64Array(_message.Message):
+    DESCRIPTOR: _descriptor.Descriptor
 
-    SHAPE_FIELD_NUMBER: builtins.int
-    ENDIANNESS_FIELD_NUMBER: builtins.int
-    FLAT_BYTES_FIELD_NUMBER: builtins.int
+    SHAPE_FIELD_NUMBER: _builtins.int
+    ENDIANNESS_FIELD_NUMBER: _builtins.int
+    FLAT_BYTES_FIELD_NUMBER: _builtins.int
     endianness: Global___Endianness.ValueType
-    flat_bytes: builtins.bytes
-    @property
-    def shape(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]: ...
+    flat_bytes: _builtins.bytes
+    @_builtins.property
+    def shape(self) -> _containers.RepeatedScalarFieldContainer[_builtins.int]: ...
     def __init__(
         self,
         *,
-        shape: collections.abc.Iterable[builtins.int] | None = ...,
+        shape: _abc.Iterable[_builtins.int] | None = ...,
         endianness: Global___Endianness.ValueType = ...,
-        flat_bytes: builtins.bytes = ...,
+        flat_bytes: _builtins.bytes = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["data", b"data", "flat_bytes", b"flat_bytes"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["data", b"data", "endianness", b"endianness", "flat_bytes", b"flat_bytes", "shape", b"shape"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["data", b"data"]) -> typing.Literal["flat_bytes"] | None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["data", b"data", "flat_bytes", b"flat_bytes"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["data", b"data", "endianness", b"endianness", "flat_bytes", b"flat_bytes", "shape", b"shape"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    _WhichOneofReturnType_data: _TypeAlias = _typing.Literal["flat_bytes"]  # noqa: Y015
+    _WhichOneofArgType_data: _TypeAlias = _typing.Literal["data", b"data"]  # noqa: Y015
+    def WhichOneof(self, oneof_group: _WhichOneofArgType_data) -> _WhichOneofReturnType_data | None: ...
 
-Global___Float64Array: typing_extensions.TypeAlias = Float64Array
+Global___Float64Array: _TypeAlias = Float64Array  # noqa: Y015
 
-@typing.final
-class Int64Array(google.protobuf.message.Message):
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+@_typing.final
+class Int64Array(_message.Message):
+    DESCRIPTOR: _descriptor.Descriptor
 
-    SHAPE_FIELD_NUMBER: builtins.int
-    ENDIANNESS_FIELD_NUMBER: builtins.int
-    FLAT_BYTES_FIELD_NUMBER: builtins.int
+    SHAPE_FIELD_NUMBER: _builtins.int
+    ENDIANNESS_FIELD_NUMBER: _builtins.int
+    FLAT_BYTES_FIELD_NUMBER: _builtins.int
     endianness: Global___Endianness.ValueType
-    flat_bytes: builtins.bytes
-    @property
-    def shape(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]: ...
+    flat_bytes: _builtins.bytes
+    @_builtins.property
+    def shape(self) -> _containers.RepeatedScalarFieldContainer[_builtins.int]: ...
     def __init__(
         self,
         *,
-        shape: collections.abc.Iterable[builtins.int] | None = ...,
+        shape: _abc.Iterable[_builtins.int] | None = ...,
         endianness: Global___Endianness.ValueType = ...,
-        flat_bytes: builtins.bytes = ...,
+        flat_bytes: _builtins.bytes = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["data", b"data", "flat_bytes", b"flat_bytes"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["data", b"data", "endianness", b"endianness", "flat_bytes", b"flat_bytes", "shape", b"shape"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["data", b"data"]) -> typing.Literal["flat_bytes"] | None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["data", b"data", "flat_bytes", b"flat_bytes"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["data", b"data", "endianness", b"endianness", "flat_bytes", b"flat_bytes", "shape", b"shape"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    _WhichOneofReturnType_data: _TypeAlias = _typing.Literal["flat_bytes"]  # noqa: Y015
+    _WhichOneofArgType_data: _TypeAlias = _typing.Literal["data", b"data"]  # noqa: Y015
+    def WhichOneof(self, oneof_group: _WhichOneofArgType_data) -> _WhichOneofReturnType_data | None: ...
 
-Global___Int64Array: typing_extensions.TypeAlias = Int64Array
+Global___Int64Array: _TypeAlias = Int64Array  # noqa: Y015
 
-@typing.final
-class Int32Array(google.protobuf.message.Message):
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+@_typing.final
+class Int32Array(_message.Message):
+    DESCRIPTOR: _descriptor.Descriptor
 
-    SHAPE_FIELD_NUMBER: builtins.int
-    ENDIANNESS_FIELD_NUMBER: builtins.int
-    FLAT_BYTES_FIELD_NUMBER: builtins.int
+    SHAPE_FIELD_NUMBER: _builtins.int
+    ENDIANNESS_FIELD_NUMBER: _builtins.int
+    FLAT_BYTES_FIELD_NUMBER: _builtins.int
     endianness: Global___Endianness.ValueType
-    flat_bytes: builtins.bytes
-    @property
-    def shape(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]: ...
+    flat_bytes: _builtins.bytes
+    @_builtins.property
+    def shape(self) -> _containers.RepeatedScalarFieldContainer[_builtins.int]: ...
     def __init__(
         self,
         *,
-        shape: collections.abc.Iterable[builtins.int] | None = ...,
+        shape: _abc.Iterable[_builtins.int] | None = ...,
         endianness: Global___Endianness.ValueType = ...,
-        flat_bytes: builtins.bytes = ...,
+        flat_bytes: _builtins.bytes = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["data", b"data", "flat_bytes", b"flat_bytes"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["data", b"data", "endianness", b"endianness", "flat_bytes", b"flat_bytes", "shape", b"shape"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["data", b"data"]) -> typing.Literal["flat_bytes"] | None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["data", b"data", "flat_bytes", b"flat_bytes"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["data", b"data", "endianness", b"endianness", "flat_bytes", b"flat_bytes", "shape", b"shape"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    _WhichOneofReturnType_data: _TypeAlias = _typing.Literal["flat_bytes"]  # noqa: Y015
+    _WhichOneofArgType_data: _TypeAlias = _typing.Literal["data", b"data"]  # noqa: Y015
+    def WhichOneof(self, oneof_group: _WhichOneofArgType_data) -> _WhichOneofReturnType_data | None: ...
 
-Global___Int32Array: typing_extensions.TypeAlias = Int32Array
+Global___Int32Array: _TypeAlias = Int32Array  # noqa: Y015
 
-@typing.final
-class Int16Array(google.protobuf.message.Message):
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+@_typing.final
+class Int16Array(_message.Message):
+    DESCRIPTOR: _descriptor.Descriptor
 
-    SHAPE_FIELD_NUMBER: builtins.int
-    ENDIANNESS_FIELD_NUMBER: builtins.int
-    FLAT_BYTES_FIELD_NUMBER: builtins.int
+    SHAPE_FIELD_NUMBER: _builtins.int
+    ENDIANNESS_FIELD_NUMBER: _builtins.int
+    FLAT_BYTES_FIELD_NUMBER: _builtins.int
     endianness: Global___Endianness.ValueType
-    flat_bytes: builtins.bytes
-    @property
-    def shape(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]: ...
+    flat_bytes: _builtins.bytes
+    @_builtins.property
+    def shape(self) -> _containers.RepeatedScalarFieldContainer[_builtins.int]: ...
     def __init__(
         self,
         *,
-        shape: collections.abc.Iterable[builtins.int] | None = ...,
+        shape: _abc.Iterable[_builtins.int] | None = ...,
         endianness: Global___Endianness.ValueType = ...,
-        flat_bytes: builtins.bytes = ...,
+        flat_bytes: _builtins.bytes = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["data", b"data", "flat_bytes", b"flat_bytes"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["data", b"data", "endianness", b"endianness", "flat_bytes", b"flat_bytes", "shape", b"shape"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["data", b"data"]) -> typing.Literal["flat_bytes"] | None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["data", b"data", "flat_bytes", b"flat_bytes"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["data", b"data", "endianness", b"endianness", "flat_bytes", b"flat_bytes", "shape", b"shape"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    _WhichOneofReturnType_data: _TypeAlias = _typing.Literal["flat_bytes"]  # noqa: Y015
+    _WhichOneofArgType_data: _TypeAlias = _typing.Literal["data", b"data"]  # noqa: Y015
+    def WhichOneof(self, oneof_group: _WhichOneofArgType_data) -> _WhichOneofReturnType_data | None: ...
 
-Global___Int16Array: typing_extensions.TypeAlias = Int16Array
+Global___Int16Array: _TypeAlias = Int16Array  # noqa: Y015
 
-@typing.final
-class Int8Array(google.protobuf.message.Message):
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+@_typing.final
+class Int8Array(_message.Message):
+    DESCRIPTOR: _descriptor.Descriptor
 
-    SHAPE_FIELD_NUMBER: builtins.int
-    FLAT_BYTES_FIELD_NUMBER: builtins.int
-    flat_bytes: builtins.bytes
-    @property
-    def shape(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]: ...
+    SHAPE_FIELD_NUMBER: _builtins.int
+    FLAT_BYTES_FIELD_NUMBER: _builtins.int
+    flat_bytes: _builtins.bytes
+    @_builtins.property
+    def shape(self) -> _containers.RepeatedScalarFieldContainer[_builtins.int]: ...
     def __init__(
         self,
         *,
-        shape: collections.abc.Iterable[builtins.int] | None = ...,
-        flat_bytes: builtins.bytes = ...,
+        shape: _abc.Iterable[_builtins.int] | None = ...,
+        flat_bytes: _builtins.bytes = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["data", b"data", "flat_bytes", b"flat_bytes"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["data", b"data", "flat_bytes", b"flat_bytes", "shape", b"shape"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["data", b"data"]) -> typing.Literal["flat_bytes"] | None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["data", b"data", "flat_bytes", b"flat_bytes"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["data", b"data", "flat_bytes", b"flat_bytes", "shape", b"shape"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    _WhichOneofReturnType_data: _TypeAlias = _typing.Literal["flat_bytes"]  # noqa: Y015
+    _WhichOneofArgType_data: _TypeAlias = _typing.Literal["data", b"data"]  # noqa: Y015
+    def WhichOneof(self, oneof_group: _WhichOneofArgType_data) -> _WhichOneofReturnType_data | None: ...
 
-Global___Int8Array: typing_extensions.TypeAlias = Int8Array
+Global___Int8Array: _TypeAlias = Int8Array  # noqa: Y015
 
-@typing.final
-class UInt8Array(google.protobuf.message.Message):
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+@_typing.final
+class UInt8Array(_message.Message):
+    DESCRIPTOR: _descriptor.Descriptor
 
-    SHAPE_FIELD_NUMBER: builtins.int
-    FLAT_BYTES_FIELD_NUMBER: builtins.int
-    flat_bytes: builtins.bytes
-    @property
-    def shape(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]: ...
+    SHAPE_FIELD_NUMBER: _builtins.int
+    FLAT_BYTES_FIELD_NUMBER: _builtins.int
+    flat_bytes: _builtins.bytes
+    @_builtins.property
+    def shape(self) -> _containers.RepeatedScalarFieldContainer[_builtins.int]: ...
     def __init__(
         self,
         *,
-        shape: collections.abc.Iterable[builtins.int] | None = ...,
-        flat_bytes: builtins.bytes = ...,
+        shape: _abc.Iterable[_builtins.int] | None = ...,
+        flat_bytes: _builtins.bytes = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["data", b"data", "flat_bytes", b"flat_bytes"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["data", b"data", "flat_bytes", b"flat_bytes", "shape", b"shape"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["data", b"data"]) -> typing.Literal["flat_bytes"] | None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["data", b"data", "flat_bytes", b"flat_bytes"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["data", b"data", "flat_bytes", b"flat_bytes", "shape", b"shape"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    _WhichOneofReturnType_data: _TypeAlias = _typing.Literal["flat_bytes"]  # noqa: Y015
+    _WhichOneofArgType_data: _TypeAlias = _typing.Literal["data", b"data"]  # noqa: Y015
+    def WhichOneof(self, oneof_group: _WhichOneofArgType_data) -> _WhichOneofReturnType_data | None: ...
 
-Global___UInt8Array: typing_extensions.TypeAlias = UInt8Array
+Global___UInt8Array: _TypeAlias = UInt8Array  # noqa: Y015
 
-@typing.final
-class BitArray(google.protobuf.message.Message):
+@_typing.final
+class BitArray(_message.Message):
     """
     BitArrays represent arbitrary shape bit arrays.
 
@@ -318,21 +358,25 @@ class BitArray(google.protobuf.message.Message):
                                             unused bits will be zeroed out
     """
 
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+    DESCRIPTOR: _descriptor.Descriptor
 
-    SHAPE_FIELD_NUMBER: builtins.int
-    FLAT_BYTES_FIELD_NUMBER: builtins.int
-    flat_bytes: builtins.bytes
-    @property
-    def shape(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]: ...
+    SHAPE_FIELD_NUMBER: _builtins.int
+    FLAT_BYTES_FIELD_NUMBER: _builtins.int
+    flat_bytes: _builtins.bytes
+    @_builtins.property
+    def shape(self) -> _containers.RepeatedScalarFieldContainer[_builtins.int]: ...
     def __init__(
         self,
         *,
-        shape: collections.abc.Iterable[builtins.int] | None = ...,
-        flat_bytes: builtins.bytes = ...,
+        shape: _abc.Iterable[_builtins.int] | None = ...,
+        flat_bytes: _builtins.bytes = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["data", b"data", "flat_bytes", b"flat_bytes"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["data", b"data", "flat_bytes", b"flat_bytes", "shape", b"shape"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["data", b"data"]) -> typing.Literal["flat_bytes"] | None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["data", b"data", "flat_bytes", b"flat_bytes"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["data", b"data", "flat_bytes", b"flat_bytes", "shape", b"shape"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    _WhichOneofReturnType_data: _TypeAlias = _typing.Literal["flat_bytes"]  # noqa: Y015
+    _WhichOneofArgType_data: _TypeAlias = _typing.Literal["data", b"data"]  # noqa: Y015
+    def WhichOneof(self, oneof_group: _WhichOneofArgType_data) -> _WhichOneofReturnType_data | None: ...
 
-Global___BitArray: typing_extensions.TypeAlias = BitArray
+Global___BitArray: _TypeAlias = BitArray  # noqa: Y015

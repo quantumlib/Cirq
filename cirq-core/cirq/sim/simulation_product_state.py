@@ -69,7 +69,7 @@ class SimulationProductState(
         merged_state = self.sim_states[None]
         if not self.split_untangled_states:
             return merged_state
-        extra_states = set([self.sim_states[k] for k in self.sim_states.keys() if k is not None])
+        extra_states = {self.sim_states[k] for k in self.sim_states.keys() if k is not None}
         if not extra_states:
             return merged_state
 

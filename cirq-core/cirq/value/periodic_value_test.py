@@ -86,7 +86,7 @@ def test_periodic_value_is_parameterized(
 ) -> None:
     assert cirq.is_parameterized(value) == is_parameterized
     assert cirq.parameter_names(value) == parameter_names
-    resolved = resolve_fn(value, {p: 1 for p in parameter_names})
+    resolved = resolve_fn(value, dict.fromkeys(parameter_names, 1))
     assert not cirq.is_parameterized(resolved)
 
 

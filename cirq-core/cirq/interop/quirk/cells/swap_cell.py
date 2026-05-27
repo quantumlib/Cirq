@@ -54,7 +54,7 @@ class SwapCell(Cell):
         return ops.SWAP(*self._qubits).controlled_by(*self._controls)
 
     def controlled_by(self, qubit: cirq.Qid) -> SwapCell:
-        return SwapCell(self._qubits, self._controls + [qubit])
+        return SwapCell(self._qubits, [*self._controls, qubit])
 
     def _value_equality_values_(self) -> Any:
         return self._qubits, self._controls

@@ -113,7 +113,7 @@ class RuntimeInfo:
         if kwargs.get('qubit_placement', None):
             kwargs['qubit_placement'] = {_try_tuple(k): v for k, v in kwargs['qubit_placement']}
         if 'timings_s' in kwargs:
-            kwargs['timings_s'] = {k: v for k, v in kwargs['timings_s']}
+            kwargs['timings_s'] = dict(kwargs['timings_s'])
         return cls(**kwargs)
 
     def __repr__(self) -> str:
@@ -285,7 +285,7 @@ def execute(
     for i, exe in enumerate(executable_group):
         runtime_info = RuntimeInfo(execution_index=i)
 
-        if exe.params != tuple():
+        if exe.params != ():
             raise NotImplementedError("Circuit params are not yet supported.")
         if not hasattr(exe.measurement, 'n_repetitions'):
             raise NotImplementedError("Only `BitstringsMeasurement` are supported.")

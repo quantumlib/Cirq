@@ -75,7 +75,7 @@ def is_topologically_sorted(
 
 def random_topological_sort(dag: networkx.DiGraph) -> Iterable[Any]:
     remaining_dag = dag.copy()
-    frontier = list(node for node in remaining_dag.nodes() if not remaining_dag.pred[node])
+    frontier = [node for node in remaining_dag.nodes() if not remaining_dag.pred[node]]
     while frontier:
         random.shuffle(frontier)
         node = frontier.pop()

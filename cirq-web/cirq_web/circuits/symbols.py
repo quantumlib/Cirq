@@ -100,7 +100,7 @@ class DefaultResolver(SymbolResolver):
         return symbol_info
 
 
-DEFAULT_SYMBOL_RESOLVERS: Iterable[SymbolResolver] = tuple([DefaultResolver()])
+DEFAULT_SYMBOL_RESOLVERS: Iterable[SymbolResolver] = (DefaultResolver(),)
 
 
 def resolve_operation(operation: cirq.Operation, resolvers: Iterable[SymbolResolver]) -> SymbolInfo:

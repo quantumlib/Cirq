@@ -30,8 +30,8 @@ def test_empty_uniform_undirected_linear_device() -> None:
     edge_labels: dict[int, UndirectedGraphDeviceEdge | None]
     edge_labels = {}
     device = ccgd.uniform_undirected_linear_device(n_qubits, edge_labels)
-    assert device.qubits == tuple()
-    assert device.edges == tuple()
+    assert device.qubits == ()
+    assert device.edges == ()
 
 
 def test_negative_arity_arg_uniform_undirected_linear_device() -> None:

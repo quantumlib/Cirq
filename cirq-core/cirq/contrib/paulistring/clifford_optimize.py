@@ -166,7 +166,7 @@ def clifford_optimized_circuit(circuit: circuits.Circuit, atol: float = 1e-8) ->
                 # Don't share qubits
                 # Keep looking
                 continue
-            elif not (
+            if not (
                 isinstance(op, ops.GateOperation)
                 and isinstance(op.gate, ops.CZPowGate)
                 and op.gate.exponent == 1

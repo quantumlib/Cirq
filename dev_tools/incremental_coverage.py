@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import os.path
+import pathlib
 import re
 from typing import cast
 
@@ -96,7 +97,7 @@ def diff_to_new_interesting_lines(unified_diff_lines: list[str]) -> dict[int, st
         value equal to the reason the line was touched. Includes added lines
         and lines near changes (including removals).
     """
-    interesting_lines = dict()
+    interesting_lines = {}
     for diff_line in unified_diff_lines:
         # Parse the 'new file' range parts of the unified diff.
         if not diff_line.startswith('@@ '):
@@ -153,8 +154,7 @@ def get_incremental_uncovered_lines(
 
     touched_lines = diff_to_new_interesting_lines(unified_diff_lines)
 
-    with open(abs_path, 'r', encoding="utf8") as actual_file:
-        ignored_lines = determine_ignored_lines(actual_file.read())
+    ignored_lines = determine_ignored_lines(pathlib.Path(abs_path).read_text(encoding="utf8"))
 
     cover_path = abs_path + ',cover'
     has_cover_file = os.path.isfile(cover_path)

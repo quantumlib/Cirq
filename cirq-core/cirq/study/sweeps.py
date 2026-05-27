@@ -233,9 +233,9 @@ class Product(Sweep):
         return length
 
     def param_tuples(self) -> Iterator[Params]:
-        yield from map(
-            lambda values: tuple(itertools.chain.from_iterable(values)),
-            itertools.product(*(factor.param_tuples() for factor in self.factors)),
+        yield from (
+            tuple(itertools.chain.from_iterable(values))
+            for values in itertools.product(*(factor.param_tuples() for factor in self.factors))
         )
 
     def __repr__(self) -> str:

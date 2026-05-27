@@ -101,7 +101,7 @@ def unitary_eig(
 ) -> tuple[np.ndarray, np.ndarray]:
     r"""Gives the guaranteed unitary eigendecomposition of a normal matrix.
 
-    All hermitian and unitary matrices are normal matrices. This method was
+    All Hermitian and unitary matrices are normal matrices. This method was
     introduced as for certain classes of unitary matrices (where the eigenvalues
     are close to each other) the eigenvectors returned by `numpy.linalg.eig` are
     not guaranteed to be orthogonal.

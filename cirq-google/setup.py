@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pathlib
 import runpy
 
 from setuptools import find_packages, setup
@@ -27,11 +28,11 @@ description = (
 )
 
 # README file as long_description.
-long_description = open('README.md', encoding='utf-8').read()
+long_description = pathlib.Path('README.md').read_text(encoding='utf-8')
 
 # Read in requirements
-requirements = open('requirements.txt').readlines()
-requirements = [r.strip() for r in requirements]
+with open('requirements.txt', encoding='utf-8') as file:
+    requirements = [r.strip() for r in file]
 requirements += [f'cirq-core=={__version__}']
 
 
@@ -74,6 +75,7 @@ setup(
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
         "Topic :: Scientific/Engineering :: Quantum Computing",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Typing :: Typed",

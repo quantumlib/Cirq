@@ -149,7 +149,7 @@ def test_calibrations_with_string_key():
 
 
 def test_key_to_qubits():
-    qubits = tuple([cirq.GridQubit(1, 1), cirq.GridQubit(1, 2)])
+    qubits = (cirq.GridQubit(1, 1), cirq.GridQubit(1, 2))
     assert cg.Calibration.key_to_qubit(qubits) == cirq.GridQubit(1, 1)
     assert cg.Calibration.key_to_qubits(qubits) == (cirq.GridQubit(1, 1), cirq.GridQubit(1, 2))
 

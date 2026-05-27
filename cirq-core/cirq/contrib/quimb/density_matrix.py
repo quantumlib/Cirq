@@ -110,7 +110,7 @@ def circuit_to_density_matrix_tensors(
         qubits = sorted(circuit.all_qubits())  # pragma: no cover
     qubits = tuple(qubits)
 
-    qubit_frontier: dict[cirq.Qid, int] = {q: 0 for q in qubits}
+    qubit_frontier: dict[cirq.Qid, int] = dict.fromkeys(qubits, 0)
     kraus_frontier = 0
     positions: dict[tuple[str, str], tuple[float, float]] = {}
     tensors: list[qtn.Tensor] = []

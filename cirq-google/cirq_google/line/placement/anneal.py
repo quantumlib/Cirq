@@ -220,14 +220,14 @@ class AnnealSequenceSearch:
             if sample_bool():
                 # Append edge either before or after inner section.
                 if sample_bool():
-                    seqs.append(inner + [n1, n0] + head[::-1])
+                    seqs.append([*inner, n1, n0, *head[::-1]])
                     seqs.append(tail)
                 else:
-                    seqs.append(tail[::-1] + [n1, n0] + inner)
+                    seqs.append([*tail[::-1], n1, n0, *inner])
                     seqs.append(head)
             else:
                 # Form a new sequence from head, tail, and new edge.
-                seqs.append(head + [n0, n1] + tail)
+                seqs.append([*head, n0, n1, *tail])
                 seqs.append(inner)
 
         return [e for e in seqs if e]
