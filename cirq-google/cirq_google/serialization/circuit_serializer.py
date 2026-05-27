@@ -926,7 +926,7 @@ class CircuitSerializer(serializer.Serializer):
                 case "LZSResetViaResonator":
                     gate: cirq.Gate = LZSResetViaResonator()
                 case "MultilevelResetViaResonator":
-                    gate: cirq.Gate = MultilevelResetViaResonator()
+                    gate = MultilevelResetViaResonator()
                 case _:
                     gate = arg_func_langs.internal_gate_from_proto(msg)
             op = gate(*qubits)
