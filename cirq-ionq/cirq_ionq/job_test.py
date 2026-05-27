@@ -485,7 +485,7 @@ def test_shotwise_job_results_ideal_simulator(memory):
 @pytest.mark.parametrize('memory', [True, False])
 def test_shotwise_job_results_noisy_simulator(memory):
     mock_client = mock.MagicMock()
-    mock_client.get_results.return_value = {'0': '1'}
+    mock_client.get_results.return_value = {'0': '0.6', '1': '0.4'}
     mock_client.get_shots.return_value = [2, 1, 3, 1, 0]
     job_dict = {
         'id': 'my_id',
@@ -501,12 +501,23 @@ def test_shotwise_job_results_noisy_simulator(memory):
     }
     job = ionq.Job(mock_client, job_dict, memory=memory)
     result = job.results()
-    cirq_result = result.to_cirq_result()
-    expected = (
-        [[0, 1], [1, 0], [1, 1], [1, 0], [0, 0]]
-        if memory
-        else [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]
-    )
+    if memory:
+        cirq_result = result.to_cirq_result()
+        expected = [[0, 1], [1, 0], [1, 1], [1, 0], [0, 0]]
+        mock_client.get_shots.assert_called_once_with('http://fake.url/shots')
+    else:
+        fake_random_state = mock.Mock()
+        fake_random_state.choice.return_value = [1, 0, 1, 1, 0]
+        with mock.patch(
+            'cirq_ionq.results.cirq.value.parse_random_state', return_value=fake_random_state
+        ) as parse_random_state:
+            cirq_result = result.to_cirq_result()
+
+        expected = [[1, 0], [0, 0], [1, 0], [1, 0], [0, 0]]
+        parse_random_state.assert_called_once_with(None)
+        fake_random_state.choice.assert_called_once_with(range(2), p=(0.6, 0.4), size=5)
+        mock_client.get_shots.assert_not_called()
+
     assert cirq_result.measurements["results"].tolist() == expected
 
 

@@ -418,7 +418,7 @@ class Service:
         # a second call and return the results of the fully filled out job.
         return self.get_job(result['id'], memory=memory)
 
-    def get_job(self, job_id: str, memory: bool) -> job.Job:
+    def get_job(self, job_id: str, memory: bool = False) -> job.Job:
         """Gets a job that has been created on the IonQ API.
 
         Args:
@@ -431,6 +431,8 @@ class Service:
         Raises:
             IonQNotFoundException: If there was no job with the given `job_id`.
             IonQException: If there was an error accessing the API.
+            memory: A boolean that determines whether to retrieve shotwise results for the job
+                from IonQ servers, default is False.
         """
         job_dict = self._client.get_job(job_id=job_id)
         return job.Job(client=self._client, job_dict=job_dict, memory=memory)
