@@ -389,6 +389,55 @@ def _extract_readout_qubits(
     return sorted(all_qubits)
 
 
+def _get_twirled_basis_gate(basis: cirq.Pauli, flip: bool) -> cirq.Gate:
+    if basis == cirq.Z and not flip:
+        return cirq.I
+    elif basis == cirq.Z and flip:
+        return cirq.X
+    elif basis == cirq.X and not flip:
+        return cirq.Ry(rads=-np.pi / 2)
+    elif basis == cirq.X and flip:
+        return cirq.Ry(rads=np.pi / 2)
+    elif basis == cirq.Y and not flip:
+        return cirq.Rx(rads=np.pi / 2)
+    elif basis == cirq.Y and flip:
+        return cirq.Rx(rads=-np.pi / 2)
+
+
+def _build_twirled_pauli_circuits(
+    base_circuit: circuits.Circuit, basis_ps: ops.PauliString, twirl_choices: np.ndarray
+) -> list[circuits.Circuit]:
+    """Builds a list of twirled circuits for measuring the given Pauli strings.
+
+    Args:
+        base_circuit: The original circuit to be twirled.
+        basis_ps: A PauliString representing the target measurement basis for each qubit.
+        num_twirls: The number of twirled circuits to generate.
+        twirl_choices: A 2D boolean array of shape (num_twirls, len(qubits)) indicating
+            whether to apply a 180-degree twirl to each qubit.
+
+    Returns:
+        A list of twirled circuits.
+    """
+    twirl_circuits = []
+    qubits = sorted(basis_ps.qubits)
+
+    for twirl_choice in twirl_choices:
+        # Map each qubit to its specific twirl operation for this shot
+        moment_ops = [
+            _get_twirled_basis_gate(basis_ps.get(q), flip)(q)
+            for flip, q in zip(twirl_choice, qubits)
+        ]
+
+        # Append the twirls and the final measurement to the base circuit
+        twirled_circuit = (
+            base_circuit + cirq.Moment(moment_ops) + cirq.Moment(cirq.measure(*qubits, key='m'))
+        )
+        twirl_circuits.append(twirled_circuit)
+
+    return twirl_circuits
+
+
 def _pauli_objs_to_basis_change_ops(
     pauli_objs: Sequence[ops.PauliString | ops.PauliSum], qid_list: Sequence[ops.Qid]
 ):
@@ -1056,6 +1105,39 @@ def _measure_pauli_strings_with_confusion_matrices(
         )
 
     return results
+
+
+def _measure_pauli_strings_with_trex(
+    circuits_to_pauli: list[CircuitToPauliStringsParameters],
+    sampler: work.Sampler,
+    pauli_repetitions: int,
+    readout_repetitions: int,
+    num_random_bitstrings: int,
+    num_twirls: int,
+    rng_or_seed: np.random.Generator | int = np.random.default_rng(),
+) -> list[CircuitToPauliStringsMeasurementResult]:
+    """Measures expectation values of Pauli strings using T-REX error mitigation.
+
+    Args:
+        circuits_to_pauli: Each object contains
+             a circuit and its associated Pauli strings to measure.
+        sampler: The sampler to use.
+        pauli_repetitions: The number of repetitions to use for measuring the Pauli operator.
+        readout_repetitions: The number of repetitions to use for measuring readout errors.
+        num_random_bitstrings: The number of random bitstrings to use for measuring readout.
+        num_twirls: The number of random twirls to use for measuring the Pauli operator.
+        rng_or_seed: A random number generator or seed to use.
+
+    Returns:
+        A list of CircuitToPauliStringsMeasurementResult.
+    """
+
+    # This is a placeholder implementation. The actual implementation would involve:
+    # 1. Generating twirled versions of the input circuits for each Pauli string.
+    # 2. Running the twirled circuits to get measurement results.
+    # 3. Using the measurement results to perform T-REX error mitigation and calculate
+    #    expectation values for each Pauli string.
+    raise NotImplementedError("T-REX error mitigation is not yet implemented.")
 
 
 def measure_pauli_strings(
