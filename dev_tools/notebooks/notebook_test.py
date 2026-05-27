@@ -24,6 +24,9 @@ from __future__ import annotations
 import importlib.metadata
 import os
 import tempfile
+import textwrap
+import time
+import warnings
 from collections.abc import Iterator
 
 import pytest
@@ -99,7 +102,7 @@ def env_with_temporary_pip_target() -> Iterator[dict[str, str]]:
 @only_on_posix
 @pytest.mark.parametrize("notebook_path", filter_notebooks(list_all_notebooks(), SKIP_NOTEBOOKS))
 def test_notebooks_against_cirq_head(
-    notebook_path, require_packages_not_changed, env_with_temporary_pip_target
+    notebook_path, require_packages_not_changed, env_with_temporary_pip_target, papermill_scheduler
 ) -> None:
     """Test that jupyter notebooks execute.
 
@@ -122,6 +125,8 @@ def test_notebooks_against_cirq_head(
     assert os.path.isdir(env_with_temporary_pip_target["CLOUDSDK_CONFIG"])
 
     REPO_ROOT.joinpath("out", notebook_rel_dir).mkdir(parents=True, exist_ok=True)
+    wait_time = papermill_scheduler()[1]
+    time.sleep(wait_time)
     result = shell_tools.run(
         cmd,
         log_run_to_stderr=False,
@@ -146,3 +151,24 @@ def test_skip_notebooks_has_valid_patterns() -> None:
     """Verify patterns in SKIP_NOTEBOOKS are all valid."""
     patterns_without_match = [g for g in SKIP_NOTEBOOKS if not any(REPO_ROOT.glob(g))]
     assert patterns_without_match == []
+
+
+def test_papermill_scheduler_is_still_needed() -> None:
+    # reminder to revisit the papermill_scheduler hack when papermill releases new version
+    needed_for_papermill_version = (2, 7)
+    try:
+        pmdist = importlib.metadata.distribution("papermill")
+    except importlib.metadata.PackageNotFoundError:
+        pytest.skip("papermill is not installed")
+    actual_papermill_version = tuple(int(v) for v in pmdist.version.split(".")[:2])
+    msg = f"""
+        Please check if papermill_scheduler fixture can be removed for papermill-{pmdist.version}.
+        If so the following pytest run will pass without errors (repeat several times)
+
+          check/pytest -n8 -m slow dev_tools/notebooks/notebook_test.py
+
+        If you get "Kernel died before replying to kernel_info" error, continue using the
+        `papermill_scheduler` fixture and adjust the `needed_for_papermill_version` value.
+    """
+    if actual_papermill_version > needed_for_papermill_version:
+        warnings.warn(textwrap.dedent(msg), DeprecationWarning)
