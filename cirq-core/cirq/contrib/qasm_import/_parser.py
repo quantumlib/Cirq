@@ -17,14 +17,15 @@ from __future__ import annotations
 import dataclasses
 import functools
 import operator
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Sequence
 from typing import Any, cast, TYPE_CHECKING
 
 import numpy as np
 import sympy
 from ply import yacc
 
-from cirq import Circuit, CircuitOperation, CX, FrozenCircuit, NamedQubit, ops, value
+from cirq import Circuit, CircuitOperation, CX, FrozenCircuit, NamedQubit, ops, value, protocols
+from cirq._compat import proper_repr
 from cirq.circuits.qasm_output import QasmUGate
 from cirq.contrib.qasm_import._lexer import QasmLexer
 from cirq.contrib.qasm_import.exception import QasmException
@@ -150,6 +151,46 @@ class QasmGateStatement:
             yield final_gate.on(*qubits)
 
 
+@value.value_equality(approximate=True)
+class QasmGPhaseGate(ops.Gate):
+    """A gate representing a global phase shift on a single qubit."""
+
+    def __init__(self, theta: value.TParamVal) -> None:
+        self.theta = theta
+
+    def _num_qubits_(self) -> int:
+        return 1
+
+    def _has_unitary_(self) -> bool:
+        return not self._is_parameterized_()
+
+    def _is_parameterized_(self) -> bool:
+        return protocols.is_parameterized(self.theta)
+
+    def _parameter_names_(self) -> set[str]:
+        return protocols.parameter_names(self.theta)
+
+    def _resolve_parameters_(self, resolver: value.ParamResolver, recursive: bool) -> QasmGPhaseGate:
+        return QasmGPhaseGate(protocols.resolve_parameters(self.theta, resolver, recursive))
+
+    def _unitary_(self) -> np.ndarray:
+        coeff = np.exp(1j * self.theta)
+        return np.array([[coeff, 0], [0, coeff]], dtype=np.complex128)
+
+    def _value_equality_values_(self) -> Any:
+        return self.theta
+
+    def _decompose_(self, qubits: Sequence[ops.Qid]) -> ops.Operation:
+        coeff = sympy.exp(1j * self.theta) if isinstance(self.theta, sympy.Basic) else np.exp(1j * self.theta)
+        return ops.global_phase_operation(coeff)
+
+    def __str__(self) -> str:
+        return f'gphase({self.theta})'
+
+    def __repr__(self) -> str:
+        return f'cirq.contrib.qasm_import._parser.QasmGPhaseGate({proper_repr(self.theta)})'
+
+
 @dataclasses.dataclass
 class CustomGate:
     """Represents an invocation of a user-defined gate.
@@ -252,6 +293,13 @@ class QasmParser:
             num_args=1,
             # QasmUGate expects half turns
             cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])),
+        ),
+        # Maps to QasmGPhaseGate
+        'gphase': QasmGateStatement(
+            qasm_gate='gphase',
+            num_params=1,
+            num_args=1,
+            cirq_gate=(lambda params: QasmGPhaseGate(params[0])),
         ),
     }
 
@@ -809,6 +857,13 @@ class QasmParser:
             num_params=3,
             num_args=1,
             cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])),
+        ),
+        # Maps to QasmGPhaseGate
+        'gphase': QasmGateStatement(
+            qasm_gate='gphase',
+            num_params=1,
+            num_args=1,
+            cirq_gate=(lambda params: QasmGPhaseGate(params[0])),
         ),
         'x': QasmGateStatement(qasm_gate='x', num_params=0, num_args=1, cirq_gate=ops.X),
         'y': QasmGateStatement(qasm_gate='y', num_params=0, num_args=1, cirq_gate=ops.Y),

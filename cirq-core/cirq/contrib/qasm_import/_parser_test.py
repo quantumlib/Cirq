@@ -2525,3 +2525,48 @@ def test_input_invalid_type_error() -> None:
     """
     with pytest.raises(QasmException, match="Syntax error"):
         QasmParser().parse(qasm)
+
+
+def test_gphase_gate() -> None:
+    qasm = """
+     OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
+     gphase(pi/4) q[0];
+"""
+    parser = QasmParser()
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
+
+    # The parsed circuit should contain exactly one operation
+    ops_list = list(parsed_qasm.circuit.all_operations())
+    assert len(ops_list) == 1
+
+    # The unitary should be e^{i*pi/4} * I
+    expected_unitary = np.exp(1j * np.pi / 4) * np.eye(2)
+    ct.assert_allclose_up_to_global_phase(
+        cirq.unitary(parsed_qasm.circuit), expected_unitary, atol=1e-8
+    )
+
+
+def test_gphase_gate_basic() -> None:
+    """gphase is also a basic gate, so it should work without qelib1.inc."""
+    qasm = """
+     OPENQASM 2.0;
+     qreg q[1];
+     gphase(pi/2) q[0];
+"""
+    parser = QasmParser()
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+
+    # The unitary should be e^{i*pi/2} * I = i * I
+    expected_unitary = 1j * np.eye(2)
+    ct.assert_allclose_up_to_global_phase(
+        cirq.unitary(parsed_qasm.circuit), expected_unitary, atol=1e-8
+    )
