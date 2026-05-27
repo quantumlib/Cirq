@@ -458,9 +458,10 @@ def test_job_fields_update_status():
     assert job.repetitions() == 1000
 
 
-def test_shotwise_job_results_ideal_simulator():
+@pytest.mark.parametrize('memory', [True, False])
+def test_shotwise_job_results_ideal_simulator(memory):
     mock_client = mock.MagicMock()
-    mock_client.get_shots.return_value = [1, 1, 1, 1, 1]
+    mock_client.get_shots.return_value = [2, 1, 3, 1, 0]
     mock_client.get_results.return_value = {'0': '1'}
     job_dict = {
         'id': 'my_id',
@@ -474,15 +475,17 @@ def test_shotwise_job_results_ideal_simulator():
         'results': {'shots': {'url': 'http://fake.url/shots'}},
         "noise": {"model": "ideal"},
     }
-    job = ionq.Job(mock_client, job_dict)
+    job = ionq.Job(mock_client, job_dict, memory=memory)
     result = job.results()
     cirq_result = result.to_cirq_result()
     assert cirq_result.measurements["results"].tolist() == [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]
+    mock_client.get_shots.assert_not_called()
 
 
-def test_shotwise_job_results_noisy_simulator():
+@pytest.mark.parametrize('memory', [True, False])
+def test_shotwise_job_results_noisy_simulator(memory):
     mock_client = mock.MagicMock()
-    mock_client.get_results.return_value = {'0': '0.6', '1': '0.4'}
+    mock_client.get_results.return_value = {'0': '1'}
     mock_client.get_shots.return_value = [2, 1, 3, 1, 0]
     job_dict = {
         'id': 'my_id',
@@ -496,13 +499,19 @@ def test_shotwise_job_results_noisy_simulator():
         'results': {'shots': {'url': 'http://fake.url/shots'}},
         "noise": {"model": "aria-1"},
     }
-    job = ionq.Job(mock_client, job_dict)
+    job = ionq.Job(mock_client, job_dict, memory=memory)
     result = job.results()
     cirq_result = result.to_cirq_result()
-    assert cirq_result.measurements["results"].tolist() == [[0, 1], [1, 0], [1, 1], [1, 0], [0, 0]]
+    expected = (
+        [[0, 1], [1, 0], [1, 1], [1, 0], [0, 0]]
+        if memory
+        else [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]
+    )
+    assert cirq_result.measurements["results"].tolist() == expected
 
 
-def test_shotwise_job_results_qpu():
+@pytest.mark.parametrize('memory', [True, False])
+def test_shotwise_job_results_qpu(memory):
     mock_client = mock.MagicMock()
     mock_client.get_results.return_value = {'0': '0.6', '3': '0.4'}
     mock_client.get_shots.return_value = [2, 1, 3, 1, 0]
@@ -517,7 +526,16 @@ def test_shotwise_job_results_qpu():
         },
         'results': {'shots': {'url': 'http://fake.url/shots'}},
     }
-    job = ionq.Job(mock_client, job_dict)
+    job = ionq.Job(mock_client, job_dict, memory=memory)
     result = job.results()
     cirq_result = result.to_cirq_result()
-    assert cirq_result.measurements["results"].tolist() == [[0, 1], [1, 0], [1, 1], [1, 0], [0, 0]]
+    expected = (
+        [[0, 1], [1, 0], [1, 1], [1, 0], [0, 0]]
+        if memory
+        else [[0, 0], [0, 0], [0, 0], [1, 1], [1, 1]]
+    )
+    assert cirq_result.measurements["results"].tolist() == expected
+    if memory:
+        mock_client.get_shots.assert_called_once_with('http://fake.url/shots')
+    else:
+        mock_client.get_shots.assert_not_called()

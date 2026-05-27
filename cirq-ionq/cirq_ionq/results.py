@@ -153,9 +153,7 @@ class QPUResult:
             for key, targets in self.measurement_dict().items():
                 qpu_results = self.ordered_results(key)
                 measurements[key] = np.array(
-                    list(
-                        cirq.big_endian_int_to_bits(x, bit_count=len(targets)) for x in qpu_results
-                    )
+                    [cirq.big_endian_int_to_bits(x, bit_count=len(targets)) for x in qpu_results]
                 )
 
         return cirq.ResultDict(params=params or cirq.ParamResolver({}), measurements=measurements)

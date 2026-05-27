@@ -68,7 +68,9 @@ class Job:
         'data associated with it beyond an id and a status.',
     )
 
-    def __init__(self, client: cirq_ionq.ionq_client._IonQClient, job_dict: dict):
+    def __init__(
+        self, client: cirq_ionq.ionq_client._IonQClient, job_dict: dict, memory: bool = False
+    ):
         """Construct an IonQJob.
 
         Users should not call this themselves. If you only know the `job_id`, use `get_job`
@@ -77,9 +79,11 @@ class Job:
         Args:
             client: The client used for calling the API.
             job_dict: A dict representing the response from a call to get_job on the client.
+            memory: Whether to attempt to retrieve shotwise results for the job.
         """
         self._client = client
         self._job = job_dict
+        self._memory = memory
 
     def _refresh_job(self):
         """If the last fetched job is not terminal, gets the job from the API."""
@@ -257,18 +261,6 @@ class Job:
                 f'Job was not completed successfully. Instead had status: {self.status()}'
             )
 
-        shotwise_results = None
-        retrieve_shotwise_result = self.target().startswith('qpu') or (
-            "noise" in self._job
-            and "model" in self._job["noise"]
-            and self._job["noise"]["model"] != "ideal"
-        )
-        if retrieve_shotwise_result:
-            try:
-                shotwise_results = self._client.get_shots(self._job["results"]["shots"]["url"])
-            except:
-                pass
-
         backend_results = self._client.get_results(
             job_id=self.job_id(), sharpen=sharpen, extra_query_params=extra_query_params
         )
@@ -277,6 +269,39 @@ class Job:
         some_inner_value = next(iter(backend_results.values()))
         is_batch = isinstance(some_inner_value, dict)
         histograms = list(backend_results.values()) if is_batch else [backend_results]
+
+        shotwise_results = [None for _ in histograms]
+        retrieve_shotwise_result = self._memory and (
+            self.target().startswith('qpu')
+            or (
+                "noise" in self._job
+                and "model" in self._job["noise"]
+                and self._job["noise"]["model"] != "ideal"
+            )
+        )
+        if retrieve_shotwise_result:
+            try:
+                if len(histograms) > 1:
+                    child_job_ids = self._job.get("child_job_ids")
+                    if child_job_ids is None or len(child_job_ids) != len(histograms):
+                        self._warn_shotwise_fallback(
+                            "However, the job does not have the correct child job "
+                            "ids to retrieve shotwise results for a batch job."
+                        )
+                    else:
+                        shotwise_results = self._retrieve_child_job_shots(child_job_ids)
+                else:
+                    shotwise_results = [
+                        self._client.get_shots(self._job["results"]["shots"]["url"])
+                    ]
+            except (
+                ionq_exceptions.IonQException,
+                ionq_exceptions.IonQNotFoundException,
+                TimeoutError,
+            ) as ex:
+                self._warn_shotwise_fallback(
+                    f"However, retrieving shots failed with this error: {ex}."
+                )
 
         # IonQ returns results in little endian, but
         # Cirq prefers to use big endian, so we convert.
@@ -295,7 +320,7 @@ class Job:
                         counts=counts,
                         num_qubits=self.num_qubits(circuit_index),
                         measurement_dict=self.measurement_dict(circuit_index=circuit_index),
-                        shotwise_results=shotwise_results,
+                        shotwise_results=shotwise_results[circuit_index],
                     )
                 )
             return (
@@ -316,7 +341,7 @@ class Job:
                         num_qubits=self.num_qubits(circuit_index),
                         measurement_dict=self.measurement_dict(circuit_index=circuit_index),
                         repetitions=self.repetitions(),
-                        shotwise_results=shotwise_results,
+                        shotwise_results=shotwise_results[circuit_index],
                     )
                 )
             return (
@@ -324,6 +349,34 @@ class Job:
                 if len(big_endian_results_sim) > 1
                 else big_endian_results_sim[0]
             )
+
+    def _retrieve_child_job_shots(self, child_job_ids):
+        shotwise_results = []
+        for child_job_id in child_job_ids:
+            try:
+                shotwise_result = self._client.get_shots(
+                    self._client.get_job(child_job_id)["results"]["shots"]["url"]
+                )
+                shotwise_results.append(shotwise_result)
+            except (
+                ionq_exceptions.IonQException,
+                ionq_exceptions.IonQNotFoundException,
+                TimeoutError,
+            ) as ex:
+                self._warn_shotwise_fallback(
+                    "However, retrieving shots for child job "
+                    f"{child_job_id} failed with this error: {ex}."
+                )
+                shotwise_results.append(None)
+        return shotwise_results
+
+    def _warn_shotwise_fallback(self, detail):
+        """Warn that shotwise results will fall back to sampled probabilities."""
+        warnings.warn(
+            "You set the memory argument to `True`. "
+            f"{detail} Shotwise results will be generated by randomly sampling "
+            "the probability distribution returned by the IonQ server."
+        )
 
     def cancel(self):
         """Cancel the given job.

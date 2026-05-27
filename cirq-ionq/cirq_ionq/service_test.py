@@ -63,6 +63,21 @@ def test_service_run(target, expected_results):
     assert create_job_kwargs['name'] == 'bacon'
 
 
+def test_service_run_passes_memory_to_create_job():
+    service = ionq.Service(remote_host='http://example.com', api_key='key')
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.measure(q, key='m'))
+    qpu_result = ionq.QPUResult(counts={1: 1}, num_qubits=1, measurement_dict={'m': [0]})
+    mock_job = mock.MagicMock()
+    mock_job.results.return_value = qpu_result
+
+    with mock.patch.object(service, 'create_job', return_value=mock_job) as create_job:
+        result = service.run(circuit=circuit, repetitions=1, target='qpu', memory=True)
+
+    assert result == qpu_result.to_cirq_result(params=cirq.ParamResolver({}))
+    assert create_job.call_args.kwargs['memory'] is True
+
+
 @pytest.mark.parametrize(
     'target,expected_results1,expected_results2',
     [
@@ -125,6 +140,21 @@ def test_service_run_batch(target, expected_results1, expected_results2):
     assert create_job_kwargs['name'] == 'bacon'
 
 
+def test_service_run_batch_passes_memory_to_create_batch_job():
+    service = ionq.Service(remote_host='http://example.com', api_key='key')
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.measure(q, key='m'))
+    qpu_result = ionq.QPUResult(counts={1: 1}, num_qubits=1, measurement_dict={'m': [0]})
+    mock_job = mock.MagicMock()
+    mock_job.results.return_value = qpu_result
+
+    with mock.patch.object(service, 'create_batch_job', return_value=mock_job) as create_batch_job:
+        results = service.run_batch(circuits=[circuit], repetitions=1, target='qpu', memory=True)
+
+    assert results == [qpu_result.to_cirq_result(params=cirq.ParamResolver({}))]
+    assert create_batch_job.call_args.kwargs['memory'] is True
+
+
 def test_sampler():
     service = ionq.Service(remote_host='http://example.com', api_key='key')
     mock_client = mock.MagicMock()
@@ -151,34 +181,67 @@ def test_sampler():
     mock_client.create_job.assert_called_once()
 
 
-def test_service_get_job():
+@pytest.mark.parametrize('memory', [True, False])
+def test_service_get_job(memory):
     service = ionq.Service(remote_host='http://example.com', api_key='key')
     mock_client = mock.MagicMock()
     job_dict = {'id': 'job_id', 'status': 'ready'}
     mock_client.get_job.return_value = job_dict
     service._client = mock_client
 
-    job = service.get_job('job_id')
-    assert job.job_id() == 'job_id'
+    with mock.patch('cirq_ionq.service.job.Job', autospec=True) as job_cls:
+        returned_job = service.get_job('job_id', memory=memory)
+
+    assert returned_job is job_cls.return_value
     mock_client.get_job.assert_called_with(job_id='job_id')
+    job_cls.assert_called_once_with(client=mock_client, job_dict=job_dict, memory=memory)
 
 
 def test_service_create_job():
     service = ionq.Service(remote_host='http://example.com', api_key='key')
     mock_client = mock.MagicMock()
     mock_client.create_job.return_value = {'id': 'job_id', 'status': 'ready'}
-    mock_client.get_job.return_value = {'id': 'job_id', 'status': 'completed'}
     service._client = mock_client
 
     circuit = cirq.Circuit(cirq.X(cirq.LineQubit(0)))
-    job = service.create_job(circuit=circuit, repetitions=100, target='qpu', name='bacon')
-    assert job.status() == 'completed'
+    mock_job = mock.MagicMock()
+    with mock.patch.object(service, 'get_job', return_value=mock_job) as get_job:
+        job = service.create_job(
+            circuit=circuit, repetitions=100, target='qpu', name='bacon', memory=True
+        )
+
+    assert job is mock_job
     create_job_kwargs = mock_client.create_job.call_args[1]
     # Serialization induces a float, so we don't validate full circuit.
     assert create_job_kwargs['serialized_program'].input['qubits'] == 1
     assert create_job_kwargs['repetitions'] == 100
     assert create_job_kwargs['target'] == 'qpu'
     assert create_job_kwargs['name'] == 'bacon'
+    get_job.assert_called_once_with('job_id', memory=True)
+
+
+def test_service_create_batch_job():
+    service = ionq.Service(remote_host='http://example.com', api_key='key')
+    mock_client = mock.MagicMock()
+    mock_client.create_job.return_value = {'id': 'job_id', 'status': 'ready'}
+    service._client = mock_client
+
+    circuit = cirq.Circuit(cirq.X(cirq.LineQubit(0)))
+    mock_job = mock.MagicMock()
+    with mock.patch.object(service, 'get_job', return_value=mock_job) as get_job:
+        job = service.create_batch_job(
+            circuits=[circuit], repetitions=100, target='qpu', name='bacon', memory=True
+        )
+
+    assert job is mock_job
+    create_job_kwargs = mock_client.create_job.call_args[1]
+    # Serialization induces a float, so we don't validate full circuit.
+    assert create_job_kwargs['serialized_program'].input['qubits'] == 1
+    assert create_job_kwargs['repetitions'] == 100
+    assert create_job_kwargs['target'] == 'qpu'
+    assert create_job_kwargs['name'] == 'bacon'
+    assert create_job_kwargs['batch_mode'] is True
+    get_job.assert_called_once_with('job_id', memory=True)
 
 
 def test_service_list_jobs():
