@@ -167,10 +167,10 @@ class QasmGPhaseGate(ops.Gate):
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.theta)
 
-    def _parameter_names_(self) -> set[str]:
-        return protocols.parameter_names(self.theta)
+    def _parameter_names_(self) -> frozenset[str]:
+        return frozenset(protocols.parameter_names(self.theta))
 
-    def _resolve_parameters_(self, resolver: value.ParamResolver, recursive: bool) -> QasmGPhaseGate:
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> QasmGPhaseGate:
         return QasmGPhaseGate(protocols.resolve_parameters(self.theta, resolver, recursive))
 
     def _unitary_(self) -> np.ndarray:
@@ -181,7 +181,11 @@ class QasmGPhaseGate(ops.Gate):
         return self.theta
 
     def _decompose_(self, qubits: Sequence[ops.Qid]) -> ops.Operation:
-        coeff = sympy.exp(1j * self.theta) if isinstance(self.theta, sympy.Basic) else np.exp(1j * self.theta)
+        coeff = (
+            sympy.exp(1j * self.theta)
+            if isinstance(self.theta, sympy.Basic)
+            else np.exp(1j * self.theta)
+        )
         return ops.global_phase_operation(coeff)
 
     def __str__(self) -> str:
