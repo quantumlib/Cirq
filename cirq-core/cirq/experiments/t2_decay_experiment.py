@@ -81,7 +81,7 @@ def t2_decay(
         π/2, t, π, 2t, π, ... 2t, π, t
 
     The first pulse, a sqrt(Y) gate, will put the qubit's state on the Bloch
-    equator.  After a delay, successive X gates will refocus dehomogenous
+    equator.  After a delay, successive X gates will refocus dehomogeneous
     phase effects by causing them to precess in opposite directions and
     averaging their effects across the entire pulse train.
 
