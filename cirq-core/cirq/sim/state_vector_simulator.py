@@ -176,11 +176,11 @@ class StateVectorTrialResult(
                 state vectors, but prevents mutation of the object state, e.g.
                 for operating on intermediate states of a circuit.
                 Defaults to False.
-            normalize: If True, the returned state vector is normalized and 
-                the result is cached. If False, the raw target tensor is 
+            normalize: If True, the returned state vector is normalized and
+                the result is cached. If False, the raw target tensor is
                 returned directly without any normalization or caching,
-                avoiding the extra allocation in `final_state_vector`. 
-                Useful for memory-constrained callers such as large-qubit 
+                avoiding the extra allocation in `final_state_vector`.
+                Useful for memory-constrained callers such as large-qubit
                 simulations.
                 Default to True.
         """
