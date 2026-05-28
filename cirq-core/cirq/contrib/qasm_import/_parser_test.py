@@ -2570,3 +2570,39 @@ def test_gphase_gate_basic() -> None:
     ct.assert_allclose_up_to_global_phase(
         cirq.unitary(parsed_qasm.circuit), expected_unitary, atol=1e-8
     )
+
+
+def test_gphase_gate_parameterized() -> None:
+    """Test QasmGPhaseGate with a symbolic (sympy) parameter."""
+    from cirq.contrib.qasm_import._parser import QasmGPhaseGate
+
+    theta = sympy.Symbol('theta')
+    gate = QasmGPhaseGate(theta)
+
+    # _is_parameterized_ returns True for symbolic theta
+    assert cirq.is_parameterized(gate)
+
+    # _parameter_names_ returns the set of symbol names
+    assert cirq.parameter_names(gate) == frozenset({'theta'})
+
+    # _has_unitary_ returns False when parameterized
+    assert not cirq.has_unitary(gate)
+
+    # _resolve_parameters_ substitutes the symbol
+    resolver = cirq.ParamResolver({'theta': np.pi / 3})
+    resolved = cirq.resolve_parameters(gate, resolver)
+    assert not cirq.is_parameterized(resolved)
+    assert np.isclose(resolved.theta, np.pi / 3)
+
+    # _decompose_ uses the sympy branch for symbolic theta
+    q = cirq.NamedQubit('q')
+    decomposed = gate._decompose_([q])
+    assert decomposed is not None
+
+    # After resolution, the gate should have a valid unitary
+    expected_unitary = np.exp(1j * np.pi / 3) * np.eye(2)
+    np.testing.assert_allclose(cirq.unitary(resolved), expected_unitary, atol=1e-8)
+
+    # __str__ and __repr__ work correctly
+    assert str(gate) == 'gphase(theta)'
+    assert 'QasmGPhaseGate' in repr(gate)

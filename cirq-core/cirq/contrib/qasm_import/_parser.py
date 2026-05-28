@@ -24,7 +24,7 @@ import numpy as np
 import sympy
 from ply import yacc
 
-from cirq import Circuit, CircuitOperation, CX, FrozenCircuit, NamedQubit, ops, value, protocols
+from cirq import Circuit, CircuitOperation, CX, FrozenCircuit, NamedQubit, ops, protocols, value
 from cirq._compat import proper_repr
 from cirq.circuits.qasm_output import QasmUGate
 from cirq.contrib.qasm_import._lexer import QasmLexer
