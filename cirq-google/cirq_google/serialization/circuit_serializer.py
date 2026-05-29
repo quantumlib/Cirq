@@ -35,6 +35,7 @@ from cirq_google.ops import (
     FSimViaModelTag,
     InternalGate,
     InternalTag,
+    LeakageISWAP,
     LZSResetViaResonator,
     MultilevelResetViaResonator,
     PhysicalZTag,
@@ -927,6 +928,10 @@ class CircuitSerializer(serializer.Serializer):
                     gate: cirq.Gate = LZSResetViaResonator()
                 case "MultilevelResetViaResonator":
                     gate = MultilevelResetViaResonator()
+                case "LeakageISWAPPhaseMatched":
+                    gate = LeakageISWAP(phase_matched=True)
+                case "LeakageISWAPUnmatched":
+                    gate = LeakageISWAP(phase_matched=False)
                 case _:
                     gate = arg_func_langs.internal_gate_from_proto(msg)
             op = gate(*qubits)

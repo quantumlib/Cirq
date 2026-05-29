@@ -51,3 +51,5 @@ from cirq_google.ops.lzs_reset import LZSResetViaResonator as LZSResetViaResonat
 from cirq_google.ops.multi_level_reset import (
     MultilevelResetViaResonator as MultilevelResetViaResonator,
 )
+
+from cirq_google.ops.leakage_iswap import LeakageISWAP as LeakageISWAP
