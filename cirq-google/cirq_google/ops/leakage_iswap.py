@@ -18,12 +18,12 @@ from cirq_google.ops.internal_gate import InternalGate
 
 
 class LeakageISWAP(InternalGate):
-    """Leakage iSWAP (LeakageISWAP) Gate.                                                                
-                                                                                                         
+    """Leakage iSWAP (LeakageISWAP) Gate.
+
     A two-qutrit (or multi-level qubit) entangling gate designed for leakage
     removal. It operates by performing a coherent swap interaction in the
     two-excitation subspace, specifically coupling a leakage
-    state to a state in the computational subspace.  
+    state to a state in the computational subspace.
 
     Args:
         phase_matched: Whether to instead pre and post virtual Z operations
@@ -31,13 +31,14 @@ class LeakageISWAP(InternalGate):
             Defaults to True.
     """
 
-    def __init__(self, gate_name=None, gate_module=None, num_qubits=1, phase_matched=True,
-                 **kwargs):
+    def __init__(
+        self, gate_name=None, gate_module=None, num_qubits=1, phase_matched=True, **kwargs
+    ):
         self.phase_matched = phase_matched
         if phase_matched:
-           super().__init__(gate_name="LeakageISWAPPhaseMatched", num_qubits=2)
+            super().__init__(gate_name="LeakageISWAPPhaseMatched", num_qubits=2)
         else:
-           super().__init__(gate_name="LeakageISWAPUnmatched", num_qubits=2)
+            super().__init__(gate_name="LeakageISWAPUnmatched", num_qubits=2)
 
     def _num_qubits_(self) -> int:
         return 2

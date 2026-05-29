@@ -60,13 +60,8 @@ def test_repr():
 
 def test_value_equality():
     eq = cirq.testing.EqualsTester()
-    eq.add_equality_group(
-        LeakageISWAP(phase_matched=True),
-        LeakageISWAP(),
-    )
-    eq.add_equality_group(
-        LeakageISWAP(phase_matched=False),
-    )
+    eq.add_equality_group(LeakageISWAP(phase_matched=True), LeakageISWAP())
+    eq.add_equality_group(LeakageISWAP(phase_matched=False))
 
 
 def test_serialization_round_trip():
@@ -100,4 +95,3 @@ def test_serialization_round_trip():
         deserialized_op = next(iter(deserialized_circuit.all_operations()))
         assert isinstance(deserialized_op.gate, LeakageISWAP)
         assert deserialized_op.gate.phase_matched == phase_matched
-
