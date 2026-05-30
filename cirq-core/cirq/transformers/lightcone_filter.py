@@ -41,12 +41,8 @@ def lightcone_filter(
     for moment in circuit[::-1]:
         new_ops = []
         for op in moment:
-            if protocols.is_measurement(op):
+            if not support.isdisjoint(op.qubits) or protocols.is_measurement(op):
                 new_ops.append(op)
                 support.update(op.qubits)
-            else:
-                if max(q in support for q in op.qubits):
-                    new_ops.append(op)
-                    support.update(op.qubits)
         new_moments.append(circuits.Moment(*new_ops))
     return circuits.Circuit.from_moments(*new_moments[::-1])
