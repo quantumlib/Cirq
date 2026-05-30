@@ -24,11 +24,10 @@ from cirq.transformers import transformer_api
 if TYPE_CHECKING:
     import cirq
 
+
 @transformer_api.transformer()
 def lightcone_filter(
-    circuit: cirq.Circuit,
-    *,
-    context: cirq.TransformerContext | None = None,
+    circuit: cirq.Circuit, *, context: cirq.TransformerContext | None = None
 ) -> cirq.Circuit:
     """Apply a lightcone filter to the input circuit.
 
@@ -49,6 +48,5 @@ def lightcone_filter(
                 if max(q in support for q in op.qubits):
                     new_ops.append(op)
                     support.update(op.qubits)
-        new_moments.append(cirq.Moment(*new_ops))
+        new_moments.append(circuits.Moment(*new_ops))
     return circuits.Circuit.from_moments(*new_moments[::-1])
-                

@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import cirq.experiments.random_quantum_circuit_generation as rcg
 import cirq.transformers as ct
-from cirq import devices, ops, circuits
-import  cirq.experiments.random_quantum_circuit_generation as rcg
+from cirq import circuits, devices, ops
+
 
 def test_lightcone_filter():
-    qubits = devices.GridQubit.rect(5,5)
+    qubits = devices.GridQubit.rect(5, 5)
     depth = 5
     circuit = rcg.random_rotations_between_grid_interaction_layers_circuit(qubits, depth, seed=0)
     circuit += circuits.Circuit(ops.M(qubits[:10]))
