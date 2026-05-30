@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 @transformer_api.transformer()
 def lightcone_filter(
-    circuit: cirq.Circuit, *, context: cirq.TransformerContext | None = None
+    circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
 ) -> cirq.Circuit:
     """Apply a lightcone filter to the input circuit.
 
@@ -36,7 +36,7 @@ def lightcone_filter(
         measurements removed.
     """
 
-    support = set()
+    support: set[cirq.Qid] = set()
     new_moments = []
     for moment in circuit[::-1]:
         new_ops = []
