@@ -526,7 +526,8 @@ def internal_gate_arg_to_proto(
     """
     msg = v2.program_pb2.InternalGate() if out is None else out
     msg.name = value.gate_name
-    msg.module = value.gate_module
+    if value.gate_module:
+        msg.module = value.gate_module
     msg.num_qubits = value.num_qubits()
 
     for k, v in value.gate_args.items():

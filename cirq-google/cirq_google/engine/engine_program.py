@@ -62,6 +62,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         self.program_id = program_id
         self.context = context
         self._program = _program
+        self._proto: v2.program_pb2.Program | None = None
 
     async def run_sweep_async(
         self,
@@ -352,27 +353,76 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     remove_labels = duet.sync(remove_labels_async)
 
-    async def get_circuit_async(self, program_num: int | None = None) -> cirq.Circuit:
+    async def _get_proto_async(self) -> v2.program_pb2.Program:
+        if self._proto is None:
+            if self._program is None or not self._program.code or not self._program.code.type_url:
+                self._program = await self.context.client.get_program_async(
+                    self.project_id, self.program_id, True
+                )
+            self._proto = _deserialize_to_proto(self._program.code)
+        return self._proto
+
+    async def is_batch_async(self) -> bool:
+        """Returns True if the program is a batch program."""
+        proto = await self._get_proto_async()
+        return len(proto.keyed_circuits) > 0
+
+    is_batch = duet.sync(is_batch_async)
+
+    async def get_circuit_async(self, circuit_num: int | None = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the Quantum Engine program. This is only
         supported if the program was created with the V2 protos.
 
         Args:
-            program_num: if this is a multi-circuit program, the index of the circuit
+            circuit_num: if this is a multi-circuit program, the index of the circuit
                 to return.  This argument is zero-indexed. Negative values
                 indexing from the end of the list.
 
         Returns:
             The program's cirq Circuit.
         """
-        # The code field is an any_pb2.Any and is always set. But if the program has not
-        # been fetched this field may be empty, which we can see by checking the type_url.
-        if self._program is None or not self._program.code or not self._program.code.type_url:
-            self._program = await self.context.client.get_program_async(
-                self.project_id, self.program_id, True
+        proto = await self._get_proto_async()
+        is_batch = await self.is_batch_async()
+
+        if circuit_num is None:
+            if is_batch:
+                raise ValueError(
+                    f"Program {self.program_id} is a batch program containing "
+                    f"{len(proto.keyed_circuits)} circuits. "
+                    "Please specify `circuit_num` to get a specific circuit, "
+                    "or use `get_circuits()` to get all of them."
+                )
+            return circuit_serializer.CIRCUIT_SERIALIZER.deserialize(proto)
+
+        if not is_batch:
+            if circuit_num != 0 and circuit_num != -1:
+                raise IndexError(
+                    f"Program {self.program_id} is not a batch program, cannot index {circuit_num}"
+                )
+            return circuit_serializer.CIRCUIT_SERIALIZER.deserialize(proto)
+
+        deserialized = circuit_serializer.CIRCUIT_SERIALIZER.deserialize_multi_program(proto)
+        try:
+            return cast(cirq.Circuit, deserialized[circuit_num][2])
+        except IndexError:
+            raise IndexError(
+                f"Index {circuit_num} out of range for batch program {self.program_id} "
+                f"of size {len(deserialized)}."
             )
-        return _deserialize_program(self._program.code, program_num)
 
     get_circuit = duet.sync(get_circuit_async)
+
+    async def get_circuits_async(self) -> list[cirq.Circuit]:
+        """Returns all the cirq Circuits for the Quantum Engine program."""
+        proto = await self._get_proto_async()
+        serializer = circuit_serializer.CIRCUIT_SERIALIZER
+        if not await self.is_batch_async():
+            return [serializer.deserialize(proto)]
+
+        deserialized = serializer.deserialize_multi_program(proto)
+        return [cast(cirq.Circuit, triple[2]) for triple in deserialized]
+
+    get_circuits = duet.sync(get_circuits_async)
 
     async def batch_size_async(self) -> int:
         """Returns the number of programs in a batch program.
@@ -380,7 +430,10 @@ class EngineProgram(abstract_program.AbstractProgram):
         Raises:
             ValueError: if the program created was not a batch program.
         """
-        raise NotImplementedError("Batch programs are no longer supported.")
+        proto = await self._get_proto_async()
+        if not await self.is_batch_async():
+            raise ValueError(f"Program {self.program_id} is not a batch program.")
+        return len(proto.keyed_circuits)
 
     batch_size = duet.sync(batch_size_async)
 
@@ -407,19 +460,24 @@ class EngineProgram(abstract_program.AbstractProgram):
         return f'EngineProgram(project_id=\'{self.project_id}\', program_id=\'{self.program_id}\')'
 
 
-def _deserialize_program(code: any_pb2.Any, program_num: int | None = None) -> cirq.Circuit:
+def _deserialize_to_proto(code: any_pb2.Any) -> v2.program_pb2.Program:
     import cirq_google.engine.engine as engine_base
 
     code_type = code.type_url[len(engine_base.TYPE_PREFIX) :]
-    program = None
     if code_type == 'cirq.google.api.v1.Program' or code_type == 'cirq.api.google.v1.Program':
         raise ValueError('deserializing a v1 Program is not supported')
     elif code_type == 'cirq.google.api.v2.Program' or code_type == 'cirq.api.google.v2.Program':
-        program = v2.program_pb2.Program.FromString(code.value)
-    if program is not None:
-        serializer = circuit_serializer.CIRCUIT_SERIALIZER
-        if program_num is not None:
-            return cast(cirq.Circuit, serializer.deserialize_multi_program(program)[program_num][2])
-        return serializer.deserialize(program)
+        return v2.program_pb2.Program.FromString(code.value)
 
     raise ValueError(f'unsupported program type: {code_type}')
+
+
+def _deserialize_program(code: any_pb2.Any, circuit_num: int | None = None) -> cirq.Circuit:
+    program = _deserialize_to_proto(code)
+    serializer = circuit_serializer.CIRCUIT_SERIALIZER
+    if circuit_num is not None:
+        try:
+            return cast(cirq.Circuit, serializer.deserialize_multi_program(program)[circuit_num][2])
+        except IndexError:
+            raise IndexError(f"Index {circuit_num} out of range for batch program.")
+    return serializer.deserialize(program)

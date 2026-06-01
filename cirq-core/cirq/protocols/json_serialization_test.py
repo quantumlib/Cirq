@@ -204,7 +204,7 @@ Q0, Q1, Q2, Q3, Q4 = QUBITS
 # during test setup deprecated submodules are inspected and trigger the
 # deprecation error in testing. It is cleaner to just turn it off than to assert
 # deprecation for each submodule.
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+@mock.patch.dict(os.environ, {'CIRQ_TESTING': 'false'})
 def test_shouldnt_be_serialized_no_superfluous(mod_spec: ModuleJsonTestSpec) -> None:
     # everything in the list should be ignored for a reason
     names = set(mod_spec.get_all_names())
@@ -220,7 +220,7 @@ def test_shouldnt_be_serialized_no_superfluous(mod_spec: ModuleJsonTestSpec) -> 
 # during test setup deprecated submodules are inspected and trigger the
 # deprecation error in testing. It is cleaner to just turn it off than to assert
 # deprecation for each submodule.
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+@mock.patch.dict(os.environ, {'CIRQ_TESTING': 'false'})
 def test_not_yet_serializable_no_superfluous(mod_spec: ModuleJsonTestSpec) -> None:
     # everything in the list should be ignored for a reason
     names = set(mod_spec.get_all_names())
@@ -425,7 +425,7 @@ def test_serializable_by_key() -> None:
 # during test setup deprecated submodules are inspected and trigger the
 # deprecation error in testing. It is cleaner to just turn it off than to assert
 # deprecation for each submodule.
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+@mock.patch.dict(os.environ, {'CIRQ_TESTING': 'false'})
 def _list_public_classes_for_tested_modules():
     # to remove DeprecationWarning noise during test collection
     with warnings.catch_warnings():
