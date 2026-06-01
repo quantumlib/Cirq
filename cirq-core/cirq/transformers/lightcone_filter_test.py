@@ -18,10 +18,32 @@ from cirq import circuits, devices, ops
 
 
 def test_lightcone_filter():
-    qubits = devices.GridQubit.rect(5, 5)
+    qubits = devices.GridQubit.square(5)
+    terminal_measured_qubits = set(qubits[:10])
     depth = 5
     circuit = rcg.random_rotations_between_grid_interaction_layers_circuit(qubits, depth, seed=0)
-    circuit += circuits.Circuit(ops.M(qubits[:10]))
-    assert [len(moment) for moment in circuit] == [25, 10, 25, 10, 25, 10, 25, 10, 25, 10, 25, 1]
-    new_circuit = ct.lightcone_filter(circuit)
-    assert [len(moment) for moment in new_circuit] == [18, 8, 13, 5, 10, 4, 10, 4, 10, 4, 10, 1]
+    circuit.append(ops.M(terminal_measured_qubits))
+    # add a midcircuit measurement:
+    circuit = circuit[:5] + circuits.Circuit(ops.M(devices.GridQubit(3, 0))) + circuit[5:]
+    circuit_filtered = ct.lightcone_filter(circuit)
+
+    assert [len(moment) for moment in circuit] == [25, 10, 25, 10, 25, 1, 10, 25, 10, 25, 10, 25, 1]
+    assert [len(moment) for moment in circuit_filtered] == [
+        19,
+        8,
+        15,
+        6,
+        11,
+        1,
+        4,
+        10,
+        4,
+        10,
+        4,
+        10,
+        1,
+    ]
+    for old_moment, new_moment in zip(circuit, circuit_filtered):
+        assert set(new_moment.operations).issubset(old_moment.operations)
+        for op in set(old_moment.operations).difference(new_moment.operations):
+            assert terminal_measured_qubits.isdisjoint(op.qubits)
