@@ -227,3 +227,46 @@ def test_simplify_cnots_triplets(
         circuit_actual.append(cirq.CNOT(qubits[actual_cnot[target]], qubits[actual_cnot[control]]))
 
     np.testing.assert_allclose(cirq.unitary(circuit_input), cirq.unitary(circuit_actual), atol=1e-6)
+
+
+@pytest.mark.parametrize(
+    'boolean_str',
+    [
+        "__import__('os').system('echo pwned')",
+        "exec(\"open('/tmp/cirq_poc.txt','w').write('pwned')\")",
+        "x0.__class__",
+        "x0 & (lambda: 0)()",
+        "[].__class__.__base__",
+        "eval('1')",
+        "x0 + x1",  # arithmetic is not an allowed boolean operator
+        "y0 & y1",  # symbols outside the declared parameter names
+    ],
+)
+def test_decompose_rejects_malicious_boolean_strs(boolean_str) -> None:
+    # Constructing the gate must not evaluate the string (the payload is merely stored).
+    gate = cirq.BooleanHamiltonianGate(['x0', 'x1'], [boolean_str], 0.1)
+    # Decomposing it must raise rather than execute / accept the disallowed expression.
+    with pytest.raises(ValueError):
+        cirq.decompose(gate.on(cirq.LineQubit(0), cirq.LineQubit(1)))
+
+
+def test_parse_boolean_expr_matches_sympy_for_valid_inputs() -> None:
+    parameter_names = ['x0', 'x1', 'x2']
+    for boolean_str in ['x0', '~x0', 'x0 ^ x1', 'x0 & x1', 'x0 | x1', 'x0 | (x1 & ~x2)']:
+        assert bh._parse_boolean_expr(boolean_str, parameter_names) == sympy_parser.parse_expr(
+            boolean_str
+        )
+
+
+def test_read_json_payload_does_not_execute_on_decompose() -> None:
+    # A weaponized but structurally valid Cirq JSON document deserializes fine (storing the
+    # payload), but decomposing the resulting gate must raise instead of executing the payload.
+    payload = (
+        '{"cirq_type": "BooleanHamiltonianGate", '
+        '"parameter_names": ["x0", "x1"], '
+        '"boolean_strs": ["__import__(\'os\').system(\'echo pwned\')"], '
+        '"theta": 0.1}'
+    )
+    gate = cirq.read_json(json_text=payload)
+    with pytest.raises(ValueError):
+        cirq.decompose(gate.on(cirq.LineQubit(0), cirq.LineQubit(1)))
