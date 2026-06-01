@@ -332,10 +332,24 @@ class EngineJob(abstract_job.AbstractJob):
                 or result_type == 'cirq.api.google.v2.Result'
             ):
                 v2_parsed_result = v2.result_pb2.Result.FromString(result.value)
-                self._results = self._get_job_results_v2(v2_parsed_result)
+                self._batched_results = self._get_batched_job_results_v2(v2_parsed_result)
+                self._results = _flatten(self._batched_results)
             else:
                 raise ValueError(f'invalid result proto version: {result_type}')
         return self._results
+
+    async def batched_results_async(self) -> Sequence[Sequence[EngineResult]]:
+        """Returns the job results split by program/circuit in the batch.
+
+        Instead of flattening results into a single list, this will return a Sequence[EngineResult]
+        for each circuit in the batch.
+        """
+        if not self.program().is_batch():
+            raise ValueError('batched_results called for a non-batch program.')
+        await self.results_async()
+        if self._batched_results is None:
+            raise ValueError('batched_results was not populated for this batch job.')
+        return self._batched_results
 
     async def _await_result_async(self) -> quantum.QuantumResult:
         if self._job_result_future is not None:
@@ -395,6 +409,16 @@ class EngineJob(abstract_job.AbstractJob):
             EngineResult.from_result(result, job_id=job_id)
             for sweep_result in sweep_results
             for result in sweep_result
+        ]
+
+    def _get_batched_job_results_v2(
+        self, result: v2.result_pb2.Result
+    ) -> Sequence[Sequence[EngineResult]]:
+        sweep_results = v2.results_from_proto(result)
+        job_id = self.id()
+        return [
+            [EngineResult.from_result(r, job_id=job_id) for r in sweep_result]
+            for sweep_result in sweep_results
         ]
 
     def __str__(self) -> str:

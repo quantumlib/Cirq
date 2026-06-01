@@ -53,6 +53,9 @@ class NothingJob(AbstractLocalJob):
     async def results_async(self) -> Sequence[EngineResult]:
         return []  # pragma: no cover
 
+    async def batched_results_async(self) -> Sequence[Sequence[EngineResult]]:
+        return []  # pragma: no cover
+
 
 def test_description_and_labels():
     job = NothingJob(

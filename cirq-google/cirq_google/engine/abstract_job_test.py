@@ -92,6 +92,9 @@ class MockJob(AbstractJob):
     async def results_async(self):
         return [cirq.ResultDict(params={}, measurements={'a': np.asarray([t])}) for t in range(5)]
 
+    async def batched_results_async(self):
+        return [[r] for r in await self.results_async()]
+
 
 def test_instantiation_and_iteration():
     job = MockJob()
@@ -126,3 +129,12 @@ def test_get_circuit():
     job = MockJob()
     assert job.get_circuit() == cirq.Circuit()
     assert job.get_circuit(1) == cirq.Circuit()
+
+
+def test_batched_results():
+    job = MockJob()
+    batched = job.batched_results()
+    assert len(batched) == 5
+    for count, r_list in enumerate(batched):
+        assert len(r_list) == 1
+        assert r_list[0].measurements['a'][0] == count
