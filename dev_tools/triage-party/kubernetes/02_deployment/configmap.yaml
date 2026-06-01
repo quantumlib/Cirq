@@ -35,7 +35,6 @@ data:
         rules:
           - issue-discussion
           - pr-discussion
-          # - important-not-milestoned
 
       - id: daily-issue-triage
         name: Issue triage
