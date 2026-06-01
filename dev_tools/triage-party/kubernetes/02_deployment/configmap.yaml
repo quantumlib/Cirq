@@ -48,33 +48,6 @@ data:
         rules:
           - needs-review
 
-      # - id: milestone
-      #   name: In milestone
-      #   description: >
-      #     A Kanban visualization of upcoming releases, showing the flow of issues through each
-      #     stage. notes:
-      #       * Only assigned issues should be in the milestone.
-      #       * Unassigned issues with priority/p0 should be assigned.
-      #       * >3 issues assigned to the same person within a stage indicates a bottleneck 🌊
-      #   display: kanban
-      #   overflow: 3
-      #   dedup: true
-      #   rules:
-      #     - milestone-not-started
-      #     - milestone-assignee-updated
-      #     - milestone-pr-needs-review
-      #     - milestone-pr-needs-work
-      #     - milestone-pr-needs-merge
-      #     - milestone-recently-closed
-
-      # - id: quarterly
-      #   name: Quarterly scrub
-      #   description: >
-      #     Quarterly review of items that need our attention.
-      #   rules:
-      #     - bugs-recv
-      #     - features-recv
-      #     - design-issues-recv
 
       - id: discovery
         name: Issue discoverability
