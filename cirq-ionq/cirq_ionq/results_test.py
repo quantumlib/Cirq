@@ -149,6 +149,15 @@ def test_qpu_result_to_cirq_result_multiple_keys():
     )
 
 
+def test_qpu_result_to_cirq_result_shotwise_uses_target_indices():
+    result = ionq.QPUResult(
+        {0b10: 1}, num_qubits=2, measurement_dict={'b': [1]}, memory_results=[0b10]
+    )
+    assert result.to_cirq_result() == cirq.ResultDict(
+        params=cirq.ParamResolver({}), measurements={'b': np.array([[1]])}
+    )
+
+
 def test_qpu_result_to_cirq_result_no_keys():
     result = ionq.QPUResult({0b00: 1, 0b01: 2}, num_qubits=2, measurement_dict={})
     with pytest.raises(ValueError, match='cirq results'):
@@ -323,6 +332,15 @@ def test_simulator_result_to_cirq_result_multiple_keys():
     assert result.to_cirq_result(seed=2) == cirq.ResultDict(
         params=cirq.ParamResolver({}),
         measurements={'x': np.array([[1], [0], [1]]), 'y': np.array([[1, 0], [0, 0], [1, 0]])},
+    )
+
+
+def test_simulator_result_to_cirq_result_shotwise_uses_target_indices():
+    result = ionq.SimulatorResult(
+        {0b10: 1.0}, num_qubits=2, measurement_dict={'b': [1]}, repetitions=1, memory_results=[0b10]
+    )
+    assert result.to_cirq_result() == cirq.ResultDict(
+        params=cirq.ParamResolver({}), measurements={'b': np.array([[1]])}
     )
 
 

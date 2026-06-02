@@ -24,6 +24,11 @@ import numpy as np
 import cirq
 
 
+def _memory_bits_for_targets(value: int, num_qubits: int, targets: Sequence[int]) -> list[int]:
+    shot_bits = list(cirq.big_endian_int_to_bits(value, bit_count=num_qubits))[::-1]
+    return [shot_bits[target] for target in targets]
+
+
 class QPUResult:
     """The results of running on an IonQ QPU."""
 
@@ -145,8 +150,8 @@ class QPUResult:
         if self._memory_results is not None:
             for key, targets in self.measurement_dict().items():
                 bits = [
-                    list(cirq.big_endian_int_to_bits(int(x), bit_count=len(targets)))[::-1]
-                    for x in self._memory_results
+                    _memory_bits_for_targets(int(value), self.num_qubits(), targets)
+                    for value in self._memory_results
                 ]
                 measurements[key] = np.array(bits)
         else:
@@ -287,8 +292,8 @@ class SimulatorResult:
         if self._memory_results is not None:
             for key, targets in self.measurement_dict().items():
                 bits = [
-                    list(cirq.big_endian_int_to_bits(int(x), bit_count=len(targets)))[::-1]
-                    for x in self._memory_results
+                    _memory_bits_for_targets(int(value), self.num_qubits(), targets)
+                    for value in self._memory_results
                 ]
                 measurements[key] = np.array(bits)
         else:
