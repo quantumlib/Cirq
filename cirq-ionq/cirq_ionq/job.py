@@ -349,6 +349,7 @@ class Job:
             )
 
     def _retrieve_child_job_shots(self, child_job_ids):
+        """Retrieve shots for child jobs. Warn that memory results will fall back to sampled probabilities if retrieval fails."""
         memory_results = []
         for child_job_id in child_job_ids:
             try:
