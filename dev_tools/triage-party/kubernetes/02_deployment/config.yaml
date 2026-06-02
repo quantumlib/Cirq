@@ -18,7 +18,7 @@
 settings:
   name: Quantum AI
   repos:
-    - https://github.com/quantumlib/cirq
+    - https://github.com/quantumlib/Cirq
   min_similarity: 0.7
 
   member-roles:
