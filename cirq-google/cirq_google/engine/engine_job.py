@@ -255,7 +255,7 @@ class EngineJob(abstract_job.AbstractJob):
                 )
             # Mapped sweeps in a batch job
             try:
-                return (reps, [sweeps[circuit_num]])
+                return (reps[circuit_num], [sweeps[circuit_num]])
             except IndexError:
                 raise IndexError(
                     f"Index {circuit_num} out of range for sweeps of size {len(sweeps)}."
@@ -264,7 +264,9 @@ class EngineJob(abstract_job.AbstractJob):
         # Not a batch job
         if not is_batch and circuit_num and circuit_num != -1:
             raise IndexError(f"Job is not a batch job, cannot index {circuit_num}")
-        return (reps, sweeps)
+        if not reps:
+            raise ValueError("No repetitions found in run context.")
+        return (reps[0], sweeps)
 
     def get_processor(self) -> engine_processor.EngineProcessor | None:
         """Returns the EngineProcessor for the processor the job is/was run on,
@@ -330,10 +332,24 @@ class EngineJob(abstract_job.AbstractJob):
                 or result_type == 'cirq.api.google.v2.Result'
             ):
                 v2_parsed_result = v2.result_pb2.Result.FromString(result.value)
-                self._results = self._get_job_results_v2(v2_parsed_result)
+                self._batched_results = self._get_batched_job_results_v2(v2_parsed_result)
+                self._results = _flatten(self._batched_results)
             else:
                 raise ValueError(f'invalid result proto version: {result_type}')
         return self._results
+
+    async def batched_results_async(self) -> Sequence[Sequence[EngineResult]]:
+        """Returns the job results split by program/circuit in the batch.
+
+        Instead of flattening results into a single list, this will return a Sequence[EngineResult]
+        for each circuit in the batch.
+        """
+        if not self.program().is_batch():
+            raise ValueError('batched_results called for a non-batch program.')
+        await self.results_async()
+        if self._batched_results is None:
+            raise ValueError('batched_results was not populated for this batch job.')
+        return self._batched_results
 
     async def _await_result_async(self) -> quantum.QuantumResult:
         if self._job_result_future is not None:
@@ -395,6 +411,16 @@ class EngineJob(abstract_job.AbstractJob):
             for result in sweep_result
         ]
 
+    def _get_batched_job_results_v2(
+        self, result: v2.result_pb2.Result
+    ) -> Sequence[Sequence[EngineResult]]:
+        sweep_results = v2.results_from_proto(result)
+        job_id = self.id()
+        return [
+            [EngineResult.from_result(r, job_id=job_id) for r in sweep_result]
+            for sweep_result in sweep_results
+        ]
+
     def __str__(self) -> str:
         return (
             f'EngineJob(project_id=\'{self.project_id}\', '
@@ -402,7 +428,7 @@ class EngineJob(abstract_job.AbstractJob):
         )
 
 
-def _deserialize_run_context(run_context: any_pb2.Any) -> tuple[int, list[cirq.Sweep]]:
+def _deserialize_run_context(run_context: any_pb2.Any) -> tuple[list[int], list[cirq.Sweep]]:
     import cirq_google.engine.engine as engine_base
 
     run_context_type = run_context.type_url[len(engine_base.TYPE_PREFIX) :]
@@ -416,7 +442,7 @@ def _deserialize_run_context(run_context: any_pb2.Any) -> tuple[int, list[cirq.S
         or run_context_type == 'cirq.api.google.v2.RunContext'
     ):
         v2_run_context = v2.run_context_pb2.RunContext.FromString(run_context.value)
-        return v2_run_context.parameter_sweeps[0].repetitions, [
+        return [s.repetitions for s in v2_run_context.parameter_sweeps], [
             v2.sweep_from_proto(s.sweep) for s in v2_run_context.parameter_sweeps
         ]
     raise ValueError(f'unsupported run_context type: {run_context_type}')

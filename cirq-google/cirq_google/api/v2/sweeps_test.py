@@ -513,3 +513,37 @@ def test_run_context_to_proto_sweepable(sweepable: cirq.Sweepable, use_resolver:
 def test_invalid_sweepable_raises() -> None:
     with pytest.raises(TypeError):
         _ = v2.run_context_to_proto(cirq.X, 1000, compress_proto=False)  # type: ignore[arg-type]
+
+
+def test_run_context_to_proto_sequence_repetitions() -> None:
+    # Case 1: len(sweeps) == 1, len(reps) > 1
+    sweep = cirq.UnitSweep
+    reps = [10, 20, 30]
+    out = v2.run_context_to_proto(sweep, reps)
+    assert len(out.parameter_sweeps) == 3
+    for i, r in enumerate(reps):
+        assert out.parameter_sweeps[i].repetitions == r
+        assert v2.sweep_from_proto(out.parameter_sweeps[i].sweep) == sweep
+
+    # Case 2: len(sweeps) > 1, len(reps) > 1, matching lengths
+    sweeps_list = [cirq.Linspace('a', 0, 1, 5), cirq.Linspace('b', 0, 1, 5)]
+    reps = [10, 20]
+    out = v2.run_context_to_proto(sweeps_list, reps)
+    assert len(out.parameter_sweeps) == 2
+    for i, r in enumerate(reps):
+        assert out.parameter_sweeps[i].repetitions == r
+        assert v2.sweep_from_proto(out.parameter_sweeps[i].sweep) == sweeps_list[i]
+
+    # Case 3: len(sweeps) > 1, len(reps) > 1, non-matching lengths
+    sweeps_list = [cirq.Linspace('a', 0, 1, 5), cirq.Linspace('b', 0, 1, 5)]
+    reps = [10, 20, 30]
+    with pytest.raises(ValueError, match="Length of sweeps.*and repetitions.*must match"):
+        _ = v2.run_context_to_proto(sweeps_list, reps)
+
+    # Case 4: len(sweeps) == 1, len(reps) == 1
+    sweep = cirq.UnitSweep
+    reps = [10]
+    out = v2.run_context_to_proto(sweep, reps)
+    assert len(out.parameter_sweeps) == 1
+    assert out.parameter_sweeps[0].repetitions == 10
+    assert v2.sweep_from_proto(out.parameter_sweeps[0].sweep) == sweep

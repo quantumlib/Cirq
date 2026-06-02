@@ -130,6 +130,8 @@ class SimulatedLocalJob(AbstractLocalJob):
             programs = parent.get_circuits()
             if len(sweeps) == 1 and len(programs) > 1:
                 sweeps = sweeps * len(programs)
+            elif len(programs) == 1 and len(sweeps) > 1:
+                programs = programs * len(sweeps)
             batch_results = self._sampler.run_batch(
                 programs=programs, params_list=cast(list[cirq.Sweepable], sweeps), repetitions=reps
             )
@@ -149,4 +151,19 @@ class SimulatedLocalJob(AbstractLocalJob):
         elif self._type == LocalSimulationType.ASYNCHRONOUS:
             return _flatten_results(await self._future)
         else:
-            raise ValueError('Unsupported simulation type {self._type}')
+            raise ValueError(f'Unsupported simulation type {self._type}')
+
+    async def batched_results_async(self) -> Sequence[Sequence[EngineResult]]:
+        """Returns the job results split by program/circuit in the batch.
+
+        Instead of flattening results into a single list, this will return a Sequence[EngineResult]
+        for each circuit in the batch.
+        """
+        if not self.program().is_batch():
+            raise ValueError('batched_results called for a non-batch program.')
+        if self._type == LocalSimulationType.SYNCHRONOUS:
+            return self._execute_results()
+        elif self._type == LocalSimulationType.ASYNCHRONOUS:
+            return await self._future
+        else:
+            raise ValueError(f'Unsupported simulation type {self._type}')

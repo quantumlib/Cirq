@@ -102,3 +102,24 @@ def test_rewrite_notebook_unused_patterns() -> None:
         _ = dt.rewrite_notebook(ipynb_path)
 
     shutil.rmtree(directory)
+
+
+def test_create_parallel_scheduler_with_100ms_interval(tmp_path: pathlib.Path) -> None:
+    queuefile = tmp_path / "queuefile.tmp"
+    scheduler = dt.utils.create_parallel_scheduler(queuefile, 0.1)
+    event_time_0, wait_time_0 = scheduler()
+    event_time_1, wait_time_1 = scheduler()
+    assert wait_time_0 == 0.0
+    assert event_time_1 >= 0.1 + event_time_0
+    assert 0 < wait_time_1 <= 0.1
+
+
+def test_create_parallel_scheduler_with_zero_interval(tmp_path: pathlib.Path) -> None:
+    queuefile = tmp_path / "queuefile.tmp"
+    assert not queuefile.exists()
+    scheduler = dt.utils.create_parallel_scheduler(queuefile, 0)
+    event_time_0, wait_time_0 = scheduler()
+    event_time_1, wait_time_1 = scheduler()
+    assert wait_time_0 == wait_time_1 == 0.0
+    assert event_time_0 <= event_time_1
+    assert not queuefile.exists()
