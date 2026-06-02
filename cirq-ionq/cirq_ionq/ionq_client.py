@@ -254,7 +254,7 @@ class _IonQClient:
         return self._make_request(request, {}).json()
 
     def get_shots(self, shots_url):
-        """Get job shotwise output from IonQ API.
+        """Get job per shot output from IonQ API.
 
         Args:
             shots_url: The shots URL as returned by the IonQ API.

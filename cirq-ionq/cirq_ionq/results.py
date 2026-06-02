@@ -32,7 +32,7 @@ class QPUResult:
         counts: dict[int, int],
         num_qubits: int,
         measurement_dict: dict[str, Sequence[int]],
-        shotwise_results: list[int] | None = None,
+        memory_results: list[int] | None = None,
     ):
         # We require a consistent ordering, and here we use bitvector as such.
         # OrderedDict can be removed in python 3.7, where it is part of the contract.
@@ -40,7 +40,7 @@ class QPUResult:
         self._num_qubits = num_qubits
         self._measurement_dict = measurement_dict
         self._repetitions = sum(self._counts.values())
-        self._shotwise_results = shotwise_results
+        self._memory_results = memory_results
 
     def num_qubits(self) -> int:
         """Returns the number of qubits the circuit was run on."""
@@ -142,11 +142,11 @@ class QPUResult:
             )
 
         measurements = {}
-        if self._shotwise_results is not None:
+        if self._memory_results is not None:
             for key, targets in self.measurement_dict().items():
                 bits = [
                     list(cirq.big_endian_int_to_bits(int(x), bit_count=len(targets)))[::-1]
-                    for x in self._shotwise_results
+                    for x in self._memory_results
                 ]
                 measurements[key] = np.array(bits)
         else:
@@ -185,13 +185,13 @@ class SimulatorResult:
         num_qubits: int,
         measurement_dict: dict[str, Sequence[int]],
         repetitions: int,
-        shotwise_results: list[int] | None = None,
+        memory_results: list[int] | None = None,
     ):
         self._probabilities = probabilities
         self._num_qubits = num_qubits
         self._measurement_dict = measurement_dict
         self._repetitions = repetitions
-        self._shotwise_results = shotwise_results
+        self._memory_results = memory_results
 
     def num_qubits(self) -> int:
         """Returns the number of qubits the circuit was run on."""
@@ -284,11 +284,11 @@ class SimulatorResult:
             )
 
         measurements = {}
-        if self._shotwise_results is not None:
+        if self._memory_results is not None:
             for key, targets in self.measurement_dict().items():
                 bits = [
                     list(cirq.big_endian_int_to_bits(int(x), bit_count=len(targets)))[::-1]
-                    for x in self._shotwise_results
+                    for x in self._memory_results
                 ]
                 measurements[key] = np.array(bits)
         else:

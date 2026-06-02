@@ -459,7 +459,7 @@ def test_job_fields_update_status():
 
 
 @pytest.mark.parametrize('memory', [True, False])
-def test_shotwise_job_results_ideal_simulator(memory):
+def test_memory_job_results_ideal_simulator(memory):
     mock_client = mock.MagicMock()
     mock_client.get_shots.return_value = [2, 1, 3, 1, 0]
     mock_client.get_results.return_value = {'0': '1'}
@@ -483,7 +483,7 @@ def test_shotwise_job_results_ideal_simulator(memory):
 
 
 @pytest.mark.parametrize('memory', [True, False])
-def test_shotwise_job_results_noisy_simulator(memory):
+def test_memory_job_results_noisy_simulator(memory):
     mock_client = mock.MagicMock()
     mock_client.get_results.return_value = {'0': '0.6', '1': '0.4'}
     mock_client.get_shots.return_value = [2, 1, 3, 1, 0]
@@ -522,7 +522,7 @@ def test_shotwise_job_results_noisy_simulator(memory):
 
 
 @pytest.mark.parametrize('memory', [True, False])
-def test_shotwise_job_results_qpu(memory):
+def test_memory_job_results_qpu(memory):
     mock_client = mock.MagicMock()
     mock_client.get_results.return_value = {'0': '0.6', '3': '0.4'}
     mock_client.get_shots.return_value = [2, 1, 3, 1, 0]

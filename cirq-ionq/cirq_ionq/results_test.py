@@ -23,13 +23,13 @@ import cirq_ionq as ionq
 
 def test_qpu_result_fields():
     result = ionq.QPUResult(
-        {0: 10, 1: 10}, num_qubits=1, measurement_dict={'a': [0]}, shotwise_results=[1, 2, 3]
+        {0: 10, 1: 10}, num_qubits=1, measurement_dict={'a': [0]}, memory_results=[1, 2, 3]
     )
     assert result.counts() == {0: 10, 1: 10}
     assert result.repetitions() == 20
     assert result.num_qubits() == 1
     assert result.measurement_dict() == {'a': [0]}
-    assert result._shotwise_results == [1, 2, 3]
+    assert result._memory_results == [1, 2, 3]
 
 
 def test_qpu_result_str():
@@ -167,13 +167,13 @@ def test_simulator_result_fields():
         num_qubits=1,
         measurement_dict={'a': [0]},
         repetitions=100,
-        shotwise_results=[1, 2, 3],
+        memory_results=[1, 2, 3],
     )
     assert result.probabilities() == {0: 0.4, 1: 0.6}
     assert result.num_qubits() == 1
     assert result.measurement_dict() == {'a': [0]}
     assert result.repetitions() == 100
-    assert result._shotwise_results == [1, 2, 3]
+    assert result._memory_results == [1, 2, 3]
 
 
 def test_simulator_result_str():

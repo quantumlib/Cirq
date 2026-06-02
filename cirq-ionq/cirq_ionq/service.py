@@ -135,7 +135,7 @@ class Service:
                 If True, apply majority vote mitigation; if False, apply average mitigation.
                 See:
                 `Debiasing and Sharpening <https://ionq.com/resources/debiasing-and-sharpening>`
-            memory: A boolean that determines whether to retrieve shotwise results for the job
+            memory: A boolean that determines whether to retrieve per shot results for the job
                 from IonQ servers, default is False. When False, shots will be generated locally
                 by sampling the retrieved probability distribution.
             noise (dict): {"model": str (required), "seed": int (optional)}. Defaults to None.
@@ -217,7 +217,7 @@ class Service:
             dry_run: If True, the job will be submitted by the API client but not processed
                 remotely. Useful for obtaining cost estimates. Defaults to False.
             metadata (dict): optional metadata to attach to the job. Defaults to None.
-            memory: A boolean that determines whether to retrieve shotwise results for the job
+            memory: A boolean that determines whether to retrieve per shot results for the job
                 from IonQ servers, default is False. When False, shots will be generated locally
                 by sampling the retrieved probability distribution.
             extra_query_params: Specify any parameters to include in the request.
@@ -314,7 +314,7 @@ class Service:
             dry_run: If True, the job will be submitted by the API client but not processed
                 remotely. Useful for obtaining cost estimates. Defaults to False.
             metadata (dict): optional metadata to attach to the job. Defaults to None.
-            memory: A boolean that determines whether to retrieve shotwise results for the job
+            memory: A boolean that determines whether to retrieve per shot results for the job
                 from IonQ servers, default is False. When False, shots will be generated locally
                 by sampling the retrieved probability distribution.
             extra_query_params: Specify any parameters to include in the request.
@@ -386,7 +386,7 @@ class Service:
             dry_run: If True, the job will be submitted by the API client but not processed
                 remotely. Useful for obtaining cost estimates. Defaults to False.
             metadata (dict): optional metadata to attach to the job. Defaults to None.
-            memory: A boolean that determines whether to retrieve shotwise results for the job
+            memory: A boolean that determines whether to retrieve per shot results for the job
                 from IonQ servers, default is False. When False, shots will be generated locally
                 by sampling the retrieved probability distribution.
             extra_query_params: Specify any parameters to include in the request.
@@ -431,8 +431,8 @@ class Service:
         Raises:
             IonQNotFoundException: If there was no job with the given `job_id`.
             IonQException: If there was an error accessing the API.
-            memory: A boolean that determines whether to retrieve shotwise results for the job
-                from IonQ servers, default is False.
+            memory: A boolean that determines whether to retrieve per shot results
+                for the job from IonQ servers, default is False.
         """
         job_dict = self._client.get_job(job_id=job_id)
         return job.Job(client=self._client, job_dict=job_dict, memory=memory)
