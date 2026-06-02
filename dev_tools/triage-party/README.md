@@ -52,8 +52,7 @@ applications. Specifically, we use the tools Kustomize and Skaffold.
 To customize the Triage Party dashboard (e.g., modifying collections, rules, and members), edit the
 standalone YAML configuration file located at [kubernetes/02_deployment/config.yaml][config].
 This file is read by the program `kustomize` to generate the `triage-party-config` ConfigMap for
-Kubernetes. (A ConfigMap is a Kubernetes resource used to store non-confidential configuration data
-as key-value pairs.)
+Kubernetes.
 
 Please refer to the official [Triage Party documentation] for details on the available configuration
 options.
@@ -84,9 +83,7 @@ There is no need to manually run `kubectl create configmap` commands for these r
 
 Triage Party requires a GitHub personal access token so that it can query the GitHub API to get data
 about issues and pull requests. The token creation and assignment is a one-time setup. You must
-create a Kubernetes Secret containing a GitHub token. (Kubernetes Secrets are designed to hold
-sensitive data—like passwords and tokens. They prevent confidential information from being checked
-into version control or displayed in configuration files.) Follow these steps:
+create a Kubernetes Secret containing a GitHub token. Follow these steps:
 
 1.  Obtain a new token from GitHub.
 
