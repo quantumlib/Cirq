@@ -44,6 +44,29 @@ class Result(_message.Message):
 Global___Result: _TypeAlias = Result  # noqa: Y015
 
 @_typing.final
+class QuantumCircuitCalibration(_message.Message):
+    """The result of a process which determines optimal values for a subset of the parameters in a given
+    parameterized circuit.
+    """
+
+    DESCRIPTOR: _descriptor.Descriptor
+
+    CALIBRATED_PARAMETERS_FIELD_NUMBER: _builtins.int
+    @_builtins.property
+    def calibrated_parameters(self) -> Global___ParameterDict: ...
+    def __init__(
+        self,
+        *,
+        calibrated_parameters: Global___ParameterDict | None = ...,
+    ) -> None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["calibrated_parameters", b"calibrated_parameters"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["calibrated_parameters", b"calibrated_parameters"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+
+Global___QuantumCircuitCalibration: _TypeAlias = QuantumCircuitCalibration  # noqa: Y015
+
+@_typing.final
 class SweepResult(_message.Message):
     """The measurement results for a particular ParameterSweep."""
 
@@ -186,7 +209,7 @@ Global___QubitMeasurementResult: _TypeAlias = QubitMeasurementResult  # noqa: Y0
 
 @_typing.final
 class ParameterDict(_message.Message):
-    """A point sampled during a parameter sweep."""
+    """A concrete assignment of values for a set of parameters."""
 
     DESCRIPTOR: _descriptor.Descriptor
 
