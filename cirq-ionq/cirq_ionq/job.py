@@ -291,9 +291,7 @@ class Job:
                     else:
                         memory_results = self._retrieve_child_job_shots(child_job_ids)
                 else:
-                    memory_results = [
-                        self._client.get_shots(self._job["results"]["shots"]["url"])
-                    ]
+                    memory_results = [self._client.get_shots(self._job["results"]["shots"]["url"])]
             except (
                 ionq_exceptions.IonQException,
                 ionq_exceptions.IonQNotFoundException,
