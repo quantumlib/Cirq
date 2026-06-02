@@ -472,7 +472,7 @@ def test_memory_job_results_ideal_simulator(memory):
             'shots': '5',
             'measurements': json.dumps([{'measurement0': f'results{chr(31)}0,1'}]),
         },
-        'results': {'shots': {'url': 'http://fake.url/shots'}},
+        'results': {'shots': {'url': '/shots'}},
         "noise": {"model": "ideal"},
     }
     job = ionq.Job(mock_client, job_dict, memory=memory)
@@ -496,7 +496,7 @@ def test_memory_job_results_noisy_simulator(memory):
             'shots': '5',
             'measurements': json.dumps([{'measurement0': f'results{chr(31)}0,1'}]),
         },
-        'results': {'shots': {'url': 'http://fake.url/shots'}},
+        'results': {'shots': {'url': '/shots'}},
         "noise": {"model": "aria-1"},
     }
     job = ionq.Job(mock_client, job_dict, memory=memory)
@@ -504,7 +504,7 @@ def test_memory_job_results_noisy_simulator(memory):
     if memory:
         cirq_result = result.to_cirq_result()
         expected = [[0, 1], [1, 0], [1, 1], [1, 0], [0, 0]]
-        mock_client.get_shots.assert_called_once_with('http://fake.url/shots')
+        mock_client.get_shots.assert_called_once_with('/shots')
     else:
         fake_random_state = mock.Mock()
         fake_random_state.choice.return_value = [1, 0, 1, 1, 0]
@@ -535,7 +535,7 @@ def test_memory_job_results_qpu(memory):
             'shots': 5,
             'measurements': json.dumps([{'measurement0': f'results{chr(31)}0,1'}]),
         },
-        'results': {'shots': {'url': 'http://fake.url/shots'}},
+        'results': {'shots': {'url': '/shots'}},
     }
     job = ionq.Job(mock_client, job_dict, memory=memory)
     result = job.results()
@@ -547,6 +547,6 @@ def test_memory_job_results_qpu(memory):
     )
     assert cirq_result.measurements["results"].tolist() == expected
     if memory:
-        mock_client.get_shots.assert_called_once_with('http://fake.url/shots')
+        mock_client.get_shots.assert_called_once_with('/shots')
     else:
         mock_client.get_shots.assert_not_called()
