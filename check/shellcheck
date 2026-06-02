@@ -49,7 +49,6 @@ required_shell_scripts=(
     check/pylint
     check/pytest
     dev_tools/pypath
-    dev_tools/triage-party/run-local.sh
 )
 
 scripts_not_found=$(comm -13 \
