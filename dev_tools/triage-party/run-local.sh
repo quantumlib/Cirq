@@ -21,17 +21,11 @@ function error() {
 }
 
 if [[ -z "${GITHUB_TOKEN}" ]]; then
-    error "TOKEN environment variable is not set"
+    error "GITHUB_TOKEN environment variable is not set"
     exit 1
 fi
-
-container_cmd=""
-if command -v podman &> /dev/null; then
-    container_cmd="podman"
-elif command -v docker &> /dev/null; then
-    container_cmd="docker"
-else
-    error "neither podman nor docker is available"
+if ! command -v podman &> /dev/null; then
+    error "cannot find podman"
     exit 1
 fi
 
@@ -42,7 +36,7 @@ cd "${repo_dir}" || exit $?
 
 kube_path="${PWD}/dev_tools/triage-party/kubernetes"
 
-${container_cmd} run \
+podman run \
      --rm \
      -p 8080:8080 \
      -e GITHUB_TOKEN \
