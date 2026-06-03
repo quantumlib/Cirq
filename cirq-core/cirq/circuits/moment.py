@@ -112,6 +112,13 @@ class Moment:
         self._control_keys: frozenset[cirq.MeasurementKey] | None = None
         self._tags = tags
 
+        # Check for the presence of duplicate measurement keys or incompatible arrangements
+        # of measurement and control keys, then throw relevant warnings.
+        if _compat.__cirq_debug__.get():
+            _ = self._measurement_key_objs_()
+            _ = self._control_keys_()
+            self._validate_measurement_and_control_keys_arrangement()
+
     @classmethod
     def from_ops(cls, *ops: cirq.Operation, tags: tuple[Hashable, ...] = ()) -> cirq.Moment:
         """Construct a Moment from the given operations.
@@ -226,6 +233,7 @@ class Moment:
             protocols.measurement_key_objs(operation)
         )
         m._control_keys = self._control_keys_().union(protocols.control_keys(operation))
+        m._validate_measurement_and_control_keys_arrangement()
 
         return m
 
@@ -266,6 +274,7 @@ class Moment:
         m._control_keys = self._control_keys_().union(
             itertools.chain(*(protocols.control_keys(op) for op in flattened_contents))
         )
+        m._validate_measurement_and_control_keys_arrangement()
 
         return m
 
@@ -327,9 +336,17 @@ class Moment:
 
     def _measurement_key_objs_(self) -> frozenset[cirq.MeasurementKey]:
         if self._measurement_key_objs is None:
-            self._measurement_key_objs = frozenset(
-                key for op in self.operations for key in protocols.measurement_key_objs(op)
-            )
+            # Discourage duplicate measurement keys for ops in the same Moment
+            all_keys = [key for op in self.operations for key in protocols.measurement_key_objs(op)]
+            unique_keys = frozenset(all_keys)
+            if len(all_keys) != len(unique_keys):
+                _compat._warn_or_error(
+                    f'Moment was created with duplicate measurement keys '
+                    f'but support for this is deprecated.\n'
+                    f'It will be removed in cirq v1.8.\n'
+                    f'Measurement keys: {all_keys}\n'
+                )
+            self._measurement_key_objs = unique_keys
         return self._measurement_key_objs
 
     def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
@@ -338,6 +355,17 @@ class Moment:
                 k for op in self.operations for k in protocols.control_keys(op)
             )
         return self._control_keys
+
+    def _validate_measurement_and_control_keys_arrangement(self):
+        if self._measurement_key_objs and self._control_keys:
+            if not self._measurement_key_objs.isdisjoint(self._control_keys):
+                _compat._warn_or_error(
+                    f'Moment was created with overlapping measurement and control keys '
+                    f'but support for this is deprecated.\n'
+                    f'It will be removed in cirq v1.8.\n'
+                    f'Measurement keys: {self._measurement_key_objs}\n'
+                    f'Control keys: {self._control_keys}\n'
+                )
 
     def _sorted_operations_(self) -> tuple[cirq.Operation, ...]:
         if self._sorted_operations is None:

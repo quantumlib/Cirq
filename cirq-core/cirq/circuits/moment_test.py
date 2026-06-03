@@ -410,9 +410,59 @@ def test_measurement_keys() -> None:
     assert cirq.is_measurement(m2)
 
 
+def test_duplicate_measurement_keys_deprecated() -> None:
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    with cirq.testing.assert_deprecated(
+        'Moment was created with duplicate measurement keys', deadline='v1.8', count=2
+    ):
+        _ = cirq.Moment(cirq.M(a, key='k'), cirq.M(b, key='k'))
+        _ = cirq.Moment.from_ops(cirq.M(a, key='k'), cirq.M(b, key='k'))
+
+
+def test_overlapping_measurement_and_control_keys_deprecated() -> None:
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    # First add a classical control key foo, then an overlapping measurement key foo
+    with cirq.testing.assert_deprecated(
+        'Moment was created with overlapping measurement and control keys', deadline='v1.8'
+    ):
+        m = cirq.Moment(cirq.X(a).with_classical_controls('foo'))
+        assert m._control_keys == {cirq.MeasurementKey(name='foo')}
+        _ = m.with_operation(cirq.M(b, key='foo'))
+
+    # Do the same thing, but exercise the multiple operations path
+    with cirq.testing.assert_deprecated(
+        'Moment was created with overlapping measurement and control keys', deadline='v1.8'
+    ):
+        m = cirq.Moment(cirq.X(a).with_classical_controls('foo'))
+        assert m._control_keys == {cirq.MeasurementKey(name='foo')}
+        _ = m.with_operations(cirq.M(b, key='foo'))
+
+    # Now reverse the order: add measurement key first, then classical control key
+    with cirq.testing.assert_deprecated(
+        'Moment was created with overlapping measurement and control keys', deadline='v1.8'
+    ):
+        m = cirq.Moment(cirq.M(b, key='foo'))
+        assert m._measurement_key_objs == {cirq.MeasurementKey(name='foo')}
+        _ = m.with_operation(cirq.X(a).with_classical_controls('foo'))
+
+    # Multiple operations
+    with cirq.testing.assert_deprecated(
+        'Moment was created with overlapping measurement and control keys', deadline='v1.8'
+    ):
+        m = cirq.Moment(cirq.M(b, key='foo'))
+        assert m._measurement_key_objs == {cirq.MeasurementKey(name='foo')}
+        _ = m.with_operations(cirq.X(a).with_classical_controls('foo'))
+
+
 def test_measurement_key_objs_caching() -> None:
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
-    m = cirq.Moment(cirq.measure(q0, key='foo'))
+    # Debugging mode stores more state than normal.
+    # Focus this test on normal mode.
+    with cirq.with_debug(False):
+        m = cirq.Moment(cirq.measure(q0, key='foo'))
     assert m._measurement_key_objs is None
     key_objs = cirq.measurement_key_objs(m)
     assert m._measurement_key_objs == key_objs
@@ -435,7 +485,10 @@ def test_measurement_key_objs_caching() -> None:
 
 def test_control_keys_caching() -> None:
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
-    m = cirq.Moment(cirq.X(q0).with_classical_controls('foo'))
+    # Debugging mode stores more state than normal.
+    # Focus this test on normal mode.
+    with cirq.with_debug(False):
+        m = cirq.Moment(cirq.X(q0).with_classical_controls('foo'))
     assert m._control_keys is None
     keys = cirq.control_keys(m)
     assert m._control_keys == keys

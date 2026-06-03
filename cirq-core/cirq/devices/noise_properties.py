@@ -88,8 +88,12 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
                     continue
                 m_key = protocols.measurement_key_obj(op)
                 multi_measurements[m_key] = op
-                for q in op.qubits:
-                    split_measure_ops.append(ops.measure(q, key=m_key))
+                for i, q in enumerate(op.qubits):
+                    # Ensure unique keys for the new single-qubit measurements.
+                    # Restore them to the original form when combined later.
+                    split_measure_ops.append(
+                        ops.measure(q, key=m_key.replace(path=(*m_key.path, str(i))))
+                    )
             split_measure_moments.append(circuits.Moment(split_measure_ops))
 
         # Append PHYSICAL_GATE_TAG to non-virtual ops in the input circuit,
@@ -126,7 +130,8 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
                 if not protocols.is_measurement(op):
                     combined_measure_ops.append(op)
                     continue
-                restore_keys.add(protocols.measurement_key_obj(op))
+                m_key = protocols.measurement_key_obj(op)
+                restore_keys.add(m_key.replace(path=m_key.path[:-1]))
             for key in restore_keys:
                 combined_measure_ops.append(multi_measurements[key])
             final_moments.append(circuits.Moment(combined_measure_ops))
