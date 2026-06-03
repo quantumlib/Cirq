@@ -16,25 +16,37 @@
 # This simple script runs a local instance of Triage Party, for testing purposes.
 # It follows examples given in https://github.com/google/triage-party#readme
 
-set -euo pipefail
+function error() {
+    echo -e >&2 "\033[31mError: ${*}.\033[0m"
+}
 
 if [[ -z "${GITHUB_TOKEN}" ]]; then
-    echo "Error: GITHUB_TOKEN environment variable is not set." >&2
+    error "TOKEN environment variable is not set"
     exit 1
 fi
 
-# Get the working directory to the repo root.
-thisdir=$(dirname "${BASH_SOURCE[0]:?}")
-repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel)
+container_cmd=""
+if command -v podman &> /dev/null; then
+    container_cmd="podman"
+elif command -v docker &> /dev/null; then
+    container_cmd="docker"
+else
+    error "neither podman nor docker is available"
+    exit 1
+fi
 
-cd "${repo_dir}"
+# Change the working directory to the repo root.
+thisdir=$(dirname "${BASH_SOURCE[0]:?}") || exit $?
+repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel) || exit $?
+cd "${repo_dir}" || exit $?
 
 kube_path="${PWD}/dev_tools/triage-party/kubernetes"
-docker run \
+
+${container_cmd} run \
      --rm \
      -p 8080:8080 \
      -e GITHUB_TOKEN \
      -v "${kube_path}/02_deployment/config.yaml:/app/config/config.yaml" \
      -v "${kube_path}/02_deployment/custom.css:/app/site/static/css/custom.css" \
      -v "${kube_path}/02_deployment/cirq-icon-very-small.png:/app/site/static/img/favicon-32x32.png" \
-     triageparty/triage-party
+     docker.io/triageparty/triage-party

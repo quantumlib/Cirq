@@ -19,9 +19,10 @@ configuration changes.
     export GITHUB_TOKEN="yourtokenhere"
     ```
 
-3.  Run Triage Party locally using Docker. The script `./run-local.sh` in this directory runs
-    Triage Party in the Docker image built above. Note: this command produces _a lot_ of output
-    as Triage Party pulls content from GitHub.
+3.  Run Triage Party locally in a container using either Podman or Docker. The script
+    `./run-local.sh` makes this convenient; it pulls an image for Triage Party from a container
+    registry and runs it with the appropriate Cirq configuration files. (Note: this produces
+    _a lot_ of output.)
 
     ```shell
     ./run-local.sh
@@ -36,8 +37,8 @@ I0601 21:40:01.954553       1 updater.go:250] update cycle #1 took 7.005642265s
 
 The exact numbers printed in the output are not important; what matters is that it did not end with
 an error message and did not return to the shell, but rather paused with `update cycle #1` as the
-final message. The instance will be listening for web browser connections on the port 8080 on your
-local host. It will produce more output as it detects that files have changed.
+final message. The Triage Party server will then be listening for web browser connections on port
+8080 on your local host. It will produce more output as it detects that files have changed.
 
 [personal access tokens]: https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line
 
