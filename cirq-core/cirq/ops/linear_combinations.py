@@ -36,7 +36,35 @@ if TYPE_CHECKING:
 
     import cirq
 
+
 UnitPauliStringT = frozenset[tuple[raw_types.Qid, pauli_gates.Pauli]]
+
+
+class _OrderedUnitPauliString(frozenset):
+    """A `PauliSum` term key that remembers its original qubit ordering.
+
+    Equality and hashing are inherited from `frozenset`, so two terms that
+    represent the same operator with different qubit orderings (e.g.
+    ``X(q0) * Y(q1)`` and ``Y(q1) * X(q0)``) are still treated as the same key
+    and merged by `LinearDict`. Unlike a plain `frozenset`, this type retains
+    the original qubit ordering of the first-inserted term, which is used when
+    reconstructing the `PauliString` so the dense representation and unitary are
+    deterministic. See https://github.com/quantumlib/Cirq/issues/6630.
+    """
+
+    _ordered_items: tuple[tuple[raw_types.Qid, pauli_gates.Pauli], ...]
+
+    def __new__(cls, items: Iterable[tuple[raw_types.Qid, pauli_gates.Pauli]] = ()):
+        ordered = tuple(items)
+        instance = super().__new__(cls, ordered)
+        instance._ordered_items = ordered
+        return instance
+
+    def __repr__(self) -> str:
+        # Emit a plain `frozenset(...)` repr so `PauliSum` repr round-trips.
+        return repr(frozenset(self._ordered_items))
+
+
 PauliSumLike = Union[
     complex, PauliString, 'PauliSum', pauli_string.SingleQubitPauliStringGateOperation
 ]
@@ -346,7 +374,12 @@ def _is_linear_dict_of_unit_pauli_string(linear_dict: value.LinearDict[UnitPauli
 def _pauli_string_from_unit(
     unit: UnitPauliStringT, coefficient: int | float | cirq.TParamValComplex = 1
 ):
-    return PauliString(qubit_pauli_map=dict(unit), coefficient=coefficient)
+    # Reconstruct in the original qubit order when available (see
+    # `UnitPauliStringT`); fall back to set iteration for plain frozenset keys.
+    items = getattr(unit, '_ordered_items', None)
+    if items is None:
+        items = tuple(unit)
+    return PauliString(qubit_pauli_map=dict(items), coefficient=coefficient)
 
 
 @value.value_equality(approximate=True, unhashable=True)
@@ -468,7 +501,7 @@ class PauliSum:
             terms = [terms]
         termdict: defaultdict[UnitPauliStringT, value.Scalar] = defaultdict(lambda: 0)
         for pstring in terms:
-            key = frozenset(pstring._qubit_pauli_map.items())
+            key = _OrderedUnitPauliString(pstring._qubit_pauli_map.items())
             termdict[key] += pstring.coefficient
         return cls(linear_dict=value.LinearDict(termdict))
 
@@ -600,14 +633,17 @@ class PauliSum:
 
     def _json_dict_(self):
         def key_json(k: UnitPauliStringT):
-            return [list(e) for e in sorted(k)]
+            items = getattr(k, '_ordered_items', None)
+            if items is None:
+                items = sorted(k)
+            return [list(e) for e in items]
 
         return {'items': [(key_json(k), v) for k, v in self._linear_dict.items()]}
 
     @classmethod
     def _from_json_dict_(cls, items, **kwargs):
         mapping = {
-            frozenset(tuple(qid_pauli) for qid_pauli in unit_pauli_string): val
+            _OrderedUnitPauliString(tuple(qid_pauli) for qid_pauli in unit_pauli_string): val
             for unit_pauli_string, val in items
         }
         return cls(linear_dict=value.LinearDict(mapping))
@@ -829,7 +865,7 @@ class PauliSum:
         if not isinstance(exponent, numbers.Integral):
             return NotImplemented
         if exponent == 0:
-            return PauliSum(value.LinearDict({frozenset(): 1 + 0j}))
+            return PauliSum(value.LinearDict({_OrderedUnitPauliString(): 1 + 0j}))
         if exponent > 0:
             result = self.copy()
             for _ in range(exponent - 1):

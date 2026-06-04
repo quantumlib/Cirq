@@ -877,6 +877,39 @@ def test_pauli_sum_qubits(psum, expected_qubits) -> None:
     assert psum.qubits == expected_qubits
 
 
+@pytest.mark.parametrize('string', ('XY', 'YX'))
+def test_pauli_sum_preserves_qubit_order(string) -> None:
+    qubits = cirq.LineQubit.range(2)
+    original_ps = cirq.DensePauliString(string).on(*qubits)
+    in_sum_ps = next(iter(cirq.PauliSum() + original_ps))
+
+    assert in_sum_ps.qubits == original_ps.qubits
+    assert in_sum_ps.dense(in_sum_ps.qubits) == original_ps.dense(original_ps.qubits)
+    np.testing.assert_allclose(cirq.unitary(in_sum_ps), cirq.unitary(original_ps))
+
+
+def test_pauli_sum_merges_equal_terms_regardless_of_order() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    first = cirq.DensePauliString('XY').on(q0, q1)
+    second = cirq.DensePauliString('YX').on(q1, q0)
+
+    psum = cirq.PauliSum() + first + second
+    terms = list(psum)
+    assert len(terms) == 1
+    assert terms[0].coefficient == 2
+    assert terms[0].qubits == first.qubits
+
+
+def test_pauli_sum_accepts_plain_frozenset_keys() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    key = frozenset({(q0, cirq.X), (q1, cirq.Y)})
+    psum = cirq.PauliSum(cirq.LinearDict({key: 1 + 0j}))
+
+    term = next(iter(psum))
+    assert set(term.qubits) == {q0, q1}
+    assert cirq.read_json(json_text=cirq.to_json(psum)) == psum
+
+
 @pytest.mark.parametrize(
     'psum, expected_psum',
     (
