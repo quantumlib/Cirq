@@ -1466,7 +1466,7 @@ def test_decompose_with_extracted_phases(gate_type: type, exponent: cirq.TParamV
         assert isinstance(gate1, cirq.GlobalPhaseGate)
         assert gate1.coefficient == 1j ** (2 * exponent * test_shift)
 
-    # Sanity check that the decomposition is equivalent to the original.
+    # Check that the decomposition is equivalent to the original.
     decomposed_circuit = cirq.Circuit(decomposed)
     if cirq.is_parameterized(exponent):
         resolver = {'s': -1.234}  # arbitrary
