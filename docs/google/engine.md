@@ -121,22 +121,6 @@ enforce constraints imposed by the hardware.
 See the [Device Specification](specification.md) page for more information on
 device specifications.
 
-
-## Calibration Metrics
-
-Metrics from the current status of the device can be retrieved using the\
-`get_current_calibration` method of an `EngineProcessor` object.
-`EngineProcessor` objects can be retrieved from `Engine` using `get_processor`.
-This will return a Python dictionary where each key is the metric name.  The
-value of the dictionary will be the value of the metric, which can also be
-a dictionary.
-
-For example, the key may refer to a two-qubit gate error, and the value may
-be a dictionary from 2-tuples of `cirq.GridQubits` to an error rate represented
-as a float value.
-
-See the [Calibration Metrics](calibration.md) page for more information.
-
 ## Running circuits in batch
 
 Circuits can be batched together.  This may improve performance in certain
