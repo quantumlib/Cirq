@@ -200,7 +200,6 @@ class DensityMatrixSimulator(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
 
-    # TODO(#4209): Deduplicate with identical code in sparse_simulator.
     def simulate_expectation_values_sweep(
         self,
         program: cirq.AbstractCircuit,
@@ -210,18 +209,10 @@ class DensityMatrixSimulator(
         initial_state: Any = None,
         permit_terminal_measurements: bool = False,
     ) -> list[list[float]]:
-        if not permit_terminal_measurements and program.are_any_measurements_terminal():
-            raise ValueError(
-                'Provided circuit has terminal measurements, which may '
-                'skew expectation values. If this is intentional, set '
-                'permit_terminal_measurements=True.'
-            )
+        qubit_order, qmap, pslist = self._qubit_map_and_pauli_sums(
+            program, observables, qubit_order, permit_terminal_measurements
+        )
         swept_evs = []
-        qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
-        qmap = {q: i for i, q in enumerate(qubit_order.order_for(program.all_qubits()))}
-        if not isinstance(observables, list):
-            observables = [observables]
-        pslist = [ops.PauliSum.wrap(pslike) for pslike in observables]
         for param_resolver in study.to_resolvers(params):
             result = self.simulate(
                 program, param_resolver, qubit_order=qubit_order, initial_state=initial_state

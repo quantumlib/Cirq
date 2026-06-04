@@ -439,6 +439,48 @@ class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
         """
         raise NotImplementedError
 
+    def _qubit_map_and_pauli_sums(
+        self,
+        program: cirq.AbstractCircuit,
+        observables: cirq.PauliSumLike | list[cirq.PauliSumLike],
+        qubit_order: cirq.QubitOrderOrList,
+        permit_terminal_measurements: bool,
+    ) -> tuple[cirq.QubitOrder, dict[cirq.Qid, int], list[cirq.PauliSum]]:
+        """Validates inputs and builds the data shared by expectation-value sweeps.
+
+        Runs the common preamble for `simulate_expectation_values_sweep` and
+        `simulate_expectation_values_sweep_iter` implementations: it rejects
+        terminal measurements (unless permitted), resolves the qubit order, and
+        wraps the observables as `cirq.PauliSum`s.
+
+        Args:
+            program: The circuit whose qubits define the ordering.
+            observables: An observable or list of observables.
+            qubit_order: Determines the canonical ordering of the qubits.
+            permit_terminal_measurements: If False, raises when `program` ends
+                with measurement(s).
+
+        Returns:
+            A tuple of the resolved `cirq.QubitOrder`, the qubit-to-index map, and
+            the observables wrapped as a list of `cirq.PauliSum`.
+
+        Raises:
+            ValueError: If `program` has terminal measurement(s) and
+                `permit_terminal_measurements` is False.
+        """
+        if not permit_terminal_measurements and program.are_any_measurements_terminal():
+            raise ValueError(
+                'Provided circuit has terminal measurements, which may '
+                'skew expectation values. If this is intentional, set '
+                'permit_terminal_measurements=True.'
+            )
+        qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
+        qmap = {q: i for i, q in enumerate(qubit_order.order_for(program.all_qubits()))}
+        if not isinstance(observables, list):
+            observables = [observables]
+        pslist = [ops.PauliSum.wrap(pslike) for pslike in observables]
+        return qubit_order, qmap, pslist
+
 
 class SimulatesFinalState(
     Generic[TSimulationTrialResult], metaclass=value.ABCMetaImplementAnyOneOf
