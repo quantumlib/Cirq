@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import functools
 import itertools
 import math
@@ -248,9 +249,13 @@ def test_decompose_rejects_malicious_boolean_strs(boolean_str: str, tmp_path: pa
     assert not target_file.exists()
     boolean_str = boolean_str.replace("@TARGET_FILE@", str(target_file))
     gate = cirq.BooleanHamiltonianGate(['x0', 'x1'], [boolean_str], 0.1)
-    with pytest.raises(ValueError, match="Disallowed expression element.*in boolean expression"):
+    # check for an RCE exploit first
+    with contextlib.suppress(ValueError):
         cirq.decompose(gate.on(cirq.NamedQubit('x0'), cirq.NamedQubit('x1')))
     assert not target_file.exists()
+    # check if the exception is raised as desired
+    with pytest.raises(ValueError, match="Disallowed expression element.*in boolean expression"):
+        cirq.decompose(gate.on(cirq.NamedQubit('x0'), cirq.NamedQubit('x1')))
 
 
 def test_decompose_catches_incorrect_boolean_strs() -> None:
