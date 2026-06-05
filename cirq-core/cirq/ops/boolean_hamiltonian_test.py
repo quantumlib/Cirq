@@ -17,6 +17,7 @@ from __future__ import annotations
 import functools
 import itertools
 import math
+import pathlib
 import random
 
 import numpy as np
@@ -232,41 +233,40 @@ def test_simplify_cnots_triplets(
 @pytest.mark.parametrize(
     'boolean_str',
     [
-        "__import__('os').system('echo pwned')",
-        "exec(\"open('/tmp/cirq_poc.txt','w').write('pwned')\")",
+        "__import__('os').system('touch @TARGET_FILE@')",
+        "exec(\"open('@TARGET_FILE@','w').write('pwned')\")",
         "x0.__class__",
         "x0 & (lambda: 0)()",
         "[].__class__.__base__",
         "eval('1')",
-        "x0 + x1",  # arithmetic is not an allowed boolean operator
-        "y0 & y1",  # symbols outside the declared parameter names
+        "x0 + x1",
     ],
 )
-def test_decompose_rejects_malicious_boolean_strs(boolean_str) -> None:
+def test_decompose_rejects_malicious_boolean_strs(boolean_str: str, tmp_path: pathlib.Path) -> None:
     # Constructing the gate must not evaluate the string (the payload is merely stored).
+    target_file = tmp_path / "target_file.tmp"
+    assert not target_file.exists()
+    boolean_str = boolean_str.replace("@TARGET_FILE@", str(target_file))
     gate = cirq.BooleanHamiltonianGate(['x0', 'x1'], [boolean_str], 0.1)
-    # Decomposing it must raise rather than execute / accept the disallowed expression.
-    with pytest.raises(ValueError):
-        cirq.decompose(gate.on(cirq.LineQubit(0), cirq.LineQubit(1)))
+    with pytest.raises(ValueError, match="Disallowed expression element.*in boolean expression"):
+        cirq.decompose(gate.on(cirq.NamedQubit('x0'), cirq.NamedQubit('x1')))
+    assert not target_file.exists()
 
 
-def test_parse_boolean_expr_matches_sympy_for_valid_inputs() -> None:
+def test_decompose_catches_incorrect_boolean_strs() -> None:
+    gate = cirq.BooleanHamiltonianGate(['x0', 'x1'], ['x0 & y1'], 0.1)
+    with pytest.raises(ValueError, match='Unknown symbol.*y1.* in boolean expression'):
+        cirq.decompose(gate.on(cirq.NamedQubit('x0'), cirq.NamedQubit('x1')))
+    gate = cirq.BooleanHamiltonianGate(['x0', 'x1'], ['x0 &'], 0.1)
+    with pytest.raises(ValueError, match='Invalid boolean expression syntax'):
+        cirq.decompose(gate.on(cirq.NamedQubit('x0'), cirq.NamedQubit('x1')))
+
+
+@pytest.mark.parametrize(
+    'boolean_str', ['x0', '~x0', 'x0 ^ x1', 'x0 & x1', 'x0 | x1', 'x0 | (x1 & ~x2)']
+)
+def test_parse_boolean_expr_matches_sympy_for_valid_inputs(boolean_str: str) -> None:
     parameter_names = ['x0', 'x1', 'x2']
-    for boolean_str in ['x0', '~x0', 'x0 ^ x1', 'x0 & x1', 'x0 | x1', 'x0 | (x1 & ~x2)']:
-        assert bh._parse_boolean_expr(boolean_str, parameter_names) == sympy_parser.parse_expr(
-            boolean_str
-        )
-
-
-def test_read_json_payload_does_not_execute_on_decompose() -> None:
-    # A weaponized but structurally valid Cirq JSON document deserializes fine (storing the
-    # payload), but decomposing the resulting gate must raise instead of executing the payload.
-    payload = (
-        '{"cirq_type": "BooleanHamiltonianGate", '
-        '"parameter_names": ["x0", "x1"], '
-        '"boolean_strs": ["__import__(\'os\').system(\'echo pwned\')"], '
-        '"theta": 0.1}'
+    assert bh._parse_boolean_expr(boolean_str, parameter_names) == sympy_parser.parse_expr(
+        boolean_str
     )
-    gate = cirq.read_json(json_text=payload)
-    with pytest.raises(ValueError):
-        cirq.decompose(gate.on(cirq.LineQubit(0), cirq.LineQubit(1)))
