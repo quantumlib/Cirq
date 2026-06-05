@@ -42,6 +42,8 @@ from cirq_google.engine import (
     get_engine_device as get_engine_device,
     get_engine_sampler as get_engine_sampler,
     noise_properties_from_calibration as noise_properties_from_calibration,
+    Snapshot as Snapshot,
+    Run as Run,
 )
 
 from cirq_google.line import (
