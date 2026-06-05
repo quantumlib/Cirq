@@ -247,7 +247,7 @@ def test_decompose_rejects_malicious_boolean_strs(boolean_str: str, tmp_path: pa
     # Constructing the gate must not evaluate the string (the payload is merely stored).
     target_file = tmp_path / "target_file.tmp"
     assert not target_file.exists()
-    boolean_str = boolean_str.replace("@TARGET_FILE@", str(target_file))
+    boolean_str = boolean_str.replace("@TARGET_FILE@", target_file.as_posix())
     gate = cirq.BooleanHamiltonianGate(['x0', 'x1'], [boolean_str], 0.1)
     # check for an RCE exploit first
     with contextlib.suppress(ValueError):
