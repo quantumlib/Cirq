@@ -28,6 +28,7 @@ from __future__ import annotations
 import ast
 import functools
 import itertools
+import operator
 from collections.abc import Generator, Sequence
 from typing import Any
 
@@ -39,39 +40,34 @@ from cirq.ops import raw_types
 from cirq.ops.linear_combinations import PauliSum
 from cirq.ops.pauli_string import PauliString
 
-# Binary boolean operators accepted in a boolean expression, mapped to the SymPy operation
-# produced by applying the corresponding Python operator to SymPy ``Symbol`` operands.
-_BINOP_BUILDERS = {
-    ast.BitAnd: lambda left, right: left & right,
-    ast.BitOr: lambda left, right: left | right,
-    ast.BitXor: lambda left, right: left ^ right,
-}
+# Binary boolean operators accepted in a boolean expression.
+_BINOP_OPERATORS = {ast.BitAnd: operator.and_, ast.BitOr: operator.or_, ast.BitXor: operator.xor}
 
 
-def _ast_to_boolean_expr(node: ast.AST, allowed_names: frozenset[str]) -> sympy.Basic:
-    """Recursively builds a SymPy boolean expression from a validated AST node.
+def _ast_to_sympy_expr(node: ast.AST, symbols: dict[str, sympy.Symbol]) -> sympy.Basic:
+    """Safely evaluates SymPy boolean expression from a parsed AST node.
 
-    Only variable references (restricted to ``allowed_names``), boolean literals, and the
-    boolean operators ``~``, ``&``, ``|`` and ``^`` are permitted. Any other syntax -- function
-    calls, attribute access, subscripts, names outside ``allowed_names``, etc. -- raises
-    ``ValueError``. The expression is constructed directly from the parse tree; the input string
-    is never passed to ``eval``/``parse_expr``, so it cannot trigger code execution.
+    Only the name references to `symbols` and the boolean operators `~`, `&`, `|`, `^`
+    (not, and, or, xor) are permitted.  Any other syntax raises `ValueError`.
+    The expression is constructed from the AST tree avoiding the unsafe `eval` call.
+
+    Args:
+        node: The AST node to be evaluated.
+        symbols: The dictionary of `sympy.Symbol` names allowed in the node hierarchy.
     """
     if isinstance(node, ast.Name):
-        if node.id not in allowed_names:
+        if (symbol := symbols.get(node.id)) is None:
             raise ValueError(
                 f"Unknown symbol {node.id!r} in boolean expression; "
-                f"only the declared parameter names {sorted(allowed_names)} are allowed."
+                f"only the declared parameter names {sorted(symbols.keys())} are allowed."
             )
-        return sympy.Symbol(node.id)
-    if isinstance(node, ast.Constant) and isinstance(node.value, bool):
-        return sympy.true if node.value else sympy.false
+        return symbol
     if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Invert):
-        return ~_ast_to_boolean_expr(node.operand, allowed_names)
-    if isinstance(node, ast.BinOp) and type(node.op) in _BINOP_BUILDERS:
-        left = _ast_to_boolean_expr(node.left, allowed_names)
-        right = _ast_to_boolean_expr(node.right, allowed_names)
-        return _BINOP_BUILDERS[type(node.op)](left, right)
+        return ~_ast_to_sympy_expr(node.operand, symbols)
+    if isinstance(node, ast.BinOp) and (binop := _BINOP_OPERATORS.get(type(node.op))) is not None:
+        left = _ast_to_sympy_expr(node.left, symbols)
+        right = _ast_to_sympy_expr(node.right, symbols)
+        return binop(left, right)
     raise ValueError(
         f"Disallowed expression element {type(node).__name__!r} in boolean expression. "
         "Only the boolean operators '~', '&', '|', '^' over the declared parameter names "
@@ -82,28 +78,29 @@ def _ast_to_boolean_expr(node: ast.AST, allowed_names: frozenset[str]) -> sympy.
 def _parse_boolean_expr(boolean_str: str, parameter_names: Sequence[str]) -> sympy.Basic:
     """Safely parses a Boolean expression string into a SymPy expression.
 
-    This replaces ``sympy.parsing.sympy_parser.parse_expr``, which evaluates its input with
-    Python's ``eval`` and therefore allows arbitrary code execution when the string originates
-    from an untrusted source (e.g. a circuit loaded via ``cirq.read_json``). Instead, the string
-    is parsed with :func:`ast.parse` and only an allowlist of boolean operations over the declared
-    ``parameter_names`` is accepted; anything else raises ``ValueError``.
+    This replaces `sympy.parsing.sympy_parser.parse_expr`, which evaluates its input with
+    Python's `eval` and therefore allows arbitrary code execution when the string originates
+    from an untrusted source (e.g. a circuit loaded via `cirq.read_json`). Instead, the string
+    is parsed with `ast.parse` and only a small set of boolean operations over the declared
+    `parameter_names` is accepted; anything else raises `ValueError`.
 
     Args:
-        boolean_str: The Boolean expression, e.g. ``"x0 & ~x1 ^ x2"``.
+        boolean_str: The Boolean expression, e.g., ``"x0 & ~x1 ^ x2"``
         parameter_names: The variable names that may appear in the expression.
 
     Returns:
         The corresponding SymPy boolean expression.
 
     Raises:
-        ValueError: If ``boolean_str`` is not a syntactically valid expression or contains any
-            construct other than the allowed boolean operators over ``parameter_names``.
+        ValueError: If `boolean_str` is not a syntactically valid expression or contains any
+            construct other than the allowed boolean operators over `parameter_names`.
     """
     try:
         tree = ast.parse(boolean_str, mode='eval')
-    except SyntaxError as e:
-        raise ValueError(f"Invalid boolean expression {boolean_str!r}: {e}") from e
-    return _ast_to_boolean_expr(tree.body, frozenset(parameter_names))
+    except SyntaxError:
+        raise ValueError(f"Invalid boolean expression syntax: {boolean_str!r}")
+    symbols = {n: sympy.Symbol(n) for n in parameter_names}
+    return _ast_to_sympy_expr(tree.body, symbols)
 
 
 @value.value_equality
