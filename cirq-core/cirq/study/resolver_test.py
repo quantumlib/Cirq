@@ -43,7 +43,7 @@ def test_symbol() -> None:
         np.int32(2),
         np.complex64(1j),
         np.complex128(2j),
-        complex(1j),
+        1j,
         fractions.Fraction(3, 2),
     ],
 )
