@@ -36,14 +36,14 @@ from cirq_google.engine import (
     EngineResult as EngineResult,
     ProtoVersion as ProtoVersion,
     ProcessorSampler as ProcessorSampler,
+    Run as Run,
+    Snapshot as Snapshot,
     ValidatingSampler as ValidatingSampler,
     get_engine as get_engine,
     get_engine_calibration as get_engine_calibration,
     get_engine_device as get_engine_device,
     get_engine_sampler as get_engine_sampler,
     noise_properties_from_calibration as noise_properties_from_calibration,
-    Snapshot as Snapshot,
-    Run as Run,
 )
 
 from cirq_google.line import (

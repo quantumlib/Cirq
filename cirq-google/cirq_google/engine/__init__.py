@@ -96,6 +96,6 @@ from cirq_google.engine.processor_sampler import ProcessorSampler as ProcessorSa
 
 from cirq_google.engine.processor_config import (
     ProcessorConfig as ProcessorConfig,
-    Snapshot as Snapshot,
     Run as Run,
+    Snapshot as Snapshot,
 )

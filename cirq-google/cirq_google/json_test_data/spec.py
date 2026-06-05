@@ -27,10 +27,10 @@ TestSpec = ModuleJsonTestSpec(
         'ProtoVersion',
         'GreedySequenceSearchStrategy',
         'ProcessorSampler',
+        'Run',
+        'Snapshot',
         'ValidatingSampler',
         'CouldNotPlaceError',
-        'Snapshot',
-        'Run',
         # Abstract:
         'ExecutableSpec',
     ],
