@@ -854,6 +854,11 @@ def test_matrix(pauli_string, qubits, expected_matrix) -> None:
     assert np.allclose(pauli_string.matrix(qubits), expected_matrix)
 
 
+@pytest.mark.parametrize('pauli_string, qubits, expected_matrix', _pauli_string_matrix_cases())
+def test_sparse_matrix(pauli_string, qubits, expected_matrix) -> None:
+    assert np.allclose(pauli_string.sparse_matrix(qubits).toarray(), expected_matrix)
+
+
 def test_unitary_matrix() -> None:
     a, b = cirq.LineQubit.range(2)
     assert not cirq.has_unitary(2 * cirq.X(a) * cirq.Z(b))
@@ -2050,6 +2055,8 @@ def test_parameterization() -> None:
         pst.expectation_from_density_matrix(np.array([]), {})
     with pytest.raises(NotImplementedError, match='as matrix when parameterized'):
         pst.matrix()
+    with pytest.raises(NotImplementedError, match='as matrix when parameterized'):
+        pst.sparse_matrix()
     assert pst**1 == pst
     assert pst**-1 == pst.with_coefficient(1.0 / t)
     assert (-pst) ** 1 == -pst

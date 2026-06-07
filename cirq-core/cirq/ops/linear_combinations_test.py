@@ -1078,6 +1078,40 @@ def test_pauli_sum_matrix() -> None:
     assert np.allclose(H3, paulisum.matrix([q[1], q[2], q[0]]))
 
 
+def test_pauli_sum_sparse_matrix() -> None:
+    q = cirq.LineQubit.range(3)
+    paulisum = cirq.X(q[0]) * cirq.X(q[1]) + cirq.Z(q[0])
+    H1 = np.array(
+        [[1.0, 0.0, 0.0, 1.0], [0.0, 1.0, 1.0, 0.0], [0.0, 1.0, -1.0, 0.0], [1.0, 0.0, 0.0, -1.0]]
+    )
+    # Default qubit ordering.
+    assert np.allclose(H1, paulisum.sparse_matrix().toarray())
+    # Explicit 2-qubit ordering (same as default).
+    assert np.allclose(H1, paulisum.sparse_matrix([q[0], q[1]]).toarray())
+    # Reversed qubit ordering changes the matrix.
+    H2 = np.array(
+        [[1.0, 0.0, 0.0, 1.0], [0.0, -1.0, 1.0, 0.0], [0.0, 1.0, 1.0, 0.0], [1.0, 0.0, 0.0, -1.0]]
+    )
+    assert np.allclose(H2, paulisum.sparse_matrix([q[1], q[0]]).toarray())
+    # Adding an extra idle qubit expands to 8x8.
+    H3 = np.array(
+        [
+            [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+            [0.0, -1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+            [0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 1.0, 0.0],
+            [0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0],
+        ]
+    )
+    assert np.allclose(H3, paulisum.sparse_matrix([q[1], q[2], q[0]]).toarray())
+    # Empty PauliSum should return a zero sparse matrix.
+    empty = cirq.PauliSum.from_pauli_strings([])
+    assert np.allclose(empty.sparse_matrix([q[0], q[1]]).toarray(), np.zeros((4, 4)))
+
+
 def test_pauli_sum_repr() -> None:
     q = cirq.LineQubit.range(2)
     pstr1 = cirq.X(q[0]) * cirq.X(q[1])
