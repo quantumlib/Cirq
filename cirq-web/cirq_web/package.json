@@ -16,7 +16,6 @@
     "@types/pngjs": "^6.0.0",
     "@types/temp": "^0.9.0",
     "@types/three": "^0.184.0",
-    "@webgpu/types": "^0.1.63",
     "@vitest/coverage-v8": "^4.0.6",
     "canvas": "^3.2.0",
     "gts": "^7.0.0",
