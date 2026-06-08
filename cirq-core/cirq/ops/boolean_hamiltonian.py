@@ -85,7 +85,7 @@ def _parse_boolean_expr(boolean_str: str, parameter_names: Sequence[str]) -> sym
     `parameter_names` is accepted; anything else raises `ValueError`.
 
     Args:
-        boolean_str: The Boolean expression, e.g., ``"x0 & ~x1 ^ x2"``
+        boolean_str: The Boolean expression, e.g., `"x0 & ~x1 ^ x2"`
         parameter_names: The variable names that may appear in the expression.
 
     Returns:
@@ -98,7 +98,7 @@ def _parse_boolean_expr(boolean_str: str, parameter_names: Sequence[str]) -> sym
     try:
         tree = ast.parse(boolean_str, mode='eval')
     except SyntaxError:
-        raise ValueError(f"Invalid boolean expression syntax: {boolean_str!r}")
+        raise ValueError(f"Invalid syntax in boolean expression: {boolean_str!r}")
     symbols = {n: sympy.Symbol(n) for n in parameter_names}
     return _ast_to_sympy_expr(tree.body, symbols)
 

@@ -244,7 +244,7 @@ def test_simplify_cnots_triplets(
     ],
 )
 def test_decompose_rejects_malicious_boolean_strs(boolean_str: str, tmp_path: pathlib.Path) -> None:
-    # Constructing the gate must not evaluate the string (the payload is merely stored).
+    # Constructing and decomposing the gate must not evaluate the malicious boolean string.
     target_file = tmp_path / "target_file.tmp"
     assert not target_file.exists()
     boolean_str = boolean_str.replace("@TARGET_FILE@", target_file.as_posix())
@@ -263,7 +263,7 @@ def test_decompose_catches_incorrect_boolean_strs() -> None:
     with pytest.raises(ValueError, match='Unknown symbol.*y1.* in boolean expression'):
         cirq.decompose(gate.on(cirq.NamedQubit('x0'), cirq.NamedQubit('x1')))
     gate = cirq.BooleanHamiltonianGate(['x0', 'x1'], ['x0 &'], 0.1)
-    with pytest.raises(ValueError, match='Invalid boolean expression syntax'):
+    with pytest.raises(ValueError, match='Invalid syntax in boolean expression'):
         cirq.decompose(gate.on(cirq.NamedQubit('x0'), cirq.NamedQubit('x1')))
 
 
