@@ -829,7 +829,7 @@ def test_controlled_phase_extracted_before_decomposition(gate_type, test_shift) 
     np.testing.assert_approx_equal(z.exponent, test_shift)
     assert z.global_shift == 0
 
-    # Sanity check that the decomposition is equivalent
+    # Check that the decomposition is equivalent
     np.testing.assert_allclose(
         cirq.unitary(cirq.Circuit(shifted_decomposition)), cirq.unitary(shifted_op), atol=1e-10
     )

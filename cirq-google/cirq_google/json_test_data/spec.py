@@ -27,6 +27,8 @@ TestSpec = ModuleJsonTestSpec(
         'ProtoVersion',
         'GreedySequenceSearchStrategy',
         'ProcessorSampler',
+        'Run',
+        'Snapshot',
         'ValidatingSampler',
         'CouldNotPlaceError',
         # Abstract:
