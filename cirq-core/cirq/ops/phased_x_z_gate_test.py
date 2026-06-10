@@ -400,3 +400,16 @@ def test_canonical_xza_mod_2_matches_canonical(x: float, z: float, a: float) -> 
     xzab_expected = (gateb.x_exponent % 2, gateb.z_exponent % 2, gateb.axis_phase_exponent % 2)
     xzab_actual = cirq.ops.phased_x_z_gate._canonical_xza_mod_2(xb, zb, ab)
     assert xzab_actual == xzab_expected
+
+
+@pytest.mark.parametrize(
+    'gate', [g.to_phased_xz_gate() for g in cirq.SingleQubitCliffordGate.all_single_qubit_cliffords]
+)
+def test_nearest_clifford_for_real_cliffords(gate):
+    assert gate.nearest_clifford() == gate
+
+
+@pytest.mark.parametrize(['x', 'z', 'a'], np.random.uniform(-3, 3, (100, 3)), ids=range(100))
+def test_nearest_clifford_for_non_cliffords(x, z, a):
+    gate = cirq.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)._canonical()
+    assert gate.nearest_clifford() is None

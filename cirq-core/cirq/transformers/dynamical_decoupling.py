@@ -19,7 +19,7 @@ from __future__ import annotations
 from enum import Enum
 from functools import reduce
 from itertools import cycle
-from typing import TYPE_CHECKING
+from typing import cast, TYPE_CHECKING
 
 import numpy as np
 from attrs import frozen
@@ -382,7 +382,5 @@ def _as_clifford(op: ops.Operation) -> ops.Operation:
     gate = op.gate
     if not isinstance(gate, ops.PhasedXZGate):
         return op
-    gate = gate.nearest_clifford()
-    if gate is None:
-        raise ValueError(f'{op=} is not clifford')
+    gate = cast(ops.PhasedXZGate, gate.nearest_clifford())
     return gate(*op.qubits)

@@ -343,6 +343,8 @@ class PhasedXZGate(raw_types.Gate):
         z = round(self._z_exponent, 2)
         a = round(self._axis_phase_exponent, 2)
         x, z, a = _canonical_xza_mod_2(x, z, a)
+        if x == self._x_exponent and z == self._z_exponent and a == self._axis_phase_exponent:
+            return self
         return PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
 
 
