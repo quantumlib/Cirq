@@ -589,10 +589,13 @@ class PauliSum:
         return result
 
     def sparse_matrix(self, qubits: Iterable[raw_types.Qid] | None = None) -> sparse.csr_matrix:
-        """Returns the sparse matrix of this PauliSum in computational basis of qubits.
+        """Returns the sparse matrix of this `PauliSum` in the computational basis of the qubits.
 
-        Uses direct bit-manipulation for each term and accumulates COO triplets
-        to avoid repeated sparse matrix addition overhead.
+        For each term we build the sparse matrix via direct bit-manipulation
+        (see `PauliString.sparse_matrix`) and collect its non-zero entries as
+        COO (COOrdinate) triplets (data, row, col).  All triplets are
+        concatenated and a single sparse matrix is built at the end, avoiding
+        the overhead of adding sparse matrices term-by-term.
 
         Args:
             qubits: Ordered collection of qubits that determine the subspace
@@ -602,7 +605,7 @@ class PauliSum:
                 `self.qubits` are acted on by the identity.
 
         Returns:
-            A scipy.sparse.csr_matrix representing the Pauli sum.
+            A `scipy.sparse.csr_matrix` representing the Pauli sum.
         """
         qubits = self.qubits if qubits is None else tuple(qubits)
         num_qubits = len(qubits)
@@ -968,7 +971,7 @@ class ProjectorSum:
         return ProjectorSum(self._linear_dict.copy())
 
     def matrix(self, projector_qids: Iterable[raw_types.Qid] | None = None) -> sparse.csr_matrix:
-        """Returns the matrix of self in computational basis of qubits.
+        """Returns the matrix of self in the computational basis of the qubits.
 
         Args:
             projector_qids: Ordered collection of qubits that determine the subspace in which the
