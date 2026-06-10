@@ -18,7 +18,7 @@ import functools
 import math
 import numbers
 from collections.abc import Iterator, Sequence, Set
-from typing import Any, Final, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 import sympy
