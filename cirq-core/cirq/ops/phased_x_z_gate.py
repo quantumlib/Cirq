@@ -323,10 +323,9 @@ class PhasedXZGate(raw_types.Gate):
             self, ['axis_phase_exponent', 'x_exponent', 'z_exponent']
         )
 
-    def _has_stabilizer_effect_(self) -> bool:
+    def _has_stabilizer_effect_(self, *, tol: float = 1e-8) -> bool:
         if not self._has_unitary_():
             return False
-        tol: Final = 1e-8
         result = (
             abs((x := round(self._x_exponent, 2)) - self._x_exponent) <= tol
             and abs((z := round(self._z_exponent, 2)) - self._z_exponent) <= tol
@@ -334,6 +333,17 @@ class PhasedXZGate(raw_types.Gate):
             and _canonical_xza_mod_2(x, z, a) in _clifford_as_phasedzx_params()
         )
         return result
+
+    def nearest_clifford(self, atol: float = 1e-8) -> PhasedXZGate | None:
+        """Returns the nearest clifford if it is within `atol` or None otherwise."""
+        if not self._has_stabilizer_effect_(tol=atol):
+            return None
+
+        x = round(self._x_exponent, 2)
+        z = round(self._z_exponent, 2)
+        a = round(self._axis_phase_exponent, 2)
+        x, z, a = _canonical_xza_mod_2(x, z, a)
+        return PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
 
 
 def _canonical_xza_mod_2(
