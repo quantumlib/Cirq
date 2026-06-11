@@ -418,5 +418,5 @@ def test_nearest_clifford_for_real_cliffords(gate):
 
 @pytest.mark.parametrize(['x', 'z', 'a'], np.random.uniform(-3, 3, (100, 3)), ids=range(100))
 def test_nearest_clifford_for_non_cliffords(x, z, a):
-    gate = cirq.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)._canonical()
+    gate = cirq.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
     assert gate.nearest_clifford() is None
