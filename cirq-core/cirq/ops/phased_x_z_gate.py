@@ -334,8 +334,8 @@ class PhasedXZGate(raw_types.Gate):
         )
         return result
 
-    def nearest_clifford(self, atol: float = 1e-8) -> PhasedXZGate | None:
-        """Returns the nearest clifford if it is within `atol` or None otherwise."""
+    def canonical_clifford(self) -> PhasedXZGate | None:
+        """Returns the exact Clifford gate if this gate's exponents are all within small round-off errors.  Returns None otherwise."""
         if not self._has_stabilizer_effect_(tol=atol):
             return None
 
