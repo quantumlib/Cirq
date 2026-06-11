@@ -379,8 +379,10 @@ def add_dynamical_decoupling(
 
 
 def _as_clifford(op: ops.Operation) -> ops.Operation:
-    gate = op.gate
-    if not isinstance(gate, ops.PhasedXZGate):
-        return op
-    gate = cast(ops.PhasedXZGate, gate.nearest_clifford())
-    return gate(*op.qubits)
+def _as_clifford(op: ops.Operation) -> ops.Operation:
+    if isinstance(op.gate, ops.PhasedXZGate):
+        gate_clifford = op.gate.nearest_clifford()
+        assert gate_clifford is not None
+        if gate_clifford is not op.gate:
+            return gate_clifford(*op.qubits)
+    return op
