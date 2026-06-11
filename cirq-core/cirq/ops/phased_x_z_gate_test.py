@@ -407,6 +407,13 @@ def test_canonical_xza_mod_2_matches_canonical(x: float, z: float, a: float) -> 
 )
 def test_nearest_clifford_for_real_cliffords(gate):
     assert gate.nearest_clifford() == gate
+    eps = 1e-10
+    gate1 = cirq.PhasedXZGate(
+        x_exponent=gate.x_exponent + eps,
+        z_exponent=gate.z_exponent - eps,
+        axis_phase_exponent=gate.axis_phase_exponent + eps,
+    )
+    assert gate1.nearest_clifford() == gate
 
 
 @pytest.mark.parametrize(['x', 'z', 'a'], np.random.uniform(-3, 3, (100, 3)), ids=range(100))
