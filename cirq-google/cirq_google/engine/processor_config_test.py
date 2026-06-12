@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import pytest
+
 import cirq_google as cg
 from cirq_google.api import v2
 from cirq_google.cloud import quantum
@@ -180,4 +181,3 @@ def test_validate_device_config_revision():
 
     with pytest.raises(TypeError, match='must be an instance of'):
         validate_device_config_revision(123)
-

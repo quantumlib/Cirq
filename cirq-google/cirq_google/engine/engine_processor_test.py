@@ -1327,5 +1327,3 @@ def test_list_configs_invalid_revision_type():
 
     with pytest.raises(TypeError, match="device_config_revision must be an instance of"):
         _ = processor.list_configs(device_config_revision="2026-02-20_114756.470")
-
-

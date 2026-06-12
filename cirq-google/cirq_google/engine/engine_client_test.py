@@ -2026,4 +2026,3 @@ def test_list_quantum_processor_configs_invalid_revision_type(default_engine_cli
             processor_id="test_processor_id",
             device_config_revision="2026-02-20_114756.470",
         )
-

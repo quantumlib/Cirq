@@ -39,9 +39,7 @@ class Run:
 DeviceConfigRevision: TypeAlias = Snapshot | Run
 
 
-def validate_device_config_revision(
-    device_config_revision: DeviceConfigRevision | None,
-) -> None:
+def validate_device_config_revision(device_config_revision: DeviceConfigRevision | None) -> None:
     """Validates that the given revision is a Snapshot, Run, or None.
 
     Raises:
