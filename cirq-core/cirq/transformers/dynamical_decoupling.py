@@ -19,7 +19,7 @@ from __future__ import annotations
 from enum import Enum
 from functools import reduce
 from itertools import cycle
-from typing import cast, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import numpy as np
 from attrs import frozen
@@ -379,9 +379,8 @@ def add_dynamical_decoupling(
 
 
 def _as_clifford(op: ops.Operation) -> ops.Operation:
-def _as_clifford(op: ops.Operation) -> ops.Operation:
     if isinstance(op.gate, ops.PhasedXZGate):
-        gate_clifford = op.gate.nearest_clifford()
+        gate_clifford = op.gate.canonical_clifford()
         assert gate_clifford is not None
         if gate_clifford is not op.gate:
             return gate_clifford(*op.qubits)
