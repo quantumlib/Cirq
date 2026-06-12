@@ -226,15 +226,6 @@ def t2_decay(
 def _create_tabulation(measurements: pd.DataFrame) -> pd.DataFrame:
     """Returns a sum of 0 and 1 results per index from a list of measurements."""
     if 'num_pulses' in measurements.columns:
-        cols = [measurements.delay_ns, measurements.num_pulses]
-    else:
-        cols = [measurements.delay_ns]
-    tabulation = pd.crosstab(cols, measurements.output).reset_index()
-
-    # validate that pandas-3 version will produce the same DataFrame
-    tabulation0 = tabulation
-
-    if 'num_pulses' in measurements.columns:
         cols = [
             measurements.delay_ns.reset_index(drop=True),
             measurements.num_pulses.reset_index(drop=True),
@@ -242,9 +233,6 @@ def _create_tabulation(measurements: pd.DataFrame) -> pd.DataFrame:
     else:
         cols = [measurements.delay_ns.reset_index(drop=True)]
     tabulation = pd.crosstab(cols, measurements.output.reset_index(drop=True)).reset_index()
-
-    assert tabulation.equals(tabulation0)
-
     # If all measurements are 1 or 0, fill in the missing column with all zeros.
     for col_index, name in [(1, 0), (2, 1)]:
         if name not in tabulation:
