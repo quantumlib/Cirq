@@ -8,11 +8,10 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "downlevelIteration": true,
     "sourceMap": false,
     "outDir": "build",
     "moduleResolution": "Bundler",
-    "types": ["vitest/globals", "@webgpu/types"]
+    "types": ["vitest/globals"]
   },
   "include": [
     "e2e/**/*.ts",

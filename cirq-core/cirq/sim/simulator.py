@@ -768,7 +768,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
                 operations from `measurement_ops`.
         """
 
-        # Sanity checks.
+        # Validate measurement operations.
         for op in measurement_ops:
             gate = op.gate
             if not isinstance(gate, ops.MeasurementGate):

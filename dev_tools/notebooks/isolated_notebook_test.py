@@ -31,6 +31,7 @@ import pathlib
 import re
 import shutil
 import subprocess
+import time
 import warnings
 
 import pytest
@@ -135,7 +136,7 @@ def _partitioned_test_cases(notebooks):
     return [(f"partition-{i%n_partitions}", notebook) for i, notebook in enumerate(notebooks)]
 
 
-def _rewrite_and_run_notebook(notebook_path, cloned_env):
+def _rewrite_and_run_notebook(notebook_path, cloned_env, papermill_scheduler):
     notebook_file = os.path.basename(notebook_path)
     notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, REPO_ROOT))
     out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"
@@ -154,6 +155,8 @@ def _rewrite_and_run_notebook(notebook_path, cloned_env):
         pip list
         papermill "{rewritten_notebook_path}" "{REPO_ROOT/out_path}"
     """
+    wait_time = papermill_scheduler()[1]
+    time.sleep(wait_time)
     result = shell_tools.run(
         cmd,
         log_run_to_stderr=False,
@@ -189,7 +192,9 @@ def _rewrite_and_run_notebook(notebook_path, cloned_env):
     "partition, notebook_path",
     _partitioned_test_cases(filter_notebooks(_list_changed_notebooks(), SKIP_NOTEBOOKS)),
 )
-def test_changed_notebooks_against_released_cirq(partition, notebook_path, cloned_env) -> None:
+def test_changed_notebooks_against_released_cirq(
+    partition, notebook_path, cloned_env, papermill_scheduler
+) -> None:
     """Tests changed notebooks in isolated virtual environments.
 
     In order to speed up the execution of these tests an auxiliary file may be supplied which
@@ -201,7 +206,7 @@ def test_changed_notebooks_against_released_cirq(partition, notebook_path, clone
     regular expression, it is considered best practice to not use complicated regular expressions.
     Lines in this file that do not have `->` are ignored.
     """
-    _rewrite_and_run_notebook(notebook_path, cloned_env)
+    _rewrite_and_run_notebook(notebook_path, cloned_env, papermill_scheduler)
 
 
 @pytest.mark.weekly
@@ -209,13 +214,15 @@ def test_changed_notebooks_against_released_cirq(partition, notebook_path, clone
     "partition, notebook_path",
     _partitioned_test_cases(filter_notebooks(list_all_notebooks(), SKIP_NOTEBOOKS)),
 )
-def test_all_notebooks_against_released_cirq(partition, notebook_path, cloned_env) -> None:
+def test_all_notebooks_against_released_cirq(
+    partition, notebook_path, cloned_env, papermill_scheduler
+) -> None:
     """Tests all notebooks in isolated virtual environments.
 
     See `test_changed_notebooks_against_released_cirq` for more details on
     notebooks execution.
     """
-    _rewrite_and_run_notebook(notebook_path, cloned_env)
+    _rewrite_and_run_notebook(notebook_path, cloned_env, papermill_scheduler)
 
 
 @pytest.mark.parametrize("notebook_path", NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES)
