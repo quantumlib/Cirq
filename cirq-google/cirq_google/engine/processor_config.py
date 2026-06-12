@@ -39,6 +39,24 @@ class Run:
 DeviceConfigRevision: TypeAlias = Snapshot | Run
 
 
+def validate_device_config_revision(
+    device_config_revision: DeviceConfigRevision | None,
+) -> None:
+    """Validates that the given revision is a Snapshot, Run, or None.
+
+    Raises:
+        TypeError: If the revision is not a Snapshot, Run, or None.
+    """
+    if device_config_revision is not None and not isinstance(
+        device_config_revision, (Snapshot, Run)
+    ):
+        raise TypeError(
+            "device_config_revision must be an instance of "
+            "cirq_google.Snapshot or cirq_google.Run, or None. "
+            f"Got {device_config_revision} of type {type(device_config_revision)}."
+        )
+
+
 class ProcessorConfig:
     """Representation of a quantum processor configuration.
 

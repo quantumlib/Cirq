@@ -31,7 +31,12 @@ from cirq import _compat
 from cirq_google.cloud import quantum
 from cirq_google.engine import stream_manager
 from cirq_google.engine.asyncio_executor import AsyncioExecutor
-from cirq_google.engine.processor_config import DeviceConfigRevision, Run, Snapshot
+from cirq_google.engine.processor_config import (
+    DeviceConfigRevision,
+    Run,
+    Snapshot,
+    validate_device_config_revision,
+)
 
 _M = TypeVar('_M', bound=proto.Message)
 _R = TypeVar('_R')
@@ -1302,6 +1307,7 @@ def _ids_from_calibration_name(calibration_name: str) -> tuple[str, str, int]:
 def _quantum_processor_revision_path(
     project_id: str, processor_id: str, device_config_revision: DeviceConfigRevision | None = None
 ) -> str:
+    validate_device_config_revision(device_config_revision)
     processor_resource_name = _processor_name_from_ids(project_id, processor_id)
     if isinstance(device_config_revision, Snapshot):
         return f'{processor_resource_name}/configSnapshots/{device_config_revision.id}'

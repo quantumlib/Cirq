@@ -1285,3 +1285,47 @@ def test_list_configs_from_run(client):
     assert results[0].config_name == expected_configs[0].config_name
     assert results[1].snapshot_id == expected_configs[1].snapshot_id
     assert results[1].config_name == expected_configs[1].config_name
+
+
+def test_get_sampler_invalid_revision_type():
+    processor = cg.EngineProcessor(
+        project_id="test_project_id", processor_id="test_proc_id", context=EngineContext()
+    )
+    with pytest.raises(TypeError, match="device_config_revision must be an instance of"):
+        _ = processor.get_sampler(device_config_revision="2026-03-04_193134.630")
+
+
+def test_get_config_invalid_revision_type():
+    client = engine_client.EngineClient()
+    client.grpc_client = mock.MagicMock()
+    processor = cg.EngineProcessor(
+        project_id="test_project_id",
+        processor_id="test_proc_id",
+        context=EngineContext(client=client),
+    )
+    mock_processor = mock.MagicMock()
+    mock_processor.default_device_config_key.run = 'default_run'
+    mock_processor.default_device_config_key.config_alias = 'default_alias'
+    processor._inner_processor = mock.MagicMock(return_value=mock_processor)
+
+    with pytest.raises(TypeError, match="device_config_revision must be an instance of"):
+        _ = processor.get_config(device_config_revision="2026-03-04_193134.630")
+
+
+def test_list_configs_invalid_revision_type():
+    client = engine_client.EngineClient()
+    client.grpc_client = mock.MagicMock()
+    processor = cg.EngineProcessor(
+        project_id="test_project_id",
+        processor_id="test_proc_id",
+        context=EngineContext(client=client),
+    )
+    mock_processor = mock.MagicMock()
+    mock_processor.default_device_config_key.run = 'default_run'
+    mock_processor.default_device_config_key.config_alias = 'default_alias'
+    processor._inner_processor = mock.MagicMock(return_value=mock_processor)
+
+    with pytest.raises(TypeError, match="device_config_revision must be an instance of"):
+        _ = processor.list_configs(device_config_revision="2026-02-20_114756.470")
+
+

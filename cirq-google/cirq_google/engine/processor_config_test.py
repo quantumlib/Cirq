@@ -16,12 +16,13 @@
 
 from __future__ import annotations
 
+import pytest
 import cirq_google as cg
 from cirq_google.api import v2
 from cirq_google.cloud import quantum
 from cirq_google.devices import GridDevice
 from cirq_google.engine import util
-from cirq_google.engine.processor_config import Run
+from cirq_google.engine.processor_config import Run, Snapshot, validate_device_config_revision
 
 _METRIC_SNAPSHOT = v2.metrics_pb2.MetricsSnapshot(
     timestamp_ms=1562544000021,
@@ -165,3 +166,18 @@ def test_sampler():
     assert sampler.run_name == run.id
     assert sampler.snapshot_id == _SNAPSHOT_ID
     assert sampler.device_config_name == _CONFIG_NAME
+
+
+def test_validate_device_config_revision():
+    # Valid inputs
+    validate_device_config_revision(None)
+    validate_device_config_revision(Snapshot(id='2026-03-04_193134.630'))
+    validate_device_config_revision(Run(id='2026-02-20_114756.470'))
+
+    # Invalid inputs
+    with pytest.raises(TypeError, match='must be an instance of'):
+        validate_device_config_revision('2026-03-04_193134.630')
+
+    with pytest.raises(TypeError, match='must be an instance of'):
+        validate_device_config_revision(123)
+
