@@ -18,7 +18,7 @@ import functools
 import math
 import numbers
 from collections.abc import Iterator, Sequence, Set
-from typing import Any, TYPE_CHECKING
+from typing import Any, Final, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -323,9 +323,10 @@ class PhasedXZGate(raw_types.Gate):
             self, ['axis_phase_exponent', 'x_exponent', 'z_exponent']
         )
 
-    def _has_stabilizer_effect_(self, *, tol: float = 1e-8) -> bool:
+    def _has_stabilizer_effect_(self) -> bool:
         if not self._has_unitary_():
             return False
+        tol: Final = 1e-8
         result = (
             abs((x := round(self._x_exponent, 2)) - self._x_exponent) <= tol
             and abs((z := round(self._z_exponent, 2)) - self._z_exponent) <= tol
@@ -334,10 +335,10 @@ class PhasedXZGate(raw_types.Gate):
         )
         return result
 
-    def canonical_clifford(self, atol: float = 1e-8) -> PhasedXZGate | None:
+    def canonical_clifford(self) -> PhasedXZGate | None:
         """Returns the exact Clifford gate if this gate's exponents are all within small errors."""
 
-        if not self._has_stabilizer_effect_(tol=atol):
+        if not self._has_stabilizer_effect_():
             return None
 
         x = round(self._x_exponent, 2)
