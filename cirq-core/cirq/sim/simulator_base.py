@@ -39,7 +39,7 @@ from cirq.sim.simulator import (
 if TYPE_CHECKING:
     import cirq
 
-TStepResultBase = TypeVar('TStepResultBase', bound='StepResultBase')
+TStepResultBase = TypeVar("TStepResultBase", bound="StepResultBase")
 
 
 class SimulatorBase(
