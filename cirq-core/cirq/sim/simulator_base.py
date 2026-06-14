@@ -40,7 +40,7 @@ from cirq.sim.simulator import (
 if TYPE_CHECKING:
     import cirq
 
-TStepResultBase = TypeVar('TStepResultBase', bound='StepResultBase')
+TStepResultBase = TypeVar("TStepResultBase", bound="StepResultBase")
 
 
 class SimulatorBase(
@@ -210,16 +210,16 @@ class SimulatorBase(
                     for gate in circuit_gates
                 ):
                     raise TypeError(
-                        f'Circuit uses '
-                        f'{circuit_gates.difference(noise_props.expected_gates())} '
-                        f'which is not supported by noise model '
+                        f"Circuit uses "
+                        f"{circuit_gates.difference(noise_props.expected_gates())} "
+                        f"which is not supported by noise model "
                         f'"{self._noise.__class__.__name__}"'
                     )
                 if not circuit.all_qubits().issubset(noise_props.qubits):
                     raise TypeError(
-                        f'Circuit uses '
-                        f'{circuit.all_qubits().difference(noise_props.qubits)} '
-                        f'which is not supported by noise model '
+                        f"Circuit uses "
+                        f"{circuit.all_qubits().difference(noise_props.qubits)} "
+                        f"which is not supported by noise model "
                         f'"{self._noise.__class__.name__}"'
                     )
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
