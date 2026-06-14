@@ -212,15 +212,15 @@ class SimulatorBase(
                     raise TypeError(
                         f"Circuit uses "
                         f"{circuit_gates.difference(noise_props.expected_gates())} "
-                        f"which is not supported by noise model "
-                        f'"{self._noise.__class__.__name__}"'
+                        f"which is not supported by noise properties "
+                        f'"{noise_props.__class__.__name__}"'
                     )
                 if not circuit.all_qubits().issubset(noise_props.qubits):
                     raise TypeError(
                         f"Circuit uses "
                         f"{circuit.all_qubits().difference(noise_props.qubits)} "
-                        f"which is not supported by noise model "
-                        f'"{self._noise.__class__.name__}"'
+                        f"which is not supported by noise properties "
+                        f'"{noise_props.__class__.__name__}"'
                     )
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
         measured: dict[tuple[cirq.Qid, ...], bool] = collections.defaultdict(bool)
