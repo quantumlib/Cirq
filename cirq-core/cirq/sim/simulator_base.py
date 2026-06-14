@@ -191,7 +191,8 @@ class SimulatorBase(
             StepResults from simulating a Moment of the Circuit.
 
         Raises:
-            TypeError: The simulator encounters an op it does not support.
+            TypeError: The simulator encounters an op it or its noise model
+                does not support.
         """
 
         if len(circuit) == 0:

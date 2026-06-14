@@ -23,6 +23,8 @@ import pytest
 import sympy
 
 import cirq
+from cirq import devices, ops
+from cirq.devices import noise_utils
 
 
 class CountingState(cirq.qis.QuantumStateRepresentation):
