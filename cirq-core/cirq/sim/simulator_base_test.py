@@ -478,9 +478,9 @@ def test_simulates_noise_only_on_valid_gates_and_qubits() -> None:
             return set()
 
     noise_props = TestNoiseProperties(
-        gate_times_ns={gate: 1e9 for gate in expected_single_qubit_gates},
-        t1_ns={q: 1e9 for q in expected_qubits},
-        tphi_ns={q: 1e9 for q in expected_qubits},
+        gate_times_ns=dict.fromkeys(expected_single_qubit_gates, 1e9),
+        t1_ns=dict.fromkeys(expected_qubits, 1e9),
+        tphi_ns=dict.fromkeys(expected_qubits, 1e9),
         readout_errors=None,
         gate_pauli_errors={
             noise_utils.OpIdentifier(gate, expected_qubits[0]): 0

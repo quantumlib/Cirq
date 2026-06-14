@@ -201,7 +201,7 @@ class SimulatorBase(
             # So far, only SuperconductingQubitsNoiseProperties implements such constraints on
             # the circuit.
             if isinstance(noise_props, devices.SuperconductingQubitsNoiseProperties):
-                circuit_gates = set(op.gate for op in circuit.all_operations())
+                circuit_gates = {op.gate for op in circuit.all_operations()}
                 if not all(
                     any(
                         isinstance(gate, expected_gate)
