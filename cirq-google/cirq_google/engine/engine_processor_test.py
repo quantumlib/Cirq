@@ -1296,34 +1296,32 @@ def test_get_sampler_invalid_revision_type():
 
 
 def test_get_config_invalid_revision_type():
-    client = engine_client.EngineClient()
-    client.grpc_client = mock.MagicMock()
     processor = cg.EngineProcessor(
         project_id="test_project_id",
         processor_id="test_proc_id",
-        context=EngineContext(client=client),
+        context=EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                run="default_run", config_alias="default_alias"
+            )
+        ),
     )
-    mock_processor = mock.MagicMock()
-    mock_processor.default_device_config_key.run = 'default_run'
-    mock_processor.default_device_config_key.config_alias = 'default_alias'
-    processor._inner_processor = mock.MagicMock(return_value=mock_processor)
 
     with pytest.raises(TypeError, match="device_config_revision must be an instance of"):
         _ = processor.get_config(device_config_revision="2026-03-04_193134.630")
 
 
 def test_list_configs_invalid_revision_type():
-    client = engine_client.EngineClient()
-    client.grpc_client = mock.MagicMock()
     processor = cg.EngineProcessor(
         project_id="test_project_id",
         processor_id="test_proc_id",
-        context=EngineContext(client=client),
+        context=EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                run="default_run", config_alias="default_alias"
+            )
+        ),
     )
-    mock_processor = mock.MagicMock()
-    mock_processor.default_device_config_key.run = 'default_run'
-    mock_processor.default_device_config_key.config_alias = 'default_alias'
-    processor._inner_processor = mock.MagicMock(return_value=mock_processor)
 
     with pytest.raises(TypeError, match="device_config_revision must be an instance of"):
         _ = processor.list_configs(device_config_revision="2026-02-20_114756.470")
