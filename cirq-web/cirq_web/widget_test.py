@@ -14,11 +14,13 @@
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 from unittest import mock
 
 import cirq_web
+from cirq_web.widget import to_script_safe_json
 
 
 class FakeWidget(cirq_web.Widget):
@@ -53,6 +55,32 @@ def test_repr_html(tmpdir) -> None:
         """
 
     assert remove_whitespace(expected) == remove_whitespace(actual)
+
+
+def test_to_script_safe_json_escapes_html_characters() -> None:
+    payload = {'label': "</script><script>alert('xss')</script>", 'amp': 'a & b'}
+    encoded = to_script_safe_json(payload)
+
+    # None of the HTML-significant characters survive verbatim ...
+    assert '<' not in encoded
+    assert '>' not in encoded
+    assert '&' not in encoded
+    # ... and the closing-tag breakout in particular is neutralized.
+    assert '</script>' not in encoded
+    # The value still round-trips back to the original data.
+    assert json.loads(encoded) == payload
+
+
+def test_to_script_safe_json_escapes_line_separators() -> None:
+    # U+2028 / U+2029 are valid JSON but illegal raw in a JS string literal.
+    line_sep, para_sep = chr(0x2028), chr(0x2029)
+    original = f"a{line_sep}b{para_sep}c"
+    encoded = to_script_safe_json(original)
+    assert line_sep not in encoded
+    assert para_sep not in encoded
+    assert '\\u2028' in encoded
+    assert '\\u2029' in encoded
+    assert json.loads(encoded) == original
 
 
 @mock.patch.dict(os.environ, {"BROWSER": "true"})

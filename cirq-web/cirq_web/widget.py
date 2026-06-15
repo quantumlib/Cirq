@@ -14,17 +14,56 @@
 
 from __future__ import annotations
 
+import json
 import os
 import uuid
 import webbrowser
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
+from typing import Any
 
 import cirq_web
 
 # Resolve the path so the bundle file can be accessed properly
 _DIST_PATH = Path(cirq_web.__file__).parents[1] / "cirq_web" / "dist"
+
+# Characters that are unsafe to emit verbatim inside an HTML ``<script>`` element.
+# ``<`` / ``>`` are escaped so that a substring such as ``</script>`` in the
+# serialized data cannot terminate the enclosing script element, ``&`` is escaped
+# to avoid HTML entity decoding, and U+2028 / U+2029 are escaped because they are
+# valid JSON but illegal as raw characters in a JavaScript string literal. Escaping
+# them as ``\uXXXX`` keeps the decoded JavaScript value identical while making the
+# serialized text inert to the HTML parser.
+_HTML_SCRIPT_ESCAPES = {
+    ord('<'): '\\u003c',
+    ord('>'): '\\u003e',
+    ord('&'): '\\u0026',
+    0x2028: '\\u2028',
+    0x2029: '\\u2029',
+}
+
+
+def to_script_safe_json(value: Any) -> str:
+    """Serializes a value to JSON that is safe to embed inside an HTML ``<script>`` tag.
+
+    `json.dumps` alone is not sufficient: it does not escape ``<``, ``>`` or ``&``,
+    so a string such as ``"</script>"`` originating from untrusted data (for example
+    a gate label in a circuit loaded via `cirq.read_json`) would close the surrounding
+    ``<script>`` element and allow arbitrary HTML/JavaScript injection (XSS) when the
+    widget is displayed in a notebook or exported to a standalone HTML file.
+
+    This applies contextual output encoding on top of `json.dumps`, escaping the
+    HTML-significant characters as Unicode escapes. The decoded JavaScript value is
+    unchanged, but the serialized text can no longer break out of the script context.
+
+    Args:
+        value: Any JSON-serializable value.
+
+    Returns:
+        A JSON string safe for direct inclusion within an HTML ``<script>`` element.
+    """
+    return json.dumps(value).translate(_HTML_SCRIPT_ESCAPES)
 
 
 class Env(Enum):

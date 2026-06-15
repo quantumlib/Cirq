@@ -46,6 +46,7 @@ def test_circuit_client_code(qubit) -> None:
             'moment': 0,
         }
     ]
+    serialized_circuit = cirq_web.widget.to_script_safe_json(circuit_obj)
 
     moments = 1
     stripped_id = circuit.id.replace('-', '')
@@ -55,7 +56,7 @@ def test_circuit_client_code(qubit) -> None:
         <button id="camera-toggle">Toggle Camera Type</button>
         <script>
         let viz_{stripped_id} = createGridCircuit(
-            {str(circuit_obj)}, {str(moments)}, "{circuit.id}", {circuit.padding_factor}
+            {serialized_circuit}, {str(moments)}, "{circuit.id}", {circuit.padding_factor}
         );
 
         document.getElementById("camera-reset").addEventListener('click', ()  => {{
@@ -69,6 +70,33 @@ def test_circuit_client_code(qubit) -> None:
         """
 
     assert strip_ws(circuit.get_client_code()) == strip_ws(expected_client_code)
+
+
+class _MaliciousLabelGate(cirq.Gate):
+    """A single-qubit gate whose circuit-diagram label contains HTML markup.
+
+    This models a gate label coming from an untrusted source (e.g. a circuit
+    deserialized via `cirq.read_json` or shared in a notebook).
+    """
+
+    def _num_qubits_(self) -> int:
+        return 1
+
+    def _circuit_diagram_info_(self, args) -> cirq.CircuitDiagramInfo:
+        return cirq.CircuitDiagramInfo(wire_symbols=["</script><script>alert('xss')</script>"])
+
+
+def test_circuit_client_code_escapes_malicious_labels() -> None:
+    # Regression test: an attacker-controlled wire symbol must not be able to break
+    # out of the surrounding <script> element and inject executable markup (XSS).
+    circuit = cirq_web.Circuit3D(cirq.Circuit(_MaliciousLabelGate().on(cirq.LineQubit(0))))
+
+    client_code = circuit.get_client_code()
+
+    # The literal closing tag / injected element must not appear verbatim.
+    assert "</script><script>" not in client_code
+    # The data is preserved, but encoded so the HTML parser treats it as inert text.
+    assert "\\u003c/script\\u003e\\u003cscript\\u003e" in client_code
 
 
 def test_circuit_client_code_unsupported_qubit_type() -> None:

@@ -79,15 +79,19 @@ class Circuit3D(widget.Widget):
         return 'circuit.bundle.js'
 
     def _serialize_circuit(self) -> str:
-        args = []
+        symbols = []
         moments = self.circuit.moments
         for moment_id, moment in enumerate(moments):
             for item in moment:
                 symbol = self._build_3D_symbol(item, moment_id)
-                args.append(symbol.to_typescript())
+                symbols.append(symbol.to_typescript())
 
-        argument_str = ','.join(str(item) for item in args)
-        return f'[{argument_str}]'
+        # Use a JSON serializer with contextual HTML escaping rather than `str()` on
+        # Python dicts. Besides producing valid JavaScript (e.g. for booleans/None),
+        # this ensures attacker-controlled gate labels cannot break out of the
+        # surrounding `<script>` element and inject markup (XSS). See `cirq.read_json`
+        # as an untrusted source of circuits that may be visualized here.
+        return widget.to_script_safe_json(symbols)
 
     def _build_3D_symbol(self, operation, moment) -> Operation3DSymbol:
         symbol_info = resolve_operation(operation, self._resolvers)
