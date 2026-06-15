@@ -50,8 +50,8 @@ def validate_device_config_revision(device_config_revision: DeviceConfigRevision
     ):
         raise TypeError(
             "device_config_revision must be an instance of "
-            "cirq_google.Snapshot or cirq_google.Run, or None. "
-            f"Got {device_config_revision} of type {type(device_config_revision)}."
+            "cirq_google.Snapshot or cirq_google.Run. "
+            f"Got {device_config_revision!r}"
         )
 
 
