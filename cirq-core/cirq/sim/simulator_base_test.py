@@ -497,7 +497,9 @@ def test_simulates_noise_only_on_valid_gates_and_qubits() -> None:
     invalid_circuit_valid_qubits = cirq.Circuit(cirq.Y(expected_qubits[0]))
 
     with pytest.raises(TypeError):
-        simulator.simulate(invalid_circuit_invalid_qubits)
+        simulator.simulate(invalid_circuit_invalid_qubits) 
+    with pytest.raises(TypeError):
         simulator.simulate(invalid_circuit_valid_qubits)
+    with pytest.raises(TypeError):
         simulator.simulate(valid_circuit_invalid_qubits)
     simulator.simulate(valid_circuit_valid_qubits)
