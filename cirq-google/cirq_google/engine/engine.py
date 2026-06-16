@@ -30,6 +30,7 @@ import enum
 import random
 import string
 from collections.abc import Mapping, Sequence
+from http import HTTPStatus
 from typing import TYPE_CHECKING, TypeVar
 
 import duet
@@ -391,6 +392,29 @@ class Engine(abstract_engine.AbstractEngine):
                 `processor_id` is empty.
         """
 
+        async def create_program_and_job() -> engine_job.EngineJob:
+            try:
+                engine_program = await self.create_program_async(
+                    program, program_id, description=program_description, labels=program_labels
+                )
+            except engine_client.EngineException as ee:
+                if ee.code == HTTPStatus.CONFLICT:
+                    # If the program was already created, move on to job creation.
+                    pass
+                raise
+
+            return await engine_program.run_sweep_async(
+                job_id=job_id,
+                params=params,
+                repetitions=repetitions,
+                processor_id=processor_id,
+                description=job_description,
+                labels=job_labels,
+                run_name=run_name,
+                snapshot_id=snapshot_id,
+                device_config_name=device_config_name,
+            )
+
         if self.context.enable_streaming:
             if not program_id:
                 program_id = _make_random_id('prog-')
@@ -424,22 +448,10 @@ class Engine(abstract_engine.AbstractEngine):
                 str(job_id),
                 self.context,
                 job_result_future=job_result_future,
+                recreate_job=create_program_and_job,
             )
 
-        engine_program = await self.create_program_async(
-            program, program_id, description=program_description, labels=program_labels
-        )
-        return await engine_program.run_sweep_async(
-            job_id=job_id,
-            params=params,
-            repetitions=repetitions,
-            processor_id=processor_id,
-            description=job_description,
-            labels=job_labels,
-            run_name=run_name,
-            snapshot_id=snapshot_id,
-            device_config_name=device_config_name,
-        )
+        return await create_program_and_job()
 
     run_sweep = duet.sync(run_sweep_async)
 

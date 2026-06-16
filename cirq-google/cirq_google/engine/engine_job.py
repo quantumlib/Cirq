@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import datetime
-from collections.abc import Sequence
+from collections.abc import Awaitable, Callable, Sequence
+from http import HTTPStatus
 from typing import TYPE_CHECKING
 
 import duet
@@ -73,6 +74,7 @@ class EngineJob(abstract_job.AbstractJob):
         job_result_future: (
             duet.AwaitableFuture[quantum.QuantumResult | quantum.QuantumJob] | None
         ) = None,
+        recreate_job: Callable[[], Awaitable[EngineJob]] | None = None,
     ) -> None:
         """A job submitted to the engine.
 
@@ -94,6 +96,7 @@ class EngineJob(abstract_job.AbstractJob):
         self._results: Sequence[EngineResult] | None = None
         self._batched_results: Sequence[Sequence[EngineResult]] | None = None
         self._job_result_future = job_result_future
+        self._recreate_job = recreate_job
 
     def id(self) -> str:
         """Returns the job id."""
@@ -368,17 +371,41 @@ class EngineJob(abstract_job.AbstractJob):
                 # If the stream has disconnected, attempt to retrieve the result without it.
                 pass
 
+        try:
+            self._job = await self._await_completion_by_polling()
+        except engine_client.EngineException as e:
+            if e.code == HTTPStatus.NOT_FOUND and self._recreate_job:
+                # If the program/job was not created successfully, attempt to recreate once.
+                new_job = await self._recreate_job()
+
+                self.project_id = new_job.project_id
+                self.program_id = new_job.program_id
+                self.job_id = new_job.job_id
+                self.context = new_job.context
+                self._job = new_job._job
+                self._results = new_job._results
+                self._batched_results = new_job._batched_results
+                self._job_result_future = new_job._job_result_future
+                self._recreate_job = None
+
+                self._job = await self._await_completion_by_polling()
+            else:
+                raise
+
+        _raise_on_failure(self._job)
+        response = await self.context.client.get_job_results_async(
+            self.project_id, self.program_id, self.job_id
+        )
+        return response
+
+    async def _await_completion_by_polling(self) -> quantum.QuantumJob:
         async with duet.timeout_scope(self.context.timeout):  # type: ignore[arg-type]
             while True:
                 job = await self._refresh_job_async()
                 if job.execution_status.state in TERMINAL_STATES:
                     break
                 await duet.sleep(1)
-        _raise_on_failure(job)
-        response = await self.context.client.get_job_results_async(
-            self.project_id, self.program_id, self.job_id
-        )
-        return response
+            return job
 
     def _get_job_results_v1(self, result: v1.program_pb2.Result) -> Sequence[EngineResult]:
         job_id = self.id()
