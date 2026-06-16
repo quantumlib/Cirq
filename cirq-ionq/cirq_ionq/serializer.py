@@ -43,7 +43,7 @@ _NATIVE_GATES = cirq.Gateset(
 
 
 @dataclasses.dataclass
-class SerializedProgram:
+class SerializedQISProgram:
     """A container for the serialized portions of a `cirq.Circuit`.
 
     Attributes:
@@ -67,7 +67,36 @@ class SerializedProgram:
     dry_run: bool
 
 
+@dataclasses.dataclass
+class SerializedOpenQASMProgram:
+    pass
+
+
 class Serializer:
+    """Base serializer."""
+
+    def __init__(self, atol: float = 1e-8):
+        self.atol = atol
+
+    def _validate_qubits(self, all_qubits: Collection[cirq.Qid]):
+        """Validates qubit types and values."""
+        if any(not isinstance(q, line_qubit.LineQubit) for q in all_qubits):
+            raise ValueError(
+                f'All qubits must be cirq.LineQubits but were { {type(q) for q in all_qubits} }'
+            )
+        if any(cast(line_qubit.LineQubit, q).x < 0 for q in all_qubits):
+            raise ValueError(
+                'IonQ API must use LineQubits from 0 to number of qubits - 1. Instead found line '
+                f'qubits with indices {all_qubits}.'
+            )
+
+    def _num_qubits(self, circuit: cirq.AbstractCircuit) -> int:
+        """Returns the number of qubits in a circuit."""
+        all_qubits = circuit.all_qubits()
+        return cast(line_qubit.LineQubit, max(all_qubits)).x + 1
+
+
+class QISSerializer(Serializer):
     """Takes gates supported by IonQ's API and converts them to IonQ json form.
 
     Note that this does only serialization, it does not do any decomposition into the supported
@@ -75,13 +104,13 @@ class Serializer:
     """
 
     def __init__(self, atol: float = 1e-8):
-        """Create the Serializer.
+        """Create the QISSerializer.
 
         Args:
             atol: Absolute tolerance used in determining whether a gate with a float parameter
                 should be serialized as a gate rounded to that parameter. Defaults to 1e-8.
         """
-        self.atol = atol
+        super().__init__(atol=atol)
         self._dispatch: dict[type[cirq.Gate], Callable] = {
             cirq.XPowGate: self._serialize_x_pow_gate,
             cirq.YPowGate: self._serialize_y_pow_gate,
@@ -111,7 +140,7 @@ class Serializer:
         noise: dict | None = None,
         metadata: dict | None = None,
         dry_run: bool = False,
-    ) -> SerializedProgram:
+    ) -> SerializedQISProgram:
         """Serialize the given circuit.
 
         Raises:
@@ -141,7 +170,7 @@ class Serializer:
                 op for op in serialized_ops if op['gate'] == 'meas'
             )
 
-        return SerializedProgram(
+        return SerializedQISProgram(
             input=program_input,
             settings=(job_settings or {}),
             compilation=(compilation or {}),
@@ -160,7 +189,7 @@ class Serializer:
         noise: dict | None = None,
         metadata: dict | None = None,
         dry_run: bool = False,
-    ) -> SerializedProgram:
+    ) -> SerializedQISProgram:
         """Serialize the given array of circuits.
 
         Raises:
@@ -213,7 +242,7 @@ class Serializer:
                 "qubit_numbers": json.dumps(qubit_numbers),
             }
 
-        return SerializedProgram(
+        return SerializedQISProgram(
             input=program_input,
             settings=(job_settings or {}),
             compilation=(compilation or {}),
@@ -228,23 +257,6 @@ class Serializer:
             raise ValueError('Cannot serialize empty circuit.')
         if not circuit.are_all_measurements_terminal():
             raise ValueError('All measurements in circuit must be at end of circuit.')
-
-    def _validate_qubits(self, all_qubits: Collection[cirq.Qid]):
-        """Validates qubit types and values."""
-        if any(not isinstance(q, line_qubit.LineQubit) for q in all_qubits):
-            raise ValueError(
-                f'All qubits must be cirq.LineQubits but were { {type(q) for q in all_qubits} }'
-            )
-        if any(cast(line_qubit.LineQubit, q).x < 0 for q in all_qubits):
-            raise ValueError(
-                'IonQ API must use LineQubits from 0 to number of qubits - 1. Instead found line '
-                f'qubits with indices {all_qubits}.'
-            )
-
-    def _num_qubits(self, circuit: cirq.AbstractCircuit) -> int:
-        """Returns the number of qubits in a circuit."""
-        all_qubits = circuit.all_qubits()
-        return cast(line_qubit.LineQubit, max(all_qubits)).x + 1
 
     def _serialize_circuit(self, circuit: cirq.AbstractCircuit) -> list[dict]:
         return [
@@ -437,3 +449,101 @@ class Serializer:
                 'smaller keys.'
             )
         return {f'measurement{i}': x for i, x in enumerate(split_strs)}
+
+
+class OpenQASMSerializer(Serializer):
+    """Takes gates supported by IonQ's API and converts them to OpenQASM3 form."""
+
+    def __init__(self, atol: float = 1e-8):
+        """Create the OpenQASMSerializer.
+
+        Args:
+            atol: Absolute tolerance used in determining whether a gate with a float parameter
+                should be serialized as a gate rounded to that parameter. Defaults to 1e-8.
+        """
+        super().__init__(atol=atol)
+        self._dispatch: dict[type[cirq.Gate], Callable] = {
+            cirq.XPowGate: self._serialize_x_pow_gate
+        }
+
+    def serialize_single_circuit(
+        self,
+        circuit: cirq.AbstractCircuit,
+        job_settings: dict | None = None,
+        compilation: dict | None = None,
+        error_mitigation: dict | None = None,
+        noise: dict | None = None,
+        metadata: dict | None = None,
+        dry_run: bool = False,
+    ) -> SerializedOpenQASMProgram:
+        """Serialize the given circuit.
+
+        Raises:
+            ValueError: if the circuit has gates that are not supported or is otherwise invalid.
+        """
+        self._validate_circuit(circuit)
+        self._validate_qubits(circuit.all_qubits())
+        num_qubits = self._num_qubits(circuit)
+
+        serialized_ops = self._serialize_circuit(circuit)
+
+        # gateset = "qis" if not _NATIVE_GATES.validate(circuit) else "native"
+
+        # # IonQ API does not support measurements, so we pass the measurement keys through
+        # # the metadata field.  Here we split these out of the serialized ops.
+        # program_input = {
+        #     'gateset': gateset,
+        #     'qubits': num_qubits,
+        #     'circuit': [op for op in serialized_ops if op['gate'] != 'meas'],
+        # }
+        # if metadata is not None:
+        #     metadata.update(
+        #         self._serialize_measurements(op for op in serialized_ops if op['gate'] == 'meas')
+        #     )
+        # else:
+        #     metadata = self._serialize_measurements(
+        #         op for op in serialized_ops if op['gate'] == 'meas'
+        #     )
+
+        # return SerializedOpenQASMProgram(
+        #     # TODO
+        #     # input=program_input,
+        #     # settings=(job_settings or {}),
+        #     # compilation=(compilation or {}),
+        #     # error_mitigation=(error_mitigation or {}),
+        #     # noise=(noise or {}),
+        #     # metadata=(metadata or {}),
+        #     # dry_run=dry_run,
+        # )
+
+    def _validate_circuit(self, circuit: cirq.AbstractCircuit):
+        if len(circuit) == 0:
+            raise ValueError('Cannot serialize empty circuit.')
+
+    # def _serialize_op(self, op: cirq.Operation) -> str:
+    #     if op.gate is None:
+    #         raise ValueError(
+    #             'Attempt to serialize circuit with an operation which does not have a gate. '
+    #             f'Type: {type(op)} Op: {op}.'
+    #         )
+    #     targets = [cast(line_qubit.LineQubit, q).x for q in op.qubits]
+    #     gate = op.gate
+    #     if cirq.is_parameterized(gate):
+    #         pass
+    #         # TODO are parameterized gates supported?
+    #         # raise ValueError(
+    #         #     f'IonQ API does not support parameterized gates. Gate {gate} was parameterized. '
+    #         #     'Consider resolving before sending.'
+    #         # )
+    #     gate_type = type(gate)
+    #     # Check all superclasses.
+    #     for gate_mro_type in gate_type.mro():
+    #         if gate_mro_type in self._dispatch:
+    #             # TODO: an OpenQasm string instead of a dict will be returned here.
+    #             serialized_op = self._dispatch[gate_mro_type](gate, targets)
+    #             # TODO: probablly {} will not be generated
+    #             # serialized_op {} results when serializing a PauliStringPhasorGate
+    #             # where the exponentiated term is identity or the evolution time is 0.
+    #             if serialized_op == {} or serialized_op:
+    #                 return serialized_op
+    #     raise ValueError(f'Gate {gate} acting on {targets} cannot be serialized by IonQ API to OpenQASM3.')

@@ -25,7 +25,7 @@ TestSpec = ModuleJsonTestSpec(
     packages=[cirq_ionq],
     test_data_path=pathlib.Path(__file__).parent,
     not_yet_serializable=[
-        "SerializedProgram",
+        "SerializedQISProgram",
         "Calibration",
         "QPUResult",
         "IonQException",
@@ -36,7 +36,7 @@ TestSpec = ModuleJsonTestSpec(
         "Job",
         "SimulatorResult",
     ],
-    should_not_be_serialized=["Sampler", "Service", "Serializer"],
+    should_not_be_serialized=["Sampler", "Service", "QISSerializer"],
     resolver_cache=_class_resolver_dictionary(),
     deprecated={},
 )

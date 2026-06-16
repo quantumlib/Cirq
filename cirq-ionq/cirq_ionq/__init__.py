@@ -41,7 +41,11 @@ from cirq_ionq.results import QPUResult as QPUResult, SimulatorResult as Simulat
 
 from cirq_ionq.sampler import Sampler as Sampler
 
-from cirq_ionq.serializer import Serializer as Serializer, SerializedProgram as SerializedProgram
+from cirq_ionq.serializer import (
+    QISSerializer as QISSerializer,
+    SerializedQISProgram as SerializedQISProgram,
+    SerializedOpenQASMProgram as SerializedOpenQASMProgram,
+)
 
 from cirq_ionq.service import Service as Service
 

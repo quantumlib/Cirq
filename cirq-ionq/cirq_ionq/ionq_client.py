@@ -30,6 +30,7 @@ import requests
 import cirq_ionq
 from cirq import __version__ as cirq_version
 from cirq_ionq import ionq_exceptions
+from cirq_ionq.ionq_exceptions import NotSupportedMultipleCircuitsJobWithMidCircuitMeasurements
 
 # https://support.cloudflare.com/hc/en-us/articles/115003014512-4xx-Client-Error
 # "Cloudflare will generate and serve a 409 response for a Error 1001: DNS Resolution Error."
@@ -111,7 +112,7 @@ class _IonQClient:
 
     def create_job(
         self,
-        serialized_program: cirq_ionq.SerializedProgram,
+        serialized_program: cirq_ionq.SerializedQISProgram | cirq_ionq.SerializedOpenQASMProgram,
         repetitions: int | None = None,
         target: str | None = None,
         name: str | None = None,
@@ -121,8 +122,8 @@ class _IonQClient:
         """Create a job.
 
         Args:
-            serialized_program: The `cirq_ionq.SerializedProgram` containing the serialized
-                information about the circuit to run.
+            serialized_program: The `cirq_ionq.SerializedQISProgram` or `cirq_ionq.SerializedOpenQASMProgram`
+                containing the serialized information about the circuit to run.
             repetitions: The number of times to repeat the circuit. For simulation the repeated
                 sampling is not done on the server, but is passed as metadata to be recovered
                 from the returned job.
@@ -141,12 +142,25 @@ class _IonQClient:
         """
         actual_target = self._target(target)
 
-        json: dict[str, Any] = {
-            'backend': actual_target,
-            "type": "ionq.multi-circuit.v1" if batch_mode else "ionq.circuit.v1",
-            'lang': 'json',
-            'input': serialized_program.input,
-        }
+        if isinstance(serialized_program, cirq_ionq.SerializedQISProgram):
+            json: dict[str, Any] = {
+                'backend': actual_target,
+                "type": "ionq.multi-circuit.v1" if batch_mode else "ionq.circuit.v1",
+                'lang': 'json',
+                'input': serialized_program.input,
+            }
+        elif isinstance(serialized_program, cirq_ionq.SerializedOpenQASMProgram):
+            if batch_mode:
+                raise NotSupportedMultipleCircuitsJobWithMidCircuitMeasurements(
+                    'Only single circuits jobs are supported for circuits with mid circuit measurements.'
+                )
+            json: dict[str, Any] = {
+                'backend': actual_target,
+                "type": "ionq.qasm3.v1",
+                'lang': 'json',
+                'input': serialized_program.input,
+            }
+
         if name:
             json['name'] = name
         # We have to pass measurement keys through the metadata.
