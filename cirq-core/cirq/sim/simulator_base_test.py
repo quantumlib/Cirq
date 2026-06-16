@@ -231,7 +231,7 @@ def test_parameterized_copies_all_but_last() -> None:
     sim = CountingSimulator()
     n = 4
     rs = sim.simulate_sweep(
-        cirq.Circuit(cirq.X(q0) ** sympy.Symbol'a')), [{'a': i} for i in range(n)]
+        cirq.Circuit(cirq.X(q0) ** sympy.Symbol('a')), [{'a': i} for i in range(n)]
     )
     for i in range(n):
         r = rs[i]
