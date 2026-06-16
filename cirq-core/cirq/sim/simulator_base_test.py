@@ -231,7 +231,7 @@ def test_parameterized_copies_all_but_last() -> None:
     sim = CountingSimulator()
     n = 4
     rs = sim.simulate_sweep(
-        cirq.Circuit(cirq.X(q0) ** sympy.Symbol("a")), [{"a": i} for i in range(n)]
+        cirq.Circuit(cirq.X(q0) ** sympy.Symbol'a')), [{'a': i} for i in range(n)]
     )
     for i in range(n):
         r = rs[i]
@@ -254,19 +254,19 @@ def test_cannot_act() -> None:
 def test_run_one_gate_circuit() -> None:
     sim = CountingSimulator()
     r = sim.run(cirq.Circuit(cirq.X(q0), cirq.measure(q0)), repetitions=2)
-    assert np.allclose(r.measurements["q(0)"], [[1], [1]])
+    assert np.allclose(r.measurements['q(0)'], [[1], [1]])
 
 
 def test_run_one_gate_circuit_noise() -> None:
     sim = CountingSimulator(noise=cirq.X)
     r = sim.run(cirq.Circuit(cirq.X(q0), cirq.measure(q0)), repetitions=2)
-    assert np.allclose(r.measurements["q(0)"], [[2], [2]])
+    assert np.allclose(r.measurements['q(0)'], [[2], [2]])
 
 
 def test_run_non_unitary_circuit() -> None:
     sim = CountingSimulator()
     r = sim.run(cirq.Circuit(cirq.phase_damp(1).on(q0), cirq.measure(q0)), repetitions=2)
-    assert np.allclose(r.measurements["q(0)"], [[1], [1]])
+    assert np.allclose(r.measurements['q(0)'], [[1], [1]])
 
 
 def test_run_non_unitary_circuit_non_unitary_state() -> None:
@@ -276,13 +276,13 @@ def test_run_non_unitary_circuit_non_unitary_state() -> None:
 
     sim = DensityCountingSimulator()
     r = sim.run(cirq.Circuit(cirq.phase_damp(1).on(q0), cirq.measure(q0)), repetitions=2)
-    assert np.allclose(r.measurements["q(0)"], [[1], [1]])
+    assert np.allclose(r.measurements['q(0)'], [[1], [1]])
 
 
 def test_run_non_terminal_measurement() -> None:
     sim = CountingSimulator()
     r = sim.run(cirq.Circuit(cirq.X(q0), cirq.measure(q0), cirq.X(q0)), repetitions=2)
-    assert np.allclose(r.measurements["q(0)"], [[1], [1]])
+    assert np.allclose(r.measurements['q(0)'], [[1], [1]])
 
 
 def test_integer_initial_state_is_split() -> None:
@@ -372,7 +372,7 @@ def test_reorder_succeeds() -> None:
     assert reordered.qubits == (q1, q0)
 
 
-@pytest.mark.parametrize("split", [True, False])
+@pytest.mark.parametrize('split', [True, False])
 def test_sim_state_instance_unchanged_during_normal_sim(split: bool) -> None:
     sim = SplittableCountingSimulator(split_untangled_states=split)
     state = sim._create_simulation_state(0, (q0, q1))
@@ -385,12 +385,12 @@ def test_sim_state_instance_unchanged_during_normal_sim(split: bool) -> None:
 def test_measurements_retained_in_step_results() -> None:
     sim = SplittableCountingSimulator()
     circuit = cirq.Circuit(
-        cirq.measure(q0, key="a"), cirq.measure(q0, key="b"), cirq.measure(q0, key="c")
+        cirq.measure(q0, key='a'), cirq.measure(q0, key='b'), cirq.measure(q0, key='c')
     )
     iterator = sim.simulate_moment_steps(circuit)
-    assert next(iterator).measurements.keys() == {"a"}
-    assert next(iterator).measurements.keys() == {"a", "b"}
-    assert next(iterator).measurements.keys() == {"a", "b", "c"}
+    assert next(iterator).measurements.keys() == {'a'}
+    assert next(iterator).measurements.keys() == {'a', 'b'}
+    assert next(iterator).measurements.keys() == {'a', 'b', 'c'}
     assert not any(iterator)
 
 
@@ -417,11 +417,11 @@ def test_sweep_unparameterized_prefix_not_repeated_iff_unitary() -> None:
             return self.has_unitary
 
     simulator = CountingSimulator()
-    params = [cirq.ParamResolver({"a": 0}), cirq.ParamResolver({"a": 1})]
+    params = [cirq.ParamResolver({'a': 0}), cirq.ParamResolver({'a': 1})]
 
     op1 = TestOp(has_unitary=True)
     op2 = TestOp(has_unitary=True)
-    circuit = cirq.Circuit(op1, cirq.XPowGate(exponent=sympy.Symbol("a"))(q), op2)
+    circuit = cirq.Circuit(op1, cirq.XPowGate(exponent=sympy.Symbol('a'))(q), op2)
     rs = simulator.simulate_sweep(program=circuit, params=params)
     assert isinstance(rs[0]._final_simulator_state, CountingSimulationState)
     assert isinstance(rs[1]._final_simulator_state, CountingSimulationState)
@@ -432,7 +432,7 @@ def test_sweep_unparameterized_prefix_not_repeated_iff_unitary() -> None:
 
     op1 = TestOp(has_unitary=False)
     op2 = TestOp(has_unitary=False)
-    circuit = cirq.Circuit(op1, cirq.XPowGate(exponent=sympy.Symbol("a"))(q), op2)
+    circuit = cirq.Circuit(op1, cirq.XPowGate(exponent=sympy.Symbol('a'))(q), op2)
     rs = simulator.simulate_sweep(program=circuit, params=params)
     assert isinstance(rs[0]._final_simulator_state, CountingSimulationState)
     assert isinstance(rs[1]._final_simulator_state, CountingSimulationState)
@@ -444,7 +444,7 @@ def test_sweep_unparameterized_prefix_not_repeated_iff_unitary() -> None:
 
 def test_inhomogeneous_measurement_count_padding() -> None:
     q = cirq.LineQubit(0)
-    key = cirq.MeasurementKey("m")
+    key = cirq.MeasurementKey('m')
     sim = cirq.Simulator()
     c = cirq.Circuit(
         cirq.CircuitOperation(
@@ -455,7 +455,7 @@ def test_inhomogeneous_measurement_count_padding() -> None:
     )
     results = sim.run(c, repetitions=10)
     for i in range(10):
-        assert np.sum(results.records["m"][i, :, :]) == 1
+        assert np.sum(results.records['m'][i, :, :]) == 1
 
 
 def test_simulates_noise_only_on_valid_gates_and_qubits() -> None:
