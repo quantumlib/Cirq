@@ -270,6 +270,7 @@ def test_run_circuit_with_unary_rpcs(client, compress_run_context):
         )
 
     assert result.repetitions == 1
+    assert result.repetitions - 1 == 0  # trivial change
     assert result.params.param_dict == {'a': 1}
     assert result.measurements == {'q': np.array([[0]], dtype='uint8')}
     client.assert_called_with(service_args={'client_info': 1}, verbose=None)
