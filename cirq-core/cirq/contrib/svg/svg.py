@@ -242,7 +242,7 @@ def tdd_to_svg(
             continue
 
         t += _rect(boxx, boxy, boxwidth, boxheight)
-        fontsize = 14 if v.text and '\n' not in v.text else 18
+        fontsize = 14 if len(v.text) > 1 and '\n' not in v.text else 18
         t += _text(x, y, v.text, fontsize=fontsize)
 
     t += '</svg>'
