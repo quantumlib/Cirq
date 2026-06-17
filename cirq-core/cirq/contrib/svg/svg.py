@@ -243,7 +243,10 @@ def tdd_to_svg(
 
         v_text = fixup_text(v.text)
         t += _rect(boxx, boxy, boxwidth, boxheight)
-        t += _text(x, y, v_text, fontsize=14 if len(v_text) > 1 else 18)
+        fontsize = 14 if v.text and '\n' not in v.text else 18
+        # FIXME - remove assertion before merge
+        assert fontsize == 14 if len(v_text) > 1 else 18
+        t += _text(x, y, v_text, fontsize=fontsize)
 
     t += '</svg>'
     return t
