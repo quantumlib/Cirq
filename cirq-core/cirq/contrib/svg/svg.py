@@ -57,7 +57,7 @@ def _text(x: float, y: float, text: str, fontsize: int = 14):
     return (
         f'<text x="{x}" y="{y}" dominant-baseline="middle" '
         f'text-anchor="middle" font-size="{fontsize}px" '
-        f'font-family="{FONT}">{text}</text>'
+        f'font-family="{FONT}">{fixup_text(text)}</text>'
     )
 
 
@@ -241,12 +241,11 @@ def tdd_to_svg(
         if v.text == '':
             continue
 
-        v_text = fixup_text(v.text)
         t += _rect(boxx, boxy, boxwidth, boxheight)
         fontsize = 14 if v.text and '\n' not in v.text else 18
         # FIXME - remove assertion before merge
-        assert fontsize == 14 if len(v_text) > 1 else 18
-        t += _text(x, y, v_text, fontsize=fontsize)
+        assert fontsize == 14 if len(fixup_text(v.text)) > 1 else 18
+        t += _text(x, y, v.text, fontsize=fontsize)
 
     t += '</svg>'
     return t

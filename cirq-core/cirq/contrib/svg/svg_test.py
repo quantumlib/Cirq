@@ -90,3 +90,10 @@ def test_gate_with_less_greater_str(symbol, svg_symbol) -> None:
 
     _ = IPython.display.SVG(svg)
     assert svg_symbol in svg
+
+
+def test_named_qubit_name_is_quoted():
+    q = cirq.NamedQubit("<a, &b, >c, some name")
+    svg_circuit = SVGCircuit(cirq.Circuit(cirq.I(q)))
+    svg = svg_circuit._repr_svg_()
+    assert "&lt;a, &amp;b, &gt;c, some name" in svg
