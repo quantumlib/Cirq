@@ -15,7 +15,23 @@ FONT = matplotlib.font_manager.FontProperties()
 EMPTY_MOMENT_COLWIDTH = float(21)  # assumed default column width
 
 
+def _xml_escape(text: str) -> str:
+    """Escapes characters that are significant in XML/SVG text content.
+
+    SVG is XML, so the content of a ``<text>`` element is parsed as markup. Any
+    label rendered into the diagram (qubit names and gate symbols) may be
+    attacker-controlled -- for example a circuit loaded via `cirq.read_json` can
+    contain a `cirq.NamedQubit` or custom gate whose string contains ``<script>``
+    -- and would otherwise break out of the surrounding ``<text>`` element and
+    inject arbitrary SVG/HTML. That executes as XSS when the diagram is shown
+    inline in a notebook (`SVGCircuit._repr_svg_`) or opened in a browser. The
+    ``&`` substitution must come first so the introduced ``&`` are not re-escaped.
+    """
+    return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+
+
 def fixup_text(text: str) -> str:
+    """Normalizes label text for display (does *not* escape; see `_xml_escape`)."""
     if '\n' in text:
         # https://github.com/quantumlib/Cirq/issues/4499
         # TODO: Visualize Custom MatrixGate
@@ -23,8 +39,6 @@ def fixup_text(text: str) -> str:
     # https://github.com/quantumlib/Cirq/issues/2905
     text = text.replace('[<virtual>]', '')
     text = text.replace('[cirq.VirtualTag()]', '')
-    text = text.replace('&', '&amp;')
-    text = text.replace('<', '&lt;').replace('>', '&gt;')
     return text
 
 
@@ -53,11 +67,18 @@ def _rect(
 
 
 def _text(x: float, y: float, text: str, fontsize: int = 14):
-    """Draw SVG <text> text."""
+    """Draw SVG <text> text.
+
+    The text content is normalized and XML-escaped here, at the single sink
+    through which all diagram labels (qubit names *and* gate symbols) are
+    emitted. Centralizing the escaping guarantees every label is escaped exactly
+    once and prevents SVG/HTML injection (XSS) from a forgotten call site -- see
+    `_xml_escape`.
+    """
     return (
         f'<text x="{x}" y="{y}" dominant-baseline="middle" '
         f'text-anchor="middle" font-size="{fontsize}px" '
-        f'font-family="{FONT}">{text}</text>'
+        f'font-family="{FONT}">{_xml_escape(fixup_text(text))}</text>'
     )
 
 
