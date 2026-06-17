@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import itertools
 import math
-from collections.abc import Iterator
 
 import numpy as np
 import pytest
@@ -30,33 +29,36 @@ def _make_qubits(n) -> list[cirq.NamedQubit]:
     return [cirq.NamedQubit(f'q{i}') for i in range(n)]
 
 
-def _sample_qubit_pauli_maps() -> Iterator[dict[cirq.NamedQubit, cirq.Pauli]]:
+def _sample_qubit_pauli_maps() -> list[dict[cirq.NamedQubit, cirq.Pauli]]:
     """All combinations of having a Pauli or nothing on 3 qubits.
     Yields 64 qubit pauli maps
     """
     qubits = _make_qubits(3)
     paulis_or_none = (None, cirq.X, cirq.Y, cirq.Z)
-    for paulis in itertools.product(paulis_or_none, repeat=len(qubits)):
-        yield {qubit: pauli for qubit, pauli in zip(qubits, paulis) if pauli is not None}
+    return [
+        {qubit: pauli for qubit, pauli in zip(qubits, paulis) if pauli is not None}
+        for paulis in itertools.product(paulis_or_none, repeat=len(qubits))
+    ]
 
 
-def _small_sample_qubit_pauli_maps() -> Iterator[dict[cirq.NamedQubit, cirq.Pauli]]:
+def _small_sample_qubit_pauli_maps() -> list[dict[cirq.NamedQubit, cirq.Pauli]]:
     """A few representative samples of qubit maps.
 
     Only tests 10 combinations of Paulis to speed up testing.
     """
     qubits = _make_qubits(3)
-    yield {}
-    yield {qubits[0]: cirq.X}
-    yield {qubits[1]: cirq.X}
-    yield {qubits[2]: cirq.X}
-    yield {qubits[1]: cirq.Z}
-
-    yield {qubits[0]: cirq.Y, qubits[1]: cirq.Z}
-    yield {qubits[1]: cirq.Z, qubits[2]: cirq.X}
-    yield {qubits[0]: cirq.X, qubits[1]: cirq.X, qubits[2]: cirq.X}
-    yield {qubits[0]: cirq.X, qubits[1]: cirq.Y, qubits[2]: cirq.Z}
-    yield {qubits[0]: cirq.Z, qubits[1]: cirq.X, qubits[2]: cirq.Y}
+    return [
+        {},
+        {qubits[0]: cirq.X},
+        {qubits[1]: cirq.X},
+        {qubits[2]: cirq.X},
+        {qubits[1]: cirq.Z},
+        {qubits[0]: cirq.Y, qubits[1]: cirq.Z},
+        {qubits[1]: cirq.Z, qubits[2]: cirq.X},
+        {qubits[0]: cirq.X, qubits[1]: cirq.X, qubits[2]: cirq.X},
+        {qubits[0]: cirq.X, qubits[1]: cirq.Y, qubits[2]: cirq.Z},
+        {qubits[0]: cirq.Z, qubits[1]: cirq.X, qubits[2]: cirq.Y},
+    ]
 
 
 def assert_conjugation(

@@ -2684,8 +2684,8 @@ def density_operator_basis(n_qubits: int) -> Iterator[np.ndarray]:
 
 @pytest.mark.parametrize(
     'circuit, initial_state',
-    itertools.chain(
-        itertools.product(
+    [
+        *itertools.product(
             [
                 cirq.Circuit(cirq.I(q0)),
                 cirq.Circuit(cirq.X(q0)),
@@ -2696,7 +2696,7 @@ def density_operator_basis(n_qubits: int) -> Iterator[np.ndarray]:
             ],
             density_operator_basis(n_qubits=1),
         ),
-        itertools.product(
+        *itertools.product(
             [
                 cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1)),
                 cirq.Circuit(cirq.depolarize(0.2).on(q0), cirq.CNOT(q0, q1)),
@@ -2709,7 +2709,7 @@ def density_operator_basis(n_qubits: int) -> Iterator[np.ndarray]:
             ],
             density_operator_basis(n_qubits=2),
         ),
-        itertools.product(
+        *itertools.product(
             [
                 cirq.Circuit(
                     cirq.depolarize(0.1, n_qubits=2).on(q0, q1),
@@ -2721,7 +2721,7 @@ def density_operator_basis(n_qubits: int) -> Iterator[np.ndarray]:
             ],
             density_operator_basis(n_qubits=3),
         ),
-    ),
+    ],
 )
 def test_compare_circuits_superoperator_to_simulation(circuit, initial_state) -> None:
     """Compares action of circuit superoperator and circuit simulation."""

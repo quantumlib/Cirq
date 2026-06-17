@@ -124,6 +124,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             when sampled.
 
         """
+        processor_config.validate_device_config_revision(device_config_revision)
         processor = self._inner_processor()
 
         device_config_name = (

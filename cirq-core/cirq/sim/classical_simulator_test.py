@@ -125,7 +125,7 @@ def test_CCCX(initial_state) -> None:
     np.testing.assert_equal(results, final_state)
 
 
-@pytest.mark.parametrize('initial_state', product([0, 1], repeat=3))
+@pytest.mark.parametrize('initial_state', list(product([0, 1], repeat=3)))
 @pytest.mark.parametrize('cswap', [cirq.CSWAP, cirq.SWAP.controlled()], ids=str)
 def test_controlled_swap(cswap: cirq.Gate, initial_state: tuple[int, int, int]) -> None:
     qubits = cirq.LineQubit.range(3)
