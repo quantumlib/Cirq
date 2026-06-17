@@ -60,13 +60,15 @@ def make_random_quantum_circuit(qubits: Sequence[cirq.Qid], depth: int) -> cirq.
 
 @pytest.mark.parametrize(
     'depolarization, estimator',
-    itertools.product(
-        (0.0, 0.2, 0.7, 1.0),
-        (
-            cirq.hog_score_xeb_fidelity_from_probabilities,
-            cirq.linear_xeb_fidelity_from_probabilities,
-            cirq.log_xeb_fidelity_from_probabilities,
-        ),
+    list(
+        itertools.product(
+            (0.0, 0.2, 0.7, 1.0),
+            (
+                cirq.hog_score_xeb_fidelity_from_probabilities,
+                cirq.linear_xeb_fidelity_from_probabilities,
+                cirq.log_xeb_fidelity_from_probabilities,
+            ),
+        )
     ),
 )
 def test_xeb_fidelity(depolarization, estimator) -> None:

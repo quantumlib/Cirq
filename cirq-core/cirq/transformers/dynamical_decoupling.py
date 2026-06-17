@@ -367,11 +367,21 @@ def add_dynamical_decoupling(
                 updated_moment_ops.add(new_op_at_q)
 
         updated_moment = Moment(updated_moment_ops)
-        clifford_ops = [op for op in updated_moment if _is_clifford_op(op)]
-        pulled_through = pulled_through.after(clifford_ops)
+        pulled_through = pulled_through.after(
+            [_as_clifford(op) for op in updated_moment if _is_clifford_op(op)]
+        )
         transformed_moments.append(updated_moment)
 
     if len(pulled_through) > 0:
         raise RuntimeError("Expect empty remaining Paulis after the dd insertion.")
 
     return Circuit.from_moments(*transformed_moments)
+
+
+def _as_clifford(op: ops.Operation) -> ops.Operation:
+    if isinstance(op.gate, ops.PhasedXZGate):
+        gate_clifford = op.gate.canonical_clifford()
+        assert gate_clifford is not None
+        if gate_clifford is not op.gate:
+            return gate_clifford(*op.qubits)
+    return op
