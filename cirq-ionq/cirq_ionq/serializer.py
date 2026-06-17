@@ -19,6 +19,7 @@ from __future__ import annotations
 import dataclasses
 import json
 import math
+import re
 from collections.abc import Callable, Collection, Iterator, Sequence
 from typing import Any, cast, TYPE_CHECKING
 
@@ -39,6 +40,65 @@ if TYPE_CHECKING:
 
 _NATIVE_GATES = cirq.Gateset(
     GPIGate, GPI2Gate, MSGate, ZZGate, cirq.MeasurementGate, unroll_circuit_op=False
+)
+
+_OPENQASM3_IDENTIFIER_RE = re.compile(r'[A-Za-z_][A-Za-z0-9_]*\Z')
+
+_OPENQASM3_KEYWORDS = frozenset(
+    {
+        'OPENQASM',
+        'angle',
+        'array',
+        'barrier',
+        'bit',
+        'bool',
+        'box',
+        'break',
+        'cal',
+        'complex',
+        'const',
+        'continue',
+        'creg',
+        'ctrl',
+        'def',
+        'defcal',
+        'defcalgrammar',
+        'delay',
+        'duration',
+        'durationof',
+        'else',
+        'end',
+        'extern',
+        'false',
+        'float',
+        'for',
+        'gate',
+        'gphase',
+        'if',
+        'in',
+        'include',
+        'input',
+        'int',
+        'inv',
+        'let',
+        'measure',
+        'mutable',
+        'negctrl',
+        'output',
+        'pow',
+        'pragma',
+        'qreg',
+        'qubit',
+        'readonly',
+        'reset',
+        'return',
+        'sizeof',
+        'stretch',
+        'true',
+        'uint',
+        'void',
+        'while',
+    }
 )
 
 
@@ -463,8 +523,23 @@ class OpenQASMSerializer(Serializer):
         """
         super().__init__(atol=atol)
         self._dispatch: dict[type[cirq.Gate], Callable] = {
-            cirq.XPowGate: self._serialize_x_pow_gate
+            cirq.XPowGate: self._serialize_x_pow_gate,
+            cirq.YPowGate: self._serialize_y_pow_gate,
+            cirq.ZPowGate: self._serialize_z_pow_gate,
+            cirq.XXPowGate: self._serialize_xx_pow_gate,
+            cirq.YYPowGate: self._serialize_yy_pow_gate,
+            cirq.ZZPowGate: self._serialize_zz_pow_gate,
+            cirq.CNotPowGate: self._serialize_cnot_pow_gate,
+            cirq.HPowGate: self._serialize_h_pow_gate,
+            cirq.SwapPowGate: self._serialize_swap_gate,
+            cirq.MeasurementGate: self._serialize_measurement_gate,
+            cirq.ops.pauli_string_phasor.PauliStringPhasorGate: self._serialize_pauli_string_phasor_gate,  # noqa: E501
+            GPIGate: self._serialize_gpi_gate,
+            GPI2Gate: self._serialize_gpi2_gate,
+            MSGate: self._serialize_ms_gate,
+            ZZGate: self._serialize_zz_gate,
         }
+        self.qasm_gates_definitions_needed = set()
 
     def serialize_single_circuit(
         self,
@@ -481,6 +556,7 @@ class OpenQASMSerializer(Serializer):
         Raises:
             ValueError: if the circuit has gates that are not supported or is otherwise invalid.
         """
+        self.qasm_gates_definitions_needed = set()
         self._validate_circuit(circuit)
         self._validate_qubits(circuit.all_qubits())
         num_qubits = self._num_qubits(circuit)
@@ -520,30 +596,172 @@ class OpenQASMSerializer(Serializer):
         if len(circuit) == 0:
             raise ValueError('Cannot serialize empty circuit.')
 
-    # def _serialize_op(self, op: cirq.Operation) -> str:
-    #     if op.gate is None:
-    #         raise ValueError(
-    #             'Attempt to serialize circuit with an operation which does not have a gate. '
-    #             f'Type: {type(op)} Op: {op}.'
-    #         )
-    #     targets = [cast(line_qubit.LineQubit, q).x for q in op.qubits]
-    #     gate = op.gate
-    #     if cirq.is_parameterized(gate):
-    #         pass
-    #         # TODO are parameterized gates supported?
-    #         # raise ValueError(
-    #         #     f'IonQ API does not support parameterized gates. Gate {gate} was parameterized. '
-    #         #     'Consider resolving before sending.'
-    #         # )
-    #     gate_type = type(gate)
-    #     # Check all superclasses.
-    #     for gate_mro_type in gate_type.mro():
-    #         if gate_mro_type in self._dispatch:
-    #             # TODO: an OpenQasm string instead of a dict will be returned here.
-    #             serialized_op = self._dispatch[gate_mro_type](gate, targets)
-    #             # TODO: probablly {} will not be generated
-    #             # serialized_op {} results when serializing a PauliStringPhasorGate
-    #             # where the exponentiated term is identity or the evolution time is 0.
-    #             if serialized_op == {} or serialized_op:
-    #                 return serialized_op
-    #     raise ValueError(f'Gate {gate} acting on {targets} cannot be serialized by IonQ API to OpenQASM3.')
+    def _serialize_circuit(self, circuit: cirq.AbstractCircuit) -> str:
+        return "\n".join(
+            [
+                serialized_op
+                for moment in circuit
+                for op in moment
+                for serialized_op in [self._serialize_op(op)]
+                if serialized_op  # TODO: ca be empty?
+            ]
+        )
+
+    def _serialize_op(self, op: cirq.Operation) -> str:
+        if op.gate is None:
+            raise ValueError(
+                'Attempt to serialize circuit with an operation which does not have a gate. '
+                f'Type: {type(op)} Op: {op}.'
+            )
+        targets = [cast(line_qubit.LineQubit, q).x for q in op.qubits]
+        gate = op.gate
+        if cirq.is_parameterized(gate):
+            raise ValueError(
+                f'IonQ API does not support parameterized gates. Gate {gate} was parameterized. '
+                'Consider resolving before sending.'
+            )
+        gate_type = type(gate)
+        # Check all superclasses.
+        for gate_mro_type in gate_type.mro():
+            if gate_mro_type in self._dispatch:
+                serialized_op = self._dispatch[gate_mro_type](gate, targets)
+                # serialized_op {} results when serializing a PauliStringPhasorGate
+                # where the exponentiated term is identity or the evolution time is 0.
+                # TODO update this to check for empty string or whatever makes sense here
+                if serialized_op == {} or serialized_op:
+                    return serialized_op
+        raise ValueError(f'Gate {gate} acting on {targets} cannot be serialized by IonQ API.')
+
+    def _format_angle(self, angle: float) -> str:
+        return f'{angle:.17g}'
+
+    def _serialize_x_pow_gate(self, gate: cirq.XPowGate, targets: Sequence[int]) -> str:
+        target = targets[0]
+        if self._near_mod_n(gate.exponent, 1, 2):
+            return f'x q[{target}];'
+        elif self._near_mod_n(gate.exponent, 0.5, 2):
+            return f'sx q[{target}];'
+        elif self._near_mod_n(gate.exponent, -0.5, 2):
+            return f'inv @ sx q[{target}];'
+        return f'rx({self._format_angle(gate.exponent * np.pi)}) q[{target}];'
+
+    def _serialize_y_pow_gate(self, gate: cirq.YPowGate, targets: Sequence[int]) -> str:
+        target = targets[0]
+        if self._near_mod_n(gate.exponent, 1, 2):
+            return f'y q[{target}];'
+        return f'ry({self._format_angle(gate.exponent * np.pi)}) q[{target}];'
+
+    def _serialize_z_pow_gate(self, gate: cirq.ZPowGate, targets: Sequence[int]) -> str:
+        target = targets[0]
+        if self._near_mod_n(gate.exponent, 1, 2):
+            return f'z q[{target}];'
+        elif self._near_mod_n(gate.exponent, 0.5, 2):
+            return f's q[{target}];'
+        elif self._near_mod_n(gate.exponent, -0.5, 2):
+            return f'sdg q[{target}];'
+        elif self._near_mod_n(gate.exponent, 0.25, 2):
+            return f't q[{target}];'
+        elif self._near_mod_n(gate.exponent, -0.25, 2):
+            return f'tdg q[{target}];'
+        return f'rz({self._format_angle(gate.exponent * np.pi)}) q[{target}];'
+
+    def _serialize_xx_pow_gate(self, gate: cirq.XXPowGate, targets: Sequence[int]) -> str:
+        self.qasm_gates_definitions_needed.add('rxx')
+        return (
+            f'rxx({self._format_angle(gate.exponent * np.pi)}) '
+            f'q[{targets[0]}], q[{targets[1]}];'
+        )
+
+    def _serialize_yy_pow_gate(self, gate: cirq.YYPowGate, targets: Sequence[int]) -> str:
+        self.qasm_gates_definitions_needed.add('ryy')
+        return (
+            f'ryy({self._format_angle(gate.exponent * np.pi)}) '
+            f'q[{targets[0]}], q[{targets[1]}];'
+        )
+
+    def _serialize_zz_pow_gate(self, gate: cirq.ZZPowGate, targets: Sequence[int]) -> str:
+        self.qasm_gates_definitions_needed.add('rzz')
+        return (
+            f'rzz({self._format_angle(gate.exponent * np.pi)}) '
+            f'q[{targets[0]}], q[{targets[1]}];'
+        )
+
+    def _serialize_cnot_pow_gate(
+        self, gate: cirq.CNotPowGate, targets: Sequence[int]
+    ) -> str | None:
+        if self._near_mod_n(gate.exponent, 1, 2):
+            return f'cx q[{targets[0]}], q[{targets[1]}];'
+        return None
+
+    def _serialize_h_pow_gate(self, gate: cirq.HPowGate, targets: Sequence[int]) -> str | None:
+        if self._near_mod_n(gate.exponent, 1, 2):
+            return f'h q[{targets[0]}];'
+        return None
+
+    def _serialize_swap_gate(self, gate: cirq.SwapPowGate, targets: Sequence[int]) -> str | None:
+        if self._near_mod_n(gate.exponent, 1, 2):
+            return f'swap q[{targets[0]}], q[{targets[1]}];'
+        return None
+
+    def _serialize_measurement_gate(
+        self, gate: cirq.MeasurementGate, targets: Sequence[int]
+    ) -> str:
+        # TODO: classical registries must be declared in OpenQASM3 code sent to IonQ API.
+        key = cirq.measurement_key_name(gate)
+        if not _OPENQASM3_IDENTIFIER_RE.fullmatch(key) or key in _OPENQASM3_KEYWORDS:
+            raise ValueError(
+                'Jobs with mid-circuit measurements are routed to OpenQASM3 IonQ API and must use '
+                f'keys that are valid OpenQASM3 identifiers and not OpenQASM keywords. Key was: {key}.'
+            )
+        if len(targets) == 1:
+            return f'{key} = measure q[{targets[0]}];'
+        return '\n'.join(f'{key}[{i}] = measure q[{target}];' for i, target in enumerate(targets))
+
+    def _serialize_pauli_string_phasor_gate(
+        self, gate: PauliStringPhasorGate, targets: Sequence[int]
+    ) -> dict[str, Any] | None:
+       # TODO: this is not supported in OpenQASM3, so we will need to decompose it into supported gates
+       pass
+
+    def _serialize_gpi_gate(self, gate: GPIGate, targets: Sequence[int]) -> str:
+        """GPI(φ): apply X, then RZ(4πφ)."""
+        target = targets[0]
+        return (
+            f'x q[{target}];'
+            '\n'
+            f'rz({self._format_angle(4 * np.pi * gate.phase)}) q[{target}];'
+        )
+
+    def _serialize_gpi2_gate(self, gate: GPI2Gate, targets: Sequence[int]) -> str:
+        """GPI2(φ): apply RZ(-2πφ), RX(π/2), then RZ(2πφ)."""
+        target = targets[0]
+        phase_rads = 2 * np.pi * gate.phase
+        return (
+            f'rz({self._format_angle(-phase_rads)}) q[{target}];'
+            '\n'
+            f'rx({self._format_angle(np.pi / 2)}) q[{target}];'
+            '\n'
+            f'rz({self._format_angle(phase_rads)}) q[{target}];'
+        )
+
+    def _serialize_ms_gate(self, gate: MSGate, targets: Sequence[int]) -> str:
+        self.qasm_gates_definitions_needed.add('rxx')
+        return (
+            f'rz({self._format_angle(-2 * np.pi * gate.phi0)}) q[{targets[0]}];'
+            '\n'
+            f'rz({self._format_angle(-2 * np.pi * gate.phi1)}) q[{targets[1]}];'
+            '\n'
+            f'rxx({self._format_angle(2 * np.pi * gate.theta)}) q[{targets[0]}], q[{targets[1]}];'
+            '\n'
+            f'rz({self._format_angle(2 * np.pi * gate.phi0)}) q[{targets[0]}];'
+            '\n'
+            f'rz({self._format_angle(2 * np.pi * gate.phi1)}) q[{targets[1]}];'
+        )
+
+    def _serialize_zz_gate(self, gate: ZZGate, targets: Sequence[int]) -> str:
+        """ZZ(θ) = RZZ(2πθ)"""
+        self.qasm_gates_definitions_needed.add('rzz')
+        return (
+            f'rzz({self._format_angle(2 * np.pi * gate.phase)}) '
+            f'q[{targets[0]}], q[{targets[1]}];'
+        )

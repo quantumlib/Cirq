@@ -66,9 +66,10 @@ class NotSupportedPauliexpParameters(Exception):
         super().__init__(f"Message: '{message}'")
 
 
-class NotSupportedMultipleCircuitsJobWithMidCircuitMeasurements(Exception):
+class IonQNotSupportedMultipleCircuitsJobException(Exception):
     """An exception that is thrown when trying to send create a job
-    containing multiple circuits with mid-circuit measurements.
+    containing multiple circuits with mid-circuit measurements, resets,
+    or classical control flow.
     """
 
     def __init__(self, message):

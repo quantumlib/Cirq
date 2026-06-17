@@ -21,7 +21,7 @@ from collections.abc import Sequence
 
 import cirq
 from cirq_ionq import calibration, ionq_client, job, results, sampler, serializer
-from cirq_ionq.ionq_exceptions import NotSupportedMultipleCircuitsJobWithMidCircuitMeasurements
+from cirq_ionq.ionq_exceptions import IonQNotSupportedMultipleCircuitsJobException
 
 
 class Service:
@@ -458,8 +458,10 @@ class Service:
         """
         for circuit in circuits:
             if self.circuit_requires_qasm3(circuit):
-                raise NotSupportedMultipleCircuitsJobWithMidCircuitMeasurements(
-                    'Only single circuits jobs are supported for circuits with mid circuit measurements.'
+                raise IonQNotSupportedMultipleCircuitsJobException(
+                    "Mid-circuit measurement, reset, and classical control flow are "
+                    "only supported for single-circuit submissions. Submit such "
+                    "circuits in separate jobs."
                 )
 
         serialized_program = serializer.QISSerializer().serialize_many_circuits(

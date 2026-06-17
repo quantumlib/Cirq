@@ -30,7 +30,7 @@ import requests
 import cirq_ionq
 from cirq import __version__ as cirq_version
 from cirq_ionq import ionq_exceptions
-from cirq_ionq.ionq_exceptions import NotSupportedMultipleCircuitsJobWithMidCircuitMeasurements
+from cirq_ionq.ionq_exceptions import IonQNotSupportedMultipleCircuitsJobException
 
 # https://support.cloudflare.com/hc/en-us/articles/115003014512-4xx-Client-Error
 # "Cloudflare will generate and serve a 409 response for a Error 1001: DNS Resolution Error."
@@ -151,8 +151,10 @@ class _IonQClient:
             }
         elif isinstance(serialized_program, cirq_ionq.SerializedOpenQASMProgram):
             if batch_mode:
-                raise NotSupportedMultipleCircuitsJobWithMidCircuitMeasurements(
-                    'Only single circuits jobs are supported for circuits with mid circuit measurements.'
+                raise IonQNotSupportedMultipleCircuitsJobException(
+                    "Mid-circuit measurement, reset, and classical control flow are "
+                    "only supported for single-circuit submissions. Submit such "
+                    "circuits in separate jobs."
                 )
             json: dict[str, Any] = {
                 'backend': actual_target,
