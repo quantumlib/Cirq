@@ -345,6 +345,9 @@ def test_histogram_qudits() -> None:
     )
     assert result.histogram(key='q', fold_base=3) == collections.Counter({26: 1})
 
+    with pytest.raises(ValueError):
+        result.histogram(key='q', fold_func=tuple, fold_base=3)
+
 
 def test_text_diagram_jupyter() -> None:
     result = cirq.ResultDict(
