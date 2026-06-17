@@ -338,14 +338,13 @@ def test_qubit_keys_for_histogram() -> None:
     assert results.histogram(key=c) == collections.Counter({True: 100})
     assert results.histogram(key=[c]) == collections.Counter({1: 100})
 
+
 def test_histogram_qudits() -> None:
     result = cirq.ResultDict(
-        params=cirq.ParamResolver({}),
-        measurements={'q': np.array([[2, 2, 2]], dtype=np.int8)},
+        params=cirq.ParamResolver({}), measurements={'q': np.array([[2, 2, 2]], dtype=np.int8)}
     )
-    assert result.histogram(key='q', qid_shape=(3, 3, 3)) == collections.Counter({26: 1})
-    # Verify backward compatibility: without qid_shape, base-2 is used
-    assert result.histogram(key='q') == collections.Counter({7: 1})
+    assert result.histogram(key='q', fold_base=3) == collections.Counter({26: 1})
+
 
 def test_text_diagram_jupyter() -> None:
     result = cirq.ResultDict(
