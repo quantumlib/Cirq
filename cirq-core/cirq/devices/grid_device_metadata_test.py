@@ -233,10 +233,7 @@ def test_griddevice_metadata_qubit_attributes() -> None:
         cirq.GridQubit(0, 1): {"index": 43},  # different index
     }
     metadata2 = cirq.GridDeviceMetadata(
-        qubit_pairs=[],
-        gateset=gateset,
-        all_qubits=qubits,
-        qubit_attributes=qubit_attributes2,
+        qubit_pairs=[], gateset=gateset, all_qubits=qubits, qubit_attributes=qubit_attributes2
     )
 
     metadata3 = cirq.GridDeviceMetadata(

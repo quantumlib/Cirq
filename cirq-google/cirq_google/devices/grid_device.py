@@ -522,7 +522,9 @@ class GridDevice(cirq.Device):
                 elif which_val is None:
                     attrs[entry.name] = None
                 else:
-                    raise ValueError(f"Unknown value in QubitAttributeValue: {which_val}")  # pragma: no cover
+                    raise ValueError(
+                        f"Unknown value in QubitAttributeValue: {which_val}"
+                    )  # pragma: no cover
             qubit_attributes[qubit] = attrs
 
         try:
@@ -594,7 +596,9 @@ class GridDevice(cirq.Device):
                     # leave unset
                     pass
                 else:
-                    raise ValueError(f"Unsupported attribute value type: {type(attr_val)}")  # pragma: no cover
+                    raise ValueError(
+                        f"Unsupported attribute value type: {type(attr_val)}"
+                    )  # pragma: no cover
 
         _validate_device_specification(out)
 
