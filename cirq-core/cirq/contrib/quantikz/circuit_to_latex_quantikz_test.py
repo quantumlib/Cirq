@@ -251,3 +251,56 @@ def test_classical_control() -> None:
     converter = CircuitToQuantikz(circuit)
     latex_code = converter.generate_latex_document()
     assert "\\vcw" in latex_code
+
+
+def test_escape_latex_text_neutralizes_special_characters():
+    """The escaper replaces every LaTeX special character with a literal form."""
+    assert CircuitToQuantikz._escape_latex_text(r"\&%$#_{}~^") == (
+        r"\textbackslash{}\&\%\$\#\_\{\}\textasciitilde{}\textasciicircum{}"
+    )
+    # Ordinary text must pass through without over-escaping.
+    assert CircuitToQuantikz._escape_latex_text("alice") == "alice"
+    assert CircuitToQuantikz._escape_latex_text("result_0") == r"result\_0"
+    assert CircuitToQuantikz._escape_latex_text("") == ""
+
+
+def test_measurement_key_is_latex_escaped():
+    r"""Untrusted measurement keys must not inject raw LaTeX (CWE-94 / CWE-150).
+
+    A measurement key is free-form user/data-supplied text that is embedded into
+    the generated document and later compiled by ``pdflatex``. A crafted key
+    must not be able to break out of the ``\meter{...}`` argument and inject a
+    command such as ``\input`` (file disclosure) or ``\write18`` (RCE under
+    shell-escape).
+    """
+    q = cirq.LineQubit(0)
+    malicious_key = r"a}{\input{/etc/passwd}"
+    circuit = cirq.Circuit(cirq.measure(q, key=malicious_key))
+    latex_code = CircuitToQuantikz(circuit).generate_latex_document()
+
+    # The raw payload (and its brace break-out / control sequence) must be gone.
+    assert malicious_key not in latex_code
+    assert r"\input{/etc/passwd}" not in latex_code
+    assert "}{" not in latex_code
+    # The dangerous characters are present only in escaped form.
+    assert r"\textbackslash{}input" in latex_code
+
+
+def test_named_qubit_label_is_latex_escaped():
+    """Untrusted qubit names must not inject raw LaTeX into wire labels."""
+    q = cirq.NamedQubit(r"\input{/etc/passwd}")
+    circuit = cirq.Circuit(cirq.H(q))
+    latex_code = CircuitToQuantikz(circuit, wire_labels="qid").generate_latex_document()
+
+    assert r"\input{/etc/passwd}" not in latex_code
+    assert r"\lstick{$\textbackslash{}input\{/etc/passwd\}$}" in latex_code
+
+
+def test_legitimate_keys_and_labels_are_unchanged():
+    """Escaping must not regress rendering of ordinary keys and qubit labels."""
+    q = cirq.NamedQubit("alice")
+    circuit = cirq.Circuit(cirq.H(q), cirq.measure(q, key="result"))
+    latex_code = CircuitToQuantikz(circuit, wire_labels="qid").generate_latex_document()
+
+    assert r"\lstick{$alice$}" in latex_code
+    assert r"\meter[style={fill=gray!20}]{result}" in latex_code

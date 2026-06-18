@@ -664,3 +664,52 @@ m_c[0] = measure q[0];
 m_c[0] = measure q[0];
 m_c[1] = measure q[1];
 """
+
+
+def test_escape_comment_collapses_all_line_breaks() -> None:
+    """The comment escaper collapses every kind of line break to a space."""
+    escape = cirq.QasmOutput._escape_comment
+    assert escape('a\nb\rc\r\nd e f') == 'a b c d e f'
+    assert escape('plain text') == 'plain text'
+    assert escape('') == ''
+
+
+def test_qubit_name_newline_cannot_break_out_of_comment() -> None:
+    """A newline in a qubit name must not inject QASM via the `// Qubits` comment.
+
+    The qubit register itself is emitted as the indexed ``q[i]``, but the qubit's
+    string representation is echoed into the ``// Qubits: [...]`` comment. Without
+    neutralization, a crafted name closes the comment and injects statements.
+    """
+    evil = cirq.NamedQubit('q0\nx q[0];\n//')
+    qasm = str(cirq.QasmOutput((), (evil,), precision=5))
+    lines = qasm.splitlines()
+
+    # The payload is preserved, but only inside the single `// Qubits` comment.
+    qubits_comment = [line for line in lines if line.startswith('// Qubits:')]
+    assert len(qubits_comment) == 1
+    assert 'x q[0];' in qubits_comment[0]
+    # ... and never as a bare, executable statement line.
+    assert 'x q[0];' not in [line.strip() for line in lines]
+
+
+def test_measurement_key_newline_cannot_break_out_of_comment() -> None:
+    """A line break in a measurement key must stay within its `// Measurement` comment."""
+    q = cirq.LineQubit(0)
+    # The '?' makes `m_<key>` an invalid QASM id, so the raw key is emitted as a
+    # comment; the embedded carriage return must not start a new QASM line.
+    circuit = cirq.Circuit(cirq.measure(q, key='k?\rcreg evil[1];'))
+    lines = circuit.to_qasm().splitlines()
+
+    # No injected creg: the only creg is the sanitized measurement register.
+    cregs = [line for line in lines if line.strip().startswith('creg ')]
+    assert cregs == ['creg m0[1];  // Measurement: k? creg evil[1];']
+    assert 'creg evil[1];' not in [line.strip() for line in lines]
+
+
+def test_legitimate_qubit_names_and_keys_unchanged() -> None:
+    """Escaping must not regress ordinary qubit names or measurement keys."""
+    q = cirq.NamedQubit('alice')
+    qasm = cirq.Circuit(cirq.measure(q, key='x?')).to_qasm()
+    assert '// Qubits: [alice]' in qasm
+    assert 'creg m0[1];  // Measurement: x?' in qasm

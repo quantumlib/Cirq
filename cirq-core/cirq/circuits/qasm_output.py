@@ -252,7 +252,7 @@ class QasmOutput:
             else:
                 meas_id = f'm{meas_i}'
                 meas_i += 1
-                meas_comments[key] = ' '.join(key.split('\n'))
+                meas_comments[key] = self._escape_comment(key)
             meas_key_id_map[key] = meas_id
         return meas_key_id_map, meas_comments
 
@@ -286,6 +286,22 @@ class QasmOutput:
     def is_valid_qasm_id(self, id_str: str) -> bool:
         """Test if id_str is a valid id in QASM grammar."""
         return self.valid_id_re.match(id_str) is not None
+
+    @staticmethod
+    def _escape_comment(text: str) -> str:
+        r"""Collapses line breaks so untrusted text stays within a single comment.
+
+        Qubit names and measurement keys are free-form strings that may be
+        attacker-controlled (for example, they survive JSON serialization). They
+        are emitted into ``//`` comments in the generated QASM. A ``//`` comment
+        is terminated by a line break, so an embedded line break would let such a
+        string break out of the comment and inject arbitrary QASM statements
+        (CWE-94 / CWE-150). Collapsing every line-break character -- ``\n``,
+        ``\r``, ``\r\n`` and the Unicode line/paragraph separators recognized by
+        ``str.splitlines`` -- to a single space keeps the text confined to its
+        comment.
+        """
+        return ' '.join(text.splitlines())
 
     def save(self, path: str | bytes | int) -> None:
         """Write QASM output to a file specified by path."""
@@ -338,7 +354,8 @@ class QasmOutput:
         # Register definitions
         # Qubit registers
 
-        output(f"// Qubits: [{', '.join(map(str, self.qubits))}]\n")
+        qubit_list = ', '.join(self._escape_comment(str(qubit)) for qubit in self.qubits)
+        output(f"// Qubits: [{qubit_list}]\n")
         if len(self.qubits) > 0:
             if self.args.version == '2.0':
                 output(f'qreg q[{len(self.qubits)}];\n')

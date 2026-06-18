@@ -62,6 +62,7 @@ Example:
 from __future__ import annotations
 
 import math
+import re
 import warnings
 from typing import Any
 
@@ -154,6 +155,27 @@ _PARAMETERIZED_GATE_BASE_NAMES: dict[type[ops.Gate], str] = {
     ops.PhasedXZGate: "PhasedXZ",
     ops.FSimGate: "FSim",
 }
+
+# Mapping of LaTeX special characters to escape sequences that render the
+# character literally. The replacements are valid in both text and math mode,
+# so they are safe to insert inside ``\meter{...}`` arguments as well as inside
+# ``$...$`` wire labels. ``\`` is included so that attacker-supplied control
+# sequences cannot survive escaping; because the substitution below is a single
+# left-to-right pass, the braces introduced by ``\textbackslash{}`` (and the
+# other ``\text...{}`` forms) are not themselves re-escaped.
+_LATEX_SPECIAL_CHARS = {
+    "\\": r"\textbackslash{}",
+    "&": r"\&",
+    "%": r"\%",
+    "$": r"\$",
+    "#": r"\#",
+    "_": r"\_",
+    "{": r"\{",
+    "}": r"\}",
+    "~": r"\textasciitilde{}",
+    "^": r"\textasciicircum{}",
+}
+_LATEX_SPECIAL_RE = re.compile("|".join(re.escape(char) for char in _LATEX_SPECIAL_CHARS))
 
 
 # =============================================================================
@@ -273,6 +295,34 @@ class CircuitToQuantikz:
             label = label.replace("_", r"\_")
         return label
 
+    @staticmethod
+    def _escape_latex_text(text: str) -> str:
+        r"""Escapes arbitrary text so that LaTeX renders it literally.
+
+        Cirq circuits carry attacker-influenceable free-form strings such as
+        measurement keys (set via ``cirq.measure(..., key=...)``) and
+        named-qubit labels. These values are embedded verbatim into the
+        generated ``.tex`` document, which ``render_circuit`` then compiles with
+        ``pdflatex``. Unlike gate labels -- whose math content is intentionally
+        allowed to contain LaTeX (e.g. ``\alpha``) -- these strings have no such
+        meaning and must be neutralised. If their LaTeX special characters are
+        left intact, a crafted value can break out of its surrounding command
+        argument and inject arbitrary LaTeX, for example ``\input{/etc/passwd}``
+        to read a file into the rendered image, or (when shell-escape is
+        enabled) ``\write18{...}`` to run a shell command.
+
+        Every LaTeX special character is replaced with an escape sequence that
+        is valid in both text and math mode, so the result is safe to embed in
+        either context.
+
+        Args:
+            text: The raw, untrusted string to escape.
+
+        Returns:
+            The escaped string, safe to embed in the generated LaTeX document.
+        """
+        return _LATEX_SPECIAL_RE.sub(lambda m: _LATEX_SPECIAL_CHARS[m.group()], text)
+
     def _get_wire_label(self, qubit: ops.Qid, index: int) -> str:
         r"""Generates the LaTeX string for a qubit wire label.
 
@@ -288,7 +338,7 @@ class CircuitToQuantikz:
             f"q_{{{index}}}"
             if self.wire_labels == "q"
             else (
-                str(index) if self.wire_labels == "index" else str(self._escape_string(str(qubit)))
+                str(index) if self.wire_labels == "index" else self._escape_latex_text(str(qubit))
             )
         )
         return f"${lbl}$"
@@ -510,7 +560,7 @@ class CircuitToQuantikz:
 
         # Apply special Quantikz commands for specific gate types
         if isinstance(gate, ops.MeasurementGate):
-            lbl = gate.key.replace("_", r"\_") if gate.key else ""
+            lbl = self._escape_latex_text(gate.key) if gate.key else ""
             for idx, q1 in enumerate(q_indices):
                 if idx == 0:
                     output[q1] = f"\\meter{final_style_tikz}{{{lbl}}}"
