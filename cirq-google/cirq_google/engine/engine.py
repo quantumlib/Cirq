@@ -399,9 +399,14 @@ class Engine(abstract_engine.AbstractEngine):
                 )
             except engine_client.EngineException as ee:
                 if ee.code == HTTPStatus.CONFLICT:
+                    if not program_id:
+                        # Randomly-assigned ID collided with existing
+                        raise
                     # If the program was already created, move on to job creation.
+                    engine_program = self.get_program(program_id)
                     pass
-                raise
+                else:
+                    raise
 
             return await engine_program.run_sweep_async(
                 job_id=job_id,

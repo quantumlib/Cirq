@@ -846,6 +846,33 @@ def test_recreate_job_if_not_found(get_job_results, get_job):
     get_job_results.assert_called_once_with(project_id, program_id, job_id)
 
 
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_async')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
+def test_receive_results_get_job_error_propagated(get_job_results, get_job):
+    project_id = 'a'
+    program_id = 'b'
+    job_id = 'steve'
+    context = EngineContext(timeout=60, enable_streaming=False)
+
+    get_job.side_effect = EngineException(HTTPStatus.INTERNAL_SERVER_ERROR, 'internal error')
+
+    job = cg.EngineJob(
+        project_id=project_id,
+        program_id=program_id,
+        job_id=job_id,
+        context=context,
+        _job=None,
+        job_result_future=None,
+    )
+
+    try:
+        job.results()
+        assert False, "Expected exception to be raised"
+    except Exception as e:
+        assert isinstance(e, EngineException)
+        assert e.code == HTTPStatus.INTERNAL_SERVER_ERROR
+
+
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
 def test_results_len(get_job_results):
     qjob = quantum.QuantumJob(
