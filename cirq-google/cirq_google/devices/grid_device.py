@@ -468,7 +468,7 @@ class GridDevice(cirq.Device):
         self._metadata = metadata
 
     @property
-    def qubit_attributes(self) -> dict[cirq.GridQubit, dict[str, str | int | float | bool]]:
+    def qubit_attributes(self) -> Mapping[cirq.GridQubit, Mapping[str, Any]]:
         return self._metadata.qubit_attributes
 
     @classmethod
@@ -522,7 +522,7 @@ class GridDevice(cirq.Device):
                 elif which_val is None:
                     attrs[entry.name] = None
                 else:
-                    raise ValueError(f"Unknown value in QubitAttributeValue: {which_val}")
+                    raise ValueError(f"Unknown value in QubitAttributeValue: {which_val}")  # pragma: no cover
             qubit_attributes[qubit] = attrs
 
         try:
@@ -594,7 +594,7 @@ class GridDevice(cirq.Device):
                     # leave unset
                     pass
                 else:
-                    raise ValueError(f"Unsupported attribute value type: {type(attr_val)}")
+                    raise ValueError(f"Unsupported attribute value type: {type(attr_val)}")  # pragma: no cover
 
         _validate_device_specification(out)
 

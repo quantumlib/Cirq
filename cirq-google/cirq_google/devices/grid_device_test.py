@@ -844,12 +844,16 @@ def test_qubit_attributes_serialization_deserialization():
     attr4.name = "is_active"
     attr4.value.bool_value = True
 
+    # Add an unset value (representing None)
+    attr5 = qa2.attributes.add()
+    attr5.name = "calibration_status"
+
     # Deserialize and verify Python object attributes
     device = cirq_google.GridDevice.from_proto(spec)
 
     expected_attrs = {
         cirq.GridQubit(0, 0): {"type": "transmon", "frequency": 5.123},
-        cirq.GridQubit(0, 1): {"index": 42, "is_active": True},
+        cirq.GridQubit(0, 1): {"index": 42, "is_active": True, "calibration_status": None},
     }
     assert device.qubit_attributes == expected_attrs
 

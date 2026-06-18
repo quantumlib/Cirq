@@ -16,6 +16,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import networkx as nx
 import pytest
 
@@ -207,7 +209,7 @@ def test_repr() -> None:
 def test_griddevice_metadata_qubit_attributes() -> None:
     qubits = cirq.GridQubit.rect(1, 2)
     gateset = cirq.Gateset(cirq.XPowGate)
-    qubit_attributes = {
+    qubit_attributes: dict[cirq.GridQubit, dict[str, Any]] = {
         cirq.GridQubit(0, 0): {"type": "transmon", "frequency": 5.1},
         cirq.GridQubit(0, 1): {"index": 42},
     }
@@ -226,14 +228,15 @@ def test_griddevice_metadata_qubit_attributes() -> None:
     cirq.testing.assert_equivalent_repr(metadata)
 
     # test equality
+    qubit_attributes2: dict[cirq.GridQubit, dict[str, Any]] = {
+        cirq.GridQubit(0, 0): {"type": "transmon", "frequency": 5.1},
+        cirq.GridQubit(0, 1): {"index": 43},  # different index
+    }
     metadata2 = cirq.GridDeviceMetadata(
         qubit_pairs=[],
         gateset=gateset,
         all_qubits=qubits,
-        qubit_attributes={
-            cirq.GridQubit(0, 0): {"type": "transmon", "frequency": 5.1},
-            cirq.GridQubit(0, 1): {"index": 43},  # different index
-        },
+        qubit_attributes=qubit_attributes2,
     )
 
     metadata3 = cirq.GridDeviceMetadata(
