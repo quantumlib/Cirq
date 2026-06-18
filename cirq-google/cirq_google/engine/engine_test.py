@@ -576,15 +576,10 @@ def test_run_sweep_params_with_unary_rpcs(client):
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_sweep_program_already_exists(client):
-    program_id='prog'
+    program_id = 'prog'
     client().create_program_async.side_effect = [
-        EngineException(
-            HTTPStatus.CONFLICT, "program already exists"
-        ),
-        (
-            program_id,
-            quantum.QuantumProgram(name=f"projects/proj/programs/{program_id}"),
-        ),
+        EngineException(HTTPStatus.CONFLICT, "program already exists"),
+        (program_id, quantum.QuantumProgram(name=f"projects/proj/programs/{program_id}")),
     ]
     client().create_job_async.return_value = (
         'job-id',
@@ -640,7 +635,7 @@ def test_run_sweep_program_with_implicit_id_already_exists(client):
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_sweep_unable_to_create_program_raises_error(client):
-    program_id='prog'
+    program_id = 'prog'
     client().create_program_async.side_effect = EngineException(
         HTTPStatus.INTERNAL_SERVER_ERROR, "internal error"
     )

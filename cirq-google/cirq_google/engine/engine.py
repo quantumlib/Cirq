@@ -404,7 +404,6 @@ class Engine(abstract_engine.AbstractEngine):
                         raise
                     # If the program was already created, move on to job creation.
                     engine_program = self.get_program(program_id)
-                    pass
                 else:
                     raise
 
