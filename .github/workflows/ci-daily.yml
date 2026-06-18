@@ -37,6 +37,10 @@ jobs:
           cache-dependency-path: |
             **/requirements.txt
             dev_tools/requirements/**/*.txt
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install $(cat apt-system-requirements.txt)
       - name: Install requirements
         run: |
           pip install --upgrade "cirq~=1.0.dev" "cirq-core[contrib]~=1.0.dev"
@@ -71,7 +75,7 @@ jobs:
             -r dev_tools/requirements/deps/pytest.txt `
             -r dev_tools/requirements/deps/notebook.txt
       - name: Pytest Windows
-        run: check/pytest -n auto --enable-slow-tests
+        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --enable-slow-tests
         shell: bash
   macos:
     if: github.repository_owner == 'quantumlib'
@@ -99,4 +103,4 @@ jobs:
             -r dev_tools/requirements/deps/pytest.txt \
             -r dev_tools/requirements/deps/notebook.txt
       - name: Pytest check
-        run: check/pytest -n auto --enable-slow-tests
+        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --enable-slow-tests
