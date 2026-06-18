@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
-from typing import cast, TYPE_CHECKING
+from typing import Any, cast, TYPE_CHECKING
 
 import networkx as nx
 
@@ -39,6 +39,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
         gate_durations: Mapping[cirq.GateFamily, cirq.Duration] | None = None,
         all_qubits: Iterable[cirq.GridQubit] | None = None,
         compilation_target_gatesets: Iterable[cirq.CompilationTargetGateset] = (),
+        qubit_attributes: Mapping[cirq.GridQubit, Mapping[str, Any]] | None = None,
     ):
         """Create a GridDeviceMetadata object.
 
@@ -117,6 +118,11 @@ class GridDeviceMetadata(device.DeviceMetadata):
                 )
 
         self._gate_durations = gate_durations
+        self._qubit_attributes = (
+            {q: dict(attrs) for q, attrs in qubit_attributes.items()}
+            if qubit_attributes is not None
+            else {}
+        )
 
     @property
     def qubit_set(self) -> frozenset[cirq.GridQubit]:
@@ -175,10 +181,20 @@ class GridDeviceMetadata(device.DeviceMetadata):
 
         return self._gate_durations
 
+    @property
+    def qubit_attributes(self) -> Mapping[cirq.GridQubit, Mapping[str, Any]]:
+        """Returns a mapping from qubit to its attributes (if applicable)."""
+        return self._qubit_attributes
+
     def _value_equality_values_(self):
         duration_equality = ''
         if self._gate_durations is not None:
             duration_equality = sorted(self._gate_durations.items(), key=lambda x: repr(x[0]))
+
+        attributes_equality = sorted(
+            [(q, tuple(sorted(attrs.items()))) for q, attrs in self._qubit_attributes.items()],
+            key=lambda x: x[0],
+        )
 
         return (
             self._qubit_pairs,
@@ -186,6 +202,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
             tuple(duration_equality),
             tuple(sorted(self.qubit_set)),
             frozenset(self._compilation_target_gatesets),
+            tuple(attributes_equality),
         )
 
     def __repr__(self) -> str:
@@ -193,7 +210,8 @@ class GridDeviceMetadata(device.DeviceMetadata):
         return (
             f'cirq.GridDeviceMetadata({repr(qubit_pair_tuples)},'
             f' {repr(self._gateset)}, {repr(self._gate_durations)},'
-            f' {repr(self.qubit_set)}, {repr(self._compilation_target_gatesets)})'
+            f' {repr(self.qubit_set)}, {repr(self._compilation_target_gatesets)},'
+            f' {repr(self._qubit_attributes)})'
         )
 
     def _json_dict_(self):
@@ -207,6 +225,10 @@ class GridDeviceMetadata(device.DeviceMetadata):
             'gate_durations': duration_payload,
             'all_qubits': sorted(self.qubit_set),
             'compilation_target_gatesets': list(self._compilation_target_gatesets),
+            'qubit_attributes': sorted(
+                [(q, sorted(attrs.items())) for q, attrs in self._qubit_attributes.items()],
+                key=lambda x: x[0],
+            ),
         }
 
     @classmethod
@@ -217,6 +239,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
         gate_durations,
         all_qubits,
         compilation_target_gatesets=(),
+        qubit_attributes=None,
         **kwargs,
     ):
         return cls(
@@ -225,4 +248,5 @@ class GridDeviceMetadata(device.DeviceMetadata):
             dict(gate_durations) if gate_durations is not None else None,
             all_qubits,
             compilation_target_gatesets,
+            dict(qubit_attributes) if qubit_attributes is not None else None,
         )

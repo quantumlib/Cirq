@@ -202,3 +202,45 @@ def test_repr() -> None:
         compilation_target_gatesets=target_gatesets,
     )
     cirq.testing.assert_equivalent_repr(metadata)
+
+
+def test_griddevice_metadata_qubit_attributes() -> None:
+    qubits = cirq.GridQubit.rect(1, 2)
+    gateset = cirq.Gateset(cirq.XPowGate)
+    qubit_attributes = {
+        cirq.GridQubit(0, 0): {"type": "transmon", "frequency": 5.1},
+        cirq.GridQubit(0, 1): {"index": 42},
+    }
+
+    metadata = cirq.GridDeviceMetadata(
+        qubit_pairs=[], gateset=gateset, all_qubits=qubits, qubit_attributes=qubit_attributes
+    )
+
+    assert metadata.qubit_attributes == qubit_attributes
+
+    # test JSON serialization
+    rep_str = cirq.to_json(metadata)
+    assert metadata == cirq.read_json(json_text=rep_str)
+
+    # test repr
+    cirq.testing.assert_equivalent_repr(metadata)
+
+    # test equality
+    metadata2 = cirq.GridDeviceMetadata(
+        qubit_pairs=[],
+        gateset=gateset,
+        all_qubits=qubits,
+        qubit_attributes={
+            cirq.GridQubit(0, 0): {"type": "transmon", "frequency": 5.1},
+            cirq.GridQubit(0, 1): {"index": 43},  # different index
+        },
+    )
+
+    metadata3 = cirq.GridDeviceMetadata(
+        qubit_pairs=[], gateset=gateset, all_qubits=qubits, qubit_attributes=None
+    )
+
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(metadata)
+    eq.add_equality_group(metadata2)
+    eq.add_equality_group(metadata3)

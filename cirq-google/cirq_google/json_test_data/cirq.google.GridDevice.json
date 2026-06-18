@@ -267,6 +267,7 @@
                 "required_sqrt_iswap_count": null,
                 "use_sqrt_iswap_inv": false
             }
-        ]
+        ],
+        "qubit_attributes": []
     }
 }

@@ -467,6 +467,10 @@ class GridDevice(cirq.Device):
         """
         self._metadata = metadata
 
+    @property
+    def qubit_attributes(self) -> dict[cirq.GridQubit, dict[str, str | int | float | bool]]:
+        return self._metadata.qubit_attributes
+
     @classmethod
     def from_proto(cls, proto: v2.device_pb2.DeviceSpecification) -> GridDevice:
         """Deserializes the `DeviceSpecification` to a `GridDevice`.
@@ -499,6 +503,28 @@ class GridDevice(cirq.Device):
 
         gateset, gate_durations = _deserialize_gateset_and_gate_durations(proto)
 
+        # Create qubit attributes
+        qubit_attributes = {}
+        for qubit_attrs_proto in proto.qubit_attributes:
+            qubit = v2.grid_qubit_from_proto_id(qubit_attrs_proto.qubit)
+            attrs = {}
+            for entry in qubit_attrs_proto.attributes:
+                val_proto = entry.value
+                which_val = val_proto.WhichOneof("val")
+                if which_val == "bool_value":
+                    attrs[entry.name] = val_proto.bool_value
+                elif which_val == "int_value":
+                    attrs[entry.name] = val_proto.int_value
+                elif which_val == "double_value":
+                    attrs[entry.name] = val_proto.double_value
+                elif which_val == "string_value":
+                    attrs[entry.name] = val_proto.string_value
+                elif which_val is None:
+                    attrs[entry.name] = None
+                else:
+                    raise ValueError(f"Unknown value in QubitAttributeValue: {which_val}")
+            qubit_attributes[qubit] = attrs
+
         try:
             metadata = cirq.GridDeviceMetadata(
                 qubit_pairs=qubit_pairs,
@@ -506,6 +532,7 @@ class GridDevice(cirq.Device):
                 gate_durations=gate_durations if len(gate_durations) > 0 else None,
                 all_qubits=all_qubits,
                 compilation_target_gatesets=_build_compilation_target_gatesets(gateset),
+                qubit_attributes=qubit_attributes,
             )
         except ValueError as ve:  # pragma: no cover
             # Spec errors should have been caught in validation above.
@@ -547,6 +574,28 @@ class GridDevice(cirq.Device):
         _serialize_gateset_and_gate_durations(
             out, gateset, {} if gate_durations is None else gate_durations
         )
+        for qubit, attrs in self.qubit_attributes.items():
+            qubit_str = v2.qubit_to_proto_id(qubit)
+            qubit_attrs_proto = out.qubit_attributes.add()
+            qubit_attrs_proto.qubit = qubit_str
+            for attr_name, attr_val in attrs.items():
+                entry = qubit_attrs_proto.attributes.add()
+                entry.name = attr_name
+                val_proto = entry.value
+                if isinstance(attr_val, bool):
+                    val_proto.bool_value = attr_val
+                elif isinstance(attr_val, int):
+                    val_proto.int_value = attr_val
+                elif isinstance(attr_val, float):
+                    val_proto.double_value = attr_val
+                elif isinstance(attr_val, str):
+                    val_proto.string_value = attr_val
+                elif attr_val is None:
+                    # leave unset
+                    pass
+                else:
+                    raise ValueError(f"Unsupported attribute value type: {type(attr_val)}")
+
         _validate_device_specification(out)
 
         return out
