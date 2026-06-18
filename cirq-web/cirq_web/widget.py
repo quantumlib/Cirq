@@ -14,12 +14,14 @@
 
 from __future__ import annotations
 
+import json
 import os
 import uuid
 import webbrowser
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
+from typing import Any
 
 import cirq_web
 
@@ -120,3 +122,39 @@ def _to_script_tag(bundle_filename: str) -> str:
     bundle_file_path = _DIST_PATH.joinpath(bundle_filename)
     bundle_file_contents = bundle_file_path.read_text(encoding='utf-8')
     return f'<script>{bundle_file_contents}</script>'
+
+
+# Characters that are significant to the HTML tokenizer (or illegal inside a
+# JavaScript string literal) and therefore must not appear unescaped in data
+# interpolated into an inline ``<script>`` block. ``json.dumps`` does not escape
+# any of these, so e.g. a value containing ``</script>`` would otherwise close
+# the script element at the HTML level and let attacker-influenced data inject
+# arbitrary markup or script (CWE-79). U+2028 and U+2029 are valid in JSON but
+# terminate a JavaScript string literal.
+_HTML_SCRIPT_ESCAPES = {
+    ord('<'): '\\u003c',
+    ord('>'): '\\u003e',
+    ord('&'): '\\u0026',
+    0x2028: '\\u2028',
+    0x2029: '\\u2029',
+}
+
+
+def _to_html_safe_json(value: Any) -> str:
+    r"""Serializes ``value`` to JSON that is safe to embed inside an HTML ``<script>``.
+
+    The result is valid JSON (and therefore a valid JavaScript literal) in which the
+    characters that are significant to the HTML tokenizer (``<``, ``>``, ``&``) and the
+    JavaScript line separators (U+2028, U+2029) are replaced with equivalent ``\uXXXX``
+    escapes. This keeps attacker-influenced data (such as a gate's circuit-diagram
+    symbols) from breaking out of the surrounding ``<script>`` element to inject markup
+    or script (CWE-79), while remaining byte-for-byte equivalent for benign payloads.
+
+    Args:
+        value: A JSON-serializable object to embed in client-side code. Values that are
+            not natively JSON-serializable are coerced with ``str`` (and then escaped).
+
+    Returns:
+        The escaped JSON string.
+    """
+    return json.dumps(value, default=str).translate(_HTML_SCRIPT_ESCAPES)

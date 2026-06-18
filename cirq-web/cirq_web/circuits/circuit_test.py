@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+import json
+
 import pytest
 
 import cirq
@@ -55,7 +57,7 @@ def test_circuit_client_code(qubit) -> None:
         <button id="camera-toggle">Toggle Camera Type</button>
         <script>
         let viz_{stripped_id} = createGridCircuit(
-            {str(circuit_obj)}, {str(moments)}, "{circuit.id}", {circuit.padding_factor}
+            {json.dumps(circuit_obj)}, {str(moments)}, "{circuit.id}", {circuit.padding_factor}
         );
 
         document.getElementById("camera-reset").addEventListener('click', ()  => {{
@@ -85,3 +87,36 @@ def test_circuit_default_bundle_name() -> None:
     circuit = cirq_web.Circuit3D(cirq.Circuit(moment))
 
     assert circuit.get_widget_bundle_name() == 'circuit.bundle.js'
+
+
+class _UntrustedSymbolGate(cirq.testing.SingleQubitGate):
+    """A gate whose circuit-diagram symbol carries an HTML/JS injection payload."""
+
+    def _circuit_diagram_info_(self, args) -> cirq.CircuitDiagramInfo:
+        return cirq.CircuitDiagramInfo(
+            wire_symbols=("</script><img src=x onerror=alert(document.domain)>",)
+        )
+
+
+def test_circuit_client_code_escapes_untrusted_symbols() -> None:
+    # Diagram symbols are attacker-controllable (a custom gate's `_circuit_diagram_info_`),
+    # and a circuit may originate from an untrusted source, e.g. `cirq.read_json`. Such a
+    # symbol must not be able to break out of the inline <script> that renders the circuit
+    # (CWE-79).
+    qubit = cirq.GridQubit(0, 0)
+    circuit = cirq_web.Circuit3D(cirq.Circuit(_UntrustedSymbolGate().on(qubit)))
+
+    client_code = circuit.get_client_code()
+
+    payload = "</script><img src=x onerror=alert(document.domain)>"
+    # The injected markup must never reach the HTML tokenizer: the payload must not
+    # appear, no "</script>" should come from the data (only the one legitimate closing
+    # tag of the template remains), and the breakout sequence must be absent.
+    assert payload not in client_code
+    assert client_code.count("</script>") == 1
+    assert "</script><img" not in client_code
+    # The dangerous characters survive only in their escaped, inert form.
+    assert "\\u003c/script\\u003e" in client_code
+    # The escaped payload still round-trips back to the original data.
+    decoded = json.loads(circuit._serialize_circuit())
+    assert decoded[0]['wire_symbols'] == [payload]

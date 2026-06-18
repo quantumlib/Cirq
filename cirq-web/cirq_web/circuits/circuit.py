@@ -86,8 +86,12 @@ class Circuit3D(widget.Widget):
                 symbol = self._build_3D_symbol(item, moment_id)
                 args.append(symbol.to_typescript())
 
-        argument_str = ','.join(str(item) for item in args)
-        return f'[{argument_str}]'
+        # Serialize as HTML-safe JSON before this is interpolated verbatim into the
+        # inline ``<script>`` produced by ``get_client_code``. The previous
+        # ``','.join(str(item) ...)`` emitted Python ``repr`` literals, letting
+        # attacker-influenced diagram text (e.g. a gate's ``wire_symbols``) break out
+        # of the script context to inject markup or script (CWE-79).
+        return widget._to_html_safe_json(args)
 
     def _build_3D_symbol(self, operation, moment) -> Operation3DSymbol:
         symbol_info = resolve_operation(operation, self._resolvers)

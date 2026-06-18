@@ -14,11 +14,13 @@
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 from unittest import mock
 
 import cirq_web
+from cirq_web import widget
 
 
 class FakeWidget(cirq_web.Widget):
@@ -75,3 +77,31 @@ def test_generate_html_file_with_browser(tmpdir) -> None:
         This is the test client code.
         """
     assert remove_whitespace(expected) == remove_whitespace(actual)
+
+
+def test_to_html_safe_json_escapes_html_significant_characters() -> None:
+    value = {"label": "</script><script>alert(1)</script>", "amp": "a & b", "ok": "X^2"}
+    out = widget._to_html_safe_json(value)
+
+    # None of the characters significant to the HTML tokenizer survive unescaped, so the
+    # result can never close the surrounding <script> element or open new markup.
+    assert "<" not in out
+    assert ">" not in out
+    assert "&" not in out
+    assert "</script>" not in out
+    assert "\\u003c" in out and "\\u003e" in out and "\\u0026" in out
+    # The escaped JSON still decodes back to the original value.
+    assert json.loads(out) == value
+
+
+def test_to_html_safe_json_escapes_js_line_separators() -> None:
+    # U+2028/U+2029 are valid in JSON but terminate a JavaScript string literal.
+    out = widget._to_html_safe_json("a\u2028b\u2029c")
+    assert "\u2028" not in out
+    assert "\u2029" not in out
+    assert json.loads(out) == "a\u2028b\u2029c"
+
+
+def test_to_html_safe_json_preserves_benign_payload() -> None:
+    value = [{"wire_symbols": ["H"], "location_info": [{"row": 0, "col": 0}]}]
+    assert widget._to_html_safe_json(value) == json.dumps(value)
