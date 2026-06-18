@@ -194,7 +194,93 @@ def test_append_single() -> None:
         [cirq.Moment(cirq.H(cirq.NamedQubit('a'))), cirq.Moment(cirq.H(cirq.NamedQubit('a')))]
     )
 
+@pytest.mark.parametrize('method_name', ['append', 'insert'])
+def test_adding_operations_with_same_measurement_key_splits_moments(method_name) -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    op0 = cirq.measure(q0, key='m')
+    op1 = cirq.measure(q1, key='m')
 
+    circuit = cirq.Circuit()
+    if method_name == 'append':
+        circuit.append([op0, op1])
+    else:
+        circuit.insert(0, [op0, op1])
+
+    assert circuit == cirq.Circuit(
+        cirq.Moment(op0),
+        cirq.Moment(op1),
+    )
+
+
+@pytest.mark.parametrize('method_name', ['append', 'insert'])
+def test_adding_moment_with_same_measurement_key_preserves_moment(method_name) -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    op0 = cirq.measure(q0, key='m')
+    op1 = cirq.measure(q1, key='m')
+    moment = cirq.Moment(op0, op1)
+
+    circuit = cirq.Circuit()
+    if method_name == 'append':
+        circuit.append(moment)
+    else:
+        circuit.insert(0, moment)
+
+    assert circuit == cirq.Circuit(moment)
+
+
+@pytest.mark.parametrize('method_name', ['append', 'insert'])
+def test_adding_measurement_and_control_operation_splits_moments(method_name) -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    measure_op = cirq.measure(q0, key='m')
+    controlled_op = cirq.X(q1).with_classical_controls('m')
+
+    circuit = cirq.Circuit()
+    if method_name == 'append':
+        circuit.append([measure_op, controlled_op])
+    else:
+        circuit.insert(0, [measure_op, controlled_op])
+
+    assert circuit == cirq.Circuit(
+        cirq.Moment(measure_op),
+        cirq.Moment(controlled_op),
+    )
+
+
+@pytest.mark.parametrize('method_name', ['append', 'insert'])
+def test_adding_moment_with_measurement_and_control_key_preserves_moment(method_name) -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    measure_op = cirq.measure(q0, key='m')
+    controlled_op = cirq.X(q1).with_classical_controls('m')
+    moment = cirq.Moment(measure_op, controlled_op)
+
+    circuit = cirq.Circuit()
+    if method_name == 'append':
+        circuit.append(moment)
+    else:
+        circuit.insert(0, moment)
+
+    assert circuit == cirq.Circuit(moment)
+
+
+def test_circuit_init_with_operations_splits_overlapping_measurement_keys() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    op0 = cirq.measure(q0, key='m')
+    op1 = cirq.measure(q1, key='m')
+
+    assert cirq.Circuit([op0, op1]) == cirq.Circuit(
+        cirq.Moment(op0),
+        cirq.Moment(op1),
+    )
+
+
+def test_circuit_init_with_moment_preserves_overlapping_measurement_keys() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    moment = cirq.Moment(
+        cirq.measure(q0, key='m'),
+        cirq.measure(q1, key='m'),
+    )
+
+    assert cirq.Circuit(moment) == cirq.Circuit(moment)
 def test_append_control_key() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     c = cirq.Circuit()

@@ -1816,7 +1816,15 @@ class Circuit(AbstractCircuit):
                 circuit. You can also pass in operations, lists of operations,
                 or generally anything meeting the `cirq.OP_TREE` contract.
                 Non-moment entries will be inserted according to the specified
-                insertion strategy.
+                insertion strategy. When `contents` contains individual operations, 
+                they are packed according to `strategy`. This packing treats repeated 
+                measurement keys, and measurement keys that are also used as classical
+                control keys, as conflicts that may require separate moments. By contrast,
+                explicit `cirq.Moment` objects are inserted intact. This allows expert 
+                users to construct moments with repeated measurement keys or 
+                measurement-vs-control-key overlap when they intentionally need that 
+                structure. Non-expert users should usually prefer distinct keys, or a 
+                single multi-qubit measurement such as `cirq.measure(q0, q1, key='m')`.
             strategy: When initializing the circuit with operations and moments
                 from `contents`, this determines how the operations are packed
                 together. This option does not affect later insertions into the
@@ -2259,8 +2267,13 @@ class Circuit(AbstractCircuit):
         """Inserts operations into the circuit.
 
         Operations are inserted into the moment specified by the index and
-        'InsertStrategy'.
-        Moments within the operation tree are inserted intact.
+        'InsertStrategy'. Moments within the operation tree are inserted intact.
+
+        Individual operations are packed according to `strategy`. During this
+        packing, repeated measurement keys and measurement-vs-control-key overlap
+        are treated as conflicts and may require separate moments. To intentionally
+        insert operations with such overlapping keys in the same moment, pass an
+        explicit `cirq.Moment`.
 
         Args:
             index: The index to insert all the operations at.
@@ -2597,7 +2610,12 @@ class Circuit(AbstractCircuit):
     ) -> None:
         """Appends operations onto the end of the circuit.
 
-        Moments within the operation tree are appended intact.
+        Moments within the operation tree are appended intact. Individual
+        operations are packed according to `strategy`. During this packing,
+        repeated measurement keys and measurement-vs-control-key overlap are
+        treated as conflicts and may require separate moments. To intentionally
+        append operations with such overlapping keys in the same moment, pass an
+        explicit `cirq.Moment`.
 
         Args:
             moment_or_operation_tree: The moment or operation tree to append.
