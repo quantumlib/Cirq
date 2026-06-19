@@ -1078,38 +1078,35 @@ def test_pauli_sum_matrix() -> None:
     assert np.allclose(H3, paulisum.matrix([q[1], q[2], q[0]]))
 
 
-def test_pauli_sum_sparse_matrix() -> None:
-    q = cirq.LineQubit.range(3)
-    paulisum = cirq.X(q[0]) * cirq.X(q[1]) + cirq.Z(q[0])
-    H1 = np.array(
-        [[1.0, 0.0, 0.0, 1.0], [0.0, 1.0, 1.0, 0.0], [0.0, 1.0, -1.0, 0.0], [1.0, 0.0, 0.0, -1.0]]
-    )
-    # Default qubit ordering.
-    assert np.allclose(H1, paulisum.sparse_matrix().toarray())
-    # Explicit 2-qubit ordering (same as default).
-    assert np.allclose(H1, paulisum.sparse_matrix([q[0], q[1]]).toarray())
-    # Reversed qubit ordering changes the matrix.
-    H2 = np.array(
-        [[1.0, 0.0, 0.0, 1.0], [0.0, -1.0, 1.0, 0.0], [0.0, 1.0, 1.0, 0.0], [1.0, 0.0, 0.0, -1.0]]
-    )
-    assert np.allclose(H2, paulisum.sparse_matrix([q[1], q[0]]).toarray())
-    # Adding an extra idle qubit expands to 8x8.
-    H3 = np.array(
-        [
-            [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-            [0.0, -1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
-            [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0],
-            [0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 1.0, 0.0],
-            [0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
-            [1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0],
-            [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0],
-            [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0],
-        ]
-    )
-    assert np.allclose(H3, paulisum.sparse_matrix([q[1], q[2], q[0]]).toarray())
-    # Empty PauliSum should return a zero sparse matrix.
+@pytest.mark.parametrize(
+    'paulisum, qubits',
+    (
+        # Single term.
+        (cirq.X(q0), None),
+        # Two terms, default ordering.
+        (cirq.X(q0) * cirq.X(q1) + cirq.Z(q0), None),
+        # Three terms.
+        (cirq.X(q0) + cirq.Y(q1) + cirq.Z(q2), None),
+        # Reversed qubit ordering.
+        (cirq.X(q0) * cirq.X(q1) + cirq.Z(q0), [q1, q0]),
+        # Shuffled ordering with an idle qubit.
+        (cirq.X(q0) * cirq.X(q1) + cirq.Z(q0), [q1, q2, q0]),
+        # Complex coefficients.
+        ((1 + 2j) * cirq.X(q0) * cirq.Y(q1) - 0.5 * cirq.Z(q0), None),
+        # Identity factors included.
+        (cirq.X(q0) * cirq.I(q1) + cirq.Z(q1), None),
+    ),
+)
+def test_pauli_sum_sparse_matrix(paulisum, qubits) -> None:
+    actual = paulisum.sparse_matrix(qubits).toarray()
+    expected = paulisum.matrix(qubits)
+    assert np.allclose(actual, expected)
+
+
+def test_pauli_sum_sparse_matrix_empty() -> None:
+    q = cirq.LineQubit.range(2)
     empty = cirq.PauliSum.from_pauli_strings([])
-    assert np.allclose(empty.sparse_matrix([q[0], q[1]]).toarray(), np.zeros((4, 4)))
+    assert np.allclose(empty.sparse_matrix(q).toarray(), np.zeros((4, 4)))
 
 
 def test_pauli_sum_repr() -> None:

@@ -487,6 +487,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
         Raises:
             NotImplementedError: If this `PauliString` is parameterized.
+            AssertionError: If an unexpected Pauli gate instance is encountered.
         """
         qubits = self.qubits if qubits is None else tuple(qubits)
         if protocols.is_parameterized(self):
@@ -509,6 +510,11 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                 y_mask |= bit
             elif pauli is pauli_gates.Z:
                 z_mask |= bit
+            else:  # pragma: no cover
+                raise AssertionError(
+                    "Unhandled instance of Pauli gate. "
+                    "Expected one of (cirq.X, cirq.Y, cirq.Z) identically."
+                )
 
         cols = np.arange(dim, dtype=np.int32)
         rows = cols ^ x_mask ^ y_mask
