@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Iterable
 
 import cirq
@@ -86,8 +87,7 @@ class Circuit3D(widget.Widget):
                 symbol = self._build_3D_symbol(item, moment_id)
                 args.append(symbol.to_typescript())
 
-        argument_str = ','.join(str(item) for item in args)
-        return f'[{argument_str}]'
+        return _to_script_safe_json(args)
 
     def _build_3D_symbol(self, operation, moment) -> Operation3DSymbol:
         symbol_info = resolve_operation(operation, self._resolvers)
@@ -100,3 +100,21 @@ class Circuit3D(widget.Widget):
             else:
                 raise ValueError('Unsupported qubit type')
         return Operation3DSymbol(symbol_info.labels, location_info, symbol_info.colors, moment)
+
+
+def _to_script_safe_json(value) -> str:
+    """Serializes a value to JSON that is safe to embed inside an HTML <script> tag.
+
+    The serialized circuit is interpolated directly into a <script> block, so symbol
+    text taken from gate diagrams (which may originate from an untrusted circuit) must
+    not be able to close the tag or break out of the JS string. Emitting real JSON and
+    escaping the HTML-significant characters keeps the payload inert.
+    """
+    serialized = json.dumps(value)
+    return (
+        serialized.replace('<', '\\u003c')
+        .replace('>', '\\u003e')
+        .replace('&', '\\u0026')
+        .replace('\u2028', '\\u2028')
+        .replace('\u2029', '\\u2029')
+    )

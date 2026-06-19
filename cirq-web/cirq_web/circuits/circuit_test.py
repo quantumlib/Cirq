@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+import json
+
 import pytest
 
 import cirq
@@ -55,7 +57,7 @@ def test_circuit_client_code(qubit) -> None:
         <button id="camera-toggle">Toggle Camera Type</button>
         <script>
         let viz_{stripped_id} = createGridCircuit(
-            {str(circuit_obj)}, {str(moments)}, "{circuit.id}", {circuit.padding_factor}
+            {json.dumps(circuit_obj)}, {str(moments)}, "{circuit.id}", {circuit.padding_factor}
         );
 
         document.getElementById("camera-reset").addEventListener('click', ()  => {{
@@ -77,6 +79,21 @@ def test_circuit_client_code_unsupported_qubit_type() -> None:
 
     with pytest.raises(ValueError, match='Unsupported qubit type'):
         circuit.get_client_code()
+
+
+def test_circuit_client_code_escapes_script_breakout() -> None:
+    class _EvilGate(cirq.Gate):
+        def _num_qubits_(self):
+            return 1
+
+        def _circuit_diagram_info_(self, args):
+            return cirq.CircuitDiagramInfo(wire_symbols=['</script><script>x</script>'])
+
+    circuit = cirq_web.Circuit3D(cirq.Circuit(_EvilGate().on(cirq.LineQubit(0))))
+    client_code = circuit.get_client_code()
+
+    assert '</script><script>' not in client_code
+    assert '\\u003c/script\\u003e' in client_code
 
 
 def test_circuit_default_bundle_name() -> None:
