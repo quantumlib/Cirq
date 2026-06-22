@@ -159,9 +159,6 @@ def measure_density_matrix(
 
     prng = value.parse_random_state(seed)
 
-    # Cache initial shape.
-    initial_shape = density_matrix.shape
-
     # Calculate the measurement probabilities and then make the measurement.
     probs = _probs(density_matrix, indices, qid_shape)
     result = prng.choice(len(probs), p=probs)
@@ -176,12 +173,10 @@ def measure_density_matrix(
     # Remove ellipses from last element of
     mask[result_slice * 2] = False
 
-    # Potentially reshape to tensor, and then set masked values to 0.
-    arrout.shape = qid_shape * 2
-    arrout[mask] = 0
+    # Reshape to a tensor inplace to set the masked values to 0.
+    arrout.reshape(qid_shape * 2, copy=False)[mask] = 0
 
-    # Restore original shape (if necessary) and renormalize.
-    arrout.shape = initial_shape
+    # Renormalize.
     arrout /= probs[result]
 
     return measurement_bits, arrout
