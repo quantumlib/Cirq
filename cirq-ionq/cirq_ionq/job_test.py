@@ -553,9 +553,7 @@ def test_memory_batch_job_results_no_child_job_ids_falls_back(backend, child_job
         result = job.results()
 
     assert len(w) == 1
-    assert "correct child job ids to retrieve per shot results for a batch job" in str(
-        w[0].message
-    )
+    assert "correct child job ids to retrieve per shot results for a batch job" in str(w[0].message)
     assert len(result) == 2
     assert result[0]._memory_results is None
     assert result[1]._memory_results is None
@@ -907,11 +905,7 @@ def test_retrieve_child_job_shots_partial_failure():
             }
         else:
             # child_2 is missing shots URL
-            return {
-                "id": "child_2",
-                "status": "completed",
-                "results": {},
-            }
+            return {"id": "child_2", "status": "completed", "results": {}}
 
     mock_client.get_job.side_effect = get_job_side_effect
     mock_client.get_shots.return_value = mock_shots_1
