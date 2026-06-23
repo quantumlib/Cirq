@@ -521,6 +521,87 @@ def test_memory_job_results_noisy_simulator(memory):
     assert cirq_result.measurements["results"].tolist() == expected
 
 
+@pytest.mark.parametrize("backend", ["simulator", "qpu"])
+@pytest.mark.parametrize("child_job_ids", [None, ["child_1"]])
+def test_memory_batch_job_results_no_child_job_ids_falls_back(backend, child_job_ids):
+    mock_client = mock.MagicMock()
+    mock_client.get_results.return_value = {
+        "0190070f-9691-7000-a1f6-306623179a83": {"0": "0.6", "1": "0.4"},
+        "0190070f-991c-7000-8700-c4b56b30715d": {"0": "1.0"},
+    }
+    job_dict = {
+        "id": "my_id",
+        "status": "completed",
+        "stats": {"qubits": "2"},
+        "backend": backend,
+        "metadata": {
+            "shots": "5",
+            "measurements": json.dumps(
+                [{"measurement0": f"results{chr(31)}0,1"}, {"measurement0": f"results{chr(31)}0"}]
+            ),
+            "qubit_numbers": json.dumps([2, 1]),
+        },
+        "noise": {"model": "aria-1"},
+    }
+    if child_job_ids is not None:
+        job_dict["child_job_ids"] = child_job_ids
+
+    job = ionq.Job(mock_client, job_dict, memory=True)
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        result = job.results()
+
+    assert len(w) == 1
+    assert "correct child job ids to retrieve per shot results for a batch job" in str(
+        w[0].message
+    )
+    assert len(result) == 2
+    assert result[0]._memory_results is None
+    assert result[1]._memory_results is None
+    mock_client.get_job.assert_not_called()
+    mock_client.get_shots.assert_not_called()
+
+
+def test_memory_batch_job_results_noisy_simulator():
+    mock_client = mock.MagicMock()
+    mock_client.get_results.return_value = {
+        "0190070f-9691-7000-a1f6-306623179a83": {"0": "0.6", "1": "0.4"},
+        "0190070f-991c-7000-8700-c4b56b30715d": {"0": "1.0"},
+    }
+    mock_client.get_job.side_effect = [
+        {"id": "child_1", "status": "completed", "results": {"shots": {"url": "/shots/1"}}},
+        {"id": "child_2", "status": "completed", "results": {"shots": {"url": "/shots/2"}}},
+    ]
+    mock_client.get_shots.side_effect = [[2, 1, 3, 1, 0], [0, 0, 1, 1, 0]]
+    job_dict = {
+        "id": "my_id",
+        "status": "completed",
+        "stats": {"qubits": "2"},
+        "backend": "simulator",
+        "metadata": {
+            "shots": "5",
+            "measurements": json.dumps(
+                [{"measurement0": f"results{chr(31)}0,1"}, {"measurement0": f"results{chr(31)}0"}]
+            ),
+            "qubit_numbers": json.dumps([2, 1]),
+        },
+        "noise": {"model": "aria-1"},
+        "child_job_ids": ["child_1", "child_2"],
+    }
+    job = ionq.Job(mock_client, job_dict, memory=True)
+    result = job.results()
+
+    assert len(result) == 2
+    assert result[0]._memory_results == [2, 1, 3, 1, 0]
+    assert result[1]._memory_results == [0, 0, 1, 1, 0]
+    mock_client.get_job.assert_any_call("child_1")
+    mock_client.get_job.assert_any_call("child_2")
+    mock_client.get_shots.assert_any_call("/shots/1")
+    mock_client.get_shots.assert_any_call("/shots/2")
+    assert mock_client.get_shots.call_count == 2
+
+
 @pytest.mark.parametrize("memory", [True, False])
 def test_memory_job_results_qpu(memory):
     mock_client = mock.MagicMock()
@@ -550,6 +631,48 @@ def test_memory_job_results_qpu(memory):
         mock_client.get_shots.assert_called_once_with("/shots")
     else:
         mock_client.get_shots.assert_not_called()
+
+
+def test_memory_batch_job_results_qpu():
+    mock_client = mock.MagicMock()
+    mock_client.get_results.return_value = {
+        "0190070f-9691-7000-a1f6-306623179a83": {"0": "0.6", "3": "0.4"},
+        "0190070f-991c-7000-8700-c4b56b30715d": {"1": "1.0"},
+    }
+    mock_client.get_job.side_effect = [
+        {"id": "child_1", "status": "completed", "results": {"shots": {"url": "/shots/1"}}},
+        {"id": "child_2", "status": "completed", "results": {"shots": {"url": "/shots/2"}}},
+    ]
+    mock_client.get_shots.side_effect = [[2, 1, 3, 1, 0], [0, 0, 1, 1, 0]]
+    job_dict = {
+        "id": "my_id",
+        "status": "completed",
+        "stats": {"qubits": "2"},
+        "backend": "qpu",
+        "metadata": {
+            "shots": 5,
+            "measurements": json.dumps(
+                [{"measurement0": f"results{chr(31)}0,1"}, {"measurement0": f"results{chr(31)}0"}]
+            ),
+            "qubit_numbers": json.dumps([2, 1]),
+        },
+        "results": {"shots": {"url": "/shots"}},
+        "child_job_ids": ["child_1", "child_2"],
+    }
+    job = ionq.Job(mock_client, job_dict, memory=True)
+
+    result = job.results()
+
+    assert len(result) == 2
+    assert result[0].counts() == {0: 3, 3: 2}
+    assert result[1].counts() == {1: 5}
+    assert result[0]._memory_results == [2, 1, 3, 1, 0]
+    assert result[1]._memory_results == [0, 0, 1, 1, 0]
+    mock_client.get_job.assert_any_call("child_1")
+    mock_client.get_job.assert_any_call("child_2")
+    mock_client.get_shots.assert_any_call("/shots/1")
+    mock_client.get_shots.assert_any_call("/shots/2")
+    assert mock_client.get_shots.call_count == 2
 
 
 def test_retrieve_job_shots_key_error():
