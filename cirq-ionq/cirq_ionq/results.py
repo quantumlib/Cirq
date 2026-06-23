@@ -167,6 +167,7 @@ class QPUResult:
         if not isinstance(other, QPUResult):
             return NotImplemented
         return (
+            # ignoring self._memory_results
             self._counts == other._counts
             and self._num_qubits == other._num_qubits
             and self._measurement_dict == other._measurement_dict
@@ -322,6 +323,7 @@ class SimulatorResult:
         if not isinstance(other, SimulatorResult):
             return NotImplemented
         return (
+            # ignoring self._memory_results
             self._probabilities == other._probabilities
             and self._num_qubits == other._num_qubits
             and self._measurement_dict == other._measurement_dict
