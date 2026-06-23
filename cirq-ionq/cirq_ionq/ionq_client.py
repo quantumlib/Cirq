@@ -267,7 +267,9 @@ class _IonQClient:
         """
 
         def request():
-            return requests.get(urllib.parse.urljoin(self.url_base, shots_url), headers=self.headers)
+            return requests.get(
+                urllib.parse.urljoin(self.url_base, shots_url), headers=self.headers
+            )
 
         return self._make_request(request, {}).json()
 
