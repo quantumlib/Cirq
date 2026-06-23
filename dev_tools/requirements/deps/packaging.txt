@@ -1,6 +1,3 @@
-# for testing packaging in isolation
-virtualenv
-
 # for creating packages
 setuptools>=70
 
