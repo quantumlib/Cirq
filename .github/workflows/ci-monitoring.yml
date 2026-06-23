@@ -45,7 +45,7 @@ jobs:
           sudo apt-get install $(cat apt-system-requirements.txt)
       - name: Install requirements
         run: |
-          pip install --upgrade setuptools wheel
+          pip install --upgrade setuptools
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Pytest check
         continue-on-error: true

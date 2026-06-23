@@ -3,7 +3,6 @@ virtualenv
 
 # for creating packages
 setuptools>=70
-wheel
 
 # for uploading packages to pypi
 twine
