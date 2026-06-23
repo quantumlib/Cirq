@@ -577,8 +577,8 @@ def test_run_sweep_params_with_unary_rpcs(client):
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_sweep_program_already_exists(client):
     program_id = 'prog'
-    client().create_program_async.side_effect = (
-        EngineException(HTTPStatus.CONFLICT, "program already exists")
+    client().create_program_async.side_effect = EngineException(
+        HTTPStatus.CONFLICT, "program already exists"
     )
 
     client().create_job_async.return_value = (
