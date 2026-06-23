@@ -116,12 +116,13 @@ class CircuitToPauliStringsMeasurementResult:
     results: list[PauliStringMeasurementResult]
 
 
+@attrs.frozen
 class TRexMetadata:
     """Metadata required to compute T-REX mitigated expectation values later."""
 
     # The Pauli string that is being measured.
     pauli_str: ops.PauliString
-    # A 2D boolean array of shape (num_readout_circuits, num_qubits) indicating
+    # A 2D boolean array of shape (num_twirls, num_qubits) indicating
     # the random twirl choices
     twirl_choices: np.ndarray
     # A 2D boolean array of shape (num_readout_circuits, num_qubits) indicating
@@ -408,15 +409,15 @@ def _get_trex_twirled_basis_gate(basis: ops.Pauli, flip: bool) -> cirq.Gate:
     elif basis == ops.Z and flip:
         return ops.X
     elif basis == ops.X and not flip:
-        return ops.Ry(rads=-np.pi / 2)
+        return ops.ry(rads=-np.pi / 2)
     elif basis == ops.X and flip:
-        return ops.Ry(rads=np.pi / 2)
+        return ops.ry(rads=np.pi / 2)
     elif basis == ops.Y and not flip:
-        return ops.Rx(rads=np.pi / 2)
+        return ops.rx(rads=np.pi / 2)
     elif basis == ops.Y and flip:
-        return ops.Rx(rads=-np.pi / 2)
+        return ops.rx(rads=-np.pi / 2)
     else:
-        raise ValueError(f"Unsupported basis: {basis}. Expected X, Y, Z, or I.")
+        raise ValueError(f"Unsupported basis: {basis}. Expected X, Y, Z, or I.")  # pragma: no cover
 
 
 def _generate_random_boolean_choices(
@@ -432,7 +433,7 @@ def _generate_random_boolean_choices(
     Returns:
         A boolean array of shape (num_choices, num_qubits).
     """
-    return rng.integers(0, 2, (num_choices, num_qubits), dtype=bool)
+    return rng.integers(0, 2, (num_choices, num_qubits), dtype=bool)  # pragma: no cover
 
 
 def _build_trex_twirled_pauli_circuits(
