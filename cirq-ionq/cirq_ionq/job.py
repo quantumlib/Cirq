@@ -280,34 +280,17 @@ class Job:
             )
         )
         if retrieve_memory_result:
-            try:
-                if len(histograms) > 1:
-                    child_job_ids = self._job.get("child_job_ids")
-                    if child_job_ids is None or len(child_job_ids) != len(histograms):
-                        self._warn_memory_fallback(
-                            "However, the job does not have the correct child job "
-                            "ids to retrieve per shot results for a batch job."
-                        )
-                    else:
-                        memory_results = self._retrieve_child_job_shots(child_job_ids)
+            if len(histograms) > 1:
+                child_job_ids = self._job.get("child_job_ids")
+                if child_job_ids is None or len(child_job_ids) != len(histograms):
+                    self._warn_memory_fallback(
+                        "However, the job does not have the correct child job "
+                        "ids to retrieve per shot results for a batch job."
+                    )
                 else:
-                    try:
-                        memory_results = [
-                            self._client.get_shots(self._job["results"]["shots"]["url"])
-                        ]
-                    except KeyError as ex:
-                        self._warn_memory_fallback(
-                            f"However, retrieving shots for the job failed because the "
-                            f"url for shots result was not found in the job response: {ex}."
-                        )
-            except (
-                ionq_exceptions.IonQException,
-                ionq_exceptions.IonQNotFoundException,
-                TimeoutError,
-            ) as ex:
-                self._warn_memory_fallback(
-                    f"However, retrieving shots failed with this error: {ex}."
-                )
+                    memory_results = self._retrieve_child_job_shots(child_job_ids)
+            else:
+                memory_results = self._retrieve_job_shots()
 
         # IonQ returns results in little endian, but
         # Cirq prefers to use big endian, so we convert.
@@ -383,6 +366,26 @@ class Job:
                     f"{child_job_id} failed with this error: {ex}."
                 )
                 memory_results.append(None)
+        return memory_results
+
+    def _retrieve_job_shots(self):
+        """Retrieve shots for the job. Warn that memory results will
+        fall back to sampled probabilities if retrieval fails.
+        """
+        memory_results = [None]
+        try:
+            memory_results = [self._client.get_shots(self._job["results"]["shots"]["url"])]
+        except KeyError as ex:
+            self._warn_memory_fallback(
+                f"However, retrieving shots for the job failed because the "
+                f"url for shots result was not found in the job response: {ex}."
+            )
+        except (
+            ionq_exceptions.IonQException,
+            ionq_exceptions.IonQNotFoundException,
+            TimeoutError,
+        ) as ex:
+            self._warn_memory_fallback(f"However, retrieving shots failed with this error: {ex}.")
         return memory_results
 
     def _warn_memory_fallback(self, detail):
