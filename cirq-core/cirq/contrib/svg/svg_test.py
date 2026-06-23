@@ -29,11 +29,11 @@ def test_svg() -> None:
     assert '<svg' in svg_text
     assert '</svg>' in svg_text
     # check text rendering fontsize
-    # single letter gate X at 18px
+    # single letter X gate rendered at 18px
     assert re.search(r'<text[^>]*\bfont-size=.18px[^>]*>X</text>', svg_text)
-    # multi-letter name PhasedXPowGate at 14px
+    # multi-letter PhasedXPowGate rendered at 14px
     assert re.search(r'<text[^>]*\bfont-size=.14px[^>]*>PhX\(0.456\)\^0.123</text>', svg_text)
-    # MatrixGate replaced with "?" at 18px
+    # MatrixGate replaced with "?" rendered at 18px
     assert re.search(r'<text[^>]*\bfont-size=.18px[^>]*>[?]</text>', svg_text)
 
 
