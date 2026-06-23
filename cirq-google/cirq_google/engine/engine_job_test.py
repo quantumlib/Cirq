@@ -808,7 +808,7 @@ def test_recreate_job_if_not_found(get_job_results, get_job):
     job_id = 'steve'
     context = EngineContext(timeout=60, enable_streaming=False)
 
-    get_job.side_effect = EngineException(HTTPStatus.NOT_FOUND, 'job not found')
+    get_job.side_effect = EngineException('job not found', HTTPStatus.NOT_FOUND)
 
     async def recreate_job():
         qjob = quantum.QuantumJob(
@@ -854,7 +854,7 @@ def test_receive_results_get_job_error_propagated(get_job_results, get_job):
     job_id = 'steve'
     context = EngineContext(timeout=60, enable_streaming=False)
 
-    get_job.side_effect = EngineException(HTTPStatus.INTERNAL_SERVER_ERROR, 'internal error')
+    get_job.side_effect = EngineException('internal error', HTTPStatus.INTERNAL_SERVER_ERROR)
 
     job = cg.EngineJob(
         project_id=project_id,

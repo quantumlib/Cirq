@@ -50,7 +50,7 @@ def _fix_deprecated_allowlisted_users_args(
 
 
 class EngineException(Exception):
-    def __init__(self, code, message):
+    def __init__(self, message: str, code: int | None = None):
         # Call the base class constructor with the parameters it needs
         super().__init__(message)
         self._code = code
@@ -154,7 +154,7 @@ class EngineClient:
                 # Raise RuntimeError for exceptions that are not retryable.
                 # Otherwise, pass through to retry.
                 if err.code not in RETRYABLE_ERROR_CODES:
-                    raise EngineException(err.code, message) from err
+                    raise EngineException(message, err.code) from err
 
             if current_delay > self.max_retry_delay_seconds:
                 raise TimeoutError(f'Reached max retry attempts for error: {message}')

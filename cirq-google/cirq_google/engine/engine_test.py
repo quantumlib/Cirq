@@ -578,7 +578,7 @@ def test_run_sweep_params_with_unary_rpcs(client):
 def test_run_sweep_program_already_exists(client):
     program_id = 'prog'
     client().create_program_async.side_effect = EngineException(
-        HTTPStatus.CONFLICT, "program already exists"
+        "program already exists", HTTPStatus.CONFLICT
     )
 
     client().create_job_async.return_value = (
@@ -617,7 +617,7 @@ def test_run_sweep_program_already_exists(client):
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_sweep_program_with_implicit_id_already_exists(client):
     client().create_program_async.side_effect = EngineException(
-        HTTPStatus.CONFLICT, "program already exists"
+        "program already exists", HTTPStatus.CONFLICT
     )
     engine = cg.Engine(project_id='proj', context=EngineContext(enable_streaming=False))
 
@@ -634,7 +634,7 @@ def test_run_sweep_program_with_implicit_id_already_exists(client):
 def test_run_sweep_unable_to_create_program_raises_error(client):
     program_id = 'prog'
     client().create_program_async.side_effect = EngineException(
-        HTTPStatus.INTERNAL_SERVER_ERROR, "internal error"
+        "internal error", HTTPStatus.INTERNAL_SERVER_ERROR
     )
     engine = cg.Engine(project_id='proj', context=EngineContext(enable_streaming=False))
 
