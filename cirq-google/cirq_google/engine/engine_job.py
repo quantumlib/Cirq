@@ -376,7 +376,10 @@ class EngineJob(abstract_job.AbstractJob):
         except engine_client.EngineException as e:
             if e.code == HTTPStatus.NOT_FOUND and self._recreate_job:
                 # If the program/job was not created successfully, attempt to recreate once.
-                new_job = await self._recreate_job()
+                recreate_job = self._recreate_job
+                self._recreate_job = None
+
+                new_job = await recreate_job()
 
                 self.project_id = new_job.project_id
                 self.program_id = new_job.program_id
@@ -386,7 +389,6 @@ class EngineJob(abstract_job.AbstractJob):
                 self._results = new_job._results
                 self._batched_results = new_job._batched_results
                 self._job_result_future = new_job._job_result_future
-                self._recreate_job = None
 
                 self._job = await self._await_completion_by_polling()
             else:

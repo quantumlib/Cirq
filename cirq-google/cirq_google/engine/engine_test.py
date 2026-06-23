@@ -579,7 +579,6 @@ def test_run_sweep_program_already_exists(client):
     program_id = 'prog'
     client().create_program_async.side_effect = [
         EngineException(HTTPStatus.CONFLICT, "program already exists"),
-        (program_id, quantum.QuantumProgram(name=f"projects/proj/programs/{program_id}")),
     ]
     client().create_job_async.return_value = (
         'job-id',
@@ -621,15 +620,13 @@ def test_run_sweep_program_with_implicit_id_already_exists(client):
     )
     engine = cg.Engine(project_id='proj', context=EngineContext(enable_streaming=False))
 
-    try:
+    with pytest.raises(EngineException) as exc_info:
         engine.run_sweep(
             program=_CIRCUIT,
             processor_id='processor0',
             params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})],
         )
-    except Exception as e:
-        assert isinstance(e, EngineException)
-        assert e.code == HTTPStatus.CONFLICT
+    assert exc_info.value.code == HTTPStatus.CONFLICT
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -640,16 +637,14 @@ def test_run_sweep_unable_to_create_program_raises_error(client):
     )
     engine = cg.Engine(project_id='proj', context=EngineContext(enable_streaming=False))
 
-    try:
+    with pytest.raises(EngineException) as exc_info:
         engine.run_sweep(
             program=_CIRCUIT,
             program_id=program_id,
             processor_id='processor0',
             params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})],
         )
-    except Exception as e:
-        assert isinstance(e, EngineException)
-        assert e.code == HTTPStatus.INTERNAL_SERVER_ERROR
+    assert exc_info.value.code == HTTPStatus.INTERNAL_SERVER_ERROR
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)

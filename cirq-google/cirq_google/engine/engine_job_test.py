@@ -865,11 +865,9 @@ def test_receive_results_get_job_error_propagated(get_job_results, get_job):
         job_result_future=None,
     )
 
-    try:
+    with pytest.raises(EngineException) as exc_info:
         job.results()
-    except Exception as e:
-        assert isinstance(e, EngineException)
-        assert e.code == HTTPStatus.INTERNAL_SERVER_ERROR
+    assert exc_info.value.code == HTTPStatus.INTERNAL_SERVER_ERROR
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
