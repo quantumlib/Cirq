@@ -291,7 +291,15 @@ class Job:
                     else:
                         memory_results = self._retrieve_child_job_shots(child_job_ids)
                 else:
-                    memory_results = [self._client.get_shots(self._job["results"]["shots"]["url"])]
+                    try:
+                        memory_results = [
+                            self._client.get_shots(self._job["results"]["shots"]["url"])
+                        ]
+                    except KeyError as ex:
+                        self._warn_memory_fallback(
+                            f"However, retrieving shots for the job failed because the "
+                            f"url for shots result was not found in the job response: {ex}."
+                        )
             except (
                 ionq_exceptions.IonQException,
                 ionq_exceptions.IonQNotFoundException,
@@ -349,7 +357,9 @@ class Job:
             )
 
     def _retrieve_child_job_shots(self, child_job_ids):
-        """Retrieve shots for child jobs. Warn that memory results will fall back to sampled probabilities if retrieval fails."""
+        """Retrieve shots for child jobs. Warn that memory results will
+           fall back to sampled probabilities if retrieval fails.
+        """
         memory_results = []
         for child_job_id in child_job_ids:
             try:
@@ -357,6 +367,12 @@ class Job:
                     self._client.get_job(child_job_id)["results"]["shots"]["url"]
                 )
                 memory_results.append(memory_result)
+            except KeyError as ex:
+                self._warn_memory_fallback(
+                    f"However, retrieving shots for child job {child_job_id} failed because "
+                    f"the url for shots result was not found in the job response: {ex}."
+                )
+                memory_results.append(None)
             except (
                 ionq_exceptions.IonQException,
                 ionq_exceptions.IonQNotFoundException,
