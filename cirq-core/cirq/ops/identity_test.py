@@ -164,7 +164,7 @@ def test_pauli_expansion_notimplemented() -> None:
 
 
 @pytest.mark.parametrize(
-    'gate_type, num_qubits', itertools.product((cirq.IdentityGate,), range(1, 5))
+    'gate_type, num_qubits', list(itertools.product((cirq.IdentityGate,), range(1, 5)))
 )
 def test_consistent_protocols(gate_type, num_qubits) -> None:
     gate = gate_type(num_qubits=num_qubits)

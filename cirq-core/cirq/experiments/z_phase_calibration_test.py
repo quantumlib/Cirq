@@ -69,8 +69,8 @@ def _create_tests(n, with_options: bool = False):
                 }
             )
 
-        return zip(angles, error, options)
-    return zip(angles, error)
+        return list(zip(angles, error, options))
+    return list(zip(angles, error))
 
 
 def _trace_distance(A, B):

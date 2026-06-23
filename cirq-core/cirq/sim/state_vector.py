@@ -287,9 +287,6 @@ def measure_state_vector(
 
     prng = value.parse_random_state(seed)
 
-    # Cache initial shape.
-    initial_shape = state_vector.shape
-
     # Calculate the measurement probabilities and then make the measurement.
     probs = (state_vector * state_vector.conj()).real
     probs = simulation_utils.state_probabilities_by_indices(probs, indices, shape)
@@ -314,12 +311,10 @@ def measure_state_vector(
         np.copyto(dst=out, src=state_vector)
     # Final else: if out is state then state will be modified in place.
 
-    # Potentially reshape to tensor, and then set masked values to 0.
-    out.shape = shape
-    out[mask] = 0
+    # Reshape to a tensor inplace to set the masked values to 0.
+    out.reshape(shape, copy=False)[mask] = 0
 
-    # Restore original shape (if necessary) and renormalize.
-    out.shape = initial_shape
+    # Renormalize.
     out /= np.sqrt(probs[result])
 
     assert out is not None

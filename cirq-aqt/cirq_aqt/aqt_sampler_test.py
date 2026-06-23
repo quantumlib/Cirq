@@ -339,7 +339,7 @@ def test_aqt_sampler_submits_jobs_correctly() -> None:
 def test_measurement_not_at_end_is_not_allowed() -> None:
     legacy_json = json.dumps([["R", 1.0, 0.0, [0]], ["Meas"], ["MS", 0.5, [0, 1]]])
 
-    sampler = AQTSampler("default", "dummy_resource", "test")
+    sampler = AQTSampler("default", "mock_resource", "test")
     with pytest.raises(ValueError):
         sampler._send_json(json_str=legacy_json, id_str="test")
 
@@ -347,7 +347,7 @@ def test_measurement_not_at_end_is_not_allowed() -> None:
 def test_multiple_measurements_are_not_allowed() -> None:
     legacy_json = json.dumps([["R", 1.0, 0.0, [0]], ["Meas"], ["Meas"]])
 
-    sampler = AQTSampler("default", "dummy_resource", "test")
+    sampler = AQTSampler("default", "mock_resource", "test")
     with pytest.raises(ValueError):
         sampler._send_json(json_str=legacy_json, id_str="test")
 
@@ -355,7 +355,7 @@ def test_multiple_measurements_are_not_allowed() -> None:
 def test_unknown_gate_in_json() -> None:
     legacy_json = json.dumps([["A", 1.0, 0.0, [0]], ["Meas"]])
 
-    sampler = AQTSampler("default", "dummy_resource", "test")
+    sampler = AQTSampler("default", "mock_resource", "test")
     with pytest.raises(
         ValueError, match=r"Got unknown gate on operation: \['A', 1\.0, 0\.0, \[0\]\]\."
     ):

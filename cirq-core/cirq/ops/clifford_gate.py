@@ -114,7 +114,7 @@ def _pad_tableau(
     clifford_tableau: qis.CliffordTableau, num_qubits_after_padding: int, axes: list[int]
 ) -> qis.CliffordTableau:
     """Roughly, this function copies self.tableau into the "identity" matrix."""
-    # Sanity check
+    # Validate inputs
     if len(set(axes)) != clifford_tableau.n:
         raise ValueError(
             "Input axes of padding should match with the number of qubits in the input tableau."
