@@ -321,6 +321,22 @@ def test_simulator_result_to_cirq_result():
     # list instead of a numpy multidimensional array. Check this here.
     assert type(result.to_cirq_result().measurements['x']) == np.ndarray
 
+    # when memory_results is provided, actual shot data is used instead of sampling.
+    result = ionq.SimulatorResult(
+        {0b00: 0.5, 0b11: 0.5},
+        num_qubits=2,
+        measurement_dict={'x': [0, 1]},
+        repetitions=3,
+        memory_results=['2', '0', '2'],
+    )
+    assert result.to_cirq_result() == cirq.ResultDict(
+        params=cirq.ParamResolver({}), measurements={'x': np.array([[0, 1], [0, 0], [0, 1]])}
+    )
+    # override_repetitions slices the memory results when memory is present.
+    assert result.to_cirq_result(override_repetitions=2) == cirq.ResultDict(
+        params=cirq.ParamResolver({}), measurements={'x': np.array([[0, 1], [0, 0]])}
+    )
+
 
 def test_simulator_result_to_cirq_result_multiple_keys():
     result = ionq.SimulatorResult(

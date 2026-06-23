@@ -290,10 +290,11 @@ class SimulatorResult:
 
         measurements = {}
         if self._memory_results is not None:
+            shots = self._memory_results[:override_repetitions] if override_repetitions else self._memory_results
             for key, targets in self.measurement_dict().items():
                 bits = [
                     _memory_bits_for_targets(int(value), self.num_qubits(), targets)
-                    for value in self._memory_results
+                    for value in shots
                 ]
                 measurements[key] = np.array(bits)
         else:
