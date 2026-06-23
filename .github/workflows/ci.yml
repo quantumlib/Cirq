@@ -323,7 +323,6 @@ jobs:
         shell: bash
       - name: Pytest Windows
         run: |
-          source dev_tools/pypath
           check/pytest -n logical --durations=20 --ignore=cirq-core/cirq/contrib
         shell: bash
   macos:
