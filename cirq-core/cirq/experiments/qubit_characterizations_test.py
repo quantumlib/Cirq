@@ -253,7 +253,7 @@ def test_tomography_plot_raises_for_incorrect_number_of_axes() -> None:
     result = single_qubit_state_tomography(simulator, qubit, circuit, 1000)
     with pytest.raises(TypeError):  # ax is not a list[plt.Axes]
         ax = plt.subplot()
-        result.plot(ax)  # type: ignore[arg-type]
+        result.plot(ax)
     with pytest.raises(ValueError):
         _, axes = plt.subplots(1, 3)
         result.plot(axes)

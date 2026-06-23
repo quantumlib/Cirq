@@ -51,11 +51,12 @@ def _all_rotations():
     yield from itertools.product(_paulis, _bools)
 
 
-def _all_rotation_pairs():
-    for px, flip_x, pz, flip_z in itertools.product(_paulis, _bools, _paulis, _bools):
-        if px == pz:
-            continue
-        yield (px, flip_x), (pz, flip_z)
+def _all_rotation_pairs() -> list[tuple[tuple[cirq.Pauli, bool], tuple[cirq.Pauli, bool]]]:
+    return [
+        ((px, flip_x), (pz, flip_z))
+        for px, flip_x, pz, flip_z in itertools.product(_paulis, _bools, _paulis, _bools)
+        if px != pz
+    ]
 
 
 @functools.lru_cache()
@@ -66,7 +67,7 @@ def _all_clifford_gates() -> tuple[cirq.SingleQubitCliffordGate, ...]:
     )
 
 
-@pytest.mark.parametrize('pauli,flip_x,flip_z', itertools.product(_paulis, _bools, _bools))
+@pytest.mark.parametrize('pauli,flip_x,flip_z', list(itertools.product(_paulis, _bools, _bools)))
 def test_init_value_error(pauli, flip_x, flip_z) -> None:
     with pytest.raises(ValueError):
         cirq.SingleQubitCliffordGate.from_xz_map((pauli, flip_x), (pauli, flip_z))
@@ -89,11 +90,11 @@ def test_dense_pauli_string() -> None:
 
 @pytest.mark.parametrize(
     'trans1,trans2,from1',
-    (
+    [
         (trans1, trans2, from1)
         for trans1, trans2, from1 in itertools.product(_all_rotations(), _all_rotations(), _paulis)
         if trans1[0] != trans2[0]
-    ),
+    ],
 )
 def test_init_from_double_map_vs_kwargs(trans1, trans2, from1) -> None:
     from2 = cirq.Pauli.by_relative_index(from1, 1)
@@ -110,10 +111,7 @@ def test_init_from_double_map_vs_kwargs(trans1, trans2, from1) -> None:
     _assert_no_collision(gate_map)
 
 
-@pytest.mark.parametrize(
-    'trans1,from1',
-    ((trans1, from1) for trans1, from1 in itertools.product(_all_rotations(), _paulis)),
-)
+@pytest.mark.parametrize('trans1,from1', list(itertools.product(_all_rotations(), _paulis)))
 def test_init_from_double_invalid(trans1, from1) -> None:
     from2 = cirq.Pauli.by_relative_index(from1, 1)
     # Test throws on invalid arguments
@@ -121,7 +119,7 @@ def test_init_from_double_invalid(trans1, from1) -> None:
         cirq.SingleQubitCliffordGate.from_double_map({from1: trans1, from2: trans1})
 
 
-@pytest.mark.parametrize('trans,frm', itertools.product(_all_rotations(), _paulis))
+@pytest.mark.parametrize('trans,frm', list(itertools.product(_all_rotations(), _paulis)))
 def test_init_from_single_map_vs_kwargs(trans, frm) -> None:
     from_str = str(frm).lower() + '_to'
     gate_kw = cirq.SingleQubitCliffordGate.from_single_map(**{from_str: trans})
@@ -131,11 +129,11 @@ def test_init_from_single_map_vs_kwargs(trans, frm) -> None:
 
 @pytest.mark.parametrize(
     'trans,frm',
-    (
+    [
         (trans, frm)
         for trans, frm in itertools.product(_all_rotations(), _paulis)
         if trans[0] != frm
-    ),
+    ],
 )
 def test_init_90rot_from_single(trans, frm) -> None:
     gate = cirq.SingleQubitCliffordGate.from_single_map({frm: trans})
@@ -156,11 +154,11 @@ def test_init_90rot_from_single(trans, frm) -> None:
 
 @pytest.mark.parametrize(
     'trans,frm',
-    (
+    [
         (trans, frm)
         for trans, frm in itertools.product(_all_rotations(), _paulis)
         if trans[0] == frm and trans[1]
-    ),
+    ],
 )
 def test_init_180rot_from_single(trans, frm) -> None:
     gate = cirq.SingleQubitCliffordGate.from_single_map({frm: trans})
@@ -175,11 +173,11 @@ def test_init_180rot_from_single(trans, frm) -> None:
 
 @pytest.mark.parametrize(
     'trans,frm',
-    (
+    [
         (trans, frm)
         for trans, frm in itertools.product(_all_rotations(), _paulis)
         if trans[0] == frm and not trans[1]
-    ),
+    ],
 )
 def test_init_ident_from_single(trans, frm) -> None:
     gate = cirq.SingleQubitCliffordGate.from_single_map({frm: trans})
@@ -455,7 +453,7 @@ def test_commutes_notimplemented_type() -> None:
     assert cirq.commutes(cirq.CliffordGate.X, 'X', default='default') == 'default'
 
 
-@pytest.mark.parametrize('gate,other', itertools.combinations(_all_clifford_gates(), r=2))
+@pytest.mark.parametrize('gate,other', list(itertools.combinations(_all_clifford_gates(), r=2)))
 def test_commutes_single_qubit_gate(gate, other) -> None:
     q0 = cirq.NamedQubit('q0')
     gate_op = gate(q0)
@@ -478,7 +476,7 @@ def test_parses_single_qubit_gate(gate) -> None:
 
 @pytest.mark.parametrize(
     'gate,pauli,half_turns',
-    itertools.product(_all_clifford_gates(), _paulis, (1.0, 0.25, 0.5, -0.5)),
+    list(itertools.product(_all_clifford_gates(), _paulis, (1.0, 0.25, 0.5, -0.5))),
 )
 def test_commutes_pauli(gate, pauli, half_turns) -> None:
     pauli_gate = pauli if half_turns == 1 else pauli**half_turns

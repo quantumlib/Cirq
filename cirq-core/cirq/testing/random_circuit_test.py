@@ -73,7 +73,7 @@ def _cases_for_random_circuit():
 
 
 @pytest.mark.parametrize(
-    'n_qubits,n_moments,op_density,gate_domain,pass_qubits', _cases_for_random_circuit()
+    'n_qubits,n_moments,op_density,gate_domain,pass_qubits', list(_cases_for_random_circuit())
 )
 def test_random_circuit(
     n_qubits: int | Sequence[cirq.Qid],

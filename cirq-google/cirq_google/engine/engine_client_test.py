@@ -2007,3 +2007,22 @@ def test_list_quantum_processor_configs_from_snapshot(client_constructor, defaul
     grpc_client.list_quantum_processor_configs.assert_called_with(
         quantum.ListQuantumProcessorConfigsRequest(parent=snapshot_resource_name)
     )
+
+
+def test_get_quantum_processor_config_invalid_revision_type(default_engine_client):
+    with pytest.raises(TypeError, match="device_config_revision must be an instance of"):
+        _ = default_engine_client.get_quantum_processor_config(
+            project_id="test_project_id",
+            processor_id="test_processor_id",
+            config_name="test_config_name",
+            device_config_revision="2026-03-04_193134.630",
+        )
+
+
+def test_list_quantum_processor_configs_invalid_revision_type(default_engine_client):
+    with pytest.raises(TypeError, match="device_config_revision must be an instance of"):
+        _ = default_engine_client.list_quantum_processor_configs(
+            project_id="test_project_id",
+            processor_id="test_processor_id",
+            device_config_revision="2026-02-20_114756.470",
+        )
