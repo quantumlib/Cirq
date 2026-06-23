@@ -26,6 +26,7 @@ from cirq.contrib.paulistring import CircuitToPauliStringsParameters, measure_pa
 from cirq.contrib.paulistring.pauli_string_measurement_with_readout_mitigation import (
     _build_trex_twirled_pauli_circuits,
     PostFilteringSymmetryCalibrationResult as PostFilteringSymmetryCalibrationResult,
+    TRexMetadata,
 )
 from cirq.experiments import SingleQubitReadoutCalibrationResult
 from cirq.experiments.single_qubit_readout_calibration_test import NoisySingleQubitReadoutSampler
@@ -987,3 +988,22 @@ def test_build_trex_twirled_pauli_circuits_multiple_twirls():
         assert isinstance(meas_op.gate, cirq.MeasurementGate)
         assert meas_op.qubits == (q0, q1, q2)
         assert meas_op.gate.key == 'm'
+
+
+def test_trex_metadata_instantiation() -> None:
+    """Test the instantiation and attributes of TRexMetadata."""
+    q0, q1 = cirq.LineQubit.range(2)
+    pauli_str = cirq.X(q0) * cirq.Z(q1)
+
+    # 2D boolean arrays of shape (num_readout_circuits, num_qubits)
+    twirl_choices = np.array([[True, False], [False, True], [True, True]])
+
+    readout_choices = np.array([[False, False], [True, True], [False, True]])
+
+    metadata = TRexMetadata(
+        pauli_str=pauli_str, twirl_choices=twirl_choices, readout_choices=readout_choices
+    )
+
+    assert metadata.pauli_str == pauli_str
+    np.testing.assert_array_equal(metadata.twirl_choices, twirl_choices)
+    np.testing.assert_array_equal(metadata.readout_choices, readout_choices)
