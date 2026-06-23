@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 import IPython.display
 import numpy as np
 import pytest
@@ -24,9 +26,15 @@ def test_svg() -> None:
             cirq.MatrixGate(np.eye(2)).on(a),
         )
     )
-    assert '?' in svg_text
     assert '<svg' in svg_text
     assert '</svg>' in svg_text
+    # check text rendering fontsize
+    # single letter gate X at 18px
+    assert re.search(r'<text[^>]*\bfont-size=.18px[^>]*>X</text>', svg_text)
+    # multi-letter name PhasedXPowGate at 14px
+    assert re.search(r'<text[^>]*\bfont-size=.14px[^>]*>PhX\(0.456\)\^0.123</text>', svg_text)
+    # MatrixGate replaced with "?" at 18px
+    assert re.search(r'<text[^>]*\bfont-size=.18px[^>]*>[?]</text>', svg_text)
 
 
 def test_svg_noise() -> None:
