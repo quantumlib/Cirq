@@ -218,7 +218,7 @@ jobs:
           sudo apt-get install $(cat apt-system-requirements.txt)
       - name: Install requirements
         run: |
-          pip install --upgrade setuptools wheel
+          pip install --upgrade setuptools
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Pytest check
         run: check/pytest -n logical --durations=20
@@ -282,7 +282,7 @@ jobs:
           sudo apt-get install $(cat apt-system-requirements.txt)
       - name: Install requirements
         run: |
-          pip install --upgrade setuptools wheel
+          pip install --upgrade setuptools
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Coverage check
         run: check/pytest-and-incremental-coverage -n logical
@@ -316,14 +316,13 @@ jobs:
             dev_tools/requirements/**/*.txt
       - name: Install requirements
         run: |
-          pip install --upgrade setuptools wheel
+          pip install --upgrade setuptools
           pip install --upgrade --upgrade-strategy eager \
             -r dev_tools/requirements/pytest-minimal.env.txt \
             qiskit-aer~=0.17.0 stimcirq
         shell: bash
       - name: Pytest Windows
         run: |
-          source dev_tools/pypath
           check/pytest -n logical --durations=20 --ignore=cirq-core/cirq/contrib
         shell: bash
   macos:
@@ -353,7 +352,7 @@ jobs:
             dev_tools/requirements/**/*.txt
       - name: Install requirements
         run: |
-          pip install --upgrade setuptools wheel
+          pip install --upgrade setuptools
           pip install --upgrade --upgrade-strategy eager \
             -r dev_tools/requirements/pytest-minimal.env.txt \
             qiskit-aer~=0.17.0 stimcirq

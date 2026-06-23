@@ -44,7 +44,7 @@ jobs:
         if: steps.check-labels.outputs.has_no_release != 'true'
         run: |
           python -m pip install --upgrade pip
-          pip install --upgrade setuptools wheel twine
+          pip install --upgrade setuptools twine
       - name: Create PyPI config file
         if: steps.check-labels.outputs.has_no_release != 'true'
         env:
