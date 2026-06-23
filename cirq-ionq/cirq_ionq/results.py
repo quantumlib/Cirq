@@ -74,8 +74,8 @@ class QPUResult:
 
         if key is not None and not key in self._measurement_dict:
             raise ValueError(
-                f'Measurement key {key} is not a key for a measurement gate in the'
-                'circuit that produced these results.'
+                f"Measurement key {key} is not a key for a measurement gate in the"
+                "circuit that produced these results."
             )
         targets = self._measurement_dict[key] if key is not None else range(self.num_qubits())
         result: list[int] = []
@@ -109,8 +109,8 @@ class QPUResult:
             return collections.Counter(self._counts)
         if not key in self._measurement_dict:
             raise ValueError(
-                f'Measurement key {key} is not a key for a measurement gate in the'
-                'circuit that produced these results.'
+                f"Measurement key {key} is not a key for a measurement gate in the"
+                "circuit that produced these results."
             )
         result: Counter[int] = collections.Counter()
         result.update(self.ordered_results(key))
@@ -142,8 +142,8 @@ class QPUResult:
         """
         if len(self.measurement_dict()) == 0:
             raise ValueError(
-                'Can convert to cirq results only if the circuit had measurement gates '
-                'with measurement keys.'
+                "Can convert to cirq results only if the circuit had measurement gates "
+                "with measurement keys."
             )
 
         measurements = {}
@@ -235,8 +235,8 @@ class SimulatorResult:
             return self._probabilities
         if not key in self._measurement_dict:
             raise ValueError(
-                f'Measurement key {key} is not a key for a measurement gate in the'
-                'circuit that produced these results.'
+                f"Measurement key {key} is not a key for a measurement gate in the"
+                "circuit that produced these results."
             )
         targets = self._measurement_dict[key]
         result: dict[int, float] = {}
@@ -285,13 +285,17 @@ class SimulatorResult:
         """
         if len(self.measurement_dict()) == 0:
             raise ValueError(
-                'Can convert to cirq results only if the circuit had measurement gates '
-                'with measurement keys.'
+                "Can convert to cirq results only if the circuit had measurement gates "
+                "with measurement keys."
             )
 
         measurements = {}
         if self._memory_results is not None:
-            shots = self._memory_results[:override_repetitions] if override_repetitions else self._memory_results
+            shots = (
+                self._memory_results[:override_repetitions]
+                if override_repetitions
+                else self._memory_results
+            )
             for key, targets in self.measurement_dict().items():
                 bits = [
                     _memory_bits_for_targets(int(value), self.num_qubits(), targets)
@@ -338,6 +342,6 @@ def _pretty_str_dict(value: dict, bit_count: int) -> str:
     """Pretty prints a dict, converting int dict values to bit strings."""
     strs = []
     for k, v in value.items():
-        bits = ''.join(str(b) for b in cirq.big_endian_int_to_bits(k, bit_count=bit_count))
-        strs.append(f'{bits}: {v}')
-    return '\n'.join(strs)
+        bits = "".join(str(b) for b in cirq.big_endian_int_to_bits(k, bit_count=bit_count))
+        strs.append(f"{bits}: {v}")
+    return "\n".join(strs)
