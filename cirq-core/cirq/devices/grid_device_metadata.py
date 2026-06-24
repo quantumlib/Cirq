@@ -210,11 +210,14 @@ class GridDeviceMetadata(device.DeviceMetadata):
 
     def __repr__(self) -> str:
         qubit_pair_tuples = frozenset({tuple(sorted(p)) for p in self._qubit_pairs})
+        qubit_attributes_repr = ""
+        if self.qubit_attributes:
+            qubit_attributes_repr = f", qubit_attributes={repr(self.qubit_attributes)}"
         return (
             f'cirq.GridDeviceMetadata({repr(qubit_pair_tuples)},'
             f' {repr(self._gateset)}, {repr(self._gate_durations)},'
-            f' {repr(self.qubit_set)}, {repr(self._compilation_target_gatesets)},'
-            f' {repr(self._qubit_attributes)})'
+            f' {repr(self.qubit_set)}, {repr(self._compilation_target_gatesets)}'
+            f'{qubit_attributes_repr})'
         )
 
     def _json_dict_(self):

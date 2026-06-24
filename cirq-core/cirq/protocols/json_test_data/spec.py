@@ -154,6 +154,7 @@ TestSpec = ModuleJsonTestSpec(
         'ParamResolverOrSimilarType',
         'PauliSumLike',
         'QUANTUM_STATE_LIKE',
+        'QubitAttributeValue',
         'QubitOrderOrList',
         'RANDOM_STATE_OR_SEED_LIKE',
         'STATE_VECTOR_LIKE',
