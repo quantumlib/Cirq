@@ -270,7 +270,7 @@ class Job:
         is_batch = isinstance(some_inner_value, dict)
         histograms = list(backend_results.values()) if is_batch else [backend_results]
 
-        memory_results = [None for _ in histograms]
+        memory_results: list[list[str] | None] = [None for _ in histograms]
         retrieve_memory_result = self._memory and (
             self.target().startswith("qpu")
             or (
@@ -372,7 +372,7 @@ class Job:
         """Retrieve shots for the job. Warn that memory results will
         fall back to sampled probabilities if retrieval fails.
         """
-        memory_results = [None]
+        memory_results: list[list[str] | None] = [None]
         try:
             memory_results = [self._client.get_shots(self._job["results"]["shots"]["url"])]
         except KeyError as ex:
