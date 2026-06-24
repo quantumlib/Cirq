@@ -30,11 +30,12 @@ def test_svg() -> None:
     assert '</svg>' in svg_text
     # check text rendering fontsize
     # single letter X gate rendered at 18px
-    assert re.search(r'<text[^>]*\bfont-size=.18px[^>]*>X</text>', svg_text)
+    assert re.search(r'<text[^>]*\bfont-size="18px[^>]*>X</text>', svg_text)
     # multi-letter PhasedXPowGate rendered at 14px
-    assert re.search(r'<text[^>]*\bfont-size=.14px[^>]*>PhX\(0.456\)\^0.123</text>', svg_text)
+    phx_literal = re.escape("PhX(0.456)^0.123")
+    assert re.search(rf'<text[^>]*\bfont-size="14px[^>]*>{phx_literal}</text>', svg_text)
     # MatrixGate replaced with "?" rendered at 18px
-    assert re.search(r'<text[^>]*\bfont-size=.18px[^>]*>[?]</text>', svg_text)
+    assert re.search(r'<text[^>]*\bfont-size="18px[^>]*>[?]</text>', svg_text)
 
 
 def test_svg_noise() -> None:
