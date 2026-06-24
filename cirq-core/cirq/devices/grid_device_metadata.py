@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
-from typing import Any, cast, TYPE_CHECKING, Union
+from typing import cast, TYPE_CHECKING
 
 import networkx as nx
 

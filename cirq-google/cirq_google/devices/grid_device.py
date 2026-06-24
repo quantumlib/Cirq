@@ -243,6 +243,13 @@ def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> 
         if target_set.target_ordering == v2.device_pb2.TargetSet.ASYMMETRIC:
             raise ValueError("Invalid DeviceSpecification: target_ordering cannot be ASYMMETRIC.")
 
+    for qubit_str in proto.qubit_attributes:
+        if qubit_str not in qubit_set:
+            raise ValueError(
+                f"Invalid DeviceSpecification: qubit_attributes contains qubit '{qubit_str}'"
+                " which is not in valid_qubits."
+            )
+
 
 def _serialize_gateset_and_gate_durations(
     out: v2.device_pb2.DeviceSpecification,

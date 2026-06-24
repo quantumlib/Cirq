@@ -858,5 +858,5 @@ def test_qubit_attributes_unlisted_qubit():
     qa = spec.qubit_attributes["10_10"]  # Not in valid_qubits
     qa.attributes["foo"].string_value = "bar"
 
-    device = cirq_google.GridDevice.from_proto(spec)
-    assert device.qubit_attributes[cirq.GridQubit(10, 10)] == {"foo": "bar"}
+    with pytest.raises(ValueError, match="is not in valid_qubits"):
+        _ = cirq_google.GridDevice.from_proto(spec)
