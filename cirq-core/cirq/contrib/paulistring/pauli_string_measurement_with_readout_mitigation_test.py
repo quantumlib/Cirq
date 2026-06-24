@@ -987,7 +987,7 @@ def test_build_trex_twirled_pauli_circuits_multiple_twirls():
         meas_op = circuit.moments[-1].operations[0]
         assert isinstance(meas_op.gate, cirq.MeasurementGate)
         assert meas_op.qubits == (q0, q1, q2)
-        assert meas_op.gate.key == 'm'
+        assert meas_op.gate.key == 'result'
 
 
 def test_trex_metadata_instantiation() -> None:
