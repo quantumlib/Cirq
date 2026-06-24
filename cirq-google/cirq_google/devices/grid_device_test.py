@@ -821,32 +821,17 @@ def test_qubit_attributes_serialization_deserialization():
     q2_str = v2.qubit_to_proto_id(cirq.GridQubit(0, 1))
 
     # Add attributes to q1
-    qa1 = spec.qubit_attributes.add()
-    qa1.qubit = q1_str
-
-    attr1 = qa1.attributes.add()
-    attr1.name = "type"
-    attr1.value.string_value = "transmon"
-
-    attr2 = qa1.attributes.add()
-    attr2.name = "frequency"
-    attr2.value.double_value = 5.123
+    qa1 = spec.qubit_attributes[q1_str]
+    qa1.attributes["type"].string_value = "transmon"
+    qa1.attributes["frequency"].double_value = 5.123
 
     # Add attributes to q2
-    qa2 = spec.qubit_attributes.add()
-    qa2.qubit = q2_str
-
-    attr3 = qa2.attributes.add()
-    attr3.name = "index"
-    attr3.value.int_value = 42
-
-    attr4 = qa2.attributes.add()
-    attr4.name = "is_active"
-    attr4.value.bool_value = True
+    qa2 = spec.qubit_attributes[q2_str]
+    qa2.attributes["index"].int_value = 42
+    qa2.attributes["is_active"].bool_value = True
 
     # Add an unset value (representing None)
-    attr5 = qa2.attributes.add()
-    attr5.name = "calibration_status"
+    _ = qa2.attributes["calibration_status"]
 
     # Deserialize and verify Python object attributes
     device = cirq_google.GridDevice.from_proto(spec)
@@ -870,12 +855,8 @@ def test_qubit_attributes_unlisted_qubit():
     device_info, spec = _create_device_spec_with_horizontal_couplings()
 
     # Add attributes for an unlisted qubit
-    qa = spec.qubit_attributes.add()
-    qa.qubit = "10_10"  # Not in valid_qubits
-
-    attr = qa.attributes.add()
-    attr.name = "foo"
-    attr.value.string_value = "bar"
+    qa = spec.qubit_attributes["10_10"]  # Not in valid_qubits
+    qa.attributes["foo"].string_value = "bar"
 
     device = cirq_google.GridDevice.from_proto(spec)
     assert device.qubit_attributes[cirq.GridQubit(10, 10)] == {"foo": "bar"}

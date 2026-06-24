@@ -192,6 +192,13 @@ _GATES: list[_GateRepresentations] = [
 ]
 
 
+def _qubit_attribute_value_from_proto(
+    val_proto: v2.device_pb2.QubitAttributeValue,
+) -> cirq.devices.TQubitAttributeValue:
+    which_val = val_proto.WhichOneof("val")
+    return getattr(val_proto, which_val) if which_val is not None else None
+
+
 def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> None:
     """Raises a ValueError if the `DeviceSpecification` proto is invalid."""
 
@@ -468,7 +475,9 @@ class GridDevice(cirq.Device):
         self._metadata = metadata
 
     @property
-    def qubit_attributes(self) -> Mapping[cirq.GridQubit, Mapping[str, Any]]:
+    def qubit_attributes(
+        self,
+    ) -> Mapping[cirq.GridQubit, Mapping[str, cirq.devices.TQubitAttributeValue]]:
         return self._metadata.qubit_attributes
 
     @classmethod
@@ -505,26 +514,12 @@ class GridDevice(cirq.Device):
 
         # Create qubit attributes
         qubit_attributes = {}
-        for qubit_attrs_proto in proto.qubit_attributes:
-            qubit = v2.grid_qubit_from_proto_id(qubit_attrs_proto.qubit)
-            attrs = {}
-            for entry in qubit_attrs_proto.attributes:
-                val_proto = entry.value
-                which_val = val_proto.WhichOneof("val")
-                if which_val == "bool_value":
-                    attrs[entry.name] = val_proto.bool_value
-                elif which_val == "int_value":
-                    attrs[entry.name] = val_proto.int_value
-                elif which_val == "double_value":
-                    attrs[entry.name] = val_proto.double_value
-                elif which_val == "string_value":
-                    attrs[entry.name] = val_proto.string_value
-                elif which_val is None:
-                    attrs[entry.name] = None
-                else:
-                    raise ValueError(
-                        f"Unknown value in QubitAttributeValue: {which_val}"
-                    )  # pragma: no cover
+        for qubit_str, qubit_attrs_proto in proto.qubit_attributes.items():
+            qubit = v2.grid_qubit_from_proto_id(qubit_str)
+            attrs = {
+                name: _qubit_attribute_value_from_proto(val_proto)
+                for name, val_proto in qubit_attrs_proto.attributes.items()
+            }
             qubit_attributes[qubit] = attrs
 
         try:
@@ -578,12 +573,9 @@ class GridDevice(cirq.Device):
         )
         for qubit, attrs in self.qubit_attributes.items():
             qubit_str = v2.qubit_to_proto_id(qubit)
-            qubit_attrs_proto = out.qubit_attributes.add()
-            qubit_attrs_proto.qubit = qubit_str
+            qubit_attrs_proto = out.qubit_attributes[qubit_str]
             for attr_name, attr_val in attrs.items():
-                entry = qubit_attrs_proto.attributes.add()
-                entry.name = attr_name
-                val_proto = entry.value
+                val_proto = qubit_attrs_proto.attributes[attr_name]
                 if isinstance(attr_val, bool):
                     val_proto.bool_value = attr_val
                 elif isinstance(attr_val, int):

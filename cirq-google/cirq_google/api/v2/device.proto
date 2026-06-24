@@ -36,7 +36,7 @@ message DeviceSpecification {
   string developer_recommendations = 4;
 
   // Qubit attributes for the device.
-  repeated QubitAttributes qubit_attributes = 6;
+  map<string, QubitAttributes> qubit_attributes = 6;
 }
 
 // This contains information about a single device gate.
@@ -205,14 +205,7 @@ message Target {
 
 // Qubit attributes for a specific qubit.
 message QubitAttributes {
-  string qubit = 1;
-  repeated QubitAttributeEntry attributes = 2;
-}
-
-// A key-value entry representing a single qubit attribute.
-message QubitAttributeEntry {
-  string name = 1;
-  QubitAttributeValue value = 2;
+  map<string, QubitAttributeValue> attributes = 1;
 }
 
 // A generic value for a qubit attribute.
