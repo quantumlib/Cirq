@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
-from typing import Any, cast, TYPE_CHECKING, TypeVar
+from typing import Any, cast, TYPE_CHECKING, Union
 
 import networkx as nx
 
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-TQubitAttributeValue = TypeVar("TQubitAttributeValue", bound=bool | int | float | str | None)
+QubitAttributeValue = bool | int | float | str | None
 
 
 @value.value_equality
@@ -42,7 +42,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
         gate_durations: Mapping[cirq.GateFamily, cirq.Duration] | None = None,
         all_qubits: Iterable[cirq.GridQubit] | None = None,
         compilation_target_gatesets: Iterable[cirq.CompilationTargetGateset] = (),
-        qubit_attributes: Mapping[cirq.GridQubit, Mapping[str, TQubitAttributeValue]] | None = None,
+        qubit_attributes: Mapping[cirq.GridQubit, Mapping[str, QubitAttributeValue]] | None = None,
     ):
         """Create a GridDeviceMetadata object.
 
@@ -185,7 +185,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
         return self._gate_durations
 
     @property
-    def qubit_attributes(self) -> Mapping[cirq.GridQubit, Mapping[str, TQubitAttributeValue]]:
+    def qubit_attributes(self) -> Mapping[cirq.GridQubit, Mapping[str, QubitAttributeValue]]:
         """Returns a mapping from qubit to its attributes (if applicable)."""
         return self._qubit_attributes
 
