@@ -226,7 +226,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
             'all_qubits': sorted(self.qubit_set),
             'compilation_target_gatesets': list(self._compilation_target_gatesets),
             'qubit_attributes': sorted(
-                [(q, sorted(attrs.items())) for q, attrs in self._qubit_attributes.items()],
+                ((q, sorted(attrs.items())) for q, attrs in self._qubit_attributes.items()),
                 key=lambda x: x[0],
             ),
         }
