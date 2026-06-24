@@ -118,15 +118,21 @@ class CircuitToPauliStringsMeasurementResult:
 
 @attrs.frozen
 class TRexMetadata:
-    """Metadata required to compute T-REX mitigated expectation values later."""
+    """Metadata required to compute T-REX mitigated expectation values later.
 
-    # The Pauli string that is being measured.
+    Attributes:
+        pauli_str: The Pauli string that is being measured.
+        twirl_choices: A 2D boolean array of shape (num_twirls, num_qubits) indicating
+            the random twirl choices. The column indices correspond to the target
+            qubits in sorted order (i.e., `sorted(pauli_str.qubits)`).
+        readout_choices: A 2D boolean array of shape (num_readout_circuits, num_qubits)
+            indicating the random choices for generating readout calibration circuits.
+            As with `twirl_choices`, the column indices correspond to the target qubits
+            in sorted order.
+    """
+
     pauli_str: ops.PauliString
-    # A 2D boolean array of shape (num_twirls, num_qubits) indicating
-    # the random twirl choices
     twirl_choices: np.ndarray
-    # A 2D boolean array of shape (num_readout_circuits, num_qubits) indicating
-    # the random choices for generating readout calibration circuits.
     readout_choices: np.ndarray
 
 
@@ -448,7 +454,8 @@ def _build_trex_twirled_pauli_circuits(
         base_circuit: The original circuit to be twirled.
         basis_ps: A PauliString representing the target measurement basis for each qubit.
         twirl_choices: A 2D boolean array of shape (num_twirls, len(qubits)) indicating
-            whether to apply a 180-degree twirl to each qubit.
+            whether to apply a 180-degree twirl to each qubit. The column indices
+            correspond to the target qubits in sorted order (i.e., `sorted(basis_ps.qubits)`).
         insert_strategy: The strategy for inserting twirling gates and measurements into
             the base circuit.
 
@@ -467,7 +474,7 @@ def _build_trex_twirled_pauli_circuits(
 
         # Append the twirls and the final measurement to the base circuit
         twirled_circuit = circuits.Circuit(
-            base_circuit, moment_ops, ops.M(*qubits, key='m'), strategy=insert_strategy
+            base_circuit, moment_ops, ops.M(*qubits, key='result'), strategy=insert_strategy
         )
         twirl_circuits.append(twirled_circuit)
 
