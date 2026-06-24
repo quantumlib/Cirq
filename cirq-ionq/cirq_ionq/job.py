@@ -339,7 +339,7 @@ class Job:
                 else big_endian_results_sim[0]
             )
 
-    def _retrieve_child_job_shots(self, child_job_ids):
+    def _retrieve_child_job_shots(self, child_job_ids) -> list[list[str] | None]:
         """Retrieve shots for child jobs. Warn that memory results will
         fall back to sampled probabilities if retrieval fails.
         """
@@ -368,7 +368,7 @@ class Job:
                 memory_results.append(None)
         return memory_results
 
-    def _retrieve_job_shots(self):
+    def _retrieve_job_shots(self) -> list[list[str] | None]:
         """Retrieve shots for the job. Warn that memory results will
         fall back to sampled probabilities if retrieval fails.
         """
