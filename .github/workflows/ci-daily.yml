@@ -66,10 +66,11 @@ jobs:
       - name: Install requirements
         run: |
           pip install --upgrade "cirq~=1.0.dev" "cirq-core[contrib]~=1.0.dev"
-          pip install `
-            -r dev_tools/requirements/deps/pylint.txt `
-            -r dev_tools/requirements/deps/pytest.txt `
+          pip install \
+            -r dev_tools/requirements/deps/pylint.txt \
+            -r dev_tools/requirements/deps/pytest.txt \
             -r dev_tools/requirements/deps/notebook.txt
+        shell: bash
       - name: Pytest Windows
         run: check/pytest -n logical --ignore=cirq-core/cirq/contrib --enable-slow-tests
         shell: bash

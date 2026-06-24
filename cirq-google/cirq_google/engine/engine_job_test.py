@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import datetime
+from http import HTTPStatus
 from unittest import mock
 
 import duet
@@ -26,7 +27,7 @@ import cirq
 import cirq_google as cg
 from cirq_google.api import v1, v2
 from cirq_google.cloud import quantum
-from cirq_google.engine import util
+from cirq_google.engine import EngineException, util
 from cirq_google.engine.engine import EngineContext
 from cirq_google.engine.stream_manager import StreamError
 
@@ -797,6 +798,76 @@ def test_on_stream_failure_retrieves_results_using_get_job_results(get_job_resul
     assert str(data[0]) == 'q=0110'
     assert str(data[1]) == 'q=1010'
     get_job_results.assert_called_once_with('a', 'b', 'steve')
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_async')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
+def test_recreate_job_if_not_found(get_job_results, get_job):
+    project_id = 'a'
+    program_id = 'b'
+    job_id = 'steve'
+    context = EngineContext(timeout=60, enable_streaming=False)
+
+    get_job.side_effect = EngineException('job not found', HTTPStatus.NOT_FOUND)
+
+    async def recreate_job():
+        qjob = quantum.QuantumJob(
+            execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS),
+            update_time=UPDATE_TIME,
+        )
+        get_job.side_effect = None
+        get_job.return_value = qjob
+        get_job_results.return_value = RESULTS
+        return cg.EngineJob(
+            project_id=project_id,
+            program_id=program_id,
+            job_id=job_id,
+            context=context,
+            _job=qjob,
+            job_result_future=None,
+            recreate_job=None,
+        )
+
+    job = cg.EngineJob(
+        project_id=project_id,
+        program_id=program_id,
+        job_id=job_id,
+        context=context,
+        _job=None,
+        job_result_future=None,
+        recreate_job=recreate_job,
+    )
+    data = job.results()
+
+    assert len(data) == 2
+    assert str(data[0]) == 'q=0110'
+    assert str(data[1]) == 'q=1010'
+    get_job.assert_has_calls((mock.call(project_id, program_id, job_id, False),))
+    get_job_results.assert_called_once_with(project_id, program_id, job_id)
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_async')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
+def test_receive_results_get_job_error_propagated(get_job_results, get_job):
+    project_id = 'a'
+    program_id = 'b'
+    job_id = 'steve'
+    context = EngineContext(timeout=60, enable_streaming=False)
+
+    get_job.side_effect = EngineException('internal error', HTTPStatus.INTERNAL_SERVER_ERROR)
+
+    job = cg.EngineJob(
+        project_id=project_id,
+        program_id=program_id,
+        job_id=job_id,
+        context=context,
+        _job=None,
+        job_result_future=None,
+    )
+
+    with pytest.raises(EngineException) as exc_info:
+        job.results()
+    assert exc_info.value.code == HTTPStatus.INTERNAL_SERVER_ERROR
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
