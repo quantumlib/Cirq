@@ -24,7 +24,9 @@ import pytest
 import cirq
 from cirq.contrib.paulistring import CircuitToPauliStringsParameters, measure_pauli_strings
 from cirq.contrib.paulistring.pauli_string_measurement_with_readout_mitigation import (
+    _build_trex_twirled_pauli_circuits,
     PostFilteringSymmetryCalibrationResult as PostFilteringSymmetryCalibrationResult,
+    TRexMetadata,
 )
 from cirq.experiments import SingleQubitReadoutCalibrationResult
 from cirq.experiments.single_qubit_readout_calibration_test import NoisySingleQubitReadoutSampler
@@ -935,3 +937,73 @@ def test_sampler_receives_correct_circuits(use_sweep: bool) -> None:
             for q in op.qubits
         }
         assert measured == expected_qubits
+
+
+def test_build_trex_twirled_pauli_circuits_multiple_twirls():
+    """Test generating multiple circuits from a multi-row twirl_choices array."""
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    base_circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1), cirq.CNOT(q0, q2))
+    basis_ps = cirq.X(q0) * cirq.Y(q1) * cirq.Z(q2)
+
+    # 3 different twirl choices
+    twirl_choices = np.array(
+        [
+            [False, True, True],  # q0(no flip), q1(flip), q2(flip)]
+            [True, False, False],  # q0(flip), q1(no flip), q2(no flip)]
+            [False, False, False],  # q0(no flip), q1(no flip), q2(no flip)]
+        ]
+    )
+
+    circuits = _build_trex_twirled_pauli_circuits(base_circuit, basis_ps, twirl_choices)
+
+    assert len(circuits) == 3
+
+    q0_no_flip = cirq.Ry(rads=-np.pi / 2)(q0)
+    q0_flip = cirq.Ry(rads=np.pi / 2)(q0)
+
+    q1_no_flip = cirq.Rx(rads=np.pi / 2)(q1)
+    q1_flip = cirq.Rx(rads=-np.pi / 2)(q1)
+
+    q2_no_flip = cirq.I(q2)
+    q2_flip = cirq.X(q2)
+
+    # Verify Circuit 0: row [False, True, True]
+    assert q0_no_flip in circuits[0].moments[-2].operations
+    assert q1_flip in circuits[0].moments[-2].operations
+    assert q2_flip in circuits[0].moments[-2].operations
+
+    # Verify Circuit 1: row [True, False, False]
+    assert q0_flip in circuits[1].moments[-2].operations
+    assert q1_no_flip in circuits[1].moments[-2].operations
+    assert q2_no_flip in circuits[1].moments[-2].operations
+
+    # Verify Circuit 2: row [False, False, False]
+    assert q0_no_flip in circuits[2].moments[-2].operations
+    assert q1_no_flip in circuits[2].moments[-2].operations
+    assert q2_no_flip in circuits[2].moments[-2].operations
+
+    # Verify that every generated circuit ends with the correct joint measurement
+    for circuit in circuits:
+        meas_op = circuit.moments[-1].operations[0]
+        assert isinstance(meas_op.gate, cirq.MeasurementGate)
+        assert meas_op.qubits == (q0, q1, q2)
+        assert meas_op.gate.key == 'result'
+
+
+def test_trex_metadata_instantiation() -> None:
+    """Test the instantiation and attributes of TRexMetadata."""
+    q0, q1 = cirq.LineQubit.range(2)
+    pauli_str = cirq.X(q0) * cirq.Z(q1)
+
+    # 2D boolean arrays of shape (num_readout_circuits, num_qubits)
+    twirl_choices = np.array([[True, False], [False, True], [True, True]])
+
+    readout_choices = np.array([[False, False], [True, True], [False, True]])
+
+    metadata = TRexMetadata(
+        pauli_str=pauli_str, twirl_choices=twirl_choices, readout_choices=readout_choices
+    )
+
+    assert metadata.pauli_str == pauli_str
+    np.testing.assert_array_equal(metadata.twirl_choices, twirl_choices)
+    np.testing.assert_array_equal(metadata.readout_choices, readout_choices)
