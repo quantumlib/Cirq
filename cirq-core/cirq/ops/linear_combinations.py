@@ -21,6 +21,7 @@ from typing import Any, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy
+from scipy import sparse
 from sympy.logic.boolalg import And, Not, Or, Xor
 
 from cirq import linalg, protocols, qis, value
@@ -32,8 +33,6 @@ from cirq.ops.projector import ProjectorString
 from cirq.value.linear_dict import _format_terms
 
 if TYPE_CHECKING:
-    from scipy.sparse import csr_matrix
-
     import cirq
 
 UnitPauliStringT = frozenset[tuple[raw_types.Qid, pauli_gates.Pauli]]
@@ -590,6 +589,50 @@ class PauliSum:
             result += coeff * op.matrix(qubits)
         return result
 
+    def sparse_matrix(self, qubits: Iterable[raw_types.Qid] | None = None) -> sparse.csr_matrix:
+        """Returns the sparse matrix of this `PauliSum` in the computational basis of the qubits.
+
+        For each term we build the sparse matrix via direct bit-manipulation
+        (see `PauliString.sparse_matrix`) and collect its non-zero entries as
+        COO (COOrdinate) triplets (data, row, col).  All triplets are
+        concatenated and a single sparse matrix is built at the end, avoiding
+        the overhead of adding sparse matrices term-by-term.
+
+        Args:
+            qubits: Ordered collection of qubits that determine the subspace
+                in which the matrix representation of the Pauli sum is to
+                be computed. If none is provided the default ordering of
+                `self.qubits` is used.  Qubits present in `qubits` but absent from
+                `self.qubits` are acted on by the identity.
+
+        Returns:
+            A `scipy.sparse.csr_matrix` representing the Pauli sum.
+        """
+        qubits = self.qubits if qubits is None else tuple(qubits)
+        num_qubits = len(qubits)
+        dim = 2**num_qubits
+        all_data: list[np.ndarray] = []
+        all_rows: list[np.ndarray] = []
+        all_cols: list[np.ndarray] = []
+
+        for vec, coeff in self._linear_dict.items():
+            op = _pauli_string_from_unit(vec)
+            term = coeff * op.sparse_matrix(qubits)
+            coo = term.tocoo()
+            all_data.append(coo.data)
+            all_rows.append(coo.row)
+            all_cols.append(coo.col)
+
+        if not all_data:
+            return sparse.csr_matrix((dim, dim), dtype=np.complex128)
+
+        data = np.concatenate(all_data)
+        rows = np.concatenate(all_rows)
+        cols = np.concatenate(all_cols)
+        result = sparse.coo_matrix((data, (rows, cols)), shape=(dim, dim)).tocsr()
+        result.eliminate_zeros()
+        return result
+
     def _has_unitary_(self) -> bool:
         return linalg.is_unitary(self.matrix())
 
@@ -928,8 +971,8 @@ class ProjectorSum:
     def copy(self) -> ProjectorSum:
         return ProjectorSum(self._linear_dict.copy())
 
-    def matrix(self, projector_qids: Iterable[raw_types.Qid] | None = None) -> csr_matrix:
-        """Returns the matrix of self in computational basis of qubits.
+    def matrix(self, projector_qids: Iterable[raw_types.Qid] | None = None) -> sparse.csr_matrix:
+        """Returns the matrix of self in the computational basis of the qubits.
 
         Args:
             projector_qids: Ordered collection of qubits that determine the subspace in which the

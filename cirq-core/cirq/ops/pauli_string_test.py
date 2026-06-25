@@ -852,8 +852,17 @@ def _pauli_string_matrix_cases():
 
 
 @pytest.mark.parametrize('pauli_string, qubits, expected_matrix', _pauli_string_matrix_cases())
-def test_matrix(pauli_string, qubits, expected_matrix) -> None:
+def test_matrix(
+    pauli_string: cirq.PauliString, qubits: tuple[cirq.Qid, ...] | None, expected_matrix: np.ndarray
+) -> None:
     assert np.allclose(pauli_string.matrix(qubits), expected_matrix)
+
+
+@pytest.mark.parametrize('pauli_string, qubits, expected_matrix', _pauli_string_matrix_cases())
+def test_sparse_matrix(
+    pauli_string: cirq.PauliString, qubits: tuple[cirq.Qid, ...] | None, expected_matrix: np.ndarray
+) -> None:
+    assert np.allclose(pauli_string.sparse_matrix(qubits).toarray(), expected_matrix)
 
 
 def test_unitary_matrix() -> None:
@@ -2050,8 +2059,14 @@ def test_parameterization() -> None:
         pst.expectation_from_state_vector(np.array([]), {})
     with pytest.raises(NotImplementedError, match='parameterized'):
         pst.expectation_from_density_matrix(np.array([]), {})
-    with pytest.raises(NotImplementedError, match='as matrix when parameterized'):
+    with pytest.raises(
+        NotImplementedError, match='Cannot express a parameterized PauliString as a matrix'
+    ):
         pst.matrix()
+    with pytest.raises(
+        NotImplementedError, match='Cannot express a parameterized PauliString as a matrix'
+    ):
+        pst.sparse_matrix()
     assert pst**1 == pst
     assert pst**-1 == pst.with_coefficient(1.0 / t)
     assert (-pst) ** 1 == -pst
