@@ -360,7 +360,8 @@ class PauliSum:
 
     Under the hood, this class is backed by a LinearDict with coefficient-less
     PauliStrings as keys. PauliStrings are reconstructed on-the-fly during
-    iteration.
+    iteration.  Note the ordering of Pauli gates and qubits in such reconstructed
+    strings may differ from the order in PauliStrings that were combined in PauliSum.
 
     PauliSums can be constructed explicitly:
 
