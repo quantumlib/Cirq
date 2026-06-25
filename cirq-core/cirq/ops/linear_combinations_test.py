@@ -1097,16 +1097,17 @@ def test_pauli_sum_matrix() -> None:
         (cirq.X(q0) * cirq.I(q1) + cirq.Z(q1), None),
     ),
 )
-def test_pauli_sum_sparse_matrix(paulisum, qubits) -> None:
+def test_pauli_sum_sparse_matrix(paulisum: cirq.PauliSum, qubits: list[cirq.Qid] | None) -> None:
     actual = paulisum.sparse_matrix(qubits).toarray()
     expected = paulisum.matrix(qubits)
-    assert np.allclose(actual, expected)
+    assert np.array_equal(actual, expected)
 
 
 def test_pauli_sum_sparse_matrix_empty() -> None:
     q = cirq.LineQubit.range(2)
     empty = cirq.PauliSum.from_pauli_strings([])
-    assert np.allclose(empty.sparse_matrix(q).toarray(), np.zeros((4, 4)))
+    assert np.array_equal(empty.sparse_matrix().toarray(), np.zeros((1, 1)))
+    assert np.array_equal(empty.sparse_matrix(q).toarray(), np.zeros((4, 4)))
 
 
 def test_pauli_sum_repr() -> None:

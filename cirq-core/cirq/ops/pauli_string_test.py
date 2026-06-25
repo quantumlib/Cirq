@@ -850,12 +850,16 @@ def _pauli_string_matrix_cases():
 
 
 @pytest.mark.parametrize('pauli_string, qubits, expected_matrix', _pauli_string_matrix_cases())
-def test_matrix(pauli_string, qubits, expected_matrix) -> None:
+def test_matrix(
+    pauli_string: cirq.PauliString, qubits: tuple[cirq.Qid, ...] | None, expected_matrix: np.ndarray
+) -> None:
     assert np.allclose(pauli_string.matrix(qubits), expected_matrix)
 
 
 @pytest.mark.parametrize('pauli_string, qubits, expected_matrix', _pauli_string_matrix_cases())
-def test_sparse_matrix(pauli_string, qubits, expected_matrix) -> None:
+def test_sparse_matrix(
+    pauli_string: cirq.PauliString, qubits: tuple[cirq.Qid, ...] | None, expected_matrix: np.ndarray
+) -> None:
     assert np.allclose(pauli_string.sparse_matrix(qubits).toarray(), expected_matrix)
 
 

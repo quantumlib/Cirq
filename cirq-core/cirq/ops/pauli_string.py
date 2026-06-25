@@ -504,17 +504,18 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                 continue
             idx = qubit_to_idx[q]
             bit = 1 << (n - 1 - idx)
-            if pauli is pauli_gates.X:
-                x_mask |= bit
-            elif pauli is pauli_gates.Y:
-                y_mask |= bit
-            elif pauli is pauli_gates.Z:
-                z_mask |= bit
-            else:  # pragma: no cover
-                raise AssertionError(
-                    "Unhandled instance of Pauli gate. "
-                    "Expected one of (cirq.X, cirq.Y, cirq.Z) identically."
-                )
+            match pauli:
+                case pauli_gates.X:
+                    x_mask |= bit
+                case pauli_gates.Y:
+                    y_mask |= bit
+                case pauli_gates.Z:
+                    z_mask |= bit
+                case _:  # pragma: no cover
+                    raise AssertionError(
+                        "Unhandled instance of Pauli gate. "
+                        "Expected one of (cirq.X, cirq.Y, cirq.Z)."
+                    )
 
         cols = np.arange(dim, dtype=np.int32)
         rows = cols ^ x_mask ^ y_mask
