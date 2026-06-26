@@ -41,7 +41,7 @@ MAPPED_CIRCUIT_OP_TAG = '<mapped_circuit_op>'
 
 
 def _to_target_circuit_type(
-    circuit: circuits.AbstractCircuit, target_circuit: CIRCUIT_TYPE
+    circuit: cirq.AbstractCircuit, target_circuit: CIRCUIT_TYPE
 ) -> CIRCUIT_TYPE:
     return cast(
         CIRCUIT_TYPE,
@@ -923,3 +923,26 @@ def toggle_tags(circuit: CIRCUIT_TYPE, tags: Sequence[Hashable], *, deep: bool =
         )
 
     return map_operations(circuit, map_func, deep=deep)
+
+
+def reverse_circuit(circuit: cirq.AbstractCircuit) -> cirq.Circuit:
+    """Return a mutable copy of the circuit with moments and operations reversed.
+
+    This creates a circuit with reversed iteration order in `circuit.all_operations()`.
+    A second call restores back the initial input circuit (as a mutable copy).
+
+    Args:
+        circuit: The input circuit to be reversed.
+
+    Returns:
+        A mutable circuit with a reversed order of moments and operations.
+    """
+    moments = [
+        (
+            circuits.Moment.from_ops(*reversed(m.operations), tags=m.tags)
+            if len(m.operations) > 1
+            else m
+        )
+        for m in circuit
+    ]
+    return circuits.Circuit._from_moments(reversed(moments), tags=circuit.tags)
