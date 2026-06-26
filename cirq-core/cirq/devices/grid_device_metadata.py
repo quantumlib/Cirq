@@ -29,8 +29,6 @@ if TYPE_CHECKING:
     import cirq
 
 
-# Type alias for values of qubit attributes in GridDeviceMetadata.
-# Matches the types allowed by the QubitAttributeValue protobuf message.
 QubitAttributeValue = bool | int | float | str | None
 document(
     QubitAttributeValue,
