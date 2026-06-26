@@ -195,7 +195,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
             duration_equality = sorted(self._gate_durations.items(), key=lambda x: repr(x[0]))
 
         attributes_equality = sorted(
-            [(q, tuple(sorted(attrs.items()))) for q, attrs in self._qubit_attributes.items()],
+            ((q, tuple(sorted(attrs.items()))) for q, attrs in self._qubit_attributes.items()),
             key=lambda x: x[0],
         )
 

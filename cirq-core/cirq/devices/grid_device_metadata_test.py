@@ -16,8 +16,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 import networkx as nx
 import pytest
 
@@ -119,7 +117,7 @@ def test_griddevice_json_load() -> None:
     rep_str = cirq.to_json(metadata)
     assert metadata == cirq.read_json(json_text=rep_str)
 
-    qubit_attributes: dict[cirq.GridQubit, dict[str, Any]] = {
+    qubit_attributes: dict[cirq.GridQubit, dict[str, cirq.QubitAttributeValue]] = {
         cirq.GridQubit(0, 0): {"type": "transmon", "frequency": 5.1},
         cirq.GridQubit(0, 1): {"index": 42},
     }
@@ -188,11 +186,11 @@ def test_griddevice_metadata_equality() -> None:
         qubit_pairs, gateset, compilation_target_gatesets=set(target_gatesets)
     )
 
-    qubit_attributes: dict[cirq.GridQubit, dict[str, Any]] = {
+    qubit_attributes: dict[cirq.GridQubit, dict[str, cirq.QubitAttributeValue]] = {
         cirq.GridQubit(0, 0): {"type": "transmon", "frequency": 5.1},
         cirq.GridQubit(0, 1): {"index": 42},
     }
-    qubit_attributes2: dict[cirq.GridQubit, dict[str, Any]] = {
+    qubit_attributes2: dict[cirq.GridQubit, dict[str, cirq.QubitAttributeValue]] = {
         cirq.GridQubit(0, 0): {"type": "transmon", "frequency": 5.1},
         cirq.GridQubit(0, 1): {"index": 43},  # different index
     }
@@ -237,7 +235,7 @@ def test_repr() -> None:
     )
     cirq.testing.assert_equivalent_repr(metadata)
 
-    qubit_attributes: dict[cirq.GridQubit, dict[str, Any]] = {
+    qubit_attributes: dict[cirq.GridQubit, dict[str, cirq.QubitAttributeValue]] = {
         cirq.GridQubit(0, 0): {"type": "transmon", "frequency": 5.1},
         cirq.GridQubit(0, 1): {"index": 42},
     }
@@ -255,7 +253,7 @@ def test_repr() -> None:
 def test_griddevice_metadata_qubit_attributes() -> None:
     qubits = cirq.GridQubit.rect(1, 2)
     gateset = cirq.Gateset(cirq.XPowGate)
-    qubit_attributes: dict[cirq.GridQubit, dict[str, Any]] = {
+    qubit_attributes: dict[cirq.GridQubit, dict[str, cirq.QubitAttributeValue]] = {
         cirq.GridQubit(0, 0): {"type": "transmon", "frequency": 5.1},
         cirq.GridQubit(0, 1): {"index": 42},
     }
