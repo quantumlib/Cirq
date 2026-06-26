@@ -199,6 +199,25 @@ def _qubit_attribute_value_from_proto(
     return getattr(val_proto, which_val) if which_val is not None else None
 
 
+def _qubit_attribute_value_to_proto(
+    val_proto: v2.device_pb2.QubitAttributeValue, value: cirq.QubitAttributeValue
+) -> v2.device_pb2.QubitAttributeValue:
+    if isinstance(value, bool):
+        val_proto.bool_value = value
+    elif isinstance(value, int):
+        val_proto.int_value = value
+    elif isinstance(value, float):
+        val_proto.double_value = value
+    elif isinstance(value, str):
+        val_proto.string_value = value
+    elif value is None:
+        # leave unset
+        pass
+    else:  # pragma: no cover
+        raise ValueError(f"Unsupported attribute value type: {type(value)}")
+    return val_proto
+
+
 def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> None:
     """Raises a ValueError if the `DeviceSpecification` proto is invalid."""
 
@@ -576,26 +595,13 @@ class GridDevice(cirq.Device):
         _serialize_gateset_and_gate_durations(
             out, gateset, {} if gate_durations is None else gate_durations
         )
+        out.qubit_attributes.clear()
         for qubit, attrs in self.qubit_attributes.items():
             qubit_str = v2.qubit_to_proto_id(qubit)
             qubit_attrs_proto = out.qubit_attributes[qubit_str]
             for attr_name, attr_val in attrs.items():
                 val_proto = qubit_attrs_proto.attributes[attr_name]
-                if isinstance(attr_val, bool):
-                    val_proto.bool_value = attr_val
-                elif isinstance(attr_val, int):
-                    val_proto.int_value = attr_val
-                elif isinstance(attr_val, float):
-                    val_proto.double_value = attr_val
-                elif isinstance(attr_val, str):
-                    val_proto.string_value = attr_val
-                elif attr_val is None:
-                    # leave unset
-                    pass
-                else:
-                    raise ValueError(
-                        f"Unsupported attribute value type: {type(attr_val)}"
-                    )  # pragma: no cover
+                _qubit_attribute_value_to_proto(val_proto, attr_val)
 
         _validate_device_specification(out)
 
