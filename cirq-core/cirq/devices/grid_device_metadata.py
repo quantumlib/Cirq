@@ -22,6 +22,7 @@ from typing import cast, TYPE_CHECKING
 import networkx as nx
 
 from cirq import value
+from cirq._doc import document
 from cirq.devices import device
 
 if TYPE_CHECKING:
@@ -31,6 +32,13 @@ if TYPE_CHECKING:
 # Type alias for values of qubit attributes in GridDeviceMetadata.
 # Matches the types allowed by the QubitAttributeValue protobuf message.
 QubitAttributeValue = bool | int | float | str | None
+document(
+    QubitAttributeValue,
+    """Type alias for values of qubit attributes in GridDeviceMetadata.
+
+    Matches the types allowed by the QubitAttributeValue protobuf message.
+    """,
+)
 
 
 @value.value_equality
@@ -70,19 +78,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
                 transform circuits into ones that consist of only
                 operations in `gateset`.
             qubit_attributes: Optional dictionary mapping each `cirq.GridQubit`
-                to a dictionary of its attribute names and values. Example:
-                ```python
-                qubit_attributes = {
-                    cirq.GridQubit(0, 0): {
-                        'frequency': 5.0,
-                        'drive_channel': 0,
-                    },
-                    cirq.GridQubit(0, 1): {
-                        'frequency': 5.1,
-                        'drive_channel': 1,
-                    },
-                }
-                ```
+                to a dictionary of its attribute names and values.
 
         Raises:
             ValueError: if some GateFamily keys in gate_durations are

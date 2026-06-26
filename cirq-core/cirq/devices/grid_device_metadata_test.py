@@ -34,7 +34,7 @@ def test_griddevice_metadata() -> None:
         # omitting cirq.CZ
     }
     target_gatesets = (cirq.CZTargetGateset(),)
-    qubit_attributes: dict[cirq.GridQubit, dict[str, cirq.QubitAttributeValue]] = {
+    qubit_attributes: dict[cirq.GridQubit, dict[str, cirq.devices.QubitAttributeValue]] = {
         cirq.GridQubit(0, 0): {"type": "transmon", "frequency": 5.1},
         cirq.GridQubit(0, 1): {"index": 42},
     }
@@ -123,7 +123,7 @@ def test_griddevice_json_load() -> None:
     rep_str = cirq.to_json(metadata)
     assert metadata == cirq.read_json(json_text=rep_str)
 
-    qubit_attributes: dict[cirq.GridQubit, dict[str, cirq.QubitAttributeValue]] = {
+    qubit_attributes: dict[cirq.GridQubit, dict[str, cirq.devices.QubitAttributeValue]] = {
         cirq.GridQubit(0, 0): {"type": "transmon", "frequency": 5.1},
         cirq.GridQubit(0, 1): {"index": 42},
     }
@@ -192,11 +192,11 @@ def test_griddevice_metadata_equality() -> None:
         qubit_pairs, gateset, compilation_target_gatesets=set(target_gatesets)
     )
 
-    qubit_attributes: dict[cirq.GridQubit, dict[str, cirq.QubitAttributeValue]] = {
+    qubit_attributes: dict[cirq.GridQubit, dict[str, cirq.devices.QubitAttributeValue]] = {
         cirq.GridQubit(0, 0): {"type": "transmon", "frequency": 5.1},
         cirq.GridQubit(0, 1): {"index": 42},
     }
-    qubit_attributes2: dict[cirq.GridQubit, dict[str, cirq.QubitAttributeValue]] = {
+    qubit_attributes2: dict[cirq.GridQubit, dict[str, cirq.devices.QubitAttributeValue]] = {
         cirq.GridQubit(0, 0): {"type": "transmon", "frequency": 5.1},
         cirq.GridQubit(0, 1): {"index": 43},  # different index
     }
@@ -241,7 +241,7 @@ def test_repr() -> None:
     )
     cirq.testing.assert_equivalent_repr(metadata)
 
-    qubit_attributes: dict[cirq.GridQubit, dict[str, cirq.QubitAttributeValue]] = {
+    qubit_attributes: dict[cirq.GridQubit, dict[str, cirq.devices.QubitAttributeValue]] = {
         cirq.GridQubit(0, 0): {"type": "transmon", "frequency": 5.1},
         cirq.GridQubit(0, 1): {"index": 42},
     }

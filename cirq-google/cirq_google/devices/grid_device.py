@@ -200,7 +200,7 @@ def _qubit_attribute_value_from_proto(
 
 
 def _qubit_attribute_value_to_proto(
-    val_proto: v2.device_pb2.QubitAttributeValue, value: cirq.QubitAttributeValue
+    val_proto: v2.device_pb2.QubitAttributeValue, value: cirq.devices.QubitAttributeValue
 ) -> v2.device_pb2.QubitAttributeValue:
     if isinstance(value, bool):
         val_proto.bool_value = value
