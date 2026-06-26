@@ -93,7 +93,6 @@ from cirq.devices import (
     NoiseModelFromNoiseProperties as NoiseModelFromNoiseProperties,
     NoiseProperties as NoiseProperties,
     OpIdentifier as OpIdentifier,
-    QubitAttributeValue as QubitAttributeValue,
     SuperconductingQubitsNoiseProperties as SuperconductingQubitsNoiseProperties,
     UNCONSTRAINED_DEVICE as UNCONSTRAINED_DEVICE,
     NamedTopology as NamedTopology,

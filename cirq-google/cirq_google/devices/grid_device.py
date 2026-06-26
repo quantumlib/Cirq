@@ -194,7 +194,7 @@ _GATES: list[_GateRepresentations] = [
 
 def _qubit_attribute_value_from_proto(
     val_proto: v2.device_pb2.QubitAttributeValue,
-) -> cirq.QubitAttributeValue:
+) -> cirq.devices.QubitAttributeValue:
     which_val = val_proto.WhichOneof("val")
     return getattr(val_proto, which_val) if which_val is not None else None
 
@@ -501,7 +501,9 @@ class GridDevice(cirq.Device):
         self._metadata = metadata
 
     @property
-    def qubit_attributes(self) -> Mapping[cirq.GridQubit, Mapping[str, cirq.QubitAttributeValue]]:
+    def qubit_attributes(
+        self,
+    ) -> Mapping[cirq.GridQubit, Mapping[str, cirq.devices.QubitAttributeValue]]:
         return self._metadata.qubit_attributes
 
     @classmethod
