@@ -811,3 +811,52 @@ def test_to_proto():
     assert cirq_google.GridDevice.from_proto(spec) == cirq_google.GridDevice.from_proto(
         expected_spec
     )
+
+
+def test_qubit_attributes_serialization_deserialization():
+    device_info, spec = _create_device_spec_with_horizontal_couplings()
+
+    # Add qubit attributes to the proto
+    q1_str = v2.qubit_to_proto_id(cirq.GridQubit(0, 0))
+    q2_str = v2.qubit_to_proto_id(cirq.GridQubit(0, 1))
+
+    # Add attributes to q1
+    qa1 = spec.qubit_attributes[q1_str]
+    qa1.attributes["type"].string_value = "transmon"
+    qa1.attributes["frequency"].double_value = 5.123
+
+    # Add attributes to q2
+    qa2 = spec.qubit_attributes[q2_str]
+    qa2.attributes["index"].int_value = 42
+    qa2.attributes["is_active"].bool_value = True
+
+    # Add an unset value (representing None)
+    _ = qa2.attributes["calibration_status"]
+
+    # Deserialize and verify Python object attributes
+    device = cirq_google.GridDevice.from_proto(spec)
+
+    expected_attrs = {
+        cirq.GridQubit(0, 0): {"type": "transmon", "frequency": 5.123},
+        cirq.GridQubit(0, 1): {"index": 42, "is_active": True, "calibration_status": None},
+    }
+    assert device.qubit_attributes == expected_attrs
+
+    # Serialize back and verify it matches the spec with attributes
+    reserialized_spec = device.to_proto()
+
+    # Check that they serialize to identical structures
+    # We can parse it back again to verify
+    device_parsed_again = cirq_google.GridDevice.from_proto(reserialized_spec)
+    assert device_parsed_again.qubit_attributes == expected_attrs
+
+
+def test_qubit_attributes_unlisted_qubit():
+    device_info, spec = _create_device_spec_with_horizontal_couplings()
+
+    # Add attributes for an unlisted qubit
+    qa = spec.qubit_attributes["10_10"]  # Not in valid_qubits
+    qa.attributes["foo"].string_value = "bar"
+
+    with pytest.raises(ValueError, match="is not in valid_qubits"):
+        _ = cirq_google.GridDevice.from_proto(spec)
