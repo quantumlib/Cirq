@@ -339,14 +339,19 @@ def test_qubit_keys_for_histogram() -> None:
     assert results.histogram(key=[c]) == collections.Counter({1: 100})
 
 
-def test_histogram_qudits() -> None:
+def test_histogram_fold_base() -> None:
+    # assume some result from qudits
     result = cirq.ResultDict(
-        params=cirq.ParamResolver({}), measurements={'q': np.array([[2, 2, 2]], dtype=np.int8)}
+        params=cirq.ParamResolver({}), measurements={'a': np.array([[2, 2, 2]], dtype=np.int8)}
     )
-    assert result.histogram(key='q', fold_base=3) == collections.Counter({26: 1})
+    assert result.histogram(key='a', fold_base=3) == collections.Counter({26: 1})
+    assert result.histogram(key='a', fold_base=(3, 3, 3)) == collections.Counter({26: 1})
+    assert result.histogram(key='a', fold_base=(5, 4, 3)) == collections.Counter({32: 1})
 
-    with pytest.raises(ValueError):
-        result.histogram(key='q', fold_func=tuple, fold_base=3)
+    with pytest.raises(ValueError, match=r'len\(digits\) != len\(base\)'):
+        result.histogram(key='a', fold_base=(3, 3))
+    with pytest.raises(ValueError, match='Cannot specify both fold_func and fold_base'):
+        result.histogram(key='a', fold_func=tuple, fold_base=3)
 
 
 def test_text_diagram_jupyter() -> None:
