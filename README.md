@@ -117,7 +117,7 @@ documentation for Cirq is available.
 [installation]: https://quantumai.google/cirq/start/install
 [basics]: https://quantumai.google/cirq/start/basics
 [Build]: https://quantumai.google/cirq/build
-[Simulate]: https://quantumai.google/cirq/simula
+[Simulate]: https://quantumai.google/cirq/simulate
 
 ### Reference Documentation
 
