@@ -179,7 +179,7 @@ develop quantum programs for a variety of applications.
 width="150em" alt="Total number of contributors to Cirq"
 src="https://img.shields.io/github/contributors/quantumlib/cirq?label=Contributors&logo=github&color=ccc&style=flat-square"/></a>
 
-Cirq has benefited from [contributions] by over 200 people and
+Cirq has benefited from [contributions] by over 250 people and
 counting. We are dedicated to cultivating an open and inclusive community to
 build software for quantum computers, and have a community [code of conduct].
 
