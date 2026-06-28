@@ -199,7 +199,7 @@ Stay on top of Cirq developments using the approach that best suits your needs:
 
 Cirq releases take place approximately every quarter.
 
-[`cirq-announce`]: https://groups.google.com/forum/#!forum/cirq-announce
+[`cirq-announce`]: https://groups.google.com/g/cirq-announce
 [repository notifications]: https://docs.github.com/github/managing-subscriptions-and-notifications-on-github/configuring-notifications
 [Cirq releases Atom feed]: https://github.com/quantumlib/Cirq/releases.atom
 [PyPI releases RSS feed]: https://pypi.org/rss/project/cirq/releases.xml
@@ -215,7 +215,7 @@ Cirq releases take place approximately every quarter.
 
 [Quantum Computing Stack Exchange]: https://quantumcomputing.stackexchange.com
 [`cirq`]: https://quantumcomputing.stackexchange.com/questions/tagged/cirq
-[_cirq-dev_]: https://groups.google.com/forum/#!forum/cirq-dev
+[_cirq-dev_]: https://groups.google.com/g/cirq-dev
 
 ### Contributions
 
