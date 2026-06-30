@@ -1,4 +1,4 @@
-# Copyright 2026 The Cirq Developers
+# Copyright 2025 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -86,11 +86,14 @@ class PauliRotationGate(raw_types.Gate):
     def _decompose_(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         if protocols.is_parameterized(self._exponent):
             return NotImplemented
-        pauli_string_gate = self._dense_pauli_string.on(*qubits)
-        if isinstance(pauli_string_gate, gate_operation.GateOperation):
-            pauli_string = pauli_string_gate.gate
-        else:
-            pauli_string = pauli_string_gate
+        # Pass explicit qubits so PauliStringPhasor keeps identity factors in the
+        # full Hilbert space (e.g. X⊗I rather than a single-qubit X).
+        pauli_op = self._dense_pauli_string.on(*qubits)
+        pauli_string = (
+            pauli_op.gate
+            if isinstance(pauli_op, gate_operation.GateOperation)
+            else pauli_op
+        )
         return [
             pauli_string_phasor.PauliStringPhasor(
                 pauli_string,
@@ -115,7 +118,10 @@ class PauliRotationGate(raw_types.Gate):
 
 @value.value_equality(approximate=True)
 class PauliRotation(gate_operation.GateOperation):
-    r"""An operation representing :math:`e^{i \theta P}` for a Pauli string :math:`P`."""
+    r"""An operation representing :math:`e^{i \theta P}` for a Pauli string :math:`P`.
+
+    Accepts a `cirq.DensePauliString` label or string such as ``'XI'``.
+    """
 
     def __init__(
         self,

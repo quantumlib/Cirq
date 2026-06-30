@@ -1,4 +1,4 @@
-# Copyright 2026 The Cirq Developers
+# Copyright 2025 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,9 +22,8 @@ import cirq
 _ATOL = 1e-8
 
 
-def _expected_pauli_rotation_unitary(
-    pauli_label: str, exponent: float
-) -> np.ndarray:
+def _expected_pauli_rotation_unitary(pauli_label: str, exponent: float) -> np.ndarray:
+    """Reference unitary for U = cos(theta)I + i sin(theta) P."""
     pauli = cirq.unitary(cirq.DensePauliString(pauli_label))
     cos_theta = np.cos(exponent)
     sin_theta = np.sin(exponent)
