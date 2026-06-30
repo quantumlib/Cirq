@@ -178,6 +178,10 @@ def measure_density_matrix(
 
     # Renormalize.
     arrout /= probs[result]
+    size = int(np.prod(qid_shape))
+    trace = np.trace(arrout.reshape(size, size))
+    if trace != 0:
+        arrout /= trace
 
     return measurement_bits, arrout
 
