@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""ZX-calculus circuit optimization via PyZX."""
+"""ZX-calculus circuit optimization via PyZX (requires the ``pyzx`` package)."""
 
 from cirq.contrib.zxtransformer.zxtransformer import (
     ZXTransformer as ZXTransformer,

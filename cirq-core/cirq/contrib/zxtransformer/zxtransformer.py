@@ -12,14 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""ZX-calculus circuit optimization via PyZX."""
+"""ZX-calculus circuit optimization via PyZX.
+
+This module converts supported Cirq circuits to PyZX, applies ZX rewrite
+optimization (``full_reduce`` by default), and converts the result back to
+Cirq. Unsupported gates are preserved as opaque Cirq operations.
+"""
 
 from __future__ import annotations
 
 import functools
 from collections.abc import Callable
 from fractions import Fraction
-from typing import TYPE_CHECKING
 
 import cirq
 from cirq import circuits, transformers
@@ -30,11 +34,9 @@ from pyzx.circuit.gates import ConditionalGate
 from pyzx.circuit.gates import Measurement as PyzxMeasurement
 from pyzx.circuit.gates import Reset as PyzxReset
 
-if TYPE_CHECKING:
-    import numpy as np
-
 
 def _to_fraction(exponent: cirq.TParamVal) -> Fraction:
+    """Convert a Cirq rotation exponent into an exact PyZX ``Fraction`` phase."""
     if isinstance(exponent, Fraction):
         return exponent
     return Fraction(exponent).limit_denominator()  # type: ignore[arg-type]
@@ -160,6 +162,7 @@ def _optimize(circuit: zx.Circuit) -> zx.Circuit:
 def _try_convert_conditional(
     op: cirq.ClassicallyControlledOperation, qubit_to_index: dict[cirq.Qid, int]
 ) -> ConditionalGate | None:
+    """Map a single-qubit classically controlled X/Z rotation to PyZX, if possible."""
     controls = op.classical_controls
     if len(controls) != 1:
         return None
@@ -187,11 +190,19 @@ def _try_convert_conditional(
 
 
 class ZXTransformer:
-    """Transformer that optimizes Cirq circuits using PyZX ZX-calculus routines."""
+    """Optimize Cirq circuits using PyZX ZX-calculus simplification.
+
+    The transformer splits the input into alternating PyZX circuit segments and
+    opaque Cirq operations, optimizes each PyZX segment, then rebuilds a Cirq
+    circuit while preserving measurement keys and classical controls.
+    """
 
     def __init__(
         self, optimize: Callable[[zx.Circuit], zx.Circuit] | None = None
     ) -> None:
+        """Args:
+        optimize: Optional PyZX optimizer. Defaults to ``_optimize``.
+        """
         self.qubits: list[cirq.Qid] = []
         self.qubit_to_index: dict[cirq.Qid, int] = {}
         self.measurement_keys: list[str] = []
@@ -383,7 +394,7 @@ def zx_transformer(
     context: transformers.TransformerContext | None = None,
     optimizer: Callable[[zx.Circuit], zx.Circuit] | None = None,
 ) -> circuits.Circuit:
-    """Optimize a circuit with PyZX and return a unitarily equivalent result."""
+    """Optimize ``circuit`` with PyZX using the default or a custom optimizer."""
     return ZXTransformer(optimize=optimizer)(circuit, context=context)
 
 
