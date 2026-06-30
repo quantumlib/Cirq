@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import itertools
 import math
-from collections.abc import Iterator
 
 import numpy as np
 import pytest
@@ -30,33 +29,36 @@ def _make_qubits(n) -> list[cirq.NamedQubit]:
     return [cirq.NamedQubit(f'q{i}') for i in range(n)]
 
 
-def _sample_qubit_pauli_maps() -> Iterator[dict[cirq.NamedQubit, cirq.Pauli]]:
+def _sample_qubit_pauli_maps() -> list[dict[cirq.NamedQubit, cirq.Pauli]]:
     """All combinations of having a Pauli or nothing on 3 qubits.
     Yields 64 qubit pauli maps
     """
     qubits = _make_qubits(3)
     paulis_or_none = (None, cirq.X, cirq.Y, cirq.Z)
-    for paulis in itertools.product(paulis_or_none, repeat=len(qubits)):
-        yield {qubit: pauli for qubit, pauli in zip(qubits, paulis) if pauli is not None}
+    return [
+        {qubit: pauli for qubit, pauli in zip(qubits, paulis) if pauli is not None}
+        for paulis in itertools.product(paulis_or_none, repeat=len(qubits))
+    ]
 
 
-def _small_sample_qubit_pauli_maps() -> Iterator[dict[cirq.NamedQubit, cirq.Pauli]]:
+def _small_sample_qubit_pauli_maps() -> list[dict[cirq.NamedQubit, cirq.Pauli]]:
     """A few representative samples of qubit maps.
 
     Only tests 10 combinations of Paulis to speed up testing.
     """
     qubits = _make_qubits(3)
-    yield {}
-    yield {qubits[0]: cirq.X}
-    yield {qubits[1]: cirq.X}
-    yield {qubits[2]: cirq.X}
-    yield {qubits[1]: cirq.Z}
-
-    yield {qubits[0]: cirq.Y, qubits[1]: cirq.Z}
-    yield {qubits[1]: cirq.Z, qubits[2]: cirq.X}
-    yield {qubits[0]: cirq.X, qubits[1]: cirq.X, qubits[2]: cirq.X}
-    yield {qubits[0]: cirq.X, qubits[1]: cirq.Y, qubits[2]: cirq.Z}
-    yield {qubits[0]: cirq.Z, qubits[1]: cirq.X, qubits[2]: cirq.Y}
+    return [
+        {},
+        {qubits[0]: cirq.X},
+        {qubits[1]: cirq.X},
+        {qubits[2]: cirq.X},
+        {qubits[1]: cirq.Z},
+        {qubits[0]: cirq.Y, qubits[1]: cirq.Z},
+        {qubits[1]: cirq.Z, qubits[2]: cirq.X},
+        {qubits[0]: cirq.X, qubits[1]: cirq.X, qubits[2]: cirq.X},
+        {qubits[0]: cirq.X, qubits[1]: cirq.Y, qubits[2]: cirq.Z},
+        {qubits[0]: cirq.Z, qubits[1]: cirq.X, qubits[2]: cirq.Y},
+    ]
 
 
 def assert_conjugation(
@@ -850,8 +852,17 @@ def _pauli_string_matrix_cases():
 
 
 @pytest.mark.parametrize('pauli_string, qubits, expected_matrix', _pauli_string_matrix_cases())
-def test_matrix(pauli_string, qubits, expected_matrix) -> None:
+def test_matrix(
+    pauli_string: cirq.PauliString, qubits: tuple[cirq.Qid, ...] | None, expected_matrix: np.ndarray
+) -> None:
     assert np.allclose(pauli_string.matrix(qubits), expected_matrix)
+
+
+@pytest.mark.parametrize('pauli_string, qubits, expected_matrix', _pauli_string_matrix_cases())
+def test_sparse_matrix(
+    pauli_string: cirq.PauliString, qubits: tuple[cirq.Qid, ...] | None, expected_matrix: np.ndarray
+) -> None:
+    assert np.allclose(pauli_string.sparse_matrix(qubits).toarray(), expected_matrix)
 
 
 def test_unitary_matrix() -> None:
@@ -2048,8 +2059,14 @@ def test_parameterization() -> None:
         pst.expectation_from_state_vector(np.array([]), {})
     with pytest.raises(NotImplementedError, match='parameterized'):
         pst.expectation_from_density_matrix(np.array([]), {})
-    with pytest.raises(NotImplementedError, match='as matrix when parameterized'):
+    with pytest.raises(
+        NotImplementedError, match='Cannot express a parameterized PauliString as a matrix'
+    ):
         pst.matrix()
+    with pytest.raises(
+        NotImplementedError, match='Cannot express a parameterized PauliString as a matrix'
+    ):
+        pst.sparse_matrix()
     assert pst**1 == pst
     assert pst**-1 == pst.with_coefficient(1.0 / t)
     assert (-pst) ** 1 == -pst

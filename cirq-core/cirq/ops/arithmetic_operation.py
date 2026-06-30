@@ -225,7 +225,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
             dst[tuple(outputs)] = src[tuple(inputs)]
 
         # In case the reshaped arrays were copies instead of views.
-        dst.shape = transposed_args.available_buffer.shape
+        dst = dst.reshape(transposed_args.available_buffer.shape, copy=False)
         transposed_args.target_tensor[...] = dst
 
         return args.target_tensor
