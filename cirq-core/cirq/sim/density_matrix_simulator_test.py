@@ -1599,9 +1599,7 @@ def _density_matrix_trace(density_matrix: np.ndarray) -> complex:
     return np.trace(density_matrix.reshape(size, size))
 
 
-def _assert_density_matrix_trace_one(
-    density_matrix: np.ndarray, *, atol: float = 1e-6
-) -> None:
+def _assert_density_matrix_trace_one(density_matrix: np.ndarray, *, atol: float = 1e-6) -> None:
     trace = _density_matrix_trace(density_matrix)
     assert np.isclose(trace, 1.0, atol=atol), trace
 
