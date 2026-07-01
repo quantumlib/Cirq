@@ -33,7 +33,9 @@ def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
 
 
 def measure_single_paulistring(
-    pauli_observable: pauli_string.PauliString, key: str | cirq.MeasurementKey | None = None
+    pauli_observable: pauli_string.PauliString,
+    key: str | cirq.MeasurementKey | None = None,
+    confusion_map: dict[tuple[int, ...], np.ndarray] | None = None,
 ) -> raw_types.Operation:
     """Returns a single PauliMeasurementGate which measures the pauli observable
 
@@ -42,6 +44,10 @@ def measure_single_paulistring(
         key: Optional `str` or `cirq.MeasurementKey` that gate should use.
             If none provided, it defaults to a comma-separated list of
             `str(qubit)` for each of the target qubits.
+        confusion_map: A map of qubit index sets (using indices in the
+            operation generated from this gate) to the 2D confusion matrix
+            for those qubits. Since PauliMeasurementGate has only a single
+            measurement outcome, the only valid index is 0.
 
     Returns:
         An operation measuring the pauli observable.
@@ -61,9 +67,9 @@ def measure_single_paulistring(
 
     if key is None:
         key = _default_measurement_key(pauli_observable)
-    return PauliMeasurementGate(pauli_observable.dense(list(pauli_observable.keys())), key).on(
-        *pauli_observable.keys()
-    )
+    return PauliMeasurementGate(
+        pauli_observable.dense(list(pauli_observable.keys())), key, confusion_map=confusion_map
+    ).on(*pauli_observable.keys())
 
 
 def measure_paulistring_terms(

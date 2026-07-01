@@ -19,7 +19,7 @@ from typing import Any, cast, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import protocols, value
+from cirq import _compat, protocols, value
 from cirq.ops import (
     dense_pauli_string as dps,
     measurement_gate,
@@ -57,10 +57,12 @@ class PauliMeasurementGate(raw_types.Gate):
             key: The string key of the measurement.
             confusion_map: A map of qubit index sets (using indices in the
                 operation generated from this gate) to the 2D confusion matrix
-                for those qubits. Indices not included use the identity.
+                for those qubits. Since PauliMeasurementGate has only a single
+                measurement outcome, the only valid index is 0.
 
         Raises:
-            ValueError: If the observable is empty.
+            ValueError: If the observable is empty, or if confusion_map has
+                indices greater than or equal to 1.
         """
         if not observable:
             raise ValueError(f'Pauli observable {observable} is empty.')
@@ -81,7 +83,7 @@ class PauliMeasurementGate(raw_types.Gate):
             key if isinstance(key, value.MeasurementKey) else value.MeasurementKey(name=key)
         )
         self._confusion_map = confusion_map or {}
-        if any(x >= len(self._observable) for idx in self._confusion_map for x in idx):
+        if any(x >= 1 for idx in self._confusion_map for x in idx):
             raise ValueError('Confusion matrices have index out of bounds.')
 
     @property
@@ -156,7 +158,10 @@ class PauliMeasurementGate(raw_types.Gate):
         yield to_z_ops
         yield xor_decomp
         yield measurement_gate.MeasurementGate(
-            1, self.mkey, invert_mask=(self._observable.coefficient != 1,)
+            1,
+            self.mkey,
+            invert_mask=(self._observable.coefficient != 1,),
+            confusion_map=self.confusion_map,
         ).on(any_qubit)
         yield protocols.inverse(xor_decomp)
         yield protocols.inverse(to_z_ops)
@@ -182,21 +187,45 @@ class PauliMeasurementGate(raw_types.Gate):
         args = [repr(self._observable.on(*qubits))]
         if self.key != _default_measurement_key(qubits):
             args.append(f'key={self.mkey!r}')
+        if self.confusion_map:
+            proper_map_str = ', '.join(
+                f"{k!r}: {_compat.proper_repr(v)}" for k, v in self.confusion_map.items()
+            )
+            args.append(f'confusion_map={{{proper_map_str}}}')
         arg_list = ', '.join(args)
         return f'cirq.measure_single_paulistring({arg_list})'
 
     def __repr__(self) -> str:
-        return f'cirq.PauliMeasurementGate({self._observable!r}, {self.mkey!r})'
+        args = [f'{self._observable!r}', f'{self.mkey!r}']
+        if self.confusion_map:
+            proper_map_str = ', '.join(
+                f"{k!r}: {_compat.proper_repr(v)}" for k, v in self.confusion_map.items()
+            )
+            args.append(f'confusion_map={{{proper_map_str}}}')
+        return f'cirq.PauliMeasurementGate({", ".join(args)})'
 
     def _value_equality_values_(self) -> Any:
-        return self.key, self._observable
+        hashable_cmap = frozenset(
+            (idxs, tuple(v for _, v in np.ndenumerate(cmap)))
+            for idxs, cmap in self._confusion_map.items()
+        )
+        return self.key, self._observable, hashable_cmap
 
     def _json_dict_(self) -> dict[str, Any]:
-        return {'observable': self._observable, 'key': self.key}
+        res: dict[str, Any] = {'observable': self._observable, 'key': self.key}
+        if self.confusion_map:
+            res['confusion_map'] = [(k, v.tolist()) for k, v in self.confusion_map.items()]
+        return res
 
     @classmethod
-    def _from_json_dict_(cls, observable, key, **kwargs) -> PauliMeasurementGate:
-        return cls(observable=observable, key=value.MeasurementKey.parse_serialized(key))
+    def _from_json_dict_(
+        cls, observable, key, confusion_map=None, **kwargs
+    ) -> PauliMeasurementGate:
+        return cls(
+            observable=observable,
+            key=value.MeasurementKey.parse_serialized(key),
+            confusion_map=({tuple(k): np.array(v) for k, v in confusion_map or []}),
+        )
 
 
 def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:

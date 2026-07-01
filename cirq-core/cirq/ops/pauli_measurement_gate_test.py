@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import numpy as np
 import pytest
 
 import cirq
@@ -32,6 +33,13 @@ def test_eval_repr(key) -> None:
     cirq.testing.assert_equivalent_repr(op)
     assert cirq.is_measurement(op)
     assert cirq.measurement_key_name(op) == str(key)
+
+    # Test with confusion map
+    cmap: dict[tuple[int, ...], np.ndarray] = {(0,): np.array([[0.8, 0.2], [0.1, 0.9]])}
+    gate_with_cmap = cirq.PauliMeasurementGate([cirq.X], key, confusion_map=cmap)
+    cirq.testing.assert_equivalent_repr(gate_with_cmap)
+    op_with_cmap = gate_with_cmap.on(cirq.GridQubit(0, 1))
+    cirq.testing.assert_equivalent_repr(op_with_cmap)
 
 
 @pytest.mark.parametrize('observable', [[cirq.X], [cirq.Y, cirq.Z], cirq.DensePauliString('XYZ')])
@@ -151,6 +159,15 @@ def test_op_repr() -> None:
         "key=cirq.MeasurementKey(name='out'))"
     )
 
+    cmap: dict[tuple[int, ...], np.ndarray] = {(0,): np.array([[0.8, 0.2], [0.1, 0.9]])}
+    assert (
+        repr(cirq.measure_single_paulistring(ps, key='out', confusion_map=cmap))
+        == "cirq.measure_single_paulistring(((1+0j)*cirq.X(cirq.LineQubit(0))"
+        "*cirq.Y(cirq.LineQubit(1))*cirq.Z(cirq.LineQubit(2))), "
+        "key=cirq.MeasurementKey(name='out'), "
+        "confusion_map={(0,): np.array([[0.8, 0.2], [0.1, 0.9]], dtype=np.dtype('float64'))})"
+    )
+
 
 def test_bad_observable_raises() -> None:
     with pytest.raises(ValueError, match='Pauli observable .* is empty'):
@@ -190,3 +207,51 @@ def test_pauli_measurement_gate_samples(rot, obs, out) -> None:
     q = cirq.NamedQubit("q")
     c = cirq.Circuit(rot(q), cirq.PauliMeasurementGate(obs, key='out').on(q))
     assert cirq.Simulator().sample(c)['out'][0] == out
+
+
+def test_confusion_map_validation() -> None:
+    # Valid indices (only 0 is allowed)
+    cmap: dict[tuple[int, ...], np.ndarray] = {(0,): np.array([[0.8, 0.2], [0.1, 0.9]])}
+    gate = cirq.PauliMeasurementGate([cirq.X], key='a', confusion_map=cmap)
+    assert gate.confusion_map == cmap
+
+    # Invalid indices (out of bounds)
+    with pytest.raises(ValueError, match='Confusion matrices have index out of bounds'):
+        _ = cirq.PauliMeasurementGate(
+            [cirq.X], key='a', confusion_map={(1,): np.array([[0.8, 0.2], [0.1, 0.9]])}
+        )
+
+
+def test_confusion_map_decomposition() -> None:
+    q = cirq.LineQubit(0)
+    cmap: dict[tuple[int, ...], np.ndarray] = {(0,): np.array([[0.8, 0.2], [0.1, 0.9]])}
+    gate = cirq.PauliMeasurementGate([cirq.X], key='a', confusion_map=cmap)
+    decomposed = cirq.decompose_once(gate.on(q))
+
+    # Check that it decomposes to a MeasurementGate with the same confusion map
+    meas_op = next(op for op in decomposed if isinstance(op.gate, cirq.MeasurementGate))
+    assert isinstance(meas_op.gate, cirq.MeasurementGate)
+    assert meas_op.gate.confusion_map.keys() == cmap.keys()
+    for k in cmap:
+        assert np.array_equal(meas_op.gate.confusion_map[k], cmap[k])
+
+
+def test_confusion_map_serialization() -> None:
+    cmap: dict[tuple[int, ...], np.ndarray] = {(0,): np.array([[0.8, 0.2], [0.1, 0.9]])}
+    gate = cirq.PauliMeasurementGate([cirq.X], key='a', confusion_map=cmap)
+    serialized = cirq.read_json(json_text=cirq.to_json(gate))
+    assert serialized == gate
+    assert serialized.confusion_map.keys() == cmap.keys()
+    for k in cmap:
+        assert np.array_equal(serialized.confusion_map[k], cmap[k])
+
+
+def test_confusion_map_simulation() -> None:
+    # 100% chance to flip the output
+    cmap: dict[tuple[int, ...], np.ndarray] = {(0,): np.array([[0.0, 1.0], [1.0, 0.0]])}
+    q = cirq.LineQubit(0)
+
+    # Normally measures 0. With confusion map, should measure 1.
+    c = cirq.Circuit(cirq.PauliMeasurementGate([cirq.Z], key='out', confusion_map=cmap).on(q))
+    sim_results = cirq.Simulator().sample(c, repetitions=10)['out']
+    assert sim_results.all() == 1

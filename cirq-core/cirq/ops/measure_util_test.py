@@ -98,6 +98,12 @@ def test_measure_single_paulistring() -> None:
         ps.values(), key='a'
     ).on(*ps.keys())
 
+    # Test with confusion map
+    cmap: dict[tuple[int, ...], np.ndarray] = {(0,): np.array([[0.8, 0.2], [0.1, 0.9]])}
+    assert cirq.measure_single_paulistring(
+        ps, key='a', confusion_map=cmap
+    ) == cirq.PauliMeasurementGate(ps.values(), key='a', confusion_map=cmap).on(*ps.keys())
+
     # Test with negative coefficient
     ps_neg = -cirq.Y(cirq.LineQubit(0)) * cirq.Y(cirq.LineQubit(1))
     assert cirq.measure_single_paulistring(ps_neg, key='1').gate == cirq.PauliMeasurementGate(
