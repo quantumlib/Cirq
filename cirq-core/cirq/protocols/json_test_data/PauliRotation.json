@@ -1,0 +1,26 @@
+{
+  "cirq_type": "PauliRotation",
+  "dense_pauli_string": {
+    "cirq_type": "DensePauliString",
+    "pauli_mask": [
+      1,
+      0
+    ],
+    "coefficient": {
+      "cirq_type": "complex",
+      "real": 1.0,
+      "imag": 0.0
+    }
+  },
+  "qubits": [
+    {
+      "cirq_type": "LineQubit",
+      "x": 0
+    },
+    {
+      "cirq_type": "LineQubit",
+      "x": 1
+    }
+  ],
+  "exponent": 0.7853981633974483
+}

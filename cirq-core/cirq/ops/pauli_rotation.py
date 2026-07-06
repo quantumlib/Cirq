@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Sequence, Set
 from types import NotImplementedType
 from typing import TYPE_CHECKING
 
@@ -40,9 +40,7 @@ class PauliRotationGate(raw_types.Gate):
         self, dense_pauli_string: dps.DensePauliString, *, exponent: cirq.TParamVal
     ) -> None:
         if dense_pauli_string.coefficient != 1:
-            raise ValueError(
-                'PauliRotationGate requires a unit Pauli string with coefficient 1.'
-            )
+            raise ValueError('PauliRotationGate requires a unit Pauli string with coefficient 1.')
         self._dense_pauli_string = dense_pauli_string
         self._exponent = exponent
 
@@ -63,7 +61,7 @@ class PauliRotationGate(raw_types.Gate):
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._exponent)
 
-    def _parameter_names_(self) -> tuple[str, ...]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self._exponent)
 
     def _resolve_parameters_(
@@ -90,9 +88,7 @@ class PauliRotationGate(raw_types.Gate):
         # full Hilbert space (e.g. X⊗I rather than a single-qubit X).
         pauli_op = self._dense_pauli_string.on(*qubits)
         pauli_string = (
-            pauli_op.gate
-            if isinstance(pauli_op, gate_operation.GateOperation)
-            else pauli_op
+            pauli_op.gate if isinstance(pauli_op, gate_operation.GateOperation) else pauli_op
         )
         return [
             pauli_string_phasor.PauliStringPhasor(
@@ -109,11 +105,11 @@ class PauliRotationGate(raw_types.Gate):
     def __pow__(self, power: int) -> PauliRotationGate:
         return PauliRotationGate(self._dense_pauli_string, exponent=self._exponent * power)
 
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['dense_pauli_string', 'exponent'])
+
     def __repr__(self) -> str:
-        return (
-            f'cirq.PauliRotationGate({self._dense_pauli_string!r}, '
-            f'exponent={self._exponent!r})'
-        )
+        return f'cirq.PauliRotationGate({self._dense_pauli_string!r}, exponent={self._exponent!r})'
 
 
 @value.value_equality(approximate=True)
@@ -158,9 +154,14 @@ class PauliRotation(gate_operation.GateOperation):
         return self.gate, self.qubits
 
     def __pow__(self, power: int) -> PauliRotation:
-        return PauliRotation(
-            self.dense_pauli_string, self.qubits, exponent=self.exponent * power
-        )
+        return PauliRotation(self.dense_pauli_string, self.qubits, exponent=self.exponent * power)
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['dense_pauli_string', 'qubits', 'exponent'])
+
+    @classmethod
+    def _from_json_dict_(cls, dense_pauli_string, qubits, exponent, **kwargs):
+        return PauliRotation(pauli_string=dense_pauli_string, qubits=qubits, exponent=exponent)
 
     def __repr__(self) -> str:
         return (

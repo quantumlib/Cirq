@@ -18,7 +18,6 @@ import sympy
 
 import cirq
 
-
 _ATOL = 1e-8
 
 
@@ -45,15 +44,11 @@ def _expected_pauli_rotation_unitary(pauli_label: str, exponent: float) -> np.nd
         ('XYZ', np.pi / 9),
     ],
 )
-def test_pauli_rotation_unitary_matches_analytic_formula(
-    pauli_label: str, exponent: float
-) -> None:
+def test_pauli_rotation_unitary_matches_analytic_formula(pauli_label: str, exponent: float) -> None:
     qubits = cirq.LineQubit.range(len(pauli_label))
     op = cirq.PauliRotation(pauli_label, qubits, exponent=exponent)
     expected = _expected_pauli_rotation_unitary(pauli_label, exponent)
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(op), expected, atol=_ATOL
-    )
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(op), expected, atol=_ATOL)
 
 
 def test_pauli_rotation_differs_from_pauli_sum_exponential() -> None:
@@ -61,9 +56,7 @@ def test_pauli_rotation_differs_from_pauli_sum_exponential() -> None:
     theta = np.pi / 4
     rotation = cirq.unitary(cirq.PauliRotation('XI', [q0, q1], exponent=theta))
     wrong = cirq.unitary(
-        cirq.PauliSumExponential(
-            cirq.DensePauliString('XI')(*[q0, q1]), exponent=theta
-        )
+        cirq.PauliSumExponential(cirq.DensePauliString('XI')(*[q0, q1]), exponent=theta)
     )
     assert rotation.shape == (4, 4)
     assert wrong.shape == (2, 2)
@@ -71,12 +64,9 @@ def test_pauli_rotation_differs_from_pauli_sum_exponential() -> None:
 
 
 @pytest.mark.parametrize(
-    'pauli_label,exponent',
-    [('X', np.pi / 5), ('YZ', np.pi / 6), ('XY', np.pi / 8)],
+    'pauli_label,exponent', [('X', np.pi / 5), ('YZ', np.pi / 6), ('XY', np.pi / 8)]
 )
-def test_pauli_rotation_decomposition_matches_unitary(
-    pauli_label: str, exponent: float
-) -> None:
+def test_pauli_rotation_decomposition_matches_unitary(pauli_label: str, exponent: float) -> None:
     qubits = cirq.LineQubit.range(len(pauli_label))
     op = cirq.PauliRotation(pauli_label, qubits, exponent=exponent)
     decomposed = cirq.Circuit(cirq.decompose(op))
@@ -87,9 +77,7 @@ def test_pauli_rotation_decomposition_matches_unitary(
 
 def test_pauli_rotation_repr_roundtrip() -> None:
     q0, q1 = cirq.LineQubit.range(2)
-    cirq.testing.assert_equivalent_repr(
-        cirq.PauliRotation('XI', [q0, q1], exponent=np.pi / 4)
-    )
+    cirq.testing.assert_equivalent_repr(cirq.PauliRotation('XI', [q0, q1], exponent=np.pi / 4))
     cirq.testing.assert_equivalent_repr(
         cirq.PauliRotationGate(cirq.DensePauliString('XI'), exponent=np.pi / 4)
     )
@@ -116,6 +104,49 @@ def test_pauli_rotation_parameter_resolution() -> None:
     assert resolved_op.gate.exponent == resolved_angle
 
     expected = _expected_pauli_rotation_unitary('XI', resolved_angle)
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(resolved_op), expected, atol=_ATOL
-    )
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(resolved_op), expected, atol=_ATOL)
+
+
+def test_pauli_rotation_gate_rejects_non_unit_coefficient() -> None:
+    dps = cirq.DensePauliString('X') * 2
+    with pytest.raises(ValueError, match='unit Pauli string'):
+        cirq.PauliRotationGate(dps, exponent=0.1)
+
+
+def test_pauli_rotation_rejects_qubit_mismatch() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    with pytest.raises(ValueError, match='must match'):
+        cirq.PauliRotation('X', [q0, q1], exponent=0.1)
+
+
+def test_pauli_rotation_gate_unitary_not_implemented_when_parameterized() -> None:
+    theta = sympy.Symbol('theta')
+    gate = cirq.PauliRotationGate(cirq.DensePauliString('X'), exponent=theta)
+    assert cirq.unitary(gate, default=None) is None
+
+
+def test_pauli_rotation_gate_decompose_not_implemented_when_parameterized() -> None:
+    theta = sympy.Symbol('theta')
+    gate = cirq.PauliRotationGate(cirq.DensePauliString('X'), exponent=theta)
+    result = gate._decompose_((cirq.LineQubit(0),))
+    assert result is NotImplemented
+
+
+def test_pauli_rotation_gate_circuit_diagram_info() -> None:
+    gate = cirq.PauliRotationGate(cirq.DensePauliString('X'), exponent=0.5)
+    info = gate._circuit_diagram_info_(cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT)
+    assert 'PR(' in str(info)
+
+
+def test_pauli_rotation_gate_pow() -> None:
+    gate = cirq.PauliRotationGate(cirq.DensePauliString('X'), exponent=np.pi / 4)
+    doubled = gate**2
+    assert doubled == cirq.PauliRotationGate(cirq.DensePauliString('X'), exponent=np.pi / 2)
+
+
+def test_pauli_rotation_pow() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    op = cirq.PauliRotation('XI', [q0, q1], exponent=np.pi / 4)
+    doubled = op**2
+    expected = cirq.PauliRotation('XI', [q0, q1], exponent=np.pi / 2)
+    assert doubled == expected
