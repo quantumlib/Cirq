@@ -45,7 +45,7 @@ class PauliMeasurementGate(raw_types.Gate):
         self,
         observable: cirq.BaseDensePauliString | Iterable[cirq.Pauli],
         key: str | cirq.MeasurementKey = '',
-        confusion_map: dict[tuple[int, ...], np.ndarray] | None = None,
+        confusion_matrix: np.ndarray | None = None,
     ) -> None:
         """Inits PauliMeasurementGate.
 
@@ -55,14 +55,11 @@ class PauliMeasurementGate(raw_types.Gate):
                 If you wish to measure pauli observables with coefficient -1,
                 then pass a `cirq.DensePauliString` as observable.
             key: The string key of the measurement.
-            confusion_map: A map of qubit index sets (using indices in the
-                operation generated from this gate) to the 2D confusion matrix
-                for those qubits. Since PauliMeasurementGate has only a single
-                measurement outcome, the only valid index is 0.
+            confusion_matrix: A 2x2 numpy array representing the confusion matrix
+                for the measurement qubit.
 
         Raises:
-            ValueError: If the observable is empty, or if confusion_map has
-                indices greater than or equal to 1.
+            ValueError: If the observable is empty
         """
         if not observable:
             raise ValueError(f'Pauli observable {observable} is empty.')
@@ -82,9 +79,7 @@ class PauliMeasurementGate(raw_types.Gate):
         self._mkey = (
             key if isinstance(key, value.MeasurementKey) else value.MeasurementKey(name=key)
         )
-        self._confusion_map = confusion_map or {}
-        if any(x >= 1 for idx in self._confusion_map for x in idx):
-            raise ValueError('Confusion matrices have index out of bounds.')
+        self._confusion_matrix = confusion_matrix
 
     @property
     def key(self) -> str:
@@ -95,8 +90,8 @@ class PauliMeasurementGate(raw_types.Gate):
         return self._mkey
 
     @property
-    def confusion_map(self) -> dict[tuple[int, ...], np.ndarray]:
-        return self._confusion_map
+    def confusion_matrix(self) -> np.ndarray | None:
+        return self._confusion_matrix
 
     def _qid_shape_(self) -> tuple[int, ...]:
         return (2,) * len(self._observable)
@@ -108,7 +103,9 @@ class PauliMeasurementGate(raw_types.Gate):
         """Creates a pauli measurement gate with a new key but otherwise identical."""
         if key == self.key:
             return self
-        return PauliMeasurementGate(self._observable, key=key, confusion_map=self.confusion_map)
+        return PauliMeasurementGate(
+            self._observable, key=key, confusion_matrix=self.confusion_matrix
+        )
 
     def _with_key_path_(self, path: tuple[str, ...]) -> PauliMeasurementGate:
         return self.with_key(self.mkey._with_key_path_(path))
@@ -134,7 +131,9 @@ class PauliMeasurementGate(raw_types.Gate):
             else dps.DensePauliString(observable)
         ) == self._observable:
             return self
-        return PauliMeasurementGate(observable, key=self.key, confusion_map=self.confusion_map)
+        return PauliMeasurementGate(
+            observable, key=self.key, confusion_matrix=self.confusion_matrix
+        )
 
     def _is_measurement_(self) -> bool:
         return True
@@ -155,13 +154,13 @@ class PauliMeasurementGate(raw_types.Gate):
         any_qubit = qubits[0]
         to_z_ops = op_tree.freeze_op_tree(self._observable.on(*qubits).to_z_basis_ops())
         xor_decomp = tuple(pauli_string_phasor.xor_nonlocal_decompose(qubits, any_qubit))
+        cmap: dict[tuple[int, ...], np.ndarray] | None = None
+        if self.confusion_matrix is not None:
+            cmap = {(0,): self.confusion_matrix}
         yield to_z_ops
         yield xor_decomp
         yield measurement_gate.MeasurementGate(
-            1,
-            self.mkey,
-            invert_mask=(self._observable.coefficient != 1,),
-            confusion_map=self.confusion_map,
+            1, self.mkey, invert_mask=(self._observable.coefficient != 1,), confusion_map=cmap
         ).on(any_qubit)
         yield protocols.inverse(xor_decomp)
         yield protocols.inverse(to_z_ops)
@@ -187,44 +186,39 @@ class PauliMeasurementGate(raw_types.Gate):
         args = [repr(self._observable.on(*qubits))]
         if self.key != _default_measurement_key(qubits):
             args.append(f'key={self.mkey!r}')
-        if self.confusion_map:
-            proper_map_str = ', '.join(
-                f"{k!r}: {_compat.proper_repr(v)}" for k, v in self.confusion_map.items()
-            )
-            args.append(f'confusion_map={{{proper_map_str}}}')
+        if self.confusion_matrix is not None:
+            args.append(f'confusion_matrix={_compat.proper_repr(self.confusion_matrix)}')
         arg_list = ', '.join(args)
         return f'cirq.measure_single_paulistring({arg_list})'
 
     def __repr__(self) -> str:
         args = [f'{self._observable!r}', f'{self.mkey!r}']
-        if self.confusion_map:
-            proper_map_str = ', '.join(
-                f"{k!r}: {_compat.proper_repr(v)}" for k, v in self.confusion_map.items()
-            )
-            args.append(f'confusion_map={{{proper_map_str}}}')
+        if self.confusion_matrix is not None:
+            args.append(f'confusion_matrix={_compat.proper_repr(self.confusion_matrix)}')
         return f'cirq.PauliMeasurementGate({", ".join(args)})'
 
     def _value_equality_values_(self) -> Any:
-        hashable_cmap = frozenset(
-            (idxs, tuple(v for _, v in np.ndenumerate(cmap)))
-            for idxs, cmap in self._confusion_map.items()
+        hashable_mat = (
+            None
+            if self.confusion_matrix is None
+            else tuple(v for _, v in np.ndenumerate(self.confusion_matrix))
         )
-        return self.key, self._observable, hashable_cmap
+        return self.key, self._observable, hashable_mat
 
     def _json_dict_(self) -> dict[str, Any]:
         res: dict[str, Any] = {'observable': self._observable, 'key': self.key}
-        if self.confusion_map:
-            res['confusion_map'] = [(k, v.tolist()) for k, v in self.confusion_map.items()]
+        if self.confusion_matrix is not None:
+            res['confusion_matrix'] = self.confusion_matrix.tolist()
         return res
 
     @classmethod
     def _from_json_dict_(
-        cls, observable, key, confusion_map=None, **kwargs
+        cls, observable, key, confusion_matrix=None, **kwargs
     ) -> PauliMeasurementGate:
         return cls(
             observable=observable,
             key=value.MeasurementKey.parse_serialized(key),
-            confusion_map=({tuple(k): np.array(v) for k, v in confusion_map or []}),
+            confusion_matrix=None if confusion_matrix is None else np.array(confusion_matrix),
         )
 
 
