@@ -1187,8 +1187,7 @@ def generate_trex_and_readout_circuits(
 
         qubit_pauli_dict = {}
         for pauli_str in pauli_group:
-            for qubit, pauli in pauli_str.items():
-                qubit_pauli_dict[qubit] = pauli
+            qubit_pauli_dict.update(pauli_str)
 
         joint_basis_pauli: cirq.PauliString = ops.PauliString(qubit_pauli_dict)
         num_qubits = len(qubit_pauli_dict)
