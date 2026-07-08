@@ -239,11 +239,32 @@ def test_confusion_matrix_serialization() -> None:
 
 
 def test_confusion_matrix_simulation() -> None:
-    # 100% chance to flip the output
+    # one qubit
     cmat = np.array([[0.0, 1.0], [1.0, 0.0]])
     q = cirq.LineQubit(0)
-
-    # Normally measures 0. With confusion map, should measure 1.
     c = cirq.Circuit(cirq.PauliMeasurementGate([cirq.Z], key='out', confusion_matrix=cmat).on(q))
     sim_results = cirq.Simulator().sample(c, repetitions=10)['out']
     assert sim_results.all() == 1
+
+    # two qubits
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(
+        cirq.PauliMeasurementGate([cirq.Z, cirq.Z], key='out', confusion_matrix=cmat).on(q0, q1)
+    )
+    sim_results = cirq.Simulator().sample(c, repetitions=10)['out']
+    assert sim_results.all() == 1
+
+
+def test_confusion_matrix_mixed_simulation() -> None:
+    # 90% chance of 0->0, 10% chance of 0->1
+    # 40% chance of 1->0, 60% chance of 1->1
+    cmat = np.array([[0.9, 0.1], [0.4, 0.6]])
+    q = cirq.LineQubit(0)
+
+    # should be 50/50 0 vs 1
+    c0 = cirq.Circuit(cirq.PauliMeasurementGate([cirq.X], key='out', confusion_matrix=cmat).on(q))
+    sim_results0 = cirq.Simulator(seed=1234).sample(c0, repetitions=1000)['out']
+
+    # Expect zero: 0.5 (prob 0) * 0.9 (prob no flip) + 0.5 (prob 1) * 0.4 (prob flip) = 0.65
+    # Expect one: 0.5 (prob 0) * 0.1 (prob flip) + 0.5 (prob 1) * 0.6 (prob no flip) = 0.35
+    np.testing.assert_allclose(np.mean(sim_results0), 0.35, atol=0.03)
