@@ -44,6 +44,7 @@ from cirq_ionq.sampler import Sampler as Sampler
 from cirq_ionq.serializer import (
     QISSerializer as QISSerializer,
     SerializedQISProgram as SerializedQISProgram,
+    OpenQASMSerializer as OpenQASMSerializer,
     SerializedOpenQASMProgram as SerializedOpenQASMProgram,
 )
 

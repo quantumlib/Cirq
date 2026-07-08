@@ -26,6 +26,7 @@ TestSpec = ModuleJsonTestSpec(
     test_data_path=pathlib.Path(__file__).parent,
     not_yet_serializable=[
         "SerializedQISProgram",
+        "SerializedOpenQASMProgram",
         "Calibration",
         "QPUResult",
         "IonQException",
@@ -36,7 +37,7 @@ TestSpec = ModuleJsonTestSpec(
         "Job",
         "SimulatorResult",
     ],
-    should_not_be_serialized=["Sampler", "Service", "QISSerializer"],
+    should_not_be_serialized=["Sampler", "Service", "QISSerializer", "OpenQASMSerializer"],
     resolver_cache=_class_resolver_dictionary(),
     deprecated={},
 )

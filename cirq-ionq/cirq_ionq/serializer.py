@@ -155,6 +155,13 @@ class Serializer:
         all_qubits = circuit.all_qubits()
         return cast(line_qubit.LineQubit, max(all_qubits)).x + 1
 
+    def _near_mod_n(self, e: float | sympy.Expr, t: float, n: float) -> bool:
+        """Returns whether a value, e, translated by t, is equal to 0 mod n.
+
+        Note that, despite the typing, e should actually always be a float
+        since the gate is checked for parameterization before this point.
+        """
+        return abs((cast(float, e) - t + 1) % n - 1) <= self.atol
 
 class QISSerializer(Serializer):
     """Takes gates supported by IonQ's API and converts them to IonQ json form.
@@ -464,14 +471,6 @@ class QISSerializer(Serializer):
                 f'or record separator in it. Key was {key}'
             )
         return {'gate': 'meas', 'key': key, 'targets': ','.join(str(t) for t in targets)}
-
-    def _near_mod_n(self, e: float | sympy.Expr, t: float, n: float) -> bool:
-        """Returns whether a value, e, translated by t, is equal to 0 mod n.
-
-        Note that, despite the typing, e should actually always be a float
-        since the gate is checked for parameterization before this point.
-        """
-        return abs((cast(float, e) - t + 1) % n - 1) <= self.atol
 
     def _serialize_measurements(self, meas_ops: Iterator) -> dict[str, str]:
         """Serializes measurement ops into a form suitable to be passed via metadata.
