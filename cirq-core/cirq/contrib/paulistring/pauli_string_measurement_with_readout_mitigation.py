@@ -1155,6 +1155,7 @@ def generate_trex_and_readout_circuits(
     num_twirls: int,
     num_readout_circuits: int,
     rng: np.random.Generator,
+    insert_strategy: circuits.InsertStrategy = circuits.InsertStrategy.INLINE,
 ) -> tuple[list[circuits.Circuit], TRexMetadata]:
     """Generates a list of circuits for TREX benchmarking and readout calibration.
 
@@ -1169,13 +1170,60 @@ def generate_trex_and_readout_circuits(
         num_twirls: The number of twirled circuits to generate for each original circuit.
         num_readout_circuits: The number of readout calibration circuits to generate.
         rng: A NumPy random number generator for generating random Pauli twirls.
+        insert_strategy: The strategy for inserting measurement operations into the circuit.
+            Defaults to circuits.InsertStrategy.INLINE.
 
     Returns:
         A tuple containing:
             - A combined list of the twirled Pauli circuits followed by the readout circuits.
             - A TRexMetadata object containing the random choices needed for post-processing.
     """
-    raise NotImplementedError("T-REX error mitigation is not yet implemented.")
+    all_generated_circuits: list[circuits.Circuit] = []
+    metadata_list: list[TRexMetadata] = []
+
+    circuit = cirq.drop_terminal_measurements(circuit_to_pauli.circuit.unfreeze())
+
+    for pauli_group in circuit_to_pauli.pauli_strings:
+
+        qubit_pauli_dict = {}
+        for pauli_str in pauli_group:
+            for qubit, pauli in pauli_str.items():
+                qubit_pauli_dict[qubit] = pauli
+
+        joint_basis_pauli = ops.PauliString(qubit_pauli_dict)
+        num_qubits = len(qubit_pauli_dict)
+
+        twirl_choices = _generate_random_boolean_choices(num_twirls, num_qubits, rng)
+        # overall_flip = twirl_choices.sum(axis=1) % 2
+        pauli_circuits = _build_trex_twirled_pauli_circuits(
+            circuit, joint_basis_pauli, twirl_choices, insert_strategy
+        )
+        all_generated_circuits.extend(pauli_circuits)
+
+        readout_choices = _generate_random_boolean_choices(num_readout_circuits, num_qubits, rng)
+        # overall_readout_parity = readout_choices.sum(axis=1) % 2
+
+        readout_circuits = [
+            cirq.Circuit.from_moments(
+                cirq.Moment(
+                    cirq.X.on_each(
+                        q for q, flip in zip(joint_basis_pauli, readout_choices_i) if flip
+                    )
+                ),
+                cirq.Moment(cirq.M(*joint_basis_pauli.qubits, key='result')),
+            )
+            for readout_choices_i in readout_choices
+        ]
+        all_generated_circuits.extend(readout_circuits)
+
+        metadata_list.append(
+            TRexMetadata(
+                pauli_str=joint_basis_pauli,
+                twirl_choices=twirl_choices,
+                readout_choices=readout_choices,
+            )
+        )
+    return all_generated_circuits, metadata_list
 
 
 def measure_pauli_strings(
