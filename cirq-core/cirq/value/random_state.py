@@ -14,13 +14,13 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import Any, Union, cast
 
 import numpy as np
 
 from cirq._doc import document
 
-RANDOM_STATE_OR_SEED_LIKE = Any
+RANDOM_STATE_OR_SEED_LIKE = Union[None, int, np.random.RandomState, np.random.Generator]
 document(
     RANDOM_STATE_OR_SEED_LIKE,
     """A pseudorandom number generator or object that can be converted to one.
@@ -30,22 +30,22 @@ document(
     If an integer, turns into a `np.random.RandomState` seeded with that
     integer.
 
-    If none of the above, it is used unmodified. In this case, it is assumed
-    that the object implements whatever methods are required for the use case
-    at hand. For example, it might be an existing instance of
-    `np.random.RandomState` or a custom pseudorandom number generator
-    implementation.
+    If a `np.random.RandomState` or `np.random.Generator`, it is used unmodified.
+    
+    Otherwise, a ValueError is raised.
     """,
 )
 
-
-def parse_random_state(random_state: RANDOM_STATE_OR_SEED_LIKE) -> np.random.RandomState:
+def parse_random_state(
+    random_state: RANDOM_STATE_OR_SEED_LIKE,
+) -> Union[np.random.RandomState, np.random.Generator]:
     """Interpret an object as a pseudorandom number generator.
 
-    If `random_state` is None, returns the module `np.random`.
-    If `random_state` is an integer, returns
-    `np.random.RandomState(random_state)`.
-    Otherwise, returns `random_state` unmodified.
+    If `random_state` is None or the `np.random` module, returns the module `np.random`.
+    If `random_state` is an integer, returns `np.random.RandomState(random_state)`.
+    If `random_state` is a `np.random.RandomState` or `np.random.Generator`, 
+    returns it unmodified.
+    Otherwise, raises a ValueError.
 
     Args:
         random_state: The object to be used as or converted to a pseudorandom
@@ -53,10 +53,19 @@ def parse_random_state(random_state: RANDOM_STATE_OR_SEED_LIKE) -> np.random.Ran
 
     Returns:
         The pseudorandom number generator object.
+        
+    Raises:
+        ValueError: If the random state or seed is not valid.
     """
-    if random_state is None:
+    # FIX: Explicitly allow the np.random module to pass through
+    if random_state is None or random_state is np.random:
         return cast(np.random.RandomState, np.random)
     elif isinstance(random_state, int):
         return np.random.RandomState(random_state)
+    elif isinstance(random_state, (np.random.RandomState, np.random.Generator)):
+        return random_state
     else:
-        return cast(np.random.RandomState, random_state)
+        raise ValueError(
+            f'random_state must be None, an int, a numpy RandomState, a numpy Generator, '
+            f'or the numpy.random module. Got {type(random_state)} instead.'
+        )
