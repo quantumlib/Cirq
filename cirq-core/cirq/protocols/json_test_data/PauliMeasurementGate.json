@@ -49,5 +49,26 @@
       }
     },
     "key": "key"
+  },
+  {
+    "cirq_type": "PauliMeasurementGate",
+    "observable": {
+      "cirq_type": "DensePauliString",
+      "pauli_mask": [
+        1,
+        2,
+        3
+      ],
+      "coefficient": {
+        "cirq_type": "complex",
+        "real": 1.0,
+        "imag": 0.0
+      }
+    },
+    "key": "key",
+    "confusion_matrix": [
+      [0.8, 0.2],
+      [0.1, 0.9]
+    ]
   }
 ]

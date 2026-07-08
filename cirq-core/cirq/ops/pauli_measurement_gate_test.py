@@ -229,15 +229,6 @@ def test_confusion_matrix_decomposition() -> None:
     assert np.array_equal(meas_op.gate.confusion_map[(0,)], cmat)
 
 
-def test_confusion_matrix_serialization() -> None:
-    cmat = np.array([[0.8, 0.2], [0.1, 0.9]])
-    gate = cirq.PauliMeasurementGate([cirq.X], key='a', confusion_matrix=cmat)
-    serialized = cirq.read_json(json_text=cirq.to_json(gate))
-    assert serialized == gate
-    assert serialized.confusion_matrix is not None
-    assert np.array_equal(serialized.confusion_matrix, cmat)
-
-
 def test_confusion_matrix_simulation() -> None:
     # one qubit
     cmat = np.array([[0.0, 1.0], [1.0, 0.0]])
