@@ -192,6 +192,32 @@ _GATES: list[_GateRepresentations] = [
 ]
 
 
+def _qubit_attribute_value_from_proto(
+    val_proto: v2.device_pb2.QubitAttributeValue,
+) -> cirq.devices.QubitAttributeValue:
+    which_val = val_proto.WhichOneof("val")
+    return getattr(val_proto, which_val) if which_val is not None else None
+
+
+def _qubit_attribute_value_to_proto(
+    val_proto: v2.device_pb2.QubitAttributeValue, value: cirq.devices.QubitAttributeValue
+) -> v2.device_pb2.QubitAttributeValue:
+    if isinstance(value, bool):
+        val_proto.bool_value = value
+    elif isinstance(value, int):
+        val_proto.int_value = value
+    elif isinstance(value, float):
+        val_proto.double_value = value
+    elif isinstance(value, str):
+        val_proto.string_value = value
+    elif value is None:
+        # leave unset
+        pass
+    else:  # pragma: no cover
+        raise ValueError(f"Unsupported attribute value type: {type(value)}")
+    return val_proto
+
+
 def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> None:
     """Raises a ValueError if the `DeviceSpecification` proto is invalid."""
 
@@ -235,6 +261,13 @@ def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> 
         # exception if this is set unexpectedly.
         if target_set.target_ordering == v2.device_pb2.TargetSet.ASYMMETRIC:
             raise ValueError("Invalid DeviceSpecification: target_ordering cannot be ASYMMETRIC.")
+
+    for qubit_str in proto.qubit_attributes:
+        if qubit_str not in qubit_set:
+            raise ValueError(
+                f"Invalid DeviceSpecification: qubit_attributes contains qubit '{qubit_str}'"
+                " which is not in valid_qubits."
+            )
 
 
 def _serialize_gateset_and_gate_durations(
@@ -467,6 +500,12 @@ class GridDevice(cirq.Device):
         """
         self._metadata = metadata
 
+    @property
+    def qubit_attributes(
+        self,
+    ) -> Mapping[cirq.GridQubit, Mapping[str, cirq.devices.QubitAttributeValue]]:
+        return self._metadata.qubit_attributes
+
     @classmethod
     def from_proto(cls, proto: v2.device_pb2.DeviceSpecification) -> GridDevice:
         """Deserializes the `DeviceSpecification` to a `GridDevice`.
@@ -499,6 +538,16 @@ class GridDevice(cirq.Device):
 
         gateset, gate_durations = _deserialize_gateset_and_gate_durations(proto)
 
+        # Create qubit attributes
+        qubit_attributes = {}
+        for qubit_str, qubit_attrs_proto in proto.qubit_attributes.items():
+            qubit = v2.grid_qubit_from_proto_id(qubit_str)
+            attrs = {
+                name: _qubit_attribute_value_from_proto(val_proto)
+                for name, val_proto in qubit_attrs_proto.attributes.items()
+            }
+            qubit_attributes[qubit] = attrs
+
         try:
             metadata = cirq.GridDeviceMetadata(
                 qubit_pairs=qubit_pairs,
@@ -506,6 +555,7 @@ class GridDevice(cirq.Device):
                 gate_durations=gate_durations if len(gate_durations) > 0 else None,
                 all_qubits=all_qubits,
                 compilation_target_gatesets=_build_compilation_target_gatesets(gateset),
+                qubit_attributes=qubit_attributes,
             )
         except ValueError as ve:  # pragma: no cover
             # Spec errors should have been caught in validation above.
@@ -547,6 +597,14 @@ class GridDevice(cirq.Device):
         _serialize_gateset_and_gate_durations(
             out, gateset, {} if gate_durations is None else gate_durations
         )
+        out.qubit_attributes.clear()
+        for qubit, attrs in self.qubit_attributes.items():
+            qubit_str = v2.qubit_to_proto_id(qubit)
+            qubit_attrs_proto = out.qubit_attributes[qubit_str]
+            for attr_name, attr_val in attrs.items():
+                val_proto = qubit_attrs_proto.attributes[attr_name]
+                _qubit_attribute_value_to_proto(val_proto, attr_val)
+
         _validate_device_specification(out)
 
         return out

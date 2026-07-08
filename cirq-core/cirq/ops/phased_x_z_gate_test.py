@@ -248,7 +248,7 @@ def test_from_matrix_close_unitary(unitary: np.ndarray) -> None:
 
 @pytest.mark.parametrize(
     ['x_exponent', 'z_exponent', 'axis_phase_exponent'],
-    itertools.product([-0.5, 0.0, 0.5, 1.0], repeat=3),
+    list(itertools.product([-0.5, 0.0, 0.5, 1.0], repeat=3)),
 )
 def test_exact_unitary_at_half_integers(
     x_exponent: float, z_exponent: float, axis_phase_exponent: float

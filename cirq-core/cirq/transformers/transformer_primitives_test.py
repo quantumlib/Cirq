@@ -19,7 +19,7 @@ from collections.abc import Iterator
 import pytest
 
 import cirq
-from cirq.transformers.transformer_primitives import MAPPED_CIRCUIT_OP_TAG
+from cirq.transformers.transformer_primitives import MAPPED_CIRCUIT_OP_TAG, reverse_circuit
 
 
 def test_map_operations_can_write_new_gates_inline():
@@ -1061,3 +1061,19 @@ def test_merge_3q_unitaries_to_circuit_op_prefer_to_merge_into_earlier_op():
 5: ───H[ignore]────────────────────────#3───────────────────────────────────────────@────────────────────────────
 ''',  # noqa: E501
     )
+
+
+def test_reverse_circuit_has_reversed_all_operations() -> None:
+    q = cirq.LineQubit.range(3)
+    c_orig = cirq.Circuit(
+        cirq.Moment(cirq.H(q[0])).with_tags("H"),
+        cirq.Moment(cirq.X(q[0]), cirq.Y(q[1]), cirq.Z(q[2])).with_tags("XYZ"),
+        cirq.Moment(cirq.measure(q[1]), cirq.measure(q[2])).with_tags("M1M2"),
+    ).with_tags("circuit")
+    all_operations_orig = list(c_orig.all_operations())
+    c_reversed = reverse_circuit(c_orig)
+    assert c_reversed.tags == ("circuit",)
+    assert [len(m) for m in c_reversed] == [2, 3, 1]
+    assert [m.tags for m in c_reversed] == [("M1M2",), ("XYZ",), ("H",)]
+    assert list(c_reversed.all_operations()) == all_operations_orig[::-1]
+    cirq.testing.assert_same_circuits(reverse_circuit(c_reversed), c_orig)

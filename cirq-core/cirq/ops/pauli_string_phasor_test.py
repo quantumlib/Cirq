@@ -350,10 +350,12 @@ def test_manual_default_decompose() -> None:
 
 @pytest.mark.parametrize(
     'paulis,phase_exponent_negative,sign',
-    itertools.product(
-        itertools.product((cirq.X, cirq.Y, cirq.Z, None), repeat=3),
-        (0, 0.1, 0.5, 1, -0.25),
-        (+1, -1),
+    list(
+        itertools.product(
+            itertools.product((cirq.X, cirq.Y, cirq.Z, None), repeat=3),
+            (0, 0.1, 0.5, 1, -0.25),
+            (+1, -1),
+        )
     ),
 )
 def test_default_decompose(paulis, phase_exponent_negative: float, sign: int) -> None:
