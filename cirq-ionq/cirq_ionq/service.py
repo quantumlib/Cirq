@@ -38,7 +38,7 @@ class Service:
         remote_host: str | None = None,
         api_key: str | None = None,
         default_target: str | None = None,
-        api_version='v0.4',
+        api_version="v0.4",
         max_retry_seconds: int = 3600,
         job_settings: dict | None = None,
         verbose=False,
@@ -69,18 +69,18 @@ class Service:
         """
         self.remote_host = (
             remote_host
-            or os.getenv('CIRQ_IONQ_REMOTE_HOST')
-            or os.getenv('IONQ_REMOTE_HOST')
-            or f'https://api.ionq.co/{api_version}'
+            or os.getenv("CIRQ_IONQ_REMOTE_HOST")
+            or os.getenv("IONQ_REMOTE_HOST")
+            or f"https://api.ionq.co/{api_version}"
         )
 
         self.job_settings = job_settings or {}
-        self.api_key = api_key or os.getenv('CIRQ_IONQ_API_KEY') or os.getenv('IONQ_API_KEY')
+        self.api_key = api_key or os.getenv("CIRQ_IONQ_API_KEY") or os.getenv("IONQ_API_KEY")
 
         if not self.api_key:
             raise EnvironmentError(
-                'Parameter api_key was not specified and the environment variable '
-                'IONQ_API_KEY was also not set.'
+                "Parameter api_key was not specified and the environment variable "
+                "IONQ_API_KEY was also not set."
             )
 
         self._client = ionq_client._IonQClient(
@@ -92,7 +92,6 @@ class Service:
             verbose=verbose,
         )
 
-    # TODO: AI generated codes. Need to verify correctness and add tests.
     def circuit_requires_qasm3(self, input_circuit: cirq.Circuit) -> bool:
         """Return True when the circuit cannot be represented as a flat gate list.
 
@@ -136,10 +135,6 @@ class Service:
                         continue
 
                     gate = operation.gate
-
-                    # Cirq's counterpart to a delay instruction.
-                    if isinstance(gate, cirq.WaitGate):
-                        continue
 
                     if isinstance(gate, cirq.ResetChannel):
                         return True
@@ -406,7 +401,7 @@ class Service:
         )
         # The returned job does not have fully populated fields, so make
         # a second call and return the results of the fully filled out job.
-        return self.get_job(result['id'])
+        return self.get_job(result["id"])
 
     def create_batch_job(
         self,
@@ -483,7 +478,7 @@ class Service:
         )
         # The returned job does not have fully populated fields, so make
         # a second call and return the results of the fully filled out job.
-        return self.get_job(result['id'])
+        return self.get_job(result["id"])
 
     def get_job(self, job_id: str) -> job.Job:
         """Gets a job that has been created on the IonQ API.

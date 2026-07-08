@@ -59,15 +59,15 @@ class _IonQClient:
     Users should not instantiate this themselves, but instead should use `cirq_ionq.Service`.
     """
 
-    SUPPORTED_TARGETS = {'qpu', 'simulator'}
-    SUPPORTED_VERSIONS = {'v0.4'}
+    SUPPORTED_TARGETS = {"qpu", "simulator"}
+    SUPPORTED_VERSIONS = {"v0.4"}
 
     def __init__(
         self,
         remote_host: str,
         api_key: str,
         default_target: str | None = None,
-        api_version: str = 'v0.4',
+        api_version: str = "v0.4",
         max_retry_seconds: int = 3600,  # 1 hour
         verbose: bool = False,
     ):
@@ -92,18 +92,18 @@ class _IonQClient:
         """
         url = urllib.parse.urlparse(remote_host)
         assert url.scheme and url.netloc, (
-            f'Specified remote_host {remote_host} is not a valid url, for example '
-            'http://example.com'
+            f"Specified remote_host {remote_host} is not a valid url, for example "
+            "http://example.com"
         )
         assert (
             api_version in self.SUPPORTED_VERSIONS
-        ), f'Only api v0.4 is accepted but was {api_version}'
+        ), f"Only api v0.4 is accepted but was {api_version}"
         assert (
             default_target is None or default_target in self.SUPPORTED_TARGETS
-        ), f'Target can only be one of {self.SUPPORTED_TARGETS} but was {default_target}.'
-        assert max_retry_seconds >= 0, 'Negative retry not possible without time machine.'
+        ), f"Target can only be one of {self.SUPPORTED_TARGETS} but was {default_target}."
+        assert max_retry_seconds >= 0, "Negative retry not possible without time machine."
 
-        self.url = f'{url.scheme}://{url.netloc}/{api_version}'
+        self.url = f"{url.scheme}://{url.netloc}/{api_version}"
         self.headers = self.api_headers(api_key)
         self.default_target = default_target
         self.max_retry_seconds = max_retry_seconds
@@ -122,8 +122,9 @@ class _IonQClient:
         """Create a job.
 
         Args:
-            serialized_program: The `cirq_ionq.SerializedQISProgram` or `cirq_ionq.SerializedOpenQASMProgram`
-                containing the serialized information about the circuit to run.
+            serialized_program: The `cirq_ionq.SerializedQISProgram` or
+                `cirq_ionq.SerializedOpenQASMProgram`containing the serialized information about
+                the circuit to run.
             repetitions: The number of times to repeat the circuit. For simulation the repeated
                 sampling is not done on the server, but is passed as metadata to be recovered
                 from the returned job.
@@ -144,10 +145,10 @@ class _IonQClient:
 
         if isinstance(serialized_program, cirq_ionq.SerializedQISProgram):
             json: dict[str, Any] = {
-                'backend': actual_target,
+                "backend": actual_target,
                 "type": "ionq.multi-circuit.v1" if batch_mode else "ionq.circuit.v1",
-                'lang': 'json',
-                'input': serialized_program.input,
+                "lang": "json",
+                "input": serialized_program.input,
             }
         elif isinstance(serialized_program, cirq_ionq.SerializedOpenQASMProgram):
             if batch_mode:
@@ -157,49 +158,49 @@ class _IonQClient:
                     "circuits in separate jobs."
                 )
             json: dict[str, Any] = {
-                'backend': actual_target,
+                "backend": actual_target,
                 "type": "ionq.qasm3.v1",
-                'lang': 'json',
-                'input': serialized_program.input,
+                "lang": "json",
+                "input": serialized_program.input,
             }
 
         if name:
-            json['name'] = name
+            json["name"] = name
         # We have to pass measurement keys through the metadata.
-        json['metadata'] = serialized_program.metadata
+        json["metadata"] = serialized_program.metadata
         if serialized_program.settings:
-            json['settings'] = serialized_program.settings
+            json["settings"] = serialized_program.settings
 
         # Shots are ignored by simulator, but pass them anyway.
-        json['shots'] = str(repetitions)
+        json["shots"] = str(repetitions)
         # API does not return number of shots so pass this through as metadata.
-        json['metadata']['shots'] = str(repetitions)
+        json["metadata"]["shots"] = str(repetitions)
 
         if serialized_program.error_mitigation:
-            if not 'settings' in json.keys():
-                json['settings'] = {}
-            json['settings']['error_mitigation'] = serialized_program.error_mitigation
+            if not "settings" in json.keys():
+                json["settings"] = {}
+            json["settings"]["error_mitigation"] = serialized_program.error_mitigation
 
         if serialized_program.compilation:
-            if not 'settings' in json.keys():
-                json['settings'] = {}
-            json['settings']['compilation'] = serialized_program.compilation
+            if not "settings" in json.keys():
+                json["settings"] = {}
+            json["settings"]["compilation"] = serialized_program.compilation
 
         if serialized_program.noise:
-            json['noise'] = serialized_program.noise
+            json["noise"] = serialized_program.noise
 
         if serialized_program.dry_run:
-            json['dry_run'] = serialized_program.dry_run
-            if json['backend'] == 'simulator':
+            json["dry_run"] = serialized_program.dry_run
+            if json["backend"] == "simulator":
                 warnings.warn(
-                    'Please note that the `dry_run` option has no effect on the simulator target.'
+                    "Please note that the `dry_run` option has no effect on the simulator target."
                 )
 
         if extra_query_params:
             json.update(extra_query_params)
 
         def request():
-            return requests.post(f'{self.url}/jobs', json=json, headers=self.headers)
+            return requests.post(f"{self.url}/jobs", json=json, headers=self.headers)
 
         request_response = self._make_request(request, json).json()
         self.batch_mode = batch_mode
@@ -221,7 +222,7 @@ class _IonQClient:
         """
 
         def request():
-            return requests.get(f'{self.url}/jobs/{job_id}', headers=self.headers)
+            return requests.get(f"{self.url}/jobs/{job_id}", headers=self.headers)
 
         return self._make_request(request, {}).json()
 
@@ -255,13 +256,13 @@ class _IonQClient:
         def request():
             if self.batch_mode:
                 return requests.get(
-                    f'{self.url}/jobs/{job_id}/results/probabilities/aggregated',
+                    f"{self.url}/jobs/{job_id}/results/probabilities/aggregated",
                     params=params,
                     headers=self.headers,
                 )
             elif not self.batch_mode:
                 return requests.get(
-                    f'{self.url}/jobs/{job_id}/results/probabilities',
+                    f"{self.url}/jobs/{job_id}/results/probabilities",
                     params=params,
                     headers=self.headers,
                 )
@@ -286,8 +287,8 @@ class _IonQClient:
         """
         params = {}
         if status:
-            params['status'] = status
-        return self._list('jobs', params, 'jobs', limit, batch_size)
+            params["status"] = status
+        return self._list("jobs", params, "jobs", limit, batch_size)
 
     def cancel_job(self, job_id: str) -> dict:
         """Cancel a job on the IonQ API.
@@ -303,7 +304,7 @@ class _IonQClient:
         """
 
         def request():
-            return requests.put(f'{self.url}/jobs/{job_id}/status/cancel', headers=self.headers)
+            return requests.put(f"{self.url}/jobs/{job_id}/status/cancel", headers=self.headers)
 
         return self._make_request(request, {}).json()
 
@@ -318,7 +319,7 @@ class _IonQClient:
         """
 
         def request():
-            return requests.delete(f'{self.url}/jobs/{job_id}', headers=self.headers)
+            return requests.delete(f"{self.url}/jobs/{job_id}", headers=self.headers)
 
         return self._make_request(request, {}).json()
 
@@ -329,7 +330,7 @@ class _IonQClient:
         """
 
         def request():
-            return requests.get(f'{self.url}/calibrations/current', headers=self.headers)
+            return requests.get(f"{self.url}/calibrations/current", headers=self.headers)
 
         return self._make_request(request, {}).json()
 
@@ -358,10 +359,10 @@ class _IonQClient:
         params = {}
         epoch = datetime.datetime.fromtimestamp(0, datetime.UTC)
         if start:
-            params['start'] = int((start - epoch).total_seconds() * 1000)
+            params["start"] = int((start - epoch).total_seconds() * 1000)
         if end:
-            params['end'] = int((end - epoch).total_seconds() * 1000)
-        return self._list('calibrations', params, 'calibrations', limit, batch_size)
+            params["end"] = int((end - epoch).total_seconds() * 1000)
+        return self._list("calibrations", params, "calibrations", limit, batch_size)
 
     def api_headers(self, api_key: str):
         """API Headers needed to make calls to the REST API.
@@ -373,9 +374,9 @@ class _IonQClient:
             dict[str, str]: A dict of :class:`requests.Request` headers.
         """
         return {
-            'Authorization': f'apiKey {api_key}',
-            'Content-Type': 'application/json',
-            'User-Agent': self._user_agent(),
+            "Authorization": f"apiKey {api_key}",
+            "Content-Type": "application/json",
+            "User-Agent": self._user_agent(),
         }
 
     def _user_agent(self):
@@ -387,9 +388,9 @@ class _IonQClient:
         Returns:
             str: A string of generated user agent.
         """
-        cirq_version_string = f'cirq/{cirq_version}'
-        python_version_string = f'python/{platform.python_version()}'
-        return f'{cirq_version_string} ({python_version_string})'
+        cirq_version_string = f"cirq/{cirq_version}"
+        python_version_string = f"python/{platform.python_version()}"
+        return f"{cirq_version_string} ({python_version_string})"
 
     def _target(self, target: str | None) -> str:
         """Returns the target if not None or the default target.
@@ -398,8 +399,8 @@ class _IonQClient:
             AssertionError: if both `target` and `default_target` are not set.
         """
         assert target is not None or self.default_target is not None, (
-            'One must specify a target on this call, or a default_target on the service/client, '
-            'but neither were set.'
+            "One must specify a target on this call, or a default_target on the service/client, "
+            "but neither were set."
         )
         return cast(str, target or self.default_target)
 
@@ -432,12 +433,12 @@ class _IonQClient:
                 if response.status_code == requests.codes.unauthorized:
                     raise ionq_exceptions.IonQException(
                         '"Not authorized" returned by IonQ API. Check to ensure you have supplied '
-                        'the correct API key.',
+                        "the correct API key.",
                         response.status_code,
                     )
                 if response.status_code == requests.codes.not_found:
                     raise ionq_exceptions.IonQNotFoundException(
-                        'IonQ could not find requested resource.'
+                        "IonQ could not find requested resource."
                     )
                 if not _is_retriable(response.status_code, response.request.method):
                     error = {}
@@ -446,11 +447,11 @@ class _IonQClient:
                     except jd.JSONDecodeError:  # pragma: no cover
                         pass
                     raise ionq_exceptions.IonQException(
-                        'Non-retry-able error making request to IonQ API. '
-                        f'Request Body: {json} '
-                        f'Response Body: {error} '
-                        f'Status: {response.status_code} '
-                        f'Error:{response.reason}',
+                        "Non-retry-able error making request to IonQ API. "
+                        f"Request Body: {json} "
+                        f"Response Body: {error} "
+                        f"Status: {response.status_code} "
+                        f"Error:{response.reason}",
                         response.status_code,
                     )
                 message = response.reason
@@ -458,12 +459,12 @@ class _IonQClient:
             except requests.RequestException as e:
                 # Connection error, timeout at server, or too many redirects.
                 # Retry these.
-                message = f'RequestException of type {type(e)}.'
+                message = f"RequestException of type {type(e)}."
             if delay_seconds > self.max_retry_seconds:
-                raise TimeoutError(f'Reached maximum number of retries. Last error: {message}')
+                raise TimeoutError(f"Reached maximum number of retries. Last error: {message}")
             if self.verbose:
                 print(message, file=sys.stderr)
-                print(f'Waiting {delay_seconds} seconds before retrying.')
+                print(f"Waiting {delay_seconds} seconds before retrying.")
             time.sleep(delay_seconds)
             delay_seconds *= 2
 
@@ -483,17 +484,17 @@ class _IonQClient:
         Returns:
             A sequence of dictionaries corresponding to the objects listed.
         """
-        json = {'limit': batch_size}
+        json = {"limit": batch_size}
         token: str | None = None
         results: list[dict[str, Any]] = []
         while len(results) < limit:
             full_params = params.copy()
             if token:
-                full_params['next'] = token
+                full_params["next"] = token
 
             def request():
                 return requests.get(
-                    f'{self.url}/{resource_path}',
+                    f"{self.url}/{resource_path}",
                     headers=self.headers,
                     json=json,
                     params=full_params,
@@ -501,7 +502,7 @@ class _IonQClient:
 
             response = self._make_request(request, json).json()
             results.extend(response[response_key])
-            if 'next' not in response:
+            if "next" not in response:
                 break
-            token = response['next']
+            token = response["next"]
         return results[:limit]
