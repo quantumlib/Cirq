@@ -204,7 +204,7 @@ circuit_diagrams = {
 
 
 @pytest.mark.parametrize(
-    'subgraph,part_size', itertools.product(cca.BipartiteGraphType, range(1, 5))
+    'subgraph,part_size', list(itertools.product(cca.BipartiteGraphType, range(1, 5)))
 )
 def test_circuit_diagrams(part_size, subgraph) -> None:
     qubits = cirq.LineQubit.range(2 * part_size)
@@ -258,7 +258,7 @@ def test_bipartite_swap_network_acquaintance_size() -> None:
 
 
 @pytest.mark.parametrize(
-    'subgraph,part_size', itertools.product(cca.BipartiteGraphType, range(1, 3))
+    'subgraph,part_size', list(itertools.product(cca.BipartiteGraphType, range(1, 3)))
 )
 def test_repr(subgraph, part_size) -> None:
     gate = cca.BipartiteSwapNetworkGate(subgraph, part_size)
@@ -269,7 +269,7 @@ def test_repr(subgraph, part_size) -> None:
 
 
 @pytest.mark.parametrize(
-    'subgraph,part_size', itertools.product(cca.BipartiteGraphType, range(1, 6))
+    'subgraph,part_size', list(itertools.product(cca.BipartiteGraphType, range(1, 6)))
 )
 def test_decomposition_permutation_consistency(part_size, subgraph) -> None:
     gate = cca.BipartiteSwapNetworkGate(subgraph, part_size)

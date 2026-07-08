@@ -181,8 +181,8 @@ def test_apply_channel_channel_fallback_one_qubit_random_on_two_qubits() -> None
 
         expected = 0.5 * rho + 0.5 * np.dot(np.dot(full_u, rho), np.conjugate(np.transpose(full_u)))
 
-        rho.shape = (2, 2, 2, 2)
-        expected.shape = (2, 2, 2, 2)
+        rho = np.reshape(rho, (2, 2, 2, 2))
+        expected = np.reshape(expected, (2, 2, 2, 2))
 
         class HasChannel:
             def _kraus_(self):
@@ -202,8 +202,8 @@ def test_apply_channel_channel_fallback_two_qubit_random() -> None:
 
         expected = 0.5 * rho + 0.5 * np.dot(np.dot(u, rho), np.conjugate(np.transpose(u)))
 
-        rho.shape = (2, 2, 2, 2)
-        expected.shape = (2, 2, 2, 2)
+        rho = np.reshape(rho, (2, 2, 2, 2))
+        expected = np.reshape(expected, (2, 2, 2, 2))
 
         class HasChannel:
             def _kraus_(self):

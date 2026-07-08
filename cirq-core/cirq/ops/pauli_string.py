@@ -33,6 +33,7 @@ from typing import Any, cast, Generic, overload, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
 import sympy
+from scipy import sparse
 
 from cirq import _compat, linalg, protocols, qis, value
 from cirq._compat import deprecated
@@ -451,7 +452,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         return prefix + '*'.join(factors)
 
     def matrix(self, qubits: Iterable[TKey] | None = None) -> np.ndarray:
-        """Returns the matrix of self in computational basis of qubits.
+        """Returns the matrix of self in the computational basis of the qubits.
 
         Args:
             qubits: Ordered collection of qubits that determine the subspace
@@ -460,14 +461,71 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                 the identity. Defaults to `self.qubits`.
 
         Raises:
-            NotImplementedError: If this PauliString is parameterized.
+            NotImplementedError: If this `PauliString` is parameterized.
         """
         qubits = self.qubits if qubits is None else qubits
         factors = [self.get(q, default=identity.I) for q in qubits]
         if protocols.is_parameterized(self):
-            raise NotImplementedError('Cannot express as matrix when parameterized')
+            raise NotImplementedError('Cannot express a parameterized PauliString as a matrix.')
         assert isinstance(self.coefficient, complex)
         return linalg.kron(self.coefficient, *[protocols.unitary(f) for f in factors])
+
+    def sparse_matrix(self, qubits: Iterable[TKey] | None = None) -> sparse.csr_matrix:
+        """Returns the sparse matrix of self in the computational basis of the qubits.
+
+        Uses a direct bit-manipulation algorithm that avoids Kronecker products
+        by computing row/col indices and phases for each basis state directly.
+
+        Args:
+            qubits: Ordered collection of qubits that determine the subspace
+                in which the matrix representation of the Pauli string is to
+                be computed. Qubits absent from `self.qubits` are acted on by
+                the identity. Defaults to `self.qubits`.
+
+        Returns:
+            A `scipy.sparse.csr_matrix` representing the Pauli string.
+
+        Raises:
+            NotImplementedError: If this `PauliString` is parameterized.
+            AssertionError: If an unexpected Pauli gate instance is encountered.
+        """
+        qubits = self.qubits if qubits is None else tuple(qubits)
+        if protocols.is_parameterized(self):
+            raise NotImplementedError('Cannot express a parameterized PauliString as a matrix.')
+        assert isinstance(self.coefficient, complex)
+
+        n = len(qubits)
+        dim = 1 << n
+        qubit_to_idx = {q: i for i, q in enumerate(qubits)}
+
+        x_mask = y_mask = z_mask = 0
+        for q, pauli in self.items():
+            if q not in qubit_to_idx:
+                continue
+            idx = qubit_to_idx[q]
+            bit = 1 << (n - 1 - idx)
+            match pauli:
+                case pauli_gates.X:
+                    x_mask |= bit
+                case pauli_gates.Y:
+                    y_mask |= bit
+                case pauli_gates.Z:
+                    z_mask |= bit
+                case _:  # pragma: no cover
+                    raise AssertionError(
+                        "Unhandled instance of Pauli gate. "
+                        "Expected one of (cirq.X, cirq.Y, cirq.Z)."
+                    )
+
+        cols = np.arange(dim, dtype=np.int32)
+        rows = cols ^ x_mask ^ y_mask
+
+        num_y = y_mask.bit_count()
+        y_phase = (1j**num_y) * np.where(np.bitwise_count(cols & y_mask) & 1, -1.0, 1.0)
+        z_phase = np.where(np.bitwise_count(cols & z_mask) & 1, -1.0, 1.0)
+        data = self.coefficient * y_phase * z_phase
+
+        return sparse.coo_matrix((data, (rows, cols)), shape=(dim, dim)).tocsr()
 
     def _has_unitary_(self) -> bool:
         if self._is_parameterized_():

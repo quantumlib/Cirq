@@ -217,7 +217,8 @@ class Result(abc.ABC):
         self,
         *,  # Forces keyword args.
         key: TMeasurementKey,
-        fold_func: Callable[[tuple], T] = cast(Callable[[tuple], T], value.big_endian_bits_to_int),
+        fold_func: Callable[[tuple], T] | None = None,
+        fold_base: int | Iterable[int] | None = None,
     ) -> collections.Counter:
         """Counts the number of times a measurement result occurred.
 
@@ -250,11 +251,28 @@ class Result(abc.ABC):
                 together by a measurement. If this argument is not specified,
                 it defaults to interpreting the bits as a big endian
                 integer.
+            fold_base: A convenience argument for interpreting qudit
+                measurement results. Specifies the base (or per-digit bases)
+                used to convert measurement digits to an integer. Cannot be
+                specified together with fold_func.
 
         Returns:
             A counter indicating how often a measurement sampled various
             results.
         """
+        if fold_func is not None and fold_base is not None:
+            raise ValueError(
+                'Cannot specify both fold_func and fold_base. '
+                'fold_base is a convenience shorthand for fold_func.'
+            )
+        if fold_func is None:
+            if fold_base is not None:
+                fold_func = cast(
+                    Callable[[tuple], T],
+                    lambda digits: value.big_endian_digits_to_int(digits, base=fold_base),
+                )
+            else:
+                fold_func = cast(Callable[[tuple], T], value.big_endian_bits_to_int)
         return self.multi_measurement_histogram(keys=[key], fold_func=lambda e: fold_func(e[0]))
 
     def __eq__(self, other: Any) -> bool:
