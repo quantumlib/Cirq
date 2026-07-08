@@ -189,7 +189,7 @@ class QISSerializer(Serializer):
             cirq.HPowGate: self._serialize_h_pow_gate,
             cirq.SwapPowGate: self._serialize_swap_gate,
             cirq.MeasurementGate: self._serialize_measurement_gate,
-            cirq.ops.pauli_string_phasor.PauliStringPhasorGate: self._serialize_pauli_string_phasor_gate,  # noqa: E501
+            cirq.PauliStringPhasorGate: self._serialize_pauli_string_phasor_gate,
             # These gates can't be used with any of the non-measurement gates above
             # Rather than validating this here, we rely on the IonQ API to report failure.
             GPIGate: self._serialize_gpi_gate,
@@ -532,7 +532,7 @@ class OpenQASMSerializer(Serializer):
             cirq.HPowGate: self._serialize_h_pow_gate,
             cirq.SwapPowGate: self._serialize_swap_gate,
             cirq.MeasurementGate: self._serialize_measurement_gate,
-            cirq.ops.pauli_string_phasor.PauliStringPhasorGate: self._serialize_pauli_string_phasor_gate,  # noqa: E501
+            cirq.PauliStringPhasorGate: self._serialize_pauli_string_phasor_gate,
             GPIGate: self._serialize_gpi_gate,
             GPI2Gate: self._serialize_gpi2_gate,
             MSGate: self._serialize_ms_gate,
