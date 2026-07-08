@@ -24,8 +24,8 @@ import pytest
 import cirq
 from cirq.contrib.paulistring import CircuitToPauliStringsParameters, measure_pauli_strings
 from cirq.contrib.paulistring.pauli_string_measurement_with_readout_mitigation import (
-    PostFilteringSymmetryCalibrationResult as PostFilteringSymmetryCalibrationResult,
     generate_trex_and_readout_circuits,
+    PostFilteringSymmetryCalibrationResult as PostFilteringSymmetryCalibrationResult,
 )
 from cirq.experiments import SingleQubitReadoutCalibrationResult
 from cirq.experiments.single_qubit_readout_calibration_test import NoisySingleQubitReadoutSampler

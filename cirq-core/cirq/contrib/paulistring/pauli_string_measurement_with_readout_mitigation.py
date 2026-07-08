@@ -26,7 +26,7 @@ import numpy as np
 import sympy
 
 import cirq.contrib.shuffle_circuits.shuffle_circuits_with_readout_benchmarking as sc_readout
-from cirq import circuits, ops, study, work, transformers
+from cirq import circuits, ops, study, transformers, work
 from cirq.experiments.readout_confusion_matrix import TensoredConfusionMatrices
 
 if TYPE_CHECKING:
