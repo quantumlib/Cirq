@@ -26,7 +26,7 @@ import numpy as np
 import sympy
 
 import cirq.contrib.shuffle_circuits.shuffle_circuits_with_readout_benchmarking as sc_readout
-from cirq import circuits, ops, study, work
+from cirq import circuits, ops, study, work, transformers
 from cirq.experiments.readout_confusion_matrix import TensoredConfusionMatrices
 
 if TYPE_CHECKING:
@@ -1156,7 +1156,7 @@ def generate_trex_and_readout_circuits(
     num_readout_circuits: int,
     rng: np.random.Generator,
     insert_strategy: circuits.InsertStrategy = circuits.InsertStrategy.INLINE,
-) -> tuple[list[circuits.Circuit], TRexMetadata]:
+) -> tuple[list[circuits.Circuit], list[TRexMetadata]]:
     """Generates a list of circuits for TREX benchmarking and readout calibration.
 
     This function generates `num_twirls` circuits by applying random Pauli twirls
@@ -1181,7 +1181,7 @@ def generate_trex_and_readout_circuits(
     all_generated_circuits: list[circuits.Circuit] = []
     metadata_list: list[TRexMetadata] = []
 
-    circuit = cirq.drop_terminal_measurements(circuit_to_pauli.circuit.unfreeze())
+    circuit = transformers.drop_terminal_measurements(circuit_to_pauli.circuit.unfreeze())
 
     for pauli_group in circuit_to_pauli.pauli_strings:
 
@@ -1190,7 +1190,7 @@ def generate_trex_and_readout_circuits(
             for qubit, pauli in pauli_str.items():
                 qubit_pauli_dict[qubit] = pauli
 
-        joint_basis_pauli = ops.PauliString(qubit_pauli_dict)
+        joint_basis_pauli: cirq.PauliString = ops.PauliString(qubit_pauli_dict)
         num_qubits = len(qubit_pauli_dict)
 
         twirl_choices = _generate_random_boolean_choices(num_twirls, num_qubits, rng)
@@ -1204,13 +1204,13 @@ def generate_trex_and_readout_circuits(
         # overall_readout_parity = readout_choices.sum(axis=1) % 2
 
         readout_circuits = [
-            cirq.Circuit.from_moments(
-                cirq.Moment(
-                    cirq.X.on_each(
+            circuits.Circuit.from_moments(
+                circuits.Moment(
+                    ops.X.on_each(
                         q for q, flip in zip(joint_basis_pauli, readout_choices_i) if flip
                     )
                 ),
-                cirq.Moment(cirq.M(*joint_basis_pauli.qubits, key='result')),
+                circuits.Moment(ops.M(*joint_basis_pauli.qubits, key='result')),
             )
             for readout_choices_i in readout_choices
         ]

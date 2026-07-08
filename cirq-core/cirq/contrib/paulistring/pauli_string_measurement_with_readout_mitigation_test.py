@@ -24,9 +24,8 @@ import pytest
 import cirq
 from cirq.contrib.paulistring import CircuitToPauliStringsParameters, measure_pauli_strings
 from cirq.contrib.paulistring.pauli_string_measurement_with_readout_mitigation import (
-    _build_trex_twirled_pauli_circuits,
     PostFilteringSymmetryCalibrationResult as PostFilteringSymmetryCalibrationResult,
-    TRexMetadata,
+    generate_trex_and_readout_circuits,
 )
 from cirq.experiments import SingleQubitReadoutCalibrationResult
 from cirq.experiments.single_qubit_readout_calibration_test import NoisySingleQubitReadoutSampler
@@ -944,9 +943,11 @@ def test_generate_trex_and_readout_circuits() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     base_circuit = cirq.FrozenCircuit(cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1)))
 
-    pauli_group_1 = [cirq.PauliString(cirq.Z(q0) * cirq.Z(q1))]
-
-    pauli_group_2 = [cirq.PauliString(cirq.X(q0)), cirq.PauliString(cirq.X(q1))]
+    pauli_group_1: list[cirq.PauliString] = [cirq.PauliString(cirq.Z(q0) * cirq.Z(q1))]
+    pauli_group_2: list[cirq.PauliString] = [
+        cirq.PauliString(cirq.X(q0)),
+        cirq.PauliString(cirq.X(q1)),
+    ]
 
     pauli_strings = [pauli_group_1, pauli_group_2]
 
