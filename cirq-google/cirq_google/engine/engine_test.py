@@ -1266,3 +1266,33 @@ def test_engine_create_program_multi(client_mock):
     # program is not AbstractCircuit (it's a list)
     engine.create_program([_CIRCUIT], 'prog')
     client_mock().create_program_async.assert_called_once()
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_engine_compile_circuit(client_mock):
+    expected_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(1, 1)))
+    client_mock().compile_circuit_async.return_value = expected_circuit
+
+    engine = cg.Engine(project_id='proj')
+    stim_circuit = "H 0\nCNOT 0 1\nM 0 1"
+    qec_recipe = ["recipe1"]
+    processor_id = "test_processor_id"
+    snapshot = Snapshot(id="snap_1")
+    config_name = "test_config"
+
+    result = engine.compile_circuit(
+        stim_circuit=stim_circuit,
+        qec_recipe=qec_recipe,
+        processor_id=processor_id,
+        device_config_revision=snapshot,
+        config_name=config_name,
+    )
+    assert result == expected_circuit
+    client_mock().compile_circuit_async.assert_called_once_with(
+        project_id='proj',
+        stim_circuit=stim_circuit,
+        qec_recipe=qec_recipe,
+        processor_id=processor_id,
+        device_config_revision=snapshot,
+        config_name=config_name,
+    )

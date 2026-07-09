@@ -19,16 +19,18 @@ import sys
 import warnings
 from collections.abc import AsyncIterable, Awaitable, Callable
 from functools import cached_property
-from typing import TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
+import cirq
 import duet
 import proto
 from google.api_core.exceptions import GoogleAPICallError, NotFound
 from google.protobuf import any_pb2, field_mask_pb2
 from google.protobuf.timestamp_pb2 import Timestamp
 
+from cirq_google.api import v2
 from cirq_google.cloud import quantum
-from cirq_google.engine import stream_manager
+from cirq_google.engine import stream_manager, util
 from cirq_google.engine.asyncio_executor import AsyncioExecutor
 from cirq_google.engine.processor_config import (
     DeviceConfigRevision,
@@ -36,6 +38,7 @@ from cirq_google.engine.processor_config import (
     Snapshot,
     validate_device_config_revision,
 )
+from cirq_google.serialization import CIRCUIT_SERIALIZER
 
 _M = TypeVar('_M', bound=proto.Message)
 _R = TypeVar('_R')
@@ -1238,6 +1241,53 @@ class EngineClient:
         )
 
     list_quantum_processor_configs = duet.sync(list_quantum_processor_configs_async)
+
+    async def compile_circuit_async(
+        self,
+        project_id: str,
+        stim_circuit: str,
+        qec_recipe: list[str],
+        processor_id: str,
+        device_config_revision: DeviceConfigRevision = Run(id='current'),
+        config_name: str = 'default',
+    ) -> cirq.Circuit:
+        """Takes the given Stim circuit and compiles it to a cirq Circuit.
+
+        Args:
+            project_id: A project_id of the parent Google Cloud Project.
+            stim_circuit: The Stim circuit to compile.
+            qec_recipe: A list of the recipes that should be applied when compiling the given circuit.
+            processor_id: The processor unique identifier.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
+            config_name: The identifier for the config.
+
+        Returns:
+            A cirq.Circuit.
+        """
+        validate_device_config_revision(device_config_revision)
+        if isinstance(device_config_revision, Snapshot):
+            selector = quantum.DeviceConfigSelector(
+                snapshot_id=device_config_revision.id or None, config_alias=config_name
+            )
+        else:
+            run_name = device_config_revision.id if device_config_revision else 'default'
+            selector = quantum.DeviceConfigSelector(
+                run_name=run_name or None, config_alias=config_name
+            )
+
+        parent_resource_name = _project_name(project_id=project_id)
+        request = quantum.CompileQecProgramRequest(
+            name=parent_resource_name,
+            stim_circuit=stim_circuit,
+            recipe=quantum.QecRecipe(desired_algorithms=qec_recipe),
+            processor_id=processor_id,
+            device_config_selector=selector,
+        )
+        response = await self._send_request_async(self.grpc_client.compile_qec_program, request)
+        program_proto = util.unpack_any(response.program.code, v2.program_pb2.Program())
+        return CIRCUIT_SERIALIZER.deserialize(program_proto)
+
+    compile_circuit = duet.sync(compile_circuit_async)
 
 
 def _project_name(project_id: str) -> str:

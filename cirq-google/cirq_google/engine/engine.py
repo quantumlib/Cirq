@@ -772,6 +772,39 @@ class Engine(abstract_engine.AbstractEngine):
 
     list_processor_configs = duet.sync(list_processor_configs_async)
 
+    async def compile_circuit_async(
+        self,
+        stim_circuit: str,
+        qec_recipe: list[str],
+        processor_id: str,
+        device_config_revision: processor_config.DeviceConfigRevision = processor_config.Run(
+            id='current'
+        ),
+        config_name: str = 'default',
+    ) -> cirq.Circuit:
+        """Takes the given Stim circuit and compiles it to a cirq Circuit.
+
+        Args:
+            stim_circuit: The Stim circuit to compile.
+            qec_recipe: A list of the recipes that should be applied when compiling the given circuit.
+            processor_id: The processor unique identifier.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
+            config_name: The identifier for the config.
+
+        Returns:
+            A cirq.Circuit.
+        """
+        return await self.context.client.compile_circuit_async(
+            project_id=self.project_id,
+            stim_circuit=stim_circuit,
+            qec_recipe=qec_recipe,
+            processor_id=processor_id,
+            device_config_revision=device_config_revision,
+            config_name=config_name,
+        )
+
+    compile_circuit = duet.sync(compile_circuit_async)
+
 
 def get_engine(project_id: str | None = None) -> Engine:
     """Get an Engine instance assuming some sensible defaults.
