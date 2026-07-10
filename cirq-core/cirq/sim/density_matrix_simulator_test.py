@@ -1588,10 +1588,16 @@ def test_sweep_unparameterized_prefix_not_repeated_even_non_unitaries() -> None:
     assert op2.count == 2
 
 
-def _gh5916_regression_circuit() -> cirq.Circuit:
-    """Circuit from gh-5916 that previously drifted trace under re-simulation."""
-    q0, q1 = cirq.NamedQubit('q0'), cirq.NamedQubit('q1')
-    return cirq.Circuit(cirq.CNOT.on(q1, q0), cirq.H.on(q1), cirq.measure(q1))
+def _trace_drift_regression_circuit() -> cirq.Circuit:
+    """Circuit from https://github.com/quantumlib/Cirq/issues/5916 that previously
+    drifted trace under re-simulation."""
+    q0 = cirq.NamedQubit('q0')
+    q1 = cirq.NamedQubit('q1')
+    circuit = cirq.Circuit()
+    circuit.append(cirq.CNOT.on(q1, q0))
+    circuit.append(cirq.H.on(q1))
+    circuit.append(cirq.measure(q1))
+    return circuit
 
 
 def _density_matrix_trace(density_matrix: np.ndarray) -> complex:
@@ -1605,8 +1611,9 @@ def _assert_density_matrix_trace_one(density_matrix: np.ndarray, *, atol: float 
 
 
 def test_density_matrix_trace_after_each_moment_gh5916() -> None:
-    """Regression for gh-5916: trace must stay normalized after each moment."""
-    circuit = _gh5916_regression_circuit()
+    """Regression for https://github.com/quantumlib/Cirq/issues/5916:
+    trace must stay normalized after each moment."""
+    circuit = _trace_drift_regression_circuit()
     sim = cirq.DensityMatrixSimulator(dtype=np.complex128)
     for step in sim.simulate_moment_steps(circuit):
         _assert_density_matrix_trace_one(step.density_matrix())
@@ -1616,8 +1623,9 @@ def test_density_matrix_trace_after_each_moment_gh5916() -> None:
 def test_density_matrix_trace_stable_under_repeated_simulation(
     dtype: type[np.complexfloating],
 ) -> None:
-    """Regression for gh-5916: reusing final_density_matrix must not drift trace."""
-    circuit = _gh5916_regression_circuit()
+    """Regression for https://github.com/quantumlib/Cirq/issues/5916:
+    reusing final_density_matrix must not drift trace."""
+    circuit = _trace_drift_regression_circuit()
     sim = cirq.DensityMatrixSimulator(dtype=dtype)
     initial_state = None
     for _ in range(50):
@@ -1667,8 +1675,12 @@ def test_density_matrix_trace_repeated_simulation_performance_smoke(
     dtype: type[np.complexfloating],
 ) -> None:
     """Smoke test: repeated simulation stays within existing suite runtime scale."""
-    q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(cirq.CNOT(q1, q0), cirq.H(q1), cirq.measure(q1))
+    q0 = cirq.LineQubit(0)
+    q1 = cirq.LineQubit(1)
+    circuit = cirq.Circuit()
+    circuit.append(cirq.CNOT(q1, q0))
+    circuit.append(cirq.H(q1))
+    circuit.append(cirq.measure(q1))
     sim = cirq.DensityMatrixSimulator(dtype=dtype)
     initial_state = None
     start = time.perf_counter()

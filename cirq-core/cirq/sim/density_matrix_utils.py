@@ -196,7 +196,7 @@ def _probs(
 def _renormalize_density_matrix_trace(
     density_matrix: np.ndarray, qid_shape: tuple[int, ...]
 ) -> None:
-    """Rescale ``density_matrix`` in-place so its trace is 1."""
+    """Rescale `density_matrix` in place so its trace is 1."""
     size = int(np.prod(qid_shape))
     trace = np.trace(density_matrix.reshape(size, size))
     if not np.isclose(trace, 0):
