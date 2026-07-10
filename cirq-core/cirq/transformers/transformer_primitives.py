@@ -78,9 +78,14 @@ def _remove_last(indices: list[int], value: int) -> None:
     Raises:
         ValueError: If the value is not in the list.
     """
-    if indices and (
-        indices[pos := -1] == value or indices[pos := bisect.bisect_left(indices, value)] == value
-    ):
+    if not indices:
+        raise ValueError("The value is not in the list of indices")  # pragma: no cover
+    # Optimized for majority case: check last element first.
+    if indices[-1] == value:
+        indices.pop()
+        return
+    pos = bisect.bisect_left(indices, value)
+    if pos < len(indices) and indices[pos] == value:
         indices.pop(pos)
     else:
         raise ValueError("The value is not in the list of indices")  # pragma: no cover
@@ -97,7 +102,7 @@ def map_moments(
 
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
-        map_func: Mapping function from (cirq.Moment, moment_index) to a sequence of moments.
+        map_func: Mapping function from (`cirq.Moment`, `moment_index`) to a sequence of moments.
         tags_to_ignore: Tagged circuit operations marked with any of `tags_to_ignore` will be
             ignored when recursively applying the transformer primitive to sub-circuits, given
             deep=True.
@@ -105,7 +110,7 @@ def map_moments(
             any circuit operations contained within `circuit`.
 
     Returns:
-        Copy of input circuit with mapped moments.
+        Copy of the input circuit with mapped moments.
     """
     mutable_circuit = circuit.unfreeze(copy=False)
     if deep:
@@ -159,7 +164,7 @@ def _map_operations_impl(
 
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
-        map_func: Mapping function from (cirq.Operation, moment_index) to a cirq.OP_TREE. If the
+        map_func: Mapping function from (`cirq.Operation`, `moment_index`) to a `cirq.OP_TREE`. If the
             resulting optree spans more than 1 moment, it's either wrapped in a tagged circuit
             operation and inserted in-place in the same moment (if  `wrap_in_circuit_op` is True)
             OR the mapped operations are inserted directly in the circuit, preserving moment
@@ -181,8 +186,9 @@ def _map_operations_impl(
             in a single moment (e.g. two mapped operations act on the same qubit).
 
     Raises:
-          ValueError if `issubset(qubit_set(map_func(op, idx)), op.qubits) is False` and
-            `raise_if_add_qubits is True`.
+          ValueError: If `raise_if_add_qubits` is True and `map_func(op, idx)` returns
+            operations that act on qubits outside of `op.qubits` — i.e. if
+            `cirq.qubit_set(map_func(op, idx))` is not a subset of `op.qubits`.
 
     Returns:
         Copy of input circuit with mapped operations.
@@ -228,7 +234,7 @@ def _map_operations_impl(
         return mapped_ops
 
     if preserve_moments:
-        preserved_moments: list[cirq.Moment] = []
+        preserved_moments: list[circuits.Moment] = []
         for idx, moment in enumerate(circuit):
             moment_ops: list[cirq.Operation] = []
             for op in moment:
@@ -239,7 +245,7 @@ def _map_operations_impl(
                 raise ValueError(
                     f"Cannot preserve the moment structure - operations mapped from the "
                     f"moment at index {idx} do not fit into a single moment: {ex}"
-                )
+                ) from ex
         return _create_target_circuit_type(preserved_moments, circuit)
 
     new_moments: list[list[cirq.Operation]] = []
