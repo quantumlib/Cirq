@@ -124,7 +124,7 @@ class PauliSumExponential:
             # e^{i \theta P_n} = I \cos{(\theta)} + i P_n \sin{(\theta)}
             # in the context of the qubits involved in the PauliSum.
             pauli_string_qubits = set(pauli_string.qubits)
-            pauli_string_unitary = np.ones(1.0)
+            pauli_string_unitary = np.ones(1, dtype=float)
             for qubit in sorted(qubits):
                 if qubit in pauli_string_qubits:
                     pauli_string_unitary = np.kron(
