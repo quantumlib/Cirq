@@ -108,9 +108,35 @@ class PauliSumExponential:
         """
         if protocols.is_parameterized(self._exponent):
             raise ValueError("Exponent should not parameterized.")
-        ret = np.ones(1)
-        for pauli_string_exp in self:
-            ret = np.kron(ret, protocols.unitary(pauli_string_exp))
+        
+        # Retrieve all qubits that are involved in producing the PauliSum used by
+        # this class, including identity qubits. These qubits will be used to
+        # compute the appropriate total size of the final unitary.
+        qubits = set()
+        for pauli_string in self._pauli_sum:
+            qubits.update(pauli_string.qubits)
+            qubits.update(pauli_string.identity_qubits)
+        
+        # Calculate the identity e^{i \theta \sum P} = \prod e^{i \theta P_n}
+        ret = np.eye(2 ** len(qubits))
+        for pauli_string in self._pauli_sum:
+            # For each e^{i \theta P_n}, compute its value using the identity
+            # e^{i \theta P_n} = I \cos{(\theta)} + i P_n \sin{(\theta)}
+            # in the context of the qubits involved in the PauliSum.
+            pauli_string_qubits = set(pauli_string.qubits)
+            pauli_string_unitary = np.ones(1)
+            for qubit in sorted(qubits):
+                if qubit in pauli_string_qubits:
+                    pauli_string_unitary = np.kron(
+                        pauli_string_unitary, protocols.unitary(pauli_string[qubit]))
+                else:
+                    pauli_string_unitary = np.kron(
+                        pauli_string_unitary, np.eye(2))
+            theta = pauli_string.coefficient * self._multiplier
+            theta *= self._exponent
+            cos_term = np.cos(theta) * np.eye(2 ** len(qubits))
+            sin_term = np.sin(theta) * 1j * pauli_string_unitary
+            ret = ret @ (cos_term + sin_term)
         return ret
 
     @_compat.cached_method

@@ -177,12 +177,17 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         Raises:
             TypeError: If the `qubit_pauli_map` has values that are not Paulis.
         """
+        self._qubit_pauli_map: dict[TKey, cirq.Pauli] = {}
+        self._identity_qubits: Sequence[cirq.Qid] = []
         if _compat.__cirq_debug__.get() and qubit_pauli_map is not None:
-            for v in qubit_pauli_map.values():
-                if not isinstance(v, pauli_gates.Pauli):
-                    raise TypeError(f'{v} is not a Pauli')
+            for k, v in qubit_pauli_map.items():
+                if isinstance(v, pauli_gates.Pauli):
+                    self._qubit_pauli_map[k] = v
+                elif v == identity.I:
+                    self._identity_qubits.append(k)
+                else:
+                    raise TypeError(f'{v} is not a Pauli or identity')
 
-        self._qubit_pauli_map: dict[TKey, cirq.Pauli] = qubit_pauli_map or {}
         self._coefficient: cirq.TParamValComplex | sympy.Expr = (
             coefficient if isinstance(coefficient, sympy.Expr) else complex(coefficient)
         )
@@ -328,6 +333,11 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def qubits(self) -> tuple[TKey, ...]:
         """Returns a tuple of qubits on which this pauli string acts."""
         return tuple(self.keys())
+    
+    @property
+    def identity_qubits(self) -> tuple[cirq.Qid, ...]:
+        """Returns a tuple of qubits that this pauli string is applying I on."""
+        return tuple(self._identity_qubits)
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> list[str]:
         if not len(self._qubit_pauli_map):

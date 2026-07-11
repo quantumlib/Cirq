@@ -319,7 +319,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
         return pauli_string.PauliString(
             coefficient=self.coefficient,
-            qubit_pauli_map={q: PAULI_GATES[p] for q, p in zip(qubits, self.pauli_mask) if p},
+            qubit_pauli_map={q: PAULI_GATES[p] for q, p in zip(qubits, self.pauli_mask)},
         )
 
     def __str__(self) -> str:
