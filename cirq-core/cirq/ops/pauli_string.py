@@ -154,7 +154,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def __init__(
         self,
         *contents: cirq.PAULI_STRING_LIKE,
-        qubit_pauli_map: dict[TKey, cirq.Pauli] | dict[TKey, cirq.Pauli | cirq.IdentityGate] | None = None,
+        qubit_pauli_map: Mapping[TKey, cirq.Pauli | cirq.IdentityGate] | None = None,
         coefficient: cirq.TParamValComplex = 1,
     ):
         """Initializes a new `PauliString` operation.
@@ -166,9 +166,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                 values is given, they are each individually converted and then
                 multiplied from left to right in order.
             qubit_pauli_map: Initial dictionary mapping qubits to pauli
-                operations. Defaults to the empty dictionary. Note that, unlike
-                dictionaries passed to contents, this dictionary must not
-                contain any identity gate values. Further note that this
+                operations. Defaults to the empty dictionary. Note that this
                 argument specifies values that are logically *before* factors
                 specified in `contents`; `contents` are *right* multiplied onto
                 the values in this dictionary.
@@ -178,7 +176,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             TypeError: If the `qubit_pauli_map` has values that are not Paulis.
         """
         self._qubit_pauli_map: dict[TKey, cirq.Pauli] = {}
-        # Maintain a list of identity qubits. 
+        # Maintain a list of identity qubits.
         # Historically this class retains only qubits with Pauli operations applied
         # to them. However, downstream calculations (e.g. applying exponentiation, etc.)
         # relies on knowledge of where identity qubits are placed as well. To maintain
@@ -338,7 +336,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def qubits(self) -> tuple[TKey, ...]:
         """Returns a tuple of qubits on which this pauli string acts."""
         return tuple(self.keys())
-    
+
     @property
     def identity_qubits(self) -> tuple[cirq.Qid, ...]:
         """Returns a tuple of qubits that this pauli string is applying I on."""
