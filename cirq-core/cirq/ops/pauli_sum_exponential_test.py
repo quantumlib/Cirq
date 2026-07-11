@@ -33,6 +33,7 @@ def test_raises_for_non_hermitian_pauli() -> None:
     with pytest.raises(ValueError, match='Hermitian'):
         cirq.PauliSumExponential(cirq.X(q0) + 1j * cirq.Z(q1), np.pi / 2)
 
+
 @pytest.mark.parametrize(
     'psum_exp, expected_qubits',
     (
@@ -103,17 +104,18 @@ def test_pauli_sum_exponential_parameterized_matrix_raises() -> None:
         ),
         (
             cirq.PauliSumExponential(cirq.DensePauliString('XI')(q0, q1), exponent=np.pi / 4),
-            np.array([[1, 0, 1j, 0], [0, 1, 0, 1j], [1j, 0, 1, 0], [0, 1j, 0, 1]]) / (2 ** 0.5),
+            np.array([[1, 0, 1j, 0], [0, 1, 0, 1j], [1j, 0, 1, 0], [0, 1j, 0, 1]]) / (2**0.5),
         ),
         (
             cirq.PauliSumExponential(cirq.DensePauliString('IY')(q0, q1), exponent=3 * np.pi / 4),
-            np.array([[-1, 1, 0, 0], [-1, -1, 0, 0], [0, 0, -1, 1], [0, 0, -1, -1]]) / (2 ** 0.5),
+            np.array([[-1, 1, 0, 0], [-1, -1, 0, 0], [0, 0, -1, 1], [0, 0, -1, -1]]) / (2**0.5),
         ),
     ),
 )
 def test_pauli_sum_exponential_has_correct_unitary(psum_exp, expected_unitary) -> None:
     assert cirq.has_unitary(psum_exp)
     assert np.allclose(cirq.unitary(psum_exp), expected_unitary)
+
 
 @pytest.mark.parametrize(
     'psum_exp, power, expected_psum',

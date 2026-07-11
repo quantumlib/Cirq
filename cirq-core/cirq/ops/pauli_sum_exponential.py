@@ -108,7 +108,7 @@ class PauliSumExponential:
         """
         if protocols.is_parameterized(self._exponent):
             raise ValueError("Exponent should not parameterized.")
-        
+
         # Retrieve all qubits that are involved in producing the PauliSum used by
         # this class, including identity qubits. These qubits will be used to
         # compute the appropriate total size of the final unitary.
@@ -116,7 +116,7 @@ class PauliSumExponential:
         for pauli_string in self._pauli_sum:
             qubits.update(pauli_string.qubits)
             qubits.update(pauli_string.identity_qubits)
-        
+
         # Calculate the identity e^{i \theta \sum P} = \prod e^{i \theta P_n}
         ret = np.eye(2 ** len(qubits))
         for pauli_string in self._pauli_sum:
@@ -128,10 +128,10 @@ class PauliSumExponential:
             for qubit in sorted(qubits):
                 if qubit in pauli_string_qubits:
                     pauli_string_unitary = np.kron(
-                        pauli_string_unitary, protocols.unitary(pauli_string[qubit]))
+                        pauli_string_unitary, protocols.unitary(pauli_string[qubit])
+                    )
                 else:
-                    pauli_string_unitary = np.kron(
-                        pauli_string_unitary, np.eye(2))
+                    pauli_string_unitary = np.kron(pauli_string_unitary, np.eye(2))
             theta = pauli_string.coefficient * self._multiplier
             theta *= self._exponent
             cos_term = np.cos(theta) * np.eye(2 ** len(qubits))

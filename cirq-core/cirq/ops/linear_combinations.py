@@ -35,7 +35,7 @@ from cirq.value.linear_dict import _format_terms
 if TYPE_CHECKING:
     import cirq
 
-UnitPauliStringT = frozenset[tuple[raw_types.Qid, pauli_gates.Pauli | identity.IdentityGate ]]
+UnitPauliStringT = frozenset[tuple[raw_types.Qid, pauli_gates.Pauli | identity.IdentityGate]]
 PauliSumLike = Union[
     complex, PauliString, 'PauliSum', pauli_string.SingleQubitPauliStringGateOperation
 ]
@@ -336,7 +336,7 @@ def _is_linear_dict_of_unit_pauli_string(linear_dict: value.LinearDict[UnitPauli
         for qid, pauli in k:
             if not isinstance(qid, raw_types.Qid):
                 return False
-            if not isinstance(pauli, pauli_gates.Pauli) and not pauli == identity.I:
+            if not isinstance(pauli, pauli_gates.Pauli) and pauli != identity.I:
                 return False
 
     return True
@@ -468,7 +468,10 @@ class PauliSum:
             terms = [terms]
         termdict: defaultdict[UnitPauliStringT, value.Scalar] = defaultdict(lambda: 0)
         for pstring in terms:
-            key = frozenset(list(pstring._qubit_pauli_map.items()) + [(qubit, identity.I) for qubit in pstring.identity_qubits])
+            key = frozenset(
+                list(pstring._qubit_pauli_map.items())
+                + [(qubit, identity.I) for qubit in pstring.identity_qubits]
+            )
             termdict[key] += pstring.coefficient
         return cls(linear_dict=value.LinearDict(termdict))
 

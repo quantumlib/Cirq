@@ -154,7 +154,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def __init__(
         self,
         *contents: cirq.PAULI_STRING_LIKE,
-        qubit_pauli_map: dict[TKey, cirq.Pauli | cirq.IdentityGate] | None = None,
+        qubit_pauli_map: dict[TKey, cirq.Pauli] | dict[TKey, cirq.Pauli | cirq.IdentityGate] | None = None,
         coefficient: cirq.TParamValComplex = 1,
     ):
         """Initializes a new `PauliString` operation.
