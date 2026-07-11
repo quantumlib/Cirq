@@ -35,7 +35,7 @@ from cirq.value.linear_dict import _format_terms
 if TYPE_CHECKING:
     import cirq
 
-UnitPauliStringT = frozenset[tuple[raw_types.Qid, pauli_gates.Pauli]]
+UnitPauliStringT = frozenset[tuple[raw_types.Qid, pauli_gates.Pauli | identity.I ]]
 PauliSumLike = Union[
     complex, PauliString, 'PauliSum', pauli_string.SingleQubitPauliStringGateOperation
 ]

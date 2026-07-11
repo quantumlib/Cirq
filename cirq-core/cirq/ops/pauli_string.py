@@ -178,6 +178,11 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             TypeError: If the `qubit_pauli_map` has values that are not Paulis.
         """
         self._qubit_pauli_map: dict[TKey, cirq.Pauli] = {}
+        # Maintain a list of identity qubits. 
+        # Historically this class retains only qubits with Pauli operations applied
+        # to them. However, downstream calculations (e.g. applying exponentiation, etc.)
+        # relies on knowledge of where identity qubits are placed as well. To maintain
+        # existing behavior, track identity qubits under a separate field.
         self._identity_qubits: Sequence[cirq.Qid] = []
         if _compat.__cirq_debug__.get() and qubit_pauli_map is not None:
             for k, v in qubit_pauli_map.items():
