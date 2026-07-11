@@ -24,9 +24,9 @@ calibration using the following pipeline:
     >>> noise_model = cirq_google.NoiseModelFromGoogleNoiseProperties(noise_props)
     >>> simulator = cirq.Simulator(noise=noise_model)
     >>> circuit = cirq.Circuit(cirq.PhasedXZGate(
-    ...     x_exponent: 1.0,
-    ...     z_exponent: 0.0,
-    ...     axis_phase_exponent: 0.0,
+    ...     x_exponent=1.0,
+    ...     z_exponent=0.0,
+    ...     axis_phase_exponent=0.0,
     ... )(cirq.GridQubit(5, 2)))  # X gate
     >>> result = simulator.simulate(circuit)
 """
