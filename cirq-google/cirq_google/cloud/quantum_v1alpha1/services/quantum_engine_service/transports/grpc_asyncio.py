@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2025 Google LLC
+# Copyright 2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import pickle
 import warnings
 from typing import Awaitable, Callable, Dict, Optional, Sequence, Tuple, Union
 
+import google.protobuf.empty_pb2 as empty_pb2  # type: ignore
 import google.protobuf.message
 import grpc  # type: ignore
 import proto  # type: ignore
@@ -31,7 +32,6 @@ from google.api_core import (
 )
 from google.auth import credentials as ga_credentials  # type: ignore
 from google.auth.transport.grpc import SslCredentials  # type: ignore
-from google.protobuf import empty_pb2  # type: ignore
 from google.protobuf.json_format import MessageToJson
 from grpc.experimental import aio  # type: ignore
 
@@ -60,7 +60,7 @@ class _LoggingClientAIOInterceptor(grpc.aio.UnaryUnaryClientInterceptor):  # pra
             elif isinstance(request, google.protobuf.message.Message):
                 request_payload = MessageToJson(request)
             else:
-                request_payload = f"{type(request).__name__}: {pickle.dumps(request)}"
+                request_payload = f"{type(request).__name__}: {pickle.dumps(request)!r}"
 
             request_metadata = {
                 key: value.decode("utf-8") if isinstance(value, bytes) else value
@@ -93,7 +93,7 @@ class _LoggingClientAIOInterceptor(grpc.aio.UnaryUnaryClientInterceptor):  # pra
             elif isinstance(result, google.protobuf.message.Message):
                 response_payload = MessageToJson(result)
             else:
-                response_payload = f"{type(result).__name__}: {pickle.dumps(result)}"
+                response_payload = f"{type(result).__name__}: {pickle.dumps(result)!r}"
             grpc_response = {"payload": response_payload, "metadata": metadata, "status": "OK"}
             _LOGGER.debug(
                 f"Received response to rpc {client_call_details.method}.",
@@ -141,8 +141,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
                 credentials identify this application to the service. If
                 none are specified, the client will attempt to ascertain
                 the credentials from the environment.
-            credentials_file (Optional[str]): A file with credentials that can
-                be loaded with :func:`google.auth.load_credentials_from_file`.
+            credentials_file (Optional[str]): Deprecated. A file with credentials that can
+                be loaded with :func:`google.auth.load_credentials_from_file`. This argument will be
+                removed in the next major version of this library.
             scopes (Optional[Sequence[str]]): A optional list of scopes needed for this
                 service. These are only used when credentials are not specified and
                 are passed to :func:`google.auth.default`.
@@ -193,9 +194,10 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
                 are specified, the client will attempt to ascertain the
                 credentials from the environment.
                 This argument is ignored if a ``channel`` instance is provided.
-            credentials_file (Optional[str]): A file with credentials that can
+            credentials_file (Optional[str]): Deprecated. A file with credentials that can
                 be loaded with :func:`google.auth.load_credentials_from_file`.
                 This argument is ignored if a ``channel`` instance is provided.
+                This argument will be removed in the next major version of this library.
             scopes (Optional[Sequence[str]]): A optional list of scopes needed for this
                 service. These are only used when credentials are not specified and
                 are passed to :func:`google.auth.default`.
@@ -227,6 +229,10 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
                 your own client library.
             always_use_jwt_access (Optional[bool]): Whether self signed JWT should
                 be used for service account credentials.
+            api_audience (Optional[str]): The intended audience for the API calls
+                to the service that will be set when using certain 3rd party
+                authentication flows. Audience is typically a resource identifier.
+                If not set, the host value will be used as a default.
 
         Raises:
             google.auth.exceptions.MutualTlsChannelError: If mutual TLS transport
@@ -456,6 +462,32 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
                 response_deserializer=quantum.QuantumProgram.deserialize,
             )
         return self._stubs['update_quantum_program']
+
+    @property
+    def compile_qec_program(
+        self,
+    ) -> Callable[[engine.CompileQecProgramRequest], Awaitable[engine.CompileQecProgramResponse]]:
+        r"""Return a callable for the compile qec program method over gRPC.
+
+        -
+
+        Returns:
+            Callable[[~.CompileQecProgramRequest],
+                    Awaitable[~.CompileQecProgramResponse]]:
+                A function that, when called, will call the underlying RPC
+                on the server.
+        """
+        # Generate a "stub function" on-the-fly which will actually make
+        # the request.
+        # gRPC handles serialization and deserialization, so we just need
+        # to pass in the functions for each.
+        if 'compile_qec_program' not in self._stubs:
+            self._stubs['compile_qec_program'] = self._logged_channel.unary_unary(
+                '/google.cloud.quantum.v1alpha1.QuantumEngineService/CompileQecProgram',
+                request_serializer=engine.CompileQecProgramRequest.serialize,
+                response_deserializer=engine.CompileQecProgramResponse.deserialize,
+            )
+        return self._stubs['compile_qec_program']
 
     @property
     def create_quantum_job(
@@ -777,6 +809,38 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
                 response_deserializer=engine.ListQuantumProcessorConfigsResponse.deserialize,
             )
         return self._stubs['list_quantum_processor_configs']
+
+    @property
+    def list_quantum_processor_automation_run_history(
+        self,
+    ) -> Callable[
+        [engine.ListQuantumProcessorAutomationRunHistoryRequest],
+        Awaitable[engine.ListQuantumProcessorAutomationRunHistoryResponse],
+    ]:
+        r"""Return a callable for the list quantum processor
+        automation run history method over gRPC.
+
+        -
+
+        Returns:
+            Callable[[~.ListQuantumProcessorAutomationRunHistoryRequest],
+                    Awaitable[~.ListQuantumProcessorAutomationRunHistoryResponse]]:
+                A function that, when called, will call the underlying RPC
+                on the server.
+        """
+        # Generate a "stub function" on-the-fly which will actually make
+        # the request.
+        # gRPC handles serialization and deserialization, so we just need
+        # to pass in the functions for each.
+        if 'list_quantum_processor_automation_run_history' not in self._stubs:
+            self._stubs['list_quantum_processor_automation_run_history'] = (
+                self._logged_channel.unary_unary(
+                    '/google.cloud.quantum.v1alpha1.QuantumEngineService/ListQuantumProcessorAutomationRunHistory',
+                    request_serializer=engine.ListQuantumProcessorAutomationRunHistoryRequest.serialize,
+                    response_deserializer=engine.ListQuantumProcessorAutomationRunHistoryResponse.deserialize,
+                )
+            )
+        return self._stubs['list_quantum_processor_automation_run_history']
 
     @property
     def list_quantum_calibrations(
@@ -1152,6 +1216,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
             self.update_quantum_program: self._wrap_method(
                 self.update_quantum_program, default_timeout=60.0, client_info=client_info
             ),
+            self.compile_qec_program: self._wrap_method(
+                self.compile_qec_program, default_timeout=None, client_info=client_info
+            ),
             self.create_quantum_job: self._wrap_method(
                 self.create_quantum_job, default_timeout=60.0, client_info=client_info
             ),
@@ -1187,6 +1254,11 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
             ),
             self.list_quantum_processor_configs: self._wrap_method(
                 self.list_quantum_processor_configs, default_timeout=None, client_info=client_info
+            ),
+            self.list_quantum_processor_automation_run_history: self._wrap_method(
+                self.list_quantum_processor_automation_run_history,
+                default_timeout=None,
+                client_info=client_info,
             ),
             self.list_quantum_calibrations: self._wrap_method(
                 self.list_quantum_calibrations, default_timeout=60.0, client_info=client_info

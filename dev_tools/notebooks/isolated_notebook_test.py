@@ -47,10 +47,7 @@ from dev_tools.notebooks import filter_notebooks, list_all_notebooks, REPO_ROOT,
 # by the notebooks in question when adding notebooks to this list.
 # For more information, please see the section "Lifecycle" in docs/dev/notebooks.md.
 
-NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = [
-    # needs https://github.com/quantumlib/Cirq/pull/7972
-    'docs/hardware/pasqal/getting_started.ipynb'
-]
+NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = []
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
 # please always add a reason for skipping.

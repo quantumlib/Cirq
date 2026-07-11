@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2025 Google LLC
+# Copyright 2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import warnings
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import google.protobuf
+import google.protobuf.empty_pb2 as empty_pb2  # type: ignore
 from google.api_core import (
     exceptions as core_exceptions,
     gapic_v1,
@@ -29,7 +30,6 @@ from google.api_core import (
 )
 from google.auth import credentials as ga_credentials  # type: ignore
 from google.auth.transport.requests import AuthorizedSession  # type: ignore
-from google.protobuf import empty_pb2  # type: ignore
 from google.protobuf import json_format
 from requests import __version__ as requests_version
 
@@ -86,6 +86,14 @@ class QuantumEngineServiceRestInterceptor:
                 return request, metadata
 
             def post_cancel_quantum_reservation(self, response):
+                logging.log(f"Received response: {response}")
+                return response
+
+            def pre_compile_qec_program(self, request, metadata):
+                logging.log(f"Received request: {request}")
+                return request, metadata
+
+            def post_compile_qec_program(self, response):
                 logging.log(f"Received response: {response}")
                 return response
 
@@ -202,6 +210,14 @@ class QuantumEngineServiceRestInterceptor:
                 return request, metadata
 
             def post_list_quantum_jobs(self, response):
+                logging.log(f"Received response: {response}")
+                return response
+
+            def pre_list_quantum_processor_automation_run_history(self, request, metadata):
+                logging.log(f"Received request: {request}")
+                return request, metadata
+
+            def post_list_quantum_processor_automation_run_history(self, response):
                 logging.log(f"Received response: {response}")
                 return response
 
@@ -354,6 +370,52 @@ class QuantumEngineServiceRestInterceptor:
         `post_cancel_quantum_reservation` interceptor. The (possibly modified) response returned by
         `post_cancel_quantum_reservation` will be passed to
         `post_cancel_quantum_reservation_with_metadata`.
+        """
+        return response, metadata
+
+    def pre_compile_qec_program(
+        self,
+        request: engine.CompileQecProgramRequest,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]],
+    ) -> Tuple[engine.CompileQecProgramRequest, Sequence[Tuple[str, Union[str, bytes]]]]:
+        """Pre-rpc interceptor for compile_qec_program
+
+        Override in a subclass to manipulate the request or metadata
+        before they are sent to the QuantumEngineService server.
+        """
+        return request, metadata
+
+    def post_compile_qec_program(
+        self, response: engine.CompileQecProgramResponse
+    ) -> engine.CompileQecProgramResponse:
+        """Post-rpc interceptor for compile_qec_program
+
+        DEPRECATED. Please use the `post_compile_qec_program_with_metadata`
+        interceptor instead.
+
+        Override in a subclass to read or manipulate the response
+        after it is returned by the QuantumEngineService server but before
+        it is returned to user code. This `post_compile_qec_program` interceptor runs
+        before the `post_compile_qec_program_with_metadata` interceptor.
+        """
+        return response
+
+    def post_compile_qec_program_with_metadata(
+        self,
+        response: engine.CompileQecProgramResponse,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]],
+    ) -> Tuple[engine.CompileQecProgramResponse, Sequence[Tuple[str, Union[str, bytes]]]]:
+        """Post-rpc interceptor for compile_qec_program
+
+        Override in a subclass to read or manipulate the response or metadata after it
+        is returned by the QuantumEngineService server but before it is returned to user code.
+
+        We recommend only using this `post_compile_qec_program_with_metadata`
+        interceptor in new development instead of the `post_compile_qec_program` interceptor.
+        When both interceptors are used, this `post_compile_qec_program_with_metadata` interceptor runs after the
+        `post_compile_qec_program` interceptor. The (possibly modified) response returned by
+        `post_compile_qec_program` will be passed to
+        `post_compile_qec_program_with_metadata`.
         """
         return response, metadata
 
@@ -971,6 +1033,58 @@ class QuantumEngineServiceRestInterceptor:
         """
         return response, metadata
 
+    def pre_list_quantum_processor_automation_run_history(
+        self,
+        request: engine.ListQuantumProcessorAutomationRunHistoryRequest,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]],
+    ) -> Tuple[
+        engine.ListQuantumProcessorAutomationRunHistoryRequest,
+        Sequence[Tuple[str, Union[str, bytes]]],
+    ]:
+        """Pre-rpc interceptor for list_quantum_processor_automation_run_history
+
+        Override in a subclass to manipulate the request or metadata
+        before they are sent to the QuantumEngineService server.
+        """
+        return request, metadata
+
+    def post_list_quantum_processor_automation_run_history(
+        self, response: engine.ListQuantumProcessorAutomationRunHistoryResponse
+    ) -> engine.ListQuantumProcessorAutomationRunHistoryResponse:
+        """Post-rpc interceptor for list_quantum_processor_automation_run_history
+
+        DEPRECATED. Please use the `post_list_quantum_processor_automation_run_history_with_metadata`
+        interceptor instead.
+
+        Override in a subclass to read or manipulate the response
+        after it is returned by the QuantumEngineService server but before
+        it is returned to user code. This `post_list_quantum_processor_automation_run_history` interceptor runs
+        before the `post_list_quantum_processor_automation_run_history_with_metadata` interceptor.
+        """
+        return response
+
+    def post_list_quantum_processor_automation_run_history_with_metadata(
+        self,
+        response: engine.ListQuantumProcessorAutomationRunHistoryResponse,
+        metadata: Sequence[Tuple[str, Union[str, bytes]]],
+    ) -> Tuple[
+        engine.ListQuantumProcessorAutomationRunHistoryResponse,
+        Sequence[Tuple[str, Union[str, bytes]]],
+    ]:
+        """Post-rpc interceptor for list_quantum_processor_automation_run_history
+
+        Override in a subclass to read or manipulate the response or metadata after it
+        is returned by the QuantumEngineService server but before it is returned to user code.
+
+        We recommend only using this `post_list_quantum_processor_automation_run_history_with_metadata`
+        interceptor in new development instead of the `post_list_quantum_processor_automation_run_history` interceptor.
+        When both interceptors are used, this `post_list_quantum_processor_automation_run_history_with_metadata` interceptor runs after the
+        `post_list_quantum_processor_automation_run_history` interceptor. The (possibly modified) response returned by
+        `post_list_quantum_processor_automation_run_history` will be passed to
+        `post_list_quantum_processor_automation_run_history_with_metadata`.
+        """
+        return response, metadata
+
     def pre_list_quantum_processor_configs(
         self,
         request: engine.ListQuantumProcessorConfigsRequest,
@@ -1525,9 +1639,10 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 are specified, the client will attempt to ascertain the
                 credentials from the environment.
 
-            credentials_file (Optional[str]): A file with credentials that can
+            credentials_file (Optional[str]): Deprecated. A file with credentials that can
                 be loaded with :func:`google.auth.load_credentials_from_file`.
-                This argument is ignored if ``channel`` is provided.
+                This argument is ignored if ``channel`` is provided. This argument will be
+                removed in the next major version of this library.
             scopes (Optional(Sequence[str])): A list of scopes. This argument is
                 ignored if ``channel`` is provided.
             client_cert_source_for_mtls (Callable[[], Tuple[bytes, bytes]]): Client
@@ -1545,6 +1660,12 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             url_scheme: the protocol scheme for the API endpoint.  Normally
                 "https", but for testing or local servers,
                 "http" can be specified.
+            interceptor (Optional[QuantumEngineServiceRestInterceptor]): Interceptor used
+                to manipulate requests, request metadata, and responses.
+            api_audience (Optional[str]): The intended audience for the API calls
+                to the service that will be set when using certain 3rd party
+                authentication flows. Audience is typically a resource identifier.
+                If not set, the host value will be used as a default.
         """
         # Run the base constructor
         # TODO(yon-mg): resolve other ctor params i.e. scopes, quota, etc.
@@ -1636,7 +1757,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 request_url = "{host}{uri}".format(host=self._host, uri=transcoded_request['uri'])
                 method = transcoded_request['method']
                 try:
-                    request_payload = json_format.MessageToJson(request)
+                    request_payload = type(request).to_json(request)
                 except:
                     request_payload = None
                 http_request = {
@@ -1794,6 +1915,139 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "CancelQuantumReservation",
+                        "metadata": http_response["headers"],
+                        "httpResponse": http_response,
+                    },
+                )
+            return resp
+
+    class _CompileQecProgram(
+        _BaseQuantumEngineServiceRestTransport._BaseCompileQecProgram, QuantumEngineServiceRestStub
+    ):
+        def __hash__(self):
+            return hash("QuantumEngineServiceRestTransport.CompileQecProgram")
+
+        @staticmethod
+        def _get_response(
+            host, metadata, query_params, session, timeout, transcoded_request, body=None
+        ):
+
+            uri = transcoded_request['uri']
+            method = transcoded_request['method']
+            headers = dict(metadata)
+            headers['Content-Type'] = 'application/json'
+            response = getattr(session, method)(
+                "{host}{uri}".format(host=host, uri=uri),
+                timeout=timeout,
+                headers=headers,
+                params=rest_helpers.flatten_query_params(query_params, strict=True),
+                data=body,
+            )
+            return response
+
+        def __call__(
+            self,
+            request: engine.CompileQecProgramRequest,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: Optional[float] = None,
+            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+        ) -> engine.CompileQecProgramResponse:
+            r"""Call the compile qec program method over HTTP.
+
+            Args:
+                request (~.engine.CompileQecProgramRequest):
+                    The request object. -
+                retry (google.api_core.retry.Retry): Designation of what errors, if any,
+                    should be retried.
+                timeout (float): The timeout for this request.
+                metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
+                    sent along with the request as metadata. Normally, each value must be of type `str`,
+                    but for metadata keys ending with the suffix `-bin`, the corresponding values must
+                    be of type `bytes`.
+
+            Returns:
+                ~.engine.CompileQecProgramResponse:
+                    -
+            """
+
+            http_options = (
+                _BaseQuantumEngineServiceRestTransport._BaseCompileQecProgram._get_http_options()
+            )
+
+            request, metadata = self._interceptor.pre_compile_qec_program(request, metadata)
+            transcoded_request = _BaseQuantumEngineServiceRestTransport._BaseCompileQecProgram._get_transcoded_request(
+                http_options, request
+            )
+
+            body = _BaseQuantumEngineServiceRestTransport._BaseCompileQecProgram._get_request_body_json(
+                transcoded_request
+            )
+
+            # Jsonify the query params
+            query_params = _BaseQuantumEngineServiceRestTransport._BaseCompileQecProgram._get_query_params_json(
+                transcoded_request
+            )
+
+            if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
+                request_url = "{host}{uri}".format(host=self._host, uri=transcoded_request['uri'])
+                method = transcoded_request['method']
+                try:
+                    request_payload = type(request).to_json(request)
+                except:
+                    request_payload = None
+                http_request = {
+                    "payload": request_payload,
+                    "requestMethod": method,
+                    "requestUrl": request_url,
+                    "headers": dict(metadata),
+                }
+                _LOGGER.debug(
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.CompileQecProgram",
+                    extra={
+                        "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
+                        "rpcName": "CompileQecProgram",
+                        "httpRequest": http_request,
+                        "metadata": http_request["headers"],
+                    },
+                )
+
+            # Send the request
+            response = QuantumEngineServiceRestTransport._CompileQecProgram._get_response(
+                self._host, metadata, query_params, self._session, timeout, transcoded_request, body
+            )
+
+            # In case of error, raise the appropriate core_exceptions.GoogleAPICallError exception
+            # subclass.
+            if response.status_code >= 400:
+                raise core_exceptions.from_http_response(response)
+
+            # Return the response
+            resp = engine.CompileQecProgramResponse()
+            pb_resp = engine.CompileQecProgramResponse.pb(resp)
+
+            json_format.Parse(response.content, pb_resp, ignore_unknown_fields=True)
+
+            resp = self._interceptor.post_compile_qec_program(resp)
+            response_metadata = [(k, str(v)) for k, v in response.headers.items()]
+            resp, _ = self._interceptor.post_compile_qec_program_with_metadata(
+                resp, response_metadata
+            )
+            if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
+                try:
+                    response_payload = engine.CompileQecProgramResponse.to_json(response)
+                except:
+                    response_payload = None
+                http_response = {
+                    "payload": response_payload,
+                    "headers": dict(response.headers),
+                    "status": response.status_code,
+                }
+                _LOGGER.debug(
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.compile_qec_program",
+                    extra={
+                        "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
+                        "rpcName": "CompileQecProgram",
                         "metadata": http_response["headers"],
                         "httpResponse": http_response,
                     },
@@ -2271,7 +2525,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 request_url = "{host}{uri}".format(host=self._host, uri=transcoded_request['uri'])
                 method = transcoded_request['method']
                 try:
-                    request_payload = json_format.MessageToJson(request)
+                    request_payload = type(request).to_json(request)
                 except:
                     request_payload = None
                 http_request = {
@@ -2364,7 +2618,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 request_url = "{host}{uri}".format(host=self._host, uri=transcoded_request['uri'])
                 method = transcoded_request['method']
                 try:
-                    request_payload = json_format.MessageToJson(request)
+                    request_payload = type(request).to_json(request)
                 except:
                     request_payload = None
                 http_request = {
@@ -2458,7 +2712,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                 request_url = "{host}{uri}".format(host=self._host, uri=transcoded_request['uri'])
                 method = transcoded_request['method']
                 try:
-                    request_payload = json_format.MessageToJson(request)
+                    request_payload = type(request).to_json(request)
                 except:
                     request_payload = None
                 http_request = {
@@ -3778,6 +4032,144 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
                     extra={
                         "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
                         "rpcName": "ListQuantumJobs",
+                        "metadata": http_response["headers"],
+                        "httpResponse": http_response,
+                    },
+                )
+            return resp
+
+    class _ListQuantumProcessorAutomationRunHistory(
+        _BaseQuantumEngineServiceRestTransport._BaseListQuantumProcessorAutomationRunHistory,
+        QuantumEngineServiceRestStub,
+    ):
+        def __hash__(self):
+            return hash(
+                "QuantumEngineServiceRestTransport.ListQuantumProcessorAutomationRunHistory"
+            )
+
+        @staticmethod
+        def _get_response(
+            host, metadata, query_params, session, timeout, transcoded_request, body=None
+        ):
+
+            uri = transcoded_request['uri']
+            method = transcoded_request['method']
+            headers = dict(metadata)
+            headers['Content-Type'] = 'application/json'
+            response = getattr(session, method)(
+                "{host}{uri}".format(host=host, uri=uri),
+                timeout=timeout,
+                headers=headers,
+                params=rest_helpers.flatten_query_params(query_params, strict=True),
+            )
+            return response
+
+        def __call__(
+            self,
+            request: engine.ListQuantumProcessorAutomationRunHistoryRequest,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: Optional[float] = None,
+            metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
+        ) -> engine.ListQuantumProcessorAutomationRunHistoryResponse:
+            r"""Call the list quantum processor
+            automation run history method over HTTP.
+
+                Args:
+                    request (~.engine.ListQuantumProcessorAutomationRunHistoryRequest):
+                        The request object. -
+                    retry (google.api_core.retry.Retry): Designation of what errors, if any,
+                        should be retried.
+                    timeout (float): The timeout for this request.
+                    metadata (Sequence[Tuple[str, Union[str, bytes]]]): Key/value pairs which should be
+                        sent along with the request as metadata. Normally, each value must be of type `str`,
+                        but for metadata keys ending with the suffix `-bin`, the corresponding values must
+                        be of type `bytes`.
+
+                Returns:
+                    ~.engine.ListQuantumProcessorAutomationRunHistoryResponse:
+                        -
+            """
+
+            http_options = (
+                _BaseQuantumEngineServiceRestTransport._BaseListQuantumProcessorAutomationRunHistory._get_http_options()
+            )
+
+            request, metadata = self._interceptor.pre_list_quantum_processor_automation_run_history(
+                request, metadata
+            )
+            transcoded_request = _BaseQuantumEngineServiceRestTransport._BaseListQuantumProcessorAutomationRunHistory._get_transcoded_request(
+                http_options, request
+            )
+
+            # Jsonify the query params
+            query_params = _BaseQuantumEngineServiceRestTransport._BaseListQuantumProcessorAutomationRunHistory._get_query_params_json(
+                transcoded_request
+            )
+
+            if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
+                request_url = "{host}{uri}".format(host=self._host, uri=transcoded_request['uri'])
+                method = transcoded_request['method']
+                try:
+                    request_payload = type(request).to_json(request)
+                except:
+                    request_payload = None
+                http_request = {
+                    "payload": request_payload,
+                    "requestMethod": method,
+                    "requestUrl": request_url,
+                    "headers": dict(metadata),
+                }
+                _LOGGER.debug(
+                    f"Sending request for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.ListQuantumProcessorAutomationRunHistory",
+                    extra={
+                        "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
+                        "rpcName": "ListQuantumProcessorAutomationRunHistory",
+                        "httpRequest": http_request,
+                        "metadata": http_request["headers"],
+                    },
+                )
+
+            # Send the request
+            response = QuantumEngineServiceRestTransport._ListQuantumProcessorAutomationRunHistory._get_response(
+                self._host, metadata, query_params, self._session, timeout, transcoded_request
+            )
+
+            # In case of error, raise the appropriate core_exceptions.GoogleAPICallError exception
+            # subclass.
+            if response.status_code >= 400:
+                raise core_exceptions.from_http_response(response)
+
+            # Return the response
+            resp = engine.ListQuantumProcessorAutomationRunHistoryResponse()
+            pb_resp = engine.ListQuantumProcessorAutomationRunHistoryResponse.pb(resp)
+
+            json_format.Parse(response.content, pb_resp, ignore_unknown_fields=True)
+
+            resp = self._interceptor.post_list_quantum_processor_automation_run_history(resp)
+            response_metadata = [(k, str(v)) for k, v in response.headers.items()]
+            resp, _ = (
+                self._interceptor.post_list_quantum_processor_automation_run_history_with_metadata(
+                    resp, response_metadata
+                )
+            )
+            if CLIENT_LOGGING_SUPPORTED and _LOGGER.isEnabledFor(logging.DEBUG):  # pragma: NO COVER
+                try:
+                    response_payload = (
+                        engine.ListQuantumProcessorAutomationRunHistoryResponse.to_json(response)
+                    )
+                except:
+                    response_payload = None
+                http_response = {
+                    "payload": response_payload,
+                    "headers": dict(response.headers),
+                    "status": response.status_code,
+                }
+                _LOGGER.debug(
+                    "Received response for cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient.list_quantum_processor_automation_run_history",
+                    extra={
+                        "serviceName": "google.cloud.quantum.v1alpha1.QuantumEngineService",
+                        "rpcName": "ListQuantumProcessorAutomationRunHistory",
                         "metadata": http_response["headers"],
                         "httpResponse": http_response,
                     },
@@ -5286,6 +5678,14 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
         return self._CancelQuantumReservation(self._session, self._host, self._interceptor)  # type: ignore
 
     @property
+    def compile_qec_program(
+        self,
+    ) -> Callable[[engine.CompileQecProgramRequest], engine.CompileQecProgramResponse]:
+        # The return type is fine, but mypy isn't sophisticated enough to determine what's going on here.
+        # In C++ this would require a dynamic_cast
+        return self._CompileQecProgram(self._session, self._host, self._interceptor)  # type: ignore
+
+    @property
     def create_quantum_job(self) -> Callable[[engine.CreateQuantumJobRequest], quantum.QuantumJob]:
         # The return type is fine, but mypy isn't sophisticated enough to determine what's going on here.
         # In C++ this would require a dynamic_cast
@@ -5406,6 +5806,17 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
         # The return type is fine, but mypy isn't sophisticated enough to determine what's going on here.
         # In C++ this would require a dynamic_cast
         return self._ListQuantumJobs(self._session, self._host, self._interceptor)  # type: ignore
+
+    @property
+    def list_quantum_processor_automation_run_history(
+        self,
+    ) -> Callable[
+        [engine.ListQuantumProcessorAutomationRunHistoryRequest],
+        engine.ListQuantumProcessorAutomationRunHistoryResponse,
+    ]:
+        # The return type is fine, but mypy isn't sophisticated enough to determine what's going on here.
+        # In C++ this would require a dynamic_cast
+        return self._ListQuantumProcessorAutomationRunHistory(self._session, self._host, self._interceptor)  # type: ignore
 
     @property
     def list_quantum_processor_configs(
