@@ -2262,7 +2262,7 @@ class Circuit(AbstractCircuit):
         inserted into the moment specified by the index and 'InsertStrategy'.
         Operations affecting similar qubits are separated into different moments
         according to the insertion strategy.
-        
+
         Measurements with the same keys are discouraged and will be separated
         into different moments; prefer multi-qubit measurements. Controlled
         operations and measurements with the same key will also be separated.
@@ -2607,7 +2607,7 @@ class Circuit(AbstractCircuit):
         Moments within the operation tree are appended intact. Operations
         affecting similar qubits are separated into different moments according
         to the insertion strategy.
-        
+
         Measurements with the same keys are discouraged and will be separated
         into different moments; prefer multi-qubit measurements. Controlled
         operations and measurements with the same key will also be separated.
