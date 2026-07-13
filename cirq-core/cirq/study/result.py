@@ -266,13 +266,23 @@ class Result(abc.ABC):
                 'fold_base is a convenience shorthand for fold_func.'
             )
         if fold_func is None:
-            if fold_base is not None:
-                fold_func = cast(
-                    Callable[[tuple], T],
-                    lambda digits: value.big_endian_digits_to_int(digits, base=fold_base),
-                )
+            # use vectorized accumulation of measurement counts
+            n_qubits = len(self.measurements[_key_to_str(key)][0])
+            if fold_base is None or isinstance(fold_base, int):
+                base = 2 if fold_base is None else fold_base
+                powers = base ** np.arange(n_qubits - 1, -1, -1)
             else:
-                fold_func = cast(Callable[[tuple], T], value.big_endian_bits_to_int)
+                base_list = list(fold_base)
+                if len(base_list) != n_qubits:
+                    raise ValueError(f'len(digits) != len(base) ({n_qubits} != {len(base_list)})')
+                powers = np.hstack((np.cumprod(base_list[:0:-1])[::-1], [1]))
+
+            measurement, counts = np.unique(
+                np.dot(self.measurements[_key_to_str(key)], powers), return_counts=True
+            )
+            c = collections.Counter(dict(zip(measurement, counts)))
+            return c
+
         return self.multi_measurement_histogram(keys=[key], fold_func=lambda e: fold_func(e[0]))
 
     def __eq__(self, other: Any) -> bool:
