@@ -219,7 +219,27 @@ class Result(abc.ABC):
         fold_base: int | Iterable[int] | None = None,
         batch_size: int = 50000,
     ) -> collections.Counter:
+        """Computes a measurement histogram using vectorized NumPy matrix operations.
 
+        Converts 2D binary or qudit measurement records into big-endian integer states
+        using matrix multiplication in compiled C. To keep memory overhead low for large
+        repetition counts, measurement records are streamed in batches of size `batch_size`.
+
+        Args:
+            key: Measurement key to compute the histogram for.
+            fold_base: Base (or sequence of bases per digit) used to convert qudit
+                measurement outcomes into integers. Defaults to base 2 for qubits.
+            batch_size: Number of measurement repetition rows to process per
+                vectorized batch. Caps peak temporary memory usage.
+
+        Returns:
+            A `collections.Counter` mapping integer state outcomes to their frequency counts.
+
+        Raises:
+            KeyError: If the specified measurement key is not found in results.
+            ValueError: If `fold_base` is specified as a sequence but its length does
+                not match the number of measured qubits/qudits.
+        """
         key_measurements = self.measurements[_key_to_str(key)]
         n_repetitions, n_qubits = key_measurements.shape
         if fold_base is None or isinstance(fold_base, int):
@@ -301,7 +321,6 @@ class Result(abc.ABC):
             )
         if fold_func is None:
             return self.vectorized_histogram(key=key, fold_base=fold_base)
-
         return self.multi_measurement_histogram(keys=[key], fold_func=lambda e: fold_func(e[0]))
 
     def __eq__(self, other: Any) -> bool:
