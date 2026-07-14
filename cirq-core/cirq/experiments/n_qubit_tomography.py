@@ -23,6 +23,8 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
+import uuid
+
 import numpy as np
 import sympy
 
@@ -197,15 +199,20 @@ def get_state_tomography_data(
         2D array of probabilities, where first index is which pre-rotation was
         applied and second index is the qubit state.
     """
+    keys = protocols.measurement_key_names(circuit)
+    tomo_key = "z"
+    while tomo_key in keys:
+        tomo_key = f"z_{uuid.uuid4().hex}"
+
     results = sampler.run_sweep(
-        circuit + rot_circuit + [ops.measure(*qubits, key='z')],
+        circuit + rot_circuit + [ops.measure(*qubits, key=tomo_key)],
         params=rot_sweep,
         repetitions=repetitions,
     )
 
     all_probs = []
     for result in results:
-        hist = result.histogram(key='z')
+        hist = result.histogram(key=tomo_key)
         probs = [hist[i] for i in range(2 ** len(qubits))]
         all_probs.append(np.array(probs) / repetitions)
     return np.array(all_probs)
