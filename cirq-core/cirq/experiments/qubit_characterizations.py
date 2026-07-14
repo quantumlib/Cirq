@@ -661,31 +661,14 @@ def single_qubit_state_tomography(
     Returns:
         A TomographyResult object that stores and plots the density matrix.
     """
-    keys = protocols.measurement_key_names(circuit)
-    tomo_key = "tomo_key"
-    while tomo_key in keys:
-        tomo_key = f"tomo_key{uuid.uuid4().hex}"
+    from cirq.experiments.n_qubit_tomography import state_tomography
 
-    circuit_z = circuit + circuits.Circuit(ops.measure(qubit, key=tomo_key))
-
-    results = sampler.run(circuit_z, repetitions=repetitions)
-    rho_11 = np.mean(results.records[tomo_key][:, -1, :])
-    rho_00 = 1.0 - rho_11
-
-    circuit_x = circuits.Circuit(circuit, ops.X(qubit) ** 0.5, ops.measure(qubit, key=tomo_key))
-    results = sampler.run(circuit_x, repetitions=repetitions)
-    rho_01_im = np.mean(results.records[tomo_key][:, -1, :]) - 0.5
-
-    circuit_y = circuits.Circuit(circuit, ops.Y(qubit) ** -0.5, ops.measure(qubit, key=tomo_key))
-    results = sampler.run(circuit_y, repetitions=repetitions)
-    rho_01_re = 0.5 - np.mean(results.records[tomo_key][:, -1, :])
-
-    rho_01 = rho_01_re + 1j * rho_01_im
-    rho_10 = np.conj(rho_01)
-
-    rho = np.array([[rho_00, rho_01], [rho_10, rho_11]])
-
-    return TomographyResult(rho)
+    return state_tomography(
+        sampler=sampler,
+        qubits=[qubit],
+        circuit=circuits.Circuit(circuit),
+        repetitions=repetitions,
+    )
 
 
 def two_qubit_state_tomography(
@@ -765,55 +748,14 @@ def two_qubit_state_tomography(
     Returns:
         A TomographyResult object that stores and plots the density matrix.
     """
-    # The size of the system of linear equations to be solved.
-    num_rows = 27
-    num_cols = 15
+    from cirq.experiments.n_qubit_tomography import state_tomography
 
-    def _measurement(two_qubit_circuit: circuits.Circuit) -> np.ndarray:
-        two_qubit_circuit.append(ops.measure(first_qubit, second_qubit, key='z'))
-        results = sampler.run(two_qubit_circuit, repetitions=repetitions)
-        results_hist = results.histogram(key='z')
-        prob_list = [results_hist[0], results_hist[1], results_hist[2]]
-        return np.asarray(prob_list) / repetitions
-
-    sigma_0 = np.eye(2) * 0.5
-    sigma_1 = np.array([[0.0, 1.0], [1.0, 0.0]]) * 0.5
-    sigma_2 = np.array([[0.0, -1.0j], [1.0j, 0.0]]) * 0.5
-    sigma_3 = np.array([[1.0, 0.0], [0.0, -1.0]]) * 0.5
-    sigmas = [sigma_0, sigma_1, sigma_2, sigma_3]
-
-    # Stores all 27 measured probabilities (P_00, P_01, P_10 after 9
-    # different basis rotations).
-    probs: np.ndarray = np.array([])
-
-    rots = [ops.X**0, ops.X**0.5, ops.Y**0.5]
-
-    # Represents the coefficients in front of the c_ij's (-1, 0 or 1) in the
-    # system of 27 linear equations.
-    mat = np.zeros((num_rows, num_cols))
-
-    # Represents the relative signs between the linear equations for P_00,
-    # P_01, and P_10.
-    s = np.array([[1.0, 1.0, 1.0], [-1.0, 1.0, -1.0], [1.0, -1.0, -1.0]])
-
-    for i, rot_1 in enumerate(rots):
-        for j, rot_2 in enumerate(rots):
-            m_idx, indices, signs = _indices_after_basis_rot(i, j)
-            mat[m_idx : (m_idx + 3), indices] = s * np.tile(signs, (3, 1))
-            test_circuit = circuit + circuits.Circuit(rot_1(first_qubit))
-            test_circuit.append(rot_2(second_qubit))
-            probs = np.concatenate((probs, _measurement(test_circuit)))
-
-    c, _, _, _ = np.linalg.lstsq(mat, 4.0 * probs - 1.0, rcond=-1)
-    c = np.concatenate(([1.0], c))
-    c = c.reshape(4, 4)
-
-    rho = np.zeros((4, 4))
-    for i in range(4):
-        for j in range(4):
-            rho = rho + c[i, j] * np.kron(sigmas[i], sigmas[j])
-
-    return TomographyResult(rho)
+    return state_tomography(
+        sampler=sampler,
+        qubits=[first_qubit, second_qubit],
+        circuit=circuits.Circuit(circuit),
+        repetitions=repetitions,
+    )
 
 
 def _create_parallel_rb_circuit(
