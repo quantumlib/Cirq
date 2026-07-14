@@ -20,19 +20,130 @@ so that occurs outside of the StateTomographyExperiment class.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import TYPE_CHECKING
-
+import itertools
 import uuid
+from collections.abc import Sequence
+from typing import Any, cast, TYPE_CHECKING
 
 import numpy as np
 import sympy
+from matplotlib import pyplot as plt
 
 from cirq import circuits, ops, protocols, study
-from cirq.experiments.qubit_characterizations import TomographyResult
 
 if TYPE_CHECKING:
+    from mpl_toolkits import mplot3d
+
     import cirq
+
+
+class TomographyResult:
+    """Results from a state tomography experiment."""
+
+    def __init__(self, density_matrix: np.ndarray):
+        """Inits TomographyResult.
+
+        Args:
+            density_matrix: The density matrix obtained from tomography.
+        """
+        self._density_matrix = density_matrix
+
+    @property
+    def data(self) -> np.ndarray:
+        """Returns an n^2 by n^2 complex matrix representing the density
+        matrix of the n-qubit system.
+        """
+        return self._density_matrix
+
+    def plot(
+        self, axes: list[plt.Axes] | None = None, **plot_kwargs: Any
+    ) -> list[plt.Axes]:  # pragma: no cover
+        """Plots the real and imaginary parts of the density matrix as two 3D bar plots.
+
+        Args:
+            axes: A list of 2 `plt.Axes` instances. Note that they must be in
+                3d projections. If not given, a new figure is created with 2
+                axes and the plotted figure is shown.
+            **plot_kwargs: The optional kwargs passed to bar3d.
+
+        Returns:
+            the list of `plt.Axes` being plotted on.
+
+        Raises:
+            ValueError: If axes is a list with length != 2.
+        """
+        show_plot = axes is None
+        if axes is None:
+            fig, axes_v = plt.subplots(1, 2, figsize=(12.0, 5.0), subplot_kw={'projection': '3d'})
+            axes_v = cast(np.ndarray, axes_v)
+            axes = list(axes_v)
+        elif len(axes) != 2:
+            raise ValueError('A TomographyResult needs 2 axes to plot.')
+        mat = self._density_matrix
+        a, _ = mat.shape
+        num_qubits = int(np.log2(a))
+        state_labels = [[0, 1]] * num_qubits
+        kets = []
+        for label in itertools.product(*state_labels):
+            kets.append('|' + str(list(label))[1:-1] + '>')
+        mat_re = np.real(mat)
+        mat_im = np.imag(mat)
+        _matrix_bar_plot(
+            mat_re,
+            r'Real($\rho$)',
+            axes[0],
+            kets,
+            'Density Matrix (Real Part)',
+            ylim=(-1, 1),
+            **plot_kwargs,
+        )
+        _matrix_bar_plot(
+            mat_im,
+            r'Imaginary($\rho$)',
+            axes[1],
+            kets,
+            'Density Matrix (Imaginary Part)',
+            ylim=(-1, 1),
+            **plot_kwargs,
+        )
+        if show_plot:
+            fig.show()
+        return axes
+
+
+def _matrix_bar_plot(
+    mat: np.ndarray,
+    z_label: str,
+    ax: mplot3d.axes3d.Axes3D,
+    kets: Sequence[str] | None = None,
+    title: str | None = None,
+    ylim: tuple[int, int] = (-1, 1),
+    **bar3d_kwargs: Any,
+) -> None:  # pragma: no cover
+    num_rows, num_cols = mat.shape
+    indices = np.meshgrid(range(num_cols), range(num_rows))
+    x_indices = np.array(indices[1]).flatten()
+    y_indices = np.array(indices[0]).flatten()
+    z_indices = np.zeros(mat.size)
+
+    dx = np.ones(mat.size) * 0.3
+    dy = np.ones(mat.size) * 0.3
+    dz = mat.flatten()
+    ax.bar3d(
+        x_indices, y_indices, z_indices, dx, dy, dz, color='#ff0080', alpha=1.0, **bar3d_kwargs
+    )
+
+    ax.set_zlabel(z_label)
+    ax.set_zlim3d(ylim[0], ylim[1])
+
+    if kets is not None:
+        ax.set_xticks(np.arange(num_cols) + 0.15)
+        ax.set_yticks(np.arange(num_rows) + 0.15)
+        ax.set_xticklabels(kets)
+        ax.set_yticklabels(kets)
+
+    if title is not None:
+        ax.set_title(title)
 
 
 class StateTomographyExperiment:
@@ -200,9 +311,9 @@ def get_state_tomography_data(
         applied and second index is the qubit state.
     """
     keys = protocols.measurement_key_names(circuit)
-    tomo_key = "z"
+    tomo_key = "tomo_key"
     while tomo_key in keys:
-        tomo_key = f"z_{uuid.uuid4().hex}"
+        tomo_key = f"tomo_key{uuid.uuid4().hex}"
 
     results = sampler.run_sweep(
         circuit + rot_circuit + [ops.measure(*qubits, key=tomo_key)],

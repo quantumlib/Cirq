@@ -19,7 +19,6 @@ from cirq.experiments.qubit_characterizations import (
     single_qubit_randomized_benchmarking as single_qubit_randomized_benchmarking,
     single_qubit_rb as single_qubit_rb,
     single_qubit_state_tomography as single_qubit_state_tomography,
-    TomographyResult as TomographyResult,
     two_qubit_randomized_benchmarking as two_qubit_randomized_benchmarking,
     two_qubit_state_tomography as two_qubit_state_tomography,
     parallel_single_qubit_randomized_benchmarking as parallel_single_qubit_randomized_benchmarking,
@@ -56,6 +55,7 @@ from cirq.experiments.n_qubit_tomography import (
     get_state_tomography_data as get_state_tomography_data,
     state_tomography as state_tomography,
     StateTomographyExperiment as StateTomographyExperiment,
+    TomographyResult as TomographyResult,
 )
 
 from cirq.experiments.single_qubit_readout_calibration import (
