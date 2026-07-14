@@ -213,6 +213,40 @@ class Result(abc.ABC):
             c[fold_func(sample)] += 1
         return c
 
+    def vectorized_histogram(
+        self,
+        key: TMeasurementKey,
+        fold_base: int | Iterable[int] | None = None,
+        batch_size: int = 50000,
+    ) -> collections.Counter:
+
+        key_measurements = self.measurements[_key_to_str(key)]
+        n_repetitions, n_qubits = key_measurements.shape
+        if fold_base is None or isinstance(fold_base, int):
+            base = 2 if fold_base is None else fold_base
+            powers = base ** np.arange(n_qubits - 1, -1, -1)
+        else:
+            base_list = list(fold_base)
+            if len(base_list) != n_qubits:
+                raise ValueError(f'len(digits) != len(base) ({n_qubits} != {len(base_list)})')
+            powers = np.hstack((np.cumprod(base_list[:0:-1])[::-1], [1]))
+
+        if n_repetitions == 0:
+            return collections.Counter()
+        if n_qubits == 0:
+            return collections.Counter({0: n_repetitions})
+
+        # batch over repetitions to avoid huge memory cost
+        c: collections.Counter = collections.Counter()
+        for i in range(0, key_measurements.shape[0], batch_size):
+            measurement_batch = key_measurements[i : i + batch_size]
+            unique_measurements, counts = np.unique(
+                np.dot(measurement_batch, powers), return_counts=True
+            )
+            batch_dict = dict(zip(unique_measurements, counts))
+            c.update(batch_dict)
+        return c
+
     def histogram(
         self,
         *,  # Forces keyword args.
@@ -266,22 +300,7 @@ class Result(abc.ABC):
                 'fold_base is a convenience shorthand for fold_func.'
             )
         if fold_func is None:
-            # use vectorized accumulation of measurement counts
-            n_qubits = len(self.measurements[_key_to_str(key)][0])
-            if fold_base is None or isinstance(fold_base, int):
-                base = 2 if fold_base is None else fold_base
-                powers = base ** np.arange(n_qubits - 1, -1, -1)
-            else:
-                base_list = list(fold_base)
-                if len(base_list) != n_qubits:
-                    raise ValueError(f'len(digits) != len(base) ({n_qubits} != {len(base_list)})')
-                powers = np.hstack((np.cumprod(base_list[:0:-1])[::-1], [1]))
-
-            measurement, counts = np.unique(
-                np.dot(self.measurements[_key_to_str(key)], powers), return_counts=True
-            )
-            c = collections.Counter(dict(zip(measurement, counts)))
-            return c
+            return self.vectorized_histogram(key=key, fold_base=fold_base)
 
         return self.multi_measurement_histogram(keys=[key], fold_func=lambda e: fold_func(e[0]))
 
