@@ -164,7 +164,8 @@ def _map_operations_impl(
 
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
-        map_func: Mapping function from (`cirq.Operation`, `moment_index`) to a `cirq.OP_TREE`. If the
+        map_func: Mapping function from (`cirq.Operation`, `moment_index`) to a
+            `cirq.OP_TREE`. If the
             resulting optree spans more than 1 moment, it's either wrapped in a tagged circuit
             operation and inserted in-place in the same moment (if  `wrap_in_circuit_op` is True)
             OR the mapped operations are inserted directly in the circuit, preserving moment
