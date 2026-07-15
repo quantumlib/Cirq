@@ -25,14 +25,14 @@ class LZSResetViaResonator(cirq.Gate):
     to actively reset a qubit.
     """
 
-    def __init__(self, num_qubits=1, **kwargs):
-        self.num_qubits = num_qubits
+    def __init__(self, num_qubits: int = 1, **kwargs):
+        self._num_qubits = num_qubits
 
     def _num_qubits_(self) -> int:
-        return self.num_qubits
+        return self._num_qubits
 
     def _value_equality_values_(self):
-        return (self.num_qubits,)
+        return (self._num_qubits,)
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> list[str]:
         return ["[R (LZS)]"]
