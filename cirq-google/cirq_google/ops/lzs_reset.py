@@ -14,10 +14,10 @@
 
 
 import cirq
-from cirq_google.ops.internal_gate import InternalGate
 
 
-class LZSResetViaResonator(InternalGate):
+@cirq.value_equality
+class LZSResetViaResonator(cirq.Gate):
     """Qubit reset via LZS swap with resonator.
 
     This is a specialized type of reset that uses a dual-passage
@@ -25,8 +25,14 @@ class LZSResetViaResonator(InternalGate):
     to actively reset a qubit.
     """
 
-    def __init__(self, gate_name=None, gate_module=None, num_qubits=1, **kwargs):
-        super().__init__(gate_name="LZSResetViaResonator", num_qubits=1)
+    def __init__(self, num_qubits=1, **kwargs):
+        self.num_qubits = num_qubits
+
+    def _num_qubits_(self) -> int:
+        return self.num_qubits
+
+    def _value_equality_values_(self):
+        return (self.num_qubits,)
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> list[str]:
         return ["[R (LZS)]"]
