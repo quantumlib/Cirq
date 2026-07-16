@@ -1310,9 +1310,7 @@ def test_engine_compile_circuit_with_stim_circuit(client_mock):
     processor_id = "test_processor_id"
 
     result = engine.compile_circuit(
-        stim_circuit=stim_circuit,
-        qec_recipe=qec_recipe,
-        processor_id=processor_id,
+        stim_circuit=stim_circuit, qec_recipe=qec_recipe, processor_id=processor_id
     )
     assert result == expected_circuit
     client_mock().compile_circuit_async.assert_called_once_with(
@@ -1323,4 +1321,3 @@ def test_engine_compile_circuit_with_stim_circuit(client_mock):
         device_config_revision=Run(id='current'),
         config_name='default',
     )
-

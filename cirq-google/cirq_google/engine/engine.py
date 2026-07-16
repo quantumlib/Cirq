@@ -51,8 +51,8 @@ from cirq_google.engine import (
 from cirq_google.serialization import CIRCUIT_SERIALIZER, CircuitSerializer
 
 if TYPE_CHECKING:
-    from google.protobuf import any_pb2
     import stim
+    from google.protobuf import any_pb2
 
     import cirq_google
     from cirq_google.cloud import quantum

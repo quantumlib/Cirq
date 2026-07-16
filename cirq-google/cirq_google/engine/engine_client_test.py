@@ -2089,7 +2089,6 @@ def test_compile_circuit_with_stim_circuit_object(client_constructor, default_en
     )
 
 
-
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_compile_circuit_from_snapshot(client_constructor, default_engine_client):
     grpc_client = _setup_client_mock(client_constructor)
