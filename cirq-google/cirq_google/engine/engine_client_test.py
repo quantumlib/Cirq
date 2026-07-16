@@ -27,10 +27,13 @@ from google.protobuf import any_pb2
 from google.protobuf.field_mask_pb2 import FieldMask
 from google.protobuf.timestamp_pb2 import Timestamp
 
+import cirq
 import cirq_google.engine.stream_manager as engine_stream_manager
 from cirq_google.cloud import quantum
+from cirq_google.engine import util
 from cirq_google.engine.engine_client import EngineClient, EngineException
 from cirq_google.engine.processor_config import Run, Snapshot
+from cirq_google.serialization import CIRCUIT_SERIALIZER
 
 # JOB_PATH represents the path to a specific job.
 JOB_PATH = 'projects/proj/programs/prog/jobs/job0'
@@ -2011,4 +2014,165 @@ def test_list_quantum_processor_configs_invalid_revision_type(default_engine_cli
             project_id="test_project_id",
             processor_id="test_processor_id",
             device_config_revision="2026-02-20_114756.470",
+        )
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_compile_circuit(client_constructor, default_engine_client):
+    grpc_client = _setup_client_mock(client_constructor)
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    stim_circuit = "H 0\nCNOT 0 1\nM 0 1"
+    qec_recipe = ["recipe1", "recipe2"]
+
+    circuit = cirq.Circuit(cirq.X(cirq.GridQubit(1, 1)))
+    packed_code = util.pack_any(CIRCUIT_SERIALIZER.serialize(circuit))
+    expected_response = quantum.CompileQecProgramResponse(
+        program=quantum.QuantumProgram(code=packed_code)
+    )
+    grpc_client.compile_qec_program.return_value = expected_response
+
+    result = default_engine_client.compile_circuit(
+        project_id=project_id,
+        stim_circuit=stim_circuit,
+        qec_recipe=qec_recipe,
+        processor_id=processor_id,
+    )
+    assert result == circuit
+    grpc_client.compile_qec_program.assert_called_with(
+        quantum.CompileQecProgramRequest(
+            name=f"projects/{project_id}",
+            stim_circuit=stim_circuit,
+            recipe=quantum.QecRecipe(desired_algorithms=qec_recipe),
+            processor_id=processor_id,
+            device_config_selector=quantum.DeviceConfigSelector(
+                run_name='current', config_alias='default'
+            ),
+        )
+    )
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_compile_circuit_with_stim_circuit_object(client_constructor, default_engine_client):
+    stim = pytest.importorskip("stim")
+    grpc_client = _setup_client_mock(client_constructor)
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    stim_str = "H 0\nCNOT 0 1\nM 0 1"
+    stim_circuit = stim.Circuit(stim_str)
+    qec_recipe = ["recipe1", "recipe2"]
+
+    circuit = cirq.Circuit(cirq.X(cirq.GridQubit(1, 1)))
+    packed_code = util.pack_any(CIRCUIT_SERIALIZER.serialize(circuit))
+    expected_response = quantum.CompileQecProgramResponse(
+        program=quantum.QuantumProgram(code=packed_code)
+    )
+    grpc_client.compile_qec_program.return_value = expected_response
+
+    result = default_engine_client.compile_circuit(
+        project_id=project_id,
+        stim_circuit=stim_circuit,
+        qec_recipe=qec_recipe,
+        processor_id=processor_id,
+    )
+    assert result == circuit
+    grpc_client.compile_qec_program.assert_called_with(
+        quantum.CompileQecProgramRequest(
+            name=f"projects/{project_id}",
+            stim_circuit=str(stim_circuit),
+            recipe=quantum.QecRecipe(desired_algorithms=qec_recipe),
+            processor_id=processor_id,
+            device_config_selector=quantum.DeviceConfigSelector(
+                run_name='current', config_alias='default'
+            ),
+        )
+    )
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_compile_circuit_from_snapshot(client_constructor, default_engine_client):
+    grpc_client = _setup_client_mock(client_constructor)
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    stim_circuit = "H 0\nCNOT 0 1\nM 0 1"
+    qec_recipe = ["recipe1"]
+    snapshot = Snapshot(id="test_snapshot_id")
+    config_name = "custom_config"
+
+    circuit = cirq.Circuit(cirq.Z(cirq.GridQubit(2, 3)))
+    packed_code = util.pack_any(CIRCUIT_SERIALIZER.serialize(circuit))
+    expected_response = quantum.CompileQecProgramResponse(
+        program=quantum.QuantumProgram(code=packed_code)
+    )
+    grpc_client.compile_qec_program.return_value = expected_response
+
+    result = default_engine_client.compile_circuit(
+        project_id=project_id,
+        stim_circuit=stim_circuit,
+        qec_recipe=qec_recipe,
+        processor_id=processor_id,
+        device_config_revision=snapshot,
+        config_name=config_name,
+    )
+    assert result == circuit
+    grpc_client.compile_qec_program.assert_called_with(
+        quantum.CompileQecProgramRequest(
+            name=f"projects/{project_id}",
+            stim_circuit=stim_circuit,
+            recipe=quantum.QecRecipe(desired_algorithms=qec_recipe),
+            processor_id=processor_id,
+            device_config_selector=quantum.DeviceConfigSelector(
+                snapshot_id='test_snapshot_id', config_alias=config_name
+            ),
+        )
+    )
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_compile_circuit_from_run(client_constructor, default_engine_client):
+    grpc_client = _setup_client_mock(client_constructor)
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    stim_circuit = "H 0"
+    qec_recipe = []
+    run = Run(id="custom_run")
+    config_name = "custom_config"
+
+    circuit = cirq.Circuit(cirq.H(cirq.GridQubit(0, 0)))
+    packed_code = util.pack_any(CIRCUIT_SERIALIZER.serialize(circuit))
+    expected_response = quantum.CompileQecProgramResponse(
+        program=quantum.QuantumProgram(code=packed_code)
+    )
+    grpc_client.compile_qec_program.return_value = expected_response
+
+    result = default_engine_client.compile_circuit(
+        project_id=project_id,
+        stim_circuit=stim_circuit,
+        qec_recipe=qec_recipe,
+        processor_id=processor_id,
+        device_config_revision=run,
+        config_name=config_name,
+    )
+    assert result == circuit
+    grpc_client.compile_qec_program.assert_called_with(
+        quantum.CompileQecProgramRequest(
+            name=f"projects/{project_id}",
+            stim_circuit=stim_circuit,
+            recipe=quantum.QecRecipe(desired_algorithms=qec_recipe),
+            processor_id=processor_id,
+            device_config_selector=quantum.DeviceConfigSelector(
+                run_name='custom_run', config_alias=config_name
+            ),
+        )
+    )
+
+
+def test_compile_circuit_invalid_revision_type(default_engine_client):
+    with pytest.raises(TypeError, match="device_config_revision must be an instance of"):
+        _ = default_engine_client.compile_circuit(
+            project_id="test_project_id",
+            stim_circuit="H 0",
+            qec_recipe=[],
+            processor_id="test_processor_id",
+            device_config_revision="invalid_revision",
         )
