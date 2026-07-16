@@ -786,7 +786,7 @@ class Engine(abstract_engine.AbstractEngine):
 
         Args:
             stim_circuit: The Stim circuit to compile.
-            qec_recipe: A list of the recipes that should be applied when compiling the given circuit.
+            qec_recipe: A list of the recipes to apply to the given circuit.
             processor_id: The processor unique identifier.
             device_config_revision: Specifies either the snapshot_id or the run_name.
             config_name: The identifier for the config.

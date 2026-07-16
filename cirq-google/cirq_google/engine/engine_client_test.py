@@ -2139,4 +2139,3 @@ def test_compile_circuit_invalid_revision_type(default_engine_client):
             processor_id="test_processor_id",
             device_config_revision="invalid_revision",
         )
-

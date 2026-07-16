@@ -19,15 +19,15 @@ import sys
 import warnings
 from collections.abc import AsyncIterable, Awaitable, Callable
 from functools import cached_property
-from typing import TYPE_CHECKING, TypeVar
+from typing import TypeVar
 
-import cirq
 import duet
 import proto
 from google.api_core.exceptions import GoogleAPICallError, NotFound
 from google.protobuf import any_pb2, field_mask_pb2
 from google.protobuf.timestamp_pb2 import Timestamp
 
+import cirq
 from cirq_google.api import v2
 from cirq_google.cloud import quantum
 from cirq_google.engine import stream_manager, util
@@ -1256,7 +1256,7 @@ class EngineClient:
         Args:
             project_id: A project_id of the parent Google Cloud Project.
             stim_circuit: The Stim circuit to compile.
-            qec_recipe: A list of the recipes that should be applied when compiling the given circuit.
+            qec_recipe: A list of the recipes to apply to the given circuit.
             processor_id: The processor unique identifier.
             device_config_revision: Specifies either the snapshot_id or the run_name.
             config_name: The identifier for the config.
