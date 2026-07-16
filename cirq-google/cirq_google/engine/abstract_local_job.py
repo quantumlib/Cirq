@@ -25,6 +25,7 @@ from cirq_google.engine.abstract_job import AbstractJob
 if TYPE_CHECKING:
     import cirq
     import cirq_google.engine.calibration as calibration
+    import cirq_google.engine.processor_config as processor_config
     from cirq_google.engine.abstract_local_engine import AbstractLocalEngine
     from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
     from cirq_google.engine.abstract_local_program import AbstractLocalProgram
@@ -33,22 +34,22 @@ if TYPE_CHECKING:
 class AbstractLocalJob(AbstractJob):
     """A job that handles labels and descriptions locally in-memory.
 
-        This class is designed to make writing custom AbstractJob objects
-        that function in-memory easier.  This class will handle basic functionality
-        expected to be common across all local implementations.
+    This class is designed to make writing custom AbstractJob objects
+    that function in-memory easier.  This class will handle basic functionality
+    expected to be common across all local implementations.
 
-        Implementors of this class should write the following functions:
-          - Status functions: execution_status, failure
-          - Action functions: cancel, delete
-          - Result functions: results, batched_results, calibration_results
-    `
-        Attributes:
-          processor_ids: A string list of processor ids that this job can be run on.
-          processor_id: If provided, the processor id that the job was run on.
-              If not provided, assumed to be the first element of processor_ids
-          parent_program: Program containing this job
-          repetitions: number of repetitions for each parameter set
-          sweeps: list of Sweeps that this job should iterate through.
+    Implementors of this class should write the following functions:
+      - Status functions: execution_status, failure
+      - Action functions: cancel, delete
+      - Result functions: results, batched_results, calibration_results
+
+    Attributes:
+      processor_ids: A string list of processor ids that this job can be run on.
+      processor_id: If provided, the processor id that the job was run on.
+          If not provided, assumed to be the first element of processor_ids
+      parent_program: Program containing this job
+      repetitions: number of repetitions for each parameter set
+      sweeps: list of Sweeps that this job should iterate through.
     """
 
     def __init__(
@@ -59,6 +60,7 @@ class AbstractLocalJob(AbstractJob):
         repetitions: int,
         sweeps: list[cirq.Sweep],
         processor_id: str = '',
+        processor_config: processor_config.ProcessorConfig | None = None,
     ):
         self._id = job_id
         self._processor_id = processor_id
@@ -69,6 +71,7 @@ class AbstractLocalJob(AbstractJob):
         self._update_time = datetime.datetime.now()
         self._description = ''
         self._labels: dict[str, str] = {}
+        self._processor_config = processor_config
 
     def engine(self) -> AbstractLocalEngine:
         """Returns the parent program's `AbstractEngine` object."""
@@ -205,3 +208,7 @@ class AbstractLocalJob(AbstractJob):
             The job's cirq Circuit.
         """
         return self.program().get_circuit(circuit_num)
+
+    def get_config(self) -> processor_config.ProcessorConfig | None:
+        """Returns the configuration used for the job, if available, else None."""
+        return self._processor_config
