@@ -52,6 +52,7 @@ from cirq_google.serialization import CIRCUIT_SERIALIZER, CircuitSerializer
 
 if TYPE_CHECKING:
     from google.protobuf import any_pb2
+    import stim
 
     import cirq_google
     from cirq_google.cloud import quantum
@@ -774,7 +775,7 @@ class Engine(abstract_engine.AbstractEngine):
 
     async def compile_circuit_async(
         self,
-        stim_circuit: str,
+        stim_circuit: str | stim.Circuit,
         qec_recipe: list[str],
         processor_id: str,
         device_config_revision: processor_config.DeviceConfigRevision = processor_config.Run(

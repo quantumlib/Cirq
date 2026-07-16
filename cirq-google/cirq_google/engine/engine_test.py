@@ -1296,3 +1296,31 @@ def test_engine_compile_circuit(client_mock):
         device_config_revision=snapshot,
         config_name=config_name,
     )
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_engine_compile_circuit_with_stim_circuit(client_mock):
+    stim = pytest.importorskip("stim")
+    expected_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(1, 1)))
+    client_mock().compile_circuit_async.return_value = expected_circuit
+
+    engine = cg.Engine(project_id='proj')
+    stim_circuit = stim.Circuit("H 0\nCNOT 0 1\nM 0 1")
+    qec_recipe = ["recipe1"]
+    processor_id = "test_processor_id"
+
+    result = engine.compile_circuit(
+        stim_circuit=stim_circuit,
+        qec_recipe=qec_recipe,
+        processor_id=processor_id,
+    )
+    assert result == expected_circuit
+    client_mock().compile_circuit_async.assert_called_once_with(
+        project_id='proj',
+        stim_circuit=stim_circuit,
+        qec_recipe=qec_recipe,
+        processor_id=processor_id,
+        device_config_revision=Run(id='current'),
+        config_name='default',
+    )
+

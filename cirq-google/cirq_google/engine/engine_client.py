@@ -29,6 +29,7 @@ from google.protobuf.timestamp_pb2 import Timestamp
 
 if TYPE_CHECKING:
     import cirq
+    import stim
 
 from cirq_google.api import v2
 from cirq_google.cloud import quantum
@@ -1247,7 +1248,7 @@ class EngineClient:
     async def compile_circuit_async(
         self,
         project_id: str,
-        stim_circuit: str,
+        stim_circuit: str | stim.Circuit,
         qec_recipe: list[str],
         processor_id: str,
         device_config_revision: DeviceConfigRevision = Run(id='current'),
@@ -1280,7 +1281,7 @@ class EngineClient:
         parent_resource_name = _project_name(project_id=project_id)
         request = quantum.CompileQecProgramRequest(
             name=parent_resource_name,
-            stim_circuit=stim_circuit,
+            stim_circuit=str(stim_circuit),
             recipe=quantum.QecRecipe(desired_algorithms=qec_recipe),
             processor_id=processor_id,
             device_config_selector=selector,
