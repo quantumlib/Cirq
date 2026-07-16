@@ -395,6 +395,8 @@ class CircuitSerializer(serializer.Serializer):
             )
         elif isinstance(gate, cirq.ResetChannel):
             arg_func_langs.arg_to_proto(gate.dimension, out=msg.resetgate.arguments['dimension'])
+        elif isinstance(gate, (MultilevelResetViaResonator, LZSResetViaResonator)):
+            msg.resetgate.reset_type = type(gate).__name__
         elif isinstance(gate, CouplerPulse):
             arg_func_langs.float_arg_to_proto(
                 gate.hold_time.total_picos(), out=msg.couplerpulsegate.hold_time_ps
@@ -919,14 +921,22 @@ class CircuitSerializer(serializer.Serializer):
             if not isinstance(dimensions, int):
                 # This should always be int, if serialized from cirq.
                 raise ValueError(f"dimensions {dimensions} for ResetChannel must be an integer!")
-            op = cirq.ResetChannel(dimension=dimensions)(*qubits)
+            match operation_proto.resetgate.reset_type:
+                case "LZSResetViaResonator":
+                    op = LZSResetViaResonator()(*qubits)
+                case "MultilevelResetViaResonator":
+                    op = MultilevelResetViaResonator()(*qubits)
+                case _:
+                    op = cirq.ResetChannel(dimension=dimensions)(*qubits)
         elif which_gate_type == 'internalgate':
             msg = operation_proto.internalgate
             match str(msg.name):
                 # Add new custom cirq_google gates here:
                 case "LZSResetViaResonator":
+                    # Can be removed once resetgate deployed (about 9/2026)
                     gate: cirq.Gate = LZSResetViaResonator()
                 case "MultilevelResetViaResonator":
+                    # Can be removed once resetgate deployed (about 9/2026)
                     gate = MultilevelResetViaResonator()
                 case "LeakageISWAPPhaseMatched":
                     gate = LeakageISWAP(phase_matched=True)
