@@ -27,7 +27,6 @@ from google.api_core.exceptions import GoogleAPICallError, NotFound
 from google.protobuf import any_pb2, field_mask_pb2
 from google.protobuf.timestamp_pb2 import Timestamp
 
-import cirq
 from cirq_google.api import v2
 from cirq_google.cloud import quantum
 from cirq_google.engine import stream_manager, util
