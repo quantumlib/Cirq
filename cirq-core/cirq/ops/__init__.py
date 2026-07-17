@@ -108,6 +108,8 @@ from cirq.ops.gateset import GateFamily as GateFamily, Gateset as Gateset
 
 from cirq.ops.identity import I as I, identity_each as identity_each, IdentityGate as IdentityGate
 
+from cirq.ops.if_op import If as If
+
 from cirq.ops.global_phase_op import (
     GlobalPhaseGate as GlobalPhaseGate,
     global_phase_operation as global_phase_operation,
