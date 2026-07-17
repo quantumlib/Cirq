@@ -48,16 +48,18 @@ class If(raw_types.Operation):
         """Initializes the `If` operation.
 
         Args:
-            condition: The condition(s) under which `sub_operation` should be applied.
-                Can be a measurement key, string, condition object, sympy expression, or a
-                sequence of these conditions.
-            sub_operation: The operation (or tree of operations) to run when `condition` is satisfied.
-            *more_operations: Additional operations to run when `condition` is satisfied. If provided,
-                `sub_operation` and `more_operations` are combined into a `cirq.CircuitOperation`.
+            condition: The condition(s) under which `sub_operation` should be
+                applied.  Can be a measurement key, string, condition object,
+                sympy expression, or a sequence of these conditions.
+            sub_operation: The operation (or tree of operations) to run when
+                `condition` is satisfied.
+            *more_operations: Additional operations to run when `condition`
+                is satisfied. If provided, `sub_operation` and `more_operations`
+                are combined into a `cirq.CircuitOperation`.
 
         Raises:
-            ValueError: If `condition` sequence is empty, or if the sub-operation contains
-                measurement keys.
+            ValueError: If `condition` sequence is empty,
+                or if the sub-operation contains measurement keys.
             TypeError: If an unrecognized condition type is provided.
         """
         if isinstance(condition, (str, value.MeasurementKey, value.Condition, sympy.Basic)):
