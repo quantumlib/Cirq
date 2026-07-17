@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence, Set
-from typing import Any, Self, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import sympy
 
@@ -148,7 +148,7 @@ class If(raw_types.Operation):
     def qubits(self) -> tuple[cirq.Qid, ...]:
         return self._sub_operation.qubits
 
-    def with_qubits(self, *new_qubits: cirq.Qid) -> Self:
+    def with_qubits(self, *new_qubits: cirq.Qid) -> If:
         return If(self._conditions, self._sub_operation.with_qubits(*new_qubits))
 
     def _decompose_with_context_(

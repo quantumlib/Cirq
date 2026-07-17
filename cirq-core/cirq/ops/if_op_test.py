@@ -133,17 +133,16 @@ def test_str_and_repr() -> None:
     q = cirq.LineQubit(0)
     op1 = cirq.If('m', cirq.X(q))
     assert str(op1) == 'If(m, X(q(0)))'
-    assert (
-        repr(op1)
-        == "cirq.If(cirq.KeyCondition(cirq.MeasurementKey(name='m')), cirq.X(cirq.LineQubit(0)))"
+    assert repr(op1) == (
+        "cirq.If(cirq.KeyCondition(cirq.MeasurementKey(name='m')), " "cirq.X(cirq.LineQubit(0)))"
     )
     assert eval(repr(op1)) == op1
 
     op2 = cirq.If(['a', 'b'], cirq.X(q))
     assert str(op2) == 'If((a, b), X(q(0)))'
-    assert (
-        repr(op2)
-        == "cirq.If([cirq.KeyCondition(cirq.MeasurementKey(name='a')), cirq.KeyCondition(cirq.MeasurementKey(name='b'))], cirq.X(cirq.LineQubit(0)))"
+    assert repr(op2) == (
+        "cirq.If([cirq.KeyCondition(cirq.MeasurementKey(name='a')), "
+        "cirq.KeyCondition(cirq.MeasurementKey(name='b'))], cirq.X(cirq.LineQubit(0)))"
     )
     assert eval(repr(op2)) == op2
 
