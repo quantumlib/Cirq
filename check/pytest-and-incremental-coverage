@@ -72,7 +72,7 @@ fi
 source dev_tools/pypath || exit $?
 
 # Run tests while producing coverage files.
-check/pytest --cov "${PYTEST_ARGS[@]}"
+check/pytest --cov=cirq "${PYTEST_ARGS[@]}"
 pytest_result=$?
 
 
