@@ -19,6 +19,8 @@ from __future__ import annotations
 from collections.abc import Callable, Hashable
 from typing import cast, TYPE_CHECKING
 
+import numpy as np
+
 from cirq import circuits, ops, protocols
 from cirq.study.resolver import ParamResolver
 from cirq.study.sweeps import dict_to_zip_sweep, ListSweep, ProductOrZipSweepLike, Sweep, Zip
@@ -36,6 +38,31 @@ if TYPE_CHECKING:
     import sympy
 
     import cirq
+
+
+def _unitary_of_single_qubit_circuit_op(circuit_op: cirq.CircuitOperation) -> np.ndarray:
+    must_decompose = (
+        len(circuit_op.qubits) > 1
+        or circuit_op.qubit_map
+        or circuit_op.measurement_key_map
+        or circuit_op.repeat_until
+        or not isinstance(circuit_op.repetitions, int)
+        or not all(protocols.has_unitary(op) for op in circuit_op.circuit.all_operations())
+    )
+    if must_decompose:
+        return protocols.unitary(circuit_op)
+
+    dim = 2 if len(circuit_op.qubits) == 1 else 1
+    u = np.eye(dim, dtype=np.complex128)
+    for op in circuit_op.circuit.all_operations():
+        if len(op.qubits) == 0:
+            u = protocols.unitary(op) * u
+        else:
+            u = np.matmul(protocols.unitary(op), u)
+
+    if circuit_op.repetitions != 1:
+        u = np.linalg.matrix_power(u, circuit_op.repetitions)
+    return u
 
 
 @transformer_api.transformer
@@ -61,7 +88,7 @@ def merge_single_qubit_gates_to_phased_x_and_z(
     """
 
     def rewriter(op: cirq.CircuitOperation) -> cirq.OP_TREE:
-        u = protocols.unitary(op)
+        u = _unitary_of_single_qubit_circuit_op(op)
         if protocols.num_qubits(op) == 0:
             return ops.GlobalPhaseGate(u[0, 0]).on()
         return [
@@ -99,7 +126,7 @@ def merge_single_qubit_gates_to_phxz(
     """
 
     def rewriter(circuit_op: cirq.CircuitOperation) -> cirq.OP_TREE:
-        u = protocols.unitary(circuit_op)
+        u = _unitary_of_single_qubit_circuit_op(circuit_op)
         if protocols.num_qubits(circuit_op) == 0:
             return ops.GlobalPhaseGate(u[0, 0]).on()
         gate = single_qubit_decompositions.single_qubit_matrix_to_phxz(u, atol) or ops.I

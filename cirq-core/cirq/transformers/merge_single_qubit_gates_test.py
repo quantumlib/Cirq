@@ -15,10 +15,12 @@
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
+import numpy as np
 import pytest
 import sympy
 
 import cirq
+from cirq.transformers.merge_single_qubit_gates import _unitary_of_single_qubit_circuit_op
 
 
 def assert_optimizes(optimized: cirq.AbstractCircuit, expected: cirq.AbstractCircuit) -> None:
@@ -403,3 +405,19 @@ def test_merge_single_qubit_moments_to_phxz_with_global_phase_in_second_moment()
     context = cirq.TransformerContext(tags_to_ignore=("ignore",))
     c_new = cirq.merge_single_qubit_moments_to_phxz(c_orig, context=context)
     assert c_new == c_expected
+
+
+def test_unitary_of_single_qubit_circuit_op() -> None:
+    q0 = cirq.LineQubit(0)
+
+    # X^2 is Identity
+    c = cirq.FrozenCircuit(cirq.X(q0))
+    op = cirq.CircuitOperation(c, repetitions=2)
+    u = _unitary_of_single_qubit_circuit_op(op)
+    np.testing.assert_allclose(u, np.eye(2), atol=1e-8)
+
+    # must_decompose due to qubit_map
+    q1 = cirq.LineQubit(1)
+    op_mapped = cirq.CircuitOperation(c, qubit_map={q0: q1})
+    u_mapped = _unitary_of_single_qubit_circuit_op(op_mapped)
+    np.testing.assert_allclose(u_mapped, cirq.unitary(cirq.X), atol=1e-8)
