@@ -238,7 +238,7 @@ def test_calibration_plot_histograms():
     calibration = cg.Calibration(_CALIBRATION_DATA)
     _, ax = plt.subplots(1, 1)
     calibration.plot_histograms(
-        ['t1', 'cz_inferred_gate_error_pauli', 'readout'], ax, labels=['T1', 'XEB']
+        ['t1', 'cz_inferred_gate_error_pauli', 'readout'], ax, labels=['T1', 'XEB', 'readout']
     )
     assert len(ax.get_lines()) == 5
 
