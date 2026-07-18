@@ -202,7 +202,7 @@ def test_calibration_plot_histograms():
     calibration = cg.Calibration(_CALIBRATION_DATA)
     _, ax = plt.subplots(1, 1)
     calibration.plot_histograms(['t1', 'cz_inferred_gate_error_pauli'], ax, labels=['T1', 'XEB'])
-    assert len(ax.get_lines()) == 4
+    assert len(ax.get_lines()) == 3
 
     with pytest.raises(ValueError, match="single metric values.*multi_value"):
         multi_qubit_data = Merge(
@@ -219,4 +219,4 @@ def test_calibration_plot_histograms():
 def test_calibration_plot():
     calibration = cg.Calibration(_CALIBRATION_DATA)
     _, axs = calibration.plot('cz_inferred_gate_error_pauli')
-    assert len(axs[1].get_lines()) == 4
+    assert len(axs[1].get_lines()) == 2
