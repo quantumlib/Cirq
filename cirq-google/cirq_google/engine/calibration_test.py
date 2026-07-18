@@ -171,7 +171,7 @@ def test_calibration_heatmap():
     heatmap.plot(axes)
     assert axes.get_title() == 'T1'
 
-    heatmap = calibration.heatmap('two_qubit_xeb')
+    heatmap = calibration.heatmap('cz_inferred_gate_error_pauli')
     figure = mpl.figure.Figure()
     axes = figure.add_subplot(999)
     heatmap.plot(axes)
@@ -201,7 +201,7 @@ def test_calibration_heatmap():
 def test_calibration_plot_histograms():
     calibration = cg.Calibration(_CALIBRATION_DATA)
     _, ax = plt.subplots(1, 1)
-    calibration.plot_histograms(['t1', 'two_qubit_xeb'], ax, labels=['T1', 'XEB'])
+    calibration.plot_histograms(['t1', 'cz_inferred_gate_error_pauli'], ax, labels=['T1', 'XEB'])
     assert len(ax.get_lines()) == 4
 
     with pytest.raises(ValueError, match="single metric values.*multi_value"):
@@ -218,5 +218,5 @@ def test_calibration_plot_histograms():
 @pytest.mark.usefixtures('closefigures')
 def test_calibration_plot():
     calibration = cg.Calibration(_CALIBRATION_DATA)
-    _, axs = calibration.plot('sq_rb_pauli_error')
+    _, axs = calibration.plot('cz_inferred_gate_error_pauli')
     assert len(axs[1].get_lines()) == 4
