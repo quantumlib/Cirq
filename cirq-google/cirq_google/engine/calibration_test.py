@@ -97,7 +97,7 @@ def test_calibration_str():
     calibration = cg.Calibration(_CALIBRATION_DATA)
     assert (
         str(calibration)
-        == "Calibration(keys=['globalMetric', 't1', 'cz_inferred_gate_error_pauli'])"
+        == "Calibration(keys=['cz_inferred_gate_error_pauli', 'globalMetric', 't1'])"
     )
 
 
