@@ -32,13 +32,13 @@ _CALIBRATION_DATA = Merge(
         name: 'cz_inferred_gate_error_pauli',
         targets: ['0_0', '0_1'],
         values: [{
-            double_val: .9999
+            double_val: 0.002
         }]
     }, {
         name: 'cz_inferred_gate_error_pauli',
         targets: ['0_0', '1_0'],
         values: [{
-            double_val: .9998
+            double_val: 0.0015
         }]
     }, {
         name: 't1',
@@ -63,6 +63,42 @@ _CALIBRATION_DATA = Merge(
         values: [{
             int32_val: 12300
         }]
+    }, {
+        name: 'zero_error',
+        targets: ['0_0'],
+        values: [{
+            double_val: 0.01
+        }]
+    }, {
+        name: 'zero_error',
+        targets: ['0_1'],
+        values: [{
+            double_val: 0.01
+        }]
+    }, {
+        name: 'zero_error',
+        targets: ['1_0'],
+        values: [{
+            double_val: 0.01
+        }]
+    }, {
+        name: 'one_error',
+        targets: ['0_0'],
+        values: [{
+            double_val: 0.02
+        }]
+    }, {
+        name: 'one_error',
+        targets: ['0_1'],
+        values: [{
+            double_val: 0.02
+        }]
+    }, {
+        name: 'one_error',
+        targets: ['1_0'],
+        values: [{
+            double_val: 0.02
+        }]
     }]
 """,
     v2.metrics_pb2.MetricsSnapshot(),
@@ -78,7 +114,7 @@ def test_calibration_metrics_dictionary():
         (cirq.GridQubit(0, 1),): [911],
         (cirq.GridQubit(1, 0),): [505],
     }
-    assert len(calibration) == 3
+    assert len(calibration) == 5
 
     assert 't1' in calibration
     assert 't2' not in calibration
@@ -97,7 +133,7 @@ def test_calibration_str():
     calibration = cg.Calibration(_CALIBRATION_DATA)
     assert (
         str(calibration)
-        == "Calibration(keys=['cz_inferred_gate_error_pauli', 'globalMetric', 't1'])"
+        == "Calibration(keys=['cz_inferred_gate_error_pauli', 'globalMetric', 'one_error', 't1', 'zero_error'])"
     )
 
 
@@ -201,8 +237,10 @@ def test_calibration_heatmap():
 def test_calibration_plot_histograms():
     calibration = cg.Calibration(_CALIBRATION_DATA)
     _, ax = plt.subplots(1, 1)
-    calibration.plot_histograms(['t1', 'cz_inferred_gate_error_pauli'], ax, labels=['T1', 'XEB'])
-    assert len(ax.get_lines()) == 3
+    calibration.plot_histograms(
+        ['t1', 'cz_inferred_gate_error_pauli', 'readout'], ax, labels=['T1', 'XEB']
+    )
+    assert len(ax.get_lines()) == 5
 
     with pytest.raises(ValueError, match="single metric values.*multi_value"):
         multi_qubit_data = Merge(

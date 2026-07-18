@@ -361,6 +361,7 @@ READOUT_REF = [
 KEY_TO_REF = {
     'sq_rb_pauli_error': SQ_RB_PAULI_ERROR_REF,
     'cz_inferred_gate_error_pauli': CZ_INFERRED_GATE_ERROR_PAULI_REF,
+    'readout': READOUT_REF,
 }
 
 
@@ -616,15 +617,31 @@ class Calibration(abc.Mapping):
             labels = keys
         colors = ['b', 'r', 'k', 'g', 'c', 'm']
         for key, label, color in zip(keys, labels, cycle(colors)):
-            metrics = self[key]
-            if not all(len(k) == 1 for k in metrics.values()):
-                raise ValueError(
-                    'Histograms are only supported if all values in a metric '
-                    'are single metric values.'
-                    f'{key} has metric values {metrics.values()}'
-                )
+            if (
+                key == 'readout'
+                and 'readout' not in self
+                and 'zero_error' in self
+                and 'one_error' in self
+            ):
+                data_to_plot = [
+                    (
+                        self.value_to_float(self['zero_error'][q])
+                        + self.value_to_float(self['one_error'][q])
+                    )
+                    / 2
+                    for q in self['zero_error']
+                ]
+            else:
+                metrics = self[key]
+                if not all(len(k) == 1 for k in metrics.values()):
+                    raise ValueError(
+                        'Histograms are only supported if all values in a metric '
+                        'are single metric values.'
+                        f'{key} has metric values {metrics.values()}'
+                    )
+                data_to_plot = [self.value_to_float(v) for v in metrics.values()]
             cirq.integrated_histogram(
-                [self.value_to_float(v) for v in metrics.values()],
+                data_to_plot,
                 ax,
                 label=label,
                 color=color,
