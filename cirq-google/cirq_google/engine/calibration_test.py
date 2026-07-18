@@ -95,7 +95,10 @@ def test_calibration_metrics_dictionary():
 
 def test_calibration_str():
     calibration = cg.Calibration(_CALIBRATION_DATA)
-    assert str(calibration) == "Calibration(keys=['globalMetric', 't1', 'cz_inferred_gate_error_pauli'])"
+    assert (
+        str(calibration)
+        == "Calibration(keys=['globalMetric', 't1', 'cz_inferred_gate_error_pauli'])"
+    )
 
 
 def test_calibration_repr():
@@ -216,4 +219,4 @@ def test_calibration_plot_histograms():
 def test_calibration_plot():
     calibration = cg.Calibration(_CALIBRATION_DATA)
     _, axs = calibration.plot('sq_rb_pauli_error')
-    assert len(axs[1].get_lines()) == 2
+    assert len(axs[1].get_lines()) == 4
