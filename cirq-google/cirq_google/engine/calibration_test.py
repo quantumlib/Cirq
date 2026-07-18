@@ -175,7 +175,7 @@ def test_calibration_heatmap():
     figure = mpl.figure.Figure()
     axes = figure.add_subplot(999)
     heatmap.plot(axes)
-    assert axes.get_title() == 'Two Qubit Xeb'
+    assert axes.get_title() == 'Cz Inferred Gate Error Pauli'
 
     with pytest.raises(ValueError, match="one or two qubits.*multi_qubit"):
         multi_qubit_data = Merge(
