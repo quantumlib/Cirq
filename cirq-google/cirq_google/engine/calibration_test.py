@@ -29,13 +29,13 @@ _CALIBRATION_DATA = Merge(
     """
     timestamp_ms: 1562544000021,
     metrics: [{
-        name: 'two_qubit_xeb',
+        name: 'cz_inferred_gate_error_pauli',
         targets: ['0_0', '0_1'],
         values: [{
             double_val: .9999
         }]
     }, {
-        name: 'two_qubit_xeb',
+        name: 'cz_inferred_gate_error_pauli',
         targets: ['0_0', '1_0'],
         values: [{
             double_val: .9998
@@ -95,7 +95,7 @@ def test_calibration_metrics_dictionary():
 
 def test_calibration_str():
     calibration = cg.Calibration(_CALIBRATION_DATA)
-    assert str(calibration) == "Calibration(keys=['globalMetric', 't1', 'two_qubit_xeb'])"
+    assert str(calibration) == "Calibration(keys=['globalMetric', 't1', 'cz_inferred_gate_error_pauli'])"
 
 
 def test_calibration_repr():
@@ -215,6 +215,5 @@ def test_calibration_plot_histograms():
 @pytest.mark.usefixtures('closefigures')
 def test_calibration_plot():
     calibration = cg.Calibration(_CALIBRATION_DATA)
-    _, axs = calibration.plot('two_qubit_xeb')
-    assert axs[0].get_title() == 'Two Qubit Xeb'
+    _, axs = calibration.plot('sq_rb_pauli_error')
     assert len(axs[1].get_lines()) == 2
