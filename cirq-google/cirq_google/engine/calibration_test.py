@@ -131,10 +131,9 @@ def test_calibration_metrics_dictionary():
 
 def test_calibration_str():
     calibration = cg.Calibration(_CALIBRATION_DATA)
-    assert (
-        str(calibration)
-        == "Calibration(keys=['cz_inferred_gate_error_pauli', 'globalMetric', 'one_error', 't1', 'zero_error'])"
-    )
+    str_cal = "Calibration(keys=['cz_inferred_gate_error_pauli', 'globalMetric', 'one_error', 't1',"
+    str_cal += " 'zero_error'])"
+    assert str(calibration) == str_cal
 
 
 def test_calibration_repr():
