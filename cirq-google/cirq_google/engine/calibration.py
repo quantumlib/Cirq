@@ -569,7 +569,22 @@ class Calibration(abc.Mapping):
             ValueError: If the heatmap is not for one/two qubits or the metric
                 values are not single floats.
         """
-        metrics = self[key]
+        if (
+            key == 'readout'
+            and 'readout' not in self
+            and 'zero_error' in self
+            and 'one_error' in self
+        ):
+            metrics = {
+                q: (
+                    self.value_to_float(self['zero_error'][q])
+                    + self.value_to_float(self['one_error'][q])
+                )
+                / 2
+                for q in self['zero_error']
+            }
+        else:
+            metrics = self[key]
         if not all(len(k) == 1 for k in metrics.values()):
             raise ValueError(
                 'Heatmaps are only supported if all values in a metric are single metric values.'
@@ -609,7 +624,7 @@ class Calibration(abc.Mapping):
         """
         show_plot = not ax
         if ax is None:
-            fig, ax = plt.subplots(1, 1)
+            fig, ax = plt.subplots(1, 1, facecolor='white', dpi=150, figsize=(10, 5))
 
         if isinstance(keys, str):
             keys = [keys]
@@ -657,6 +672,7 @@ class Calibration(abc.Mapping):
         ax.set_title('')
         ax.set_ylabel('Percentile')
         ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.0))
+        ax.set_xlabel('Error rate')
         ax.tick_params(direction='in', which='both', top=True, right=True)
 
         if show_plot:
