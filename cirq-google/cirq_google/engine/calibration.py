@@ -577,10 +577,12 @@ class Calibration(abc.Mapping):
         ):
             metrics = {
                 q: (
-                    self.value_to_float(self['zero_error'][q])
-                    + self.value_to_float(self['one_error'][q])
+                    (
+                        self.value_to_float(self['zero_error'][q])
+                        + self.value_to_float(self['one_error'][q])
+                    )
+                    / 2,
                 )
-                / 2
                 for q in self['zero_error']
             }
         else:
