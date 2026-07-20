@@ -1815,8 +1815,8 @@ class Circuit(AbstractCircuit):
             contents: The initial list of moments and operations defining the
                 circuit. You can also pass in operations, lists of operations,
                 or generally anything meeting the `cirq.OP_TREE` contract.
-                Non-moment entries will be inserted according to the specified
-                insertion strategy.
+                Non-moment entries will be appended according to the specified
+                insertion strategy; see `Circuit.append` for specific mechanics.
             strategy: When initializing the circuit with operations and moments
                 from `contents`, this determines how the operations are packed
                 together. This option does not affect later insertions into the
@@ -2258,9 +2258,16 @@ class Circuit(AbstractCircuit):
     ) -> int:
         """Inserts operations into the circuit.
 
-        Operations are inserted into the moment specified by the index and
-        'InsertStrategy'.
-        Moments within the operation tree are inserted intact.
+        Moments within the operation tree are inserted intact. Operations are
+        inserted into the moment specified by the index and 'InsertStrategy'.
+        Operations affecting similar qubits are separated into different moments
+        according to the insertion strategy.
+
+        Measurements with the same keys are discouraged and will be separated
+        into different moments; prefer multi-qubit measurements. Controlled
+        operations and measurements with the same key will also be separated.
+        Special use cases requiring these operations to be in the same moment
+        should insert them as a moment.
 
         Args:
             index: The index to insert all the operations at.
@@ -2597,7 +2604,15 @@ class Circuit(AbstractCircuit):
     ) -> None:
         """Appends operations onto the end of the circuit.
 
-        Moments within the operation tree are appended intact.
+        Moments within the operation tree are appended intact. Operations
+        affecting similar qubits are separated into different moments according
+        to the insertion strategy.
+
+        Measurements with the same keys are discouraged and will be separated
+        into different moments; prefer multi-qubit measurements. Controlled
+        operations and measurements with the same key will also be separated.
+        Special use cases requiring these operations to be in the same moment
+        should append them as a moment.
 
         Args:
             moment_or_operation_tree: The moment or operation tree to append.

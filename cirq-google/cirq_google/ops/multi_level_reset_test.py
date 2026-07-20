@@ -58,10 +58,9 @@ def test_serialization_round_trip():
     assert len(op_protos) == 1
     op_proto = op_protos[0]
 
-    assert op_proto.WhichOneof('gate_value') == 'internalgate'
-    internal_gate_proto = op_proto.internalgate
-    assert internal_gate_proto.name == "MultilevelResetViaResonator"
-    assert internal_gate_proto.num_qubits == 1
+    assert op_proto.WhichOneof('gate_value') == 'resetgate'
+    gate_proto = op_proto.resetgate
+    assert gate_proto.reset_type == "MultilevelResetViaResonator"
 
     # Deserialize
     deserialized_circuit = cg.CIRCUIT_SERIALIZER.deserialize(proto)

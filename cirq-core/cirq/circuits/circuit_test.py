@@ -5157,3 +5157,15 @@ def test_insert_in_existing_moment_measurement_control_key_conflict() -> None:
     assert c == cirq.Circuit(
         cirq.Moment(cirq.X(q1).with_classical_controls("k")), cirq.Moment(cirq.measure(q0, key="k"))
     )
+
+
+def test_insert_moment_with_same_measurement_control_keys() -> None:
+    c1 = cirq.Circuit()
+    c1.insert(0, cirq.Moment(cirq.measure(q0, key="k"), cirq.measure(q1, key="k")))
+    assert c1 == cirq.Circuit(cirq.Moment(cirq.measure(q0, key="k"), cirq.measure(q1, key="k")))
+
+    c2 = cirq.Circuit()
+    c2.insert(0, cirq.Moment(cirq.measure(q0, key="k"), cirq.X(q1).with_classical_controls("k")))
+    assert c2 == cirq.Circuit(
+        cirq.Moment(cirq.measure(q0, key="k"), cirq.X(q1).with_classical_controls("k"))
+    )
