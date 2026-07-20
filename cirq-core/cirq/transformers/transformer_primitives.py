@@ -752,6 +752,79 @@ def merge_moments(
     return _create_target_circuit_type(merged_moments, circuit)
 
 
+def merge_moments_greedy(
+    circuit: CIRCUIT_TYPE,
+    merge_func: Callable[[list[circuits.Moment]], circuits.Moment | None],
+    can_merge_moment: Callable[[circuits.Moment], bool],
+    *,
+    tags_to_ignore: Sequence[Hashable] = (),
+    deep: bool = False,
+) -> CIRCUIT_TYPE:
+    """Merges runs of moments of length > 1 using `merge_func(moments_list)`.
+
+    A run of consecutive moments is mergeable if `can_merge_moment(m)` is True for all of them.
+    If a run has length > 1, it is passed to `merge_func` to be merged into a single moment.
+    If `merge_func` returns None, the moments are kept unmerged.
+    Single-moment runs (length 1) are kept unmerged without calling `merge_func`.
+
+    Args:
+        circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
+        merge_func: Callable that takes a list of consecutive mergeable moments and returns
+            the merged moment, or None if they cannot be merged.
+        can_merge_moment: Callable to determine whether a moment is candidate for merging.
+        tags_to_ignore: Tagged circuit operations marked with any of `tags_to_ignore` will be
+            ignored when recursively applying the transformer primitive to sub-circuits, given
+            deep=True.
+        deep: If true, the transformer primitive will be recursively applied to all circuits
+            wrapped inside circuit operations.
+
+    Returns:
+        Copy of input circuit with merged moments.
+    """
+    if not circuit:
+        return circuit
+    if deep:
+        circuit = map_operations(
+            circuit,
+            lambda op, _: (
+                op.untagged.replace(
+                    circuit=merge_moments_greedy(
+                        op.untagged.circuit,
+                        merge_func,
+                        can_merge_moment,
+                        tags_to_ignore=tags_to_ignore,
+                        deep=deep,
+                    )
+                ).with_tags(*op.tags)
+                if isinstance(op.untagged, circuits.CircuitOperation)
+                else op
+            ),
+            tags_to_ignore=tags_to_ignore,
+        )
+
+    merged_moments: list[circuits.Moment] = []
+    moments_to_merge: list[circuits.Moment] = []
+    for i, current_moment in enumerate(circuit):
+        can_merge_current = can_merge_moment(current_moment)
+        if can_merge_current:
+            moments_to_merge.append(current_moment)
+        if not can_merge_current or i == len(circuit) - 1:
+            if len(moments_to_merge) > 1:
+                merged_moment = merge_func(moments_to_merge)
+                if merged_moment is not None:
+                    merged_moments.append(merged_moment)
+                else:
+                    merged_moments.extend(moments_to_merge)
+            else:
+                merged_moments.extend(moments_to_merge)
+            moments_to_merge = []
+
+            if not can_merge_current:
+                merged_moments.append(current_moment)
+
+    return _create_target_circuit_type(merged_moments, circuit)
+
+
 def unroll_circuit_op(
     circuit: CIRCUIT_TYPE,
     *,

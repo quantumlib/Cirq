@@ -131,6 +131,7 @@ from cirq.transformers.transformer_primitives import (
     map_operations_and_unroll as map_operations_and_unroll,
     merge_k_qubit_unitaries_to_circuit_op as merge_k_qubit_unitaries_to_circuit_op,
     merge_moments as merge_moments,
+    merge_moments_greedy as merge_moments_greedy,
     merge_operations as merge_operations,
     merge_operations_to_circuit_op as merge_operations_to_circuit_op,
     toggle_tags as toggle_tags,

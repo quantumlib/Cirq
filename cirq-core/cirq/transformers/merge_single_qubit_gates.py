@@ -166,37 +166,47 @@ def merge_single_qubit_moments_to_phxz(
             for op in m
         )
 
-    def merge_func(m1: cirq.Moment, m2: cirq.Moment) -> cirq.Moment | None:
-        if not (can_merge_moment(m1) and can_merge_moment(m2)):
-            return None
-        ret_ops = []
-        for q in m1.qubits | m2.qubits:
-            op1, op2 = m1.operation_at(q), m2.operation_at(q)
-            if op1 and op2:
-                mat = protocols.unitary(op2) @ protocols.unitary(op1)
-                gate = single_qubit_decompositions.single_qubit_matrix_to_phxz(mat, atol)
-                if gate:
-                    ret_ops.append(gate(q))
-            else:
-                op = op1 or op2
+    def merge_func(ms: list[cirq.Moment]) -> cirq.Moment:
+        # gather operations at each qubit
+        one_qubit_ops: dict[cirq.Qid, list[ops.Operation]] = {}
+        phase_coeff: complex = 1.0
+        has_phase = False
+        for m in ms:
+            # collect all one-qubit gates
+            for q in m.qubits:
+                op = m.operation_at(q)
                 assert op is not None
-                if isinstance(op.gate, ops.PhasedXZGate):
-                    ret_ops.append(op)
-                else:
-                    gate = single_qubit_decompositions.single_qubit_matrix_to_phxz(
-                        protocols.unitary(op), atol
-                    )
-                    if gate:
-                        ret_ops.append(gate(q))
-        # Transfer global phase
-        for op in m1.operations + m2.operations:
-            if protocols.num_qubits(op) == 0:
-                ret_ops.append(op)
+                if q not in one_qubit_ops:
+                    one_qubit_ops[q] = []
+                one_qubit_ops[q].append(op)
+
+            # collect all global phase gates
+            for op in m.operations:
+                if protocols.num_qubits(op) == 0:
+                    has_phase = True
+                    phase_coeff *= complex(protocols.unitary(op)[0, 0])
+
+        # create phxz gate at each qubit
+        ret_ops = []
+        for qb, qb_ops in one_qubit_ops.items():
+            if len(qb_ops) == 1 and isinstance(qb_ops[0].gate, ops.PhasedXZGate):
+                ret_ops.append(qb_ops[0])
+            else:
+                u = np.eye(2, dtype=np.complex128)
+                for qb_op in qb_ops:
+                    u = protocols.unitary(qb_op) @ u
+                gate = single_qubit_decompositions.single_qubit_matrix_to_phxz(u, atol)
+                if gate:
+                    ret_ops.append(gate(qb))
+        # add global phase back in
+        if has_phase:
+            ret_ops.append(ops.GlobalPhaseGate(phase_coeff).on())
         return circuits.Moment(ret_ops)
 
-    return transformer_primitives.merge_moments(
+    return transformer_primitives.merge_moments_greedy(
         circuit,
         merge_func,
+        can_merge_moment,
         deep=context.deep if context else False,
         tags_to_ignore=tuple(tags_to_ignore),
     ).unfreeze(copy=False)
