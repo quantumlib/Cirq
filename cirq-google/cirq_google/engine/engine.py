@@ -471,10 +471,11 @@ class Engine(abstract_engine.AbstractEngine):
         description: str | None = None,
         labels: dict[str, str] | None = None,
     ) -> engine_program.EngineProgram:
-        """Wraps a Circuit for use with the Quantum Engine.
+        """Wraps a circuit or batch of circuits for use with the Quantum Engine.
 
         Args:
-            program: The Circuit to execute.
+            program: The circuit or circuits to execute. Can either be a single
+                circuit or a list of circuits. Mappings are not currently supported.
             program_id: A user-provided identifier for the program. This must be
                 unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
