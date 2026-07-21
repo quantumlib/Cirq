@@ -403,10 +403,7 @@ class EngineClient:
     ) -> tuple[str, quantum.QuantumJob]:
         """Creates and runs a job on Quantum Engine.
 
-        Either both `run_name` and `device_config_name` must be set, or neither
-        of them must be set. If none of them are set, a default internal device
-        configuration will be used. If both `run_name` and `snapshot_id` are
-        set, then `snapshot_id` will be preferred.
+        If both `run_name` and `snapshot_id` are set, then `snapshot_id` will be preferred.
 
         Args:
             project_id: A project_id of the parent Google Cloud Project.
@@ -444,11 +441,6 @@ class EngineClient:
             raise ValueError('Must specify a processor id when creating a job.')
         if run_name and snapshot_id:
             print('Both run_name and snapshot_id were specified, using snapshot_id.')
-        if (bool(run_name) or bool(snapshot_id)) ^ bool(device_config_name):
-            raise ValueError(
-                'Cannot specify only one of top level identifier (e.g `run_name`, `snapshot_id`)'
-                ' and `device_config_name`'
-            )
 
         # Create job.
         if snapshot_id:
