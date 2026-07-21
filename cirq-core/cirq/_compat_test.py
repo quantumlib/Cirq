@@ -551,7 +551,7 @@ def _import_deprecated_sub_use_constant():
 
 
 def _import_deprecated_same_name_in_earlier_subtree():
-    from cirq.testing._compat_test_data.fake_a.sub.subsub.dupe import (  # type: ignore[import-not-found]  # noqa: E501
+    from cirq.testing._compat_test_data.fake_a.sub.subsub.dupe import (  # type: ignore[import-not-found]
         DUPE_CONSTANT,
     )
 
