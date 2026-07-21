@@ -3,4 +3,3 @@
     cirq.PauliMeasurementGate(cirq.DensePauliString("XYZ"), cirq.MeasurementKey(path=('p', 'q'), name='key')),
     cirq.PauliMeasurementGate(cirq.DensePauliString("XYZ", coefficient=-1), cirq.MeasurementKey(name='key')),
 ]
-

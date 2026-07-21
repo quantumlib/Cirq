@@ -23,19 +23,19 @@ describe('Meridians', () => {
   const DEFAULT_V_MERIDIANS = 4;
 
   describe('by default', () => {
-    it(`generates the correct number of lines given 
+    it(`generates the correct number of lines given
     the default number (7)`, () => {
       const meridians = new Meridians(DEFAULT_RADIUS, DEFAULT_H_MERIDIANS, Orientation.HORIZONTAL);
       expect(meridians.children.length).toBe(DEFAULT_H_MERIDIANS);
     });
 
-    it(`generates the correct number of lines given 
+    it(`generates the correct number of lines given
     the default number (4)`, () => {
       const meridians = new Meridians(DEFAULT_RADIUS, DEFAULT_V_MERIDIANS, Orientation.VERTICAL);
       expect(meridians.children.length).toBe(DEFAULT_V_MERIDIANS);
     });
 
-    it(`generates lines at the correct positions 
+    it(`generates lines at the correct positions
     with defaults`, () => {
       const meridians = new Meridians(DEFAULT_RADIUS, DEFAULT_H_MERIDIANS, Orientation.HORIZONTAL);
 
