@@ -124,9 +124,10 @@ device specifications.
 
 ## Calibration Metrics
 
-Metrics from the current status of the device can be retrieved using the\
-`get_current_calibration` method of an `EngineProcessor` object.
-`EngineProcessor` objects can be retrieved from `Engine` using `get_processor`.
+Metrics from the current status of the device can be retrieved using
+```python
+engine.get_processor(processor_id=PROCESSOR_ID).config().calibration
+```
 This will return a Python dictionary where each key is the metric name.  The
 value of the dictionary will be the value of the metric, which can also be
 a dictionary.
