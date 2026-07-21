@@ -19,8 +19,8 @@ Calibration metrics can be retrieved through Quantum Engine's Python API.
 import cirq_google as cg
 
 # Create an Engine object to use.
-PROJECT_ID = "replace_with_your_project" # Replace with your your Cloud project id.
-PROCESSOR_ID = "repace_with_the_processor_to_inspect" # Replace this too.
+PROJECT_ID = "replace_this" # Replace with your your Cloud project id.
+PROCESSOR_ID = "replace_this_too" # Replace this with the processor id.
 engine = cg.get_engine(PROJECT_ID)
 processor = engine.get_processor(processor_id=PROCESSOR_ID)
 config = processor.get_config() # or get a non-default config
