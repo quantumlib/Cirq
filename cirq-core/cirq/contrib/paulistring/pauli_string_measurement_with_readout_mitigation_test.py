@@ -631,7 +631,7 @@ def test_invalid_input_container_type() -> None:
     qubits_to_pauli[tuple(qubits)] = [cirq.PauliString(dict.fromkeys(qubits, cirq.X))]
     with pytest.raises(TypeError, match="Input must be a dict or a list"):
         measure_pauli_strings(
-            invalid_input, cirq.Simulator(), 100, 100, 100, np.random.default_rng()  # type: ignore
+            invalid_input, cirq.Simulator(), 100, 100, 100, np.random.default_rng()  # type: ignore[arg-type]
         )
 
 
@@ -655,7 +655,7 @@ def test_circuit_parameters_validation_errors() -> None:
 
     # Test Invalid Type for Circuit
     params_invalid_circuit_type = CircuitToPauliStringsParameters(
-        circuit="NotACircuit",  # type: ignore
+        circuit="NotACircuit",  # type: ignore[arg-type]
         pauli_strings=valid_pauli,
         postselection_symmetries=[],
     )
@@ -772,7 +772,7 @@ def test_group_paulis_are_not_qwc() -> None:
     pauli_str2: cirq.PauliString = cirq.PauliString({qubits[0]: cirq.Y})
 
     circuits_to_pauli: dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
-    circuits_to_pauli[circuit] = [[pauli_str1, pauli_str2]]  # type: ignore
+    circuits_to_pauli[circuit] = [[pauli_str1, pauli_str2]]  # type: ignore[list-item]
     with pytest.raises(ValueError, match="is not Qubit-Wise Commuting."):
         measure_pauli_strings(
             circuits_to_pauli, cirq.Simulator(), 300, 300, 300, np.random.default_rng()
@@ -786,7 +786,7 @@ def test_empty_group_paulis_not_allowed() -> None:
     circuit = cirq.FrozenCircuit(_create_ghz(5, qubits))
 
     circuits_to_pauli: dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
-    circuits_to_pauli[circuit] = [[]]  # type: ignore
+    circuits_to_pauli[circuit] = [[]]  # type: ignore[list-item]
     with pytest.raises(ValueError, match="Empty group of Pauli strings is not allowed"):
         measure_pauli_strings(
             circuits_to_pauli, cirq.Simulator(), 300, 300, 300, np.random.default_rng()
@@ -840,7 +840,7 @@ def test_postselection_symmetry_validation_and_logic() -> None:
     params_bad_type = CircuitToPauliStringsParameters(
         circuit=circuit,
         pauli_strings=target_paulis,
-        postselection_symmetries=[("NotASymmetry", 1)],  # type: ignore
+        postselection_symmetries=[("NotASymmetry", 1)],  # type: ignore[list-item]
     )
     with pytest.raises(
         TypeError, match="Postselection symmetry keys must be cirq.PauliString or cirq.PauliSum"

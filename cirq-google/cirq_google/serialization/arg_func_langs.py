@@ -495,13 +495,13 @@ def condition_from_proto(condition: v2.program_pb2.Arg) -> Condition:
         if condition.func.type == "bitmask==" or condition.func.type == "bitmask!=":
             key = condition.func.args[0].measurement_key
             if len(condition.func.args) > 2:
-                bitmask = int(arg_from_proto(condition.func.args[2]))  # type: ignore
+                bitmask = int(arg_from_proto(condition.func.args[2]))  # type: ignore[arg-type]
             else:
                 bitmask = None
             return BitMaskKeyCondition(
                 key=MeasurementKey(key.string_key, path=tuple(key.path)),
                 index=key.index,
-                target_value=int(arg_from_proto(condition.func.args[1])),  # type: ignore
+                target_value=int(arg_from_proto(condition.func.args[1])),  # type: ignore[arg-type]
                 equal_target=(condition.func.type == "bitmask=="),
                 bitmask=bitmask,
             )

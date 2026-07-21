@@ -113,7 +113,7 @@ class ObservableMeasuredResult:
     circuit_params: Mapping[str | sympy.Expr, value.Scalar | sympy.Expr]
 
     # unhashable because of the mapping-type circuit_params attribute
-    __hash__ = None  # type: ignore
+    __hash__ = None  # type: ignore[assignment]
 
     def __repr__(self):
         # I wish we could use the default dataclass __repr__ but

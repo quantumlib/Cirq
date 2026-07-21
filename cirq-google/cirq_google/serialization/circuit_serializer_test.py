@@ -1524,4 +1524,4 @@ def test_multi_programs_bad_function() -> None:
 
     sweep = cirq.Points('num_x', [1, 2])
     with pytest.raises(ValueError, match="Function returned unrecognized type"):
-        _ = serializer.serialize_circuit_function(_bad_function, sweep)  # type: ignore
+        _ = serializer.serialize_circuit_function(_bad_function, sweep)  # type: ignore[arg-type]

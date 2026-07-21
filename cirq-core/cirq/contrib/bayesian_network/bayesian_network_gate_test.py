@@ -38,7 +38,7 @@ def test_incorrect_constructor() -> None:
     # This is an easy mistake where the tuple for q0 doesn't have the comma at the end.
     with pytest.raises(ValueError, match='Conditional prob params must be a tuple.'):
         ccb.BayesianNetworkGate(
-            [('q0', 0.0), ('q1', None)], [('q1', ('q0'), [0.0, 0.0])]  # type: ignore
+            [('q0', 0.0), ('q1', None)], [('q1', ('q0'), [0.0, 0.0])]  # type: ignore[list-item]
         )
 
     with pytest.raises(ValueError, match='Incorrect number of conditional probs.'):

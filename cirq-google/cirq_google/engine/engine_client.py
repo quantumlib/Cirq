@@ -29,7 +29,7 @@ from google.protobuf.timestamp_pb2 import Timestamp
 
 if TYPE_CHECKING:
     import cirq
-    import stim  # type: ignore
+    import stim  # type: ignore[import-untyped]
 
 from cirq_google.api import v2
 from cirq_google.cloud import quantum
