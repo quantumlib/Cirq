@@ -475,8 +475,8 @@ def _from_deprecated_import_sub_of_sub():
     from cirq.testing._compat_test_data.module_a.module_b import module_c
 
     assert module_c.MODULE_C_ATTRIBUTE == 'module_c'
-    from cirq.testing._compat_test_data.fake_a.module_b import (
-        module_c,  # type: ignore[import-not-found]
+    from cirq.testing._compat_test_data.fake_a.module_b import (  # type: ignore[import-not-found]
+        module_c,
     )
 
     assert module_c.MODULE_C_ATTRIBUTE == 'module_c'
@@ -551,8 +551,8 @@ def _import_deprecated_sub_use_constant():
 
 
 def _import_deprecated_same_name_in_earlier_subtree():
-    from cirq.testing._compat_test_data.fake_a.sub.subsub.dupe import (
-        DUPE_CONSTANT,  # type: ignore[import-not-found]
+    from cirq.testing._compat_test_data.fake_a.sub.subsub.dupe import (  # type: ignore[import-not-found]  # noqa: E501
+        DUPE_CONSTANT,
     )
 
     assert DUPE_CONSTANT
