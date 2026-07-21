@@ -14,8 +14,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 import contextlib
 import dataclasses
 import datetime
@@ -25,6 +23,7 @@ import json
 import os
 import pathlib
 import warnings
+from typing import Any
 from unittest import mock
 
 import attrs
