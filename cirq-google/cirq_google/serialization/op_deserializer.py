@@ -78,7 +78,8 @@ class CircuitOpDeserializer(OpDeserializer):
             The deserialized CircuitOperation represented by `proto`.
 
         Raises:
-            ValueError: If the circuit operation proto cannot be deserialied because it is malformed.
+            ValueError: If the circuit operation proto cannot be deserialied because
+                it is malformed.
         """
         if len(deserialized_constants) <= proto.circuit_constant_index:
             raise ValueError(
