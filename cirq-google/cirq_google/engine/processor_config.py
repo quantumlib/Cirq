@@ -69,7 +69,7 @@ class ProcessorConfig:
         processor: cg.engine.AbstractProcessor,
         device_config_revision: DeviceConfigRevision | None = None,
     ) -> None:
-        """Contructs a Processor Config.
+        """Constructs a Processor Config.
 
         Args:
             quantum_processor_config: The quantum processor config.
@@ -106,7 +106,7 @@ class ProcessorConfig:
         """The snapshot that contains this processor config."""
         if 'configSnapshots' not in self._quantum_processor_config.name:
             # We assume the calling `get_quantume_processor_config` always
-            # returns a config with the snapshot resouce nanme.  This check
+            # returns a config with the snapshot resource nanme.  This check
             # is added in case this behavior changes in the future.
             return ''
         parts = self._quantum_processor_config.name.split('/')

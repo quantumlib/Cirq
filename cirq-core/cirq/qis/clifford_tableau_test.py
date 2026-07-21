@@ -76,13 +76,13 @@ def test_tableau_invalid_initial_state() -> None:
 def test_stabilizers() -> None:
     # Note: the stabilizers are not unique for one state. We just use the one
     # produced by the tableau algorithm.
-    # 1. Final state is |1>: Stabalized by -Z.
+    # 1. Final state is |1>: Stabilized by -Z.
     t = cirq.CliffordTableau(num_qubits=1, initial_state=1)
     stabilizers = t.stabilizers()
     assert len(stabilizers) == 1
     assert stabilizers[0] == cirq.DensePauliString('Z', coefficient=-1)
 
-    # 2. EPR pair -- Final state is |00> + |11>: Stabalized by XX and ZZ.
+    # 2. EPR pair -- Final state is |00> + |11>: Stabilized by XX and ZZ.
     t = cirq.CliffordTableau(num_qubits=2)
     _H(t, 0)
     _CNOT(t, 0, 1)
@@ -91,7 +91,7 @@ def test_stabilizers() -> None:
     assert stabilizers[0] == cirq.DensePauliString('XX', coefficient=1)
     assert stabilizers[1] == cirq.DensePauliString('ZZ', coefficient=1)
 
-    # 3. Uniform distribution: Stablized by XI and IX.
+    # 3. Uniform distribution: Stabilized by XI and IX.
     t = cirq.CliffordTableau(num_qubits=2)
     _H(t, 0)
     _H(t, 1)
@@ -102,21 +102,21 @@ def test_stabilizers() -> None:
 
 
 def test_destabilizers() -> None:
-    # Note: Like stablizers, the destabilizers are not unique for one state, too.
+    # Note: Like stabilizers, the destabilizers are not unique for one state, too.
     # We just use the one produced by the tableau algorithm.
     # Under the clifford tableau algorithm, there are several properties that the
     # destablizers have to satisfy:
-    #    1. destablizers[i] anti-commutes with stablizers[i]
+    #    1. destablizers[i] anti-commutes with stabilizers[i]
     #    2. destablizers[i] commutes with destablizers[j] for j!= i
-    #    3. destablizers[i] commutes with stablizers[j] for j!= i
+    #    3. destablizers[i] commutes with stabilizers[j] for j!= i
 
-    # 1. Final state is |1>: Stabalized by -Z.
+    # 1. Final state is |1>: Stabilized by -Z.
     t = cirq.CliffordTableau(num_qubits=1, initial_state=1)
     destabilizers = t.destabilizers()
     assert len(destabilizers) == 1
     assert destabilizers[0] == cirq.DensePauliString('X', coefficient=1)
 
-    # 2. EPR pair -- Final state is |00> + |11>: Stabalized by XX and ZZ.
+    # 2. EPR pair -- Final state is |00> + |11>: Stabilized by XX and ZZ.
     t = cirq.CliffordTableau(num_qubits=2)
     _H(t, 0)
     _CNOT(t, 0, 1)
@@ -125,7 +125,7 @@ def test_destabilizers() -> None:
     assert destabilizers[0] == cirq.DensePauliString('ZI', coefficient=1)
     assert destabilizers[1] == cirq.DensePauliString('IX', coefficient=1)
 
-    # 3. Uniform distribution: Stablized by XI and IX.
+    # 3. Uniform distribution: Stabilized by XI and IX.
     t = cirq.CliffordTableau(num_qubits=2)
     _H(t, 0)
     _H(t, 1)

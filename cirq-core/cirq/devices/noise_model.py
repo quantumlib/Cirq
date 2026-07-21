@@ -296,7 +296,7 @@ document(
 
 
 def validate_all_measurements(moment: cirq.Moment) -> bool:
-    """Ensures that the moment is homogenous and returns whether all ops are measurement gates.
+    """Ensures that the moment is homogeneous and returns whether all ops are measurement gates.
 
     Args:
         moment: the moment to be checked

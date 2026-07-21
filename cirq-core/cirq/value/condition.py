@@ -161,7 +161,7 @@ class BitMaskKeyCondition(Condition):
         - key: Measurement key.
         - index: integer index (same as KeyCondition.index).
         - target_value: The value we compare with.
-        - equal_target: Whether to comapre with == or !=.
+        - equal_target: Whether to compare with == or !=.
         - bitmask: Optional bitmask to apply before doing the comparison.
     """
 

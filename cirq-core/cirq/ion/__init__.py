@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Trapped ion devices, gates, and compiling utilties."""
+"""Trapped ion devices, gates, and compiling utilities."""
 
 from cirq.ops import ms as ms
 

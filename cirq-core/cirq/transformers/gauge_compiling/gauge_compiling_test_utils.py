@@ -94,7 +94,7 @@ class GaugeTester:
         results = simulator.run_sweep(parameterized_circuit, sweeps)
         assert len(results) == n_samples
 
-        # Check compilied circuits have the same unitary as the orig circuit.
+        # Check compiled circuits have the same unitary as the orig circuit.
         for params in sweeps:
             compiled_circuit = cirq.resolve_parameters(parameterized_circuit, params)
             if self.must_fail:

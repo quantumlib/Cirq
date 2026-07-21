@@ -67,7 +67,7 @@ def test_canonicalization() -> None:
     def f(x, z, a):
         return cirq.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
 
-    # Canonicalizations are equivalent.
+    # Canonicalization are equivalent.
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(f(1, 0, 0), f(3, 0, 0), f(-1, 0, 1))
     """
