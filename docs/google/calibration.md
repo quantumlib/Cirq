@@ -53,12 +53,13 @@ and depolarization error.
 ## Individual Metrics
 
 Each metric can be referenced by its key in the calibration object, e.g.
-```calibration['sq_rb_pauli_error']```. Keys with names ending in `_ERR`
+`calibration['sq_rb_pauli_error']`. Keys with names ending in `_ERR`
 indicate the statistical uncertainty of the corresponding metric.
 
-**Note that the metric names below are subject to change without notice.**
+Caution: the names of the metrics below are subject to change without notice.
 
 ### Parallel readout error
+
 *   Metric key: zero_error
 *   Metric key: one_error
 
@@ -75,7 +76,8 @@ can take `readout` as an input, in which case they will plot the qubit-wise
 average of `zero_error` and `one_error`.
 
 
-### Single qubit randomized benchmark error:
+### Single qubit randomized benchmark error
+
 *   Metric key: sq_rb_pauli_error
 
 Single qubit gate error is estimated using randomized benchmarking by taking
@@ -90,10 +92,11 @@ the error rate. These single-qubit errors are measured in parallel across the
 qubits.
 
 More information about randomized benchmarking can be found in section 6.3
-(page 120) of this
-[thesis](https://web.physics.ucsb.edu/~martinisgroup/theses/Chen2018.pdf).
+(page 120) of
+[Chen's doctoral thesis](https://web.physics.ucsb.edu/~martinisgroup/theses/Chen2018.pdf).
 
 ### Two-qubit XEB error
+
 *   Metric key: cz_inferred_gate_error_pauli
 
 Two qubit error is primarily characterized by applying cross-entropy 
@@ -101,7 +104,7 @@ benchmarking (XEB).  This procedure repeatedly performs a "cycle" of a random
 one-qubit gate on each qubit followed by the two qubit entangling gate. The 
 resulting distribution is analyzed and compared to the expected distribution 
 using cross entropy.  See 
-[this](https://quantumai.google/cirq/noise/qcvv/xeb_theory) page for more 
+[the explanation of XEB](https://quantumai.google/cirq/noise/qcvv/xeb_theory) for more 
 details. The decay constant as the legnth of the sequence is increased gives 
 the cycle error rate, which includes contributions from both single- and 
 two-qubit gates. The contribution from single-qubit gates (characterized using 
@@ -124,40 +127,40 @@ this experiment on their own if they have a specific layout commonly used in
 their experiment.
 
 ## Plotting
+
 Several tools exist for plotting error metrics and comparing against those 
 reported in the
 [spec sheet](https://quantumai.google/static/site-assets/downloads/willow-spec-sheet.pdf)
 (after converting them to Pauli errors for consistency). For example, one 
 can plot an individual metric:
-```python
 calibration.plot('sq_rb_pauli_error')
 ```
 
 or one can plot several metrics together in a histogram:
-```python
 calibration.plot_histograms(['sq_rb_pauli_error', 'cz_inferred_gate_error_pauli', 'readout'])
 ```
 
 ## Historical calibration metrics
+
 Historical metrics can be retrieved by loading the appropriate config. For 
 example, to find the metrics corresponding to a job that you ran, you can do:
-```python
 job = engine.get_program(PROGRAM_ID).get_job(JOB_ID)
 config = job.get_config()
 calibration = config.calibration
 ```
+
 Every `config` also has a snapshot ID, `config.snapshot_id`, which shows when 
 the calibration was performed (in UTC) and uniquely specifies that calibration. 
 A `config` can be loaded from a snapshot ID using
-```python
 processor = engine.get_processor(PROCESSOR_ID)
 config = processor.get_config(device_config_revision = cg.Snapshot(SNAPSHOT_ID))
 ```
+
 A given snapshot ID may have multiple configs (multiple choices of calibration 
 parameters, possibly corresponding to different gatesets. One is set as the 
 default, which is what is retrieved above. To list them, you can do
-```python
 processor.list_configs()
 ```
+
 and you can load non-default configs by specifying the config name in 
 `processor.get_config(...)`.

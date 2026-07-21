@@ -125,10 +125,11 @@ device specifications.
 ## Calibration Metrics
 
 Metrics from the current status of the device can be retrieved using
-```python
 engine.get_processor(processor_id=PROCESSOR_ID).config().calibration
 ```
-This will return a Python dictionary where each key is the metric name.  The
+
+This will return a Python dictionary where each key is the name of
+a metric.  The
 value of the dictionary will be the value of the metric, which can also be
 a dictionary.
 
