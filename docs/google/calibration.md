@@ -15,24 +15,12 @@ of the metric.  Note that the value of the metric is also usually a dictionary
 
 Calibration metrics can be retrieved through Quantum Engine's Python API.
 
-<!---test_substitution
-engine = cg.Engine\(project_id=.*
-\g<0>
-engine = mock.create_autospec(cirq_google.Engine, instance=True)
-mock_engine_processor = mock.create_autospec(cirq_google.EngineProcessor, 
-instance=True)
-engine.configure_mock(**{"get_processor.return_value": mock_engine_processor})
---->
-<!---test_substitution
-PROJECT_ID|PROGRAM_ID|PROCESSOR_ID|CALIBRATION_SECONDS|START_SECONDS|END_SECONDS
-|JOB_ID
-'placeholder'
---->
 ```python
 import cirq_google as cg
 
 # Create an Engine object to use.
-# Replace PROJECT_ID with the id from your cloud project.
+PROJECT_ID = "replace_with_your_project" # Replace with your your Cloud project id.
+PROCESSOR_ID = "repace_with_the_processor_to_inspect" # Replace this too.
 engine = cg.get_engine(PROJECT_ID)
 processor = engine.get_processor(processor_id=PROCESSOR_ID)
 config = processor.get_config() # or get a non-default config
