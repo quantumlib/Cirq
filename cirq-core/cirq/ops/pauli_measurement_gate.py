@@ -59,7 +59,7 @@ class PauliMeasurementGate(raw_types.Gate):
                 for the measurement qubit.
 
         Raises:
-            ValueError: If the observable is empty
+            ValueError: If the observable is empty.
         """
         if not observable:
             raise ValueError(f'Pauli observable {observable} is empty.')
@@ -154,13 +154,16 @@ class PauliMeasurementGate(raw_types.Gate):
         any_qubit = qubits[0]
         to_z_ops = op_tree.freeze_op_tree(self._observable.on(*qubits).to_z_basis_ops())
         xor_decomp = tuple(pauli_string_phasor.xor_nonlocal_decompose(qubits, any_qubit))
-        cmap: dict[tuple[int, ...], np.ndarray] | None = None
+        confusion_map: dict[tuple[int, ...], np.ndarray] | None = None
         if self.confusion_matrix is not None:
-            cmap = {(0,): self.confusion_matrix}
+            confusion_map = {(0,): self.confusion_matrix}
         yield to_z_ops
         yield xor_decomp
         yield measurement_gate.MeasurementGate(
-            1, self.mkey, invert_mask=(self._observable.coefficient != 1,), confusion_map=cmap
+            1,
+            self.mkey,
+            invert_mask=(self._observable.coefficient != 1,),
+            confusion_map=confusion_map,
         ).on(any_qubit)
         yield protocols.inverse(xor_decomp)
         yield protocols.inverse(to_z_ops)
@@ -198,11 +201,7 @@ class PauliMeasurementGate(raw_types.Gate):
         return f'cirq.PauliMeasurementGate({", ".join(args)})'
 
     def _value_equality_values_(self) -> Any:
-        hashable_mat = (
-            None
-            if self.confusion_matrix is None
-            else tuple(v for _, v in np.ndenumerate(self.confusion_matrix))
-        )
+        hashable_mat = None if self.confusion_matrix is None else tuple(self.confusion_matrix.flat)
         return self.key, self._observable, hashable_mat
 
     def _json_dict_(self) -> dict[str, Any]:

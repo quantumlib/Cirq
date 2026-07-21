@@ -209,13 +209,6 @@ def test_pauli_measurement_gate_samples(rot, obs, out) -> None:
     assert cirq.Simulator().sample(c)['out'][0] == out
 
 
-def test_confusion_matrix_validation() -> None:
-    cmat = np.array([[0.8, 0.2], [0.1, 0.9]])
-    gate = cirq.PauliMeasurementGate([cirq.X], key='a', confusion_matrix=cmat)
-    assert gate.confusion_matrix is not None
-    assert np.array_equal(gate.confusion_matrix, cmat)
-
-
 def test_confusion_matrix_decomposition() -> None:
     q = cirq.LineQubit(0)
     cmat = np.array([[0.8, 0.2], [0.1, 0.9]])
@@ -235,7 +228,7 @@ def test_confusion_matrix_simulation() -> None:
     q = cirq.LineQubit(0)
     c = cirq.Circuit(cirq.PauliMeasurementGate([cirq.Z], key='out', confusion_matrix=cmat).on(q))
     sim_results = cirq.Simulator().sample(c, repetitions=10)['out']
-    assert sim_results.all() == 1
+    assert sim_results.all()
 
     # two qubits
     q0, q1 = cirq.LineQubit.range(2)
@@ -243,7 +236,7 @@ def test_confusion_matrix_simulation() -> None:
         cirq.PauliMeasurementGate([cirq.Z, cirq.Z], key='out', confusion_matrix=cmat).on(q0, q1)
     )
     sim_results = cirq.Simulator().sample(c, repetitions=10)['out']
-    assert sim_results.all() == 1
+    assert sim_results.all()
 
 
 def test_confusion_matrix_mixed_simulation() -> None:

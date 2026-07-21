@@ -45,7 +45,7 @@ def measure_single_paulistring(
             If none provided, it defaults to a comma-separated list of
             `str(qubit)` for each of the target qubits.
         confusion_matrix: A 2x2 numpy array representing the confusion matrix
-            for the measurement qubit.
+            for the measured observable.
 
     Returns:
         An operation measuring the pauli observable.

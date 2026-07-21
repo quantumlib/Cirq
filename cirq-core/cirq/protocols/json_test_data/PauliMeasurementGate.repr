@@ -4,4 +4,3 @@
     cirq.PauliMeasurementGate(cirq.DensePauliString("XYZ", coefficient=-1), cirq.MeasurementKey(name='key')),
     cirq.PauliMeasurementGate(cirq.DensePauliString("XYZ"), cirq.MeasurementKey(name='key'), confusion_matrix=np.array([[0.8, 0.2], [0.1, 0.9]])),
 ]
-
