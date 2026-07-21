@@ -42,9 +42,7 @@ print(list(calibration.keys()))
 ```
 
 We typically report Pauli errors, although note that the
-[spec 
-sheet](https://quantumai.google/static/site-assets/downloads/willow-spec-sheet.p
-df)
+[spec sheet](https://quantumai.google/static/site-assets/downloads/willow-spec-sheet.pdf)
 reports average errors. Please see Table 1 on page 11 of the
 [Supplementary Information](https://arxiv.org/abs/1910.11333)
 document for a description and comparison between average error, Pauli error,
@@ -68,8 +66,7 @@ Caution: the names of the metrics below are subject to change without notice.
 by preparing the qubits simultaneously in random bitstring states, measuring,
 and checking what fraction of the time the wrong outcome was measured,
 conditioned on the prepared initial state. This is also implemented in
-[`cirq.estimate_parallel_single_qubit_readout_errors`](https://quantumai.google/
-reference/python/cirq/estimate_parallel_single_qubit_readout_errors).
+[`cirq.estimate_parallel_single_qubit_readout_errors`](https://quantumai.google/reference/python/cirq/estimate_parallel_single_qubit_readout_errors).
 
 The plotting functions `calibration.plot()` and `calibration.plot_histograms`
 can take `readout` as an input, in which case they will plot the qubit-wise
@@ -128,39 +125,54 @@ their experiment.
 
 ## Plotting
 
-Several tools exist for plotting error metrics and comparing against those 
-reported in the
-[spec sheet](https://quantumai.google/static/site-assets/downloads/willow-spec-sheet.pdf)
-(after converting them to Pauli errors for consistency). For example, one 
-can plot an individual metric:
+Several tools exist for plotting error metrics and comparing against those
+reported in the [spec sheet](
+https://quantumai.google/static/site-assets/downloads/willow-spec-sheet.pdf)
+(after converting them to Pauli errors for consistency). For example, one
+can plot an individual metric,
+
+```python
 calibration.plot('sq_rb_pauli_error')
 ```
 
 or one can plot several metrics together in a histogram:
-calibration.plot_histograms(['sq_rb_pauli_error', 'cz_inferred_gate_error_pauli', 'readout'])
+
+```python
+calibration.plot_histograms([
+    'sq_rb_pauli_error',
+    'cz_inferred_gate_error_pauli',
+    'readout',
+])
 ```
 
 ## Historical calibration metrics
 
-Historical metrics can be retrieved by loading the appropriate config. For 
+Historical metrics can be retrieved by loading the appropriate config. For
 example, to find the metrics corresponding to a job that you ran, you can do:
+
+```python
 job = engine.get_program(PROGRAM_ID).get_job(JOB_ID)
 config = job.get_config()
 calibration = config.calibration
 ```
 
-Every `config` also has a snapshot ID, `config.snapshot_id`, which shows when 
-the calibration was performed (in UTC) and uniquely specifies that calibration. 
-A `config` can be loaded from a snapshot ID using
+Every `config` also has a snapshot ID, `config.snapshot_id`, which shows when
+the calibration was performed (using the UTC time zone) and uniquely specifies
+that calibration. A `config` can be loaded from a snapshot ID using this code:
+
+```python
 processor = engine.get_processor(PROCESSOR_ID)
 config = processor.get_config(device_config_revision = cg.Snapshot(SNAPSHOT_ID))
 ```
 
-A given snapshot ID may have multiple configs (multiple choices of calibration 
-parameters, possibly corresponding to different gatesets. One is set as the 
-default, which is what is retrieved above. To list them, you can do
+A given snapshot ID may have multiple configs (multiple choices of calibration
+parameters, possibly corresponding to different gatesets). One is used as the
+default, which is the one retrieved by the code above. To list the configs, you
+can use the following:
+
+```python
 processor.list_configs()
 ```
 
-and you can load non-default configs by specifying the config name in 
+You can load non-default configs by specifying the config name in
 `processor.get_config(...)`.
