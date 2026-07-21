@@ -30,10 +30,8 @@ PROJECT_ID|PROGRAM_ID|PROCESSOR_ID|CALIBRATION_SECONDS|START_SECONDS|END_SECONDS
 import cirq_google as cg
 
 # Create an Engine object to use.
-PROJECT_ID = "replace_this" # Replace with your your Cloud project id.
-PROCESSOR_ID = "replace_this_too" # Replace this with the processor id.
-engine = cg.get_engine(PROJECT_ID)
-processor = engine.get_processor(processor_id=PROCESSOR_ID)
+engine = cg.get_engine(PROJECT_ID) # Replace with your your Cloud project id.
+processor = engine.get_processor(processor_id=PROCESSOR_ID) # replace this
 config = processor.get_config() # or get a non-default config
 
 # Get the latest calibration metrics.
