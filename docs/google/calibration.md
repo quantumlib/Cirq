@@ -23,7 +23,7 @@ mock_engine_processor = mock.create_autospec(cirq_google.EngineProcessor, instan
 engine.configure_mock(**{"get_processor.return_value": mock_engine_processor})
 --->
 <!---test_substitution
-PROJECT_ID|PROCESSOR_ID|SNAPSHOT_ID
+PROJECT_ID|PROGRAM_ID|PROCESSOR_ID|JOB_ID|SNAPSHOT_ID
 'placeholder'
 --->
 ```python
