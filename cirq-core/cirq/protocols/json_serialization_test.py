@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import contextlib
 import dataclasses
 import datetime
@@ -80,7 +82,7 @@ def test_deprecated_cirq_type_in_json_dict() -> None:
         def __eq__(self, other):
             return isinstance(other, HasOldJsonDict)  # pragma: no cover
 
-        def _json_dict_(self):
+        def _json_dict_(self) -> dict[str, Any]:
             return {'cirq_type': 'test.noncirq.namespace.HasOldJsonDict'}
 
         @classmethod
@@ -373,7 +375,7 @@ class SBKImpl(cirq.SerializableByKey):
             (self.name, tuple(self.data_list), self.data_tuple, frozenset(self.data_dict.items()))
         )
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             "name": self.name,
             "data_list": self.data_list,
@@ -518,7 +520,7 @@ def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: st
 class SerializableTypeObject:
     test_type: type
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return {'test_type': json_serialization.json_cirq_type(self.test_type)}
 
     @classmethod
@@ -732,7 +734,7 @@ def test_dataclass_json_dict() -> None:
         q: cirq.LineQubit
         desc: str
 
-        def _json_dict_(self):
+        def _json_dict_(self) -> dict[str, Any]:
             return cirq.dataclass_json_dict(self)
 
     def custom_resolver(name):

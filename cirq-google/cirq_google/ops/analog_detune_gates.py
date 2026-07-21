@@ -170,7 +170,7 @@ class AnalogDetuneQubit(cirq.ops.Gate):
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> str:
         return f"AnalogDetune(freq={self.target_freq})"
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(
             self,
             [
@@ -345,7 +345,7 @@ class AnalogDetuneCouplerOnly(cirq.ops.Gate):
             self.analog_cal_for_pulseshaping,
         )
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(
             self,
             [

@@ -13,6 +13,10 @@
 # limitations under the License.
 
 
+from __future__ import annotations
+
+from typing import Any
+
 import cirq
 
 
@@ -43,7 +47,7 @@ class LZSResetViaResonator(cirq.Gate):
     def _decompose_(self, qubits):
         return cirq.reset_each(*qubits)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return {}
 
     def __repr__(self) -> str:

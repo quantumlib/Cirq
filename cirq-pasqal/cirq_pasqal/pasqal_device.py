@@ -157,7 +157,7 @@ class PasqalDevice(cirq.devices.Device):
     def _value_equality_values_(self):
         return self.qubits
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.protocols.obj_to_dict_helper(self, ['qubits'])
 
 

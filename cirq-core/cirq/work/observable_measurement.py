@@ -115,7 +115,7 @@ class VarianceStoppingCriteria(StoppingCriteria):
             return 0
         return self.repetitions_per_chunk
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.dataclass_json_dict(self)
 
 
@@ -135,7 +135,7 @@ class RepetitionsStoppingCriteria(StoppingCriteria):
         to_do_next = min(self.repetitions_per_chunk, todo)
         return to_do_next
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.dataclass_json_dict(self)
 
 
