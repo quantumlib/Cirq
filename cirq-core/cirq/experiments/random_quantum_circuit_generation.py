@@ -292,7 +292,7 @@ class CircuitLibraryCombination:
 
     `layer` is used for record-keeping. This is the GridInteractionLayer if using
     `get_random_combinations_for_device`, the Moment if using
-    `get_random_combinations_for_layer_circuit` and ommitted if using
+    `get_random_combinations_for_layer_circuit` and omitted if using
     `get_random_combinations_for_pairs`.
     """
 

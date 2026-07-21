@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Metadata subtype for 2D Homogenous devices."""
+"""Metadata subtype for 2D Homogeneous devices."""
 
 from __future__ import annotations
 
@@ -41,7 +41,7 @@ document(
 
 @value.value_equality
 class GridDeviceMetadata(device.DeviceMetadata):
-    """Hardware metadata for homogenous 2d symmetric grid devices."""
+    """Hardware metadata for homogeneous 2d symmetric grid devices."""
 
     def __init__(
         self,

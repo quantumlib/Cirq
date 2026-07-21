@@ -52,7 +52,7 @@ def _decompose_abc(matrix: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarr
     """
     assert matrix.shape == (2, 2)
     with np.errstate(divide="ignore", invalid="ignore"):
-        # On MacOS, np.linalg.det emits superflous warnings
+        # On MacOS, np.linalg.det emits superfluous warnings
         delta = np.angle(np.linalg.det(matrix)) * 0.5
     alpha = np.angle(matrix[0, 0]) + np.angle(matrix[0, 1]) - 2 * delta
     beta = np.angle(matrix[0, 0]) - np.angle(matrix[0, 1])
@@ -101,7 +101,7 @@ def _ccnot_congruent(c0: cirq.Qid, c1: cirq.Qid, target: cirq.Qid) -> list[cirq.
     """Implements 3-qubit gate 'congruent' to CCNOT.
 
     Returns sequence of operations which is equivalent to applying
-    CCNOT(c0, c1, target) and multiplying phase of |101> sate by -1.
+    CCNOT(c0, c1, target) and multiplying phase of |101> state by -1.
     See lemma 6.2 in [1]."""
     return [
         ops.ry(-np.pi / 4).on(target),
@@ -121,7 +121,7 @@ def decompose_multi_controlled_x(
 
     Result is guaranteed to consist exclusively of 1-qubit, CNOT and CCNOT
     gates.
-    If `free_qubits` has at least 1 element, result has lengts
+    If `free_qubits` has at least 1 element, result has lengths
     O(len(controls)).
 
     Args:

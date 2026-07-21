@@ -118,7 +118,7 @@ def test_qpu_result_to_cirq_result():
     # cirq.Result only compares pandas data frame, so possible to have supplied an list of
     # list instead of a numpy multidimensional array. Check this here.
     assert type(result.to_cirq_result().measurements['x']) == np.ndarray
-    # Results bitstreams need to be consistent betwween measurement keys
+    # Results bitstreams need to be consistent between measurement keys
     # Ordering is by bitvector, so 0b01 0b01 0b10 should be the ordering for all measurement dicts.
     result = ionq.QPUResult(
         {0b10: 1, 0b01: 2}, num_qubits=2, measurement_dict={'x': [0, 1], 'y': [0], 'z': [1]}

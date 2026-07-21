@@ -94,7 +94,7 @@ def test_as_sweep_multi_pre_or_multi_post() -> None:
 
 
 def test_as_sweep_invalid_gauge_sequence() -> None:
-    transfomer = GaugeTransformer(
+    transformer = GaugeTransformer(
         target=cirq.CZ,
         gauge_selector=GaugeSelector(
             gauges=[
@@ -111,7 +111,7 @@ def test_as_sweep_invalid_gauge_sequence() -> None:
     qs = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.CZ(*qs))
     with pytest.raises(ValueError, match="Invalid gate sequence to be converted to PhasedXZGate."):
-        transfomer.as_sweep(c, N=1)
+        transformer.as_sweep(c, N=1)
 
 
 def test_as_sweep_convert_to_phxz_failed() -> None:
