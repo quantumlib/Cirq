@@ -129,3 +129,24 @@ or one can plot several metrics together in a histogram:
 ```python
 calibration.plot_histograms(['sq_rb_pauli_error', 'cz_inferred_gate_error_pauli', 'readout'])
 ```
+
+## Historical calibration metrics
+Historical metrics can be retrieved by loading the appropriate config. For example, to find
+the metrics corresponding to a job that you ran, you can do:
+```python
+job = engine.get_program(PROGRAM_ID).get_job(JOB_ID)
+config = job.get_config()
+calibration = config.calibration
+```
+Every `config` also has a snapshot ID, `config.snapshot_id`, which shows when the calibration was performed
+(in UTC) and uniquely specifies that calibration. A `config` can be loaded from a snapshot ID using
+```python
+processor = engine.get_processor(PROCESSOR_ID)
+config = processor.get_config(device_config_revision = cg.Snapshot(SNAPSHOT_ID))
+```
+A given snapshot ID may have multiple configs (multiple choices of calibration parameters, possibly corresponding
+to different gatesets. One is set as the default, which is what is retrieved above. To list them, you can do
+```python
+processor.list_configs()
+```
+and you can load non-default configs by specifying the config name in `processor.get_config(...)`.
