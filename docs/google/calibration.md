@@ -19,11 +19,13 @@ Calibration metrics can be retrieved through Quantum Engine's Python API.
 engine = cg.Engine\(project_id=.*
 \g<0>
 engine = mock.create_autospec(cirq_google.Engine, instance=True)
-mock_engine_processor = mock.create_autospec(cirq_google.EngineProcessor, instance=True)
+mock_engine_processor = mock.create_autospec(cirq_google.EngineProcessor, 
+instance=True)
 engine.configure_mock(**{"get_processor.return_value": mock_engine_processor})
 --->
 <!---test_substitution
-PROJECT_ID|PROGRAM_ID|PROCESSOR_ID|CALIBRATION_SECONDS|START_SECONDS|END_SECONDS|JOB_ID
+PROJECT_ID|PROGRAM_ID|PROCESSOR_ID|CALIBRATION_SECONDS|START_SECONDS|END_SECONDS
+|JOB_ID
 'placeholder'
 --->
 ```python
@@ -43,7 +45,9 @@ print(list(calibration.keys()))
 ```
 
 We typically report Pauli errors, although note that the
-[spec sheet](https://quantumai.google/static/site-assets/downloads/willow-spec-sheet.pdf)
+[spec 
+sheet](https://quantumai.google/static/site-assets/downloads/willow-spec-sheet.p
+df)
 reports average errors. Please see Table 1 on page 11 of the
 [Supplementary Information](https://arxiv.org/abs/1910.11333)
 document for a description and comparison between average error, Pauli error,
@@ -66,7 +70,8 @@ indicate the statistical uncertainty of the corresponding metric.
 by preparing the qubits simultaneously in random bitstring states, measuring,
 and checking what fraction of the time the wrong outcome was measured,
 conditioned on the prepared initial state. This is also implemented in
-[`cirq.estimate_parallel_single_qubit_readout_errors`](https://quantumai.google/reference/python/cirq/estimate_parallel_single_qubit_readout_errors).
+[`cirq.estimate_parallel_single_qubit_readout_errors`](https://quantumai.google/
+reference/python/cirq/estimate_parallel_single_qubit_readout_errors).
 
 The plotting functions `calibration.plot()` and `calibration.plot_histograms`
 can take `readout` as an input, in which case they will plot the qubit-wise
@@ -77,7 +82,8 @@ average of `zero_error` and `one_error`.
 *   Metric key: sq_rb_pauli_error
 
 Single qubit gate error is estimated using randomized benchmarking by taking
-sequences of varying length of the 24 gates within the single-qubit Clifford group
+sequences of varying length of the 24 gates within the single-qubit Clifford 
+group
 (those that preserve the Pauli group under conjugation) then
 applying the inverse of the unitary equivalent to the executed gate sequence.
 The result of the total sequence should always be the identity (|0⟩ state).
@@ -93,34 +99,39 @@ More information about randomized benchmarking can be found in section 6.3
 ### Two-qubit XEB error
 *   Metric key: cz_inferred_gate_error_pauli
 
-Two qubit error is primarily characterized by applying cross-entropy
-benchmarking (XEB).  This procedure repeatedly performs a "cycle" of a
-random one-qubit gate on each qubit followed by the two qubit entangling gate.
-The resulting distribution is analyzed and compared to the expected distribution
-using cross entropy. 
-See [this](https://quantumai.google/cirq/noise/qcvv/xeb_theory) page for more details.
-The decay constant as the legnth of the sequence is increased gives the cycle error
-rate, which includes contributions from both single- and two-qubit gates. The
-contribution from single-qubit gates (characterized using randomized benchmarking)
-is subtracted off to give the inferred two-qubit error rate.
+Two qubit error is primarily characterized by applying cross-entropy 
+benchmarking (XEB).  This procedure repeatedly performs a "cycle" of a random 
+one-qubit gate on each qubit followed by the two qubit entangling gate. The 
+resulting distribution is analyzed and compared to the expected distribution 
+using cross entropy.  See 
+[this](https://quantumai.google/cirq/noise/qcvv/xeb_theory) page for more 
+details. The decay constant as the legnth of the sequence is increased gives 
+the cycle error rate, which includes contributions from both single- and 
+two-qubit gates. The contribution from single-qubit gates (characterized using 
+randomized benchmarking) is subtracted off to give the inferred two-qubit error 
+rate.
 
-When we measure XEB, we typically reoptimize the single-qubit phases (`zeta`, `chi`, and `gamma`
-in a [`cirq.PhasedFSimGate`](https://quantumai.google/reference/python/cirq/PhasedFSimGate))
-in the simulated version of the gate in order to maximize the XEB fidelity with the experimental data.
-This procedure reoptimizes these single-qubit phases, which are then cancelled using z rotations
-(which are done virtually for CZ and cphase gates). Therefore, XEB is actually a calibration in
-addition to a benchmark. These phases drift, and running XEB periodically is important to correct
-for that.
+When we measure XEB, we typically reoptimize the single-qubit phases (`zeta`, 
+`chi`, and `gamma` in a 
+[`cirq.PhasedFSimGate`](https://quantumai.google/reference/python/cirq/PhasedFSimGate))
+in the simulated version of the gate in order to maximize the XEB 
+fidelity with the experimental data. This procedure reoptimizes these 
+single-qubit phases, which are then cancelled using z rotations (which are done 
+virtually for CZ and cphase gates). Therefore, XEB is actually a calibration in 
+addition to a benchmark. These phases drift, and running XEB periodically is 
+important to correct for that.
 
-Since there are many different possible layouts of parallel two-qubit gates
-and each layout may have different cross-talk effects, users may want to perform
-this experiment on their own if they have a specific layout commonly used in
+Since there are many different possible layouts of parallel two-qubit gates and 
+each layout may have different cross-talk effects, users may want to perform 
+this experiment on their own if they have a specific layout commonly used in 
 their experiment.
 
 ## Plotting
-Several tools exist for plotting error metrics and comparing against those reported in the
+Several tools exist for plotting error metrics and comparing against those 
+reported in the
 [spec sheet](https://quantumai.google/static/site-assets/downloads/willow-spec-sheet.pdf)
-(after converting them to Pauli errors for consistency). For example, one can plot an individual metric:
+(after converting them to Pauli errors for consistency). For example, one 
+can plot an individual metric:
 ```python
 calibration.plot('sq_rb_pauli_error')
 ```
@@ -131,22 +142,25 @@ calibration.plot_histograms(['sq_rb_pauli_error', 'cz_inferred_gate_error_pauli'
 ```
 
 ## Historical calibration metrics
-Historical metrics can be retrieved by loading the appropriate config. For example, to find
-the metrics corresponding to a job that you ran, you can do:
+Historical metrics can be retrieved by loading the appropriate config. For 
+example, to find the metrics corresponding to a job that you ran, you can do:
 ```python
 job = engine.get_program(PROGRAM_ID).get_job(JOB_ID)
 config = job.get_config()
 calibration = config.calibration
 ```
-Every `config` also has a snapshot ID, `config.snapshot_id`, which shows when the calibration was performed
-(in UTC) and uniquely specifies that calibration. A `config` can be loaded from a snapshot ID using
+Every `config` also has a snapshot ID, `config.snapshot_id`, which shows when 
+the calibration was performed (in UTC) and uniquely specifies that calibration. 
+A `config` can be loaded from a snapshot ID using
 ```python
 processor = engine.get_processor(PROCESSOR_ID)
 config = processor.get_config(device_config_revision = cg.Snapshot(SNAPSHOT_ID))
 ```
-A given snapshot ID may have multiple configs (multiple choices of calibration parameters, possibly corresponding
-to different gatesets. One is set as the default, which is what is retrieved above. To list them, you can do
+A given snapshot ID may have multiple configs (multiple choices of calibration 
+parameters, possibly corresponding to different gatesets. One is set as the 
+default, which is what is retrieved above. To list them, you can do
 ```python
 processor.list_configs()
 ```
-and you can load non-default configs by specifying the config name in `processor.get_config(...)`.
+and you can load non-default configs by specifying the config name in 
+`processor.get_config(...)`.
