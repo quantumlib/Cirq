@@ -171,7 +171,9 @@ class TwoQubitGateSymbolizer:
         return self.symbolizer_fn(two_qubit_gate, symbols)
 
 
-def _select(choices: Sequence[Gauge], probabilities: np.ndarray, prng: np.random.Generator) -> Gauge:
+def _select(
+    choices: Sequence[Gauge], probabilities: np.ndarray, prng: np.random.Generator
+) -> Gauge:
     return choices[prng.choice(len(choices), p=probabilities)]
 
 
