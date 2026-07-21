@@ -249,7 +249,7 @@ def _cpmg_circuit(qubit: cirq.Qid, delay_var: sympy.Symbol, max_pulses: int) -> 
 
     with max_pulses number of X gates.
 
-    The X gates are paramterizd by 'pulse_N' symbols so that pulses can be
+    The X gates are parameterized by 'pulse_N' symbols so that pulses can be
     turned on and off.  This is done to combine circuits with different pulses
     into the same parameterized circuit.
     """

@@ -297,7 +297,7 @@ message AnalogDetuneCouplerOnly{
   Arg g_ramp_exponent = 5;
   // Two frequencies of the neighbor qubits at the moment.
   repeated Arg neighbor_qubits_freq = 6;
-  // Two frequencies of the neighbor qubits at preivous moment.
+  // Two frequencies of the neighbor qubits at previous moment.
   repeated Arg prev_neighbor_qubits_freq =7;
   bool interpolate_coupling_cal = 8;
   bool analog_cal_for_pulseshaping = 9;
