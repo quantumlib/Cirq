@@ -471,7 +471,7 @@ class Engine(abstract_engine.AbstractEngine):
         description: str | None = None,
         labels: dict[str, str] | None = None,
     ) -> engine_program.EngineProgram:
-        """Wraps a Circuit for use with the Quantum Engine.
+        """Wraps a circuit or batch of circuits for use with the Quantum Engine.
 
         Args:
             program: The circuit or circuits to execute.
