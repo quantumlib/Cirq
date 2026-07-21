@@ -105,6 +105,7 @@ class Service:
         metadata: dict | None = None,
         dry_run: bool = False,
         sharpen: bool | None = None,
+        memory: bool = False,
         extra_query_params: dict | None = None,
     ) -> cirq.Result:
         """Run the given circuit on the IonQ API.
@@ -134,6 +135,9 @@ class Service:
                 If True, apply majority vote mitigation; if False, apply average mitigation.
                 See:
                 `Debiasing and Sharpening <https://ionq.com/resources/debiasing-and-sharpening>`
+            memory: A boolean that determines whether to retrieve per shot results for the job
+                from IonQ servers, default is False. When False, shots will be generated locally
+                by sampling the retrieved probability distribution.
             noise (dict): {"model": str (required), "seed": int (optional)}. Defaults to None.
             Available noise models: ideal, aria-1, aria-2, forte-1, forte-enterprise-1
             dry_run: If True, the job will be submitted by the API client but not processed
@@ -155,6 +159,7 @@ class Service:
             noise=noise,
             metadata=metadata,
             dry_run=dry_run,
+            memory=memory,
             extra_query_params=extra_query_params,
         ).results(sharpen=sharpen)
         result = job_results[0] if isinstance(job_results, list) else job_results
@@ -178,6 +183,7 @@ class Service:
         metadata: dict | None = None,
         dry_run: bool = False,
         sharpen: bool | None = None,
+        memory: bool = False,
         extra_query_params: dict | None = None,
     ) -> list[cirq.Result]:
         """Run the given circuits on the IonQ API.
@@ -211,6 +217,9 @@ class Service:
             dry_run: If True, the job will be submitted by the API client but not processed
                 remotely. Useful for obtaining cost estimates. Defaults to False.
             metadata (dict): optional metadata to attach to the job. Defaults to None.
+            memory: A boolean that determines whether to retrieve per shot results for the job
+                from IonQ servers, default is False. When False, shots will be generated locally
+                by sampling the retrieved probability distribution.
             extra_query_params: Specify any parameters to include in the request.
 
         Returns:
@@ -230,6 +239,7 @@ class Service:
             noise=noise,
             metadata=metadata,
             dry_run=dry_run,
+            memory=memory,
             extra_query_params=extra_query_params,
         ).results(sharpen=sharpen)
 
@@ -274,6 +284,7 @@ class Service:
         noise: dict | None = None,
         metadata: dict | None = None,
         dry_run: bool = False,
+        memory: bool = False,
         extra_query_params: dict | None = None,
     ) -> job.Job:
         """Create a new job to run the given circuit.
@@ -303,6 +314,9 @@ class Service:
             dry_run: If True, the job will be submitted by the API client but not processed
                 remotely. Useful for obtaining cost estimates. Defaults to False.
             metadata (dict): optional metadata to attach to the job. Defaults to None.
+            memory: A boolean that determines whether to retrieve per shot results for the job
+                from IonQ servers, default is False. When False, shots will be generated locally
+                by sampling the retrieved probability distribution.
             extra_query_params: Specify any parameters to include in the request.
 
         Returns:
@@ -329,7 +343,7 @@ class Service:
         )
         # The returned job does not have fully populated fields, so make
         # a second call and return the results of the fully filled out job.
-        return self.get_job(result['id'])
+        return self.get_job(result['id'], memory=memory)
 
     def create_batch_job(
         self,
@@ -342,6 +356,7 @@ class Service:
         noise: dict | None = None,
         metadata: dict | None = None,
         dry_run: bool = False,
+        memory: bool = False,
         extra_query_params: dict | None = None,
     ) -> job.Job:
         """Create a new job to run the given circuit.
@@ -371,6 +386,9 @@ class Service:
             dry_run: If True, the job will be submitted by the API client but not processed
                 remotely. Useful for obtaining cost estimates. Defaults to False.
             metadata (dict): optional metadata to attach to the job. Defaults to None.
+            memory: A boolean that determines whether to retrieve per shot results for the job
+                from IonQ servers, default is False. When False, shots will be generated locally
+                by sampling the retrieved probability distribution.
             extra_query_params: Specify any parameters to include in the request.
 
         Returns:
@@ -398,14 +416,16 @@ class Service:
         )
         # The returned job does not have fully populated fields, so make
         # a second call and return the results of the fully filled out job.
-        return self.get_job(result['id'])
+        return self.get_job(result['id'], memory=memory)
 
-    def get_job(self, job_id: str) -> job.Job:
+    def get_job(self, job_id: str, memory: bool = False) -> job.Job:
         """Gets a job that has been created on the IonQ API.
 
         Args:
             job_id: The UUID of the job. Jobs are assigned these numbers by the
-            server during the creation of the job.
+                server during the creation of the job.
+            memory: A boolean that determines whether to retrieve per shot results
+                for the job from IonQ servers, default is False.
 
         Returns:
             A `cirq_ionq.IonQJob` which can be queried for status or results.
@@ -415,7 +435,7 @@ class Service:
             IonQException: If there was an error accessing the API.
         """
         job_dict = self._client.get_job(job_id=job_id)
-        return job.Job(client=self._client, job_dict=job_dict)
+        return job.Job(client=self._client, job_dict=job_dict, memory=memory)
 
     def list_jobs(
         self, status: str | None = None, limit: int = 100, batch_size: int = 1000

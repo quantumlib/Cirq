@@ -24,11 +24,20 @@ import numpy as np
 import cirq
 
 
+def _memory_bits_for_targets(value: int, num_qubits: int, targets: Sequence[int]) -> list[int]:
+    shot_bits = list(cirq.big_endian_int_to_bits(value, bit_count=num_qubits))[::-1]
+    return [shot_bits[target] for target in targets]
+
+
 class QPUResult:
     """The results of running on an IonQ QPU."""
 
     def __init__(
-        self, counts: dict[int, int], num_qubits: int, measurement_dict: dict[str, Sequence[int]]
+        self,
+        counts: dict[int, int],
+        num_qubits: int,
+        measurement_dict: dict[str, Sequence[int]],
+        memory_results: list[str] | None = None,
     ):
         # We require a consistent ordering, and here we use bitvector as such.
         # OrderedDict can be removed in python 3.7, where it is part of the contract.
@@ -36,6 +45,7 @@ class QPUResult:
         self._num_qubits = num_qubits
         self._measurement_dict = measurement_dict
         self._repetitions = sum(self._counts.values())
+        self._memory_results = memory_results
 
     def num_qubits(self) -> int:
         """Returns the number of qubits the circuit was run on."""
@@ -64,8 +74,8 @@ class QPUResult:
 
         if key is not None and not key in self._measurement_dict:
             raise ValueError(
-                f'Measurement key {key} is not a key for a measurement gate in the'
-                'circuit that produced these results.'
+                f"Measurement key {key} is not a key for a measurement gate in the"
+                "circuit that produced these results."
             )
         targets = self._measurement_dict[key] if key is not None else range(self.num_qubits())
         result: list[int] = []
@@ -99,8 +109,8 @@ class QPUResult:
             return collections.Counter(self._counts)
         if not key in self._measurement_dict:
             raise ValueError(
-                f'Measurement key {key} is not a key for a measurement gate in the'
-                'circuit that produced these results.'
+                f"Measurement key {key} is not a key for a measurement gate in the"
+                "circuit that produced these results."
             )
         result: Counter[int] = collections.Counter()
         result.update(self.ordered_results(key))
@@ -132,21 +142,32 @@ class QPUResult:
         """
         if len(self.measurement_dict()) == 0:
             raise ValueError(
-                'Can convert to cirq results only if the circuit had measurement gates '
-                'with measurement keys.'
+                "Can convert to cirq results only if the circuit had measurement gates "
+                "with measurement keys."
             )
+
         measurements = {}
-        for key, targets in self.measurement_dict().items():
-            qpu_results = self.ordered_results(key)
-            measurements[key] = np.array(
-                [cirq.big_endian_int_to_bits(x, bit_count=len(targets)) for x in qpu_results]
-            )
+        if self._memory_results is not None:
+            for key, targets in self.measurement_dict().items():
+                bits = [
+                    _memory_bits_for_targets(int(value), self.num_qubits(), targets)
+                    for value in self._memory_results
+                ]
+                measurements[key] = np.array(bits)
+        else:
+            for key, targets in self.measurement_dict().items():
+                qpu_results = self.ordered_results(key)
+                measurements[key] = np.array(
+                    [cirq.big_endian_int_to_bits(x, bit_count=len(targets)) for x in qpu_results]
+                )
+
         return cirq.ResultDict(params=params or cirq.ParamResolver({}), measurements=measurements)
 
     def __eq__(self, other):
         if not isinstance(other, QPUResult):
             return NotImplemented
         return (
+            # ignoring self._memory_results
             self._counts == other._counts
             and self._num_qubits == other._num_qubits
             and self._measurement_dict == other._measurement_dict
@@ -170,11 +191,13 @@ class SimulatorResult:
         num_qubits: int,
         measurement_dict: dict[str, Sequence[int]],
         repetitions: int,
+        memory_results: list[str] | None = None,
     ):
         self._probabilities = probabilities
         self._num_qubits = num_qubits
         self._measurement_dict = measurement_dict
         self._repetitions = repetitions
+        self._memory_results = memory_results
 
     def num_qubits(self) -> int:
         """Returns the number of qubits the circuit was run on."""
@@ -212,8 +235,8 @@ class SimulatorResult:
             return self._probabilities
         if not key in self._measurement_dict:
             raise ValueError(
-                f'Measurement key {key} is not a key for a measurement gate in the'
-                'circuit that produced these results.'
+                f"Measurement key {key} is not a key for a measurement gate in the"
+                "circuit that produced these results."
             )
         targets = self._measurement_dict[key]
         result: dict[int, float] = {}
@@ -262,35 +285,49 @@ class SimulatorResult:
         """
         if len(self.measurement_dict()) == 0:
             raise ValueError(
-                'Can convert to cirq results only if the circuit had measurement gates '
-                'with measurement keys.'
+                "Can convert to cirq results only if the circuit had measurement gates "
+                "with measurement keys."
             )
-        rand = cirq.value.parse_random_state(seed)
+
         measurements = {}
-        values, weights = zip(*self.probabilities().items())
+        if self._memory_results is not None:
+            shots = (
+                self._memory_results[:override_repetitions]
+                if override_repetitions
+                else self._memory_results
+            )
+            for key, targets in self.measurement_dict().items():
+                bits = [
+                    _memory_bits_for_targets(int(value), self.num_qubits(), targets)
+                    for value in shots
+                ]
+                measurements[key] = np.array(bits)
+        else:
+            rand = cirq.value.parse_random_state(seed)
+            values, weights = zip(*list(self.probabilities().items()))
+            # normalize weights to sum to 1 if within tolerance because
+            # IonQ's pauliexp gates results are not extremely precise
+            total = sum(weights)
+            if np.isclose(total, 1.0, rtol=0, atol=1e-5):
+                weights = tuple(w / total for w in weights)
 
-        # normalize weights to sum to 1 if within tolerance because
-        # IonQ's pauliexp gates results are not extremely precise
-        total = sum(weights)
-        if np.isclose(total, 1.0, rtol=0, atol=1e-5):
-            weights = tuple(w / total for w in weights)
-
-        indices = rand.choice(
-            range(len(values)), p=weights, size=override_repetitions or self.repetitions()
-        )
-        rand_values = np.array(values)[indices]
-        for key, targets in self.measurement_dict().items():
-            bits = [
-                [(value >> (self.num_qubits() - target - 1)) & 1 for target in targets]
-                for value in rand_values
-            ]
-            measurements[key] = np.array(bits)
+            indices = rand.choice(
+                range(len(values)), p=weights, size=override_repetitions or self.repetitions()
+            )
+            rand_values = np.array(values)[indices]
+            for key, targets in self.measurement_dict().items():
+                bits = [
+                    [(value >> (self.num_qubits() - target - 1)) & 1 for target in targets]
+                    for value in rand_values
+                ]
+                measurements[key] = np.array(bits)
         return cirq.ResultDict(params=params or cirq.ParamResolver({}), measurements=measurements)
 
     def __eq__(self, other):
         if not isinstance(other, SimulatorResult):
             return NotImplemented
         return (
+            # ignoring self._memory_results
             self._probabilities == other._probabilities
             and self._num_qubits == other._num_qubits
             and self._measurement_dict == other._measurement_dict
@@ -305,6 +342,6 @@ def _pretty_str_dict(value: dict, bit_count: int) -> str:
     """Pretty prints a dict, converting int dict values to bit strings."""
     strs = []
     for k, v in value.items():
-        bits = ''.join(str(b) for b in cirq.big_endian_int_to_bits(k, bit_count=bit_count))
-        strs.append(f'{bits}: {v}')
-    return '\n'.join(strs)
+        bits = "".join(str(b) for b in cirq.big_endian_int_to_bits(k, bit_count=bit_count))
+        strs.append(f"{bits}: {v}")
+    return "\n".join(strs)

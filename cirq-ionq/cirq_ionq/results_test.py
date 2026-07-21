@@ -22,299 +22,341 @@ import cirq_ionq as ionq
 
 
 def test_qpu_result_fields():
-    result = ionq.QPUResult({0: 10, 1: 10}, num_qubits=1, measurement_dict={'a': [0]})
+    result = ionq.QPUResult(
+        {0: 10, 1: 10}, num_qubits=1, measurement_dict={"a": [0]}, memory_results=[1, 2, 3]
+    )
     assert result.counts() == {0: 10, 1: 10}
     assert result.repetitions() == 20
     assert result.num_qubits() == 1
-    assert result.measurement_dict() == {'a': [0]}
+    assert result.measurement_dict() == {"a": [0]}
+    assert result._memory_results == [1, 2, 3]
 
 
 def test_qpu_result_str():
     result = ionq.QPUResult({0: 10, 1: 10}, num_qubits=2, measurement_dict={})
-    assert str(result) == '00: 10\n01: 10'
+    assert str(result) == "00: 10\n01: 10"
 
 
 def test_qpu_result_eq():
     equals_tester = cirq.testing.EqualsTester()
     equals_tester.add_equality_group(
-        ionq.QPUResult({0: 10, 1: 10}, num_qubits=1, measurement_dict={'a': [0]}),
-        ionq.QPUResult({0: 10, 1: 10}, num_qubits=1, measurement_dict={'a': [0]}),
+        ionq.QPUResult({0: 10, 1: 10}, num_qubits=1, measurement_dict={"a": [0]}),
+        ionq.QPUResult({0: 10, 1: 10}, num_qubits=1, measurement_dict={"a": [0]}),
     )
     equals_tester.add_equality_group(
-        ionq.QPUResult({0: 10, 1: 20}, num_qubits=1, measurement_dict={'a': [0]})
+        ionq.QPUResult({0: 10, 1: 20}, num_qubits=1, measurement_dict={"a": [0]})
     )
     equals_tester.add_equality_group(
-        ionq.QPUResult({0: 15, 1: 15}, num_qubits=1, measurement_dict={'a': [0]})
+        ionq.QPUResult({0: 15, 1: 15}, num_qubits=1, measurement_dict={"a": [0]})
     )
     equals_tester.add_equality_group(
-        ionq.QPUResult({0: 10, 1: 10}, num_qubits=2, measurement_dict={'a': [0]})
+        ionq.QPUResult({0: 10, 1: 10}, num_qubits=2, measurement_dict={"a": [0]})
     )
     equals_tester.add_equality_group(
-        ionq.QPUResult({0: 10, 1: 10}, num_qubits=1, measurement_dict={'b': [0]})
+        ionq.QPUResult({0: 10, 1: 10}, num_qubits=1, measurement_dict={"b": [0]})
     )
     equals_tester.add_equality_group(
-        ionq.QPUResult({0: 10, 1: 10}, num_qubits=1, measurement_dict={'a': [1]})
+        ionq.QPUResult({0: 10, 1: 10}, num_qubits=1, measurement_dict={"a": [1]})
     )
     equals_tester.add_equality_group(
-        ionq.QPUResult({0: 10, 1: 10}, num_qubits=1, measurement_dict={'a': [0, 1]})
+        ionq.QPUResult({0: 10, 1: 10}, num_qubits=1, measurement_dict={"a": [0, 1]})
     )
 
 
 def test_qpu_result_measurement_key():
-    result = ionq.QPUResult({0b00: 10, 0b01: 20}, num_qubits=2, measurement_dict={'a': [0]})
+    result = ionq.QPUResult({0b00: 10, 0b01: 20}, num_qubits=2, measurement_dict={"a": [0]})
     assert result.counts() == {0b00: 10, 0b01: 20}
-    result = ionq.QPUResult({0b00: 10, 0b01: 20}, num_qubits=2, measurement_dict={'a': [0]})
-    assert result.counts('a') == {0b0: 30}
-    result = ionq.QPUResult({0b00: 10, 0b01: 20}, num_qubits=2, measurement_dict={'a': [1]})
-    assert result.counts('a') == {0b0: 10, 0b1: 20}
-    result = ionq.QPUResult({0b00: 10, 0b01: 20}, num_qubits=2, measurement_dict={'a': [0, 1]})
-    assert result.counts('a') == {0b00: 10, 0b01: 20}
-    result = ionq.QPUResult({0b00: 10, 0b01: 20}, num_qubits=2, measurement_dict={'a': [1, 0]})
-    assert result.counts('a') == {0b00: 10, 0b10: 20}
-    result = ionq.QPUResult({0b000: 10, 0b111: 20}, num_qubits=3, measurement_dict={'a': [2]})
-    assert result.counts('a') == {0b0: 10, 0b1: 20}
-    result = ionq.QPUResult({0b000: 10, 0b100: 20}, num_qubits=3, measurement_dict={'a': [1, 2]})
-    assert result.counts('a') == {0b00: 30}
+    result = ionq.QPUResult({0b00: 10, 0b01: 20}, num_qubits=2, measurement_dict={"a": [0]})
+    assert result.counts("a") == {0b0: 30}
+    result = ionq.QPUResult({0b00: 10, 0b01: 20}, num_qubits=2, measurement_dict={"a": [1]})
+    assert result.counts("a") == {0b0: 10, 0b1: 20}
+    result = ionq.QPUResult({0b00: 10, 0b01: 20}, num_qubits=2, measurement_dict={"a": [0, 1]})
+    assert result.counts("a") == {0b00: 10, 0b01: 20}
+    result = ionq.QPUResult({0b00: 10, 0b01: 20}, num_qubits=2, measurement_dict={"a": [1, 0]})
+    assert result.counts("a") == {0b00: 10, 0b10: 20}
+    result = ionq.QPUResult({0b000: 10, 0b111: 20}, num_qubits=3, measurement_dict={"a": [2]})
+    assert result.counts("a") == {0b0: 10, 0b1: 20}
+    result = ionq.QPUResult({0b000: 10, 0b100: 20}, num_qubits=3, measurement_dict={"a": [1, 2]})
+    assert result.counts("a") == {0b00: 30}
 
 
 def test_qpu_result_measurement_multiple_key():
     result = ionq.QPUResult(
-        {0b00: 10, 0b01: 20}, num_qubits=2, measurement_dict={'a': [0], 'b': [1]}
+        {0b00: 10, 0b01: 20}, num_qubits=2, measurement_dict={"a": [0], "b": [1]}
     )
-    assert result.counts('a') == {0b0: 30}
-    assert result.counts('b') == {0b0: 10, 0b1: 20}
+    assert result.counts("a") == {0b0: 30}
+    assert result.counts("b") == {0b0: 10, 0b1: 20}
     result = ionq.QPUResult(
-        {0b00: 10, 0b01: 20}, num_qubits=2, measurement_dict={'a': [1], 'b': [0]}
+        {0b00: 10, 0b01: 20}, num_qubits=2, measurement_dict={"a": [1], "b": [0]}
     )
-    assert result.counts('a') == {0b0: 10, 0b1: 20}
-    assert result.counts('b') == {0b0: 30}
+    assert result.counts("a") == {0b0: 10, 0b1: 20}
+    assert result.counts("b") == {0b0: 30}
 
 
 def test_qpu_result_bad_measurement_key():
     result = ionq.QPUResult(
-        {0b00: 10, 0b01: 20}, num_qubits=2, measurement_dict={'a': [0], 'b': [1]}
+        {0b00: 10, 0b01: 20}, num_qubits=2, measurement_dict={"a": [0], "b": [1]}
     )
-    with pytest.raises(ValueError, match='bad'):
-        result.counts('bad')
+    with pytest.raises(ValueError, match="bad"):
+        result.counts("bad")
 
 
 def test_qpu_result_to_cirq_result():
-    result = ionq.QPUResult({0b00: 1, 0b01: 2}, num_qubits=2, measurement_dict={'x': [0, 1]})
+    result = ionq.QPUResult({0b00: 1, 0b01: 2}, num_qubits=2, measurement_dict={"x": [0, 1]})
     assert result.to_cirq_result() == cirq.ResultDict(
-        params=cirq.ParamResolver({}), measurements={'x': np.array([[0, 0], [0, 1], [0, 1]])}
+        params=cirq.ParamResolver({}), measurements={"x": np.array([[0, 0], [0, 1], [0, 1]])}
     )
-    params = cirq.ParamResolver({'a': 0.1})
+    params = cirq.ParamResolver({"a": 0.1})
     assert result.to_cirq_result(params) == cirq.ResultDict(
-        params=params, measurements={'x': np.array([[0, 0], [0, 1], [0, 1]])}
+        params=params, measurements={"x": np.array([[0, 0], [0, 1], [0, 1]])}
     )
-    result = ionq.QPUResult({0b00: 1, 0b01: 2}, num_qubits=2, measurement_dict={'x': [0]})
+    result = ionq.QPUResult({0b00: 1, 0b01: 2}, num_qubits=2, measurement_dict={"x": [0]})
     assert result.to_cirq_result() == cirq.ResultDict(
-        params=cirq.ParamResolver({}), measurements={'x': np.array([[0], [0], [0]])}
+        params=cirq.ParamResolver({}), measurements={"x": np.array([[0], [0], [0]])}
     )
-    result = ionq.QPUResult({0b00: 1, 0b01: 2}, num_qubits=2, measurement_dict={'x': [1]})
+    result = ionq.QPUResult({0b00: 1, 0b01: 2}, num_qubits=2, measurement_dict={"x": [1]})
     assert result.to_cirq_result() == cirq.ResultDict(
-        params=cirq.ParamResolver({}), measurements={'x': np.array([[0], [1], [1]])}
+        params=cirq.ParamResolver({}), measurements={"x": np.array([[0], [1], [1]])}
     )
     # cirq.Result only compares pandas data frame, so possible to have supplied an list of
     # list instead of a numpy multidimensional array. Check this here.
-    assert type(result.to_cirq_result().measurements['x']) == np.ndarray
+    assert type(result.to_cirq_result().measurements["x"]) == np.ndarray
     # Results bitstreams need to be consistent betwween measurement keys
     # Ordering is by bitvector, so 0b01 0b01 0b10 should be the ordering for all measurement dicts.
     result = ionq.QPUResult(
-        {0b10: 1, 0b01: 2}, num_qubits=2, measurement_dict={'x': [0, 1], 'y': [0], 'z': [1]}
+        {0b10: 1, 0b01: 2}, num_qubits=2, measurement_dict={"x": [0, 1], "y": [0], "z": [1]}
     )
     assert result.to_cirq_result() == cirq.ResultDict(
         params=cirq.ParamResolver({}),
         measurements={
-            'x': np.array([[0, 1], [0, 1], [1, 0]]),
-            'y': np.array([[0], [0], [1]]),
-            'z': np.array([[1], [1], [0]]),
+            "x": np.array([[0, 1], [0, 1], [1, 0]]),
+            "y": np.array([[0], [0], [1]]),
+            "z": np.array([[1], [1], [0]]),
         },
     )
 
 
 def test_qpu_result_to_cirq_result_multiple_keys():
     result = ionq.QPUResult(
-        {0b000: 2, 0b101: 3}, num_qubits=3, measurement_dict={'x': [1], 'y': [2, 0]}
+        {0b000: 2, 0b101: 3}, num_qubits=3, measurement_dict={"x": [1], "y": [2, 0]}
     )
     assert result.to_cirq_result() == cirq.ResultDict(
         params=cirq.ParamResolver({}),
         measurements={
-            'x': np.array([[0], [0], [0], [0], [0]]),
-            'y': np.array([[0, 0], [0, 0], [1, 1], [1, 1], [1, 1]]),
+            "x": np.array([[0], [0], [0], [0], [0]]),
+            "y": np.array([[0, 0], [0, 0], [1, 1], [1, 1], [1, 1]]),
         },
+    )
+
+
+def test_qpu_result_to_cirq_result_shotwise_uses_target_indices():
+    result = ionq.QPUResult(
+        {0b10: 1}, num_qubits=2, measurement_dict={"b": [1]}, memory_results=[0b10]
+    )
+    assert result.to_cirq_result() == cirq.ResultDict(
+        params=cirq.ParamResolver({}), measurements={"b": np.array([[1]])}
     )
 
 
 def test_qpu_result_to_cirq_result_no_keys():
     result = ionq.QPUResult({0b00: 1, 0b01: 2}, num_qubits=2, measurement_dict={})
-    with pytest.raises(ValueError, match='cirq results'):
+    with pytest.raises(ValueError, match="cirq results"):
         _ = result.to_cirq_result()
 
 
 def test_ordered_results_invalid_key():
-    result = ionq.QPUResult({0b00: 1, 0b01: 2}, num_qubits=2, measurement_dict={'x': [1]})
-    with pytest.raises(ValueError, match='is not a key for'):
-        _ = result.ordered_results('y')
+    result = ionq.QPUResult({0b00: 1, 0b01: 2}, num_qubits=2, measurement_dict={"x": [1]})
+    with pytest.raises(ValueError, match="is not a key for"):
+        _ = result.ordered_results("y")
 
 
 def test_simulator_result_fields():
     result = ionq.SimulatorResult(
-        {0: 0.4, 1: 0.6}, num_qubits=1, measurement_dict={'a': [0]}, repetitions=100
+        {0: 0.4, 1: 0.6},
+        num_qubits=1,
+        measurement_dict={"a": [0]},
+        repetitions=100,
+        memory_results=[1, 2, 3],
     )
     assert result.probabilities() == {0: 0.4, 1: 0.6}
     assert result.num_qubits() == 1
-    assert result.measurement_dict() == {'a': [0]}
+    assert result.measurement_dict() == {"a": [0]}
     assert result.repetitions() == 100
+    assert result._memory_results == [1, 2, 3]
 
 
 def test_simulator_result_str():
     result = ionq.SimulatorResult(
-        {0: 0.4, 1: 0.6}, num_qubits=2, measurement_dict={'a': [0]}, repetitions=100
+        {0: 0.4, 1: 0.6}, num_qubits=2, measurement_dict={"a": [0]}, repetitions=100
     )
-    assert str(result) == '00: 0.4\n01: 0.6'
+    assert str(result) == "00: 0.4\n01: 0.6"
 
 
 def test_simulator_result_eq():
     equals_tester = cirq.testing.EqualsTester()
     equals_tester.add_equality_group(
         ionq.SimulatorResult(
-            {0: 0.5, 1: 0.5}, num_qubits=1, measurement_dict={'a': [0]}, repetitions=100
+            {0: 0.5, 1: 0.5}, num_qubits=1, measurement_dict={"a": [0]}, repetitions=100
         ),
         ionq.SimulatorResult(
-            {0: 0.5, 1: 0.5}, num_qubits=1, measurement_dict={'a': [0]}, repetitions=100
+            {0: 0.5, 1: 0.5}, num_qubits=1, measurement_dict={"a": [0]}, repetitions=100
         ),
     )
     equals_tester.add_equality_group(
         ionq.SimulatorResult(
-            {0: 0.4, 1: 0.6}, num_qubits=1, measurement_dict={'a': [0]}, repetitions=100
+            {0: 0.4, 1: 0.6}, num_qubits=1, measurement_dict={"a": [0]}, repetitions=100
         )
     )
     equals_tester.add_equality_group(
         ionq.SimulatorResult(
-            {0: 0.5, 1: 0.5}, num_qubits=2, measurement_dict={'a': [0]}, repetitions=100
+            {0: 0.5, 1: 0.5}, num_qubits=2, measurement_dict={"a": [0]}, repetitions=100
         )
     )
     equals_tester.add_equality_group(
         ionq.SimulatorResult(
-            {0: 0.5, 1: 0.5}, num_qubits=1, measurement_dict={'b': [0]}, repetitions=100
+            {0: 0.5, 1: 0.5}, num_qubits=1, measurement_dict={"b": [0]}, repetitions=100
         )
     )
     equals_tester.add_equality_group(
         ionq.SimulatorResult(
-            {0: 0.5, 1: 0.5}, num_qubits=1, measurement_dict={'a': [1]}, repetitions=100
+            {0: 0.5, 1: 0.5}, num_qubits=1, measurement_dict={"a": [1]}, repetitions=100
         )
     )
     equals_tester.add_equality_group(
         ionq.SimulatorResult(
-            {0: 0.5, 1: 0.5}, num_qubits=1, measurement_dict={'a': [0, 1]}, repetitions=100
+            {0: 0.5, 1: 0.5}, num_qubits=1, measurement_dict={"a": [0, 1]}, repetitions=100
         )
     )
     equals_tester.add_equality_group(
         ionq.SimulatorResult(
-            {0: 0.5, 1: 0.5}, num_qubits=1, measurement_dict={'a': [0, 1]}, repetitions=10
+            {0: 0.5, 1: 0.5}, num_qubits=1, measurement_dict={"a": [0, 1]}, repetitions=10
         )
     )
 
 
 def test_simulator_result_measurement_key():
     result = ionq.SimulatorResult(
-        {0b00: 0.2, 0b01: 0.8}, num_qubits=2, measurement_dict={'a': [0]}, repetitions=100
+        {0b00: 0.2, 0b01: 0.8}, num_qubits=2, measurement_dict={"a": [0]}, repetitions=100
     )
     assert result.probabilities() == {0b00: 0.2, 0b01: 0.8}
     result = ionq.SimulatorResult(
-        {0b00: 0.2, 0b01: 0.8}, num_qubits=2, measurement_dict={'a': [0]}, repetitions=100
+        {0b00: 0.2, 0b01: 0.8}, num_qubits=2, measurement_dict={"a": [0]}, repetitions=100
     )
-    assert result.probabilities('a') == {0b0: 1.0}
+    assert result.probabilities("a") == {0b0: 1.0}
 
     result = ionq.SimulatorResult(
-        {0b00: 0.2, 0b01: 0.8}, num_qubits=2, measurement_dict={'a': [1]}, repetitions=100
+        {0b00: 0.2, 0b01: 0.8}, num_qubits=2, measurement_dict={"a": [1]}, repetitions=100
     )
-    assert result.probabilities('a') == {0b0: 0.2, 0b1: 0.8}
+    assert result.probabilities("a") == {0b0: 0.2, 0b1: 0.8}
     result = ionq.SimulatorResult(
-        {0b00: 0.2, 0b01: 0.8}, num_qubits=2, measurement_dict={'a': [0, 1]}, repetitions=100
+        {0b00: 0.2, 0b01: 0.8}, num_qubits=2, measurement_dict={"a": [0, 1]}, repetitions=100
     )
-    assert result.probabilities('a') == {0b00: 0.2, 0b01: 0.8}
+    assert result.probabilities("a") == {0b00: 0.2, 0b01: 0.8}
     result = ionq.SimulatorResult(
-        {0b00: 0.2, 0b01: 0.8}, num_qubits=2, measurement_dict={'a': [1, 0]}, repetitions=100
+        {0b00: 0.2, 0b01: 0.8}, num_qubits=2, measurement_dict={"a": [1, 0]}, repetitions=100
     )
-    assert result.probabilities('a') == {0b00: 0.2, 0b10: 0.8}
+    assert result.probabilities("a") == {0b00: 0.2, 0b10: 0.8}
     result = ionq.SimulatorResult(
-        {0b000: 0.2, 0b111: 0.8}, num_qubits=3, measurement_dict={'a': [2]}, repetitions=100
+        {0b000: 0.2, 0b111: 0.8}, num_qubits=3, measurement_dict={"a": [2]}, repetitions=100
     )
-    assert result.probabilities('a') == {0b0: 0.2, 0b1: 0.8}
+    assert result.probabilities("a") == {0b0: 0.2, 0b1: 0.8}
     result = ionq.SimulatorResult(
-        {0b000: 0.2, 0b100: 0.8}, num_qubits=3, measurement_dict={'a': [1, 2]}, repetitions=100
+        {0b000: 0.2, 0b100: 0.8}, num_qubits=3, measurement_dict={"a": [1, 2]}, repetitions=100
     )
-    assert result.probabilities('a') == {0b00: 1.0}
+    assert result.probabilities("a") == {0b00: 1.0}
 
 
 def test_simulator_result_measurement_multiple_key():
     result = ionq.SimulatorResult(
-        {0b00: 0.2, 0b01: 0.8}, num_qubits=2, measurement_dict={'a': [0], 'b': [1]}, repetitions=100
+        {0b00: 0.2, 0b01: 0.8}, num_qubits=2, measurement_dict={"a": [0], "b": [1]}, repetitions=100
     )
-    assert result.probabilities('a') == {0b0: 1.0}
-    assert result.probabilities('b') == {0b0: 0.2, 0b1: 0.8}
+    assert result.probabilities("a") == {0b0: 1.0}
+    assert result.probabilities("b") == {0b0: 0.2, 0b1: 0.8}
     result = ionq.SimulatorResult(
-        {0b00: 0.2, 0b01: 0.8}, num_qubits=2, measurement_dict={'a': [1], 'b': [0]}, repetitions=100
+        {0b00: 0.2, 0b01: 0.8}, num_qubits=2, measurement_dict={"a": [1], "b": [0]}, repetitions=100
     )
-    assert result.probabilities('a') == {0b0: 0.2, 0b1: 0.8}
-    assert result.probabilities('b') == {0b0: 1.0}
+    assert result.probabilities("a") == {0b0: 0.2, 0b1: 0.8}
+    assert result.probabilities("b") == {0b0: 1.0}
 
 
 def test_simulator_result_bad_measurement_key():
     result = ionq.SimulatorResult(
-        {0b00: 0.2, 0b01: 0.8}, num_qubits=2, measurement_dict={'a': [0], 'b': [1]}, repetitions=100
+        {0b00: 0.2, 0b01: 0.8}, num_qubits=2, measurement_dict={"a": [0], "b": [1]}, repetitions=100
     )
-    with pytest.raises(ValueError, match='bad'):
-        result.probabilities('bad')
+    with pytest.raises(ValueError, match="bad"):
+        result.probabilities("bad")
 
 
 def test_simulator_result_to_cirq_result():
     result = ionq.SimulatorResult(
-        {0b00: 0.25, 0b01: 0.75}, num_qubits=2, measurement_dict={'x': [0, 1]}, repetitions=3
+        {0b00: 0.25, 0b01: 0.75}, num_qubits=2, measurement_dict={"x": [0, 1]}, repetitions=3
     )
     assert result.to_cirq_result(seed=2) == cirq.ResultDict(
-        params=cirq.ParamResolver({}), measurements={'x': np.array([[0, 1], [0, 0], [0, 1]])}
+        params=cirq.ParamResolver({}), measurements={"x": np.array([[0, 1], [0, 0], [0, 1]])}
     )
     assert result.to_cirq_result(seed=3) == cirq.ResultDict(
-        params=cirq.ParamResolver({}), measurements={'x': np.array([[0, 1], [0, 1], [0, 1]])}
+        params=cirq.ParamResolver({}), measurements={"x": np.array([[0, 1], [0, 1], [0, 1]])}
     )
-    params = cirq.ParamResolver({'a': 0.1})
+    params = cirq.ParamResolver({"a": 0.1})
     assert result.to_cirq_result(seed=3, params=params) == cirq.ResultDict(
-        params=params, measurements={'x': np.array([[0, 1], [0, 1], [0, 1]])}
+        params=params, measurements={"x": np.array([[0, 1], [0, 1], [0, 1]])}
     )
     assert result.to_cirq_result(seed=2, override_repetitions=2) == cirq.ResultDict(
-        params=cirq.ParamResolver({}), measurements={'x': np.array([[0, 1], [0, 0]])}
+        params=cirq.ParamResolver({}), measurements={"x": np.array([[0, 1], [0, 0]])}
     )
 
     result = ionq.SimulatorResult(
-        {0b00: 0.25, 0b01: 0.75}, num_qubits=2, measurement_dict={'x': [0]}, repetitions=3
+        {0b00: 0.25, 0b01: 0.75}, num_qubits=2, measurement_dict={"x": [0]}, repetitions=3
     )
     assert result.to_cirq_result(seed=2) == cirq.ResultDict(
-        params=cirq.ParamResolver({}), measurements={'x': np.array([[0], [0], [0]])}
+        params=cirq.ParamResolver({}), measurements={"x": np.array([[0], [0], [0]])}
     )
     result = ionq.SimulatorResult(
-        {0b00: 0.25, 0b01: 0.75}, num_qubits=2, measurement_dict={'x': [1]}, repetitions=3
+        {0b00: 0.25, 0b01: 0.75}, num_qubits=2, measurement_dict={"x": [1]}, repetitions=3
     )
     assert result.to_cirq_result(seed=2) == cirq.ResultDict(
-        params=cirq.ParamResolver({}), measurements={'x': np.array([[1], [0], [1]])}
+        params=cirq.ParamResolver({}), measurements={"x": np.array([[1], [0], [1]])}
     )
     # cirq.Result only compares pandas data frame, so possible to have supplied an list of
     # list instead of a numpy multidimensional array. Check this here.
-    assert type(result.to_cirq_result().measurements['x']) == np.ndarray
+    assert type(result.to_cirq_result().measurements["x"]) == np.ndarray
+
+    # when memory_results is provided, actual shot data is used instead of sampling.
+    result = ionq.SimulatorResult(
+        {0b00: 0.5, 0b11: 0.5},
+        num_qubits=2,
+        measurement_dict={"x": [0, 1]},
+        repetitions=3,
+        memory_results=["2", "0", "2"],
+    )
+    assert result.to_cirq_result() == cirq.ResultDict(
+        params=cirq.ParamResolver({}), measurements={"x": np.array([[0, 1], [0, 0], [0, 1]])}
+    )
+    # override_repetitions slices the memory results when memory is present.
+    assert result.to_cirq_result(override_repetitions=2) == cirq.ResultDict(
+        params=cirq.ParamResolver({}), measurements={"x": np.array([[0, 1], [0, 0]])}
+    )
 
 
 def test_simulator_result_to_cirq_result_multiple_keys():
     result = ionq.SimulatorResult(
         {0b000: 0.25, 0b011: 0.75},
         num_qubits=3,
-        measurement_dict={'x': [1], 'y': [2, 0]},
+        measurement_dict={"x": [1], "y": [2, 0]},
         repetitions=3,
     )
     assert result.to_cirq_result(seed=2) == cirq.ResultDict(
         params=cirq.ParamResolver({}),
-        measurements={'x': np.array([[1], [0], [1]]), 'y': np.array([[1, 0], [0, 0], [1, 0]])},
+        measurements={"x": np.array([[1], [0], [1]]), "y": np.array([[1, 0], [0, 0], [1, 0]])},
+    )
+
+
+def test_simulator_result_to_cirq_result_shotwise_uses_target_indices():
+    result = ionq.SimulatorResult(
+        {0b10: 1.0}, num_qubits=2, measurement_dict={"b": [1]}, repetitions=1, memory_results=[0b10]
+    )
+    assert result.to_cirq_result() == cirq.ResultDict(
+        params=cirq.ParamResolver({}), measurements={"b": np.array([[1]])}
     )
 
 
@@ -322,5 +364,5 @@ def test_simulator_result_to_cirq_result_no_keys():
     result = ionq.SimulatorResult(
         {0b00: 1, 0b01: 2}, num_qubits=2, measurement_dict={}, repetitions=3
     )
-    with pytest.raises(ValueError, match='cirq results'):
+    with pytest.raises(ValueError, match="cirq results"):
         _ = result.to_cirq_result()

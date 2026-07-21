@@ -45,30 +45,32 @@ class Job:
     valid.
     """
 
-    TERMINAL_STATES = ('completed', 'canceled', 'failed', 'deleted')
+    TERMINAL_STATES = ("completed", "canceled", "failed", "deleted")
     document(
         TERMINAL_STATES,
-        'States of the IonQ API job from which the job cannot transition. '
-        'Note that deleted can only exist in a return call from a delete '
-        '(subsequent calls will return not found).',
+        "States of the IonQ API job from which the job cannot transition. "
+        "Note that deleted can only exist in a return call from a delete "
+        "(subsequent calls will return not found).",
     )
 
-    NON_TERMINAL_STATES = ('ready', 'submitted', 'running')
+    NON_TERMINAL_STATES = ("ready", "submitted", "running")
     document(
-        NON_TERMINAL_STATES, 'States of the IonQ API job which can transition to other states.'
+        NON_TERMINAL_STATES, "States of the IonQ API job which can transition to other states."
     )
 
     ALL_STATES = TERMINAL_STATES + NON_TERMINAL_STATES
-    document(ALL_STATES, 'All states that an IonQ API job can exist in.')
+    document(ALL_STATES, "All states that an IonQ API job can exist in.")
 
-    UNSUCCESSFUL_STATES = ('canceled', 'failed', 'deleted')
+    UNSUCCESSFUL_STATES = ("canceled", "failed", "deleted")
     document(
         UNSUCCESSFUL_STATES,
-        'States of the IonQ API job when it was not successful and so does not have any '
-        'data associated with it beyond an id and a status.',
+        "States of the IonQ API job when it was not successful and so does not have any "
+        "data associated with it beyond an id and a status.",
     )
 
-    def __init__(self, client: cirq_ionq.ionq_client._IonQClient, job_dict: dict):
+    def __init__(
+        self, client: cirq_ionq.ionq_client._IonQClient, job_dict: dict, memory: bool = False
+    ):
         """Construct an IonQJob.
 
         Users should not call this themselves. If you only know the `job_id`, use `get_job`
@@ -77,13 +79,15 @@ class Job:
         Args:
             client: The client used for calling the API.
             job_dict: A dict representing the response from a call to get_job on the client.
+            memory: Whether to attempt to retrieve memory (per shot) results for the job.
         """
         self._client = client
         self._job = job_dict
+        self._memory = memory
 
     def _refresh_job(self):
         """If the last fetched job is not terminal, gets the job from the API."""
-        if self._job['status'] not in self.TERMINAL_STATES:
+        if self._job["status"] not in self.TERMINAL_STATES:
             self._job = self._client.get_job(self.job_id())
 
     def _check_if_unsuccessful(self):
@@ -95,7 +99,7 @@ class Job:
 
         This is the id used for identifying the job by the API.
         """
-        return self._job['id']
+        return self._job["id"]
 
     def status(self) -> str:
         """Gets the current status of the job.
@@ -110,7 +114,7 @@ class Job:
             The job status.
         """
         self._refresh_job()
-        return self._job['status']
+        return self._job["status"]
 
     def target(self) -> str:
         """Returns the target where the job is to be run, or was run.
@@ -123,7 +127,7 @@ class Job:
             IonQException: If unable to get the status of the job from the API.
         """
         self._check_if_unsuccessful()
-        return self._job['backend']
+        return self._job["backend"]
 
     def name(self) -> str:
         """Returns the name of the job which was supplied during job creation.
@@ -135,7 +139,7 @@ class Job:
             IonQException: If unable to get the status of the job from the API.
         """
         self._check_if_unsuccessful()
-        return self._job['name']
+        return self._job["name"]
 
     def num_qubits(self, circuit_index=None) -> int:
         """Returns the number of qubits for the job.
@@ -145,14 +149,14 @@ class Job:
             IonQException: If unable to get the status of the job from the API.
         """
         self._check_if_unsuccessful()
-        if 'metadata' in self._job and circuit_index is not None:
-            if 'qubit_numbers' in self._job['metadata'].keys():
-                qubit_numbers = json.loads(self._job['metadata']['qubit_numbers'])
+        if "metadata" in self._job and circuit_index is not None:
+            if "qubit_numbers" in self._job["metadata"].keys():
+                qubit_numbers = json.loads(self._job["metadata"]["qubit_numbers"])
                 for index, qubit_number in enumerate(qubit_numbers):
                     if index == circuit_index:
                         return qubit_number
 
-        return int(self._job['stats']['qubits'])
+        return int(self._job["stats"]["qubits"])
 
     def repetitions(self) -> int:
         """Returns the number of repetitions for the job.
@@ -162,33 +166,33 @@ class Job:
             IonQException: If unable to get the status of the job from the API.
         """
         self._check_if_unsuccessful()
-        return int(self._job['metadata']['shots'])
+        return int(self._job["metadata"]["shots"])
 
     def measurement_dict(self, circuit_index=0) -> dict[str, Sequence[int]]:
         """Returns a dictionary of measurement keys to target qubit index."""
         measurement_dict: dict[str, Sequence[int]] = {}
-        if 'metadata' in self._job:
+        if "metadata" in self._job:
             measurement_matadata = None
-            if 'measurements' in self._job['metadata'].keys():
-                measurements = json.loads(self._job['metadata']['measurements'])
+            if "measurements" in self._job["metadata"].keys():
+                measurements = json.loads(self._job["metadata"]["measurements"])
                 for index, measurement in enumerate(measurements):
                     if index == circuit_index:
                         measurement_matadata = measurement
                         break
             else:
-                measurement_matadata = self._job['metadata']
+                measurement_matadata = self._job["metadata"]
 
             if measurement_matadata is not None:
-                full_str = ''.join(
+                full_str = "".join(
                     value
                     for key, value in measurement_matadata.items()
-                    if key.startswith('measurement')
+                    if key.startswith("measurement")
                 )
-                if full_str == '':
+                if full_str == "":
                     return measurement_dict
                 for key_value in full_str.split(chr(30)):
                     key, value = key_value.split(chr(31))
-                    measurement_dict[key] = [int(t) for t in value.split(',')]
+                    measurement_dict[key] = [int(t) for t in value.split(",")]
 
         return measurement_dict
 
@@ -243,18 +247,18 @@ class Job:
                 break
             time.sleep(polling_seconds)
             time_waited_seconds += polling_seconds
-        if 'warning' in self._job and 'messages' in self._job['warning']:
-            for warning in self._job['warning']['messages']:
+        if "warning" in self._job and "messages" in self._job["warning"]:
+            for warning in self._job["warning"]["messages"]:
                 warnings.warn(warning)
 
-        if self.status() != 'completed':
-            if 'failure' in self._job and 'error' in self._job['failure']:
-                error = self._job['failure']['error']
-                raise RuntimeError(f'Job failed. Error message: {error}')
+        if self.status() != "completed":
+            if "failure" in self._job and "error" in self._job["failure"]:
+                error = self._job["failure"]["error"]
+                raise RuntimeError(f"Job failed. Error message: {error}")
             if time_waited_seconds >= timeout_seconds:
-                raise TimeoutError(f'Job timed out after waiting {time_waited_seconds} seconds.')
+                raise TimeoutError(f"Job timed out after waiting {time_waited_seconds} seconds.")
             raise RuntimeError(
-                f'Job was not completed successfully. Instead had status: {self.status()}'
+                f"Job was not completed successfully. Instead had status: {self.status()}"
             )
 
         backend_results = self._client.get_results(
@@ -266,9 +270,31 @@ class Job:
         is_batch = isinstance(some_inner_value, dict)
         histograms = list(backend_results.values()) if is_batch else [backend_results]
 
+        memory_results: list[list[str] | None] = [None for _ in histograms]
+        retrieve_memory_result = self._memory and (
+            self.target().startswith("qpu")
+            or (
+                "noise" in self._job
+                and "model" in self._job["noise"]
+                and self._job["noise"]["model"] != "ideal"
+            )
+        )
+        if retrieve_memory_result:
+            if len(histograms) > 1:
+                child_job_ids = self._job.get("child_job_ids")
+                if child_job_ids is None or len(child_job_ids) != len(histograms):
+                    self._warn_memory_fallback(
+                        "However, the job does not have the correct child job "
+                        "ids to retrieve per shot results for a batch job."
+                    )
+                else:
+                    memory_results = self._retrieve_child_job_shots(child_job_ids)
+            else:
+                memory_results = self._retrieve_job_shots()
+
         # IonQ returns results in little endian, but
         # Cirq prefers to use big endian, so we convert.
-        if self.target().startswith('qpu'):
+        if self.target().startswith("qpu"):
             big_endian_results_qpu: list[results.QPUResult] = []
             for circuit_index, histogram in enumerate(histograms):
                 repetitions = self.repetitions()
@@ -283,6 +309,7 @@ class Job:
                         counts=counts,
                         num_qubits=self.num_qubits(circuit_index),
                         measurement_dict=self.measurement_dict(circuit_index=circuit_index),
+                        memory_results=memory_results[circuit_index],
                     )
                 )
             return (
@@ -303,6 +330,7 @@ class Job:
                         num_qubits=self.num_qubits(circuit_index),
                         measurement_dict=self.measurement_dict(circuit_index=circuit_index),
                         repetitions=self.repetitions(),
+                        memory_results=memory_results[circuit_index],
                     )
                 )
             return (
@@ -310,6 +338,63 @@ class Job:
                 if len(big_endian_results_sim) > 1
                 else big_endian_results_sim[0]
             )
+
+    def _retrieve_child_job_shots(self, child_job_ids) -> list[list[str] | None]:
+        """Retrieve shots for child jobs. Warn that memory results will
+        fall back to sampled probabilities if retrieval fails.
+        """
+        memory_results = []
+        for child_job_id in child_job_ids:
+            try:
+                memory_result = self._client.get_shots(
+                    self._client.get_job(child_job_id)["results"]["shots"]["url"]
+                )
+                memory_results.append(memory_result)
+            except KeyError as ex:
+                self._warn_memory_fallback(
+                    f"However, retrieving shots for child job {child_job_id} failed because "
+                    f"the url for shots result was not found in the job response: {ex}."
+                )
+                memory_results.append(None)
+            except (
+                ionq_exceptions.IonQException,
+                ionq_exceptions.IonQNotFoundException,
+                TimeoutError,
+            ) as ex:
+                self._warn_memory_fallback(
+                    "However, retrieving shots for child job "
+                    f"{child_job_id} failed with this error: {ex}."
+                )
+                memory_results.append(None)
+        return memory_results
+
+    def _retrieve_job_shots(self) -> list[list[str] | None]:
+        """Retrieve shots for the job. Warn that memory results will
+        fall back to sampled probabilities if retrieval fails.
+        """
+        memory_results: list[list[str] | None] = [None]
+        try:
+            memory_results = [self._client.get_shots(self._job["results"]["shots"]["url"])]
+        except KeyError as ex:
+            self._warn_memory_fallback(
+                f"However, retrieving shots for the job failed because the "
+                f"url for shots result was not found in the job response: {ex}."
+            )
+        except (
+            ionq_exceptions.IonQException,
+            ionq_exceptions.IonQNotFoundException,
+            TimeoutError,
+        ) as ex:
+            self._warn_memory_fallback(f"However, retrieving shots failed with this error: {ex}.")
+        return memory_results
+
+    def _warn_memory_fallback(self, detail):
+        """Warn that memory results will fall back to sampled probabilities."""
+        warnings.warn(
+            "You set the memory argument to `True`. "
+            f"{detail} Per shot results will be generated by randomly sampling "
+            "the probability distribution returned by the IonQ server."
+        )
 
     def cancel(self):
         """Cancel the given job.
@@ -327,4 +412,4 @@ class Job:
         self._job = self._client.delete_job(job_id=self.job_id())
 
     def __str__(self) -> str:
-        return f'cirq_ionq.Job(job_id={self.job_id()})'
+        return f"cirq_ionq.Job(job_id={self.job_id()})"
