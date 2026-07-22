@@ -17,7 +17,7 @@ from __future__ import annotations
 import abc
 import enum
 from collections.abc import Mapping, Sequence
-from typing import Self, TYPE_CHECKING
+from typing import Any, Self, TYPE_CHECKING
 
 from cirq.value import digits, value_equality_attr
 
@@ -251,7 +251,7 @@ class ClassicalDataDictionaryStore(ClassicalDataStore):
             _measurement_types=self._measurement_types.copy(),
         )
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             'records': list(self.records.items()),
             'measured_qubits': list(self.measured_qubits.items()),

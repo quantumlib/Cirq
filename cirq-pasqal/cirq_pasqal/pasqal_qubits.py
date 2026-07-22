@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 from numpy import sqrt
 
@@ -94,7 +96,7 @@ class ThreeDQubit(cirq.ops.Qid):
     def __str__(self):
         return f'({self.x}, {self.y}, {self.z})'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.protocols.obj_to_dict_helper(self, ['x', 'y', 'z'])
 
 
@@ -158,5 +160,5 @@ class TwoDQubit(ThreeDQubit):
     def __str__(self):
         return f'({self.x}, {self.y})'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.protocols.obj_to_dict_helper(self, ['x', 'y'])
