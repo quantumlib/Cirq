@@ -113,7 +113,7 @@ class SupportsJSON(Protocol):
     """
 
     @doc_private
-    def _json_dict_(self) -> None | NotImplementedType | dict[Any, Any]:
+    def _json_dict_(self) -> None | NotImplementedType | dict[str, Any]:
         pass
 
 
@@ -177,7 +177,7 @@ def attrs_json_dict(obj: Any) -> dict[str, Any]:
     return obj_to_dict_helper(obj, attribute_names)
 
 
-def _json_dict_with_cirq_type(obj: Any):
+def _json_dict_with_cirq_type(obj: Any) -> dict[str, Any]:
     base_dict = obj._json_dict_()
     if 'cirq_type' in base_dict:
         raise ValueError(

@@ -155,7 +155,7 @@ class ObservableMeasuredResult:
         record.update(**circuit_param_dict)
         return record
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.dataclass_json_dict(self)
 
 
@@ -320,7 +320,7 @@ class BitstringAccumulator:
         for result in self.results:
             yield result.as_dict()
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         from cirq.study.result import _pack_digits
 
         def ndarray_to_hex_str(a):
