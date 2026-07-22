@@ -811,8 +811,8 @@ class Engine(abstract_engine.AbstractEngine):
         self,
         qec_circuit: cirq.Circuit,
         processor_id: str,
-        run_name: str,
-        config_name: str,
+        run_name: str = "",
+        config_name: str = 'default',
     ) -> cirq.ParamResolver:
         """Calibrates the given QEC circuit.
 

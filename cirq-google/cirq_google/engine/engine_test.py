@@ -1323,16 +1323,26 @@ def test_engine_compile_circuit_with_stim_circuit(client_mock):
     )
 
 
+@pytest.mark.parametrize(
+    'run_name,config_name',
+    [
+        ("test_run", "test_config"),
+        ("", "test_config"),
+        (None, "test_config"),
+        ("test_run", ""),
+        ("test_run", None),
+        ("", ""),
+        (None, None),
+    ],
+)
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
-def test_engine_calibrate_for_circuit(client_mock):
+def test_engine_calibrate_for_circuit(client_mock, run_name, config_name):
     expected_resolver = cirq.ParamResolver({'theta': 0.785})
     client_mock().calibrate_for_circuit_async.return_value = expected_resolver
 
     engine = cg.Engine(project_id='proj')
     qec_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(0, 0)))
     processor_id = "test_processor_id"
-    run_name = "test_run"
-    config_name = "test_config"
 
     result = engine.calibrate_for_circuit(
         qec_circuit=qec_circuit,
@@ -1348,3 +1358,27 @@ def test_engine_calibrate_for_circuit(client_mock):
         run_name=run_name,
         config_name=config_name,
     )
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_engine_calibrate_for_circuit_defaults(client_mock):
+    expected_resolver = cirq.ParamResolver({'theta': 0.785})
+    client_mock().calibrate_for_circuit_async.return_value = expected_resolver
+
+    engine = cg.Engine(project_id='proj')
+    qec_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(0, 0)))
+    processor_id = "test_processor_id"
+
+    result = engine.calibrate_for_circuit(
+        qec_circuit=qec_circuit,
+        processor_id=processor_id,
+    )
+    assert result == expected_resolver
+    client_mock().calibrate_for_circuit_async.assert_called_once_with(
+        project_id='proj',
+        qec_circuit=qec_circuit,
+        processor_id=processor_id,
+        run_name="",
+        config_name="default",
+    )
+

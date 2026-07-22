@@ -21,18 +21,17 @@ from collections.abc import AsyncIterable, Awaitable, Callable
 from functools import cached_property
 from typing import TYPE_CHECKING, TypeVar
 
-import cirq
 import duet
 import proto
 from google.api_core.exceptions import GoogleAPICallError, NotFound
 from google.protobuf import any_pb2, field_mask_pb2
 from google.protobuf.timestamp_pb2 import Timestamp
 
+import cirq
+
 if TYPE_CHECKING:
-    import cirq
     import stim  # type: ignore
 
-from cirq import _compat
 from cirq_google.api import v2
 from cirq_google.cloud import quantum
 from cirq_google.engine import stream_manager, util
@@ -399,7 +398,7 @@ class EngineClient:
         description: str | None = None,
         labels: dict[str, str] | None = None,
         *,
-        run_name: str = "",
+        run_name: str | None = "",
         snapshot_id: str = "",
         device_config_name: str = "",
     ) -> tuple[str, quantum.QuantumJob]:
@@ -1322,7 +1321,7 @@ class EngineClient:
             code=util.pack_any(CIRCUIT_SERIALIZER.serialize(qec_circuit)),
         )
         selector = quantum.DeviceConfigSelector(
-            run_name=run_name or None, config_alias=config_name
+            run_name=run_name or None, config_alias=config_name or None
         )
         run_context = util.pack_any(v2.run_context_to_proto(None, 1))
         job = quantum.QuantumJob(
@@ -1336,20 +1335,17 @@ class EngineClient:
             calibrate_circuit=quantum.QuantumJob.CalibrateCircuitAction(),
         )
         request = quantum.CreateQuantumJobRequest(
-            parent=_program_name_from_ids(project_id, program_id),
-            quantum_job=job,
+            parent=_program_name_from_ids(project_id, program_id), quantum_job=job
         )
         response_job = await self._send_request_async(self.grpc_client.create_quantum_job, request)
         calibrated_params = getattr(response_job, 'calibrated_parameters', None)
         if calibrated_params is None and hasattr(response_job, 'execution_status'):
-            calibrated_params = getattr(response_job.execution_status, 'calibrated_parameters', None)
+            calibrated_params = getattr(
+                response_job.execution_status, 'calibrated_parameters', None
+            )
 
-        if calibrated_params is not None and hasattr(calibrated_params, 'assignments'):
-            param_dict = dict(calibrated_params.assignments)
-        elif isinstance(calibrated_params, dict):
-            param_dict = dict(calibrated_params)
-        else:
-            param_dict = {}
+        assignments = getattr(calibrated_params, 'assignments', calibrated_params)
+        param_dict = dict(assignments) if assignments is not None else {}
         return cirq.ParamResolver(param_dict)
 
     calibrate_for_circuit = duet.sync(calibrate_for_circuit_async)

@@ -910,7 +910,7 @@ def test_create_job_with_run_name_and_snapshot_id_and_config_succeeds(
                         processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                             processor='projects/proj/processors/processor0',
                             device_config_selector=quantum.DeviceConfigSelector(),
-                        ),
+                        )
                     ),
                     execute_circuit=quantum.QuantumJob.ExecuteCircuitAction(),
                 ),
@@ -2221,8 +2221,45 @@ def test_calibrate_for_circuit(client_constructor, default_engine_client):
 
     job_arg = grpc_client.create_quantum_job.call_args[0][0]
     assert job_arg.parent == f"projects/{project_id}/programs/test_prog"
-    assert job_arg.quantum_job.scheduling_config.processor_selector.processor == f"projects/{project_id}/processors/{processor_id}"
-    assert job_arg.quantum_job.scheduling_config.processor_selector.device_config_selector.run_name == run_name
-    assert job_arg.quantum_job.scheduling_config.processor_selector.device_config_selector.config_alias == config_name
+    assert (
+        job_arg.quantum_job.scheduling_config.processor_selector.processor
+        == f"projects/{project_id}/processors/{processor_id}"
+    )
+    assert (
+        job_arg.quantum_job.scheduling_config.processor_selector.device_config_selector.run_name
+        == run_name
+    )
+    assert (
+        job_arg.quantum_job.scheduling_config.processor_selector.device_config_selector.config_alias
+        == config_name
+    )
     assert 'run_context' in job_arg.quantum_job
     assert 'calibrate_circuit' in job_arg.quantum_job
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_calibrate_for_circuit_from_execution_status(client_constructor, default_engine_client):
+    grpc_client = _setup_client_mock(client_constructor)
+    project_id = "test_project"
+    processor_id = "test_processor"
+
+    qec_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(0, 0)))
+    param_dict = v2.result_pb2.ParameterDict(assignments={'theta': 0.5})
+
+    created_program = quantum.QuantumProgram(name=f"projects/{project_id}/programs/test_prog")
+    grpc_client.create_quantum_program.return_value = created_program
+
+    created_job = mock.MagicMock()
+    created_job.calibrated_parameters = None
+    created_job.execution_status.calibrated_parameters = param_dict
+    grpc_client.create_quantum_job.return_value = created_job
+
+    result = default_engine_client.calibrate_for_circuit(
+        project_id=project_id,
+        qec_circuit=qec_circuit,
+        processor_id=processor_id,
+        run_name="test_run",
+        config_name="test_config",
+    )
+    assert result == cirq.ParamResolver({'theta': 0.5})
+
