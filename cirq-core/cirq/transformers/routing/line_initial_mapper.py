@@ -37,7 +37,7 @@ from typing import TYPE_CHECKING
 
 import networkx as nx
 
-from cirq import protocols, value
+from cirq import circuits, protocols, value
 from cirq.transformers.routing import initial_mapper
 
 if TYPE_CHECKING:
@@ -107,6 +107,8 @@ class LineInitialMapper(initial_mapper.AbstractInitialMapper):
             return any(circuit_graph[component_id[q]][i] == q for i in [-1, 0])
 
         for op in circuit.all_operations():
+            if isinstance(op.untagged, circuits.CircuitOperation):
+                continue
             if protocols.num_qubits(op) != 2:
                 continue
 
