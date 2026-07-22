@@ -489,7 +489,7 @@ class ResultDict(Result):
             return _keyed_repeated_records(self.records)
         return _keyed_repeated_bitstrings(self.measurements)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         packed_records = {}
         for key, digits in self.records.items():
             packed_digits, binary = _pack_digits(digits)

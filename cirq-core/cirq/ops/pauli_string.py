@@ -1005,7 +1005,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         all_qubits = set(self.qubits).union(q for op in all_ops for q in op.qubits)
         # Iteratively calculate the conjugation in reverse order of ops.
         for op in all_ops[::-1]:
-            # To calcuate the conjugation of P (`ps`) with respect to C (`op`)
+            # To calculate the conjugation of P (`ps`) with respect to C (`op`)
             # Decompose P = Pc⊗R, where Pc acts on the same qubits as C, R acts on the remaining.
             # Then the conjugation = (C^{-1}⊗I·Pc⊗R·C⊗I) = (C^{-1}·Pc·C)⊗R.
 
@@ -1631,7 +1631,7 @@ def _calc_conjugation(ps: cirq.PauliString, clifford_op: cirq.Operation) -> cirq
         )
     tableau = gate_in_clifford.clifford_tableau.inverse()
 
-    # Calculate the conjugation by `clifford_op` via mutiplying the conjugation of each Pauli:
+    # Calculate the conjugation by `clifford_op` via multiplying the conjugation of each Pauli:
     #   C^{-1}·(P_1⊗...⊗P_n)·C
     # = C^{-1}·(P_1⊗I) ...·(P_n⊗I)·C
     # = (C^{-1}(P_1⊗I)C)·...·(C^{-1}(P_n⊗I)C)

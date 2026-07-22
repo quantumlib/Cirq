@@ -49,7 +49,7 @@ def _gaussian_elimination(
 ) -> int:
     """Gaussian elimination for standard form.
 
-    Performs a Gaussian elemination of the input matrix and transforms it into its reduced row
+    Performs a Gaussian elimination of the input matrix and transforms it into its reduced row
     echelon form. The elimination is done only on a sub-section of the matrix (specified) by
     ranges of rows and columns. The matrix elements are integers {0, 1} interpreted as elements
     of GF(2).

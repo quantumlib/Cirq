@@ -51,6 +51,7 @@ from cirq_google.engine import (
 from cirq_google.serialization import CIRCUIT_SERIALIZER, CircuitSerializer
 
 if TYPE_CHECKING:
+    import stim  # type: ignore
     from google.protobuf import any_pb2
 
     import cirq_google
@@ -470,10 +471,11 @@ class Engine(abstract_engine.AbstractEngine):
         description: str | None = None,
         labels: dict[str, str] | None = None,
     ) -> engine_program.EngineProgram:
-        """Wraps a Circuit for use with the Quantum Engine.
+        """Wraps a circuit or batch of circuits for use with the Quantum Engine.
 
         Args:
-            program: The Circuit to execute.
+            program: The circuit or circuits to execute. Can either be a single
+                circuit or a list of circuits. Mappings are not currently supported.
             program_id: A user-provided identifier for the program. This must be
                 unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
@@ -771,6 +773,39 @@ class Engine(abstract_engine.AbstractEngine):
         ]
 
     list_processor_configs = duet.sync(list_processor_configs_async)
+
+    async def compile_circuit_async(
+        self,
+        stim_circuit: str | stim.Circuit,
+        qec_recipe: list[str],
+        processor_id: str,
+        device_config_revision: processor_config.DeviceConfigRevision = processor_config.Run(
+            id='current'
+        ),
+        config_name: str = 'default',
+    ) -> cirq.Circuit:
+        """Takes the given Stim circuit and compiles it to a cirq Circuit.
+
+        Args:
+            stim_circuit: The Stim circuit to compile.
+            qec_recipe: A list of the recipes to apply to the given circuit.
+            processor_id: The processor unique identifier.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
+            config_name: The identifier for the config.
+
+        Returns:
+            A cirq.Circuit.
+        """
+        return await self.context.client.compile_circuit_async(
+            project_id=self.project_id,
+            stim_circuit=stim_circuit,
+            qec_recipe=qec_recipe,
+            processor_id=processor_id,
+            device_config_revision=device_config_revision,
+            config_name=config_name,
+        )
+
+    compile_circuit = duet.sync(compile_circuit_async)
 
 
 def get_engine(project_id: str | None = None) -> Engine:

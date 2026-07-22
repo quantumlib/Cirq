@@ -165,7 +165,7 @@ def test_param_sweep_size():
         )
     )
     # Sweeps sx1 and sx2 are zipped, so should use num number of points.
-    # These are then producted, so this should multiply number of points.
+    # These are then produced, so this should multiply number of points.
     assert len(params.sweep_from_proto(ps)) == 5 * 11
 
 

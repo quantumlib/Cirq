@@ -29,16 +29,16 @@ _CALIBRATION_DATA = Merge(
     """
     timestamp_ms: 1562544000021,
     metrics: [{
-        name: 'two_qubit_xeb',
+        name: 'cz_inferred_gate_error_pauli',
         targets: ['0_0', '0_1'],
         values: [{
-            double_val: .9999
+            double_val: 0.002
         }]
     }, {
-        name: 'two_qubit_xeb',
+        name: 'cz_inferred_gate_error_pauli',
         targets: ['0_0', '1_0'],
         values: [{
-            double_val: .9998
+            double_val: 0.0015
         }]
     }, {
         name: 't1',
@@ -63,6 +63,42 @@ _CALIBRATION_DATA = Merge(
         values: [{
             int32_val: 12300
         }]
+    }, {
+        name: 'zero_error',
+        targets: ['0_0'],
+        values: [{
+            double_val: 0.01
+        }]
+    }, {
+        name: 'zero_error',
+        targets: ['0_1'],
+        values: [{
+            double_val: 0.01
+        }]
+    }, {
+        name: 'zero_error',
+        targets: ['1_0'],
+        values: [{
+            double_val: 0.01
+        }]
+    }, {
+        name: 'one_error',
+        targets: ['0_0'],
+        values: [{
+            double_val: 0.02
+        }]
+    }, {
+        name: 'one_error',
+        targets: ['0_1'],
+        values: [{
+            double_val: 0.02
+        }]
+    }, {
+        name: 'one_error',
+        targets: ['1_0'],
+        values: [{
+            double_val: 0.02
+        }]
     }]
 """,
     v2.metrics_pb2.MetricsSnapshot(),
@@ -78,7 +114,7 @@ def test_calibration_metrics_dictionary():
         (cirq.GridQubit(0, 1),): [911],
         (cirq.GridQubit(1, 0),): [505],
     }
-    assert len(calibration) == 3
+    assert len(calibration) == 5
 
     assert 't1' in calibration
     assert 't2' not in calibration
@@ -95,7 +131,9 @@ def test_calibration_metrics_dictionary():
 
 def test_calibration_str():
     calibration = cg.Calibration(_CALIBRATION_DATA)
-    assert str(calibration) == "Calibration(keys=['globalMetric', 't1', 'two_qubit_xeb'])"
+    str_cal = "Calibration(keys=['cz_inferred_gate_error_pauli', 'globalMetric', 'one_error', 't1',"
+    str_cal += " 'zero_error'])"
+    assert str(calibration) == str_cal
 
 
 def test_calibration_repr():
@@ -168,11 +206,17 @@ def test_calibration_heatmap():
     heatmap.plot(axes)
     assert axes.get_title() == 'T1'
 
-    heatmap = calibration.heatmap('two_qubit_xeb')
+    heatmap = calibration.heatmap('cz_inferred_gate_error_pauli')
     figure = mpl.figure.Figure()
     axes = figure.add_subplot(999)
     heatmap.plot(axes)
-    assert axes.get_title() == 'Two Qubit Xeb'
+    assert axes.get_title() == 'Cz Inferred Gate Error Pauli'
+
+    heatmap = calibration.heatmap('readout')
+    figure = mpl.figure.Figure()
+    axes = figure.add_subplot(999)
+    heatmap.plot(axes)
+    assert axes.get_title() == 'Readout'
 
     with pytest.raises(ValueError, match="one or two qubits.*multi_qubit"):
         multi_qubit_data = Merge(
@@ -198,8 +242,10 @@ def test_calibration_heatmap():
 def test_calibration_plot_histograms():
     calibration = cg.Calibration(_CALIBRATION_DATA)
     _, ax = plt.subplots(1, 1)
-    calibration.plot_histograms(['t1', 'two_qubit_xeb'], ax, labels=['T1', 'XEB'])
-    assert len(ax.get_lines()) == 4
+    calibration.plot_histograms(
+        ['t1', 'cz_inferred_gate_error_pauli', 'readout'], ax, labels=['T1', 'XEB', 'readout']
+    )
+    assert len(ax.get_lines()) == 5
 
     with pytest.raises(ValueError, match="single metric values.*multi_value"):
         multi_qubit_data = Merge(
@@ -215,6 +261,5 @@ def test_calibration_plot_histograms():
 @pytest.mark.usefixtures('closefigures')
 def test_calibration_plot():
     calibration = cg.Calibration(_CALIBRATION_DATA)
-    _, axs = calibration.plot('two_qubit_xeb')
-    assert axs[0].get_title() == 'Two Qubit Xeb'
+    _, axs = calibration.plot('cz_inferred_gate_error_pauli')
     assert len(axs[1].get_lines()) == 2

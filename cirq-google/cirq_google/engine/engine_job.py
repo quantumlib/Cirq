@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import datetime
+import warnings
 from collections.abc import Awaitable, Callable, Sequence
 from http import HTTPStatus
 from typing import TYPE_CHECKING
@@ -26,7 +27,7 @@ import duet
 import cirq
 from cirq_google.api import v1, v2
 from cirq_google.cloud import quantum
-from cirq_google.engine import abstract_job, calibration, engine_client
+from cirq_google.engine import abstract_job, calibration, engine_client, processor_config
 from cirq_google.engine.engine_result import EngineResult
 from cirq_google.engine.stream_manager import StreamError
 
@@ -35,6 +36,7 @@ if TYPE_CHECKING:
 
     import cirq_google.engine.engine as engine_base
     from cirq_google.engine.engine import engine_processor, engine_program
+
 
 TERMINAL_STATES = [
     quantum.ExecutionStatus.State.SUCCESS,
@@ -292,6 +294,59 @@ class EngineJob(abstract_job.AbstractJob):
         response = self.context.client.get_calibration(*ids)
         metrics = v2.metrics_pb2.MetricsSnapshot.FromString(response.data.value)
         return calibration.Calibration(metrics)
+
+    def get_config(self) -> processor_config.ProcessorConfig | None:
+        """Returns the configuration used for the job.
+
+        Returns None if the job is not in a terminal state (SUCCESS, FAILURE, CANCELLED).
+
+        Raises:
+            ValueError: If device_config_key is not set in the job execution status
+                or if the processor name cannot be determined.
+        """
+        job = self._inner_job()
+        status = job.execution_status
+        if status.state not in TERMINAL_STATES:
+            warnings.warn(
+                f"Job {self.job_id} is in non-terminal state {status.state.name}, "
+                "returning None for config."
+            )
+            return None
+
+        device_config_key = status.device_config_key
+
+        if not device_config_key:
+            raise ValueError(
+                "device_config_key is not set in job execution status "
+                f"(state: {status.state.name})."
+            )
+
+        if not device_config_key.config_alias or not (
+            device_config_key.snapshot_id or device_config_key.run
+        ):
+            raise ValueError(
+                f"device_config_key {device_config_key} in job execution status "
+                f"(state: {status.state.name}) must have both `config_alias` "
+                "and either `snapshot_id` or `run` set."
+            )
+
+        if status.processor_name:
+            processor_id = engine_client._ids_from_processor_name(status.processor_name)[1]
+        else:
+            raise ValueError("Processor name is not set in job status.")
+
+        if device_config_key.snapshot_id:
+            device_config_revision: processor_config.DeviceConfigRevision = (
+                processor_config.Snapshot(device_config_key.snapshot_id)
+            )
+        else:
+            device_config_revision = processor_config.Run(device_config_key.run)
+
+        return self.engine().get_processor_config(
+            processor_id=processor_id,
+            device_config_revision=device_config_revision,
+            config_name=device_config_key.config_alias,
+        )
 
     async def get_circuit_async(self, circuit_num: int | None = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the Quantum Engine job.

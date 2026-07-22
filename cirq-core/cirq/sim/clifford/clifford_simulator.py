@@ -212,7 +212,7 @@ class CliffordState:
             else clifford.StabilizerStateChForm(self.n, initial_state)
         )
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return {'qubit_map': [(k, v) for k, v in self.qubit_map.items()], 'ch_form': self.ch_form}
 
     @classmethod

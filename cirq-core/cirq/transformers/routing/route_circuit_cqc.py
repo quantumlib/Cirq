@@ -221,7 +221,7 @@ class RouteCQC:
         initial_mapping = initial_mapper.initial_mapping(circuit)
 
         # 2. Construct a mapping manager that implicitly keeps track of this mapping and provides
-        # convinience methods over the image of the map on the device graph.
+        # convenience methods over the image of the map on the device graph.
         mm = mapping_manager.MappingManager(self.device_graph, initial_mapping)
 
         # 3. Get two_qubit_ops and single-qubit operations.
