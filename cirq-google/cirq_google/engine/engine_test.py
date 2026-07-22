@@ -1321,3 +1321,30 @@ def test_engine_compile_circuit_with_stim_circuit(client_mock):
         device_config_revision=Run(id='current'),
         config_name='default',
     )
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_engine_calibrate_for_circuit(client_mock):
+    expected_resolver = cirq.ParamResolver({'theta': 0.785})
+    client_mock().calibrate_for_circuit_async.return_value = expected_resolver
+
+    engine = cg.Engine(project_id='proj')
+    qec_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(0, 0)))
+    processor_id = "test_processor_id"
+    run_name = "test_run"
+    config_name = "test_config"
+
+    result = engine.calibrate_for_circuit(
+        qec_circuit=qec_circuit,
+        processor_id=processor_id,
+        run_name=run_name,
+        config_name=config_name,
+    )
+    assert result == expected_resolver
+    client_mock().calibrate_for_circuit_async.assert_called_once_with(
+        project_id='proj',
+        qec_circuit=qec_circuit,
+        processor_id=processor_id,
+        run_name=run_name,
+        config_name=config_name,
+    )

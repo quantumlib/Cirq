@@ -21,6 +21,7 @@ from collections.abc import AsyncIterable, Awaitable, Callable
 from functools import cached_property
 from typing import TYPE_CHECKING, TypeVar
 
+import cirq
 import duet
 import proto
 from google.api_core.exceptions import GoogleAPICallError, NotFound
@@ -31,6 +32,7 @@ if TYPE_CHECKING:
     import cirq
     import stim  # type: ignore
 
+from cirq import _compat
 from cirq_google.api import v2
 from cirq_google.cloud import quantum
 from cirq_google.engine import stream_manager, util
@@ -469,6 +471,7 @@ class EngineClient:
                 )
             ),
             run_context=run_context,
+            execute_circuit=quantum.QuantumJob.ExecuteCircuitAction(),
         )
         if priority:
             job.scheduling_config.priority = priority
@@ -843,6 +846,7 @@ class EngineClient:
                 )
             ),
             run_context=run_context,
+            execute_circuit=quantum.QuantumJob.ExecuteCircuitAction(),
         )
         if priority:
             job.scheduling_config.priority = priority
@@ -1291,6 +1295,64 @@ class EngineClient:
         return CIRCUIT_SERIALIZER.deserialize(program_proto)
 
     compile_circuit = duet.sync(compile_circuit_async)
+
+    async def calibrate_for_circuit_async(
+        self,
+        project_id: str,
+        qec_circuit: cirq.Circuit,
+        processor_id: str,
+        run_name: str,
+        config_name: str = 'default',
+    ) -> cirq.ParamResolver:
+        """Calibrates the given QEC circuit on Quantum Engine.
+
+        Args:
+            project_id: A project_id of the parent Google Cloud Project.
+            qec_circuit: The QEC circuit to calibrate.
+            processor_id: The processor unique identifier.
+            run_name: The name of the run.
+            config_name: The identifier for the config.
+
+        Returns:
+            A cirq.ParamResolver containing the calibrated parameters.
+        """
+        program_id, _ = await self.create_program_async(
+            project_id=project_id,
+            program_id=None,
+            code=util.pack_any(CIRCUIT_SERIALIZER.serialize(qec_circuit)),
+        )
+        selector = quantum.DeviceConfigSelector(
+            run_name=run_name or None, config_alias=config_name
+        )
+        run_context = util.pack_any(v2.run_context_to_proto(None, 1))
+        job = quantum.QuantumJob(
+            scheduling_config=quantum.SchedulingConfig(
+                processor_selector=quantum.SchedulingConfig.ProcessorSelector(
+                    processor=_processor_name_from_ids(project_id, processor_id),
+                    device_config_selector=selector,
+                )
+            ),
+            run_context=run_context,
+            calibrate_circuit=quantum.QuantumJob.CalibrateCircuitAction(),
+        )
+        request = quantum.CreateQuantumJobRequest(
+            parent=_program_name_from_ids(project_id, program_id),
+            quantum_job=job,
+        )
+        response_job = await self._send_request_async(self.grpc_client.create_quantum_job, request)
+        calibrated_params = getattr(response_job, 'calibrated_parameters', None)
+        if calibrated_params is None and hasattr(response_job, 'execution_status'):
+            calibrated_params = getattr(response_job.execution_status, 'calibrated_parameters', None)
+
+        if calibrated_params is not None and hasattr(calibrated_params, 'assignments'):
+            param_dict = dict(calibrated_params.assignments)
+        elif isinstance(calibrated_params, dict):
+            param_dict = dict(calibrated_params)
+        else:
+            param_dict = {}
+        return cirq.ParamResolver(param_dict)
+
+    calibrate_for_circuit = duet.sync(calibrate_for_circuit_async)
 
 
 def _project_name(project_id: str) -> str:
