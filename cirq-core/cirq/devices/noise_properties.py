@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import abc
 from collections.abc import Iterable, Sequence
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 from cirq import _import, devices, ops, protocols, value
 from cirq.devices.noise_utils import PHYSICAL_GATE_TAG
@@ -132,5 +132,5 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
             final_moments.append(circuits.Moment(combined_measure_ops))
         return final_moments
 
-    def _json_dict_(self) -> dict[str, object]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {'noise_properties': self._noise_properties}
