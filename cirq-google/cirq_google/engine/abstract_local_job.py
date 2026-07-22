@@ -38,7 +38,7 @@ class AbstractLocalJob(AbstractJob):
     that function in-memory easier.  This class will handle basic functionality
     expected to be common across all local implementations.
 
-    Implementors of this class should write the following functions:
+    Implementers of this class should write the following functions:
       - Status functions: execution_status, failure
       - Action functions: cancel, delete
       - Result functions: results, batched_results, calibration_results

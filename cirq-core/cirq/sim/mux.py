@@ -301,8 +301,8 @@ def final_density_matrix(
         if handling_classical_control:
             # case 1: classical control
             noise_applied = circuit_like.with_noise(noise) if noise is not None else circuit_like
-            defered = measurement_transformers.defer_measurements(noise_applied)
-            dephased = measurement_transformers.dephase_measurements(defered)
+            deferred = measurement_transformers.defer_measurements(noise_applied)
+            dephased = measurement_transformers.dephase_measurements(deferred)
             program = dephased
         elif ignore_measurement_results:
             # case 2: no classical control, only terminal measurement

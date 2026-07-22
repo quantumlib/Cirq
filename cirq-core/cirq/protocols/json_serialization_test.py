@@ -211,7 +211,7 @@ def test_shouldnt_be_serialized_no_superfluous(mod_spec: ModuleJsonTestSpec) -> 
     names = set(mod_spec.get_all_names())
     missing_names = set(mod_spec.should_not_be_serialized).difference(names)
     assert len(missing_names) == 0, (
-        f"Defined as \"should't be serialized\", "
+        f"Defined as \"shouldn't be serialized\", "
         f"but missing from {mod_spec}: \n"
         f"{missing_names}"
     )

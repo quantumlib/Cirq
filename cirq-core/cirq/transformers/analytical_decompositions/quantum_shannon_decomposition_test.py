@@ -36,7 +36,7 @@ def test_random_qsd_n_qubit(n_qubits) -> None:
     U = unitary_group.rvs(2**n_qubits)
     qubits = [cirq.NamedQubit(f'q{i}') for i in range(n_qubits)]
     circuit = cirq.Circuit(quantum_shannon_decomposition(qubits, U))
-    # Test return is equal to inital unitary
+    # Test return is equal to initial unitary
     assert cirq.approx_eq(U, circuit.unitary(), atol=1e-9)
     # Test all operations have at most 2 qubits.
     assert all(cirq.num_qubits(op) <= 2 for op in circuit.all_operations())
@@ -62,7 +62,7 @@ def test_random_single_qubit_decomposition() -> None:
     U = unitary_group.rvs(2)
     qubit = cirq.NamedQubit('q0')
     circuit = cirq.Circuit(_single_qubit_decomposition(qubit, U))
-    # Test return is equal to inital unitary
+    # Test return is equal to initial unitary
     assert cirq.approx_eq(U, circuit.unitary(), atol=1e-9)
     # Test all operations have at most 2 qubits.
     assert all(cirq.num_qubits(op) <= 2 for op in circuit.all_operations())
@@ -74,7 +74,7 @@ def test_msb_demuxer() -> None:
     U_full = np.kron([[1, 0], [0, 0]], U1) + np.kron([[0, 0], [0, 1]], U2)
     qubits = [cirq.NamedQubit(f'q{i}') for i in range(3)]
     circuit = cirq.Circuit(_msb_demuxer(qubits, U1, U2))
-    # Test return is equal to inital unitary
+    # Test return is equal to initial unitary
     assert cirq.approx_eq(U_full, circuit.unitary(), atol=1e-9)
     # Test all operations have at most 2 qubits.
     assert all(cirq.num_qubits(op) <= 2 for op in circuit.all_operations())
@@ -90,7 +90,7 @@ def test_multiplexed_cossin() -> None:
     circuit = cirq.Circuit(_multiplexed_cossin(qubits, [angle_1, angle_2]))
     # Add back the CZ gate removed by the A.1 optimization
     circuit += cirq.CZ(qubits[1], qubits[0])
-    # Test return is equal to inital unitary
+    # Test return is equal to initial unitary
     assert cirq.approx_eq(multiplexed_ry, circuit.unitary(), atol=1e-9)
     # Test all operations in gate set
     gates = (

@@ -373,7 +373,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         #   ---(CliffordGate^-1)---ZI---CliffordGate---
         # = unitary(CliffordGate)@unitary(ZI)@unitary(CliffordGate).conj().T
         # = -ZI.
-        # (Note the real clifford tableau has to satify the Symplectic property.
+        # (Note the real clifford tableau has to satisfy the Symplectic property.
         # here is just for illustration)
         object.__setattr__(self, '_clifford_tableau', _clifford_tableau.copy())
 

@@ -120,7 +120,7 @@ class ParallelGateFamily(gateset.GateFamily):
     In both the cases, the users can specify an additional parameter `max_parallel_allowed` which
     is used to verify the maximum number of qubits on which any given gate instance can act on.
 
-    To verify containment of a given `cirq.Gate` instance `g`, the gate family verfies that:
+    To verify containment of a given `cirq.Gate` instance `g`, the gate family verifies that:
 
     *    `cirq.num_qubits(g)` <= `max_parallel_allowed` if `max_parallel_allowed` is not None.
     *    `g` or `g.sub_gate` (if `g` is an instance of `cirq.ParallelGate`) is an accepted gate

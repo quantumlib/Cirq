@@ -535,7 +535,7 @@ def read_json(
             the serialized `cirq_type` string into a constructable class.
             By default, top-level cirq objects that implement the SupportsJSON
             protocol are supported. You can extend the list of supported types
-            by pre-pending custom resolvers. Each resolver should return `None`
+            by prepending custom resolvers. Each resolver should return `None`
             to indicate that it cannot resolve the given cirq_type and that
             the next resolver should be tried.
 
@@ -621,7 +621,7 @@ def read_json_gzip(
             the serialized `cirq_type` string into a constructable class.
             By default, top-level cirq objects that implement the SupportsJSON
             protocol are supported. You can extend the list of supported types
-            by pre-pending custom resolvers. Each resolver should return `None`
+            by prepending custom resolvers. Each resolver should return `None`
             to indicate that it cannot resolve the given cirq_type and that
             the next resolver should be tried.
 

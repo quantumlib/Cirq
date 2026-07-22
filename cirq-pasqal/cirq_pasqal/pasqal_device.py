@@ -247,7 +247,7 @@ class PasqalVirtualDevice(PasqalDevice):
             ValueError: If the device has only one qubit
 
         Returns:
-            The minimal distance between qubits, in spacial coordinate units.
+            The minimal distance between qubits, in spatial coordinate units.
         """
         if len(self.qubits) <= 1:
             raise ValueError("Two qubits to compute a minimal distance.")

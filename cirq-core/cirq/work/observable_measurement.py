@@ -589,7 +589,7 @@ _GROUPING_FUNCS: dict[str, GROUPER_T] = {'greedy': group_settings_greedy}
 
 
 def _parse_grouper(grouper: str | GROUPER_T = group_settings_greedy) -> GROUPER_T:
-    """Logic for turning a named grouper into one of the build-in groupers in support of the
+    """Logic for turning a named grouper into one of the built-in groupers in support of the
     high-level `measure_observables` API."""
     if isinstance(grouper, str):
         try:
