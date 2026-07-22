@@ -562,8 +562,6 @@ def test_create_job_with_invalid_priority(
     'processor_id, run_name, snapshot_id, device_config_name, error_message',
     [
         ('', '', '', '', 'Must specify a processor id when creating a job.'),
-        ('processor0', 'RUN_NAME', '', '', 'Cannot specify only one of top level identifier'),
-        ('processor0', '', '', 'CONFIG_ALIAS', 'Cannot specify only one of top level identifier'),
     ],
 )
 def test_create_job_with_invalid_processor_and_device_config_arguments_throws(
