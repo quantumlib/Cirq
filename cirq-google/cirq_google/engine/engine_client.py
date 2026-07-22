@@ -27,9 +27,8 @@ from google.api_core.exceptions import GoogleAPICallError, NotFound
 from google.protobuf import any_pb2, field_mask_pb2
 from google.protobuf.timestamp_pb2 import Timestamp
 
-import cirq
-
 if TYPE_CHECKING:
+    import cirq
     import stim  # type: ignore
 
 from cirq_google.api import v2
@@ -1302,7 +1301,7 @@ class EngineClient:
         processor_id: str,
         run_name: str,
         config_name: str = 'default',
-    ) -> cirq.ParamResolver:
+    ) -> quantum.QuantumJob:
         """Calibrates the given QEC circuit on Quantum Engine.
 
         Args:
@@ -1313,7 +1312,7 @@ class EngineClient:
             config_name: The identifier for the config.
 
         Returns:
-            A cirq.ParamResolver containing the calibrated parameters.
+            A `quantum.QuantumJob` created from the request.
         """
         program_id, _ = await self.create_program_async(
             project_id=project_id,
@@ -1337,16 +1336,7 @@ class EngineClient:
         request = quantum.CreateQuantumJobRequest(
             parent=_program_name_from_ids(project_id, program_id), quantum_job=job
         )
-        response_job = await self._send_request_async(self.grpc_client.create_quantum_job, request)
-        calibrated_params = getattr(response_job, 'calibrated_parameters', None)
-        if calibrated_params is None and hasattr(response_job, 'execution_status'):
-            calibrated_params = getattr(
-                response_job.execution_status, 'calibrated_parameters', None
-            )
-
-        assignments = getattr(calibrated_params, 'assignments', calibrated_params)
-        param_dict = dict(assignments) if assignments is not None else {}
-        return cirq.ParamResolver(param_dict)
+        return await self._send_request_async(self.grpc_client.create_quantum_job, request)
 
     calibrate_for_circuit = duet.sync(calibrate_for_circuit_async)
 

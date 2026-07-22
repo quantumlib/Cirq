@@ -29,7 +29,6 @@ from google.protobuf.timestamp_pb2 import Timestamp
 
 import cirq
 import cirq_google.engine.stream_manager as engine_stream_manager
-from cirq_google.api import v2
 from cirq_google.cloud import quantum
 from cirq_google.engine import util
 from cirq_google.engine.engine_client import EngineClient, EngineException
@@ -2201,13 +2200,11 @@ def test_calibrate_for_circuit(client_constructor, default_engine_client):
     config_name = "test_config"
 
     qec_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(0, 0)))
-    param_dict = v2.result_pb2.ParameterDict(assignments={'theta': 0.5})
 
     created_program = quantum.QuantumProgram(name=f"projects/{project_id}/programs/test_prog")
     grpc_client.create_quantum_program.return_value = created_program
 
     created_job = mock.MagicMock()
-    created_job.calibrated_parameters = param_dict
     grpc_client.create_quantum_job.return_value = created_job
 
     result = default_engine_client.calibrate_for_circuit(
@@ -2217,7 +2214,7 @@ def test_calibrate_for_circuit(client_constructor, default_engine_client):
         run_name=run_name,
         config_name=config_name,
     )
-    assert result == cirq.ParamResolver({'theta': 0.5})
+    assert result == created_job
 
     job_arg = grpc_client.create_quantum_job.call_args[0][0]
     assert job_arg.parent == f"projects/{project_id}/programs/test_prog"
@@ -2235,31 +2232,3 @@ def test_calibrate_for_circuit(client_constructor, default_engine_client):
     )
     assert 'run_context' in job_arg.quantum_job
     assert 'calibrate_circuit' in job_arg.quantum_job
-
-
-@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
-def test_calibrate_for_circuit_from_execution_status(client_constructor, default_engine_client):
-    grpc_client = _setup_client_mock(client_constructor)
-    project_id = "test_project"
-    processor_id = "test_processor"
-
-    qec_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(0, 0)))
-    param_dict = v2.result_pb2.ParameterDict(assignments={'theta': 0.5})
-
-    created_program = quantum.QuantumProgram(name=f"projects/{project_id}/programs/test_prog")
-    grpc_client.create_quantum_program.return_value = created_program
-
-    created_job = mock.MagicMock()
-    created_job.calibrated_parameters = None
-    created_job.execution_status.calibrated_parameters = param_dict
-    grpc_client.create_quantum_job.return_value = created_job
-
-    result = default_engine_client.calibrate_for_circuit(
-        project_id=project_id,
-        qec_circuit=qec_circuit,
-        processor_id=processor_id,
-        run_name="test_run",
-        config_name="test_config",
-    )
-    assert result == cirq.ParamResolver({'theta': 0.5})
-

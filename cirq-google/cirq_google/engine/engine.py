@@ -825,13 +825,23 @@ class Engine(abstract_engine.AbstractEngine):
         Returns:
             A cirq.ParamResolver containing the calibrated parameters.
         """
-        return await self.context.client.calibrate_for_circuit_async(
+        quantum_job = await self.context.client.calibrate_for_circuit_async(
             project_id=self.project_id,
             qec_circuit=qec_circuit,
             processor_id=processor_id,
             run_name=run_name,
             config_name=config_name,
         )
+        _, program_id, job_id = engine_client._ids_from_job_name(quantum_job.name)
+        job = engine_job.EngineJob(
+            project_id=self.project_id,
+            program_id=program_id,
+            job_id=job_id,
+            context=self.context,
+            _job=quantum_job,
+        )
+        results = await job.results_async()
+        return results[0].params
 
     calibrate_for_circuit = duet.sync(calibrate_for_circuit_async)
 
