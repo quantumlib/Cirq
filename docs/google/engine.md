@@ -47,7 +47,7 @@ variants of a general circuit).
 <!---test_substitution
 engine = cirq_google.Engine\b.*
 # This pattern matches in all snippets.
-# We repeat the expression first to ensure Engine argumets are correct.
+# We repeat the expression first to ensure Engine arguments are correct.
 \g<0>
 # Then we create various mock objects that derive from engine calls.
 engine = mock_engine = mock.create_autospec(cirq_google.Engine, instance=True)

@@ -99,7 +99,7 @@ class EngineClient:
 
     @property
     def _executor(self) -> AsyncioExecutor:
-        # We must re-use a single Executor due to multi-threading issues in gRPC
+        # We must reuse a single Executor due to multi-threading issues in gRPC
         # clients: https://github.com/grpc/grpc/issues/25364.
         return AsyncioExecutor.instance()
 
@@ -1193,7 +1193,7 @@ class EngineClient:
             config_name: The id of the quantum processor config.
 
         Returns:
-            The quantum procesor config or None if it does not exist.
+            The quantum processor config or None if it does not exist.
 
         Raises:
             EngineException: If the request to get the config fails.
@@ -1231,7 +1231,7 @@ class EngineClient:
             device_config_revision: Specifies either the snapshot_id or the run_name.
 
         Returns:
-            List of quantum procesor configs.
+            List of quantum processor configs.
         """
         parent_resource_name = _quantum_processor_revision_path(
             project_id=project_id,

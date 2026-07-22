@@ -248,12 +248,12 @@ def test_fsim_gate_family_convert_rejects():
     for gate in [cirq.rx(np.pi / 2), cirq.CNOT, cirq.CCNOT]:
         assert cirq_google.FSimGateFamily().convert(gate, cirq.PhasedFSimGate) is None
         assert gate not in cirq_google.FSimGateFamily(gates_to_accept=[cirq.PhasedFSimGate])
-    # Custom gate with an overriden `_value_equality_values_cls_`.
+    # Custom gate with an overridden `_value_equality_values_cls_`.
     assert UnequalSycGate() not in cirq_google.FSimGateFamily(gates_to_accept=[cirq_google.SYC])
     assert UnequalSycGate(is_parameterized=True) not in cirq_google.FSimGateFamily(
         gates_to_accept=[cirq_google.SYC], allow_symbols=True
     )
-    # Partially paramaterized incompatible gate.
+    # Partially parameterized incompatible gate.
     assert cirq.FSimGate(THETA, np.pi / 2) not in cirq_google.FSimGateFamily(
         gates_to_accept=[cirq.PhasedISwapPowGate(exponent=0.5, phase_exponent=0.1), cirq.CZPowGate]
     )

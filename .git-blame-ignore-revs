@@ -39,3 +39,6 @@ d1e68b15fd2a6bf40d286bc0439dc7ce9cbd127c
 
 # Format all files with black-26.1.0 (#7874)
 f14948c48b66ab15e5b0d50cd2eb71bf6513ce4b
+
+# Fix white space errors found by `git diff --check` (#8203)
+032720579c4663ef5942f9c093f13607e455272a

@@ -237,7 +237,7 @@ def _get_op_class(op: cirq.Operation, classifiers: Sequence[Classifier]) -> int:
         elif classifier(op):
             return class_index
     # If we got this far, the operation did not match any "actual" classifier,
-    # so return the index of the mock classifer.
+    # so return the index of the mock classifier.
     try:
         return mock_classifier_index
     except NameError:
