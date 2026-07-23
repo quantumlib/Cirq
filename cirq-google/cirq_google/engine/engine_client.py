@@ -442,7 +442,7 @@ class EngineClient:
             raise ValueError('priority must be between 0 and 1000')
         if not processor_id:
             raise ValueError('Must specify a processor id when creating a job.')
-        if (run_name != 'default') and snapshot_id:
+        if run_name and snapshot_id:
             print('Both run_name and snapshot_id were specified, using snapshot_id.')
 
         # Create job.
