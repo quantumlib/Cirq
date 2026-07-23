@@ -52,7 +52,6 @@ class GateOperation(raw_types.Operation):
         self._is_parameterized: bool | None = None
         self._parameter_names: frozenset[str] | None = None
 
-
     @property
     def gate(self) -> cirq.Gate:
         """The gate applied by the operation."""
