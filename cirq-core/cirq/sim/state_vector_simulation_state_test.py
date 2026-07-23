@@ -274,3 +274,89 @@ def test_measured_mixture() -> None:
 def test_qid_shape_error() -> None:
     with pytest.raises(ValueError, match="qid_shape must be provided"):
         cirq.sim.state_vector_simulation_state._BufferedStateVector.create(initial_state=0)
+
+
+def test_should_preserve_initial_state_false_skips_copy() -> None:
+    state_vector = np.array([1.0, 0.0], dtype=np.complex64)
+    bsv = cirq.sim.state_vector_simulation_state._BufferedStateVector.create(
+        initial_state=state_vector,
+        qid_shape=(2,),
+        dtype=np.complex64,
+        should_preserve_initial_state=False,
+    )
+    assert np.may_share_memory(bsv._state_vector, state_vector)
+
+
+def test_should_preserve_initial_state_true_copies() -> None:
+    state_vector = np.array([1.0, 0.0], dtype=np.complex64)
+    bsv = cirq.sim.state_vector_simulation_state._BufferedStateVector.create(
+        initial_state=state_vector,
+        qid_shape=(2,),
+        dtype=np.complex64,
+        should_preserve_initial_state=True,
+    )
+    assert not np.may_share_memory(bsv._state_vector, state_vector)
+
+
+def test_should_preserve_initial_state_false_no_eager_buffer() -> None:
+    bsv = cirq.sim.state_vector_simulation_state._BufferedStateVector.create(
+        initial_state=0, qid_shape=(2,), dtype=np.complex64, should_preserve_initial_state=False
+    )
+    assert bsv._raw_buffer is None
+
+
+def test_should_preserve_initial_state_false_lazy_buffer_on_access() -> None:
+    bsv = cirq.sim.state_vector_simulation_state._BufferedStateVector.create(
+        initial_state=0, qid_shape=(2,), dtype=np.complex64, should_preserve_initial_state=False
+    )
+    assert bsv._raw_buffer is None
+    buf = bsv._buffer
+    assert bsv._raw_buffer is not None
+    assert buf.shape == bsv._state_vector.shape
+    assert buf.dtype == bsv._state_vector.dtype
+
+
+def test_should_preserve_initial_state_false_correct_simulation() -> None:
+    state_vector = cirq.one_hot(shape=(2, 2), dtype=np.complex64)
+    args = cirq.StateVectorSimulationState(
+        qubits=cirq.LineQubit.range(2),
+        initial_state=state_vector,
+        dtype=np.complex64,
+        should_preserve_initial_state=False,
+    )
+    assert args._state._raw_buffer is None
+    cirq.act_on(cirq.X, args, [cirq.LineQubit(0)])
+    assert args._state._raw_buffer is not None
+    np.testing.assert_allclose(
+        args.target_tensor, cirq.one_hot(index=(1, 0), shape=(2, 2), dtype=np.complex64)
+    )
+
+
+def test_copy_with_unallocated_buffer_preserves_lazy_state() -> None:
+    bsv = cirq.sim.state_vector_simulation_state._BufferedStateVector.create(
+        initial_state=0, qid_shape=(2,), dtype=np.complex64, should_preserve_initial_state=False
+    )
+    copy = bsv.copy()
+    assert copy._raw_buffer is None
+    assert not np.may_share_memory(copy._state_vector, bsv._state_vector)
+    np.testing.assert_array_equal(copy._state_vector, bsv._state_vector)
+
+
+def test_shallow_copy_with_unallocated_buffer() -> None:
+    bsv = cirq.sim.state_vector_simulation_state._BufferedStateVector.create(
+        initial_state=0, qid_shape=(2,), dtype=np.complex64, should_preserve_initial_state=False
+    )
+    copy = bsv.copy(deep_copy_buffers=False)
+    assert copy._raw_buffer is None
+    assert not np.may_share_memory(copy._state_vector, bsv._state_vector)
+    np.testing.assert_array_equal(copy._state_vector, bsv._state_vector)
+
+
+def test_deep_copy_with_allocated_buffer() -> None:
+    bsv = cirq.sim.state_vector_simulation_state._BufferedStateVector.create(
+        initial_state=0, qid_shape=(2,), dtype=np.complex64, should_preserve_initial_state=True
+    )
+    copy = bsv.copy(deep_copy_buffers=True)
+    assert copy._raw_buffer is not None
+    assert not np.may_share_memory(copy._raw_buffer, bsv._raw_buffer)
+    np.testing.assert_array_equal(copy._raw_buffer, bsv._raw_buffer)

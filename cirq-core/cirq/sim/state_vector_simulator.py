@@ -139,12 +139,12 @@ class StateVectorTrialResult(
             )
             return ret
         # normalize only if doing so improves the round-off on total probability
-        ret_norm = ret / norm
+        ret_norm = ret * (1.0 / norm)
         round_off_change = abs(np.vdot(ret_norm, ret_norm) - 1) - abs(np.vdot(ret, ret) - 1)
         result = ret_norm if round_off_change < 0 else ret
         return result
 
-    def state_vector(self, copy: bool = False) -> np.ndarray:
+    def state_vector(self, copy: bool = False, normalize: bool = True) -> np.ndarray:
         """Return the state vector at the end of the computation.
 
         The state is returned in the computational basis with these basis
@@ -172,11 +172,19 @@ class StateVectorTrialResult(
 
         Args:
             copy: If True, the returned state vector will be a copy of that
-            stored by the object. This is potentially expensive for large
-            state vectors, but prevents mutation of the object state, e.g. for
-            operating on intermediate states of a circuit.
-            Defaults to False.
+                stored by the object. This is potentially expensive for large
+                state vectors, but prevents mutation of the object state, e.g.
+                for operating on intermediate states of a circuit.
+                Defaults to False.
+            normalize: If True, the returned state vector is normalized and
+                the result is cached. If False, the raw target tensor is
+                returned directly, avoiding the extra allocation in
+                `final_state_vector`.
+                Defaults to True.
         """
+        if not normalize:
+            ret = self._get_merged_sim_state().target_tensor.reshape(-1)
+            return ret.copy() if copy else ret
         return self.final_state_vector.copy() if copy else self.final_state_vector
 
     def _value_equality_values_(self):
