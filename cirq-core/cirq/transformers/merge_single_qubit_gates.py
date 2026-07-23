@@ -169,19 +169,15 @@ def merge_single_qubit_moments_to_phxz(
         phase_coeff: complex = 1.0
         has_phase = False
         for m in ms:
-            # collect all one-qubit gates
-            for q in m.qubits:
-                op = m.operation_at(q)
-                assert op is not None
-                if q not in one_qubit_ops:
-                    one_qubit_ops[q] = []
-                one_qubit_ops[q].append(op)
-
-            # collect all global phase gates
             for op in m.operations:
                 if protocols.num_qubits(op) == 0:
                     has_phase = True
                     phase_coeff *= complex(protocols.unitary(op)[0, 0])
+                elif protocols.num_qubits(op) == 1:
+                    op_qubit = op.qubits[0]
+                    if op_qubit not in one_qubit_ops:
+                        one_qubit_ops[op_qubit] = []
+                    one_qubit_ops[op.qubits[0]].append(op)
 
         # create phxz gate at each qubit
         ret_ops = []

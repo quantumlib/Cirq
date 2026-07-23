@@ -760,18 +760,18 @@ def merge_moments_greedy(
     tags_to_ignore: Sequence[Hashable] = (),
     deep: bool = False,
 ) -> CIRCUIT_TYPE:
-    """Merges runs of moments of length > 1 using `merge_func(moments_list)`.
+    """Merges as many adjacent moments as possible at once using `merge_func(moments_list)`.
 
-    A run of consecutive moments is mergeable if `can_merge_moment(m)` is True for all of them.
-    If a run has length > 1, it is passed to `merge_func` to be merged into a single moment.
-    If `merge_func` returns None, the moments are kept unmerged.
-    Single-moment runs (length 1) are kept unmerged without calling `merge_func`.
+    Starting from the first moment, the largest run of mergeable moments is found and then
+    merged at once. The process is repeated starting from the next moment, until the circuit
+    is exhausted. `merge_func` is not called on single-moment runs. If `merge_func` returns
+    None, the moments are kept unmerged.
 
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
         merge_func: Callable that takes a list of consecutive mergeable moments and returns
             the merged moment, or None if they cannot be merged.
-        can_merge_moment: Callable to determine whether a moment is candidate for merging.
+        can_merge_moment: Callable that returns True if a moment can be merged, else False.
         tags_to_ignore: Tagged circuit operations marked with any of `tags_to_ignore` will be
             ignored when recursively applying the transformer primitive to sub-circuits, given
             deep=True.

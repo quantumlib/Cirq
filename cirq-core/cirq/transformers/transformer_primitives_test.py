@@ -514,7 +514,7 @@ def _merge_z_moments_greedy_func(ms: list[cirq.Moment]) -> cirq.Moment | None:
     for m in ms:
         for q in m.qubits:
             qubit_counts[q] = qubit_counts.get(q, 0) + 1
-    return cirq.Moment(cirq.Z(q) for q, count in qubit_counts.items() if count % 2 == 1)
+    return cirq.Moment(cirq.Z(q) for q, count in qubit_counts.items() if count % 2)
 
 
 def _can_merge_z_moments(m: cirq.Moment) -> bool:
@@ -635,19 +635,14 @@ def test_merge_moments_empty_circuit():
 
     c = cirq.Circuit()
     assert cirq.merge_moments(c, fail_if_called_func) is c
-    assert cirq.merge_moments_greedy(c, fail_if_called_func, can_merge_moment=lambda *_: True) is c
+    assert cirq.merge_moments_greedy(c, fail_if_called_func, can_merge_moment=lambda m: True) is c
 
 
 def test_merge_moments_greedy_returns_none():
     q = cirq.LineQubit.range(3)
-    c_orig = cirq.Circuit(
-        cirq.Z.on_each(q[0], q[1]),
-        cirq.X(q[2]),
-        cirq.Z.on_each(q[1], q[0]),
-        strategy=cirq.InsertStrategy.NEW_THEN_INLINE,
-    )
+    c_orig = cirq.Circuit(cirq.Z(q[0]), cirq.Z(q[1]), cirq.X(q[2]), cirq.Z(q[1]), cirq.Z(q[0]))
     c_new = cirq.merge_moments_greedy(
-        c_orig, _merge_z_moments_greedy_func, can_merge_moment=lambda *_: True
+        c_orig, _merge_z_moments_greedy_func, can_merge_moment=lambda m: True
     )
     cirq.testing.assert_same_circuits(c_new, c_orig)
 
