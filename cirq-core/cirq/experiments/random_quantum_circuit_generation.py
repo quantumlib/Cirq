@@ -539,6 +539,7 @@ def random_rotations_between_grid_interaction_layers_circuit(
     qubits: Iterable[cirq.GridQubit],
     depth: int,
     *,  # forces keyword arguments
+    device_graph: nx.Graph | None = None,
     two_qubit_op_factory: Callable[
         [cirq.GridQubit, cirq.GridQubit, np.random.RandomState], cirq.OP_TREE
     ] = lambda a, b, _: ops.CZPowGate()(a, b),
@@ -566,6 +567,9 @@ def random_rotations_between_grid_interaction_layers_circuit(
     Args:
         qubits: The qubits to use.
         depth: The number of cycles.
+        device_graph: A graph whose edges specify the available two-qubit interactions. Only edges
+            between qubits in `qubits` are considered. If omitted, all pairs of adjacent grid
+            qubits are used.
         two_qubit_op_factory: A callable that returns a two-qubit operation.
             These operations will be generated with calls of the form
             `two_qubit_op_factory(q0, q1, prng)`, where `prng` is the
@@ -584,7 +588,15 @@ def random_rotations_between_grid_interaction_layers_circuit(
     """
     prng = value.parse_random_state(seed)
     qubits = list(qubits)
-    coupled_qubit_pairs = _coupled_qubit_pairs(qubits)
+    if device_graph is None:
+        coupled_qubit_pairs = _coupled_qubit_pairs(qubits)
+    else:
+        qubit_set = set(qubits)
+        coupled_qubit_pairs = sorted(
+            tuple(sorted((a, b)))
+            for a, b in device_graph.edges
+            if a in qubit_set and b in qubit_set
+        )
 
     circuit = circuits.Circuit()
     previous_single_qubit_layer = circuits.Moment()
