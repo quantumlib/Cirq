@@ -103,11 +103,12 @@ def cached_method(method: TFunc | None = None, *, maxsize: int = 128) -> Any:
 
             @functools.wraps(func)
             def wrapped_no_args(self):
-                result = getattr(self, cache_name, _NOT_FOUND)
-                if result is _NOT_FOUND:
+                try:
+                    return getattr(self, cache_name)
+                except AttributeError:
                     result = func(self)
                     object.__setattr__(self, cache_name, result)
-                return result
+                    return result
 
             return wrapped_no_args
 
