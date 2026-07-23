@@ -20,20 +20,20 @@ import asyncio
 import datetime
 from unittest import mock
 
-import duet
 import pytest
-from google.api_core import exceptions
-from google.protobuf import any_pb2
 from google.protobuf.field_mask_pb2 import FieldMask
 from google.protobuf.timestamp_pb2 import Timestamp
 
 import cirq
 import cirq_google.engine.stream_manager as engine_stream_manager
+import duet
 from cirq_google.cloud import quantum
 from cirq_google.engine import util
 from cirq_google.engine.engine_client import EngineClient, EngineException
 from cirq_google.engine.processor_config import Run, Snapshot
 from cirq_google.serialization import CIRCUIT_SERIALIZER
+from google.api_core import exceptions
+from google.protobuf import any_pb2
 
 # JOB_PATH represents the path to a specific job.
 JOB_PATH = 'projects/proj/programs/prog/jobs/job0'
@@ -421,7 +421,9 @@ def test_create_job_with_all_parameters(
                     priority=10,
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
-                        device_config_selector=quantum.DeviceConfigSelector(),
+                        device_config_selector=quantum.DeviceConfigSelector(
+                            run_name='default', config_alias='default'
+                        ),
                     ),
                 ),
                 description='A job',
@@ -458,7 +460,9 @@ def test_create_job_without_labels(client_constructor, default_engine_client):
                     priority=10,
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
-                        device_config_selector=quantum.DeviceConfigSelector(),
+                        device_config_selector=quantum.DeviceConfigSelector(
+                            run_name='default', config_alias='default'
+                        ),
                     ),
                 ),
                 description='A job',
@@ -495,7 +499,9 @@ def test_create_job_without_description(client_constructor, default_engine_clien
                     priority=10,
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
-                        device_config_selector=quantum.DeviceConfigSelector(),
+                        device_config_selector=quantum.DeviceConfigSelector(
+                            run_name='default', config_alias='default'
+                        ),
                     ),
                 ),
                 labels=labels,
@@ -529,7 +535,9 @@ def test_create_job_without_job_id(client_constructor, default_engine_client):
                     priority=10,
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
-                        device_config_selector=quantum.DeviceConfigSelector(),
+                        device_config_selector=quantum.DeviceConfigSelector(
+                            run_name='default', config_alias='default'
+                        ),
                     ),
                 ),
             ),
@@ -622,7 +630,8 @@ def test_create_job_with_run_name_and_device_config_name_succeeds(
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
                         device_config_selector=quantum.DeviceConfigSelector(
-                            run_name=run_name or None, config_alias=device_config_name
+                            run_name=run_name or 'default',
+                            config_alias=device_config_name or 'default',
                         ),
                     ),
                 ),
