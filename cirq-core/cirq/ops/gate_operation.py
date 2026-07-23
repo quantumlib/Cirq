@@ -23,7 +23,7 @@ from collections.abc import Collection, Mapping, Sequence, Set
 from types import NotImplementedType
 from typing import Any, cast, Self, TYPE_CHECKING, TypeVar
 
-from cirq import ops, protocols, value
+from cirq import _compat, ops, protocols, value
 from cirq.ops import control_values as cv, gate_features, raw_types
 
 if TYPE_CHECKING:
@@ -255,16 +255,18 @@ class GateOperation(raw_types.Operation):
             return getter(sim_state, self.qubits)
         return NotImplemented
 
+    @_compat.cached_method
     def _is_parameterized_(self) -> bool:
         getter = getattr(self.gate, '_is_parameterized_', None)
         if getter is not None:
             return getter()
         return NotImplemented
 
+    @_compat.cached_method
     def _parameter_names_(self) -> Set[str]:
         getter = getattr(self.gate, '_parameter_names_', None)
         if getter is not None:
-            return getter()
+            return frozenset(getter())
         return NotImplemented
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> cirq.Operation:
