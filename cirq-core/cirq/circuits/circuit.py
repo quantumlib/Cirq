@@ -1329,12 +1329,12 @@ class AbstractCircuit(abc.ABC):
         return diagram
 
     def _is_parameterized_(self) -> bool:
-        return any(protocols.is_parameterized(op) for op in self.all_operations()) or any(
+        return any(protocols.is_parameterized(moment) for moment in self.moments) or any(
             protocols.is_parameterized(tag) for tag in self.tags
         )
 
     def _parameter_names_(self) -> Set[str]:
-        op_params = {name for op in self.all_operations() for name in protocols.parameter_names(op)}
+        op_params = {name for m in self.moments for name in protocols.parameter_names(m)}
         tag_params = {name for tag in self.tags for name in protocols.parameter_names(tag)}
         return op_params | tag_params
 
