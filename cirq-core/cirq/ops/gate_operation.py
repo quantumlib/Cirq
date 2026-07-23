@@ -23,7 +23,7 @@ from collections.abc import Collection, Mapping, Sequence, Set
 from types import NotImplementedType
 from typing import Any, cast, Self, TYPE_CHECKING, TypeVar
 
-from cirq import ops, protocols, value
+from cirq import _compat, ops, protocols, value
 from cirq.ops import control_values as cv, gate_features, raw_types
 
 if TYPE_CHECKING:
@@ -49,8 +49,6 @@ class GateOperation(raw_types.Operation):
         gate.validate_args(qubits)
         self._gate = gate
         self._qubits = tuple(qubits)
-        self._is_parameterized: bool | None = None
-        self._parameter_names: frozenset[str] | None = None
 
     @property
     def gate(self) -> cirq.Gate:
@@ -257,22 +255,18 @@ class GateOperation(raw_types.Operation):
             return getter(sim_state, self.qubits)
         return NotImplemented
 
+    @_compat.cached_method
     def _is_parameterized_(self) -> bool:
-        if self._is_parameterized is not None:
-            return self._is_parameterized
         getter = getattr(self.gate, '_is_parameterized_', None)
         if getter is not None:
-            self._is_parameterized = getter()
-            return self._is_parameterized
+            return getter()
         return NotImplemented
 
+    @_compat.cached_method
     def _parameter_names_(self) -> Set[str]:
-        if self._parameter_names is not None:
-            return self._parameter_names
         getter = getattr(self.gate, '_parameter_names_', None)
         if getter is not None:
-            self._parameter_names = frozenset(getter())
-            return self._parameter_names
+            return frozenset(getter())
         return NotImplemented
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> cirq.Operation:
