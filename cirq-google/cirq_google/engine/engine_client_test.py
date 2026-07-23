@@ -421,9 +421,7 @@ def test_create_job_with_all_parameters(
                     priority=10,
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
-                        device_config_selector=quantum.DeviceConfigSelector(
-                            run_name='default', config_alias='default'
-                        ),
+                        device_config_selector=quantum.DeviceConfigSelector(),
                     ),
                 ),
                 description='A job',
@@ -460,9 +458,7 @@ def test_create_job_without_labels(client_constructor, default_engine_client):
                     priority=10,
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
-                        device_config_selector=quantum.DeviceConfigSelector(
-                            run_name='default', config_alias='default'
-                        ),
+                        device_config_selector=quantum.DeviceConfigSelector(),
                     ),
                 ),
                 description='A job',
@@ -499,9 +495,7 @@ def test_create_job_without_description(client_constructor, default_engine_clien
                     priority=10,
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
-                        device_config_selector=quantum.DeviceConfigSelector(
-                            run_name='default', config_alias='default'
-                        ),
+                        device_config_selector=quantum.DeviceConfigSelector(),
                     ),
                 ),
                 labels=labels,
@@ -535,9 +529,7 @@ def test_create_job_without_job_id(client_constructor, default_engine_client):
                     priority=10,
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
-                        device_config_selector=quantum.DeviceConfigSelector(
-                            run_name='default', config_alias='default'
-                        ),
+                        device_config_selector=quantum.DeviceConfigSelector(),
                     ),
                 ),
             ),
@@ -568,7 +560,11 @@ def test_create_job_with_invalid_priority(
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 @pytest.mark.parametrize(
     'processor_id, run_name, snapshot_id, device_config_name, error_message',
-    [('', '', '', '', 'Must specify a processor id when creating a job.')],
+    [
+        ('', '', '', '', 'Must specify a processor id when creating a job.'),
+        ('processor0', 'RUN_NAME', '', '', 'Cannot specify only one of top level identifier'),
+        ('processor0', '', '', 'CONFIG_ALIAS', 'Cannot specify only one of top level identifier'),
+    ],
 )
 def test_create_job_with_invalid_processor_and_device_config_arguments_throws(
     client_constructor,
@@ -630,8 +626,7 @@ def test_create_job_with_run_name_and_device_config_name_succeeds(
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
                         device_config_selector=quantum.DeviceConfigSelector(
-                            run_name=run_name or 'default',
-                            config_alias=device_config_name or 'default',
+                            run_name=run_name or None, config_alias=device_config_name
                         ),
                     ),
                 ),
@@ -1080,6 +1075,36 @@ def test_run_job_over_stream_processor_unset_raises(default_engine_client, defau
             job_id='job0',
             processor_id='',
             run_context=default_run_context,
+        )
+
+
+@pytest.mark.parametrize(
+    'run_name, snapshot_id, device_config_name, error_message',
+    [
+        ('run1', '', '', 'Cannot specify only one of top level identifier'),
+        ('', '', 'device_config1', 'Cannot specify only one of top level identifier'),
+    ],
+)
+def test_run_job_over_stream_invalid_device_config_raises(
+    run_name,
+    snapshot_id,
+    device_config_name,
+    error_message,
+    default_engine_client,
+    default_run_context,
+):
+
+    with pytest.raises(ValueError, match=error_message):
+        default_engine_client.run_job_over_stream(
+            project_id='proj',
+            program_id='prog',
+            code=any_pb2.Any(),
+            job_id='job0',
+            processor_id='mysim',
+            run_context=default_run_context,
+            run_name=run_name,
+            snapshot_id=snapshot_id,
+            device_config_name=device_config_name,
         )
 
 
@@ -2020,7 +2045,7 @@ def test_compile_circuit(client_constructor, default_engine_client):
             stim_circuit=stim_circuit,
             recipe=quantum.QecRecipe(desired_algorithms=qec_recipe),
             processor_id=processor_id,
-            device_config_selector=quantum.DeviceConfigSelector(),
+            device_config_selector=quantum.DeviceConfigSelector(run_name='default'),
         )
     )
 
@@ -2055,9 +2080,7 @@ def test_compile_circuit_with_stim_circuit_object(client_constructor, default_en
             stim_circuit=str(stim_circuit),
             recipe=quantum.QecRecipe(desired_algorithms=qec_recipe),
             processor_id=processor_id,
-            device_config_selector=quantum.DeviceConfigSelector(
-                run_name='default', config_alias='default'
-            ),
+            device_config_selector=quantum.DeviceConfigSelector(run_name='default'),
         )
     )
 
