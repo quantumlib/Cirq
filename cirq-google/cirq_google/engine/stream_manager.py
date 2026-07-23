@@ -185,7 +185,7 @@ class StreamManager:
 
     @property
     def _executor(self) -> AsyncioExecutor:
-        # We must re-use a single Executor due to multi-threading issues in gRPC
+        # We must reuse a single Executor due to multi-threading issues in gRPC
         # clients: https://github.com/grpc/grpc/issues/25364.
         return AsyncioExecutor.instance()
 

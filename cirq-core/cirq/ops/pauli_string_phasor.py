@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import numbers
 from collections.abc import Iterable, Iterator, Sequence, Set
-from typing import cast, TYPE_CHECKING
+from typing import Any, cast, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq._compat import deprecated, proper_repr
@@ -256,7 +256,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
             return f'exp({sign}iπ{exponent}*{self.pauli_string})'
         return f'({self.pauli_string})**{self.exponent_relative}'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(
             self, ['pauli_string', 'qubits', 'exponent_neg', 'exponent_pos']
         )
@@ -444,7 +444,7 @@ class PauliStringPhasorGate(raw_types.Gate):
             exponent_neg=self.exponent_neg,
         )
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(
             self, ['dense_pauli_string', 'exponent_neg', 'exponent_pos']
         )

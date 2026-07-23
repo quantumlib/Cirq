@@ -115,7 +115,7 @@ class VarianceStoppingCriteria(StoppingCriteria):
             return 0
         return self.repetitions_per_chunk
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.dataclass_json_dict(self)
 
 
@@ -135,7 +135,7 @@ class RepetitionsStoppingCriteria(StoppingCriteria):
         to_do_next = min(self.repetitions_per_chunk, todo)
         return to_do_next
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.dataclass_json_dict(self)
 
 
@@ -589,7 +589,7 @@ _GROUPING_FUNCS: dict[str, GROUPER_T] = {'greedy': group_settings_greedy}
 
 
 def _parse_grouper(grouper: str | GROUPER_T = group_settings_greedy) -> GROUPER_T:
-    """Logic for turning a named grouper into one of the build-in groupers in support of the
+    """Logic for turning a named grouper into one of the built-in groupers in support of the
     high-level `measure_observables` API."""
     if isinstance(grouper, str):
         try:

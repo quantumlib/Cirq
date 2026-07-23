@@ -53,7 +53,7 @@ class SimulatorBase(
 ):
     """A base class for the built-in simulators.
 
-    Most implementors of this interface should implement the
+    Most implementers of this interface should implement the
     `_create_partial_simulation_state` and `_create_step_result` methods. The
     first one creates the simulator's quantum state representation at the
     beginning of the simulation. The second creates the step result emitted
@@ -146,7 +146,7 @@ class SimulatorBase(
         state representation, and only executing that once per sample set. For
         state vectors, any unitary operation is pure, and we make this the
         default here. For density matrices, any non-measurement operation can
-        be represented wholely in the matrix, and thus this method is
+        be represented wholly in the matrix, and thus this method is
         overridden there to enable greater optimization there.
 
         Custom simulators can override this method appropriately.

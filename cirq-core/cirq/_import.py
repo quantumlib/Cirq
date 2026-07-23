@@ -194,7 +194,7 @@ class LazyLoader(ModuleType):
         """Create the LazyLoader module.
 
         Args:
-            local_name: The local name that the module will be refered to as.
+            local_name: The local name that the module will be referred to as.
             parent_module_globals: The globals of the module where this should be imported.
                 Typically this will be globals().
             name: The full qualified name of the module.

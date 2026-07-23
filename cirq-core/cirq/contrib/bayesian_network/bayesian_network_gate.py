@@ -44,7 +44,7 @@ def _generate_gate_set_for_arc_prob(target, params, cond_probs):
 
     for notted_binary in graycode.generate_gray():
         # We get the NOT of the code because we want to start with 111...1 so that we don't need
-        # to have X gates on all qubits from the begining. This does not change the output and is
+        # to have X gates on all qubits from the beginning. This does not change the output and is
         # simply an optimization.
         binary = ''.join('1' if bit == '0' else '0' for bit in notted_binary)
 
@@ -123,7 +123,7 @@ class BayesianNetworkGate(raw_types.Gate):
                 # Indicates that p(q2 = 1 | q0 = 1 and q1 = 1) = 0.4
         ]
 
-        By convention, all the probabilties are for the variable being equal to 1 and the
+        By convention, all the probabilities are for the variable being equal to 1 and the
         probability of being equal to zero can be inferred. In the example above, we thus have:
         p(q2 = 0 | q0 = 1 and q1 = 0) = 1.0 - p(q2 = 1 | q0 = 1 and q1 = 0) = 0.7
 

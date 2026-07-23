@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import numpy as np
 import pytest
 
 import cirq
@@ -32,6 +33,13 @@ def test_eval_repr(key) -> None:
     cirq.testing.assert_equivalent_repr(op)
     assert cirq.is_measurement(op)
     assert cirq.measurement_key_name(op) == str(key)
+
+    # Test with confusion matrix
+    cmat = np.array([[0.8, 0.2], [0.1, 0.9]])
+    gate_with_cmat = cirq.PauliMeasurementGate([cirq.X], key, confusion_matrix=cmat)
+    cirq.testing.assert_equivalent_repr(gate_with_cmat)
+    op_with_cmat = gate_with_cmat.on(cirq.GridQubit(0, 1))
+    cirq.testing.assert_equivalent_repr(op_with_cmat)
 
 
 @pytest.mark.parametrize('observable', [[cirq.X], [cirq.Y, cirq.Z], cirq.DensePauliString('XYZ')])
@@ -151,6 +159,15 @@ def test_op_repr() -> None:
         "key=cirq.MeasurementKey(name='out'))"
     )
 
+    cmat = np.array([[0.8, 0.2], [0.1, 0.9]])
+    assert (
+        repr(cirq.measure_single_paulistring(ps, key='out', confusion_matrix=cmat))
+        == "cirq.measure_single_paulistring(((1+0j)*cirq.X(cirq.LineQubit(0))"
+        "*cirq.Y(cirq.LineQubit(1))*cirq.Z(cirq.LineQubit(2))), "
+        "key=cirq.MeasurementKey(name='out'), "
+        "confusion_matrix=np.array([[0.8, 0.2], [0.1, 0.9]], dtype=np.dtype('float64')))"
+    )
+
 
 def test_bad_observable_raises() -> None:
     with pytest.raises(ValueError, match='Pauli observable .* is empty'):
@@ -190,3 +207,48 @@ def test_pauli_measurement_gate_samples(rot, obs, out) -> None:
     q = cirq.NamedQubit("q")
     c = cirq.Circuit(rot(q), cirq.PauliMeasurementGate(obs, key='out').on(q))
     assert cirq.Simulator().sample(c)['out'][0] == out
+
+
+def test_confusion_matrix_decomposition() -> None:
+    q = cirq.LineQubit(0)
+    cmat = np.array([[0.8, 0.2], [0.1, 0.9]])
+    gate = cirq.PauliMeasurementGate([cirq.X], key='a', confusion_matrix=cmat)
+    decomposed = cirq.decompose_once(gate.on(q))
+
+    # Check that it decomposes to a MeasurementGate with the same confusion map
+    meas_op = next(op for op in decomposed if isinstance(op.gate, cirq.MeasurementGate))
+    assert isinstance(meas_op.gate, cirq.MeasurementGate)
+    assert list(meas_op.gate.confusion_map.keys()) == [(0,)]
+    assert np.array_equal(meas_op.gate.confusion_map[(0,)], cmat)
+
+
+def test_confusion_matrix_simulation() -> None:
+    # one qubit
+    cmat = np.array([[0.0, 1.0], [1.0, 0.0]])
+    q = cirq.LineQubit(0)
+    c = cirq.Circuit(cirq.PauliMeasurementGate([cirq.Z], key='out', confusion_matrix=cmat).on(q))
+    sim_results = cirq.Simulator().sample(c, repetitions=10)['out']
+    assert sim_results.all()
+
+    # two qubits
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(
+        cirq.PauliMeasurementGate([cirq.Z, cirq.Z], key='out', confusion_matrix=cmat).on(q0, q1)
+    )
+    sim_results = cirq.Simulator().sample(c, repetitions=10)['out']
+    assert sim_results.all()
+
+
+def test_confusion_matrix_mixed_simulation() -> None:
+    # 90% chance of 0->0, 10% chance of 0->1
+    # 40% chance of 1->0, 60% chance of 1->1
+    cmat = np.array([[0.9, 0.1], [0.4, 0.6]])
+    q = cirq.LineQubit(0)
+
+    # should be 50/50 0 vs 1
+    c0 = cirq.Circuit(cirq.PauliMeasurementGate([cirq.X], key='out', confusion_matrix=cmat).on(q))
+    sim_results0 = cirq.Simulator(seed=1234).sample(c0, repetitions=1000)['out']
+
+    # Expect zero: 0.5 (prob 0) * 0.9 (prob no flip) + 0.5 (prob 1) * 0.4 (prob flip) = 0.65
+    # Expect one: 0.5 (prob 0) * 0.1 (prob flip) + 0.5 (prob 1) * 0.6 (prob no flip) = 0.35
+    np.testing.assert_allclose(np.mean(sim_results0), 0.35, atol=0.03)

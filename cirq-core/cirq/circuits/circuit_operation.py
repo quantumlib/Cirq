@@ -534,7 +534,7 @@ class CircuitOperation(ops.Operation):
             del state[hash_attr]
         return state
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         resp = {
             'circuit': self.circuit,
             'repetitions': self.repetitions,

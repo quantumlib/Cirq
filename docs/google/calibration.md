@@ -2,7 +2,7 @@
 
 Quantum processors periodically undergo calibrations to maintain the
 quality of the programs that can be run on them.
-During this calibration metrics about the performance of the quantum computer
+During this calibration, metrics about the performance of the device
 are collected.  This calibration data is stored by Quantum Engine and users can
 then query for the current or previous state of the calibration.
 Calibrations are also available for past jobs.
@@ -13,235 +13,166 @@ of the metric.  Note that the value of the metric is also usually a dictionary
 
 ## Retrieving calibration metrics
 
-You can view calibration metrics in the Cloud Console by clicking on the
-relevant processor in the
-[processors list](https://console.cloud.google.com/quantum/processors).
-A dropdown menu will let you choose the current characterization or historical
-metrics from a previous run.  Calibration metrics can also be retrieved
-programmatically using an engine instance or with a job.
+Calibration metrics can be retrieved through Quantum Engine's Python API.
 
 <!---test_substitution
-engine = cg.Engine\(project_id=.*
+engine = cg.get_engine\(.*
 \g<0>
 engine = mock.create_autospec(cirq_google.Engine, instance=True)
 mock_engine_processor = mock.create_autospec(cirq_google.EngineProcessor, instance=True)
 engine.configure_mock(**{"get_processor.return_value": mock_engine_processor})
 --->
 <!---test_substitution
-PROJECT_ID|PROGRAM_ID|PROCESSOR_ID|CALIBRATION_SECONDS|START_SECONDS|END_SECONDS|JOB_ID
+PROJECT_ID|PROGRAM_ID|PROCESSOR_ID|JOB_ID|SNAPSHOT_ID
 'placeholder'
 --->
 ```python
 import cirq_google as cg
 
 # Create an Engine object to use.
-# Replace PROJECT_ID with the id from your cloud project.
-engine = cg.Engine(project_id=PROJECT_ID)
-processor = engine.get_processor(processor_id=PROCESSOR_ID)
+engine = cg.get_engine(PROJECT_ID) # Replace with your your Cloud project id.
+processor = engine.get_processor(processor_id=PROCESSOR_ID) # replace this
+config = processor.get_config() # or get a non-default config
 
 # Get the latest calibration metrics.
-latest_calibration = processor.get_current_calibration()
+calibration = config.calibration
 
-# If you know the timestamp of a previous calibration, you can retrieve the
-# calibration using the timestamp in epoch seconds.
-previous_calibration = processor.get_calibration(CALIBRATION_SECONDS)
-
-# If you would like to find a calibration from a time-frame, use this.
-calibration_list = processor.list_calibrations(START_SECONDS, END_SECONDS)
-
-# The calibration can be iterated through using something like the following.
-for metric_name in latest_calibration:
-    print(metric_name)
-    print('------')
-    for qubit_or_pair in latest_calibration[metric_name]:
-        # Note that although the value is often singular,
-        # the metric_value is of the type list and can have multiple values.
-        metric_value = latest_calibration[metric_name][qubit_or_pair]
-        print(f'{qubit_or_pair} = {metric_value}')
+# You can see which metrics are available by looking at the keys:
+print(list(calibration.keys()))
 ```
 
-Calibration metrics will also soon be available from the
-[Google Cloud Platform Console](https://console.cloud.google.com).
-
-## Average, Pauli and Incoherent Error
-
-Several metrics below define average error, Pauli error and incoherent error.
-This section explains the difference between each of these metrics.
-
-The average error is equal to one minus fidelity averaged over all possible
-input states.
-
-Pauli error defines decoherence of a single qubit in one of the Pauli channels
-X, Y, or Z.  If the errors are distributed in the uniform distribution over all
-three axes, the probability of applying an erroneous Pauli gate X, Y, or Z will
-be the Pauli error divided by three.  The Pauli error and average error are
-related by a multiplicative factor dependent on the number of qubits.
-
-See Table 1 on page 11 of the
+We typically report Pauli errors, although note that the
+[spec sheet](https://quantumai.google/static/site-assets/downloads/willow-spec-sheet.pdf)
+reports average errors. Please see Table 1 on page 11 of the
 [Supplementary Information](https://arxiv.org/abs/1910.11333)
 document for a description and comparison between average error, Pauli error,
 and depolarization error.
 
-The incoherent error is the "unitarity" of the gate or cycle.
-This is defined as the decay rate per gate (or cycle) of the
-[Purity](https://en.wikipedia.org/wiki/Purity_(quantum_mechanics))
-when fit to an exponential curve.  This rate has been scaled to match the
-average error per Clifford gate (or per 2-qubit cycle).
-For more about purity benchmarking, see Section 6.3 of this
-[thesis](https://web.physics.ucsb.edu/~martinisgroup/theses/Chen2018.pdf).
-
-The purity error can be interpreted as a measure of the incoherent error,
-such as those caused by stochastic processes such as relaxation.  The average
-error can be interpreted as containing both this incoherent error as well as
-the coherent error resulting from improper control or calibration of the device.
-
-Note that, due to statistical fluctuations, it is possible that the purity
-error can exceed the average error by small amounts.
-
 ## Individual Metrics
 
 Each metric can be referenced by its key in the calibration object, e.g.
-```latest_calibration['single_qubit_idle_t1_micros']```.
+`calibration['sq_rb_pauli_error']`. Keys with names ending in `_ERR`
+indicate the statistical uncertainty of the corresponding metric.
 
-**Note that the metric names below are subject to change without notice.**
-
-### Isolated P_00 readout error
-*   Metric key: single_qubit_p00_error
-
-The p_00 is defined as the probability that the state is measured as |0⟩ after
-being prepared in the |0⟩ state.  The p_00 error is defined as one minus this
-result.  The single_qubit_p00_error is when this quantity is measured in
-isolation (only one qubit is measured at at time).
-
-There are several sources of error in this model.  This error is primarily
-composed of error in measurement (readout) of the qubit while in the ground
-state.  However, this probability also contains the error than the qubit was not
-reset into the |0⟩ ground state properly.  This is often called the SPAM (state
-preparation and measurement) error.
-
-The single qubit error is when the readout is measured in isolation (only one
-qubit is measured at a time), while the parallel error is taken for all qubits
-at the same time.
-
-### Isolated P_11 readout error
-*   Metric key: single_qubit_p11_error
-
-The p_11 is defined as the probability that the state is measured as |1⟩ after
-being prepared in the |1⟩ state.  The p_11 error is defined as one minus this
-result. The single_qubit_p11_error is when this
-quantity is measured in isolation (only one qubit is measured at at time).
-
-This is dominated by the error in measurement (readout) of the qubit, but it
-implicitly contains several different types of error.  Also possible is that the
-excited state |1⟩ was not prepared correctly or that the state decayed before
-measurement.  This error is generally expected to be higher than the P_00 error.
+Caution: the names of the metrics below are subject to change without notice.
 
 ### Parallel readout error
-*   Metric key: parallel_p00_error
-*   Metric key: parallel_p11_error
+
+*   Metric key: `zero_error`
+*   Metric key: `one_error`
+
+`zero_error` is the probability that a qubit prepared in |0⟩ is measured in
+|1⟩, and similarly for `one_error`. These readout error rates are benchmarked
+by preparing the qubits simultaneously in random bitstring states, measuring,
+and checking what fraction of the time the wrong outcome was measured,
+conditioned on the prepared initial state. This is also implemented in
+[`cirq.estimate_parallel_single_qubit_readout_errors`](https://quantumai.google/reference/python/cirq/estimate_parallel_single_qubit_readout_errors).
+
+The plotting functions `calibration.plot()` and `calibration.plot_histograms`
+can take `readout` as an input, in which case they will plot the qubit-wise
+average of `zero_error` and `one_error`.
 
 
-As in the single qubit case, parallel p_00 and p_11 are defined as the
-probability that the measured state of the qubit is |0⟩ or |1⟩ given
-that the prepared state was |0⟩ or |1⟩ respectively.
-parallel_p00_error and parallel_p11_error are defined as one minus this result.
+### Single qubit randomized benchmark error
 
-The parallel_p00_error and parallel_p11_error are measured by preparing
-randomized initial states for all qubits at once where each qubit is prepared
-in either the |0⟩ or |1⟩ state randomly and all qubits are measured at the
-same time. For each initial state, we measure p_00 or p_11 depending on how a
-given qubit was prepared. We then average p_00 and p_11 for each qubit
-over initial states, taking the initial states where a given qubit was prepared
-in the |0⟩ or |1⟩ state and subsequently measured in
-the |0⟩ or |1⟩ state as a success.
-
-Parallel readout errors experience the same readout errors present in the
-single qubit case in addition to the potential for additional errors caused
-by unintended control crosstalk or interactions with other qubits.
-
-### Readout separation error
-*   Metric key: single_qubit_readout_separation_error
-
-When measured by the system, the |0⟩ and |1⟩ states manifest as outgoing analog
-signals.  These signals must be interpreted as signifying one state or the
-other.  Since these analog signals are continuous distributions, there will be
-some statistical overlap in the two distributions that would be theoretically
-impossible to distinguish.  This is classified as the separation error, and is
-calculated by fitting Gaussian distributions to the signals prepared in the
-|0⟩ state and |1⟩ state and calculating the overlap between the two
-distributions.  Note that this is a component of both the p_00 and p_11 errors
-and is included within those metrics.
-
-### Isolated 1 qubit randomized benchmark error:
-*   Metric key: single_qubit_rb_average_error_per_gate
-*   Metric key: single_qubit_rb_pauli_error_per_gate
-*   Metric key: single_qubit_rb_incoherent_error_per_gate
+*   Metric key: `sq_rb_pauli_error`
 
 Single qubit gate error is estimated using randomized benchmarking by taking
-sequences of varying length of the 24 gates within the Clifford group
+sequences of varying length of the 24 gates within the single-qubit Clifford
+group
 (those that preserve the Pauli group under conjugation) then
 applying the inverse of the unitary equivalent to the executed gate sequence.
 The result of the total sequence should always be the identity (|0⟩ state).
 The final error is measured and compared against this state to produce the
-total error.  This error is calculated for one qubit at a time while all
-other qubits on the device are idle (isolated).  See the above section for
-descriptions of total versus purity error.
+total error. The decay constant as the length of the sequence is varied gives
+the error rate. These single-qubit errors are measured in parallel across the
+qubits.
 
 More information about randomized benchmarking can be found in section 6.3
-(page 120) of this
-[thesis](https://web.physics.ucsb.edu/~martinisgroup/theses/Chen2018.pdf).
+(page 120) of
+[Chen's doctoral thesis](https://web.physics.ucsb.edu/~martinisgroup/theses/Chen2018.pdf).
 
-### T1
-*   Metric key: single_qubit_idle_t1_micros
+### Two-qubit XEB error
 
-The T1 of a qubit represents the time constant of the exponential decay of a
-qubit in the excited |1⟩ state into the ground |0⟩ state.  This is calculated
-by preparing the excited state with a microwave pulse (a.k.a. an X gate),
-measured after a variety of decay times.
-
-An exponential curve is then fit to the resulting data to determine the T1 time,
-which is reported in microseconds.
-
-### 2-qubit Isolated XEB error
-*   Metric key: two_qubit_sqrt_iswap_gate_xeb_average_error_per_cycle
-*   Metric key: two_qubit_sqrt_iswap_gate_xeb_pauli_error_per_cycle
-*   Metric key: two_qubit_sqrt_iswap_gate_xeb_incoherent_error_per_cycle
-*   Metric key: two_qubit_sycamore_gate_xeb_average_error_per_cycle
-*   Metric key: two_qubit_sycamore_gate_xeb_pauli_error_per_cycle
-*   Metric key: two_qubit_sycamore_gate_xeb_incoherent_error_per_cycle
+*   Metric key: `cz_inferred_gate_error_pauli`
 
 Two qubit error is primarily characterized by applying cross-entropy
-benchmarking (XEB).  This procedure repeatedly performs a "cycle" of a
-random one-qubit gate on each qubit followed by the two qubit entangling gate.
-The resulting distribution is analyzed and compared to the expected distribution
-using cross entropy.  The value reported is the error rate per cycle (both
-the 1 qubit gates as well as the 2 qubit gate).
+benchmarking (XEB).  This procedure repeatedly performs a "cycle" of a random
+one-qubit gate on each qubit followed by the two qubit entangling gate. The
+resulting distribution is analyzed and compared to the expected distribution
+using cross entropy.  See
+[the explanation of XEB](https://quantumai.google/cirq/noise/qcvv/xeb_theory) for more
+details. The decay constant as the legnth of the sequence is increased gives
+the cycle error rate, which includes contributions from both single- and
+two-qubit gates. The contribution from single-qubit gates (characterized using
+randomized benchmarking) is subtracted off to give the inferred two-qubit error
+rate.
 
-See the above section for descriptions of average, Pauli, and incoherent error.
+When we measure XEB, we typically reoptimize the single-qubit phases (`zeta`,
+`chi`, and `gamma` in a
+[`cirq.PhasedFSimGate`](https://quantumai.google/reference/python/cirq/PhasedFSimGate))
+in the simulated version of the gate in order to maximize the XEB
+fidelity with the experimental data. This procedure reoptimizes these
+single-qubit phases, which are then cancelled using z rotations (which are done
+virtually for CZ and cphase gates). Therefore, XEB is actually a calibration in
+addition to a benchmark. These phases drift, and running XEB periodically is
+important to correct for that.
 
-These errors are isolated, meaning that, during the metric measurement, only the
-pair of qubits being considered is active.  All other qubits are idle.
-
-### 2-qubit Parallel XEB error
-*   Metric key:
-    two_qubit_parallel_sqrt_iswap_gate_xeb_average_error_per_cycle
-*   Metric key:
-    two_qubit_parallel_sqrt_iswap_gate_xeb_pauli_error_per_cycle
-*   Metric key:
-    two_qubit_parallel_sqrt_iswap_gate_xeb_incoherent_error_per_cycle
-*   Metric key:
-    two_qubit_parallel_sycamore_gate_xeb_average_error_per_cycle
-*   Metric key:
-    two_qubit_parallel_sycamore_gate_xeb_pauli_error_per_cycle
-*   Metric key:
-    two_qubit_parallel_sycamore_gate_xeb_incoherent_error_per_cycle
-
-These metrics are calculated the same way as the 2-qubit isolated XEB error
-metrics.  However, this metric quantifies the error of multiple parallel 2-qubit
-cycles at a time.  Four different discrete patterns of 2-qubits are used,
-with each pair of qubits in only one pattern.
-
-Since there are many different possible layouts of parallel two-qubit gates
-and each layout may have different cross-talk effects, users may want to perform
+Since there are many different possible layouts of parallel two-qubit gates and
+each layout may have different cross-talk effects, users may want to perform
 this experiment on their own if they have a specific layout commonly used in
 their experiment.
+
+## Plotting
+
+Several tools exist for plotting error metrics and comparing against those
+reported in the [spec sheet](
+https://quantumai.google/static/site-assets/downloads/willow-spec-sheet.pdf)
+(after converting them to Pauli errors for consistency). For example, one
+can plot an individual metric,
+
+```python
+calibration.plot('sq_rb_pauli_error')
+```
+
+or one can plot several metrics together in a histogram:
+
+```python
+calibration.plot_histograms([
+    'sq_rb_pauli_error',
+    'cz_inferred_gate_error_pauli',
+    'readout',
+])
+```
+
+## Historical calibration metrics
+
+Historical metrics can be retrieved by loading the appropriate config. For
+example, to find the metrics corresponding to a job that you ran, you can do:
+
+```python
+job = engine.get_program(PROGRAM_ID).get_job(JOB_ID)
+config = job.get_config()
+calibration = config.calibration
+```
+
+Every `config` also has a snapshot ID, `config.snapshot_id`, which shows when
+the calibration was performed (using the UTC time zone) and uniquely specifies
+that calibration. A `config` can be loaded from a snapshot ID using this code:
+
+```python
+processor = engine.get_processor(PROCESSOR_ID)
+config = processor.get_config(device_config_revision = cg.Snapshot(SNAPSHOT_ID))
+```
+
+A given snapshot ID may have multiple configs (multiple choices of calibration
+parameters, possibly corresponding to different gatesets). One is used as the
+default, which is the one retrieved by the code above. To list the configs, you
+can use the following:
+
+```python
+processor.list_configs()
+```
+
+You can load non-default configs by specifying the config name in
+`processor.get_config(...)`.

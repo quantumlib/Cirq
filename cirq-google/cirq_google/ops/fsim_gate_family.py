@@ -207,7 +207,7 @@ class FSimGateFamily(cirq.GateFamily):
             self.atol,
         )
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         accept_gates_json = [
             gate if not isinstance(gate, type) else cirq.json_cirq_type(gate)
             for gate in self.gates_to_accept

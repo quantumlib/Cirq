@@ -23,19 +23,19 @@ describe('Meridians', () => {
   const DEFAULT_V_MERIDIANS = 4;
 
   describe('by default', () => {
-    it(`generates the correct number of lines given 
+    it(`generates the correct number of lines given
     the default number (7)`, () => {
       const meridians = new Meridians(DEFAULT_RADIUS, DEFAULT_H_MERIDIANS, Orientation.HORIZONTAL);
       expect(meridians.children.length).toBe(DEFAULT_H_MERIDIANS);
     });
 
-    it(`generates the correct number of lines given 
+    it(`generates the correct number of lines given
     the default number (4)`, () => {
       const meridians = new Meridians(DEFAULT_RADIUS, DEFAULT_V_MERIDIANS, Orientation.VERTICAL);
       expect(meridians.children.length).toBe(DEFAULT_V_MERIDIANS);
     });
 
-    it(`generates lines at the correct positions 
+    it(`generates lines at the correct positions
     with defaults`, () => {
       const meridians = new Meridians(DEFAULT_RADIUS, DEFAULT_H_MERIDIANS, Orientation.HORIZONTAL);
 
@@ -57,7 +57,7 @@ describe('Meridians', () => {
 
   describe('allows configuration that', () => {
     it('generates the correct number of horizontal meridians given valid numbers', () => {
-      // Note that due to asethetic choices, if the number of circles
+      // Note that due to aesthetic choices, if the number of circles
       // provided is even, createHorizontalChordMeridians() will automatically
       // adjust to building an odd number of meridians.
       const lineValues = [4, 0, 17, 299, 4.123, 1];
