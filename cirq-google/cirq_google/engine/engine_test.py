@@ -1185,7 +1185,7 @@ def test_list_processor_configs_from_run_default(list_processor_configs_async):
     results = cg.Engine(project_id=project_id).list_processor_configs(processor_id=processor_id)
 
     list_processor_configs_async.assert_called_once_with(
-        project_id=project_id, processor_id=processor_id
+        project_id=project_id, processor_id=processor_id, device_config_revision=None
     )
     assert [
         (config.config_name, config.processor_id, config.run_name, config.snapshot_id)
