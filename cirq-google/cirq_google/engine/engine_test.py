@@ -1318,4 +1318,5 @@ def test_engine_compile_circuit_with_stim_circuit(client_mock):
         qec_recipe=qec_recipe,
         processor_id=processor_id,
         config_name='',
+        device_config_revision=None,
     )
