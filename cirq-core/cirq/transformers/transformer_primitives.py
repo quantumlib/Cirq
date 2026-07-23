@@ -813,10 +813,8 @@ def merge_moments_greedy(
                 merged_moment = merge_func(moments_to_merge)
                 if merged_moment is not None:
                     merged_moments.append(merged_moment)
-                else:
-                    merged_moments.extend(moments_to_merge)
-            else:
-                merged_moments.extend(moments_to_merge)
+                    moments_to_merge = []
+            merged_moments.extend(moments_to_merge)
             moments_to_merge = []
 
             if not can_merge_current:

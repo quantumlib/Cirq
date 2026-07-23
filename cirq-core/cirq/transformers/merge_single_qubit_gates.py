@@ -49,7 +49,7 @@ def _unitary_of_single_qubit_circuit_op(circuit_op: cirq.CircuitOperation) -> np
     if must_decompose:
         return protocols.unitary(circuit_op)
 
-    dim = 2 if len(circuit_op.qubits) == 1 else 1
+    dim = circuit_op.qubits[0].dimension if len(circuit_op.qubits) == 1 else 1
     u = np.eye(dim, dtype=np.complex128)
     for op in circuit_op.circuit.all_operations():
         if len(op.qubits) == 0:
@@ -177,7 +177,7 @@ def merge_single_qubit_moments_to_phxz(
                     op_qubit = op.qubits[0]
                     if op_qubit not in one_qubit_ops:
                         one_qubit_ops[op_qubit] = []
-                    one_qubit_ops[op.qubits[0]].append(op)
+                    one_qubit_ops[op_qubit].append(op)
 
         # create phxz gate at each qubit
         ret_ops = []

@@ -410,13 +410,11 @@ def test_merge_single_qubit_moments_to_phxz_with_global_phase_in_second_moment()
 def test_unitary_of_single_qubit_circuit_op() -> None:
     q0 = cirq.LineQubit(0)
 
-    # X^2 is Identity
     c = cirq.FrozenCircuit(cirq.X(q0))
     op = cirq.CircuitOperation(c, repetitions=2)
     u = _unitary_of_single_qubit_circuit_op(op)
     np.testing.assert_allclose(u, np.eye(2), atol=1e-8)
 
-    # should raise an error if no unitary
     c1 = cirq.FrozenCircuit(cirq.measure(q0))
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError, match="cirq.unitary failed.*"):
         _unitary_of_single_qubit_circuit_op(cirq.CircuitOperation(c1))
