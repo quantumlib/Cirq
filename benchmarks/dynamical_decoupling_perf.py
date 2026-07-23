@@ -87,3 +87,38 @@ def test_dynamical_decoupling_batch(benchmark, num_cycles: int, num_circuits: in
         return circuits_batch3
 
     _ = benchmark(_f, num_cycles=num_cycles, num_circuits=num_circuits)
+
+
+@pytest.mark.parametrize(
+    ["num_cycles", "num_circuits"], [(5, 10), pytest.param(50, 100, marks=pytest.mark.slow)]
+)
+@pytest.mark.benchmark(group="dynamical_decoupling", max_time=10)
+def test_merge_single_qubit_gates_to_phxz_symbolized_sweep(
+    benchmark, num_cycles: int, num_circuits: int
+) -> None:
+    circuit = make_fake_trotter_circuit(num_cycles)
+    circuit_sweep, sweep_params = cirq.transformers.gauge_compiling.CZGaugeTransformer.as_sweep(
+        circuit, N=num_circuits
+    )
+
+    benchmark(cirq.merge_single_qubit_gates_to_phxz_symbolized, circuit_sweep, sweep=sweep_params)
+
+
+@pytest.mark.parametrize(
+    ["num_cycles", "num_circuits"], [(5, 10), pytest.param(50, 100, marks=pytest.mark.slow)]
+)
+@pytest.mark.benchmark(group="dynamical_decoupling", max_time=10)
+def test_merge_single_qubit_moments_to_phxz_batch(
+    benchmark, num_cycles: int, num_circuits: int
+) -> None:
+    circuit = make_fake_trotter_circuit(num_cycles)
+    circuits_batch = [
+        cirq.transformers.gauge_compiling.cz_gauge.CZGaugeTransformer(circuit)
+        for _ in range(num_circuits)
+    ]
+
+    def run_merge_batch():
+        for c in circuits_batch:
+            _ = cirq.merge_single_qubit_moments_to_phxz(c)
+
+    benchmark(run_merge_batch)
