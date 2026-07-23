@@ -1892,7 +1892,7 @@ def test_get_quantum_processor_config_defaults_to_current_run(
 
     project_id = "test_project_id"
     processor_id = "test_processor_id"
-    run_name = 'current'
+    run_name = 'default'
     config_name = "test_config_name"
     resource_name = (
         f'projects/{project_id}/'
@@ -2046,7 +2046,7 @@ def test_compile_circuit(client_constructor, default_engine_client):
             recipe=quantum.QecRecipe(desired_algorithms=qec_recipe),
             processor_id=processor_id,
             device_config_selector=quantum.DeviceConfigSelector(
-                run_name='current', config_alias='default'
+                run_name='default', config_alias='default'
             ),
         )
     )
@@ -2083,7 +2083,7 @@ def test_compile_circuit_with_stim_circuit_object(client_constructor, default_en
             recipe=quantum.QecRecipe(desired_algorithms=qec_recipe),
             processor_id=processor_id,
             device_config_selector=quantum.DeviceConfigSelector(
-                run_name='current', config_alias='default'
+                run_name='default', config_alias='default'
             ),
         )
     )

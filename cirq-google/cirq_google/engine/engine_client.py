@@ -1181,8 +1181,8 @@ class EngineClient:
         self,
         project_id: str,
         processor_id: str,
-        config_name: str = 'default',
-        device_config_revision: DeviceConfigRevision = Run(id='current'),
+        config_name: str = '',
+        device_config_revision: DeviceConfigRevision | None = None,
     ) -> quantum.QuantumProcessorConfig | None:
         """Returns the QuantumProcessorConfig for the given snapshot id.
 
@@ -1221,7 +1221,7 @@ class EngineClient:
         self,
         project_id: str,
         processor_id: str,
-        device_config_revision: DeviceConfigRevision = Run(id='current'),
+        device_config_revision: DeviceConfigRevision | None = None,
     ) -> list[quantum.QuantumProcessorConfig]:
         """Returns the QuantumProcessorConfig for the given snapshot id.
 
@@ -1251,8 +1251,8 @@ class EngineClient:
         stim_circuit: str | stim.Circuit,
         qec_recipe: list[str],
         processor_id: str,
-        device_config_revision: DeviceConfigRevision = Run(id='current'),
-        config_name: str = 'default',
+        device_config_revision: DeviceConfigRevision | None = None,
+        config_name: str = '',
     ) -> cirq.Circuit:
         """Takes the given Stim circuit and compiles it to a cirq Circuit.
 
