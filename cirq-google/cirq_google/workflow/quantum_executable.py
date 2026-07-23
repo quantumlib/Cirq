@@ -221,9 +221,9 @@ class QuantumExecutable:
         return _compat.dataclass_repr(self, namespace='cirq_google')
 
     def __hash__(self) -> int:
-        if self._hash is None:  # type: ignore
+        if self._hash is None:  # type: ignore[attr-defined]
             object.__setattr__(self, '_hash', hash(dataclasses.astuple(self)))
-        return self._hash  # type: ignore
+        return self._hash  # type: ignore[attr-defined]
 
     def __getstate__(self) -> dict[str, Any]:
         # clear cached hash value when pickling, see #6674
@@ -284,9 +284,9 @@ class QuantumExecutableGroup:
         return _compat.dataclass_repr(self, namespace='cirq_google')
 
     def __hash__(self) -> int:
-        if self._hash is None:  # type: ignore
+        if self._hash is None:  # type: ignore[attr-defined]
             object.__setattr__(self, '_hash', hash(dataclasses.astuple(self)))
-        return self._hash  # type: ignore
+        return self._hash  # type: ignore[attr-defined]
 
     def __getstate__(self) -> dict[str, Any]:
         # clear cached hash value when pickling, see #6674

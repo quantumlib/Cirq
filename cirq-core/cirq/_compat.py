@@ -511,15 +511,15 @@ class DeprecatedModuleLoader(importlib.abc.Loader):
         self.loader = loader
         if hasattr(loader, 'exec_module'):
             # mypy#2427
-            self.exec_module = self._wrap_exec_module(loader.exec_module)  # type: ignore
+            self.exec_module = self._wrap_exec_module(loader.exec_module)  # type: ignore[method-assign]
         # while this is rare and load_module was deprecated in 3.4
         # in older environments this line makes them work as well
         if hasattr(loader, 'load_module'):
             # mypy#2427
-            self.load_module = self._wrap_load_module(loader.load_module)  # type: ignore
+            self.load_module = self._wrap_load_module(loader.load_module)  # type: ignore[method-assign]
         if hasattr(loader, 'create_module'):
             # mypy#2427
-            self.create_module = loader.create_module  # type: ignore
+            self.create_module = loader.create_module  # type: ignore[method-assign]
         self.old_module_name = old_module_name
         self.new_module_name = new_module_name
 

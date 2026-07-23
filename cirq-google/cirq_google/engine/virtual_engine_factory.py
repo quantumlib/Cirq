@@ -454,7 +454,7 @@ def create_default_noisy_quantum_virtual_machine(
     device = create_device_from_processor_id(processor_id)
     noise_properties = load_device_noise_properties(processor_id)
     noise_model = NoiseModelFromGoogleNoiseProperties(noise_properties)
-    simulator = simulator_class(noise=noise_model, **kwargs)  # type: ignore
+    simulator = simulator_class(noise=noise_model, **kwargs)  # type: ignore[call-arg]
 
     device_specification = create_device_spec_from_processor_id(processor_id)
     simulated_processor = SimulatedLocalProcessor(

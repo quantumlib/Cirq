@@ -42,7 +42,6 @@ known_first_party = ["cirq*"]
 extend_skip = ["__init__.py"]
 extend_skip_glob = ["*_pb2.py"]
 
-
 [tool.mypy]
 exclude = [
     '/setup\.py',
@@ -53,6 +52,7 @@ plugins = ["duet.typing"]
 show_error_codes = true
 warn_redundant_casts = true
 warn_unused_ignores = true
+enable_error_code = "ignore-without-code"
 
 [[tool.mypy.overrides]]
 module = ["__main__"]

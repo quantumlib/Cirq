@@ -2044,7 +2044,7 @@ class Circuit(AbstractCircuit):
 
         return cirq.Circuit(inv_moments, tags=self.tags)
 
-    __hash__ = None  # type: ignore
+    __hash__ = None  # type: ignore[assignment]
 
     def concat_ragged(
         *circuits: cirq.AbstractCircuit, align: cirq.Alignment | str = Alignment.LEFT

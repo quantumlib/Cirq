@@ -113,7 +113,7 @@ def test_transform_bad_tree() -> None:
         _ = list(
             cirq.flatten_op_tree(
                 cirq.transform_op_tree(
-                    [cirq.GateOperation(cirq.Gate(), [cirq.NamedQubit('q')]), (4,)]  # type: ignore
+                    [cirq.GateOperation(cirq.Gate(), [cirq.NamedQubit('q')]), (4,)]  # type: ignore[list-item]
                 )
             )
         )

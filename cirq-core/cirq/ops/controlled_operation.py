@@ -80,7 +80,7 @@ class ControlledOperation(raw_types.Operation):
         control_set = set(controls)
         if len(controls) != len(control_set):
             seen = set()
-            dupes = [x for x in controls if x in seen or seen.add(x)]  # type: ignore
+            dupes = [x for x in controls if x in seen or seen.add(x)]  # type: ignore[func-returns-value]
             raise ValueError(f'Duplicate control qubits {[str(x) for x in dupes]}.')
 
         # Verify qubits don't overlap

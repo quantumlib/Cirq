@@ -256,7 +256,7 @@ class FSimGateFamily(cirq.GateFamily):
         # TODO: Remove condition once https://github.com/quantumlib/Cirq/issues/4585 is fixed.
         if type(g) == cirq.PhasedISwapPowGate:
             return cirq.PhasedISwapPowGate
-        return g._value_equality_values_cls_()  # type: ignore
+        return g._value_equality_values_cls_()  # type: ignore[union-attr]
 
     def _check_equal(self, g1: POSSIBLE_FSIM_GATES, g2: POSSIBLE_FSIM_GATES) -> bool:
         if not self.allow_symbols:
