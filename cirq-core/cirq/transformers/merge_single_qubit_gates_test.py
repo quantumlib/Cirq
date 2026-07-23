@@ -416,8 +416,7 @@ def test_unitary_of_single_qubit_circuit_op() -> None:
     u = _unitary_of_single_qubit_circuit_op(op)
     np.testing.assert_allclose(u, np.eye(2), atol=1e-8)
 
-    # must_decompose due to qubit_map
-    q1 = cirq.LineQubit(1)
-    op_mapped = cirq.CircuitOperation(c, qubit_map={q0: q1})
-    u_mapped = _unitary_of_single_qubit_circuit_op(op_mapped)
-    np.testing.assert_allclose(u_mapped, cirq.unitary(cirq.X), atol=1e-8)
+    # should raise an error if no unitary
+    c1 = cirq.FrozenCircuit(cirq.measure(q0))
+    with pytest.raises(ValueError):
+        _unitary_of_single_qubit_circuit_op(cirq.CircuitOperation(c1))

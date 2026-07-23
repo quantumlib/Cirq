@@ -43,9 +43,6 @@ if TYPE_CHECKING:
 def _unitary_of_single_qubit_circuit_op(circuit_op: cirq.CircuitOperation) -> np.ndarray:
     must_decompose = (
         len(circuit_op.qubits) > 1
-        or circuit_op.qubit_map
-        or circuit_op.measurement_key_map
-        or circuit_op.repeat_until
         or not isinstance(circuit_op.repetitions, int)
         or not all(protocols.has_unitary(op) for op in circuit_op.circuit.all_operations())
     )
@@ -58,7 +55,7 @@ def _unitary_of_single_qubit_circuit_op(circuit_op: cirq.CircuitOperation) -> np
         if len(op.qubits) == 0:
             u = protocols.unitary(op) * u
         else:
-            u = np.matmul(protocols.unitary(op), u)
+            u = protocols.unitary(op) @ u
 
     if circuit_op.repetitions != 1:
         u = np.linalg.matrix_power(u, circuit_op.repetitions)
