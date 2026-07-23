@@ -37,7 +37,6 @@ from cirq_google.engine import stream_manager, util
 from cirq_google.engine.asyncio_executor import AsyncioExecutor
 from cirq_google.engine.processor_config import (
     DeviceConfigRevision,
-    Run,
     Snapshot,
     validate_device_config_revision,
 )
