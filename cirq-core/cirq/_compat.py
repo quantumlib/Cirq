@@ -65,10 +65,6 @@ def with_debug(value: bool) -> Iterator[None]:
         __cirq_debug__.reset(token)
 
 
-# Sentinel used by wrapped_no_args below when method has not yet been cached.
-_NOT_FOUND = object()
-
-
 TFunc = TypeVar('TFunc', bound=Callable)
 
 
