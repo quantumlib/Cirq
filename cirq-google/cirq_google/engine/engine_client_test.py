@@ -20,20 +20,20 @@ import asyncio
 import datetime
 from unittest import mock
 
+import duet
 import pytest
+from google.api_core import exceptions
+from google.protobuf import any_pb2
 from google.protobuf.field_mask_pb2 import FieldMask
 from google.protobuf.timestamp_pb2 import Timestamp
 
 import cirq
 import cirq_google.engine.stream_manager as engine_stream_manager
-import duet
 from cirq_google.cloud import quantum
 from cirq_google.engine import util
 from cirq_google.engine.engine_client import EngineClient, EngineException
 from cirq_google.engine.processor_config import Run, Snapshot
 from cirq_google.serialization import CIRCUIT_SERIALIZER
-from google.api_core import exceptions
-from google.protobuf import any_pb2
 
 # JOB_PATH represents the path to a specific job.
 JOB_PATH = 'projects/proj/programs/prog/jobs/job0'
