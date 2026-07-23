@@ -1191,8 +1191,8 @@ def test_list_processor_configs_from_run_default(list_processor_configs_async):
         (config.config_name, config.processor_id, config.run_name, config.snapshot_id)
         for config in results
     ] == [
-        ('test_config_1', processor_id, None, snapshot_id),
-        ('test_config_2', processor_id, None, snapshot_id),
+        ('test_config_1', processor_id, '', snapshot_id),
+        ('test_config_2', processor_id, '', snapshot_id),
     ]
 
 
