@@ -177,6 +177,9 @@ def test_histogram() -> None:
         measurements={
             'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]], dtype=bool),
             'c': np.array([[0], [0], [1], [0], [1]], dtype=bool),
+            'd': np.zeros((0, 2), dtype=bool),
+            'e': np.zeros((5, 0), dtype=bool),
+            'f': np.array([[1] + [0] * 64], dtype=bool),
         },
     )
 
@@ -186,6 +189,11 @@ def test_histogram() -> None:
     )
     assert result.histogram(key='ab', fold_func=lambda e: None) == collections.Counter({None: 5})
     assert result.histogram(key='c') == collections.Counter({0: 3, 1: 2})
+
+    # edge cases
+    assert result.histogram(key='d') == collections.Counter()
+    assert result.histogram(key='e') == collections.Counter({0: 5})
+    assert result.histogram(key='f') == collections.Counter({2**64: 1})
 
 
 def test_histogram_fold_base() -> None:
