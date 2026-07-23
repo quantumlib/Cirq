@@ -1171,7 +1171,6 @@ def test_list_processor_configs_from_run(list_processor_configs_async):
 def test_list_processor_configs_from_run_default(list_processor_configs_async):
     project_id = "test_project_id"
     processor_id = "test_processor_id"
-    default_run = Run(id="current")
     snapshot_id = "test_snapshot_id"
     response_parent_resource = (
         f'projects/{project_id}/processors/{processor_id}/configSnapshots/{snapshot_id}'
@@ -1186,14 +1185,14 @@ def test_list_processor_configs_from_run_default(list_processor_configs_async):
     results = cg.Engine(project_id=project_id).list_processor_configs(processor_id=processor_id)
 
     list_processor_configs_async.assert_called_once_with(
-        project_id=project_id, processor_id=processor_id, device_config_revision=default_run
+        project_id=project_id, processor_id=processor_id
     )
     assert [
         (config.config_name, config.processor_id, config.run_name, config.snapshot_id)
         for config in results
     ] == [
-        ('test_config_1', processor_id, default_run.id, snapshot_id),
-        ('test_config_2', processor_id, default_run.id, snapshot_id),
+        ('test_config_1', processor_id, None, snapshot_id),
+        ('test_config_2', processor_id, None, snapshot_id),
     ]
 
 

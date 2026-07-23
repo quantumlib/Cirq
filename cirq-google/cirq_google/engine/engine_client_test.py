@@ -1920,7 +1920,7 @@ def test_get_quantum_processor_config_not_found(client_constructor, default_engi
     resource_name = (
         f'projects/{project_id}/'
         f'processors/{processor_id}/'
-        'configAutomationRuns/current/'
+        'configAutomationRuns/default/'
         f'configs/{config_name}'
     )
     grpc_client = _setup_client_mock(client_constructor)
