@@ -240,6 +240,7 @@ from cirq.ops import (
     I as I,
     identity_each as identity_each,
     IdentityGate as IdentityGate,
+    If as If,
     InterchangeableQubitsGate as InterchangeableQubitsGate,
     ISWAP as ISWAP,
     ISwapPowGate as ISwapPowGate,
