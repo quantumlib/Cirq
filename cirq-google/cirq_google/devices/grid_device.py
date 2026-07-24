@@ -298,8 +298,9 @@ def _serialize_gateset_and_gate_durations(
         }
         if len(gate_durations_picos) > 1:
             raise ValueError(
-                'Multiple gate families in the following list exist in the gate duration dict, and '
-                f'they are expected to have the same duration value: {gate_rep.supported_gates}'
+                'Multiple gate families in the following list exist in the gate duration dict, '
+                'and they are expected to have the same duration value: '
+                f'{gate_rep.supported_gates}'
             )
         elif len(gate_durations_picos) == 1:
             gate_spec.gate_duration_picos = gate_durations_picos.pop()
@@ -695,8 +696,8 @@ class GridDevice(cirq.Device):
                     )
 
                 all_gates.extend(gate_rep.supported_gates)
-                if durations_for_rep:
-                    dur = next(iter(durations_for_rep))
+                if gate_durations is not None:
+                    dur = next(iter(durations_for_rep)) if durations_for_rep else cirq.Duration(picos=0)
                     for gf in gate_rep.supported_gates:
                         all_gate_durations[gf] = dur
 
