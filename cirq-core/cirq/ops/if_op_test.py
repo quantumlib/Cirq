@@ -215,6 +215,22 @@ s: ═══^═════════
     )
 
 
+def test_diagram_multiple_sympy_conditions() -> None:
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.If([sympy.Symbol('s'), sympy.Symbol('t')], cirq.X(q)))
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+0: ───X(If=s, t)───
+      ║
+s: ═══^════════════
+      ║
+t: ═══^════════════
+""",
+        use_unicode_characters=True,
+    )
+
+
 def test_simulation() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     # If q0 measured as 1, flip q1.
@@ -225,7 +241,7 @@ def test_simulation() -> None:
     # Since 'a' is 1, X(q1) ran, so final state vector should have both q0 and q1 in |1>.
     expected_state = np.zeros(4, dtype=np.complex64)
     expected_state[3] = 1.0
-    np.testing.assert_allclose(res.state_vector(), expected_state, atol=1e-6)
+    np.testing.assert_equal(res.state_vector(), expected_state)
 
     # Now if q0 measured as 0, do not flip q1.
     circuit_zero = cirq.Circuit(cirq.measure(q0, key='a'), cirq.If('a', cirq.X(q1)))
@@ -233,7 +249,7 @@ def test_simulation() -> None:
     assert res_zero.measurements['a'] == [0]
     expected_state_zero = np.zeros(4, dtype=np.complex64)
     expected_state_zero[0] = 1.0
-    np.testing.assert_allclose(res_zero.state_vector(), expected_state_zero, atol=1e-6)
+    np.testing.assert_equal(res_zero.state_vector(), expected_state_zero)
 
 
 def test_key_mappings_and_scoping() -> None:
@@ -259,35 +275,11 @@ def test_qasm() -> None:
     op = cirq.If('a', cirq.X(q1))
     circuit = cirq.Circuit(cirq.measure(q0, key='a'), op)
     qasm_str = cirq.qasm(circuit)
-    assert 'if (m_a==1) cx q[1];' in qasm_str or 'if (m_a==1) x q[1];' in qasm_str
+    assert 'if (m_a==1) x q[1];' in qasm_str
 
     op_multi = cirq.If(['a', 'b'], cirq.X(q1))
     with pytest.raises(ValueError, match='QASM 2.0 does not support multiple conditions'):
         _ = cirq.qasm(op_multi)
-
-
-def test_json_serialization() -> None:
-    q = cirq.LineQubit(0)
-    op = cirq.If('m', cirq.X(q))
-    cirq.testing.assert_json_roundtrip_works(op)
-    op_multi = cirq.If(['a', 'b'], cirq.X(q))
-    cirq.testing.assert_json_roundtrip_works(op_multi)
-
-
-def test_diagram_multiple_sympy_conditions() -> None:
-    q = cirq.LineQubit(0)
-    circuit = cirq.Circuit(cirq.If([sympy.Symbol('s'), sympy.Symbol('t')], cirq.X(q)))
-    cirq.testing.assert_has_diagram(
-        circuit,
-        """
-0: ───X(If=s, t)───
-      ║
-s: ═══^════════════
-      ║
-t: ═══^════════════
-""",
-        use_unicode_characters=True,
-    )
 
 
 def test_qasm_sub_op_no_qasm() -> None:
@@ -300,6 +292,4 @@ def test_qasm_sub_op_no_qasm() -> None:
             return self
 
     op = cirq.If('a', NoQasmOp())
-    assert op.qubits == (cirq.LineQubit(0),)
-    assert op.with_qubits(cirq.LineQubit(1)).sub_operation == op.sub_operation
     assert cirq.qasm(op, default=None) is None

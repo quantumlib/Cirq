@@ -85,7 +85,7 @@ class If(raw_types.Operation):
             raise ValueError("At least one condition must be provided.")
         conds_tuple = tuple(conds)
 
-        if not more_operations and isinstance(sub_operation, raw_types.Operation):
+        if more_operations or not isinstance(sub_operation, raw_types.Operation):
             if isinstance(sub_operation, If):
                 self._conditions: tuple[cirq.Condition, ...] = (
                     conds_tuple + sub_operation.conditions
@@ -101,38 +101,25 @@ class If(raw_types.Operation):
                 self._sub_operation = sub_operation
         else:
             # Inline import to prevent circular dependency.
-            from cirq.circuits import circuit, circuit_operation
+            from cirq.circuits import Circuit, CircuitOperation
 
-            if more_operations:
-                c = circuit.Circuit(sub_operation, *more_operations)
-            else:
-                c = circuit.Circuit(sub_operation)
+            c = Circuit(sub_operation, *more_operations)
             self._conditions = conds_tuple
-            self._sub_operation = circuit_operation.CircuitOperation(c.freeze())
+            self._sub_operation = CircuitOperation(c.freeze())
 
         if protocols.measurement_key_objs(self._sub_operation):
             raise ValueError(
                 f'Cannot conditionally run operations with measurements: {self._sub_operation}'
             )
 
+        # Cached parameters
+        self._is_parameterized = None
+        self._parameter_names: set[str] | None = None
+
     @property
     def conditions(self) -> tuple[cirq.Condition, ...]:
         """All conditions that must be satisfied for the sub-operation to run."""
         return self._conditions
-
-    @property
-    def condition(self) -> cirq.Condition:
-        """The condition that must be satisfied for the sub-operation to run.
-
-        Raises:
-            ValueError: If there are multiple conditions on this operation.
-        """
-        if len(self._conditions) != 1:
-            raise ValueError(
-                f'Operation has multiple conditions: {self._conditions}. '
-                'Use `conditions` property instead.'
-            )
-        return self._conditions[0]
 
     @property
     def sub_operation(self) -> cirq.Operation:
@@ -168,7 +155,7 @@ class If(raw_types.Operation):
         if len(self._conditions) == 1:
             return f'If({self._conditions[0]}, {self._sub_operation})'
         keys = ', '.join(str(c) for c in self._conditions)
-        return f'If(({keys}), {self._sub_operation})'
+        return f'If([{keys}], {self._sub_operation})'
 
     def __repr__(self) -> str:
         if len(self._conditions) == 1:
@@ -176,16 +163,19 @@ class If(raw_types.Operation):
         return f'cirq.If({list(self._conditions)!r}, {self._sub_operation!r})'
 
     def _is_parameterized_(self) -> bool:
-        return any(
-            protocols.is_parameterized(c) for c in self._conditions
-        ) or protocols.is_parameterized(self._sub_operation)
+        if self._is_parameterized is None:
+            self._is_parameterized = any(
+                protocols.is_parameterized(c) for c in self._conditions
+            ) or protocols.is_parameterized(self._sub_operation)
+        return self._is_parameterized
 
     def _parameter_names_(self) -> Set[str]:
-        names: set[str] = set()
-        for c in self._conditions:
-            names.update(protocols.parameter_names(c))
-        names.update(protocols.parameter_names(self._sub_operation))
-        return names
+        if self._parameter_names is None:
+            self._parameter_names = set()
+            for c in self._conditions:
+                self._parameter_names.update(protocols.parameter_names(c))
+            self._parameter_names.update(protocols.parameter_names(self._sub_operation))
+        return self._parameter_names
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> If:
         new_conditions = [
@@ -196,7 +186,7 @@ class If(raw_types.Operation):
 
     def _circuit_diagram_info_(
         self, args: cirq.CircuitDiagramInfoArgs
-    ) -> protocols.CircuitDiagramInfo | None:
+    ) -> protocols.CircuitDiagramInfo | NotImplementedType:
         sub_args = protocols.CircuitDiagramInfoArgs(
             known_qubit_count=args.known_qubit_count,
             known_qubits=args.known_qubits,
