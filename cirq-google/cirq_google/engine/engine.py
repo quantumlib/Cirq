@@ -48,6 +48,7 @@ from cirq_google.engine import (
     processor_config,
     util,
 )
+from cirq_google.engine.processor_config import Run
 from cirq_google.serialization import CIRCUIT_SERIALIZER, CircuitSerializer
 
 if TYPE_CHECKING:
@@ -707,7 +708,7 @@ class Engine(abstract_engine.AbstractEngine):
     async def get_processor_config_async(
         self,
         processor_id: str,
-        device_config_revision: processor_config.DeviceConfigRevision | None = None,
+        device_config_revision: processor_config.DeviceConfigRevision = Run(id='default'),
         config_name: str = '',
     ) -> processor_config.ProcessorConfig | None:
         """Returns a ProcessorConfig from this project and the given processor id.
@@ -742,7 +743,7 @@ class Engine(abstract_engine.AbstractEngine):
     async def list_processor_configs_async(
         self,
         processor_id: str,
-        device_config_revision: processor_config.DeviceConfigRevision | None = None,
+        device_config_revision: processor_config.DeviceConfigRevision = Run(id='default'),
     ) -> list[processor_config.ProcessorConfig]:
         """Returns list of ProcessorConfigs from an automation run.
 
@@ -775,7 +776,7 @@ class Engine(abstract_engine.AbstractEngine):
         stim_circuit: str | stim.Circuit,
         qec_recipe: list[str],
         processor_id: str,
-        device_config_revision: processor_config.DeviceConfigRevision | None = None,
+        device_config_revision: processor_config.DeviceConfigRevision = Run(id='default'),
         config_name: str = '',
     ) -> cirq.Circuit:
         """Takes the given Stim circuit and compiles it to a cirq Circuit.
