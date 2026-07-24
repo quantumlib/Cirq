@@ -1,0 +1,1 @@
+cirq.PauliRotationGate(cirq.DensePauliString('XI', coefficient=(1+0j)), exponent=0.7853981633974483)

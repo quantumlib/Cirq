@@ -276,6 +276,8 @@ from cirq.ops import (
     PauliStringPhasor as PauliStringPhasor,
     PauliStringPhasorGate as PauliStringPhasorGate,
     PauliSum as PauliSum,
+    PauliRotation as PauliRotation,
+    PauliRotationGate as PauliRotationGate,
     PauliSumExponential as PauliSumExponential,
     PauliSumLike as PauliSumLike,
     phase_damp as phase_damp,
