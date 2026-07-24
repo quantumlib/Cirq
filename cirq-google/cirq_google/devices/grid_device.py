@@ -691,8 +691,8 @@ class GridDevice(cirq.Device):
                 }
                 if len(durations_for_rep) > 1:
                     raise ValueError(
-                        'Multiple gate families in the following list exist in the gate duration dict, '
-                        'and they are expected to have the same duration value: '
+                        'Multiple gate families in the following list exist in the gate duration '
+                        'dict, and they are expected to have the same duration value: '
                         f'{gate_rep.supported_gates}'
                     )
 
