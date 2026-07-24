@@ -1867,7 +1867,7 @@ def test_get_quantum_processor_config_defaults_to_current_run(
 
     project_id = "test_project_id"
     processor_id = "test_processor_id"
-    run_name = 'current'
+    run_name = 'default'
     config_name = "test_config_name"
     resource_name = (
         f'projects/{project_id}/'
@@ -1895,7 +1895,7 @@ def test_get_quantum_processor_config_not_found(client_constructor, default_engi
     resource_name = (
         f'projects/{project_id}/'
         f'processors/{processor_id}/'
-        'configAutomationRuns/current/'
+        'configAutomationRuns/default/'
         f'configs/{config_name}'
     )
     grpc_client = _setup_client_mock(client_constructor)
@@ -2020,9 +2020,7 @@ def test_compile_circuit(client_constructor, default_engine_client):
             stim_circuit=stim_circuit,
             recipe=quantum.QecRecipe(desired_algorithms=qec_recipe),
             processor_id=processor_id,
-            device_config_selector=quantum.DeviceConfigSelector(
-                run_name='current', config_alias='default'
-            ),
+            device_config_selector=quantum.DeviceConfigSelector(run_name='default'),
         )
     )
 
@@ -2057,9 +2055,7 @@ def test_compile_circuit_with_stim_circuit_object(client_constructor, default_en
             stim_circuit=str(stim_circuit),
             recipe=quantum.QecRecipe(desired_algorithms=qec_recipe),
             processor_id=processor_id,
-            device_config_selector=quantum.DeviceConfigSelector(
-                run_name='current', config_alias='default'
-            ),
+            device_config_selector=quantum.DeviceConfigSelector(run_name='default'),
         )
     )
 

@@ -1172,8 +1172,8 @@ class EngineClient:
         self,
         project_id: str,
         processor_id: str,
-        config_name: str = 'default',
-        device_config_revision: DeviceConfigRevision = Run(id='current'),
+        config_name: str = '',
+        device_config_revision: DeviceConfigRevision = Run(id='default'),
     ) -> quantum.QuantumProcessorConfig | None:
         """Returns the QuantumProcessorConfig for the given snapshot id.
 
@@ -1212,7 +1212,7 @@ class EngineClient:
         self,
         project_id: str,
         processor_id: str,
-        device_config_revision: DeviceConfigRevision = Run(id='current'),
+        device_config_revision: DeviceConfigRevision = Run(id='default'),
     ) -> list[quantum.QuantumProcessorConfig]:
         """Returns the QuantumProcessorConfig for the given snapshot id.
 
@@ -1242,8 +1242,8 @@ class EngineClient:
         stim_circuit: str | stim.Circuit,
         qec_recipe: list[str],
         processor_id: str,
-        device_config_revision: DeviceConfigRevision = Run(id='current'),
-        config_name: str = 'default',
+        device_config_revision: DeviceConfigRevision = Run(id='default'),
+        config_name: str = '',
     ) -> cirq.Circuit:
         """Takes the given Stim circuit and compiles it to a cirq Circuit.
 
@@ -1333,7 +1333,9 @@ def _ids_from_calibration_name(calibration_name: str) -> tuple[str, str, int]:
 
 
 def _quantum_processor_revision_path(
-    project_id: str, processor_id: str, device_config_revision: DeviceConfigRevision | None = None
+    project_id: str,
+    processor_id: str,
+    device_config_revision: DeviceConfigRevision = Run(id='default'),
 ) -> str:
     validate_device_config_revision(device_config_revision)
     processor_resource_name = _processor_name_from_ids(project_id, processor_id)
