@@ -15,11 +15,12 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence, Set
+from types import NotImplementedType
 from typing import Any, TYPE_CHECKING
 
 import sympy
 
-from cirq import protocols, value
+from cirq import _compat, protocols, value
 from cirq.ops import classically_controlled_operation, raw_types
 
 if TYPE_CHECKING:
@@ -112,10 +113,6 @@ class If(raw_types.Operation):
                 f'Cannot conditionally run operations with measurements: {self._sub_operation}'
             )
 
-        # Cached parameters
-        self._is_parameterized = None
-        self._parameter_names: set[str] | None = None
-
     @property
     def conditions(self) -> tuple[cirq.Condition, ...]:
         """All conditions that must be satisfied for the sub-operation to run."""
@@ -162,20 +159,19 @@ class If(raw_types.Operation):
             return f'cirq.If({self._conditions[0]!r}, {self._sub_operation!r})'
         return f'cirq.If({list(self._conditions)!r}, {self._sub_operation!r})'
 
+    @_compat.cached_method
     def _is_parameterized_(self) -> bool:
-        if self._is_parameterized is None:
-            self._is_parameterized = any(
-                protocols.is_parameterized(c) for c in self._conditions
-            ) or protocols.is_parameterized(self._sub_operation)
-        return self._is_parameterized
+        return any(
+            protocols.is_parameterized(c) for c in self._conditions
+        ) or protocols.is_parameterized(self._sub_operation)
 
+    @_compat.cached_method
     def _parameter_names_(self) -> Set[str]:
-        if self._parameter_names is None:
-            self._parameter_names = set()
-            for c in self._conditions:
-                self._parameter_names.update(protocols.parameter_names(c))
-            self._parameter_names.update(protocols.parameter_names(self._sub_operation))
-        return self._parameter_names
+        names: set[str] = set()
+        for c in self._conditions:
+            names.update(protocols.parameter_names(c))
+        names.update(protocols.parameter_names(self._sub_operation))
+        return names
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> If:
         new_conditions = [
