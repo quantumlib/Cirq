@@ -706,12 +706,6 @@ def test_device_from_device_information_equals_device_from_proto():
             None,
         ),
         (
-            'Unrecognized gate',
-            [(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))],
-            cirq.Gateset(cirq.H),
-            None,
-        ),
-        (
             'Some gate_durations keys are not found in gateset',
             [(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))],
             cirq.Gateset(cirq.CZ),
@@ -733,6 +727,18 @@ def test_from_device_information_invalid_input(error_match, qubit_pairs, gateset
         grid_device.GridDevice._from_device_information(
             qubit_pairs=qubit_pairs, gateset=gateset, gate_durations=gate_durations
         )
+
+
+def test_from_device_information_unrecognized_gate():
+    gateset = cirq.Gateset(cirq.H)
+    gate_durations = {cirq.GateFamily(cirq.H): cirq.Duration(picos=1_000)}
+    device = grid_device.GridDevice._from_device_information(
+        qubit_pairs=[(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))],
+        gateset=gateset,
+        gate_durations=gate_durations,
+    )
+    assert cirq.GateFamily(cirq.H) in device.metadata.gateset.gates
+    assert device.metadata.gate_durations == {cirq.GateFamily(cirq.H): cirq.Duration(picos=1_000)}
 
 
 def test_from_device_information_fsim_gate_family():

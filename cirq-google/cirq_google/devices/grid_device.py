@@ -664,19 +664,51 @@ class GridDevice(cirq.Device):
             ValueError: If all_qubits is provided and is not a superset
                 of all the qubits found in qubit_pairs.
         """
+        if gate_durations is not None:
+            if not set(gate_durations.keys()).issubset(gateset.gates):
+                raise ValueError(
+                    "Some gate_durations keys are not found in gateset."
+                    f" gate_durations={gate_durations}"
+                    f" gateset.gates={gateset.gates}"
+                )
+
+        all_gates: list[GateOrFamily] = []
+        all_gate_durations: dict[cirq.GateFamily, cirq.Duration] = {}
+        _gate_durations = gate_durations or {}
+
+        for gate_family in gateset.gates:
+            gate_rep = next(
+                (gr for gr in _GATES for gf in gr.supported_gates if gf == gate_family), None
+            )
+            if gate_rep is None:
+                all_gates.append(gate_family)
+                if gate_family in _gate_durations:
+                    all_gate_durations[gate_family] = _gate_durations[gate_family]
+            else:
+                durations_for_rep = {
+                    _gate_durations[gf] for gf in gate_rep.supported_gates if gf in _gate_durations
+                }
+                if len(durations_for_rep) > 1:
+                    raise ValueError(
+                        'Multiple gate families in the following list exist in the gate duration dict, and '
+                        f'they are expected to have the same duration value: {gate_rep.supported_gates}'
+                    )
+
+                all_gates.extend(gate_rep.supported_gates)
+                if durations_for_rep:
+                    dur = next(iter(durations_for_rep))
+                    for gf in gate_rep.supported_gates:
+                        all_gate_durations[gf] = dur
+
+        expanded_gateset = cirq.Gateset(*all_gates)
         metadata = cirq.GridDeviceMetadata(
             qubit_pairs=qubit_pairs,
-            gateset=gateset,
-            gate_durations=gate_durations,
+            gateset=expanded_gateset,
+            gate_durations=all_gate_durations if gate_durations is not None else None,
             all_qubits=all_qubits,
+            compilation_target_gatesets=_build_compilation_target_gatesets(expanded_gateset),
         )
-        incomplete_device = GridDevice(metadata)
-        # incomplete_device may have incomplete gateset and gate durations information, as described
-        # in the docstring.
-        # To generate the full gateset and gate durations, we rely on the device deserialization
-        # logic by first serializing then deserializing the fake device, to ensure that the
-        # resulting device is consistent with one that is deserialized from DeviceSpecification.
-        return GridDevice.from_proto(incomplete_device.to_proto())
+        return GridDevice(metadata)
 
     @property
     def metadata(self) -> cirq.GridDeviceMetadata:
