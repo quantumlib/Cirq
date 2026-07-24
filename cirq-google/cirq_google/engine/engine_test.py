@@ -1317,6 +1317,6 @@ def test_engine_compile_circuit_with_stim_circuit(client_mock):
         stim_circuit=stim_circuit,
         qec_recipe=qec_recipe,
         processor_id=processor_id,
-        config_name='',
+        config_name='default',
         device_config_revision=Run(id='default'),
     )

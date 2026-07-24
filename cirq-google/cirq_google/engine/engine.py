@@ -709,7 +709,7 @@ class Engine(abstract_engine.AbstractEngine):
         self,
         processor_id: str,
         device_config_revision: processor_config.DeviceConfigRevision = Run(id='default'),
-        config_name: str = '',
+        config_name: str = 'default',
     ) -> processor_config.ProcessorConfig | None:
         """Returns a ProcessorConfig from this project and the given processor id.
 
@@ -777,7 +777,7 @@ class Engine(abstract_engine.AbstractEngine):
         qec_recipe: list[str],
         processor_id: str,
         device_config_revision: processor_config.DeviceConfigRevision = Run(id='default'),
-        config_name: str = '',
+        config_name: str = 'default',
     ) -> cirq.Circuit:
         """Takes the given Stim circuit and compiles it to a cirq Circuit.
 

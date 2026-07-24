@@ -2020,7 +2020,9 @@ def test_compile_circuit(client_constructor, default_engine_client):
             stim_circuit=stim_circuit,
             recipe=quantum.QecRecipe(desired_algorithms=qec_recipe),
             processor_id=processor_id,
-            device_config_selector=quantum.DeviceConfigSelector(run_name='default'),
+            device_config_selector=quantum.DeviceConfigSelector(
+                run_name='default', config_alias='default'
+            ),
         )
     )
 
@@ -2055,7 +2057,9 @@ def test_compile_circuit_with_stim_circuit_object(client_constructor, default_en
             stim_circuit=str(stim_circuit),
             recipe=quantum.QecRecipe(desired_algorithms=qec_recipe),
             processor_id=processor_id,
-            device_config_selector=quantum.DeviceConfigSelector(run_name='default'),
+            device_config_selector=quantum.DeviceConfigSelector(
+                run_name='default', config_alias='default'
+            ),
         )
     )
 
