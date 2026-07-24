@@ -287,10 +287,10 @@ def test_qasm_sub_op_no_qasm() -> None:
     class NoQasmOp(cirq.Operation):
         @property
         def qubits(self):
-            return (cirq.LineQubit(0),)
+            return (cirq.LineQubit(0),)  # pragma: nocover
 
         def with_qubits(self, *new_qubits):
-            return self
+            return self  # pragma: nocover
 
     op = cirq.If('a', NoQasmOp())
     assert cirq.qasm(op, default=None) is None
