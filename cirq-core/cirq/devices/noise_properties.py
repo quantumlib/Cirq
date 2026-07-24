@@ -56,6 +56,10 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
         self._noise_properties = noise_properties
         self.noise_models = self._noise_properties.build_noise_models()
 
+    @property
+    def noise_properties(self):
+        return self._noise_properties
+
     def _value_equality_values_(self):
         return self._noise_properties
 

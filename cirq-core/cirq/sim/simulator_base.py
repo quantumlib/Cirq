@@ -186,13 +186,42 @@ class SimulatorBase(
             StepResults from simulating a Moment of the Circuit.
 
         Raises:
-            TypeError: The simulator encounters an op it does not support.
+            TypeError: The simulator encounters an op it or its noise model
+                does not support.
         """
 
         if len(circuit) == 0:
             yield self._create_step_result(sim_state)
             return
 
+        # For any noise model derived from noise properties, check the circuit to ensure it
+        # is compatible with the noise properties.
+        if isinstance(self._noise, devices.NoiseModelFromNoiseProperties):
+            noise_props = self._noise.noise_properties
+            # So far, only SuperconductingQubitsNoiseProperties implements such constraints on
+            # the circuit.
+            if isinstance(noise_props, devices.SuperconductingQubitsNoiseProperties):
+                circuit_gates = {op.gate for op in circuit.all_operations()}
+                if not all(
+                    any(
+                        isinstance(gate, expected_gate)
+                        for expected_gate in noise_props.expected_gates()
+                    )
+                    for gate in circuit_gates
+                ):
+                    raise TypeError(
+                        f"Circuit uses "
+                        f"{circuit_gates.difference(noise_props.expected_gates())} "
+                        f"which is not supported by noise properties "
+                        f'"{noise_props.__class__.__name__}"'
+                    )
+                if not circuit.all_qubits().issubset(noise_props.qubits):
+                    raise TypeError(
+                        f"Circuit uses "
+                        f"{circuit.all_qubits().difference(noise_props.qubits)} "
+                        f"which is not supported by noise properties "
+                        f'"{noise_props.__class__.__name__}"'
+                    )
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
         measured: dict[tuple[cirq.Qid, ...], bool] = collections.defaultdict(bool)
         for moment in noisy_moments:
