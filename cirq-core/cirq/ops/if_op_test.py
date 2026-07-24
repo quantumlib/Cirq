@@ -22,7 +22,6 @@ import cirq
 def test_init() -> None:
     q = cirq.LineQubit(0)
     op = cirq.If('m', cirq.X(q))
-    assert op.condition == cirq.KeyCondition(cirq.MeasurementKey('m'))
     assert op.conditions == (cirq.KeyCondition(cirq.MeasurementKey('m')),)
     assert op.sub_operation == cirq.X(q)
     assert op.qubits == (q,)
@@ -36,9 +35,9 @@ def test_init_condition_types() -> None:
     cond = cirq.KeyCondition(key)
     sym = sympy.Symbol('s')
 
-    assert cirq.If(key, cirq.X(q)).condition == cond
-    assert cirq.If(cond, cirq.X(q)).condition == cond
-    assert cirq.If(sym, cirq.X(q)).condition == cirq.SympyCondition(sym)
+    assert cirq.If(key, cirq.X(q)).conditions == (cond,)
+    assert cirq.If(cond, cirq.X(q)).conditions == (cond,)
+    assert cirq.If(sym, cirq.X(q)).conditions == (cirq.SympyCondition(sym),)
 
 
 def test_init_multiple_conditions() -> None:
@@ -48,8 +47,6 @@ def test_init_multiple_conditions() -> None:
         cirq.KeyCondition(cirq.MeasurementKey('a')),
         cirq.KeyCondition(cirq.MeasurementKey('b')),
     )
-    with pytest.raises(ValueError, match='Operation has multiple conditions'):
-        _ = op.condition
 
 
 def test_init_multiple_operations() -> None:
@@ -139,7 +136,7 @@ def test_str_and_repr() -> None:
     assert eval(repr(op1)) == op1
 
     op2 = cirq.If(['a', 'b'], cirq.X(q))
-    assert str(op2) == 'If((a, b), X(q(0)))'
+    assert str(op2) == 'If([a, b], X(q(0)))'
     assert repr(op2) == (
         "cirq.If([cirq.KeyCondition(cirq.MeasurementKey(name='a')), "
         "cirq.KeyCondition(cirq.MeasurementKey(name='b'))], cirq.X(cirq.LineQubit(0)))"
@@ -280,6 +277,10 @@ def test_qasm() -> None:
     op_multi = cirq.If(['a', 'b'], cirq.X(q1))
     with pytest.raises(ValueError, match='QASM 2.0 does not support multiple conditions'):
         _ = cirq.qasm(op_multi)
+
+    circuit_multi = cirq.Circuit(cirq.measure(q0, key='a'), cirq.measure(q0, key='b'), op_multi)
+    qasm_str_3 = cirq.qasm(circuit_multi, args=cirq.QasmArgs(version='3.0'))
+    assert 'if (m_a!=0 && m_b!=0) x q[1];' in qasm_str_3
 
 
 def test_qasm_sub_op_no_qasm() -> None:

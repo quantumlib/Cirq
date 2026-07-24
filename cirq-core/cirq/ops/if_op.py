@@ -85,7 +85,7 @@ class If(raw_types.Operation):
             raise ValueError("At least one condition must be provided.")
         conds_tuple = tuple(conds)
 
-        if more_operations or not isinstance(sub_operation, raw_types.Operation):
+        if not more_operations and isinstance(sub_operation, raw_types.Operation):
             if isinstance(sub_operation, If):
                 self._conditions: tuple[cirq.Condition, ...] = (
                     conds_tuple + sub_operation.conditions
