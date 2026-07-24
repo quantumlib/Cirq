@@ -697,7 +697,11 @@ class GridDevice(cirq.Device):
 
                 all_gates.extend(gate_rep.supported_gates)
                 if gate_durations is not None:
-                    dur = next(iter(durations_for_rep)) if durations_for_rep else cirq.Duration(picos=0)
+                    dur = (
+                        next(iter(durations_for_rep))
+                        if durations_for_rep
+                        else cirq.Duration(picos=0)
+                    )
                     for gf in gate_rep.supported_gates:
                         all_gate_durations[gf] = dur
 

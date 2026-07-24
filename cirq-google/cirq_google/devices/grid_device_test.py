@@ -866,3 +866,17 @@ def test_qubit_attributes_unlisted_qubit():
 
     with pytest.raises(ValueError, match="is not in valid_qubits"):
         _ = cirq_google.GridDevice.from_proto(spec)
+
+
+def test_to_proto_invalid_gate_durations():
+    metadata = cirq.GridDeviceMetadata(
+        qubit_pairs=[(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))],
+        gateset=cirq.Gateset(cirq.PhasedXZGate, cirq.XPowGate),
+        gate_durations={
+            cirq.GateFamily(cirq.PhasedXZGate): cirq.Duration(picos=1_000),
+            cirq.GateFamily(cirq.XPowGate): cirq.Duration(picos=2_000),
+        },
+    )
+    device = cirq_google.GridDevice(metadata)
+    with pytest.raises(ValueError, match="Multiple gate families"):
+        device.to_proto()
