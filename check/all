@@ -107,7 +107,7 @@ else
     run check/pytest-and-incremental-coverage "${base_rev[@]}"
 fi
 
-run check/mypy
+run check/typecheck
 
 # Make the only-changed mode fast.  Skip check/doctest which rarely fails,
 # but takes most run time in that mode.
