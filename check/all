@@ -60,6 +60,7 @@ for arg in "$@"; do
         --apply-format-changes)
             echo "Warning: option '--apply-format-changes' is deprecated." \
                 "Please use '--fix' instead." >&2
+            echo "Warning: The '--apply-format-changes' will be removed in cirq v1.8." >&2
             echo >&2
             extra_format_args=( --apply )
             ;;
