@@ -43,88 +43,6 @@ extend_skip = ["__init__.py"]
 extend_skip_glob = ["*_pb2.py"]
 
 
-[tool.mypy]
-exclude = [
-    '/setup\.py',
-    'cirq-google/cirq_google/cloud/',
-]
-exclude_gitignore = true
-plugins = ["duet.typing"]
-show_error_codes = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-
-[[tool.mypy.overrides]]
-module = ["__main__"]
-follow_imports = "silent"
-ignore_missing_imports = true
-
-# Require explicit reexport from cirq modules
-[[tool.mypy.overrides]]
-module = ["cirq.*"]
-no_implicit_reexport = true
-
-# Generated code
-[[tool.mypy.overrides]]
-module = ["cirq_google.cloud.*"]
-follow_imports = "silent"
-
-# 3rd-party libs for which we don't have stubs
-
-# Google
-[[tool.mypy.overrides]]
-module = [
-    "google.api_core.*",
-    "google.auth.*",
-    "google.cloud.*",
-    "google.colab.*",
-    "google.oauth2.*",
-    "qsimcirq",
-]
-follow_imports = "silent"
-ignore_missing_imports = true
-
-# Treat symbols imported from Google's protobuf library as type Any.
-# This suppresses errors due to attributes not known to typeshed,
-# e.g. Descriptor._options.
-[[tool.mypy.overrides]]
-module = ["google.protobuf.*"]
-follow_imports = "skip"
-follow_imports_for_stubs = true
-
-# Non-Google
-[[tool.mypy.overrides]]
-module = [
-    "IPython.*",
-    "_pytest.*",
-    "absl.*",
-    "astroid.*",
-    "cachetools.*",
-    "filelock.*",
-    "ipywidgets.*",
-    "matplotlib.*",
-    "mpl_toolkits.*",
-    "networkx.*",
-    "pandas.*",
-    "ply.*",
-    "proto.*",
-    "pylatex.*",
-    "pylint.*",
-    "pytest.*",
-    "qiskit.*",
-    "quimb.*",
-    "ruamel.*",
-    "scipy.*",
-    "setuptools.*",
-    "stimcirq.*",
-    "sympy.*",
-    "tensorflow_docs.*",
-    "tqdm.*",
-]
-follow_imports = "silent"
-ignore_missing_imports = true
-
-
 [tool.pytest.ini_options]
 addopts = ["--benchmark-disable"]
 filterwarnings = [
@@ -338,3 +256,101 @@ select = [
 
 [tool.ruff.lint.per-file-ignores]
 "*.ipynb" = ["E402", "PLW0406"]
+
+# Migrated from [tool.mypy] via `pyrefly init`. Cirq is a multi-package
+# monorepo; search-path mirrors `source dev_tools/pypath` for imports.
+[tool.pyrefly]
+preset = "legacy"
+# Match mypy defaults: do not aggressively check unannotated defs.
+check-unannotated-defs = false
+infer-return-types = "never"
+# Respect leftover `# type: ignore` comments during migration.
+permissive-ignores = true
+disable-search-path-heuristics = true
+search-path = [
+    ".",
+    "cirq-aqt",
+    "cirq-core",
+    "cirq-google",
+    "cirq-ionq",
+    "cirq-pasqal",
+    "cirq-web",
+]
+project-excludes = [
+    "**/setup.py",
+    "**/cirq-google/cirq_google/cloud/**",
+    "**/*.ipynb",
+    "**/docs/**",
+    "**/__pycache__/**",
+    "**/.venv/**",
+    "**/venv/**",
+    "**/node_modules/**",
+]
+ignore-missing-imports = [
+    "__main__",
+    "google.api_core.*",
+    "google.auth.*",
+    "google.cloud.*",
+    "google.colab.*",
+    "google.oauth2.*",
+    "google.protobuf.*",
+    "qsimcirq",
+    "IPython.*",
+    "ipython.*",
+    "_pytest.*",
+    "absl.*",
+    "astroid.*",
+    "cachetools.*",
+    "filelock.*",
+    "ipywidgets.*",
+    "matplotlib.*",
+    "mpl_toolkits.*",
+    "networkx.*",
+    "pandas.*",
+    "ply.*",
+    "proto.*",
+    "pylatex.*",
+    "pylint.*",
+    "pytest.*",
+    "qiskit.*",
+    "quimb.*",
+    "ruamel.*",
+    "scipy.*",
+    "setuptools.*",
+    "stimcirq.*",
+    "sympy.*",
+    "tensorflow_docs.*",
+    "tqdm.*",
+]
+# Protobuf / heavy stub-poor libs: mypy used follow_imports=silent/skip.
+replace-imports-with-any = [
+    "google.protobuf",
+    "google.protobuf.*",
+    "sympy",
+    "sympy.*",
+    "networkx",
+    "networkx.*",
+    "pandas",
+    "pandas.*",
+]
+
+# Checks that are much stricter than mypy under Cirq's silent-import setup.
+# Tracked for follow-up tightening after the tool switch.
+[tool.pyrefly.errors]
+unsupported-operation = false
+invalid-inheritance = false
+bad-override = false
+bad-argument-type = false
+no-matching-overload = false
+missing-attribute = false
+bad-return = false
+bad-assignment = false
+bad-index = false
+not-a-type = false
+inconsistent-overload = false
+bad-specialization = false
+missing-argument = false
+unexpected-keyword = false
+unsafe-overlap = false
+redundant-cast = "warn"
+

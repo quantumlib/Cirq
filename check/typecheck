@@ -1,20 +1,23 @@
 #!/usr/bin/env bash
 
 ################################################################################
-# Deprecated wrapper that forwards to check/typecheck (Pyrefly).
+# Runs type checking on the repository using Pyrefly.
 #
 # Usage:
-#     check/mypy [--flags]
+#     check/typecheck [--flags]
 ################################################################################
-
-echo "Warning: 'check/mypy' is deprecated." \
-    "Please use 'check/typecheck' instead." >&2
-echo "Warning: 'check/mypy' will be removed in cirq v1.8." >&2
-echo >&2
 
 # Get the working directory to the repo root.
 thisdir=$(dirname "${BASH_SOURCE[0]:?}") || exit $?
 repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel) || exit $?
 cd "${repo_dir}" || exit $?
 
-exec check/typecheck "$@"
+# Ensure terminal color is reset even if interrupted.
+trap 'echo -e -n "\033[0m"' EXIT
+
+source dev_tools/pypath || exit $?
+
+echo -e -n "\033[31m"
+pyrefly check "$@"
+result=$?
+exit "${result}"

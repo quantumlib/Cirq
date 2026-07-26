@@ -49,6 +49,7 @@ def run(
         'pylint',
         'env',
         'pytest',
+        'pyrefly',
         'mypy',
         'black',
         *additional_intercepts,

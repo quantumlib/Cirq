@@ -154,7 +154,10 @@ class UndirectedGraphDevice(devices.Device):
 
     @property
     def qubits(self) -> tuple[cirq.Qid, ...]:
-        return cast(tuple['cirq.Qid', ...], tuple(sorted(self.device_graph.vertices)))
+        return cast(
+            tuple['cirq.Qid', ...],
+            tuple(sorted(cast(Iterable['cirq.Qid'], self.device_graph.vertices))),
+        )
 
     @property
     def edges(self) -> tuple[frozenset[Hashable], ...]:
