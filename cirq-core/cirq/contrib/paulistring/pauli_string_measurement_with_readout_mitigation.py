@@ -1166,7 +1166,8 @@ def generate_trex_and_readout_circuits(
 
     Args:
         circuit_to_pauli: A CircuitToPauliStringsParameters object containing the original
-            circuit and its associated Pauli strings.
+            circuit and the Pauli strings that the user wishes to measure on the output
+            of the circuit.
         num_twirls: The number of twirled circuits to generate for each original circuit.
         num_readout_circuits: The number of readout calibration circuits to generate.
         rng: A NumPy random number generator for generating random Pauli twirls.
