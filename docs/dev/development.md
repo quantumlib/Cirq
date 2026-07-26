@@ -163,12 +163,12 @@ This script uses the `grpcio-tools` package to generate the Python proto API.
 
 There are a few options for running continuous integration checks, varying from easy and fast to slow and reliable.
 
-The simplest way to run checks is to invoke `pytest`, `pylint`, or `mypy` for yourself as follows:
+The simplest way to run checks is to invoke `pytest`, `pylint`, or `pyrefly` for yourself as follows:
 
 ```bash
 pytest
 pylint .
-mypy .
+pyrefly check
 ```
 
 This can be a bit tedious, because the above assumes that Python path has been
@@ -330,7 +330,7 @@ If this is too heavy weight for you, you can instead use `dev_tools/requirements
 
 For continuous integration:
 
-Each job might need different set of requirements and it would be inefficient to install a full-blown dev env for every tiny job (e.g. `mypy` check).
+Each job might need different set of requirements and it would be inefficient to install a full-blown dev env for every tiny job (e.g. type check).
 Instead, in the directory `dev_tools/requirements`, create a separate `<job>.env.txt` and include the necessary tools in there. Requirements files can include each other, which is heavily leveraged in our requirements files in order to remove duplication.
 
 You can call the following utility to unroll the content of a file:

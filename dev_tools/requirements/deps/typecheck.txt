@@ -1,0 +1,7 @@
+# Type checking tools (mypy during transition; Pyrefly with baseline).
+mypy==2.1.0
+pyrefly==1.2.0
+
+# Packages with stub types for various libraries
+types-protobuf>=6.32.1, <8.0
+types-requests~=2.32
