@@ -957,20 +957,23 @@ def test_generate_trex_and_readout_circuits() -> None:
     num_readout_circuits = 2
     rng = np.random.default_rng(seed=42)
 
-    all_circuits, metadata_list = generate_trex_and_readout_circuits(
+    results = generate_trex_and_readout_circuits(
         circuit_to_pauli=params,
         num_twirls=num_twirls,
         num_readout_circuits=num_readout_circuits,
         rng=rng,
     )
 
-    # For each group, we should get `num_twirls` + `num_readout_circuits` circuits.
-    # Total circuits = (3 twirls + 2 readouts) * 2 groups = 10 circuits
-    assert len(all_circuits) == 10
-    assert len(metadata_list) == 2
+    # We have 2 Pauli groups, so we should get 2 tuples of (circuits, metadata).
+    assert len(results) == 2
 
-    # Verify Group1 Metadata and Circuits
-    meta1 = metadata_list[0]
+    # Verify Group 1 Metadata and Circuits
+    group1_circuits, meta1 = results[0]
+
+    # We should get (3 twirls + 2 readouts) = 5 circuits
+    assert len(group1_circuits) == 5
+
+    # Verify metadata.
     assert meta1.pauli_str == cirq.Z(q0) * cirq.Z(q1)
     assert meta1.twirl_choices.shape == (num_twirls, 2)
     assert meta1.readout_choices.shape == (num_readout_circuits, 2)
@@ -978,15 +981,15 @@ def test_generate_trex_and_readout_circuits() -> None:
     # Indices 0, 1, 2 belong to the twirled circuits of group 1
     for i in range(3):
         # Twirled circuits should contain the base operations + basis changes + measurement
-        assert len(all_circuits[i]) >= len(base_circuit)
-        meas_op = all_circuits[i].moments[-1].operations[0]
+        assert len(group1_circuits[i]) >= len(base_circuit)
+        meas_op = group1_circuits[i].moments[-1].operations[0]
         assert isinstance(meas_op.gate, cirq.MeasurementGate)
         assert set(meas_op.qubits) == {q0, q1}
         assert meas_op.gate.key == 'result'
 
     # Indices 3, 4 belong to the readout circuits of group 1
     for i in range(3, 5):
-        readout_circuit = all_circuits[i]
+        readout_circuit = group1_circuits[i]
         # Readout circuits have exactly 2 moments: Optional X gates, then Measurement
         assert len(readout_circuit.moments) == 2
 
@@ -1001,15 +1004,29 @@ def test_generate_trex_and_readout_circuits() -> None:
         assert meas_op.gate.key == 'result'
 
     # Verify Group 2 Metadata and Circuits
-    meta2 = metadata_list[1]
+    group2_circuits, meta2 = results[1]
+
+    # We should get (3 twirls + 2 readouts) = 5 circuits
+    assert len(group2_circuits) == 5
+
+    # Verify metadata.
     # The two X Paulis should have been combined into a joint X0*X1 string
     assert meta2.pauli_str == cirq.X(q0) * cirq.X(q1)
     assert meta2.twirl_choices.shape == (num_twirls, 2)
     assert meta2.readout_choices.shape == (num_readout_circuits, 2)
 
-    # Indices 8, 9 belong to the readout circuits of group 2
-    for i in range(8, 10):
-        readout_circuit = all_circuits[i]
+    # Indices 0, 1, 2 belong to the twirled circuits of group 2
+    for i in range(3):
+        # Twirled circuits should contain the base operations + basis changes + measurement
+        assert len(group2_circuits[i]) >= len(base_circuit)
+        meas_op = group2_circuits[i].moments[-1].operations[0]
+        assert isinstance(meas_op.gate, cirq.MeasurementGate)
+        assert set(meas_op.qubits) == {q0, q1}
+        assert meas_op.gate.key == 'result'
+
+    # Indices 3, 4 belong to the readout circuits of group 2
+    for i in range(3, 5):
+        readout_circuit = group2_circuits[i]
         assert len(readout_circuit.moments) == 2
         meas_op = readout_circuit.moments[-1].operations[0]
         assert isinstance(meas_op.gate, cirq.MeasurementGate)
