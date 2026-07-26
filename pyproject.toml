@@ -421,4 +421,3 @@ replace-imports-with-any = [
 [tool.pyrefly.errors]
 redundant-cast = "error"
 unused-type-ignore = "error"
-
