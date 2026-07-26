@@ -234,7 +234,7 @@ class AbstractProcessor(abc.ABC):
             gate_sets: An iterable of serializers that can be used in the device.
 
         Returns:
-            A `cirq.Devive` representing the processor.
+            A `cirq.Device` representing the processor.
         """
 
     @abc.abstractmethod

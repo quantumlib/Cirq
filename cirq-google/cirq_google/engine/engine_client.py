@@ -99,7 +99,7 @@ class EngineClient:
 
     @property
     def _executor(self) -> AsyncioExecutor:
-        # We must re-use a single Executor due to multi-threading issues in gRPC
+        # We must reuse a single Executor due to multi-threading issues in gRPC
         # clients: https://github.com/grpc/grpc/issues/25364.
         return AsyncioExecutor.instance()
 
@@ -444,20 +444,15 @@ class EngineClient:
             raise ValueError('Must specify a processor id when creating a job.')
         if run_name and snapshot_id:
             print('Both run_name and snapshot_id were specified, using snapshot_id.')
-        if (bool(run_name) or bool(snapshot_id)) ^ bool(device_config_name):
-            raise ValueError(
-                'Cannot specify only one of top level identifier (e.g `run_name`, `snapshot_id`)'
-                ' and `device_config_name`'
-            )
 
         # Create job.
         if snapshot_id:
             selector = quantum.DeviceConfigSelector(
-                snapshot_id=snapshot_id or None, config_alias=device_config_name
+                snapshot_id=snapshot_id or None, config_alias=device_config_name or 'default'
             )
         else:
             selector = quantum.DeviceConfigSelector(
-                run_name=run_name or None, config_alias=device_config_name
+                run_name=run_name or 'default', config_alias=device_config_name or 'default'
             )
         job_name = _job_name_from_ids(project_id, program_id, job_id) if job_id else ''
         job = quantum.QuantumJob(
@@ -811,10 +806,6 @@ class EngineClient:
             raise ValueError('Must specify a processor id when creating a job.')
         if run_name and snapshot_id:
             print('Both run_name and snapshot_id were specified, using snapshot_id.')
-        if (bool(run_name) or bool(snapshot_id)) ^ bool(device_config_name):
-            raise ValueError(
-                'Cannot specify only one of top level identifier and `device_config_name`'
-            )
 
         project_name = _project_name(project_id)
 
@@ -1182,7 +1173,7 @@ class EngineClient:
         project_id: str,
         processor_id: str,
         config_name: str = 'default',
-        device_config_revision: DeviceConfigRevision = Run(id='current'),
+        device_config_revision: DeviceConfigRevision = Run(id='default'),
     ) -> quantum.QuantumProcessorConfig | None:
         """Returns the QuantumProcessorConfig for the given snapshot id.
 
@@ -1193,7 +1184,7 @@ class EngineClient:
             config_name: The id of the quantum processor config.
 
         Returns:
-            The quantum procesor config or None if it does not exist.
+            The quantum processor config or None if it does not exist.
 
         Raises:
             EngineException: If the request to get the config fails.
@@ -1221,7 +1212,7 @@ class EngineClient:
         self,
         project_id: str,
         processor_id: str,
-        device_config_revision: DeviceConfigRevision = Run(id='current'),
+        device_config_revision: DeviceConfigRevision = Run(id='default'),
     ) -> list[quantum.QuantumProcessorConfig]:
         """Returns the QuantumProcessorConfig for the given snapshot id.
 
@@ -1231,7 +1222,7 @@ class EngineClient:
             device_config_revision: Specifies either the snapshot_id or the run_name.
 
         Returns:
-            List of quantum procesor configs.
+            List of quantum processor configs.
         """
         parent_resource_name = _quantum_processor_revision_path(
             project_id=project_id,
@@ -1251,7 +1242,7 @@ class EngineClient:
         stim_circuit: str | stim.Circuit,
         qec_recipe: list[str],
         processor_id: str,
-        device_config_revision: DeviceConfigRevision = Run(id='current'),
+        device_config_revision: DeviceConfigRevision = Run(id='default'),
         config_name: str = 'default',
     ) -> cirq.Circuit:
         """Takes the given Stim circuit and compiles it to a cirq Circuit.
@@ -1342,7 +1333,9 @@ def _ids_from_calibration_name(calibration_name: str) -> tuple[str, str, int]:
 
 
 def _quantum_processor_revision_path(
-    project_id: str, processor_id: str, device_config_revision: DeviceConfigRevision | None = None
+    project_id: str,
+    processor_id: str,
+    device_config_revision: DeviceConfigRevision = Run(id='default'),
 ) -> str:
     validate_device_config_revision(device_config_revision)
     processor_resource_name = _processor_name_from_ids(project_id, processor_id)

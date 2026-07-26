@@ -1329,12 +1329,12 @@ class AbstractCircuit(abc.ABC):
         return diagram
 
     def _is_parameterized_(self) -> bool:
-        return any(protocols.is_parameterized(op) for op in self.all_operations()) or any(
+        return any(protocols.is_parameterized(moment) for moment in self) or any(
             protocols.is_parameterized(tag) for tag in self.tags
         )
 
     def _parameter_names_(self) -> Set[str]:
-        op_params = {name for op in self.all_operations() for name in protocols.parameter_names(op)}
+        op_params = {name for moment in self for name in protocols.parameter_names(moment)}
         tag_params = {name for tag in self.tags for name in protocols.parameter_names(tag)}
         return op_params | tag_params
 
@@ -1433,7 +1433,7 @@ class AbstractCircuit(abc.ABC):
         """
         self._to_qasm_output(header, precision, qubit_order).save(file_path)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         attribute_names = ['moments', 'tags'] if self.tags else ['moments']
         ret = protocols.obj_to_dict_helper(self, attribute_names)
         return ret

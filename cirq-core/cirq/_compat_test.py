@@ -583,7 +583,7 @@ def _type_repr_in_deprecated_module():
 old_parent = 'cirq.testing._compat_test_data'
 
 # this is where the deprecation error should show where the deprecated usage
-# has occured, which is this file
+# has occurred, which is this file
 _deprecation_origin = '_compat_test.py:'
 
 # see cirq_compat_test_data/__init__.py for the setup code

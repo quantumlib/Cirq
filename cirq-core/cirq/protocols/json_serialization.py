@@ -113,7 +113,7 @@ class SupportsJSON(Protocol):
     """
 
     @doc_private
-    def _json_dict_(self) -> None | NotImplementedType | dict[Any, Any]:
+    def _json_dict_(self) -> None | NotImplementedType | dict[str, Any]:
         pass
 
 
@@ -177,7 +177,7 @@ def attrs_json_dict(obj: Any) -> dict[str, Any]:
     return obj_to_dict_helper(obj, attribute_names)
 
 
-def _json_dict_with_cirq_type(obj: Any):
+def _json_dict_with_cirq_type(obj: Any) -> dict[str, Any]:
     base_dict = obj._json_dict_()
     if 'cirq_type' in base_dict:
         raise ValueError(
@@ -535,7 +535,7 @@ def read_json(
             the serialized `cirq_type` string into a constructable class.
             By default, top-level cirq objects that implement the SupportsJSON
             protocol are supported. You can extend the list of supported types
-            by pre-pending custom resolvers. Each resolver should return `None`
+            by prepending custom resolvers. Each resolver should return `None`
             to indicate that it cannot resolve the given cirq_type and that
             the next resolver should be tried.
 
@@ -621,7 +621,7 @@ def read_json_gzip(
             the serialized `cirq_type` string into a constructable class.
             By default, top-level cirq objects that implement the SupportsJSON
             protocol are supported. You can extend the list of supported types
-            by pre-pending custom resolvers. Each resolver should return `None`
+            by prepending custom resolvers. Each resolver should return `None`
             to indicate that it cannot resolve the given cirq_type and that
             the next resolver should be tried.
 
