@@ -86,7 +86,17 @@ class If(raw_types.Operation):
             raise ValueError("At least one condition must be provided.")
         conds_tuple = tuple(conds)
 
-        if not more_operations and isinstance(sub_operation, raw_types.Operation):
+        if more_operations or not isinstance(sub_operation, Operation):
+            # Multiple operations: wrap in a CircuitOperation
+
+            # Inline import to prevent circular dependency.
+            from cirq.circuits import Circuit, CircuitOperation
+
+            c = Circuit(sub_operation, *more_operations)
+            self._conditions = conds_tuple
+            self._sub_operation = CircuitOperation(c.freeze())
+        else:
+            # Single operation
             if isinstance(sub_operation, If):
                 self._conditions: tuple[cirq.Condition, ...] = (
                     conds_tuple + sub_operation.conditions
@@ -100,13 +110,6 @@ class If(raw_types.Operation):
             else:
                 self._conditions = conds_tuple
                 self._sub_operation = sub_operation
-        else:
-            # Inline import to prevent circular dependency.
-            from cirq.circuits import Circuit, CircuitOperation
-
-            c = Circuit(sub_operation, *more_operations)
-            self._conditions = conds_tuple
-            self._sub_operation = CircuitOperation(c.freeze())
 
         if protocols.measurement_key_objs(self._sub_operation):
             raise ValueError(
