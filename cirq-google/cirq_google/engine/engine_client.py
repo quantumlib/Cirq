@@ -1299,7 +1299,7 @@ class EngineClient:
         project_id: str,
         qec_circuit: cirq.Circuit,
         processor_id: str,
-        run_name: str,
+        run_name: str | None,
         config_name: str = 'default',
     ) -> quantum.QuantumJob:
         """Calibrates the given QEC circuit on Quantum Engine.

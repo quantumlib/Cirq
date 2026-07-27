@@ -1400,3 +1400,19 @@ def test_engine_calibrate_for_circuit_defaults(client_mock):
     )
     client_mock().get_job_async.assert_called_once_with('proj', 'test_prog', 'test_job', False)
     client_mock().get_job_results_async.assert_called_once_with('proj', 'test_prog', 'test_job')
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_engine_calibrate_for_circuit_no_results_raises(client_mock):
+    _setup_calibrate_mocks(client_mock)
+    client_mock().get_job_results_async.return_value = quantum.QuantumResult(
+        result=util.pack_any(v2.result_pb2.Result())
+    )
+
+    engine = cg.Engine(project_id='proj')
+    qec_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(0, 0)))
+    processor_id = "test_processor_id"
+
+    with pytest.raises(ValueError, match="No calibration results returned for job test_job."):
+        engine.calibrate_for_circuit(qec_circuit=qec_circuit, processor_id=processor_id)
+
