@@ -143,7 +143,7 @@ wrong import order.
 ### Types
 
 Code should have [type annotations](https://www.python.org/dev/peps/pep-0484/).
-We use [mypy](http://mypy-lang.org/) to check that type annotations are correct.
+We use [Pyrefly](https://pyrefly.org/) to check that type annotations are correct.
 When type checking produces a false positive, it can be silenced with
 annotations such as `# type: ignore`.
 

@@ -1,0 +1,6 @@
+# Type checking dependency file (Pyrefly).
+pyrefly==1.1.1
+
+# Packages with stub types for various libraries
+types-protobuf>=6.32.1, <8.0
+types-requests~=2.32
