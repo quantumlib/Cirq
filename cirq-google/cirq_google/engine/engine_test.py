@@ -1415,4 +1415,3 @@ def test_engine_calibrate_for_circuit_no_results_raises(client_mock):
 
     with pytest.raises(ValueError, match="No calibration results returned for job test_job."):
         engine.calibrate_for_circuit(qec_circuit=qec_circuit, processor_id=processor_id)
-
