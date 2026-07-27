@@ -811,7 +811,7 @@ class Engine(abstract_engine.AbstractEngine):
         self,
         qec_circuit: cirq.Circuit,
         processor_id: str,
-        run_name: str = "",
+        run_name: str | None = "",
         config_name: str = 'default',
     ) -> cirq.ParamResolver:
         """Calibrates the given QEC circuit.
@@ -841,7 +841,10 @@ class Engine(abstract_engine.AbstractEngine):
             _job=quantum_job,
         )
         results = await job.results_async()
-        return results[0].params
+        try:
+            return results[0].params
+        except IndexError:
+            raise ValueError(f"No calibration results returned for job {job_id}.")
 
     calibrate_for_circuit = duet.sync(calibrate_for_circuit_async)
 

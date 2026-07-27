@@ -1334,17 +1334,8 @@ def _setup_calibrate_mocks(client_mock):
     )
     client_mock().get_job_results_async.return_value = quantum.QuantumResult(
         result=util.pack_any(
-            v2.result_pb2.Result(
-                sweep_results=[
-                    v2.result_pb2.SweepResult(
-                        repetitions=1,
-                        parameterized_results=[
-                            v2.result_pb2.ParameterizedResult(
-                                params=v2.result_pb2.ParameterDict(assignments={'theta': 0.5})
-                            )
-                        ],
-                    )
-                ]
+            v2.result_pb2.QuantumCircuitCalibration(
+                calibrated_parameters=v2.result_pb2.ParameterDict(assignments={'theta': 0.5})
             )
         )
     )
