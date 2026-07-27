@@ -86,7 +86,7 @@ class If(raw_types.Operation):
             raise ValueError("At least one condition must be provided.")
         conds_tuple = tuple(conds)
 
-        if more_operations or not isinstance(sub_operation, Operation):
+        if more_operations or not isinstance(sub_operation, raw_types.Operation):
             # Multiple operations: wrap in a CircuitOperation
 
             # Inline import to prevent circular dependency.
