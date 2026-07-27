@@ -236,7 +236,7 @@ def test_simulation() -> None:
     res = sim.simulate(circuit)
     assert res.measurements['a'] == [1]
     # Since 'a' is 1, X(q1) ran, so final state vector should have both q0 and q1 in |1>.
-    np.testing.assert_equal(res.state_vector(), [0, 0, 1, 0])
+    np.testing.assert_equal(res.state_vector(), [0, 0, 0, 1])
 
     # Now if q0 measured as 0, do not flip q1.
     circuit_zero = cirq.Circuit(cirq.measure(q0, key='a'), cirq.If('a', cirq.X(q1)))
