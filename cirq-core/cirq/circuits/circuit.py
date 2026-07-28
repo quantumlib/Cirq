@@ -942,7 +942,7 @@ class AbstractCircuit(abc.ABC):
         Returns: frozenset of `cirq.Qid` objects acted on by all operations
             in this circuit.
         """
-        seen = set()
+        seen: set[int] = set()
         # Cache local reference to set.add to avoid attribute lookup overhead inside comprehension.
         seen_add = seen.add
 
