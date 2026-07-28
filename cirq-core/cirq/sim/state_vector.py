@@ -312,7 +312,7 @@ def measure_state_vector(
     # Final else: if out is state then state will be modified in place.
 
     # Reshape to a tensor inplace to set the masked values to 0.
-    out.reshape(shape, copy=False)[mask] = 0
+    out.reshape(shape)[mask] = 0
 
     # Renormalize.
     out /= np.sqrt(probs[result])
