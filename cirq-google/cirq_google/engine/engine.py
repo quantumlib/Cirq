@@ -802,6 +802,49 @@ class Engine(abstract_engine.AbstractEngine):
 
     compile_circuit = duet.sync(compile_circuit_async)
 
+    async def calibrate_for_circuit_async(
+        self,
+        qec_circuit: cirq.Circuit,
+        processor_id: str,
+        device_config_revision: processor_config.DeviceConfigRevision = processor_config.Run(
+            id='current'
+        ),
+        config_name: str = 'default',
+    ) -> cirq.ParamResolver:
+        """Calibrates the given QEC circuit.
+
+        Args:
+            qec_circuit: The QEC circuit to calibrate.
+            processor_id: The processor unique identifier.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
+            config_name: The identifier for the config.
+
+        Returns:
+            A cirq.ParamResolver containing the calibrated parameters.
+        """
+        quantum_job = await self.context.client.calibrate_for_circuit_async(
+            project_id=self.project_id,
+            qec_circuit=qec_circuit,
+            processor_id=processor_id,
+            device_config_revision=device_config_revision,
+            config_name=config_name,
+        )
+        _, program_id, job_id = engine_client._ids_from_job_name(quantum_job.name)
+        job = engine_job.EngineJob(
+            project_id=self.project_id,
+            program_id=program_id,
+            job_id=job_id,
+            context=self.context,
+            _job=quantum_job,
+        )
+        results = await job.results_async()
+        try:
+            return results[0].params
+        except IndexError:
+            raise ValueError(f"No calibration results returned for job {job_id}.")
+
+    calibrate_for_circuit = duet.sync(calibrate_for_circuit_async)
+
 
 def get_engine(project_id: str | None = None) -> Engine:
     """Get an Engine instance assuming some sensible defaults.

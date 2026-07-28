@@ -1320,3 +1320,87 @@ def test_engine_compile_circuit_with_stim_circuit(client_mock):
         config_name='default',
         device_config_revision=Run(id='default'),
     )
+
+
+def _setup_calibrate_mocks(client_mock):
+    client_mock().calibrate_for_circuit_async.return_value = quantum.QuantumJob(
+        name="projects/proj/programs/test_prog/jobs/test_job"
+    )
+    client_mock().get_job_async.return_value = quantum.QuantumJob(
+        name="projects/proj/programs/test_prog/jobs/test_job",
+        execution_status={'state': 'SUCCESS'},
+        update_time=_DT,
+    )
+    client_mock().get_job_results_async.return_value = quantum.QuantumResult(
+        result=util.pack_any(
+            v2.result_pb2.QuantumCircuitCalibration(
+                calibrated_parameters=v2.result_pb2.ParameterDict(assignments={'theta': 0.5})
+            )
+        )
+    )
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_engine_calibrate_for_circuit(client_mock):
+    expected_resolver = cirq.ParamResolver({'theta': 0.5})
+    _setup_calibrate_mocks(client_mock)
+
+    engine = cg.Engine(project_id='proj')
+    qec_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(0, 0)))
+    processor_id = "test_processor_id"
+    snapshot = Snapshot(id="snap_1")
+    config_name = "test_config"
+
+    result = engine.calibrate_for_circuit(
+        qec_circuit=qec_circuit,
+        processor_id=processor_id,
+        device_config_revision=snapshot,
+        config_name=config_name,
+    )
+    assert result == expected_resolver
+    client_mock().calibrate_for_circuit_async.assert_called_once_with(
+        project_id='proj',
+        qec_circuit=qec_circuit,
+        processor_id=processor_id,
+        device_config_revision=snapshot,
+        config_name=config_name,
+    )
+    client_mock().get_job_async.assert_called_once_with('proj', 'test_prog', 'test_job', False)
+    client_mock().get_job_results_async.assert_called_once_with('proj', 'test_prog', 'test_job')
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_engine_calibrate_for_circuit_defaults(client_mock):
+    expected_resolver = cirq.ParamResolver({'theta': 0.5})
+    _setup_calibrate_mocks(client_mock)
+
+    engine = cg.Engine(project_id='proj')
+    qec_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(0, 0)))
+    processor_id = "test_processor_id"
+
+    result = engine.calibrate_for_circuit(qec_circuit=qec_circuit, processor_id=processor_id)
+    assert result == expected_resolver
+    client_mock().calibrate_for_circuit_async.assert_called_once_with(
+        project_id='proj',
+        qec_circuit=qec_circuit,
+        processor_id=processor_id,
+        device_config_revision=Run(id='current'),
+        config_name="default",
+    )
+    client_mock().get_job_async.assert_called_once_with('proj', 'test_prog', 'test_job', False)
+    client_mock().get_job_results_async.assert_called_once_with('proj', 'test_prog', 'test_job')
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_engine_calibrate_for_circuit_no_results_raises(client_mock):
+    _setup_calibrate_mocks(client_mock)
+    client_mock().get_job_results_async.return_value = quantum.QuantumResult(
+        result=util.pack_any(v2.result_pb2.Result())
+    )
+
+    engine = cg.Engine(project_id='proj')
+    qec_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(0, 0)))
+    processor_id = "test_processor_id"
+
+    with pytest.raises(ValueError, match="No calibration results returned for job test_job."):
+        engine.calibrate_for_circuit(qec_circuit=qec_circuit, processor_id=processor_id)

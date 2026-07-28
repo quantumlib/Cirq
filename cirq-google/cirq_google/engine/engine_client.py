@@ -397,7 +397,7 @@ class EngineClient:
         description: str | None = None,
         labels: dict[str, str] | None = None,
         *,
-        run_name: str = "",
+        run_name: str | None = "",
         snapshot_id: str = "",
         device_config_name: str = "",
     ) -> tuple[str, quantum.QuantumJob]:
@@ -464,6 +464,7 @@ class EngineClient:
                 )
             ),
             run_context=run_context,
+            execute_circuit=quantum.QuantumJob.ExecuteCircuitAction(),
         )
         if priority:
             job.scheduling_config.priority = priority
@@ -834,6 +835,7 @@ class EngineClient:
                 )
             ),
             run_context=run_context,
+            execute_circuit=quantum.QuantumJob.ExecuteCircuitAction(),
         )
         if priority:
             job.scheduling_config.priority = priority
@@ -1282,6 +1284,60 @@ class EngineClient:
         return CIRCUIT_SERIALIZER.deserialize(program_proto)
 
     compile_circuit = duet.sync(compile_circuit_async)
+
+    async def calibrate_for_circuit_async(
+        self,
+        project_id: str,
+        qec_circuit: cirq.Circuit,
+        processor_id: str,
+        device_config_revision: DeviceConfigRevision = Run(id='current'),
+        config_name: str = 'default',
+    ) -> quantum.QuantumJob:
+        """Calibrates the given QEC circuit on Quantum Engine.
+
+        Args:
+            project_id: A project_id of the parent Google Cloud Project.
+            qec_circuit: The QEC circuit to calibrate.
+            processor_id: The processor unique identifier.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
+            config_name: The identifier for the config.
+
+        Returns:
+            A `quantum.QuantumJob` created from the request.
+        """
+        validate_device_config_revision(device_config_revision)
+        if isinstance(device_config_revision, Snapshot):
+            selector = quantum.DeviceConfigSelector(
+                snapshot_id=device_config_revision.id or None, config_alias=config_name
+            )
+        else:
+            run_name = device_config_revision.id if device_config_revision else 'default'
+            selector = quantum.DeviceConfigSelector(
+                run_name=run_name or None, config_alias=config_name
+            )
+
+        program_id, _ = await self.create_program_async(
+            project_id=project_id,
+            program_id=None,
+            code=util.pack_any(CIRCUIT_SERIALIZER.serialize(qec_circuit)),
+        )
+        run_context = util.pack_any(v2.run_context_to_proto(None, 1))
+        job = quantum.QuantumJob(
+            scheduling_config=quantum.SchedulingConfig(
+                processor_selector=quantum.SchedulingConfig.ProcessorSelector(
+                    processor=_processor_name_from_ids(project_id, processor_id),
+                    device_config_selector=selector,
+                )
+            ),
+            run_context=run_context,
+            calibrate_circuit=quantum.QuantumJob.CalibrateCircuitAction(),
+        )
+        request = quantum.CreateQuantumJobRequest(
+            parent=_program_name_from_ids(project_id, program_id), quantum_job=job
+        )
+        return await self._send_request_async(self.grpc_client.create_quantum_job, request)
+
+    calibrate_for_circuit = duet.sync(calibrate_for_circuit_async)
 
 
 def _project_name(project_id: str) -> str:
