@@ -752,10 +752,9 @@ def merge_moments(
     return _create_target_circuit_type(merged_moments, circuit)
 
 
-def merge_moments_greedy(
+def merge_moments_batch(
     circuit: CIRCUIT_TYPE,
-    merge_func: Callable[[list[circuits.Moment]], circuits.Moment | None],
-    can_merge_moment: Callable[[circuits.Moment], bool],
+    merge_func: Callable[[Sequence[cirq.Moment]], tuple[cirq.Moment, Sequence[cirq.Moment]]],
     *,
     tags_to_ignore: Sequence[Hashable] = (),
     deep: bool = False,
@@ -764,14 +763,13 @@ def merge_moments_greedy(
 
     Starting from the first moment, the largest run of mergeable moments is found and then
     merged at once. The process is repeated starting from the next moment, until the circuit
-    is exhausted. `merge_func` is not called on single-moment runs. If `merge_func` returns
-    None, the moments are kept unmerged.
+    is exhausted. `merge_func` is not called on single-moment runs.
 
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
-        merge_func: Callable that takes a list of consecutive mergeable moments and returns
-            the merged moment, or None if they cannot be merged.
-        can_merge_moment: Callable that returns True if a moment can be merged, else False.
+        merge_func: Callable that takes a sequence of moments and returns both the first
+            moment merged with as many consecutive moments as possible, and a sequence of
+            the remaining unmerged moments.
         tags_to_ignore: Tagged circuit operations marked with any of `tags_to_ignore` will be
             ignored when recursively applying the transformer primitive to sub-circuits, given
             deep=True.
@@ -788,12 +786,8 @@ def merge_moments_greedy(
             circuit,
             lambda op, _: (
                 op.untagged.replace(
-                    circuit=merge_moments_greedy(
-                        op.untagged.circuit,
-                        merge_func,
-                        can_merge_moment,
-                        tags_to_ignore=tags_to_ignore,
-                        deep=deep,
+                    circuit=merge_moments_batch(
+                        op.untagged.circuit, merge_func, tags_to_ignore=tags_to_ignore, deep=deep
                     )
                 ).with_tags(*op.tags)
                 if isinstance(op.untagged, circuits.CircuitOperation)
@@ -803,22 +797,11 @@ def merge_moments_greedy(
         )
 
     merged_moments: list[circuits.Moment] = []
-    moments_to_merge: list[circuits.Moment] = []
-    for i, current_moment in enumerate(circuit):
-        can_merge_current = can_merge_moment(current_moment)
-        if can_merge_current:
-            moments_to_merge.append(current_moment)
-        if not can_merge_current or i == len(circuit) - 1:
-            if len(moments_to_merge) > 1:
-                merged_moment = merge_func(moments_to_merge)
-                if merged_moment is not None:
-                    merged_moments.append(merged_moment)
-                    moments_to_merge = []
-            merged_moments.extend(moments_to_merge)
-            moments_to_merge = []
+    moments_to_merge: Sequence[circuits.Moment] = circuit.moments
 
-            if not can_merge_current:
-                merged_moments.append(current_moment)
+    while len(moments_to_merge) > 0:
+        batch_merged_moment, moments_to_merge = merge_func(moments_to_merge)
+        merged_moments.append(batch_merged_moment)
 
     return _create_target_circuit_type(merged_moments, circuit)
 

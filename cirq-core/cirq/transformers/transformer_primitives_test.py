@@ -507,18 +507,25 @@ def _merge_z_moments_func(m1: cirq.Moment, m2: cirq.Moment) -> cirq.Moment | Non
     )
 
 
-def _merge_z_moments_greedy_func(ms: list[cirq.Moment]) -> cirq.Moment | None:
-    if any(op.gate != cirq.Z for m in ms for op in m):
-        return None
+def _can_merge_z_moment(m: cirq.Moment) -> bool:
+    return all(op.gate == cirq.Z for op in m)
+
+
+def _merge_z_moments_batch_func(ms: list[cirq.Moment]) -> tuple[cirq.Moment, list[cirq.Moment]]:
+    first_unmergeable = next((i for i, m in enumerate(ms) if not _can_merge_z_moment(m)), len(ms))
+    if first_unmergeable <= 1:
+        return (ms[0], ms[1:])
+    merged_moments = ms[:first_unmergeable]
+    unmerged_moments = ms[first_unmergeable:]
+
     qubit_counts: dict[cirq.Qid, int] = {}
-    for m in ms:
+    for m in merged_moments:
         for q in m.qubits:
             qubit_counts[q] = qubit_counts.get(q, 0) + 1
-    return cirq.Moment(cirq.Z(q) for q, count in qubit_counts.items() if count % 2)
-
-
-def _can_merge_z_moments(m: cirq.Moment) -> bool:
-    return all(op.gate == cirq.Z for op in m)
+    return (
+        cirq.Moment(cirq.Z(q) for q, count in qubit_counts.items() if count % 2),
+        unmerged_moments,
+    )
 
 
 def test_merge_moments():
@@ -553,7 +560,7 @@ def test_merge_moments():
     )
 
     cirq.testing.assert_has_diagram(
-        cirq.merge_moments_greedy(c_orig, _merge_z_moments_greedy_func, _can_merge_z_moments),
+        cirq.merge_moments_batch(c_orig, _merge_z_moments_batch_func),
         '''
 0: ───────@───────
           │
@@ -592,12 +599,8 @@ def test_merge_moments_deep():
         c_expected,
     )
     cirq.testing.assert_same_circuits(
-        cirq.merge_moments_greedy(
-            c_orig,
-            _merge_z_moments_greedy_func,
-            _can_merge_z_moments,
-            tags_to_ignore=("ignore",),
-            deep=True,
+        cirq.merge_moments_batch(
+            c_orig, _merge_z_moments_batch_func, tags_to_ignore=("ignore",), deep=True
         ),
         c_expected,
     )
@@ -616,16 +619,15 @@ def test_merge_moments_empty_moment_as_intermediate_step():
     assert isinstance(c_new[0][q].gate, cirq.PhasedXZGate)
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(c_orig, c_new, atol=1e-8)
 
-    def merge_func_greedy(m: list[cirq.Moment]):
+    def merge_func_batch(m: list[cirq.Moment]):
         gate = cirq.single_qubit_matrix_to_phxz(cirq.unitary(cirq.Circuit(m)), atol=1e-8)
-        return cirq.Moment(gate.on(q) if gate else [])
+        return cirq.Moment(gate.on(q) if gate else []), []
 
-    can_merge_greedy = lambda m: True
-    c_new_greedy = cirq.merge_moments_greedy(c_orig, merge_func_greedy, can_merge_greedy)
-    assert len(c_new_greedy) == 1
-    assert isinstance(c_new_greedy[0][q].gate, cirq.PhasedXZGate)
+    c_new_batch = cirq.merge_moments_batch(c_orig, merge_func_batch)
+    assert len(c_new_batch) == 1
+    assert isinstance(c_new_batch[0][q].gate, cirq.PhasedXZGate)
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        c_orig, c_new_greedy, atol=1e-8
+        c_orig, c_new_batch, atol=1e-8
     )
 
 
@@ -635,15 +637,13 @@ def test_merge_moments_empty_circuit():
 
     c = cirq.Circuit()
     assert cirq.merge_moments(c, fail_if_called_func) is c
-    assert cirq.merge_moments_greedy(c, fail_if_called_func, can_merge_moment=lambda m: True) is c
+    assert cirq.merge_moments_batch(c, fail_if_called_func) is c
 
 
-def test_merge_moments_greedy_returns_none():
+def test_merge_moments_batch_nothing_to_merge():
     q = cirq.LineQubit.range(3)
     c_orig = cirq.Circuit(cirq.Z(q[0]), cirq.Z(q[1]), cirq.X(q[2]), cirq.Z(q[1]), cirq.Z(q[0]))
-    c_new = cirq.merge_moments_greedy(
-        c_orig, _merge_z_moments_greedy_func, can_merge_moment=lambda m: True
-    )
+    c_new = cirq.merge_moments_batch(c_orig, _merge_z_moments_batch_func)
     cirq.testing.assert_same_circuits(c_new, c_orig)
 
 

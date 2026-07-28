@@ -16,7 +16,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Hashable
+from collections import defaultdict
+from collections.abc import Callable, Hashable, Sequence
+from math import prod
 from typing import cast, TYPE_CHECKING
 
 import numpy as np
@@ -38,28 +40,6 @@ if TYPE_CHECKING:
     import sympy
 
     import cirq
-
-
-def _unitary_of_single_qubit_circuit_op(circuit_op: cirq.CircuitOperation) -> np.ndarray:
-    must_decompose = (
-        len(circuit_op.qubits) > 1
-        or not isinstance(circuit_op.repetitions, int)
-        or not all(protocols.has_unitary(op) for op in circuit_op.circuit.all_operations())
-    )
-    if must_decompose:
-        return protocols.unitary(circuit_op)
-
-    dim = circuit_op.qubits[0].dimension if len(circuit_op.qubits) == 1 else 1
-    u = np.eye(dim, dtype=np.complex128)
-    for op in circuit_op.circuit.all_operations():
-        if len(op.qubits) == 0:
-            u = protocols.unitary(op) * u
-        else:
-            u = protocols.unitary(op) @ u
-
-    if circuit_op.repetitions != 1:
-        u = np.linalg.matrix_power(u, circuit_op.repetitions)
-    return u
 
 
 @transformer_api.transformer
@@ -85,7 +65,7 @@ def merge_single_qubit_gates_to_phased_x_and_z(
     """
 
     def rewriter(op: cirq.CircuitOperation) -> cirq.OP_TREE:
-        u = _unitary_of_single_qubit_circuit_op(op)
+        u = protocols.unitary(op)
         if protocols.num_qubits(op) == 0:
             return ops.GlobalPhaseGate(u[0, 0]).on()
         return [
@@ -123,7 +103,7 @@ def merge_single_qubit_gates_to_phxz(
     """
 
     def rewriter(circuit_op: cirq.CircuitOperation) -> cirq.OP_TREE:
-        u = _unitary_of_single_qubit_circuit_op(circuit_op)
+        u = protocols.unitary(circuit_op)
         if protocols.num_qubits(circuit_op) == 0:
             return ops.GlobalPhaseGate(u[0, 0]).on()
         gate = single_qubit_decompositions.single_qubit_matrix_to_phxz(u, atol) or ops.I
@@ -163,21 +143,23 @@ def merge_single_qubit_moments_to_phxz(
             for op in m
         )
 
-    def merge_func(ms: list[cirq.Moment]) -> cirq.Moment:
+    def merge_func(ms: Sequence[cirq.Moment]) -> tuple[cirq.Moment, Sequence[cirq.Moment]]:
+        # get mergeable moments
+        first_unmergeable = next((i for i, m in enumerate(ms) if not can_merge_moment(m)), len(ms))
+        if first_unmergeable <= 1:
+            return (ms[0], ms[1:])
+        merged_moments = ms[:first_unmergeable]
+        unmerged_moments = ms[first_unmergeable:]
+
         # gather operations at each qubit
-        one_qubit_ops: dict[cirq.Qid, list[ops.Operation]] = {}
-        phase_coeff: complex = 1.0
-        has_phase = False
-        for m in ms:
+        one_qubit_ops: dict[cirq.Qid, list[ops.Operation]] = defaultdict(list)
+        phase_ops: list[ops.Operation] = []
+        for m in merged_moments:
             for op in m.operations:
                 if protocols.num_qubits(op) == 0:
-                    has_phase = True
-                    phase_coeff *= complex(protocols.unitary(op)[0, 0])
+                    phase_ops.append(op)
                 elif protocols.num_qubits(op) == 1:
-                    op_qubit = op.qubits[0]
-                    if op_qubit not in one_qubit_ops:
-                        one_qubit_ops[op_qubit] = []
-                    one_qubit_ops[op_qubit].append(op)
+                    one_qubit_ops[op.qubits[0]].append(op)
 
         # create phxz gate at each qubit
         ret_ops = []
@@ -191,15 +173,19 @@ def merge_single_qubit_moments_to_phxz(
                 gate = single_qubit_decompositions.single_qubit_matrix_to_phxz(u, atol)
                 if gate:
                     ret_ops.append(gate(qb))
-        # add global phase back in
-        if has_phase:
-            ret_ops.append(ops.GlobalPhaseGate(phase_coeff).on())
-        return circuits.Moment(ret_ops)
 
-    return transformer_primitives.merge_moments_greedy(
+        # add global phase back in
+        if len(phase_ops) == 1:
+            ret_ops.append(phase_ops[0])
+        elif len(phase_ops) > 1:
+            phase_coeff = prod(protocols.unitary(op)[0, 0] for op in phase_ops)
+            ret_ops.append(ops.GlobalPhaseGate(phase_coeff).on())
+
+        return (circuits.Moment(ret_ops), unmerged_moments)
+
+    return transformer_primitives.merge_moments_batch(
         circuit,
         merge_func,
-        can_merge_moment,
         deep=context.deep if context else False,
         tags_to_ignore=tuple(tags_to_ignore),
     ).unfreeze(copy=False)
