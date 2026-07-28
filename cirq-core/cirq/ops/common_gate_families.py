@@ -54,7 +54,7 @@ class AnyUnitaryGateFamily(gateset.GateFamily):
     def _value_equality_values_(self) -> Any:
         return self._num_qubits
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return {'num_qubits': self._num_qubits}
 
     @classmethod
@@ -95,7 +95,7 @@ class AnyIntegerPowerGateFamily(gateset.GateFamily):
     def _value_equality_values_(self) -> Any:
         return self.gate
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return {'gate': self._gate_json()}
 
     @classmethod
@@ -195,7 +195,7 @@ class ParallelGateFamily(gateset.GateFamily):
         # `isinstance` is used to ensure the a gate type and gate instance is not compared.
         return (*super()._value_equality_values_(), self._max_parallel_allowed)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             'gate': self._gate_json(),
             'name': self.name,

@@ -111,7 +111,7 @@ class KeyCondition(Condition):
             raise ValueError(f'Measurement key {self.key} missing when testing classical control')
         return classical_data.get_int(self.key, self.index) != 0
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return json_serialization.dataclass_json_dict(self)
 
     @classmethod
@@ -231,7 +231,7 @@ class BitMaskKeyCondition(Condition):
             return value == self.target_value
         return value != self.target_value
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return json_serialization.attrs_json_dict(self)
 
     @classmethod
@@ -300,7 +300,7 @@ class SympyCondition(Condition):
         value = self.expr.subs(replacements)
         return bool(value)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return json_serialization.dataclass_json_dict(self)
 
     @classmethod

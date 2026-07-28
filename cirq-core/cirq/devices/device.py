@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import abc
 from collections.abc import Iterable
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import networkx as nx
 
@@ -146,7 +146,7 @@ class DeviceMetadata:
 
         return self._qubits_set, graph_equality
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         graph_payload = nx.readwrite.json_graph.node_link_data(self._nx_graph, edges='links')
         qubits_payload = sorted(self._qubits_set)
 

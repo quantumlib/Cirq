@@ -112,7 +112,7 @@ class BitstringsMeasurement:
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.dataclass_json_dict(self)
 
     def __repr__(self):
@@ -237,7 +237,7 @@ class QuantumExecutable:
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.dataclass_json_dict(self)
 
 
