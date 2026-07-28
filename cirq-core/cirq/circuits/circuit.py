@@ -954,7 +954,7 @@ class AbstractCircuit(abc.ABC):
 
         # Perform a C-level bulk set union across all collected qubit sets.
         # This avoids element-by-element Python-level iteration and hashing.
-        return frozenset().union(*qubit_sets) if qubit_sets else frozenset()
+        return frozenset().union(*qubit_sets)
 
     def all_operations(self) -> Iterator[cirq.Operation]:
         """Returns an iterator over the operations in the circuit.
