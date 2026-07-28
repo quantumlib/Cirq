@@ -1299,7 +1299,7 @@ class EngineClient:
         project_id: str,
         qec_circuit: cirq.Circuit,
         processor_id: str,
-        run_name: str | None,
+        device_config_revision: DeviceConfigRevision = Run(id='current'),
         config_name: str = 'default',
     ) -> quantum.QuantumJob:
         """Calibrates the given QEC circuit on Quantum Engine.
@@ -1308,19 +1308,27 @@ class EngineClient:
             project_id: A project_id of the parent Google Cloud Project.
             qec_circuit: The QEC circuit to calibrate.
             processor_id: The processor unique identifier.
-            run_name: The name of the run.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
             config_name: The identifier for the config.
 
         Returns:
             A `quantum.QuantumJob` created from the request.
         """
+        validate_device_config_revision(device_config_revision)
+        if isinstance(device_config_revision, Snapshot):
+            selector = quantum.DeviceConfigSelector(
+                snapshot_id=device_config_revision.id or None, config_alias=config_name
+            )
+        else:
+            run_name = device_config_revision.id if device_config_revision else 'default'
+            selector = quantum.DeviceConfigSelector(
+                run_name=run_name or None, config_alias=config_name
+            )
+
         program_id, _ = await self.create_program_async(
             project_id=project_id,
             program_id=None,
             code=util.pack_any(CIRCUIT_SERIALIZER.serialize(qec_circuit)),
-        )
-        selector = quantum.DeviceConfigSelector(
-            run_name=run_name or None, config_alias=config_name or None
         )
         run_context = util.pack_any(v2.run_context_to_proto(None, 1))
         job = quantum.QuantumJob(

@@ -811,7 +811,9 @@ class Engine(abstract_engine.AbstractEngine):
         self,
         qec_circuit: cirq.Circuit,
         processor_id: str,
-        run_name: str | None = "",
+        device_config_revision: processor_config.DeviceConfigRevision = processor_config.Run(
+            id='current'
+        ),
         config_name: str = 'default',
     ) -> cirq.ParamResolver:
         """Calibrates the given QEC circuit.
@@ -819,7 +821,7 @@ class Engine(abstract_engine.AbstractEngine):
         Args:
             qec_circuit: The QEC circuit to calibrate.
             processor_id: The processor unique identifier.
-            run_name: The name of the run.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
             config_name: The identifier for the config.
 
         Returns:
@@ -829,7 +831,7 @@ class Engine(abstract_engine.AbstractEngine):
             project_id=self.project_id,
             qec_circuit=qec_circuit,
             processor_id=processor_id,
-            run_name=run_name,
+            device_config_revision=device_config_revision,
             config_name=config_name,
         )
         _, program_id, job_id = engine_client._ids_from_job_name(quantum_job.name)

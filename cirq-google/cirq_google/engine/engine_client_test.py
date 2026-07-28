@@ -2192,11 +2192,11 @@ def test_compile_circuit_invalid_revision_type(default_engine_client):
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
-def test_calibrate_for_circuit(client_constructor, default_engine_client):
+def test_calibrate_for_circuit_from_snapshot(client_constructor, default_engine_client):
     grpc_client = _setup_client_mock(client_constructor)
     project_id = "test_project_id"
     processor_id = "test_processor_id"
-    run_name = "test_run"
+    snapshot = Snapshot(id="test_snapshot_id")
     config_name = "test_config"
 
     qec_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(0, 0)))
@@ -2211,7 +2211,50 @@ def test_calibrate_for_circuit(client_constructor, default_engine_client):
         project_id=project_id,
         qec_circuit=qec_circuit,
         processor_id=processor_id,
-        run_name=run_name,
+        device_config_revision=snapshot,
+        config_name=config_name,
+    )
+    assert result == created_job
+
+    job_arg = grpc_client.create_quantum_job.call_args[0][0]
+    assert job_arg.parent == f"projects/{project_id}/programs/test_prog"
+    assert (
+        job_arg.quantum_job.scheduling_config.processor_selector.processor
+        == f"projects/{project_id}/processors/{processor_id}"
+    )
+    assert (
+        job_arg.quantum_job.scheduling_config.processor_selector.device_config_selector.snapshot_id
+        == "test_snapshot_id"
+    )
+    assert (
+        job_arg.quantum_job.scheduling_config.processor_selector.device_config_selector.config_alias
+        == config_name
+    )
+    assert 'run_context' in job_arg.quantum_job
+    assert 'calibrate_circuit' in job_arg.quantum_job
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_calibrate_for_circuit_from_run(client_constructor, default_engine_client):
+    grpc_client = _setup_client_mock(client_constructor)
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    run = Run(id="custom_run")
+    config_name = "test_config"
+
+    qec_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(0, 0)))
+
+    created_program = quantum.QuantumProgram(name=f"projects/{project_id}/programs/test_prog")
+    grpc_client.create_quantum_program.return_value = created_program
+
+    created_job = mock.MagicMock()
+    grpc_client.create_quantum_job.return_value = created_job
+
+    result = default_engine_client.calibrate_for_circuit(
+        project_id=project_id,
+        qec_circuit=qec_circuit,
+        processor_id=processor_id,
+        device_config_revision=run,
         config_name=config_name,
     )
     assert result == created_job
@@ -2224,7 +2267,7 @@ def test_calibrate_for_circuit(client_constructor, default_engine_client):
     )
     assert (
         job_arg.quantum_job.scheduling_config.processor_selector.device_config_selector.run_name
-        == run_name
+        == "custom_run"
     )
     assert (
         job_arg.quantum_job.scheduling_config.processor_selector.device_config_selector.config_alias
@@ -2232,3 +2275,13 @@ def test_calibrate_for_circuit(client_constructor, default_engine_client):
     )
     assert 'run_context' in job_arg.quantum_job
     assert 'calibrate_circuit' in job_arg.quantum_job
+
+
+def test_calibrate_for_circuit_invalid_revision_type(default_engine_client):
+    with pytest.raises(TypeError, match="device_config_revision must be an instance of"):
+        _ = default_engine_client.calibrate_for_circuit(
+            project_id="test_project_id",
+            qec_circuit=cirq.Circuit(cirq.X(cirq.GridQubit(0, 0))),
+            processor_id="test_processor_id",
+            device_config_revision="invalid_revision",
+        )

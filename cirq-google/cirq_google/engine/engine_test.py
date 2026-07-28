@@ -1341,31 +1341,21 @@ def _setup_calibrate_mocks(client_mock):
     )
 
 
-@pytest.mark.parametrize(
-    'run_name,config_name',
-    [
-        ("test_run", "test_config"),
-        ("", "test_config"),
-        (None, "test_config"),
-        ("test_run", ""),
-        ("test_run", None),
-        ("", ""),
-        (None, None),
-    ],
-)
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
-def test_engine_calibrate_for_circuit(client_mock, run_name, config_name):
+def test_engine_calibrate_for_circuit(client_mock):
     expected_resolver = cirq.ParamResolver({'theta': 0.5})
     _setup_calibrate_mocks(client_mock)
 
     engine = cg.Engine(project_id='proj')
     qec_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(0, 0)))
     processor_id = "test_processor_id"
+    snapshot = Snapshot(id="snap_1")
+    config_name = "test_config"
 
     result = engine.calibrate_for_circuit(
         qec_circuit=qec_circuit,
         processor_id=processor_id,
-        run_name=run_name,
+        device_config_revision=snapshot,
         config_name=config_name,
     )
     assert result == expected_resolver
@@ -1373,7 +1363,7 @@ def test_engine_calibrate_for_circuit(client_mock, run_name, config_name):
         project_id='proj',
         qec_circuit=qec_circuit,
         processor_id=processor_id,
-        run_name=run_name,
+        device_config_revision=snapshot,
         config_name=config_name,
     )
     client_mock().get_job_async.assert_called_once_with('proj', 'test_prog', 'test_job', False)
@@ -1395,7 +1385,7 @@ def test_engine_calibrate_for_circuit_defaults(client_mock):
         project_id='proj',
         qec_circuit=qec_circuit,
         processor_id=processor_id,
-        run_name="",
+        device_config_revision=Run(id='current'),
         config_name="default",
     )
     client_mock().get_job_async.assert_called_once_with('proj', 'test_prog', 'test_job', False)
