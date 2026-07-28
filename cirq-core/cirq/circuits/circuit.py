@@ -943,7 +943,7 @@ class AbstractCircuit(abc.ABC):
             in this circuit.
         """
         # Filter for unique moment instances using object identity and collect their qubit sets.
-        # The condition `(m_id := id(m)) not in seen and not seen_add(m_id)` does both:
+        # The condition `(m_id := id(m)) not in seen and not seen.add(m_id)` does both:
         # 1. Checks if m_id is unseen.
         # 2. Short-circuits to `seen.add(m_id)` (which returns None) to record m_id in `seen`.
         seen: set[int] = set()
