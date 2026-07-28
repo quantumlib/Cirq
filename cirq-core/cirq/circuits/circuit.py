@@ -942,7 +942,16 @@ class AbstractCircuit(abc.ABC):
         Returns: frozenset of `cirq.Qid` objects acted on by all operations
             in this circuit.
         """
-        return frozenset(q for m in self.moments for q in m.qubits)
+        # Filter for unique moment instances using object identity and collect their qubit sets.
+        # The condition `(m_id := id(m)) not in seen and not seen.add(m_id)` does both:
+        # 1. Checks if m_id is unseen.
+        # 2. Short-circuits to `seen.add(m_id)` (which returns None) to record m_id in `seen`.
+        seen: set[int] = set()
+        qubit_sets = [m.qubits for m in self if (m_id := id(m)) not in seen and not seen.add(m_id)]  # type: ignore[func-returns-value]
+
+        # Perform a C-level bulk set union across all collected qubit sets.
+        # This avoids element-by-element Python-level iteration and hashing.
+        return frozenset().union(*qubit_sets)
 
     def all_operations(self) -> Iterator[cirq.Operation]:
         """Returns an iterator over the operations in the circuit.
