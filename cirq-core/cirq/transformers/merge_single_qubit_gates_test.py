@@ -15,12 +15,10 @@
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-import numpy as np
 import pytest
 import sympy
 
 import cirq
-from cirq.transformers.merge_single_qubit_gates import _unitary_of_single_qubit_circuit_op
 
 
 def assert_optimizes(optimized: cirq.AbstractCircuit, expected: cirq.AbstractCircuit) -> None:
@@ -407,14 +405,18 @@ def test_merge_single_qubit_moments_to_phxz_with_global_phase_in_second_moment()
     assert c_new == c_expected
 
 
-def test_unitary_of_single_qubit_circuit_op() -> None:
+def test_merge_single_qubit_moments_to_phxz_with_two_global_phases() -> None:
     q0 = cirq.LineQubit(0)
-
-    c = cirq.FrozenCircuit(cirq.X(q0))
-    op = cirq.CircuitOperation(c, repetitions=2)
-    u = _unitary_of_single_qubit_circuit_op(op)
-    np.testing.assert_allclose(u, np.eye(2), atol=1e-8)
-
-    c1 = cirq.FrozenCircuit(cirq.measure(q0))
-    with pytest.raises(TypeError, match="cirq.unitary failed.*"):
-        _unitary_of_single_qubit_circuit_op(cirq.CircuitOperation(c1))
+    c_orig = cirq.Circuit(
+        cirq.Moment(cirq.Y(q0) ** 0.5, cirq.GlobalPhaseGate(1j**0.25).on()),
+        cirq.Moment(cirq.X(q0), cirq.GlobalPhaseGate(1j**0.25).on()),
+    )
+    c_expected = cirq.Circuit(
+        cirq.Moment(
+            cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0.5, z_exponent=-1.0).on(q0),
+            cirq.GlobalPhaseGate((1j**0.25) ** 2).on(),
+        )
+    )
+    context = cirq.TransformerContext(tags_to_ignore=("ignore",))
+    c_new = cirq.merge_single_qubit_moments_to_phxz(c_orig, context=context)
+    assert c_new == c_expected
