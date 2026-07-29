@@ -421,11 +421,14 @@ def test_create_job_with_all_parameters(
                     priority=10,
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
-                        device_config_selector=quantum.DeviceConfigSelector(),
+                        device_config_selector=quantum.DeviceConfigSelector(
+                            run_name='default', config_alias='default'
+                        ),
                     ),
                 ),
                 description='A job',
                 labels=labels,
+                execute_circuit=quantum.QuantumJob.ExecuteCircuitAction(),
             ),
         )
     )
@@ -458,10 +461,13 @@ def test_create_job_without_labels(client_constructor, default_engine_client):
                     priority=10,
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
-                        device_config_selector=quantum.DeviceConfigSelector(),
+                        device_config_selector=quantum.DeviceConfigSelector(
+                            run_name='default', config_alias='default'
+                        ),
                     ),
                 ),
                 description='A job',
+                execute_circuit=quantum.QuantumJob.ExecuteCircuitAction(),
             ),
         )
     )
@@ -495,10 +501,13 @@ def test_create_job_without_description(client_constructor, default_engine_clien
                     priority=10,
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
-                        device_config_selector=quantum.DeviceConfigSelector(),
+                        device_config_selector=quantum.DeviceConfigSelector(
+                            run_name='default', config_alias='default'
+                        ),
                     ),
                 ),
                 labels=labels,
+                execute_circuit=quantum.QuantumJob.ExecuteCircuitAction(),
             ),
         )
     )
@@ -529,9 +538,12 @@ def test_create_job_without_job_id(client_constructor, default_engine_client):
                     priority=10,
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
-                        device_config_selector=quantum.DeviceConfigSelector(),
+                        device_config_selector=quantum.DeviceConfigSelector(
+                            run_name='default', config_alias='default'
+                        ),
                     ),
                 ),
+                execute_circuit=quantum.QuantumJob.ExecuteCircuitAction(),
             ),
         )
     )
@@ -560,11 +572,7 @@ def test_create_job_with_invalid_priority(
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 @pytest.mark.parametrize(
     'processor_id, run_name, snapshot_id, device_config_name, error_message',
-    [
-        ('', '', '', '', 'Must specify a processor id when creating a job.'),
-        ('processor0', 'RUN_NAME', '', '', 'Cannot specify only one of top level identifier'),
-        ('processor0', '', '', 'CONFIG_ALIAS', 'Cannot specify only one of top level identifier'),
-    ],
+    [('', '', '', '', 'Must specify a processor id when creating a job.')],
 )
 def test_create_job_with_invalid_processor_and_device_config_arguments_throws(
     client_constructor,
@@ -626,10 +634,12 @@ def test_create_job_with_run_name_and_device_config_name_succeeds(
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
                         device_config_selector=quantum.DeviceConfigSelector(
-                            run_name=run_name or None, config_alias=device_config_name
+                            run_name=run_name or 'default',
+                            config_alias=device_config_name or 'default',
                         ),
                     ),
                 ),
+                execute_circuit=quantum.QuantumJob.ExecuteCircuitAction(),
             ),
         )
     )
@@ -734,6 +744,7 @@ def test_create_job_with_run_name_and_snapshot_id_and_config_succeeds(
                     ),
                     description='A job',
                     labels={'hello': 'world'},
+                    execute_circuit=quantum.QuantumJob.ExecuteCircuitAction(),
                 ),
             ],
         ),
@@ -768,6 +779,7 @@ def test_create_job_with_run_name_and_snapshot_id_and_config_succeeds(
                     ),
                     description='A job',
                     labels={'hello': 'world'},
+                    execute_circuit=quantum.QuantumJob.ExecuteCircuitAction(),
                 ),
             ],
         ),
@@ -799,6 +811,7 @@ def test_create_job_with_run_name_and_snapshot_id_and_config_succeeds(
                     ),
                     description='A job',
                     labels={'hello': 'world'},
+                    execute_circuit=quantum.QuantumJob.ExecuteCircuitAction(),
                 ),
             ],
         ),
@@ -835,6 +848,7 @@ def test_create_job_with_run_name_and_snapshot_id_and_config_succeeds(
                         ),
                     ),
                     description='A job',
+                    execute_circuit=quantum.QuantumJob.ExecuteCircuitAction(),
                 ),
             ],
         ),
@@ -869,6 +883,7 @@ def test_create_job_with_run_name_and_snapshot_id_and_config_succeeds(
                             device_config_selector=quantum.DeviceConfigSelector(),
                         ),
                     ),
+                    execute_circuit=quantum.QuantumJob.ExecuteCircuitAction(),
                 ),
             ],
         ),
@@ -901,6 +916,7 @@ def test_create_job_with_run_name_and_snapshot_id_and_config_succeeds(
                             device_config_selector=quantum.DeviceConfigSelector(),
                         )
                     ),
+                    execute_circuit=quantum.QuantumJob.ExecuteCircuitAction(),
                 ),
             ],
         ),
@@ -990,6 +1006,7 @@ def test_run_job_over_stream_with_snapshot_id_propogates_snapshot_id(
                         ),
                     )
                 ),
+                execute_circuit=quantum.QuantumJob.ExecuteCircuitAction(),
             ),
         ],
     )
@@ -1037,6 +1054,7 @@ def test_run_job_over_stream_with_snapshot_id_and_run_name_favors_snapshot_id(
                         ),
                     )
                 ),
+                execute_circuit=quantum.QuantumJob.ExecuteCircuitAction(),
             ),
         ],
     )
@@ -1075,36 +1093,6 @@ def test_run_job_over_stream_processor_unset_raises(default_engine_client, defau
             job_id='job0',
             processor_id='',
             run_context=default_run_context,
-        )
-
-
-@pytest.mark.parametrize(
-    'run_name, snapshot_id, device_config_name, error_message',
-    [
-        ('run1', '', '', 'Cannot specify only one of top level identifier'),
-        ('', '', 'device_config1', 'Cannot specify only one of top level identifier'),
-    ],
-)
-def test_run_job_over_stream_invalid_device_config_raises(
-    run_name,
-    snapshot_id,
-    device_config_name,
-    error_message,
-    default_engine_client,
-    default_run_context,
-):
-
-    with pytest.raises(ValueError, match=error_message):
-        default_engine_client.run_job_over_stream(
-            project_id='proj',
-            program_id='prog',
-            code=any_pb2.Any(),
-            job_id='job0',
-            processor_id='mysim',
-            run_context=default_run_context,
-            run_name=run_name,
-            snapshot_id=snapshot_id,
-            device_config_name=device_config_name,
         )
 
 
@@ -1892,7 +1880,7 @@ def test_get_quantum_processor_config_defaults_to_current_run(
 
     project_id = "test_project_id"
     processor_id = "test_processor_id"
-    run_name = 'current'
+    run_name = 'default'
     config_name = "test_config_name"
     resource_name = (
         f'projects/{project_id}/'
@@ -1920,7 +1908,7 @@ def test_get_quantum_processor_config_not_found(client_constructor, default_engi
     resource_name = (
         f'projects/{project_id}/'
         f'processors/{processor_id}/'
-        'configAutomationRuns/current/'
+        'configAutomationRuns/default/'
         f'configs/{config_name}'
     )
     grpc_client = _setup_client_mock(client_constructor)
@@ -2046,7 +2034,7 @@ def test_compile_circuit(client_constructor, default_engine_client):
             recipe=quantum.QecRecipe(desired_algorithms=qec_recipe),
             processor_id=processor_id,
             device_config_selector=quantum.DeviceConfigSelector(
-                run_name='current', config_alias='default'
+                run_name='default', config_alias='default'
             ),
         )
     )
@@ -2083,7 +2071,7 @@ def test_compile_circuit_with_stim_circuit_object(client_constructor, default_en
             recipe=quantum.QecRecipe(desired_algorithms=qec_recipe),
             processor_id=processor_id,
             device_config_selector=quantum.DeviceConfigSelector(
-                run_name='current', config_alias='default'
+                run_name='default', config_alias='default'
             ),
         )
     )
@@ -2173,6 +2161,102 @@ def test_compile_circuit_invalid_revision_type(default_engine_client):
             project_id="test_project_id",
             stim_circuit="H 0",
             qec_recipe=[],
+            processor_id="test_processor_id",
+            device_config_revision="invalid_revision",
+        )
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_calibrate_for_circuit_from_snapshot(client_constructor, default_engine_client):
+    grpc_client = _setup_client_mock(client_constructor)
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    snapshot = Snapshot(id="test_snapshot_id")
+    config_name = "test_config"
+
+    qec_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(0, 0)))
+
+    created_program = quantum.QuantumProgram(name=f"projects/{project_id}/programs/test_prog")
+    grpc_client.create_quantum_program.return_value = created_program
+
+    created_job = mock.MagicMock()
+    grpc_client.create_quantum_job.return_value = created_job
+
+    result = default_engine_client.calibrate_for_circuit(
+        project_id=project_id,
+        qec_circuit=qec_circuit,
+        processor_id=processor_id,
+        device_config_revision=snapshot,
+        config_name=config_name,
+    )
+    assert result == created_job
+
+    job_arg = grpc_client.create_quantum_job.call_args[0][0]
+    assert job_arg.parent == f"projects/{project_id}/programs/test_prog"
+    assert (
+        job_arg.quantum_job.scheduling_config.processor_selector.processor
+        == f"projects/{project_id}/processors/{processor_id}"
+    )
+    assert (
+        job_arg.quantum_job.scheduling_config.processor_selector.device_config_selector.snapshot_id
+        == "test_snapshot_id"
+    )
+    assert (
+        job_arg.quantum_job.scheduling_config.processor_selector.device_config_selector.config_alias
+        == config_name
+    )
+    assert 'run_context' in job_arg.quantum_job
+    assert 'calibrate_circuit' in job_arg.quantum_job
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_calibrate_for_circuit_from_run(client_constructor, default_engine_client):
+    grpc_client = _setup_client_mock(client_constructor)
+    project_id = "test_project_id"
+    processor_id = "test_processor_id"
+    run = Run(id="custom_run")
+    config_name = "test_config"
+
+    qec_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(0, 0)))
+
+    created_program = quantum.QuantumProgram(name=f"projects/{project_id}/programs/test_prog")
+    grpc_client.create_quantum_program.return_value = created_program
+
+    created_job = mock.MagicMock()
+    grpc_client.create_quantum_job.return_value = created_job
+
+    result = default_engine_client.calibrate_for_circuit(
+        project_id=project_id,
+        qec_circuit=qec_circuit,
+        processor_id=processor_id,
+        device_config_revision=run,
+        config_name=config_name,
+    )
+    assert result == created_job
+
+    job_arg = grpc_client.create_quantum_job.call_args[0][0]
+    assert job_arg.parent == f"projects/{project_id}/programs/test_prog"
+    assert (
+        job_arg.quantum_job.scheduling_config.processor_selector.processor
+        == f"projects/{project_id}/processors/{processor_id}"
+    )
+    assert (
+        job_arg.quantum_job.scheduling_config.processor_selector.device_config_selector.run_name
+        == "custom_run"
+    )
+    assert (
+        job_arg.quantum_job.scheduling_config.processor_selector.device_config_selector.config_alias
+        == config_name
+    )
+    assert 'run_context' in job_arg.quantum_job
+    assert 'calibrate_circuit' in job_arg.quantum_job
+
+
+def test_calibrate_for_circuit_invalid_revision_type(default_engine_client):
+    with pytest.raises(TypeError, match="device_config_revision must be an instance of"):
+        _ = default_engine_client.calibrate_for_circuit(
+            project_id="test_project_id",
+            qec_circuit=cirq.Circuit(cirq.X(cirq.GridQubit(0, 0))),
             processor_id="test_processor_id",
             device_config_revision="invalid_revision",
         )

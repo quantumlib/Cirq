@@ -174,7 +174,7 @@ def measure_density_matrix(
     mask[result_slice * 2] = False
 
     # Reshape to a tensor inplace to set the masked values to 0.
-    arrout.reshape(qid_shape * 2, copy=False)[mask] = 0
+    arrout.reshape(qid_shape * 2)[mask] = 0
 
     # Renormalize.
     arrout /= probs[result]
