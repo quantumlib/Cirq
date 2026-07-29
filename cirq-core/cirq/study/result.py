@@ -222,7 +222,7 @@ class Result(abc.ABC):
         """Counts the number of times a measurement result occurred quickly using NumPy.
 
         This is a fast version of the histogram method that only supports
-        the default folding function, i.e. treating qubit/qudit measurements
+        the default folding function; i.e., treating qubit/qudit measurements
         as binary/base-n digits. If the output measurements will not fit in
         an int64, returns None. To keep memory (and sorting time) overhead
         low for large repetition counts, measurement results are counted in
@@ -238,7 +238,7 @@ class Result(abc.ABC):
                 50000.
 
         Returns:
-            A counter indicating how often a measurement sampled various
+            A counter indicating how often a measurement has sampled various
             results.
 
         Raises:
@@ -248,7 +248,7 @@ class Result(abc.ABC):
         key_measurements = self.measurements[_key_to_str(key)]
         n_repetitions, n_qubits = key_measurements.shape
 
-        # check if the output measurement indices will fit in int64
+        # Check if the output measurement indices will fit in an int64.
         if fold_base is None or isinstance(fold_base, int):
             base = 2 if fold_base is None else fold_base
             max_val = int(base) ** n_qubits
@@ -274,8 +274,8 @@ class Result(abc.ABC):
         if n_qubits == 0:
             return collections.Counter({0: n_repetitions})
 
-        # batch over repetitions to avoid huge memory cost
-        # note: np.unique sorts the array so we need batches to avoid N log N
+        # Batch over repetitions to avoid huge memory cost.
+        # Note: np.unique sorts the array, so we need batches to avoid N log N scaling.
         c: collections.Counter = collections.Counter()
         for i in range(0, n_repetitions, batch_size):
             measurement_batch = key_measurements[i : i + batch_size]
@@ -337,7 +337,7 @@ class Result(abc.ABC):
                 'fold_base is a convenience shorthand for fold_func.'
             )
         if fold_func is None:
-            # run fast version if indices fit in int64
+            # Run fast version if indices fit in an int64.
             histogram = self._vectorized_histogram(key=key, fold_base=fold_base)
             if histogram is not None:
                 return histogram
