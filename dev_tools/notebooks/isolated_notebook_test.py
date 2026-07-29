@@ -227,7 +227,7 @@ def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path) -> None:
     # utf-8 is important for Windows testing, otherwise characters like ┌──┐ fail on cp1252
     content = pathlib.Path(notebook_path).read_text(encoding="utf-8")
     mandatory_matches = [
-        r"!pip install --upgrade --quiet cirq(-google)?~=1.0.dev",
+        r"!pip install --upgrade cirq(-google)?~=1.0.dev",
         (
             r"Note: this notebook relies on unreleased Cirq features\. "
             r"If you want to try these features, make sure you install cirq(-google)? via "
