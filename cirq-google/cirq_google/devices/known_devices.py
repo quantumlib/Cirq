@@ -197,4 +197,4 @@ Sycamore23 = _create_grid_device_from_diagram(
     _SYCAMORE23_GRID, _SYCAMORE_GATESET, _SYCAMORE_DURATIONS
 )
 
-Willow = engine.create_device_from_processor_id('willow_pink')
+Willow105 = engine.create_device_from_processor_id('willow_pink')

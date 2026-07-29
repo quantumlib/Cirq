@@ -24,7 +24,7 @@ from cirq_google.devices import (
     NoiseModelFromGoogleNoiseProperties as NoiseModelFromGoogleNoiseProperties,
     Sycamore as Sycamore,
     Sycamore23 as Sycamore23,
-    Willow as Willow,
+    Willow105 as Willow105,
 )
 
 from cirq_google.engine import (
