@@ -306,12 +306,7 @@ class CircuitOperation(ops.Operation):
         return all(protocols.has_unitary(op) for op in operations)
 
     def _unitary_(self) -> np.ndarray:
-        must_decompose = (
-            len(self.qubits) > 1
-            or not isinstance(self.repetitions, int)
-            or not protocols.has_unitary(self)
-        )
-        if must_decompose:
+        if len(self.qubits) > 1 or not protocols.has_unitary(self):
             return NotImplemented
 
         unitaries = [protocols.unitary(op) for op in self.circuit.all_operations()]
