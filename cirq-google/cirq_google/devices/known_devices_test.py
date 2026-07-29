@@ -158,7 +158,7 @@ def test_sycamore_devices(device, qubit_size, layout_str):
     [
         (
             cirq_google.Willow,
-            105,
+            182,
             """\
                                                         (0, 6)────(0, 7)────(0, 8)
                                                         │         │         │
