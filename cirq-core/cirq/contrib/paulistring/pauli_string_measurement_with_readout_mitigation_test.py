@@ -938,10 +938,16 @@ def test_sampler_receives_correct_circuits(use_sweep: bool) -> None:
         assert measured == expected_qubits
 
 
-def test_generate_trex_and_readout_circuits() -> None:
+@pytest.mark.parametrize(
+    "insert_strategy, expected_ops_in_moment_3",
+    [(cirq.InsertStrategy.INLINE, 1), (cirq.InsertStrategy.EARLIEST, 2)],
+)
+def test_generate_trex_and_readout_circuits(
+    insert_strategy: cirq.InsertStrategy, expected_ops_in_moment_3: int
+) -> None:
     """Test the generation of TRex twirled circuits and readout calibration circuits."""
     q0, q1 = cirq.LineQubit.range(2)
-    base_circuit = cirq.FrozenCircuit(cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1)))
+    base_circuit = cirq.FrozenCircuit(cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1), cirq.H(q1)))
 
     pauli_group_1: list[cirq.PauliString] = [cirq.PauliString(cirq.Z(q0) * cirq.Z(q1))]
     pauli_group_2: list[cirq.PauliString] = [
@@ -962,6 +968,7 @@ def test_generate_trex_and_readout_circuits() -> None:
         num_twirls=num_twirls,
         num_readout_circuits=num_readout_circuits,
         rng=rng,
+        insert_strategy=insert_strategy,
     )
 
     # We have 2 Pauli groups, so we should get 2 tuples of (circuits, metadata).
@@ -980,8 +987,10 @@ def test_generate_trex_and_readout_circuits() -> None:
 
     # Indices 0, 1, 2 belong to the twirled circuits of group 1
     for i in range(3):
-        # Twirled circuits should contain the base operations + basis changes + measurement
-        assert len(group1_circuits[i]) >= len(base_circuit)
+        # Check how many operations are in the 3rd moment
+        # EARLIEST packs 2 ops, while INLINE leaves it at 1 op
+        assert len(group1_circuits[i].moments[2].operations) == expected_ops_in_moment_3
+
         meas_op = group1_circuits[i].moments[-1].operations[0]
         assert isinstance(meas_op.gate, cirq.MeasurementGate)
         assert set(meas_op.qubits) == {q0, q1}
@@ -1017,8 +1026,10 @@ def test_generate_trex_and_readout_circuits() -> None:
 
     # Indices 0, 1, 2 belong to the twirled circuits of group 2
     for i in range(3):
-        # Twirled circuits should contain the base operations + basis changes + measurement
-        assert len(group2_circuits[i]) >= len(base_circuit)
+        # Check how many operations are in the 3rd moment
+        # EARLIEST packs 2 ops, while INLINE leaves it at 1 op
+        assert len(group1_circuits[i].moments[2].operations) == expected_ops_in_moment_3
+
         meas_op = group2_circuits[i].moments[-1].operations[0]
         assert isinstance(meas_op.gate, cirq.MeasurementGate)
         assert set(meas_op.qubits) == {q0, q1}
