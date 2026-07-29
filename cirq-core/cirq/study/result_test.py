@@ -179,7 +179,7 @@ def test_histogram() -> None:
             'c': np.array([[0], [0], [1], [0], [1]], dtype=bool),
             'd': np.zeros((0, 2), dtype=bool),
             'e': np.zeros((5, 0), dtype=bool),
-            'f': np.array([[1] + [0] * 64], dtype=bool),
+            'f': np.array([[1] + [0] * 64], dtype=object),
         },
     )
 
@@ -194,6 +194,7 @@ def test_histogram() -> None:
     assert result.histogram(key='d') == collections.Counter()
     assert result.histogram(key='e') == collections.Counter({0: 5})
     assert result.histogram(key='f') == collections.Counter({2**64: 1})
+    assert result.histogram(key='f', fold_base=(2,) * 65) == collections.Counter({2**64: 1})
 
 
 def test_histogram_fold_base() -> None:

@@ -19,6 +19,7 @@ from __future__ import annotations
 import abc
 import collections
 import io
+import math
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from typing import Any, cast, TYPE_CHECKING, TypeVar, Union
 
@@ -251,22 +252,17 @@ class Result(abc.ABC):
         # Check if the output measurement indices will fit in an int64.
         if fold_base is None or isinstance(fold_base, int):
             base = 2 if fold_base is None else fold_base
-            max_val = int(base) ** n_qubits
-        else:
-            base_list = list(fold_base)
-            max_val = 1
-            for b in base_list:
-                max_val *= b
-        if max_val > np.iinfo(np.int64).max:
-            return None
-
-        if fold_base is None or isinstance(fold_base, int):
-            base = 2 if fold_base is None else fold_base
+            max_val = int(base) ** n_qubits - 1
+            if max_val > np.iinfo(np.int64).max:
+                return None
             powers = base ** np.arange(n_qubits - 1, -1, -1)
         else:
             base_list = list(fold_base)
             if len(base_list) != n_qubits:
                 raise ValueError(f'len(digits) != len(base) ({n_qubits} != {len(base_list)})')
+            max_val = math.prod(base_list) - 1
+            if max_val > np.iinfo(np.int64).max:
+                return None
             powers = np.hstack((np.cumprod(base_list[:0:-1])[::-1], [1]))
 
         if n_repetitions == 0:
