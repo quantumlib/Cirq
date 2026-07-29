@@ -1090,6 +1090,6 @@ def eye_tensor(half_shape: tuple[int, ...], *, dtype: DTypeLike) -> np.ndarray:
         The created numpy array with shape `half_shape + half_shape`.
     """
     identity = np.eye(np.prod(half_shape, dtype=np.int64).item(), dtype=dtype).reshape(
-        half_shape * 2, copy=False
+        half_shape * 2
     )
     return identity

@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import functools
 from collections.abc import Sequence
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -313,7 +313,7 @@ class ThermalNoiseModel(devices.NoiseModel):
         output = [moment, moment_module.Moment(noise_ops)]
         return output[::-1] if self._prepend else output
 
-    def _json_dict_(self) -> dict[str, object]:
+    def _json_dict_(self) -> dict[str, Any]:
         qubits = sorted(self.rate_matrix_GHz.keys())
 
         return {

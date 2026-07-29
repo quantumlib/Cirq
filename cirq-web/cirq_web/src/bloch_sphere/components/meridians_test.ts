@@ -57,7 +57,7 @@ describe('Meridians', () => {
 
   describe('allows configuration that', () => {
     it('generates the correct number of horizontal meridians given valid numbers', () => {
-      // Note that due to asethetic choices, if the number of circles
+      // Note that due to aesthetic choices, if the number of circles
       // provided is even, createHorizontalChordMeridians() will automatically
       // adjust to building an odd number of meridians.
       const lineValues = [4, 0, 17, 299, 4.123, 1];

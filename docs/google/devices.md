@@ -165,7 +165,7 @@ Google devices provide several options for two-qubit gates.
 The availability of these gates is controlled by the gateset
 parameter that is used.
 
-Note that current hardware gates are noisy and not homogenous
+Note that current hardware gates are noisy and not homogeneous
 across the device.  Unitaries provided below are for the ideal case.
 Real unitaries applied to the qubit may vary from qubit to qubit
 and may drift over time.

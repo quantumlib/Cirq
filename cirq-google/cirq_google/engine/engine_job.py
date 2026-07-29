@@ -392,6 +392,19 @@ class EngineJob(abstract_job.AbstractJob):
                 v2_parsed_result = v2.result_pb2.Result.FromString(result.value)
                 self._batched_results = self._get_batched_job_results_v2(v2_parsed_result)
                 self._results = _flatten(self._batched_results)
+            elif (
+                result_type == 'cirq.google.api.v2.QuantumCircuitCalibration'
+                or result_type == 'cirq.api.google.v2.QuantumCircuitCalibration'
+            ):
+                v2_calibration = v2.result_pb2.QuantumCircuitCalibration.FromString(result.value)
+                self._results = [
+                    EngineResult(
+                        job_id=self.id(),
+                        params=cirq.ParamResolver(
+                            dict(v2_calibration.calibrated_parameters.assignments)
+                        ),
+                    )
+                ]
             else:
                 raise ValueError(f'invalid result proto version: {result_type}')
         return self._results

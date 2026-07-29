@@ -82,7 +82,7 @@ def test_mapped_op():
         cirq.NamedQubit("a"),
         cirq.NamedQubit("b"),
     )
-    # does not fial if qubits non-adjacent
+    # does not fail if qubits non-adjacent
     assert mm.mapped_op(cirq.CNOT(q[1], q[3])).qubits == (
         cirq.NamedQubit("a"),
         cirq.NamedQubit("c"),
