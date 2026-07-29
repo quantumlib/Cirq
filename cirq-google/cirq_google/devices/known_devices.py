@@ -18,12 +18,12 @@ from collections.abc import Collection
 from typing import cast
 
 import cirq
+import cirq_google.engine as engine
 from cirq_google.api import v2
 from cirq_google.api.v2 import device_pb2
 from cirq_google.devices import grid_device
 from cirq_google.experimental.ops import coupler_pulse
 from cirq_google.ops import physical_z_tag, sycamore_gate
-import cirq_google.engine as engine
 
 _2_QUBIT_TARGET_SET = "2_qubit_targets"
 _MEAS_TARGET_SET = "meas_targets"

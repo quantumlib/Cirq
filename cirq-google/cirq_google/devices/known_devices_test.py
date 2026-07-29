@@ -153,22 +153,6 @@ def test_sycamore_devices(device, qubit_size, layout_str):
     ) == cirq.Duration(nanos=32)
 
 
-
-def test_sycamore_grid_layout():
-    # Qubits on Sycamore but not on Sycamore23
-    q0 = cirq.GridQubit(5, 5)
-    q1 = cirq.GridQubit(5, 6)
-    syc = cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6)(q0, q1)
-    sqrt_iswap = cirq.FSimGate(theta=np.pi / 4, phi=0)(q0, q1)
-    cirq_google.Sycamore.validate_operation(syc)
-    cirq_google.Sycamore.validate_operation(sqrt_iswap)
-
-    with pytest.raises(ValueError):
-        cirq_google.Sycamore23.validate_operation(syc)
-    with pytest.raises(ValueError):
-        cirq_google.Sycamore23.validate_operation(sqrt_iswap)
-
-
 @pytest.mark.parametrize(
     'device, qubit_size, layout_str',
     [
@@ -213,10 +197,10 @@ def test_sycamore_grid_layout():
                                                         │         │         │
                                                         │         │         │
                                                         (12, 6)───(12, 7)───(12, 8)""",
-        ),
+        )
     ],
 )
-def test_sycamore_devices(device, qubit_size, layout_str):
+def test_willow_devices(device, qubit_size, layout_str):
     q0 = cirq.GridQubit(5, 3)
     q1 = cirq.GridQubit(5, 4)
     valid_willow_gates_and_ops = [
