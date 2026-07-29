@@ -59,10 +59,10 @@ def test_render_circuit_disables_pdflatex_shell_escape(tmp_path: pathlib.Path) -
         pathlib.Path(kwargs["cwd"], "circuit_render.pdf").write_bytes(b"%PDF-1.4")
         return mock.Mock(returncode=0, stdout="", stderr="")
 
-    mod = circuit_to_latex_render
+    render_mod = circuit_to_latex_render.__name__
     with (
-        mock.patch.object(mod.shutil, "which", return_value="/usr/bin/pdflatex"),
-        mock.patch.object(mod.subprocess, "run", side_effect=fake_run),
+        mock.patch(f"{render_mod}.shutil.which", return_value="/usr/bin/pdflatex"),
+        mock.patch(f"{render_mod}.subprocess.run", side_effect=fake_run),
     ):
         render_circuit(circuit, run_pdftoppm=False, display_png_jupyter=False, output_pdf_path=None)
 
