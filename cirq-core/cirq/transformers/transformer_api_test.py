@@ -79,7 +79,7 @@ def make_transformer_func_with_defaults() -> cirq.TRANSFORMER:
         my_mock(circuit, context, atol, custom_arg)
         return circuit.freeze()
 
-    func.mock = my_mock  # type: ignore
+    func.mock = my_mock  # type: ignore[attr-defined]
     return func
 
 
@@ -93,7 +93,7 @@ def make_transformer_func(add_deep_support: bool = False) -> cirq.TRANSFORMER:
         my_mock(circuit, context)
         return circuit.unfreeze()
 
-    mock_tranformer_func.mock = my_mock  # type: ignore
+    mock_tranformer_func.mock = my_mock  # type: ignore[attr-defined]
     return mock_tranformer_func
 
 

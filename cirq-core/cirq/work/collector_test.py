@@ -92,7 +92,7 @@ def test_failed_job() -> None:
 
     with pytest.raises(Exception, match='job failed!'):
         TestCollector().collect(
-            sampler=FailingSampler(), max_total_samples=100, concurrency=5  # type: ignore
+            sampler=FailingSampler(), max_total_samples=100, concurrency=5  # type: ignore[arg-type]
         )
 
 
