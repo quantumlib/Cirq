@@ -42,6 +42,7 @@ known_first_party = ["cirq*"]
 extend_skip = ["__init__.py"]
 extend_skip_glob = ["*_pb2.py"]
 
+
 [tool.mypy]
 exclude = [
     '/setup\.py',
@@ -80,6 +81,7 @@ module = [
     "google.colab.*",
     "google.oauth2.*",
     "qsimcirq",
+    "stim",
 ]
 follow_imports = "silent"
 ignore_missing_imports = true

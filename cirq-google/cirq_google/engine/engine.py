@@ -52,7 +52,7 @@ from cirq_google.engine.processor_config import Run
 from cirq_google.serialization import CIRCUIT_SERIALIZER, CircuitSerializer
 
 if TYPE_CHECKING:
-    import stim  # type: ignore[import-not-found,import-untyped,unused-ignore]
+    import stim
     from google.protobuf import any_pb2
 
     import cirq_google
