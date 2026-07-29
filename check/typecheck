@@ -1,16 +1,11 @@
 #!/usr/bin/env bash
 
 ################################################################################
-# Runs mypy on the repository.
+# Runs type checking on the repository using the mypy tool.
 #
 # Usage:
-#     check/mypy [--flags]
+#     check/typecheck [flags-for-mypy]
 ################################################################################
-
-echo "Warning: 'check/mypy' is deprecated." \
-    "Please use 'check/typecheck' instead." >&2
-echo "Warning: 'check/mypy' will be removed in cirq v1.8." >&2
-echo >&2
 
 # Get the working directory to the repo root.
 thisdir=$(dirname "${BASH_SOURCE[0]:?}") || exit $?
