@@ -38,7 +38,11 @@ if TYPE_CHECKING:
 
 
 class TomographyResult:
-    """Results from a state tomography experiment."""
+    """Results from a state tomography experiment.
+
+    Stores the density matrix as computed from a tomography experiment and
+    offers a convenience method to plot the density matrix.
+    """
 
     def __init__(self, density_matrix: np.ndarray):
         """Inits TomographyResult.
