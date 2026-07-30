@@ -23,4 +23,17 @@ if [ $RESULT -eq 0 ]; then
   exit 1
 fi
 
+# Check for whitespace errors.  Flag files that do not end with the newline.
+empty_tree=4b825dc642cb6eb9a060e54bf8d69288fbee4904
+GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null \
+  git -c core.whitespace=incomplete-line --no-pager diff --check \
+  "${empty_tree}" -- ':(attr:!linguist-generated)'
+RESULT=$?
+if (( RESULT )); then
+  echo
+  echo -e "\033[31mPlease correct the whitespace errors above.\033[0m"
+  echo -e "\033[31mConsider using the .git/hooks/pre-commit.sample hook.\033[0m"
+  exit 1
+fi
+
 echo -e "\033[32mNo issues\033[0m."

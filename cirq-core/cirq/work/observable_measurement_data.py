@@ -113,7 +113,7 @@ class ObservableMeasuredResult:
     circuit_params: Mapping[str | sympy.Expr, value.Scalar | sympy.Expr]
 
     # unhashable because of the mapping-type circuit_params attribute
-    __hash__ = None  # type: ignore
+    __hash__ = None  # type: ignore[assignment]
 
     def __repr__(self):
         # I wish we could use the default dataclass __repr__ but
@@ -155,7 +155,7 @@ class ObservableMeasuredResult:
         record.update(**circuit_param_dict)
         return record
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.dataclass_json_dict(self)
 
 
@@ -320,7 +320,7 @@ class BitstringAccumulator:
         for result in self.results:
             yield result.as_dict()
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         from cirq.study.result import _pack_digits
 
         def ndarray_to_hex_str(a):

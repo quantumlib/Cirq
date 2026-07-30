@@ -792,7 +792,7 @@ class GridDevice(cirq.Device):
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return {'metadata': self._metadata}
 
     @classmethod

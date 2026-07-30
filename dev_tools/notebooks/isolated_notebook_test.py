@@ -58,7 +58,7 @@ SKIP_NOTEBOOKS = [
     '**/ionq/*.ipynb',
     # skipping quantum utility simulation (too large)
     'examples/advanced/*quantum_utility*',
-    # tutorials that use QCS and arent skipped due to one or more cleared output cells
+    # tutorials that use QCS and aren't skipped due to one or more cleared output cells
     'docs/tutorials/google/identifying_hardware_changes.ipynb',
     'docs/tutorials/google/echoes.ipynb',
     # temporary: need to fix QVM metrics and device spec
@@ -227,7 +227,7 @@ def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path) -> None:
     # utf-8 is important for Windows testing, otherwise characters like ┌──┐ fail on cp1252
     content = pathlib.Path(notebook_path).read_text(encoding="utf-8")
     mandatory_matches = [
-        r"!pip install --upgrade --quiet cirq(-google)?~=1.0.dev",
+        r"!pip install --upgrade cirq(-google)?~=1.0.dev",
         (
             r"Note: this notebook relies on unreleased Cirq features\. "
             r"If you want to try these features, make sure you install cirq(-google)? via "

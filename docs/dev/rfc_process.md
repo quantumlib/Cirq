@@ -8,7 +8,7 @@ An RFC is a document that describes a requirement and the proposed changes that 
 *   A GitHub issue is submitted with the link to the Google Doc
 *   Be subject to discussion and a review meeting prior to acceptance.
 
-The purpose of a Cirq Request for Comments (RFC) is to engage the Cirq community in development, by getting feedback from stakeholders and experts, 
+The purpose of a Cirq Request for Comments (RFC) is to engage the Cirq community in development, by getting feedback from stakeholders and experts,
 and communicating design changes broadly.
 
 
@@ -26,7 +26,7 @@ The following are NOT major features:
 *   Fixing a bug.
 *   Extending the functionality of an existing method in a natural way.
 
-If you are not sure if a feature constitute as a “major feature”, just submit a GitHub issue with a description, 
+If you are not sure if a feature constitute as a “major feature”, just submit a GitHub issue with a description,
 and one of the maintainers will flag the issue as a major feature if necessary.
 
 ## How to submit an RFC
@@ -35,8 +35,8 @@ and one of the maintainers will flag the issue as a major feature if necessary.
 1. Before submitting an RFC, discuss your aims with project contributors and maintainers and get early feedback. \
 Open a [feature request](https://github.com/quantumlib/Cirq/issues/new?assignees=&labels=kind%2Ffeature-request&template=feature_request.md&title=) \
 and have a discussion with the maintainers. Mention that you are willing to write an RFC.
-2. [Join the cirq-dev Google Group](https://groups.google.com/forum/#!forum/cirq-dev) to get an invitation to our weekly Cirq Cynq meeting. 
-3. Draft your RFC. 
+2. [Join the cirq-dev Google Group](https://groups.google.com/forum/#!forum/cirq-dev) to get an invitation to our weekly Cirq Cynq meeting.
+3. Draft your RFC.
     * Follow the [RFC template](https://tinyurl.com/cirq-rfc-template), link the GitHub issue in your RFC.
     * Make sure to share your doc with cirq-dev@googlegroups.com for comments.
     * Link the RFC in your issue.
@@ -148,5 +148,3 @@ hardware (or use `cirq.optimize_for_target_gateset`)
 *    ` Sampler` interface for running circuits on the hardware service.
 *     Consider also providing a noise model that users can use to simulate the
 device if direct access is not available.
-
-

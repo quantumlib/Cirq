@@ -20,7 +20,7 @@ import dataclasses
 from abc import ABC, abstractmethod
 from collections.abc import Iterable, Sequence
 from concurrent import futures
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -391,7 +391,7 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
             **gate_to_angles_func(gate),
         )
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.dataclass_json_dict(self)
 
 

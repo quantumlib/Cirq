@@ -28,7 +28,7 @@ import cirq
 def test_generated_unitary_is_uniform(m: int, n: int) -> None:
     r"""The code checks that the unitary matrix corresponds to the generated uniform superposition
     states (see uniform_superposition_gate.py). It is enough to check that the
-    first colum of the unitary matrix (which corresponds to the action of the gate on
+    first column of the unitary matrix (which corresponds to the action of the gate on
     $\ket{0}^n$ is $\frac{1}{\sqrt{M}} [1 1  \cdots 1 0 \cdots 0]^T$, where the first $M$
     entries are all "1"s (excluding the normalization factor of $\frac{1}{\sqrt{M}}$ and the
     remaining $2^n-M$ entries are all "0"s.

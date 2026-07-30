@@ -217,7 +217,7 @@ set the Python path and configuration arguments for you and cover more use cases
     - Type checking:
 
         ```bash
-        ./check/mypy [flags-for-mypy]
+        ./check/typecheck [flags-for-mypy]
         ```
 
     - Miscellaneous checks:

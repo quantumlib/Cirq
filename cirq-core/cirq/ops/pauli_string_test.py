@@ -1976,7 +1976,7 @@ def test_mutable_pauli_string_dict_pauli_like_not_pauli_like() -> None:
     p = cirq.MutablePauliString()
     # Check error string includes terms like "X" in error message.
     with pytest.raises(TypeError, match="PAULI_GATE_LIKE.*X"):
-        p[0] = 1.2  # type: ignore
+        p[0] = 1.2  # type: ignore[assignment, index]
 
 
 def test_mutable_pauli_string_text() -> None:

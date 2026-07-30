@@ -13,6 +13,8 @@
 # limitations under the License.
 
 
+from typing import Any
+
 import cirq
 from cirq_google.ops.internal_gate import InternalGate
 
@@ -49,7 +51,7 @@ class LeakageISWAP(InternalGate):
     def _decompose_(self, qubits):
         return cirq.I.on_each(qubits)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return {"phase_matched": self.phase_matched}
 
     def __repr__(self) -> str:
