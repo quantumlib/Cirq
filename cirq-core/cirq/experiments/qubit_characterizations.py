@@ -602,7 +602,7 @@ def two_qubit_state_tomography(
     To measure the density matrix of the output state of a two-qubit circuit,
     different combinations of I, X/2 and Y/2 operations are applied to the
     two qubits before measurements in the z-basis to determine the state
-    probabilities $P_{00}, P_{01}, P_{10}.$
+    probabilities.
 
     See Vandersypen and Chuang, Rev. Mod. Phys. 76, 1037 for details and
     Steffen et al, Science 313, 1423 for a related experiment.

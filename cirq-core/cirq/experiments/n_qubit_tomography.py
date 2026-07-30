@@ -247,7 +247,7 @@ class StateTomographyExperiment:
 def state_tomography(
     sampler: cirq.Sampler,
     qubits: Sequence[cirq.Qid],
-    circuit: cirq.Circuit,
+    circuit: cirq.AbstractCircuit,
     repetitions: int = 1000,
     prerotations: Sequence[tuple[float, float]] | None = None,
 ) -> TomographyResult:
@@ -283,7 +283,7 @@ def state_tomography(
 def get_state_tomography_data(
     sampler: cirq.Sampler,
     qubits: Sequence[cirq.Qid],
-    circuit: cirq.Circuit,
+    circuit: cirq.AbstractCircuit,
     rot_circuit: cirq.Circuit,
     rot_sweep: cirq.Sweep,
     repetitions: int = 1000,
