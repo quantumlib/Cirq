@@ -421,6 +421,37 @@ def test_random_rotations_between_grid_interaction_layers_respects_device_graph(
     assert actual_pairs == {tuple(sorted(pair)) for pair in device_graph.edges}
 
 
+def test_random_rotations_between_grid_interaction_layers_dedupes_device_graph_edges() -> None:
+    qubits = cirq.GridQubit.rect(2, 2)
+    q00, q01, q10, q11 = qubits
+    # DiGraph reverse edges and self-loops should collapse to unique undirected pairs
+    # with self-loops skipped.
+    device_graph = nx.DiGraph(
+        [
+            (q10, q00),
+            (q00, q10),  # reverse duplicate
+            (q11, q10),
+            (q11, q01),
+            (q00, q00),  # self-loop
+            (q11, q11),  # self-loop
+        ]
+    )
+    expected_pairs = {(q00, q10), (q10, q11), (q01, q11)}
+
+    circuit = random_rotations_between_grid_interaction_layers_circuit(
+        qubits,
+        depth=len(cirq.experiments.GRID_STAGGERED_PATTERN),
+        device_graph=device_graph,
+        two_qubit_op_factory=lambda a, b, _: cirq.CNOT(a, b),
+        single_qubit_gates=(cirq.X,),
+        add_final_single_qubit_layer=False,
+        seed=1234,
+    )
+
+    actual_pairs = {op.qubits for op in circuit.all_operations() if cirq.num_qubits(op) == 2}
+    assert actual_pairs == expected_pairs
+
+
 def test_grid_interaction_layer_repr() -> None:
     layer = GridInteractionLayer(col_offset=0, vertical=True, stagger=False)
     assert repr(layer) == (

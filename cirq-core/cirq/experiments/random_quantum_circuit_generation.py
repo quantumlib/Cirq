@@ -593,9 +593,11 @@ def random_rotations_between_grid_interaction_layers_circuit(
     else:
         qubit_set = set(qubits)
         coupled_qubit_pairs = sorted(
-            tuple(sorted((a, b)))
-            for a, b in device_graph.edges
-            if a in qubit_set and b in qubit_set
+            {
+                tuple(sorted((a, b)))
+                for a, b in device_graph.edges
+                if a in qubit_set and b in qubit_set and a != b
+            }
         )
 
     circuit = circuits.Circuit()
