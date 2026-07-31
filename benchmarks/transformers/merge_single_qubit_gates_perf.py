@@ -56,15 +56,13 @@ def make_fake_trotter_circuit(num_cycles: int):
     return cirq.transformers.gauge_compiling.cz_gauge.CZGaugeTransformer(trotter_circuit)
 
 
-@pytest.mark.parametrize(["num_cycles"], [(500,)])
 @pytest.mark.benchmark(group="merge_single_qubit_gates", max_time=10)
-def test_merge_single_qubit_gates_to_phxz(benchmark, num_cycles: int) -> None:
-    circuit = make_fake_trotter_circuit(num_cycles)
+def test_merge_single_qubit_gates_to_phxz(benchmark) -> None:
+    circuit = make_fake_trotter_circuit(num_cycles=500)
     benchmark(cirq.merge_single_qubit_gates_to_phxz, circuit)
 
 
-@pytest.mark.parametrize(["num_cycles"], [(1000,)])
 @pytest.mark.benchmark(group="merge_single_qubit_gates", max_time=10)
-def test_merge_single_qubit_moments_to_phxz_batch(benchmark, num_cycles: int) -> None:
-    circuit = make_fake_trotter_circuit(num_cycles)
+def test_merge_single_qubit_moments_to_phxz(benchmark) -> None:
+    circuit = make_fake_trotter_circuit(num_cycles=1000)
     benchmark(cirq.merge_single_qubit_moments_to_phxz, circuit)

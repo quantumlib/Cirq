@@ -417,6 +417,5 @@ def test_merge_single_qubit_moments_to_phxz_with_two_global_phases() -> None:
             cirq.GlobalPhaseGate((1j**0.25) ** 2).on(),
         )
     )
-    context = cirq.TransformerContext(tags_to_ignore=("ignore",))
-    c_new = cirq.merge_single_qubit_moments_to_phxz(c_orig, context=context)
+    c_new = cirq.merge_single_qubit_moments_to_phxz(c_orig)
     assert c_new == c_expected

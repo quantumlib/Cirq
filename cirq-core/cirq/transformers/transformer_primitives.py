@@ -799,7 +799,7 @@ def merge_moments_batch(
     merged_moments: list[circuits.Moment] = []
     moments_to_merge: Sequence[circuits.Moment] = circuit.moments
 
-    while len(moments_to_merge) > 0:
+    while moments_to_merge:
         batch_merged_moment, moments_to_merge = merge_func(moments_to_merge)
         merged_moments.append(batch_merged_moment)
 

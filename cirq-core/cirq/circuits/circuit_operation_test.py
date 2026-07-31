@@ -1307,7 +1307,7 @@ def test_unitary_of_single_qubit_circuit_op() -> None:
     c = cirq.FrozenCircuit(cirq.X(q0))
     op = cirq.CircuitOperation(c, repetitions=2)
     u = protocols.unitary(op)
-    np.testing.assert_allclose(u, np.eye(2), atol=1e-8)
+    np.testing.assert_array_equal(u, np.eye(2))
 
     c1 = cirq.FrozenCircuit(cirq.measure(q0))
     with pytest.raises(TypeError, match="cirq.unitary failed.*"):
