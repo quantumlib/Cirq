@@ -25,8 +25,11 @@ from cirq._doc import document
 TParamKey = str | sympy.Expr
 document(TParamKey, """A parameter that a parameter resolver may map to a value.""")
 
-TParamVal = float | sympy.Expr
-document(TParamVal, """A value that a parameter resolver may return for a parameter.""")
+TParamVal = float | np.number | sympy.Expr
+document(
+    TParamVal,
+    """A value that a parameter resolver may return for a parameter (float, NumPy number, or sympy).""",
+)
 
 TParamValComplex = complex | np.number | sympy.Expr
 document(TParamValComplex, """A complex value that parameter resolvers may use for parameters.""")

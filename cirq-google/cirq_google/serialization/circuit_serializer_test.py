@@ -62,7 +62,6 @@ Q1 = cirq.GridQubit(2, 5)
 
 X_PROTO = op_proto({'xpowgate': {'exponent': {'float_value': 1.0}}, 'qubit_constant_index': [0]})
 
-# TODO(#5758): Add support for numpy types to `TParamVal`.
 OPERATIONS = [
     (cirq.X(Q0), X_PROTO),
     (
