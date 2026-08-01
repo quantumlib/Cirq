@@ -275,6 +275,9 @@ def test_tag_diagram_str_and_format_tags_for_diagram() -> None:
         def __str__(self) -> str:
             return 'plain'
 
+    # str() is defined but protocol path must win when present.
+    assert str(ProtocolTag()) == 'via-str'
+
     args = cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT.copy()
     assert args.tag_diagram_str(ProtocolTag()) == 'via-protocol'
     assert args.tag_diagram_str(ProtocolTagInfo()) == 'info-sym'
@@ -287,7 +290,8 @@ def test_tag_diagram_str_and_format_tags_for_diagram() -> None:
     args.include_tags = False
     assert args.format_tags_for_diagram([ProtocolTag(), 'x']) == ''
 
-    args.include_tags = {ProtocolTag}
+    # Attribute type is bool | frozenset[type] (constructor accepts Iterable[type]).
+    args.include_tags = frozenset({ProtocolTag})
     assert args.format_tags_for_diagram([ProtocolTag(), NoProtocolTag(), 'x']) == '[via-protocol]'
 
 
