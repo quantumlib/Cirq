@@ -8,7 +8,7 @@
   "dependencies": {
     "@types/looks-same": "^4.1.0",
     "gts": "^7.0.0",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "devDependencies": {
     "@types/jsdom": "^28.0.0",
@@ -27,7 +27,7 @@
     "temp": "^0.9.4",
     "three": "^0.185.1",
     "ts-mock-imports": "^1.3.7",
-    "typescript": "^6.0.3",
+    "typescript": "^7.0.2",
     "vite": "^8.0.10",
     "vitest": "^4.0.6"
   },
