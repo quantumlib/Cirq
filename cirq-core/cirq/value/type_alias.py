@@ -28,7 +28,8 @@ document(TParamKey, """A parameter that a parameter resolver may map to a value.
 TParamVal = float | np.number | sympy.Expr
 document(
     TParamVal,
-    """A value that a parameter resolver may return for a parameter (float, NumPy number, or sympy).""",
+    """A value that a parameter resolver may return for a parameter """
+    """(float, NumPy number, or sympy).""",
 )
 
 TParamValComplex = complex | np.number | sympy.Expr
