@@ -13,12 +13,12 @@
 # limitations under the License.
 
 import pathlib
+import subprocess
 from unittest import mock
 
 import numpy as np
 
 import cirq
-from cirq.contrib.quantikz import circuit_to_latex_render
 from cirq.contrib.quantikz.circuit_to_latex_render import render_circuit
 
 
@@ -46,27 +46,13 @@ def test_render_circuit(tmp_path: pathlib.Path) -> None:
     assert (tmp_path / "my_circuit.pdf").is_file()
 
 
-def test_render_circuit_disables_pdflatex_shell_escape(tmp_path: pathlib.Path) -> None:
-    # A measurement key is an arbitrary string and can arrive from cirq.read_json, so it
-    # can carry a LaTeX command that reaches the .tex compiled by pdflatex unescaped.
+def test_render_circuit_disables_pdflatex_shell_escape() -> None:
     q = cirq.LineQubit(0)
-    circuit = cirq.Circuit(cirq.measure(q, key=r"m\immediate\write18{touch pwned}"))
-
-    seen_cmds = []
-
-    def fake_run(cmd, **kwargs):
-        seen_cmds.append(cmd)
-        pathlib.Path(kwargs["cwd"], "circuit_render.pdf").write_bytes(b"%PDF-1.4")
-        return mock.Mock(returncode=0, stdout="", stderr="")
-
-    render_mod = circuit_to_latex_render.__name__
-    with (
-        mock.patch(f"{render_mod}.shutil.which", return_value="/usr/bin/pdflatex"),
-        mock.patch(f"{render_mod}.subprocess.run", side_effect=fake_run),
-    ):
-        render_circuit(circuit, run_pdftoppm=False, display_png_jupyter=False, output_pdf_path=None)
-
-    assert seen_cmds, "pdflatex was not invoked"
-    for cmd in seen_cmds:
-        assert "-no-shell-escape" in cmd
-        assert "-shell-escape" not in cmd
+    circuit = cirq.Circuit(cirq.measure(q))
+    with mock.patch('subprocess.run', return_value=subprocess.CompletedProcess([], 0)) as mock_run:
+        render_circuit(circuit)
+    pdflatex_calls = [call for call in mock_run.call_args_list if "pdflatex" in call.args[0][0]]
+    assert pdflatex_calls
+    for call in pdflatex_calls:
+        assert "-no-shell-escape" in call.args[0]
+        assert "-shell-escape" not in call.args[0]
