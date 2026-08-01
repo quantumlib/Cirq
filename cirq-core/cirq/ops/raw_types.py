@@ -917,10 +917,10 @@ class TaggedOperation(Operation):
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         sub_op_info = protocols.circuit_diagram_info(self.sub_operation, args, NotImplemented)
         if sub_op_info is not NotImplemented and sub_op_info.wire_symbols:
-            visible_tags = args.tags_to_include(self._tags)
-            if visible_tags:
+            tag_text = args.format_tags_for_diagram(self._tags)
+            if tag_text:
                 sub_op_info.wire_symbols = (
-                    sub_op_info.wire_symbols[0] + f"[{', '.join(map(str, visible_tags))}]",
+                    sub_op_info.wire_symbols[0] + tag_text,
                     *sub_op_info.wire_symbols[1:],
                 )
         return sub_op_info
