@@ -545,6 +545,10 @@ def test_circuit_diagram() -> None:
                 return '★'
             return cirq.CircuitDiagramInfo(wire_symbols=('D',))
 
+    # str/repr exist for documentation; protocol path must not use them.
+    assert str(DiagramInfoTag()) == 'should-not-appear-in-diagram'
+    assert repr(DiagramInfoTag()) == 'DiagramInfoTag()'
+
     h = cirq.H(cirq.GridQubit(1, 1))
     tagged_h = h.with_tags('tag1')
     non_string_tag_h = h.with_tags(TaggyTag())
