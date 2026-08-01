@@ -261,6 +261,28 @@ class CircuitDiagramInfoArgs:
             return list(tags) if self.include_tags else []
         return [t for t in tags if any(isinstance(t, cls) for cls in self.include_tags)]
 
+    def tag_diagram_str(self, tag: Any) -> str:
+        """Text used for a single tag in a circuit diagram.
+
+        If the tag implements the ``_circuit_diagram_info_`` protocol, the first
+        wire symbol from that info is used. Otherwise falls back to ``str(tag)``.
+        """
+        info = circuit_diagram_info(tag, self, default=None)
+        if info is not None and info.wire_symbols:
+            return info.wire_symbols[0]
+        return str(tag)
+
+    def format_tags_for_diagram(self, tags: Iterable[Any]) -> str:
+        """Formats tags for inclusion in a circuit diagram label.
+
+        Returns a string like ``'[tag1, tag2]'``, or ``''`` if no tags are visible
+        under ``include_tags``.
+        """
+        visible_tags = self.tags_to_include(tags)
+        if not visible_tags:
+            return ''
+        return f"[{', '.join(self.tag_diagram_str(tag) for tag in visible_tags)}]"
+
     def format_real(self, val: sympy.Basic | int | float) -> str:
         if isinstance(val, sympy.Basic):
             return str(val)
@@ -377,8 +399,7 @@ def _op_info_with_fallback(
         name = name[: -len(redundant_tail)]
 
     # Add tags onto the representation, if they exist
-    if op.tags:
-        name += f"[{', '.join(map(str, op.tags))}]"
+    name += args.format_tags_for_diagram(op.tags)
 
     # Include ordering in the qubit labels.
     symbols = (name, *(f'#{i + 1}' for i in range(1, len(op.qubits))))

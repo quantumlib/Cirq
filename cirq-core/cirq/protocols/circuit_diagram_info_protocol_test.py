@@ -257,6 +257,40 @@ def test_circuit_diagram_info_args_repr() -> None:
     )
 
 
+def test_tag_diagram_str_and_format_tags_for_diagram() -> None:
+    class ProtocolTag:
+        def __str__(self) -> str:
+            return 'via-str'
+
+        def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> str:
+            return 'via-protocol'
+
+    class ProtocolTagInfo:
+        def _circuit_diagram_info_(
+            self, args: cirq.CircuitDiagramInfoArgs
+        ) -> cirq.CircuitDiagramInfo:
+            return cirq.CircuitDiagramInfo(wire_symbols=('info-sym',))
+
+    class NoProtocolTag:
+        def __str__(self) -> str:
+            return 'plain'
+
+    args = cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT.copy()
+    assert args.tag_diagram_str(ProtocolTag()) == 'via-protocol'
+    assert args.tag_diagram_str(ProtocolTagInfo()) == 'info-sym'
+    assert args.tag_diagram_str(NoProtocolTag()) == 'plain'
+    assert args.tag_diagram_str('string-tag') == 'string-tag'
+
+    assert args.format_tags_for_diagram([]) == ''
+    assert args.format_tags_for_diagram([NoProtocolTag(), ProtocolTag()]) == '[plain, via-protocol]'
+
+    args.include_tags = False
+    assert args.format_tags_for_diagram([ProtocolTag(), 'x']) == ''
+
+    args.include_tags = {ProtocolTag}
+    assert args.format_tags_for_diagram([ProtocolTag(), NoProtocolTag(), 'x']) == '[via-protocol]'
+
+
 def test_format_real() -> None:
     args = cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT.copy()
     assert args.format_real(1) == '1'
