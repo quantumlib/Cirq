@@ -1186,9 +1186,13 @@ def generate_trex_and_readout_circuits(
 
     for pauli_group in circuit_to_pauli.pauli_strings:
 
-        qubit_pauli_dict: dict[ops.Qid, ops.Pauli] = {}
+        qubit_pauli_dict_unsorted: dict[ops.Qid, ops.Pauli] = {}
         for pauli_str in pauli_group:
-            qubit_pauli_dict.update(pauli_str)
+            qubit_pauli_dict_unsorted.update(pauli_str)
+
+        qubit_pauli_dict = {
+            q: qubit_pauli_dict_unsorted[q] for q in sorted(qubit_pauli_dict_unsorted)
+        }
 
         joint_basis_pauli: cirq.PauliString = ops.PauliString(qubit_pauli_dict)
         num_qubits = len(qubit_pauli_dict)

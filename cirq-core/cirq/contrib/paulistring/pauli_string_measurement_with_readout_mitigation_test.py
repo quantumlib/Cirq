@@ -950,9 +950,10 @@ def test_generate_trex_and_readout_circuits(
     base_circuit = cirq.FrozenCircuit(cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1), cirq.H(q1)))
 
     pauli_group_1: list[cirq.PauliString] = [cirq.PauliString(cirq.Z(q0) * cirq.Z(q1))]
+    # Qubits in group 2 are unsorted.
     pauli_group_2: list[cirq.PauliString] = [
-        cirq.PauliString(cirq.X(q0)),
         cirq.PauliString(cirq.X(q1)),
+        cirq.PauliString(cirq.X(q0)),
     ]
 
     pauli_strings = [pauli_group_1, pauli_group_2]
@@ -1023,12 +1024,14 @@ def test_generate_trex_and_readout_circuits(
     assert meta2.pauli_str == cirq.X(q0) * cirq.X(q1)
     assert meta2.twirl_choices.shape == (num_twirls, 2)
     assert meta2.readout_choices.shape == (num_readout_circuits, 2)
+    # The qubits order are sorted.
+    assert meta2.pauli_str.qubits == (q0, q1)
 
     # Indices 0, 1, 2 belong to the twirled circuits of group 2
     for i in range(3):
         # Check how many operations are in the 3rd moment
         # EARLIEST packs 2 ops, while INLINE leaves it at 1 op
-        assert len(group1_circuits[i].moments[2].operations) == expected_ops_in_moment_3
+        assert len(group2_circuits[i].moments[2].operations) == expected_ops_in_moment_3
 
         meas_op = group2_circuits[i].moments[-1].operations[0]
         assert isinstance(meas_op.gate, cirq.MeasurementGate)
