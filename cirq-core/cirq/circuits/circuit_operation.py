@@ -850,3 +850,23 @@ class CircuitOperation(ops.Operation):
         return resolved.replace(
             repetitions=resolver.value_of(cast('cirq.TParamVal', self.repetitions), recursive)
         )
+
+
+def is_circuit_operation(val: Any) -> bool:
+    """Returns whether the value is a CircuitOperation, ignoring tags.
+
+    Tags wrap an operation in ``cirq.TaggedOperation``, so
+    ``isinstance(val, CircuitOperation)`` is False when a CircuitOperation has
+    tags. This helper uses ``val.untagged`` when present (as on
+    ``cirq.Operation``), matching the usual Cirq pattern
+    ``isinstance(op.untagged, cirq.CircuitOperation)``.
+
+    Args:
+        val: The value to check.
+
+    Returns:
+        True if ``val`` is a CircuitOperation, or a TaggedOperation whose
+        underlying operation is a CircuitOperation.
+    """
+    untagged = getattr(val, 'untagged', val)
+    return isinstance(untagged, CircuitOperation)
