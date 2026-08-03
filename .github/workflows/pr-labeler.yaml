@@ -28,6 +28,7 @@ on:
   # Note: do not copy-paste this workflow with `pull_request_target` left as-is.
   # Its use here is a special case where security implications are understood.
   # Workflows should normally use `pull_request` instead.
+  # zizmor: ignore[dangerous-triggers]
   pull_request_target:
     types:
       - opened
