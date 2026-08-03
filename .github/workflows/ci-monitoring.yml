@@ -14,8 +14,7 @@ on:
   # Allow manual invocation.
   workflow_dispatch:
 
-# Declare default permissions as read only.
-permissions: read-all
+permissions: {}
 
 jobs:
   pytest:
@@ -23,6 +22,8 @@ jobs:
     # keep in sync with the "pytest" job in ci-daily.yml.
     if: github.repository_owner == 'quantumlib'
     name: Pytest Ubuntu
+    permissions:
+      contents: read
     strategy:
       matrix:
         python-version: ['3.11']

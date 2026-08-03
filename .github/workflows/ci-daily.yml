@@ -12,13 +12,14 @@ concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: true
 
-# Declare default permissions as read only.
-permissions: read-all
+permissions: {}
 
 jobs:
   pytest:
     if: github.repository_owner == 'quantumlib'
     name: Pytest Ubuntu
+    permissions:
+      contents: read
     strategy:
       matrix:
         python-version: ['3.11', '3.12', '3.13', '3.14']
@@ -49,6 +50,8 @@ jobs:
   windows:
     if: github.repository_owner == 'quantumlib'
     name: Pytest Windows
+    permissions:
+      contents: read
     strategy:
       matrix:
         python-version: ['3.11', '3.12', '3.13', '3.14']
@@ -77,6 +80,8 @@ jobs:
   macos:
     if: github.repository_owner == 'quantumlib'
     name: Pytest MacOS
+    permissions:
+      contents: read
     strategy:
       matrix:
         # TODO: quantumlib/qsim#1017 - enable '3.14' when qsimcirq has binary wheel

@@ -12,13 +12,14 @@ concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: true
 
-# Declare default permissions as read only.
-permissions: read-all
+permissions: {}
 
 jobs:
   notebooks-stable:
     if: github.repository_owner == 'quantumlib'
     name: All Notebooks Isolated Test against Cirq stable
+    permissions:
+      contents: read
     env:
       NOTEBOOK_PARTITIONS: 4
     strategy:
