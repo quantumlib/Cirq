@@ -193,6 +193,31 @@ $$
 
 This gate has a duration of 12ns.
 
+#### Willow Gate
+
+The hardware provides a gate known as the Willow gate that can
+be accessed using `cirq_google.WILLOW`.  This gate is equivalent to
+an FSimGate(π/2, π/9).  That is, it does both a partial swap and
+controlled phase rotation of the |11⟩ state.
+
+The unitary of this gate, which can also be found via the `cirq.unitary`
+function, is:
+
+$$
+\left[
+\begin{matrix}
+1 & 0 & 0 & 0 \\
+0 & 0 & -i & 0 \\
+0 & -i & 0 & 0 \\
+0 & 0 & 0 & e^{-i \frac{\pi}{9}}
+\end{matrix}
+\right]
+$$
+
+This gate can be performed on Google's Willow chip. Note that on hardware
+this gate will be transformed to an "ISWAP-like" gate and that the C-phase
+angle (phi) may change from processor to processor.
+
 #### Square root of iSWAP
 
 The hardware provides the square root of the iSWAP gate
@@ -228,12 +253,13 @@ on some devices.
 
 #### CZ gate
 
-The controlled-Z gate `cirq.CZ` is experimentally available on some
-devices.  Be sure to check with your sponsor or in the device specification
-to see if it is available on the processor you are using.
+The controlled-Z gate `cirq.CZ` is natively supported on Willow processors,
+as well as experimentally available on some older devices.  Be sure to check
+with your sponsor or in the device specification to see if it is available
+on the processor you are using.
 
 This gate is equivalent to FSimGate(0, π).  It has an approximate duration
-of 26ns.
+of 42ns on Willow processors (and 26ns on some earlier devices).
 
 ### Wait gate
 
@@ -267,6 +293,8 @@ will attempt to run on to make sure that the qubits your circuit uses
 are actually active.  Regular calibration and maintenance can disable
 and enable misbehaving qubits, so the grid configuration can change on a
 daily basis.
+
+Note that `cirq_google.Sycamore` and `cirq_google.Sycamore23` represent static layouts for earlier 54-qubit and 23-qubit Sycamore processors. For newer processors such as Willow (for example, `'willow_pink'`), specific layouts should be queried directly from the Quantum Engine API using `engine.get_processor(processor_id).get_device()` or `cirq_google.SimulatedProcessorWithLocalDeviceRecord('willow_pink').get_device()`.
 
 ### Sycamore
 

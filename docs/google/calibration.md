@@ -77,7 +77,9 @@ three axes, the probability of applying an erroneous Pauli gate X, Y, or Z will
 be the Pauli error divided by three.  The Pauli error and average error are
 related by a multiplicative factor dependent on the number of qubits.
 
-See Table 1 on page 11 of the
+We typically report Pauli errors, although note that the
+[spec sheet](https://quantumai.google/static/site-assets/downloads/willow-spec-sheet.pdf)
+reports average errors. Please see Table 1 on page 11 of the
 [Supplementary Information](https://arxiv.org/abs/1910.11333)
 document for a description and comparison between average error, Pauli error,
 and depolarization error.
@@ -203,6 +205,9 @@ An exponential curve is then fit to the resulting data to determine the T1 time,
 which is reported in microseconds.
 
 ### 2-qubit Isolated XEB error
+*   Metric key: two_qubit_cz_gate_xeb_average_error_per_cycle
+*   Metric key: two_qubit_cz_gate_xeb_pauli_error_per_cycle
+*   Metric key: two_qubit_cz_gate_xeb_incoherent_error_per_cycle
 *   Metric key: two_qubit_sqrt_iswap_gate_xeb_average_error_per_cycle
 *   Metric key: two_qubit_sqrt_iswap_gate_xeb_pauli_error_per_cycle
 *   Metric key: two_qubit_sqrt_iswap_gate_xeb_incoherent_error_per_cycle
@@ -222,7 +227,15 @@ See the above section for descriptions of average, Pauli, and incoherent error.
 These errors are isolated, meaning that, during the metric measurement, only the
 pair of qubits being considered is active.  All other qubits are idle.
 
+Note that the specific metric keys present in a calibration dictionary depend on the native entangling gates supported by the processor (for example, CZ gate on Willow processors, or Sycamore gate and SQRT_ISWAP on Sycamore processors).
+
 ### 2-qubit Parallel XEB error
+*   Metric key:
+    two_qubit_parallel_cz_gate_xeb_average_error_per_cycle
+*   Metric key:
+    two_qubit_parallel_cz_gate_xeb_pauli_error_per_cycle
+*   Metric key:
+    two_qubit_parallel_cz_gate_xeb_incoherent_error_per_cycle
 *   Metric key:
     two_qubit_parallel_sqrt_iswap_gate_xeb_average_error_per_cycle
 *   Metric key:

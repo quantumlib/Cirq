@@ -119,9 +119,9 @@ device = engine.get_processor(PROCESSOR_ID).get_device()
 
 q0 = cirq.GridQubit(6, 6)
 q1 = cirq.GridQubit(6, 7)
-circuit = cirq.Circuit(cirq.CZ(q0, q1))
+circuit = cirq.Circuit(cirq.CNOT(q0, q1))
 
-# Raises a ValueError, since CZ is not a supported gate.
+# Raises a ValueError, since CNOT is not a supported gate.
 device.validate_circuit(circuit)
 ```
 
