@@ -792,7 +792,7 @@ class AbstractCircuit(abc.ABC):
 
     def findall_operations(
         self, predicate: Callable[[cirq.Operation], bool]
-    ) -> Iterable[tuple[int, cirq.Operation]]:
+    ) -> Iterator[tuple[int, cirq.Operation]]:
         """Find the locations of all operations that satisfy a given condition.
 
         This returns an iterator of (index, operation) tuples where each
@@ -813,7 +813,7 @@ class AbstractCircuit(abc.ABC):
 
     def findall_operations_with_gate_type(
         self, gate_type: type[_TGate]
-    ) -> Iterable[tuple[int, cirq.GateOperation, _TGate]]:
+    ) -> Iterator[tuple[int, cirq.GateOperation, _TGate]]:
         """Find the locations of all gate operations of a given type.
 
         Args:
@@ -2989,14 +2989,14 @@ _TKey = TypeVar('_TKey')
 @overload
 def _group_until_different(
     items: Iterable[_TIn], key: Callable[[_TIn], _TKey]
-) -> Iterable[tuple[_TKey, list[_TIn]]]:
+) -> Iterator[tuple[_TKey, list[_TIn]]]:
     pass
 
 
 @overload
 def _group_until_different(
     items: Iterable[_TIn], key: Callable[[_TIn], _TKey], val: Callable[[_TIn], _TOut]
-) -> Iterable[tuple[_TKey, list[_TOut]]]:
+) -> Iterator[tuple[_TKey, list[_TOut]]]:
     pass
 
 

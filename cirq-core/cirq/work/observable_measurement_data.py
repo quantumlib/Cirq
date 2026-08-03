@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import dataclasses
 import datetime
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterator, Mapping
 from typing import Any, TYPE_CHECKING
 
 import numpy as np
@@ -298,7 +298,7 @@ class BitstringAccumulator:
         return len(self.bitstrings)
 
     @property
-    def results(self) -> Iterable[ObservableMeasuredResult]:
+    def results(self) -> Iterator[ObservableMeasuredResult]:
         """Yield individual setting results as `ObservableMeasuredResult`
         objects."""
         for setting in self._simul_settings:
