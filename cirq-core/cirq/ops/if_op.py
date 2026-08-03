@@ -93,15 +93,13 @@ class If(raw_types.Operation):
             from cirq.circuits import Circuit, CircuitOperation
 
             c = Circuit(sub_operation, *more_operations)
-            self._conditions = conds_tuple
-            self._sub_operation = CircuitOperation(c.freeze())
+            self._conditions: tuple[cirq.Condition, ...] = conds_tuple
+            self._sub_operation: cirq.Operation = CircuitOperation(c.freeze())
         else:
             # Single operation
             if isinstance(sub_operation, If):
-                self._conditions: tuple[cirq.Condition, ...] = (
-                    conds_tuple + sub_operation.conditions
-                )
-                self._sub_operation: cirq.Operation = sub_operation.sub_operation
+                self._conditions = conds_tuple + sub_operation.conditions
+                self._sub_operation = sub_operation.sub_operation
             elif isinstance(
                 sub_operation, classically_controlled_operation.ClassicallyControlledOperation
             ):
