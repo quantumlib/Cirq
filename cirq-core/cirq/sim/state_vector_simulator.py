@@ -191,7 +191,7 @@ class StateVectorTrialResult(
             shape = final.shape
             size = np.prod(shape, dtype=np.int64)
             final = final.reshape(size)
-            if len([1 for e in final if abs(e) > 0.001]) < 16:
+            if sum(1 for e in final if abs(e) > 0.001) < 16:
                 state_vector = qis.dirac_notation(final, 3, qid_shape(substate.qubits))
             else:
                 state_vector = str(final)

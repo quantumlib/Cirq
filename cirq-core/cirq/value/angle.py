@@ -47,7 +47,7 @@ def chosen_angle_to_half_turns(
         ValueError: If more than one of `half_turn`, `rads`, or `degs` is given.
     """
 
-    if len([1 for e in [half_turns, rads, degs] if e is not None]) > 1:
+    if sum(1 for e in [half_turns, rads, degs] if e is not None) > 1:
         raise ValueError('Redundant angle specification. Use ONE of half_turns, rads, or degs.')
 
     if rads is not None:

@@ -897,7 +897,7 @@ def test_merge_operations_complexity(op_density):
 
         wrapped_merge_func.num_function_calls = 0
         _ = cirq.merge_operations(circuit, wrapped_merge_func)
-        total_operations = len([*circuit.all_operations()])
+        total_operations = sum(1 for _ in circuit.all_operations())
         assert wrapped_merge_func.num_function_calls <= 2 * total_operations
 
 
