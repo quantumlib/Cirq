@@ -689,7 +689,7 @@ class Engine(abstract_engine.AbstractEngine):
                 run_batch_async() up to a maximum of `jobs_per_batch`.
                 Note that actual hardware execution order is not guaranteed
                 if jobs_per_batch > 1. (For instance, the hardware may run
-                all circuits for the first sweep point, then the second point, etc).
+                all circuits for the first sweep point, then the second point, etc.).
 
         Returns:
             A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
