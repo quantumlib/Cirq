@@ -316,7 +316,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         response = self.context.client.list_calibrations(
             self.project_id, self.processor_id, filter_str
         )
-        return [_to_calibration(c.data) for c in list(response)]
+        return [_to_calibration(c.data) for c in response]
 
     def get_calibration(self, calibration_timestamp_seconds: int) -> calibration.Calibration:
         """Retrieve metadata about a specific calibration run.

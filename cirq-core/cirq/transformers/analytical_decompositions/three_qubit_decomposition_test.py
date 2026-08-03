@@ -48,7 +48,7 @@ def test_three_qubit_matrix_to_operations(u) -> None:
     num_two_qubit_gates = len(
         [
             op
-            for op in list(final_circuit.all_operations())
+            for op in final_circuit.all_operations()
             if isinstance(op.gate, (cirq.CZPowGate, cirq.CNotPowGate))
         ]
     )
@@ -83,7 +83,7 @@ def test_cs_to_ops(theta, num_czs) -> None:
     assert_almost_equal(circuit_cs.unitary(qubits_that_should_be_present=[a, b, c]), cs, 10)
 
     assert (
-        len([cz for cz in list(circuit_cs.all_operations()) if isinstance(cz.gate, cirq.CZPowGate)])
+        len([cz for cz in circuit_cs.all_operations() if isinstance(cz.gate, cirq.CZPowGate)])
         == num_czs
     ), f"expected {num_czs} CZs got \n {circuit_cs} \n {circuit_cs.unitary()}"
 
@@ -178,7 +178,7 @@ def test_middle_multiplexor(angles, num_cnots) -> None:
         len(
             [
                 cnot
-                for cnot in list(circuit_u1u2_mid.all_operations())
+                for cnot in circuit_u1u2_mid.all_operations()
                 if isinstance(cnot.gate, cirq.CNotPowGate)
             ]
         )
