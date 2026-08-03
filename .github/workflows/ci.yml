@@ -16,7 +16,8 @@ concurrency:
   cancel-in-progress: true
 
 # Declare default permissions as read only.
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
   quick_test:
@@ -69,7 +70,7 @@ jobs:
         run: pip install -r dev_tools/requirements/deps/format.txt
       - name: Format
         run: check/format-incremental
-  mypy:
+  typecheck:
     if: github.repository_owner == 'quantumlib'
     name: Type check
     runs-on: ubuntu-22.04
@@ -84,7 +85,7 @@ jobs:
       - name: Install mypy
         run: pip install -r dev_tools/requirements/mypy.env.txt
       - name: Type check
-        run: FORCE_COLOR=1 check/mypy
+        run: FORCE_COLOR=1 check/typecheck
   changed_files:
     if: github.repository_owner == 'quantumlib'
     name: Changed files test

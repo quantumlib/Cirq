@@ -17,7 +17,7 @@ from __future__ import annotations
 import abc
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -115,7 +115,7 @@ class ProductState:
     def __hash__(self):
         return hash(tuple(self.states.items()))
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return {'states': list(self.states.items())}
 
     @classmethod
@@ -188,7 +188,7 @@ class _PauliEigenState(_NamedOneQubitState):
     def __hash__(self):
         return hash((self.__class__.__name__, self.eigenvalue))
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         # Descendants should be singletons determined solely by the class name.
         # Otherwise, you must override this method.
         return protocols.obj_to_dict_helper(self, ['eigenvalue'])

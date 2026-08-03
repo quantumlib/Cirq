@@ -558,6 +558,120 @@ def test_get_calibration_no_calibration(get_job):
     get_job.assert_called_once()
 
 
+def test_get_config_not_set():
+    qjob = quantum.QuantumJob(
+        execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS)
+    )
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+    with pytest.raises(ValueError, match="device_config_key is not set.*state: SUCCESS"):
+        _ = job.get_config()
+
+
+def test_get_config_non_terminal():
+    qjob = quantum.QuantumJob(
+        execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.RUNNING)
+    )
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+    with pytest.warns(UserWarning, match="RUNNING"):
+        assert job.get_config() is None
+
+
+@pytest.mark.parametrize(
+    "key_kwargs", [{"config_alias": "alias1"}, {"run": "run1"}, {"snapshot_id": "snapshot1"}]
+)
+def test_get_config_incomplete(key_kwargs):
+    qjob = quantum.QuantumJob(
+        execution_status=quantum.ExecutionStatus(
+            state=quantum.ExecutionStatus.State.SUCCESS,
+            device_config_key=quantum.DeviceConfigKey(**key_kwargs),
+        )
+    )
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+    with pytest.raises(
+        ValueError, match="must have both `config_alias` and either `snapshot_id` or `run` set"
+    ):
+        _ = job.get_config()
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_async')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_async')
+def test_get_config_success(get_quantum_processor_config, get_job):
+    qjob = quantum.QuantumJob(
+        execution_status=quantum.ExecutionStatus(
+            state=quantum.ExecutionStatus.State.SUCCESS,
+            processor_name='projects/a/processors/p',
+            device_config_key=quantum.DeviceConfigKey(run='run1', config_alias='alias1'),
+        )
+    )
+
+    get_job.return_value = qjob
+
+    mock_config = quantum.QuantumProcessorConfig(
+        name='projects/a/processors/p/configSnapshots/snapshot1/configs/alias1'
+    )
+    get_quantum_processor_config.return_value = mock_config
+
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext())
+    config = job.get_config()
+
+    assert config is not None
+    assert config._quantum_processor_config == mock_config
+    get_job.assert_called_once()
+    get_quantum_processor_config.assert_called_once_with(
+        project_id='a',
+        processor_id='p',
+        device_config_revision=cg.Run('run1'),
+        config_name='alias1',
+    )
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_async')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_async')
+def test_get_config_snapshot_success(get_quantum_processor_config, get_job):
+    qjob = quantum.QuantumJob(
+        execution_status=quantum.ExecutionStatus(
+            state=quantum.ExecutionStatus.State.SUCCESS,
+            processor_name='projects/a/processors/p',
+            device_config_key=quantum.DeviceConfigKey(
+                snapshot_id='snapshot1', config_alias='alias1'
+            ),
+        )
+    )
+    get_job.return_value = qjob
+
+    mock_config = quantum.QuantumProcessorConfig(
+        name='projects/a/processors/p/configSnapshots/snapshot1/configs/alias1'
+    )
+    get_quantum_processor_config.return_value = mock_config
+
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext())
+    config = job.get_config()
+
+    assert config is not None
+    assert config._quantum_processor_config == mock_config
+    get_job.assert_called_once()
+    get_quantum_processor_config.assert_called_once_with(
+        project_id='a',
+        processor_id='p',
+        device_config_revision=cg.Snapshot('snapshot1'),
+        config_name='alias1',
+    )
+
+
+def test_get_config_no_processor_name():
+    qjob = quantum.QuantumJob(
+        execution_status=quantum.ExecutionStatus(
+            state=quantum.ExecutionStatus.State.SUCCESS,
+            device_config_key=quantum.DeviceConfigKey(
+                snapshot_id='snapshot1', config_alias='alias1'
+            ),
+        )
+    )
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+    with pytest.raises(ValueError, match="Processor name is not set in job status."):
+        _ = job.get_config()
+
+
 @mock.patch('cirq_google.engine.engine_client.EngineClient.cancel_job_async')
 def test_cancel(cancel_job):
     job = cg.EngineJob('a', 'b', 'steve', EngineContext())

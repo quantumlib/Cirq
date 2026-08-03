@@ -1005,7 +1005,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         all_qubits = set(self.qubits).union(q for op in all_ops for q in op.qubits)
         # Iteratively calculate the conjugation in reverse order of ops.
         for op in all_ops[::-1]:
-            # To calcuate the conjugation of P (`ps`) with respect to C (`op`)
+            # To calculate the conjugation of P (`ps`) with respect to C (`op`)
             # Decompose P = Pc⊗R, where Pc acts on the same qubits as C, R acts on the remaining.
             # Then the conjugation = (C^{-1}⊗I·Pc⊗R·C⊗I) = (C^{-1}·Pc·C)⊗R.
 
@@ -1155,7 +1155,7 @@ def _try_interpret_as_pauli_string(op: Any) -> PauliString | None:
         common_gates.ZPowGate: pauli_gates.Z,
     }
     if (pauli := cached_gates.get(type(op.gate))) is not None:
-        exponent = op.gate.exponent  # type: ignore
+        exponent = op.gate.exponent  # type: ignore[union-attr]
         if exponent % 2 == 0:
             return PauliString()
         if exponent % 2 == 1:
@@ -1170,7 +1170,7 @@ def _try_interpret_as_pauli_string(op: Any) -> PauliString | None:
 
 
 # Ignoring type because mypy believes `with_qubits` methods are incompatible.
-class SingleQubitPauliStringGateOperation(  # type: ignore
+class SingleQubitPauliStringGateOperation(  # type: ignore[misc]
     gate_operation.GateOperation, PauliString
 ):
     """An operation to represent single qubit pauli gates applied to a qubit.
@@ -1210,7 +1210,7 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
         return protocols.obj_to_dict_helper(self, ['pauli', 'qubit'])
 
     @classmethod
-    def _from_json_dict_(cls, pauli: pauli_gates.Pauli, qubit: cirq.Qid, **kwargs):  # type: ignore
+    def _from_json_dict_(cls, pauli: pauli_gates.Pauli, qubit: cirq.Qid, **kwargs):  # type: ignore[override]
         # Note, this method is required or else superclasses' deserialization
         # would be used
         return cls(pauli=pauli, qubit=qubit)
@@ -1565,10 +1565,10 @@ class MutablePauliString(Generic[TKey]):
 
 
 # Mypy has extreme difficulty with these constants for some reason.
-_i = cast(identity.IdentityGate, identity.I)  # type: ignore
-_x = cast(pauli_gates.Pauli, pauli_gates.X)  # type: ignore
-_y = cast(pauli_gates.Pauli, pauli_gates.Y)  # type: ignore
-_z = cast(pauli_gates.Pauli, pauli_gates.Z)  # type: ignore
+_i = cast(identity.IdentityGate, identity.I)  # type: ignore[has-type]
+_x = cast(pauli_gates.Pauli, pauli_gates.X)  # type: ignore[has-type]
+_y = cast(pauli_gates.Pauli, pauli_gates.Y)  # type: ignore[has-type]
+_z = cast(pauli_gates.Pauli, pauli_gates.Z)  # type: ignore[has-type]
 
 PAULI_GATE_LIKE_TO_INDEX_MAP: dict[cirq.PAULI_GATE_LIKE, int] = {
     _i: 0,
@@ -1631,7 +1631,7 @@ def _calc_conjugation(ps: cirq.PauliString, clifford_op: cirq.Operation) -> cirq
         )
     tableau = gate_in_clifford.clifford_tableau.inverse()
 
-    # Calculate the conjugation by `clifford_op` via mutiplying the conjugation of each Pauli:
+    # Calculate the conjugation by `clifford_op` via multiplying the conjugation of each Pauli:
     #   C^{-1}·(P_1⊗...⊗P_n)·C
     # = C^{-1}·(P_1⊗I) ...·(P_n⊗I)·C
     # = (C^{-1}(P_1⊗I)C)·...·(C^{-1}(P_n⊗I)C)

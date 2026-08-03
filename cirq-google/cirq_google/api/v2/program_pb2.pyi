@@ -863,7 +863,7 @@ class AnalogDetuneCouplerOnly(_message.Message):
 
     @_builtins.property
     def prev_neighbor_qubits_freq(self) -> _containers.RepeatedCompositeFieldContainer[Global___Arg]:
-        """Two frequencies of the neighbor qubits at preivous moment."""
+        """Two frequencies of the neighbor qubits at previous moment."""
 
     def __init__(
         self,

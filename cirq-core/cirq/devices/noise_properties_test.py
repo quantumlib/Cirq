@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import cirq
 import cirq.testing
@@ -44,7 +44,7 @@ class SampleNoiseProperties(NoiseProperties):
     def _value_equality_values_(self):
         return (self.qubits, self.qubit_pairs)
 
-    def _json_dict_(self) -> dict[str, object]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {'system_qubits': self.qubits, 'qubit_pairs': self.qubit_pairs}
 
     @classmethod

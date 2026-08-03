@@ -221,7 +221,7 @@ class RouteCQC:
         initial_mapping = initial_mapper.initial_mapping(circuit)
 
         # 2. Construct a mapping manager that implicitly keeps track of this mapping and provides
-        # convinience methods over the image of the map on the device graph.
+        # convenience methods over the image of the map on the device graph.
         mm = mapping_manager.MappingManager(self.device_graph, initial_mapping)
 
         # 3. Get two_qubit_ops and single-qubit operations.
@@ -282,8 +282,8 @@ class RouteCQC:
                     circuits.Moment() for _ in range(timestep + 1 - len(two_qubit_circuit))
                 )
                 if protocols.num_qubits(op) > 2 and protocols.is_measurement(op):
-                    key = op.gate.key  # type: ignore
-                    default_key = ops.measure(op.qubits).gate.key  # type: ignore
+                    key = op.gate.key  # type: ignore[union-attr]
+                    default_key = ops.measure(op.qubits).gate.key  # type: ignore[attr-defined]
                     if len(circuit.moments) == i + 1:
                         single_qubit_ops[timestep].append(op)
                     elif key in ('', default_key):

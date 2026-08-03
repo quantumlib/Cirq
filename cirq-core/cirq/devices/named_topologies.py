@@ -35,7 +35,7 @@ class NamedTopology(metaclass=abc.ABCMeta):
     """A topology (graph) with a name.
 
     "Named topologies" provide a mapping from a simple dataclass to a unique graph for categories
-    of relevant topologies. Relevant topologies may be hardware dependant, but common topologies
+    of relevant topologies. Relevant topologies may be hardware dependent, but common topologies
     are linear (1D) and rectangular grid topologies.
 
     Attributes:

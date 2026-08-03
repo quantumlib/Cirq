@@ -105,7 +105,7 @@ DEFAULT_SYMBOL_RESOLVERS: Iterable[SymbolResolver] = (DefaultResolver(),)
 
 def resolve_operation(operation: cirq.Operation, resolvers: Iterable[SymbolResolver]) -> SymbolInfo:
     """Builds a SymbolInfo object based off of a designated operation
-    and list of resolvers. The latest resolver takes precendent.
+    and list of resolvers. The latest resolver takes precedent.
 
     Args:
         operation: the cirq.Operation object to resolve

@@ -6,4 +6,3 @@ repetitions=10_000->repetitions=10
 max_depth = 100->max_depth = 10
 fatol=5e-3->fatol=100
 xatol=5e-3->xatol=100
-

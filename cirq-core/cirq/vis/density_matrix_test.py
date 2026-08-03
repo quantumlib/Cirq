@@ -125,8 +125,8 @@ def test_density_element_plot(value, show_rect) -> None:
     plotted_lines = [c for c in ax.get_children() if isinstance(c, lines.Line2D)]
     assert len(plotted_lines) == 1
     line_position = plotted_lines[0].get_xydata()
-    numerator = line_position[1, 1] - line_position[0, 1]  # type: ignore
-    denumerator = line_position[1, 0] - line_position[0, 0]  # type: ignore
+    numerator = line_position[1, 1] - line_position[0, 1]  # type: ignore[index, operator]
+    denumerator = line_position[1, 0] - line_position[0, 0]  # type: ignore[index, operator]
     angle = np.arctan(numerator / denumerator)
     assert np.isclose(np.angle(value), angle)
     # Check if the circles are the right size ratio, given the value of the element
