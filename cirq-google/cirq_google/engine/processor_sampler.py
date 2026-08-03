@@ -62,7 +62,7 @@ class ProcessorSampler(cirq.Sampler):
                 run_batch_async() up to a maximum of `jobs_per_batch`.
                 Note that actual hardware execution order is not guaranteed
                 if jobs_per_batch > 1. (For instance, the hardware may run
-                all circuits for the first sweep point, then the second point, etc).
+                all circuits for the first sweep point, then the second point, etc.).
 
         Raises:
             ValueError: If  only one of `run_name` and `device_config_name` are specified.
