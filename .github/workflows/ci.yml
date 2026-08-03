@@ -15,14 +15,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
-permissions: {}
+permissions: read
 
 jobs:
   quick_test:
     if: github.repository_owner == 'quantumlib'
     name: Misc check
-    permissions:
-      contents: read
     runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
@@ -37,8 +35,6 @@ jobs:
   packaging_test:
     if: github.repository_owner == 'quantumlib'
     name: Packaging test
-    permissions:
-      contents: read
     runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
@@ -57,8 +53,6 @@ jobs:
   format:
     if: github.repository_owner == 'quantumlib'
     name: Format check
-    permissions:
-      contents: read
     runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
@@ -77,8 +71,6 @@ jobs:
   typecheck:
     if: github.repository_owner == 'quantumlib'
     name: Type check
-    permissions:
-      contents: read
     runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
@@ -95,8 +87,6 @@ jobs:
   changed_files:
     if: github.repository_owner == 'quantumlib'
     name: Changed files test
-    permissions:
-      contents: read
     runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
@@ -119,8 +109,6 @@ jobs:
   lint:
     if: github.repository_owner == 'quantumlib'
     name: Lint check
-    permissions:
-      contents: read
     runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
@@ -143,8 +131,6 @@ jobs:
   doc_test:
     if: github.repository_owner == 'quantumlib'
     name: Doc test
-    permissions:
-      contents: read
     runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
@@ -161,8 +147,6 @@ jobs:
   nbformat:
     if: github.repository_owner == 'quantumlib'
     name: Notebook formatting
-    permissions:
-      contents: read
     runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
@@ -179,8 +163,6 @@ jobs:
   shellcheck:
     if: github.repository_owner == 'quantumlib'
     name: Shell check
-    permissions:
-      contents: read
     runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
@@ -192,8 +174,6 @@ jobs:
   isolated-modules:
     if: github.repository_owner == 'quantumlib'
     name: Isolated pytest Ubuntu
-    permissions:
-      contents: read
     runs-on: ubuntu-22.04-x64-8-core
     steps:
       - name: Check out source repository
@@ -210,8 +190,6 @@ jobs:
   pytest:
     if: github.repository_owner == 'quantumlib'
     name: Pytest Ubuntu
-    permissions:
-      contents: read
     strategy:
       matrix:
         # check only the required version for merge queue
@@ -246,8 +224,6 @@ jobs:
   pip-compile:
     if: github.repository_owner == 'quantumlib'
     name: Check consistency of requirements
-    permissions:
-      contents: read
     runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
@@ -265,8 +241,6 @@ jobs:
   build_protos:
     if: github.repository_owner == 'quantumlib'
     name: Build protos
-    permissions:
-      contents: read
     runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
@@ -286,8 +260,6 @@ jobs:
   coverage:
     if: github.repository_owner == 'quantumlib'
     name: Coverage check
-    permissions:
-      contents: read
     runs-on: ubuntu-22.04-x64-8-core
     steps:
       - name: Check out source repository
@@ -320,8 +292,6 @@ jobs:
   windows:
     if: github.repository_owner == 'quantumlib'
     name: Pytest Windows
-    permissions:
-      contents: read
     strategy:
       matrix:
         # check only the required version for merge queue
@@ -357,8 +327,6 @@ jobs:
   macos:
     if: github.repository_owner == 'quantumlib'
     name: Pytest MacOS
-    permissions:
-      contents: read
     strategy:
       matrix:
         # check only the required version for merge queue
@@ -392,8 +360,6 @@ jobs:
   notebooks-stable:
     if: github.repository_owner == 'quantumlib'
     name: Changed Notebooks Isolated Test against Cirq stable
-    permissions:
-      contents: read
     env:
       NOTEBOOK_PARTITIONS: 4
     strategy:
@@ -424,8 +390,6 @@ jobs:
   notebooks-branch:
     if: github.repository_owner == 'quantumlib'
     name: Notebook Tests against PR
-    permissions:
-      contents: read
     runs-on: ubuntu-22.04-x64-8-core
     steps:
       - name: Check out source repository
@@ -448,8 +412,6 @@ jobs:
   ts-build:
     if: github.repository_owner == 'quantumlib'
     name: Bundle file consistency
-    permissions:
-      contents: read
     runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
@@ -465,8 +427,6 @@ jobs:
   ts-lint:
     if: github.repository_owner == 'quantumlib'
     name: Typescript lint check
-    permissions:
-      contents: read
     runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
@@ -482,8 +442,6 @@ jobs:
   ts-test:
     if: github.repository_owner == 'quantumlib'
     name: Typescript tests
-    permissions:
-      contents: read
     runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
@@ -501,8 +459,6 @@ jobs:
   ts-coverage:
     if: github.repository_owner == 'quantumlib'
     name: Typescript tests coverage
-    permissions:
-      contents: read
     runs-on: ubuntu-slim
     steps:
       - name: Check out source repository
