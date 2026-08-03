@@ -41,7 +41,7 @@ on:
         description: 'Turn on shell script debugging'
         type: boolean
 
-permissions: {}
+permissions: read-all
 
 jobs:
   label-pr-size:
@@ -81,6 +81,7 @@ jobs:
     runs-on: ubuntu-slim
     timeout-minutes: 5
     permissions:
+      contents: write
       pull-requests: write
     steps:
       - name: Convert to draft and attach the on-hold label
