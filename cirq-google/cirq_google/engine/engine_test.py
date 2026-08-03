@@ -924,7 +924,6 @@ def test_get_sampler_initializes_jobs_per_batch():
     assert sampler._jobs_per_batch == jobs_per_batch
 
 
-
 def test_get_sampler_from_run_name():
     processor_id = 'test_processor_id'
     run = Run(id="test_run_name")

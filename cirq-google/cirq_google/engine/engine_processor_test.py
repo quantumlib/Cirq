@@ -431,7 +431,6 @@ def test_get_sampler_initializes_jobs_per_batch_with_run() -> None:
     assert sampler._jobs_per_batch == jobs_per_batch
 
 
-
 def test_get_sampler_from_snapshot_id() -> None:
     default_snapshot_id = 'default_snap'
     processor = cg.EngineProcessor(
