@@ -12,17 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Label PRs with labels such as size.
-#
-# This workflow is designed not to fail if labeling actions encounter errors;
-# instead, it writes error messages as annotations on the workflow's run summary
-# page. If labels don't seem to be getting applied, check there for errors.
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 name: Pull request labeler
 run-name: >-
   Label pull request ${{github.event.pull_request.number}} by ${{github.actor}}
+
+# This workflow is designed not to fail if labeling actions encounter errors;
+# instead, it writes error messages as annotations on the workflow's run summary
+# page. If labels don't seem to be getting applied, check there for errors.
 
 on:
   # Note: do not copy-paste this workflow with `pull_request_target` left as-is.
