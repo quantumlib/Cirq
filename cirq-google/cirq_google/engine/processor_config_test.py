@@ -167,6 +167,20 @@ def test_sampler():
     assert sampler.run_name == run.id
     assert sampler.snapshot_id == _SNAPSHOT_ID
     assert sampler.device_config_name == _CONFIG_NAME
+    assert sampler._jobs_per_batch == 1
+
+
+def test_sampler_initializes_jobs_per_batch():
+    run = Run(id='test_run_name')
+    config = cg.engine.ProcessorConfig(
+        processor=None,
+        quantum_processor_config=_VALID_QUANTUM_PROCESSOR_CONFIG,
+        device_config_revision=run,
+    )
+    jobs_per_batch = 5
+    sampler = config.sampler(jobs_per_batch=jobs_per_batch)
+
+    assert sampler._jobs_per_batch == jobs_per_batch
 
 
 def test_validate_device_config_revision():
