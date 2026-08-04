@@ -137,8 +137,8 @@ def test_random_circuit_reproducible_between_runs() -> None:
 
 
 def test_random_two_qubit_circuit_with_czs() -> None:
-    num_czs = lambda circuit: len(
-        [o for o in circuit.all_operations() if isinstance(o.gate, cirq.CZPowGate)]
+    num_czs = lambda circuit: sum(
+        1 for o in circuit.all_operations() if isinstance(o.gate, cirq.CZPowGate)
     )
 
     c = cirq.testing.random_two_qubit_circuit_with_czs()

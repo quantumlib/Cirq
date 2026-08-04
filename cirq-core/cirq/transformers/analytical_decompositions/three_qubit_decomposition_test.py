@@ -45,12 +45,10 @@ def test_three_qubit_matrix_to_operations(u) -> None:
     final_circuit = cirq.Circuit(operations)
     final_unitary = final_circuit.unitary(qubits_that_should_be_present=[a, b, c])
     cirq.testing.assert_allclose_up_to_global_phase(u, final_unitary, atol=1e-9)
-    num_two_qubit_gates = len(
-        [
-            op
-            for op in final_circuit.all_operations()
-            if isinstance(op.gate, (cirq.CZPowGate, cirq.CNotPowGate))
-        ]
+    num_two_qubit_gates = sum(
+        1
+        for op in final_circuit.all_operations()
+        if isinstance(op.gate, (cirq.CZPowGate, cirq.CNotPowGate))
     )
     assert num_two_qubit_gates <= 20, f"expected at most 20 CZ/CNOTs got {num_two_qubit_gates}"
 
@@ -83,7 +81,7 @@ def test_cs_to_ops(theta, num_czs) -> None:
     assert_almost_equal(circuit_cs.unitary(qubits_that_should_be_present=[a, b, c]), cs, 10)
 
     assert (
-        len([cz for cz in circuit_cs.all_operations() if isinstance(cz.gate, cirq.CZPowGate)])
+        sum(1 for cz in circuit_cs.all_operations() if isinstance(cz.gate, cirq.CZPowGate))
         == num_czs
     ), f"expected {num_czs} CZs got \n {circuit_cs} \n {circuit_cs.unitary()}"
 
@@ -175,12 +173,10 @@ def test_middle_multiplexor(angles, num_cnots) -> None:
         mid, circuit_u1u2_mid.unitary(qubits_that_should_be_present=[a, b, c])
     )
     assert (
-        len(
-            [
-                cnot
-                for cnot in circuit_u1u2_mid.all_operations()
-                if isinstance(cnot.gate, cirq.CNotPowGate)
-            ]
+        sum(
+            1
+            for cnot in circuit_u1u2_mid.all_operations()
+            if isinstance(cnot.gate, cirq.CNotPowGate)
         )
         == num_cnots
     ), f"expected {num_cnots} CNOTs got \n {circuit_u1u2_mid} \n {circuit_u1u2_mid.unitary()}"

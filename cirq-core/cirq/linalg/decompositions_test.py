@@ -733,7 +733,7 @@ def test_kak_decompose(unitary: np.ndarray) -> None:
     circuit = cirq.Circuit(kak._decompose_(cirq.LineQubit.range(2)))
     np.testing.assert_allclose(cirq.unitary(circuit), unitary, atol=1e-6)
     assert len(circuit) == 5
-    assert len(list(circuit.all_operations())) == 8
+    assert sum(1 for _ in circuit.all_operations()) == 8
 
 
 @cirq.testing.retry_once_with_later_random_values
