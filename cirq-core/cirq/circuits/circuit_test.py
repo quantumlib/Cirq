@@ -3130,7 +3130,7 @@ def test_items() -> None:
     cirq.testing.assert_same_circuits(c, cirq.Circuit([m1]))
 
     with pytest.raises(TypeError):
-        c[:] = [m1, 1]  # type: ignore
+        c[:] = [m1, 1]  # type: ignore[list-item]
     with pytest.raises(TypeError):
         c[0] = 1  # type: ignore[call-overload]
 

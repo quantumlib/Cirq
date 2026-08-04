@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
-from typing import cast, TYPE_CHECKING
+from typing import Any, cast, TYPE_CHECKING
 
 import networkx as nx
 
@@ -230,7 +230,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
             f'{qubit_attributes_repr})'
         )
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         duration_payload = None
         if self._gate_durations is not None:
             duration_payload = sorted(self._gate_durations.items(), key=lambda x: repr(x[0]))

@@ -58,8 +58,8 @@ Caution: the names of the metrics below are subject to change without notice.
 
 ### Parallel readout error
 
-*   Metric key: zero_error
-*   Metric key: one_error
+*   Metric key: `zero_error`
+*   Metric key: `one_error`
 
 `zero_error` is the probability that a qubit prepared in |0⟩ is measured in
 |1⟩, and similarly for `one_error`. These readout error rates are benchmarked
@@ -75,10 +75,10 @@ average of `zero_error` and `one_error`.
 
 ### Single qubit randomized benchmark error
 
-*   Metric key: sq_rb_pauli_error
+*   Metric key: `sq_rb_pauli_error`
 
 Single qubit gate error is estimated using randomized benchmarking by taking
-sequences of varying length of the 24 gates within the single-qubit Clifford 
+sequences of varying length of the 24 gates within the single-qubit Clifford
 group
 (those that preserve the Pauli group under conjugation) then
 applying the inverse of the unitary equivalent to the executed gate sequence.
@@ -94,33 +94,33 @@ More information about randomized benchmarking can be found in section 6.3
 
 ### Two-qubit XEB error
 
-*   Metric key: cz_inferred_gate_error_pauli
+*   Metric key: `cz_inferred_gate_error_pauli`
 
-Two qubit error is primarily characterized by applying cross-entropy 
-benchmarking (XEB).  This procedure repeatedly performs a "cycle" of a random 
-one-qubit gate on each qubit followed by the two qubit entangling gate. The 
-resulting distribution is analyzed and compared to the expected distribution 
-using cross entropy.  See 
-[the explanation of XEB](https://quantumai.google/cirq/noise/qcvv/xeb_theory) for more 
-details. The decay constant as the legnth of the sequence is increased gives 
-the cycle error rate, which includes contributions from both single- and 
-two-qubit gates. The contribution from single-qubit gates (characterized using 
-randomized benchmarking) is subtracted off to give the inferred two-qubit error 
+Two qubit error is primarily characterized by applying cross-entropy
+benchmarking (XEB).  This procedure repeatedly performs a "cycle" of a random
+one-qubit gate on each qubit followed by the two qubit entangling gate. The
+resulting distribution is analyzed and compared to the expected distribution
+using cross entropy.  See
+[the explanation of XEB](https://quantumai.google/cirq/noise/qcvv/xeb_theory) for more
+details. The decay constant as the legnth of the sequence is increased gives
+the cycle error rate, which includes contributions from both single- and
+two-qubit gates. The contribution from single-qubit gates (characterized using
+randomized benchmarking) is subtracted off to give the inferred two-qubit error
 rate.
 
-When we measure XEB, we typically reoptimize the single-qubit phases (`zeta`, 
-`chi`, and `gamma` in a 
+When we measure XEB, we typically reoptimize the single-qubit phases (`zeta`,
+`chi`, and `gamma` in a
 [`cirq.PhasedFSimGate`](https://quantumai.google/reference/python/cirq/PhasedFSimGate))
-in the simulated version of the gate in order to maximize the XEB 
-fidelity with the experimental data. This procedure reoptimizes these 
-single-qubit phases, which are then cancelled using z rotations (which are done 
-virtually for CZ and cphase gates). Therefore, XEB is actually a calibration in 
-addition to a benchmark. These phases drift, and running XEB periodically is 
+in the simulated version of the gate in order to maximize the XEB
+fidelity with the experimental data. This procedure reoptimizes these
+single-qubit phases, which are then cancelled using z rotations (which are done
+virtually for CZ and cphase gates). Therefore, XEB is actually a calibration in
+addition to a benchmark. These phases drift, and running XEB periodically is
 important to correct for that.
 
-Since there are many different possible layouts of parallel two-qubit gates and 
-each layout may have different cross-talk effects, users may want to perform 
-this experiment on their own if they have a specific layout commonly used in 
+Since there are many different possible layouts of parallel two-qubit gates and
+each layout may have different cross-talk effects, users may want to perform
+this experiment on their own if they have a specific layout commonly used in
 their experiment.
 
 ## Plotting

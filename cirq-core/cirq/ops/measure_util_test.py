@@ -64,7 +64,7 @@ def test_measure_qubits() -> None:
         _ = cirq.measure([a, [b]])  # type: ignore[list-item]
 
     with pytest.raises(ValueError, match='Qid'):
-        _ = cirq.measure([a], [b])  # type: ignore
+        _ = cirq.measure([a], [b])  # type: ignore[call-overload]
 
 
 def test_measure_each() -> None:

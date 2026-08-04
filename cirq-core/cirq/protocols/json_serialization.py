@@ -113,7 +113,7 @@ class SupportsJSON(Protocol):
     """
 
     @doc_private
-    def _json_dict_(self) -> None | NotImplementedType | dict[Any, Any]:
+    def _json_dict_(self) -> None | NotImplementedType | dict[str, Any]:
         pass
 
 
@@ -177,7 +177,7 @@ def attrs_json_dict(obj: Any) -> dict[str, Any]:
     return obj_to_dict_helper(obj, attribute_names)
 
 
-def _json_dict_with_cirq_type(obj: Any):
+def _json_dict_with_cirq_type(obj: Any) -> dict[str, Any]:
     base_dict = obj._json_dict_()
     if 'cirq_type' in base_dict:
         raise ValueError(
@@ -636,5 +636,5 @@ def read_json_gzip(
         json_str = gzip.decompress(gzip_raw).decode(encoding='utf-8')
         return read_json(json_text=json_str, resolvers=resolvers)
 
-    with gzip.open(file_or_fn, 'rt') as json_file:  # type: ignore
+    with gzip.open(file_or_fn, 'rt') as json_file:  # type: ignore[arg-type]
         return read_json(cast(IO, json_file), resolvers=resolvers)

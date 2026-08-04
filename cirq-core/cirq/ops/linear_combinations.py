@@ -642,7 +642,7 @@ class PauliSum:
             return m
         raise ValueError(f'{self} is not unitary')
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         def key_json(k: UnitPauliStringT):
             return [list(e) for e in sorted(k)]
 
