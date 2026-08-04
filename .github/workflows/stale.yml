@@ -54,7 +54,7 @@ env:
       "triage/discuss"
     ]
 
-permissions: read-all
+permissions: {}
 
 jobs:
   stale-handler:
