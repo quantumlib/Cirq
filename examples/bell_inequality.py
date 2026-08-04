@@ -85,7 +85,7 @@ def main():
     x = np.array(result.measurements['x'][:, 0])
     y = np.array(result.measurements['y'][:, 0])
     outcomes = a ^ b == x & y
-    win_percent = sum(1 for e in outcomes if e) * 100 / repetitions
+    win_percent = np.count_nonzero(outcomes) * 100 / repetitions
 
     # Print data.
     print()
