@@ -331,7 +331,7 @@ def create_noiseless_virtual_engine_from_proto(
 def _create_device_spec_from_template(template_name: str) -> v2.device_pb2.DeviceSpecification:
     """Load a template proto into a `v2.device_pb2.DeviceSpecification`."""
 
-    path = _get_resource_file_path(f'devices/specifications/{template_name}')
+    path = _get_resource_file_path(f"devices/specifications/{template_name}")
     proto_txt = path.read_text()
     device_spec = v2.device_pb2.DeviceSpecification()
     text_format.Parse(proto_txt, device_spec)
