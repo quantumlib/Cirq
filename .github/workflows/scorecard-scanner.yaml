@@ -38,8 +38,7 @@ concurrency:
   cancel-in-progress: true
   group: ${{github.workflow}}-${{github.event.pull_request.number||github.ref}}
 
-# Declare default workflow permissions as read only.
-permissions: read-all
+permissions: {}
 
 jobs:
   run-scorecard:
@@ -47,6 +46,7 @@ jobs:
     name: Scorecard analyzer
     runs-on: ubuntu-24.04
     permissions:
+      contents: read
       security-events: write
       id-token: write
     timeout-minutes: 15
