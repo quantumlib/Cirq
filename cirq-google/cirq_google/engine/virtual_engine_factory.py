@@ -92,6 +92,20 @@ PERFECT_T1_VALUE = 1_000_000
 T1_METRIC_NAME = 'single_qubit_idle_t1_micros'
 
 
+def _get_resource_file_path(filename: str) -> pathlib.Path:
+    """Return absolute path to a data file included with cirq-google.
+
+    Args:
+        filename: relative path of the file with respect to the cirq_google package directory.
+
+    Returns:
+        The resolved absolute path of the filename.
+    """
+    base_directory = pathlib.Path(__file__).parent.parent.resolve()
+    path = base_directory.joinpath(filename).resolve()
+    return path
+
+
 def _create_perfect_calibration(device: cirq.Device) -> calibration.Calibration:
     all_metrics: calibration.ALL_METRICS = {}
     if device.metadata is None:
@@ -161,9 +175,8 @@ def load_median_device_calibration(processor_id: str) -> calibration.Calibration
             f"Got processor_id={processor_id}, but no median calibration "
             "is defined for that processor."
         )
-    path = pathlib.Path(__file__).parent.parent.resolve()
-    with path.joinpath('devices', 'calibrations', cal_name).open() as f:
-        cal = cast(calibration.Calibration, cirq.read_json(f))
+    path = _get_resource_file_path(f"devices/calibrations/{cal_name}")
+    cal = cast(calibration.Calibration, cirq.read_json(path))
     cal.timestamp = MEDIAN_CALIBRATION_TIMESTAMPS[processor_id]
     return cal
 
@@ -187,20 +200,19 @@ def load_sample_device_zphase(processor_id: str) -> util.ZPhaseDataType:
         raise ValueError(
             f"Got processor_id={processor_id}, but no Z phase data is defined for that processor."
         )
-    path = pathlib.Path(__file__).parent.parent.resolve()
-    with path.joinpath('devices', 'calibrations', zphase_name).open() as f:
+    path = _get_resource_file_path(f"devices/calibrations/{zphase_name}")
+    with path.open() as f:
         raw_data = json.load(f)
-
-        nested_data: util.ZPhaseDataType = {
-            gate_type: {
-                angle: {
-                    (v2.qubit_from_proto_id(q0), v2.qubit_from_proto_id(q1)): vals
-                    for q0, q1, vals in triples
-                }
-                for angle, triples in angles.items()
+    nested_data: util.ZPhaseDataType = {
+        gate_type: {
+            angle: {
+                (v2.qubit_from_proto_id(q0), v2.qubit_from_proto_id(q1)): vals
+                for q0, q1, vals in triples
             }
-            for gate_type, angles in raw_data.items()
+            for angle, triples in angles.items()
         }
+        for gate_type, angles in raw_data.items()
+    }
     return nested_data
 
 
@@ -319,9 +331,8 @@ def create_noiseless_virtual_engine_from_proto(
 def _create_device_spec_from_template(template_name: str) -> v2.device_pb2.DeviceSpecification:
     """Load a template proto into a `v2.device_pb2.DeviceSpecification`."""
 
-    path = pathlib.Path(__file__).parent.parent.resolve()
-    with path.joinpath('devices', 'specifications', template_name).open() as f:
-        proto_txt = f.read()
+    path = _get_resource_file_path(f"devices/specifications/{template_name}")
+    proto_txt = path.read_text()
     device_spec = v2.device_pb2.DeviceSpecification()
     text_format.Parse(proto_txt, device_spec)
     return device_spec
