@@ -23,9 +23,9 @@ jobs:
           from pathlib import Path
           import subprocess
 
-          def replace_in_matches(needle: str, replacement: str) -> None:
+          def replace_in_cirq(needle: str, replacement: str) -> None:
               result = subprocess.run(
-                  ['git', 'grep', '-l', needle],
+                  ['git', 'grep', '-l', needle, '--', 'cirq-core'],
                   text=True,
                   capture_output=True,
                   check=False,
@@ -34,8 +34,8 @@ jobs:
                   path = Path(filename)
                   path.write_text(path.read_text().replace(needle, replacement))
 
-          replace_in_matches('format_tags_for_diagram(', 'format_tags(')
-          replace_in_matches('tag_diagram_str(', '_tag_diagram_str(')
+          replace_in_cirq('format_tags_for_diagram(', 'format_tags(')
+          replace_in_cirq('tag_diagram_str(', '_tag_diagram_str(')
 
           raw_types = Path('cirq-core/cirq/ops/raw_types.py')
           lines = raw_types.read_text().splitlines()
@@ -48,7 +48,7 @@ jobs:
           end = start
           while lines[end].strip() != 'return sub_op_info':
               end += 1
-          replacement = [
+          lines[start : end + 1] = [
               '        sub_op_info = protocols.circuit_diagram_info(self.sub_operation, args, NotImplemented)',
               '        if sub_op_info is NotImplemented or not sub_op_info.wire_symbols:',
               '            return sub_op_info',
@@ -59,7 +59,6 @@ jobs:
               '            (sub_op_info.wire_symbols[0] + tag_text, *sub_op_info.wire_symbols[1:])',
               '        )',
           ]
-          lines[start : end + 1] = replacement
           raw_types.write_text('\n'.join(lines) + '\n')
           PY
 
@@ -68,8 +67,8 @@ jobs:
           python -m compileall -q \
             cirq-core/cirq/ops/raw_types.py \
             cirq-core/cirq/protocols/circuit_diagram_info_protocol.py
-          ! git grep -n 'format_tags_for_diagram('
-          ! git grep -n 'tag_diagram_str('
+          ! git grep -n 'format_tags_for_diagram(' -- cirq-core
+          ! git grep -n -E 'def tag_diagram_str|\.tag_diagram_str\(' -- cirq-core
 
       - name: Commit
         shell: bash
