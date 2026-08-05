@@ -243,7 +243,7 @@ def update_mapping(mapping: dict[ops.Qid, LogicalIndex], operations: cirq.OP_TRE
 
 def get_logical_operations(
     operations: cirq.OP_TREE, initial_mapping: dict[ops.Qid, ops.Qid]
-) -> Iterable[cirq.Operation]:
+) -> Iterator[cirq.Operation]:
     """Gets the logical operations specified by the physical operations and
     initial mapping.
 

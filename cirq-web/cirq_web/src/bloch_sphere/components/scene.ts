@@ -24,16 +24,16 @@ export class BlochSphereScene extends Scene {
   // visualization from different locations
   camera: Camera;
 
-  // The Three.js renderer object resposible for rendering
+  // The Three.js renderer object responsible for rendering
   // the visualization into the browser. We will be using the WebGL renderer
   renderer: WebGLRenderer;
 
-  // The Three.js OrbitControls object reponsible for managing
+  // The Three.js OrbitControls object responsible for managing
   // mouse input and moving the camera, zooming in and out, etc.
   controls: OrbitControls;
 
   /**
-   * Initializes a 3D Scene proportional to the bloch sphere visualzation.
+   * Initializes a 3D Scene proportional to the bloch sphere visualization.
    * @param fov The vertical field of view for the Scene's Perspective Camera
    * @param aspect The aspect ratio for the Scene's Perspective Camera
    * @param near The near plane for the Scene's Perspective Camera

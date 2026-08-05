@@ -40,8 +40,8 @@ results = sampler.run(p_circuit, repetitions=1000) # Runs the circuit and return
 
 Currently, only virtual devices are available. The options are:
  * `PasqalVirtualDevice` to emulate a first-generation Pasqal device
- * `PasqalDevice` to work with an unconstrained device which is then optimized and transpiled on Pasqal's side. 
- 
+ * `PasqalDevice` to work with an unconstrained device which is then optimized and transpiled on Pasqal's side.
+
  See the [Devices page](devices.md) for more information on how to work with these devices.
 
 ## Calibration Metrics

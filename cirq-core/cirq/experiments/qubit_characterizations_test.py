@@ -75,30 +75,26 @@ def test_single_qubit_cliffords() -> None:
 
     # Check that XZ decomposition has at most one X gate per clifford.
     for gates in cliffords.c1_in_xz:
-        num_i = len([gate for gate in gates if gate == cirq.ops.SingleQubitCliffordGate.I])
-        num_x = len(
-            [
-                gate
-                for gate in gates
-                if gate
-                in (
-                    cirq.ops.SingleQubitCliffordGate.X,
-                    cirq.ops.SingleQubitCliffordGate.X_sqrt,
-                    cirq.ops.SingleQubitCliffordGate.X_nsqrt,
-                )
-            ]
+        num_i = sum(1 for gate in gates if gate == cirq.ops.SingleQubitCliffordGate.I)
+        num_x = sum(
+            1
+            for gate in gates
+            if gate
+            in (
+                cirq.ops.SingleQubitCliffordGate.X,
+                cirq.ops.SingleQubitCliffordGate.X_sqrt,
+                cirq.ops.SingleQubitCliffordGate.X_nsqrt,
+            )
         )
-        num_z = len(
-            [
-                gate
-                for gate in gates
-                if gate
-                in (
-                    cirq.ops.SingleQubitCliffordGate.Z,
-                    cirq.ops.SingleQubitCliffordGate.Z_sqrt,
-                    cirq.ops.SingleQubitCliffordGate.Z_nsqrt,
-                )
-            ]
+        num_z = sum(
+            1
+            for gate in gates
+            if gate
+            in (
+                cirq.ops.SingleQubitCliffordGate.Z,
+                cirq.ops.SingleQubitCliffordGate.Z_sqrt,
+                cirq.ops.SingleQubitCliffordGate.Z_nsqrt,
+            )
         )
         assert num_x + num_z + num_i == len(gates)
         assert num_x <= 1
@@ -253,7 +249,7 @@ def test_tomography_plot_raises_for_incorrect_number_of_axes() -> None:
     result = single_qubit_state_tomography(simulator, qubit, circuit, 1000)
     with pytest.raises(TypeError):  # ax is not a list[plt.Axes]
         ax = plt.subplot()
-        result.plot(ax)  # type: ignore[arg-type]
+        result.plot(ax)
     with pytest.raises(ValueError):
         _, axes = plt.subplots(1, 3)
         result.plot(axes)

@@ -54,7 +54,7 @@ env:
       "triage/discuss"
     ]
 
-permissions: read-all
+permissions: {}
 
 jobs:
   stale-handler:
@@ -72,7 +72,7 @@ jobs:
         email to the maintainers at quantum-oss-maintainers@google.com.
     steps:
     - name: Label and/or close stale issues and/or PRs
-      uses: actions/stale@b5d41d4e1d5dceea10e7104786b73624c18a190f # v10.2.0
+      uses: actions/stale@4391f3da665fdf50b6810c1a66712fb9ba21aa93 # v11.0.0
       with:
         repo-token: ${{secrets.GITHUB_TOKEN}}
         debug-only: ${{inputs.debug || false}}

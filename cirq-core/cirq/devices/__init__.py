@@ -16,7 +16,10 @@
 
 from cirq.devices.device import Device as Device, DeviceMetadata as DeviceMetadata
 
-from cirq.devices.grid_device_metadata import GridDeviceMetadata as GridDeviceMetadata
+from cirq.devices.grid_device_metadata import (
+    GridDeviceMetadata as GridDeviceMetadata,
+    QubitAttributeValue as QubitAttributeValue,
+)
 
 from cirq.devices.grid_qubit import GridQid as GridQid, GridQubit as GridQubit
 

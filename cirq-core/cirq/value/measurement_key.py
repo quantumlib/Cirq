@@ -97,7 +97,7 @@ class MeasurementKey:
     def __le__(self, other):
         return self == other or self < other
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return {'name': self.name, 'path': self.path}
 
     @classmethod

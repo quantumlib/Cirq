@@ -156,7 +156,7 @@ class TestXOnAllQubitsCircuit:
     group = "circuit_operations"
 
     @pytest.mark.parametrize(
-        ["qubit_count", "depth"], itertools.product([1, 10, 100, 1000], [1, 10, 100, 1000])
+        ["qubit_count", "depth"], list(itertools.product([1, 10, 100, 1000], [1, 10, 100, 1000]))
     )
     @pytest.mark.benchmark(group=group)
     def test_circuit_construction(self, benchmark, qubit_count: int, depth: int) -> None:

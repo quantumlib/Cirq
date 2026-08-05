@@ -94,4 +94,8 @@ from cirq_google.engine.engine_result import EngineResult as EngineResult
 
 from cirq_google.engine.processor_sampler import ProcessorSampler as ProcessorSampler
 
-from cirq_google.engine.processor_config import ProcessorConfig as ProcessorConfig
+from cirq_google.engine.processor_config import (
+    ProcessorConfig as ProcessorConfig,
+    Run as Run,
+    Snapshot as Snapshot,
+)

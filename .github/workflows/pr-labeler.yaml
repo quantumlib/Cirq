@@ -12,22 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Label PRs with labels such as size.
-#
-# This workflow is designed not to fail if labeling actions encounter errors;
-# instead, it writes error messages as annotations on the workflow's run summary
-# page. If labels don't seem to be getting applied, check there for errors.
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 name: Pull request labeler
 run-name: >-
   Label pull request ${{github.event.pull_request.number}} by ${{github.actor}}
+
+# This workflow is designed not to fail if labeling actions encounter errors;
+# instead, it writes error messages as annotations on the workflow's run summary
+# page. If labels don't seem to be getting applied, check there for errors.
 
 on:
   # Note: do not copy-paste this workflow with `pull_request_target` left as-is.
   # Its use here is a special case where security implications are understood.
   # Workflows should normally use `pull_request` instead.
+  # zizmor: ignore[dangerous-triggers]
   pull_request_target:
     types:
       - opened
@@ -44,7 +41,6 @@ on:
         description: 'Turn on shell script debugging'
         type: boolean
 
-# Declare default permissions as read only.
 permissions: read-all
 
 jobs:
@@ -64,7 +60,7 @@ jobs:
       SHELLOPTS: ${{inputs.trace && 'xtrace' || '' }}
     steps:
       - name: Check out a copy of the git repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           sparse-checkout: |
             ./dev_tools/ci/size-labeler.sh

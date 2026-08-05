@@ -4,8 +4,8 @@ attrs>=21.3.0
 duet>=0.2.8
 matplotlib~=3.9
 networkx~=3.4
-numpy~=2.0
-pandas~=2.3
-scipy~=1.14
+numpy~=2.1
+pandas>=2.3,<3.1.0.dev
+scipy~=1.15
 sympy
 tqdm>=4.12

@@ -130,7 +130,7 @@ def t2_decay(
     Raises:
         ValueError: If invalid parameters are specified, negative repetitions, max
             less than min durations, negative min delays, or an unsupported experiment
-            configuraiton.
+            configuration.
     """
     min_delay_dur = value.Duration(min_delay)
     max_delay_dur = value.Duration(max_delay)
@@ -226,10 +226,13 @@ def t2_decay(
 def _create_tabulation(measurements: pd.DataFrame) -> pd.DataFrame:
     """Returns a sum of 0 and 1 results per index from a list of measurements."""
     if 'num_pulses' in measurements.columns:
-        cols = [measurements.delay_ns, measurements.num_pulses]
+        cols = [
+            measurements.delay_ns.reset_index(drop=True),
+            measurements.num_pulses.reset_index(drop=True),
+        ]
     else:
-        cols = [measurements.delay_ns]
-    tabulation = pd.crosstab(cols, measurements.output).reset_index()
+        cols = [measurements.delay_ns.reset_index(drop=True)]
+    tabulation = pd.crosstab(cols, measurements.output.reset_index(drop=True)).reset_index()
     # If all measurements are 1 or 0, fill in the missing column with all zeros.
     for col_index, name in [(1, 0), (2, 1)]:
         if name not in tabulation:
@@ -246,9 +249,9 @@ def _cpmg_circuit(qubit: cirq.Qid, delay_var: sympy.Symbol, max_pulses: int) -> 
 
     with max_pulses number of X gates.
 
-    The X gates are paramterizd by 'pulse_N' symbols so that pulses can be
+    The X gates are parameterized by 'pulse_N' symbols so that pulses can be
     turned on and off.  This is done to combine circuits with different pulses
-    into the same paramterized circuit.
+    into the same parameterized circuit.
     """
     circuit = circuits.Circuit(ops.Y(qubit) ** 0.5, ops.wait(qubit, nanos=delay_var), ops.X(qubit))
     for n in range(max_pulses):
@@ -319,12 +322,12 @@ class T2DecayResult:
         measurement is all ones and -1 if the measurement is all zeros.
 
         Args:
-            data: measurement data to compute the expecation for.
+            data: measurement data to compute the expectation for.
 
         Returns:
             Data frame with columns 'delay_ns', 'num_pulses' and 'value'
             The num_pulses column will only exist if multiple pulses
-            were requestd in the T2 experiment.
+            were requested in the T2 experiment.
         """
         delay = data['delay_ns']
         ones = data[1]

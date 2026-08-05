@@ -67,7 +67,8 @@ class TestSingleQubitRandomizedBenchmarking:
         return op_grid
 
     @pytest.mark.parametrize(
-        ["depth", "num_qubits", "num_circuits"], itertools.product(depth, num_qubits, num_circuits)
+        ["depth", "num_qubits", "num_circuits"],
+        list(itertools.product(depth, num_qubits, num_circuits)),
     )
     @pytest.mark.benchmark(group=group)
     def test_rb_op_grid_generation(
@@ -82,7 +83,8 @@ class TestSingleQubitRandomizedBenchmarking:
         benchmark(_f)
 
     @pytest.mark.parametrize(
-        ["depth", "num_qubits", "num_circuits"], itertools.product(depth, num_qubits, num_circuits)
+        ["depth", "num_qubits", "num_circuits"],
+        list(itertools.product(depth, num_qubits, num_circuits)),
     )
     @pytest.mark.benchmark(group=group)
     def test_rb_circuit_construction(

@@ -13,10 +13,10 @@ import builtins as _builtins
 import sys
 import typing as _typing
 
-if sys.version_info >= (3, 10):
-    from typing import TypeAlias as _TypeAlias
+if sys.version_info >= (3, 11):
+    from typing import TypeAlias as _TypeAlias, Never as _Never
 else:
-    from typing_extensions import TypeAlias as _TypeAlias
+    from typing_extensions import TypeAlias as _TypeAlias, Never as _Never
 
 if sys.version_info >= (3, 13):
     from warnings import deprecated as _deprecated
@@ -52,8 +52,11 @@ class Program(_message.Message):
         operations: _abc.Iterable[_operations_pb2.Operation] | None = ...,
         parameter_sweeps: _abc.Iterable[_params_pb2.ParameterSweep] | None = ...,
     ) -> None: ...
+    _HasFieldArgType: _TypeAlias = _Never  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
     _ClearFieldArgType: _TypeAlias = _typing.Literal["operations", b"operations", "parameter_sweeps", b"parameter_sweeps"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def WhichOneof(self, oneof_group: _Never) -> None: ...
 
 Global___Program: _TypeAlias = Program  # noqa: Y015
 
@@ -73,8 +76,11 @@ class RunContext(_message.Message):
         *,
         parameter_sweeps: _abc.Iterable[_params_pb2.ParameterSweep] | None = ...,
     ) -> None: ...
+    _HasFieldArgType: _TypeAlias = _Never  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
     _ClearFieldArgType: _TypeAlias = _typing.Literal["parameter_sweeps", b"parameter_sweeps"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def WhichOneof(self, oneof_group: _Never) -> None: ...
 
 Global___RunContext: _TypeAlias = RunContext  # noqa: Y015
 
@@ -144,6 +150,7 @@ class ParameterizedResult(_message.Message):
     def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
     _ClearFieldArgType: _TypeAlias = _typing.Literal["measurement_results", b"measurement_results", "params", b"params"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def WhichOneof(self, oneof_group: _Never) -> None: ...
 
 Global___ParameterizedResult: _TypeAlias = ParameterizedResult  # noqa: Y015
 
@@ -170,8 +177,11 @@ class MeasurementKey(_message.Message):
         key: _builtins.str = ...,
         qubits: _abc.Iterable[_operations_pb2.Qubit] | None = ...,
     ) -> None: ...
+    _HasFieldArgType: _TypeAlias = _Never  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
     _ClearFieldArgType: _TypeAlias = _typing.Literal["key", b"key", "qubits", b"qubits"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def WhichOneof(self, oneof_group: _Never) -> None: ...
 
 Global___MeasurementKey: _TypeAlias = MeasurementKey  # noqa: Y015
 
@@ -211,8 +221,11 @@ class SweepResult(_message.Message):
         measurement_keys: _abc.Iterable[Global___MeasurementKey] | None = ...,
         parameterized_results: _abc.Iterable[Global___ParameterizedResult] | None = ...,
     ) -> None: ...
+    _HasFieldArgType: _TypeAlias = _Never  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
     _ClearFieldArgType: _TypeAlias = _typing.Literal["measurement_keys", b"measurement_keys", "parameterized_results", b"parameterized_results", "repetitions", b"repetitions"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def WhichOneof(self, oneof_group: _Never) -> None: ...
 
 Global___SweepResult: _TypeAlias = SweepResult  # noqa: Y015
 
@@ -235,7 +248,10 @@ class Result(_message.Message):
         *,
         sweep_results: _abc.Iterable[Global___SweepResult] | None = ...,
     ) -> None: ...
+    _HasFieldArgType: _TypeAlias = _Never  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
     _ClearFieldArgType: _TypeAlias = _typing.Literal["sweep_results", b"sweep_results"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def WhichOneof(self, oneof_group: _Never) -> None: ...
 
 Global___Result: _TypeAlias = Result  # noqa: Y015

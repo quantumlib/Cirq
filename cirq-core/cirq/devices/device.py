@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import abc
 from collections.abc import Iterable
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import networkx as nx
 
@@ -41,7 +41,7 @@ class Device(metaclass=abc.ABCMeta):
     These 'exploratory' attributes are all contained within
     the `metadata` attribute.
 
-    Implementors of this class should, at minimum, define
+    Implementers of this class should, at minimum, define
     the `validate_operation` method.  If the device has more
     global constraints (such as not allowing adjacent operations
     or having a maximum depth), then `validate_moment` and
@@ -49,7 +49,7 @@ class Device(metaclass=abc.ABCMeta):
     these methods default to calling `validate_operation` on each
     operation in each moment.
 
-    Optionally, implementors may implement a `metadata` function
+    Optionally, implementers may implement a `metadata` function
     that contains information about the device.  It is recommended
     (but not required) to specify the qubits and connectivity
     using a `cirq.DeviceMetadata` object.   This class can also be
@@ -146,7 +146,7 @@ class DeviceMetadata:
 
         return self._qubits_set, graph_equality
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         graph_payload = nx.readwrite.json_graph.node_link_data(self._nx_graph, edges='links')
         qubits_payload = sorted(self._qubits_set)
 

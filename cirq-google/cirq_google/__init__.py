@@ -24,6 +24,7 @@ from cirq_google.devices import (
     NoiseModelFromGoogleNoiseProperties as NoiseModelFromGoogleNoiseProperties,
     Sycamore as Sycamore,
     Sycamore23 as Sycamore23,
+    Willow105 as Willow105,
 )
 
 from cirq_google.engine import (
@@ -36,6 +37,8 @@ from cirq_google.engine import (
     EngineResult as EngineResult,
     ProtoVersion as ProtoVersion,
     ProcessorSampler as ProcessorSampler,
+    Run as Run,
+    Snapshot as Snapshot,
     ValidatingSampler as ValidatingSampler,
     get_engine as get_engine,
     get_engine_calibration as get_engine_calibration,
@@ -62,6 +65,7 @@ from cirq_google.ops import (
     InternalGate as InternalGate,
     InternalTag as InternalTag,
     LZSResetViaResonator as LZSResetViaResonator,
+    LeakageISWAP as LeakageISWAP,
     MultilevelResetViaResonator as MultilevelResetViaResonator,
     PhysicalZTag as PhysicalZTag,
     SYC as SYC,

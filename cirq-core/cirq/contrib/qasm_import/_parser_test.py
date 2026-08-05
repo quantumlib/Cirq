@@ -1973,14 +1973,14 @@ def test_custom_gate() -> None:
     parsed_qasm = parser.parse(qasm)
     assert parsed_qasm.circuit == expected
 
-    # Sanity check that this unrolls to a valid circuit
+    # Check that this unrolls to a valid circuit
     unrolled_expected = cirq.Circuit(
         cirq.X(q_0), cirq.Y(q_0), cirq.Z(q_1), cirq.X(q_1), cirq.Y(q_1), cirq.Z(q_0)
     )
     unrolled = cirq.align_left(cirq.unroll_circuit_op(parsed_qasm.circuit, tags_to_check=None))
     assert unrolled == unrolled_expected
 
-    # Sanity check that these have the same unitaries as the QASM.
+    # Check that these have the same unitaries as the QASM.
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(parsed_qasm.circuit))
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(unrolled))
 
@@ -2017,7 +2017,7 @@ def test_custom_gate_parameterized() -> None:
     parsed_qasm = parser.parse(qasm)
     assert parsed_qasm.circuit == expected
 
-    # Sanity check that this unrolls to a valid circuit
+    # Check that this unrolls to a valid circuit
     unrolled_expected = cirq.Circuit(
         cirq.Rx(rads=1).on(q_0),
         cirq.Ry(rads=6).on(q_0),
@@ -2029,7 +2029,7 @@ def test_custom_gate_parameterized() -> None:
     unrolled = cirq.align_left(cirq.unroll_circuit_op(parsed_qasm.circuit, tags_to_check=None))
     assert unrolled == unrolled_expected
 
-    # Sanity check that these have the same unitaries as the QASM.
+    # Check that these have the same unitaries as the QASM.
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(parsed_qasm.circuit))
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(unrolled))
 
@@ -2064,7 +2064,7 @@ def test_custom_gate_broadcast() -> None:
     parsed_qasm = parser.parse(qasm)
     assert parsed_qasm.circuit == expected
 
-    # Sanity check that this unrolls to a valid circuit
+    # Check that this unrolls to a valid circuit
     unrolled_expected = cirq.Circuit(
         cirq.X(q_0),
         cirq.Y(q_0),
@@ -2079,7 +2079,7 @@ def test_custom_gate_broadcast() -> None:
     unrolled = cirq.align_left(cirq.unroll_circuit_op(parsed_qasm.circuit, tags_to_check=None))
     assert unrolled == unrolled_expected
 
-    # Sanity check that these have the same unitaries as the QASM.
+    # Check that these have the same unitaries as the QASM.
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(parsed_qasm.circuit))
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(unrolled))
 

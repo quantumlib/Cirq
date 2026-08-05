@@ -213,8 +213,8 @@ def test_apply_mixture_fallback_two_qubit_random() -> None:
 
         expected = 0.5 * rho + 0.5 * np.dot(np.dot(u, rho), np.conjugate(np.transpose(u)))
 
-        rho.shape = (2, 2, 2, 2)
-        expected.shape = (2, 2, 2, 2)
+        rho = np.reshape(rho, (2, 2, 2, 2))
+        expected = np.reshape(expected, (2, 2, 2, 2))
 
         class HasMixture:
             def _mixture_(self):

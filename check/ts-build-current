@@ -15,7 +15,7 @@
 # limitations under the License.
 
 ################################################################################
-# Checks if all bundled files are up to date. 
+# Checks if all bundled files are up to date.
 #
 # Usage:
 #     check/ts-build-changes

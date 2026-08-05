@@ -1301,6 +1301,19 @@ def test_has_unitary_protocol_returns_true_if_all_params_resolve() -> None:
     assert protocols.has_unitary(op)
 
 
+def test_unitary_of_single_qubit_circuit_op() -> None:
+    q0 = cirq.LineQubit(0)
+
+    c = cirq.FrozenCircuit(cirq.X(q0))
+    op = cirq.CircuitOperation(c, repetitions=2)
+    u = protocols.unitary(op)
+    np.testing.assert_array_equal(u, np.eye(2))
+
+    c1 = cirq.FrozenCircuit(cirq.measure(q0))
+    with pytest.raises(TypeError, match="cirq.unitary failed.*"):
+        protocols.unitary(cirq.CircuitOperation(c1))
+
+
 def test_control_keys_respects_internal_measurement_order() -> None:
     q = cirq.LineQubit(0)
 

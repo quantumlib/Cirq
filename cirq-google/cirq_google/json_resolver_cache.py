@@ -60,6 +60,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'WaitGateWithUnit': cirq_google.WaitGateWithUnit,
         'WillowGate': cirq_google.WillowGate,
         'LZSResetViaResonator': cirq_google.LZSResetViaResonator,
+        'LeakageISWAP': cirq_google.LeakageISWAP,
         'MultilevelResetViaResonator': cirq_google.MultilevelResetViaResonator,
         # cirq_google.GateTabulation has been removed and replaced by cirq.TwoQubitGateTabulation.
         'GateTabulation': TwoQubitGateTabulation,
