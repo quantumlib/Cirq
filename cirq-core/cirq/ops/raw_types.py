@@ -916,14 +916,14 @@ class TaggedOperation(Operation):
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         sub_op_info = protocols.circuit_diagram_info(self.sub_operation, args, NotImplemented)
-        if sub_op_info is not NotImplemented and sub_op_info.wire_symbols:
-            tag_text = args.format_tags_for_diagram(self._tags)
-            if tag_text:
-                sub_op_info.wire_symbols = (
-                    sub_op_info.wire_symbols[0] + tag_text,
-                    *sub_op_info.wire_symbols[1:],
-                )
-        return sub_op_info
+        if sub_op_info is NotImplemented or not sub_op_info.wire_symbols:
+            return sub_op_info
+        tag_text = args.format_tags(self._tags)
+        if not tag_text:
+            return sub_op_info
+        return sub_op_info.with_wire_symbols(
+            (sub_op_info.wire_symbols[0] + tag_text, *sub_op_info.wire_symbols[1:])
+        )
 
     @cached_method
     def _trace_distance_bound_(self) -> float:

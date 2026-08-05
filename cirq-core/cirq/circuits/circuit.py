@@ -2847,7 +2847,7 @@ def _draw_moment_in_diagram(
                 label_map=None,
                 include_tags=include_tags,
             )
-            desc = desc + tag_args.format_tags_for_diagram(tags)
+            desc = desc + tag_args.format_tags(tags)
             out_diagram.write(x0, y, desc)
 
     if not non_global_ops:
