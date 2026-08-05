@@ -449,7 +449,7 @@ def create_default_noisy_quantum_virtual_machine(
         except ImportError:
             simulator_class = cirq.Simulator  # pragma: no cover
 
-    load_median_device_calibration(processor_id)
+    calibration = load_median_device_calibration(processor_id)
     device = create_device_from_processor_id(processor_id)
     noise_properties = load_device_noise_properties(processor_id)
     noise_model = NoiseModelFromGoogleNoiseProperties(noise_properties)
@@ -460,6 +460,7 @@ def create_default_noisy_quantum_virtual_machine(
         processor_id=processor_id,
         sampler=simulator,
         device=device,
+        calibrations={calibration.timestamp // 1000: calibration},
         device_specification=device_specification,
     )
 

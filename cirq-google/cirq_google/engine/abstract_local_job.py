@@ -24,7 +24,6 @@ from cirq_google.engine.abstract_job import AbstractJob
 
 if TYPE_CHECKING:
     import cirq
-    import cirq_google.engine.calibration as calibration
     import cirq_google.engine.processor_config as processor_config
     from cirq_google.engine.abstract_local_engine import AbstractLocalEngine
     from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
