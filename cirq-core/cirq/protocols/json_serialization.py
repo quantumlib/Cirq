@@ -234,8 +234,8 @@ class CirqEncoder(json.JSONEncoder):
                 self._memo[o] = ref
                 return {"cirq_type": "VAL", "key": key, "val": json_dict}
             # benchmark - check
-            # return self._cache.setdefault(oid, json_dict)
-            return json_dict
+            return self._cache.setdefault(oid, json_dict)
+            # return json_dict
 
         # Sympy object? (Must come before general number checks.)
         # TODO: More support for sympy
