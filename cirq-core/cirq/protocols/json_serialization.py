@@ -290,12 +290,12 @@ class CirqEncoder(json.JSONEncoder):
             # (note that these are singletons).
             if o is sympy.pi:
                 # benchmark - check
-                return self._cache.setdefault(oid, {'cirq_type': 'sympy.pi'})
-                # return {'cirq_type': 'sympy.pi'}
+                # return self._cache.setdefault(oid, {'cirq_type': 'sympy.pi'})
+                return {'cirq_type': 'sympy.pi'}
             if o is sympy.E:
                 # benchmark - check
-                # return self._cache.setdefault(oid, {'cirq_type': 'sympy.E'})
-                return {'cirq_type': 'sympy.E'}
+                return self._cache.setdefault(oid, {'cirq_type': 'sympy.E'})
+                # return {'cirq_type': 'sympy.E'}
             if o is sympy.EulerGamma:
                 # benchmark - check
                 # return self._cache.setdefault(oid, {'cirq_type': 'sympy.EulerGamma'})
