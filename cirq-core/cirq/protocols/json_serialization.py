@@ -318,8 +318,8 @@ class CirqEncoder(json.JSONEncoder):
             return bool(o)
         if isinstance(o, np.ndarray):
             # benchmark - check
-            return self._cache.setdefault(oid, o.tolist())
-            # return o.tolist()
+            # return self._cache.setdefault(oid, o.tolist())
+            return o.tolist()
 
         # Pandas object?
         if isinstance(o, pd.MultiIndex):
@@ -342,8 +342,8 @@ class CirqEncoder(json.JSONEncoder):
         # datetime
         if isinstance(o, datetime.datetime):
             # benchmark - check
-            # return self._cache.setdefault(oid, {'cirq_type': 'datetime.datetime', 'timestamp': o.timestamp()})
-            return {'cirq_type': 'datetime.datetime', 'timestamp': o.timestamp()}
+            return self._cache.setdefault(oid, {'cirq_type': 'datetime.datetime', 'timestamp': o.timestamp()})
+            # return {'cirq_type': 'datetime.datetime', 'timestamp': o.timestamp()}
 
         return super().default(o)  # pragma: no cover
 
