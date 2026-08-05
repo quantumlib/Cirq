@@ -10,7 +10,6 @@ permissions:
 
 jobs:
   apply:
-    if: github.event.head_commit.message == 'chore: apply requested review fixes'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,10 +31,13 @@ jobs:
           text = text.replace('self.tag_diagram_str(tag)', 'self._tag_diagram_str(tag)')
           protocol.write_text(text)
 
-          files = subprocess.check_output(
-              ['git', 'grep', '-l', 'format_tags_for_diagram'], text=True
-          ).splitlines()
-          for filename in files:
+          result = subprocess.run(
+              ['git', 'grep', '-l', 'format_tags_for_diagram'],
+              text=True,
+              capture_output=True,
+              check=False,
+          )
+          for filename in result.stdout.splitlines():
               path = Path(filename)
               path.write_text(path.read_text().replace('format_tags_for_diagram(', 'format_tags('))
 
