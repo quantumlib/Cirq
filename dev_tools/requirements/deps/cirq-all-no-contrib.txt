@@ -1,8 +1,9 @@
-# captures all the modules
+# install all cirq sub-packages in editable mode
 
--r ../../../cirq-aqt/requirements.txt
--r ../../../cirq-core/requirements.txt
--r ../../../cirq-google/requirements.txt
--r ../../../cirq-ionq/requirements.txt
--r ../../../cirq-pasqal/requirements.txt
--r ../../../cirq-web/requirements.txt
+# paths are relative to the pip run directory
+-e ./cirq-aqt
+-e ./cirq-core
+-e ./cirq-google
+-e ./cirq-ionq
+-e ./cirq-pasqal
+-e ./cirq-web

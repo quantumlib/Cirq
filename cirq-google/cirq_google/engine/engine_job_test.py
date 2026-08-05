@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import datetime
+from http import HTTPStatus
 from unittest import mock
 
 import duet
@@ -26,7 +27,7 @@ import cirq
 import cirq_google as cg
 from cirq_google.api import v1, v2
 from cirq_google.cloud import quantum
-from cirq_google.engine import util
+from cirq_google.engine import EngineException, util
 from cirq_google.engine.engine import EngineContext
 from cirq_google.engine.stream_manager import StreamError
 
@@ -557,6 +558,120 @@ def test_get_calibration_no_calibration(get_job):
     get_job.assert_called_once()
 
 
+def test_get_config_not_set():
+    qjob = quantum.QuantumJob(
+        execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS)
+    )
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+    with pytest.raises(ValueError, match="device_config_key is not set.*state: SUCCESS"):
+        _ = job.get_config()
+
+
+def test_get_config_non_terminal():
+    qjob = quantum.QuantumJob(
+        execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.RUNNING)
+    )
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+    with pytest.warns(UserWarning, match="RUNNING"):
+        assert job.get_config() is None
+
+
+@pytest.mark.parametrize(
+    "key_kwargs", [{"config_alias": "alias1"}, {"run": "run1"}, {"snapshot_id": "snapshot1"}]
+)
+def test_get_config_incomplete(key_kwargs):
+    qjob = quantum.QuantumJob(
+        execution_status=quantum.ExecutionStatus(
+            state=quantum.ExecutionStatus.State.SUCCESS,
+            device_config_key=quantum.DeviceConfigKey(**key_kwargs),
+        )
+    )
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+    with pytest.raises(
+        ValueError, match="must have both `config_alias` and either `snapshot_id` or `run` set"
+    ):
+        _ = job.get_config()
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_async')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_async')
+def test_get_config_success(get_quantum_processor_config, get_job):
+    qjob = quantum.QuantumJob(
+        execution_status=quantum.ExecutionStatus(
+            state=quantum.ExecutionStatus.State.SUCCESS,
+            processor_name='projects/a/processors/p',
+            device_config_key=quantum.DeviceConfigKey(run='run1', config_alias='alias1'),
+        )
+    )
+
+    get_job.return_value = qjob
+
+    mock_config = quantum.QuantumProcessorConfig(
+        name='projects/a/processors/p/configSnapshots/snapshot1/configs/alias1'
+    )
+    get_quantum_processor_config.return_value = mock_config
+
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext())
+    config = job.get_config()
+
+    assert config is not None
+    assert config._quantum_processor_config == mock_config
+    get_job.assert_called_once()
+    get_quantum_processor_config.assert_called_once_with(
+        project_id='a',
+        processor_id='p',
+        device_config_revision=cg.Run('run1'),
+        config_name='alias1',
+    )
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_async')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_quantum_processor_config_async')
+def test_get_config_snapshot_success(get_quantum_processor_config, get_job):
+    qjob = quantum.QuantumJob(
+        execution_status=quantum.ExecutionStatus(
+            state=quantum.ExecutionStatus.State.SUCCESS,
+            processor_name='projects/a/processors/p',
+            device_config_key=quantum.DeviceConfigKey(
+                snapshot_id='snapshot1', config_alias='alias1'
+            ),
+        )
+    )
+    get_job.return_value = qjob
+
+    mock_config = quantum.QuantumProcessorConfig(
+        name='projects/a/processors/p/configSnapshots/snapshot1/configs/alias1'
+    )
+    get_quantum_processor_config.return_value = mock_config
+
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext())
+    config = job.get_config()
+
+    assert config is not None
+    assert config._quantum_processor_config == mock_config
+    get_job.assert_called_once()
+    get_quantum_processor_config.assert_called_once_with(
+        project_id='a',
+        processor_id='p',
+        device_config_revision=cg.Snapshot('snapshot1'),
+        config_name='alias1',
+    )
+
+
+def test_get_config_no_processor_name():
+    qjob = quantum.QuantumJob(
+        execution_status=quantum.ExecutionStatus(
+            state=quantum.ExecutionStatus.State.SUCCESS,
+            device_config_key=quantum.DeviceConfigKey(
+                snapshot_id='snapshot1', config_alias='alias1'
+            ),
+        )
+    )
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+    with pytest.raises(ValueError, match="Processor name is not set in job status."):
+        _ = job.get_config()
+
+
 @mock.patch('cirq_google.engine.engine_client.EngineClient.cancel_job_async')
 def test_cancel(cancel_job):
     job = cg.EngineJob('a', 'b', 'steve', EngineContext())
@@ -799,6 +914,76 @@ def test_on_stream_failure_retrieves_results_using_get_job_results(get_job_resul
     get_job_results.assert_called_once_with('a', 'b', 'steve')
 
 
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_async')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
+def test_recreate_job_if_not_found(get_job_results, get_job):
+    project_id = 'a'
+    program_id = 'b'
+    job_id = 'steve'
+    context = EngineContext(timeout=60, enable_streaming=False)
+
+    get_job.side_effect = EngineException('job not found', HTTPStatus.NOT_FOUND)
+
+    async def recreate_job():
+        qjob = quantum.QuantumJob(
+            execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS),
+            update_time=UPDATE_TIME,
+        )
+        get_job.side_effect = None
+        get_job.return_value = qjob
+        get_job_results.return_value = RESULTS
+        return cg.EngineJob(
+            project_id=project_id,
+            program_id=program_id,
+            job_id=job_id,
+            context=context,
+            _job=qjob,
+            job_result_future=None,
+            recreate_job=None,
+        )
+
+    job = cg.EngineJob(
+        project_id=project_id,
+        program_id=program_id,
+        job_id=job_id,
+        context=context,
+        _job=None,
+        job_result_future=None,
+        recreate_job=recreate_job,
+    )
+    data = job.results()
+
+    assert len(data) == 2
+    assert str(data[0]) == 'q=0110'
+    assert str(data[1]) == 'q=1010'
+    get_job.assert_has_calls((mock.call(project_id, program_id, job_id, False),))
+    get_job_results.assert_called_once_with(project_id, program_id, job_id)
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_async')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
+def test_receive_results_get_job_error_propagated(get_job_results, get_job):
+    project_id = 'a'
+    program_id = 'b'
+    job_id = 'steve'
+    context = EngineContext(timeout=60, enable_streaming=False)
+
+    get_job.side_effect = EngineException('internal error', HTTPStatus.INTERNAL_SERVER_ERROR)
+
+    job = cg.EngineJob(
+        project_id=project_id,
+        program_id=program_id,
+        job_id=job_id,
+        context=context,
+        _job=None,
+        job_result_future=None,
+    )
+
+    with pytest.raises(EngineException) as exc_info:
+        job.results()
+    assert exc_info.value.code == HTTPStatus.INTERNAL_SERVER_ERROR
+
+
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
 def test_results_len(get_job_results):
     qjob = quantum.QuantumJob(
@@ -851,3 +1036,56 @@ async def test_get_circuit_async():
         get_circuit_async.return_value = circuit
         assert await job.get_circuit_async(1) is circuit
         get_circuit_async.assert_called_with(1)
+
+
+@mock.patch('cirq_google.engine.engine_program.EngineProgram.is_batch_async')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
+def test_batched_results_non_batch_job_raises(get_job_results, mock_is_batch):
+    mock_is_batch.return_value = False
+    qjob = quantum.QuantumJob(
+        execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS),
+        update_time=UPDATE_TIME,
+    )
+    get_job_results.return_value = RESULTS
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+    with pytest.raises(ValueError, match='batched_results called for a non-batch program'):
+        _ = job.batched_results()
+
+
+@mock.patch('cirq_google.engine.engine_program.EngineProgram.is_batch_async')
+@mock.patch('cirq_google.engine.engine_program.EngineProgram.batch_size_async')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
+def test_batched_results_batch_job(get_job_results, mock_batch_size, mock_is_batch):
+    mock_is_batch.return_value = True
+    mock_batch_size.return_value = 2
+    qjob = quantum.QuantumJob(
+        execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS),
+        update_time=UPDATE_TIME,
+    )
+    get_job_results.return_value = RESULTS_NON_UNIFORM
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+
+    batched = job.batched_results()
+    assert len(batched) == 2
+    assert len(batched[0]) == 1
+    assert len(batched[1]) == 1
+    assert len(batched[0][0].measurements['q']) == 10
+    assert len(batched[1][0].measurements['q']) == 20
+    assert batched[0][0].job_id == 'steve'
+    assert batched[1][0].job_id == 'steve'
+
+
+@mock.patch('cirq_google.engine.engine_program.EngineProgram.is_batch_async')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
+def test_batched_results_batch_job_v1_raises(get_job_results, mock_is_batch):
+    mock_is_batch.return_value = True
+    qjob = quantum.QuantumJob(
+        execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS),
+        update_time=UPDATE_TIME,
+    )
+    v1_result = quantum.QuantumResult(result=util.pack_any(v1.program_pb2.Result()))
+    get_job_results.return_value = v1_result
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+
+    with pytest.raises(ValueError, match='batched_results was not populated for this batch job'):
+        _ = job.batched_results()

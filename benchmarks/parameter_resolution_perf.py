@@ -23,7 +23,8 @@ import cirq
 
 
 @pytest.mark.parametrize(
-    ["num_qubits", "num_scan_points"], itertools.product([50, 100, 150, 200], [20, 40, 60, 80, 100])
+    ["num_qubits", "num_scan_points"],
+    list(itertools.product([50, 100, 150, 200], [20, 40, 60, 80, 100])),
 )
 @pytest.mark.benchmark(group="parameter_resolution")
 def test_parameter_resolution(benchmark, num_qubits: int, num_scan_points: int) -> None:

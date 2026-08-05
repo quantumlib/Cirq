@@ -128,7 +128,7 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         self, ccz_gate: cirq.CCZPowGate, qubits: tuple[cirq.Qid, ...]
     ) -> cirq.OP_TREE:
         """Decomposition of all-to-all connected qubits are different from line
-         qubits or grid qubits, ckeckout IonQTargetGateset.
+         qubits or grid qubits, checkout IonQTargetGateset.
 
         For example, for qubits in the same ion trap, the decomposition of CCZ
         gate will be:

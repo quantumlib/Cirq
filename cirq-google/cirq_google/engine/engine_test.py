@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import datetime
 import time
+from http import HTTPStatus
 from unittest import mock
 
 import duet
@@ -31,7 +32,7 @@ import cirq_google
 import cirq_google as cg
 from cirq_google.api import v1, v2
 from cirq_google.cloud import quantum
-from cirq_google.engine import util
+from cirq_google.engine import EngineException, util
 from cirq_google.engine.engine import EngineContext
 from cirq_google.engine.processor_config import Run, Snapshot
 
@@ -574,6 +575,80 @@ def test_run_sweep_params_with_unary_rpcs(client):
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_run_sweep_program_already_exists(client):
+    program_id = 'prog'
+    client().create_program_async.side_effect = EngineException(
+        "program already exists", HTTPStatus.CONFLICT
+    )
+
+    client().create_job_async.return_value = (
+        'job-id',
+        quantum.QuantumJob(
+            name=f"projects/proj/programs/{program_id}/jobs/job-id",
+            execution_status={'state': 'READY'},
+        ),
+    )
+    client().get_job_async.return_value = quantum.QuantumJob(
+        execution_status={'state': 'SUCCESS'}, update_time=_DT
+    )
+    client().get_job_results_async.return_value = quantum.QuantumResult(result=_RESULTS)
+
+    engine = cg.Engine(project_id='proj', context=EngineContext(enable_streaming=False))
+    job = engine.run_sweep(
+        program=_CIRCUIT,
+        program_id=program_id,
+        processor_id='processor0',
+        params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})],
+    )
+    results = job.results()
+
+    assert len(results) == 2
+    for i, v in enumerate([1, 2]):
+        assert results[i].repetitions == 1
+        assert results[i].params.param_dict == {'a': v}
+        assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
+
+    client().create_program_async.assert_called_once()
+    client().create_job_async.assert_called_once()
+    client().get_job_async.assert_called_once()
+    client().get_job_results_async.assert_called_once()
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_run_sweep_program_with_implicit_id_already_exists(client):
+    client().create_program_async.side_effect = EngineException(
+        "program already exists", HTTPStatus.CONFLICT
+    )
+    engine = cg.Engine(project_id='proj', context=EngineContext(enable_streaming=False))
+
+    with pytest.raises(EngineException) as exc_info:
+        engine.run_sweep(
+            program=_CIRCUIT,
+            processor_id='processor0',
+            params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})],
+        )
+    assert exc_info.value.code == HTTPStatus.CONFLICT
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_run_sweep_unable_to_create_program_raises_error(client):
+    program_id = 'prog'
+    client().create_program_async.side_effect = EngineException(
+        "internal error", HTTPStatus.INTERNAL_SERVER_ERROR
+    )
+    engine = cg.Engine(project_id='proj', context=EngineContext(enable_streaming=False))
+
+    with pytest.raises(EngineException) as exc_info:
+        engine.run_sweep(
+            program=_CIRCUIT,
+            program_id=program_id,
+            processor_id='processor0',
+            params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})],
+        )
+    assert exc_info.value.code == HTTPStatus.INTERNAL_SERVER_ERROR
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_sweep_params_with_stream_rpcs(client):
     setup_run_circuit_with_result_(client, _RESULTS)
 
@@ -839,6 +914,16 @@ def test_get_sampler_initializes_max_concurrent_jobs():
     assert sampler.max_concurrent_jobs == max_concurrent_jobs
 
 
+def test_get_sampler_initializes_jobs_per_batch():
+    engine = cg.Engine(project_id='proj')
+    sampler_default = engine.get_sampler(processor_id='tmp')
+    assert sampler_default._jobs_per_batch == 1
+
+    jobs_per_batch = 5
+    sampler = engine.get_sampler(processor_id='tmp', jobs_per_batch=jobs_per_batch)
+    assert sampler._jobs_per_batch == jobs_per_batch
+
+
 def test_get_sampler_from_run_name():
     processor_id = 'test_processor_id'
     run = Run(id="test_run_name")
@@ -1096,7 +1181,6 @@ def test_list_processor_configs_from_run(list_processor_configs_async):
 def test_list_processor_configs_from_run_default(list_processor_configs_async):
     project_id = "test_project_id"
     processor_id = "test_processor_id"
-    default_run = Run(id="current")
     snapshot_id = "test_snapshot_id"
     response_parent_resource = (
         f'projects/{project_id}/processors/{processor_id}/configSnapshots/{snapshot_id}'
@@ -1111,14 +1195,14 @@ def test_list_processor_configs_from_run_default(list_processor_configs_async):
     results = cg.Engine(project_id=project_id).list_processor_configs(processor_id=processor_id)
 
     list_processor_configs_async.assert_called_once_with(
-        project_id=project_id, processor_id=processor_id, device_config_revision=default_run
+        project_id=project_id, processor_id=processor_id, device_config_revision=Run(id='default')
     )
     assert [
         (config.config_name, config.processor_id, config.run_name, config.snapshot_id)
         for config in results
     ] == [
-        ('test_config_1', processor_id, default_run.id, snapshot_id),
-        ('test_config_2', processor_id, default_run.id, snapshot_id),
+        ('test_config_1', processor_id, 'default', snapshot_id),
+        ('test_config_2', processor_id, 'default', snapshot_id),
     ]
 
 
@@ -1191,3 +1275,142 @@ def test_engine_create_program_multi(client_mock):
     # program is not AbstractCircuit (it's a list)
     engine.create_program([_CIRCUIT], 'prog')
     client_mock().create_program_async.assert_called_once()
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_engine_compile_circuit(client_mock):
+    expected_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(1, 1)))
+    client_mock().compile_circuit_async.return_value = expected_circuit
+
+    engine = cg.Engine(project_id='proj')
+    stim_circuit = "H 0\nCNOT 0 1\nM 0 1"
+    qec_recipe = ["recipe1"]
+    processor_id = "test_processor_id"
+    snapshot = Snapshot(id="snap_1")
+    config_name = "test_config"
+
+    result = engine.compile_circuit(
+        stim_circuit=stim_circuit,
+        qec_recipe=qec_recipe,
+        processor_id=processor_id,
+        device_config_revision=snapshot,
+        config_name=config_name,
+    )
+    assert result == expected_circuit
+    client_mock().compile_circuit_async.assert_called_once_with(
+        project_id='proj',
+        stim_circuit=stim_circuit,
+        qec_recipe=qec_recipe,
+        processor_id=processor_id,
+        device_config_revision=snapshot,
+        config_name=config_name,
+    )
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_engine_compile_circuit_with_stim_circuit(client_mock):
+    stim = pytest.importorskip("stim")
+    expected_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(1, 1)))
+    client_mock().compile_circuit_async.return_value = expected_circuit
+
+    engine = cg.Engine(project_id='proj')
+    stim_circuit = stim.Circuit("H 0\nCNOT 0 1\nM 0 1")
+    qec_recipe = ["recipe1"]
+    processor_id = "test_processor_id"
+
+    result = engine.compile_circuit(
+        stim_circuit=stim_circuit, qec_recipe=qec_recipe, processor_id=processor_id
+    )
+    assert result == expected_circuit
+    client_mock().compile_circuit_async.assert_called_once_with(
+        project_id='proj',
+        stim_circuit=stim_circuit,
+        qec_recipe=qec_recipe,
+        processor_id=processor_id,
+        config_name='default',
+        device_config_revision=Run(id='default'),
+    )
+
+
+def _setup_calibrate_mocks(client_mock):
+    client_mock().calibrate_for_circuit_async.return_value = quantum.QuantumJob(
+        name="projects/proj/programs/test_prog/jobs/test_job"
+    )
+    client_mock().get_job_async.return_value = quantum.QuantumJob(
+        name="projects/proj/programs/test_prog/jobs/test_job",
+        execution_status={'state': 'SUCCESS'},
+        update_time=_DT,
+    )
+    client_mock().get_job_results_async.return_value = quantum.QuantumResult(
+        result=util.pack_any(
+            v2.result_pb2.QuantumCircuitCalibration(
+                calibrated_parameters=v2.result_pb2.ParameterDict(assignments={'theta': 0.5})
+            )
+        )
+    )
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_engine_calibrate_for_circuit(client_mock):
+    expected_resolver = cirq.ParamResolver({'theta': 0.5})
+    _setup_calibrate_mocks(client_mock)
+
+    engine = cg.Engine(project_id='proj')
+    qec_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(0, 0)))
+    processor_id = "test_processor_id"
+    snapshot = Snapshot(id="snap_1")
+    config_name = "test_config"
+
+    result = engine.calibrate_for_circuit(
+        qec_circuit=qec_circuit,
+        processor_id=processor_id,
+        device_config_revision=snapshot,
+        config_name=config_name,
+    )
+    assert result == expected_resolver
+    client_mock().calibrate_for_circuit_async.assert_called_once_with(
+        project_id='proj',
+        qec_circuit=qec_circuit,
+        processor_id=processor_id,
+        device_config_revision=snapshot,
+        config_name=config_name,
+    )
+    client_mock().get_job_async.assert_called_once_with('proj', 'test_prog', 'test_job', False)
+    client_mock().get_job_results_async.assert_called_once_with('proj', 'test_prog', 'test_job')
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_engine_calibrate_for_circuit_defaults(client_mock):
+    expected_resolver = cirq.ParamResolver({'theta': 0.5})
+    _setup_calibrate_mocks(client_mock)
+
+    engine = cg.Engine(project_id='proj')
+    qec_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(0, 0)))
+    processor_id = "test_processor_id"
+
+    result = engine.calibrate_for_circuit(qec_circuit=qec_circuit, processor_id=processor_id)
+    assert result == expected_resolver
+    client_mock().calibrate_for_circuit_async.assert_called_once_with(
+        project_id='proj',
+        qec_circuit=qec_circuit,
+        processor_id=processor_id,
+        device_config_revision=Run(id='current'),
+        config_name="default",
+    )
+    client_mock().get_job_async.assert_called_once_with('proj', 'test_prog', 'test_job', False)
+    client_mock().get_job_results_async.assert_called_once_with('proj', 'test_prog', 'test_job')
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_engine_calibrate_for_circuit_no_results_raises(client_mock):
+    _setup_calibrate_mocks(client_mock)
+    client_mock().get_job_results_async.return_value = quantum.QuantumResult(
+        result=util.pack_any(v2.result_pb2.Result())
+    )
+
+    engine = cg.Engine(project_id='proj')
+    qec_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(0, 0)))
+    processor_id = "test_processor_id"
+
+    with pytest.raises(ValueError, match="No calibration results returned for job test_job."):
+        engine.calibrate_for_circuit(qec_circuit=qec_circuit, processor_id=processor_id)

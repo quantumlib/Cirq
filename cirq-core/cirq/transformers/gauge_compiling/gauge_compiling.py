@@ -171,8 +171,10 @@ class TwoQubitGateSymbolizer:
         return self.symbolizer_fn(two_qubit_gate, symbols)
 
 
-def _select(choices: Sequence[Gauge], probabilites: np.ndarray, prng: np.random.Generator) -> Gauge:
-    return choices[prng.choice(len(choices), p=probabilites)]
+def _select(
+    choices: Sequence[Gauge], probabilities: np.ndarray, prng: np.random.Generator
+) -> Gauge:
+    return choices[prng.choice(len(choices), p=probabilities)]
 
 
 @dataclass(frozen=True)
@@ -435,7 +437,7 @@ def _gate_sequence_to_phxz_params(
         if not has_unitary(gate) or gate.num_qubits() != 1:
             raise ValueError(
                 "Invalid gate sequence to be converted to PhasedXZGate."
-                f"Found incompatiable gate {gate} in sequence."
+                f"Found incompatible gate {gate} in sequence."
             )
     phxz = (
         single_qubit_decompositions.single_qubit_matrix_to_phxz(

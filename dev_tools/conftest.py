@@ -20,6 +20,7 @@ import shutil
 import sys
 import tempfile
 import uuid
+from collections.abc import Callable
 from pathlib import Path
 from unittest import mock
 
@@ -28,6 +29,7 @@ from filelock import FileLock
 
 from dev_tools import shell_tools
 from dev_tools.env_tools import create_virtual_env
+from dev_tools.notebooks.utils import create_parallel_scheduler
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -134,3 +136,13 @@ def cloned_env(testrun_uid, worker_id):
             raise
 
     return base_env_creator
+
+
+@pytest.fixture(scope="session")
+def papermill_scheduler(
+    tmp_path_factory: pytest.TempPathFactory,
+) -> Callable[[], tuple[float, float]]:
+    queuefile = tmp_path_factory.getbasetemp().parent.joinpath("papermill_scheduler_queue.tmp")
+    worker_count = int(os.environ.get("PYTEST_XDIST_WORKER_COUNT", "0"))
+    interval = 1.0 if worker_count > 1 else 0.0
+    return create_parallel_scheduler(queuefile, interval)

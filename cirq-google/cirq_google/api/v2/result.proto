@@ -16,6 +16,12 @@ message Result {
   repeated SweepResult sweep_results = 1;
 }
 
+// The result of a process which determines optimal values for a subset of the parameters in a given
+// parameterized circuit.
+message QuantumCircuitCalibration {
+    ParameterDict calibrated_parameters = 1;
+}
+
 // The measurement results for a particular ParameterSweep.
 message SweepResult {
   // The total number of repetitions that were performed for this sweep.
@@ -81,7 +87,7 @@ message QubitMeasurementResult {
   bytes results = 2;
 }
 
-// A point sampled during a parameter sweep.
+// A concrete assignment of values for a set of parameters.
 message ParameterDict {
   // Maps sweep parameter names to values.
   map<string, float> assignments = 1;

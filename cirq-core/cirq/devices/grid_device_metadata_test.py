@@ -34,12 +34,17 @@ def test_griddevice_metadata() -> None:
         # omitting cirq.CZ
     }
     target_gatesets = (cirq.CZTargetGateset(),)
+    qubit_attributes: dict[cirq.GridQubit, dict[str, cirq.devices.QubitAttributeValue]] = {
+        cirq.GridQubit(0, 0): {"type": "transmon", "frequency": 5.1},
+        cirq.GridQubit(0, 1): {"index": 42},
+    }
     metadata = cirq.GridDeviceMetadata(
         qubit_pairs,
         gateset,
         gate_durations=gate_durations,
         all_qubits=qubits + isolated_qubits,
         compilation_target_gatesets=target_gatesets,
+        qubit_attributes=qubit_attributes,
     )
     expected_pairings = frozenset(
         {
@@ -63,6 +68,7 @@ def test_griddevice_metadata() -> None:
     assert metadata.gate_durations == gate_durations
     assert metadata.isolated_qubits == frozenset(isolated_qubits)
     assert metadata.compilation_target_gatesets == target_gatesets
+    assert metadata.qubit_attributes == qubit_attributes
 
 
 def test_griddevice_metadata_bad_durations() -> None:
@@ -116,6 +122,21 @@ def test_griddevice_json_load() -> None:
     )
     rep_str = cirq.to_json(metadata)
     assert metadata == cirq.read_json(json_text=rep_str)
+
+    qubit_attributes: dict[cirq.GridQubit, dict[str, cirq.devices.QubitAttributeValue]] = {
+        cirq.GridQubit(0, 0): {"type": "transmon", "frequency": 5.1},
+        cirq.GridQubit(0, 1): {"index": 42},
+    }
+    metadata2 = cirq.GridDeviceMetadata(
+        qubit_pairs,
+        gateset,
+        gate_durations=duration,
+        all_qubits=qubits + isolated_qubits,
+        compilation_target_gatesets=target_gatesets,
+        qubit_attributes=qubit_attributes,
+    )
+    rep_str2 = cirq.to_json(metadata2)
+    assert metadata2 == cirq.read_json(json_text=rep_str2)
 
 
 def test_griddevice_json_load_with_defaults() -> None:
@@ -171,6 +192,21 @@ def test_griddevice_metadata_equality() -> None:
         qubit_pairs, gateset, compilation_target_gatesets=set(target_gatesets)
     )
 
+    qubit_attributes: dict[cirq.GridQubit, dict[str, cirq.devices.QubitAttributeValue]] = {
+        cirq.GridQubit(0, 0): {"type": "transmon", "frequency": 5.1},
+        cirq.GridQubit(0, 1): {"index": 42},
+    }
+    qubit_attributes2: dict[cirq.GridQubit, dict[str, cirq.devices.QubitAttributeValue]] = {
+        cirq.GridQubit(0, 0): {"type": "transmon", "frequency": 5.1},
+        cirq.GridQubit(0, 1): {"index": 43},  # different index
+    }
+    metadata11 = cirq.GridDeviceMetadata(
+        qubit_pairs, gateset, gate_durations=duration, qubit_attributes=qubit_attributes
+    )
+    metadata12 = cirq.GridDeviceMetadata(
+        qubit_pairs, gateset, gate_durations=duration, qubit_attributes=qubit_attributes2
+    )
+
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(metadata)
     eq.add_equality_group(metadata2)
@@ -178,6 +214,8 @@ def test_griddevice_metadata_equality() -> None:
     eq.add_equality_group(metadata4)
     eq.add_equality_group(metadata6)
     eq.add_equality_group(metadata7, metadata8, metadata9, metadata10)
+    eq.add_equality_group(metadata11)
+    eq.add_equality_group(metadata12)
 
     assert metadata == metadata5
 
@@ -202,3 +240,17 @@ def test_repr() -> None:
         compilation_target_gatesets=target_gatesets,
     )
     cirq.testing.assert_equivalent_repr(metadata)
+
+    qubit_attributes: dict[cirq.GridQubit, dict[str, cirq.devices.QubitAttributeValue]] = {
+        cirq.GridQubit(0, 0): {"type": "transmon", "frequency": 5.1},
+        cirq.GridQubit(0, 1): {"index": 42},
+    }
+    metadata2 = cirq.GridDeviceMetadata(
+        qubit_pairs,
+        gateset,
+        gate_durations=duration,
+        all_qubits=qubits + isolated_qubits,
+        compilation_target_gatesets=target_gatesets,
+        qubit_attributes=qubit_attributes,
+    )
+    cirq.testing.assert_equivalent_repr(metadata2)

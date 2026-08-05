@@ -11,10 +11,10 @@ import builtins as _builtins
 import sys
 import typing as _typing
 
-if sys.version_info >= (3, 10):
-    from typing import TypeAlias as _TypeAlias
+if sys.version_info >= (3, 11):
+    from typing import TypeAlias as _TypeAlias, Never as _Never
 else:
-    from typing_extensions import TypeAlias as _TypeAlias
+    from typing_extensions import TypeAlias as _TypeAlias, Never as _Never
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -52,6 +52,7 @@ class ParameterSweep(_message.Message):
     def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
     _ClearFieldArgType: _TypeAlias = _typing.Literal["repetitions", b"repetitions", "sweep", b"sweep"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def WhichOneof(self, oneof_group: _Never) -> None: ...
 
 Global___ParameterSweep: _TypeAlias = ParameterSweep  # noqa: Y015
 
@@ -84,8 +85,11 @@ class ProductSweep(_message.Message):
         *,
         factors: _abc.Iterable[Global___ZipSweep] | None = ...,
     ) -> None: ...
+    _HasFieldArgType: _TypeAlias = _Never  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
     _ClearFieldArgType: _TypeAlias = _typing.Literal["factors", b"factors"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def WhichOneof(self, oneof_group: _Never) -> None: ...
 
 Global___ProductSweep: _TypeAlias = ProductSweep  # noqa: Y015
 
@@ -116,8 +120,11 @@ class ZipSweep(_message.Message):
         *,
         sweeps: _abc.Iterable[Global___SingleSweep] | None = ...,
     ) -> None: ...
+    _HasFieldArgType: _TypeAlias = _Never  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
     _ClearFieldArgType: _TypeAlias = _typing.Literal["sweeps", b"sweeps"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def WhichOneof(self, oneof_group: _Never) -> None: ...
 
 Global___ZipSweep: _TypeAlias = ZipSweep  # noqa: Y015
 
@@ -173,8 +180,11 @@ class Points(_message.Message):
         *,
         points: _abc.Iterable[_builtins.float] | None = ...,
     ) -> None: ...
+    _HasFieldArgType: _TypeAlias = _Never  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
     _ClearFieldArgType: _TypeAlias = _typing.Literal["points", b"points"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def WhichOneof(self, oneof_group: _Never) -> None: ...
 
 Global___Points: _TypeAlias = Points  # noqa: Y015
 
@@ -208,8 +218,11 @@ class Linspace(_message.Message):
         last_point: _builtins.float = ...,
         num_points: _builtins.int = ...,
     ) -> None: ...
+    _HasFieldArgType: _TypeAlias = _Never  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
     _ClearFieldArgType: _TypeAlias = _typing.Literal["first_point", b"first_point", "last_point", b"last_point", "num_points", b"num_points"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def WhichOneof(self, oneof_group: _Never) -> None: ...
 
 Global___Linspace: _TypeAlias = Linspace  # noqa: Y015
 
@@ -233,8 +246,11 @@ class ParameterDict(_message.Message):
             key: _builtins.str = ...,
             value: _builtins.float = ...,
         ) -> None: ...
+        _HasFieldArgType: _TypeAlias = _Never  # noqa: Y015
+        def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
         _ClearFieldArgType: _TypeAlias = _typing.Literal["key", b"key", "value", b"value"]  # noqa: Y015
         def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+        def WhichOneof(self, oneof_group: _Never) -> None: ...
 
     ASSIGNMENTS_FIELD_NUMBER: _builtins.int
     @_builtins.property
@@ -246,7 +262,10 @@ class ParameterDict(_message.Message):
         *,
         assignments: _abc.Mapping[_builtins.str, _builtins.float] | None = ...,
     ) -> None: ...
+    _HasFieldArgType: _TypeAlias = _Never  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
     _ClearFieldArgType: _TypeAlias = _typing.Literal["assignments", b"assignments"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def WhichOneof(self, oneof_group: _Never) -> None: ...
 
 Global___ParameterDict: _TypeAlias = ParameterDict  # noqa: Y015

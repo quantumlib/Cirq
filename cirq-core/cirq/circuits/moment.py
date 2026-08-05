@@ -42,7 +42,7 @@ text_diagram_drawer = LazyLoader(
 def _default_breakdown(qid: cirq.Qid) -> tuple[Any, Any]:
     # Attempt to convert into a position on the complex plane.
     try:
-        plane_pos = complex(qid)  # type: ignore
+        plane_pos = complex(qid)  # type: ignore[call-overload]
         return plane_pos.real, plane_pos.imag
     except TypeError:
         return None, qid

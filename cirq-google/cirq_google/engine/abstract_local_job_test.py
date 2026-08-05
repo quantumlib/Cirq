@@ -53,6 +53,9 @@ class NothingJob(AbstractLocalJob):
     async def results_async(self) -> Sequence[EngineResult]:
         return []  # pragma: no cover
 
+    async def batched_results_async(self) -> Sequence[Sequence[EngineResult]]:
+        return []  # pragma: no cover
+
 
 def test_description_and_labels():
     job = NothingJob(
@@ -153,3 +156,16 @@ def test_get_circuit():
     mock_program.get_circuit.assert_called_with(None)
     assert job.get_circuit(1) == circuit
     mock_program.get_circuit.assert_called_with(1)
+
+
+def test_get_config():
+    mock_config = mock.Mock()
+    job = NothingJob(
+        job_id='test',
+        processor_id='pot_of_gold',
+        parent_program=None,
+        repetitions=100,
+        sweeps=[],
+        processor_config=mock_config,
+    )
+    assert job.get_config() == mock_config

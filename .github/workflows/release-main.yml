@@ -5,21 +5,23 @@ on:
     branches:
       - main
 
-# Declare default permissions as read only.
-permissions: read-all
+permissions: {}
 
 jobs:
   push_to_pypi:
     if: github.repository == 'quantumlib/Cirq'
     name: Push to PyPI
+    permissions:
+      contents: read
+      pull-requests: read
     runs-on: ubuntu-22.04
     env:
       NAME: dev-release
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 2
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.11'
           architecture: 'x64'
@@ -44,7 +46,7 @@ jobs:
         if: steps.check-labels.outputs.has_no_release != 'true'
         run: |
           python -m pip install --upgrade pip
-          pip install --upgrade setuptools wheel twine
+          pip install --upgrade setuptools twine
       - name: Create PyPI config file
         if: steps.check-labels.outputs.has_no_release != 'true'
         env:

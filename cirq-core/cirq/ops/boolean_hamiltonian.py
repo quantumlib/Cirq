@@ -25,18 +25,82 @@ References:
 
 from __future__ import annotations
 
+import ast
 import functools
 import itertools
+import operator
 from collections.abc import Generator, Sequence
 from typing import Any
 
-import sympy.parsing.sympy_parser as sympy_parser
+import sympy
 
 import cirq
 from cirq import value
 from cirq.ops import raw_types
 from cirq.ops.linear_combinations import PauliSum
 from cirq.ops.pauli_string import PauliString
+
+# Binary boolean operators accepted in a boolean expression.
+_BINOP_OPERATORS = {ast.BitAnd: operator.and_, ast.BitOr: operator.or_, ast.BitXor: operator.xor}
+
+
+def _ast_to_sympy_expr(node: ast.AST, symbols: dict[str, sympy.Symbol]) -> sympy.Basic:
+    """Safely evaluates SymPy boolean expression from a parsed AST node.
+
+    Only the name references to `symbols` and the boolean operators `~`, `&`, `|`, `^`
+    (not, and, or, xor) are permitted.  Any other syntax raises `ValueError`.
+    The expression is constructed from the AST tree avoiding the unsafe `eval` call.
+
+    Args:
+        node: The AST node to be evaluated.
+        symbols: The dictionary of `sympy.Symbol` names allowed in the node hierarchy.
+    """
+    if isinstance(node, ast.Name):
+        if (symbol := symbols.get(node.id)) is None:
+            raise ValueError(
+                f"Unknown symbol {node.id!r} in boolean expression; "
+                f"only the declared parameter names {sorted(symbols.keys())} are allowed."
+            )
+        return symbol
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Invert):
+        return ~_ast_to_sympy_expr(node.operand, symbols)
+    if isinstance(node, ast.BinOp) and (binop := _BINOP_OPERATORS.get(type(node.op))) is not None:
+        left = _ast_to_sympy_expr(node.left, symbols)
+        right = _ast_to_sympy_expr(node.right, symbols)
+        return binop(left, right)
+    raise ValueError(
+        f"Disallowed expression element {type(node).__name__!r} in boolean expression. "
+        "Only the boolean operators '~', '&', '|', '^' over the declared parameter names "
+        "are supported."
+    )
+
+
+def _parse_boolean_expr(boolean_str: str, parameter_names: Sequence[str]) -> sympy.Basic:
+    """Safely parses a Boolean expression string into a SymPy expression.
+
+    This replaces `sympy.parsing.sympy_parser.parse_expr`, which evaluates its input with
+    Python's `eval` and therefore allows arbitrary code execution when the string originates
+    from an untrusted source (e.g. a circuit loaded via `cirq.read_json`). Instead, the string
+    is parsed with `ast.parse` and only a small set of boolean operations over the declared
+    `parameter_names` is accepted; anything else raises `ValueError`.
+
+    Args:
+        boolean_str: The Boolean expression, e.g., `"x0 & ~x1 ^ x2"`
+        parameter_names: The variable names that may appear in the expression.
+
+    Returns:
+        The corresponding SymPy boolean expression.
+
+    Raises:
+        ValueError: If `boolean_str` is not a syntactically valid expression or contains any
+            construct other than the allowed boolean operators over `parameter_names`.
+    """
+    try:
+        tree = ast.parse(boolean_str, mode='eval')
+    except SyntaxError:
+        raise ValueError(f"Invalid syntax in boolean expression: {boolean_str!r}")
+    symbols = {n: sympy.Symbol(n) for n in parameter_names}
+    return _ast_to_sympy_expr(tree.body, symbols)
 
 
 @value.value_equality
@@ -102,7 +166,10 @@ class BooleanHamiltonianGate(raw_types.Gate):
 
     def _decompose_(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         qubit_map = dict(zip(self._parameter_names, qubits))
-        boolean_exprs = [sympy_parser.parse_expr(boolean_str) for boolean_str in self._boolean_strs]
+        boolean_exprs = [
+            _parse_boolean_expr(boolean_str, self._parameter_names)
+            for boolean_str in self._boolean_strs
+        ]
         hamiltonian_polynomial_list = [
             PauliSum.from_boolean_expression(boolean_expr, qubit_map)
             for boolean_expr in boolean_exprs

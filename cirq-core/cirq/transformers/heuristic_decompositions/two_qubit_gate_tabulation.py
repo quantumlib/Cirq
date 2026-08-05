@@ -20,7 +20,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import reduce
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 import numpy as np
 
@@ -129,7 +129,7 @@ class TwoQubitGateTabulation:
 
         return TwoQubitGateTabulationResult(self.base_gate, unitary, tuple(out), actual, success)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             'base_gate': self.base_gate.tolist(),
             'kak_vecs': self.kak_vecs.tolist(),

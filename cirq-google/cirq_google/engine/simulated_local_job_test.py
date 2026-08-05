@@ -184,3 +184,90 @@ def test_run_batch_non_uniform_repetitions():
     assert np.all(results[0].measurements['m'] == 1)
     assert np.all(results[1].measurements['m'] == 1)
     assert job.execution_status() == quantum.ExecutionStatus.State.SUCCESS
+
+
+def test_batched_results_non_batch_job_raises():
+    program = ParentProgram([cirq.Circuit(cirq.X(Q), cirq.measure(Q, key='m'))], None)
+    job = SimulatedLocalJob(
+        job_id='test_job',
+        processor_id='test1',
+        parent_program=program,
+        repetitions=10,
+        sweeps=[cirq.UnitSweep],
+    )
+    with pytest.raises(ValueError, match='batched_results called for a non-batch program'):
+        _ = job.batched_results()
+
+
+def test_batched_results_batch_job():
+    program = ParentProgram(
+        [
+            cirq.Circuit(cirq.X(Q) ** sympy.Symbol('t'), cirq.measure(Q, key='m')),
+            cirq.Circuit(cirq.Z(Q) ** sympy.Symbol('t'), cirq.measure(Q, key='m')),
+        ],
+        None,
+    )
+    job = SimulatedLocalJob(
+        job_id='test_job',
+        processor_id='test1',
+        parent_program=program,
+        repetitions=100,
+        sweeps=[cirq.Points(key='t', points=[0, 1]), cirq.Points(key='t', points=[0, 1])],
+    )
+    assert job.execution_status() == quantum.ExecutionStatus.State.READY
+    batched = job.batched_results()
+    assert len(batched) == 2
+    assert len(batched[0]) == 2
+    assert len(batched[1]) == 2
+    assert np.all(batched[0][0].measurements['m'] == 0)
+    assert np.all(batched[0][1].measurements['m'] == 1)
+    assert np.all(batched[1][0].measurements['m'] == 0)
+    assert np.all(batched[1][1].measurements['m'] == 0)
+    assert job.execution_status() == quantum.ExecutionStatus.State.SUCCESS
+
+
+def test_batched_results_batch_job_async():
+    program = ParentProgram(
+        [
+            cirq.Circuit(cirq.X(Q), cirq.measure(Q, key='m')),
+            cirq.Circuit(cirq.Y(Q), cirq.measure(Q, key='m')),
+        ],
+        None,
+    )
+    job = SimulatedLocalJob(
+        job_id='test_job',
+        processor_id='test1',
+        parent_program=program,
+        repetitions=[10, 20],
+        sweeps=[cirq.UnitSweep, cirq.UnitSweep],
+        simulation_type=LocalSimulationType.ASYNCHRONOUS,
+    )
+    batched = job.batched_results()
+    assert len(batched) == 2
+    assert len(batched[0]) == 1
+    assert len(batched[1]) == 1
+    assert len(batched[0][0].measurements['m']) == 10
+    assert len(batched[1][0].measurements['m']) == 20
+    assert np.all(batched[0][0].measurements['m'] == 1)
+    assert np.all(batched[1][0].measurements['m'] == 1)
+    assert job.execution_status() == quantum.ExecutionStatus.State.SUCCESS
+
+
+def test_batched_results_unsupported_type():
+    program = ParentProgram(
+        [
+            cirq.Circuit(cirq.X(Q), cirq.measure(Q, key='m')),
+            cirq.Circuit(cirq.Y(Q), cirq.measure(Q, key='m')),
+        ],
+        None,
+    )
+    job = SimulatedLocalJob(
+        job_id='test_job',
+        processor_id='test1',
+        parent_program=program,
+        repetitions=10,
+        sweeps=[cirq.UnitSweep, cirq.UnitSweep],
+        simulation_type=LocalSimulationType.ASYNCHRONOUS_WITH_DELAY,
+    )
+    with pytest.raises(ValueError, match='Unsupported simulation type'):
+        _ = job.batched_results()

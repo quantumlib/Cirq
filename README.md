@@ -117,7 +117,7 @@ documentation for Cirq is available.
 [installation]: https://quantumai.google/cirq/start/install
 [basics]: https://quantumai.google/cirq/start/basics
 [Build]: https://quantumai.google/cirq/build
-[Simulate]: https://quantumai.google/cirq/simula
+[Simulate]: https://quantumai.google/cirq/simulate
 
 ### Reference Documentation
 
@@ -179,7 +179,7 @@ develop quantum programs for a variety of applications.
 width="150em" alt="Total number of contributors to Cirq"
 src="https://img.shields.io/github/contributors/quantumlib/cirq?label=Contributors&logo=github&color=ccc&style=flat-square"/></a>
 
-Cirq has benefited from [contributions] by over 200 people and
+Cirq has benefited from [contributions] by over 250 people and
 counting. We are dedicated to cultivating an open and inclusive community to
 build software for quantum computers, and have a community [code of conduct].
 
@@ -199,7 +199,7 @@ Stay on top of Cirq developments using the approach that best suits your needs:
 
 Cirq releases take place approximately every quarter.
 
-[`cirq-announce`]: https://groups.google.com/forum/#!forum/cirq-announce
+[`cirq-announce`]: https://groups.google.com/g/cirq-announce
 [repository notifications]: https://docs.github.com/github/managing-subscriptions-and-notifications-on-github/configuring-notifications
 [Cirq releases Atom feed]: https://github.com/quantumlib/Cirq/releases.atom
 [PyPI releases RSS feed]: https://pypi.org/rss/project/cirq/releases.xml
@@ -215,7 +215,7 @@ Cirq releases take place approximately every quarter.
 
 [Quantum Computing Stack Exchange]: https://quantumcomputing.stackexchange.com
 [`cirq`]: https://quantumcomputing.stackexchange.com/questions/tagged/cirq
-[_cirq-dev_]: https://groups.google.com/forum/#!forum/cirq-dev
+[_cirq-dev_]: https://groups.google.com/g/cirq-dev
 
 ### Contributions
 

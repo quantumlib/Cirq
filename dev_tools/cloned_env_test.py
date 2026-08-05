@@ -44,5 +44,5 @@ def test_isolated_env_cloning(cloned_env, param) -> None:
     assert {"name": "flynt", "version": "0.64"} in packages
     package_names = {p['name'] for p in packages}
     assert package_names.issuperset({"astor", "flynt", "pip"})
-    assert package_names.issubset({"astor", "flynt", "pip", "setuptools", "wheel"})
+    assert package_names.issubset({"astor", "flynt", "pip", "setuptools"})
     shutil.rmtree(env)

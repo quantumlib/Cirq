@@ -17,7 +17,9 @@
 from __future__ import annotations
 
 import datetime
-from collections.abc import Sequence
+import warnings
+from collections.abc import Awaitable, Callable, Sequence
+from http import HTTPStatus
 from typing import TYPE_CHECKING
 
 import duet
@@ -25,7 +27,7 @@ import duet
 import cirq
 from cirq_google.api import v1, v2
 from cirq_google.cloud import quantum
-from cirq_google.engine import abstract_job, calibration, engine_client
+from cirq_google.engine import abstract_job, calibration, engine_client, processor_config
 from cirq_google.engine.engine_result import EngineResult
 from cirq_google.engine.stream_manager import StreamError
 
@@ -34,6 +36,7 @@ if TYPE_CHECKING:
 
     import cirq_google.engine.engine as engine_base
     from cirq_google.engine.engine import engine_processor, engine_program
+
 
 TERMINAL_STATES = [
     quantum.ExecutionStatus.State.SUCCESS,
@@ -73,6 +76,7 @@ class EngineJob(abstract_job.AbstractJob):
         job_result_future: (
             duet.AwaitableFuture[quantum.QuantumResult | quantum.QuantumJob] | None
         ) = None,
+        recreate_job: Callable[[], Awaitable[EngineJob]] | None = None,
     ) -> None:
         """A job submitted to the engine.
 
@@ -94,6 +98,7 @@ class EngineJob(abstract_job.AbstractJob):
         self._results: Sequence[EngineResult] | None = None
         self._batched_results: Sequence[Sequence[EngineResult]] | None = None
         self._job_result_future = job_result_future
+        self._recreate_job = recreate_job
 
     def id(self) -> str:
         """Returns the job id."""
@@ -290,6 +295,59 @@ class EngineJob(abstract_job.AbstractJob):
         metrics = v2.metrics_pb2.MetricsSnapshot.FromString(response.data.value)
         return calibration.Calibration(metrics)
 
+    def get_config(self) -> processor_config.ProcessorConfig | None:
+        """Returns the configuration used for the job.
+
+        Returns None if the job is not in a terminal state (SUCCESS, FAILURE, CANCELLED).
+
+        Raises:
+            ValueError: If device_config_key is not set in the job execution status
+                or if the processor name cannot be determined.
+        """
+        job = self._inner_job()
+        status = job.execution_status
+        if status.state not in TERMINAL_STATES:
+            warnings.warn(
+                f"Job {self.job_id} is in non-terminal state {status.state.name}, "
+                "returning None for config."
+            )
+            return None
+
+        device_config_key = status.device_config_key
+
+        if not device_config_key:
+            raise ValueError(
+                "device_config_key is not set in job execution status "
+                f"(state: {status.state.name})."
+            )
+
+        if not device_config_key.config_alias or not (
+            device_config_key.snapshot_id or device_config_key.run
+        ):
+            raise ValueError(
+                f"device_config_key {device_config_key} in job execution status "
+                f"(state: {status.state.name}) must have both `config_alias` "
+                "and either `snapshot_id` or `run` set."
+            )
+
+        if status.processor_name:
+            processor_id = engine_client._ids_from_processor_name(status.processor_name)[1]
+        else:
+            raise ValueError("Processor name is not set in job status.")
+
+        if device_config_key.snapshot_id:
+            device_config_revision: processor_config.DeviceConfigRevision = (
+                processor_config.Snapshot(device_config_key.snapshot_id)
+            )
+        else:
+            device_config_revision = processor_config.Run(device_config_key.run)
+
+        return self.engine().get_processor_config(
+            processor_id=processor_id,
+            device_config_revision=device_config_revision,
+            config_name=device_config_key.config_alias,
+        )
+
     async def get_circuit_async(self, circuit_num: int | None = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the Quantum Engine job.
 
@@ -332,10 +390,37 @@ class EngineJob(abstract_job.AbstractJob):
                 or result_type == 'cirq.api.google.v2.Result'
             ):
                 v2_parsed_result = v2.result_pb2.Result.FromString(result.value)
-                self._results = self._get_job_results_v2(v2_parsed_result)
+                self._batched_results = self._get_batched_job_results_v2(v2_parsed_result)
+                self._results = _flatten(self._batched_results)
+            elif (
+                result_type == 'cirq.google.api.v2.QuantumCircuitCalibration'
+                or result_type == 'cirq.api.google.v2.QuantumCircuitCalibration'
+            ):
+                v2_calibration = v2.result_pb2.QuantumCircuitCalibration.FromString(result.value)
+                self._results = [
+                    EngineResult(
+                        job_id=self.id(),
+                        params=cirq.ParamResolver(
+                            dict(v2_calibration.calibrated_parameters.assignments)
+                        ),
+                    )
+                ]
             else:
                 raise ValueError(f'invalid result proto version: {result_type}')
         return self._results
+
+    async def batched_results_async(self) -> Sequence[Sequence[EngineResult]]:
+        """Returns the job results split by program/circuit in the batch.
+
+        Instead of flattening results into a single list, this will return a Sequence[EngineResult]
+        for each circuit in the batch.
+        """
+        if not self.program().is_batch():
+            raise ValueError('batched_results called for a non-batch program.')
+        await self.results_async()
+        if self._batched_results is None:
+            raise ValueError('batched_results was not populated for this batch job.')
+        return self._batched_results
 
     async def _await_result_async(self) -> quantum.QuantumResult:
         if self._job_result_future is not None:
@@ -354,17 +439,43 @@ class EngineJob(abstract_job.AbstractJob):
                 # If the stream has disconnected, attempt to retrieve the result without it.
                 pass
 
+        try:
+            self._job = await self._await_completion_by_polling()
+        except engine_client.EngineException as e:
+            if e.code == HTTPStatus.NOT_FOUND and self._recreate_job:
+                # If the program/job was not created successfully, attempt to recreate once.
+                recreate_job = self._recreate_job
+                self._recreate_job = None
+
+                new_job = await recreate_job()
+
+                self.project_id = new_job.project_id
+                self.program_id = new_job.program_id
+                self.job_id = new_job.job_id
+                self.context = new_job.context
+                self._job = new_job._job
+                self._results = new_job._results
+                self._batched_results = new_job._batched_results
+                self._job_result_future = new_job._job_result_future
+
+                self._job = await self._await_completion_by_polling()
+            else:
+                raise
+
+        _raise_on_failure(self._job)
+        response = await self.context.client.get_job_results_async(
+            self.project_id, self.program_id, self.job_id
+        )
+        return response
+
+    async def _await_completion_by_polling(self) -> quantum.QuantumJob:
         async with duet.timeout_scope(self.context.timeout):  # type: ignore[arg-type]
             while True:
                 job = await self._refresh_job_async()
                 if job.execution_status.state in TERMINAL_STATES:
                     break
                 await duet.sleep(1)
-        _raise_on_failure(job)
-        response = await self.context.client.get_job_results_async(
-            self.project_id, self.program_id, self.job_id
-        )
-        return response
+            return job
 
     def _get_job_results_v1(self, result: v1.program_pb2.Result) -> Sequence[EngineResult]:
         job_id = self.id()
@@ -395,6 +506,16 @@ class EngineJob(abstract_job.AbstractJob):
             EngineResult.from_result(result, job_id=job_id)
             for sweep_result in sweep_results
             for result in sweep_result
+        ]
+
+    def _get_batched_job_results_v2(
+        self, result: v2.result_pb2.Result
+    ) -> Sequence[Sequence[EngineResult]]:
+        sweep_results = v2.results_from_proto(result)
+        job_id = self.id()
+        return [
+            [EngineResult.from_result(r, job_id=job_id) for r in sweep_result]
+            for sweep_result in sweep_results
         ]
 
     def __str__(self) -> str:

@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import abc
+import itertools
 import warnings
 from collections.abc import Iterator, Sequence
 from functools import cached_property
@@ -45,7 +46,7 @@ class SimulatesIntermediateStateVector(
 ):
     """A simulator that accesses its state vector as it does its simulation.
 
-    Implementors of this interface should implement the _core_iterator
+    Implementers of this interface should implement the _core_iterator
     method."""
 
     def __init__(
@@ -191,7 +192,8 @@ class StateVectorTrialResult(
             shape = final.shape
             size = np.prod(shape, dtype=np.int64)
             final = final.reshape(size)
-            if len([1 for e in final if abs(e) > 0.001]) < 16:
+            iter_from_16th = itertools.islice((e for e in final if abs(e) > 0.001), 15, None)
+            if next(iter_from_16th, None) is None:
                 state_vector = qis.dirac_notation(final, 3, qid_shape(substate.qubits))
             else:
                 state_vector = str(final)

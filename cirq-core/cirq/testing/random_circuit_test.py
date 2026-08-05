@@ -73,7 +73,7 @@ def _cases_for_random_circuit():
 
 
 @pytest.mark.parametrize(
-    'n_qubits,n_moments,op_density,gate_domain,pass_qubits', _cases_for_random_circuit()
+    'n_qubits,n_moments,op_density,gate_domain,pass_qubits', list(_cases_for_random_circuit())
 )
 def test_random_circuit(
     n_qubits: int | Sequence[cirq.Qid],
@@ -137,8 +137,8 @@ def test_random_circuit_reproducible_between_runs() -> None:
 
 
 def test_random_two_qubit_circuit_with_czs() -> None:
-    num_czs = lambda circuit: len(
-        [o for o in circuit.all_operations() if isinstance(o.gate, cirq.CZPowGate)]
+    num_czs = lambda circuit: sum(
+        1 for o in circuit.all_operations() if isinstance(o.gate, cirq.CZPowGate)
     )
 
     c = cirq.testing.random_two_qubit_circuit_with_czs()

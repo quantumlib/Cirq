@@ -29,7 +29,7 @@ def test_sample_density_matrix_big_endian() -> None:
         matrix = cirq.to_valid_density_matrix(x, 3)
         sample = cirq.sample_density_matrix(matrix, [2, 1, 0])
         results.append(sample)
-    expecteds = [[list(reversed(x))] for x in list(itertools.product([False, True], repeat=3))]
+    expecteds = [[list(reversed(x))] for x in itertools.product([False, True], repeat=3)]
     for result, expected in zip(results, expecteds):
         np.testing.assert_equal(result, expected)
 
@@ -172,7 +172,7 @@ def test_measure_density_matrix_computational_basis() -> None:
         bits, out_matrix = cirq.measure_density_matrix(matrix, [2, 1, 0])
         results.append(bits)
         np.testing.assert_almost_equal(out_matrix, matrix)
-    expected = [list(reversed(x)) for x in list(itertools.product([False, True], repeat=3))]
+    expected = [list(reversed(x)) for x in itertools.product([False, True], repeat=3)]
     assert results == expected
 
 
@@ -183,7 +183,7 @@ def test_measure_density_matrix_computational_basis_reversed() -> None:
         bits, out_matrix = cirq.measure_density_matrix(matrix, [0, 1, 2])
         results.append(bits)
         np.testing.assert_almost_equal(out_matrix, matrix)
-    expected = [list(x) for x in list(itertools.product([False, True], repeat=3))]
+    expected = [list(x) for x in itertools.product([False, True], repeat=3)]
     assert results == expected
 
 
@@ -194,7 +194,7 @@ def test_measure_density_matrix_computational_basis_reshaped() -> None:
         bits, out_matrix = cirq.measure_density_matrix(matrix, [2, 1, 0])
         results.append(bits)
         np.testing.assert_almost_equal(out_matrix, matrix)
-    expected = [list(reversed(x)) for x in list(itertools.product([False, True], repeat=3))]
+    expected = [list(reversed(x)) for x in itertools.product([False, True], repeat=3)]
     assert results == expected
 
 

@@ -45,3 +45,11 @@ from cirq_google.ops.dynamical_decoupling_tag import (
 from cirq_google.ops.wait_gate import WaitGateWithUnit as WaitGateWithUnit
 
 from cirq_google.ops.willow_gate import WillowGate as WillowGate, WILLOW as WILLOW
+
+from cirq_google.ops.lzs_reset import LZSResetViaResonator as LZSResetViaResonator
+
+from cirq_google.ops.multi_level_reset import (
+    MultilevelResetViaResonator as MultilevelResetViaResonator,
+)
+
+from cirq_google.ops.leakage_iswap import LeakageISWAP as LeakageISWAP

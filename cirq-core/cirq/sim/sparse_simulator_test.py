@@ -409,7 +409,7 @@ def test_simulate_mixtures(dtype: type[np.complexfloating], split: bool) -> None
 
 
 @pytest.mark.parametrize(
-    'dtype, split', itertools.product([np.complex64, np.complex128], [True, False])
+    'dtype, split', list(itertools.product([np.complex64, np.complex128], [True, False]))
 )
 def test_simulate_qudit_mixtures(dtype: type[np.complexfloating], split: bool) -> None:
     q0 = cirq.LineQid(0, 3)

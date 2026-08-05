@@ -31,6 +31,7 @@ if TYPE_CHECKING:
     import cirq_google.engine.abstract_processor as abstract_processor
     import cirq_google.engine.abstract_program as abstract_program
     import cirq_google.engine.calibration as calibration
+    import cirq_google.engine.processor_config as processor_config
     from cirq_google.engine.engine_result import EngineResult
 
 
@@ -166,6 +167,10 @@ class AbstractJob(abc.ABC):
         one was captured, else None."""
 
     @abc.abstractmethod
+    def get_config(self) -> processor_config.ProcessorConfig | None:
+        """Returns the configuration used for the job, if available, else None."""
+
+    @abc.abstractmethod
     def get_circuit(self, circuit_num: int | None = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the job.
 
@@ -191,6 +196,16 @@ class AbstractJob(abc.ABC):
         """Returns the job results, blocking until the job is complete."""
 
     results = duet.sync(results_async)
+
+    @abc.abstractmethod
+    async def batched_results_async(self) -> Sequence[Sequence[EngineResult]]:
+        """Returns the job results split by program/circuit in the batch.
+
+        Instead of flattening results into a single list, this will return a Sequence[EngineResult]
+        for each circuit in the batch.
+        """
+
+    batched_results = duet.sync(batched_results_async)
 
     def __iter__(self) -> Iterator[cirq.Result]:
         yield from self.results()
