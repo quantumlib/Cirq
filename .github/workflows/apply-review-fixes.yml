@@ -1,0 +1,84 @@
+name: Apply review fixes
+
+on:
+  push:
+    branches:
+      - fix/6560-tag-circuit-diagram-info
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.head_commit.message == 'chore: apply requested review fixes'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/6560-tag-circuit-diagram-info
+          fetch-depth: 0
+
+      - name: Apply precise review changes
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import subprocess
+
+          protocol = Path('cirq-core/cirq/protocols/circuit_diagram_info_protocol.py')
+          text = protocol.read_text()
+          text = text.replace('def tag_diagram_str(self, tag: Any) -> str:', 'def _tag_diagram_str(self, tag: Any) -> str:')
+          text = text.replace('def format_tags_for_diagram(self, tags: Iterable[Any]) -> str:', 'def format_tags(self, tags: Iterable[Any]) -> str:')
+          text = text.replace('self.tag_diagram_str(tag)', 'self._tag_diagram_str(tag)')
+          protocol.write_text(text)
+
+          files = subprocess.check_output(
+              ['git', 'grep', '-l', 'format_tags_for_diagram'], text=True
+          ).splitlines()
+          for filename in files:
+              path = Path(filename)
+              path.write_text(path.read_text().replace('format_tags_for_diagram(', 'format_tags('))
+
+          raw_types = Path('cirq-core/cirq/ops/raw_types.py')
+          text = raw_types.read_text()
+          old = '''        sub_op_info = protocols.circuit_diagram_info(self.sub_operation, args, NotImplemented)
+        if sub_op_info is not NotImplemented and sub_op_info.wire_symbols:
+            tag_text = args.format_tags(self._tags)
+            if tag_text:
+                sub_op_info.wire_symbols = (
+                    sub_op_info.wire_symbols[0] + tag_text,
+                    *sub_op_info.wire_symbols[1:],
+                )
+        return sub_op_info
+'''
+          new = '''        sub_op_info = protocols.circuit_diagram_info(self.sub_operation, args, NotImplemented)
+        if sub_op_info is NotImplemented or not sub_op_info.wire_symbols:
+            return sub_op_info
+        tag_text = args.format_tags(self._tags)
+        if not tag_text:
+            return sub_op_info
+        return sub_op_info.with_wire_symbols(
+            (sub_op_info.wire_symbols[0] + tag_text, *sub_op_info.wire_symbols[1:])
+        )
+'''
+          if old not in text:
+              raise SystemExit('expected raw_types block not found')
+          raw_types.write_text(text.replace(old, new))
+          PY
+
+      - name: Run focused tests
+        run: |
+          python -m pytest \
+            cirq-core/cirq/ops/raw_types_test.py::test_circuit_diagram \
+            cirq-core/cirq/ops/raw_types_test.py::test_circuit_diagram_tagged_global_phase \
+            cirq-core/cirq/protocols/circuit_diagram_info_protocol_test.py
+
+      - name: Commit and push
+        shell: bash
+        run: |
+          rm .github/workflows/apply-review-fixes.yml
+          git config user.name sankalpsthakur
+          git config user.email 31366524+sankalpsthakur@users.noreply.github.com
+          git add -A
+          git commit -m 'Address circuit diagram review feedback'
+          git push origin HEAD:fix/6560-tag-circuit-diagram-info
