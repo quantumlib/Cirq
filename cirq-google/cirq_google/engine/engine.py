@@ -897,18 +897,6 @@ def get_engine_device(processor_id: str, project_id: str | None = None) -> cirq.
     return get_engine(project_id).get_processor(processor_id).get_device()
 
 
-def get_engine_calibration(
-    processor_id: str, project_id: str | None = None
-) -> cirq_google.Calibration | None:
-    """Returns calibration metrics for a given processor.
-
-    This is a short-cut for creating an engine object, getting the
-    processor object, and retrieving the current calibration.
-    May return None if no calibration metrics exist for the device.
-    """
-    return get_engine(project_id).get_processor(processor_id).get_current_calibration()
-
-
 def get_engine_sampler(
     processor_id: str, project_id: str | None = None
 ) -> cirq_google.ProcessorSampler:

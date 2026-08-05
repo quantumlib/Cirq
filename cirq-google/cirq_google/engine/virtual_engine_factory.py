@@ -222,13 +222,12 @@ def _create_virtual_processor_from_device(
         device_specification: a` DeviceSpecification` proto that the processor
             should return if `get_device_specification()` is queried.
     """
-    calibration = _create_perfect_calibration(device)
+    _create_perfect_calibration(device)
     return simulated_local_processor.SimulatedLocalProcessor(
         processor_id=processor_id,
         device=device,
         validator=engine_validator.create_engine_validator(),
         program_validator=engine_validator.create_program_validator(),
-        calibrations={calibration.timestamp // 1000: calibration},
         device_specification=device_specification,
     )
 
@@ -450,7 +449,7 @@ def create_default_noisy_quantum_virtual_machine(
         except ImportError:
             simulator_class = cirq.Simulator  # pragma: no cover
 
-    calibration = load_median_device_calibration(processor_id)
+    load_median_device_calibration(processor_id)
     device = create_device_from_processor_id(processor_id)
     noise_properties = load_device_noise_properties(processor_id)
     noise_model = NoiseModelFromGoogleNoiseProperties(noise_properties)
@@ -461,7 +460,6 @@ def create_default_noisy_quantum_virtual_machine(
         processor_id=processor_id,
         sampler=simulator,
         device=device,
-        calibrations={calibration.timestamp // 1000: calibration},
         device_specification=device_specification,
     )
 

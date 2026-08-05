@@ -19,7 +19,7 @@ from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING
 
 import cirq
-from cirq_google.engine import calibration, engine_validator, validating_sampler
+from cirq_google.engine import engine_validator, validating_sampler
 from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
 from cirq_google.engine.local_simulation_type import LocalSimulationType
 from cirq_google.engine.processor_sampler import ProcessorSampler
@@ -54,9 +54,6 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
     serialization constraints, for instance).  Jobs will then be
     executed using the provided sampler.
 
-    This class also supports a list of calibration metrics that are
-    stored in-memory to replicate Quantum Engine calibration metrics.
-
     This class can be used as a local emulator for the Quantum Engine
     API or for testing or mocking.
 
@@ -69,8 +66,6 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             based on the given serializer.
         simulation_type:  Whether sampler execution should be
             synchronous or asynchronous.
-        calibrations: A dictionary of calibration metrics keyed by epoch seconds
-            that can be returned by the processor.
         processor_id: Unique string id of the processor.
         engine: The parent `AbstractEngine` object, if available.
         expected_down_time: Optional datetime of the next expected downtime.
@@ -92,12 +87,10 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         validator: validating_sampler.VALIDATOR_TYPE | None = None,
         program_validator: engine_validator.PROGRAM_VALIDATOR_TYPE | None = None,
         simulation_type: LocalSimulationType = LocalSimulationType.SYNCHRONOUS,
-        calibrations: dict[int, calibration.Calibration] | None = None,
         device_specification: v2.device_pb2.DeviceSpecification | None = None,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
-        self._calibrations = calibrations or {}
         self._device = device
         self._simulation_type = simulation_type
         self._program_validator = program_validator or (lambda a, b, c, d: None)
@@ -113,17 +106,6 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         if program_id in self._programs:
             del self._programs[program_id]
 
-    def get_calibration(self, calibration_timestamp_seconds: int) -> calibration.Calibration:
-        return self._calibrations[calibration_timestamp_seconds]
-
-    def get_latest_calibration(self, timestamp: int) -> calibration.Calibration | None:
-        if not self._calibrations:
-            return None
-        return self._calibrations[max(self._calibrations)]
-
-    def get_current_calibration(self) -> calibration.Calibration | None:
-        return self.get_latest_calibration(int(datetime.datetime.now().timestamp()))
-
     def get_device(self) -> cirq.Device:
         """Returns a `cirq.Device` created from the processor's device specification.
 
@@ -138,23 +120,6 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
 
     def health(self):
         return 'OK'
-
-    def list_calibrations(
-        self,
-        earliest_timestamp: datetime.datetime | datetime.date | int | None = None,
-        latest_timestamp: datetime.datetime | datetime.date | int | None = None,
-        **kwargs,
-    ) -> list[calibration.Calibration]:
-        earliest_timestamp_seconds = _date_to_timestamp(earliest_timestamp) or 0
-        latest_timestamp_seconds = (
-            _date_to_timestamp(latest_timestamp)
-            or (datetime.datetime.now() + datetime.timedelta(days=10000)).timestamp()
-        )
-        return [
-            cal[1]
-            for cal in self._calibrations.items()
-            if earliest_timestamp_seconds <= cal[0] <= latest_timestamp_seconds
-        ]
 
     def get_sampler(self, run_name: str = "", device_config_name="") -> ProcessorSampler:
         return ProcessorSampler(
