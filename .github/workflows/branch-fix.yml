@@ -38,30 +38,29 @@ jobs:
           replace_in_matches('tag_diagram_str(', '_tag_diagram_str(')
 
           raw_types = Path('cirq-core/cirq/ops/raw_types.py')
-          text = raw_types.read_text()
-          old = '''        sub_op_info = protocols.circuit_diagram_info(self.sub_operation, args, NotImplemented)
-        if sub_op_info is not NotImplemented and sub_op_info.wire_symbols:
-            tag_text = args.format_tags(self._tags)
-            if tag_text:
-                sub_op_info.wire_symbols = (
-                    sub_op_info.wire_symbols[0] + tag_text,
-                    *sub_op_info.wire_symbols[1:],
-                )
-        return sub_op_info
-'''
-          new = '''        sub_op_info = protocols.circuit_diagram_info(self.sub_operation, args, NotImplemented)
-        if sub_op_info is NotImplemented or not sub_op_info.wire_symbols:
-            return sub_op_info
-        tag_text = args.format_tags(self._tags)
-        if not tag_text:
-            return sub_op_info
-        return sub_op_info.with_wire_symbols(
-            (sub_op_info.wire_symbols[0] + tag_text, *sub_op_info.wire_symbols[1:])
-        )
-'''
-          if old not in text:
-              raise SystemExit('expected TaggedOperation diagram block not found')
-          raw_types.write_text(text.replace(old, new))
+          lines = raw_types.read_text().splitlines()
+          start = next(
+              i
+              for i, line in enumerate(lines)
+              if line.strip()
+              == 'sub_op_info = protocols.circuit_diagram_info(self.sub_operation, args, NotImplemented)'
+          )
+          end = start
+          while lines[end].strip() != 'return sub_op_info':
+              end += 1
+          replacement = [
+              '        sub_op_info = protocols.circuit_diagram_info(self.sub_operation, args, NotImplemented)',
+              '        if sub_op_info is NotImplemented or not sub_op_info.wire_symbols:',
+              '            return sub_op_info',
+              '        tag_text = args.format_tags(self._tags)',
+              '        if not tag_text:',
+              '            return sub_op_info',
+              '        return sub_op_info.with_wire_symbols(',
+              '            (sub_op_info.wire_symbols[0] + tag_text, *sub_op_info.wire_symbols[1:])',
+              '        )',
+          ]
+          lines[start : end + 1] = replacement
+          raw_types.write_text('\n'.join(lines) + '\n')
           PY
 
       - name: Verify syntax
