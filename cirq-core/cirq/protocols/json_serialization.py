@@ -294,12 +294,12 @@ class CirqEncoder(json.JSONEncoder):
                 return {'cirq_type': 'sympy.pi'}
             if o is sympy.E:
                 # benchmark - check
-                return self._cache.setdefault(oid, {'cirq_type': 'sympy.E'})
-                # return {'cirq_type': 'sympy.E'}
+                # return self._cache.setdefault(oid, {'cirq_type': 'sympy.E'})
+                return {'cirq_type': 'sympy.E'}
             if o is sympy.EulerGamma:
                 # benchmark - check
-                # return self._cache.setdefault(oid, {'cirq_type': 'sympy.EulerGamma'})
-                return {'cirq_type': 'sympy.EulerGamma'}
+                return self._cache.setdefault(oid, {'cirq_type': 'sympy.EulerGamma'})
+                # return {'cirq_type': 'sympy.EulerGamma'}
 
         # A basic number object?
         if isinstance(o, numbers.Integral):
