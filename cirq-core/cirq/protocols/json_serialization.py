@@ -298,8 +298,8 @@ class CirqEncoder(json.JSONEncoder):
                 return {'cirq_type': 'sympy.E'}
             if o is sympy.EulerGamma:
                 # benchmark - check
-                return self._cache.setdefault(oid, {'cirq_type': 'sympy.EulerGamma'})
-                # return {'cirq_type': 'sympy.EulerGamma'}
+                # return self._cache.setdefault(oid, {'cirq_type': 'sympy.EulerGamma'})
+                return {'cirq_type': 'sympy.EulerGamma'}
 
         # A basic number object?
         if isinstance(o, numbers.Integral):
@@ -318,8 +318,8 @@ class CirqEncoder(json.JSONEncoder):
             return bool(o)
         if isinstance(o, np.ndarray):
             # benchmark - check
-            # return self._cache.setdefault(oid, o.tolist())
-            return o.tolist()
+            return self._cache.setdefault(oid, o.tolist())
+            # return o.tolist()
 
         # Pandas object?
         if isinstance(o, pd.MultiIndex):
