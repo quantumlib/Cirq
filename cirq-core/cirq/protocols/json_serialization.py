@@ -267,8 +267,8 @@ class CirqEncoder(json.JSONEncoder):
             ),
         ):
             # benchmark - check
-            return self._cache.setdefault(oid, {'cirq_type': f'sympy.{o.__class__.__name__}', 'args': o.args})
-            # return {'cirq_type': f'sympy.{o.__class__.__name__}', 'args': o.args}
+            # return self._cache.setdefault(oid, {'cirq_type': f'sympy.{o.__class__.__name__}', 'args': o.args})
+            return {'cirq_type': f'sympy.{o.__class__.__name__}', 'args': o.args}
 
         if isinstance(o, sympy.Integer):
             # benchmark - skip number-like value
@@ -280,8 +280,8 @@ class CirqEncoder(json.JSONEncoder):
 
         if isinstance(o, sympy.Rational):
             # benchmark - check
-            # return self._cache.setdefault(oid, {'cirq_type': 'sympy.Rational', 'p': o.p, 'q': o.q})
-            return {'cirq_type': 'sympy.Rational', 'p': o.p, 'q': o.q}
+            return self._cache.setdefault(oid, {'cirq_type': 'sympy.Rational', 'p': o.p, 'q': o.q})
+            # return {'cirq_type': 'sympy.Rational', 'p': o.p, 'q': o.q}
 
         if isinstance(o, sympy.NumberSymbol):
             # check if `o` is a numeric symbol,
