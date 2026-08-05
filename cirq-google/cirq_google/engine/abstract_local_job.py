@@ -191,11 +191,6 @@ class AbstractLocalJob(AbstractJob):
         if available, else None."""
         return self.engine().get_processor(self._processor_id)
 
-    def get_calibration(self) -> calibration.Calibration | None:
-        """Returns the recorded calibration at the time when the job was created,
-        from the parent Engine object."""
-        return None
-
     def get_circuit(self, circuit_num: int | None = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the job.
 

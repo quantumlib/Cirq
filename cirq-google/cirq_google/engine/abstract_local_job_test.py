@@ -169,10 +169,3 @@ def test_get_config():
         processor_config=mock_config,
     )
     assert job.get_config() == mock_config
-
-
-def test_get_calibration():
-    job = NothingJob(
-        job_id='test', processor_id='pot_of_gold', parent_program=None, repetitions=100, sweeps=[]
-    )
-    assert job.get_calibration() is None
