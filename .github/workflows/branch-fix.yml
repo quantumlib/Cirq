@@ -1,0 +1,14 @@
+name: Branch fix
+
+"on":
+  push:
+    branches: ["fix/6560-tag-circuit-diagram-info"]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo ok
