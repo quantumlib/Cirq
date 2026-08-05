@@ -304,7 +304,6 @@ The Willow105 device is a 105-qubit layout representing Google's Willow processo
 It can be accessed by using `cirq_google.Willow105`. This device supports:
 
 *   Controlled-Z gate (`cirq.CZ`).
-*   Willow gate (`cirq_google.WILLOW`), equivalent to `FSimGate(π/2, π/9)`.
 *   Arbitrary single-qubit rotations (`cirq.PhasedXZGate`).
 
 ### Sycamore

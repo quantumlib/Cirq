@@ -122,7 +122,6 @@ q1 = cirq.GridQubit(6, 7)
 circuit = cirq.Circuit(cirq.CNOT(q0, q1))
 
 # raises ValueError
-# Raises a ValueError, since CNOT is not a supported gate.
 device.validate_circuit(circuit)
 ```
 
