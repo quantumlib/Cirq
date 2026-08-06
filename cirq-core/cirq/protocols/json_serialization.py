@@ -234,8 +234,8 @@ class CirqEncoder(json.JSONEncoder):
                 self._memo[o] = ref
                 return {"cirq_type": "VAL", "key": key, "val": json_dict}
             # benchmark - check
-            # return self._cache.setdefault(oid, json_dict)
-            return json_dict
+            return self._cache.setdefault(oid, json_dict)
+            # return json_dict
 
         # Sympy object? (Must come before general number checks.)
         # TODO: More support for sympy
@@ -342,8 +342,8 @@ class CirqEncoder(json.JSONEncoder):
         # datetime
         if isinstance(o, datetime.datetime):
             # benchmark - check
-            return self._cache.setdefault(oid, {'cirq_type': 'datetime.datetime', 'timestamp': o.timestamp()})
-            # return {'cirq_type': 'datetime.datetime', 'timestamp': o.timestamp()}
+            # return self._cache.setdefault(oid, {'cirq_type': 'datetime.datetime', 'timestamp': o.timestamp()})
+            return {'cirq_type': 'datetime.datetime', 'timestamp': o.timestamp()}
 
         return super().default(o)  # pragma: no cover
 
