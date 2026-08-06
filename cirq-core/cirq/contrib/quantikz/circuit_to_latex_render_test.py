@@ -13,6 +13,8 @@
 # limitations under the License.
 
 import pathlib
+import subprocess
+from unittest import mock
 
 import numpy as np
 
@@ -42,3 +44,15 @@ def test_render_circuit(tmp_path: pathlib.Path) -> None:
     assert (tmp_path / "my_circuit.png").is_file()
     assert (tmp_path / "my_circuit.tex").is_file()
     assert (tmp_path / "my_circuit.pdf").is_file()
+
+
+def test_render_circuit_disables_pdflatex_shell_escape() -> None:
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.measure(q))
+    with mock.patch('subprocess.run', return_value=subprocess.CompletedProcess([], 0)) as mock_run:
+        render_circuit(circuit)
+    pdflatex_calls = [call for call in mock_run.call_args_list if "pdflatex" in call.args[0][0]]
+    assert pdflatex_calls
+    for call in pdflatex_calls:
+        assert "-no-shell-escape" in call.args[0]
+        assert "-shell-escape" not in call.args[0]

@@ -34,11 +34,33 @@ class DeviceSpecification(_message.Message):
 
     DESCRIPTOR: _descriptor.Descriptor
 
+    @_typing.final
+    class QubitAttributesEntry(_message.Message):
+        DESCRIPTOR: _descriptor.Descriptor
+
+        KEY_FIELD_NUMBER: _builtins.int
+        VALUE_FIELD_NUMBER: _builtins.int
+        key: _builtins.str
+        @_builtins.property
+        def value(self) -> Global___QubitAttributes: ...
+        def __init__(
+            self,
+            *,
+            key: _builtins.str = ...,
+            value: Global___QubitAttributes | None = ...,
+        ) -> None: ...
+        _HasFieldArgType: _TypeAlias = _typing.Literal["value", b"value"]  # noqa: Y015
+        def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+        _ClearFieldArgType: _TypeAlias = _typing.Literal["key", b"key", "value", b"value"]  # noqa: Y015
+        def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+        def WhichOneof(self, oneof_group: _Never) -> None: ...
+
     VALID_GATE_SETS_FIELD_NUMBER: _builtins.int
     VALID_GATES_FIELD_NUMBER: _builtins.int
     VALID_QUBITS_FIELD_NUMBER: _builtins.int
     VALID_TARGETS_FIELD_NUMBER: _builtins.int
     DEVELOPER_RECOMMENDATIONS_FIELD_NUMBER: _builtins.int
+    QUBIT_ATTRIBUTES_FIELD_NUMBER: _builtins.int
     developer_recommendations: _builtins.str
     """Additional recommendations, caveats, and soft requirements that
     are advice to users of the device, specified in English text
@@ -71,6 +93,10 @@ class DeviceSpecification(_message.Message):
     def valid_targets(self) -> _containers.RepeatedCompositeFieldContainer[Global___TargetSet]:
         """A list of targets that gates can use."""
 
+    @_builtins.property
+    def qubit_attributes(self) -> _containers.MessageMap[_builtins.str, Global___QubitAttributes]:
+        """Qubit attributes for the device."""
+
     def __init__(
         self,
         *,
@@ -79,10 +105,11 @@ class DeviceSpecification(_message.Message):
         valid_qubits: _abc.Iterable[_builtins.str] | None = ...,
         valid_targets: _abc.Iterable[Global___TargetSet] | None = ...,
         developer_recommendations: _builtins.str = ...,
+        qubit_attributes: _abc.Mapping[_builtins.str, Global___QubitAttributes] | None = ...,
     ) -> None: ...
     _HasFieldArgType: _TypeAlias = _Never  # noqa: Y015
     def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["developer_recommendations", b"developer_recommendations", "valid_gate_sets", b"valid_gate_sets", "valid_gates", b"valid_gates", "valid_qubits", b"valid_qubits", "valid_targets", b"valid_targets"]  # noqa: Y015
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["developer_recommendations", b"developer_recommendations", "qubit_attributes", b"qubit_attributes", "valid_gate_sets", b"valid_gate_sets", "valid_gates", b"valid_gates", "valid_qubits", b"valid_qubits", "valid_targets", b"valid_targets"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
     def WhichOneof(self, oneof_group: _Never) -> None: ...
 
@@ -709,3 +736,78 @@ class Target(_message.Message):
     def WhichOneof(self, oneof_group: _Never) -> None: ...
 
 Global___Target: _TypeAlias = Target  # noqa: Y015
+
+@_typing.final
+class QubitAttributes(_message.Message):
+    """Qubit attributes for a specific qubit."""
+
+    DESCRIPTOR: _descriptor.Descriptor
+
+    @_typing.final
+    class AttributesEntry(_message.Message):
+        DESCRIPTOR: _descriptor.Descriptor
+
+        KEY_FIELD_NUMBER: _builtins.int
+        VALUE_FIELD_NUMBER: _builtins.int
+        key: _builtins.str
+        @_builtins.property
+        def value(self) -> Global___QubitAttributeValue: ...
+        def __init__(
+            self,
+            *,
+            key: _builtins.str = ...,
+            value: Global___QubitAttributeValue | None = ...,
+        ) -> None: ...
+        _HasFieldArgType: _TypeAlias = _typing.Literal["value", b"value"]  # noqa: Y015
+        def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+        _ClearFieldArgType: _TypeAlias = _typing.Literal["key", b"key", "value", b"value"]  # noqa: Y015
+        def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+        def WhichOneof(self, oneof_group: _Never) -> None: ...
+
+    ATTRIBUTES_FIELD_NUMBER: _builtins.int
+    @_builtins.property
+    def attributes(self) -> _containers.MessageMap[_builtins.str, Global___QubitAttributeValue]: ...
+    def __init__(
+        self,
+        *,
+        attributes: _abc.Mapping[_builtins.str, Global___QubitAttributeValue] | None = ...,
+    ) -> None: ...
+    _HasFieldArgType: _TypeAlias = _Never  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["attributes", b"attributes"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def WhichOneof(self, oneof_group: _Never) -> None: ...
+
+Global___QubitAttributes: _TypeAlias = QubitAttributes  # noqa: Y015
+
+@_typing.final
+class QubitAttributeValue(_message.Message):
+    """A generic value for a qubit attribute."""
+
+    DESCRIPTOR: _descriptor.Descriptor
+
+    STRING_VALUE_FIELD_NUMBER: _builtins.int
+    INT_VALUE_FIELD_NUMBER: _builtins.int
+    DOUBLE_VALUE_FIELD_NUMBER: _builtins.int
+    BOOL_VALUE_FIELD_NUMBER: _builtins.int
+    string_value: _builtins.str
+    int_value: _builtins.int
+    double_value: _builtins.float
+    bool_value: _builtins.bool
+    def __init__(
+        self,
+        *,
+        string_value: _builtins.str = ...,
+        int_value: _builtins.int = ...,
+        double_value: _builtins.float = ...,
+        bool_value: _builtins.bool = ...,
+    ) -> None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["bool_value", b"bool_value", "double_value", b"double_value", "int_value", b"int_value", "string_value", b"string_value", "val", b"val"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["bool_value", b"bool_value", "double_value", b"double_value", "int_value", b"int_value", "string_value", b"string_value", "val", b"val"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    _WhichOneofReturnType_val: _TypeAlias = _typing.Literal["string_value", "int_value", "double_value", "bool_value"]  # noqa: Y015
+    _WhichOneofArgType_val: _TypeAlias = _typing.Literal["val", b"val"]  # noqa: Y015
+    def WhichOneof(self, oneof_group: _WhichOneofArgType_val) -> _WhichOneofReturnType_val | None: ...
+
+Global___QubitAttributeValue: _TypeAlias = QubitAttributeValue  # noqa: Y015

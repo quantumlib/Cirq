@@ -57,7 +57,6 @@ from __future__ import annotations
 import inspect
 import pathlib
 import re
-from collections.abc import Iterator
 from re import Pattern
 from typing import Any
 
@@ -84,10 +83,8 @@ def test_can_run_readme_code_snippets():
     assert_file_has_working_code_snippets(readme_path, assume_import=False)
 
 
-def find_docs_code_snippets_paths() -> Iterator[str]:
-    for filename in DOCS_FOLDER.rglob('*.md'):
-        path = filename.relative_to(DOCS_FOLDER).as_posix()
-        yield path
+def find_docs_code_snippets_paths() -> list[str]:
+    return [filename.relative_to(DOCS_FOLDER).as_posix() for filename in DOCS_FOLDER.rglob('*.md')]
 
 
 @pytest.mark.parametrize('path', find_docs_code_snippets_paths())

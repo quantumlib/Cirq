@@ -2684,8 +2684,8 @@ def density_operator_basis(n_qubits: int) -> Iterator[np.ndarray]:
 
 @pytest.mark.parametrize(
     'circuit, initial_state',
-    itertools.chain(
-        itertools.product(
+    [
+        *itertools.product(
             [
                 cirq.Circuit(cirq.I(q0)),
                 cirq.Circuit(cirq.X(q0)),
@@ -2696,7 +2696,7 @@ def density_operator_basis(n_qubits: int) -> Iterator[np.ndarray]:
             ],
             density_operator_basis(n_qubits=1),
         ),
-        itertools.product(
+        *itertools.product(
             [
                 cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1)),
                 cirq.Circuit(cirq.depolarize(0.2).on(q0), cirq.CNOT(q0, q1)),
@@ -2709,7 +2709,7 @@ def density_operator_basis(n_qubits: int) -> Iterator[np.ndarray]:
             ],
             density_operator_basis(n_qubits=2),
         ),
-        itertools.product(
+        *itertools.product(
             [
                 cirq.Circuit(
                     cirq.depolarize(0.1, n_qubits=2).on(q0, q1),
@@ -2721,7 +2721,7 @@ def density_operator_basis(n_qubits: int) -> Iterator[np.ndarray]:
             ],
             density_operator_basis(n_qubits=3),
         ),
-    ),
+    ],
 )
 def test_compare_circuits_superoperator_to_simulation(circuit, initial_state) -> None:
     """Compares action of circuit superoperator and circuit simulation."""
@@ -3130,7 +3130,7 @@ def test_items() -> None:
     cirq.testing.assert_same_circuits(c, cirq.Circuit([m1]))
 
     with pytest.raises(TypeError):
-        c[:] = [m1, 1]  # type: ignore
+        c[:] = [m1, 1]  # type: ignore[list-item]
     with pytest.raises(TypeError):
         c[0] = 1  # type: ignore[call-overload]
 
@@ -5156,4 +5156,16 @@ def test_insert_in_existing_moment_measurement_control_key_conflict() -> None:
 
     assert c == cirq.Circuit(
         cirq.Moment(cirq.X(q1).with_classical_controls("k")), cirq.Moment(cirq.measure(q0, key="k"))
+    )
+
+
+def test_insert_moment_with_same_measurement_control_keys() -> None:
+    c1 = cirq.Circuit()
+    c1.insert(0, cirq.Moment(cirq.measure(q0, key="k"), cirq.measure(q1, key="k")))
+    assert c1 == cirq.Circuit(cirq.Moment(cirq.measure(q0, key="k"), cirq.measure(q1, key="k")))
+
+    c2 = cirq.Circuit()
+    c2.insert(0, cirq.Moment(cirq.measure(q0, key="k"), cirq.X(q1).with_classical_controls("k")))
+    assert c2 == cirq.Circuit(
+        cirq.Moment(cirq.measure(q0, key="k"), cirq.X(q1).with_classical_controls("k"))
     )

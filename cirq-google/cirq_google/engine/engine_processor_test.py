@@ -378,6 +378,59 @@ def test_get_sampler_from_run_name_with_defaults() -> None:
     assert sampler.device_config_name == default_config_alias
 
 
+def test_get_sampler_initializes_jobs_per_batch() -> None:
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                run="run", config_alias="config_alias"
+            )
+        ),
+    )
+    sampler_default = processor.get_sampler()
+    assert sampler_default._jobs_per_batch == 1
+
+    jobs_per_batch = 5
+    sampler = processor.get_sampler(jobs_per_batch=jobs_per_batch)
+    assert sampler._jobs_per_batch == jobs_per_batch
+
+
+def test_get_sampler_initializes_jobs_per_batch_with_snapshot() -> None:
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                config_alias="config_alias", snapshot_id="snap"
+            )
+        ),
+    )
+    snapshot = Snapshot(id='test_snapshot')
+    jobs_per_batch = 5
+    sampler = processor.get_sampler(device_config_revision=snapshot, jobs_per_batch=jobs_per_batch)
+    assert sampler._jobs_per_batch == jobs_per_batch
+
+
+def test_get_sampler_initializes_jobs_per_batch_with_run() -> None:
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                run="run", config_alias="config_alias"
+            )
+        ),
+    )
+    run = Run(id='test_run')
+    jobs_per_batch = 5
+    sampler = processor.get_sampler(device_config_revision=run, jobs_per_batch=jobs_per_batch)
+    assert sampler._jobs_per_batch == jobs_per_batch
+
+
 def test_get_sampler_from_snapshot_id() -> None:
     default_snapshot_id = 'default_snap'
     processor = cg.EngineProcessor(
@@ -525,12 +578,6 @@ def test_create_reservation(create_reservation):
         datetime.datetime.fromtimestamp(1000003600),
         ['dstrain@google.com'],
     )
-    with cirq.testing.assert_deprecated('Change whitelisted_users', deadline='v1.7'):
-        _ = processor.create_reservation(
-            datetime.datetime.fromtimestamp(1000000000),
-            datetime.datetime.fromtimestamp(1000003600),
-            whitelisted_users=['dstrain@google.com'],
-        )
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.delete_reservation_async')
@@ -679,10 +726,6 @@ def test_update_reservation(update_reservation):
     update_reservation.assert_called_once_with(
         'proj', 'p0', 'rid', start=start, end=end, allowlisted_users=['dstrain@google.com']
     )
-    with cirq.testing.assert_deprecated('Change whitelisted_users', deadline='v1.7'):
-        _ = processor.update_reservation(
-            'rid', start, end, whitelisted_users=['dstrain@google.com']
-        )
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_reservations_async')
@@ -1285,3 +1328,43 @@ def test_list_configs_from_run(client):
     assert results[0].config_name == expected_configs[0].config_name
     assert results[1].snapshot_id == expected_configs[1].snapshot_id
     assert results[1].config_name == expected_configs[1].config_name
+
+
+def test_get_sampler_invalid_revision_type():
+    processor = cg.EngineProcessor(
+        project_id="test_project_id", processor_id="test_proc_id", context=EngineContext()
+    )
+    with pytest.raises(TypeError, match="device_config_revision must be an instance of"):
+        _ = processor.get_sampler(device_config_revision="2026-03-04_193134.630")
+
+
+def test_get_config_invalid_revision_type():
+    processor = cg.EngineProcessor(
+        project_id="test_project_id",
+        processor_id="test_proc_id",
+        context=EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                run="default_run", config_alias="default_alias"
+            )
+        ),
+    )
+
+    with pytest.raises(TypeError, match="device_config_revision must be an instance of"):
+        _ = processor.get_config(device_config_revision="2026-03-04_193134.630")
+
+
+def test_list_configs_invalid_revision_type():
+    processor = cg.EngineProcessor(
+        project_id="test_project_id",
+        processor_id="test_proc_id",
+        context=EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                run="default_run", config_alias="default_alias"
+            )
+        ),
+    )
+
+    with pytest.raises(TypeError, match="device_config_revision must be an instance of"):
+        _ = processor.list_configs(device_config_revision="2026-02-20_114756.470")

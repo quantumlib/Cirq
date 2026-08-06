@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2025 Google LLC
+# Copyright 2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@ from __future__ import annotations
 
 from typing import MutableMapping, MutableSequence
 
+import google.protobuf.duration_pb2 as duration_pb2  # type: ignore
+import google.protobuf.field_mask_pb2 as field_mask_pb2  # type: ignore
 import proto  # type: ignore
-from google.protobuf import duration_pb2  # type: ignore
-from google.protobuf import field_mask_pb2  # type: ignore
 
 from cirq_google.cloud.quantum_v1alpha1.types import quantum
 
@@ -48,6 +48,8 @@ __protobuf__ = proto.module(
         'GetQuantumProcessorConfigRequest',
         'ListQuantumProcessorConfigsRequest',
         'ListQuantumProcessorConfigsResponse',
+        'ListQuantumProcessorAutomationRunHistoryRequest',
+        'ListQuantumProcessorAutomationRunHistoryResponse',
         'ListQuantumCalibrationsRequest',
         'ListQuantumCalibrationsResponse',
         'GetQuantumCalibrationRequest',
@@ -69,6 +71,8 @@ __protobuf__ = proto.module(
         'ListQuantumReservationBudgetsResponse',
         'ListQuantumTimeSlotsRequest',
         'ListQuantumTimeSlotsResponse',
+        'CompileQecProgramRequest',
+        'CompileQecProgramResponse',
     },
 )
 
@@ -113,17 +117,20 @@ class ListQuantumJobsRequest(proto.Message):
         parent (str):
             -
         page_size (int):
-            -
+            Optional. -
         page_token (str):
-            -
+            Optional. -
         filter (str):
-            -
+            Optional. -
+        order_by (str):
+            Optional. -
     """
 
     parent: str = proto.Field(proto.STRING, number=1)
     page_size: int = proto.Field(proto.INT32, number=2)
     page_token: str = proto.Field(proto.STRING, number=3)
     filter: str = proto.Field(proto.STRING, number=4)
+    order_by: str = proto.Field(proto.STRING, number=5)
 
 
 class ListQuantumJobsResponse(proto.Message):
@@ -440,6 +447,45 @@ class ListQuantumProcessorConfigsResponse(proto.Message):
 
     quantum_processor_configs: MutableSequence[quantum.QuantumProcessorConfig] = (
         proto.RepeatedField(proto.MESSAGE, number=1, message=quantum.QuantumProcessorConfig)
+    )
+    next_page_token: str = proto.Field(proto.STRING, number=2)
+
+
+class ListQuantumProcessorAutomationRunHistoryRequest(proto.Message):
+    r"""-
+
+    Attributes:
+        parent (str):
+            -
+        page_size (int):
+            -
+        page_token (str):
+            -
+    """
+
+    parent: str = proto.Field(proto.STRING, number=1)
+    page_size: int = proto.Field(proto.INT32, number=2)
+    page_token: str = proto.Field(proto.STRING, number=3)
+
+
+class ListQuantumProcessorAutomationRunHistoryResponse(proto.Message):
+    r"""-
+
+    Attributes:
+        run_history (MutableSequence[cirq_google.cloud.quantum_v1alpha1.types.QuantumProcessorAutomationRunHistory]):
+            -
+        next_page_token (str):
+            -
+    """
+
+    @property
+    def raw_page(self):
+        return self
+
+    run_history: MutableSequence[quantum.QuantumProcessorAutomationRunHistory] = (
+        proto.RepeatedField(
+            proto.MESSAGE, number=1, message=quantum.QuantumProcessorAutomationRunHistory
+        )
     )
     next_page_token: str = proto.Field(proto.STRING, number=2)
 
@@ -917,6 +963,48 @@ class ListQuantumTimeSlotsResponse(proto.Message):
         proto.MESSAGE, number=1, message=quantum.QuantumTimeSlot
     )
     next_page_token: str = proto.Field(proto.STRING, number=2)
+
+
+class CompileQecProgramRequest(proto.Message):
+    r"""-
+
+    .. _oneof: https://proto-plus-python.readthedocs.io/en/stable/fields.html#oneofs-mutually-exclusive-fields
+
+    Attributes:
+        name (str):
+            -
+        stim_circuit (str):
+            -
+
+            This field is a member of `oneof`_ ``circuit``.
+        recipe (cirq_google.cloud.quantum_v1alpha1.types.QecRecipe):
+            -
+        processor_id (str):
+            -
+        device_config_selector (cirq_google.cloud.quantum_v1alpha1.types.DeviceConfigSelector):
+            -
+    """
+
+    name: str = proto.Field(proto.STRING, number=1)
+    stim_circuit: str = proto.Field(proto.STRING, number=2, oneof='circuit')
+    recipe: quantum.QecRecipe = proto.Field(proto.MESSAGE, number=3, message=quantum.QecRecipe)
+    processor_id: str = proto.Field(proto.STRING, number=4)
+    device_config_selector: quantum.DeviceConfigSelector = proto.Field(
+        proto.MESSAGE, number=5, message=quantum.DeviceConfigSelector
+    )
+
+
+class CompileQecProgramResponse(proto.Message):
+    r"""-
+
+    Attributes:
+        program (cirq_google.cloud.quantum_v1alpha1.types.QuantumProgram):
+            -
+    """
+
+    program: quantum.QuantumProgram = proto.Field(
+        proto.MESSAGE, number=1, message=quantum.QuantumProgram
+    )
 
 
 __all__ = tuple(sorted(__protobuf__.manifest))

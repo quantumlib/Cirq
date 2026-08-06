@@ -255,7 +255,7 @@ def test_phase_by() -> None:
 
 
 @pytest.mark.parametrize(
-    'exponent,phase_exponent', itertools.product(np.arange(-2.5, 2.75, 0.25), repeat=2)
+    'exponent,phase_exponent', list(itertools.product(np.arange(-2.5, 2.75, 0.25), repeat=2))
 )
 def test_exponent_consistency(exponent, phase_exponent) -> None:
     """Verifies that instances of PhasedX gate expose consistent exponents."""

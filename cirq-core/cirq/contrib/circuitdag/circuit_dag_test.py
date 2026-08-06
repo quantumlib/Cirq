@@ -229,7 +229,7 @@ def _get_circuits_and_is_blockers():
     ]
     not_on_edge = lambda op: len(op.qubits) > 1 and set(op.qubits) not in edges
     is_blockers = [lambda op: False, not_on_edge]
-    return itertools.product(circuits, is_blockers)
+    return list(itertools.product(circuits, is_blockers))
 
 
 @pytest.mark.parametrize('circuit, is_blocker', _get_circuits_and_is_blockers())

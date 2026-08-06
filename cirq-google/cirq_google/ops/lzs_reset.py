@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Any
 
 import cirq
-from cirq_google.ops.internal_gate import InternalGate
 
 
-class LZSResetViaResonator(InternalGate):
+@cirq.value_equality
+class LZSResetViaResonator(cirq.Gate):
     """Qubit reset via LZS swap with resonator.
 
     This is a specialized type of reset that uses a dual-passage
@@ -25,8 +26,14 @@ class LZSResetViaResonator(InternalGate):
     to actively reset a qubit.
     """
 
-    def __init__(self, gate_name=None, gate_module=None, num_qubits=1, **kwargs):
-        super().__init__(gate_name="LZSResetViaResonator", num_qubits=1)
+    def __init__(self, num_qubits: int = 1, **kwargs):
+        self._num_qubits = num_qubits
+
+    def _num_qubits_(self) -> int:
+        return self._num_qubits
+
+    def _value_equality_values_(self):
+        return (self._num_qubits,)
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> list[str]:
         return ["[R (LZS)]"]
@@ -37,7 +44,7 @@ class LZSResetViaResonator(InternalGate):
     def _decompose_(self, qubits):
         return cirq.reset_each(*qubits)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return {}
 
     def __repr__(self) -> str:

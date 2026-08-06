@@ -142,7 +142,7 @@ class CircuitDag(networkx.DiGraph):
     def __ne__(self, other):
         return not self == other
 
-    __hash__ = None  # type: ignore
+    __hash__ = None  # type: ignore[assignment]
 
     def ordered_nodes(self) -> Iterator[Unique[cirq.Operation]]:
         if not self.nodes():

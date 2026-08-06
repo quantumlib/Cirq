@@ -533,9 +533,11 @@ def test_reset_one_qubit_does_not_affect_partial_trace_of_other_qubits(
 
 @pytest.mark.parametrize(
     'dtype,circuit',
-    itertools.product(
-        [np.complex64, np.complex128],
-        [cirq.testing.random_circuit(cirq.LineQubit.range(4), 5, 0.9) for _ in range(20)],
+    list(
+        itertools.product(
+            [np.complex64, np.complex128],
+            [cirq.testing.random_circuit(cirq.LineQubit.range(4), 5, 0.9) for _ in range(20)],
+        )
     ),
 )
 def test_simulate_compare_to_state_vector_simulator(
