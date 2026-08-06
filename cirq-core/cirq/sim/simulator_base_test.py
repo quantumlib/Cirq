@@ -23,6 +23,8 @@ import pytest
 import sympy
 
 import cirq
+from cirq import devices, ops
+from cirq.devices import noise_utils
 
 
 class CountingState(cirq.qis.QuantumStateRepresentation):
@@ -454,3 +456,50 @@ def test_inhomogeneous_measurement_count_padding() -> None:
     results = sim.run(c, repetitions=10)
     for i in range(10):
         assert np.sum(results.records['m'][i, :, :]) == 1
+
+
+def test_simulates_noise_only_on_valid_gates_and_qubits() -> None:
+    expected_single_qubit_gates = [cirq.XPowGate, cirq.ZPowGate]
+    expected_qubits = [cirq.GridQubit(1, 2)]
+
+    unexpected_qubits = [cirq.GridQubit(2, 2)]
+
+    class TestNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
+        @classmethod
+        def single_qubit_gates(cls) -> set[type[ops.Gate]]:
+            return set(expected_single_qubit_gates)
+
+        @classmethod
+        def symmetric_two_qubit_gates(cls) -> set[type[ops.Gate]]:
+            return set()
+
+        @classmethod
+        def asymmetric_two_qubit_gates(cls) -> set[type[ops.Gate]]:
+            return set()
+
+    noise_props = TestNoiseProperties(
+        gate_times_ns=dict.fromkeys(expected_single_qubit_gates, 1e9),
+        t1_ns=dict.fromkeys(expected_qubits, 1e9),
+        tphi_ns=dict.fromkeys(expected_qubits, 1e9),
+        readout_errors=dict.fromkeys(expected_qubits, [0.5, 0.5]),
+        gate_pauli_errors={
+            noise_utils.OpIdentifier(gate, expected_qubits[0]): 0
+            for gate in expected_single_qubit_gates
+        },
+    )
+    noise_model = devices.NoiseModelFromNoiseProperties(noise_props)
+
+    simulator = cirq.Simulator(noise=noise_model)
+
+    valid_circuit_invalid_qubits = cirq.Circuit(cirq.X(unexpected_qubits[0]))
+    valid_circuit_valid_qubits = cirq.Circuit(cirq.X(expected_qubits[0]))
+    invalid_circuit_invalid_qubits = cirq.Circuit(cirq.Y(unexpected_qubits[0]))
+    invalid_circuit_valid_qubits = cirq.Circuit(cirq.Y(expected_qubits[0]))
+
+    with pytest.raises(TypeError):
+        simulator.simulate(invalid_circuit_invalid_qubits)
+    with pytest.raises(TypeError):
+        simulator.simulate(invalid_circuit_valid_qubits)
+    with pytest.raises(TypeError):
+        simulator.simulate(valid_circuit_invalid_qubits)
+    simulator.simulate(valid_circuit_valid_qubits)
