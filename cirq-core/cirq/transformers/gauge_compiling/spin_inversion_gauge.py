@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 from cirq import ops
+from cirq._doc import document
 from cirq.transformers.gauge_compiling.gauge_compiling import (
     GaugeSelector,
     GaugeTransformer,
@@ -32,4 +33,11 @@ SpinInversionGaugeSelector = GaugeSelector(
 
 SpinInversionGaugeTransformer = GaugeTransformer(
     target=ops.GateFamily(ops.ZZPowGate), gauge_selector=SpinInversionGaugeSelector
+)
+document(
+    SpinInversionGaugeTransformer,
+    r"""A GaugeTransformer that gauges gates in the ZZPowGate family by either applying an X gate before and after the two qubits or doing nothing.
+
+    Usage: `SpinInversionGaugeTransformer(circuit)` will return a new circuit with all gates in the ZZPowGate family gauged by the gauges.
+    """,
 )

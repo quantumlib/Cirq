@@ -20,6 +20,7 @@ from collections.abc import Sequence
 from numbers import Real
 from typing import TYPE_CHECKING
 
+from cirq._doc import document
 from cirq.ops import CZ, CZPowGate, Gate, Gateset, S, X
 from cirq.transformers.gauge_compiling.gauge_compiling import (
     ConstantGauge,
@@ -81,4 +82,11 @@ SqrtCZGaugeTransformer = GaugeTransformer(
     two_qubit_gate_symbolizer=TwoQubitGateSymbolizer(
         symbolizer_fn=_symbolize_as_cz_pow, n_symbols=1
     ),
+)
+document(
+    SqrtCZGaugeTransformer,
+    r"""A GaugeTransformer that gauges CZ**0.5 and CZ**-0.5 gates.
+
+    Usage: `SqrtCZGaugeTransformer(circuit)` will return a new circuit with all CZ**0.5 and CZ**-0.5 gates gauged by the SqrtCZGauge gauge.
+    """,
 )
