@@ -171,3 +171,29 @@ def test_circuit():
 
     with pytest.raises(IndexError):
         _ = program.get_circuit(2)
+
+
+def test_batch_keys():
+    circuit1 = cirq.Circuit(cirq.X(cirq.LineQubit(1)))
+    circuit2 = cirq.Circuit(cirq.Y(cirq.LineQubit(2)))
+
+    # Single circuit, non-batch
+    program = NothingProgram([circuit1], None)
+    with pytest.raises(ValueError, match="not a batch program"):
+        _ = program.batch_keys()
+
+    # Multi circuit list
+    program = NothingProgram([circuit1, circuit2], None)
+    assert program.batch_keys() == ['', '']
+
+    # Dict mapping multi-circuit
+    program = NothingProgram({'a': circuit1, 'b': circuit2}, None)
+    assert program.is_batch()
+    assert program.batch_size() == 2
+    assert program.batch_keys() == ['a', 'b']
+
+    # Dict mapping single-circuit
+    program = NothingProgram({'only': circuit1}, None)
+    assert program.is_batch()
+    assert program.batch_size() == 1
+    assert program.batch_keys() == ['only']

@@ -41,7 +41,7 @@ class AbstractLocalJob(AbstractJob):
     Implementers of this class should write the following functions:
       - Status functions: execution_status, failure
       - Action functions: cancel, delete
-      - Result functions: results, batched_results, calibration_results
+      - Result functions: results, batched_results, mappings_results, calibration_results
 
     Attributes:
       processor_ids: A string list of processor ids that this job can be run on.

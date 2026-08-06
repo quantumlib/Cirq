@@ -437,6 +437,19 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     batch_size = duet.sync(batch_size_async)
 
+    async def batch_keys_async(self) -> list[str]:
+        """Returns the keys for circuits in a batch program.
+
+        Raises:
+            ValueError: if the program created was not a batch program.
+        """
+        proto = await self._get_proto_async()
+        if not await self.is_batch_async():
+            raise ValueError(f"Program {self.program_id} is not a batch program.")
+        return [kc.key for kc in proto.keyed_circuits]
+
+    batch_keys = duet.sync(batch_keys_async)
+
     async def delete_async(self, delete_jobs: bool = False) -> None:
         """Deletes a previously created quantum program.
 

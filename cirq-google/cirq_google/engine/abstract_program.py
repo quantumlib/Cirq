@@ -192,6 +192,14 @@ class AbstractProgram(abc.ABC):
         """
 
     @abc.abstractmethod
+    def batch_keys(self) -> Sequence[str]:
+        """Returns the keys for circuits in a batch program.
+
+        Raises:
+            ValueError: if the program created was not a batch program.
+        """
+
+    @abc.abstractmethod
     def delete(self, delete_jobs: bool = False) -> None:
         """Deletes a previously created quantum program.
 
