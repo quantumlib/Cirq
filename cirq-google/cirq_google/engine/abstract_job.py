@@ -224,7 +224,8 @@ class AbstractJob(abc.ABC):
             raise ValueError('mappings_results called for a batch job without circuit keys.')
         if len(keys) != len(batched):
             raise ValueError(
-                f'Number of keys ({len(keys)}) does not match number of batch results ({len(batched)}).'
+                f'Number of keys ({len(keys)}) does not match '
+                f'number of batch results ({len(batched)}).'
             )
         return dict(zip(keys, batched))
 

@@ -51,7 +51,7 @@ class MockJob(AbstractJob):
         pass
 
     def program(self) -> abstract_program.AbstractProgram:
-        return getattr(self, '_mock_program', MockProgram())
+        return getattr(self, '_mock_program', MockProgram())  # type: ignore[arg-type]
 
     def create_time(self) -> datetime.datetime:  # type: ignore[empty-body]
         pass
