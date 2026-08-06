@@ -30,7 +30,6 @@ if TYPE_CHECKING:
     import cirq_google.engine.abstract_engine as abstract_engine
     import cirq_google.engine.abstract_processor as abstract_processor
     import cirq_google.engine.abstract_program as abstract_program
-    import cirq_google.engine.calibration as calibration
     import cirq_google.engine.processor_config as processor_config
     from cirq_google.engine.engine_result import EngineResult
 
@@ -160,11 +159,6 @@ class AbstractJob(abc.ABC):
     def get_processor(self) -> abstract_processor.AbstractProcessor | None:
         """Returns the AbstractProcessor for the processor the job is/was run on,
         if available, else None."""
-
-    @abc.abstractmethod
-    def get_calibration(self) -> calibration.Calibration | None:
-        """Returns the recorded calibration at the time when the job was run, if
-        one was captured, else None."""
 
     @abc.abstractmethod
     def get_config(self) -> processor_config.ProcessorConfig | None:

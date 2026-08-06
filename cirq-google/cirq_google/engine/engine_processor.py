@@ -20,32 +20,15 @@ from typing import TYPE_CHECKING
 
 from cirq_google.api import v2
 from cirq_google.devices import grid_device
-from cirq_google.engine import (
-    abstract_processor,
-    calibration,
-    processor_config,
-    processor_sampler,
-    util,
-)
+from cirq_google.engine import abstract_processor, processor_config, processor_sampler, util
 
 if TYPE_CHECKING:
-    from google.protobuf import any_pb2
 
     import cirq
     import cirq_google as cg
     import cirq_google.cloud.quantum as quantum
     import cirq_google.engine.abstract_job as abstract_job
     import cirq_google.engine.engine as engine_base
-
-
-def _date_to_timestamp(union_time: datetime.datetime | datetime.date | int | None) -> int | None:
-    if isinstance(union_time, int):
-        return union_time
-    elif isinstance(union_time, datetime.datetime):
-        return int(union_time.timestamp())
-    elif isinstance(union_time, datetime.date):
-        return int(datetime.datetime.combine(union_time, datetime.datetime.min.time()).timestamp())
-    return None
 
 
 class EngineProcessor(abstract_processor.AbstractProcessor):
@@ -285,66 +268,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             raise ValueError('Processor does not have a device specification')
         return grid_device.GridDevice.from_proto(spec)
 
-    def list_calibrations(
-        self,
-        earliest_timestamp: datetime.datetime | datetime.date | int | None = None,
-        latest_timestamp: datetime.datetime | datetime.date | int | None = None,
-    ) -> list[calibration.Calibration]:
-        """Retrieve metadata about a specific calibration run.
-
-        Params:
-            earliest_timestamp: The earliest timestamp of a calibration to return in UTC.
-            latest_timestamp: The latest timestamp of a calibration to return in UTC.
-
-        Returns:
-            The list of calibration data with the most recent first.
-        """
-        earliest_timestamp_seconds = _date_to_timestamp(earliest_timestamp)
-        latest_timestamp_seconds = _date_to_timestamp(latest_timestamp)
-
-        if earliest_timestamp_seconds and latest_timestamp_seconds:
-            filter_str = (
-                f'timestamp >= {earliest_timestamp_seconds:d} AND '
-                f'timestamp <= {latest_timestamp_seconds:d}'
-            )
-        elif earliest_timestamp_seconds:
-            filter_str = f'timestamp >= {earliest_timestamp_seconds:d}'
-        elif latest_timestamp_seconds:
-            filter_str = f'timestamp <= {latest_timestamp_seconds:d}'
-        else:
-            filter_str = ''
-        response = self.context.client.list_calibrations(
-            self.project_id, self.processor_id, filter_str
-        )
-        return [_to_calibration(c.data) for c in response]
-
-    def get_calibration(self, calibration_timestamp_seconds: int) -> calibration.Calibration:
-        """Retrieve metadata about a specific calibration run.
-
-        Params:
-            calibration_timestamp_seconds: The timestamp of the calibration in
-                seconds since epoch.
-
-        Returns:
-            The calibration data.
-        """
-        response = self.context.client.get_calibration(
-            self.project_id, self.processor_id, calibration_timestamp_seconds
-        )
-        return _to_calibration(response.data)
-
-    def get_current_calibration(self) -> calibration.Calibration | None:
-        """Returns metadata about the current calibration for a processor.
-
-        Returns:
-            The calibration data or None if there is no current calibration.
-        """
-        response = self.context.client.get_current_calibration(self.project_id, self.processor_id)
-        if response is not None:
-            return _to_calibration(response.data)
-        else:
-            return None
-
     def create_reservation(
         self,
         start_time: datetime.datetime,
@@ -557,11 +480,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             f"EngineProcessor(project_id={self.project_id!r}, "
             f"processor_id={self.processor_id!r})"
         )
-
-
-def _to_calibration(calibration_any: any_pb2.Any) -> calibration.Calibration:
-    metrics = v2.metrics_pb2.MetricsSnapshot.FromString(calibration_any.value)
-    return calibration.Calibration(metrics)
 
 
 def _to_date_time_filters(

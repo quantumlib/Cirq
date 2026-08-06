@@ -77,9 +77,6 @@ class MockJob(AbstractJob):
     def get_processor(self):
         pass
 
-    def get_calibration(self):
-        pass
-
     def get_config(self):
         pass
 

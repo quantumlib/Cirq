@@ -883,79 +883,6 @@ class EngineClient:
 
     get_processor = duet.sync(get_processor_async)
 
-    async def list_calibrations_async(
-        self, project_id: str, processor_id: str, filter_str: str = ''
-    ) -> list[quantum.QuantumCalibration]:
-        """Returns a list of quantum calibrations.
-
-        Args:
-            project_id: A project_id of the parent Google Cloud Project.
-            processor_id: The processor unique identifier.
-            filter_str: Filter string current only supports 'timestamp' with values
-            of epoch time in seconds or short string 'yyyy-MM-dd'. For example:
-                'timestamp > 1577960125 AND timestamp <= 1578241810'
-                'timestamp > 2020-01-02 AND timestamp <= 2020-01-05'
-
-        Returns:
-            A list of calibrations.
-        """
-        request = quantum.ListQuantumCalibrationsRequest(
-            parent=_processor_name_from_ids(project_id, processor_id), filter=filter_str
-        )
-        return await self._send_list_request_async(
-            self.grpc_client.list_quantum_calibrations, request
-        )
-
-    list_calibrations = duet.sync(list_calibrations_async)
-
-    async def get_calibration_async(
-        self, project_id: str, processor_id: str, calibration_timestamp_seconds: int
-    ) -> quantum.QuantumCalibration:
-        """Returns a quantum calibration.
-
-        Args:
-            project_id: A project_id of the parent Google Cloud Project.
-            processor_id: The processor unique identifier.
-            calibration_timestamp_seconds: The timestamp of the calibration in
-                seconds.
-
-        Returns:
-            The quantum calibration.
-        """
-        request = quantum.GetQuantumCalibrationRequest(
-            name=_calibration_name_from_ids(project_id, processor_id, calibration_timestamp_seconds)
-        )
-        return await self._send_request_async(self.grpc_client.get_quantum_calibration, request)
-
-    get_calibration = duet.sync(get_calibration_async)
-
-    async def get_current_calibration_async(
-        self, project_id: str, processor_id: str
-    ) -> quantum.QuantumCalibration | None:
-        """Returns the current quantum calibration for a processor if it has one.
-
-        Args:
-            project_id: A project_id of the parent Google Cloud Project.
-            processor_id: The processor unique identifier.
-
-        Returns:
-            The quantum calibration or None if there is no current calibration.
-
-        Raises:
-            EngineException: If the request for calibration fails.
-        """
-        try:
-            request = quantum.GetQuantumCalibrationRequest(
-                name=_processor_name_from_ids(project_id, processor_id) + '/calibrations/current'
-            )
-            return await self._send_request_async(self.grpc_client.get_quantum_calibration, request)
-        except EngineException as err:
-            if isinstance(err.__cause__, NotFound):
-                return None
-            raise
-
-    get_current_calibration = duet.sync(get_current_calibration_async)
-
     async def create_reservation_async(
         self,
         project_id: str,
@@ -1356,14 +1283,6 @@ def _processor_name_from_ids(project_id: str, processor_id: str) -> str:
     return f'projects/{project_id}/processors/{processor_id}'
 
 
-def _calibration_name_from_ids(
-    project_id: str, processor_id: str, calibration_time_seconds: int
-) -> str:
-    return (
-        f'projects/{project_id}/processors/{processor_id}/calibrations/{calibration_time_seconds}'
-    )
-
-
 def _reservation_name_from_ids(project_id: str, processor_id: str, reservation_id: str) -> str:
     return f'projects/{project_id}/processors/{processor_id}/reservations/{reservation_id}'
 
@@ -1381,11 +1300,6 @@ def _ids_from_job_name(job_name: str) -> tuple[str, str, str]:
 def _ids_from_processor_name(processor_name: str) -> tuple[str, str]:
     parts = processor_name.split('/')
     return parts[1], parts[3]
-
-
-def _ids_from_calibration_name(calibration_name: str) -> tuple[str, str, int]:
-    parts = calibration_name.split('/')
-    return parts[1], parts[3], int(parts[5])
 
 
 def _quantum_processor_revision_path(

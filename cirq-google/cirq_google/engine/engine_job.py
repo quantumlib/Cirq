@@ -27,7 +27,7 @@ import duet
 import cirq
 from cirq_google.api import v1, v2
 from cirq_google.cloud import quantum
-from cirq_google.engine import abstract_job, calibration, engine_client, processor_config
+from cirq_google.engine import abstract_job, engine_client, processor_config
 from cirq_google.engine.engine_result import EngineResult
 from cirq_google.engine.stream_manager import StreamError
 
@@ -283,17 +283,6 @@ class EngineJob(abstract_job.AbstractJob):
 
         ids = engine_client._ids_from_processor_name(status.processor_name)
         return engine_processor.EngineProcessor(ids[0], ids[1], self.context)
-
-    def get_calibration(self) -> calibration.Calibration | None:
-        """Returns the recorded calibration at the time when the job was run, if
-        one was captured, else None."""
-        status = self._inner_job().execution_status
-        if not status.calibration_name:
-            return None
-        ids = engine_client._ids_from_calibration_name(status.calibration_name)
-        response = self.context.client.get_calibration(*ids)
-        metrics = v2.metrics_pb2.MetricsSnapshot.FromString(response.data.value)
-        return calibration.Calibration(metrics)
 
     def get_config(self) -> processor_config.ProcessorConfig | None:
         """Returns the configuration used for the job.
